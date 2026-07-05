@@ -6,6 +6,24 @@
 
 ---
 
+## ✅ SHIPPED 2026-07-05 — To-Dos add-panel visibility + connect badge
+
+On `dev` (4d7e588). To-Dos composer no longer washed out: solid outlines +
+near-full-opacity hint text, low-alpha fills killed. Fields locked to their
+original height (only the numerals enlarged). Header `+` turns red when active
+(no filled box), doesn't inflate the header, hidden until the To-Dos menu is
+open. Removed the clipped connect-button pings badge — the `(count)` beside the
+header is the badge. CLAUDE.md **Rule #2** added: UI must be human-visible, no
+default half-opacity.
+
+**QUEUED (not built) — Pings unread behavior (Brendon, 2026-07-05):** header
+`(count)` should show the TRUE unread total and tick DOWN as pings are seen; new
+pings arrive fresh at the top; a ping is NOT "seen" on panel open — only once the
+user SCROLLS the menu (proves they looked). Today it clears unread the instant
+the panel opens. Also: Brendon wants his pings cleaned out (live data).
+
+---
+
 ## 🔧 IN FLIGHT 2026-07-04 — SWITCH APP TO PNG THUMBNAILS (simulate Arweave via Cloudflare)
 
 **Branch `claude/arweave-sepolia-cloudflare-yc9566` (NOT on dev yet).** THE TASK,
