@@ -225,3 +225,173 @@ export function snapshotAt(history: ReplayHistory, f: number): ReplaySnapshot {
     volume: lerp(a.volume, b.volume, frac),
   };
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   THE REAL THING — history from the actual ledger (Brendon, 2026-07-05:
+   "I love it, just make it real"). Same output shapes; the player is
+   untouched. The seeded builder above stays ONLY as the fallback for a
+   project whose ledger is still empty.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/** One raw ledger row, as /api/project/[slug]/replay serves it. */
+export interface LedgerEventRow {
+  type: string;
+  token_id: string | null;
+  from_address: string | null;
+  to_address: string | null;
+  price_eth: number | string | null;
+  /** Unix SECONDS (the events table convention). */
+  timestamp: number | string;
+}
+
+interface WalkEvent {
+  t: number; // ms
+  type: 'MINT' | 'LIST' | 'SALE' | 'XFER';
+  token: string | null;
+  from: string | null;
+  to: string | null;
+  price: number | null;
+}
+
+function normalizeRow(r: LedgerEventRow): WalkEvent | null {
+  const sec = Number(r.timestamp);
+  if (!Number.isFinite(sec) || sec <= 0) return null;
+  const price = r.price_eth != null && Number(r.price_eth) > 0 ? Number(r.price_eth) : null;
+  let type: WalkEvent['type'];
+  if (r.type === 'MINT') type = 'MINT';
+  else if (r.type === 'LIST') type = 'LIST';
+  else if (r.type === 'XFER') type = price != null ? 'SALE' : 'XFER';
+  else return null;
+  return { t: sec * 1000, type, token: r.token_id, from: r.from_address, to: r.to_address, price };
+}
+
+/**
+ * Build a Project's REAL history by replaying its ledger. Every number is
+ * derived: holders from the ownership walk (MINT/XFER move tokens between
+ * wallets), the floor from the active-listing set (LIST adds, a token's
+ * sale/transfer clears its listing — delistings aren't evented, the one
+ * honest approximation), sales + volume from priced transfers. Returns null
+ * when the ledger is empty (caller falls back to the seeded biography).
+ */
+export function buildReplayHistoryFromLedger(
+  rows: LedgerEventRow[],
+  opts: { uploadedAtMs?: number | null; maxSupply?: number | null; nowMs?: number } = {},
+): ReplayHistory | null {
+  const evs = rows.map(normalizeRow).filter((e): e is WalkEvent => !!e).sort((a, b) => a.t - b.t);
+  if (evs.length === 0) return null;
+
+  const nowMs = opts.nowMs ?? Date.now();
+  const startMs = Math.min(
+    evs[0].t,
+    opts.uploadedAtMs != null && Number.isFinite(opts.uploadedAtMs) ? opts.uploadedAtMs : evs[0].t,
+  );
+  const endMs = Math.max(nowMs, evs[evs.length - 1].t);
+  if (endMs <= startMs) return null;
+  const span = endMs - startMs;
+
+  // ── The walk ────────────────────────────────────────────────────────────
+  const ownerOf = new Map<string, string>();      // token → wallet
+  const holdings = new Map<string, number>();     // wallet → token count
+  const listed = new Map<string, number>();       // token → asking price
+  let holders = 0;
+  let salesCount = 0;
+  let volume = 0;
+  let floor = 0;
+
+  const gain = (addr: string | null) => {
+    if (!addr) return;
+    const a = addr.toLowerCase();
+    const n = (holdings.get(a) ?? 0) + 1;
+    holdings.set(a, n);
+    if (n === 1) holders++;
+  };
+  const lose = (addr: string | null) => {
+    if (!addr) return;
+    const a = addr.toLowerCase();
+    const n = (holdings.get(a) ?? 0) - 1;
+    if (n <= 0) { if (holdings.has(a)) holders--; holdings.delete(a); }
+    else holdings.set(a, n);
+  };
+  const recomputeFloor = () => {
+    floor = 0;
+    listed.forEach((p) => { if (floor === 0 || p < floor) floor = p; });
+  };
+
+  const SAMPLES = 240;
+  const snapshots: ReplaySnapshot[] = [];
+  const events: ReplayEvent[] = [];
+  const push = (t: number, kind: ReplayEventKind, label: string, milestone: boolean, price?: number) => {
+    events.push({ t, f: (t - startMs) / span, kind, label, milestone, ...(price != null ? { price } : {}) });
+  };
+
+  let mintCount = 0;
+  let athSale: { t: number; price: number } | null = null;
+  let firstTradeDone = false;
+  let athFloor = 0;
+  const saleDots: { t: number; price: number }[] = [];
+
+  let ei = 0;
+  let lastEventT = startMs;
+  let quiet: { t: number; gap: number } | null = null;
+
+  for (let s = 0; s <= SAMPLES; s++) {
+    const sampleT = startMs + (span * s) / SAMPLES;
+    while (ei < evs.length && evs[ei].t <= sampleT) {
+      const e = evs[ei++];
+      const gap = e.t - lastEventT;
+      if (gap > (quiet?.gap ?? 0)) quiet = { t: lastEventT + gap / 2, gap };
+      lastEventT = e.t;
+      if (e.type === 'MINT') {
+        gain(e.to);
+        if (e.token) ownerOf.set(e.token, (e.to ?? '').toLowerCase());
+        mintCount++;
+        if (mintCount === 1) push(e.t, 'mint', 'FIRST BLOOD', true, e.price ?? undefined);
+        else if (mintCount === 18) push(e.t, 'mint', 'GRADUATED · NOW MINTING', true);
+        else if (mintCount === 22) push(e.t, 'mint', 'LUCKY 22', true);
+        else if (mintCount === 100) push(e.t, 'mint', 'CENTURY CLUB', true);
+        if (opts.maxSupply && mintCount === opts.maxSupply) push(e.t, 'mint', `SOLD OUT · ${mintCount}`, true);
+      } else if (e.type === 'LIST') {
+        if (e.token && e.price != null) { listed.set(e.token, e.price); recomputeFloor(); }
+      } else { // SALE / XFER — the token changes hands; its listing clears.
+        if (e.token) {
+          const prev = ownerOf.get(e.token);
+          lose(e.from ?? prev ?? null);
+          gain(e.to);
+          ownerOf.set(e.token, (e.to ?? '').toLowerCase());
+          if (listed.delete(e.token)) recomputeFloor();
+        }
+        if (e.type === 'SALE' && e.price != null) {
+          salesCount++;
+          volume += e.price;
+          saleDots.push({ t: e.t, price: e.price });
+          if (!firstTradeDone) { firstTradeDone = true; push(e.t, 'firstSale', `FIRST TRADE · ${e.price.toFixed(3)} ETH`, true, e.price); }
+          if (!athSale || e.price > athSale.price) athSale = { t: e.t, price: e.price };
+        }
+      }
+    }
+    if (floor > athFloor) athFloor = floor;
+    snapshots.push({
+      t: sampleT,
+      floor,
+      holders,
+      listings: listed.size,
+      sales: salesCount,
+      volume: Math.round(volume * 1000) / 1000,
+    });
+  }
+
+  // Narrated moments derived after the walk.
+  push(startMs, 'mint', opts.uploadedAtMs != null ? 'GENESIS' : 'THE RECORD BEGINS', true);
+  if (athSale && salesCount > 1) push(athSale.t, 'ath', `ALL-TIME HIGH · ${athSale.price.toFixed(3)} ETH`, true, athSale.price);
+  if (quiet && quiet.gap >= 14 * DAY_MS && quiet.gap >= span * 0.2) push(quiet.t, 'quiet', 'THE QUIET WEEKS', true);
+
+  // Sale dots for texture — cap so a busy ledger doesn't carpet the chart.
+  const step = Math.max(1, Math.ceil(saleDots.length / 48));
+  for (let i = 0; i < saleDots.length; i += step) {
+    const d = saleDots[i];
+    push(d.t, 'sale', 'SALE', false, d.price);
+  }
+
+  events.sort((a, b) => a.f - b.f);
+  return { startMs, endMs, snapshots, events, athFloor: Math.max(athFloor, floor) };
+}

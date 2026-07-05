@@ -17,7 +17,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useProject } from '../../lib/state/ProjectContext';
 import { getProject, projectColorway } from '../../lib/project/registry';
-import { buildReplayHistory, snapshotAt, type ReplayEndState, type ReplayEvent } from '../../lib/replay/history';
+import {
+  buildReplayHistory,
+  buildReplayHistoryFromLedger,
+  snapshotAt,
+  type LedgerEventRow,
+  type ReplayEndState,
+  type ReplayEvent,
+} from '../../lib/replay/history';
 
 const SPEEDS = [1, 5, 22] as const;
 type Speed = (typeof SPEEDS)[number];
@@ -61,10 +68,42 @@ export default function ReplayPanel() {
     };
   }, [project.outputs, project.stats, project.totalOutputs, def]);
 
-  const history = useMemo(
-    () => buildReplayHistory(project.slug, end),
-    [project.slug, end],
-  );
+  /* THE REAL LEDGER (Brendon, 2026-07-05: "just make it real") — fetch the
+     project's actual event stream and replay it. The seeded biography stays
+     ONLY as the fallback while a project's ledger is still empty, so the
+     panel is never dead. */
+  const [ledger, setLedger] = useState<{
+    events: LedgerEventRow[];
+    uploadedAtMs: number | null;
+    maxSupply: number | null;
+  } | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    setLedger(null);
+    fetch(`/api/project/${project.slug}/replay`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (cancelled || !d || !Array.isArray(d.events)) return;
+        setLedger({
+          events: d.events as LedgerEventRow[],
+          uploadedAtMs: typeof d.uploadedAtMs === 'number' ? d.uploadedAtMs : null,
+          maxSupply: typeof d.maxSupply === 'number' ? d.maxSupply : null,
+        });
+      })
+      .catch(() => { /* seeded fallback covers it */ });
+    return () => { cancelled = true; };
+  }, [project.slug]);
+
+  const history = useMemo(() => {
+    if (ledger && ledger.events.length > 0) {
+      const real = buildReplayHistoryFromLedger(ledger.events, {
+        uploadedAtMs: ledger.uploadedAtMs,
+        maxSupply: ledger.maxSupply,
+      });
+      if (real) return real;
+    }
+    return buildReplayHistory(project.slug, end);
+  }, [ledger, project.slug, end]);
 
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState<Speed>(1);
