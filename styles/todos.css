@@ -58,8 +58,8 @@
     margin: 2px 6px 6px;
     padding: 8px;
     border-radius: 5px;
-    background: color-mix(in srgb, currentColor 14%, transparent);
-    border: 1px solid color-mix(in srgb, currentColor 34%, transparent);
+    background: color-mix(in srgb, currentColor 12%, transparent);
+    border: 1px solid currentColor;
 }
 .todo-compose-input {
     width: 100%;
@@ -69,7 +69,7 @@
     font: 600 12px/1.3 inherit;
     outline: none;
 }
-.todo-compose-input::placeholder { color: color-mix(in srgb, currentColor 68%, transparent); }
+.todo-compose-input::placeholder { color: color-mix(in srgb, currentColor 90%, transparent); }
 .todo-compose-row {
     display: flex;
     align-items: center;
@@ -82,10 +82,13 @@
     font-weight: 700;
     letter-spacing: 0.3px;
     color: inherit;
-    background: color-mix(in srgb, currentColor 18%, transparent);
-    border: 1px solid color-mix(in srgb, currentColor 40%, transparent);
+    background: color-mix(in srgb, currentColor 12%, transparent);
+    border: 1px solid currentColor;
     border-radius: 3px;
-    padding: 4px 7px;
+    height: 22px;
+    box-sizing: border-box;
+    line-height: 20px;
+    padding: 0 7px;
     cursor: pointer;
     white-space: nowrap;
     transition: border-color 0.15s, color 0.15s;
@@ -112,7 +115,7 @@
     font: 700 13px/1 'Courier New', Courier, monospace;
     outline: none;
 }
-.todo-price-input::placeholder { color: color-mix(in srgb, currentColor 68%, transparent); }
+.todo-price-input::placeholder { color: color-mix(in srgb, currentColor 90%, transparent); }
 .todo-pri-btn.on { border-color: var(--hothurt, #ff0055); }
 .todo-pri-btn.on.p1 { color: var(--hothurt, #ff0055); }
 .todo-add {
@@ -146,14 +149,14 @@
 .todo-filter-chip {
     font: 700 10px/1 'Courier New', Courier, monospace;
     letter-spacing: 0.3px;
-    background: color-mix(in srgb, currentColor 16%, transparent);
-    border: 1px solid color-mix(in srgb, currentColor 36%, transparent);
+    background: color-mix(in srgb, currentColor 14%, transparent);
+    border: 1px solid color-mix(in srgb, currentColor 80%, transparent);
     border-radius: 3px;
     padding: 4px 7px;
     cursor: pointer;
     transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
-.todo-filter-chip:hover { border-color: color-mix(in srgb, currentColor 60%, transparent); }
+.todo-filter-chip:hover { border-color: currentColor; }
 .todo-filter-chip.on {
     opacity: 1;
     background: var(--bg-color);
@@ -196,8 +199,8 @@
 .todo-chip {
     font: 700 10px/1 'Courier New', Courier, monospace;
     letter-spacing: 0.3px;
-    background: color-mix(in srgb, currentColor 16%, transparent);
-    border: 1px solid color-mix(in srgb, currentColor 32%, transparent);
+    background: color-mix(in srgb, currentColor 14%, transparent);
+    border: 1px solid color-mix(in srgb, currentColor 70%, transparent);
     border-radius: 3px;
     padding: 3px 6px;
     display: inline-flex;
