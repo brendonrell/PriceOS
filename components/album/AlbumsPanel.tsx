@@ -23,6 +23,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import OutputThumb from '../profile/OutputThumb';
 import AlbumPickerCard from './AlbumPickerCard';
+import { getProject } from '../../lib/project/registry';
 import { useModal } from '../../lib/state/ModalContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { paintOutput } from '../../lib/state/ProjectContext';
@@ -92,27 +93,36 @@ function AlbumShow({ album, number, onClose }: { album: AlbumRecord; number: num
     }, [onClose]);
 
     if (members.length === 0) return null;
+    const current = members[idx];
     return createPortal(
         <div className="album-show" role="dialog" aria-label={`Album ${number} — full screen show`} onClick={onClose}>
             <canvas ref={canvasA} className={`album-show-art${front === 'a' ? ' front' : ''}`} />
             <canvas ref={canvasB} className={`album-show-art${front === 'b' ? ' front' : ''}`} />
+            {/* The placard — gallery-wall label for the piece on show. */}
             <div className="album-show-caption">
-                ALBUM {pad2(number)} · {idx + 1}/{members.length}
+                <span className="album-show-piece">{(getProject(current.slug)?.displayName ?? current.slug).toUpperCase()} #{current.id}</span>
+                <span className="album-show-meta">ALBUM {pad2(number)} · {idx + 1}/{members.length}</span>
             </div>
         </div>,
         document.body,
     );
 }
 
-/* ── One cover tile: chosen cover, else a 2×2 mosaic of the first four. ── */
-function AlbumCoverTile({ album, number, tile, onOpen }: {
-    album: AlbumRecord; number: number; tile: number; onOpen: () => void;
+/* ── One cover tile: chosen cover, else a 2×2 mosaic of the first four.
+      Wears its worth quietly: the sum of its currently-listed members. ── */
+function AlbumCoverTile({ album, number, tile, listedEth, onOpen }: {
+    album: AlbumRecord; number: number; tile: number; listedEth: number; onOpen: () => void;
 }) {
     const coverKey = album.cover && album.keys.includes(album.cover) ? album.cover : null;
     const cells = coverKey ? [coverKey] : album.keys.slice(0, 4);
     const cellPx = coverKey ? tile : Math.floor((tile - 2) / 2);
     return (
-        <button type="button" className="album-tile" onClick={onOpen}>
+        <button
+            type="button"
+            className="album-tile"
+            style={{ animationDelay: `${Math.min(number - 1, 8) * 55}ms` }}
+            onClick={onOpen}
+        >
             <span className={`album-tile-art${coverKey ? ' single' : ''}`} style={{ width: tile, height: tile }}>
                 {cells.map((k) => {
                     const m = parseKey(k);
@@ -122,7 +132,10 @@ function AlbumCoverTile({ album, number, tile, onOpen }: {
             </span>
             <span className="album-tile-label">
                 <span className="album-tile-name">ALBUM {pad2(number)}</span>
-                <span className="album-tile-count">{album.keys.length}</span>
+                <span className="album-tile-count">
+                    {listedEth > 0 && <span className="album-tile-worth"><span className="eth-mark">◊</span>{fmtEth(listedEth)} · </span>}
+                    {album.keys.length}
+                </span>
             </span>
         </button>
     );
@@ -165,9 +178,25 @@ export default function AlbumsPanel({ own }: { own: boolean }) {
         [openAlbum],
     );
 
-    // The quiet value line — same live feed the grail pins read.
-    const slugs = useMemo(() => Array.from(new Set(members.map((m) => m.slug))), [members]);
-    useStarredPrices(slugs);
+    // The quiet value lines — same live feed the grail pins read. Union of
+    // EVERY album's projects so the covers wall can wear each album's worth.
+    const slugs = useMemo(() => {
+        const s = new Set<string>();
+        for (const a of albums) for (const k of a.keys) { const m = parseKey(k); if (m) s.add(m.slug); }
+        return Array.from(s);
+    }, [albums]);
+    const priceVersion = useStarredPrices(slugs);
+    const albumWorth = useCallback((a: AlbumRecord): number => {
+        let total = 0;
+        for (const k of a.keys) {
+            const m = parseKey(k);
+            if (!m) continue;
+            const p = priceOf(m.slug, m.id);
+            if (p != null && p > 0) total += p;
+        }
+        return total;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [priceVersion]);
     const value = useMemo(() => {
         let listed = 0, total = 0;
         for (const m of members) {
@@ -175,7 +204,8 @@ export default function AlbumsPanel({ own }: { own: boolean }) {
             if (p != null && p > 0) { listed++; total += p; }
         }
         return { listed, total };
-    }, [members]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [members, priceVersion]);
 
     if (!own) {
         return <p className="info-rubik album-private-note">Albums are private — only their keeper sees inside.</p>;
@@ -192,7 +222,7 @@ export default function AlbumsPanel({ own }: { own: boolean }) {
                 )}
                 <div className="albums-grid">
                     {albums.map((a, i) => (
-                        <AlbumCoverTile key={a.id} album={a} number={i + 1} tile={tile} onOpen={() => setOpenId(a.id)} />
+                        <AlbumCoverTile key={a.id} album={a} number={i + 1} tile={tile} listedEth={albumWorth(a)} onOpen={() => setOpenId(a.id)} />
                     ))}
                     <button
                         type="button"

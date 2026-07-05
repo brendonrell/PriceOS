@@ -221,3 +221,42 @@
     color: var(--bg-color);
     border: 1px solid var(--text-color);
 }
+
+/* ── Wow pass (2026-07-05) ── */
+
+/* Covers arrive like an app opening — quick staggered rise (delay set inline
+   per tile; capped at 8 steps so huge walls don't crawl). */
+.album-tile {
+    animation: album-tile-in 0.34s cubic-bezier(0.25, 1, 0.5, 1) both;
+}
+@keyframes album-tile-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: none; }
+}
+
+/* Each album wears its worth (sum of listed members) beside the count. */
+.album-tile-worth .eth-mark { color: var(--hothurt, #ff0055); }
+
+/* THE SHOW — gallery drift: the front piece breathes forward while it holds
+   the wall (Ken Burns), and the placard reads like a wall label. */
+.album-show-art.front {
+    animation: album-show-drift 4.5s ease-in-out both;
+}
+@keyframes album-show-drift {
+    from { scale: 1; }
+    to   { scale: 1.045; }
+}
+.album-show-caption {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    text-align: center;
+}
+.album-show-piece { font: bold 14px 'Courier New', Courier, monospace; letter-spacing: 0.14em; }
+.album-show-meta  { font: 600 11px 'Courier New', Courier, monospace; letter-spacing: 0.12em; opacity: 0.72; }
+
+@media (prefers-reduced-motion: reduce) {
+    .album-tile { animation: none; }
+    .album-show-art.front { animation: none; }
+}
