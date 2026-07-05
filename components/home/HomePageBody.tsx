@@ -136,6 +136,44 @@ function OwnedNameCheck() {
     );
 }
 
+/* Featuring row — its OWN component so the 3.6s name re-roll re-renders ONLY
+   this one line, never the whole home surface. Living on the parent, the timer
+   was re-rendering the entire page every 3.6s — stuttering the news banner and
+   every carousel. Now it's a featherweight leaf (Brendon, 2026-07-05). */
+function FeaturingRow() {
+    const { openMenu, setView } = useDropdown();
+    /* First paint deterministic (SSR/CSR agree); the mount re-roll + interval
+       take over. Each name card flips in; the row height is locked in CSS so
+       cycling never reflows the hero. */
+    const [featNames, setFeatNames] = useState<string[]>(() =>
+        FEATURED_HANDLES.slice(0, FEATURE_SHOW),
+    );
+    useEffect(() => {
+        setFeatNames(pickFeatured());
+        const id = window.setInterval(() => setFeatNames(pickFeatured()), 3600);
+        return () => window.clearInterval(id);
+    }, []);
+    const featOthers = Math.max(0, FEATURED_HANDLES.length - FEATURE_SHOW);
+    return (
+        <div className="hero-line collected-by-row info-line home-feat-row">
+            <span className="cbr-label">Featuring</span>{' '}
+            <a key={featNames[0]} className="profile-link feat-name" href={`/${featNames[0]}`}>@{featNames[0]}</a>
+            {featNames[1] && (
+                <>, <a key={featNames[1]} className="profile-link feat-name" href={`/${featNames[1]}`}>@{featNames[1]}</a></>
+            )}{' '}
+            <span
+                className="cbr-others"
+                role="button"
+                tabIndex={0}
+                title="See all featured artists"
+                style={{ cursor: 'pointer' }}
+                onClick={() => { openMenu(); setView('artists'); }}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openMenu(); setView('artists'); } }}
+            >&amp; {featOthers} others</span>
+        </div>
+    );
+}
+
 /* One Minting Now carousel — mounted under its own ProjectProvider so the
    cards paint THIS project's engine (same markup as the original single-
    project carousel). totalOutputs is provider-live: a mint advances the row
@@ -436,7 +474,6 @@ function HomePageBodyInner({
        PD is his art, so the home credits him exactly like an artist on a project
        page (Brendon 2026-06-15). Hidden when he has zero followers. */
     const { notifs } = usePdNotifs();
-    const { openMenu, setView } = useDropdown();
     const [brendonSocial, setBrendonSocial] = useState<{ followers: number; mutual: boolean }>(
         { followers: 0, mutual: false },
     );
@@ -711,25 +748,6 @@ function HomePageBodyInner({
     const hasMintingBase = (feed?.minting_now?.length ?? 0) > 0;
     const hasUploadsBase = (feed?.uploads?.length ?? 0) > 0;
 
-    /* Featuring — REAL artists (Brendon, 2026-06-12): two sprite+name chips
-       from the registry roster + "& X others". The pair randomizes ONCE per
-       page load (refresh = new pair; the live ticker is retired — Brendon's
-       call after it misbehaved). First paint is deterministic so SSR/CSR
-       agree; the mount effect re-rolls immediately. */
-    const [featNames, setFeatNames] = useState<string[]>(() =>
-        FEATURED_HANDLES.slice(0, FEATURE_SHOW),
-    );
-    /* Live "flipping" featuring row (Brendon, 2026-06-15 — back from retirement):
-       re-roll the two shown names on a timer; each name card flips in. The row's
-       height is locked in CSS so cycling never reflows the hero. First paint is
-       deterministic (SSR/CSR agree); the mount re-roll + interval take over. */
-    useEffect(() => {
-        setFeatNames(pickFeatured());
-        const id = window.setInterval(() => setFeatNames(pickFeatured()), 3600);
-        return () => window.clearInterval(id);
-    }, []);
-    const featOthers = Math.max(0, FEATURED_HANDLES.length - FEATURE_SHOW);
-
     /* Mouse drag-to-scroll for the carousels (no visible scrollbar). Touch
        already swipes natively; this gives desktop mouse users a grab-drag.
        A drag past a few px swallows the trailing click so it doesn't open
@@ -886,25 +904,9 @@ function HomePageBodyInner({
                 }
                 socialRow={
                     /* One line, plain @name links — identical treatment to the
-                       project page's social row (Brendon 2026-06-13: reverted
-                       the sprite+name rectangle chips; CollectedPair kept but
-                       unused in case it comes back). */
-                    <div className="hero-line collected-by-row info-line home-feat-row">
-                        <span className="cbr-label">Featuring</span>{' '}
-                        <a key={featNames[0]} className="profile-link feat-name" href={`/${featNames[0]}`}>@{featNames[0]}</a>
-                        {featNames[1] && (
-                            <>, <a key={featNames[1]} className="profile-link feat-name" href={`/${featNames[1]}`}>@{featNames[1]}</a></>
-                        )}{' '}
-                        <span
-                            className="cbr-others"
-                            role="button"
-                            tabIndex={0}
-                            title="See all featured artists"
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => { openMenu(); setView('artists'); }}
-                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openMenu(); setView('artists'); } }}
-                        >&amp; {featOthers} others</span>
-                    </div>
+                       project page's social row. Its own leaf component so the
+                       name re-roll never re-renders the home surface. */
+                    <FeaturingRow />
                 }
                 statsRow={
                     <div className="hero-line stats-row">

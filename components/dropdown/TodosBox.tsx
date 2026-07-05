@@ -74,6 +74,10 @@ export function TodosBox() {
     const [price, setPrice] = useState('');
     const [priority, setPriority] = useState<TodoPriority>(0);
 
+    // Deleting a to-do asks first — the same confirm card every destructive /
+    // financial action uses (Brendon, 2026-07-05).
+    const [confirm, setConfirm] = useState<{ question: string; onConfirm: () => void } | null>(null);
+
     // Label filter.
     const [activeLabel, setActiveLabel] = useState<string | null>(null);
     const labels = useMemo(() => allLabels(todos), [todos]);
@@ -167,8 +171,10 @@ export function TodosBox() {
     };
     const onDelete = (e: React.MouseEvent, t: TodoItem) => {
         stop(e);
-        removeTodo(t.id);
-        showToast('To-Do: DELETED');
+        setConfirm({
+            question: 'Delete this to-do?',
+            onConfirm: () => { removeTodo(t.id); showToast('To-Do: DELETED'); },
+        });
     };
 
     return (
@@ -387,6 +393,33 @@ export function TodosBox() {
                     </div>
                 );
             })}
+
+            {confirm && (
+                <div
+                    className="starred-confirm-overlay"
+                    role="dialog"
+                    aria-modal="true"
+                    onClick={() => setConfirm(null)}
+                >
+                    <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
+                        <div className="ms-confirm-question">{confirm.question}</div>
+                        <div className="ms-confirm-btns">
+                            <button
+                                className="ms-confirm-btn ms-confirm-btn--cancel"
+                                onClick={() => setConfirm(null)}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="ms-confirm-btn ms-confirm-btn--ok"
+                                onClick={() => { confirm.onConfirm(); setConfirm(null); }}
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </AccordionBox>
     );
 }

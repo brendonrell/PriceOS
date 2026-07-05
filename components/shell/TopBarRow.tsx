@@ -131,6 +131,10 @@ export function TopBarRow() {
         return subscribeGrails((next) => setGrailPins(next));
     }, []);
 
+    // Removing a grail pin asks first — the same confirm card every destructive /
+    // financial action uses (Brendon, 2026-07-05).
+    const [confirmUnpin, setConfirmUnpin] = useState<{ pin: GrailPin; label: string } | null>(null);
+
     useEffect(() => {
         // Hydrate from engine and stay subscribed.
         setRpcActive(isRpcActive());
@@ -284,11 +288,7 @@ export function TopBarRow() {
                                         router.push('/art/' + pin.slug);
                                     }
                                 }}
-                                onUnpin={() => {
-                                    if (unpinGrailItem(pin)) {
-                                        showToast(`${grailPillLabel(pin)} DE-PINNED`);
-                                    }
-                                }}
+                                onUnpin={() => setConfirmUnpin({ pin, label: grailPillLabel(pin) })}
                             />
                         ))}
                     {/* Incognito + Hammer: centered via absolute positioning */}
@@ -389,6 +389,38 @@ export function TopBarRow() {
                     </div>
                 </div>
             ) : null}
+
+            {confirmUnpin && (
+                <div
+                    className="starred-confirm-overlay"
+                    role="dialog"
+                    aria-modal="true"
+                    onClick={() => setConfirmUnpin(null)}
+                >
+                    <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
+                        <div className="ms-confirm-question">Remove this grail pin?</div>
+                        <div className="ms-confirm-btns">
+                            <button
+                                className="ms-confirm-btn ms-confirm-btn--cancel"
+                                onClick={() => setConfirmUnpin(null)}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="ms-confirm-btn ms-confirm-btn--ok"
+                                onClick={() => {
+                                    if (unpinGrailItem(confirmUnpin.pin)) {
+                                        showToast(`${confirmUnpin.label} DE-PINNED`);
+                                    }
+                                    setConfirmUnpin(null);
+                                }}
+                            >
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
