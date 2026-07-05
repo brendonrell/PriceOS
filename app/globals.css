@@ -1881,10 +1881,10 @@ body.tape-framed .tape-rail {
 .news-wrap {
     width: 100%;
     align-self: stretch;
-    height: 58px;
+    height: 54px;
     position: relative;
     overflow: hidden;
-    margin: 4px 0 14px 0;
+    margin: 0;
     -webkit-mask-image: linear-gradient(to right, transparent 0, black 24px, black calc(100% - 24px), transparent 100%);
     mask-image: linear-gradient(to right, transparent 0, black 24px, black calc(100% - 24px), transparent 100%);
 }
@@ -1898,13 +1898,15 @@ body.tape-framed .tape-rail {
     transform: translate3d(0, 0, 0);
 }
 
-/* Rich pill — trait-pill fill/colours, but taller with stacked content. */
-.news-pill {
+/* Rich pill — trait-pill fill/colours, but taller with stacked content.
+   Scoped under .news-rail so the taller height wins over the base .pill
+   (28px), which is declared later in the file. */
+.news-rail .news-pill {
     flex-shrink: 0;
-    height: auto;
+    height: 100%;
     align-items: center;
     gap: 10px;
-    padding: 0 16px;
+    padding: 7px 16px;
     margin-right: 12px;
     border-radius: 8px;
     /* Half-opacity themed fill (same token the trait value pills use), with
@@ -1951,8 +1953,8 @@ a.news-pill { cursor: pointer; }
 }
 
 @media (max-width: 600px) {
-    .news-wrap { height: 52px; margin: 2px 0 12px 0; }
-    .news-pill { padding: 0 13px; margin-right: 10px; }
+    .news-wrap { height: 52px; margin: 0; }
+    .news-rail .news-pill { padding: 6px 13px; margin-right: 10px; }
     .news-pill-glyph { font-size: 18px; }
     .news-pill-title { font-size: 13px; }
     .news-pill-meta { font-size: 10px; }
