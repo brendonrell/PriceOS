@@ -6,6 +6,49 @@
 
 ---
 
+## ✅ SHIPPED 2026-07-05 — SEPOLIA-READY: free-mint revert · 512px previews · DB completed to 120
+
+On `dev` (8a83cb0). Contracts + previews + data, all verified. This chat's task
+branch `claude/smart-contracts-sepolia-hchcub` is trash once Brendon deletes it
+(same-named branch in pd-contracts is NOT trash — see below).
+
+- **pd-contracts: genesis free-mint bands + direct-deploy REVERTED (Brendon's
+  call).** No free bands, no hand-deployed genesis — every project deploys via
+  the factory, every token pays mintPrice + storage fee. PDProject is back to
+  the audited pre-band signature; the single-pass upload scanner + its
+  equivalence fuzz suite (unrelated, same original commit) KEPT. 290 tests
+  green. Lives on pd-contracts branch `claude/smart-contracts-sepolia-hchcub`
+  (7089780) — **the Sepolia deploy candidate now; fold to `main` at deploy
+  time.** Full 6-contract review re-run: clean, no open items.
+- **Previews 384px → 512px** (`lib/art/storePreview.ts` PREVIEW_PX, writer cap
+  700KB → 1.2MB). MEASURED, not guessed: headless-rendered all 120 projects at
+  6 candidate sizes, supply-weighted. Full sell-out (19,980) = ~7.7GB at 512px
+  — under the 10GB R2 tier with buffer; 640px would be ~11.6GB (~3¢/mo over if
+  Brendon ever wants it). Display seam draws stored PNG at natural size, so
+  512 is the whole sharpness story.
+- **/deploy launcher artifacts REFRESHED** (`lib/deploy/artifacts.json`) to the
+  reverted build — factory bytecode changed; registry/stickers byte-identical.
+  Never deploy from a build older than this.
+- **Supabase completed to 120 project rows** (was 90 — the surreal-vista +
+  texture cohorts never got rows; Opus's zero-pass didn't miss them, they were
+  never inserted). 30 rows inserted matching the live shape (0 stats, real
+  supplies, registry soundtracks, computed project sprites, uploaded_at=now)
+  + 6 new -ai artist users (0xa2…05–10). DB now = registry exactly: 60×222 +
+  60×111 = 19,980. Verified: all shared rows' supplies matched registry before
+  insert; collection zeroed everywhere (0 mints/outputs/holders/events).
+- **R2 bucket emptied by Brendon** (old 384px pins gone — write-once would have
+  blocked fresh pins). Bucket exists, empty, fills per-mint at 512px.
+
+**THE SEPOLIA RUNWAY (all that's left):** ① Brendon farms ~0.05–0.1 Sepolia
+ETH → ② deploys from /deploy on the NEW dev build → ③ pastes each contract
+address into its projects row (= indexer cutover). Domain: stays stealth on
+workers.dev through Sepolia; wire pricediscussion.com (Namecheap → CF DNS) at
+public launch. OPEN: confirm `NEXT_PUBLIC_ART_IMAGE_BASE` build var + bucket
+public read are actually set in CF (previews display live-render fallback
+until they are).
+
+---
+
 ## ✅ SHIPPED 2026-07-05 — Homepage news carousel + preview self-heal + To-Dos chips
 
 All on `dev` (7f1a1b3). Branch this chat: `claude/homepage-news-carousel-hdfiey`
