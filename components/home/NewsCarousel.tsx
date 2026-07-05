@@ -99,12 +99,21 @@ function NewsPill({ item }: { item: NewsItem }) {
 export default function NewsCarousel({ items = PLACEHOLDER_ITEMS }: { items?: NewsItem[] }) {
     const railRef = useRef<HTMLDivElement | null>(null);
 
+    // Bind the scroll loop to the rail, re-measuring ONLY when the actual
+    // content changes — keyed on a content signature, not the array identity.
+    // The parent re-renders often (the featuring row re-rolls on a timer), which
+    // hands us a fresh `items` array each time; depending on that reference reset
+    // the scroll to the start every few seconds. The signature stays stable
+    // across those re-renders, so the loop runs uninterrupted.
+    const sig = items
+        .map((i) => (i.kind === 'sprite' ? `@${i.name ?? ''}` : `${i.tag ?? ''}|${i.title ?? ''}`))
+        .join('~');
     useEffect(() => {
         const rail = railRef.current;
         if (!rail) return;
-        // Re-bind when the item set changes so the scroll loop re-measures.
         return subscribeTapeRail(rail);
-    }, [items]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sig]);
 
     if (items.length === 0) return null;
 

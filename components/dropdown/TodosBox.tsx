@@ -232,31 +232,38 @@ export function TodosBox() {
                         }}
                     />
                     <div className="todo-compose-row">
-                        <input
-                            className="todo-mini todo-mini-date"
-                            type="date"
-                            value={due}
-                            title="Due date"
-                            onChange={(e) => setDue(e.target.value)}
-                        />
-                        <span className="todo-mini todo-price-wrap" title="ETH target / budget">
-                            <span className="eth-mark">◊</span>
+                        {/* Due chip — clock + label (or the picked date); the native
+                            date picker sits transparent on top so the chip stays a
+                            clean labeled pill. */}
+                        <label className={`todo-chip todo-chip-due${due ? ' set' : ''}`} title="Due date">
+                            <span className="todo-chip-ico">◷</span>
+                            <span className="todo-chip-lbl">{due ? fmtDue(due) : 'due'}</span>
                             <input
-                                className="todo-price-input"
+                                className="todo-chip-native"
+                                type="date"
+                                value={due}
+                                onChange={(e) => setDue(e.target.value)}
+                            />
+                        </label>
+                        <span className={`todo-chip todo-chip-price${price ? ' set' : ''}`} title="ETH target / budget">
+                            <span className="todo-chip-ico eth-mark">◊</span>
+                            <input
+                                className="todo-chip-price-input"
                                 type="text"
                                 inputMode="decimal"
-                                placeholder="0.0"
+                                placeholder="price"
                                 value={price}
                                 onChange={(e) => setPrice(e.target.value.replace(/[^0-9.]/g, ''))}
                             />
                         </span>
                         <button
                             type="button"
-                            className={`todo-mini todo-pri-btn${priority > 0 ? ` on p${priority}` : ''}`}
+                            className={`todo-chip todo-chip-pri${priority > 0 ? ` on p${priority}` : ''}`}
                             title="Priority"
                             onClick={cyclePriority}
                         >
-                            {priority === 0 ? '! P' : `P${priority}`}
+                            <span className="todo-chip-ico">!</span>
+                            <span className="todo-chip-lbl">P{priority === 0 ? 1 : priority}</span>
                         </button>
                         <button
                             type="button"
