@@ -9,19 +9,19 @@
  *
  * Format (simple, no dashes, always starts with AMBI):
  *
- *   AMBI{palette}{pattern}{speed}{dim}{dim}{rays}{weather}
+ *   AMBI{palette}{pattern}{speed}{dim}{dim}{rays}{weather}{source}
  *
- * palette / pattern / speed / rays / weather are one character each — the
- * option's index in its list below (A=0, B=1, …). Dim is a 0–100 percentage
+ * palette / pattern / speed / rays / weather / source are one character each —
+ * the option's index in its list below (A=0, B=1, …). Dim is a 0–100 percentage
  * encoded as TWO base-36 characters (so the slider value rides in the code),
- * zero-padded. A full Ambient Code is therefore 11 characters:
+ * zero-padded. A full Ambient Code is therefore 12 characters:
  *
- *   AMBIAAB1OAA  → aurora · wave · slow · dim 60% · rays off · weather clear
- *   AMBIGEC2SCB  → neon   · sweep · fast · dim 100% · rays halo · weather rain
+ *   AMBIAAB1OAAA → aurora · wave · slow · dim 60% · rays off · clear · no source
+ *   AMBIGEC2SCBB → neon · sweep · fast · dim 100% · halo · bull · candle
  *
- * The two FX chars are OPTIONAL on decode — older 9-char codes (no rays/
- * weather) and legacy 8-char codes (single-letter dim A–F) still decode, the
- * missing tail defaulting to rays=off / weather=clear. Atmosphere (glow/reach/
+ * The FX/source tail chars are OPTIONAL on decode — older 11/9-char codes and
+ * legacy 8-char codes (single-letter dim A–F) still decode, the missing tail
+ * defaulting to rays=off / weather=clear / source=off. Atmosphere (glow/reach/
  * spread/haze) is per-device calibration and is deliberately NOT in the code.
  *
  * Decoding is forgiving on case/whitespace but strict on shape.
@@ -50,6 +50,14 @@ export type Haze = 'crisp' | 'soft' | 'dreamy';
 export type Rays = 'off' | 'shafts' | 'beams' | 'halo';
 /* "Nature" in the menu — ambient floating particles in the glow. */
 export type Weather = 'clear' | 'fireflies' | 'pollen' | 'petals' | 'spores';
+/* Realism (4th menu page) — real-world light sources. A source overrides the
+   palette's colour AND the pattern's motion with a physically-honest look
+   (candle flame flicker, sodium streetlamp hum, moonlight stillness…).
+   Shareable mood, so it rides the code as an optional trailing char. */
+export type Source =
+    | 'off'
+    | 'candle' | 'hearth' | 'tungsten' | 'tv' | 'street'
+    | 'dawn' | 'golden' | 'overcast' | 'moon' | 'storm';
 
 export interface AmbientOpts {
     palette: Palette;
@@ -69,6 +77,8 @@ export interface AmbientOpts {
     rays?: Rays;
     /** Drifting particles inside the glow. Shared in the code. */
     weather?: Weather;
+    /** Realism — a real-world light source (page 4). Shared in the code. */
+    source?: Source;
     /** Hidden egg — the bar balled up into an orb. Persisted, never shared. */
     sphere?: boolean;
 }
@@ -87,6 +97,10 @@ export const PATTERN_IDS: ReadonlyArray<Pattern> = [
 export const SPEED_IDS: ReadonlyArray<Speed> = ['slow', 'med', 'fast', 'turbo'];
 export const RAYS_IDS: ReadonlyArray<Rays> = ['off', 'shafts', 'beams', 'halo'];
 export const WEATHER_IDS: ReadonlyArray<Weather> = ['clear', 'fireflies', 'pollen', 'petals', 'spores'];
+export const SOURCE_IDS: ReadonlyArray<Source> = [
+    'off', 'candle', 'hearth', 'tungsten', 'tv', 'street',
+    'dawn', 'golden', 'overcast', 'moon', 'storm',
+];
 
 /** Legacy single-letter dim (A–F) → percentage, for decoding old 8-char codes
  *  written before dim became a slider. Order matches the old preset list. */
@@ -121,7 +135,8 @@ export function encodeAmbientCode(opts: AmbientOpts): string {
     const dim = clampDim(opts.dim).toString(36).toUpperCase().padStart(2, '0');
     const r = Math.max(0, RAYS_IDS.indexOf(opts.rays ?? 'off'));
     const w = Math.max(0, WEATHER_IDS.indexOf(opts.weather ?? 'clear'));
-    return PREFIX + letter(p) + letter(t) + letter(s) + dim + letter(r) + letter(w);
+    const src = Math.max(0, SOURCE_IDS.indexOf(opts.source ?? 'off'));
+    return PREFIX + letter(p) + letter(t) + letter(s) + dim + letter(r) + letter(w) + letter(src);
 }
 
 /* ────────────────────────────────────────────────────────────── */
@@ -155,15 +170,17 @@ export function decodeAmbientCode(raw: string): AmbientDecodeResult {
         if (dim < 0) return { ok: false, error: 'Bad dim in code' };
     }
 
-    // Rays + weather are optional: a missing/unknown char falls back to the
-    // first option (off / clear) so older + malformed codes still apply.
+    // Rays + weather + source are optional: a missing/unknown char falls back
+    // to the first option (off / clear / off) so older + malformed codes still
+    // apply.
     const rays = pick(RAYS_IDS, tail[0], 'off');
     const weather = pick(WEATHER_IDS, tail[1], 'clear');
+    const source = pick(SOURCE_IDS, tail[2], 'off');
 
     if (!palette || !pattern || !speed) {
         return { ok: false, error: 'Unknown option in code' };
     }
-    return { ok: true, opts: { palette, pattern, speed, dim, rays, weather } };
+    return { ok: true, opts: { palette, pattern, speed, dim, rays, weather, source } };
 }
 
 /** Map an optional code char to its option, falling back to a default when the

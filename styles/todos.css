@@ -306,3 +306,21 @@
 @media (hover: none) {
     .todo-del { opacity: 0.45; }
 }
+
+/* Clear-completed sweep — appears under the sunk done rows. Full-strength
+   text (Rule #2), sized like the filter chips. */
+.todo-clear-row {
+    display: flex;
+    justify-content: flex-end;
+    padding: 4px 10px 8px;
+}
+.todo-clear-btn {
+    font: 700 10px/1 'Courier New', Courier, monospace;
+    letter-spacing: 0.3px;
+    border: 1px solid color-mix(in srgb, currentColor 80%, transparent);
+    border-radius: 3px;
+    padding: 4px 7px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+.todo-clear-btn:hover { border-color: currentColor; background: color-mix(in srgb, currentColor 12%, transparent); }

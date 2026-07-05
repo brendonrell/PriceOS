@@ -432,7 +432,8 @@ body.is-pwa .ambient-strip-layer {
    top in sync with the Lightning pattern's strike. Hidden otherwise; works the
    same whether the bar is a strip or the Sphere orb (independent layer). */
 .ambient-flash { display: none; }
-.pat-lightning .ambient-flash {
+.pat-lightning .ambient-flash,
+.src-storm .ambient-flash {
     display: block;
     position: absolute;
     top: 6px;
@@ -855,5 +856,161 @@ body.zero-context-mode .ambient-strip-layer { display: none !important; }
     .ambient-rays, .ambient-weather,
     .ambient-weather::before, .ambient-weather::after { animation: none !important; }
     /* Kill the bright lightning flash entirely for photosensitive users. */
-    .pat-lightning .ambient-flash { display: none; }
+    .pat-lightning .ambient-flash,
+    .src-storm .ambient-flash { display: none; }
+}
+
+/* ---- Realism (page 4): real-world light sources ------------------------
+   A source takes over BOTH the colour (--amb1..4) and the motion of the light
+   with a physically-honest behaviour. Colour blocks sit LAST in the file so a
+   source outranks the pal-* class on the same element (same specificity, later
+   wins); motion overrides carry !important so a source outruns whatever
+   pattern class is active (the pal-spectrum precedent). Real light doesn't
+   speed up, so source animations run at FIXED real-time durations and ignore
+   the Speed setting. 'src-off' defines nothing — the palette keeps the light. */
+
+/* Colours — also light the menu chips' swatches (same trick as pal-*). */
+.src-candle   { --amb1:#ffd9a0; --amb2:#ff9329; --amb3:#ffb45e; --amb4:#ff7a12; }
+.src-hearth   { --amb1:#ff8c42; --amb2:#ff5a1f; --amb3:#c22b12; --amb4:#7a1608; }
+.src-tungsten { --amb1:#ffe3bd; --amb2:#ffd6a5; --amb3:#ffc178; --amb4:#ffb45e; }
+.src-tv       { --amb1:#cfd8ff; --amb2:#9db8ff; --amb3:#e8ecff; --amb4:#6f86d6; }
+.src-street   { --amb1:#ffc84d; --amb2:#ffb400; --amb3:#ffa200; --amb4:#ff9000; }
+.src-dawn     { --amb1:#ffc9de; --amb2:#ffb3c1; --amb3:#ffd6a5; --amb4:#a5c4ff; }
+.src-golden   { --amb1:#ffe0a3; --amb2:#ffcb69; --amb3:#ff9e3d; --amb4:#ff7e26; }
+.src-overcast { --amb1:#dfe6ee; --amb2:#c9d2dc; --amb3:#aeb9c6; --amb4:#9aa7b5; }
+.src-moon     { --amb1:#eef4fb; --amb2:#dbe7f5; --amb3:#bcd0e8; --amb4:#9db8d6; }
+.src-storm    { --amb1:#b8c7dd; --amb2:#8fa3bf; --amb3:#6b7f9e; --amb4:#4d617f; }
+
+/* CANDLE — a live flame: quick, small, never-repeating-feeling wobble. */
+.src-candle .ambient-pill-led,
+.src-candle .ambient-glow,
+.src-candle .ambient-spot { animation: amb-src-candle 2.7s ease-in-out infinite !important; }
+@keyframes amb-src-candle {
+    0%   { filter: brightness(0.97) blur(var(--amb-blur, 44px)); opacity: 0.94; }
+    11%  { filter: brightness(1.06) blur(var(--amb-blur, 44px)); opacity: 1; }
+    23%  { filter: brightness(0.90) blur(var(--amb-blur, 44px)); opacity: 0.88; }
+    34%  { filter: brightness(1.03) blur(var(--amb-blur, 44px)); opacity: 0.97; }
+    47%  { filter: brightness(0.95) blur(var(--amb-blur, 44px)); opacity: 0.92; }
+    58%  { filter: brightness(1.08) blur(var(--amb-blur, 44px)); opacity: 1; }
+    71%  { filter: brightness(0.87) blur(var(--amb-blur, 44px)); opacity: 0.85; }
+    83%  { filter: brightness(1.02) blur(var(--amb-blur, 44px)); opacity: 0.96; }
+    100% { filter: brightness(0.97) blur(var(--amb-blur, 44px)); opacity: 0.94; }
+}
+/* The LED bar itself shouldn't inherit the glow blur — its own copy, no blur. */
+.src-candle .ambient-pill-led { animation: amb-src-candle-led 2.7s ease-in-out infinite !important; }
+@keyframes amb-src-candle-led {
+    0% { filter: brightness(0.97); } 11% { filter: brightness(1.06); }
+    23% { filter: brightness(0.90); } 34% { filter: brightness(1.03); }
+    47% { filter: brightness(0.95); } 58% { filter: brightness(1.08); }
+    71% { filter: brightness(0.87); } 83% { filter: brightness(1.02); }
+    100% { filter: brightness(0.97); }
+}
+
+/* HEARTH — embers: slower, deeper rolls than the candle. */
+.src-hearth .ambient-glow,
+.src-hearth .ambient-spot { animation: amb-src-hearth 5.2s ease-in-out infinite !important; }
+.src-hearth .ambient-pill-led { animation: amb-src-hearth-led 5.2s ease-in-out infinite !important; }
+@keyframes amb-src-hearth {
+    0%   { filter: brightness(0.9) blur(var(--amb-blur, 44px)); opacity: 0.85; }
+    18%  { filter: brightness(1.05) blur(var(--amb-blur, 44px)); opacity: 0.98; }
+    33%  { filter: brightness(0.82) blur(var(--amb-blur, 44px)); opacity: 0.8; }
+    52%  { filter: brightness(1.1) blur(var(--amb-blur, 44px)); opacity: 1; }
+    70%  { filter: brightness(0.88) blur(var(--amb-blur, 44px)); opacity: 0.84; }
+    86%  { filter: brightness(1.0) blur(var(--amb-blur, 44px)); opacity: 0.94; }
+    100% { filter: brightness(0.9) blur(var(--amb-blur, 44px)); opacity: 0.85; }
+}
+@keyframes amb-src-hearth-led {
+    0% { filter: brightness(0.9); } 18% { filter: brightness(1.05); }
+    33% { filter: brightness(0.82); } 52% { filter: brightness(1.1); }
+    70% { filter: brightness(0.88); } 86% { filter: brightness(1.0); }
+    100% { filter: brightness(0.9); }
+}
+
+/* TUNGSTEN — a warm bulb: rock-steady with the faintest mains breath. */
+.src-tungsten .ambient-pill-led,
+.src-tungsten .ambient-glow,
+.src-tungsten .ambient-spot { animation: amb-src-hum 6s ease-in-out infinite !important; }
+@keyframes amb-src-hum {
+    0%, 100% { opacity: 0.97; }
+    50% { opacity: 1; }
+}
+
+/* TV — scene cuts: irregular jumps in brightness AND colour temperature. */
+.src-tv .ambient-pill-led,
+.src-tv .ambient-glow,
+.src-tv .ambient-spot { animation: amb-src-tv 8s steps(1, end) infinite !important; }
+@keyframes amb-src-tv {
+    0%   { filter: brightness(0.9)  hue-rotate(0deg); opacity: 0.9; }
+    9%   { filter: brightness(1.1)  hue-rotate(-14deg); opacity: 1; }
+    17%  { filter: brightness(0.78) hue-rotate(8deg); opacity: 0.82; }
+    26%  { filter: brightness(1.02) hue-rotate(22deg); opacity: 0.95; }
+    38%  { filter: brightness(0.92) hue-rotate(-6deg); opacity: 0.9; }
+    45%  { filter: brightness(1.18) hue-rotate(-24deg); opacity: 1; }
+    55%  { filter: brightness(0.85) hue-rotate(12deg); opacity: 0.86; }
+    66%  { filter: brightness(1.0)  hue-rotate(4deg); opacity: 0.94; }
+    76%  { filter: brightness(0.8)  hue-rotate(28deg); opacity: 0.84; }
+    84%  { filter: brightness(1.12) hue-rotate(-10deg); opacity: 1; }
+    93%  { filter: brightness(0.94) hue-rotate(6deg); opacity: 0.9; }
+    100% { filter: brightness(0.9)  hue-rotate(0deg); opacity: 0.9; }
+}
+
+/* STREETLAMP — sodium: steady amber with the occasional quick cycling dip. */
+.src-street .ambient-pill-led,
+.src-street .ambient-glow,
+.src-street .ambient-spot { animation: amb-src-street 9s linear infinite !important; }
+@keyframes amb-src-street {
+    0%, 78%, 100% { opacity: 0.98; }
+    79% { opacity: 0.7; }    /* the sodium stutter */
+    80% { opacity: 0.96; }
+    81.5% { opacity: 0.78; }
+    83% { opacity: 0.98; }
+}
+
+/* DAWN / GOLDEN HOUR — the sun moves: imperceptibly slow warm drift. */
+.src-dawn .ambient-glow,
+.src-dawn .ambient-spot { animation: amb-src-sky 46s ease-in-out infinite !important; }
+.src-golden .ambient-glow,
+.src-golden .ambient-spot { animation: amb-src-sky 62s ease-in-out infinite !important; }
+@keyframes amb-src-sky {
+    0%, 100% { filter: brightness(0.96) hue-rotate(0deg) blur(var(--amb-blur, 44px)); }
+    50% { filter: brightness(1.05) hue-rotate(9deg) blur(var(--amb-blur, 44px)); }
+}
+
+/* OVERCAST — clouds passing: slow swells of flat grey light. */
+.src-overcast .ambient-pill-led,
+.src-overcast .ambient-glow,
+.src-overcast .ambient-spot { animation: amb-src-clouds 34s ease-in-out infinite !important; }
+@keyframes amb-src-clouds {
+    0%, 100% { opacity: 0.82; }
+    28% { opacity: 1; }
+    54% { opacity: 0.74; }
+    78% { opacity: 0.94; }
+}
+
+/* MOONLIGHT — dead still. The realism IS the stillness. */
+.src-moon .ambient-pill-led,
+.src-moon .ambient-glow,
+.src-moon .ambient-spot { animation: none !important; }
+
+/* STORM — the Lightning pattern's proven strike cycle at a fixed real-world
+   cadence, plus the sky-flash layer, in the storm's cold grey-blues. */
+.src-storm .ambient-pill-led,
+.src-storm .ambient-glow { animation: amb-lightning 14s steps(1, end) infinite !important; }
+/* Keep the sky-flash on the same 14s clock so bolts + sky stay in sync. */
+.src-storm .ambient-flash { animation: amb-flash 14s steps(1, end) infinite !important; }
+
+/* ---- Realism menu page chrome ---- */
+.ambient-realism-title {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin: 2px 0 8px;
+}
+.ambient-realism-note {
+    font-size: 10.5px;
+    font-weight: 600;
+    line-height: 1.45;
+    margin-top: 8px;
+    color: color-mix(in srgb, var(--text-color) 85%, transparent);
 }

@@ -28,6 +28,7 @@ import {
     type Haze,
     type Rays,
     type Weather,
+    type Source,
     type AmbientOpts,
 } from '../../lib/state/AmbientCode';
 
@@ -39,7 +40,7 @@ const SECRET_CYCLE: { id: Palette; toast: string }[] = [
 ];
 
 type Opts = AmbientOpts;
-const DEFAULTS: Opts = { palette: 'aurora', pattern: 'wave', speed: 'med', dim: 46, glow: 'med', reach: 'mid', spread: 'mid', haze: 'soft', rays: 'off', weather: 'clear', sphere: false };
+const DEFAULTS: Opts = { palette: 'aurora', pattern: 'wave', speed: 'med', dim: 46, glow: 'med', reach: 'mid', spread: 'mid', haze: 'soft', rays: 'off', weather: 'clear', source: 'off', sphere: false };
 const STORAGE = 'pd_ambient_opts';
 /* Remember which swipe page was last open so reopening doesn't snap to page 1. */
 const PAGE_STORAGE = 'pd_ambient_page';
@@ -114,6 +115,22 @@ const RAYS: { id: Rays; label: string }[] = [
 const WEATHERS: { id: Weather; label: string }[] = [
     { id: 'clear', label: 'Clear' }, { id: 'pollen', label: 'Bull' }, { id: 'petals', label: 'Bear' },
     { id: 'spores', label: 'Ticker' }, { id: 'fireflies', label: 'Sparks' },
+];
+
+/* Realism (page 4) — real-world light sources. A source takes over colour +
+   motion from the palette/pattern with a physically-honest behaviour (candle
+   flame, sodium streetlamp hum, moonlight stillness). 'Off' hands the light
+   back to the palette. Split into the two places real light comes from. */
+const SOURCES_INDOORS: { id: Source; label: string }[] = [
+    { id: 'off', label: 'Off' },
+    { id: 'candle', label: 'Candle' }, { id: 'hearth', label: 'Hearth' },
+    { id: 'tungsten', label: 'Tungsten' }, { id: 'tv', label: 'TV' },
+    { id: 'street', label: 'Streetlamp' },
+];
+const SOURCES_SKY: { id: Source; label: string }[] = [
+    { id: 'dawn', label: 'Dawn' }, { id: 'golden', label: 'Golden Hour' },
+    { id: 'overcast', label: 'Overcast' }, { id: 'moon', label: 'Moonlight' },
+    { id: 'storm', label: 'Storm' },
 ];
 
 /* Curated Scenes — one-tap full looks (palette + pattern + speed + dim). The
@@ -260,7 +277,7 @@ export default function AmbientStrip() {
         if (!open || typeof window === 'undefined') return;
         let saved = 0;
         try { saved = parseInt(window.localStorage.getItem(PAGE_STORAGE) || '0', 10) || 0; } catch { /* ignore */ }
-        saved = Math.max(0, Math.min(2, saved));
+        saved = Math.max(0, Math.min(3, saved));
         setPage(saved);
         requestAnimationFrame(() => {
             const el = pagerRef.current;
@@ -374,6 +391,14 @@ export default function AmbientStrip() {
         showToast(`Ambient: ${s.label.toUpperCase()}`);
     };
 
+    /* Realism — pick a real-world light source (tap the active one to turn it
+       off). The changed thing gets the ALLCAPS. */
+    const applySource = (id: Source, label: string) => {
+        const next = (opts.source ?? 'off') === id ? 'off' : id;
+        set('source', next);
+        showToast(next === 'off' ? 'Realism: OFF' : `Realism: ${label.toUpperCase()}`);
+    };
+
     /* Surprise — roll a random look from the VISIBLE options (the two secret
        palettes stay secret; PALETTES already omits them). */
     const surprise = () => {
@@ -449,7 +474,7 @@ export default function AmbientStrip() {
     return (
         <div
             ref={rootRef}
-            className={`ambient-strip-layer pal-${opts.palette} pat-${opts.pattern} spd-${opts.speed} glow-${opts.glow ?? 'med'} reach-${opts.reach ?? 'mid'} spread-${opts.spread ?? 'mid'} haze-${opts.haze ?? 'soft'} rays-${opts.rays ?? 'off'} weather-${opts.weather ?? 'clear'}${sphereMode ? ' sphere-mode' : ''}${open ? ' menu-open' : ''}`}
+            className={`ambient-strip-layer pal-${opts.palette} pat-${opts.pattern} spd-${opts.speed} glow-${opts.glow ?? 'med'} reach-${opts.reach ?? 'mid'} spread-${opts.spread ?? 'mid'} haze-${opts.haze ?? 'soft'} rays-${opts.rays ?? 'off'} weather-${opts.weather ?? 'clear'} src-${opts.source ?? 'off'}${sphereMode ? ' sphere-mode' : ''}${open ? ' menu-open' : ''}`}
         >
             {/* Volumetric light shafts fanning down from the bar (page-3 FX). */}
             <div className="ambient-rays" aria-hidden="true" />
@@ -600,9 +625,41 @@ export default function AmbientStrip() {
                                 ))}
                             </Row>
                         </div>
+                        <div className="ambient-pop-page">
+                            <div className="ambient-realism-title">Realism</div>
+                            <Row label="Indoors">
+                                {SOURCES_INDOORS.map((s) => (
+                                    <button
+                                        key={s.id}
+                                        type="button"
+                                        className={`ambient-chip${s.id === 'off' ? '' : ` ambient-chip-pal src-${s.id}`}${(opts.source ?? 'off') === s.id ? ' on' : ''}`}
+                                        onClick={() => applySource(s.id, s.label)}
+                                    >
+                                        {s.id !== 'off' && <span className="ambient-swatch" aria-hidden="true" />}
+                                        {s.label}
+                                    </button>
+                                ))}
+                            </Row>
+                            <Row label="Sky">
+                                {SOURCES_SKY.map((s) => (
+                                    <button
+                                        key={s.id}
+                                        type="button"
+                                        className={`ambient-chip ambient-chip-pal src-${s.id}${(opts.source ?? 'off') === s.id ? ' on' : ''}`}
+                                        onClick={() => applySource(s.id, s.label)}
+                                    >
+                                        <span className="ambient-swatch" aria-hidden="true" />
+                                        {s.label}
+                                    </button>
+                                ))}
+                            </Row>
+                            <div className="ambient-realism-note">
+                                A source takes over the light — colour and motion — until it&apos;s Off.
+                            </div>
+                        </div>
                     </div>
                     <div className="ambient-pop-dots" role="tablist" aria-label="Menu pages">
-                        {[0, 1, 2].map((i) => (
+                        {[0, 1, 2, 3].map((i) => (
                             <button
                                 key={i}
                                 type="button"

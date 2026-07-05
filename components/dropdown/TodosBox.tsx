@@ -34,6 +34,7 @@ import {
     addOutputTodo,
     toggleTodo,
     removeTodo,
+    clearDoneTodos,
     sortTodos,
     warChest,
     allLabels,
@@ -112,6 +113,7 @@ export function TodosBox() {
     );
 
     const openCount = todos.filter((t) => !t.done).length;
+    const doneCount = todos.length - openCount;
     const chest = warChest(todos);
 
     // Sort: store order (priority → due → newest, done last), float READY ones to
@@ -132,9 +134,19 @@ export function TodosBox() {
 
     const cyclePriority = () => setPriority((p) => (((p + 1) % 4) as TodoPriority));
 
-    const submit = () => {
-        const t = text.trim();
-        if (!t) return;
+    /* Sticky label — adding while a #label filter is active tags the new
+       to-do with that label (Todoist's project-view behaviour), so a grocery
+       run is: filter #grocery, then rattle items off. */
+    const withSticky = (labels?: string[]): string[] | undefined => {
+        if (!activeLabel) return labels;
+        const set = new Set(labels ?? []);
+        set.add(activeLabel);
+        return Array.from(set);
+    };
+
+    const addOne = (raw: string): boolean => {
+        const t = raw.trim();
+        if (!t) return false;
         const p = parseTodo(t);
         const eth = parseFloat(price);
         const explicitPrice = Number.isFinite(eth) && eth > 0 ? eth : null;
@@ -152,16 +164,50 @@ export function TodosBox() {
                 due: finalDue,
                 priceEth: finalPrice,
                 priority: finalPriority,
-                labels: p.labels,
+                labels: withSticky(p.labels),
                 recurrence: p.recurrence,
             });
         }
+        return true;
+    };
+
+    /* Rapid entry: adding CLEARS the composer but keeps it open + focused, so
+       a grocery list goes in as fast as you can type it. Close with + or by
+       collapsing the accordion. */
+    const submit = () => {
+        if (!addOne(text)) return;
         setText('');
         setDue('');
         setPrice('');
         setPriority(0);
-        setComposeOpen(false);
         showToast('To-Do: ADDED');
+    };
+
+    /* Paste a whole list — every non-empty line becomes its own to-do (each
+       line still gets the magic parse + the sticky label). */
+    const onPasteList = (e: React.ClipboardEvent<HTMLInputElement>) => {
+        const pasted = e.clipboardData?.getData('text') ?? '';
+        if (!pasted.includes('\n')) return; // single line — let the input take it
+        e.preventDefault();
+        const lines = pasted.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+        let added = 0;
+        for (const line of lines) if (addOne(line)) added += 1;
+        if (added > 0) {
+            setText('');
+            showToast(added === 1 ? 'To-Do: ADDED' : `To-Dos: ADDED · ${added}`);
+        }
+    };
+
+    const onClearDone = (e: React.MouseEvent) => {
+        stop(e);
+        const n = todos.filter((t) => t.done).length;
+        setConfirm({
+            question: `Clear ${n} completed to-do${n === 1 ? '' : 's'}?`,
+            onConfirm: () => {
+                const removed = clearDoneTodos();
+                showToast(`To-Dos: CLEARED · ${removed}`);
+            },
+        });
     };
 
     const onToggle = (e: React.MouseEvent, t: TodoItem) => {
@@ -230,6 +276,7 @@ export function TodosBox() {
                         maxLength={200}
                         autoFocus
                         onChange={(e) => setText(e.target.value)}
+                        onPaste={onPasteList}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                                 e.preventDefault();
@@ -393,6 +440,28 @@ export function TodosBox() {
                     </div>
                 );
             })}
+
+            {/* One-tap sweep of everything checked off — the after-the-
+                groceries clear. Sits under the sunk done rows. */}
+            {doneCount > 0 && (
+                <div className="todo-clear-row">
+                    <span
+                        className="todo-clear-btn"
+                        role="button"
+                        tabIndex={0}
+                        title="Remove all completed to-dos"
+                        onClick={onClearDone}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                onClearDone(e as unknown as React.MouseEvent);
+                            }
+                        }}
+                    >
+                        Clear completed ({doneCount})
+                    </span>
+                </div>
+            )}
 
             {confirm && (
                 <div

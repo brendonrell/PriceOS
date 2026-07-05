@@ -210,6 +210,16 @@ export function removeTodo(id: string): void {
     commit(getTodos().filter((t) => t.id !== id));
 }
 
+/** Sweep every completed to-do in one tap (the after-the-groceries clear).
+ *  Returns how many were removed so the toast can say so. */
+export function clearDoneTodos(): number {
+    const list = getTodos();
+    const keep = list.filter((t) => !t.done);
+    const removed = list.length - keep.length;
+    if (removed > 0) commit(keep);
+    return removed;
+}
+
 export function updateTodo(id: string, patch: Partial<TodoItem>): void {
     commit(getTodos().map((t) => (t.id === id ? { ...t, ...patch, id: t.id } : t)));
 }
