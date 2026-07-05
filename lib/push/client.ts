@@ -17,7 +17,10 @@
  * VAPID key is configured), enable() returns 'unsupported' and nothing throws.
  */
 
-const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
+// New matched-pair key names (Brendon, 2026-07-05) take precedence; the old
+// NEXT_PUBLIC_VAPID_PUBLIC_KEY stays as a fallback so nothing breaks mid-cutover.
+const VAPID_PUBLIC_KEY =
+  process.env.NEXT_PUBLIC_WEBPUSH_KEY || process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
 
 export type EnableResult = 'enabled' | 'denied' | 'unsupported' | 'error';
 

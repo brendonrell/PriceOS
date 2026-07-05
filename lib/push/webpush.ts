@@ -59,8 +59,15 @@ let configured: boolean | null = null;
  *  keys are absent — every send then no-ops. */
 function ensureConfigured(): boolean {
   if (configured !== null) return configured;
-  const publicKey = process.env.VAPID_PUBLIC_KEY || process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-  const privateKey = process.env.VAPID_PRIVATE_KEY;
+  // The server's public key is read from the SAME browser-facing var the client
+  // subscribes with (NEXT_PUBLIC_WEBPUSH_KEY) so the signing pair can never drift
+  // out of sync with the subscription — the exact bug that kept push dead. Old
+  // names remain as fallbacks (Brendon, 2026-07-05).
+  const publicKey =
+    process.env.NEXT_PUBLIC_WEBPUSH_KEY ||
+    process.env.VAPID_PUBLIC_KEY ||
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const privateKey = process.env.WEBPUSH_PRIVATE_KEY || process.env.VAPID_PRIVATE_KEY;
   const subject = process.env.VAPID_SUBJECT || 'mailto:pricediscussion@gmail.com';
   if (!publicKey || !privateKey) {
     configured = false;
