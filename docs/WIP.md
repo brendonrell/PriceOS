@@ -6,6 +6,43 @@
 
 ---
 
+## ✅ SHIPPED 2026-07-05 — SMALL-WINS BUNDLE + THE FABLE MAGIC BUILD ORDER
+
+On `dev` (cdfc2e3), tree clean, build verified. This chat's task branch
+`claude/fable-magic-planning-obtmu0` is trash once Brendon deletes it.
+
+**Shipped (Brendon's push):**
+- **Realism — 4th Ambient Light window.** 10 real-world sources (Candle /
+  Hearth / Tungsten / TV / Streetlamp · Dawn / Golden Hour / Overcast /
+  Moonlight / Storm), each overriding palette colour + pattern motion with
+  fixed real-time physics (`src-*` classes, end of `styles/ambient.css`;
+  Storm reuses the Lightning strike + sky-flash). Rides the Ambient Code as
+  an optional trailing char — old codes still decode.
+- **ASCII Backup** (Spell Book pill ⍢, plain `asciiBackup` flag — ClickUp
+  `86bahh9f5` CLOSED). Output feature page + fullscreen render as colour-true
+  ASCII (`lib/art/ascii.ts`: 70-glyph ramp, Courier-true grid); "Copy .TXT"
+  beside Full Screen grabs the raw text. Fingerprint/NPC sampling still reads
+  the TRUE pixels (offscreen live render).
+- **To-Dos grocery pass:** composer stays open + focused after each add
+  (rapid entry), sticky label while a #filter is active, paste a multi-line
+  list → one to-do per line, "Clear completed (n)" sweep with confirm.
+
+**THE FABLE MAGIC BUILD ORDER (Brendon agreed 2026-07-05, this chat):**
+Wave 1 (done): small wins above. Next → **The Receipt** (greenlit Keeper
+spec, phase 1 = mint/milestone/manual cards; Rarity Receipt is the template)
+→ **Replay** (make the existing mock panel real off the live ledger) →
+**Albums** (elevate) → **Workflows** (new feature, rides To-Dos infra +
+the Sentinel price feed) → **Composer** (`86b9eu9wn`) → **the three
+dashboards** (Studio = artist uploads; Sticker Studio + Godmode =
+BRENDON-ONLY consoles; build as pages now, flip to subdomains when
+pricediscussion.com goes live) → landscape-mobile polish → accessibility
+audit (humans + agents) → **Cartography (`86b9eth7w`) LAST — Brendon's
+explicit call, very very end.**
+**Discord feeds:** Cloudflare migration is now on the table (decision task
+`86b9g4e55` said stay on Apps Script UNLESS the quota tripwire fired — per
+Brendon it has); the pre-drawn Workers+cron design in that task is the plan.
+Waiting on a sample of the exact error the feeds hit before building.
+
 ## ✅ SHIPPED 2026-07-05 — SEPOLIA-READY: free-mint revert · 512px previews · DB completed to 120
 
 On `dev` (8a83cb0). Contracts + previews + data, all verified. This chat's task
