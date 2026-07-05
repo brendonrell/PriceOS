@@ -55,6 +55,7 @@ import type { EventRow } from '../../lib/supabase';
 import { projectSpriteFace } from '../../lib/project/projectSprite';
 import type { AttrInput } from '../../lib/output/attributes';
 import { handRead, type HandRead } from '../../lib/output/hand';
+import { shareReceipt } from '../../lib/output/receipt';
 import AsciiBackupPanel from './AsciiBackupPanel';
 
 function shortAddr(a: string | null): string {
@@ -516,6 +517,27 @@ export default function ArtworkPageBody({
     }, [market, athEth, feedRows]);
 
     const owned = market?.viewer?.isOwner ?? false;
+
+    /* SHARE → print The Receipt: the moment card for THIS piece, from the data
+       already on the page — listing price (or last sale), the Hand verdict,
+       hold facts, mint date, both handles. Toast per the casing rule. */
+    const onShareReceipt = async () => {
+        const listing = market?.listing ? Number(market.listing.price_eth) : null;
+        const lastSale = market?.last_sale ? Number(market.last_sale) : null;
+        const priceEth = listing ?? lastSale;
+        const r = await shareReceipt({
+            slug,
+            id: globalId,
+            verdict: hand ? hand.tier.toUpperCase() : 'HELD',
+            priceEth,
+            priceLabel: listing ? 'LISTED' : lastSale ? 'LAST SALE' : undefined,
+            holderHandle: heldBy || null,
+            holdDays: hand?.holdDays ?? null,
+            neverSold: hand?.neverSold ?? false,
+            mintedAtMs: mintMs,
+        });
+        showToast(r === 'shared' ? 'Receipt: SHARED' : r === 'downloaded' ? 'Receipt: SAVED' : 'Receipt: UNAVAILABLE');
+    };
     const ownerHref = market?.owner_handle
         ? `/${market.owner_handle}`
         : (market?.owner ? `/${market.owner}` : undefined);
@@ -1166,10 +1188,13 @@ export default function ArtworkPageBody({
                             >
                                 <div className="action-row">
                                     <OutputFollowButton outputId={outputRef} label={outputName} />
+                                    {/* SHARE = print The Receipt (Keepers spec #1): the
+                                        canonical art + price + both @handles + the hold
+                                        verdict, handed to the OS share sheet. */}
                                     <button
                                         className="btn-soundtrack"
-                                        title="Share — coming soon"
-                                        onClick={() => showToast('Share: COMING SOON')}
+                                        title="Share — print The Receipt"
+                                        onClick={() => { void onShareReceipt(); }}
                                     >
                                         <span className="btn-icon-play">▶&#xFE0E;</span>{' '}<span>SHARE</span>
                                     </button>
