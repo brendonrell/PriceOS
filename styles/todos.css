@@ -324,3 +324,65 @@
     transition: background 0.15s, border-color 0.15s;
 }
 .todo-clear-btn:hover { border-color: currentColor; background: color-mix(in srgb, currentColor 12%, transparent); }
+
+/* ── WORKFLOWS (connect-menu accordion, rides the To-Dos design family) ── */
+.wf-compose { padding: 8px 10px 10px; display: flex; flex-direction: column; gap: 8px; }
+.wf-kind-row { display: flex; gap: 6px; }
+.wf-kind {
+    font: bold 10px 'Courier New', Courier, monospace;
+    letter-spacing: 0.05em;
+    background: none;
+    border: 1px solid currentColor;
+    border-radius: 3px;
+    color: inherit;
+    padding: 5px 8px;
+    cursor: pointer;
+}
+.wf-kind.on { background: var(--bg-color); color: var(--text-color); border-color: var(--bg-color); }
+.wf-fields { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.wf-when { font: bold 11px 'Courier New', Courier, monospace; letter-spacing: 0.04em; }
+.wf-input {
+    font: 600 12px 'Courier New', Courier, monospace;
+    background: none;
+    border: 1px solid currentColor;
+    border-radius: 3px;
+    color: inherit;
+    padding: 5px 7px;
+    width: 96px;
+    min-width: 0;
+}
+.wf-input-num { width: 52px; }
+.wf-input::placeholder { color: inherit; opacity: 0.85; }
+.wf-arm {
+    align-self: flex-end;
+    font: bold 11px 'Courier New', Courier, monospace;
+    letter-spacing: 0.08em;
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--bg-color);
+    border-radius: 3px;
+    padding: 6px 14px;
+    cursor: pointer;
+}
+.wf-arm:disabled { opacity: 0.45; cursor: default; }
+.wf-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 10px;
+    font: 600 11.5px 'Courier New', Courier, monospace;
+    letter-spacing: 0.02em;
+}
+.wf-row.fired .wf-sentence { text-decoration: line-through; }
+.wf-sentence { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.wf-fired {
+    display: inline-block;
+    margin-left: 8px;
+    font: bold 9.5px 'Courier New', Courier, monospace;
+    letter-spacing: 0.08em;
+    background: var(--bg-color);
+    color: var(--text-color);
+    border-radius: 3px;
+    padding: 2px 6px;
+    text-decoration: none;
+}

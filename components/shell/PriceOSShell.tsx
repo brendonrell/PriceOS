@@ -77,6 +77,7 @@ import PreviewHealer from './PreviewHealer';
 import { ErrorBoundary } from './ErrorBoundary';
 import ActionToast from '../ActionToast';
 import TodoReminders from '../todos/TodoReminders';
+import WorkflowWatcher from '../workflows/WorkflowWatcher';
 import OutputPreview from '../OutputPreview';
 import CollectorsModal from '../CollectorsModal';
 import FollowersModal from '../FollowersModal';
@@ -416,6 +417,9 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="TodoReminders">
                 <TodoReminders />
+            </ErrorBoundary>
+            <ErrorBoundary name="WorkflowWatcher">
+                <WorkflowWatcher />
             </ErrorBoundary>
             <ErrorBoundary name="OutputPreview">
                 <OutputPreview />

@@ -144,6 +144,30 @@ export interface UserSettings {
     prompt_result?: 'added' | 'accepted' | 'declined' | 'dismissed' | 'instructed';
     prompt_result_at?: string;
   };
+  /** Workflows — the power-user automations (iOS-Shortcuts style). PRIVATE,
+   *  same envelope + privacy as `starred`. Shape owned by lib/workflows/store. */
+  workflows?: WorkflowRecord[];
+}
+
+/** One armed Workflow in the settings envelope (lib/workflows/store owns it). */
+export interface WorkflowRecord {
+  id: string;
+  /** What it waits for. */
+  trigger:
+    | { kind: 'upload'; artist: string }
+    | { kind: 'price'; slug: string; tokenId: number | null; priceEth: number };
+  /** What it does when it fires. Notify is always on; the rest are extras. */
+  actions: {
+    /** Create a to-do describing the intent (rides the To-Dos rails). */
+    todo?: boolean;
+    /** Mint-attempt count carried into the fired to-do / notification copy. */
+    qty?: number;
+  };
+  armedAt: number;
+  /** One-shot: set when it fires; a fired workflow keeps its record. */
+  firedAt: number | null;
+  /** What it fired ON (project slug), for the deep link + the record row. */
+  firedSlug?: string;
 }
 
 /** One album in the settings envelope. Shape is owned by lib/pins/albumStore. */

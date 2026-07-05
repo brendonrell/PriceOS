@@ -26,6 +26,7 @@ import { useDropdown } from '../../lib/state/DropdownContext';
 import { UserDropdown } from './UserDropdown';
 import { PingsBox } from './PingsBox';
 import { TodosBox } from './TodosBox';
+import { WorkflowsBox } from './WorkflowsBox';
 import { NotesBox } from './NotesBox';
 
 export function DropdownStack() {
@@ -39,6 +40,7 @@ export function DropdownStack() {
                 <>
                     <PingsBox />
                     <TodosBox />
+                    <WorkflowsBox />
                     <NotesBox />
                 </>
             )}
