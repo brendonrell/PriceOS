@@ -1919,6 +1919,16 @@ body.tape-framed .tape-rail {
 }
 a.news-pill { cursor: pointer; }
 
+/* Legibility halo — the pill stays half-opacity, so the bright colorway shows
+   THROUGH onto the text. A soft dark halo behind every glyph/word keeps the
+   content sharp on any theme without making the pill itself opaque (Brendon,
+   2026-07-05 — the readability lives on the content, not the container). */
+.news-pill-glyph,
+.news-pill-tag,
+.news-pill-title,
+.news-pill-meta {
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.7), 0 1px 1px rgba(0, 0, 0, 0.55);
+}
 .news-pill-glyph {
     font-size: 20px;
     line-height: 1;
@@ -1933,7 +1943,8 @@ a.news-pill { cursor: pointer; }
     min-width: 0;
 }
 .news-pill-tag {
-    font-size: 9px;
+    font-size: 10px;
+    font-weight: 700;
     letter-spacing: 0.09em;
     text-transform: uppercase;
     color: var(--accent, var(--text-color));
@@ -1941,15 +1952,15 @@ a.news-pill { cursor: pointer; }
 }
 .news-pill-title {
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
     line-height: 1.15;
     color: var(--text-color);
 }
 .news-pill-meta {
     font-size: 11px;
+    font-weight: 600;
     line-height: 1.15;
     color: var(--text-color);
-    opacity: 0.75;
 }
 
 @media (max-width: 600px) {
