@@ -1944,8 +1944,8 @@ body.theme-bright .news-pill-title,
 body.theme-bright .news-pill-meta,
 body.theme-bright .news-pill-name {
     text-shadow:
-        0 0 3px color-mix(in srgb, var(--bg-color, #fff) 35%, #fff),
-        0 1px 2px color-mix(in srgb, var(--bg-color, #fff) 30%, #fff);
+        0 0 3px color-mix(in srgb, var(--bg-color, #000) 60%, transparent),
+        0 1px 1px color-mix(in srgb, var(--bg-color, #000) 50%, transparent);
 }
 
 /* Sprite pill — a live PriceSprite chip + @name, narrower than a text pill so
