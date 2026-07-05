@@ -55,6 +55,7 @@ function sanitize(parsed: unknown): AlbumRecord[] {
                 ? r.keys.filter((k): k is string => typeof k === 'string' && k.includes(':'))
                 : [],
             created_at: typeof r.created_at === 'number' ? r.created_at : 0,
+            ...(typeof r.cover === 'string' && r.cover.includes(':') ? { cover: r.cover } : {}),
         });
     }
     return out;
@@ -165,6 +166,74 @@ export function isInAlbum(albumId: string, slug: string, id: number): boolean {
     hydrate();
     const album = albums.find((a) => a.id === albumId);
     return !!album && album.keys.includes(keyOf(slug, id));
+}
+
+/** Every album that CONTAINS an Output, with each album's 1-based number. */
+export function albumsContaining(slug: string, id: number): { album: AlbumRecord; number: number }[] {
+    hydrate();
+    const k = keyOf(slug, id);
+    const out: { album: AlbumRecord; number: number }[] = [];
+    albums.forEach((a, i) => {
+        if (a.keys.includes(k)) out.push({ album: { ...a, keys: [...a.keys] }, number: i + 1 });
+    });
+    return out;
+}
+
+/** Remove Outputs from an album. Clears the cover if it was removed.
+ *  Returns the count removed, or null for an unknown album. */
+export function removeFromAlbum(albumId: string, keys: ReadonlyArray<string>): number | null {
+    hydrate();
+    const album = albums.find((a) => a.id === albumId);
+    if (!album) return null;
+    const drop = new Set(keys);
+    const before = album.keys.length;
+    album.keys = album.keys.filter((k) => !drop.has(k));
+    if (album.cover && drop.has(album.cover)) delete album.cover;
+    const removed = before - album.keys.length;
+    if (removed > 0) {
+        persist();
+        emit();
+    }
+    return removed;
+}
+
+/** Delete an album outright. Later albums renumber implicitly (position). */
+export function deleteAlbum(albumId: string): boolean {
+    hydrate();
+    const before = albums.length;
+    albums = albums.filter((a) => a.id !== albumId);
+    if (albums.length === before) return false;
+    persist();
+    emit();
+    return true;
+}
+
+/** Set (or clear, with null) an album's cover. The key must be a member. */
+export function setAlbumCover(albumId: string, key: string | null): boolean {
+    hydrate();
+    const album = albums.find((a) => a.id === albumId);
+    if (!album) return false;
+    if (key === null) delete album.cover;
+    else if (album.keys.includes(key)) album.cover = key;
+    else return false;
+    persist();
+    emit();
+    return true;
+}
+
+/** Move member keys to the FRONT of an album, preserving their order —
+ *  the lightweight power-reorder until full drag lands. */
+export function moveToFront(albumId: string, keys: ReadonlyArray<string>): boolean {
+    hydrate();
+    const album = albums.find((a) => a.id === albumId);
+    if (!album) return false;
+    const pick = new Set(keys);
+    const front = album.keys.filter((k) => pick.has(k));
+    if (front.length === 0) return false;
+    album.keys = [...front, ...album.keys.filter((k) => !pick.has(k))];
+    persist();
+    emit();
+    return true;
 }
 
 /** Subscribe to album changes. Returns an unsubscribe function. */

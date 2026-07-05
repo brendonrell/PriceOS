@@ -1,0 +1,223 @@
+/* ============================================================================
+   ALBUMS — profile ▸ +More ▸ Albums (components/album/AlbumsPanel.tsx).
+   iOS-Photos simple on the surface: covers grid → album grid → piece.
+   Numbered only, never named. Power lives behind SELECT and ▶.
+   ============================================================================ */
+
+.albums-wrap { padding: 4px 0 40px; }
+
+.album-empty-note,
+.album-private-note {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 14px 2px;
+}
+
+/* ── Covers grid ── */
+.albums-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px 14px;
+}
+.album-tile {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: inherit;
+    text-align: left;
+    font-family: 'Courier New', Courier, monospace;
+}
+.album-tile-art {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: color-mix(in srgb, currentColor 8%, transparent);
+    align-items: center;
+    justify-content: center;
+}
+.album-tile-art canvas { border-radius: 0 !important; }
+.album-tile-art.single canvas { width: 100% !important; height: 100% !important; object-fit: cover; }
+.album-tile-empty { font-size: 34px; }
+.album-tile-plus {
+    font-size: 44px;
+    font-weight: bold;
+    border: 1.5px dashed color-mix(in srgb, currentColor 65%, transparent);
+    background: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.album-tile-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-top: 7px;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.06em;
+}
+.album-tile-count { font-weight: 600; }
+
+/* ── One album ── */
+.album-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 2px 0 10px;
+    font-family: 'Courier New', Courier, monospace;
+}
+.album-back {
+    background: none;
+    border: none;
+    color: inherit;
+    font: bold 13px 'Courier New', Courier, monospace;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    padding: 6px 8px 6px 0;
+}
+.album-title { font: bold 13px 'Courier New', Courier, monospace; letter-spacing: 0.08em; }
+.album-head-actions { display: inline-flex; gap: 8px; align-items: center; }
+.album-head-btn {
+    background: none;
+    border: 1px solid currentColor;
+    border-radius: 4px;
+    color: inherit;
+    font: bold 11px 'Courier New', Courier, monospace;
+    letter-spacing: 0.05em;
+    padding: 5px 9px;
+    cursor: pointer;
+}
+.album-select-btn.on,
+.album-head-btn:active {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border-color: var(--text-color);
+}
+
+.album-value-line {
+    font: 600 11px 'Courier New', Courier, monospace;
+    letter-spacing: 0.06em;
+    margin: -2px 0 10px;
+}
+.album-value-line .eth-mark { color: var(--hothurt, #ff0055); }
+
+.album-pieces {
+    display: grid;
+    gap: 8px;
+}
+.album-piece {
+    position: relative;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    border-radius: 8px;
+    overflow: hidden;
+    line-height: 0;
+}
+.album-piece canvas { border-radius: 8px !important; }
+.album-piece.selected canvas { opacity: 0.62; }
+.album-check {
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    font: bold 15px 'Courier New', Courier, monospace;
+    line-height: 1;
+    color: var(--text-color);
+    background: var(--bg-color);
+    border-radius: 4px;
+    padding: 2px 3px;
+}
+
+/* ── Select-mode tools ── */
+.album-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+}
+.album-tool {
+    background: none;
+    border: 1px solid currentColor;
+    border-radius: 4px;
+    color: inherit;
+    font: bold 11px 'Courier New', Courier, monospace;
+    letter-spacing: 0.05em;
+    padding: 7px 11px;
+    cursor: pointer;
+}
+.album-tool:disabled { opacity: 0.45; cursor: default; }
+.album-tool-danger { margin-left: auto; }
+.album-tool:not(:disabled):active {
+    background: var(--text-color);
+    color: var(--bg-color);
+}
+
+/* ── THE SHOW — full-screen exhibition ── */
+.album-show {
+    position: fixed;
+    inset: 0;
+    z-index: 10005;
+    background: #050505;
+    cursor: pointer;
+}
+.album-show-art {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    max-width: min(94vw, 94vh * 1);
+    max-height: 88vh;
+    width: auto;
+    height: auto;
+    opacity: 0;
+    transition: opacity 1.1s ease;
+}
+.album-show-art.front { opacity: 1; }
+.album-show-caption {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    color: #F2F2F2;
+    font: bold 12px 'Courier New', Courier, monospace;
+    letter-spacing: 0.12em;
+}
+@media (prefers-reduced-motion: reduce) {
+    .album-show-art { transition: none; }
+}
+
+/* ── Artwork page ▸ Albums tab — this piece's album chips ── */
+.output-albums-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+.output-album-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid currentColor;
+    border-radius: 4px;
+    font: bold 12px 'Courier New', Courier, monospace;
+    letter-spacing: 0.05em;
+    padding: 7px 10px;
+    color: inherit;
+    background: none;
+}
+.output-album-chip .chip-x {
+    cursor: pointer;
+    font-weight: bold;
+    padding: 0 2px;
+}
+.output-album-add {
+    cursor: pointer;
+    background: var(--text-color);
+    color: var(--bg-color);
+    border: 1px solid var(--text-color);
+}

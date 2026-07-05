@@ -57,6 +57,7 @@ import type { AttrInput } from '../../lib/output/attributes';
 import { handRead, type HandRead } from '../../lib/output/hand';
 import { shareReceipt } from '../../lib/output/receipt';
 import AsciiBackupPanel from './AsciiBackupPanel';
+import OutputAlbumsTab from '../album/OutputAlbumsTab';
 
 function shortAddr(a: string | null): string {
     if (!a || a.length < 10) return a || '—';
@@ -1041,13 +1042,13 @@ export default function ArtworkPageBody({
                 </section>
             </section>
 
-            {/* Albums tab — placeholder. */}
+            {/* Albums tab — this piece's numbered album chips + Add. */}
             <section
                 id="albums-panel"
                 aria-label="Albums"
                 style={{ display: onAlbums ? 'block' : 'none' }}
             >
-                <p className="info-rubik">Not in any albums yet.</p>
+                <OutputAlbumsTab slug={slug} id={globalId} />
             </section>
 
             {/* + More tab — same sub-section pill set as the project page; the

@@ -98,6 +98,7 @@ import type { ShowcaseSlot } from '../../lib/supabase';
 import type { UserProfileData } from '../../lib/profile/getUserProfileByHandle';
 import { priceDayNumber } from '../../lib/priceday/priceday';
 import { usePriceDay } from '../../lib/priceday/usePriceDay';
+import AlbumsPanel from '../album/AlbumsPanel';
 
 /**
  * Format an ISO timestamp (users.created_at) as "MMM DD YYYY" in the hero
@@ -2408,6 +2409,13 @@ function ProfilePageBodyInner({
                                 ) : undefined
                             }
                         />
+                    )}
+
+                    {/* Albums — the covers grid → album drill-in (iOS-Photos
+                        simple, power under SELECT/▶). Numbered only, PRIVATE:
+                        other profiles get the quiet note inside the panel. */}
+                    {onMore && effMoreL1 === 'albums' && (
+                        <AlbumsPanel own={isOwnProfile} />
                     )}
 
                     {/* Info sub-tab content: followers / following / anchor + the

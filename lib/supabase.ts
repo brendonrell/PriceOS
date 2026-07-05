@@ -153,6 +153,8 @@ export interface AlbumRecord {
   /** Member Outputs, keyed `${slug}:${id}`, insertion-ordered. */
   keys: string[];
   created_at: number;
+  /** Chosen cover key (must be a member); absent = mosaic of the first four. */
+  cover?: string;
 }
 
 /** Showcase: exactly 6 ordered slots. Slot payload shape is owned by the
