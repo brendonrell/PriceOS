@@ -6,6 +6,38 @@
 
 ---
 
+## ✅ SHIPPED 2026-07-05 — Homepage news carousel + preview self-heal + To-Dos chips
+
+All on `dev` (7f1a1b3). Branch this chat: `claude/homepage-news-carousel-hdfiey`
+(trash once merged — delete it).
+
+- **Featured-news carousel** above Join The Chat: always-visible rich-pill strip
+  scrolling on the Tape engine (`components/home/NewsCarousel.tsx`). Auto pills =
+  live Uploaded / Graduated / Sold-Out moments (`lib/home/news.ts`, reuses
+  FEED_LIFECYCLE). Curated slot wired in but EMPTY — fills from Brendon's future
+  admin studio. Sprite/@name pill type built (reuses PriceSprite engine) for the
+  studio/collector moments. New-stickers + ENS-subdomain ads = same rail later.
+- **Pill readability:** half-opacity pill kept; text is full-strength
+  `--text-color` (no opacity) + a THEME-AWARE halo — deep tint of the colorway
+  behind light lettering, light tint behind dark lettering (`body.theme-bright`
+  flag drives the split). Right padding +5px for even inner buffer. Scroll loop
+  keyed on a content signature so parent re-renders stop resetting it.
+- **Preview self-heal (real bug fixed):** stored PNG previews were pinned only by
+  the minter's browser, best-effort, one-shot — an interrupted mint orphaned
+  pieces forever (Noise From Below #8–22 were blank → home crawled on live
+  fallback). Now: the display seam fires `pd:preview-miss`, `PreviewHealer`
+  (mounted in PriceOSShell) pins a fresh deterministic render for ANY viewer;
+  the pin route (`/api/preview/[slug]/[id]`) dropped the holder+auth gate (kept
+  minted-token check + write-once). Backfilled the 15 missing NFB pieces via a
+  headless-render script.
+- **To-Dos add composer** rebuilt to the APPROVED chips (`◷ due · ◊ price · ! P1`
+  + Add) with optically-centred glyphs; fits the 310px menu, no clipping
+  (`styles/todos.css`).
+- **CLAUDE.md Rule #-1 added** (top rule): reply INSTANTLY to every message,
+  confirming receipt + understanding, before any tool/thinking.
+
+---
+
 ## ✅ SHIPPED 2026-07-05 — To-Dos add-panel visibility + connect badge
 
 On `dev` (4d7e588). To-Dos composer no longer washed out: solid outlines +
