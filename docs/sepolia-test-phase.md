@@ -39,6 +39,15 @@ floor/ceiling/initial = 0.0001 / 0.01 / 0.0007 ETH.
 created with mint price **0.00022 ETH** — one Alchemy faucet claim (0.1)
 covers a tester's whole run, since gas (not price) is the real spend.
 
+**Readiness matrix: 11/11 PASS (2026-07-06, /test page).** Test project
+`0x7EB2ea63d41E34a8338Cd92EA06ADEE4B54A1cf6` — wire, admin, corridor,
+create, cooldown + wrong-payment guards, exact-wei 95/5+storage mint
+split, utf8 tokenURI, 5% royaltyInfo, 60/40 splitter round-trip,
+transfer. Total gas ~0.006 SepETH. Scope call (Brendon, 2026-07-06): no
+user cohort on Sepolia — users test the simulated site; the 120 projects
+stay off testnet. Open: Etherscan verify · indexer webhook · frontend
+Sepolia profile · one OpenSea listing.
+
 ## 1. Goal & exit criteria
 
 **Goal:** prove the launch-scope system behaves correctly under real network
