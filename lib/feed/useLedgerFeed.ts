@@ -1,27 +1,26 @@
 'use client';
 
 /*
- * useProfileFeed — the profile activity feed (Brendon 2026-06-15): this
- * wallet's own pre-chain events (mint / list / sale / transfer) from the
- * shared ledger, filtered to this user. Reached via the Collected tab's
- * FEED sort, mirroring the project page's feed. When empty it shows ghost
- * rows — never hidden. Split out of ProfilePageBody 2026-07-06 — pure
- * move, no behavior change.
+ * useLedgerFeed — a FEED-sort activity list off the events ledger. One
+ * implementation for both feed surfaces (profile: /api/feed?address=…,
+ * project: /api/project/[slug]/feed) — same fetch-on-active + re-pull on
+ * 'pd:project-refresh' + time/price sort off SortContext both pages had
+ * as separate copies until the 2026-07-06 tech-debt split.
  */
 
 import { useEffect, useMemo, useState } from 'react';
-import { useSort } from '../../lib/state/SortContext';
-import { eventToFeedEvent, type FeedEvent } from '../../lib/feed/feedRow';
-import type { EventRow } from '../../lib/supabase';
+import { useSort } from '../state/SortContext';
+import { eventToFeedEvent, type FeedEvent } from './feedRow';
+import type { EventRow } from '../supabase';
 
-export function useProfileFeed(feedActive: boolean, address: string) {
+export function useLedgerFeed(feedActive: boolean, url: string) {
     const { dir, feedKind } = useSort();
     const [feedRows, setFeedRows] = useState<FeedEvent[]>([]);
     useEffect(() => {
         if (!feedActive) return;
         let cancelled = false;
         const load = () => {
-            fetch(`/api/feed?address=${address.toLowerCase()}&limit=100`, { cache: 'no-store' })
+            fetch(url, { cache: 'no-store' })
                 .then((r) => (r.ok ? r.json() : null))
                 .then((d: { events?: EventRow[] } | null) => {
                     if (!cancelled && Array.isArray(d?.events)) {
@@ -34,7 +33,7 @@ export function useProfileFeed(feedActive: boolean, address: string) {
         const onR = () => load();
         window.addEventListener('pd:project-refresh', onR);
         return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onR); };
-    }, [feedActive, address]);
+    }, [feedActive, url]);
     const sortedFeedEvents = useMemo(() => {
         const events = [...feedRows];
         const dirMult = dir === 'asc' ? 1 : -1;

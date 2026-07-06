@@ -85,9 +85,9 @@ import JoinDayPopover from './JoinDayPopover';
 import { useProfileEggs } from './useProfileEggs';
 import { useStarredPins } from './useStarredPins';
 import { useMoreControls, MORE_CFG, MORE_SORT_LABEL, MORE_GROUP_GLYPH, type MoreMode } from './useMoreControls';
-import { usePriceDayPopover } from './usePriceDayPopover';
+import { usePriceDayPopover } from '../../lib/hooks/usePriceDayPopover';
 import { useProfileAchievements } from './useProfileAchievements';
-import { useProfileFeed } from './useProfileFeed';
+import { useLedgerFeed } from '../../lib/feed/useLedgerFeed';
 import { useCollectedGallery } from './useCollectedGallery';
 import { useArtistShowcase } from './useArtistShowcase';
 
@@ -612,7 +612,7 @@ function ProfilePageBodyInner({
     if (onCollected) visitedCollected.current = true;
 
     const feedActive = onCollected && sort === 'feed';
-    const sortedFeedEvents = useProfileFeed(feedActive, user.address);
+    const sortedFeedEvents = useLedgerFeed(feedActive, `/api/feed?address=${user.address.toLowerCase()}&limit=100`);
 
     const {
         isArtist, artistProjects, effStyle, artistMode, createdUnderMore,
