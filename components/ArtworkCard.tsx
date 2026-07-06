@@ -97,8 +97,9 @@ import {
     togglePin as storeTogglePin,
     type GrailPin,
 } from '../lib/pins/grailStore';
+import { useSpiteMatcher } from '../lib/pins/spiteStore';
 import {
-    getMutedIds,
+    getMutedKeys,
     isMuted as storeIsMuted,
     muteOnly as storeMuteOnly,
     subscribeMuted,
@@ -229,14 +230,14 @@ function ArtworkCard({
        _mutedIds Set; the React port replaces the imperative DOM walk
        (sim's _paintMutedState at 7328-7346) with a per-card subscription
        so reconciliation paints the .muted class + label state for free. */
-    const [mutedSet, setMutedSet] = useState<ReadonlySet<number>>(
-        () => getMutedIds()
+    const [mutedSet, setMutedSet] = useState<ReadonlySet<string>>(
+        () => getMutedKeys()
     );
     useEffect(() => {
-        setMutedSet(getMutedIds());
+        setMutedSet(getMutedKeys());
         return subscribeMuted((next) => setMutedSet(next));
     }, []);
-    const muted = mutedSet.has(id);
+    const muted = mutedSet.has(`${slug}:${id}`);
 
     /* chat #6 D010-star — sim 5536-5551. Same subscription pattern as
        grailStore + muteStore. starredSet drives the icon's character
@@ -346,13 +347,13 @@ function ArtworkCard({
        its own inline style:none baseline) so the unmute branch is dead.
        Kept here for parity. The card content path uses the full toggle. */
     const runMuteToggle = () => {
-        const wasMuted = storeIsMuted(id);
-        storeToggleMute(id);
+        const wasMuted = storeIsMuted(slug, id);
+        storeToggleMute(slug, id);
         if (!wasMuted) startSwing();
     };
     const runMuteOnly = (e: React.MouseEvent) => {
         e.stopPropagation();
-        const did = storeMuteOnly(id);
+        const did = storeMuteOnly(slug, id);
         if (did) startSwing();
     };
 
@@ -460,6 +461,10 @@ function ArtworkCard({
        intercepts events differently. */
     const listed = meta?.price != null;
     const ownerDisplay = meta?.ownerDisplay ?? '';
+    /* Spite Book — a spited holder's chip (and their listing's price line)
+       renders dimmed + struck (.spited), per the Spell Book spec. */
+    const isSpited = useSpiteMatcher();
+    const ownerSpited = !!ownerDisplay && isSpited(ownerDisplay);
     const ownedByBrendon = meta?.isOwnedByBrendon ?? false;
     /* The piece is held by the Project's own artist — shown as a badge in the
        same spot + size as the "owned by you" check. Viewer-independent (everyone
@@ -1035,7 +1040,7 @@ function ArtworkCard({
                     </span>
                     {listed ? (
                         <span
-                            className="meta-owner price-trigger"
+                            className={`meta-owner price-trigger${ownerSpited ? ' spited' : ''}`}
                             data-pct={pctStr}
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -1046,7 +1051,7 @@ function ArtworkCard({
                         </span>
                     ) : (
                         <a
-                            className="meta-owner profile-link"
+                            className={`meta-owner profile-link${ownerSpited ? ' spited' : ''}`}
                             onClick={(e) => e.stopPropagation()}
                         >
                             {ownerDisplay}

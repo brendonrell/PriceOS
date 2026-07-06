@@ -87,6 +87,16 @@ export interface UserSettings {
    *  now). Each entry is a JSON blob of the event's display essentials, keyed by
    *  event id. Same envelope + privacy as `starred`. */
   txStars?: string[];
+  /** Grail Pins — the top-bar pinned set (any starred kind; GrailPin blobs,
+   *  internal shape owned by lib/pins/grailStore). PRIVATE, same envelope as
+   *  `starred`. Account-backed 2026-07-06 (was device-only). */
+  grails?: Array<Record<string, unknown>>;
+  /** Muted Outputs (the hammer), keyed `${slug}:${id}`. PRIVATE, same
+   *  envelope as `starred`. Account-backed 2026-07-06 (was device-only). */
+  mutes?: string[];
+  /** Spite Book slots — 72-slot array, null = empty line, position preserved.
+   *  PRIVATE, same envelope as `starred`. Account-backed 2026-07-06. */
+  spite?: Array<string | null>;
   /** Per-user, per-page LAST-VIEWED tab. Account-backed so the viewer's tab
    *  choice on each project / profile follows them across devices and overrides
    *  the content-aware default (Brendon, 2026-06-16). Keyed by lowercased

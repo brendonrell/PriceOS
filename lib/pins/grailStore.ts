@@ -20,10 +20,14 @@
  * working untouched. Legacy persisted entries (bare {slug,id}, pre-kind) hydrate
  * as Output pins.
  *
- * Persistence: localStorage `pd_grail_pins`.
+ * Persistence: localStorage `pd_grail_pins` (instant/offline cache) +
+ * the account settings envelope (`grails`) so pins follow the user across
+ * devices (Brendon, 2026-07-06).
  */
 
-const STORAGE_KEY = 'pd_grail_pins';
+import { pushSettings, STATE_CACHE_KEYS, USERSTATE_HYDRATED_EVENT } from '../state/userState';
+
+const STORAGE_KEY = STATE_CACHE_KEYS.grails;
 const MAX_PINS = 10;
 export const MAX_GRAIL_PINS = MAX_PINS;
 
@@ -69,16 +73,14 @@ export function grailKey(p: GrailPin): string {
     }
 }
 
-function hydrate(): void {
-    if (hydrated) return;
-    hydrated = true;
-    if (typeof window === 'undefined') return;
+function loadFromCache(): GrailPin[] {
+    if (typeof window === 'undefined') return [];
     try {
         const raw = window.localStorage.getItem(STORAGE_KEY);
-        if (!raw) return;
+        if (!raw) return [];
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
-            pins = parsed
+            return parsed
                 .map((p): GrailPin | null => {
                     if (!p || typeof p !== 'object' || typeof p.slug !== 'string') return null;
                     // Legacy entry (no kind) = an Output pin {slug, id}.
@@ -109,15 +111,36 @@ function hydrate(): void {
     } catch {
         /* ignore — bad JSON, quota, private mode */
     }
+    return [];
+}
+
+function hydrate(): void {
+    if (hydrated) return;
+    hydrated = true;
+    pins = loadFromCache();
 }
 
 function persist(): void {
-    if (typeof window === 'undefined') return;
-    try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(pins));
-    } catch {
-        /* ignore */
+    if (typeof window !== 'undefined') {
+        try {
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(pins));
+        } catch {
+            /* ignore */
+        }
     }
+    // Account write-through — pins ride the settings envelope. No-op until an
+    // authed snapshot has hydrated (userState guards this).
+    pushSettings({ grails: pins as unknown as Array<Record<string, unknown>> });
+}
+
+/* Server snapshot landed (login on any device) — re-read the cache userState
+   just overwrote with the account's pins and refresh subscribers. */
+if (typeof window !== 'undefined') {
+    window.addEventListener(USERSTATE_HYDRATED_EVENT, () => {
+        hydrated = true;
+        pins = loadFromCache();
+        emit();
+    });
 }
 
 function emit(): void {

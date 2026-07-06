@@ -114,6 +114,15 @@ export const STATE_CACHE_KEYS = {
     /** Ambient Light options blob. Read + written by AmbientStrip; lives in the
      *  settings envelope. */
     ambient: 'pd_ambient_opts',
+    /** Grail Pins (GrailPin blobs). Read + written by grailStore; lives in the
+     *  settings envelope. Account-backed 2026-07-06. */
+    grails: 'pd_grail_pins',
+    /** Muted token ids (the hammer). Read + written by muteStore; lives in the
+     *  settings envelope. Account-backed 2026-07-06. */
+    mutes: 'pd_muted_ids',
+    /** Spite Book slots (72 entries, nulls preserved). Read + written by
+     *  spiteStore; lives in the settings envelope. Account-backed 2026-07-06. */
+    spite: 'pd_spite_names',
 } as const;
 
 /** Fired after a server snapshot is written into the caches. Any context that
@@ -334,6 +343,19 @@ export function hydrateFromRow(row: UserRow): void {
         // hydrate event below so the bar restores across devices.
         if (s.ambient && typeof s.ambient === 'object' && !Array.isArray(s.ambient)) {
             localStorage.setItem(STATE_CACHE_KEYS.ambient, JSON.stringify(s.ambient));
+        }
+        // Grail Pins / mutes / Spite Book — newly account-backed (2026-07-06).
+        // Seed ONLY when the account carries the key (like sticker_state), so a
+        // pre-sync device set is never wiped by an account that hasn't synced
+        // yet — the first change on this device pushes it up instead.
+        if (Array.isArray(s.grails)) {
+            localStorage.setItem(STATE_CACHE_KEYS.grails, JSON.stringify(s.grails));
+        }
+        if (Array.isArray(s.mutes)) {
+            localStorage.setItem(STATE_CACHE_KEYS.mutes, JSON.stringify(s.mutes));
+        }
+        if (Array.isArray(s.spite)) {
+            localStorage.setItem(STATE_CACHE_KEYS.spite, JSON.stringify(s.spite));
         }
 
         // grid_presets → unified cache the presetStore reads (Gallery View

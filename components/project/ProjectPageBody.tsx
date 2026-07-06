@@ -86,6 +86,7 @@ import { isRecordingEnabled } from '../../lib/pins/breadcrumbStore';
 import { recordProjectView } from '../../lib/output/views';
 import { usePriceDayPopover } from '../../lib/hooks/usePriceDayPopover';
 import { useLedgerFeed } from '../../lib/feed/useLedgerFeed';
+import { useSpiteMatcher } from '../../lib/pins/spiteStore';
 import { useProjectSocial } from './useProjectSocial';
 import { useProjectGallery } from './useProjectGallery';
 import { useProjectFloor } from './useProjectMarket';
@@ -142,6 +143,8 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
     }, [project.slug]);
     const { showToast } = useToast();
     const { open } = useModal();
+    /* Spite Book — spited handles render redacted on the hero's social rows. */
+    const isSpited = useSpiteMatcher();
     const { add: cartAdd } = useCart();
 
     /* Registry def for static fields not in ProjectContext (mint price,
@@ -319,7 +322,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                         <span className="by-text">By</span>{' '}
                         <div className="artist-lockup">
                             <span className="artist-name-wrap">
-                                <a href={`/${def?.artistHandle ?? 'opus4-6'}`}>@{def?.artistHandle ?? 'opus4-6'}</a>
+                                <a className={isSpited(def?.artistHandle ?? '') ? 'spited' : undefined} href={`/${def?.artistHandle ?? 'opus4-6'}`}>@{def?.artistHandle ?? 'opus4-6'}</a>
                                 <span className="artist-tag" aria-label="artist">{'✺\uFE0E'}</span>
                                 {artistSocial.mutual && (
                                     <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
@@ -346,7 +349,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                                 return (
                                     <span key={name}>
                                         {i > 0 ? ', ' : ''}
-                                        <a className="profile-link" href={`/${h}`}>@{h}</a>
+                                        <a className={`profile-link${isSpited(h) ? ' spited' : ''}`} href={`/${h}`}>@{h}</a>
                                     </span>
                                 );
                             })}

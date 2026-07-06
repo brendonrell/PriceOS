@@ -88,6 +88,7 @@ import { useMoreControls, MORE_CFG, MORE_SORT_LABEL, MORE_GROUP_GLYPH, type More
 import { usePriceDayPopover } from '../../lib/hooks/usePriceDayPopover';
 import { useProfileAchievements } from './useProfileAchievements';
 import { useLedgerFeed } from '../../lib/feed/useLedgerFeed';
+import { useSpiteMatcher } from '../../lib/pins/spiteStore';
 import { useCollectedGallery } from './useCollectedGallery';
 import { useArtistShowcase } from './useArtistShowcase';
 
@@ -107,6 +108,8 @@ function ProfilePageBodyInner({
     const { showToast } = useToast();
     const { siweAddress } = useAuth();
     const isAuthed = !!siweAddress;
+    /* Spite Book — spited handles render redacted on this page's social rows. */
+    const isSpited = useSpiteMatcher();
     const { notifs } = usePdNotifs();
     const isZen = notifs.zenMode;
     const { sort, group } = useSort();
@@ -1001,7 +1004,7 @@ function ProfilePageBodyInner({
                         {mutuals.map((m, i) => (
                             <span key={m}>
                                 {i > 0 && ', '}
-                                <a className="cbr-name" href={`/${m}`}>@{m}</a>
+                                <a className={`cbr-name${isSpited(m) ? ' spited' : ''}`} href={`/${m}`}>@{m}</a>
                             </span>
                         ))}
                         {mutualOthers > 0 && (

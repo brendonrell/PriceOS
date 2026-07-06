@@ -15,12 +15,13 @@
  * may contain anything). One soundtrack per Project, so membership is by slug.
  *
  * PRIVATE (owner-only), account-backed via the settings envelope
- * (`soundtrackStars`), same write-through + login-hydration as the other stars.
+ * (`soundtrackStars`). Persistence protocol lives in createPinStore
+ * (2026-07-06 factory).
  */
 
-import { pushSettings, STATE_CACHE_KEYS, USERSTATE_HYDRATED_EVENT } from '../state/userState';
+import { pushSettings, STATE_CACHE_KEYS } from '../state/userState';
+import { createPinStore, decodeStringSet } from './createPinStore';
 
-const STORAGE_KEY = STATE_CACHE_KEYS.soundtrackStars;
 const SEP = '|';
 
 export interface SoundtrackStar {
@@ -28,12 +29,6 @@ export interface SoundtrackStar {
     playlistId: string;
     title: string;
 }
-
-type Listener = (keys: ReadonlySet<string>) => void;
-
-let keys: Set<string> = new Set();
-let hydrated = false;
-const listeners = new Set<Listener>();
 
 function parseKey(k: string): SoundtrackStar | null {
     const i1 = k.indexOf(SEP);
@@ -47,68 +42,26 @@ function parseKey(k: string): SoundtrackStar | null {
     };
 }
 
-function loadFromCache(): Set<string> {
-    const out = new Set<string>();
-    if (typeof window === 'undefined') return out;
-    try {
-        const raw = window.localStorage.getItem(STORAGE_KEY);
-        if (!raw) return out;
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) {
-            parsed.forEach((k) => {
-                if (typeof k === 'string' && parseKey(k)) out.add(k);
-            });
-        }
-    } catch {
-        /* ignore — bad JSON, quota, private mode */
-    }
-    return out;
-}
-
-function hydrate(): void {
-    if (hydrated) return;
-    hydrated = true;
-    keys = loadFromCache();
-}
-
-function persist(): void {
-    if (typeof window !== 'undefined') {
-        try {
-            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(keys)));
-        } catch {
-            /* ignore */
-        }
-    }
-    pushSettings({ soundtrackStars: Array.from(keys) });
-}
-
-function emit(): void {
-    const snapshot: ReadonlySet<string> = new Set(keys);
-    listeners.forEach((l) => l(snapshot));
-}
-
-if (typeof window !== 'undefined') {
-    window.addEventListener(USERSTATE_HYDRATED_EVENT, () => {
-        hydrated = true;
-        keys = loadFromCache();
-        emit();
-    });
-}
+const store = createPinStore<Set<string>>({
+    storageKey: STATE_CACHE_KEYS.soundtrackStars,
+    empty: () => new Set(),
+    decode: (parsed) => decodeStringSet(parsed, (k) => parseKey(k) != null),
+    encode: (keys) => Array.from(keys),
+    push: (encoded) => pushSettings({ soundtrackStars: encoded as string[] }),
+});
 
 export type ToggleSoundtrackStarResult = 'starred' | 'unstarred';
 
 /** Parsed starred soundtracks — for the Starred list. Insertion-ordered. */
 export function getSoundtrackStarItems(): ReadonlyArray<SoundtrackStar> {
-    hydrate();
-    return Array.from(keys)
+    return Array.from(store.get())
         .map(parseKey)
         .filter((s): s is SoundtrackStar => s != null);
 }
 
 /** A Project's soundtrack is starred? (membership is by slug — one per project) */
 export function isSoundtrackStarred(slug: string): boolean {
-    hydrate();
-    for (const k of keys) if (k.slice(0, k.indexOf(SEP)) === slug) return true;
+    for (const k of store.get()) if (k.slice(0, k.indexOf(SEP)) === slug) return true;
     return false;
 }
 
@@ -118,27 +71,21 @@ export function toggleSoundtrackStar(
     playlistId: string,
     title: string,
 ): ToggleSoundtrackStarResult {
-    hydrate();
+    const next = new Set(store.get());
     // Remove any existing entry for this slug first (one soundtrack per project).
     let had = false;
-    for (const k of Array.from(keys)) {
-        if (k.slice(0, k.indexOf(SEP)) === slug) { keys.delete(k); had = true; }
+    for (const k of Array.from(next)) {
+        if (k.slice(0, k.indexOf(SEP)) === slug) { next.delete(k); had = true; }
     }
     if (had) {
-        persist();
-        emit();
+        store.set(next);
         return 'unstarred';
     }
-    keys.add(`${slug}${SEP}${playlistId}${SEP}${title}`);
-    persist();
-    emit();
+    next.add(`${slug}${SEP}${playlistId}${SEP}${title}`);
+    store.set(next);
     return 'starred';
 }
 
-export function subscribeSoundtrackStars(cb: Listener): () => void {
-    hydrate();
-    listeners.add(cb);
-    return () => {
-        listeners.delete(cb);
-    };
+export function subscribeSoundtrackStars(cb: (keys: ReadonlySet<string>) => void): () => void {
+    return store.subscribe(cb);
 }

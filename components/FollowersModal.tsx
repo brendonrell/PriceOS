@@ -28,6 +28,7 @@ import { useAuth } from '../lib/state/AuthContext';
 import { useToast } from '../lib/state/ToastContext';
 import { lockBodyScroll, unlockBodyScroll } from '../lib/state/bodyScrollLock';
 import CollectedPair from './hero/CollectedPair';
+import { useSpiteMatcher } from '../lib/pins/spiteStore';
 import SpriteFace from './SpriteFace';
 import { projectSpriteFace } from '../lib/project/projectSprite';
 import { useCartelMutualCount } from '../lib/social/cartel';
@@ -512,6 +513,8 @@ function FriendDossier({ friendAddr, mySlugs }: { friendAddr: string | null; myS
 /* One project row — the project's PriceSprite+@name, its creator, mint count,
    and how many of your mutuals collect it (Cartel ⟁). */
 function ProjectRow({ proj, enabled, starred, onStar }: { proj: FollowedProjectRow; enabled: boolean; starred: boolean; onStar: (slug: string) => void }) {
+    /* Spite Book — a spited creator renders redacted on the dossier row. */
+    const fmIsSpited = useSpiteMatcher();
     const cartel = useCartelMutualCount(proj.project_id, enabled);
     const face = projectSpriteFace(proj.project_id);
     const h = proj.handle ?? proj.project_id;
@@ -537,7 +540,7 @@ function ProjectRow({ proj, enabled, starred, onStar }: { proj: FollowedProjectR
                     <span className="fm-tag">{proj.held ? 'FOLLOWS YOU' : 'FOLLOWING'}</span>
                     {proj.artist && (
                         <span className="fm-stat" title="Creator">
-                            <span className="fm-stat-ic">{`✺${VS15}`}</span><b>@{proj.artist}</b>
+                            <span className="fm-stat-ic">{`✺${VS15}`}</span><b className={fmIsSpited(proj.artist) ? 'spited' : undefined}>@{proj.artist}</b>
                         </span>
                     )}
                     <span className="fm-stat" title="Minted">

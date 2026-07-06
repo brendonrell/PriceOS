@@ -14,14 +14,17 @@
 
 import { useSpriteFace } from '../../lib/hooks/useSpriteFace';
 import SpriteFace from '../SpriteFace';
+import { useSpiteMatcher } from '../../lib/pins/spiteStore';
 
 export default function CollectedPair({ handle }: { handle: string }) {
     const h = handle.toLowerCase().replace(/^@/, '');
     const face = useSpriteFace(h);
+    /* Spite Book — a spited handle renders redacted in every chip. */
+    const isSpited = useSpiteMatcher();
     return (
         <span className="collected-pair">
             {face && <SpriteFace className="collected-sprite" face={face} />}
-            <a className="profile-link" href={`/${h}`}>
+            <a className={`profile-link${isSpited(h) ? ' spited' : ''}`} href={`/${h}`}>
                 @{h}
             </a>
         </span>

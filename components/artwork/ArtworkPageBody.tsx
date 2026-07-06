@@ -49,7 +49,7 @@ import PriceStoryPanel from '../market/PriceStoryPanel';
 import OffersInline from '../market/OffersInline';
 import AttrWall from './AttrWall';
 import { GhostFeedRows } from '../GhostFeed';
-import { eventToFeedEvent, type FeedEvent } from '../../lib/feed/feedRow';
+import { eventToFeedEvent, FeedActorLine, type FeedEvent } from '../../lib/feed/feedRow';
 import { PerMilleMark } from '../shell/PerMilleMark';
 import type { EventRow } from '../../lib/supabase';
 import { projectSpriteFace } from '../../lib/project/projectSprite';
@@ -425,7 +425,7 @@ export default function ArtworkPageBody({
             const st = fe.star;
             items.push({
                 key: `tx-${fe.id}`, glyph: fe.icon, cls: null, label: fe.type,
-                ts: fe.timestamp, content: fe.detail, pin: 0, seq: Number.MAX_SAFE_INTEGER,
+                ts: fe.timestamp, content: <FeedActorLine fe={fe} />, pin: 0, seq: Number.MAX_SAFE_INTEGER,
                 price: fe.price, sortName: fe.type,
                 searchText: `${fe.type} ${st?.toHandle ?? ''} ${st?.fromHandle ?? ''} ${st?.tokenId ?? ''}`.toLowerCase(),
             });

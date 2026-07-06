@@ -5029,13 +5029,20 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     #sb-arbitrage .st-icon   { position: relative; top: 1px; }
 }
 
-/* Spite Book — a handle on the user's spite list renders dimmed + struck
-   through wherever that person appears (feeds, Pings, holder chips, etc.).
-   The `.spited` class is applied per-element by the components that render a
-   handle, gated on spiteStore's @-insensitive match. Purely cosmetic. */
+/* Spite Book — a handle in the viewer's book renders REDACTED wherever that
+   person appears (feeds, Pings, holder chips, listings, profiles, social
+   rows). The treatment is a censor bar struck through the name in the text's
+   own colour, the name barely ghosting through beneath it, with a cursed
+   italic slant (Brendon, 2026-07-06 — "dark magic" redaction). The fade is
+   meaning-carrying (spited = struck), so it's exempt from the no-half-opacity
+   rule. Applied per-element via spiteStore's @-insensitive match. */
 .spited {
-    opacity: 0.2 !important;
+    opacity: 0.45 !important;
+    font-style: italic !important;
     text-decoration: line-through !important;
+    text-decoration-thickness: 0.82em !important;
+    text-decoration-color: color-mix(in srgb, currentColor 82%, transparent) !important;
+    text-decoration-skip-ink: none !important;
 }
 
 .burn-btn {

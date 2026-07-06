@@ -14,7 +14,7 @@
  */
 
 import React from 'react';
-import type { FeedEvent } from '../../lib/feed/feedRow';
+import { FeedActorLine, type FeedEvent } from '../../lib/feed/feedRow';
 import { useToast } from '../../lib/state/ToastContext';
 import { isTxStarred, toggleTxStar, subscribeTxStars } from '../../lib/pins/txStarStore';
 
@@ -71,7 +71,7 @@ export default function FeedEventRow({ fe }: { fe: FeedEvent }) {
             <div className="f-time">{fe.time}</div>
             <div className="f-type">{fe.type}</div>
             <div className="f-content" style={{ position: 'relative' }}>
-                {fe.detail}
+                <FeedActorLine fe={fe} />
                 {starred && <span className="project-name-star" aria-hidden="true">{'★︎'}</span>}
                 {floatId > 0 && <span key={floatId} className={`project-name-star-float${floatDown ? ' is-down' : ''}`} aria-hidden="true">{'★︎'}</span>}
             </div>

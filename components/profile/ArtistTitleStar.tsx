@@ -18,10 +18,13 @@ import {
     toggleArtistStar,
     subscribeArtistStars,
 } from '../../lib/pins/artistStarStore';
+import { useSpiteMatcher } from '../../lib/pins/spiteStore';
 
 export default function ArtistTitleStar({ handle }: { handle: string }) {
     const name = `@${handle}`;
     const { showToast } = useToast();
+    /* Spite Book — a spited user's own profile title renders redacted. */
+    const isSpited = useSpiteMatcher();
     const [starred, setStarred] = React.useState(false);
     React.useEffect(() => {
         setStarred(isArtistStarred(name));
@@ -68,7 +71,7 @@ export default function ArtistTitleStar({ handle }: { handle: string }) {
             onPointerCancel={endPress}
             onContextMenu={(e) => e.preventDefault()}
         >
-            <span>{name}</span>
+            <span className={isSpited(name) ? 'spited' : undefined}>{name}</span>
             {starred && <span className="project-name-star" aria-hidden="true">{'★︎'}</span>}
             {floatId > 0 && <span key={floatId} className={`project-name-star-float${floatDown ? ' is-down' : ''}`} aria-hidden="true">{'★︎'}</span>}
         </span>

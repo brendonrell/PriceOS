@@ -12,18 +12,35 @@
 import type { ReactNode } from 'react';
 import type { EventRow } from '../supabase';
 import type { TxStar } from '../pins/txStarStore';
+import { useSpiteMatcher } from '../pins/spiteStore';
 
 export interface FeedEvent {
     id: string;
     icon: string;
     time: string;
     type: 'MINT' | 'LIST' | 'SALE' | 'XFER';
-    detail: ReactNode;
+    /** The acting wallet's display name ('@handle' or short 0x…) — rendered by
+     *  FeedEventRow with the Spite Book treatment when the handle is spited. */
+    actorName: string;
+    /** The rest of the sentence after the actor (verb + token + price). */
+    verb: ReactNode;
     timestamp: number;
     price: number;
     /* The event essentials captured for Starred Tx — long-pressing the row
        persists this so the Starred surface can re-render without the feed. */
     star: TxStar;
+}
+
+/** The standard feed sentence — actor + verb, with the Spite Book treatment
+ *  on the actor (dimmed + struck when the handle is in the viewer's book).
+ *  One implementation for every surface that renders a FeedEvent line. */
+export function FeedActorLine({ fe }: { fe: FeedEvent }) {
+    const isSpited = useSpiteMatcher();
+    return (
+        <>
+            <span className={`f-highlight${isSpited(fe.actorName) ? ' spited' : ''}`}>{fe.actorName}</span> {fe.verb}
+        </>
+    );
 }
 
 export const FEED_ICON: Record<FeedEvent['type'], string> = {
@@ -64,7 +81,8 @@ export function eventToFeedEvent(e: EventRow): FeedEvent {
             hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Montreal',
         }),
         type,
-        detail: <><span className="f-highlight">{actor}</span> {verb}</>,
+        actorName: actor,
+        verb,
         timestamp: ms,
         price,
         star: {

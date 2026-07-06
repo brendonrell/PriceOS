@@ -11,14 +11,17 @@
  * the dense list of non-empty names, so per-slot placement never changes how
  * matching works.
  *
- * Persistence: localStorage `pd_spite_names`. Stored as the slot array (nulls
- * preserved). Legacy storage was a dense string[]; it hydrates into the first
- * slots in order.
+ * Persistence: localStorage `pd_spite_names` (instant/offline cache) + the
+ * account settings envelope (`spite`) so the book follows the user across
+ * devices (Brendon, 2026-07-06). Stored as the slot array (nulls preserved).
+ * Legacy storage was a dense string[]; it hydrates into the first slots in
+ * order.
  */
 
 import { useSyncExternalStore } from 'react';
+import { pushSettings, STATE_CACHE_KEYS, USERSTATE_HYDRATED_EVENT } from '../state/userState';
 
-const STORAGE_KEY = 'pd_spite_names';
+const STORAGE_KEY = STATE_CACHE_KEYS.spite;
 const MAX_LEN = 40;       // a single name can't exceed this many chars
 export const SPITE_SLOTS = 72; // 12 pages × 6 lines
 
@@ -51,13 +54,12 @@ export function isSpited(handle: string | null | undefined): boolean {
     return n.length > 0 && matchSet.has(n);
 }
 
-function hydrate(): void {
-    if (hydrated) return;
-    hydrated = true;
-    if (typeof window === 'undefined') return;
+function loadFromCache(): (string | null)[] {
+    const out: (string | null)[] = new Array(SPITE_SLOTS).fill(null);
+    if (typeof window === 'undefined') return out;
     try {
         const raw = window.localStorage.getItem(STORAGE_KEY);
-        if (!raw) { rebuildMatchSet(); return; }
+        if (!raw) return out;
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
             // New shape: a slot array (strings + nulls), placed by index.
@@ -65,23 +67,45 @@ function hydrate(): void {
             parsed.forEach((n, i) => {
                 if (i >= SPITE_SLOTS) return;
                 const s = typeof n === 'string' ? n.trim() : '';
-                slots[i] = s ? s.slice(0, MAX_LEN) : null;
+                out[i] = s ? s.slice(0, MAX_LEN) : null;
             });
         }
     } catch {
         /* ignore — bad JSON, quota, private mode */
     }
+    return out;
+}
+
+function hydrate(): void {
+    if (hydrated) return;
+    hydrated = true;
+    slots = loadFromCache();
     rebuildMatchSet();
 }
 
 function persist(): void {
     rebuildMatchSet();
-    if (typeof window === 'undefined') return;
-    try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(slots));
-    } catch {
-        /* ignore */
+    if (typeof window !== 'undefined') {
+        try {
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(slots));
+        } catch {
+            /* ignore */
+        }
     }
+    // Account write-through — the book rides the settings envelope. No-op until
+    // an authed snapshot has hydrated (userState guards this).
+    pushSettings({ spite: slots.slice() });
+}
+
+/* Server snapshot landed (login on any device) — re-read the cache userState
+   just overwrote with the account's book and refresh subscribers. */
+if (typeof window !== 'undefined') {
+    window.addEventListener(USERSTATE_HYDRATED_EVENT, () => {
+        hydrated = true;
+        slots = loadFromCache();
+        rebuildMatchSet();
+        emit();
+    });
 }
 
 let version = 0;

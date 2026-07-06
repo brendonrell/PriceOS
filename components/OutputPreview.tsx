@@ -107,8 +107,9 @@ import { toggleShowcase } from '../lib/pins/userShowcaseStore';
 import { getStarredKeys, toggleStar as storeToggleStar, subscribeStarred } from '../lib/pins/starStore';
 import { getWishlistKeys, toggleWishlist as storeToggleWishlist, subscribeWishlist } from '../lib/pins/wishlistStore';
 import AlbumPickerCard from './album/AlbumPickerCard';
+import { useSpiteMatcher } from '../lib/pins/spiteStore';
 import {
-    getMutedIds,
+    getMutedKeys,
     isMuted as storeIsMuted,
     subscribeMuted,
     toggleMute as storeToggleMute,
@@ -274,11 +275,13 @@ export default function OutputPreview() {
        calling a sync function on every openModal / hammer-mode toggle,
        React reconciliation paints the right label whenever either
        `currentModalId` or the muted set changes. */
-    const [mutedSet, setMutedSet] = useState<ReadonlySet<number>>(
-        () => getMutedIds()
+    /* Spite Book — the owner row renders dimmed + struck for a spited handle. */
+    const isSpited = useSpiteMatcher();
+    const [mutedSet, setMutedSet] = useState<ReadonlySet<string>>(
+        () => getMutedKeys()
     );
     useEffect(() => {
-        setMutedSet(getMutedIds());
+        setMutedSet(getMutedKeys());
         return subscribeMuted((next) => setMutedSet(next));
     }, []);
 
@@ -316,7 +319,7 @@ export default function OutputPreview() {
         window.addEventListener('pd:notes-changed', check);
         return () => window.removeEventListener('pd:notes-changed', check);
     }, [id]);
-    const isMutedNow = id != null && mutedSet.has(id);
+    const isMutedNow = id != null && mutedSet.has(`${slug}:${id}`);
 
     /* chat #4 — sim 7370-7385 hammerSwing animation on the modal overlay.
        Same three-phase label model as ArtworkCard: baseline "Mute" → ⟙
@@ -396,8 +399,8 @@ export default function OutputPreview() {
     const handleModalMuteTap = () => {
         if (!notifs.spell_hammer) return;
         if (id == null) return;
-        const wasMuted = storeIsMuted(id);
-        storeToggleMute(id);
+        const wasMuted = storeIsMuted(slug, id);
+        storeToggleMute(slug, id);
         if (!wasMuted) {
             if (swingTimerRef.current != null) {
                 window.clearTimeout(swingTimerRef.current);
@@ -766,7 +769,7 @@ export default function OutputPreview() {
                 <div className="dp-row">
                     <span className="dp-label">Owner</span>
                     <span className="dp-value">
-                        <span className="dp-value-text dp-addr">
+                        <span className={`dp-value-text dp-addr${market?.owner_handle && isSpited(market.owner_handle) ? ' spited' : ''}`}>
                             {ownerCopied
                                 ? 'COPIED!'
                                 : market?.viewer?.isOwner

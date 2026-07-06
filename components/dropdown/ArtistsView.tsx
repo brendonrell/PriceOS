@@ -51,6 +51,7 @@ import { useAuth } from '../../lib/state/AuthContext';
 import { pushSettings, STATE_CACHE_KEYS, USERSTATE_HYDRATED_EVENT } from '../../lib/state/userState';
 import type { ArtistsRosterResponse, ArtistsRosterRow } from '../../app/api/artists/route';
 import type { FollowsListResponse } from '../../app/api/follows/[address]/route';
+import { useSpiteMatcher } from '../../lib/pins/spiteStore';
 
 const PIN_LIMIT = 5;
 
@@ -109,6 +110,8 @@ export function ArtistsView() {
     const { openArtistNoteEditor } = useNotePrompt();
     const { siweAddress } = useAuth();
     const isAuthed = !!siweAddress;
+    /* Spite Book — spited artists render redacted in the A–Z list. */
+    const isSpited = useSpiteMatcher();
 
     /* S2 logged-out preview — strip personal-relationship affordances:
        no pin/note/rel icons per row, no filter pills for starred/notes/
@@ -354,7 +357,7 @@ export function ArtistsView() {
                                 >
                                     {isPinned ? '\u2605\uFE0E' : '\u2606\uFE0E'}
                                 </span>
-                                <span className="artist-name-txt">{a.name}</span>
+                                <span className={`artist-name-txt${isSpited(a.name) ? ' spited' : ''}`}>{a.name}</span>
                                 <span
                                     className={`artist-note-icon${hasNote ? ' active' : ''}`}
                                     title={noteTitle}

@@ -42,7 +42,8 @@ import { removeArtistStar } from '../../lib/pins/artistStarStore';
 import { toggleSoundtrackStar, type SoundtrackStar } from '../../lib/pins/soundtrackStarStore';
 import { removeProjectStar, isProjectStarred, toggleProjectStar, subscribeProjectStars } from '../../lib/pins/projectStarStore';
 import { removeTxStar, type TxStar } from '../../lib/pins/txStarStore';
-import { txStarToFeedEvent } from '../../lib/feed/feedRow';
+import { txStarToFeedEvent, FeedActorLine } from '../../lib/feed/feedRow';
+import { useSpiteMatcher } from '../../lib/pins/spiteStore';
 import { getGrails, subscribeGrails, togglePinItem, grailKey, type GrailPin } from '../../lib/pins/grailStore';
 import { useStarredPrices, priceOf } from '../../lib/pins/starredPriceStore';
 import { useArtistColors, artistBucket, artistFollowers, artistSprite, artistProjectsOwned } from '../../lib/pins/artistColorStore';
@@ -1118,7 +1119,7 @@ export default function StarredList({
                                     <span className="artist-row-tile-glyph" style={txActorHandle ? { color: artistColor(txActorHandle) } : undefined}>{r.fe.icon}&#xFE0E;</span>
                                 </div>
                                 <div className="starred-row-meta">
-                                    <span className="starred-row-id">{r.fe.detail}</span>
+                                    <span className="starred-row-id"><FeedActorLine fe={r.fe} /></span>
                                     <span className="starred-row-sub">{r.fe.type} · {r.fe.time}</span>
                                     <span className="starred-row-sub">{r.fe.price ? <>Price:<em>{r.fe.price} ETH</em></> : ' '}</span>
                                     <span className="starred-row-sub">Transaction</span>
@@ -1530,6 +1531,8 @@ function StarredArtistRow({
     variant?: 'artist' | 'collector';
     sprite?: string | null;
 }) {
+    /* Spite Book — a spited user renders redacted in Starred rows. */
+    const isSpited = useSpiteMatcher();
     const { showToast } = useToast();
     const router = useRouter();
     const { count, rel, address } = useArtistSocial(handle, viewerAddress);
@@ -1580,7 +1583,7 @@ function StarredArtistRow({
             </div>
             <div className="starred-row-meta">
                 <span className="starred-row-id">
-                    {name}
+                    <span className={isSpited(name) ? 'spited' : undefined}>{name}</span>
                     {variant === 'artist' && <span className="artist-tag" aria-label="artist">{'✺︎'}</span>}
                     {relGlyph && <span className={`artist-social-ico ${rel === 'mutual' ? 'is-mutual-lg' : 'is-bump'}`} title={relLabel} aria-label={relLabel}>{relGlyph}</span>}
                     {count != null && count > 0 && (

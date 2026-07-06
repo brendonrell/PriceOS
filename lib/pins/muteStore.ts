@@ -21,7 +21,11 @@
  *   fit and matches the pattern already used by grailStore + sentimentEngine.
  *
  * State shape:
- *   ids: Set<number>   — muted token ids, no cap (sim has no upper bound)
+ *   keys: Set<string>  — muted Outputs, keyed `${slug}:${id}` so a mute is
+ *   Project-exact (2026-07-06 — bare token ids collided across Projects:
+ *   muting Prisms #5 also muted Oracle #5). Legacy bare-number entries are
+ *   dropped on hydrate (they carry no slug, so they can't be attributed to a
+ *   Project — a one-time reset, the same call starStore made; not data loss).
  *
  * Persistence: localStorage `pd_muted_ids` (sim 7253) + `pd_hammer_count`
  * (sim 7260). Both written on every mutation. Hammer count event is
@@ -34,33 +38,46 @@
  * boundary that only runs in the browser.
  */
 
-const STORAGE_KEY = 'pd_muted_ids';
+import { pushSettings, STATE_CACHE_KEYS, USERSTATE_HYDRATED_EVENT } from '../state/userState';
+
+const STORAGE_KEY = STATE_CACHE_KEYS.mutes;
 const COUNT_KEY = 'pd_hammer_count';
 const COUNT_EVENT = 'pd:hammer-count-changed';
 
-type Listener = (ids: ReadonlySet<number>) => void;
+type Listener = (keys: ReadonlySet<string>) => void;
 
-let ids: Set<number> = new Set();
+let keys: Set<string> = new Set();
 let hydrated = false;
 const listeners = new Set<Listener>();
 
-function hydrate(): void {
-    if (hydrated) return;
-    hydrated = true;
-    if (typeof window === 'undefined') return;
+function keyOf(slug: string, id: number): string {
+    return `${slug}:${id}`;
+}
+
+function loadFromCache(): Set<string> {
+    const out = new Set<string>();
+    if (typeof window === 'undefined') return out;
     try {
         const raw = window.localStorage.getItem(STORAGE_KEY);
-        if (!raw) return;
+        if (!raw) return out;
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
-            parsed.forEach((n) => {
-                const id = typeof n === 'number' ? n : parseInt(String(n), 10);
-                if (Number.isFinite(id)) ids.add(id);
+            parsed.forEach((k) => {
+                // Only composite `slug:id` keys; legacy bare numbers are dropped
+                // (one-time reset — they can't be attributed to a Project).
+                if (typeof k === 'string' && k.includes(':')) out.add(k);
             });
         }
     } catch {
         /* ignore — bad JSON, quota, private mode */
     }
+    return out;
+}
+
+function hydrate(): void {
+    if (hydrated) return;
+    hydrated = true;
+    keys = loadFromCache();
 }
 
 function persist(): void {
@@ -68,9 +85,9 @@ function persist(): void {
     try {
         window.localStorage.setItem(
             STORAGE_KEY,
-            JSON.stringify(Array.from(ids))
+            JSON.stringify(Array.from(keys))
         );
-        window.localStorage.setItem(COUNT_KEY, String(ids.size));
+        window.localStorage.setItem(COUNT_KEY, String(keys.size));
     } catch {
         /* ignore */
     }
@@ -82,24 +99,41 @@ function persist(): void {
     } catch {
         /* ignore */
     }
+    // Account write-through — mutes ride the settings envelope. No-op until an
+    // authed snapshot has hydrated (userState guards this).
+    pushSettings({ mutes: Array.from(keys) });
+}
+
+/* Server snapshot landed (login on any device) — re-read the cache userState
+   just overwrote with the account's mutes and refresh subscribers + badges. */
+if (typeof window !== 'undefined') {
+    window.addEventListener(USERSTATE_HYDRATED_EVENT, () => {
+        hydrated = true;
+        keys = loadFromCache();
+        try {
+            window.localStorage.setItem(COUNT_KEY, String(keys.size));
+            window.dispatchEvent(new Event(COUNT_EVENT));
+        } catch { /* ignore */ }
+        emit();
+    });
 }
 
 function emit(): void {
-    const snapshot: ReadonlySet<number> = new Set(ids);
+    const snapshot: ReadonlySet<string> = new Set(keys);
     listeners.forEach((l) => l(snapshot));
 }
 
 export type ToggleMuteResult = 'muted' | 'unmuted';
 
-/** Snapshot of currently muted ids. Triggers hydrate on first call. */
-export function getMutedIds(): ReadonlySet<number> {
+/** Snapshot of currently muted keys (`${slug}:${id}`). Triggers hydrate. */
+export function getMutedKeys(): ReadonlySet<string> {
     hydrate();
-    return ids;
+    return keys;
 }
 
-export function isMuted(id: number): boolean {
+export function isMuted(slug: string, id: number): boolean {
     hydrate();
-    return ids.has(id);
+    return keys.has(keyOf(slug, id));
 }
 
 /**
@@ -112,15 +146,16 @@ export function isMuted(id: number): boolean {
  * a per-render visual concern — same reason togglePin's toast text
  * lives in the caller in grailStore.
  */
-export function toggleMute(id: number): ToggleMuteResult {
+export function toggleMute(slug: string, id: number): ToggleMuteResult {
     hydrate();
-    if (ids.has(id)) {
-        ids.delete(id);
+    const k = keyOf(slug, id);
+    if (keys.has(k)) {
+        keys.delete(k);
         persist();
         emit();
         return 'unmuted';
     }
-    ids.add(id);
+    keys.add(k);
     persist();
     emit();
     return 'muted';
@@ -132,10 +167,11 @@ export function toggleMute(id: number): ToggleMuteResult {
  * already muted, no-op; otherwise mutes. Returns whether it actually
  * muted (so callers can short-circuit if desired).
  */
-export function muteOnly(id: number): boolean {
+export function muteOnly(slug: string, id: number): boolean {
     hydrate();
-    if (ids.has(id)) return false;
-    ids.add(id);
+    const k = keyOf(slug, id);
+    if (keys.has(k)) return false;
+    keys.add(k);
     persist();
     emit();
     return true;
