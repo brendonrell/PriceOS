@@ -6,7 +6,30 @@
 
 ---
 
-## ✅ SHIPPED 2026-07-06 — TECH-DEBT EXECUTION (Fable, per Brendon's order): 6 of 8 done
+## ✅ SHIPPED 2026-07-06 — TECH-DEBT EXECUTION: ALL 8 DONE + SPITE/MUTE FIXES (dev @ cb99aa4)
+
+**Final batch (same session, Brendon's push-and-continue):**
+- **⑥ DONE — pin-store factory:** `lib/pins/createPinStore.ts` is the one
+  persistence engine (cache + envelope write-through + login re-read); the
+  seven star/wishlist-family stores are thin wrappers, public APIs unchanged.
+- **Account sync (Brendon-approved):** Grail Pins, mutes, Spite Book ride the
+  settings envelope now (`grails`/`mutes`/`spite`; hydrate seeds ONLY when the
+  account carries the key — pre-sync device data survives, pushes up on first
+  change). No API change needed (envelope passes through whole).
+- **Mute fix:** Project-exact keys (`slug:id`) — bare token ids collided
+  across Projects. Legacy bare-number entries reset one-time (starStore
+  precedent). ArtworkCard + OutputPreview call sites updated.
+- **SPITE BOOK WORKS NOW (Brendon's bug):** the matcher + CSS existed but
+  almost nothing applied it. New treatment (Brendon delegated the look):
+  redaction censor bar through the name in currentColor, name ghosting
+  beneath, italic slant (`.spited`, globals.css). Wired: FeedActorLine (one
+  shared line for project/profile/artwork-page/starred-tx feed rows) · card
+  holder chips + listing price lines · output modal owner · profile hero
+  title (ArtistTitleStar) + Followed-by · project hero By-artist +
+  Collected-by · Artists A–Z · CollectedPair (followers modal, leaderboard,
+  circle rows) · dossier creator tags · Starred artist/collector rows.
+
+## ✅ Earlier same day — TECH-DEBT items ①-⑤,⑦,⑧ (6 of 8 at that point)
 
 All on `dev` (batches: 159523a product-truth · 2b54fe0 profile split ·
 f8964cc project split + shared hooks · b3aa544 TraitsUI split · CSS fold),
