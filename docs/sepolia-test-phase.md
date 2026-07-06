@@ -45,8 +45,11 @@ create, cooldown + wrong-payment guards, exact-wei 95/5+storage mint
 split, utf8 tokenURI, 5% royaltyInfo, 60/40 splitter round-trip,
 transfer. Total gas ~0.006 SepETH. Scope call (Brendon, 2026-07-06): no
 user cohort on Sepolia — users test the simulated site; the 120 projects
-stay off testnet. Open: Etherscan verify · indexer webhook · frontend
-Sepolia profile · one OpenSea listing.
+stay off testnet.
+
+**Etherscan: ALL FIVE VERIFIED (2026-07-06)** — registry, factory,
+stickers, test project, splitter (source visible on sepolia.etherscan.io).
+Open: indexer webhook · frontend Sepolia profile · one OpenSea listing.
 
 ## 1. Goal & exit criteria
 
@@ -54,7 +57,7 @@ Sepolia profile · one OpenSea listing.
 conditions, end-to-end, and produce an observation log that feeds the audit.
 
 **Done when (all true):**
-- [ ] PDFactory + one test PDProject live on Sepolia, **both Etherscan-verified**
+- [x] PDFactory + one test PDProject live on Sepolia, **both Etherscan-verified** (2026-07-06 — registry, stickers + splitter verified too)
 - [ ] Mint, fee-split, withdraw, and royalty paths exercised end-to-end on Sepolia
 - [ ] Indexer running against Sepolia, populating Supabase; the 7 mocked API
       routes return **real** data
