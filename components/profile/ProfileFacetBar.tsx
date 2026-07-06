@@ -43,7 +43,7 @@ import { isStarred, toggleStar } from '../../lib/pins/starStore';
 import { isWishlisted, toggleWishlist } from '../../lib/pins/wishlistStore';
 import { getArtistStars, toggleArtistStar, subscribeArtistStars } from '../../lib/pins/artistStarStore';
 import { getProjectStars, toggleProjectStar, subscribeProjectStars } from '../../lib/pins/projectStarStore';
-import { L3Pill } from '../project/TraitsUI';
+import { L3Pill } from '../project/traitsUIPills';
 import AlbumPickerCard from '../album/AlbumPickerCard';
 import { useMarketSheet } from '../../lib/state/MarketSheetContext';
 import { useCart } from '../../lib/state/CartContext';

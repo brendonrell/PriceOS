@@ -40,7 +40,7 @@ import HomeMsFloatBar from './HomeMsFloatBar';
 import { STATUS_LADDER } from '../../lib/home/milestones';
 import { getArtistStars, toggleArtistStar, subscribeArtistStars } from '../../lib/pins/artistStarStore';
 import { getProjectStars, toggleProjectStar, subscribeProjectStars } from '../../lib/pins/projectStarStore';
-import { L3Pill } from '../project/TraitsUI';
+import { L3Pill } from '../project/traitsUIPills';
 
 /** One minting project, enriched with its computed birth-traits + mint price. */
 export interface EnrichedProject {
