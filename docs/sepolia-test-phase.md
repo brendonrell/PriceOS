@@ -20,6 +20,21 @@ canonical path is now:
 Everything surfaced here flows into the **Mythic Audit Pass**, the last gate
 before mainnet.
 
+## 0.5 Deployed Sepolia addresses (2026-07-06 — Brendon, via /deploy page)
+
+Deployed from `pd-contracts` @ `26c3793` (current main), deployer/admin
+`0x146034ec25C277F30f63933B151297689E15B9B8`. Wire verified on-chain
+(`registry.factory()` → factory; `factory.admin()` → deployer).
+
+| Contract | Address |
+|---|---|
+| PDLibraryRegistry | `0x303cabf0fe2483f159718d93e5e5224c59a1c673` |
+| PDFactory | `0xbebf82fe12f2d85780ca4835796885208f7d0367` |
+| PDStickers | `0xb06df183fe5b61787f257f8c039ca11902847d9e` |
+
+Factory params: platform/storage/writer wallets = deployer; storage fee
+floor/ceiling/initial = 0.0001 / 0.01 / 0.0007 ETH.
+
 ## 1. Goal & exit criteria
 
 **Goal:** prove the launch-scope system behaves correctly under real network
