@@ -45,6 +45,7 @@ import {
     http,
     useAccount,
     usePublicClient,
+    useSwitchChain,
     useWalletClient,
 } from 'wagmi';
 import { sepolia } from 'wagmi/chains';
@@ -177,6 +178,13 @@ function Deployer() {
     };
 
     const wrongChain = isConnected && chainId !== sepolia.id;
+
+    // Auto-prompt the wallet to switch to Sepolia the moment it connects on
+    // the wrong chain — the banner + connect-pill switcher stay as fallback.
+    const { switchChain } = useSwitchChain();
+    useEffect(() => {
+        if (wrongChain) switchChain({ chainId: sepolia.id });
+    }, [wrongChain, switchChain]);
 
     async function run(step: string, fn: () => Promise<Partial<DeployState>>) {
         if (!walletClient || !publicClient) return;
