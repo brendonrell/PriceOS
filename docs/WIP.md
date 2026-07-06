@@ -6,7 +6,67 @@
 
 ---
 
-## 🔜 NEXT UP — FRIEND INSPECTOR TOTAL INNER REBUILD (first build of the next session)
+## 🔜 NEXT UP — TECH-DEBT EXECUTION, ALL OF IT, FABLE'S JOB (Brendon, 2026-07-06)
+
+**Brendon's explicit order: the full tech-debt list below is FABLE work — not
+Opus briefs. "Opus handles icon nudges and extra buttons and roughing in
+things; core infra and architecture is exactly what I want you for."** This
+jumps the line ahead of the Friend Inspector rebuild (his call, 2026-07-06).
+Full audit ran 2026-07-06 (assessment chat, branch
+`claude/technical-debt-assessment-pzhuzc` — no code changes). Verdict: the app
+is architecturally ONE thing (single Supabase factory, one auth layer, one
+settings-envelope sync pattern, one modal system, lean deps, tsc clean). The
+debt is specific, itemized, and PROVEN in code — do not re-audit, execute:
+
+**Product-truth fixes (users see lies) — first:**
+1. **Artists A–Z badges are fake.** `components/dropdown/ArtistsView.tsx`
+   renders rel (mutual/following/followers icons) + ☼/☽ active/cooldown
+   straight from the pre-rolled static table in `lib/data/mockArtists.ts`
+   ("until indexer wires up" per its own header) — no live lookup anywhere in
+   the surface. Roster NAMES are real. Wire rel to the real follows edges
+   (relation-mode reads shipped 07-02) + status to `getArtistStatus` (already
+   real on profile pages via `app/[slug]/page.tsx`), then delete the
+   pre-rolled rel/status columns.
+2. **Calendar canned public schedule.** `CAL_EVENTS` static list in
+   `lib/calendar/data.ts` still renders in `CalendarPanel.tsx` +
+   `TopBarCalendar.tsx` alongside the real `/api/calendar` feed. Move to the
+   real feed everywhere, kill the mock.
+3. **Sentiment Weather is Math.random** (`lib/engines/sentimentEngine.ts`) —
+   zero data behind it. Wire to something real off the ledger; present the
+   data design with the batch.
+
+**Architecture (the "sewn-together → one thing" work):**
+4. **Split the three monster components** — `components/profile/
+   ProfilePageBody.tsx` (2,925 lines / 107 hooks), `components/project/
+   TraitsUI.tsx` (2,286), `components/project/ProjectPageBody.tsx` (1,909).
+   Pure extraction, zero behavior change, build-verified. The unsolved
+   desktop home crash lives near this neighbourhood — splitting helps isolate.
+5. **CSS consolidation.** `app/globals.css` is 10,958 lines + 14 satellite
+   sheets (18,370 total) incl. legacy `styles/modal-build4.css`. Dead-rule
+   sweep + fold build4 into modal.css. Compiled-CSS grep before/after
+   (CLAUDE.md §6).
+6. **Pin/star store factory.** 17 hand-cloned stores in `lib/pins/` (~2,700
+   lines of one repeated skeleton: loadFromCache/hydrate/subscribe/envelope
+   push). Extract one generic factory; migrate stores onto it. AUDIT while
+   there: grail/mute/spite/starredPreset/artistColor do NOT ride the account
+   envelope (device-only) — decide intentional vs drift, surface to Brendon.
+
+**Housekeeping (fold into the batches above):**
+7. Dead mock code: `tapeFeedItems()` + mock EVENTS/WALLETS in
+   `lib/data/tapeEvents.ts` (ZERO callers — the tape is REAL via
+   `useTapeFeed` → `/api/feed`; keep the types + `eventToTapeItem`), stale
+   "mock data" comments in `Ticker.tsx`, unused `lib/data/mockNotes.ts` +
+   `lib/data/artistStatus.ts`; `mockPortfolio.ts` is a type-home only now
+   (portfolio is REAL via `livePortfolio.ts`) — move the types, delete it.
+8. Root strays: `shot2.js`, `reference/` (old sim HTML),
+   `components/dropdown/settings/MyPdSection.tsx.txt`.
+
+Process: one cohesive batch per chunk → PRESENT numbered CEO list → Brendon's
+push gate as always. `npm run build` + compiled-asset verify per chunk.
+ClickUp: comment the scope change on launch-hardening `86bar1uxr` (item ③
+audit = done; execution = Fable, not Opus briefs) with the first ship.
+
+## 🔜 THEN — FRIEND INSPECTOR TOTAL INNER REBUILD (after tech-debt, Brendon's reorder 2026-07-06)
 
 **Brief is written and pushed: `docs/briefs/friend-inspector-rebuild.md` —
 BUILD FROM IT.** ClickUp `86bargkmk` (Backlog, high). Brendon's order: the
