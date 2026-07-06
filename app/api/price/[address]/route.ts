@@ -43,8 +43,9 @@ function getAlchemyUrl(): string {
 function getTokenAddress(): string {
   const a = process.env.PRICE_TOKEN_ADDRESS;
   if (a && ADDRESS_RE.test(a)) return a.toLowerCase();
-  // $PRICE ERC-20 on Ethereum mainnet. Override via PRICE_TOKEN_ADDRESS in .env.local.
-  return '0x04da8100226f5c5ecdb0c08cfaf2b60277b94f87';
+  // $PRICE ERC-20, DEPLOYED to Ethereum mainnet 2026-07-03 (CLAUDE.md §2).
+  // Override via PRICE_TOKEN_ADDRESS only if the token ever migrates.
+  return '0x173a012c7c8ca3cfb531dcad84a40c53dbe74638';
 }
 
 function encodeBalanceOf(address: string): string {

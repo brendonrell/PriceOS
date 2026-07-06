@@ -224,7 +224,17 @@ export function PeteyLogo() {
                     in-app (no preventDefault). $PRICE deliberately does NOT
                     close it. */}
                 <a href="/" className="pb-home" title="Home" onClick={() => setRotated(false)}>HOME</a>
-                <a href="/$price" className="pb-price" title="$PRICE Token">$PRICE</a>
+                {/* $PRICE is LIVE on mainnet (2026-07-03) — link the real
+                    contract on Etherscan (Brendon, 2026-07-05). */}
+                <a
+                    href="https://etherscan.io/address/0x173a012c7c8ca3cfb531dcad84a40c53dbe74638"
+                    className="pb-price"
+                    title="$PRICE Token on Etherscan"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    $PRICE
+                </a>
             </div>
             {mounted && showSentiment && (
                 <div

@@ -88,6 +88,10 @@ export default function FollowersModal() {
 
     const [tab, setTab] = useState<FollowersTab>('followers');
     const [sort, setSort] = useState<SortKey>('default');
+    /* The INSPECTOR (Brendon, 2026-07-05): tap a friend row → it unfolds into
+       their dossier in place. One open at a time; resets on tab/open change. */
+    const [inspected, setInspected] = useState<string | null>(null);
+    const [mySlugs, setMySlugs] = useState<string[] | null>(null);
     const [graph, setGraph] = useState<Graph>(EMPTY_GRAPH);
     const [projects, setProjects] = useState<FollowedProjectRow[]>([]);
     const [statByAddr, setStatByAddr] = useState<Record<string, CircleStat>>({});
@@ -117,7 +121,20 @@ export default function FollowersModal() {
         const payload = openModal?.payload;
         setTab(isTab(payload) ? payload : 'followers');
         setSort('default');
+        setInspected(null);
     }, [isOpen, openModal]);
+
+    /* Your own holdings — fetched once per open; every dossier intersects
+       against it for the shared-holdings (Cartel ⟁) read. */
+    useEffect(() => {
+        if (!isOpen || !siweAddress) { setMySlugs(null); return; }
+        let alive = true;
+        fetch(`/api/user/${siweAddress}/owned-projects`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((j) => { if (alive && Array.isArray(j?.slugs)) setMySlugs(j.slugs as string[]); })
+            .catch(() => { /* dossiers show holdings only */ });
+        return () => { alive = false; };
+    }, [isOpen, siweAddress]);
 
     /* Freeze the page underneath while open (matches the Sticker Manager). */
     useEffect(() => {
@@ -309,6 +326,10 @@ export default function FollowersModal() {
                             tag={relTag(handle)}
                             starred={starredPeople.has(lc(handle))}
                             onStar={onStarPerson}
+                            inspected={inspected === lc(handle)}
+                            onInspect={() => setInspected((cur) => (cur === lc(handle) ? null : lc(handle)))}
+                            friendAddr={handleToAddr[lc(handle)] ?? null}
+                            mySlugs={mySlugs}
                         />
                     ))
                 )}
@@ -327,14 +348,14 @@ export default function FollowersModal() {
     // ── FOLLOWERS MANAGER+ — full jumbo panel (matches Sticker Manager Plus) ──
     if (full) {
         return createPortal(
-            <div className="sticker-mgr-plus-backdrop" role="dialog" aria-modal="true" aria-label="Followers Manager" onClick={close}>
+            <div className="sticker-mgr-plus-backdrop" role="dialog" aria-modal="true" aria-label="Friend Inspector" onClick={close}>
                 <div className="sticker-mgr-plus followers-plus" onClick={(e) => e.stopPropagation()}>
                     <div className="smgr-plus-head">
-                        {title('FOLLOWERS MANAGER+')}
+                        {title('FRIEND INSPECTOR+')}
                         <button className="smgr-store" type="button" onClick={() => { close(); open('stickers'); }} title="Sticker Store">
                             <span className="smgr-store-ic">{`▶${VS15}`}</span> STICKERS
                         </button>
-                        <button className="smgr-expand" type="button" onClick={() => { setFull(false); showToast('Followers Manager: COMPACT'); }} title="Exit full screen" aria-label="Exit full screen">
+                        <button className="smgr-expand" type="button" onClick={() => { setFull(false); showToast('Friend Inspector: COMPACT'); }} title="Exit full screen" aria-label="Exit full screen">
                             {`↓${VS15}`}
                         </button>
                         <span className="ambient-pop-close" role="button" tabIndex={0} title="Close" onClick={close}
@@ -355,18 +376,18 @@ export default function FollowersModal() {
 
     // ── FOLLOWERS MANAGER — compact floating popup ──
     return createPortal(
-        <div className="sticker-mgr-backdrop followers-backdrop" role="dialog" aria-modal="true" aria-label="Followers Manager" onClick={close}>
-            <div className="ambient-pop followers-pop" role="dialog" aria-label="Followers Manager" onClick={(e) => e.stopPropagation()}>
+        <div className="sticker-mgr-backdrop followers-backdrop" role="dialog" aria-modal="true" aria-label="Friend Inspector" onClick={close}>
+            <div className="ambient-pop followers-pop" role="dialog" aria-label="Friend Inspector" onClick={(e) => e.stopPropagation()}>
                 <span className="ambient-pop-close" role="button" tabIndex={0} title="Close" onClick={close}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); close(); } }}>
                     {`×${VS15}`}
                 </span>
                 <div className="ambient-pop-title">
-                    {title('FOLLOWERS MANAGER')}
+                    {title('FRIEND INSPECTOR')}
                     <button className="smgr-store" type="button" onClick={() => { close(); open('stickers'); }} title="Sticker Store">
                         <span className="smgr-store-ic">{`▶${VS15}`}</span> STICKERS
                     </button>
-                    <button className="smgr-expand" type="button" onClick={() => { setFull(true); showToast('Followers Manager: PLUS'); }} title="Open Manager Plus" aria-label="Open Manager Plus">
+                    <button className="smgr-expand" type="button" onClick={() => { setFull(true); showToast('Friend Inspector: PLUS'); }} title="Open Friend Inspector+" aria-label="Open Friend Inspector+">
                         {`↑${VS15}`}
                     </button>
                 </div>
@@ -380,14 +401,17 @@ export default function FollowersModal() {
 }
 
 /* One person row — sprite+@name, relationship, artist badge, the three profile
-   stats inline, and the ★ star. */
+   stats inline, and the ★ star. Tapping the row (not the name link / star)
+   unfolds THE DOSSIER underneath — the Inspector inspecting. */
 function PersonRow({
-    handle, stat, tag, starred, onStar,
+    handle, stat, tag, starred, onStar, inspected, onInspect, friendAddr, mySlugs,
 }: {
-    handle: string; stat: CircleStat | undefined; tag: string | null; starred: boolean; onStar: (h: string) => void;
+    handle: string; stat: CircleStat | undefined; tag: string | null; starred: boolean;
+    onStar: (h: string) => void; inspected: boolean; onInspect: () => void;
+    friendAddr: string | null; mySlugs: string[] | null;
 }) {
     return (
-        <div className="fm-row">
+        <div className={`fm-row${inspected ? ' inspecting' : ''}`}>
             <button
                 type="button"
                 className={`fm-star${starred ? ' on' : ''}`}
@@ -397,7 +421,18 @@ function PersonRow({
             >
                 {starred ? `★${VS15}` : `☆${VS15}`}
             </button>
-            <div className="fm-row-main">
+            <div
+                className="fm-row-main"
+                role="button"
+                tabIndex={0}
+                title="Inspect"
+                onClick={(e) => {
+                    // The @name link still navigates; anything else inspects.
+                    if ((e.target as HTMLElement).closest('a')) return;
+                    onInspect();
+                }}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onInspect(); } }}
+            >
                 <div className="fm-row-id">
                     <CollectedPair handle={handle} />
                     {stat?.isArtist && <span className="fm-artist-badge" title="Artist">{`✺${VS15}`}</span>}
@@ -414,7 +449,62 @@ function PersonRow({
                         <span className="fm-stat-ic">{`⚬${VS15}`}</span><b>{stat ? fmtFollowers(stat.followers) : '—'}</b>
                     </span>
                 </div>
+                {inspected && <FriendDossier friendAddr={friendAddr} mySlugs={mySlugs} />}
             </div>
+        </div>
+    );
+}
+
+/* THE DOSSIER — what the Inspector sees. All real: the friend's holdings from
+   the same ownership read the home page uses, intersected with YOURS for the
+   shared-holdings Cartel ⟁ line. Project chips link straight to the art. */
+function FriendDossier({ friendAddr, mySlugs }: { friendAddr: string | null; mySlugs: string[] | null }) {
+    const [theirSlugs, setTheirSlugs] = useState<string[] | null>(null);
+    useEffect(() => {
+        if (!friendAddr) { setTheirSlugs([]); return; }
+        let alive = true;
+        fetch(`/api/user/${friendAddr}/owned-projects`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((j) => { if (alive) setTheirSlugs(Array.isArray(j?.slugs) ? (j.slugs as string[]) : []); })
+            .catch(() => { if (alive) setTheirSlugs([]); });
+        return () => { alive = false; };
+    }, [friendAddr]);
+
+    const mine = useMemo(() => new Set((mySlugs ?? []).map((s) => s.toLowerCase())), [mySlugs]);
+    const shared = useMemo(
+        () => (theirSlugs ?? []).filter((s) => mine.has(s.toLowerCase())),
+        [theirSlugs, mine],
+    );
+    const chips = (slugs: string[]) => (
+        <span className="fm-dossier-chips">
+            {slugs.slice(0, 6).map((s) => (
+                <a key={s} className="fm-dossier-chip" href={`/art/${s}`} onClick={(e) => e.stopPropagation()}>
+                    @{s}
+                </a>
+            ))}
+            {slugs.length > 6 && <span className="fm-dossier-more">+{slugs.length - 6}</span>}
+        </span>
+    );
+
+    if (theirSlugs === null) return <div className="fm-dossier fm-dossier-loading">Inspecting…</div>;
+    return (
+        <div className="fm-dossier" onClick={(e) => e.stopPropagation()}>
+            <div className="fm-dossier-line">
+                <span className="fm-stat-ic">{`⟁${VS15}`}</span>
+                <b>{shared.length}</b> SHARED {shared.length === 1 ? 'HOLDING' : 'HOLDINGS'}
+            </div>
+            {shared.length > 0
+                ? chips(shared)
+                : <div className="fm-dossier-none">No shared holdings — yet.</div>}
+            {theirSlugs.length > 0 && (
+                <>
+                    <div className="fm-dossier-line">
+                        <span className="fm-stat-ic">{`⬚${VS15}`}</span>
+                        COLLECTS <b>{theirSlugs.length}</b> {theirSlugs.length === 1 ? 'PROJECT' : 'PROJECTS'}
+                    </div>
+                    {chips(theirSlugs)}
+                </>
+            )}
         </div>
     );
 }
