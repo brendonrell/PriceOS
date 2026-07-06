@@ -486,10 +486,25 @@ export default async function RootLayout({
        createStorage is called without an explicit `key`) and skips
        all that. If wagmiConfig ever sets a non-default storage key,
        update this stub to match. */
+    const hdrs = await headers();
+
+    /* Standalone tool routes (middleware stamps x-pd-bare-route for /deploy):
+       render NOTHING but the page — no app wallet stack (whose
+       AccountCreateModal fires on any connected wallet without a PD
+       account), no SIWE, no loader overlay, no shell chrome. The page
+       brings its own self-contained wallet providers. */
+    if (hdrs.get('x-pd-bare-route') === '1') {
+        return (
+            <html lang="en">
+                <body suppressHydrationWarning>{children}</body>
+            </html>
+        );
+    }
+
     const SSR_COOKIE_CONFIG_STUB = {
         storage: { key: 'wagmi' },
     } as unknown as WagmiConfigType;
-    const cookieHeader = (await headers()).get('cookie') ?? '';
+    const cookieHeader = hdrs.get('cookie') ?? '';
     const initialState = cookieToInitialState(SSR_COOKIE_CONFIG_STUB, cookieHeader);
 
     let initialAuth: string | null | undefined;
