@@ -238,38 +238,42 @@ export function TodosBox() {
                         TO-DOS <span className="notif-count">({openCount})</span>
                     </span>
                     {notifs.todos && (
-                        <span
-                            className="todos-add-btn todos-wf-btn"
-                            role="button"
-                            tabIndex={0}
-                            title="Workflows"
-                            onClick={(e) => { stop(e); setWorkflowsOpen(true); }}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    setWorkflowsOpen(true);
-                                }
-                            }}
-                        >
-                            {'☇︎'}
-                        </span>
-                    )}
-                    {notifs.todos && (
-                        <span
-                            className={`todos-add-btn${composeOpen ? ' is-on' : ''}`}
-                            role="button"
-                            tabIndex={0}
-                            title="Add a to-do"
-                            onClick={openComposer}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    openComposer(e as unknown as React.MouseEvent);
-                                }
-                            }}
-                        >
-                            +
+                        /* One right-side icon cluster — ☇ sits directly beside
+                           the + as the next icon in the row (Brendon,
+                           2026-07-06), instead of drifting to the row's centre
+                           via the header's space-between. */
+                        <span className="todos-header-icons">
+                            <span
+                                className="todos-add-btn todos-wf-btn"
+                                role="button"
+                                tabIndex={0}
+                                title="Workflows"
+                                onClick={(e) => { stop(e); setWorkflowsOpen(true); }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setWorkflowsOpen(true);
+                                    }
+                                }}
+                            >
+                                {'☇︎'}
+                            </span>
+                            <span
+                                className={`todos-add-btn${composeOpen ? ' is-on' : ''}`}
+                                role="button"
+                                tabIndex={0}
+                                title="Add a to-do"
+                                onClick={openComposer}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        openComposer(e as unknown as React.MouseEvent);
+                                    }
+                                }}
+                            >
+                                +
+                            </span>
                         </span>
                     )}
                 </span>

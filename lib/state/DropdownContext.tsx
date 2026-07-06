@@ -142,6 +142,16 @@ export function DropdownProvider({ children }: { children: ReactNode }) {
             const wrapper = document.querySelector('.user-menu-wrapper');
             if (!wrapper) return;
             const vv = window.visualViewport;
+            /* iOS on-screen keyboard guard (Brendon repro, 2026-07-06 — the
+               Workflows sheet squish). Focusing a text field collapses
+               visualViewport.height; re-clamping the menu to that transient
+               height crushed the open accordion into the boxes below it, and
+               a final event mid-keyboard-dismiss could bake the tiny clamp in
+               until refresh. The keyboard never needs a smaller menu — the
+               focused sheet is its own fixed layer — so freeze the clamp
+               while the keyboard is up; the dismiss resize (delta back under
+               threshold) runs a clean recompute and self-heals. */
+            if (vv && window.innerHeight - vv.height > 120) return;
             const vpHeight = vv ? vv.height : window.innerHeight;
             const vpOffsetTop = vv ? vv.offsetTop : 0;
             const rect = wrapper.getBoundingClientRect();
@@ -235,6 +245,8 @@ export function DropdownProvider({ children }: { children: ReactNode }) {
             const wrapper = document.querySelector('.user-menu-wrapper');
             if (!wrapper) return;
             const vv = window.visualViewport;
+            /* Same keyboard guard as the general listener above. */
+            if (vv && window.innerHeight - vv.height > 120) return;
             const vpHeight = vv ? vv.height : window.innerHeight;
             const vpOffsetTop = vv ? vv.offsetTop : 0;
             const rect = wrapper.getBoundingClientRect();

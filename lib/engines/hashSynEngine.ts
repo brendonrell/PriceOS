@@ -89,6 +89,36 @@ function hashSynSampleColor(canvas: HTMLCanvasElement): RGB | null {
     }
 }
 
+/* Stored-image tiles (2026-07-06): grid cards are now <img>, not <canvas>.
+   Sample one by drawing its centred 60×60 crop into a shared scratch canvas,
+   then reuse the same pixel gates above. Same-origin /preview images keep the
+   scratch canvas untainted, so getImageData stays readable. */
+let _scratch: HTMLCanvasElement | null = null;
+function hashSynSampleImage(img: HTMLImageElement): RGB | null {
+    try {
+        const iw = img.naturalWidth || 0;
+        const ih = img.naturalHeight || 0;
+        if (!img.complete || iw < 4 || ih < 4) return null;
+        if (!_scratch && typeof document !== 'undefined') {
+            _scratch = document.createElement('canvas');
+        }
+        if (!_scratch) return null;
+        const sx = Math.max(0, Math.floor(iw / 2) - 30);
+        const sy = Math.max(0, Math.floor(ih / 2) - 30);
+        const sw = Math.min(60, iw - sx);
+        const sh = Math.min(60, ih - sy);
+        if (sw < 4 || sh < 4) return null;
+        _scratch.width = sw;
+        _scratch.height = sh;
+        const ctx = _scratch.getContext('2d');
+        if (!ctx) return null;
+        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+        return hashSynSampleColor(_scratch);
+    } catch {
+        return null;
+    }
+}
+
 /* Sim 12562-12565 — clamped 2-char hex per channel. */
 function hashSynToHex(c: RGB): string {
     return (
@@ -108,21 +138,31 @@ function resample(): void {
     if (!_onApplyHex) return;
     if (typeof document === 'undefined') return;
 
-    const canvases = Array.from(
-        document.querySelectorAll<HTMLCanvasElement>('.output-canvas')
+    /* Pool = .output-canvas — a <canvas> on live-render surfaces, an <img>
+       on stored-image tiles (2026-07-06). Both sample identically. */
+    const nodes = Array.from(
+        document.querySelectorAll<HTMLElement>('.output-canvas')
     );
-    let pool = canvases.filter(
-        (c) => c.classList.contains('visible') && c.width > 4
+    const hasPixels = (el: HTMLElement): boolean =>
+        el instanceof HTMLCanvasElement
+            ? el.width > 4
+            : el instanceof HTMLImageElement
+                ? el.complete && el.naturalWidth > 4
+                : false;
+    let pool = nodes.filter(
+        (el) => el.classList.contains('visible') && hasPixels(el)
     );
     if (pool.length === 0) {
-        pool = canvases.filter((c) => c.width > 4);
+        pool = nodes.filter(hasPixels);
     }
     if (pool.length === 0) return;
 
     const subset = pool.slice(0, 10);
     const samples: RGB[] = [];
-    subset.forEach((cvs) => {
-        const col = hashSynSampleColor(cvs);
+    subset.forEach((el) => {
+        const col = el instanceof HTMLCanvasElement
+            ? hashSynSampleColor(el)
+            : hashSynSampleImage(el as HTMLImageElement);
         if (col) samples.push(col);
     });
     if (samples.length === 0) return;

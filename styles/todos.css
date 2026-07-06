@@ -388,7 +388,10 @@
 }
 
 /* ☇ Workflows launcher — sits LEFT of the To-Dos "+" (its only entry). */
-.todos-wf-btn { font-size: 15px; margin-right: 2px; }
+/* Header icon cluster — ☇ + and any future icons sit together on the right,
+   normal icon-row spacing (Brendon, 2026-07-06). */
+.todos-header-icons { display: inline-flex; align-items: center; gap: 6px; }
+.todos-wf-btn { font-size: 15px; }
 
 /* The Workflows modal (value-prompt sheet shell). */
 .wf-sheet { max-height: 74vh; display: flex; flex-direction: column; }

@@ -1455,6 +1455,25 @@ const artDrawKey = new WeakMap<HTMLCanvasElement, string>();
    of flashing the provisional guess. */
 const artAspectCache = new Map<string, number>();
 
+/** Stored-preview URL for an Output, or null when no image base is configured
+ *  (pre-upload dev state — the app renders live as before). */
+export function artImageUrl(slug: string, tokenId: number): string | null {
+  return ART_IMAGE_BASE ? `${ART_IMAGE_BASE}/${slug}/${tokenId}.png` : null;
+}
+
+/** Best synchronously-known aspect for a token: the learned true ratio when any
+ *  surface has already loaded this piece, else the project's provisional. Keeps
+ *  a remounting <img> tile shaped right before its (cached) load event fires. */
+export function artProvisionalAspect(slug: string, tokenId: number): number {
+  return artAspectCache.get(`${slug}:${tokenId}`) ?? getProject(slug)?.aspects?.[0] ?? 1;
+}
+
+/** Remember a token's true aspect (an <img> tile just loaded its stored image),
+ *  feeding the same cache the canvas path learns through. */
+export function rememberArtAspect(slug: string, tokenId: number, w: number, h: number): void {
+  if (w > 0 && h > 0) artAspectCache.set(`${slug}:${tokenId}`, w / h);
+}
+
 /**
  * Render an Output's Artwork by slug. Sizes the canvas, returns aspect +
  * the Output's full traits (artist traits + Fate). Unknown slug → no paint,
