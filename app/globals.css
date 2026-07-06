@@ -10994,6 +10994,9 @@ body.is-pwa .fullscreen-back {
 .fi-col-n { min-width: 4.5ch; }
 .fi-col-eth { min-width: 6.5ch; }
 .fi-col-mint { min-width: 8ch; }
+/* The CARTEL tab adds a ⟁ column — in the compact popup the followers
+   column yields so the name chip keeps its room (it's one tab away). */
+.followers-pop .fi-row.has-shared .fi-col-flw { display: none; }
 
 /* ── THE DUEL — the unfolded head-to-head. ── */
 .fi-dossier {
@@ -11009,7 +11012,7 @@ body.is-pwa .fullscreen-back {
 /* The duel bar — your share fills from the left in full text colour; the
    bar draws itself on unfold (motion per CLAUDE.md §9). */
 .fi-duel-bar { max-width: none; height: 8px; margin: 2px 0 0; animation: fiBarIn 0.45s ease both; }
-.fi-duel-you { background: var(--fi-accent, var(--text-color)); }
+.fi-duel-you { background: var(--text-color); }
 .fi-duel-them { background: color-mix(in srgb, var(--text-color) 30%, transparent); }
 @keyframes fiBarIn { from { transform: scaleX(0); } }
 .fi-duel-bar { transform-origin: left; }
@@ -11025,3 +11028,62 @@ body.is-pwa .fullscreen-back {
 .fi-beads { display: flex; flex-wrap: wrap; gap: 10px 8px; }
 .fi-none { font: 600 11px 'Courier New', Courier, monospace; }
 .fi-beads-more { font: 600 11px 'Courier New', Courier, monospace; align-self: center; }
+
+/* Faction — the wearer's blank speech bubble, worn beside the name and as
+   the dossier tag; the bubble's color paints the row's --fi-accent. */
+.fi-faction { flex: 0 0 auto; display: inline-flex; align-items: center; }
+.fi-faction-tag { display: inline-flex; align-items: center; gap: 5px; }
+
+/* ── THE PREVIEW STRIP (PLUS) — Circle Wire / Constellation. ── */
+.followers-plus-preview { height: 132px; min-height: 132px; position: relative; overflow: hidden; }
+.fi-preview {
+    position: relative; height: 100%;
+    display: flex; flex-direction: column; justify-content: center; gap: 7px;
+    padding-top: 26px; box-sizing: border-box;
+}
+.fi-preview-toggle {
+    position: absolute; top: 0; right: 0; z-index: 2;
+    display: flex; gap: 6px;
+}
+.fi-preview-chip { font-size: 10px; letter-spacing: 0.08em; }
+
+/* The Wire — rows ride the news banner's compositor rail (same LOCKED
+   speed; odd rows run the other way). Edge fade matches the home strip. */
+.fi-wire {
+    flex: 1 1 auto; min-height: 0;
+    display: flex; flex-direction: column; justify-content: center; gap: 8px;
+}
+.fi-wire-row {
+    position: relative; height: 26px; overflow: hidden;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, black 24px, black calc(100% - 24px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, black 24px, black calc(100% - 24px), transparent 100%);
+}
+.fi-wire-rail {
+    position: absolute; left: 0; top: 0; height: 100%;
+    display: flex; align-items: center; white-space: nowrap;
+    will-change: transform; transform: translate3d(0, 0, 0);
+}
+.fi-wire-rail.anim { animation: news-rail-scroll var(--news-loop-s, 60s) linear infinite; }
+.fi-wire-rail.rev { animation-direction: reverse; }
+@media (prefers-reduced-motion: reduce) {
+    .fi-wire-rail.anim { animation: none; }
+}
+.fi-wire-pill {
+    flex-shrink: 0; display: inline-flex; align-items: baseline; gap: 6px;
+    margin-right: 10px; padding: 4px 12px;
+    border-radius: 999px;
+    background: var(--stat-bg);
+    border: 1px solid var(--border-color);
+    font: bold 10.5px 'Courier New', Courier, monospace; letter-spacing: 0.04em;
+    color: var(--text-color);
+}
+.fi-wire-glyph { font-size: 11px; }
+
+/* The Constellation — the circle as a canvas starfield; inherits the
+   colorway via currentColor. */
+.fi-map { flex: 1 1 auto; min-height: 0; width: 100%; color: var(--text-color); cursor: pointer; }
+
+/* PLUS mode invites the Digital Familiar IN FRONT of the panel (Brendon,
+   2026-07-06): lift its layer above the jumbo backdrop (z 1330) while the
+   Friend Inspector+ is open. */
+body.fi-plus-open #familiar-layer { z-index: 1340; }

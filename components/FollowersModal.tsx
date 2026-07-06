@@ -51,16 +51,22 @@ import { fmtFollowers } from '../lib/social/useArtistSocial';
 import type { CircleStat } from '../app/api/social/circle-stats/route';
 import { getArtistStars, toggleArtistStar, subscribeArtistStars } from '../lib/pins/artistStarStore';
 import { getProjectStars, toggleProjectStar, subscribeProjectStars } from '../lib/pins/projectStarStore';
+import { DISCORD_URL } from '../lib/config/discord';
+import { PROFILE_LOGOS_BY_ID } from '../lib/profile/profileLogos';
+import type { Sticker } from '../lib/stickers/catalog';
+import { StickerArt } from './stickers/StickerArt';
+import FriendInspectorPreview, { type PreviewPerson } from './FriendInspectorPreview';
 
 const VS15 = '︎';
 
-type FollowersTab = 'followers' | 'following' | 'mutuals' | 'projects';
-type SortKey = 'default' | 'followers' | 'collected' | 'spent';
+type FollowersTab = 'followers' | 'following' | 'mutuals' | 'cartel' | 'projects';
+type SortKey = 'default' | 'followers' | 'collected' | 'spent' | 'faction';
 
 const TABS: { key: FollowersTab; label: string; icon: string }[] = [
     { key: 'followers', label: 'FOLLOWERS', icon: '⚬' },
     { key: 'following', label: 'FOLLOWING', icon: '⚯' },
     { key: 'mutuals', label: 'MUTUALS', icon: '⚭' },
+    { key: 'cartel', label: 'CARTEL', icon: '⟁' },
     { key: 'projects', label: 'PROJECTS', icon: '⬚' },
 ];
 
@@ -69,14 +75,24 @@ const SORTS: { key: SortKey; label: string }[] = [
     { key: 'followers', label: 'Followers' },
     { key: 'collected', label: 'NFTs' },
     { key: 'spent', label: 'Spent' },
+    { key: 'faction', label: 'Factions' },
 ];
 
 const EMPTY_LINE: Record<FollowersTab, string> = {
     followers: 'No followers yet.',
     following: 'Not following anyone yet.',
     mutuals: 'No mutuals yet.',
+    cartel: 'No cartel yet — it forms when a mutual shares a holding with you.',
     projects: 'Nothing here yet.',
 };
+
+/* FACTION — a wearer's chosen BLANK speech bubble (bubble only, no per-mille;
+   holo excluded) IS their faction, and its color is the faction color
+   (Brendon 2026-07-06; Factions spec 86baf786c). */
+function factionOf(profileLogo: string | null | undefined): Sticker | null {
+    if (!profileLogo || !profileLogo.startsWith('plogo-blank-')) return null;
+    return PROFILE_LOGOS_BY_ID.get(profileLogo) ?? null;
+}
 
 /* Relationship → its glyph (GLYPHS.md §12 social set). */
 const REL_GLYPH: Record<string, string> = {
@@ -118,12 +134,12 @@ interface FollowedProjectRow {
 }
 
 function isTab(v: unknown): v is FollowersTab {
-    return v === 'followers' || v === 'following' || v === 'mutuals' || v === 'projects';
+    return v === 'followers' || v === 'following' || v === 'mutuals' || v === 'cartel' || v === 'projects';
 }
 const lc = (s: string) => s.toLowerCase().replace(/^@/, '');
 
 export default function FollowersModal() {
-    const { openModal, close, open } = useModal();
+    const { openModal, close } = useModal();
     const { siweAddress, handle: myHandle } = useAuth();
     const { showToast } = useToast();
     const isOpen = openModal?.name === 'followers';
@@ -199,6 +215,43 @@ export default function FollowersModal() {
         lockBodyScroll();
         return () => unlockBodyScroll();
     }, [isOpen]);
+
+    /* PLUS mode lets the Digital Familiar walk IN FRONT of the panel and
+       talk (Brendon, 2026-07-06) — the body flag lifts the familiar layer
+       above the jumbo backdrop while we're open. */
+    useEffect(() => {
+        if (!isOpen || !full) return;
+        document.body.classList.add('fi-plus-open');
+        return () => document.body.classList.remove('fi-plus-open');
+    }, [isOpen, full]);
+
+    /* THE CARTEL — shared-holdings count per mutual (their owned projects ∩
+       yours; the same intersection every dossier shows). Powers the CARTEL
+       tab + its permanent pill count. Launch-scale circles are small, so one
+       read per mutual per open is cheap. */
+    const [sharedBy, setSharedBy] = useState<Record<string, number> | null>(null);
+    useEffect(() => {
+        if (!isOpen) { setSharedBy(null); return; }
+        if (!mySlugs || graph.mutuals.length === 0) { setSharedBy(graph.mutuals.length === 0 ? {} : null); return; }
+        let alive = true;
+        const mine = new Set(mySlugs.map((s) => s.toLowerCase()));
+        Promise.all(graph.mutuals.map(async (h) => {
+            const addr = handleToAddr[lc(h)];
+            if (!addr) return [lc(h), 0] as const;
+            try {
+                const j = await fetch(`/api/user/${addr}/owned-projects`).then((r) => (r.ok ? r.json() : null));
+                const slugs: string[] = Array.isArray(j?.slugs) ? j.slugs : [];
+                return [lc(h), slugs.filter((s) => mine.has(s.toLowerCase())).length] as const;
+            } catch {
+                return [lc(h), 0] as const;
+            }
+        })).then((entries) => { if (alive) setSharedBy(Object.fromEntries(entries)); });
+        return () => { alive = false; };
+    }, [isOpen, mySlugs, graph.mutuals, handleToAddr]);
+    const cartelHandles = useMemo(
+        () => graph.mutuals.filter((h) => (sharedBy?.[lc(h)] ?? 0) > 0),
+        [graph.mutuals, sharedBy],
+    );
 
     /* Esc: step out of PLUS first, then close. */
     useEffect(() => {
@@ -277,6 +330,7 @@ export default function FollowersModal() {
         followers: graph.followers.length,
         following: graph.following.length,
         mutuals: graph.mutuals.length,
+        cartel: cartelHandles.length,
         projects: projects.length,
     };
 
@@ -329,22 +383,36 @@ export default function FollowersModal() {
     }, [siweAddress, handleToAddr, followingSet, showToast]);
 
     /* The ordered people rows for the active tab. Starred pin to the top
-       (alphabetised); the rest follow the chosen sort (A–Z by default). */
+       (alphabetised); the rest follow the chosen sort (A–Z by default; the
+       CARTEL tab defaults to most-shared-first; Factions filters to faction
+       wearers, grouped by faction color). */
     const peopleRows = useMemo(() => {
         if (tab === 'projects') return [];
-        const all = graph[tab];
+        let all = tab === 'cartel' ? cartelHandles : graph[tab];
+        if (sort === 'faction') all = all.filter((h) => factionOf(statOf(h)?.profileLogo) !== null);
         const alpha = (a: string, b: string) => lc(a).localeCompare(lc(b));
         const v = (h: string, key: 'followers' | 'collected' | 'spentEth') => statOf(h)?.[key] ?? 0;
         const sortRest = (arr: string[]) => {
             if (sort === 'followers') return arr.sort((a, b) => v(b, 'followers') - v(a, 'followers'));
             if (sort === 'collected') return arr.sort((a, b) => v(b, 'collected') - v(a, 'collected'));
             if (sort === 'spent') return arr.sort((a, b) => v(b, 'spentEth') - v(a, 'spentEth'));
+            if (sort === 'faction') {
+                return arr.sort((a, b) => {
+                    const fa = factionOf(statOf(a)?.profileLogo)?.color ?? '';
+                    const fb = factionOf(statOf(b)?.profileLogo)?.color ?? '';
+                    return fa === fb ? alpha(a, b) : fa.localeCompare(fb);
+                });
+            }
+            if (tab === 'cartel') {
+                return arr.sort((a, b) =>
+                    (sharedBy?.[lc(b)] ?? 0) - (sharedBy?.[lc(a)] ?? 0) || alpha(a, b));
+            }
             return arr.sort(alpha);
         };
         const pinned = all.filter((h) => starredPeople.has(lc(h))).sort(alpha);
         const rest = sortRest(all.filter((h) => !starredPeople.has(lc(h))));
         return [...pinned, ...rest];
-    }, [tab, graph, sort, statOf, starredPeople]);
+    }, [tab, graph, sort, statOf, starredPeople, cartelHandles, sharedBy]);
 
     /* Projects, starred pinned to the top (alphabetised), then by title. */
     const projectRows = useMemo(() => {
@@ -355,6 +423,26 @@ export default function FollowersModal() {
     }, [projects, starredProjects]);
 
     const isEmpty = tab === 'projects' ? projectRows.length === 0 : peopleRows.length === 0;
+
+    /* The whole circle, deduped, for the preview strip (Wire + Constellation). */
+    const previewPeople = useMemo<PreviewPerson[]>(() => {
+        const mutualSet = new Set(graph.mutuals.map(lc));
+        const seen = new Set<string>();
+        const out: PreviewPerson[] = [];
+        for (const h of [...graph.mutuals, ...graph.followers, ...graph.following]) {
+            const k = lc(h);
+            if (seen.has(k)) continue;
+            seen.add(k);
+            out.push({
+                handle: k,
+                addr: handleToAddr[k] ?? null,
+                stat: statOf(h),
+                mutual: mutualSet.has(k),
+                shared: sharedBy ? sharedBy[k] ?? 0 : null,
+            });
+        }
+        return out;
+    }, [graph, handleToAddr, statOf, sharedBy]);
 
     const body = (
         <>
@@ -417,6 +505,7 @@ export default function FollowersModal() {
                             handle={handle}
                             stat={statOf(handle)}
                             tag={relTag(handle)}
+                            shared={tab === 'cartel' ? sharedBy?.[lc(handle)] ?? 0 : null}
                             starred={starredPeople.has(lc(handle))}
                             onStar={onStarPerson}
                             inspected={inspected === lc(handle)}
@@ -450,8 +539,8 @@ export default function FollowersModal() {
                 <div className="sticker-mgr-plus followers-plus" onClick={(e) => e.stopPropagation()}>
                     <div className="smgr-plus-head">
                         {title('FRIEND INSPECTOR+')}
-                        <button className="smgr-store" type="button" onClick={() => { close(); open('stickers'); }} title="Sticker Store">
-                            <span className="smgr-store-ic">{`▶${VS15}`}</span> STICKERS
+                        <button className="smgr-store" type="button" onClick={() => window.open(DISCORD_URL, '_blank', 'noopener')} title="Go To Discord">
+                            GO TO DISCORD
                         </button>
                         <button className="smgr-expand" type="button" onClick={() => { setFull(false); showToast('Friend Inspector: COMPACT'); }} title="Exit full screen" aria-label="Exit full screen">
                             {`↓${VS15}`}
@@ -461,8 +550,22 @@ export default function FollowersModal() {
                             {`×${VS15}`}
                         </span>
                     </div>
-                    {/* Reserved preview slot — empty for now (Brendon, 2026-06-25). */}
-                    <div className="followers-plus-preview" aria-hidden="true" />
+                    {/* The reserved preview slot, alive: the Circle Wire / the
+                        Constellation (Brendon's pick, 2026-07-06). */}
+                    <div className="followers-plus-preview">
+                        <FriendInspectorPreview
+                            people={previewPeople}
+                            inspected={inspected}
+                            onInspect={(h) => {
+                                const t: FollowersTab = graph.mutuals.some((x) => lc(x) === h) ? 'mutuals'
+                                    : graph.followers.some((x) => lc(x) === h) ? 'followers' : 'following';
+                                setTabState(t);
+                                setInspected(h);
+                            }}
+                            myStat={siweAddress ? statByAddr[siweAddress.toLowerCase()] : undefined}
+                            myHandle={myHandle ? lc(myHandle) : null}
+                        />
+                    </div>
                     <div className="followers-plus-body">
                         {body}
                     </div>
@@ -482,8 +585,8 @@ export default function FollowersModal() {
                 </span>
                 <div className="ambient-pop-title">
                     {title('FRIEND INSPECTOR')}
-                    <button className="smgr-store" type="button" onClick={() => { close(); open('stickers'); }} title="Sticker Store">
-                        <span className="smgr-store-ic">{`▶${VS15}`}</span> STICKERS
+                    <button className="smgr-store" type="button" onClick={() => window.open(DISCORD_URL, '_blank', 'noopener')} title="Go To Discord">
+                        GO TO DISCORD
                     </button>
                     <button className="smgr-expand" type="button" onClick={() => { setFull(true); showToast('Friend Inspector: PLUS'); }} title="Open Friend Inspector+" aria-label="Open Friend Inspector+">
                         {`↑${VS15}`}
@@ -502,20 +605,23 @@ export default function FollowersModal() {
    size, relationship glyph, and the three stats in fixed aligned columns.
    Tapping the row (not the chip link / star) unfolds THE DUEL beneath. ── */
 function PersonRow({
-    handle, stat, tag, starred, onStar, inspected, onInspect, friendAddr, mySlugs,
+    handle, stat, tag, shared, starred, onStar, inspected, onInspect, friendAddr, mySlugs,
     myStat, myScore, following, followBusy, onToggleFollow,
 }: {
-    handle: string; stat: CircleStat | undefined; tag: string | null; starred: boolean;
-    onStar: (h: string) => void; inspected: boolean; onInspect: () => void;
+    handle: string; stat: CircleStat | undefined; tag: string | null; shared: number | null;
+    starred: boolean; onStar: (h: string) => void; inspected: boolean; onInspect: () => void;
     friendAddr: string | null; mySlugs: string[] | null;
     myStat: CircleStat | undefined; myScore: number | null;
     following: boolean; followBusy: boolean; onToggleFollow: () => void;
 }) {
     const slots = rivalrySlotsFor(lc(handle));
+    /* Faction paint takes the reserved accent channel; explicit socket wins. */
+    const faction = factionOf(stat?.profileLogo);
+    const accent = slots.accent ?? faction?.color ?? null;
     return (
         <div
-            className={`fi-row${inspected ? ' inspecting' : ''}`}
-            style={slots.accent ? ({ '--fi-accent': slots.accent } as CSSProperties) : undefined}
+            className={`fi-row${inspected ? ' inspecting' : ''}${shared !== null ? ' has-shared' : ''}`}
+            style={accent ? ({ '--fi-accent': accent } as CSSProperties) : undefined}
         >
             <div className="fi-line">
                 <button
@@ -537,15 +643,25 @@ function PersonRow({
                 >
                     <CollectedPair handle={handle} />
                     {stat?.isArtist && <span className="fm-artist-badge" title="Artist">{`✺${VS15}`}</span>}
+                    {faction && (
+                        <span className="fi-faction" title={faction.name}>
+                            <StickerArt sticker={faction} size={15} />
+                        </span>
+                    )}
                     {tag && <span className="fi-rel" title={tag}>{REL_GLYPH[tag]}{VS15}</span>}
                     <span className="fi-cols">
+                        {shared !== null && (
+                            <span className="fi-col fi-col-n" title="Shared holdings">
+                                <span className="fm-stat-ic">{`⟁${VS15}`}</span>{shared}
+                            </span>
+                        )}
                         <span className="fi-col fi-col-n" title="Outputs Collected">
                             <span className="fm-stat-ic">{`⬚${VS15}`}</span>{stat ? stat.collected : '—'}
                         </span>
                         <span className="fi-col fi-col-eth" title="Volume Spent">
                             <span className="fm-stat-ic">{`⟠${VS15}`}</span>{stat ? stat.spentEth.toFixed(2) : '—'}
                         </span>
-                        <span className="fi-col fi-col-n" title="Followers">
+                        <span className="fi-col fi-col-n fi-col-flw" title="Followers">
                             <span className="fm-stat-ic">{`⚬${VS15}`}</span>{stat ? fmtFollowers(stat.followers) : '—'}
                         </span>
                     </span>
@@ -633,10 +749,17 @@ function FriendDossier({
         </div>
     );
 
+    const faction = factionOf(stat?.profileLogo);
+
     return (
         <div className="fi-dossier" onClick={(e) => e.stopPropagation()}>
             <div className="fi-dossier-head">
                 {tag && <span className="fm-tag">{REL_GLYPH[tag]}{VS15} {tag}</span>}
+                {faction && (
+                    <span className="fm-tag fi-faction-tag" title="Faction">
+                        <StickerArt sticker={faction} size={12} /> {faction.name.replace('Bubble — ', '').toUpperCase()}
+                    </span>
+                )}
                 {/* Relationship-line socket — Understudy/Counterweight (86b9fcnnc),
                     PriceTwin (86b9fcngz). Empty renders nothing. */}
                 {slots.relLine && <span className="fm-tag">{slots.relLine}</span>}
@@ -658,11 +781,12 @@ function FriendDossier({
                 </div>
             )}
 
+            {/* Their side of every duel bar runs in THEIR profile colorway. */}
             <div className="attr-grid fi-duel">
-                <DuelTile glyph="⬚" label="Collected" you={myStat ? myStat.collected : null} them={stat ? stat.collected : null} handle={handle} />
-                <DuelTile glyph="⟠" label="Spent" you={myStat ? myStat.spentEth : null} them={stat ? stat.spentEth : null} handle={handle} eth />
-                <DuelTile glyph="⚬" label="Followers" you={myStat ? myStat.followers : null} them={stat ? stat.followers : null} handle={handle} />
-                <DuelTile glyph="◍" label="PriceScore" you={myScore} them={theirScore} handle={handle} />
+                <DuelTile glyph="⬚" label="Collected" you={myStat ? myStat.collected : null} them={stat ? stat.collected : null} handle={handle} themHex={stat?.profileHex ?? null} />
+                <DuelTile glyph="⟠" label="Spent" you={myStat ? myStat.spentEth : null} them={stat ? stat.spentEth : null} handle={handle} themHex={stat?.profileHex ?? null} eth />
+                <DuelTile glyph="⚬" label="Followers" you={myStat ? myStat.followers : null} them={stat ? stat.followers : null} handle={handle} themHex={stat?.profileHex ?? null} />
+                <DuelTile glyph="◍" label="PriceScore" you={myScore} them={theirScore} handle={handle} themHex={stat?.profileHex ?? null} />
             </div>
 
             {theirSlugs === null ? (
@@ -695,9 +819,10 @@ function FriendDossier({
    a split bar (your share fills from the left in full text colour), and the
    verdict. Ties split the bar down the middle. */
 function DuelTile({
-    glyph, label, you, them, handle, eth,
+    glyph, label, you, them, handle, themHex, eth,
 }: {
-    glyph: string; label: string; you: number | null; them: number | null; handle: string; eth?: boolean;
+    glyph: string; label: string; you: number | null; them: number | null; handle: string;
+    themHex: string | null; eth?: boolean;
 }) {
     const fmt = (n: number) => (eth ? n.toFixed(2) : String(n));
     const known = you !== null && them !== null;
@@ -715,7 +840,10 @@ function DuelTile({
             </span>
             <span className="attr-spectrum fi-duel-bar" aria-hidden="true">
                 <span className="attr-spectrum-seg fi-duel-you" style={{ flexGrow: Math.max(share, 0.02) }} />
-                <span className="attr-spectrum-seg fi-duel-them" style={{ flexGrow: Math.max(1 - share, 0.02) }} />
+                <span
+                    className="attr-spectrum-seg fi-duel-them"
+                    style={{ flexGrow: Math.max(1 - share, 0.02), ...(themHex ? { background: themHex } : null) }}
+                />
             </span>
             <span className="attr-tile-sub">{verdict || ' '}</span>
         </div>

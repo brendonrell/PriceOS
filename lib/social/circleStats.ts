@@ -14,13 +14,18 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getProject } from '../project/registry';
 
-/** Inline stats for one person row — profile-hero parity. */
+/** Inline stats for one person row — profile-hero parity, plus the identity
+    flair the Friend Inspector wears (faction bubble + profile colorway). */
 export interface CircleStat {
   handle: string | null;
   collected: number;
   spentEth: number;
   followers: number;
   isArtist: boolean;
+  /** users.profile_logo — a blank-bubble pick IS the wearer's faction. */
+  profileLogo: string | null;
+  /** users.profile_hex — the personal generative profile colorway. */
+  profileHex: string | null;
 }
 
 /** Batch the three profile stats (+ artist flag) for a list of lowercased
@@ -32,7 +37,7 @@ export async function getCircleStats(
   if (addrs.length === 0) return {};
 
   const [usersRes, holdersRes, artistRes] = await Promise.all([
-    supabase.from('users').select('address, handle').in('address', addrs as string[]),
+    supabase.from('users').select('address, handle, profile_logo, profile_hex').in('address', addrs as string[]),
     supabase.from('holders').select('owner_address, project_id').in('owner_address', addrs as string[]),
     supabase.from('projects').select('artist_address').in('artist_address', addrs as string[]),
   ]);
@@ -41,8 +46,13 @@ export async function getCircleStats(
   if (artistRes.error) throw new Error(artistRes.error.message);
 
   const addrToHandle = new Map<string, string>();
-  for (const u of (usersRes.data ?? []) as Array<{ address: string; handle: string | null }>) {
-    if (u.handle) addrToHandle.set(u.address.toLowerCase(), u.handle);
+  const flairByAddr = new Map<string, { profileLogo: string | null; profileHex: string | null }>();
+  for (const u of (usersRes.data ?? []) as Array<{
+    address: string; handle: string | null; profile_logo: string | null; profile_hex: string | null;
+  }>) {
+    const a = u.address.toLowerCase();
+    if (u.handle) addrToHandle.set(a, u.handle);
+    flairByAddr.set(a, { profileLogo: u.profile_logo ?? null, profileHex: u.profile_hex ?? null });
   }
   const artistSet = new Set(
     ((artistRes.data ?? []) as Array<{ artist_address: string | null }>)
@@ -83,6 +93,8 @@ export async function getCircleStats(
       spentEth: Math.round((spent.get(a) ?? 0) * 1000) / 1000,
       followers: handle ? followerByHandle.get(handle.toLowerCase()) ?? 0 : 0,
       isArtist: artistSet.has(a),
+      profileLogo: flairByAddr.get(a)?.profileLogo ?? null,
+      profileHex: flairByAddr.get(a)?.profileHex ?? null,
     };
   }
   return stats;
