@@ -6,6 +6,50 @@
 
 ---
 
+## ✅ SHIPPED 2026-07-06 — SPOT-EDIT DUTY BUNDLE (dev @ 7805868, tree clean)
+
+Brendon's night list, built + pushed on his standing "build and push it all":
+- **CTA row static everywhere** (`.action-row` + trait-pill bars) — no
+  landscape float, no scroll flashing; see the notch section below.
+- **PROJECT ID is real:** `projects.project_no` (unique, auto-assigned on
+  insert by trigger, migration `20260706_projects_project_no.sql` APPLIED
+  LIVE; 120 backfilled in upload order) + colliding `uploaded_at` stamps
+  staggered 3 min apart (120/120 unique, monotonic with project_no). New Gen
+  Art sorts by it (server + client); Identity attribute tile `⌗ Project ID`.
+- **News banner:** mid-ladder milestone pills OFF the rail (upload /
+  graduated / sold-out only, Brendon reversed the 07-06 "full ladder" call);
+  scroll phase now carries across every re-measure/content change (negative
+  animation-delay) — no more restart-snap while the page loads.
+- **Solid-once-loaded (his follow-up: "whole app solid now that we serve
+  images"):** project gallery mounts WHOLE (48-batch reveal gone), showcase
+  tab keeps the grid mounted (CSS filters; headers hidden), home Now-Minting
+  carousels + Shuffle mount whole, profile collections mount whole ≤1000
+  pieces (window only past that). Decoded stored-PNG LRU (80) in
+  `renderArtwork` → modal scanning repaints revisits synchronously +
+  `pd:art-drawn` canvas event; artwork modal shows a small corner ⟳ chip
+  while an incoming image is in flight.
+- **Replay starts at THE START** (was TODAY); scrubbing Replay/Genome no
+  longer fires pull-to-refresh (PTR ignores gestures starting on
+  touch-action-none drag surfaces); PTR gained the PULL/RELEASE pill readout
+  (descends with the finger, ⟳ winds up, inverts at the threshold).
+- **Genome tap = peek chip** (OutputThumb + #id) → tap chip opens the modal.
+- **Focus ring off editable fields** (`:focus-visible:not(input,textarea,…)`)
+  — the accessibility ring no longer lights up notes/composers on plain taps.
+- **Colorway Custom toasts per surface:** home = `Colorway: Mood Ring ·
+  {name} [{hex}]`, projects + outputs = Project Colorway, profiles = Profile
+  Colorway. Category stays "Custom".
+- **Workflows sheet:** trigger pills wear the canonical dotted-pill
+  treatment, name field grows so ARM + field end align, ☇ entry down 2px.
+- **Ownership check** (Now Minting head) down 0.5px.
+- **DB (live Supabase, Brendon-ordered):** 29 allowlisted AI artists set to
+  `showcase_style='artist'` (brendon untouched); project_no migration above.
+
+**HELD from the list (needs Brendon's eyes): STICKER MARKET UI cleanup** —
+"semi-coherent at minimum". Not started; propose direction before building.
+Also queued from his list: nothing else — every other item shipped above.
+
+---
+
 ## ✅ SHIPPED 2026-07-06 — FRIEND INSPECTOR TOTAL REBUILD (dev @ 830db65, tree clean)
 
 ClickUp `86bargkmk` CLOSED. Three Brendon-approved pushes in one session
@@ -412,16 +456,16 @@ in Cloudflare storage, standing in for Arweave.
 
 ---
 
-## ⚠ OPEN BUG (unsolved 2026-07-04) — mobile Safari notch cutoff on the CTA row
+## ⚠ NOTCH CUTOFF — fix shipped 2026-07-06, DEVICE-VERIFY on Brendon's phone
 
-Content should flow behind the top notch/Dynamic Island; it does on page load,
-but after scrolling the **CTA row** (Follow/Share on profile, Buy/List/Offer on
-output — all the shared `.action-row`) shows a hard cutoff at the notch line
-while the rest of the page flows behind fine. **Ruled OUT:** the `position:
-sticky` on `.action-row` — removed it globally, verified live on the dev preview
-CSS, cutoff persisted, reverted. So sticky is NOT the cause. Not the `is-pwa`
-frosted band either (PWA-only; this is a Safari tab). Real cause still unknown —
-next session start fresh, don't re-chase sticky.
+2026-07-06: `.action-row` is now `position: static` permanently (Brendon's
+order — "normal buttons, they never move"; the sticky row was also floating
+over content in landscape, his screenshot). The trait-pill bars
+(`.traits-header-bar`/`.stats-container`) went static in the same pass. He
+believes the CTA row's float IS the notch-cutoff trigger; a 2026-07-04 session
+removed sticky once and reported the cutoff persisted, so if it still shows
+after this deploy, the remaining suspects are elsewhere (theme-color meta /
+viewport-fit) — do NOT re-add sticky either way, the static rows are final.
 
 ---
 
