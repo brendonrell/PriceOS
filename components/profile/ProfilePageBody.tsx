@@ -25,8 +25,8 @@
  * page boot path). Users who want colour customise from the sort-bar.
  */
 
-import { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef, useDeferredValue, Fragment, type KeyboardEvent } from 'react';
-import { TraitsProvider, useTraits } from '../../lib/state/TraitsContext';
+import { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef, Fragment, type KeyboardEvent } from 'react';
+import { TraitsProvider } from '../../lib/state/TraitsContext';
 import { getRememberedTab, rememberTab } from '../../lib/state/tabMemoryStore';
 import { useAuth } from '../../lib/state/AuthContext';
 import { rankSocialCandidates } from '../../lib/social/relevance';
@@ -38,33 +38,17 @@ import { useProfileHex, PROFILE_HEX_DEFAULT } from '../../lib/hooks/useProfileHe
 import { useToast } from '../../lib/state/ToastContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { shareLink } from '../../lib/pwa/share';
-import {
-    useSort,
-    GROUP_SOON, GROUP_LABEL, COLLECTED_GROUP_ORDER, groupHeaderGlyph,
-} from '../../lib/state/SortContext';
-import { COLOR_BUCKET_ORDER, classifyRgb } from '../../lib/art/outputColor';
-import { signatureHexFor } from '../../lib/profile/signatureHex';
-import { resolveBucket, resolveFingerprint, useStoredColors } from '../../lib/art/colorStore';
+import { useSort, groupHeaderGlyph } from '../../lib/state/SortContext';
 import { GhostFeedRows } from '../GhostFeed';
-import { eventToFeedEvent, type FeedEvent } from '../../lib/feed/feedRow';
 import FeedEventRow from '../feed/FeedEventRow';
-import type { EventRow } from '../../lib/supabase';
 import ArtworkCard from '../ArtworkCard';
-import { getStarredItems, subscribeStarred } from '../../lib/pins/starStore';
 import { subscribeBreadcrumbs, isRecordingEnabled, setRecordingEnabled } from '../../lib/pins/breadcrumbStore';
 import { fetchMyHistory, type HistoryEntry } from '../../lib/output/views';
-import { getTraitStarItems, subscribeTraitStarred } from '../../lib/pins/traitStarStore';
-import { getArtistStars, subscribeArtistStars } from '../../lib/pins/artistStarStore';
-import { getSoundtrackStarItems, subscribeSoundtrackStars } from '../../lib/pins/soundtrackStarStore';
-import { getTxStarItems, subscribeTxStars } from '../../lib/pins/txStarStore';
-import { getProjectStars, subscribeProjectStars } from '../../lib/pins/projectStarStore';
-import { getWishlistItems, subscribeWishlist } from '../../lib/pins/wishlistStore';
 import { getShowcaseItems, subscribeShowcase } from '../../lib/pins/userShowcaseStore';
 import AddToShowcaseModal from './AddToShowcaseModal';
 import ArtistTitleStar from './ArtistTitleStar';
 import StarredList from './StarredList';
 import StarredPresetRow from './StarredPresetRow';
-import type { StarredPresetState } from '../../lib/pins/starredPresetStore';
 import WishlistList from './WishlistList';
 import { StickerArt } from '../stickers/StickerArt';
 import { PROFILE_LOGO_CAROUSEL, PROFILE_LOGO_OFF } from '../../lib/profile/profileLogos';
@@ -75,145 +59,37 @@ import GhostRows from './GhostRows';
 import TraitsUI from '../project/TraitsUI';
 import AchievementsGrid from '../achievements/AchievementsGrid';
 import DiscordSection from './DiscordSection';
-import { ACHIEVEMENTS, MAX_PRICE_SCORE, VISIBLE_COUNT } from '../../lib/achievements/catalog';
+import { MAX_PRICE_SCORE, VISIBLE_COUNT } from '../../lib/achievements/catalog';
 import Hero from '../hero/Hero';
 import CompletionismModal from '../CompletionismModal';
 import FollowButton from './FollowButton';
 import { HeroStickers } from '../stickers/HeroStickers';
-import { getProject, outputTraits, allProjects, projectsByArtist, projectTraits } from '../../lib/project/registry';
-import HomeProjectFacetBar, {
-    projectFacetValueOf,
-    type EnrichedProject,
-    type HomeSortKey,
-    type HomeSortDir,
-} from '../home/HomeProjectFacetBar';
-import { FEED_LIFECYCLE, FEED_SEQ, milestoneByKey } from '../../lib/home/milestones';
-import { effectiveShowcaseStyle } from '../../lib/profile/showcaseStyle';
-import { genCuratedSet, type CuratedCandidate, type SpriteVibe } from '../../lib/profile/genCurated';
+import { getProject, allProjects, projectsByArtist } from '../../lib/project/registry';
+import HomeProjectFacetBar from '../home/HomeProjectFacetBar';
 import GhostCard from '../project/GhostCard';
 import ZenGarden from './ZenGarden';
-import { ProjectProvider, useProject } from '../../lib/state/ProjectContext';
-import ProfileFacetBar, { facetValueOf, type EnrichedHolding } from './ProfileFacetBar';
+import { ProjectProvider } from '../../lib/state/ProjectContext';
+import ProfileFacetBar from './ProfileFacetBar';
 import type { ShowcaseSlot } from '../../lib/supabase';
 import type { UserProfileData } from '../../lib/profile/getUserProfileByHandle';
 import { priceDayNumber } from '../../lib/priceday/priceday';
 import { usePriceDay } from '../../lib/priceday/usePriceDay';
 import AlbumsPanel from '../album/AlbumsPanel';
-
-/**
- * Format an ISO timestamp (users.created_at) as "MMM DD YYYY" in the hero
- * date slot — e.g. "2026-05-13T..." → "MAY 13 2026". Matches the project
- * page's PriceDay date format (JUL 09 2026).
- */
-function formatMemberSince(iso: string): string {
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return '';
-    return d
-        .toLocaleDateString('en-US', {
-            month: 'short',
-            day: '2-digit',
-            year: 'numeric',
-            timeZone: 'UTC',
-        })
-        .replace(',', '')
-        .toUpperCase();
-}
-
-type ProfileTab = 'showcase' | 'collected' | 'more';
-type ProfileMoreL1 = 'created' | 'starred' | 'wishlists' | 'albums' | 'offers' | 'sigil' | 'loyalty' | 'counterparties' | 'history' | 'info' | 'achievements' | 'discord' | 'anointed' | 'targets';
-/* Artist Showcase (Artist style): 'created' = the now-minting view of the
-   projects this artist made; 'regular' = their curated Top 6 grid. */
-type ShowcaseView = 'created' | 'regular';
-
-/* Per-project live stats for an artist's own projects (from /api/artist) —
-   feeds the showcase facet bar's birth/Status facets, date sort, and feed. */
-interface ArtistProjStat {
-    minted_count: number;
-    uploaded_at: number | null;
-    reached_at: number | null;
-    sold_out_at: number | null;
-    milestones: Record<string, number>;
-}
-
-/* Artist showcase facets = the home set minus Artist + Project (redundant for a
-   single artist); Created · Top 6 lead the row in their place. */
-const ARTIST_SHOWCASE_FACETS = ['PriceDay', 'Sun', 'Moon', 'Rising', 'Status', 'Fate'] as const;
-
-/* A home activity-feed item for the artist showcase Created feed. */
-interface ArtistFeedItem { slug: string; title: string; label: string; glyph: string; cls?: string; ts: number; seq: number }
-
-function fmtFeedDate(ms: number | null): string {
-    if (ms == null) return '—';
-    return new Date(ms)
-        .toLocaleDateString('en-US', { month: 'short', day: '2-digit', timeZone: 'UTC' })
-        .toUpperCase();
-}
-function fmtFeedTime(ms: number | null): string {
-    if (ms == null) return '—';
-    return new Date(ms)
-        .toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' });
-}
-
-/* Outputs per artist-project carousel (matches the home carousel: 18). */
-const CAROUSEL_SIZE = 18;
-
-/* One artist-project carousel — same markup + classes as the home page's
-   per-project carousel, mounted under its own ProjectProvider so the cards
-   paint THIS project's engine. Shows recent minted Outputs. A previewed tile
-   REQUIRES a real mint — an unminted project shows GHOST FRAMES in its row,
-   never phantom art off unminted token ids (Brendon, 2026-07-03: "when a
-   project is fresh there are no mints and thus no previews — we show the
-   ghosts instead"). Same GhostCard the Project page + Showcase use. */
-function ArtistProjectCarousel({ eager = false }: { eager?: boolean }) {
-    const project = useProject();
-    const total = project.totalOutputs;
-    const ids =
-        total > 0
-            ? Array.from({ length: Math.min(CAROUSEL_SIZE, total) }, (_, i) => total - i)
-            : [];
-    /* Ghost frames for an unminted row: aspect ratios sampled from the
-       project's own aspect palette (registry), deterministic per index so
-       SSR and client match. No canvas, no engine, no seed. */
-    const ghostAspects = (() => {
-        if (total > 0) return [];
-        const pool = getProject(project.slug)?.aspects ?? [1];
-        const aspects = pool.length ? pool : [1];
-        return Array.from({ length: CAROUSEL_SIZE }, (_, i) => {
-            const h = (((i + 1) * 2654435761) >>> 0) / 4294967296;
-            return aspects[Math.floor(h * aspects.length) % aspects.length];
-        });
-    })();
-    return (
-        <section
-            className="home-carousel-row"
-            aria-label={`${project.title} — recent outputs`}
-        >
-            <div className="home-carousel-head">
-                <a className="home-carousel-title" href={`/art/${project.slug}`}>
-                    {project.title}
-                </a>
-            </div>
-            <div className="home-carousel-track">
-                {total > 0
-                    ? ids.map((id) => (
-                          <ArtworkCard key={id} id={id} eager={eager} />
-                      ))
-                    : ghostAspects.map((aspect, i) => (
-                          <GhostCard key={`ghost-${i}`} aspect={aspect} index={i} />
-                      ))}
-            </div>
-        </section>
-    );
-}
-
-/** One collected Output, from /api/user/[address]/outputs. */
-interface Holding {
-    slug: string;
-    token_id: number;
-    list_price_eth: string | null;
-    /** Mint event timestamp (Unix seconds) — source for PriceDay + Natal. */
-    mint_ts: number | null;
-}
+import {
+    formatMemberSince, fmtFeedDate, fmtFeedTime,
+    ARTIST_SHOWCASE_FACETS,
+    type ProfileTab, type ProfileMoreL1, type Holding,
+} from './profilePageShared';
+import ArtistProjectCarousel from './ArtistProjectCarousel';
+import JoinDayPopover from './JoinDayPopover';
+import { useProfileEggs } from './useProfileEggs';
+import { useStarredPins } from './useStarredPins';
+import { useMoreControls, MORE_CFG, MORE_SORT_LABEL, MORE_GROUP_GLYPH, type MoreMode } from './useMoreControls';
+import { usePriceDayPopover } from './usePriceDayPopover';
+import { useProfileAchievements } from './useProfileAchievements';
+import { useProfileFeed } from './useProfileFeed';
+import { useCollectedGallery } from './useCollectedGallery';
+import { useArtistShowcase } from './useArtistShowcase';
 
 function ProfilePageBodyInner({
     handle,
@@ -233,17 +109,7 @@ function ProfilePageBodyInner({
     const isAuthed = !!siweAddress;
     const { notifs } = usePdNotifs();
     const isZen = notifs.zenMode;
-    const { sort, dir, feedKind, group } = useSort();
-    const { activeFilters, searchQuery, priceMin, priceMax } = useTraits();
-
-    /* Decouple the gallery grid from the trait pills (Brendon, 2026-06-18). The
-       pills read the live filter state and paint their dim/active instantly;
-       the heavy grid filter/sort reads a DEFERRED copy, so a pill tap no longer
-       waits on the grid to recompute — the grid catches up on its own frame. */
-    const dActiveFilters = useDeferredValue(activeFilters);
-    const dSearchQuery = useDeferredValue(searchQuery);
-    const dPriceMin = useDeferredValue(priceMin);
-    const dPriceMax = useDeferredValue(priceMax);
+    const { sort, group } = useSort();
 
     // Real user row — fetched server-side from the handle in the URL and
     // passed in, so the hero renders real values on first paint (no popin).
@@ -317,115 +183,13 @@ function ProfilePageBodyInner({
 
     const displayHandle = user.handle ?? handle;
 
-    /* ── Name easter egg — colourway pills ──────────────────────────────
-       Long-pressing your OWN @name shoves open an in-flow row of colour
-       pills (below the title, pushing the rest of the hero down — never a
-       floating overlay). Each pill names + sets the Profile Colorway via the
-       shared hook, so the change also reflects live in the Settings field.
-       The brand palette plus the user's own HIDDEN signature colour (derived
-       from their address; named by our colour-bucket classifier). */
-    const [eggOpen, setEggOpen] = useState(false);
-    const eggTap = useRef<{ count: number; lastTap: number }>({ count: 0, lastTap: 0 });
-    /* The colorway the user had when they opened the egg — the back pill
-       restores it (so a curious tap-through never strands a colour they
-       didn't mean to keep). Snapshotted on each open. */
-    const preEggHex = useRef<string>(myProfileHex);
-    const handleNameTap = () => {
-        if (!isOwnProfile) return;
-        const now = Date.now();
-        const s = eggTap.current;
-        s.count = now - s.lastTap > 600 ? 1 : s.count + 1;
-        s.lastTap = now;
-        if (s.count >= 3) {
-            s.count = 0;
-            setNameCarouselOpen((v) => !v);
-        }
-    };
-
-    /* Triple-tap the @name (own profile) → a mini Now-Minting carousel pops up
-       — the exact home carousel, Oracle for now, quarter-scale. A distinct
-       gesture from the long-press colour egg, which stays (Brendon 2026-06-23). */
-    const [nameCarouselOpen, setNameCarouselOpen] = useState(false);
-    const nameLpTimer = useRef<number | null>(null);
-    const nameLpFired = useRef(false);
-    const nameLpStart = useRef<{ x: number; y: number } | null>(null);
-    const clearNameLp = () => {
-        if (nameLpTimer.current != null) { window.clearTimeout(nameLpTimer.current); nameLpTimer.current = null; }
-    };
-    const onNamePointerDown = (e: React.PointerEvent) => {
-        if (!isOwnProfile) return;
-        nameLpFired.current = false;
-        nameLpStart.current = { x: e.clientX, y: e.clientY };
-        clearNameLp();
-        nameLpTimer.current = window.setTimeout(() => {
-            nameLpFired.current = true;
-            nameLpTimer.current = null;
-            setEggOpen((v) => {
-                if (!v) preEggHex.current = myProfileHex;
-                return !v;
-            });
-        }, 460);
-    };
-    const onNamePointerMove = (e: React.PointerEvent) => {
-        if (nameLpTimer.current == null || !nameLpStart.current) return;
-        const dx = e.clientX - nameLpStart.current.x;
-        const dy = e.clientY - nameLpStart.current.y;
-        if (dx * dx + dy * dy > 100) clearNameLp();
-    };
-    const onNamePressEnd = () => clearNameLp();
-
-    /* Long-press the PriceSprite (own profile) → an inline colour picker pops up:
-       a native colour wheel + the same colorway pills as the @name egg, with
-       Save and an undo button above it. A plain TAP still opens the PriceSprite
-       modal. Same gesture chrome as the @name long-press (Brendon 2026-06-23). */
-    const [spritePickerOpen, setSpritePickerOpen] = useState(false);
-    const spriteLpTimer = useRef<number | null>(null);
-    const spriteLpFired = useRef(false);
-    const spriteLpStart = useRef<{ x: number; y: number } | null>(null);
-    /* The sprite colour in play when the picker opened — undo restores it. */
-    const preSpriteHex = useRef<string | null>(mySpriteHex);
-    const clearSpriteLp = () => {
-        if (spriteLpTimer.current != null) { window.clearTimeout(spriteLpTimer.current); spriteLpTimer.current = null; }
-    };
-    const onSpritePointerDown = (e: React.PointerEvent) => {
-        if (!isOwnProfile) return;
-        spriteLpFired.current = false;
-        spriteLpStart.current = { x: e.clientX, y: e.clientY };
-        clearSpriteLp();
-        spriteLpTimer.current = window.setTimeout(() => {
-            spriteLpFired.current = true;
-            spriteLpTimer.current = null;
-            setSpritePickerOpen((v) => {
-                if (!v) preSpriteHex.current = mySpriteHex;
-                return !v;
-            });
-        }, 460);
-    };
-    const onSpritePointerMove = (e: React.PointerEvent) => {
-        if (spriteLpTimer.current == null || !spriteLpStart.current) return;
-        const dx = e.clientX - spriteLpStart.current.x;
-        const dy = e.clientY - spriteLpStart.current.y;
-        if (dx * dx + dy * dy > 100) clearSpriteLp();
-    };
-    const onSpritePressEnd = () => clearSpriteLp();
-
-    const eggPills = useMemo(() => {
-        const sig = user.signature_hex ?? signatureHexFor(user.address);
-        const s = sig.replace('#', '');
-        const sigName = classifyRgb(
-            parseInt(s.slice(0, 2), 16) || 0,
-            parseInt(s.slice(2, 4), 16) || 0,
-            parseInt(s.slice(4, 6), 16) || 0,
-        );
-        return [
-            { name: 'Hothurt Red', hex: '#FF0055' },
-            { name: 'Attention Yellow', hex: '#FFE600' },
-            { name: 'Dot Black', hex: '#111111' },
-            { name: 'Matrix White', hex: '#E0E0E0' },
-            { name: '@brendon Blue', hex: '#0109FF' },
-            { name: `@${displayHandle} ${sigName}`, hex: sig },
-        ];
-    }, [user.address, displayHandle]);
+    const {
+        eggOpen, preEggHex, handleNameTap,
+        nameCarouselOpen, nameLpFired, onNamePointerDown, onNamePointerMove, onNamePressEnd,
+        spritePickerOpen, spriteLpFired, preSpriteHex,
+        onSpritePointerDown, onSpritePointerMove, onSpritePressEnd,
+        eggPills,
+    } = useProfileEggs({ isOwnProfile, user, displayHandle, myProfileHex, mySpriteHex });
 
     /* This profile's PriceSprite — a small STILL face beside the @name (the
        profile's avatar; PD has no uploaded pfps). Works for any user via the
@@ -666,290 +430,12 @@ function ProfilePageBodyInner({
         return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onRefresh); };
     }, [user.address]);
 
-    /* Enrich each held Output with its full platform traits (Artist/Project/
-       PriceDay/Natal/Fate — PriceDay + Natal need the mint timestamp) and live
-       listed status. Both the facet bar and the predicate read this, so they
-       can never diverge. */
-    const enriched = useMemo<EnrichedHolding[]>(
-        () =>
-            holdings
-                .filter((h) => getProject(h.slug))
-                .map((h) => ({
-                    slug: h.slug,
-                    token_id: h.token_id,
-                    list_price_eth: h.list_price_eth,
-                    listed: h.list_price_eth != null,
-                    traits: outputTraits(
-                        h.slug,
-                        h.token_id,
-                        h.mint_ts != null ? h.mint_ts * 1000 : undefined,
-                    ),
-                })),
-        [holdings],
-    );
-
-    /* Collected-tab search + filter + sort over the enriched holdings. Filters
-       by the platform facets (facetValueOf), searches @artist / @project / id,
-       ranges on listing price, sorts by id or price. */
-    const visibleCollected = useMemo<EnrichedHolding[]>(() => {
-        const minVal = parseFloat(dPriceMin);
-        const maxVal = parseFloat(dPriceMax);
-        const hasMin = !Number.isNaN(minVal);
-        const hasMax = !Number.isNaN(maxVal);
-        const q = dSearchQuery.trim().toLowerCase();
-        const activeCats = Object.keys(dActiveFilters).filter((c) => dActiveFilters[c].size > 0);
-
-        const filtered = enriched.filter((h) => {
-            const priceNum = h.list_price_eth ? parseFloat(h.list_price_eth) : null;
-            for (const cat of activeCats) {
-                const v = facetValueOf(cat, h);
-                if (v === undefined || !dActiveFilters[cat].has(v)) return false;
-            }
-            if (q) {
-                const hay = `${h.traits.Artist ?? ''} ${h.traits.Project ?? ''} #${h.token_id}`.toLowerCase();
-                if (!hay.includes(q)) return false;
-            }
-            if (hasMin && (priceNum == null || priceNum < minVal)) return false;
-            if (hasMax && priceNum != null && priceNum > maxVal) return false;
-            return true;
-        });
-
-        const dirMult = dir === 'asc' ? 1 : -1;
-        const byId = (a: EnrichedHolding, b: EnrichedHolding) =>
-            a.slug === b.slug ? (a.token_id - b.token_id) * dirMult : a.slug.localeCompare(b.slug);
-        if (sort === 'price') {
-            filtered.sort((a, b) => {
-                const na = a.list_price_eth ? parseFloat(a.list_price_eth) : Infinity;
-                const nb = b.list_price_eth ? parseFloat(b.list_price_eth) : Infinity;
-                return na !== nb ? (na - nb) * dirMult : byId(a, b);
-            });
-        } else if (sort === 'az') {
-            // A–Z by project name, then token id within each project.
-            filtered.sort((a, b) => {
-                const an = getProject(a.slug)?.displayName ?? a.slug;
-                const bn = getProject(b.slug)?.displayName ?? b.slug;
-                const c = an.localeCompare(bn) * dirMult;
-                return c !== 0 ? c : a.token_id - b.token_id;
-            });
-        } else {
-            filtered.sort(byId);
-        }
-        return filtered;
-    }, [enriched, sort, dir, dActiveFilters, dSearchQuery, dPriceMin, dPriceMax]);
-
-    /* Progressive gallery reveal (Brendon, 2026-06-18; windowed 2026-06-24).
-       Mount a first screenful so the page is instant, then grow the window ONLY
-       as the viewer scrolls toward the end (a sentinel near the bottom). The old
-       version grew every animation frame until the WHOLE collection was mounted
-       — fine for small wallets, but a 10k–20k collection ended up with every card
-       in the DOM and scrolled like glue. Now the mounted set tracks how far
-       you've actually scrolled, so a giant collection browses as smoothly as a
-       small one. revealCount only grows, so re-filtering renders instantly. */
-    const REVEAL_FIRST = 24;
-    const REVEAL_STEP = 48;
-    const [revealCount, setRevealCount] = useState(REVEAL_FIRST);
-    const collectedSentinelRef = useRef<HTMLDivElement | null>(null);
-    useEffect(() => {
-        if (revealCount >= visibleCollected.length) return;
-        const el = collectedSentinelRef.current;
-        if (!el) return;
-        if (typeof IntersectionObserver === 'undefined') { setRevealCount(visibleCollected.length); return; }
-        const io = new IntersectionObserver(
-            (entries) => {
-                if (entries.some((e) => e.isIntersecting)) {
-                    setRevealCount((c) => Math.min(c + REVEAL_STEP, visibleCollected.length));
-                }
-            },
-            { rootMargin: '1200px 0px' },
-        );
-        io.observe(el);
-        return () => io.disconnect();
-    }, [revealCount, visibleCollected.length]);
-    const shownCollected = useMemo(
-        () =>
-            revealCount >= visibleCollected.length
-                ? visibleCollected
-                : visibleCollected.slice(0, revealCount),
-        [visibleCollected, revealCount],
-    );
-
-    /* Group the filtered/sorted holdings by Project for rendering. Each group
-       renders inside its own ProjectProvider so ArtworkCard paints the right
-       Project's art + meta — the provider is a context-only node (no DOM), so
-       all cards still land as direct children of the single #gallery grid.
-       (Sort is global within each project group; cross-project ordering follows
-       the group order.) */
-    const collectedByProject = useMemo(() => {
-        const m = new Map<string, number[]>();
-        for (const h of shownCollected) {
-            const arr = m.get(h.slug) ?? [];
-            arr.push(h.token_id);
-            m.set(h.slug, arr);
-        }
-        return [...m.entries()].map(([slug, ids]) => ({ slug, ids }));
-    }, [shownCollected]);
-
-    /* Stored dominant colours for every project the wallet holds (any engine);
-       resolveBucket prefers them, falls back to live palette-math. */
-    const heldSlugs = useMemo(() => [...new Set(enriched.map((h) => h.slug))], [enriched]);
-    const colorsVer = useStoredColors(heldSlugs);
-
-    /* Grouped collected gallery (Brendon, 2026-06-16). Grouping is the cycling
-       modifier on the active grid sort. Cross-project surface dimensions:
-       artist · project · artist+project · colour · last-sold · rarity. Titles
-       reuse the home carousel-title look; spacing binds each to the group below.
-       Cards still render inside a ProjectProvider so the art paints with its own
-       project's context. Returns null when grouping is off / not applicable. */
-    type GBHead = { level: 1 | 2; label: string; by?: string | null; soon?: boolean };
-    type GBlock = {
-        key: string;
-        /** Collapse key for the section (level-1) this block belongs to. */
-        l1Key: string;
-        /** Collapse key for this block's own level-2 sub-section, when it has one. */
-        l2Key?: string;
-        heads: GBHead[];
-        group?: { slug: string; ids: number[] };
-        cards?: { slug: string; id: number }[];
-    };
-    const collectedGroups = useMemo<GBlock[] | null>(() => {
-        if (group === 'none' || sort === 'feed') return null;
-        if (!COLLECTED_GROUP_ORDER.includes(group)) return null;
-        const projName = (slug: string) => getProject(slug)?.displayName ?? slug;
-
-        // Last-sold + rarity: one greyed "coming soon" title, all pieces beneath.
-        if (GROUP_SOON[group]) {
-            return [{
-                key: 'soon',
-                l1Key: 'soon',
-                heads: [{ level: 1, label: GROUP_LABEL[group], soon: true }],
-                cards: shownCollected.map((h) => ({ slug: h.slug, id: h.token_id })),
-            }];
-        }
-
-        // Colour cuts across projects — bucket every piece, render each in its
-        // own provider so the art still paints with its project's context.
-        if (group === 'color') {
-            const buckets = new Map<string, { slug: string; id: number }[]>();
-            for (const h of shownCollected) {
-                const b = resolveBucket(h.slug, h.token_id) ?? 'Other';
-                const arr = buckets.get(b) ?? [];
-                arr.push({ slug: h.slug, id: h.token_id });
-                buckets.set(b, arr);
-            }
-            const order = [...(COLOR_BUCKET_ORDER as string[]), 'Other'];
-            return [...buckets.entries()]
-                .sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0]))
-                .map(([label, cards]) => ({ key: `c-${label}`, l1Key: `c-${label}`, heads: [{ level: 1 as const, label }], cards }));
-        }
-
-        // artist+colour / project+colour — two-level: the identity (artist or
-        // project) titles the section, colour buckets sub-title within it.
-        // Colour mixes projects under an artist, so pieces render per-card (like
-        // the plain colour grouping), not per-project.
-        if (group === 'artistColor' || group === 'projectColor') {
-            type Hold = (typeof shownCollected)[number];
-            const colorOrder = [...(COLOR_BUCKET_ORDER as string[]), 'Other'];
-            const idOf = (h: Hold) =>
-                group === 'artistColor' ? (h.traits.Artist ?? '—') : h.slug;
-            const idLabel = (k: string) => (group === 'artistColor' ? k : projName(k));
-            const byId = new Map<string, Hold[]>();
-            const artistOf = new Map<string, string>();
-            for (const h of shownCollected) {
-                const k = idOf(h);
-                const arr = byId.get(k) ?? [];
-                arr.push(h);
-                byId.set(k, arr);
-                if (!artistOf.has(k)) artistOf.set(k, h.traits.Artist ?? '—');
-            }
-            const ids = [...byId.keys()].sort((a, b) => idLabel(a).localeCompare(idLabel(b)));
-            const blocks: GBlock[] = [];
-            for (const k of ids) {
-                const cbuckets = new Map<string, { slug: string; id: number }[]>();
-                for (const h of byId.get(k)!) {
-                    const b = resolveBucket(h.slug, h.token_id) ?? 'Other';
-                    const arr = cbuckets.get(b) ?? [];
-                    arr.push({ slug: h.slug, id: h.token_id });
-                    cbuckets.set(b, arr);
-                }
-                const ordered = [...cbuckets.entries()]
-                    .sort((a, b) => colorOrder.indexOf(a[0]) - colorOrder.indexOf(b[0]));
-                let first = true;
-                for (const [clabel, cards] of ordered) {
-                    const heads: GBHead[] = [];
-                    if (first) {
-                        heads.push(
-                            group === 'projectColor'
-                                ? { level: 1, label: idLabel(k), by: artistOf.get(k) ?? null }
-                                : { level: 1, label: idLabel(k) },
-                        );
-                        first = false;
-                    }
-                    heads.push({ level: 2, label: clabel });
-                    blocks.push({
-                        key: `${k}::${clabel}`,
-                        l1Key: `i:${k}`,
-                        l2Key: `s:${k}::${clabel}`,
-                        heads,
-                        cards,
-                    });
-                }
-            }
-            return blocks;
-        }
-
-        // artist / project / artist+project respect project boundaries (one
-        // provider per project), so group by slug then order/title by dimension.
-        const bySlug = new Map<string, number[]>();
-        const slugArtist = new Map<string, string>();
-        for (const h of shownCollected) {
-            const arr = bySlug.get(h.slug) ?? [];
-            arr.push(h.token_id);
-            bySlug.set(h.slug, arr);
-            if (!slugArtist.has(h.slug)) slugArtist.set(h.slug, h.traits.Artist ?? '—');
-        }
-        const slugs = [...bySlug.keys()];
-        if (group === 'project') {
-            slugs.sort((a, b) => projName(a).localeCompare(projName(b)));
-            return slugs.map((slug) => ({
-                key: slug,
-                l1Key: slug,
-                heads: [{ level: 1 as const, label: projName(slug), by: slugArtist.get(slug) ?? null }],
-                group: { slug, ids: bySlug.get(slug)! },
-            }));
-        }
-        // artist / artistProject — order by artist then project; artist titled once.
-        slugs.sort((a, b) =>
-            slugArtist.get(a)!.localeCompare(slugArtist.get(b)!) || projName(a).localeCompare(projName(b)));
-        let lastArtist: string | null = null;
-        const blocks: GBlock[] = [];
-        for (const slug of slugs) {
-            const artist = slugArtist.get(slug)!;
-            const heads: GBHead[] = [];
-            if (artist !== lastArtist) { heads.push({ level: 1, label: artist }); lastArtist = artist; }
-            if (group === 'artistProject') heads.push({ level: 2, label: projName(slug) });
-            blocks.push({
-                key: slug,
-                l1Key: `a:${artist}`,
-                ...(group === 'artistProject' ? { l2Key: `p:${slug}` } : {}),
-                heads,
-                group: { slug, ids: bySlug.get(slug)! },
-            });
-        }
-        return blocks;
-    }, [group, sort, shownCollected, colorsVer]);
-
-    /* Collapsible grouping headers — tap a header (or its arrow) to fold its
-       pieces away; tap again to reopen. Folding a section (level-1) hides
-       everything nested under it, including its sub-headers. Keys are
-       dimension-specific, so a grouping change starts fresh (effect below). */
-    const [collapsedGroups, setCollapsedGroups] = useState<ReadonlySet<string>>(() => new Set());
-    const toggleGroupCollapse = (key: string) =>
-        setCollapsedGroups((prev) => {
-            const next = new Set(prev);
-            if (next.has(key)) next.delete(key); else next.add(key);
-            return next;
-        });
-    useEffect(() => { setCollapsedGroups(new Set()); }, [group]);
+    const {
+        dActiveFilters, dSearchQuery, dPriceMin, dPriceMax,
+        enriched, visibleCollected, shownCollected, revealCount,
+        collectedSentinelRef, collectedByProject, collectedGroups,
+        collapsedGroups, toggleGroupCollapse,
+    } = useCollectedGallery(holdings);
 
     // Identity-row copy: copies the chosen ENS if set, else the FULL wallet
     // address (row shows truncated, copy gives the whole thing — same as the
@@ -1044,30 +530,11 @@ function ProfilePageBodyInner({
     });
     useEffect(() => { rememberTab('profile', moreMemId, moreL1); }, [moreL1, moreMemId]);
 
-    /* Starred — the viewer's PRIVATE bookmarks ("like it, star it, find it
-       later"). Device-local, keyed slug:id so it spans Projects. Shown only on
-       your own profile; a visitor never sees someone else's stars. */
-    const [starredItems, setStarredItems] = useState(() => getStarredItems());
-    useEffect(() => {
-        setStarredItems(getStarredItems());
-        return subscribeStarred(() => setStarredItems(getStarredItems()));
-    }, []);
-    /* Live minted count per pinned slug. A token pin is only real if its id is
-       within the project's CURRENT minted count — so a pin left over after a
-       project's supply reset to 0 (a token that no longer exists) is dropped
-       instead of painting phantom art. Fetched below for the union of starred
-       + wishlisted slugs; an unknown slug (not yet fetched, or fetch failed)
-       keeps the pin so valid pins never flicker away on a slow network. */
-    const [mintedBySlug, setMintedBySlug] = useState<Record<string, number>>({});
-    const starredValid = useMemo(
-        () =>
-            starredItems.filter(
-                (s) =>
-                    getProject(s.slug) != null &&
-                    (mintedBySlug[s.slug] === undefined || s.id <= mintedBySlug[s.slug]),
-            ),
-        [starredItems, mintedBySlug],
-    );
+    const {
+        starredValid, traitStarsValid, artistStars,
+        starredArtistHandles, starredCollectorHandles,
+        soundtrackStars, txStars, projectStarsValid, wishlistValid,
+    } = useStarredPins();
 
     /* My History — the viewer's PRIVATE last-100 viewed Outputs, read straight
        from the output_views pillar table (freshest first, with visit time for
@@ -1094,254 +561,14 @@ function ProfilePageBodyInner({
     }, []);
     const [recordingConfirm, setRecordingConfirm] = useState(false);
 
-    /* Starred Traits — favourited (Project, category, value) tuples, shown under
-       the Starred tab's Traits filter. Private, own-profile only, like stars. */
-    const [traitStarItems, setTraitStarItems] = useState(() => getTraitStarItems());
-    useEffect(() => {
-        setTraitStarItems(getTraitStarItems());
-        return subscribeTraitStarred(() => setTraitStarItems(getTraitStarItems()));
-    }, []);
-    const traitStarsValid = useMemo(
-        () => traitStarItems.filter((t) => getProject(t.slug) != null),
-        [traitStarItems],
-    );
+    const {
+        moreSearchOpen, moreQuery, setMoreQuery, toggleMoreSearch, closeMoreSearch,
+        moreMultiActive, setMoreMultiActive, morePresetActive, setMorePresetActive,
+        moreMode, setMoreMode, moreSort, moreSortDir, moreGroup,
+        applyStarredPreset, cycleMoreSort,
+    } = useMoreControls(moreL1, showToast);
 
-    /* +More search — lifted here so the ⌕ icon lives in the +More sub-nav row
-       beside the Info pill (where Collected's search lives) and drives WHICHEVER
-       +More sub-tab is open (the sub-tabs behave like real tabs). Resets when
-       you switch sub-tab. The bar + filtering live in the open sub-tab's list. */
-    const [moreSearchOpen, setMoreSearchOpen] = useState(false);
-    const [moreQuery, setMoreQuery] = useState('');
-    const toggleMoreSearch = () => setMoreSearchOpen((v) => { if (v) setMoreQuery(''); return !v; });
-    const closeMoreSearch = () => { setMoreQuery(''); setMoreSearchOpen(false); };
-    /* +More multi-select — same idea as Collected's ❐. Lives beside the search
-       icon and drives the open sub-tab's row selection. */
-    const [moreMultiActive, setMoreMultiActive] = useState(false);
-    const [morePresetActive, setMorePresetActive] = useState(false);
-    /* +More sort — Recent / AZ. Lives in the sub-nav sort-bar beside the colorway
-       picker. Grouping folds INTO the AZ button as a cycling modifier (exactly
-       like the gallery), so there's no separate Group button (Brendon 2026-06-19).
-       Wishlist keeps its own #ID sort. */
-    type MoreSortKey = 'recent' | 'id' | 'project' | 'price' | 'followers';
-    type MoreMode = 'all' | 'artists' | 'collectors' | 'outputs' | 'traits' | 'soundtracks' | 'projects'
-        | 'tx' | 'followers' | 'following' | 'mutuals';
-    const [moreMode, setMoreMode] = useState<MoreMode>('all');
-    const [moreSort, setMoreSort] = useState<MoreSortKey>('recent');
-    const [moreSortDir, setMoreSortDir] = useState<'asc' | 'desc'>('asc');
-    const [moreGroup, setMoreGroup] = useState<string>('none');
-    /* Which sorts + groupings make sense for each Starred filter (and Wishlist).
-       Groupings reuse the gallery's dimensions (color = outputs only, etc.) and
-       are cycled THROUGH the AZ button. */
-    const MORE_CFG: Record<string, { sorts: MoreSortKey[]; groups: string[] }> = {
-        all:         { sorts: ['recent'],                     groups: ['none'] },
-        outputs:     { sorts: ['recent', 'price', 'project'], groups: ['none', 'color', 'project', 'artist'] },
-        traits:      { sorts: ['recent', 'price', 'project'], groups: ['none', 'project', 'artist'] },
-        projects:    { sorts: ['recent', 'price', 'project'], groups: ['none', 'artist'] },
-        artists:     { sorts: ['recent', 'price', 'followers', 'project'], groups: ['none', 'color'] },
-        collectors:  { sorts: ['recent', 'price', 'followers', 'project'], groups: ['none', 'color'] },
-        soundtracks: { sorts: ['recent', 'price', 'project'], groups: ['none', 'artist', 'project'] },
-        wishlist:    { sorts: ['recent', 'price', 'id', 'project'], groups: ['none'] },
-    };
-    /* Remember the user's chosen sort per +More surface, locally — default to
-       Recent (newest-first) when nothing's saved (Brendon, 2026-06-22). */
-    const MORE_SORT_LS = 'pd_more_sort';
-    const readMoreSortStore = (): Record<string, { sort: string; dir: string; group: string }> => {
-        try { return JSON.parse(localStorage.getItem(MORE_SORT_LS) || '{}') || {}; } catch { return {}; }
-    };
-    const restoreMoreSort = () => {
-        const cfgKey = moreL1 === 'wishlists' ? 'wishlist' : moreMode;
-        const allowed = (MORE_CFG[cfgKey]?.sorts ?? ['recent']) as string[];
-        const saved = readMoreSortStore()[`${moreL1}:${moreMode}`];
-        if (saved && allowed.includes(saved.sort)) {
-            setMoreSort(saved.sort as MoreSortKey);
-            setMoreSortDir(saved.dir === 'desc' ? 'desc' : 'asc');
-            setMoreGroup(saved.group || 'none');
-        } else {
-            setMoreSort('recent'); setMoreSortDir('asc'); setMoreGroup('none');
-        }
-    };
-    useEffect(() => { setMoreSearchOpen(false); setMoreQuery(''); setMoreMultiActive(false); setMorePresetActive(false); restoreMoreSort(); }, [moreL1]);
-    /* Reset sort + grouping when the active filter pill changes so a grouping
-       never carries into a filter it can't apply — UNLESS we're applying a
-       Starred Preset (which sets mode + sort + group together). */
-    const applyingPreset = useRef(false);
-    useEffect(() => {
-        if (applyingPreset.current) { applyingPreset.current = false; return; }
-        setMoreSort('recent'); setMoreSortDir('asc'); setMoreGroup('none');
-    }, [moreMode]);
-    const applyStarredPreset = (s: StarredPresetState) => {
-        if (s.mode !== moreMode) applyingPreset.current = true;
-        setMoreMode(s.mode as MoreMode);
-        setMoreSort(s.sort as MoreSortKey);
-        setMoreSortDir(s.dir);
-        setMoreGroup(s.group);
-        setMoreQuery(s.query);
-        if (s.query) setMoreSearchOpen(true);
-    };
-    const MORE_SORT_LABEL: Record<MoreSortKey, string> = { recent: 'Recent', id: '#ID', project: 'AZ', price: '$PRICE', followers: 'FLWRS' };
-    const MORE_GROUP_NAME: Record<string, string> = { color: 'Color', project: 'Project', artist: 'Artist', type: 'Type' };
-    /* Canonical grouping glyphs (docs/GLYPHS.md) — the cycling modifier on the AZ
-       button, same as the gallery. */
-    const MORE_GROUP_GLYPH: Record<string, string> = { none: '', color: '◉︎', project: '⬚︎', artist: '✺︎' };
-    /* Tap an inactive sort → enter ascending, ungrouped. Tap the active groupable
-       sort → asc flips to desc, then desc advances to the next grouping (back to
-       asc) — mirroring the gallery's AZ button. 'recent' just flips direction. */
-    const cycleMoreSort = (key: MoreSortKey) => {
-        const groups = MORE_CFG[onWishlistTab ? 'wishlist' : moreMode]?.groups ?? ['none'];
-        if (moreSort !== key) {
-            setMoreSort(key); setMoreSortDir('asc'); setMoreGroup('none');
-            showToast('SORT: ' + MORE_SORT_LABEL[key] + ' ↑');
-            return;
-        }
-        if (key === 'recent' || groups.length <= 1) {
-            const nd = moreSortDir === 'asc' ? 'desc' : 'asc';
-            setMoreSortDir(nd);
-            showToast('SORT: ' + MORE_SORT_LABEL[key] + (nd === 'asc' ? ' ↑' : ' ↓'));
-            return;
-        }
-        if (moreSortDir === 'asc') {
-            setMoreSortDir('desc');
-            showToast('SORT: ' + MORE_SORT_LABEL[key] + ' ↓' + (moreGroup !== 'none' ? ' · ' + (MORE_GROUP_NAME[moreGroup] ?? moreGroup).toUpperCase() : ''));
-            return;
-        }
-        const cur = groups.includes(moreGroup) ? moreGroup : 'none';
-        const next = groups[(groups.indexOf(cur) + 1) % groups.length];
-        setMoreGroup(next); setMoreSortDir('asc');
-        showToast(next === 'none' ? 'GROUP: OFF' : 'GROUP: ' + (MORE_GROUP_NAME[next] ?? next).toUpperCase());
-    };
-
-    /* Starred Artists — the pinned-artist set from the Artists list, surfaced
-       under the Starred tab's Artists filter (read-only mirror; the pin itself
-       still lives in the Artists list). */
-    const [artistStars, setArtistStars] = useState<readonly string[]>(() => getArtistStars());
-    useEffect(() => {
-        setArtistStars(getArtistStars());
-        return subscribeArtistStars((next) => setArtistStars(next));
-    }, []);
-    /* Any user can be starred; we split the starred handles into ARTISTS (handles
-       that have ≥1 project) and COLLECTORS (everyone else) so each gets its own
-       filter (Brendon 2026-06-19). */
-    const starredArtistHandles = useMemo(
-        () => artistStars.filter((h) => projectsByArtist(h.replace(/^@/, '')).length > 0),
-        [artistStars],
-    );
-    const starredCollectorHandles = useMemo(
-        () => artistStars.filter((h) => projectsByArtist(h.replace(/^@/, '')).length === 0),
-        [artistStars],
-    );
-
-    /* Starred Soundtracks — favourited Project soundtracks, under the Starred
-       tab's Soundtracks filter. */
-    const [soundtrackStars, setSoundtrackStars] = useState(() => getSoundtrackStarItems());
-    useEffect(() => {
-        setSoundtrackStars(getSoundtrackStarItems());
-        return subscribeSoundtrackStars(() => setSoundtrackStars(getSoundtrackStarItems()));
-    }, []);
-
-    /* Starred Tx — favourited on-chain activity events, under the Starred tab's
-       Tx filter (the very last pill after Soundtracks). */
-    const [txStars, setTxStars] = useState(() => getTxStarItems());
-    useEffect(() => {
-        setTxStars(getTxStarItems());
-        return subscribeTxStars(() => setTxStars(getTxStarItems()));
-    }, []);
-
-    /* Starred Projects — favourited Project slugs, under the Starred tab's
-       Projects filter. */
-    const [projectStars, setProjectStars] = useState<readonly string[]>(() => getProjectStars());
-    useEffect(() => {
-        setProjectStars(getProjectStars());
-        return subscribeProjectStars((next) => setProjectStars(next));
-    }, []);
-    const projectStarsValid = useMemo(
-        () => projectStars.filter((slug) => getProject(slug) != null),
-        [projectStars],
-    );
-
-    /* Wishlist — the viewer's PRIVATE "want to buy" list. Same shape as stars;
-       shown only on your own profile. */
-    const [wishlistItems, setWishlistItems] = useState(() => getWishlistItems());
-    useEffect(() => {
-        setWishlistItems(getWishlistItems());
-        return subscribeWishlist(() => setWishlistItems(getWishlistItems()));
-    }, []);
-    const wishlistValid = useMemo(
-        () =>
-            wishlistItems.filter(
-                (s) =>
-                    getProject(s.slug) != null &&
-                    (mintedBySlug[s.slug] === undefined || s.id <= mintedBySlug[s.slug]),
-            ),
-        [wishlistItems, mintedBySlug],
-    );
-    /* Fetch the live minted count for every pinned slug (starred + wishlist),
-       feeding the two filters above. One count request per distinct slug,
-       refreshed on the same project-refresh signal the rest of the profile
-       already listens to. */
-    const pinnedSlugs = useMemo(() => {
-        const set = new Set<string>();
-        for (const s of starredItems) if (getProject(s.slug) != null) set.add(s.slug);
-        for (const s of wishlistItems) if (getProject(s.slug) != null) set.add(s.slug);
-        return Array.from(set).sort();
-    }, [starredItems, wishlistItems]);
-    useEffect(() => {
-        if (pinnedSlugs.length === 0) { setMintedBySlug({}); return; }
-        let cancelled = false;
-        const load = () => {
-            Promise.all(
-                pinnedSlugs.map((slug) =>
-                    fetch(`/api/project/${slug}/outputs`, { cache: 'no-store' })
-                        .then((r) => (r.ok ? r.json() : null))
-                        .then((d) => [slug, typeof d?.total === 'number' ? d.total : undefined] as const)
-                        .catch(() => [slug, undefined] as const),
-                ),
-            ).then((pairs) => {
-                if (cancelled) return;
-                const m: Record<string, number> = {};
-                for (const [slug, total] of pairs) if (typeof total === 'number') m[slug] = total;
-                setMintedBySlug(m);
-            });
-        };
-        load();
-        const onRefresh = () => load();
-        window.addEventListener('pd:project-refresh', onRefresh);
-        return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onRefresh); };
-    }, [pinnedSlugs]);
-
-    /* Achievements — PUBLIC for THIS profile's owner (any visitor sees any
-       profile's wall, logged in or not). Fetched once per profile address from
-       /api/achievements/{owner}; re-seeds on client-nav between profiles (the
-       address-keyed effect re-runs). `unlocked` is the earned-id set, the rest
-       is the owner's live score/rank/tally for the section header. One fetch per
-       address, guarded by the dep array — no refetch on every render. */
-    const [achData, setAchData] = useState<{
-        unlocked: ReadonlySet<string>;
-        priceScore: number;
-        priceRank: number;
-        unlockedCount: number;
-    }>({ unlocked: new Set(), priceScore: 0, priceRank: 0, unlockedCount: 0 });
-    useEffect(() => {
-        let cancelled = false;
-        setAchData({ unlocked: new Set(), priceScore: 0, priceRank: 0, unlockedCount: 0 });
-        fetch(`/api/achievements/${user.address.toLowerCase()}`, { cache: 'no-store' })
-            .then((r) => (r.ok ? r.json() : null))
-            .then((d: { unlocked?: string[]; priceScore?: number; priceRank?: number } | null) => {
-                if (cancelled || !d) return;
-                const set = new Set(d.unlocked ?? []);
-                const visibleUnlocked = ACHIEVEMENTS.reduce(
-                    (n, a) => (!a.secret && set.has(a.id) ? n + 1 : n),
-                    0,
-                );
-                setAchData({
-                    unlocked: set,
-                    priceScore: d.priceScore ?? 0,
-                    priceRank: d.priceRank ?? 0,
-                    unlockedCount: visibleUnlocked,
-                });
-            })
-            .catch(() => {});
-        return () => { cancelled = true; };
-    }, [user.address]);
+    const achData = useProfileAchievements(user.address);
 
     const iconToastProps = (label: string) => ({
         role: 'button' as const,
@@ -1356,63 +583,7 @@ function ProfilePageBodyInner({
         },
     });
 
-    // ── PriceDay popover (identity line date) ─────────────────────────
-    const [priceDayOpen, setPriceDayOpen] = useState(false);
-    const [priceDayPos, setPriceDayPos] = useState<{ top: number; left: number } | null>(null);
-    const priceDayRef = useRef<HTMLSpanElement>(null);
-    const priceDayPopRef = useRef<HTMLDivElement>(null);
-    const priceDayCoords = () => {
-        if (!priceDayRef.current) return null;
-        const rect = priceDayRef.current.getBoundingClientRect();
-        const POPOVER_WIDTH = 260;
-        const MARGIN = 8;
-        const MOBILE_BP = 600;
-        let left: number;
-        if (window.innerWidth < MOBILE_BP) {
-            left = (window.innerWidth - POPOVER_WIDTH) / 2;
-        } else {
-            left = rect.left + rect.width / 2 - POPOVER_WIDTH / 2;
-            left = Math.max(MARGIN, Math.min(left, window.innerWidth - POPOVER_WIDTH - MARGIN));
-        }
-        return { top: rect.bottom + 4, left };
-    };
-
-    useEffect(() => {
-        if (!priceDayOpen) return;
-        const handler = (e: MouseEvent) => {
-            if (priceDayRef.current && !priceDayRef.current.contains(e.target as Node)) {
-                setPriceDayOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handler);
-        return () => document.removeEventListener('mousedown', handler);
-    }, [priceDayOpen]);
-
-    /* Keep the popover glued to the date stamp on scroll/resize — write straight
-       to the node so the page never re-renders mid-scroll. */
-    useEffect(() => {
-        if (!priceDayOpen) return;
-        const track = () => {
-            const c = priceDayCoords();
-            if (c && priceDayPopRef.current) {
-                priceDayPopRef.current.style.top = `${c.top}px`;
-                priceDayPopRef.current.style.left = `${c.left}px`;
-            }
-        };
-        window.addEventListener('scroll', track, true);
-        window.addEventListener('resize', track);
-        return () => {
-            window.removeEventListener('scroll', track, true);
-            window.removeEventListener('resize', track);
-        };
-    }, [priceDayOpen]);
-
-    const openPriceDay = () => {
-        if (priceDayOpen) { setPriceDayOpen(false); return; }
-        const c = priceDayCoords();
-        if (c) setPriceDayPos(c);
-        setPriceDayOpen(true);
-    };
+    const { priceDayOpen, priceDayPos, priceDayRef, priceDayPopRef, openPriceDay } = usePriceDayPopover();
 
     /* The profile date popover is the NORMAL PriceDay almanac (Brendon
        2026-06-10 — the bespoke "origin" card was never asked for). It shows
@@ -1440,245 +611,18 @@ function ProfilePageBodyInner({
     if (onShowcase) visitedShowcase.current = true;
     if (onCollected) visitedCollected.current = true;
 
-    /* Profile activity feed (Brendon 2026-06-15) — this wallet's own pre-chain
-       events (mint / list / sale / transfer) from the shared ledger, filtered
-       to this user. Reached via the Collected tab's FEED sort, mirroring the
-       project page's feed. When empty it shows ghost rows — never hidden. */
     const feedActive = onCollected && sort === 'feed';
-    const [feedRows, setFeedRows] = useState<FeedEvent[]>([]);
-    useEffect(() => {
-        if (!feedActive) return;
-        let cancelled = false;
-        const load = () => {
-            fetch(`/api/feed?address=${user.address.toLowerCase()}&limit=100`, { cache: 'no-store' })
-                .then((r) => (r.ok ? r.json() : null))
-                .then((d: { events?: EventRow[] } | null) => {
-                    if (!cancelled && Array.isArray(d?.events)) {
-                        setFeedRows(d!.events.map(eventToFeedEvent));
-                    }
-                })
-                .catch(() => { /* keep last good rows */ });
-        };
-        load();
-        const onR = () => load();
-        window.addEventListener('pd:project-refresh', onR);
-        return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onR); };
-    }, [feedActive, user.address]);
-    const sortedFeedEvents = useMemo(() => {
-        const events = [...feedRows];
-        const dirMult = dir === 'asc' ? 1 : -1;
-        if (feedKind === 'price') events.sort((a, b) => (a.price - b.price) * dirMult);
-        else events.sort((a, b) => (a.timestamp - b.timestamp) * dirMult);
-        return events;
-    }, [feedRows, feedKind, dir]);
+    const sortedFeedEvents = useProfileFeed(feedActive, user.address);
 
-    /* Artist Showcase (Brendon, 2026-06-15): a whitelisted artist's Showcase
-       tab becomes the home Now-Minting view, scoped to their own projects, when
-       their showcase style is 'artist' (the default once whitelisted). Created ·
-       Top 6 lead the facet row in place of Artist + Project. Artists who keep
-       the traditional Top-6 instead get a Created sub-tab under +More. */
-    const isArtist = !!artistStatus;
-    const artistProjects = useMemo(
-        () => (isArtist ? projectsByArtist(user.handle ?? handle) : []),
-        [isArtist, user.handle, handle],
-    );
-    const hasCreated = artistProjects.length > 0;
-
-    const effStyle = effectiveShowcaseStyle(showcaseStyleVal, isArtist, user.address);
-    /* An artist with ≥1 project keeps the Created · Top 6 toggle on EVERY style
-       (Brendon 2026-06-20). 'artist' style lands on Created; Static / Generative
-       / Gen Curated land on Top 6 — the Created pill stays to its left either
-       way. So Created lives in the showcase toggle now, never under +More. */
-    const artistMode = onShowcase && isArtist && hasCreated;
-    const createdUnderMore = false;
-
-    /* Created vs Top 6 toggle. Default follows the style: Artist → Created,
-       the three Top-6 styles → Top 6. Re-defaults whenever the style changes. */
-    const [showcaseView, setShowcaseView] = useState<ShowcaseView>('created');
-    useEffect(() => {
-        setShowcaseView(effStyle === 'artist' ? 'created' : 'regular');
-    }, [effStyle]);
-    const artistShowcaseCreated = artistMode && showcaseView === 'created';
-
-    /* The set of artist @handles this profile FOLLOWS — lets Gen Curated build
-       "From the Feed" (pieces by artists they follow). Only fetched while the
-       gen-curated showcase is actually showing. */
-    const [ownerFollowing, setOwnerFollowing] = useState<ReadonlySet<string>>(new Set());
-    useEffect(() => {
-        if (!(onShowcase && effStyle === 'gen-curated') || !user.address) return;
-        let cancelled = false;
-        fetch(`/api/follows/${user.address.toLowerCase()}`, { cache: 'no-store' })
-            .then((r) => (r.ok ? r.json() : null))
-            .then((d) => {
-                if (cancelled || !d?.following_handles) return;
-                setOwnerFollowing(new Set((d.following_handles as string[]).map((h) => h.replace(/^@/, '').toLowerCase())));
-            })
-            .catch(() => {});
-        return () => { cancelled = true; };
-    }, [onShowcase, effStyle, user.address]);
-
-    /* Gen Curated — when this profile runs the gen-curated showcase style, build
-       a fresh themed pull from the owner's WHOLE collection (re-rolled each
-       mount). The PriceSprite vibe + @handle let the sprite curate in character.
-       colorsVer re-rolls once the captured colours hydrate. */
-    const genCurated = useMemo(() => {
-        if (!onShowcase || effStyle !== 'gen-curated') return null;
-        const pool: CuratedCandidate[] = enriched.map((h) => {
-            const fp = resolveFingerprint(h.slug, h.token_id);
-            return {
-                slug: h.slug,
-                id: h.token_id,
-                color: resolveBucket(h.slug, h.token_id),
-                /* Artist trait is the @handle (an @name) — keep it. Project trait
-                   is slug-based (@slug), so use the project's REAL display name
-                   instead; never surface a slug (Brendon 2026-06-20). */
-                artist: h.traits.Artist,
-                project: getProject(h.slug)?.displayName ?? undefined,
-                sun: h.traits.Sun,
-                moon: h.traits.Moon,
-                rising: h.traits.Rising,
-                priceDay: h.traits.PriceDay,
-                fate: h.traits.Fate,
-                listed: h.listed,
-                aspect: fp?.aspect ?? undefined,
-                brightness: fp?.brightness ?? undefined,
-                saturation: fp?.saturation ?? undefined,
-                complexity: fp?.complexity ?? undefined,
-                following: ownerFollowing.has((h.traits.Artist ?? '').replace(/^@/, '').toLowerCase()),
-            };
-        });
-        return genCuratedSet(pool, {
-            vibe: (user.price_sprite as SpriteVibe | null) ?? null,
-            handle: user.handle ?? handle,
-        });
-        // Build ONCE per entry into gen-curated. Deliberately NOT re-rolling when
-        // follows / captured colours arrive async — those late deps were what made
-        // the set visibly re-shuffle a second time after one tap (Brendon,
-        // 2026-06-24). It reads whatever following/colour data is loaded at build.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [onShowcase, effStyle, enriched]);
-
-    /* Live per-project stats for this artist's projects (birth time, mint
-       count, graduation, sold-out, milestones) — the ledger timestamps the
-       registry can't carry, feeding the showcase facets / sort / feed. */
-    const [artistProjStats, setArtistProjStats] = useState<Record<string, ArtistProjStat>>({});
-    useEffect(() => {
-        if (!isArtist) { setArtistProjStats({}); return; }
-        let cancelled = false;
-        const load = () =>
-            fetch(`/api/artist/${user.address.toLowerCase()}`, { cache: 'no-store' })
-                .then((r) => (r.ok ? r.json() : null))
-                .then((d: { projects?: Array<ArtistProjStat & { id: string }> } | null) => {
-                    if (cancelled || !d?.projects) return;
-                    const m: Record<string, ArtistProjStat> = {};
-                    for (const p of d.projects) {
-                        m[p.id] = {
-                            minted_count: p.minted_count ?? 0,
-                            uploaded_at: p.uploaded_at ?? null,
-                            reached_at: p.reached_at ?? null,
-                            sold_out_at: p.sold_out_at ?? null,
-                            milestones: p.milestones ?? {},
-                        };
-                    }
-                    setArtistProjStats(m);
-                })
-                .catch(() => {});
-        load();
-        const onRefresh = () => load();
-        window.addEventListener('pd:project-refresh', onRefresh);
-        return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onRefresh); };
-    }, [isArtist, user.address]);
-
-    /* Each project enriched with computed birth-traits + live Status + mint
-       price — the project-level analogue of an Output's traits (same model the
-       home Now-Minting view uses). */
-    const enrichedArtistProjects = useMemo<EnrichedProject[]>(
-        () => artistProjects.map((p) => {
-            const st = artistProjStats[p.slug];
-            return {
-                slug: p.slug,
-                title: p.displayName,
-                mintPriceEth: p.mintPriceEth,
-                minted: st?.minted_count ?? 0,
-                birthMs: st?.uploaded_at ?? null,
-                reachedMs: st?.reached_at ?? null,
-                traits: projectTraits(p.slug, st?.uploaded_at ?? undefined, st?.minted_count),
-            };
-        }),
-        [artistProjects, artistProjStats],
-    );
-
-    /* Showcase sort — LOCAL (off the global SortContext), same model as home. */
-    const [mintSort, setMintSort] = useState<{ key: HomeSortKey; dir: HomeSortDir }>({ key: 'date', dir: 'desc' });
-    const onMintSort = (key: HomeSortKey) =>
-        setMintSort((prev) =>
-            prev.key === key
-                ? { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' }
-                : { key, dir: key === 'price' || key === 'az' ? 'asc' : 'desc' },
-        );
-    const applyMintSort = (key: HomeSortKey, dir: HomeSortDir) => setMintSort({ key, dir });
-
-    /* Filter + sort the artist's projects by the showcase facets / search /
-       mint-price range — the home Now-Minting predicate, scoped to one artist. */
-    const visibleArtistProjects = useMemo<EnrichedProject[]>(() => {
-        const minV = parseFloat(dPriceMin);
-        const maxV = parseFloat(dPriceMax);
-        const hasMin = !Number.isNaN(minV);
-        const hasMax = !Number.isNaN(maxV);
-        const q = dSearchQuery.trim().toLowerCase();
-        // Only this view's own facets — so a filter left over from the Collected
-        // tab (Artist/Project) can't wipe the showcase (shared TraitsContext).
-        const showcaseFacets = ARTIST_SHOWCASE_FACETS as readonly string[];
-        const activeCats = Object.keys(dActiveFilters).filter(
-            (c) => dActiveFilters[c].size > 0 && showcaseFacets.includes(c),
-        );
-        const filtered = enrichedArtistProjects.filter((p) => {
-            for (const cat of activeCats) {
-                const v = projectFacetValueOf(cat, p);
-                if (v === undefined || !dActiveFilters[cat].has(v)) return false;
-            }
-            if (q && !`${p.traits.Project ?? ''} ${p.title}`.toLowerCase().includes(q)) return false;
-            if (hasMin && p.mintPriceEth < minV) return false;
-            if (hasMax && p.mintPriceEth > maxV) return false;
-            return true;
-        });
-        const dirMult = mintSort.dir === 'asc' ? 1 : -1;
-        if (mintSort.key === 'price') {
-            filtered.sort((a, b) => (a.mintPriceEth - b.mintPriceEth) * dirMult || a.slug.localeCompare(b.slug));
-        } else if (mintSort.key === 'az') {
-            filtered.sort((a, b) => a.title.localeCompare(b.title) * dirMult || a.slug.localeCompare(b.slug));
-        } else {
-            filtered.sort((a, b) => ((a.reachedMs ?? -Infinity) - (b.reachedMs ?? -Infinity)) * dirMult || a.slug.localeCompare(b.slug));
-        }
-        return filtered;
-    }, [enrichedArtistProjects, dActiveFilters, dSearchQuery, dPriceMin, dPriceMax, mintSort]);
-
-    /* Activity feed for the showcase Created view (FEED sort) — the artist's
-       project lifecycle moments (uploaded · milestones · graduated · sold out). */
-    const artistFeedView = useMemo<ArtistFeedItem[]>(() => {
-        const items: ArtistFeedItem[] = [];
-        const push = (slug: string, title: string, label: string, glyph: string, cls: string | undefined, ms: number | null, seq: number) => {
-            if (ms == null) return;
-            items.push({ slug, title, label, glyph, cls, ts: ms, seq });
-        };
-        const L = FEED_LIFECYCLE;
-        for (const p of artistProjects) {
-            const st = artistProjStats[p.slug];
-            if (!st) continue;
-            push(p.slug, p.displayName, L.upload.label, L.upload.glyph, undefined, st.uploaded_at, FEED_SEQ.upload);
-            for (const [count, ts] of Object.entries(st.milestones)) {
-                const m = milestoneByKey(count);
-                if (m) push(p.slug, p.displayName, m.label, m.glyph, m.cls, ts, m.count);
-            }
-            push(p.slug, p.displayName, L.graduated.label, L.graduated.glyph, L.graduated.cls, st.reached_at, FEED_SEQ.graduated);
-            push(p.slug, p.displayName, L.ascension.label, L.ascension.glyph, undefined, st.sold_out_at, FEED_SEQ.ascension);
-        }
-        const dirMult = mintSort.dir === 'asc' ? 1 : -1;
-        // Order by time, then by the milestone sequence so same-transaction
-        // events (identical ts) still read FIRST BLOOD → GRADUATED → … in order.
-        items.sort((a, b) => (a.ts - b.ts || a.seq - b.seq) * dirMult);
-        return items;
-    }, [artistProjects, artistProjStats, mintSort.dir]);
+    const {
+        isArtist, artistProjects, effStyle, artistMode, createdUnderMore,
+        showcaseView, setShowcaseView, artistShowcaseCreated, genCurated,
+        enrichedArtistProjects, mintSort, onMintSort, applyMintSort,
+        visibleArtistProjects, artistFeedView,
+    } = useArtistShowcase({
+        onShowcase, artistStatus, user, handle, showcaseStyleVal,
+        enriched, dActiveFilters, dSearchQuery, dPriceMin, dPriceMax,
+    });
 
     // ── Zen mode: Albums-only in + More sub-nav ───────────────────────
     useEffect(() => {
@@ -1814,55 +758,14 @@ function ProfilePageBodyInner({
                                 title="PriceDay"
                             >{memberSince || '\u2014'}</span>
                             {priceDayOpen && priceDayPos && joinDayContents && (
-                                <div
-                                    ref={priceDayPopRef}
-                                    className="priceday-popover"
-                                    style={{ position: 'fixed', top: priceDayPos.top, left: priceDayPos.left }}
-                                >
-                                    <div className="dp-title">PRICEDAY #{joinPriceDay}</div>
-                                    <div className="dp-title-spacer" />
-
-                                    <div className="pd-section-header">JOINED</div>
-                                    <div className="dp-row">
-                                        <span className="dp-label">{memberSince || '\u2014'}</span>
-                                        <span className="dp-value">@{displayHandle}</span>
-                                    </div>
-                                    <div className="pd-section-end" />
-
-                                    <div className="pd-section-header">MINTED THIS DAY</div>
-                                    {joinDayContents.minted.map((r, i) => (
-                                        <div className="dp-row" key={`m${i}`}>
-                                            <span className="dp-label">{r.label}</span>
-                                            <span className="dp-value">{r.value}</span>
-                                        </div>
-                                    ))}
-                                    <div className="pd-section-end" />
-
-                                    <div className="pd-section-header">UPLOADED THIS DAY</div>
-                                    {joinDayContents.uploaded.map((r, i) => (
-                                        <div className="dp-row" key={`u${i}`}>
-                                            <span className="dp-label">{r.label}</span>
-                                            <span className="dp-value">{r.value}</span>
-                                        </div>
-                                    ))}
-                                    <div className="pd-section-end" />
-
-                                    <div className="pd-section-header">BIGGEST SALE</div>
-                                    {joinDayContents.biggestSale && (
-                                        <div className="dp-row">
-                                            <span className="dp-label">{joinDayContents.biggestSale.label}</span>
-                                            <span className="dp-value">{joinDayContents.biggestSale.value}</span>
-                                        </div>
-                                    )}
-                                    {joinDayContents.flavor && (
-                                        <>
-                                            <div className="pd-section-header">THE DAY</div>
-                                            <div className="dp-row dp-flavor"><span className="dp-label">{joinDayContents.flavor}</span></div>
-                                            <div className="pd-section-end" />
-                                        </>
-                                    )}
-                                    <div className="pd-section-end" />
-                                </div>
+                                <JoinDayPopover
+                                    popRef={priceDayPopRef}
+                                    pos={priceDayPos}
+                                    joinPriceDay={joinPriceDay}
+                                    memberSince={memberSince}
+                                    displayHandle={displayHandle}
+                                    contents={joinDayContents}
+                                />
                             )}
                         </span>
                     </h1>
@@ -2337,8 +1240,8 @@ function ProfilePageBodyInner({
                                                     role="button"
                                                     tabIndex={0}
                                                     title={`Sort by ${MORE_SORT_LABEL[key]}`}
-                                                    onClick={() => cycleMoreSort(key)}
-                                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleMoreSort(key); } }}
+                                                    onClick={() => cycleMoreSort(key, onWishlistTab)}
+                                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleMoreSort(key, onWishlistTab); } }}
                                                 >
                                                     <span className={`sort-lbl${isRecentIcon ? ' sort-lbl-recent' : ''}`}>{isRecentIcon ? '◷︎' : lbl}</span>
                                                     <span className="sort-arrow">
