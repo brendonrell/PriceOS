@@ -19,7 +19,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  CAL_EVENTS,
   CAL_MONTH_SHORT,
   CAL_TODAY,
 } from '../lib/calendar/data';
@@ -122,7 +121,8 @@ export default function CalendarPanel() {
   /* S2 logged-out preview — calendar shows public events only:
        - Day notes (personal markdown notes) hidden
        - To-Dos toggle + per-day to-do dots hidden
-     CAL_EVENTS is the public schedule and stays visible to everyone. */
+     The GLOBAL /api/calendar layer is the public schedule and stays
+     visible to everyone. */
   const isAuthed = !!siweAddress;
 
   const selKey = dateKey(selY, selM, selD);
@@ -130,9 +130,8 @@ export default function CalendarPanel() {
   const hasNote = Boolean(dayNote);
   const dateLabel = `${CAL_MONTH_SHORT[selM]} ${selD}`;
 
-  const events = CAL_EVENTS[selKey] || [];
   const todos = isAuthed && todosMode ? (todoMap[selKey] || []) : [];
-  const empty = events.length === 0 && todos.length === 0 && !dayNote;
+  const empty = todos.length === 0 && !dayNote;
 
   return (
     <div className="calendar-panel active" id="calendarPanel">
@@ -157,9 +156,8 @@ export default function CalendarPanel() {
               ) classes.push('cal-selected');
 
               const k = dateKey(c.y, c.m, c.d);
-              const evs = CAL_EVENTS[k] || [];
               const real = monthItems[k] || [];
-              const dotCount = Math.min(evs.length + real.length, 3);
+              const dotCount = Math.min(real.length, 3);
               const hasTodo =
                 isAuthed && todosMode && !c.other &&
                 Boolean(todoMap[k] && todoMap[k].length);
@@ -438,13 +436,6 @@ export default function CalendarPanel() {
                   </span>{' '}
                   {t.text}
                 </div>
-              </div>
-            ))}
-
-            {events.map((ev, i) => (
-              <div key={`ev-${i}`} className="cal-event-item">
-                <div className="cal-event-time">{ev.time}</div>
-                <div className="cal-event-title">{ev.title}</div>
               </div>
             ))}
           </div>

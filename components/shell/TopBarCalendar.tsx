@@ -35,7 +35,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useCalendar } from '../../lib/calendar/CalendarContext';
-import { CAL_EVENTS, CAL_TODAY } from '../../lib/calendar/data';
+import { CAL_TODAY } from '../../lib/calendar/data';
 import { getTodos, subscribeTodos, datedTodosByDay, type TodoItem } from '../../lib/todos/todoStore';
 import { dateKey } from '../../lib/calendar/utils';
 import { useNotePrompt } from '../../lib/state/NotePromptContext';
@@ -96,9 +96,9 @@ export function TopBarCalendar() {
     }, []);
 
     // Real calendar events from /api/calendar — the SAME ledger the main
-    // CalendarPanel reads (Fable wired the panel but not this strip). Fetch every
-    // month the visible week touches, merged by day key. Alongside the static
-    // CAL_EVENTS seed, mirroring the panel's dual source.
+    // CalendarPanel reads. Fetch every month the visible week touches, merged
+    // by day key. Sole event source since the static CAL_EVENTS seed was
+    // retired (2026-07-06).
     const [calItems, setCalItems] = useState<Record<string, CalApiItem[]>>({});
     useEffect(() => {
         const start = new Date(CAL_TODAY.y, CAL_TODAY.m, CAL_TODAY.d);
@@ -148,17 +148,14 @@ export function TopBarCalendar() {
         const m = dt.getMonth();
         const d = dt.getDate();
         const key = dateKey(y, m, d);
-        const events = CAL_EVENTS[key] || [];
         const real = calItems[key] || [];
         const hasTodo = todosMode && !!(todoMap[key] && todoMap[key].length);
-        weekDays.push({ y, m, d, label: DAY_LABELS[i], count: events.length + real.length, hasTodo });
+        weekDays.push({ y, m, d, label: DAY_LABELS[i], count: real.length, hasTodo });
     }
 
     const selKey = dateKey(selDay.y, selDay.m, selDay.d);
-    const selEvents = [
-        ...(CAL_EVENTS[selKey] || []),
-        ...((calItems[selKey] || []).map((it) => ({ time: it.time || '', title: it.title }))),
-    ];
+    const selEvents =
+        (calItems[selKey] || []).map((it) => ({ time: it.time || '', title: it.title }));
     const selTodos  = (todosMode && todoMap[selKey]) ? todoMap[selKey] : [];
     const selDayNote = dayNotes[selKey] || '';
 

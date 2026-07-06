@@ -1,7 +1,7 @@
 /*
  * Live portfolio assembler (Brendon, 2026-06-25 — "make the portfolio real").
  *
- * Replaces the mock tree (lib/data/mockPortfolio) with a wallet's REAL holdings,
+ * Replaces the old mock tree with a wallet's REAL holdings,
  * shaped into the exact same PortfolioCategory[] the view renders:
  *   - LONG-FORM: the wallet's collected pieces, grouped artist → project →
  *     pieces, valued at each project's LIVE FLOOR, or the MINT PRICE until a
@@ -19,7 +19,7 @@ import type {
     PortfolioCategory,
     PortfolioArtist,
     PortfolioEnsName,
-} from '../data/mockPortfolio';
+} from './types';
 
 export interface PortfolioHolding {
     slug: string;

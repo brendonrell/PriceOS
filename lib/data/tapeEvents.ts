@@ -1,19 +1,16 @@
 /*
- * Tape mock events
+ * Tape event mapping — the live feed's render shapes.
  *
- * Sim 13207-13262. Mock feed data driving the Menu Tape rail in the
- * dropdown (and, post-launch, the top-of-page horizontal ticker).
+ * The Tape is REAL: useTapeFeed pulls /api/feed (the global events ledger)
+ * and maps rows through eventToTapeItem below; Ticker + TapeBox + PingsBox
+ * all render that same stream. The sim-era mock WALLETS/EVENTS lists and
+ * tapeFeedItems() that used to live here were dead code (zero callers) —
+ * deleted 2026-07-06 in the tech-debt sweep.
  *
- * Build 25 D10: tape rail had no content because window._pdTapeFeedItems
- * isn't ported yet — the React TapeBox needs structured items it can
- * render. This module exposes WALLETS + EVENTS as typed data plus a
- * tapeFeedItems() helper mirroring sim 13403-13417.
- *
- * Structure preserved from sim:
- *   EVENTS rows: [type, walletIdx (null=system), verb, project, id, price]
- *   types: buy | list | anoint | mint  → standard weight
- *          offer | ignored | cancel    → soft (non-consummated)
- *          mint                         → bold class
+ * Row weights by type (render classes, sim parity):
+ *   buy | list | anoint | mint  -> standard weight
+ *   offer | ignored | cancel    -> soft (non-consummated)
+ *   mint                        -> bold class
  */
 
 import type { EventRow as DbEventRow } from '../supabase';
@@ -27,10 +24,6 @@ export type TapeEventType =
     | 'ignored'
     | 'cancel';
 
-export interface TapeWallet {
-    name: string;
-    sigil: string;
-}
 
 export interface TapeFeedItem {
     type: TapeEventType;
@@ -48,87 +41,6 @@ export interface TapeFeedItem {
     unfollow?: boolean;
 }
 
-export const WALLETS: TapeWallet[] = [
-    { name: '@brendon',      sigil: '✶\uFE0E' },              //  0
-    { name: '@snowfro',      sigil: '☀\uFE0E' },              //  1
-    { name: '@atlasforge',   sigil: '⚙\uFE0E⚙\uFE0E' },       //  2
-    { name: '@matty',        sigil: '⚙\uFE0E' },              //  3
-    { name: '@rudxane',      sigil: '☀\uFE0E⚙\uFE0E' },       //  4
-    { name: '@thefunnyguys', sigil: '⚡\uFE0E' },              //  5
-    { name: '@darold',       sigil: '⚙\uFE0E⚙\uFE0E' },       //  6
-    { name: '@trinity',      sigil: '♥\uFE0E' },              //  7
-    { name: '@willpop',      sigil: '♦\uFE0E' },              //  8
-    { name: '@vitalik',      sigil: '◈\uFE0E' },              //  9
-    { name: '@siggi',        sigil: '' },                     // 10
-    { name: '@clownvamp',    sigil: '⚙\uFE0E' },              // 11
-    { name: '@bayamese',     sigil: '☀\uFE0E' },              // 12
-    { name: '@anon1',        sigil: '' },                     // 13
-    { name: '@anon2',        sigil: '' },                     // 14
-    { name: '@anon3',        sigil: '' },                     // 15
-];
-
-type EventRow = [TapeEventType, number | null, string, string, number, string | null];
-
-const EVENTS: EventRow[] = [
-    ['buy',     0,    'bought',                  'prisms',                 47,    '0.31 ETH'],
-    ['list',    null, 'new listing',             'strata',              882,   '0.04 ETH'],
-    ['anoint',  1,    'anointed',                'meridian',             220,   null      ],
-    ['offer',   7,    'offered',                 'prisms',                 1024,  '0.22 ETH'],
-    ['ignored', 13,   'ignored 0.08 offer on',   'chromies',             88,    null      ],
-    ['mint',    2,    'minted',                  'prisms',                 1988,  null      ],
-    ['buy',     5,    'bought',                  'fidenza',              3,     '4.20 ETH'],
-    ['list',    3,    'listed',                  'ringers',              22,    '1.22 ETH'],
-    ['offer',   11,   'offered',                 'strata',              14,    '0.12 ETH'],
-    ['cancel',  4,    'cancelled listing',       'glitch monsters',      77,    null      ],
-    ['buy',     6,    'bought',                  'chromies',             5612,  '0.55 ETH'],
-    ['mint',    3,    'minted',                  'prisms',                 2020,  null      ],
-    ['list',    8,    'listed',                  'autoglyphs',           108,   '55 ETH'  ],
-    ['anoint',  7,    'anointed',                'fidenza',              442,   null      ],
-    ['buy',     12,   'bought',                  'strata',              222,   '0.22 ETH'],
-    ['offer',   9,    'offered',                 'meridian',             101,   '0.4 ETH' ],
-    ['list',    null, 'new listing',             'glitch monsters',      14,    '2.1 ETH' ],
-    ['buy',     14,   'bought',                  'prisms',                 333,   '0.33 ETH'],
-    ['ignored', 1,    'ignored 0.5 offer on',    'ringers',              87,    null      ],
-    ['mint',    0,    'minted',                  'prisms',                 22,    null      ],
-    ['buy',     15,   'bought',                  'chromies',             4432,  '0.88 ETH'],
-    ['list',    6,    'listed',                  'strata',              1001,  '0.07 ETH'],
-    ['anoint',  8,    'anointed',                'autoglyphs',           102,   null      ],
-    ['offer',   2,    'offered',                 'meridian',             55,    '0.6 ETH' ],
-    ['buy',     11,   'bought',                  'memories of qilin',    14,    '0.45 ETH'],
-    ['list',    5,    'listed',                  'fidenza',              77,    '3.5 ETH' ],
-    ['cancel',  10,   'cancelled listing',       'strata',              44,    null      ],
-    ['buy',     4,    'bought',                  'ringers',              100,   '0.9 ETH' ],
-    ['mint',    1,    'minted',                  'prisms',                 1776,  null      ],
-    ['offer',   14,   'offered',                 'chromies',             2200,  '0.25 ETH'],
-    ['buy',     12,   'bought',                  'pixelchain',           7,     '0.18 ETH'],
-    ['anoint',  0,    'anointed',                'strata',              777,   null      ],
-    ['list',    10,   'listed',                  'meridian',             33,    '1.1 ETH' ],
-];
-
-/**
- * Sim 13403-13417. Returns EVENTS as structured items for tape rail
- * rendering. Newest-first (sim's EVENTS array is ordered visually so
- * index 0 is the most recent item).
- */
-export function tapeFeedItems(): TapeFeedItem[] {
-    return EVENTS.map((ev) => {
-        const walletIdx = ev[1];
-        const w = walletIdx !== null ? WALLETS[walletIdx] : null;
-        return {
-            type:  ev[0],
-            name:  w ? w.name : null,
-            sigil: w && w.sigil ? w.sigil : '',
-            verb:  ev[2],
-            coll:  ev[3],
-            id:    ev[4],
-            price: ev[5],
-        };
-    });
-}
-
-/* Real-event → tape item (Brendon, 2026-06-13). The Tape now shows our OWN
-   pre-chain activity from Supabase `events` (via /api/feed), mapped into the
-   same render shape the rail already uses. Real wallets carry no sigil yet. */
 const TAPE_TYPE: Record<DbEventRow['type'], TapeEventType> = {
     MINT: 'mint', LIST: 'list', SALE: 'buy', XFER: 'buy',
 };

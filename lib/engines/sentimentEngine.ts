@@ -1,34 +1,31 @@
 'use client';
 
 /*
- * sentimentEngine — Batch I / F65 / BUG-29
+ * sentimentEngine — Sentiment Weather, computed from the REAL ledger.
  *
- * Sim port of the Sentiment Weather state machine at sim.html
- * 12238–12291. Module singleton — owns the 7-state cycle that drives
- * the cloud/sun glyph in PeteyLogo's #sentimentWidget.
+ * Owns the cloud/sun glyph in PeteyLogo's #sentimentWidget. Until 2026-07-06
+ * this was the sim's random 7-state cycle (Math.random ticks, zero data —
+ * tech-debt product-truth fix); it now reads the same global events feed the
+ * Tape rides (/api/feed) and scores taker momentum for real:
  *
- * Subscriber model: components subscribe via subscribeSentiment().
- * Engine starts on first subscriber, stops on last. PeteyLogo is the
- * sole consumer in v0; further consumers (toolbar weather pill, etc.)
- * just subscribe the same way.
+ *   bull side — MINT + SALE rows (takers hitting: demand aggression)
+ *   bear side — LIST rows (supply coming out faster than it clears)
+ *   XFER      — neutral, ignored
  *
- * Tick cadence verbatim from sim 12261–12277:
- *   - first swap: 1000ms after start so the user sees motion
- *   - subsequent: 3000–6000ms (3000 + Math.random()*3000)
- *   - if document.hidden when a tick fires: reschedule with 3000ms,
- *     no state change (sim 12265 — in-tick check, NOT a separate
- *     visibilitychange listener; matches sim verbatim)
- *   - 75% chance per tick to pick a different state (sim 12268-12274)
+ * Each event is weighted by recency (exponential decay, 6h half-life) so the
+ * needle follows the last few hours, not all history. The balance
+ * r = (bull − bear) / (bull + bear) ∈ [−1, 1] buckets into the sim's original
+ * state ladder; a dead-quiet window reads Neutral ☽ (honest for a fresh
+ * platform), and Capitulation needs BOTH an extreme bear balance and real
+ * volume behind it — quiet drift never reads as a crash.
  *
- * Initial index is randomized at module load (sim 12250). Different
- * tabs / different PeteyLogo mounts therefore start on different
- * states — fine, sim does the same.
- *
- * Body class `sentiment-on` is independent of this engine — driven by
- * useBodyClass + prehydration script reading notifs.sentimentOn. The
- * engine only owns the rotating state; visibility is the consumer's
- * concern.
+ * Subscriber model unchanged: components subscribe via subscribeSentiment();
+ * engine starts on first subscriber, stops on last; refresh pauses while the
+ * tab is hidden (same wasted-wakeup guard as before) and re-pulls on
+ * 'pd:project-refresh' — the same signal the Tape refreshes on.
  */
+
+import type { EventRow } from '../supabase';
 
 export interface SentimentState {
     icon: string;
@@ -36,22 +33,70 @@ export interface SentimentState {
     tip: string;
 }
 
-/* sim 12239–12247 verbatim. Order matters — preserved exactly.
- * S5 changes: Bear → ⛈ U+26C8 (Thunder Cloud and Rain, broader support);
- * Neutral ☽ U+263D (First Quarter Moon) added as 8th state. */
+/* State ladder preserved verbatim from the sim port (order matters).
+ * S5 changes kept: Bear → ⛈ U+26C8 (Thunder Cloud and Rain, broader
+ * support); Neutral ☽ U+263D (First Quarter Moon) as 8th state. */
 export const SENTIMENT_STATES: readonly SentimentState[] = [
-    { icon: '\u263C\uFE0E', label: 'Strong Bull',  tip: 'Taker momentum: Strong Bull \u263C' },
-    { icon: '\u2600\uFE0E', label: 'Bull',         tip: 'Taker momentum: Bull \u2600' },
-    { icon: '\u26C5\uFE0E', label: 'Lean Bull',    tip: 'Taker momentum: Lean Bull \u26C5' },
-    { icon: '\u2601\uFE0E', label: 'Lean Bear',    tip: 'Taker momentum: Lean Bear \u2601' },
-    { icon: '\u26C8\uFE0E', label: 'Bear',         tip: 'Taker momentum: Bear \u26C8' },
-    { icon: '\u2602\uFE0E', label: 'Strong Bear',  tip: 'Taker momentum: Strong Bear \u2602' },
-    { icon: '\u2608\uFE0E', label: 'Capitulation', tip: 'Taker momentum: Capitulation \u2608' },
-    { icon: '\u263D\uFE0E', label: 'Neutral',      tip: 'Taker momentum: Neutral \u263D' },
+    { icon: '\u263C\uFE0E', label: 'Strong Bull',  tip: 'Taker momentum: Strong Bull ☼' },
+    { icon: '\u2600\uFE0E', label: 'Bull',         tip: 'Taker momentum: Bull ☀' },
+    { icon: '\u26C5\uFE0E', label: 'Lean Bull',    tip: 'Taker momentum: Lean Bull ⛅' },
+    { icon: '\u2601\uFE0E', label: 'Lean Bear',    tip: 'Taker momentum: Lean Bear ☁' },
+    { icon: '\u26C8\uFE0E', label: 'Bear',         tip: 'Taker momentum: Bear ⛈' },
+    { icon: '\u2602\uFE0E', label: 'Strong Bear',  tip: 'Taker momentum: Strong Bear ☂' },
+    { icon: '\u2608\uFE0E', label: 'Capitulation', tip: 'Taker momentum: Capitulation ☈' },
+    { icon: '\u263D\uFE0E', label: 'Neutral',      tip: 'Taker momentum: Neutral ☽' },
 ];
 
-let _idx = Math.floor(Math.random() * SENTIMENT_STATES.length);
+const IDX = {
+    strongBull: 0,
+    bull: 1,
+    leanBull: 2,
+    leanBear: 3,
+    bear: 4,
+    strongBear: 5,
+    capitulation: 6,
+    neutral: 7,
+} as const;
+
+const FEED_LIMIT = 40;
+const REFRESH_MS = 5 * 60_000;
+const HALF_LIFE_MS = 6 * 3_600_000;
+/** Decayed-volume floor below which the window counts as quiet → Neutral. */
+const QUIET_FLOOR = 0.5;
+/** Decayed-volume floor Capitulation additionally requires — a crash needs
+    real selling pressure behind it, not two stale listings. */
+const CAPITULATION_FLOOR = 3;
+
+/** Bucket a live event window into a state index. Pure — exported so the
+    mapping is provable without a browser. */
+export function scoreSentiment(events: readonly EventRow[], nowMs: number): number {
+    let bull = 0;
+    let bear = 0;
+    for (const e of events) {
+        const t = Date.parse(e.timestamp);
+        if (Number.isNaN(t)) continue;
+        const age = Math.max(0, nowMs - t);
+        const w = Math.pow(0.5, age / HALF_LIFE_MS);
+        if (e.type === 'MINT') bull += w;
+        else if (e.type === 'SALE') bull += 1.25 * w;
+        else if (e.type === 'LIST') bear += 0.75 * w;
+        /* XFER — neutral, ignored */
+    }
+    const volume = bull + bear;
+    if (volume < QUIET_FLOOR) return IDX.neutral;
+    const r = (bull - bear) / volume;
+    if (r >= 0.75) return IDX.strongBull;
+    if (r >= 0.35) return IDX.bull;
+    if (r >= 0.1) return IDX.leanBull;
+    if (r > -0.1) return IDX.neutral;
+    if (r > -0.35) return IDX.leanBear;
+    if (r > -0.75) return IDX.bear;
+    return volume >= CAPITULATION_FLOOR ? IDX.capitulation : IDX.strongBear;
+}
+
+let _idx: number = IDX.neutral;
 let _timer: ReturnType<typeof setTimeout> | null = null;
+let _inflight = false;
 const _subscribers = new Set<() => void>();
 
 function _emit(): void {
@@ -60,33 +105,31 @@ function _emit(): void {
     });
 }
 
-function _tick(): void {
-    /* Defensive — the visibilitychange handler below clears the timer the
-       moment the tab hides, so a tick should never fire hidden. Sim 12265's
-       in-tick re-check stays as the backstop: no state change while hidden. */
-    if (typeof document !== 'undefined' && document.hidden) {
-        _timer = setTimeout(_tick, 3000);
-        return;
-    }
-    /* sim 12268-12274 — 75% chance per tick to swap to a different state */
-    if (Math.random() < 0.75) {
-        let next: number;
-        do {
-            next = Math.floor(Math.random() * SENTIMENT_STATES.length);
-        } while (next === _idx);
-        _idx = next;
-        _emit();
-    }
-    _timer = setTimeout(_tick, 3000 + Math.random() * 3000);
+function _refresh(): void {
+    if (_inflight) return;
+    _inflight = true;
+    fetch(`/api/feed?limit=${FEED_LIMIT}`, { cache: 'no-store' })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d: { events?: EventRow[] } | null) => {
+            if (!Array.isArray(d?.events)) return;
+            const next = scoreSentiment(d!.events, Date.now());
+            if (next !== _idx) {
+                _idx = next;
+                _emit();
+            }
+        })
+        .catch(() => { /* keep last good state */ })
+        .finally(() => { _inflight = false; });
 }
 
-/* Visibility pause (perf batch 2026-06-10 — deliberate deviation from the
-   sim's verbatim in-tick check). The sim keeps re-arming a 3s timer while
-   the tab is hidden — harmless on one tab, but it's wasted wakeups in every
-   backgrounded PD tab. We stop the cycle entirely on hide and re-arm 3s
-   after the tab returns — the user-observable behavior is identical (no
-   state change while hidden; next swap ≥3s after return, same as the sim's
-   re-check path). */
+function _tick(): void {
+    if (typeof document === 'undefined' || !document.hidden) _refresh();
+    _timer = setTimeout(_tick, REFRESH_MS);
+}
+
+/* Stop the refresh cycle entirely on hide, re-arm the moment the tab
+   returns — zero wakeups in backgrounded PD tabs (perf batch 2026-06-10,
+   same guard the random-cycle engine carried). */
 function _onVisibility(): void {
     if (_subscribers.size === 0) return;
     if (document.hidden) {
@@ -95,16 +138,25 @@ function _onVisibility(): void {
             _timer = null;
         }
     } else if (!_timer) {
-        _timer = setTimeout(_tick, 3000);
+        _refresh();
+        _timer = setTimeout(_tick, REFRESH_MS);
     }
+}
+
+function _onProjectRefresh(): void {
+    if (_subscribers.size === 0) return;
+    if (typeof document === 'undefined' || !document.hidden) _refresh();
 }
 
 function _start(): void {
     if (_timer) return;
-    /* sim 12277 — first swap after 1s so the user sees it change */
-    _timer = setTimeout(_tick, 1000);
+    _refresh();
+    _timer = setTimeout(_tick, REFRESH_MS);
     if (typeof document !== 'undefined') {
         document.addEventListener('visibilitychange', _onVisibility);
+    }
+    if (typeof window !== 'undefined') {
+        window.addEventListener('pd:project-refresh', _onProjectRefresh);
     }
 }
 
@@ -116,10 +168,13 @@ function _stop(): void {
     if (typeof document !== 'undefined') {
         document.removeEventListener('visibilitychange', _onVisibility);
     }
+    if (typeof window !== 'undefined') {
+        window.removeEventListener('pd:project-refresh', _onProjectRefresh);
+    }
 }
 
 /**
- * Get the current sentiment state. Stable between ticks.
+ * Get the current sentiment state. Stable between data refreshes.
  */
 export function getSentimentState(): SentimentState {
     return SENTIMENT_STATES[_idx];

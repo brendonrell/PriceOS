@@ -71,7 +71,7 @@ import {
     type PortfolioTab,
     type PortfolioCategory,
     type PortfolioProject,
-} from '../../lib/data/mockPortfolio';
+} from '../../lib/portfolio/types';
 import {
     buildLivePortfolio,
     emptyPortfolio,

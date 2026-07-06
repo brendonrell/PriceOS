@@ -2,15 +2,6 @@
  * Calendar type definitions.
  */
 
-export interface CalEvent {
-  time: string;
-  title: string;
-}
-
-export interface CalTodo {
-  title: string;
-}
-
 /** A single day cell in the rendered 6×7 month grid. */
 export interface CalCell {
   y: number;

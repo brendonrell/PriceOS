@@ -12,20 +12,16 @@
  *   - body.tape-framed: filled bar, inverted colors
  *   - default:          standard
  *
- * F52 / BUG-17 — populate the rail with mock tape items and subscribe
- * to the shared tape engine for rAF-driven horizontal scroll. Sim
- * 13314-13345 renders + animates the top rail.
+ * F52 / BUG-17 — populate the rail and subscribe to the shared tape
+ * engine for rAF-driven horizontal scroll. Sim 13314-13345 renders +
+ * animates the top rail.
  *
- * Rail content is the EVENTS feed from lib/data/tapeEvents (port of
- * sim 13230-13264) rendered twice with an outer separator between, so
- * the engine's modulo-`scrollWidth/2` translate reads as a seamless
- * loop (sim 13317-13318).
- *
- * Mock data note: the same EVENTS list drives both the menu tape
- * (TapeBox) and this top rail. Sim shuffles per render for variety;
- * we render unshuffled for deterministic SSR/CSR alignment. The list
- * is mock and will be replaced by indexer-derived data once that
- * surface lands — shuffling becomes irrelevant at that point.
+ * Rail content is REAL: useTapeFeed pulls the live events ledger
+ * (/api/feed) — the same stream the menu tape (TapeBox) shows — and the
+ * rows render twice with an outer separator between, so the engine's
+ * modulo-`scrollWidth/2` translate reads as a seamless loop
+ * (sim 13317-13318). Rendered unshuffled for deterministic SSR/CSR
+ * alignment.
  */
 
 import { Fragment, useEffect, useRef } from 'react';

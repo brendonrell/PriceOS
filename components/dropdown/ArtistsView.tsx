@@ -49,14 +49,36 @@ import { useToast } from '../../lib/state/ToastContext';
 import { useNotePrompt } from '../../lib/state/NotePromptContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { pushSettings, STATE_CACHE_KEYS, USERSTATE_HYDRATED_EVENT } from '../../lib/state/userState';
-import {
-    MOCK_ARTISTS,
-    REL_ICONS,
-    STATUS_ICONS,
-    type ArtistRel,
-} from '../../lib/data/mockArtists';
+import type { ArtistsRosterResponse, ArtistsRosterRow } from '../../app/api/artists/route';
+import type { FollowsListResponse } from '../../app/api/follows/[address]/route';
 
 const PIN_LIMIT = 5;
+
+/* Live roster + live relationships (was the pre-rolled lib/data/mockArtists
+   table until 2026-07-06 — real names, fake badges). Roster + ☼/☽ status come
+   from /api/artists (the same allowlist read the /artists page renders);
+   rel comes from the viewer's own real follow edges via /api/follows. */
+
+type ArtistRel = 'mutual' | 'following' | 'followers' | 'none';
+type ArtistStatus = 'active' | 'cooldown';
+
+interface ArtistRow extends ArtistsRosterRow {
+    rel: ArtistRel;
+}
+
+/** Map of rel → glyph (with VS15 selector). Matches sim line 10520. */
+const REL_ICONS: Record<ArtistRel, string> = {
+    mutual:    '\u26AD\uFE0E',  // ⚭
+    following: '\u26AF\uFE0E',  // ⚯
+    followers: '\u26AC\uFE0E',  // ⚬
+    none:      '',
+};
+
+/** Status icons. Matches sim line 10536. */
+const STATUS_ICONS: Record<ArtistStatus, string> = {
+    cooldown: '\u23FB\uFE0E',  // ⏻
+    active:   '\u23FC\uFE0E',  // ⏼
+};
 
 type FilterKey =
     | 'starred'
@@ -136,6 +158,60 @@ export function ArtistsView() {
     const [search, setSearch] = useState('');
     const [activeFilters, setActiveFilters] = useState<Set<FilterKey>>(new Set());
 
+    // Live roster (real allowlist + real ☼/☽ status). Loaded once per mount —
+    // the dropdown view re-mounts on open, which is refresh enough here.
+    const [roster, setRoster] = useState<ArtistsRosterRow[] | null>(null);
+    useEffect(() => {
+        let cancelled = false;
+        fetch('/api/artists', { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d: ArtistsRosterResponse | null) => {
+                if (!cancelled && Array.isArray(d?.artists)) setRoster(d!.artists);
+            })
+            .catch(() => { if (!cancelled) setRoster([]); });
+        return () => { cancelled = true; };
+    }, []);
+
+    // The viewer's real follow edges → rel per artist. Same rows the profile
+    // follow surfaces read; handles come back without the '@'.
+    const [followSets, setFollowSets] = useState<{
+        iFollow: Set<string>;
+        followsMe: Set<string>;
+    } | null>(null);
+    useEffect(() => {
+        if (!siweAddress) { setFollowSets(null); return; }
+        let cancelled = false;
+        fetch(`/api/follows/${siweAddress.toLowerCase()}`, { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d: FollowsListResponse | null) => {
+                if (cancelled || !d) return;
+                const norm = (h: string) => h.replace(/^@/, '').toLowerCase();
+                setFollowSets({
+                    iFollow: new Set((d.following_handles ?? []).map(norm)),
+                    followsMe: new Set((d.follower_handles ?? []).map(norm)),
+                });
+            })
+            .catch(() => { /* keep last good */ });
+        return () => { cancelled = true; };
+    }, [siweAddress]);
+
+    const artists = useMemo<ArtistRow[]>(() => {
+        if (!roster) return [];
+        return roster.map((a) => {
+            const key = (a.handle ?? '').toLowerCase();
+            const iFollow = !!key && !!followSets?.iFollow.has(key);
+            const followsMe = !!key && !!followSets?.followsMe.has(key);
+            const rel: ArtistRel = iFollow && followsMe
+                ? 'mutual'
+                : iFollow
+                    ? 'following'
+                    : followsMe
+                        ? 'followers'
+                        : 'none';
+            return { ...a, rel };
+        });
+    }, [roster, followSets]);
+
     const togglePin = useCallback(
         (name: string) => {
             setPinned((prev) => {
@@ -178,7 +254,7 @@ export function ArtistsView() {
         const starredOn = activeFilters.has('starred');
         const notesOn = activeFilters.has('notes');
 
-        const filtered = MOCK_ARTISTS.filter((a) => {
+        const filtered = artists.filter((a) => {
             if (searchLower && !a.name.toLowerCase().includes(searchLower)) return false;
             if (activeRels.length > 0 && !activeRels.includes(a.rel)) return false;
             if (activeStatuses.length > 0 && !activeStatuses.includes(a.status)) return false;
@@ -191,10 +267,10 @@ export function ArtistsView() {
         const pinSet = new Set(pinned);
         const pinnedRows = pinned
             .map((name) => filtered.find((a) => a.name === name))
-            .filter((a): a is (typeof MOCK_ARTISTS)[number] => Boolean(a));
+            .filter((a): a is ArtistRow => Boolean(a));
         const unpinned = filtered.filter((a) => !pinSet.has(a.name));
         return [...pinnedRows, ...unpinned];
-    }, [search, activeFilters, pinned, notes]);
+    }, [artists, search, activeFilters, pinned, notes]);
 
     return (
         <div
@@ -238,7 +314,7 @@ export function ArtistsView() {
                             textAlign: 'center',
                         }}
                     >
-                        No matches found.
+                        {roster === null ? '· · ·' : 'No matches found.'}
                     </div>
                 ) : (
                     ordered.map((a) => {
@@ -259,11 +335,11 @@ export function ArtistsView() {
                                 tabIndex={0}
                                 data-rel={a.rel}
                                 title={relTitle}
-                                onClick={() => router.push('/' + a.name.slice(1))}
+                                onClick={() => router.push('/' + (a.handle ?? a.address))}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' || e.key === ' ') {
                                         e.preventDefault();
-                                        router.push('/' + a.name.slice(1));
+                                        router.push('/' + (a.handle ?? a.address));
                                     }
                                 }}
                             >
