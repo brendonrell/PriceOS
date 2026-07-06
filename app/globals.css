@@ -2132,7 +2132,7 @@ body.theme-bright .news-pill-name {
 
 /* Both bodies fill their shell; only the list scrolls inside. */
 .followers-pop-body,
-.followers-plus-body { display: flex; flex-direction: column; gap: 12px; min-height: 0; flex: 1 1 auto; overflow: hidden; }
+.followers-plus-body { display: flex; flex-direction: column; gap: 15px; min-height: 0; flex: 1 1 auto; overflow: hidden; }
 .followers-plus-body { padding-top: 12px; }
 .followers-pop .fm-tabs,
 .followers-plus .fm-tabs { display: flex; flex-wrap: wrap; gap: 6px; flex: 0 0 auto; }
@@ -10957,18 +10957,18 @@ body.is-pwa .fullscreen-back {
    ============================================================ */
 .fi-row {
     width: 100%; max-width: 100%; box-sizing: border-box;
-    padding: 9px 2px;
+    padding: 14px 2px;
     border-bottom: 1px solid color-mix(in srgb, var(--text-color) 12%, transparent);
 }
 .fi-row:last-child { border-bottom: none; }
 .fi-row.inspecting {
     background: color-mix(in srgb, var(--fi-accent, currentColor) 6%, transparent);
-    border-radius: 6px; padding: 9px 8px;
+    border-radius: 6px; padding: 14px 10px;
 }
-.fi-line { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.fi-line { display: flex; align-items: center; gap: 13px; min-width: 0; }
 .fi-line-main {
     flex: 1 1 auto; min-width: 0;
-    display: flex; align-items: center; gap: 8px;
+    display: flex; align-items: center; gap: 11px;
 }
 .fi-line-main[role="button"] { cursor: pointer; }
 .fi-line-main .collected-pair { min-width: 0; }
@@ -10986,7 +10986,7 @@ body.is-pwa .fullscreen-back {
 /* The ledger columns — fixed widths so every row's numbers align. */
 .fi-cols {
     margin-left: auto; flex: 0 0 auto;
-    display: flex; align-items: baseline; gap: 10px;
+    display: flex; align-items: baseline; gap: 16px;
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px; font-weight: bold;
 }
@@ -10997,13 +10997,13 @@ body.is-pwa .fullscreen-back {
 
 /* ── THE DUEL — the unfolded head-to-head. ── */
 .fi-dossier {
-    margin-top: 10px; cursor: default;
-    display: flex; flex-direction: column; gap: 11px;
+    margin-top: 14px; cursor: default;
+    display: flex; flex-direction: column; gap: 15px;
 }
-.fi-dossier-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.fi-dossier-head { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
 .fi-dossier-head .fm-tag { opacity: 1; }
 .fi-follow { margin-left: auto; font-size: 11px; font-weight: bold; letter-spacing: 0.06em; }
-.fi-duel { grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); }
+.fi-duel { grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 11px; }
 .fi-duel .attr-tile { font-family: 'Courier New', Courier, monospace; }
 .fi-duel-vs { font-size: 9px; font-weight: bold; letter-spacing: 1px; opacity: 0.6; }
 /* The duel bar — your share fills from the left in full text colour; the
@@ -11022,6 +11022,6 @@ body.is-pwa .fullscreen-back {
 }
 .fi-group-head .attr-group-name,
 .fi-group-head .attr-group-count { opacity: 1; }
-.fi-beads { display: flex; flex-wrap: wrap; gap: 8px 6px; }
+.fi-beads { display: flex; flex-wrap: wrap; gap: 10px 8px; }
 .fi-none { font: 600 11px 'Courier New', Courier, monospace; }
 .fi-beads-more { font: 600 11px 'Courier New', Courier, monospace; align-self: center; }
