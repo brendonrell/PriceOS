@@ -226,7 +226,11 @@ export default function ProfileFacetBar({
 
     const setColorwayWithToast = (key: ColorwayKey) => {
         setColorway(key);
-        if (key) showToast('Colorway: ' + (THEME_NAMES[key] ?? key));
+        if (!key) return;
+        /* Custom = the profile owner's colour here — the toast says so
+           (Brendon, 2026-07-06; category stays "Custom", toast-only). */
+        if (key === 'custom') { showToast('Colorway: Profile Colorway'); return; }
+        showToast('Colorway: ' + (THEME_NAMES[key] ?? key));
     };
 
     if (holdings.length === 0) return null;

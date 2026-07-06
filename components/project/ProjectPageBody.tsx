@@ -123,7 +123,7 @@ function fmtUploadDate(ms: number | null): string {
     return `${mon} ${day} ${d.getUTCFullYear()}`;
 }
 
-function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | null }) {
+function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploadedAt?: number | null; projectNo?: number | null }) {
     /* Hooks first (no conditional returns above) — covers the lint rule
        Brendon called out in earlier sessions. */
     const project = useProject();
@@ -552,20 +552,6 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                             index={i}
                         />
                     ))
-                    : onShowcaseTab
-                        /* Showcase = the first 6 minted, rendered DIRECTLY. It does
-                           not read the sorted/filtered gallery list, so Artworks
-                           sort / group / filter can never touch it (Brendon,
-                           2026-06-18). */
-                        ? [...projectShowcasePicks].map((id) => (
-                            <ArtworkCard
-                                key={id}
-                                id={id}
-                                projectShowcasePick
-                                isBreadcrumb={breadcrumbSample.has(id)}
-                                eager={eagerIds.has(id)}
-                            />
-                        ))
                     : groupedSections
                         /* Grouped grid renders FLAT — headers and cards are direct
                            children of #gallery (no per-group wrappers), every card
@@ -576,9 +562,9 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                            instant and can't jam, however heavy the art (Brendon,
                            2026-06-16). */
                         ? (() => {
-                            // Reveal budget shared across groups: headers (with their
-                            // true counts) always render, but only the first
-                            // `galleryShown` CARDS mount — the rest fill in on scroll.
+                            // The whole grid mounts at once (galleryShown = the full
+                            // list, 2026-07-06 — no scroll-reveal pop-in); the budget
+                            // walk only skips cards inside folded groups.
                             let budget = galleryShown;
                             return groupedSections.flatMap((sec) => {
                             const isL2 = sec.level === 2;
@@ -639,6 +625,23 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                                 eager={eagerIds.has(id)}
                             />
                         ))}
+                {/* Showcase completeness: the tab always shows ALL its picks even
+                    when an Artworks filter hides one from the main grid — any
+                    missing pick mounts here while the showcase tab is active. */}
+                {!showGhosts && onShowcaseTab && (() => {
+                    const mounted = new Set(visibleTokenIds);
+                    return [...projectShowcasePicks]
+                        .filter((id) => !mounted.has(id))
+                        .map((id) => (
+                            <ArtworkCard
+                                key={`sc-extra-${id}`}
+                                id={id}
+                                projectShowcasePick
+                                isBreadcrumb={false}
+                                eager
+                            />
+                        ));
+                })()}
                 {!showGhosts && !onShowcaseTab && galleryShown < visibleTokenIds.length && (
                     <div ref={gallerySentinelRef} className="gallery-load-sentinel" aria-hidden="true" />
                 )}
@@ -668,6 +671,7 @@ function ProjectPageBodyInner({ uploadedAt = null }: { uploadedAt?: number | nul
                 onAlbumsTab={onAlbumsTab}
                 moreL1={moreL1}
                 uploadedAt={uploadedAt}
+                projectNo={projectNo}
                 lowestFloor={lowestFloor}
                 anchorEth={anchorEth}
             />
@@ -684,6 +688,7 @@ export default function ProjectPageBody({
     initialTotal = 0,
     initialShowcaseIds = [],
     uploadedAt = null,
+    projectNo = null,
 }: {
     slug?: string;
     /** Server-seeded minted count (projects.minted_count) — first-paint art. */
@@ -692,6 +697,8 @@ export default function ProjectPageBody({
     initialShowcaseIds?: readonly number[];
     /** Real upload moment in ms (cooldown_until − 60d), or null. */
     uploadedAt?: number | null;
+    /** Sequential Project ID (upload order, unique) — shown in Attributes. */
+    projectNo?: number | null;
 }) {
     /* Re-provide ProjectContext with the route's slug so this page's gallery,
        hero, and trait schema all bind to the correct Project (the global
@@ -704,7 +711,7 @@ export default function ProjectPageBody({
             initialShowcaseIds={initialShowcaseIds}
         >
             <TraitsProvider memoryScope="project" memoryId={slug}>
-                <ProjectPageBodyInner uploadedAt={uploadedAt} />
+                <ProjectPageBodyInner uploadedAt={uploadedAt} projectNo={projectNo} />
             </TraitsProvider>
         </ProjectProvider>
     );

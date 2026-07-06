@@ -428,31 +428,15 @@ export function useProjectGallery({
         [visibleTokenIds, eagerCount],
     );
 
-    /* Gallery loads in chunks — mount a screenful, then reveal more as the
-       bottom nears the viewport, and never tear down what's mounted (smart
-       loading, no re-load of seen tiles; Brendon 2026-06-23). Building the whole
-       list of tiles up front is what made big projects buckle. A new mint or a
-       reorder never resets the reveal, so scrolling back never re-loads. */
-    const GALLERY_INITIAL = 48;
-    const GALLERY_STEP = 48;
-    const [galleryShown, setGalleryShown] = useState(GALLERY_INITIAL);
+    /* The WHOLE gallery mounts at once (Brendon, 2026-07-06 — "draw the page
+       ONCE and be good"): the old 48-card scroll-reveal made fresh tiles pop
+       in as you scrolled, which read as the page flashing. Cards are native
+       <img> tiles now — the browser lazy-loads/decodes them itself — so a
+       full mount is cheap, and once drawn nothing ever pops in again. (The
+       canvas fallback keeps its own virtualizer paint budget regardless of
+       how many cards are mounted.) */
+    const galleryShown = visibleTokenIds.length;
     const gallerySentinelRef = useRef<HTMLDivElement | null>(null);
-    useEffect(() => {
-        if (galleryShown >= visibleTokenIds.length) return;
-        const el = gallerySentinelRef.current;
-        if (!el) return;
-        if (typeof IntersectionObserver === 'undefined') { setGalleryShown(visibleTokenIds.length); return; }
-        const io = new IntersectionObserver(
-            (entries) => {
-                if (entries.some((e) => e.isIntersecting)) {
-                    setGalleryShown((c) => Math.min(c + GALLERY_STEP, visibleTokenIds.length));
-                }
-            },
-            { rootMargin: '1000px 0px' },
-        );
-        io.observe(el);
-        return () => io.disconnect();
-    }, [galleryShown, visibleTokenIds.length]);
 
     return {
         dMyNotesActive,

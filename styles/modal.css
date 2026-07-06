@@ -61,6 +61,34 @@ body.modal-open { overflow: hidden; touch-action: none; }
     padding: 0 20px;
     box-sizing: border-box;
 }
+/* Small stored-image loading spinner — corner of the art while the incoming
+   piece's PNG is in flight (never on cached/instant swaps). Full-strength
+   inverted chip so it reads on any artwork (Rule #2); ⟳ = the reload glyph. */
+.art-loading {
+    position: absolute;
+    right: 28px;
+    bottom: 10px;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 13px;
+    background: var(--text-color);
+    color: var(--bg-color);
+    pointer-events: none;
+    z-index: 3;
+}
+.art-loading-glyph {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 1;
+    display: inline-block;
+    animation: art-spin 0.8s linear infinite;
+}
+@keyframes art-spin { to { transform: rotate(360deg); } }
+
 #modalCanvas {
     max-width: 100%;
     max-height: 100%;

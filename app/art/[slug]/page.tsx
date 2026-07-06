@@ -32,12 +32,12 @@ const COOLDOWN_MS = 60 * 24 * 60 * 60 * 1000;
    so the page still renders (ghosts + client reconcile) rather than erroring. */
 async function fetchSeed(
     slug: string,
-): Promise<{ total: number; showcaseIds: number[]; uploadedAt: number | null; floorEth: number | null }> {
+): Promise<{ total: number; showcaseIds: number[]; uploadedAt: number | null; floorEth: number | null; projectNo: number | null }> {
     try {
         const supabase = getSupabaseService();
         const { data } = await supabase
             .from('projects')
-            .select('minted_count, showcase_ids, uploaded_at, cooldown_until, floor_price_eth')
+            .select('minted_count, showcase_ids, uploaded_at, cooldown_until, floor_price_eth, project_no')
             .eq('id', slug)
             .maybeSingle();
         const row = data as {
@@ -46,6 +46,7 @@ async function fetchSeed(
             uploaded_at?: string | null;
             cooldown_until?: string | null;
             floor_price_eth?: string | number | null;
+            project_no?: number | null;
         } | null;
         const uploadedAt = row?.uploaded_at
             ? new Date(row.uploaded_at).getTime()
@@ -58,9 +59,10 @@ async function fetchSeed(
             showcaseIds: Array.isArray(row?.showcase_ids) ? row!.showcase_ids! : [],
             uploadedAt,
             floorEth: floor != null && floor > 0 ? floor : null,
+            projectNo: typeof row?.project_no === 'number' ? row.project_no : null,
         };
     } catch {
-        return { total: 0, showcaseIds: [], uploadedAt: null, floorEth: null };
+        return { total: 0, showcaseIds: [], uploadedAt: null, floorEth: null, projectNo: null };
     }
 }
 
@@ -69,7 +71,7 @@ export default async function ProjectPage(props: Props) {
     const slug = params.slug.toLowerCase();
     const def = getProject(slug);
     if (!def) notFound();
-    const { total, showcaseIds, uploadedAt, floorEth } = await fetchSeed(slug);
+    const { total, showcaseIds, uploadedAt, floorEth, projectNo } = await fetchSeed(slug);
     // Machine-readable facts for agents + search + assistive tech — the
     // project as a collection of generative artworks, from registry truth
     // plus the live floor when one exists.
@@ -96,6 +98,7 @@ export default async function ProjectPage(props: Props) {
                 initialTotal={total}
                 initialShowcaseIds={showcaseIds}
                 uploadedAt={uploadedAt}
+                projectNo={projectNo}
             />
         </>
     );

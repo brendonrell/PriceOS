@@ -44,12 +44,15 @@ export default function ProjectMorePanel({
     onAlbumsTab,
     moreL1,
     uploadedAt,
+    projectNo,
     lowestFloor,
     anchorEth,
 }: {
     onAlbumsTab: boolean;
     moreL1: ProjectMoreL1;
     uploadedAt: number | null;
+    /** Sequential Project ID (upload order, unique) — Attributes Identity tile. */
+    projectNo?: number | null;
     lowestFloor: number | null;
     anchorEth: number | null;
 }) {
@@ -460,7 +463,7 @@ export default function ProjectMorePanel({
                         uploadedAt={uploadedAt}
                     />
                 ) : (
-                    <AttrWall groups={buildProjectAttributes(project.slug, uploadedAt, { mintedCount: project.totalOutputs, maxSupply: project.maxSupply })} />
+                    <AttrWall groups={buildProjectAttributes(project.slug, uploadedAt, { mintedCount: project.totalOutputs, maxSupply: project.maxSupply, projectNo })} />
                 )
             )}
             {moreL1 === 'pricestory' && (<>

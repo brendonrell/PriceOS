@@ -331,15 +331,30 @@
 .wf-kind {
     font: bold 10px 'Courier New', Courier, monospace;
     letter-spacing: 0.05em;
-    background: none;
-    border: 1px solid currentColor;
-    border-radius: 3px;
+    /* The canonical dotted-pill treatment (.pill-l3.pill-dotted — the
+       Starred filter pills): inactive = transparent fill + dotted outline
+       at 0.8; active keeps its solid fill. currentColor stands in for
+       --text-color because the sheet runs the inverted palette.
+       (Brendon, 2026-07-06.) */
+    background: transparent;
+    border: 1px dotted currentColor;
+    opacity: 0.8;
+    border-radius: 4px;
     color: inherit;
     padding: 5px 8px;
     cursor: pointer;
 }
-.wf-kind.on { background: var(--bg-color); color: var(--text-color); border-color: var(--bg-color); }
+.wf-kind.on {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--bg-color);
+    opacity: 1;
+}
 .wf-fields { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+/* The name field grows so the row spans the full compose width — the LAST
+   field ends flush at the right edge, exactly where ARM ends: both rows
+   finish at the same spot (Brendon, 2026-07-06). */
+.wf-fields .wf-input:not(.wf-input-num) { flex: 1 1 96px; }
 .wf-when { font: bold 11px 'Courier New', Courier, monospace; letter-spacing: 0.04em; }
 .wf-input {
     font: 600 12px 'Courier New', Courier, monospace;
@@ -391,7 +406,13 @@
 /* Header icon cluster — ☇ + and any future icons sit together on the right,
    normal icon-row spacing (Brendon, 2026-07-06). */
 .todos-header-icons { display: inline-flex; align-items: center; gap: 6px; }
-.todos-wf-btn { font-size: 15px; }
+.todos-wf-btn {
+    font-size: 15px;
+    /* Optical nudge — ☇ rides high beside the +; 2px down centers it
+       (Brendon, 2026-07-06). */
+    position: relative;
+    top: 2px;
+}
 
 /* The Workflows modal (value-prompt sheet shell). */
 .wf-sheet { max-height: 74vh; display: flex; flex-direction: column; }

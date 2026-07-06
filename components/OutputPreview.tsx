@@ -93,7 +93,7 @@ import { useMarketSheet } from '../lib/state/MarketSheetContext';
 import { cancelListing } from '../lib/market/marketClient';
 import { getWalletClientOnDemand } from '../lib/wallet/walletClientOnDemand';
 import { useProject, paintOutput, buildOutputMetaFor } from '../lib/state/ProjectContext';
-import { getProject } from '../lib/project/registry';
+import { getProject, renderArtwork } from '../lib/project/registry';
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
 
 import { hashSynApplyHex } from '../lib/engines/hashSynEngine';
@@ -287,6 +287,10 @@ export default function OutputPreview() {
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const canvasLsRef = useRef<HTMLCanvasElement>(null);
+    /* Stored image still loading for the CURRENT piece → the small ⟳ spinner
+       shows over the art (Brendon, 2026-07-06 — scanning was disorienting when
+       the previous piece just sat there with no signal). */
+    const [artLoading, setArtLoading] = useState(false);
 
     const isOpen = openModal?.name === 'output';
     const id = isOpen ? currentModalId : null;
@@ -519,12 +523,27 @@ export default function OutputPreview() {
            rather than the short portrait dimension (which falls into the 600px fallback). */
         const vw = Math.max(window.innerWidth, window.innerHeight);
         const w = vw >= 601 ? vw : 600;
-        const ratio = paintOutput(canvas, slug, id, w);
+        const res = renderArtwork(canvas, slug, id, w);
+        const ratio = res.aspect;
+        /* Stored image still fetching → the small ⟳ spinner shows over the art
+           until the swap lands ('pd:art-drawn'); a cached piece draws on this
+           frame and never spins (Brendon, 2026-07-06). */
+        setArtLoading(res.pending === true);
         canvas.classList.add('visible');
         const canvasLs = canvasLsRef.current;
         if (canvasLs) { paintOutput(canvasLs, slug, id, w); canvasLs.classList.add('visible'); }
         hashSynApplyHex(`hsl(${(id * 37) % 360}, 70%, 50%)`);
     }, [isOpen, id, slug]);
+
+    /* Spinner off the moment the canvas reports the stored draw landed. */
+    useEffect(() => {
+        if (!isOpen) { setArtLoading(false); return; }
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const done = () => setArtLoading(false);
+        canvas.addEventListener('pd:art-drawn', done);
+        return () => canvas.removeEventListener('pd:art-drawn', done);
+    }, [isOpen]);
 
     /* Scroll-position preservation now lives in ModalContext's body-lock
        effect so every modal inherits the dance (sim openModal/closeModal
@@ -570,7 +589,8 @@ export default function OutputPreview() {
         if (!canvas) return;
         const vw = Math.max(window.innerWidth, window.innerHeight);
         const w = vw >= 601 ? vw : 600;
-        paintOutput(canvas, slug, nextId, w);
+        const res = renderArtwork(canvas, slug, nextId, w);
+        setArtLoading(res.pending === true);
         canvas.classList.add('visible');
         const canvasLs = canvasLsRef.current;
         if (canvasLs) { paintOutput(canvasLs, slug, nextId, w); canvasLs.classList.add('visible'); }
@@ -889,6 +909,13 @@ export default function OutputPreview() {
                     style={{ cursor: 'pointer' }}
                     title="Open output page"
                 />
+                {/* Small image-load spinner — corner of the art, only while the
+                    incoming piece's stored PNG is in flight. */}
+                {artLoading && (
+                    <span className="art-loading" aria-hidden="true">
+                        <span className="art-loading-glyph">{'⟳︎'}</span>
+                    </span>
+                )}
                 {/* chat #4 D011 — sim 5369-5372. Modal-scoped MUTE overlay,
                     visible only when body.hammer-mode is active (gated by
                     globals.css `body.hammer-mode .modal-canvas-wrap

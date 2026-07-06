@@ -14,7 +14,7 @@
 import type { NewsItem } from '../../components/home/NewsCarousel';
 import type { HomeResponse } from './homeData';
 import { getProject } from '../project/registry';
-import { FEED_LIFECYCLE, PROJECT_MILESTONES } from './milestones';
+import { FEED_LIFECYCLE } from './milestones';
 
 /* Curated feature pills — Brendon's editorial line. Empty until the admin
    studio populates it; each entry is a NewsItem ({ glyph?, tag?, title?, meta?,
@@ -57,25 +57,16 @@ function autoNewsItems(feed: HomeResponse | null): NewsItem[] {
         evs.push({ slug, title: getProject(slug)?.displayName ?? fallback, tag, glyph, ts });
     };
     const L = FEED_LIFECYCLE;
-    /* Richer info (Brendon, 2026-07-06): the FULL milestone ladder joins the
-       rail — First Blood, Lucky 22, Century Club, Halo, Per Mille, Archetype,
-       Hi-Def — same labels + glyphs as the activity feed, same pill design.
-       The timestamps already ride the home payload's milestones map. */
-    const pushMilestones = (slug: string, title: string, ms: Record<string, number>) => {
-        for (const m of PROJECT_MILESTONES) {
-            const ts = ms[m.key];
-            if (ts != null) push(slug, title, m.label, m.glyph, ts);
-        }
-    };
+    /* Lifecycle ONLY (Brendon, 2026-07-06): the mid-ladder milestone pills
+       (First Blood → Hi-Def) came OFF the rail — too noisy. The banner carries
+       just the three big moments: upload, graduation, sold out. */
     for (const u of feed.uploads ?? []) {
         push(u.slug, u.title, L.upload.label, L.upload.glyph, u.uploaded_at);
-        pushMilestones(u.slug, u.title, u.milestones ?? {});
     }
     for (const m of feed.minting_now ?? []) {
         push(m.slug, m.title, L.upload.label, L.upload.glyph, m.uploaded_at);
         push(m.slug, m.title, L.graduated.label, L.graduated.glyph, m.reached_at);
         push(m.slug, m.title, L.ascension.label, L.ascension.glyph, m.sold_out_at);
-        pushMilestones(m.slug, m.title, m.milestones ?? {});
     }
     return evs
         .sort((a, b) => b.ts - a.ts)

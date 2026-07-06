@@ -926,8 +926,20 @@ export default function ArtworkPageBody({
                                     className={`pill-colorway ${t.cls}${activeColorway === t.key ? ' active' : ''}`}
                                     role="button"
                                     tabIndex={0}
-                                    onClick={() => setColorway(t.key)}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setColorway(t.key); } }}
+                                    onClick={() => {
+                                        setColorway(t.key);
+                                        /* Custom = the project's colorway on an
+                                           output — the toast says so (Brendon,
+                                           2026-07-06; toast-only wording). */
+                                        if (t.key === 'custom') showToast('Colorway: Project Colorway');
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            setColorway(t.key);
+                                            if (t.key === 'custom') showToast('Colorway: Project Colorway');
+                                        }
+                                    }}
                                     title={t.title}
                                 >
                                     <span>{t.glyph}</span>

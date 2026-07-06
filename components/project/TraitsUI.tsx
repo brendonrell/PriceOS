@@ -357,7 +357,11 @@ export default function TraitsUI({
     /* Wraps setColorway with a toast (mirrors ColorwayPicker.tsx). */
     const setColorwayWithToast = (key: ColorwayKey) => {
         setColorway(key);
-        if (key) showToast('Colorway: ' + (SORT_BAR_THEME_NAMES[key] ?? key));
+        if (!key) return;
+        /* Custom = this project's colorway — the toast says so (Brendon,
+           2026-07-06; category stays "Custom", toast-only). */
+        if (key === 'custom') { showToast('Colorway: Project Colorway'); return; }
+        showToast('Colorway: ' + (SORT_BAR_THEME_NAMES[key] ?? key));
     };
 
     /* D006 (sim 8470) — `.traits-ui` hides only when Regular persona AND

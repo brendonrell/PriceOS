@@ -69,11 +69,6 @@ const SHOW_CAROUSEL_ARTIST = false;
 /* Outputs in the Shuffle grid — a fresh random project's 18 random outputs
    on every entry (Brendon 2026-06-13). */
 const SHUFFLE_SIZE = 18;
-/* Shuffle is cycled rapidly (re-rolls a new project on every entry) — mount only
-   a screenful on arrival so each cycle is instant; grow on scroll for the rare
-   below-the-fold browse (Brendon, 2026-06-24). */
-const SHUFFLE_INITIAL = 6;
-const SHUFFLE_STEP = 6;
 
 /* "Featuring" credits — the REAL artist roster, from the registry
    (every project's artist, de-duped). New projects feed this automatically. */
@@ -244,47 +239,23 @@ export function HomeProjectCarousel({ eager = false, owned = false }: { eager?: 
     );
 }
 
-/* How many Now-Minting carousels to build on first paint, and how many more to
-   add each time the bottom of the list nears the viewport. Building all of them
-   (each its own data context + a row of art tiles) up front is what buried the
-   homepage; we now grow the list as you scroll and never tear down what's built
-   (Brendon 2026-06-23). */
-const HOME_INITIAL_CAROUSELS = 4;
-const HOME_CAROUSEL_STEP = 4;
 /* Eager-paint only the visible tiles of the first row — not the whole carousel
    (the rest paint on horizontal scroll). Brendon, 2026-06-24. */
 const HOME_EAGER_TILES = 4;
 
 function MintingCarousels({ items, ownedSlugs }: { items: EnrichedProject[]; ownedSlugs: Set<string> }) {
-    const [shown, setShown] = useState(HOME_INITIAL_CAROUSELS);
-    const sentinelRef = useRef<HTMLDivElement | null>(null);
-    const total = items.length;
-    useEffect(() => {
-        if (shown >= total) return;
-        const el = sentinelRef.current;
-        if (!el) return;
-        if (typeof IntersectionObserver === 'undefined') { setShown(total); return; }
-        const io = new IntersectionObserver(
-            (entries) => {
-                if (entries.some((e) => e.isIntersecting)) {
-                    setShown((c) => Math.min(c + HOME_CAROUSEL_STEP, total));
-                }
-            },
-            { rootMargin: '800px 0px' },
-        );
-        io.observe(el);
-        return () => io.disconnect();
-    }, [shown, total]);
+    /* ALL carousel rows mount at once (Brendon, 2026-07-06 — the whole app is
+       solid once loaded, nothing pops in on scroll). The old 4-at-a-time
+       scroll reveal existed for the live-canvas era; tiles are native <img>
+       now, so the browser lazy-loads the pictures itself and mounting every
+       row is cheap. */
     return (
         <>
-            {items.slice(0, shown).map((m, i) => (
+            {items.map((m, i) => (
                 <ProjectProvider key={m.slug} slug={m.slug} initialTotal={m.minted}>
                     <HomeProjectCarousel eager={i === 0} owned={ownedSlugs.has(m.slug)} />
                 </ProjectProvider>
             ))}
-            {shown < total && (
-                <div ref={sentinelRef} className="home-carousel-sentinel" aria-hidden="true" />
-            )}
         </>
     );
 }
@@ -307,32 +278,10 @@ function ShuffleGallery({ seed }: { seed: number }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [project.totalOutputs, seed]);
 
-    /* Lazy MOUNT, not just lazy paint: only a screenful of cards mount on entry
-       (most people never scroll below the fold here — they flip between New Gen
-       Art and Shuffle), the rest mount on a scroll sentinel. Mounting all 18
-       cards' contexts at once was the entry lag (Brendon, 2026-06-24). */
-    const [shown, setShown] = useState(SHUFFLE_INITIAL);
-    const sentinelRef = useRef<HTMLDivElement | null>(null);
-    const total = ids.length;
-    // Fresh shuffle (new seed/project) → reset back to a screenful.
-    useEffect(() => { setShown(SHUFFLE_INITIAL); }, [seed, project.slug]);
-    useEffect(() => {
-        if (shown >= total) return;
-        const el = sentinelRef.current;
-        if (!el) return;
-        if (typeof IntersectionObserver === 'undefined') { setShown(total); return; }
-        const io = new IntersectionObserver(
-            (entries) => {
-                if (entries.some((e) => e.isIntersecting)) {
-                    setShown((c) => Math.min(c + SHUFFLE_STEP, total));
-                }
-            },
-            { rootMargin: '800px 0px' },
-        );
-        io.observe(el);
-        return () => io.disconnect();
-    }, [shown, total]);
-
+    /* ALL picks mount at once (Brendon, 2026-07-06 — solid once loaded, no
+       scroll pop-in). The old screenful-then-sentinel mount existed for the
+       live-canvas era's entry lag; cards are native <img> tiles now, so the
+       browser lazy-loads the pictures itself. */
     return (
         /* Visible cards lazy-paint through the virtualizer too (no eager flag) —
            only the on-screen screenful paints on arrival. */
@@ -346,16 +295,13 @@ function ShuffleGallery({ seed }: { seed: number }) {
                 className="shuffle-head"
             />
             <section id="gallery" aria-label={`Shuffle — ${project.title}`}>
-                {ids.slice(0, shown).map((id, idx) => (
+                {ids.map((id, idx) => (
                     /* Shuffle teasers show small. Eager-paint the first visible row
                        so the art appears instantly on each rapid re-roll (users
                        cycle until they like one); the rest lazy-paint on scroll. */
                     <ArtworkCard key={`${seed}-${id}`} id={id} renderSize={240} eager={idx < HOME_EAGER_TILES} />
                 ))}
             </section>
-            {shown < total && (
-                <div ref={sentinelRef} className="home-carousel-sentinel" aria-hidden="true" />
-            )}
         </>
     );
 }
@@ -746,19 +692,20 @@ function HomePageBodyInner({
         return items;
     }, [feed, mintSort.dir]);
 
-    /* New uploads, same filters; Newest/Oldest order by upload moment. */
+    /* New uploads, same filters; Newest/Oldest order by PROJECT ID (the
+       unique upload-order number — Brendon, 2026-07-06), upload moment only
+       as the fallback for rows predating the numbering. */
     const uploadsView = useMemo(() => {
         const rows = (feed?.uploads ?? []).filter((u) => matches(u.slug, u.title));
         return [...rows].sort((a, b) => {
             // Alphabetical → title, then slug (never a tie → never flip-flops).
             const alpha = a.title.localeCompare(b.title) || a.slug.localeCompare(b.slug);
             if (homeSort === 'az') return alpha;
-            // Date order uses the FULL timestamp (down to the second); only when
-            // two uploads land the very same instant does it fall to alphabetical,
-            // so the order is fixed and identical on every refresh.
+            const an = a.project_no ?? 0;
+            const bn = b.project_no ?? 0;
             const av = a.uploaded_at ?? 0;
             const bv = b.uploaded_at ?? 0;
-            return (homeSort === 'newest' ? bv - av : av - bv) || alpha;
+            return (homeSort === 'newest' ? (bn - an) || (bv - av) : (an - bn) || (av - bv)) || alpha;
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [feed, homeSort, artistFilter, homeQuery]);

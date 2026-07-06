@@ -41,6 +41,7 @@ import { STATUS_LADDER } from '../../lib/home/milestones';
 import { getArtistStars, toggleArtistStar, subscribeArtistStars } from '../../lib/pins/artistStarStore';
 import { getProjectStars, toggleProjectStar, subscribeProjectStars } from '../../lib/pins/projectStarStore';
 import { L3Pill } from '../project/traitsUIPills';
+import { moodOfDay } from '../../lib/mood/mood';
 
 /** One minting project, enriched with its computed birth-traits + mint price. */
 export interface EnrichedProject {
@@ -229,7 +230,22 @@ export default function HomeProjectFacetBar({
 
     const setColorwayWithToast = (key: ColorwayKey) => {
         setColorway(key);
-        if (key) showToast('Colorway: ' + (THEME_NAMES[key] ?? key));
+        if (!key) return;
+        if (key === 'custom') {
+            /* Custom resolves per page, so the toast spells out what it
+               painted (Brendon, 2026-07-06): home = today's Mood Ring (the
+               footer's read); the artist showcase rides a profile, where
+               Custom = the profile colour. Category stays "Custom" — the
+               wording change is toast-only. */
+            if (typeof window !== 'undefined' && window.location.pathname === '/') {
+                const mood = moodOfDay();
+                showToast(`Colorway: Mood Ring · ${mood.name} [${mood.hex}]`);
+            } else {
+                showToast('Colorway: Profile Colorway');
+            }
+            return;
+        }
+        showToast('Colorway: ' + (THEME_NAMES[key] ?? key));
     };
 
     const arrow = (key: HomeSortKey) =>

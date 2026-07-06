@@ -1908,6 +1908,10 @@ body.tape-framed .tape-rail {
    set from the LOCKED speed (45/28 px/sec) against the measured width. */
 .news-rail.news-rail-anim {
     animation: news-rail-scroll var(--news-loop-s, 60s) linear infinite;
+    /* Negative delay = resume mid-loop. Set by the component on every
+       re-measure/re-bind so the rail NEVER snaps back to the start while
+       content loads in around it (Brendon, 2026-07-06 — steady, always). */
+    animation-delay: var(--news-loop-delay, 0s);
 }
 @keyframes news-rail-scroll {
     from { transform: translate3d(0, 0, 0); }
@@ -4303,8 +4307,11 @@ body.persona-default .stats-row-2 { display: none !important; }
     gap: 15px;
     align-items: center;
     flex-wrap: wrap;
-    position: sticky;
-    bottom: 0;
+    /* Nailed in normal flow — never floats/drags. Was sticky bottom:0, which
+       detached the CTA buttons in landscape (hovering over content) and is
+       the row Safari samples for the notch cutoff bar. Same fix as
+       .profile-tabs-row 2026-06-23. (Brendon, 2026-07-06.) */
+    position: static;
     align-self: flex-start;
 }
 /* No-highlight on tappable controls — kills the iOS text-selection / "Copy ·
@@ -4678,16 +4685,19 @@ button,
 .traits-header-bar {
     display: flex;
     flex-wrap: wrap;
-    position: sticky;
-    bottom: 0;
+    /* Nailed in normal flow — never floats/drags. Was sticky bottom:0, which
+       made the trait pills shift + repaint (read as "flashing") on every
+       scroll frame. Same treatment as .profile-tabs-row / .action-row
+       (Brendon, 2026-07-06: "they're just buttons, make them solid"). */
+    position: static;
     gap: 15px;
     align-items: center;
 }
 .stats-container {
     display: flex;
     flex-wrap: wrap;
-    position: sticky;
-    bottom: 0;
+    /* Static for the same reason as .traits-header-bar above. */
+    position: static;
     gap: 6px 10px;
 }
 /* Collected (profile) artist/value list must flow normally, NOT pin. The
@@ -6133,6 +6143,10 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 #gallery.project-showcase-mode .output-card { display: none !important; }
 #gallery.project-showcase-mode .output-card.project-showcase-pick { display: flex !important; }
 #gallery.project-showcase-mode .output-card.project-showcase-pick .meta { display: none !important; }
+/* The FULL grid stays mounted on the showcase tab (2026-07-06 — switching
+   tabs must never redraw the artworks); grouping headers from the Artworks
+   tab are hidden here along with the non-pick cards. */
+#gallery.project-showcase-mode .gallery-group-header { display: none !important; }
 #gallery.project-showcase-mode { min-height: 0; padding-bottom: 40px; }
 
 .output-content {
@@ -6221,6 +6235,42 @@ body.colorway-dark .canvas-wrapper {
 @keyframes ptr-cover-in {
     from { opacity: 0; }
     to   { opacity: 1; }
+}
+/* Pull-to-refresh pill — the legible pull readout (no haptics on iOS, so the
+   visual carries the feel): descends with the finger, ⟳ winds up with travel,
+   inverts + says RELEASE at the threshold. Full-strength faces (Rule #2). */
+.ptr-pill {
+    position: fixed;
+    top: env(safe-area-inset-top, 0px);
+    left: 50%;
+    transform: translate(-50%, -46px);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    height: 32px;
+    padding: 0 14px;
+    border-radius: 16px;
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.08em;
+    opacity: 0;
+    z-index: 99999;
+    pointer-events: none;
+}
+.ptr-pill.armed {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border-color: var(--text-color);
+}
+.ptr-pill-glyph { font-size: 14px; line-height: 1; display: inline-block; }
+.ptr-pill.spinning .ptr-pill-glyph { animation: ptr-pill-spin 0.8s linear infinite; }
+@keyframes ptr-pill-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
 }
 
 /* Empty-state ghost cards (GhostCard.tsx). Placeholder frames shown only while
@@ -7310,6 +7360,30 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     user-select: none;
 }
 .genome-canvas { display: block; color: var(--text-color); }
+/* PEEK — the tap chip: tiny thumbnail + id anchored beside the selected point;
+   tapping IT opens the artwork modal (the map tap only selects). */
+.genome-peek {
+    position: absolute;
+    transform: translate(-50%, -100%) translateY(-12px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 5px;
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
+    border-radius: 8px;
+    cursor: pointer;
+    z-index: 2;
+}
+.genome-peek.below { transform: translate(-50%, 0) translateY(14px); }
+.genome-peek-id {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+    color: var(--text-color);
+}
 .genome-controls {
     display: flex;
     align-items: center;
@@ -9077,9 +9151,10 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 .home-carousel-head .home-name-owned {
     align-self: center;
     /* Optical nudge — the uppercase Rubik title sits high in its line box, so
-       true-center reads a hair low; lift the check to match the caps. */
+       true-center reads a hair low; lift the check to match the caps.
+       +0.5px back down (Brendon, 2026-07-06). */
     position: relative;
-    top: -0.06em;
+    top: calc(-0.06em + 0.5px);
 }
 .home-carousel-track {
     display: flex;
@@ -10940,8 +11015,13 @@ body.is-pwa .fullscreen-back {
    Shows ONLY for keyboard navigation (:focus-visible) — taps and clicks never
    see it, so the designed look is untouched. Themed to the colorway and
    full-strength (Rule #2). !important so the scattered outline:none resets
-   (written for mouse focus) can't blind keyboard users. */
-:focus-visible {
+   (written for mouse focus) can't blind keyboard users.
+   ⛔ EDITABLE FIELDS ARE EXCLUDED (Brendon, 2026-07-06 — the ring leaked to
+   normal users): browsers fire :focus-visible on inputs/textareas for a
+   plain TAP, not just keyboard nav, so the notes sheet + every composer lit
+   up for everyone. Fields keep their own designed focus look; the ring is
+   for buttons/links reached by keyboard only. */
+:focus-visible:not(input, textarea, select, [contenteditable='true'], [contenteditable='']) {
     outline: 2px solid var(--text-color) !important;
     outline-offset: 2px;
 }

@@ -48,7 +48,7 @@ export function buildMilestoneGroup(mintedCount: number, maxSupply: number): Att
 export function buildProjectAttributes(
     slug: string,
     uploadedAt: number | null,
-    opts?: { mintedCount?: number; maxSupply?: number },
+    opts?: { mintedCount?: number; maxSupply?: number; projectNo?: number | null },
 ): AttrGroup[] {
     const project = getProject(slug);
     if (!project) return [];
@@ -57,6 +57,11 @@ export function buildProjectAttributes(
     /* ── Identity ─────────────────────────────────────────────────────── */
     const identity: AttrTile[] = [
         { glyph: '◈', label: 'Project', value: project.displayName },
+        // PROJECT ID — the platform-wide upload-order number, unique per
+        // project (Brendon, 2026-07-06). ⌗ = the projects glyph (GLYPHS §4).
+        ...(opts?.projectNo != null
+            ? [{ glyph: '⌗', label: 'Project ID', value: `#${opts.projectNo}` } as AttrTile]
+            : []),
         { glyph: '✺', label: 'Artist', value: `@${project.artistHandle}` },
         { glyph: '⬚', label: 'Supply', value: `${project.outputs}` },
     ];

@@ -23,6 +23,7 @@ import { getProject, projectColorway } from '../../lib/project/registry';
 import { useModal } from '../../lib/state/ModalContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { getGenome, nearestKin } from '../../lib/output/genome';
+import OutputThumb from '../profile/OutputThumb';
 
 export default function GenomePanel() {
     const project = useProject();
@@ -313,13 +314,13 @@ export default function GenomePanel() {
         if (id != null) setSelected(id);
     }, [hitTest]);
 
-    const onPointerUp = useCallback((e: React.PointerEvent) => {
-        if (!moved.current) {
-            const id = hitTest(e.clientX, e.clientY);
-            if (id != null) open('output', id, project.slug);
-        }
+    /* Tap a point → the PEEK chip (tiny thumbnail + #id) pops beside it; the
+       MODAL only opens from tapping the chip itself (Brendon, 2026-07-06 —
+       straight-to-modal off a map tap was jarring). Selection already lands
+       on pointer-down/move; up just ends the gesture. */
+    const onPointerUp = useCallback(() => {
         pointerStart.current = null;
-    }, [hitTest, open, project.slug]);
+    }, []);
 
     if (!genome || points.length === 0) {
         return (
@@ -375,6 +376,27 @@ export default function GenomePanel() {
                     aria-label="Explore the Project's parameter space"
                 >
                     <canvas ref={canvasRef} className="genome-canvas" style={{ width: '100%', height: dims.h }} />
+                    {selected != null && posById.current.has(selected) && (() => {
+                        /* PEEK — the selected point's tiny thumbnail + id,
+                           anchored beside the point, clamped inside the plot.
+                           Tapping IT opens the artwork modal. */
+                        const pt = posById.current.get(selected)!;
+                        const x = Math.min(Math.max(pt.px, 40), Math.max(40, dims.w - 40));
+                        const above = pt.py > 78;
+                        return (
+                            <button
+                                type="button"
+                                className={`genome-peek${above ? '' : ' below'}`}
+                                style={{ left: x, top: pt.py }}
+                                onPointerDown={(e) => e.stopPropagation()}
+                                onClick={() => open('output', selected, project.slug)}
+                                title={`Open #${selected}`}
+                            >
+                                <OutputThumb slug={project.slug} id={selected} size={44} />
+                                <span className="genome-peek-id">#{selected}</span>
+                            </button>
+                        );
+                    })()}
                 </div>
 
                 <div className="genome-controls">

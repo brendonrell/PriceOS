@@ -29,6 +29,7 @@ const MAX_PULL = 150;       // px the damped band asymptotes toward
 
 let mounted = false;
 let overlayEl: HTMLDivElement | null = null;
+let pillEl: HTMLDivElement | null = null;
 let coverEl: HTMLDivElement | null = null;
 let cleanup: (() => void) | null = null;
 
@@ -47,6 +48,19 @@ export function mountPtr(): void {
         'transition:opacity 0.3s ease;';
     document.body.appendChild(overlay);
     overlayEl = overlay;
+
+    /* Pull pill — the legible state readout (Brendon, 2026-07-06: the tint
+       band alone read as nothing happening; no haptics on iOS, so the VISUAL
+       carries the whole feel). A Courier pill descends 1:1 with the pull, its
+       ⟳ winds up as you go, and the label snaps to RELEASE at the threshold. */
+    const pill = document.createElement('div');
+    pill.className = 'ptr-pill';
+    pill.setAttribute('aria-hidden', 'true');
+    pill.innerHTML = '<span class="ptr-pill-glyph">⟳&#xFE0E;</span><span class="ptr-pill-label">PULL</span>';
+    document.body.appendChild(pill);
+    pillEl = pill;
+    const pillGlyph = pill.querySelector('.ptr-pill-glyph') as HTMLElement;
+    const pillLabel = pill.querySelector('.ptr-pill-label') as HTMLElement;
 
     let startY = 0;
     let active = false;     // a valid pull is in progress (started at top)
@@ -92,6 +106,22 @@ export function mountPtr(): void {
         return false;
     };
 
+    /* Bail if the gesture began on a DRAG SURFACE — anything that declares
+       touch-action none/pan-x owns its touches (the Replay scrubber, the
+       Genome map, sliders). Scrubbing the Replay chart was counting as a
+       pull and reloading the page (Brendon, 2026-07-06). */
+    const startedOnDragSurface = (target: EventTarget | null): boolean => {
+        let node = target as HTMLElement | null;
+        while (node && node !== document.body) {
+            const ta = getComputedStyle(node).touchAction;
+            if (ta && ta !== 'auto' && ta !== 'manipulation' && !ta.includes('pan-y')) {
+                return true;
+            }
+            node = node.parentElement;
+        }
+        return false;
+    };
+
     function setOverlayColor() {
         const txt = getComputedStyle(document.documentElement)
             .getPropertyValue('--text-color')
@@ -115,6 +145,11 @@ export function mountPtr(): void {
     const snapBack = () => {
         overlay.style.transition = 'opacity 0.3s ease';
         overlay.style.opacity = '0';
+        pill.style.transition = 'transform 0.25s ease, opacity 0.25s ease';
+        pill.style.transform = 'translate(-50%, -60px)';
+        pill.style.opacity = '0';
+        pill.classList.remove('armed');
+        pillLabel.textContent = 'PULL';
     };
 
     /* Commit: haptic + show the loading cover NOW, reload next frame so the
@@ -127,6 +162,8 @@ export function mountPtr(): void {
 
         overlay.style.transition = 'opacity 0.15s ease';
         overlay.style.opacity = '1';
+        pillLabel.textContent = 'REFRESHING';
+        pill.classList.add('armed', 'spinning');
 
         const cover = document.createElement('div');
         cover.className = 'ptr-refresh-cover';
@@ -149,6 +186,7 @@ export function mountPtr(): void {
         if (blocked()) return;
         if (!atTop()) return;                           // started mid-scroll
         if (startedInInnerScroller(e.target)) return;   // inner scroller
+        if (startedOnDragSurface(e.target)) return;     // scrubber / map / slider
         startY = e.touches[0].clientY;
         active = true;
     };
@@ -163,6 +201,7 @@ export function mountPtr(): void {
         if (raw <= 0) {                  // pulling up / not moved down — let scroll be
             pulling = false;
             overlay.style.opacity = '0';
+            pill.style.opacity = '0';
             return;
         }
 
@@ -176,8 +215,18 @@ export function mountPtr(): void {
         overlay.style.transition = 'none';
         // Build toward 0.7 as you near the threshold, then snap to full when
         // armed — the "release to refresh" affordance (no haptics on iOS).
-        overlay.style.opacity =
-            raw >= PTR_THRESHOLD ? '1' : String(Math.min(visual / armedVisual, 1) * 0.7);
+        const armed = raw >= PTR_THRESHOLD;
+        overlay.style.opacity = armed ? '1' : String(Math.min(visual / armedVisual, 1) * 0.7);
+
+        // Pill: descends 1:1 with the damped pull, fades in over the first
+        // 24px; the ⟳ winds up with travel (the "something is charging" cue);
+        // label + inversion snap at the threshold.
+        pill.style.transition = 'none';
+        pill.style.opacity = String(Math.min(visual / 24, 1));
+        pill.style.transform = `translate(-50%, ${Math.round(visual * 0.7 - 46)}px)`;
+        pillGlyph.style.transform = `rotate(${Math.round(visual * 2.4)}deg)`;
+        pill.classList.toggle('armed', armed);
+        pillLabel.textContent = armed ? 'RELEASE' : 'PULL';
     };
 
     const onTouchEnd = () => {
@@ -208,8 +257,10 @@ export function mountPtr(): void {
         document.removeEventListener('touchend', onTouchEnd);
         document.removeEventListener('touchcancel', onTouchCancel);
         if (overlayEl?.parentNode) overlayEl.parentNode.removeChild(overlayEl);
+        if (pillEl?.parentNode) pillEl.parentNode.removeChild(pillEl);
         if (coverEl?.parentNode) coverEl.parentNode.removeChild(coverEl);
         overlayEl = null;
+        pillEl = null;
         coverEl = null;
         mounted = false;
     };

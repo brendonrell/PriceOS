@@ -108,10 +108,12 @@ export default function ReplayPanel() {
 
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState<Speed>(1);
-  const [progress, setProgress] = useState(1); // start at TODAY; play rewinds
+  /* Starts at THE START — day one, ready to play forward (Brendon,
+     2026-07-06; it opened on TODAY before, which read as backwards). */
+  const [progress, setProgress] = useState(0);
   const [dims, setDims] = useState({ w: 0, h: 160 });
 
-  const progressRef = useRef(1);
+  const progressRef = useRef(0);
   const speedRef = useRef<Speed>(1);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -423,7 +425,7 @@ export default function ReplayPanel() {
         <div className="replay-readout">
           <div className="rr-date">
             <span className="rr-state">
-              {playing ? '▶︎ PLAYING' : atToday ? 'TODAY' : '◼︎ LOCKED'}
+              {playing ? '▶︎ PLAYING' : atToday ? 'TODAY' : progress <= 0.001 ? 'START' : '◼︎ LOCKED'}
             </span>
             {/* The PriceDay spine — every scrubbed moment names its DAY. */}
             <span className="rr-day">{fmtDate(snap.t)} · DAY {priceDayNumber(new Date(snap.t))}</span>

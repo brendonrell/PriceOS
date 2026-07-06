@@ -30,6 +30,9 @@ export interface HomeUploadRow {
   title: string;
   max_supply: number;
   minted_count: number;
+  /** Sequential Project ID (upload order, unique) — the New Gen Art sort key
+      (Brendon, 2026-07-06). Null only for rows predating the backfill. */
+  project_no: number | null;
   /** Upload moment (Unix ms), or null when the row predates the cooldown
       stamp (display "—", sort last). */
   uploaded_at: number | null;
@@ -41,6 +44,8 @@ export interface HomeMintingRow {
   slug: string;
   title: string;
   minted_count: number;
+  /** Sequential Project ID (upload order, unique). */
+  project_no: number | null;
   /** Total supply — for the live mint-progress Status facet (minted / supply). */
   max_supply: number;
   /** Upload moment (Unix ms) — the project's "birth", source for its PriceDay +
@@ -74,7 +79,7 @@ export interface HomeResponse {
 export async function buildHomeResponse(): Promise<HomeResponse> {
   const db = getSupabaseService();
   const [projRes, mintsRes, pricedRes] = await Promise.all([
-    db.from('projects').select('id, title, minted_count, max_supply, uploaded_at, cooldown_until, graduated_at, sold_out_at, milestones'),
+    db.from('projects').select('id, title, minted_count, max_supply, project_no, uploaded_at, cooldown_until, graduated_at, sold_out_at, milestones'),
     db
       .from('events')
       .select('project_id, timestamp')
@@ -90,6 +95,7 @@ export async function buildHomeResponse(): Promise<HomeResponse> {
     title: string;
     minted_count: number | null;
     max_supply: number | null;
+    project_no: number | null;
     uploaded_at: string | null;
     cooldown_until: string | null;
     graduated_at: string | null;
@@ -135,6 +141,7 @@ export async function buildHomeResponse(): Promise<HomeResponse> {
         slug: p.id,
         title: p.title,
         minted_count: minted,
+        project_no: p.project_no,
         max_supply: p.max_supply ?? 0,
         uploaded_at: p.uploaded_at
           ? new Date(p.uploaded_at).getTime()
@@ -156,6 +163,7 @@ export async function buildHomeResponse(): Promise<HomeResponse> {
         title: p.title,
         max_supply: p.max_supply ?? 0,
         minted_count: minted,
+        project_no: p.project_no,
         uploaded_at: p.uploaded_at
           ? new Date(p.uploaded_at).getTime()
           : p.cooldown_until
@@ -167,9 +175,12 @@ export async function buildHomeResponse(): Promise<HomeResponse> {
   }
   uploads.sort(
     (a, b) =>
+      // PROJECT ID is the New Gen Art order (Brendon, 2026-07-06) — newest
+      // number first. Unique by construction, so the list can never
+      // reshuffle between reads; upload time + name only back-fill rows
+      // that predate the numbering.
+      (b.project_no ?? -Infinity) - (a.project_no ?? -Infinity) ||
       (b.uploaded_at ?? -Infinity) - (a.uploaded_at ?? -Infinity) ||
-      // Same instant → fixed alphabetical order (title, then slug) so the New
-      // Gen Art list never reshuffles between reads (Brendon, 2026-07-05).
       a.title.localeCompare(b.title) ||
       a.slug.localeCompare(b.slug),
   );

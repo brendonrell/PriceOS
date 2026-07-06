@@ -124,12 +124,18 @@ export function useCollectedGallery(holdings: Holding[]) {
        in the DOM and scrolled like glue. Now the mounted set tracks how far
        you've actually scrolled, so a giant collection browses as smoothly as a
        small one. revealCount only grows, so re-filtering renders instantly. */
+    /* Solid-once-loaded (Brendon, 2026-07-06): a normal collection mounts
+       WHOLE — nothing pops in on scroll (cards are native <img> tiles; the
+       browser lazy-loads the pictures). The scroll window only kicks in past
+       FULL_MOUNT_MAX, where a 10k–20k wallet's DOM would scroll like glue. */
+    const FULL_MOUNT_MAX = 1000;
     const REVEAL_FIRST = 24;
     const REVEAL_STEP = 48;
     const [revealCount, setRevealCount] = useState(REVEAL_FIRST);
     const collectedSentinelRef = useRef<HTMLDivElement | null>(null);
+    const fullMount = visibleCollected.length <= FULL_MOUNT_MAX;
     useEffect(() => {
-        if (revealCount >= visibleCollected.length) return;
+        if (fullMount || revealCount >= visibleCollected.length) return;
         const el = collectedSentinelRef.current;
         if (!el) return;
         if (typeof IntersectionObserver === 'undefined') { setRevealCount(visibleCollected.length); return; }
@@ -143,13 +149,13 @@ export function useCollectedGallery(holdings: Holding[]) {
         );
         io.observe(el);
         return () => io.disconnect();
-    }, [revealCount, visibleCollected.length]);
+    }, [fullMount, revealCount, visibleCollected.length]);
     const shownCollected = useMemo(
         () =>
-            revealCount >= visibleCollected.length
+            fullMount || revealCount >= visibleCollected.length
                 ? visibleCollected
                 : visibleCollected.slice(0, revealCount),
-        [visibleCollected, revealCount],
+        [visibleCollected, revealCount, fullMount],
     );
 
     /* Group the filtered/sorted holdings by Project for rendering. Each group

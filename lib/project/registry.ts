@@ -1484,13 +1484,36 @@ export function rememberArtAspect(slug: string, tokenId: number, w: number, h: n
  * default so every surface shows the Cloudflare-hosted picture. The feature
  * page passes `live: true` to keep the real generative render.
  */
+/* Decoded stored-preview cache (Brendon, 2026-07-06 — the artwork modal must
+   be "the snappiest part of the app"): once a stored PNG has loaded for a
+   canvas draw it stays decoded here, so scanning back to a piece repaints
+   SYNCHRONOUSLY — no refetch, no lingering previous piece. Small LRU cap:
+   these are full-size decodes. */
+const artImgCache = new Map<string, HTMLImageElement>();
+const ART_IMG_CACHE_MAX = 80;
+function artImgCachePut(key: string, img: HTMLImageElement): void {
+  artImgCache.delete(key);
+  artImgCache.set(key, img);
+  if (artImgCache.size > ART_IMG_CACHE_MAX) {
+    const oldest = artImgCache.keys().next().value;
+    if (oldest !== undefined) artImgCache.delete(oldest);
+  }
+}
+/* Announce a finished stored-art draw on the canvas itself, so surfaces that
+   show a loading spinner (the artwork modal) know the swap landed. */
+function announceArtDrawn(canvas: HTMLCanvasElement, slug: string, tokenId: number): void {
+  try {
+    canvas.dispatchEvent(new CustomEvent('pd:art-drawn', { detail: { slug, tokenId } }));
+  } catch { /* CustomEvent unsupported — spinner surfaces just skip */ }
+}
+
 export function renderArtwork(
   canvas: HTMLCanvasElement,
   slug: string,
   tokenId: number,
   width: number,
   live = false,
-): { aspect: number; traits: OutputTraits } {
+): { aspect: number; traits: OutputTraits; pending?: boolean } {
   const project = getProject(slug);
   if (!project) {
     return { aspect: 1, traits: { Fate: outputFate(slug, tokenId) } };
@@ -1501,6 +1524,21 @@ export function renderArtwork(
   artDrawKey.set(canvas, drawKey);
   if (!live && ART_IMAGE_BASE) {
     const traits = { ...project.traitsOf(tokenId), Fate: outputFate(slug, tokenId) };
+    // Cache hit → draw synchronously: the piece swaps on THIS frame.
+    const hit = artImgCache.get(drawKey);
+    if (hit && hit.complete && hit.naturalWidth > 0) {
+      artImgCachePut(drawKey, hit); // refresh LRU position
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        canvas.width = hit.naturalWidth;
+        canvas.height = hit.naturalHeight;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(hit, 0, 0);
+        const wrap = typeof canvas.closest === 'function' ? canvas.closest('.canvas-wrapper') : null;
+        if (wrap instanceof HTMLElement) wrap.style.aspectRatio = String(hit.naturalWidth / hit.naturalHeight);
+        return { aspect: hit.naturalWidth / hit.naturalHeight, traits, pending: false };
+      }
+    }
     // Draw the stored image onto the same canvas the engine would have used, so
     // every existing surface (layout, virtualizer, hover) keeps working unchanged.
     const img = new Image();
@@ -1516,6 +1554,7 @@ export function renderArtwork(
       if (wrap instanceof HTMLElement) wrap.style.aspectRatio = String(w / h);
     };
     img.onload = () => {
+      if (img.naturalWidth > 0) artImgCachePut(drawKey, img); // keep decoded for instant revisits
       if (artDrawKey.get(canvas) !== drawKey) return; // canvas moved to another token
       const ctx = canvas.getContext('2d');
       if (!ctx || !img.naturalWidth) return;
@@ -1524,6 +1563,7 @@ export function renderArtwork(
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0);
       applyAspect(img.naturalWidth, img.naturalHeight);
+      announceArtDrawn(canvas, slug, tokenId);
     };
     img.onerror = () => {
       if (artDrawKey.get(canvas) !== drawKey) return; // canvas moved to another token
@@ -1546,12 +1586,13 @@ export function renderArtwork(
           window.dispatchEvent(new CustomEvent('pd:preview-miss', { detail: { slug, tokenId } }));
         } catch { /* CustomEvent unsupported — skip */ }
       }
+      announceArtDrawn(canvas, slug, tokenId);
     };
     img.src = `${ART_IMAGE_BASE}/${slug}/${tokenId}.png`;
     // Synchronous aspect: the learned true ratio if we've seen this token (no
     // reflow), else a provisional from the project's aspect set — onload/onerror
     // correct it the first time.
-    return { aspect: artAspectCache.get(drawKey) ?? project.aspects?.[0] ?? 1, traits };
+    return { aspect: artAspectCache.get(drawKey) ?? project.aspects?.[0] ?? 1, traits, pending: true };
   }
   const res = project.render(canvas, tokenId, width);
   return { aspect: res.aspect, traits: { ...res.traits, Fate: outputFate(slug, tokenId) } };
