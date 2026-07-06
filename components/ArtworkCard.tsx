@@ -83,14 +83,14 @@ import { useProject, paintOutput } from '../lib/state/ProjectContext';
 import { getProject } from '../lib/project/registry';
 import { sampleCanvasFingerprint } from '../lib/art/sampleColor';
 import { needsColorSample, reportFingerprint, reportTraits } from '../lib/art/colorStore';
-import { ART_IMAGE_BASE } from '../lib/project/registry';
+import { ART_IMAGE_BASE, artImageUrl, artProvisionalAspect, rememberArtAspect } from '../lib/project/registry';
 import { useCelestialMark, celestialOpacity } from '../lib/output/celestial';
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
 import {
     registerCanvas,
     unregisterCanvas,
 } from '../lib/virtualization/canvasVirtualizer';
-import { hashSynApplyHex } from '../lib/engines/hashSynEngine';
+import { hashSynApplyHex, hashSynNotifyCanvasPaint } from '../lib/engines/hashSynEngine';
 import {
     getGrails,
     subscribeGrails,
@@ -205,6 +205,62 @@ function ArtworkCard({
        canvas-wrapper directly (data-id is set on the wrapper to match
        sim 8267 + the existing fog-mode delegation handler at page.tsx:288). */
     const wrapperRef = useRef<HTMLDivElement>(null);
+
+    /* Stored-image tile (Brendon, 2026-07-06 — "once something loads it STAYS").
+       When the stored preview exists, the card is a plain <img>: the browser
+       lazy-loads it natively, keeps it decoded/steady, and NOTHING ever evicts
+       it — no virtualizer, no LRU blanking, no repaint flash on scroll-back.
+       The canvas + virtualizer path below survives untouched as the fallback:
+       no image base configured (pre-upload dev), or this piece's preview 404s
+       (imgFailed → live engine render + the pd:preview-miss self-heal). */
+    const imgRef = useRef<HTMLImageElement>(null);
+    const [imgLoaded, setImgLoaded] = useState(false);
+    const [imgFailed, setImgFailed] = useState(false);
+    const imgSrc = imgFailed ? null : artImageUrl(slug, id);
+
+    const handleImgLoad = () => {
+        const img = imgRef.current;
+        const wrapper = wrapperRef.current;
+        if (!img || !(img.naturalWidth > 0)) return;
+        /* Shape the tile to the piece's REAL aspect + remember it (same cache
+           the canvas path learns through), so remounts are shaped instantly. */
+        rememberArtAspect(slug, id, img.naturalWidth, img.naturalHeight);
+        if (wrapper) {
+            wrapper.style.aspectRatio = String(img.naturalWidth / img.naturalHeight);
+            wrapper.style.background = 'transparent';
+        }
+        setImgLoaded(true);
+        /* Same per-paint side effects the canvas render closure ran. */
+        reportTraits(slug, id);
+        hashSynNotifyCanvasPaint();
+    };
+
+    /* If a mounted card is ever re-pointed at another token (parents key by id,
+       so this is a remount in practice — belt & braces), drop the loaded state
+       so the new piece fades in cleanly instead of showing stale .visible. */
+    useEffect(() => {
+        return () => {
+            setImgLoaded(false);
+            setImgFailed(false);
+        };
+    }, [slug, id]);
+
+    /* Provisional shape for the img tile before its load event corrects it. */
+    useEffect(() => {
+        if (!imgSrc) return;
+        const wrapper = wrapperRef.current;
+        if (wrapper) wrapper.style.aspectRatio = String(artProvisionalAspect(slug, id));
+    }, [imgSrc, slug, id]);
+
+    /* Cache-hit guard: an already-cached image can finish before React attaches
+       the onLoad listener (SSR'd markup, fast remounts) — the load event is
+       gone by hydration time and the tile would sit at opacity 0 forever. */
+    useEffect(() => {
+        if (!imgSrc) return;
+        const img = imgRef.current;
+        if (img && img.complete && img.naturalWidth > 0) handleImgLoad();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [imgSrc]);
 
     /* F50 (BUG-02) — grail pin state subscribed from lib/pins/grailStore.
        isPinned drives both the article's `.grail-pinned` class (sim
@@ -401,6 +457,9 @@ function ArtworkCard({
        prior immediate-paint path — same seed math, same gradients,
        same #id stamp at 400px internal resolution (sim THUMB_WIDTH). */
     useEffect(() => {
+        /* Stored-image mode — the <img> tile owns the paint; nothing to
+           register. (canvasRef is also null: the canvas isn't rendered.) */
+        if (imgSrc) return;
         const canvas = canvasRef.current;
         const wrapper = wrapperRef.current;
         if (!canvas || !wrapper) return;
@@ -432,7 +491,7 @@ function ArtworkCard({
         return () => {
             unregisterCanvas(vkey);
         };
-    }, [id, slug, eager, renderSize]);
+    }, [id, slug, eager, renderSize, imgSrc]);
 
     /* sim 8008-8014 — when hammer-mode is on, tapping the card body
        toggles mute on this token rather than opening the modal. Mode
@@ -749,13 +808,32 @@ function ArtworkCard({
                        lay out cleanly with no further CSS work. */
                     style={{}}
                 >
-                    <canvas
-                        ref={canvasRef}
-                        className="output-canvas"
-                        style={{ width: '100%', height: '100%', display: 'block' }}
-                        role="img"
-                        aria-label={`${projectTitle} #${id} — generative artwork`}
-                    />
+                    {imgSrc ? (
+                        /* Stored preview — native lazy load, browser-managed,
+                           steady once loaded (never evicted, never re-flashed).
+                           Same .output-canvas class so every mode/colorway rule
+                           (degen, zero-context, hashsyn pool) applies as-is. */
+                        <img
+                            ref={imgRef}
+                            className={`output-canvas${imgLoaded ? ' visible' : ''}`}
+                            src={imgSrc}
+                            alt={`${projectTitle} #${id} — artwork`}
+                            loading={eager ? 'eager' : 'lazy'}
+                            decoding="async"
+                            draggable={false}
+                            onLoad={handleImgLoad}
+                            onError={() => setImgFailed(true)}
+                            style={{ width: '100%', height: '100%', display: 'block' }}
+                        />
+                    ) : (
+                        <canvas
+                            ref={canvasRef}
+                            className="output-canvas"
+                            style={{ width: '100%', height: '100%', display: 'block' }}
+                            role="img"
+                            aria-label={`${projectTitle} #${id} — generative artwork`}
+                        />
+                    )}
                     {celMark && (
                         <span
                             className="celestial-moon"

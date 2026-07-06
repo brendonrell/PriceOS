@@ -308,6 +308,11 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             const here = window.location.pathname + window.location.search;
             if (a.hash && a.pathname + a.search === here) return;
             e.preventDefault();
+            // Tapping a link to the page you're already on must NOT stack a
+            // duplicate history entry — those duplicates are why Back seemed
+            // to do nothing / loop (each press "went back" to the same URL;
+            // Brendon, 2026-07-06). Same destination → stay put.
+            if (a.pathname + a.search + a.hash === here + window.location.hash) return;
             router.push(a.pathname + a.search + a.hash);
         };
         // CAPTURE phase (Brendon, 2026-06-25 — the "random reload" fix). On the

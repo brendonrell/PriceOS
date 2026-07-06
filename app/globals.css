@@ -10900,6 +10900,11 @@ body.is-pwa .fullscreen-back {
     transition: opacity 0.2s;
 }
 .nav-back-btn:hover { opacity: 1; }
+/* Desktop only: 3px right so it sits square under the connect button
+   (Brendon, 2026-07-06). */
+@media (min-width: 601px) {
+    .nav-back-btn { right: -3px; }
+}
 /* Tuck away while the connect menu is open — the dropdown owns that space. */
 .user-menu-wrapper.active .nav-back-btn { display: none; }
 
