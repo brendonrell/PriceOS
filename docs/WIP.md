@@ -6,6 +6,74 @@
 
 ---
 
+## 🔜 NEXT UP — FRIEND INSPECTOR TOTAL INNER REBUILD (first build of the next session)
+
+**Brief is written and pushed: `docs/briefs/friend-inspector-rebuild.md` —
+BUILD FROM IT.** ClickUp `86bargkmk` (Backlog, high). Brendon's order: the
+entire interior of the Friend Inspector (`components/FollowersModal.tsx`)
+redone — PriceSprite-forward cards, comparison-spine dossiers — "not a wow
+pass. A big rebuild but inside that menu chrome." Outer chrome untouched.
+**North star (his words): "cyberpunk friendship bracelet" — MAXIMALIST
+cyberpunk.** Warm charm/keepsake social content rendered as dense neon
+instrumentation. Slick, never corny, never twee. Rivalry-birthing sockets
+reserved for Argue `86b9eretz` · Understudy/Counterweight `86b9fcnnc` ·
+PriceTwin `86b9fcngz` · Sigil Factions `86baf786c` (details in the brief).
+
+## ✅ SHIPPED 2026-07-05 — FABLE MAGIC MARATHON (Receipt · Replay · Albums · Workflows · $PRICE · wave 4)
+
+All on `dev` (15b4055), tree clean. Everything below was Brendon-pushed
+across the marathon session (multiple approvals):
+
+- **ASCII Backup, the REAL spec:** generated at mint alongside the PNG preview
+  — a colour-true high-res ASCII artifact (JSON: 192-col grid + palette +
+  glyph ramp) pinned write-once to R2, served next to previews. Lives in each
+  Output's reserved **+More ▸ ASCII Backup** spot: typewriter reveal, COPY
+  .TXT / COPY .JSON (true copy-paste backup). Self-heals for pieces minted
+  before the feature. ~75KB/piece ≈ 1.5GB at sellout (fits the R2 tier with
+  the 512px PNGs).
+- **The Receipt (manual only — mint auto-receipts explicitly rejected):**
+  SHARE in the Output social panel → share-card receipt (art hero, verdict
+  pill, price hero, hold facts, handles). `lib/output/receipt.ts`.
+- **Replay is REAL** (ClickUp `86b9eu7z3` closed): plays the true events
+  ledger (ownership walk → holders/floor/sales/volume, milestones) + wow pass
+  (materializing thumbnails at the playhead, milestone pulse rings, DAY
+  readout). 0-mint platform → seeded biography labeled `· PREVIEW`.
+- **Albums, the full app** ("iOS-simple on the surface, power underneath"):
+  covers grid with mosaic covers + per-album worth, drill-in with SELECT
+  tools (remove/move/front/cover/delete), slideshow (dual-canvas crossfade +
+  Ken Burns), numbered albums only (no public naming), private notes.
+  Output pages gained an Albums tab (chips + picker).
+- **Workflows v1:** ☇ launcher LEFT of the To-Dos + (only entry surface,
+  Brendon's call — no connect-menu changes). Modal sentence-builder: WHEN
+  @artist UPLOADS / WHEN piece hits ◊price → MINT ×n / TO-DO / NOTIFY.
+  Engine polls uploads + rides the Sentinel price feed; fires toast +
+  auto-to-dos. Account-synced (`workflows` in the settings envelope).
+- **Wave 4 pulled forward:** landscape-mobile pass (self-tested headless —
+  artists-page gutters, safe-area paddings) + accessibility for humans AND
+  agents (focus management in the modal primitive, :focus-visible ring,
+  JSON-LD VisualArtwork/Collection with trait + offer data on art pages,
+  rich meta descriptions — the agentic-collecting groundwork; findings in
+  `docs/accessibility-audit.md`).
+- **$PRICE live in the app:** Petey menu link → the mainnet Etherscan token
+  page; balance feature reads the deployed contract by default.
+- **Friend Inspector v1** (renamed from Followers Manager, + dossier
+  drill-in) — **superseded by the total rebuild queued above.**
+- **@pricediscussion claimable** by the PD treasury wallet only (reserved-
+  handle owner exemption).
+- **iOS push:** verified end-to-end EXCEPT the public key is missing from CF
+  Build Variables (proved via the live bundle). Brendon tap filed
+  (`86barg5yz`) + Opus brief `docs/briefs/ios-push-notifications.md` — Opus
+  builds/finishes this, per Brendon.
+- **Discord feeds:** the 429/code-1015 error confirmed = Cloudflare
+  throttling Google Apps Script's shared IPs — Worker migration justified
+  (decision `86b9g4e55` tripwire fired). Queued behind the feature list.
+- **x402/CF Monetization Gateway:** waitlist joined; follow-ups in `86barg1fx`.
+
+**QUEUE after the Friend Inspector rebuild:** Composer (`86b9eu9wn`) → the
+three dashboards (Studio artist uploads; Sticker Studio + Godmode =
+Brendon-only) → Discord feeds Worker migration → Cartography (`86b9eth7w`)
+VERY LAST (Brendon's explicit call).
+
 ## ✅ SHIPPED 2026-07-05 — SMALL-WINS BUNDLE + THE FABLE MAGIC BUILD ORDER
 
 On `dev` (cdfc2e3), tree clean, build verified. This chat's task branch
