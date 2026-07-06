@@ -27,6 +27,7 @@ import { NextResponse } from 'next/server';
 import { getSupabaseService, type UserRow } from '@/lib/supabase';
 import { requireAuth } from '@/lib/auth/siwe';
 import { badRequest, serverError } from '@/lib/errors';
+import { canClaimReservedHandle } from '@/lib/reserved-handles';
 import {
     validateHandleFormat,
     normaliseHandle,
@@ -74,7 +75,13 @@ export const POST = requireAuth(async (req, _ctx, address) => {
 
     const handle = normaliseHandle(rawHandle);
     const formatCheck = validateHandleFormat(handle);
-    if (!formatCheck.valid) {
+    /* Reserved handles stay blocked for everyone EXCEPT their designated
+       owner — the PD wallet claims @pricediscussion (Brendon, 2026-07-06). */
+    const ownerException =
+        !formatCheck.valid &&
+        formatCheck.reason === 'reserved' &&
+        canClaimReservedHandle(handle, address);
+    if (!formatCheck.valid && !ownerException) {
         const res: CreateUserResponse = {
             ok: false,
             error: '@name is not valid',

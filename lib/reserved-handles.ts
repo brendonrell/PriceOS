@@ -142,6 +142,20 @@ export const RESERVED_HANDLES_STATIC: ReadonlySet<string> = new Set([
  * must additionally check against the live project list — this
  * function only covers the static tiers.
  */
+/** Owner claims — addresses allowed to claim a specific RESERVED handle.
+ *  The PD treasury wallet (pricediscussion.eth, holder of the $PRICE supply)
+ *  claims the brand handle (Brendon, 2026-07-06). Checked at signup AFTER the
+ *  reserved gate: reserved for everyone, claimable by its owner. */
+export const RESERVED_HANDLE_OWNERS: Readonly<Record<string, string>> = {
+    pricediscussion: '0x146034ec25c277f30f63933b151297689e15b9b8',
+};
+
+/** True when `address` is the designated owner of a reserved `handle`. */
+export function canClaimReservedHandle(handle: string, address: string): boolean {
+    const owner = RESERVED_HANDLE_OWNERS[handle.trim().toLowerCase().replace(/^@/, '')];
+    return !!owner && owner === address.toLowerCase();
+}
+
 export function isReservedHandle(handle: string): boolean {
     const normalised = handle.trim().toLowerCase();
     if (normalised.length === 0) return true;
