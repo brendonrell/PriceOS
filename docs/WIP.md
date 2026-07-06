@@ -6,67 +6,55 @@
 
 ---
 
-## 🔜 NEXT UP — TECH-DEBT EXECUTION, ALL OF IT, FABLE'S JOB (Brendon, 2026-07-06)
+## ✅ SHIPPED 2026-07-06 — TECH-DEBT EXECUTION (Fable, per Brendon's order): 6 of 8 done
 
-**Brendon's explicit order: the full tech-debt list below is FABLE work — not
-Opus briefs. "Opus handles icon nudges and extra buttons and roughing in
-things; core infra and architecture is exactly what I want you for."** This
-jumps the line ahead of the Friend Inspector rebuild (his call, 2026-07-06).
-Full audit ran 2026-07-06 (assessment chat, branch
-`claude/technical-debt-assessment-pzhuzc` — no code changes). Verdict: the app
-is architecturally ONE thing (single Supabase factory, one auth layer, one
-settings-envelope sync pattern, one modal system, lean deps, tsc clean). The
-debt is specific, itemized, and PROVEN in code — do not re-audit, execute:
+All on `dev` (batches: 159523a product-truth · 2b54fe0 profile split ·
+f8964cc project split + shared hooks · b3aa544 TraitsUI split · CSS fold),
+tree clean, every batch build-verified. Brendon's standing order this
+session: full permission granted, push-and-continue.
 
-**Product-truth fixes (users see lies) — first:**
-1. **Artists A–Z badges are fake.** `components/dropdown/ArtistsView.tsx`
-   renders rel (mutual/following/followers icons) + ☼/☽ active/cooldown
-   straight from the pre-rolled static table in `lib/data/mockArtists.ts`
-   ("until indexer wires up" per its own header) — no live lookup anywhere in
-   the surface. Roster NAMES are real. Wire rel to the real follows edges
-   (relation-mode reads shipped 07-02) + status to `getArtistStatus` (already
-   real on profile pages via `app/[slug]/page.tsx`), then delete the
-   pre-rolled rel/status columns.
-2. **Calendar canned public schedule.** `CAL_EVENTS` static list in
-   `lib/calendar/data.ts` still renders in `CalendarPanel.tsx` +
-   `TopBarCalendar.tsx` alongside the real `/api/calendar` feed. Move to the
-   real feed everywhere, kill the mock.
-3. **Sentiment Weather is Math.random** (`lib/engines/sentimentEngine.ts`) —
-   zero data behind it. Wire to something real off the ledger; present the
-   data design with the batch.
+- **DONE ①②③ product truth:** Artists A–Z badges real (new `/api/artists`
+  + live follow edges; `mockArtists` deleted) · calendar `CAL_EVENTS` mock
+  removed (real `/api/calendar` sole source) · Sentiment Weather scores
+  REAL taker momentum off `/api/feed` (recency-decayed MINT/SALE vs LIST;
+  `scoreSentiment` is pure + exported).
+- **DONE ④ monolith splits (pure moves, zero behavior change):**
+  ProfilePageBody 2,925→1,829 (9 modules: useCollectedGallery,
+  useArtistShowcase, useStarredPins, useMoreControls, useProfileEggs,
+  useProfileAchievements, JoinDayPopover, ArtistProjectCarousel, shared
+  types) · ProjectPageBody 1,909→708 (useProjectGallery, useProjectSocial,
+  ProjectMorePanel, useProjectAnchor, useBudgetStepLine, useProjectFloor)
+  · TraitsUI 2,286→1,211 (MsFloatBar, PresetRow, traitsUIPills — L3Pill
+  consumers repointed — traitsUIShared). TWO cross-page duplicates now
+  single implementations: `lib/hooks/usePriceDayPopover` +
+  `lib/feed/useLedgerFeed`.
+- **DONE ⑤ (part) CSS:** `modal-build4.css` folded into `modal.css` at its
+  exact cascade position; compiled-CSS verified. Dead-rule sweep NOT bulk-
+  run — 100 provable candidates saved to `docs/dead-css-candidates.md`
+  with the warning that some rules are parked-by-design sim spec; needs
+  per-feature judgment, not a mass delete.
+- **DONE ⑦⑧ housekeeping:** dead tape mock, mockPortfolio (types →
+  `lib/portfolio/types`), mockNotes/artistStatus, shot2.js, reference/,
+  MyPdSection.tsx.txt — all deleted (~17k lines).
 
-**Architecture (the "sewn-together → one thing" work):**
-4. **Split the three monster components** — `components/profile/
-   ProfilePageBody.tsx` (2,925 lines / 107 hooks), `components/project/
-   TraitsUI.tsx` (2,286), `components/project/ProjectPageBody.tsx` (1,909).
-   Pure extraction, zero behavior change, build-verified. The unsolved
-   desktop home crash lives near this neighbourhood — splitting helps isolate.
-5. **CSS consolidation.** `app/globals.css` is 10,958 lines + 14 satellite
-   sheets (18,370 total) incl. legacy `styles/modal-build4.css`. Dead-rule
-   sweep + fold build4 into modal.css. Compiled-CSS grep before/after
-   (CLAUDE.md §6).
-6. **Pin/star store factory.** 17 hand-cloned stores in `lib/pins/` (~2,700
-   lines of one repeated skeleton: loadFromCache/hydrate/subscribe/envelope
-   push). Extract one generic factory; migrate stores onto it. AUDIT while
-   there: grail/mute/spite/starredPreset/artistColor do NOT ride the account
-   envelope (device-only) — decide intentional vs drift, surface to Brendon.
+**REMAINING ⑥ — pin-store factory (next session, spec'd):** 7 simple
+stores share one exact skeleton (star/wishlist/projectStar/soundtrackStar/
+txStar/traitStar/artistStar: STORAGE_KEY · state · hydrated · listeners ·
+loadFromCache · hydrate · persist(localStorage+pushSettings) · emit ·
+USERSTATE_HYDRATED re-read · changed-event). Build `lib/pins/
+createPinStore.ts` parameterized by cache key / envelope key / codec /
+event name; convert the 7 as thin wrappers KEEPING their exact public
+exports. Deliberately deferred out of a long session — it's user-pin data
+plumbing; do it fresh, tsc+build gate per store.
+**DECISION FOR BRENDON (from the ⑥ audit):** grailStore, muteStore,
+spiteStore are device-only while every other user-curated set rides the
+account envelope — grail pins, mutes, and Spite Book names don't follow
+the account across devices. Recommendation: sync all three (same envelope
+pattern as artistStars). presetStore/starredPresetStore stay device-local
+by design; artistColorStore/starredPriceStore are data caches, correctly
+local.
 
-**Housekeeping (fold into the batches above):**
-7. Dead mock code: `tapeFeedItems()` + mock EVENTS/WALLETS in
-   `lib/data/tapeEvents.ts` (ZERO callers — the tape is REAL via
-   `useTapeFeed` → `/api/feed`; keep the types + `eventToTapeItem`), stale
-   "mock data" comments in `Ticker.tsx`, unused `lib/data/mockNotes.ts` +
-   `lib/data/artistStatus.ts`; `mockPortfolio.ts` is a type-home only now
-   (portfolio is REAL via `livePortfolio.ts`) — move the types, delete it.
-8. Root strays: `shot2.js`, `reference/` (old sim HTML),
-   `components/dropdown/settings/MyPdSection.tsx.txt`.
-
-Process: one cohesive batch per chunk → PRESENT numbered CEO list → Brendon's
-push gate as always. `npm run build` + compiled-asset verify per chunk.
-ClickUp: comment the scope change on launch-hardening `86bar1uxr` (item ③
-audit = done; execution = Fable, not Opus briefs) with the first ship.
-
-## 🔜 THEN — FRIEND INSPECTOR TOTAL INNER REBUILD (after tech-debt, Brendon's reorder 2026-07-06)
+## 🔜 NEXT UP — pin-store factory (above) → FRIEND INSPECTOR TOTAL INNER REBUILD
 
 **Brief is written and pushed: `docs/briefs/friend-inspector-rebuild.md` —
 BUILD FROM IT.** ClickUp `86bargkmk` (Backlog, high). Brendon's order: the
