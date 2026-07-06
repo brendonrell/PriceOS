@@ -1952,6 +1952,101 @@ body.theme-bright .news-pill-name {
         0 0 3px color-mix(in srgb, var(--bg-color, #000) 60%, transparent),
         0 1px 1px color-mix(in srgb, var(--bg-color, #000) 50%, transparent);
 }
+/* Same halo, self-aware (Brendon, 2026-07-06 — the green-colorway fix, nothing
+   drastic): identical two-layer softness, but the halo colour is computed as
+   the OPPOSITE pole of the lettering itself — dark glow under light text,
+   light glow under dark text — so words stay readable on ANY random colorway,
+   including the brutal mid-tones the bg-mix guess got muddy on. Modern engines
+   only; older ones keep the two rules above. */
+@supports (color: lch(from red calc(l) 0 0)) {
+    .news-pill-glyph, .news-pill-tag, .news-pill-title, .news-pill-meta, .news-pill-name,
+    body.theme-bright .news-pill-glyph, body.theme-bright .news-pill-tag,
+    body.theme-bright .news-pill-title, body.theme-bright .news-pill-meta,
+    body.theme-bright .news-pill-name {
+        --news-halo: lch(from var(--text-color, #fff) calc((49.44 - l) * infinity) 0 0);
+        text-shadow:
+            0 0 3px color-mix(in srgb, var(--news-halo) 72%, transparent),
+            0 1px 2px color-mix(in srgb, var(--news-halo) 55%, transparent);
+    }
+}
+
+/* ── Wow-pass pill variants (Brendon, 2026-07-06) ──
+   Fixed dimensions on every art element — the rail's seamless loop measures
+   width once, so nothing may resize after images load. */
+/* Art chip on a moment pill — the exact output that triggered the moment. */
+.news-pill-art {
+    width: 32px;
+    height: 32px;
+    border-radius: 7px;
+    object-fit: cover;
+    flex-shrink: 0;
+    display: block;
+    background: var(--stat-bg);
+}
+/* Circle entries — lone artwork, or the rare $PRICE bubble. */
+.news-rail .news-pill--circle {
+    width: 46px;
+    height: 46px;
+    align-self: center;
+    padding: 0;
+    border-radius: 50%;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.news-pill-circle-art {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.news-rail .news-pill--price { background: var(--stat-bg); }
+.news-rail .news-pill--price svg {
+    width: 68%;
+    height: 68%;
+    display: block;
+}
+/* Wide treatment — roomier pill, bigger art chip. Width variance is the
+   point: uniform pills bore the eye (Brendon, 2026-07-06). ASCENSION is
+   always wide; a seeded scatter of other moments joins it daily. */
+.news-rail .news-pill--wide {
+    padding: 7px 36px 7px 20px;
+    gap: 13px;
+}
+.news-rail .news-pill--wide .news-pill-art {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+}
+/* The spinning PD logo — two-tone theme colours; turns to rest as Petey
+   (-90°, the corner logo's resting pose), holds, and returns. */
+.news-rail .news-pill--logo { background: var(--stat-bg); }
+.news-logo-spin {
+    width: 62%;
+    height: 62%;
+    display: block;
+    color: var(--text-color);
+    animation: news-petey-spin 7s ease-in-out infinite;
+}
+@keyframes news-petey-spin {
+    0%, 46%   { transform: rotate(0deg); }
+    54%, 88%  { transform: rotate(-90deg); }
+    100%      { transform: rotate(0deg); }
+}
+/* Showcase six-pack — six outputs back to back, no name, no explanation. */
+.news-rail .news-pill--six {
+    padding: 0;
+    gap: 0;
+    overflow: hidden;
+}
+.news-pill-six-art {
+    width: 40px;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    flex-shrink: 0;
+}
 
 /* Sprite pill — a live PriceSprite chip + @name, narrower than a text pill so
    the row's widths vary. */

@@ -41,6 +41,10 @@ interface Sub {
     offset: number;
     halfWidth: number;
     lastTs: number;
+    /** Per-rail LOCKED speed (px/sec). When set, this rail ignores the shared
+        Tape constants — a Tape retune can never drift it. The news banner pins
+        its approved speed this way (Brendon, 2026-07-06). */
+    speed?: { desktop: number; mobile: number };
 }
 
 const subs = new Set<Sub>();
@@ -67,9 +71,11 @@ function prefersReducedMotion(): boolean {
 }
 
 function tick(ts: number): void {
-    const pxPerSec = getTapeSpeed();
+    const sharedPxPerSec = getTapeSpeed();
+    const mobile = isMobile();
     for (const s of subs) {
         if (!s.rail.isConnected) continue;
+        const pxPerSec = s.speed ? (mobile ? s.speed.mobile : s.speed.desktop) : sharedPxPerSec;
         if (!s.halfWidth) {
             s.halfWidth = s.rail.scrollWidth / 2;
             if (!s.halfWidth) {
@@ -128,7 +134,10 @@ function ensureResizeListener(): void {
  * Returns an unsubscribe handler. When the last subscriber leaves,
  * the rAF loop stops and the rail transform is reset.
  */
-export function subscribeTapeRail(rail: HTMLElement): () => void {
+export function subscribeTapeRail(
+    rail: HTMLElement,
+    speed?: { desktop: number; mobile: number },
+): () => void {
     if (typeof window === 'undefined') return () => undefined;
 
     ensureResizeListener();
@@ -138,6 +147,7 @@ export function subscribeTapeRail(rail: HTMLElement): () => void {
         offset: 0,
         halfWidth: 0,
         lastTs: 0,
+        speed,
     };
     subs.add(sub);
     ensureLoop();
