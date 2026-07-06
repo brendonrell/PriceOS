@@ -1,27 +1,42 @@
 'use client';
 
 /*
- * FollowersModal → FOLLOWERS MANAGER (Brendon, 2026-06-25). Rebuilt on the
- * Sticker Manager's exact shell — a floating popup (COMPACT) that expands to a
- * full jumbo panel (PLUS) via the ↑, same as stickers. "The same thing, but for
- * your circle."
+ * FRIEND INSPECTOR — interior rebuilt 2026-07-06 from
+ * docs/briefs/friend-inspector-rebuild.md, re-cut same day to Brendon's
+ * corrections: ROWS, not cards; PriceSprites at the app's normal chip size;
+ * every piece built from PD's OWN UI vocabulary (Rule #0) — the dossier is
+ * a FUNCTION, not a look.
  *
- * Every row is a browsable, comparable card:
- *   - People (Followers / Following / Mutuals): the sprite+@name chip, your
- *     relationship to them, an artist ✺ badge, and the SAME three profile stats
- *     inline — ⬚ collected · ⟠ spent · ⚬ followers — sortable by any of them.
- *   - Projects: the project's sprite+@name (PriceSprite, like users), its ✺
- *     creator, ⬚ minted/supply, and ⟁ how many of your mutuals collect it
- *     (reusing the Cartel count).
- *   - A ★ on every row stars that follower (followerStarStore) — the same star
- *     the Artists list uses; sort to "Starred" to see just them.
+ * CHROME UNTOUCHED: the compact ambient-pop popup + jumbo sticker-mgr-plus
+ * expansion via ↑, the four tabs, open/close — all the 2026-06-25 shell.
  *
- * Data: the live follow graph (/api/follows), followed projects
- * (/api/project-follows), and the batch row stats (/api/social/circle-stats).
- * Opens via useModal('followers'); the default tab arrives in the payload.
+ * The interior:
+ *   THE LEDGER — one dense row per friend in both altitudes: ★ ·
+ *     sprite+@name chip (CollectedPair, the app's identity unit) · ✺ ·
+ *     relationship glyph · the three stats in FIXED ALIGNED COLUMNS
+ *     (⬚ collected · ⟠ spent · ⚬ followers) so the list reads like a
+ *     terminal ledger.
+ *   THE DUEL — tap a row and it unfolds in place: YOU vs THEM as real
+ *     Attributes tiles (attr-tile / attr-spectrum — the +More vocabulary),
+ *     each stat a tile with a split duel bar that fills on open and a
+ *     "YOU LEAD / @them LEADS" verdict line. Follow/unfollow lives here.
+ *     Shared-⟁ holdings + their full collection render as real
+ *     sprite+@name project chips linking to the art.
+ *
+ * RIVALRY SOCKETS (designed now, features later — render NOTHING while
+ * empty): per-dossier badge row (Argue scars — ClickUp 86b9eretz), a
+ * relationship-line slot (Understudy/Counterweight 86b9fcnnc · PriceTwin
+ * 86b9fcngz), and one --fi-accent color channel per row (Sigil Faction
+ * paint — 86baf786c).
+ *
+ * Data (all live, no new endpoints): /api/follows graph,
+ * /api/social/circle-stats (self included for the duel),
+ * /api/user/{addr}/owned-projects for the shared-⟁ intersection,
+ * /api/user/by-handle/{h} for PriceScore, /api/project-follows,
+ * cartel counts, the shared artist/project star stores.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { useModal } from '../lib/state/ModalContext';
 import { useAuth } from '../lib/state/AuthContext';
@@ -63,6 +78,32 @@ const EMPTY_LINE: Record<FollowersTab, string> = {
     projects: 'Nothing here yet.',
 };
 
+/* Relationship → its glyph (GLYPHS.md §12 social set). */
+const REL_GLYPH: Record<string, string> = {
+    MUTUAL: '⚭',
+    'FOLLOWS YOU': '⚬',
+    FOLLOWING: '⚯',
+};
+
+/* ── RIVALRY SOCKETS ──────────────────────────────────────────────────────
+   Reserved per-friend slots the upcoming rivalry features plug into. All
+   empty today, and empty slots render NOTHING (no placeholder cruft):
+     badges  — badge row on the dossier (Argue scars & wins, 86b9eretz)
+     relLine — a verdict line in the dossier head ("◈ following · 47 days
+               behind" — Understudy/Counterweight 86b9fcnnc; PriceTwin
+               marker 86b9fcngz)
+     accent  — the one color channel per row, painted --fi-accent when
+               Sigil Factions land (86baf786c). Unset = currentColor.     */
+interface RivalrySlots {
+    badges: string[];
+    relLine: string | null;
+    accent: string | null;
+}
+const EMPTY_SLOTS: RivalrySlots = { badges: [], relLine: null, accent: null };
+function rivalrySlotsFor(_handle: string): RivalrySlots {
+    return EMPTY_SLOTS;
+}
+
 interface Graph { followers: string[]; following: string[]; mutuals: string[]; }
 const EMPTY_GRAPH: Graph = { followers: [], following: [], mutuals: [] };
 
@@ -83,16 +124,16 @@ const lc = (s: string) => s.toLowerCase().replace(/^@/, '');
 
 export default function FollowersModal() {
     const { openModal, close, open } = useModal();
-    const { siweAddress } = useAuth();
+    const { siweAddress, handle: myHandle } = useAuth();
     const { showToast } = useToast();
     const isOpen = openModal?.name === 'followers';
 
-    const [tab, setTab] = useState<FollowersTab>('followers');
+    const [tab, setTabState] = useState<FollowersTab>('followers');
     const [sort, setSort] = useState<SortKey>('default');
-    /* The INSPECTOR (Brendon, 2026-07-05): tap a friend row → it unfolds into
-       their dossier in place. One open at a time; resets on tab/open change. */
+    /* The dossier — one friend open at a time; resets on tab/open change. */
     const [inspected, setInspected] = useState<string | null>(null);
     const [mySlugs, setMySlugs] = useState<string[] | null>(null);
+    const [myScore, setMyScore] = useState<number | null>(null);
     const [graph, setGraph] = useState<Graph>(EMPTY_GRAPH);
     const [projects, setProjects] = useState<FollowedProjectRow[]>([]);
     const [statByAddr, setStatByAddr] = useState<Record<string, CircleStat>>({});
@@ -100,9 +141,13 @@ export default function FollowersModal() {
     const [loading, setLoading] = useState(false);
     const [full, setFull] = useState(false);
 
+    const setTab = useCallback((t: FollowersTab) => {
+        setTabState(t);
+        setInspected(null);
+    }, []);
+
     /* Stars — the SAME DB-backed sets the Artists list + project pages use, so a
-       star here shows everywhere (people → the shared collector/artist star set;
-       projects → the project star set). Starred rows pin to the top, alphabetised. */
+       star here shows everywhere. Starred pin to the top, alphabetised. */
     const [starredPeople, setStarredPeople] = useState<Set<string>>(() => new Set(getArtistStars().map(lc)));
     const [starredProjects, setStarredProjects] = useState<Set<string>>(() => new Set(getProjectStars().map((s) => s.toLowerCase())));
     useEffect(() => subscribeArtistStars((names) => setStarredPeople(new Set(names.map(lc)))), []);
@@ -120,7 +165,7 @@ export default function FollowersModal() {
     useEffect(() => {
         if (!isOpen) { setFull(false); return; }
         const payload = openModal?.payload;
-        setTab(isTab(payload) ? payload : 'followers');
+        setTabState(isTab(payload) ? payload : 'followers');
         setSort('default');
         setInspected(null);
     }, [isOpen, openModal]);
@@ -136,6 +181,17 @@ export default function FollowersModal() {
             .catch(() => { /* dossiers show holdings only */ });
         return () => { alive = false; };
     }, [isOpen, siweAddress]);
+
+    /* Your PriceScore — once per open, for the duel's ◍ tile. */
+    useEffect(() => {
+        if (!isOpen || !myHandle) { setMyScore(null); return; }
+        let alive = true;
+        fetch(`/api/user/by-handle/${lc(myHandle)}`, { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((u) => { if (alive) setMyScore(typeof u?.price_score === 'number' ? u.price_score : 0); })
+            .catch(() => { /* duel shows — for score */ });
+        return () => { alive = false; };
+    }, [isOpen, myHandle]);
 
     /* Freeze the page underneath while open (matches the Sticker Manager). */
     useEffect(() => {
@@ -155,7 +211,9 @@ export default function FollowersModal() {
         return () => window.removeEventListener('keydown', onKey);
     }, [isOpen, full, close]);
 
-    /* Live graph + projects + row stats — on open and on any follow change. */
+    /* Live graph + projects + row stats — on open and on any follow change.
+       Your own address rides the stats batch so the duel's YOU side reads
+       from the exact same numbers as everyone else's. */
     useEffect(() => {
         if (!isOpen) return;
         if (!siweAddress) { setGraph(EMPTY_GRAPH); setProjects([]); setStatByAddr({}); setHandleToAddr({}); return; }
@@ -189,8 +247,10 @@ export default function FollowersModal() {
                 followingHandles.forEach((h, i) => { if (followingAddrs[i]) h2a[lc(h)] = followingAddrs[i].toLowerCase(); });
                 setHandleToAddr(h2a);
 
-                // Batch the inline row stats for everyone in the circle.
-                const addrs = Array.from(new Set([...followerAddrs, ...followingAddrs].map((a) => a.toLowerCase())));
+                // Batch the row stats for everyone in the circle — plus you.
+                const addrs = Array.from(new Set(
+                    [...followerAddrs, ...followingAddrs, siweAddress].map((a) => a.toLowerCase()),
+                ));
                 if (addrs.length) {
                     const sRes = await fetch(`/api/social/circle-stats?addresses=${addrs.join(',')}`, { cache: 'no-store' });
                     const sJson = await sRes.json().catch(() => ({}));
@@ -235,6 +295,38 @@ export default function FollowersModal() {
         if (g) return 'FOLLOWING';
         return null;
     }, [followerSet, followingSet]);
+
+    /* Follow / unfollow from the dossier — the same /api/follows contract the
+       profile FollowButton uses, same toasts, same refresh event. */
+    const [followBusy, setFollowBusy] = useState(false);
+    const toggleFollow = useCallback(async (handle: string) => {
+        const target = handleToAddr[lc(handle)];
+        if (!siweAddress || !target) { showToast('Wallet: CONNECT TO FOLLOW'); return; }
+        const isFollowing = followingSet.has(lc(handle));
+        setFollowBusy(true);
+        try {
+            if (isFollowing) {
+                const r = await fetch(`/api/follows?target=${target}`, { method: 'DELETE' });
+                if (r.ok) {
+                    showToast(`@${lc(handle)}: UNFOLLOWED`);
+                    window.dispatchEvent(new Event('pd:follows-changed'));
+                } else showToast('Unfollow: FAILED');
+            } else {
+                const r = await fetch('/api/follows', {
+                    method: 'POST',
+                    headers: { 'content-type': 'application/json' },
+                    body: JSON.stringify({ target }),
+                });
+                if (r.status === 201 || r.status === 200) {
+                    showToast(`@${lc(handle)}: FOLLOWED`);
+                    window.dispatchEvent(new Event('pd:follows-changed'));
+                } else if (r.status === 204) showToast(`@${lc(handle)}: NO @NAME YET`);
+                else showToast('Follow: FAILED');
+            }
+        } finally {
+            setFollowBusy(false);
+        }
+    }, [siweAddress, handleToAddr, followingSet, showToast]);
 
     /* The ordered people rows for the active tab. Starred pin to the top
        (alphabetised); the rest follow the chosen sort (A–Z by default). */
@@ -331,6 +423,11 @@ export default function FollowersModal() {
                             onInspect={() => setInspected((cur) => (cur === lc(handle) ? null : lc(handle)))}
                             friendAddr={handleToAddr[lc(handle)] ?? null}
                             mySlugs={mySlugs}
+                            myStat={siweAddress ? statByAddr[siweAddress.toLowerCase()] : undefined}
+                            myScore={myScore}
+                            following={followingSet.has(lc(handle))}
+                            followBusy={followBusy}
+                            onToggleFollow={() => void toggleFollow(handle)}
                         />
                     ))
                 )}
@@ -346,7 +443,7 @@ export default function FollowersModal() {
         </span>
     );
 
-    // ── FOLLOWERS MANAGER+ — full jumbo panel (matches Sticker Manager Plus) ──
+    // ── FRIEND INSPECTOR+ — full jumbo panel (matches Sticker Manager Plus) ──
     if (full) {
         return createPortal(
             <div className="sticker-mgr-plus-backdrop" role="dialog" aria-modal="true" aria-label="Friend Inspector" onClick={close}>
@@ -375,7 +472,7 @@ export default function FollowersModal() {
         );
     }
 
-    // ── FOLLOWERS MANAGER — compact floating popup ──
+    // ── FRIEND INSPECTOR — compact floating popup ──
     return createPortal(
         <div className="sticker-mgr-backdrop followers-backdrop" role="dialog" aria-modal="true" aria-label="Friend Inspector" onClick={close}>
             <div className="ambient-pop followers-pop" role="dialog" aria-label="Friend Inspector" onClick={(e) => e.stopPropagation()}>
@@ -401,66 +498,109 @@ export default function FollowersModal() {
     );
 }
 
-/* One person row — sprite+@name, relationship, artist badge, the three profile
-   stats inline, and the ★ star. Tapping the row (not the name link / star)
-   unfolds THE DOSSIER underneath — the Inspector inspecting. */
+/* ── THE LEDGER — one person row. The app's sprite+@name chip at its normal
+   size, relationship glyph, and the three stats in fixed aligned columns.
+   Tapping the row (not the chip link / star) unfolds THE DUEL beneath. ── */
 function PersonRow({
     handle, stat, tag, starred, onStar, inspected, onInspect, friendAddr, mySlugs,
+    myStat, myScore, following, followBusy, onToggleFollow,
 }: {
     handle: string; stat: CircleStat | undefined; tag: string | null; starred: boolean;
     onStar: (h: string) => void; inspected: boolean; onInspect: () => void;
     friendAddr: string | null; mySlugs: string[] | null;
+    myStat: CircleStat | undefined; myScore: number | null;
+    following: boolean; followBusy: boolean; onToggleFollow: () => void;
 }) {
+    const slots = rivalrySlotsFor(lc(handle));
     return (
-        <div className={`fm-row${inspected ? ' inspecting' : ''}`}>
-            <button
-                type="button"
-                className={`fm-star${starred ? ' on' : ''}`}
-                onClick={() => onStar(handle)}
-                title={starred ? 'Unstar' : 'Star this follower'}
-                aria-pressed={starred}
-            >
-                {starred ? `★${VS15}` : `☆${VS15}`}
-            </button>
-            <div
-                className="fm-row-main"
-                role="button"
-                tabIndex={0}
-                title="Inspect"
-                onClick={(e) => {
-                    // The @name link still navigates; anything else inspects.
-                    if ((e.target as HTMLElement).closest('a')) return;
-                    onInspect();
-                }}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onInspect(); } }}
-            >
-                <div className="fm-row-id">
+        <div
+            className={`fi-row${inspected ? ' inspecting' : ''}`}
+            style={slots.accent ? ({ '--fi-accent': slots.accent } as CSSProperties) : undefined}
+        >
+            <div className="fi-line">
+                <button
+                    type="button"
+                    className={`fm-star${starred ? ' on' : ''}`}
+                    onClick={() => onStar(handle)}
+                    title={starred ? 'Unstar' : 'Star this friend'}
+                    aria-pressed={starred}
+                >
+                    {starred ? `★${VS15}` : `☆${VS15}`}
+                </button>
+                <div
+                    className="fi-line-main"
+                    role="button"
+                    tabIndex={0}
+                    title="Inspect"
+                    onClick={(e) => { if ((e.target as HTMLElement).closest('a')) return; onInspect(); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onInspect(); } }}
+                >
                     <CollectedPair handle={handle} />
                     {stat?.isArtist && <span className="fm-artist-badge" title="Artist">{`✺${VS15}`}</span>}
+                    {tag && <span className="fi-rel" title={tag}>{REL_GLYPH[tag]}{VS15}</span>}
+                    <span className="fi-cols">
+                        <span className="fi-col fi-col-n" title="Outputs Collected">
+                            <span className="fm-stat-ic">{`⬚${VS15}`}</span>{stat ? stat.collected : '—'}
+                        </span>
+                        <span className="fi-col fi-col-eth" title="Volume Spent">
+                            <span className="fm-stat-ic">{`⟠${VS15}`}</span>{stat ? stat.spentEth.toFixed(2) : '—'}
+                        </span>
+                        <span className="fi-col fi-col-n" title="Followers">
+                            <span className="fm-stat-ic">{`⚬${VS15}`}</span>{stat ? fmtFollowers(stat.followers) : '—'}
+                        </span>
+                    </span>
                 </div>
-                <div className="fm-row-stats">
-                    {tag && <span className="fm-tag">{tag}</span>}
-                    <span className="fm-stat" title="Outputs Collected">
-                        <span className="fm-stat-ic">{`⬚${VS15}`}</span><b>{stat ? stat.collected : '—'}</b>
-                    </span>
-                    <span className="fm-stat" title="Volume Spent">
-                        <span className="fm-stat-ic">{`⟠${VS15}`}</span><b>{stat ? stat.spentEth.toFixed(2) : '—'}</b>
-                    </span>
-                    <span className="fm-stat" title="Followers">
-                        <span className="fm-stat-ic">{`⚬${VS15}`}</span><b>{stat ? fmtFollowers(stat.followers) : '—'}</b>
-                    </span>
-                </div>
-                {inspected && <FriendDossier friendAddr={friendAddr} mySlugs={mySlugs} />}
             </div>
+            {inspected && (
+                <FriendDossier
+                    handle={lc(handle)}
+                    stat={stat}
+                    tag={tag}
+                    friendAddr={friendAddr}
+                    mySlugs={mySlugs}
+                    myStat={myStat}
+                    myScore={myScore}
+                    following={following}
+                    followBusy={followBusy}
+                    onToggleFollow={onToggleFollow}
+                    slots={slots}
+                />
+            )}
         </div>
     );
 }
 
-/* THE DOSSIER — what the Inspector sees. All real: the friend's holdings from
-   the same ownership read the home page uses, intersected with YOURS for the
-   shared-holdings Cartel ⟁ line. Project chips link straight to the art. */
-function FriendDossier({ friendAddr, mySlugs }: { friendAddr: string | null; mySlugs: string[] | null }) {
+/* A project rendered as the app's own sprite+@name chip, linking to the art.
+   Used for the dossier's shared-⟁ beads and their-collection rows. */
+function ProjectChip({ slug, faceId }: { slug: string; faceId?: string }) {
+    const face = projectSpriteFace(faceId ?? slug);
+    return (
+        <span className="collected-pair">
+            {face && <SpriteFace className="collected-sprite" face={face} />}
+            <a className="profile-link" href={`/art/${slug}`} onClick={(e) => e.stopPropagation()}>
+                @{slug}
+            </a>
+        </span>
+    );
+}
+
+/* ── THE DUEL — what a tapped row unfolds into. Head-to-head YOU vs THEM
+   rendered in the app's Attributes vocabulary: one attr-tile per stat with
+   a split duel bar (attr-spectrum) that fills on open and a verdict line.
+   All real numbers; follow/unfollow rides the same row. ── */
+function FriendDossier({
+    handle, stat, tag, friendAddr, mySlugs, myStat, myScore,
+    following, followBusy, onToggleFollow, slots,
+}: {
+    handle: string; stat: CircleStat | undefined; tag: string | null;
+    friendAddr: string | null; mySlugs: string[] | null;
+    myStat: CircleStat | undefined; myScore: number | null;
+    following: boolean; followBusy: boolean; onToggleFollow: () => void;
+    slots: RivalrySlots;
+}) {
     const [theirSlugs, setTheirSlugs] = useState<string[] | null>(null);
+    const [theirScore, setTheirScore] = useState<number | null>(null);
+
     useEffect(() => {
         if (!friendAddr) { setTheirSlugs([]); return; }
         let alive = true;
@@ -471,83 +611,151 @@ function FriendDossier({ friendAddr, mySlugs }: { friendAddr: string | null; myS
         return () => { alive = false; };
     }, [friendAddr]);
 
+    useEffect(() => {
+        let alive = true;
+        fetch(`/api/user/by-handle/${handle}`, { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((u) => { if (alive) setTheirScore(typeof u?.price_score === 'number' ? u.price_score : 0); })
+            .catch(() => { if (alive) setTheirScore(0); });
+        return () => { alive = false; };
+    }, [handle]);
+
     const mine = useMemo(() => new Set((mySlugs ?? []).map((s) => s.toLowerCase())), [mySlugs]);
     const shared = useMemo(
         () => (theirSlugs ?? []).filter((s) => mine.has(s.toLowerCase())),
         [theirSlugs, mine],
     );
-    const chips = (slugs: string[]) => (
-        <span className="fm-dossier-chips">
-            {slugs.slice(0, 6).map((s) => (
-                <a key={s} className="fm-dossier-chip" href={`/art/${s}`} onClick={(e) => e.stopPropagation()}>
-                    @{s}
-                </a>
-            ))}
-            {slugs.length > 6 && <span className="fm-dossier-more">+{slugs.length - 6}</span>}
-        </span>
+
+    const beads = (slugs: string[]) => (
+        <div className="fi-beads">
+            {slugs.slice(0, 8).map((s) => <ProjectChip key={s} slug={s} />)}
+            {slugs.length > 8 && <span className="fi-beads-more">+{slugs.length - 8}</span>}
+        </div>
     );
 
-    if (theirSlugs === null) return <div className="fm-dossier fm-dossier-loading">Inspecting…</div>;
     return (
-        <div className="fm-dossier" onClick={(e) => e.stopPropagation()}>
-            <div className="fm-dossier-line">
-                <span className="fm-stat-ic">{`⟁${VS15}`}</span>
-                <b>{shared.length}</b> SHARED {shared.length === 1 ? 'HOLDING' : 'HOLDINGS'}
+        <div className="fi-dossier" onClick={(e) => e.stopPropagation()}>
+            <div className="fi-dossier-head">
+                {tag && <span className="fm-tag">{REL_GLYPH[tag]}{VS15} {tag}</span>}
+                {/* Relationship-line socket — Understudy/Counterweight (86b9fcnnc),
+                    PriceTwin (86b9fcngz). Empty renders nothing. */}
+                {slots.relLine && <span className="fm-tag">{slots.relLine}</span>}
+                <button
+                    type="button"
+                    className={`ambient-chip fi-follow${following ? ' on' : ''}`}
+                    onClick={onToggleFollow}
+                    disabled={followBusy}
+                    title={following ? `Unfollow @${handle}` : `Follow @${handle}`}
+                >
+                    {followBusy ? '…' : following ? 'FOLLOWING' : 'FOLLOW'}
+                </button>
             </div>
-            {shared.length > 0
-                ? chips(shared)
-                : <div className="fm-dossier-none">No shared holdings — yet.</div>}
-            {theirSlugs.length > 0 && (
+
+            {/* Badge-row socket — Argue scars & wins (86b9eretz). */}
+            {slots.badges.length > 0 && (
+                <div className="fi-dossier-head">
+                    {slots.badges.map((b, i) => <span key={i} className="fm-tag">{b}</span>)}
+                </div>
+            )}
+
+            <div className="attr-grid fi-duel">
+                <DuelTile glyph="⬚" label="Collected" you={myStat ? myStat.collected : null} them={stat ? stat.collected : null} handle={handle} />
+                <DuelTile glyph="⟠" label="Spent" you={myStat ? myStat.spentEth : null} them={stat ? stat.spentEth : null} handle={handle} eth />
+                <DuelTile glyph="⚬" label="Followers" you={myStat ? myStat.followers : null} them={stat ? stat.followers : null} handle={handle} />
+                <DuelTile glyph="◍" label="PriceScore" you={myScore} them={theirScore} handle={handle} />
+            </div>
+
+            {theirSlugs === null ? (
+                <div className="fm-empty fm-loading">Inspecting…</div>
+            ) : (
                 <>
-                    <div className="fm-dossier-line">
-                        <span className="fm-stat-ic">{`⬚${VS15}`}</span>
-                        COLLECTS <b>{theirSlugs.length}</b> {theirSlugs.length === 1 ? 'PROJECT' : 'PROJECTS'}
+                    <div className="fi-group-head">
+                        <span className="attr-group-name">{`⟁${VS15}`} Shared Holdings</span>
+                        <span className="attr-group-count">{shared.length}</span>
                     </div>
-                    {chips(theirSlugs)}
+                    {shared.length > 0
+                        ? beads(shared)
+                        : <div className="fi-none">No shared holdings — yet.</div>}
+                    {theirSlugs.length > 0 && (
+                        <>
+                            <div className="fi-group-head">
+                                <span className="attr-group-name">{`⬚${VS15}`} Collects</span>
+                                <span className="attr-group-count">{theirSlugs.length}</span>
+                            </div>
+                            {beads(theirSlugs)}
+                        </>
+                    )}
                 </>
             )}
         </div>
     );
 }
 
-/* One project row — the project's PriceSprite+@name, its creator, mint count,
-   and how many of your mutuals collect it (Cartel ⟁). */
+/* One duel tile — the Attributes tile carrying a head-to-head: both values,
+   a split bar (your share fills from the left in full text colour), and the
+   verdict. Ties split the bar down the middle. */
+function DuelTile({
+    glyph, label, you, them, handle, eth,
+}: {
+    glyph: string; label: string; you: number | null; them: number | null; handle: string; eth?: boolean;
+}) {
+    const fmt = (n: number) => (eth ? n.toFixed(2) : String(n));
+    const known = you !== null && them !== null;
+    const total = known ? (you as number) + (them as number) : 0;
+    const share = known ? (total > 0 ? (you as number) / total : 0.5) : 0.5;
+    const verdict = !known ? '' : (you as number) > (them as number) ? 'YOU LEAD' : (you as number) < (them as number) ? `@${handle} LEADS` : 'TIED';
+    const lead = known && (you as number) !== (them as number);
+    return (
+        <div className={`attr-tile${lead ? ' rare' : ''}`}>
+            <span className="attr-tile-label">{glyph}{VS15} {label}</span>
+            <span className="attr-tile-value">
+                {you === null ? '—' : fmt(you)}
+                <span className="fi-duel-vs">VS</span>
+                {them === null ? '—' : fmt(them)}
+            </span>
+            <span className="attr-spectrum fi-duel-bar" aria-hidden="true">
+                <span className="attr-spectrum-seg fi-duel-you" style={{ flexGrow: Math.max(share, 0.02) }} />
+                <span className="attr-spectrum-seg fi-duel-them" style={{ flexGrow: Math.max(1 - share, 0.02) }} />
+            </span>
+            <span className="attr-tile-sub">{verdict || ' '}</span>
+        </div>
+    );
+}
+
+/* One project row — the project's own sprite+@name chip, creator, mint count,
+   and how many of your mutuals collect it (Cartel ⟁), in the same aligned
+   ledger columns as the people rows. */
 function ProjectRow({ proj, enabled, starred, onStar }: { proj: FollowedProjectRow; enabled: boolean; starred: boolean; onStar: (slug: string) => void }) {
-    /* Spite Book — a spited creator renders redacted on the dossier row. */
+    /* Spite Book — a spited creator renders redacted on the row. */
     const fmIsSpited = useSpiteMatcher();
     const cartel = useCartelMutualCount(proj.project_id, enabled);
-    const face = projectSpriteFace(proj.project_id);
     const h = proj.handle ?? proj.project_id;
     return (
-        <div className="fm-row">
-            <button
-                type="button"
-                className={`fm-star${starred ? ' on' : ''}`}
-                onClick={() => onStar(proj.project_id)}
-                title={starred ? 'Unstar' : 'Star this project'}
-                aria-pressed={starred}
-            >
-                {starred ? `★${VS15}` : `☆${VS15}`}
-            </button>
-            <div className="fm-row-main">
-                <div className="fm-row-id">
-                    <span className="collected-pair">
-                        {face && <SpriteFace className="collected-sprite" face={face} />}
-                        <a className="profile-link" href={`/art/${h}`}>@{h}</a>
-                    </span>
-                </div>
-                <div className="fm-row-stats">
-                    <span className="fm-tag">{proj.held ? 'FOLLOWS YOU' : 'FOLLOWING'}</span>
+        <div className="fi-row">
+            <div className="fi-line">
+                <button
+                    type="button"
+                    className={`fm-star${starred ? ' on' : ''}`}
+                    onClick={() => onStar(proj.project_id)}
+                    title={starred ? 'Unstar' : 'Star this project'}
+                    aria-pressed={starred}
+                >
+                    {starred ? `★${VS15}` : `☆${VS15}`}
+                </button>
+                <div className="fi-line-main">
+                    <ProjectChip slug={h} faceId={proj.project_id} />
                     {proj.artist && (
-                        <span className="fm-stat" title="Creator">
-                            <span className="fm-stat-ic">{`✺${VS15}`}</span><b className={fmIsSpited(proj.artist) ? 'spited' : undefined}>@{proj.artist}</b>
+                        <span className="fi-artist" title="Creator">
+                            {`✺${VS15}`}<b className={fmIsSpited(proj.artist) ? 'spited' : undefined}>@{proj.artist}</b>
                         </span>
                     )}
-                    <span className="fm-stat" title="Minted">
-                        <span className="fm-stat-ic">{`⬚${VS15}`}</span><b>{proj.minted}{proj.supply ? `/${proj.supply}` : ''}</b>
-                    </span>
-                    <span className="fm-stat" title="Mutuals who collect">
-                        <span className="fm-stat-ic">{`⟁${VS15}`}</span><b>{cartel}</b>
+                    <span className="fi-cols">
+                        <span className="fi-col fi-col-mint" title="Minted">
+                            <span className="fm-stat-ic">{`⬚${VS15}`}</span>{proj.minted}{proj.supply ? `/${proj.supply}` : ''}
+                        </span>
+                        <span className="fi-col fi-col-n" title="Mutuals who collect">
+                            <span className="fm-stat-ic">{`⟁${VS15}`}</span>{cartel}
+                        </span>
                     </span>
                 </div>
             </div>
