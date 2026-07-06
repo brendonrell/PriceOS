@@ -6,6 +6,46 @@
 
 ---
 
+## ✅ SHIPPED 2026-07-06 — FRIEND INSPECTOR TOTAL REBUILD (dev @ 830db65, tree clean)
+
+ClickUp `86bargkmk` CLOSED. Three Brendon-approved pushes in one session
+(55aa385 rebuild → b026a9d spacing → 830db65 wire/map/cartel/factions).
+The brief's card-grid + big-sprite first cut was REJECTED mid-session —
+final design is Brendon's corrections, all in PD's existing UI vocabulary:
+
+- **THE LEDGER** — dense aligned rows (CollectedPair chips at normal size,
+  rel glyph, fixed stat columns) in both altitudes. PROJECTS tab matches.
+- **THE DUEL** — row unfolds in place: YOU-vs-THEM as attr-tiles with
+  split fill bars + verdicts (collected/spent/followers/PriceScore),
+  follow/unfollow inline, shared-⟁ + collects as real project chips.
+  "The Duel" is OURS (not a ClickUp feature; Argue is the staked cousin).
+- **CARTEL tab** — permanent ⟁ pill beside MUTUALS: mutuals sharing
+  holdings with you, most-shared first (per-mutual owned-projects ∩ mine).
+- **FACTIONS (Brendon's call this session)** — a blank speech-bubble
+  profile logo IS the faction; real bubble beside the name + dossier tag,
+  bubble color paints the row accent, Factions sort filters/groups.
+  circle-stats now returns profile_logo + profile_hex. Noted on 86baf786c.
+- **Colorway flair** — friend's side of every duel bar runs in THEIR
+  profile_hex; yours is always the theme text color.
+- **PREVIEW STRIP ALIVE (PLUS)** — WIRE/MAP toggle (persisted):
+  Circle Wire = circle feed + relationship moments, 2-3 counter-scrolling
+  rows on the news banner's LOCKED-speed compositor rail; Constellation =
+  canvas starfield (hash angles, cartel gravity + threads, colorway-tinted
+  stars, tap-a-star → dossier, inspected star rings + DUEL n–n line).
+- **GO TO DISCORD** replaced the STICKERS header button (both altitudes).
+- **Familiar walks IN FRONT of PLUS** (body flag lifts its layer over the
+  jumbo backdrop z1330 → 1340 while open).
+- Rivalry sockets reserved, render nothing while empty: Argue `86b9eretz`
+  badges · Understudy/PriceTwin rel-line `86b9fcnnc`/`86b9fcngz` · accent
+  channel (factions took it, as designed).
+- Verified end-to-end headless each push: local prod build + dev-login
+  cookie + Playwright API stubs (scratch script pattern; server needs
+  `DEV_LOGIN_ENABLED=1` + `SIWE_SESSION_SECRET`).
+
+**WOW MENU AWAITING BRENDON'S SORT (presented, not built):** Friends
+Since (follow-date keepsake line) · Duel Receipt (share card) · Argue v1 ·
+PriceTwin v0 (circle overlap) · Cartel Ping.
+
 ## ✅ SHIPPED 2026-07-06 — SNAPPY TILES + BUG BATCH + BANNER (FINAL STATE: dev @ a37d99c)
 
 **Snappy tiles + bugs (dev @ 375d2bc):**
@@ -43,7 +83,8 @@
    ladder at 10/25/50/100/250/500/1000 collected; 100 = Gen Curated
    showcase unlock (locked); tie tiers to achievements. Pitch idea: 1000 =
    "Per Mille Collector" (matches the ‰ brand).
-3. Friend Inspector total inner rebuild (pre-existing).
+3. ~~Friend Inspector total inner rebuild~~ — SHIPPED 2026-07-06 (top of
+   this file); its wow menu awaits Brendon's sort.
 - DROPPED by Brendon: sticker-sheet product spec; stickers-in-banner (died
   with the banner revert).
 
