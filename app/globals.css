@@ -1902,6 +1902,20 @@ body.tape-framed .tape-rail {
     will-change: transform;
     transform: translate3d(0, 0, 0);
 }
+/* Compositor-driven scroll (the stutter fix, Brendon 2026-07-06): the rail
+   loops via a CSS transform animation - main-thread work can't drop its
+   frames. -50% of the doubled run = one seamless loop; the duration var is
+   set from the LOCKED speed (45/28 px/sec) against the measured width. */
+.news-rail.news-rail-anim {
+    animation: news-rail-scroll var(--news-loop-s, 60s) linear infinite;
+}
+@keyframes news-rail-scroll {
+    from { transform: translate3d(0, 0, 0); }
+    to   { transform: translate3d(-50%, 0, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .news-rail.news-rail-anim { animation: none; }
+}
 
 /* Rich pill — trait-pill fill/colours, but taller with stacked content.
    Scoped under .news-rail so the taller height wins over the base .pill

@@ -19,11 +19,12 @@
  */
 
 import { Fragment, useEffect, useRef, useState } from 'react';
-import { subscribeTapeRail } from '../../lib/engines/tapeEngine';
 
 /* ⛔ LOCKED — the news banner's scroll speed, approved by Brendon 2026-07-06
-   ("I love the speed"). Desktop 45 px/sec · mobile 28 px/sec. Pinned here so
-   a Tape retune can never drift the banner. Recovery values: 45 / 28. */
+   ("I love the speed"). Desktop 45 px/sec · mobile 28 px/sec. Recovery
+   values: 45 / 28. The rail is driven by a pure CSS animation (duration =
+   half the rail's width ÷ this speed), so the speed lives here and nowhere
+   else. */
 const NEWS_BANNER_SPEED = { desktop: 45, mobile: 28 } as const;
 
 import SpriteFace from '../SpriteFace';
@@ -105,19 +106,52 @@ function NewsPill({ item }: { item: NewsItem }) {
 export default function NewsCarousel({ items = PLACEHOLDER_ITEMS }: { items?: NewsItem[] }) {
     const railRef = useRef<HTMLDivElement | null>(null);
 
-    // Bind the scroll loop to the rail, re-measuring ONLY when the actual
-    // content changes — keyed on a content signature, not the array identity.
-    // The parent re-renders often (the featuring row re-rolls on a timer), which
-    // hands us a fresh `items` array each time; depending on that reference reset
-    // the scroll to the start every few seconds. The signature stays stable
-    // across those re-renders, so the loop runs uninterrupted.
+    // Content signature — the animation re-binds ONLY when the actual content
+    // changes, not on parent re-renders (the featuring row re-rolls on a timer
+    // and hands us a fresh `items` array each time).
     const sig = items
         .map((i) => (i.kind === 'sprite' ? `@${i.name ?? ''}` : `${i.tag ?? ''}|${i.title ?? ''}`))
         .join('~');
+
+    /* Scroll = a pure CSS animation, NOT the shared JS tape loop (Brendon,
+       2026-07-06 — "constantly stutters, address it once and for all"). The
+       JS loop advances the rail once per script frame, so ANY main-thread
+       work (feed updates, art decoding, taps) drops its frames and the rail
+       visibly hitches. A CSS transform animation runs on the compositor
+       thread — the banner glides regardless of what the page is doing.
+
+       The doubled run means translating by -50% of the rail's width is
+       exactly one seamless loop; duration = (scrollWidth / 2) ÷ the LOCKED
+       px/sec, so the speed is identical to the engine's. Re-measured when
+       the content changes, when webfonts settle (widths shift), and on
+       resize — skipped when the width didn't actually change so the
+       animation isn't needlessly restarted. */
     useEffect(() => {
         const rail = railRef.current;
         if (!rail) return;
-        return subscribeTapeRail(rail, NEWS_BANNER_SPEED);
+        let cancelled = false;
+        let lastHalf = 0;
+        const apply = () => {
+            if (cancelled || !rail.isConnected) return;
+            const half = rail.scrollWidth / 2;
+            if (!half || Math.abs(half - lastHalf) < 1) return;
+            lastHalf = half;
+            const mobile = window.matchMedia('(max-width: 600px)').matches;
+            const speed = mobile ? NEWS_BANNER_SPEED.mobile : NEWS_BANNER_SPEED.desktop;
+            rail.style.setProperty('--news-loop-s', `${(half / speed).toFixed(2)}s`);
+            rail.classList.add('news-rail-anim');
+        };
+        apply();
+        // Webfonts landing after first paint change the rail's width.
+        try {
+            document.fonts?.ready?.then(() => apply());
+        } catch { /* FontFaceSet unsupported — first measure stands */ }
+        window.addEventListener('resize', apply);
+        return () => {
+            cancelled = true;
+            window.removeEventListener('resize', apply);
+            rail.classList.remove('news-rail-anim');
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sig]);
 
