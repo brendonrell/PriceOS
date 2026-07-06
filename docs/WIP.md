@@ -6,56 +6,52 @@
 
 ---
 
-## ✅ SHIPPED 2026-07-06 — NEWS BANNER WOW PASS + SNAPPY TILES + BUG BATCH (dev @ 10d14b5)
+## ✅ SHIPPED 2026-07-06 — SNAPPY TILES + BUG BATCH + BANNER (FINAL STATE: dev @ a37d99c)
 
-**Batch 1 (dev @ 375d2bc):**
-- **Snappy image tiles:** ArtworkCard renders the stored preview as a native
-  `<img>` (steady once loaded — NO more LRU eviction blanking/flash on
-  scroll-back). Canvas+virtualizer path intact as fallback (no image base, or
-  preview 404 → live engine + pd:preview-miss self-heal — Playwright-verified
-  both ways). hashSyn samples `<img>` tiles too. `/full` + feature page stay
-  LIVE-render only (triple-checked per Brendon).
-- **Back loops fixed:** same-URL taps no longer stack duplicate history
-  entries (shell router guard); fullscreen back arrow goes BACK, not forward
-  (with cold-tab href fallback). Both Playwright-verified.
-- **Connect-menu squish (Workflows sheet repro) fixed:** the dropdown height
-  clamp now freezes while the iOS keyboard is up (vv-height guard in
-  DropdownContext, both sync copies) — no more crushed/overlapping boxes.
-- **To-Dos header:** ☇ sits directly beside + (one right-side icon cluster).
-- **Back Button Mode:** desktop 3px right nudge.
+**Snappy tiles + bugs (dev @ 375d2bc):**
+- ArtworkCard = native `<img>` stored previews (steady once loaded, NO LRU
+  eviction/flash; canvas+virtualizer intact as live/404 fallback with
+  pd:preview-miss self-heal — Playwright-verified). hashSyn samples imgs.
+  `/full` + output feature page stay LIVE-render only.
+- Back loops fixed (same-URL push guard in shell router; fullscreen arrow
+  goes BACK w/ cold-tab fallback). Connect-menu squish fixed (dropdown
+  clamp freezes while iOS keyboard is up — Workflows-sheet repro).
+- To-Dos ☇ beside + · Back Button Mode desktop 3px right.
 
-**Batch 2 — news banner wow pass (dev @ 10d14b5):**
-- Full milestone vocabulary + art chips (the exact output that crossed the
-  line) + launch pills tinted with the project colorway + lone art circles +
-  showcase six-packs (6 outputs, no name) + wide-pill variance (ASCENSION
-  always wide) + live sprite pills (real artist @names) + spinning PD logo
-  (rests as Petey) + rare yellow $PRICE circle (Etherscan link) + rare
-  INTRODUCING teasers (The Docs, no link on purpose). All garnish day-seeded
-  (deterministic server/client; new mix each morning).
-- **Halo:** same two-layer softness; halo colour = opposite pole of the
-  lettering (relative-color, @supports-gated) — readable on any colorway.
-- **⛔ BANNER SPEED LOCKED (Brendon): desktop 45 px/sec · mobile 28 px/sec** —
-  pinned per-rail in NewsCarousel/tapeEngine so Tape retunes can't drift it.
-- ClickUp: The Dispatch (86b9fcn0d) = the banner's rare pill when it ships
-  (commented).
+**News banner — FINAL after full arc (built wow pass → Brendon reverted):**
+- Design = the ORIGINAL soothing text-pill rail, exactly. Do NOT re-add
+  circles/art chips/six-packs/tints/wide pills/sprites/logo/$PRICE/teasers
+  (all built, all reverted 2026-07-06 — Brendon: "I want our old design").
+- KEPT by his explicit orders: full milestone ladder as ordinary pills
+  (First Blood → Hi-Def, from the home payload's milestones map) ·
+  **⛔ SPEED LOCKED: desktop 45 px/sec · mobile 28 px/sec** (recovery
+  values; live in NewsCarousel) · halo = the ORIGINAL bg-mix shadow (the
+  adaptive-halo change was ALSO reverted by his order).
+- **Stutter fixed once-and-for-all:** rail scrolls via pure CSS transform
+  animation (compositor thread — main-thread jank can't touch it);
+  duration derived from the locked speed; re-measures on content/webfont/
+  resize; reduced-motion honored. Verified 45.0 px/sec in-browser.
 
-## 🔜 NEXT UP (queued this session, Brendon's asks)
-1. **Stickers in the news banner** (sparingly — reuse StickerArt; store has
-   its own strip). Part of the approved banner direction, not yet built.
-2. **Setup Codes audit fixes:** sticker code can't encode rows=3 (ROW_IDS
-   [1,2] vs Rows 1|2|3 — real bug) + doesn't carry density/border; stale
-   "backButton not in Setup Code" comment (BACK token exists). Main-code
-   colorway null→CSTM fallback worth a look.
-3. **Collect-count unlocks** at 10/25/50/100/250/500/1000 (Gen Curated
-   showcase unlocks at 100) — tie to achievements.
-4. **Sticker sheets product:** $22/sheet, generative; black + holo paper
-   tiers; rare chase colour = "Hothurt" pink (Brendon liked the name).
-5. Modal bug = SOLVED (the Workflows squish was it). Pin-store factory ⑥ is
-   DONE (previous session). FRIEND INSPECTOR rebuild still queued.
+## 🔜 NEXT UP (queue, Brendon-approved)
+1. **Setup Codes audit fixes** (started, not landed): sticker code can't
+   encode rows=3 (ROW_IDS [1,2] vs Rows 1|2|3) + doesn't carry density
+   (0-2) / border (off/white/bold) — extend code w/ optional tail chars,
+   decode-forgiving; update StickerManagerModal look build/apply/surprise
+   to include them; fix stale "backButton not in Setup Code" comment in
+   PdNotifsContext (BACK token exists).
+2. **Collect-count unlocks — DISCUSSION FIRST (Brendon wants to talk #3):**
+   ladder at 10/25/50/100/250/500/1000 collected; 100 = Gen Curated
+   showcase unlock (locked); tie tiers to achievements. Pitch idea: 1000 =
+   "Per Mille Collector" (matches the ‰ brand).
+3. Friend Inspector total inner rebuild (pre-existing).
+- DROPPED by Brendon: sticker-sheet product spec; stickers-in-banner (died
+  with the banner revert).
 
-**Container note:** `npm run build` while `npm run dev` runs corrupts the dev
-server (chunks served text/plain, page won't hydrate) — kill dev + rm .next
-before mixing them.
+**Container notes:** `npm run build` while `npm run dev` runs corrupts the
+dev server (chunks served text/plain, no hydration) — kill dev + rm .next.
+No Supabase/Alchemy secrets in the web container: verify UI flows by
+stubbing `/api/home` + `/api/project/*/outputs` + `/preview/**` in
+Playwright (works well — see this session).
 
 ---
 
