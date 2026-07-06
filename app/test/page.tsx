@@ -247,7 +247,9 @@ function Tester() {
 
     const testAccount = useMemo(() => {
         try {
-            const k = pk.trim();
+            /* MetaMask exports keys WITHOUT the 0x prefix — accept both. */
+            let k = pk.trim();
+            if (/^[0-9a-fA-F]{64}$/.test(k)) k = `0x${k}`;
             if (!/^0x[0-9a-fA-F]{64}$/.test(k)) return null;
             return privateKeyToAccount(k as Hex);
         } catch {
@@ -447,9 +449,14 @@ function Tester() {
                 const uri = await publicClient.readContract({
                     address: PROJECT, abi: projectAbi, functionName: 'tokenURI', args: [1n],
                 }) as string;
-                const prefix = 'data:application/json;base64,';
-                if (!uri.startsWith(prefix)) throw new Error(`tokenURI is not base64 JSON (${uri.slice(0, 40)}…)`);
-                const meta = JSON.parse(atob(uri.slice(prefix.length)));
+                /* PDProject emits the plain-utf8 JSON data URI (cheaper);
+                   accept the base64 variant too. */
+                const utf8Prefix = 'data:application/json;utf8,';
+                const b64Prefix = 'data:application/json;base64,';
+                let meta: { name?: unknown };
+                if (uri.startsWith(utf8Prefix)) meta = JSON.parse(uri.slice(utf8Prefix.length));
+                else if (uri.startsWith(b64Prefix)) meta = JSON.parse(atob(uri.slice(b64Prefix.length)));
+                else throw new Error(`tokenURI is not a JSON data URI (${uri.slice(0, 40)}…)`);
                 const ok = typeof meta.name === 'string' && meta.name.length > 0;
                 record('T5', {
                     status: ok ? 'pass' : 'fail',
