@@ -125,11 +125,11 @@ function inMemoryIncr(bucketKey: string): { count: number; resetMs: number } {
 }
 
 export async function middleware(req: NextRequest): Promise<NextResponse> {
-  // /deploy is a standalone tool page: stamp a request header the root
-  // layout reads to skip the entire app shell (wallet stack, onboarding,
+  // /deploy and /test are standalone tool pages: stamp a request header the
+  // root layout reads to skip the entire app shell (wallet stack, onboarding,
   // loader, navbar). Server-only signal — a client can't forge it into
   // the layout because middleware overwrites the request headers here.
-  if (req.nextUrl.pathname === '/deploy') {
+  if (req.nextUrl.pathname === '/deploy' || req.nextUrl.pathname === '/test') {
     const requestHeaders = new Headers(req.headers);
     requestHeaders.set('x-pd-bare-route', '1');
     return NextResponse.next({ request: { headers: requestHeaders } });
@@ -167,5 +167,5 @@ export async function middleware(req: NextRequest): Promise<NextResponse> {
 }
 
 export const config = {
-  matcher: ['/api/:path*', '/deploy'],
+  matcher: ['/api/:path*', '/deploy', '/test'],
 };
