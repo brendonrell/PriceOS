@@ -35,6 +35,10 @@ Deployed from `pd-contracts` @ `26c3793` (current main), deployer/admin
 Factory params: platform/storage/writer wallets = deployer; storage fee
 floor/ceiling/initial = 0.0001 / 0.01 / 0.0007 ETH.
 
+**Test-project pricing (Brendon, 2026-07-06):** every test project is
+created with mint price **0.00022 ETH** — one Alchemy faucet claim (0.1)
+covers a tester's whole run, since gas (not price) is the real spend.
+
 ## 1. Goal & exit criteria
 
 **Goal:** prove the launch-scope system behaves correctly under real network
