@@ -51,6 +51,32 @@ Cloudflare **Workers + Cron Triggers**:
 Cloudflare account: `9ac4108b1b152994d7a91d4979908317`, Workers Paid plan is
 active. The Cloudflare MCP connector can create KV namespaces.
 
+## fx feed: switch the data source to the Objkt API (Brendon, 2026-07-06)
+
+**fxhash the platform is dead — its own API is no longer the source.** The
+fx sales feed migrates to **objkt.com's public API** (docs:
+https://data.objkt.com/docs/ · GraphQL endpoint `https://data.objkt.com/v3/graphql`),
+which indexes all of Tezos including the fxhash contracts, so fxhash mints
+and sales still flow through it. Verified from the docs (2026-07-06):
+
+- GraphQL v3, free/best-effort, **120 requests/min**, **max 500 rows per
+  query** — paginate on pk/id/timestamp.
+- **No subscriptions/websockets** — polling only, which fits the cron
+  Worker model exactly.
+- Sales come from the `event` entity: `marketplace_event_type` in
+  `list_buy · english_auction_settle · dutch_auction_buy · offer_accept ·
+  offer_floor_accept`, filtered to the fxhash FA2 contracts (pull the exact
+  contract list from the current fx script's filters). Prices are in mutez;
+  the shared lib needs an XTZ→USD leg alongside ETH→USD.
+- Sign up for their API mailing list (breaking-change warnings) — Brendon's
+  address, flag it as a tap.
+
+Note this narrows port-don't-rewrite for the fx feed specifically: the
+posting/formatting/dedupe logic still ports, but its **data-fetch layer is a
+fresh build against Objkt** (the old fxhash-API/Alchemy plumbing it replaces
+is dead weight — confirm with Brendon what the current script actually
+queries before discarding anything).
+
 ## Port, don't rewrite
 
 The AB feed's 2,151 lines are scar tissue, not bloat. **Port the logic
