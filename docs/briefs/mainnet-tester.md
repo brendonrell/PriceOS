@@ -1,3 +1,42 @@
+# ⚡ OPUS: START HERE (2026-07-07) — finish the Sepolia indexer, ~30 min
+
+Everything below this block is context; this is the work order. State:
+indexer's real-time path PROVEN live (webhook → /api/webhooks/alchemy →
+Supabase, real XFER row for pd-test-alpha token 3). Sweep + sales path remain.
+
+## 1. Sweep go-live + token-2 backfill (needs Brendon's dashboard taps)
+Ask Brendon to add three vars on the Cloudflare Worker `pricediscussion`
+(Settings → Variables):
+  - ALCHEMY_RPC_URL  = his Alchemy Sepolia HTTPS endpoint
+  - CRON_SECRET      = any long random string (he invents it, pastes it to you)
+  - RECONCILE_LOOKBACK_BLOCKS = enough blocks to reach the missed token-2
+    transfer (tx 0x2c40… was token 3 at ~2026-07-06T21:15Z; token 2 moved
+    ~20:40Z — compute blocks from now at ~12s/block, add margin)
+Then fire once from the container:
+  curl -X GET https://pricediscussion.pricediscussion.workers.dev/api/cron/indexer-reconcile \
+    -H "Authorization: Bearer $CRON_SECRET" --cacert /root/.ccr/ca-bundle.crt
+Verify in Supabase (project zspxpfwlwikdxwavffjn):
+  SELECT type, token_id, tx_hash FROM events WHERE project_id='pd-test-alpha';
+  → expect the token-2 XFER row to appear (token-3 row already there;
+    idempotency means re-sweeps are no-ops). Then set
+    RECONCILE_LOOKBACK_BLOCKS back to default (remove the var) and schedule
+    the sweep: CF Cron Trigger (wrangler.jsonc `triggers`) + scheduled
+    handler in custom-worker.ts fetching the route with the Bearer secret.
+
+## 2. Then the ordered remainder
+Phase C frontend Sepolia profile (behind an env switch, dev preview only —
+Brendon-only, NO user cohort per his 2026-07-06 scope call) → Brendon's
+OpenSea testnet listing (proves the Seaport sales path + royalty flow — the
+one indexer path never exercised live) → observation log → Mythic Audit Pass
+(ClickUp 86b9v5wj4; task text says "Opus 4.7" — run on the strongest
+available model, update the task).
+
+Read `docs/WIP.md` top section + `docs/sepolia-test-phase.md` §0.5 for
+addresses/state. All CLAUDE.md rules apply — especially: reply first, no
+jargon to Brendon, verify before claiming, push = dev.
+
+---
+
 # Brief: port /test (Sepolia readiness tester) to MAINNET — for a future Opus session
 
 **When:** mainnet deploy day, after Brendon deploys the stack from /deploy
