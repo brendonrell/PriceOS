@@ -79,14 +79,19 @@ body.modal-open { overflow: hidden; touch-action: none; }
     pointer-events: none;
     z-index: 3;
 }
-.art-loading-glyph {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 14px;
-    font-weight: bold;
-    line-height: 1;
-    display: inline-block;
-    animation: art-spin 0.8s linear infinite;
+/* THE spinner — a symmetric ring so it spins perfectly true (a rotating text
+   glyph wobbles because its ink isn't centred). `currentColor` is the arc, so
+   it inherits whatever contrast the badge around it sets. Used everywhere art
+   loads: tiles, the modal, mint (Brendon 2026-07-07). */
+.pd-ring {
+    width: 15px;
+    height: 15px;
+    border: 2px solid color-mix(in srgb, currentColor 28%, transparent);
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: pd-spin 0.7s linear infinite;
 }
+@keyframes pd-spin { to { transform: rotate(360deg); } }
 @keyframes art-spin { to { transform: rotate(360deg); } }
 
 /* Tile loading spinner — centred on any art tile (carousel + gallery grid +

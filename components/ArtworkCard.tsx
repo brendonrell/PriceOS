@@ -231,7 +231,20 @@ function ArtworkCard({
         ].filter((u): u is string => !!u);
     }, [slug, id]);
     const [stage, setStage] = useState(0);
+    const [imgRetries, setImgRetries] = useState(0);
     const imgSrc = candidates[stage] ?? null;
+    /* A freshly-minted piece has no preview yet — it generates on mint. While
+       every candidate 404s, keep the spinner up and retry from the top until the
+       preview lands, so the user never stares at a blank tile (Brendon 2026-07-07). */
+    const MAX_IMG_RETRIES = 8;
+    useEffect(() => {
+        if (imgSrc || imgLoaded || imgRetries >= MAX_IMG_RETRIES) return;
+        const t = setTimeout(() => { setStage(0); setImgRetries((r) => r + 1); }, 1500);
+        return () => clearTimeout(t);
+    }, [imgSrc, imgLoaded, imgRetries]);
+    /* Show the spinner immediately on ANY blank/loading tile — while the image
+       is fetching AND while a mint's preview is still being generated. */
+    const showArtSpinner = !!ART_IMAGE_BASE && !imgLoaded && (imgSrc != null || imgRetries < MAX_IMG_RETRIES);
 
     const handleImgError = () => {
         // Leaving the current thumbnail (stage 0) → heal it once in the background.
@@ -267,6 +280,7 @@ function ArtworkCard({
         return () => {
             setImgLoaded(false);
             setStage(0);
+            setImgRetries(0);
         };
     }, [slug, id]);
 
@@ -859,12 +873,13 @@ function ArtworkCard({
                             aria-label={`${projectTitle} #${id} — generative artwork`}
                         />
                     )}
-                    {/* Loading spinner — every art tile shows it while its image
-                        is still fetching, in the carousel and the grid alike
-                        (Brendon 2026-07-07). The same ⟳ the modal uses. */}
-                    {imgSrc && !imgLoaded && (
+                    {/* Loading spinner — shows immediately on any blank/loading
+                        tile (carousel, grid, and freshly-minted pieces whose
+                        preview is still generating), until the art lands
+                        (Brendon 2026-07-07). Real ring, spins true. */}
+                    {showArtSpinner && (
                         <span className="tile-art-loading" aria-hidden="true">
-                            <span className="art-loading-glyph">{'⟳︎'}</span>
+                            <span className="pd-ring" />
                         </span>
                     )}
                     {celMark && (

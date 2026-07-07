@@ -917,7 +917,7 @@ export default function OutputPreview() {
                     incoming piece's stored PNG is in flight. */}
                 {artLoading && (
                     <span className="art-loading" aria-hidden="true">
-                        <span className="art-loading-glyph">{'⟳︎'}</span>
+                        <span className="pd-ring" />
                     </span>
                 )}
                 {/* chat #4 D011 — sim 5369-5372. Modal-scoped MUTE overlay,
