@@ -16,25 +16,33 @@
  */
 
 import { useEffect } from 'react';
-import { storeMintPreviews } from '../../lib/art/storePreview';
+import { storeMintPreviews, storeThumb } from '../../lib/art/storePreview';
 
 interface MissDetail { slug: string; tokenId: number }
+// 'preview' = the full master is absent (render + pin master AND thumb).
+// 'thumb'   = the master exists but its small tile isn't pinned yet — pin only
+//             the thumb, so existing pieces backfill their tile the first time a
+//             grid asks for it (Brendon 2026-07-07).
+type MissKind = 'preview' | 'thumb';
+interface QueueItem extends MissDetail { kind: MissKind }
 
 export default function PreviewHealer() {
     useEffect(() => {
-        // Attempted this session (success OR fail) — a fail retries next session,
-        // never in a tight loop.
+        // Attempted this session per (kind, piece) — a fail retries next session,
+        // never in a tight loop. A thumb attempt and a preview attempt are tracked
+        // independently.
         const attempted = new Set<string>();
-        const queue: MissDetail[] = [];
+        const queue: QueueItem[] = [];
         let draining = false;
 
         const drain = async () => {
             if (draining) return;
             draining = true;
             while (queue.length) {
-                const { slug, tokenId } = queue.shift()!;
+                const { slug, tokenId, kind } = queue.shift()!;
                 try {
-                    await storeMintPreviews(slug, [tokenId]);
+                    if (kind === 'thumb') await storeThumb(slug, tokenId);
+                    else await storeMintPreviews(slug, [tokenId]);
                 } catch { /* best-effort */ }
                 // Breathe between pins so healing never competes with painting.
                 await new Promise((r) => setTimeout(r, 400));
@@ -42,18 +50,24 @@ export default function PreviewHealer() {
             draining = false;
         };
 
-        const onMiss = (e: Event) => {
+        const enqueue = (kind: MissKind) => (e: Event) => {
             const d = (e as CustomEvent<MissDetail>).detail;
             if (!d || !d.slug || !Number.isInteger(d.tokenId)) return;
-            const key = `${d.slug}/${d.tokenId}`;
+            const key = `${kind}:${d.slug}/${d.tokenId}`;
             if (attempted.has(key)) return;
             attempted.add(key);
-            queue.push(d);
+            queue.push({ ...d, kind });
             void drain();
         };
 
-        window.addEventListener('pd:preview-miss', onMiss as EventListener);
-        return () => window.removeEventListener('pd:preview-miss', onMiss as EventListener);
+        const onPreviewMiss = enqueue('preview');
+        const onThumbMiss = enqueue('thumb');
+        window.addEventListener('pd:preview-miss', onPreviewMiss as EventListener);
+        window.addEventListener('pd:thumb-miss', onThumbMiss as EventListener);
+        return () => {
+            window.removeEventListener('pd:preview-miss', onPreviewMiss as EventListener);
+            window.removeEventListener('pd:thumb-miss', onThumbMiss as EventListener);
+        };
     }, []);
 
     return null;

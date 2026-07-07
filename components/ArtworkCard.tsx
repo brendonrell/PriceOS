@@ -83,7 +83,7 @@ import { useProject, paintOutput } from '../lib/state/ProjectContext';
 import { getProject } from '../lib/project/registry';
 import { sampleCanvasFingerprint } from '../lib/art/sampleColor';
 import { needsColorSample, reportFingerprint, reportTraits } from '../lib/art/colorStore';
-import { ART_IMAGE_BASE, artImageUrl, artProvisionalAspect, rememberArtAspect } from '../lib/project/registry';
+import { ART_IMAGE_BASE, artImageUrl, artThumbUrl, artProvisionalAspect, rememberArtAspect } from '../lib/project/registry';
 import { useCelestialMark, celestialOpacity } from '../lib/output/celestial';
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
 import {
@@ -216,7 +216,26 @@ function ArtworkCard({
     const imgRef = useRef<HTMLImageElement>(null);
     const [imgLoaded, setImgLoaded] = useState(false);
     const [imgFailed, setImgFailed] = useState(false);
-    const imgSrc = imgFailed ? null : artImageUrl(slug, id);
+    /* Tiles load the small thumbnail first (~30–90KB vs the ~700KB master), then
+       fall back to the master if the thumb isn't pinned yet, then to the canvas
+       placeholder. A thumb miss self-heals via pd:thumb-miss (Brendon 2026-07-07). */
+    const [thumbFailed, setThumbFailed] = useState(false);
+    const masterUrl = imgFailed ? null : artImageUrl(slug, id);
+    const thumbUrl = artThumbUrl(slug, id);
+    const imgSrc = thumbFailed ? masterUrl : (thumbUrl ?? masterUrl);
+    const showingThumb = !thumbFailed && !!thumbUrl;
+
+    const handleImgError = () => {
+        if (showingThumb) {
+            // Thumb not pinned yet — drop to the master and heal the thumb once.
+            setThumbFailed(true);
+            try {
+                window.dispatchEvent(new CustomEvent('pd:thumb-miss', { detail: { slug, tokenId: id } }));
+            } catch { /* ignore */ }
+        } else {
+            setImgFailed(true);
+        }
+    };
 
     const handleImgLoad = () => {
         const img = imgRef.current;
@@ -242,6 +261,7 @@ function ArtworkCard({
         return () => {
             setImgLoaded(false);
             setImgFailed(false);
+            setThumbFailed(false);
         };
     }, [slug, id]);
 
@@ -822,7 +842,7 @@ function ArtworkCard({
                             decoding="async"
                             draggable={false}
                             onLoad={handleImgLoad}
-                            onError={() => setImgFailed(true)}
+                            onError={handleImgError}
                             style={{ width: '100%', height: '100%', display: 'block' }}
                         />
                     ) : (

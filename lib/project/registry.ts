@@ -1461,6 +1461,14 @@ export function artImageUrl(slug: string, tokenId: number): string | null {
   return ART_IMAGE_BASE ? `${ART_IMAGE_BASE}/${slug}/${tokenId}.png` : null;
 }
 
+/* The small tile thumbnail (~256px longest edge) — a proportional shrink of the
+   master, pinned beside it at {slug}/{id}.t256.png. Cards/home/grids load THIS
+   instead of the ~700KB master so a screen full of tiles arrives in a beat; the
+   card falls back to the master when a thumb isn't pinned yet (Brendon 2026-07-07). */
+export function artThumbUrl(slug: string, tokenId: number): string | null {
+  return ART_IMAGE_BASE ? `${ART_IMAGE_BASE}/${slug}/${tokenId}.t256.png` : null;
+}
+
 /** Best synchronously-known aspect for a token: the learned true ratio when any
  *  surface has already loaded this piece, else the project's provisional. Keeps
  *  a remounting <img> tile shaped right before its (cached) load event fires. */
