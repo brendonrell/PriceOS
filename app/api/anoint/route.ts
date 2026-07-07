@@ -247,14 +247,76 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const params = new URL(req.url).searchParams;
   const me = params.get('me');
   const project = params.get('project');
+  const relicsOf = params.get('relics_of');
 
-  // Exactly one of the two modes — neither or both is a malformed query.
-  if ((!me && !project) || (me && project)) {
-    return badRequest('Provide exactly one of `?me=` or `?project=`');
+  // Exactly one of the three modes — neither or more than one is malformed.
+  const modeCount = [me, project, relicsOf].filter(Boolean).length;
+  if (modeCount !== 1) {
+    return badRequest('Provide exactly one of `?me=`, `?project=`, or `?relics_of=`');
   }
 
   try {
     const supabase = getSupabaseAnon();
+
+    // ── Mode C: ?relics_of=0xADDRESS → the Prime Relics this wallet owns. ─────
+    // The clout badge: for every anointed project, the top-voted conduit is that
+    // project's Prime Relic; we return the ones whose current owner is this
+    // address. Bounded by the number of anointed projects (small at launch).
+    if (relicsOf) {
+      const addr = relicsOf.toLowerCase();
+      if (!ADDRESS_RE.test(addr)) {
+        return badRequest('`?relics_of=` must be a 0x… address');
+      }
+
+      const allRes = await supabase
+        .from('anointments')
+        .select('project_id, output_token_id');
+      if (allRes.error) return serverError(allRes.error.message);
+      const all = (allRes.data ?? []) as Array<{ project_id: string; output_token_id: string }>;
+
+      // Top conduit per project (same tie-break as Mode B).
+      const byProject = new Map<string, Map<string, number>>();
+      for (const r of all) {
+        const t = byProject.get(r.project_id) ?? new Map<string, number>();
+        t.set(r.output_token_id, (t.get(r.output_token_id) ?? 0) + 1);
+        byProject.set(r.project_id, t);
+      }
+      const primes: Array<{ project_id: string; output_token_id: string; votes: number }> = [];
+      for (const [pid, tally] of byProject) {
+        let bestToken: string | null = null;
+        let bestVotes = 0;
+        for (const [token, votes] of tally) {
+          if (
+            votes > bestVotes ||
+            (votes === bestVotes && bestToken !== null && lowerToken(token, bestToken))
+          ) {
+            bestToken = token;
+            bestVotes = votes;
+          }
+        }
+        if (bestToken !== null) primes.push({ project_id: pid, output_token_id: bestToken, votes: bestVotes });
+      }
+
+      const relics: Array<{ project_id: string; output_token_id: string; votes: number }> = [];
+      if (primes.length > 0) {
+        const projectIds = Array.from(new Set(primes.map((p) => p.project_id)));
+        const holdRes = await supabase
+          .from('holders')
+          .select('project_id, token_id')
+          .eq('owner_address', addr)
+          .in('project_id', projectIds);
+        if (holdRes.error) return serverError(holdRes.error.message);
+        const held = new Set(
+          ((holdRes.data ?? []) as Array<{ project_id: string; token_id: string }>)
+            .map((h) => `${h.project_id}:${h.token_id}`),
+        );
+        for (const p of primes) {
+          if (held.has(`${p.project_id}:${p.output_token_id}`)) relics.push(p);
+        }
+      }
+
+      return NextResponse.json({ address: addr, relics });
+    }
 
     // ── Mode A: ?me=0xADDRESS → that account's current pledge (or null). ──────
     if (me) {

@@ -188,6 +188,33 @@
     opacity: 0.7;
 }
 
+/* Prime Relic clout badge — shown in the owner's Anointed tab */
+.anoint-clout {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    padding: 10px 12px;
+}
+.anoint-clout-badge {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+}
+.anoint-clout-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+}
+.anoint-clout-item {
+    font-size: 11px;
+    font-weight: bold;
+    color: var(--text-color);
+    text-decoration: none;
+}
+.anoint-clout-item:hover { text-decoration: underline; }
+
 /* Empty state */
 .anoint-empty {
     display: flex;

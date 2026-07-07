@@ -35,6 +35,7 @@ export default function ProfileAnointedPanel({
 }) {
     const { showToast } = useToast();
     const [pledge, setPledge] = useState<MyPledge | null>(null);
+    const [relics, setRelics] = useState<Array<{ project_id: string; output_token_id: string; votes: number }>>([]);
     const [loaded, setLoaded] = useState(false);
     const [busy, setBusy] = useState(false);
 
@@ -46,6 +47,13 @@ export default function ProfileAnointedPanel({
             .then((d: { anointment?: MyPledge | null } | null) => setPledge(d?.anointment ?? null))
             .catch(() => {})
             .finally(() => setLoaded(true));
+        // The clout badge — Prime Relics this wallet currently owns.
+        fetch(`/api/anoint?relics_of=${addr}`, { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d: { relics?: Array<{ project_id: string; output_token_id: string; votes: number }> } | null) => {
+                setRelics(d?.relics ?? []);
+            })
+            .catch(() => {});
     }, [address]);
 
     useEffect(() => {
@@ -74,6 +82,21 @@ export default function ProfileAnointedPanel({
             <div className="more-section-header">{`✢${VS15}`} ANOINTMENT</div>
             <div className="more-box-wrap">
               <div className="more-box-card anoint-card">
+                {/* Prime Relic clout badge — one per project this wallet owns
+                    the top-voted conduit for (Brendon 2026-07-07 — lives in the
+                    Anointed tab, not the profile header). */}
+                {relics.length > 0 && (
+                    <div className="anoint-clout">
+                        <span className="anoint-clout-badge">PRIME RELIC {relics.length > 1 ? `HOLDER · ${relics.length}` : 'HOLDER'}</span>
+                        <div className="anoint-clout-list">
+                            {relics.map((r) => (
+                                <a key={`${r.project_id}:${r.output_token_id}`} className="anoint-clout-item" href={`/art/${r.project_id}/${r.output_token_id}`}>
+                                    @{r.project_id} #{r.output_token_id}
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+                )}
                 {!loaded ? (
                     <div className="anoint-note">Reading pledge…</div>
                 ) : !pledge ? (
