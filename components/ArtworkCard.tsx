@@ -857,8 +857,13 @@ function ArtworkCard({
                             className={`output-canvas${imgLoaded ? ' visible' : ''}`}
                             src={imgSrc}
                             alt={`${projectTitle} #${id} — artwork`}
-                            loading={eager ? 'eager' : 'lazy'}
-                            decoding="async"
+                            /* Once a tile has loaded, pin it eager + sync-decode
+                               so iOS can't drop its decoded copy off-screen and
+                               redraw a blank frame on scroll-back (Brendon
+                               2026-07-07 — the carousel flash). Pre-load it stays
+                               lazy so the first paint is cheap. */
+                            loading={eager || imgLoaded ? 'eager' : 'lazy'}
+                            decoding={imgLoaded ? 'sync' : 'async'}
                             draggable={false}
                             onLoad={handleImgLoad}
                             onError={handleImgError}
