@@ -6,6 +6,35 @@
 
 ---
 
+## ✅ SHIPPED 2026-07-06 — SEPOLIA IS LIVE END-TO-END (dev @ fee26eb, tree clean)
+
+The full test-phase core landed in one day (Fable session, Brendon driving):
+
+- **Contracts DEPLOYED to Sepolia** via /deploy (registry `0x303c…c673`,
+  factory `0xbebf…0367`, stickers `0xb06d…7d9e`), wire verified on-chain.
+  Addresses + params in `docs/sepolia-test-phase.md` §0.5.
+- **/deploy + /test are BARE tool pages** (middleware `x-pd-bare-route` →
+  root layout skips the whole app shell; the AccountCreateModal was firing
+  over the deploy tool).
+- **/test — readiness tester**: 11/11 PASS live (create, cooldown +
+  wrong-payment guards, exact-wei 95/5+storage split, tokenURI, royalty,
+  60/40 splitter round-trip, transfer). Test project `pd-test-alpha` @
+  `0x7eb2…1cf6` (DB row inserted, contract_address set = indexer bridge).
+- **Etherscan: all five verified** (three core + test project + splitter).
+- **INDEXER LIVE**: Alchemy Custom Webhook (Brendon created; signing key on
+  the Worker) → /api/webhooks/alchemy → Supabase. Proven with a real
+  transfer → XFER row (tx `0x2c40…3cb8`). Root-caused en route: indexer read
+  `SUPABASE_URL`, CF only sets `NEXT_PUBLIC_SUPABASE_URL` → silent 200
+  no-ops; fallback shipped.
+- **Scope call (Brendon)**: NO user cohort on Sepolia — users test the
+  simulated site; the 120 projects stay OFF testnet. Test projects mint at
+  0.00022 ETH.
+- **NEXT (ordered, full detail in `docs/briefs/mainnet-tester.md` addendum):**
+  ① reconcile-sweep go-live (CRON_SECRET + ALCHEMY_RPC_URL on Worker, CF
+  Cron Trigger; token-2 XFER backfill) ② Phase C frontend Sepolia profile
+  ③ OpenSea listing royalty check ④ observation log → Mythic Audit Pass.
+  Mainnet-day tester port brief lives in the same file.
+
 ## ✅ SHIPPED 2026-07-06 — SPOT-EDIT DUTY BUNDLE (dev @ 7805868, tree clean)
 
 Brendon's night list, built + pushed on his standing "build and push it all":
