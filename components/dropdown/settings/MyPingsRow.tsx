@@ -109,6 +109,27 @@ export function MyPingsRow() {
         setShow3dConfirm(show);
     };
 
+    /* Dismiss the confirm bubble on anything that should close it: a tap outside
+       the bubble (which covers closing the whole menu — that tap lands outside),
+       or a scroll/resize that would leave the body-level portal floating in the
+       wrong place. Without this it lingered on screen after the menu closed. */
+    useEffect(() => {
+        if (!show3dConfirm) return;
+        const onPointerDown = (e: PointerEvent) => {
+            if (bubbleRef.current?.contains(e.target as Node)) return;
+            setShow3dConfirm(false);
+        };
+        const dismiss = () => setShow3dConfirm(false);
+        document.addEventListener('pointerdown', onPointerDown, true);
+        window.addEventListener('scroll', dismiss, true);
+        window.addEventListener('resize', dismiss);
+        return () => {
+            document.removeEventListener('pointerdown', onPointerDown, true);
+            window.removeEventListener('scroll', dismiss, true);
+            window.removeEventListener('resize', dismiss);
+        };
+    }, [show3dConfirm]);
+
     /* Place the confirm bubble: keep it fully on-screen (clamp its centre so
        neither edge is cut off), then point the tail back at the pill wherever
        the bubble lands. Measured after mount; hidden for that one frame. */
