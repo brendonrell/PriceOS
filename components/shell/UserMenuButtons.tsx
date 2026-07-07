@@ -93,6 +93,7 @@ import { useModal } from '../../lib/state/ModalContext';
 import { useCart } from '../../lib/state/CartContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
+import { useProfileLogoColor } from '../../lib/hooks/useProfileLogoColor';
 import { DropdownStack } from '../dropdown/DropdownStack';
 import SpriteEyeSlot from '../SpriteEyeSlot';
 import {
@@ -126,6 +127,9 @@ export function UserMenuButtons() {
     const { items, openPanel: openCartPanel } = useCart();
     const { siweAddress, handle, priceRank, isAuthenticating } = useAuth();
     const { showToast } = useToast();
+    /* PriceRank glyph tint — the user's chosen Profile Logo colour (Brendon
+       2026-07-07); null = no custom logo, glyph stays the default text colour. */
+    const logoColor = useProfileLogoColor();
 
     /* ENS resolution — published on the walletBus by the deferred wallet
        stack, which runs the same mainnet-pinned useEnsName lookup this
@@ -281,7 +285,7 @@ export function UserMenuButtons() {
                         id="asciiPfpBadge"
                         aria-label={`PriceRank ${priceRank}`}
                         title={`PriceRank ${priceRank}`}
-                        style={{ cursor: 'pointer' }}
+                        style={{ cursor: 'pointer', color: logoColor ?? undefined }}
                         onClick={(e) => {
                             e.stopPropagation();
                             openModal('priceSprite');

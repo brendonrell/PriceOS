@@ -1203,11 +1203,17 @@ body.modal-open { overflow: hidden; touch-action: none; }
        row width (Brendon 2026-06-19 — "ACHIEVEMENTS66"). */
     gap: 8px;
     width: 100%; box-sizing: border-box;
+    /* The word ACHIEVEMENTS reads bold + full-strength (Brendon 2026-07-07),
+       so it un-fades from the 0.5 the other section labels carry; the tally
+       keeps that faded treatment via .ps-ach-tally below. */
+    opacity: 1;
 }
+.ps-ach-header > span:first-child { font-weight: 800; }
 .ps-ach-tally {
     letter-spacing: 1px;
     display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
     text-align: right;
+    opacity: 0.5;
 }
 /* Count stays inline with the ACHIEVEMENTS label; the total drops to its own
    line below, in brackets, so it never wraps mid-number (Brendon 2026-07-03). */
@@ -1216,12 +1222,16 @@ body.modal-open { overflow: hidden; touch-action: none; }
     display: flex; gap: 8px;
     width: 100%; box-sizing: border-box;
     overflow-x: auto;
-    padding: 2px 20px 6px 20px;
+    /* Right buffer comes from a trailing margin on the last tile (below), NOT
+       container padding-right — iOS Safari drops a scroll container's trailing
+       padding, which let the rail bleed to the edge (Brendon 2026-07-07). */
+    padding: 2px 0 6px 20px;
     margin-bottom: 16px;
     scroll-snap-type: x proximity;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
 }
+.ps-ach-rail > *:last-child { margin-right: 20px; }
 .ps-ach-rail::-webkit-scrollbar { display: none; }
 .ps-ach-tile {
     flex: 0 0 auto;
@@ -1282,10 +1292,12 @@ body.modal-open { overflow: hidden; touch-action: none; }
     display: flex; gap: 6px;
     width: 100%; box-sizing: border-box;
     overflow-x: auto;
-    padding: 2px 20px 8px 20px;
+    /* Trailing buffer via last-child margin, not padding-right — see .ps-ach-rail. */
+    padding: 2px 0 8px 20px;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
 }
+.ps-cat-row > *:last-child { margin-right: 20px; }
 .ps-cat-row::-webkit-scrollbar { display: none; }
 .ps-cat-pill {
     flex: 0 0 auto;

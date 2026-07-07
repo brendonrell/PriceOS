@@ -48,6 +48,7 @@ import { useToast } from '../lib/state/ToastContext';
 import { useAuth } from '../lib/state/AuthContext';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import { useDragScroll } from '../lib/hooks/useDragScroll';
+import { useProfileLogoColor } from '../lib/hooks/useProfileLogoColor';
 import { rankProgress, STREAK_ACTIVATION_DAYS } from '../lib/achievements/tiers';
 import {
     ACHIEVEMENTS,
@@ -214,6 +215,9 @@ export default function PriceSpriteModal() {
     const { showToast } = useToast();
     const { priceRank, priceScore, priceStreak, handle, siweAddress } = useAuth();
     const { notifs, toggle } = usePdNotifs();
+    /* PriceRank medallion glyph tint — the user's chosen Profile Logo colour
+       (Brendon 2026-07-07), matching the connect-menu badge. */
+    const logoColor = useProfileLogoColor();
     const isOpen = openModal?.name === 'priceSprite';
 
     /* ASCII-ID lives here now (moved off the MY PD settings row — this is
@@ -393,7 +397,7 @@ export default function PriceSpriteModal() {
                             }
                         }}
                     >
-                        <span className="ps-rank-glyph">
+                        <span className="ps-rank-glyph" style={{ color: logoColor ?? undefined }}>
                             {priceRank <= 0
                                 ? '⓿'
                                 : String.fromCodePoint(0x2775 + Math.min(priceRank, 10))}
