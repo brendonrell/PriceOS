@@ -76,7 +76,7 @@
  * (gallery-wide event delegation per sim 8364-8389), not here.
  */
 
-import { memo, useEffect, useRef, useState, type CSSProperties } from 'react';
+import { memo, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useProject, paintOutput } from '../lib/state/ProjectContext';
@@ -215,26 +215,32 @@ function ArtworkCard({
        (imgFailed → live engine render + the pd:preview-miss self-heal). */
     const imgRef = useRef<HTMLImageElement>(null);
     const [imgLoaded, setImgLoaded] = useState(false);
-    const [imgFailed, setImgFailed] = useState(false);
-    /* Tiles load the small thumbnail first (~30–90KB vs the ~700KB master), then
-       fall back to the master if the thumb isn't pinned yet, then to the canvas
-       placeholder. A thumb miss self-heals via pd:thumb-miss (Brendon 2026-07-07). */
-    const [thumbFailed, setThumbFailed] = useState(false);
-    const masterUrl = imgFailed ? null : artImageUrl(slug, id);
-    const thumbUrl = artThumbUrl(slug, id);
-    const imgSrc = thumbFailed ? masterUrl : (thumbUrl ?? masterUrl);
-    const showingThumb = !thumbFailed && !!thumbUrl;
+    /* A tile tries images in order and STAYS on the first that loads — a plain
+       <img> the browser keeps decoded forever, never recycled, so it never
+       flashes on scroll (Brendon 2026-07-07). Order: the small current thumbnail
+       → the current master → the previous-size master (still pinned during the
+       re-pin) → only then the canvas placeholder. So while the new sizes are
+       still generating, tiles hold the OLD image instead of dropping to the
+       recycled canvas. `stage` past the end ⇒ imgSrc null ⇒ canvas fallback. */
+    const candidates = useMemo(() => {
+        if (!ART_IMAGE_BASE) return [] as string[];
+        return [
+            artThumbUrl(slug, id),
+            artImageUrl(slug, id),
+            `${ART_IMAGE_BASE}/${slug}/${id}.png`, // previous-size master (pre-revision)
+        ].filter((u): u is string => !!u);
+    }, [slug, id]);
+    const [stage, setStage] = useState(0);
+    const imgSrc = candidates[stage] ?? null;
 
     const handleImgError = () => {
-        if (showingThumb) {
-            // Thumb not pinned yet — drop to the master and heal the thumb once.
-            setThumbFailed(true);
+        // Leaving the current thumbnail (stage 0) → heal it once in the background.
+        if (stage === 0) {
             try {
                 window.dispatchEvent(new CustomEvent('pd:thumb-miss', { detail: { slug, tokenId: id } }));
             } catch { /* ignore */ }
-        } else {
-            setImgFailed(true);
         }
+        setStage((s) => s + 1);
     };
 
     const handleImgLoad = () => {
@@ -260,8 +266,7 @@ function ArtworkCard({
     useEffect(() => {
         return () => {
             setImgLoaded(false);
-            setImgFailed(false);
-            setThumbFailed(false);
+            setStage(0);
         };
     }, [slug, id]);
 
