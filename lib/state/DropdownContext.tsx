@@ -92,6 +92,12 @@ export function DropdownProvider({ children }: { children: ReactNode }) {
             if (wrapper && wrapper.contains(target)) return;
             const petey = document.querySelector('.pd-logo-wrap');
             if (petey && petey.contains(target)) return;
+            // The "Enable 3D Pingtoasts?" confirm bubble is portaled to <body>
+            // (top layer, never clipped), so it lives OUTSIDE .user-menu-wrapper.
+            // Without this, tapping it — including its Yes button — reads as an
+            // outside tap and closes the menu before the tap can register.
+            const p3d = document.querySelector('.pingtoast-3d-confirm');
+            if (p3d && p3d.contains(target)) return;
             setMenuOpen(false);
             setView('links');
         };
