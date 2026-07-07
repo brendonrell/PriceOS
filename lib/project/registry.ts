@@ -1594,11 +1594,10 @@ export function renderArtwork(
       canvas.width = pw;
       canvas.height = ph;
       const pctx = canvas.getContext('2d');
-      if (pctx) {
-        pctx.clearRect(0, 0, pw, ph);
-        pctx.fillStyle = '#cccccc'; // matches .canvas-wrapper's neutral tile
-        pctx.fillRect(0, 0, pw, ph);
-      }
+      // Leave the canvas transparent so the .canvas-wrapper's colorway
+      // background shows through — never a hardcoded white/grey box
+      // (Brendon 2026-07-07).
+      if (pctx) pctx.clearRect(0, 0, pw, ph);
       applyAspect(pw, ph);
       // Self-heal: this stored preview is missing, so announce the gap. A
       // signed-in viewer's healer (PreviewHealer) picks it up and pins a fresh
@@ -1612,7 +1611,7 @@ export function renderArtwork(
       }
       announceArtDrawn(canvas, slug, tokenId);
     };
-    img.src = `${ART_IMAGE_BASE}/${slug}/${tokenId}.png`;
+    img.src = `${ART_IMAGE_BASE}/${slug}/${tokenId}.${ART_REV}.png`;
     // Synchronous aspect: the learned true ratio if we've seen this token (no
     // reflow), else a provisional from the project's aspect set — onload/onerror
     // correct it the first time.
