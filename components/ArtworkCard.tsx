@@ -859,6 +859,14 @@ function ArtworkCard({
                             aria-label={`${projectTitle} #${id} — generative artwork`}
                         />
                     )}
+                    {/* Loading spinner — every art tile shows it while its image
+                        is still fetching, in the carousel and the grid alike
+                        (Brendon 2026-07-07). The same ⟳ the modal uses. */}
+                    {imgSrc && !imgLoaded && (
+                        <span className="tile-art-loading" aria-hidden="true">
+                            <span className="art-loading-glyph">{'⟳︎'}</span>
+                        </span>
+                    )}
                     {celMark && (
                         <span
                             className="celestial-moon"

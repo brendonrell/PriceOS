@@ -196,8 +196,17 @@ export function HomeProjectCarousel({ eager = false, owned = false }: { eager?: 
             (entries) => {
                 for (const e of entries) {
                     if (!e.isIntersecting) continue;
-                    const key = (e.target as HTMLElement).dataset.vkey;
+                    const el = e.target as HTMLElement;
+                    const key = el.dataset.vkey;
                     if (key) forceRenderKeys(new Set([key]));
+                    /* Preload the stored IMAGE two tiles before it's on screen —
+                       a horizontal carousel clips its tiles, so native lazy-load
+                       only fires them at the edge (the pop-in). Flipping the tile
+                       to eager here starts the fetch while it's still offscreen,
+                       so completed art is ready when the user scrolls to it
+                       (Brendon 2026-07-07). */
+                    const img = el.querySelector('img.output-canvas') as HTMLImageElement | null;
+                    if (img && img.loading === 'lazy') img.loading = 'eager';
                 }
             },
             // ~2 carousel tiles (≈120px + 14px gap each) past each edge.

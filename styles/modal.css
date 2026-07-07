@@ -89,6 +89,21 @@ body.modal-open { overflow: hidden; touch-action: none; }
 }
 @keyframes art-spin { to { transform: rotate(360deg); } }
 
+/* Tile loading spinner — centred on any art tile (carousel + gallery grid +
+   everywhere the shared card renders) while its image is still fetching. Same
+   ⟳ glyph + spin as the modal, so the whole app shows one consistent "art is
+   loading" indication (Brendon 2026-07-07). */
+.tile-art-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-color);
+    pointer-events: none;
+    z-index: 2;
+}
+
 #modalCanvas {
     max-width: 100%;
     max-height: 100%;
