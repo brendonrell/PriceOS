@@ -52,3 +52,33 @@ session did).
   Assertions must target the right wallets or they false-fail.
 - `ProjectCreated` event carries both the project and splitter addresses —
   decode it, don't compute them.
+
+---
+
+# ADDENDUM (2026-07-06, end of Fable session): indexer go-live remainder
+
+State: webhook → site → DB pipe is live on Sepolia EXCEPT the final proof.
+Root-caused and fixed today: the indexer inside PriceOS read SUPABASE_URL,
+Cloudflare only sets NEXT_PUBLIC_SUPABASE_URL → every webhook write silently
+no-op'd behind a 200 (per-log fault isolation ate the throw). Fallback shipped
+on dev. The missed delivery (token-2 transfer, project pd-test-alpha
+0x7eb2ea63d41e34a8338cd92ea06adee4b54a1cf6) is NOT backfilled yet.
+
+Remaining, in order:
+1. Prove the pipe: one more transfer on the test project (token 3, throwaway
+   0x80564f…1773 → 0x1460…B9B8) after the fix deploys → confirm events row +
+   holders update in Supabase (project_id 'pd-test-alpha').
+2. Reconcile sweep go-live: set CRON_SECRET + ALCHEMY_RPC_URL on the Worker,
+   and schedule the sweep on Cloudflare (the transplant's cron file is
+   Vercel-shaped — Workers needs a Cron Trigger in wrangler.jsonc hitting
+   /api/cron/indexer-reconcile with the Bearer secret; custom-worker.ts is the
+   place for a scheduled handler). Sweep window default 50 blocks — a manual
+   run right after go-live backfills the missed token-2 transfer only if run
+   within ~10 min of it; otherwise insert that one events row by hand or
+   re-fire a transfer.
+3. Webhook payload validation (HANDOFF step 5) is still UNCONFIRMED against a
+   real delivery — the env bug masked it. If the token-3 transfer writes rows,
+   parse() is proven too. If rows still don't appear, capture the raw payload
+   (debug-log it on parse-empty) before touching parse().
+4. Then: Phase C frontend Sepolia profile · OpenSea listing royalty check ·
+   Phase E observation log → Mythic Audit Pass (86b9v5wj4).
