@@ -1567,15 +1567,25 @@ export function renderArtwork(
     };
     img.onerror = () => {
       if (artDrawKey.get(canvas) !== drawKey) return; // canvas moved to another token
-      // No stored preview yet (a just-minted piece before its pin lands, or a
-      // failed pin) — never leave a blank tile. Fall back to the live engine AND
-      // correct the tile to the real rendered shape (the provisional would
-      // otherwise squish a wide/tall piece). Mirrors the contract's on-chain
-      // placeholder shown until the Arweave preview is pinned.
-      try {
-        project.render(canvas, tokenId, width);
-        applyAspect(canvas.width, canvas.height);
-      } catch { /* unknown engine */ }
+      // Images-only off the feature page (Brendon, 2026-07-07): a missing or
+      // not-yet-pinned preview must NOT fall back to the live generative engine.
+      // That "show live until the PNG lands" in-between was running heavy engines
+      // across browse surfaces (grids, home, profiles, the modal) and grinding
+      // the site. Paint a cheap neutral placeholder tile at the token's shape
+      // instead; the self-heal below pins the real PNG and the next load swaps it
+      // in. The live render now lives ONLY on the Output feature page.
+      const ratio = artAspectCache.get(drawKey) ?? project.aspects?.[0] ?? 1;
+      const pw = 64;
+      const ph = Math.max(1, Math.round(pw / ratio));
+      canvas.width = pw;
+      canvas.height = ph;
+      const pctx = canvas.getContext('2d');
+      if (pctx) {
+        pctx.clearRect(0, 0, pw, ph);
+        pctx.fillStyle = '#cccccc'; // matches .canvas-wrapper's neutral tile
+        pctx.fillRect(0, 0, pw, ph);
+      }
+      applyAspect(pw, ph);
       // Self-heal: this stored preview is missing, so announce the gap. A
       // signed-in viewer's healer (PreviewHealer) picks it up and pins a fresh
       // deterministic render — so a piece orphaned at mint (interrupted upload)

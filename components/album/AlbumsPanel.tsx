@@ -74,7 +74,9 @@ function AlbumShow({ album, number, onClose }: { album: AlbumRecord; number: num
         if (!m) return;
         const back = (front === 'a' ? canvasB : canvasA).current;
         if (!back) return;
-        try { paintOutput(back, m.slug, m.id, Math.min(1400, Math.max(640, window.innerWidth * Math.min(window.devicePixelRatio || 1, 2))), true); } catch { /* skip */ }
+        /* Images-only off the feature page (Brendon, 2026-07-07): The Show uses
+           the stored preview, not a live render — no heavy engine on each slide. */
+        try { paintOutput(back, m.slug, m.id, Math.min(1400, Math.max(640, window.innerWidth * Math.min(window.devicePixelRatio || 1, 2)))); } catch { /* skip */ }
         const raf = requestAnimationFrame(() => setFront((f) => (f === 'a' ? 'b' : 'a')));
         return () => cancelAnimationFrame(raf);
         // eslint-disable-next-line react-hooks/exhaustive-deps

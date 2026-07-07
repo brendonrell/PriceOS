@@ -212,7 +212,9 @@ export default function ReplayPanel() {
     if (hit) return hit;
     try {
       const c = document.createElement('canvas');
-      renderArtwork(c, project.slug, Number(token), 96, true);
+      /* Images-only off the feature page (Brendon, 2026-07-07): the chart
+         thumbnails use the stored preview, not a live render. */
+      renderArtwork(c, project.slug, Number(token), 96);
       cache.set(token, c);
       return c;
     } catch {
