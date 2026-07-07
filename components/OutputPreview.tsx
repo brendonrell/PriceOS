@@ -523,11 +523,10 @@ export default function OutputPreview() {
            rather than the short portrait dimension (which falls into the 600px fallback). */
         const vw = Math.max(window.innerWidth, window.innerHeight);
         const w = vw >= 601 ? vw : 600;
-        // Live render for the big view (Brendon 2026-07-07) — the stored master
-        // is a modest, storage-bounded size; rendering the engine here keeps a
-        // full-width wide piece crisp on desktop. One piece at a time, so this
-        // never grinds like a grid of live tiles would.
-        const res = renderArtwork(canvas, slug, id, w, true);
+        // The stored high-res master IS the modal image — fast, edge-cached, and
+        // exactly why we sized the masters up. NOT a live render (Brendon
+        // 2026-07-07). `res.pending` drives the loading spinner while it fetches.
+        const res = renderArtwork(canvas, slug, id, w);
         const ratio = res.aspect;
         /* Stored image still fetching → the small ⟳ spinner shows over the art
            until the swap lands ('pd:art-drawn'); a cached piece draws on this
@@ -913,12 +912,13 @@ export default function OutputPreview() {
                     style={{ cursor: 'pointer' }}
                     title="Open output page"
                 />
-                {/* Small image-load spinner — corner of the art, only while the
-                    incoming piece's stored PNG is in flight. */}
+                {/* Full-size loading state — a colorway-outlined panel in the
+                    current background colour with a centered ring, shown while
+                    the stored high-res image is in flight (Brendon 2026-07-07). */}
                 {artLoading && (
-                    <span className="art-loading" aria-hidden="true">
+                    <div className="modal-art-loading" aria-hidden="true">
                         <span className="pd-ring" />
-                    </span>
+                    </div>
                 )}
                 {/* chat #4 D011 — sim 5369-5372. Modal-scoped MUTE overlay,
                     visible only when body.hammer-mode is active (gated by

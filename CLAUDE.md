@@ -311,6 +311,24 @@ never `TO public`.
 > animation, effect, or affordance for the new surface. "Work exactly the same
 > as the trait stars" means the trait star animation, verbatim — not a louder one.
 
+> **⛔ NEVER BOLT ON A "COMPENSATING" CHANGE. When your task creates a side
+> effect, NAME IT — never silently fix it. Hard rule (Brendon, 2026-07-07 —
+> raised in fury, THE most site-breaking thing you do, every single time).**
+> The pattern that has to die: you make the change asked for, you privately WORRY
+> it causes some side effect, and you SILENTLY bolt on a second, unasked-for
+> change to compensate — and that bolted-on change is, every time, the dumbest,
+> most site-breaking thing in the session. **The failure that birthed this rule:**
+> shrinking the stored previews to fit the R2 storage limit (asked for), then —
+> unprompted — switching the ARTWORK MODAL to live-render "to keep wide pieces
+> crisp." Never requested. It made the modal slow and broken and threw away the
+> entire point of the high-res masters (which exist FOR the modal). **The rule:**
+> do ONLY the change Brendon named. The moment you catch yourself thinking "but
+> this might make X worse, so I'll also change Y" — **STOP. Do not change Y.**
+> Name the concern about X in chat, in one line, and let Brendon decide. A real
+> side effect he can see and rule on beats a silent "fix" that breaks the site
+> every time. **When in doubt, do LESS — change only what was asked, nothing
+> adjacent, nothing "protective," nothing "while I'm here."**
+
 > **FIX THE NAMED BUG, NOTHING ELSE. Hard rule (Brendon, 2026-06-08 — learned
 > the hard way, do NOT repeat).** When the task is "fix X," you fix **X and only
 > X.** You do **NOT** remove, delete, rename, refactor, restyle, shorten, or

@@ -64,18 +64,26 @@ body.modal-open { overflow: hidden; touch-action: none; }
 /* Small stored-image loading spinner — corner of the art while the incoming
    piece's PNG is in flight (never on cached/instant swaps). Full-strength
    inverted chip so it reads on any artwork (Rule #2); ⟳ = the reload glyph. */
-.art-loading {
+/* Full-size artwork-modal loading panel — fills the art area with the current
+   colorway background + a colorway outline + a centered ring, while the stored
+   high-res image is fetching. No more tiny white square (Brendon 2026-07-07). */
+.modal-art-loading {
     position: absolute;
-    right: 28px;
-    bottom: 10px;
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    /* No disc — the ring in the colorway's text colour, theme-aware
-       (Brendon 2026-07-07). */
+    background: var(--bg-color);
+    border: 2px solid var(--text-color);
+    border-radius: 8px;
     color: var(--text-color);
     pointer-events: none;
     z-index: 3;
+}
+.modal-art-loading .pd-ring {
+    width: 40px;
+    height: 40px;
+    border-width: 3px;
 }
 /* THE spinner — a symmetric ring so it spins perfectly true (a rotating text
    glyph wobbles because its ink isn't centred). `currentColor` is the arc, so
