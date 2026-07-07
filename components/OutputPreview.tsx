@@ -523,7 +523,11 @@ export default function OutputPreview() {
            rather than the short portrait dimension (which falls into the 600px fallback). */
         const vw = Math.max(window.innerWidth, window.innerHeight);
         const w = vw >= 601 ? vw : 600;
-        const res = renderArtwork(canvas, slug, id, w);
+        // Live render for the big view (Brendon 2026-07-07) — the stored master
+        // is a modest, storage-bounded size; rendering the engine here keeps a
+        // full-width wide piece crisp on desktop. One piece at a time, so this
+        // never grinds like a grid of live tiles would.
+        const res = renderArtwork(canvas, slug, id, w, true);
         const ratio = res.aspect;
         /* Stored image still fetching → the small ⟳ spinner shows over the art
            until the swap lands ('pd:art-drawn'); a cached piece draws on this

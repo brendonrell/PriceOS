@@ -22,16 +22,55 @@ import { buildAsciiArtifact } from './ascii';
 // ~7.7GB at 512px — under R2's 10GB with real buffer. 640px would project to
 // ~11.6GB, over the tier. The Output feature page still renders live at full
 // quality.
-const PREVIEW_PX = 512;
+// ── Preview sizing — the PROFESSIONAL way (Brendon 2026-07-07) ────────────────
+// How Art Blocks / canvas-sketch do it: a piece is rendered to a fixed box tied
+// to the piece itself, never to the display or the gallery grid. We anchor on
+// CONSTANT PIXEL AREA so every aspect gets the SAME pixel budget — a wide piece
+// is no longer shrunk into a short, low-res strip. Total catalog stays under the
+// 9GB R2 ceiling (masters ~6.4GB + thumbs ~1.5GB at full sell-out).
+//   • MASTER_AREA — every master has this many pixels, distributed by its aspect
+//     (wide → wider, tall → taller), so w·h ≈ MASTER_AREA for all.
+//   • REF_PX — we render the engine at a reference width big enough that its
+//     native area exceeds MASTER_AREA for every catalog aspect (≤ ~1.6), then
+//     downscale to the exact area — a quality-safe shrink, never an upscale.
+const MASTER_AREA = 230400; // ≈ 480×480; wide 1.5 → 588×392, tall 0.75 → 392×588
+const REF_PX = 640;
 
-// Tile thumbnail: longest edge. A 512→256 proportional shrink keeps true aspect
-// and lands each tile at ~30–90KB vs the ~700KB master, so a home full of tiles
-// loads in a beat (Brendon 2026-07-07). Retina-safe for the ~120px card tiles.
+// Tile thumbnail: longest edge. A proportional shrink of the master keeps true
+// aspect and lands each tile at ~30–90KB, so a home full of tiles loads in a
+// beat. Retina-safe for the ~120–240px card tiles.
 const THUMB_PX = 256;
 
-/** Shrink a rendered master canvas to the tile thumbnail (longest edge THUMB_PX,
- *  true aspect preserved) and return it as a PNG blob. Null if the browser can't
- *  give us a 2D context. */
+/** Draw `src` into a fresh canvas scaled to exactly `targetArea` pixels, keeping
+ *  aspect. Only ever shrinks (REF render is larger than any master), so quality
+ *  holds. Returns the scaled canvas. */
+function scaleCanvasToArea(src: HTMLCanvasElement, targetArea: number): HTMLCanvasElement {
+  const area = src.width * src.height;
+  const scale = area > 0 ? Math.min(1, Math.sqrt(targetArea / area)) : 1;
+  const out = document.createElement('canvas');
+  out.width = Math.max(1, Math.round(src.width * scale));
+  out.height = Math.max(1, Math.round(src.height * scale));
+  const ctx = out.getContext('2d');
+  if (ctx) {
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(src, 0, 0, out.width, out.height);
+  }
+  return out;
+}
+
+/** Render a token to the constant-area master canvas — the pinned artifact and
+ *  the source for its thumbnail. Renders at the reference size then shrinks to
+ *  MASTER_AREA, so wide and tall pieces carry the same pixel budget. */
+function renderMasterCanvas(slug: string, tokenId: number): HTMLCanvasElement {
+  const ref = document.createElement('canvas');
+  // live=true forces the generative engine, bypassing the stored-image path.
+  renderArtwork(ref, slug, tokenId, REF_PX, true);
+  return scaleCanvasToArea(ref, MASTER_AREA);
+}
+
+/** Shrink a master canvas to the tile thumbnail (longest edge THUMB_PX, true
+ *  aspect preserved) and return it as a PNG blob. Null if no 2D context. */
 export async function makeThumbBlob(master: HTMLCanvasElement): Promise<Blob | null> {
   const w = master.width;
   const h = master.height;
@@ -48,15 +87,14 @@ export async function makeThumbBlob(master: HTMLCanvasElement): Promise<Blob | n
   return new Promise<Blob | null>((resolve) => thumb.toBlob(resolve, 'image/png'));
 }
 
-/** Render a single token's master, then pin its thumbnail variant (only). Used by
- *  the thumb self-heal path — existing masters get their small tile backfilled
- *  the first time a grid asks for it, exactly like masters self-heal today. */
+/** Render a token's master, then pin its thumbnail variant (only). Used by the
+ *  thumb self-heal path — existing masters get their small tile backfilled the
+ *  first time a grid asks for it, exactly like masters self-heal today. */
 export async function storeThumb(slug: string, tokenId: number): Promise<void> {
   if (typeof document === 'undefined') return;
   try {
-    const canvas = document.createElement('canvas');
-    renderArtwork(canvas, slug, tokenId, PREVIEW_PX, true);
-    const thumbBlob = await makeThumbBlob(canvas);
+    const master = renderMasterCanvas(slug, tokenId);
+    const thumbBlob = await makeThumbBlob(master);
     if (thumbBlob) await uploadWithRetry(`/api/preview/${slug}/${tokenId}?v=t256`, thumbBlob);
   } catch {
     /* best-effort — the card falls back to the master meanwhile */
@@ -67,20 +105,19 @@ export async function storeMintPreviews(slug: string, tokenIds: number[]): Promi
   if (typeof document === 'undefined') return;
   for (const tokenId of tokenIds) {
     try {
-      const canvas = document.createElement('canvas');
-      // live=true forces the generative engine, bypassing the stored-image path.
-      renderArtwork(canvas, slug, tokenId, PREVIEW_PX, true);
-      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
+      // Constant-area master (fixed pixel budget per piece, aspect preserved).
+      const master = renderMasterCanvas(slug, tokenId);
+      const blob = await new Promise<Blob | null>((resolve) => master.toBlob(resolve, 'image/png'));
       if (blob) await uploadWithRetry(`/api/preview/${slug}/${tokenId}`, blob);
-      // Small tile thumbnail — a proportional shrink of THIS render (true aspect
-      // kept, longest edge THUMB_PX), stored beside the master so cards/home/grids
-      // pull ~30–90KB instead of the ~700KB master (Brendon 2026-07-07).
-      const thumbBlob = await makeThumbBlob(canvas);
+      // Small tile thumbnail — a proportional shrink of the master (true aspect
+      // kept, longest edge THUMB_PX), stored beside it so cards/home/grids pull
+      // ~30–90KB instead of the full master (Brendon 2026-07-07).
+      const thumbBlob = await makeThumbBlob(master);
       if (thumbBlob) await uploadWithRetry(`/api/preview/${slug}/${tokenId}?v=t256`, thumbBlob);
       // ASCII Backup rides the same mint moment: derive the text+colour
-      // artifact from the SAME fresh render and pin it beside the PNG
+      // artifact from the SAME render and pin it beside the PNG
       // ({slug}/{id}.ascii.json — write-once, ClickUp 86bahh9f5).
-      const artifact = buildAsciiArtifact(canvas, slug, tokenId);
+      const artifact = buildAsciiArtifact(master, slug, tokenId);
       if (artifact) {
         await uploadWithRetry(
           `/api/ascii/${slug}/${tokenId}`,

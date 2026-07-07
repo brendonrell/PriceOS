@@ -15,7 +15,7 @@
 import { NextResponse } from 'next/server';
 import { badRequest, serverError } from '@/lib/errors';
 import { getSupabaseService } from '@/lib/supabase';
-import { getProject } from '@/lib/project/registry';
+import { getProject, ART_REV } from '@/lib/project/registry';
 import { getPreviewBucket } from '@/lib/cf/r2';
 
 export const runtime = 'nodejs';
@@ -26,10 +26,11 @@ export const dynamic = 'force-dynamic';
 const MAX_BYTES = 1200 * 1024;
 const PNG_SIG = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 
-// Allowed stored variants beyond the full 512px master. `t256` is the small tile
-// thumbnail (~256px longest edge, TRUE aspect preserved) used by cards/home/grids
-// — a proportional shrink of the same render, so dozens of tiles no longer pull
-// the ~700KB master each (Brendon 2026-07-07).
+// Allowed stored variants beyond the constant-area master. `t256` is the small
+// tile thumbnail (~256px longest edge, TRUE aspect preserved) used by cards /
+// home / grids — a proportional shrink of the same render, so dozens of tiles no
+// longer pull the full master each (Brendon 2026-07-07). Keys carry the ART_REV
+// revision so a size change re-pins the whole catalog under fresh keys.
 const VARIANTS: Record<string, string> = { t256: '.t256.png' };
 
 export async function POST(req: Request, ctx: { params: Promise<{ slug: string; id: string }> }): Promise<NextResponse> {
@@ -52,7 +53,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string; 
   const bucket = getPreviewBucket();
   if (!bucket) return serverError('preview storage unbound');
 
-  const key = `${slug}/${tokenId}${suffix}`;
+  const key = `${slug}/${tokenId}.${ART_REV}${suffix}`;
   // Write-once: never overwrite an existing pin (the contract's TxidAlreadySet).
   // Deterministic renders make any re-upload identical anyway. Checked before the
   // DB read so an already-healed piece costs nothing.

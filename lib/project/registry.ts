@@ -1457,16 +1457,22 @@ const artAspectCache = new Map<string, number>();
 
 /** Stored-preview URL for an Output, or null when no image base is configured
  *  (pre-upload dev state — the app renders live as before). */
+/* Stored-preview REVISION. Bumping this changes every stored key, so the whole
+   catalog re-pins at the current size the first time each piece is viewed (the
+   old files orphan harmlessly and get swept). Bumped to v2 with the constant-
+   area render (Brendon 2026-07-07) so the old width-anchored masters retire. */
+export const ART_REV = 'v2';
+
 export function artImageUrl(slug: string, tokenId: number): string | null {
-  return ART_IMAGE_BASE ? `${ART_IMAGE_BASE}/${slug}/${tokenId}.png` : null;
+  return ART_IMAGE_BASE ? `${ART_IMAGE_BASE}/${slug}/${tokenId}.${ART_REV}.png` : null;
 }
 
 /* The small tile thumbnail (~256px longest edge) — a proportional shrink of the
-   master, pinned beside it at {slug}/{id}.t256.png. Cards/home/grids load THIS
-   instead of the ~700KB master so a screen full of tiles arrives in a beat; the
-   card falls back to the master when a thumb isn't pinned yet (Brendon 2026-07-07). */
+   master, pinned beside it. Cards/home/grids load THIS instead of the full master
+   so a screen full of tiles arrives in a beat; the card falls back to the master
+   when a thumb isn't pinned yet (Brendon 2026-07-07). */
 export function artThumbUrl(slug: string, tokenId: number): string | null {
-  return ART_IMAGE_BASE ? `${ART_IMAGE_BASE}/${slug}/${tokenId}.t256.png` : null;
+  return ART_IMAGE_BASE ? `${ART_IMAGE_BASE}/${slug}/${tokenId}.${ART_REV}.t256.png` : null;
 }
 
 /** Best synchronously-known aspect for a token: the learned true ratio when any

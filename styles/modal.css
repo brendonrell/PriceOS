@@ -102,13 +102,15 @@ body.modal-open { overflow: hidden; touch-action: none; }
     -webkit-touch-callout: default;
 }
 
-/* Desktop breathing room — reservation matches sim's 300px below
-   the canvas to keep tall artworks from pushing into the title row. */
+/* Desktop breathing room. The vertical reservation is what caps a WIDE piece's
+   width (it binds on height first), so it's trimmed (300→200px) to let wide
+   artworks use much more of the modal width on desktop while still keeping tall
+   pieces clear of the title row (Brendon 2026-07-07). */
 @media (min-width: 601px) {
     .modal-canvas-wrap { padding: 40px 60px 20px 60px; }
     #modalCanvas {
         max-width: calc(100vw - 120px);
-        max-height: calc(100vh - 300px);
+        max-height: calc(100vh - 200px);
     }
     /* Desktop: match sim.html exactly — 22px icon, +6px nudge aligns visual centre with the 30px X, no padding/margin offset needed */
     #modal .modal-pin-hint { font-size: 22px; top: calc(max(20px, env(safe-area-inset-top)) + 6px); padding: 0; margin: 0; }
