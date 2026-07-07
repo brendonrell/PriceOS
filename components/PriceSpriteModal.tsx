@@ -47,8 +47,10 @@ import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useAuth } from '../lib/state/AuthContext';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
+import { useRouter } from 'next/navigation';
 import { useDragScroll } from '../lib/hooks/useDragScroll';
 import { useProfileLogoColor } from '../lib/hooks/useProfileLogoColor';
+import { useMyAnoint } from '../lib/anoint/useAnoint';
 import { rankProgress, STREAK_ACTIVATION_DAYS } from '../lib/achievements/tiers';
 import {
     ACHIEVEMENTS,
@@ -218,6 +220,10 @@ export default function PriceSpriteModal() {
     /* PriceRank medallion glyph tint — the user's chosen Profile Logo colour
        (Brendon 2026-07-07), matching the connect-menu badge. */
     const logoColor = useProfileLogoColor();
+    /* The socket now reads the caller's REAL pledge — placed state + lock, and
+       taps through to the anointed project (Brendon 2026-07-07). */
+    const router = useRouter();
+    const { pledge } = useMyAnoint();
     const isOpen = openModal?.name === 'priceSprite';
 
     /* ASCII-ID lives here now (moved off the MY PD settings row — this is
@@ -522,10 +528,10 @@ export default function PriceSpriteModal() {
                     })}
                 </div>
 
-                {/* ANOINTMENT socket — empty-state preview of the
-                    one-✢-per-account pledge (ClickUp spec: zero-sum,
-                    60-day lock). Wiring lands with the anointment
-                    workstream; tap toasts COMING SOON. */}
+                {/* ANOINTMENT socket — the caller's REAL one-✢-per-account
+                    pledge (GET /api/anoint?me). Placed → shows the project +
+                    lock state and taps through to that project's Anointed tab;
+                    unplaced → points at where to place it. */}
                 <div className="ps-section-header ps-reveal ps-d5">ANOINTMENT</div>
                 <div
                     className="ps-anoint ps-reveal ps-d5"
@@ -533,14 +539,35 @@ export default function PriceSpriteModal() {
                     tabIndex={0}
                     onClick={(e) => {
                         e.stopPropagation();
-                        showToast('Anointment: COMING SOON');
+                        if (pledge) {
+                            close();
+                            router.push(`/art/${pledge.project_id}`);
+                        } else {
+                            showToast('Anointment: PLACE IT ON ANY PROJECT');
+                        }
+                    }}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            if (pledge) {
+                                close();
+                                router.push(`/art/${pledge.project_id}`);
+                            } else {
+                                showToast('Anointment: PLACE IT ON ANY PROJECT');
+                            }
+                        }
                     }}
                 >
                     <span className="ps-anoint-mark">{`✢${VS15}`}</span>
                     <span className="ps-anoint-copy">
-                        <span className="ps-anoint-state">UNPLACED</span>
+                        <span className="ps-anoint-state">
+                            {pledge ? `@${pledge.project_id}`.toUpperCase() : 'UNPLACED'}
+                        </span>
                         <span className="ps-anoint-sub">
-                            {'one pledge per account · locks 60 days'.split(' · ').map((line, i, arr) => (
+                            {(pledge
+                                ? `via #${pledge.output_token_id} · ${pledge.locked ? 'locked 60 days' : 'unlocked'}`
+                                : 'one pledge per account · locks 60 days'
+                            ).split(' · ').map((line, i, arr) => (
                                 <span className="ps-anoint-sub-line" key={i}>{i < arr.length - 1 ? `${line},` : line}</span>
                             ))}
                         </span>

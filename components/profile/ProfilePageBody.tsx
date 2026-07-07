@@ -58,6 +58,7 @@ import { setActiveProfileLogo } from '../../lib/profile/profileLogoActive';
 import GhostRows from './GhostRows';
 import TraitsUI from '../project/TraitsUI';
 import AchievementsGrid from '../achievements/AchievementsGrid';
+import ProfileAnointedPanel from './ProfileAnointedPanel';
 import DiscordSection from './DiscordSection';
 import { MAX_PRICE_SCORE, VISIBLE_COUNT } from '../../lib/achievements/catalog';
 import Hero from '../hero/Hero';
@@ -1393,6 +1394,14 @@ function ProfilePageBodyInner({
                             </div>
                             <AchievementsGrid unlocked={achData.unlocked} />
                         </div>
+                    )}
+
+                    {onMore && effMoreL1 === 'anointed' && (
+                        <ProfileAnointedPanel
+                            address={user.address}
+                            handle={displayHandle}
+                            isOwnProfile={isOwnProfile}
+                        />
                     )}
 
                     {/* Collected tab: platform-facet filter over the wallet's real

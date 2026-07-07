@@ -26,6 +26,7 @@ import GenomePanel from './GenomePanel';
 import PriceStoryPanel from '../market/PriceStoryPanel';
 import OffersInline from '../market/OffersInline';
 import ProjectFollowButton from './ProjectFollowButton';
+import ProjectAnointPanel from './ProjectAnointPanel';
 import Hero from '../hero/Hero';
 
 /* + More sub-nav (Brendon, 2026-06-13) — same trait-pill tab system as the
@@ -38,7 +39,7 @@ import Hero from '../hero/Hero';
      Albums    → Albums
      Genome    → Genome
      Sentiment → Price Targets + Disagreement Score (what the crowd thinks) */
-export type ProjectMoreL1 = 'social' | 'stats' | 'replay' | 'albums' | 'genome' | 'gnome' | 'sentiment' | 'attributes' | 'pricestory' | 'offers';
+export type ProjectMoreL1 = 'social' | 'stats' | 'replay' | 'albums' | 'genome' | 'gnome' | 'sentiment' | 'attributes' | 'pricestory' | 'offers' | 'anoint';
 
 export default function ProjectMorePanel({
     onAlbumsTab,
@@ -225,6 +226,7 @@ export default function ProjectMorePanel({
               </div>
             </div>
             </>)}
+            {moreL1 === 'anoint' && <ProjectAnointPanel />}
             {moreL1 === 'stats' && (<>
             {/* PRICE STATS — stats-row-2 restored here from hero.
                 Percent Listed, Floor Price, and Anchor. The ⚓ anchor

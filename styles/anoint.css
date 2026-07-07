@@ -1,0 +1,206 @@
+/* Anointment tab — project + profile "Anointed" +More tabs, and shared bits.
+   Mono/brutalist to match the rest of PD; full-strength text (no washed-out
+   opacity on anything a human reads). */
+
+.anoint-panel {
+    width: 100%;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.anoint-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    text-align: left;
+}
+
+/* Level + count header */
+.anoint-level-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+}
+.anoint-level-name {
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 2px;
+}
+.anoint-level-1 { color: var(--text-color); }
+.anoint-level-2 { color: var(--text-color); text-shadow: 0 0 6px currentColor; }
+.anoint-count {
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    opacity: 0.7;
+    white-space: nowrap;
+}
+
+/* Progress to next level */
+.anoint-bar {
+    position: relative;
+    height: 7px;
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    overflow: hidden;
+    background: transparent;
+}
+.anoint-bar-fill {
+    height: 100%;
+    background: var(--text-color);
+    transition: width 0.4s ease;
+}
+.anoint-bar-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    opacity: 0.7;
+}
+
+/* Prime Relic */
+.anoint-relic {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px dashed var(--text-color);
+    border-radius: 4px;
+    padding: 10px 12px;
+}
+.anoint-relic-label {
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    opacity: 0.65;
+    white-space: nowrap;
+}
+.anoint-relic-body {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    color: var(--text-color);
+    text-decoration: none;
+}
+.anoint-relic-body:hover { text-decoration: underline; }
+.anoint-relic-id { font-size: 14px; font-weight: 800; }
+.anoint-relic-owner { font-size: 11px; font-weight: bold; }
+.anoint-relic-votes { font-size: 10px; font-weight: bold; opacity: 0.7; }
+.anoint-relic-none { font-size: 11px; font-weight: bold; opacity: 0.7; }
+.anoint-relic-empty { border-style: dashed; opacity: 0.9; }
+
+/* Egregore — Level 2 flex */
+.anoint-egregore {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    padding: 12px 14px;
+}
+.anoint-egregore-deity {
+    font-size: 30px;
+    line-height: 1;
+    animation: anoint-egregore-breathe 3.2s ease-in-out infinite;
+}
+.anoint-egregore-copy {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 2px;
+}
+@keyframes anoint-egregore-breathe {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50%      { opacity: 1; transform: scale(1.08); }
+}
+
+/* Notes / pledge lines */
+.anoint-note {
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1.5;
+}
+.anoint-note a { color: var(--text-color); }
+.anoint-pledge-meta { margin-top: -4px; }
+
+/* Conduit picker */
+.anoint-conduit-label {
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    opacity: 0.65;
+    margin-top: 2px;
+}
+.anoint-conduit-row {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    cursor: grab;
+}
+.anoint-conduit-row::-webkit-scrollbar { display: none; }
+.anoint-conduit-row[data-dragging] { cursor: grabbing; }
+.anoint-conduit-row > *:last-child { margin-right: 4px; }
+.anoint-conduit-chip {
+    flex: 0 0 auto;
+    border: 1px dashed var(--text-color);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-color);
+    padding: 7px 12px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.15s, background 0.15s, color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+}
+.anoint-conduit-chip:active { transform: scale(0.95); }
+.anoint-conduit-chip.selected {
+    border-style: solid;
+    background: var(--text-color);
+    color: var(--bg-color);
+}
+
+/* Actions */
+.anoint-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.anoint-withdraw-btn {
+    background: transparent;
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+}
+.anoint-place-btn:disabled,
+.anoint-withdraw-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.anoint-fine {
+    font-size: 10px;
+    line-height: 1.5;
+    opacity: 0.7;
+}
+
+/* Empty state */
+.anoint-empty {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.anoint-empty-mark {
+    font-size: 26px;
+    line-height: 1;
+    opacity: 0.6;
+}
+.anoint-empty-copy {
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1.5;
+}
