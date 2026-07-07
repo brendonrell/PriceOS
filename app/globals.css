@@ -5136,8 +5136,12 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 #traitCategories {
     display: flex;
     flex-wrap: wrap;
-    position: sticky;
-    bottom: 0;
+    /* Nailed in normal flow — never floats/drags. Was sticky bottom:0, the same
+       landscape float that pinned the CTA row into the Safari top-bar sampler.
+       The base .stats-container went static 2026-07-06, but this higher-specificity
+       ID rule kept re-sticking the trait pills — so they stayed the poisoner.
+       Same fix as .action-row. (Brendon, 2026-07-07.) */
+    position: static;
     gap: 6px 8px;
     align-items: center;
 }
