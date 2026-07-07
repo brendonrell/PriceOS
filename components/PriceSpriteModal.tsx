@@ -49,7 +49,6 @@ import { useAuth } from '../lib/state/AuthContext';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import { useRouter } from 'next/navigation';
 import { useDragScroll } from '../lib/hooks/useDragScroll';
-import { useProfileLogoColor } from '../lib/hooks/useProfileLogoColor';
 import { useMyAnoint } from '../lib/anoint/useAnoint';
 import { rankProgress, STREAK_ACTIVATION_DAYS } from '../lib/achievements/tiers';
 import {
@@ -217,9 +216,6 @@ export default function PriceSpriteModal() {
     const { showToast } = useToast();
     const { priceRank, priceScore, priceStreak, handle, siweAddress } = useAuth();
     const { notifs, toggle } = usePdNotifs();
-    /* PriceRank medallion glyph tint — the user's chosen Profile Logo colour
-       (Brendon 2026-07-07), matching the connect-menu badge. */
-    const logoColor = useProfileLogoColor();
     /* The socket now reads the caller's REAL pledge — placed state + lock, and
        taps through to the anointed project (Brendon 2026-07-07). */
     const router = useRouter();
@@ -403,7 +399,7 @@ export default function PriceSpriteModal() {
                             }
                         }}
                     >
-                        <span className="ps-rank-glyph" style={{ color: logoColor ?? undefined }}>
+                        <span className="ps-rank-glyph">
                             {priceRank <= 0
                                 ? '⓿'
                                 : String.fromCodePoint(0x2775 + Math.min(priceRank, 10))}

@@ -6165,7 +6165,10 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 
 .canvas-wrapper {
     width: 100%;
-    background: #ccc;
+    /* Loading tile = the CURRENT colorway background, never a fixed white/grey
+       (Brendon 2026-07-07) — theme-aware, so a not-yet-loaded tile blends with
+       the page instead of flashing a white box. The art covers it once loaded. */
+    background: var(--bg-color);
     display: flex;
     align-items: center;
     justify-content: center;

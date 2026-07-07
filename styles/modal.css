@@ -68,14 +68,12 @@ body.modal-open { overflow: hidden; touch-action: none; }
     position: absolute;
     right: 28px;
     bottom: 10px;
-    width: 26px;
-    height: 26px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 13px;
-    background: var(--text-color);
-    color: var(--bg-color);
+    /* No disc — the ring in the colorway's text colour, theme-aware
+       (Brendon 2026-07-07). */
+    color: var(--text-color);
     pointer-events: none;
     z-index: 3;
 }
@@ -84,9 +82,9 @@ body.modal-open { overflow: hidden; touch-action: none; }
    it inherits whatever contrast the badge around it sets. Used everywhere art
    loads: tiles, the modal, mint (Brendon 2026-07-07). */
 .pd-ring {
-    width: 15px;
-    height: 15px;
-    border: 2px solid color-mix(in srgb, currentColor 28%, transparent);
+    width: 22px;
+    height: 22px;
+    border: 2px solid color-mix(in srgb, currentColor 25%, transparent);
     border-top-color: currentColor;
     border-radius: 50%;
     animation: pd-spin 0.7s linear infinite;
@@ -103,18 +101,13 @@ body.modal-open { overflow: hidden; touch-action: none; }
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 30px;
-    height: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
-    /* Solid filled badge — text colour fill, bg colour glyph — so the spinner
-       is always high-contrast against the tile, in any colorway (the modal's
-       exact treatment). No more invisible bare glyph (Brendon 2026-07-07). */
-    background: var(--text-color);
-    color: var(--bg-color);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+    /* No disc — just the ring, in the colorway's own text colour so it's
+       dark on a light background and light on a dark one, theme-aware like the
+       rest of the app (Brendon 2026-07-07). */
+    color: var(--text-color);
     pointer-events: none;
     z-index: 2;
 }
