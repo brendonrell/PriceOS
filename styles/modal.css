@@ -74,8 +74,6 @@ body.modal-open { overflow: hidden; touch-action: none; }
     align-items: center;
     justify-content: center;
     background: var(--bg-color);
-    border: 2px solid var(--text-color);
-    border-radius: 8px;
     color: var(--text-color);
     pointer-events: none;
     z-index: 3;
@@ -121,13 +119,14 @@ body.modal-open { overflow: hidden; touch-action: none; }
 }
 
 #modalCanvas {
-    max-width: 100%;
-    max-height: 100%;
-    width: auto !important;
-    height: auto;
-    align-self: center;
+    /* Fill the modal art area and CONTAIN the piece — so a wide piece uses the
+       full width on desktop/landscape instead of sitting skinny at its native
+       size; the wrap's padding gives the side buffers (Brendon 2026-07-07). */
+    width: 100%;
+    height: 100%;
     object-fit: contain;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    /* drop-shadow (not box-shadow) hugs the actual art shape under object-fit. */
+    filter: drop-shadow(0 16px 40px rgba(0, 0, 0, 0.28));
     user-select: none;
     display: block;
     -webkit-touch-callout: default;
@@ -189,12 +188,11 @@ body.modal-open { overflow: hidden; touch-action: none; }
             calc(env(safe-area-inset-left, 0px) + 64px);
     }
     .ls-canvas-wrap #modalCanvasLs {
-        max-width: 100%;
-        max-height: 100%;
-        width: auto !important;
-        height: auto;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
         display: block;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+        filter: drop-shadow(0 16px 40px rgba(0,0,0,0.28));
         user-select: none;
         -webkit-touch-callout: default;
     }

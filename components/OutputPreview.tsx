@@ -92,8 +92,8 @@ import { useCalcSheet } from '../lib/state/CalcSheetContext';
 import { useMarketSheet } from '../lib/state/MarketSheetContext';
 import { cancelListing } from '../lib/market/marketClient';
 import { getWalletClientOnDemand } from '../lib/wallet/walletClientOnDemand';
-import { useProject, paintOutput, buildOutputMetaFor } from '../lib/state/ProjectContext';
-import { getProject, renderArtwork } from '../lib/project/registry';
+import { useProject, buildOutputMetaFor } from '../lib/state/ProjectContext';
+import { getProject, artImageUrl, ART_IMAGE_BASE } from '../lib/project/registry';
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
 
 import { hashSynApplyHex } from '../lib/engines/hashSynEngine';
@@ -285,15 +285,36 @@ export default function OutputPreview() {
         return subscribeMuted((next) => setMutedSet(next));
     }, []);
 
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const canvasLsRef = useRef<HTMLCanvasElement>(null);
-    /* Stored image still loading for the CURRENT piece → the small ⟳ spinner
-       shows over the art (Brendon, 2026-07-06 — scanning was disorienting when
-       the previous piece just sat there with no signal). */
-    const [artLoading, setArtLoading] = useState(false);
+    const imgRef = useRef<HTMLImageElement>(null);
+    const imgLsRef = useRef<HTMLImageElement>(null);
+    /* The modal shows the stored high-res master as a plain <img> — exactly like
+       the grid tiles: browser-cached, instant on reopen, no canvas render dance
+       (Brendon 2026-07-07). imgStage walks master → previous-rev master. */
+    const [imgLoaded, setImgLoaded] = useState(false);
+    const [imgStage, setImgStage] = useState(0);
 
     const isOpen = openModal?.name === 'output';
     const id = isOpen ? currentModalId : null;
+
+    /* The modal image source — the stored high-res master (falls back to the
+       previous-rev master during a re-pin), served as a plain <img>. */
+    const modalCandidates = useMemo(() => {
+        if (id == null || !ART_IMAGE_BASE) return [] as string[];
+        return [artImageUrl(slug, id), `${ART_IMAGE_BASE}/${slug}/${id}.png`].filter((u): u is string => !!u);
+    }, [slug, id]);
+    const modalImgSrc = modalCandidates[imgStage] ?? null;
+    useEffect(() => { setImgLoaded(false); setImgStage(0); }, [slug, id]);
+    const onModalImgError = () => {
+        if (imgStage === 0 && id != null) {
+            try { window.dispatchEvent(new CustomEvent('pd:preview-miss', { detail: { slug, tokenId: id } })); } catch { /* ignore */ }
+        }
+        setImgStage((s) => s + 1);
+    };
+    /* Per-piece hashsyn accent, preserved from the old canvas paint (no-op unless
+       the Hash Synesthesia colorway is active). */
+    useEffect(() => {
+        if (id != null) hashSynApplyHex(`hsl(${(id * 37) % 360}, 70%, 50%)`);
+    }, [id]);
 
     /* Breadcrumbs — the REAL trail (lib/pins/breadcrumbStore). Every Output
        this modal shows was actually visited by the viewer, including
@@ -501,52 +522,6 @@ export default function OutputPreview() {
         [id]
     );
 
-    /* Canvas placeholder render. Real ArtEngine wiring is its own ship;
-       this paints a stable HSL gradient + radial glow + #id stamp so the
-       modal looks alive and prev/next nav reads as distinct tokens. */
-    useEffect(() => {
-        if (!isOpen || id == null) return;
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-
-        /* Artwork Swap — same renderer as ArtworkCard, scaled to the
-           modal hero canvas. profile.html doesn't paint its modal
-           canvas at all (mockup #modalCanvas is declared but never
-           written to); the natural port is the same gradient logic at
-           higher resolution so gallery → modal handoff shows the same
-           piece. Canvas intrinsic dims = w × (w / ratio); the modal
-           container has no fixed aspect-ratio rule so the canvas lays
-           out at intrinsic size under the modal's max-width / max-
-           height clamps. */
-        /* Sim uses window.innerWidth directly as renderWidth (sim line 8726) — match exactly.
-           Use the larger of innerWidth/innerHeight so landscape mobile renders at full width
-           rather than the short portrait dimension (which falls into the 600px fallback). */
-        const vw = Math.max(window.innerWidth, window.innerHeight);
-        const w = vw >= 601 ? vw : 600;
-        // The stored high-res master IS the modal image — fast, edge-cached, and
-        // exactly why we sized the masters up. NOT a live render (Brendon
-        // 2026-07-07). `res.pending` drives the loading spinner while it fetches.
-        const res = renderArtwork(canvas, slug, id, w);
-        const ratio = res.aspect;
-        /* Stored image still fetching → the small ⟳ spinner shows over the art
-           until the swap lands ('pd:art-drawn'); a cached piece draws on this
-           frame and never spins (Brendon, 2026-07-06). */
-        setArtLoading(res.pending === true);
-        canvas.classList.add('visible');
-        const canvasLs = canvasLsRef.current;
-        if (canvasLs) { paintOutput(canvasLs, slug, id, w); canvasLs.classList.add('visible'); }
-        hashSynApplyHex(`hsl(${(id * 37) % 360}, 70%, 50%)`);
-    }, [isOpen, id, slug]);
-
-    /* Spinner off the moment the canvas reports the stored draw landed. */
-    useEffect(() => {
-        if (!isOpen) { setArtLoading(false); return; }
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const done = () => setArtLoading(false);
-        canvas.addEventListener('pd:art-drawn', done);
-        return () => canvas.removeEventListener('pd:art-drawn', done);
-    }, [isOpen]);
 
     /* Scroll-position preservation now lives in ModalContext's body-lock
        effect so every modal inherits the dance (sim openModal/closeModal
@@ -587,18 +562,12 @@ export default function OutputPreview() {
     /* Sim renders the canvas synchronously inside openModal() — no state
        round-trip. Mirror that by rendering imperatively here before
        setCurrentModalId so the art swaps on the same frame as the press. */
+    /* Nav (prev/next) swaps the piece by changing the modal id — the <img> src
+       follows it and the browser shows the cached image instantly. hashsyn accent
+       kept for the active colorway. */
     const renderToCanvas = useCallback((nextId: number) => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const vw = Math.max(window.innerWidth, window.innerHeight);
-        const w = vw >= 601 ? vw : 600;
-        const res = renderArtwork(canvas, slug, nextId, w);
-        setArtLoading(res.pending === true);
-        canvas.classList.add('visible');
-        const canvasLs = canvasLsRef.current;
-        if (canvasLs) { paintOutput(canvasLs, slug, nextId, w); canvasLs.classList.add('visible'); }
         hashSynApplyHex(`hsl(${(nextId * 37) % 360}, 70%, 50%)`);
-    }, [slug]);
+    }, []);
 
     /* Walk the captured grid sequence (the grid AS SHOWN — across projects and
        carousels) when one was captured at open and the current piece is in it.
@@ -897,25 +866,31 @@ export default function OutputPreview() {
             </div>
 
             <div className="modal-canvas-wrap">
-                <canvas
-                    id="modalCanvas"
-                    ref={canvasRef}
-                    className="output-canvas"
-                    role="img"
-                    aria-label={id != null ? `${slug} #${id} — generative artwork` : 'Generative artwork'}
-                    onClick={() => {
-                        if (id == null) return;
-                        close();
-                        window.scrollTo(0, 0);
-                        router.push(`/art/${slug}/${id}`);
-                    }}
-                    style={{ cursor: 'pointer' }}
-                    title="Open output page"
-                />
-                {/* Full-size loading state — a colorway-outlined panel in the
-                    current background colour with a centered ring, shown while
-                    the stored high-res image is in flight (Brendon 2026-07-07). */}
-                {artLoading && (
+                {modalImgSrc && (
+                    <img
+                        id="modalCanvas"
+                        ref={imgRef}
+                        className={`output-canvas${imgLoaded ? ' visible' : ''}`}
+                        src={modalImgSrc}
+                        alt={id != null ? `${slug} #${id} — artwork` : 'Artwork'}
+                        decoding="async"
+                        draggable={false}
+                        onLoad={() => setImgLoaded(true)}
+                        onError={onModalImgError}
+                        onClick={() => {
+                            if (id == null) return;
+                            close();
+                            window.scrollTo(0, 0);
+                            router.push(`/art/${slug}/${id}`);
+                        }}
+                        style={{ cursor: 'pointer' }}
+                        title="Open output page"
+                    />
+                )}
+                {/* Full-size loading state — the current background colour + a
+                    centered ring, while the high-res image is in flight
+                    (Brendon 2026-07-07). */}
+                {!imgLoaded && (
                     <div className="modal-art-loading" aria-hidden="true">
                         <span className="pd-ring" />
                     </div>
@@ -1137,21 +1112,27 @@ export default function OutputPreview() {
             </div>
 
             <div className="ls-canvas-wrap">
-                <canvas
-                    id="modalCanvasLs"
-                    ref={canvasLsRef}
-                    className="output-canvas"
-                    role="img"
-                    aria-label={id != null ? `${slug} #${id} — generative artwork` : 'Generative artwork'}
-                    onClick={() => {
-                        if (id == null) return;
-                        close();
-                        window.scrollTo(0, 0);
-                        router.push(`/art/${slug}/${id}`);
-                    }}
-                    style={{ cursor: 'pointer' }}
-                    title="Open output page"
-                />
+                {modalImgSrc && (
+                    <img
+                        id="modalCanvasLs"
+                        ref={imgLsRef}
+                        className={`output-canvas${imgLoaded ? ' visible' : ''}`}
+                        src={modalImgSrc}
+                        alt={id != null ? `${slug} #${id} — artwork` : 'Artwork'}
+                        decoding="async"
+                        draggable={false}
+                        onLoad={() => setImgLoaded(true)}
+                        onError={onModalImgError}
+                        onClick={() => {
+                            if (id == null) return;
+                            close();
+                            window.scrollTo(0, 0);
+                            router.push(`/art/${slug}/${id}`);
+                        }}
+                        style={{ cursor: 'pointer' }}
+                        title="Open output page"
+                    />
+                )}
                 <div
                     className={'mute-overlay' + (swinging ? ' punch-hammer' : '')}
                     onClick={handleModalMuteTap}
