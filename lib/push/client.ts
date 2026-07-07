@@ -53,6 +53,26 @@ function urlBase64ToBuffer(base64: string): ArrayBuffer {
   return buffer;
 }
 
+/** The VAPID public key. Prefer the build-time inline (NEXT_PUBLIC_*), but fall
+ *  back to the server, which always has it at runtime (it signs sends with the
+ *  same value). This removes the dependency on the key being set as a Cloudflare
+ *  BUILD variable — a toggle that has silently gone missing and left every device
+ *  on the 'unsupported' path. Same canonical key either way, so the signing pair
+ *  can never drift. */
+async function resolveVapidKey(): Promise<string> {
+  if (VAPID_PUBLIC_KEY) return VAPID_PUBLIC_KEY;
+  try {
+    const res = await fetch('/api/push/pubkey');
+    if (res.ok) {
+      const { key } = (await res.json()) as { key?: string };
+      if (typeof key === 'string') return key;
+    }
+  } catch {
+    /* ignore — treated as unsupported below */
+  }
+  return '';
+}
+
 export async function getNativeStatus(): Promise<NativeStatus> {
   if (!nativePushSupported()) {
     return { supported: false, permission: 'default', subscribed: false };
@@ -69,17 +89,23 @@ export async function getNativeStatus(): Promise<NativeStatus> {
 
 /** Request permission + subscribe + register with the server. From a gesture. */
 export async function enableNativePings(): Promise<EnableResult> {
-  if (!nativePushSupported() || !VAPID_PUBLIC_KEY) return 'unsupported';
+  if (!nativePushSupported()) return 'unsupported';
   try {
+    // Permission MUST be requested first, synchronously in the user gesture —
+    // iOS rejects a prompt raised after an unrelated await. The key is resolved
+    // afterwards (subscribe() carries no gesture requirement).
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') return 'denied';
+
+    const vapidKey = await resolveVapidKey();
+    if (!vapidKey) return 'unsupported';
 
     const reg = await navigator.serviceWorker.ready;
     let sub = await reg.pushManager.getSubscription();
     if (!sub) {
       sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToBuffer(VAPID_PUBLIC_KEY),
+        applicationServerKey: urlBase64ToBuffer(vapidKey),
       });
     }
 
