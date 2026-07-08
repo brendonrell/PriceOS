@@ -4522,14 +4522,6 @@ button,
 .mint-chooser .mint-fiat-cur { font-size: 10px; }
 /* Modal BUY CTA — the ~fiat sits inline after the ETH price, slightly dimmed. */
 .modal-action-btn-fiat { opacity: 0.8; }
-/* The row content wrapper — sizes to its natural content (never shrinks/clips),
-   so the whole readout can be measured and scaled to fit the fixed pill. Scaled
-   from the centre via an inline transform so nothing is ever cut (Brendon
-   2026-07-08 — posted prices MUST stay fully visible). */
-/* MINT stays full-size; only the NUMBERS cell scales. The face fills the pill,
-   MINT is fixed (flex 0 0), the numbers cell takes the rest and clips, and the
-   inner numbers scale down only when they'd exceed that cell — so nothing is
-   ever cut and MINT is never shrunk by default (Brendon 2026-07-08). */
 .mint-face {
     flex: 1 1 auto;
     min-width: 0;
@@ -4540,35 +4532,23 @@ button,
     gap: 4px;
 }
 .mint-face > .mint-lbl { flex: 0 0 auto; }
-.mint-nums {
-    flex: 0 0 auto;
-    min-width: 0;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-/* Fiat mode: MINT stays fixed; the numbers cell fills the space beside it so the
-   ETH+fiat can scale into it. Normal mode is untouched (Brendon 2026-07-08). */
-.mint-face-fiat .mint-nums { flex: 1 1 auto; }
-/* Equal spacing on BOTH sides of the ETH price: the MINT↔ETH gap and the
-   ETH↔fiat gap must scale together. The ETH↔fiat gap lives inside the scaled
-   numbers; so does the MINT↔ETH gap here (a leading pad, same size), while the
-   face gap is dropped — so both read identical at any fill scale (Brendon 2026-07-08). */
-.mint-face-fiat { gap: 0; }
-.mint-face-fiat .mint-nums-in { padding-left: 12px; }
-/* Fiat mode: drop the pill's 24px side buffer to a 6px buffer each side so the
-   readout fills the pill; MINT keeps its normal size (Brendon 2026-07-08). */
+/* Fiat mode: drop the pill's 24px side buffer to a 7px buffer each side so the
+   centered readout fills the pill; MINT keeps its normal size (Brendon 2026-07-08). */
 .mint-btn-fiat { padding: 0 7px; }
+/* Fiat readout — ONE centered row: MINT · (ETH) · ~fiat. Sized to natural
+   content, scaled from the centre via an inline transform so it fills the pill
+   without ever clipping. MINT is counter-scaled in JS so it holds its fiat-off
+   size; the single shared gap keeps spacing equal on both sides of the ETH
+   price at any scale (Brendon 2026-07-08 — this is the moment of purchase). */
 .mint-nums-in {
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
-    /* Real breathing room between the ETH stack and the fiat stack (Brendon 2026-07-08). */
-    gap: 12px;
+    gap: 10px;
     white-space: nowrap;
     transform-origin: center;
 }
+.mint-nums-in > .mint-lbl { flex: 0 0 auto; }
 /* +/- step (choosing face) in fiat mode: ETH one smaller, fiat one larger. */
 .mint-chooser-fiat .mint-price { font-size: 12px; }
 .mint-chooser-fiat .mint-fiat-amt { font-size: 11px; }
