@@ -39,7 +39,8 @@ export function FiatCurrencyPicker({ gated }: { gated: boolean }) {
     const pick = (next: FiatCode | null) => {
         setCurrency(next);
         setOpen(false);
-        showToast(`Currency: ${next ?? 'OFF'}`);
+        // On → "Display Currency: FIAT $CAD"; off → back to native "SOVEREIGN".
+        showToast(next ? `Display Currency: FIAT ${fiatSymbol(next)}${next}` : 'Currency: SOVEREIGN');
     };
 
     // Dismiss on outside tap / scroll / resize (same guard as the ping bubble).
