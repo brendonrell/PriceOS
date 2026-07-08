@@ -49,6 +49,7 @@ export default function ProjectMorePanel({
     projectNo,
     lowestFloor,
     anchorEth,
+    attrQuery = '',
 }: {
     onAlbumsTab: boolean;
     moreL1: ProjectMoreL1;
@@ -57,6 +58,8 @@ export default function ProjectMorePanel({
     projectNo?: number | null;
     lowestFloor: number | null;
     anchorEth: number | null;
+    /** Attributes search text, driven by the search beside the +More pills. */
+    attrQuery?: string;
 }) {
     const project = useProject();
     const def = getProject(project.slug);
@@ -470,13 +473,13 @@ export default function ProjectMorePanel({
                         mintedCount={project.totalOutputs}
                         maxSupply={project.maxSupply}
                         uploadedAt={uploadedAt}
-                        searchable
+                        query={attrQuery}
                         onTileTap={onAttrTileTap}
                     />
                 ) : (
                     <AttrWall
                         groups={buildProjectAttributes(project.slug, uploadedAt, { mintedCount: project.totalOutputs, maxSupply: project.maxSupply, projectNo })}
-                        searchable
+                        query={attrQuery}
                         onTileTap={onAttrTileTap}
                     />
                 )

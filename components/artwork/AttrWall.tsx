@@ -24,6 +24,7 @@ export default function AttrWall({
     offerTraits = null,
     onTraitOffer,
     searchable = false,
+    query,
     onTileTap,
 }: {
     groups: AttrGroup[];
@@ -31,14 +32,18 @@ export default function AttrWall({
     /** category → value map of the piece's offerable traits (outputTraits). */
     offerTraits?: Record<string, string> | null;
     onTraitOffer?: (category: string, value: string) => void;
-    /** Show a search box that filters tiles by label / value / sub. */
+    /** Show the wall's OWN search box (icon + input) that filters tiles. */
     searchable?: boolean;
+    /** Controlled query — when provided, an external search (e.g. the +More pill
+     *  row) drives the filter and the wall's own search box is not shown. */
+    query?: string;
     /** Called with a tile's tapKey when a tappable tile is pressed. */
     onTileTap?: (tapKey: string) => void;
 }) {
-    const [query, setQuery] = useState('');
+    const controlled = query !== undefined;
+    const [internalQuery, setInternalQuery] = useState('');
     const [searchOpen, setSearchOpen] = useState(false);
-    const q = query.trim().toLowerCase();
+    const q = (controlled ? (query ?? '') : internalQuery).trim().toLowerCase();
 
     /* Filter tiles by the query across label / value / sub; drop empty groups. */
     const shownGroups = useMemo(() => {
@@ -62,18 +67,18 @@ export default function AttrWall({
                     <p className="attr-reading-body">{reading}</p>
                 </div>
             )}
-            {searchable && (
+            {searchable && !controlled && (
                 /* Reuses the gen-art gallery search vocabulary — the ⌕ .search-btn
-                   in its usual spot (following the pills), toggling a .search-input
-                   row (Brendon 2026-07-08). */
+                   toggling a .search-input row (Brendon 2026-07-08). Only when the
+                   wall owns its search; a controlled query hides this. */
                 <div className="attr-search-bar">
                     <span
                         className={`search-btn${searchOpen ? ' active' : ''}`}
                         role="button"
                         tabIndex={0}
                         title="Search attributes"
-                        onClick={() => setSearchOpen((v) => { const next = !v; if (!next) setQuery(''); return next; })}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSearchOpen((v) => { const next = !v; if (!next) setQuery(''); return next; }); } }}
+                        onClick={() => setSearchOpen((v) => { const next = !v; if (!next) setInternalQuery(''); return next; })}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSearchOpen((v) => { const next = !v; if (!next) setInternalQuery(''); return next; }); } }}
                     >
                         {`⌕${VS15}`}
                     </span>
@@ -83,18 +88,18 @@ export default function AttrWall({
                                 type="text"
                                 className="search-input"
                                 placeholder="Search attributes"
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
+                                value={internalQuery}
+                                onChange={(e) => setInternalQuery(e.target.value)}
                                 spellCheck={false}
                                 autoCapitalize="none"
                                 autoCorrect="off"
                                 aria-label="Search attributes"
                                 autoFocus
                             />
-                            {query && (
+                            {internalQuery && (
                                 <span className="search-clear" role="button" tabIndex={0} title="Clear"
-                                    onClick={() => setQuery('')}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setQuery(''); } }}>
+                                    onClick={() => setInternalQuery('')}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setInternalQuery(''); } }}>
                                     {`×${VS15}`}
                                 </span>
                             )}
@@ -102,8 +107,8 @@ export default function AttrWall({
                     )}
                 </div>
             )}
-            {searchable && q && shownGroups.length === 0 && (
-                <div className="attr-search-empty">No attributes match “{query}”.</div>
+            {q && shownGroups.length === 0 && (
+                <div className="attr-search-empty">No attributes match your search.</div>
             )}
             {shownGroups.map((g) => (
                 <section className="attr-group" key={g.key} aria-label={g.label}>

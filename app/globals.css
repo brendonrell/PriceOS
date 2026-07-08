@@ -4580,6 +4580,10 @@ button,
     opacity: 0.75;
     padding: 4px 2px 10px;
 }
+/* Search sitting beside the +More trait pills (the usual gen-art spot). */
+.attr-pill-search { display: inline-flex; align-items: center; gap: 6px; }
+.attr-pill-search-row { display: inline-flex; align-items: center; gap: 6px; }
+.attr-pill-search-row .search-input { width: 170px; max-width: 48vw; }
 /* Tappable attribute tile (Golf Score → the Clubhouse). */
 .attr-tile-tap { cursor: pointer; }
 .attr-tile-tap:hover { border-color: var(--text-color); }

@@ -204,6 +204,11 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
     /* + More sub-nav pills — sections live in ProjectMorePanel. */
     const [moreL1, setMoreL1] = useState<ProjectMoreL1>('attributes');
 
+    /* Search beside the +More pills — drives the Attributes filter (our usual
+       gen-art search, in the pill row). */
+    const [attrSearchOpen, setAttrSearchOpen] = useState(false);
+    const [attrQuery, setAttrQuery] = useState('');
+
     const { lowestId, lowestFloor } = useProjectFloor();
     const { ethToFiat, currency } = useFiat();
     const floorFiat = lowestFloor !== null ? ethToFiat(lowestFloor) : null;
@@ -524,6 +529,43 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                                 { key: 'genome', label: 'Genome', active: moreL1 === 'genome', onClick: () => setMoreL1('genome') },
                                 { key: 'gnome', label: 'Gnome', active: moreL1 === 'gnome', onClick: () => setMoreL1('gnome') },
                             ]}
+                            profilePillsTrailing={moreL1 === 'attributes' ? (
+                                <span className="attr-pill-search">
+                                    <span
+                                        className={`search-btn${attrSearchOpen ? ' active' : ''}`}
+                                        role="button"
+                                        tabIndex={0}
+                                        title="Search attributes"
+                                        onClick={() => setAttrSearchOpen((v) => { const next = !v; if (!next) setAttrQuery(''); return next; })}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setAttrSearchOpen((v) => { const next = !v; if (!next) setAttrQuery(''); return next; }); } }}
+                                    >
+                                        {'⌕︎'}
+                                    </span>
+                                    {attrSearchOpen && (
+                                        <span className="attr-pill-search-row">
+                                            <input
+                                                type="text"
+                                                className="search-input"
+                                                placeholder="Search attributes"
+                                                value={attrQuery}
+                                                onChange={(e) => setAttrQuery(e.target.value)}
+                                                spellCheck={false}
+                                                autoCapitalize="none"
+                                                autoCorrect="off"
+                                                aria-label="Search attributes"
+                                                autoFocus
+                                            />
+                                            {attrQuery && (
+                                                <span className="search-clear" role="button" tabIndex={0} title="Clear"
+                                                    onClick={() => setAttrQuery('')}
+                                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setAttrQuery(''); } }}>
+                                                    {'×︎'}
+                                                </span>
+                                            )}
+                                        </span>
+                                    )}
+                                </span>
+                            ) : undefined}
                         />
                     )}
             </Hero>
@@ -686,6 +728,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                 projectNo={projectNo}
                 lowestFloor={lowestFloor}
                 anchorEth={anchorEth}
+                attrQuery={moreL1 === 'attributes' ? attrQuery : ''}
             />
         </>
     );
