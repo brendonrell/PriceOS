@@ -32,7 +32,7 @@ const POLL_MS = 5 * 60_000; // rates move slowly; a display price doesn't need t
 /** Symbol + fractional-digit rules per currency. C$ disambiguates from US$. */
 const CURRENCY_META: Record<FiatCode, { symbol: string; decimals: number }> = {
     USD: { symbol: '$', decimals: 2 },
-    CAD: { symbol: 'C$', decimals: 2 },
+    CAD: { symbol: '$', decimals: 2 },
     GBP: { symbol: '£', decimals: 2 },
     EUR: { symbol: '€', decimals: 2 },
     JPY: { symbol: '¥', decimals: 0 },
