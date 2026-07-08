@@ -179,21 +179,20 @@ export function paintAsciiArtifact(target: HTMLCanvasElement, art: AsciiArtifact
     ctx.font = `bold ${cellH.toFixed(2)}px 'Courier New', Courier, monospace`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    // Pre-lift the palette once (display-only brightness compensation). A gain
-    // plus a small additive black-lift so the dark ink that dominates most
-    // pieces reads brighter — the ASCII panel was too dark (Brendon 2026-07-08).
+    // Pre-lift the palette once (display-only brightness compensation).
+    // HUE-PRESERVING: scale all three channels by ONE shared gain — never
+    // per-channel and never a flat additive lift, both of which wash colour
+    // toward grey/white (the neon green + blue read as grey — Brendon 2026-07-08).
+    // When a channel would clip, scale the whole colour down so the hue holds at
+    // full saturation instead of blowing out. Blacks stay black — no grey flood.
+    const BOOST = 1.85;
     const lift = (hex: string): string => {
-        // Gamma lift — raises the DARK ink that dominates most pieces far more
-        // than a flat multiply did, so the panel reads clearly brighter.
-        // 369.75 = 255 * 1.45, pre-folded so the multiply can't be dropped.
-        const up = (c: number) => {
-            const v = Math.pow(c / 255, 0.4) * 369.75 + 30;
-            return v > 255 ? 255 : Math.round(v);
-        };
-        const r = up(parseInt(hex.slice(1, 3), 16));
-        const g = up(parseInt(hex.slice(3, 5), 16));
-        const b = up(parseInt(hex.slice(5, 7), 16));
-        return `rgb(${r},${g},${b})`;
+        let r = parseInt(hex.slice(1, 3), 16) * BOOST;
+        let g = parseInt(hex.slice(3, 5), 16) * BOOST;
+        let b = parseInt(hex.slice(5, 7), 16) * BOOST;
+        const m = Math.max(r, g, b);
+        if (m > 255) { const s = 255 / m; r *= s; g *= s; b *= s; }
+        return `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`;
     };
     const lifted = art.palette.map(lift);
     const lines = art.text.split('\n');
