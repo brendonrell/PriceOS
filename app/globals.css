@@ -4522,17 +4522,10 @@ button,
     gap: 4px;
 }
 .mint-face > .mint-lbl { flex: 0 0 auto; }
-.mint-nums {
-    flex: 0 0 auto;
-    min-width: 0;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-/* Fiat mode only: the numbers cell fills the space beside MINT so the ETH+fiat
-   can expand into it. Normal mode is untouched (content-sized, centered). */
-.mint-face-fiat .mint-nums { flex: 1 1 auto; }
+/* Fiat mode: kill the pill's 24px side buffer so MINT + ETH + fiat can scale up
+   and fill the pill; the only buffer is the 4px each side the fit math reserves
+   (Brendon 2026-07-08). Normal mode keeps its 24px content-sized padding. */
+.mint-btn-fiat { padding: 0; }
 .mint-nums-in {
     flex: 0 0 auto;
     display: inline-flex;

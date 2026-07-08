@@ -57,8 +57,8 @@ export default function MintButton({
      would exceed the pill's inner width (minus a thin 4px buffer), scale it down
      just enough to fit. At natural size nothing changes; when tight it eases
      down a hair so MINT + the full price/fiat all stay readable. */
-  /* MINT stays full-size; only the ETH+fiat NUMBERS scale down, and only when
-     they'd exceed their cell (never by default in fiat mode). Measured with
+  /* Fiat mode: MINT + ETH + fiat scale as ONE unit to FILL the pill, leaving
+     only a 4px buffer on each side (Brendon 2026-07-08). Measured with
      useLayoutEffect BEFORE paint so there's no flash, and offsetWidth is
      transform-independent so we read the true natural width every time. */
   const numsRef = useRef<HTMLSpanElement | null>(null);
@@ -71,9 +71,9 @@ export default function MintButton({
     if (!cell || !inner) return;
     const natW = inner.offsetWidth, natH = inner.offsetHeight;
     if (!natW || !natH) return;
-    // The numbers EXPAND (and shrink) to fill the cell — tiny margins, bounded
-    // by width AND height so the stacked fiat never spills the pill. MINT fixed.
-    const availW = cell.clientWidth - 4;
+    // The whole readout EXPANDS (and shrinks) to fill the pill — 4px buffer each
+    // side, bounded by width AND height so the stacked fiat never spills.
+    const availW = cell.clientWidth - 8;
     const availH = cell.clientHeight - 2;
     const s = Math.min(availW / natW, availH / natH);
     setScale(Math.max(0.4, Math.min(2.4, s)));
@@ -190,7 +190,7 @@ export default function MintButton({
       // The done face stacks label over balance at reduced sizes so the
       // success readout FITS the fixed 224px pill (it used to overflow and
       // clip on desktop — Brendon 2026-06-12).
-      className={`btn-mint${phase === 'done' ? ' mint-done' : ''}${idleFiat && (ethToFiatValue(perOutput) ?? 0) >= 10 ? ' mint-fiat-on' : ''}`}
+      className={`btn-mint${phase === 'done' ? ' mint-done' : ''}${idleFiat ? ' mint-btn-fiat' : ''}${idleFiat && (ethToFiatValue(perOutput) ?? 0) >= 10 ? ' mint-fiat-on' : ''}`}
       onClick={phase === 'idle' ? start : undefined}
       disabled={phase !== 'idle'}
       style={{ position: 'relative', overflow: 'hidden' }}
@@ -209,23 +209,21 @@ export default function MintButton({
           <span className="mint-price" style={{ position: 'relative' }}>{price}</span>
         </>
       ) : (
-        <span className={`mint-face${idleFiat ? ' mint-face-fiat' : ''}`} style={{ position: 'relative' }}>
-          <span className="mint-lbl">{label}</span>
-          <span className="mint-nums" ref={numsRef}>
-            <span
-              className="mint-nums-in"
-              ref={innerRef}
-              style={{ transform: scale !== 1 ? `scale(${scale})` : undefined }}
-            >
-              <span className="mint-price">{price}</span>
-              {idleFiat && (
-                // Just the fiat is stacked — amount on top, currency code below.
-                <span className="mint-fiat">
-                  <span className="mint-fiat-amt">{idleFiat}</span>
-                  <span className="mint-fiat-cur">{currency}</span>
-                </span>
-              )}
-            </span>
+        <span className={`mint-face${idleFiat ? ' mint-face-fiat' : ''}`} ref={numsRef} style={{ position: 'relative' }}>
+          <span
+            className="mint-nums-in"
+            ref={innerRef}
+            style={{ transform: scale !== 1 ? `scale(${scale})` : undefined }}
+          >
+            <span className="mint-lbl">{label}</span>
+            <span className="mint-price">{price}</span>
+            {idleFiat && (
+              // Just the fiat is stacked — amount on top, currency code below.
+              <span className="mint-fiat">
+                <span className="mint-fiat-amt">{idleFiat}</span>
+                <span className="mint-fiat-cur">{currency}</span>
+              </span>
+            )}
           </span>
         </span>
       )}
