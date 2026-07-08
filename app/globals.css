@@ -4514,7 +4514,7 @@ button,
     font-weight: 700;
     user-select: none;
     position: relative;
-    top: -1px;
+    top: 0;
 }
 
 /* Currency picker bubble — the SAME body-portal + tail placement as the
