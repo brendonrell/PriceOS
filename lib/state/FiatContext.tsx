@@ -56,9 +56,12 @@ function formatFiat(eth: number, code: FiatCode, rate: number): string {
     if (value > 0 && value < floorUnit) {
         return `~${symbol}<${floorUnit.toLocaleString(locale, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
     }
+    // $1,000 and above: drop the cents — large figures read cleaner and the
+    // precision is noise at that scale (Brendon 2026-07-08).
+    const dec = value >= 1000 ? 0 : decimals;
     const shown = value.toLocaleString(locale, {
-        minimumFractionDigits: decimals,
-        maximumFractionDigits: decimals,
+        minimumFractionDigits: dec,
+        maximumFractionDigits: dec,
     });
     return `~${symbol}${shown}`;
 }
