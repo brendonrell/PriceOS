@@ -96,6 +96,7 @@ import { useProject, buildOutputMetaFor } from '../lib/state/ProjectContext';
 import { getProject, artImageUrl, ART_IMAGE_BASE } from '../lib/project/registry';
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
 import { formatEth } from '../lib/format/eth';
+import { useFiat } from '../lib/state/FiatContext';
 
 import { hashSynApplyHex } from '../lib/engines/hashSynEngine';
 import {
@@ -216,6 +217,7 @@ function buildMockOffers(outputId: number): MockOffer[] {
 export default function OutputPreview() {
     const { openModal, currentModalId, currentModalSlug, outputSequence, setCurrentModalId, setCurrentModalOutput, close } = useModal();
     const { showToast } = useToast();
+    const { ethToFiat } = useFiat();
     const { openCalcSheet } = useCalcSheet();
     const { add: cartAdd, has: cartHas, items: cartItems } = useCart();
     const { openListSheet, openOfferSheet } = useMarketSheet();
@@ -720,6 +722,9 @@ export default function OutputPreview() {
                     BUY{' '}
                     <span className="modal-action-btn-price">
                         &middot; {formatEth(Number(liveListPrice))}
+                        {ethToFiat(Number(liveListPrice)) && (
+                            <span className="modal-action-btn-fiat"> {ethToFiat(Number(liveListPrice))}</span>
+                        )}
                     </span>
                 </>
             );

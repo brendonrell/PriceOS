@@ -214,7 +214,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
     useEffect(() => { setSearchOpen(false); setSearchQuery(''); }, [moreL1]);
 
     const { lowestId, lowestFloor } = useProjectFloor();
-    const { ethToFiat, currency } = useFiat();
+    const { ethToFiat, ethToFiatValue, currency } = useFiat();
     const floorFiat = lowestFloor !== null ? ethToFiat(lowestFloor) : null;
 
     const {
@@ -412,7 +412,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                             /* Sold out → the mint button becomes BUY (floor):
                                shows the lowest listing and adds it to the cart. */
                             <button
-                                className={`btn-mint${floorFiat ? ' mint-fiat-on' : ''}`}
+                                className={`btn-mint${floorFiat && lowestFloor !== null && (ethToFiatValue(lowestFloor) ?? 0) >= 10 ? ' mint-fiat-on' : ''}`}
                                 title="Buy the floor — adds the lowest-listed Output to your cart"
                                 onClick={() => {
                                     if (lowestId == null) { showToast('Listings: NONE YET'); return; }

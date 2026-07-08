@@ -147,7 +147,7 @@ function fmtFeedDate(iso: string, tbdDay?: boolean): string {
 /* "15:42" — 24-hour clock, matching the homepage feed. Blank for undecided-day
    rows (no meaningful time). */
 function fmtFeedTime(iso: string, tbdDay?: boolean): string {
-    if (tbdDay) return '';
+    if (tbdDay) return '??:??';
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return '';
     return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });

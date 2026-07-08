@@ -10,7 +10,7 @@
  * wallet-confirm step slots in here when wired to pd-contracts.
  */
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
@@ -37,7 +37,7 @@ export default function MintButton({
 }) {
   const { siweAddress } = useAuth();
   const { showToast } = useToast();
-  const { ethToFiat, currency } = useFiat();
+  const { ethToFiat, ethToFiatValue, currency } = useFiat();
   const [phase, setPhase] = useState<Phase>('idle');
   const [qty, setQty] = useState(1);
   const [pct, setPct] = useState(0);
@@ -51,6 +51,26 @@ export default function MintButton({
   const totalEth = perOutput * qty;
   const confirmFiat = ethToFiat(totalEth);
   const total = formatEthAmount(totalEth, !!confirmFiat);
+
+  /* MINT label shrinks one size ONLY when the content nears the pill edge
+     (Brendon 2026-07-08) — measured, with a buffer so it triggers slightly
+     INSIDE the edge, never assumed. Otherwise it stays put. */
+  const btnRef = useRef<HTMLButtonElement | null>(null);
+  const faceRef = useRef<HTMLSpanElement | null>(null);
+  const [tight, setTight] = useState(false);
+  useEffect(() => {
+    if (phase === 'done') { setTight(false); return; }
+    setTight(false); // measure at full label size, then shrink only if needed
+    const raf = requestAnimationFrame(() => {
+      const b = btnRef.current, f = faceRef.current;
+      if (!b || !f) return;
+      const cs = getComputedStyle(b);
+      const pad = parseFloat(cs.paddingLeft || '0') + parseFloat(cs.paddingRight || '0');
+      const BUFFER = 8; // stop a touch short of the inner edge
+      setTight(f.scrollWidth > b.clientWidth - pad - BUFFER);
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [phase, mintPrice, currency, remaining]);
 
   const start = () => {
     if (!siweAddress) { showToast('Wallet: CONNECT TO MINT'); return; }
@@ -114,7 +134,7 @@ export default function MintButton({
     // filled (inverted) so it reads "press me"; the ✕ is the slim secondary tab.
     return (
       <>
-      <div className="btn-mint mint-chooser" role="group" aria-label={`Mint ${projectTitle}`}>
+      <div className={`btn-mint mint-chooser${confirmFiat ? ' mint-chooser-fiat' : ''}`} role="group" aria-label={`Mint ${projectTitle}`}>
         <div className="mint-seg mint-seg-qty">
           <button type="button" className="mint-step" aria-label="Fewer" disabled={qty <= 1} onClick={() => setQty((q) => Math.max(1, q - 1))}>−</button>
           <span className="mint-qty-val">{qty}</span>
@@ -159,11 +179,12 @@ export default function MintButton({
 
   return (
     <button
+      ref={btnRef}
       type="button"
       // The done face stacks label over balance at reduced sizes so the
       // success readout FITS the fixed 224px pill (it used to overflow and
       // clip on desktop — Brendon 2026-06-12).
-      className={`btn-mint${phase === 'done' ? ' mint-done' : ''}${idleFiat ? ' mint-fiat-on' : ''}`}
+      className={`btn-mint${phase === 'done' ? ' mint-done' : ''}${idleFiat && (ethToFiatValue(perOutput) ?? 0) >= 10 ? ' mint-fiat-on' : ''}${tight ? ' mint-tight' : ''}`}
       onClick={phase === 'idle' ? start : undefined}
       disabled={phase !== 'idle'}
       style={{ position: 'relative', overflow: 'hidden' }}
@@ -176,14 +197,23 @@ export default function MintButton({
           style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${pct}%`, background: 'rgba(255,255,255,0.28)', transition: 'width 0.9s ease' }}
         />
       )}
-      <span className="mint-lbl" style={{ position: 'relative' }}>{label}</span>
-      <span className="mint-price" style={{ position: 'relative' }}>{price}</span>
-      {idleFiat && (
-        // Just the fiat is stacked — amount on top, currency code below — in
-        // smaller text, sitting after the ETH price (Brendon 2026-07-08).
-        <span className="mint-fiat" style={{ position: 'relative' }}>
-          <span className="mint-fiat-amt">{idleFiat}</span>
-          <span className="mint-fiat-cur">{currency}</span>
+      {phase === 'done' ? (
+        <>
+          <span className="mint-lbl" style={{ position: 'relative' }}>{label}</span>
+          <span className="mint-price" style={{ position: 'relative' }}>{price}</span>
+        </>
+      ) : (
+        <span className="mint-face" ref={faceRef} style={{ position: 'relative' }}>
+          <span className="mint-lbl">{label}</span>
+          <span className="mint-price">{price}</span>
+          {idleFiat && (
+            // Just the fiat is stacked — amount on top, currency code below — in
+            // smaller text, sitting after the ETH price (Brendon 2026-07-08).
+            <span className="mint-fiat">
+              <span className="mint-fiat-amt">{idleFiat}</span>
+              <span className="mint-fiat-cur">{currency}</span>
+            </span>
+          )}
         </span>
       )}
     </button>

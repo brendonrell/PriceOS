@@ -68,6 +68,8 @@ interface FiatContextValue {
     setCurrency: (next: FiatCode | null) => void;
     /** Formatted "~C$0.74" for an ETH amount, or null when it must not render. */
     ethToFiat: (eth: number) => string | null;
+    /** The raw numeric fiat value for an ETH amount (null when off/untrusted). */
+    ethToFiatValue: (eth: number) => number | null;
     ready: boolean;
 }
 
@@ -141,9 +143,19 @@ export function FiatProvider({ children }: { children: ReactNode }) {
         [currency, fx],
     );
 
+    const ethToFiatValue = useCallback(
+        (eth: number): number | null => {
+            if (!currency || !fx || !fx.trusted) return null;
+            const rate = fx.rates?.[currency];
+            if (typeof rate !== 'number' || !isFinite(eth)) return null;
+            return eth * rate;
+        },
+        [currency, fx],
+    );
+
     const value = useMemo<FiatContextValue>(
-        () => ({ currency, setCurrency, ethToFiat, ready: !!fx }),
-        [currency, setCurrency, ethToFiat, fx],
+        () => ({ currency, setCurrency, ethToFiat, ethToFiatValue, ready: !!fx }),
+        [currency, setCurrency, ethToFiat, ethToFiatValue, fx],
     );
 
     return <FiatContext.Provider value={value}>{children}</FiatContext.Provider>;
@@ -153,7 +165,7 @@ export function useFiat(): FiatContextValue {
     const ctx = useContext(FiatContext);
     if (!ctx) {
         // Safe no-op outside the provider (e.g. isolated renders) — fiat just stays off.
-        return { currency: null, setCurrency: () => {}, ethToFiat: () => null, ready: false };
+        return { currency: null, setCurrency: () => {}, ethToFiat: () => null, ethToFiatValue: () => null, ready: false };
     }
     return ctx;
 }

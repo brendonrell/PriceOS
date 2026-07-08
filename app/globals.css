@@ -4492,18 +4492,38 @@ button,
     align-items: center;
     line-height: 1;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: bold;
     opacity: 0.8;
     white-space: nowrap;
 }
-.mint-fiat-amt { font-size: 10px; }
-.mint-fiat-cur { font-size: 8px; letter-spacing: 0.04em; margin-top: 1px; opacity: 0.9; }
-.mint-chooser .mint-fiat { font-size: 9px; }
-.mint-chooser .mint-fiat-amt { font-size: 9px; }
-.mint-chooser .mint-fiat-cur { font-size: 7px; }
-/* Fiat mode — the ETH figure drops one step so the ~fiat has room (Brendon 2026-07-08). */
+.mint-fiat-amt { font-size: 11px; }
+.mint-fiat-cur { font-size: 11px; letter-spacing: 0.04em; margin-top: 1px; opacity: 0.9; }
+.mint-chooser .mint-fiat { font-size: 10px; }
+.mint-chooser .mint-fiat-amt { font-size: 10px; }
+.mint-chooser .mint-fiat-cur { font-size: 10px; }
+/* Modal BUY CTA — the ~fiat sits inline after the ETH price, slightly dimmed. */
+.modal-action-btn-fiat { opacity: 0.8; }
+/* Fiat mode, tight case (fiat ≥ 10) — the ETH figure drops a step. */
 .mint-fiat-on .mint-price { font-size: 13px; }
+/* The row content wrapper — measured against the pill's inner edge to decide the
+   tight state. Holds the label + price (+ fiat) in the same 4px-gap row as before. */
+.mint-face {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+}
+/* The MINT label drops one size ONLY when the content nears the pill edge —
+   measured in JS (.mint-tight), never applied blanket (Brendon 2026-07-08). */
+.mint-tight .mint-lbl { font-size: 15px; }
+/* +/- step (choosing face) in fiat mode: ETH one smaller, fiat one larger. */
+.mint-chooser-fiat .mint-price { font-size: 12px; }
+.mint-chooser-fiat .mint-fiat-amt { font-size: 11px; }
+.mint-chooser-fiat .mint-fiat-cur { font-size: 11px; }
 
 /* The $ picker glyph in the Wallet row — between copy + incognito. Two-class
    selector so it beats the base .rpc-ping-btn 24px (equal specificity + later
