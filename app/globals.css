@@ -4510,9 +4510,11 @@ button,
    in the file was overriding it). Courier New, bold, ~half the base size. */
 .rpc-ping-btn.fiat-cur-btn {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
     user-select: none;
+    position: relative;
+    top: -1px;
 }
 
 /* Currency picker bubble — the SAME body-portal + tail placement as the
