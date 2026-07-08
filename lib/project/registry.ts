@@ -280,7 +280,9 @@ const RELIQUARY: ProjectDef = {
   artistHandle: 'opus4-8',
   outputs: 111,
   colorway: '#15121d',
-  mintPriceEth: 0,
+  // TEST PRICE (fiat-spacing check, Brendon 2026-07-08) — a live, unminted
+  // project at a large price to test the wide ~fiat readout.
+  mintPriceEth: 22.222,
   soundtrack: { playlistId: 'OLAK5uy_mKWrzbnbuO-wJqnjdz4xO1nrsdD9Q0m2k', label: 'Philip Glass — Glassworks' },
   aspects: RELIQUARY_ASPECTS,
   traitSchema: reliquarySchema,
@@ -295,8 +297,8 @@ const BULLETIN: ProjectDef = {
   outputs: 222,
   colorway: '#2fc94f',
   // TEST PRICE (fiat-spacing check, Brendon 2026-07-08) — a live, unminted
-  // project priced at 0.0022 ETH to pressure-test the ~fiat readout's fit.
-  mintPriceEth: 0.0022,
+  // project priced to pressure-test the ~fiat readout's fit.
+  mintPriceEth: 0.2222,
   soundtrack: { playlistId: 'OLAK5uy_mkw5lnHV_WtzF65IfSBTHqHcj_bvqiBU0', label: 'Kraftwerk — Trans-Europe Express' },
   aspects: BULLETIN_ASPECTS,
   traitSchema: bulletinSchema,
