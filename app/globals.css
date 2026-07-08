@@ -4551,6 +4551,47 @@ button,
     -webkit-tap-highlight-color: transparent;
 }
 .fiat-opt-on { background: #1a1a1a; color: var(--attention); border-color: #1a1a1a; }
+
+/* Attributes-tab search — reuses the gallery .search-btn / .search-input, in a
+   compact bar that sits right after the sub-nav pills (Brendon 2026-07-08). */
+.attr-search-bar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+.attr-search-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.attr-search-bar .search-input { flex: 1 1 auto; min-width: 0; }
+.attr-search-empty {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    opacity: 0.75;
+    padding: 4px 2px 10px;
+}
+/* Tappable attribute tile (Golf Score → the Clubhouse). */
+.attr-tile-tap { cursor: pointer; }
+.attr-tile-tap:hover { border-color: var(--text-color); }
+
+/* Clubhouse (Golf Score board) — the ARTIST leads, project beneath. */
+.golf-id { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.golf-artist { font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.golf-project { font-size: 11px; opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.golf-flag { margin-left: 4px; }
+.golf-leader-note {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    opacity: 0.7;
+    text-align: center;
+    padding: 2px 0 8px;
+}
 /* Cancel — corner glyph, OUT of the flex flow so the divider stays centred. */
 .mint-cancel {
     position: absolute;
@@ -6329,13 +6370,9 @@ body.colorway-dark .canvas-wrapper {
     transform: translate(-50%, -46px);
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 0;
-    /* Glyph-only, half the previous footprint (Brendon 2026-07-08) — the ⟳ IS
-       the readout, no text. Compact rounded pill. */
-    width: 34px;
+    gap: 7px;
     height: 32px;
-    padding: 0;
+    padding: 0 14px;
     border-radius: 16px;
     background: var(--bg-color);
     color: var(--text-color);
@@ -6343,6 +6380,7 @@ body.colorway-dark .canvas-wrapper {
     font-family: 'Courier New', Courier, monospace;
     font-size: 11px;
     font-weight: bold;
+    letter-spacing: 0.08em;
     opacity: 0;
     z-index: 99999;
     pointer-events: none;

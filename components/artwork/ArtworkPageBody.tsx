@@ -133,10 +133,13 @@ const OUT_SORTS: { key: OutSortKey; title: string; lbl: () => string }[] = [
 function fmtFeedDate(iso: string, tbdDay?: boolean): string {
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return '—';
-    const month = d.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' }).toUpperCase();
-    const yy = String(d.getUTCFullYear()).slice(-2);
+    // Viewer-local — on-chain events show in the user's own time, so the date
+    // must track the same zone as the time (else a late-night event's date and
+    // time disagree for anyone off UTC).
+    const month = d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+    const yy = String(d.getFullYear()).slice(-2);
     if (tbdDay) return `${month} ? ’${yy}`;
-    const day = d.toLocaleDateString('en-US', { day: '2-digit', timeZone: 'UTC' });
+    const day = d.toLocaleDateString('en-US', { day: '2-digit' });
     return `${month} ${day} ’${yy}`;
 }
 
@@ -146,7 +149,7 @@ function fmtFeedTime(iso: string, tbdDay?: boolean): string {
     if (tbdDay) return '';
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return '';
-    return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' });
+    return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
 }
 
 type ArtworkTab = 'artwork' | 'albums' | 'more';

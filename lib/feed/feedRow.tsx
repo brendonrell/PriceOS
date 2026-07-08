@@ -77,8 +77,10 @@ export function eventToFeedEvent(e: EventRow): FeedEvent {
     return {
         id: e.id,
         icon: FEED_ICON[type] ?? '✶',
+        // On-chain events carry a UTC timestamp (one base); show the time in the
+        // VIEWER's local zone, like every app — no fixed Montreal clock.
         time: new Date(ms).toLocaleTimeString('en-GB', {
-            hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Montreal',
+            hour: '2-digit', minute: '2-digit', hour12: false,
         }),
         type,
         actorName: actor,

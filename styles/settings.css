@@ -212,12 +212,6 @@
 }
 .portfolio-hide-icon:hover { opacity: 1; }
 
-/* Subdomain part of an ENS pill (e.g. the "brendon" in brendon.dcl.eth).
-   Brendon 2026-06-10: no italics — override the browser's <em> default. */
-.pill-ens em {
-    font-style: normal;
-}
-
 .ens-more-btn {
     display: inline-flex;
     align-items: center;

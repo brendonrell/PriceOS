@@ -13,6 +13,7 @@
  * doesn't — its wall stays untouched.
  */
 
+import { useMemo, useState } from 'react';
 import type { AttrGroup } from '../../lib/output/attributes';
 
 const VS15 = '︎';
@@ -22,13 +23,37 @@ export default function AttrWall({
     reading = null,
     offerTraits = null,
     onTraitOffer,
+    searchable = false,
+    onTileTap,
 }: {
     groups: AttrGroup[];
     reading?: string | null;
     /** category → value map of the piece's offerable traits (outputTraits). */
     offerTraits?: Record<string, string> | null;
     onTraitOffer?: (category: string, value: string) => void;
+    /** Show a search box that filters tiles by label / value / sub. */
+    searchable?: boolean;
+    /** Called with a tile's tapKey when a tappable tile is pressed. */
+    onTileTap?: (tapKey: string) => void;
 }) {
+    const [query, setQuery] = useState('');
+    const [searchOpen, setSearchOpen] = useState(false);
+    const q = query.trim().toLowerCase();
+
+    /* Filter tiles by the query across label / value / sub; drop empty groups. */
+    const shownGroups = useMemo(() => {
+        if (!q) return groups;
+        return groups
+            .map((g) => ({
+                ...g,
+                tiles: g.tiles.filter((t) => {
+                    const hay = `${t.label} ${typeof t.value === 'string' ? t.value : ''} ${t.sub ?? ''}`.toLowerCase();
+                    return hay.includes(q);
+                }),
+            }))
+            .filter((g) => g.tiles.length > 0);
+    }, [groups, q]);
+
     return (
         <div className="attr-wall">
             {reading && (
@@ -37,7 +62,50 @@ export default function AttrWall({
                     <p className="attr-reading-body">{reading}</p>
                 </div>
             )}
-            {groups.map((g) => (
+            {searchable && (
+                /* Reuses the gen-art gallery search vocabulary — the ⌕ .search-btn
+                   in its usual spot (following the pills), toggling a .search-input
+                   row (Brendon 2026-07-08). */
+                <div className="attr-search-bar">
+                    <span
+                        className={`search-btn${searchOpen ? ' active' : ''}`}
+                        role="button"
+                        tabIndex={0}
+                        title="Search attributes"
+                        onClick={() => setSearchOpen((v) => { const next = !v; if (!next) setQuery(''); return next; })}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSearchOpen((v) => { const next = !v; if (!next) setQuery(''); return next; }); } }}
+                    >
+                        {`⌕${VS15}`}
+                    </span>
+                    {searchOpen && (
+                        <div className="attr-search-row">
+                            <input
+                                type="text"
+                                className="search-input"
+                                placeholder="Search attributes"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                spellCheck={false}
+                                autoCapitalize="none"
+                                autoCorrect="off"
+                                aria-label="Search attributes"
+                                autoFocus
+                            />
+                            {query && (
+                                <span className="search-clear" role="button" tabIndex={0} title="Clear"
+                                    onClick={() => setQuery('')}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setQuery(''); } }}>
+                                    {`×${VS15}`}
+                                </span>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
+            {searchable && q && shownGroups.length === 0 && (
+                <div className="attr-search-empty">No attributes match “{query}”.</div>
+            )}
+            {shownGroups.map((g) => (
                 <section className="attr-group" key={g.key} aria-label={g.label}>
                     <div className="attr-group-head">
                         <span className="attr-group-name">{g.label}</span>
@@ -49,8 +117,16 @@ export default function AttrWall({
                                 !!offerTraits && !!onTraitOffer &&
                                 typeof t.value === 'string' &&
                                 offerTraits[t.label] === t.value;
+                            const tappable = !!t.tapKey && !!onTileTap;
                             return (
-                            <div className={`attr-tile${t.rare ? ' rare' : ''}${t.grid ? ' attr-tile-glyphcard' : ''}${offerable ? ' has-offer' : ''}`} key={`${g.key}-${i}`}>
+                            <div
+                                className={`attr-tile${t.rare ? ' rare' : ''}${t.grid ? ' attr-tile-glyphcard' : ''}${offerable ? ' has-offer' : ''}${tappable ? ' attr-tile-tap' : ''}`}
+                                key={`${g.key}-${i}`}
+                                role={tappable ? 'button' : undefined}
+                                tabIndex={tappable ? 0 : undefined}
+                                onClick={tappable ? () => onTileTap!(t.tapKey as string) : undefined}
+                                onKeyDown={tappable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onTileTap!(t.tapKey as string); } } : undefined}
+                            >
                                 {offerable && (
                                     <button
                                         type="button"

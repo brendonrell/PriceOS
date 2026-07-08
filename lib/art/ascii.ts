@@ -162,9 +162,9 @@ export function buildAsciiArtifact(
  *
  *  Display compensation: glyph ink only covers ~45% of each cell, so drawing
  *  the honest stored colours reads DARK next to the source image. The painted
- *  view lifts brightness (bold glyphs + a ~1.55× colour boost, clamped) so
- *  the on-screen ASCII reads like the piece — the stored palette/text stays
- *  untouched, exactly as sampled. */
+ *  view lifts brightness (bold glyphs + a colour boost with a small black-lift,
+ *  clamped) so the on-screen ASCII reads like the piece — the stored
+ *  palette/text stays untouched, exactly as sampled. */
 export function paintAsciiArtifact(target: HTMLCanvasElement, art: AsciiArtifact, widthPx: number): void {
     const cellW = widthPx / art.cols;
     const cellH = cellW / CHAR_ASPECT;
@@ -179,11 +179,14 @@ export function paintAsciiArtifact(target: HTMLCanvasElement, art: AsciiArtifact
     ctx.font = `bold ${cellH.toFixed(2)}px 'Courier New', Courier, monospace`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    // Pre-lift the palette once (display-only brightness compensation).
+    // Pre-lift the palette once (display-only brightness compensation). A gain
+    // plus a small additive black-lift so the dark ink that dominates most
+    // pieces reads brighter — the ASCII panel was too dark (Brendon 2026-07-08).
     const lift = (hex: string): string => {
-        const r = Math.min(255, Math.round(parseInt(hex.slice(1, 3), 16) * 1.55));
-        const g = Math.min(255, Math.round(parseInt(hex.slice(3, 5), 16) * 1.55));
-        const b = Math.min(255, Math.round(parseInt(hex.slice(5, 7), 16) * 1.55));
+        const up = (c: number) => Math.min(255, Math.round(c * 1.9 + 20));
+        const r = up(parseInt(hex.slice(1, 3), 16));
+        const g = up(parseInt(hex.slice(3, 5), 16));
+        const b = up(parseInt(hex.slice(5, 7), 16));
         return `rgb(${r},${g},${b})`;
     };
     const lifted = art.palette.map(lift);

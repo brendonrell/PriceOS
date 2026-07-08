@@ -122,8 +122,9 @@ export function buildProjectAttributes(
             label: 'Lab',
             tiles: [{
                 glyph: '◴', label: 'Golf Score', value: `${golf.bytes.toLocaleString()} B`,
-                sub: `#${golf.rank} of ${golf.total} · smallest engine wins`,
+                sub: `#${golf.rank} of ${golf.total} · tap for the Clubhouse`,
                 rare: golf.rank === 1,
+                tapKey: 'golf',
             }],
         });
     }

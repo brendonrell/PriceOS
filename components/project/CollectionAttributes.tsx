@@ -27,11 +27,15 @@ export default function CollectionAttributes({
     mintedCount,
     maxSupply,
     uploadedAt,
+    searchable = false,
+    onTileTap,
 }: {
     slug: string;
     mintedCount: number;
     maxSupply: number;
     uploadedAt: number | null;
+    searchable?: boolean;
+    onTileTap?: (tapKey: string) => void;
 }) {
     const storedVer = useStoredColors([slug]);
     const [tick, bump] = useReducer((x: number) => x + 1, 0);
@@ -108,5 +112,5 @@ export default function CollectionAttributes({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [slug, mintedCount, maxSupply, uploadedAt, spread, tick, storedVer]);
 
-    return <AttrWall groups={groups} />;
+    return <AttrWall groups={groups} searchable={searchable} onTileTap={onTileTap} />;
 }

@@ -214,7 +214,11 @@ export function mountPtr(): void {
         // values (not Math.round) keep the travel perfectly fluid.
         pill.style.transition = 'none';
         pill.style.opacity = String(Math.min(visual / 24, 1));
-        pill.style.transform = `translate(-50%, ${(visual * 0.7 - 46).toFixed(2)}px)`;
+        // Keep the pill near the top — it eases down only slightly and caps out,
+        // so it never runs far down the page (Brendon 2026-07-08). This is the
+        // pill's travel only; the pull LENGTH (threshold) is unchanged.
+        const drop = Math.min(visual * 0.42 - 34, 40);
+        pill.style.transform = `translate(-50%, ${drop.toFixed(2)}px)`;
         pillGlyph.style.transform = `rotate(${(visual * 2.4).toFixed(2)}deg)`;
         pill.classList.toggle('armed', armed);
     };

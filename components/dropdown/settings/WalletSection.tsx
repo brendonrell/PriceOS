@@ -99,19 +99,6 @@ function shortAddr(addr: string): string {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 }
 
-/**
- * Render an ENS name with its subdomain part in italic.
- * brendon.dcl.eth → <em>brendon</em>.dcl.eth
- * name.eth        → name.eth  (no change — only 2 parts)
- */
-function ensLabel(ens: string): React.ReactNode {
-    const parts = ens.split('.');
-    if (parts.length <= 2) return ens;
-    const sub = parts.slice(0, parts.length - 2).join('.');
-    const base = parts.slice(parts.length - 2).join('.');
-    return <><em>{sub}</em>.{base}</>;
-}
-
 export function WalletSection() {
     const { showToast } = useToast();
     const { notifs, toggle: toggleNotif } = usePdNotifs();
@@ -280,7 +267,7 @@ export function WalletSection() {
                     });
                 }}
             >
-                ↳ {ensLabel(ens)}
+                {'↳ '}{ens}
             </button>
         );
     };

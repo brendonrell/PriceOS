@@ -12,6 +12,7 @@
 
 import { useEffect, useMemo, useState, type KeyboardEvent } from 'react';
 import { useProject } from '../../lib/state/ProjectContext';
+import { useModal } from '../../lib/state/ModalContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useValuePrompt } from '../../lib/state/ValuePromptContext';
 import { getProject } from '../../lib/project/registry';
@@ -60,7 +61,13 @@ export default function ProjectMorePanel({
     const project = useProject();
     const def = getProject(project.slug);
     const { showToast } = useToast();
+    const { open } = useModal();
     const { openAnchorPrompt } = useValuePrompt();
+
+    /* Attribute tile taps — the Golf Score tile opens the Clubhouse leaderboard. */
+    const onAttrTileTap = (k: string) => {
+        if (k === 'golf') open('golf-leaderboard', undefined, project.slug);
+    };
 
     /* The project's PriceSprite face — composed deterministically from the slug
        (collision-proofed vs user sprites). Still face for the Social header. */
@@ -463,9 +470,15 @@ export default function ProjectMorePanel({
                         mintedCount={project.totalOutputs}
                         maxSupply={project.maxSupply}
                         uploadedAt={uploadedAt}
+                        searchable
+                        onTileTap={onAttrTileTap}
                     />
                 ) : (
-                    <AttrWall groups={buildProjectAttributes(project.slug, uploadedAt, { mintedCount: project.totalOutputs, maxSupply: project.maxSupply, projectNo })} />
+                    <AttrWall
+                        groups={buildProjectAttributes(project.slug, uploadedAt, { mintedCount: project.totalOutputs, maxSupply: project.maxSupply, projectNo })}
+                        searchable
+                        onTileTap={onAttrTileTap}
+                    />
                 )
             )}
             {moreL1 === 'pricestory' && (<>

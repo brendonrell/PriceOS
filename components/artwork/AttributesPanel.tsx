@@ -48,6 +48,7 @@ export default function AttributesPanel(props: AttrInput) {
             <AttrWall
                 groups={groups}
                 reading={reading}
+                searchable
                 offerTraits={props.traits ?? null}
                 onTraitOffer={(category, value) =>
                     openCriteriaOfferSheet({ kind: 'trait', slug: props.slug, category, value })

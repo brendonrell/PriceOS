@@ -40,7 +40,8 @@ export type ModalName =
     | 'stickers'
     | 'spiteBook'
     | 'panopticonConfirm'
-    | 'leaderboard';
+    | 'leaderboard'
+    | 'golf-leaderboard';
 
 interface OpenModalState {
     name: ModalName;

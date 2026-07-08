@@ -35,6 +35,8 @@ export interface AttrTile {
     grid?: boolean[];
     /** A weighted colour strip (collection palette). Each segment grows by weight. */
     spectrum?: { hex: string; weight: number }[];
+    /** When set, the tile is tappable and AttrWall calls onTileTap(tapKey). */
+    tapKey?: string;
 }
 export interface AttrGroup {
     key: string;

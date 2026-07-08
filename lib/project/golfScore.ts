@@ -42,3 +42,27 @@ export function golfScore(slug: string): GolfScore | null {
     }
     return { bytes: mine, rank, total: all.length };
 }
+
+/* One Clubhouse row — the LEADER is the ARTIST (smallest engine wins), with
+   their project shown alongside. */
+export interface GolfLeaderRow {
+    rank: number;
+    slug: string;
+    project: string;
+    artistHandle: string;
+    bytes: number;
+}
+
+/** Full Golf Score board — every ranked project, smallest engine first. */
+export function golfLeaderboard(): GolfLeaderRow[] {
+    return allProjects()
+        .filter((p) => scriptBytes(p) > 0)
+        .map((p) => ({
+            slug: p.slug,
+            project: p.displayName,
+            artistHandle: p.artistHandle,
+            bytes: scriptBytes(p),
+        }))
+        .sort((a, b) => a.bytes - b.bytes)
+        .map((r, i) => ({ ...r, rank: i + 1 }));
+}
