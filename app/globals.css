@@ -4503,12 +4503,13 @@ button,
 .mint-chooser .mint-fiat-amt { font-size: 9px; }
 .mint-chooser .mint-fiat-cur { font-size: 7px; }
 
-/* The $ picker glyph in the Wallet row — between copy + incognito. Courier New
-   to match the other wallet icons, sized down. Lights to full opacity on. */
-.fiat-cur-btn {
+/* The $ picker glyph in the Wallet row — between copy + incognito. Two-class
+   selector so it beats the base .rpc-ping-btn 24px (equal specificity + later
+   in the file was overriding it). Courier New, bold, ~half the base size. */
+.rpc-ping-btn.fiat-cur-btn {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 15px;
-    font-weight: bold;
+    font-size: 13px;
+    font-weight: 700;
     user-select: none;
 }
 
