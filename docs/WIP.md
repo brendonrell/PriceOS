@@ -8,15 +8,21 @@
 
 ## ✅ SHIPPED 2026-07-08 — FIAT PRICING + ETH DISPLAY RULE + polish (dev @ 558535b, tree clean)
 
-**Mint CTA fiat readout (heavily iterated — the fragile bit):** fixed 224px pill,
-MINT always one size, the ETH+fiat NUMBERS expand/shrink to fill the space beside
-it (bounded by width AND height so stacked fiat never spills) — fiat mode only,
-normal mode untouched. Measured in `useLayoutEffect` (transform-independent
-offsetWidth) so no flash on paint. **No flash on load:** FiatContext now reads the
-saved currency AND last-known rate synchronously (persists each rate to
-localStorage `pd_fiat_fx`), so the ~fiat is on the first paint. iOS Safari
-mis-sized the earlier flex measurement — that's why it clipped; the two-cell
-(MINT fixed / numbers scale) structure fixed it.
+**Mint CTA fiat readout (heavily iterated — the fragile bit):** fixed 224px pill.
+Fiat mode = ONE centered row `MINT · (ETH↕) · ~fiat↕` that scales as a unit to
+fill the pill (8px buffer each side). MINT is **counter-scaled** (font ÷ scale) so
+it always renders at the exact fiat-off size; the single shared inner gap (6px)
+keeps spacing **equal on both sides** of the ETH price at any scale. ETH price is
+STACKED with the brackets INLINE — `(22.22` over `ETH)` (normal size, part of the
+text — NOT flanking paren glyphs, NOT one line). `~fiat` stacked beside it (amount
+over currency code), **italic, 0.5px smaller than the ETH amount, 10% dimmer**.
+**$0 / free mint:** shows INLINE, no decimals — `(0 ETH) ~$0 CAD` (same shape as
+the non-fiat button). Scale math in `useLayoutEffect`: fill width with MINT held
+fixed `(availW − mint@16) / rest`, capped by height; MINT + row measured via
+separate refs so the counter-scale never feedback-loops. Verified across all
+price ranges (sub-cent → JPY millions → EUR commas → $0) with a headless render
+harness. Normal mode untouched. No flash on load (FiatContext reads saved
+currency + last rate synchronously from `pd_fiat_currency` / `pd_fiat_fx`).
 
 
 Big product session (Brendon driving). All on `dev`, verified via build.
