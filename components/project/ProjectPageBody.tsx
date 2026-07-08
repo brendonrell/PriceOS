@@ -204,10 +204,13 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
     /* + More sub-nav pills — sections live in ProjectMorePanel. */
     const [moreL1, setMoreL1] = useState<ProjectMoreL1>('attributes');
 
-    /* Search beside the +More pills — drives the Attributes filter (our usual
-       gen-art search, in the pill row). */
-    const [attrSearchOpen, setAttrSearchOpen] = useState(false);
-    const [attrQuery, setAttrQuery] = useState('');
+    /* Search beside the +More pills — our usual gen-art search, in the pill row.
+       Filters the active searchable tab (Attributes tiles · Offers list). */
+    const [searchOpen, setSearchOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const searchableTab = moreL1 === 'attributes' || moreL1 === 'offers';
+    // Reset the search when moving to a different +More tab.
+    useEffect(() => { setSearchOpen(false); setSearchQuery(''); }, [moreL1]);
 
     const { lowestId, lowestFloor } = useProjectFloor();
     const { ethToFiat, currency } = useFiat();
@@ -529,36 +532,36 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                                 { key: 'genome', label: 'Genome', active: moreL1 === 'genome', onClick: () => setMoreL1('genome') },
                                 { key: 'gnome', label: 'Gnome', active: moreL1 === 'gnome', onClick: () => setMoreL1('gnome') },
                             ]}
-                            profilePillsTrailing={moreL1 === 'attributes' ? (
+                            profilePillsTrailing={searchableTab ? (
                                 <span className="attr-pill-search">
                                     <span
-                                        className={`search-btn${attrSearchOpen ? ' active' : ''}`}
+                                        className={`search-btn${searchOpen ? ' active' : ''}`}
                                         role="button"
                                         tabIndex={0}
-                                        title="Search attributes"
-                                        onClick={() => setAttrSearchOpen((v) => { const next = !v; if (!next) setAttrQuery(''); return next; })}
-                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setAttrSearchOpen((v) => { const next = !v; if (!next) setAttrQuery(''); return next; }); } }}
+                                        title="Search"
+                                        onClick={() => setSearchOpen((v) => { const next = !v; if (!next) setSearchQuery(''); return next; })}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSearchOpen((v) => { const next = !v; if (!next) setSearchQuery(''); return next; }); } }}
                                     >
                                         {'⌕︎'}
                                     </span>
-                                    {attrSearchOpen && (
+                                    {searchOpen && (
                                         <span className="attr-pill-search-row">
                                             <input
                                                 type="text"
                                                 className="search-input"
-                                                placeholder="Search attributes"
-                                                value={attrQuery}
-                                                onChange={(e) => setAttrQuery(e.target.value)}
+                                                placeholder={moreL1 === 'offers' ? 'Search offers' : 'Search attributes'}
+                                                value={searchQuery}
+                                                onChange={(e) => setSearchQuery(e.target.value)}
                                                 spellCheck={false}
                                                 autoCapitalize="none"
                                                 autoCorrect="off"
-                                                aria-label="Search attributes"
+                                                aria-label="Search"
                                                 autoFocus
                                             />
-                                            {attrQuery && (
+                                            {searchQuery && (
                                                 <span className="search-clear" role="button" tabIndex={0} title="Clear"
-                                                    onClick={() => setAttrQuery('')}
-                                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setAttrQuery(''); } }}>
+                                                    onClick={() => setSearchQuery('')}
+                                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSearchQuery(''); } }}>
                                                     {'×︎'}
                                                 </span>
                                             )}
@@ -728,7 +731,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                 projectNo={projectNo}
                 lowestFloor={lowestFloor}
                 anchorEth={anchorEth}
-                attrQuery={moreL1 === 'attributes' ? attrQuery : ''}
+                searchQuery={searchableTab ? searchQuery : ''}
             />
         </>
     );

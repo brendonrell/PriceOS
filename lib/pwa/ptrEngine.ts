@@ -56,10 +56,10 @@ export function mountPtr(): void {
     const pill = document.createElement('div');
     pill.className = 'ptr-pill';
     pill.setAttribute('aria-hidden', 'true');
-    pill.innerHTML = '<span class="ptr-pill-glyph">⟳&#xFE0E;</span>';
+    // Just a skinny pill now — no glyph, no text (Brendon 2026-07-08).
+    pill.innerHTML = '';
     document.body.appendChild(pill);
     pillEl = pill;
-    const pillGlyph = pill.querySelector('.ptr-pill-glyph') as HTMLElement;
 
     let startY = 0;
     let active = false;     // a valid pull is in progress (started at top)
@@ -68,6 +68,7 @@ export function mountPtr(): void {
     let lastRaw = 0;        // raw finger travel at the most recent move
     let pendingRaw = 0;     // travel awaiting the next animation frame
     let rafId = 0;          // batched-paint handle (0 = none queued)
+    let pillLaunched = false; // pill has eased into its resting spot this pull
 
     /* The document is the scroller (body is a flex column, main is flex:1 — no
        inner page-scroll container). "At top" = document scroll offset ~0. */
@@ -142,7 +143,7 @@ export function mountPtr(): void {
     const armedVisual = damp(PTR_THRESHOLD);
 
     const resetGesture = () => {
-        active = false; pulling = false; lastRaw = 0; pendingRaw = 0;
+        active = false; pulling = false; lastRaw = 0; pendingRaw = 0; pillLaunched = false;
         if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
     };
 
@@ -209,17 +210,16 @@ export function mountPtr(): void {
         // armed — the "release to refresh" affordance (no haptics on iOS).
         overlay.style.opacity = armed ? '1' : String(Math.min(visual / armedVisual, 1) * 0.7);
 
-        // Pill: descends with the pull, fades in over the first 24px; the ⟳
-        // winds up with travel; inverts (armed) at the threshold. Sub-pixel
-        // values (not Math.round) keep the travel perfectly fluid.
-        pill.style.transition = 'none';
-        pill.style.opacity = String(Math.min(visual / 24, 1));
-        // Keep the pill near the top — it eases down only slightly and caps out,
-        // so it never runs far down the page (Brendon 2026-07-08). This is the
-        // pill's travel only; the pull LENGTH (threshold) is unchanged.
-        const drop = Math.min(visual * 0.42 - 34, 40);
-        pill.style.transform = `translate(-50%, ${drop.toFixed(2)}px)`;
-        pillGlyph.style.transform = `rotate(${(visual * 2.4).toFixed(2)}deg)`;
+        // The pill does NOT track the finger — that read as jitter. On the first
+        // pull frame it eases smoothly down to its resting spot and stays there;
+        // only the colour (armed) changes as you cross the threshold. Its motion
+        // is a normal CSS ease, independent of finger movement (Brendon 2026-07-08).
+        if (!pillLaunched) {
+            pillLaunched = true;
+            pill.style.transition = 'transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease';
+            pill.style.opacity = '1';
+            pill.style.transform = 'translate(-50%, 40px)';
+        }
         pill.classList.toggle('armed', armed);
     };
 

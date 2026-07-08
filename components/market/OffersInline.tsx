@@ -26,7 +26,7 @@ function expiresIn(endTime: number | null): string {
     return `in ${Math.floor(s / 86400)}d`;
 }
 
-export default function OffersInline({ slug, id }: { slug: string; id?: number }) {
+export default function OffersInline({ slug, id, query }: { slug: string; id?: number; query?: string }) {
     const [offers, setOffers] = useState<MarketOfferRow[] | null>(null);
 
     useEffect(() => {
@@ -46,6 +46,15 @@ export default function OffersInline({ slug, id }: { slug: string; id?: number }
         return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onR); };
     }, [slug, id]);
 
+    // Filter by the beside-pills search — bidder, token, scope, trait, price.
+    const q = (query ?? '').trim().toLowerCase();
+    const shown = offers && q
+        ? offers.filter((o) => {
+            const hay = `${o.bidder_handle ?? ''} ${o.bidder_address} ${o.token_id ?? ''} ${o.scope} ${o.criteria?.category ?? ''} ${o.criteria?.value ?? ''} ${o.price_eth}`.toLowerCase();
+            return hay.includes(q);
+        })
+        : offers;
+
     return (
         <div className="more-box-wrap">
             <div className="more-box-card">
@@ -53,8 +62,10 @@ export default function OffersInline({ slug, id }: { slug: string; id?: number }
                     <div className="mk-story-loading">Reading the book…</div>
                 ) : offers.length === 0 ? (
                     <div className="mk-story-loading">No open offers.</div>
+                ) : shown!.length === 0 ? (
+                    <div className="mk-story-loading">No offers match your search.</div>
                 ) : (
-                    offers.map((o) => {
+                    shown!.map((o) => {
                         const target = o.scope === 'collection'
                             ? 'ANY PIECE'
                             : o.scope === 'trait'

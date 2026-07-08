@@ -49,7 +49,7 @@ export default function ProjectMorePanel({
     projectNo,
     lowestFloor,
     anchorEth,
-    attrQuery = '',
+    searchQuery = '',
 }: {
     onAlbumsTab: boolean;
     moreL1: ProjectMoreL1;
@@ -58,8 +58,8 @@ export default function ProjectMorePanel({
     projectNo?: number | null;
     lowestFloor: number | null;
     anchorEth: number | null;
-    /** Attributes search text, driven by the search beside the +More pills. */
-    attrQuery?: string;
+    /** Search text from the box beside the +More pills — filters the active tab. */
+    searchQuery?: string;
 }) {
     const project = useProject();
     const def = getProject(project.slug);
@@ -473,13 +473,13 @@ export default function ProjectMorePanel({
                         mintedCount={project.totalOutputs}
                         maxSupply={project.maxSupply}
                         uploadedAt={uploadedAt}
-                        query={attrQuery}
+                        query={searchQuery}
                         onTileTap={onAttrTileTap}
                     />
                 ) : (
                     <AttrWall
                         groups={buildProjectAttributes(project.slug, uploadedAt, { mintedCount: project.totalOutputs, maxSupply: project.maxSupply, projectNo })}
-                        query={attrQuery}
+                        query={searchQuery}
                         onTileTap={onAttrTileTap}
                     />
                 )
@@ -494,7 +494,7 @@ export default function ProjectMorePanel({
             {/* OFFERS — the project's live book: every open offer (item +
                 collection + trait). Browsing here; acting on the piece. */}
             <div className="more-section-header">OFFERS</div>
-            <OffersInline slug={project.slug} />
+            <OffersInline slug={project.slug} query={searchQuery} />
             </>)}
         </section>
     );
