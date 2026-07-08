@@ -85,6 +85,7 @@ import {
     type MouseEvent as ReactMouseEvent,
     type ReactNode,
 } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
@@ -222,6 +223,7 @@ export default function OutputPreview() {
     const { add: cartAdd, has: cartHas, items: cartItems } = useCart();
     const { openListSheet, openOfferSheet } = useMarketSheet();
     const [unlistBusy, setUnlistBusy] = useState(false);
+    const [confirmUnlist, setConfirmUnlist] = useState(false);
     /* The output modal is global, so its Project is whatever was passed to
        open('output', id, slug) — falling back to the active route Project. */
     const proj = useProject();
@@ -679,15 +681,24 @@ export default function OutputPreview() {
             if (id != null) openListSheet([{ slug, id }]);
         } else if (mainAction === 'unlist') {
             if (id == null || unlistBusy) return;
-            setUnlistBusy(true);
-            getWalletClientOnDemand()
-                .then((wallet) => cancelListing(slug, id, { wallet }))
-                .then(() => showToast('Listing: CANCELLED'))
-                .catch((err: unknown) => showToast(err instanceof Error ? err.message : 'Cancel: FAILED'))
-                .finally(() => setUnlistBusy(false));
+            setConfirmUnlist(true);
         } else {
             if (id != null) openOfferSheet([{ slug, id }]);
         }
+    };
+
+    /* The actual unlist — fired only after the confirm card (the same card the
+       mint flow uses). Removing a live listing is a real market write, so it
+       gates behind a confirm like every other money action. */
+    const runUnlist = () => {
+        if (id == null || unlistBusy) return;
+        setConfirmUnlist(false);
+        setUnlistBusy(true);
+        getWalletClientOnDemand()
+            .then((wallet) => cancelListing(slug, id, { wallet }))
+            .then(() => showToast('Listing: CANCELLED'))
+            .catch((err: unknown) => showToast(err instanceof Error ? err.message : 'Cancel: FAILED'))
+            .finally(() => setUnlistBusy(false));
     };
 
     /* Action button label + Calc-tab visibility.
@@ -1244,6 +1255,19 @@ export default function OutputPreview() {
                 </div>
             )}
         </div>
+        {/* Unlist confirm — the same centered card the mint flow uses. */}
+        {confirmUnlist && id != null && typeof document !== 'undefined' && createPortal(
+            <div className="starred-confirm-overlay" role="dialog" aria-modal="true" style={{ zIndex: 100000 }} onClick={() => setConfirmUnlist(false)}>
+                <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
+                    <div className="ms-confirm-question">Unlist {title} #{id}?</div>
+                    <div className="ms-confirm-btns">
+                        <button type="button" className="ms-confirm-btn ms-confirm-btn--cancel" onClick={() => setConfirmUnlist(false)}>Cancel</button>
+                        <button type="button" className="ms-confirm-btn ms-confirm-btn--ok" onClick={runUnlist}>Unlist</button>
+                    </div>
+                </div>
+            </div>,
+            document.body,
+        )}
         </Fragment>
     );
 }

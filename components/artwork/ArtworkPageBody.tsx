@@ -22,6 +22,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { priceDayContents } from '../../lib/priceday/priceday';
 import { usePriceDay } from '../../lib/priceday/usePriceDay';
 import { playlistWatchUrl } from '../../lib/project/soundtrack';
@@ -190,6 +191,7 @@ export default function ArtworkPageBody({
     const { add: cartAdd, has: cartHas, items: cartItems } = useCart();
     const { openListSheet, openOfferSheet, openOffersPanel } = useMarketSheet();
     const [ctaBusy, setCtaBusy] = useState(false);
+    const [confirmUnlist, setConfirmUnlist] = useState(false);
 
     const { open: openModal } = useModal();
     const [activeTab, setActiveTab] = useState<ArtworkTab>('artwork');
@@ -605,15 +607,23 @@ export default function ArtworkPageBody({
             openListSheet([{ slug, id: numberPart }]);
         } else if (ctaAction === 'unlist') {
             if (ctaBusy) return;
-            setCtaBusy(true);
-            getWalletClientOnDemand()
-                .then((wallet) => cancelListing(slug, numberPart, { wallet }))
-                .then(() => showToast('Listing: CANCELLED'))
-                .catch((err: unknown) => showToast(err instanceof Error ? err.message : 'Cancel: FAILED'))
-                .finally(() => setCtaBusy(false));
+            setConfirmUnlist(true);
         } else {
             openOfferSheet([{ slug, id: numberPart }]);
         }
+    };
+
+    /* The actual unlist — fired only after the confirm card (the same card the
+       mint flow uses). Removing a live listing is a real market write. */
+    const runUnlist = () => {
+        if (ctaBusy) return;
+        setConfirmUnlist(false);
+        setCtaBusy(true);
+        getWalletClientOnDemand()
+            .then((wallet) => cancelListing(slug, numberPart, { wallet }))
+            .then(() => showToast('Listing: CANCELLED'))
+            .catch((err: unknown) => showToast(err instanceof Error ? err.message : 'Cancel: FAILED'))
+            .finally(() => setCtaBusy(false));
     };
 
     return (
@@ -1303,6 +1313,19 @@ export default function ArtworkPageBody({
                 )}
             </section>
             </TraitsProvider>
+            {/* Unlist confirm — the same centered card the mint flow uses. */}
+            {confirmUnlist && typeof document !== 'undefined' && createPortal(
+                <div className="starred-confirm-overlay" role="dialog" aria-modal="true" style={{ zIndex: 100000 }} onClick={() => setConfirmUnlist(false)}>
+                    <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
+                        <div className="ms-confirm-question">Unlist {projectName} #{numberPart}?</div>
+                        <div className="ms-confirm-btns">
+                            <button type="button" className="ms-confirm-btn ms-confirm-btn--cancel" onClick={() => setConfirmUnlist(false)}>Cancel</button>
+                            <button type="button" className="ms-confirm-btn ms-confirm-btn--ok" onClick={runUnlist}>Unlist</button>
+                        </div>
+                    </div>
+                </div>,
+                document.body,
+            )}
         </ProjectProvider>
     );
 }

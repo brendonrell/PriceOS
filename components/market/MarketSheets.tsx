@@ -205,6 +205,7 @@ function PricingSheet({
     const [step, setStep] = useState<string | null>(null);
     const [wethNote, setWethNote] = useState(false);
     const [offerCtx, setOfferCtx] = useState<string | null>(null);
+    const [confirmList, setConfirmList] = useState(false);
 
     /* Single-item offer: the deciding numbers live IN the sheet — floor,
        last sale, current top offer. Nobody backs out to check. */
@@ -460,12 +461,27 @@ function PricingSheet({
             <button
                 className="cart-panel-buy-all"
                 type="button"
-                onClick={() => void onConfirm()}
+                onClick={() => { if (mode === 'list' && !criteria) setConfirmList(true); else void onConfirm(); }}
                 disabled={!allPriced || busy}
             >
                 {busy && <span className="cart-buy-sweep" aria-hidden="true" />}
                 {confirmLabel}
             </button>
+
+            {/* List confirm — the same centered card the mint flow uses. */}
+            {confirmList && (
+                <div className="starred-confirm-overlay" role="dialog" aria-modal="true" onClick={() => setConfirmList(false)}>
+                    <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
+                        <div className="ms-confirm-question">
+                            List {items.length > 1 ? `${items.length} pieces` : `${items[0]?.slug ? getProject(items[0].slug)?.displayName ?? items[0].slug : ''} #${items[0]?.id}`} for {formatEth(total)} ETH?
+                        </div>
+                        <div className="ms-confirm-btns">
+                            <button type="button" className="ms-confirm-btn ms-confirm-btn--cancel" onClick={() => setConfirmList(false)}>Cancel</button>
+                            <button type="button" className="ms-confirm-btn ms-confirm-btn--ok" onClick={() => { setConfirmList(false); void onConfirm(); }}>List</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }
