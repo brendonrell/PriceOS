@@ -633,7 +633,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         active={notifs.sticker}
                         onClick={() => toggleWithToastNeg('sticker', 'Sticker Mode')}
                         icon={'⊞\uFE0E'}
-                        iconStyle={{ fontSize: '16px', lineHeight: '1', margin: '0 2px', fontWeight: 'normal', position: 'relative', top: '2px' }}
+                        iconStyle={{ fontSize: '16px', lineHeight: '1', margin: '0 2px', fontWeight: 'normal', position: 'relative', top: '0px' }}
                         iconClassName="sticker-strike"
                         style={{ padding: '0 4px', minWidth: 0, width: 'auto', position: 'relative', overflow: 'visible' }}
                     />
