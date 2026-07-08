@@ -146,11 +146,13 @@ export default function MintButton({
 
   const label =
     phase === 'minting' ? 'MINTING…' : phase === 'done' ? `MINTED ✓ ×${result?.count ?? ''}` : 'MINT';
-  const price =
-    phase === 'done' && result ? `(${result.balance} ETH left)` : `(${perOutput} ETH)`;
   // Fiat rides under the ETH price on the resting/minting faces only (the done
   // face shows a balance, not a price). Null unless a currency is turned on.
   const idleFiat = phase === 'done' ? null : ethToFiat(perOutput);
+  // In fiat mode, drop the leading 0 on the ETH figure (.0022, not 0.0022).
+  const ethAmt = idleFiat ? String(perOutput).replace(/^0\./, '.') : String(perOutput);
+  const price =
+    phase === 'done' && result ? `(${result.balance} ETH left)` : `(${ethAmt} ETH)`;
 
   return (
     <button
@@ -158,7 +160,7 @@ export default function MintButton({
       // The done face stacks label over balance at reduced sizes so the
       // success readout FITS the fixed 224px pill (it used to overflow and
       // clip on desktop — Brendon 2026-06-12).
-      className={`btn-mint${phase === 'done' ? ' mint-done' : ''}`}
+      className={`btn-mint${phase === 'done' ? ' mint-done' : ''}${idleFiat ? ' mint-fiat-on' : ''}`}
       onClick={phase === 'idle' ? start : undefined}
       disabled={phase !== 'idle'}
       style={{ position: 'relative', overflow: 'hidden' }}

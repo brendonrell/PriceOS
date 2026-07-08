@@ -403,7 +403,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                             /* Sold out → the mint button becomes BUY (floor):
                                shows the lowest listing and adds it to the cart. */
                             <button
-                                className="btn-mint"
+                                className={`btn-mint${floorFiat ? ' mint-fiat-on' : ''}`}
                                 title="Buy the floor — adds the lowest-listed Output to your cart"
                                 onClick={() => {
                                     if (lowestId == null) { showToast('Listings: NONE YET'); return; }
@@ -415,7 +415,9 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                             >
                                 <span className="mint-lbl">BUY</span>
                                 <span className="mint-price">
-                                    {lowestFloor !== null ? `(${lowestFloor.toFixed(3)} ETH)` : '(NONE LISTED)'}
+                                    {lowestFloor !== null
+                                        ? `(${floorFiat ? lowestFloor.toFixed(3).replace(/^0\./, '.') : lowestFloor.toFixed(3)} ETH)`
+                                        : '(NONE LISTED)'}
                                 </span>
                                 {floorFiat && (
                                     <span className="mint-fiat">

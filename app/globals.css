@@ -4502,6 +4502,8 @@ button,
 .mint-chooser .mint-fiat { font-size: 9px; }
 .mint-chooser .mint-fiat-amt { font-size: 9px; }
 .mint-chooser .mint-fiat-cur { font-size: 7px; }
+/* Fiat mode — the ETH figure drops one step so the ~fiat has room (Brendon 2026-07-08). */
+.mint-fiat-on .mint-price { font-size: 13px; }
 
 /* The $ picker glyph in the Wallet row — between copy + incognito. Two-class
    selector so it beats the base .rpc-ping-btn 24px (equal specificity + later
