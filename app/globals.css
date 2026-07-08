@@ -4523,11 +4523,12 @@ button,
 }
 .mint-face > .mint-lbl { flex: 0 0 auto; }
 .mint-nums {
-    flex: 0 1 auto;
+    flex: 1 1 auto;
     min-width: 0;
     overflow: hidden;
-    display: inline-flex;
+    display: flex;
     align-items: center;
+    justify-content: center;
 }
 .mint-nums-in {
     flex: 0 0 auto;
@@ -4535,7 +4536,7 @@ button,
     align-items: center;
     gap: 4px;
     white-space: nowrap;
-    transform-origin: left center;
+    transform-origin: center;
 }
 /* +/- step (choosing face) in fiat mode: ETH one smaller, fiat one larger. */
 .mint-chooser-fiat .mint-price { font-size: 12px; }

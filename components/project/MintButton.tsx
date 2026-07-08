@@ -68,10 +68,14 @@ export default function MintButton({
     if (phase === 'done') { setScale(1); return; }
     const cell = numsRef.current, inner = innerRef.current;
     if (!cell || !inner) return;
-    const BUFFER = 3; // thin buffer inside the cell edge
-    const available = cell.clientWidth - BUFFER;
-    const natural = inner.offsetWidth;
-    setScale(natural > 0 && natural > available ? Math.max(0.4, available / natural) : 1);
+    const natW = inner.offsetWidth, natH = inner.offsetHeight;
+    if (!natW || !natH) return;
+    // The numbers EXPAND (and shrink) to fill the cell — tiny margins, bounded
+    // by width AND height so the stacked fiat never spills the pill. MINT fixed.
+    const availW = cell.clientWidth - 4;
+    const availH = cell.clientHeight - 2;
+    const s = Math.min(availW / natW, availH / natH);
+    setScale(Math.max(0.4, Math.min(2.4, s)));
   }, [phase, mintPrice, currency, remaining, qty, ethToFiat]);
 
   const start = () => {
@@ -210,7 +214,7 @@ export default function MintButton({
             <span
               className="mint-nums-in"
               ref={innerRef}
-              style={{ transform: scale < 1 ? `scale(${scale})` : undefined }}
+              style={{ transform: scale !== 1 ? `scale(${scale})` : undefined }}
             >
               <span className="mint-price">{price}</span>
               {idleFiat && (
