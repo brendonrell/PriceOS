@@ -4510,7 +4510,19 @@ button,
    so the whole readout can be measured and scaled to fit the fixed pill. Scaled
    from the centre via an inline transform so nothing is ever cut (Brendon
    2026-07-08 — posted prices MUST stay fully visible). */
+/* .mint-face FILLS the pill's inner width and clips; the inner sizes to its
+   natural content (unconstrained) so we can measure exactly what the readout
+   wants and scale the inner down to fit — nothing is ever cut (Brendon
+   2026-07-08, posted prices MUST stay fully visible). */
 .mint-face {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.mint-face-in {
     display: inline-flex;
     align-items: center;
     justify-content: center;
