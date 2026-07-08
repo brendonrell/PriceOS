@@ -70,7 +70,7 @@ export function eventToFeedEvent(e: EventRow): FeedEvent {
     const actor = handle ? `@${handle}` : feedShortAddr(addr ?? null);
     const tok = <span className="f-highlight">#{lid}</span>;
     let verb: ReactNode;
-    if (type === 'MINT') verb = <>collected {tok}</>;
+    if (type === 'MINT') verb = <>collected {tok}{price ? ` for ${e.price_eth} ETH` : ''}</>;
     else if (type === 'LIST') verb = <>listed {tok}{price ? ` for ${e.price_eth} ETH` : ''}</>;
     else if (type === 'SALE') verb = <>bought {tok}{price ? ` for ${e.price_eth} ETH` : ''}</>;
     else verb = <>transferred {tok}</>;
