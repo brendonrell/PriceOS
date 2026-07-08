@@ -222,7 +222,7 @@ export default function MintButton({
               style={{ transform: scale !== 1 ? `scale(${scale})` : undefined }}
             >
               <span className="mint-fiat">
-                <span className="mint-fiat-amt">{ethAmt}</span>
+                <span className="mint-fiat-amt">({ethAmt})</span>
                 <span className="mint-fiat-cur">ETH</span>
               </span>
               <span className="mint-fiat">

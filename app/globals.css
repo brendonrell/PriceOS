@@ -4541,7 +4541,8 @@ button,
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    /* Real breathing room between the ETH stack and the fiat stack (Brendon 2026-07-08). */
+    gap: 12px;
     white-space: nowrap;
     transform-origin: center;
 }
