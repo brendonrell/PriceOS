@@ -67,11 +67,13 @@ let state: RpcState = { active: false, ms: null };
 let timer: ReturnType<typeof setTimeout> | null = null;
 const listeners = new Set<Listener>();
 
-/* ⛔ TEMPORARILY DISABLED (Brendon, 2026-06-27) — the latency-pill poll hit
-   /api/rpc-ping every 4–8s per tab, a steady drain on the Vercel free tier that
-   helped pause the project. Hard-off here so the ⌁ button can't start it.
-   Re-enable (flip to false) once on a paid plan / the usage cap is sorted. */
-const RPC_PING_DISABLED = true;
+/* Re-enabled 2026-07-08 (Brendon) post-Cloudflare migration. Safe because:
+   (a) opt-in — the poll only runs while the user has toggled the ⌁ pill ON, and
+   only while the tab is visible (realPing skips hidden; the timer stops on hide);
+   (b) /api/rpc-ping is KV-cached at 4s, so coincident ticks across ALL clients
+   collapse to ONE Alchemy hit per 4s window globally — audience size doesn't
+   change upstream load. The 2026-06-27 Vercel-CPU fear doesn't transfer. */
+const RPC_PING_DISABLED = false;
 
 function notify() {
     listeners.forEach((cb) => cb(state));
