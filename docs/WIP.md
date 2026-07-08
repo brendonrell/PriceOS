@@ -13,9 +13,11 @@ Fiat mode = ONE centered row `MINT · (ETH↕) · ~fiat↕` that scales as a uni
 fill the pill (8px buffer each side). MINT is **counter-scaled** (font ÷ scale) so
 it always renders at the exact fiat-off size; the single shared inner gap (6px)
 keeps spacing **equal on both sides** of the ETH price at any scale. ETH price is
-STACKED with the brackets INLINE — `(22.22` over `ETH)` (normal size, part of the
-text — NOT flanking paren glyphs, NOT one line). `~fiat` stacked beside it (amount
-over currency code), **italic, 0.5px smaller than the ETH amount, 10% dimmer**.
+STACKED (amount over `ETH`) flanked by **tall bold brackets** (`.mint-paren`,
+22px/700, Courier) that embrace the whole stack — the agreed look. `~fiat`
+stacked beside it (amount over currency code), **italic, 0.5px smaller than the
+ETH amount, 10% dimmer**. **Fiat drops the cents at $1,000+** (`$54,693`, not
+`$54,692.79`) — rule lives in `formatFiat` (FiatContext), so it's site-wide.
 **$0 / free mint:** shows INLINE, no decimals — `(0 ETH) ~$0 CAD` (same shape as
 the non-fiat button). Scale math in `useLayoutEffect`: fill width with MINT held
 fixed `(availW − mint@16) / rest`, capped by height; MINT + row measured via
