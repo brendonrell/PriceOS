@@ -242,13 +242,9 @@ export default function MintButton({
             style={{ transform: scale !== 1 ? `scale(${scale})` : undefined }}
           >
             <span className="mint-lbl" ref={mintRef} style={{ fontSize: `${(16 / scale).toFixed(3)}px` }}>{label}</span>
-            <span className="mint-eth-price">
-              <span className="mint-paren">(</span>
-              <span className="mint-fiat">
-                <span className="mint-fiat-amt">{ethAmt}</span>
-                <span className="mint-fiat-cur">ETH</span>
-              </span>
-              <span className="mint-paren">)</span>
+            <span className="mint-fiat">
+              <span className="mint-fiat-amt">({ethAmt}</span>
+              <span className="mint-fiat-cur">ETH)</span>
             </span>
             <span className="mint-fiat mint-fiat--conv">
               <span className="mint-fiat-amt">{idleFiat}</span>
