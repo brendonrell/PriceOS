@@ -185,7 +185,11 @@ export function paintAsciiArtifact(target: HTMLCanvasElement, art: AsciiArtifact
     const lift = (hex: string): string => {
         // Gamma lift — raises the DARK ink that dominates most pieces far more
         // than a flat multiply did, so the panel reads clearly brighter.
-        const up = (c: number) => Math.min(255, Math.round(Math.pow(c / 255, 0.5) * 255 * 1.25 + 18));
+        // 369.75 = 255 * 1.45, pre-folded so the multiply can't be dropped.
+        const up = (c: number) => {
+            const v = Math.pow(c / 255, 0.4) * 369.75 + 30;
+            return v > 255 ? 255 : Math.round(v);
+        };
         const r = up(parseInt(hex.slice(1, 3), 16));
         const g = up(parseInt(hex.slice(3, 5), 16));
         const b = up(parseInt(hex.slice(5, 7), 16));

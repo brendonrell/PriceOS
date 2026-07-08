@@ -4523,13 +4523,16 @@ button,
 }
 .mint-face > .mint-lbl { flex: 0 0 auto; }
 .mint-nums {
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     min-width: 0;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
 }
+/* Fiat mode only: the numbers cell fills the space beside MINT so the ETH+fiat
+   can expand into it. Normal mode is untouched (content-sized, centered). */
+.mint-face-fiat .mint-nums { flex: 1 1 auto; }
 .mint-nums-in {
     flex: 0 0 auto;
     display: inline-flex;

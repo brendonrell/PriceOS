@@ -65,7 +65,8 @@ export default function MintButton({
   const innerRef = useRef<HTMLSpanElement | null>(null);
   const [scale, setScale] = useState(1);
   useLayoutEffect(() => {
-    if (phase === 'done') { setScale(1); return; }
+    // Only fiat mode fills/expands; normal mode is untouched.
+    if (phase === 'done' || !currency) { setScale(1); return; }
     const cell = numsRef.current, inner = innerRef.current;
     if (!cell || !inner) return;
     const natW = inner.offsetWidth, natH = inner.offsetHeight;
@@ -208,7 +209,7 @@ export default function MintButton({
           <span className="mint-price" style={{ position: 'relative' }}>{price}</span>
         </>
       ) : (
-        <span className="mint-face" style={{ position: 'relative' }}>
+        <span className={`mint-face${idleFiat ? ' mint-face-fiat' : ''}`} style={{ position: 'relative' }}>
           <span className="mint-lbl">{label}</span>
           <span className="mint-nums" ref={numsRef}>
             <span

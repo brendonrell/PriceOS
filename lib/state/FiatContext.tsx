@@ -73,25 +73,42 @@ interface FiatContextValue {
     ready: boolean;
 }
 
+const FX_KEY = 'pd_fiat_fx';
+
+/** Saved currency, read synchronously (SSR-safe → null on the server). */
+function readStoredCurrency(): FiatCode | null {
+    if (typeof window === 'undefined') return null;
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw && (FIAT_OPTIONS as string[]).includes(raw) ? (raw as FiatCode) : null;
+    } catch {
+        return null;
+    }
+}
+
+/** Last-known rates, read synchronously so the ~fiat shows on first paint. */
+function readStoredFx(): FxResponse | null {
+    if (typeof window === 'undefined') return null;
+    try {
+        const raw = localStorage.getItem(FX_KEY);
+        if (!raw) return null;
+        const j = JSON.parse(raw) as FxResponse;
+        return j && j.rates && typeof j.trusted === 'boolean' ? j : null;
+    } catch {
+        return null;
+    }
+}
+
 const FiatContext = createContext<FiatContextValue | null>(null);
 
 export function FiatProvider({ children }: { children: ReactNode }) {
-    const [currency, setCurrencyState] = useState<FiatCode | null>(null);
-    const [fx, setFx] = useState<FxResponse | null>(null);
+    // Read the saved preference + last rates SYNCHRONOUSLY on first render so the
+    // fiat readout is present on the very first paint — fiat mode is a stored
+    // switch, it must NOT flash in after load (Brendon 2026-07-08).
+    const [currency, setCurrencyState] = useState<FiatCode | null>(readStoredCurrency);
+    const [fx, setFx] = useState<FxResponse | null>(readStoredFx);
     const currencyRef = useRef<FiatCode | null>(null);
     currencyRef.current = currency;
-
-    // Hydrate the saved preference (SSR-safe).
-    useEffect(() => {
-        try {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (raw && (FIAT_OPTIONS as string[]).includes(raw)) {
-                setCurrencyState(raw as FiatCode);
-            }
-        } catch {
-            /* private mode / quota */
-        }
-    }, []);
 
     const setCurrency = useCallback((next: FiatCode | null) => {
         setCurrencyState(next);
@@ -116,7 +133,9 @@ export function FiatProvider({ children }: { children: ReactNode }) {
                 const res = await fetch('/api/fx');
                 if (!res.ok) return;
                 const json = (await res.json()) as FxResponse;
-                if (!cancelled) setFx(json);
+                if (cancelled) return;
+                setFx(json);
+                try { localStorage.setItem(FX_KEY, JSON.stringify(json)); } catch { /* ignore */ }
             } catch {
                 /* transient — keep the last good rates */
             }
