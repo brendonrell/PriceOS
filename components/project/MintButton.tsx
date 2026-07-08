@@ -10,7 +10,7 @@
  * wallet-confirm step slots in here when wired to pd-contracts.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
@@ -57,23 +57,21 @@ export default function MintButton({
      would exceed the pill's inner width (minus a thin 4px buffer), scale it down
      just enough to fit. At natural size nothing changes; when tight it eases
      down a hair so MINT + the full price/fiat all stay readable. */
-  const faceRef = useRef<HTMLSpanElement | null>(null);
+  /* MINT stays full-size; only the ETH+fiat NUMBERS scale down, and only when
+     they'd exceed their cell (never by default in fiat mode). Measured with
+     useLayoutEffect BEFORE paint so there's no flash, and offsetWidth is
+     transform-independent so we read the true natural width every time. */
+  const numsRef = useRef<HTMLSpanElement | null>(null);
   const innerRef = useRef<HTMLSpanElement | null>(null);
   const [scale, setScale] = useState(1);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (phase === 'done') { setScale(1); return; }
-    setScale(1); // measure at natural size first
-    const raf = requestAnimationFrame(() => {
-      const face = faceRef.current, inner = innerRef.current;
-      if (!face || !inner) return;
-      const BUFFER = 4; // stay a hair inside the inner edge
-      const available = face.clientWidth - BUFFER; // the room the readout has
-      const natural = inner.offsetWidth;            // what it wants, unconstrained
-      setScale(natural > available ? Math.max(0.5, available / natural) : 1);
-    });
-    return () => cancelAnimationFrame(raf);
-    // ethToFiat identity changes when the rate loads → re-measure so a freshly
-    // added ~fiat is scaled to fit immediately.
+    const cell = numsRef.current, inner = innerRef.current;
+    if (!cell || !inner) return;
+    const BUFFER = 3; // thin buffer inside the cell edge
+    const available = cell.clientWidth - BUFFER;
+    const natural = inner.offsetWidth;
+    setScale(natural > 0 && natural > available ? Math.max(0.4, available / natural) : 1);
   }, [phase, mintPrice, currency, remaining, qty, ethToFiat]);
 
   const start = () => {
@@ -206,22 +204,23 @@ export default function MintButton({
           <span className="mint-price" style={{ position: 'relative' }}>{price}</span>
         </>
       ) : (
-        <span className="mint-face" ref={faceRef} style={{ position: 'relative' }}>
-          <span
-            className="mint-face-in"
-            ref={innerRef}
-            style={{ transform: scale < 1 ? `scale(${scale})` : undefined }}
-          >
-            <span className="mint-lbl">{label}</span>
-            <span className="mint-price">{price}</span>
-            {idleFiat && (
-              // Just the fiat is stacked — amount on top, currency code below — in
-              // smaller text, sitting after the ETH price (Brendon 2026-07-08).
-              <span className="mint-fiat">
-                <span className="mint-fiat-amt">{idleFiat}</span>
-                <span className="mint-fiat-cur">{currency}</span>
-              </span>
-            )}
+        <span className="mint-face" style={{ position: 'relative' }}>
+          <span className="mint-lbl">{label}</span>
+          <span className="mint-nums" ref={numsRef}>
+            <span
+              className="mint-nums-in"
+              ref={innerRef}
+              style={{ transform: scale < 1 ? `scale(${scale})` : undefined }}
+            >
+              <span className="mint-price">{price}</span>
+              {idleFiat && (
+                // Just the fiat is stacked — amount on top, currency code below.
+                <span className="mint-fiat">
+                  <span className="mint-fiat-amt">{idleFiat}</span>
+                  <span className="mint-fiat-cur">{currency}</span>
+                </span>
+              )}
+            </span>
           </span>
         </span>
       )}

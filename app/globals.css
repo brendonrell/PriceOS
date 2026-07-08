@@ -4385,7 +4385,7 @@ button,
 }
 .mint-price {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: bold;
     opacity: 0.85;
     white-space: nowrap;
@@ -4497,23 +4497,21 @@ button,
     opacity: 0.8;
     white-space: nowrap;
 }
-.mint-fiat-amt { font-size: 11px; }
-.mint-fiat-cur { font-size: 11px; letter-spacing: 0.04em; margin-top: 1px; opacity: 0.9; }
+.mint-fiat-amt { font-size: 14px; }
+.mint-fiat-cur { font-size: 12px; letter-spacing: 0.04em; margin-top: 1px; opacity: 0.9; }
 .mint-chooser .mint-fiat { font-size: 10px; }
 .mint-chooser .mint-fiat-amt { font-size: 10px; }
 .mint-chooser .mint-fiat-cur { font-size: 10px; }
 /* Modal BUY CTA — the ~fiat sits inline after the ETH price, slightly dimmed. */
 .modal-action-btn-fiat { opacity: 0.8; }
-/* Fiat mode, tight case (fiat ≥ 10) — the ETH figure drops a step. */
-.mint-fiat-on .mint-price { font-size: 13px; }
 /* The row content wrapper — sizes to its natural content (never shrinks/clips),
    so the whole readout can be measured and scaled to fit the fixed pill. Scaled
    from the centre via an inline transform so nothing is ever cut (Brendon
    2026-07-08 — posted prices MUST stay fully visible). */
-/* .mint-face FILLS the pill's inner width and clips; the inner sizes to its
-   natural content (unconstrained) so we can measure exactly what the readout
-   wants and scale the inner down to fit — nothing is ever cut (Brendon
-   2026-07-08, posted prices MUST stay fully visible). */
+/* MINT stays full-size; only the NUMBERS cell scales. The face fills the pill,
+   MINT is fixed (flex 0 0), the numbers cell takes the rest and clips, and the
+   inner numbers scale down only when they'd exceed that cell — so nothing is
+   ever cut and MINT is never shrunk by default (Brendon 2026-07-08). */
 .mint-face {
     flex: 1 1 auto;
     min-width: 0;
@@ -4521,15 +4519,23 @@ button,
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 4px;
 }
-.mint-face-in {
+.mint-face > .mint-lbl { flex: 0 0 auto; }
+.mint-nums {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    gap: 4px;
+}
+.mint-nums-in {
     flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     white-space: nowrap;
-    transform-origin: center;
+    transform-origin: left center;
 }
 /* +/- step (choosing face) in fiat mode: ETH one smaller, fiat one larger. */
 .mint-chooser-fiat .mint-price { font-size: 12px; }
