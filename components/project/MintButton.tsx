@@ -36,7 +36,7 @@ export default function MintButton({
 }) {
   const { siweAddress } = useAuth();
   const { showToast } = useToast();
-  const { ethToFiat } = useFiat();
+  const { ethToFiat, currency } = useFiat();
   const [phase, setPhase] = useState<Phase>('idle');
   const [qty, setQty] = useState(1);
   const [pct, setPct] = useState(0);
@@ -158,7 +158,7 @@ export default function MintButton({
       // The done face stacks label over balance at reduced sizes so the
       // success readout FITS the fixed 224px pill (it used to overflow and
       // clip on desktop — Brendon 2026-06-12).
-      className={`btn-mint${phase === 'done' ? ' mint-done' : ''}${idleFiat ? ' mint-has-fiat' : ''}`}
+      className={`btn-mint${phase === 'done' ? ' mint-done' : ''}`}
       onClick={phase === 'idle' ? start : undefined}
       disabled={phase !== 'idle'}
       style={{ position: 'relative', overflow: 'hidden' }}
@@ -171,21 +171,15 @@ export default function MintButton({
           style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${pct}%`, background: 'rgba(255,255,255,0.28)', transition: 'width 0.9s ease' }}
         />
       )}
-      {idleFiat ? (
-        // Two-row CTA — same stacked face as the "MINTED ✓ ×N" / balance readout:
-        // label + ETH on top, the ~fiat beneath, all inside the fixed pill.
-        <>
-          <span className="mint-row1" style={{ position: 'relative' }}>
-            <span className="mint-lbl">{label}</span>
-            <span className="mint-price">{price}</span>
-          </span>
-          <span className="mint-fiat" style={{ position: 'relative' }}>{idleFiat}</span>
-        </>
-      ) : (
-        <>
-          <span className="mint-lbl" style={{ position: 'relative' }}>{label}</span>
-          <span className="mint-price" style={{ position: 'relative' }}>{price}</span>
-        </>
+      <span className="mint-lbl" style={{ position: 'relative' }}>{label}</span>
+      <span className="mint-price" style={{ position: 'relative' }}>{price}</span>
+      {idleFiat && (
+        // Just the fiat is stacked — amount on top, currency code below — in
+        // smaller text, sitting after the ETH price (Brendon 2026-07-08).
+        <span className="mint-fiat" style={{ position: 'relative' }}>
+          <span className="mint-fiat-amt">{idleFiat}</span>
+          <span className="mint-fiat-cur">{currency}</span>
+        </span>
       )}
     </button>
   );

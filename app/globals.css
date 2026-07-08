@@ -4483,31 +4483,25 @@ button,
    the button never changes size or shape. OFF by default: when no currency is
    picked, .mint-fiat never renders and the resting button is byte-for-byte
    what it was. */
-/* Two-row CTA when fiat is on — the SAME stacked face as "MINTED ✓ ×N" over the
-   balance: label + ETH on the top row, ~fiat beneath, sized down to fit the
-   fixed 224px pill. OFF by default, so the resting button is unchanged. */
-.btn-mint.mint-has-fiat {
-    flex-direction: column;
-    gap: 0;
-    line-height: 1.15;
-}
-.mint-row1 {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-}
-.mint-has-fiat .mint-lbl { font-size: 13px; }
-.mint-has-fiat .mint-price { font-size: 12px; }
-.mint-has-fiat .mint-fiat { font-size: 11px; }
+/* Fiat rides AFTER the ETH price on one line; only the fiat itself stacks —
+   amount on top, currency code below — in smaller text (Brendon 2026-07-08).
+   The button stays a single row and never changes size. OFF by default. */
 .mint-fiat {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: bold;
     opacity: 0.8;
     white-space: nowrap;
 }
-.mint-chooser .mint-fiat { font-size: 10px; }
+.mint-fiat-amt { font-size: 10px; }
+.mint-fiat-cur { font-size: 8px; letter-spacing: 0.04em; margin-top: 1px; opacity: 0.9; }
+.mint-chooser .mint-fiat { font-size: 9px; }
+.mint-chooser .mint-fiat-amt { font-size: 9px; }
+.mint-chooser .mint-fiat-cur { font-size: 7px; }
 
 /* The $ picker glyph in the Wallet row — between copy + incognito. Courier New
    to match the other wallet icons, sized down. Lights to full opacity on. */

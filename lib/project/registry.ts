@@ -295,8 +295,8 @@ const BULLETIN: ProjectDef = {
   outputs: 222,
   colorway: '#2fc94f',
   // TEST PRICE (fiat-spacing check, Brendon 2026-07-08) — a live, unminted
-  // project priced at 0.00022 ETH to pressure-test the ~fiat readout's fit.
-  mintPriceEth: 0.00022,
+  // project priced at 0.0022 ETH to pressure-test the ~fiat readout's fit.
+  mintPriceEth: 0.0022,
   soundtrack: { playlistId: 'OLAK5uy_mkw5lnHV_WtzF65IfSBTHqHcj_bvqiBU0', label: 'Kraftwerk — Trans-Europe Express' },
   aspects: BULLETIN_ASPECTS,
   traitSchema: bulletinSchema,
