@@ -186,17 +186,14 @@ export default function MintButton({
 
   const label =
     phase === 'minting' ? 'MINTING…' : phase === 'done' ? `MINTED ✓ ×${result?.count ?? ''}` : 'MINT';
-  // Fiat rides under the ETH price on the resting/minting faces only (the done
-  // face shows a balance, not a price). Null unless a currency is turned on.
-  const idleFiat = phase === 'done' ? null : ethToFiat(perOutput);
+  // Fiat rides beside the ETH price on the RESTING face only. During the mint
+  // itself (and the done face, which shows a balance) it's dropped. A 0 ETH
+  // (free) mint shows NO fiat at all — just "MINT (0 ETH)" (Brendon 2026-07-08).
+  const idleFiat = phase === 'idle' && perOutput > 0 ? ethToFiat(perOutput) : null;
   // 4-digit ETH rule; leading 0 dropped in fiat mode.
   const ethAmt = formatEthAmount(perOutput, !!idleFiat);
   const price =
     phase === 'done' && result ? `(${result.balance} ETH left)` : `(${ethAmt} ETH)`;
-  // Free mint ($0): show ETH + fiat INLINE with no decimals — same shape as the
-  // non-fiat button, just with "~$0 CAD" tacked on the end (Brendon 2026-07-08).
-  const isFreeMint = perOutput === 0;
-  const fiatSymbol = idleFiat ? idleFiat.replace(/[\d.,~\s]/g, '') : '';
 
   return (
     <button
@@ -222,14 +219,6 @@ export default function MintButton({
           <span className="mint-lbl" style={{ position: 'relative' }}>{label}</span>
           <span className="mint-price" style={{ position: 'relative' }}>{price}</span>
         </>
-      ) : isFreeMint && idleFiat ? (
-        // Free mint in fiat mode: inline like the plain button, with the fiat
-        // tacked on the end, no decimals — "(0 ETH) ~$0 CAD".
-        <span className="mint-face" style={{ position: 'relative' }}>
-          <span className="mint-lbl">{label}</span>
-          <span className="mint-price">(0 ETH)</span>
-          <span className="mint-price mint-price--conv">~{fiatSymbol}0 {currency}</span>
-        </span>
       ) : idleFiat ? (
         // Fiat mode: MINT + bracketed ETH + fiat are ONE centered row that scales
         // to fill the pill. MINT is counter-scaled (font ÷ scale) so it renders at
