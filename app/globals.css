@@ -4498,13 +4498,14 @@ button,
     white-space: nowrap;
 }
 .mint-fiat-amt { font-size: 14px; }
-/* Currency code (and the ETH unit) matches the amount size above it (Brendon 2026-07-08). */
-.mint-fiat-cur { font-size: 14px; letter-spacing: 0.04em; margin-top: 1px; opacity: 0.9; }
+/* Ticker (ETH) / currency code sits SMALLER than the amount above it — the
+   earlier look Brendon prefers (2026-07-08). Amount stays full size. */
+.mint-fiat-cur { font-size: 11px; letter-spacing: 0.04em; margin-top: 1px; opacity: 0.9; }
 /* The ~fiat conversion stack — secondary to the ETH price: italic, a half-size
    smaller than the ETH amount, and 10% dimmer (Brendon 2026-07-08). */
 .mint-fiat--conv { font-style: italic; opacity: 0.7; }
 .mint-fiat--conv .mint-fiat-amt { font-size: 13.5px; }
-.mint-fiat--conv .mint-fiat-cur { font-size: 13.5px; }
+.mint-fiat--conv .mint-fiat-cur { font-size: 11px; }
 /* The ETH price stacked (amount over ETH) wrapped in brackets that span the WHOLE
    stack — tall parens flank both lines, not just the number (Brendon 2026-07-08). */
 .mint-eth-price { display: inline-flex; align-items: center; gap: 2px; }
@@ -4515,6 +4516,8 @@ button,
     font-weight: bold;
     font-size: 22px;
     line-height: 1;
+    /* Match the ETH price's tone, not MINT's — the price sits at 0.8 (Brendon 2026-07-08). */
+    opacity: 0.8;
 }
 /* Free mint ($0): the fiat rides inline after the ETH price — italic + dimmer,
    matching the ~fiat treatment, no stacking. */
