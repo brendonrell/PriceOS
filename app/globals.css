@@ -4511,7 +4511,7 @@ button,
 .mint-paren {
     font-family: 'Courier New', Courier, monospace;
     font-weight: bold;
-    font-size: 30px;
+    font-size: 14px;
     line-height: 1;
 }
 /* Free mint ($0): the fiat rides inline after the ETH price — italic + dimmer,
