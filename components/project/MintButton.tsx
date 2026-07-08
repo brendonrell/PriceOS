@@ -71,9 +71,10 @@ export default function MintButton({
     if (!cell || !inner) return;
     const natW = inner.offsetWidth, natH = inner.offsetHeight;
     if (!natW || !natH) return;
-    // The whole readout EXPANDS (and shrinks) to fill the pill — 8px buffer each
-    // side, bounded by width AND height so the stacked fiat never spills.
-    const availW = cell.clientWidth - 16;
+    // MINT stays fixed; only the ETH+fiat stacks scale to fill the cell beside
+    // it. The 8px pill buffer lives in the padding, so fill the cell fully
+    // (1px safety), bounded by width AND height so the stacked fiat never spills.
+    const availW = cell.clientWidth - 2;
     const availH = cell.clientHeight - 2;
     const s = Math.min(availW / natW, availH / natH);
     setScale(Math.max(0.4, Math.min(2.4, s)));
@@ -208,31 +209,33 @@ export default function MintButton({
           <span className="mint-lbl" style={{ position: 'relative' }}>{label}</span>
           <span className="mint-price" style={{ position: 'relative' }}>{price}</span>
         </>
-      ) : (
-        <span className={`mint-face${idleFiat ? ' mint-face-fiat' : ''}`} ref={numsRef} style={{ position: 'relative' }}>
-          <span
-            className="mint-nums-in"
-            ref={innerRef}
-            style={{ transform: scale !== 1 ? `scale(${scale})` : undefined }}
-          >
-            <span className="mint-lbl">{label}</span>
-            {idleFiat ? (
-              // Fiat mode: ETH is stacked (amount over the ETH unit) exactly like
-              // the fiat beside it (amount over currency code) — one shared style.
-              <>
-                <span className="mint-fiat">
-                  <span className="mint-fiat-amt">{ethAmt}</span>
-                  <span className="mint-fiat-cur">ETH</span>
-                </span>
-                <span className="mint-fiat">
-                  <span className="mint-fiat-amt">{idleFiat}</span>
-                  <span className="mint-fiat-cur">{currency}</span>
-                </span>
-              </>
-            ) : (
-              <span className="mint-price">{price}</span>
-            )}
+      ) : idleFiat ? (
+        // Fiat mode: MINT stays FIXED (same size as the plain button); only the
+        // ETH+fiat stacks scale to fill the cell beside it. ETH is stacked
+        // (amount over the ETH unit) exactly like the fiat (amount over code).
+        <span className="mint-face mint-face-fiat" style={{ position: 'relative' }}>
+          <span className="mint-lbl">{label}</span>
+          <span className="mint-nums" ref={numsRef}>
+            <span
+              className="mint-nums-in"
+              ref={innerRef}
+              style={{ transform: scale !== 1 ? `scale(${scale})` : undefined }}
+            >
+              <span className="mint-fiat">
+                <span className="mint-fiat-amt">{ethAmt}</span>
+                <span className="mint-fiat-cur">ETH</span>
+              </span>
+              <span className="mint-fiat">
+                <span className="mint-fiat-amt">{idleFiat}</span>
+                <span className="mint-fiat-cur">{currency}</span>
+              </span>
+            </span>
           </span>
+        </span>
+      ) : (
+        <span className="mint-face" style={{ position: 'relative' }}>
+          <span className="mint-lbl">{label}</span>
+          <span className="mint-price">{price}</span>
         </span>
       )}
     </button>
