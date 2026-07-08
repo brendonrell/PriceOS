@@ -7586,9 +7586,11 @@ body.feed-mode .price-memory-ghost { display: none !important; }
 .rarity-receipt-btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
+    white-space: nowrap;
     gap: 8px;
-    margin: 0 0 14px 0;
-    padding: 8px 14px;
+    margin: 14px 0 0 0;
+    padding: 8px 18px;
     border: 1px solid var(--text-color);
     border-radius: 5px;
     background: transparent;

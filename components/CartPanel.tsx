@@ -51,6 +51,7 @@ import { useAuth } from '../lib/state/AuthContext';
 import { sweepBuy } from '../lib/market/marketClient';
 import { getWalletClientOnDemand } from '../lib/wallet/walletClientOnDemand';
 import BenchArt from './bench/BenchArt';
+import { formatEth } from '../lib/format/eth';
 
 const VS15 = '\uFE0E';
 const UNMOUNT_DELAY_MS = 240;
@@ -65,7 +66,7 @@ function parseEth(price: string | null | undefined): number {
 /* Sim 11819 BUY label format: "BUY  ALL  ·  0.123 ETH" — double-spaces
    + middle dot. Reproduced verbatim because the typography matters. */
 function formatBuyLabel(total: number): string {
-    return `BUY  ALL  \u00B7  ${total.toFixed(3)} ETH`;
+    return `BUY  ALL  \u00B7  ${formatEth(total)} ETH`;
 }
 
 interface RowProps {
@@ -138,7 +139,7 @@ function CartGroup({
             const pct = (eth / floorEth - 1) * 100;
             deltaStr = (pct >= 0 ? '+' : '') + pct.toFixed(0) + '%';
         }
-        return { id, eth, listed, deltaStr, priceStr: listed ? eth.toFixed(3) : '\u2014' };
+        return { id, eth, listed, deltaStr, priceStr: listed ? formatEth(eth) : '\u2014' };
     });
     const sub = rows.reduce((a, r) => a + r.eth, 0);
     const floorBasis = rows.reduce((a, r) => a + (r.listed ? floorEth : 0), 0);
@@ -352,20 +353,20 @@ export default function CartPanel() {
                             className="cart-panel-subtotal-val"
                             id="cartPanelSubtotal"
                         >
-                            {subtotal.toFixed(3)} ETH
+                            {formatEth(subtotal)} ETH
                         </span>
                     </div>
                     <div className="cart-panel-fees-row">
                         <span>{`+ fees \u00B7 gas est`}</span>
                         <span id="cartPanelFees">
-                            ~{fees.toFixed(3)} ETH
+                            ~{formatEth(fees)} ETH
                         </span>
                     </div>
                     {subtotal > 0 && Math.abs(savings) >= 0.0005 && (
                         <div className="cart-panel-savings-row">
                             <span>{savings >= 0 ? 'vs floor' : 'over floor'}</span>
                             <span className={savings >= 0 ? 'save-good' : 'save-over'}>
-                                {savings >= 0 ? '\u2212' : '+'}{Math.abs(savings).toFixed(3)} ETH
+                                {savings >= 0 ? '\u2212' : '+'}{formatEth(Math.abs(savings))} ETH
                             </span>
                         </div>
                     )}
@@ -388,7 +389,7 @@ export default function CartPanel() {
                     <div className="starred-confirm-overlay" role="dialog" aria-modal="true" onClick={() => setConfirmOpen(false)}>
                         <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
                             <div className="ms-confirm-question">
-                                Sweep {items.length} output{items.length === 1 ? '' : 's'} \u00B7 {total.toFixed(3)} ETH?
+                                Sweep {items.length} output{items.length === 1 ? '' : 's'} \u00B7 {formatEth(total)} ETH?
                             </div>
                             <div className="ms-confirm-btns">
                                 <button type="button" className="ms-confirm-btn ms-confirm-btn--cancel" onClick={() => setConfirmOpen(false)}>Cancel</button>

@@ -27,6 +27,7 @@ import {
     subscribeWorkflows,
     type WorkflowRecord,
 } from '../../lib/workflows/store';
+import { formatEth } from '../../lib/format/eth';
 
 const POLL_MS = 120_000;
 
@@ -122,7 +123,7 @@ export default function WorkflowWatcher() {
             const p = priceOf(w.trigger.slug, w.trigger.tokenId);
             if (p != null && p <= w.trigger.priceEth) {
                 const name = getProject(w.trigger.slug)?.displayName ?? w.trigger.slug.toUpperCase();
-                fire(w, w.trigger.slug, `${name} #${w.trigger.tokenId} ≤ ◊${w.trigger.priceEth}`);
+                fire(w, w.trigger.slug, `${name} #${w.trigger.tokenId} ≤ ◊${formatEth(w.trigger.priceEth)}`);
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps

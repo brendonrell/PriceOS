@@ -95,6 +95,7 @@ import { getWalletClientOnDemand } from '../lib/wallet/walletClientOnDemand';
 import { useProject, buildOutputMetaFor } from '../lib/state/ProjectContext';
 import { getProject, artImageUrl, ART_IMAGE_BASE } from '../lib/project/registry';
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
+import { formatEth } from '../lib/format/eth';
 
 import { hashSynApplyHex } from '../lib/engines/hashSynEngine';
 import {
@@ -718,7 +719,7 @@ export default function OutputPreview() {
                 <>
                     BUY{' '}
                     <span className="modal-action-btn-price">
-                        &middot; {liveListPrice}
+                        &middot; {formatEth(Number(liveListPrice))}
                     </span>
                 </>
             );

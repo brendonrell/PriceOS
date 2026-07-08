@@ -51,6 +51,7 @@ import {
 import { DURATION_CHOICES, DEFAULT_DURATION_SEC } from '../../lib/market/chain';
 import type { MarketOfferRow } from '../../lib/market/orderTypes';
 import BenchArt from '../bench/BenchArt';
+import { formatEth } from '../../lib/format/eth';
 
 const VS15 = '︎';
 const UNMOUNT_DELAY_MS = 240;
@@ -124,7 +125,7 @@ function PriceRow({
                     {title} #{item.id}
                 </div>
                 <div className="cart-item-artist">
-                    {item.currentPriceEth ? `listed · ${item.currentPriceEth}` : floorEth > 0 ? `floor ${floorEth.toFixed(3)}` : 'unlisted'}
+                    {item.currentPriceEth ? `listed · ${item.currentPriceEth}` : floorEth > 0 ? `floor ${formatEth(floorEth)}` : 'unlisted'}
                     {(() => {
                         /* The thermometer — no mental math while pricing. */
                         const n = parseFloat(value);
@@ -215,9 +216,9 @@ function PricingSheet({
             .then((m) => {
                 if (cancelled) return;
                 const bits: string[] = [];
-                if (m.floor) bits.push(`floor ${Number(m.floor).toFixed(3)}`);
-                if (m.last_sale) bits.push(`last ${Number(m.last_sale).toFixed(3)}`);
-                if (m.offers.length > 0) bits.push(`top offer ${Number(m.offers[0].price_eth).toFixed(3)}`);
+                if (m.floor) bits.push(`floor ${formatEth(Number(m.floor))}`);
+                if (m.last_sale) bits.push(`last ${formatEth(Number(m.last_sale))}`);
+                if (m.offers.length > 0) bits.push(`top offer ${formatEth(Number(m.offers[0].price_eth))}`);
                 setOfferCtx(bits.length ? bits.join(' · ') : null);
             })
             .catch(() => {});
@@ -290,10 +291,10 @@ function PricingSheet({
     const confirmLabel = busy
         ? `${step ?? 'WORKING'}…`
         : criteria
-            ? `OFFER  ·  ${total.toFixed(3)} ETH`
+            ? `OFFER  ·  ${formatEth(total)} ETH`
             : mode === 'list'
-                ? `LIST  ${items.length > 1 ? `${items.length}  ` : ''}·  ${total.toFixed(3)} ETH`
-                : `OFFER  ${items.length > 1 ? `${items.length}  ` : ''}·  ${total.toFixed(3)} ETH`;
+                ? `LIST  ${items.length > 1 ? `${items.length}  ` : ''}·  ${formatEth(total)} ETH`
+                : `OFFER  ${items.length > 1 ? `${items.length}  ` : ''}·  ${formatEth(total)} ETH`;
 
     const onConfirm = useCallback(async () => {
         if (busy || !allPriced) return;
@@ -316,7 +317,7 @@ function PricingSheet({
                 const tag = criteria.kind === 'collection'
                     ? `@${criteria.slug} collection`
                     : `@${criteria.slug} ${criteria.category}: ${criteria.value}`;
-                showToast(`Offer: PLACED · ${total.toFixed(3)} on ${tag}`);
+                showToast(`Offer: PLACED · ${formatEth(total)} on ${tag}`);
                 onClose();
                 return;
             }
@@ -339,7 +340,7 @@ function PricingSheet({
                 onClose();
             } else {
                 const what = result.listed === 1
-                    ? `${total.toFixed(3)} ETH`
+                    ? `${formatEth(total)} ETH`
                     : `${result.listed} outputs`;
                 showToast(mode === 'list' ? `List: LIVE · ${what}` : `Offer: PLACED · ${what}`);
                 onClose();
@@ -434,11 +435,11 @@ function PricingSheet({
                     <>
                         <div className="cart-panel-subtotal-row">
                             <span className="cart-panel-subtotal-label">Total</span>
-                            <span className="cart-panel-subtotal-val">{total.toFixed(3)} ETH</span>
+                            <span className="cart-panel-subtotal-val">{formatEth(total)} ETH</span>
                         </div>
                         <div className="cart-panel-fees-row">
                             <span>{`− 5% royalty · you receive`}</span>
-                            <span>{(total - royalty).toFixed(3)} ETH</span>
+                            <span>{formatEth(total - royalty)} ETH</span>
                         </div>
                     </>
                 )}
@@ -507,7 +508,7 @@ function OffersPanel({
         setStep('COUNTERING');
         try {
             await counterOffer(slug, id, offer, String(n), { wallet: await getWalletClientOnDemand(), onStep: setStep });
-            showToast(`Counter: SENT · ${n.toFixed(3)} ETH`);
+            showToast(`Counter: SENT · ${formatEth(n)} ETH`);
             setCounterFor(null);
             setCounterPrice('');
             load();
@@ -524,7 +525,7 @@ function OffersPanel({
         setStep('ACCEPTING');
         try {
             await acceptOffer(slug, id, offer, { wallet: await getWalletClientOnDemand(), onStep: setStep });
-            showToast(`Offer: ACCEPTED · ${Number(offer.price_eth).toFixed(3)} ${offer.currency}`);
+            showToast(`Offer: ACCEPTED · ${formatEth(Number(offer.price_eth))} ${offer.currency}`);
             load();
         } catch (err) {
             showToast(err instanceof Error ? err.message : 'Accept: FAILED');
@@ -570,9 +571,9 @@ function OffersPanel({
                     <span className="cart-panel-title-count">({offers.length})</span>
                     {(bestBid != null || ask != null) && (
                         <span className="mk-spread">
-                            {bestBid != null ? `bid ${bestBid.toFixed(3)}` : 'no bids'}
+                            {bestBid != null ? `bid ${formatEth(bestBid)}` : 'no bids'}
                             {' · '}
-                            {ask != null ? `ask ${ask.toFixed(3)}` : 'no ask'}
+                            {ask != null ? `ask ${formatEth(ask)}` : 'no ask'}
                         </span>
                     )}
                 </span>
@@ -614,7 +615,7 @@ function OffersPanel({
                                     </div>
                                 </div>
                                 <div className="cart-item-price">
-                                    {Number(o.price_eth).toFixed(3)} {o.currency === 'WETH' ? 'WETH' : 'ETH'}
+                                    {formatEth(Number(o.price_eth))} {o.currency === 'WETH' ? 'WETH' : 'ETH'}
                                 </div>
                                 <div className="cart-item-actions mk-offer-actions">
                                     {isOwner && !mine && (
@@ -697,7 +698,7 @@ function OffersPanel({
                 <div className="starred-confirm-overlay" role="dialog" aria-modal="true" onClick={() => setConfirmOffer(null)}>
                     <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
                         <div className="ms-confirm-question">
-                            Sell {projectName} #{id} for {Number(confirmOffer.price_eth).toFixed(3)} {confirmOffer.currency === 'WETH' ? 'WETH' : 'ETH'}?
+                            Sell {projectName} #{id} for {formatEth(Number(confirmOffer.price_eth))} {confirmOffer.currency === 'WETH' ? 'WETH' : 'ETH'}?
                         </div>
                         <div className="ms-confirm-btns">
                             <button type="button" className="ms-confirm-btn ms-confirm-btn--cancel" onClick={() => setConfirmOffer(null)}>Cancel</button>

@@ -58,6 +58,7 @@ import { handRead, type HandRead } from '../../lib/output/hand';
 import { shareReceipt } from '../../lib/output/receipt';
 import AsciiBackupPanel from './AsciiBackupPanel';
 import OutputAlbumsTab from '../album/OutputAlbumsTab';
+import { formatEth } from '../../lib/format/eth';
 
 function shortAddr(a: string | null): string {
     if (!a || a.length < 10) return a || '—';
@@ -193,6 +194,11 @@ export default function ArtworkPageBody({
     const { open: openModal } = useModal();
     const [activeTab, setActiveTab] = useState<ArtworkTab>('artwork');
     const [moreL1, setMoreL1] = useState<MoreL1>('attributes');
+    /* Search beside the +More pills — filters the active searchable tab. */
+    const [searchOpen, setSearchOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const searchableTab = moreL1 === 'attributes' || moreL1 === 'offers';
+    useEffect(() => { setSearchOpen(false); setSearchQuery(''); }, [moreL1]);
 
     /* Stat-icon toast helper — mirrors project + profile pages. */
     const iconToastProps = (label: string) => ({
@@ -499,22 +505,22 @@ export default function ArtworkPageBody({
         const VS = '\uFE0E';
         const tiles: { glyph: string; label: string; value: string; sub?: string }[] = [];
         const salesRows = feedRows.filter((fe) => fe.type === 'SALE');
-        tiles.push({ glyph: `↨${VS}`, label: 'Floor', value: market?.floor ? `${Number(market.floor).toFixed(3)} ETH` : '—' });
-        tiles.push({ glyph: `✶${VS}`, label: 'Last Sale', value: market?.last_sale ? `${Number(market.last_sale).toFixed(3)} ETH` : '—' });
-        tiles.push({ glyph: `✶${VS}`, label: 'All-Time High', value: athEth > 0 ? `${Number(athEth.toFixed(4))} ETH` : '—' });
-        tiles.push({ glyph: `⟠${VS}`, label: 'Total Volume', value: market?.volume_eth ? `${market.volume_eth} ETH` : '—' });
+        tiles.push({ glyph: `↨${VS}`, label: 'Floor', value: market?.floor ? `${formatEth(Number(market.floor))} ETH` : '—' });
+        tiles.push({ glyph: `✶${VS}`, label: 'Last Sale', value: market?.last_sale ? `${formatEth(Number(market.last_sale))} ETH` : '—' });
+        tiles.push({ glyph: `✶${VS}`, label: 'All-Time High', value: athEth > 0 ? `${formatEth(athEth)} ETH` : '—' });
+        tiles.push({ glyph: `⟠${VS}`, label: 'Total Volume', value: market?.volume_eth ? `${formatEth(Number(market.volume_eth))} ETH` : '—' });
         tiles.push({
             glyph: `✹${VS}`, label: 'Ask',
-            value: market?.listing ? `${Number(market.listing.price_eth).toFixed(3)} ETH` : 'NOT LISTED',
+            value: market?.listing ? `${formatEth(Number(market.listing.price_eth))} ETH` : 'NOT LISTED',
             ...(market?.listing?.end_time ? { sub: `ends ${fmtEndsIn(market.listing.end_time)}` } : {}),
         });
         const best = (market?.offers?.length ?? 0) > 0 ? (market!.offers as unknown as { price_eth: string }[])[0] : null;
-        tiles.push({ glyph: `✦${VS}`, label: 'Best Offer', value: best ? `${Number(best.price_eth).toFixed(3)} ETH` : '—' });
+        tiles.push({ glyph: `✦${VS}`, label: 'Best Offer', value: best ? `${formatEth(Number(best.price_eth))} ETH` : '—' });
         tiles.push({ glyph: `✦${VS}`, label: 'Open Offers', value: String(market?.offers?.length ?? 0) });
         tiles.push({ glyph: `✶${VS}`, label: 'Sales', value: String(salesRows.length) });
         if (market?.listing && best) {
             const spread = Number(market.listing.price_eth) - Number(best.price_eth);
-            tiles.push({ glyph: `✦${VS}`, label: 'The Spread', value: `${Number(spread.toFixed(4))} ETH`, sub: 'ask − best bid' });
+            tiles.push({ glyph: `✦${VS}`, label: 'The Spread', value: `${formatEth(spread)} ETH`, sub: 'ask − best bid' });
         }
         return { key: 'market', label: 'Market', tiles };
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -580,7 +586,7 @@ export default function ArtworkPageBody({
         ctaLabel = <span className="mint-lbl">{isListed ? 'UNLIST' : 'LIST'}</span>;
         ctaAction = isListed ? 'unlist' : 'list';
     } else if (isListed) {
-        ctaLabel = (<><span className="mint-lbl">BUY</span><span className="mint-price">({listPrice} ETH)</span></>);
+        ctaLabel = (<><span className="mint-lbl">BUY</span><span className="mint-price">({formatEth(Number(listPrice))} ETH)</span></>);
         ctaAction = 'buy';
     } else {
         ctaLabel = <span className="mint-lbl">MAKE OFFER</span>;
@@ -728,7 +734,7 @@ export default function ArtworkPageBody({
                                 {...iconToastProps('All-Time High')}
                             >⟠&#xFE0E;</span>{' '}
                             <span className="stat-val stat-val-vol">
-                                {athEth > 0 ? `${athEth} ATH` : '—'}
+                                {athEth > 0 ? `${formatEth(athEth)} ATH` : '—'}
                             </span>
                         </span>
                         <span className="stat-item stat-item-owners">
@@ -855,6 +861,43 @@ export default function ArtworkPageBody({
                                 active: moreL1 === p.key,
                                 onClick: () => setMoreL1(p.key),
                             }))}
+                            profilePillsTrailing={searchableTab ? (
+                                <span className="attr-pill-search">
+                                    <span
+                                        className={`search-btn${searchOpen ? ' active' : ''}`}
+                                        role="button"
+                                        tabIndex={0}
+                                        title="Search"
+                                        onClick={() => setSearchOpen((v) => { const next = !v; if (!next) setSearchQuery(''); return next; })}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSearchOpen((v) => { const next = !v; if (!next) setSearchQuery(''); return next; }); } }}
+                                    >
+                                        {'⌕︎'}
+                                    </span>
+                                    {searchOpen && (
+                                        <span className="attr-pill-search-row">
+                                            <input
+                                                type="text"
+                                                className="search-input"
+                                                placeholder={moreL1 === 'offers' ? 'Search offers' : 'Search attributes'}
+                                                value={searchQuery}
+                                                onChange={(e) => setSearchQuery(e.target.value)}
+                                                spellCheck={false}
+                                                autoCapitalize="none"
+                                                autoCorrect="off"
+                                                aria-label="Search"
+                                                autoFocus
+                                            />
+                                            {searchQuery && (
+                                                <span className="search-clear" role="button" tabIndex={0} title="Clear"
+                                                    onClick={() => setSearchQuery('')}
+                                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSearchQuery(''); } }}>
+                                                    {'×︎'}
+                                                </span>
+                                            )}
+                                        </span>
+                                    )}
+                                </span>
+                            ) : undefined}
                         />
                     )}
                 </div>
@@ -1048,7 +1091,7 @@ export default function ArtworkPageBody({
                                 </div>
                                 <div className="f-type af-type">
                                     <span>{row.label}</span>
-                                    {row.price > 0 && <span className="af-price">{row.price} ETH</span>}
+                                    {row.price > 0 && <span className="af-price">{formatEth(row.price)} ETH</span>}
                                 </div>
                                 <div className="f-content">{row.content}</div>
                             </div>
@@ -1095,7 +1138,7 @@ export default function ArtworkPageBody({
                                     >
                                         ↨&#xFE0E;
                                     </span>{' '}
-                                    <span className="stat-val">{market?.floor ? `${market.floor} ETH` : '—'}</span>
+                                    <span className="stat-val">{market?.floor ? `${formatEth(Number(market.floor))} ETH` : '—'}</span>
                                 </span>
                                 <span
                                     className="stat-item"
@@ -1147,6 +1190,7 @@ export default function ArtworkPageBody({
                         trueName={trueName}
                         hand={hand}
                         attention={attention}
+                        query={searchQuery}
                     />
                 )}
 
@@ -1226,7 +1270,7 @@ export default function ArtworkPageBody({
                 {moreL1 === 'offers' && (
                     <>
                         <div className="more-section-header">OFFERS</div>
-                        <OffersInline slug={slug} id={Number(numberPart)} />
+                        <OffersInline slug={slug} id={Number(numberPart)} query={searchQuery} />
                     </>
                 )}
 
@@ -1242,10 +1286,7 @@ export default function ArtworkPageBody({
                 {/* ASCII BACKUP — this output translated to raw text/ASCII,
                     in its reserved +More spot (Brendon, 2026-07-05). */}
                 {moreL1 === 'asciibackup' && (
-                    <>
-                        <div className="more-section-header">ASCII BACKUP</div>
-                        <AsciiBackupPanel slug={slug} id={globalId} />
-                    </>
+                    <AsciiBackupPanel slug={slug} id={globalId} />
                 )}
 
                 {/* Every other section — titled dotted box, same as the Project

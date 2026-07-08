@@ -21,6 +21,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { formatEth } from '../lib/format/eth';
 import type { CircleStat } from '../app/api/social/circle-stats/route';
 
 const VS15 = '︎';
@@ -118,7 +119,7 @@ function CircleWire({ people }: { people: PreviewPerson[] }) {
                     items.push({
                         glyph: FEED_GLYPH[e.type] ?? '✶',
                         text: `${who} ${FEED_VERB[e.type] ?? 'moved'} @${e.project_id} ${piece}`.trim(),
-                        meta: e.price_eth ? `${Number(e.price_eth).toFixed(2)}` : undefined,
+                        meta: e.price_eth ? `${formatEth(Number(e.price_eth))}` : undefined,
                     });
                     if (items.length >= 24) break;
                 }

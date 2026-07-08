@@ -53,6 +53,7 @@
 import React, { type CSSProperties, type ReactNode } from 'react';
 import { useMemo } from 'react';
 import { useToast } from '../../lib/state/ToastContext';
+import { formatEth } from '../../lib/format/eth';
 import { PerMilleMark } from '../shell/PerMilleMark';
 import { ACHIEVEMENTS_ICON } from '../../lib/achievements/icon';
 import { useTraits, type TraitCategory, type FeedCategory } from '../../lib/state/TraitsContext';
@@ -240,7 +241,7 @@ export default function TraitsUI({
                         if (o.scope !== 'trait' || !o.criteria?.category || !o.criteria?.value) continue;
                         const k = `${o.criteria.category}|${o.criteria.value}`;
                         const n = Number(o.price_eth);
-                        if (!(k in map) || n > Number(map[k])) map[k] = n.toFixed(3);
+                        if (!(k in map) || n > Number(map[k])) map[k] = formatEth(n);
                     }
                     setTraitBids(map);
                 })

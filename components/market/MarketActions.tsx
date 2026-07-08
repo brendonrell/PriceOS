@@ -14,6 +14,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
+import { formatEth } from '../../lib/format/eth';
 
 interface MarketState {
   owner: string | null;
@@ -52,11 +53,11 @@ export default function MarketActions({ slug, tokenId }: { slug: string; tokenId
         if (!r.ok) {
           showToast(j?.error ? String(j.error) : 'Action: FAILED');
         } else {
-          if (action === 'list') showToast(`Listed: ${j.listed} ETH`);
+          if (action === 'list') showToast(`Listed: ${formatEth(Number(j.listed))} ETH`);
           else if (action === 'cancel') showToast('Listing: CANCELLED');
-          else if (action === 'buy') showToast(`Bought: ${j.bought} ETH`);
-          else if (action === 'offer') showToast(`Offer placed: ${j.offered} ETH`);
-          else if (action === 'accept') showToast(`Sold: ${j.sold} ETH`);
+          else if (action === 'buy') showToast(`Bought: ${formatEth(Number(j.bought))} ETH`);
+          else if (action === 'offer') showToast(`Offer placed: ${formatEth(Number(j.offered))} ETH`);
+          else if (action === 'accept') showToast(`Sold: ${formatEth(Number(j.sold))} ETH`);
           load();
           if (typeof window !== 'undefined') window.dispatchEvent(new Event('pd:project-refresh'));
         }
@@ -86,7 +87,7 @@ export default function MarketActions({ slug, tokenId }: { slug: string; tokenId
     <div className="market-actions">
       {!isOwner && state.listing && (
         <button className="market-btn market-buy" disabled={busy} onClick={() => act('buy')}>
-          BUY ({state.listing.price_eth} ETH)
+          BUY ({formatEth(Number(state.listing.price_eth))} ETH)
         </button>
       )}
       {!isOwner && (
@@ -109,12 +110,12 @@ export default function MarketActions({ slug, tokenId }: { slug: string; tokenId
       )}
       {isOwner && state.listing && (
         <button className="market-btn" disabled={busy} onClick={() => act('cancel')}>
-          CANCEL LISTING ({state.listing.price_eth} ETH)
+          CANCEL LISTING ({formatEth(Number(state.listing.price_eth))} ETH)
         </button>
       )}
       {isOwner && topOffer && (
         <button className="market-btn market-accept" disabled={busy} onClick={() => act('accept', { offerId: topOffer.id })}>
-          ACCEPT TOP OFFER ({topOffer.price_eth} ETH)
+          ACCEPT TOP OFFER ({formatEth(Number(topOffer.price_eth))} ETH)
         </button>
       )}
       {state.offers.length > 0 && (

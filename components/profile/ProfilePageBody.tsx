@@ -27,6 +27,7 @@
 
 import { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef, Fragment, type KeyboardEvent } from 'react';
 import { TraitsProvider } from '../../lib/state/TraitsContext';
+import { formatEth } from '../../lib/format/eth';
 import { getRememberedTab, rememberTab } from '../../lib/state/tabMemoryStore';
 import { useAuth } from '../../lib/state/AuthContext';
 import { rankSocialCandidates } from '../../lib/social/relevance';
@@ -1061,7 +1062,7 @@ function ProfilePageBodyInner({
                             >
                                 ⟠&#xFE0E;
                             </span>{' '}
-                            <span className="stat-val stat-val-vol">{volumeSpent.toFixed(2)}</span>
+                            <span className="stat-val stat-val-vol">{formatEth(volumeSpent)}</span>
                         </span>
                         <span className="stat-item stat-item-owners">
                             <span className="stat-icon stat-icon-owners stat-icon-followers" {...iconToastProps('Followers')}>{'\u26AC\uFE0E'}</span>{' '}

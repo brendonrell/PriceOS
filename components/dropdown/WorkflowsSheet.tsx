@@ -27,6 +27,7 @@ import {
     workflowSentence,
     type WorkflowRecord,
 } from '../../lib/workflows/store';
+import { formatEth } from '../../lib/format/eth';
 
 type TriggerKind = 'upload' | 'price';
 
@@ -78,7 +79,7 @@ export function WorkflowsSheet({ onClose }: { onClose: () => void }) {
             if (!s || !getProject(s)) { showToast('Workflow: UNKNOWN PROJECT'); return; }
             if (!Number.isFinite(id) || id < 1 || !Number.isFinite(p) || p <= 0) return;
             armWorkflow({ kind: 'price', slug: s, tokenId: id, priceEth: p }, { todo: true });
-            showToast(`Workflow: ARMED · ${s.toUpperCase()} #${id} ≤ ◊${p}`);
+            showToast(`Workflow: ARMED · ${s.toUpperCase()} #${id} ≤ ◊${formatEth(p)}`);
         }
         setArtist(''); setSlug(''); setTokenId(''); setPrice(''); setQty('1');
     };

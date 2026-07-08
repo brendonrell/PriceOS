@@ -17,7 +17,7 @@ import { useMarketSheet } from '../../lib/state/MarketSheetContext';
 import AttrWall from './AttrWall';
 import RarityReceiptButton from './RarityReceiptButton';
 
-export default function AttributesPanel(props: AttrInput) {
+export default function AttributesPanel({ query, ...props }: AttrInput & { query?: string }) {
     const groups = useMemo(() => buildOutputAttributes(props), [props]);
     const { notifs } = usePdNotifs();
     const { openCriteriaOfferSheet } = useMarketSheet();
@@ -44,16 +44,16 @@ export default function AttributesPanel(props: AttrInput) {
        outputTraits vocabulary — props.traits) wears the ✦ chip. */
     return (
         <>
-            <RarityReceiptButton slug={props.slug} id={props.id} />
             <AttrWall
                 groups={groups}
                 reading={reading}
-                searchable
+                query={query}
                 offerTraits={props.traits ?? null}
                 onTraitOffer={(category, value) =>
                     openCriteriaOfferSheet({ kind: 'trait', slug: props.slug, category, value })
                 }
             />
+            <RarityReceiptButton slug={props.slug} id={props.id} />
         </>
     );
 }

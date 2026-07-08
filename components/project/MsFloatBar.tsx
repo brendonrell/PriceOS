@@ -14,6 +14,7 @@ import { isStarred, toggleStar } from '../../lib/pins/starStore';
 import { isWishlisted, toggleWishlist } from '../../lib/pins/wishlistStore';
 import { getActiveBudgetEth } from '../../lib/engines/budgetEngine';
 import AlbumPickerCard from '../album/AlbumPickerCard';
+import { formatEth } from '../../lib/format/eth';
 
 /* ── MsFloatBar ─────────────────────────────────────────────────────── */
 /*
@@ -133,7 +134,7 @@ export default function MsFloatBar() {
                     spent += c.eth; added++;
                 }
                 if (added === 0) { showToast('Budget: NOTHING IN REACH'); return; }
-                showToast(`Budget: FILLED · ${added} piece${added === 1 ? '' : 's'} · ${spent.toFixed(3)} ETH`);
+                showToast(`Budget: FILLED · ${added} piece${added === 1 ? '' : 's'} · ${formatEth(spent)} ETH`);
                 openCartPanel();
             },
         });

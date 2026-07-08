@@ -35,6 +35,7 @@ import {
     type ReactNode,
 } from 'react';
 import type { CalcSheetConfig } from '../lib/state/CalcSheetContext';
+import { formatEth } from '../lib/format/eth';
 
 interface Props {
     config: CalcSheetConfig | null;
@@ -56,7 +57,7 @@ const VS15 = '\uFE0E';
     Falls back to em-dash when the value can't be computed (no floor,
     bad input, etc). */
 function fmt(n: number): string {
-    return Number.isFinite(n) ? n.toFixed(4) + ' ETH' : '—';
+    return Number.isFinite(n) ? formatEth(n) + ' ETH' : '—';
 }
 
 /** Same 4-decimal precision but always signed ("+0.0042 ETH" /
@@ -65,7 +66,7 @@ function fmt(n: number): string {
 function fmtSigned(n: number): string {
     if (!Number.isFinite(n)) return '—';
     const sign = n >= 0 ? '+' : '\u2212';
-    return sign + Math.abs(n).toFixed(4) + ' ETH';
+    return sign + formatEth(Math.abs(n)) + ' ETH';
 }
 
 export default function CalcSheet({ config, onClose }: Props) {
@@ -209,9 +210,9 @@ export default function CalcSheet({ config, onClose }: Props) {
             </>
         );
         if (renderConfig.price != null) {
-            contextNode = <>{base} {'\u2014'} listed {renderConfig.price.toFixed(3)} ETH</>;
+            contextNode = <>{base} {'\u2014'} listed {formatEth(renderConfig.price)} ETH</>;
         } else if (renderConfig.floor != null) {
-            contextNode = <>{base} {'\u2014'} not listed {'\u00B7'} Floor {renderConfig.floor.toFixed(3)} ETH</>;
+            contextNode = <>{base} {'\u2014'} not listed {'\u00B7'} Floor {formatEth(renderConfig.floor)} ETH</>;
         } else {
             contextNode = base;
         }

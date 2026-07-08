@@ -62,6 +62,7 @@
  */
 
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import { formatEth } from '../../lib/format/eth';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useValuePrompt } from '../../lib/state/ValuePromptContext';
@@ -110,12 +111,11 @@ const PRICE_MODE_LABEL: Record<PortfolioValueMode, string> = {
     off:   'OFF',
 };
 
-/* Sim's _pfFmtEth (sim 10863-10867). >=1 → 2 decimals; <1 → up to 3
-   decimals with trailing zeros stripped via parseFloat. Always suffixed
-   with " ETH". Used for grand total + every .pf-est slot. */
+/* ETH amount for the grand total + every .pf-est slot. The numeric value
+   follows the site's 4-digit ETH display rule (formatEth); always suffixed
+   with " ETH". */
 function pfFmtEth(eth: number): string {
-    if (eth >= 1) return eth.toFixed(2) + ' ETH';
-    return parseFloat(eth.toFixed(3)) + ' ETH';
+    return formatEth(eth) + ' ETH';
 }
 
 export function PortfolioView() {

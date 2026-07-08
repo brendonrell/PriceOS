@@ -183,7 +183,9 @@ export function paintAsciiArtifact(target: HTMLCanvasElement, art: AsciiArtifact
     // plus a small additive black-lift so the dark ink that dominates most
     // pieces reads brighter — the ASCII panel was too dark (Brendon 2026-07-08).
     const lift = (hex: string): string => {
-        const up = (c: number) => Math.min(255, Math.round(c * 1.9 + 20));
+        // Gamma lift — raises the DARK ink that dominates most pieces far more
+        // than a flat multiply did, so the panel reads clearly brighter.
+        const up = (c: number) => Math.min(255, Math.round(Math.pow(c / 255, 0.5) * 255 * 1.25 + 18));
         const r = up(parseInt(hex.slice(1, 3), 16));
         const g = up(parseInt(hex.slice(3, 5), 16));
         const b = up(parseInt(hex.slice(5, 7), 16));

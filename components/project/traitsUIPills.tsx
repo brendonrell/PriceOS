@@ -11,6 +11,7 @@ import {
     type SortKey, type SortDir, type FeedKind, type GroupKey,
     PROJECT_GROUP_ORDER, GROUP_GLYPH, GROUP_LABEL,
 } from '../../lib/state/SortContext';
+import { formatEth } from '../../lib/format/eth';
 
 /* ── Sub-components ─────────────────────────────────────────────────── */
 
@@ -282,8 +283,8 @@ export function L3Pill({
                         than a placeholder. */}
                     {count >= 0 && <span className="stat-count">{count}</span>}
                     {bidEth && (
-                        <span className="pill-bid-chip" title={`Best trait offer · ${bidEth} ETH`}>
-                            {'✦︎'}{bidEth}
+                        <span className="pill-bid-chip" title={`Best trait offer · ${formatEth(Number(bidEth))} ETH`}>
+                            {'✦︎'}{formatEth(Number(bidEth))}
                         </span>
                     )}
                 </>

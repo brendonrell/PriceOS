@@ -132,31 +132,31 @@ export default function AsciiBackupPanel({ slug, id }: { slug: string; id: numbe
         showToast(`ASCII Backup: ${what === 'txt' ? '.TXT' : '.JSON'} COPIED`);
     };
 
+    // No box, no title — just the artwork (full width) with the two buttons
+    // below it (Brendon 2026-07-08).
     return (
-        <div className="more-box-wrap">
-            <div className="more-box-card">
-                <canvas
-                    ref={canvasRef}
-                    className="ascii-backup-canvas"
-                    style={{ display: 'block', width: '100%', height: 'auto' }}
-                    aria-label="ASCII backup of this artwork"
-                />
-                <div className="action-row" style={{ marginTop: 10 }}>
-                    <button
-                        className="btn-soundtrack"
-                        title="Copy the raw text glyphs"
-                        onClick={() => copy('txt')}
-                    >
-                        COPY .TXT
-                    </button>
-                    <button
-                        className="btn-soundtrack"
-                        title="Copy the full-colour backup — paste-able JSON that restores the piece"
-                        onClick={() => copy('json')}
-                    >
-                        COPY .JSON
-                    </button>
-                </div>
+        <div className="ascii-backup-wrap">
+            <canvas
+                ref={canvasRef}
+                className="ascii-backup-canvas"
+                style={{ display: 'block', width: '100%', height: 'auto' }}
+                aria-label="ASCII backup of this artwork"
+            />
+            <div className="action-row" style={{ marginTop: 10 }}>
+                <button
+                    className="btn-soundtrack"
+                    title="Copy the raw text glyphs"
+                    onClick={() => copy('txt')}
+                >
+                    COPY .TXT
+                </button>
+                <button
+                    className="btn-soundtrack"
+                    title="Copy the full-colour backup — paste-able JSON that restores the piece"
+                    onClick={() => copy('json')}
+                >
+                    COPY .JSON
+                </button>
             </div>
         </div>
     );

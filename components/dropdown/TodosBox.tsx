@@ -42,6 +42,7 @@ import {
     type TodoItem,
     type TodoPriority,
 } from '../../lib/todos/todoStore';
+import { formatEth } from '../../lib/format/eth';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -53,9 +54,9 @@ function fmtDue(due: string): string {
     return `${mon} ${Number(m[3])}`;
 }
 
-/** Trim trailing zeros: 0.40 → 0.4, 2.00 → 2. */
+/** The site ETH display rule (4 digits, floating decimal). */
 function fmtEth(n: number): string {
-    return String(Number(n.toFixed(4)));
+    return formatEth(n);
 }
 
 export function TodosBox() {

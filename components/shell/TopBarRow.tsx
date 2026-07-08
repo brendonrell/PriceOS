@@ -104,6 +104,7 @@ import {
     type GrailPin,
 } from '../../lib/pins/grailStore';
 import { TopBarCalendar } from './TopBarCalendar';
+import { formatEth } from '../../lib/format/eth';
 
 export function TopBarRow() {
     const { notifs, toggle } = usePdNotifs();
@@ -448,8 +449,7 @@ const artistFollowerCache = new Map<string, number>();
 function fmtEth4(s: string): string {
     const n = parseFloat(s);
     if (!isFinite(n)) return s;
-    const intDigits = Math.max(1, Math.trunc(Math.abs(n)).toString().length);
-    return n.toFixed(Math.max(0, 4 - intDigits));
+    return formatEth(n);
 }
 /* Follower counts: compact, max 2 significant figures — 2.2k, 10k, 1.2m. */
 function fmtCount(n: number): string {

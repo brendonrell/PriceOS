@@ -29,6 +29,7 @@ import OffersInline from '../market/OffersInline';
 import ProjectFollowButton from './ProjectFollowButton';
 import ProjectAnointPanel from './ProjectAnointPanel';
 import Hero from '../hero/Hero';
+import { formatEth } from '../../lib/format/eth';
 
 /* + More sub-nav (Brendon, 2026-06-13) — same trait-pill tab system as the
    profile's + More. The panel's stacked sections are grouped under pills so
@@ -269,7 +270,7 @@ export default function ProjectMorePanel({
                     </span>{' '}
                     <span className="stat-val" id="statSpentVal">
                         {lowestFloor !== null
-                            ? `${lowestFloor.toFixed(2)} ETH`
+                            ? `${formatEth(lowestFloor)} ETH`
                             : '—'}
                     </span>
                 </span>
@@ -308,7 +309,7 @@ export default function ProjectMorePanel({
                         }}
                     >
                         {anchorEth != null
-                            ? `${anchorEth} ETH`
+                            ? `${formatEth(anchorEth)} ETH`
                             : ''}
                     </span>
                 </span>
@@ -411,11 +412,11 @@ export default function ProjectMorePanel({
                 <div
                     className="more-stat-tile"
                     onClick={() =>
-                        showToast(marketRead?.ath_eth != null ? `All-time high · ${marketRead.ath_eth} ETH` : 'All-time high — no sales yet')
+                        showToast(marketRead?.ath_eth != null ? `All-time high · ${formatEth(marketRead.ath_eth)} ETH` : 'All-time high — no sales yet')
                     }
                 >
                     <div className="mst-label">ALL-TIME HIGH</div>
-                    <div className="mst-value">{marketRead?.ath_eth != null ? `${Number(marketRead.ath_eth).toFixed(2)} ETH` : '—'}</div>
+                    <div className="mst-value">{marketRead?.ath_eth != null ? `${formatEth(Number(marketRead.ath_eth))} ETH` : '—'}</div>
                     <div className="mst-sub">{marketRead?.ath_token != null ? `#${marketRead.ath_token}${marketRead.ath_ts ? ` · ${new Date(marketRead.ath_ts * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}` : ''}` : 'NO SALES YET'}</div>
                 </div>
                 <div

@@ -26,6 +26,7 @@ import { SHEETS, type SheetId, type SheetMeta } from '../../lib/stickers/catalog
 import { getOwnedIds, ownsSheet } from '../../lib/stickers/owned';
 import { StickerArt } from './StickerArt';
 import { DURATION_CHOICES, DEFAULT_DURATION_SEC } from '../../lib/market/chain';
+import { formatEth } from '../../lib/format/eth';
 
 const VS15 = '︎';
 
@@ -251,8 +252,8 @@ export default function StickerMarket() {
                                 )}
                             </div>
                             <div className="cart-item-price skm-prices">
-                                <span>{sum?.floor != null ? `${sum.floor.toFixed(3)}` : '—'}</span>
-                                <span className="skm-sub">{sum?.best_offer != null ? `✦${VS15}${sum.best_offer.toFixed(3)}` : `✦${VS15}—`}</span>
+                                <span>{sum?.floor != null ? `${formatEth(sum.floor)}` : '—'}</span>
+                                <span className="skm-sub">{sum?.best_offer != null ? `✦${VS15}${formatEth(sum.best_offer)}` : `✦${VS15}—`}</span>
                             </div>
                         </div>
                     );
@@ -280,7 +281,7 @@ export default function StickerMarket() {
                 <span className="skm-book-title">{meta?.name ?? openSheet}</span>
                 <span className="skm-book-pos">
                     {holding > 0 ? `you hold ${holding}${holding > 1 ? ' (doubles)' : ''}` : 'you hold none'}
-                    {book?.last_sale != null ? ` · last ${Number(book.last_sale).toFixed(3)}` : ''}
+                    {book?.last_sale != null ? ` · last ${formatEth(Number(book.last_sale))}` : ''}
                     {summary?.[openSheet]?.sealed_pct != null ? ` · ${summary[openSheet].sealed_pct}% sealed` : ''}
                 </span>
             </div>
@@ -328,7 +329,7 @@ export default function StickerMarket() {
                                 <div className="cart-item-name">{who(l.handle, l.seller_address)}{mine ? ' (you)' : ''}</div>
                                 <div className="cart-item-artist">×{l.qty} · expires {expiresIn(l.end_time)}</div>
                             </div>
-                            <div className="cart-item-price">{Number(l.price_eth).toFixed(3)} ea</div>
+                            <div className="cart-item-price">{formatEth(Number(l.price_eth))} ea</div>
                             <div className="cart-item-actions mk-offer-actions">
                                 {mine ? (
                                     <button type="button" className="mk-offer-btn" disabled={busy}
@@ -360,7 +361,7 @@ export default function StickerMarket() {
                                 <div className="cart-item-name">{who(o.handle, o.bidder_address)}{mine ? ' (you)' : ''}</div>
                                 <div className="cart-item-artist">wants ×{o.qty} · expires {expiresIn(o.end_time)}</div>
                             </div>
-                            <div className="cart-item-price">{Number(o.price_eth).toFixed(3)} ea</div>
+                            <div className="cart-item-price">{formatEth(Number(o.price_eth))} ea</div>
                             <div className="cart-item-actions mk-offer-actions">
                                 {mine ? (
                                     <button type="button" className="mk-offer-btn" disabled={busy}
@@ -427,7 +428,7 @@ export default function StickerMarket() {
                             <span className="mk-price-unit">ETH ea</span>
                         </span>
                         <button type="button" className="mk-offer-btn mk-offer-btn--accept" disabled={busy || !(parseFloat(sellPrice) > 0)}
-                            onClick={() => void run(`List: LIVE · ${Math.min(sellQty, holding)} × ${parseFloat(sellPrice).toFixed(3)}`, {
+                            onClick={() => void run(`List: LIVE · ${Math.min(sellQty, holding)} × ${formatEth(parseFloat(sellPrice))}`, {
                                 action: 'list', sheet: openSheet, price: parseFloat(sellPrice), qty: Math.min(sellQty, holding), durationSec,
                             })}>
                             {busy ? 'WORKING…' : 'LIST'}
@@ -443,7 +444,7 @@ export default function StickerMarket() {
                         <span className="mk-price-unit">ETH ea</span>
                     </span>
                     <button type="button" className="mk-offer-btn mk-offer-btn--accept" disabled={busy || !(parseFloat(offerPrice) > 0)}
-                        onClick={() => void run(`Offer: PLACED · ${offerQty} × ${parseFloat(offerPrice).toFixed(3)}`, {
+                        onClick={() => void run(`Offer: PLACED · ${offerQty} × ${formatEth(parseFloat(offerPrice))}`, {
                             action: 'offer', sheet: openSheet, price: parseFloat(offerPrice), qty: offerQty, durationSec,
                         })}>
                         {busy ? 'WORKING…' : 'OFFER'}
@@ -511,7 +512,7 @@ export default function StickerMarket() {
                 <div className="starred-confirm-overlay" role="dialog" aria-modal="true" style={{ zIndex: 1400 }} onClick={() => setConfirmBuy(null)}>
                     <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
                         <div className="ms-confirm-question">
-                            Buy {meta?.name ?? openSheet} sheet{confirmBuy.qty > 1 ? `s ×${confirmBuy.qty}` : ''} · {(Number(confirmBuy.l.price_eth) * confirmBuy.qty).toFixed(3)} ETH?
+                            Buy {meta?.name ?? openSheet} sheet{confirmBuy.qty > 1 ? `s ×${confirmBuy.qty}` : ''} · {formatEth(Number(confirmBuy.l.price_eth) * confirmBuy.qty)} ETH?
                         </div>
                         {confirmBuy.l.qty > 1 && (
                             <div className="skm-confirm-qty">
@@ -525,7 +526,7 @@ export default function StickerMarket() {
                                 onClick={() => {
                                     const c = confirmBuy;
                                     setConfirmBuy(null);
-                                    if (c) void run(`Bought: ${c.qty} × ${Number(c.l.price_eth).toFixed(3)} ETH`, { action: 'buy', listingId: c.l.id, qty: c.qty });
+                                    if (c) void run(`Bought: ${c.qty} × ${formatEth(Number(c.l.price_eth))} ETH`, { action: 'buy', listingId: c.l.id, qty: c.qty });
                                 }}>
                                 Buy
                             </button>
@@ -559,7 +560,7 @@ export default function StickerMarket() {
                 <div className="starred-confirm-overlay" role="dialog" aria-modal="true" style={{ zIndex: 1400 }} onClick={() => setConfirmSellInto(null)}>
                     <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
                         <div className="ms-confirm-question">
-                            Sell {confirmSellInto.qty > 1 ? `×${confirmSellInto.qty} ` : ''}{meta?.name ?? openSheet} into the offer · {(Number(confirmSellInto.o.price_eth) * confirmSellInto.qty).toFixed(3)} ETH?
+                            Sell {confirmSellInto.qty > 1 ? `×${confirmSellInto.qty} ` : ''}{meta?.name ?? openSheet} into the offer · {formatEth(Number(confirmSellInto.o.price_eth) * confirmSellInto.qty)} ETH?
                         </div>
                         {Math.min(confirmSellInto.o.qty, holding) > 1 && (
                             <div className="skm-confirm-qty">
@@ -573,7 +574,7 @@ export default function StickerMarket() {
                                 onClick={() => {
                                     const c = confirmSellInto;
                                     setConfirmSellInto(null);
-                                    if (c) void run(`Sold: ${c.qty} × ${Number(c.o.price_eth).toFixed(3)} ETH`, { action: 'accept', offerId: c.o.id, qty: c.qty });
+                                    if (c) void run(`Sold: ${c.qty} × ${formatEth(Number(c.o.price_eth))} ETH`, { action: 'accept', offerId: c.o.id, qty: c.qty });
                                 }}>
                                 Sell
                             </button>
