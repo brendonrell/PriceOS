@@ -4534,7 +4534,7 @@ button,
 .mint-face > .mint-lbl { flex: 0 0 auto; }
 /* Fiat mode: drop the pill's 24px side buffer to a 7px buffer each side so the
    centered readout fills the pill; MINT keeps its normal size (Brendon 2026-07-08). */
-.mint-btn-fiat { padding: 0 7px; }
+.mint-btn-fiat { padding: 0 8px; }
 /* Fiat readout — ONE centered row: MINT · (ETH) · ~fiat. Sized to natural
    content, scaled from the centre via an inline transform so it fills the pill
    without ever clipping. MINT is counter-scaled in JS so it holds its fiat-off
@@ -4544,7 +4544,7 @@ button,
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    gap: 6px;
     white-space: nowrap;
     transform-origin: center;
 }

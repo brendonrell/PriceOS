@@ -80,7 +80,7 @@ export default function MintButton({
     const stacksAndGaps = row.offsetWidth - mintW; // font-independent remainder
     const rowH = row.offsetHeight;
     if (stacksAndGaps <= 0 || !rowH) return;
-    const availW = face.clientWidth - 14; // 7px each side
+    const availW = face.clientWidth - 16; // 8px each side
     const availH = face.clientHeight - 2;
     // Fill width with MINT held fixed, then cap by height so nothing spills.
     const s = Math.min((availW - m16) / stacksAndGaps, availH / rowH);
