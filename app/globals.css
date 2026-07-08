@@ -4534,9 +4534,9 @@ button,
 /* Fiat mode: MINT stays fixed; the numbers cell fills the space beside it so the
    ETH+fiat can scale into it. Normal mode is untouched (Brendon 2026-07-08). */
 .mint-face-fiat .mint-nums { flex: 1 1 auto; }
-/* Fiat mode: drop the pill's 24px side buffer to an 8px buffer each side so the
+/* Fiat mode: drop the pill's 24px side buffer to a 6px buffer each side so the
    readout fills the pill; MINT keeps its normal size (Brendon 2026-07-08). */
-.mint-btn-fiat { padding: 0 8px; }
+.mint-btn-fiat { padding: 0 6px; }
 .mint-nums-in {
     flex: 0 0 auto;
     display: inline-flex;
