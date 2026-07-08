@@ -33,6 +33,7 @@ const inter = Inter({
     display: 'swap',
 });
 import { PdNotifsProvider } from '../lib/state/PdNotifsContext';
+import { FiatProvider } from '../lib/state/FiatContext';
 import { ColorwayProvider } from '../lib/state/ColorwayContext';
 import { ModalProvider } from '../lib/state/ModalContext';
 import { DropdownProvider } from '../lib/state/DropdownContext';
@@ -631,7 +632,9 @@ export default async function RootLayout({
                                                                       <MarketSheetProvider>
                                                                         <BenchProvider>
                                                                             <WorkspacesProvider>
-                                                                                <PriceOSShell>{children}</PriceOSShell>
+                                                                                <FiatProvider>
+                                                                                    <PriceOSShell>{children}</PriceOSShell>
+                                                                                </FiatProvider>
                                                                             </WorkspacesProvider>
                                                                         </BenchProvider>
                                                                       </MarketSheetProvider>
