@@ -29,13 +29,15 @@ import type { FiatCode, FxResponse } from '../fx/types';
 const STORAGE_KEY = 'pd_fiat_currency';
 const POLL_MS = 5 * 60_000; // rates move slowly; a display price doesn't need tighter
 
-/** Symbol + fractional-digit rules per currency. C$ disambiguates from US$. */
-const CURRENCY_META: Record<FiatCode, { symbol: string; decimals: number }> = {
-    USD: { symbol: '$', decimals: 2 },
-    CAD: { symbol: '$', decimals: 2 },
-    GBP: { symbol: '£', decimals: 2 },
-    EUR: { symbol: '€', decimals: 2 },
-    JPY: { symbol: '¥', decimals: 0 },
+/* Symbol + fractional digits + the number LOCALE per currency, so each reads the
+   way its region writes money — EUR uses a comma decimal (22,34), JPY has no
+   decimals, etc. (Brendon 2026-07-08). */
+const CURRENCY_META: Record<FiatCode, { symbol: string; decimals: number; locale: string }> = {
+    USD: { symbol: '$', decimals: 2, locale: 'en-US' },
+    CAD: { symbol: '$', decimals: 2, locale: 'en-CA' },
+    GBP: { symbol: '£', decimals: 2, locale: 'en-GB' },
+    EUR: { symbol: '€', decimals: 2, locale: 'de-DE' },
+    JPY: { symbol: '¥', decimals: 0, locale: 'ja-JP' },
 };
 
 export const FIAT_OPTIONS: FiatCode[] = ['USD', 'CAD', 'GBP', 'EUR', 'JPY'];
@@ -46,15 +48,15 @@ export function fiatSymbol(code: FiatCode | null): string {
 }
 
 function formatFiat(eth: number, code: FiatCode, rate: number): string {
-    const { symbol, decimals } = CURRENCY_META[code];
+    const { symbol, decimals, locale } = CURRENCY_META[code];
     const value = eth * rate;
     if (!isFinite(value) || value < 0) return '';
     // A non-zero amount that would round to 0.00 reads as "free" — say <min instead.
     const floorUnit = decimals === 0 ? 1 : Math.pow(10, -decimals);
     if (value > 0 && value < floorUnit) {
-        return `~${symbol}<${floorUnit.toFixed(decimals)}`;
+        return `~${symbol}<${floorUnit.toLocaleString(locale, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
     }
-    const shown = value.toLocaleString('en-US', {
+    const shown = value.toLocaleString(locale, {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals,
     });

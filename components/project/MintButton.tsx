@@ -15,6 +15,7 @@ import { createPortal } from 'react-dom';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useFiat } from '../../lib/state/FiatContext';
+import { formatEthAmount } from '../../lib/format/eth';
 import { MINT_FEE_ETH } from '../../lib/project/registry';
 import { acquireWakeLock } from '../../lib/pwa/wakeLock';
 import { storeMintPreviews } from '../../lib/art/storePreview';
@@ -47,7 +48,9 @@ export default function MintButton({
   // Total = (mint price + platform mint fee) × qty. Fee is $0 for now but
   // always part of the math + shown, so turning it on flows straight through.
   const perOutput = mintPrice + MINT_FEE_ETH;
-  const total = (perOutput * qty).toFixed(3);
+  const totalEth = perOutput * qty;
+  const confirmFiat = ethToFiat(totalEth);
+  const total = formatEthAmount(totalEth, !!confirmFiat);
 
   const start = () => {
     if (!siweAddress) { showToast('Wallet: CONNECT TO MINT'); return; }
@@ -120,7 +123,7 @@ export default function MintButton({
         <button type="button" className="mint-seg mint-confirm" onClick={() => setConfirming(true)}>
           <span className="mint-lbl">CONFIRM</span>
           <span className="mint-price">({total} ETH){MINT_FEE_ETH > 0 ? ` · incl. ${(MINT_FEE_ETH * qty).toFixed(3)} fee` : ''}</span>
-          {ethToFiat(perOutput * qty) && <span className="mint-fiat">{ethToFiat(perOutput * qty)}</span>}
+          {confirmFiat && <span className="mint-fiat">{confirmFiat}</span>}
         </button>
         <button type="button" className="mint-cancel" aria-label="Cancel" onClick={() => setPhase('idle')}>✕</button>
       </div>
@@ -149,8 +152,8 @@ export default function MintButton({
   // Fiat rides under the ETH price on the resting/minting faces only (the done
   // face shows a balance, not a price). Null unless a currency is turned on.
   const idleFiat = phase === 'done' ? null : ethToFiat(perOutput);
-  // In fiat mode, drop the leading 0 on the ETH figure (.0022, not 0.0022).
-  const ethAmt = idleFiat ? String(perOutput).replace(/^0\./, '.') : String(perOutput);
+  // 4-digit ETH rule; leading 0 dropped in fiat mode.
+  const ethAmt = formatEthAmount(perOutput, !!idleFiat);
   const price =
     phase === 'done' && result ? `(${result.balance} ETH left)` : `(${ethAmt} ETH)`;
 

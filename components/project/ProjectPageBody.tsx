@@ -91,6 +91,7 @@ import { useProjectSocial } from './useProjectSocial';
 import { useProjectGallery } from './useProjectGallery';
 import { useProjectFloor } from './useProjectMarket';
 import { useFiat } from '../../lib/state/FiatContext';
+import { formatEthAmount } from '../../lib/format/eth';
 import { useProjectAnchor } from './useProjectAnchor';
 import { useBudgetStepLine } from './useBudgetStepLine';
 import ProjectMorePanel, { type ProjectMoreL1 } from './ProjectMorePanel';
@@ -424,7 +425,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                                 <span className="mint-lbl">BUY</span>
                                 <span className="mint-price">
                                     {lowestFloor !== null
-                                        ? `(${floorFiat ? lowestFloor.toFixed(3).replace(/^0\./, '.') : lowestFloor.toFixed(3)} ETH)`
+                                        ? `(${formatEthAmount(lowestFloor, !!floorFiat)} ETH)`
                                         : '(NONE LISTED)'}
                                 </span>
                                 {floorFiat && (
