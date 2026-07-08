@@ -6,7 +6,18 @@
 
 ---
 
-## ✅ SHIPPED 2026-07-08 — FIAT PRICING + ETH DISPLAY RULE + polish (dev @ 8ee3612, tree clean)
+## ✅ SHIPPED 2026-07-08 — FIAT PRICING + ETH DISPLAY RULE + polish (dev @ 558535b, tree clean)
+
+**Mint CTA fiat readout (heavily iterated — the fragile bit):** fixed 224px pill,
+MINT always one size, the ETH+fiat NUMBERS expand/shrink to fill the space beside
+it (bounded by width AND height so stacked fiat never spills) — fiat mode only,
+normal mode untouched. Measured in `useLayoutEffect` (transform-independent
+offsetWidth) so no flash on paint. **No flash on load:** FiatContext now reads the
+saved currency AND last-known rate synchronously (persists each rate to
+localStorage `pd_fiat_fx`), so the ~fiat is on the first paint. iOS Safari
+mis-sized the earlier flex measurement — that's why it clipped; the two-cell
+(MINT fixed / numbers scale) structure fixed it.
+
 
 Big product session (Brendon driving). All on `dev`, verified via build.
 
@@ -45,7 +56,8 @@ Big product session (Brendon driving). All on `dev`, verified via build.
 - **ASCII 1/3-down line** — a faint horizontal line ~1/3 down appears on every
   piece's backup. Couldn't isolate the cause without risking the feature
   (no browser to pixel-inspect); left untouched per Brendon's original call.
-  Needs a proper render-pipeline look.
+  Needs a proper render-pipeline look. (Brightness IS boosted — gamma lift
+  `pow(c/255,.4)*369.75+30`, verified in the compiled bundle.)
 - **Search rollout** — live on Attributes + Offers (project + artwork). Albums
   is placeholder mock, Anointed is an action panel — skipped. User/profile
   +More would need its own search surface. Say go to extend.
