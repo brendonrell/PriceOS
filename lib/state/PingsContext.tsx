@@ -38,17 +38,19 @@ import { usePdNotifs, showsRegularToasts, showsNativePings } from './PdNotifsCon
 import { passesCategoryPrefs, renderPing, type FeedItem } from '../pings/render';
 import { setAppBadge, clearAppBadge } from '../push/client';
 
-// Poll cadence (reliability fallback). The live market feed below drives the
-// near-instant path; this just catches non-market pings (follow / p2p) and any
-// dropped socket. Tight because latency is the enemy on a financial surface.
-const POLL_MS = 15_000;
+// Poll cadence (reliability FALLBACK). The live market feed below drives the
+// near-instant path (a directed ping surfaces in ~1s via the realtime nudge);
+// this interval just catches a dropped socket / anon-env-missing build. So it
+// can be relaxed — 30s idle keeps per-user DB reads light without any felt
+// latency (bumped from 15s on re-enable, Brendon 2026-07-08).
+const POLL_MS = 30_000;
 
-/* ⛔ TEMPORARILY DISABLED (Brendon, 2026-06-27) — the unread-pings count poll
-   (and its live-event nudge / visibility refetch) hit /api/pings/count every
-   15s per tab, a steady drain on the Vercel free tier that helped pause the
-   project. Off for now; the menu still pulls once when it opens. Re-enable
-   (flip to false) once on a paid plan / the usage cap is sorted. */
-const PINGS_POLL_DISABLED = true;
+/* Re-enabled 2026-07-08 (Brendon) post-Cloudflare migration. Safe because:
+   (a) polls ONLY while signed in AND the tab is visible (the tick bails on
+   non-visible; the socket nudge is the real-time path); (b) the count query is
+   a lean index-backed HEAD count of directed unread only — no broadcast join;
+   (c) 30s fallback cadence. The 2026-06-27 Vercel-CPU fear doesn't transfer. */
+const PINGS_POLL_DISABLED = false;
 
 // App actions that can mint a new ping — re-pull immediately, don't wait for the
 // next interval. Mirrors the qualifying-event list PriceRankSync listens to.
