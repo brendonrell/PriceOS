@@ -53,7 +53,6 @@ import { CalendarProvider } from '../lib/calendar/CalendarContext';
 import { WorkspacesProvider } from '../lib/state/WorkspacesContext';
 import { PriceOSShell } from '../components/shell/PriceOSShell';
 import SwRegistrar from '../components/shell/SwRegistrar';
-import UpdateWatcher from '../components/shell/UpdateWatcher';
 import { WalletProviders } from '../components/wallet/WalletProviders';
 import { DevLoginButton } from '../components/dev/DevLoginButton';
 import { getSession } from '../lib/auth/siwe';
@@ -609,7 +608,6 @@ export default async function RootLayout({
             </head>
             <body suppressHydrationWarning>
                 <SwRegistrar />
-                <UpdateWatcher />
                 <div dangerouslySetInnerHTML={{ __html: LOADER_HTML }} />
                 <WalletProviders
                     initialState={initialState}
