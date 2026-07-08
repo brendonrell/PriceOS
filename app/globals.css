@@ -4498,7 +4498,8 @@ button,
     white-space: nowrap;
 }
 .mint-fiat-amt { font-size: 14px; }
-.mint-fiat-cur { font-size: 12px; letter-spacing: 0.04em; margin-top: 1px; opacity: 0.9; }
+/* Currency code (and the ETH unit) matches the amount size above it (Brendon 2026-07-08). */
+.mint-fiat-cur { font-size: 14px; letter-spacing: 0.04em; margin-top: 1px; opacity: 0.9; }
 .mint-chooser .mint-fiat { font-size: 10px; }
 .mint-chooser .mint-fiat-amt { font-size: 10px; }
 .mint-chooser .mint-fiat-cur { font-size: 10px; }
