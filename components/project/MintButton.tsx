@@ -52,25 +52,31 @@ export default function MintButton({
   const confirmFiat = ethToFiat(totalEth);
   const total = formatEthAmount(totalEth, !!confirmFiat);
 
-  /* MINT label shrinks one size ONLY when the content nears the pill edge
-     (Brendon 2026-07-08) — measured, with a buffer so it triggers slightly
-     INSIDE the edge, never assumed. Otherwise it stays put. */
+  /* The pill is a FIXED width and posted prices must be 100% visible — never
+     clipped (Brendon 2026-07-08). So we measure the readout and, only if it
+     would exceed the pill's inner width (minus a thin 4px buffer), scale it down
+     just enough to fit. At natural size nothing changes; when tight it eases
+     down a hair so MINT + the full price/fiat all stay readable. */
   const btnRef = useRef<HTMLButtonElement | null>(null);
   const faceRef = useRef<HTMLSpanElement | null>(null);
-  const [tight, setTight] = useState(false);
+  const [scale, setScale] = useState(1);
   useEffect(() => {
-    if (phase === 'done') { setTight(false); return; }
-    setTight(false); // measure at full label size, then shrink only if needed
+    if (phase === 'done') { setScale(1); return; }
+    setScale(1); // measure at natural size first
     const raf = requestAnimationFrame(() => {
       const b = btnRef.current, f = faceRef.current;
       if (!b || !f) return;
       const cs = getComputedStyle(b);
       const pad = parseFloat(cs.paddingLeft || '0') + parseFloat(cs.paddingRight || '0');
-      const BUFFER = 8; // stop a touch short of the inner edge
-      setTight(f.scrollWidth > b.clientWidth - pad - BUFFER);
+      const BUFFER = 4; // stay a hair inside the inner edge
+      const available = b.clientWidth - pad - BUFFER;
+      const natural = f.offsetWidth;
+      setScale(natural > available ? Math.max(0.5, available / natural) : 1);
     });
     return () => cancelAnimationFrame(raf);
-  }, [phase, mintPrice, currency, remaining]);
+    // ethToFiat identity changes when the rate loads → re-measure so a freshly
+    // added ~fiat is scaled to fit immediately.
+  }, [phase, mintPrice, currency, remaining, qty, ethToFiat]);
 
   const start = () => {
     if (!siweAddress) { showToast('Wallet: CONNECT TO MINT'); return; }
@@ -184,7 +190,7 @@ export default function MintButton({
       // The done face stacks label over balance at reduced sizes so the
       // success readout FITS the fixed 224px pill (it used to overflow and
       // clip on desktop — Brendon 2026-06-12).
-      className={`btn-mint${phase === 'done' ? ' mint-done' : ''}${idleFiat && (ethToFiatValue(perOutput) ?? 0) >= 10 ? ' mint-fiat-on' : ''}${tight ? ' mint-tight' : ''}`}
+      className={`btn-mint${phase === 'done' ? ' mint-done' : ''}${idleFiat && (ethToFiatValue(perOutput) ?? 0) >= 10 ? ' mint-fiat-on' : ''}`}
       onClick={phase === 'idle' ? start : undefined}
       disabled={phase !== 'idle'}
       style={{ position: 'relative', overflow: 'hidden' }}
@@ -203,7 +209,11 @@ export default function MintButton({
           <span className="mint-price" style={{ position: 'relative' }}>{price}</span>
         </>
       ) : (
-        <span className="mint-face" ref={faceRef} style={{ position: 'relative' }}>
+        <span
+          className="mint-face"
+          ref={faceRef}
+          style={{ position: 'relative', transform: scale < 1 ? `scale(${scale})` : undefined }}
+        >
           <span className="mint-lbl">{label}</span>
           <span className="mint-price">{price}</span>
           {idleFiat && (

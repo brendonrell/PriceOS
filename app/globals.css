@@ -4506,20 +4506,19 @@ button,
 .modal-action-btn-fiat { opacity: 0.8; }
 /* Fiat mode, tight case (fiat ≥ 10) — the ETH figure drops a step. */
 .mint-fiat-on .mint-price { font-size: 13px; }
-/* The row content wrapper — measured against the pill's inner edge to decide the
-   tight state. Holds the label + price (+ fiat) in the same 4px-gap row as before. */
+/* The row content wrapper — sizes to its natural content (never shrinks/clips),
+   so the whole readout can be measured and scaled to fit the fixed pill. Scaled
+   from the centre via an inline transform so nothing is ever cut (Brendon
+   2026-07-08 — posted prices MUST stay fully visible). */
 .mint-face {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 4px;
-    min-width: 0;
-    max-width: 100%;
-    overflow: hidden;
+    flex: 0 0 auto;
+    white-space: nowrap;
+    transform-origin: center;
 }
-/* The MINT label drops one size ONLY when the content nears the pill edge —
-   measured in JS (.mint-tight), never applied blanket (Brendon 2026-07-08). */
-.mint-tight .mint-lbl { font-size: 15px; }
 /* +/- step (choosing face) in fiat mode: ETH one smaller, fiat one larger. */
 .mint-chooser-fiat .mint-price { font-size: 12px; }
 .mint-chooser-fiat .mint-fiat-amt { font-size: 11px; }
