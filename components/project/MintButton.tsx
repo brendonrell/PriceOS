@@ -190,8 +190,9 @@ export default function MintButton({
   // itself (and the done face, which shows a balance) it's dropped. A 0 ETH
   // (free) mint shows NO fiat at all — just "MINT (0 ETH)" (Brendon 2026-07-08).
   const idleFiat = phase === 'idle' && perOutput > 0 ? ethToFiat(perOutput) : null;
-  // 4-digit ETH rule; leading 0 dropped in fiat mode.
-  const ethAmt = formatEthAmount(perOutput, !!idleFiat);
+  // 4-digit ETH rule; the leading 0 stays on the mint CTA even in fiat mode
+  // (Brendon 2026-07-08 — "0.2234", not ".2234").
+  const ethAmt = formatEthAmount(perOutput, false);
   const price =
     phase === 'done' && result ? `(${result.balance} ETH left)` : `(${ethAmt} ETH)`;
 
