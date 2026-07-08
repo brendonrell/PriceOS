@@ -23,9 +23,9 @@
  * Android; iOS ignores it (no web haptics in an iOS PWA) — harmless either way.
  */
 
-const PTR_THRESHOLD = 80;   // px of RAW downward pull (at release) that refreshes
+const PTR_THRESHOLD = 130;  // px of RAW downward pull (at release) that refreshes
 const TOP_EPSILON = 2;      // px slop on "at top" (sub-pixel scroll offsets)
-const MAX_PULL = 150;       // px the damped band asymptotes toward
+const MAX_PULL = 240;       // px the damped band asymptotes toward
 
 let mounted = false;
 let overlayEl: HTMLDivElement | null = null;
@@ -56,17 +56,18 @@ export function mountPtr(): void {
     const pill = document.createElement('div');
     pill.className = 'ptr-pill';
     pill.setAttribute('aria-hidden', 'true');
-    pill.innerHTML = '<span class="ptr-pill-glyph">⟳&#xFE0E;</span><span class="ptr-pill-label">PULL</span>';
+    pill.innerHTML = '<span class="ptr-pill-glyph">⟳&#xFE0E;</span>';
     document.body.appendChild(pill);
     pillEl = pill;
     const pillGlyph = pill.querySelector('.ptr-pill-glyph') as HTMLElement;
-    const pillLabel = pill.querySelector('.ptr-pill-label') as HTMLElement;
 
     let startY = 0;
     let active = false;     // a valid pull is in progress (started at top)
     let pulling = false;    // finger has moved downward past the start
     let committed = false;  // refresh fired — ignore everything else
     let lastRaw = 0;        // raw finger travel at the most recent move
+    let pendingRaw = 0;     // travel awaiting the next animation frame
+    let rafId = 0;          // batched-paint handle (0 = none queued)
 
     /* The document is the scroller (body is a flex column, main is flex:1 — no
        inner page-scroll container). "At top" = document scroll offset ~0. */
@@ -140,7 +141,10 @@ export function mountPtr(): void {
     const damp = (raw: number): number => Math.min(raw, MAX_PULL);
     const armedVisual = damp(PTR_THRESHOLD);
 
-    const resetGesture = () => { active = false; pulling = false; lastRaw = 0; };
+    const resetGesture = () => {
+        active = false; pulling = false; lastRaw = 0; pendingRaw = 0;
+        if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+    };
 
     const snapBack = () => {
         overlay.style.transition = 'opacity 0.3s ease';
@@ -149,7 +153,6 @@ export function mountPtr(): void {
         pill.style.transform = 'translate(-50%, -60px)';
         pill.style.opacity = '0';
         pill.classList.remove('armed');
-        pillLabel.textContent = 'PULL';
     };
 
     /* Commit: haptic + show the loading cover NOW, reload next frame so the
@@ -162,7 +165,6 @@ export function mountPtr(): void {
 
         overlay.style.transition = 'opacity 0.15s ease';
         overlay.style.opacity = '1';
-        pillLabel.textContent = 'REFRESHING';
         pill.classList.add('armed', 'spinning');
 
         const cover = document.createElement('div');
@@ -191,6 +193,32 @@ export function mountPtr(): void {
         active = true;
     };
 
+    /* Paint the pull ONCE PER FRAME. touchmove fires far faster than the screen
+       refreshes; writing styles on every event (the old path) thrashed layout
+       and read as laggy/jaggy. We just record the travel here and let a single
+       rAF apply every visual write together — buttery, finger-locked motion. */
+    const paint = () => {
+        rafId = 0;
+        if (committed || !active || !pulling) return;
+        const raw = pendingRaw;
+        const visual = damp(raw);
+        const armed = raw >= PTR_THRESHOLD;
+
+        overlay.style.transition = 'none';
+        // Build toward 0.7 as you near the threshold, then snap to full when
+        // armed — the "release to refresh" affordance (no haptics on iOS).
+        overlay.style.opacity = armed ? '1' : String(Math.min(visual / armedVisual, 1) * 0.7);
+
+        // Pill: descends with the pull, fades in over the first 24px; the ⟳
+        // winds up with travel; inverts (armed) at the threshold. Sub-pixel
+        // values (not Math.round) keep the travel perfectly fluid.
+        pill.style.transition = 'none';
+        pill.style.opacity = String(Math.min(visual / 24, 1));
+        pill.style.transform = `translate(-50%, ${(visual * 0.7 - 46).toFixed(2)}px)`;
+        pillGlyph.style.transform = `rotate(${(visual * 2.4).toFixed(2)}deg)`;
+        pill.classList.toggle('armed', armed);
+    };
+
     const onTouchMove = (e: TouchEvent) => {
         if (committed || !active) return;
         if (e.touches.length !== 1 || blocked()) { resetGesture(); snapBack(); return; }
@@ -200,6 +228,7 @@ export function mountPtr(): void {
 
         if (raw <= 0) {                  // pulling up / not moved down — let scroll be
             pulling = false;
+            if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
             overlay.style.opacity = '0';
             pill.style.opacity = '0';
             return;
@@ -210,23 +239,8 @@ export function mountPtr(): void {
            document rubber-band IS the pull (the page visibly follows the
            finger); suppressing it left nothing moving, so it felt dead. We just
            read the travel and ramp the tint; the decision happens on release. */
-
-        const visual = damp(raw);
-        overlay.style.transition = 'none';
-        // Build toward 0.7 as you near the threshold, then snap to full when
-        // armed — the "release to refresh" affordance (no haptics on iOS).
-        const armed = raw >= PTR_THRESHOLD;
-        overlay.style.opacity = armed ? '1' : String(Math.min(visual / armedVisual, 1) * 0.7);
-
-        // Pill: descends 1:1 with the damped pull, fades in over the first
-        // 24px; the ⟳ winds up with travel (the "something is charging" cue);
-        // label + inversion snap at the threshold.
-        pill.style.transition = 'none';
-        pill.style.opacity = String(Math.min(visual / 24, 1));
-        pill.style.transform = `translate(-50%, ${Math.round(visual * 0.7 - 46)}px)`;
-        pillGlyph.style.transform = `rotate(${Math.round(visual * 2.4)}deg)`;
-        pill.classList.toggle('armed', armed);
-        pillLabel.textContent = armed ? 'RELEASE' : 'PULL';
+        pendingRaw = raw;
+        if (!rafId) rafId = requestAnimationFrame(paint);
     };
 
     const onTouchEnd = () => {

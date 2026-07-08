@@ -4483,29 +4483,37 @@ button,
    the button never changes size or shape. OFF by default: when no currency is
    picked, .mint-fiat never renders and the resting button is byte-for-byte
    what it was. */
-.mint-price-col {
-    display: inline-flex;
+/* Two-row CTA when fiat is on — the SAME stacked face as "MINTED ✓ ×N" over the
+   balance: label + ETH on the top row, ~fiat beneath, sized down to fit the
+   fixed 224px pill. OFF by default, so the resting button is unchanged. */
+.btn-mint.mint-has-fiat {
     flex-direction: column;
+    gap: 0;
+    line-height: 1.15;
+}
+.mint-row1 {
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    line-height: 1.05;
-    min-width: 0;
+    gap: 4px;
 }
+.mint-has-fiat .mint-lbl { font-size: 13px; }
+.mint-has-fiat .mint-price { font-size: 12px; }
+.mint-has-fiat .mint-fiat { font-size: 11px; }
 .mint-fiat {
     font-family: 'Courier New', Courier, monospace;
     font-size: 11px;
     font-weight: bold;
     opacity: 0.8;
     white-space: nowrap;
-    margin-top: 1px;
 }
 .mint-chooser .mint-fiat { font-size: 10px; }
 
-/* The $ picker pill in the Wallet row — sits between copy + incognito, matches
-   the other wallet icons (.rpc-ping-btn base). Shows the active currency symbol
-   ($, C$, £, €, ¥) and lights to full opacity when fiat is on. */
+/* The $ picker glyph in the Wallet row — between copy + incognito. Courier New
+   to match the other wallet icons, sized down. Lights to full opacity on. */
 .fiat-cur-btn {
-    font-size: 20px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 15px;
     font-weight: bold;
     user-select: none;
 }
@@ -6326,9 +6334,13 @@ body.colorway-dark .canvas-wrapper {
     transform: translate(-50%, -46px);
     display: flex;
     align-items: center;
-    gap: 7px;
+    justify-content: center;
+    gap: 0;
+    /* Glyph-only, half the previous footprint (Brendon 2026-07-08) — the ⟳ IS
+       the readout, no text. Compact rounded pill. */
+    width: 34px;
     height: 32px;
-    padding: 0 14px;
+    padding: 0;
     border-radius: 16px;
     background: var(--bg-color);
     color: var(--text-color);
@@ -6336,10 +6348,12 @@ body.colorway-dark .canvas-wrapper {
     font-family: 'Courier New', Courier, monospace;
     font-size: 11px;
     font-weight: bold;
-    letter-spacing: 0.08em;
     opacity: 0;
     z-index: 99999;
     pointer-events: none;
+    /* Promote to its own layer so the per-frame transform paints on the GPU —
+       no layout thrash, motion stays locked to the finger. */
+    will-change: transform, opacity;
 }
 .ptr-pill.armed {
     background: var(--text-color);

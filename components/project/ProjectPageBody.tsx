@@ -206,6 +206,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
 
     const { lowestId, lowestFloor } = useProjectFloor();
     const { ethToFiat } = useFiat();
+    const floorFiat = lowestFloor !== null ? ethToFiat(lowestFloor) : null;
 
     const {
         dMyNotesActive, breadcrumbSample, projectShowcasePicks,
@@ -402,7 +403,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                             /* Sold out → the mint button becomes BUY (floor):
                                shows the lowest listing and adds it to the cart. */
                             <button
-                                className="btn-mint"
+                                className={`btn-mint${floorFiat ? ' mint-has-fiat' : ''}`}
                                 title="Buy the floor — adds the lowest-listed Output to your cart"
                                 onClick={() => {
                                     if (lowestId == null) { showToast('Listings: NONE YET'); return; }
@@ -412,15 +413,22 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                                 disabled={lowestId == null}
                                 style={lowestId == null ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
                             >
-                                <span className="mint-lbl">BUY</span>
-                                <span className="mint-price-col">
-                                    <span className="mint-price">
-                                        {lowestFloor !== null ? `(${lowestFloor.toFixed(3)} ETH)` : '(NONE LISTED)'}
-                                    </span>
-                                    {lowestFloor !== null && ethToFiat(lowestFloor) && (
-                                        <span className="mint-fiat">{ethToFiat(lowestFloor)}</span>
-                                    )}
-                                </span>
+                                {floorFiat ? (
+                                    <>
+                                        <span className="mint-row1">
+                                            <span className="mint-lbl">BUY</span>
+                                            <span className="mint-price">({lowestFloor!.toFixed(3)} ETH)</span>
+                                        </span>
+                                        <span className="mint-fiat">{floorFiat}</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="mint-lbl">BUY</span>
+                                        <span className="mint-price">
+                                            {lowestFloor !== null ? `(${lowestFloor.toFixed(3)} ETH)` : '(NONE LISTED)'}
+                                        </span>
+                                    </>
+                                )}
                             </button>
                         ) : (
                             <MintButton

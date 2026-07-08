@@ -98,6 +98,10 @@ export function DropdownProvider({ children }: { children: ReactNode }) {
             // outside tap and closes the menu before the tap can register.
             const p3d = document.querySelector('.pingtoast-3d-confirm');
             if (p3d && p3d.contains(target)) return;
+            // Same story for the fiat currency picker bubble — body-portaled, so
+            // tapping an option must NOT read as an outside tap that closes the menu.
+            const fiat = document.querySelector('.fiat-picker-bubble');
+            if (fiat && fiat.contains(target)) return;
             setMenuOpen(false);
             setView('links');
         };
