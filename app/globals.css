@@ -4510,10 +4510,10 @@ button,
 .mint-eth-price { display: inline-flex; align-items: center; gap: 2px; }
 .mint-paren {
     font-family: 'Courier New', Courier, monospace;
-    /* Thin, tall-ish brackets embracing the stacked ETH price — unbold and
-       modestly sized, not the oversized version (Brendon 2026-07-08). */
-    font-weight: normal;
-    font-size: 18px;
+    /* Tall brackets that embrace the stacked ETH price — the agreed look
+       (Brendon 2026-07-08). */
+    font-weight: bold;
+    font-size: 22px;
     line-height: 1;
 }
 /* Free mint ($0): the fiat rides inline after the ETH price — italic + dimmer,
