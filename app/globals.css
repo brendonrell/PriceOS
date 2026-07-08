@@ -4476,6 +4476,78 @@ button,
 }
 .mint-done .mint-lbl { font-size: 13px; }
 .mint-done .mint-price { font-size: 12px; }
+
+/* ── Fiat conversion (opt-in via Wallet › $ picker) ──────────────────────────
+   The ~fiat figure rides UNDER the ETH price, stacked inside the fixed 224px
+   pill — the same in-button stacking the CONFIRM/done faces already use — so
+   the button never changes size or shape. OFF by default: when no currency is
+   picked, .mint-fiat never renders and the resting button is byte-for-byte
+   what it was. */
+.mint-price-col {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.05;
+    min-width: 0;
+}
+.mint-fiat {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    opacity: 0.8;
+    white-space: nowrap;
+    margin-top: 1px;
+}
+.mint-chooser .mint-fiat { font-size: 10px; }
+
+/* The $ picker pill in the Wallet row — sits between copy + incognito, matches
+   the other wallet icons (.rpc-ping-btn base). Shows the active currency symbol
+   ($, C$, £, €, ¥) and lights to full opacity when fiat is on. */
+.fiat-cur-btn {
+    font-size: 20px;
+    font-weight: bold;
+    user-select: none;
+}
+
+/* Currency picker bubble — the SAME body-portal + tail placement as the
+   3D-Pingtoast confirm, themed ATTENTION YELLOW (dark text for full legibility)
+   instead of Hothurt red. */
+.fiat-picker-bubble {
+    position: fixed;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+    padding: 5px 7px;
+    border-radius: 8px;
+    background: var(--attention);
+    color: #1a1a1a;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
+}
+.fiat-picker-bubble::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: calc(50% + var(--p3d-tail-dx, 0px));
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: var(--attention);
+}
+.fiat-opt {
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
+    padding: 4px 7px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid rgba(0, 0, 0, 0.35);
+    background: transparent;
+    color: #1a1a1a;
+    -webkit-tap-highlight-color: transparent;
+}
+.fiat-opt-on { background: #1a1a1a; color: var(--attention); border-color: #1a1a1a; }
 /* Cancel — corner glyph, OUT of the flex flow so the divider stays centred. */
 .mint-cancel {
     position: absolute;

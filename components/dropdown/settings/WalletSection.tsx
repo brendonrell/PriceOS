@@ -84,6 +84,7 @@ import { getEnsNames, subscribeEnsNames } from '../../../lib/engines/ensEngine';
 import { fetchMe } from '../../../lib/wallet/accountClient';
 import { pushState } from '../../../lib/state/userState';
 import { useDragScroll } from '../../../lib/hooks/useDragScroll';
+import { FiatCurrencyPicker } from './FiatCurrencyPicker';
 
 /* Placeholder values shown while !isAuthed so the S2 logged-out preview
    keeps its full shape (opacity 0.4 + pointer-events: none — the gating
@@ -336,6 +337,7 @@ export function WalletSection() {
                         COPIED!
                     </span>
                 </span>
+                <FiatCurrencyPicker gated={!isAuthed} />
                 <span
                     className={`rpc-ping-btn incognito-btn${incognitoActive ? ' rpc-active' : ''}`}
                     id="incognitoProxyBtn"

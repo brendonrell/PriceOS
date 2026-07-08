@@ -90,6 +90,7 @@ import { useSpiteMatcher } from '../../lib/pins/spiteStore';
 import { useProjectSocial } from './useProjectSocial';
 import { useProjectGallery } from './useProjectGallery';
 import { useProjectFloor } from './useProjectMarket';
+import { useFiat } from '../../lib/state/FiatContext';
 import { useProjectAnchor } from './useProjectAnchor';
 import { useBudgetStepLine } from './useBudgetStepLine';
 import ProjectMorePanel, { type ProjectMoreL1 } from './ProjectMorePanel';
@@ -204,6 +205,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
     const [moreL1, setMoreL1] = useState<ProjectMoreL1>('attributes');
 
     const { lowestId, lowestFloor } = useProjectFloor();
+    const { ethToFiat } = useFiat();
 
     const {
         dMyNotesActive, breadcrumbSample, projectShowcasePicks,
@@ -411,8 +413,13 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                                 style={lowestId == null ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
                             >
                                 <span className="mint-lbl">BUY</span>
-                                <span className="mint-price">
-                                    {lowestFloor !== null ? `(${lowestFloor.toFixed(3)} ETH)` : '(NONE LISTED)'}
+                                <span className="mint-price-col">
+                                    <span className="mint-price">
+                                        {lowestFloor !== null ? `(${lowestFloor.toFixed(3)} ETH)` : '(NONE LISTED)'}
+                                    </span>
+                                    {lowestFloor !== null && ethToFiat(lowestFloor) && (
+                                        <span className="mint-fiat">{ethToFiat(lowestFloor)}</span>
+                                    )}
                                 </span>
                             </button>
                         ) : (
