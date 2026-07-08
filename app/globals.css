@@ -4500,6 +4500,23 @@ button,
 .mint-fiat-amt { font-size: 14px; }
 /* Currency code (and the ETH unit) matches the amount size above it (Brendon 2026-07-08). */
 .mint-fiat-cur { font-size: 14px; letter-spacing: 0.04em; margin-top: 1px; opacity: 0.9; }
+/* The ~fiat conversion stack — secondary to the ETH price: italic, a half-size
+   smaller than the ETH amount, and 10% dimmer (Brendon 2026-07-08). */
+.mint-fiat--conv { font-style: italic; opacity: 0.7; }
+.mint-fiat--conv .mint-fiat-amt { font-size: 13.5px; }
+.mint-fiat--conv .mint-fiat-cur { font-size: 13.5px; }
+/* The ETH price stacked (amount over ETH) wrapped in brackets that span the WHOLE
+   stack — tall parens flank both lines, not just the number (Brendon 2026-07-08). */
+.mint-eth-price { display: inline-flex; align-items: center; gap: 2px; }
+.mint-paren {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    font-size: 30px;
+    line-height: 1;
+}
+/* Free mint ($0): the fiat rides inline after the ETH price — italic + dimmer,
+   matching the ~fiat treatment, no stacking. */
+.mint-price--conv { font-style: italic; opacity: 0.7; margin-left: 3px; }
 .mint-chooser .mint-fiat { font-size: 10px; }
 .mint-chooser .mint-fiat-amt { font-size: 10px; }
 .mint-chooser .mint-fiat-cur { font-size: 10px; }
@@ -4534,9 +4551,15 @@ button,
 /* Fiat mode: MINT stays fixed; the numbers cell fills the space beside it so the
    ETH+fiat can scale into it. Normal mode is untouched (Brendon 2026-07-08). */
 .mint-face-fiat .mint-nums { flex: 1 1 auto; }
+/* Equal spacing on BOTH sides of the ETH price: the MINT↔ETH gap and the
+   ETH↔fiat gap must scale together. The ETH↔fiat gap lives inside the scaled
+   numbers; so does the MINT↔ETH gap here (a leading pad, same size), while the
+   face gap is dropped — so both read identical at any fill scale (Brendon 2026-07-08). */
+.mint-face-fiat { gap: 0; }
+.mint-face-fiat .mint-nums-in { padding-left: 12px; }
 /* Fiat mode: drop the pill's 24px side buffer to a 6px buffer each side so the
    readout fills the pill; MINT keeps its normal size (Brendon 2026-07-08). */
-.mint-btn-fiat { padding: 0 6px; }
+.mint-btn-fiat { padding: 0 7px; }
 .mint-nums-in {
     flex: 0 0 auto;
     display: inline-flex;

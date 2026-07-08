@@ -184,6 +184,10 @@ export default function MintButton({
   const ethAmt = formatEthAmount(perOutput, !!idleFiat);
   const price =
     phase === 'done' && result ? `(${result.balance} ETH left)` : `(${ethAmt} ETH)`;
+  // Free mint ($0): show ETH + fiat INLINE with no decimals — same shape as the
+  // non-fiat button, just with "~$0 CAD" tacked on the end (Brendon 2026-07-08).
+  const isFreeMint = perOutput === 0;
+  const fiatSymbol = idleFiat ? idleFiat.replace(/[\d.,~\s]/g, '') : '';
 
   return (
     <button
@@ -221,14 +225,27 @@ export default function MintButton({
               ref={innerRef}
               style={{ transform: scale !== 1 ? `scale(${scale})` : undefined }}
             >
-              <span className="mint-fiat">
-                <span className="mint-fiat-amt">({ethAmt})</span>
-                <span className="mint-fiat-cur">ETH</span>
-              </span>
-              <span className="mint-fiat">
-                <span className="mint-fiat-amt">{idleFiat}</span>
-                <span className="mint-fiat-cur">{currency}</span>
-              </span>
+              {isFreeMint ? (
+                <>
+                  <span className="mint-price">(0 ETH)</span>
+                  <span className="mint-price mint-price--conv">~{fiatSymbol}0 {currency}</span>
+                </>
+              ) : (
+                <>
+                  <span className="mint-eth-price">
+                    <span className="mint-paren">(</span>
+                    <span className="mint-fiat">
+                      <span className="mint-fiat-amt">{ethAmt}</span>
+                      <span className="mint-fiat-cur">ETH</span>
+                    </span>
+                    <span className="mint-paren">)</span>
+                  </span>
+                  <span className="mint-fiat mint-fiat--conv">
+                    <span className="mint-fiat-amt">{idleFiat}</span>
+                    <span className="mint-fiat-cur">{currency}</span>
+                  </span>
+                </>
+              )}
             </span>
           </span>
         </span>
