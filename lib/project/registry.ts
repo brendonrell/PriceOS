@@ -32,7 +32,6 @@ import { FAITH_ASPECTS, faithSchema, faithTraits, renderFaith } from '../art/eng
 import { GROWTH_ASPECTS, growthSchema, growthTraits, renderGrowth } from '../art/engines/ai/growth';
 import { GROW_ASPECTS, growSchema, growTraits, renderGrow } from '../art/engines/ai/guaranteed-to-grow';
 import { HARDWATER_ASPECTS, hardWaterSchema, hardWaterTraits, renderHardWater } from '../art/engines/ai/hard-water';
-import { JUNCTION_ASPECTS, junctionSchema, junctionTraits, renderJunction } from '../art/engines/ai/junction';
 import { KONKRET_ASPECTS, konkretSchema, konkretTraits, renderKonkret } from '../art/engines/ai/konkret';
 import { LETTERS_ASPECTS, lettersSchema, lettersTraits, renderLetters } from '../art/engines/ai/letters-never-sent';
 import { CHEAPPAPER_ASPECTS, cheapPaperSchema, cheapPaperTraits, renderCheapPaper } from '../art/engines/ai/loud-on-cheap-paper';
@@ -81,7 +80,6 @@ import { renderFacet, facetTraits, facetSchema, FACET_ASPECTS } from '../art/eng
    distinct colour territory + a Layout axis (4-6 structural compositions per
    project), assigned to 6 new single-project AI artists. Built via a 12→6
    jury bake-off + layout-variety pass + per-project palette pass. ── */
-import { renderOrbital, orbitalTraits, orbitalSchema, ORBITAL_ASPECTS } from '../art/engines/orbital';
 import { renderPressroom, pressroomTraits, pressroomSchema, PRESSROOM_ASPECTS } from '../art/engines/pressroom';
 import { renderCinder, cinderTraits, cinderSchema, CINDER_ASPECTS } from '../art/engines/cinder';
 import { renderInterchange, interchangeTraits, interchangeSchema, INTERCHANGE_ASPECTS } from '../art/engines/interchange';
@@ -107,7 +105,6 @@ import { renderAndante, andanteTraits, andanteSchema, ANDANTE_ASPECTS } from '..
 import { renderThreshold, thresholdTraits, thresholdSchema, THRESHOLD_ASPECTS } from '../art/engines/threshold';
 import { renderIctus, ictusTraits, ictusSchema, ICTUS_ASPECTS } from '../art/engines/ictus';
 import { renderJazz, jazzTraits, jazzSchema, JAZZ_ASPECTS } from '../art/engines/jazz';
-import { renderReverie, reverieTraits, reverieSchema, REVERIE_ASPECTS } from '../art/engines/reverie';
 import { renderCadence, cadenceTraits, cadenceSchema, CADENCE_ASPECTS } from '../art/engines/cadence';
 import { renderAperture, apertureTraits, apertureSchema, APERTURE_ASPECTS } from '../art/engines/aperture';
 import { renderInterim, interimTraits, interimSchema, INTERIM_ASPECTS } from '../art/engines/interim';
@@ -117,17 +114,12 @@ import { renderCaustics, causticsTraits, causticsSchema, CAUSTICS_ASPECTS } from
 import { renderSchlieren, schlierenTraits, schlierenSchema, SCHLIEREN_ASPECTS } from '../art/engines/schlieren';
 import { renderFrostFern, frostFernTraits, frostFernSchema, FROST_FERN_ASPECTS } from '../art/engines/frost-fern';
 import { renderCyanotype, cyanotypeTraits, cyanotypeSchema, CYANOTYPE_ASPECTS } from '../art/engines/cyanotype';
-import { renderKintsugi, kintsugiTraits, kintsugiSchema, KINTSUGI_ASPECTS } from '../art/engines/kintsugi';
 import { renderEfflorescence, efflorescenceTraits, efflorescenceSchema, EFFLORESCENCE_ASPECTS } from '../art/engines/efflorescence';
-import { renderEvaporate, evaporateTraits, evaporateSchema, EVAPORATE_ASPECTS } from '../art/engines/evaporate';
-import { renderEncaustic, encausticTraits, encausticSchema, ENCAUSTIC_ASPECTS } from '../art/engines/encaustic';
-import { renderPatina, patinaTraits, patinaSchema, PATINA_ASPECTS } from '../art/engines/patina';
 import { renderFrottage, frottageTraits, frottageSchema, FROTTAGE_ASPECTS } from '../art/engines/frottage';
 import { renderFumage, fumageTraits, fumageSchema, FUMAGE_ASPECTS } from '../art/engines/fumage';
 /* ── HALO surreal cohort (2026-06-28) — four new AI artists + a fathom-ai sequel.
    Heliodon (umbra-ai) is built + committed but HELD off the live list for a
    later staggered release (Vestibule ships first). ── */
-import { renderLoadedQuestion, loadedQuestionTraits, loadedQuestionSchema, LOADEDQUESTION_ASPECTS } from '../art/engines/loadedquestion';
 import { renderProvenance, provenanceTraits, provenanceSchema, PROVENANCE_ASPECTS } from '../art/engines/provenance';
 import { renderOffRegister, offRegisterTraits, offRegisterSchema, OFFREGISTER_ASPECTS } from '../art/engines/offregister';
 import { renderInterference, interferenceTraits, interferenceSchema, INTERFERENCE_ASPECTS } from '../art/engines/interference';
@@ -234,7 +226,7 @@ const ORACLE: ProjectDef = {
 const TEST_PATTERN: ProjectDef = {
   slug: 'testpattern',
   displayName: 'Test Pattern',
-  artistHandle: 'opus4-8',
+  artistHandle: 'overair-ai',
   outputs: 111,
   colorway: '#2347ff',
   mintPriceEth: 0,
@@ -248,7 +240,7 @@ const TEST_PATTERN: ProjectDef = {
 const CULTIVAR: ProjectDef = {
   slug: 'cultivar',
   displayName: 'Cultivar',
-  artistHandle: 'opus4-8',
+  artistHandle: 'walkup-ai',
   outputs: 222,
   colorway: '#2f6b4f',
   mintPriceEth: 0,
@@ -263,7 +255,7 @@ const CULTIVAR: ProjectDef = {
 const BOREAL: ProjectDef = {
   slug: 'boreal',
   displayName: 'Boreal',
-  artistHandle: 'opus4-8',
+  artistHandle: 'hallow-ai',
   outputs: 222,
   colorway: '#15c08a',
   mintPriceEth: 0,
@@ -277,7 +269,7 @@ const BOREAL: ProjectDef = {
 const RELIQUARY: ProjectDef = {
   slug: 'reliquary',
   displayName: 'Reliquary',
-  artistHandle: 'opus4-8',
+  artistHandle: 'hallow-ai',
   outputs: 111,
   colorway: '#15121d',
   // TEST PRICE (fiat-spacing check, Brendon 2026-07-08) — a live, unminted
@@ -293,7 +285,7 @@ const RELIQUARY: ProjectDef = {
 const BULLETIN: ProjectDef = {
   slug: 'bulletin',
   displayName: 'Bulletin',
-  artistHandle: 'opus4-8',
+  artistHandle: 'flypost-ai',
   outputs: 222,
   colorway: '#2fc94f',
   // TEST PRICE (fiat-spacing check, Brendon 2026-07-08) — a live, unminted
@@ -313,7 +305,7 @@ const BULLETIN: ProjectDef = {
 const ARCOLOGY: ProjectDef = {
   slug: 'arcology',
   displayName: 'Arcology',
-  artistHandle: 'opus4-8',
+  artistHandle: 'colossus-ai',
   outputs: 222,
   colorway: '#111111',
   mintPriceEth: 0.2,
@@ -332,7 +324,7 @@ const ARCOLOGY: ProjectDef = {
 const CARNIVALE: ProjectDef = {
   slug: 'carnivale',
   displayName: 'Carnivale',
-  artistHandle: 'opus4-8',
+  artistHandle: 'lanternlight-ai',
   outputs: 222,
   colorway: '#E5267F',
   mintPriceEth: 0,
@@ -371,7 +363,7 @@ const HALO_D: ProjectDef = {
 const TERMINAL_NETWORK: ProjectDef = {
   slug: 'terminal-network',
   displayName: 'Terminal Network',
-  artistHandle: 'opus4-8',
+  artistHandle: 'tracedeck-ai',
   outputs: 111,
   colorway: '#1f44d0',
   mintPriceEth: 0.1,
@@ -388,7 +380,7 @@ const TERMINAL_NETWORK: ProjectDef = {
 const LEVIATHAN: ProjectDef = {
   slug: 'leviathan',
   displayName: 'Leviathan',
-  artistHandle: 'opus4-8',
+  artistHandle: 'colossus-ai',
   outputs: 222,
   colorway: '#12C7B8',
   mintPriceEth: 0,
@@ -406,7 +398,7 @@ const LEVIATHAN: ProjectDef = {
 const EMPYREAN: ProjectDef = {
   slug: 'empyrean',
   displayName: 'Empyrean',
-  artistHandle: 'opus4-8',
+  artistHandle: 'wunderkammer-ai',
   outputs: 222,
   colorway: '#3A1D7A',
   mintPriceEth: 0,
@@ -428,7 +420,7 @@ const EMPYREAN: ProjectDef = {
 const ELECTRUM: ProjectDef = {
   slug: 'electrum',
   displayName: 'Electrum',
-  artistHandle: 'opus4-8',
+  artistHandle: 'liquidmetal-ai',
   outputs: 222,
   colorway: '#7a3cf0',
   mintPriceEth: 0.15,
@@ -447,7 +439,7 @@ const ELECTRUM: ProjectDef = {
 const QUICKSILVER: ProjectDef = {
   slug: 'quicksilver',
   displayName: 'Quicksilver',
-  artistHandle: 'opus4-8',
+  artistHandle: 'liquidmetal-ai',
   outputs: 111,
   colorway: '#ff7ae0',
   mintPriceEth: 0.12,
@@ -466,7 +458,7 @@ const QUICKSILVER: ProjectDef = {
 const LUSTRE: ProjectDef = {
   slug: 'lustre',
   displayName: 'Lustre',
-  artistHandle: 'firstchannel-ai',
+  artistHandle: 'stonecutter-ai',
   outputs: 111,
   colorway: '#F2B01E',
   mintPriceEth: 0.14,
@@ -480,7 +472,7 @@ const LUSTRE: ProjectDef = {
 const BLOOMWATER: ProjectDef = {
   slug: 'bloomwater',
   displayName: 'Bloomwater',
-  artistHandle: 'overprint-ai',
+  artistHandle: 'liquidmetal-ai',
   outputs: 222,
   colorway: '#1A2E8C',
   mintPriceEth: 0.1,
@@ -494,7 +486,7 @@ const BLOOMWATER: ProjectDef = {
 const VOLTAIC: ProjectDef = {
   slug: 'voltaic',
   displayName: 'Voltaic',
-  artistHandle: 'filament-ai',
+  artistHandle: 'stonecutter-ai',
   outputs: 111,
   colorway: '#A3FF12',
   mintPriceEth: 0.12,
@@ -508,7 +500,7 @@ const VOLTAIC: ProjectDef = {
 const FACET: ProjectDef = {
   slug: 'facet',
   displayName: 'Facet',
-  artistHandle: 'lapidary-ai',
+  artistHandle: 'stonecutter-ai',
   outputs: 222,
   colorway: '#C9B6FF',
   mintPriceEth: 0.16,
@@ -521,38 +513,32 @@ const FACET: ProjectDef = {
 
 /* ── Halo cohort (2026-06-28) — opus4-8 jury bake-off survivors, each under a
    new single-project AI artist, each owning a distinct colour territory. ── */
-const ORBITAL: ProjectDef = {
-  slug: 'orbital', displayName: 'Orbital', artistHandle: 'lowgravity-ai', outputs: 111,
-  colorway: '#ff5e5e', mintPriceEth: 0.08,
-  soundtrack: { playlistId: 'OLAK5uy_muokP2ArFXF_yuj0Qnh_5_QmfFMpwqFj4', label: 'Air — Moon Safari' },
-  aspects: ORBITAL_ASPECTS, traitSchema: orbitalSchema, render: renderOrbital, traitsOf: orbitalTraits,
-};
 const PRESSROOM: ProjectDef = {
-  slug: 'pressroom', displayName: 'Pressroom', artistHandle: 'offset-ai', outputs: 111,
+  slug: 'pressroom', displayName: 'Pressroom', artistHandle: 'letterpress-ai', outputs: 111,
   colorway: '#ff48a0', mintPriceEth: 0.05,
   soundtrack: { playlistId: 'PLWQigmFvFjPdvjrUyTTkpocV3KHfibXmO', label: 'Jet Set Radio — Original Soundtrack' },
   aspects: PRESSROOM_ASPECTS, traitSchema: pressroomSchema, render: renderPressroom, traitsOf: pressroomTraits,
 };
 const CINDER: ProjectDef = {
-  slug: 'cinder', displayName: 'Cinder', artistHandle: 'nightpour-ai', outputs: 222,
+  slug: 'cinder', displayName: 'Cinder', artistHandle: 'duskfield-ai', outputs: 222,
   colorway: '#ff7a18', mintPriceEth: 0.12,
   soundtrack: { playlistId: 'PL2MEf0Id3TeFo6QBeY76d_zvOicDoG_lg', label: 'Godspeed You! Black Emperor — Lift Your Skinny Fists' },
   aspects: CINDER_ASPECTS, traitSchema: cinderSchema, render: renderCinder, traitsOf: cinderTraits,
 };
 const CATENARY: ProjectDef = {
-  slug: 'catenary', displayName: 'Catenary', artistHandle: 'headways-ai', outputs: 222,
+  slug: 'catenary', displayName: 'Catenary', artistHandle: 'lanternlight-ai', outputs: 222,
   colorway: '#ffb02e', mintPriceEth: 0.1,
   soundtrack: { playlistId: 'PL4NXUZspQ7BwHO5UnqrS6ZX-Pn7Hc_XwS', label: 'Stars of the Lid — The Tired Sounds Of' },
   aspects: INTERCHANGE_ASPECTS, traitSchema: interchangeSchema, render: renderInterchange, traitsOf: interchangeTraits,
 };
 const TOPIARY: ProjectDef = {
-  slug: 'topiary', displayName: 'Topiary', artistHandle: 'nightlawn-ai', outputs: 111,
+  slug: 'topiary', displayName: 'Topiary', artistHandle: 'glasshouse-ai', outputs: 111,
   colorway: '#1fae5a', mintPriceEth: 0.07,
   soundtrack: { playlistId: 'PLitsxevT321MbKWfv5sSHOjVfPCou9EsY', label: 'Hiroshi Yoshimura — Music for Nine Post Cards' },
   aspects: TOPIARY_ASPECTS, traitSchema: topiarySchema, render: renderTopiary, traitsOf: topiaryTraits,
 };
 const SLACK_WATER: ProjectDef = {
-  slug: 'slack-water', displayName: 'Slack Water', artistHandle: 'slacktide-ai', outputs: 111,
+  slug: 'slack-water', displayName: 'Slack Water', artistHandle: 'duskfield-ai', outputs: 111,
   colorway: '#1ec8c8', mintPriceEth: 0.09,
   soundtrack: { playlistId: 'OLAK5uy_nYQUGK6taXBkF8pOXguR7fAvX5rPUSPAs', label: 'Biosphere — Substrata' },
   aspects: TIDEWORKS_ASPECTS, traitSchema: tideworksSchema, render: renderTideworks, traitsOf: tideworksTraits,
@@ -563,7 +549,7 @@ const SLACK_WATER: ProjectDef = {
 const VESPERS: ProjectDef = {
   slug: 'vespers',
   displayName: 'Vespers',
-  artistHandle: 'firstchannel-ai',
+  artistHandle: 'sanctuary-ai',
   outputs: 111,
   colorway: '#0A1A3F',
   mintPriceEth: 0.2,
@@ -589,7 +575,7 @@ const VESPERS: ProjectDef = {
 const TOKEH: ProjectDef = {
   slug: 'tokeh',
   displayName: 'Tokeh',
-  artistHandle: 'coralline-ai',
+  artistHandle: 'emberfly-ai',
   outputs: 111,
   colorway: '#b14dff',
   mintPriceEth: 0.1,
@@ -607,7 +593,7 @@ const TOKEH: ProjectDef = {
 const CONSERVATORY: ProjectDef = {
   slug: 'conservatory',
   displayName: 'Conservatory',
-  artistHandle: 'turing-ai',
+  artistHandle: 'glasshouse-ai',
   outputs: 222,
   colorway: '#ff2e9e',
   mintPriceEth: 0.1,
@@ -701,7 +687,7 @@ function aiDef(
 }
 
 const AI_PROJECTS: readonly ProjectDef[] = [
-  aiDef('full-faith-credit', 'Full Faith & Credit', 'mintcondition-ai', 222, '#1C4428', 0.08, FAITH_ASPECTS, faithSchema, renderFaith, faithTraits),
+  aiDef('full-faith-credit', 'Full Faith & Credit', 'walkup-ai', 222, '#1C4428', 0.08, FAITH_ASPECTS, faithSchema, renderFaith, faithTraits),
   /* Renamed Delisted → Price Discovery (Brendon, 2026-06-16); keeps its own
      soundtrack key + engine. The former 'price-discovery' project was removed. */
   aiDef('delisted', 'Price Discovery', 'lastprice-ai', 111, '#27C08A', 0.05, DELISTED_ASPECTS, delistedSchema, renderDelisted, delistedTraits),
@@ -711,44 +697,43 @@ const AI_PROJECTS: readonly ProjectDef[] = [
   aiDef('elevations', 'Elevations', 'walkup-ai', 222, '#3C5E8C', 0.06, ELEVATIONS_ASPECTS, elevationsSchema, renderElevations, elevationsTraits),
   aiDef('dyed-in-the-wool', 'Dyed In The Wool', 'dyelot-ai', 222, '#C84A98', 0.15, WOOL_ASPECTS, woolSchema, renderWool, woolTraits),
   aiDef('noise-from-below', 'Noise From Below', 'fathom-ai', 111, '#8A6E3C', 0.18, BELOW_ASPECTS, belowSchema, renderBelow, belowTraits),
-  aiDef('letters-never-sent', 'Letters Never Sent', 'deadletter-ai', 222, '#D61A3C', 0.21, LETTERS_ASPECTS, lettersSchema, renderLetters, lettersTraits),
-  aiDef('crosstown', 'Crosstown', 'nightnetwork-ai', 222, '#1D4FB8', 0.22, CROSSTOWN_ASPECTS, crosstownSchema, renderCrosstown, crosstownTraits),
-  aiDef('average-contents-forty', 'Average Contents Forty', 'strikeanywhere-ai', 222, '#FF7A2B', 0.04, CONTENTS_ASPECTS, contentsSchema, renderContents, contentsTraits),
+  aiDef('letters-never-sent', 'Letters Never Sent', 'heartland-ai', 222, '#D61A3C', 0.21, LETTERS_ASPECTS, lettersSchema, renderLetters, lettersTraits),
+  aiDef('crosstown', 'Crosstown', 'countyline-ai', 222, '#1D4FB8', 0.22, CROSSTOWN_ASPECTS, crosstownSchema, renderCrosstown, crosstownTraits),
+  aiDef('average-contents-forty', 'Average Contents Forty', 'heartland-ai', 222, '#FF7A2B', 0.04, CONTENTS_ASPECTS, contentsSchema, renderContents, contentsTraits),
   aiDef('crossette', 'Use Once, Remember Always', 'shellcount-ai', 111, '#FFD514', 0.09, CROSSETTE_ASPECTS, crossetteSchema, renderCrossette, crossetteTraits),
-  aiDef('guaranteed-to-grow', 'Guaranteed To Grow', 'rowseven-ai', 222, '#0F8A3C', 0.05, GROW_ASPECTS, growSchema, renderGrow, growTraits),
-  aiDef('wait-till-next-year', 'Wait Till Next Year', 'homestand-ai', 111, '#2F7D4F', 0.11, NEXTYEAR_ASPECTS, nextYearSchema, renderNextYear, nextYearTraits),
-  aiDef('every-light-in-town', 'Every Light In Town', 'bsides-ai', 222, '#E0202E', 0.06, EVERYLIGHT_ASPECTS, everyLightSchema, renderEveryLight, everyLightTraits),
+  aiDef('guaranteed-to-grow', 'Guaranteed To Grow', 'heartland-ai', 222, '#0F8A3C', 0.05, GROW_ASPECTS, growSchema, renderGrow, growTraits),
+  aiDef('wait-till-next-year', 'Wait Till Next Year', 'heartland-ai', 111, '#2F7D4F', 0.11, NEXTYEAR_ASPECTS, nextYearSchema, renderNextYear, nextYearTraits),
+  aiDef('every-light-in-town', 'Every Light In Town', 'heartland-ai', 222, '#E0202E', 0.06, EVERYLIGHT_ASPECTS, everyLightSchema, renderEveryLight, everyLightTraits),
   aiDef('nobodys-swimming', "Nobody's Swimming", 'deepend-ai', 111, '#2BB8E8', 0.1, SWIMMING_ASPECTS, swimmingSchema, renderSwimming, swimmingTraits),
-  aiDef('between-the-lines', 'Between The Lines', 'secondplate-ai', 222, '#00E5FF', 0.14, BETWEEN_ASPECTS, betweenSchema, renderBetween, betweenTraits),
-  aiDef('loud-on-cheap-paper', 'Loud On Cheap Paper', 'overprint-ai', 111, '#FF2BD1', 0.04, CHEAPPAPER_ASPECTS, cheapPaperSchema, renderCheapPaper, cheapPaperTraits),
-  aiDef('scissors-no-plan', 'Hard Splice', 'nogluedrying-ai', 222, '#FF005C', 0.08, SCISSORS_ASPECTS, scissorsSchema, renderScissors, scissorsTraits),
-  aiDef('hard-water', 'Hard Water', 'flatsea-ai', 222, '#7A00CC', 0.25, HARDWATER_ASPECTS, hardWaterSchema, renderHardWater, hardWaterTraits),
-  aiDef('turf-war', 'Turf War', 'adjacency-ai', 111, '#C8FF00', 0.09, TURFWAR_ASPECTS, turfWarSchema, renderTurfWar, turfWarTraits),
-  aiDef('avalanche', 'Avalanche', 'graincount-ai', 222, '#7FFFD4', 0.16, AVALANCHE_ASPECTS, avalancheSchema, renderAvalanche, avalancheTraits),
+  aiDef('between-the-lines', 'Between The Lines', 'moire-ai', 222, '#00E5FF', 0.14, BETWEEN_ASPECTS, betweenSchema, renderBetween, betweenTraits),
+  aiDef('loud-on-cheap-paper', 'Loud On Cheap Paper', 'heartland-ai', 111, '#FF2BD1', 0.04, CHEAPPAPER_ASPECTS, cheapPaperSchema, renderCheapPaper, cheapPaperTraits),
+  aiDef('scissors-no-plan', 'Hard Splice', 'splice-ai', 222, '#FF005C', 0.08, SCISSORS_ASPECTS, scissorsSchema, renderScissors, scissorsTraits),
+  aiDef('hard-water', 'Hard Water', 'dyelot-ai', 222, '#7A00CC', 0.25, HARDWATER_ASPECTS, hardWaterSchema, renderHardWater, hardWaterTraits),
+  aiDef('turf-war', 'Turf War', 'flypost-ai', 111, '#C8FF00', 0.09, TURFWAR_ASPECTS, turfWarSchema, renderTurfWar, turfWarTraits),
+  aiDef('avalanche', 'Avalanche', 'emergence-ai', 222, '#7FFFD4', 0.16, AVALANCHE_ASPECTS, avalancheSchema, renderAvalanche, avalancheTraits),
   /* ── new cohort (2026-06-13) ── */
   aiDef('everyone-is-typing', 'Everyone Is Typing', 'groupchat-ai', 222, '#5865f2', 0.03, CHATROOM_ASPECTS, chatroomSchema, renderChatroom, chatroomTraits),
-  aiDef('breach-protocol', 'Breach Protocol', 'netrunner-ai', 222, '#00C2C7', 0.06, BREACH_ASPECTS, breachSchema, renderBreach, breachTraits),
+  aiDef('breach-protocol', 'Breach Protocol', 'tracedeck-ai', 222, '#00C2C7', 0.06, BREACH_ASPECTS, breachSchema, renderBreach, breachTraits),
   aiDef('teletext', 'Teletext', 'glyphfield-ai', 111, '#33ff66', 0.07, ASCII_ASPECTS, asciiSchema, renderAscii, asciiTraits),
-  aiDef('riding-the-oil', 'Riding The Oil', 'firstchannel-ai', 111, '#ff8c42', 0.03, DISCORD_ASPECTS, discordSchema, renderDiscord, discordTraits),
+  aiDef('riding-the-oil', 'Riding The Oil', 'groupchat-ai', 111, '#ff8c42', 0.03, DISCORD_ASPECTS, discordSchema, renderDiscord, discordTraits),
   aiDef('konkret', 'Konkret', 'konkret-ai', 222, '#c0392b', 0.09, KONKRET_ASPECTS, konkretSchema, renderKonkret, konkretTraits),
-  aiDef('ode-to-rudxane', 'Ode to Rudxane', 'firstmember-ai', 111, '#1c1a17', 0.1, RUDXANE_ASPECTS, rudxaneSchema, renderRudxane, rudxaneTraits),
+  aiDef('ode-to-rudxane', 'Ode to Rudxane', 'regfour-ai', 111, '#1c1a17', 0.1, RUDXANE_ASPECTS, rudxaneSchema, renderRudxane, rudxaneTraits),
   aiDef('materia', 'The Lapidary', 'lapidary-ai', 111, '#9a9a93', 0.08, MATERIA_ASPECTS, materiaSchema, renderMateria, materiaTraits),
-  aiDef('diffusion', 'Turing’s Garden', 'turing-ai', 111, '#3D9B6C', 0.18, DIFFUSION_ASPECTS, diffusionSchema, renderDiffusion, diffusionTraits),
-  aiDef('growth', 'Coral Logic', 'coralline-ai', 222, '#00e5c8', 0.16, GROWTH_ASPECTS, growthSchema, renderGrowth, growthTraits),
+  aiDef('diffusion', 'Turing’s Garden', 'emergence-ai', 111, '#3D9B6C', 0.18, DIFFUSION_ASPECTS, diffusionSchema, renderDiffusion, diffusionTraits),
+  aiDef('growth', 'Coral Logic', 'phyllo-ai', 222, '#00e5c8', 0.16, GROWTH_ASPECTS, growthSchema, renderGrowth, growthTraits),
   aiDef('pigment', 'Divided Light', 'divisionist-ai', 222, '#1e88e5', 0.1, PIGMENT_ASPECTS, pigmentSchema, renderPigment, pigmentTraits),
   aiDef('filament', 'Filament', 'filament-ai', 222, '#7a2a22', 0.12, ISKRA_ASPECTS, iskraSchema, renderIskra, iskraTraits),
-  aiDef('junction', 'Crossed Wires', 'truchet-ai', 222, '#2ad4ff', 0.05, JUNCTION_ASPECTS, junctionSchema, renderJunction, junctionTraits),
   aiDef('asterism', 'Asterism', 'nightclerk-ai', 222, '#5a7bd8', 0.07, ASTERISM_ASPECTS, asterismSchema, renderAsterism, asterismTraits),
   aiDef('seedhead', 'The Golden Angle', 'phyllo-ai', 111, '#CC6B49', 0.06, SEEDHEAD_ASPECTS, seedheadSchema, renderSeedhead, seedheadTraits),
   /* ── new set (2026-06-18): a second project for four single-project artists ── */
   aiDef('setback', 'Setback', 'walkup-ai', 111, '#e0552e', 0.08, SETBACK_ASPECTS, setbackSchema, renderSetback, setbackTraits),
   aiDef('simultaneous', 'Simultaneous', 'divisionist-ai', 111, '#13a89e', 0.06, SIMULTANEOUS_ASPECTS, simultaneousSchema, renderSimultaneous, simultaneousTraits),
-  aiDef('strata', 'Strata', 'dyelot-ai', 111, '#a8455e', 0.07, STRATA_ASPECTS, strataSchema, renderStrata, strataTraits),
+  aiDef('strata', 'Strata', 'fathom-ai', 111, '#a8455e', 0.07, STRATA_ASPECTS, strataSchema, renderStrata, strataTraits),
   /* ── new cohort (2026-06-19): five fresh projects — a 3rd for divisionist-ai
      and a 2nd each for countyline / fathom / deepend / shellcount. ── */
-  aiDef('spectra', 'Spectra', 'nightclerk-ai', 111, '#241a52', 0.09, SPECTRA_ASPECTS, spectraSchema, renderSpectra, spectraTraits),
-  aiDef('contour-interval', 'Contour Interval', 'countyline-ai', 222, '#123a30', 0.07, CONTOUR_ASPECTS, contourSchema, renderContour, contourTraits),
-  aiDef('soundings', 'Soundings', 'fathom-ai', 111, '#05131e', 0.12, SOUNDINGS_ASPECTS, soundingsSchema, renderSoundings, soundingsTraits),
+  aiDef('spectra', 'Spectra', 'wavelength-ai', 111, '#241a52', 0.09, SPECTRA_ASPECTS, spectraSchema, renderSpectra, spectraTraits),
+  aiDef('contour-interval', 'Contour Interval', 'fathom-ai', 222, '#123a30', 0.07, CONTOUR_ASPECTS, contourSchema, renderContour, contourTraits),
+  aiDef('soundings', 'Soundings', 'wavelength-ai', 111, '#05131e', 0.12, SOUNDINGS_ASPECTS, soundingsSchema, renderSoundings, soundingsTraits),
   aiDef('shallow-end', 'Shallow End', 'deepend-ai', 111, '#0a6e7a', 0.06, SHALLOW_ASPECTS, shallowSchema, renderShallow, shallowTraits),
   aiDef('ticker-tape', 'Ticker Tape', 'shellcount-ai', 111, '#0d1a2b', 0.08, TICKERTAPE_ASPECTS, tickertapeSchema, renderTickertape, tickertapeTraits),
 ];
@@ -762,26 +747,20 @@ const AI_PROJECTS: readonly ProjectDef[] = [
  *   fathom-ai    : Noise From Below 2                      (sequel to Noise From Below)
  */
 // (merged alongside the VESPERS/ARMILLARY + surreal-vista cohorts already on dev)
-const LOADED_QUESTION: ProjectDef = {
-  slug: 'loaded-question', displayName: 'The Loaded Question', artistHandle: 'foolscap-ai', outputs: 222,
-  colorway: '#f7c400', mintPriceEth: 0,
-  soundtrack: { playlistId: 'PLUEMihO9lT7-yvLCQxUOojL_dcRNwRW06', label: 'Boards of Canada — Music Has the Right to Children' },
-  aspects: LOADEDQUESTION_ASPECTS, traitSchema: loadedQuestionSchema, render: renderLoadedQuestion, traitsOf: loadedQuestionTraits,
-};
 const PROVENANCE: ProjectDef = {
-  slug: 'provenance', displayName: 'Provenance', artistHandle: 'foolscap-ai', outputs: 111,
+  slug: 'provenance', displayName: 'Provenance', artistHandle: 'regfour-ai', outputs: 111,
   colorway: '#b23a2e', mintPriceEth: 0,
   soundtrack: { playlistId: 'OLAK5uy_mGng1-1F5dTzxQK7ONy9aqE350bh9ayHc', label: 'Arvo Pärt — Tabula Rasa' },
   aspects: PROVENANCE_ASPECTS, traitSchema: provenanceSchema, render: renderProvenance, traitsOf: provenanceTraits,
 };
 const OFF_REGISTER: ProjectDef = {
-  slug: 'off-register', displayName: 'Off Register', artistHandle: 'newsprint-ai', outputs: 111,
+  slug: 'off-register', displayName: 'Off Register', artistHandle: 'divisionist-ai', outputs: 111,
   colorway: '#ff5a3c', mintPriceEth: 0,
   soundtrack: { playlistId: 'OLAK5uy_mkw5lnHV_WtzF65IfSBTHqHcj_bvqiBU0', label: 'Kraftwerk — Trans-Europe Express' },
   aspects: OFFREGISTER_ASPECTS, traitSchema: offRegisterSchema, render: renderOffRegister, traitsOf: offRegisterTraits,
 };
 const INTERFERENCE: ProjectDef = {
-  slug: 'interference', displayName: 'Interference', artistHandle: 'newsprint-ai', outputs: 222,
+  slug: 'interference', displayName: 'Interference', artistHandle: 'moire-ai', outputs: 222,
   colorway: '#8a93a0', mintPriceEth: 0,
   soundtrack: { playlistId: 'OLAK5uy_nYQUGK6taXBkF8pOXguR7fAvX5rPUSPAs', label: 'Biosphere — Substrata' },
   aspects: INTERFERENCE_ASPECTS, traitSchema: interferenceSchema, render: renderInterference, traitsOf: interferenceTraits,
@@ -793,7 +772,7 @@ const AGAINST_LIGHT: ProjectDef = {
   aspects: AGAINSTLIGHT_ASPECTS, traitSchema: againstLightSchema, render: renderAgainstLight, traitsOf: againstLightTraits,
 };
 const DRAPERY: ProjectDef = {
-  slug: 'drapery', displayName: 'Drapery', artistHandle: 'veil-ai', outputs: 222,
+  slug: 'drapery', displayName: 'Drapery', artistHandle: 'vein-ai', outputs: 222,
   colorway: '#7a3b3b', mintPriceEth: 0,
   soundtrack: { playlistId: 'OLAK5uy_kS0xK-8stFnvAtN5wIIAidUD2MAXSOxAI', label: 'Sigur Rós — Ágætis byrjun' },
   aspects: DRAPERY_ASPECTS, traitSchema: draperySchema, render: renderDrapery, traitsOf: draperyTraits,
@@ -819,7 +798,7 @@ const NOISE_BELOW_2: ProjectDef = {
 const LONG_NOON: ProjectDef = {
   slug: 'long-noon',
   displayName: 'Long Noon',
-  artistHandle: 'opus4-8',
+  artistHandle: 'meridian-ai',
   outputs: 111,
   colorway: '#B07C3C',
   mintPriceEth: 0,
@@ -833,7 +812,7 @@ const LONG_NOON: ProjectDef = {
 const SAP_RISING: ProjectDef = {
   slug: 'sap-rising',
   displayName: 'Sap Rising',
-  artistHandle: 'opus4-8',
+  artistHandle: 'vein-ai',
   outputs: 111,
   colorway: '#7E8C76',
   mintPriceEth: 0,
@@ -847,7 +826,7 @@ const SAP_RISING: ProjectDef = {
 const COLD_JOINT: ProjectDef = {
   slug: 'cold-joint',
   displayName: 'Cold Joint',
-  artistHandle: 'opus4-8',
+  artistHandle: 'lapidary-ai',
   outputs: 222,
   colorway: '#8A9488',
   mintPriceEth: 0,
@@ -861,7 +840,7 @@ const COLD_JOINT: ProjectDef = {
 const RIME: ProjectDef = {
   slug: 'rime',
   displayName: 'Rime',
-  artistHandle: 'opus4-8',
+  artistHandle: 'hoarfrost-ai',
   outputs: 111,
   colorway: '#3C7E8E',
   mintPriceEth: 0,
@@ -877,7 +856,7 @@ const RIME: ProjectDef = {
 const MINIUM: ProjectDef = {
   slug: 'minium',
   displayName: 'Minium',
-  artistHandle: 'opus4-8',
+  artistHandle: 'kinesis-ai',
   outputs: 111,
   colorway: '#A8543A',
   mintPriceEth: 0,
@@ -891,7 +870,7 @@ const MINIUM: ProjectDef = {
 const NOCTILUCENT: ProjectDef = {
   slug: 'noctilucent',
   displayName: 'Noctilucent',
-  artistHandle: 'opus4-8',
+  artistHandle: 'nightpaper-ai',
   outputs: 111,
   colorway: '#9FC4DA',
   mintPriceEth: 0,
@@ -905,7 +884,7 @@ const NOCTILUCENT: ProjectDef = {
 const DEAD_RECKONING: ProjectDef = {
   slug: 'dead-reckoning',
   displayName: 'Dead Reckoning',
-  artistHandle: 'opus4-8',
+  artistHandle: 'lapidary-ai',
   outputs: 222,
   colorway: '#7E8C91',
   mintPriceEth: 0,
@@ -921,7 +900,7 @@ const DEAD_RECKONING: ProjectDef = {
 const AFTER_GRAVITY: ProjectDef = {
   slug: 'after-gravity',
   displayName: 'After Gravity',
-  artistHandle: 'umbra-ai',
+  artistHandle: 'lowgravity-ai',
   outputs: 222,
   colorway: '#2E5FA3',
   mintPriceEth: 0,
@@ -935,7 +914,7 @@ const AFTER_GRAVITY: ProjectDef = {
 const VANGUARD: ProjectDef = {
   slug: 'vanguard',
   displayName: 'Vanguard',
-  artistHandle: 'tracedeck-ai',
+  artistHandle: 'kinesis-ai',
   outputs: 111,
   colorway: '#D02E22',
   mintPriceEth: 0,
@@ -949,7 +928,7 @@ const VANGUARD: ProjectDef = {
 const QUIET_MUTINY: ProjectDef = {
   slug: 'quiet-mutiny',
   displayName: 'Quiet Mutiny',
-  artistHandle: 'foolscap-ai',
+  artistHandle: 'letterpress-ai',
   outputs: 111,
   colorway: '#2B2A28',
   mintPriceEth: 0,
@@ -963,7 +942,7 @@ const QUIET_MUTINY: ProjectDef = {
 const ANDANTE: ProjectDef = {
   slug: 'andante',
   displayName: 'Andante',
-  artistHandle: 'lowgravity-ai',
+  artistHandle: 'cantabile-ai',
   outputs: 222,
   colorway: '#2D52C9',
   mintPriceEth: 0,
@@ -977,7 +956,7 @@ const ANDANTE: ProjectDef = {
 const THRESHOLD: ProjectDef = {
   slug: 'threshold',
   displayName: 'Threshold',
-  artistHandle: 'firstchannel-ai',
+  artistHandle: 'liminal-ai',
   outputs: 111,
   colorway: '#233E8C',
   mintPriceEth: 0,
@@ -991,7 +970,7 @@ const THRESHOLD: ProjectDef = {
 const ICTUS: ProjectDef = {
   slug: 'ictus',
   displayName: 'Ictus',
-  artistHandle: 'nightpour-ai',
+  artistHandle: 'resonance-ai',
   outputs: 222,
   colorway: '#7A2E26',
   mintPriceEth: 0,
@@ -1005,7 +984,7 @@ const ICTUS: ProjectDef = {
 const JAZZ: ProjectDef = {
   slug: 'jazz',
   displayName: 'Jazz',
-  artistHandle: 'newsprint-ai',
+  artistHandle: 'splice-ai',
   outputs: 222,
   colorway: '#E8643C',
   mintPriceEth: 0,
@@ -1016,24 +995,11 @@ const JAZZ: ProjectDef = {
   traitsOf: jazzTraits,
 };
 
-const REVERIE: ProjectDef = {
-  slug: 'reverie',
-  displayName: 'Reverie',
-  artistHandle: 'veil-ai',
-  outputs: 111,
-  colorway: '#C98B86',
-  mintPriceEth: 0,
-  soundtrack: null,
-  aspects: REVERIE_ASPECTS,
-  traitSchema: reverieSchema,
-  render: renderReverie,
-  traitsOf: reverieTraits,
-};
 
 const CADENCE: ProjectDef = {
   slug: 'cadence',
   displayName: 'Cadence',
-  artistHandle: 'foolscap-ai',
+  artistHandle: 'moire-ai',
   outputs: 222,
   colorway: '#1D4E89',
   mintPriceEth: 0,
@@ -1047,7 +1013,7 @@ const CADENCE: ProjectDef = {
 const APERTURE: ProjectDef = {
   slug: 'aperture',
   displayName: 'Aperture',
-  artistHandle: 'lapidary-ai',
+  artistHandle: 'duskfield-ai',
   outputs: 222,
   colorway: '#1C8C7A',
   mintPriceEth: 0,
@@ -1075,7 +1041,7 @@ const INTERIM: ProjectDef = {
 const STILLPOINT: ProjectDef = {
   slug: 'stillpoint',
   displayName: 'Stillpoint',
-  artistHandle: 'umbra-ai',
+  artistHandle: 'kinesis-ai',
   outputs: 111,
   colorway: '#C0392B',
   mintPriceEth: 0,
@@ -1089,7 +1055,7 @@ const STILLPOINT: ProjectDef = {
 const CHLADNI: ProjectDef = {
   slug: 'chladni',
   displayName: 'Chladni',
-  artistHandle: 'murmur-ai',
+  artistHandle: 'resonance-ai',
   outputs: 222,
   colorway: '#C7A878',
   mintPriceEth: 0,
@@ -1103,7 +1069,7 @@ const CHLADNI: ProjectDef = {
 const CAUSTICS: ProjectDef = {
   slug: 'caustics',
   displayName: 'Caustics',
-  artistHandle: 'slacktide-ai',
+  artistHandle: 'photogram-ai',
   outputs: 222,
   colorway: '#1FA6A0',
   mintPriceEth: 0,
@@ -1131,7 +1097,7 @@ const SCHLIEREN: ProjectDef = {
 const FROST_FERN: ProjectDef = {
   slug: 'frost-fern',
   displayName: 'Frost Fern',
-  artistHandle: 'coralline-ai',
+  artistHandle: 'hoarfrost-ai',
   outputs: 222,
   colorway: '#8FC7E0',
   mintPriceEth: 0,
@@ -1145,7 +1111,7 @@ const FROST_FERN: ProjectDef = {
 const CYANOTYPE: ProjectDef = {
   slug: 'cyanotype',
   displayName: 'Cyanotype',
-  artistHandle: 'overprint-ai',
+  artistHandle: 'photogram-ai',
   outputs: 222,
   colorway: '#2A4A8C',
   mintPriceEth: 0,
@@ -1156,24 +1122,11 @@ const CYANOTYPE: ProjectDef = {
   traitsOf: cyanotypeTraits,
 };
 
-const KINTSUGI: ProjectDef = {
-  slug: 'kintsugi',
-  displayName: 'Kintsugi',
-  artistHandle: 'lapidary-ai',
-  outputs: 222,
-  colorway: '#C9A227',
-  mintPriceEth: 0,
-  soundtrack: null,
-  aspects: KINTSUGI_ASPECTS,
-  traitSchema: kintsugiSchema,
-  render: renderKintsugi,
-  traitsOf: kintsugiTraits,
-};
 
 const EFFLORESCENCE: ProjectDef = {
   slug: 'efflorescence',
   displayName: 'Efflorescence',
-  artistHandle: 'fathom-ai',
+  artistHandle: 'saltbloom-ai',
   outputs: 222,
   colorway: '#9FB0AE',
   mintPriceEth: 0,
@@ -1184,52 +1137,13 @@ const EFFLORESCENCE: ProjectDef = {
   traitsOf: efflorescenceTraits,
 };
 
-const EVAPORATE: ProjectDef = {
-  slug: 'evaporate',
-  displayName: 'Evaporate',
-  artistHandle: 'overprint-ai',
-  outputs: 222,
-  colorway: '#8A5A3C',
-  mintPriceEth: 0,
-  soundtrack: null,
-  aspects: EVAPORATE_ASPECTS,
-  traitSchema: evaporateSchema,
-  render: renderEvaporate,
-  traitsOf: evaporateTraits,
-};
 
-const ENCAUSTIC: ProjectDef = {
-  slug: 'encaustic',
-  displayName: 'Encaustic',
-  artistHandle: 'firstchannel-ai',
-  outputs: 222,
-  colorway: '#D9A24E',
-  mintPriceEth: 0,
-  soundtrack: null,
-  aspects: ENCAUSTIC_ASPECTS,
-  traitSchema: encausticSchema,
-  render: renderEncaustic,
-  traitsOf: encausticTraits,
-};
 
-const PATINA: ProjectDef = {
-  slug: 'patina',
-  displayName: 'Patina',
-  artistHandle: 'fathom-ai',
-  outputs: 111,
-  colorway: '#3E8C6E',
-  mintPriceEth: 0,
-  soundtrack: null,
-  aspects: PATINA_ASPECTS,
-  traitSchema: patinaSchema,
-  render: renderPatina,
-  traitsOf: patinaTraits,
-};
 
 const FROTTAGE: ProjectDef = {
   slug: 'frottage',
   displayName: 'Frottage',
-  artistHandle: 'offset-ai',
+  artistHandle: 'automatist-ai',
   outputs: 222,
   colorway: '#6E7378',
   mintPriceEth: 0,
@@ -1243,7 +1157,7 @@ const FROTTAGE: ProjectDef = {
 const FUMAGE: ProjectDef = {
   slug: 'fumage',
   displayName: 'Fumage',
-  artistHandle: 'offset-ai',
+  artistHandle: 'automatist-ai',
   outputs: 222,
   colorway: '#3A332C',
   mintPriceEth: 0,
@@ -1261,7 +1175,7 @@ const FUMAGE: ProjectDef = {
 const NARTHEX: ProjectDef = {
   slug: 'narthex',
   displayName: 'Narthex',
-  artistHandle: 'veil-ai',
+  artistHandle: 'sanctuary-ai',
   outputs: 111,
   colorway: '#0A1433',
   mintPriceEth: 0,
@@ -1274,7 +1188,7 @@ const NARTHEX: ProjectDef = {
 const SECOND_SUN: ProjectDef = {
   slug: 'secondsun',
   displayName: 'Second Sun',
-  artistHandle: 'filament-ai',
+  artistHandle: 'mirage-ai',
   outputs: 111,
   colorway: '#E8895A',
   mintPriceEth: 0,
@@ -1287,7 +1201,7 @@ const SECOND_SUN: ProjectDef = {
 const CABINET: ProjectDef = {
   slug: 'cabinet',
   displayName: 'Cabinet',
-  artistHandle: 'lapidary-ai',
+  artistHandle: 'wunderkammer-ai',
   outputs: 222,
   colorway: '#6B7A52',
   mintPriceEth: 0,
@@ -1300,7 +1214,7 @@ const CABINET: ProjectDef = {
 const OVERCAST: ProjectDef = {
   slug: 'overcast',
   displayName: 'Overcast',
-  artistHandle: 'murmur-ai',
+  artistHandle: 'leadensky-ai',
   outputs: 111,
   colorway: '#5B6470',
   mintPriceEth: 0,
@@ -1313,7 +1227,7 @@ const OVERCAST: ProjectDef = {
 const STILL_RAIN: ProjectDef = {
   slug: 'stillrain',
   displayName: 'Still Rain',
-  artistHandle: 'deepend-ai',
+  artistHandle: 'lanternlight-ai',
   outputs: 111,
   colorway: '#6E8794',
   mintPriceEth: 0,
@@ -1326,7 +1240,7 @@ const STILL_RAIN: ProjectDef = {
 const PAPER_COUNTRY: ProjectDef = {
   slug: 'papercountry',
   displayName: 'Paper Country',
-  artistHandle: 'graincount-ai',
+  artistHandle: 'nightpaper-ai',
   outputs: 111,
   colorway: '#B7AB97',
   mintPriceEth: 0,
@@ -1339,7 +1253,7 @@ const PAPER_COUNTRY: ProjectDef = {
 const BALLAST: ProjectDef = {
   slug: 'ballast',
   displayName: 'Ballast',
-  artistHandle: 'stellar-ai',
+  artistHandle: 'leadensky-ai',
   outputs: 222,
   colorway: '#4E5A66',
   mintPriceEth: 0,
@@ -1352,7 +1266,7 @@ const BALLAST: ProjectDef = {
 const SALT_MIRROR: ProjectDef = {
   slug: 'saltmirror',
   displayName: 'Salt Mirror',
-  artistHandle: 'flatsea-ai',
+  artistHandle: 'mirage-ai',
   outputs: 111,
   colorway: '#BCA89E',
   mintPriceEth: 0,
@@ -1363,7 +1277,7 @@ const SALT_MIRROR: ProjectDef = {
   traitsOf: saltMirrorTraits,
 };
 
-const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, ELECTRUM, QUICKSILVER, LUSTRE, BLOOMWATER, VOLTAIC, FACET, VESPERS, TOKEH, CONSERVATORY, ORBITAL, PRESSROOM, CINDER, CATENARY, TOPIARY, SLACK_WATER, LOADED_QUESTION, PROVENANCE, OFF_REGISTER, INTERFERENCE, AGAINST_LIGHT, DRAPERY, VESTIBULE, NOISE_BELOW_2, LONG_NOON, SAP_RISING, COLD_JOINT, RIME, MINIUM, NOCTILUCENT, DEAD_RECKONING, AFTER_GRAVITY, VANGUARD, QUIET_MUTINY, ANDANTE, THRESHOLD, ICTUS, JAZZ, REVERIE, CADENCE, APERTURE, INTERIM, STILLPOINT, CHLADNI, CAUSTICS, SCHLIEREN, FROST_FERN, CYANOTYPE, KINTSUGI, EFFLORESCENCE, EVAPORATE, ENCAUSTIC, PATINA, FROTTAGE, FUMAGE, NARTHEX, SECOND_SUN, CABINET, OVERCAST, STILL_RAIN, PAPER_COUNTRY, BALLAST, SALT_MIRROR];
+const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, ELECTRUM, QUICKSILVER, LUSTRE, BLOOMWATER, VOLTAIC, FACET, VESPERS, TOKEH, CONSERVATORY, PRESSROOM, CINDER, CATENARY, TOPIARY, SLACK_WATER, PROVENANCE, OFF_REGISTER, INTERFERENCE, AGAINST_LIGHT, DRAPERY, VESTIBULE, NOISE_BELOW_2, LONG_NOON, SAP_RISING, COLD_JOINT, RIME, MINIUM, NOCTILUCENT, DEAD_RECKONING, AFTER_GRAVITY, VANGUARD, QUIET_MUTINY, ANDANTE, THRESHOLD, ICTUS, JAZZ, CADENCE, APERTURE, INTERIM, STILLPOINT, CHLADNI, CAUSTICS, SCHLIEREN, FROST_FERN, CYANOTYPE, EFFLORESCENCE, FROTTAGE, FUMAGE, NARTHEX, SECOND_SUN, CABINET, OVERCAST, STILL_RAIN, PAPER_COUNTRY, BALLAST, SALT_MIRROR];
 const BY_SLUG = new Map<string, ProjectDef>(PROJECTS.map((p) => [p.slug, p]));
 
 /* True Name — each Project's permanent, unique secret-name glyph (uppercase
