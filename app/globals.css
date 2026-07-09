@@ -9051,10 +9051,11 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     font-size: 13px;
     line-height: 1.5;
     margin-bottom: 12px;
-    /* Solid black rectangle, white text, sharp corners, full-strength.
-       Max-contrast boxed message (not a button). */
-    background: #000;
-    color: #fff;
+    /* Solid max-contrast boxed message (not a button), sharp corners,
+       full-strength. Flips with the colorway: black block + white text on a
+       dark colorway, white block + black text on a light one. */
+    background: var(--stat-active-text);
+    color: var(--text-color);
     border-radius: 0;
     font-weight: bold;
     padding: 10px 12px;
@@ -9111,9 +9112,12 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
 }
 .account-create-modal-sprite-cell-selected {
     opacity: 1;
+    /* Selected = filled inverted quadrant, like a selected icon: the cell
+       floods with the ink and the sprite + label flip to the colorway colour. */
+    background: var(--text-color);
+    color: var(--bg-color);
     border-color: var(--text-color);
     border-width: 2px;
-    background: rgba(127, 127, 127, 0.1);
 }
 .account-create-modal-sprite-glyph {
     font-size: 17px;
