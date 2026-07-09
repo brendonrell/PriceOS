@@ -45,6 +45,13 @@ import { setAppBadge, clearAppBadge } from '../push/client';
 // latency (bumped from 15s on re-enable, Brendon 2026-07-08).
 const POLL_MS = 30_000;
 
+// Rolling inbox window. We hold the newest N pings; as fresh ones land at the
+// top, the oldest already-seen ones fall off the bottom (the server hands back
+// newest-first, so requesting N gives exactly that window). 100 ≈ the live
+// window Instagram/X keep — scrollable, with older history aging out per the
+// retention tiers rather than living in the panel forever.
+const PING_WINDOW = 100;
+
 /* Re-enabled 2026-07-08 (Brendon) post-Cloudflare migration. Safe because:
    (a) polls ONLY while signed in AND the tab is visible (the tick bails on
    non-visible; the socket nudge is the real-time path); (b) the count query is
@@ -133,7 +140,7 @@ export function PingsProvider({ children }: { children: ReactNode }) {
     inFlight.current = true;
     setState((s) => ({ ...s, loading: true }));
     try {
-      const r = await fetch('/api/pings', { cache: 'no-store' });
+      const r = await fetch(`/api/pings?limit=${PING_WINDOW}`, { cache: 'no-store' });
       if (!r.ok) return;
       const j = (await r.json()) as {
         directed_unread: number;
@@ -253,14 +260,16 @@ export function PingsProvider({ children }: { children: ReactNode }) {
     QUALIFYING_EVENTS.forEach((e) => window.addEventListener(e, onAction));
 
     // Near-instant path: the moment ANY market event lands (offer/sale/list/
-    // mint), nudge a count check so a financial ping surfaces in ~1s instead of
-    // waiting for the poll. Rides the PUBLIC events table — no private channel,
-    // no privacy concern. Debounced so a burst is one check. Poll is the
-    // fallback if the socket is unavailable (anon env missing) or drops.
+    // mint/follow), pull the FULL list so the newest ping surfaces at the top in
+    // ~1s — directed AND follow-feed alike (a count-only nudge left the visible
+    // list frozen whenever the new activity was broadcast, not directed-to-you).
+    // Rides the PUBLIC events table — no private channel, no privacy concern.
+    // Debounced so a burst is one fetch. Poll is the fallback if the socket is
+    // unavailable (anon env missing) or drops.
     let nudgeTimer = 0;
     const nudge = () => {
       window.clearTimeout(nudgeTimer);
-      nudgeTimer = window.setTimeout(() => { void fetchCount(); }, 800);
+      nudgeTimer = window.setTimeout(() => { void fetchFull(); }, 800);
     };
     let channel: RealtimeChannel | null = null;
     if (!PINGS_POLL_DISABLED) {
