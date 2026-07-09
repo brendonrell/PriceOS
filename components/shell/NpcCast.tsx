@@ -366,7 +366,15 @@ export function NpcCast() {
        plays its entrance animation. */
     useEffect(() => {
         const m = measureRef.current;
-        if (!m || typeof window === 'undefined') return;
+        // Line boxes are counted on the INNER inline span. The measurer itself
+        // is position:fixed, which makes it a BLOCK box — and getClientRects()
+        // on a block returns ONE rect (the border box) no matter how many lines
+        // the text wraps into. Counting on the block read "1 line" for every
+        // text, so the width search collapsed every bubble to the 24px floor
+        // (the squashed-bubbles regression, Brendon 2026-07-09). Only an inline
+        // box yields a rect per line.
+        const inner = (m?.firstElementChild as HTMLSpanElement | null) ?? null;
+        if (!m || !inner || typeof window === 'undefined') return;
         const cap = Math.min(152, window.innerWidth * 0.52);
         const padX = 22; // must match .npc-bubble horizontal padding (11px * 2)
         m.style.fontSize = '15px';
@@ -379,16 +387,16 @@ export function NpcCast() {
                 continue;
             }
             m.style.letterSpacing = c.letterSpacing ?? '';
-            m.textContent = styleText(text, c.style);
+            inner.textContent = styleText(text, c.style);
             const capW = Math.max(24, Math.round(cap - padX));
             m.style.maxWidth = `${capW}px`;
-            const lineCount = m.getClientRects().length;
+            const lineCount = inner.getClientRects().length;
             if (lineCount === 0) { el.style.width = ''; continue; }
             let lo = 24, hi = capW;
             while (lo < hi) {
                 const mid = (lo + hi) >> 1;
                 m.style.maxWidth = `${mid}px`;
-                if (m.getClientRects().length > lineCount) lo = mid + 1;
+                if (inner.getClientRects().length > lineCount) lo = mid + 1;
                 else hi = mid;
             }
             el.style.width = `${lo + padX}px`;
@@ -427,7 +435,8 @@ export function NpcCast() {
                 </div>
                 );
             })}
-            <span ref={measureRef} className="npc-measure" aria-hidden="true" />
+            {/* Inner inline span = the line-box counter (see the sizing effect). */}
+            <span ref={measureRef} className="npc-measure" aria-hidden="true"><span /></span>
         </div>
     );
 }
