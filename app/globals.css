@@ -9051,14 +9051,25 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     font-size: 13px;
     line-height: 1.5;
     margin-bottom: 12px;
+    /* Solid, sharp-cornered, full-strength block — themed fill, ink text,
+       ink outline so it reads as a boxed message (not a button). Inverse of
+       the wallet / @name blocks below. */
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1.5px solid var(--text-color);
+    border-radius: 0;
+    font-weight: bold;
+    padding: 10px 12px;
 }
 .account-create-modal-addr {
     font-size: 13px;
     font-weight: bold;
-    padding: 6px 8px;
+    padding: 8px 10px;
     margin-bottom: 14px;
-    border-radius: 4px;
-    background: rgba(127, 127, 127, 0.15);
+    border-radius: 0;
+    /* Solid ink block, themed text — the inverse of the message block. */
+    background: var(--text-color);
+    color: var(--bg-color);
     text-align: center;
     letter-spacing: 0.5px;
 }
@@ -9135,32 +9146,35 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     display: flex;
     align-items: center;
     gap: 4px;
-    border: 1px solid currentColor;
-    border-radius: 4px;
+    border: 1.5px solid var(--text-color);
+    border-radius: 0;
     padding: 8px 10px;
-    background: transparent;
+    /* Solid ink block, bold themed text — matches the wallet block. */
+    background: var(--text-color);
     margin-bottom: 6px;
 }
 .account-create-modal-handle-at {
     font-size: 15px;
     font-weight: bold;
-    opacity: 0.9;
+    opacity: 1;
+    color: var(--bg-color);
 }
 .account-create-modal-handle-input {
     flex: 1 1 auto;
     background: transparent;
     border: none;
     outline: none;
-    color: var(--text-color);
+    color: var(--bg-color);
     font-family: 'Courier New', Courier, monospace;
     font-size: 15px;
+    font-weight: bold;
     letter-spacing: 0.5px;
     padding: 0;
     min-width: 0;
 }
 .account-create-modal-handle-input::placeholder {
-    color: var(--text-color);
-    opacity: 0.3;
+    color: var(--bg-color);
+    opacity: 0.55;
 }
 .account-create-modal-handle-input:disabled {
     opacity: 0.45;
@@ -9180,14 +9194,17 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     opacity: 0.95;
 }
 .account-create-modal-handle-status-bad {
-    opacity: 0.85;
-    color: #FF0055; /* Hothurt — error state, matches brand */
+    opacity: 1;
+    font-weight: bold;
+    color: var(--text-color); /* readable theme ink, not red */
 }
 .account-create-modal-error {
     font-size: 12px;
     line-height: 1.4;
     margin-bottom: 10px;
-    color: #FF0055;
+    opacity: 1;
+    font-weight: bold;
+    color: var(--text-color); /* readable theme ink, not red */
 }
 .account-create-modal-actions {
     display: flex;

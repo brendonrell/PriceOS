@@ -304,7 +304,7 @@ export function AccountCreateModal({
                 ? 'Checking…'
                 : status.state === 'available'
                     ? `@${normalised} is available.`
-                    : REASON_COPY[status.reason];
+                    : `${REASON_COPY[status.reason]} ↑`;
 
     const statusTone: 'idle' | 'ok' | 'bad' =
         status.state === 'available'
