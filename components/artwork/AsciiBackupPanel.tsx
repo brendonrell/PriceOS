@@ -41,11 +41,15 @@ export default function AsciiBackupPanel({ slug, id }: { slug: string; id: numbe
             setArtifact(a);
             const canvas = canvasRef.current;
             if (!canvas) return;
-            // Paint at device resolution for the panel's width so the glyphs
-            // stay razor-crisp — the "wait, that's ASCII??" moment.
-            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            // Paint at FULL device resolution for the panel's width so the
+            // glyphs stay razor-crisp — the "wait, that's ASCII??" moment.
+            // No dpr cap: the internal render must be ≥ the screen's device
+            // pixels so the browser only ever scales it DOWN — an upscale
+            // (dpr-3 phones under the old cap of 2) re-creates the faint
+            // horizontal moiré lines the integer cell grid exists to kill.
+            const dpr = window.devicePixelRatio || 1;
             const box = canvas.parentElement?.clientWidth || Math.min(window.innerWidth, 900);
-            const widthPx = Math.min(2200, Math.round(box * dpr));
+            const widthPx = Math.min(2400, Math.round(box * dpr));
 
             // Full card painted once, offscreen…
             const full = document.createElement('canvas');

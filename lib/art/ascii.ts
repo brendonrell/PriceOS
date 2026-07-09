@@ -158,25 +158,42 @@ export function buildAsciiArtifact(
 }
 
 /** Paint an artifact onto a canvas — Courier glyphs in their palette colours
- *  on near-black, sized from `widthPx` so the view stays crisp.
+ *  on near-black, at or above the `widthPx` resolution so the view stays crisp.
  *
- *  Display compensation: glyph ink only covers ~45% of each cell, so drawing
- *  the honest stored colours reads DARK next to the source image. The painted
- *  view lifts brightness (bold glyphs + a colour boost with a small black-lift,
- *  clamped) so the on-screen ASCII reads like the piece — the stored
- *  palette/text stays untouched, exactly as sampled. */
+ *  Display compensation (stored palette/text stays untouched, exactly as
+ *  sampled — all of this is paint-time only):
+ *
+ *  - INTEGER CELL GRID. Fractional cell heights + the browser rescaling the
+ *    canvas up to the screen are what painted the faint horizontal "lines"
+ *    (moiré banding — the recurring ~1/3-down line). Cells are now whole
+ *    pixels — cellW a multiple of 3, cellH exactly 5/3 of it, honouring the
+ *    0.6 Courier advance — and the internal render is always AT OR ABOVE the
+ *    requested resolution, so the screen only ever scales it DOWN (averaging,
+ *    no moiré). The ≥10px glyph size is also what fixes the small-font mush:
+ *    Courier below ~7px doesn't rasterize into legible ink.
+ *
+ *  - PER-CELL COLOUR UNDERLAY. Glyph ink only covers ~40% of a cell, so ink
+ *    colour alone reads at roughly half the piece's brightness — and the
+ *    hue-preserving boost can't lift an already-saturated neon at all (its top
+ *    channel is at 255; the clamp scales it straight back down). The only way
+ *    to actually reach the image's brightness is more lit area: each non-space
+ *    cell gets a fill of its own colour at reduced strength UNDER the
+ *    full-strength glyph. Same hue exactly (pure scaling), blacks stay black
+ *    (space cells stay bare #050505), and up close it still reads as glyphs. */
 export function paintAsciiArtifact(target: HTMLCanvasElement, art: AsciiArtifact, widthPx: number): void {
-    const cellW = widthPx / art.cols;
-    const cellH = cellW / CHAR_ASPECT;
-    const w = Math.round(widthPx);
-    const h = Math.round(cellH * art.rows);
+    // Smallest multiple-of-3 cell width that meets the requested resolution,
+    // floored at 6 (10px glyphs) and capped at 12 (20px glyphs).
+    const cellW = Math.min(12, Math.max(6, Math.ceil(widthPx / art.cols / 3) * 3));
+    const cellH = (cellW * 5) / 3;
+    const w = cellW * art.cols;
+    const h = cellH * art.rows;
     target.width = w;
     target.height = h;
     const ctx = target.getContext('2d');
     if (!ctx) return;
     ctx.fillStyle = '#050505';
     ctx.fillRect(0, 0, w, h);
-    ctx.font = `bold ${cellH.toFixed(2)}px 'Courier New', Courier, monospace`;
+    ctx.font = `bold ${cellH}px 'Courier New', Courier, monospace`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     // Pre-lift the palette once (display-only brightness compensation).
@@ -186,15 +203,21 @@ export function paintAsciiArtifact(target: HTMLCanvasElement, art: AsciiArtifact
     // When a channel would clip, scale the whole colour down so the hue holds at
     // full saturation instead of blowing out. Blacks stay black — no grey flood.
     const BOOST = 1.85;
-    const lift = (hex: string): string => {
+    // Underlay strength — fraction of the lifted colour filling the cell
+    // behind the glyph. 0.55 lands the cell's average (ink + fill) close to
+    // the source pixel's brightness without flattening the glyph texture.
+    const UNDERLAY = 0.55;
+    const ink: string[] = [];
+    const under: string[] = [];
+    for (const hex of art.palette) {
         let r = parseInt(hex.slice(1, 3), 16) * BOOST;
         let g = parseInt(hex.slice(3, 5), 16) * BOOST;
         let b = parseInt(hex.slice(5, 7), 16) * BOOST;
         const m = Math.max(r, g, b);
         if (m > 255) { const s = 255 / m; r *= s; g *= s; b *= s; }
-        return `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`;
-    };
-    const lifted = art.palette.map(lift);
+        ink.push(`rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`);
+        under.push(`rgb(${Math.round(r * UNDERLAY)},${Math.round(g * UNDERLAY)},${Math.round(b * UNDERLAY)})`);
+    }
     const lines = art.text.split('\n');
     for (let y = 0; y < art.rows; y++) {
         const line = lines[y] ?? '';
@@ -203,7 +226,9 @@ export function paintAsciiArtifact(target: HTMLCanvasElement, art: AsciiArtifact
             const ch = line[x];
             if (!ch || ch === ' ') continue;
             const pi = parseInt(art.cells.slice((y * art.cols + x) * 2, (y * art.cols + x) * 2 + 2), 16);
-            ctx.fillStyle = lifted[pi] ?? '#ffffff';
+            ctx.fillStyle = under[pi] ?? '#000000';
+            ctx.fillRect(x * cellW, y * cellH, cellW, cellH);
+            ctx.fillStyle = ink[pi] ?? '#ffffff';
             ctx.fillText(ch, (x + 0.5) * cellW, cy);
         }
     }
