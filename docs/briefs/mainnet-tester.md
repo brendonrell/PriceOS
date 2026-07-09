@@ -2,7 +2,12 @@
 
 Everything below this block is context; this is the work order. State:
 indexer's real-time path PROVEN live (webhook → /api/webhooks/alchemy →
-Supabase, real XFER row for pd-test-alpha token 3). Sweep + sales path remain.
+Supabase, real XFER rows). SALES PATH ALSO PROVEN (2026-07-09): tester T9 ran
+a real Seaport sale (12/12 PASS) and the indexer enriched it — token-1 XFER
+with price_eth 0.002, sale_direction LIST_FILL, apply_sale/upsert_holder all
+fired. ONLY the sweep (backstop schedule + token-2 backfill) remains below;
+the OpenSea-website render check moved to mainnet day (OpenSea killed
+testnets 2025-07).
 
 ## 1. Sweep go-live + token-2 backfill (needs Brendon's dashboard taps)
 Ask Brendon to add three vars on the Cloudflare Worker `pricediscussion`
