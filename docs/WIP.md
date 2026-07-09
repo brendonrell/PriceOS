@@ -6,6 +6,37 @@
 
 ---
 
+## 🧭 NEXT UP — THE ROAD TO MAINNET (Brendon's pick-up point, 2026-07-09)
+
+Sepolia rehearsal is functionally COMPLETE: contracts deployed + wired,
+tester 12/12 (incl. a real Seaport sale), all five contracts
+Etherscan-verified, indexer live-proven on transfers AND priced sales.
+Tool pages: /deploy (contract launcher) · /test (readiness matrix) — both
+bare routes, both live on the preview. Test stack addresses:
+`docs/sepolia-test-phase.md` §0.5. Three steps remain, in order:
+
+1. **Sweep go-live + token-2 backfill** (~30 min) — step-by-step work order
+   at the TOP of `docs/briefs/mainnet-tester.md` ("OPUS: START HERE").
+   Needs Brendon's three Cloudflare vars, then fire + verify + schedule.
+2. **Phase C — the app talks to Sepolia** (a real build session) — Sepolia
+   env profile behind a switch, dev preview only, Brendon-only (scope call
+   2026-07-06: NO user cohort on testnet). Exit proof: connect on the
+   preview → mint from the real UI → see it in the feed. Spec §3 Phase C +
+   config matrix §4 in `docs/sepolia-test-phase.md`.
+3. **Mythic Audit Pass** (`86b9v5wj4` — the LAST gate, multi-session) —
+   five-phase plan lives in the ClickUp Audit Plan page; fold in the
+   Sepolia observation material (gas table = the /test COPY REPORT output,
+   ClickUp task 86b9v5w77 comments). Task says "Opus 4.7" — run on the
+   strongest available model and update the task text.
+
+Then MAINNET DAY is a rerun of proven moves: /deploy re-pointed at mainnet
+→ Etherscan verify (same staged flow) → port /test (brief's mainnet
+section) → point the Alchemy webhook at mainnet → app cutover. Cleanup
+before public: delete the `pd-test-alpha` projects row + its events
+(test-only data), remove test branches.
+
+---
+
 ## ✅ SHIPPED 2026-07-09 — MARKETPLACE SALES PATH PROVEN · TESTER 12/12 (dev, tree clean)
 
 - OpenSea killed testnets (2025-07) → /test gained **T9: a real Seaport 1.6
