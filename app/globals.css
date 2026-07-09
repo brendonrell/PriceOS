@@ -4670,13 +4670,17 @@ button,
     padding: 2px 0 8px;
 }
 /* Cancel — corner glyph, OUT of the flex flow so the divider stays centred. */
+/* Cancel — a slim full-height tab on the right edge (its intended shape), NOT a
+   corner overlay. As an absolute corner button it sat ON TOP of the CONFIRM
+   tab's top-right, so a tap aimed at CONFIRM — especially in fiat mode, where a
+   third price line lifts CONFIRM's content up into that corner — hit Cancel and
+   dropped the mint. In-flow, it can't overlap the confirm target
+   (Brendon 2026-07-09). */
 .mint-cancel {
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    width: 22px;
-    height: 22px;
+    flex: 0 0 26px;
+    height: 100%;
     border: none;
+    border-left: 1px solid color-mix(in srgb, var(--mint-text) 32%, transparent);
     background: transparent;
     color: var(--mint-text);
     opacity: 0.55;
@@ -4686,7 +4690,6 @@ button,
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 3px;
     transition: opacity 0.15s;
     -webkit-tap-highlight-color: transparent;
 }
