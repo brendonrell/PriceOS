@@ -4501,11 +4501,14 @@ button,
 /* Ticker (ETH) / currency code sits SMALLER than the amount above it — the
    earlier look Brendon prefers (2026-07-08). Amount stays full size. */
 .mint-fiat-cur { font-size: 11px; letter-spacing: 0.04em; margin-top: 1px; opacity: 0.9; }
-/* The ~fiat conversion stack — secondary to the ETH price: italic, a half-size
-   smaller than the ETH amount, and 10% dimmer (Brendon 2026-07-08). */
+/* The ETH price inline with the ◊ mark — a touch smaller than the normal 15px
+   price, in the original brackets (Brendon 2026-07-08). */
+.mint-eth-inline { font-size: 13.5px; }
+/* The ~fiat conversion stack — secondary to the ETH price: italic, stacked
+   (amount over currency), one size smaller than the ETH price (Brendon 2026-07-08). */
 .mint-fiat--conv { font-style: italic; }
-.mint-fiat--conv .mint-fiat-amt { font-size: 13.5px; }
-.mint-fiat--conv .mint-fiat-cur { font-size: 11px; }
+.mint-fiat--conv .mint-fiat-amt { font-size: 12px; }
+.mint-fiat--conv .mint-fiat-cur { font-size: 10px; }
 /* The ETH price stacked (amount over ETH) wrapped in brackets that span the WHOLE
    stack — tall parens flank both lines, not just the number (Brendon 2026-07-08). */
 .mint-eth-price { display: inline-flex; align-items: center; gap: 2px; }

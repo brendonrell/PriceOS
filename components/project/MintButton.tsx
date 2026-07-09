@@ -63,28 +63,19 @@ export default function MintButton({
      transform-independent so we read the true natural width every time. */
   const faceRef = useRef<HTMLSpanElement | null>(null);
   const innerRef = useRef<HTMLSpanElement | null>(null);
-  const mintRef = useRef<HTMLSpanElement | null>(null);
   const [scale, setScale] = useState(1);
   const scaleRef = useRef(1);
   useLayoutEffect(() => {
-    // Fiat mode only. The WHOLE readout — MINT + ETH + fiat — is one centered
-    // row that scales to fill the pill (7px buffer each side). MINT is
-    // counter-scaled (font ÷ scale) so it renders at its fixed fiat-off size
-    // while the shared gap between all three stays equal at any scale.
+    // Fiat mode: MINT · (◊ price) · ~fiat renders at NORMAL sizes and only
+    // SHRINKS if a huge value would overflow the pill — never grows past 1
+    // (Brendon 2026-07-08). offsetWidth is transform-independent.
     if (phase === 'done' || !currency || perOutput === 0) { scaleRef.current = 1; setScale(1); return; }
-    const face = faceRef.current, row = innerRef.current, mint = mintRef.current;
-    if (!face || !row || !mint) return;
-    const mintW = mint.offsetWidth;
-    // MINT width at 16px, invariant to its current counter-scaled font.
-    const m16 = mintW * scaleRef.current;
-    const stacksAndGaps = row.offsetWidth - mintW; // font-independent remainder
-    const rowH = row.offsetHeight;
-    if (stacksAndGaps <= 0 || !rowH) return;
-    const availW = face.clientWidth - 16; // 8px each side
-    const availH = face.clientHeight - 2;
-    // Fill width with MINT held fixed, then cap by height so nothing spills.
-    const s = Math.min((availW - m16) / stacksAndGaps, availH / rowH);
-    const clamped = Math.max(0.4, Math.min(2.4, s));
+    const face = faceRef.current, row = innerRef.current;
+    if (!face || !row) return;
+    const availW = face.clientWidth - 12; // 6px each side
+    const w = row.offsetWidth;
+    if (!w) return;
+    const clamped = Math.max(0.4, Math.min(1, availW / w));
     scaleRef.current = clamped;
     setScale(clamped);
   }, [phase, mintPrice, currency, remaining, qty, ethToFiat, perOutput]);
@@ -221,25 +212,18 @@ export default function MintButton({
           <span className="mint-price" style={{ position: 'relative' }}>{price}</span>
         </>
       ) : idleFiat ? (
-        // Fiat mode: MINT + bracketed ETH + fiat are ONE centered row that scales
-        // to fill the pill. MINT is counter-scaled (font ÷ scale) so it renders at
-        // its fixed fiat-off size, while the single shared gap keeps the spacing
-        // equal on both sides of the ETH price at any scale.
+        // Fiat mode: MINT · (◊ price) · ~fiat on one row. The ETH price is inline
+        // with the ◊ mark (no ETH word) in the original brackets; the ~fiat stays
+        // stacked (amount over currency) a size smaller. Normal sizes — only
+        // shrinks if a huge value would overflow (Brendon 2026-07-08).
         <span className="mint-face mint-face-fiat" ref={faceRef} style={{ position: 'relative' }}>
           <span
             className="mint-nums-in"
             ref={innerRef}
             style={{ transform: scale !== 1 ? `scale(${scale})` : undefined }}
           >
-            <span className="mint-lbl" ref={mintRef} style={{ fontSize: `${(16 / scale).toFixed(3)}px` }}>{label}</span>
-            <span className="mint-eth-price">
-              <span className="mint-paren">(</span>
-              <span className="mint-fiat">
-                <span className="mint-fiat-amt">{ethAmt}</span>
-                <span className="mint-fiat-cur">ETH</span>
-              </span>
-              <span className="mint-paren">)</span>
-            </span>
+            <span className="mint-lbl">{label}</span>
+            <span className="mint-price mint-eth-inline">{`(◊︎ `}{ethAmt}{')'}</span>
             <span className="mint-fiat mint-fiat--conv">
               <span className="mint-fiat-amt">{idleFiat}</span>
               <span className="mint-fiat-cur">{currency}</span>
@@ -249,7 +233,8 @@ export default function MintButton({
       ) : (
         <span className="mint-face" style={{ position: 'relative' }}>
           <span className="mint-lbl">{label}</span>
-          <span className="mint-price">{price}</span>
+          {/* No ETH price while the mint runs — just MINTING… over the bar. */}
+          {phase !== 'minting' && <span className="mint-price">{price}</span>}
         </span>
       )}
     </button>
