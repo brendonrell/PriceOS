@@ -73,6 +73,56 @@ async function resolveVapidKey(): Promise<string> {
   return '';
 }
 
+/** Byte-compare two applicationServerKeys. */
+function buffersEqual(a: ArrayBuffer, b: ArrayBuffer): boolean {
+  if (a.byteLength !== b.byteLength) return false;
+  const va = new Uint8Array(a);
+  const vb = new Uint8Array(b);
+  for (let i = 0; i < va.length; i++) if (va[i] !== vb[i]) return false;
+  return true;
+}
+
+/** If this device's push subscription was created under a DIFFERENT VAPID key
+ *  than the server currently signs with, drop it and re-subscribe under the
+ *  current key — silently (permission is already granted, so no prompt).
+ *  Without this, a key rotation strands every subscribed device: the browser
+ *  keeps handing back the old-key subscription, the server signs with the new
+ *  key, and Apple rejects every send. Runs once per app session; best-effort. */
+let freshnessChecked = false;
+export async function ensureFreshSubscription(): Promise<void> {
+  if (freshnessChecked || !nativePushSupported()) return;
+  freshnessChecked = true;
+  try {
+    if (Notification.permission !== 'granted') return;
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    if (!sub) return;
+    const key = await resolveVapidKey();
+    if (!key) return;
+    const keyBuf = urlBase64ToBuffer(key);
+    const current = sub.options?.applicationServerKey;
+    if (current && buffersEqual(current, keyBuf)) return; // still on the live key
+    const oldEndpoint = sub.endpoint;
+    await sub.unsubscribe().catch(() => {});
+    void fetch('/api/push/unsubscribe', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ endpoint: oldEndpoint }),
+    }).catch(() => {});
+    const fresh = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: keyBuf,
+    });
+    await fetch('/api/push/subscribe', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ subscription: fresh.toJSON() }),
+    });
+  } catch {
+    /* best-effort */
+  }
+}
+
 export async function getNativeStatus(): Promise<NativeStatus> {
   if (!nativePushSupported()) {
     return { supported: false, permission: 'default', subscribed: false };
@@ -101,11 +151,27 @@ export async function enableNativePings(): Promise<EnableResult> {
     if (!vapidKey) return 'unsupported';
 
     const reg = await navigator.serviceWorker.ready;
+    const keyBuf = urlBase64ToBuffer(vapidKey);
     let sub = await reg.pushManager.getSubscription();
+    // A leftover subscription made under an OLD key is dead weight — the server
+    // signs with the current key, so Apple rejects sends to it. Replace it.
+    if (sub) {
+      const current = sub.options?.applicationServerKey;
+      if (current && !buffersEqual(current, keyBuf)) {
+        const oldEndpoint = sub.endpoint;
+        await sub.unsubscribe().catch(() => {});
+        void fetch('/api/push/unsubscribe', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ endpoint: oldEndpoint }),
+        }).catch(() => {});
+        sub = null;
+      }
+    }
     if (!sub) {
       sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToBuffer(vapidKey),
+        applicationServerKey: keyBuf,
       });
     }
 

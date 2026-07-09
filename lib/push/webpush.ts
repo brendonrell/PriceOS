@@ -154,9 +154,18 @@ export async function sendNativePing(recipientAddress: string, item: FeedItem): 
             payload,
           );
         } catch (err) {
-          // 404/410 → the browser dropped this subscription; prune it.
+          // 404/410 → the browser dropped this subscription; prune it. Anything
+          // else gets logged — a silent swallow here hid a dead send path for
+          // weeks (rejected VAPID signatures never surfaced anywhere).
           const code = (err as { statusCode?: number })?.statusCode;
           if (code === 404 || code === 410) dead.push(s.id);
+          else {
+            const body = (err as { body?: string })?.body;
+            console.error(
+              `[push] send failed status=${code ?? 'none'} ${err instanceof Error ? err.message : err}`,
+              body ? String(body).slice(0, 200) : '',
+            );
+          }
         }
       }),
     );
@@ -221,8 +230,16 @@ export async function sendTodoReminder(
             payload,
           );
         } catch (err) {
+          // Same contract as sendNativePing: prune dead subs, log the rest.
           const code = (err as { statusCode?: number })?.statusCode;
           if (code === 404 || code === 410) dead.push(s.id);
+          else {
+            const body = (err as { body?: string })?.body;
+            console.error(
+              `[push] send failed status=${code ?? 'none'} ${err instanceof Error ? err.message : err}`,
+              body ? String(body).slice(0, 200) : '',
+            );
+          }
         }
       }),
     );

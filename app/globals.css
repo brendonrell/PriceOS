@@ -5860,14 +5860,14 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     padding: 0 4px;
 }
 /* Secondary line under a confirm question (used by the 3D Pingtoasts first-run
-   ask) — lighter + smaller than the bold headline. */
+   ask) — smaller than the headline but FULL-strength and bold: this line is
+   meant to be read (Rule #2 — no half-opacity on resting UI). */
 .ms-confirm-sub {
     margin-top: 6px;
     font-size: 11px;
-    font-weight: normal;
+    font-weight: bold;
     letter-spacing: 0.2px;
     line-height: 1.45;
-    opacity: 0.7;
 }
 .ms-confirm-btns {
     display: flex;

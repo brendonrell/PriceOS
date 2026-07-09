@@ -36,7 +36,7 @@ import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
 import { usePdNotifs, showsRegularToasts, showsNativePings } from './PdNotifsContext';
 import { passesCategoryPrefs, renderPing, type FeedItem } from '../pings/render';
-import { setAppBadge, clearAppBadge } from '../push/client';
+import { setAppBadge, clearAppBadge, ensureFreshSubscription } from '../push/client';
 
 // Poll cadence (reliability FALLBACK). The live market feed below drives the
 // near-instant path (a directed ping surfaces in ~1s via the realtime nudge);
@@ -301,6 +301,13 @@ export function PingsProvider({ children }: { children: ReactNode }) {
     if (showsNativePings(notifs.pingToasts)) setAppBadge(state.unreadCount);
     else clearAppBadge();
   }, [notifs.pingToasts, state.unreadCount]);
+
+  // Key-rotation self-heal: if this device's push registration predates the
+  // server's current signing key, quietly drop + re-register it (once per
+  // session). Without this a key rotation strands every subscribed device.
+  useEffect(() => {
+    if (showsNativePings(notifs.pingToasts)) void ensureFreshSubscription();
+  }, [notifs.pingToasts]);
 
   const value = useMemo<PingsContextValue>(
     () => ({ state, refresh: fetchFull, markAllRead }),
