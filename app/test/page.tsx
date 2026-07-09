@@ -67,6 +67,8 @@ import {
     parseEther,
     stringToHex,
     toHex,
+    zeroAddress,
+    zeroHash,
     type Abi,
     type Address,
     type Hex,
@@ -88,6 +90,97 @@ const factoryAbi = (artifacts.PDFactory as { abi: Abi }).abi;
 const registryAbi = (artifacts.PDLibraryRegistry as { abi: Abi }).abi;
 const projectAbi = (testerAbis.PDProject as { abi: Abi }).abi;
 const splitterAbi = (testerAbis.PaymentSplitter as { abi: Abi }).abi;
+
+/* ── Seaport 1.6 (the marketplace contract OpenSea uses; same address on
+   every chain). T9 runs a REAL signed-order sale through it — OpenSea shut
+   its testnet site down in 2025, so we exercise the marketplace mechanics
+   directly: seller signs the order (with the 5% creator-earnings item the
+   way OpenSea builds orders), buyer fulfills on-chain. ── */
+const SEAPORT: Address = '0x0000000000000068F116a894984e2DB1123eB395';
+
+const seaportAbi = [
+    {
+        type: 'function', name: 'getCounter', stateMutability: 'view',
+        inputs: [{ name: 'offerer', type: 'address' }],
+        outputs: [{ name: 'counter', type: 'uint256' }],
+    },
+    {
+        type: 'function', name: 'fulfillOrder', stateMutability: 'payable',
+        inputs: [
+            {
+                name: 'order', type: 'tuple', components: [
+                    {
+                        name: 'parameters', type: 'tuple', components: [
+                            { name: 'offerer', type: 'address' },
+                            { name: 'zone', type: 'address' },
+                            {
+                                name: 'offer', type: 'tuple[]', components: [
+                                    { name: 'itemType', type: 'uint8' },
+                                    { name: 'token', type: 'address' },
+                                    { name: 'identifierOrCriteria', type: 'uint256' },
+                                    { name: 'startAmount', type: 'uint256' },
+                                    { name: 'endAmount', type: 'uint256' },
+                                ],
+                            },
+                            {
+                                name: 'consideration', type: 'tuple[]', components: [
+                                    { name: 'itemType', type: 'uint8' },
+                                    { name: 'token', type: 'address' },
+                                    { name: 'identifierOrCriteria', type: 'uint256' },
+                                    { name: 'startAmount', type: 'uint256' },
+                                    { name: 'endAmount', type: 'uint256' },
+                                    { name: 'recipient', type: 'address' },
+                                ],
+                            },
+                            { name: 'orderType', type: 'uint8' },
+                            { name: 'startTime', type: 'uint256' },
+                            { name: 'endTime', type: 'uint256' },
+                            { name: 'zoneHash', type: 'bytes32' },
+                            { name: 'salt', type: 'uint256' },
+                            { name: 'conduitKey', type: 'bytes32' },
+                            { name: 'totalOriginalConsiderationItems', type: 'uint256' },
+                        ],
+                    },
+                    { name: 'signature', type: 'bytes' },
+                ],
+            },
+            { name: 'fulfillerConduitKey', type: 'bytes32' },
+        ],
+        outputs: [{ name: 'fulfilled', type: 'bool' }],
+    },
+] as const;
+
+/* EIP-712 order shape Seaport verifies signatures against. */
+const SEAPORT_712_TYPES = {
+    OrderComponents: [
+        { name: 'offerer', type: 'address' },
+        { name: 'zone', type: 'address' },
+        { name: 'offer', type: 'OfferItem[]' },
+        { name: 'consideration', type: 'ConsiderationItem[]' },
+        { name: 'orderType', type: 'uint8' },
+        { name: 'startTime', type: 'uint256' },
+        { name: 'endTime', type: 'uint256' },
+        { name: 'zoneHash', type: 'bytes32' },
+        { name: 'salt', type: 'uint256' },
+        { name: 'conduitKey', type: 'bytes32' },
+        { name: 'counter', type: 'uint256' },
+    ],
+    OfferItem: [
+        { name: 'itemType', type: 'uint8' },
+        { name: 'token', type: 'address' },
+        { name: 'identifierOrCriteria', type: 'uint256' },
+        { name: 'startAmount', type: 'uint256' },
+        { name: 'endAmount', type: 'uint256' },
+    ],
+    ConsiderationItem: [
+        { name: 'itemType', type: 'uint8' },
+        { name: 'token', type: 'address' },
+        { name: 'identifierOrCriteria', type: 'uint256' },
+        { name: 'startAmount', type: 'uint256' },
+        { name: 'endAmount', type: 'uint256' },
+        { name: 'recipient', type: 'address' },
+    ],
+} as const;
 
 /* Same Reown Cloud project as the app + /deploy (public value). */
 const projectId = 'dddf23db294ed8117609933e1a6ae83c';
@@ -225,6 +318,7 @@ const MATRIX: Array<{ key: string; title: string }> = [
     { key: 'T6', title: 'royaltyInfo = splitter · 5%' },
     { key: 'T7', title: 'secondary royalty 60/40 withdraw' },
     { key: 'T8', title: 'transfer A→B (indexer event)' },
+    { key: 'T9', title: 'Seaport sale → price + 5% royalty' },
 ];
 
 function Tester() {
@@ -511,6 +605,122 @@ function Tester() {
                     status: owner.toLowerCase() === receiver.address.toLowerCase() ? 'pass' : 'fail',
                     detail: `token 1 → ${receiver.address.slice(0, 10)}… (Transfer event for the indexer)`,
                     tx: hash, gasEth,
+                });
+            }
+
+            /* T9 — Seaport sale: signed listing + on-chain fulfillment, the
+               exact mechanics OpenSea runs on mainnet. Seller = whichever
+               test account holds token 1; buyer = the other one. */
+            if (next.results.T9?.status !== 'pass') {
+                const owner1 = (await publicClient.readContract({
+                    address: PROJECT, abi: projectAbi, functionName: 'ownerOf', args: [1n],
+                }) as Address).toLowerCase();
+
+                const clientB = createWalletClient({ account: receiver, chain: sepolia, transport: http() });
+                let sellerAcct, sellerClient, buyerAcct, buyerClient;
+                if (owner1 === receiver.address.toLowerCase()) {
+                    sellerAcct = receiver; sellerClient = clientB;
+                    buyerAcct = testAccount; buyerClient = wallet;
+                } else if (owner1 === A.toLowerCase()) {
+                    sellerAcct = testAccount; sellerClient = wallet;
+                    buyerAcct = receiver; buyerClient = clientB;
+                } else {
+                    throw new Error(`token 1 held by ${owner1} — not a test account; RESET and rerun`);
+                }
+
+                const price = parseEther('0.002');
+                const royalty = price / 20n; // 5% creator earnings → splitter
+                const proceeds = price - royalty;
+
+                /* Fund the derived account for whatever it must pay (A holds the funds). */
+                const bAddr = receiver.address;
+                const bNeeds = (buyerAcct.address === bAddr ? price : 0n) + parseEther('0.002');
+                const bBal = await publicClient.getBalance({ address: bAddr });
+                if ((sellerAcct.address === bAddr || buyerAcct.address === bAddr) && bBal < bNeeds) {
+                    const hf = await wallet.sendTransaction({ to: bAddr, value: bNeeds - bBal });
+                    const rf = await publicClient.waitForTransactionReceipt({ hash: hf });
+                    totalGas += rf.gasUsed * rf.effectiveGasPrice;
+                }
+
+                /* Seller approves Seaport once (direct, no conduit). */
+                const approved = await publicClient.readContract({
+                    address: PROJECT, abi: projectAbi, functionName: 'isApprovedForAll',
+                    args: [sellerAcct.address, SEAPORT],
+                }) as boolean;
+                if (!approved) {
+                    const { request } = await publicClient.simulateContract({
+                        address: PROJECT, abi: projectAbi, functionName: 'setApprovalForAll',
+                        args: [SEAPORT, true], account: sellerAcct,
+                    } as unknown as Parameters<typeof publicClient.simulateContract>[0]);
+                    const ha = await sellerClient.writeContract(request);
+                    const ra = await publicClient.waitForTransactionReceipt({ hash: ha });
+                    totalGas += ra.gasUsed * ra.effectiveGasPrice;
+                }
+
+                /* Signed listing — gasless, like clicking List on OpenSea. */
+                const counter = await publicClient.readContract({
+                    address: SEAPORT, abi: seaportAbi, functionName: 'getCounter', args: [sellerAcct.address],
+                }) as bigint;
+                const nowS = Math.floor(Date.now() / 1000);
+                const params = {
+                    offerer: sellerAcct.address,
+                    zone: zeroAddress,
+                    offer: [{
+                        itemType: 2, token: PROJECT, identifierOrCriteria: 1n,
+                        startAmount: 1n, endAmount: 1n,
+                    }],
+                    consideration: [
+                        {
+                            itemType: 0, token: zeroAddress, identifierOrCriteria: 0n,
+                            startAmount: proceeds, endAmount: proceeds, recipient: sellerAcct.address,
+                        },
+                        {
+                            itemType: 0, token: zeroAddress, identifierOrCriteria: 0n,
+                            startAmount: royalty, endAmount: royalty, recipient: SPLITTER,
+                        },
+                    ],
+                    orderType: 0,
+                    startTime: BigInt(nowS - 300),
+                    endTime: BigInt(nowS + 86400),
+                    zoneHash: zeroHash,
+                    salt: BigInt(nowS),
+                    conduitKey: zeroHash,
+                } as const;
+                const signature = await sellerClient.signTypedData({
+                    account: sellerAcct,
+                    domain: { name: 'Seaport', version: '1.6', chainId: sepolia.id, verifyingContract: SEAPORT },
+                    types: SEAPORT_712_TYPES,
+                    primaryType: 'OrderComponents',
+                    message: { ...params, counter } as never,
+                });
+
+                /* Buyer fulfills on-chain — the sale itself. */
+                const splitBefore = await publicClient.getBalance({ address: SPLITTER });
+                const { request: fr } = await publicClient.simulateContract({
+                    address: SEAPORT, abi: seaportAbi, functionName: 'fulfillOrder',
+                    args: [
+                        { parameters: { ...params, totalOriginalConsiderationItems: 2n }, signature },
+                        zeroHash,
+                    ],
+                    account: buyerAcct, value: price,
+                } as unknown as Parameters<typeof publicClient.simulateContract>[0]);
+                const hb = await buyerClient.writeContract(fr);
+                const rb = await publicClient.waitForTransactionReceipt({ hash: hb });
+                if (rb.status !== 'success') throw new Error('fulfillOrder reverted on-chain');
+                const saleGas = rb.gasUsed * rb.effectiveGasPrice;
+                totalGas += saleGas;
+
+                const newOwner = (await publicClient.readContract({
+                    address: PROJECT, abi: projectAbi, functionName: 'ownerOf', args: [1n],
+                }) as Address).toLowerCase();
+                const splitAfter = await publicClient.getBalance({ address: SPLITTER });
+                const ok = newOwner === buyerAcct.address.toLowerCase() && splitAfter - splitBefore === royalty;
+                record('T9', {
+                    status: ok ? 'pass' : 'fail',
+                    detail: ok
+                        ? `sold for ${formatEther(price)} — buyer owns token 1, splitter got ${formatEther(royalty)} (5%)`
+                        : `owner ${newOwner.slice(0, 10)}… · splitter delta ${formatEther(splitAfter - splitBefore)} vs ${formatEther(royalty)}`,
+                    tx: hb, gasEth: formatEther(saleGas),
                 });
             }
         } catch (e: unknown) {
