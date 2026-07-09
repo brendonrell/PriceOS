@@ -6,66 +6,79 @@
 
 ---
 
-## ✅ SHIPPED 2026-07-08 — FIAT PRICING + ETH DISPLAY RULE + polish (dev @ 558535b, tree clean)
+## ✅ SHIPPED 2026-07-09 (dev, tree clean, build green)
 
-**Mint CTA fiat readout (heavily iterated — the fragile bit):** fixed 224px pill.
-Fiat mode = ONE centered row `MINT · (ETH↕) · ~fiat↕` that scales as a unit to
-fill the pill (8px buffer each side). MINT is **counter-scaled** (font ÷ scale) so
-it always renders at the exact fiat-off size; the single shared inner gap (6px)
-keeps spacing **equal on both sides** of the ETH price at any scale. ETH price is
-STACKED (amount over `ETH`) flanked by **tall bold brackets** (`.mint-paren`,
-22px/700, Courier) that embrace the whole stack — the agreed look. `~fiat`
-stacked beside it (amount over currency code), **italic, 0.5px smaller than the
-ETH amount, 10% dimmer**. **Fiat drops the cents at $1,000+** (`$54,693`, not
-`$54,692.79`) — rule lives in `formatFiat` (FiatContext), so it's site-wide.
-**$0 / free mint:** shows INLINE, no decimals — `(0 ETH) ~$0 CAD` (same shape as
-the non-fiat button). Scale math in `useLayoutEffect`: fill width with MINT held
-fixed `(availW − mint@16) / rest`, capped by height; MINT + row measured via
-separate refs so the counter-scale never feedback-loops. Verified across all
-price ranges (sub-cent → JPY millions → EUR commas → $0) with a headless render
-harness. Normal mode untouched. No flash on load (FiatContext reads saved
-currency + last rate synchronously from `pd_fiat_currency` / `pd_fiat_fx`).
+- **Onboarding + PriceSprite chooser legibility** — removed the washed-out
+  half-opacity on the signup modal (title, section labels, the four sprite
+  cells + archetype labels, the @ prefix). All full-strength/legible now;
+  selection still reads via the heavier border, not by dimming the others.
+- **Home owned-check gap** — halved the space between the ✓ and the project
+  name on the homepage carousels.
+- **Reserved @name owner claim** — the claim-side override already existed
+  (deployer wallet `0x1460…B9B8` = designated owner of `@pricediscussion`).
+  Fixed the two spots that still blocked it in signup: the live availability
+  check ran anonymously (couldn't see the owner) and the signup screen
+  greyed reserved names on the spot. Now the PD wallet can claim
+  `@pricediscussion` end-to-end. Only that one name is tied to that wallet.
+- **Pings inbox — live + windowed.** Was frozen: it only reloaded when a new
+  *directed* ping bumped the unread count, and opening the panel never
+  refetched. Now: (a) refetches on open; (b) any live activity
+  (mint/sale/list/offer/follow) pulls the full list so follow-feed pings land
+  at the top in ~1s; (c) holds a rolling window of the newest 100 — older seen
+  pings fall off the bottom as fresh ones arrive.
+- **Brendon's pings wiped** — his 271 old rows deleted for a clean-slate test
+  (his ask). Account `0x65c3…9395` / `@brendon`.
 
+## 🔧 FINISH THE JOB — desktop only (Cloudflare secret, Brendon at desktop)
 
-Big product session (Brendon driving). All on `dev`, verified via build.
+**iOS/native push never fires — server private signing key is the last piece.**
+Everything else is verified good: Brendon's mode is COMBO (native on), Silent
+off, his iPhone IS registered (Apple push endpoint on file), the send code runs
+on every ping, and the PUBLIC key is live on the Worker:
+`BOPqWQbNecDto-qTIeXEoJbjM-Hg7epdQffUarzccIH-Hust4NJoIbuxfsFlSxsuzFzpPOeu79u_vLxJThQWlBg`
+Yet zero native pushes land → the Worker's **private** half is missing or
+doesn't match that public key.
 
-- **Fiat pricing (opt-in).** `$` picker in Wallet settings (between copy +
-  incognito) → attention-yellow bubble: OFF · USD · CAD · GBP · EUR · JPY.
-  Default USD, set-and-forget. Shows `~fiat` stacked (amount over currency
-  code) after the ETH price on the mint + floor CTAs. Rate service
-  `/api/fx` — CoinGecko (5 currencies) cross-checked against the Chainlink
-  ETH/USD anchor; hides the number unless the two agree (trusted). Per-locale
-  formatting (EUR `22,34`, JPY no decimals). CAD shows `$`. Toasts:
-  `Display Currency: FIAT $CAD` / `Currency: SOVEREIGN`.
-- **ETH display rule — 4 digits, floating decimal** (`lib/format/eth.ts`):
-  `23.45` · `234.6` · `.2234` · `22.22`. Leading `0.` shows except in fiat
-  mode. Swept SITE-WIDE (feed, offers, floor, ATH, volume, portfolio, cart,
-  bench, market sheets, stickers, workflows, top-bar grails, calc, todos).
-  Input pre-fills deliberately left raw.
-- **Attributes/Offers search** now sits BESIDE the +More trait pills (reuses
-  the gen-art `⌕` search-btn) on BOTH project + artwork pages. Filters tiles /
-  offers live.
-- **Golf Clubhouse** — tapping the Golf Score attribute opens a leaderboard
-  (reuses the Leaderboard modal shell); the ARTIST leads (smallest engine
-  wins) with project shown; ⛳ touch.
-- **ASCII Backup** — box + title removed (just the art, full width, two copy
-  buttons below); brightness now a gamma lift (dark ink reads brighter).
-- **Pull-to-refresh (PWA)** — skinny longish pill, no icon/text, ~⅓ tall,
-  colours + armed inversion kept; eases smoothly to rest (no finger jitter).
-  Longer pull threshold.
-- **Local-time events** — on-chain event feeds render in the VIEWER's local
-  time (base stays the chain's UTC ts). PriceDay Montreal day-spine untouched.
-- **ENS pills** — subdomains render plain (italics/em wrapper ripped out),
-  fixing the missing space after the ↳.
-- **Test prices (registry):** bulletin `0.2222`, reliquary `22.222` (both
-  0-mint) for fiat-fit checks — REMOVE before mainnet.
+Desktop steps (Cloudflare Worker `pricediscussion` → Settings → Variables/Secrets):
+1. **If you have the private half of the public key above:** set secret
+   `WEBPUSH_PRIVATE_KEY` to it. Done — existing device subs keep working.
+2. **If you don't:** generate a fresh VAPID pair (`npx web-push generate-vapid-keys`),
+   set BOTH `NEXT_PUBLIC_WEBPUSH_KEY` (public) and `WEBPUSH_PRIVATE_KEY`
+   (private) as Worker secrets. ⚠️ Changing the public key invalidates every
+   existing subscription (incl. Brendon's iPhone sub from 07-07) — each device
+   must re-open PD and re-allow notifications to re-subscribe.
+3. Redeploy the Worker, then test: unlock any achievement (self-ping runs the
+   native send path) → the iPhone should buzz within ~1s.
 
-## ⚠️ Known / deferred
-- **ASCII 1/3-down line** — a faint horizontal line ~1/3 down appears on every
-  piece's backup. Couldn't isolate the cause without risking the feature
-  (no browser to pixel-inspect); left untouched per Brendon's original call.
-  Needs a proper render-pipeline look. (Brightness IS boosted — gamma lift
-  `pow(c/255,.4)*369.75+30`, verified in the compiled bundle.)
-- **Search rollout** — live on Attributes + Offers (project + artwork). Albums
-  is placeholder mock, Anointed is an action panel — skipped. User/profile
-  +More would need its own search surface. Say go to extend.
+Code side is DONE — the send path, gating, and dead-sub pruning are all in place
+and inert until the key matches.
+
+## 📋 QUEUED (not started)
+
+- **Genesis message timeline is wrong** (first item in all-outputs timelines).
+  We converted the wrong direction. PD genesis = **11/19/21 08:28 Montreal
+  (EST = UTC−5) → 13:28 UTC**; timelines are UTC-based, so the stored base
+  should be **13:28 UTC**. Fix the conversion for that entry.
+- **Group sorts rework** — discussion/scope only. Current system: a group-by
+  modifier folded into the grid sort button (none/owner/color/last-sold/rarity
+  on projects; +artist/project combos on the collected grid). Brendon wants to
+  rethink how it works — needs his direction on what's wrong before any build.
+- **Languages / programming-languages as a gen-art trait** — discussion only.
+  Options to weigh: artist declares on upload vs auto-detect; surface in
+  attributes; enable a group-sort dimension. No build until Brendon picks.
+
+## 💡 ANSWERED (no build)
+
+- **ASCII backup inside the token + JSON?** Full-colour artifact ≈ 75KB;
+  plain text-only ≈ 22KB. One permanent on-chain slot caps ~24KB → text-only
+  fits in one, full-colour needs ~4 shards + real per-mint gas. It's also fully
+  rebuildable from the seed, so on-chain only earns its keep as a
+  "permanent-on-chain, no storage dependency" pitch. Call: if it goes in the
+  token, text-only; colour stays the pinned artifact.
+
+## ⚠️ Known / deferred (older)
+
+- **ASCII 1/3-down line** — faint horizontal line ~1/3 down on every backup;
+  cause not isolated (no browser to pixel-inspect). Left untouched.
+- **Test prices (registry)** — bulletin `0.2222`, reliquary `22.222` (0-mint)
+  for fiat-fit checks — REMOVE before mainnet.
