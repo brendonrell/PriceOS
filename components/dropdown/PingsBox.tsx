@@ -69,7 +69,7 @@ function RailItem({ item }: { item: TapeFeedItem }) {
 
 export function PingsBox() {
     const { notifs, setAccordion } = usePdNotifs();
-    const { state: pingsState, markAllRead } = usePings();
+    const { state: pingsState, markAllRead, refresh } = usePings();
     const { siweAddress } = useAuth();
     const isSpited = useSpiteMatcher();
     const railRef = useRef<HTMLDivElement>(null);
@@ -91,7 +91,12 @@ export function PingsBox() {
         return unsubscribe;
     }, [tapeOn]);
 
-    // Opening the Pings panel = seeing them → clear the unread badge.
+    // Opening the Pings panel → pull the latest list so it's never stale, then
+    // clear the unread badge (seeing them = read).
+    useEffect(() => {
+        if (pingsActive && siweAddress) refresh();
+    }, [pingsActive, siweAddress, refresh]);
+
     useEffect(() => {
         if (pingsActive && siweAddress && pingsState.unreadCount > 0) {
             markAllRead();
