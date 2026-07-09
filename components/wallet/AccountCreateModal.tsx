@@ -65,6 +65,7 @@ import { composeSprite } from '@/lib/sprites/composer';
 import type { UserRow } from '@/lib/supabase';
 import type { HandleCheckReason } from '@/app/api/handle/check/route';
 import { checkHandle, createUser } from '@/lib/wallet/accountClient';
+import { canClaimReservedHandle } from '@/lib/reserved-handles';
 import { isStandalone } from '@/lib/pwa/platform';
 import { PwaInstallStep } from './PwaInstallStep';
 
@@ -174,11 +175,21 @@ export function AccountCreateModal({
 
             const format = validateHandleFormat(cleaned);
             if (!format.valid && format.reason) {
-                setStatus({
-                    state: 'unavailable',
-                    reason: format.reason as HandleValidationReason,
-                });
-                return;
+                /* The designated owner of a reserved @name (the PD wallet →
+                   @pricediscussion) is allowed to claim it. Let that one case
+                   fall through to the server availability check instead of
+                   hard-blocking here; everything else stays blocked. */
+                const ownerMayClaim =
+                    format.reason === 'reserved'
+                    && !!address
+                    && canClaimReservedHandle(cleaned, address);
+                if (!ownerMayClaim) {
+                    setStatus({
+                        state: 'unavailable',
+                        reason: format.reason as HandleValidationReason,
+                    });
+                    return;
+                }
             }
 
             /* Valid format → show 'checking' immediately, fire the
