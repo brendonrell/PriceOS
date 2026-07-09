@@ -223,7 +223,7 @@ export default function MintButton({
             style={{ transform: scale !== 1 ? `scale(${scale})` : undefined }}
           >
             <span className="mint-lbl">{label}</span>
-            <span className="mint-price mint-eth-inline">{`(◊︎ `}{ethAmt}{')'}</span>
+            <span className="mint-price mint-eth-inline">{'('}<span className="mint-eth-sym">◊︎</span>{ethAmt}{')'}</span>
             <span className="mint-fiat mint-fiat--conv">
               <span className="mint-fiat-amt">{idleFiat}</span>
               <span className="mint-fiat-cur">{currency}</span>
