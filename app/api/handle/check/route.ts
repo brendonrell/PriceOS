@@ -25,6 +25,8 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAnon } from '@/lib/supabase';
 import { badRequest, serverError } from '@/lib/errors';
+import { verifySiweSession } from '@/lib/auth/siwe';
+import { canClaimReservedHandle } from '@/lib/reserved-handles';
 import {
     validateHandleFormat,
     normaliseHandle,
@@ -50,12 +52,24 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const handle = normaliseHandle(raw);
     const format = validateHandleFormat(handle);
     if (!format.valid) {
-        const body: HandleCheckResponse = {
-            handle,
-            available: false,
-            reason: format.reason,
-        };
-        return NextResponse.json(body);
+        /* Reserved handles stay blocked for everyone EXCEPT their designated
+           owner — the PD wallet claims @pricediscussion (Brendon, 2026-07-06).
+           The owner check needs the caller's identity, so read the (optional)
+           SIWE session; an anonymous or non-owner caller falls straight
+           through to the blocked response, exactly as before. */
+        const ownerMayClaim =
+            format.reason === 'reserved'
+            && canClaimReservedHandle(handle, (await verifySiweSession(req)) ?? '');
+        if (!ownerMayClaim) {
+            const body: HandleCheckResponse = {
+                handle,
+                available: false,
+                reason: format.reason,
+            };
+            return NextResponse.json(body);
+        }
+        /* Owner claiming their reserved handle — fall through to the
+           uniqueness check below (available iff nobody holds it yet). */
     }
 
     /* Uniqueness check. citext means the .eq() comparison is
