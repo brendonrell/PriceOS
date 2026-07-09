@@ -4503,18 +4503,16 @@ button,
 .mint-fiat-cur { font-size: 11px; letter-spacing: 0.04em; margin-top: 1px; opacity: 0.9; }
 /* The ETH price inline with the ◊ mark — a touch smaller than the normal 15px
    price, in the original brackets (Brendon 2026-07-08). */
-.mint-eth-inline { font-size: 13.5px; }
-/* The ◊ ETH mark sits FIRST (ETH standard, like $) tight to the number, and a
-   touch taller than the digits while staying optically centred on them
-   (Brendon 2026-07-09). em-sized so it rides the fiat-row scale. */
+/* The ETH price flows as a flex row so the (bigger) ◊ mark is TRULY centred on
+   the digits, not baseline-hung (Brendon 2026-07-09). */
+.mint-eth-inline { font-size: 13.5px; display: inline-flex; align-items: center; }
+/* The ◊ ETH mark sits FIRST (ETH standard, like $) tight to the number, a touch
+   taller than the digits; flex centring above keeps it vertically aligned.
+   em-sized so it rides the fiat-row scale. */
 .mint-eth-sym {
-    display: inline-block;
     font-size: 1.22em;
     line-height: 1;
-    vertical-align: middle;
     margin-right: 1px;
-    position: relative;
-    top: -0.04em;
 }
 /* The ~fiat conversion stack — secondary to the ETH price: italic, stacked
    (amount over currency), one size smaller than the ETH price (Brendon 2026-07-08). */
