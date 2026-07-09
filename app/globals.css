@@ -9051,12 +9051,10 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     font-size: 13px;
     line-height: 1.5;
     margin-bottom: 12px;
-    /* Solid, sharp-cornered, full-strength block — themed fill, ink text,
-       ink outline so it reads as a boxed message (not a button). Inverse of
-       the wallet / @name blocks below. */
-    background: var(--bg-color);
-    color: var(--text-color);
-    border: 1.5px solid var(--text-color);
+    /* Solid black rectangle, white text, sharp corners, full-strength.
+       Max-contrast boxed message (not a button). */
+    background: #000;
+    color: #fff;
     border-radius: 0;
     font-weight: bold;
     padding: 10px 12px;
