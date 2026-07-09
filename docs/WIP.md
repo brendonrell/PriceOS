@@ -6,6 +6,19 @@
 
 ---
 
+## ✅ SHIPPED 2026-07-09 — MARKETPLACE SALES PATH PROVEN · TESTER 12/12 (dev, tree clean)
+
+- OpenSea killed testnets (2025-07) → /test gained **T9: a real Seaport 1.6
+  sale** (signed listing + creator-earnings consideration + on-chain
+  fulfillment — the exact mechanics OpenSea runs). 12/12 PASS live; the 5%
+  royalty landed on the splitter to the wei.
+- **Indexer sale enrichment proven live**: token-1 XFER row carries
+  price_eth 0.002 + LIST_FILL; apply_sale/upsert_holder fired. Every indexer
+  path is now live-proven EXCEPT the scheduled sweep (see the OPUS work order
+  in docs/briefs/mainnet-tester.md — sweep go-live + token-2 backfill).
+- OpenSea-WEBSITE render/royalty-policy check moved to MAINNET day
+  (no testnet OpenSea exists anymore — industry-wide).
+
 ## ✅ SHIPPED 2026-07-09 (dev, tree clean, build green)
 
 - **Onboarding + PriceSprite chooser legibility** — removed the washed-out
