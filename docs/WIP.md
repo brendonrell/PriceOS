@@ -8,7 +8,16 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-1. **PD Studio — Brendon's edit round.** PD Studio v1 + private layers are
+1. **Stickers on-chain cutover — the last gate to real sticker revenue.**
+   ClickUp `86baw12ek` (02 Backlog, high) has the full work order. The sticker
+   EXPERIENCE is launch-ready on dev (see SHIPPED below); the revenue rail is
+   still the sim rail. Sepolia PDStickers
+   (`0xb06df183fe5b61787f257f8c039ca11902847d9e`) is deployed + verified but
+   the chain shows ZERO sheets created (checked via RPC 2026-07-10): no buy,
+   no peel, no wrapper art, nothing on OpenSea. Order: wrapper SVGs →
+   createSheet on Sepolia (Brendon signs) → buy/peel/royalty exercise →
+   OpenSea render check → cut the app store/market from sim to ERC-1155.
+2. **PD Studio — Brendon's edit round.** PD Studio v1 + private layers are
    LIVE on dev (see SHIPPED below); Brendon wrapped 2026-07-10 saying he'll
    bring edits in a fresh session. Read **`docs/pd-studio-spec.md`** first —
    it is the plan of record (locked decisions, architecture, build sequence).
@@ -34,6 +43,38 @@
    catalog (healer pins on view). If tiles still look blank after real
    browsing, investigate the healer POSTs (`/api/preview`, `/api/ascii`) —
    don't re-diagnose the guard, that part is fixed and verified by probe.
+
+## ✅ SHIPPED TO DEV 2026-07-10 — STICKER LAUNCH-READINESS PASS (pushed, tree clean)
+
+- **Modes reworked, every one distinct + readable** — overlap may kiss, never
+  bury (width-aware relaxation in lib/stickers/heroPrefs). Rows is real 1/2/3
+  in ALL modes (canvas modes read it as lid height). Fixed: every mode now
+  CASTS by seeded shuffle (tidy modes always drew hue-neighbour stickers —
+  arrangements came out one colour and Shuffle never changed the cast).
+- **NEW SLAPPED mode** — the wow mode, designed from real stickered-laptop
+  reference photos: statements placed first, near-tangent packing, mostly
+  upright + rare rebel angles.
+- **Setup Code v2 carries the SEED** (+ density + border) — a code restores
+  the EXACT picture; verified pixel-identical via headless round-trip. Old
+  codes still decode. This was why Brendon's loved looks were unrecoverable.
+- **ANIMATED FAMILIARS sheet** — all 100 familiars alive (species idle
+  loops), 0.026 MYTHIC; static FAMILIARS sheet verified complete (100).
+- **Store**: phone stacked grid = PREVIEWS ONLY per Brendon's reference
+  screenshot — each card is just its sticker fan (meta hidden via CSS),
+  tight 62px strips; old one-line header restored (⊞ BY PD sub, ↑/↓ expand
+  arrow, stacked stats); MKT/ALB buttons replaced by the marketplace CRAWL
+  LINE under the header (tap crawl = market ⇄ store; ALBUM cap at its end).
+  Stacked-grid column cap 8→9 rows so 17 sheets stay 2 columns. Compact
+  rail + desktop unchanged.
+- **Market cohesion**: covers clamped to their slot, sheet cover in book
+  head, COMPOSE label. **Album**: per-page + overall progress fills.
+- **Sizes**: PriceSprites = artist-badge large (hero + sheet view);
+  Projects stay XL. Manager: Match preset spacing; code field fits v2.
+- **Verified end-to-end with screenshots** (headless Chromium against the
+  real profile; local run via dev-login + live Supabase anon reads). ~30
+  screenshots reviewed incl. every mode × rows; contact sheets sent to
+  Brendon in-chat; he approved and the batch is MERGED TO DEV (e36e6775).
+- ⛔ Launch truth: sticker revenue is STILL SIM — see NEXT UP #1.
 
 ## ✅ SHIPPED TO DEV 2026-07-10 — PD STUDIO v1 + private layers (pushed, tree clean)
 

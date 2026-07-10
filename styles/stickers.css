@@ -429,6 +429,16 @@
     .ss-stats { gap: 12px; font-size: 14px; }
     .ss-card { width: 138px; }
     .ss-card-art { height: 114px; }
+    /* The stacked grid on the phone is PREVIEWS ONLY (Brendon, 2026-07-10,
+       reference screenshot): each card is just its sticker fan — tight, the
+       stickers filling the card, LIVE + owned ✓ riding on top. No name, no
+       buy; tap opens the sheet as always. Compact rail cards unchanged. */
+    .ss-grid-view .ss-card-meta { display: none; }
+    .ss-grid-view .ss-card-art {
+        height: 62px;
+        padding: 0 4px;
+        border-bottom: none;
+    }
 }
 
 /* ── Live sheet card art — a 3-sticker fan instead of a placeholder glyph ── */
