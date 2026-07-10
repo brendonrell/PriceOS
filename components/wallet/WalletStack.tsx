@@ -60,8 +60,10 @@ import {
 import {
     registerConnectModalOpener,
     registerWalletDisconnect,
+    registerWalletEthCall,
     setWalletEnsName,
 } from '../../lib/wallet/walletBus';
+import { CHAIN_ID } from '../../lib/market/chain';
 import { SignInModal } from './SignInModal';
 
 export interface WalletStackProps {
@@ -117,7 +119,7 @@ function StackController({
     onSignFailed,
     onAddressSwap,
 }: WalletStackProps) {
-    const { address, status: wagmiStatus } = useAccount();
+    const { address, status: wagmiStatus, chainId: walletChainId, connector } = useAccount();
     const { disconnect } = useDisconnect();
     const { signMessageAsync } = useSignMessage();
     const chainId = useChainId();
@@ -142,6 +144,29 @@ function StackController({
         });
         return () => registerWalletDisconnect(null);
     }, [disconnect]);
+
+    /* Forever-free RPC pass (2026-07-10): publish the connected wallet's own
+       provider as a read-only eth_call on the bus. Guarded on the wallet
+       actually being ON the app's chain — an injected wallet parked on
+       another network would answer eth_call against THAT chain and hand
+       back garbage for our contracts, so wrong-chain sessions simply don't
+       register and consumers fall back to the cached Worker route. The
+       registration clears on disconnect/chain-switch via the effect cleanup. */
+    useEffect(() => {
+        if (wagmiStatus !== 'connected' || !connector || walletChainId !== CHAIN_ID) return;
+        registerWalletEthCall(async (to, data) => {
+            const provider = (await connector.getProvider()) as {
+                request: (args: { method: string; params?: unknown }) => Promise<unknown>;
+            };
+            const result = await provider.request({
+                method: 'eth_call',
+                params: [{ to, data }, 'latest'],
+            });
+            if (typeof result !== 'string') throw new Error('Bad eth_call result');
+            return result;
+        });
+        return () => registerWalletEthCall(null);
+    }, [wagmiStatus, connector, walletChainId]);
 
     /* ENS resolution for the SIWE identity — same useEnsName call
        UserMenuButtons made before the split (mainnet-pinned; ENS lives on

@@ -48,6 +48,15 @@ let pendingDisconnect = false;
 
 let ensName: string | null = null;
 
+/* Forever-free RPC pass (2026-07-10): read-only eth_call served by the
+   CONNECTED WALLET'S OWN provider (MetaMask/Rainbow/Coinbase/WC all expose
+   one). Registered by WalletStack only while the wallet is connected on the
+   app's chain; consumers (usePriceBalance) use it when present and fall back
+   to the cached Worker route when absent or failing — so per-user reads ride
+   the user's own RPC and our Alchemy key stays out of the per-user path. */
+type WalletEthCall = (to: string, data: string) => Promise<string>;
+let walletEthCallFn: WalletEthCall | null = null;
+
 const subs = new Set<VoidFn>();
 
 function emit(): void {
@@ -81,6 +90,19 @@ export function setWalletEnsName(v: string | null): void {
     if (v === ensName) return;
     ensName = v;
     emit();
+}
+
+/** Stack side: register (or clear) the connected wallet's read-only
+    eth_call. Cleared on disconnect / wrong chain so a stale provider can
+    never serve a read. */
+export function registerWalletEthCall(fn: WalletEthCall | null): void {
+    walletEthCallFn = fn;
+}
+
+/** Consumer side: the wallet's eth_call, or null when no connected wallet
+    on the app's chain can serve reads (callers fall back to the route). */
+export function getWalletEthCall(): WalletEthCall | null {
+    return walletEthCallFn;
 }
 
 /** Eager provider registers how to force-load the stack chunk. */
