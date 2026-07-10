@@ -104,6 +104,10 @@ const ALL_FLAG_CLASSES = [
     // hide path. CSS rules in app/globals.css gate display:none on this
     // class.
     'ascii-id-mode',
+    // ASCII Art Mode — artworks render as their ASCII backups; the class is
+    // informational for any CSS that wants to react (the swaps themselves
+    // are React-driven in ArtworkCard / OutputPreview / OutputThumb).
+    'ascii-art-mode',
     // Phase 5 mode batch 3 — echo-mode. Sim 9458-9479 + 9957 + 13039.
     // Sim flips `body.echo-mode` from `_applyEchoMode` and adds two
     // imperative DOM filters (`.notif-item` without `.ico-mutual` →
@@ -162,6 +166,7 @@ export function useBodyClass() {
         // present, even with the menu open. Replaces sim's imperative
         // _asciiUpdateVisibility (sim 12200-12206).
         if (notifs.asciiId)          cl.add('ascii-id-mode');
+        if (notifs.asciiArt)         cl.add('ascii-art-mode');
         // Phase 5 mode batch 3 — echo-mode (sim 9460). Sim 9462-9472 also
         // walks `.notif-item` and `.artist-row` and sets inline display
         // styles; the React port replaces that imperative walk with CSS

@@ -120,6 +120,7 @@ import {
 import { recordVisit, isRecordingEnabled } from '../lib/pins/breadcrumbStore';
 import { recordOutputView } from '../lib/output/views';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
+import AsciiArtImage from './AsciiArtImage';
 import { useNotePrompt } from '../lib/state/NotePromptContext';
 import { useCart } from '../lib/state/CartContext';
 /* v1 — type-only import. The route file ships the OutputDetailResponse
@@ -233,6 +234,8 @@ export default function OutputPreview() {
     const floorEth = proj.floorEth;
     const { notifs } = usePdNotifs();
     const { openOutputNoteEditor } = useNotePrompt();
+    /* ASCII Art Mode — per-piece miss flag; reset when the modal walks. */
+    const [asciiMiss, setAsciiMiss] = useState(false);
 
     /* Artwork Page v0 (2026-05-12) — the modal canvas is now a
        portal to the full Artwork page at /{globalId}. Clicking the
@@ -300,6 +303,7 @@ export default function OutputPreview() {
 
     const isOpen = openModal?.name === 'output';
     const id = isOpen ? currentModalId : null;
+    useEffect(() => setAsciiMiss(false), [slug, id]);
 
     /* The modal image source — the stored high-res master (falls back to the
        previous-rev master during a re-pin), served as a plain <img>. */
@@ -883,7 +887,27 @@ export default function OutputPreview() {
             </div>
 
             <div className="modal-canvas-wrap">
-                {modalImgSrc && (
+                {modalImgSrc && notifs.asciiArt && !asciiMiss && id != null && (
+                    /* ASCII Art Mode — instant text-backup stand-in; a miss
+                       falls through to the stored master below. */
+                    <AsciiArtImage
+                        domId="modalCanvas"
+                        slug={slug}
+                        id={id}
+                        widthPx={1024}
+                        className="output-canvas visible"
+                        onMiss={() => setAsciiMiss(true)}
+                        onClick={() => {
+                            if (id == null) return;
+                            close();
+                            window.scrollTo(0, 0);
+                            router.push(`/art/${slug}/${id}`);
+                        }}
+                        title="Open output page"
+                        style={{ cursor: 'pointer' }}
+                    />
+                )}
+                {modalImgSrc && !(notifs.asciiArt && !asciiMiss && id != null) && (
                     <img
                         id="modalCanvas"
                         ref={imgRef}

@@ -4714,6 +4714,13 @@ button,
     flex-shrink: 0;
     -webkit-tap-highlight-color: transparent;
 }
+/* ASCII Art Mode toggle (AsciiBackupPanel third button): ON = full
+   inversion so the sitewide mode reads at a glance. */
+.ascii-mode-btn.active {
+    background: var(--text-color);
+    color: var(--bg-color);
+}
+
 /* No hover/press inversion — on touch the :hover state stuck through a long
    press and flipped the button to its dark fill, fighting the long-press-to-star
    gesture (Brendon, 2026-06-20). The button keeps its base look at all times. */

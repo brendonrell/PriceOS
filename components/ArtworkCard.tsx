@@ -127,6 +127,7 @@ import { useCart } from '../lib/state/CartContext';
 import { useBench } from '../lib/state/BenchContext';
 import { useHoldDrag } from '../lib/hooks/useHoldDrag';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
+import AsciiArtImage from './AsciiArtImage';
 import { useNotePrompt } from '../lib/state/NotePromptContext';
 import { useMultiSelect } from '../lib/state/TraitsContext';
 import {
@@ -215,6 +216,10 @@ function ArtworkCard({
        (imgFailed → live engine render + the pd:preview-miss self-heal). */
     const imgRef = useRef<HTMLImageElement>(null);
     const [imgLoaded, setImgLoaded] = useState(false);
+    /* ASCII Art Mode — per-piece miss flag so an unpinned artifact falls
+       back to the stored PNG without churning. Reset when the piece swaps. */
+    const [asciiMiss, setAsciiMiss] = useState(false);
+    useEffect(() => setAsciiMiss(false), [slug, id]);
     /* A tile tries images in order and STAYS on the first that loads — a plain
        <img> the browser keeps decoded forever, never recycled, so it never
        flashes on scroll (Brendon 2026-07-07). Order: the small current thumbnail
@@ -847,7 +852,18 @@ function ArtworkCard({
                        lay out cleanly with no further CSS work. */
                     style={{}}
                 >
-                    {imgSrc ? (
+                    {notifs.asciiArt && !asciiMiss ? (
+                        /* ASCII Art Mode — the mint-pinned text backup stands in
+                           for the artwork, painted instantly (no typing anim).
+                           Miss → normal stored-image path below. */
+                        <AsciiArtImage
+                            slug={slug}
+                            id={id}
+                            widthPx={384}
+                            className="output-canvas visible"
+                            onMiss={() => setAsciiMiss(true)}
+                        />
+                    ) : imgSrc ? (
                         /* Stored preview — native lazy load, browser-managed,
                            steady once loaded (never evicted, never re-flashed).
                            Same .output-canvas class so every mode/colorway rule

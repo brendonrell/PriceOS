@@ -264,6 +264,8 @@ export const ATLAS: AtlasFeature[] = [
     F(209, 'The Shroud', 'WOW Tier'),
     F(210, 'The Threshold', 'WOW Tier'),
     F(211, 'The Understudy', 'WOW Tier'),
+    // ── Post-founding appends (the registry is append-only from here) ──
+    F(212, 'ASCII Backup', 'Output Page', '⍞'),
 ];
 
 export function atlasId(n: number): string {

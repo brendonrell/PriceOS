@@ -144,6 +144,9 @@ export interface PdNotifs {
     echo: boolean;
     zerocontext: boolean;
     asciiId: boolean;       // negative — active = ASCII-ID hidden
+    /* ASCII Art Mode — every artwork surface renders its mint-pinned ASCII
+       backup as a real stand-in (Brendon, 2026-07-10). Positive flag. */
+    asciiArt: boolean;
     /* Back Button Mode — a persistent back arrow parked under the connect
        menu, site-wide. Not part of the Setup Code (a personal nav pref). */
     backButton: boolean;
@@ -240,6 +243,7 @@ const DEFAULTS: PdNotifs = {
     echo: false,
     zerocontext: false,
     asciiId: false,
+    asciiArt: false,
     backButton: false,
     degen: false,
     autoscroll: false,

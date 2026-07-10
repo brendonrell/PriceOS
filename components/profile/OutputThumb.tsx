@@ -9,6 +9,8 @@
 
 import { useEffect, useRef } from 'react';
 import { paintOutput } from '../../lib/state/ProjectContext';
+import { paintAsciiStandin } from '../../lib/art/asciiStandin';
+import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 
 export default function OutputThumb({
     slug,
@@ -25,6 +27,8 @@ export default function OutputThumb({
     crop?: boolean;
 }) {
     const ref = useRef<HTMLCanvasElement>(null);
+    const { notifs } = usePdNotifs();
+    const ascii = notifs.asciiArt;
     useEffect(() => {
         const cv = ref.current;
         if (!cv) return;
@@ -41,6 +45,14 @@ export default function OutputThumb({
                thumbs doesn't paint synchronously and block the list (Brendon,
                2026-06-24 — matches the gallery card's idle-paint). */
             idle = ric(() => {
+                /* ASCII Art Mode: try the text-backup standin first; a miss
+                   falls back to the normal preview paint. */
+                if (ascii) {
+                    paintAsciiStandin(cv, slug, id, size * 2).then((ok) => {
+                        if (!ok) { try { paintOutput(cv, slug, id, size * 2); } catch { /* */ } }
+                    }).catch(() => { try { paintOutput(cv, slug, id, size * 2); } catch { /* */ } });
+                    return;
+                }
                 try { paintOutput(cv, slug, id, size * 2); } catch { /* unknown slug — leave blank */ }
             });
         };
@@ -54,7 +66,7 @@ export default function OutputThumb({
             const cancel = (window as unknown as { cancelIdleCallback?: (h: number) => void }).cancelIdleCallback;
             if (idle) { cancel ? cancel(idle) : window.clearTimeout(idle); }
         };
-    }, [slug, id, size]);
+    }, [slug, id, size, ascii]);
     return (
         <canvas
             ref={ref}

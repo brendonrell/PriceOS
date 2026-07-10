@@ -26,11 +26,13 @@ import {
     type AsciiArtifact,
 } from '../../lib/art/ascii';
 import { useToast } from '../../lib/state/ToastContext';
+import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 
 export default function AsciiBackupPanel({ slug, id }: { slug: string; id: number }) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const [artifact, setArtifact] = useState<AsciiArtifact | null>(null);
     const { showToast } = useToast();
+    const { notifs, toggle } = usePdNotifs();
 
     useEffect(() => {
         let cancelled = false;
@@ -160,6 +162,23 @@ export default function AsciiBackupPanel({ slug, id }: { slug: string; id: numbe
                     onClick={() => copy('json')}
                 >
                     COPY .JSON
+                </button>
+                {/* ASCII Art Mode — the SITEWIDE toggle lives here, beside the
+                    backup's own buttons (Brendon, 2026-07-10): every artwork
+                    surface renders its ASCII standin while it's on. Glyph
+                    ⍞ (U+235E, APL quote-quad = character I/O) — same proven
+                    family as ⍟/⍢; device-verify per the glyph gate. */}
+                <button
+                    className={`btn-soundtrack ascii-mode-btn${notifs.asciiArt ? ' active' : ''}`}
+                    title="ASCII Art Mode — every artwork on the site renders as its text backup"
+                    aria-pressed={notifs.asciiArt}
+                    onClick={() => {
+                        const next = !notifs.asciiArt;
+                        toggle('asciiArt');
+                        showToast(next ? 'ASCII Art Mode: ON — the whole site, in text' : 'ASCII Art Mode: OFF');
+                    }}
+                >
+                    {'\u235E\uFE0E'} SITE
                 </button>
             </div>
         </div>
