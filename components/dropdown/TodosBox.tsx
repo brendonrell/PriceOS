@@ -22,6 +22,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AccordionBox } from './AccordionBox';
 import { WorkflowsSheet } from './WorkflowsSheet';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
@@ -246,11 +247,25 @@ export function TodosBox() {
                         TO-DOS <span className="notif-count">({openCount})</span>
                     </span>
                     {notifs.todos && (
-                        /* One right-side icon cluster — ☇ sits directly beside
-                           the + as the next icon in the row (Brendon,
-                           2026-07-06), instead of drifting to the row's centre
-                           via the header's space-between. */
+                        /* One right-side icon cluster — + then ☇ (swapped per
+                           Brendon, 2026-07-10), instead of drifting to the
+                           row's centre via the header's space-between. */
                         <span className="todos-header-icons">
+                            <span
+                                className={`todos-add-btn${composeOpen ? ' is-on' : ''}`}
+                                role="button"
+                                tabIndex={0}
+                                title="Add a to-do"
+                                onClick={openComposer}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        openComposer(e as unknown as React.MouseEvent);
+                                    }
+                                }}
+                            >
+                                +
+                            </span>
                             <span
                                 className="todos-add-btn todos-wf-btn"
                                 role="button"
@@ -266,21 +281,6 @@ export function TodosBox() {
                                 }}
                             >
                                 {'☇︎'}
-                            </span>
-                            <span
-                                className={`todos-add-btn${composeOpen ? ' is-on' : ''}`}
-                                role="button"
-                                tabIndex={0}
-                                title="Add a to-do"
-                                onClick={openComposer}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        e.preventDefault();
-                                        openComposer(e as unknown as React.MouseEvent);
-                                    }
-                                }}
-                            >
-                                +
                             </span>
                         </span>
                     )}
@@ -301,6 +301,25 @@ export function TodosBox() {
 
             {composeOpen && (
                 <div className="todo-compose" onClick={stop}>
+                    {/* Close × — the composer's explicit exit (Brendon,
+                        2026-07-10); before this the only way out was
+                        re-tapping the header +. */}
+                    <span
+                        className="todo-compose-close"
+                        role="button"
+                        tabIndex={0}
+                        title="Close"
+                        onClick={(e) => { stop(e); setComposeOpen(false); }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setComposeOpen(false);
+                            }
+                        }}
+                    >
+                        {'×︎'}
+                    </span>
                     <input
                         className="todo-compose-input"
                         type="text"
@@ -318,33 +337,34 @@ export function TodosBox() {
                         }}
                     />
                     <div className="todo-compose-row">
-                        {/* Due chip — clock + label (or the picked date); the native
-                            date picker sits transparent on top so the chip stays a
-                            clean labeled pill. */}
-                        <label className={`todo-chip todo-chip-due${due ? ' set' : ''}`} title="Due date">
-                            <span className="todo-chip-ico">◷</span>
-                            <span className="todo-chip-lbl">{due ? fmtDue(due) : 'due'}</span>
-                            <input
-                                className="todo-chip-native"
-                                type="date"
-                                value={due}
-                                onChange={(e) => setDue(e.target.value)}
-                            />
-                        </label>
-                        {/* Time chip — appears once a day is picked; the native
-                            time picker rides transparent on top, same pattern as
-                            the date chip. Cleared with the date. */}
-                        {due && (
-                            <label className={`todo-chip todo-chip-time${dueTime ? ' set' : ''}`} title="Reminder time">
-                                <span className="todo-chip-lbl">{dueTime || 'time'}</span>
+                        {/* Due chip — ONE pill holding both the date and (once a
+                            day is picked) the time, matching the saved-row
+                            "Jul 10 09:49" display (Brendon, 2026-07-10 — two
+                            separate chips overflowed the row). Each segment
+                            carries its own transparent native picker. */}
+                        <span className={`todo-chip todo-chip-due${due ? ' set' : ''}`}>
+                            <label className="todo-chip-seg" title="Due date">
+                                <span className="todo-chip-ico">◷</span>
+                                <span className="todo-chip-lbl">{due ? fmtDue(due) : 'due'}</span>
                                 <input
                                     className="todo-chip-native"
-                                    type="time"
-                                    value={dueTime}
-                                    onChange={(e) => setDueTime(e.target.value)}
+                                    type="date"
+                                    value={due}
+                                    onChange={(e) => setDue(e.target.value)}
                                 />
                             </label>
-                        )}
+                            {due && (
+                                <label className="todo-chip-seg" title="Reminder time">
+                                    <span className="todo-chip-lbl">{dueTime || 'time'}</span>
+                                    <input
+                                        className="todo-chip-native"
+                                        type="time"
+                                        value={dueTime}
+                                        onChange={(e) => setDueTime(e.target.value)}
+                                    />
+                                </label>
+                            )}
+                        </span>
                         <span className={`todo-chip todo-chip-price${price ? ' set' : ''}`} title="ETH target / budget">
                             <span className="todo-chip-ico eth-mark">◊</span>
                             <input
@@ -368,10 +388,11 @@ export function TodosBox() {
                         <button
                             type="button"
                             className="todo-add"
+                            title="Add"
                             disabled={!text.trim()}
                             onClick={submit}
                         >
-                            Add
+                            +
                         </button>
                     </div>
                 </div>
@@ -512,7 +533,11 @@ export function TodosBox() {
 
             {workflowsOpen && <WorkflowsSheet onClose={() => setWorkflowsOpen(false)} />}
 
-            {confirm && (
+            {/* The confirm rides a portal to <body> — rendered inside the
+                dropdown, the menu's transform traps the fixed overlay so it
+                only covered the menu (Brendon, 2026-07-10). Same pattern as
+                every other full-screen confirm (unlist / mint / stickers). */}
+            {confirm && typeof document !== 'undefined' && createPortal(
                 <div
                     className="starred-confirm-overlay"
                     role="dialog"
@@ -536,7 +561,8 @@ export function TodosBox() {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body,
             )}
         </AccordionBox>
     );

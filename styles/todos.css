@@ -55,14 +55,34 @@
 
 /* Quick-add composer — reuses the calendar-compose look. */
 .todo-compose {
+    position: relative;
     margin: 2px 6px 6px;
     padding: 8px;
     border-radius: 5px;
     background: color-mix(in srgb, currentColor 12%, transparent);
     border: 1px solid currentColor;
 }
+/* Close × — top-right exit for the composer (Brendon, 2026-07-10). */
+.todo-compose-close {
+    position: absolute;
+    top: 7px;
+    right: 8px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    line-height: 1;
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: color 0.15s;
+}
+.todo-compose-close:hover { color: var(--hothurt, #ff0055); }
 .todo-compose-input {
     width: 100%;
+    box-sizing: border-box;
+    padding-right: 20px;
     border: 0;
     background: transparent;
     color: inherit;
@@ -102,20 +122,28 @@
     flex: 0 0 auto;
     transition: border-color 0.15s, color 0.15s;
 }
-/* Each glyph optically centred against the label — the raw symbols (clock /
-   diamond / bang) have different vertical metrics than the Courier text, so
-   they're nudged individually rather than left to sit where their em-box falls. */
+/* Icons and labels share one fixed-height flex box so every glyph centres on
+   the same axis as its text (Brendon, 2026-07-10 — the old per-glyph nudges
+   left them visibly off on the phone). */
 .todo-chip-ico {
     font-size: 12px;
-    line-height: 1;
+    line-height: 14px;
+    height: 14px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
 }
-.todo-chip-due .todo-chip-ico  { font-size: 13px; transform: translateY(-0.5px); }
-.todo-chip-price .todo-chip-ico { transform: translateY(0.5px); }
-.todo-chip-pri .todo-chip-ico  { transform: translateY(-0.5px); }
-.todo-chip-lbl { line-height: 1; display: inline-flex; align-items: center; }
+.todo-chip-due .todo-chip-ico  { font-size: 13px; }
+.todo-chip-lbl { line-height: 14px; height: 14px; display: inline-flex; align-items: center; }
+/* Segments inside the due pill — date | time, each wearing its own transparent
+   native picker (one pill, two tap targets — Brendon, 2026-07-10). */
+.todo-chip-seg {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 100%;
+}
 /* Due — native date picker sits transparent over the pill so it reads as a
    labeled chip but still opens the OS picker on tap. */
 .todo-chip-native {
@@ -130,7 +158,6 @@
     cursor: pointer;
     color-scheme: light dark;
 }
-.todo-chip-price .eth-mark { color: var(--hothurt, #ff0055); }
 .todo-chip-price-input {
     width: 44px;
     border: 0;
@@ -151,12 +178,15 @@
 .todo-chip-pri.on { border-color: var(--hothurt, #ff0055); color: var(--hothurt, #ff0055); }
 .todo-add {
     margin-left: auto;
-    font: 800 11px/1 inherit;
+    /* A lone + instead of "Add" — narrower, so the chip row keeps clear of
+       the right edge (Brendon, 2026-07-10). Courier + sized to read as the
+       same + that opens the composer. */
+    font: 800 13px/1 'Courier New', Courier, monospace;
     background: var(--bg-color);
     color: var(--text-color);
     border: 0;
     border-radius: 4px;
-    padding: 7px 12px;
+    padding: 6px 9px;
     cursor: pointer;
     transition: opacity 0.15s;
 }
@@ -251,8 +281,10 @@
 .todo-chip.rec { text-transform: capitalize; }
 .todo-chip.label { opacity: 0.9; }
 
-/* P1 — the red left rail (same treatment as high-priority pings). */
-.todo-row.p1 { font-weight: 900; box-shadow: inset 2px 0 0 var(--hothurt, #ff0055); }
+/* P1 — a full red ring around the row (replaces the old left rail, which
+   merged into one long bar across stacked P1 rows — Brendon, 2026-07-10:
+   each row reads as its own bounded item even when there's more than one). */
+.todo-row.p1 { font-weight: 900; box-shadow: inset 0 0 0 1px var(--hothurt, #ff0055); }
 .todo-row.p1 .todo-box { color: var(--hothurt, #ff0055); opacity: 1; }
 
 /* Completed — strike through + fade + sink (order handled in JS). */
