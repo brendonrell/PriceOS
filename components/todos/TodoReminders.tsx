@@ -16,6 +16,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useToast } from '../../lib/state/ToastContext';
+import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { getTodos, subscribeTodos, type TodoItem } from '../../lib/todos/todoStore';
 
 const REMINDED_KEY = 'pd_todo_reminded';
@@ -56,7 +57,15 @@ function dueEpoch(t: TodoItem): number | null {
 
 export default function TodoReminders() {
     const { showToast } = useToast();
+    const { notifs } = usePdNotifs();
     const firstRunRef = useRef(true);
+
+    /* The in-app reminder is a Pingtoast, so it obeys the Pingtoasts mode:
+       ON / COMBO → toast; 3D → native-only (the closed-app sweep covers it —
+       an in-app toast in 3D was the 2026-07-10 bug); OFF → silent. Read via
+       ref so the 30s poll always sees the current mode without re-arming. */
+    const modeRef = useRef(notifs.pingToasts);
+    modeRef.current = notifs.pingToasts;
 
     useEffect(() => {
         let timer: ReturnType<typeof setInterval> | null = null;
@@ -76,6 +85,9 @@ export default function TodoReminders() {
             }
             if (dueNow.length === 0) return;
             writeReminded(reminded);
+            // Mode gate — the due ledger above still advances in every mode so
+            // switching modes later never replays old reminders.
+            if (modeRef.current !== 'on' && modeRef.current !== 'combo') return;
             // On the first sweep after load, collapse a backlog into one toast so
             // opening the app with several overdue items doesn't spam.
             if (firstRunRef.current && dueNow.length > 1) {

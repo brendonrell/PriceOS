@@ -41,6 +41,11 @@ export interface TodoItem {
     due?: string | null;
     /** Optional time-of-day label, e.g. '22:00'. Freeform, display-only. */
     dueTime?: string | null;
+    /** Device UTC offset (minutes, Date.getTimezoneOffset()) stamped whenever
+     *  the due date/time is set. due/dueTime are LOCAL wall-clock; the native
+     *  reminder sweep needs this offset to compute the real instant (it read
+     *  them as UTC before this field, so reminders fired hours off or never). */
+    tz?: number | null;
     priority: TodoPriority;
     /** Optional ETH target/budget the collector attaches. Powers the war-chest
      *  meter and, for BUY output to-dos, the Sentinel READY flip. */

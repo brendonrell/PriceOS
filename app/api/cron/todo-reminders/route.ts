@@ -32,11 +32,24 @@ interface StoredTodo {
   text?: string;
   due?: string | null;
   dueTime?: string | null;
+  /** Device UTC offset (minutes, Date.getTimezoneOffset()) stamped by the
+   *  client when the due date/time was set — due/dueTime are LOCAL wall-clock. */
+  tz?: number | null;
   done?: boolean;
 }
 
-/** Epoch (ms, UTC) of a to-do's reminder instant, or null if the date is bad. */
-function reminderInstant(due: string, dueTime: string | undefined, defaultHour: number): number | null {
+/** Epoch (ms, UTC) of a to-do's reminder instant, or null if the date is bad.
+ *  due/dueTime are the user's LOCAL wall-clock; `tz` (the device UTC offset at
+ *  save time) converts them to the real instant. Without it a 19:09 Montreal
+ *  reminder read as 19:09 UTC — hours early, usually already past when the
+ *  to-do was created, so it never fired (THE 2026-07-10 dead-reminder bug).
+ *  Legacy rows without tz keep the old UTC read rather than guessing a zone. */
+function reminderInstant(
+  due: string,
+  dueTime: string | undefined,
+  tz: number | null,
+  defaultHour: number,
+): number | null {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(due);
   if (!m) return null;
   let h = defaultHour;
@@ -46,7 +59,10 @@ function reminderInstant(due: string, dueTime: string | undefined, defaultHour: 
     h = Math.min(23, Number(tm[1]));
     min = Math.min(59, Number(tm[2]));
   }
-  return Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), h, min);
+  const base = Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), h, min);
+  // getTimezoneOffset() = UTC − local in minutes (Montreal EDT = +240), so the
+  // real instant is the local wall-clock reading PLUS the offset.
+  return typeof tz === 'number' && Number.isFinite(tz) ? base + tz * 60_000 : base;
 }
 
 export async function GET(req: Request): Promise<Response> {
@@ -84,7 +100,12 @@ export async function GET(req: Request): Promise<Response> {
       for (const t of todos) {
         if (!t || t.done || typeof t.due !== 'string' || !t.due) continue;
         scanned += 1;
-        const instant = reminderInstant(t.due, typeof t.dueTime === 'string' ? t.dueTime : undefined, defaultHour);
+        const instant = reminderInstant(
+          t.due,
+          typeof t.dueTime === 'string' ? t.dueTime : undefined,
+          typeof t.tz === 'number' ? t.tz : null,
+          defaultHour,
+        );
         if (instant == null) continue;
         // Fire only if the instant just passed (within the last window).
         if (instant > now || instant <= now - WINDOW_MS) continue;

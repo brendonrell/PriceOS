@@ -43,6 +43,7 @@ function safeParse(raw: string | null): TodoItem[] {
                 source: t.source && typeof t.source === 'object' ? t.source : undefined,
                 due: typeof t.due === 'string' ? t.due : null,
                 dueTime: typeof t.dueTime === 'string' ? t.dueTime : null,
+                tz: typeof t.tz === 'number' ? t.tz : null,
                 priority: ([0, 1, 2, 3] as number[]).includes(t.priority) ? t.priority : 0,
                 priceEth: typeof t.priceEth === 'number' && t.priceEth > 0 ? t.priceEth : null,
                 labels: Array.isArray(t.labels)
@@ -117,6 +118,7 @@ export function addRawTodo(input: RawTodoInput): TodoItem | null {
         text,
         due: input.due || null,
         dueTime: input.dueTime || null,
+        tz: input.due ? new Date().getTimezoneOffset() : null,
         priority: input.priority ?? 0,
         priceEth: typeof input.priceEth === 'number' && input.priceEth > 0 ? input.priceEth : null,
         labels: labels.length ? labels : undefined,
@@ -178,6 +180,7 @@ export function addOutputTodo(
         source: { slug, tokenId, verb },
         due: opts?.due ?? null,
         dueTime: opts?.dueTime ?? null,
+        tz: opts?.due ? new Date().getTimezoneOffset() : null,
         priority: 0,
         priceEth: typeof opts?.priceEth === 'number' && opts.priceEth > 0 ? opts.priceEth : null,
         done: false,
@@ -222,7 +225,16 @@ export function clearDoneTodos(): number {
 }
 
 export function updateTodo(id: string, patch: Partial<TodoItem>): void {
-    commit(getTodos().map((t) => (t.id === id ? { ...t, ...patch, id: t.id } : t)));
+    // A due date/time edit re-stamps the device's UTC offset so the native
+    // reminder sweep computes the instant against the wall-clock the user
+    // actually meant (see TodoItem.tz).
+    const touchesDue = 'due' in patch || 'dueTime' in patch;
+    commit(getTodos().map((t) => {
+        if (t.id !== id) return t;
+        const next = { ...t, ...patch, id: t.id };
+        if (touchesDue) next.tz = next.due ? new Date().getTimezoneOffset() : null;
+        return next;
+    }));
 }
 
 // ── derived helpers ─────────────────────────────────────────
