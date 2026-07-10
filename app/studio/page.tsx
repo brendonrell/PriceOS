@@ -14,6 +14,10 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useAccount } from 'wagmi';
+import { hasStudioAccess } from '../../lib/studio/access';
+import { StickerStudio } from '../../components/studio/StickerStudio';
+import { GodMode } from '../../components/studio/GodMode';
 import {
     addRun,
     buildEnvelope,
@@ -29,6 +33,13 @@ import { SUPPLY_MAX, SUPPLY_MIN } from '../../lib/studio/constants';
 const RUN_SIZES = [6, 22, 66, 222] as const;
 
 export default function StudioPage() {
+    const { address } = useAccount();
+    /* Private layers (spec in ClickUp only): resolved client-side after
+       mount so the gate reads the device store — invisible to everyone
+       not on the list, no greyed buttons, nothing to discover. */
+    const [god, setGod] = useState(false);
+    useEffect(() => setGod(hasStudioAccess(address)), [address]);
+
     const [drafts, setDrafts] = useState<StudioDraft[]>([]);
     const [activeId, setActiveId] = useState<string | null>(null);
     const [run, setRun] = useState<StudioRun | null>(null);
@@ -287,6 +298,9 @@ export default function StudioPage() {
                 </div>
             )}
 
+            {/* ── STICKER STUDIO — private layer, upload side ── */}
+            {god && <StickerStudio />}
+
             {/* ── PUBLISH ── */}
             {active && (
                 <div className="pd-studio-section">
@@ -339,6 +353,9 @@ export default function StudioPage() {
                     ))
                 )}
             </div>
+
+            {/* ── GOD MODE — private layer, analytics side ── */}
+            {god && <GodMode />}
 
             {/* ── Fullscreen live render ── */}
             {full && active && (
