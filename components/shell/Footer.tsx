@@ -102,8 +102,12 @@ export function Footer() {
                     </a>
                     <span className="priceos-sep">·</span>
                     {/* Docs — served in-app at /docs; the docs.pricediscussion.com
-                        subdomain points here once the domain is wired. */}
-                    <a className="priceos-link" title="Docs" href="/docs">
+                        subdomain points here once the domain is wired.
+                        data-native-nav: the docs surface boots on a full page
+                        load (its default-dark colorway runs in the document
+                        prehydration script), and the in-app hop into it could
+                        stall on device — enter it the way a direct load does. */}
+                    <a className="priceos-link" title="Docs" href="/docs" data-native-nav="">
                         Docs
                     </a>
                     <span className="priceos-sep">·</span>
@@ -111,10 +115,11 @@ export function Footer() {
                         Support
                     </a>
                     <span className="priceos-sep">·</span>
-                    {/* Studio — placeholder destination, wired later. */}
-                    <span className="priceos-link" title="Studio">
+                    {/* Studio — PD Studio, live at /studio (host-routed to
+                        studio.pricediscussion.com once DNS points here). */}
+                    <a className="priceos-link" title="Studio" href="/studio">
                         Studio
-                    </span>
+                    </a>
                 </div>
             </footer>
         </>
