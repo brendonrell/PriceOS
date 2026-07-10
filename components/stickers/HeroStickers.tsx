@@ -26,7 +26,7 @@
 import { Component, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useOwnedFor, useStickerPrefs, isActive } from '../../lib/stickers/owned';
-import { useHeroPrefs, arrangeShape, tiltDeg, rngFrom, buildCollage, buildPile, stickerHue, shouldFlip } from '../../lib/stickers/heroPrefs';
+import { useHeroPrefs, arrangeShape, tiltDeg, rngFrom, buildCollage, buildPile, buildSlapped, stickerHue, shouldFlip } from '../../lib/stickers/heroPrefs';
 import { usePlacements, setComposition, moveSticker, raiseSticker, rotateSticker, removeFromComposition, type PlacementMap } from '../../lib/stickers/placements';
 import { StickerArt } from './StickerArt';
 import { StickerManagerModal } from './StickerManagerModal';
@@ -143,7 +143,7 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
         [owned, offSheets, offIds],
     );
 
-    const { rows, cap, scatter } = arrangeShape(arrange, rowsPref);
+    const { rows, cap } = arrangeShape(arrange, rowsPref);
     /* Width (FIT/WIDE) controls ONLY how wide the sticker area is drawn — never
        how many stickers show. Pumping the count on WIDE blew the area up and
        buried the section below it (Brendon, 2026-06-24). */
@@ -151,14 +151,17 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
        (unchanged), MED/MAX add more stickers so the control always does
        something (Brendon, 2026-06-24). Stack keeps its own pile density. */
     const DENSITY_MULT = [1, 1.3, 1.6];
-    const effCap = arrange === 'stack'
+    const effCap = arrange === 'stack' || arrange === 'slapped'
         ? cap
         : Math.round(cap * (DENSITY_MULT[density] ?? 1));
 
     const picked = useMemo(() => {
-        const rnd = scatter ? rngFrom(seed) : null;
+        /* EVERY mode casts its stickers by seeded shuffle — without this the
+           tidy modes (and Stack) always drew the FIRST few of each sheet, which
+           are hue-neighbours, so whole arrangements came out one colour and
+           Shuffle never changed the cast (found 2026-07-10). */
+        const rnd = rngFrom(seed);
         const shuffle = <T,>(a: T[]): T[] => {
-            if (!rnd) return a;
             for (let i = a.length - 1; i > 0; i--) {
                 const j = Math.floor(rnd() * (i + 1));
                 [a[i], a[j]] = [a[j]!, a[i]!];
@@ -172,7 +175,7 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
             if (!bySheet.has(s.sheet)) { bySheet.set(s.sheet, []); sheetOrder.push(s.sheet); }
             bySheet.get(s.sheet)!.push(s);
         }
-        const queues = (rnd ? shuffle(sheetOrder.slice()) : sheetOrder).map((k) => shuffle(bySheet.get(k)!.slice()));
+        const queues = shuffle(sheetOrder.slice()).map((k) => shuffle(bySheet.get(k)!.slice()));
 
         // SELECT by round-robin across sheets (one each, in turn) up to the
         // arrangement's room — even spread, never all from one sheet. Only a few
@@ -196,7 +199,7 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
             }
         }
         return chosen;
-    }, [active, scatter, effCap, seed]);
+    }, [active, effCap, seed]);
 
     /* ── Placement gesture (own profile) ──────────────────────────────────────
        Pointer move/up live on the window so a drag survives the sticker hopping
@@ -312,13 +315,27 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
     const baseTilt = tiltDeg(tilt);
     const jrnd = rngFrom(seed + 7);
     /* Per-sticker render height. Output artworks render at half (they read big),
-       and ARTISTS-sheet sprites 20% down — owned stickers in any composition pick
-       this up automatically (Brendon, 2026-06-24). */
+       and ARTISTS + PRICESPRITES badges 20% down — the artist-badge size is the
+       LARGE reference; PriceSprites match it, Projects stay XL (Brendon,
+       2026-07-10). Owned stickers in any composition pick this up automatically. */
     const sz = (s: Sticker) => {
         const base = s.kind === 'face' || s.kind === 'output' ? 50 : 40;
         if (s.kind === 'output') return base * 0.5;
-        if (s.sheet === 'artist') return base * 0.8;
+        if (s.sheet === 'artist' || s.sheet === 'pricesprite') return base * 0.8;
         return base;
+    };
+    /* Width factor (width ÷ height) per sticker — the area modes place on the
+       TRUE footprint so a long @name chip never crops off the frame or buries
+       a neighbour sideways. Mirrors StickerArt's render maths. */
+    const wf = (s: Sticker): number => {
+        if (s.kind === 'output') return 1;
+        if (s.kind === 'glyph') return 1;
+        if (s.kind === 'price') return 517 / 403;
+        if (s.kind === 'logo') return 761 / 655;
+        const lines = (s.kind === 'anim' ? (s.frames?.[0] ?? '') : (s.glyph ?? '( · )')).split('\n');
+        if (lines.length > 1) return 178 / 120;
+        const chars = Math.max(1, ...lines.map((l) => [...l].length));
+        return Math.max(1, Math.min(4.4, (chars * 30 + 40) / 78));
     };
     const areaStyle = { maxWidth: expand ? undefined : (clampW ?? undefined) };
     const alignClass = align === 'center' ? 'al-center' : align === 'right' ? 'al-right' : 'al-left';
@@ -453,7 +470,7 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
 
     // COLLAGE — one large composed area: overlapping, mixed sizes, balanced.
     if (arrange === 'collage') {
-        const comp = buildCollage(picked.length, seed, rowsPref);
+        const comp = buildCollage(picked.length, seed, picked.map(wf), rowsPref);
         return wrap(
             <div className="hero-collage" style={{ ...areaStyle, aspectRatio: `${comp.cols} / ${comp.rows}` }}>
                 {picked.map((s, i) => {
@@ -475,11 +492,37 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
         );
     }
 
+    // SLAPPED — the WOW mode: a real stickered laptop lid (statements first,
+    // near-tangent packing, mostly-upright with the odd rebel angle).
+    if (arrange === 'slapped') {
+        const comp = buildSlapped(picked.length, seed, density, picked.map(wf), rowsPref);
+        const shown = picked.slice(0, comp.items.length);
+        return wrap(
+            <div className={`hero-pile ${alignClass}`} style={{ ...areaStyle, aspectRatio: String(comp.aspect) }}>
+                {shown.map((s, i) => {
+                    const p = comp.items[i]!;
+                    return (
+                        <span
+                            key={s.id}
+                            data-sid={s.id}
+                            className="hero-sticker hero-pile-item"
+                            style={{ left: `${p.x}%`, top: `${p.y}%`, zIndex: p.z, transform: `translate(-50%, -50%) rotate(${p.rot + flipOf(s.id)}deg) scale(${p.scale})` }}
+                            title={s.name}
+                            {...ownDown(s)}
+                        >
+                            <StickerArt sticker={s} size={sz(s)} diecut={diecut} />
+                        </span>
+                    );
+                })}
+            </div>,
+        );
+    }
+
     // STACK — a PILE (stickered laptop / skateboard): piled + overlapping, placed
     // generatively for compositional colour balance (buildPile). Shuffle re-rolls
     // the composition.
     if (arrange === 'stack') {
-        const pile = buildPile(picked.map(stickerHue), seed, density, rowsPref);
+        const pile = buildPile(picked.map(stickerHue), seed, density, picked.map(wf), rowsPref);
         const shown = picked.slice(0, pile.items.length);
         return wrap(
             <div className={`hero-pile ${alignClass}`} style={{ ...areaStyle, aspectRatio: String(pile.aspect) }}>
@@ -506,19 +549,35 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
     const perRow = Math.ceil(picked.length / rows);
     const rowChunks = Array.from({ length: rows }, (_, r) => picked.slice(r * perRow, (r + 1) * perRow));
 
+    /* The linear modes, each with its own personality (they read too alike —
+       Brendon, 2026-07-10): ROW/SPREAD stay the tidy baselines (alternating
+       tilt, uniform size); SCATTER is the loose, playful one — free rotation,
+       vertical drift, mixed sizes; FILL packs wall-to-wall with just a whisper
+       of drift. Every sticker stays fully readable in all four. */
     return wrap(
         <div className={`hero-stickers-rows arr-${arrange} ${alignClass}`} style={areaStyle}>
             {rowChunks.map((chunk, ri) => (
                 <div className="hero-stickers-row" key={ri}>
                     {chunk.map((s, i) => {
-                        const t = baseTilt === 0 ? 0 : ((i + ri) % 2 === 0 ? -baseTilt : baseTilt);
-                        const jy = scatter ? Math.round((jrnd() - 0.5) * 14) : 0;
+                        const v1 = jrnd(), v2 = jrnd(), v3 = jrnd();
+                        let rot = baseTilt === 0 ? 0 : ((i + ri) % 2 === 0 ? -baseTilt : baseTilt);
+                        let jy = 0;
+                        let sc = 1;
+                        if (arrange === 'scatter') {
+                            rot = (v1 * 2 - 1) * (baseTilt === 0 ? 4 : baseTilt * 1.7);
+                            jy = Math.round((v2 - 0.5) * 22);
+                            sc = 0.88 + v3 * 0.3;
+                        } else if (arrange === 'fill') {
+                            rot = (v1 * 2 - 1) * baseTilt * 0.8;
+                            jy = Math.round((v2 - 0.5) * 8);
+                            sc = 0.94 + v3 * 0.14;
+                        }
                         return (
                             <span
                                 key={s.id}
                                 data-sid={s.id}
                                 className="hero-sticker"
-                                style={{ transform: `translateY(${jy}px) rotate(${t + flipOf(s.id)}deg)` }}
+                                style={{ transform: `translateY(${jy}px) rotate(${rot + flipOf(s.id)}deg)${sc !== 1 ? ` scale(${sc.toFixed(3)})` : ''}` }}
                                 title={s.name}
                                 {...ownDown(s)}
                             >

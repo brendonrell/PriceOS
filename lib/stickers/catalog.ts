@@ -20,9 +20,10 @@ import { allProjects, projectTrueName } from '../project/registry';
 import { projectSpriteFace } from '../project/projectSprite';
 import { spriteFaceFor } from './sprites';
 import { TIERS } from '../familiar/bestiary';
+import { ANIMATED_SPECIES } from '../familiar/species';
 
 export type SheetId =
-    | 'genesis' | 'petey' | 'icon' | 'familiar'
+    | 'genesis' | 'petey' | 'icon' | 'familiar' | 'animfamiliar'
     | 'project' | 'artist' | 'pricesprite' | 'handle' | 'projectname' | 'output'
     | 'achievement' | 'rarity' | 'truename' | 'quip' | 'holo' | 'animated';
 
@@ -186,6 +187,21 @@ const FAMILIARS: Sticker[] = FAMILIAR_ENTRIES.map<Sticker>((e, i) => {
     };
 });
 
+/* ── Animated Familiar sheet — the WHOLE bestiary, ALIVE (species idle loops) ── */
+const ANIMFAM_HUES = genHues(ANIMATED_SPECIES.length, 'af', { sat: 82, lights: [56, 46, 64], phase: 250 });
+const ANIM_FAMILIARS: Sticker[] = ANIMATED_SPECIES.map<Sticker>((e, i) => {
+    const hex = ANIMFAM_HUES[i]!.hex;
+    return {
+        id: `animfam-${e.name.toLowerCase()}`,
+        sheet: 'animfamiliar',
+        kind: 'anim',
+        name: e.name,
+        frames: e.idle,
+        color: hex,
+        cutout: cutoutFor(hex),
+    };
+});
+
 /* ── Project / Artist / PriceSprite sheets — the live sprite system ───────── */
 const PROJECT_LIST = allProjects();
 
@@ -329,7 +345,7 @@ const ANIMATED: Sticker[] = ANIM_FRAMES.map<Sticker>((it, i) => {
 });
 
 export const STICKERS: readonly Sticker[] = [
-    ...GENESIS, ...PETEY, ...ICONS, ...FAMILIARS,
+    ...GENESIS, ...PETEY, ...ICONS, ...FAMILIARS, ...ANIM_FAMILIARS,
     ...PROJECT_SPRITES, ...ARTIST_SPRITES, ...PRICESPRITES,
     ...ARTIST_NAMES, ...PROJECT_NAMES, ...OUTPUTS,
     ...ACHIEVEMENTS, ...RARITIES, ...TRUENAMES, ...QUIP_STICKERS, ...HOLO, ...ANIMATED,
@@ -357,6 +373,7 @@ export const SHEETS: readonly SheetMeta[] = [
     { id: 'petey',   name: 'PETEY',   tag: 'UNCOMMON', count: PETEY.length,   price: '0.008', cover: PETEY[0]! },
     { id: 'icon',    name: 'ICONS',   tag: 'COMMON',   count: ICONS.length,   price: '0.006', cover: ICONS[0]! },
     { id: 'familiar', name: 'FAMILIARS', tag: 'RARE',  count: FAMILIARS.length, price: '0.012', cover: FAMILIARS[0]! },
+    { id: 'animfamiliar', name: 'ANIMATED FAMILIARS', tag: 'MYTHIC', count: ANIM_FAMILIARS.length, price: '0.026', cover: ANIM_FAMILIARS[0]! },
     { id: 'project', name: 'PROJECTS', tag: 'MYTHIC',   count: PROJECT_SPRITES.length, price: '0.016', cover: PROJECT_SPRITES[0]! },
     { id: 'artist',  name: 'ARTISTS',  tag: 'MYTHIC',   count: ARTIST_SPRITES.length,  price: '0.014', cover: ARTIST_SPRITES[0]! },
     { id: 'pricesprite', name: 'PRICESPRITES', tag: 'RARE', count: PRICESPRITES.length, price: '0.010', cover: PRICESPRITES[0]! },

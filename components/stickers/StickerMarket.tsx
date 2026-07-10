@@ -278,6 +278,11 @@ export default function StickerMarket() {
                 {`⇠⇠${VS15}`} ALL SHEETS
             </div>
             <div className="skm-book-head">
+                {meta && (
+                    <span className="skm-thumb skm-book-thumb" aria-hidden="true">
+                        <StickerArt sticker={meta.cover} size={22} />
+                    </span>
+                )}
                 <span className="skm-book-title">{meta?.name ?? openSheet}</span>
                 <span className="skm-book-pos">
                     {holding > 0 ? `you hold ${holding}${holding > 1 ? ' (doubles)' : ''}` : 'you hold none'}
@@ -417,6 +422,7 @@ export default function StickerMarket() {
             )}
 
             {/* Composers — SELL (needs holding) + OFFER, per-sheet price × qty. */}
+            <div className="skm-side-label">{`⊞${VS15} COMPOSE`}</div>
             <div className="skm-composers">
                 {holding > 0 && (
                     <div className="skm-compose">

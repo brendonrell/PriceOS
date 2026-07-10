@@ -20,6 +20,7 @@ const RELEASES: Partial<Record<SheetId, string>> = {
     pricesprite: '2026-06-13', handle: '2026-06-14', projectname: '2026-06-14',
     output: '2026-06-15', achievement: '2026-06-16', rarity: '2026-06-17',
     truename: '2026-06-18', quip: '2026-06-19', holo: '2026-06-20', animated: '2026-06-21',
+    animfamiliar: '2026-07-10',
 };
 
 /* Rare secret lines — ~12% of opens show exactly one, dropped at a random spot. */

@@ -70,6 +70,13 @@
     flex-wrap: wrap;
 }
 .ss-title { display: flex; flex-direction: column; line-height: 1.1; flex: 1 1 auto; min-width: 0; }
+/* Store view: ONE header line (the old header — Brendon, 2026-07-10,
+   screenshot). The title wraps inside its column ("STICKER" / "STORE") while
+   the arrow, the stacked stats and the × all hold the same row. */
+.ss-head-store { flex-wrap: nowrap; gap: 8px; }
+.ss-head-store .ss-title { min-width: 112px; }
+.ss-head-store .ss-stats { gap: 10px; font-size: 12px; }
+.ss-head-store .ss-stat b { font-size: 14px; }
 .ss-title-main {
     font-family: var(--font-rubik-mono), sans-serif;
     font-size: 18px;
@@ -88,13 +95,22 @@
 .ss-stats {
     margin-left: auto;
     display: flex;
-    gap: 16px;
-    font-size: 15px;
+    gap: 14px;
+    font-size: 13px;
     font-weight: bold;
     letter-spacing: 0.06em;
     color: var(--text-color);
 }
-.ss-stat b { color: var(--text-color); }
+/* The old header layout (Brendon, 2026-07-10, screenshot): each stat stacks
+   its number over its label so the whole header holds one line. */
+.ss-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    line-height: 1.2;
+}
+.ss-stat b { color: var(--text-color); font-size: 15px; }
 .ss-close {
     font-size: 26px;
     font-weight: bold;
@@ -142,6 +158,54 @@
     background: var(--bg-color);
     border-top: 1px solid var(--border-color);
 }
+/* THE MARKETPLACE LINE — the marketplace/album home: one thin crawl right
+   under the top menu (Brendon, 2026-07-10). The crawl crosses store ⇄ market;
+   the cap at its end holds the album. Reuses the ssTicker keyframes. */
+.ss-mktline {
+    display: flex;
+    align-items: stretch;
+    border-top: 1px solid var(--border-color);
+    background: color-mix(in srgb, var(--text-color) 8%, transparent);
+}
+.ss-mktline-crawl {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+    -webkit-tap-highlight-color: transparent;
+}
+.ss-mktline-track {
+    display: inline-flex;
+    white-space: nowrap;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.22em;
+    color: var(--text-color);
+    padding: 5px 0;
+    animation: ssTicker 72s linear infinite;
+}
+.ss-mktline-track > span { padding-right: 14px; }
+.ss-mktline-cap {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    border: none;
+    border-left: 1px solid var(--border-color);
+    background: none;
+    color: var(--text-color);
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.12em;
+    padding: 0 14px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+.ss-mktline-cap:hover { background: color-mix(in srgb, var(--text-color) 12%, transparent); }
+
 .ss-ticker {
     overflow: hidden;
     border-top: 1px solid var(--border-color);
@@ -893,6 +957,9 @@ body.sticker-mode .hero-stickers { display: none; }
 /* Text presets (Match · RGB · CMYK · PR) — plain text, NOT buttons (Brendon,
    2026-06-26): same size/weight as the menu labels above, sitting inline after
    the circles. Active = full strength + underline. */
+/* The first text preset ("Match") sits a step off the last circle so the
+   circle→text gap reads the same as the text→text gaps (Brendon, 2026-07-10). */
+.smgr-hue + .smgr-hue-preset { margin-left: 4px; }
 .smgr-hue-preset {
     height: 18px;
     display: inline-flex;
@@ -920,6 +987,10 @@ body.sticker-mode .hero-stickers { display: none; }
     opacity: 0.5;
     padding: 4px 0;
 }
+/* The Sticker Setup Code carries the seed now (19 chars, vs Ambient's 9) — the
+   shared code field widens inside the sticker manager so the whole code shows. */
+.sticker-pop .ambient-code-input,
+.sticker-mgr-plus .ambient-code-input { width: 20ch; }
 .smgr-tile {
     display: inline-flex;
     align-items: center;

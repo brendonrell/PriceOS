@@ -260,6 +260,11 @@ export default function StickersModal() {
                     ))}
                 </span>
                 <span className="ss-card-soon ss-card-new">LIVE</span>
+                {s.restockAt && Date.parse(s.restockAt) > Date.now() && (
+                    <span className="ss-card-soon ss-restock">
+                        RESTOCK {Math.max(1, Math.ceil((Date.parse(s.restockAt) - Date.now()) / 86_400_000))}D
+                    </span>
+                )}
                 {ownsSheet(s.id, ownedIds) && <span className="ss-card-owned" title="Owned">{'✓︎'}</span>}
             </div>
         </div>
@@ -283,7 +288,7 @@ export default function StickersModal() {
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); close(); } }}
                 />
 
-                <div className="ss-head">
+                <div className={`ss-head${detail ? '' : ' ss-head-store'}`}>
                     {detail ? (
                         <>
                             <div
@@ -298,7 +303,7 @@ export default function StickersModal() {
                             </div>
                             <div className="ss-title">
                                 <span className="ss-title-main">{detail.name}</span>
-                                <span className="ss-title-sub">{`// ${detail.count} Pcs`}</span>
+                                <span className="ss-title-sub">{`⊞${VS15} ${detail.count} Pcs`}</span>
                             </div>
                             <BuySheetButton sheet={detail} className="ss-buy-head" />
                         </>
@@ -306,26 +311,8 @@ export default function StickersModal() {
                         <>
                             <div className="ss-title">
                                 <span className="ss-title-main">{albumOn ? 'MY STICKER ALBUM' : marketOn ? 'STICKER MARKET' : 'STICKER STORE'}</span>
-                                <span className="ss-title-sub">{albumOn ? '// GOT / NEED' : marketOn ? '// SECONDARY' : '// BY PD'}</span>
+                                <span className="ss-title-sub">{`⊞${VS15} ${albumOn ? 'GOT / NEED' : marketOn ? 'SECONDARY' : 'BY PD'}`}</span>
                             </div>
-                            <button
-                                className={`ss-expand ss-market-toggle${marketOn ? ' is-on' : ''}`}
-                                type="button"
-                                title={marketOn ? 'Back to the store' : 'Sticker Market — secondary'}
-                                aria-pressed={marketOn}
-                                onClick={() => { setAlbumOn(false); setMarketOn((v) => { const next = !v; showToast(`Stickers: ${next ? 'MARKET' : 'STORE'}`); return next; }); }}
-                            >
-                                MKT
-                            </button>
-                            <button
-                                className={`ss-expand ss-market-toggle${albumOn ? ' is-on' : ''}`}
-                                type="button"
-                                title={albumOn ? 'Back to the store' : 'My Sticker Album — got / need'}
-                                aria-pressed={albumOn}
-                                onClick={() => { setMarketOn(false); setAlbumOn((v) => { const next = !v; showToast(`Stickers: ${next ? 'ALBUM' : 'STORE'}`); return next; }); }}
-                            >
-                                ALB
-                            </button>
                             {!marketOn && !albumOn && (
                             <button
                                 className={`ss-expand${expanded ? ' is-on' : ''}`}
@@ -334,13 +321,13 @@ export default function StickersModal() {
                                 aria-pressed={expanded}
                                 onClick={toggleView}
                             >
-                                {`⊞${VS15}`}
+                                {`${expanded ? '↓' : '↑'}${VS15}`}
                             </button>
                             )}
                             <div className="ss-stats">
                                 <span className="ss-stat"><b>{totalSheets}</b> SHEETS</span>
                                 <span className="ss-stat"><b>{ownedIds.length}</b> OWNED</span>
-                                <span className="ss-stat ss-bal">{`◊${VS15} ${spent.toFixed(3)}`}</span>
+                                <span className="ss-stat ss-bal"><b>{`◊${VS15}`}</b> {spent.toFixed(3)}</span>
                             </div>
                             <div
                                 className="ss-close"
@@ -363,7 +350,7 @@ export default function StickersModal() {
                     (() => {
                         const FLOW = new Set(['artist', 'pricesprite', 'handle', 'projectname', 'rarity', 'quip', 'truename', 'animated']);
                         const mode = detail.id === 'output' ? 'masonry'
-                            : detail.id === 'familiar' ? 'fam'
+                            : detail.id === 'familiar' || detail.id === 'animfamiliar' ? 'fam'
                             : FLOW.has(detail.id) ? 'flow'
                             : 'grid';
                         const cls = mode === 'masonry' ? 'ss-masonry'
@@ -422,7 +409,7 @@ export default function StickersModal() {
                                     {cells.map((s) => (
                                         <span key={s.id} className="ss-cell" title={s.name}>
                                             {mode === 'flow'
-                                                ? <StickerArt sticker={s} size={detail.id === 'artist' ? 30 : 40} diecut />
+                                                ? <StickerArt sticker={s} size={detail.id === 'artist' || detail.id === 'pricesprite' ? 30 : 40} diecut />
                                                 : <StickerArt sticker={s} fill diecut />}
                                         </span>
                                     ))}
@@ -432,6 +419,41 @@ export default function StickersModal() {
                     })()
                 ) : (
                     <>
+                        {/* THE MARKETPLACE LINE — the marketplace/album home: one
+                            thin crawl right under the top menu (Brendon,
+                            2026-07-10). Tap the crawl to cross between store ⇄
+                            market; the small cap at its end holds the album. */}
+                        <div className="ss-mktline">
+                            <button
+                                type="button"
+                                className="ss-mktline-crawl"
+                                aria-label={marketOn || albumOn ? 'Back to the Sticker Store' : 'Open the Sticker Marketplace'}
+                                onClick={() => {
+                                    if (marketOn || albumOn) { setMarketOn(false); setAlbumOn(false); showToast('Stickers: STORE'); }
+                                    else { setAlbumOn(false); setMarketOn(true); showToast('Stickers: MARKET'); }
+                                }}
+                            >
+                                <span className="ss-mktline-track" aria-hidden="true">
+                                    {[0, 1].map((k) => (
+                                        <span key={k}>
+                                            {Array.from({ length: 8 }, () => (marketOn || albumOn ? 'BACK TO THE STICKER STORE' : 'OPEN THE STICKER MARKETPLACE')).join(' · ')}
+                                            {' · '}
+                                        </span>
+                                    ))}
+                                </span>
+                            </button>
+                            <button
+                                type="button"
+                                className={`ss-mktline-cap${albumOn ? ' is-on' : ''}`}
+                                title={albumOn ? 'Sticker Market — secondary' : 'My Sticker Album — got / need'}
+                                onClick={() => {
+                                    if (albumOn) { setAlbumOn(false); setMarketOn(true); showToast('Stickers: MARKET'); }
+                                    else { setMarketOn(false); setAlbumOn(true); showToast('Stickers: ALBUM'); }
+                                }}
+                            >
+                                {albumOn ? 'MARKET' : 'ALBUM'}
+                            </button>
+                        </div>
                         <div className="ss-ticker" aria-hidden="true">
                             <div className="ss-ticker-track" style={{ animationDuration: `${tickerDur}s` }}>
                                 <span>{tickerText}</span>
@@ -448,11 +470,16 @@ export default function StickersModal() {
                                 className="ss-grid-view"
                                 ref={gridRef}
                                 onScroll={(e) => { gridYRef.current = e.currentTarget.scrollTop; }}
-                                /* Mobile/tablet: cap the stacked grid at 8 rows by fanning
-                                   out columns as sheets grow (Brendon, 2026-06-24). */
-                                style={!isDesktop ? { gridTemplateColumns: `repeat(${Math.max(2, Math.ceil(REAL_SHEETS.length / 8))}, 1fr)` } : undefined}
+                                /* Mobile/tablet: cap the stacked grid by fanning out columns
+                                   as sheets grow (Brendon, 2026-06-24). Cap raised 8 → 9 rows
+                                   (2026-07-10): at 17 sheets the old cap forced 3 skinny
+                                   columns that clipped every card's name + buy button. */
+                                style={!isDesktop ? { gridTemplateColumns: `repeat(${Math.max(2, Math.ceil(REAL_SHEETS.length / 9))}, 1fr)` } : undefined}
                             >
-                                {REAL_SHEETS.map((s) => (isDesktop ? renderPreviewCard(s) : renderCard(s)))}
+                                {/* Preview cards EVERYWHERE in the stacked grid — the store's
+                                    main UI (Brendon, 2026-07-10, screenshot): sticker strips +
+                                    LIVE/owned chips; full cards stay on the compact rail. */}
+                                {REAL_SHEETS.map((s) => renderPreviewCard(s))}
                             </div>
                         ) : (
                             <div className="ss-rail" ref={railRef} onScroll={(e) => saveRailX(e.currentTarget.scrollLeft)}>

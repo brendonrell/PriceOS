@@ -223,7 +223,10 @@ a.notif-item--link:hover { opacity: 0.85; }
 }
 .skm-wrap::-webkit-scrollbar { display: none; }
 .skm-row { cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.skm-thumb { display: flex; align-items: center; justify-content: center; }
+/* Sheet covers stay INSIDE their slot — wide chips (names, familiars) shrink
+   to fit instead of bleeding under the row text (cohesion pass, 2026-07-10). */
+.skm-thumb { display: flex; align-items: center; justify-content: center; width: 56px; flex: 0 0 56px; }
+.skm-thumb svg { max-width: 52px; max-height: 30px; height: auto; width: auto; }
 .skm-prices { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
 .skm-prices .skm-sub { font-size: 10px; opacity: 0.6; font-weight: bold; }
 .skm-back {
@@ -237,6 +240,10 @@ a.notif-item--link:hover { opacity: 0.85; }
     padding: 2px 0 8px;
 }
 .skm-book-title { font-family: var(--font-rubik-mono), sans-serif; font-size: 13px; letter-spacing: 1px; }
+/* The sheet's cover rides the book header so you always know whose book you're
+   in (market cohesion pass, Brendon 2026-07-10). */
+.skm-book-thumb { flex: 0 0 auto; margin-right: 8px; align-self: center; }
+.skm-book-head .skm-book-pos { margin-left: auto; }
 .skm-book-pos { font-size: 10px; opacity: 0.6; font-variant-numeric: tabular-nums; }
 .skm-side-label {
     font-size: 10px; font-weight: bold; letter-spacing: 1px;
@@ -303,6 +310,23 @@ a.notif-item--link:hover { opacity: 0.85; }
     font-size: 10px; opacity: 0.5; padding: 8px 0 2px;
 }
 .alb-page { padding: 10px 0 4px; }
+/* Album progress — one thin fill per page (and one for the whole album) so
+   got/need reads at a glance; mirrors the buy button's sliding-fill language. */
+.alb-progress {
+    height: 3px;
+    margin: 4px 0 8px;
+    border-radius: 2px;
+    background: color-mix(in srgb, var(--text-color) 14%, transparent);
+    overflow: hidden;
+}
+.alb-progress > span {
+    display: block;
+    height: 100%;
+    background: var(--text-color);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+}
+.alb-progress-all { margin: 2px 0 10px; }
 .alb-slots { display: flex; flex-wrap: wrap; gap: 8px; }
 .alb-slot {
     display: inline-flex; align-items: center; justify-content: center;
