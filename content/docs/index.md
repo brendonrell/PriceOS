@@ -12,6 +12,8 @@ Price Discussion is a curated generative art platform on Ethereum where the comm
 
 This documentation covers the three layers of the platform: **the app** (PriceOS, the software collectors and artists actually use), **the smart contracts** (the on-chain protocol every Project runs on), and **the $PRICE token**.
 
+PriceOS is optimized for **iPhone (iPhone 12 and up)** — and in particular for the **installed PWA**: add Price Discussion to your Home Screen from Safari's share sheet and it runs full-screen as its own app, which is the platform as it is meant to be experienced. Desktop and other browsers work; the iPhone PWA is the reference.
+
 ## Choose a starting point
 
 **Artists** — read [How PD Works for Artists](/docs/for-artists/how-pd-works), then [Submit a Project](/docs/for-artists/submit-a-project). Your workspace — uploading, testing, publishing, and managing your Projects — is [PD Studio](/docs/studio/overview).

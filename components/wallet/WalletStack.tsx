@@ -61,6 +61,7 @@ import {
     registerConnectModalOpener,
     registerWalletDisconnect,
     registerWalletEthCall,
+    registerWalletSignMessage,
     setWalletEnsName,
 } from '../../lib/wallet/walletBus';
 import { CHAIN_ID } from '../../lib/market/chain';
@@ -167,6 +168,15 @@ function StackController({
         });
         return () => registerWalletEthCall(null);
     }, [wagmiStatus, connector, walletChainId]);
+
+    /* Personal-message signer on the bus (Sticker Studio package approval).
+       A personal signature carries no chain, so this gates only on the
+       wallet being connected; cleared on disconnect via the cleanup. */
+    useEffect(() => {
+        if (wagmiStatus !== 'connected') return;
+        registerWalletSignMessage((message) => signMessageAsync({ message }));
+        return () => registerWalletSignMessage(null);
+    }, [wagmiStatus, signMessageAsync]);
 
     /* ENS resolution for the SIWE identity — same useEnsName call
        UserMenuButtons made before the split (mainnet-pinned; ENS lives on

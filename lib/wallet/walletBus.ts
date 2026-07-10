@@ -57,6 +57,13 @@ let ensName: string | null = null;
 type WalletEthCall = (to: string, data: string) => Promise<string>;
 let walletEthCallFn: WalletEthCall | null = null;
 
+/* Personal-message signing served by the connected wallet (Sticker Studio
+   package approval). Same seam pattern as the eth_call above: registered by
+   WalletStack while a wallet is connected, cleared on disconnect, so app-tree
+   consumers can request a signature without importing the deferred stack. */
+type WalletSignMessage = (message: string) => Promise<string>;
+let walletSignMessageFn: WalletSignMessage | null = null;
+
 const subs = new Set<VoidFn>();
 
 function emit(): void {
@@ -103,6 +110,18 @@ export function registerWalletEthCall(fn: WalletEthCall | null): void {
     on the app's chain can serve reads (callers fall back to the route). */
 export function getWalletEthCall(): WalletEthCall | null {
     return walletEthCallFn;
+}
+
+/** Stack side: register (or clear) the connected wallet's personal-message
+    signer. Cleared on disconnect so a stale provider can never sign. */
+export function registerWalletSignMessage(fn: WalletSignMessage | null): void {
+    walletSignMessageFn = fn;
+}
+
+/** Consumer side: the wallet's message signer, or null when no wallet is
+    connected (callers prompt a connect via openConnectModal). */
+export function getWalletSignMessage(): WalletSignMessage | null {
+    return walletSignMessageFn;
 }
 
 /** Eager provider registers how to force-load the stack chunk. */

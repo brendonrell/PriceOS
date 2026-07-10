@@ -7,7 +7,8 @@
  */
 
 import { useRef, useState } from 'react';
-import { useAccount, useSignMessage } from 'wagmi';
+import { useAuth } from '../../lib/state/AuthContext';
+import { getWalletSignMessage, openConnectModal } from '../../lib/wallet/walletBus';
 import type { Hex } from 'viem';
 import {
     approvalMessage,
@@ -20,8 +21,10 @@ import {
 } from '../../lib/studio/stickerPackages';
 
 export function StickerStudio() {
-    const { address } = useAccount();
-    const { signMessageAsync } = useSignMessage();
+    /* Identity from the SIWE session — no wagmi hooks in the app tree (the
+       wallet stack is a deferred sibling; see WalletProviders). Signing rides
+       the walletBus seam, registered by the stack while a wallet is connected. */
+    const { siweAddress: address } = useAuth();
 
     const [pkg, setPkg] = useState<StickerPackage | null>(null);
     const [pkgName, setPkgName] = useState('');
@@ -59,10 +62,19 @@ export function StickerStudio() {
 
     const approve = async () => {
         if (!pkg || !address) return;
+        const sign = getWalletSignMessage();
+        if (!sign) {
+            /* SIWE identity is sticky but the wallet connection is ephemeral —
+               signing needs a live wallet, so prompt a reconnect (the
+               sanctioned flow for wallet-bound actions). */
+            openConnectModal();
+            setError('Connect your wallet to sign the approval.');
+            return;
+        }
         setBusy(true);
         setError(null);
         try {
-            const signature = (await signMessageAsync({ message: approvalMessage(pkg) })) as Hex;
+            const signature = (await sign(approvalMessage(pkg))) as Hex;
             const entry: ApprovedPackage = {
                 ...pkg,
                 id: `p${Date.now().toString(36)}`,

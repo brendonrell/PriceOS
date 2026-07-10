@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getAllDocs, getDoc, getNav } from '../../../lib/docs/content';
 import { renderMarkdown, extractToc } from '../../../lib/docs/markdown';
+import { MarkdownView } from '../../../components/docs/MarkdownView';
 
 /*
  * PD-Docs page renderer. Fully static: every page is prerendered at build
@@ -60,9 +61,7 @@ export default async function DocsPage({ params }: { params: Promise<Params> }) 
                 <div className="pd-docs-pagemeta">
                     <span>Updated {doc.frontmatter.last_updated}</span>
                     <span className="pd-docs-sep">·</span>
-                    <a href={mdHref} title="This page as raw markdown">
-                        View as Markdown
-                    </a>
+                    <MarkdownView href={mdHref} />
                 </div>
                 <div dangerouslySetInnerHTML={{ __html: html }} />
                 <nav className="pd-docs-pager" aria-label="Adjacent pages">

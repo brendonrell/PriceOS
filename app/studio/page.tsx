@@ -14,7 +14,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useAccount } from 'wagmi';
+import { useAuth } from '../../lib/state/AuthContext';
 import { hasStudioAccess } from '../../lib/studio/access';
 import { StickerStudio } from '../../components/studio/StickerStudio';
 import { GodMode } from '../../components/studio/GodMode';
@@ -33,12 +33,16 @@ import { SUPPLY_MAX, SUPPLY_MIN } from '../../lib/studio/constants';
 const RUN_SIZES = [6, 22, 66, 222] as const;
 
 export default function StudioPage() {
-    const { address } = useAccount();
+    /* Identity comes from the SIWE session (AuthContext) — the app tree
+       mounts no wagmi provider (WalletStack is a deferred SIBLING of the
+       tree), so wagmi hooks here crash the server render. This was the
+       /studio 500. */
+    const { siweAddress: address } = useAuth();
     /* Private layers (spec in ClickUp only): resolved client-side after
        mount so the gate reads the device store — invisible to everyone
        not on the list, no greyed buttons, nothing to discover. */
     const [god, setGod] = useState(false);
-    useEffect(() => setGod(hasStudioAccess(address)), [address]);
+    useEffect(() => setGod(hasStudioAccess(address ?? undefined)), [address]);
 
     const [drafts, setDrafts] = useState<StudioDraft[]>([]);
     const [activeId, setActiveId] = useState<string | null>(null);

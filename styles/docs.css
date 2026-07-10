@@ -562,3 +562,48 @@
 
     .pd-docs-toc a:hover { text-decoration: underline; }
 }
+
+/* ── "View as Markdown" overlay ──
+   Full-screen raw-markdown viewer with a visible ✕ exit. Exists because the
+   PWA has no browser back — navigating to the bare .md response strands the
+   reader. Colors ride the colorway vars at full strength. */
+.pd-docs-mdview {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    overflow-y: auto;
+    background: var(--bg-color);
+    -webkit-overflow-scrolling: touch;
+}
+
+.pd-docs-mdview-x {
+    position: fixed;
+    top: max(12px, env(safe-area-inset-top, 0px));
+    right: max(14px, env(safe-area-inset-right, 0px));
+    z-index: 61;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--bg-color);
+    background: var(--text-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.pd-docs-mdview-body {
+    margin: 0;
+    padding: calc(max(12px, env(safe-area-inset-top, 0px)) + 46px) max(16px, env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left));
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--text-color);
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+}

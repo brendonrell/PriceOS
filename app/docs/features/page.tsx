@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { FeatureAtlas } from '../../../components/docs/FeatureAtlas';
+import { MarkdownView } from '../../../components/docs/MarkdownView';
 import { ATLAS, atlasId } from '../../../lib/docs/features';
 
 /*
@@ -24,9 +25,7 @@ export default function FeatureAtlasPage() {
                 <div className="pd-docs-pagemeta">
                     <span>Updated 2026-07-10</span>
                     <span className="pd-docs-sep">·</span>
-                    <a href="/docs/features.md" title="The Atlas as raw markdown">
-                        View as Markdown
-                    </a>
+                    <MarkdownView href="/docs/features.md" />
                 </div>
                 <h1>The Feature Atlas</h1>
                 <p>

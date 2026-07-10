@@ -451,7 +451,18 @@ const LOADER_HTML = `<style>
   <div id="pd-loader-panel">
     <span id="pd-loader-text"><span>L</span><span>o</span><span>a</span><span>d</span><span>i</span><span>n</span><span>g</span></span>
   </div>
-</div>`.trim();
+</div>
+<script>
+  /* PD-Docs never shows the loader: the docs pages are prerendered static
+     HTML — the content is already fully painted underneath, so holding a
+     "Loading" overlay until the app bundle hydrates (the shell removes it
+     post-mount) just delays reading, and a stalled hydration strands it
+     forever. Runs during document parse, before first paint. */
+  if (/^\\/docs(\\/|$)/.test(location.pathname)) {
+    var pdl = document.getElementById('pd-loader');
+    if (pdl) pdl.remove();
+  }
+</script>`.trim();
 
 /*
  * Provider order matters: anything that calls useToast() must be
