@@ -9,6 +9,11 @@
    full-strength and legible (no decorative half-opacity). */
 
 .pd-docs {
+    /* Top-bar top padding clears the iOS status bar: the whole site renders
+       edge-to-edge (viewport-fit=cover in the root layout), so like the app
+       navbar this pads by the safe-area inset (+12px breathing room, same as
+       body.is-pwa .navbar). env() is 0 on desktop → the classic 12px. */
+    --docs-topbar-pad: max(12px, calc(env(safe-area-inset-top, 0px) + 12px));
     min-height: 100vh;
     background: var(--bg-color);
     color: var(--text-color);
@@ -26,7 +31,8 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 12px 16px;
+    /* Sides respect the landscape notch (same max() pattern as .navbar). */
+    padding: var(--docs-topbar-pad) max(16px, env(safe-area-inset-right)) 12px max(16px, env(safe-area-inset-left));
     background: var(--bg-color);
     border-bottom: 1px solid var(--border-color);
 }
@@ -126,11 +132,49 @@
 .pd-docs-mobile-nav {
     position: fixed;
     inset: 0;
-    top: 49px; /* below the sticky top bar */
+    /* Below the sticky top bar (pad + content row + bottom pad + border),
+       tucked a few px under its opaque back so no seam can open up. */
+    top: calc(var(--docs-topbar-pad) + 31px);
     z-index: 39;
     overflow-y: auto;
     background: var(--bg-color);
-    padding: 16px;
+    padding: 16px max(16px, env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left));
+}
+
+/* ── Phone-width top bar: everything fits a 360–430px viewport on one row,
+      full-strength and legible — wordmark drops to 10px Rubik Mono, buttons
+      to 11px Courier. (At the old desktop sizes the row needed ~440px and
+      clipped INDEX off the right edge of an iPhone.) ── */
+@media (max-width: 480px) {
+    .pd-docs-topbar {
+        gap: 10px;
+        padding-left: max(12px, env(safe-area-inset-left));
+        padding-right: max(12px, env(safe-area-inset-right));
+    }
+
+    .pd-docs-wordmark {
+        font-size: 10px;
+        letter-spacing: 0;
+    }
+
+    .pd-docs-wordmark-docs {
+        margin-left: 3px;
+        padding: 1px 4px 0;
+    }
+
+    .pd-docs-topbar-right { gap: 8px; }
+
+    .pd-docs-applink,
+    .pd-docs-index-btn {
+        font-size: 11px;
+        letter-spacing: 0.5px;
+        padding: 5px 7px;
+    }
+
+    .pd-docs-mobile-nav {
+        padding-left: max(12px, env(safe-area-inset-left));
+        padding-right: max(12px, env(safe-area-inset-right));
+    }
 }
 
 /* ── Desktop rail ── */
@@ -453,7 +497,7 @@
     .pd-docs-sidebar {
         display: block;
         position: fixed;
-        top: 49px;
+        top: calc(var(--docs-topbar-pad) + 37px); /* topbar height; 49px when insets are 0 */
         bottom: 0;
         left: 0;
         width: 250px;
