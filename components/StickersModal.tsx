@@ -260,11 +260,6 @@ export default function StickersModal() {
                     ))}
                 </span>
                 <span className="ss-card-soon ss-card-new">LIVE</span>
-                {s.restockAt && Date.parse(s.restockAt) > Date.now() && (
-                    <span className="ss-card-soon ss-restock">
-                        RESTOCK {Math.max(1, Math.ceil((Date.parse(s.restockAt) - Date.now()) / 86_400_000))}D
-                    </span>
-                )}
                 {ownsSheet(s.id, ownedIds) && <span className="ss-card-owned" title="Owned">{'✓︎'}</span>}
             </div>
         </div>
@@ -476,10 +471,7 @@ export default function StickersModal() {
                                    columns that clipped every card's name + buy button. */
                                 style={!isDesktop ? { gridTemplateColumns: `repeat(${Math.max(2, Math.ceil(REAL_SHEETS.length / 9))}, 1fr)` } : undefined}
                             >
-                                {/* Preview cards EVERYWHERE in the stacked grid — the store's
-                                    main UI (Brendon, 2026-07-10, screenshot): sticker strips +
-                                    LIVE/owned chips; full cards stay on the compact rail. */}
-                                {REAL_SHEETS.map((s) => renderPreviewCard(s))}
+                                {REAL_SHEETS.map((s) => (isDesktop ? renderPreviewCard(s) : renderCard(s)))}
                             </div>
                         ) : (
                             <div className="ss-rail" ref={railRef} onScroll={(e) => saveRailX(e.currentTarget.scrollLeft)}>
