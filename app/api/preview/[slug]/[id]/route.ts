@@ -59,17 +59,26 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string; 
   // DB read so an already-healed piece costs nothing.
   if (await bucket.head(key)) return NextResponse.json({ ok: true, already: true });
 
-  // Must be a REAL minted piece — the only thing an open writer must enforce, so
-  // nobody fills storage with images for tokens that don't exist.
-  const supabase = getSupabaseService();
-  const { data: minted, error } = await supabase
-    .from('holders')
-    .select('token_id')
-    .eq('project_id', slug)
-    .eq('token_id', String(tokenId))
-    .maybeSingle();
-  if (error) return serverError(error);
-  if (!minted) return badRequest('Not a minted piece');
+  // Must be a REAL piece — the only thing an open writer must enforce, so
+  // nobody fills storage with images for tokens that don't exist. A piece is
+  // real when its id sits within its registry Project's supply — the whole
+  // catalog is DISPLAYED (and so needs pins) before anything mints, which is
+  // why the old minted-only guard deadlocked the healer against an empty
+  // bucket (2026-07-10: zero previews on the deploy, every tile blank; only
+  // 2 Sepolia test tokens could ever pass). The holders read stays as the
+  // fallback for pieces beyond the static registry (chain-indexed projects).
+  const project = getProject(slug)!;
+  if (!(tokenId <= project.outputs)) {
+    const supabase = getSupabaseService();
+    const { data: minted, error } = await supabase
+      .from('holders')
+      .select('token_id')
+      .eq('project_id', slug)
+      .eq('token_id', String(tokenId))
+      .maybeSingle();
+    if (error) return serverError(error);
+    if (!minted) return badRequest('Not a minted piece');
+  }
 
   await bucket.put(key, bytes, {
     httpMetadata: { contentType: 'image/png', cacheControl: 'public, max-age=31536000, immutable' },

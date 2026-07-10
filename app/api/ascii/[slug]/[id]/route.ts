@@ -53,17 +53,22 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string; 
   // the DB read so an already-pinned piece costs nothing.
   if (await bucket.head(key)) return NextResponse.json({ ok: true, already: true });
 
-  // Must be a REAL minted piece — the only thing an open writer must enforce, so
-  // nobody fills storage with artifacts for tokens that don't exist.
-  const supabase = getSupabaseService();
-  const { data: minted, error } = await supabase
-    .from('holders')
-    .select('token_id')
-    .eq('project_id', slug)
-    .eq('token_id', String(tokenId))
-    .maybeSingle();
-  if (error) return serverError(error);
-  if (!minted) return badRequest('Not a minted piece');
+  // Must be a REAL piece — same guard as the preview writer (see its note,
+  // 2026-07-10): id within the registry Project's supply passes (the displayed
+  // catalog pins pre-mint); anything beyond the registry falls back to the
+  // minted-in-holders check.
+  const project = getProject(slug)!;
+  if (!(tokenId <= project.outputs)) {
+    const supabase = getSupabaseService();
+    const { data: minted, error } = await supabase
+      .from('holders')
+      .select('token_id')
+      .eq('project_id', slug)
+      .eq('token_id', String(tokenId))
+      .maybeSingle();
+    if (error) return serverError(error);
+    if (!minted) return badRequest('Not a minted piece');
+  }
 
   await bucket.put(key, raw, {
     httpMetadata: { contentType: 'application/json', cacheControl: 'public, max-age=31536000, immutable' },
