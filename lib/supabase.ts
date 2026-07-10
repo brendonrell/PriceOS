@@ -482,9 +482,23 @@ export interface OutputMetaRow {
   fate: string | null;
 }
 
+/** game_scores — minigame bests (Lane Runner first). */
+export type GameScoreDbRow = {
+  game: string;
+  address: string;
+  best: number;
+  updated_at: string;
+};
+
 export type Database = {
   public: {
     Tables: {
+      game_scores: {
+        Row: GameScoreDbRow;
+        Insert: GameScoreDbRow;
+        Update: Partial<GameScoreDbRow>;
+        Relationships: [];
+      };
       users: {
         Row: UserRow;
         Insert: Partial<UserRow> & { address: string };

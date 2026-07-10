@@ -236,6 +236,10 @@ export default function LaneRunner() {
     );
     const [score, setScore] = useState(0);
     const [best, setBest] = useState(0);
+    /* World record — the global top score + its @name, for the glory
+       (Brendon, 2026-07-10). Fetched once per game mount; a wipeout that
+       beats your best submits (signed-in users only, server keeps max). */
+    const [wr, setWr] = useState<{ score: number; handle: string } | null>(null);
     const [alive, setAlive] = useState(true);
     const [slid, setSlid] = useState(0); // flash counter for the oil-slide moment
     const [moment, setMoment] = useState<string | null>(null);
@@ -253,6 +257,13 @@ export default function LaneRunner() {
             const b = Number(window.localStorage.getItem('pd_lr_best') ?? 0);
             if (isFinite(b)) setBest(b);
         } catch { /* private mode */ }
+        fetch('/api/game-score?game=lane-runner')
+            .then((r) => (r.ok ? r.json() : null))
+            .then((j: { rows?: Array<{ best: number; handle: string }> } | null) => {
+                const top = j?.rows?.[0];
+                if (top && top.best > 0) setWr({ score: top.best, handle: top.handle });
+            })
+            .catch(() => { /* offline — header just omits the WR */ });
     }, []);
 
     const move = useCallback((to: number) => {
@@ -301,6 +312,18 @@ export default function LaneRunner() {
                             try { window.localStorage.setItem('pd_lr_best', String(nb)); } catch { /* */ }
                             return nb;
                         });
+                        if (s > 0) {
+                            // Best-effort submit — signed-out just 401s quietly;
+                            // a new WR repaints the header on the spot.
+                            fetch('/api/game-score', {
+                                method: 'POST',
+                                headers: { 'content-type': 'application/json' },
+                                body: JSON.stringify({ game: 'lane-runner', score: s }),
+                            }).then((r) => {
+                                if (!r.ok) return;
+                                setWr((prev) => (prev && prev.score >= s ? prev : { score: s, handle: 'you' }));
+                            }).catch(() => { /* */ });
+                        }
                         return s;
                     });
                     return next;
@@ -356,10 +379,10 @@ export default function LaneRunner() {
         <div className="lr-wrap">
             <div className="lr-score">
                 {!alive
-                    ? `WIPEOUT · ${score} · BEST ${best} — TAP`
+                    ? `WIPEOUT · ${score} · BEST ${best}${wr ? ` · WR ${wr.score} @${wr.handle}` : ''} — TAP`
                     : moment
                         ? moment
-                        : `SCORE ${score}${best > 0 ? ` · BEST ${best}` : ''}`}
+                        : `SCORE ${score}${best > 0 ? ` · BEST ${best}` : ''}${wr ? ` · WR ${wr.score} @${wr.handle}` : ''}`}
             </div>
             <div
                 className={`lr-board${alive ? '' : ' lr-crashed'}${night ? ' lr-night' : ''}`}
