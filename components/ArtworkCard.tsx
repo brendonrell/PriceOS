@@ -220,7 +220,13 @@ function ArtworkCard({
     /* ASCII Art Mode — per-piece miss flag so an unpinned artifact falls
        back to the stored PNG without churning. Reset when the piece swaps. */
     const [asciiMiss, setAsciiMiss] = useState(false);
+    /* ASCII painted flag — the standin is a canvas, so no <img> onLoad ever
+       fires; the spinner clears off this instead (the stuck-ring bug,
+       Brendon 2026-07-10). Reset with the piece AND with the mode so
+       toggling back re-arms the ring. */
+    const [asciiReady, setAsciiReady] = useState(false);
     useEffect(() => setAsciiMiss(false), [slug, id]);
+    useEffect(() => setAsciiReady(false), [slug, id, notifs.asciiArt]);
     /* A tile tries images in order and STAYS on the first that loads — a plain
        <img> the browser keeps decoded forever, never recycled, so it never
        flashes on scroll (Brendon 2026-07-07). Order: the small current thumbnail
@@ -249,8 +255,14 @@ function ArtworkCard({
         return () => clearTimeout(t);
     }, [imgSrc, imgLoaded, imgRetries]);
     /* Show the spinner immediately on ANY blank/loading tile — while the image
-       is fetching AND while a mint's preview is still being generated. */
-    const showArtSpinner = !!ART_IMAGE_BASE && !imgLoaded && (imgSrc != null || imgRetries < MAX_IMG_RETRIES);
+       is fetching AND while a mint's preview is still being generated. In
+       ASCII Art Mode the standin canvas is the tile: the ring clears the
+       moment it paints (asciiReady) — imgLoaded never fires on that path,
+       which is what left rings spinning forever over painted ASCII art. */
+    const asciiTile = notifs.asciiArt && !asciiMiss;
+    const showArtSpinner = !!ART_IMAGE_BASE && (asciiTile
+        ? !asciiReady
+        : !imgLoaded && (imgSrc != null || imgRetries < MAX_IMG_RETRIES));
 
     const handleImgError = () => {
         // Leaving the current thumbnail (stage 0) → heal it once in the background.
@@ -856,6 +868,7 @@ function ArtworkCard({
                             widthPx={384}
                             className="output-canvas visible"
                             onMiss={() => setAsciiMiss(true)}
+                            onReady={() => setAsciiReady(true)}
                         />
                     ) : imgSrc ? (
                         /* Stored preview — native lazy load, browser-managed,

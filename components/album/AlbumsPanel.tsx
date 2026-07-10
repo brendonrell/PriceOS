@@ -27,6 +27,8 @@ import { getProject } from '../../lib/project/registry';
 import { useModal } from '../../lib/state/ModalContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { paintOutput } from '../../lib/state/ProjectContext';
+import { paintAsciiStandin } from '../../lib/art/asciiStandin';
+import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { priceOf, useStarredPrices } from '../../lib/pins/starredPriceStore';
 import {
     createAlbum,
@@ -63,6 +65,8 @@ function AlbumShow({ album, number, onClose }: { album: AlbumRecord; number: num
     const canvasA = useRef<HTMLCanvasElement | null>(null);
     const canvasB = useRef<HTMLCanvasElement | null>(null);
     const [front, setFront] = useState<'a' | 'b'>('a');
+    const { notifs } = usePdNotifs();
+    const ascii = notifs.asciiArt;
     const members = useMemo(
         () => album.keys.map(parseKey).filter((m): m is { slug: string; id: number } => !!m),
         [album.keys],
@@ -74,13 +78,29 @@ function AlbumShow({ album, number, onClose }: { album: AlbumRecord; number: num
         if (!m) return;
         const back = (front === 'a' ? canvasB : canvasA).current;
         if (!back) return;
+        const px = Math.min(1400, Math.max(640, window.innerWidth * Math.min(window.devicePixelRatio || 1, 2)));
+        let raf = 0;
+        let cancelled = false;
+        const flip = () => {
+            if (cancelled) return;
+            raf = requestAnimationFrame(() => setFront((f) => (f === 'a' ? 'b' : 'a')));
+        };
         /* Images-only off the feature page (Brendon, 2026-07-07): The Show uses
            the stored preview, not a live render — no heavy engine on each slide. */
-        try { paintOutput(back, m.slug, m.id, Math.min(1400, Math.max(640, window.innerWidth * Math.min(window.devicePixelRatio || 1, 2)))); } catch { /* skip */ }
-        const raf = requestAnimationFrame(() => setFront((f) => (f === 'a' ? 'b' : 'a')));
-        return () => cancelAnimationFrame(raf);
+        const paintNormal = () => { try { paintOutput(back, m.slug, m.id, px); } catch { /* skip */ } };
+        if (ascii) {
+            /* ASCII Art Mode: the show exhibits the text backups. Flip only
+               after the standin (or its fallback) has painted. */
+            paintAsciiStandin(back, m.slug, m.id, px)
+                .then((ok) => { if (!ok) paintNormal(); flip(); })
+                .catch(() => { paintNormal(); flip(); });
+        } else {
+            paintNormal();
+            flip();
+        }
+        return () => { cancelled = true; cancelAnimationFrame(raf); };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [idx, members]);
+    }, [idx, members, ascii]);
 
     // Auto-advance. Escape or tap leaves the show.
     useEffect(() => {

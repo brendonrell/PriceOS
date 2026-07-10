@@ -21,6 +21,7 @@ export default function AsciiArtImage({
     onClick,
     title,
     domId,
+    onReady,
 }: {
     slug: string;
     id: number;
@@ -32,6 +33,9 @@ export default function AsciiArtImage({
     onClick?: MouseEventHandler<HTMLCanvasElement>;
     title?: string;
     domId?: string;
+    /** Fires once the artifact has actually painted — parents clear their
+     *  loading ring off this (an <img> would have fired onLoad). */
+    onReady?: () => void;
 }) {
     const ref = useRef<HTMLCanvasElement>(null);
     useEffect(() => {
@@ -39,10 +43,12 @@ export default function AsciiArtImage({
         if (!cv) return;
         let alive = true;
         paintAsciiStandin(cv, slug, id, widthPx).then((ok) => {
-            if (alive && !ok) onMiss?.();
+            if (!alive) return;
+            if (ok) onReady?.();
+            else onMiss?.();
         });
         return () => { alive = false; };
-        // onMiss is a stable parent callback by convention; keyed on the piece.
+        // onMiss/onReady are stable parent callbacks by convention; keyed on the piece.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [slug, id, widthPx]);
     return (

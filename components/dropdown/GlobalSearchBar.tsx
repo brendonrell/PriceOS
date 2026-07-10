@@ -92,6 +92,7 @@ import { getRecentGlobal } from '../../lib/pins/breadcrumbStore';
 import { getProject } from '../../lib/project/registry';
 import { projectSpriteFace } from '../../lib/project/projectSprite';
 import { paintOutput } from '../../lib/state/ProjectContext';
+import { paintAsciiStandin } from '../../lib/art/asciiStandin';
 import { hashString } from '../../lib/art/rng';
 import LaneRunner from './LaneRunner';
 import type { SearchResponse, SearchUserResult } from '../../app/api/search/route';
@@ -112,15 +113,27 @@ function shortAddress(addr: string): string {
    pixels, so a 36px paint is ~two orders cheaper than a gallery card. */
 function ArtThumb({ slug, id }: { slug: string; id: string | number }) {
     const ref = useRef<HTMLCanvasElement | null>(null);
+    const { notifs } = usePdNotifs();
+    const ascii = notifs.asciiArt;
     useEffect(() => {
         const canvas = ref.current;
         if (!canvas) return;
-        try {
-            paintOutput(canvas, slug, Number(id), 36);
-        } catch {
-            /* unknown slug → leave the canvas blank */
+        const paintNormal = () => {
+            try {
+                paintOutput(canvas, slug, Number(id), 36);
+            } catch {
+                /* unknown slug → leave the canvas blank */
+            }
+        };
+        /* ASCII Art Mode: text-backup standin; miss → normal paint. */
+        if (ascii) {
+            paintAsciiStandin(canvas, slug, Number(id), 72)
+                .then((ok) => { if (!ok) paintNormal(); })
+                .catch(paintNormal);
+            return;
         }
-    }, [slug, id]);
+        paintNormal();
+    }, [slug, id, ascii]);
     return <canvas ref={ref} className="gsr-thumb" width={36} height={36} aria-hidden="true" />;
 }
 

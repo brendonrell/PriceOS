@@ -10,6 +10,8 @@
 
 import { memo, useEffect, useRef } from 'react';
 import { paintOutput } from '../../lib/state/ProjectContext';
+import { paintAsciiStandin } from '../../lib/art/asciiStandin';
+import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 
 const PAINT_RES = 168;
 
@@ -23,11 +25,23 @@ function OutputStickerImpl({
     diecut?: boolean;
 }) {
     const ref = useRef<HTMLCanvasElement>(null);
+    const { notifs } = usePdNotifs();
+    const ascii = notifs.asciiArt;
     useEffect(() => {
         const c = ref.current;
         if (!c) return;
-        try { paintOutput(c, slug, id, PAINT_RES); } catch { /* engine missing — leave blank */ }
-    }, [slug, id]);
+        const paintNormal = () => {
+            try { paintOutput(c, slug, id, PAINT_RES); } catch { /* engine missing — leave blank */ }
+        };
+        /* ASCII Art Mode: text-backup standin; miss → normal paint. */
+        if (ascii) {
+            paintAsciiStandin(c, slug, id, PAINT_RES)
+                .then((ok) => { if (!ok) paintNormal(); })
+                .catch(paintNormal);
+            return;
+        }
+        paintNormal();
+    }, [slug, id, ascii]);
 
     const box: React.CSSProperties = fill ? { width: '100%' } : { width: size, height: size };
     return (

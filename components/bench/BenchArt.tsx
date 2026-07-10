@@ -13,6 +13,8 @@
 
 import { useEffect, useRef } from 'react';
 import { paintOutput } from '../../lib/state/ProjectContext';
+import { paintAsciiStandin } from '../../lib/art/asciiStandin';
+import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 
 const RES = 360;
 
@@ -30,16 +32,29 @@ export default function BenchArt({
     res?: number;
 }) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const { notifs } = usePdNotifs();
+    const ascii = notifs.asciiArt;
 
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
-        try {
-            paintOutput(canvas, slug, id, res ?? RES);
-        } catch {
-            /* registry miss / unknown slug — leave the canvas blank */
+        const paintNormal = () => {
+            try {
+                paintOutput(canvas, slug, id, res ?? RES);
+            } catch {
+                /* registry miss / unknown slug — leave the canvas blank */
+            }
+        };
+        /* ASCII Art Mode: the text-backup standin, same fallback seam as the
+           gallery thumbs — a miss paints the normal art, never a blank. */
+        if (ascii) {
+            paintAsciiStandin(canvas, slug, id, res ?? RES)
+                .then((ok) => { if (!ok) paintNormal(); })
+                .catch(paintNormal);
+            return;
         }
-    }, [slug, id, res]);
+        paintNormal();
+    }, [slug, id, res, ascii]);
 
     return (
         <canvas

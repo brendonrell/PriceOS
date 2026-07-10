@@ -180,7 +180,20 @@ export function buildAsciiArtifact(
  *    cell gets a fill of its own colour at reduced strength UNDER the
  *    full-strength glyph. Same hue exactly (pure scaling), blacks stay black
  *    (space cells stay bare #050505), and up close it still reads as glyphs. */
-export function paintAsciiArtifact(target: HTMLCanvasElement, art: AsciiArtifact, widthPx: number): void {
+export function paintAsciiArtifact(
+    target: HTMLCanvasElement,
+    art: AsciiArtifact,
+    widthPx: number,
+    opts?: {
+        /** Override the underlay strength (0..1). Small standins (gallery
+         *  tiles, thumbs) display too few device pixels per glyph for the ink
+         *  texture to read — its brightness fuses into the cell average and
+         *  the tile goes washed-out grey. They pass a higher underlay so the
+         *  cell average lands at the artwork's true brightness; full-size
+         *  surfaces (the ASCII Backup panel) keep the default. */
+        underlay?: number;
+    },
+): void {
     // Smallest multiple-of-3 cell width that meets the requested resolution,
     // floored at 6 (10px glyphs) and capped at 12 (20px glyphs).
     const cellW = Math.min(12, Math.max(6, Math.ceil(widthPx / art.cols / 3) * 3));
@@ -206,7 +219,7 @@ export function paintAsciiArtifact(target: HTMLCanvasElement, art: AsciiArtifact
     // Underlay strength — fraction of the lifted colour filling the cell
     // behind the glyph. 0.55 lands the cell's average (ink + fill) close to
     // the source pixel's brightness without flattening the glyph texture.
-    const UNDERLAY = 0.55;
+    const UNDERLAY = Math.min(0.95, Math.max(0, opts?.underlay ?? 0.55));
     const ink: string[] = [];
     const under: string[] = [];
     for (const hex of art.palette) {

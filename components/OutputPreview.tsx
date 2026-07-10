@@ -237,6 +237,10 @@ export default function OutputPreview() {
     const { openOutputNoteEditor } = useNotePrompt();
     /* ASCII Art Mode — per-piece miss flag; reset when the modal walks. */
     const [asciiMiss, setAsciiMiss] = useState(false);
+    /* ASCII painted flag — the standin canvas fires no <img> onLoad, so the
+       loading ring clears off this in ASCII mode (the stuck-ring bug,
+       Brendon 2026-07-10). */
+    const [asciiReady, setAsciiReady] = useState(false);
 
     /* Artwork Page v0 (2026-05-12) — the modal canvas is now a
        portal to the full Artwork page at /{globalId}. Clicking the
@@ -304,7 +308,8 @@ export default function OutputPreview() {
 
     const isOpen = openModal?.name === 'output';
     const id = isOpen ? currentModalId : null;
-    useEffect(() => setAsciiMiss(false), [slug, id]);
+    useEffect(() => { setAsciiMiss(false); setAsciiReady(false); }, [slug, id]);
+    useEffect(() => setAsciiReady(false), [notifs.asciiArt]);
 
     /* The modal image source — the stored high-res master (falls back to the
        previous-rev master during a re-pin), served as a plain <img>. */
@@ -894,6 +899,7 @@ export default function OutputPreview() {
                         widthPx={1024}
                         className="output-canvas visible"
                         onMiss={() => setAsciiMiss(true)}
+                        onReady={() => setAsciiReady(true)}
                         onClick={() => {
                             if (id == null) return;
                             close();
@@ -927,8 +933,10 @@ export default function OutputPreview() {
                 )}
                 {/* Full-size loading state — the current background colour + a
                     centered ring, while the high-res image is in flight
-                    (Brendon 2026-07-07). */}
-                {!imgLoaded && (
+                    (Brendon 2026-07-07). In ASCII Art Mode the ring clears the
+                    moment the standin paints (asciiReady) — no <img> onLoad
+                    fires on that path. */}
+                {!(notifs.asciiArt && !asciiMiss && id != null ? asciiReady : imgLoaded) && (
                     <div className="modal-art-loading" aria-hidden="true">
                         <span className="pd-ring" />
                     </div>

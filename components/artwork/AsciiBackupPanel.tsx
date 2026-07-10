@@ -25,14 +25,46 @@ import {
     isValidAsciiArtifact,
     type AsciiArtifact,
 } from '../../lib/art/ascii';
+import { loadAsciiArtifact } from '../../lib/art/asciiStandin';
+import { allProjects } from '../../lib/project/registry';
 import { useToast } from '../../lib/state/ToastContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
+
+/* One piece's artifact for a bulk backup: the pinned copy when it exists
+   (cached, shared with the sitewide standins), else derived fresh from the
+   engine — identical bytes either way. */
+async function collectArtifact(slug: string, id: number): Promise<AsciiArtifact | null> {
+    const pinned = ART_IMAGE_BASE ? await loadAsciiArtifact(slug, id) : null;
+    if (pinned) return pinned;
+    const live = document.createElement('canvas');
+    try {
+        paintOutput(live, slug, id, 512, true);
+    } catch {
+        return null; // unknown slug / engine miss — skip the piece
+    }
+    return buildAsciiArtifact(live, slug, id);
+}
+
+/* Hand the bundle to the browser as a .json download. */
+function saveJsonFile(name: string, payload: unknown): void {
+    const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30_000);
+}
 
 export default function AsciiBackupPanel({ slug, id }: { slug: string; id: number }) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const [artifact, setArtifact] = useState<AsciiArtifact | null>(null);
     const { showToast } = useToast();
     const { notifs, toggle } = usePdNotifs();
+    /* Bulk backup progress — the running button's label ticks n/total. */
+    const [bulk, setBulk] = useState<{ kind: 'project' | 'collection'; done: number; total: number } | null>(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -138,6 +170,63 @@ export default function AsciiBackupPanel({ slug, id }: { slug: string; id: numbe
         showToast(`ASCII Backup: ${what === 'txt' ? '.TXT' : '.JSON'} COPIED`);
     };
 
+    /* Bulk backups — the whole PROJECT (every minted piece of this one) or
+       the whole COLLECTION (every minted piece of every project on the site),
+       bundled into one downloadable .json (Brendon, 2026-07-10). Fully
+       logged-out — no account involved, same as the single-piece backup.
+       Stops if the panel unmounts mid-run. */
+    const aliveRef = useRef(true);
+    useEffect(() => { aliveRef.current = true; return () => { aliveRef.current = false; }; }, []);
+
+    /* A project's minted count — the same total the gallery renders. */
+    const mintedTotal = (s: string): Promise<number> =>
+        fetch(`/api/project/${s}/outputs`, { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((j: { total?: number } | null) => j?.total ?? 0)
+            .catch(() => 0);
+
+    const runBulk = async (kind: 'project' | 'collection') => {
+        if (bulk) return; // one run at a time
+        const pieces: { slug: string; id: number }[] = [];
+        if (kind === 'project') {
+            const total = await mintedTotal(slug);
+            if (!total) { showToast('ASCII Backup: PROJECT UNAVAILABLE'); return; }
+            for (let i = 1; i <= total; i++) pieces.push({ slug, id: i });
+        } else {
+            for (const p of allProjects()) {
+                if (!aliveRef.current) return;
+                const total = await mintedTotal(p.slug);
+                for (let i = 1; i <= total; i++) pieces.push({ slug: p.slug, id: i });
+            }
+            if (!pieces.length) { showToast('ASCII Backup: COLLECTION UNAVAILABLE'); return; }
+        }
+
+        setBulk({ kind, done: 0, total: pieces.length });
+        const items: AsciiArtifact[] = [];
+        for (let i = 0; i < pieces.length; i++) {
+            if (!aliveRef.current) return;
+            const a = await collectArtifact(pieces[i].slug, pieces[i].id);
+            if (a) items.push(a);
+            setBulk({ kind, done: i + 1, total: pieces.length });
+            // Yield a frame so the count ticks and the page stays responsive.
+            await new Promise((r) => setTimeout(r, 0));
+        }
+        setBulk(null);
+        if (!items.length) { showToast('ASCII Backup: NOTHING TO SAVE'); return; }
+        saveJsonFile(
+            kind === 'project' ? `${slug}-ascii-backup.json` : 'pd-collection-ascii-backup.json',
+            {
+                kind: 'pd-ascii-backup-bundle',
+                v: 1,
+                scope: kind,
+                ...(kind === 'project' ? { project: slug } : {}),
+                count: items.length,
+                items,
+            },
+        );
+        showToast(`ASCII Backup: ${kind === 'project' ? 'PROJECT' : 'COLLECTION'} SAVED · ${items.length}`);
+    };
+
     // No box, no title — just the artwork (full width) with the two buttons
     // below it (Brendon 2026-07-08).
     return (
@@ -178,7 +267,27 @@ export default function AsciiBackupPanel({ slug, id }: { slug: string; id: numbe
                         showToast(next ? 'ASCII Art Mode: ON — the whole site, in text' : 'ASCII Art Mode: OFF');
                     }}
                 >
-                    {'\u235E\uFE0E'} SITE
+                    {'\u235E\uFE0E'} Activate ASCII Mode
+                </button>
+            </div>
+            {/* Bulk backups \u2014 this whole PROJECT, or your whole COLLECTION,
+                as one downloadable .json bundle (Brendon, 2026-07-10). */}
+            <div className="action-row" style={{ marginTop: 10 }}>
+                <button
+                    className="btn-soundtrack"
+                    title="Download the ASCII backup of every piece in this project"
+                    disabled={!!bulk}
+                    onClick={() => void runBulk('project')}
+                >
+                    {bulk?.kind === 'project' ? `${bulk.done}/${bulk.total}` : 'PROJECT .JSON'}
+                </button>
+                <button
+                    className="btn-soundtrack"
+                    title="Download the ASCII backup of the entire collection — every piece of every project"
+                    disabled={!!bulk}
+                    onClick={() => void runBulk('collection')}
+                >
+                    {bulk?.kind === 'collection' ? `${bulk.done}/${bulk.total}` : 'COLLECTION .JSON'}
                 </button>
             </div>
         </div>
