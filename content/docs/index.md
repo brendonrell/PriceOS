@@ -14,7 +14,7 @@ This documentation covers the three layers of the platform: **the app** (PriceOS
 
 ## Choose a starting point
 
-**Artists** — read [How PD Works for Artists](/docs/for-artists/how-pd-works), then [Submit a Project](/docs/for-artists/submit-a-project).
+**Artists** — read [How PD Works for Artists](/docs/for-artists/how-pd-works), then [Submit a Project](/docs/for-artists/submit-a-project). Your workspace — uploading, testing, publishing, and managing your Projects — is [PD Studio](/docs/studio/overview).
 
 **Collectors** — read [How PD Works for Collectors](/docs/for-collectors/how-pd-works), then [Wallet Setup](/docs/for-collectors/wallet-setup).
 

@@ -125,11 +125,40 @@ function inMemoryIncr(bucketKey: string): { count: number; resetMs: number } {
 }
 
 export async function middleware(req: NextRequest): Promise<NextResponse> {
-  // /deploy and /test are standalone tool pages: stamp a request header the
-  // root layout reads to skip the entire app shell (wallet stack, onboarding,
-  // loader, navbar). Server-only signal — a client can't forge it into
-  // the layout because middleware overwrites the request headers here.
-  if (req.nextUrl.pathname === '/deploy' || req.nextUrl.pathname === '/test') {
+  // PD Studio host routing: studio.pricediscussion.com serves the same
+  // Worker — any studio-host page request rewrites into the /studio route
+  // group, so the subdomain IS the Studio the moment DNS points here (and
+  // /studio stays reachable by path on the dev preview).
+  const host = req.headers.get('host') || '';
+  if (
+    host.startsWith('studio.') &&
+    !req.nextUrl.pathname.startsWith('/studio') &&
+    !req.nextUrl.pathname.startsWith('/api') &&
+    !req.nextUrl.pathname.startsWith('/_next')
+  ) {
+    const url = req.nextUrl.clone();
+    url.pathname = `/studio${url.pathname === '/' ? '' : url.pathname}`;
+    if (url.pathname === '/studio/publish') {
+      // The signer page is bare (see below) — stamp it through the rewrite,
+      // since rewrites don't re-enter middleware.
+      const requestHeaders = new Headers(req.headers);
+      requestHeaders.set('x-pd-bare-route', '1');
+      return NextResponse.rewrite(url, { request: { headers: requestHeaders } });
+    }
+    return NextResponse.rewrite(url);
+  }
+
+  // /deploy, /test, and /studio/publish are standalone tool pages: stamp a
+  // request header the root layout reads to skip the entire app shell
+  // (wallet stack, onboarding, loader, navbar). /studio/publish mounts its
+  // own Sepolia-only wallet stack (same family as /deploy). Server-only
+  // signal — a client can't forge it into the layout because middleware
+  // overwrites the request headers here.
+  if (
+    req.nextUrl.pathname === '/deploy' ||
+    req.nextUrl.pathname === '/test' ||
+    req.nextUrl.pathname === '/studio/publish'
+  ) {
     const requestHeaders = new Headers(req.headers);
     requestHeaders.set('x-pd-bare-route', '1');
     return NextResponse.next({ request: { headers: requestHeaders } });
@@ -182,5 +211,16 @@ export async function middleware(req: NextRequest): Promise<NextResponse> {
 }
 
 export const config = {
-  matcher: ['/api/:path*', '/deploy', '/test', '/docs/:path*'],
+  // The final pattern runs the middleware on every extensionless page
+  // navigation so the studio.* host rewrite can catch it — static assets
+  // (dotted paths) and _next stay excluded, and non-matching page requests
+  // fall straight through to NextResponse.next().
+  matcher: [
+    '/api/:path*',
+    '/deploy',
+    '/test',
+    '/docs/:path*',
+    '/studio/:path*',
+    '/((?!_next/|api/|.*\\..*).*)',
+  ],
 };

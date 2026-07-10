@@ -55,6 +55,15 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
         ],
     },
     {
+        title: 'PD Studio',
+        slugs: [
+            'studio/overview',
+            'studio/upload-and-testing',
+            'studio/publishing',
+            'studio/the-artist-dashboard',
+        ],
+    },
+    {
         title: 'For Collectors',
         slugs: [
             'for-collectors/how-pd-works',

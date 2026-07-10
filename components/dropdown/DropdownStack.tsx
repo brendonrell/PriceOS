@@ -22,15 +22,21 @@
  * and lets CSS handle the transition.
  */
 
+import { usePathname } from 'next/navigation';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { UserDropdown } from './UserDropdown';
 import { PingsBox } from './PingsBox';
 import { TodosBox } from './TodosBox';
 import { NotesBox } from './NotesBox';
+import { StudioProjectsBox } from './StudioProjectsBox';
 
 export function DropdownStack() {
     const { view } = useDropdown();
+    const pathname = usePathname();
     const showAccordions = view === 'links' || view === 'calendar';
+    /* PD Studio: the connect menu is the artist dashboard — Projects take
+       the Notes slot (Brendon, 2026-07-10; docs/pd-studio-spec.md). */
+    const onStudio = pathname === '/studio' || pathname?.startsWith('/studio/');
 
     return (
         <div className="dropdown-stack">
@@ -39,7 +45,7 @@ export function DropdownStack() {
                 <>
                     <PingsBox />
                     <TodosBox />
-                    <NotesBox />
+                    {onStudio ? <StudioProjectsBox /> : <NotesBox />}
                 </>
             )}
         </div>
