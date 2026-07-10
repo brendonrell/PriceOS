@@ -1,4 +1,5 @@
 import { getAllDocs } from '../../lib/docs/content';
+import { atlasAsMarkdown } from '../../lib/docs/features';
 
 /*
  * /llms-full.txt — the whole documentation site as one plain-markdown file,
@@ -10,7 +11,9 @@ export const dynamic = 'force-static';
 
 export function GET() {
     const docs = getAllDocs();
-    const out = docs.map((d) => d.raw.trim()).join('\n\n---\n\n') + '\n';
+    const out =
+        docs.map((d) => d.raw.trim()).join('\n\n---\n\n') +
+        '\n\n---\n\n' + atlasAsMarkdown().trim() + '\n';
     return new Response(out, {
         headers: {
             'Content-Type': 'text/plain; charset=utf-8',

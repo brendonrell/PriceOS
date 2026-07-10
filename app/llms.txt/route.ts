@@ -30,9 +30,13 @@ export function GET() {
     for (const section of nav) {
         lines.push(`## ${section.title}`, '');
         for (const item of section.items) {
-            const doc = docs.find((d) => d.slug === item.slug)!;
             const url = item.slug === '' ? `${ORIGIN}/docs` : `${ORIGIN}/docs/${item.slug}`;
-            lines.push(`- [${doc.frontmatter.title}](${url}): ${doc.frontmatter.description}`);
+            const doc = docs.find((d) => d.slug === item.slug);
+            if (doc) {
+                lines.push(`- [${doc.frontmatter.title}](${url}): ${doc.frontmatter.description}`);
+            } else if (item.slug === 'features') {
+                lines.push(`- [The Feature Atlas](${url}): The canonical numbered catalog of every named PriceOS feature, sortable and filterable by section. Markdown form at ${ORIGIN}/docs/features.md.`);
+            }
         }
         lines.push('');
     }

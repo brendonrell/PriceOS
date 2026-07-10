@@ -181,10 +181,12 @@ export function getDoc(slug: string): DocPage | null {
 }
 
 /* Sidebar sections with per-page labels (the frontmatter title, with any
-   long "Section — Detail" form trimmed to the detail for compact nav). */
+   long "Section — Detail" form trimmed to the detail for compact nav).
+   The Feature Atlas (/docs/features) is a registry-driven catalog page, not
+   a markdown file — its nav entry is spliced in after The App. */
 export function getNav(): NavSection[] {
     const docs = getAllDocs();
-    return NAV_MANIFEST.map((section) => ({
+    const sections = NAV_MANIFEST.map((section) => ({
         title: section.title,
         items: section.slugs.map((slug) => {
             const doc = docs.find((d) => d.slug === slug)!;
@@ -192,4 +194,10 @@ export function getNav(): NavSection[] {
             return { slug, label: t.includes(' — ') ? t.split(' — ')[1] : t };
         }),
     }));
+    const appIdx = sections.findIndex((s) => s.title === 'The App');
+    sections.splice(appIdx + 1, 0, {
+        title: 'Feature Atlas',
+        items: [{ slug: 'features', label: 'The Atlas — every feature, numbered' }],
+    });
+    return sections;
 }
