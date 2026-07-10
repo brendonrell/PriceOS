@@ -26,6 +26,31 @@
    browsing, investigate the healer POSTs (`/api/preview`, `/api/ascii`) —
    don't re-diagnose the guard, that part is fixed and verified by probe.
 
+## ✅ SHIPPED TO DEV 2026-07-10 — ASCII Art Mode round 2 (pushed, tree clean)
+
+- **Bulk ASCII backups** in the output page's ASCII Backup section: `PROJECT
+  .JSON` (every minted piece of this project) + `COLLECTION .JSON` (every
+  minted piece of EVERY project — Brendon: fully logged-out, no account
+  gating anywhere in ASCII backup). One downloadable bundle
+  (`pd-ascii-backup-bundle` v1), pinned-artifact-first with fresh
+  deterministic derive on a miss; the running button ticks n/total.
+- **Stuck loading ring fixed** — the standin canvas fires no img onLoad, so
+  gallery tiles + artwork modal rings spun forever; both now clear off a new
+  onReady seam when the ASCII paints.
+- **Mode now covers the whole site** — output page + fullscreen (ArtworkLive,
+  previously missed entirely; derives on a missing pin so it never drops out
+  of the mode), bench/cart/drag ghost, Album Show, search-row thumbs,
+  stickers. Pixel-fingerprint sampling stays OFF the ascii path (would report
+  false colors).
+- **Small-tile vibrancy** — standins paint at true device res (panel's
+  no-moiré rule) and the color underlay ramps up as displayed glyphs shrink
+  (<5 device px/column), so tiles hold the artwork's real brightness instead
+  of washing gray. Panel + modal-scale look unchanged (the reference).
+- **Mode button renamed** — "⍞ Activate ASCII Mode" (was "⍞ SITE").
+- ClickUp 86bahh9f5 commented. Heads-up for the future: a COLLECTION bundle
+  scales with total minted supply — fine at today's counts, revisit if the
+  catalog gets huge.
+
 ## ✅ SHIPPED TO DEV 2026-07-10 — To-Dos polish session (pushed, tree clean)
 
 - **To-Dos UI cleanup (Brendon-approved batch):** header + / ☇ swapped (+ first);
