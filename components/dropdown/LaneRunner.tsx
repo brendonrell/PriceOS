@@ -8,9 +8,19 @@
  * (cells light up, nothing scrolls — that's the toy), you weave a certain
  * flat-six silhouette between lanes, and it only ever gets faster.
  *
- * Cartoony, not morbid (Brendon): the hazards are OIL SLICKS, CONES and
+ * Cartoony, not morbid (Brendon): the hazards are OIL SLICKS, BLOCKERS and
  * POTHOLES — no head-on traffic. Oil doesn't end the run, it SLIDES you a
- * lane sideways (chaos, not carnage). Cones and potholes end it: WIPEOUT.
+ * lane sideways (chaos, not carnage). Blockers and potholes end it: WIPEOUT.
+ *
+ * THE ROAD SHOWS ITS DEPTH (Brendon, 2026-07-10): the blocker's LOOK
+ * changes as the run goes deeper — same mechanics, new scenery, so what
+ * you're dodging tells you how far in you are:
+ *   0+   city streets  — traffic CONES
+ *   22+  roadwork      — striped BARRIERS
+ *   50+  night shift   — reflective road BARRELS (the dark was already here)
+ *   111+ hothurt strip — pink FLAMINGOS (lawn-ornament country)
+ *   777+ the halo road — floating HALOS ⬭ (nothing up here can hurt you,
+ *        except that it can)
  *
  * The road keeps secrets of its own (PD milestone numbers, GLYPHS.md §8):
  *   22  — LUCKY 22 ♧
@@ -123,6 +133,68 @@ function Cone() {
     );
 }
 
+/** Roadwork barrier — sawhorse legs, striped plank. Depth 22+. */
+function Barrier() {
+    return (
+        <svg viewBox="0 0 24 44" className="lr-car lr-hazard" aria-hidden="true">
+            {/* legs */}
+            <path d="M6 16 L4 34 M18 16 L20 34" stroke="currentColor" strokeWidth="1.6" opacity="0.7" />
+            {/* plank */}
+            <rect x="3" y="14" width="18" height="7" rx="1.2" fill="currentColor" opacity="0.8" />
+            {/* diagonal stripes */}
+            <path d="M7 14 L4.4 21 M13 14 L10.4 21 M19 14 L16.4 21" stroke="var(--text-color, #111)" strokeWidth="2.2" opacity="0.6" />
+            {/* feet */}
+            <rect x="2" y="33.4" width="5.4" height="2" rx="1" fill="currentColor" opacity="0.7" />
+            <rect x="16.6" y="33.4" width="5.4" height="2" rx="1" fill="currentColor" opacity="0.7" />
+        </svg>
+    );
+}
+
+/** Traffic drum — the round roadwork barrel, reflective bands. Depth 50+
+    (night shift), when the stripes catch your headlights. */
+function Barrel() {
+    return (
+        <svg viewBox="0 0 24 44" className="lr-car lr-hazard" aria-hidden="true">
+            <path d="M6.5 12 C6.5 10.6 17.5 10.6 17.5 12 L18.5 32 C18.5 34 5.5 34 5.5 32 Z" fill="currentColor" opacity="0.7" />
+            {/* reflective bands — bright, they read as catching the beams */}
+            <path d="M6.1 17 L17.9 17 L18.15 21.4 L5.85 21.4 Z" fill="#ffffff" opacity="0.85" />
+            <path d="M5.7 25.5 L18.3 25.5 L18.5 29.4 L5.5 29.4 Z" fill="#ffffff" opacity="0.55" />
+            {/* base ring */}
+            <ellipse cx="12" cy="33" rx="7.6" ry="1.7" fill="currentColor" opacity="0.75" />
+        </svg>
+    );
+}
+
+/** Lawn flamingo — one leg, hot-pink country. Depth 111+ (HOTHURT). */
+function Flamingo() {
+    return (
+        <svg viewBox="0 0 24 44" className="lr-car lr-hazard" aria-hidden="true" style={{ color: '#FF0055' }}>
+            {/* body */}
+            <ellipse cx="10.5" cy="20" rx="6.2" ry="4.6" fill="currentColor" opacity="0.85" />
+            {/* tail flick */}
+            <path d="M5 17.5 C3 15.5 3.6 13.5 5.6 12.8 C4.8 15 5.6 16.4 7 17.2 Z" fill="currentColor" opacity="0.7" />
+            {/* neck — the S curve */}
+            <path d="M16 19 C20 18 20 12.5 17.5 10.5 C16 9.3 13.8 9.8 13.4 11.6" stroke="currentColor" strokeWidth="2.4" fill="none" opacity="0.85" strokeLinecap="round" />
+            {/* head + beak */}
+            <circle cx="13.8" cy="11.2" r="2" fill="currentColor" opacity="0.9" />
+            <path d="M12.2 12 L9.8 13.4 L12.6 13.6 Z" fill="var(--text-color, #111)" opacity="0.8" />
+            {/* the one leg + foot */}
+            <path d="M11 24.5 L11 34" stroke="currentColor" strokeWidth="1.5" opacity="0.8" />
+            <path d="M8.8 34 L13.4 34" stroke="currentColor" strokeWidth="1.5" opacity="0.7" strokeLinecap="round" />
+        </svg>
+    );
+}
+
+/** Halo — a floating ⬭, the 777 road. Serene. Still ends you. */
+function HaloRing() {
+    return (
+        <svg viewBox="0 0 24 44" className="lr-car lr-hazard" aria-hidden="true">
+            <ellipse cx="12" cy="21" rx="8" ry="4.6" fill="none" stroke="currentColor" strokeWidth="2.6" opacity="0.9" />
+            <ellipse cx="12" cy="21" rx="8" ry="4.6" fill="none" stroke="#ffffff" strokeWidth="0.9" opacity="0.5" />
+        </svg>
+    );
+}
+
 /** Pothole — a jagged little crater. */
 function Pothole() {
     return (
@@ -138,6 +210,16 @@ function Pothole() {
             <path d="M8.5 20 L11.5 19 L14.5 21" stroke="currentColor" strokeWidth="0.8" opacity="0.35" fill="none" />
         </svg>
     );
+}
+
+/** The blocking hazard's look by depth — same mechanics, deeper scenery.
+    Thresholds ride the MOMENTS numbers so the scenery flips on the beat. */
+function Blocker({ score }: { score: number }) {
+    if (score >= 777) return <HaloRing />;
+    if (score >= 111) return <Flamingo />;
+    if (score >= 50) return <Barrel />;
+    if (score >= 22) return <Barrier />;
+    return <Cone />;
 }
 
 interface RowState {
@@ -293,7 +375,7 @@ export default function LaneRunner() {
                             return (
                                 <div className="lr-cell" key={l}>
                                     {cell === OIL && <OilSlick />}
-                                    {cell === CONE && <Cone />}
+                                    {cell === CONE && <Blocker score={score} />}
                                     {cell === POTHOLE && <Pothole />}
                                     {isHero && (
                                         <span key={slid} className="lr-hero-slot">
@@ -306,7 +388,7 @@ export default function LaneRunner() {
                     </div>
                 ))}
             </div>
-            <div className="lr-hint">{'tap a lane · oil slides you · cones end you'}</div>
+            <div className="lr-hint">{'tap a lane · oil slides you · everything else ends you'}</div>
         </div>
     );
 }
