@@ -1,5 +1,3 @@
-'use client';
-
 /*
  * familiar/species — the animated roster for the Digital Familiar.
  *

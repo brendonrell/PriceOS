@@ -28,8 +28,8 @@ import {
     toggleSheetActive, toggleStickerActive,
 } from '../../lib/stickers/owned';
 import {
-    getArrange, getTilt, getExpand, getRows, getAlign, getFlip, getDensity, getBorder,
-    setArrange, setTilt, setExpand, setRows, setAlign, setFlip, setDensity, setBorder, shuffleSeed,
+    getArrange, getTilt, getExpand, getRows, getAlign, getFlip, getDensity, getBorder, getSeed,
+    setArrange, setTilt, setExpand, setRows, setAlign, setFlip, setDensity, setBorder, setSeed, shuffleSeed,
     ARRANGES, TILTS, ROW_OPTS, ALIGNS, DENSITIES, BORDERS, stickerHue,
     type Arrange, type Tilt, type Rows, type Align, type Border,
 } from '../../lib/stickers/heroPrefs';
@@ -158,6 +158,9 @@ export function StickerManagerModal({
     const [flip, setFl] = useState(false);
     const [density, setDen] = useState(0);
     const [border, setBd] = useState<Border>('off');
+    /* The live generative roll — part of the look now (the Setup Code carries
+       it), tracked locally so the code field updates the moment it changes. */
+    const [seedV, setSeedV] = useState(1);
     /* Colour filter — modal-local view filter on the grid (not persisted). A
        single swatch tap filters to that exact colour; LONG-PRESSING a swatch
        selects the WHOLE hue family (its light + dark), held in `famHexes`. */
@@ -177,7 +180,7 @@ export function StickerManagerModal({
        re-rolled every time Plus opens so the stickers plunk in a fresh way. */
     const [fx, setFx] = useState(0);
 
-    const look: StickerLook = { arrange, rows, align, tilt, expand, flip };
+    const look: StickerLook = { arrange, rows, align, tilt, expand, flip, density, border, seed: seedV };
     const currentCode = encodeStickerCode(look);
     const [codeValue, setCodeValue] = useState(currentCode);
     const [codeEditing, setCodeEditing] = useState(false);
@@ -197,6 +200,7 @@ export function StickerManagerModal({
         setFl(getFlip());
         setDen(getDensity());
         setBd(getBorder());
+        setSeedV(getSeed());
         setHueFilter(null);
         setFamHexes(null);
     }, [open, handle]);
@@ -326,7 +330,7 @@ export function StickerManagerModal({
     /* Every generative tuning control re-rolls the composition, so each one drops
        a locked hand-placed layout back to generative and takes effect immediately
        — the lock only returns on the next drag-drop (Brendon, 2026-06-24). */
-    const reshuffle = () => { clearPlacements(); shuffleSeed(); };
+    const reshuffle = () => { clearPlacements(); shuffleSeed(); setSeedV(getSeed()); };
     const pickArrange = (a: Arrange) => { clearPlacements(); setArr(a); setArrange(a); };
     const pickTilt = (t: Tilt) => { clearPlacements(); setTl(t); setTilt(t); };
     const pickExpand = (b: boolean) => { clearPlacements(); setExp(b); setExpand(b); };
@@ -338,10 +342,14 @@ export function StickerManagerModal({
        locked hand-placed layout — no clearPlacements. */
     const pickBorder = (b: Border) => { setBd(b); setBorder(b); };
 
-    // Apply a whole look at once (from a pasted code or Surprise).
+    // Apply a whole look at once (from a pasted code or Surprise). A code that
+    // carries a seed restores the EXACT picture; a seedless (old) code leaves
+    // the current roll alone.
     const applyLook = (l: StickerLook) => {
         pickArrange(l.arrange); pickRows(l.rows); pickAlign(l.align);
         pickTilt(l.tilt); pickExpand(l.expand); pickFlip(l.flip);
+        pickDensity(l.density); pickBorder(l.border);
+        if (l.seed !== undefined) { setSeed(l.seed); setSeedV(l.seed); }
     };
     const applyCode = () => {
         const trimmed = codeValue.trim();
@@ -351,8 +359,9 @@ export function StickerManagerModal({
         // -native egg, no chip for it anywhere.
         const word = trimmed.toUpperCase().replace(/[^A-Z]/g, '');
         if (word.includes('SPILL')) {
-            applyLook({ arrange: 'collage', rows: 2, align: 'left', tilt: 'jaunty', expand: true, flip: true });
+            applyLook({ arrange: 'collage', rows: 2, align: 'left', tilt: 'jaunty', expand: true, flip: true, density, border });
             shuffleSeed();
+            setSeedV(getSeed());
             setCodeEditing(false);
             showToast('Stickers: SPILL ✦');
             return;
@@ -373,8 +382,9 @@ export function StickerManagerModal({
     };
     const surprise = () => {
         const r = <T,>(arr: ReadonlyArray<T>): T => arr[Math.floor(Math.random() * arr.length)]!;
-        applyLook({ arrange: r(ARRANGE_IDS), rows: r(ROW_IDS), align: r(ALIGN_IDS), tilt: r(TILT_IDS), expand: Math.random() < 0.5, flip: Math.random() < 0.4 });
+        applyLook({ arrange: r(ARRANGE_IDS), rows: r(ROW_IDS), align: r(ALIGN_IDS), tilt: r(TILT_IDS), expand: Math.random() < 0.5, flip: Math.random() < 0.4, density, border });
         shuffleSeed();
+        setSeedV(getSeed());
         showToast('Stickers: SURPRISE');
     };
 
@@ -393,6 +403,12 @@ export function StickerManagerModal({
     };
 
     const ownedSheets = SHEETS.filter((sh) => owned.some((s) => s.sheet === sh.id));
+
+    /* Rows is a first-class control in EVERY layout (Brendon, 2026-07-10): the
+       linear modes chunk into rows; the canvas modes read it as lid height. */
+    const rowsChips = ROW_OPTS.map((r) => (
+        <Chip key={r.id} on={rows === r.id} onClick={() => pickRows(r.id)}>{r.label}</Chip>
+    ));
 
     /* The sticker grid (owned, tap to toggle) — shared by both views. Grouped by
        sheet: each sheet starts on its own row, with a gap between groups so the
@@ -557,7 +573,7 @@ export function StickerManagerModal({
                             <button className="ambient-chip smgr-shuffle" type="button" onClick={reshuffle} title="Shuffle">{`⟳${VS15}`}</button>
                         </Row>
                         <Row label="Rows">
-                            {ROW_OPTS.map((r) => (<Chip key={r.id} on={rows === r.id} onClick={() => pickRows(r.id)}>{r.label}</Chip>))}
+                            {rowsChips}
                         </Row>
                         <Row label="Density">
                             {DENSITIES.map((d) => (<Chip key={d.id} on={density === d.id} onClick={() => pickDensity(d.id)}>{d.label}</Chip>))}
@@ -639,9 +655,7 @@ export function StickerManagerModal({
                             </button>
                         </Row>
                         <Row label="Rows">
-                            {ROW_OPTS.map((r) => (
-                                <Chip key={r.id} on={rows === r.id} onClick={() => pickRows(r.id)}>{r.label}</Chip>
-                            ))}
+                            {rowsChips}
                         </Row>
                     </div>
 

@@ -34,6 +34,9 @@ export default function StickerAlbum() {
                 <span className="skm-book-title">MY STICKER ALBUM</span>
                 <span className="skm-book-pos">{gotAll}/{totalAll} collected</span>
             </div>
+            <div className="alb-progress alb-progress-all" aria-hidden="true">
+                <span style={{ width: `${totalAll ? Math.round((gotAll / totalAll) * 100) : 0}%` }} />
+            </div>
             {pages.map(({ sheet, slots, got, total, complete }) => (
                 <div className="alb-page" key={sheet.id}>
                     <div className="cpl-month-head">
@@ -41,6 +44,9 @@ export default function StickerAlbum() {
                         <span className={`cpl-month-tally${complete ? ' is-complete' : ''}`}>
                             {complete ? `COMPLETE ✓${VS15}` : `${got}/${total}`}
                         </span>
+                    </div>
+                    <div className="alb-progress" aria-hidden="true">
+                        <span style={{ width: `${total ? Math.round((got / total) * 100) : 0}%` }} />
                     </div>
                     <div className="alb-slots">
                         {slots.map((s) => (

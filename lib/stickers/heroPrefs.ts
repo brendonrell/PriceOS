@@ -9,7 +9,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Sticker } from './catalog';
 
-export type Arrange = 'row' | 'spread' | 'scatter' | 'fill' | 'stack' | 'collage';
+export type Arrange = 'row' | 'spread' | 'scatter' | 'fill' | 'stack' | 'collage' | 'slapped';
 export type Tilt = 'flat' | 'soft' | 'jaunty';
 export type Rows = 1 | 2 | 3;
 export type Align = 'left' | 'center' | 'right';
@@ -29,6 +29,7 @@ export const ARRANGES: { id: Arrange; label: string }[] = [
     { id: 'scatter', label: 'SCATTER' },
     { id: 'fill', label: 'FILL' },
     { id: 'collage', label: 'COLLAGE' },
+    { id: 'slapped', label: 'SLAPPED' },
 ];
 export const ROW_OPTS: { id: Rows; label: string }[] = [
     { id: 1, label: '1' },
@@ -84,6 +85,10 @@ export function setFlip(b: boolean) { write(K_FLIP, b ? '1' : '0'); }
 export function setBorder(b: Border) { write(K_BORDER, b); }
 export function getBorder(): Border { return read(K_BORDER, 'off') as Border; }
 export function shuffleSeed() { write(K_SEED, String((Math.random() * 1e9) | 0)); }
+/* The seed is part of a saved look: the Setup Code carries it so a code brings
+   back the EXACT picture (Brendon, 2026-07-10 — looks were unrecoverable). */
+export function setSeed(n: number) { write(K_SEED, String((n >>> 0) || 1)); }
+export function getSeed(): number { return Number(read(K_SEED, '1')) || 1; }
 /** STACK pile density (0 = LOW … 2 = MAX). Picked from the Density chips. */
 export function setDensity(d: number) { write(K_DENSITY, String(d)); }
 export function getDensity(): number {
@@ -123,50 +128,105 @@ export function useHeroPrefs(): HeroPrefs {
     return useMemo(() => v, [v]);
 }
 
-/* Per-mode shape: how many rows + the display cap + overlap flag. The ROWS pref
-   (1/2) drives the row count for the linear modes; area modes are intrinsic. */
+/* Per-mode shape: how many rows + the display cap + overlap flag. EVERY mode
+   has a proper 1/2/3-row version (Brendon, 2026-07-10): the linear modes chunk
+   into that many rows; the area modes (Stack, Collage, Slapped) read Rows as
+   the CANVAS HEIGHT — 1 = a shallow band, 3 = a tall lid — and scale how many
+   stickers they seat to the room. */
+const AREA_ROWS_CAP = [0, 0.6, 1, 1.3]; // [rowsPref] → count multiplier
 export function arrangeShape(a: Arrange, rowsPref: Rows = 1): { rows: number; cap: number; scatter: boolean; overlap: boolean } {
     switch (a) {
         case 'row':     return { rows: rowsPref, cap: 6 * rowsPref, scatter: false, overlap: false };
         case 'spread':  return { rows: rowsPref, cap: 6 * rowsPref, scatter: false, overlap: false };
-        case 'stack':   return { rows: 1, cap: 14, scatter: false, overlap: true };
+        case 'stack':   return { rows: 1, cap: Math.round(14 * AREA_ROWS_CAP[rowsPref]!), scatter: false, overlap: true };
         case 'scatter': return { rows: rowsPref, cap: 7 * rowsPref, scatter: true, overlap: false };
-        /* Fill + Collage now honour the Rows pref like the linear modes — capped
-           at 3 so no mode ever shows 4 rows (Brendon, 2026-06-24). */
         case 'fill':    return { rows: rowsPref, cap: 8 * rowsPref, scatter: true, overlap: false };
-        case 'collage': return { rows: 0, cap: 8 * rowsPref, scatter: true, overlap: true };
+        case 'collage': return { rows: 0, cap: Math.round(10 * AREA_ROWS_CAP[rowsPref]!), scatter: true, overlap: true };
+        case 'slapped': return { rows: 0, cap: Math.round(18 * AREA_ROWS_CAP[rowsPref]!), scatter: true, overlap: true };
         default:        return { rows: rowsPref, cap: 6 * rowsPref, scatter: false, overlap: false };
     }
 }
 
-/* COLLAGE — laptop-lid style: a balanced, dense, overlapping composition with
-   mixed sizes. Jittered grid keeps it balanced; scale variety + overlap give the
-   collaged look. Positions in % of one large area. */
-export interface CollagePiece { x: number; y: number; scale: number; rot: number; z: number; }
-export function buildCollage(n: number, seed: number, rowsPref = 3): { cols: number; rows: number; items: CollagePiece[] } {
-    const rnd = rngFrom(seed);
-    /* Rows is god: the collage uses exactly the chosen row count (1–3, never 4),
-       and the columns fan out to fit every sticker into those rows (Brendon,
-       2026-06-24). */
-    const rows = Math.max(1, Math.min(3, rowsPref));
-    const cols = Math.max(2, Math.ceil(n / rows));
-    const cells = [...Array(cols * rows).keys()];
-    for (let i = cells.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [cells[i], cells[j]] = [cells[j]!, cells[i]!]; }
-    const cw = 100 / cols, ch = 100 / rows;
-    const items: CollagePiece[] = [];
-    for (let i = 0; i < n; i++) {
-        const cell = cells[i]!;
-        const col = cell % cols, row = Math.floor(cell / cols);
-        const jx = (rnd() - 0.5) * cw * 0.7;
-        const jy = (rnd() - 0.5) * ch * 0.7;
-        const x = Math.min(92, Math.max(8, (col + 0.5) * cw + jx));
-        const y = Math.min(90, Math.max(10, (row + 0.5) * ch + jy));
-        // Mostly mid-size with a few anchors larger and a few smaller → balanced.
-        const r = rnd();
-        const scale = r < 0.18 ? 1.15 + rnd() * 0.35 : r > 0.78 ? 0.55 + rnd() * 0.15 : 0.78 + rnd() * 0.3;
-        items.push({ x, y, scale, rot: (rnd() - 0.5) * 28, z: Math.floor(rnd() * 1000) });
+/* The area modes' canvas: width ÷ height per Rows setting — 1 row is a shallow
+   strip, 3 rows a tall lid. Density then nudges the same canvas tighter. */
+export function areaAspect(rowsPref: Rows, density = 0): number {
+    const base = [0, 5.2, 3.0, 2.1][rowsPref]!;
+    return base * [1.08, 1, 0.92][Math.max(0, Math.min(2, density))]!;
+}
+
+/* ── Shared relaxation — the readability guarantee ─────────────────────────
+   Every area mode runs its generative placement through this: pairs closer
+   than their minimum separation (in PHYSICAL units — x is scaled by the box
+   aspect) push apart over a few iterations. Overlap survives as a KISS, never
+   a burial: no sticker ever ends up mostly hidden. This is the line between
+   "messy mode" and "just too messy" (Brendon, 2026-07-10, with screenshots). */
+interface RelaxPt { x: number; y: number; s: number; w: number; }
+/* Stickers are wider than tall — and by very different amounts (a logo is
+   ~1.2×, a long @name chip can be 3–4×). Each point carries its own width
+   factor `w` (width ÷ height of the rendered sticker) so separation is judged
+   on the true footprint and edge margins keep even the widest chip fully on
+   the lid. */
+const DEFAULT_WIDE = 1.7;
+/* Half-extents in normalized units. Stickers render ~50px tall at scale 1 and
+   the box is ~370px wide, so half-height ≈ 25·s·aspect/370 of the box height —
+   the margins MUST scale with the box shape or tall boxes under-protect. */
+function clampPt(p: RelaxPt, aspect: number) {
+    const my = Math.min(0.4, 0.068 * p.s * aspect);              // half-height, box-height units
+    const mx = Math.min(0.47, 0.068 * p.s * (p.w || DEFAULT_WIDE)); // half-width, x-norm units
+    p.x = Math.min(1 - mx, Math.max(mx, p.x));
+    p.y = Math.min(1 - my, Math.max(my, p.y));
+}
+function relax(pts: RelaxPt[], aspect: number, minBase: number, iters: number, rnd: () => number) {
+    for (const p of pts) clampPt(p, aspect);
+    for (let it = 0; it < iters; it++) {
+        for (let i = 0; i < pts.length; i++) {
+            for (let j = i + 1; j < pts.length; j++) {
+                const a = pts[i]!, b = pts[j]!;
+                const wide = ((a.w || DEFAULT_WIDE) + (b.w || DEFAULT_WIDE)) / 2;
+                const minD = minBase * ((a.s + b.s) / 2);
+                let dx = ((b.x - a.x) * aspect) / wide;
+                let dy = b.y - a.y;
+                let d = Math.hypot(dx, dy);
+                if (d >= minD) continue;
+                if (d < 1e-4) { dx = (rnd() - 0.5); dy = (rnd() - 0.5); d = Math.hypot(dx, dy); }
+                const push = (minD - d) / 2 / d;
+                a.x -= (dx * push * wide) / aspect; a.y -= dy * push;
+                b.x += (dx * push * wide) / aspect; b.y += dy * push;
+                clampPt(a, aspect); clampPt(b, aspect);
+            }
+        }
     }
-    return { cols, rows, items };
+}
+
+/* COLLAGE — the composed one: a few LARGE anchor stickers carry the picture and
+   smaller satellites fill around them. Mixed sizes are the identity (Stack is
+   same-size; Collage is hierarchy). Kiss overlaps allowed, burial never — the
+   shared relaxation guarantees every sticker stays readable. Rows is ignored:
+   the collage composes its own area. */
+export interface CollagePiece { x: number; y: number; scale: number; rot: number; z: number; }
+export function buildCollage(n: number, seed: number, widths: number[] = [], rowsPref: Rows = 2): { cols: number; rows: number; items: CollagePiece[] } {
+    const rnd = rngFrom(seed);
+    // Rows sets the canvas: 1 = shallow banner, 3 = tall lid.
+    const aspect = areaAspect(rowsPref, 1);
+    const nA = n >= 9 ? 3 : n >= 5 ? 2 : 1;      // the anchors
+    const g = 1.32471795724474602596;             // R2 low-discrepancy sequence
+    const a1 = 1 / g, a2 = 1 / (g * g);
+    const offX = rnd(), offY = rnd();
+    const pts: RelaxPt[] = [];
+    for (let k = 0; k < n; k++) {
+        const x = 0.08 + ((offX + a1 * (k + 1)) % 1) * 0.84 + (rnd() - 0.5) * 0.04;
+        const y = 0.18 + ((offY + a2 * (k + 1)) % 1) * 0.64 + (rnd() - 0.5) * 0.06;
+        // Anchors first in R2 order → naturally far apart; satellites in between.
+        const s = k < nA ? 1.28 + rnd() * 0.24 : 0.68 + rnd() * 0.3;
+        pts.push({ x, y, s, w: widths[k] || DEFAULT_WIDE });
+    }
+    relax(pts, aspect, 0.5, 30, rnd);
+    const items: CollagePiece[] = pts.map((p, k) => ({
+        x: p.x * 100, y: p.y * 100, scale: p.s,
+        rot: (rnd() - 0.5) * 22,
+        z: k < nA ? 1 + Math.floor(rnd() * 3) : 10 + k,   // anchors sit UNDER, never bury
+    }));
+    return { cols: Math.round(aspect * 10), rows: 10, items };
 }
 
 /* ── STACK = a PILE — a stickered-laptop / skateboard look ─────────────────────
@@ -198,40 +258,94 @@ export function stickerHue(s: Sticker): number {
     return (x >>> 0) % 360;
 }
 
-/* DENSITY (a Density chip) sets how many stickers fill the pile; the ROWS option
-   (1 or 2) is honoured SEPARATELY at every density — single row vs a two-row
-   pile. MAX density + two rows = the most-extreme pile (the reference). */
-export function buildPile(hues: number[], seed: number, density = 0, rows = 1): { aspect: number; items: PilePiece[] } {
-    const cnt = DENSITY_COUNTS[Math.max(0, Math.min(DENSITY_COUNTS.length - 1, density))]!;
+/* DENSITY (a Density chip) sets how many stickers fill the pile. Rows is
+   ignored — the pile composes its own area (taller as it packs denser). The
+   pile stays PD's "messy mode" — slapped-on rotation, organic spread — but the
+   relaxation pass caps the mess at a kiss: nothing ever ends up buried under a
+   neighbour (the too-messy piles Brendon screenshot-flagged, 2026-07-10). */
+export function buildPile(hues: number[], seed: number, density = 0, widths: number[] = [], rowsPref: Rows = 2): { aspect: number; items: PilePiece[] } {
+    const cnt = Math.round(DENSITY_COUNTS[Math.max(0, Math.min(DENSITY_COUNTS.length - 1, density))]! * AREA_ROWS_CAP[rowsPref]!);
     const n = Math.max(1, Math.min(hues.length, cnt));
     const rnd = rngFrom(seed + 131);
+    // Rows sets the canvas height; Density packs the same canvas tighter.
+    const aspect = areaAspect(rowsPref, density);
     // Colour balance: order by hue, then R2 low-discrepancy placement so
     // consecutive hues land far apart — no colour clumps.
     const order = [...Array(n).keys()].sort((a, b) => hues[a]! - hues[b]!);
     const g = 1.32471795724474602596;   // plastic number → R2 sequence
     const a1 = 1 / g, a2 = 1 / (g * g);
-    const items: PilePiece[] = new Array(n);
-    if (rows >= 2) {
-        // TWO ROWS — R2 over the whole area (the stickered-laptop pile).
-        const offX = rnd(), offY = rnd();
-        for (let k = 0; k < n; k++) {
-            const idx = order[k]!;
-            let x = (offX + a1 * (k + 1)) % 1;
-            let y = (offY + a2 * (k + 1)) % 1;
-            x = Math.min(0.93, Math.max(0.07, x + (rnd() - 0.5) * 0.05));
-            y = Math.min(0.88, Math.max(0.12, y + (rnd() - 0.5) * 0.09));
-            items[idx] = { x: x * 100, y: y * 100, rot: (rnd() - 0.5) * 46, scale: 0.8 + rnd() * 0.5, z: k };
-        }
-        return { aspect: 2.9, items };
+    const offX = rnd(), offY = rnd();
+    const pts: RelaxPt[] = [];
+    for (let k = 0; k < n; k++) {
+        const x = 0.07 + ((offX + a1 * (k + 1)) % 1) * 0.86 + (rnd() - 0.5) * 0.04;
+        const y = 0.16 + ((offY + a2 * (k + 1)) % 1) * 0.68 + (rnd() - 0.5) * 0.07;
+        pts.push({ x, y, s: 0.88 + rnd() * 0.24, w: widths[order[k]!] || DEFAULT_WIDE });
     }
-    // SINGLE ROW — even organic spread along one line; density = how many.
-    const off = rnd(), PAD = 8, span = 100 - PAD * 2;
+    relax(pts, aspect, 0.62, 36, rnd);
+    const items: PilePiece[] = new Array(n);
     for (let k = 0; k < n; k++) {
         const idx = order[k]!;
-        const t = (off + a1 * (k + 1)) % 1;
-        items[idx] = { x: PAD + t * span, y: 50 + (rnd() - 0.5) * 16, rot: (rnd() - 0.5) * 30, scale: 0.85 + rnd() * 0.35, z: k };
+        const p = pts[k]!;
+        items[idx] = { x: p.x * 100, y: p.y * 100, rot: (rnd() - 0.5) * 32, scale: p.s, z: k };
     }
-    return { aspect: 5.5, items };
+    return { aspect, items };
+}
+
+/* ── SLAPPED — the WOW mode: a real stickered laptop lid ─────────────────────
+   Built from studying actual stickered laptops/iPhones (2026-07-10): people
+   place stickers ROUGHLY UPRIGHT (±8°, with the odd rebel at 16–28°), pack
+   them nearly edge-to-edge with only slivers of lid showing, put the BIG
+   statement pieces down first and tuck small ones into the leftover gaps, and
+   fill the frame corner to corner. So: a size script (statements → mids →
+   smalls), greedy best-gap placement (each sticker lands a whisker from its
+   neighbours — near-tangent, never buried), then a light relaxation pass as
+   the readability guarantee. Density = how full the lid is. */
+export function buildSlapped(count: number, seed: number, density = 0, widths: number[] = [], rowsPref: Rows = 2): { aspect: number; items: PilePiece[] } {
+    const counts = [10, 14, 18];
+    const n = Math.max(1, Math.min(count, Math.round(counts[Math.max(0, Math.min(2, density))]! * AREA_ROWS_CAP[rowsPref]!)));
+    const rnd = rngFrom(seed + 977);
+    const aspect = areaAspect(rowsPref, density);
+    // Size script — statements first (real lids grow big → small).
+    const nBig = n >= 12 ? 3 : 2;
+    const nSmall = Math.max(2, Math.round(n * 0.25));
+    const sizes: number[] = [];
+    for (let i = 0; i < n; i++) {
+        sizes.push(i < nBig ? 1.28 + rnd() * 0.22
+            : i < n - nSmall ? 0.88 + rnd() * 0.26
+            : 0.6 + rnd() * 0.18);
+    }
+    const placed: RelaxPt[] = [];
+    for (let i = 0; i < n; i++) {
+        const s = sizes[i]!;
+        const w = widths[i] || DEFAULT_WIDE;
+        let best: RelaxPt | null = null;
+        let bestScore = Infinity;
+        const K = placed.length === 0 ? 1 : 22;
+        for (let k = 0; k < K; k++) {
+            const cand: RelaxPt = { x: 0.04 + rnd() * 0.92, y: 0.1 + rnd() * 0.8, s, w };
+            clampPt(cand, aspect);
+            let nearest = Infinity;
+            for (const p of placed) {
+                const wide = ((p.w || DEFAULT_WIDE) + w) / 2;
+                const dx = ((p.x - cand.x) * aspect) / wide;
+                const dy = p.y - cand.y;
+                nearest = Math.min(nearest, Math.hypot(dx, dy) - 0.5 * ((p.s + cand.s) / 2));
+            }
+            // A whisker of lid between neighbours; overlap punished hard.
+            const score = placed.length === 0 ? 0
+                : nearest < 0 ? 4 * -nearest
+                : Math.abs(nearest - 0.05);
+            if (score < bestScore) { bestScore = score; best = cand; }
+        }
+        placed.push(best!);
+    }
+    relax(placed, aspect, 0.56, 22, rnd);
+    const items: PilePiece[] = placed.map((p, k) => {
+        const rebel = rnd() < 0.14;
+        const rot = rebel ? (rnd() < 0.5 ? -1 : 1) * (16 + rnd() * 12) : (rnd() * 2 - 1) * 8;
+        return { x: p.x * 100, y: p.y * 100, rot, scale: p.s, z: k };
+    });
+    return { aspect, items };
 }
 
 /* Upside-down: ~1 in 4 stickers flip 180°, deterministic per sticker + seed
