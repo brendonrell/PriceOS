@@ -875,7 +875,7 @@ export default function OutputPreview() {
                 role="button"
                 tabIndex={0}
                 onClick={() => {
-                    if (currentModalId !== null) openOutputNoteEditor(currentModalId);
+                    if (currentModalId !== null) openOutputNoteEditor(currentModalId, undefined, slug);
                 }}
                 title={hasNote ? 'Edit Note' : 'Add Note'}
             >
@@ -1121,7 +1121,7 @@ export default function OutputPreview() {
                 role="button"
                 tabIndex={0}
                 onClick={() => {
-                    if (currentModalId !== null) openOutputNoteEditor(currentModalId);
+                    if (currentModalId !== null) openOutputNoteEditor(currentModalId, undefined, slug);
                 }}
                 title={hasNote ? 'Edit Note' : 'Add Note'}
             >

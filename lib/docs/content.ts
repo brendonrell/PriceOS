@@ -79,6 +79,10 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
         ],
     },
     {
+        title: 'Build on PD',
+        slugs: ['building-on-pd'],
+    },
+    {
         title: 'Smart Contracts',
         slugs: [
             'contracts/overview',

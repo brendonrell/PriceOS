@@ -66,7 +66,7 @@ import Hero from '../hero/Hero';
 import CompletionismModal from '../CompletionismModal';
 import FollowButton from './FollowButton';
 import { HeroStickers } from '../stickers/HeroStickers';
-import { getProject, allProjects, projectsByArtist } from '../../lib/project/registry';
+import { getProject, allProjects, projectsByArtist, artistSignatureColor } from '../../lib/project/registry';
 import HomeProjectFacetBar from '../home/HomeProjectFacetBar';
 import GhostCard from '../project/GhostCard';
 import ZenGarden from './ZenGarden';
@@ -146,9 +146,11 @@ function ProfilePageBodyInner({
        of the new profile is already its owner colour, never the white default
        while auth resolves. */
     useLayoutEffect(() => {
-        setActiveProfileHex(user.profile_hex ?? null);
+        // Artist fallback mirrors the server boot paint: no picked Profile
+        // Colorway -> the artist's signature colour (flagship Project).
+        setActiveProfileHex(user.profile_hex ?? artistSignatureColor(handle));
         return () => setActiveProfileHex(null);
-    }, [user.profile_hex, setActiveProfileHex]);
+    }, [user.profile_hex, handle, setActiveProfileHex]);
 
     /* LIVE-EDIT overlay — LATER in the sequence, your OWN profile only, once
        logged-in state has resolved: reflect instant colour edits from the picker

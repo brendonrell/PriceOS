@@ -328,8 +328,8 @@ export function AccountCreateModal({
                     CLAIM YOUR PD ACCOUNT
                 </div>
                 <div className="account-create-modal-body">
-                    Choose a PriceSprite (based on vibe) and @name. Both
-                    are permanent on this wallet.
+                    Choose YOUR PriceSprite (based on vibe) and @name. Both
+                    are <u>permanent</u> on this wallet.
                 </div>
                 {address && (
                     <div className="account-create-modal-addr">

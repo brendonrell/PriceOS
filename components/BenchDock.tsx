@@ -125,7 +125,7 @@ const BenchCard = memo(function BenchCard({
                     role="button"
                     tabIndex={0}
                     title={note ? 'Edit Note' : 'Add Note'}
-                    onClick={() => openOutputNoteEditor(id, note || undefined)}
+                    onClick={() => openOutputNoteEditor(id, note || undefined, slug)}
                 >
                     {note
                         ? <span dangerouslySetInnerHTML={{ __html: renderNoteMarkdown(note) }} />

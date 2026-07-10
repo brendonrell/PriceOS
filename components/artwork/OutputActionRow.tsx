@@ -117,7 +117,7 @@ export default function OutputActionRow({
             <Btn glyph={starred ? '★︎' : '☆︎'} title="Star" active={starred} onClick={onStar} extra="output-act-star" />
             <Btn glyph={'✛︎'} title={wishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'} active={wishlisted} onClick={onWishlist} />
             <Btn glyph={'◰︎'} title="Add to Album" onClick={(e) => { stop(e); showToast('Added to Album'); }} />
-            <Btn glyph={'⊟︎'} title={hasNote ? 'Edit Note' : 'Add Note'} active={hasNote} extra="output-act-note" onClick={(e) => { stop(e); openOutputNoteEditor(id); }} />
+            <Btn glyph={'⊟︎'} title={hasNote ? 'Edit Note' : 'Add Note'} active={hasNote} extra="output-act-note" onClick={(e) => { stop(e); openOutputNoteEditor(id, undefined, slug); }} />
             <Btn glyph={'❍︎'} title="Make To-Do" extra="output-act-todo" onClick={(e) => {
                 stop(e);
                 const r = addOutputTodo(slug, id, 'BUY');

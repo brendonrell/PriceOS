@@ -21,6 +21,7 @@ import { getArtistStatus } from '@/lib/artists/allowlist';
 import ProfilePageBody from '@/components/profile/ProfilePageBody';
 import ArtworkPageBody from '@/components/artwork/ArtworkPageBody';
 import { profileColorBootScript } from '@/lib/colorway/profileBootPaint';
+import { artistSignatureColor } from '@/lib/project/registry';
 
 // Always render fresh (Brendon 2026-06-12 — collected art was lagging behind
 // new mints). Without this the server render (and its seeded holdings) can be
@@ -82,7 +83,11 @@ export default async function SlugRootPage(props: Props) {
   // profile_hex, so a cold open / refresh of a profile lands on its colour with
   // no grey flash. Runs before the page content paints; no-ops when the viewer
   // has an explicit colorway pick. Null (no/!invalid hex) → grey default stands.
-  const colorBoot = profileColorBootScript(initialUser.profile_hex);
+  // Artists without a picked Profile Colorway wear their signature colour
+  // (flagship Project's colorway) instead of the grey default; a saved
+  // profile_hex always wins (Brendon, 2026-07-10).
+  const ownerHex = initialUser.profile_hex ?? artistSignatureColor(r.handle);
+  const colorBoot = profileColorBootScript(ownerHex);
 
   return (
     <>

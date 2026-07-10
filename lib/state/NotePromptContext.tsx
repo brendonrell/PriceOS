@@ -52,10 +52,13 @@
  * + card hover icon callsites pass no prepopulate value — they open
  * empty in edit-mode for fresh notes, view-mode for already-saved.
  *
- * PROJECT_TITLE: hardcoded 'PRISMS' here, mirroring ProjectContext.tsx
- * line 68. The provider sits ABOVE ProjectProvider in app/layout.tsx so
- * useProject() isn't reachable; in the single-project MVP era both
- * hardcodes get cleaned up together when multi-project routing lands.
+ * Output-label project resolution (the "everything says PRISMS" fix,
+ * Brendon 2026-07-10 — this bug kept returning because the title was
+ * hardcoded here): the label resolves its project the SAME way the output
+ * modal does — explicit slug from the caller, else the open modal's
+ * currentModalSlug, else the /art/{slug} route — and renders the registry
+ * displayName. No slug resolvable → the label shows just "#id", never a
+ * guessed project name.
  */
 
 import {
@@ -67,18 +70,15 @@ import {
     useState,
     type ReactNode,
 } from 'react';
+import { usePathname } from 'next/navigation';
 import NotePromptModal from '../../components/NotePromptModal';
+import { getProject } from '../project/registry';
 import { useCalendar } from '../calendar/CalendarContext';
 import { CAL_MONTH_SHORT } from '../calendar/data';
 import { useToast } from './ToastContext';
 import { useModal } from './ModalContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { lockBodyScroll, unlockBodyScroll } from './bodyScrollLock';
-
-/* Hardcoded to match ProjectContext.tsx:68. Replace with a useProject()
-   read once NotePromptProvider is moved inside ProjectProvider OR multi-
-   project routing lands and a per-route lookup is required. */
-const PROJECT_TITLE = 'PRISMS';
 
 interface DayPrompt {
     kind: 'day';
@@ -93,6 +93,9 @@ interface ArtistPrompt {
 interface OutputPrompt {
     kind: 'output';
     outputId: number;
+    /* Project slug when the caller knows it (grid cards, list rows, bench).
+       null → resolved at render from the open modal / the /art route. */
+    slug: string | null;
 }
 
 type Prompt = DayPrompt | ArtistPrompt | OutputPrompt;
@@ -110,7 +113,7 @@ interface NotePromptContextValue {
      *                     NotesBox passes MOCK_DEMO_NOTES[id]; modal pill
      *                     + card hi-note callsites pass nothing.
      */
-    openOutputNoteEditor: (outputId: number, prepopulate?: string) => void;
+    openOutputNoteEditor: (outputId: number, prepopulate?: string, slug?: string) => void;
     closeNotePrompt: () => void;
 }
 
@@ -131,7 +134,8 @@ function formatDayLabel(dayKey: string): string {
 export function NotePromptProvider({ children }: { children: ReactNode }) {
     const { dayNotes, setDayNote } = useCalendar();
     const { showToast } = useToast();
-    const { open: openModal } = useModal();
+    const { open: openModal, currentModalSlug } = useModal();
+    const pathname = usePathname();
     const [artistNotes, setArtistNotes] = useLocalStorage<Record<string, string>>(
         'pd_artist_notes',
         {}
@@ -174,7 +178,7 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const openOutputNoteEditor = useCallback(
-        (outputId: number, prepopulate?: string) => {
+        (outputId: number, prepopulate?: string, slug?: string) => {
             if (typeof outputId !== 'number' || Number.isNaN(outputId)) return;
             const key = String(outputId);
             /* Sim 6601 — only seed if there's no existing saved note. */
@@ -184,7 +188,7 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
                     return { ...prev, [key]: prepopulate };
                 });
             }
-            setPrompt({ kind: 'output', outputId });
+            setPrompt({ kind: 'output', outputId, slug: slug?.toLowerCase() ?? null });
         },
         [setOutputNotes]
     );
@@ -253,9 +257,9 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
        z-index 10001. When the user dismisses the note prompt, the
        OutputPreview is revealed. */
     const handleOutputLabelClick = useCallback(
-        (e: React.MouseEvent, outputId: number) => {
+        (e: React.MouseEvent, outputId: number, slug: string | null) => {
             e.stopPropagation();
-            openModal('output', outputId);
+            openModal('output', outputId, slug ?? undefined);
         },
         [openModal]
     );
@@ -298,6 +302,16 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
         } else if (prompt.kind === 'output') {
             const outputId = prompt.outputId;
             initialValue = outputNotes[String(outputId)] || '';
+            /* Resolve the project the way the output modal does: explicit
+               caller slug -> the open modal's slug -> the /art/{slug} route.
+               Unresolvable -> label is just "#id" (never a guessed name). */
+            const routeSlug = pathname?.startsWith('/art/')
+                ? (pathname.split('/')[2] ?? '').toLowerCase() || null
+                : null;
+            const noteSlug = prompt.slug ?? currentModalSlug ?? routeSlug;
+            const projectName = noteSlug
+                ? (getProject(noteSlug)?.displayName ?? noteSlug).toUpperCase()
+                : null;
             label = (
                 <>
                     NOTE FOR:{' '}
@@ -307,9 +321,9 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
                             textUnderlineOffset: '3px',
                             cursor: 'pointer',
                         }}
-                        onClick={(e) => handleOutputLabelClick(e, outputId)}
+                        onClick={(e) => handleOutputLabelClick(e, outputId, noteSlug)}
                     >
-                        {PROJECT_TITLE} #{outputId}
+                        {projectName ? `${projectName} #${outputId}` : `#${outputId}`}
                     </span>
                 </>
             );

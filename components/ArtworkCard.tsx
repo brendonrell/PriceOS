@@ -782,10 +782,10 @@ function ArtworkCard({
             tabIndex={0}
             title="Open note"
             aria-label="Open note"
-            onClick={(e) => { e.stopPropagation(); openOutputNoteEditor(id); }}
+            onClick={(e) => { e.stopPropagation(); openOutputNoteEditor(id, undefined, slug); }}
             onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault(); e.stopPropagation(); openOutputNoteEditor(id);
+                    e.preventDefault(); e.stopPropagation(); openOutputNoteEditor(id, undefined, slug);
                 }
             }}
         >
@@ -1022,7 +1022,7 @@ function ArtworkCard({
                                        always visible (was body.notes-mode
                                        gated, sim deviation). */
                                     e.stopPropagation();
-                                    openOutputNoteEditor(id);
+                                    openOutputNoteEditor(id, undefined, slug);
                                 }}
                             >
                                 {'\u229F\uFE0E'}

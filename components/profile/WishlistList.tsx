@@ -391,8 +391,8 @@ function WishlistRow({
                             tabIndex={0}
                             title="Open note"
                             aria-label="Open note"
-                            onClick={(e) => { e.stopPropagation(); openOutputNoteEditor(id); }}
-                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); openOutputNoteEditor(id); } }}
+                            onClick={(e) => { e.stopPropagation(); openOutputNoteEditor(id, undefined, slug); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); openOutputNoteEditor(id, undefined, slug); } }}
                         >
                             {'⊟︎'}
                         </span>

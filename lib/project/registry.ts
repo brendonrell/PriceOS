@@ -1300,6 +1300,16 @@ export function projectsByArtist(handle: string): readonly ProjectDef[] {
   return PROJECTS.filter((p) => p.artistHandle.toLowerCase() === h);
 }
 
+/** An artist's signature colour — their flagship (first registry) Project's
+ *  colorway. Profile pages use it as the owner-colour fallback when the
+ *  artist hasn't picked a Profile Colorway of their own (Brendon,
+ *  2026-07-10: every artist's profile wears a colour suited to them). A
+ *  saved `profile_hex` always wins over this. Null for non-artists. */
+export function artistSignatureColor(handle: string): string | null {
+  const first = projectsByArtist(handle)[0];
+  return first ? projectColorway(first.slug) ?? first.colorway : null;
+}
+
 /** Project by slug (case-insensitive), or null. */
 export function getProject(slug: string): ProjectDef | null {
   return BY_SLUG.get(slug.toLowerCase()) ?? null;
