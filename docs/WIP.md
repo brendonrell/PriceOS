@@ -8,7 +8,16 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-1. **BUILD the PD MCP server v1 — GREENLIT (Brendon, 2026-07-10).**
+1. **PD Studio — Brendon's edit round.** PD Studio v1 + private layers are
+   LIVE on dev (see SHIPPED below); Brendon wrapped 2026-07-10 saying he'll
+   bring edits in a fresh session. Read **`docs/pd-studio-spec.md`** first —
+   it is the plan of record (locked decisions, architecture, build sequence).
+   Next build phases queued there: dashboard analytics from indexer data ·
+   artist pings · library-bound test envelope · Supabase stores for drafts/
+   access-list/packages (cross-device — v1 is device-local by design) ·
+   sticker catalog wiring. ClickUp: epic `86bavub9k`, private-layers spec
+   `86bavucbz` (⛔ sticker/godmode docs live in ClickUp ONLY — never PD-Docs).
+2. **BUILD the PD MCP server v1 — GREENLIT (Brendon, 2026-07-10).**
    The whole plan is in **`docs/pd-mcp-spec.md`** — read it first, build to it,
    nothing extra. Summary: new Cloudflare Worker `pd-mcp` on the existing
    account (workers-mcp / agents SDK pattern, remote MCP over streamable
@@ -20,11 +29,37 @@
    Claude session and exercising every tool. Open calls (spec §Open calls):
    subdomain now vs workers.dev; docs answers verbatim-from-llms-full only
    (recommended yes) — decide sensibly or ask in one line.
-2. **Warm the artwork pins.** The stored-preview un-deadlock is LIVE on dev
+3. **Warm the artwork pins.** The stored-preview un-deadlock is LIVE on dev
    (see FINDINGS below). Once deployed, simply browsing the site re-pins the
    catalog (healer pins on view). If tiles still look blank after real
    browsing, investigate the healer POSTs (`/api/preview`, `/api/ascii`) —
    don't re-diagnose the guard, that part is fixed and verified by probe.
+
+## ✅ SHIPPED TO DEV 2026-07-10 — PD STUDIO v1 + private layers (pushed, tree clean)
+
+- **PD Studio v1** — the artist's side of PD, one app: `/studio` on the dev
+  preview, host-routed so `studio.pricediscussion.com` works the moment DNS
+  points at the Worker (middleware host rewrite). Rides the full app shell.
+- **Workbench**: private drafts (localStorage v1), script paste/upload,
+  unlimited test runs (6/22/66/222) — hashes derived with PDProject.mint's
+  exact shape, rendered in the REAL tokenURI envelope (lib/studio/drafts.ts),
+  every hash kept, grid + fullscreen live render.
+- **Publish**: local preflight → `/studio/publish` (bare Sepolia signer, /deploy
+  family, own wagmi stack) — factory-simulation preflight (whitelist/cooldown/
+  bounds via the contract itself), artist signs createProject, ProjectCreated
+  parsed, draft marked LIVE.
+- **Dashboard seam**: on /studio the connect menu is the artist dashboard —
+  StudioProjectsBox takes the Notes accordion slot (Brendon's spec).
+- **Private layers (wallet-gated, invisible otherwise)**: Sticker Studio
+  (Package JSON paste/import + Figma SVG assembly → preview grid → wallet-
+  signature approval; staged on-device) + God Mode (access-list mgmt, seed
+  `0x1460…B9B8` unremovable; platform package view). ⛔ Their docs live in
+  ClickUp ONLY (task 86bavucbz).
+- **PD-Docs**: comprehensive 4-page PD Studio section (nav manifest updated) +
+  mobile header fix (notch/safe-area clearance, phone-fit top bar — the
+  screenshot bug that opened the session).
+- Spec of record: **`docs/pd-studio-spec.md`**. ClickUp epic `86bavub9k`
+  commented with the full ship + next phases.
 
 ## ✅ SHIPPED TO DEV 2026-07-10 — ASCII Art Mode round 2 (pushed, tree clean)
 
