@@ -76,6 +76,7 @@ export function TodosBox() {
     const [workflowsOpen, setWorkflowsOpen] = useState(false);
     const [text, setText] = useState('');
     const [due, setDue] = useState('');
+    const [dueTime, setDueTime] = useState('');
     const [price, setPrice] = useState('');
     const [priority, setPriority] = useState<TodoPriority>(0);
 
@@ -155,17 +156,22 @@ export function TodosBox() {
         const eth = parseFloat(price);
         const explicitPrice = Number.isFinite(eth) && eth > 0 ? eth : null;
         const finalDue = due || p.due || null;
+        /* A time only means something on a dated to-do — the reminder fires
+           at date+time (TodoReminders.dueEpoch already reads dueTime). */
+        const finalDueTime = finalDue ? (dueTime || null) : null;
         const finalPrice = explicitPrice ?? p.priceEth ?? null;
         const finalPriority = (priority || p.priority || 0) as TodoPriority;
         if (p.output) {
             addOutputTodo(p.output.slug, p.output.tokenId, p.output.verb, {
                 priceEth: finalPrice,
                 due: finalDue,
+                dueTime: finalDueTime,
             });
         } else {
             addRawTodo({
                 text: p.text || t,
                 due: finalDue,
+                dueTime: finalDueTime,
                 priceEth: finalPrice,
                 priority: finalPriority,
                 labels: withSticky(p.labels),
@@ -182,6 +188,7 @@ export function TodosBox() {
         if (!addOne(text)) return;
         setText('');
         setDue('');
+        setDueTime('');
         setPrice('');
         setPriority(0);
         showToast('To-Do: ADDED');
@@ -324,6 +331,20 @@ export function TodosBox() {
                                 onChange={(e) => setDue(e.target.value)}
                             />
                         </label>
+                        {/* Time chip — appears once a day is picked; the native
+                            time picker rides transparent on top, same pattern as
+                            the date chip. Cleared with the date. */}
+                        {due && (
+                            <label className={`todo-chip todo-chip-time${dueTime ? ' set' : ''}`} title="Reminder time">
+                                <span className="todo-chip-lbl">{dueTime || 'time'}</span>
+                                <input
+                                    className="todo-chip-native"
+                                    type="time"
+                                    value={dueTime}
+                                    onChange={(e) => setDueTime(e.target.value)}
+                                />
+                            </label>
+                        )}
                         <span className={`todo-chip todo-chip-price${price ? ' set' : ''}`} title="ETH target / budget">
                             <span className="todo-chip-ico eth-mark">◊</span>
                             <input
@@ -428,7 +449,7 @@ export function TodosBox() {
                             )}
                             {hasChips ? (
                                 <span className="todo-chips">
-                                    {t.due && <span className="todo-chip">{fmtDue(t.due)}</span>}
+                                    {t.due && <span className="todo-chip">{fmtDue(t.due)}{t.dueTime ? ` ${t.dueTime}` : ''}</span>}
                                     {t.recurrence && <span className="todo-chip rec">↻ {t.recurrence}</span>}
                                     {t.priceEth ? (
                                         <span className="todo-chip eth">

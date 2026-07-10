@@ -159,7 +159,7 @@ export function addOutputTodo(
     slug: string,
     tokenId: number,
     verb: TodoVerb = 'BUY',
-    opts?: { priceEth?: number | null; due?: string | null },
+    opts?: { priceEth?: number | null; due?: string | null; dueTime?: string | null },
 ): AddOutputResult {
     const list = getTodos();
     const dupe = list.some(
@@ -177,6 +177,7 @@ export function addOutputTodo(
         text: outputLabel(verb, slug, tokenId),
         source: { slug, tokenId, verb },
         due: opts?.due ?? null,
+        dueTime: opts?.dueTime ?? null,
         priority: 0,
         priceEth: typeof opts?.priceEth === 'number' && opts.priceEth > 0 ? opts.priceEth : null,
         done: false,
