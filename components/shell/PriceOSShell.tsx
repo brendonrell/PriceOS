@@ -390,6 +390,15 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
        (a dead modal simply doesn't appear); the routed page below is covered
        separately by app/error.tsx, which keeps this shell alive and offers a
        retry, so `children` is deliberately NOT wrapped here. */
+    /* PD-Docs (/docs/*) is its own reading surface — the docs layout carries
+       its own header, nav, and footer, so the app chrome (navbar, tape,
+       footer, modal/overlay islands) stays off it. Providers and the
+       colorway paint still apply (the docs mount the ColorwayPicker), and
+       the loader-exit effect above has already run. */
+    if (pathname === '/docs' || pathname?.startsWith('/docs/')) {
+        return <main key={pathname}>{children}</main>;
+    }
+
     return (
         <>
             <ErrorBoundary name="Backgrounds">

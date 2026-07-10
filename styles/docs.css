@@ -1,0 +1,402 @@
+/* ── PD-Docs (/docs) ─────────────────────────────────────────────────────
+   The docs reading surface. Rides the app's colorway variables (--bg-color,
+   --text-color, --border-color, …) so the ColorwayPicker works verbatim;
+   /docs boots the Dark colorway by default (layout prehydration +
+   ColorwayContext). Mobile-first: top bar + INDEX drop-down. Desktop
+   (≥1024px): persistent left nav rail; wide desktop (≥1280px) adds the
+   "On this page" right rail. Type: Rubik Mono One display headings, Inter
+   body, Courier for code and glyphs — the app's own stack. Everything
+   full-strength and legible (no decorative half-opacity). */
+
+.pd-docs {
+    min-height: 100vh;
+    background: var(--bg-color);
+    color: var(--text-color);
+    font-family: var(--font-inter), Inter, sans-serif;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── Top bar ── */
+.pd-docs-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.pd-docs-wordmark {
+    font-family: var(--font-rubik-mono), 'Rubik Mono One', monospace;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    color: var(--text-color);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.pd-docs-logo {
+    font-family: var(--font-inter), Inter, sans-serif; /* the ‰ mark renders in Inter (glyph glossary §8) */
+    font-weight: 700;
+}
+
+.pd-docs-wordmark-docs {
+    border: 1px solid var(--text-color);
+    padding: 1px 5px 0;
+    margin-left: 4px;
+}
+
+.pd-docs-topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pd-docs-applink,
+.pd-docs-index-btn {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: var(--text-color);
+    background: transparent;
+    border: 1px solid var(--text-color);
+    padding: 5px 10px;
+    text-decoration: none;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.pd-docs-applink:hover,
+.pd-docs-index-btn:hover,
+.pd-docs-index-btn.open {
+    background: var(--text-color);
+    color: var(--bg-color);
+}
+
+/* ── Nav (shared by the mobile drop-down and the desktop rail) ── */
+.pd-docs-nav-section { margin-bottom: 18px; }
+
+.pd-docs-nav-title {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 6px;
+}
+
+.pd-docs-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.pd-docs-nav-link {
+    display: block;
+    padding: 7px 8px;
+    font-size: 14px;
+    color: var(--text-color);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+}
+
+.pd-docs-nav-link:hover { border-left-color: var(--text-color); }
+
+.pd-docs-nav-link.active {
+    border-left-color: var(--text-color);
+    background: var(--stat-bg);
+    font-weight: 700;
+}
+
+.pd-docs-nav-colorway {
+    margin-top: 8px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-color);
+}
+
+/* ── Mobile INDEX drop-down ── */
+.pd-docs-mobile-nav {
+    position: fixed;
+    inset: 0;
+    top: 49px; /* below the sticky top bar */
+    z-index: 39;
+    overflow-y: auto;
+    background: var(--bg-color);
+    padding: 16px;
+}
+
+/* ── Desktop rail ── */
+.pd-docs-sidebar { display: none; }
+
+/* ── Body / reading column ── */
+.pd-docs-body {
+    flex: 1;
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 20px 16px 48px;
+    box-sizing: border-box;
+}
+
+.pd-docs-page { display: block; }
+
+.pd-docs-pagemeta {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    margin-bottom: 18px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.pd-docs-pagemeta a { color: var(--text-color); }
+
+.pd-docs-sep { opacity: 0.6; }
+
+.pd-docs-toc { display: none; }
+
+/* ── Article typography ── */
+.pd-docs-article {
+    font-size: 16px;
+    line-height: 1.65;
+    overflow-wrap: break-word;
+}
+
+.pd-docs-article h1 {
+    font-family: var(--font-rubik-mono), 'Rubik Mono One', monospace;
+    font-size: 22px;
+    line-height: 1.3;
+    margin: 0 0 18px;
+}
+
+.pd-docs-article h2 {
+    font-family: var(--font-rubik-mono), 'Rubik Mono One', monospace;
+    font-size: 15px;
+    line-height: 1.4;
+    margin: 34px 0 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.pd-docs-article h3 {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 15px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin: 24px 0 8px;
+}
+
+.pd-docs-article p { margin: 0 0 14px; }
+
+.pd-docs-article a {
+    color: var(--text-color);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.pd-docs-article ul,
+.pd-docs-article ol {
+    margin: 0 0 14px;
+    padding-left: 22px;
+}
+
+.pd-docs-article li { margin-bottom: 6px; }
+
+.pd-docs-article blockquote {
+    margin: 0 0 14px;
+    padding: 10px 14px;
+    border-left: 2px solid var(--text-color);
+    background: var(--stat-bg);
+}
+
+.pd-docs-article blockquote p:last-child { margin-bottom: 0; }
+
+.pd-docs-article code {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.92em;
+    background: var(--stat-bg);
+    padding: 1px 5px;
+}
+
+.pd-docs-article pre {
+    background: var(--stat-bg);
+    border: 1px solid var(--border-color);
+    padding: 12px 14px;
+    overflow-x: auto;
+    margin: 0 0 14px;
+}
+
+.pd-docs-article pre code {
+    background: none;
+    padding: 0;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* Tables scroll inside their own box — the page never scrolls sideways. */
+.pd-docs-article table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 0 0 14px;
+    display: block;
+    overflow-x: auto;
+    font-size: 14px;
+}
+
+.pd-docs-article th,
+.pd-docs-article td {
+    border: 1px solid var(--border-color);
+    padding: 7px 10px;
+    text-align: left;
+    vertical-align: top;
+}
+
+.pd-docs-article th {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.pd-docs-article hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 28px 0;
+}
+
+/* ── Prev / next pager ── */
+.pd-docs-pager {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 44px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border-color);
+}
+
+.pd-docs-pager-link {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    max-width: 48%;
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.pd-docs-pager-link.next { text-align: right; }
+
+.pd-docs-pager-dir {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.pd-docs-pager-link:hover .pd-docs-pager-dir { text-decoration: underline; }
+
+/* ── Docs footer ── */
+.pd-docs-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 14px 16px;
+    border-top: 1px solid var(--border-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+}
+
+.pd-docs-footer a { color: var(--text-color); }
+
+.pd-docs-footer-links {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* ── Desktop: the expanded full version ── */
+@media (min-width: 1024px) {
+    .pd-docs-index-btn { display: none; }
+    .pd-docs-mobile-nav { display: none; }
+
+    .pd-docs-sidebar {
+        display: block;
+        position: fixed;
+        top: 49px;
+        bottom: 0;
+        left: 0;
+        width: 250px;
+        overflow-y: auto;
+        padding: 20px 16px 32px;
+        border-right: 1px solid var(--border-color);
+        box-sizing: border-box;
+    }
+
+    .pd-docs-body {
+        max-width: 760px;
+        padding: 32px 40px 64px;
+        margin-left: calc(250px + (100% - 250px - 760px) / 2);
+    }
+
+    .pd-docs-article h1 { font-size: 28px; }
+    .pd-docs-article h2 { font-size: 17px; }
+
+    .pd-docs-footer { padding-left: calc(250px + 40px); }
+}
+
+/* Wide desktop: the "On this page" right rail joins. */
+@media (min-width: 1280px) {
+    .pd-docs-body {
+        margin-left: calc(250px + (100% - 250px - 760px - 220px) / 2);
+    }
+
+    .pd-docs-page { position: relative; }
+
+    .pd-docs-toc {
+        display: block;
+        position: fixed;
+        top: 90px;
+        right: 24px;
+        width: 200px;
+        font-size: 13px;
+    }
+
+    .pd-docs-toc-title {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 11px;
+        font-weight: bold;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        padding-bottom: 5px;
+        margin-bottom: 6px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .pd-docs-toc ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .pd-docs-toc li { margin-bottom: 6px; }
+
+    .pd-docs-toc a {
+        color: var(--text-color);
+        text-decoration: none;
+    }
+
+    .pd-docs-toc a:hover { text-decoration: underline; }
+}

@@ -116,6 +116,7 @@ const PREHYDRATION_SCRIPT = `
         var pathname = (window.location && window.location.pathname) || '';
         var isProjectPage = pathname.indexOf('/art/') === 0;
         var isHomePage = pathname === '/' || pathname === '';
+        var isDocsPage = pathname === '/docs' || pathname.indexOf('/docs/') === 0;
 
         // Profile-page detection mirrors ColorwayContext's first-segment
         // gate: not 'art', not 'api', not all-digits (output namespace),
@@ -127,6 +128,7 @@ const PREHYDRATION_SCRIPT = `
             firstSeg.length > 0 &&
             firstSeg !== 'art' &&
             firstSeg !== 'api' &&
+            firstSeg !== 'docs' &&
             !/^\d+$/.test(firstSeg) &&
             /^[@a-z0-9_-]+$/i.test(firstSeg);
 
@@ -136,6 +138,11 @@ const PREHYDRATION_SCRIPT = `
         if (savedTheme === 'hashsyn') savedTheme = null;
 
         var colorway = savedTheme;
+        // Docs pages: the "page-owner colour" IS Dark Mode (Brendon,
+        // 2026-07-10) — no saved pick (or the Custom default) boots the
+        // named dark colorway. An explicit light/orange/haze/… pick wins
+        // via the normal flow below, same as every page.
+        if (isDocsPage && (colorway === null || colorway === 'custom')) colorway = 'dark';
         if (colorway === null && isProjectPage) colorway = 'custom';
         // Non-project, non-profile pages (home, etc.) also default to
         // custom color so the site never cold-starts with Dot defaults.

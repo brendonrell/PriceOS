@@ -101,9 +101,11 @@ export function Footer() {
                         Join Our Discord
                     </a>
                     <span className="priceos-sep">·</span>
-                    <span className="priceos-link" title="Docs" style={{ cursor: 'pointer' }} onClick={() => showToast('Docs: COMING SOON')}>
+                    {/* Docs — served in-app at /docs; the docs.pricediscussion.com
+                        subdomain points here once the domain is wired. */}
+                    <a className="priceos-link" title="Docs" href="/docs">
                         Docs
-                    </span>
+                    </a>
                     <span className="priceos-sep">·</span>
                     <a className="priceos-link" href="mailto:support@pricediscussion.com">
                         Support

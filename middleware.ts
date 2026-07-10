@@ -135,6 +135,21 @@ export async function middleware(req: NextRequest): Promise<NextResponse> {
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
+  // PD-Docs ".md URL" convention: any docs page fetched with a .md suffix
+  // (/docs/quickstart.md, /docs/index.md) rewrites to the raw-markdown route,
+  // which serves the page's exact source file — the agent-facing half of
+  // every docs page. Non-.md /docs requests pass straight through.
+  if (req.nextUrl.pathname.startsWith('/docs')) {
+    if (req.nextUrl.pathname.endsWith('.md')) {
+      const url = req.nextUrl.clone();
+      const inner =
+        url.pathname.slice('/docs'.length).replace(/\.md$/, '') || '/index';
+      url.pathname = `/docs/raw${inner}`;
+      return NextResponse.rewrite(url);
+    }
+    return NextResponse.next();
+  }
+
   // Belt-and-suspenders: the matcher below already scopes to /api, but if the
   // matcher is ever broadened we don't want to rate-limit page navigations.
   if (!req.nextUrl.pathname.startsWith('/api')) {
@@ -167,5 +182,5 @@ export async function middleware(req: NextRequest): Promise<NextResponse> {
 }
 
 export const config = {
-  matcher: ['/api/:path*', '/deploy', '/test'],
+  matcher: ['/api/:path*', '/deploy', '/test', '/docs/:path*'],
 };

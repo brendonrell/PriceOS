@@ -274,6 +274,7 @@ function resolveCustomBg(): string {
         return projectColorway(slug) ?? DOT;
     }
     const firstSeg = (path.match(/^\/([^/]+)/)?.[1] ?? '').toLowerCase();
+    if (firstSeg === 'docs') return COLORWAYS.dark; // docs' own colour = Dark Mode
     const isProfile =
         firstSeg.length > 0 &&
         firstSeg !== 'art' &&
@@ -473,17 +474,27 @@ export function applyBgHex(bgHex: string, key: ColorwayKey) {
    Performs the paint and returns the colorway key to store in state. */
 function paintForPath(saved: ColorwayKey, pathname: string | null): ColorwayKey {
     const isProjectPage = pathname?.startsWith('/art/') ?? false;
-    /* Profile page: first segment isn't 'art'/'api', isn't all-digits, matches
-       the handle shape. '/' (home) has an empty first segment. */
+    const isDocsPage = pathname === '/docs' || (pathname?.startsWith('/docs/') ?? false);
+    /* Profile page: first segment isn't 'art'/'api'/'docs', isn't all-digits,
+       matches the handle shape. '/' (home) has an empty first segment. */
     const firstSeg = (pathname?.split('/')[1] ?? '').toLowerCase();
     const isProfilePage =
         firstSeg.length > 0 &&
         firstSeg !== 'art' &&
         firstSeg !== 'api' &&
+        firstSeg !== 'docs' &&
         !/^\d+$/.test(firstSeg) &&
         /^[@a-z0-9_-]+$/i.test(firstSeg);
     const isHomePage = pathname === '/';
 
+    if (isDocsPage && (saved === null || saved === 'custom')) {
+        // Docs pages: the docs' own colour IS Dark Mode (Brendon, 2026-07-10)
+        // — the reading surface defaults dark instead of the Custom slot. Any
+        // explicit colorway pick still wins via the fall-through below, so the
+        // picker mounted on the docs works exactly like it does everywhere.
+        applyColorway('dark');
+        return saved;
+    }
     if (isProjectPage && (saved === null || saved === 'custom')) {
         // Project page → the PROJECT's own colorway (e.g. Prisms #5A2EA6,
         // Oracle #C4902A), never the user's profile hex. An explicit non-custom
