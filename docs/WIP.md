@@ -14,9 +14,13 @@
    still the sim rail. Sepolia PDStickers
    (`0xb06df183fe5b61787f257f8c039ca11902847d9e`) is deployed + verified but
    the chain shows ZERO sheets created (checked via RPC 2026-07-10): no buy,
-   no peel, no wrapper art, nothing on OpenSea. Order: wrapper SVGs →
-   createSheet on Sepolia (Brendon signs) → buy/peel/royalty exercise →
-   OpenSea render check → cut the app store/market from sim to ERC-1155.
+   no peel, nothing on OpenSea. ✅ WRAPPER ART DONE (Brendon-approved
+   2026-07-10): all 17 sealed-pack SVGs in `assets/sticker-wrappers/`,
+   generated from the LIVE catalog by `scripts/generate-sticker-wrappers.js`
+   — a new sheet gets its wrapper by re-running that script. Remaining
+   order: createSheet on Sepolia with these SVGs (Brendon signs) →
+   buy/peel/royalty exercise → OpenSea render check → cut the app
+   store/market from sim to ERC-1155.
 2. **PD Studio — Brendon's edit round.** PD Studio v1 + private layers are
    LIVE on dev (see SHIPPED below); Brendon wrapped 2026-07-10 saying he'll
    bring edits in a fresh session. Read **`docs/pd-studio-spec.md`** first —
