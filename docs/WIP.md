@@ -8,7 +8,52 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-1. **Stickers on-chain cutover — the last gate to real sticker revenue.**
+1. **⛔ ALBUMS UI on the PROFILE — STRIP AND REBUILD FROM SCRATCH (Brendon,
+   2026-07-10, verbatim order — top priority).** The Albums section on his
+   profile is "intensely glitched out". A previous chat was asked to fix it
+   and **wrongly decided it was fine — do NOT repeat that dismissal.** The
+   order: rip the current profile-Albums UI out and rebuild it **MOBILE /
+   IPHONE FIRST** — nothing fancy, the existing look is fine, it just must
+   not be broken. Verify with headless-Chromium screenshots at an iPhone
+   viewport against the real profile (the sticker pass proved that rig
+   works — dev-login + live reads) BEFORE presenting; a desktop-width
+   glance is exactly how the last session got it wrong.
+2. **iOS PUSH — diagnosis DONE, two of three fixes SHIPPED (see SHIPPED
+   below). What remains:**
+   - **BRENDON ACTION (the unblock): set `CRON_SECRET` on the
+     `pricediscussion` Worker** (any long random string; same missing var
+     family as the indexer-sweep go-live in docs/briefs/mainnet-tester.md).
+     The every-minute reminder sweep fails closed without it — it has NEVER
+     run, which is why no reminder push ever fired. Keys context: public
+     VAPID key VERIFIED live on the deploy (/api/push/pubkey); private key
+     set per Brendon, unverifiable from outside.
+   - **Then verify end-to-end:** `wrangler tail` the Worker, set a to-do due
+     2-3 min out (times are local now — fixed), watch the sweep fire and the
+     push land as a lock-screen banner. If sends error, the tail names the
+     cause; prime suspect is a malformed `WEBPUSH_PRIVATE_KEY` (the sender
+     silently no-ops if the pair won't load: lib/push/webpush.ts
+     ensureConfigured). Runtime is NOT a suspect: Workers has full
+     node:crypto (verified in CF docs) and the send path is awaited +
+     mode-gated correctly the whole way.
+   - Facts for the next session: his iPhone has 2 valid Apple subscriptions
+     (`push_subscriptions`, addr `0x65c3…9395`), mode `3d`, Silent off; the
+     home-icon badge "9" was the app mirroring unread pings on-device
+     (PingsContext setAppBadge), NOT evidence of push delivery; his 80
+     ACHIEVEMENT pings rode the native sender yet zero banners displayed —
+     that's what the tail run must explain if reminders work but pings
+     still don't. Indexer-created pings skip native push BY DESIGN.
+3. **BUILD PD MCP server v1 — greenlit; Brendon additions 2026-07-10.**
+   Spec is the plan: `docs/pd-mcp-spec.md` (see item further down for the
+   summary). NEW from Brendon today: expose the ASCII preview so any AI
+   chat can render pieces inline; sales-crossed-with-traits questions
+   ("does landscape or portrait sell better?") answerable by ANY connected
+   client — ChatGPT users included, that's distribution; make the PD-Docs
+   MCP section insanely detailed (the docs are literally what agents read);
+   path to the Claude connectors directory = remote server on our
+   Cloudflare + OAuth + privacy policy + support contact → submit (usable
+   day-one as a custom connector while review runs). The upcoming Discord
+   feeds on Cloudflare are separate Workers — zero impact on PDMCP.
+4. **Stickers on-chain cutover — the last gate to real sticker revenue.**
    ClickUp `86baw12ek` (02 Backlog, high) has the full work order. The sticker
    EXPERIENCE is launch-ready on dev (see SHIPPED below); the revenue rail is
    still the sim rail. Sepolia PDStickers
@@ -21,7 +66,7 @@
    order: createSheet on Sepolia with these SVGs (Brendon signs) →
    buy/peel/royalty exercise → OpenSea render check → cut the app
    store/market from sim to ERC-1155.
-2. **PD Studio — Brendon's edit round.** PD Studio v1 + private layers are
+7. **PD Studio — Brendon's edit round.** PD Studio v1 + private layers are
    LIVE on dev (see SHIPPED below); Brendon wrapped 2026-07-10 saying he'll
    bring edits in a fresh session. Read **`docs/pd-studio-spec.md`** first —
    it is the plan of record (locked decisions, architecture, build sequence).
@@ -30,7 +75,7 @@
    access-list/packages (cross-device — v1 is device-local by design) ·
    sticker catalog wiring. ClickUp: epic `86bavub9k`, private-layers spec
    `86bavucbz` (⛔ sticker/godmode docs live in ClickUp ONLY — never PD-Docs).
-2. **BUILD the PD MCP server v1 — GREENLIT (Brendon, 2026-07-10).**
+5. **PD MCP spec summary (for NEXT UP #3).**
    The whole plan is in **`docs/pd-mcp-spec.md`** — read it first, build to it,
    nothing extra. Summary: new Cloudflare Worker `pd-mcp` on the existing
    account (workers-mcp / agents SDK pattern, remote MCP over streamable
@@ -42,11 +87,40 @@
    Claude session and exercising every tool. Open calls (spec §Open calls):
    subdomain now vs workers.dev; docs answers verbatim-from-llms-full only
    (recommended yes) — decide sensibly or ask in one line.
-3. **Warm the artwork pins.** The stored-preview un-deadlock is LIVE on dev
+6. **Warm the artwork pins.** The stored-preview un-deadlock is LIVE on dev
    (see FINDINGS below). Once deployed, simply browsing the site re-pins the
    catalog (healer pins on view). If tiles still look blank after real
    browsing, investigate the healer POSTs (`/api/preview`, `/api/ascii`) —
    don't re-diagnose the guard, that part is fixed and verified by probe.
+
+## ✅ SHIPPED TO DEV 2026-07-10 (late session) — Studio 500 · docs speed/MVP · reminder fixes (pushed, tree clean)
+
+- **Studio footer link finally works — the real cause was the /studio PAGE
+  crashing server-side (500), not the link.** The page + Sticker Studio read
+  wallet state via wagmi hooks, but the app tree mounts NO wagmi provider
+  (the stack is a deferred sibling — wagmi hooks are FORBIDDEN in the app
+  tree, remember this). Identity now rides AuthContext (SIWE); Sticker
+  Studio signing rides a new walletBus personal-sign seam (registered by
+  WalletStack while connected). Amends the earlier "footer fixed" note
+  below — that fix was real but the page behind it was dead.
+- **PD-Docs speed pass:** the app loading overlay no longer shows on docs
+  (pages are prerendered — it only delayed reading and a stalled boot
+  stranded it forever, THE "loading screen just sits there" bug).
+  "View as Markdown" now opens an in-place overlay with a visible ✕ (PWA
+  has no browser back); the .md URLs stay byte-identical for agents.
+- **Feature Atlas deduped 212 → 201** (numbering unlocked, so renumbered):
+  the five "(spell)" doubles folded into their Global UI rows; Price Lens /
+  Setup Code / Completionism / PriceStreak-row / Sticker-mode /
+  Wishlist-Pings repeats folded; #170 grab-bag reduced to 'Argue'; #126 +
+  display-modes + ping-concepts enumerations trimmed of entries that have
+  their own row.
+- **Docs Introduction now states:** PD is optimized for iPhone 12+ and, in
+  particular, the installed PWA.
+- **To-do reminder fixes (push diagnosis NEXT UP #2):** due times are now
+  timezone-correct for the native sweep (client stamps the device UTC
+  offset; sweep uses it — legacy rows keep old behaviour), and the in-app
+  due toast obeys the Pingtoasts mode (ON/COMBO toast · 3D native-only ·
+  OFF silent).
 
 ## ✅ SHIPPED TO DEV 2026-07-10 — STICKER LAUNCH-READINESS PASS (pushed, tree clean)
 
