@@ -6,64 +6,69 @@
 
 ---
 
-## 🧭 NOW — awaiting Brendon's push word (2026-07-10 queue session)
+## 🧭 NEXT UP — fresh session starts HERE
 
-Two app commits sit on the session branch, presented and waiting for PUSH:
+1. **BUILD the PD MCP server v1 — GREENLIT (Brendon, 2026-07-10).**
+   The whole plan is in **`docs/pd-mcp-spec.md`** — read it first, build to it,
+   nothing extra. Summary: new Cloudflare Worker `pd-mcp` on the existing
+   account (workers-mcp / agents SDK pattern, remote MCP over streamable
+   HTTP/SSE); five READ-ONLY tools — `verify_project`, `get_project`,
+   `get_output`, `get_provenance`, `search_docs` — backed by the public app
+   API + anon Supabase reads; chain reads through the `/api/gas` cached-route
+   pattern (never per-caller RPC); KV response cache. $0 at launch scale.
+   ClickUp task: `86bavnrt7` (12·Agents Backlog). Verify by connecting a live
+   Claude session and exercising every tool. Open calls (spec §Open calls):
+   subdomain now vs workers.dev; docs answers verbatim-from-llms-full only
+   (recommended yes) — decide sensibly or ask in one line.
+2. **Warm the artwork pins.** The stored-preview un-deadlock is LIVE on dev
+   (see FINDINGS below). Once deployed, simply browsing the site re-pins the
+   catalog (healer pins on view). If tiles still look blank after real
+   browsing, investigate the healer POSTs (`/api/preview`, `/api/ascii`) —
+   don't re-diagnose the guard, that part is fixed and verified by probe.
 
-1. **Stored-artwork un-deadlock** (`app/api/preview` + `app/api/ascii` writers)
-   — THE Albums-glitch root cause. The deploy's R2 previews are EMPTY (every
-   preview 404s at every rev; verified by probe — the v2 re-key orphaned all
-   keys) and the healer could never refill them because the writers required
-   minted-in-`holders` (which holds exactly 2 Sepolia test rows). Writers now
-   accept any registry-catalog piece (id ≤ project supply); the catalog
-   self-heals on view. **After this lands, browse the site to warm the pins.**
-2. **Hash Synesthesia rework** — engine samples run a narrow writer
-   (`applyHashSynSample` in ColorwayContext): bg family only; text
-   black/white + buttons locked from the seed, per spec.
+## ✅ SHIPPED TO DEV 2026-07-10 — the QUEUE session (all pushed, tree clean)
 
-Also on the branch (docs, pre-approved): `docs/pd-mcp-spec.md` — the PD MCP
-v1 spec + $0 cost table, **awaiting Brendon's go/no-go** (queue #6 delivered).
-
-## ✅ SHIPPED TO DEV 2026-07-10 (queue session — pushed, live on preview)
-
-- **Notes = full DB feature (Brendon's call, this session).** Every note
-  (output / artist / day) is an account-backed, LINK-AWARE record in the
-  settings envelope (`settings.notes`, lib/notes/notesSync); hydrates on
-  sign-in like To-Dos/stars. A 4th kind `free` (linked to nothing) is fully
-  supported at the storage layer for the future **"Thoughts & Memories"**
-  front end (Brendon's name) — free records round-trip untouched.
-- **Notes per-project keying split (queue #3).** `pd_token_notes` keys by
-  `slug:id` via lib/notes/tokenNotes (one shared reader, all 7 surfaces);
-  legacy bare-id notes read as fallback and upgrade on save. Notes list shows
-  the Project name per row. Verified end-to-end in a real browser (Playwright
-  against dev): 10/10 behaviours.
-- **Forever-free RPC pass (queue #2).** Audit: gas/fx/rpc-ping already
-  cached-window routes; wagmi + test pages keyless public; indexer
-  event-driven. The one per-user Alchemy surface — $PRICE balance — now reads
-  through the user's own wallet provider (walletBus `registerWalletEthCall`,
-  chain-guarded), cached route as fallback. Key usage ≈ small constant.
-- **ClickUp sync (queue #1).** Mega-session closed out (5 PD-Docs tasks
-  closed with whys, shipped-record card in 02·Done), queue tasks created,
-  4 Brendon-action items assigned + due + inbox comments (Atlas re-order,
-  ⍞ glyph check, docs subdomain, Lane Runner top-10 spot).
+- **Notes = full DB feature (Brendon's call).** Account-backed, LINK-AWARE
+  records (`settings.notes`, lib/notes/notesSync): output / artist / day, plus
+  kind `free` (linked to nothing) fully supported server-side for the future
+  **"Thoughts & Memories"** front end (Brendon's name — not built yet). Notes
+  hydrate on sign-in like To-Dos/stars.
+- **Notes per-project keying split.** `pd_token_notes` keys `slug:id`
+  (lib/notes/tokenNotes shared reader, all 7 surfaces); legacy bare-id notes
+  read via fallback + upgrade on save; Notes list shows Project names.
+  Browser-verified 10/10.
+- **Forever-free RPC pass.** $PRICE balance reads ride the user's own wallet
+  provider (walletBus `registerWalletEthCall`, chain-guarded; cached route
+  fallback). Everything else was already cached-window / keyless. Alchemy
+  usage ≈ small constant.
+- **Stored-artwork un-deadlock (THE Albums-glitch root cause).** Deploy R2 was
+  EMPTY (v2 re-key orphaned every preview; probes: all 404) and the healer was
+  locked out — writers required minted-in-`holders` (2 test rows exist).
+  Writers now accept registry-catalog pieces (id ≤ supply); catalog self-heals
+  on view. Junk-id spam still blocked.
+- **Hash Synesthesia rework.** Samples run the narrow `applyHashSynSample`
+  (ColorwayContext): bg family ONLY — text black/white + buttons locked from
+  the seed, per Brendon's spec.
+- **ClickUp fully synced** (mega-session closeout + queue + 4 Brendon-action
+  items assigned with due dates + inbox comments).
+- **PD MCP spec** delivered (`docs/pd-mcp-spec.md`) → build greenlit, see NEXT UP.
 
 ## ⚠️ FINDINGS this session (know these)
 
-- **The live deploy currently shows NO stored artwork** — R2 empty since the
-  v2 re-key; every art tile is spinner→placeholder. The un-pushed writer fix
-  above is the unlock. This likely also explains any "site looks broken"
-  reports beyond Albums.
-- Sub-note: only pd-test-alpha #1/#3 exist in `holders` (token-2 backfill
-  still pending — see the mainnet-tester work order).
+- Only pd-test-alpha #1/#3 exist in `holders` (token-2 backfill pending — see
+  the mainnet-tester work order).
+- Local `dev` in a fresh clone can be stale — always `git fetch origin dev`
+  and reset to origin/dev before merging.
 
-## 🧭 WAITING ON BRENDON (unchanged + new)
+## 🧭 WAITING ON BRENDON
 
-- **PUSH word** for the two app commits above; **go/no-go** on the PD MCP build.
 - Feature Atlas re-order (numbers LOCK after) — ClickUp'd + assigned.
 - ⍞ glyph iPhone check — ClickUp'd + assigned.
 - Lane Runner top-10 trigger spot — ClickUp'd + assigned.
 - docs.pricediscussion.com Cloudflare wiring — ClickUp'd + assigned.
 - $PRICE docs TGE fact-check at PUBLIC launch (13·Launch Ops task).
+- MCP spec open calls (subdomain; verbatim docs answers) — next session may
+  decide sensibly if he hasn't answered.
 
 ## 🧭 THE ROAD TO MAINNET (unchanged — 2026-07-09 baton)
 
