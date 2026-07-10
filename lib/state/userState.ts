@@ -25,6 +25,7 @@
 
 import type { UserRow, UserStatePatch, UserSettings } from '@/lib/supabase';
 import { patchUserState } from '@/lib/wallet/accountClient';
+import { hydrateNotesToLocal, resetNotesSync } from '@/lib/notes/notesSync';
 
 /** Cache keys — identical to the localStorage keys the contexts already use,
  *  so the prehydration script and existing hydrate paths keep working. */
@@ -357,6 +358,10 @@ export function hydrateFromRow(row: UserRow): void {
         if (Array.isArray(s.spite)) {
             localStorage.setItem(STATE_CACHE_KEYS.spite, JSON.stringify(s.spite));
         }
+        // Notes — link-aware records (output / artist / day / free) → the three
+        // local note caches. Seeds only when the account carries the key (same
+        // precedent as grails/mutes) and fires the notes change events itself.
+        hydrateNotesToLocal(s.notes);
 
         // grid_presets → unified cache the presetStore reads (Gallery View
         // Presets). Server wins; presetStore re-reads this key on the
@@ -381,6 +386,7 @@ export function resetUserState(): void {
     /* Drop any pending debounced write so it can't fire against the next
        identity that signs in. */
     cancelSettingsFlush();
+    resetNotesSync();
     _hydrated = false;
     _address = null;
     _settings = {};

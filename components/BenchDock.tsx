@@ -22,6 +22,7 @@ import {
     useSyncExternalStore,
 } from 'react';
 import { useBench, type BenchItem } from '../lib/state/BenchContext';
+import { readNoteFor } from '../lib/notes/tokenNotes';
 import { useCart } from '../lib/state/CartContext';
 import {
     subscribeBenchDrag,
@@ -49,18 +50,14 @@ function parseEth(price: string | null | undefined): number {
 }
 function keyOf(it: BenchItem): string { return `${it.slug}:${it.id}`; }
 
-/* Read one piece's private Note from localStorage (the existing pd_token_notes
-   scheme) and re-read when a note is edited anywhere. */
-function useOutputNote(id: number): string {
+/* Read one piece's private Note from localStorage (the pd_token_notes store,
+   Project-exact key + legacy fallback) and re-read when a note is edited
+   anywhere. */
+function useOutputNote(slug: string, id: number): string {
     const read = useCallback(() => {
         if (typeof window === 'undefined') return '';
-        try {
-            const raw = window.localStorage.getItem('pd_token_notes');
-            if (!raw) return '';
-            const map = JSON.parse(raw) as Record<string, string>;
-            return map[String(id)] || '';
-        } catch { return ''; }
-    }, [id]);
+        return readNoteFor(slug, id);
+    }, [slug, id]);
     const [note, setNote] = useState('');
     useEffect(() => {
         setNote(read());
@@ -83,7 +80,7 @@ const BenchCard = memo(function BenchCard({
     onRemove: (slug: string, id: number) => void;
     onAddToCart: (slug: string, id: number) => void;
 }) {
-    const note = useOutputNote(id);
+    const note = useOutputNote(slug, id);
     const { openOutputNoteEditor } = useNotePrompt();
     const deltaClass = deltaStr.startsWith('+') ? ' up' : deltaStr.startsWith('-') ? ' down' : '';
     return (

@@ -17,6 +17,7 @@ import { useTraits, type TraitCategory } from '../../lib/state/TraitsContext';
 import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
 import { resolveBucket, useStoredColors } from '../../lib/art/colorStore';
 import { getProject } from '../../lib/project/registry';
+import { readNoteFor } from '../../lib/notes/tokenNotes';
 import { getRecentIdsForProject, subscribeBreadcrumbs } from '../../lib/pins/breadcrumbStore';
 
 /* Upper bound on how many leading gallery cards may paint eagerly
@@ -299,15 +300,7 @@ export function useProjectGallery({
             //    NotePromptContext ('pd_token_notes') so no new
             //    context plumbing is needed.
             if (dMyNotesActive) {
-                try {
-                    const raw = typeof localStorage !== 'undefined'
-                        ? localStorage.getItem('pd_token_notes')
-                        : null;
-                    const notes: Record<string, string> = raw ? JSON.parse(raw) : {};
-                    if (!notes[String(id)]) return false;
-                } catch {
-                    return false;
-                }
+                if (!readNoteFor(project.slug, id)) return false;
             }
 
             // 5. Recent (breadcrumbs) — when the Recent pill is active, show

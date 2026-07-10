@@ -129,6 +129,7 @@ import { useHoldDrag } from '../lib/hooks/useHoldDrag';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import AsciiArtImage from './AsciiArtImage';
 import { useNotePrompt } from '../lib/state/NotePromptContext';
+import { readNoteFor } from '../lib/notes/tokenNotes';
 import { useMultiSelect } from '../lib/state/TraitsContext';
 import {
     getActiveBudgetEth,
@@ -378,14 +379,7 @@ function ArtworkCard({
        2026-06-24). */
     const [noteText, setNoteText] = useState('');
     useEffect(() => {
-        const read = () => {
-            try {
-                const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('pd_token_notes') : null;
-                const notes = raw ? (JSON.parse(raw) as Record<string, string>) : {};
-                const v = notes[String(id)];
-                setNoteText(typeof v === 'string' ? v : '');
-            } catch { setNoteText(''); }
-        };
+        const read = () => setNoteText(readNoteFor(slug, id));
         read();
         window.addEventListener('pd:notes-changed', read);
         window.addEventListener('storage', read);
@@ -393,7 +387,7 @@ function ArtworkCard({
             window.removeEventListener('pd:notes-changed', read);
             window.removeEventListener('storage', read);
         };
-    }, [id]);
+    }, [slug, id]);
     /* Notes are PRIVATE — the glyph + peek show ONLY to a logged-in viewer, and
        the note store is per-browser (their own notes). Logged out → never shown
        (Brendon 2026-06-24). */

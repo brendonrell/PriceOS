@@ -25,6 +25,7 @@ import {
   type ReactNode,
 } from 'react';
 import { CAL_TODAY } from './data';
+import { USERSTATE_HYDRATED_EVENT } from '../state/userState';
 import type { CalendarContextValue, DayNotesMap } from './types';
 
 const DAY_NOTES_KEY = 'pd_day_notes';
@@ -40,19 +41,26 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
   const [todosMode, setTodosMode] = useState<boolean>(false);
   const [dayNotes, setDayNotes] = useState<DayNotesMap>({});
 
-  // Hydrate day notes from localStorage on mount. Wrapped in try/catch —
-  // corrupted localStorage shouldn't take down the app.
+  // Hydrate day notes from localStorage on mount, and re-read when the account
+  // snapshot lands (notes are account-backed 2026-07-10 — the server's day
+  // notes win, same doctrine as every other envelope citizen). Wrapped in
+  // try/catch — corrupted localStorage shouldn't take down the app.
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(DAY_NOTES_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-        setDayNotes(parsed as DayNotesMap);
+    const read = () => {
+      try {
+        const raw = localStorage.getItem(DAY_NOTES_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          setDayNotes(parsed as DayNotesMap);
+        }
+      } catch {
+        // swallow — bad JSON or storage access denial
       }
-    } catch {
-      // swallow — bad JSON or storage access denial
-    }
+    };
+    read();
+    window.addEventListener(USERSTATE_HYDRATED_EVENT, read);
+    return () => window.removeEventListener(USERSTATE_HYDRATED_EVENT, read);
   }, []);
 
   const selectDay = useCallback((y: number, m: number, d: number) => {

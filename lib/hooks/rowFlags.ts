@@ -11,13 +11,15 @@
  *     the toggle + toast and returns whether the item is now starred (for the
  *     float direction). `longFired` lets the row suppress the tap that follows.
  *
- *   useTokenNote(id) — the viewer's private note text for one Output, read from
- *     the SAME `pd_token_notes` store the gallery caption + Notes list use, live
- *     across edits. Empty string = no note.
+ *   useTokenNote(slug, id) — the viewer's private note text for one Output, read
+ *     from the SAME `pd_token_notes` store the gallery caption + Notes list use,
+ *     live across edits. Project-exact key first, legacy bare-id fallback
+ *     (per-project keying split, 2026-07-10). Empty string = no note.
  */
 
 import { useEffect, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent, MouseEvent as ReactMouseEvent } from 'react';
+import { readNoteFor } from '../notes/tokenNotes';
 
 export function useStarLongPress(fire: () => boolean) {
     const timerRef = useRef<number | null>(null);
@@ -53,17 +55,10 @@ export function useStarLongPress(fire: () => boolean) {
     return { longFired, floatId, floatDown, handlers };
 }
 
-export function useTokenNote(id: number): string {
+export function useTokenNote(slug: string, id: number): string {
     const [note, setNote] = useState('');
     useEffect(() => {
-        const read = () => {
-            try {
-                const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('pd_token_notes') : null;
-                const notes = raw ? (JSON.parse(raw) as Record<string, string>) : {};
-                const v = notes[String(id)];
-                setNote(typeof v === 'string' ? v : '');
-            } catch { setNote(''); }
-        };
+        const read = () => setNote(readNoteFor(slug, id));
         read();
         window.addEventListener('pd:notes-changed', read);
         window.addEventListener('storage', read);
@@ -71,6 +66,6 @@ export function useTokenNote(id: number): string {
             window.removeEventListener('pd:notes-changed', read);
             window.removeEventListener('storage', read);
         };
-    }, [id]);
+    }, [slug, id]);
     return note;
 }

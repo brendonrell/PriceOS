@@ -37,23 +37,47 @@ import { AccordionBox } from './AccordionBox';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useNotePrompt } from '../../lib/state/NotePromptContext';
 import { useToast } from '../../lib/state/ToastContext';
+import { getProject } from '../../lib/project/registry';
+import { NOTES_STORAGE_KEY, parseNoteKey, readAllNotes } from '../../lib/notes/tokenNotes';
+import { scheduleNotesPush } from '../../lib/notes/notesSync';
 
-const NOTES_KEY = 'pd_token_notes';
 const NOTE_ICON = '⊟︎';
 
-interface SavedNote { id: string; numericId: number; text: string; }
+interface SavedNote {
+    /** Exact storage key — delete targets this, never a re-derived one. */
+    storageKey: string;
+    /** Project slug when the note is Project-keyed; null for legacy notes. */
+    slug: string | null;
+    /** Row label: 'PRISMS #22' when the Project is known, else '#22'. */
+    label: string;
+    numericId: number;
+    text: string;
+}
 
 /* Read the viewer's REAL saved notes from the same store the cards + modal use.
    No more demo/test notes — the list shows exactly what the user has written
-   (Brendon 2026-06-24). */
+   (Brendon 2026-06-24). Per-project keying split (2026-07-10): keys are
+   `slug:id` (legacy bare ids still readable); Project-keyed rows carry the
+   Project name so two Projects' #5 no longer look like the same note. */
 function readNotes(): SavedNote[] {
     try {
-        const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(NOTES_KEY) : null;
-        const obj = raw ? (JSON.parse(raw) as Record<string, string>) : {};
-        return Object.entries(obj)
+        return Object.entries(readAllNotes())
             .filter(([, t]) => typeof t === 'string' && t.trim().length > 0)
-            .map(([k, t]) => ({ id: `#${k}`, numericId: parseInt(k, 10), text: t }))
-            .sort((a, b) => a.numericId - b.numericId);
+            .map(([k, t]) => {
+                const { slug, id } = parseNoteKey(k);
+                const projectName = slug
+                    ? (getProject(slug)?.displayName ?? slug).toUpperCase()
+                    : null;
+                return {
+                    storageKey: k,
+                    slug,
+                    label: projectName ? `${projectName} #${id}` : `#${id}`,
+                    numericId: id,
+                    text: t,
+                };
+            })
+            .sort((a, b) =>
+                a.numericId - b.numericId || a.storageKey.localeCompare(b.storageKey));
     } catch {
         return [];
     }
@@ -76,18 +100,18 @@ export function NotesBox() {
         };
     }, []);
 
-    const handleDelete = (e: React.MouseEvent, idStr: string, numericId: number) => {
+    const handleDelete = (e: React.MouseEvent, note: SavedNote) => {
         e.stopPropagation();
         try {
-            const raw = localStorage.getItem(NOTES_KEY);
-            const obj = raw ? (JSON.parse(raw) as Record<string, string>) : {};
-            delete obj[String(numericId)];
-            localStorage.setItem(NOTES_KEY, JSON.stringify(obj));
+            const obj = readAllNotes();
+            delete obj[note.storageKey];
+            localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(obj));
             window.dispatchEvent(new Event('pd:notes-changed'));
+            scheduleNotesPush();
         } catch {
             /* swallow */
         }
-        showToast(`Note ${idStr}: DELETED`);
+        showToast(`Note ${note.label}: DELETED`);
     };
 
     const visible = notes;
@@ -109,11 +133,11 @@ export function NotesBox() {
                 const handleClick = (e: React.MouseEvent) => {
                     e.stopPropagation();
                     if (Number.isNaN(n.numericId)) return;
-                    openOutputNoteEditor(n.numericId);
+                    openOutputNoteEditor(n.numericId, undefined, n.slug ?? undefined);
                 };
                 return (
                     <div
-                        key={n.id}
+                        key={n.storageKey}
                         className="notif-item notif-item-deletable"
                         onClick={handleClick}
                         role="button"
@@ -121,23 +145,19 @@ export function NotesBox() {
                     >
                         <span className="n-icon">{NOTE_ICON}</span>
                         <span className="notif-item-body">
-                            {n.id} — {n.text}
+                            {n.label} — {n.text}
                         </span>
                         <span
                             className="notif-item-delete"
                             role="button"
                             tabIndex={0}
                             title="Delete note"
-                            onClick={(e) => handleDelete(e, n.id, n.numericId)}
+                            onClick={(e) => handleDelete(e, n)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
                                     e.stopPropagation();
-                                    handleDelete(
-                                        e as unknown as React.MouseEvent,
-                                        n.id,
-                                        n.numericId
-                                    );
+                                    handleDelete(e as unknown as React.MouseEvent, n);
                                 }
                             }}
                         >

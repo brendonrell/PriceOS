@@ -323,7 +323,7 @@ function WishlistRow({
         setStarred(isStarred(slug, id));
         return subscribeStarred(() => setStarred(isStarred(slug, id)));
     }, [slug, id]);
-    const note = useTokenNote(id);
+    const note = useTokenNote(slug, id);
     const hasNote = note.trim().length > 0 && !!siweAddress;
     const lp = useStarLongPress(() => {
         const r = toggleStar(slug, id);

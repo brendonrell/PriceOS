@@ -78,6 +78,9 @@ import { CAL_MONTH_SHORT } from '../calendar/data';
 import { useToast } from './ToastContext';
 import { useModal } from './ModalContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { noteKey, readAllNotes } from '../notes/tokenNotes';
+import { scheduleNotesPush } from '../notes/notesSync';
+import { USERSTATE_HYDRATED_EVENT } from './userState';
 import { lockBodyScroll, unlockBodyScroll } from './bodyScrollLock';
 
 interface DayPrompt {
@@ -167,6 +170,22 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
     }, [setOutputNotes]);
     const [prompt, setPrompt] = useState<Prompt | null>(null);
 
+    /* Account snapshot re-read (notes account-backed 2026-07-10): the
+       useLocalStorage states hydrate once on mount, but the server's notes
+       land AFTER mount (post-SIWE). Re-read both stores when the snapshot has
+       been written into the caches so the editor never serves stale text. */
+    useEffect(() => {
+        const reread = () => {
+            try {
+                setOutputNotes(readAllNotes());
+                const a = localStorage.getItem('pd_artist_notes');
+                setArtistNotes(a ? (JSON.parse(a) as Record<string, string>) : {});
+            } catch { /* ignore */ }
+        };
+        window.addEventListener(USERSTATE_HYDRATED_EVENT, reread);
+        return () => window.removeEventListener(USERSTATE_HYDRATED_EVENT, reread);
+    }, [setOutputNotes, setArtistNotes]);
+
     const openDayNoteEditor = useCallback((dayKey: string) => {
         if (!dayKey) return;
         setPrompt({ kind: 'day', dayKey });
@@ -180,12 +199,15 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
     const openOutputNoteEditor = useCallback(
         (outputId: number, prepopulate?: string, slug?: string) => {
             if (typeof outputId !== 'number' || Number.isNaN(outputId)) return;
-            const key = String(outputId);
-            /* Sim 6601 — only seed if there's no existing saved note. */
+            /* Per-project keying split (2026-07-10): seed under the caller's
+               Project-exact key when it has one; the legacy bare-id key still
+               guards so an old note is never clobbered. Sim 6601 — only seed
+               if there's no existing saved note. */
+            const seedKey = noteKey(slug?.toLowerCase() ?? null, outputId);
             if (prepopulate) {
                 setOutputNotes((prev) => {
-                    if (prev[key]) return prev;
-                    return { ...prev, [key]: prepopulate };
+                    if (prev[seedKey] || prev[String(outputId)]) return prev;
+                    return { ...prev, [seedKey]: prepopulate };
                 });
             }
             setPrompt({ kind: 'output', outputId, slug: slug?.toLowerCase() ?? null });
@@ -210,6 +232,14 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
         return () => unlockBodyScroll();
     }, [prompt]);
 
+    /* Output-note Project resolution — the SAME chain the label renders with
+       (explicit caller slug -> open modal's slug -> the /art/{slug} route),
+       hoisted so STORAGE keys by exactly what the label shows. What the user
+       sees named on the sheet is what the note is saved against. */
+    const routeSlug = pathname?.startsWith('/art/')
+        ? (pathname.split('/')[2] ?? '').toLowerCase() || null
+        : null;
+
     const handleSave = useCallback(
         (value: string) => {
             if (!prompt) return;
@@ -233,21 +263,32 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
             } else if (prompt.kind === 'output') {
                 /* Sim 5803-5812 — trimmed empty deletes; non-empty saves;
                    toast string is the bare 'Note SAVED' / 'Note REMOVED'
-                   (no kind prefix, sim 5812). */
+                   (no kind prefix, sim 5812). Keys by the resolved Project
+                   (per-project split, 2026-07-10); a save under a resolved
+                   Project also clears the legacy bare-id key — the upgrade
+                   path that drains old ambiguous notes as they're edited. */
                 const trimmed = value.trim();
-                const key = String(prompt.outputId);
+                const noteSlug = prompt.slug ?? currentModalSlug ?? routeSlug;
+                const key = noteKey(noteSlug, prompt.outputId);
+                const legacyKey = String(prompt.outputId);
                 setOutputNotes((prev) => {
                     const next = { ...prev };
                     if (trimmed) next[key] = trimmed;
                     else delete next[key];
+                    if (key !== legacyKey) delete next[legacyKey];
                     return next;
                 });
                 window.dispatchEvent(new Event('pd:notes-changed'));
                 showToast(trimmed ? 'Note: SAVED' : 'Note: REMOVED');
             }
+            /* Account-backed notes (2026-07-10): every save — day, artist,
+               output — syncs the link-aware record set to the account
+               envelope. Deferred a tick so the setState-updater storage
+               writes above have landed. */
+            scheduleNotesPush();
             setPrompt(null);
         },
-        [prompt, setDayNote, showToast, setArtistNotes, setOutputNotes]
+        [prompt, setDayNote, showToast, setArtistNotes, setOutputNotes, currentModalSlug, routeSlug]
     );
 
     /* Click handler for the underlined output-name span inside the output
@@ -301,14 +342,15 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
             );
         } else if (prompt.kind === 'output') {
             const outputId = prompt.outputId;
-            initialValue = outputNotes[String(outputId)] || '';
             /* Resolve the project the way the output modal does: explicit
-               caller slug -> the open modal's slug -> the /art/{slug} route.
+               caller slug -> the open modal's slug -> the /art/{slug} route
+               (routeSlug hoisted above — storage keys by the same chain).
                Unresolvable -> label is just "#id" (never a guessed name). */
-            const routeSlug = pathname?.startsWith('/art/')
-                ? (pathname.split('/')[2] ?? '').toLowerCase() || null
-                : null;
             const noteSlug = prompt.slug ?? currentModalSlug ?? routeSlug;
+            /* Project-exact note first; legacy bare-id note as fallback so
+               pre-split notes stay editable (per-project split, 2026-07-10). */
+            initialValue =
+                outputNotes[noteKey(noteSlug, outputId)] || outputNotes[String(outputId)] || '';
             const projectName = noteSlug
                 ? (getProject(noteSlug)?.displayName ?? noteSlug).toUpperCase()
                 : null;

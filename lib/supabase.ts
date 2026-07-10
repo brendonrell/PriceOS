@@ -157,6 +157,34 @@ export interface UserSettings {
   /** Workflows — the power-user automations (iOS-Shortcuts style). PRIVATE,
    *  same envelope + privacy as `starred`. Shape owned by lib/workflows/store. */
   workflows?: WorkflowRecord[];
+  /** Notes — every private note the viewer writes, LINK-AWARE (Brendon,
+   *  2026-07-10): each record says what it's attached to (an Output in a
+   *  specific Project, an artist, a calendar day) — or nothing (`kind: 'free'`,
+   *  the Thoughts & Memories kind, supported here ahead of its front end).
+   *  Same envelope + privacy as `starred`. Shape owned by lib/notes/notesSync. */
+  notes?: NoteRecord[];
+}
+
+/** One private note in the settings envelope (lib/notes/notesSync owns it). */
+export interface NoteRecord {
+  /** What the note is linked to. 'free' = linked to nothing at all — the
+   *  Thoughts & Memories kind; stored + round-tripped today, rendered when
+   *  that front end lands. */
+  kind: 'output' | 'artist' | 'day' | 'free';
+  /** output kind: Project slug. Null = a legacy note written before notes
+   *  were Project-keyed (its Project is unknowable after the fact). */
+  slug?: string | null;
+  /** output kind: Output id. */
+  id?: number;
+  /** artist kind: the artist's name. */
+  artist?: string;
+  /** day kind: calendar day, 'YYYY-MM-DD'. */
+  day?: string;
+  /** free kind: record id, assigned by the Thoughts & Memories front end. */
+  nid?: string;
+  text: string;
+  /** Last text change, epoch ms — the winner-picker for future merges. */
+  t?: number;
 }
 
 /** One armed Workflow in the settings envelope (lib/workflows/store owns it). */

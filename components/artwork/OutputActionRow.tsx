@@ -17,6 +17,7 @@ import { getGrails, subscribeGrails, togglePin as storeTogglePin, type GrailPin 
 import { addOutputTodo } from '../../lib/todos/todoStore';
 import { getStarredKeys, subscribeStarred, toggleStar as storeToggleStar } from '../../lib/pins/starStore';
 import { getWishlistKeys, subscribeWishlist, toggleWishlist as storeToggleWishlist } from '../../lib/pins/wishlistStore';
+import { readNoteFor } from '../../lib/notes/tokenNotes';
 import { shareLink } from '../../lib/pwa/share';
 
 export default function OutputActionRow({
@@ -37,17 +38,11 @@ export default function OutputActionRow({
     useEffect(() => { setWishlistKeys(getWishlistKeys()); return subscribeWishlist(setWishlistKeys); }, []);
 
     /* Does this Output already have a saved note? Same store + signal the gallery
-       card reads, so the action-row button lights up when a note exists. */
+       card reads, so the action-row button lights up when a note exists.
+       Project-exact key first, legacy bare-id fallback (per-project split). */
     const [noteText, setNoteText] = useState('');
     useEffect(() => {
-        const read = () => {
-            try {
-                const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('pd_token_notes') : null;
-                const notes = raw ? (JSON.parse(raw) as Record<string, string>) : {};
-                const v = notes[String(id)];
-                setNoteText(typeof v === 'string' ? v : '');
-            } catch { setNoteText(''); }
-        };
+        const read = () => setNoteText(readNoteFor(slug, id));
         read();
         window.addEventListener('pd:notes-changed', read);
         window.addEventListener('storage', read);
@@ -55,7 +50,7 @@ export default function OutputActionRow({
             window.removeEventListener('pd:notes-changed', read);
             window.removeEventListener('storage', read);
         };
-    }, [id]);
+    }, [slug, id]);
 
     const starred = starredKeys.has(`${slug}:${id}`);
     const wishlisted = wishlistKeys.has(`${slug}:${id}`);

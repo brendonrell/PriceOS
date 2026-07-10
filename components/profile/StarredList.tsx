@@ -1272,7 +1272,7 @@ function StarredOutputRow({
         setStarred(isStarred(slug, id));
         return subscribeStarred(() => setStarred(isStarred(slug, id)));
     }, [timeline, slug, id]);
-    const note = useTokenNote(id);
+    const note = useTokenNote(slug, id);
     const hasNote = note.trim().length > 0 && !!siweAddress;
 
     const lp = useStarLongPress(() => {

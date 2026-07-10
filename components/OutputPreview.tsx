@@ -122,6 +122,7 @@ import { recordOutputView } from '../lib/output/views';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import AsciiArtImage from './AsciiArtImage';
 import { useNotePrompt } from '../lib/state/NotePromptContext';
+import { readNoteFor } from '../lib/notes/tokenNotes';
 import { useCart } from '../lib/state/CartContext';
 /* v1 — type-only import. The route file ships the OutputDetailResponse
    contract (see app/api/output/[id]/route.ts:18); pulling the type here
@@ -343,16 +344,12 @@ export default function OutputPreview() {
     useEffect(() => {
         const check = () => {
             if (id == null) { setHasNote(false); return; }
-            try {
-                const raw = localStorage.getItem('pd_token_notes');
-                const notes = raw ? JSON.parse(raw) : {};
-                setHasNote(!!(notes[id] && String(notes[id]).trim()));
-            } catch { setHasNote(false); }
+            setHasNote(readNoteFor(slug, id).trim().length > 0);
         };
         check();
         window.addEventListener('pd:notes-changed', check);
         return () => window.removeEventListener('pd:notes-changed', check);
-    }, [id]);
+    }, [slug, id]);
     const isMutedNow = id != null && mutedSet.has(`${slug}:${id}`);
 
     /* chat #4 — sim 7370-7385 hammerSwing animation on the modal overlay.
