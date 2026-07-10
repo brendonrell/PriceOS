@@ -26,6 +26,17 @@
    browsing, investigate the healer POSTs (`/api/preview`, `/api/ascii`) —
    don't re-diagnose the guard, that part is fixed and verified by probe.
 
+## ✅ SHIPPED TO DEV 2026-07-10 — To-Dos polish session (pushed, tree clean)
+
+- **To-Dos UI cleanup (Brendon-approved batch):** header + / ☇ swapped (+ first);
+  delete/clear confirm now portals to `<body>` → true full-screen overlay (was
+  trapped by the menu's transform); P1 marker = thin red ring per row (old left
+  rail merged across stacked rows); composer date+time live in ONE due pill
+  (two tap targets, native pickers — row no longer clips); Add button → compact
+  `+`; price chip ◊ rides currentColor at rest (hothurt only when set); chip
+  icons share a fixed-height centering box; composer gains a top-right × exit.
+  All in `components/dropdown/TodosBox.tsx` + `styles/todos.css`.
+
 ## ✅ SHIPPED TO DEV 2026-07-10 — the QUEUE session (all pushed, tree clean)
 
 - **Notes = full DB feature (Brendon's call).** Account-backed, LINK-AWARE
