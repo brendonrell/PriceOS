@@ -60,6 +60,11 @@
   screenshot bug that opened the session).
 - Spec of record: **`docs/pd-studio-spec.md`**. ClickUp epic `86bavub9k`
   commented with the full ship + next phases.
+- **Post-wrap footer fixes (Brendon-reported, same day):** Studio footer link
+  was a dead placeholder span → now links `/studio`; Docs footer link stalled
+  on the in-app hop (URL flipped to /docs, reload always worked) → opted out
+  of in-app routing (`data-native-nav`), enters via full load like a direct
+  visit (also gives docs its prehydration dark boot).
 
 ## ✅ SHIPPED TO DEV 2026-07-10 — ASCII Art Mode round 2 (pushed, tree clean)
 
