@@ -464,6 +464,54 @@ export function applyBgHex(bgHex: string, key: ColorwayKey) {
     body.classList.toggle('bg-is-red',        isRedBg(bg));
 }
 
+/* Hash Synesthesia rework (Brendon, 2026-07-10): now that cards are stored
+   images, engine samples land constantly as tiles load — and each one used to
+   run the FULL applyBgHex, re-deriving text polarity, buttons, pills, stat
+   chips and knockouts. That's the "misbehaving": black/white ink flickering
+   and buttons morphing as the page painted. A hashsyn SAMPLE may change ONLY
+   the colorway colour itself — the background family — so this narrow writer
+   updates the bg, the modal tint (the bg at 0.98), the browser-chrome tint,
+   and the red-bg logo guards, and touches NOTHING else. The black/white parts
+   and every button keep whatever the full writer set when hashsyn was picked
+   (the seed) — they are not the engine's to move. */
+export function applyHashSynSample(bgHex: string) {
+    const root = document.documentElement;
+    const body = document.body;
+
+    const hex = bgHex.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16) || 0;
+    const g = parseInt(hex.substring(2, 4), 16) || 0;
+    const b = parseInt(hex.substring(4, 6), 16) || 0;
+
+    root.style.setProperty('--bg-color', bgHex);
+    root.style.setProperty('--modal-bg', `rgba(${r},${g},${b},0.98)`);
+    body.style.backgroundColor = bgHex;
+
+    /* Chrome tint follows the page colour (same ambient-dim rule as the full
+       writer). */
+    const tcMeta = document.querySelector('meta[name="theme-color"]');
+    if (tcMeta) {
+        const dimDark = body.classList.contains('ambient-dim-on') && !body.classList.contains('is-pwa');
+        tcMeta.setAttribute('content', dimDark ? '#03020a' : bgHex);
+    }
+
+    /* Visibility guards only — the $PRICE logo fill swap on red bgs and the
+       red-bg flag. These keep things readable; they are not styling. */
+    {
+        const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+        let hue = 0;
+        if (d !== 0) {
+            if (mx === r) hue = ((g - b) / d) % 6;
+            else if (mx === g) hue = (b - r) / d + 2;
+            else hue = (r - g) / d + 4;
+            hue = (hue * 60 + 360) % 360;
+        }
+        const sat = mx === 0 ? 0 : d / mx;
+        body.classList.toggle('price-logo-swap', sat > 0.35 && (hue >= 335 || hue < 18));
+    }
+    body.classList.toggle('bg-is-red', isRedBg(bgHex));
+}
+
 /* Single source of truth for "what does THIS path paint?" — used by BOTH the
    initial boot effect AND the server-hydration handler, so the two can never
    diverge. (That divergence WAS the home-stays-orange bug: boot painted
@@ -583,8 +631,12 @@ export function ColorwayProvider({ children }: { children: ReactNode }) {
         }
 
         if (key === 'hashsyn') {
+            /* Full treatment ONCE at pick (seed sets polarity, buttons, the
+               colorway-hashsyn class); every engine sample after runs the
+               NARROW writer — bg family only, buttons + black/white locked
+               (Brendon, 2026-07-10). */
             applyBgHex(HASHSYN_SEED, 'hashsyn');
-            enableHashSyn((hex) => applyBgHex(hex, 'hashsyn'));
+            enableHashSyn(applyHashSynSample);
         } else if (key === 'haze') {
             // Apply base color first, then start variation if one is saved.
             applyColorway(key);
