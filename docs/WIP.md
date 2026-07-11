@@ -41,6 +41,34 @@
 7. **PD Studio next phases** — unchanged (`docs/briefs/studio-phase2.md`,
    epic `86bavub9k`).
 
+## ✅ SHIPPED 2026-07-11 (evening, Opus) — Albums revert + Friend Inspector / Projects Pro UI batch (on dev; Worker NOT yet redeployed)
+
+Merged to dev + pushed. **Preview still stale until the app Worker is manually
+redeployed** (needs Brendon's Cloudflare token — see the DEPLOY RECIPE below).
+
+- **Albums reverted** to last night's rebuild (34e03e7): removed this morning's
+  90° corners + `width:100%` wrap (`styles/albums.css`) and the 3-across desktop
+  block (`app/globals.css`). Kept the fable rebuild. Verified album surface ==
+  34e03e7 exactly.
+- **Friend Inspector view-as-another-user** — `FollowersModal` now takes a target
+  address via the modal `slug` arg (ModalContext); the graph/projects/stats loads
+  key on `targetAddrLc` (falls back to `siweAddress`). Profile followers stat opens
+  `open('followers','followers', user.address)` → that user's circle, compact.
+- **Projects Pro modal** (`components/ProjectsProModal.tsx`, ModalName
+  `'projectsPro'`, mounted in PriceOSShell) — FI chrome (compact + PLUS), alphabetical
+  `allProjects()` list, rows → `/art/{slug}`. Wired to the home hero PRO stat.
+- **PriceSprite card** (`components/FriendSpritePopover.tsx`) — Fiat-bubble-style
+  portal+tail popover off the sprite tap; PriceRank (tierFor) + score + circle stats;
+  `@name` links to profile. Sprite tap added via `CollectedPair` optional `onSpriteTap`.
+- **Full-opacity pill outlines** — `.pill-l2` (globals + modal.css) and `.ambient-chip`
+  (ambient.css) borders → `var(--text-color)`; `.smgr-sheet-pill` opacity 0.5→1.
+- **Wire/Map** → floating text: `.fi-preview-chip` drops the box, weight 400+op .6
+  (de-selected) / 800 (selected); toggle nudged down 3px.
+- **Profile stats toasts** — first two stats' values now fire `iconToastProps`;
+  followers unchanged (opens inspector).
+- **FI title glyph** `.smgr-title-ic` scoped to `.followers-pop/.followers-plus`:
+  23px + top -2px; `.fm-icon` centred.
+
 ## ✅ SHIPPED 2026-07-11 (late afternoon, Opus) — indexer sweep live + APP WORKER REDEPLOYED
 
 - **App Worker `pricediscussion` REDEPLOYED** (OpenNext build → `wrangler
