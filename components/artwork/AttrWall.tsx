@@ -26,6 +26,7 @@ export default function AttrWall({
     searchable = false,
     query,
     onTileTap,
+    onChipTap,
 }: {
     groups: AttrGroup[];
     reading?: string | null;
@@ -39,6 +40,8 @@ export default function AttrWall({
     query?: string;
     /** Called with a tile's tapKey when a tappable tile is pressed. */
     onTileTap?: (tapKey: string) => void;
+    /** Called with the hex when a Swatches chip is tapped (copy affordance). */
+    onChipTap?: (hex: string) => void;
 }) {
     const controlled = query !== undefined;
     const [internalQuery, setInternalQuery] = useState('');
@@ -160,10 +163,28 @@ export default function AttrWall({
                                                 ))}
                                             </span>
                                         )}
-                                        <span className="attr-tile-value">
-                                            {t.swatch && <span className="attr-swatch" style={{ background: t.swatch }} />}
-                                            {t.value}
-                                        </span>
+                                        {t.chips && (
+                                            <span className="attr-chips">
+                                                {t.chips.map((c) => (
+                                                    <button
+                                                        key={c.hex}
+                                                        type="button"
+                                                        className="attr-chip"
+                                                        title={`Copy ${c.hex}`}
+                                                        onClick={(e) => { e.stopPropagation(); onChipTap?.(c.hex); }}
+                                                    >
+                                                        <span className="attr-chip-swatch" style={{ background: c.hex }} />
+                                                        <span className="attr-chip-hex">{c.hex}</span>
+                                                    </button>
+                                                ))}
+                                            </span>
+                                        )}
+                                        {(t.value || t.swatch) && (
+                                            <span className="attr-tile-value">
+                                                {t.swatch && <span className="attr-swatch" style={{ background: t.swatch }} />}
+                                                {t.value}
+                                            </span>
+                                        )}
                                     </>
                                 )}
                                 {t.sub && <span className="attr-tile-sub">{t.sub}</span>}

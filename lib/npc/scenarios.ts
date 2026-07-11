@@ -90,6 +90,12 @@ export const SIGHT: Record<string, SightLine[]> = {
         { when: (v) => v.accent != null, text: 'That little run of {accent} is the actual piece.' },
         { when: (v) => v.warmth === 'Molten', text: 'Warm all the way through. Like it wants to be liked.' },
         { when: (v) => v.tone === 'Hushed', text: "Hushed. They'll scroll past it. That's how you know it's good." },
+        { when: (v) => v.palette === 'Trichrome', text: "Three colours. Ambitious. Two would've said more." },
+        { when: (v) => v.orientation === 'Square', text: 'Square format. No excuses in a square.' },
+        { when: (v) => v.brightness === 'Mid', text: 'Mid-light. Neither brave nor safe. Hm.' },
+        { when: (v) => v.contrast === 'Soft', text: "Soft contrast. Polite. I didn't say good." },
+        { when: (v) => v.gravity === 'Centered', text: 'Dead centre. The safest seat in the house.' },
+        { when: (v) => v.texture === 'Smooth', text: 'Smooth as a screen. Machine-finished. It suits it.' },
     ],
     mick: [
         { when: (v) => v.bucket === 'Hothurt', text: 'Hothurt. I log those separately.' },
@@ -109,6 +115,12 @@ export const SIGHT: Record<string, SightLine[]> = {
         { when: (v) => v.warmth === 'Warm' || v.warmth === 'Molten', text: 'A warm one. Warm ones cluster. Watch.' },
         { when: (v) => v.accent != null && v.bucket != null, text: '{accent} against {color}. That pairing has history.' },
         { when: (v) => v.gravity === 'High', text: 'The weight sits high in this one. Rare enough to note.' },
+        { when: (v) => v.palette === 'Trichrome', text: 'Three colours. We file that under transitional.' },
+        { when: (v) => v.orientation === 'Square', text: 'A square. The ledger likes squares. They fit.' },
+        { when: (v) => v.rarity != null && v.rarity >= 40 && v.rarity < 70, text: 'Middle of the rarity table. Quietly load-bearing, the middle.' },
+        { when: (v) => v.air === 'Packed', text: 'Not an inch spare in it. Filed under dense.' },
+        { when: (v) => v.tone === 'Airy', text: 'Airy one. Spring inventory, usually.' },
+        { when: (v) => v.saturation === 'Soft', text: 'Soft colour. Soft colour ages best. The records agree.' },
     ],
     mimi: [
         { when: (v) => v.bucket === 'Hothurt', text: 'Hothurt. That colour clears the book fast.' },
@@ -126,6 +138,12 @@ export const SIGHT: Record<string, SightLine[]> = {
         { when: (v) => v.warmth === 'Cold', text: "Cold palette. Nobody impulse-buys cold. It'll wait for me." },
         { when: (v) => v.tone === 'Serene', text: 'Serene. Serene never spikes. Serene compounds.' },
         { when: (v) => v.palette === 'Monochrome', text: 'One colour. Easy to match, easy to move.' },
+        { when: (v) => v.palette === 'Trichrome', text: 'Three colours. Three exits. I like options.' },
+        { when: (v) => v.gravity === 'Centered', text: 'Centred. Safe. Safe trades sideways.' },
+        { when: (v) => v.texture === 'Smooth', text: 'Clean finish. Clean sells to clean people.' },
+        { when: (v) => v.orientation === 'Landscape', text: 'Wide one. Wide fits over sofas. Sofa money is real money.' },
+        { when: (v) => v.brightness === 'Mid', text: 'Mid-bright. Nobody fights over mid. Good entry.' },
+        { when: (v) => v.contrast === 'Measured', text: 'Measured contrast. Reasonable. Reasonable is where deals live.' },
     ],
     steven: [
         { when: (v) => v.bucket === 'Red', text: "That's a lot of red." },
@@ -146,6 +164,12 @@ export const SIGHT: Record<string, SightLine[]> = {
         { when: (v) => v.palette === 'Monochrome', text: 'One colour. Efficient.' },
         { when: (v) => v.tone === 'Brooding', text: "Moody one. Somebody's fine, I'm sure." },
         { when: (v) => v.accent != null, text: "There's a bit of {accent} in there. Nice touch." },
+        { when: (v) => v.palette === 'Trichrome', text: 'Three colours. Like a flag. Could be a flag.' },
+        { when: (v) => v.warmth === 'Split', text: 'Half warm, half cold. Like a shower going wrong.' },
+        { when: (v) => v.gravity === 'Centered', text: "It's all in the middle. Easy to look at." },
+        { when: (v) => v.contrast === 'Soft', text: "Gentle one. Wouldn't wake you up." },
+        { when: (v) => v.texture === 'Even', text: 'Flat and tidy. Like new carpet.' },
+        { when: (v) => v.air === 'Packed', text: 'Full right to the edges. Value, kind of.' },
     ],
     eddie: [
         { when: (v) => v.bucket === 'Hothurt', text: 'Hothurt again. That colour shows up before drama. Every time.' },
@@ -162,6 +186,12 @@ export const SIGHT: Record<string, SightLine[]> = {
         { when: (v) => v.symmetry === 'Askew', text: 'Off-centre. Deliberate. Follow the slant.' },
         { when: (v) => v.warmth === 'Warm' || v.warmth === 'Molten', text: 'Warm palette. Warm is what they use when they want you comfortable.' },
         { when: (v) => v.texture === 'Grainy', text: 'Grainy. Grain hides fingerprints. Think about it.' },
+        { when: (v) => v.palette === 'Trichrome', text: 'Three colours. Three parties involved. Follow the third.' },
+        { when: (v) => v.orientation === 'Square', text: 'Perfect square. Nobody does a perfect square without a reason.' },
+        { when: (v) => v.tone === 'Serene', text: "Calm-looking. That's what worries me." },
+        { when: (v) => v.texture === 'Smooth', text: 'Too clean. Cleaned, more like.' },
+        { when: (v) => v.rarity != null && v.rarity >= 40 && v.rarity < 70, text: 'Mid rarity. The perfect place to hide.' },
+        { when: (v) => v.shapeCount === 4, text: "Four shapes. Four. Look up what four means. I'll wait." },
     ],
     carl: [
         { when: (v) => v.brightness === 'Luminous', text: 'Bright now. They fade.' },
@@ -179,6 +209,12 @@ export const SIGHT: Record<string, SightLine[]> = {
         { when: (v) => v.contrast === 'Flat', text: "No contrast. Like the week I'm having." },
         { when: (v) => v.rarity != null && v.rarity <= 15, text: 'Common. Most things are. Most people handle it.' },
         { when: (v) => v.texture === 'Grainy', text: 'Grainy. Falling apart already, if you squint.' },
+        { when: (v) => v.palette === 'Trichrome', text: 'Three colours. One of them will outlive the other two.' },
+        { when: (v) => v.orientation === 'Portrait', text: 'Tall one. Long way down.' },
+        { when: (v) => v.gravity === 'High', text: 'The weight sits up top. That never lasts.' },
+        { when: (v) => v.air === 'Packed', text: "Packed full. It'll thin out. Everything thins out." },
+        { when: (v) => v.contrast === 'Crisp', text: 'Crisp edges. Time rounds them.' },
+        { when: (v) => v.saturation === 'Rich', text: 'Rich colour. Enjoy the peak.' },
     ],
     romy: [
         { when: (v) => v.bucket != null && v.bucket !== 'Black' && v.bucket !== 'White' && v.bucket !== 'Grey', text: 'That {color} is doing all the work, and it can carry it.' },
@@ -196,6 +232,12 @@ export const SIGHT: Record<string, SightLine[]> = {
         { when: (v) => v.air === 'Vast', text: 'All that room to breathe. Kind of the point, I think.' },
         { when: (v) => v.tone === 'Serene', text: 'Calm one. You hang that where you drink your coffee.' },
         { when: (v) => v.tone === 'Electric', text: "It's a lot. Somebody out there is exactly this much." },
+        { when: (v) => v.palette === 'Trichrome', text: "Three colours getting along. That's a good sign for the house." },
+        { when: (v) => v.warmth === 'Split', text: 'Warm and cold in the same piece. Like a whole day at once.' },
+        { when: (v) => v.gravity === 'Left' || v.gravity === 'Right', text: "It leans to one side, like it's mid-thought. I love it mid-thought." },
+        { when: (v) => v.brightness === 'Dim', text: 'Dim little thing. Lamp-light. Cosy.' },
+        { when: (v) => v.texture === 'Even', text: 'Even all over. Someone kept a steady hand.' },
+        { when: (v) => v.tone === 'Moody', text: "Moody one. Somebody's whole autumn is in there." },
     ],
     celestia: [
         { when: (v) => v.bucket === 'Black', text: 'All that black. A door, not a wall.' },
@@ -213,6 +255,12 @@ export const SIGHT: Record<string, SightLine[]> = {
         { when: (v) => v.palette === 'Duotone', text: 'Two colours in balance. Twin flames. Or an argument.' },
         { when: (v) => v.texture === 'Grainy', text: 'Grain like static. Something was passing through when it was made.' },
         { when: (v) => v.accent != null, text: "There's a thread of {accent} in it. That's the way in." },
+        { when: (v) => v.palette === 'Trichrome', text: 'Three colours. Past, present, and the other one.' },
+        { when: (v) => v.orientation === 'Square', text: 'A square. Contained. This shape keeps something IN.' },
+        { when: (v) => v.contrast === 'Flat', text: 'No contrast. A veil, not a fault.' },
+        { when: (v) => v.air === 'Packed', text: 'No empty space. Nowhere for anything to hide. Deliberate.' },
+        { when: (v) => v.warmth === 'Split', text: 'Half warm, half cold. A threshold piece. Doors get minted too.' },
+        { when: (v) => v.rarity != null && v.rarity >= 40 && v.rarity < 70, text: 'Mid-table rarity. Nobody watches the middle. The middle knows.' },
     ],
 };
 
@@ -512,17 +560,121 @@ export const EXCHANGES: Exchange[] = [
             { who: 'carl', text: 'My eyes.' },
         ],
     },
+
+    /* — the 2026-07-11 wow pass: they see the SPECIFICS. Nobody says
+       "we're watching" — the detail says it for them. — */
+    {
+        id: 'x-scrollstyle', kind: 'couch', beats: [
+            { who: 'mick', text: 'They scroll in threes. Three, pause. Three, pause.' },
+            { who: 'eddie', text: 'A pattern. Documented?' },
+            { who: 'mick', text: 'Since Tuesday.' },
+        ],
+    },
+    {
+        id: 'x-pausecost', kind: 'couch', beats: [
+            { who: 'mimi', text: 'Four-second pause on that one.' },
+            { who: 'carl', text: 'Doubt.' },
+            { who: 'mimi', text: 'Deposit.' },
+        ],
+    },
+    {
+        id: 'x-leanin', kind: 'couch', beats: [
+            { who: 'romy', text: 'They lean in on the ones they like. Just a little.' },
+            { who: 'steven', text: 'I do that with soup.' },
+        ],
+    },
+    {
+        id: 'x-goodone', kind: 'couch', needsPiece: true, beats: [
+            { who: 'rocco', text: 'They stopped on the good one. Unprompted.' },
+            { who: 'romy', text: 'You could tell them.' },
+            { who: 'rocco', text: 'Absolutely not.' },
+        ],
+    },
+    {
+        id: 'x-sametime', kind: 'couch', beats: [
+            { who: 'eddie', text: 'Same time as yesterday. Almost to the minute.' },
+            { who: 'mick', text: 'It was not. But close.' },
+        ],
+    },
+    {
+        id: 'x-nickname', kind: 'couch', beats: [
+            { who: 'eddie', text: "I've been calling them the Curator. In my head." },
+            { who: 'rocco', text: 'Generous.' },
+            { who: 'romy', text: 'It suits them.' },
+        ],
+    },
+    {
+        id: 'x-readus', kind: 'seen', beats: [
+            { who: 'steven', text: 'What if they can read the bubbles.' },
+            { who: 'carl', text: 'Then say something worth reading.' },
+            { who: 'steven', text: '…Hi.' },
+        ],
+    },
+    {
+        id: 'x-blinked', kind: 'seen', beats: [
+            { who: 'eddie', text: 'They went still just then. Tired or moved?' },
+            { who: 'romy', text: 'Moved, I hope.' },
+            { who: 'carl', text: 'Tired.' },
+        ],
+    },
+    {
+        id: 'x-zoomed', kind: 'seen', needsPiece: true, beats: [
+            { who: 'mimi', text: 'They leaned closer. Everyone hold still.' },
+            { who: 'steven', text: 'Why do we hold still for that.' },
+            { who: 'mimi', text: 'Respect.' },
+        ],
+    },
+    {
+        id: 'x-screenshot', kind: 'seen', beats: [
+            { who: 'eddie', text: 'Did it just flash? They kept a picture. That is evidence.' },
+            { who: 'mick', text: 'Of what?' },
+            { who: 'eddie', text: 'Exactly.' },
+        ],
+    },
+    {
+        id: 'x-thermostat', kind: 'drift', beats: [
+            { who: 'romy', text: 'Is it cold in here?' },
+            { who: 'carl', text: "It's a website." },
+            { who: 'romy', text: 'Cold for a website.' },
+        ],
+    },
+    {
+        id: 'x-corner', kind: 'drift', beats: [
+            { who: 'steven', text: 'I found a corner I had not seen before.' },
+            { who: 'mick', text: 'Which corner.' },
+            { who: 'steven', text: 'Not telling. It is my corner. …They moved, by the way.' },
+        ],
+    },
+    {
+        id: 'x-stillhere', kind: 'idle', beats: [
+            { who: 'steven', text: 'Still there?' },
+            { who: 'mick', text: 'Still there. Something moved eleven minutes ago.' },
+            { who: 'steven', text: 'Good. I like this one.' },
+        ],
+    },
+    {
+        id: 'x-nightlog', kind: 'night', beats: [
+            { who: 'mick', text: 'Night shift. The log gets weird after midnight.' },
+            { who: 'celestia', text: 'The log gets honest.' },
+        ],
+    },
+    {
+        id: 'x-round2', kind: 'open', beats: [
+            { who: 'rocco', text: 'Back again. The taste tour continues.' },
+            { who: 'mimi', text: 'Second visits spend.' },
+        ],
+    },
 ];
 
 /* ── STREAKS — they keep opening the same colour ({color}, {n}) ────────── */
 
 export const STREAK: Record<string, string[]> = {
-    mick: ["That's {n} {color} ones in a row. Somebody check on them."],
-    eddie: ["{n} {color} pieces straight. That's not taste, that's a signal."],
+    mick: ["That's {n} {color} ones in a row. Somebody check on them.", 'Another {color}. I had to start a new column.'],
+    eddie: ["{n} {color} pieces straight. That's not taste, that's a signal.", "Still {color}. At this point it's a broadcast."],
     rocco: ["The {color} phase. We've all had one. Mine was shorter."],
-    steven: ['They really like {color}. Same, honestly.'],
+    steven: ['They really like {color}. Same, honestly.', 'More {color}. They know what they like. Enviable.'],
     carl: ['All {color} today. It ends in a purchase. It always ends in a purchase.'],
-    romy: ['A whole {color} afternoon. I get it.'],
+    romy: ['A whole {color} afternoon. I get it.', 'Another {color} one. Let them have their season.'],
     mimi: ['{color}, {color}, {color}. Good. Predictable buyers are my favourite buyers.'],
     celestia: ['{color} keeps calling them. {n} times now. Threes matter.'],
 };
@@ -531,13 +683,13 @@ export const STREAK: Record<string, string[]> = {
 
 export const REVISIT: Record<string, string[]> = {
     eddie: ["Back to {piece} again. That's {n} now. Something's up."],
-    mimi: ["That's {n} looks at {piece}. The wanting is priced in now."],
-    rocco: ['{piece} again. Fine. They have one good eye.'],
+    mimi: ["That's {n} looks at {piece}. The wanting is priced in now.", 'Back at {piece}. My offer sharpens with each look.'],
+    rocco: ['{piece} again. Fine. They have one good eye.', '{n} looks at {piece}. Even I only needed two.'],
     romy: ['{n} visits to {piece}. They should just get it, honestly.'],
     mick: ['{piece}. Again. Logged.'],
     carl: ["They keep coming back to {piece}. It won't love them back."],
-    steven: ["Back at {piece}. I mean, it's a good one. I get it."],
-    celestia: ["{piece} pulls them back. That's not a choice anymore. That's orbit."],
+    steven: ["Back at {piece}. I mean, it's a good one. I get it.", 'Back at {piece} again. At this point just say hi to it.'],
+    celestia: ["{piece} pulls them back. That's not a choice anymore. That's orbit.", '{n} returns to {piece}. It has them on a long line, reeling slow.'],
 };
 
 /* ── PREDICTIONS — the couch makes a call, then owns the result ────────── */
@@ -559,25 +711,27 @@ export const PREDICT_MISS: Record<string, { who: string; text: string }[]> = {
 /* ── IDLE — single-line boredom (the exchanges handle the scenes) ──────── */
 
 export const IDLE: Record<string, string[]> = {
-    carl: ['Slow episode.'],
-    mick: ['Nothing to report. Reporting it.'],
-    eddie: ['They went quiet. Quiet people are reading something. What are they reading.'],
-    romy: ["Shh. They're thinking."],
+    carl: ['Slow episode.', "Maybe they left. Maybe we're doing this for nobody. Anyway."],
+    mick: ['Nothing to report. Reporting it.', "Quiet. I'm using the time to alphabetise."],
+    eddie: ['They went quiet. Quiet people are reading something. What are they reading.', 'Too quiet. Check the other tabs. They have OTHER TABS.'],
+    romy: ["Shh. They're thinking.", "They're just sitting with it. That's the best kind of looking."],
     mimi: ["Stillness. Someone's about to do something expensive."],
     celestia: ["They've gone still. A decision is circling."],
     rocco: ['Are we boring them? Impossible.'],
-    steven: ['They fell asleep, maybe. Happens to me on this couch.'],
+    steven: ['They fell asleep, maybe. Happens to me on this couch.', "I've been watching the same pixel. It's a good pixel."],
 };
 
 /* ── PACING — they're tearing through pages ────────────────────────────── */
 
 export const PACING: Record<string, string[]> = {
     eddie: ['Look at them go. Page, page, page. Hunting.'],
-    mick: ["That's a lot of pages in a minute. Noted."],
+    mick: ["That's a lot of pages in a minute. Noted.", "Six pages this minute. The log's getting a workout."],
     steven: ["They scroll fast. I'd be dizzy."],
     carl: ["All that clicking. Won't help."],
     romy: ["Somebody's looking for something specific."],
     celestia: ['Circling, circling. The thing they want is behind them.'],
+    rocco: ['Page, page, page. Nobody LOOKS anymore.'],
+    mimi: ['Fast scroller. Fast scrollers miss the mispricings. Good.'],
 };
 
 /* ── NIGHT / MORNING — they can see your clock ─────────────────────────── */
@@ -589,24 +743,29 @@ export const NIGHT: Record<string, string[]> = {
     carl: ["Can't sleep either. The market gets in the walls."],
     romy: ["They're up late. Someone get them water."],
     mimi: ['The best offers go out at night. Watch.'],
+    rocco: ['Midnight taste is real taste. No audience to perform for.'],
+    mick: ['Late entry. The night pages of the log are the interesting ones.'],
 };
 export const MORNING: Record<string, string[]> = {
     steven: ["They're on before coffee. Committed."],
     mick: ['Early session. The early ones are deliberate.'],
     romy: ['Morning person. Good for them.'],
+    eddie: ['Morning check-in. Checking on WHAT though. What moved overnight.'],
+    carl: ['Morning already. The floor survived the night. Probably.'],
+    celestia: ['First light session. Whatever they open first matters most today.'],
 };
 
 /* ── DIRECT — rung 3, rare: they talk TO you ({name} allowed) ──────────── */
 
 export const DIRECT: Record<string, string[]> = {
     rocco: ["Yes, you. Don't buy it because I liked it."],
-    mick: ["You. You're in the notes now."],
+    mick: ["You. You're in the notes now.", 'You. The file says nice things. Mostly.'],
     mimi: ['Take your time, {name}. I price impatience hourly.'],
     eddie: ['{name}. What do you know. You can tell me.'],
     steven: ["Hey. No pressure. It's just a website."],
     carl: ["Don't get attached. Or do. It goes the same way."],
-    romy: ["You're allowed to just like it, {name}."],
-    celestia: ['Warm through and through, isn’t it. Hold your hand near the screen.'],
+    romy: ["You're allowed to just like it, {name}.", 'Take the long way through the gallery today, {name}. For me.'],
+    celestia: ['Warm through and through, isn’t it. Hold your hand near the screen.', 'You already know which one. Go back to it.'],
 };
 
 /* ── FOURTH WALL — the crown. Once a session, names the real piece ─────── */
@@ -621,6 +780,8 @@ export const FOURTHWALL: string[] = [
     'Do we stop existing when they close the tab? Nobody answer.',
     'They just leaned closer. Everyone act natural.',
     'Say something normal. They might be able to read this.',
+    "Which side of the glass are we on. Today I genuinely can't tell.",
+    'If they mute me mid-sentence, does the sentence finish somewhere?',
 ];
 
 /* ── SIGHT, the quantitative read — they quote the COUNTABLE things ──────
@@ -687,6 +848,8 @@ export const ACTION_LINES: Record<string, ActionLine[]> = {
         { who: 'mick', text: "That's {n} stars today. The ledger grows.", when: (_v, n) => n >= 3 },
         { who: 'steven', text: 'They star a lot of stuff. I respect the enthusiasm.', when: (_v, n) => n >= 5 },
         { who: 'mimi', text: 'Starring the {color} one. Their taste is getting expensive.', when: (v) => !!v?.bucket },
+        { who: 'celestia', text: 'A star. Small light, correctly placed.' },
+        { who: 'carl', text: 'Starred. A little hope. Filed with the others.' },
     ],
     unstar: [
         { who: 'carl', text: 'Un-starred. The cooling begins.' },
@@ -699,6 +862,7 @@ export const ACTION_LINES: Record<string, ActionLine[]> = {
         { who: 'carl', text: 'Wishlisted. The wanting is the good part. It goes downhill from owning.' },
         { who: 'romy', text: 'On the list. I hope they get it, honestly.' },
         { who: 'celestia', text: 'Wishlisted. Wanting leaves a mark on a piece. That one is marked now.' },
+        { who: 'rocco', text: 'Wishlisted. The polite way to stare.' },
         { who: 'eddie', text: 'They wishlisted {piece}. You saw it. I saw it.', when: (v) => !!v },
         { who: 'mimi', text: 'Wishlisting the rare one. Everyone wants the rare one. Few pay.', when: (v) => (v?.rarity ?? 0) >= 80 },
         { who: 'steven', text: "That's {n} wishlists today. Big dreams. Same, though.", when: (_v, n) => n >= 3 },
@@ -715,11 +879,13 @@ export const ACTION_LINES: Record<string, ActionLine[]> = {
         { who: 'steven', text: 'In the cart. I leave stuff in carts for months. No shame.' },
         { who: 'romy', text: 'It went in the cart. Get it. Life is short and the art is good.' },
         { who: 'mimi', text: '{n} in the cart now. Someone is building up the nerve.', when: (_v, n) => n >= 3 },
+        { who: 'rocco', text: 'The cart. Where taste meets accounting.' },
     ],
     bench: [
         { who: 'steven', text: 'On the bench. Benched art. This site is a lot sometimes.' },
         { who: 'eddie', text: 'Benched. The bench is where decisions go to think.' },
         { who: 'rocco', text: 'The bench. Purgatory with better lighting.' },
+        { who: 'mimi', text: 'Benched. Half-decisions. I do my best work against half-decisions.' },
     ],
     grail: [
         { who: 'rocco', text: 'A grail pin. Bold word, grail. Let it earn it.' },
@@ -728,6 +894,7 @@ export const ACTION_LINES: Record<string, ActionLine[]> = {
         { who: 'mimi', text: 'A grail pin. So that is the one they would never sell. Noted. Everything sells.' },
         { who: 'romy', text: 'They pinned a grail. Everyone should have one. That is the whole religion.' },
         { who: 'carl', text: 'A grail. Something to lose. Congratulations.' },
+        { who: 'steven', text: 'A grail pin. I feel that way about the lawnmower.' },
     ],
     ungrail: [
         { who: 'carl', text: 'De-pinned. Even grails end. Told you.' },
@@ -737,16 +904,20 @@ export const ACTION_LINES: Record<string, ActionLine[]> = {
         { who: 'romy', text: 'Into an album. A little collection inside the collection. Sweet.' },
         { who: 'mick', text: 'Filed into an album. A sorter. My kind of viewer.' },
         { who: 'rocco', text: 'Albums. Curation. Someone is taking this seriously. Good.' },
+        { who: 'steven', text: 'An album. Like a photo book. I miss photo books.' },
     ],
     todo: [
         { who: 'steven', text: 'They put art on a to-do list. I put the lawn on mine. Same energy.' },
         { who: 'mick', text: 'On the to-do list. Lists get done here. Sometimes.' },
         { who: 'carl', text: 'A to-do. The road to the graveyard of intentions. Nice one though.' },
+        { who: 'eddie', text: "A to-do. A DEADLINE. Something's coming." },
     ],
     note: [
         { who: 'eddie', text: 'They wrote a note on it. Private thoughts. I would pay for those.' },
         { who: 'mick', text: 'A note. Someone else keeps records. I feel less alone.' },
         { who: 'celestia', text: 'They wrote something on it. Words stick to pieces. Choose them well.' },
+        { who: 'romy', text: "A note on it. Little love letters. That's what those are." },
+        { who: 'steven', text: 'They wrote a note. I never know what to write.' },
     ],
     follow: [
         { who: 'romy', text: 'Followed. The graph grows by one. That is how villages start.' },
@@ -774,44 +945,55 @@ export const ACTION_LINES: Record<string, ActionLine[]> = {
         { who: 'eddie', text: 'A buy. Someone somewhere just exhaled.' },
         { who: 'romy', text: 'They bought it. It found its person. That is the whole story.' },
         { who: 'carl', text: 'Bought. Somewhere a seller is either laughing or crying. No third option.' },
+        { who: 'eddie', text: "Bought. No hesitation. THAT'S the tell.", when: (_v, n) => n >= 2 },
+        { who: 'steven', text: 'They bought it. Warm feeling. Like when the mail comes.' },
     ],
     sell: [
         { who: 'carl', text: 'Sold. It begins: the checking of the price, forever, after.' },
         { who: 'mimi', text: 'A sale. Now watch if they regret it. They always look back once.' },
         { who: 'rocco', text: 'Sold. Letting go is also taste.' },
         { who: 'mick', text: 'Sold. The provenance grows a line. That is all history is.' },
+        { who: 'eddie', text: 'Sold. Watch what they do with the money. The money TELLS you.' },
     ],
     listed: [
         { who: 'eddie', text: 'A listing. The number tells a story. I am reading it now.' },
         { who: 'mimi', text: 'Listed. Now I get to decide if that price is a joke.' },
         { who: 'carl', text: 'Listed. And now, the waiting. The long, honest waiting.' },
+        { who: 'rocco', text: 'Listed. Pricing your own taste. Braver than it looks.' },
+        { who: 'steven', text: 'They listed one. Sale sign on the lawn.' },
     ],
     offer: [
         { who: 'mimi', text: 'An offer went out. Aggressive. I approve of the shape of it.' },
         { who: 'eddie', text: 'They made an offer. Somewhere a phone just lit up.' },
         { who: 'rocco', text: 'An offer. Negotiation is an art form nobody frames.' },
+        { who: 'carl', text: 'An offer. Hope, with a number on it.' },
     ],
     sweep: [
         { who: 'mimi', text: 'A SWEEP. Now that is how you announce yourself.' },
         { who: 'eddie', text: 'They swept. Multiple pieces, one move. That gets talked about.' },
         { who: 'mick', text: 'A sweep, logged in full. Days like this are why I keep the book.' },
+        { who: 'celestia', text: 'A sweep. The tide came in with intent today.' },
     ],
     colorway: [
         { who: 'celestia', text: 'They changed the colours of the whole world. As one does.' },
         { who: 'steven', text: 'New colours. I liked the old ones. I will like these too.' },
         { who: 'rocco', text: 'A new colorway. Redecorating mid-session. Confidence.' },
         { who: 'romy', text: 'They repainted the room. It suits them, whatever it is.' },
+        { who: 'mimi', text: 'New wall colours. Redecorating precedes purchases. Usually.' },
     ],
     achievement: [
         { who: 'mick', text: 'An achievement. Into the record it goes.' },
         { who: 'romy', text: 'They unlocked something. Small trumpet sounds.' },
         { who: 'eddie', text: 'An achievement popped. I heard it from here.' },
         { who: 'carl', text: 'An achievement. Enjoy the dopamine. It has a half-life.' },
+        { who: 'steven', text: 'An achievement. I clapped. Nobody saw.' },
     ],
     zen: [
         { who: 'steven', text: 'Zen mode. Smart. This place gets loud.' },
         { who: 'celestia', text: 'They cleared the room to be alone with it. Correct ritual.' },
         { who: 'rocco', text: 'Zen mode. Just the art. The only setting that matters.' },
+        { who: 'carl', text: 'They hid everything. Including us. …Fair.' },
+        { who: 'mimi', text: 'Zen mode. Fewer distractions, cleaner reads. Dangerous shopper.' },
     ],
 };
 
@@ -939,6 +1121,22 @@ export const DUET_OPENERS: DuetOpener[] = [
     { who: 'carl', topic: 'smalltalk', text: 'My knee says the floor drops this week.' },
     { who: 'romy', topic: 'smalltalk', text: 'I rearranged my corner today. Feels bigger.' },
     { who: 'eddie', topic: 'smalltalk', text: 'I heard something about somebody. That is all I can say.' },
+    /* — 2026-07-11 wow pass: new topics + more halves — */
+    { who: 'rocco', topic: 'wide', when: (v) => v?.orientation === 'Landscape', text: 'Wide one. Cinema pretensions.' },
+    { who: 'steven', topic: 'wide', when: (v) => v?.orientation === 'Landscape', text: 'That would go long over a bed.' },
+    { who: 'mimi', topic: 'warm', when: (v) => v?.warmth === 'Warm' || v?.warmth === 'Molten', text: 'Warm palette. Comfort pricing applies.' },
+    { who: 'romy', topic: 'warm', when: (v) => v?.warmth === 'Warm' || v?.warmth === 'Molten', text: 'Warm right through. Like it was left in the sun.' },
+    { who: 'carl', topic: 'cold', when: (v) => v?.warmth === 'Cold' || v?.warmth === 'Cool', text: 'Cold one. Suits the times.' },
+    { who: 'celestia', topic: 'cold', when: (v) => v?.warmth === 'Cold', text: 'A cold piece. It is conserving something.' },
+    { who: 'eddie', topic: 'tilt', when: (v) => v?.symmetry === 'Askew' || v?.symmetry === 'Leaning', text: 'It leans. Deliberately. Toward WHAT.' },
+    { who: 'steven', topic: 'tilt', when: (v) => v?.symmetry === 'Askew', text: 'It leans a bit. I keep straightening my head for it.' },
+    { who: 'rocco', topic: 'grain', when: (v) => v?.texture === 'Grainy' || v?.texture === 'Textured', text: 'Grain again. Nostalgia is cheap and everyone is buying.' },
+    { who: 'romy', topic: 'grain', when: (v) => v?.texture === 'Grainy' || v?.texture === 'Textured', text: 'It has tooth to it. Real-paper feeling.' },
+    { who: 'mick', topic: 'centered', when: (v) => v?.gravity === 'Centered', text: 'Dead centre composition. Textbook.' },
+    { who: 'celestia', topic: 'watching', text: 'Their attention has a shape today. Rounder than usual.' },
+    { who: 'carl', topic: 'watching', text: 'They are deciding something. The scroll got careful.' },
+    { who: 'steven', topic: 'watching', text: 'They have been on this page a while. It is a good page.' },
+    { who: 'mimi', topic: 'taste', text: 'Their taste got expensive lately. I track these things.' },
 ];
 
 export const DUET_REPLIES: DuetReply[] = [
@@ -978,6 +1176,30 @@ export const DUET_REPLIES: DuetReply[] = [
     { who: 'eddie', topics: ['smalltalk'], text: 'Wait. Say that again slower.' },
     { who: 'celestia', topics: ['smalltalk'], text: 'The cards said someone would say that today.' },
     { who: 'mimi', topics: ['smalltalk'], text: 'Is any of this actionable. No? Carry on.' },
+    /* — 2026-07-11 wow pass — */
+    { who: 'mimi', topics: ['wide'], text: 'Wide hangs over furniture. Furniture people pay.' },
+    { who: 'carl', topics: ['wide'], text: 'More room to fade.' },
+    { who: 'romy', topics: ['wide'], text: 'A view, basically. Some pieces are views.' },
+    { who: 'carl', topics: ['warm'], text: 'Warm now.' },
+    { who: 'steven', topics: ['warm'], text: 'Feels like a kitchen.' },
+    { who: 'celestia', topics: ['warm'], text: 'It kept some of the sun it was made under.' },
+    { who: 'romy', topics: ['cold'], text: 'Somebody runs hot. It will balance.' },
+    { who: 'mimi', topics: ['cold'], text: 'Cold waits. I wait better.' },
+    { who: 'steven', topics: ['cold'], text: 'Good in summer, maybe.' },
+    { who: 'rocco', topics: ['tilt'], text: 'A lean is a stance.' },
+    { who: 'mick', topics: ['tilt'], text: 'Logged at roughly four degrees.' },
+    { who: 'romy', topics: ['tilt'], text: 'The crooked ones feel handmade.' },
+    { who: 'carl', topics: ['tilt'], text: 'It will settle. Everything settles.' },
+    { who: 'mick', topics: ['grain'], text: 'Grain files badly. Gets everywhere.' },
+    { who: 'steven', topics: ['grain'], text: 'Sandy.' },
+    { who: 'celestia', topics: ['grain'], text: 'Static from somewhere else.' },
+    { who: 'rocco', topics: ['centered'], text: 'The safe seat.' },
+    { who: 'eddie', topics: ['centered'], text: 'Centred means LOOK HERE. So look elsewhere.' },
+    { who: 'carl', topics: ['centered'], text: 'The middle holds until it does not.' },
+    { who: 'mimi', topics: ['watching'], text: 'Careful scrolls precede receipts.' },
+    { who: 'eddie', topics: ['watching'], text: 'I noticed it too. Before anyone. For the record.' },
+    { who: 'mick', topics: ['taste'], text: 'The record supports it.' },
+    { who: 'mimi', topics: ['taste'], text: 'Expensive taste keeps this room lit.' },
 ];
 
 /* ── LOYALTY — after a resident adopts you (the favourites form) ────────── */

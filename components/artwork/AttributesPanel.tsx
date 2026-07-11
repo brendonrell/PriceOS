@@ -9,17 +9,46 @@
  * rarity), fed by the single-output API + the stored fingerprint.
  */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { buildOutputAttributes, type AttrInput } from '../../lib/output/attributes';
+import { fetchEditionStats, type EditionStats } from '../../lib/output/editionStats';
+import { samplePaletteChips, type PaletteChip } from '../../lib/output/paletteChips';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
+import { useToast } from '../../lib/state/ToastContext';
 import { composeCelestialReading } from '../../lib/output/celestialReading';
 import { useMarketSheet } from '../../lib/state/MarketSheetContext';
 import AttrWall from './AttrWall';
 import RarityReceiptButton from './RarityReceiptButton';
 
 export default function AttributesPanel({ query, ...props }: AttrInput & { query?: string }) {
-    const groups = useMemo(() => buildOutputAttributes(props), [props]);
+    /* Edition context — percentile tags + mint order/speed, from the real
+       stored rows. One cached fetch per project; the sheet fills in as it
+       lands (tags are gated on coverage, never faked). */
+    const [edition, setEdition] = useState<EditionStats | null>(null);
+    useEffect(() => {
+        let cancelled = false;
+        fetchEditionStats(props.slug).then((s) => { if (!cancelled) setEdition(s); });
+        return () => { cancelled = true; };
+    }, [props.slug]);
+
+    /* Swatches — the piece's actual colours, sampled once from its own
+       offscreen render (cached per piece). */
+    const [palette, setPalette] = useState<PaletteChip[] | null>(null);
+    useEffect(() => {
+        let cancelled = false;
+        const t = window.setTimeout(() => {
+            const chips = samplePaletteChips(props.slug, props.id);
+            if (!cancelled) setPalette(chips);
+        }, 0);
+        return () => { cancelled = true; window.clearTimeout(t); };
+    }, [props.slug, props.id]);
+
+    const groups = useMemo(
+        () => buildOutputAttributes({ ...props, edition, palette }),
+        [props, edition, palette]
+    );
     const { notifs } = usePdNotifs();
+    const { showToast } = useToast();
     const { openCriteriaOfferSheet } = useMarketSheet();
 
     /* Celestial Tracker — the piece's birth-sky reading, composed from its real
@@ -52,6 +81,12 @@ export default function AttributesPanel({ query, ...props }: AttrInput & { query
                 onTraitOffer={(category, value) =>
                     openCriteriaOfferSheet({ kind: 'trait', slug: props.slug, category, value })
                 }
+                onChipTap={(hex) => {
+                    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+                        navigator.clipboard.writeText(hex).catch(() => {});
+                    }
+                    showToast(`${hex}: COPIED`);
+                }}
             />
             <RarityReceiptButton slug={props.slug} id={props.id} />
         </>

@@ -16,8 +16,9 @@ import {
     paletteBand, contrastBand, warmthBand, symmetryBand, airBand, textureBand, gravityWord,
     valueKey, colourStory,
 } from './derive';
-import { primaryTrait, traitRarity, fateRarity, colorRarity, overallRarity, type Freq } from './rarity';
-import { outputIsolation } from './genome';
+import { primaryTrait, traitRarity, fateRarity, colorRarity, overallRarity, pdRarityRank, type Freq } from './rarity';
+import { outputIsolation, nearestKin } from './genome';
+import { percentileTag, mintOrderOf, ordinal, humanizeDelta, type EditionStats, type EditionAxis } from './editionStats';
 import type { HandRead } from './hand';
 import { entropyGrid } from './entropyGlyph';
 
@@ -35,6 +36,8 @@ export interface AttrTile {
     grid?: boolean[];
     /** A weighted colour strip (collection palette). Each segment grows by weight. */
     spectrum?: { hex: string; weight: number }[];
+    /** Tappable hex chips — the piece's ACTUAL colours; AttrWall copies on tap. */
+    chips?: { hex: string; share: number }[];
     /** When set, the tile is tappable and AttrWall calls onTileTap(tapKey). */
     tapKey?: string;
 }
@@ -68,6 +71,12 @@ export interface AttrInput {
     hand?: HandRead | null;
     /** Attention lens — anoint conduit votes for this piece. */
     attention?: { votes: number } | null;
+    /** Edition context (lib/output/editionStats) — percentile tags on the
+     *  Fingerprint bands + mint order/speed. Null until fetched; gated. */
+    edition?: EditionStats | null;
+    /** The piece's ACTUAL rendered colours (lib/output/paletteChips) — the
+     *  tappable hex chips. Null until sampled. */
+    palette?: { hex: string; share: number }[] | null;
 }
 
 const pct = (p: number): string => (p >= 0.1 ? `${Math.round(p * 100)}%` : `${(p * 100).toFixed(1)}%`);
@@ -75,10 +84,18 @@ const rareBlurb = (f: Freq): string =>
     `${f.count} of ${f.total} · ${pct(f.pct)}${f.rank === 1 ? ' · rarest' : ''}`;
 
 export function buildOutputAttributes(input: AttrInput): AttrGroup[] {
-    const { slug, id, mintMs, traits, fingerprint, trueName, hand, attention } = input;
+    const { slug, id, mintMs, traits, fingerprint, trueName, hand, attention, edition, palette } = input;
     const project = getProject(slug);
     const supply = project?.outputs ?? null;
     const groups: AttrGroup[] = [];
+
+    /* Percentile tag for a Fingerprint band's sub — "34% · top 8%". Gated on
+       the edition context; without it the sub is exactly what it always was. */
+    const bandSub = (axis: EditionAxis, v: number, base?: string): string | undefined => {
+        const tag = edition ? percentileTag(edition, axis, v) : null;
+        const lead = base ?? pct(v);
+        return tag ? `${lead} · ${tag}` : lead;
+    };
 
     /* ── Identity ─────────────────────────────────────────────────────── */
     const identity: AttrTile[] = [];
@@ -123,24 +140,24 @@ export function buildOutputAttributes(input: AttrInput): AttrGroup[] {
     if (bucket) {
         form.push({
             glyph: '✦', label: 'Temperature', value: warmth != null ? warmthBand(warmth) : colorTemperature(bucket),
-            sub: warmth != null ? `${pct(warmth)} warm` : undefined,
+            sub: warmth != null ? bandSub('warmth', warmth, `${pct(warmth)} warm`) : undefined,
         });
     }
     const br = fingerprint?.brightness, sa = fingerprint?.saturation, cx = fingerprint?.complexity;
-    if (br != null) form.push({ glyph: '◐', label: 'Brightness', value: brightnessBand(br), sub: pct(br) });
-    if (sa != null) form.push({ glyph: '❖', label: 'Saturation', value: saturationBand(sa), sub: pct(sa) });
+    if (br != null) form.push({ glyph: '◐', label: 'Brightness', value: brightnessBand(br), sub: bandSub('brightness', br) });
+    if (sa != null) form.push({ glyph: '❖', label: 'Saturation', value: saturationBand(sa), sub: bandSub('saturation', sa) });
     const contrast = fingerprint?.contrast;
-    if (contrast != null) form.push({ glyph: '◨', label: 'Contrast', value: contrastBand(contrast), sub: pct(contrast) });
+    if (contrast != null) form.push({ glyph: '◨', label: 'Contrast', value: contrastBand(contrast), sub: bandSub('contrast', contrast) });
     if (br != null && sa != null) form.push({ glyph: '◕', label: 'Tone', value: toneMood(br, sa) });
-    if (cx != null) form.push({ glyph: '⌗', label: 'Complexity', value: complexityBand(cx), sub: pct(cx) });
+    if (cx != null) form.push({ glyph: '⌗', label: 'Complexity', value: complexityBand(cx), sub: bandSub('complexity', cx) });
     const texture = fingerprint?.texture;
-    if (texture != null) form.push({ glyph: '▒', label: 'Texture', value: textureBand(texture), sub: pct(texture) });
+    if (texture != null) form.push({ glyph: '▒', label: 'Texture', value: textureBand(texture), sub: bandSub('texture', texture) });
     const air = fingerprint?.air;
-    if (air != null) form.push({ glyph: '◌', label: 'Air', value: airBand(air), sub: pct(air) });
+    if (air != null) form.push({ glyph: '◌', label: 'Air', value: airBand(air), sub: bandSub('air', air) });
     const gravity = fingerprint?.gravity;
     if (gravity) form.push({ glyph: '◒', label: 'Gravity', value: gravityWord(gravity) });
     const symmetry = fingerprint?.symmetry;
-    if (symmetry != null) form.push({ glyph: '◫', label: 'Symmetry', value: symmetryBand(symmetry), sub: pct(symmetry) });
+    if (symmetry != null) form.push({ glyph: '◫', label: 'Symmetry', value: symmetryBand(symmetry), sub: bandSub('symmetry', symmetry) });
     const orient = orientationOf(fingerprint?.aspect ?? null);
     if (orient) form.push({ glyph: '▭', label: 'Orientation', value: orient });
     /* v3 (2026-07-04) — higher-order reads composed from the real scalars above.
@@ -151,6 +168,11 @@ export function buildOutputAttributes(input: AttrInput): AttrGroup[] {
     if (bucket && accent) {
         const story = colourStory(bucket, accent);
         if (story) form.push({ glyph: '✧', label: 'Colour Story', value: story, sub: `${bucket} · ${accent}` });
+    }
+    /* Swatches — the piece's ACTUAL colours as tappable hex chips (sampled
+       from its real render, lib/output/paletteChips). Tap copies the hex. */
+    if (palette && palette.length > 0) {
+        form.push({ glyph: '▧', label: 'Swatches', value: '', sub: 'tap a chip to copy its hex', chips: palette });
     }
     if (form.length) groups.push({ key: 'form', label: 'Fingerprint', tiles: form });
 
@@ -185,6 +207,16 @@ export function buildOutputAttributes(input: AttrInput): AttrGroup[] {
             glyph: lunarGlyph(mintMs), label: 'Lunar Phase', value: lunarPhase(mintMs),
             sub: `${Math.round(lunarIllumination(mintMs) * 100)}% lit`,
         });
+        /* Mint order + speed — "3rd mint · 2 min after launch" — from the
+           edition's REAL mint clock (✶ is the canonical mint glyph). */
+        const mo = edition ? mintOrderOf(edition, id) : null;
+        if (mo) {
+            alm.push({
+                glyph: '✶', label: 'Mint Order', value: `${ordinal(mo.order)} mint`,
+                sub: mo.order === 1 ? 'opened the mint' : `${humanizeDelta(mo.sinceLaunchMs)} after launch`,
+                rare: mo.order === 1,
+            });
+        }
         groups.push({ key: 'almanac', label: 'Almanac', tiles: alm });
     }
 
@@ -231,6 +263,19 @@ export function buildOutputAttributes(input: AttrInput): AttrGroup[] {
             rare: iso.oneOfOne || iso.score >= 70,
         });
     }
+    /* Closest Sibling — the piece's nearest genome kin ("closest sibling:
+       #88"), straight from the same parameter space the Genome map plots. */
+    const kin = nearestKin(slug, id, 1);
+    const sib = kin?.kin[0];
+    if (sib && kin) {
+        rarity.push({
+            glyph: '≍', label: 'Closest Sibling', value: `#${sib.id}`,
+            sub: sib.distance === 0
+                ? 'an exact twin — same full combination'
+                : `alike on ${sib.shared} of ${kin.axes} axes`,
+            rare: sib.distance === 0,
+        });
+    }
     /* PD Rarity — the headline: provable art-rarity (trait/Fate/colour) folded
        WITH the genome isolation into one 0–100 read. Leads the group; ❖ is the
        sitewide rarity glyph. */
@@ -240,10 +285,15 @@ export function buildOutputAttributes(input: AttrInput): AttrGroup[] {
         if (overall) scores.push(overall.score);
         if (iso) scores.push(iso.score);
         const headline = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+        /* The RANK across the whole edition set — "#3 rarest of 105". We
+           always computed rarity; now it says where the piece STANDS. */
+        const rr = pdRarityRank(slug, id);
         rarity.unshift({
             glyph: '❖', label: 'PD Rarity', value: `${headline} / 100`,
-            sub: overall && iso ? 'trait + genome' : overall ? 'trait-based' : 'genome-based',
-            rare: headline >= 70,
+            sub: rr
+                ? `#${rr.rank} rarest of ${rr.total}`
+                : overall && iso ? 'trait + genome' : overall ? 'trait-based' : 'genome-based',
+            rare: headline >= 70 || (rr != null && rr.rank <= Math.max(1, Math.round(rr.total * 0.05))),
         });
     }
     /* Hand — the conviction / diamond-hands read (the ⌂ holder glyph). Every

@@ -236,10 +236,13 @@ export default function LaneRunner() {
     );
     const [score, setScore] = useState(0);
     const [best, setBest] = useState(0);
-    /* World record — the global top score + its @name, for the glory
-       (Brendon, 2026-07-10). Fetched once per game mount; a wipeout that
-       beats your best submits (signed-in users only, server keeps max). */
-    const [wr, setWr] = useState<{ score: number; handle: string } | null>(null);
+    /* The global top 10 with real @handles (Brendon, 2026-07-11 — no more
+       "@you": standings refresh from the server after a submit, so the line
+       always names the actual account). WR = the top row. Tapping the score
+       line opens the board. */
+    const [lb, setLb] = useState<Array<{ best: number; handle: string }>>([]);
+    const [lbOpen, setLbOpen] = useState(false);
+    const wr = lb.length > 0 && lb[0].best > 0 ? { score: lb[0].best, handle: lb[0].handle } : null;
     const [alive, setAlive] = useState(true);
     const [slid, setSlid] = useState(0); // flash counter for the oil-slide moment
     const [moment, setMoment] = useState<string | null>(null);
@@ -252,19 +255,22 @@ export default function LaneRunner() {
     const night = alive && score >= 50;
     const hot = alive && score >= 111;
 
+    const loadBoard = useCallback(() => {
+        fetch('/api/game-score?game=lane-runner')
+            .then((r) => (r.ok ? r.json() : null))
+            .then((j: { rows?: Array<{ best: number; handle: string }> } | null) => {
+                if (j?.rows) setLb(j.rows.filter((row) => row.best > 0));
+            })
+            .catch(() => { /* offline — header just omits the WR */ });
+    }, []);
+
     useEffect(() => {
         try {
             const b = Number(window.localStorage.getItem('pd_lr_best') ?? 0);
             if (isFinite(b)) setBest(b);
         } catch { /* private mode */ }
-        fetch('/api/game-score?game=lane-runner')
-            .then((r) => (r.ok ? r.json() : null))
-            .then((j: { rows?: Array<{ best: number; handle: string }> } | null) => {
-                const top = j?.rows?.[0];
-                if (top && top.best > 0) setWr({ score: top.best, handle: top.handle });
-            })
-            .catch(() => { /* offline — header just omits the WR */ });
-    }, []);
+        loadBoard();
+    }, [loadBoard]);
 
     const move = useCallback((to: number) => {
         const next = Math.max(0, Math.min(LANES - 1, to));
@@ -313,15 +319,15 @@ export default function LaneRunner() {
                             return nb;
                         });
                         if (s > 0) {
-                            // Best-effort submit — signed-out just 401s quietly;
-                            // a new WR repaints the header on the spot.
+                            // Best-effort submit — signed-out just 401s quietly.
+                            // A landed score refetches the standings, so the
+                            // header names the REAL account, never "@you".
                             fetch('/api/game-score', {
                                 method: 'POST',
                                 headers: { 'content-type': 'application/json' },
                                 body: JSON.stringify({ game: 'lane-runner', score: s }),
                             }).then((r) => {
-                                if (!r.ok) return;
-                                setWr((prev) => (prev && prev.score >= s ? prev : { score: s, handle: 'you' }));
+                                if (r.ok) loadBoard();
                             }).catch(() => { /* */ });
                         }
                         return s;
@@ -377,13 +383,42 @@ export default function LaneRunner() {
 
     return (
         <div className="lr-wrap">
-            <div className="lr-score">
+            {/* The status line IS the leaderboard toggle — tap where the WR
+                shows and the top 10 unfolds (Brendon, 2026-07-11). */}
+            <div
+                className="lr-score"
+                role="button"
+                tabIndex={0}
+                title="Top 10"
+                onPointerDown={(e) => {
+                    e.stopPropagation();
+                    setLbOpen((v) => { if (!v) loadBoard(); return !v; });
+                }}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setLbOpen((v) => { if (!v) loadBoard(); return !v; });
+                    }
+                }}
+            >
                 {!alive
                     ? `WIPEOUT · ${score} · BEST ${best}${wr ? ` · WR ${wr.score} @${wr.handle}` : ''} — TAP`
                     : moment
                         ? moment
                         : `SCORE ${score}${best > 0 ? ` · BEST ${best}` : ''}${wr ? ` · WR ${wr.score} @${wr.handle}` : ''}`}
             </div>
+            {lbOpen && (
+                <div className="lr-lb" aria-label="Lane Runner top 10">
+                    {lb.length === 0 && <div className="lr-lb-row">No records yet — set one.</div>}
+                    {lb.map((row, i) => (
+                        <div className="lr-lb-row" key={`${row.handle}-${i}`}>
+                            <span className="lr-lb-rank">{i + 1}</span>
+                            <span className="lr-lb-handle">@{row.handle}</span>
+                            <span className="lr-lb-score">{row.best}</span>
+                        </div>
+                    ))}
+                </div>
+            )}
             <div
                 className={`lr-board${alive ? '' : ' lr-crashed'}${night ? ' lr-night' : ''}`}
                 onPointerDown={onBoardPointer}

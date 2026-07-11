@@ -131,6 +131,33 @@ export function pdRarity(slug: string, id: number): {
     return { score, classic: overall?.score ?? null, isolation: iso?.score ?? null };
 }
 
+/** The PD Rarity RANK — where this piece's headline sits across its WHOLE
+ *  edition set ("#3 rarest of 105"). Same pdRarity math per edition, tallied
+ *  once per project and memoised; ties share a rank (both are "#3"). */
+const rankCache = new Map<string, Map<number, number> | null>();
+export function pdRarityRank(slug: string, id: number): { rank: number; total: number } | null {
+    const key = slug.toLowerCase();
+    if (!rankCache.has(key)) {
+        const project = getProject(key);
+        const total = project?.outputs ?? 0;
+        if (!total || total <= 0) { rankCache.set(key, null); }
+        else {
+            const scores = new Map<number, number>();
+            for (let i = 1; i <= total; i++) {
+                const r = pdRarity(key, i);
+                if (r) scores.set(i, r.score);
+            }
+            rankCache.set(key, scores.size ? scores : null);
+        }
+    }
+    const scores = rankCache.get(key);
+    const mine = scores?.get(id);
+    if (!scores || mine == null) return null;
+    let rarer = 0;
+    for (const s of scores.values()) if (s > mine) rarer += 1;
+    return { rank: rarer + 1, total: scores.size };
+}
+
 /** Rarity of an Output's dominant colour bucket across its project's editions. */
 export function colorRarity(slug: string, bucket: string): Freq | null {
     const r = getProjectRarity(slug);

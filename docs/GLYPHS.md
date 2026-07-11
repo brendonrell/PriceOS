@@ -223,6 +223,15 @@ These belong to a *user*, never to an action.
   grabs the live page bg into the Haze slot). Reused as the **dominant-colour
   grouping** glyph (dropper = sampling colour). Distinct from its §4 identity-
   category achievement use; context disambiguates. (Brendon, 2026-06-16.)
+- **▧ (U+25A7) = Swatches** — the character sheet's tappable hex-chip tile
+  (`lib/output/attributes.ts`). NOT ▦ (Calendar, reserved) and NOT ▩ (Entropy
+  Visualizer). (2026-07-11.)
+- **≍ (U+224D, "equivalent to") = Closest Sibling / genome kin** — the
+  character sheet's nearest-kin tile (`lib/output/attributes.ts`). NOT the
+  Haze variation family ≋≊≅≃≂ and NOT the copy glyph ⧉. (2026-07-11.)
+- **⧉ (U+29C9) = COPY** — copy-to-clipboard affordance (address/ID copy in
+  ProfilePageBody, ProjectMorePanel, AmbientStrip, StickerManagerModal).
+  Never reuse for anything else. (Noted 2026-07-11.)
 - Force **Courier** (`'Courier New', Courier, monospace`) anywhere a glyph shows.
 - When a glyph doesn't fit a context, it's fine to **omit** it rather than force
   a mismatched icon (taste call — Brendon, 2026-06-14).

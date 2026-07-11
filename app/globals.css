@@ -1146,8 +1146,17 @@ body.ascii-id-mode .id-row-sprite     { display: none !important; }
    cells that light up, dashed lane dividers, the whole board is the
    controller (tap a lane). Lives inside .global-search-results. */
 .global-search-results.has-results.gsr-egg-open { max-height: 420px; }
-.lr-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 0 4px; font-family: 'Courier New', Courier, monospace; }
-.lr-score { font-size: 11px; font-weight: bold; letter-spacing: 1px; opacity: 0.85; text-align: center; white-space: nowrap; }
+.lr-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 6px 4px; font-family: 'Courier New', Courier, monospace; }
+/* Status + hint WRAP — nowrap clipped both lines in the narrow results box
+   (Brendon, 2026-07-11: "content above and below gets cut off"). The status
+   line is also the leaderboard toggle. */
+.lr-score { font-size: 11px; font-weight: bold; letter-spacing: 1px; opacity: 0.85; text-align: center; white-space: normal; overflow-wrap: break-word; max-width: 100%; line-height: 1.5; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+/* Top 10 — unfolds off the status line. Real @handles, full-strength text. */
+.lr-lb { display: flex; flex-direction: column; gap: 3px; width: min(210px, 100%); padding: 6px 8px; border: 1px dashed color-mix(in srgb, currentColor 45%, transparent); border-radius: 6px; }
+.lr-lb-row { display: flex; align-items: baseline; gap: 10px; font-size: 11px; font-weight: bold; letter-spacing: 0.5px; }
+.lr-lb-rank { width: 16px; flex-shrink: 0; opacity: 0.85; }
+.lr-lb-handle { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lr-lb-score { flex-shrink: 0; font-feature-settings: 'tnum'; font-variant-numeric: tabular-nums; }
 .lr-board { display: flex; flex-direction: column; gap: 3px; padding: 8px 10px; border: 1px solid color-mix(in srgb, currentColor 45%, transparent); border-radius: 8px; touch-action: none; cursor: pointer; user-select: none; -webkit-user-select: none; transition: background 0.6s ease; }
 .lr-row { display: flex; }
 .lr-cell { position: relative; width: 46px; height: 40px; }
@@ -1155,7 +1164,7 @@ body.ascii-id-mode .id-row-sprite     { display: none !important; }
 .lr-car { position: absolute; left: 50%; top: 50%; width: 21px; height: 37px; transform: translate(-50%, -50%); display: block; }
 .lr-hazard { opacity: 0.85; }
 .lr-crashed { animation: fmPulse 0.45s ease-in-out 4; }
-.lr-hint { font-size: 10px; opacity: 0.4; white-space: nowrap; }
+.lr-hint { font-size: 10px; opacity: 0.4; white-space: normal; overflow-wrap: break-word; max-width: 100%; text-align: center; line-height: 1.5; }
 /* Oil slide — a quick cartoon fishtail on the remounted hero slot. */
 .lr-hero-slot { position: absolute; inset: 0; animation: lr-fishtail 0.35s ease-out; }
 @keyframes lr-fishtail {
@@ -2546,10 +2555,12 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     font-family: 'Courier New', Courier, monospace;
     font-weight: bold; font-size: 15px; line-height: 1.32;
     white-space: normal;
-    /* Project names are arbitrary, so a long unbroken name must wrap inside the
-       bubble instead of spilling past its edge (Brendon, 2026-06-22). The
-       measurer carries the same rule so the auto-hug width still matches. */
-    overflow-wrap: anywhere;
+    /* Words wrap at SPACES; only a genuinely too-long word (arbitrary project
+       names, Brendon 2026-06-22) may break mid-word. NOT `anywhere` — that let
+       the width-hug math shatter normal words ("impatienc / e", the Mimi
+       screenshot, Brendon 2026-07-11). break-word keeps the hug honest: the
+       narrowest width is bounded by the longest word. */
+    overflow-wrap: break-word;
     opacity: 0;
     transition: opacity 0.3s; /* exit fade; entrance is per-character keyframe */
 }
@@ -2561,7 +2572,7 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
    longest wrapped line. Mirrors the bubble's text metrics exactly. */
 .npc-measure {
     position: fixed; left: -99999px; top: 0; visibility: hidden;
-    pointer-events: none; white-space: normal; overflow-wrap: anywhere;
+    pointer-events: none; white-space: normal; overflow-wrap: break-word;
     box-sizing: content-box; padding: 0;
     font-family: 'Courier New', Courier, monospace;
     font-weight: bold; line-height: 1.32;
@@ -10911,6 +10922,42 @@ body.colorway-dark .ghost-feed-bar {
     border: 1px solid color-mix(in srgb, var(--text-color) 30%, transparent);
 }
 .attr-spectrum-seg { height: 100%; flex-basis: 0; min-width: 1px; }
+/* Swatches — the piece's ACTUAL colours as tappable hex chips (tap = copy).
+   Full-strength text + borders (Rule #2): a chip is an active control. */
+.attr-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 3px 0 2px;
+}
+.attr-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: 1px solid color-mix(in srgb, var(--text-color) 60%, transparent);
+    border-radius: 4px;
+    padding: 3px 7px 3px 4px;
+    cursor: pointer;
+    color: inherit;
+    -webkit-tap-highlight-color: transparent;
+}
+.attr-chip:active {
+    background: var(--text-color);
+    color: var(--bg-color);
+}
+.attr-chip-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid color-mix(in srgb, var(--text-color) 35%, transparent);
+}
+.attr-chip-hex {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+}
 .attr-tile-sub {
     font-size: 10px;
     line-height: 1.3;
