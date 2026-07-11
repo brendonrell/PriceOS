@@ -46,6 +46,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { useAuth } from '../../lib/state/AuthContext';
@@ -54,6 +55,7 @@ import { openConnectModal } from '../../lib/wallet/walletBus';
 import { DISCORD_URL } from '../../lib/config/discord';
 import { useGasData } from '../../lib/hooks/useGasData';
 import { fmtFollowers } from '../../lib/social/useArtistSocial';
+import { hasStudioAccess } from '../../lib/studio/access';
 
 export function LinksView() {
     const { setView, closeMenu } = useDropdown();
@@ -62,6 +64,18 @@ export function LinksView() {
     const { showToast } = useToast();
 
     const isAuthed = !!siweAddress;
+
+    /* PD Studio is its own app (Studio / Docs / MCP — the coder+agent side
+       of PD), so on /studio the SAME menu chrome carries a fresh links list
+       built around that app (Brendon, 2026-07-11): Dashboard · Analytics ·
+       Docs · MCP · Support (Stickers for the access list). Everything else —
+       search bar, settings row, log-out pill, sizing — is untouched. */
+    const pathname = usePathname();
+    const onStudio = pathname === '/studio' || pathname?.startsWith('/studio/');
+    const [studioGod, setStudioGod] = useState(false);
+    useEffect(() => {
+        if (onStudio) setStudioGod(hasStudioAccess(siweAddress ?? undefined));
+    }, [onStudio, siweAddress]);
 
     /* Real follower / following counts for the signed-in wallet. */
     const [followCounts, setFollowCounts] = useState<{ followers: number; following: number } | null>(null);
@@ -112,6 +126,66 @@ export function LinksView() {
             showToast('Wallet: NOT READY — refresh and try again'),
         );
     };
+
+    if (onStudio) {
+        return (
+            <div className="dropdown-menu-links" id="dropdownMenuLinks">
+                <a href="/studio" onClick={() => closeMenu()}>Dashboard</a>
+                <a href="/studio#analytics" onClick={() => closeMenu()}>Analytics</a>
+                <a href="/docs" data-native-nav="">Docs</a>
+                <a href="/docs/mcp" data-native-nav="">MCP</a>
+                {studioGod ? (
+                    <a href="/studio#stickers" onClick={() => closeMenu()}>Stickers</a>
+                ) : (
+                    <a
+                        href={DISCORD_URL}
+                        onClick={(e) => { e.preventDefault(); window.open(DISCORD_URL, '_blank', 'noopener,noreferrer'); }}
+                    >
+                        Support
+                    </a>
+                )}
+
+                <a
+                    role="button"
+                    tabIndex={0}
+                    className="settings-row"
+                    style={{ cursor: 'pointer', justifyContent: 'space-between' }}
+                    onClick={(e) => { e.preventDefault(); setView('settings'); }}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setView('settings'); }
+                    }}
+                >
+                    <span>Settings</span>
+                    <span
+                        className="gas-widget gas-widget-inline"
+                        id="gasWidget"
+                        role="button"
+                        tabIndex={0}
+                        title="Open gas tracker"
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); open('gasTracker'); }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); open('gasTracker'); }
+                        }}
+                    >
+                        <span style={{ position: 'relative', top: 2 }}>{gasValue} gwei</span>{' '}
+                        <span className="gas-glyph">⍞</span>
+                    </span>
+                </a>
+
+                <div className="dropdown-divider" />
+
+                {isAuthed ? (
+                    <button className="dropdown-pill" type="button" onClick={handleLogOut}>
+                        Log Out <span className="logout-icon">↬{'︎'}</span>
+                    </button>
+                ) : (
+                    <button className="dropdown-pill" type="button" onClick={handleConnectWallet} title="Connect a wallet to sign in">
+                        Connect Wallet <span className="logout-icon">⟠{'︎'}</span>
+                    </button>
+                )}
+            </div>
+        );
+    }
 
     return (
         <div className="dropdown-menu-links" id="dropdownMenuLinks">

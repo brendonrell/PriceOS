@@ -14,10 +14,13 @@
     padding: 14px 2px;
 }
 
-/* ── Covers grid ── */
+/* ── Covers grid ──
+   Sizing is 100% CSS (no JS measuring, ever): square tiles in an auto-fill
+   grid — the sticker-grid system. Canvases paint at a fixed resolution and
+   stretch to their cell, so the wall never jumps while panels animate open. */
 .albums-grid {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 18px 14px;
 }
 .album-tile {
@@ -28,28 +31,34 @@
     color: inherit;
     text-align: left;
     font-family: 'Courier New', Courier, monospace;
+    min-width: 0;
 }
 .album-tile-art {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
     gap: 2px;
+    width: 100%;
+    aspect-ratio: 1;
     border-radius: 10px;
     overflow: hidden;
     background: color-mix(in srgb, currentColor 8%, transparent);
-    align-items: center;
-    justify-content: center;
 }
-.album-tile-art canvas { border-radius: 0 !important; }
-.album-tile-art.single canvas { width: 100% !important; height: 100% !important; object-fit: cover; }
+.album-tile-art canvas {
+    border-radius: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover;
+}
+.album-tile-art.single { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+.album-tile-art.empty,
+.album-tile-art.album-tile-plus { display: flex; align-items: center; justify-content: center; }
 .album-tile-empty { font-size: 34px; }
 .album-tile-plus {
     font-size: 44px;
     font-weight: bold;
     border: 1.5px dashed color-mix(in srgb, currentColor 65%, transparent);
     background: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 .album-tile-label {
     display: flex;
@@ -108,6 +117,7 @@
 
 .album-pieces {
     display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
     gap: 8px;
 }
 .album-piece {
@@ -119,8 +129,15 @@
     border-radius: 8px;
     overflow: hidden;
     line-height: 0;
+    aspect-ratio: 1;
+    min-width: 0;
 }
-.album-piece canvas { border-radius: 8px !important; }
+.album-piece canvas {
+    border-radius: 8px !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover;
+}
 .album-piece.selected canvas { opacity: 0.62; }
 .album-check {
     position: absolute;

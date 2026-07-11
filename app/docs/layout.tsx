@@ -4,6 +4,7 @@ import '../../styles/docs.css';
 import { getNav } from '../../lib/docs/content';
 import { DocsChrome } from '../../components/docs/DocsSidebar';
 import ActionToast from '../../components/ActionToast';
+import { PerMilleMark } from '../../components/shell/PerMilleMark';
 
 /*
  * PD-Docs layout. PriceOSShell renders /docs bare (no app chrome), so this
@@ -28,7 +29,9 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
             <div className="pd-docs-body">{children}</div>
             <footer className="pd-docs-footer">
                 <span>
-                    <span className="pd-docs-logo">‰</span> Price Discussion
+                    {/* The REAL per-mille logo mark (SVG, the My PD reference) —
+                        correct Inter-derived thickness, no webfont smudge. */}
+                    <PerMilleMark className="pd-docs-logo-mark" /> Price Discussion
                 </span>
                 <span className="pd-docs-footer-links">
                     <a href="/">The App</a>

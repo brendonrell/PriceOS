@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { NavSection } from '../../lib/docs/content';
 import { ColorwayPicker } from '../dropdown/settings/ColorwayPicker';
+import { PerMilleMark } from '../shell/PerMilleMark';
 
 function NavList({ nav, onNavigate }: { nav: NavSection[]; onNavigate?: () => void }) {
     const pathname = usePathname();
@@ -57,7 +58,7 @@ export function DocsChrome({ nav }: { nav: NavSection[] }) {
         <>
             <header className="pd-docs-topbar">
                 <Link href="/docs" className="pd-docs-wordmark" onClick={() => setOpen(false)}>
-                    <span className="pd-docs-logo">‰</span> PRICE DISCUSSION <span className="pd-docs-wordmark-docs">DOCS</span>
+                    <PerMilleMark className="pd-docs-logo-mark" /> PRICE DISCUSSION <span className="pd-docs-wordmark-docs">DOCS</span>
                 </Link>
                 <div className="pd-docs-topbar-right">
                     <a href="/" className="pd-docs-applink">THE APP</a>

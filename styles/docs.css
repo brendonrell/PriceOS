@@ -51,6 +51,15 @@
     font-weight: 700;
 }
 
+/* The REAL per-mille logo mark (PerMilleMark SVG — the My PD reference),
+   sized to sit inline with the wordmark. */
+.pd-docs-logo-mark {
+    height: 11px;
+    width: auto;
+    display: inline-block;
+    vertical-align: -1px;
+}
+
 .pd-docs-wordmark-docs {
     border: 1px solid var(--text-color);
     padding: 1px 5px 0;

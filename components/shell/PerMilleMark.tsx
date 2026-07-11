@@ -1,3 +1,5 @@
+'use client';
+
 import { useId, type CSSProperties } from 'react';
 import {
     PETEY_GLYPH_PATH, PETEY_DOT_RIGHT_PATH, PETEY_DOT_LEFT_PATH, PETEY_DOT_TOP_PATH,

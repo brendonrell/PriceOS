@@ -9,6 +9,7 @@
  */
 
 import { encodePacked, keccak256, type Address, type Hex } from 'viem';
+import type { PriceSpriteVibe } from '../sprites/vibes';
 
 export type StudioRun = {
     id: string;
@@ -29,6 +30,17 @@ export type StudioDraft = {
     /** Mint price in ETH, kept as the raw input string ("0.00022"). */
     priceEth: string;
     script: string;
+    /** The Project's PriceSprite vibe — the artist picks 1 of 4, like
+        creating a user account. Required before publish. */
+    vibe?: PriceSpriteVibe;
+    /** The Project's signature colour (custom colorway, hex). Required. */
+    colorway?: string;
+    /** YouTube playlist (bare id or full URL — normalised at read time).
+        Required before publish; the soundtrack surround stays mutable
+        off-chain after launch. */
+    playlist?: string;
+    /** Soundtrack display label, e.g. "Artist — Album". */
+    playlistLabel?: string;
     createdAt: number;
     updatedAt: number;
     runs: StudioRun[];

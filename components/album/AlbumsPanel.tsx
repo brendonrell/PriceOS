@@ -131,13 +131,15 @@ function AlbumShow({ album, number, onClose }: { album: AlbumRecord; number: num
 }
 
 /* ── One cover tile: chosen cover, else a 2×2 mosaic of the first four.
-      Wears its worth quietly: the sum of its currently-listed members. ── */
-function AlbumCoverTile({ album, number, tile, listedEth, onOpen }: {
-    album: AlbumRecord; number: number; tile: number; listedEth: number; onOpen: () => void;
+      Wears its worth quietly: the sum of its currently-listed members.
+      Sizing is 100% CSS (square tiles in an auto-fill grid — the sticker-grid
+      system): the canvases paint at a fixed resolution and stretch to their
+      cell, so nothing is ever measured or resized in JS. ── */
+function AlbumCoverTile({ album, number, listedEth, onOpen }: {
+    album: AlbumRecord; number: number; listedEth: number; onOpen: () => void;
 }) {
     const coverKey = album.cover && album.keys.includes(album.cover) ? album.cover : null;
     const cells = coverKey ? [coverKey] : album.keys.slice(0, 4);
-    const cellPx = coverKey ? tile : Math.floor((tile - 2) / 2);
     return (
         <button
             type="button"
@@ -145,10 +147,10 @@ function AlbumCoverTile({ album, number, tile, listedEth, onOpen }: {
             style={{ animationDelay: `${Math.min(number - 1, 8) * 55}ms` }}
             onClick={onOpen}
         >
-            <span className={`album-tile-art${coverKey ? ' single' : ''}`} style={{ width: tile, height: tile }}>
+            <span className={`album-tile-art${coverKey ? ' single' : ''}${cells.length === 0 ? ' empty' : ''}`}>
                 {cells.map((k) => {
                     const m = parseKey(k);
-                    return m ? <OutputThumb key={k} slug={m.slug} id={m.id} size={cellPx} crop /> : null;
+                    return m ? <OutputThumb key={k} slug={m.slug} id={m.id} size={coverKey ? 170 : 85} crop /> : null;
                 })}
                 {!coverKey && cells.length === 0 && <span className="album-tile-empty">◰{VS15}</span>}
             </span>
@@ -173,19 +175,10 @@ export default function AlbumsPanel({ own }: { own: boolean }) {
     const [showOpen, setShowOpen] = useState(false);
     const [movePicker, setMovePicker] = useState(false);
     const [confirm, setConfirm] = useState<{ question: string; ok: string; onConfirm: () => void } | null>(null);
-    const wrapRef = useRef<HTMLDivElement | null>(null);
-    const [gridW, setGridW] = useState(0);
 
     useEffect(() => {
         setAlbums(getAlbums());
         return subscribeAlbums((next) => setAlbums(next));
-    }, []);
-    useEffect(() => {
-        const el = wrapRef.current;
-        if (!el) return;
-        const ro = new ResizeObserver((es) => setGridW(es[0].contentRect.width));
-        ro.observe(el);
-        return () => ro.disconnect();
     }, []);
 
     const openAlbum = albums.find((a) => a.id === openId) ?? null;
@@ -235,16 +228,14 @@ export default function AlbumsPanel({ own }: { own: boolean }) {
 
     /* ── Covers grid ─────────────────────────────────────────────────────── */
     if (!openAlbum) {
-        const cols = gridW >= 900 ? 4 : gridW >= 620 ? 3 : 2;
-        const tile = gridW > 0 ? Math.floor((gridW - (cols - 1) * 14) / cols) : 160;
         return (
-            <div className="albums-wrap" ref={wrapRef}>
+            <div className="albums-wrap">
                 {albums.length === 0 && (
                     <p className="album-empty-note">No albums yet — start your first.</p>
                 )}
                 <div className="albums-grid">
                     {albums.map((a, i) => (
-                        <AlbumCoverTile key={a.id} album={a} number={i + 1} tile={tile} listedEth={albumWorth(a)} onOpen={() => setOpenId(a.id)} />
+                        <AlbumCoverTile key={a.id} album={a} number={i + 1} listedEth={albumWorth(a)} onOpen={() => setOpenId(a.id)} />
                     ))}
                     <button
                         type="button"
@@ -255,7 +246,7 @@ export default function AlbumsPanel({ own }: { own: boolean }) {
                             setOpenId(rec.id);
                         }}
                     >
-                        <span className="album-tile-art album-tile-plus" style={{ width: tile, height: tile }}>＋</span>
+                        <span className="album-tile-art album-tile-plus">＋</span>
                         <span className="album-tile-label"><span className="album-tile-name">NEW ALBUM</span></span>
                     </button>
                 </div>
@@ -264,8 +255,6 @@ export default function AlbumsPanel({ own }: { own: boolean }) {
     }
 
     /* ── One album ───────────────────────────────────────────────────────── */
-    const cols = gridW >= 900 ? 5 : gridW >= 620 ? 4 : 3;
-    const tile = gridW > 0 ? Math.floor((gridW - (cols - 1) * 8) / cols) : 110;
     const selKeys = Array.from(selected);
 
     const toggleSel = (k: string) => {
@@ -313,7 +302,7 @@ export default function AlbumsPanel({ own }: { own: boolean }) {
     };
 
     return (
-        <div className="albums-wrap" ref={wrapRef}>
+        <div className="albums-wrap">
             <div className="album-head">
                 <button type="button" className="album-back" onClick={() => setOpenId(null)}>‹ ALBUMS</button>
                 <span className="album-title">ALBUM {pad2(openNumber)} · {openAlbum.keys.length}</span>
@@ -343,7 +332,7 @@ export default function AlbumsPanel({ own }: { own: boolean }) {
                 <p className="album-empty-note">Empty — add pieces from any artwork's ◰{VS15} or a multi-select bar.</p>
             )}
 
-            <div className="album-pieces" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
+            <div className="album-pieces">
                 {members.map((m) => {
                     const k = `${m.slug}:${m.id}`;
                     const isSel = selected.has(k);
@@ -354,7 +343,7 @@ export default function AlbumsPanel({ own }: { own: boolean }) {
                             className={`album-piece${isSel ? ' selected' : ''}`}
                             onClick={() => (selecting ? toggleSel(k) : openModal('output', m.id, m.slug))}
                         >
-                            <OutputThumb slug={m.slug} id={m.id} size={tile} crop />
+                            <OutputThumb slug={m.slug} id={m.id} size={130} crop />
                             {selecting && <span className="album-check">{isSel ? '▣' : '❐'}{VS15}</span>}
                         </button>
                     );

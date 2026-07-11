@@ -41,7 +41,14 @@ export function projectVibe(slug: string): PriceSpriteVibe {
     (the wallet stand-in), so it matches what the on-chain version will produce.
     Pure + deterministic — safe to call during render. */
 export function projectSpriteFace(slug: string): string {
-  const resolved = resolveSprite(projectContractAddress(slug), projectVibe(slug));
+  return projectSpriteFaceFor(slug, projectVibe(slug));
+}
+
+/** Same face, but with an EXPLICIT vibe — the PD Studio path, where the
+    artist picks 1 of 4 at upload (the design this file always promised).
+    Reserved-bracket collision-proofing applies identically. */
+export function projectSpriteFaceFor(slug: string, vibe: PriceSpriteVibe): string {
+  const resolved = resolveSprite(projectContractAddress(slug), vibe);
   if (!resolved) return '';
   return composeResolved({ ...resolved, bracket: PROJECT_BRACKET }).fullString;
 }
