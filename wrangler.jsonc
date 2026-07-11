@@ -4,13 +4,14 @@
   "main": "custom-worker.ts",
   "compatibility_date": "2025-08-21",
   "compatibility_flags": ["nodejs_compat"],
-  // Two schedules, dispatched by cron string in custom-worker.ts:
-  //   "* * * * *"   → To-Do reminder sweep, EVERY MINUTE (users pick due times
-  //                    to the minute, so ~1-min latency is the ceiling).
-  //   "*/2 * * * *" → indexer reconcile backstop (replays webhook misses;
-  //                    idempotent). Kept at 2 min so its RPC load doesn't double.
+  // ONE every-minute schedule; custom-worker.ts fires BOTH sweeps on it:
+  //   • To-Do reminder sweep (users pick due times to the minute).
+  //   • indexer reconcile backstop (replays webhook misses; idempotent).
+  // Cloudflare cron floors at 1 minute — this is the tightest cadence. The
+  // reconcile's per-run work is a handful of ≤10-block log reads, well inside
+  // the RPC free tier at 1-min (Brendon, 2026-07-11: reconcile 2min → 1min).
   "triggers": {
-    "crons": ["* * * * *", "*/2 * * * *"]
+    "crons": ["* * * * *"]
   },
   "assets": {
     "directory": ".open-next/assets",

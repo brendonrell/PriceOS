@@ -26,15 +26,17 @@ export default {
           ctx
         )
       );
-    // Dispatch by which schedule fired (wrangler.jsonc triggers.crons). At even
-    // minutes both match and fire as two separate invocations, so the reminder
-    // sweep runs every minute while the reconcile stays at 2. Both fail-closed on
-    // CRON_SECRET and idempotent/best-effort.
-    if (controller?.cron === "*/2 * * * *") {
-      call("/api/cron/indexer-reconcile");
-    } else {
-      call("/api/cron/todo-reminders");
-    }
+    // ONE every-minute schedule now drives BOTH the reminder sweep and the
+    // indexer reconcile backstop (Brendon, 2026-07-11 — reconcile moved 2min →
+    // 1min). Cloudflare cron granularity floors at 1 minute, so this is the
+    // tightest cadence possible; the reconcile is only the catch-up net behind
+    // the real-time Alchemy webhook, and one run is a handful of ≤10-block log
+    // reads — far inside the RPC free tier even at 1-min. Both fail-closed on
+    // CRON_SECRET and are idempotent/best-effort. `controller.cron` is ignored
+    // now that there is a single schedule.
+    void controller;
+    call("/api/cron/todo-reminders");
+    call("/api/cron/indexer-reconcile");
   },
 };
 

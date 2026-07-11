@@ -172,22 +172,31 @@ export const POST = requireAuth(async (req, _ctx, address) => {
             signatureHex = uniqueSignatureHex(address, (hex) => taken.has(hex.toUpperCase()));
         }
 
+        /* Pre-mainnet: seed every BRAND-NEW account with sim ETH to buy/mint
+           with (Brendon, 2026-07-11 — the play-money he keeps topping himself
+           up with, now automatic on signup). Off-switch is manual for the
+           mainnet cutover, not automated (his call): set SIGNUP_SIM_ETH_GRANT=0
+           on the Worker. Applied ONLY to genuinely new rows — an existing
+           balance is never overwritten (idempotent retries stay safe). */
+        const signupGrant = Number(process.env.SIGNUP_SIM_ETH_GRANT ?? '1000000');
+
         /* No row yet OR row exists with handle=null. Upsert covers
            both; the existing row case is hypothetical for v0 (nothing
            creates partial rows today) but the merge-friendly write
            future-proofs the next workstream. */
+        const upsertRow: Record<string, unknown> = {
+            address,
+            handle,
+            price_sprite: priceSprite,
+            price_sprite_resolved: priceSpriteResolved,
+            signature_hex: signatureHex,
+        };
+        if (!existing && Number.isFinite(signupGrant) && signupGrant > 0) {
+            upsertRow.sim_eth_balance = signupGrant;
+        }
         const { data: upserted, error: upsertError } = await supabase
             .from('users')
-            .upsert(
-                {
-                    address,
-                    handle,
-                    price_sprite: priceSprite,
-                    price_sprite_resolved: priceSpriteResolved,
-                    signature_hex: signatureHex,
-                } as never,
-                { onConflict: 'address' }
-            )
+            .upsert(upsertRow as never, { onConflict: 'address' })
             .select()
             .single();
 
