@@ -413,7 +413,14 @@ export function NpcCast() {
                 const sneaking = c.id === MISCHIEF_ID && !!sneakWall;
                 const wall = sneaking ? (sneakWall as 'left') : c.wall;
                 const topPct = sneaking ? SNEAK_TOP : c.top;
-                const rStyle: CSSProperties = { top: `calc(${topPct}% + ${j.y}px)` };
+                /* Low-wall residents (Celestia 85, Steven 81) anchor from the
+                   BOTTOM so a wrapped bubble grows upward instead of running
+                   off the screen edge (Brendon 2026-07-11 — Celestia's bubbles
+                   were getting cut off). Same spot, screen-aware. */
+                const low = topPct >= 75;
+                const rStyle: CSSProperties = low
+                    ? { bottom: `max(calc(${100 - topPct}% - ${j.y}px), calc(env(safe-area-inset-bottom, 0px) + 10px))` }
+                    : { top: `calc(${topPct}% + ${j.y}px)` };
                 if (wall === 'left') rStyle.marginLeft = j.x;
                 else rStyle.marginRight = j.x;
                 return (

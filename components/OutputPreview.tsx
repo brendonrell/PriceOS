@@ -121,6 +121,8 @@ import { recordVisit, isRecordingEnabled } from '../lib/pins/breadcrumbStore';
 import { recordOutputView } from '../lib/output/views';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import AsciiArtImage from './AsciiArtImage';
+import { publishPieceInView, clearPieceInView } from '../lib/npc/inview';
+import { sampleCanvasFingerprint } from '../lib/art/sampleColor';
 import { useNotePrompt } from '../lib/state/NotePromptContext';
 import { readNoteFor } from '../lib/notes/tokenNotes';
 import { useCart } from '../lib/state/CartContext';
@@ -310,6 +312,29 @@ export default function OutputPreview() {
     const id = isOpen ? currentModalId : null;
     useEffect(() => { setAsciiMiss(false); setAsciiReady(false); }, [slug, id]);
     useEffect(() => setAsciiReady(false), [notifs.asciiArt]);
+
+    /* NPC sight — the cast sees the modal piece like any artwork surface
+       (Brendon 2026-07-11: "they need to show up in all surfaces… and see
+       them"). Fingerprint comes from a small offscreen sample of the loaded
+       master; a cross-origin taint or the ASCII path (false colours) simply
+       publishes without one — label + project still land. */
+    useEffect(() => {
+        if (!isOpen || id == null) return;
+        let fp: ReturnType<typeof sampleCanvasFingerprint> = null;
+        const img = imgRef.current;
+        if (img && imgLoaded && !notifs.asciiArt && img.naturalWidth > 0) {
+            try {
+                const c = document.createElement('canvas');
+                const w = 96;
+                c.width = w;
+                c.height = Math.max(1, Math.round((img.naturalHeight / img.naturalWidth) * w));
+                c.getContext('2d')?.drawImage(img, 0, 0, c.width, c.height);
+                fp = sampleCanvasFingerprint(c);
+            } catch { fp = null; }
+        }
+        publishPieceInView(slug, id, fp);
+        return () => clearPieceInView(slug, id);
+    }, [isOpen, id, slug, imgLoaded, notifs.asciiArt]);
 
     /* The modal image source — the stored high-res master (falls back to the
        previous-rev master during a re-pin), served as a plain <img>. */
@@ -907,7 +932,13 @@ export default function OutputPreview() {
                             router.push(`/art/${slug}/${id}`);
                         }}
                         title="Open output page"
-                        style={{ cursor: 'pointer' }}
+                        /* Natural size, like the <img> path — the standin's
+                           default 100%×100% fill stretched the element past
+                           the artwork, so the modal shadow wrapped the box
+                           instead of the art (Brendon 2026-07-11). auto lets
+                           the #modalCanvas rule size the element to the
+                           artifact's own aspect; the shadow conforms. */
+                        style={{ cursor: 'pointer', width: 'auto', height: 'auto' }}
                     />
                 )}
                 {modalImgSrc && !(notifs.asciiArt && !asciiMiss && id != null) && (

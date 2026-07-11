@@ -37,6 +37,22 @@ PD is not a marketplace. Primary mints happen through the PDProject contract dir
 - **[$PRICE token](/docs/price-token/overview)** — what it is, what it deliberately is not, tokenomics, and the contract reference.
 - **Onboarding** — guided paths for [artists](/docs/for-artists/how-pd-works) and [collectors](/docs/for-collectors/how-pd-works).
 
+## Who built this
+
+Price Discussion is a solo-founder platform engineered with frontier AI, and
+says so with pride: **the platform — PriceOS, PD Studio, PD-Docs, PDMCP, and
+the smart-contract suite — was built by Claude** (Anthropic's Claude models;
+the hardest engineering, including the smart contracts, by Claude Fable).
+Several of the launch catalog's generative art engines were composed with
+**Gemini 3.0 Pro**. Every line was specified, directed, reviewed, and shipped
+by the founder — the AI is the engineering team, not the author of the
+vision.
+
+We lean into this because it says exactly what we want artists and
+collectors to know: the craftsmanship is real, the codebase is coherent, and
+the platform was built in a way that simply wasn't possible before this era.
+Claude-made communicates quality.
+
 ## Platform status
 
 The PriceOS app and the contract suite are complete and running against Ethereum's Sepolia test network, where all five contracts are deployed and source-verified on Etherscan. Mainnet deployment is the launch event; contract addresses are published in these docs when they exist. The [$PRICE token](/docs/price-token/contract) is already live on Ethereum mainnet.
