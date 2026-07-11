@@ -1,5 +1,15 @@
 # OPUS BRIEF — Discord feeds → Cloudflare Worker migration
 
+> **⚡ STATUS 2026-07-11 (Fable session): THE TEMPLATE IS BUILT.** The shared
+> lib + `fx-sales-feed` (objkt-sourced, locally verified on 40 real sales) +
+> `pd-sales-feed` (verified on the real Sepolia T9 sale) live in the
+> **`price-discussion` repo under `workers/`**, with the full porting guide in
+> **`workers/README.md`** — start THERE, it carries every hard-won objkt fact
+> (role inversion, contracts, media CDN) and the Apps Script→Worker seam
+> table. KV namespaces already exist for both. Remaining: deploy + secrets
+> (needs Brendon's CF API token), parallel-run, then port the remaining feeds
+> per the README. Everything below is the original context.
+
 **For a fresh Opus 4.8 session.** Read `CLAUDE.md` first (operating contract).
 Subagents are fine in Opus sessions.
 
