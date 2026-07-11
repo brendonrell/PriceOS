@@ -194,10 +194,23 @@ a.notif-item--link:hover { opacity: 0.85; }
     font-size: 15px; line-height: 1.4;
 }
 .mk-story-line {
+    position: relative;
     flex: 1 1 auto; width: 0;
     border-left: 1px dashed color-mix(in srgb, var(--text-color) 30%, transparent);
     margin: 2px 0;
-    min-height: 14px;
+    min-height: 16px;
+}
+/* Direction cue — a downward arrowhead at the foot of each connector so the
+   spine reads top→down, the way the story runs (Brendon, 2026-07-11). Pure
+   CSS triangle, no glyph dependency. */
+.mk-story-line::after {
+    content: '';
+    position: absolute;
+    left: 50%; bottom: -1px;
+    transform: translateX(-50%);
+    border-left: 3px solid transparent;
+    border-right: 3px solid transparent;
+    border-top: 5px solid color-mix(in srgb, var(--text-color) 55%, transparent);
 }
 .mk-story-body { padding-bottom: 16px; min-width: 0; }
 .mk-story-head {
