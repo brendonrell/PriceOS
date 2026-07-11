@@ -2493,7 +2493,13 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
    light page → white bubble + black text). Each character has its own entrance
    motion so you know who's talking from the corner of your eye. */
 .npc-cast {
-    position: fixed; inset: 0; z-index: 140;
+    position: fixed; inset: 0;
+    /* GUARANTEED SEEN (Brendon 2026-07-11): the residents live above every
+       content surface — artwork modal (1000), Album Show (10005), fullscreen
+       renders — and below only the boot/loading covers (99999+). They are
+       pointer-through, so nothing underneath loses a tap. Was 140, which
+       buried them the moment any modal opened. */
+    z-index: 99990;
     pointer-events: none;
 }
 /* Never obstruct clicks — the cast is purely decorative; the mouse passes
