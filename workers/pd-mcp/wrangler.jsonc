@@ -14,13 +14,16 @@
     "name": "pd-mcp",
     "main": "src/index.ts",
     "compatibility_date": "2026-06-01",
+    "services": [
+        { "binding": "PD_APP", "service": "pricediscussion" }
+    ],
     "kv_namespaces": [
-        { "binding": "CACHE", "id": "REPLACE_WITH_KV_NAMESPACE_ID" }
+        { "binding": "CACHE", "id": "5dbb09273a8b48f7bc9f5a384d22f6cd" }
     ],
     "vars": {
         "PD_APP_ORIGIN": "https://pricediscussion.pricediscussion.workers.dev",
         "PD_DOCS_ORIGIN": "https://pricediscussion.pricediscussion.workers.dev",
-        "ART_IMAGE_BASE": "",
+        "ART_IMAGE_BASE": "https://pricediscussion.pricediscussion.workers.dev/preview",
         "RPC_URL": "https://ethereum-sepolia-rpc.publicnode.com",
         "FACTORY_ADDRESS": "0xbebf82fe12f2d85780ca4835796885208f7d0367",
         "SUPABASE_URL": "https://zspxpfwlwikdxwavffjn.supabase.co",

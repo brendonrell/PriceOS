@@ -22,6 +22,10 @@
 
 export interface Env {
     CACHE: KVNamespace;
+    /** Service binding to the `pricediscussion` app Worker. workers.dev →
+     *  workers.dev fetches on the SAME account are blocked by Cloudflare
+     *  (error 1042), so every call to the app rides this binding instead. */
+    PD_APP?: { fetch: typeof fetch };
     PD_APP_ORIGIN: string;
     PD_DOCS_ORIGIN: string;
     ART_IMAGE_BASE: string;
@@ -91,8 +95,13 @@ async function cached<T>(env: Env, key: string, ttlSeconds: number, load: () => 
     return fresh;
 }
 
+/** Fetch a same-app URL through the service binding (see Env.PD_APP). */
+function appFetch(env: Env, url: string, init?: RequestInit): Promise<Response> {
+    return env.PD_APP ? env.PD_APP.fetch(url, init) : fetch(url, init);
+}
+
 async function appJson(env: Env, path: string): Promise<unknown> {
-    const r = await fetch(`${env.PD_APP_ORIGIN}${path}`, { headers: { accept: 'application/json' } });
+    const r = await appFetch(env, `${env.PD_APP_ORIGIN}${path}`, { headers: { accept: 'application/json' } });
     if (!r.ok) throw new Error(`PD API ${path} answered ${r.status}`);
     return r.json();
 }
@@ -224,7 +233,7 @@ async function getAscii(env: Env, args: Json): Promise<Json> {
     const id = requireTokenId(args);
     if (!env.ART_IMAGE_BASE) return toolErr('ASCII artifacts are not configured on this server yet (ART_IMAGE_BASE unset).');
     const artifact = await cached(env, `ascii:${slug}:${id}`, 3600, async () => {
-        const r = await fetch(`${env.ART_IMAGE_BASE}/${slug}/${id}.ascii.json`);
+        const r = await appFetch(env, `${env.ART_IMAGE_BASE}/${slug}/${id}.ascii.json`);
         if (r.status === 404) return null;
         if (!r.ok) throw new Error(`artifact read failed (${r.status})`);
         return r.json();
@@ -319,7 +328,7 @@ async function searchDocs(env: Env, args: Json): Promise<Json> {
     const query = String(args.query ?? '').trim().toLowerCase();
     if (query.length < 2) return toolErr('query must be a search phrase, e.g. "how do offers work"');
     const manifest = await cached(env, 'docs:manifest', 3600, async () => {
-        const r = await fetch(`${env.PD_DOCS_ORIGIN}/llms.txt`);
+        const r = await appFetch(env, `${env.PD_DOCS_ORIGIN}/llms.txt`);
         if (!r.ok) throw new Error(`llms.txt answered ${r.status}`);
         return r.text();
     });
@@ -347,7 +356,7 @@ async function searchDocs(env: Env, args: Json): Promise<Json> {
             const pathname = new URL(page.url).pathname;
             const fetchUrl = `${env.PD_DOCS_ORIGIN}${pathname.endsWith('.md') ? pathname : `${pathname}.md`}`;
             const md = await cached(env, `docs:page:${page.url}`, 3600, async () => {
-                const r = await fetch(fetchUrl);
+                const r = await appFetch(env, fetchUrl);
                 if (!r.ok) throw new Error(String(r.status));
                 return r.text();
             });
