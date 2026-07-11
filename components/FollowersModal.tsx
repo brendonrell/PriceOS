@@ -56,6 +56,7 @@ import { PROFILE_LOGOS_BY_ID } from '../lib/profile/profileLogos';
 import type { Sticker } from '../lib/stickers/catalog';
 import { StickerArt } from './stickers/StickerArt';
 import FriendInspectorPreview, { type PreviewPerson } from './FriendInspectorPreview';
+import FriendSpritePopover from './FriendSpritePopover';
 
 const VS15 = '︎';
 
@@ -143,6 +144,14 @@ export default function FollowersModal() {
     const { siweAddress, handle: myHandle } = useAuth();
     const { showToast } = useToast();
     const isOpen = openModal?.name === 'followers';
+
+    /* Whose circle we're showing. Opened from a profile, the inspector reflects
+       THAT user's followers (Brendon, 2026-07-11 view-as); with no target it
+       falls back to the signed-in user's own circle. The duel's YOU side always
+       stays the signed-in viewer (mySlugs / myScore below). */
+    const targetAddrLc = (
+        ((openModal?.name === 'followers' ? openModal?.slug : null) || siweAddress || '')
+    ).toLowerCase() || null;
 
     const [tab, setTabState] = useState<FollowersTab>('followers');
     const [sort, setSort] = useState<SortKey>('default');
@@ -269,14 +278,14 @@ export default function FollowersModal() {
        from the exact same numbers as everyone else's. */
     useEffect(() => {
         if (!isOpen) return;
-        if (!siweAddress) { setGraph(EMPTY_GRAPH); setProjects([]); setStatByAddr({}); setHandleToAddr({}); return; }
+        if (!targetAddrLc) { setGraph(EMPTY_GRAPH); setProjects([]); setStatByAddr({}); setHandleToAddr({}); return; }
         let alive = true;
         const load = async () => {
             setLoading(true);
             try {
                 const [followRes, projRes] = await Promise.all([
-                    fetch(`/api/follows/${siweAddress}`, { cache: 'no-store' }),
-                    fetch(`/api/project-follows?follower=${siweAddress}`, { cache: 'no-store' }),
+                    fetch(`/api/follows/${targetAddrLc}`, { cache: 'no-store' }),
+                    fetch(`/api/project-follows?follower=${targetAddrLc}`, { cache: 'no-store' }),
                 ]);
                 const j = await followRes.json().catch(() => ({}));
                 const p = await projRes.json().catch(() => ({}));
@@ -300,9 +309,12 @@ export default function FollowersModal() {
                 followingHandles.forEach((h, i) => { if (followingAddrs[i]) h2a[lc(h)] = followingAddrs[i].toLowerCase(); });
                 setHandleToAddr(h2a);
 
-                // Batch the row stats for everyone in the circle — plus you.
+                // Batch the row stats for everyone in the circle — plus the
+                // target and you (the duel's YOU side reads from the same batch).
                 const addrs = Array.from(new Set(
-                    [...followerAddrs, ...followingAddrs, siweAddress].map((a) => a.toLowerCase()),
+                    [...followerAddrs, ...followingAddrs, targetAddrLc, siweAddress]
+                        .filter(Boolean)
+                        .map((a) => (a as string).toLowerCase()),
                 ));
                 if (addrs.length) {
                     const sRes = await fetch(`/api/social/circle-stats?addresses=${addrs.join(',')}`, { cache: 'no-store' });
@@ -324,7 +336,7 @@ export default function FollowersModal() {
             window.removeEventListener('pd:follows-changed', onChange);
             window.removeEventListener('pd:project-follows-changed', onChange);
         };
-    }, [isOpen, siweAddress]);
+    }, [isOpen, targetAddrLc, siweAddress]);
 
     const counts: Record<FollowersTab, number> = {
         followers: graph.followers.length,
@@ -618,6 +630,8 @@ function PersonRow({
     /* Faction paint takes the reserved accent channel; explicit socket wins. */
     const faction = factionOf(stat?.profileLogo);
     const accent = slots.accent ?? faction?.color ?? null;
+    /* Tapping the sprite pops a small PriceRank card anchored to it. */
+    const [spriteAnchor, setSpriteAnchor] = useState<DOMRect | null>(null);
     return (
         <div
             className={`fi-row${inspected ? ' inspecting' : ''}${shared !== null ? ' has-shared' : ''}`}
@@ -641,7 +655,15 @@ function PersonRow({
                     onClick={(e) => { if ((e.target as HTMLElement).closest('a')) return; onInspect(); }}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onInspect(); } }}
                 >
-                    <CollectedPair handle={handle} />
+                    <CollectedPair handle={handle} onSpriteTap={(rect) => setSpriteAnchor(rect)} />
+                    {spriteAnchor && (
+                        <FriendSpritePopover
+                            handle={handle}
+                            anchor={spriteAnchor}
+                            stat={stat}
+                            onClose={() => setSpriteAnchor(null)}
+                        />
+                    )}
                     {stat?.isArtist && <span className="fm-artist-badge" title="Artist">{`✺${VS15}`}</span>}
                     {faction && (
                         <span className="fi-faction" title={faction.name}>

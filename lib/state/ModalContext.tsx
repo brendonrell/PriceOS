@@ -33,6 +33,7 @@ export type ModalName =
     | 'output'
     | 'collectors'
     | 'followers'
+    | 'projectsPro'
     | 'priceSprite'
     | 'familiar'
     | 'priceos'
@@ -47,6 +48,9 @@ interface OpenModalState {
     name: ModalName;
     /** Output id when name === 'output'; tab key when name === 'followers'; ignored otherwise. */
     payload?: number | string;
+    /** For name === 'followers': the target user (address) whose circle to show —
+     *  omitted = the signed-in user's own circle (Brendon, 2026-07-11, view-as). */
+    slug?: string;
 }
 
 /** One output in the on-screen grid order (slug + token id). The output modal's
@@ -100,7 +104,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     const [outputSequence, setOutputSequence] = useState<OutputRef[] | null>(null);
 
     const open = useCallback((name: ModalName, payload?: number | string, slug?: string) => {
-        setOpenModal({ name, payload });
+        setOpenModal({ name, payload, slug });
         if (name === 'output' && typeof payload === 'number') {
             setCurrentModalId(payload);
             setCurrentModalSlug(slug ? slug.toLowerCase() : null);

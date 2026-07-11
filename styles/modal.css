@@ -1874,7 +1874,8 @@ body.modal-open { overflow: hidden; touch-action: none; }
 .pill-l2 {
     background: var(--bg-color);
     color: var(--text-color);
-    border: 1px solid var(--border-color);
+    /* Full-strength outline on non-selected tabs (Brendon, 2026-07-11). */
+    border: 1px solid var(--text-color);
 }
 .pill-l2.active {
     background: var(--text-color);

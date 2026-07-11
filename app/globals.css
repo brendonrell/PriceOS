@@ -2128,6 +2128,23 @@ body.theme-bright .news-pill-name {
     #fmTab-followers .fm-icon { font-size: 16px; }
     #fmTab-projects .fm-icon  { font-size: 15px; }
 }
+/* Friend Inspector title glyph (⚬) — one size up + nudged up 2px. Scoped to the
+   inspector so the Sticker Manager title glyph is untouched (Brendon, 2026-07-11). */
+.followers-pop .smgr-title-ic,
+.followers-plus .smgr-title-ic {
+    font-size: 23px;
+    position: relative;
+    top: -2px;
+}
+/* Vertically centre every category-pill glyph against its label so the icons
+   sit on one line (Brendon, 2026-07-11 — align all button glyphs inside). */
+.followers-pop .fm-icon,
+.followers-plus .fm-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
 
 /* ============================================================
    FOLLOWERS MANAGER — mobile-first. Compact = floating popup;
@@ -2148,6 +2165,26 @@ body.theme-bright .news-pill-name {
 .followers-pop-body,
 .followers-plus-body { display: flex; flex-direction: column; gap: 15px; min-height: 0; flex: 1 1 auto; overflow: hidden; }
 .followers-plus-body { padding-top: 12px; }
+
+/* Projects Pro — a simple alphabetical project list inside the Friend-Inspector
+   chrome (Brendon, 2026-07-11). Row shape mirrors the Connect-menu Artists list:
+   sprite + name, a dotted leader, then the artist handle. */
+.projects-pro-list {
+    flex: 1 1 auto; min-height: 0; width: 100%;
+    overflow-y: auto; overflow-x: hidden;
+    -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+    display: flex; flex-direction: column;
+}
+.projects-pro-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 6px; cursor: pointer;
+    font-family: 'Courier New', Courier, monospace; font-size: 13px;
+    transition: background 0.15s;
+}
+.projects-pro-row:hover { background: rgba(127, 127, 127, 0.14); }
+.projects-pro-name { font-weight: bold; white-space: nowrap; }
+.projects-pro-leader { flex: 1 1 auto; border-bottom: 2px dotted currentColor; opacity: 0.22; margin: 0 8px; }
+.projects-pro-artist { flex: 0 0 auto; font-size: 12px; opacity: 0.7; white-space: nowrap; }
 .followers-pop .fm-tabs,
 .followers-plus .fm-tabs { display: flex; flex-wrap: wrap; gap: 6px; flex: 0 0 auto; }
 .fm-sort { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; flex: 0 0 auto; }
@@ -4642,6 +4679,58 @@ button,
 }
 .fiat-opt-on { background: #1a1a1a; color: var(--attention); border-color: #1a1a1a; }
 
+/* Friend Inspector PriceSprite card — same body-portal + tail placement as the
+   Fiat bubble above, but taller and theme-coloured: stacks the @name (→ profile),
+   their PriceRank, and the circle stats (Brendon, 2026-07-11). */
+.fi-sprite-pop {
+    position: fixed;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    white-space: nowrap;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    font-family: 'Courier New', Courier, monospace;
+}
+.fi-sprite-pop::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: calc(50% + var(--p3d-tail-dx, 0px));
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: var(--bg-color);
+}
+.fi-sprite-pop-name {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text-color);
+    text-decoration: none;
+}
+.fi-sprite-pop-name:hover { text-decoration: underline; }
+.fi-sprite-pop-rank {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+}
+.fi-sprite-pop-rank-ic { font-size: 14px; }
+.fi-sprite-pop-stats {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+    font-weight: bold;
+}
+.fi-sprite-pop-stats .fm-stat-ic { margin-right: 3px; opacity: 0.85; }
+
 /* Attributes-tab search — reuses the gallery .search-btn / .search-input, in a
    compact bar that sits right after the sub-nav pills (Brendon 2026-07-08). */
 .attr-search-bar {
@@ -4845,7 +4934,8 @@ button,
 .pill-l2 {
     background: var(--bg-color);
     color: var(--text-color);
-    border: 1px solid var(--border-color);
+    /* Full-strength outline on non-selected tabs (Brendon, 2026-07-11). */
+    border: 1px solid var(--text-color);
 }
 .pill-l2.active {
     background: var(--text-color);
@@ -11404,10 +11494,25 @@ body.is-pwa .fullscreen-back {
     padding-top: 26px; box-sizing: border-box;
 }
 .fi-preview-toggle {
-    position: absolute; top: 0; right: 0; z-index: 2;
-    display: flex; gap: 6px;
+    position: absolute; top: 3px; right: 0; z-index: 2;
+    display: flex; gap: 12px;
 }
-.fi-preview-chip { font-size: 10px; letter-spacing: 0.08em; }
+/* Wire / Map are FLOATING TEXT toggles — no button box (Brendon, 2026-07-11).
+   Selected reads extra-bold; de-selected drops to normal weight + slightly
+   lower opacity. Overrides the .ambient-chip box these still carry. */
+.fi-preview-chip {
+    font-size: 10px; letter-spacing: 0.08em;
+    background: transparent; border: none;
+    height: auto; padding: 0;
+    color: var(--text-color);
+    font-weight: 400; opacity: 0.6;
+    transition: opacity 0.15s, font-weight 0.15s;
+}
+.fi-preview-chip:hover { background: transparent; }
+.fi-preview-chip.on {
+    background: transparent; border: none; color: var(--text-color);
+    font-weight: 800; opacity: 1;
+}
 
 /* The Wire — rows ride the news banner's compositor rail (same LOCKED
    speed; odd rows run the other way). Edge fade matches the home strip. */

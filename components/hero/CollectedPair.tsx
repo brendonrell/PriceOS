@@ -16,14 +16,36 @@ import { useSpriteFace } from '../../lib/hooks/useSpriteFace';
 import SpriteFace from '../SpriteFace';
 import { useSpiteMatcher } from '../../lib/pins/spiteStore';
 
-export default function CollectedPair({ handle }: { handle: string }) {
+export default function CollectedPair({
+    handle,
+    onSpriteTap,
+}: {
+    handle: string;
+    /** When set, tapping ONLY the sprite face fires this with the face's on-screen
+     *  rect (the @name link still navigates). Used by the Friend Inspector to pop
+     *  a PriceRank card off a sprite (Brendon, 2026-07-11). */
+    onSpriteTap?: (rect: DOMRect) => void;
+}) {
     const h = handle.toLowerCase().replace(/^@/, '');
     const face = useSpriteFace(h);
     /* Spite Book — a spited handle renders redacted in every chip. */
     const isSpited = useSpiteMatcher();
     return (
         <span className="collected-pair">
-            {face && <SpriteFace className="collected-sprite" face={face} />}
+            {face && (onSpriteTap ? (
+                <span
+                    className="collected-sprite-tap"
+                    role="button"
+                    tabIndex={0}
+                    title="PriceRank"
+                    onClick={(e) => { e.stopPropagation(); onSpriteTap(e.currentTarget.getBoundingClientRect()); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onSpriteTap(e.currentTarget.getBoundingClientRect()); } }}
+                >
+                    <SpriteFace className="collected-sprite" face={face} />
+                </span>
+            ) : (
+                <SpriteFace className="collected-sprite" face={face} />
+            ))}
             <a className={`profile-link${isSpited(h) ? ' spited' : ''}`} href={`/${h}`}>
                 @{h}
             </a>

@@ -626,7 +626,9 @@ html:has(body.ambient-dim-on:not(.is-pwa))::after  { bottom: 0; height: env(safe
     align-items: center;
     background: transparent;
     color: var(--text-color);
-    border: 1px solid var(--border-color);
+    /* Non-selected pill outlines are full-strength, not the faint --border-color
+       wash — pills must read as pills in every modal (Brendon, 2026-07-11). */
+    border: 1px solid var(--text-color);
     border-radius: 4px;
     height: 28px;
     padding: 0 10px;

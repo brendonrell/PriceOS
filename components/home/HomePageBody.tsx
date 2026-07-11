@@ -886,7 +886,14 @@ function HomePageBodyInner({
                     <div className="hero-line stats-row">
                         <span className="stat-item">
                             <span className="stat-icon stat-icon-box">⬚&#xFE0E;</span>{' '}
-                            <span className="stat-val">{stats ? stats.projects : '—'} PRO</span>
+                            <span
+                                className="stat-val"
+                                role="button"
+                                tabIndex={0}
+                                title="Projects Pro"
+                                onClick={() => openModal('projectsPro')}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal('projectsPro'); } }}
+                            >{stats ? stats.projects : '—'} PRO</span>
                         </span>
                         <span className="stat-item stat-item-vol">
                             <span className="stat-icon-eth">⟠&#xFE0E;</span>{' '}

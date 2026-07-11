@@ -81,6 +81,7 @@ import WorkflowWatcher from '../workflows/WorkflowWatcher';
 import OutputPreview from '../OutputPreview';
 import CollectorsModal from '../CollectorsModal';
 import FollowersModal from '../FollowersModal';
+import ProjectsProModal from '../ProjectsProModal';
 import PriceosModal from '../PriceosModal';
 import FamiliarModal from '../FamiliarModal';
 import PriceSpriteModal from '../PriceSpriteModal';
@@ -444,6 +445,9 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="FollowersModal">
                 <FollowersModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="ProjectsProModal">
+                <ProjectsProModal />
             </ErrorBoundary>
             <ErrorBoundary name="PriceosModal">
                 <PriceosModal />

@@ -1047,7 +1047,7 @@ function ProfilePageBodyInner({
                                     {Math.max(ownedCount, holdings.length)}
                                 </span>
                             ) : (
-                                <span className="stat-val">{Math.max(ownedCount, holdings.length)}</span>
+                                <span className="stat-val" {...iconToastProps('Outputs Collected')}>{Math.max(ownedCount, holdings.length)}</span>
                             )}
                             {isOwnProfile && (
                                 <CompletionismModal
@@ -1064,7 +1064,7 @@ function ProfilePageBodyInner({
                             >
                                 ⟠&#xFE0E;
                             </span>{' '}
-                            <span className="stat-val stat-val-vol">{formatEth(volumeSpent)}</span>
+                            <span className="stat-val stat-val-vol" {...iconToastProps('Volume Spent')}>{formatEth(volumeSpent)}</span>
                         </span>
                         <span className="stat-item stat-item-owners">
                             <span className="stat-icon stat-icon-owners stat-icon-followers" {...iconToastProps('Followers')}>{'\u26AC\uFE0E'}</span>{' '}
@@ -1073,11 +1073,11 @@ function ProfilePageBodyInner({
                                 role="button"
                                 tabIndex={0}
                                 title="Followers"
-                                onClick={() => openModal('followers', 'followers')}
+                                onClick={() => openModal('followers', 'followers', user.address)}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' || e.key === ' ') {
                                         e.preventDefault();
-                                        openModal('followers', 'followers');
+                                        openModal('followers', 'followers', user.address);
                                     }
                                 }}
                             >{counts.followers} {counts.followers === 1 ? 'FOLLOWER' : 'FOLLOWERS'}</span>
