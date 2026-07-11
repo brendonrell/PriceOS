@@ -7675,7 +7675,7 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     white-space: nowrap;
     gap: 8px;
     margin: 14px 0 0 0;
-    padding: 8px 18px;
+    padding: 9px 30px;
     border: 1px solid var(--text-color);
     border-radius: 5px;
     background: transparent;
@@ -10904,9 +10904,10 @@ body.colorway-dark .ghost-feed-bar {
 }
 .attr-spectrum-seg { height: 100%; flex-basis: 0; min-width: 1px; }
 .attr-tile-sub {
-    font-size: 9.5px;
+    font-size: 10px;
     line-height: 1.3;
-    opacity: 0.6;
+    font-weight: 700;
+    opacity: 1;
 }
 .attr-swatch {
     width: 11px;
