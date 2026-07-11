@@ -250,6 +250,8 @@
     overflow: hidden;
 }
 .pd-studio-preview .project-hero { max-width: 720px; margin: 0 auto; }
+/* Air between the project name and its date (Brendon 2026-07-11: too close). */
+.pd-studio-preview .project-title > span:first-child { margin-right: 22px; }
 .pd-studio-preview-grid {
     max-width: 720px;
     margin: 18px auto 0;

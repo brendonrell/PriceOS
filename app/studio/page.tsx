@@ -24,6 +24,7 @@ import { deriveSlug } from '../../lib/project/deriveSlug';
 import { projectSpriteFaceFor } from '../../lib/project/projectSprite';
 import { normalizePlaylistId } from '../../lib/project/soundtrack';
 import { PRICE_SPRITE_VIBES, VIBE_LABELS } from '../../lib/sprites/vibes';
+import { PLATFORM_TRAIT } from '../../lib/project/registry';
 import {
     addRun,
     buildEnvelope,
@@ -368,6 +369,13 @@ export default function StudioPage() {
                         <button type="button" className="pd-studio-btn" onClick={() => fileRef.current?.click()}>
                             UPLOAD SCRIPT FILE
                         </button>
+                        <p className="pd-studio-note">
+                            Traits are optional — every Output carries PD&apos;s platform traits
+                            regardless. If your script defines traits, consider <b>Subtraits</b>,
+                            unique to PD: named buckets that group one trait&apos;s values into a
+                            middle layer (Trait → Subtrait → Value). They live in the schema, not
+                            per-token data — so the grouping can evolve without re-minting.
+                        </p>
                     </>
                 )}
             </div>
@@ -522,6 +530,28 @@ export default function StudioPage() {
                                     title={`${active.name.trim() || 'Untitled'} by @${handle ?? 'you'} Soundtrack`}
                                 />
                             )}
+                        </div>
+
+                        {/* The page's tab pills, as they will ship: Showcase ·
+                            Artworks (live) · an empty + More. Static here —
+                            the preview shows the page, it doesn't run it. */}
+                        <div className="profile-tabs-row">
+                            <div className="pill pill-l1"><span className="stat-name">Showcase</span></div>
+                            <div className="pill pill-l1 active"><span className="stat-name">Artworks</span></div>
+                            <div className="pill pill-l1"><span className="stat-name">+ More</span></div>
+                        </div>
+
+                        {/* Trait pills — the platform traits EVERY Project
+                            carries from mint one (artist traits + Subtraits
+                            join them from your script's trait schema). */}
+                        <div className="traits-ui">
+                            <div className="traits-header-bar">
+                                <div className="stats-container">
+                                    {Object.values(PLATFORM_TRAIT).map((t) => (
+                                        <div key={t} className="pill pill-l1"><span className="stat-name">{t}</span></div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     </Hero>
                     {run ? (

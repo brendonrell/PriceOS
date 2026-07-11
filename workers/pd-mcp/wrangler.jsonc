@@ -1,0 +1,29 @@
+/*
+ * PDMCP — Price Discussion's public MCP server (docs/pd-mcp-spec.md).
+ * One Worker on the existing Cloudflare account. $0 at launch scale.
+ *
+ * Deploy (from workers/pd-mcp/):
+ *   npx wrangler kv namespace create PD_MCP_CACHE      # once; paste id below
+ *   npx wrangler deploy
+ *
+ * ART_IMAGE_BASE must match the app build's NEXT_PUBLIC_ART_IMAGE_BASE
+ * (the public R2 base the site itself reads previews/ASCII artifacts from).
+ */
+{
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "name": "pd-mcp",
+    "main": "src/index.ts",
+    "compatibility_date": "2026-06-01",
+    "kv_namespaces": [
+        { "binding": "CACHE", "id": "REPLACE_WITH_KV_NAMESPACE_ID" }
+    ],
+    "vars": {
+        "PD_APP_ORIGIN": "https://pricediscussion.pricediscussion.workers.dev",
+        "PD_DOCS_ORIGIN": "https://pricediscussion.pricediscussion.workers.dev",
+        "ART_IMAGE_BASE": "",
+        "RPC_URL": "https://ethereum-sepolia-rpc.publicnode.com",
+        "FACTORY_ADDRESS": "0xbebf82fe12f2d85780ca4835796885208f7d0367",
+        "SUPABASE_URL": "https://zspxpfwlwikdxwavffjn.supabase.co",
+        "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcHhwZndsd2lrZHh3YXZmZmpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1Njc0MTcsImV4cCI6MjA5MTE0MzQxN30.CrVgxVlr1KRIBDq1zD4bVCpNNUdiWfyQ6HJ28fY-Xi4"
+    }
+}
