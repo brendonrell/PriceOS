@@ -252,11 +252,33 @@ export default function AsciiBackupPanel({ slug, id }: { slug: string; id: numbe
                 >
                     COPY .JSON
                 </button>
-                {/* ASCII Art Mode — the SITEWIDE toggle lives here, beside the
-                    backup's own buttons (Brendon, 2026-07-10): every artwork
-                    surface renders its ASCII standin while it's on. Glyph
-                    ⍞ (U+235E, APL quote-quad = character I/O) — same proven
-                    family as ⍟/⍢; device-verify per the glyph gate. */}
+                {/* Whole-PROJECT backup — sits right after COPY .JSON (Brendon,
+                    2026-07-11). Ticks n/total while it runs. */}
+                <button
+                    className="btn-soundtrack"
+                    title="Download the ASCII backup of every piece in this project"
+                    disabled={!!bulk}
+                    onClick={() => void runBulk('project')}
+                >
+                    {bulk?.kind === 'project' ? `${bulk.done}/${bulk.total}` : 'COPY PROJECT JSON'}
+                </button>
+            </div>
+            <div className="action-row" style={{ marginTop: 10 }}>
+                {/* Whole-COLLECTION backup — every piece of every project, Brendon's
+                    verbatim label (2026-07-11). */}
+                <button
+                    className="btn-soundtrack"
+                    title="Download the ASCII backup of the entire collection — every piece of every project"
+                    disabled={!!bulk}
+                    onClick={() => void runBulk('collection')}
+                >
+                    {bulk?.kind === 'collection' ? `${bulk.done}/${bulk.total}` : 'COPY MY FULL PD COLLECTION ASCII BACKUP JSON'}
+                </button>
+                {/* ASCII Art Mode — the SITEWIDE toggle, now LAST after the backup
+                    buttons (Brendon, 2026-07-11): every artwork surface renders its
+                    ASCII standin while it's on. Glyph U+283F (Braille full cell =
+                    dot-matrix, the ASCII-art aesthetic) — iOS-safe text; device-verify
+                    per the glyph gate. */}
                 <button
                     className={`btn-soundtrack ascii-mode-btn${notifs.asciiArt ? ' active' : ''}`}
                     title="ASCII Art Mode — every artwork on the site renders as its text backup"
@@ -267,27 +289,7 @@ export default function AsciiBackupPanel({ slug, id }: { slug: string; id: numbe
                         showToast(next ? 'ASCII Art Mode: ON — the whole site, in text' : 'ASCII Art Mode: OFF');
                     }}
                 >
-                    {'\u235E\uFE0E'} Activate ASCII Mode
-                </button>
-            </div>
-            {/* Bulk backups \u2014 this whole PROJECT, or your whole COLLECTION,
-                as one downloadable .json bundle (Brendon, 2026-07-10). */}
-            <div className="action-row" style={{ marginTop: 10 }}>
-                <button
-                    className="btn-soundtrack"
-                    title="Download the ASCII backup of every piece in this project"
-                    disabled={!!bulk}
-                    onClick={() => void runBulk('project')}
-                >
-                    {bulk?.kind === 'project' ? `${bulk.done}/${bulk.total}` : 'PROJECT .JSON'}
-                </button>
-                <button
-                    className="btn-soundtrack"
-                    title="Download the ASCII backup of the entire collection — every piece of every project"
-                    disabled={!!bulk}
-                    onClick={() => void runBulk('collection')}
-                >
-                    {bulk?.kind === 'collection' ? `${bulk.done}/${bulk.total}` : 'COLLECTION .JSON'}
+                    {'\u283F'} Activate ASCII Mode
                 </button>
             </div>
         </div>
