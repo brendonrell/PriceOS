@@ -83,7 +83,25 @@
    browsing, investigate the healer POSTs (`/api/preview`, `/api/ascii`) —
    don't re-diagnose the guard, that part is fixed and verified by probe.
 
-## ✅ SHIPPED TO DEV 2026-07-11 — Brendon's big list (4 batches, all pushed, tree clean)
+## ✅ SHIPPED TO DEV 2026-07-11 — Brendon's big list (7 batches, all pushed, tree clean)
+
+Late-session additions (after the first wrap of this block):
+- **NPC Cast GUARANTEED SEEN**: the cast layer now stacks above every content
+  surface (artwork modal, Album Show, fullscreen renders), below only the
+  boot/loading covers; still fully pointer-through. It was buried under any
+  open modal before.
+- **Studio Analytics v1 — the indexer-fed dashboard side is LIVE**: one card
+  per live Project of the signed-in artist via the public project API
+  (events/holders/listings pipeline): minted/supply, collectors, followers,
+  listings + floor, sales + volume, 14-day mint-pace strip, last ledger
+  moments. Access-list wallets with no own Projects get the PLATFORM VIEW.
+  Derivation validated against live deploy data (chladni). The Studio menu's
+  Analytics link lands on it.
+- **LOCKED (spec decision #7): artist edits always gate on the ON-CHAIN
+  artist wallet** — soundtrack and everything after. Spec + Opus brief
+  (`docs/briefs/studio-phase2.md`) updated; the brief now carries the full
+  phase-2 order: royalties on the cards, artist pings, soundtrack management
+  writes, cross-device drafts, library envelope, sticker wiring.
 
 - **ALBUMS REBUILT (the top-priority order).** The profile ▸ +More ▸ Albums
   layout is now pure CSS auto-fill grids with square tiles (the sticker-grid
