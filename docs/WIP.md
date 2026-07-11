@@ -41,6 +41,31 @@
 7. **PD Studio next phases** — unchanged (`docs/briefs/studio-phase2.md`,
    epic `86bavub9k`).
 
+## ✅ SHIPPED 2026-07-11 (evening, Opus) — App security audit (2 fixes; prod DB locked)
+
+Full app security pass (API routes · SIWE/session · Alchemy webhook · crons ·
+money/economy; contracts excluded). Core verified solid — mostly prior hardening
+held up. Full findings + queued cleanup live in ClickUp **86bawbb7j** (11 · Security).
+
+- **🔴 Critical — LOCKED (prod + dev).** Four trade RPCs (`app_sticker_buy` /
+  `app_sticker_accept` / `app_sticker_swap_accept` / `app_accept_criteria_offer`)
+  were EXECUTE-able directly by the public anon key via PostgREST, bypassing
+  route-level SIWE auth (SECURITY DEFINER, actor-identity-as-arg). The 3 main
+  money RPCs were already `service_role`-only; these 4 were missed. Revoked
+  anon/authenticated/public EXECUTE (service_role retains → app unaffected).
+  Applied to prod + migration `20260711_revoke_public_execute_sticker_offer_rpcs.sql`
+  (commit 3cb4eea). Verified live: anon blocked, service_role intact.
+- **🟠 outputs/color → first-viewer-wins (dev, c57b13d).** Was an overwrite; any
+  signed-in user could re-tag any token's colour/fingerprint with a valid-but-wrong
+  bucket (cosmetic — attribute sheet + colour rarity). Now returns early if colour
+  is already set, mirroring the write-once preview/ascii pins.
+- **Queued (pre-mainnet, none blocking today — all in 86bawbb7j):** money-math
+  conservation in the trade fns + `app_buy`/`app_accept_offer` (buyer debit skipped
+  when payer has no users row → conjure play-ETH); revoke 11 dead anon SELECT grants;
+  pin `search_path` on 3 fns; move `citext` out of `public`; add a script-src CSP;
+  flip `SIGNUP_SIM_ETH_GRANT=0` at mainnet cutover.
+- Branch: `claude/app-security-audit-s6d24p` (work went straight to `dev`).
+
 ## ✅ SHIPPED 2026-07-11 (evening, Opus) — Albums revert + Friend Inspector / Projects Pro UI batch (on dev; Worker NOT yet redeployed)
 
 Merged to dev + pushed. **Preview still stale until the app Worker is manually
