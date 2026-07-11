@@ -8,29 +8,24 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-1. **iOS PUSH — the sweep is FINALLY RUNNING (2026-07-11). Await Brendon's
-   banner test.** `CRON_SECRET` is SET on the `pricediscussion` Worker (this
-   session, via his API token; value lives only on the Worker — rotate via
-   wrangler if a manual fire is ever needed). First-ever sweep run came back
-   healthy (`ok:true, subscribers:1`), and it now runs every minute via the
-   existing cron. Brendon was asked to set a to-do due 2–3 min out and watch
-   for the lock-screen banner. If NO banner: tail the Worker during a sweep —
-   prime suspect is a malformed `WEBPUSH_PRIVATE_KEY` (sender silently no-ops
-   if the pair won't load: lib/push/webpush.ts ensureConfigured). Context
-   facts from the diagnosis live in git history of this file (2026-07-11
-   morning baton).
-2. **Indexer sweep go-live — still needs ONE paste from Brendon: his Alchemy
-   Sepolia RPC URL** (`ALCHEMY_RPC_URL` on the app Worker) + the
-   `RECONCILE_LOOKBACK_BLOCKS` token-2 backfill dance. Work order at the top
-   of `docs/briefs/mainnet-tester.md`. CRON_SECRET (the other missing var) is
-   now set. His Cloudflare API token from this session may still be pasteable
-   fresh if he re-creates it — ask; it makes this a 2-minute job.
-3. **PD sales feed — deployed DORMANT, waiting on Brendon's channel call.**
-   `pd-sales-feed` Worker is live on the account (1-min cron, state
-   initializing) but posts NOWHERE until webhooks are set. Ask which Discord
-   channels get PD sales, then `wrangler secret put WEBHOOK_*` (see
-   `price-discussion` repo `workers/README.md`). Verified against the real
-   Sepolia T9 sale; images ride the app's own `/preview/{slug}/{id}.v2.png`.
+1. **iOS PUSH — the ONLY open Brendon-action. Await his banner test.**
+   `CRON_SECRET` is SET on the `pricediscussion` Worker; the reminder sweep
+   runs every minute and returns healthy (`ok:true`). Brendon: set a to-do due
+   2–3 min out, lock the phone, watch for the lock-screen banner. If NO banner:
+   `wrangler tail pricediscussion` during a sweep — prime suspect is a
+   malformed `WEBPUSH_PRIVATE_KEY` (sender silently no-ops if the pair won't
+   load: lib/push/webpush.ts ensureConfigured). Diagnosis facts in this file's
+   git history (2026-07-11 morning baton).
+2. ✅ **Indexer sweep — LIVE (2026-07-11 afternoon).** `ALCHEMY_RPC_URL` set,
+   the reconcile now walks the window in ≤10-block sips (Alchemy free-tier cap)
+   with a targeted `?fromBlock=&toBlock=` backfill door; the app Worker was
+   redeployed with this code. Token-2 backfilled via the door (block
+   11218947) — all three pd-test-alpha tokens now indexed, exactly one XFER
+   row each (idempotent). Rolling sweep verified clean at head, lookback back
+   to default 50. See SHIPPED below. Road-to-mainnet step 1 DONE.
+3. ✅ **PD sales feed — LIVE (2026-07-11).** `WEBHOOK_MAIN` points at the
+   `#pd-sales-feed` Discord channel; the real Sepolia T9 sale was posted end-
+   to-end as the go-live test. Posts every PD sale within ~1 min. $20 floor.
 4. **Remaining Discord feeds → Workers (Opus-able).** The template is proven
    in prod. Port order + every hard-won fact:
    **`price-discussion` repo → `workers/README.md`** (+ the brief
@@ -45,6 +40,23 @@
    task; wrapper art done, chain shows zero sheets).
 7. **PD Studio next phases** — unchanged (`docs/briefs/studio-phase2.md`,
    epic `86bavub9k`).
+
+## ✅ SHIPPED 2026-07-11 (late afternoon, Opus) — indexer sweep live + APP WORKER REDEPLOYED
+
+- **App Worker `pricediscussion` REDEPLOYED** (OpenNext build → `wrangler
+  deploy`; version 31290bc0). This is a MANUAL deploy — there is NO
+  auto-deploy from dev / no CI, and the preview had been stale since ~12:45,
+  so this redeploy is what finally put ALL of today's dev-merged work LIVE on
+  the preview (attributes stats, NPC pass, Lane Runner, albums-3col, indexer
+  fix). Deploy recipe for next time: `npx opennextjs-cloudflare build` (needs
+  `.open-next/`, which `custom-worker.ts` imports) → `npx wrangler deploy`
+  with `CLOUDFLARE_API_TOKEN` set. Secrets + KV/R2 bindings survive redeploys.
+- **Indexer reconcile chunking fix** — the sweep's single wide `eth_getLogs`
+  failed on Alchemy's free tier (10-block range cap). Now reads the lookback
+  window in ≤10-block windows, capped at 40 windows/run. Added a
+  `?fromBlock=&toBlock=` targeted replay door (CRON_SECRET-gated) for surgical
+  backfills. On dev + deployed. Verified: rolling sweep clean at head, token-2
+  backfilled, idempotent re-runs write nothing.
 
 ## ✅ SHIPPED 2026-07-11 (afternoon) — THE CLOUDFLARE SESSION (all live, trees clean)
 
@@ -114,19 +126,18 @@
 
 ## 🧭 WAITING ON BRENDON
 
-- **iOS push banner test result** (NEXT UP #1).
-- **Alchemy Sepolia URL** (NEXT UP #2).
-- **PD feed channels** (NEXT UP #3).
+- **iOS push banner test result** (NEXT UP #1) — the ONLY open item now.
+  (Alchemy URL + PD feed channel BOTH received + wired this session.)
 - Feature Atlas re-order · ASCII-Mode glyph ⠿ iPhone check · Lane Runner
   top-10 trigger spot (leaderboard now exists in-game via score-line tap —
   may satisfy this) · docs.pricediscussion.com wiring — all previously
   ClickUp'd.
 
-## 🧭 THE ROAD TO MAINNET (unchanged)
+## 🧭 THE ROAD TO MAINNET
 
-1. Indexer sweep go-live + token-2 backfill (NEXT UP #2) → 2. Phase C app
-on Sepolia (`docs/sepolia-test-phase.md` §3–4) → 3. Mythic Audit Pass
-(`86b9v5wj4`) — the last gate.
+1. ✅ Indexer sweep go-live + token-2 backfill — DONE 2026-07-11 (see SHIPPED).
+2. Phase C — app talks to Sepolia (`docs/sepolia-test-phase.md` §3–4).
+3. Mythic Audit Pass (`86b9v5wj4`) — the last gate.
 
 ## 📋 QUEUED (older, not started)
 
