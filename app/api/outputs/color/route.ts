@@ -120,6 +120,23 @@ export const POST = requireAuth(async (req: NextRequest) => {
     }
 
     const sb = getSupabaseService();
+
+    // First-viewer-wins: once a piece's colour is pinned, later samples can't
+    // change it — mirrors the write-once preview/ascii pins. The render is
+    // deterministic per (slug, tokenId), so the first genuine sample IS the
+    // correct one; this stops a signed-in user re-tagging someone else's piece
+    // with a wrong-but-valid bucket. A row whose colour is still null (e.g. the
+    // traits route populated it first) still accepts the colour fill.
+    const { data: existing } = await sb
+      .from('outputs')
+      .select('dominant_color')
+      .eq('project_id', slug)
+      .eq('token_id', String(id))
+      .maybeSingle();
+    if ((existing as { dominant_color?: string | null } | null)?.dominant_color) {
+      return NextResponse.json({ ok: true, already: true });
+    }
+
     const { error } = await sb.from('outputs').upsert(row as never, {
       onConflict: 'project_id,token_id',
     });
