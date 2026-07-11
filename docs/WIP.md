@@ -83,6 +83,31 @@
    browsing, investigate the healer POSTs (`/api/preview`, `/api/ascii`) —
    don't re-diagnose the guard, that part is fixed and verified by probe.
 
+## ✅ SHIPPED TO DEV 2026-07-11 (late) — Albums UI cleanup + receipt/attrs/story/ASCII polish (all pushed, tree clean)
+
+Branch `claude/albums-ui-cleanup-0m9nrt`; each item merged to dev as it landed.
+- **Albums squared + full-width.** Both album screens now use 90° corners (no
+  rounding). The top-level covers grid fills the full app-area width like the
+  drilled-in view — it was shrink-wrapped + centred because the covers branch
+  had no full-width child to stretch its wrapper (the drill-in view's header
+  stretched it); forced `.albums-wrap { width: 100% }`.
+- **Rarity Receipt button wider** (more side padding — label was cramped).
+- **Attributes tile sub-stats now bold + full opacity** (were 0.6, near
+  invisible — Rule #2): the rarity/percent/count line under each tile.
+- **Price Story direction arrow** — downward arrowhead at the foot of each
+  chapter connector (option A of 4 rendered for Brendon at iPhone size; pure
+  CSS triangle) so the spine reads top→down.
+- **ASCII Backup pills reordered** (Brendon spec): Copy .txt · Copy .json ·
+  **Copy Project JSON** · **Copy My Full PD Collection ASCII Backup JSON** ·
+  ASCII Mode LAST. Bulk buttons relabelled verbatim; ASCII Mode kept its
+  existing style (the restyle-to-trait-pills ask was scrapped).
+- **ASCII Mode glyph ⍞ → ⠿** (U+283F, Braille full cell = dot-matrix, the
+  ASCII-art look; confirmed unused in the codebase). ⚠️ DEVICE-VERIFY on iPhone
+  before lock — 3 unused alts if it tofus/reads wrong: ⎕ · ⌷ · ⧈.
+- **To-Dos intentionally NOT touched** — Brendon weighed restyling the row
+  (pull in L/R + 25% theme fill instead of the hothurt outline), then decided
+  he likes the red outline; left exactly as-is.
+
 ## ✅ SHIPPED TO DEV 2026-07-11 — Brendon's big list (7 batches, all pushed, tree clean)
 
 Late-session additions (after the first wrap of this block):
@@ -322,7 +347,8 @@ Late-session additions (after the first wrap of this block):
 ## 🧭 WAITING ON BRENDON
 
 - Feature Atlas re-order (numbers LOCK after) — ClickUp'd + assigned.
-- ⍞ glyph iPhone check — ClickUp'd + assigned.
+- ASCII-Mode glyph iPhone check — glyph changed ⍞ → ⠿ (Braille full cell)
+  2026-07-11; device-verify it renders as monochrome TEXT. Alts if not: ⎕ · ⌷ · ⧈.
 - Lane Runner top-10 trigger spot — ClickUp'd + assigned.
 - docs.pricediscussion.com Cloudflare wiring — ClickUp'd + assigned.
 - $PRICE docs TGE fact-check at PUBLIC launch (13·Launch Ops task).
@@ -350,6 +376,16 @@ Etherscan-verified, indexer live-proven). Remaining, in order:
 - Genesis message timeline fix (store 13:28 UTC).
 - Group sorts rework — discussion only, needs Brendon's direction.
 - Languages as a gen-art trait — discussion only.
+- **Attributes character-sheet enrichment (Brendon's ask 2026-07-11 — noted for
+  a future build, liked in principle, none built).** The character sheet "feels
+  like it could have way more stats/info." Candidates:
+  · PD Rarity RANK — "#3 rarest of 105" (we compute rarity but never rank it)
+  · percentile tags on each Fingerprint band — "brightness: top 8%"
+  · mint order + speed — "3rd mint · 2 min after launch"
+  · nearest genome twin — "closest sibling: #88"
+  · numerology / life-path from the edition number
+  · palette hex chips — the real colours, tappable
+  All deterministic / $0, same ethos as the existing wall. His call which land.
 
 ## ⚠️ Known / deferred (older)
 
