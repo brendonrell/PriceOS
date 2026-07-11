@@ -48,15 +48,44 @@
   auto-deploy from dev / no CI, and the preview had been stale since ~12:45,
   so this redeploy is what finally put ALL of today's dev-merged work LIVE on
   the preview (attributes stats, NPC pass, Lane Runner, albums-3col, indexer
-  fix). Deploy recipe for next time: `npx opennextjs-cloudflare build` (needs
-  `.open-next/`, which `custom-worker.ts` imports) → `npx wrangler deploy`
-  with `CLOUDFLARE_API_TOKEN` set. Secrets + KV/R2 bindings survive redeploys.
+  fix).
+  > **⛔ DEPLOY RECIPE — the NEXT_PUBLIC config is NOT in the repo. Read this
+  > before EVER redeploying the app Worker (cost me a broken deploy this
+  > session).** There is NO `.env` committed. A bare `opennextjs-cloudflare
+  > build` bakes EMPTY NEXT_PUBLIC_* into the client bundle → the preview's
+  > wallet defaults to mainnet, browser Supabase + push break. You MUST create
+  > `.env.local` (gitignored) with all 8 PUBLIC values before building. They
+  > are all public (they ship in the client bundle) — reconstructed set:
+  > `NEXT_PUBLIC_SUPABASE_URL=https://zspxpfwlwikdxwavffjn.supabase.co` ·
+  > `NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_UcKB7iZkyM_gv8F0LTdD0w_IpYriFsh`
+  > · `NEXT_PUBLIC_CHAIN_ID=11155111` (Sepolia test phase — NOT 1) ·
+  > `NEXT_PUBLIC_ALCHEMY_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/<key>` ·
+  > `NEXT_PUBLIC_ALCHEMY_API_KEY=<key>` ·
+  > `NEXT_PUBLIC_ART_IMAGE_BASE=https://pricediscussion.pricediscussion.workers.dev/preview`
+  > · `NEXT_PUBLIC_VAPID_PUBLIC_KEY` + `NEXT_PUBLIC_WEBPUSH_KEY` = the value from
+  > `GET /api/push/pubkey`. Alchemy key `<key>` = the indexer's (from
+  > `ALCHEMY_RPC_URL` Worker secret). Then: `./node_modules/.bin/wrangler deploy`
+  > (use the PINNED local 4.105 — `npx wrangler` may grab 4.110 which fails
+  > "Could not detect static files"). VERIFY after: fetch a client chunk and
+  > grep for the Supabase URL. **OPEN OFFER TO BRENDON: commit these public
+  > values as a repo `.env` so this can never recur — his call (changes the
+  > gitignore convention).** Server SECRETS (service-role, webhook signing,
+  > webpush private, CRON_SECRET) stay Worker secrets, survive redeploys.
 - **Indexer reconcile chunking fix** — the sweep's single wide `eth_getLogs`
   failed on Alchemy's free tier (10-block range cap). Now reads the lookback
   window in ≤10-block windows, capped at 40 windows/run. Added a
   `?fromBlock=&toBlock=` targeted replay door (CRON_SECRET-gated) for surgical
   backfills. On dev + deployed. Verified: rolling sweep clean at head, token-2
   backfilled, idempotent re-runs write nothing.
+- **New-account 1M sim-ETH grant (pre-mainnet)** — `POST /api/users/create`
+  now seeds every BRAND-NEW account with `SIGNUP_SIM_ETH_GRANT` (default
+  1,000,000) `sim_eth_balance` so signups can buy/mint in the test phase.
+  Existing balances never overwritten. MANUAL mainnet off-switch (Brendon's
+  call): `wrangler secret put SIGNUP_SIM_ETH_GRANT` = `0`. Live.
+- **Reconcile sweep 2min → 1min** — one every-minute cron now fires BOTH the
+  reminder + reconcile sweeps (custom-worker.ts calls both; wrangler crons =
+  `["* * * * *"]`). Cloudflare cron floors at 1 min (30s not possible). Live
+  (single schedule confirmed on deploy). Deployed version b0daef1f.
 
 ## ✅ SHIPPED 2026-07-11 (afternoon) — THE CLOUDFLARE SESSION (all live, trees clean)
 
