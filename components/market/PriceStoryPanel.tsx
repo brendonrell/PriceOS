@@ -54,7 +54,14 @@ export default function PriceStoryPanel({ slug, id }: { slug: string; id?: numbe
                 ) : (
                     <div className="mk-story">
                         {chapters.map((c, i) => (
-                            <div className="mk-story-chapter" key={c.key}>
+                            /* Chapters arrive like the Albums covers wall — the
+                               app's staggered-rise entrance, capped at 8 steps
+                               so long ledgers don't crawl (wow pass 2026-07-11). */
+                            <div
+                                className="mk-story-chapter"
+                                key={c.key}
+                                style={{ animationDelay: `${Math.min(i, 8) * 55}ms` }}
+                            >
                                 <div className="mk-story-rail" aria-hidden="true">
                                     <span className="mk-story-glyph">{c.glyph}</span>
                                     {i < chapters.length - 1 && <span className="mk-story-line" />}

@@ -168,6 +168,18 @@ a.notif-item--link:hover { opacity: 0.85; }
 
 /* ── PRICE STORY — the chapter spine ─────────────────────────── */
 .mk-story { display: flex; flex-direction: column; }
+/* Wow pass (2026-07-11) — chapters arrive like the Albums covers wall: the
+   app's staggered-rise entrance (delay set inline per chapter, capped at 8). */
+.mk-story-chapter {
+    animation: mk-story-in 0.34s cubic-bezier(0.25, 1, 0.5, 1) both;
+}
+@keyframes mk-story-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .mk-story-chapter { animation: none; }
+}
 .mk-story-loading {
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px; opacity: 0.55; padding: 14px 4px;
