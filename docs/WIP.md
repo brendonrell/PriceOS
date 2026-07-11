@@ -8,16 +8,14 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-1. **⛔ ALBUMS UI on the PROFILE — STRIP AND REBUILD FROM SCRATCH (Brendon,
-   2026-07-10, verbatim order — top priority).** The Albums section on his
-   profile is "intensely glitched out". A previous chat was asked to fix it
-   and **wrongly decided it was fine — do NOT repeat that dismissal.** The
-   order: rip the current profile-Albums UI out and rebuild it **MOBILE /
-   IPHONE FIRST** — nothing fancy, the existing look is fine, it just must
-   not be broken. Verify with headless-Chromium screenshots at an iPhone
-   viewport against the real profile (the sticker pass proved that rig
-   works — dev-login + live reads) BEFORE presenting; a desktop-width
-   glance is exactly how the last session got it wrong.
+1. **PDMCP go-live (~3 min, needs Cloudflare CLI auth).** v1 is BUILT +
+   VERIFIED on dev (`workers/pd-mcp/`, see SHIPPED 2026-07-11): from that
+   dir `npm install` → `npx wrangler kv namespace create PD_MCP_CACHE`
+   (paste id into wrangler.jsonc) → set `ART_IMAGE_BASE` (= the app build's
+   NEXT_PUBLIC_ART_IMAGE_BASE) → `npx wrangler deploy` → connect a Claude
+   session and exercise all seven tools. Then the connectors-directory path
+   (custom domain + OAuth stub + privacy page). ClickUp `86bavnrt7`.
+   ✅ ALBUMS REBUILD (old #1) SHIPPED — see SHIPPED 2026-07-11.
 2. **iOS PUSH — diagnosis DONE, two of three fixes SHIPPED (see SHIPPED
    below). What remains:**
    - **BRENDON ACTION (the unblock): set `CRON_SECRET` on the
@@ -42,17 +40,9 @@
      ACHIEVEMENT pings rode the native sender yet zero banners displayed —
      that's what the tail run must explain if reminders work but pings
      still don't. Indexer-created pings skip native push BY DESIGN.
-3. **BUILD PD MCP server v1 — greenlit; Brendon additions 2026-07-10.**
-   Spec is the plan: `docs/pd-mcp-spec.md` (see item further down for the
-   summary). NEW from Brendon today: expose the ASCII preview so any AI
-   chat can render pieces inline; sales-crossed-with-traits questions
-   ("does landscape or portrait sell better?") answerable by ANY connected
-   client — ChatGPT users included, that's distribution; make the PD-Docs
-   MCP section insanely detailed (the docs are literally what agents read);
-   path to the Claude connectors directory = remote server on our
-   Cloudflare + OAuth + privacy policy + support contact → submit (usable
-   day-one as a custom connector while review runs). The upcoming Discord
-   feeds on Cloudflare are separate Workers — zero impact on PDMCP.
+3. ✅ **PD MCP server v1 — BUILT (2026-07-11), see NEXT UP #1 for the only
+   remaining step (deploy).** Every Brendon addition landed: ASCII preview
+   tool, traits×sales tool, insanely detailed /docs/mcp section.
 4. **Stickers on-chain cutover — the last gate to real sticker revenue.**
    ClickUp `86baw12ek` (02 Backlog, high) has the full work order. The sticker
    EXPERIENCE is launch-ready on dev (see SHIPPED below); the revenue rail is
@@ -66,15 +56,15 @@
    order: createSheet on Sepolia with these SVGs (Brendon signs) →
    buy/peel/royalty exercise → OpenSea render check → cut the app
    store/market from sim to ERC-1155.
-7. **PD Studio — Brendon's edit round.** PD Studio v1 + private layers are
-   LIVE on dev (see SHIPPED below); Brendon wrapped 2026-07-10 saying he'll
-   bring edits in a fresh session. Read **`docs/pd-studio-spec.md`** first —
-   it is the plan of record (locked decisions, architecture, build sequence).
-   Next build phases queued there: dashboard analytics from indexer data ·
-   artist pings · library-bound test envelope · Supabase stores for drafts/
-   access-list/packages (cross-device — v1 is device-local by design) ·
-   sticker catalog wiring. ClickUp: epic `86bavub9k`, private-layers spec
-   `86bavucbz` (⛔ sticker/godmode docs live in ClickUp ONLY — never PD-Docs).
+7. **PD Studio — next build phases** (Brendon's 2026-07-11 edit round
+   SHIPPED, see below; `docs/pd-studio-spec.md` = plan of record): dashboard
+   ANALYTICS from indexer data (Brendon asked "where's the analytics side?"
+   — it's this queued phase, not yet built) · artist pings · library-bound
+   test envelope · Supabase stores for drafts/access-list/packages
+   (cross-device — v1 device-local by design) · sticker catalog wiring ·
+   golf-score preview in the Studio preview (Brendon: nice-to-have, "opus
+   can add later"). ClickUp: epic `86bavub9k`, private-layers `86bavucbz`
+   (⛔ sticker/godmode docs live in ClickUp ONLY — never PD-Docs).
 5. **PD MCP spec summary (for NEXT UP #3).**
    The whole plan is in **`docs/pd-mcp-spec.md`** — read it first, build to it,
    nothing extra. Summary: new Cloudflare Worker `pd-mcp` on the existing
@@ -92,6 +82,62 @@
    catalog (healer pins on view). If tiles still look blank after real
    browsing, investigate the healer POSTs (`/api/preview`, `/api/ascii`) —
    don't re-diagnose the guard, that part is fixed and verified by probe.
+
+## ✅ SHIPPED TO DEV 2026-07-11 — Brendon's big list (4 batches, all pushed, tree clean)
+
+- **ALBUMS REBUILT (the top-priority order).** The profile ▸ +More ▸ Albums
+  layout is now pure CSS auto-fill grids with square tiles (the sticker-grid
+  system) — the JS width-measuring (ResizeObserver → inline pixel sizes →
+  repaint loops while the panel animated open) that made the wall "jump
+  around like crazy" is GONE. Same look, same features (Show, value line,
+  SELECT tools, mosaic covers). Verified at iPhone viewport with the
+  dev-login screenshot rig. NOTE: his real account has ONE album
+  (noctilucent:1) — intact, confirmed in DB after verification.
+- **PD Studio edit round (Brendon's full list, all verified by screenshot):**
+  normal-case sub line, "From your phone or desktop" wraps as one unit ·
+  runs 8/22/88/222 · MANDATORY Project PriceSprite (account-creation
+  quadrant picker; new projectSpriteFaceFor(slug, vibe)) · MANDATORY custom
+  colorway · YouTube playlist REQUIRED + fail-soft public check (new
+  /api/studio/playlist, oEmbed; definitive not-public blocks preflight,
+  check failure never does) · full-width live PREVIEW of the would-be page:
+  REAL Hero component, scoped colorway vars (same YIQ/border/stat washes
+  ColorwayContext writes), soundtrack button pops in when a playlist lands,
+  tab pills + platform trait pills, grid beneath = the chosen run amount ·
+  Studio connect menu = same chrome, fresh list (Dashboard / Analytics /
+  Docs / MCP / Support; Stickers replaces Support for the access list) ·
+  Subtraits explained on the upload page + a new docs section. Drafts carry
+  vibe/colorway/playlist as OPTIONAL fields — old drafts load untouched.
+- **PDMCP v1 BUILT + VERIFIED** (`workers/pd-mcp/` — zero-dependency Worker,
+  MCP over streamable HTTP; excluded from the app tsconfig). Seven tools:
+  verify_project · get_project · get_output · get_provenance · get_ascii ·
+  query_traits (dimension × sales/listings over the anon-readable outputs/
+  events/listings tables) · search_docs (llms.txt → raw-md verbatim +
+  citations; fetches the live origin, cites canonical URLs). All exercised
+  against live data via a node harness. Deploy = NEXT UP #1. /docs/mcp =
+  the agent manual (nav: Build on PD).
+- **Docs brand fix:** the docs top-bar + footer ‰ is now the PerMilleMark
+  SVG (the My PD reference — real Inter-derived logo thickness, no webfont
+  glyph). PerMilleMark gained 'use client' (docs layout is a server
+  component).
+- **ASCII-mode modal shadow** conforms to the artwork: the standin canvas in
+  the artwork modal sizes naturally like the <img> path (its inline
+  100%×100% fill was stretching the element past the art — shadow wrapped
+  the box). Gallery tiles keep the fill (correct there). Heads-up learned
+  on the way: CHLADNI pieces genuinely ARE wide dark canvases with a
+  centered plate — the page render was never wrong, only the modal box.
+- **NPC Cast:** Celestia (and Steven — both low-wall) now bottom-anchor so
+  wrapped bubbles grow UP, never off-screen; safe-area aware; same corner.
+  The artwork MODAL now publishes to NPC sight (fingerprint sampled from
+  the loaded master, fail-soft null on cross-origin/ASCII) — answering
+  Brendon's "do they work in the artwork modal?": they didn't, now they do.
+  The full fingerprint v2/v3 vocabulary (scene/pattern/shapes/warmth/…) was
+  ALREADY wired into sight lines; deeper expansion (stored traits — Fate,
+  True Name, rarity — into their speech) is queued as an Opus-able brief.
+- **Price Story wow pass:** chapters arrive on the app's staggered-rise
+  entrance (Albums-wall signature, reduced-motion respected), both panels.
+- **Docs: "Who built this"** — explicit, proud Claude credit (Claude Fable
+  for the hardest engineering incl. contracts) + Gemini 3.0 Pro credit for
+  launch-catalog engines, on the Introduction.
 
 ## ✅ SHIPPED TO DEV 2026-07-10 (late session) — Studio 500 · docs speed/MVP · reminder fixes (pushed, tree clean)
 
