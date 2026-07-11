@@ -18,6 +18,7 @@ import { useAuth } from '../../lib/state/AuthContext';
 import { hasStudioAccess } from '../../lib/studio/access';
 import { StickerStudio } from '../../components/studio/StickerStudio';
 import { GodMode } from '../../components/studio/GodMode';
+import { StudioAnalytics } from '../../components/studio/StudioAnalytics';
 import Hero from '../../components/hero/Hero';
 import SoundtrackStarButton from '../../components/project/SoundtrackStarButton';
 import { deriveSlug } from '../../lib/project/deriveSlug';
@@ -613,9 +614,17 @@ export default function StudioPage() {
                 </div>
             )}
 
-            {/* ── DASHBOARD ── */}
+            {/* ── DASHBOARD · ANALYTICS — the indexer-fed side (spec #2).
+                   Live per-Project reads: mints, collectors, floor, listings,
+                   sales, volume, followers, 14-day mint pace, last moments. ── */}
             <div className="pd-studio-section" id="analytics">
-                <div className="pd-studio-section-title">Dashboard — your Projects</div>
+                <div className="pd-studio-section-title">Dashboard — analytics</div>
+                <StudioAnalytics handle={handle ?? null} god={god} />
+            </div>
+
+            {/* ── DASHBOARD · DRAFTS ── */}
+            <div className="pd-studio-section">
+                <div className="pd-studio-section-title">Dashboard — your drafts</div>
                 {drafts.length === 0 ? (
                     <p className="pd-studio-note">Nothing here yet — your drafts and deployed Projects will live here.</p>
                 ) : (
