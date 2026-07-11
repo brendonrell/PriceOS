@@ -32,13 +32,16 @@
 2. **Artist pings** (`PingsBox` on /studio): mints, listings, offers,
    sales, royalty payouts on the artist's Projects — filter the existing
    pings pipeline by the artist's project slugs. Spec locked decision #3.
-3. **Soundtrack management (the mutable off-chain surround).** OPEN CALL
-   for Brendon first: ownership model for writes — on-chain artist address
-   vs registry handle mapping. Then a `requireAuth` route that lets the
-   verified artist update `projects.soundtrack` (+ label), and a Studio
-   management row per live Project. Normalise via
-   `lib/project/soundtrack.ts`; reuse the `/api/studio/playlist` public
-   check.
+3. **Soundtrack management (the mutable off-chain surround).** Ownership
+   model is DECIDED (Brendon, 2026-07-11, spec locked decision #7): writes
+   gate on the **on-chain artist wallet** — the SIWE session address must
+   equal the Project contract's artist address (read it from the chain via
+   the cached-route pattern, never per-caller RPC). This applies to
+   soundtrack AND anything else artists may ever edit. Build: a
+   `requireAuth` route that verifies session address == on-chain artist,
+   then updates `projects.soundtrack` (+ label); a Studio management row
+   per live Project. Normalise via `lib/project/soundtrack.ts`; reuse the
+   `/api/studio/playlist` public check.
 4. **Cross-device drafts**: Supabase store (RLS wallet-owner only) + R2
    for uploaded assets, replacing localStorage v1 (keep local as offline
    cache). Spec architecture section names the shape.

@@ -35,6 +35,11 @@
 6. **PD-Docs carries a comprehensive public PD Studio section** (shipped with
    this spec): overview, upload & testing, publishing, artist dashboard. No
    mention of the private layers.
+7. **Artist edits are ALWAYS gated to the on-chain artist wallet (Brendon,
+   2026-07-11).** Soundtrack changes and anything else artists may ever edit
+   about a live Project authenticate the SIWE session address against the
+   Project's on-chain artist address — never a handle mapping, never a
+   registry entry. Unforgeable or it doesn't ship.
 
 ## Architecture call (CTO)
 
