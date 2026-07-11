@@ -23,7 +23,18 @@ export async function GET(req: Request): Promise<Response> {
     return Response.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const outcome = await runReconcile();
+  // Optional targeted replay: ?fromBlock=&toBlock= (inclusive ints) scans an
+  // explicit historical window instead of the rolling one — the surgical
+  // backfill door (e.g. one missed transfer), still behind the same secret.
+  const url = new URL(req.url);
+  const fromBlock = Number(url.searchParams.get("fromBlock"));
+  const toBlock = Number(url.searchParams.get("toBlock"));
+  const range =
+    Number.isInteger(fromBlock) && Number.isInteger(toBlock) && fromBlock > 0 && toBlock >= fromBlock
+      ? { fromBlock, toBlock }
+      : undefined;
+
+  const outcome = await runReconcile(range);
   const status = outcome.ok ? 200 : 500;
   return Response.json(outcome, { status });
 }
