@@ -4,7 +4,7 @@
    Numbered only, never named. Power lives behind SELECT and ▶.
    ============================================================================ */
 
-.albums-wrap { padding: 4px 0 40px; }
+.albums-wrap { width: 100%; padding: 4px 0 40px; }
 
 .album-empty-note,
 .album-private-note {
@@ -40,7 +40,7 @@
     gap: 2px;
     width: 100%;
     aspect-ratio: 1;
-    border-radius: 10px;
+    border-radius: 0;
     overflow: hidden;
     background: color-mix(in srgb, currentColor 8%, transparent);
 }
@@ -126,14 +126,14 @@
     border: none;
     padding: 0;
     cursor: pointer;
-    border-radius: 8px;
+    border-radius: 0;
     overflow: hidden;
     line-height: 0;
     aspect-ratio: 1;
     min-width: 0;
 }
 .album-piece canvas {
-    border-radius: 8px !important;
+    border-radius: 0 !important;
     width: 100% !important;
     height: 100% !important;
     object-fit: cover;
