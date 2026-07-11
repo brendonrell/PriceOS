@@ -49,28 +49,24 @@
   so this redeploy is what finally put ALL of today's dev-merged work LIVE on
   the preview (attributes stats, NPC pass, Lane Runner, albums-3col, indexer
   fix).
-  > **⛔ DEPLOY RECIPE — the NEXT_PUBLIC config is NOT in the repo. Read this
-  > before EVER redeploying the app Worker (cost me a broken deploy this
-  > session).** There is NO `.env` committed. A bare `opennextjs-cloudflare
-  > build` bakes EMPTY NEXT_PUBLIC_* into the client bundle → the preview's
-  > wallet defaults to mainnet, browser Supabase + push break. You MUST create
-  > `.env.local` (gitignored) with all 8 PUBLIC values before building. They
-  > are all public (they ship in the client bundle) — reconstructed set:
-  > `NEXT_PUBLIC_SUPABASE_URL=https://zspxpfwlwikdxwavffjn.supabase.co` ·
-  > `NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_UcKB7iZkyM_gv8F0LTdD0w_IpYriFsh`
-  > · `NEXT_PUBLIC_CHAIN_ID=11155111` (Sepolia test phase — NOT 1) ·
-  > `NEXT_PUBLIC_ALCHEMY_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/<key>` ·
-  > `NEXT_PUBLIC_ALCHEMY_API_KEY=<key>` ·
-  > `NEXT_PUBLIC_ART_IMAGE_BASE=https://pricediscussion.pricediscussion.workers.dev/preview`
-  > · `NEXT_PUBLIC_VAPID_PUBLIC_KEY` + `NEXT_PUBLIC_WEBPUSH_KEY` = the value from
-  > `GET /api/push/pubkey`. Alchemy key `<key>` = the indexer's (from
-  > `ALCHEMY_RPC_URL` Worker secret). Then: `./node_modules/.bin/wrangler deploy`
-  > (use the PINNED local 4.105 — `npx wrangler` may grab 4.110 which fails
-  > "Could not detect static files"). VERIFY after: fetch a client chunk and
-  > grep for the Supabase URL. **OPEN OFFER TO BRENDON: commit these public
-  > values as a repo `.env` so this can never recur — his call (changes the
-  > gitignore convention).** Server SECRETS (service-role, webhook signing,
-  > webpush private, CRON_SECRET) stay Worker secrets, survive redeploys.
+  > **⛔ DEPLOY RECIPE — read before EVER redeploying the app Worker (a bad
+  > redeploy cost real time this session).** The app has NO auto-deploy / no
+  > CI — the `pricediscussion` Worker is updated ONLY by a manual build+deploy.
+  > Steps: (1) `export CLOUDFLARE_API_TOKEN=<Brendon's token>` (he creates a
+  > fresh "Edit Cloudflare Workers" token per session; NOT stored). (2)
+  > `rm -rf .open-next && npx opennextjs-cloudflare build` — this now reads the
+  > COMMITTED **`.env.production`** (added this session: all 8 PUBLIC
+  > NEXT_PUBLIC_* values, so the client bundle is correct automatically. BEFORE
+  > that commit, a fresh-container build baked EMPTY config → wallet defaulted
+  > to mainnet + browser Supabase/push broke; the file is the permanent fix,
+  > do NOT delete it). (3) `./node_modules/.bin/wrangler deploy` — use the
+  > PINNED local wrangler (4.105); `npx wrangler` may pull 4.110 which fails
+  > "Could not detect static files". (4) VERIFY: fetch a client chunk from the
+  > live site and grep for `zspxpfwlwikdxwavffjn` (Supabase URL present =
+  > config baked). Worker SECRETS (service-role, webhook signing, webpush
+  > private, CRON_SECRET, ALCHEMY_RPC_URL, SIGNUP_SIM_ETH_GRANT) live on the
+  > Worker, survive redeploys, are NOT in `.env.production`. Mainnet cutover =
+  > edit `.env.production` (`NEXT_PUBLIC_CHAIN_ID`→1, mainnet Alchemy URL).
 - **Indexer reconcile chunking fix** — the sweep's single wide `eth_getLogs`
   failed on Alchemy's free tier (10-block range cap). Now reads the lookback
   window in ≤10-block windows, capped at 40 windows/run. Added a
