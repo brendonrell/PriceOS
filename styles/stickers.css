@@ -129,7 +129,8 @@
     border: none;
     cursor: pointer;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 22px;
+    /* 1.5× the old size — a bolder header arrow (Brendon, 2026-07-12). */
+    font-size: 33px;
     line-height: 1;
     padding: 2px 8px;
     color: color-mix(in srgb, var(--text-color) 52%, transparent);
@@ -215,11 +216,12 @@
 .ss-ticker-track {
     display: inline-flex;
     white-space: nowrap;
-    font-size: 15px;
+    /* Row trimmed ~1/3 shorter with the text sized down to fit (Brendon, 2026-07-12). */
+    font-size: 10px;
     font-weight: bold;
     letter-spacing: 0.18em;
     color: color-mix(in srgb, var(--text-color) 92%, transparent);
-    padding: 6px 0;
+    padding: 4px 0;
     animation: ssTicker 26s linear infinite;
 }
 .ss-ticker-track span { padding-right: 20px; }
@@ -242,12 +244,15 @@
    2026-06-23 — compact carousel needs mouse drag). */
 .ss-rail[data-dragging] { scroll-snap-type: none; cursor: grabbing; }
 
-/* Expanded view — two sheets across, scrolls down inside the sheet. */
+/* Expanded view — two sheets across, scrolls down inside the sheet. The mobile
+   height is set in JS to a whole 6.5-row count (see StickersModal); border-box
+   so that px cap lands exactly at the row it's counting to. */
 .ss-grid-view {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 14px;
     padding: 16px 18px 8px;
+    box-sizing: border-box;
     max-height: 56vh;
     overflow-y: auto;
     scrollbar-width: none;
@@ -566,10 +571,9 @@
 .ss-flow .ss-cell svg { max-width: 100%; }
 /* Outputs vary in size → masonry columns, stacked, never overlapping. */
 .ss-masonry {
-    /* Output sheet only — doubled the column count so each artwork renders at
-       half size in the store, matching the half-size output stickers elsewhere
-       (Brendon, 2026-06-24). */
-    columns: 4;
+    /* Output sheet only — 3 columns on mobile so each artwork reads at a
+       comfortable thumbnail size (Brendon, 2026-07-12). */
+    columns: 3;
     column-gap: 8px;
     padding: 12px 12px 16px;
 }
@@ -581,6 +585,13 @@
 /* Outputs are full artworks — pack more across so each is a small thumbnail,
    not a wall of giant canvases (Brendon 2026-06-23). Desktop + mobile. */
 @media (min-width: 601px) { .ss-masonry { columns: 10; } }
+/* Mobile 3-col output sheet — even, roomy gaps between the die-cut stickers
+   (equal across + down) so it reads as a properly spaced sheet, not a cramped
+   block (Brendon, 2026-07-12). Desktop's dense 10-up grid is left as-is. */
+@media (max-width: 600px) {
+    .ss-masonry { column-gap: 14px; }
+    .ss-masonry .ss-cell { margin-bottom: 14px; }
+}
 
 /* Output stickers — a painted artwork in a paper-coloured die-cut frame. */
 .out-sticker {

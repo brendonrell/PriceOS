@@ -31,7 +31,7 @@ import { BuySheetButton } from './stickers/BuySheetButton';
 import StickerMarket from './stickers/StickerMarket';
 import StickerAlbum from './stickers/StickerAlbum';
 import { useOwnedStickerIds, ownsSheet } from '../lib/stickers/owned';
-import { buildTickerText } from '../lib/stickers/ticker';
+import { buildStoreTicker, buildMarketTicker } from '../lib/stickers/ticker';
 
 const VS15 = '︎';
 
@@ -113,6 +113,12 @@ export default function StickersModal() {
     /* A fresh seed on every open → the sheet re-scatters each time you look. */
     const [seed, setSeed] = useState(1);
 
+    /* 6.5-row sensor — the mobile store grid shows 6 full rows with the 7th
+       peeking as the scroll cue. It COUNTS rows (measures one real row's height
+       and takes ×6.5), so if the cards ever get taller it still lands on 6.5
+       rows, not a fixed pixel guess (Brendon, 2026-07-12). */
+    const [gridMaxH, setGridMaxH] = useState<number | null>(null);
+
     /* Desktop-only: a fuller, previews-only expanded grid. Mobile is untouched
        (it keeps renderCard exactly as-is) — Brendon: "mobile CANNOT change". */
     const [isDesktop, setIsDesktop] = useState(false);
@@ -148,6 +154,31 @@ export default function StickersModal() {
         if (isOpen && !openSheet && expanded && gridRef.current) gridRef.current.scrollTop = gridYRef.current;
     }, [isOpen, openSheet, expanded, gridRef]);
 
+    /* Measure ONE real row and cap the mobile grid to 6.5 of them. Re-runs on
+       open / view-switch / resize so the count holds whatever the row height. */
+    useEffect(() => {
+        if (isDesktop || !isOpen || openSheet || marketOn || albumOn || !expanded) return;
+        const grid = gridRef.current;
+        if (!grid) return;
+        const ROWS = 6.5;
+        const measure = () => {
+            const kids = grid.children;
+            const cols = Math.max(2, Math.ceil(REAL_SHEETS.length / 9));
+            if (kids.length <= cols) { setGridMaxH(null); return; }
+            const gridTop = grid.getBoundingClientRect().top;
+            const rel = (el: Element) => el.getBoundingClientRect().top - gridTop + grid.scrollTop;
+            const firstTop = rel(kids[0]!);
+            const pitch = rel(kids[cols]!) - firstTop;
+            if (pitch <= 0) { setGridMaxH(null); return; }
+            const cardH = kids[0]!.getBoundingClientRect().height;
+            const full = Math.floor(ROWS);
+            setGridMaxH(Math.round(firstTop + full * pitch + (ROWS - full) * cardH));
+        };
+        measure();
+        window.addEventListener('resize', measure);
+        return () => window.removeEventListener('resize', measure);
+    }, [isDesktop, isOpen, openSheet, marketOn, albumOn, expanded, gridRef]);
+
     // Reset to the rail whenever the modal closes so it never reopens mid-sheet.
     useEffect(() => { if (!isOpen) { setOpenSheet(null); setMarketOn(false); setAlbumOn(false); } }, [isOpen]);
 
@@ -178,7 +209,12 @@ export default function StickersModal() {
             .catch(() => {});
         return () => { cancelled = true; };
     }, [isOpen]);
-    const tickerText = useMemo(() => buildTickerText(liveLines), [isOpen, liveLines]);
+    /* Two crawls, one per storefront face: the STORE onboards + sells sheets;
+       the MARKET (live truth leads it) nudges listing to fund the next roll.
+       Album rides the store crawl. */
+    const storeTicker = useMemo(() => buildStoreTicker(), [isOpen]);
+    const marketTicker = useMemo(() => buildMarketTicker(liveLines), [isOpen, liveLines]);
+    const tickerText = marketOn ? marketTicker : storeTicker;
     /* Match the OLD crawl pace (~3.3 chars/sec): scale the timer to the feed
        length so the longer feed doesn't fly by. */
     const tickerDur = Math.max(26, Math.round(tickerText.length / 3.3));
@@ -233,7 +269,7 @@ export default function StickersModal() {
                 <div className="ss-card-name">{s.name}</div>
                 <div className="ss-card-line">
                     <span className="ss-card-tag">{s.tag}</span>
-                    <span className="ss-card-count">{s.count} stickers</span>
+                    <span className="ss-card-count">{s.count}<br />stickers</span>
                 </div>
                 <BuySheetButton sheet={s} />
             </div>
@@ -446,7 +482,7 @@ export default function StickersModal() {
                                     else { setMarketOn(false); setAlbumOn(true); showToast('Stickers: ALBUM'); }
                                 }}
                             >
-                                {albumOn ? 'MARKET' : 'ALBUM'}
+                                {albumOn ? 'MARKET' : 'MY ALBUM'}
                             </button>
                         </div>
                         <div className="ss-ticker" aria-hidden="true">
@@ -465,11 +501,13 @@ export default function StickersModal() {
                                 className="ss-grid-view"
                                 ref={gridRef}
                                 onScroll={(e) => { gridYRef.current = e.currentTarget.scrollTop; }}
-                                /* Mobile/tablet: cap the stacked grid by fanning out columns
-                                   as sheets grow (Brendon, 2026-06-24). Cap raised 8 → 9 rows
-                                   (2026-07-10): at 17 sheets the old cap forced 3 skinny
-                                   columns that clipped every card's name + buy button. */
-                                style={!isDesktop ? { gridTemplateColumns: `repeat(${Math.max(2, Math.ceil(REAL_SHEETS.length / 9))}, 1fr)` } : undefined}
+                                /* Mobile/tablet: two-up columns, height capped by the 6.5-row
+                                   sensor above so 6 rows show + the 7th peeks and the rest
+                                   scroll. Desktop keeps its own grid untouched. */
+                                style={!isDesktop ? {
+                                    gridTemplateColumns: `repeat(${Math.max(2, Math.ceil(REAL_SHEETS.length / 9))}, 1fr)`,
+                                    ...(gridMaxH ? { maxHeight: `${gridMaxH}px` } : null),
+                                } : undefined}
                             >
                                 {REAL_SHEETS.map((s) => (isDesktop ? renderPreviewCard(s) : renderCard(s)))}
                             </div>

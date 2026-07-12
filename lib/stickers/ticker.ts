@@ -1,126 +1,204 @@
 /*
- * ticker — the Sticker Store news crawl, auto-generated from the store itself.
+ * ticker — the Sticker Store + Marketplace news crawls.
  *
- * Set-and-forget: every line is built from the live SHEETS catalog plus a
- * pre-baked release date per sheet, so adding a sheet (or time passing) updates
- * the crawl with zero edits. News lines carry the sheet's real count/price/tier
- * and a recency badge; between them we sprinkle flavour — PriceSprite faces,
- * familiars, quips, true names, and the ⊞ Stickers mark — kept dry, not corny.
+ * Both are generated from the live SHEETS catalog, so sheet names / counts /
+ * prices / tiers stay true on their own (add a sheet → the crawl updates, zero
+ * edits). Tone: instructional + promotional, with two kinds of walk-on ASCII
+ * characters for flair (Brendon, 2026-07-12):
+ *   - FAMILIARS (the whole 100-strong bestiary) are the "pro athletes" — they
+ *     endorse sheets. Fresh cast shuffled in on every open.
+ *   - PRICESPRITES are the "platform reps" — real, locked-in users only
+ *     (@brendon + @pricediscussion), shown as their sprite face. No placeholder
+ *     handles anywhere in the crawl.
+ *
+ * Two crawls, one per storefront face:
+ *   buildStoreTicker()  — onboarding + "buy the whole sheet" for the STORE.
+ *   buildMarketTicker() — "list a spare, fund your next roll" for the MARKET.
+ *       Encourages listing WITHOUT promising any return: the frame is recouping
+ *       toward your next roll of stickers or art, never profit / flipping.
  */
 
-import { SHEETS, stickersForSheet, type SheetId } from './catalog';
+import { SHEETS } from './catalog';
+import { TIERS } from '../familiar/bestiary';
+import { spriteFaceFor } from './sprites';
 
-const STICKER_ICON = '⊞︎';
+const ICON = '⊞︎';
+/* Faces can carry newlines; the crawl is one line, so flatten. */
+const oneLine = (s: string): string => s.replace(/\s*\n\s*/g, ' ').trim();
 
-/* When each sheet went up. Drives the recency badge; missing → treated as old
-   stock. Add a date when a new sheet ships (or it just reads as catalog). */
-const RELEASES: Partial<Record<SheetId, string>> = {
-    genesis: '2026-06-08', petey: '2026-06-08', icon: '2026-06-10',
-    familiar: '2026-06-11', project: '2026-06-12', artist: '2026-06-12',
-    pricesprite: '2026-06-13', handle: '2026-06-14', projectname: '2026-06-14',
-    output: '2026-06-15', achievement: '2026-06-16', rarity: '2026-06-17',
-    truename: '2026-06-18', quip: '2026-06-19', holo: '2026-06-20', animated: '2026-06-21',
-    animfamiliar: '2026-07-10',
-};
+/* ── The cast ─────────────────────────────────────────────────────────────
+   Familiars = endorsers (all 100). A single-line critter shows its face; the
+   big multi-line tiers (Titans / Ascended / Old Gods) ride on their NAME alone
+   — a flattened block-creature just reads as noise in a one-line crawl. */
+type Critter = { name: string; art: string };
+const FAMILIARS: Critter[] = TIERS.flatMap((t) => t.entries);
+const famTag = (f: Critter): string => (/\n/.test(f.art) ? f.name : `${oneLine(f.art)} ${f.name}`);
 
-/* Rare secret lines — ~12% of opens show exactly one, dropped at a random spot. */
+/* PriceSprites = platform reps. Real, locked-in users only. */
+const REPS: { handle: string; face: string }[] = [
+    { handle: 'brendon', face: spriteFaceFor('user:brendon') },
+    { handle: 'pricediscussion', face: spriteFaceFor('user:pricediscussion') },
+];
+const repTag = (r: { handle: string; face: string }): string => `${oneLine(r.face)} @${r.handle}`;
+
+/* ── Pickers (fresh cast each open — same use of Math.random as the eggs) ── */
+function shuffled<T>(arr: readonly T[]): T[] {
+    const out = [...arr];
+    for (let i = out.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [out[i], out[j]] = [out[j]!, out[i]!];
+    }
+    return out;
+}
+function pick<T>(arr: readonly T[]): T {
+    return arr[Math.floor(Math.random() * arr.length)]!;
+}
+
+/* Catalog facts, read live so the numbers never drift. */
+function facts() {
+    const total = SHEETS.reduce((a, s) => a + s.count, 0);
+    const byPrice = [...SHEETS].sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+    return {
+        total,
+        cheapest: byPrice[0]!,
+        priciest: byPrice[byPrice.length - 1]!,
+        mythic: SHEETS.filter((s) => s.tag === 'MYTHIC').length,
+    };
+}
+
+/* ── Endorsement / rep templates ─────────────────────────────────────────── */
+const BUY_FORMS = [
+    (fam: string, a: string) => `${fam} rates the ${a} sheet a buy`,
+    (fam: string, a: string) => `${fam} is collecting ${a}`,
+    (fam: string, a: string) => `${fam} suggests the ${a} sheet`,
+    (fam: string, a: string) => `${fam} co-signs ${a}`,
+    (fam: string, a: string) => `${fam} wants the whole ${a} wall`,
+    (fam: string, a: string) => `${fam} says ${a} is the one to grab`,
+];
+const PAIR_FORMS = [
+    (fam: string, a: string, b: string) => `${fam} pairs ${a} with ${b}`,
+    (fam: string, a: string, b: string) => `${fam} runs ${a} + ${b} together`,
+];
+const LIST_FORMS = [
+    (fam: string, a: string) => `${fam} listed a spare ${a} and pulled another roll`,
+    (fam: string, a: string) => `${fam} wants your spare ${a}`,
+    (fam: string, a: string) => `${fam} swapped into ${a} this morning`,
+    (fam: string, a: string) => `${fam} is hunting ${a} — got one to spare?`,
+    (fam: string, a: string) => `${fam} turned a double into ${a}`,
+];
+const STORE_REP_FORMS = [
+    (rep: string) => `${rep} · welcome to the sticker store`,
+    (rep: string) => `${rep} · sheets sell whole, no singles`,
+    (rep: string) => `${rep} · tap a sheet to peek inside`,
+    (rep: string, a: string) => `${rep} just restocked the ${a} sheet`,
+];
+const MARKET_REP_FORMS = [
+    (rep: string) => `${rep} · list a spare, fund your next roll`,
+    (rep: string) => `${rep} · every trade settles in ETH`,
+    (rep: string) => `${rep} · got doubles? put them up`,
+    (rep: string) => `${rep} · the marketplace is open`,
+];
+
+/* Draw `n` distinct familiars and have them endorse random sheets (every 4th is
+   a two-sheet pairing suggestion). */
+function endorsements(n: number): string[] {
+    return shuffled(FAMILIARS).slice(0, n).map(famTag).map((fam, i) => {
+        if (i % 4 === 3) {
+            const two = shuffled(SHEETS).slice(0, 2);
+            return pick(PAIR_FORMS)(fam, two[0]!.name, two[1]!.name);
+        }
+        return pick(BUY_FORMS)(fam, pick(SHEETS).name);
+    });
+}
+function listNudges(n: number): string[] {
+    return shuffled(FAMILIARS).slice(0, n).map(famTag).map((fam) => pick(LIST_FORMS)(fam, pick(SHEETS).name));
+}
+const storeReps = (): string[] => REPS.map((r) => pick(STORE_REP_FORMS)(repTag(r), pick(SHEETS).name));
+const marketReps = (): string[] => REPS.map((r) => pick(MARKET_REP_FORMS)(repTag(r)));
+
+/* Rare secret lines — ~10% of opens show one, dropped at a random spot. Dry,
+   blink-and-miss-it, and never promissory. */
 const EGGS: string[] = [
-    'Petey saw the top. ▶︎ Petey said nothing.',
+    'Petey saw everything. ▶︎ Petey said nothing.',
     'a GRAIL familiar blinks once, then is gone',
     '◊︎ 0.000 — nice try',
     'the ticker is watching you back',
-    'someone just paper-handed a MYTHIC. we do not discuss it',
-    '⊞︎ you found the secret line — tell no one',
-    'in here, the chart only goes up',
+    `${ICON} you found the secret line — tell no one`,
     'GM to Petey, and Petey only',
 ];
 
-function daysSince(iso?: string): number {
-    if (!iso) return 999;
-    const then = Date.parse(`${iso}T00:00:00`);
-    if (Number.isNaN(then)) return 999;
-    return Math.max(0, Math.floor((Date.now() - then) / 86_400_000));
+/* Drop an extra after every `every` lines so the crawl mixes the machine copy
+   with the walk-on characters rather than reading them in two blocks. */
+function interleave(primary: string[], extras: string[], every: number): string[] {
+    const out: string[] = [];
+    let e = 0;
+    primary.forEach((line, i) => {
+        out.push(line);
+        if ((i + 1) % every === 0 && e < extras.length) out.push(extras[e++]!);
+    });
+    while (e < extras.length) out.push(extras[e++]!);
+    return out;
 }
 
-/* Faces can in theory carry newlines; the crawl is one line, so flatten. */
-const oneLine = (s: string): string => s.replace(/\s*\n\s*/g, ' ').trim();
-
-/** Build the full crawl string. Pure-ish (reads the clock for recency). */
-export function buildTickerText(liveLines: string[] = []): string {
-    const familiars = stickersForSheet('familiar');
-    const sprites = stickersForSheet('pricesprite');
-    const trueNames = stickersForSheet('truename');
-
-    const pickAt = <T,>(arr: T[], i: number): T | undefined => (arr.length ? arr[i % arr.length] : undefined);
-
-    // Flavour interstitials, cycled between news lines — dry, a little playful.
-    const flavour: string[] = [];
-    const fam = pickAt(familiars, 0);
-    const fam2 = pickAt(familiars, 3);
-    const sp = pickAt(sprites, 1);
-    const sp2 = pickAt(sprites, 4);
-    const tn = pickAt(trueNames, 2);
-
-    // Live store facts — all read off the catalog, so they stay true on their own.
-    const totalStickers = SHEETS.reduce((a, s) => a + s.count, 0);
-    const byPrice = [...SHEETS].sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
-    const cheapest = byPrice[0];
-    const priciest = byPrice[byPrice.length - 1];
-    const newest = [...SHEETS].sort((a, b) => daysSince(RELEASES[a.id]) - daysSince(RELEASES[b.id]))[0];
-    const mythic = SHEETS.filter((s) => s.tag === 'MYTHIC').length;
-
-    flavour.push(`${STICKER_ICON} ${SHEETS.length} SHEETS LIVE · ${totalStickers} STICKERS IN STORE`);
-    if (fam) flavour.push(`${oneLine(fam.glyph ?? '')} ${fam.name.toUpperCase()} SPOTTED IN FAMILIARS`);
-    if (cheapest) flavour.push(`CHEAPEST IN · ${cheapest.name} · ◊︎ ${cheapest.price}`);
-    if (sp) flavour.push(`${oneLine(sp.glyph ?? '')} ${sp.name} RESTOCKED`);
-    flavour.push('SHEETS SELL WHOLE · NO SINGLES · PRIMARY ONLY');
-    if (priciest) flavour.push(`TOP SHELF · ${priciest.name} · ◊︎ ${priciest.price}`);
-    if (tn) flavour.push(`${tn.glyph} SPEAKS ITS NAME`);
-    if (newest) flavour.push(`NEWEST DROP · ${newest.name}`);
-    if (fam2) flavour.push(`${oneLine(fam2.glyph ?? '')} ${fam2.name.toUpperCase()} ON THE LOOSE`);
-    flavour.push(`${mythic} MYTHIC SHEETS ON THE WALL`);
-    flavour.push('HOLO ✦ CATCHES THE LIGHT');
-    if (sp2) flavour.push(`${oneLine(sp2.glyph ?? '')} @${sp2.name.replace(/^@/, '')} IS COLLECTING`);
-    flavour.push(`${STICKER_ICON} TAP A SHEET TO PEEK INSIDE`);
-
-    // Each sheet gets a salesman's line — the ticker is here to MOVE stickers.
-    // Recency leads; older stock rotates through a few pitches so it never reads
-    // like the same template twice. Dry, confident, never corny.
-    const pitches = [
-        (s: typeof SHEETS[number], px: string) => `${s.name} · ${s.tag} · ${px} · whole sheet, one tap`,
-        (s: typeof SHEETS[number], px: string) => `collect all ${s.count} in ${s.name} · ${px}`,
-        (s: typeof SHEETS[number], px: string) => `${s.name} sells whole · ${s.tag} · ${px}`,
-        (s: typeof SHEETS[number], px: string) => `still room on the ${s.name} sheet · ${px}`,
-    ];
-    const news = SHEETS.map((s, i) => {
-        const d = daysSince(RELEASES[s.id]);
-        const px = `◊︎ ${s.price}`;
-        if (d <= 1) return `JUST DROPPED ✦ ${s.name} — ${s.count} stickers, ${px} · first pick of the litter`;
-        if (d <= 4) return `STILL WARM · ${s.name} · ${s.tag} · ${px}`;
-        if (d <= 9) return `${s.name} is moving · ${s.count} stickers · grab the set`;
-        return pitches[i % pitches.length]!(s, px);
-    });
-
-    // Interleave: a flavour beat every couple of news lines.
-    const out: string[] = [];
-    let f = 0;
-    news.forEach((line, i) => {
-        out.push(line);
-        if (i % 2 === 1 && f < flavour.length) out.push(flavour[f++]!);
-    });
-    while (f < flavour.length) out.push(flavour[f++]!);
-
-    // Rare eggs — on a small fraction of opens one secret line slips in at a
-    // random spot. Dry, blink-and-miss-it. Most visits never see one.
-    if (Math.random() < 0.12) {
-        const egg = EGGS[Math.floor(Math.random() * EGGS.length)]!;
+/* Join, sprinkle a rare egg, and set the terminal all-caps look (formatting is
+   tuned separately from this copy). */
+function weave(lines: string[]): string {
+    const out = lines.filter(Boolean);
+    if (Math.random() < 0.1) {
         const at = 1 + Math.floor(Math.random() * Math.max(1, out.length - 1));
-        out.splice(at, 0, egg);
+        out.splice(at, 0, EGGS[Math.floor(Math.random() * EGGS.length)]!);
     }
-
-    // LIVE market truth (Brendon, 2026-07-02): real floors / sales / wants
-    // lead the crawl when the store hands them in — salesman lines follow.
-    if (liveLines.length > 0) out.unshift(...liveLines);
-
     return `${out.join('  ·  ')}  ·  `.toUpperCase();
+}
+
+/** STORE crawl — learn the place, then buy the whole sheet. */
+export function buildStoreTicker(): string {
+    const f = facts();
+    const px = (p: string) => `◊︎ ${p}`;
+    const pitches = SHEETS.map((s, i) => {
+        const forms = [
+            `${s.name} · ${s.tag} · ${px(s.price)} · whole sheet, one tap`,
+            `collect all ${s.count} in ${s.name} · ${px(s.price)}`,
+            `${s.name} sells whole · ${s.tag} · ${px(s.price)}`,
+        ];
+        return forms[i % forms.length]!;
+    });
+    const onboarding = [
+        `${ICON} ${SHEETS.length} sheets live · ${f.total} stickers in the store`,
+        'sheets sell whole · no singles',
+        'tap a sheet to peek inside',
+        'buy it sealed · drag to peel it open',
+        'every sticker is one of our logos, recoloured',
+        'stick them on your profile · rearrange anytime',
+        'complete a sheet for the ✓ in your album',
+        `cheapest in · ${f.cheapest.name} · ${px(f.cheapest.price)}`,
+        `top shelf · ${f.priciest.name} · ${px(f.priciest.price)}`,
+        `${f.mythic} mythic sheets on the wall`,
+        'holo ✦ catches the light',
+        'primary only in here · trade spares over in the market',
+    ];
+    const extras = shuffled([...endorsements(8), ...storeReps()]);
+    return weave(interleave([...onboarding, ...pitches], extras, 3));
+}
+
+/** MARKET crawl — list a spare, recoup toward your next roll. Never a return
+ *  promise: the language stays on funding the next pack, not profit. */
+export function buildMarketTicker(liveLines: string[] = []): string {
+    const copy = [
+        `${ICON} the sticker marketplace · list · offer · swap`,
+        'got doubles? the market wants them',
+        'list a sheet · name your price in ETH',
+        'make an offer on any sheet · bids settle in ETH',
+        'swap doubles straight across · sticker for sticker',
+        'set a want · get matched the moment one is listed',
+        'everything settles in ETH',
+        'turn a spare into your next roll',
+        'list a double · put it toward more art',
+        'recoup toward another roll of the sheets',
+        'free up a shelf · fund the next one',
+        "one collector's spare is another's set",
+        'pass a sheet on · keep the wheel turning',
+    ];
+    const extras = shuffled([...listNudges(6), ...marketReps()]);
+    return weave([...liveLines, ...interleave(copy, extras, 3)]);
 }
