@@ -445,10 +445,13 @@ export default function StickersModal() {
                             <button
                                 type="button"
                                 className={`ss-mktline-cap${marketOn ? ' is-on' : ''}`}
-                                title="Open the Sticker Marketplace"
-                                onClick={() => { setAlbumOn(false); setMarketOn(true); showToast('Stickers: MARKET'); }}
+                                title={marketOn ? 'Back to the Sticker Store' : 'Open the Sticker Marketplace'}
+                                onClick={() => {
+                                    if (marketOn) { setMarketOn(false); showToast('Stickers: STORE'); }
+                                    else { setAlbumOn(false); setMarketOn(true); showToast('Stickers: MARKET'); }
+                                }}
                             >
-                                MARKETPLACE
+                                {marketOn ? 'BACK TO STORE' : 'MARKETPLACE'}
                             </button>
                             <button
                                 type="button"
@@ -474,15 +477,20 @@ export default function StickersModal() {
                         ) : marketOn ? (
                             <StickerMarket />
                         ) : expanded ? (
+                            /* Bounded scroll viewport — caps the store at ~6 rows and
+                               scrolls the rest, so the modal never stretches to show the
+                               whole grid. The grid inside keeps its exact layout. */
                             <div
-                                className="ss-grid-view"
+                                className="ss-grid-scroll"
                                 ref={gridRef}
                                 onScroll={(e) => { gridYRef.current = e.currentTarget.scrollTop; }}
-                                /* Mobile/tablet: two-up columns; the 6.5-row height cap + scroll
-                                   lives in CSS so rows keep their exact height. */
-                                style={!isDesktop ? { gridTemplateColumns: `repeat(${Math.max(2, Math.ceil(REAL_SHEETS.length / 9))}, 1fr)` } : undefined}
                             >
-                                {REAL_SHEETS.map((s) => (isDesktop ? renderPreviewCard(s) : renderCard(s)))}
+                                <div
+                                    className="ss-grid-view"
+                                    style={!isDesktop ? { gridTemplateColumns: `repeat(${Math.max(2, Math.ceil(REAL_SHEETS.length / 9))}, 1fr)` } : undefined}
+                                >
+                                    {REAL_SHEETS.map((s) => (isDesktop ? renderPreviewCard(s) : renderCard(s)))}
+                                </div>
                             </div>
                         ) : (
                             <div className="ss-rail" ref={railRef} onScroll={(e) => saveRailX(e.currentTarget.scrollLeft)}>
