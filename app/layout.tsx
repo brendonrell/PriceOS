@@ -39,6 +39,7 @@ import { ModalProvider } from '../lib/state/ModalContext';
 import { DropdownProvider } from '../lib/state/DropdownContext';
 import { SortProvider } from '../lib/state/SortContext';
 import { ToastProvider } from '../lib/state/ToastContext';
+import { RewindProvider } from '../lib/state/RewindContext';
 import { PingsProvider } from '../lib/state/PingsContext';
 import PriceRankSync from '../components/pricerank/PriceRankSync';
 import { NotePromptProvider } from '../lib/state/NotePromptContext';
@@ -639,6 +640,7 @@ export default async function RootLayout({
                                     <ModalProvider>
                                         <DropdownProvider>
                                             <ToastProvider>
+                                              <RewindProvider>
                                               <PingsProvider>
                                                 <PriceRankSync />
                                                 <CalendarProvider>
@@ -663,6 +665,7 @@ export default async function RootLayout({
                                                     </NotePromptProvider>
                                                 </CalendarProvider>
                                               </PingsProvider>
+                                              </RewindProvider>
                                             </ToastProvider>
                                         </DropdownProvider>
                                     </ModalProvider>

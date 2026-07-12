@@ -4,8 +4,9 @@
  * HomeTitleCartography — the "Price Discussion" name on the home page,
  * carrying the SAME long-press gesture as every other name on the site
  * (ProjectTitleStar: 460ms hold, 10px drift cancel, context-menu
- * suppressed). Here the long-press opens The Cartography ◫ — the living
- * ecosystem map — instead of starring.
+ * suppressed). The name is the platform's secret compass:
+ *   • long-press  → The Cartography ◫ (space — the living ecosystem map)
+ *   • triple-tap  → The Rewind ◄ (time — docks the OS at yesterday)
  *
  * The gesture mechanics are copied verbatim from
  * components/project/ProjectTitleStar.tsx (Rule #0 — reuse, never reinvent).
@@ -13,9 +14,14 @@
 
 import React from 'react';
 import { useModal } from '../../lib/state/ModalContext';
+import { useRewindOptional } from '../../lib/state/RewindContext';
 
 export default function HomeTitleCartography() {
     const { open } = useModal();
+    const rewind = useRewindOptional();
+    /* Triple-tap: three completed taps within 350ms of each other. Taps are
+       counted on pointer-up of presses that never long-fired. */
+    const tapTimes = React.useRef<number[]>([]);
 
     const timerRef = React.useRef<number | null>(null);
     const longFired = React.useRef(false);
@@ -39,7 +45,20 @@ export default function HomeTitleCartography() {
         const dy = e.clientY - startPt.current.y;
         if (dx * dx + dy * dy > 100) clearTimer();
     };
-    const endPress = () => clearTimer();
+    const endPress = () => {
+        const wasPending = timerRef.current != null;
+        clearTimer();
+        if (!wasPending || longFired.current) return;
+        const now = Date.now();
+        const taps = tapTimes.current.filter((t) => now - t < 700);
+        taps.push(now);
+        tapTimes.current = taps;
+        if (taps.length >= 3 && rewind) {
+            tapTimes.current = [];
+            // Enter The Rewind at yesterday — the scrubber takes it from there.
+            rewind.engage(rewind.today - 1);
+        }
+    };
 
     return (
         <span

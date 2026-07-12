@@ -96,6 +96,8 @@ import { formatEthAmount } from '../../lib/format/eth';
 import { useProjectAnchor } from './useProjectAnchor';
 import { useBudgetStepLine } from './useBudgetStepLine';
 import ProjectMorePanel, { type ProjectMoreL1 } from './ProjectMorePanel';
+import RewindProjectView from './RewindProjectView';
+import { useRewindOptional } from '../../lib/state/RewindContext';
 
 type ProjectTab = 'project-showcase' | 'artworks' | 'albums';
 
@@ -217,6 +219,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
 
     const { lowestId, lowestFloor } = useProjectFloor();
     const { ethToFiat, ethToFiatValue, currency } = useFiat();
+    const rewind = useRewindOptional();
     const floorFiat = lowestFloor !== null ? ethToFiat(lowestFloor) : null;
 
     const {
@@ -281,6 +284,24 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
     }, [onShowcaseTab, projectShowcasePicks, project.slug]);
 
 
+
+    /* The Rewind ◄ — docked at a past day, the project page shows only
+       as-of state: stats-then + the gallery capped to pieces minted by that
+       day. Market surfaces are absent while rewound (never a silent mix). */
+    if (rewind?.day != null) {
+        return (
+            <Hero
+                ariaLabel="Project Info"
+                titleRow={
+                    <h1 className="project-title">
+                        <ProjectTitleStar slug={project.slug} title={project.title} />
+                    </h1>
+                }
+            >
+                <RewindProjectView slug={project.slug} />
+            </Hero>
+        );
+    }
 
     return (
         <>

@@ -35,6 +35,8 @@ import { GhostFeedRows } from '../GhostFeed';
 import { GhostCarousels, GhostGallery } from './HomeGhosts';
 import NewsCarousel from './NewsCarousel';
 import HomeTitleCartography from './HomeTitleCartography';
+import RewindHome from './RewindHome';
+import { useRewindOptional } from '../../lib/state/RewindContext';
 import { buildNewsItems } from '../../lib/home/news';
 import { TraitsProvider, useTraits } from '../../lib/state/TraitsContext';
 import { ProjectProvider, useProject } from '../../lib/state/ProjectContext';
@@ -325,6 +327,7 @@ function HomePageBodyInner({
 }) {
     const { showToast } = useToast();
     const { open: openModal } = useModal();
+    const rewind = useRewindOptional();
     const { siweAddress, handle: viewerHandle } = useAuth();
     const { activeFilters, searchQuery, priceMin, priceMax } = useTraits();
 
@@ -840,6 +843,25 @@ function HomePageBodyInner({
             <span className="stat-name">{display ?? label}</span>
         </div>
     );
+
+    /* The Rewind ◄ — while docked at a past day, the whole surface swaps to
+       the as-of state. Same Hero chrome; as-of data or nothing (never a mix
+       of past and live numbers on one surface). */
+    if (rewind?.day != null) {
+        return (
+            <Hero
+                ariaLabel="Price Discussion"
+                titleRow={
+                    <h1 className="project-title home-title">
+                        <HomeTitleCartography />
+                        <PriceDaySlot />
+                    </h1>
+                }
+            >
+                <RewindHome />
+            </Hero>
+        );
+    }
 
     return (
         <>
