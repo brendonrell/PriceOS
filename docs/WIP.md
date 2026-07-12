@@ -41,6 +41,28 @@
 7. **PD Studio next phases** — unchanged (`docs/briefs/studio-phase2.md`,
    epic `86bavub9k`).
 
+## ✅ SHIPPED 2026-07-12 (Opus) — Sticker store + PriceSprite modal UI polish (all on dev)
+
+All merged to `dev` + pushed. UI/content only — no data/logic.
+- **Sticker store:** outputs sheet **3 cols** (was 4) with even, roomy gaps
+  (mobile only); store grid shows **6.5 rows then scrolls** — plain CSS
+  `max-height` + `align-content:start` (NOT a JS sensor — the first attempt
+  measured rows and stretched the cards; ripped out); "album" tab → **"MY
+  ALBUM"**; news-ticker row **~⅓ shorter** (10px); header expand arrow **1.5×**
+  (33px); card count forced-wraps "N" over "stickers".
+- **Both store crawls rewritten (content only, formatting untouched):** store =
+  onboard + buy; marketplace = its OWN crawl nudging **listing**, framed as
+  recouping toward the next roll of stickers/art (deliberately NO profit/flip
+  language). Cast: **all 100 familiars = endorsers**, **@brendon +
+  @pricediscussion sprites = platform reps**; ALL placeholder @handles purged
+  from the crawl. `lib/stickers/ticker.ts` (buildStoreTicker/buildMarketTicker),
+  wired per-view in `components/StickersModal.tsx`.
+- **PriceSprite modal achievements line:** the points line was spilling past the
+  right margin — count now stays inline with the label, the score drops to its
+  own full-width line pinned right; faint tally 0.5→**0.9** opacity.
+- **DEFERRED (Brendon's call):** the PriceSprites **sheet you can buy** still
+  lists placeholder @handles as its stickers — leave until more real users lock in.
+
 ## ✅ SHIPPED 2026-07-11 (evening, Opus) — App security audit (2 fixes; prod DB locked)
 
 Full app security pass (API routes · SIWE/session · Alchemy webhook · crons ·
@@ -206,6 +228,8 @@ redeployed** (needs Brendon's Cloudflare token — see the DEPLOY RECIPE below).
 
 - **iOS push banner test result** (NEXT UP #1) — the ONLY open item now.
   (Alchemy URL + PD feed channel BOTH received + wired this session.)
+- **Ticker copy review (2026-07-12)** — Brendon to eyeball the new store +
+  marketplace crawl lines and send any wording edits (he said he'd review shortly).
 - Feature Atlas re-order · ASCII-Mode glyph ⠿ iPhone check · Lane Runner
   top-10 trigger spot (leaderboard now exists in-game via score-line tap —
   may satisfy this) · docs.pricediscussion.com wiring — all previously
