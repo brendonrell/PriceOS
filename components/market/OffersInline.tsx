@@ -80,6 +80,7 @@ export default function OffersInline({ slug, id, query }: { slug: string; id?: n
                                     <div className="cart-item-name">
                                         {`✦${VS15}`} {o.bidder_handle ? `@${o.bidder_handle}` : shortAddr(o.bidder_address)}
                                         <span className="mk-scope-tag">{target}</span>
+                                        {o.takeover_id && <span className="mk-takeover-tag">{`⚑${VS15}`} TAKEOVER</span>}
                                     </div>
                                     <div className="cart-item-artist">expires {expiresIn(o.end_time)}</div>
                                 </div>

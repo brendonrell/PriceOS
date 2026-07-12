@@ -1,0 +1,128 @@
+/* ── HOSTILE TAKEOVER ⚑ — inscriptions + cast sheet ────────────────────
+   Boardroom energy on the house voice. Everything full-strength (Rule #2);
+   an ACTIVE window is the loudest thing on a profile, on purpose. */
+
+.tko-banners {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 10px 0 2px;
+}
+.tko-banner {
+    display: block;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    border-radius: 8px;
+    padding: 7px 10px;
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.tko-banner.is-active {
+    border: 2px solid var(--accent);
+    color: var(--accent);
+}
+.tko-banner.is-withstood {
+    border-style: double;
+    border-width: 3px;
+}
+.tko-banner .tko-glyph { font-size: 12px; }
+
+/* profile action-row entry */
+.tko-cast-entry { white-space: nowrap; }
+
+/* Offers HQ badge on blanket offers */
+.mk-takeover-tag {
+    margin-left: 6px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    color: var(--accent);
+    padding: 1px 4px;
+    vertical-align: 1px;
+}
+
+/* ── cast sheet ── */
+.tko-sheet {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--text-color);
+}
+.tko-head {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-align: center;
+}
+.tko-sub { font-size: 12px; font-weight: 700; text-align: center; }
+.tko-target { color: var(--accent); }
+.tko-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    border-bottom: 1px solid var(--text-color);
+    padding-bottom: 3px;
+}
+.tko-line { font-size: 11px; font-weight: 700; line-height: 1.5; }
+.tko-positions { display: flex; flex-direction: column; gap: 6px; }
+.tko-pos {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    background: none;
+    border: 1px solid var(--text-color);
+    border-radius: 8px;
+    color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px 10px;
+    cursor: pointer;
+    text-align: left;
+}
+.tko-pos.picked { border: 2px solid var(--accent); color: var(--accent); }
+.tko-price {
+    width: 100%;
+    box-sizing: border-box;
+    background: none;
+    border: 1px solid var(--text-color);
+    border-radius: 8px;
+    color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 9px 10px;
+}
+.tko-price:focus { outline: none; border-color: var(--accent); }
+.tko-terms {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-align: center;
+    border-top: 1px solid var(--text-color);
+    border-bottom: 1px solid var(--text-color);
+    padding: 7px 0;
+}
+.tko-cast {
+    background: var(--accent);
+    border: none;
+    border-radius: 999px;
+    color: var(--bg-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 11px 16px;
+    cursor: pointer;
+}
+.tko-cast:disabled { opacity: 0.5; cursor: default; }

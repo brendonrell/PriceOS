@@ -395,6 +395,7 @@ Wishlist rows (and the held-by / collected-by chips):
 | The Cartography (living map) | ◫ | U+25EB | from the feature's own task name (`FEATURE · The Cartography ◫`); modal header + docs |
 | The Rewind (time scrubber) | ◄ | U+25C4 | the spec's candidate glyph, adopted; RewindBar banner |
 | The Dispatch (morning paper) | ▤ | U+25A4 | NEW — printed-page square; leads the home news rail pill. No collision (▥ freed 2026-07-12 stays free) |
+| Hostile Takeover | ⚑ | U+2691 | NEW — the raid flag; profile inscriptions, cast sheet, Offers-HQ badge. Deliberately NOT ◈ (spec draft used it, but ◈ is the streak glyph) |
 
 > All three ship with the trailing VS-15 `︎` like every glyph here, and carry
 > the standard #1 glyph gate: device-verify as monochrome TEXT on iOS; if one
