@@ -81,11 +81,14 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
             'app/identity-and-profiles',
             'app/collector-tools',
             'app/spell-book',
-            'app/pings',
             'app/achievements',
             'app/discovery',
             'app/settings-and-display',
         ],
+    },
+    {
+        title: 'Pings',
+        slugs: ['pings/overview', 'pings/controls', 'pings/artist-push'],
     },
     {
         title: 'Build on PD',

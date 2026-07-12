@@ -564,6 +564,15 @@
     align-items: center;
 }
 
+/* Fog pill label (Spell Book) — the word itself is fogged: soft haze glow +
+   lowered ink. A meaning-carrying fade (the label IS the demo), not chrome —
+   the Rule-#2 exception, by Brendon's order (2026-07-12). */
+.fog-label {
+    opacity: 0.55;
+    text-shadow: 0 0 4px currentColor;
+    letter-spacing: 0.06em;
+}
+
 
 /* Workspace switcher (footer of Settings panel) */
 .workspace-switcher {

@@ -73,6 +73,7 @@ import { usePriceDay } from '../../lib/priceday/usePriceDay';
 import { GhostFeedRows } from '../GhostFeed';
 import FeedEventRow from '../feed/FeedEventRow';
 import { useSort, groupHeaderGlyph } from '../../lib/state/SortContext';
+import { useGalleryCols, colsWidth } from '../../lib/hooks/useGalleryCols';
 import { useToast } from '../../lib/state/ToastContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { TraitsProvider } from '../../lib/state/TraitsContext';
@@ -130,12 +131,13 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
        Brendon called out in earlier sessions. */
     const project = useProject();
     const { sort, group, resetToDefault } = useSort();
-    /* Entering a project resets the gallery sort + grouping to the user's
-       default, so an in-project sort/grouping never carries over to the next
+    /* Entering a project resets the gallery sort to the user's default and the
+       grouping to what the viewer last used ON THIS PROJECT (per-page memory,
+       Brendon 2026-07-12) — an in-project grouping never carries into the next
        project (Brendon, 2026-06-20). Keyed on slug, so it fires on first mount
        and on every project-to-project navigation, but NOT on in-project sort
        taps (those depend on other state). */
-    useEffect(() => { resetToDefault(); }, [project.slug, resetToDefault]);
+    useEffect(() => { resetToDefault(project.slug); }, [project.slug, resetToDefault]);
 
     /* Record a PROJECT-PAGE view into History (the views pillar, token 0) on
        every project open, gated by the same History recording toggle as Output
@@ -236,6 +238,9 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
     const feedActive = onArtworksTab && sort === 'feed';
     const galleryVisible = (onShowcaseTab || onArtworksTab) && !feedActive;
     const feedVisible = onArtworksTab && feedActive;
+    /* Live grid column metrics — lets each grouping header cap its width to
+       the columns its pieces occupy (glyph ends with the art, 2026-07-12). */
+    const galleryCols = useGalleryCols(galleryVisible && groupedSections != null);
     /* Pre-mint, the trait filter bar would expose the project's feature names
        (Palette / Flow / Grain …) — a spoiler before a single Output exists.
        Hide the whole traits/sort/search bar until something is minted; the
@@ -629,9 +634,18 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                             // A folded level-1 hides its sub-headers and their cards.
                             if (isL2 && collapsedGroups.has(sec.l1Key)) return [];
                             const folded = collapsedGroups.has(sec.ckey);
+                            /* Cap the header's width to the columns its pieces
+                               occupy, so the trailing dimension glyph ends with
+                               the group's art — never off at the page edge
+                               (Brendon, 2026-07-12). Soon-groups span the row. */
+                            const nPieces = sec.ids.length > 0 ? sec.ids.length : sec.total;
+                            const capW = !sec.soon && galleryCols && nPieces > 0
+                                ? colsWidth(galleryCols, nPieces) + (isL2 ? 30 : 0)
+                                : undefined;
                             const header = (
                             <div
                                 key={`hdr-${sec.ckey}`}
+                                style={capW ? { maxWidth: capW } : undefined}
                                 className={`gallery-group-header is-collapsible${isL2 ? ' level-2' : ''}${sec.soon ? ' soon' : ''}${folded ? ' collapsed' : ''}`}
                                 role="button"
                                 tabIndex={0}

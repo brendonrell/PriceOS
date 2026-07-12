@@ -48,6 +48,14 @@ glyph that concept wears elsewhere in the app (the panopticon principle).
 | `WATCH_HIT` | ✛ | U+271B | watch (wishlist family) |
 | `STREAK` | ◈ | U+25C8 | streak category glyph |
 | `ACHIEVEMENT` | ◍ | U+25CD | the canonical achievements icon; an unlock's own catalog glyph overrides when present |
+| `WATCH_HIT` · mutual | ⚭ | U+26AD | interest ping — mutual acted (2026-07-12 pings redesign) |
+| `WATCH_HIT` · artist | ✺ | U+273A | interest ping — starred artist acted |
+| `WATCH_HIT` · project | ⬚ | U+2B1A | interest ping — starred project moved |
+| `WATCH_HIT` · trait | ⨝ | U+2A1D | interest ping — starred trait moved |
+| `WATCH_HIT` · rarity | ❖ | U+2756 | interest ping — top-10-rarest piece moved in a held project |
+| `PING` · todo reminder | ❍ | U+274D | To-Do due (the To-Do glyph) |
+| `PING` · calendar reminder | ▦ | U+25A6 | calendar day item (the Calendar glyph) |
+| `PING` · Artist Push | ✺ | U+273A | the artist speaking to holders |
 
 > ⚠️ **No hearts** for wishlist. PD's wishlist glyph is **✛ (U+271B)**, taken
 > from the artwork action bar. A `♥`/`♡` is a per-user tape *sigil*, never a
@@ -70,9 +78,11 @@ glyph that concept wears elsewhere in the app (the panopticon principle).
 | Showcase | ⑆ | U+2446 |
 | Mute (Hammer) | ⟙ | U+27D9 |
 
-> **Stars are silent.** Starring is a low-stress, frequent bookmark — it never
-> generates a Ping. Wishlist is the opposite (a buy-intent signal) and DOES
-> drive financial Pings.
+> **Output stars are silent; taste stars are LOUD (revised 2026-07-12,
+> Brendon's pings redesign).** Starring a PIECE stays a low-stress bookmark —
+> never generates a Ping. Starring an ARTIST (✺), PROJECT (⬚), or TRAIT (⨝)
+> is a declared interest and now DRIVES the interest Pings above. Wishlist
+> remains the strongest signal (buy intent → financial Pings).
 
 > **To-Do done state** (`components/dropdown/TodosBox.tsx`, 2026-07-04) — a
 > completed To-Do flips **❍ (U+274D, pending) → ✓ (U+2713, done)** and the row
@@ -140,14 +150,24 @@ of its own. Rendered at 22px (`.ach-cell-glyph`).
 > (Brendon, 2026-06-27). Deliberately NOT the `❂` rank-sun above — PriceRank's
 > pill wears the achievements icon, on purpose.
 
-### Gallery grouping glyphs (the cycling sort modifier — Brendon, 2026-06-16)
+### Gallery grouping glyphs (the standalone GROUP toggle — Brendon, 2026-06-16; redesigned 2026-07-12)
 
-Grouping is the small cycling character on the active sort pill (like FEED's `$`),
-first state always = none. One glyph per dimension:
+Grouping is a **standalone icon-only toggle leading every groupable sort row**
+(project page · Collected · Starred/Wishlist rows) — no direction arrow, one tap
+advances the surface's grouping cycle. It no longer rides inside each sort
+button's cycle (the 2026-06-18 "one-button grid sort" design is retired). At
+rest (no grouping) the toggle wears **⁘ (U+2058, GROUP toggle resting face —
+the four-dot cluster, "pieces grouped")** — NEW glyph, Brendon's pick
+2026-07-12 (replaced the first-pass ▥ the same day; ▥ is free again); device-
+verify per the #1 glyph gate. While a grouping is live the toggle wears that
+dimension's glyph below and lights like an active sort. The settings DEFAULT
+SORT row leads with the same pill (icon + dimension name) — it sets the saved
+DEFAULT grouping that boots the app and re-applies on project entry. One glyph
+per dimension:
 
 | Group | Glyph | Codepoint | Source |
 |---|---|---|---|
-| none (resting) | *(none)* | — | pure sort — NO glyph shown (Brendon, 2026-06-18) |
+| none (resting) | ⁘ | U+2058 | the toggle's resting face (four-dot cluster); group HEADERS still show no glyph |
 | Artist | ✺ | U+273A | the artist-category glyph (§4) |
 | Project | ⬚ | U+2B1A | the project stats-row dotted square (`.stat-icon-box`) |
 | Artist + Project | ✺⬚ | — | two-level combo (artist over project) |
@@ -213,7 +233,7 @@ These belong to a *user*, never to an action.
   presentation iOS applies even WITH VS-15 — ☘ (shamrock), ☀ ♥ ♦ ⚡ ⚙, dice ⚀–⚅,
   ✴, ❄, ⚛, etc. — BANNED here regardless. Verify a new glyph on a real device
   before locking it. (Brendon, 2026-06-15.)
-- **▦ (U+25A6) = Calendar** (connect-menu panel, `CalendarPanel.tsx`) — reserved.
+- **▦ (U+25A6) = Calendar** (connect-menu panel, `CalendarPanel.tsx`; also the calendar-reminder Ping glyph since 2026-07-12).
 - **◊ (U+25CA) = ETH (secondary mark)** — the lozenge the sticker store prices in
   (`components/stickers/BuySheetButton.tsx`), reused for To-Do ETH targets/budgets
   and the war-chest meter (`styles/todos.css`). **NOT the Greek Xi (Ξ)** — that's
@@ -341,7 +361,7 @@ square tiles, and the top-bar Grail-pin pills.
 | Concept | Glyph | Codepoint | Where |
 |---|---|---|---|
 | **Trait** (the trait icon) | ⨝ | U+2A1D | Starred trait-row square tile + the top-bar **trait** Grail pin. Replaced the old ★ tile (Brendon, 2026-06-19) |
-| Recent (sort) | ◷ | U+25F7 | the 'Recent' sort in the Starred/Wishlist sort bar shows this glyph (same icon as the project artworks trait pills); sort order is Recent ◷ → $PRICE → FLWRS → AZ |
+| Recent (sort) | ◷ | U+25F7 | the 'Recent' sort in the Starred/Wishlist sort bar shows this glyph (same icon as the project artworks trait pills); sort order is Recent ◷ → $PRICE → FLWRS → AZ. Also the home Now-Minting **date sort** — the word DATE is retired, the clock wears the slot (2026-07-12) |
 | Soundtrack (row tile + Grail pin) | ▶ | U+25B6 | soundtrack row square + the top-bar **soundtrack** Grail pin leading glyph |
 | Project (row tile) | ⬚ | U+2B1A | project row square |
 | Artist / Collector (row tile) | ✺ / ☻ | U+273A / U+263B | artist vs collector row square |

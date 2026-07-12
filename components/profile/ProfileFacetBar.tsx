@@ -43,7 +43,7 @@ import { isStarred, toggleStar } from '../../lib/pins/starStore';
 import { isWishlisted, toggleWishlist } from '../../lib/pins/wishlistStore';
 import { getArtistStars, toggleArtistStar, subscribeArtistStars } from '../../lib/pins/artistStarStore';
 import { getProjectStars, toggleProjectStar, subscribeProjectStars } from '../../lib/pins/projectStarStore';
-import { L3Pill } from '../project/traitsUIPills';
+import { L3Pill, GroupBtn } from '../project/traitsUIPills';
 import AlbumPickerCard from '../album/AlbumPickerCard';
 import { useMarketSheet } from '../../lib/state/MarketSheetContext';
 import { useCart } from '../../lib/state/CartContext';
@@ -111,9 +111,12 @@ const THEME_NAMES: Record<string, string> = {
 export default function ProfileFacetBar({
     holdings,
     isOwnProfile,
+    profileAddress,
 }: {
     holdings: EnrichedHolding[];
     isOwnProfile: boolean;
+    /** The viewed profile's address — keys this Collected grid's grouping memory. */
+    profileAddress: string;
 }) {
     const {
         activeCategory,
@@ -138,7 +141,7 @@ export default function ProfileFacetBar({
         multiSelectActive,
         toggleMultiSelect,
     } = useTraits();
-    const { sort, dir, feedKind, cycleSort, applySort, group, cycleGridSort } = useSort();
+    const { sort, dir, feedKind, cycleSort, applySort, group, cycleGroup } = useSort();
     const { colorway, setColorway } = useColorway();
     const { showToast } = useToast();
 
@@ -177,34 +180,25 @@ export default function ProfileFacetBar({
         return null;
     };
 
-    /* One-button grid sort (Brendon, 2026-06-18). #ID / $PRICE / AZ each cycle
-       every direction × grouping combo in a single tap — like FEED — instead of
-       a separate untappable group chip. Collected cycle: none → artist → project
-       → artist+project → colour → last-sold → rarity, each asc then desc. */
+    /* Grid sorts (Brendon, 2026-07-12 redesign). #ID / $PRICE / AZ are plain
+       direction flips — grouping moved to its own toggle at the start of the
+       row (GroupBtn), cycling the Collected order: none → artist → project →
+       artist+project → colour → artist+colour → project+colour → last-sold →
+       rarity. */
     const effGroup: GroupKey = COLLECTED_GROUP_ORDER.includes(group) ? group : 'none';
-    const cycleGridSortWithToast = (family: 'id' | 'price' | 'az') => {
-        const r = cycleGridSort(family, COLLECTED_GROUP_ORDER);
-        const arrow = r.dir === 'asc' ? '↑' : '↓';
+    const gridSortWithToast = (family: 'id' | 'price' | 'az') => {
+        const nextDir = sort === family ? (dir === 'asc' ? 'desc' : 'asc') : 'asc';
         const lbl = family === 'id' ? '#ID' : family === 'price' ? '$PRICE' : 'AZ';
-        if (r.changed === 'group') {
-            showToast('GROUP: ' + GROUP_LABEL[r.group]);
-        } else {
-            showToast(
-                'SORT: ' + lbl + ' ' + arrow +
-                (r.group !== 'none' ? ' · ' + GROUP_LABEL[r.group] : ''),
-            );
-        }
+        cycleSort(family);
+        showToast('SORT: ' + lbl + ' ' + (nextDir === 'asc' ? '↑' : '↓'));
     };
-    /* Display-only grouping indicator next to the arrow (no separate tap). */
-    const groupMod = (active: boolean) =>
-        active && effGroup !== 'none' ? (
-            <span
-                className="sort-group-mod on"
-                style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: '15px', marginRight: '4px' }}
-            >
-                {GROUP_GLYPH[effGroup]}
-            </span>
-        ) : null;
+    /* The pick is remembered for THIS profile's Collected grid (like tabs), so
+       the viewer finds it grouped as they left it (Brendon, 2026-07-12). */
+    const cycleGroupWithToast = () => {
+        const next = cycleGroup(COLLECTED_GROUP_ORDER, { scope: 'profile', id: profileAddress });
+        // Toast-casing rule: the category stays normal case, the STATE screams.
+        showToast('Group: ' + GROUP_LABEL[next]);
+    };
 
     /* Facet → present value pool, drawn from the owned Outputs. Only facets
        with ≥1 value render. */
@@ -375,40 +369,48 @@ export default function ProfileFacetBar({
                 </div>
                 <div
                     className="sort-btn-group"
-                    style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'nowrap' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'nowrap' }}
                 >
+                    {/* GROUP toggle leads the row (Brendon, 2026-07-12) —
+                        icon-only, no arrow; cycles the grouping dimension
+                        independently of the sorts. */}
+                    <GroupBtn
+                        glyph={GROUP_GLYPH[effGroup]}
+                        on={effGroup !== 'none'}
+                        onClick={cycleGroupWithToast}
+                    />
                     <span
                         className={`sort-btn${sort === 'id' ? ' active' : ''}`}
                         role="button"
                         tabIndex={0}
                         title="Sort by ID"
-                        onClick={() => cycleGridSortWithToast('id')}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleGridSortWithToast('id'); } }}
+                        onClick={() => gridSortWithToast('id')}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); gridSortWithToast('id'); } }}
                     >
                         <span className="sort-lbl">{'#ID'}</span>
-                        <span className="sort-arrow">{groupMod(sort === 'id')}{sort === 'id' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
+                        <span className="sort-arrow">{sort === 'id' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
                     </span>
                     <span
                         className={`sort-btn${sort === 'price' ? ' active' : ''}`}
                         role="button"
                         tabIndex={0}
                         title="Sort by Price"
-                        onClick={() => cycleGridSortWithToast('price')}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleGridSortWithToast('price'); } }}
+                        onClick={() => gridSortWithToast('price')}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); gridSortWithToast('price'); } }}
                     >
                         <span className="sort-lbl">{'$PRICE'}</span>
-                        <span className="sort-arrow">{groupMod(sort === 'price')}{sort === 'price' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
+                        <span className="sort-arrow">{sort === 'price' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
                     </span>
                     <span
                         className={`sort-btn${sort === 'az' ? ' active' : ''}`}
                         role="button"
                         tabIndex={0}
                         title="Sort A–Z by project"
-                        onClick={() => cycleGridSortWithToast('az')}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleGridSortWithToast('az'); } }}
+                        onClick={() => gridSortWithToast('az')}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); gridSortWithToast('az'); } }}
                     >
                         <span className="sort-lbl">{sort === 'az' && dir === 'desc' ? 'ZA' : 'AZ'}</span>
-                        <span className="sort-arrow">{groupMod(sort === 'az')}{sort === 'az' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
+                        <span className="sort-arrow">{sort === 'az' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
                     </span>
                     <span
                         className={`sort-btn${sort === 'feed' ? ' active' : ''}`}

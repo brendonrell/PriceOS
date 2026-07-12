@@ -34,6 +34,7 @@ import PriceDaySlot from '../priceday/PriceDaySlot';
 import { GhostFeedRows } from '../GhostFeed';
 import { GhostCarousels, GhostGallery } from './HomeGhosts';
 import NewsCarousel from './NewsCarousel';
+import HomeTitleCartography from './HomeTitleCartography';
 import { buildNewsItems } from '../../lib/home/news';
 import { TraitsProvider, useTraits } from '../../lib/state/TraitsContext';
 import { ProjectProvider, useProject } from '../../lib/state/ProjectContext';
@@ -846,7 +847,7 @@ function HomePageBodyInner({
                 ariaLabel="Price Discussion"
                 titleRow={
                     <h1 className="project-title home-title">
-                        <span>Price Discussion</span>
+                        <HomeTitleCartography />
                         <PriceDaySlot />
                     </h1>
                 }

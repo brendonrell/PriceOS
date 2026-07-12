@@ -40,7 +40,7 @@ The full holdings view: everything the wallet owns with the market layer on — 
 
 ## The Watch ⬬
 
-Per-page watchlists — items you're actively monitoring, with **watch hits** routed into your [Pings](/docs/app/pings).
+Per-page watchlists — items you're actively monitoring, with **watch hits** routed into your [Pings](/docs/pings/overview).
 
 ## Global search
 
@@ -48,6 +48,6 @@ One field, the whole platform: Projects, Outputs, artists, collectors, @names.
 
 ## Further reading
 
-- [Pings](/docs/app/pings)
+- [Pings](/docs/pings/overview)
 - [The Spell Book](/docs/app/spell-book)
 - [Identity & Profiles](/docs/app/identity-and-profiles)

@@ -13,7 +13,7 @@ import { requireAuth, verifySiweSession } from '@/lib/auth/siwe';
 import { badRequest, serverError } from '@/lib/errors';
 import { getProject } from '@/lib/project/registry';
 import { createPing } from '@/lib/pings/createPing';
-import { pingWishlisters } from '@/lib/pings/wishlist';
+import { fanOutMarketPings } from '@/lib/pings/fanout';
 import { checkListingOrder, checkOfferOrder, resolveRoyaltyReceiver } from '@/lib/market/orderCheck';
 import { DEFAULT_DURATION_SEC, MAX_DURATION_SEC } from '@/lib/market/chain';
 import { tokenMatchesTrait, traitIdentifiers } from '@/lib/market/traitMatch';
@@ -225,7 +225,7 @@ export const POST = requireAuth(async (req, _ctx, address) => {
               { onConflict: 'project_id,token_id' },
             );
             await db.from('events').insert({ type: 'LIST', project_id: slug, token_id: item.tokenId, from_address: address, to_address: null, price_eth: price, timestamp: nowSec() } as never);
-            await pingWishlisters(db, { slug, tokenId: item.tokenId, event: 'listed', actorAddress: address, amountEth: price });
+            await fanOutMarketPings(db, { slug, tokenId: item.tokenId, event: 'listed', actorAddress: address, amountEth: price });
             listed++;
           } catch (e) {
             failed.push({ slug, tokenId: item.tokenId, error: e instanceof Error ? e.message : 'List failed' });
@@ -255,7 +255,7 @@ export const POST = requireAuth(async (req, _ctx, address) => {
               { onConflict: 'project_id,token_id' },
             );
             await db.from('events').insert({ type: 'LIST', project_id: slug, token_id: item.tokenId, from_address: address, to_address: null, price_eth: Number(checked.priceEth), timestamp: nowSec() } as never);
-            await pingWishlisters(db, { slug, tokenId: item.tokenId, event: 'listed', actorAddress: address, amountEth: Number(checked.priceEth) });
+            await fanOutMarketPings(db, { slug, tokenId: item.tokenId, event: 'listed', actorAddress: address, amountEth: Number(checked.priceEth) });
             listed++;
           } catch (e) {
             failed.push({ slug, tokenId: item.tokenId, error: e instanceof Error ? e.message : 'List failed' });
@@ -538,7 +538,7 @@ export const POST = requireAuth(async (req, _ctx, address) => {
           await db.from('listings')
             .update({ active: false, tx_hash: body.txHash } as never)
             .eq('project_id', slug).eq('token_id', f.tokenId);
-          await pingWishlisters(db, { slug, tokenId: f.tokenId, event: 'sold', actorAddress: address, amountEth: listing.price_eth ?? null });
+          await fanOutMarketPings(db, { slug, tokenId: f.tokenId, event: 'sold', actorAddress: address, amountEth: listing.price_eth ?? null });
           closed++;
         }
         return NextResponse.json({ ok: true, closed });

@@ -34,17 +34,6 @@ const day = (
 
 export const TENURE_ACHIEVEMENTS: readonly Achievement[] = [
   // ── The first year · showing up ───────────────────────────────────────
-  day(1, 'First Steps', 'Your first full day on PD.', 5),
-  day(3, 'Three Days In', 'Three days on PD. The door didn’t hit you on the way out — because you didn’t leave.', 5),
-  day(7, 'One Week Deep', 'A week on PD.', 10),
-  day(14, 'Fortnight', 'Two weeks on PD.', 10),
-  day(21, 'Three Weeks Standing', 'Three weeks on PD.', 15),
-  day(45, 'Settling In', 'Forty-five days on PD. This is a habit now.', 20),
-  day(60, 'Two Months Strong', 'Sixty days on PD.', 25),
-  day(75, 'Seventy-Five', 'Seventy-five days on PD.', 25),
-  day(90, 'One Season', 'A full season on PD.', 35),
-  day(120, 'Four Months', 'A hundred and twenty days on PD.', 40),
-  day(150, 'Five Months Standing', 'A hundred and fifty days on PD.', 45),
   day(180, 'Half a Year Here', 'Six months on PD.', 60),
   day(240, 'Eight Months', 'Two hundred and forty days on PD.', 70),
   day(270, 'Three Seasons', 'Two hundred and seventy days on PD.', 80),

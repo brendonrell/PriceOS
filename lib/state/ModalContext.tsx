@@ -42,7 +42,8 @@ export type ModalName =
     | 'spiteBook'
     | 'panopticonConfirm'
     | 'leaderboard'
-    | 'golf-leaderboard';
+    | 'golf-leaderboard'
+    | 'cartography';
 
 interface OpenModalState {
     name: ModalName;

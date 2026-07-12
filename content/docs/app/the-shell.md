@@ -28,7 +28,7 @@ Deliberately under-used real estate, currently three rows:
 
 ## The installable app
 
-PriceOS is a PWA: installable to the home screen on iOS and Android, with an offline fallback served by a hand-written network-first service worker, pull-to-refresh in standalone mode, a dynamic favicon that repaints with the live colorway, and native push notifications for [Pings](/docs/app/pings) on devices that allow it.
+PriceOS is a PWA: installable to the home screen on iOS and Android, with an offline fallback served by a hand-written network-first service worker, pull-to-refresh in standalone mode, a dynamic favicon that repaints with the live colorway, and native push notifications for [Pings](/docs/pings/overview) on devices that allow it.
 
 ## Colorways
 
@@ -41,5 +41,5 @@ An optional dimming layer for late-night browsing that pulls the whole interface
 ## Further reading
 
 - [Settings & Display](/docs/app/settings-and-display)
-- [Pings](/docs/app/pings)
+- [Pings](/docs/pings/overview)
 - [Discovery](/docs/app/discovery)

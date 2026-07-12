@@ -54,7 +54,7 @@ Definitions for terms used throughout Price Discussion, alphabetically. The nome
 
 **PDProject** — The per-Project ERC-721 contract deployed by PDFactory. See [PDProject](/docs/contracts/pd-project).
 
-**Ping** — PD's notification primitive. See [Pings](/docs/app/pings).
+**Ping** — PD's notification primitive. See [Pings](/docs/pings/overview).
 
 **$PRICE** — The platform's ERC-20 token; zero platform utility by design. See [$PRICE Overview](/docs/price-token/overview).
 

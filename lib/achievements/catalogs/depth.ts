@@ -49,8 +49,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
   //  PRIMARY · lifetime mint count
   // ─────────────────────────────────────────────────────────────────────
   ...ladder('mint', 'mint.count', 'primary', (n) => `Mint ${fmt(n)} pieces.`, [
-    [2, 15, 'Double Tap'],
-    [3, 20, 'Three Off the Press'],
     [5, 35, 'A Handful'],
     [15, 80, 'Warming Up'],
     [20, 95, 'A Score of Mints'],
@@ -90,9 +88,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
   //  PRIMARY · distinct projects minted
   // ─────────────────────────────────────────────────────────────────────
   ...ladder('mintproj', 'mint.distinctProjects', 'primary', (n) => `Mint from ${n} different projects.`, [
-    [2, 20, 'Second Taste'],
-    [3, 30, 'Triple Sampler'],
-    [4, 40, 'Four Corners'],
     [6, 55, 'Six Ways In'],
     [8, 70, 'Eight Doors'],
     [10, 90, 'Ten Doors'],
@@ -113,9 +108,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
   //  PRIMARY · mints from a single project (depth of conviction)
   // ─────────────────────────────────────────────────────────────────────
   ...ladder('mintdeep', 'mint.maxPerProject', 'primary', (n) => `Mint ${fmt(n)} pieces from a single project.`, [
-    [2, 15, 'Twice Committed'],
-    [3, 25, 'Thrice In'],
-    [4, 35, 'Four Down'],
     [6, 55, 'Six of One'],
     [8, 75, 'Great Eight'],
     [10, 95, 'Ten of a Kind'],
@@ -141,8 +133,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
   //  PRIMARY · total ETH into primary — THE FATTEST POINTS
   // ─────────────────────────────────────────────────────────────────────
   ...ladder('primeth', 'primary.totalEth', 'primary', (n) => `${n} ETH in total primary spend.`, [
-    [0.02, 20, 'Skin in the Game'],
-    [0.05, 35, 'First Coin'],
     [0.15, 80, 'A Real Position'],
     [0.35, 130, 'Third of the Way'],
     [0.75, 190, 'Three Quarters In'],
@@ -169,7 +159,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
   //  TRADING · secondary volume (ETH)
   // ─────────────────────────────────────────────────────────────────────
   ...ladder('seceth', 'secondary.totalEth', 'trading', (n) => `${n} ETH in secondary volume.`, [
-    [0.1, 20, 'Dipped a Toe'],
     [0.25, 35, 'Quarter Through'],
     [1, 85, 'One Through the Book'],
     [1.5, 110, 'One and a Half Moved'],
@@ -193,8 +182,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
   //  TRADING · total volume (primary + secondary)
   // ─────────────────────────────────────────────────────────────────────
   ...ladder('voleth', 'volume.totalEth', 'trading', (n) => `${n} ETH in total volume.`, [
-    [0.5, 30, 'First Ripple'],
-    [1, 55, 'One Total'],
     [2, 95, 'Two Total'],
     [3, 130, 'Three Total'],
     [8, 260, 'Eight Total'],
@@ -219,7 +206,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
   //  TRADING · trade count
   // ─────────────────────────────────────────────────────────────────────
   ...ladder('trades', 'trades.count', 'trading', (n) => `Complete ${fmt(n)} trades.`, [
-    [5, 35, 'Five Crossings'],
     [15, 90, 'Fifteen Crossings'],
     [20, 105, 'Twenty Crossings'],
     [30, 135, 'Thirty Crossings'],
@@ -246,8 +232,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
   //  TRADING · buys
   // ─────────────────────────────────────────────────────────────────────
   ...ladder('buy', 'buy.count', 'trading', (n) => `Buy ${fmt(n)} pieces on the secondary market.`, [
-    [3, 25, 'Three Bought'],
-    [5, 40, 'Five Bought'],
     [15, 85, 'Fifteen Bought'],
     [20, 105, 'Twenty Bought'],
     [30, 145, 'Thirty Bought'],
@@ -272,8 +256,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
   //  TRADING · sales
   // ─────────────────────────────────────────────────────────────────────
   ...ladder('sale', 'sale.count', 'trading', (n) => `Sell ${fmt(n)} pieces.`, [
-    [3, 25, 'Three Sold'],
-    [5, 40, 'Five Sold'],
     [15, 85, 'Fifteen Sold'],
     [20, 105, 'Twenty Sold'],
     [30, 145, 'Thirty Sold'],
@@ -298,8 +280,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
   //  TRADING · listings
   // ─────────────────────────────────────────────────────────────────────
   ...ladder('list', 'list.count', 'trading', (n) => `Create ${fmt(n)} listings.`, [
-    [3, 15, 'Three Listed'],
-    [5, 25, 'Five Listed'],
     [15, 55, 'Fifteen Listed'],
     [20, 70, 'Twenty Listed'],
     [25, 80, 'Twenty-Five Listed'],
@@ -324,8 +304,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
   //  TRADING · offers made
   // ─────────────────────────────────────────────────────────────────────
   ...ladder('offer', 'offerMade.count', 'trading', (n) => `Place ${fmt(n)} offers.`, [
-    [3, 15, 'Three Offers Out'],
-    [5, 25, 'Five Offers Out'],
     [15, 55, 'Fifteen Offers Out'],
     [20, 70, 'Twenty Offers Out'],
     [25, 80, 'Twenty-Five Offers Out'],
@@ -346,8 +324,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
   //  TRADING · your offers accepted
   // ─────────────────────────────────────────────────────────────────────
   ...ladder('offeracc', 'offerMade.acceptedCount', 'trading', (n) => `Get ${fmt(n)} of your offers accepted.`, [
-    [3, 55, 'Three Landed'],
-    [5, 75, 'Five Landed'],
     [15, 145, 'Fifteen Landed'],
     [20, 180, 'Twenty Landed'],
     [30, 250, 'Thirty Landed'],
@@ -363,8 +339,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
   //  TRADING · offers you accepted
   // ─────────────────────────────────────────────────────────────────────
   ...ladder('accept', 'offerAccepted.count', 'trading', (n) => `Accept ${fmt(n)} offers on your pieces.`, [
-    [3, 55, 'Three Taken'],
-    [5, 75, 'Five Taken'],
     [15, 145, 'Fifteen Taken'],
     [20, 180, 'Twenty Taken'],
     [30, 250, 'Thirty Taken'],
@@ -381,9 +355,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
   //  SOCIAL · followers
   // ─────────────────────────────────────────────────────────────────────
   ...ladder('followers', 'followers.count', 'social', (n) => `Reach ${fmt(n)} followers.`, [
-    [2, 10, 'Two Listening'],
-    [3, 12, 'Three Listening'],
-    [5, 18, 'Five Listening'],
     [15, 50, 'Fifteen Listening'],
     [20, 65, 'Twenty Listening'],
     [25, 75, 'Twenty-Five Listening'],
@@ -412,8 +383,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
   //  SOCIAL · following
   // ─────────────────────────────────────────────────────────────────────
   ...ladder('following', 'following.count', 'social', (n) => `Follow ${fmt(n)} people.`, [
-    [3, 10, 'Three Followed'],
-    [5, 14, 'Five Followed'],
     [15, 30, 'Fifteen Followed'],
     [20, 35, 'Twenty Followed'],
     [25, 40, 'Twenty-Five Followed'],
@@ -436,8 +405,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
   //  SOCIAL · mutuals
   // ─────────────────────────────────────────────────────────────────────
   ...ladder('mutuals', 'mutuals.count', 'social', (n) => `Reach ${fmt(n)} mutuals.`, [
-    [3, 25, 'Three Mutuals'],
-    [5, 35, 'Five Mutuals'],
     [15, 75, 'Fifteen Mutuals'],
     [20, 90, 'Twenty Mutuals'],
     [30, 125, 'Thirty Mutuals'],
@@ -458,8 +425,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
   //  PROJECTS · projects followed
   // ─────────────────────────────────────────────────────────────────────
   ...ladder('projfoll', 'projectFollows.count', 'projects', (n) => `Follow ${n} projects.`, [
-    [3, 20, 'Three Watched'],
-    [5, 28, 'Five Watched'],
     [8, 35, 'Eight Watched'],
     [12, 50, 'Twelve Watched'],
     [15, 60, 'Fifteen Watched'],
@@ -475,8 +440,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
   //  CURATION · total pieces held
   // ─────────────────────────────────────────────────────────────────────
   ...ladder('held', 'holdings.total', 'curation', (n) => `Hold ${fmt(n)} pieces.`, [
-    [3, 15, 'Three Held'],
-    [5, 25, 'Five Held'],
     [15, 55, 'Fifteen Held'],
     [20, 70, 'Twenty Held'],
     [25, 80, 'Twenty-Five Held'],
@@ -507,10 +470,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
   //  CURATION · distinct projects held
   // ─────────────────────────────────────────────────────────────────────
   ...ladder('heldproj', 'holdings.distinctProjects', 'curation', (n) => `Own pieces from ${n} different projects.`, [
-    [2, 15, 'Two Projects Held'],
-    [3, 22, 'Three Projects Held'],
-    [4, 30, 'Four Projects Held'],
-    [5, 38, 'Five Projects Held'],
     [6, 45, 'Six Projects Held'],
     [8, 60, 'Eight Projects Held'],
     [12, 95, 'Twelve Projects Held'],
@@ -532,10 +491,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
   //  CURATION · held from a single project
   // ─────────────────────────────────────────────────────────────────────
   ...ladder('helddeep', 'holdings.maxPerProject', 'curation', (n) => `Hold ${fmt(n)} pieces from one project.`, [
-    [2, 12, 'Two of a Kind'],
-    [3, 18, 'Three of a Kind'],
-    [4, 25, 'Four of a Kind'],
-    [5, 32, 'Five of a Kind'],
     [6, 38, 'Six of a Kind'],
     [12, 75, 'Twelve of a Kind'],
     [15, 95, 'Fifteen of a Kind'],
@@ -561,8 +516,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
   //  CURATION · stars
   // ─────────────────────────────────────────────────────────────────────
   ...ladder('stars', 'stars.count', 'curation', (n) => `Star ${fmt(n)} pieces.`, [
-    [5, 10, 'Five Starred'],
-    [10, 15, 'Ten Starred'],
     [15, 20, 'Fifteen Starred'],
     [40, 40, 'Forty Starred'],
     [50, 45, 'Fifty Starred'],
@@ -580,8 +533,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
   //  CURATION · wishlist
   // ─────────────────────────────────────────────────────────────────────
   ...ladder('wish', 'wishlist.count', 'curation', (n) => `Wishlist ${fmt(n)} pieces.`, [
-    [3, 8, 'Three Wished'],
-    [5, 12, 'Five Wished'],
     [15, 30, 'Fifteen Wished'],
     [20, 38, 'Twenty Wished'],
     [25, 45, 'Twenty-Five Wished'],
@@ -599,8 +550,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
   //  CURATION · albums
   // ─────────────────────────────────────────────────────────────────────
   ...ladder('albums', 'albums.count', 'curation', (n) => `Create ${n} albums.`, [
-    [2, 12, 'Two Shelves'],
-    [3, 18, 'Three Shelves'],
     [8, 55, 'Eight Shelves'],
     [12, 90, 'Twelve Shelves'],
     [15, 110, 'Fifteen Shelves'],
@@ -610,7 +559,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
     [50, 320, 'The Stacks', 'Create 50 albums. Somewhere in there is a wing with your name on it.'],
   ]),
   ...ladder('albumbig', 'albums.maxItems', 'curation', (n) => `Fill an album with ${n} pieces.`, [
-    [5, 15, 'Album of Five'],
     [15, 50, 'Album of Fifteen'],
     [20, 60, 'Album of Twenty'],
     [30, 85, 'Album of Thirty'],
@@ -623,8 +571,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
   //  CURATION · price targets
   // ─────────────────────────────────────────────────────────────────────
   ...ladder('targets', 'targets.count', 'curation', (n) => `Set ${n} price targets.`, [
-    [3, 22, 'Three Calls'],
-    [5, 30, 'Five Calls'],
     [15, 70, 'Fifteen Calls'],
     [20, 85, 'Twenty Calls'],
     [25, 95, 'Twenty-Five Calls'],
@@ -636,8 +582,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
     [150, 290, 'The Research Desk', 'Set 150 price targets. Analysts get paid for less.'],
   ]),
   ...ladder('targethit', 'targets.hit', 'curation', (n) => `${n} of your price targets get hit.`, [
-    [2, 130, 'Called It Twice'],
-    [3, 160, 'Called It Thrice'],
     [5, 210, 'Five Called Right'],
     [10, 290, 'Ten Called Right'],
     [15, 350, 'Fifteen Called Right'],
@@ -650,7 +594,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
   //  ANOINTING · given / received
   // ─────────────────────────────────────────────────────────────────────
   ...ladder('anointg', 'anoint.given', 'anointing', (n) => `Anoint ${fmt(n)} pieces.`, [
-    [5, 25, 'Five Blessed'],
     [10, 40, 'Ten Blessed'],
     [25, 80, 'Twenty-Five Blessed'],
     [50, 140, 'Fifty Blessed'],
@@ -662,7 +605,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
     [750, 720, 'The Blessing Engine', 'Anoint 750 pieces. Taste at industrial scale.'],
   ]),
   ...ladder('anointr', 'anoint.received', 'anointing', (n) => `Collect ${fmt(n)} anoints across your pieces.`, [
-    [5, 45, 'Five Blessings In'],
     [10, 70, 'Ten Blessings In'],
     [15, 90, 'Fifteen Blessings In'],
     [25, 125, 'Twenty-Five Blessings In'],
@@ -679,10 +621,6 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
   //  STREAK · densified (60/100/180/365/500/730/1000 live elsewhere)
   // ─────────────────────────────────────────────────────────────────────
   ...ladder('streak', 'streak.days', 'streak', (n) => `Reach a ${fmt(n)}-day PriceStreak.`, [
-    [3, 10, 'Three Days Running'],
-    [7, 20, 'One Week Running'],
-    [14, 35, 'Two Weeks Running'],
-    [21, 50, 'Three Weeks Running'],
     [30, 70, 'Thirty Days Running'],
     [45, 100, 'Forty-Five Running'],
     [90, 220, 'Ninety Running'],
@@ -704,34 +642,7 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
   //  RANK · PriceScore milestones (densified)
   // ─────────────────────────────────────────────────────────────────────
   ...ladder('score', 'score.total', 'rank', (n) => `Reach ${fmt(n)} PriceScore.`, [
-    [100, 10, 'Off Zero'],
-    [250, 15, 'Quarter K'],
-    [500, 25, 'Five Hundred Score'],
-    [750, 35, 'Seven-Fifty Score'],
-    [1500, 60, 'Fifteen Hundred Score'],
-    [2000, 75, 'Two Thousand Score'],
-    [3000, 100, 'Three Thousand Score'],
-    [3500, 110, 'Thirty-Five Hundred Score'],
-    [4500, 130, 'Forty-Five Hundred Score'],
-    [5500, 160, 'Fifty-Five Hundred Score'],
-    [6000, 170, 'Six Thousand Score'],
-    [6500, 180, 'Sixty-Five Hundred Score'],
-    [8000, 210, 'Eight Thousand Score'],
-    [8500, 220, 'Eighty-Five Hundred Score'],
-    [9000, 230, 'Nine Thousand Score'],
-    [9500, 240, 'Ninety-Five Hundred Score'],
-    [11000, 260, 'Eleven Thousand Score'],
-    [12000, 270, 'Twelve Thousand Score'],
-    [12500, 280, 'Twelve-Five Score'],
-    [14000, 300, 'Fourteen Thousand Score'],
-    [16000, 320, 'Sixteen Thousand Score'],
-    [18000, 340, 'Eighteen Thousand Score'],
     [20000, 360, 'Twenty Thousand Score'],
-    [22000, 380, 'Twenty-Two Thousand Score'],
-    [25000, 400, 'Twenty-Five Thousand Score'],
-    [28000, 420, 'Twenty-Eight Thousand Score'],
-    [32000, 450, 'Thirty-Two Thousand Score'],
-    [35000, 480, 'Thirty-Five Thousand Score'],
     [40000, 520, 'Forty Thousand Score', 'Reach 40,000 PriceScore. The scoreboard needed new digits.'],
   ]),
 
@@ -812,10 +723,198 @@ export const DEPTH_ACHIEVEMENTS: readonly Achievement[] = [
     [4000, 770, 'Four Thousand Watching'],
   ]),
 
-  // ─────────────────────────────────────────────────────────────────────
-  //  IDENTITY · showcase
-  // ─────────────────────────────────────────────────────────────────────
-  ...ladder('showcase', 'showcase.filledSlots', 'curation', (n) => `Fill ${n} showcase slots.`, [
-    [3, 20, 'Half the Shelf'],
+  // ═════════════════════════════════════════════════════════════════════
+  //  THE FAR CLIMB — 2026-07-12 de-spam rebalance (Brendon's call).
+  //  The front-loaded rungs (every "do a thing 1-3 times" trophy, the dense
+  //  score-of-score ladder, the day-one tenure stamps) were PURGED and their
+  //  slots pushed out here: same families, horizons that take months and
+  //  years. The catalog stays exactly 1,000; the wall of unlocks moves from
+  //  a user's first hour to where it means something.
+  // ═════════════════════════════════════════════════════════════════════
+  ...ladder('mintfar', 'mint.count', 'primary', (n) => `Mint ${fmt(n)} pieces.`, [
+    [3000, 965, 'Three Thousand Mints'],
+    [3500, 970, 'The Endless Press'],
+    [4000, 975, 'Four Thousand Mints'],
+    [4500, 980, 'The Approach to Five'],
+    [5000, 990, 'Five Thousand Mints'],
+  ]),
+  ...ladder('mintdeepfar', 'mint.maxPerProject', 'primary', (n) => `Mint ${fmt(n)} pieces from a single project.`, [
+    [350, 640, 'Three-Fifty Deep'],
+    [400, 680, 'The Quarry'],
+    [500, 740, 'Five Hundred of One'],
+  ]),
+  ...ladder('primethfar', 'primary.totalEth', 'primary', (n) => `${n} ETH in total primary spend.`, [
+    [125, 930, 'The Underwriter'],
+    [150, 945, 'A Hundred Fifty In'],
+    [200, 960, 'The Endowment'],
+    [250, 985, 'Patron of Record'],
+  ]),
+  ...ladder('secethfar', 'secondary.totalEth', 'trading', (n) => `${n} ETH in secondary volume.`, [
+    [125, 850, 'Deep Liquidity'],
+    [150, 870, 'The Resting Order'],
+    [200, 900, 'Two Hundred Through'],
+    [250, 930, 'The Exchange Itself'],
+  ]),
+  ...ladder('volethfar', 'volume.totalEth', 'trading', (n) => `${fmt(n)} ETH in total lifetime volume.`, [
+    [400, 900, 'Four Hundred Total'],
+    [500, 925, 'Half a Thousand'],
+    [600, 950, 'Six Hundred Moved'],
+    [750, 975, 'The Deep Current'],
+  ]),
+  ...ladder('tradesfar', 'trades.count', 'trading', (n) => `Complete ${fmt(n)} trades.`, [
+    [2000, 880, 'Two Thousand Crossings'],
+    [2500, 910, 'The Perpetual Motion'],
+    [3000, 940, 'Three Thousand Trades'],
+    [5000, 985, 'Five Thousand Trades'],
+  ]),
+  ...ladder('buyfar', 'buy.count', 'trading', (n) => `Buy ${fmt(n)} pieces on the secondary market.`, [
+    [1000, 720, 'A Thousand Buys'],
+    [1250, 760, 'Twelve-Fifty Bought'],
+    [1500, 800, 'The Great Accumulation'],
+    [2000, 860, 'Two Thousand Bought'],
+  ]),
+  ...ladder('salefar', 'sale.count', 'trading', (n) => `Sell ${fmt(n)} pieces.`, [
+    [1000, 720, 'A Thousand Exits'],
+    [1250, 760, 'Twelve-Fifty Sold'],
+    [1500, 800, 'The Great Distribution'],
+    [2000, 860, 'Two Thousand Sold'],
+  ]),
+  ...ladder('listfar', 'list.count', 'trading', (n) => `Create ${fmt(n)} listings.`, [
+    [1000, 560, 'A Thousand Storefronts'],
+    [1250, 600, 'Twelve-Fifty Listed'],
+    [1500, 650, 'The Eternal Shopfront'],
+  ]),
+  ...ladder('offerfar', 'offerMade.count', 'trading', (n) => `Place ${fmt(n)} offers.`, [
+    [500, 480, 'Five Hundred Offers'],
+    [750, 540, 'The Relentless Ask'],
+    [1000, 610, 'A Thousand Offers'],
+  ]),
+  ...ladder('offeraccfar', 'offerMade.acceptedCount', 'trading', (n) => `Get ${fmt(n)} of your offers accepted.`, [
+    [350, 560, 'Three-Fifty Landed'],
+    [500, 640, 'Five Hundred Handshakes'],
+    [750, 730, 'The Closer of Closers'],
+  ]),
+  ...ladder('acceptfar', 'offerAccepted.count', 'trading', (n) => `Accept ${fmt(n)} offers on your pieces.`, [
+    [350, 560, 'Three-Fifty Accepted'],
+    [500, 640, 'The Open Exchange'],
+    [750, 730, 'Market Pillar'],
+  ]),
+  ...ladder('followersfar', 'followers.count', 'social', (n) => `Reach ${fmt(n)} followers.`, [
+    [7500, 900, 'Seventy-Five Hundred Strong'],
+    [10000, 920, 'Ten Thousand Watching'],
+    [15000, 950, 'The Gathering'],
+    [25000, 985, 'A City of Followers'],
+  ]),
+  ...ladder('followingfar', 'following.count', 'social', (n) => `Follow ${fmt(n)} people.`, [
+    [1000, 320, 'A Thousand Threads'],
+    [1500, 380, 'The Wide Net'],
+    [2000, 440, 'Everyone, Everywhere'],
+  ]),
+  ...ladder('mutualsfar', 'mutuals.count', 'social', (n) => `Reach ${fmt(n)} mutuals.`, [
+    [500, 520, 'Five Hundred Both Ways'],
+    [750, 590, 'The Great Hall'],
+    [1000, 680, 'A Thousand Kindred'],
+  ]),
+  ...ladder('heldfar', 'holdings.total', 'curation', (n) => `Hold ${fmt(n)} pieces.`, [
+    [2500, 830, 'Twenty-Five Hundred Held'],
+    [3000, 860, 'The Wing'],
+    [4000, 900, 'Four Thousand Held'],
+    [5000, 950, 'The National Collection'],
+  ]),
+  ...ladder('helddeepfar', 'holdings.maxPerProject', 'curation', (n) => `Hold ${fmt(n)} pieces from one project.`, [
+    [400, 560, 'Four Hundred of One'],
+    [500, 620, 'The Majority Position'],
+    [600, 680, 'Six Hundred of One'],
+    [750, 750, 'The Project Is You'],
+  ]),
+  ...ladder('starsfar', 'stars.count', 'curation', (n) => `Star ${fmt(n)} pieces.`, [
+    [1000, 300, 'A Thousand Stars'],
+    [1500, 360, 'The Star Chart'],
+    [2000, 420, 'Two Thousand Stars'],
+    [2500, 480, 'The Whole Firmament'],
+  ]),
+  ...ladder('wishfar', 'wishlist.count', 'curation', (n) => `Wishlist ${fmt(n)} pieces.`, [
+    [300, 300, 'Three Hundred Wishes'],
+    [400, 350, 'The Long Want'],
+    [500, 400, 'Five Hundred Wishes'],
+  ]),
+  ...ladder('albumsfar', 'albums.count', 'curation', (n) => `Create ${fmt(n)} albums.`, [
+    [75, 320, 'Seventy-Five Shelves'],
+    [100, 380, 'A Hundred Albums'],
+    [150, 450, 'The Archive Wing'],
+  ]),
+  ...ladder('albumbigfar', 'albums.maxItems', 'curation', (n) => `Fill an album with ${fmt(n)} pieces.`, [
+    [150, 320, 'The Anthology'],
+    [200, 380, 'Two Hundred Bound'],
+    [250, 440, 'The Compendium'],
+  ]),
+  ...ladder('targetsfar', 'targets.count', 'curation', (n) => `Set ${fmt(n)} price targets.`, [
+    [200, 300, 'Two Hundred Calls'],
+    [250, 340, 'The Standing Forecast'],
+    [300, 390, 'Three Hundred Calls'],
+  ]),
+  ...ladder('targethitfar', 'targets.hit', 'curation', (n) => `${fmt(n)} of your price targets hit.`, [
+    [75, 560, 'Seventy-Five Bullseyes'],
+    [100, 640, 'A Hundred Called'],
+    [150, 730, 'The Oracle of Price'],
+  ]),
+  ...ladder('anointgfar', 'anoint.given', 'anointing', (n) => `Anoint ${fmt(n)} pieces.`, [
+    [1000, 780, 'A Thousand Blessings'],
+    [1500, 840, 'The Blessing Rain'],
+    [2000, 900, 'Two Thousand Anointed'],
+  ]),
+  ...ladder('anointrfar', 'anoint.received', 'anointing', (n) => `Collect ${fmt(n)} anoints across your pieces.`, [
+    [1000, 800, 'A Thousand Received'],
+    [1500, 860, 'The Blessed Estate'],
+    [2000, 920, 'Twice a Thousand Blessings'],
+  ]),
+  ...ladder('streakfar', 'streak.days', 'streak', (n) => `Reach a ${fmt(n)}-day PriceStreak.`, [
+    [1200, 940, 'Twelve Hundred Days Straight'],
+    [1500, 955, 'The Unbrokenest'],
+    [1800, 970, 'Eighteen Hundred Straight'],
+    [2000, 990, 'Two Thousand Days of Fire'],
+  ]),
+  ...ladder('tenuredfar', 'tenure.days', 'og', (n) => `${fmt(n)} days since you joined PD.`, [
+    [2000, 730, 'Two Thousand Days Here'],
+    [2200, 760, 'Twenty-Two Hundred Days'],
+    [2500, 800, 'The Long Residency'],
+    [3000, 870, 'Three Thousand Days Here'],
+  ]),
+  ...ladder('tenureyfar', 'tenure.years', 'og', (n) => `${n} years since you joined PD.`, [
+    [12, 930, 'Twelve Years Standing'],
+    [15, 970, 'The Fifteenth Year'],
+  ]),
+  ...ladder('artsalesfar', 'artist.primarySales', 'artist', (n) => `Sell ${fmt(n)} pieces of your own work.`, [
+    [2000, 880, 'Two Thousand Sold as Artist'],
+    [2500, 920, 'The Body of Work Sells Itself'],
+    [3000, 960, 'Three Thousand Primaries'],
+  ]),
+  ...ladder('artholdfar', 'artist.holders', 'artist', (n) => `Reach ${fmt(n)} holders on your work.`, [
+    [2000, 820, 'Two Thousand Homes'],
+    [2500, 870, 'The Widely Kept'],
+    [3000, 920, 'Three Thousand Homes'],
+  ]),
+  ...ladder('artsecfar', 'artist.secondaryEth', 'artist', (n) => `${fmt(n)} ETH secondary volume on your work.`, [
+    [250, 920, 'The Trading House'],
+    [300, 950, 'Three Hundred Through Your Work'],
+    [400, 985, 'The Canon Trades Forever'],
+  ]),
+  ...ladder('artpffar', 'artist.projectFollowers', 'artist', (n) => `Reach ${fmt(n)} followers across your projects.`, [
+    [7500, 880, 'Seventy-Five Hundred Waiting'],
+    [10000, 930, 'Ten Thousand at the Door'],
+  ]),
+  ...ladder('artprojfar', 'artist.projects', 'artist', (n) => `Upload ${n} projects.`, [
+    [30, 800, 'Thirty Projects Up'],
+    [40, 880, 'The Forty-Work Retrospective'],
+  ]),
+  ...ladder('artsellfar', 'artist.selloutProjects', 'artist', (n) => `Sell out ${n} of your projects.`, [
+    [25, 940, 'Twenty-Five Sellouts'],
+  ]),
+  ...ladder('scorefar', 'score.total', 'rank', (n) => `Reach ${fmt(n)} PriceScore.`, [
+    [50000, 560, 'Fifty Thousand Score'],
+    [60000, 600, 'Sixty Thousand Score'],
+    [75000, 660, 'Seventy-Five Thousand Score'],
+    [100000, 740, 'One Hundred Thousand Score'],
+    [150000, 850, 'A Hundred Fifty Thousand'],
   ]),
 ];

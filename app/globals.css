@@ -12,6 +12,7 @@
 @import '../styles/zen.css';
 @import '../styles/market.css';
 @import '../styles/albums.css';
+@import '../styles/cartography.css';
 
 
 /* ============================================================
@@ -620,6 +621,26 @@ body.sentiment-on .sentiment-widget {
    skips the glyph so the icon stays clean. The empty-state line is muted. */
 .notif-item.read { opacity: 0.8; text-decoration: line-through; }
 .notif-item.read .n-icon { text-decoration: none; }
+
+/* The SEEN divider — the boundary between the fresh stack and history in the
+   Pings list. Full-strength label (it carries meaning), hairlines both sides. */
+.pings-seen-divider {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+    color: var(--text-color);
+    user-select: none;
+}
+.pings-seen-divider::before,
+.pings-seen-divider::after {
+    content: '';
+    flex: 1;
+    border-top: 1px solid var(--text-color);
+}
 .pings-empty {
     padding: 8px 10px;
     font-size: 12px;
@@ -5101,7 +5122,8 @@ button,
     user-select: none;
     display: flex;
     align-items: center;
-    gap: 6px;
+    /* Arrow hugs its sort label (Brendon, 2026-07-12 — was 6px). */
+    gap: 3px;
     opacity: 0.7;
 }
 .sort-btn.active {
@@ -5132,12 +5154,19 @@ button,
     .sort-lbl-recent { font-size: 1.3em; }
 }
 .sort-arrow {
-    font-size: 20px;
+    /* One size up (Brendon, 2026-07-12 — was 20/15). */
+    font-size: 22px;
     font-family: 'Courier New', Courier, monospace;
     font-weight: normal;
     display: inline-block;
 }
-@media (max-width: 600px) { .sort-arrow { font-size: 15px; } }
+@media (max-width: 600px) { .sort-arrow { font-size: 17px; } }
+/* The GROUP toggle stands apart from the sorts it modifies — extra breathing
+   room after it, on top of the row's uniform gap (Brendon, 2026-07-12). Its
+   glyph sits 1px lower to centre on the row (Brendon, same day). */
+.sort-btn.group-btn { margin-right: 7px; }
+.sort-btn.group-btn .sort-lbl-recent { transform: translateY(1px); }
+@media (max-width: 600px) { .sort-btn.group-btn { margin-right: 5px; } }
 
 /* ── ICON BUTTONS (burn / search) — sim 2317-2325 ── */
 /* Build 25 D6+D7: .st-icon + .sharp-glyph + per-id overrides ported from
@@ -6365,20 +6394,21 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     display: flex;
     align-items: baseline;
     gap: 10px;
-    margin: 28px 0 0;   /* air above */
-    padding: 0 0 4px;   /* tight below → binds to the group under it */
+    /* Tightened (Brendon, 2026-07-12 — the old spacing read awkward): the
+       header PULLS its cards up under it (negative bottom margin eats most of
+       the 20px grid row-gap → ~8px below), while the air above stays big, so a
+       title unambiguously owns the grid BENEATH it. */
+    margin: 26px 0 -10px;
+    padding: 0;
 }
-/* The top group title was zeroed (too tight); give it a little air so the gap
-   above it reads like the gaps between sections — the gallery's own top padding
-   supplies the rest (Brendon, 2026-06-16). */
-/* Half the old gap to the sort bar / colorway picker above (Brendon 2026-06-20). */
-.gallery-group-header:first-child { margin-top: 7px; }
+/* First title hugs the sort bar — the gallery's own top padding is the air. */
+.gallery-group-header:first-child { margin-top: 2px; }
 /* Level-2 title (a sub-group, e.g. a colour bucket under an owner/artist) —
-   indented deeper than before with a little connector line running in from the
-   left margin so it clearly reads as a CHILD of the group above it. Sits half
-   as far below its parent header as before (Brendon, 2026-06-20). */
+   indented, with a little connector line running in from the left margin so it
+   clearly reads as a CHILD of the group above it. Sits snug under its parent
+   title (~10px) and keeps ~22px from the previous sub-group's cards. */
 .gallery-group-header.level-2 {
-    margin-top: 7px;
+    margin-top: 2px;
     padding-left: 30px;
     position: relative;
 }
@@ -6429,7 +6459,9 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
    grouping, pushed to the END of the header row (Brendon, 2026-06-20). */
 .ggh-glyph {
     margin-left: auto;
-    font-size: 14px;
+    /* Two sizes up (Brendon, 2026-07-12) — the header rows carry it now that
+       they end with the group's art instead of the page edge. */
+    font-size: 18px;
     line-height: 1;
     color: var(--text-color);
     opacity: 0.85;
@@ -7972,7 +8004,7 @@ body.feed-mode .price-memory-ghost { display: none !important; }
         flex-wrap: nowrap;
     }
     .sort-btn-group {
-        gap: 10px !important;
+        gap: 8px !important;
         flex-wrap: nowrap !important;
     }
     .pill-colorway.t-light span,

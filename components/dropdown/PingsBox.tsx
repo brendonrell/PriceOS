@@ -11,13 +11,17 @@
  * the header alongside the PINGS label.
  */
 
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState, type MouseEvent, type PointerEvent } from 'react';
 import { AccordionBox } from './AccordionBox';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { usePings } from '../../lib/state/PingsContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { renderPing, passesCategoryPrefs, pingHref, PRIORITY_RANK } from '../../lib/pings/render';
 import { isFinancial } from '../../lib/pings/tiers';
+import { useToast } from '../../lib/state/ToastContext';
+import { removeProjectStar } from '../../lib/pins/projectStarStore';
+import { removeArtistStar } from '../../lib/pins/artistStarStore';
+import type { FeedItem } from '../../lib/pings/render';
 import { useTapeFeed } from '../../lib/feed/useTapeFeed';
 import type { TapeFeedItem } from '../../lib/data/tapeEvents';
 import { subscribeTapeRail } from '../../lib/engines/tapeEngine';
@@ -69,8 +73,9 @@ function RailItem({ item }: { item: TapeFeedItem }) {
 
 export function PingsBox() {
     const { notifs, setAccordion } = usePdNotifs();
-    const { state: pingsState, markAllRead, refresh } = usePings();
+    const { state: pingsState, markSeen, refresh } = usePings();
     const { siweAddress } = useAuth();
+    const { showToast } = useToast();
     const isSpited = useSpiteMatcher();
     const railRef = useRef<HTMLDivElement>(null);
     // "Money" filter — isolate financial-signal pings from social noise.
@@ -91,31 +96,186 @@ export function PingsBox() {
         return unsubscribe;
     }, [tapeOn]);
 
-    // Opening the Pings panel → pull the latest list so it's never stale, then
-    // clear the unread badge (seeing them = read).
+    // Opening the Pings panel → pull the latest list so it's never stale.
+    // Opening marks NOTHING read — scrolling the list is what proves viewing
+    // (Brendon, 2026-07-12). See the scroll-seen effect below.
     useEffect(() => {
         if (pingsActive && siweAddress) refresh();
     }, [pingsActive, siweAddress, refresh]);
 
+    // Anchor on open: snap to the top of the unread stack (the list DOM
+    // persists across close/reopen, so yesterday's scroll position would
+    // otherwise open you mid-history). Programmatic — the guard below keeps
+    // it from counting as the user's read-proving scroll.
+    const ignoreScrollUntil = useRef(0);
     useEffect(() => {
-        if (pingsActive && siweAddress && pingsState.unreadCount > 0) {
-            markAllRead();
-        }
-    }, [pingsActive, siweAddress, pingsState.unreadCount, markAllRead]);
+        if (!pingsActive) return;
+        const list = document.getElementById('notifList');
+        if (!list || list.scrollTop === 0) return;
+        ignoreScrollUntil.current = Date.now() + 500;
+        list.scrollTo({ top: 0 });
+    }, [pingsActive]);
 
     const onHeaderClick = () => {
         if (!pingsActive) setAccordion('pings', true);
     };
 
+    /* ── Long-press a ping → quiet its source ─────────────────────────────
+       Same hold gesture as the title stars (500ms, cancels on 10px drift).
+       What "quiet" means per ping:
+         • starred-artist ping  → remove that artist star
+         • starred-project ping → remove that project star
+         • any actor ping (mutual activity, follows, market, Artist Push)
+           → toggle a people-mute on the actor (server-enforced everywhere)
+       Trait/rarity/reminder rows have no single quietable source — no-op. */
+    const lpTimer = useRef<number | null>(null);
+    const lpStart = useRef<{ x: number; y: number } | null>(null);
+    const lpFired = useRef(false);
+    const quiet = async (src: FeedItem) => {
+        const watch = typeof src.data?.watch === 'string' ? (src.data.watch as string) : null;
+        if (watch === 'artist' && src.actor_name) {
+            removeArtistStar(src.actor_name);
+            showToast('Artist star: REMOVED');
+            return;
+        }
+        if (watch === 'project' && src.project_id) {
+            removeProjectStar(src.project_id);
+            showToast('Project star: REMOVED');
+            return;
+        }
+        if (watch === 'trait' || watch === 'rarity') return;
+        if (!src.actor_name) return;
+        try {
+            const r = await fetch('/api/social/mute', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ handle: src.actor_name }),
+            });
+            if (!r.ok) { showToast('Mute: FAILED'); return; }
+            const j = (await r.json()) as { muted: boolean };
+            showToast(`@${src.actor_name}: ${j.muted ? 'MUTED' : 'UNMUTED'}`);
+        } catch {
+            showToast('Mute: FAILED');
+        }
+    };
+    const lpClear = () => {
+        if (lpTimer.current != null) { window.clearTimeout(lpTimer.current); lpTimer.current = null; }
+    };
+    const longPress = (src: FeedItem) => ({
+        onPointerDown: (e: PointerEvent) => {
+            lpFired.current = false;
+            lpStart.current = { x: e.clientX, y: e.clientY };
+            lpClear();
+            lpTimer.current = window.setTimeout(() => {
+                lpFired.current = true;
+                void quiet(src);
+            }, 500);
+        },
+        onPointerMove: (e: PointerEvent) => {
+            const s0 = lpStart.current;
+            if (s0 && Math.hypot(e.clientX - s0.x, e.clientY - s0.y) > 10) lpClear();
+        },
+        onPointerUp: lpClear,
+        onPointerCancel: lpClear,
+        onClick: (e: MouseEvent) => {
+            // A hold that fired must not also navigate.
+            if (lpFired.current) { e.preventDefault(); e.stopPropagation(); }
+        },
+        onContextMenu: (e: MouseEvent) => {
+            // iOS long-press raises a context menu on links — the hold owns it.
+            if (lpFired.current) e.preventDefault();
+        },
+    });
+
     // Real pings → rendered, category-filtered, and (optionally) money-only.
-    // Then ordered by attention tier: HIGH pinned to the top, LOW sunk to the
-    // bottom, MEDIUM in between — recency preserved within each tier (the API
-    // hands them back newest-first and the sort is stable).
-    const rendered = pingsState.items
-        .filter((p) => passesCategoryPrefs(p.kind, notifs.pings))
-        .filter((p) => !moneyOnly || isFinancial(p.kind))
-        .map((p) => ({ ...renderPing(p), href: pingHref(p) }))
-        .sort((a, b) => PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority]);
+    // UNREAD stack on top (full-strength), seen history sinks below (struck
+    // through). Within each block: attention tier (HIGH → LOW), recency
+    // preserved inside a tier (the API hands items newest-first; sort is
+    // stable).
+    const rendered = useMemo(
+        () =>
+            pingsState.items
+                .filter((p) => passesCategoryPrefs(p, notifs.pings))
+                .filter((p) => !moneyOnly || isFinancial(p.kind))
+                .map((p) => ({ ...renderPing(p), href: pingHref(p), src: p }))
+                .sort(
+                    (a, b) =>
+                        (a.read ? 1 : 0) - (b.read ? 1 : 0) ||
+                        PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority]
+                ),
+        [pingsState.items, notifs.pings, moneyOnly]
+    );
+    const unreadShown = rendered.filter((r) => !r.read).length;
+
+    /* ── Read-by-scroll ──────────────────────────────────────────────────
+       The contract: a ping is SEEN only when the user has actually scrolled
+       the pings list and the row has passed through view. Opening the menu
+       alone marks nothing. Mechanics: an IntersectionObserver tracks which
+       rows are in the list viewport; the first real scroll gesture flips the
+       session live, everything in view at (or after) that moment queues as
+       seen, and the queue commits in debounced batches. Re-opening the panel
+       requires a fresh scroll gesture. */
+    const seenQueue = useRef<Set<string>>(new Set());
+    const committed = useRef<Set<string>>(new Set());
+    const renderedIdsKey = rendered.map((r) => r.id + (r.read ? '' : '*')).join(',');
+    useEffect(() => {
+        if (!pingsActive || !siweAddress) return;
+        const list = document.getElementById('notifList');
+        if (!list) return;
+        let scrolled = false;
+        let timer = 0;
+        const inView = new Set<string>();
+
+        const commit = () => {
+            const ids = Array.from(seenQueue.current).filter((id) => !committed.current.has(id));
+            seenQueue.current.clear();
+            if (ids.length === 0) return;
+            ids.forEach((id) => committed.current.add(id));
+            markSeen(ids);
+        };
+        const scheduleCommit = () => {
+            window.clearTimeout(timer);
+            timer = window.setTimeout(commit, 900);
+        };
+        const queue = (id: string) => {
+            if (committed.current.has(id)) return;
+            seenQueue.current.add(id);
+            scheduleCommit();
+        };
+
+        const io = new IntersectionObserver(
+            (entries) => {
+                for (const e of entries) {
+                    const id = (e.target as HTMLElement).dataset.pingId;
+                    if (!id) continue;
+                    if (e.isIntersecting) {
+                        inView.add(id);
+                        if (scrolled) queue(id);
+                    } else {
+                        inView.delete(id);
+                    }
+                }
+            },
+            { root: list, threshold: 0.6 }
+        );
+        list.querySelectorAll<HTMLElement>('[data-ping-id]').forEach((el) => {
+            if (el.dataset.pingRead !== '1') io.observe(el);
+        });
+
+        const onScroll = () => {
+            if (Date.now() < ignoreScrollUntil.current) return; // anchor snap, not the user
+            scrolled = true;
+            inView.forEach(queue);
+        };
+        list.addEventListener('scroll', onScroll, { passive: true });
+
+        return () => {
+            window.clearTimeout(timer);
+            list.removeEventListener('scroll', onScroll);
+            io.disconnect();
+        };
+        // renderedIdsKey re-arms observation when rows change (fresh pings land).
+    }, [pingsActive, siweAddress, markSeen, renderedIdsKey]);
 
     return (
         <AccordionBox
@@ -129,7 +289,9 @@ export function PingsBox() {
                 <div className="pings-header-row">
                     <span className="pings-label">
                         PINGS
-                        <span className="notif-count">({rendered.length})</span>
+                        {/* Honest count: UNREAD only. Zero unread = no number —
+                            never the old perpetual "(100)" window size. */}
+                        {unreadShown > 0 && <span className="notif-count">({unreadShown})</span>}
                     </span>
                     {tapeOn && (
                         <div className="pings-tape-wrap">
@@ -161,7 +323,7 @@ export function PingsBox() {
                     {siweAddress ? 'No pings yet' : 'Connect to see your pings'}
                 </div>
             ) : (
-                rendered.map((p) => {
+                rendered.map((p, i) => {
                     const cls = `notif-item${p.read ? ' read' : ''}${p.priority === 'high' ? ' notif-item--high' : ''}${p.priority === 'low' ? ' notif-item--low' : ''}`;
                     const body = (
                         <>
@@ -173,13 +335,26 @@ export function PingsBox() {
                             </span>
                         </>
                     );
+                    /* The SEEN divider — the hairline between the fresh stack
+                       and struck-through history (only when both exist). */
+                    const divider =
+                        i > 0 && p.read && !rendered[i - 1].read ? (
+                            <div className="pings-seen-divider" aria-hidden="true">SEEN</div>
+                        ) : null;
+                    const lp = longPress(p.src);
                     /* Market pings deep-link to the piece (offer family lands
                        with the offers panel open) — a real <a>, so the global
-                       client-side interceptor routes it like every other link. */
-                    return p.href ? (
-                        <a key={p.id} href={p.href} className={`${cls} notif-item--link`}>{body}</a>
-                    ) : (
-                        <div key={p.id} className={cls}>{body}</div>
+                       client-side interceptor routes it like every other link.
+                       Long-press (500ms hold) quiets the ping's source. */
+                    return (
+                        <Fragment key={p.id}>
+                            {divider}
+                            {p.href ? (
+                                <a href={p.href} className={`${cls} notif-item--link`} data-ping-id={p.id} data-ping-read={p.read ? '1' : '0'} {...lp}>{body}</a>
+                            ) : (
+                                <div className={cls} data-ping-id={p.id} data-ping-read={p.read ? '1' : '0'} {...lp}>{body}</div>
+                            )}
+                        </Fragment>
                     );
                 })
             )}

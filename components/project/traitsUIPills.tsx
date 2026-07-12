@@ -8,8 +8,8 @@ import { PerMilleMark } from '../shell/PerMilleMark';
 import SpriteFace from '../SpriteFace';
 import { NET_VALUE_ICON } from './traitsUIShared';
 import {
-    type SortKey, type SortDir, type FeedKind, type GroupKey,
-    PROJECT_GROUP_ORDER, GROUP_GLYPH, GROUP_LABEL,
+    type SortKey, type SortDir, type FeedKind,
+    GROUP_BTN_ICON,
 } from '../../lib/state/SortContext';
 import { formatEth } from '../../lib/format/eth';
 
@@ -337,11 +337,6 @@ interface SortBtnProps {
     active: boolean;
     dir: SortDir;
     feedKind: FeedKind;
-    /* Group-by indicator (Brendon, 2026-06-18). Grouping is folded INTO the
-       single button's cycle now, so this glyph is display-only — it shows which
-       grouping the current tap landed on (next to the direction arrow, like
-       FEED's `$`). No separate tap target. Only id/price carry a group. */
-    group?: GroupKey;
     onClick: () => void;
 }
 
@@ -360,33 +355,10 @@ export function SortBtn({
     active,
     dir,
     feedKind,
-    group,
     onClick,
 }: SortBtnProps) {
     let arrowGlyph = '';
     let dollarSpan: ReactNode = null;
-    /* Group-by glyph — display-only indicator of the current grouping on the
-       active grid sort (ID / PRICE), next to the direction arrow like FEED's
-       `$`. The pure (no-group) state shows NOTHING; each grouping shows its
-       glyph, one step larger than base (docs/GLYPHS.md). The button's single
-       tap cycles direction+group. */
-    const showGroupMod =
-        active &&
-        (family === 'id' || family === 'price') &&
-        group !== undefined &&
-        group !== 'none';
-    const groupMod: ReactNode = showGroupMod ? (
-        <span
-            className="sort-group-mod on"
-            style={{
-                fontFamily: "'Courier New', Courier, monospace",
-                fontSize: '15px',
-                marginRight: '4px',
-            }}
-        >
-            {GROUP_GLYPH[group!]}
-        </span>
-    ) : null;
     if (active) {
         if (family === 'id' || family === 'price') {
             arrowGlyph = dir === 'asc' ? '↑\uFE0E' : '↓\uFE0E';
@@ -428,10 +400,46 @@ export function SortBtn({
         >
             <span className="sort-lbl">{label}</span>
             <span className="sort-arrow">
-                {groupMod}
                 {dollarSpan}
                 {arrowGlyph}
             </span>
+        </div>
+    );
+}
+
+/* The standalone GROUP toggle (Brendon, 2026-07-12) — leads every sort row.
+   Icon-only, NO direction arrow: grouping has no direction, just a dimension.
+   Resting (no grouping) it wears GROUP_BTN_ICON; while a grouping is live it
+   wears that dimension's glyph and lights up like an active sort. One tap
+   advances the surface's grouping cycle — grouping no longer rides inside
+   each sort button's cycle. Reuses the ◷ Recent glyph treatment
+   (.sort-lbl-recent) so the icon sits on the row baseline in Courier. */
+export function GroupBtn({
+    glyph,
+    on,
+    onClick,
+}: {
+    /** The live grouping's glyph ('' when grouping is off). */
+    glyph: string;
+    /** Whether a grouping is active (lights the button). */
+    on: boolean;
+    onClick: () => void;
+}) {
+    return (
+        <div
+            className={`sort-btn group-btn${on ? ' active' : ''}`}
+            role="button"
+            tabIndex={0}
+            title="Group by"
+            onClick={onClick}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onClick();
+                }
+            }}
+        >
+            <span className="sort-lbl sort-lbl-recent">{on ? glyph : GROUP_BTN_ICON}</span>
         </div>
     );
 }

@@ -28,7 +28,8 @@ export interface WishlistHitArgs {
   amountEth?: number | string | null;
 }
 
-export async function pingWishlisters(db: DB, args: WishlistHitArgs): Promise<number> {
+/** Returns the addresses actually pinged (for downstream fan-out dedup). */
+export async function pingWishlisters(db: DB, args: WishlistHitArgs): Promise<string[]> {
   try {
     const key = `${args.slug}:${args.tokenId}`;
     const actor = args.actorAddress.toLowerCase();
@@ -39,12 +40,12 @@ export async function pingWishlisters(db: DB, args: WishlistHitArgs): Promise<nu
       .select('address')
       .contains('settings', { wishlist: [key] })
       .limit(MAX_WISHLISTERS);
-    if (error || !data) return 0;
+    if (error || !data) return [];
 
     let recipients = (data as Array<{ address: string }>)
       .map((r) => r.address.toLowerCase())
       .filter((a) => a !== actor); // never self-ping
-    if (recipients.length === 0) return 0;
+    if (recipients.length === 0) return [];
 
     // 2. Drop anyone who muted the actor (one query for the whole set).
     const { data: mutedRows } = await db
@@ -56,7 +57,7 @@ export async function pingWishlisters(db: DB, args: WishlistHitArgs): Promise<nu
       ((mutedRows ?? []) as Array<{ user_address: string }>).map((r) => r.user_address.toLowerCase())
     );
     recipients = recipients.filter((a) => !muted.has(a));
-    if (recipients.length === 0) return 0;
+    if (recipients.length === 0) return [];
 
     // 3. Resolve project + actor @names ONCE (snapshotted onto every row).
     let projectName = args.projectName ?? null;
@@ -94,9 +95,10 @@ export async function pingWishlisters(db: DB, args: WishlistHitArgs): Promise<nu
       if (e) console.error('[pings] wishlist fan-out chunk failed:', e.message);
       else written += (n as number | null) ?? 0;
     }
-    return written;
+    void written;
+    return recipients;
   } catch (err) {
     console.error('[pings] pingWishlisters error:', err instanceof Error ? err.message : err);
-    return 0;
+    return [];
   }
 }

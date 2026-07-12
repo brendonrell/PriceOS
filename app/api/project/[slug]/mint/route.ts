@@ -15,6 +15,7 @@ import { getProject, MINT_FEE_ETH } from '@/lib/project/registry';
 import { MINTING_NOW_THRESHOLD } from '@/lib/home/homeData';
 import { PROJECT_MILESTONES } from '@/lib/home/milestones';
 import { createPing } from '@/lib/pings/createPing';
+import { fanOutMarketPings } from '@/lib/pings/fanout';
 
 export const dynamic = 'force-dynamic';
 
@@ -78,6 +79,21 @@ export const POST = requireAuth<{ slug: string }>(async (req, ctx, address) => {
     if (r.error === 'sold_out') return badRequest('Sold out');
     if (r.error === 'insufficient_balance') return badRequest('Insufficient balance');
     if (r.error) return badRequest(r.error);
+
+    // Interest fan-out per fresh Output: the collector's mutuals, their
+    // starred-artist watchers, starred projects/traits, top-rarity holders.
+    // Capped at 3 tokens per mint so a max-qty mint can't stall the response
+    // (the remainder still lands in feeds via the events table).
+    const mintedIds = Array.isArray(r.minted) ? (r.minted as Array<number | string>) : [];
+    for (const t of mintedIds.slice(0, 3)) {
+      await fanOutMarketPings(supabase, {
+        slug,
+        tokenId: String(t),
+        event: 'minted',
+        actorAddress: address,
+        amountEth: def.mintPriceEth,
+      });
+    }
 
     // Ping the artist on MINT MILESTONES only — not every collect (which would
     // be noise on a hot drop). Fires when this mint crosses a milestone count.

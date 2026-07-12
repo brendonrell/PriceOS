@@ -345,10 +345,10 @@ export function useProjectGallery({
        the sort order inside each. Colour is palette-derived (free, no canvas);
        owner reads the live outputs map. */
     const groupedSections = useMemo<GSec[] | null>(() => {
-        /* Grouping is a MODIFIER on the ID / PRICE sorts (Brendon, 2026-06-16) —
-           it never applies to FEED (chronological activity) or fog (reveal).
-           Project-page dimensions: owner · colour · owner+colour · last-sold ·
-           rarity. */
+        /* Grouping rides its own toggle (Brendon, 2026-07-12) but still only
+           shapes the GRID sorts — it never applies to FEED (chronological
+           activity) or fog (reveal). Project-page dimensions: owner · colour ·
+           owner+colour · last-sold · rarity. */
         if (group === 'none' || (sort !== 'id' && sort !== 'price')) return null;
         /* Ignore a group persisted on another surface (e.g. 'artist' from a
            profile) — it isn't a project-page dimension. */

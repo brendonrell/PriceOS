@@ -87,6 +87,8 @@ import JoinDayPopover from './JoinDayPopover';
 import { useProfileEggs } from './useProfileEggs';
 import { useStarredPins } from './useStarredPins';
 import { useMoreControls, MORE_CFG, MORE_SORT_LABEL, MORE_GROUP_GLYPH, type MoreMode } from './useMoreControls';
+import { GroupBtn } from '../project/traitsUIPills';
+import { useGalleryCols, colsWidth } from '../../lib/hooks/useGalleryCols';
 import { usePriceDayPopover } from '../../lib/hooks/usePriceDayPopover';
 import { useProfileAchievements } from './useProfileAchievements';
 import { useLedgerFeed } from '../../lib/feed/useLedgerFeed';
@@ -114,7 +116,7 @@ function ProfilePageBodyInner({
     const isSpited = useSpiteMatcher();
     const { notifs } = usePdNotifs();
     const isZen = notifs.zenMode;
-    const { sort, group } = useSort();
+    const { sort, group, restoreGroupFor } = useSort();
 
     // Real user row — fetched server-side from the handle in the URL and
     // passed in, so the hero renders real values on first paint (no popin).
@@ -572,7 +574,7 @@ function ProfilePageBodyInner({
         moreSearchOpen, moreQuery, setMoreQuery, toggleMoreSearch, closeMoreSearch,
         moreMultiActive, setMoreMultiActive, morePresetActive, setMorePresetActive,
         moreMode, setMoreMode, moreSort, moreSortDir, moreGroup,
-        applyStarredPreset, cycleMoreSort,
+        applyStarredPreset, cycleMoreSort, cycleMoreGroup,
     } = useMoreControls(moreL1, showToast);
 
     const achData = useProfileAchievements(user.address);
@@ -607,6 +609,12 @@ function ProfilePageBodyInner({
     // ── Tab / sub-tab state ───────────────────────────────────────────
     const onShowcase  = activeTab === 'showcase';
     const onCollected = activeTab === 'collected';
+    /* Entering Collected restores the grouping the viewer last used on THIS
+       profile's grid (per-page memory, like tabs — Brendon 2026-07-12), so a
+       project-page grouping never bleeds in and vice versa. */
+    useEffect(() => {
+        if (onCollected) restoreGroupFor('profile', user.address);
+    }, [onCollected, user.address, restoreGroupFor]);
     const onMore      = activeTab === 'more';
 
     /* Mount each tab's grid the FIRST time it's opened, then keep it mounted —
@@ -669,6 +677,9 @@ function ProfilePageBodyInner({
     /* #gallery shows for Collected and for the Top 6 grid; the Created view
        replaces it with project carousels below. */
     const galleryVisible = ((onShowcase && !artistShowcaseCreated) || onCollected) && !feedActive;
+    /* Live grid column metrics — lets each grouping header cap its width to
+       the columns its pieces occupy (glyph ends with the art, 2026-07-12). */
+    const galleryCols = useGalleryCols(galleryVisible && onCollected && collectedGroups != null);
 
     /* Mouse drag-to-scroll for the carousels on this page — the artist-project
        Created carousels AND the Profile Logo picker (same handler as the home
@@ -1230,16 +1241,25 @@ function ProfilePageBodyInner({
                             }
                             profileSortControls={
                                 (onStarredTab || onWishlistTab || onHistoryTab) ? (
-                                    <div className="sort-btn-group" style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'nowrap' }}>
+                                    <div className="sort-btn-group" style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'nowrap' }}>
+                                        {/* GROUP toggle leads the row (Brendon, 2026-07-12) —
+                                            icon-only, no arrow; cycles this surface's grouping
+                                            options independently of the sorts. Hidden when the
+                                            active filter has no groupable dimension. */}
+                                        {moreCfg.groups.length > 1 && (
+                                            <GroupBtn
+                                                glyph={MORE_GROUP_GLYPH[moreGroup] ?? ''}
+                                                on={moreGroup !== 'none'}
+                                                onClick={() => cycleMoreGroup(moreCfg.groups)}
+                                            />
+                                        )}
                                         {moreCfg.sorts.map((key) => {
                                             const active = moreSort === key;
-                                            // AZ flips to ZA when descending (gallery parity); the active
-                                            // grouping shows as a glyph modifier before the arrow.
+                                            // AZ flips to ZA when descending (gallery parity).
                                             const lbl = key === 'project' && active && moreSortDir === 'desc' ? 'ZA' : MORE_SORT_LABEL[key];
                                             /* 'Recent' shows as the canonical recent glyph (◷), the same icon
                                                the project artworks trait pills use (Brendon 2026-06-19). */
                                             const isRecentIcon = key === 'recent';
-                                            const gGlyph = active && key !== 'recent' && moreGroup !== 'none' ? (MORE_GROUP_GLYPH[moreGroup] ?? '') : '';
                                             return (
                                                 <span
                                                     key={key}
@@ -1247,12 +1267,11 @@ function ProfilePageBodyInner({
                                                     role="button"
                                                     tabIndex={0}
                                                     title={`Sort by ${MORE_SORT_LABEL[key]}`}
-                                                    onClick={() => cycleMoreSort(key, onWishlistTab)}
-                                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleMoreSort(key, onWishlistTab); } }}
+                                                    onClick={() => cycleMoreSort(key)}
+                                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleMoreSort(key); } }}
                                                 >
                                                     <span className={`sort-lbl${isRecentIcon ? ' sort-lbl-recent' : ''}`}>{isRecentIcon ? '◷︎' : lbl}</span>
                                                     <span className="sort-arrow">
-                                                        {gGlyph && <span className="sort-group-mod on" style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: '15px', marginRight: '4px' }}>{gGlyph}</span>}
                                                         {active ? (moreSortDir === 'asc' ? '↑︎' : '↓︎') : ''}
                                                     </span>
                                                 </span>
@@ -1412,7 +1431,7 @@ function ProfilePageBodyInner({
                         Distinct from the project page's per-Project trait pills — a
                         collection spans independent projects, so it filters on the
                         platform facets every Output carries. */}
-                    {onCollected && <ProfileFacetBar holdings={enriched} isOwnProfile={isOwnProfile} />}
+                    {onCollected && <ProfileFacetBar holdings={enriched} isOwnProfile={isOwnProfile} profileAddress={user.address} />}
 
                     {/* Artist-style Showcase — the home Now-Minting control surface
                         over this artist's own projects. Created · Top 6 lead the
@@ -1523,9 +1542,17 @@ function ProfilePageBodyInner({
                                               if (isL2 && l1Collapsed) return null;
                                               const ckey = isL2 ? blk.l2Key! : blk.l1Key;
                                               const folded = isL2 ? l2Collapsed : l1Collapsed;
+                                              /* Cap the header to the columns its pieces occupy so the
+                                                 trailing dimension glyph ends with the art, never at the
+                                                 page edge (Brendon, 2026-07-12). */
+                                              const nPieces = h.count ?? blk.group?.ids.length ?? blk.cards?.length ?? 0;
+                                              const capW = !h.soon && galleryCols && nPieces > 0
+                                                  ? colsWidth(galleryCols, nPieces) + (isL2 ? 30 : 0)
+                                                  : undefined;
                                               return (
                                                   <div
                                                       key={hi}
+                                                      style={capW ? { maxWidth: capW } : undefined}
                                                       className={`gallery-group-header is-collapsible${isL2 ? ' level-2' : ''}${h.soon ? ' soon' : ''}${folded ? ' collapsed' : ''}`}
                                                       role="button"
                                                       tabIndex={0}
@@ -1544,6 +1571,9 @@ function ProfilePageBodyInner({
                                                       <span className="ggh-label">{h.label}</span>
                                                       {h.by ? <span className="ggh-by"> by @{h.by.replace(/^@/, '')}</span> : null}
                                                       {h.soon ? <span className="ggh-soon">coming soon</span> : null}
+                                                      {!h.soon && h.count != null && h.count > 0
+                                                          ? <span className="ggh-count">{h.count}</span>
+                                                          : null}
                                                       {!h.soon && groupHeaderGlyph(group, h.level)
                                                           ? <span className="ggh-glyph" aria-hidden="true">{groupHeaderGlyph(group, h.level)}</span>
                                                           : null}

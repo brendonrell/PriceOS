@@ -5,8 +5,13 @@
  *
  * Settings panel section 4 — DEFAULT SORT.
  *
- * Four pill toggles backed by SortContext. Single-active behavior:
- * clicking a pill activates it and deactivates the others.
+ * A leading GROUP pill + four sort pill toggles backed by SortContext.
+ * Sorts are single-active: clicking a pill activates it and deactivates
+ * the others. The GROUP pill is the DEFAULT grouping (Brendon, 2026-07-12)
+ * — it leads the row exactly like the grid sort rows' group toggle, cycles
+ * the master dimension order, and persists as the boot/project-entry
+ * grouping. FOG left this row for the Spell Book the same day; AZ took
+ * its slot.
  *
  * Build 29 — D14 adds the directional arrow glyph that sim 10492-10498
  * renders inside each active pill via the .settings-sort-arrow span.
@@ -15,7 +20,7 @@
  *   #ID    : '↑' when id-asc, '↓' when id-desc, no arrow otherwise
  *   $PRICE : '↑' when price-asc, '↓' when price-desc, no arrow otherwise
  *   FEED   : 'FEED <↑|↓>' for feed-time-*; 'FEED $ <↑|↓>' for feed-price-*
- *   FOG    : no arrow (single state)
+ *   AZ     : 'AZ ↑' ascending, 'ZA ↓' descending (gallery parity)
  *
  * Click handler upgraded from `setSort` to `cycleSort` so the settings
  * row mirrors sim's main sort row: re-tapping the active family flips
@@ -26,7 +31,10 @@
  */
 
 import type { ReactNode } from 'react';
-import { useSort, type SortKey } from '../../../lib/state/SortContext';
+import {
+    useSort, type SortKey,
+    GROUP_GLYPH, GROUP_LABEL, GROUP_BTN_ICON,
+} from '../../../lib/state/SortContext';
 import { useToast } from '../../../lib/state/ToastContext';
 import { SettingsToggle } from './SettingsToggle';
 
@@ -34,8 +42,8 @@ const SORT_NAMES: Record<SortKey, string> = {
     id:    '# ID',
     price: '$ Price',
     feed:  'Feed',
+    // Fog now lives in the Spell Book (Brendon, 2026-07-12).
     fog:   'Fog',
-    // A–Z is a Collected-only sort; not offered as a default-sort pick (SORTS).
     az:    'A–Z',
 };
 
@@ -43,12 +51,14 @@ const SORTS: Array<{ key: SortKey; title: string }> = [
     { key: 'id',    title: 'Sort by ID' },
     { key: 'price', title: 'Sort by Price' },
     { key: 'feed',  title: 'Activity Feed' },
-    { key: 'fog',   title: 'Fog — reveal project artwork by artwork' },
+    { key: 'az',    title: 'Sort A–Z by project' },
 ];
 
 export function DefaultSortRow() {
-    const { sort, dir, feedKind, cycleSort } = useSort();
+    const { sort, dir, feedKind, cycleSort, defaultGroup, cycleDefaultGroup } = useSort();
     const { showToast } = useToast();
+
+    const groupOn = defaultGroup !== 'none';
 
     /* Sim 10492-10498 — pill labels are HTML-built per family with
        direction arrow inside .settings-sort-arrow when active. */
@@ -87,14 +97,36 @@ export function DefaultSortRow() {
             }
             return 'FEED';
         }
-        // fog
-        return 'FOG';
+        // az — flips to ZA when descending, gallery parity.
+        if (sort === 'az') {
+            return (
+                <>
+                    {dir === 'desc' ? 'ZA' : 'AZ'} {arrow(dir === 'asc' ? '↑︎' : '↓︎')}
+                </>
+            );
+        }
+        return 'AZ';
     };
 
     return (
         <>
             <div className="settings-header">DEFAULT SORT</div>
             <div className="settings-pill-row">
+                {/* Default GROUP — leads the row like the grid group toggle.
+                    Icon = the live dimension's glyph (▥ when off); the label
+                    names the dimension so the pick reads at a glance. */}
+                <SettingsToggle
+                    id="ss-group"
+                    active={groupOn}
+                    title="Default grouping — cycles every dimension"
+                    icon={groupOn ? GROUP_GLYPH[defaultGroup] : GROUP_BTN_ICON}
+                    iconStyle={{ fontFamily: "'Courier New', Courier, monospace" }}
+                    label={groupOn ? GROUP_LABEL[defaultGroup] : 'GROUP'}
+                    onClick={() => {
+                        const next = cycleDefaultGroup();
+                        showToast('Default Group: ' + GROUP_LABEL[next]);
+                    }}
+                />
                 {SORTS.map((s) => (
                     <SettingsToggle
                         key={s.key}

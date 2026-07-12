@@ -42,7 +42,7 @@ Three ways of holding work you don't (yet) own, with deliberate privacy defaults
 
 ## Social
 
-Follows are asymmetric and read at a glance beside any @name: mutual ⚭, following ⚯, follower ⚬. Following a person, a Project, or an Output routes its activity into your [Pings](/docs/app/pings). **PriceRank** (❂) is the platform's standing system, fed by achievements and activity.
+Follows are asymmetric and read at a glance beside any @name: mutual ⚭, following ⚯, follower ⚬. Following a person, a Project, or an Output routes its activity into your [Pings](/docs/pings/overview). **PriceRank** (❂) is the platform's standing system, fed by achievements and activity.
 
 ## Further reading
 

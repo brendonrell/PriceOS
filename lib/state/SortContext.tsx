@@ -48,14 +48,16 @@ import {
     useState,
     type ReactNode,
 } from 'react';
+import { getRememberedGroup, rememberGroup } from './groupMemoryStore';
 
 export type SortKey = 'id' | 'price' | 'feed' | 'fog' | 'az';
 export type SortDir = 'asc' | 'desc';
 export type FeedKind = 'time' | 'price';
-/* Group-by dimension for the gallery (Brendon, 2026-06-16). Grouping is a
-   MODIFIER on whatever sort is active — the little cycling letter on the sort
-   pill, exactly like FEED's `$`. The first option is always 'none' (plain sort,
-   no grouping). Master cycle order:
+/* Group-by dimension for the gallery (Brendon, 2026-06-16; redesigned
+   2026-07-12). Grouping is its OWN icon-only toggle at the start of the sort
+   row — one tap advances the dimension, independent of which sort is active
+   (it no longer rides inside each sort button's cycle). The first option is
+   always 'none' (plain sort, no grouping). Master cycle order:
      none → artist → project → artist+project → owner → colour → last-sold → rarity
    Each surface exposes only the dimensions that can apply, so the cycle never
    lands on a dead option:
@@ -74,11 +76,16 @@ export const PROJECT_GROUP_ORDER: GroupKey[] =
     ['none', 'owner', 'color', 'ownerColor', 'lastSold', 'rarity'];
 export const COLLECTED_GROUP_ORDER: GroupKey[] =
     ['none', 'artist', 'project', 'artistProject', 'color', 'artistColor', 'projectColor', 'lastSold', 'rarity'];
+/* The settings DEFAULT SORT row's group pill cycles the full master order —
+   every dimension, in the §comment order above (Brendon, 2026-07-12). A
+   surface that doesn't carry the chosen dimension simply shows ungrouped. */
+export const DEFAULT_GROUP_ORDER: GroupKey[] =
+    ['none', 'artist', 'project', 'artistProject', 'owner', 'color', 'artistColor', 'projectColor', 'ownerColor', 'lastSold', 'rarity'];
 
-/* Single-character glyph per dimension (docs/GLYPHS.md). 'none' is the resting
-   "pure sort" state and shows NO glyph at all (Brendon, 2026-06-18 — the old
-   neutral dot is gone); each grouping shows its own glyph. Combos read left→
-   right: the level-1 dimension's glyph then the level-2 dimension's. */
+/* Single-character glyph per dimension (docs/GLYPHS.md). 'none' shows NO glyph
+   in group headers (Brendon, 2026-06-18); the standalone group TOGGLE wears
+   GROUP_BTN_ICON as its resting face instead. Combos read left→right: the
+   level-1 dimension's glyph then the level-2 dimension's. */
 export const GROUP_GLYPH: Record<GroupKey, string> = {
     none: '',
     artist: '✺︎',
@@ -92,6 +99,12 @@ export const GROUP_GLYPH: Record<GroupKey, string> = {
     lastSold: '$',
     rarity: '❖︎',
 };
+
+/* Resting face of the standalone group toggle (grouping OFF) — the four-dot
+   cluster (Brendon's pick, 2026-07-12; replaced the first-pass ▥), docs/
+   GLYPHS.md. When a grouping is live the toggle wears that dimension's
+   GROUP_GLYPH instead. */
+export const GROUP_BTN_ICON = '⁘︎';
 
 /* ALLCAPS state for the toast (Brendon's toast-casing rule). */
 export const GROUP_LABEL: Record<GroupKey, string> = {
@@ -220,30 +233,36 @@ interface SortContextValue {
         `group` is given, the grouping dimension is restored too (a preset that
         was saved while grouped). Omit it to leave the current grouping alone. */
     applySort: (sort: SortKey, dir: SortDir, feedKind: FeedKind, group?: GroupKey) => void;
-    /** Reset the gallery sort + grouping to the user's saved DEFAULT sort with
-        no grouping. Called when a project page is entered so an in-project sort/
-        grouping never carries over to the next project (Brendon, 2026-06-20). */
-    resetToDefault: () => void;
+    /** Reset the gallery to the user's saved DEFAULT sort on project entry.
+        Pass the project slug so the grouping restores to what the viewer last
+        used ON THAT PROJECT (groupMemoryStore, Brendon 2026-07-12), falling
+        back to the saved default grouping — an in-project grouping never
+        carries into the next project (Brendon, 2026-06-20). */
+    resetToDefault: (projectSlug?: string) => void;
+    /** Restore the remembered grouping for a non-project surface (the
+        Collected grid, keyed by profile address) — same memory contract. */
+    restoreGroupFor: (scope: 'project' | 'profile', id: string) => void;
     /** Current group-by dimension for the gallery. */
     group: GroupKey;
-    /** Advance the group dimension through the given surface's cycle order. */
-    cycleGroup: (order: GroupKey[]) => void;
-    /** Unified grid-sort tap (Brendon, 2026-06-18). One button advances the
-        whole sort/group/direction space for a grid family (id/price/az) so the
-        grouping is no longer a separate tiny chip — mirrors how FEED cycles its
-        kind+direction in a single button. Sequence per tap:
-        enter family (asc, no group) → flip to desc → next group (asc) → its desc
-        → … → wrap. Returns which facet changed so the caller can toast it. */
-    cycleGridSort: (
-        family: SortKey,
-        order: GroupKey[],
-    ) => { changed: 'enter' | 'dir' | 'group'; dir: SortDir; group: GroupKey };
+    /** Advance the group dimension through the given surface's cycle order —
+        the standalone group toggle's tap (Brendon, 2026-07-12). Returns the
+        dimension it landed on so the caller can toast it. Never touches the
+        saved default; pass `mem` to remember the pick for that page. */
+    cycleGroup: (order: GroupKey[], mem?: { scope: 'project' | 'profile'; id: string }) => GroupKey;
+    /** The user's saved DEFAULT grouping (settings · DEFAULT SORT row). Boots
+        the app and re-applies on every project entry, exactly like the default
+        sort family (Brendon, 2026-07-12). */
+    defaultGroup: GroupKey;
+    /** Settings pill tap — advance the DEFAULT grouping through the master
+        order, persist it, and apply it to the live view. Returns where it
+        landed for the toast. */
+    cycleDefaultGroup: () => GroupKey;
 }
 
 const SortContext = createContext<SortContextValue | null>(null);
 
 function isSortKey(v: unknown): v is SortKey {
-    return v === 'id' || v === 'price' || v === 'feed' || v === 'fog';
+    return v === 'id' || v === 'price' || v === 'feed' || v === 'fog' || v === 'az';
 }
 
 export function SortProvider({ children }: { children: ReactNode }) {
@@ -252,11 +271,23 @@ export function SortProvider({ children }: { children: ReactNode }) {
     // Sim 8320 — feed entry point is feed-time-desc. Default kind = 'time'.
     const [feedKind, setFeedKind] = useState<FeedKind>('time');
     const [group, setGroupState] = useState<GroupKey>('none');
+    /* The saved DEFAULT grouping (settings · DEFAULT SORT row, Brendon
+       2026-07-12). In-page group taps stay transient; only the settings pill
+       writes this. It boots the view and re-applies on project entry. */
+    const [defaultGroup, setDefaultGroup] = useState<GroupKey>('none');
     /* Whether the shareable `?sort=` slug is live. Off by default (clean URL);
        flips on at the first user sort tap, off again on reset-to-default. */
     const [slugActive, setSlugActive] = useState(false);
 
     useEffect(() => {
+        /* The saved default grouping loads regardless of entry path — the
+           settings pill and resetToDefault both read it. */
+        let bootGroup: GroupKey = 'none';
+        try {
+            const g = localStorage.getItem(GROUP_STORAGE_KEY);
+            if (isGroupKey(g)) bootGroup = g;
+        } catch { /* ignore */ }
+        setDefaultGroup(bootGroup);
         // A pasted `?sort=` slug wins over the saved default — that IS the
         // shared view. Apply it and keep the slug live.
         const fromUrl = readUrlSlug();
@@ -268,6 +299,7 @@ export function SortProvider({ children }: { children: ReactNode }) {
             setSlugActive(true);
             return;
         }
+        setGroupState(bootGroup);
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
             if (isSortKey(raw)) {
@@ -278,14 +310,10 @@ export function SortProvider({ children }: { children: ReactNode }) {
                 if (raw === 'feed') {
                     setFeedKind('time');
                     setDir('desc');
-                } else if (raw === 'id' || raw === 'price') {
+                } else if (raw === 'id' || raw === 'price' || raw === 'az') {
                     setDir('asc');
                 }
             }
-            /* Grouping is a per-project, transient view modifier (Brendon,
-               2026-06-20) — NOT a persisted setting. It always boots at 'none'
-               and is reset on each project entry, so it never carries across
-               projects or sessions. (The old boot-time restore is gone.) */
         } catch {
             // ignore
         }
@@ -301,7 +329,7 @@ export function SortProvider({ children }: { children: ReactNode }) {
         setSlugActive(true);
         setSortState(s);
         // Reset to family-default direction state (sim 8329 / 8320).
-        if (s === 'id' || s === 'price') {
+        if (s === 'id' || s === 'price' || s === 'az') {
             setDir('asc');
         } else if (s === 'feed') {
             setFeedKind('time');
@@ -370,12 +398,12 @@ export function SortProvider({ children }: { children: ReactNode }) {
             // Already this family — flip direction (sim 8327).
             setDir(dir === 'asc' ? 'desc' : 'asc');
         } else {
-            // Enter at asc (sim 8329).
+            // Enter at asc (sim 8329). AZ persists like the rest now that it's
+            // a Default Sort option (Brendon, 2026-07-12) — a project page
+            // booting into a saved 'az' maps it to #ID in resetToDefault.
             setSortState(target);
             setDir('asc');
-            // 'az' is a Collected-only sort — never persist it, so a project
-            // page never boots into a sort it doesn't render (Brendon 2026-06-15).
-            if (target !== 'az') persistFamily(target);
+            persistFamily(target);
         }
     }, [sort, dir, feedKind]);
 
@@ -387,10 +415,12 @@ export function SortProvider({ children }: { children: ReactNode }) {
         if (g !== undefined) setGroupState(g);
     }, []);
 
-    /* Reset to the user's saved DEFAULT sort family + no grouping. Used on
-       project entry so each project starts clean and an in-project sort /
-       grouping never bleeds into the next project (Brendon, 2026-06-20). */
-    const resetToDefault = useCallback(() => {
+    /* Reset to the user's saved DEFAULT sort family on project entry. The
+       grouping restores to what the viewer last used ON THIS PROJECT (per-page
+       memory, Brendon 2026-07-12 — "they find it like they left it"), falling
+       back to the saved default grouping — an in-project grouping never bleeds
+       into the next project (Brendon, 2026-06-20). */
+    const resetToDefault = useCallback((projectSlug?: string) => {
         // A Project opened from a pasted `?sort=` link keeps that shared view
         // instead of snapping back to the saved default.
         const fromUrl = readUrlSlug();
@@ -409,6 +439,10 @@ export function SortProvider({ children }: { children: ReactNode }) {
         } catch {
             // ignore
         }
+        // AZ is name-order across projects — meaningless inside ONE project,
+        // and the project sort row doesn't offer it. A saved 'az' default
+        // enters a project as #ID (Collected/home keep the AZ boot).
+        if (fam === 'az') fam = 'id';
         setSortState(fam);
         if (fam === 'feed') {
             setFeedKind('time');
@@ -417,60 +451,52 @@ export function SortProvider({ children }: { children: ReactNode }) {
             // id / price / fog — asc (dir is inert for fog).
             setDir('asc');
         }
-        setGroupState('none');
+        const remembered = projectSlug ? getRememberedGroup('project', projectSlug) : undefined;
+        setGroupState(isGroupKey(remembered) ? remembered : defaultGroup);
         // Fresh Project = the no-slug default.
         setSlugActive(false);
         clearUrlSlug();
-    }, []);
+    }, [defaultGroup]);
 
-    const cycleGroup = useCallback((order: GroupKey[]) => {
+    /* Restore the remembered grouping for a surface (Collected grid keyed by
+       profile address; project grids go through resetToDefault above). */
+    const restoreGroupFor = useCallback((scope: 'project' | 'profile', id: string) => {
+        const remembered = getRememberedGroup(scope, id);
+        setGroupState(isGroupKey(remembered) ? remembered : defaultGroup);
+    }, [defaultGroup]);
+
+    /* The standalone group toggle's tap — advances the dimension through this
+       surface's cycle, independent of the active sort. Returns where it landed
+       so the caller can toast it (React state is async). Never touches the
+       saved DEFAULT (settings pill below); when `mem` is given the landing
+       dimension is remembered for that page (groupMemoryStore), so the viewer
+       finds the surface exactly as they left it (Brendon, 2026-07-12). */
+    const cycleGroup = useCallback((order: GroupKey[], mem?: { scope: 'project' | 'profile'; id: string }) => {
         setSlugActive(true);
-        setGroupState((g) => {
-            // If the current dimension isn't in this surface's cycle, restart from none.
-            const cur = order.includes(g) ? g : 'none';
-            const next = order[(order.indexOf(cur) + 1) % order.length];
-            try { localStorage.setItem(GROUP_STORAGE_KEY, next); } catch { /* ignore */ }
-            return next;
-        });
-    }, []);
+        // If the current dimension isn't in this surface's cycle, restart from none.
+        const cur = order.includes(group) ? group : 'none';
+        const next = order[(order.indexOf(cur) + 1) % order.length];
+        setGroupState(next);
+        if (mem) rememberGroup(mem.scope, mem.id, next);
+        return next;
+    }, [group]);
 
-    /* One-button grid sort — folds direction + group into a single cycle so the
-       grouping is no longer a separate (untappable) chip. Mirrors FEED. */
-    const cycleGridSort = useCallback(
-        (family: SortKey, order: GroupKey[]) => {
-            setSlugActive(true);
-            const persistGroup = (g: GroupKey) => {
-                try { localStorage.setItem(GROUP_STORAGE_KEY, g); } catch { /* ignore */ }
-            };
-            if (sort !== family) {
-                // Enter the family fresh: ascending, no grouping.
-                setSortState(family);
-                setDir('asc');
-                setGroupState('none');
-                persistGroup('none');
-                // 'az' is Collected-only — never persist it as the boot sort.
-                if (family !== 'az') persistFamily(family);
-                return { changed: 'enter' as const, dir: 'asc' as SortDir, group: 'none' as GroupKey };
-            }
-            if (dir === 'asc') {
-                // Same group, flip to descending.
-                setDir('desc');
-                return { changed: 'dir' as const, dir: 'desc' as SortDir, group };
-            }
-            // Was descending — advance to the next group, back to ascending.
-            const cur = order.includes(group) ? group : 'none';
-            const next = order[(order.indexOf(cur) + 1) % order.length];
-            setGroupState(next);
-            setDir('asc');
-            persistGroup(next);
-            return { changed: 'group' as const, dir: 'asc' as SortDir, group: next };
-        },
-        [sort, dir, group],
-    );
+    /* Settings · DEFAULT SORT group pill — advance the saved default through
+       the master order, persist it, and apply it to the live view (exactly how
+       the default-sort pills behave). */
+    const cycleDefaultGroup = useCallback((): GroupKey => {
+        setSlugActive(true);
+        const cur = DEFAULT_GROUP_ORDER.includes(defaultGroup) ? defaultGroup : 'none';
+        const next = DEFAULT_GROUP_ORDER[(DEFAULT_GROUP_ORDER.indexOf(cur) + 1) % DEFAULT_GROUP_ORDER.length];
+        setDefaultGroup(next);
+        setGroupState(next);
+        try { localStorage.setItem(GROUP_STORAGE_KEY, next); } catch { /* ignore */ }
+        return next;
+    }, [defaultGroup]);
 
     const value = useMemo<SortContextValue>(
-        () => ({ sort, dir, feedKind, setSort, cycleSort, applySort, resetToDefault, group, cycleGroup, cycleGridSort }),
-        [sort, dir, feedKind, setSort, cycleSort, applySort, resetToDefault, group, cycleGroup, cycleGridSort]
+        () => ({ sort, dir, feedKind, setSort, cycleSort, applySort, resetToDefault, restoreGroupFor, group, cycleGroup, defaultGroup, cycleDefaultGroup }),
+        [sort, dir, feedKind, setSort, cycleSort, applySort, resetToDefault, restoreGroupFor, group, cycleGroup, defaultGroup, cycleDefaultGroup]
     );
 
     return <SortContext.Provider value={value}>{children}</SortContext.Provider>;

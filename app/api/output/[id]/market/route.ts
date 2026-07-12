@@ -19,7 +19,7 @@ import { requireAuth, verifySiweSession } from '@/lib/auth/siwe';
 import { badRequest, serverError } from '@/lib/errors';
 import { getProject, outputTraits } from '@/lib/project/registry';
 import { createPing } from '@/lib/pings/createPing';
-import { pingWishlisters } from '@/lib/pings/wishlist';
+import { fanOutMarketPings } from '@/lib/pings/fanout';
 import { checkListingOrder, checkOfferOrder, resolveRoyaltyReceiver } from '@/lib/market/orderCheck';
 import { DEFAULT_DURATION_SEC, MAX_DURATION_SEC } from '@/lib/market/chain';
 import type { OfferCriteria, SeaportOrderJson } from '@/lib/market/orderTypes';
@@ -303,8 +303,9 @@ export const POST = requireAuth<{ id: string }>(async (req, ctx, address) => {
         );
         await db.from('events').insert({ type: 'LIST', project_id: slug, token_id: tokenId, from_address: address, to_address: null, price_eth: price, timestamp: nowSec() } as never);
 
-        // Ping everyone wishlisting this piece: "it's buyable now".
-        await pingWishlisters(db, { slug, tokenId, event: 'listed', actorAddress: address, amountEth: price });
+        // Fan to everyone who cares: wishlisters ("buyable now"), mutuals,
+        // starred artists/projects/traits, top-rarity holders.
+        await fanOutMarketPings(db, { slug, tokenId, event: 'listed', actorAddress: address, amountEth: price });
         return NextResponse.json({ ok: true, listed: price });
       }
       case 'cancel': {
@@ -344,8 +345,8 @@ export const POST = requireAuth<{ id: string }>(async (req, ctx, address) => {
             amountEth: salePrice,
           });
         }
-        // Ping everyone wishlisting this piece: "it's gone".
-        await pingWishlisters(db, { slug, tokenId, event: 'sold', actorAddress: address, amountEth: salePrice });
+        // Fan to everyone who cares: wishlisters ("it's gone") + interest audiences.
+        await fanOutMarketPings(db, { slug, tokenId, event: 'sold', actorAddress: address, amountEth: salePrice });
         return NextResponse.json({ ok: true, bought: r.bought });
       }
       case 'offer': {
@@ -432,7 +433,7 @@ export const POST = requireAuth<{ id: string }>(async (req, ctx, address) => {
           { onConflict: 'project_id,token_id' },
         );
         await db.from('events').insert({ type: 'LIST', project_id: slug, token_id: tokenId, from_address: address, to_address: null, price_eth: Number(checked.priceEth), timestamp: nowSec() } as never);
-        await pingWishlisters(db, { slug, tokenId, event: 'listed', actorAddress: address, amountEth: Number(checked.priceEth) });
+        await fanOutMarketPings(db, { slug, tokenId, event: 'listed', actorAddress: address, amountEth: Number(checked.priceEth) });
         return NextResponse.json({ ok: true, listed: Number(checked.priceEth) });
       }
       case 'offer_order': {

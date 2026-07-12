@@ -31,7 +31,7 @@ interface Props {
 export function SpellBookSection({ onTripleTap }: Props) {
     const { notifs, toggle, update } = usePdNotifs();
     const { showToast } = useToast();
-    const { setSort } = useSort();
+    const { sort, setSort, cycleSort } = useSort();
     const { open } = useModal();
     const tapState = useRef<{ count: number; lastTap: number }>({
         count: 0,
@@ -296,8 +296,43 @@ export function SpellBookSection({ onTripleTap }: Props) {
                     icon={'≫︎'}
                     label="Echo Chamber"
                 />
-                {/* Spells 12–17: offer shield → hammer */}
-                {SPELLS.slice(11).map((spell) => (
+                {/* Spells 12–15: offer shield → aura */}
+                {SPELLS.slice(11, 15).map((spell) => (
+                    <SettingsToggle
+                        key={spell.id}
+                        id={`sb-${spell.id}`}
+                        active={notifs[spell.flag]}
+                        onClick={() => toggleSpellWithToast(spell)}
+                        icon={spell.icon}
+                        iconStyle={{
+                            ...(spell.iconStyle?.fontSize  ? { fontSize: spell.iconStyle.fontSize } : {}),
+                            ...(spell.iconStyle?.lineHeight ? { lineHeight: spell.iconStyle.lineHeight } : {}),
+                            ...(spell.iconStyle?.top
+                                ? { position: 'relative', top: spell.iconStyle.top }
+                                : {}),
+                        }}
+                        sharp={spell.sharp}
+                        label={spell.name}
+                    />
+                ))}
+                {/* Fog — moved here from the Default Sort row (Brendon,
+                    2026-07-12), following Aura. Icon-less like NPC; the label
+                    itself wears the fog (see .fog-label — a meaning-carrying
+                    fade, not chrome). Toggles the fog sort on/off via the same
+                    cycleSort the old settings pill used (fog ⇄ #ID). */}
+                <SettingsToggle
+                    id="sb-fog"
+                    active={sort === 'fog'}
+                    title="Fog — reveal project artwork by artwork"
+                    onClick={() => {
+                        const next = sort !== 'fog';
+                        cycleSort('fog');
+                        showToast(`Fog: ${next ? 'ON' : 'OFF'}`);
+                    }}
+                    label={<span className="fog-label">Fog</span>}
+                />
+                {/* Spells 16–17: arbitrage map → hammer */}
+                {SPELLS.slice(15).map((spell) => (
                     <SettingsToggle
                         key={spell.id}
                         id={`sb-${spell.id}`}
