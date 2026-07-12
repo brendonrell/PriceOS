@@ -1233,7 +1233,7 @@ body.modal-open { overflow: hidden; touch-action: none; }
    unlocked state (solid border, full opacity) arrives with the
    achievements workstream. */
 .ps-ach-header {
-    display: flex; justify-content: space-between; align-items: baseline;
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline;
     margin: 8px 0;
     /* A min gap so the label never butts against the tally when they fill the
        row width (Brendon 2026-06-19 — "ACHIEVEMENTS66"). */
@@ -1249,7 +1249,11 @@ body.modal-open { overflow: hidden; touch-action: none; }
     letter-spacing: 1px;
     display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
     text-align: right;
-    opacity: 0.5;
+    /* Too wide to sit beside the label → the tally wraps to its own line and
+       stays pinned to the right margin instead of spilling past the buffer the
+       rows below adhere to (Brendon, 2026-07-12). */
+    margin-left: auto;
+    opacity: 0.9;
 }
 /* Count stays inline with the ACHIEVEMENTS label; the total drops to its own
    line below, in brackets, so it never wraps mid-number (Brendon 2026-07-03). */
