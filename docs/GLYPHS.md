@@ -156,8 +156,9 @@ Grouping is a **standalone icon-only toggle leading every groupable sort row**
 (project page · Collected · Starred/Wishlist rows) — no direction arrow, one tap
 advances the surface's grouping cycle. It no longer rides inside each sort
 button's cycle (the 2026-06-18 "one-button grid sort" design is retired). At
-rest (no grouping) the toggle wears **▥ (U+25A5, GROUP toggle resting face)** —
-NEW glyph 2026-07-12, same geometric family as the iOS-proven ▦/▧/▨/▩; device-
+rest (no grouping) the toggle wears **⁘ (U+2058, GROUP toggle resting face —
+the four-dot cluster, "pieces grouped")** — NEW glyph, Brendon's pick
+2026-07-12 (replaced the first-pass ▥ the same day; ▥ is free again); device-
 verify per the #1 glyph gate. While a grouping is live the toggle wears that
 dimension's glyph below and lights like an active sort. The settings DEFAULT
 SORT row leads with the same pill (icon + dimension name) — it sets the saved
@@ -166,7 +167,7 @@ per dimension:
 
 | Group | Glyph | Codepoint | Source |
 |---|---|---|---|
-| none (resting) | ▥ | U+25A5 | the toggle's resting face; group HEADERS still show no glyph |
+| none (resting) | ⁘ | U+2058 | the toggle's resting face (four-dot cluster); group HEADERS still show no glyph |
 | Artist | ✺ | U+273A | the artist-category glyph (§4) |
 | Project | ⬚ | U+2B1A | the project stats-row dotted square (`.stat-icon-box`) |
 | Artist + Project | ✺⬚ | — | two-level combo (artist over project) |

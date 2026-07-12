@@ -99,10 +99,11 @@ export const GROUP_GLYPH: Record<GroupKey, string> = {
     rarity: '❖︎',
 };
 
-/* Resting face of the standalone group toggle (grouping OFF) — the sectioned
-   square, docs/GLYPHS.md. When a grouping is live the toggle wears that
-   dimension's GROUP_GLYPH instead. */
-export const GROUP_BTN_ICON = '▥︎';
+/* Resting face of the standalone group toggle (grouping OFF) — the four-dot
+   cluster (Brendon's pick, 2026-07-12; replaced the first-pass ▥), docs/
+   GLYPHS.md. When a grouping is live the toggle wears that dimension's
+   GROUP_GLYPH instead. */
+export const GROUP_BTN_ICON = '⁘︎';
 
 /* ALLCAPS state for the toast (Brendon's toast-casing rule). */
 export const GROUP_LABEL: Record<GroupKey, string> = {
