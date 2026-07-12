@@ -1,0 +1,153 @@
+/* ── The Rewind ◄ — time-scrubber frame + rewound surfaces ─────────────
+   Rule #2: the banner and every rewound readout are full-strength. The
+   MARKER says "past" — never a washed-out UI. */
+
+.rewind-bar {
+    position: fixed;
+    top: env(safe-area-inset-top);
+    left: 0;
+    right: 0;
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 14px;
+    background: var(--bg-color);
+    border-bottom: 2px solid var(--accent);
+    font-family: 'Courier New', Courier, monospace;
+}
+.rewind-bar .rw-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    white-space: nowrap;
+}
+.rewind-bar .rw-scrub {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+}
+.rewind-bar .rw-step {
+    background: none;
+    border: 1px solid var(--text-color);
+    border-radius: 6px;
+    color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 3px 9px;
+    cursor: pointer;
+}
+.rewind-bar .rw-step:disabled { border-color: var(--text-color); opacity: 0.5; cursor: default; }
+.rewind-bar .rw-slider {
+    flex: 1;
+    min-width: 0;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+.rewind-bar .rw-return {
+    background: var(--accent);
+    border: none;
+    border-radius: 999px;
+    color: var(--bg-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 6px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+/* the app content clears the bar while rewound */
+.rewind-bar ~ * .hero-row-title { scroll-margin-top: 56px; }
+
+/* ── rewound surface body ── */
+.rw-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+}
+.rw-loading,
+.rw-empty {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--text-color);
+    padding: 18px 0;
+}
+.rw-ellipsis::after {
+    content: '…';
+    animation: rwEllipsis 1.2s steps(4) infinite;
+}
+@keyframes rwEllipsis {
+    0% { content: ''; }
+    25% { content: '.'; }
+    50% { content: '..'; }
+    75% { content: '…'; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .rw-ellipsis::after { animation: none; content: '…'; }
+}
+
+.rw-daylog {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--text-color);
+}
+.rw-daylog-top {
+    color: var(--accent);
+    text-decoration: none;
+}
+.rw-daylog-top:hover { text-decoration: underline; }
+
+.rw-section { display: flex; flex-direction: column; gap: 2px; }
+.rw-section-head {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--text-color);
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--text-color);
+    margin-bottom: 4px;
+}
+.rw-project-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 2px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-color);
+    text-decoration: none;
+}
+.rw-project-row:hover .rw-name { text-decoration: underline; }
+.rw-project-row .rw-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--text-color);
+    flex: none;
+}
+.rw-project-row .rw-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.rw-project-row .rw-count { flex: none; }
+
+.rw-gallery { margin-top: 6px; }

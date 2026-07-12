@@ -37,6 +37,9 @@ export default {
     void controller;
     call("/api/cron/todo-reminders");
     call("/api/cron/indexer-reconcile");
+    // Rewind social tape — exits in one HEAD probe on all but the first run
+    // of each PriceDay, so riding the 1-min schedule costs nothing.
+    call("/api/cron/social-snapshot");
     // Dead-man switch: stamp the heartbeat so the app side can notice a
     // stalled Cron (lib/pings/heartbeat.ts checks it from the hot count poll).
     const kv = (env as unknown as {
