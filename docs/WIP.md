@@ -45,9 +45,9 @@
 
 All merged to `dev` + pushed. UI/content only — no data/logic.
 - **Sticker store:** outputs sheet **3 cols** (was 4) with even, roomy gaps
-  (mobile only); store grid shows **6.5 rows then scrolls** — plain CSS
-  `max-height` + `align-content:start` (NOT a JS sensor — the first attempt
-  measured rows and stretched the cards; ripped out); "album" tab → **"MY
+  (mobile only); store grid row-cap attempted via plain CSS `max-height` +
+  `align-content:start` — **⚠️ this did NOT actually clip (see batch 2 below for
+  why + the real fix)**; "album" tab → **"MY
   ALBUM"**; news-ticker row **~⅓ shorter** (10px); header expand arrow **1.5×**
   (33px); card count forced-wraps "N" over "stickers".
 - **Both store crawls rewritten (content only, formatting untouched):** store =
@@ -62,6 +62,30 @@ All merged to `dev` + pushed. UI/content only — no data/logic.
   own full-width line pinned right; faint tally 0.5→**0.9** opacity.
 - **DEFERRED (Brendon's call):** the PriceSprites **sheet you can buy** still
   lists placeholder @handles as its stickers — leave until more real users lock in.
+
+## ✅ SHIPPED 2026-07-12 (Opus, batch 2) — ASCII tab + achievements line + store grid scroll (real fix) (on dev)
+
+All merged to `dev` + pushed. UI/content only — no data/logic.
+- **ASCII Backup tab:** button labels → ALLCAPS (`ACTIVATE ASCII MODE`); dropped
+  the leading dots (`COPY TXT` / `COPY JSON`); long button `collection`→`COLLECTED`.
+- **PriceSprite achievements:** the points line (was `[[ … PTS … ]]`) now **centered**
+  and flanked by the canonical achievements icon **◍** each side (`lib/achievements/icon`).
+- **⭐ Store stacked grid — the REAL scroll fix (3 failed rounds first).** Batch-1's
+  `.ss-grid-view { max-height }` NEVER clipped: the grid is a **flex child of the
+  modal column** (`.sticker-sheet`), so its flex auto-minimum = full content height,
+  which overrides `max-height` → the modal just grew to show every row (Brendon:
+  "forcing itself to show the full grid"). Deploy was NOT stale and the value WAS
+  live — the mechanism was wrong. **Fix:** wrap the grid in a dedicated bounded
+  scroll viewport **`.ss-grid-scroll`** (`min-height:0` + `max-height` + `overflow-y`);
+  the grid keeps its exact layout, the wrapper caps to ~6 rows and scrolls the rest.
+  Verified with a headless repro of the real modal structure (offline, file://):
+  6 of 9 rows shown, scrolls, modal bounded 632/844px (was ballooning). `gridRef`
+  (drag-scroll) + scroll-memory moved to the wrapper.
+- **Marketplace button** added left of `MY ALBUM` (same style) → opens the
+  marketplace; flips to **`BACK TO STORE`** while in the market and returns you there.
+- **Lesson for next time:** when a CSS `max-height` "isn't working," suspect a
+  **flex-child that won't shrink** before blaming cache/deploy — verify the served
+  asset first (it was correct here), then reproduce the structure headless.
 
 ## ✅ SHIPPED 2026-07-11 (evening, Opus) — App security audit (2 fixes; prod DB locked)
 
