@@ -75,6 +75,17 @@ function autoNewsItems(feed: HomeResponse | null): NewsItem[] {
 }
 
 /* Curated first, then the auto moments. */
+/* The Dispatch pill — the standing front-page pointer to the morning paper.
+   Leads the rail every day (Brendon greenlit The Dispatch 2026-07-12);
+   ▤ = the printed-page glyph (new vocabulary entry, see GLYPHS.md). */
+const DISPATCH_PILL: NewsItem = {
+    glyph: '▤︎',
+    tag: 'THE DISPATCH',
+    title: 'Yesterday, on the record',
+    meta: 'Prints every morning · 9AM',
+    href: '/dispatch',
+};
+
 export function buildNewsItems(feed: HomeResponse | null): NewsItem[] {
-    return [...CURATED_NEWS, ...autoNewsItems(feed)];
+    return [DISPATCH_PILL, ...CURATED_NEWS, ...autoNewsItems(feed)];
 }

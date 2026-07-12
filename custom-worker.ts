@@ -40,6 +40,9 @@ export default {
     // Rewind social tape — exits in one HEAD probe on all but the first run
     // of each PriceDay, so riding the 1-min schedule costs nothing.
     call("/api/cron/social-snapshot");
+    // The Dispatch press run — prints once daily after 9AM Montreal; every
+    // other run is a single HEAD probe.
+    call("/api/cron/dispatch");
     // Dead-man switch: stamp the heartbeat so the app side can notice a
     // stalled Cron (lib/pings/heartbeat.ts checks it from the hot count poll).
     const kv = (env as unknown as {

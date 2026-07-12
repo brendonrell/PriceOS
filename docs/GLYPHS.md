@@ -388,6 +388,18 @@ Wishlist rows (and the held-by / collected-by chips):
 > eye on Windows only. Apple/iOS render the combining marks natively and are
 > never touched. (`lib/sprites/winBrow.ts`, `components/SpriteFace.tsx`.)
 
+## Platform tools (2026-07-12 build — Cartography · Rewind · Dispatch)
+
+| Tool | Glyph | Codepoint | Notes |
+|---|---|---|---|
+| The Cartography (living map) | ◫ | U+25EB | from the feature's own task name (`FEATURE · The Cartography ◫`); modal header + docs |
+| The Rewind (time scrubber) | ◄ | U+25C4 | the spec's candidate glyph, adopted; RewindBar banner |
+| The Dispatch (morning paper) | ▤ | U+25A4 | NEW — printed-page square; leads the home news rail pill. No collision (▥ freed 2026-07-12 stays free) |
+
+> All three ship with the trailing VS-15 `︎` like every glyph here, and carry
+> the standard #1 glyph gate: device-verify as monochrome TEXT on iOS; if one
+> tofus, it needs a swap.
+
 ---
 
 *Source files: `components/dropdown/settings/MyPingsRow.tsx`,
