@@ -128,7 +128,7 @@ export async function GET(req: NextRequest) {
       if (!getProject(slug)) return badRequest('Unknown project');
       let q = db
         .from('offers')
-        .select('id, project_id, token_id, bidder_address, price_eth, status, scope, criteria, end_time, currency, source, order_hash, order_json')
+        .select('id, project_id, token_id, bidder_address, price_eth, status, scope, criteria, end_time, currency, source, order_hash, order_json, takeover_id')
         .eq('project_id', slug).eq('status', 'open');
       if (url.searchParams.get('all') !== '1') q = q.in('scope', ['collection', 'trait']);
       const r = await q.or(liveOr(now)).order('price_eth', { ascending: false }).limit(100);
@@ -504,12 +504,17 @@ export const POST = requireAuth(async (req, _ctx, address) => {
         if (!body.offerId) return badRequest('Missing offerId');
         const r = await db
           .from('offers')
-          .select('bidder_address, status')
+          .select('bidder_address, status, takeover_id, end_time')
           .eq('id', body.offerId)
           .maybeSingle();
-        const offer = r.data as { bidder_address?: string; status?: string } | null;
+        const offer = r.data as { bidder_address?: string; status?: string; takeover_id?: string | null; end_time?: number | null } | null;
         if (!offer || offer.status !== 'open') return badRequest('Offer not open');
         if (offer.bidder_address?.toLowerCase() !== address) return badRequest('Only the bidder can cancel');
+        // HOSTILE TAKEOVER offers are non-cancellable for their whole 72h
+        // window — that's the mechanic. Our book, our rule.
+        if (offer.takeover_id && (offer.end_time == null || offer.end_time > nowSec())) {
+          return badRequest('Takeover offers cannot be withdrawn — the window runs its course');
+        }
         await db.from('offers')
           .update({ status: 'cancelled', tx_hash: body.txHash ?? null, resolved_at: new Date().toISOString() } as never)
           .eq('id', body.offerId);

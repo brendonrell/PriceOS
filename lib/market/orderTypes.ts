@@ -72,6 +72,8 @@ export interface MarketOfferRow {
   source: string;
   order_hash: string | null;
   order_json: SeaportOrderJson | null;
+  /** Set when this offer is one piece of a HOSTILE TAKEOVER blanket. */
+  takeover_id?: string | null;
   bidder_handle?: string | null;
 }
 

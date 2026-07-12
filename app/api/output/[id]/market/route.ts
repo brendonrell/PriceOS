@@ -99,7 +99,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
       // Item offers on THIS token + criteria offers on the project (trait
       // offers filtered to ones this token satisfies, below).
       db.from('offers')
-        .select('id, project_id, token_id, bidder_address, price_eth, status, scope, criteria, end_time, currency, source, order_hash, order_json')
+        .select('id, project_id, token_id, bidder_address, price_eth, status, scope, criteria, end_time, currency, source, order_hash, order_json, takeover_id')
         .eq('project_id', slug).eq('status', 'open')
         .or(`token_id.eq.${tokenId},scope.in.(collection,trait)`)
         .or(liveOr(now)),
@@ -379,10 +379,10 @@ export const POST = requireAuth<{ id: string }>(async (req, ctx, address) => {
         // Capture the bidder + price before the RPC flips the offer state.
         const offerRow = await db
           .from('offers')
-          .select('bidder_address, price_eth')
+          .select('bidder_address, price_eth, takeover_id')
           .eq('id', body.offerId)
           .maybeSingle();
-        const accepted = offerRow.data as { bidder_address?: string; price_eth?: number } | null;
+        const accepted = offerRow.data as { bidder_address?: string; price_eth?: number; takeover_id?: string | null } | null;
 
         const { data, error } = await db.rpc('app_accept_offer', {
           p_owner: address, p_slug: slug, p_token: tokenId, p_offer_id: body.offerId,
@@ -393,6 +393,23 @@ export const POST = requireAuth<{ id: string }>(async (req, ctx, address) => {
         if (r.error === 'offer_not_open') return badRequest('Offer not open');
         if (r.error === 'own_offer') return badRequest('Cannot accept your own offer');
         if (r.error) return badRequest(r.error);
+
+        // HOSTILE TAKEOVER bookkeeping — a yielded piece goes on the public
+        // record the moment it's accepted (idempotent via the PK).
+        if (accepted?.takeover_id) {
+          await db.from('takeover_acceptances').upsert({
+            takeover_id: accepted.takeover_id,
+            token_id: tokenId,
+            price_eth: accepted.price_eth ?? 0,
+          } as never, { onConflict: 'takeover_id,token_id' });
+          const cnt = await db
+            .from('takeover_acceptances')
+            .select('token_id', { count: 'exact', head: true })
+            .eq('takeover_id', accepted.takeover_id);
+          await db.from('takeovers')
+            .update({ accepted_count: cnt.count ?? 0 } as never)
+            .eq('id', accepted.takeover_id);
+        }
 
         // Ping the bidder: "@owner accepted your 0.5 ETH offer on #12".
         if (accepted?.bidder_address) {

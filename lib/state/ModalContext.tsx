@@ -43,7 +43,8 @@ export type ModalName =
     | 'panopticonConfirm'
     | 'leaderboard'
     | 'golf-leaderboard'
-    | 'cartography';
+    | 'cartography'
+    | 'takeover';
 
 interface OpenModalState {
     name: ModalName;

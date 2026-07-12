@@ -72,6 +72,7 @@ import GhostCard from '../project/GhostCard';
 import ZenGarden from './ZenGarden';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
 import ProfileFacetBar from './ProfileFacetBar';
+import TakeoverBanners from '../takeover/TakeoverBanners';
 import type { ShowcaseSlot } from '../../lib/supabase';
 import type { UserProfileData } from '../../lib/profile/getUserProfileByHandle';
 import { priceDayNumber } from '../../lib/priceday/priceday';
@@ -1104,6 +1105,19 @@ function ProfilePageBodyInner({
                     />
                     <div className="action-row">
                         <FollowButton targetAddress={user.address} targetHandle={user.handle ?? displayHandle} />
+                        {/* HOSTILE TAKEOVER — first-class profile action (spec
+                            86b9g6c7c): open the cast sheet on this collector.
+                            Only on OTHER people's profiles; the sheet + API
+                            enforce the 3+-pieces and premium rules. */}
+                        {!isOwnProfile && (
+                            <button
+                                className="btn-soundtrack tko-cast-entry"
+                                title={`Cast a Hostile Takeover on @${displayHandle}`}
+                                onClick={() => openModal('takeover', user.handle ?? displayHandle, user.address)}
+                            >
+                                {'⚑︎'} TAKEOVER
+                            </button>
+                        )}
                         <button
                             className="btn-soundtrack"
                             title={`Share @${displayHandle}`}
@@ -1125,6 +1139,10 @@ function ProfilePageBodyInner({
                             <span className="btn-icon-play">▶&#xFE0E;</span>{' '}<span>SHARE</span>
                         </button>
                     </div>
+
+                    {/* HOSTILE TAKEOVER inscriptions — active windows + the
+                        permanent marks. Renders nothing when clean. */}
+                    <TakeoverBanners address={user.address} />
 
                     {/* Tab row */}
                     <div className="profile-tabs-row" id="profileTabsRow">

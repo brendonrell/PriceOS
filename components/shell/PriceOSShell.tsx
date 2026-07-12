@@ -93,6 +93,7 @@ import SpiteBookModal from '../SpiteBookModal';
 import PanopticonConfirmModal from '../PanopticonConfirmModal';
 import CartographyModal from '../CartographyModal';
 import RewindBar from './RewindBar';
+import TakeoverCastModal from '../takeover/TakeoverCastModal';
 import PanopticonOverlay from './PanopticonOverlay';
 import CartPanel from '../CartPanel';
 import MarketSheets from '../market/MarketSheets';
@@ -483,6 +484,9 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="RewindBar">
                 <RewindBar />
+            </ErrorBoundary>
+            <ErrorBoundary name="TakeoverCastModal">
+                <TakeoverCastModal />
             </ErrorBoundary>
             <ErrorBoundary name="PanopticonOverlay">
                 <PanopticonOverlay />
