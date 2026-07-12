@@ -250,20 +250,10 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 14px;
     padding: 16px 18px 8px;
-}
-/* The store grid lives inside a bounded, scrollable viewport so the modal never
-   grows to show every row. The grid keeps its natural height; this wrapper caps
-   the visible area and scrolls the rest. The cap lives ONLY here (a fresh class),
-   so nothing competes with it. min-height:0 lets the cap bind even though it's a
-   flex child of the modal column (.sticker-sheet) (Brendon, 2026-07-12). */
-.ss-grid-scroll {
-    min-height: 0;
     max-height: 56vh;
     overflow-y: auto;
     scrollbar-width: none;
 }
-.ss-grid-scroll::-webkit-scrollbar { display: none; }
-.ss-grid-scroll[data-dragging] { cursor: grabbing; }
 .ss-grid-view::-webkit-scrollbar { display: none; }
 .ss-grid-view[data-dragging] { cursor: grabbing; }
 .ss-grid-view .ss-card { width: auto; }
@@ -451,13 +441,13 @@
         padding: 0 4px;
         border-bottom: none;
     }
-    /* Show a firm 6 rows (~2/3 the screen) then scroll. A row = 62px art + 2px
-       border + 14px gap = 78px; cap = top pad + 6 rows. align-content keeps rows
-       their exact height so the wrapper clips cleanly (Brendon, 2026-07-12). */
-    .ss-grid-scroll {
-        max-height: calc(16px + 6 * 78px);
+    /* Show 6.5 rows then scroll — 6 full + a peek of the 7th. Rows keep their
+       exact height (align-content never stretches them); the grid just clips and
+       scrolls (Brendon, 2026-07-12). A row = 62px art + 2px border + 14px gap. */
+    .ss-grid-view {
+        max-height: calc(16px + 6 * 78px + 32px);
+        align-content: start;
     }
-    .ss-grid-view { align-content: start; }
 }
 
 /* ── Live sheet card art — a 3-sticker fan instead of a placeholder glyph ── */

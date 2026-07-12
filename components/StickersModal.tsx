@@ -477,20 +477,15 @@ export default function StickersModal() {
                         ) : marketOn ? (
                             <StickerMarket />
                         ) : expanded ? (
-                            /* Bounded scroll viewport — caps the store at ~6 rows and
-                               scrolls the rest, so the modal never stretches to show the
-                               whole grid. The grid inside keeps its exact layout. */
                             <div
-                                className="ss-grid-scroll"
+                                className="ss-grid-view"
                                 ref={gridRef}
                                 onScroll={(e) => { gridYRef.current = e.currentTarget.scrollTop; }}
+                                /* Mobile/tablet: two-up columns; the 6.5-row height cap + scroll
+                                   lives in CSS so rows keep their exact height. */
+                                style={!isDesktop ? { gridTemplateColumns: `repeat(${Math.max(2, Math.ceil(REAL_SHEETS.length / 9))}, 1fr)` } : undefined}
                             >
-                                <div
-                                    className="ss-grid-view"
-                                    style={!isDesktop ? { gridTemplateColumns: `repeat(${Math.max(2, Math.ceil(REAL_SHEETS.length / 9))}, 1fr)` } : undefined}
-                                >
-                                    {REAL_SHEETS.map((s) => (isDesktop ? renderPreviewCard(s) : renderCard(s)))}
-                                </div>
+                                {REAL_SHEETS.map((s) => (isDesktop ? renderPreviewCard(s) : renderCard(s)))}
                             </div>
                         ) : (
                             <div className="ss-rail" ref={railRef} onScroll={(e) => saveRailX(e.currentTarget.scrollLeft)}>
