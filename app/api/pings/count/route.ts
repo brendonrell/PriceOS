@@ -13,6 +13,7 @@ import { NextResponse } from 'next/server';
 import { getSupabaseService } from '@/lib/supabase';
 import { requireAuth } from '@/lib/auth/siwe';
 import { serverError } from '@/lib/errors';
+import { checkSweepHeartbeat } from '@/lib/pings/heartbeat';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +24,9 @@ export interface PingsCountResponse {
 
 export const GET = requireAuth(async (_req, _ctx, address) => {
   try {
+    // Sampled dead-man check on the sweep (2%, two KV reads, never throws).
+    await checkSweepHeartbeat();
+
     const db = getSupabaseService();
     const { count, error } = await db
       .from('pings')

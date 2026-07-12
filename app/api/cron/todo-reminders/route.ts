@@ -87,15 +87,48 @@ export async function GET(req: Request): Promise<Response> {
 
     let scanned = 0;
     let sent = 0;
+    // Montreal wall-clock, read once — the calendar is Montreal by design and
+    // the streak guard fires on the same clock (single-zone v1).
+    const mtlParts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Toronto',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+    }).formatToParts(new Date(now));
+    const mtl = (t: string) => mtlParts.find((x) => x.type === t)?.value ?? '';
+    const mtlToday = `${mtl('year')}-${mtl('month')}-${mtl('day')}`;
+    const mtlNowMin = Number(mtl('hour')) * 60 + Number(mtl('minute'));
+    const mtlYesterday = new Date(Date.parse(`${mtlToday}T00:00:00Z`) - 86400_000)
+      .toISOString()
+      .slice(0, 10);
+    // The guard's evening minute — 19:00 Montreal, same window tiling as the
+    // reminders, so it fires exactly once per at-risk evening.
+    const STREAK_GUARD_MIN = 19 * 60;
+    const streakGuardWindow = mtlNowMin - STREAK_GUARD_MIN >= 0 && (mtlNowMin - STREAK_GUARD_MIN) * 60_000 < WINDOW_MS;
+    /** Streaks shorter than this are not worth interrupting an evening for. */
+    const STREAK_GUARD_MIN_DAYS = 30;
+
     for (const address of addresses) {
       const { data: uRow } = await db
         .from('users')
-        .select('settings')
+        .select('settings, price_streak, streak_last_active')
         .eq('address', address)
         .maybeSingle();
       const settings = ((uRow as { settings?: Record<string, unknown> } | null)?.settings ?? {}) as {
         todos?: unknown;
       };
+
+      // ── Streak guard — a 30-day-plus streak dies at midnight and its owner
+      // hasn't acted today: one evening ping, ~5 hours of runway left.
+      const streak = Number((uRow as { price_streak?: number } | null)?.price_streak ?? 0);
+      const lastActive = (uRow as { streak_last_active?: string | null } | null)?.streak_last_active ?? null;
+      if (streakGuardWindow && streak >= STREAK_GUARD_MIN_DAYS && lastActive === mtlYesterday) {
+        await createPing({
+          recipientAddress: address,
+          kind: 'PING',
+          data: { reminder: 'streak', days: streak },
+        });
+        sent += 1;
+      }
       const todos = Array.isArray(settings.todos) ? (settings.todos as StoredTodo[]) : [];
       for (const t of todos) {
         if (!t || t.done || typeof t.due !== 'string' || !t.due) continue;
@@ -128,14 +161,8 @@ export async function GET(req: Request): Promise<Response> {
     // so "today" and item times are read in America/Toronto.
     let calSent = 0;
     try {
-      const mtl = new Intl.DateTimeFormat('en-CA', {
-        timeZone: 'America/Toronto',
-        year: 'numeric', month: '2-digit', day: '2-digit',
-        hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
-      }).formatToParts(new Date(now));
-      const part = (t: string) => mtl.find((x) => x.type === t)?.value ?? '';
-      const todayKey = `${part('year')}-${part('month')}-${part('day')}`;
-      const nowMin = Number(part('hour')) * 60 + Number(part('minute'));
+      const todayKey = mtlToday;
+      const nowMin = mtlNowMin;
 
       const { data: calRows } = await db
         .from('calendar_items')

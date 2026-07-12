@@ -620,6 +620,26 @@ body.sentiment-on .sentiment-widget {
    skips the glyph so the icon stays clean. The empty-state line is muted. */
 .notif-item.read { opacity: 0.8; text-decoration: line-through; }
 .notif-item.read .n-icon { text-decoration: none; }
+
+/* The SEEN divider — the boundary between the fresh stack and history in the
+   Pings list. Full-strength label (it carries meaning), hairlines both sides. */
+.pings-seen-divider {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+    color: var(--text-color);
+    user-select: none;
+}
+.pings-seen-divider::before,
+.pings-seen-divider::after {
+    content: '';
+    flex: 1;
+    border-top: 1px solid var(--text-color);
+}
 .pings-empty {
     padding: 8px 10px;
     font-size: 12px;

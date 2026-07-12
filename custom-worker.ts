@@ -37,6 +37,12 @@ export default {
     void controller;
     call("/api/cron/todo-reminders");
     call("/api/cron/indexer-reconcile");
+    // Dead-man switch: stamp the heartbeat so the app side can notice a
+    // stalled Cron (lib/pings/heartbeat.ts checks it from the hot count poll).
+    const kv = (env as unknown as {
+      NEXT_INC_CACHE_KV?: { put(k: string, v: string): Promise<void> };
+    }).NEXT_INC_CACHE_KV;
+    if (kv) ctx.waitUntil(kv.put("pd:sweep-heartbeat", String(Date.now())));
   },
 };
 

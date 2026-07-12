@@ -17,7 +17,7 @@ import webpush from 'web-push';
 import { getSupabaseService } from '@/lib/supabase';
 import { showsNativePings, type PingToastMode } from '@/lib/state/PdNotifsContext';
 import { formatNativePing } from '@/lib/push/format';
-import { passesCategoryPrefs, type FeedItem, type PingCategoryPrefs } from '@/lib/pings/render';
+import { passesCategoryPrefs, pingHref, type FeedItem, type PingCategoryPrefs } from '@/lib/pings/render';
 import { composeResolved, composeSprite, type ResolvedSprite } from '@/lib/sprites/composer';
 import { isPriceSpriteVibe } from '@/lib/sprites/vibes';
 
@@ -34,17 +34,40 @@ interface UserGateRow {
   price_sprite_resolved?: ResolvedSprite | null;
 }
 
-/** Compose the recipient's resting PriceSprite face server-side (their frozen
- *  resolution → awake frame). Falls back to the vibe composition, then the
+/** Sprite MOOD per ping — the lock-screen face matches the news, using ONLY
+ *  the engine's existing frames (never a new face): money = awake (alert),
+ *  social/interest ambience = blinking (the wink), reminders = yawning
+ *  (time's voice). */
+type SpriteMood = 'awake' | 'blinking' | 'yawning';
+function moodFor(item: FeedItem): SpriteMood {
+  const reminder = typeof item.data?.reminder === 'string' ? (item.data.reminder as string) : null;
+  if (reminder) return 'yawning';
+  switch (item.kind) {
+    case 'OFFER':
+    case 'OFFER_ACCEPTED':
+    case 'COUNTER':
+    case 'SALE':
+    case 'WISHLIST_HIT':
+    case 'PING': // Artist Push (reminders returned above)
+      return 'awake';
+    case 'XFER':
+      return item.data?.gift === true || item.data?.swap === true ? 'awake' : 'blinking';
+    default:
+      return 'blinking';
+  }
+}
+
+/** Compose the recipient's PriceSprite face server-side (their frozen
+ *  resolution → the mood frame). Falls back to the vibe composition, then the
  *  standin face. Mirrors useSpriteFace / artistColorStore. */
-function spriteFaceFor(row: UserGateRow | null): string {
+function spriteFaceFor(row: UserGateRow | null, mood: SpriteMood = 'awake'): string {
   try {
     if (row?.price_sprite_resolved) {
-      const c = composeResolved(row.price_sprite_resolved, 'awake');
+      const c = composeResolved(row.price_sprite_resolved, mood);
       if (c?.fullString) return c.fullString;
     }
     if (row?.address && isPriceSpriteVibe(row.price_sprite)) {
-      const c = composeSprite(row.address, row.price_sprite, 'awake');
+      const c = composeSprite(row.address, row.price_sprite, mood);
       if (c?.fullString) return c.fullString;
     }
   } catch {
@@ -152,6 +175,7 @@ const DEFAULT_CATEGORY_PREFS: PingCategoryPrefs = {
 async function fetchGate(
   db: DB,
   address: string,
+  mood: SpriteMood = 'awake',
 ): Promise<{ allowed: boolean; spriteFace: string; prefs: PingCategoryPrefs }> {
   const { data } = await db
     .from('users')
@@ -168,7 +192,7 @@ async function fetchGate(
   const mode = (notifs.pingToasts ?? 'off') as PingToastMode;
   const allowed = showsNativePings(mode) && notifs.nightmode !== true; // Silent Mode keeps it quiet
   const prefs: PingCategoryPrefs = { ...DEFAULT_CATEGORY_PREFS, ...(notifs.pings ?? {}) };
-  return { allowed, spriteFace: spriteFaceFor(row), prefs };
+  return { allowed, spriteFace: spriteFaceFor(row, mood), prefs };
 }
 
 /**
@@ -195,8 +219,9 @@ export async function sendNativePing(recipientAddress: string, item: FeedItem): 
     const subs = (subRows ?? []) as SubRow[];
     if (subs.length === 0) return;
 
-    // Honour the recipient's current mode + Silent Mode, and grab their sprite.
-    const { allowed, spriteFace, prefs } = await fetchGate(db, address);
+    // Honour the recipient's current mode + Silent Mode, and grab their sprite
+    // wearing the mood that matches the news.
+    const { allowed, spriteFace, prefs } = await fetchGate(db, address, moodFor(item));
     if (!allowed) return;
 
     // The MY PINGS pills gate the phone exactly like they gate the panel.
@@ -214,8 +239,10 @@ export async function sendNativePing(recipientAddress: string, item: FeedItem): 
       // app icon). badge is the monochrome status-bar mark on Android.
       icon: '/icon-192px.png',
       badge: '/icon-192-maskable.png',
-      // Deep-link target: open the app; the SW focuses an existing window.
-      url: '/',
+      // Deep-link target: land ON the thing — the piece (offer family opens
+      // with the offers panel up), or the project. The SW focuses an open
+      // window and navigates it.
+      url: pingHref(item) ?? '/',
     });
 
     const dead: string[] = [];

@@ -115,11 +115,13 @@ const WATCH_ICONS: Record<string, string> = {
   rarity:  '❖︎', // ❖ rarity pill (rarity sitewide)
 };
 
-/** Reminder / Artist Push glyphs — PING subtypes. */
+/** Reminder / Artist Push / system glyphs — PING subtypes. */
 const PING_ICONS: Record<string, string> = {
   todo:     '❍︎', // ❍ To-Do
   calendar: '▦︎', // ▦ Calendar
+  streak:   '◈︎', // ◈ streak (the streak glyph — the guard speaks for it)
   artist:   '✺︎', // ✺ Artist Push speaks as the artist
+  system:   '⇡︎', // ⇡ the pings system speaking about itself (away rollup, ops)
 };
 
 function fmtEth(amount: string | null): string | null {
@@ -259,6 +261,18 @@ export function renderPing(row: FeedItem): RenderedPing {
         const text = typeof row.data?.text === 'string' && row.data.text ? (row.data.text as string) : 'an event';
         const when = typeof row.data?.time === 'string' && row.data.time ? ` · ${row.data.time}` : '';
         action = `Today: ${text}${when}`;
+      } else if (reminder === 'streak') {
+        handle = '';
+        const days = typeof row.data?.days === 'number' ? (row.data.days as number) : null;
+        action = days
+          ? `${days}-day streak on the line — one action today keeps it alive`
+          : 'Your streak is on the line — one action today keeps it alive';
+      } else if (reminder === 'ops') {
+        handle = '';
+        action = typeof row.data?.text === 'string' ? (row.data.text as string) : 'System notice';
+      } else if (row.data?.away === true) {
+        handle = '';
+        action = typeof row.data?.text === 'string' ? (row.data.text as string) : 'While you were away';
       } else if (row.data?.artist_push === true) {
         const msg = typeof row.data?.message === 'string' ? (row.data.message as string) : '';
         action = join(msg || 'sent a note to holders', p ? `· ${p}` : '');
@@ -280,12 +294,12 @@ export function renderPing(row: FeedItem): RenderedPing {
   if (row.kind === 'WATCH_HIT' && typeof row.data?.watch === 'string') {
     ownIcon = WATCH_ICONS[row.data.watch as string] ?? null;
   } else if (row.kind === 'PING') {
+    const reminder = typeof row.data?.reminder === 'string' ? (row.data.reminder as string) : '';
     const sub =
-      typeof row.data?.reminder === 'string'
-        ? (row.data.reminder as string)
-        : row.data?.artist_push === true
-          ? 'artist'
-          : '';
+      reminder === 'ops'
+        ? 'system'
+        : reminder ||
+          (row.data?.artist_push === true ? 'artist' : row.data?.away === true ? 'system' : '');
     ownIcon = PING_ICONS[sub] ?? null;
   }
 
