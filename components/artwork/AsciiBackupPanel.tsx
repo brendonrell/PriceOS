@@ -243,14 +243,14 @@ export default function AsciiBackupPanel({ slug, id }: { slug: string; id: numbe
                     title="Copy the raw text glyphs"
                     onClick={() => copy('txt')}
                 >
-                    COPY .TXT
+                    COPY TXT
                 </button>
                 <button
                     className="btn-soundtrack"
                     title="Copy the full-colour backup — paste-able JSON that restores the piece"
                     onClick={() => copy('json')}
                 >
-                    COPY .JSON
+                    COPY JSON
                 </button>
                 {/* Whole-PROJECT backup — sits right after COPY .JSON (Brendon,
                     2026-07-11). Ticks n/total while it runs. */}
@@ -272,7 +272,7 @@ export default function AsciiBackupPanel({ slug, id }: { slug: string; id: numbe
                     disabled={!!bulk}
                     onClick={() => void runBulk('collection')}
                 >
-                    {bulk?.kind === 'collection' ? `${bulk.done}/${bulk.total}` : 'COPY MY FULL PD COLLECTION ASCII BACKUP JSON'}
+                    {bulk?.kind === 'collection' ? `${bulk.done}/${bulk.total}` : 'COPY MY FULL PD COLLECTED ASCII BACKUP JSON'}
                 </button>
                 {/* ASCII Art Mode — the SITEWIDE toggle, now LAST after the backup
                     buttons (Brendon, 2026-07-11): every artwork surface renders its
@@ -289,7 +289,7 @@ export default function AsciiBackupPanel({ slug, id }: { slug: string; id: numbe
                         showToast(next ? 'ASCII Art Mode: ON — the whole site, in text' : 'ASCII Art Mode: OFF');
                     }}
                 >
-                    {'\u283F'} Activate ASCII Mode
+                    {'\u283F'} ACTIVATE ASCII MODE
                 </button>
             </div>
         </div>

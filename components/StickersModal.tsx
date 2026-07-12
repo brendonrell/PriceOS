@@ -444,6 +444,14 @@ export default function StickersModal() {
                             </button>
                             <button
                                 type="button"
+                                className={`ss-mktline-cap${marketOn ? ' is-on' : ''}`}
+                                title="Open the Sticker Marketplace"
+                                onClick={() => { setAlbumOn(false); setMarketOn(true); showToast('Stickers: MARKET'); }}
+                            >
+                                MARKETPLACE
+                            </button>
+                            <button
+                                type="button"
                                 className={`ss-mktline-cap${albumOn ? ' is-on' : ''}`}
                                 title={albumOn ? 'Sticker Market — secondary' : 'My Sticker Album — got / need'}
                                 onClick={() => {

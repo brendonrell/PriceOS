@@ -63,6 +63,7 @@ import {
     CATEGORY_ORDER,
     CATEGORY_LABEL,
 } from './achievements/AchievementsGrid';
+import { ACHIEVEMENTS_ICON } from '../lib/achievements/icon';
 import SpriteEyeSlot from './SpriteEyeSlot';
 import {
     getSpriteFrame,
@@ -471,7 +472,7 @@ export default function PriceSpriteModal() {
                 <div className="ps-section-header ps-ach-header ps-reveal ps-d4">
                     <span>ACHIEVEMENTS</span>
                     <span className="ps-ach-count">{`${unlockedCount} / ${TOTAL_COUNT.toLocaleString()} (${Math.round((unlockedCount / TOTAL_COUNT) * 100)}%)`}</span>
-                    <span className="ps-ach-score">{`[[ ${achScore.toLocaleString()} / ${MAX_PRICE_SCORE.toLocaleString()} PTS (${Math.round((achScore / MAX_PRICE_SCORE) * 100)}%) ]]`}</span>
+                    <span className="ps-ach-score">{`${ACHIEVEMENTS_ICON} ${achScore.toLocaleString()} / ${MAX_PRICE_SCORE.toLocaleString()} PTS (${Math.round((achScore / MAX_PRICE_SCORE) * 100)}%) ${ACHIEVEMENTS_ICON}`}</span>
                 </div>
                 <div className="ps-cat-row ps-reveal ps-d4" ref={catRowRef}>
                     {CATEGORY_ORDER.map((c) => {
