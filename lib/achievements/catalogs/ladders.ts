@@ -242,8 +242,6 @@ export const LADDER_ACHIEVEMENTS: readonly Achievement[] = [
   // ─────────────────────────────────────────────────────────────────────
   //  RANK · PriceScore milestones (1000/5000 core, Mjölnir owns 10000)
   // ─────────────────────────────────────────────────────────────────────
-  { id: 'l_score_2500', name: 'Twenty-Five Hundred Score', blurb: 'Reach 2,500 PriceScore.', points: 90, category: 'rank', trigger: 'score.total>=2500' },
-  { id: 'l_score_7500', name: 'Climbing in Earnest', blurb: 'Reach 7,500 PriceScore.', points: 250, category: 'rank', trigger: 'score.total>=7500' },
 
   // ─────────────────────────────────────────────────────────────────────
   //  RANK · PriceRank tiers — fill the gaps (core has 2, 5, 10)

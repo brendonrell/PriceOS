@@ -125,14 +125,10 @@ const CORE_ACHIEVEMENTS: readonly Achievement[] = [
   //  SOCIAL · the people graph (followers / following / mutuals)
   // ─────────────────────────────────────────────────────────────────────
   { id: 'claim_name', name: 'Identity', blurb: 'Claim your @name.', points: 25, category: 'social', trigger: 'handle.claimed' },
-  { id: 'first_follow', name: 'Reaching Out', blurb: 'Follow someone.', points: 10, category: 'social', trigger: 'following.count>=1' },
-  { id: 'first_follower', name: 'Noticed', blurb: 'Get your first follower.', points: 15, category: 'social', trigger: 'followers.count>=1' },
   { id: 'followers_10', name: 'Voice', blurb: 'Reach 10 followers.', points: 40, category: 'social', trigger: 'followers.count>=10' },
   { id: 'followers_50', name: 'Influence', blurb: 'Reach 50 followers.', points: 120, category: 'social', trigger: 'followers.count>=50' },
   { id: 'followers_100', name: 'KOL', blurb: 'Reach 100 followers. You know what you are.', points: 250, category: 'social', trigger: 'followers.count>=100' },
-  { id: 'first_mutual', name: 'Kindred', blurb: 'Get your first mutual.', points: 20, category: 'social', trigger: 'mutuals.count>=1' },
   { id: 'mutuals_10', name: 'Inner Circle', blurb: 'Reach 10 mutuals.', points: 60, category: 'social', trigger: 'mutuals.count>=10' },
-  { id: 'following_10', name: 'Curious', blurb: 'Follow 10 people.', points: 20, category: 'social', trigger: 'following.count>=10' },
   { id: 'following_50', name: 'Networker', blurb: 'Follow 50 people.', points: 50, category: 'social', trigger: 'following.count>=50' },
   { id: 'punching_up', name: 'Punching Up', blurb: 'Get followed by someone who outranks you.', points: 50, category: 'social', secret: true, trigger: 'followers.byHigherRank>=1' },
   { id: 'patrons_eye', name: "Patron's Eye", blurb: 'Follow an artist whose work you own.', points: 20, category: 'social', trigger: 'following.ownedArtist>=1' },
@@ -140,7 +136,6 @@ const CORE_ACHIEVEMENTS: readonly Achievement[] = [
   // ─────────────────────────────────────────────────────────────────────
   //  PROJECTS · following projects
   // ─────────────────────────────────────────────────────────────────────
-  { id: 'follow_project_1', name: 'Tuned In', blurb: 'Follow your first project.', points: 15, category: 'projects', trigger: 'projectFollows.count>=1' },
   { id: 'follow_project_10', name: 'Watchlist', blurb: 'Follow 10 projects.', points: 40, category: 'projects', trigger: 'projectFollows.count>=10' },
   { id: 'early_signal', name: 'Early Signal', blurb: 'Be one of the first 10 to follow a project.', points: 50, category: 'projects', secret: true, trigger: 'projectFollows.earlyCount>=1' },
   { id: 'patient_zero', name: 'Patient Zero', blurb: 'Be the very first follower of any project.', points: 75, category: 'projects', secret: true, trigger: 'projectFollows.firstEver>=1' },
@@ -179,13 +174,9 @@ const CORE_ACHIEVEMENTS: readonly Achievement[] = [
   // ─────────────────────────────────────────────────────────────────────
   //  CURATION · albums, stars, wishlist, targets, showcase
   // ─────────────────────────────────────────────────────────────────────
-  { id: 'first_album', name: 'Shelf Life', blurb: 'Create your first album.', points: 15, category: 'curation', trigger: 'albums.count>=1' },
   { id: 'album_filled', name: 'Curated', blurb: 'Fill an album with 10 pieces.', points: 40, category: 'curation', trigger: 'albums.maxItems>=10' },
-  { id: 'first_star', name: 'Star Struck', blurb: 'Star a piece.', points: 5, category: 'curation', trigger: 'stars.count>=1' },
   { id: 'stars_25', name: 'Constellation', blurb: 'Star 25 pieces.', points: 30, category: 'curation', trigger: 'stars.count>=25' },
-  { id: 'first_wishlist', name: 'Wishful', blurb: 'Add a piece to your wishlist.', points: 5, category: 'curation', trigger: 'wishlist.count>=1' },
   { id: 'manifested', name: 'Manifested', blurb: 'Buy a piece off your own wishlist.', points: 40, category: 'curation', secret: true, trigger: 'wishlist.fulfilled>=1' },
-  { id: 'first_target', name: 'Price Caller', blurb: 'Set a price target.', points: 15, category: 'curation', trigger: 'targets.count>=1' },
   { id: 'called_it', name: 'Called It', blurb: 'A price target you set gets hit.', points: 100, category: 'curation', secret: true, trigger: 'targets.hit>=1' },
   { id: 'showcase_full', name: 'Showroom', blurb: 'Fill all six showcase slots.', points: 30, category: 'curation', trigger: 'showcase.filledSlots>=6' },
   { id: 'own_10_projects', name: 'Diversified', blurb: 'Own pieces from 10 different projects.', points: 80, category: 'curation', trigger: 'holdings.distinctProjects>=10' },
@@ -194,10 +185,6 @@ const CORE_ACHIEVEMENTS: readonly Achievement[] = [
   // ─────────────────────────────────────────────────────────────────────
   //  IDENTITY · profile completeness
   // ─────────────────────────────────────────────────────────────────────
-  { id: 'set_sprite', name: 'Soulbound', blurb: 'Choose your PriceSprite.', points: 15, category: 'identity', trigger: 'profile.spriteSet' },
-  { id: 'export_plate', name: 'Calling Card', blurb: 'Export your identity plate.', points: 20, category: 'identity', trigger: 'profile.plateExported' },
-  { id: 'set_color', name: 'True Colours', blurb: 'Set a custom profile colour.', points: 10, category: 'identity', trigger: 'profile.colorSet' },
-  { id: 'discord_link', name: 'Bridged', blurb: 'Link your Discord.', points: 20, category: 'identity', trigger: 'profile.discordLinked' },
   { id: 'full_profile', name: 'Fully Formed', blurb: 'Complete every profile field.', points: 40, category: 'identity', trigger: 'profile.complete' },
 
   // ─────────────────────────────────────────────────────────────────────
@@ -216,7 +203,9 @@ const CORE_ACHIEVEMENTS: readonly Achievement[] = [
   // two-year wall (tools/achievements/verify.js proves it on every edit):
   // unreachable before day 730 no matter the spend, reachable the day the
   // Two-Year Oath lands for a collector who has done essentially everything.
-  { id: 'mjolnir', name: 'Mjölnir', blurb: 'Reach 186,000 PriceScore — the whole mountain, essentially everything, two years at the least — and Brendon himself, God of PD, deems you worthy and places the hammer in your hand. The highest honour on PD.', points: 1000, category: 'rank', trigger: 'score.total>=186000' },
+  // (Re-walled 231,000 on the 2026-07-12 de-spam rebalance — the far-climb
+  // rungs raised the pre-oath maximum; the verifier re-proved the band.)
+  { id: 'mjolnir', name: 'Mjölnir', blurb: 'Reach 231,000 PriceScore — the whole mountain, essentially everything, two years at the least — and Brendon himself, God of PD, deems you worthy and places the hammer in your hand. The highest honour on PD.', points: 1000, category: 'rank', trigger: 'score.total>=231000' },
 
   // ─────────────────────────────────────────────────────────────────────
   //  ARTIST · creator-side (you uploaded the project)
