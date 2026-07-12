@@ -5160,8 +5160,8 @@ button,
 @media (max-width: 600px) { .sort-arrow { font-size: 15px; } }
 /* The GROUP toggle stands apart from the sorts it modifies — extra breathing
    room after it, on top of the row's uniform gap (Brendon, 2026-07-12). */
-.sort-btn.group-btn { margin-right: 6px; }
-@media (max-width: 600px) { .sort-btn.group-btn { margin-right: 4px; } }
+.sort-btn.group-btn { margin-right: 7px; }
+@media (max-width: 600px) { .sort-btn.group-btn { margin-right: 5px; } }
 
 /* ── ICON BUTTONS (burn / search) — sim 2317-2325 ── */
 /* Build 25 D6+D7: .st-icon + .sharp-glyph + per-id overrides ported from
@@ -6393,7 +6393,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
        header PULLS its cards up under it (negative bottom margin eats most of
        the 20px grid row-gap → ~8px below), while the air above stays big, so a
        title unambiguously owns the grid BENEATH it. */
-    margin: 26px 0 -12px;
+    margin: 26px 0 -10px;
     padding: 0;
 }
 /* First title hugs the sort bar — the gallery's own top padding is the air. */
