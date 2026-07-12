@@ -56,6 +56,7 @@ const PRIORITY: Record<RenderKind, PingPriority> = {
   OFFER_ACCEPTED: 'high',
   COUNTER:        'high',
   WISHLIST_HIT:   'high',
+  PING:           'high', // reminders (to-do / calendar) + Artist Push — act-now
   FOLLOW:         'low',
   PROJECT_FOLLOW: 'low',
   OUTPUT_FOLLOW:  'low',
@@ -100,7 +101,25 @@ const ICONS: Record<RenderKind, string> = {
   COUNTER:        '✦︎', // ✦ countered (offer family)
   XFER:           '✸︎', // ✸ transfer (matches XFERS pill)
   WISHLIST_HIT:   '✛︎', // ✛ wishlist (matches the artwork Wishlist glyph)
-  WATCH_HIT:      '✛︎', // ✛ watch
+  WATCH_HIT:      '✛︎', // ✛ watch (interest pings override per reason below)
+  PING:           '❍︎', // ❍ to-do (reminder pings override per subtype below)
+};
+
+/** Interest-ping glyphs — the WATCH_HIT reason wears the exact glyph its
+ *  concept wears everywhere else (the MY PINGS pills / Starred tiles). */
+const WATCH_ICONS: Record<string, string> = {
+  mutual:  '⚭︎', // ⚭ mutuals pill
+  artist:  '✺︎', // ✺ artists pill / starred-artist tile
+  project: '⬚︎', // ⬚ projects pill / starred-project tile
+  trait:   '⨝︎', // ⨝ traits pill / starred-trait tile
+  rarity:  '❖︎', // ❖ rarity pill (rarity sitewide)
+};
+
+/** Reminder / Artist Push glyphs — PING subtypes. */
+const PING_ICONS: Record<string, string> = {
+  todo:     '❍︎', // ❍ To-Do
+  calendar: '▦︎', // ▦ Calendar
+  artist:   '✺︎', // ✺ Artist Push speaks as the artist
 };
 
 function fmtEth(amount: string | null): string | null {
@@ -203,18 +222,72 @@ export function renderPing(row: FeedItem): RenderedPing {
       action = join(verb, join(p, t) || 'a piece') + (eth ? ` · ${eth}` : '') + ' · wishlist';
       break;
     }
-    case 'WATCH_HIT':
-      action = join('moved', join(p, t));
+    case 'WATCH_HIT': {
+      const reason = typeof row.data?.watch === 'string' ? (row.data.watch as string) : null;
+      if (!reason) {
+        action = join('moved', join(p, t));
+        break;
+      }
+      // Interest ping — a starred/circle interest moved. Verb follows the
+      // market event; the suffix names WHY you're seeing it.
+      const ev = row.data?.event;
+      const verb = ev === 'minted' ? 'collected' : ev === 'sold' ? 'sold' : 'listed';
+      const what = join(p, t) || 'a piece';
+      const priced = eth ? ` · ${eth}` : '';
+      if (reason === 'rarity') {
+        const rank = typeof row.data?.rank === 'number' ? (row.data.rank as number) : null;
+        const total = typeof row.data?.rank_total === 'number' ? (row.data.rank_total as number) : null;
+        const standing = rank ? ` · #${rank}${total ? ` of ${total}` : ''} rarest` : ' · rarity';
+        action = join(verb, what) + priced + standing;
+      } else {
+        const why =
+          reason === 'mutual' ? 'mutual' :
+          reason === 'artist' ? '★ artist' :
+          reason === 'project' ? '★ project' : '★ trait';
+        action = join(verb, what) + priced + ` · ${why}`;
+      }
       break;
+    }
+    case 'PING': {
+      const reminder = typeof row.data?.reminder === 'string' ? (row.data.reminder as string) : null;
+      if (reminder === 'todo') {
+        handle = '';
+        const text = typeof row.data?.text === 'string' && row.data.text ? (row.data.text as string) : 'a to-do';
+        action = `To-Do due: ${text}`;
+      } else if (reminder === 'calendar') {
+        handle = '';
+        const text = typeof row.data?.text === 'string' && row.data.text ? (row.data.text as string) : 'an event';
+        const when = typeof row.data?.time === 'string' && row.data.time ? ` · ${row.data.time}` : '';
+        action = `Today: ${text}${when}`;
+      } else if (row.data?.artist_push === true) {
+        const msg = typeof row.data?.message === 'string' ? (row.data.message as string) : '';
+        action = join(msg || 'sent a note to holders', p ? `· ${p}` : '');
+      } else {
+        action = typeof row.data?.message === 'string' ? (row.data.message as string) : '';
+      }
+      break;
+    }
     default:
       action = '';
   }
 
   // Achievements carry their own catalog glyph — use it when present.
-  const ownIcon =
+  let ownIcon =
     row.kind === 'ACHIEVEMENT' && typeof row.data?.icon === 'string' && row.data.icon
       ? (row.data.icon as string)
       : null;
+  // Interest pings wear their reason's glyph; reminder/Artist-Push pings theirs.
+  if (row.kind === 'WATCH_HIT' && typeof row.data?.watch === 'string') {
+    ownIcon = WATCH_ICONS[row.data.watch as string] ?? null;
+  } else if (row.kind === 'PING') {
+    const sub =
+      typeof row.data?.reminder === 'string'
+        ? (row.data.reminder as string)
+        : row.data?.artist_push === true
+          ? 'artist'
+          : '';
+    ownIcon = PING_ICONS[sub] ?? null;
+  }
 
   return {
     id: row.id,
@@ -240,13 +313,30 @@ export function pingHref(p: { kind: RenderKind; project_id?: string | null; toke
   return `/art/${p.project_id}`;
 }
 
-/** Category-pref gate. Mirrors notifs.pings (mints/lists/offers/xfers/mutuals/
- *  cooldown) so the panel + toasts honour the user's Ping toggles. */
+/** The pref keys the gate below reads — a structural subset of notifs.pings. */
+export interface PingCategoryPrefs {
+  mints: boolean;
+  lists: boolean;
+  offers: boolean;
+  xfers: boolean;
+  mutuals: boolean;
+  artists: boolean;
+  projects: boolean;
+  traits: boolean;
+  rarity: boolean;
+}
+
+/** Category-pref gate — mirrors the MY PINGS pills, one honest gate for the
+ *  panel, the toasts AND the native (3D) sender. Interest pings (WATCH_HIT)
+ *  gate on their reason so all five taste toggles really control delivery.
+ *  Directed-to-you social (followed you) plus achievements / streaks /
+ *  reminders / Artist Push are always shown — they're about YOU, not a
+ *  category you opted into. */
 export function passesCategoryPrefs(
-  kind: RenderKind,
-  prefs: { mints: boolean; lists: boolean; offers: boolean; xfers: boolean; mutuals: boolean; cooldown: boolean }
+  item: { kind: RenderKind; data?: Record<string, unknown> | null },
+  prefs: PingCategoryPrefs
 ): boolean {
-  switch (kind) {
+  switch (item.kind) {
     case 'MINT':
     case 'SALE':
       return prefs.mints;
@@ -258,13 +348,21 @@ export function passesCategoryPrefs(
       return prefs.offers;
     case 'XFER':
       return prefs.xfers;
-    case 'FOLLOW':
-    case 'PROJECT_FOLLOW':
-      return prefs.mutuals;
     case 'WISHLIST_HIT':
-    case 'WATCH_HIT':
       return prefs.lists;
-    // ACHIEVEMENT / STREAK / PING are always shown (not category-gated).
+    case 'WATCH_HIT': {
+      const reason = typeof item.data?.watch === 'string' ? (item.data.watch as string) : null;
+      switch (reason) {
+        case 'mutual':  return prefs.mutuals;
+        case 'artist':  return prefs.artists;
+        case 'project': return prefs.projects;
+        case 'trait':   return prefs.traits;
+        case 'rarity':  return prefs.rarity;
+        default:        return prefs.lists; // legacy watch pings
+      }
+    }
+    // FOLLOW / PROJECT_FOLLOW / OUTPUT_FOLLOW / ACHIEVEMENT / STREAK / PING —
+    // always shown (directed at you; not category-gated).
     default:
       return true;
   }

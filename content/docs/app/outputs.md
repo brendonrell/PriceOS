@@ -32,7 +32,7 @@ The Output's verbs, in canonical glyphs, one tap each:
 | Grail Pin | ⟟ |
 | Cart | ▢ |
 
-Stars are deliberately silent — a frequent, low-stress bookmark that never generates a notification. Wishlist is the opposite: a buy-intent signal that drives financial [Pings](/docs/app/pings) like wishlist hits.
+Starring a PIECE is deliberately silent — a frequent, low-stress bookmark that never generates a notification. Starring an artist, a project, or a trait is the opposite of silent: those stars are your declared taste, and movement on them drives your interest [Pings](/docs/pings/overview). Wishlist is the strongest signal of all — buy intent that drives financial Pings like wishlist hits.
 
 ## The ASCII backup
 
@@ -45,5 +45,5 @@ Individual Outputs can be followed, routing their market events (listings, sales
 ## Further reading
 
 - [Projects & Minting](/docs/app/projects-and-minting)
-- [Pings](/docs/app/pings)
+- [Pings](/docs/pings/overview)
 - [PDProject contract reference](/docs/contracts/pd-project) — how `tokenURI` builds the render on-chain

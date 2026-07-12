@@ -36,7 +36,7 @@ Zen strips the interface to the art; Anon strips identity; Price Lens foreground
 
 ## Pings & rituals
 
-The **MY PINGS** toggle bank controls what reaches you and how loudly ([Pings](/docs/app/pings)), including night mode ⏾. Ritual modes go further — scheduled quiet (Silence, Cooling Pool) for collectors who want the platform to breathe with them.
+The **MY PINGS** toggle bank controls what reaches you and how loudly ([Pings](/docs/pings/overview)), including night mode ⏾. Ritual modes go further — scheduled quiet (Silence, Cooling Pool) for collectors who want the platform to breathe with them.
 
 ## Workspaces
 
@@ -49,5 +49,5 @@ Everything meant to be read is **legible at full strength** — resting UI never
 ## Further reading
 
 - [The Shell](/docs/app/the-shell) — how colorways paint
-- [Pings](/docs/app/pings)
+- [Pings](/docs/pings/overview)
 - [The Spell Book](/docs/app/spell-book) — modifiers beyond modes

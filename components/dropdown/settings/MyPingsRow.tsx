@@ -77,7 +77,7 @@ export function MyPingsRow() {
             lists:    'Lists Pings',
             offers:   'Offers Pings',
             xfers:    'Xfers Pings',
-            mutuals:  'Mutuals Only',
+            mutuals:  'Mutuals Pings',
             artists:  'Artists Pings',
             projects: 'Projects Pings',
             traits:   'Traits Pings',
@@ -196,7 +196,7 @@ export function MyPingsRow() {
                 />
                 <SettingsToggle
                     id="sn-mutualsOnly"
-                    title="Mutuals Only"
+                    title="Mutuals Pings — relevant activity from your mutuals"
                     active={notifs.pings.mutuals}
                     onClick={() => togglePingCat('mutuals')}
                     icon={'⚭\uFE0E'}
@@ -206,7 +206,7 @@ export function MyPingsRow() {
                 />
                 <SettingsToggle
                     id="sn-artists"
-                    title="Artists Pings — starred artists"
+                    title="Artists Pings — a starred artist lists, sells, or drops"
                     active={notifs.pings.artists}
                     onClick={() => togglePingCat('artists')}
                     icon={'✺︎'}
@@ -216,7 +216,7 @@ export function MyPingsRow() {
                 />
                 <SettingsToggle
                     id="sn-projects"
-                    title="Projects Pings — starred projects"
+                    title="Projects Pings — activity on your starred projects"
                     active={notifs.pings.projects}
                     onClick={() => togglePingCat('projects')}
                     icon={'⬚︎'}
@@ -226,7 +226,7 @@ export function MyPingsRow() {
                 />
                 <SettingsToggle
                     id="sn-traits"
-                    title="Traits Pings — starred traits"
+                    title="Traits Pings — a piece carrying a starred trait moves"
                     active={notifs.pings.traits}
                     onClick={() => togglePingCat('traits')}
                     icon={'⨝︎'}
@@ -236,7 +236,7 @@ export function MyPingsRow() {
                 />
                 <SettingsToggle
                     id="sn-rarity"
-                    title="Rarity Pings — rarity-tier movement"
+                    title="Rarity Pings — top-10 rarest pieces move in projects you hold"
                     active={notifs.pings.rarity}
                     onClick={() => togglePingCat('rarity')}
                     icon={'❖︎'}

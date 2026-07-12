@@ -100,6 +100,34 @@ function clearPingsCache() {
   }
 }
 
+/* Broadcast SEEN ledger. Directed pings mark read server-side per row, but the
+   broadcast firehose has no per-viewer rows — its server read-state is a single
+   watermark, which can't express "I scrolled past these three but not the two
+   older ones". This on-device ledger holds exactly which broadcast items have
+   been scrolled past; the watermark is only advanced once every unread
+   broadcast item in the window has genuinely been seen. Keyed by wallet. */
+const SEEN_LEDGER_KEY = 'pd_pings_seen';
+const SEEN_LEDGER_CAP = 800;
+function readSeenLedger(addr: string): Set<string> {
+  try {
+    const raw = localStorage.getItem(`${SEEN_LEDGER_KEY}:${addr}`);
+    const arr = raw ? (JSON.parse(raw) as string[]) : [];
+    return new Set(Array.isArray(arr) ? arr : []);
+  } catch {
+    return new Set();
+  }
+}
+function writeSeenLedger(addr: string, ids: Set<string>) {
+  try {
+    const arr = Array.from(ids);
+    // Cap FIFO — the oldest ledger entries age out of the window anyway.
+    const trimmed = arr.length > SEEN_LEDGER_CAP ? arr.slice(arr.length - SEEN_LEDGER_CAP) : arr;
+    localStorage.setItem(`${SEEN_LEDGER_KEY}:${addr}`, JSON.stringify(trimmed));
+  } catch {
+    /* quota — best-effort */
+  }
+}
+
 interface PingsState {
   items: FeedItem[];
   /** Directed (to-you) unread — refreshed live by the cheap count poll. */
@@ -115,6 +143,10 @@ interface PingsContextValue {
   state: PingsState;
   refresh: () => void;
   markAllRead: () => void;
+  /** Mark specific pings as SEEN (the scroll-past gesture). Directed ids mark
+   *  read server-side; broadcast ids land in the on-device ledger, and the
+   *  server watermark advances only when no unread broadcast items remain. */
+  markSeen: (ids: string[]) => void;
 }
 
 const PingsContext = createContext<PingsContextValue | null>(null);
@@ -147,7 +179,14 @@ export function PingsProvider({ children }: { children: ReactNode }) {
         broadcast_unread: number;
         items: FeedItem[];
       };
-      const items = j.items ?? [];
+      let items = j.items ?? [];
+      // Scroll-seen ledger wins over the server watermark for broadcast rows.
+      const ledger = readSeenLedger(siweAddress);
+      if (ledger.size > 0) {
+        items = items.map((p) =>
+          !p.read && p.source === 'broadcast' && ledger.has(p.id) ? { ...p, read: true } : p
+        );
+      }
 
       // New, unread, category-allowed pings we haven't seen → pop a toast once.
       // In-app toasts fire only when Pingtoasts is in a regular state (ON or
@@ -158,7 +197,7 @@ export function PingsProvider({ children }: { children: ReactNode }) {
       const n = prefsRef.current;
       const toastsOn = showsRegularToasts(n.pingToasts) && !n.nightmode;
       const fresh = items.filter(
-        (p) => !p.read && !seenIds.current.has(p.id) && passesCategoryPrefs(p.kind, n.pings)
+        (p) => !p.read && !seenIds.current.has(p.id) && passesCategoryPrefs(p, n.pings)
       );
       if (primed.current && toastsOn && fresh.length > 0) {
         if (fresh.length === 1) {
@@ -172,7 +211,9 @@ export function PingsProvider({ children }: { children: ReactNode }) {
       primed.current = true;
 
       const du = j.directed_unread ?? 0;
-      const bu = j.broadcast_unread ?? 0;
+      // Broadcast unread respects the ledger (the server only knows the
+      // watermark), so the badge never counts something already scrolled past.
+      const bu = items.filter((p) => p.source === 'broadcast' && !p.read).length;
       setState({ items, directedUnread: du, broadcastUnread: bu, unreadCount: du + bu, loading: false });
       if (siweAddress) writePingsCache({ addr: siweAddress, items, du, bu });
     } catch {
@@ -200,6 +241,58 @@ export function PingsProvider({ children }: { children: ReactNode }) {
     }
   }, [siweAddress, fetchFull]);
 
+  /* The scroll-past gesture — the ONLY thing that marks pings read (Brendon,
+     2026-07-12: opening the menu proves nothing; scrolling the pings section
+     is what proves they've been seen). */
+  const markSeen = useCallback(
+    (ids: string[]) => {
+      if (!siweAddress || ids.length === 0) return;
+      const directed: string[] = [];
+      const broadcast: string[] = [];
+      for (const id of ids) (id.startsWith('bcast:') ? broadcast : directed).push(id);
+
+      setState((s) => {
+        const idSet = new Set(ids);
+        // Decrement the directed count rather than recount the window — older
+        // unread directed pings can live beyond the 100-item window.
+        const directedHit = s.items.filter(
+          (p) => idSet.has(p.id) && p.source === 'directed' && !p.read
+        ).length;
+        const items = s.items.map((p) => (idSet.has(p.id) && !p.read ? { ...p, read: true } : p));
+        const directedUnread = Math.max(0, s.directedUnread - directedHit);
+        const broadcastUnread = items.filter((p) => p.source === 'broadcast' && !p.read).length;
+        // Ledger write-through for the broadcast side.
+        if (broadcast.length > 0) {
+          const ledger = readSeenLedger(siweAddress);
+          broadcast.forEach((id) => ledger.add(id));
+          writeSeenLedger(siweAddress, ledger);
+        }
+        writePingsCache({ addr: siweAddress, items, du: directedUnread, bu: broadcastUnread });
+        // Server: directed rows flip read; the broadcast watermark advances
+        // only once the whole unread broadcast window has been seen.
+        const broadcastClear = broadcastUnread === 0 && broadcast.length > 0;
+        if (directed.length > 0 || broadcastClear) {
+          fetch('/api/pings/read', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+              ...(directed.length > 0 ? { ids: directed } : {}),
+              ...(broadcastClear ? { broadcast_seen: true } : {}),
+            }),
+          }).catch(() => {});
+        }
+        return {
+          ...s,
+          items,
+          directedUnread,
+          broadcastUnread,
+          unreadCount: directedUnread + broadcastUnread,
+        };
+      });
+    },
+    [siweAddress]
+  );
+
   const markAllRead = useCallback(() => {
     if (!siweAddress) return;
     setState((s) => {
@@ -210,6 +303,10 @@ export function PingsProvider({ children }: { children: ReactNode }) {
         unreadCount: 0,
         items: s.items.map((p) => ({ ...p, read: true })),
       };
+      // Keep the seen ledger consistent with the wipe.
+      const ledger = readSeenLedger(siweAddress);
+      s.items.forEach((p) => { if (p.source === 'broadcast') ledger.add(p.id); });
+      writeSeenLedger(siweAddress, ledger);
       writePingsCache({ addr: siweAddress, items: next.items, du: 0, bu: 0 });
       return next;
     });
@@ -310,8 +407,8 @@ export function PingsProvider({ children }: { children: ReactNode }) {
   }, [notifs.pingToasts]);
 
   const value = useMemo<PingsContextValue>(
-    () => ({ state, refresh: fetchFull, markAllRead }),
-    [state, fetchFull, markAllRead]
+    () => ({ state, refresh: fetchFull, markAllRead, markSeen }),
+    [state, fetchFull, markAllRead, markSeen]
   );
 
   return <PingsContext.Provider value={value}>{children}</PingsContext.Provider>;

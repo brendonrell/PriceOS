@@ -11,7 +11,7 @@
  * the header alongside the PINGS label.
  */
 
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { AccordionBox } from './AccordionBox';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { usePings } from '../../lib/state/PingsContext';
@@ -69,7 +69,7 @@ function RailItem({ item }: { item: TapeFeedItem }) {
 
 export function PingsBox() {
     const { notifs, setAccordion } = usePdNotifs();
-    const { state: pingsState, markAllRead, refresh } = usePings();
+    const { state: pingsState, markSeen, refresh } = usePings();
     const { siweAddress } = useAuth();
     const isSpited = useSpiteMatcher();
     const railRef = useRef<HTMLDivElement>(null);
@@ -91,31 +91,105 @@ export function PingsBox() {
         return unsubscribe;
     }, [tapeOn]);
 
-    // Opening the Pings panel → pull the latest list so it's never stale, then
-    // clear the unread badge (seeing them = read).
+    // Opening the Pings panel → pull the latest list so it's never stale.
+    // Opening marks NOTHING read — scrolling the list is what proves viewing
+    // (Brendon, 2026-07-12). See the scroll-seen effect below.
     useEffect(() => {
         if (pingsActive && siweAddress) refresh();
     }, [pingsActive, siweAddress, refresh]);
-
-    useEffect(() => {
-        if (pingsActive && siweAddress && pingsState.unreadCount > 0) {
-            markAllRead();
-        }
-    }, [pingsActive, siweAddress, pingsState.unreadCount, markAllRead]);
 
     const onHeaderClick = () => {
         if (!pingsActive) setAccordion('pings', true);
     };
 
     // Real pings → rendered, category-filtered, and (optionally) money-only.
-    // Then ordered by attention tier: HIGH pinned to the top, LOW sunk to the
-    // bottom, MEDIUM in between — recency preserved within each tier (the API
-    // hands them back newest-first and the sort is stable).
-    const rendered = pingsState.items
-        .filter((p) => passesCategoryPrefs(p.kind, notifs.pings))
-        .filter((p) => !moneyOnly || isFinancial(p.kind))
-        .map((p) => ({ ...renderPing(p), href: pingHref(p) }))
-        .sort((a, b) => PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority]);
+    // UNREAD stack on top (full-strength), seen history sinks below (struck
+    // through). Within each block: attention tier (HIGH → LOW), recency
+    // preserved inside a tier (the API hands items newest-first; sort is
+    // stable).
+    const rendered = useMemo(
+        () =>
+            pingsState.items
+                .filter((p) => passesCategoryPrefs(p, notifs.pings))
+                .filter((p) => !moneyOnly || isFinancial(p.kind))
+                .map((p) => ({ ...renderPing(p), href: pingHref(p) }))
+                .sort(
+                    (a, b) =>
+                        (a.read ? 1 : 0) - (b.read ? 1 : 0) ||
+                        PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority]
+                ),
+        [pingsState.items, notifs.pings, moneyOnly]
+    );
+    const unreadShown = rendered.filter((r) => !r.read).length;
+
+    /* ── Read-by-scroll ──────────────────────────────────────────────────
+       The contract: a ping is SEEN only when the user has actually scrolled
+       the pings list and the row has passed through view. Opening the menu
+       alone marks nothing. Mechanics: an IntersectionObserver tracks which
+       rows are in the list viewport; the first real scroll gesture flips the
+       session live, everything in view at (or after) that moment queues as
+       seen, and the queue commits in debounced batches. Re-opening the panel
+       requires a fresh scroll gesture. */
+    const seenQueue = useRef<Set<string>>(new Set());
+    const committed = useRef<Set<string>>(new Set());
+    const renderedIdsKey = rendered.map((r) => r.id + (r.read ? '' : '*')).join(',');
+    useEffect(() => {
+        if (!pingsActive || !siweAddress) return;
+        const list = document.getElementById('notifList');
+        if (!list) return;
+        let scrolled = false;
+        let timer = 0;
+        const inView = new Set<string>();
+
+        const commit = () => {
+            const ids = Array.from(seenQueue.current).filter((id) => !committed.current.has(id));
+            seenQueue.current.clear();
+            if (ids.length === 0) return;
+            ids.forEach((id) => committed.current.add(id));
+            markSeen(ids);
+        };
+        const scheduleCommit = () => {
+            window.clearTimeout(timer);
+            timer = window.setTimeout(commit, 900);
+        };
+        const queue = (id: string) => {
+            if (committed.current.has(id)) return;
+            seenQueue.current.add(id);
+            scheduleCommit();
+        };
+
+        const io = new IntersectionObserver(
+            (entries) => {
+                for (const e of entries) {
+                    const id = (e.target as HTMLElement).dataset.pingId;
+                    if (!id) continue;
+                    if (e.isIntersecting) {
+                        inView.add(id);
+                        if (scrolled) queue(id);
+                    } else {
+                        inView.delete(id);
+                    }
+                }
+            },
+            { root: list, threshold: 0.6 }
+        );
+        list.querySelectorAll<HTMLElement>('[data-ping-id]').forEach((el) => {
+            if (el.dataset.pingRead !== '1') io.observe(el);
+        });
+
+        const onScroll = () => {
+            scrolled = true;
+            inView.forEach(queue);
+        };
+        list.addEventListener('scroll', onScroll, { passive: true });
+
+        return () => {
+            window.clearTimeout(timer);
+            list.removeEventListener('scroll', onScroll);
+            io.disconnect();
+        };
+        // renderedIdsKey re-arms observation when rows change (fresh pings land).
+    }, [pingsActive, siweAddress, markSeen, renderedIdsKey]);
 
     return (
         <AccordionBox
@@ -129,7 +203,9 @@ export function PingsBox() {
                 <div className="pings-header-row">
                     <span className="pings-label">
                         PINGS
-                        <span className="notif-count">({rendered.length})</span>
+                        {/* Honest count: UNREAD only. Zero unread = no number —
+                            never the old perpetual "(100)" window size. */}
+                        {unreadShown > 0 && <span className="notif-count">({unreadShown})</span>}
                     </span>
                     {tapeOn && (
                         <div className="pings-tape-wrap">
@@ -177,9 +253,9 @@ export function PingsBox() {
                        with the offers panel open) — a real <a>, so the global
                        client-side interceptor routes it like every other link. */
                     return p.href ? (
-                        <a key={p.id} href={p.href} className={`${cls} notif-item--link`}>{body}</a>
+                        <a key={p.id} href={p.href} className={`${cls} notif-item--link`} data-ping-id={p.id} data-ping-read={p.read ? '1' : '0'}>{body}</a>
                     ) : (
-                        <div key={p.id} className={cls}>{body}</div>
+                        <div key={p.id} className={cls} data-ping-id={p.id} data-ping-read={p.read ? '1' : '0'}>{body}</div>
                     );
                 })
             )}

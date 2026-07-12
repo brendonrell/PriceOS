@@ -48,6 +48,14 @@ glyph that concept wears elsewhere in the app (the panopticon principle).
 | `WATCH_HIT` | ✛ | U+271B | watch (wishlist family) |
 | `STREAK` | ◈ | U+25C8 | streak category glyph |
 | `ACHIEVEMENT` | ◍ | U+25CD | the canonical achievements icon; an unlock's own catalog glyph overrides when present |
+| `WATCH_HIT` · mutual | ⚭ | U+26AD | interest ping — mutual acted (2026-07-12 pings redesign) |
+| `WATCH_HIT` · artist | ✺ | U+273A | interest ping — starred artist acted |
+| `WATCH_HIT` · project | ⬚ | U+2B1A | interest ping — starred project moved |
+| `WATCH_HIT` · trait | ⨝ | U+2A1D | interest ping — starred trait moved |
+| `WATCH_HIT` · rarity | ❖ | U+2756 | interest ping — top-10-rarest piece moved in a held project |
+| `PING` · todo reminder | ❍ | U+274D | To-Do due (the To-Do glyph) |
+| `PING` · calendar reminder | ▦ | U+25A6 | calendar day item (the Calendar glyph) |
+| `PING` · Artist Push | ✺ | U+273A | the artist speaking to holders |
 
 > ⚠️ **No hearts** for wishlist. PD's wishlist glyph is **✛ (U+271B)**, taken
 > from the artwork action bar. A `♥`/`♡` is a per-user tape *sigil*, never a
@@ -70,9 +78,11 @@ glyph that concept wears elsewhere in the app (the panopticon principle).
 | Showcase | ⑆ | U+2446 |
 | Mute (Hammer) | ⟙ | U+27D9 |
 
-> **Stars are silent.** Starring is a low-stress, frequent bookmark — it never
-> generates a Ping. Wishlist is the opposite (a buy-intent signal) and DOES
-> drive financial Pings.
+> **Output stars are silent; taste stars are LOUD (revised 2026-07-12,
+> Brendon's pings redesign).** Starring a PIECE stays a low-stress bookmark —
+> never generates a Ping. Starring an ARTIST (✺), PROJECT (⬚), or TRAIT (⨝)
+> is a declared interest and now DRIVES the interest Pings above. Wishlist
+> remains the strongest signal (buy intent → financial Pings).
 
 > **To-Do done state** (`components/dropdown/TodosBox.tsx`, 2026-07-04) — a
 > completed To-Do flips **❍ (U+274D, pending) → ✓ (U+2713, done)** and the row
@@ -213,7 +223,7 @@ These belong to a *user*, never to an action.
   presentation iOS applies even WITH VS-15 — ☘ (shamrock), ☀ ♥ ♦ ⚡ ⚙, dice ⚀–⚅,
   ✴, ❄, ⚛, etc. — BANNED here regardless. Verify a new glyph on a real device
   before locking it. (Brendon, 2026-06-15.)
-- **▦ (U+25A6) = Calendar** (connect-menu panel, `CalendarPanel.tsx`) — reserved.
+- **▦ (U+25A6) = Calendar** (connect-menu panel, `CalendarPanel.tsx`; also the calendar-reminder Ping glyph since 2026-07-12).
 - **◊ (U+25CA) = ETH (secondary mark)** — the lozenge the sticker store prices in
   (`components/stickers/BuySheetButton.tsx`), reused for To-Do ETH targets/budgets
   and the war-chest meter (`styles/todos.css`). **NOT the Greek Xi (Ξ)** — that's

@@ -17,7 +17,7 @@
 // in the Americas). Timezone is per-account TODO — v1 is a single UTC hour.
 
 import { getSupabaseService } from '@/lib/supabase';
-import { sendTodoReminder } from '@/lib/push/webpush';
+import { createPing } from '@/lib/pings/createPing';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -110,12 +110,76 @@ export async function GET(req: Request): Promise<Response> {
         // Fire only if the instant just passed (within the last window).
         if (instant > now || instant <= now - WINDOW_MS) continue;
         const body = typeof t.text === 'string' && t.text.trim() ? t.text.trim() : 'You have a to-do due';
-        await sendTodoReminder(address, 'To-Do due', body);
+        // ONE call lands both deliverables: the inbox ping (❍ To-Do due: …)
+        // and — through the ping's own native path — the lock-screen push,
+        // gated by the recipient's Pingtoasts mode + Silent Mode.
+        await createPing({
+          recipientAddress: address,
+          kind: 'PING',
+          data: { reminder: 'todo', text: body },
+        });
         sent += 1;
       }
     }
 
-    return Response.json({ ok: true, subscribers: addresses.length, scanned, sent });
+    // ── Calendar — same sweep, same window. Personal items ping their owner;
+    // GLOBAL items (@brendon's platform schedule) ping every subscriber. The
+    // calendar is Montreal wall-clock by design (see 20260702_calendar_items),
+    // so "today" and item times are read in America/Toronto.
+    let calSent = 0;
+    try {
+      const mtl = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/Toronto',
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+      }).formatToParts(new Date(now));
+      const part = (t: string) => mtl.find((x) => x.type === t)?.value ?? '';
+      const todayKey = `${part('year')}-${part('month')}-${part('day')}`;
+      const nowMin = Number(part('hour')) * 60 + Number(part('minute'));
+
+      const { data: calRows } = await db
+        .from('calendar_items')
+        .select('scope, owner_address, time_label, title')
+        .eq('date_key', todayKey);
+      const items = (calRows ?? []) as Array<{
+        scope: string; owner_address: string | null; time_label: string | null; title: string;
+      }>;
+      const subscriberSet = new Set(addresses);
+      for (const item of items) {
+        // Reminder minute: an explicit HH:MM in the label, else the day-of
+        // default (09:00 Montreal — morning heads-up for all-day items).
+        const tm = item.time_label && /(\d{1,2}):(\d{2})/.exec(item.time_label);
+        const itemMin = tm
+          ? Math.min(23, Number(tm[1])) * 60 + Math.min(59, Number(tm[2]))
+          : 9 * 60;
+        // Same tiling as to-dos: fire in the one sweep whose window the
+        // reminder minute just passed (WINDOW_MS == the cron cadence).
+        const delta = nowMin - itemMin;
+        if (delta < 0 || delta * 60_000 >= WINDOW_MS) continue;
+        const recipients =
+          item.scope === 'global'
+            ? addresses
+            : item.owner_address && subscriberSet.has(item.owner_address.toLowerCase())
+              ? [item.owner_address.toLowerCase()]
+              : [];
+        for (const r of recipients) {
+          await createPing({
+            recipientAddress: r,
+            kind: 'PING',
+            data: {
+              reminder: 'calendar',
+              text: item.title,
+              ...(item.time_label ? { time: item.time_label } : {}),
+            },
+          });
+          calSent += 1;
+        }
+      }
+    } catch (err) {
+      console.error('[cron] calendar sweep error:', err instanceof Error ? err.message : err);
+    }
+
+    return Response.json({ ok: true, subscribers: addresses.length, scanned, sent, calSent });
   } catch (err) {
     return Response.json(
       { ok: false, error: err instanceof Error ? err.message : 'sweep failed' },

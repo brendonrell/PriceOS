@@ -18,6 +18,7 @@
 
 import { useEffect, useState } from 'react';
 import { allProjects } from '../../lib/project/registry';
+import { ArtistPush } from './ArtistPush';
 
 interface FeedEvent {
     type: string;
@@ -152,6 +153,10 @@ export function StudioAnalytics({ handle, god }: { handle: string | null; god: b
                             ))}
                         </div>
                     )}
+                    {/* Artist Push — the once-a-month all-holders ping perk.
+                        Renders only for the project's own artist (the status
+                        endpoint 403s anyone else and the control stays hidden). */}
+                    {!platformView && <ArtistPush slug={c.slug} />}
                 </div>
             ))}
         </>

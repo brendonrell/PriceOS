@@ -18,7 +18,7 @@ PriceOS is the software layer of Price Discussion — the app collectors and art
 - **[Identity & Profiles](/docs/app/identity-and-profiles)** — @names, PriceSprites, profile pages, Showcase, and the Collected / Starred / Wishlist / Albums system.
 - **[Collector Tools](/docs/app/collector-tools)** — the OS-tools layer: To-Dos, Notes, the Cart, the Bench, the Calc, the Calendar, Workflows, and Portfolio.
 - **[The Spell Book](/docs/app/spell-book)** — pill-toggleable view modifiers and the platform's stranger surfaces.
-- **[Pings](/docs/app/pings)** — the notification system: what fires, what you control, and how pings reach your devices.
+- **[Pings](/docs/pings/overview)** — the notification system: what fires, what you control, and how pings reach your devices.
 - **[Achievements](/docs/app/achievements)** — the unlock system across thirteen categories.
 - **[Discovery](/docs/app/discovery)** — search, the home surfaces, feeds, and PriceRank.
 - **[Settings & Display](/docs/app/settings-and-display)** — MY PD: colorways, display modes, and per-surface controls.

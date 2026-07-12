@@ -39,7 +39,7 @@ The Project's Outputs, in a grid built for long sessions:
 
 ## Social
 
-Follow a Project (⚭) to route its activity into your [Pings](/docs/app/pings); the Anoint panel is the platform's recognition mechanism for elevating specific works.
+Follow a Project (⚭) to route its activity into your [Pings](/docs/pings/overview); the Anoint panel is the platform's recognition mechanism for elevating specific works.
 
 ## Further reading
 

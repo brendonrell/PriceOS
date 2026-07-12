@@ -370,6 +370,7 @@ export interface FollowRow {
  *  X") is never stored — it's computed at read time off `events` — so it has no
  *  kind here. Mirrors the CHECK constraint in 20260614_pings.sql exactly. */
 export type PingKind =
+  | 'PING' // self/system message: to-do + calendar reminders, Artist Push
   | 'FOLLOW'
   | 'PROJECT_FOLLOW'
   | 'OUTPUT_FOLLOW'

@@ -39,5 +39,5 @@ Most achievements evaluate automatically as you act — mint, trade, follow, mai
 ## Further reading
 
 - [Identity & Profiles](/docs/app/identity-and-profiles)
-- [Pings](/docs/app/pings)
+- [Pings](/docs/pings/overview)
 - [The Spell Book](/docs/app/spell-book)

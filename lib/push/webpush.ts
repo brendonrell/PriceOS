@@ -17,7 +17,7 @@ import webpush from 'web-push';
 import { getSupabaseService } from '@/lib/supabase';
 import { showsNativePings, type PingToastMode } from '@/lib/state/PdNotifsContext';
 import { formatNativePing } from '@/lib/push/format';
-import type { FeedItem } from '@/lib/pings/render';
+import { passesCategoryPrefs, type FeedItem, type PingCategoryPrefs } from '@/lib/pings/render';
 import { composeResolved, composeSprite, type ResolvedSprite } from '@/lib/sprites/composer';
 import { isPriceSpriteVibe } from '@/lib/sprites/vibes';
 
@@ -89,12 +89,70 @@ interface SubRow {
   auth: string;
 }
 
+/* ── The RESPECT policy — what earns a buzz on someone's phone ──────────────
+   ALWAYS  — money aimed at you (offer / accept / counter / your sale), a
+             wishlist hit, a gift, a reminder you set, an Artist Push
+             (rate-limited 1/month/project at the source).
+   BUDGET  — social + interest ambience (follows, mint milestones, starred
+             artists/projects/traits/rarity, mutual activity, plain
+             transfers): pushes, but at most PUSH_BUDGET_PER_HOUR an hour —
+             overflow lands silently in the inbox instead of the lock screen.
+   NEVER   — achievements + streaks (you were in the app when you earned
+             them; the unlock lives in the inbox + board, not on your phone).
+   Every tier ALSO honours the user's MY PINGS category toggles + Silent Mode. */
+type PushTier = 'never' | 'always' | 'budget';
+
+function pushTier(item: FeedItem): PushTier {
+  switch (item.kind) {
+    case 'ACHIEVEMENT':
+    case 'STREAK':
+      return 'never';
+    case 'OFFER':
+    case 'OFFER_ACCEPTED':
+    case 'COUNTER':
+    case 'SALE':
+    case 'WISHLIST_HIT':
+    case 'PING':
+      return 'always';
+    case 'XFER':
+      return item.data?.gift === true || item.data?.swap === true ? 'always' : 'budget';
+    default:
+      return 'budget';
+  }
+}
+
+/** Budget-tier pushes allowed per recipient per rolling hour. */
+const PUSH_BUDGET_PER_HOUR = 4;
+/** The stored kinds that draw from the budget (the proxy the cap counts). */
+const BUDGET_KINDS = ['FOLLOW', 'PROJECT_FOLLOW', 'OUTPUT_FOLLOW', 'MINT', 'WATCH_HIT', 'XFER'];
+
+/** True when this recipient still has budget for one more ambient push. The
+ *  row for the CURRENT ping is already stored when this runs, so the count
+ *  includes it: the (BUDGET+1)-th ambient ping in an hour stays inbox-only. */
+async function withinPushBudget(db: DB, address: string): Promise<boolean> {
+  const hourAgo = new Date(Date.now() - 3600_000).toISOString();
+  const { count, error } = await db
+    .from('pings')
+    .select('*', { count: 'exact', head: true })
+    .eq('recipient_address', address)
+    .gte('created_at', hourAgo)
+    .in('kind', BUDGET_KINDS);
+  if (error) return true; // fail open — the mode/category gates still apply
+  return (count ?? 0) <= PUSH_BUDGET_PER_HOUR;
+}
+
+/** Default category prefs (all on) for accounts that never touched a pill. */
+const DEFAULT_CATEGORY_PREFS: PingCategoryPrefs = {
+  mints: true, lists: true, offers: true, xfers: true,
+  mutuals: true, artists: true, projects: true, traits: true, rarity: true,
+};
+
 /** Read the recipient's settings (Pingtoasts mode + Silent Mode) and sprite in
  *  one go. Returns whether native delivery is allowed + their composed face. */
 async function fetchGate(
   db: DB,
   address: string,
-): Promise<{ allowed: boolean; spriteFace: string }> {
+): Promise<{ allowed: boolean; spriteFace: string; prefs: PingCategoryPrefs }> {
   const { data } = await db
     .from('users')
     .select('address, settings, price_sprite, price_sprite_resolved')
@@ -102,10 +160,15 @@ async function fetchGate(
     .maybeSingle();
   const row = (data as UserGateRow | null) ?? null;
   const settings = row?.settings ?? {};
-  const notifs = (settings.notifs ?? {}) as { pingToasts?: PingToastMode; nightmode?: boolean };
+  const notifs = (settings.notifs ?? {}) as {
+    pingToasts?: PingToastMode;
+    nightmode?: boolean;
+    pings?: Partial<PingCategoryPrefs>;
+  };
   const mode = (notifs.pingToasts ?? 'off') as PingToastMode;
   const allowed = showsNativePings(mode) && notifs.nightmode !== true; // Silent Mode keeps it quiet
-  return { allowed, spriteFace: spriteFaceFor(row) };
+  const prefs: PingCategoryPrefs = { ...DEFAULT_CATEGORY_PREFS, ...(notifs.pings ?? {}) };
+  return { allowed, spriteFace: spriteFaceFor(row), prefs };
 }
 
 /**
@@ -117,6 +180,10 @@ async function fetchGate(
 export async function sendNativePing(recipientAddress: string, item: FeedItem): Promise<void> {
   try {
     if (!ensureConfigured()) return;
+    // Achievements / streaks never buzz a phone — earned in-app, read in-app.
+    const tier = pushTier(item);
+    if (tier === 'never') return;
+
     const db = getSupabaseService();
     const address = recipientAddress.toLowerCase();
 
@@ -129,8 +196,14 @@ export async function sendNativePing(recipientAddress: string, item: FeedItem): 
     if (subs.length === 0) return;
 
     // Honour the recipient's current mode + Silent Mode, and grab their sprite.
-    const { allowed, spriteFace } = await fetchGate(db, address);
+    const { allowed, spriteFace, prefs } = await fetchGate(db, address);
     if (!allowed) return;
+
+    // The MY PINGS pills gate the phone exactly like they gate the panel.
+    if (!passesCategoryPrefs(item, prefs)) return;
+
+    // Ambient tier: respect the hourly budget — overflow stays inbox-only.
+    if (tier === 'budget' && !(await withinPushBudget(db, address))) return;
 
     const { title, body, tag } = formatNativePing(item, spriteFace);
     const payload = JSON.stringify({

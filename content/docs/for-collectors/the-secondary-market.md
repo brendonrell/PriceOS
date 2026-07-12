@@ -20,7 +20,7 @@ Listings, offers, sales, and transfers flow back into the app and become the dis
 
 - **The Tape** — the persistent live ticker of market events running through the app chrome.
 - **Price Story** — the narrative reading of a Project's or Output's price history.
-- **Pings** — your notification stream for the events you care about: sales of your pieces, wishlist hits, follows, price crossings. See [Pings](/docs/app/pings).
+- **Pings** — your notification stream for the events you care about: sales of your pieces, wishlist hits, follows, price crossings. See [Pings](/docs/pings/overview).
 - **The Genome, the Radar, Price Targets** — the analytical layer. See [the App overview](/docs/app/overview).
 
 ## Verify before you buy

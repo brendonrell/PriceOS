@@ -56,7 +56,7 @@ it grows.
 
 Pings in the Studio are artist pings: mints of your work, new listings and
 offers, secondary sales, and royalty payouts arrive as
-[Pings](/docs/app/pings) — including as native push notifications on an
+[Pings](/docs/pings/overview) — including as native push notifications on an
 installed phone app. The dashboard is glanceable precisely because it can
 also come to you.
 
