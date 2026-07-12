@@ -150,14 +150,20 @@ of its own. Rendered at 22px (`.ach-cell-glyph`).
 > (Brendon, 2026-06-27). Deliberately NOT the `❂` rank-sun above — PriceRank's
 > pill wears the achievements icon, on purpose.
 
-### Gallery grouping glyphs (the cycling sort modifier — Brendon, 2026-06-16)
+### Gallery grouping glyphs (the standalone GROUP toggle — Brendon, 2026-06-16; redesigned 2026-07-12)
 
-Grouping is the small cycling character on the active sort pill (like FEED's `$`),
-first state always = none. One glyph per dimension:
+Grouping is a **standalone icon-only toggle leading every groupable sort row**
+(project page · Collected · Starred/Wishlist rows) — no direction arrow, one tap
+advances the surface's grouping cycle. It no longer rides inside each sort
+button's cycle (the 2026-06-18 "one-button grid sort" design is retired). At
+rest (no grouping) the toggle wears **▥ (U+25A5, GROUP toggle resting face)** —
+NEW glyph 2026-07-12, same geometric family as the iOS-proven ▦/▧/▨/▩; device-
+verify per the #1 glyph gate. While a grouping is live the toggle wears that
+dimension's glyph below and lights like an active sort. One glyph per dimension:
 
 | Group | Glyph | Codepoint | Source |
 |---|---|---|---|
-| none (resting) | *(none)* | — | pure sort — NO glyph shown (Brendon, 2026-06-18) |
+| none (resting) | ▥ | U+25A5 | the toggle's resting face; group HEADERS still show no glyph |
 | Artist | ✺ | U+273A | the artist-category glyph (§4) |
 | Project | ⬚ | U+2B1A | the project stats-row dotted square (`.stat-icon-box`) |
 | Artist + Project | ✺⬚ | — | two-level combo (artist over project) |
@@ -351,7 +357,7 @@ square tiles, and the top-bar Grail-pin pills.
 | Concept | Glyph | Codepoint | Where |
 |---|---|---|---|
 | **Trait** (the trait icon) | ⨝ | U+2A1D | Starred trait-row square tile + the top-bar **trait** Grail pin. Replaced the old ★ tile (Brendon, 2026-06-19) |
-| Recent (sort) | ◷ | U+25F7 | the 'Recent' sort in the Starred/Wishlist sort bar shows this glyph (same icon as the project artworks trait pills); sort order is Recent ◷ → $PRICE → FLWRS → AZ |
+| Recent (sort) | ◷ | U+25F7 | the 'Recent' sort in the Starred/Wishlist sort bar shows this glyph (same icon as the project artworks trait pills); sort order is Recent ◷ → $PRICE → FLWRS → AZ. Also the home Now-Minting **date sort** — the word DATE is retired, the clock wears the slot (2026-07-12) |
 | Soundtrack (row tile + Grail pin) | ▶ | U+25B6 | soundtrack row square + the top-bar **soundtrack** Grail pin leading glyph |
 | Project (row tile) | ⬚ | U+2B1A | project row square |
 | Artist / Collector (row tile) | ✺ / ☻ | U+273A / U+263B | artist vs collector row square |

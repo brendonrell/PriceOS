@@ -87,6 +87,7 @@ import JoinDayPopover from './JoinDayPopover';
 import { useProfileEggs } from './useProfileEggs';
 import { useStarredPins } from './useStarredPins';
 import { useMoreControls, MORE_CFG, MORE_SORT_LABEL, MORE_GROUP_GLYPH, type MoreMode } from './useMoreControls';
+import { GroupBtn } from '../project/traitsUIPills';
 import { usePriceDayPopover } from '../../lib/hooks/usePriceDayPopover';
 import { useProfileAchievements } from './useProfileAchievements';
 import { useLedgerFeed } from '../../lib/feed/useLedgerFeed';
@@ -572,7 +573,7 @@ function ProfilePageBodyInner({
         moreSearchOpen, moreQuery, setMoreQuery, toggleMoreSearch, closeMoreSearch,
         moreMultiActive, setMoreMultiActive, morePresetActive, setMorePresetActive,
         moreMode, setMoreMode, moreSort, moreSortDir, moreGroup,
-        applyStarredPreset, cycleMoreSort,
+        applyStarredPreset, cycleMoreSort, cycleMoreGroup,
     } = useMoreControls(moreL1, showToast);
 
     const achData = useProfileAchievements(user.address);
@@ -1231,15 +1232,24 @@ function ProfilePageBodyInner({
                             profileSortControls={
                                 (onStarredTab || onWishlistTab || onHistoryTab) ? (
                                     <div className="sort-btn-group" style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'nowrap' }}>
+                                        {/* GROUP toggle leads the row (Brendon, 2026-07-12) —
+                                            icon-only, no arrow; cycles this surface's grouping
+                                            options independently of the sorts. Hidden when the
+                                            active filter has no groupable dimension. */}
+                                        {moreCfg.groups.length > 1 && (
+                                            <GroupBtn
+                                                glyph={MORE_GROUP_GLYPH[moreGroup] ?? ''}
+                                                on={moreGroup !== 'none'}
+                                                onClick={() => cycleMoreGroup(moreCfg.groups)}
+                                            />
+                                        )}
                                         {moreCfg.sorts.map((key) => {
                                             const active = moreSort === key;
-                                            // AZ flips to ZA when descending (gallery parity); the active
-                                            // grouping shows as a glyph modifier before the arrow.
+                                            // AZ flips to ZA when descending (gallery parity).
                                             const lbl = key === 'project' && active && moreSortDir === 'desc' ? 'ZA' : MORE_SORT_LABEL[key];
                                             /* 'Recent' shows as the canonical recent glyph (◷), the same icon
                                                the project artworks trait pills use (Brendon 2026-06-19). */
                                             const isRecentIcon = key === 'recent';
-                                            const gGlyph = active && key !== 'recent' && moreGroup !== 'none' ? (MORE_GROUP_GLYPH[moreGroup] ?? '') : '';
                                             return (
                                                 <span
                                                     key={key}
@@ -1247,12 +1257,11 @@ function ProfilePageBodyInner({
                                                     role="button"
                                                     tabIndex={0}
                                                     title={`Sort by ${MORE_SORT_LABEL[key]}`}
-                                                    onClick={() => cycleMoreSort(key, onWishlistTab)}
-                                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleMoreSort(key, onWishlistTab); } }}
+                                                    onClick={() => cycleMoreSort(key)}
+                                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleMoreSort(key); } }}
                                                 >
                                                     <span className={`sort-lbl${isRecentIcon ? ' sort-lbl-recent' : ''}`}>{isRecentIcon ? '◷︎' : lbl}</span>
                                                     <span className="sort-arrow">
-                                                        {gGlyph && <span className="sort-group-mod on" style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: '15px', marginRight: '4px' }}>{gGlyph}</span>}
                                                         {active ? (moreSortDir === 'asc' ? '↑︎' : '↓︎') : ''}
                                                     </span>
                                                 </span>

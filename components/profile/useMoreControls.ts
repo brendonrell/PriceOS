@@ -16,7 +16,8 @@ export type MoreMode = 'all' | 'artists' | 'collectors' | 'outputs' | 'traits' |
 
 /* Which sorts + groupings make sense for each Starred filter (and Wishlist).
    Groupings reuse the gallery's dimensions (color = outputs only, etc.) and
-   are cycled THROUGH the AZ button. */
+   are cycled by the standalone GROUP toggle leading the sort row (Brendon,
+   2026-07-12 — grouping no longer rides inside a sort button's cycle). */
 export const MORE_CFG: Record<string, { sorts: MoreSortKey[]; groups: string[] }> = {
     all:         { sorts: ['recent'],                     groups: ['none'] },
     outputs:     { sorts: ['recent', 'price', 'project'], groups: ['none', 'color', 'project', 'artist'] },
@@ -30,8 +31,8 @@ export const MORE_CFG: Record<string, { sorts: MoreSortKey[]; groups: string[] }
 
 export const MORE_SORT_LABEL: Record<MoreSortKey, string> = { recent: 'Recent', id: '#ID', project: 'AZ', price: '$PRICE', followers: 'FLWRS' };
 export const MORE_GROUP_NAME: Record<string, string> = { color: 'Color', project: 'Project', artist: 'Artist', type: 'Type' };
-/* Canonical grouping glyphs (docs/GLYPHS.md) — the cycling modifier on the AZ
-   button, same as the gallery. */
+/* Canonical grouping glyphs (docs/GLYPHS.md) — worn by the standalone GROUP
+   toggle, same vocabulary as the gallery. */
 export const MORE_GROUP_GLYPH: Record<string, string> = { none: '', color: '◉︎', project: '⬚︎', artist: '✺︎' };
 
 /* Remember the user's chosen sort per +More surface, locally — default to
@@ -55,9 +56,9 @@ export function useMoreControls(
     const [moreMultiActive, setMoreMultiActive] = useState(false);
     const [morePresetActive, setMorePresetActive] = useState(false);
     /* +More sort — Recent / AZ. Lives in the sub-nav sort-bar beside the colorway
-       picker. Grouping folds INTO the AZ button as a cycling modifier (exactly
-       like the gallery), so there's no separate Group button (Brendon 2026-06-19).
-       Wishlist keeps its own #ID sort. */
+       picker. Grouping is the standalone GROUP toggle leading the row (Brendon,
+       2026-07-12 — pulled out of the AZ button's cycle). Wishlist keeps its own
+       #ID sort. */
     const [moreMode, setMoreMode] = useState<MoreMode>('all');
     const [moreSort, setMoreSort] = useState<MoreSortKey>('recent');
     const [moreSortDir, setMoreSortDir] = useState<'asc' | 'desc'>('asc');
@@ -97,32 +98,26 @@ export function useMoreControls(
         setMoreQuery(s.query);
         if (s.query) setMoreSearchOpen(true);
     };
-    /* Tap an inactive sort → enter ascending, ungrouped. Tap the active groupable
-       sort → asc flips to desc, then desc advances to the next grouping (back to
-       asc) — mirroring the gallery's AZ button. 'recent' just flips direction.
-       `wishlistActive` picks the wishlist config exactly as the original inline
-       closure read `onWishlistTab`. */
-    const cycleMoreSort = (key: MoreSortKey, wishlistActive: boolean) => {
-        const groups = MORE_CFG[wishlistActive ? 'wishlist' : moreMode]?.groups ?? ['none'];
+    /* Tap an inactive sort → enter ascending. Tap the active sort → flip
+       direction. Grouping is independent now (the GROUP toggle), so a sort tap
+       never touches it (Brendon, 2026-07-12). */
+    const cycleMoreSort = (key: MoreSortKey) => {
         if (moreSort !== key) {
-            setMoreSort(key); setMoreSortDir('asc'); setMoreGroup('none');
+            setMoreSort(key); setMoreSortDir('asc');
             showToast('SORT: ' + MORE_SORT_LABEL[key] + ' ↑');
             return;
         }
-        if (key === 'recent' || groups.length <= 1) {
-            const nd = moreSortDir === 'asc' ? 'desc' : 'asc';
-            setMoreSortDir(nd);
-            showToast('SORT: ' + MORE_SORT_LABEL[key] + (nd === 'asc' ? ' ↑' : ' ↓'));
-            return;
-        }
-        if (moreSortDir === 'asc') {
-            setMoreSortDir('desc');
-            showToast('SORT: ' + MORE_SORT_LABEL[key] + ' ↓' + (moreGroup !== 'none' ? ' · ' + (MORE_GROUP_NAME[moreGroup] ?? moreGroup).toUpperCase() : ''));
-            return;
-        }
+        const nd = moreSortDir === 'asc' ? 'desc' : 'asc';
+        setMoreSortDir(nd);
+        showToast('SORT: ' + MORE_SORT_LABEL[key] + (nd === 'asc' ? ' ↑' : ' ↓'));
+    };
+
+    /* The GROUP toggle's tap — advance through the surface's grouping options
+       (the caller passes the active MORE_CFG entry's groups). */
+    const cycleMoreGroup = (groups: string[]) => {
         const cur = groups.includes(moreGroup) ? moreGroup : 'none';
         const next = groups[(groups.indexOf(cur) + 1) % groups.length];
-        setMoreGroup(next); setMoreSortDir('asc');
+        setMoreGroup(next);
         showToast(next === 'none' ? 'GROUP: OFF' : 'GROUP: ' + (MORE_GROUP_NAME[next] ?? next).toUpperCase());
     };
 
@@ -132,6 +127,6 @@ export function useMoreControls(
         morePresetActive, setMorePresetActive,
         moreMode, setMoreMode,
         moreSort, moreSortDir, moreGroup,
-        applyStarredPreset, cycleMoreSort,
+        applyStarredPreset, cycleMoreSort, cycleMoreGroup,
     };
 }

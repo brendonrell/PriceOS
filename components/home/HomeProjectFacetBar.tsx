@@ -416,7 +416,10 @@ export default function HomeProjectFacetBar({
                         onClick={() => onSort('date')}
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSort('date'); } }}
                     >
-                        <span className="sort-lbl">DATE</span>
+                        {/* Date sort wears the canonical ◷ clock glyph, not the
+                            word (Brendon, 2026-07-12) — same treatment as the
+                            Starred/Wishlist Recent sort. */}
+                        <span className="sort-lbl sort-lbl-recent">◷︎</span>
                         <span className="sort-arrow">{arrow('date')}</span>
                     </span>
                     <span

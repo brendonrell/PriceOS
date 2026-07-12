@@ -82,7 +82,7 @@ import SpriteFace from '../SpriteFace';
 import { getSpriteFrame, subscribeSprite, type SpriteFrame } from '../../lib/engines/priceSpriteEngine';
 import MsFloatBar from './MsFloatBar';
 import PresetRow from './PresetRow';
-import { BarPill, SubPill, L3Pill, IconBtn, SortBtn } from './traitsUIPills';
+import { BarPill, SubPill, L3Pill, IconBtn, SortBtn, GroupBtn } from './traitsUIPills';
 import {
     SORT_LABELS, computeNextSortKey, SORT_BAR_THEME_NAMES,
     FEED_TRAIT_PILLS, LAYERS, MINERALS, OMEN_TRAITS,
@@ -197,7 +197,7 @@ export default function TraitsUI({
        2026-06-24). Re-read alongside the trail (emit fires on the toggle too). */
     const [recording, setRecording] = React.useState(true);
     const { open: openModal } = useModal();
-    const { sort, dir, feedKind, cycleSort, setSort, applySort, group, cycleGridSort } = useSort();
+    const { sort, dir, feedKind, cycleSort, setSort, applySort, group, cycleGroup } = useSort();
     /* A group persisted on another surface (e.g. 'artist' from a profile) isn't a
        project-page dimension — show it as off here so the glyph matches reality. */
     const effGroup: GroupKey = PROJECT_GROUP_ORDER.includes(group) ? group : 'none';
@@ -336,23 +336,21 @@ export default function TraitsUI({
         showToast('SORT: ' + (SORT_LABELS[nextKey] ?? nextKey));
     };
 
-    /* One-button grid sort (Brendon, 2026-06-18). #ID / $PRICE now cycle every
-       direction × grouping combo in a single tap — exactly like FEED — instead
-       of a separate untappable group chip. Project cycle: none → owner → colour
-       → last-sold → rarity (PROJECT_GROUP_ORDER), each in asc then desc. Toast
-       calls out whatever changed (ALLCAPS state). */
-    const cycleGridSortWithToast = (family: SortKey) => {
-        const r = cycleGridSort(family, PROJECT_GROUP_ORDER);
-        const arrow = r.dir === 'asc' ? '↑' : '↓';
+    /* Grid sorts (Brendon, 2026-07-12 redesign). #ID / $PRICE are plain
+       direction flips again — grouping moved to its own toggle at the start of
+       the row (GroupBtn). Toast calls out the state it lands on (ALLCAPS). */
+    const gridSortWithToast = (family: SortKey) => {
+        const nextDir = sort === family ? (dir === 'asc' ? 'desc' : 'asc') : 'asc';
         const lbl = family === 'id' ? '#ID' : family === 'price' ? '$PRICE' : family.toUpperCase();
-        if (r.changed === 'group') {
-            showToast('GROUP: ' + GROUP_LABEL[r.group]);
-        } else {
-            showToast(
-                'SORT: ' + lbl + ' ' + arrow +
-                (r.group !== 'none' ? ' · ' + GROUP_LABEL[r.group] : ''),
-            );
-        }
+        cycleSort(family);
+        showToast('SORT: ' + lbl + ' ' + (nextDir === 'asc' ? '↑' : '↓'));
+    };
+
+    /* The group toggle's tap — advance the project-page grouping cycle
+       (none → owner → colour → owner+colour → last-sold → rarity). */
+    const cycleGroupWithToast = () => {
+        const next = cycleGroup(PROJECT_GROUP_ORDER);
+        showToast('GROUP: ' + GROUP_LABEL[next]);
     };
 
     /* Wraps setColorway with a toast (mirrors ColorwayPicker.tsx). */
@@ -1043,14 +1041,21 @@ export default function TraitsUI({
                         flexWrap: 'nowrap',
                     }}
                 >
+                    {/* GROUP toggle leads the row (Brendon, 2026-07-12) —
+                        icon-only, no arrow; cycles the grouping dimension
+                        independently of the sorts. */}
+                    <GroupBtn
+                        glyph={GROUP_GLYPH[effGroup]}
+                        on={effGroup !== 'none'}
+                        onClick={cycleGroupWithToast}
+                    />
                     <SortBtn
                         label={'#ID'}
                         family="id"
                         active={sort === 'id'}
                         dir={dir}
                         feedKind={feedKind}
-                        group={effGroup}
-                        onClick={() => cycleGridSortWithToast('id')}
+                        onClick={() => gridSortWithToast('id')}
                     />
                     <SortBtn
                         label={'$PRICE'}
@@ -1058,8 +1063,7 @@ export default function TraitsUI({
                         active={sort === 'price'}
                         dir={dir}
                         feedKind={feedKind}
-                        group={effGroup}
-                        onClick={() => cycleGridSortWithToast('price')}
+                        onClick={() => gridSortWithToast('price')}
                     />
                     <SortBtn
                         label="FEED"

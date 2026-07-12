@@ -52,10 +52,11 @@ import {
 export type SortKey = 'id' | 'price' | 'feed' | 'fog' | 'az';
 export type SortDir = 'asc' | 'desc';
 export type FeedKind = 'time' | 'price';
-/* Group-by dimension for the gallery (Brendon, 2026-06-16). Grouping is a
-   MODIFIER on whatever sort is active — the little cycling letter on the sort
-   pill, exactly like FEED's `$`. The first option is always 'none' (plain sort,
-   no grouping). Master cycle order:
+/* Group-by dimension for the gallery (Brendon, 2026-06-16; redesigned
+   2026-07-12). Grouping is its OWN icon-only toggle at the start of the sort
+   row — one tap advances the dimension, independent of which sort is active
+   (it no longer rides inside each sort button's cycle). The first option is
+   always 'none' (plain sort, no grouping). Master cycle order:
      none → artist → project → artist+project → owner → colour → last-sold → rarity
    Each surface exposes only the dimensions that can apply, so the cycle never
    lands on a dead option:
@@ -75,10 +76,10 @@ export const PROJECT_GROUP_ORDER: GroupKey[] =
 export const COLLECTED_GROUP_ORDER: GroupKey[] =
     ['none', 'artist', 'project', 'artistProject', 'color', 'artistColor', 'projectColor', 'lastSold', 'rarity'];
 
-/* Single-character glyph per dimension (docs/GLYPHS.md). 'none' is the resting
-   "pure sort" state and shows NO glyph at all (Brendon, 2026-06-18 — the old
-   neutral dot is gone); each grouping shows its own glyph. Combos read left→
-   right: the level-1 dimension's glyph then the level-2 dimension's. */
+/* Single-character glyph per dimension (docs/GLYPHS.md). 'none' shows NO glyph
+   in group headers (Brendon, 2026-06-18); the standalone group TOGGLE wears
+   GROUP_BTN_ICON as its resting face instead. Combos read left→right: the
+   level-1 dimension's glyph then the level-2 dimension's. */
 export const GROUP_GLYPH: Record<GroupKey, string> = {
     none: '',
     artist: '✺︎',
@@ -92,6 +93,11 @@ export const GROUP_GLYPH: Record<GroupKey, string> = {
     lastSold: '$',
     rarity: '❖︎',
 };
+
+/* Resting face of the standalone group toggle (grouping OFF) — the sectioned
+   square, docs/GLYPHS.md. When a grouping is live the toggle wears that
+   dimension's GROUP_GLYPH instead. */
+export const GROUP_BTN_ICON = '▥︎';
 
 /* ALLCAPS state for the toast (Brendon's toast-casing rule). */
 export const GROUP_LABEL: Record<GroupKey, string> = {
@@ -226,18 +232,10 @@ interface SortContextValue {
     resetToDefault: () => void;
     /** Current group-by dimension for the gallery. */
     group: GroupKey;
-    /** Advance the group dimension through the given surface's cycle order. */
-    cycleGroup: (order: GroupKey[]) => void;
-    /** Unified grid-sort tap (Brendon, 2026-06-18). One button advances the
-        whole sort/group/direction space for a grid family (id/price/az) so the
-        grouping is no longer a separate tiny chip — mirrors how FEED cycles its
-        kind+direction in a single button. Sequence per tap:
-        enter family (asc, no group) → flip to desc → next group (asc) → its desc
-        → … → wrap. Returns which facet changed so the caller can toast it. */
-    cycleGridSort: (
-        family: SortKey,
-        order: GroupKey[],
-    ) => { changed: 'enter' | 'dir' | 'group'; dir: SortDir; group: GroupKey };
+    /** Advance the group dimension through the given surface's cycle order —
+        the standalone group toggle's tap (Brendon, 2026-07-12). Returns the
+        dimension it landed on so the caller can toast it. */
+    cycleGroup: (order: GroupKey[]) => GroupKey;
 }
 
 const SortContext = createContext<SortContextValue | null>(null);
@@ -423,54 +421,22 @@ export function SortProvider({ children }: { children: ReactNode }) {
         clearUrlSlug();
     }, []);
 
+    /* The standalone group toggle's tap — advances the dimension through this
+       surface's cycle, independent of the active sort. Returns where it landed
+       so the caller can toast it (React state is async). */
     const cycleGroup = useCallback((order: GroupKey[]) => {
         setSlugActive(true);
-        setGroupState((g) => {
-            // If the current dimension isn't in this surface's cycle, restart from none.
-            const cur = order.includes(g) ? g : 'none';
-            const next = order[(order.indexOf(cur) + 1) % order.length];
-            try { localStorage.setItem(GROUP_STORAGE_KEY, next); } catch { /* ignore */ }
-            return next;
-        });
-    }, []);
-
-    /* One-button grid sort — folds direction + group into a single cycle so the
-       grouping is no longer a separate (untappable) chip. Mirrors FEED. */
-    const cycleGridSort = useCallback(
-        (family: SortKey, order: GroupKey[]) => {
-            setSlugActive(true);
-            const persistGroup = (g: GroupKey) => {
-                try { localStorage.setItem(GROUP_STORAGE_KEY, g); } catch { /* ignore */ }
-            };
-            if (sort !== family) {
-                // Enter the family fresh: ascending, no grouping.
-                setSortState(family);
-                setDir('asc');
-                setGroupState('none');
-                persistGroup('none');
-                // 'az' is Collected-only — never persist it as the boot sort.
-                if (family !== 'az') persistFamily(family);
-                return { changed: 'enter' as const, dir: 'asc' as SortDir, group: 'none' as GroupKey };
-            }
-            if (dir === 'asc') {
-                // Same group, flip to descending.
-                setDir('desc');
-                return { changed: 'dir' as const, dir: 'desc' as SortDir, group };
-            }
-            // Was descending — advance to the next group, back to ascending.
-            const cur = order.includes(group) ? group : 'none';
-            const next = order[(order.indexOf(cur) + 1) % order.length];
-            setGroupState(next);
-            setDir('asc');
-            persistGroup(next);
-            return { changed: 'group' as const, dir: 'asc' as SortDir, group: next };
-        },
-        [sort, dir, group],
-    );
+        // If the current dimension isn't in this surface's cycle, restart from none.
+        const cur = order.includes(group) ? group : 'none';
+        const next = order[(order.indexOf(cur) + 1) % order.length];
+        setGroupState(next);
+        try { localStorage.setItem(GROUP_STORAGE_KEY, next); } catch { /* ignore */ }
+        return next;
+    }, [group]);
 
     const value = useMemo<SortContextValue>(
-        () => ({ sort, dir, feedKind, setSort, cycleSort, applySort, resetToDefault, group, cycleGroup, cycleGridSort }),
-        [sort, dir, feedKind, setSort, cycleSort, applySort, resetToDefault, group, cycleGroup, cycleGridSort]
+        () => ({ sort, dir, feedKind, setSort, cycleSort, applySort, resetToDefault, group, cycleGroup }),
+        [sort, dir, feedKind, setSort, cycleSort, applySort, resetToDefault, group, cycleGroup]
     );
 
     return <SortContext.Provider value={value}>{children}</SortContext.Provider>;
