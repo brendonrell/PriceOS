@@ -113,12 +113,6 @@ export default function StickersModal() {
     /* A fresh seed on every open → the sheet re-scatters each time you look. */
     const [seed, setSeed] = useState(1);
 
-    /* 6.5-row sensor — the mobile store grid shows 6 full rows with the 7th
-       peeking as the scroll cue. It COUNTS rows (measures one real row's height
-       and takes ×6.5), so if the cards ever get taller it still lands on 6.5
-       rows, not a fixed pixel guess (Brendon, 2026-07-12). */
-    const [gridMaxH, setGridMaxH] = useState<number | null>(null);
-
     /* Desktop-only: a fuller, previews-only expanded grid. Mobile is untouched
        (it keeps renderCard exactly as-is) — Brendon: "mobile CANNOT change". */
     const [isDesktop, setIsDesktop] = useState(false);
@@ -153,31 +147,6 @@ export default function StickersModal() {
     useEffect(() => {
         if (isOpen && !openSheet && expanded && gridRef.current) gridRef.current.scrollTop = gridYRef.current;
     }, [isOpen, openSheet, expanded, gridRef]);
-
-    /* Measure ONE real row and cap the mobile grid to 6.5 of them. Re-runs on
-       open / view-switch / resize so the count holds whatever the row height. */
-    useEffect(() => {
-        if (isDesktop || !isOpen || openSheet || marketOn || albumOn || !expanded) return;
-        const grid = gridRef.current;
-        if (!grid) return;
-        const ROWS = 6.5;
-        const measure = () => {
-            const kids = grid.children;
-            const cols = Math.max(2, Math.ceil(REAL_SHEETS.length / 9));
-            if (kids.length <= cols) { setGridMaxH(null); return; }
-            const gridTop = grid.getBoundingClientRect().top;
-            const rel = (el: Element) => el.getBoundingClientRect().top - gridTop + grid.scrollTop;
-            const firstTop = rel(kids[0]!);
-            const pitch = rel(kids[cols]!) - firstTop;
-            if (pitch <= 0) { setGridMaxH(null); return; }
-            const cardH = kids[0]!.getBoundingClientRect().height;
-            const full = Math.floor(ROWS);
-            setGridMaxH(Math.round(firstTop + full * pitch + (ROWS - full) * cardH));
-        };
-        measure();
-        window.addEventListener('resize', measure);
-        return () => window.removeEventListener('resize', measure);
-    }, [isDesktop, isOpen, openSheet, marketOn, albumOn, expanded, gridRef]);
 
     // Reset to the rail whenever the modal closes so it never reopens mid-sheet.
     useEffect(() => { if (!isOpen) { setOpenSheet(null); setMarketOn(false); setAlbumOn(false); } }, [isOpen]);
@@ -501,13 +470,9 @@ export default function StickersModal() {
                                 className="ss-grid-view"
                                 ref={gridRef}
                                 onScroll={(e) => { gridYRef.current = e.currentTarget.scrollTop; }}
-                                /* Mobile/tablet: two-up columns, height capped by the 6.5-row
-                                   sensor above so 6 rows show + the 7th peeks and the rest
-                                   scroll. Desktop keeps its own grid untouched. */
-                                style={!isDesktop ? {
-                                    gridTemplateColumns: `repeat(${Math.max(2, Math.ceil(REAL_SHEETS.length / 9))}, 1fr)`,
-                                    ...(gridMaxH ? { maxHeight: `${gridMaxH}px` } : null),
-                                } : undefined}
+                                /* Mobile/tablet: two-up columns; the 6.5-row height cap + scroll
+                                   lives in CSS so rows keep their exact height. */
+                                style={!isDesktop ? { gridTemplateColumns: `repeat(${Math.max(2, Math.ceil(REAL_SHEETS.length / 9))}, 1fr)` } : undefined}
                             >
                                 {REAL_SHEETS.map((s) => (isDesktop ? renderPreviewCard(s) : renderCard(s)))}
                             </div>

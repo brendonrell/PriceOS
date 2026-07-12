@@ -244,15 +244,12 @@
    2026-06-23 — compact carousel needs mouse drag). */
 .ss-rail[data-dragging] { scroll-snap-type: none; cursor: grabbing; }
 
-/* Expanded view — two sheets across, scrolls down inside the sheet. The mobile
-   height is set in JS to a whole 6.5-row count (see StickersModal); border-box
-   so that px cap lands exactly at the row it's counting to. */
+/* Expanded view — two sheets across, scrolls down inside the sheet. */
 .ss-grid-view {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 14px;
     padding: 16px 18px 8px;
-    box-sizing: border-box;
     max-height: 56vh;
     overflow-y: auto;
     scrollbar-width: none;
@@ -443,6 +440,13 @@
         height: 62px;
         padding: 0 4px;
         border-bottom: none;
+    }
+    /* Show 6.5 rows then scroll — 6 full + a peek of the 7th. Rows keep their
+       exact height (align-content never stretches them); the grid just clips and
+       scrolls (Brendon, 2026-07-12). A row = 62px art + 2px border + 14px gap. */
+    .ss-grid-view {
+        max-height: calc(16px + 6 * 78px + 32px);
+        align-content: start;
     }
 }
 
