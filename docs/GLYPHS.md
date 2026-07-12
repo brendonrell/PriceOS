@@ -159,7 +159,10 @@ button's cycle (the 2026-06-18 "one-button grid sort" design is retired). At
 rest (no grouping) the toggle wears **▥ (U+25A5, GROUP toggle resting face)** —
 NEW glyph 2026-07-12, same geometric family as the iOS-proven ▦/▧/▨/▩; device-
 verify per the #1 glyph gate. While a grouping is live the toggle wears that
-dimension's glyph below and lights like an active sort. One glyph per dimension:
+dimension's glyph below and lights like an active sort. The settings DEFAULT
+SORT row leads with the same pill (icon + dimension name) — it sets the saved
+DEFAULT grouping that boots the app and re-applies on project entry. One glyph
+per dimension:
 
 | Group | Glyph | Codepoint | Source |
 |---|---|---|---|

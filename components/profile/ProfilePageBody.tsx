@@ -1553,6 +1553,9 @@ function ProfilePageBodyInner({
                                                       <span className="ggh-label">{h.label}</span>
                                                       {h.by ? <span className="ggh-by"> by @{h.by.replace(/^@/, '')}</span> : null}
                                                       {h.soon ? <span className="ggh-soon">coming soon</span> : null}
+                                                      {!h.soon && h.count != null && h.count > 0
+                                                          ? <span className="ggh-count">{h.count}</span>
+                                                          : null}
                                                       {!h.soon && groupHeaderGlyph(group, h.level)
                                                           ? <span className="ggh-glyph" aria-hidden="true">{groupHeaderGlyph(group, h.level)}</span>
                                                           : null}

@@ -20,7 +20,10 @@ import { getProject, outputTraits } from '../../lib/project/registry';
 import { facetValueOf, type EnrichedHolding } from './ProfileFacetBar';
 import type { Holding } from './profilePageShared';
 
-export type GBHead = { level: 1 | 2; label: string; by?: string | null; soon?: boolean };
+export type GBHead = { level: 1 | 2; label: string; by?: string | null; soon?: boolean;
+    /** Pieces under this header (level-1 totals its whole section) — the same
+        count the project-page group headers wear (parity, 2026-07-12). */
+    count?: number };
 export type GBlock = {
     key: string;
     /** Collapse key for the section (level-1) this block belongs to. */
@@ -179,9 +182,9 @@ export function useCollectedGallery(holdings: Holding[]) {
     const heldSlugs = useMemo(() => [...new Set(enriched.map((h) => h.slug))], [enriched]);
     const colorsVer = useStoredColors(heldSlugs);
 
-    /* Grouped collected gallery (Brendon, 2026-06-16). Grouping is the cycling
-       modifier on the active grid sort. Cross-project surface dimensions:
-       artist · project · artist+project · colour · last-sold · rarity. Titles
+    /* Grouped collected gallery (Brendon, 2026-06-16; standalone toggle
+       2026-07-12). Cross-project surface dimensions: artist · project ·
+       artist+project · colour (+combos) · last-sold · rarity. Titles
        reuse the home carousel-title look; spacing binds each to the group below.
        Cards still render inside a ProjectProvider so the art paints with its own
        project's context. Returns null when grouping is off / not applicable. */
@@ -213,7 +216,7 @@ export function useCollectedGallery(holdings: Holding[]) {
             const order = [...(COLOR_BUCKET_ORDER as string[]), 'Other'];
             return [...buckets.entries()]
                 .sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0]))
-                .map(([label, cards]) => ({ key: `c-${label}`, l1Key: `c-${label}`, heads: [{ level: 1 as const, label }], cards }));
+                .map(([label, cards]) => ({ key: `c-${label}`, l1Key: `c-${label}`, heads: [{ level: 1 as const, label, count: cards.length }], cards }));
         }
 
         // artist+colour / project+colour — two-level: the identity (artist or
@@ -253,12 +256,12 @@ export function useCollectedGallery(holdings: Holding[]) {
                     if (first) {
                         heads.push(
                             group === 'projectColor'
-                                ? { level: 1, label: idLabel(k), by: artistOf.get(k) ?? null }
-                                : { level: 1, label: idLabel(k) },
+                                ? { level: 1, label: idLabel(k), by: artistOf.get(k) ?? null, count: byId.get(k)!.length }
+                                : { level: 1, label: idLabel(k), count: byId.get(k)!.length },
                         );
                         first = false;
                     }
-                    heads.push({ level: 2, label: clabel });
+                    heads.push({ level: 2, label: clabel, count: cards.length });
                     blocks.push({
                         key: `${k}::${clabel}`,
                         l1Key: `i:${k}`,
@@ -287,20 +290,26 @@ export function useCollectedGallery(holdings: Holding[]) {
             return slugs.map((slug) => ({
                 key: slug,
                 l1Key: slug,
-                heads: [{ level: 1 as const, label: projName(slug), by: slugArtist.get(slug) ?? null }],
+                heads: [{ level: 1 as const, label: projName(slug), by: slugArtist.get(slug) ?? null, count: bySlug.get(slug)!.length }],
                 group: { slug, ids: bySlug.get(slug)! },
             }));
         }
         // artist / artistProject — order by artist then project; artist titled once.
         slugs.sort((a, b) =>
             slugArtist.get(a)!.localeCompare(slugArtist.get(b)!) || projName(a).localeCompare(projName(b)));
+        // Level-1 artist totals span every project the artist has here.
+        const artistTotals = new Map<string, number>();
+        for (const [slug, ids] of bySlug) {
+            const a = slugArtist.get(slug)!;
+            artistTotals.set(a, (artistTotals.get(a) ?? 0) + ids.length);
+        }
         let lastArtist: string | null = null;
         const blocks: GBlock[] = [];
         for (const slug of slugs) {
             const artist = slugArtist.get(slug)!;
             const heads: GBHead[] = [];
-            if (artist !== lastArtist) { heads.push({ level: 1, label: artist }); lastArtist = artist; }
-            if (group === 'artistProject') heads.push({ level: 2, label: projName(slug) });
+            if (artist !== lastArtist) { heads.push({ level: 1, label: artist, count: artistTotals.get(artist) }); lastArtist = artist; }
+            if (group === 'artistProject') heads.push({ level: 2, label: projName(slug), count: bySlug.get(slug)!.length });
             blocks.push({
                 key: slug,
                 l1Key: `a:${artist}`,
