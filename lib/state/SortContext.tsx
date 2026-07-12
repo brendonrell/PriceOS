@@ -48,6 +48,7 @@ import {
     useState,
     type ReactNode,
 } from 'react';
+import { getRememberedGroup, rememberGroup } from './groupMemoryStore';
 
 export type SortKey = 'id' | 'price' | 'feed' | 'fog' | 'az';
 export type SortDir = 'asc' | 'desc';
@@ -232,17 +233,22 @@ interface SortContextValue {
         `group` is given, the grouping dimension is restored too (a preset that
         was saved while grouped). Omit it to leave the current grouping alone. */
     applySort: (sort: SortKey, dir: SortDir, feedKind: FeedKind, group?: GroupKey) => void;
-    /** Reset the gallery sort + grouping to the user's saved DEFAULT sort with
-        no grouping. Called when a project page is entered so an in-project sort/
-        grouping never carries over to the next project (Brendon, 2026-06-20). */
-    resetToDefault: () => void;
+    /** Reset the gallery to the user's saved DEFAULT sort on project entry.
+        Pass the project slug so the grouping restores to what the viewer last
+        used ON THAT PROJECT (groupMemoryStore, Brendon 2026-07-12), falling
+        back to the saved default grouping — an in-project grouping never
+        carries into the next project (Brendon, 2026-06-20). */
+    resetToDefault: (projectSlug?: string) => void;
+    /** Restore the remembered grouping for a non-project surface (the
+        Collected grid, keyed by profile address) — same memory contract. */
+    restoreGroupFor: (scope: 'project' | 'profile', id: string) => void;
     /** Current group-by dimension for the gallery. */
     group: GroupKey;
     /** Advance the group dimension through the given surface's cycle order —
         the standalone group toggle's tap (Brendon, 2026-07-12). Returns the
-        dimension it landed on so the caller can toast it. Transient: never
-        touches the saved default. */
-    cycleGroup: (order: GroupKey[]) => GroupKey;
+        dimension it landed on so the caller can toast it. Never touches the
+        saved default; pass `mem` to remember the pick for that page. */
+    cycleGroup: (order: GroupKey[], mem?: { scope: 'project' | 'profile'; id: string }) => GroupKey;
     /** The user's saved DEFAULT grouping (settings · DEFAULT SORT row). Boots
         the app and re-applies on every project entry, exactly like the default
         sort family (Brendon, 2026-07-12). */
@@ -409,11 +415,12 @@ export function SortProvider({ children }: { children: ReactNode }) {
         if (g !== undefined) setGroupState(g);
     }, []);
 
-    /* Reset to the user's saved DEFAULT sort family + DEFAULT grouping. Used
-       on project entry so each project starts at the user's chosen defaults —
-       an in-project sort/grouping never bleeds into the next project
-       (Brendon, 2026-06-20; default grouping added 2026-07-12). */
-    const resetToDefault = useCallback(() => {
+    /* Reset to the user's saved DEFAULT sort family on project entry. The
+       grouping restores to what the viewer last used ON THIS PROJECT (per-page
+       memory, Brendon 2026-07-12 — "they find it like they left it"), falling
+       back to the saved default grouping — an in-project grouping never bleeds
+       into the next project (Brendon, 2026-06-20). */
+    const resetToDefault = useCallback((projectSlug?: string) => {
         // A Project opened from a pasted `?sort=` link keeps that shared view
         // instead of snapping back to the saved default.
         const fromUrl = readUrlSlug();
@@ -444,22 +451,33 @@ export function SortProvider({ children }: { children: ReactNode }) {
             // id / price / fog — asc (dir is inert for fog).
             setDir('asc');
         }
-        setGroupState(defaultGroup);
+        const remembered = projectSlug ? getRememberedGroup('project', projectSlug) : undefined;
+        setGroupState(isGroupKey(remembered) ? remembered : defaultGroup);
         // Fresh Project = the no-slug default.
         setSlugActive(false);
         clearUrlSlug();
     }, [defaultGroup]);
 
+    /* Restore the remembered grouping for a surface (Collected grid keyed by
+       profile address; project grids go through resetToDefault above). */
+    const restoreGroupFor = useCallback((scope: 'project' | 'profile', id: string) => {
+        const remembered = getRememberedGroup(scope, id);
+        setGroupState(isGroupKey(remembered) ? remembered : defaultGroup);
+    }, [defaultGroup]);
+
     /* The standalone group toggle's tap — advances the dimension through this
        surface's cycle, independent of the active sort. Returns where it landed
-       so the caller can toast it (React state is async). Transient by design:
-       the saved DEFAULT grouping is written only by the settings pill below. */
-    const cycleGroup = useCallback((order: GroupKey[]) => {
+       so the caller can toast it (React state is async). Never touches the
+       saved DEFAULT (settings pill below); when `mem` is given the landing
+       dimension is remembered for that page (groupMemoryStore), so the viewer
+       finds the surface exactly as they left it (Brendon, 2026-07-12). */
+    const cycleGroup = useCallback((order: GroupKey[], mem?: { scope: 'project' | 'profile'; id: string }) => {
         setSlugActive(true);
         // If the current dimension isn't in this surface's cycle, restart from none.
         const cur = order.includes(group) ? group : 'none';
         const next = order[(order.indexOf(cur) + 1) % order.length];
         setGroupState(next);
+        if (mem) rememberGroup(mem.scope, mem.id, next);
         return next;
     }, [group]);
 
@@ -477,8 +495,8 @@ export function SortProvider({ children }: { children: ReactNode }) {
     }, [defaultGroup]);
 
     const value = useMemo<SortContextValue>(
-        () => ({ sort, dir, feedKind, setSort, cycleSort, applySort, resetToDefault, group, cycleGroup, defaultGroup, cycleDefaultGroup }),
-        [sort, dir, feedKind, setSort, cycleSort, applySort, resetToDefault, group, cycleGroup, defaultGroup, cycleDefaultGroup]
+        () => ({ sort, dir, feedKind, setSort, cycleSort, applySort, resetToDefault, restoreGroupFor, group, cycleGroup, defaultGroup, cycleDefaultGroup }),
+        [sort, dir, feedKind, setSort, cycleSort, applySort, resetToDefault, restoreGroupFor, group, cycleGroup, defaultGroup, cycleDefaultGroup]
     );
 
     return <SortContext.Provider value={value}>{children}</SortContext.Provider>;

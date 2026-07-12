@@ -1014,7 +1014,7 @@ export default function ArtworkPageBody({
                                 </a>
                             )}
                         </div>
-                        <div className="sort-btn-group" style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'nowrap' }}>
+                        <div className="sort-btn-group" style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'nowrap' }}>
                             {OUT_SORTS.map((s) => (
                                 <span
                                     key={s.key}

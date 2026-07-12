@@ -5121,7 +5121,8 @@ button,
     user-select: none;
     display: flex;
     align-items: center;
-    gap: 6px;
+    /* Arrow hugs its sort label (Brendon, 2026-07-12 — was 6px). */
+    gap: 3px;
     opacity: 0.7;
 }
 .sort-btn.active {
@@ -5152,15 +5153,18 @@ button,
     .sort-lbl-recent { font-size: 1.3em; }
 }
 .sort-arrow {
-    font-size: 20px;
+    /* One size up (Brendon, 2026-07-12 — was 20/15). */
+    font-size: 22px;
     font-family: 'Courier New', Courier, monospace;
     font-weight: normal;
     display: inline-block;
 }
-@media (max-width: 600px) { .sort-arrow { font-size: 15px; } }
+@media (max-width: 600px) { .sort-arrow { font-size: 17px; } }
 /* The GROUP toggle stands apart from the sorts it modifies — extra breathing
-   room after it, on top of the row's uniform gap (Brendon, 2026-07-12). */
+   room after it, on top of the row's uniform gap (Brendon, 2026-07-12). Its
+   glyph sits 1px lower to centre on the row (Brendon, same day). */
 .sort-btn.group-btn { margin-right: 7px; }
+.sort-btn.group-btn .sort-lbl-recent { transform: translateY(1px); }
 @media (max-width: 600px) { .sort-btn.group-btn { margin-right: 5px; } }
 
 /* ── ICON BUTTONS (burn / search) — sim 2317-2325 ── */
@@ -6454,7 +6458,9 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
    grouping, pushed to the END of the header row (Brendon, 2026-06-20). */
 .ggh-glyph {
     margin-left: auto;
-    font-size: 14px;
+    /* Two sizes up (Brendon, 2026-07-12) — the header rows carry it now that
+       they end with the group's art instead of the page edge. */
+    font-size: 18px;
     line-height: 1;
     color: var(--text-color);
     opacity: 0.85;
@@ -7997,7 +8003,7 @@ body.feed-mode .price-memory-ghost { display: none !important; }
         flex-wrap: nowrap;
     }
     .sort-btn-group {
-        gap: 9px !important;
+        gap: 8px !important;
         flex-wrap: nowrap !important;
     }
     .pill-colorway.t-light span,

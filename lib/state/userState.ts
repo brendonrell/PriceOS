@@ -100,6 +100,10 @@ export const STATE_CACHE_KEYS = {
     /** Per-page last-viewed tab map `{ project: {slug:tab}, profile: {handle:tab} }`.
      *  Read + written by tabMemoryStore; lives in the settings envelope. */
     tabMemory: 'pd_tab_memory',
+    /** Per-page last-used grid grouping map `{ project: {slug:group}, profile:
+     *  {address:group} }`. Read + written by groupMemoryStore; lives in the
+     *  settings envelope. */
+    groupMemory: 'pd_group_memory',
     /** Chosen Digital Familiar species name. Read + written by familiarEngine;
      *  lives in the settings envelope. */
     familiarSpecies: 'pd_familiar_species',
@@ -311,6 +315,16 @@ export function hydrateFromRow(row: UserRow): void {
             JSON.stringify(
                 s.tabMemory && typeof s.tabMemory === 'object' && !Array.isArray(s.tabMemory)
                     ? s.tabMemory
+                    : {},
+            ),
+        );
+        // Per-page grouping memory — same contract as tabMemory (server wins;
+        // groupMemoryStore reads this cache synchronously on surface entry).
+        localStorage.setItem(
+            STATE_CACHE_KEYS.groupMemory,
+            JSON.stringify(
+                s.groupMemory && typeof s.groupMemory === 'object' && !Array.isArray(s.groupMemory)
+                    ? s.groupMemory
                     : {},
             ),
         );

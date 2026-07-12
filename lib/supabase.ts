@@ -109,6 +109,16 @@ export interface UserSettings {
     /** home surface → HomeTab ('minting' | 'new' | 'shuffle'). Single key. */
     home?: Record<string, string>;
   };
+  /** Per-user, per-page LAST-USED grid grouping (Brendon, 2026-07-12) — same
+   *  contract as tabMemory: a grouping picked inside a project stays with that
+   *  project across visits and devices, and never bleeds into the next one.
+   *  Keyed by lowercased project slug / profile address; value is a GroupKey. */
+  groupMemory?: {
+    /** project slug → GroupKey. */
+    project?: Record<string, string>;
+    /** profile address → GroupKey (that profile's Collected grid). */
+    profile?: Record<string, string>;
+  };
   /** The user's chosen Digital Familiar species name (one of the live
    *  BitDaemons). Account-backed so the companion choice follows the viewer
    *  across devices; re-pickable any time from the Familiar modal (Brendon,

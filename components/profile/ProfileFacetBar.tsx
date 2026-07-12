@@ -111,9 +111,12 @@ const THEME_NAMES: Record<string, string> = {
 export default function ProfileFacetBar({
     holdings,
     isOwnProfile,
+    profileAddress,
 }: {
     holdings: EnrichedHolding[];
     isOwnProfile: boolean;
+    /** The viewed profile's address — keys this Collected grid's grouping memory. */
+    profileAddress: string;
 }) {
     const {
         activeCategory,
@@ -189,8 +192,10 @@ export default function ProfileFacetBar({
         cycleSort(family);
         showToast('SORT: ' + lbl + ' ' + (nextDir === 'asc' ? '↑' : '↓'));
     };
+    /* The pick is remembered for THIS profile's Collected grid (like tabs), so
+       the viewer finds it grouped as they left it (Brendon, 2026-07-12). */
     const cycleGroupWithToast = () => {
-        const next = cycleGroup(COLLECTED_GROUP_ORDER);
+        const next = cycleGroup(COLLECTED_GROUP_ORDER, { scope: 'profile', id: profileAddress });
         // Toast-casing rule: the category stays normal case, the STATE screams.
         showToast('Group: ' + GROUP_LABEL[next]);
     };
@@ -364,7 +369,7 @@ export default function ProfileFacetBar({
                 </div>
                 <div
                     className="sort-btn-group"
-                    style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'nowrap' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'nowrap' }}
                 >
                     {/* GROUP toggle leads the row (Brendon, 2026-07-12) —
                         icon-only, no arrow; cycles the grouping dimension

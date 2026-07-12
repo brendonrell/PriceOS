@@ -347,9 +347,11 @@ export default function TraitsUI({
     };
 
     /* The group toggle's tap — advance the project-page grouping cycle
-       (none → owner → colour → owner+colour → last-sold → rarity). */
+       (none → owner → colour → owner+colour → last-sold → rarity). The pick is
+       remembered PER PROJECT (like tabs), so the viewer finds this project
+       grouped as they left it (Brendon, 2026-07-12). */
     const cycleGroupWithToast = () => {
-        const next = cycleGroup(PROJECT_GROUP_ORDER);
+        const next = cycleGroup(PROJECT_GROUP_ORDER, { scope: 'project', id: projectSlug });
         // Toast-casing rule: the category stays normal case, the STATE screams.
         showToast('Group: ' + GROUP_LABEL[next]);
     };
@@ -1038,7 +1040,7 @@ export default function TraitsUI({
                     style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 14,
+                        gap: 12,
                         flexWrap: 'nowrap',
                     }}
                 >
