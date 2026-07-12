@@ -91,6 +91,7 @@ import GasTrackerModal from '../GasTrackerModal';
 import StickersModal from '../StickersModal';
 import SpiteBookModal from '../SpiteBookModal';
 import PanopticonConfirmModal from '../PanopticonConfirmModal';
+import CartographyModal from '../CartographyModal';
 import PanopticonOverlay from './PanopticonOverlay';
 import CartPanel from '../CartPanel';
 import MarketSheets from '../market/MarketSheets';
@@ -475,6 +476,9 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="PanopticonConfirmModal">
                 <PanopticonConfirmModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="CartographyModal">
+                <CartographyModal />
             </ErrorBoundary>
             <ErrorBoundary name="PanopticonOverlay">
                 <PanopticonOverlay />
