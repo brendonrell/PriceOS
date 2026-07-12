@@ -441,11 +441,11 @@
         padding: 0 4px;
         border-bottom: none;
     }
-    /* Show 6.5 rows then scroll — 6 full + a peek of the 7th. Rows keep their
-       exact height (align-content never stretches them); the grid just clips and
-       scrolls (Brendon, 2026-07-12). A row = 62px art + 2px border + 14px gap. */
+    /* Show a firm 6 rows then scroll. Rows keep their exact height (align-content
+       never stretches them); the grid clips and scrolls (Brendon, 2026-07-12).
+       A row = 62px art + 2px border + 14px gap = 78px; cap = top pad + 6 rows. */
     .ss-grid-view {
-        max-height: calc(16px + 6 * 78px + 32px);
+        max-height: calc(16px + 6 * 78px);
         align-content: start;
     }
 }

@@ -1246,8 +1246,8 @@ body.modal-open { overflow: hidden; touch-action: none; }
 }
 .ps-ach-header > span:first-child { font-weight: 800; }
 /* Count stays inline at the right of the ACHIEVEMENTS row; the score drops to
-   its OWN full-width line just below and right-aligns there, so the long line
-   can't spill past the buffer the rows below adhere to (Brendon, 2026-07-12). */
+   its OWN full-width line just below and centers there, flanked by an
+   achievements icon each side (Brendon, 2026-07-12). */
 .ps-ach-count {
     margin-left: auto;
     letter-spacing: 1px;
@@ -1255,7 +1255,7 @@ body.modal-open { overflow: hidden; touch-action: none; }
 }
 .ps-ach-score {
     flex-basis: 100%;
-    text-align: right;
+    text-align: center;
     letter-spacing: 1px;
     opacity: 0.9;
 }
