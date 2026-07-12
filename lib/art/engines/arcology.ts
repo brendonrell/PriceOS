@@ -122,21 +122,7 @@ function bloom(x: Ctx, cx: number, cy: number, rad: number, col: string, a0: num
   x.fillStyle = g; x.fillRect(cx - rad, cy - rad, rad * 2, rad * 2); x.restore();
 }
 
-function hazeSheet(x: Ctx, W: number, H: number, noise: { fbm: (x: number, y: number) => number }, col: string, opacity: number, scale: number) {
-  x.save(); x.globalCompositeOperation = 'screen';
-  const step = Math.max(3, Math.floor(Math.min(W, H) / 180));
-  const c = h2r(col);
-  for (let yy = 0; yy < H; yy += step) {
-    for (let xx = 0; xx < W; xx += step) {
-      const n = (noise.fbm(xx / scale, yy / scale) + 1) / 2;
-      const a = Math.max(0, Math.min(1, n * n * opacity));
-      if (a < 0.01) continue;
-      x.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${a})`;
-      x.fillRect(xx, yy, step + 1, step + 1);
-    }
-  }
-  x.restore();
-}
+function hazeSheet(x: Ctx, W: number, H: number, noise: { fbm: (x: number, y: number) => number }, col: string, opacity: number, scale: number) { const step = Math.max(3, Math.floor(Math.min(W, H) / 180)); const c = h2r(col); const off = document.createElement('canvas'); off.width = W; off.height = H; const oc = off.getContext('2d'); if (!oc) return; const img = oc.createImageData(W, H); const d = img.data; for (let yy = 0; yy < H; yy += step) { const yE = Math.min(H, yy + step + 1); for (let xx = 0; xx < W; xx += step) { const n = (noise.fbm(xx / scale, yy / scale) + 1) / 2; const a = Math.max(0, Math.min(1, n * n * opacity)); if (a < 0.01) continue; const xE = Math.min(W, xx + step + 1); for (let py = yy; py < yE; py++) { for (let px = xx; px < xE; px++) { const i = (py * W + px) * 4; const da = d[i + 3] / 255; const oa = a + da * (1 - a); if (oa <= 0) continue; d[i] = (c[0] * a + d[i] * da * (1 - a)) / oa; d[i + 1] = (c[1] * a + d[i + 1] * da * (1 - a)) / oa; d[i + 2] = (c[2] * a + d[i + 2] * da * (1 - a)) / oa; d[i + 3] = oa * 255; } } } } oc.putImageData(img, 0, 0); x.save(); x.globalCompositeOperation = 'screen'; x.drawImage(off, 0, 0); x.restore(); off.width = 0; off.height = 0; }
 
 function scanlines(x: Ctx, W: number, H: number, gap: number, a: number) {
   x.save(); x.globalCompositeOperation = 'multiply'; x.fillStyle = `rgba(0,0,0,${a})`;
@@ -159,10 +145,8 @@ function chromaSplit(x: Ctx, W: number, H: number, off: number) {
   } catch { /* tainted/oversized — skip, never break the paint */ }
 }
 
-function grain(x: Ctx, W: number, H: number, amt: number, r: R) {
-  const n = Math.floor(W * H / amt);
-  for (let i = 0; i < n; i++) { const g = r() < 0.5 ? 0 : 255; x.fillStyle = `rgba(${g},${g},${g},${0.015 + r() * 0.05})`; x.fillRect(r() * W, r() * H, 1, 1); }
-}
+function _splatRect(d: Uint8ClampedArray, W: number, H: number, fx: number, fy: number, fw: number, fh: number, R2: number, G: number, B: number, a: number) { const x1 = Math.max(0, Math.floor(fx)), y1 = Math.max(0, Math.floor(fy)); const x2 = Math.min(W - 1, Math.ceil(fx + fw) - 1), y2 = Math.min(H - 1, Math.ceil(fy + fh) - 1); for (let py = y1; py <= y2; py++) { const cy = Math.min(py + 1, fy + fh) - Math.max(py, fy); if (cy <= 0) continue; for (let px = x1; px <= x2; px++) { const cx = Math.min(px + 1, fx + fw) - Math.max(px, fx); if (cx <= 0) continue; const sa = a * cx * cy; const i = (py * W + px) * 4; const da = d[i + 3] / 255; const oa = sa + da * (1 - sa); if (oa <= 0) continue; d[i] = (R2 * sa + d[i] * da * (1 - sa)) / oa; d[i + 1] = (G * sa + d[i + 1] * da * (1 - sa)) / oa; d[i + 2] = (B * sa + d[i + 2] * da * (1 - sa)) / oa; d[i + 3] = oa * 255; } } }
+function grain(x: Ctx, W: number, H: number, amt: number, r: R) { const n = Math.floor(W * H / amt); if (n <= 0) return; const off = document.createElement('canvas'); off.width = W; off.height = H; const oc = off.getContext('2d'); if (!oc) return; const img = oc.createImageData(W, H); const d = img.data; for (let i = 0; i < n; i++) { const g = r() < 0.5 ? 0 : 255; const a = 0.015 + r() * 0.05; _splatRect(d, W, H, r() * W, r() * H, 1, 1, g, g, g, a); } oc.putImageData(img, 0, 0); x.drawImage(off, 0, 0); off.width = 0; off.height = 0; }
 
 function vignette(x: Ctx, W: number, H: number, s: number) {
   const g = x.createRadialGradient(W / 2, H * 0.46, Math.min(W, H) * 0.25, W / 2, H / 2, Math.max(W, H) * 0.78);

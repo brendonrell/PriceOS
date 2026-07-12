@@ -24,9 +24,9 @@ import type { EngineFn, TraitsFn, TraitSchema } from '../../project/types';
   function lum(h){const c=h2r(h);return (0.2126*c[0]+0.7152*c[1]+0.0722*c[2])/255;}
   function rgba(h,a){const c=h2r(h);return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')';}
   function hsl2hex(h,s,l){h=((h%360)+360)%360;s=clamp(s,0,1);l=clamp(l,0,1);const c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2;let R=0,G=0,B=0;if(h<60){R=c;G=x;}else if(h<120){R=x;G=c;}else if(h<180){G=c;B=x;}else if(h<240){G=x;B=c;}else if(h<300){R=x;B=c;}else{R=c;B=x;}return r2h([(R+m)*255,(G+m)*255,(B+m)*255]);}
-  function grain(x,W,H,amt,r){const n=Math.floor(W*H/amt);for(let i=0;i<n;i++){const g=r()<0.5?0:255;x.fillStyle='rgba('+g+','+g+','+g+','+(0.015+r()*0.05)+')';x.fillRect(r()*W,r()*H,1,1);}}
+  function grain(x,W,H,amt,r){const n=Math.floor(W*H/amt);if(n<=0)return;const NB=8;const paths=new Array(2*NB).fill(null);for(let i=0;i<n;i++){const gi=r()<0.5?0:1;const a=0.015+r()*0.05;const fx=r()*W,fy=r()*H;const bi=Math.min(NB-1,((a-0.015)/0.05*NB)|0);const k=gi*NB+bi;(paths[k]||(paths[k]=new Path2D())).rect(fx,fy,1,1);}for(let k=0;k<2*NB;k++){const p=paths[k];if(!p)continue;const g=k<NB?0:255;x.fillStyle='rgba('+g+','+g+','+g+','+(0.015+((k%NB)+0.5)/NB*0.05)+')';x.fill(p);}}
   function vignette(x,W,H,s){const g=x.createRadialGradient(W/2,H*0.46,Math.min(W,H)*0.25,W/2,H/2,Math.max(W,H)*0.78);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,'+s+')');x.fillStyle=g;x.fillRect(0,0,W,H);}
-  function mottle(x,x0,y0,w,h,col,density,r,blend){x.save();x.globalCompositeOperation=blend||'overlay';const n=Math.floor(w*h/density);for(let i=0;i<n;i++){const dark=r()<0.5;const c=dark?mix(col,'#000',0.34):mix(col,'#fff',0.32);const s=0.8+r()*2.2;x.fillStyle=rgba(c,0.04+r()*0.09);x.fillRect(x0+r()*w,y0+r()*h,s,s);}x.restore();}
+  function mottle(x,x0,y0,w,h,col,density,r,blend){const n=Math.floor(w*h/density);if(n<=0)return;const NB=8;const paths=new Array(2*NB).fill(null);for(let i=0;i<n;i++){const dark=r()<0.5;const s=0.8+r()*2.2;const a=0.04+r()*0.09;const fx=x0+r()*w,fy=y0+r()*h;const bi=Math.min(NB-1,((a-0.04)/0.09*NB)|0);const k=(dark?0:NB)+bi;(paths[k]||(paths[k]=new Path2D())).rect(fx,fy,s,s);}x.save();x.globalCompositeOperation=blend||'overlay';const cd=mix(col,'#000',0.34),cl=mix(col,'#fff',0.32);for(let k=0;k<2*NB;k++){const p=paths[k];if(!p)continue;x.fillStyle=rgba(k<NB?cd:cl,0.04+((k%NB)+0.5)/NB*0.09);x.fill(p);}x.restore();}
 
   /* ── value-noise / fbm for haze, fog, drift, displacement ── */
   function makeNoise(seed){
@@ -55,21 +55,7 @@ import type { EngineFn, TraitsFn, TraitSchema } from '../../project/types';
   function bloom(x,cx,cy,rad,col,a0){x.save();x.globalCompositeOperation='lighter';const g=x.createRadialGradient(cx,cy,0,cx,cy,rad);g.addColorStop(0,rgba(col,a0));g.addColorStop(1,rgba(col,0));x.fillStyle=g;x.fillRect(cx-rad,cy-rad,rad*2,rad*2);x.restore();}
 
   /* Volumetric haze sheet driven by fbm — the signature "hazy" wash. */
-  function hazeSheet(x,W,H,noise,col,opacity,scale,blend){
-    x.save();x.globalCompositeOperation=blend||'screen';
-    const step=Math.max(3,Math.floor(Math.min(W,H)/180));
-    const c=h2r(col);
-    for(let yy=0;yy<H;yy+=step){
-      for(let xx=0;xx<W;xx+=step){
-        const n=(noise.fbm(xx/scale,yy/scale,5,0.55,2.1)+1)/2;
-        const a=clamp(n*n*opacity,0,1);
-        if(a<0.01)continue;
-        x.fillStyle='rgba('+c[0]+','+c[1]+','+c[2]+','+a+')';
-        x.fillRect(xx,yy,step+1,step+1);
-      }
-    }
-    x.restore();
-  }
+  function hazeSheet(x,W,H,noise,col,opacity,scale,blend){const step=Math.max(3,Math.floor(Math.min(W,H)/180));const c=h2r(col);const off=document.createElement('canvas');off.width=W;off.height=H;const oc=off.getContext('2d');if(!oc)return;const img=oc.createImageData(W,H);const d=img.data;for(let yy=0;yy<H;yy+=step){const y2=Math.min(H,yy+step+1);for(let xx=0;xx<W;xx+=step){const n=(noise.fbm(xx/scale,yy/scale,5,0.55,2.1)+1)/2;const a=clamp(n*n*opacity,0,1);if(a<0.01)continue;const x2=Math.min(W,xx+step+1);for(let py=yy;py<y2;py++){for(let px=xx;px<x2;px++){const i=(py*W+px)*4;const sa=a;const da=d[i+3]/255;const oa=sa+da*(1-sa);if(oa<=0)continue;d[i]=(c[0]*sa+d[i]*da*(1-sa))/oa;d[i+1]=(c[1]*sa+d[i+1]*da*(1-sa))/oa;d[i+2]=(c[2]*sa+d[i+2]*da*(1-sa))/oa;d[i+3]=oa*255;}}}}oc.putImageData(img,0,0);x.save();x.globalCompositeOperation=blend||'screen';x.drawImage(off,0,0);x.restore();off.width=0;off.height=0;}
 
   /* Scanline / CRT terminal texture. */
   function scanlines(x,W,H,gap,a){x.save();x.globalCompositeOperation='multiply';x.fillStyle='rgba(0,0,0,'+a+')';for(let y=0;y<H;y+=gap){x.fillRect(0,y,W,1);}x.restore();}
@@ -355,25 +341,56 @@ const ENGINE = (function () {
     // DENSITY axis: grains-per-area swings wide → near-empty minimal ↔ packed.
     const density = 0.7 + Math.pow(r(), 1.3) * 2.1;   // ~0.7 .. 2.8
 
+    /* Coarse near-band mask over the field grid — cells provably beyond every
+       band cutoff (2a's 4.2·bandW with ±20% noise, 2b's 3.2·bandW with ±22%)
+       skip the exact per-point nodeDist + fbm entirely. Conservative
+       (corner-min + 3-cell slack), so surviving points evaluate exactly as
+       before and the deposit is unchanged. */
+    const dG = new Float32Array((GS + 1) * (GS + 1));
+    for (let j = 0; j <= GS; j++) for (let i = 0; i <= GS; i++) dG[j * (GS + 1) + i] = nodeDist(i / GS, j / GS);
+    const nearMask = new Uint8Array(GS * GS);
+    {
+      const slack = bandW * 5.25 + 3 / GS;
+      for (let j = 0; j < GS; j++) {
+        for (let i = 0; i < GS; i++) {
+          const a0 = dG[j * (GS + 1) + i], a1 = dG[j * (GS + 1) + i + 1];
+          const b0 = dG[(j + 1) * (GS + 1) + i], b1 = dG[(j + 1) * (GS + 1) + i + 1];
+          nearMask[j * GS + i] = (Math.min(a0, a1, b0, b1) < slack) ? 1 : 0;
+        }
+      }
+    }
     // ── 2a. PILE SHADOW BED: a faint, slightly-offset dark band under each nodal
     // line so the heaped grain reads as sitting ON the plate. ──
     x.save();
     x.globalCompositeOperation = 'multiply';
     const SG = Math.floor(plateSize / 2.2);
-    for (let j = 0; j < SG; j++) {
-      const v = (j + 0.5) / SG;
-      for (let i = 0; i < SG; i++) {
-        const u = (i + 0.5) / SG;
-        const su = u - lx * (bandW * 0.6), sv = v - ly * (bandW * 0.6);
-        let d = nodeDist(su, sv);
-        d *= 1 + noise.fbm(u * 90, v * 90, 3) * 0.2;
-        if (d > bandW * 4.2) continue;
-        const h = Math.max(0, 1 - d / (bandW * 4.2));
-        const al = h * h * (pal.inv ? 0.10 : 0.28);
-        const sx = px0 + u * plateSize, sy = py0 + v * plateSize;
-        x.fillStyle = K.rgba(pal.ink, al);
-        const c = plateSize / SG;
-        x.fillRect(sx - c * 0.6, sy - c * 0.6, c * 1.2, c * 1.2);
+    {
+      const AQ2 = 12;
+      const bedPaths = new Array(AQ2).fill(null);
+      const aMax = (pal.inv ? 0.10 : 0.28);
+      const c = plateSize / SG;
+      for (let j = 0; j < SG; j++) {
+        const v = (j + 0.5) / SG;
+        const mrow = Math.min(GS - 1, (v * GS) | 0) * GS;
+        for (let i = 0; i < SG; i++) {
+          const u = (i + 0.5) / SG;
+          if (!nearMask[mrow + Math.min(GS - 1, (u * GS) | 0)]) continue;
+          const su = u - lx * (bandW * 0.6), sv = v - ly * (bandW * 0.6);
+          let d = nodeDist(su, sv);
+          d *= 1 + noise.fbm(u * 90, v * 90, 3) * 0.2;
+          if (d > bandW * 4.2) continue;
+          const h = Math.max(0, 1 - d / (bandW * 4.2));
+          const al = h * h * aMax;
+          const ai = Math.min(AQ2 - 1, (al / aMax * AQ2) | 0);
+          const sx = px0 + u * plateSize, sy = py0 + v * plateSize;
+          (bedPaths[ai] || (bedPaths[ai] = new Path2D())).rect(sx - c * 0.6, sy - c * 0.6, c * 1.2, c * 1.2);
+        }
+      }
+      for (let ai = 0; ai < AQ2; ai++) {
+        const p = bedPaths[ai];
+        if (!p) continue;
+        x.fillStyle = K.rgba(pal.ink, (ai + 0.5) / AQ2 * aMax);
+        x.fill(p);
       }
     }
     x.restore();
@@ -381,10 +398,30 @@ const ENGINE = (function () {
     // ── 2b. THE GRAIN PILE: dense stipple of individual grains heaped on the nodal
     // lines, brightened toward a lit ridge crest with a dark crevice on the shadow
     // side → real raised-bead chiaroscuro. ──
-    const GRAINS = Math.floor(area * density);
+    const GRAINS = Math.min(Math.floor(area * density), 1500000); // perf cap — piles saturate visually far below the uncapped budget
+    /* 2026-07-12 perf pass: (1) skip the fbm ridge-noise for grains provably
+       beyond the pile band (bit-identical — those grains never deposited);
+       (2) quantise the continuous grain colour/alpha into a bucket LUT and
+       deposit each bucket as ONE batched path fill instead of millions of
+       individually-styled fillRects. */
+    const TQ = 24, MQ = 6, AQ = 8;
+    const bCol = [];
+    for (let ti = 0; ti < TQ; ti++) {
+      const t = (ti + 0.5) / TQ;
+      let base;
+      if (t < 0.5) base = K.mix(pal.powderLo, pal.powderHi, t * 2);
+      else base = K.mix(pal.powderHi, pal.crest, (t - 0.5) * 2 * 0.7);
+      for (let mi = 0; mi < MQ; mi++) {
+        bCol.push(mi === 0 ? base : K.mix(base, pal.ink, (mi + 0.5) / MQ * 0.55));
+      }
+    }
+    const gPaths = new Map();
+    const farD = bandW * 3.2 / 0.78;   // even max fbm shrink can't reach the band
     for (let g = 0; g < GRAINS; g++) {
       const u = r(), v = r();
+      if (!nearMask[Math.min(GS - 1, (v * GS) | 0) * GS + Math.min(GS - 1, (u * GS) | 0)]) continue;
       let d = nodeDist(u, v);
+      if (d >= farD) continue;                   // identical outcome, fbm skipped
       d *= 1 + noise.fbm(u * 110, v * 110, 3) * 0.22;
       const onNode = Math.max(0, 1 - d / (bandW * 3.2));
       if (onNode <= 0) continue;                 // bare plate stays bare
@@ -394,14 +431,22 @@ const ENGINE = (function () {
       const facing = (gr[0] / gl) * lx + (gr[1] / gl) * ly; // -1 shadow .. +1 lit
       let t = onNode * (0.42 + 0.58 * (0.5 + 0.5 * facing));
       t = K.clamp(t + (r() - 0.5) * 0.16, 0, 1);
-      let col;
-      if (t < 0.5) col = K.mix(pal.powderLo, pal.powderHi, t * 2);
-      else col = K.mix(pal.powderHi, pal.crest, (t - 0.5) * 2 * 0.7);
-      if (facing < -0.1) col = K.mix(col, pal.ink, (-facing) * onNode * 0.55);
+      const mixAmt = facing < -0.1 ? (-facing) * onNode * 0.55 : 0;
+      const ti = Math.min(TQ - 1, (t * TQ) | 0);
+      const mi = Math.min(MQ - 1, (mixAmt / 0.55 * MQ) | 0);
+      const a = 0.5 + onNode * 0.42;
+      const ai = Math.min(AQ - 1, ((a - 0.5) / 0.42 * AQ) | 0);
+      const key = (ti * MQ + mi) * AQ + ai;
       const sx = px0 + u * plateSize, sy = py0 + v * plateSize;
       const sz = 0.55 + onNode * (0.7 + r() * 0.5);
-      x.fillStyle = K.rgba(col, 0.5 + onNode * 0.42);
-      x.fillRect(sx, sy, sz, sz);
+      let p = gPaths.get(key);
+      if (!p) { p = new Path2D(); gPaths.set(key, p); }
+      p.rect(sx, sy, sz, sz);
+    }
+    for (const [key, p] of gPaths) {
+      const ai = key % AQ;
+      x.fillStyle = K.rgba(bCol[(key / AQ) | 0], 0.5 + (ai + 0.5) / AQ * 0.42);
+      x.fill(p);
     }
 
     // ── 2c. CREST SPARKLE: sparse bright flecks on the lit flank of the node line. ──

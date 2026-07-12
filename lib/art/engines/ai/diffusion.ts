@@ -40,11 +40,12 @@ function diffusion(cv,seed){
   const f=pat.f+(r()-0.5)*0.004, k=pat.k+(r()-0.5)*0.0025, Da=1, Db=0.5;
   const steps=950;
   for(let s=0;s<steps;s++){
-    for(let y=0;y<N;y++)for(let xq=0;xq<N;xq++){const c=y*N+xq;const a=A[c],b=B[c];
-      const lA=A[ix(xq-1,y)]*0.2+A[ix(xq+1,y)]*0.2+A[ix(xq,y-1)]*0.2+A[ix(xq,y+1)]*0.2+A[ix(xq-1,y-1)]*0.05+A[ix(xq+1,y-1)]*0.05+A[ix(xq-1,y+1)]*0.05+A[ix(xq+1,y+1)]*0.05-a;
-      const lB=B[ix(xq-1,y)]*0.2+B[ix(xq+1,y)]*0.2+B[ix(xq,y-1)]*0.2+B[ix(xq,y+1)]*0.2+B[ix(xq-1,y-1)]*0.05+B[ix(xq+1,y-1)]*0.05+B[ix(xq-1,y+1)]*0.05+B[ix(xq+1,y+1)]*0.05-b;
+    for(let y=0;y<N;y++){const row=y*N,up=((y-1+N)%N)*N,dn=((y+1)%N)*N;
+    for(let xq=0;xq<N;xq++){const xl=(xq-1+N)%N,xr=(xq+1)%N;const c=row+xq;const a=A[c],b=B[c];
+      const lA=A[row+xl]*0.2+A[row+xr]*0.2+A[up+xq]*0.2+A[dn+xq]*0.2+A[up+xl]*0.05+A[up+xr]*0.05+A[dn+xl]*0.05+A[dn+xr]*0.05-a;
+      const lB=B[row+xl]*0.2+B[row+xr]*0.2+B[up+xq]*0.2+B[dn+xq]*0.2+B[up+xl]*0.05+B[up+xr]*0.05+B[dn+xl]*0.05+B[dn+xr]*0.05-b;
       const abb=a*b*b; let na=a+(Da*lA-abb+f*(1-a)), nb=b+(Db*lB+abb-(k+f)*b);
-      A2[c]=na<0?0:na>1?1:na; B2[c]=nb<0?0:nb>1?1:nb;}
+      A2[c]=na<0?0:na>1?1:na; B2[c]=nb<0?0:nb>1?1:nb;}}
     let t=A;A=A2;A2=t;t=B;B=B2;B2=t;
   }
   // render as lit metallic relief

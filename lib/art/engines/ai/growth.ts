@@ -41,7 +41,7 @@ function growth(cv,seed){
   for(let step=0;step<560;step++){
     // grid hash
     const grid=new Map();
-    for(const pa of paths)for(const nd of pa.nodes){const key=((nd.x/cell)|0)+','+((nd.y/cell)|0);let a=grid.get(key);if(!a){a=[];grid.set(key,a);}a.push(nd);}
+    for(const pa of paths)for(const nd of pa.nodes){const key=(((nd.x/cell)|0)+2048)*8192+(((nd.y/cell)|0)+2048);let a=grid.get(key);if(!a){a=[];grid.set(key,a);}a.push(nd);}
     for(const pa of paths){const nodes=pa.nodes,L=nodes.length;
       for(let i=0;i<L;i++){const nd=nodes[i];const a=nodes[(i-1+L)%L],b=nodes[(i+1)%L];
         if(!pa.closed&&(i===0||i===L-1)){nd.dx=0;nd.dy=0;continue;}
@@ -50,7 +50,7 @@ function growth(cv,seed){
         const abx=b.x-a.x,aby=b.y-a.y,ab2=abx*abx+aby*aby||1;const t=((nd.x-a.x)*abx+(nd.y-a.y)*aby)/ab2;const projx=a.x+abx*t,projy=a.y+aby*t;ax+=(projx-nd.x)*kAlign;ay+=(projy-nd.y)*kAlign;
         // repulsion
         const gx=(nd.x/cell)|0,gy=(nd.y/cell)|0;let rx=0,ry=0;
-        for(let oy=-1;oy<=1;oy++)for(let ox=-1;ox<=1;ox++){const arr=grid.get((gx+ox)+','+(gy+oy));if(!arr)continue;for(const o of arr){if(o===nd)continue;const ddx=nd.x-o.x,ddy=nd.y-o.y,d2=ddx*ddx+ddy*ddy;if(d2<repR2&&d2>0){const d=Math.sqrt(d2);const f=(1-d/repulR);rx+=ddx/d*f;ry+=ddy/d*f;}}}
+        for(let oy=-1;oy<=1;oy++)for(let ox=-1;ox<=1;ox++){const arr=grid.get((gx+ox+2048)*8192+(gy+oy+2048));if(!arr)continue;for(const o of arr){if(o===nd)continue;const ddx=nd.x-o.x,ddy=nd.y-o.y,d2=ddx*ddx+ddy*ddy;if(d2<repR2&&d2>0){const d=Math.sqrt(d2);const f=(1-d/repulR);rx+=ddx/d*f;ry+=ddy/d*f;}}}
         ax+=rx*kRepul*maxF*4; ay+=ry*kRepul*maxF*4;
         const m=Math.hypot(ax,ay);if(m>maxF){ax=ax/m*maxF;ay=ay/m*maxF;}
         nd.dx=ax;nd.dy=ay;}

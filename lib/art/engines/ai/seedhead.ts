@@ -30,12 +30,18 @@ function seedhead(cv,seed,dispW){
   // Per-dot shadowBlur is ~99% of this engine's cost and is near-invisible
   // once downscaled to a thumbnail — keep it only at full-view sizes. The
   // additive 'lighter' blend (the core of the look) stays at every size.
-  if(dark){x.globalCompositeOperation='lighter';x.shadowBlur=(dispW<500)?0:4;}
-  for(let i=0;i<n;i++){const a=i*ga,rad=scale*Math.sqrt(i);const px=cx+Math.cos(a)*rad,py=cy+Math.sin(a)*rad;const t=i/n;const col=rdHexLerp(P.a,P.b,t);if(dark)x.shadowColor=col;x.fillStyle=col;x.globalAlpha=dark?(0.7+0.3*(1-t)):0.9;const sz=2.2+(1-t)*S*0.012;
-    if(shape==='dot'){x.beginPath();x.arc(px,py,sz,0,6.29);x.fill();}
-    else if(shape==='ring'){x.strokeStyle=col;x.lineWidth=1;x.beginPath();x.arc(px,py,sz,0,6.29);x.stroke();}
-    else {x.save();x.translate(px,py);x.rotate(a);x.beginPath();x.ellipse(0,0,sz*1.6,sz*0.7,0,0,6.29);x.fill();x.restore();}}
-  x.globalAlpha=1;x.shadowBlur=0;x.globalCompositeOperation='source-over';
+  // Glow rebuilt 2026-07-12 perf pass: dots render clean into an offscreen,
+  // then composite twice — once blurred (the halo), once sharp — instead of
+  // per-dot shadowBlur (which was ~99% of this engine's cost).
+  const oGl=document.createElement('canvas');oGl.width=W;oGl.height=H;const xo=dark?oGl.getContext('2d'):x;
+  if(dark){xo.globalCompositeOperation='lighter';}
+  for(let i=0;i<n;i++){const a=i*ga,rad=scale*Math.sqrt(i);const px=cx+Math.cos(a)*rad,py=cy+Math.sin(a)*rad;const t=i/n;const col=rdHexLerp(P.a,P.b,t);xo.fillStyle=col;xo.globalAlpha=dark?(0.7+0.3*(1-t)):0.9;const sz=2.2+(1-t)*S*0.012;
+    if(shape==='dot'){xo.beginPath();xo.arc(px,py,sz,0,6.29);xo.fill();}
+    else if(shape==='ring'){xo.strokeStyle=col;xo.lineWidth=1;xo.beginPath();xo.arc(px,py,sz,0,6.29);xo.stroke();}
+    else {xo.save();xo.translate(px,py);xo.rotate(a);xo.beginPath();xo.ellipse(0,0,sz*1.6,sz*0.7,0,0,6.29);xo.fill();xo.restore();}}
+  if(dark){x.save();x.globalCompositeOperation='lighter';if(dispW>=500){x.filter='blur(3px)';x.drawImage(oGl,0,0);x.filter='none';}x.drawImage(oGl,0,0);x.restore();}
+  oGl.width=0;oGl.height=0;
+  x.globalAlpha=1;x.globalCompositeOperation='source-over';
   const vg=x.createRadialGradient(cx,cy,S*0.3,cx,cy,Math.max(W,H)*0.7);vg.addColorStop(0,'transparent');vg.addColorStop(1,dark?'rgba(0,0,0,0.5)':'rgba(40,30,20,0.12)');x.fillStyle=vg;x.fillRect(0,0,W,H);
 }
 function castSeedhead(seed){const r=rng(seed);const palI=Math.floor(r()*SEED_PALS.length);const fmt=pick(SEED_FMTS,r);const n=rint(r,700,2200);const shape=pick(['dot','ring','petal'],r);return {palette:SEED_PALS[palI].name, format:fmt.t, density:n<1200?'Open':n<1800?'Full':'Packed', mark:shape.charAt(0).toUpperCase()+shape.slice(1)};}
