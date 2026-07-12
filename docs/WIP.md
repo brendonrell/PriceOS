@@ -27,9 +27,11 @@
    `#pd-sales-feed` Discord channel; the real Sepolia T9 sale was posted end-
    to-end as the go-live test. Posts every PD sale within ~1 min. $20 floor.
 4. **Remaining Discord feeds → Workers (Opus-able).** The template is proven
-   in prod. Port order + every hard-won fact:
+   in prod (fx-sales, pd-sales, and now fx-listings all live). Port order +
+   every hard-won fact:
    **`price-discussion` repo → `workers/README.md`** (+ the brief
-   `docs/briefs/discord-feeds-worker-migration.md`). Brendon supplies each
+   `docs/briefs/discord-feeds-worker-migration.md`). Still pending: ab-sales,
+   verse, ab-listings, feature, artcoin, emerge-fund. Brendon supplies each
    Apps Script source; port faithfully; parallel-run; cutover. ClickUp
    `86b9g4e55` commented with full status.
 5. **PDMCP — connectors-directory path** (custom domain + OAuth stub +
@@ -40,6 +42,21 @@
    task; wrapper art done, chain shows zero sheets).
 7. **PD Studio next phases** — unchanged (`docs/briefs/studio-phase2.md`,
    epic `86bavub9k`).
+
+## ✅ SHIPPED 2026-07-12 (Fable, evening) — fx-listings-feed LIVE
+
+- **fx-listings-feed LIVE** — fxhash *listings* Worker, objkt-sourced
+  (`list_create` on the three fxhash FA2s; lister = event `creator`), old
+  bot's compact embed (em-dash title, "Listed by … for …", thumbnail).
+  Sheet config carried over: **min $20, single webhook** (`WEBHOOK_MAIN`).
+  1-min cron, KV `fx-listings-feed-state`. Verified end-to-end: real card
+  rendered in `#fx-listings-feed` + deployed worker manual-run clean. Code
+  on `price-discussion` `main` (`workers/fx-listings-feed/`); README's
+  pending-port list updated; ClickUp `86b9g4e55` commented.
+- Brendon's fresh CF API token was chat-only again — NOT stored; he can
+  revoke it anytime (told him).
+- Old Apps Script listings trigger: Brendon to disable (it dead-polls the
+  dead fxhash API; harmless but pointless).
 
 ## ✅ SHIPPED 2026-07-12 (Opus) — Sticker store + PriceSprite modal UI polish (all on dev)
 
