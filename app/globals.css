@@ -5158,6 +5158,10 @@ button,
     display: inline-block;
 }
 @media (max-width: 600px) { .sort-arrow { font-size: 15px; } }
+/* The GROUP toggle stands apart from the sorts it modifies — extra breathing
+   room after it, on top of the row's uniform gap (Brendon, 2026-07-12). */
+.sort-btn.group-btn { margin-right: 6px; }
+@media (max-width: 600px) { .sort-btn.group-btn { margin-right: 4px; } }
 
 /* ── ICON BUTTONS (burn / search) — sim 2317-2325 ── */
 /* Build 25 D6+D7: .st-icon + .sharp-glyph + per-id overrides ported from
@@ -7993,7 +7997,7 @@ body.feed-mode .price-memory-ghost { display: none !important; }
         flex-wrap: nowrap;
     }
     .sort-btn-group {
-        gap: 10px !important;
+        gap: 9px !important;
         flex-wrap: nowrap !important;
     }
     .pill-colorway.t-light span,

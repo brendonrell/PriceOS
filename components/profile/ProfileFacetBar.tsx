@@ -191,7 +191,8 @@ export default function ProfileFacetBar({
     };
     const cycleGroupWithToast = () => {
         const next = cycleGroup(COLLECTED_GROUP_ORDER);
-        showToast('GROUP: ' + GROUP_LABEL[next]);
+        // Toast-casing rule: the category stays normal case, the STATE screams.
+        showToast('Group: ' + GROUP_LABEL[next]);
     };
 
     /* Facet → present value pool, drawn from the owned Outputs. Only facets
@@ -363,7 +364,7 @@ export default function ProfileFacetBar({
                 </div>
                 <div
                     className="sort-btn-group"
-                    style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'nowrap' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'nowrap' }}
                 >
                     {/* GROUP toggle leads the row (Brendon, 2026-07-12) —
                         icon-only, no arrow; cycles the grouping dimension

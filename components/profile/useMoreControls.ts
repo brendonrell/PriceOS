@@ -118,7 +118,8 @@ export function useMoreControls(
         const cur = groups.includes(moreGroup) ? moreGroup : 'none';
         const next = groups[(groups.indexOf(cur) + 1) % groups.length];
         setMoreGroup(next);
-        showToast(next === 'none' ? 'GROUP: OFF' : 'GROUP: ' + (MORE_GROUP_NAME[next] ?? next).toUpperCase());
+        // Toast-casing rule: the category stays normal case, the STATE screams.
+        showToast(next === 'none' ? 'Group: OFF' : 'Group: ' + (MORE_GROUP_NAME[next] ?? next).toUpperCase());
     };
 
     return {

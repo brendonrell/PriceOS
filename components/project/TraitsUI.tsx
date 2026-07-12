@@ -350,7 +350,8 @@ export default function TraitsUI({
        (none → owner → colour → owner+colour → last-sold → rarity). */
     const cycleGroupWithToast = () => {
         const next = cycleGroup(PROJECT_GROUP_ORDER);
-        showToast('GROUP: ' + GROUP_LABEL[next]);
+        // Toast-casing rule: the category stays normal case, the STATE screams.
+        showToast('Group: ' + GROUP_LABEL[next]);
     };
 
     /* Wraps setColorway with a toast (mirrors ColorwayPicker.tsx). */
@@ -1037,7 +1038,7 @@ export default function TraitsUI({
                     style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 16,
+                        gap: 14,
                         flexWrap: 'nowrap',
                     }}
                 >

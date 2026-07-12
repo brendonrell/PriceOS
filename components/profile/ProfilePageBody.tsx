@@ -1231,7 +1231,7 @@ function ProfilePageBodyInner({
                             }
                             profileSortControls={
                                 (onStarredTab || onWishlistTab || onHistoryTab) ? (
-                                    <div className="sort-btn-group" style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'nowrap' }}>
+                                    <div className="sort-btn-group" style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'nowrap' }}>
                                         {/* GROUP toggle leads the row (Brendon, 2026-07-12) —
                                             icon-only, no arrow; cycles this surface's grouping
                                             options independently of the sorts. Hidden when the

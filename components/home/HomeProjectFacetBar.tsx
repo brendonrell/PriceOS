@@ -406,7 +406,7 @@ export default function HomeProjectFacetBar({
                 {!compact && (
                 <div
                     className="sort-btn-group"
-                    style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'nowrap' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'nowrap' }}
                 >
                     <span
                         className={`sort-btn${sortKey === 'date' ? ' active' : ''}`}
