@@ -8,14 +8,14 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-1. **iOS PUSH — the ONLY open Brendon-action. Await his banner test.**
-   `CRON_SECRET` is SET on the `pricediscussion` Worker; the reminder sweep
-   runs every minute and returns healthy (`ok:true`). Brendon: set a to-do due
-   2–3 min out, lock the phone, watch for the lock-screen banner. If NO banner:
-   `wrangler tail pricediscussion` during a sweep — prime suspect is a
-   malformed `WEBPUSH_PRIVATE_KEY` (sender silently no-ops if the pair won't
-   load: lib/push/webpush.ts ensureConfigured). Diagnosis facts in this file's
-   git history (2026-07-11 morning baton).
+1. **REDEPLOY the app Worker (needs a fresh CF token from Brendon) — the
+   pings WOW PASS (a019bd3) is on dev but NOT yet live.** The main pings
+   redesign (be249c7) IS live (deployed 2026-07-12, version 8394e132,
+   verified). Brendon's token died before the second deploy (auth 10000).
+   Follow the DEPLOY RECIPE below. After deploy, verify: POST /api/social/mute
+   returns 401 (not 404) and a lock-screen ping deep-links to its piece.
+   ⚠️ iOS push pipeline is PROVEN WORKING (Brendon's banner test succeeded) —
+   the old "malformed key" suspicion is closed.
 2. ✅ **Indexer sweep — LIVE (2026-07-11 afternoon).** `ALCHEMY_RPC_URL` set,
    the reconcile now walks the window in ≤10-block sips (Alchemy free-tier cap)
    with a targeted `?fromBlock=&toBlock=` backfill door; the app Worker was
@@ -42,6 +42,35 @@
    task; wrapper art done, chain shows zero sheets).
 7. **PD Studio next phases** — unchanged (`docs/briefs/studio-phase2.md`,
    epic `86bavub9k`).
+
+## ✅ SHIPPED 2026-07-12 (Fable, night) — PINGS SYSTEM REDESIGN + ACHIEVEMENT DE-SPAM (dev; batch 1 LIVE)
+
+Full spec + status in ClickUp `86bawky5p`. Two commits on dev:
+- **be249c7 (LIVE on the preview):** read = SCROLLING the pings list (open
+  marks nothing); unread on top, honest unread-only count; all five MY PINGS
+  interest toggles wired to real fan-outs (mutuals / starred artists /
+  starred projects / starred traits / rarity top-10 moves in held projects);
+  push respect policy (money always, ambience budgeted 4/hr, achievements +
+  follow-feed never, pills enforced server-side); to-do + calendar reminders
+  → inbox + push; **Artist Push** (Studio, 1 preset ping/month/project to
+  holders); achievements: 116 front-loaded trophies → far-climb rungs (still
+  exactly 1,000; day-one unlockables 57→20; Mjölnir re-walled 231,000,
+  verifier green); docs got a Pings SECTION (overview/controls/artist-push);
+  GLYPHS.md updated (interest glyphs; "stars are silent" note revised).
+- **a019bd3 (on dev, AWAITING REDEPLOY):** wow pass — push deep-links to the
+  piece, sprite moods (awake/blink/yawn) on the lock screen, SEEN divider +
+  open-anchor, long-press-to-quiet (unstar artist/project or mute actor —
+  NEW POST /api/social/mute, first writer of the `muted` table), 30d+ streak
+  guard at 19:00 Montreal, "while you were away" rollup (inbox-only), sweep
+  heartbeat → ops ping to @brendon if the cron stalls 10min+ (1/hr max).
+- Queued at chain cutover (in the ClickUp task): indexer on-chain sale/mint
+  path gets the same interest fan-out.
+- Facts future sessions need: interest fan-out rides `app_ping_wishlist_fanout`
+  (kind-agnostic RPC) + the users.settings GIN index (artistStars/projectStars/
+  traitStars containment probes); kind `PING` was already in the live CHECK
+  constraint (no migration needed anywhere in this whole build — zero prod
+  writes); pings read route only bumps the broadcast watermark on `all` or
+  `broadcast_seen`, never on ids.
 
 ## ✅ SHIPPED 2026-07-12 (Fable, evening) — fx-listings-feed LIVE
 
@@ -267,8 +296,10 @@ redeployed** (needs Brendon's Cloudflare token — see the DEPLOY RECIPE below).
 
 ## 🧭 WAITING ON BRENDON
 
-- **iOS push banner test result** (NEXT UP #1) — the ONLY open item now.
-  (Alchemy URL + PD feed channel BOTH received + wired this session.)
+- **Fresh Cloudflare token** → redeploy so the pings wow pass goes live
+  (NEXT UP #1).
+- **Delete the chat branch** `claude/pings-system-redesign-r5kbew` (work is
+  on dev): https://github.com/brendonrell/PriceOS/branches
 - **Ticker copy review (2026-07-12)** — Brendon to eyeball the new store +
   marketplace crawl lines and send any wording edits (he said he'd review shortly).
 - Feature Atlas re-order · ASCII-Mode glyph ⠿ iPhone check · Lane Runner
