@@ -58,6 +58,12 @@ export function Footer() {
                     <span className="priceos-block" id="footerBlock">{blockText}</span>
                 </div>
                 <div className="priceos-footer-row">
+                    {/* The Dispatch — the morning paper. Leads the easter-egg
+                        row, before the Mood Ring (Brendon, 2026-07-12). */}
+                    <a className="priceos-link" title="The Dispatch — PD's morning paper" href="/dispatch">
+                        The Dispatch
+                    </a>
+                    {mood && <span className="priceos-sep">·</span>}
                     {mood && (
                         <span
                             className="priceos-link priceos-mood"

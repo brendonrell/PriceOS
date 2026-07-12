@@ -1,0 +1,94 @@
+/* ── The Dispatch — PD's morning paper ─────────────────────────────────
+   Rams-flavoured typographic broadsheet on the house Courier voice.
+   Everything full-strength (Rule #2); the paper look comes from rules and
+   spacing, never from washed-out text. */
+
+.dispatch-page {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 26px 18px calc(60px + env(safe-area-inset-bottom));
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--text-color);
+}
+
+.dp-masthead {
+    text-align: center;
+    border-bottom: 3px double var(--text-color);
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+}
+.dp-paper-name {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+}
+.dp-edition-line {
+    margin-top: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+
+.dp-section { margin-bottom: 22px; }
+.dp-rule {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    border-bottom: 1px solid var(--text-color);
+    padding-bottom: 4px;
+    margin: 0 0 8px;
+}
+
+.dp-lead-head {
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: 0.02em;
+    margin: 0 0 8px;
+}
+.dp-lead-body,
+.dp-prose {
+    font-size: 14px;
+    line-height: 1.55;
+    margin: 0;
+}
+
+.dp-numbers { width: 100%; border-collapse: collapse; }
+.dp-numbers td {
+    padding: 5px 0;
+    font-size: 13px;
+    border-bottom: 1px dotted var(--text-color);
+}
+.dp-num-label { font-weight: 700; }
+.dp-num-value { text-align: right; }
+.dp-num-value a { color: var(--accent); text-decoration: none; }
+.dp-num-value a:hover { text-decoration: underline; }
+
+.dp-noted {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.dp-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 30px 0 10px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+}
+.dp-nav a { color: var(--accent); text-decoration: none; }
+.dp-nav a:hover { text-decoration: underline; }
+
+.dp-colophon {
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    border-top: 1px solid var(--text-color);
+    padding-top: 10px;
+    word-break: break-all;
+}
