@@ -8,6 +8,22 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+-3. ✅ **THE SIGIL — SHIPPED + DEPLOYED (2026-07-13, dev `bfa1d2a`, worker
+   version `40adaeef`, verified live; ClickUp `86b9erfwp` closed).** The
+   final Factions beat, spec'd live with Brendon (4 concept rounds): a
+   deterministic 3–4 glyph TEXT rune-string per wallet — NOT SVG, and never
+   a face (no brackets-as-eyes) and never martial (no crosses/daggers);
+   both bans are hard rules from the sprint, baked into GLYPHS.md §13 with
+   the LOCKED pools (append-only, Brendon sign-off, device-verify). Live:
+   THE FORGE = the profile-logo carousel's last tile → modal (`sigilForge`),
+   set-once permanent write (`users.sigil_forged_at`, migration applied,
+   public column); forged wallets gain the Sigil colour ring at the
+   carousel's end (enlists exactly like the blanks — registry maps
+   `plogo-sigil-*`); corner logo flies the owner's mark; **the Sigil trails
+   the @name** (Sprite + Rank lead it): tape (the reserved per-user sigil
+   slot, faction ink), navbar cluster, profile identity row; Marginalia
+   margin hands upgrade sprite→Sigil server-side. Docs section added.
+   **Remaining:** iOS device pass on the pool glyphs before mainnet lock.
 -2. ✅ **FACTIONS END TO END — SHIPPED + DEPLOYED (2026-07-13, dev `87a8354`,
    worker version `ad61aa44`, verified live).** Spec v3.1 (Atlas → KING MODE →
    FACTIONS page) built whole, to the open-call recs (30d defection cooldown ·
