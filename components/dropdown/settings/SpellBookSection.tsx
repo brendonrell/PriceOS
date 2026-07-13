@@ -362,7 +362,7 @@ export function SpellBookSection({ onTripleTap }: Props) {
                         }
                     />
                 ))}
-                {/* The Composer ◎ — launcher pill (Spite Book precedent: the
+                {/* The Composer ⊚ — launcher pill (Spite Book precedent: the
                     pill drives a surface, not a body flag). Temporary switch
                     while Brendon picks the permanent home (2026-07-13). */}
                 <SettingsToggle
@@ -370,7 +370,7 @@ export function SpellBookSection({ onTripleTap }: Props) {
                     active={false}
                     title="The Composer — visual query builder"
                     onClick={() => open('composer')}
-                    icon={'◎︎'}
+                    icon={'⊚︎'}
                     label="The Composer"
                 />
             </div>

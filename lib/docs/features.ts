@@ -129,7 +129,7 @@ export const ATLAS: AtlasFeature[] = [
     F(79, 'Mint overlay — The Radar', 'Project Page', '⊕'),
     F(80, 'Network filters — Me · Following · Followers · Mutuals · Top Holders · New Wallets · PriceRank · Counterparties', 'Project Page'),
     F(81, 'Offers book (project-level)', 'Project Page'),
-    F(82, 'Price Lens', 'Project Page', '⌾'),
+    F(82, 'Price Lens', 'Project Page', '◎'),
     F(83, 'Price-intelligence suite — Price Record · Stairs · Momentum · Canyon · Verdict · Consensus · Whisper · Appraisal · Wake · Holdout · Outlier · Contrarian Index · Offer Archaeology · Floor Argument · Setter-vs-Taker', 'Project Page'),
     F(84, 'Price Story (project-level)', 'Project Page'),
     F(85, "Recent pill — My Breadcrumbs + What's Hot", 'Project Page'),

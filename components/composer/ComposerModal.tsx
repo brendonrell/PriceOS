@@ -1,7 +1,7 @@
 'use client';
 
 /*
- * The Composer ◎ — visual query builder over PD's whole dataset.
+ * The Composer ⊚ — visual query builder over PD's whole dataset.
  *
  * Spec: ClickUp task 86b9eu9wn + docs/briefs/composer-v1.md; UI per the
  * approved 2026-07-13 mocks (builder · results · Programs · Spell Book
@@ -218,7 +218,7 @@ export default function ComposerModal() {
         setSaveOpen(false);
         setSaveName('');
         setProgramName(entry.name);
-        showToast(`Program: SAVED ◎︎ ${entry.name}`);
+        showToast(`Program: SAVED ⊚︎ ${entry.name}`);
         setView('programs');
     };
     const openProgram = (p: ComposerProgram) => {
@@ -586,7 +586,7 @@ export default function ComposerModal() {
                     {/* ── top bar ── */}
                     <div className="cmp-topbar">
                         <span className="cmp-title">
-                            <span className="cmp-title-glyph">◎︎</span>
+                            <span className="cmp-title-glyph">⊚︎</span>
                             {view === 'programs'
                                 ? 'PROGRAMS'
                                 : view === 'results'
@@ -737,13 +737,13 @@ export default function ComposerModal() {
                                         autoFocus
                                     />
                                     <button className="cmp-btn-primary cmp-save-go" onClick={doSave}>
-                                        SAVE ◎︎
+                                        SAVE ⊚︎
                                     </button>
                                 </div>
                             ) : (
                                 <div className="cmp-save-row">
                                     <button className="cmp-btn-primary" onClick={() => setSaveOpen(true)}>
-                                        SAVE AS PROGRAM ◎︎
+                                        SAVE AS PROGRAM ⊚︎
                                     </button>
                                 </div>
                             )}
@@ -838,7 +838,7 @@ export default function ComposerModal() {
                                     </div>
                                 ))}
                                 <button className="cmp-prog-new" onClick={newProgram}>
-                                    + NEW PROGRAM ◎︎
+                                    + NEW PROGRAM ⊚︎
                                 </button>
                             </div>
                             <div className="cmp-note">

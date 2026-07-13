@@ -665,7 +665,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         title="Price Lens — floor-relative pricing"
                         active={notifs.spell_pricelens}
                         onClick={() => toggleWithToast('spell_pricelens', 'Price Lens')}
-                        icon={'⌾\uFE0E'}
+                        icon={'◎\uFE0E'}
                         iconStyle={{ fontSize: '13px', lineHeight: '1', margin: '0 1px' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
                     />

@@ -396,6 +396,8 @@ Wishlist rows (and the held-by / collected-by chips):
 | The Rewind (time scrubber) | ◄ | U+25C4 | the spec's candidate glyph, adopted; RewindBar banner |
 | The Dispatch (morning paper) | ▤ | U+25A4 | NEW — printed-page square; leads the home news rail pill. No collision (▥ freed 2026-07-12 stays free) |
 | Hostile Takeover | ⚑ | U+2691 | NEW — the raid flag; profile inscriptions, cast sheet, Offers-HQ badge. Deliberately NOT ◈ (spec draft used it, but ◈ is the streak glyph) |
+| The Composer (query builder) | ⊚ | U+229A | Brendon's pick 2026-07-13 from a 20-option round — math's composition operator (f∘g), the truest "compose". Wears: modal title, Spell Book pill, SAVE AS PROGRAM, Programs shelf. Replaced the spec-era ◎, which moved to Price Lens the same day. Device-verify per the #1 gate |
+| Price Lens | ◎ | U+25CE | took the bullseye from the Composer (Brendon, 2026-07-13) — the lens you read prices through. MY PD pill + docs feature index. Frees **⌾ (U+233E)**, Price Lens's old mark. ⚠ the docs feature index also lists The Genome as ◎ (docs-only) — flagged to Brendon, unresolved |
 
 > All three ship with the trailing VS-15 `︎` like every glyph here, and carry
 > the standard #1 glyph gate: device-verify as monochrome TEXT on iOS; if one

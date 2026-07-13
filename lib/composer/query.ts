@@ -1,5 +1,5 @@
 /*
- * The Composer ◎ — query model.
+ * The Composer ⊚ — query model.
  *
  * A ComposerQuery is a stored, re-runnable view config: scope (which
  * Projects), a stack of rules (ANDed), and the sort/group vocabulary the
