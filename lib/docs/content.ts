@@ -69,6 +69,7 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
             'for-collectors/how-pd-works',
             'for-collectors/wallet-setup',
             'for-collectors/the-secondary-market',
+            'for-collectors/hostile-takeover',
         ],
     },
     {
@@ -83,6 +84,9 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
             'app/spell-book',
             'app/achievements',
             'app/discovery',
+            'app/the-cartography',
+            'app/the-rewind',
+            'app/the-dispatch',
             'app/settings-and-display',
         ],
     },

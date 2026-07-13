@@ -3,7 +3,7 @@ title: "The App — Outputs"
 description: "The individual artwork surface: live on-chain rendering, fullscreen, attributes and rarity receipts, the action row, the ASCII backup, and Output-level follows."
 category: "app"
 keywords: ["output", "artwork", "live render", "rarity", "ascii backup"]
-last_updated: "2026-07-10"
+last_updated: "2026-07-12"
 ---
 
 # The App — Outputs
@@ -33,6 +33,10 @@ The Output's verbs, in canonical glyphs, one tap each:
 | Cart | ▢ |
 
 Starring a PIECE is deliberately silent — a frequent, low-stress bookmark that never generates a notification. Starring an artist, a project, or a trait is the opposite of silent: those stars are your declared taste, and movement on them drives your interest [Pings](/docs/pings/overview). Wishlist is the strongest signal of all — buy intent that drives financial Pings like wishlist hits.
+
+## Sorting & grouping the gallery
+
+Every gallery sort is one tap — each pill cycles its directions — and a standalone **grouping toggle** (⁘ at rest) leads the sort row: tap it to fold the grid into collapsible groups by **artist ✺, project ⬚, owner ⌂, dominant colour ◉, rarity ❖**, or two-level combos. The active sort becomes a shareable link, grids remember their grouping per page, and up to three saved **grid presets** restore a whole view — layout, sort, and grouping — in one tap.
 
 ## The ASCII backup
 

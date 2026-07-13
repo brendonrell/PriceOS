@@ -3,7 +3,7 @@ title: "The App — Discovery"
 description: "Finding work on PriceOS: the home page and its carousels, the live feed and milestones, global search, artist surfaces, and PriceRank."
 category: "app"
 keywords: ["discovery", "search", "home", "feed", "pricerank"]
-last_updated: "2026-07-10"
+last_updated: "2026-07-12"
 ---
 
 # The App — Discovery
@@ -18,6 +18,8 @@ The platform's front door, wearing the daily Mood Ring colour:
 - **The news carousel** — what the platform wants you to see today.
 - **The activity feed** — mints, sales, and **Project milestones** as they happen: a Project graduating into Now Minting (⟢⟢), a First Blood (†), a Century Club (Ⅽ), an Ascension (▲) at sell-out. The feed is where the platform celebrates in public.
 - **Ownership marks** — the grid quietly checks (✓) what you already own as you browse.
+- **The name itself** — "Price Discussion" is the platform's compass: **long-press** it to open [The Cartography ◫](/docs/app/the-cartography), **triple-tap** it to enter [The Rewind ◄](/docs/app/the-rewind).
+- **The Dispatch pill** — the news rail leads with the ▤ pointer to [the morning paper](/docs/app/the-dispatch).
 
 ## Global search
 
