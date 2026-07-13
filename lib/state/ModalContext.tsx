@@ -47,7 +47,8 @@ export type ModalName =
     | 'golf-leaderboard'
     | 'cartography'
     | 'takeover'
-    | 'sigilForge';
+    | 'sigilForge'
+    | 'composer';
 
 interface OpenModalState {
     name: ModalName;

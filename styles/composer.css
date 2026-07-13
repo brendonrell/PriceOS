@@ -1,0 +1,371 @@
+/* ══════════════════════════════════════════════════════════════════════
+   THE COMPOSER ◎ — visual query builder (components/composer/ComposerModal)
+   Per the approved 2026-07-13 mocks. Full-strength, human-legible chrome
+   throughout (CLAUDE.md Rule #2) — the only faded element is a pending
+   (half-built) rule row, where the fade carries meaning.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.composer-modal {
+    padding: 0;
+    justify-content: flex-start;
+    align-items: stretch;
+}
+.cmp-stage {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    padding-top: calc(10px + env(safe-area-inset-top));
+    font-family: 'Courier New', Courier, monospace;
+}
+
+/* ── top bar ── */
+.cmp-topbar {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px 12px;
+}
+.cmp-title {
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.cmp-title-glyph { margin-right: 8px; }
+.cmp-topbar-right { display: flex; align-items: center; gap: 12px; flex: none; }
+.cmp-nav-btn {
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 1px;
+    padding: 5px 11px;
+    cursor: pointer;
+}
+.cmp-close {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 17px;
+    padding: 2px 4px;
+    cursor: pointer;
+}
+
+/* ── scroll body ── */
+.cmp-scroll {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 2px 16px calc(60px + env(safe-area-inset-bottom));
+}
+
+/* ── pills (builder vocabulary) ── */
+.cmp-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--border-color);
+    background: var(--stat-bg);
+    border-radius: 999px;
+    padding: 7px 12px;
+    font-family: inherit;
+    font-size: 12.5px;
+    color: var(--text-color);
+    line-height: 1.2;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.cmp-pill.is-on {
+    background: var(--stat-active-bg);
+    color: var(--stat-active-text);
+    font-weight: bold;
+}
+.cmp-pill.is-op { background: rgba(255, 255, 255, 0.08); }
+.cmp-pill.is-dim { background: none; }
+.cmp-pill.is-editing { outline: 2px solid var(--text-color); outline-offset: 1px; }
+.cmp-pill.is-danger { border-color: var(--hothurt); color: var(--hothurt); }
+.cmp-pill-glyph { font-size: 14px; line-height: 1; }
+.cmp-caret { font-size: 10px; }
+
+/* ── scope row ── */
+.cmp-scope-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0 16px;
+    flex-wrap: wrap;
+}
+.cmp-prefix {
+    flex: none;
+    width: 46px;
+    text-align: right;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: #9a9a9a;
+}
+.cmp-scope-row .cmp-prefix { width: auto; }
+
+/* ── rule rows ── */
+.cmp-rules { display: flex; flex-direction: column; gap: 10px; }
+.cmp-rule-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-wrap: wrap;
+}
+/* Meaning-carrying fade: a rule with no values yet isn't filtering. */
+.cmp-rule-row.is-pending .cmp-pill { opacity: 0.55; }
+.cmp-rule-x {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 14px;
+    padding: 4px 6px;
+    cursor: pointer;
+}
+.cmp-rule-add {
+    align-self: flex-start;
+    margin: 4px 0 0 53px;
+    display: inline-flex;
+    align-items: center;
+    border: 1px dashed rgba(255, 255, 255, 0.4);
+    background: none;
+    border-radius: 999px;
+    padding: 7px 15px;
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 12.5px;
+    letter-spacing: 1px;
+    cursor: pointer;
+}
+
+/* ── editor tray (field / op / value pickers) ── */
+.cmp-tray {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 7px;
+    margin-left: 53px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+}
+.cmp-tray-note { font-size: 11px; letter-spacing: 1px; color: #bdbdbd; }
+.cmp-input {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 13px;
+    padding: 8px 10px;
+    min-width: 0;
+    width: 130px;
+}
+.cmp-input:focus { outline: 2px solid var(--text-color); outline-offset: 1px; }
+
+/* ── sort / group row ── */
+.cmp-sortbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-top: 1px solid var(--border-color);
+    margin-top: 18px;
+    padding-top: 14px;
+    overflow-x: auto;
+}
+.cmp-sort-btn {
+    background: none;
+    border: none;
+    color: #cfcfcf;
+    font-family: inherit;
+    font-size: 12px;
+    letter-spacing: 1px;
+    padding: 4px 2px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    flex: none;
+}
+.cmp-sort-btn.is-on { color: #ffffff; font-weight: bold; }
+.cmp-sort-glyph { font-size: 17px; line-height: 1; }
+.cmp-group-btn { margin-right: 7px; }
+.cmp-sort-arrow { font-size: 15px; }
+
+/* ── live match strip ── */
+.cmp-live {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 0 0;
+    padding: 11px 13px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    font-size: 13px;
+    letter-spacing: 1px;
+}
+.cmp-live-dot {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--attention, #FFE600);
+    animation: cmp-breathe 1.6s ease-in-out infinite;
+}
+/* Loading pulses faster — the "always moving forward" contract. */
+.cmp-live-dot.is-loading { animation-duration: 0.7s; }
+@keyframes cmp-breathe { 50% { opacity: 0.35; } }
+.cmp-live-count b { font-size: 15px; }
+.cmp-live-open {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    cursor: pointer;
+    padding: 2px 0;
+}
+.cmp-live-open.is-static { cursor: default; }
+
+/* ── save row ── */
+.cmp-save-row { display: flex; gap: 10px; margin-top: 14px; }
+.cmp-btn-primary {
+    flex: 1;
+    text-align: center;
+    border: 1px solid var(--text-color);
+    border-radius: 10px;
+    background: var(--stat-active-bg);
+    color: var(--stat-active-text);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    padding: 13px 10px;
+    cursor: pointer;
+}
+.cmp-save-input { flex: 1; width: auto; }
+.cmp-save-go { flex: none; padding: 13px 18px; }
+
+/* ── results: chips ── */
+.cmp-chips {
+    display: flex;
+    gap: 7px;
+    flex-wrap: wrap;
+    margin: 2px 0 12px;
+}
+.cmp-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 5px 10px;
+    font-size: 11.5px;
+    color: #d6d6d6;
+    font-family: inherit;
+}
+.cmp-chip b { color: #fff; }
+.cmp-chip.is-btn {
+    color: var(--text-color);
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+}
+
+/* ── results: grid — the existing gallery metrics, inside the modal ── */
+.cmp-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+    padding: 14px 0 40px;
+    align-items: start;
+    align-content: start;
+}
+@media (max-width: 600px) {
+    .cmp-gallery {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 15px;
+    }
+}
+.cmp-empty {
+    grid-column: 1 / -1;
+    padding: 34px 0;
+    text-align: center;
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: #bdbdbd;
+}
+
+/* ── Programs shelf ── */
+.cmp-prog-list { display: flex; flex-direction: column; gap: 12px; margin-top: 6px; }
+.cmp-prog-row {
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 13px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: pan-y;
+}
+.cmp-prog-top { display: flex; align-items: center; gap: 9px; }
+.cmp-prog-name {
+    font-size: 14.5px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.cmp-prog-count {
+    flex: none;
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: bold;
+    color: #111111;
+    background: var(--attention, #FFE600);
+    border-radius: 999px;
+    padding: 2px 9px;
+}
+.cmp-prog-sub { font-size: 11.5px; color: #a8a8a8; line-height: 1.5; }
+.cmp-prog-manage { display: flex; gap: 8px; margin-top: 4px; }
+.cmp-rename-input { flex: 1; width: auto; }
+.cmp-prog-new {
+    border: 1px dashed rgba(255, 255, 255, 0.4);
+    border-radius: 12px;
+    background: none;
+    padding: 15px 14px;
+    text-align: center;
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 13px;
+    letter-spacing: 2px;
+    cursor: pointer;
+}
+.cmp-note {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #9a9a9a;
+    margin: 18px 2px 8px;
+    line-height: 1.6;
+}
