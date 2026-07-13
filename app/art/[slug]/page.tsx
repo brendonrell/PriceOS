@@ -17,7 +17,8 @@ import type { Metadata } from 'next';
 import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import ProjectPageBody from '../../../components/project/ProjectPageBody';
-import { getProject, artImageUrl } from '../../../lib/project/registry';
+import { getProject, artImageUrl, ART_REV } from '../../../lib/project/registry';
+import { getPreviewBucket } from '../../../lib/cf/r2';
 import { getSupabaseService } from '../../../lib/supabase';
 
 export const dynamic = 'force-dynamic';
@@ -119,9 +120,23 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
         `on Price Discussion. ${def.outputs} pieces, each rendered live from deterministic code.`,
     ].filter(Boolean).join(' ');
     // Share/unfurl image — a real piece from the project (the first showcase
-    // pick, else #1), as a large card. Unminted projects fall back to the mark.
+    // pick, else #1), as a large card. Unminted projects fall back to the
+    // mark, and on the Worker the art bucket confirms the preview actually
+    // exists (previews pin on first view — a 404 og:image = naked embed).
     const { total, showcaseIds } = await fetchSeed(slug);
-    const art = total > 0 ? artImageUrl(slug, showcaseIds[0] ?? 1) : null;
+    let heroId: number | null = total > 0 ? (showcaseIds[0] ?? 1) : null;
+    if (heroId != null) {
+        try {
+            const bucket = getPreviewBucket();
+            if (bucket) {
+                if (!(await bucket.head(`${slug}/${heroId}.${ART_REV}.png`))) {
+                    // Showcase pick unpinned — try #1 before giving up.
+                    heroId = heroId !== 1 && (await bucket.head(`${slug}/1.${ART_REV}.png`)) ? 1 : null;
+                }
+            }
+        } catch { /* keep the minted-based pick */ }
+    }
+    const art = heroId != null ? artImageUrl(slug, heroId) : null;
     const ogTitle = `${def.displayName} on Price Discussion`;
     return {
         title: `${def.displayName} · Price Discussion`,

@@ -13,7 +13,8 @@ import type { Metadata } from 'next';
 import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import ArtworkPageBody from '@/components/artwork/ArtworkPageBody';
-import { getProject, artImageUrl } from '@/lib/project/registry';
+import { getProject, artImageUrl, ART_REV } from '@/lib/project/registry';
+import { getPreviewBucket } from '@/lib/cf/r2';
 import { getSupabaseService } from '@/lib/supabase';
 
 type Props = { params: Promise<{ slug: string; localId: string }> };
@@ -26,11 +27,11 @@ const fetchOutputFacts = cache(
   async (
     slug: string,
     tokenId: number,
-  ): Promise<{ scene: string | null; listedEth: number | null; minted: boolean }> => {
+  ): Promise<{ scene: string | null; listedEth: number | null; hasStoredArt: boolean }> => {
     try {
       const supabase = getSupabaseService();
       const now = new Date().toISOString();
-      const [o, l] = await Promise.all([
+      const [o, l, proj] = await Promise.all([
         supabase
           .from('outputs')
           .select('scene')
@@ -47,15 +48,29 @@ const fetchOutputFacts = cache(
           .order('price_eth', { ascending: true })
           .limit(1)
           .maybeSingle(),
+        supabase
+          .from('projects')
+          .select('minted_count')
+          .eq('id', slug)
+          .maybeSingle(),
       ]);
       const scene = (o.data as { scene?: string | null } | null)?.scene ?? null;
       const p = (l.data as { price_eth?: string | number | null } | null)?.price_eth;
       const listedEth = p != null && Number(p) > 0 ? Number(p) : null;
-      // An outputs row exists exactly for minted pieces — that's the gate for
-      // pointing the share image at the stored preview (unminted ids have none).
-      return { scene, listedEth, minted: o.data != null };
+      // Share-image gate: the stored preview must ACTUALLY exist. On the
+      // Worker we hold the art bucket binding, so ask it directly (previews
+      // pin on first view — minted-but-never-viewed pieces have none, and an
+      // unfurler pointed at a 404 renders a naked embed). Outside the Worker
+      // (local build), fall back to "minted" (ids mint 1..minted_count).
+      const minted = tokenId <= (((proj.data as { minted_count?: number } | null)?.minted_count) ?? 0);
+      let hasStoredArt = minted;
+      try {
+        const bucket = getPreviewBucket();
+        if (bucket) hasStoredArt = (await bucket.head(`${slug}/${tokenId}.${ART_REV}.png`)) != null;
+      } catch { /* keep the minted fallback */ }
+      return { scene, listedEth, hasStoredArt };
     } catch {
-      return { scene: null, listedEth: null, minted: false };
+      return { scene: null, listedEth: null, hasStoredArt: false };
     }
   },
 );
@@ -91,7 +106,8 @@ export default async function ProjectOutputPage(props: Props) {
   try {
     traits = (project?.traitsOf?.(localId) as Record<string, unknown>) ?? {};
   } catch { /* engine without a calc prefix — ship without traits */ }
-  const { scene, listedEth } = await fetchOutputFacts(slug, localId);
+  const facts = await fetchOutputFacts(slug, localId);
+  const { scene, listedEth } = facts;
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'VisualArtwork',
@@ -160,7 +176,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     const t = (project?.traitsOf?.(localId) as Record<string, unknown>) ?? {};
     traitLine = Object.entries(t).slice(0, 6).map(([k, v]) => `${k}: ${v}`).join(' · ');
   } catch { /* ship without traits */ }
-  const { scene, listedEth, minted } = await fetchOutputFacts(slug, localId);
+  const { scene, listedEth, hasStoredArt } = await fetchOutputFacts(slug, localId);
   const description = [
     `Generative artwork #${localId} of ${project?.outputs ?? '?'}`,
     project?.artistHandle ? `by @${project.artistHandle}` : null,
@@ -173,7 +189,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   // publicly from our own /preview route), as a large card. Sharing an Output
   // is PD's word-of-mouth engine; the art must be the first thing anyone sees.
   // Unminted ids have no stored preview, so they fall back to the PD mark.
-  const art = minted ? artImageUrl(slug, localId) : null;
+  const art = hasStoredArt ? artImageUrl(slug, localId) : null;
   const ogImages = art
     ? [{ url: art, alt: ogTitle }]
     : [{ url: '/icon-1024px.png', width: 1024, height: 1024, alt: 'Price Discussion' }];
