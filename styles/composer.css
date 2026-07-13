@@ -1,25 +1,22 @@
 /* ══════════════════════════════════════════════════════════════════════
    THE COMPOSER ⊚ — visual query builder (components/composer/ComposerModal)
-   Per the approved 2026-07-13 mocks, colorway-native like every PD page.
-   Rule #2 (sharpened 2026-07-13, Composer washout): NO tiny / skinny /
-   faint / low-opacity chrome, ever. No hardcoded greys, no alpha washes —
-   every element wears the full-strength site tokens (--text-color /
-   --bg-color / --stat-active-*) exactly like the proven pills (the
-   STICKERS button treatment), so it is fully legible on whatever hue the
-   colorway paints today. The ONLY fade is a half-built rule (meaning-
-   carrying: it isn't filtering yet).
+   Brand-cut 2026-07-13 (Brendon: "PD's UI with its own look"): the chrome
+   is the SITE's pill anatomy verbatim — 28px pills · 4px corners · bold
+   12px Courier · full-strength outlines (base .pill / .pill-l2 / .btn-mint
+   vocabulary, globals.css ~4910) — on the Composer's own DELIBERATELY DARK
+   stage (Brendon's call, same day). Its second signature: PHYSICALITY —
+   everything rises into place and compresses under the finger (kept by
+   Brendon's order; the press-give + pop + cascade layer is Composer's own).
+   Rule #2 throughout: no tiny/skinny/faint/low-opacity chrome; the only
+   fade is a half-built rule (meaning: it isn't filtering yet).
    ══════════════════════════════════════════════════════════════════════ */
 
 .composer-modal {
     padding: 0;
     justify-content: flex-start;
     align-items: stretch;
-    /* DELIBERATELY DARK-ONLY (Brendon's call, 2026-07-13) — the Composer is
-       pinned to the Dot basis on every colorway, like the Cartography's own
-       stage. NOT a washout fix (the chrome below is full-strength either
-       way): a product choice. Tokens are re-based locally so every rule in
-       this file — and the gallery/group-header chrome rendered inside the
-       modal — resolves to the dark scheme regardless of the page's paint. */
+    /* Dark-only stage — tokens re-based locally so every rule here (and the
+       gallery chrome inside the modal) resolves dark on any colorway. */
     --bg-color: #111111;
     --text-color: #e0e0e0;
     --border-color: rgba(255, 255, 255, 0.15);
@@ -37,49 +34,43 @@
     color: var(--text-color);
 }
 
+/* ── motion signature (Composer's own — kept by Brendon's order) ── */
+@keyframes cmp-rise {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: none; }
+}
+
 /* ── top bar ── */
 .cmp-topbar {
     flex: none;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 16px 12px;
+    gap: 12px;
+    padding: 12px 16px 10px;
 }
 .cmp-title {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: bold;
     letter-spacing: 3px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
-/* The ⊚ breathes in the same rhythm as the live dot — one machine, one
-   pulse (never resting below clearly-visible). */
+/* The ⊚ breathes in the live dot's rhythm — one machine, one pulse. */
 .cmp-title-glyph {
     margin-right: 8px;
     display: inline-block;
     animation: cmp-glyph-breathe 1.6s ease-in-out infinite;
 }
 @keyframes cmp-glyph-breathe { 50% { opacity: 0.55; } }
-.cmp-topbar-right { display: flex; align-items: center; gap: 12px; flex: none; }
-.cmp-nav-btn {
-    background: var(--bg-color);
-    border: 1px solid var(--text-color);
-    border-radius: 999px;
-    color: var(--text-color);
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: bold;
-    letter-spacing: 1px;
-    padding: 6px 12px;
-    cursor: pointer;
-}
+.cmp-topbar-right { display: flex; align-items: center; gap: 10px; flex: none; }
 .cmp-close {
     background: none;
     border: none;
     color: var(--text-color);
     font-family: inherit;
-    font-size: 18px;
+    font-size: 17px;
     font-weight: bold;
     padding: 2px 4px;
     cursor: pointer;
@@ -90,43 +81,65 @@
     flex: 1;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    padding: 2px 16px calc(60px + env(safe-area-inset-bottom));
+    padding: 4px 16px calc(60px + env(safe-area-inset-bottom));
 }
 
-/* ── pills (builder vocabulary) — the STICKERS-button treatment: solid
-      page-colour fill + full-strength ink border/text, bold. ── */
+/* ── pills — the site's base .pill anatomy verbatim (28px · 4px · 12px
+      bold), selected = .pill-l2.active (ink fill, page text). ── */
 .cmp-pill {
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    height: 28px;
+    padding: 0 12px;
     border: 1px solid var(--text-color);
+    border-radius: 4px;
     background: var(--bg-color);
-    border-radius: 999px;
-    padding: 7px 12px;
     font-family: inherit;
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: bold;
     color: var(--text-color);
-    line-height: 1.2;
     white-space: nowrap;
     cursor: pointer;
+    user-select: none;
+    box-sizing: border-box;
+    transition: border-color 0.12s, transform 0.12s ease;
 }
+.cmp-pill:active { transform: scale(0.95); }
 .cmp-pill.is-on {
-    background: var(--stat-active-bg);
-    color: var(--stat-active-text);
-    border-color: var(--stat-active-bg);
+    background: var(--text-color);
+    color: var(--bg-color);
+    border-color: var(--text-color);
 }
 .cmp-pill.is-editing { outline: 2px solid var(--text-color); outline-offset: 2px; }
 .cmp-pill.is-danger { border-color: var(--hothurt, #FF0055); color: var(--hothurt, #FF0055); }
 .cmp-pill-glyph { font-size: 14px; line-height: 1; }
-.cmp-caret { font-size: 11px; }
+.cmp-caret { font-size: 10px; }
+.cmp-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    height: 28px;
+    padding: 0 12px;
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    background: var(--bg-color);
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: transform 0.12s ease;
+}
+.cmp-nav-btn:active { transform: scale(0.95); }
 
 /* ── scope row ── */
 .cmp-scope-row {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin: 4px 0 16px;
+    gap: 7px;
+    margin: 4px 0 14px;
     flex-wrap: wrap;
 }
 .cmp-prefix {
@@ -141,7 +154,7 @@
 .cmp-scope-row .cmp-prefix { width: auto; }
 
 /* ── rule rows ── */
-.cmp-rules { display: flex; flex-direction: column; gap: 10px; }
+.cmp-rules { display: flex; flex-direction: column; gap: 9px; }
 .cmp-rule-row {
     display: flex;
     align-items: center;
@@ -149,29 +162,7 @@
     flex-wrap: wrap;
     animation: cmp-rise 0.24s ease both;
 }
-/* Everything rises into place; taps have physical give. */
-@keyframes cmp-rise {
-    from { opacity: 0; transform: translateY(-4px); }
-    to   { opacity: 1; transform: none; }
-}
-.cmp-pill,
-.cmp-rule-add,
-.cmp-btn-primary,
-.cmp-nav-btn,
-.cmp-prog-new,
-.cmp-sort-btn {
-    transition: transform 0.12s ease;
-}
-.cmp-pill:active,
-.cmp-rule-add:active,
-.cmp-btn-primary:active,
-.cmp-nav-btn:active,
-.cmp-prog-new:active,
-.cmp-sort-btn:active {
-    transform: scale(0.95);
-}
-/* Meaning-carrying fade — the ONE allowed fade: a rule with no values yet
-   is not filtering anything. */
+/* Meaning-carrying fade — the ONE allowed fade: this rule isn't filtering yet. */
 .cmp-rule-row.is-pending .cmp-pill { opacity: 0.6; }
 .cmp-rule-x {
     margin-left: auto;
@@ -179,27 +170,33 @@
     border: none;
     color: var(--text-color);
     font-family: inherit;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: bold;
     padding: 4px 6px;
     cursor: pointer;
+    transition: transform 0.12s ease;
 }
+.cmp-rule-x:active { transform: scale(0.9); }
 .cmp-rule-add {
     align-self: flex-start;
-    margin: 4px 0 0 57px;
+    margin: 3px 0 0 57px;
     display: inline-flex;
     align-items: center;
-    border: 1.5px dashed var(--text-color);
+    height: 28px;
+    padding: 0 14px;
+    border: 1px dashed var(--text-color);
+    border-radius: 4px;
     background: var(--bg-color);
-    border-radius: 999px;
-    padding: 7px 15px;
     color: var(--text-color);
     font-family: inherit;
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: bold;
     letter-spacing: 1px;
     cursor: pointer;
+    box-sizing: border-box;
+    transition: transform 0.12s ease;
 }
+.cmp-rule-add:active { transform: scale(0.95); }
 
 /* ── editor tray (field / op / value pickers) ── */
 .cmp-tray {
@@ -208,9 +205,9 @@
     align-items: center;
     gap: 7px;
     margin-left: 57px;
-    padding: 10px 12px;
-    border: 1px solid var(--text-color);
-    border-radius: 12px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
     background: var(--bg-color);
     animation: cmp-rise 0.2s ease both;
 }
@@ -221,28 +218,31 @@
     color: var(--text-color);
 }
 .cmp-input {
+    height: 28px;
+    padding: 0 10px;
     background: var(--bg-color);
     border: 1px solid var(--text-color);
-    border-radius: 8px;
+    border-radius: 4px;
     color: var(--text-color);
     font-family: inherit;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: bold;
-    padding: 8px 10px;
     min-width: 0;
     width: 130px;
+    box-sizing: border-box;
 }
 .cmp-input::placeholder { color: var(--text-color); opacity: 1; }
 .cmp-input:focus { outline: 2px solid var(--text-color); outline-offset: 1px; }
 
-/* ── sort / group row ── */
+/* ── sort / group row — the site's sort-row voice: text buttons, active =
+      bold + direction arrow. ── */
 .cmp-sortbar {
     display: flex;
     align-items: center;
     gap: 12px;
-    border-top: 1px solid var(--text-color);
-    margin-top: 18px;
-    padding-top: 14px;
+    border-top: 1px solid var(--border-color);
+    margin-top: 16px;
+    padding-top: 12px;
     overflow-x: auto;
 }
 .cmp-sort-btn {
@@ -250,7 +250,7 @@
     border: none;
     color: var(--text-color);
     font-family: inherit;
-    font-size: 13px;
+    font-size: 12px;
     letter-spacing: 1px;
     padding: 4px 2px;
     display: inline-flex;
@@ -258,23 +258,36 @@
     gap: 4px;
     cursor: pointer;
     flex: none;
+    transition: transform 0.12s ease;
 }
-.cmp-sort-btn.is-on { font-weight: bold; text-decoration: underline; text-underline-offset: 4px; }
-.cmp-sort-glyph { font-size: 18px; line-height: 1; }
-.cmp-group-btn { margin-right: 7px; }
-.cmp-sort-arrow { font-size: 15px; font-weight: bold; }
+.cmp-sort-btn:active { transform: scale(0.95); }
+.cmp-sort-btn.is-on { font-weight: bold; }
+.cmp-sort-glyph { font-size: 17px; line-height: 1; }
+.cmp-group-btn { margin-right: 6px; }
+.cmp-sort-arrow { font-size: 14px; font-weight: bold; }
+
+/* ── the readout — the query reading itself back in plain English ── */
+.cmp-readout {
+    margin: 14px 2px 0;
+    font-size: 13px;
+    font-weight: bold;
+    line-height: 1.7;
+    color: var(--text-color);
+    letter-spacing: 0.3px;
+}
+.cmp-readout-glyph { margin-right: 7px; }
 
 /* ── live match strip ── */
 .cmp-live {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin: 16px 0 0;
-    padding: 12px 13px;
-    border: 1px solid var(--text-color);
-    border-radius: 10px;
+    margin: 14px 0 0;
+    padding: 12px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
     background: var(--bg-color);
-    font-size: 13px;
+    font-size: 12px;
     font-weight: bold;
     letter-spacing: 1px;
     color: var(--text-color);
@@ -287,7 +300,7 @@
     background: var(--attention, #FFE600);
     animation: cmp-breathe 1.6s ease-in-out infinite;
 }
-/* Loading pulses faster — the "always moving forward" contract. */
+/* Loading pulses faster — the "always feel moving forward" contract. */
 .cmp-live-dot.is-loading { animation-duration: 0.7s; }
 @keyframes cmp-breathe { 50% { opacity: 0.35; } }
 .cmp-live-count b { font-size: 15px; }
@@ -302,8 +315,8 @@
     flex: none;
     color: #111111;
     background: var(--attention, #FFE600);
-    border-radius: 999px;
-    padding: 2px 9px;
+    border-radius: 4px;
+    padding: 2px 8px;
     font-size: 12px;
     font-weight: bold;
     animation: cmp-delta-life 1.1s ease forwards;
@@ -320,48 +333,44 @@
     border: none;
     color: var(--text-color);
     font-family: inherit;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: bold;
     letter-spacing: 2px;
     cursor: pointer;
     padding: 2px 0;
+    transition: transform 0.12s ease;
 }
+.cmp-live-open:active { transform: scale(0.95); }
 .cmp-live-open.is-static { cursor: default; }
 
-/* ── the readout — the query reading itself back in plain English ── */
-.cmp-readout {
-    margin: 16px 2px 0;
-    font-size: 13.5px;
-    font-weight: bold;
-    line-height: 1.7;
-    color: var(--text-color);
-    letter-spacing: 0.3px;
-}
-.cmp-readout-glyph { margin-right: 8px; }
-
-/* ── save row ── */
-.cmp-save-row { display: flex; gap: 10px; margin-top: 14px; }
+/* ── save row — the mint button's stature (46px · 4px). ── */
+.cmp-save-row { display: flex; gap: 8px; margin-top: 12px; }
 .cmp-btn-primary {
     flex: 1;
-    text-align: center;
-    border: 1px solid var(--stat-active-bg);
-    border-radius: 10px;
-    background: var(--stat-active-bg);
-    color: var(--stat-active-text);
+    height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    background: var(--text-color);
+    color: var(--bg-color);
     font-family: inherit;
     font-size: 13px;
     font-weight: bold;
     letter-spacing: 2px;
-    padding: 13px 10px;
     cursor: pointer;
+    box-sizing: border-box;
+    transition: transform 0.12s ease;
 }
-.cmp-save-input { flex: 1; width: auto; }
-.cmp-save-go { flex: none; padding: 13px 18px; }
+.cmp-btn-primary:active { transform: scale(0.98); }
+.cmp-save-input { flex: 1; width: auto; height: 46px; font-size: 13px; }
+.cmp-save-go { flex: none; padding: 0 20px; }
 
-/* ── results: chips ── */
+/* ── results: chips (the overture — cascade in, then the grid rises) ── */
 .cmp-chips {
     display: flex;
-    gap: 7px;
+    gap: 6px;
     flex-wrap: wrap;
     margin: 2px 0 12px;
 }
@@ -369,26 +378,33 @@
     display: inline-flex;
     align-items: center;
     gap: 5px;
+    height: 24px;
+    padding: 0 10px;
     border: 1px solid var(--text-color);
-    border-radius: 999px;
+    border-radius: 4px;
     background: var(--bg-color);
-    padding: 5px 11px;
-    font-size: 12.5px;
+    font-size: 12px;
     color: var(--text-color);
     font-family: inherit;
+    box-sizing: border-box;
+    animation: cmp-rise 0.28s ease both;
+    animation-delay: calc(var(--i, 0) * 45ms);
 }
 .cmp-chip b { font-weight: bold; }
-.cmp-chip.is-btn { font-weight: bold; letter-spacing: 1px; cursor: pointer; }
-/* The overture — opening a Program cascades its chips in, then the grid
-   rises beneath them. */
-.cmp-chip { animation: cmp-rise 0.28s ease both; animation-delay: calc(var(--i, 0) * 45ms); }
+.cmp-chip.is-btn {
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: transform 0.12s ease;
+}
+.cmp-chip.is-btn:active { transform: scale(0.95); }
 
 /* ── results: grid — the existing gallery metrics, inside the modal ── */
 .cmp-gallery {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 20px;
-    padding: 14px 0 40px;
+    padding: 12px 0 40px;
     align-items: start;
     align-content: start;
     animation: cmp-rise 0.35s ease 0.15s both;
@@ -410,26 +426,29 @@
 }
 
 /* ── Programs shelf ── */
-.cmp-prog-list { display: flex; flex-direction: column; gap: 12px; margin-top: 6px; }
-/* Shelf rows cascade in, oldest program leading. */
-.cmp-prog-row { animation: cmp-rise 0.28s ease both; animation-delay: calc(var(--i, 0) * 50ms); }
+.cmp-prog-list { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
 .cmp-prog-row {
-    border: 1px solid var(--text-color);
-    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
     background: var(--bg-color);
-    padding: 13px 14px;
+    padding: 12px 14px;
     display: flex;
     flex-direction: column;
-    gap: 7px;
+    gap: 6px;
     cursor: pointer;
     user-select: none;
     -webkit-user-select: none;
     touch-action: pan-y;
     color: var(--text-color);
+    /* Shelf rows cascade in, oldest Program leading; press-give like a pill. */
+    animation: cmp-rise 0.28s ease both;
+    animation-delay: calc(var(--i, 0) * 50ms);
+    transition: transform 0.12s ease;
 }
+.cmp-prog-row:active { transform: scale(0.985); }
 .cmp-prog-top { display: flex; align-items: center; gap: 9px; }
 .cmp-prog-name {
-    font-size: 14.5px;
+    font-size: 14px;
     font-weight: bold;
     letter-spacing: 1px;
     overflow: hidden;
@@ -439,34 +458,43 @@
 .cmp-prog-count {
     flex: none;
     margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    height: 18px;
+    padding: 0 6px;
     font-size: 12px;
     font-weight: bold;
     color: #111111;
     background: var(--attention, #FFE600);
-    border-radius: 999px;
-    padding: 3px 10px;
+    border-radius: 4px;
+    box-sizing: border-box;
 }
-.cmp-prog-sub { font-size: 12.5px; color: var(--text-color); line-height: 1.5; }
-.cmp-prog-manage { display: flex; gap: 8px; margin-top: 4px; }
+.cmp-prog-sub { font-size: 12px; color: var(--text-color); line-height: 1.55; }
+.cmp-prog-manage { display: flex; gap: 7px; margin-top: 3px; }
 .cmp-rename-input { flex: 1; width: auto; }
 .cmp-prog-new {
-    border: 1.5px dashed var(--text-color);
-    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 46px;
+    border: 1px dashed var(--text-color);
+    border-radius: 4px;
     background: var(--bg-color);
-    padding: 15px 14px;
-    text-align: center;
     color: var(--text-color);
     font-family: inherit;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: bold;
     letter-spacing: 2px;
     cursor: pointer;
+    box-sizing: border-box;
+    transition: transform 0.12s ease;
 }
+.cmp-prog-new:active { transform: scale(0.98); }
 .cmp-note {
     font-size: 12px;
     font-weight: bold;
     letter-spacing: 1px;
     color: var(--text-color);
-    margin: 18px 2px 8px;
+    margin: 16px 2px 8px;
     line-height: 1.7;
 }
