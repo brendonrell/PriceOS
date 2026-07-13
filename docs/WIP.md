@@ -8,8 +8,14 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
--9. ✅ **THE HARDENING ROUND — 19 of 22 Architect-Report items DONE, on dev
-   (2026-07-13 overnight, Fable; Brendon: "fix it all in this chat").**
+-9. ✅ **THE HARDENING ROUND — 19 of 22 Architect-Report items DONE, on dev,
+   DEPLOYED + VERIFIED LIVE, CI GREEN (2026-07-13, Fable; Brendon: "fix it
+   all in this chat", wrapped on his AMAZING WORK).** End-state proof:
+   /api/health returns ok on the live preview (db up, sweep heartbeat fresh,
+   Dispatch printed) · telemetry beacon fired end-to-end into app_errors on
+   prod and cleaned up · CI run #2 SUCCESS on dev 53f56fcd (run #1 failed
+   only on the runner's Node 20 — supabase realtime needs Node 22's native
+   WebSocket; pinned. Lesson: CI node must match the container, 22).
    Full per-item status lives IN the brief's checklist —
    **`docs/briefs/fundamentals-hardening.md` is the baton for this
    workstream**, read it before touching anything hardening-related.
