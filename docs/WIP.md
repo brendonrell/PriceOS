@@ -32,11 +32,28 @@
    until Brendon's 2 taps** (2 DNS records + RESEND_API_KEY worker secret —
    assigned comment on the task has exact values; API key in chat 2026-07-13).
    Resend segment `fb22999d-a121-4feb-aaa8-84d69994492c` = the list of record.
-   ④ **Sentinel audited** (works but session-static; no ping on crossing) —
-   server-side watcher + workflows merge QUEUED as ClickUp `86bax7dvz` with
-   the full build spec. ⑤ **Sentiment tab make-real + artist-empowerment
-   ideas**: proposals delivered in chat, AWAITING BRENDON'S PICKS — build
-   nothing until his word.
+   ④ **Sentinel audited** then — same evening, Brendon greenlit "build it
+   all" — **SHIPPED server-side** (`86bax7dvz` CLOSED): one 1-min watcher
+   for BUY-target to-dos + price/upload workflows vs live listings; ping +
+   native push on crossing; exactly-once via `sentinel_fires` (applied +
+   mirrored); render kinds sentinel ❍ / workflow ☇. ⑤ **Sentiment REAL**
+   (both cards): Disagreement = measured held-vs-listed split (sentiment
+   API extended); **PRICE TARGETS = the crowd game** — monthly window, one
+   call/wallet, tap-a-rung ladder anchored on the real floor, SEALED
+   (RLS, service-only `price_predictions`, applied + mirrored) until the
+   month turns, then last window reveals as histogram vs floor.
+   ⑥ **Sitewide open-at-top pin** (the studio scroll bug was global — now
+   fixed in the shell; hash links + modal locks respected). ⑦ **Artist
+   batch**: EARNED line (95% mints + 3% secondary — rates read from the
+   contracts) · DROP KIT share pack · VOUCH (2 slots, whitelisted only,
+   pings @brendon; `artist_vouches` applied + mirrored) · soundtrack
+   manager (artist-wallet-gated PATCH) · artist profiles unfurl with
+   their art. **Deferred deliberately: share-a-draft** (hosts artist
+   scripts publicly — own build; noted on epic `86bavub9k`).
+   ⑧ Digest polish per Brendon: THE STAMP (per-edition generative seal,
+   frameless), JOIN THE CHAT CTA, loud one-tap unsubscribe, print-run
+   scarcity line on the /dispatch slip (live seat count), days locked
+   1st·11th·22nd.
 
 -9. ✅ **THE HARDENING ROUND — 19 of 22 Architect-Report items DONE, on dev,
    DEPLOYED + VERIFIED LIVE, CI GREEN (2026-07-13, Fable; Brendon: "fix it
