@@ -8,6 +8,49 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+-5. ✅ **PRE-LAUNCH BATCH — SHIPPED + AUTO-DEPLOYED (2026-07-13, dev
+   `cfc19a6`; all Brendon's same-day list).** Live on dev:
+   ① About PD: the 60-DAY COOLDOWN banner box + explainer up top + a BY THE
+   NUMBERS row. ② Output timeline: time reads as distance — >1yr gap = 2×
+   dashed connector, 5+yrs 3×, 10+yrs 4× (FEED order only). ③ Tape swap:
+   top connect-menu glyph ▰ cycles THE TAPE (5-state), My PD ⏥ pill cycles
+   the MENU TAPE — positions/glyphs unchanged, functions traded. ④ Calendar:
+   to-dos layer ON by default AND the layer choice is account-backed
+   (`users.calendar_state` — hydrate/write-through in CalendarContext via
+   userState; day notes already rode the envelope). ⑤ Hothurt RING replaces
+   every left tab/rail (pings `--high`, sentinel `.ready`); a completed P1
+   keeps its ring at the done-fade (~half). ⑥ **NATIVE PUSH FIXED — the big
+   one:** npm `web-push`'s Node transport HANGS FOREVER on the Workers
+   runtime (proven in an isolated workerd harness) — every push since the
+   Cloudflare migration died silently (inbox ping row landed on time = the
+   "delayed badge"; banner never sent). Rebuilt delivery in
+   `lib/push/transport.ts` (WebCrypto + fetch, RFC 8291 aes128gcm + RFC
+   8292 VAPID), round-trip verified in Node AND workerd (encrypt → send →
+   decrypt-as-device + JWT verify). **If banners still don't arrive:
+   the ONLY remaining suspect is the WEBPUSH_PRIVATE_KEY secret missing on
+   the Cloudflare worker (dash → Settings → Variables).** ⑦ **THE VAULT
+   shipped** (Atlas King Candidates spec): +More › Vault pill on every
+   profile — near-black door (spec's call), MiniDisc shutter slide, seal =
+   forged Sigil in faction ink (⚐/‰ fallback), closed-door VERDICT LINE
+   (faction · pieces · oath days), appraisal plates (pdRarity + edition
+   rank) over real holdings, tap = enter the piece. ⑧ **WINDOWS CHROME
+   CRASH FIXED:** the three always-mounted full-viewport overlays (Stickers
+   · Spite Book · Panopticon) kept `backdrop-filter` while hidden — three
+   whole-window GPU blur surfaces alive on EVERY page (the whole-app Chrome
+   killer; phones too small to feel it). Blur now applies only on
+   `.active`; verified zero at-rest blur layers post-build. Brendon's
+   HW-accel-off test confirms/denies residual. ⑨ QR desktop login verified
+   already working (Connect Wallet → WalletConnect → scan QR).
+   **OPEN from the same list:** ⑩ SPELL BOOK stubs — plan presented, WAITING
+   ON BRENDON'S WORD (wire all 7 for real; hold GRAVITY as the ???? pill) —
+   ClickUp `86bad5g4t` commented. ⑪ DESKTOP PASS (perks for the big screen)
+   — Opus brief ready at `docs/briefs/desktop-pass.md` (Brendon starts that
+   chat). ⑫ NEWSLETTER — Resend pure-data weekly digest proposed, ClickUp
+   `86bax00un` (Ideas), awaiting greenlight.
+   Task branch `claude/pre-launch-edits-builds-3273du` = merged trash once
+   the session ends — Brendon deletes at
+   https://github.com/brendonrell/PriceOS/branches.
+
 -4. ✅ **THE COMPOSER ⊚ — SHIPPED + AUTO-DEPLOYED (2026-07-13, dev
    `2cab4ea`; ClickUp `86b9eu9wn` CLOSED with the full ship comment).**
    The visual query builder, whole: v1 (builder · live grouped-gallery
