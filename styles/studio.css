@@ -349,3 +349,14 @@
     border-radius: 4px;
     padding: 2px 6px;
 }
+
+/* Signed-out gate note — a real bordered callout at the top of the bench,
+   full-strength site tokens (Rule #2: no washes, 12px+, bold). */
+.pd-studio-gate-note {
+    border: 1px solid var(--text-color);
+    background: var(--bg-color);
+    color: var(--text-color);
+    font-weight: bold;
+    padding: 10px 12px;
+    margin: 14px 0 0;
+}

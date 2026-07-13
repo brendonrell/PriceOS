@@ -80,6 +80,27 @@ export default function StudioPage() {
     const [god, setGod] = useState(false);
     useEffect(() => setGod(hasStudioAccess(address ?? undefined)), [address]);
 
+    /* Who is at the bench? (Brendon, 2026-07-13 — "sort out what the studio
+       link does for logged-out and non-whitelisted users.") The workbench
+       itself is OPEN to everyone — drafts are device-local and free, and
+       letting any artist play IS the pitch. What changes by visitor:
+         signed out        → one honest line up top (drafts stay on device;
+                             connect to publish)
+         in, not whitelisted → publish section states the filter plainly with
+                             the application path
+         in, whitelisted   → publish flows as before (chain re-checks anyway)
+       Whitelist status via the existing /api/me/artist self-read. */
+    const [artist, setArtist] = useState<'unknown' | 'yes' | 'no'>('unknown');
+    useEffect(() => {
+        if (!address) { setArtist('unknown'); return; }
+        let live = true;
+        fetch('/api/me/artist')
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => { if (live && d) setArtist(d.is_artist ? 'yes' : 'no'); })
+            .catch(() => {});
+        return () => { live = false; };
+    }, [address]);
+
     const [drafts, setDrafts] = useState<StudioDraft[]>([]);
     const [activeId, setActiveId] = useState<string | null>(null);
     const [run, setRun] = useState<StudioRun | null>(null);
@@ -108,6 +129,23 @@ export default function StudioPage() {
         }, 600);
         return () => { cancel = true; window.clearTimeout(t); };
     }, [playlistId]);
+
+    /* The Studio opens AT ITS TOP, always (Brendon — "loads slightly scrolled
+       down" bug, present since the prototype). A cold load starts at 0, but
+       revisit paths (iOS restoring a prior visit's position before our manual
+       scrollRestoration takes hold, standalone-PWA returns) landed the page a
+       nudge down. Pin to the top after first paint — unless the URL carries a
+       hash (#analytics / #stickers deep links keep their jump). */
+    useEffect(() => {
+        if (typeof window === 'undefined' || window.location.hash) return;
+        window.scrollTo(0, 0);
+        // A second pin on the next frame beats late restores that fire after
+        // hydration (the "often, not always" flavour of the bug).
+        const raf = requestAnimationFrame(() => {
+            if (!document.body.classList.contains('modal-open')) window.scrollTo(0, 0);
+        });
+        return () => cancelAnimationFrame(raf);
+    }, []);
 
     useEffect(() => {
         const loaded = loadDrafts();
@@ -189,6 +227,15 @@ export default function StudioPage() {
                 Upload · Test · Publish · Manage —{' '}
                 <span style={{ display: 'inline-block', whiteSpace: 'nowrap' }}>From your phone or desktop</span>
             </div>
+
+            {/* Signed-out visitors get the whole workbench — and one honest
+                line about where their work lives. */}
+            {!address && (
+                <p className="pd-studio-note pd-studio-gate-note">
+                    You&apos;re at the bench signed out — drafts and test runs work fully and
+                    stay on this device. Connect your wallet to publish.
+                </p>
+            )}
 
             {/* ── WORKBENCH ── */}
             <div className="pd-studio-section">
@@ -600,6 +647,19 @@ export default function StudioPage() {
                                 </div>
                             ))}
                         </>
+                    ) : !address ? (
+                        <p className="pd-studio-note">
+                            Preflight clean. Connect your wallet to continue — publishing is
+                            signed from your own wallet, and the artist whitelist is checked
+                            on-chain at the door.
+                        </p>
+                    ) : artist === 'no' ? (
+                        <p className="pd-studio-note">
+                            Preflight clean — but this wallet isn&apos;t on the artist whitelist
+                            yet. PD is filtered: a quality floor every project passes, not a
+                            taste gate. To apply, write price@pricediscussion.com with your
+                            work — drafts and test runs here are yours regardless.
+                        </p>
                     ) : (
                         <>
                             <p className="pd-studio-note">

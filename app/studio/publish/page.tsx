@@ -209,7 +209,7 @@ function Publisher() {
                             ? revert.data?.errorName
                             : undefined;
                     if (name === 'NotWhitelisted') {
-                        setPreflight('This wallet is not on the artist whitelist yet — publishing is gated by curation.');
+                        setPreflight('This wallet is not on the artist whitelist yet — PD is filtered (a quality floor, not a taste gate). Apply: price@pricediscussion.com');
                         return;
                     }
                     if (name === 'CooldownActive') {
