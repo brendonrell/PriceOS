@@ -8,6 +8,36 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+-2. ✅ **FACTIONS END TO END — SHIPPED + DEPLOYED (2026-07-13, dev `87a8354`,
+   worker version `ad61aa44`, verified live).** Spec v3.1 (Atlas → KING MODE →
+   FACTIONS page) built whole, to the open-call recs (30d defection cooldown ·
+   72h siege window · whale damping past 5 pieces). Live and verified on the
+   preview: faction reveal toast (22 colour factions = the blank bubbles as-is;
+   holo blank/solids/Petey/$PRICE stay neutral) · oath ledger riding the
+   profile-logo save (defection = reset + cooldown + permanent scar) ·
+   **marks-chain recorder running on the 1-min sweep** (one mark per wallet per
+   token EVER; sales deep / passes faint; 12 slots → Relic; overflow → crypt +
+   "Stone: STRUCK" ping) · grip/siege/conquest engine + **Book of Conquests
+   (Age I — THE FOUNDING declared itself on first sweep)** · derived titles
+   (Warden/First Blood/Founder's Hand/Kingmaker/The Struck) + grudges ·
+   Marginalia ceremony on the artwork page (10s ceremonial hold → white
+   generative frame, real-PriceSprite margin hands, enlisted-only corners +
+   banner choreography) · Cartography: map-owned light ink + fixed-size
+   decluttered labels (the dark-on-dark legibility bug is dead), search ⌕ /
+   FIT / ME controls, tap place card w/ OPEN, **first-mint gate** (unminted
+   projects invisible — verified: 5 territories, all minted>0), enlisted-only
+   WAR layer (faction coastline rings, siege pulse, spread glow) · WAR BANNERS
+   sticker sheet (cosmetics only) · tape war lines (enlisted) · NPC war gossip ·
+   war glyphs (GLYPHS.md §13: ▟ ▞ ⚐ ≣ ‡) · extensive user docs
+   (`/docs/app/the-factions` + Cartography doc updated). New tables live in
+   Supabase (marks, marks_crypt, faction_oaths, war_state, book_of_conquests,
+   war_meta — RLS anon-read, sweep-written). ClickUp `86baf786c` closed with
+   the remaining-beats list: **regalia/commemorative/veteran/canonization
+   sticker drops, Receipt bound-view, Rarity Labs Pedigree, Friend Inspector
+   accents, faction gallery lens, achievements war ladder, profile war record,
+   Discord broadcast worker, Sigil art (last — PriceSprite covers).**
+   Task branch `claude/factions-end-to-end-s4ua9m` is merged trash — Brendon
+   deletes at https://github.com/brendonrell/PriceOS/branches.
 -1. ✅ **CONTRACTS: three-pass Opus audit APPLIED, merged to pd-contracts
    `main` (`9855fa0`, 2026-07-13). 313/313 tests green.** The three blind
    2026-07-11 Opus reviews are mirrored in `pd-contracts/audit/` (lineage
