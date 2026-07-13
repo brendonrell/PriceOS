@@ -29,6 +29,7 @@ The Project's Outputs, in a grid built for long sessions:
 - **The Genome** — the Project's parameter space as a navigable map: where any Output sits among its siblings.
 - **The Audience** — live presence: a breathing dot and a count of the people on this Project's page right now.
 - **Price Story & price intelligence** — the narrative and analytical reading of the Project's market history.
+- **Sentiment** — two live reads of the crowd. **Price Targets** is a monthly game: cast one call on where the Project's floor lands in 30 days by tapping a rung on a ladder anchored to the real floor. Calls stay **sealed** while the window runs (only the count shows); when the month turns, last window's crowd reveals as a histogram beside where the floor actually landed. Retarget any time before the seal breaks. **Disagreement Score** measures what holders are *doing*, not saying: of every held piece, the share sitting on the market (LIST) versus held tight (HODL).
 - **Soundtracks** — Projects can carry audio; storytelling on PD is traits plus soundtrack rather than long descriptions.
 
 ## Project identity

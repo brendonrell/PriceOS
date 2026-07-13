@@ -14,6 +14,8 @@ The sandbox layer: tools that live above every page and turn browsing into worki
 
 The collector's task list, PD-flavored: items can carry **ETH targets and budgets** (◊), building a war-chest meter toward a goal. Completed items flip ❍ → ✓, strike through, and sink. Reminders surface as toasts; the **Workflows** ☇ system automates recurring sequences on top.
 
+**The Sentinel watches even when you don't.** A BUY to-do with a ◊ target — and any armed price or upload Workflow — is evaluated **server-side every minute** against live listings and fresh uploads. The moment a trigger crosses, you get a real Ping and a native lock-screen push, app open or closed. Each trigger fires exactly once; retarget it and it re-arms. In the app, a hit target also flips its row to **READY** and floats it to the top.
+
 ## Notes ⊟
 
 Private per-Output annotations — owner-only, forever. The collector's marginalia: why you bought it, what you'd pay for its sibling, what the artist said about it.

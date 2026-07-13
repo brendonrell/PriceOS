@@ -26,6 +26,14 @@ Every morning at 9AM (Montreal time), PD prints its own paper: one page covering
 
 Saturday and Sunday print the lighter **Weekend Edition**.
 
+## The Digest — this paper, in your inbox
+
+Three times a month — the **1st, 11th and 22nd** — The Dispatch prints an email edition covering the stretch since the last one: the window's defining artwork up top, three pulse numbers, then the dense half — every sale that mattered, the new projects that cleared the filter, the floors, and a wall of recent pieces. Every image is the real art; every piece links home.
+
+Each edition closes with **The Stamp** — a one-of-one generative mark grown from that edition's date, unique to every issue, reproducible forever.
+
+Sign up on `/dispatch` (the subscription slip). The run is capped at **1,000 readers** — the slip shows the live seat count — and unsubscribe is one tap, instant. Three editions a month, never more.
+
 ## How it's written
 
 Every number is real — the same ledger that powers the stats and the feeds. The prose is deterministic and seeded per edition: the paper costs nothing to run and never invents a fact. Quiet days print too; the archive keeps the silence as faithfully as the noise.

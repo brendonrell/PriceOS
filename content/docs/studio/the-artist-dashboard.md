@@ -52,6 +52,24 @@ starting with your Project's **soundtrack**, updatable whenever the work
 deserves a new one, with more of the surround managed from the same place as
 it grows.
 
+## The Drop Kit and the word of mouth
+
+Every Project card carries a **Drop Kit** — one tap composes your launch share
+pack (the Project link plus a ready-to-post line) straight into your phone's
+share sheet; on desktop the whole pack lands on the clipboard. Shared PD links
+unfurl **art-first**: your piece is the image in the embed, on Discord, in
+iMessage, everywhere. Your artist page does the same when anyone shares it.
+
+Each card also shows **EARNED** — your real take to date: 95% of every mint
+plus your share of secondary royalties, read live from the ledger.
+
+## Vouch — send an artist through the door
+
+Whitelisted artists hold **two vouch slots**: put an artist you believe in
+forward for [the filter](/docs/for-artists/how-pd-works). A vouch goes
+straight to the founder's desk. It opens the conversation — the filter is a
+quality floor, and passing it stays a human call.
+
 ## Artist pings
 
 Pings in the Studio are artist pings: mints of your work, new listings and
