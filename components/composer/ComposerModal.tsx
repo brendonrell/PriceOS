@@ -33,6 +33,7 @@ import {
     type GroupKey, type SortDir,
 } from '../../lib/state/SortContext';
 import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
+import { resolveBucket } from '../../lib/art/colorStore';
 import { getProject } from '../../lib/project/registry';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
 import { TraitsProvider } from '../../lib/state/TraitsContext';
@@ -104,6 +105,43 @@ function facetValueFace(field: FacetField, v: string): string {
         if (p) return p.displayName;
     }
     return v.replace(/^@/, '').toUpperCase();
+}
+
+/* ── THE SPECTRUM — a Program's living face: the colour distribution of
+      its CURRENT matches as a proportional bar. Data, not decoration —
+      run the Program tomorrow and its face has changed with the market.
+      Display hexes are representative of Brendon's named buckets
+      (Hothurt is the canonical #FF0055). ── */
+const BUCKET_HEX: Record<string, string> = {
+    Hothurt: '#FF0055', Red: '#E03131', Orange: '#F0883E', Yellow: '#FFE600',
+    Green: '#37B24D', Blue: '#3B7DD8', Purple: '#7048E8', Magenta: '#D6336C',
+    Brown: '#8D6E63', Cream: '#F1E3C2', Moon: '#BFC8D9', Grey: '#808080',
+    Black: '#1C1C1C', White: '#F5F5F5', Other: '#555555',
+};
+
+function spectrumOf(rows: readonly ComposerRow[]): { hex: string; frac: number }[] {
+    if (rows.length === 0) return [];
+    const counts = new Map<string, number>();
+    for (const r of rows) {
+        const b = resolveBucket(r.slug, r.token_id) ?? 'Other';
+        counts.set(b, (counts.get(b) ?? 0) + 1);
+    }
+    const order = [...(COLOR_BUCKET_ORDER as readonly string[]), 'Other'];
+    return order
+        .filter((b) => counts.has(b))
+        .map((b) => ({ hex: BUCKET_HEX[b] ?? BUCKET_HEX.Other, frac: counts.get(b)! / rows.length }));
+}
+
+function Spectrum({ rows }: { rows: readonly ComposerRow[] }) {
+    const segs = spectrumOf(rows);
+    if (segs.length === 0) return null;
+    return (
+        <div className="cmp-spectrum" aria-hidden="true">
+            {segs.map((s, i) => (
+                <span key={i} style={{ width: `${s.frac * 100}%`, background: s.hex }} />
+            ))}
+        </div>
+    );
 }
 
 /* ── the results ACTIONS row + bulk float bar (v1.2 — "make it do
@@ -509,11 +547,45 @@ export default function ComposerModal() {
     };
     useEffect(() => { if (view !== 'programs') { setManageIdx(null); setRenameIdx(null); } }, [view]);
 
-    /* Live counts on the shelf. */
-    const programCounts = useMemo(
-        () => programs.map((p) => runQuery(p.query, rows, ctx).length),
+    /* Live counts on the shelf — plus each Program's SPECTRUM rows (the
+       colour face of its current answer). */
+    const programMatches = useMemo(
+        () => programs.map((p) => runQuery(p.query, rows, ctx)),
         [programs, rows, ctx],
     );
+    const programCounts = useMemo(() => programMatches.map((m) => m.length), [programMatches]);
+
+    /* Σ — the aggregate listed value of the current match (the number a
+       trading Program really answers). */
+    const matchedValue = useMemo(() => {
+        let v = 0;
+        for (const r of matched) if (r.priceEth != null) v += r.priceEth;
+        return v;
+    }, [matched]);
+    const valueFace = matchedValue > 0
+        ? (matchedValue >= 100 ? Math.round(matchedValue).toString() : matchedValue.toFixed(2).replace(/\.?0+$/, ''))
+        : null;
+
+    /* THE LOOSENER — when the match is EMPTY, the machine names the rule
+       strangling it: for each active rule, how many pieces its removal
+       would free; the best one becomes a tappable "− RULE FREES n" pill. */
+    const loosener = useMemo(() => {
+        if (loading || matched.length > 0) return null;
+        const active = query.rules
+            .map((r, i) => ({ r, i }))
+            .filter(({ r }) => ruleIsComplete(r));
+        if (active.length < 2) return null;
+        let best: { index: number; frees: number } | null = null;
+        for (const { i } of active) {
+            const without = { ...query, rules: query.rules.filter((_, j) => j !== i) };
+            const n = runQuery(without, rows, ctx).length;
+            if (n > 0 && (best == null || n > best.frees)) best = { index: i, frees: n };
+        }
+        if (!best) return null;
+        const rule = query.rules[best.index];
+        const f = ruleFieldLabel(rule);
+        return { ...best, glyph: f.glyph, label: f.label };
+    }, [loading, matched.length, query, rows, ctx]);
 
     /* ── render helpers ─────────────────────────────────────────────── */
 
@@ -772,6 +844,22 @@ export default function ComposerModal() {
         return null;
     };
 
+    const looseUp = loosener && (
+        <div className="cmp-loosener">
+            <span className="cmp-loosener-lbl">THE STRANGLER</span>
+            <button
+                className="cmp-pill"
+                onClick={() => {
+                    removeRule(loosener.index);
+                    showToast(`Rule: DROPPED · FREES ${loosener.frees}`);
+                }}
+                title="Drop the rule choking the match"
+            >
+                − <span className="cmp-pill-glyph">{loosener.glyph}</span> {loosener.label} · FREES {loosener.frees}
+            </button>
+        </div>
+    );
+
     const liveStrip = (withView: boolean, groupedFace = false) => (
         <div className="cmp-live">
             <span className={`cmp-live-dot${loading ? ' is-loading' : ''}`} aria-hidden="true" />
@@ -781,6 +869,7 @@ export default function ComposerModal() {
                     : <>
                         <b key={matched.length} className="cmp-count-pop">{matched.length}</b>
                         {' '}MATCH · LIVE<span className="cmp-ms"> · {queryMs}ms</span>
+                        {valueFace && <span className="cmp-sigma"> · Σ {valueFace} ◊︎</span>}
                     </>}
             </span>
             {delta != null && !loading && (
@@ -885,7 +974,10 @@ export default function ComposerModal() {
                       </ProjectProvider>
                   ))}
             {matched.length === 0 && !loading && (
-                <div className="cmp-empty">NO MATCH — LOOSEN A RULE</div>
+                <div className="cmp-empty">
+                    NO MATCH
+                    {looseUp || ' — LOOSEN A RULE'}
+                </div>
             )}
             {revealSet !== null && (
                 <div ref={sentinelRef} className="gallery-load-sentinel" aria-hidden="true" />
@@ -1059,6 +1151,7 @@ export default function ComposerModal() {
                             </div>
 
                             {liveStrip(true)}
+                            {looseUp}
 
                             {saveOpen ? (
                                 <div className="cmp-save-row">
@@ -1099,6 +1192,7 @@ export default function ComposerModal() {
                                 </button>
                             </div>
                             {liveStrip(false, true)}
+                            <Spectrum rows={matched} />
                             <ComposerResultsActions
                                 matched={matched}
                                 me={me}
@@ -1157,6 +1251,7 @@ export default function ComposerModal() {
                                             </span>
                                         </div>
                                         <div className="cmp-prog-sub">{querySummary(p.query)}</div>
+                                        <Spectrum rows={programMatches[i] ?? []} />
                                         {manageIdx === i && (
                                             <div className="cmp-prog-manage" onPointerDown={(e) => e.stopPropagation()}>
                                                 <button

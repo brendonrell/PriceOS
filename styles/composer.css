@@ -426,6 +426,42 @@
 }
 .cmp-chip.is-btn:active { transform: scale(0.95); }
 
+/* ── THE SPECTRUM — the answer's colour face: proportional bucket bar,
+      data-true. Shelf rows wear their Program's; results wear the live
+      match's. Hairline outline so Black/White segments read on the dark
+      stage. ── */
+.cmp-spectrum {
+    display: flex;
+    height: 5px;
+    border-radius: 2px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    margin-top: 10px;
+    animation: cmp-rise 0.3s ease both;
+}
+.cmp-prog-row .cmp-spectrum { margin-top: 7px; }
+.cmp-spectrum span { display: block; height: 100%; }
+
+/* ── THE LOOSENER — the machine names the rule strangling an empty
+      match; the pill drops it. ── */
+.cmp-loosener {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+.cmp-loosener-lbl {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    color: var(--hothurt, #FF0055);
+}
+.cmp-empty .cmp-loosener { justify-content: center; margin-top: 14px; }
+
+/* Σ — the aggregate listed value riding the live strip. */
+.cmp-sigma { font-weight: bold; }
+
 /* ── results: the ACTIONS row (v1.2) — whole-set verbs + the ❐ SELECT
       mode toggle; the bulk float bar itself is HomeMsFloatBar verbatim. ── */
 .cmp-actions {
