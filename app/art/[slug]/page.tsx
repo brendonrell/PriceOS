@@ -123,19 +123,20 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     // pick, else #1), as a large card. Unminted projects fall back to the
     // mark, and on the Worker the art bucket confirms the preview actually
     // exists (previews pin on first view — a 404 og:image = naked embed).
-    const { total, showcaseIds } = await fetchSeed(slug);
-    let heroId: number | null = total > 0 ? (showcaseIds[0] ?? 1) : null;
-    if (heroId != null) {
-        try {
-            const bucket = getPreviewBucket();
-            if (bucket) {
-                if (!(await bucket.head(`${slug}/${heroId}.${ART_REV}.png`))) {
-                    // Showcase pick unpinned — try #1 before giving up.
-                    heroId = heroId !== 1 && (await bucket.head(`${slug}/1.${ART_REV}.png`)) ? 1 : null;
-                }
+    // NB: projects.minted_count is CHAIN-frame only (zero across the sim
+    // catalog) — it must not gate the image. The R2 probe is the decider on
+    // the Worker; off-Worker (local build) the candidate is trusted.
+    const { showcaseIds } = await fetchSeed(slug);
+    let heroId: number | null = showcaseIds[0] ?? 1;
+    try {
+        const bucket = getPreviewBucket();
+        if (bucket) {
+            if (!(await bucket.head(`${slug}/${heroId}.${ART_REV}.png`))) {
+                // Showcase pick unpinned — try #1 before falling back to the mark.
+                heroId = heroId !== 1 && (await bucket.head(`${slug}/1.${ART_REV}.png`)) ? 1 : null;
             }
-        } catch { /* keep the minted-based pick */ }
-    }
+        }
+    } catch { /* keep the candidate */ }
     const art = heroId != null ? artImageUrl(slug, heroId) : null;
     const ogTitle = `${def.displayName} on Price Discussion`;
     return {

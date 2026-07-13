@@ -18,6 +18,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getProject, artImageUrl, artThumbUrl } from '@/lib/project/registry';
 import { formatEth } from '@/lib/format/eth';
+import { DISCORD_URL } from '@/lib/config/discord';
 
 const SITE =
   process.env.NEXT_PUBLIC_SITE_URL ||
@@ -72,6 +73,52 @@ export interface DigestBuild {
 const esc = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
+/* ── THE STAMP — this edition's one-of-one generative mark ─────────────
+ * Tabstract-spirit: deterministic art seeded by the edition itself, so
+ * every EDITION (not every recipient) carries a unique piece. Email
+ * clients strip SVG and script, so the medium is the one thing they all
+ * render faithfully: a table of coloured cells. Mirror-symmetric grid,
+ * house ink plus one seeded accent hue — a wax seal in pixels. */
+function fnv(s: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0;
+}
+function hslToHex(h: number, s: number, l: number): string {
+  const a = (s * Math.min(l, 1 - l));
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const c = l - a * Math.max(-1, Math.min(k - 3, Math.min(9 - k, 1)));
+    return Math.round(255 * c).toString(16).padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+function editionStamp(editionName: string): string {
+  const seed = fnv(editionName);
+  const accent = hslToHex(seed % 360, 0.72, 0.46);
+  const accent2 = hslToHex((seed >>> 9) % 360, 0.68, 0.62);
+  const N = 11;             // odd → a true spine down the middle
+  const CELL = 13;
+  const rows: string[] = [];
+  for (let y = 0; y < N; y++) {
+    // Row density breathes down the grid (denser waist, airy edges).
+    const density = 32 + ((fnv(`${editionName}:row${y}`) % 5) * 9) + (y > 2 && y < 8 ? 14 : 0);
+    const cells: string[] = [];
+    for (let x = 0; x < N; x++) {
+      const mx = Math.min(x, N - 1 - x); // vertical-mirror symmetry
+      const v = fnv(`${editionName}:${mx}:${y}`);
+      const on = (v % 100) < density;
+      const color = !on ? '#ffffff' : (v >>> 7) % 5 === 0 ? accent2 : (v >>> 3) % 3 === 0 ? accent : '#111111';
+      cells.push(`<td width="${CELL}" height="${CELL}" bgcolor="${color}" style="width:${CELL}px;height:${CELL}px;background-color:${color};font-size:1px;line-height:1px;">&nbsp;</td>`);
+    }
+    rows.push(`<tr>${cells.join('')}</tr>`);
+  }
+  return `<table cellpadding="0" cellspacing="0" border="0" style="border:2px solid #111111;"><tbody>${rows.join('')}</tbody></table>`;
+}
+
 function pieceName(slug: string, tokenId: string | number): string {
   return `${getProject(slug)?.displayName ?? slug.toUpperCase()} #${tokenId}`;
 }
@@ -93,6 +140,9 @@ export async function buildDigest(
   hasArt: (slug: string, tokenId: number) => Promise<boolean> = async () => true,
 ): Promise<DigestBuild> {
   const { fromSec, toSec, label } = digestWindow(y, m, d);
+  // The edition's identity — also the broadcast's idempotency name and THE
+  // STAMP's seed, so the mark is reproducible forever from the date alone.
+  const editionName = `pd-digest-${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 
   const [salesRes, mintsRes, projectsRes] = await Promise.all([
     db.from('events')
@@ -248,7 +298,7 @@ export async function buildDigest(
   <!-- Masthead — the paper's own voice -->
   <tr><td align="center" style="border-bottom:3px double #111111;padding-bottom:14px;">
     <div style="font-family:Inter, Arial, Helvetica, sans-serif;color:#111111;font-size:14px;font-weight:bold;letter-spacing:3px;line-height:18px;">&#8240; PRICE DISCUSSION</div>
-    <div style="font-family:${MONO};color:#111111;font-size:27px;font-weight:bold;letter-spacing:4px;line-height:36px;padding-top:6px;">THE DISPATCH</div>
+    <div style="font-family:${MONO};color:#111111;font-size:27px;font-weight:bold;letter-spacing:4px;line-height:36px;padding-top:6px;">THE PD DISPATCH</div>
     <div style="font-family:${MONO};color:#111111;font-size:12px;font-weight:bold;letter-spacing:3px;line-height:18px;padding-top:4px;">DIGEST · ${label}</div>
   </td></tr>
 
@@ -268,16 +318,16 @@ export async function buildDigest(
   </td></tr>
 
   <!-- ── The dense half: the full record ── -->
-  ${sales.length ? `${rule('THE LEDGER — EVERY SALE THAT MATTERED')}
+  ${sales.length ? `${rule('EVERY SALE THAT MATTERED')}
   <tr><td style="padding-top:4px;"><table width="100%" cellpadding="0" cellspacing="0" border="0">${ledgerRows}</table>
   ${sales.length > 10 ? `<div style="font-family:${MONO};color:#111111;font-size:11px;font-weight:bold;padding-top:6px;">+ ${sales.length - 10} more on the tape</div>` : ''}
   </td></tr>` : ''}
 
-  ${rule('FRESH THROUGH THE FILTER')}
-  <tr><td style="padding-top:4px;">${fresh.length
-    ? `<table width="100%" cellpadding="0" cellspacing="0" border="0">${freshRows}</table>`
-    : `<div style="font-family:${MONO};color:#111111;font-size:13px;padding-top:6px;">The filter held — no new projects this stretch. Quality floor, not a taste gate.</div>`}
-  </td></tr>
+  ${rule('NEW PROJECTS — THROUGH THE FILTER')}
+  ${fresh.length ? `
+  <tr><td style="font-family:${MONO};color:#111111;font-size:12px;line-height:18px;padding-top:6px;">Every project below cleared PD&#39;s artist filter this stretch — a quality floor every project passes, not a taste gate — and is minting now:</td></tr>
+  <tr><td style="padding-top:4px;"><table width="100%" cellpadding="0" cellspacing="0" border="0">${freshRows}</table></td></tr>`
+    : `<tr><td style="font-family:${MONO};color:#111111;font-size:13px;line-height:19px;padding-top:6px;">The filter — the quality floor every PD project must clear — held this stretch: nothing new came through.</td></tr>`}
 
   ${floorRows.length ? `${rule('ON THE FLOOR — WHERE THE ACTION WAS')}
   <tr><td style="padding-top:4px;"><table width="100%" cellpadding="0" cellspacing="0" border="0">${floorTable}</table></td></tr>` : ''}
@@ -285,16 +335,26 @@ export async function buildDigest(
   ${wallRows ? `${rule('THE GALLERY WALL — LATEST OFF THE PRESS')}
   <tr><td style="padding-top:8px;"><table width="100%" cellpadding="0" cellspacing="0" border="0">${wallRows}</table></td></tr>` : ''}
 
+  <!-- Join the chat — the room where all of this gets argued about -->
+  <tr><td align="center" style="padding-top:30px;">
+    <a href="${DISCORD_URL}" style="font-family:${MONO};color:#ffffff;background-color:#111111;font-size:14px;font-weight:bold;letter-spacing:2px;text-decoration:none;display:inline-block;padding-top:13px;padding-bottom:13px;padding-left:30px;padding-right:30px;">JOIN THE CHAT — PD DISCORD</a>
+  </td></tr>
+
+  <!-- The Stamp — this edition's one-of-one generative mark -->
+  <tr><td align="center" style="padding-top:28px;">${editionStamp(editionName)}</td></tr>
+  <tr><td align="center" style="font-family:${MONO};color:#111111;font-size:11px;font-weight:bold;letter-spacing:2px;line-height:16px;padding-top:8px;">THE STAMP · EDITION ${label} · ONE OF ONE</td></tr>
+
   <!-- Colophon -->
   <tr><td align="center" style="border-top:3px double #111111;margin-top:30px;padding-top:16px;">
     <div style="font-family:${MONO};color:#111111;font-size:11px;font-weight:bold;letter-spacing:1px;line-height:17px;padding-top:14px;">
       ASSEMBLED BY THE PLATFORM ITSELF, STRAIGHT FROM THE LEDGER.<br>
       THREE EDITIONS A MONTH — THE 1ST · 11TH · 21ST.
     </div>
-    <div style="font-family:${MONO};color:#111111;font-size:11px;line-height:17px;padding-top:10px;">
-      <a href="${SITE}/dispatch" style="color:#111111;text-decoration:underline;">read the daily Dispatch</a>
-      &nbsp;·&nbsp;
-      <a href="{{{RESEND_UNSUBSCRIBE_URL}}}" style="color:#111111;text-decoration:underline;">unsubscribe</a>
+    <div style="font-family:${MONO};font-size:12px;line-height:18px;padding-top:12px;">
+      <a href="${SITE}/dispatch" style="color:#111111;text-decoration:underline;font-weight:bold;">READ THE DAILY DISPATCH</a>
+    </div>
+    <div style="font-family:${MONO};font-size:12px;line-height:18px;padding-top:8px;padding-bottom:6px;">
+      <a href="{{{RESEND_UNSUBSCRIBE_URL}}}" style="color:#111111;text-decoration:underline;font-weight:bold;">UNSUBSCRIBE — ONE TAP, INSTANT, NO QUESTIONS</a>
     </div>
   </td></tr>
 
@@ -311,16 +371,18 @@ export async function buildDigest(
     hero ? `${hero.line} → ${pieceUrl(hero.slug, hero.id)}` : null,
     `VOLUME ◊${formatEth(vol)} · ${sales.length} sales · ${mints.length} mints`,
     '',
-    sales.length ? 'THE LEDGER' : null,
+    sales.length ? 'EVERY SALE THAT MATTERED' : null,
     ...sales.slice(0, 10).map((s) => `  ${dayStamp(s.timestamp)} · ${pieceName(s.project_id, s.token_id)} · ◊${formatEth(s.price_eth)} → ${pieceUrl(s.project_id, s.token_id)}`),
     '',
-    'FRESH THROUGH THE FILTER',
+    'NEW PROJECTS — THROUGH THE FILTER (cleared PD’s quality floor this stretch, minting now)',
     ...(fresh.length
       ? fresh.map((p) => `  ${getProject(p.id)!.displayName}${getProject(p.id)!.artistHandle ? ` by @${getProject(p.id)!.artistHandle}` : ''} → ${SITE}/art/${p.id}`)
-      : ['  The filter held — no new projects this stretch.']),
+      : ['  The filter held — nothing new came through this stretch.']),
     '',
     `Open Price Discussion → ${SITE}`,
-    `Unsubscribe → {{{RESEND_UNSUBSCRIBE_URL}}}`,
+    `Join the chat — PD Discord → ${DISCORD_URL}`,
+    `Read the daily Dispatch → ${SITE}/dispatch`,
+    `Unsubscribe (one tap, instant) → {{{RESEND_UNSUBSCRIBE_URL}}}`,
   ].filter((l): l is string => l != null).join('\n');
 
   return { subject, previewText, html, text, empty };
