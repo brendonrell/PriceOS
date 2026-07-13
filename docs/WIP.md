@@ -8,6 +8,28 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ⏳ **THE OPEN QUEUE (from the 2026-07-13 pre-launch batch — everything
+   else that day SHIPPED, see -5):**
+   - **SPELL BOOK STUBS — first build once Brendon says go.** Plan presented
+     + ClickUp `86bad5g4t` commented: wire all 7 stubs for REAL (Tribunal ·
+     Deactivate · Tarot Spread · Offer Shield · Sybil Net · Gossip Protocol
+     · Arbitrage Map — specs on the Atlas "Spell Book" page); hold GRAVITY
+     back post-launch, its pill shows **????**. Waiting ONLY on his word.
+   - **DESKTOP PASS (perks for the big screen)** — full brief at
+     `docs/briefs/desktop-pass.md`; meant for an OPUS chat (Fable never
+     spawns subagents). Crash + QR are DONE — don't redo (see -5 ⑧⑨).
+   - **CRASH FOLLOW-UP:** if Brendon still sees a Windows Chrome crash
+     after `c3e1b07` deployed, ask for the HW-acceleration-off test result;
+     the at-rest GPU blur load is already zero.
+   - **PUSH FOLLOW-UP:** if lock-screen banners still don't arrive after
+     the transport fix, the one remaining suspect is the WEBPUSH_PRIVATE_KEY
+     secret on the Cloudflare worker (dash → Settings → Variables).
+   - **NEWSLETTER** — Resend pure-data digest, ClickUp `86bax00un` (Ideas),
+     awaiting greenlight.
+   - Branch hygiene: `claude/pre-launch-edits-builds-3273du` is merged
+     trash — Brendon deletes at
+     https://github.com/brendonrell/PriceOS/branches.
+
 -5. ✅ **PRE-LAUNCH BATCH — SHIPPED + AUTO-DEPLOYED (2026-07-13, dev
    `cfc19a6`; all Brendon's same-day list).** Live on dev:
    ① About PD: the 60-DAY COOLDOWN banner box + explainer up top + a BY THE
