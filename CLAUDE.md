@@ -208,8 +208,16 @@ web3 social platform where the community discussing prices is the product.
   `https://pricediscussion.pricediscussion.workers.dev/` — publicly reachable AND
   fetchable from the build container via WebFetch (no more 403), so the deploy can
   be verified directly. The **Cloudflare connector** (Workers / KV / R2 / D1) is
-  available for infra. Branch→deploy wiring is still being finished (Brendon,
-  2026-07-04); `dev` = what we build/verify, `main` → production.
+  available for infra. **⛔ Branch→deploy wiring is DONE and verified working
+  (2026-07-13):** the Worker is git-connected to `brendonrell/PriceOS`,
+  production branch `dev` — **every push to `dev` auto-builds and deploys
+  itself** (verified: the Composer ship auto-deployed and the build history is
+  all green). **NEVER deploy manually and NEVER ask Brendon for a Cloudflare
+  API token — pushing `dev` IS the deploy.** The token asks that plagued July
+  sessions were manual-deploy habit from before this wiring; that habit is
+  dead. If a change isn't showing, check the Workers build history (dash or
+  connector) for a failed build — fix the build, don't hand-deploy over it.
+  `dev` = what we build/verify, `main` → production.
 
 ## 2. The PD repo ecosystem
 
