@@ -46,16 +46,19 @@ export const ARTIST_SHOWCASE_FACETS = ['PriceDay', 'Sun', 'Moon', 'Rising', 'Sta
 /* A home activity-feed item for the artist showcase Created feed. */
 export interface ArtistFeedItem { slug: string; title: string; label: string; glyph: string; cls?: string; ts: number; seq: number }
 
+/* Feed stamps are VIEWER-LOCAL (Brendon, 2026-07-13: displayed clock times
+   always render in the user's own zone; the date column tracks the same zone
+   so a late-night event's date and time never disagree). */
 export function fmtFeedDate(ms: number | null): string {
     if (ms == null) return '—';
     return new Date(ms)
-        .toLocaleDateString('en-US', { month: 'short', day: '2-digit', timeZone: 'UTC' })
+        .toLocaleDateString('en-US', { month: 'short', day: '2-digit' })
         .toUpperCase();
 }
 export function fmtFeedTime(ms: number | null): string {
     if (ms == null) return '—';
     return new Date(ms)
-        .toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' });
+        .toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
 }
 
 /* Outputs per artist-project carousel (matches the home carousel: 18). */

@@ -99,7 +99,7 @@ export function Footer() {
                     )}
                 </div>
                 <div className="priceos-footer-row">
-                    <span className="priceos-link" title="About PD" style={{ cursor: 'pointer' }} onClick={() => showToast('About PD: COMING SOON')}>
+                    <span className="priceos-link" title="About PD" style={{ cursor: 'pointer' }} onClick={() => open('aboutPd')}>
                         About PD
                     </span>
                     <span className="priceos-sep">·</span>
@@ -117,9 +117,9 @@ export function Footer() {
                         Docs
                     </a>
                     <span className="priceos-sep">·</span>
-                    <a className="priceos-link" href="mailto:support@pricediscussion.com">
+                    <span className="priceos-link" title="Support" style={{ cursor: 'pointer' }} onClick={() => open('support')}>
                         Support
-                    </a>
+                    </span>
                     <span className="priceos-sep">·</span>
                     {/* Studio — PD Studio, live at /studio (host-routed to
                         studio.pricediscussion.com once DNS points here). */}

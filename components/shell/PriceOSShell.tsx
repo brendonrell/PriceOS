@@ -83,6 +83,8 @@ import CollectorsModal from '../CollectorsModal';
 import FollowersModal from '../FollowersModal';
 import ProjectsProModal from '../ProjectsProModal';
 import PriceosModal from '../PriceosModal';
+import AboutPdModal from '../AboutPdModal';
+import SupportModal from '../SupportModal';
 import FamiliarModal from '../FamiliarModal';
 import PriceSpriteModal from '../PriceSpriteModal';
 import LeaderboardModal from '../LeaderboardModal';
@@ -454,6 +456,12 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="PriceosModal">
                 <PriceosModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="AboutPdModal">
+                <AboutPdModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="SupportModal">
+                <SupportModal />
             </ErrorBoundary>
             <ErrorBoundary name="FamiliarModal">
                 <FamiliarModal />

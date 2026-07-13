@@ -54,7 +54,10 @@ export interface FeedMarker {
    mark (Inter), ⤓ = a downward drop (the airdrop). */
 const PLATFORM_GENESIS: readonly FeedMarker[] = [
   {
-    id: 'pd-started', glyph: '#', cls: 'af-ic--hash', timestamp: '2021-11-19T08:28:00.000Z',
+    /* The real moment was 08:28 EST (America/New_York, UTC-5) — stored as its
+       true UTC instant 13:28Z so every viewer's local clock renders it right
+       (an EST viewer sees 08:28 again). Was wrongly stored as 08:28Z. */
+    id: 'pd-started', glyph: '#', cls: 'af-ic--hash', timestamp: '2021-11-19T13:28:00.000Z',
     seq: 0, pin: 4, label: 'STARTED', lead: '', highlight: '#price-discussion', tail: ' channel started',
     href: 'https://x.com/brendonrell/status/1593936863949164544',
   },

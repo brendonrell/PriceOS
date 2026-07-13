@@ -14,7 +14,7 @@ $PRICE confers no special privileges, no governance rights, no discounts, no rev
 
 - **No mint privileges.** Holding $PRICE grants no mint priority, no allowlist position, no early window. Every mint on PD is open on the Project's own terms.
 - **No discounts or fee reductions.** The 5% platform share of primary mints applies identically to every collector regardless of holdings.
-- **No governance rights.** No vote on features, curation, or contracts (which are non-upgradeable anyway). PD is not a DAO; $PRICE is not its governance token.
+- **No governance rights.** No vote on features, the filter, or contracts (which are non-upgradeable anyway). PD is not a DAO; $PRICE is not its governance token.
 - **No revenue claim.** The platform's primary fee and secondary royalty flow to PD's wallets through PD's on-chain fee mechanics; holders have no claim — no dividend, no buyback, no profit share, no redemption.
 - **No exclusive access.** No gated docs, no holder-only views, no exclusive channels or invitations.
 - **No staking rewards.** No platform staking program, no emission, no yield.
@@ -24,9 +24,9 @@ $PRICE confers no special privileges, no governance rights, no discounts, no rev
 
 **Legal positioning.** A token with no platform utility, no revenue claim, and no special access does not present the expectation-of-profit-from-the-efforts-of-others shape that the Howey framework asks about. This is the rationale for the design, not legal advice; classification belongs to counsel and regulators.
 
-**Architectural integrity.** A platform whose mechanics depend on token holdings is a platform whose mechanics shift as distribution shifts. PD's behavior is determined by its immutable contracts and its curation — not by who holds a token on any given day.
+**Architectural integrity.** A platform whose mechanics depend on token holdings is a platform whose mechanics shift as distribution shifts. PD's behavior is determined by its immutable contracts and its filter — not by who holds a token on any given day.
 
-**Cultural framing.** PD treats $PRICE as a memetic artifact given to a community with aesthetic affinity for the curation thesis. A token that does not need to *do* anything is free to *mean* something.
+**Cultural framing.** PD treats $PRICE as a memetic artifact given to a community with aesthetic affinity for the thesis. A token that does not need to *do* anything is free to *mean* something.
 
 **Long-term stability.** Utility creates governance pressure: holders who bought expecting utility lobby for more, then for expansion, then for revenue. The end state of that trajectory is capture. PD forecloses it at the contract level.
 

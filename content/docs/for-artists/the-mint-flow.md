@@ -49,7 +49,7 @@ Each Output's `image` field starts as an on-chain placeholder and is upgraded ex
 
 ## What the contract does not do
 
-- **No allowlists, auctions, or mint windows on-chain.** The contract is an open, fixed-price mint. PD's curation deliberately favors the clean default: open mint, fixed price, fixed supply.
+- **No allowlists, auctions, or mint windows on-chain.** The contract is an open, fixed-price mint. PD's filter deliberately favors the clean default: open mint, fixed price, fixed supply.
 - **No admin mint, no artist mint privilege.** You mint your own Output the same way collectors do.
 - **No pausing and no upgrades.** Once live, the mint runs to sell-out on its own terms.
 

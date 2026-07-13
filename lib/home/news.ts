@@ -28,20 +28,21 @@ const vs = (g: string) => `${g}︎`;
 
 /* "Today · 15:42" / "Yesterday · 15:42" / "JUN 11 · 15:42" — the moment stamp
    shown under the project name on each auto pill. Relative wording for the last
-   two days, then the compact date; time in the app's UTC house style (matches
-   the New Uploads feed stamps). */
+   two days, then the compact date. VIEWER-LOCAL, like every displayed clock
+   time on PD (Brendon, 2026-07-13: times always render in the user's own
+   zone); "Today"/"Yesterday" follow the viewer's own calendar days too. */
 function fmtNewsWhen(ms: number): string {
     const d = new Date(ms);
     const now = new Date();
-    const dayOf = (x: Date) => Date.UTC(x.getUTCFullYear(), x.getUTCMonth(), x.getUTCDate());
+    const dayOf = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
     const diffDays = Math.round((dayOf(now) - dayOf(d)) / 86400000);
-    const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' });
+    const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
     let day: string;
     if (diffDays === 0) day = 'Today';
     else if (diffDays === 1) day = 'Yesterday';
     else {
-        const mon = d.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' }).toUpperCase();
-        day = `${mon} ${String(d.getUTCDate()).padStart(2, '0')}`;
+        const mon = d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+        day = `${mon} ${String(d.getDate()).padStart(2, '0')}`;
     }
     return `${day} · ${time}`;
 }

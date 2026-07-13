@@ -55,8 +55,8 @@ listings, offers, and sales of your work).
 Anyone with a wallet can enter the Studio and test work — the draft and test
 side is open, and drafts are private to the wallet that made them.
 **Publishing** is gated the same way deployment has always been gated on PD:
-by [curation and the on-chain artist whitelist](/docs/for-artists/submit-a-project).
-The Studio doesn't change the curation thesis; it gives accepted artists a
+by [the submission filter and the on-chain artist whitelist](/docs/for-artists/submit-a-project).
+The Studio doesn't change the thesis; it gives accepted artists a
 far better road from acceptance to deployment, and gives everyone a serious
 place to develop work worth submitting.
 
