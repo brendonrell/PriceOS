@@ -25,8 +25,23 @@ import {
   type ReactNode,
 } from 'react';
 import { CAL_TODAY } from './data';
-import { USERSTATE_HYDRATED_EVENT } from '../state/userState';
+import { pushState, STATE_CACHE_KEYS, USERSTATE_HYDRATED_EVENT } from '../state/userState';
 import type { CalendarContextValue, DayNotesMap } from './types';
+
+/* Calendar state is account-backed (Brendon, 2026-07-13): it lives in the
+ * dedicated `calendar_state` column and follows the user across devices.
+ * localStorage is the offline mirror only (`pd_calendar_state`, seeded by
+ * userState.hydrateFromRow — server wins on hydrate). */
+function readCalState(): Record<string, unknown> {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = localStorage.getItem(STATE_CACHE_KEYS.calState);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
 
 const DAY_NOTES_KEY = 'pd_day_notes';
 
@@ -38,8 +53,12 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
   const [selY, setSelY] = useState<number>(CAL_TODAY.y);
   const [selM, setSelM] = useState<number>(CAL_TODAY.m);
   const [selD, setSelD] = useState<number>(CAL_TODAY.d);
-  // To-Dos layer defaults ON (Brendon, 2026-07-13 — was off by default).
-  const [todosMode, setTodosMode] = useState<boolean>(true);
+  // To-Dos layer defaults ON (Brendon, 2026-07-13 — was off by default); the
+  // account's stored choice wins when one exists.
+  const [todosMode, setTodosMode] = useState<boolean>(() => {
+    const s = readCalState();
+    return typeof s.todosMode === 'boolean' ? s.todosMode : true;
+  });
   const [dayNotes, setDayNotes] = useState<DayNotesMap>({});
 
   // Hydrate day notes from localStorage on mount, and re-read when the account
@@ -49,6 +68,9 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const read = () => {
       try {
+        // calendar_state — the account's stored layer choice wins on hydrate.
+        const cal = readCalState();
+        if (typeof cal.todosMode === 'boolean') setTodosMode(cal.todosMode);
         const raw = localStorage.getItem(DAY_NOTES_KEY);
         if (!raw) return;
         const parsed = JSON.parse(raw);
@@ -93,7 +115,17 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const toggleTodos = useCallback(() => {
-    setTodosMode((on) => !on);
+    setTodosMode((on) => {
+      const next = !on;
+      // Write-through: mirror + the dedicated account column, so the layer
+      // choice follows the user across devices.
+      try {
+        const state = { ...readCalState(), todosMode: next };
+        localStorage.setItem(STATE_CACHE_KEYS.calState, JSON.stringify(state));
+        pushState({ calendar_state: state });
+      } catch { /* private mode — in-memory state still flips */ }
+      return next;
+    });
   }, []);
 
   const setDayNote = useCallback((dayKey: string, note: string) => {

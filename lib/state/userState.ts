@@ -67,6 +67,11 @@ export const STATE_CACHE_KEYS = {
     /** Unified Grid View Presets blob `{ [scope]: PresetEntry[] }`. Read +
      *  written by lib/pins/presetStore. */
     gridPresets: 'pd_grid_presets',
+    /** Calendar state (`users.calendar_state` — its own column, per the
+     *  settings-envelope doctrine in lib/supabase.ts). Holds the to-dos layer
+     *  toggle today; future calendar prefs join it. Read + written by
+     *  CalendarContext. */
+    calState: 'pd_calendar_state',
     /** Starred Outputs (`${slug}:${id}` keys). Read + written by starStore;
      *  lives inside the settings envelope server-side. */
     starred: 'pd_starred',
@@ -384,6 +389,15 @@ export function hydrateFromRow(row: UserRow): void {
             STATE_CACHE_KEYS.gridPresets,
             JSON.stringify(row.grid_presets ?? {})
         );
+
+        // calendar_state → the cache CalendarContext reads (to-dos layer + any
+        // future calendar prefs). Seed only when the account carries state, so
+        // a pre-sync device choice is never wiped — the first toggle on this
+        // device pushes it up instead (grails/mutes precedent).
+        const cal = row.calendar_state;
+        if (cal && typeof cal === 'object' && !Array.isArray(cal) && Object.keys(cal).length > 0) {
+            localStorage.setItem(STATE_CACHE_KEYS.calState, JSON.stringify(cal));
+        }
 
         window.dispatchEvent(new CustomEvent(USERSTATE_HYDRATED_EVENT));
     } catch {
