@@ -8,6 +8,33 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+-4. ✅ **THE COMPOSER ⊚ — SHIPPED + AUTO-DEPLOYED (2026-07-13, dev
+   `2cab4ea`; ClickUp `86b9eu9wn` CLOSED with the full ship comment).**
+   The visual query builder, whole: v1 (builder · live grouped-gallery
+   results · Programs saved locally) + wow pass (THE READOUT — the query
+   reads itself back in plain English; count pop + ±N bite; ms brag;
+   breathing ⊚; physicality = its signature, Brendon's order) + brand cut
+   (site pill anatomy verbatim on a **deliberately dark-only stage** —
+   Brendon's call, noted in Rule #2; never "fix" it back to colorway) +
+   v1.1 rules (owner social classes ⚭⚯⚬△ + ⟁ CARTEL per-project from the
+   Friend Inspector read · MY LISTS ★✛◰ · single-project scope unlocks
+   that project's ⨝ trait vocabulary). **Launcher = the special first row
+   of Global Search** (slick half-opacity fill row; Spell Book pill
+   REMOVED). Glyph re-shuffle the same day: Composer ⊚ · Price Lens ◎ ·
+   Genome ≎ · ⌾ freed — GLYPHS.md carries all of it.
+   **Remaining beats:** ① server-stored Programs table (wallet, name,
+   query_json, created_at) — PROD MIGRATION, Brendon's §4 approval gate;
+   ② iPhone device-verify ⊚ ◎ ≎ (the #1 glyph gate); ③ phase 2/3 rules
+   (birth facets need mint timestamps at chain cutover; ATH/hold-time/
+   last-sold history predicates; ?q= share slug). Also shipped this
+   session: search Recently-Viewed thumbs cover-crop (History fix
+   ported); DEFAULT SORT truth pass (icon-only GROUP pill @13px, #ID/
+   $PRICE tightened, AZ before FEED); **Rule #2 sharpened in CLAUDE.md**
+   (no tiny/skinny/faint/low-opacity — the Composer washout, raised in
+   fury); **CLAUDE.md deploy note: push-to-dev auto-deploys, NEVER ask
+   for a Cloudflare token** (verified: build history all green).
+   Task branch `claude/build-composer-wizvm8` is merged trash — Brendon
+   deletes at https://github.com/brendonrell/PriceOS/branches.
 -3. ✅ **THE SIGIL — SHIPPED + DEPLOYED (2026-07-13, dev `bfa1d2a`, worker
    version `40adaeef`, verified live; ClickUp `86b9erfwp` closed).** The
    final Factions beat, spec'd live with Brendon (4 concept rounds): a
