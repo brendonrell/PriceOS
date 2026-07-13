@@ -8,17 +8,17 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-1. **REDEPLOY the app Worker (needs a fresh CF token from Brendon) — dev is
-   now MANY builds ahead of the live preview.** Awaiting deploy: the pings
-   WOW PASS (a019bd3) + the ENTIRE 2026-07-12/13 mega-batch (Cartography,
-   engine perf pass, Rewind, Dispatch, Hostile Takeover, docs — see SHIPPED).
-   Follow the DEPLOY RECIPE below. Post-deploy verify: home title long-press
-   opens the Cartography · triple-tap docks the Rewind · /dispatch prints its
-   first edition on the first cron tick after 9AM Montreal (or immediately if
-   past 9AM) · POST /api/social/mute returns 401 (not 404) · a ⚑ TAKEOVER
-   button shows on other collectors' profiles.
-   ⚠️ iOS push pipeline is PROVEN WORKING (Brendon's banner test succeeded) —
-   the old "malformed key" suspicion is closed.
+1. ✅ **EVERYTHING IS LIVE (deployed 2026-07-12 evening, version 9727e7ff,
+   verified end-to-end).** The pings WOW PASS + the entire mega-batch below
+   are on the preview. Verified live: config baked (Supabase URL in the
+   client chunk) · /api/social/mute 401 · /api/rewind Day 1 renders the
+   newborn platform (37 projects, 0 mints) · /api/cartography serving real
+   ledger · **The Dispatch printed its first edition BY ITSELF within a
+   minute of deploy** (Weekend Edition · EDITION 31 · /dispatch/2026-07-12,
+   immutable). Brendon's CF token was chat-only, NOT stored. Remaining
+   device-side checks for Brendon: the four new glyphs (◫ ◄ ▤ ⚑) need the
+   iOS monochrome-text gate, and the two title gestures + Takeover cast
+   sheet deserve a real-thumb pass.
 2. ✅ **Indexer sweep — LIVE (2026-07-11 afternoon).** `ALCHEMY_RPC_URL` set,
    the reconcile now walks the window in ≤10-block sips (Alchemy free-tier cap)
    with a targeted `?fromBlock=&toBlock=` backfill door; the app Worker was
@@ -46,7 +46,7 @@
 7. **PD Studio next phases** — unchanged (`docs/briefs/studio-phase2.md`,
    epic `86bavub9k`).
 
-## ✅ SHIPPED 2026-07-12/13 (Fable) — THE MEGA-BATCH (all on dev, ALL AWAITING DEPLOY)
+## ✅ SHIPPED 2026-07-12/13 (Fable) — THE MEGA-BATCH (all on dev + DEPLOYED, verified live)
 
 Six pushes, in dev order. ClickUp updated per feature (86b9eth7w, 86barg53e,
 86b9fcn0d, 86b9g6c7c, 86bafgw65 all complete; 86b9fbrx9 commented).
