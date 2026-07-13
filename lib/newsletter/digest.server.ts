@@ -247,7 +247,7 @@ export async function buildDigest(
 
   <!-- Masthead — the paper's own voice -->
   <tr><td align="center" style="border-bottom:3px double #111111;padding-bottom:14px;">
-    <div style="font-family:${MONO};color:#111111;font-size:13px;font-weight:bold;letter-spacing:3px;line-height:18px;">%&#8734; PRICE DISCUSSION</div>
+    <div style="font-family:Inter, Arial, Helvetica, sans-serif;color:#111111;font-size:14px;font-weight:bold;letter-spacing:3px;line-height:18px;">&#8240; PRICE DISCUSSION</div>
     <div style="font-family:${MONO};color:#111111;font-size:27px;font-weight:bold;letter-spacing:4px;line-height:36px;padding-top:6px;">THE DISPATCH</div>
     <div style="font-family:${MONO};color:#111111;font-size:12px;font-weight:bold;letter-spacing:3px;line-height:18px;padding-top:4px;">DIGEST · ${label}</div>
   </td></tr>
