@@ -426,6 +426,16 @@
 }
 .cmp-chip.is-btn:active { transform: scale(0.95); }
 
+/* ── results: the ACTIONS row (v1.2) — whole-set verbs + the ❐ SELECT
+      mode toggle; the bulk float bar itself is HomeMsFloatBar verbatim. ── */
+.cmp-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+.cmp-actions .cmp-pill { animation: cmp-rise 0.28s ease both; }
+
 /* ── results: grid — the existing gallery metrics, inside the modal ── */
 .cmp-gallery {
     display: grid;

@@ -399,7 +399,7 @@ Wishlist rows (and the held-by / collected-by chips):
 | The Composer (query builder) | ⊚ | U+229A | Brendon's pick 2026-07-13 from a 20-option round — math's composition operator (f∘g), the truest "compose". Wears: modal title, Spell Book pill, SAVE AS PROGRAM, Programs shelf. Replaced the spec-era ◎, which moved to Price Lens the same day. Device-verify per the #1 gate |
 | Price Lens | ◎ | U+25CE | took the bullseye from the Composer (Brendon, 2026-07-13) — the lens you read prices through. MY PD pill + docs feature index. Frees **⌾ (U+233E)**, Price Lens's old mark. The Genome's docs entry (which also wore ◎) moved to ≎ the same day — no collision |
 | The Genome | ≎ | U+224E | Brendon's pick 2026-07-13 — the stacked kin-pair, deliberate blood-relative of ≍ Closest Sibling (§7) so the two kinship reads rhyme. Docs feature index + any future Genome surface. Device-verify per the #1 gate |
-| Composer launcher arrow | ⤤ | U+2924 | Brendon's pick 2026-07-13 — trails "open Composer ⤤" on the Global Search first-row launcher (the open-elsewhere hook arrow). Only there; not a general "open" mark. Device-verify per the #1 gate |
+| Composer launcher arrow | ⤤ | U+2924 | Brendon's pick 2026-07-13 — trails "launch Composer ⤤" on the Global Search first-row launcher (the open-elsewhere hook arrow). Only there; not a general "open" mark. Device-verify per the #1 gate |
 
 > All three ship with the trailing VS-15 `︎` like every glyph here, and carry
 > the standard #1 glyph gate: device-verify as monochrome TEXT on iOS; if one

@@ -46,11 +46,14 @@ import {
     querySummary, querySentence, EMPTY_QUERY, FIELD_GLYPH,
     OWNER_CLASS_FACE, LIST_FACE, EMPTY_CTX,
     type ComposerQuery, type ComposerRule, type ComposerSortKey, type FacetField,
-    type ComposerCtx, type MyList, type OwnerClass,
+    type ComposerCtx, type MyList, type OwnerClass, type ComposerRow,
 } from '../../lib/composer/query';
 import { getStarredKeys, subscribeStarred } from '../../lib/pins/starStore';
-import { getWishlistKeys, subscribeWishlist } from '../../lib/pins/wishlistStore';
-import { getAlbums, subscribeAlbums } from '../../lib/pins/albumStore';
+import { getWishlistKeys, subscribeWishlist, isWishlisted, toggleWishlist } from '../../lib/pins/wishlistStore';
+import { getAlbums, subscribeAlbums, createAlbum, addToAlbum } from '../../lib/pins/albumStore';
+import { useTraits } from '../../lib/state/TraitsContext';
+import { useCart } from '../../lib/state/CartContext';
+import HomeMsFloatBar from '../home/HomeMsFloatBar';
 import { fullTraitSchema } from '../../lib/project/registry';
 import {
     getPrograms, saveProgram, renameProgram, deleteProgram, subscribePrograms,
@@ -103,8 +106,101 @@ function facetValueFace(field: FacetField, v: string): string {
     return v.replace(/^@/, '').toUpperCase();
 }
 
+/* ── the results ACTIONS row + bulk float bar (v1.2 — "make it do
+      things"). A child component because it reads the composer's OWN
+      TraitsProvider (multi-select) which wraps the stage below. The
+      whole-set pills act on ALL matches; ❐ SELECT flips the standard
+      multi-select mode — cards grow the canonical ❐/▣ badges and the
+      home float bar (mounted alongside) runs its full action menu on
+      the selection: star · wishlist · album · cart · offers · listing
+      sheets. Reuse, never reinvent — it IS HomeMsFloatBar. ── */
+function ComposerResultsActions({
+    matched,
+    me,
+    query,
+    isOpen,
+}: {
+    matched: readonly ComposerRow[];
+    me: string | null;
+    query: ComposerQuery;
+    isOpen: boolean;
+}) {
+    const { multiSelectActive, toggleMultiSelect } = useTraits();
+    const { add: cartAdd, has: cartHas, openPanel: openCartPanel } = useCart();
+    const { showToast } = useToast();
+
+    /* Never leave multi-select mode running when the Composer closes —
+       toggleMultiSelect also flips body.multi-select-mode. */
+    useEffect(() => {
+        if (!isOpen && multiSelectActive) toggleMultiSelect();
+    }, [isOpen, multiSelectActive, toggleMultiSelect]);
+
+    if (matched.length === 0) return null;
+
+    const cartable = matched.filter((r) => r.listed && (me == null || r.ownerAddr !== me));
+
+    const cartAll = () => {
+        let added = 0;
+        for (const r of cartable) {
+            if (!cartHas(r.slug, r.token_id)) { cartAdd(r.slug, r.token_id); added++; }
+        }
+        if (added === 0) { showToast('Cart: ALL ALREADY ADDED'); return; }
+        showToast(`Cart: ADDED · ${added}`);
+        openCartPanel();
+    };
+    const albumAll = () => {
+        const album = createAlbum();
+        const added = addToAlbum(album.id, matched.map((r) => ({ slug: r.slug, id: r.token_id }))) ?? 0;
+        const number = getAlbums().length;
+        showToast(`Album #${number}: ADDED ${added}`);
+    };
+    const wishlistAll = () => {
+        let added = 0;
+        for (const r of matched) {
+            if (!isWishlisted(r.slug, r.token_id)) { toggleWishlist(r.slug, r.token_id); added++; }
+        }
+        showToast(added === 0 ? 'ALL ALREADY WISHLISTED' : `Wishlist: ADDED · ${added}`);
+    };
+    const copyLink = () => {
+        try {
+            const packed = btoa(encodeURIComponent(JSON.stringify(query)));
+            const url = `${window.location.origin}/?q=${encodeURIComponent(packed)}`;
+            navigator.clipboard.writeText(url).then(
+                () => showToast('Link: COPIED'),
+                () => showToast('Link: COPY FAILED'),
+            );
+        } catch { showToast('Link: COPY FAILED'); }
+    };
+
+    return (
+        <div className="cmp-actions">
+            <button
+                className={`cmp-pill${multiSelectActive ? ' is-on' : ''}`}
+                onClick={toggleMultiSelect}
+                title="Multi-select pieces in the grid"
+            >
+                <span className="cmp-pill-glyph">{multiSelectActive ? '▣︎' : '❐︎'}</span> SELECT
+            </button>
+            {cartable.length > 0 && (
+                <button className="cmp-pill" onClick={cartAll} title="Add every listed match to the Cart">
+                    <span className="cmp-pill-glyph">▢︎</span> CART ALL · {cartable.length}
+                </button>
+            )}
+            <button className="cmp-pill" onClick={albumAll} title="Snapshot the matches into a new Album">
+                <span className="cmp-pill-glyph">◰︎</span> ALBUM ALL
+            </button>
+            <button className="cmp-pill" onClick={wishlistAll} title="Wishlist every match">
+                <span className="cmp-pill-glyph">✛︎</span> WISHLIST ALL
+            </button>
+            <button className="cmp-pill" onClick={copyLink} title="Copy a link that runs this query">
+                <span className="cmp-pill-glyph">⧉︎</span> LINK
+            </button>
+        </div>
+    );
+}
+
 export default function ComposerModal() {
-    const { openModal, close } = useModal();
+    const { openModal, open, close } = useModal();
     const { siweAddress } = useAuth();
     const { showToast } = useToast();
     const isOpen = openModal?.name === 'composer';
@@ -122,12 +218,41 @@ export default function ComposerModal() {
     const [programs, setPrograms] = useState<readonly ComposerProgram[]>(() => getPrograms());
     useEffect(() => subscribePrograms(setPrograms), []);
 
+    /* ?q= share link (v1.2): a packed query in the URL opens the Composer
+       straight onto its live results — a Program that travels. Param is
+       scrubbed after the read so back/refresh don't refire. */
+    const qLoaded = useRef(false);
+    const qDroveOpen = useRef(false);
+    useEffect(() => {
+        if (qLoaded.current || typeof window === 'undefined') return;
+        qLoaded.current = true;
+        try {
+            const packed = new URLSearchParams(window.location.search).get('q');
+            if (!packed) return;
+            const parsed = JSON.parse(decodeURIComponent(atob(packed))) as ComposerQuery;
+            if (!parsed || !Array.isArray(parsed.rules)) return;
+            setQuery({ ...EMPTY_QUERY, ...parsed });
+            setProgramName(null);
+            setView('results');
+            qDroveOpen.current = true;
+            open('composer');
+            const url = new URL(window.location.href);
+            url.searchParams.delete('q');
+            window.history.replaceState(null, '', url.toString());
+        } catch { /* malformed link — open nothing */ }
+    }, [open]);
+
     /* On each fresh open: land on the shelf when Programs exist, else the
        builder (the shelf is the tool's home once it has residents). */
     const wasOpen = useRef(false);
     useEffect(() => {
         if (isOpen && !wasOpen.current) {
-            setView(getPrograms().length > 0 ? 'programs' : 'builder');
+            if (qDroveOpen.current) {
+                // A share link drove this open — it already set the view.
+                qDroveOpen.current = false;
+            } else {
+                setView(getPrograms().length > 0 ? 'programs' : 'builder');
+            }
             setEditing(null); setScopeOpen(false); setSaveOpen(false);
         }
         wasOpen.current = isOpen;
@@ -974,7 +1099,14 @@ export default function ComposerModal() {
                                 </button>
                             </div>
                             {liveStrip(false, true)}
+                            <ComposerResultsActions
+                                matched={matched}
+                                me={me}
+                                query={query}
+                                isOpen={isOpen}
+                            />
                             {gallery}
+                            <HomeMsFloatBar />
                         </div>
                     )}
 
