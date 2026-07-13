@@ -64,6 +64,7 @@ import GhostRows from './GhostRows';
 import TraitsUI from '../project/TraitsUI';
 import AchievementsGrid from '../achievements/AchievementsGrid';
 import ProfileAnointedPanel from './ProfileAnointedPanel';
+import VaultPanel from './VaultPanel';
 import DiscordSection from './DiscordSection';
 import { MAX_PRICE_SCORE, VISIBLE_COUNT } from '../../lib/achievements/catalog';
 import Hero from '../hero/Hero';
@@ -557,7 +558,7 @@ function ProfilePageBodyInner({
        namespaced under the same store with a ":more" id so a refresh lands back
        on the same sub-section (e.g. My History), not just the +More tab. */
     const moreMemId = `${user.handle ?? handle}:more`;
-    const MORE_KEYS: ReadonlySet<string> = new Set<ProfileMoreL1>(['created', 'starred', 'wishlists', 'albums', 'offers', 'sigil', 'loyalty', 'counterparties', 'history', 'info', 'achievements', 'discord', 'anointed', 'targets']);
+    const MORE_KEYS: ReadonlySet<string> = new Set<ProfileMoreL1>(['created', 'starred', 'wishlists', 'albums', 'offers', 'vault', 'sigil', 'loyalty', 'counterparties', 'history', 'info', 'achievements', 'discord', 'anointed', 'targets']);
     const [moreL1, setMoreL1] = useState<ProfileMoreL1>(() => {
         const remembered = getRememberedTab('profile', moreMemId);
         return remembered && MORE_KEYS.has(remembered) ? (remembered as ProfileMoreL1) : 'starred';
@@ -1279,6 +1280,7 @@ function ProfilePageBodyInner({
                                             : []),
                                         { key: 'albums',    label: <><span className="pill-tab-ico is-album">{'◰︎'}</span> Albums</>,    active: effMoreL1 === 'albums',    onClick: () => setMoreL1('albums')    },
                                         { key: 'offers',    label: 'Offers',    active: effMoreL1 === 'offers',    onClick: () => setMoreL1('offers')    },
+                                        { key: 'vault',     label: 'Vault',     active: effMoreL1 === 'vault',     onClick: () => setMoreL1('vault')     },
                                         { key: 'sigil',     label: 'Sigil',     active: effMoreL1 === 'sigil',     onClick: () => setMoreL1('sigil')     },
                                         { key: 'loyalty',   label: 'Loyalty',   active: effMoreL1 === 'loyalty',   onClick: () => setMoreL1('loyalty')   },
                                         { key: 'discord',   label: 'Discord',   active: effMoreL1 === 'discord',   onClick: () => setMoreL1('discord')   },
@@ -1516,6 +1518,21 @@ function ProfilePageBodyInner({
                             address={user.address}
                             handle={displayHandle}
                             isOwnProfile={isOwnProfile}
+                        />
+                    )}
+
+                    {/* THE VAULT — the King Mode consolidation surface (Atlas
+                        spec, 2026-07-13). Public on every profile: the door,
+                        the verdict line, the appraisal plates. */}
+                    {onMore && effMoreL1 === 'vault' && (
+                        <VaultPanel
+                            address={user.address}
+                            handle={displayHandle}
+                            isOwnProfile={isOwnProfile}
+                            holdings={holdings}
+                            ownedCount={ownedCount}
+                            ownerLogo={ownerLogo}
+                            sigilForged={!!user.sigil_forged_at}
                         />
                     )}
 

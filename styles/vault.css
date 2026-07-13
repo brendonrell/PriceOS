@@ -1,0 +1,112 @@
+/* THE VAULT — +More › Vault (components/profile/VaultPanel.tsx).
+   The near-black door is the SPEC (King Candidates › The Vault): a deliberate
+   dark stage like the Composer's, NOT a colorway surface. Everything painted
+   on it is full-strength bone or faction ink — no washes (Rule #2). */
+
+.vault-stage {
+    background: #0b0b0e;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    margin: 10px 20px 16px;
+    overflow: hidden;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+/* ── The door ──────────────────────────────────────────────────────────── */
+
+.vault-door {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    min-height: 300px;
+    padding: 28px 16px;
+    cursor: pointer;
+    /* Machined-metal face: two hairline gradients read as brushed steel
+       without ever dropping text contrast (decor only, behind the type). */
+    background:
+        linear-gradient(180deg, #101014 0%, #0b0b0e 55%, #0d0d11 100%);
+    transition: transform 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+}
+/* MiniDisc shutter — the whole face slides aside. */
+.vault-door.is-sliding { transform: translateX(-102%); }
+
+.vault-seal { line-height: 1; }
+.vault-seal .sigil-mark-fill { font-size: 64px; }
+.vault-seal-mark { font-size: 64px; font-weight: 700; }
+
+.vault-verdict {
+    color: #e9edf4;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-align: center;
+}
+
+.vault-hint {
+    color: #e9edf4;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    border: 1px solid #e9edf4;
+    border-radius: 4px;
+    padding: 5px 12px;
+}
+
+/* ── Inside ────────────────────────────────────────────────────────────── */
+
+.vault-inner { padding: 14px 16px 18px; }
+
+.vault-inner-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed #3a3a42;
+    color: #e9edf4;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+.vault-inner-seal { font-size: 16px; }
+.vault-inner-verdict { flex: 1; min-width: 0; }
+.vault-reseal {
+    cursor: pointer;
+    border: 1px solid #e9edf4;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #e9edf4;
+    flex-shrink: 0;
+}
+
+.vault-empty {
+    color: #e9edf4;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 26px 4px;
+    text-align: center;
+}
+
+.vault-plates { display: flex; flex-direction: column; }
+.vault-plate {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 2px;
+    border-bottom: 1px dashed #2a2a31;
+    cursor: pointer;
+    color: #e9edf4;
+}
+.vault-plate:hover { background: #14141a; }
+.vault-plate-name { font-size: 13px; font-weight: 700; letter-spacing: 0.5px; }
+.vault-plate-appraisal {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
