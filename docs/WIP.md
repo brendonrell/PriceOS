@@ -8,6 +8,23 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+-1. ✅ **CONTRACTS: three-pass Opus audit APPLIED, merged to pd-contracts
+   `main` (`9855fa0`, 2026-07-13). 313/313 tests green.** The three blind
+   2026-07-11 Opus reviews are mirrored in `pd-contracts/audit/` (lineage
+   README updated — start there). Shipped: the tokenURI data-URI fix (the
+   always-present `#` truncated every token's metadata for standards
+   consumers; separator is now a space — **Brendon signed off on dropping
+   the `#`, 2026-07-13**; base64-ing the envelope measured 48.2M gas on
+   p5-sized libraries, not viable), `#`/`%` rejected in name/symbol/
+   description, comment corrections, new tests (ERC-20 reentrancy lock,
+   per-token Minted event, cross-chunk scanner limit documented), README
+   preview.webp→png. NOT changed per the findings themselves: admin
+   centralization (deploy-day mitigation = multisig + tight fee ceiling)
+   and the trait-grinding seed — its **commit-reveal build spec is
+   GREENLIT** (`pd-contracts/BACKLOG.md` §4, Brendon 2026-07-11): own
+   branch + full test pass + Sepolia rehearsal before mainnet. ClickUp
+   `86b9v5wj4` (Mythic Audit Pass) commented. Next contracts session
+   starts at BACKLOG §4.
 0. ✅ **2026-07-13 batch LIVE (deployed version 5f13f570, verified on the
    preview).** Footer is COMPLETE: About PD modal + Support modal v1 +
    Dispatch × close, plus viewer-local times sitewide, the genesis-moment
