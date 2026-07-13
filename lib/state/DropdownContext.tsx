@@ -14,22 +14,14 @@
  * Accordion-open state for the Tape / Pings / Todos / Notes boxes
  * lives in PdNotifsContext (matches the sim's pdNotifs object).
  *
- * Outside-click handler — uses mousedown, not click.
- *
- * The earlier click-based version had a bug: when the user clicked
- * an internal link (e.g. Settings) that triggers a setView, React
- * batched the state update and re-rendered before the click event
- * finished bubbling to the document. By the time the document
- * handler ran, the original target node was detached from the DOM,
- * so target.closest('.user-menu-wrapper') returned null and the
- * handler treated the click as "outside" and closed the menu.
- *
- * Switching to mousedown sidesteps the entire race: mousedown fires
- * before the click is even dispatched (let alone bubbled), so the
- * target is always still in the DOM when the handler runs. The
- * handler also queries the wrapper element fresh each time rather
- * than relying on closest() walking up from the target, which is
- * more robust if anything ever does manage to detach mid-flight.
+ * The Connect Menu ONLY closes when the USER deliberately closes it —
+ * tapping the connect button (toggle) or pressing Escape. There is NO
+ * outside-click / tap-elsewhere auto-close (Brendon, 2026-07-13 — "nothing
+ * should close it but the user"). That auto-close was a recurring bug: the
+ * delete-a-todo confirm, the ping/fiat pickers and other bubbles are
+ * portaled to <body>, OUTSIDE .user-menu-wrapper, so their taps read as an
+ * "outside" click and slammed the menu shut mid-action. Whitelisting each
+ * portaled surface was endless whack-a-mole; removing the auto-close ends it.
  */
 
 import {
@@ -58,7 +50,7 @@ interface DropdownContextValue {
     closeMenu: () => void;
     toggleMenu: () => void;
     setView: (v: DropdownView) => void;
-    /** Reset to default view AND close. Used on outside click. */
+    /** Reset to default view AND close. Used on route change. */
     reset: () => void;
 }
 
@@ -75,47 +67,6 @@ export function DropdownProvider({ children }: { children: ReactNode }) {
         setMenuOpen(false);
         setView('links');
     }, []);
-
-    // Outside-click closes. See top-of-file comment for why mousedown.
-    useEffect(() => {
-        if (!menuOpen) return;
-        const handler = (e: MouseEvent) => {
-            // F45 / BUG-19 — ignore outside-click while any modal is open.
-            // Native mousedown fires before React stopPropagation can run, so a
-            // tap inside an open modal would otherwise close the connect menu
-            // out from under it. Sim references the same gate at sim 5493 +
-            // 7449 + 7467 etc. via document.body.classList.contains('modal-open').
-            if (document.body.classList.contains('modal-open')) return;
-            const target = e.target as Node | null;
-            if (!target) return;
-            const wrapper = document.querySelector('.user-menu-wrapper');
-            if (wrapper && wrapper.contains(target)) return;
-            const petey = document.querySelector('.pd-logo-wrap');
-            if (petey && petey.contains(target)) return;
-            // The "Enable 3D Pingtoasts?" confirm bubble is portaled to <body>
-            // (top layer, never clipped), so it lives OUTSIDE .user-menu-wrapper.
-            // Without this, tapping it — including its Yes button — reads as an
-            // outside tap and closes the menu before the tap can register.
-            const p3d = document.querySelector('.pingtoast-3d-confirm');
-            if (p3d && p3d.contains(target)) return;
-            // Same story for the fiat currency picker bubble — body-portaled, so
-            // tapping an option must NOT read as an outside tap that closes the menu.
-            const fiat = document.querySelector('.fiat-picker-bubble');
-            if (fiat && fiat.contains(target)) return;
-            setMenuOpen(false);
-            setView('links');
-        };
-        // Defer attach so the same gesture that opened the menu
-        // doesn't immediately close it (the connect button's click
-        // bubbles to document on the same tick).
-        const t = setTimeout(() => {
-            document.addEventListener('mousedown', handler);
-        }, 0);
-        return () => {
-            clearTimeout(t);
-            document.removeEventListener('mousedown', handler);
-        };
-    }, [menuOpen]);
 
     // Escape closes too.
     useEffect(() => {

@@ -11,7 +11,6 @@ const E = [
  ['andante','andante','Andante','ANDANTE','ANDANTE','Andante','lowgravity-ai',288,'#2D52C9',null],
  ['threshold','threshold','Threshold','THRESHOLD','THRESHOLD','Threshold','firstchannel-ai',222,'#233E8C',null],
  ['ictus','ictus','Ictus','ICTUS','ICTUS','Ictus','nightpour-ai',222,'#7A2E26',null],
- ['jazz','jazz','Jazz','JAZZ','JAZZ','Jazz','newsprint-ai',256,'#E8643C',null],
  ['reverie','reverie','Reverie','REVERIE','REVERIE','Reverie','veil-ai',256,'#C98B86',null],
  ['cadence','cadence','Cadence','CADENCE','CADENCE','Cadence','tender-ai',288,'#1D4E89',null],
  ['aperture','aperture','Aperture','APERTURE','APERTURE','Aperture','lapidary-ai',256,'#1C8C7A',null],

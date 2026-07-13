@@ -65,6 +65,12 @@ export default function FeedEventRow({ fe }: { fe: FeedEvent }) {
             onPointerLeave={endPress}
             onPointerCancel={endPress}
             onContextMenu={(e) => e.preventDefault()}
+            onClickCapture={(e) => {
+                // A long-press just fired (star toggle) — swallow the click it
+                // also generates so the @name / #id link inside doesn't ALSO
+                // navigate. A normal tap (no long-press) falls through and links.
+                if (longFired.current) { e.preventDefault(); e.stopPropagation(); longFired.current = false; }
+            }}
         >
             <div className="feed-line" />
             <div className="f-icon-wrap">{fe.icon}&#xFE0E;</div>

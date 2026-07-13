@@ -78,7 +78,7 @@ export function FiatCurrencyPicker({ gated }: { gated: boolean }) {
         <>
             <span
                 ref={cellRef}
-                className={`rpc-ping-btn fiat-cur-btn${currency ? ' rpc-active' : ''}`}
+                className={`rpc-ping-btn fiat-cur-btn${currency ? ' rpc-active' : ''}${fiatSymbol(currency) !== '$' ? ' fiat-cur-nonusd' : ''}`}
                 id="fiatCurrencyBtn"
                 role="button"
                 tabIndex={gated ? -1 : 0}

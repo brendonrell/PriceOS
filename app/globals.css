@@ -4677,6 +4677,10 @@ button,
     position: relative;
     top: 0;
 }
+/* Non-$ currency glyphs (£ € ¥) render visually smaller than $ at the same
+   size — bump them +0.5px so every fiat symbol reads at the same weight
+   (Brendon, 2026-07-13). */
+.rpc-ping-btn.fiat-cur-btn.fiat-cur-nonusd { font-size: 14.5px; }
 
 /* Currency picker bubble — the SAME body-portal + tail placement as the
    3D-Pingtoast confirm, themed ATTENTION YELLOW (dark text for full legibility)
@@ -7289,6 +7293,10 @@ body.feed-mode .price-memory-ghost { display: none !important; }
     text-underline-offset: 3px;
     cursor: pointer;
 }
+/* A linked @name / #id in a feed inherits the themed text colour, never
+   browser-default blue — generalises the home-feed rule below to every feed
+   surface (Brendon, 2026-07-13). */
+a.f-highlight { color: inherit; }
 
 /* ── + MORE PANEL — sim ~3597-3868 ───────────────────────── */
 .more-section-header {

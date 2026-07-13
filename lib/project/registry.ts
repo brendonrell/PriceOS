@@ -104,7 +104,6 @@ import { renderQuietMutiny, quietMutinyTraits, quietMutinySchema, QUIET_MUTINY_A
 import { renderAndante, andanteTraits, andanteSchema, ANDANTE_ASPECTS } from '../art/engines/andante';
 import { renderThreshold, thresholdTraits, thresholdSchema, THRESHOLD_ASPECTS } from '../art/engines/threshold';
 import { renderIctus, ictusTraits, ictusSchema, ICTUS_ASPECTS } from '../art/engines/ictus';
-import { renderJazz, jazzTraits, jazzSchema, JAZZ_ASPECTS } from '../art/engines/jazz';
 import { renderCadence, cadenceTraits, cadenceSchema, CADENCE_ASPECTS } from '../art/engines/cadence';
 import { renderAperture, apertureTraits, apertureSchema, APERTURE_ASPECTS } from '../art/engines/aperture';
 import { renderInterim, interimTraits, interimSchema, INTERIM_ASPECTS } from '../art/engines/interim';
@@ -981,20 +980,6 @@ const ICTUS: ProjectDef = {
   traitsOf: ictusTraits,
 };
 
-const JAZZ: ProjectDef = {
-  slug: 'jazz',
-  displayName: 'Jazz',
-  artistHandle: 'splice-ai',
-  outputs: 222,
-  colorway: '#E8643C',
-  mintPriceEth: 0,
-  soundtrack: null,
-  aspects: JAZZ_ASPECTS,
-  traitSchema: jazzSchema,
-  render: renderJazz,
-  traitsOf: jazzTraits,
-};
-
 
 const CADENCE: ProjectDef = {
   slug: 'cadence',
@@ -1277,7 +1262,7 @@ const SALT_MIRROR: ProjectDef = {
   traitsOf: saltMirrorTraits,
 };
 
-const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, ELECTRUM, QUICKSILVER, LUSTRE, BLOOMWATER, VOLTAIC, FACET, VESPERS, TOKEH, CONSERVATORY, PRESSROOM, CINDER, CATENARY, TOPIARY, SLACK_WATER, PROVENANCE, OFF_REGISTER, INTERFERENCE, AGAINST_LIGHT, DRAPERY, VESTIBULE, NOISE_BELOW_2, LONG_NOON, SAP_RISING, COLD_JOINT, RIME, MINIUM, NOCTILUCENT, DEAD_RECKONING, AFTER_GRAVITY, VANGUARD, QUIET_MUTINY, ANDANTE, THRESHOLD, ICTUS, JAZZ, CADENCE, APERTURE, INTERIM, STILLPOINT, CHLADNI, CAUSTICS, SCHLIEREN, FROST_FERN, CYANOTYPE, EFFLORESCENCE, FROTTAGE, FUMAGE, NARTHEX, SECOND_SUN, CABINET, OVERCAST, STILL_RAIN, PAPER_COUNTRY, BALLAST, SALT_MIRROR];
+const PROJECTS: readonly ProjectDef[] = [PRISMS, ORACLE, ...AI_PROJECTS, TEST_PATTERN, CULTIVAR, BOREAL, RELIQUARY, BULLETIN, ARCOLOGY, CARNIVALE, HALO_C, HALO_D, TERMINAL_NETWORK, LEVIATHAN, EMPYREAN, ELECTRUM, QUICKSILVER, LUSTRE, BLOOMWATER, VOLTAIC, FACET, VESPERS, TOKEH, CONSERVATORY, PRESSROOM, CINDER, CATENARY, TOPIARY, SLACK_WATER, PROVENANCE, OFF_REGISTER, INTERFERENCE, AGAINST_LIGHT, DRAPERY, VESTIBULE, NOISE_BELOW_2, LONG_NOON, SAP_RISING, COLD_JOINT, RIME, MINIUM, NOCTILUCENT, DEAD_RECKONING, AFTER_GRAVITY, VANGUARD, QUIET_MUTINY, ANDANTE, THRESHOLD, ICTUS, CADENCE, APERTURE, INTERIM, STILLPOINT, CHLADNI, CAUSTICS, SCHLIEREN, FROST_FERN, CYANOTYPE, EFFLORESCENCE, FROTTAGE, FUMAGE, NARTHEX, SECOND_SUN, CABINET, OVERCAST, STILL_RAIN, PAPER_COUNTRY, BALLAST, SALT_MIRROR];
 const BY_SLUG = new Map<string, ProjectDef>(PROJECTS.map((p) => [p.slug, p]));
 
 /* True Name — each Project's permanent, unique secret-name glyph (uppercase

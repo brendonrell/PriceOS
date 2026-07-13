@@ -991,7 +991,7 @@ export default function ComposerModal() {
             className={`platform-modal composer-modal${isOpen ? ' active' : ''}`}
             role="dialog"
             aria-modal="true"
-            aria-label="The Composer"
+            aria-label="Composer"
         >
             {isOpen && (
                 /* TraitsProvider — ArtworkCard's multi-select machinery
@@ -1011,7 +1011,7 @@ export default function ComposerModal() {
                                 ? 'PROGRAMS'
                                 : view === 'results'
                                 ? (programName ?? 'RESULTS')
-                                : 'THE COMPOSER'}
+                                : 'COMPOSER'}
                         </span>
                         <span className="cmp-topbar-right">
                             {view === 'builder' && (

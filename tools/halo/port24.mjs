@@ -11,7 +11,6 @@ const ENGINES = [
   ['b_andante','andante','andante','Andante'],
   ['b_threshold','threshold','threshold','Threshold'],
   ['b_ictus','ictus','ictus','Ictus'],
-  ['b_jazz','jazz','jazz','Jazz'],
   ['b_reverie','reverie','reverie','Reverie'],
   ['b_cadence','cadence','cadence','Cadence'],
   ['b_aperture','aperture','aperture','Aperture'],
