@@ -58,6 +58,27 @@ win** — update this file in place and note it.
 > disabled control, an intentional priority tier. Resting, active UI is
 > **full-strength and readable, full stop.** When in doubt: make it MORE
 > visible, never less.
+>
+> **⛔ SHARPENED 2026-07-13 (the Composer washout — raised in fury, AGAIN).
+> The obsession is broader than opacity: TINY, SKINNY, FAINT, LOW-OPACITY —
+> ALL FOUR ARE BANNED, get it in your head.** These are impossible to see
+> for humans. The concrete bans, learned from this failure:
+> - **NO hardcoded greys** (#9a9a9a-family secondary text) and **NO low-alpha
+>   white washes** (rgba borders/fills) in new-surface chrome. Every PD page
+>   is repainted an arbitrary colorway hue — greys and alpha washes designed
+>   on a dark mock VANISH on a mid-tone page. Design for the colorway, not
+>   the mock.
+> - **Chrome wears the full-strength site tokens** exactly like the proven
+>   pills — the home STICKERS button is the reference treatment: solid
+>   `--bg-color` fill · `--text-color` border AND text · bold. Selected
+>   state = `--stat-active-*`. Nothing else.
+> - **Minimum 12px, labels bold.** No 10–11px whisper text, no hairline
+>   affordances.
+> - **The fix for a washout is NEVER to force a dark background on the
+>   surface** (that's designing for your own preference, not the app) — the
+>   fix is full-strength chrome on whatever the page paints.
+> - Before presenting any new surface: screenshot it on a MID-TONE colorway
+>   page (the Mood Ring green that exposed this), not just the dark default.
 
 > **⛔ PRIME DIRECTIVE (Brendon, 2026-06-10 — verbatim, by his order):**
 > "DON'T BE RETARDED THIS IS YOUR PRIME DIRECTIVE MAKE SURE YOUR OUTPUT IS NOT
