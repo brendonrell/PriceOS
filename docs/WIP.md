@@ -8,6 +8,36 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+-10. ✅ **SHARING · STUDIO · DIGEST ROUND (2026-07-13 evening, Fable; Brendon's
+   4-item batch, pushes pre-approved in chat "when you have something ready
+   push"). Three pushes on dev, all auto-deployed:**
+   ① **Share unfurls fixed + art-first.** Root cause of the naked Discord
+   embed: metadata's absolute-URL base still pointed at the DEAD pre-migration
+   Vercel host (unfurlers fetched images from a corpse). Base now rides
+   `NEXT_PUBLIC_SITE_URL` (.env.production). Output links unfurl with THE
+   PIECE (stored preview, large card), project links with their showcase
+   pick; the share image is gated on an R2 head-probe (outputs table is
+   SPARSE — never use it as a minted signal; previews pin on first VIEW, so
+   unviewed pieces have none). Verified live post-deploy.
+   ② **Studio:** scroll-on-load bug dead (page pins to its top; #analytics/
+   #stickers deep-links keep the jump — cold load measured clean, the drift
+   was restore-path); visitor states sorted (signed-out = full workbench +
+   bordered device-drafts callout; non-whitelisted = filter stated plainly in
+   Publish + apply path; "gated by curation" copy corrected). Remaining to
+   100% = phase-2 brief items (royalties · artist pings · soundtrack mgmt ·
+   cross-device drafts · library envelope), `docs/briefs/studio-phase2.md`.
+   ③ **THE DISPATCH DIGEST (newsletter) BUILT** — see ClickUp `86bax00un`.
+   3×/month (1st·11th·21st, 9AM MTL), ledger-only content, art-first email,
+   subscribe slip on /dispatch, 1,000-reader cap (free 3k sends). **DORMANT
+   until Brendon's 2 taps** (2 DNS records + RESEND_API_KEY worker secret —
+   assigned comment on the task has exact values; API key in chat 2026-07-13).
+   Resend segment `fb22999d-a121-4feb-aaa8-84d69994492c` = the list of record.
+   ④ **Sentinel audited** (works but session-static; no ping on crossing) —
+   server-side watcher + workflows merge QUEUED as ClickUp `86bax7dvz` with
+   the full build spec. ⑤ **Sentiment tab make-real + artist-empowerment
+   ideas**: proposals delivered in chat, AWAITING BRENDON'S PICKS — build
+   nothing until his word.
+
 -9. ✅ **THE HARDENING ROUND — 19 of 22 Architect-Report items DONE, on dev,
    DEPLOYED + VERIFIED LIVE, CI GREEN (2026-07-13, Fable; Brendon: "fix it
    all in this chat", wrapped on his AMAZING WORK).** End-state proof:
