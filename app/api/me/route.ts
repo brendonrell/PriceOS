@@ -34,6 +34,7 @@ import {
 } from '@/lib/supabase';
 import { requireAuth } from '@/lib/auth/siwe';
 import { isValidProfileLogo } from '@/lib/profile/profileLogos';
+import { recordOath } from '@/lib/factions/oath';
 import { badRequest, notFound, serverError } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
@@ -201,6 +202,12 @@ export const PATCH = requireAuth(async (req, _ctx, address) => {
 
         if (error) return serverError(error.message);
         if (!data) return notFound('No account row for this address');
+
+        // Factions: a profile_logo write may be an enlistment or a defection.
+        // Fire-and-forget — the oath ledger rides the same save, never blocks it.
+        if ('profile_logo' in result.patch) {
+            void recordOath(supabase, address, result.patch.profile_logo ?? null);
+        }
 
         return NextResponse.json(data as UserRow);
     } catch (err) {

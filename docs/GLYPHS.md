@@ -401,6 +401,26 @@ Wishlist rows (and the held-by / collected-by chips):
 > the standard #1 glyph gate: device-verify as monochrome TEXT on iOS; if one
 > tofus, it needs a swap.
 
+## 13. THE WAR — Factions glyphs (2026-07-13 build, spec v3.1 §11)
+
+One vocabulary across the ceremony, the tape, pings, the Book, and the
+Cartography war layer. Canonical constants: `lib/factions/factions.ts`
+(`WAR_GLYPHS`). The faction itself never wears a glyph — the faction IS the
+colour; a swatch/flag in the faction hex is its only mark.
+
+| Concept | Glyph | Codepoint | Notes |
+|---|---|---|---|
+| Corner (quadrant, fallen) | ▟ | U+259F | block-element quadrant — the corner IS a quadrant; mirrored per corner via CSS transforms |
+| Siege (contested ground) | ▞ | U+259E | opposing quadrants — two colours contesting one square |
+| Banner (swept / conquest) | ⚐ | U+2690 | the HOLLOW flag. Deliberately NOT ⚑ (U+2691) — that's Hostile Takeover's, and the takeover is money while the banner is war |
+| The Book of Conquests | ≣ | U+2263 | ledger lines — the chronicle |
+| Struck from the stone / the crypt | ‡ | U+2021 | double dagger — kin to First Blood's single † (§8), struck twice |
+
+> All five ship with the trailing VS-15 `︎` and carry the standard #1 glyph
+> gate: device-verify as monochrome TEXT on iOS (block elements + daggers are
+> long-proven text; ⚐ shares ⚑'s already-shipped family) — if one tofus, swap
+> it before the war UI locks.
+
 ---
 
 *Source files: `components/dropdown/settings/MyPingsRow.tsx`,

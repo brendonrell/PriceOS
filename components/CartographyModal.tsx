@@ -32,16 +32,20 @@
  * continents. No new dependencies.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useModal } from '../lib/state/ModalContext';
+import { useAuth } from '../lib/state/AuthContext';
 import { getSupabaseBrowser } from '../lib/supabase';
 import { projectColorway, getProject } from '../lib/project/registry';
+import { useFaction } from '../lib/factions/useFaction';
+import { factionByKey, WAR_GLYPHS } from '../lib/factions/factions';
 import type {
     CartographyResponse,
     CartoEvent,
     CartoHolder,
     CartoProject,
 } from '../app/api/cartography/route';
+import type { WarResponse } from '../app/api/war/route';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 /* ── deterministic seeds ─────────────────────────────────────────────── */
@@ -113,10 +117,30 @@ interface Flash { x: number; y: number; t0: number; text: string; hue: string }
 
 type Level = 'MACRO' | 'TERRITORY' | 'WALLET';
 
+/** The place card's data (the Maps-style bottom sheet for a territory). */
+export interface PlaceSelection {
+    slug: string;
+    title: string;
+    color: string;
+    minted: number;
+    supply: number;
+    volume: number;
+    ppl: number;
+    war: { status: string; leader: string; leaderHex: string; siege: string | null } | null;
+}
+
+interface WarTerritory {
+    leader: string;
+    hex: string;
+    status: string;
+    siege: string | null;
+}
+
 interface EngineCallbacks {
     onStatus: (s: 'loading' | 'live' | 'poll' | 'error') => void;
     onLevel: (level: Level, name: string) => void;
     onWallet: (info: { label: string; pieces: number; lands: number } | null) => void;
+    onSelect: (sel: PlaceSelection | null) => void;
 }
 
 function territoryRadius(minted: number): number {
@@ -125,6 +149,10 @@ function territoryRadius(minted: number): number {
 
 function shortAddr(a: string): string {
     return `${a.slice(0, 6)}…${a.slice(-4)}`;
+}
+
+function factionHexFor(key: string): string {
+    return factionByKey(key)?.hex ?? '#E9EDF4';
 }
 
 function fmtEth(v: number): string {
@@ -176,10 +204,22 @@ class CartoEngine {
     private pinchZ0 = 1;
     private lastTap = 0;
 
-    /* theme */
-    private colText = '#e8e8e8';
-    private colAccent = '#ffe600';
+    /* Ink — the map OWNS its palette. The sea is always near-black, so the
+       ink is always light: labels must read at a glance on ANY page theme
+       (the old theme-inherited ink went dark-on-dark — Rule #2 failure,
+       Brendon's screens 2026-07-13). Never derive map text from the page. */
+    private colText = '#E9EDF4';
+    private colAccent = '#FFE600';
     private sea = '#07090d';
+
+    /* The war layer (FACTIONS spec v3.1: toggle · default OFF · enlisted-
+       only). Territory rings in the holding faction's colour; a live siege
+       pulses. Data arrives from /api/war via setWar(). */
+    private warOn = false;
+    private war = new Map<string, WarTerritory>();
+    private myMarks = new Set<string>();
+    private myFactionHex: string | null = null;
+    private myAddr: string | null = null;
 
     constructor(canvas: HTMLCanvasElement, cb: EngineCallbacks) {
         this.canvas = canvas;
@@ -190,13 +230,33 @@ class CartoEngine {
         try {
             this.reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         } catch { /* default false */ }
-        try {
-            const cs = getComputedStyle(document.body);
-            const t = cs.getPropertyValue('--text-color').trim();
-            const a = cs.getPropertyValue('--accent').trim();
-            if (t) this.colText = t;
-            if (a) this.colAccent = a;
-        } catch { /* keep fallbacks */ }
+    }
+
+    /* ── war layer plumbing (React owns the toggle + faction context) ────── */
+
+    setWarLayer(on: boolean): void {
+        this.warOn = on;
+    }
+    setWarData(data: WarResponse | null, myFactionHex: string | null, markedProjects: string[], myAddr: string | null): void {
+        this.war.clear();
+        if (data) {
+            for (const c of data.collections) {
+                if (!c.leader) continue;
+                const hex = factionHexFor(c.leader);
+                this.war.set(c.slug, { leader: c.leader, hex, status: c.status, siege: c.siege });
+            }
+        }
+        this.myMarks = new Set(markedProjects);
+        this.myFactionHex = myFactionHex;
+        this.myAddr = myAddr ? myAddr.toLowerCase() : null;
+    }
+    warFor(slug: string): WarTerritory | null {
+        return this.war.get(slug) ?? null;
+    }
+
+    /** The live territory list (minted land only) — the search box's index. */
+    searchIndex(): { slug: string; title: string }[] {
+        return this.terrs.map((t) => ({ slug: t.slug, title: t.title }));
     }
 
     async start(): Promise<void> {
@@ -275,7 +335,9 @@ class CartoEngine {
         const keepPos = new Map<string, { sx: number; sy: number; x: number; y: number }>();
         for (const t of this.terrs) keepPos.set(t.slug, { sx: t.sx, sy: t.sy, x: t.x, y: t.y });
 
-        const rows = [...data.projects].sort((a, b) => b.minted - a.minted);
+        /* Unminted projects stay beneath the sea until their first mint (the
+           route already filters; this guards the realtime path too). */
+        const rows = [...data.projects].filter((p) => p.minted > 0).sort((a, b) => b.minted - a.minted);
         this.terrs = [];
         this.bySlug.clear();
         for (const p of rows) this.addTerritory(p, keepPos.get(p.slug));
@@ -513,6 +575,7 @@ class CartoEngine {
         }
         if (this.focusSlug) {
             this.focusSlug = null;
+            this.cb.onSelect(null);
             this.fitAll();
         }
     }
@@ -524,6 +587,36 @@ class CartoEngine {
         const { w, h } = this.view();
         const z = Math.min(w, h) / (t.targetR * 2.7);
         this.flyTo(t.sx, t.sy, z);
+        /* The place card — the Maps-style read on the territory you tapped. */
+        const war = this.war.get(t.slug);
+        this.cb.onSelect({
+            slug: t.slug,
+            title: t.title,
+            color: t.color,
+            minted: t.minted,
+            supply: t.supply,
+            volume: t.volume,
+            ppl: t.inhabitants.filter((i) => i.n > 0).length,
+            war: war ? { status: war.status, leader: war.leader, leaderHex: war.hex, siege: war.siege } : null,
+        });
+    }
+
+    /** Jump to a territory by slug (the search box + place-card reopen). */
+    focusBySlug(slug: string): void {
+        const t = this.bySlug.get(slug);
+        if (t) this.focusTerritory(t);
+    }
+
+    /** Fly home to a wallet's whole empire (the Maps locate-me, PD-style). */
+    locateMe(addr: string): void {
+        this.focusWallet(addr.toLowerCase());
+    }
+
+    /** Public fit-all — the recenter control. */
+    fit(): void {
+        this.focusSlug = null;
+        this.cb.onSelect(null);
+        this.fitAll();
     }
 
     private focusWallet(addr: string): void {
@@ -866,6 +959,35 @@ class CartoEngine {
                 ctx.stroke(path);
                 ctx.restore();
             }
+            /* THE WAR LAYER — a held territory wears a thin coastline ring in
+               the holding faction's colour; a live siege PULSES it. Enlisted-
+               only, toggle, default off. The map stays a landscape. */
+            const war = this.warOn && !dimmed ? this.war.get(t.slug) : null;
+            if (war) {
+                const pulse = war.siege && !this.reduceMotion
+                    ? 0.55 + 0.45 * Math.sin(performance.now() / 300)
+                    : 1;
+                ctx.globalAlpha = pulse;
+                ctx.lineWidth = Math.max(1.75 / this.cam.z, 1.75);
+                ctx.strokeStyle = war.hex;
+                ctx.save();
+                ctx.scale(1.09, 1.09);
+                ctx.stroke(path);
+                ctx.restore();
+                ctx.globalAlpha = 1;
+                /* territories carrying YOUR mark glow faintly — your ink is
+                   in their margins (Spread). */
+                if (this.myMarks.has(t.slug) && this.myFactionHex) {
+                    ctx.lineWidth = Math.max(0.9 / this.cam.z, 0.9);
+                    ctx.strokeStyle = this.myFactionHex;
+                    ctx.setLineDash([3 / this.cam.z, 5 / this.cam.z]);
+                    ctx.save();
+                    ctx.scale(1.14, 1.14);
+                    ctx.stroke(path);
+                    ctx.restore();
+                    ctx.setLineDash([]);
+                }
+            }
             ctx.restore();
             ctx.globalAlpha = 1;
         }
@@ -873,16 +995,22 @@ class CartoEngine {
         /* wallet arcs under dots */
         if (wallet) this.drawWalletArcs(ctx, wallet, now);
 
-        /* inhabitants + labels */
+        /* inhabitants */
         for (const t of this.terrs) {
             const s = this.toScreen(t.x, t.y);
             const rpx = t.r * this.cam.z;
             if (s.x + rpx * 1.4 < 0 || s.x - rpx * 1.4 > w || s.y + rpx * 1.4 < 0 || s.y - rpx * 1.4 > h) continue;
             const dimmed = wallet != null && !t.byAddr.has(wallet);
-
             if (rpx >= 46 && !dimmed) this.drawInhabitants(ctx, t, now, wallet);
-            if (rpx >= 15) this.drawLabel(ctx, t, s, rpx, dimmed);
         }
+
+        /* labels — Google-Maps discipline: fixed screen-size type (never
+           proportional to the landmass), zoom-tier fade-in, and greedy
+           declutter in importance order (terrs are sorted by minted, so the
+           biggest territories claim their names first and neighbours yield
+           until you zoom). Every label is light ink + dark halo — glanceable
+           at every level, on every territory colour. */
+        this.drawLabels(ctx, w, h, wallet);
 
         this.drawFx(ctx, now);
 
@@ -947,22 +1075,51 @@ class CartoEngine {
         }
     }
 
-    private drawLabel(ctx: CanvasRenderingContext2D, t: Territory, s: { x: number; y: number }, rpx: number, dimmed: boolean): void {
-        if (dimmed) return;
-        const size = Math.max(10, Math.min(22, rpx * 0.16));
-        ctx.font = `700 ${size}px 'Courier New', Courier, monospace`;
+    private drawLabels(ctx: CanvasRenderingContext2D, w: number, h: number, wallet: string | null): void {
+        const rects: { x0: number; y0: number; x1: number; y1: number }[] = [];
+        const claim = (cx: number, cy: number, tw: number, th: number): boolean => {
+            const pad = 5;
+            const r = { x0: cx - tw / 2 - pad, y0: cy - th / 2 - pad, x1: cx + tw / 2 + pad, y1: cy + th / 2 + pad };
+            for (const o of rects) {
+                if (r.x0 < o.x1 && r.x1 > o.x0 && r.y0 < o.y1 && r.y1 > o.y0) return false;
+            }
+            rects.push(r);
+            return true;
+        };
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        this.haloText(ctx, t.title, s.x, s.y - (rpx >= 90 ? rpx * 0.5 + size : 0), this.colText);
-        if (rpx >= 90) {
-            ctx.font = `11px 'Courier New', Courier, monospace`;
-            const line = `${t.minted}/${t.supply || '?'} · ${t.inhabitants.filter((i) => i.n > 0).length} PPL${t.volume > 0 ? ` · Ξ${t.volume < 10 ? t.volume.toFixed(2) : Math.round(t.volume)}` : ''}`;
-            this.haloText(ctx, line, s.x, s.y - rpx * 0.5 + 2, this.colText);
+        for (const t of this.terrs) {
+            const s = this.toScreen(t.x, t.y);
+            const rpx = t.r * this.cam.z;
+            if (s.x + rpx * 1.4 < 0 || s.x - rpx * 1.4 > w || s.y + rpx * 1.4 < 0 || s.y - rpx * 1.4 > h) continue;
+            if (wallet != null && !t.byAddr.has(wallet)) continue;
+            /* fade the name in as the territory earns the room for it */
+            const alpha = Math.min(1, (rpx - 13) / 9);
+            if (alpha <= 0) continue;
+            const detailed = rpx >= 90;
+            const size = detailed ? 13 : 12;
+            ctx.font = `700 ${size}px 'Courier New', Courier, monospace`;
+            const tw = ctx.measureText(t.title).width;
+            /* centred on the landmass while small (an area label); lifted
+               above the coast once zoomed in so the inhabitants stay clear */
+            const ly = detailed ? s.y - rpx * 1.02 - size : s.y;
+            if (!claim(s.x, ly, tw, size)) continue;
+            ctx.globalAlpha = alpha;
+            this.haloText(ctx, t.title, s.x, ly, this.colText);
+            if (detailed) {
+                ctx.font = `700 10px 'Courier New', Courier, monospace`;
+                const line = `${t.minted}/${t.supply || '?'} · ${t.inhabitants.filter((i) => i.n > 0).length} PPL${t.volume > 0 ? ` · Ξ${t.volume < 10 ? t.volume.toFixed(2) : Math.round(t.volume)}` : ''}`;
+                const lw = ctx.measureText(line).width;
+                if (claim(s.x, ly + size + 2, lw, 10)) {
+                    this.haloText(ctx, line, s.x, ly + size + 2, this.colText);
+                }
+            }
+            ctx.globalAlpha = 1;
         }
     }
 
     private haloText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, color: string): void {
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 3.5;
         ctx.strokeStyle = this.sea;
         ctx.lineJoin = 'round';
         ctx.strokeText(text, x, y);
@@ -979,7 +1136,10 @@ class CartoEngine {
             pts.push(this.toScreen(p.x, p.y));
         }
         if (pts.length < 2) return;
-        ctx.strokeStyle = this.colAccent;
+        /* Enlisted + war layer on + looking at your OWN empire: the arcs fly
+           your faction's colour (spec §6, wallet zoom). */
+        const ownWar = this.warOn && this.myFactionHex && wallet === this.myAddr;
+        ctx.strokeStyle = ownWar ? this.myFactionHex! : this.colAccent;
         ctx.lineWidth = 1;
         ctx.setLineDash([5, 5]);
         ctx.lineDashOffset = this.reduceMotion ? 0 : -(now / 60) % 10;
@@ -1108,6 +1268,7 @@ class CartoEngine {
             name = t ? t.title : 'TERRITORY';
         } else if (this.cam.z <= 0.5 && this.focusSlug) {
             this.focusSlug = null;
+            this.cb.onSelect(null);
         }
         const key = `${level}:${name}`;
         if (key !== this.lastLevel) {
@@ -1122,12 +1283,28 @@ class CartoEngine {
 export default function CartographyModal() {
     const { openModal, close } = useModal();
     const isOpen = openModal?.name === 'cartography';
+    const { siweAddress } = useAuth();
+    const faction = useFaction();
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const engineRef = useRef<CartoEngine | null>(null);
     const [status, setStatus] = useState<'loading' | 'live' | 'poll' | 'error'>('loading');
     const [level, setLevel] = useState<{ level: Level; name: string }>({ level: 'MACRO', name: 'MACRO' });
     const [wallet, setWallet] = useState<{ label: string; pieces: number; lands: number } | null>(null);
+    const [place, setPlace] = useState<PlaceSelection | null>(null);
+    const [searchOpen, setSearchOpen] = useState(false);
+    const [query, setQuery] = useState('');
+    /* The war layer — toggle · DEFAULT OFF · enlisted-only (spec settled #5).
+       The preference is per-device, like a Maps layer. */
+    const [warOn, setWarOn] = useState(false);
+    const [warData, setWarData] = useState<WarResponse | null>(null);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        try {
+            setWarOn(localStorage.getItem('pd_carto_war') === '1');
+        } catch { /* default off */ }
+    }, [isOpen]);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -1139,6 +1316,7 @@ export default function CartographyModal() {
                 onStatus: setStatus,
                 onLevel: (lv, name) => setLevel({ level: lv, name }),
                 onWallet: setWallet,
+                onSelect: setPlace,
             });
             engineRef.current = eng;
             void eng.start();
@@ -1151,8 +1329,48 @@ export default function CartographyModal() {
             setStatus('loading');
             setLevel({ level: 'MACRO', name: 'MACRO' });
             setWallet(null);
+            setPlace(null);
+            setSearchOpen(false);
+            setQuery('');
         };
     }, [isOpen]);
+
+    /* War data rides in only for the enlisted — civilians' maps never even
+       fetch the war. Refreshes each open; the sweep recomputes server-side. */
+    useEffect(() => {
+        if (!isOpen || !faction) return;
+        const me = siweAddress ? `?me=${siweAddress.toLowerCase()}` : '';
+        void fetch(`/api/war${me}`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => { if (d) setWarData(d as WarResponse); })
+            .catch(() => { /* the layer just stays bare */ });
+    }, [isOpen, faction, siweAddress]);
+
+    /* Feed the engine the layer state + data whenever either moves. */
+    useEffect(() => {
+        const eng = engineRef.current;
+        if (!eng) return;
+        eng.setWarLayer(Boolean(warOn && faction));
+        eng.setWarData(warData, faction?.hex ?? null, warData?.me?.markedProjects ?? [], siweAddress ?? null);
+    }, [warOn, warData, faction, siweAddress, isOpen]);
+
+    const toggleWar = () => {
+        const next = !warOn;
+        setWarOn(next);
+        try { localStorage.setItem('pd_carto_war', next ? '1' : '0'); } catch { /* ignore */ }
+    };
+
+    /* Search — type-ahead over the LIVE territories (minted land only). */
+    const index = useMemo(() => {
+        if (!isOpen) return [] as { slug: string; title: string }[];
+        void status; // re-index once the world is built
+        return engineRef.current?.searchIndex() ?? [];
+    }, [isOpen, status]);
+    const hits = useMemo(() => {
+        const q = query.trim().toUpperCase();
+        if (!q) return [] as { slug: string; title: string }[];
+        return index.filter((i) => i.title.includes(q) || i.slug.toUpperCase().includes(q)).slice(0, 6);
+    }, [query, index]);
 
     return (
         <div
@@ -1204,6 +1422,123 @@ export default function CartographyModal() {
                             {'‹︎'} {wallet ? wallet.label : level.name}
                         </div>
                     )}
+
+                    {/* Search — jump straight to a territory (Maps-inspired). */}
+                    <div className={`carto-search${searchOpen ? ' is-open' : ''}`}>
+                        <span
+                            className="carto-search-btn"
+                            role="button"
+                            tabIndex={0}
+                            title="Search territories"
+                            onClick={() => { setSearchOpen((v) => !v); setQuery(''); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSearchOpen((v) => !v); setQuery(''); } }}
+                        >
+                            {'⌕︎'}
+                        </span>
+                        {searchOpen && (
+                            <input
+                                className="carto-search-input"
+                                type="text"
+                                placeholder="Find a territory"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                spellCheck={false}
+                                autoCapitalize="none"
+                                autoCorrect="off"
+                                autoFocus
+                                aria-label="Search territories"
+                            />
+                        )}
+                        {searchOpen && hits.length > 0 && (
+                            <div className="carto-search-hits">
+                                {hits.map((hit) => (
+                                    <div
+                                        key={hit.slug}
+                                        className="carto-search-hit"
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={() => { engineRef.current?.focusBySlug(hit.slug); setSearchOpen(false); setQuery(''); }}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') { engineRef.current?.focusBySlug(hit.slug); setSearchOpen(false); setQuery(''); } }}
+                                    >
+                                        {hit.title}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Control stack (Maps-inspired): fit the whole map, fly to
+                        your own empire, and — enlisted only — the war layer. */}
+                    <div className="carto-controls">
+                        {faction && (
+                            <span
+                                className={`carto-ctl carto-ctl-war${warOn ? ' is-on' : ''}`}
+                                role="button"
+                                tabIndex={0}
+                                title="War layer"
+                                style={warOn ? { borderColor: faction.hex, color: faction.hex } : undefined}
+                                onClick={toggleWar}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleWar(); } }}
+                            >
+                                {WAR_GLYPHS.banner} WAR
+                            </span>
+                        )}
+                        {siweAddress && (
+                            <span
+                                className="carto-ctl"
+                                role="button"
+                                tabIndex={0}
+                                title="Fly to your empire"
+                                onClick={() => engineRef.current?.locateMe(siweAddress)}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); engineRef.current?.locateMe(siweAddress); } }}
+                            >
+                                ME
+                            </span>
+                        )}
+                        <span
+                            className="carto-ctl"
+                            role="button"
+                            tabIndex={0}
+                            title="Fit the whole map"
+                            onClick={() => engineRef.current?.fit()}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); engineRef.current?.fit(); } }}
+                        >
+                            FIT
+                        </span>
+                    </div>
+
+                    {/* Place card — the Maps-style bottom sheet for the tapped
+                        territory. War line only for the enlisted w/ layer on. */}
+                    {place && !wallet && (
+                        <div className="carto-place" style={{ ['--cp-color' as string]: place.color }}>
+                            <div className="carto-place-head">
+                                <span className="cp-name">{place.title}</span>
+                                <span
+                                    className="cp-close"
+                                    role="button"
+                                    tabIndex={0}
+                                    title="Close"
+                                    onClick={() => { setPlace(null); }}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPlace(null); } }}
+                                >
+                                    {'×︎'}
+                                </span>
+                            </div>
+                            <div className="cp-stats">
+                                {place.minted}/{place.supply || '?'} MINTED · {place.ppl} PPL
+                                {place.volume > 0 ? ` · Ξ${place.volume < 10 ? place.volume.toFixed(2) : Math.round(place.volume)}` : ''}
+                            </div>
+                            {faction && warOn && place.war && (
+                                <div className="cp-war" style={{ color: place.war.leaderHex }}>
+                                    {place.war.siege
+                                        ? `${WAR_GLYPHS.siege} SIEGE · ${place.war.siege} vs ${place.war.leader}`
+                                        : `${place.war.status} · ${place.war.leader}`}
+                                </div>
+                            )}
+                            <a className="cp-open" href={`/art/${place.slug}`}>OPEN {'⟙︎'}</a>
+                        </div>
+                    )}
+
                     {wallet && (
                         <div className="carto-wallet">
                             <span className="cw-name">{wallet.label}</span>

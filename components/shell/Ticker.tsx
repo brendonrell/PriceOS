@@ -24,10 +24,12 @@
  * alignment.
  */
 
-import { Fragment, useEffect, useRef } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import type { TapeFeedItem } from '../../lib/data/tapeEvents';
 import { useTapeFeed } from '../../lib/feed/useTapeFeed';
 import { subscribeTapeRail } from '../../lib/engines/tapeEngine';
+import { useFaction } from '../../lib/factions/useFaction';
+import { factionByKey } from '../../lib/factions/factions';
 
 /* Null state — when no real activity has accrued yet, the rail still scrolls a
    quiet placeholder so the tape reads as alive instead of an empty bar. */
@@ -41,6 +43,15 @@ const NULL_REPEAT = 8;
    diamond in the rail below, so a price never butts against the next name. */
 function RailItem({ item }: { item: TapeFeedItem }) {
     const boldClass = item.type === 'mint' ? ' bold' : '';
+    if (item.war) {
+        /* War lines fly the faction's colour on the glyph + the ground. */
+        return (
+            <span className="tape-item bold">
+                <span className="tape-sigil" style={{ color: item.war.hue }}>{item.war.glyph}</span>{' '}
+                {item.war.line}
+            </span>
+        );
+    }
     if (item.follow || item.unfollow) {
         return (
             <span className="tape-item bold">
@@ -74,9 +85,55 @@ function RailItem({ item }: { item: TapeFeedItem }) {
     );
 }
 
+/** Book kinds → tape treatment (glyphs per docs/GLYPHS.md §13). */
+const WAR_TAPE: Record<string, { glyph: string; word: string }> = {
+    SIEGE_RAISED: { glyph: '▞︎', word: 'Siege: RAISED' },
+    SIEGE_REPELLED: { glyph: '▞︎', word: 'Siege: REPELLED' },
+    CONQUEST: { glyph: '⚐︎', word: 'CONQUEST' },
+    STRONGHOLD: { glyph: '▟︎', word: 'Stronghold: RAISED' },
+    STONE_STRUCK: { glyph: '‡︎', word: 'Stone: STRUCK' },
+    RELIC_SEALED: { glyph: '≣︎', word: 'Relic: SEALED' },
+};
+const WAR_TAPE_WINDOW_MS = 48 * 3600_000;
+const WAR_TAPE_MAX = 6;
+
 export function Ticker() {
     const railRef = useRef<HTMLDivElement | null>(null);
-    const items = useTapeFeed();
+    const feed = useTapeFeed();
+    const faction = useFaction();
+    const [warItems, setWarItems] = useState<TapeFeedItem[]>([]);
+
+    /* War lines ride the tape for ENLISTED viewers only (IYKYK — civilians'
+       tape is exactly yesterday's tape). Recent Book entries, capped. */
+    useEffect(() => {
+        if (!faction) { setWarItems([]); return; }
+        let cancelled = false;
+        void fetch('/api/war')
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d: { book?: { kind: string; project: string | null; faction: string | null; ts: string }[] } | null) => {
+                if (cancelled || !d?.book) return;
+                const now = Date.now();
+                const lines: TapeFeedItem[] = [];
+                for (const b of d.book) {
+                    if (lines.length >= WAR_TAPE_MAX) break;
+                    const t = WAR_TAPE[b.kind];
+                    if (!t) continue;
+                    if (now - Date.parse(b.ts) > WAR_TAPE_WINDOW_MS) continue;
+                    const hue = factionByKey(b.faction)?.hex ?? '#FFE600';
+                    const ground = b.project ? ` · ${b.project.toUpperCase()}` : '';
+                    const who = b.kind === 'CONQUEST' || b.kind === 'STRONGHOLD' ? ` · ${b.faction ?? ''}` : '';
+                    lines.push({
+                        type: 'mint', name: null, sigil: '', verb: '', coll: '', id: 0, price: null,
+                        war: { line: `${t.word}${who}${ground}`, glyph: t.glyph, hue },
+                    });
+                }
+                setWarItems(lines);
+            })
+            .catch(() => { /* tape stays civilian */ });
+        return () => { cancelled = true; };
+    }, [faction]);
+
+    const items = warItems.length > 0 ? [...warItems, ...feed] : feed;
 
     useEffect(() => {
         const rail = railRef.current;

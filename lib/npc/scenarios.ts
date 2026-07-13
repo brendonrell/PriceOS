@@ -712,12 +712,12 @@ export const PREDICT_MISS: Record<string, { who: string; text: string }[]> = {
 
 export const IDLE: Record<string, string[]> = {
     carl: ['Slow episode.', "Maybe they left. Maybe we're doing this for nobody. Anyway."],
-    mick: ['Nothing to report. Reporting it.', "Quiet. I'm using the time to alphabetise."],
-    eddie: ['They went quiet. Quiet people are reading something. What are they reading.', 'Too quiet. Check the other tabs. They have OTHER TABS.'],
-    romy: ["Shh. They're thinking.", "They're just sitting with it. That's the best kind of looking."],
-    mimi: ["Stillness. Someone's about to do something expensive."],
-    celestia: ["They've gone still. A decision is circling."],
-    rocco: ['Are we boring them? Impossible.'],
+    mick: ['Nothing to report. Reporting it.', "Quiet. I'm using the time to alphabetise.", 'Somebody said the margins on one of these are getting crowded. Not my department.'],
+    eddie: ['They went quiet. Quiet people are reading something. What are they reading.', 'Too quiet. Check the other tabs. They have OTHER TABS.', 'I heard if you hold one long enough it shows you who held it before. Heard. Not confirmed.'],
+    romy: ["Shh. They're thinking.", "They're just sitting with it. That's the best kind of looking.", 'Someone told me the art remembers every hand. I choose to believe that.'],
+    mimi: ["Stillness. Someone's about to do something expensive.", "There's a rumour the colours are keeping score now. If true, the grey ones worry me."],
+    celestia: ["They've gone still. A decision is circling.", 'Four corners, one colour — somewhere, someone finished the job.'],
+    rocco: ['Are we boring them? Impossible.', 'People are flying FLAGS now? Nobody tells me anything.'],
     steven: ['They fell asleep, maybe. Happens to me on this couch.', "I've been watching the same pixel. It's a good pixel."],
 };
 

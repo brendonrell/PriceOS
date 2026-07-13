@@ -39,6 +39,9 @@ export interface TapeFeedItem {
     /** Dump gag — render as "{PROJECT} unfollowed {name}" when the seller
      *  zeroed out their bag of this project (Brendon, 2026-06-22). */
     unfollow?: boolean;
+    /** FACTIONS war line (enlisted viewers only) — renders as the line with a
+     *  faction-coloured leading glyph instead of the who/what/which shape. */
+    war?: { line: string; glyph: string; hue: string };
 }
 
 const TAPE_TYPE: Record<DbEventRow['type'], TapeEventType> = {

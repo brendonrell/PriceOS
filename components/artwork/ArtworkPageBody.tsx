@@ -42,6 +42,7 @@ import TraitsUI from '../project/TraitsUI';
 import AudienceIndicator from '../project/AudienceIndicator';
 import ReplayPanel from '../project/ReplayPanel';
 import ArtworkLive from './ArtworkLive';
+import MarginaliaCeremony from './MarginaliaCeremony';
 import OutputTitleStar from './OutputTitleStar';
 import OutputFollowButton from './OutputFollowButton';
 import AttributesPanel from './AttributesPanel';
@@ -930,7 +931,12 @@ export default function ArtworkPageBody({
                     onClick={() => openModal('output', numberPart, slug)}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal('output', numberPart, slug); } }}
                 >
-                    <ArtworkLive slug={slug} id={globalId} contain className="artwork-feature-art" />
+                    {/* THE MARGINALIA — the ceremonial hold binds the border
+                        (margins + faction corners) around the live render.
+                        The art itself is untouched. */}
+                    <MarginaliaCeremony slug={slug} tokenNo={numberPart}>
+                        <ArtworkLive slug={slug} id={globalId} contain className="artwork-feature-art" />
+                    </MarginaliaCeremony>
                 </div>
                 <div className="artwork-feature-foot">
                     <span className="aff-id">

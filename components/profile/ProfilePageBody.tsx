@@ -54,6 +54,7 @@ import WishlistList from './WishlistList';
 import { StickerArt } from '../stickers/StickerArt';
 import { PROFILE_LOGO_CAROUSEL, PROFILE_LOGO_OFF } from '../../lib/profile/profileLogos';
 import { useProfileLogo } from '../../lib/hooks/useProfileLogo';
+import { factionForLogo } from '../../lib/factions/factions';
 import { useProfileSpriteHex } from '../../lib/hooks/useProfileSpriteHex';
 import { setActiveProfileLogo } from '../../lib/profile/profileLogoActive';
 import GhostRows from './GhostRows';
@@ -182,6 +183,20 @@ function ProfilePageBodyInner({
         setActiveProfileLogo(ownerLogo ?? null);
         return () => setActiveProfileLogo(null);
     }, [ownerLogo]);
+
+    /* FACTIONS (spec v3.1, settled #2/#4): picking a blank bubble reveals the
+       allegiance it carries — the toast IS the tutorial. Only faction logos
+       fire it (never solids / Petey / $PRICE / holo / off — those stay
+       silent); a switch from one faction colour to another is a defection
+       and says so. Everything else about the pick is untouched. */
+    const pickProfileLogo = (id: string | null) => {
+        const prev = factionForLogo(myProfileLogo);
+        setMyProfileLogo(id);
+        const next = factionForLogo(id);
+        if (!next) return;
+        if (prev && prev.key !== next.key) showToast(`Oath: BROKEN · Profile Faction: ${next.key}`);
+        else showToast(`Profile Faction: ${next.key}`);
+    };
 
     /* Profile Sprite colour — the owner's picked PriceSprite hex, shown to every
        visitor; on your own profile the live hook value drives the picker + an
@@ -867,11 +882,11 @@ function ProfilePageBodyInner({
                                             tabIndex={0}
                                             aria-label={`Set Profile Logo: ${logo.name}`}
                                             aria-pressed={ownerLogo === logo.id}
-                                            onClick={() => setMyProfileLogo(logo.id)}
+                                            onClick={() => pickProfileLogo(logo.id)}
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter' || e.key === ' ') {
                                                     e.preventDefault();
-                                                    setMyProfileLogo(logo.id);
+                                                    pickProfileLogo(logo.id);
                                                 }
                                             }}
                                         >

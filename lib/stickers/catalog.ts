@@ -18,6 +18,7 @@
 
 import { allProjects, projectTrueName } from '../project/registry';
 import { projectSpriteFace } from '../project/projectSprite';
+import { FACTIONS } from '../factions/factions';
 import { spriteFaceFor } from './sprites';
 import { TIERS } from '../familiar/bestiary';
 import { ANIMATED_SPECIES } from '../familiar/species';
@@ -25,7 +26,8 @@ import { ANIMATED_SPECIES } from '../familiar/species';
 export type SheetId =
     | 'genesis' | 'petey' | 'icon' | 'familiar' | 'animfamiliar'
     | 'project' | 'artist' | 'pricesprite' | 'handle' | 'projectname' | 'output'
-    | 'achievement' | 'rarity' | 'truename' | 'quip' | 'holo' | 'animated';
+    | 'achievement' | 'rarity' | 'truename' | 'quip' | 'holo' | 'animated'
+    | 'warbanner';
 
 export interface Sticker {
     id: string;
@@ -344,11 +346,27 @@ const ANIMATED: Sticker[] = ANIM_FRAMES.map<Sticker>((it, i) => {
     return { id: `anim-${it.name.toLowerCase()}`, sheet: 'animated', kind: 'anim', name: it.name, frames: it.frames, color: hex, cutout: cutoutFor(hex) };
 });
 
+/* ── WAR BANNERS sheet — the war chest's entry-level buy (FACTIONS v3.1 §12.1).
+   One flag per faction colour: the blank bubble, exactly the logo that
+   enlists you — the moment the toast reveals your allegiance, there's a flag
+   to buy. COMMON, cheap, cosmetics ONLY: zero effect on grip, corners,
+   marks, sieges, titles, or the Book — money never buys the war (§7.9). */
+const WAR_BANNERS: Sticker[] = FACTIONS.map<Sticker>((f) => ({
+    id: `warbanner-${f.key.toLowerCase()}`,
+    sheet: 'warbanner',
+    kind: 'logo',
+    name: `War Banner — ${f.key}`,
+    color: f.hex,
+    cutout: cutoutFor(f.hex),
+    blank: true,
+}));
+
 export const STICKERS: readonly Sticker[] = [
     ...GENESIS, ...PETEY, ...ICONS, ...FAMILIARS, ...ANIM_FAMILIARS,
     ...PROJECT_SPRITES, ...ARTIST_SPRITES, ...PRICESPRITES,
     ...ARTIST_NAMES, ...PROJECT_NAMES, ...OUTPUTS,
     ...ACHIEVEMENTS, ...RARITIES, ...TRUENAMES, ...QUIP_STICKERS, ...HOLO, ...ANIMATED,
+    ...WAR_BANNERS,
 ];
 
 const BY_ID = new Map(STICKERS.map((s) => [s.id, s]));
@@ -384,6 +402,7 @@ export const SHEETS: readonly SheetMeta[] = [
     { id: 'rarity', name: 'RARITY', tag: 'UNCOMMON', count: RARITIES.length, price: '0.010', cover: RARITIES[0]! },
     { id: 'truename', name: 'TRUE NAMES', tag: 'MYTHIC', count: TRUENAMES.length, price: '0.016', cover: TRUENAMES[0]! },
     { id: 'quip', name: 'QUIPS', tag: 'COMMON', count: QUIP_STICKERS.length, price: '0.006', cover: QUIP_STICKERS[0]! },
+    { id: 'warbanner', name: 'WAR BANNERS', tag: 'COMMON', count: WAR_BANNERS.length, price: '0.006', cover: WAR_BANNERS[0]! },
     { id: 'holo', name: 'HOLO', tag: 'MYTHIC', count: HOLO.length, price: '0.024', cover: HOLO[0]! },
     { id: 'animated', name: 'ANIMATED', tag: 'MYTHIC', count: ANIMATED.length, price: '0.022', cover: ANIMATED[0]! },
 ];

@@ -45,6 +45,9 @@ export default {
     call("/api/cron/dispatch");
     // Hostile-takeover windows — resolves expired ones (one probe when idle).
     call("/api/cron/takeover-sweep");
+    // The war sweep — marks recorder every run (one probe when idle); the
+    // grip/siege/conquest derivation at most every 5 min.
+    call("/api/cron/war-sweep");
     // Dead-man switch: stamp the heartbeat so the app side can notice a
     // stalled Cron (lib/pings/heartbeat.ts checks it from the hot count poll).
     const kv = (env as unknown as {
