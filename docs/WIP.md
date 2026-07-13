@@ -46,6 +46,20 @@
 7. **PD Studio next phases** — unchanged (`docs/briefs/studio-phase2.md`,
    epic `86bavub9k`).
 
+## ✅ SHIPPED 2026-07-13 (Fable, overnight) — THE ARCHITECT REPORT (docs only)
+
+- **`docs/ARCHITECT_REPORT_2026-07-13.md`** — full architecture review Brendon
+  ordered before bed: app + DB (live advisors read) + ClickUp + repos. Verdict:
+  bones are strong; the gap is scaffolding. Top 5 blind spots: zero app tests ·
+  no CI/error-visibility · settings-envelope last-write-wins clobber risk ·
+  one-env/one-DB (staging needed at mainnet) · rate limiter likely OFF in prod
+  (Upstash secrets unverified — 5-min check, do first). Consolidated 22-item
+  homework list at the bottom, tagged Fable/Opus/Brendon. Docs-only push,
+  pre-approved. **Waiting on Brendon: read report → pick homework → I'll cut
+  ClickUp tasks + Opus briefs on his word.** Also flagged: ~6 zombie ClickUp
+  tasks (shipped work still open) need his confirm before closing; CLAUDE.md
+  §1 stack line + api-spec.md are stale (noted in report §4.7, not yet edited).
+
 ## ✅ SHIPPED 2026-07-12/13 (Fable) — THE MEGA-BATCH (all on dev + DEPLOYED, verified live)
 
 Six pushes, in dev order. ClickUp updated per feature (86b9eth7w, 86barg53e,
