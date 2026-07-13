@@ -11,8 +11,6 @@
     inset: 0;
     z-index: 1300;
     background: rgba(0, 0, 0, 0.55);
-    -webkit-backdrop-filter: blur(2px);
-    backdrop-filter: blur(2px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -21,7 +19,16 @@
     visibility: hidden;
     transition: opacity 0.25s ease, visibility 0.25s ease;
 }
-.pan-backdrop.active { opacity: 1; visibility: visible; }
+/* blur ONLY while open — a hidden full-viewport backdrop-filter still makes
+   the compositor allocate + re-blur a whole-window surface every frame
+   (three of these at once was a constant GPU load on every page — the
+   Windows Chrome killer, 2026-07-13). */
+.pan-backdrop.active {
+    opacity: 1;
+    visibility: visible;
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+}
 
 .pan-card {
     width: min(94vw, 420px);

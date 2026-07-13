@@ -10,8 +10,6 @@
     inset: 0;
     z-index: 1300;
     background: rgba(0, 0, 0, 0.45);
-    -webkit-backdrop-filter: blur(1.5px);
-    backdrop-filter: blur(1.5px);
     display: flex;
     align-items: flex-end;
     justify-content: center;
@@ -19,9 +17,13 @@
     visibility: hidden;
     transition: opacity 0.28s ease, visibility 0.28s ease;
 }
+/* blur ONLY while open — hidden full-viewport backdrop-filters still cost a
+   whole-window GPU surface per frame (the Windows Chrome killer, 2026-07-13). */
 .sticker-sheet-backdrop.active {
     opacity: 1;
     visibility: visible;
+    -webkit-backdrop-filter: blur(1.5px);
+    backdrop-filter: blur(1.5px);
 }
 
 .sticker-sheet {

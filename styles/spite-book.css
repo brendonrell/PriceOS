@@ -13,8 +13,6 @@
     inset: 0;
     z-index: 1300;
     background: rgba(0, 0, 0, 0.55);
-    -webkit-backdrop-filter: blur(2px);
-    backdrop-filter: blur(2px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -23,9 +21,13 @@
     visibility: hidden;
     transition: opacity 0.28s ease, visibility 0.28s ease;
 }
+/* blur ONLY while open — hidden full-viewport backdrop-filters still cost a
+   whole-window GPU surface per frame (the Windows Chrome killer, 2026-07-13). */
 .spite-backdrop.active {
     opacity: 1;
     visibility: visible;
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
 }
 
 /* The book — a dark leather cover wrapping two parchment pages. */
