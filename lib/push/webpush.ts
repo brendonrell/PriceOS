@@ -13,7 +13,12 @@
 // subscriptions for this user → return before touching settings (the common
 // case until someone opts in).
 
-import webpush from 'web-push';
+// ⛔ NOT the npm `web-push` lib — that library's Node https transport HANGS
+// FOREVER under the Cloudflare Workers runtime (proven in an isolated workerd
+// harness, 2026-07-13), which silently killed every native push since the
+// migration. Delivery now goes through lib/push/transport.ts (WebCrypto +
+// fetch — the same code runs in Node dev and the deployed worker).
+import { sendWebPush } from '@/lib/push/transport';
 import { getSupabaseService } from '@/lib/supabase';
 import { showsNativePings, type PingToastMode } from '@/lib/state/PdNotifsContext';
 import { formatNativePing } from '@/lib/push/format';
@@ -76,12 +81,12 @@ function spriteFaceFor(row: UserGateRow | null, mood: SpriteMood = 'awake'): str
   return FALLBACK_SPRITE_FACE;
 }
 
-let configured: boolean | null = null;
+let vapid: { subject: string; publicKey: string; privateKey: string } | null | undefined;
 
-/** Configure web-push from env once. Returns false (and stays false) when the
+/** Read the VAPID pair from env once. Returns null (and stays null) when the
  *  keys are absent — every send then no-ops. */
-function ensureConfigured(): boolean {
-  if (configured !== null) return configured;
+function vapidConfig(): { subject: string; publicKey: string; privateKey: string } | null {
+  if (vapid !== undefined) return vapid;
   // The server's public key is read from the SAME browser-facing var the client
   // subscribes with (NEXT_PUBLIC_WEBPUSH_KEY) so the signing pair can never drift
   // out of sync with the subscription — the exact bug that kept push dead. Old
@@ -92,17 +97,12 @@ function ensureConfigured(): boolean {
     process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   const privateKey = process.env.WEBPUSH_PRIVATE_KEY || process.env.VAPID_PRIVATE_KEY;
   const subject = process.env.VAPID_SUBJECT || 'mailto:pricediscussion@gmail.com';
-  if (!publicKey || !privateKey) {
-    configured = false;
-    return false;
-  }
-  try {
-    webpush.setVapidDetails(subject, publicKey, privateKey);
-    configured = true;
-  } catch {
-    configured = false;
-  }
-  return configured;
+  vapid = publicKey && privateKey ? { subject, publicKey, privateKey } : null;
+  return vapid;
+}
+
+function ensureConfigured(): boolean {
+  return vapidConfig() !== null;
 }
 
 interface SubRow {
@@ -249,9 +249,11 @@ export async function sendNativePing(recipientAddress: string, item: FeedItem): 
     await Promise.all(
       subs.map(async (s) => {
         try {
-          await webpush.sendNotification(
+          await sendWebPush(
             { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
             payload,
+            vapidConfig()!,
+            { urgency: 'high' },
           );
         } catch (err) {
           // 404/410 → the browser dropped this subscription; prune it. Anything
@@ -325,9 +327,11 @@ export async function sendTodoReminder(
     await Promise.all(
       subs.map(async (s) => {
         try {
-          await webpush.sendNotification(
+          await sendWebPush(
             { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
             payload,
+            vapidConfig()!,
+            { urgency: 'high' },
           );
         } catch (err) {
           // Same contract as sendNativePing: prune dead subs, log the rest.
