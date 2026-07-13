@@ -43,8 +43,14 @@ import {
 import {
     runQuery, ruleIsComplete, ruleFieldLabel, ruleOpLabel, ruleValueLabel,
     querySummary, querySentence, EMPTY_QUERY, FIELD_GLYPH,
+    OWNER_CLASS_FACE, LIST_FACE, EMPTY_CTX,
     type ComposerQuery, type ComposerRule, type ComposerSortKey, type FacetField,
+    type ComposerCtx, type MyList, type OwnerClass,
 } from '../../lib/composer/query';
+import { getStarredKeys, subscribeStarred } from '../../lib/pins/starStore';
+import { getWishlistKeys, subscribeWishlist } from '../../lib/pins/wishlistStore';
+import { getAlbums, subscribeAlbums } from '../../lib/pins/albumStore';
+import { fullTraitSchema } from '../../lib/project/registry';
 import {
     getPrograms, saveProgram, renameProgram, deleteProgram, subscribePrograms,
     type ComposerProgram,
@@ -72,12 +78,19 @@ function defaultRuleFor(field: string): ComposerRule {
         case 'owner':  return { kind: 'owner', op: 'notMe' };
         case 'color':  return { kind: 'color', values: [] };
         case 'rarity': return { kind: 'rarity', op: 'top', pct: 10 };
-        default:       return { kind: 'facet', field: 'Artist', op: 'is', values: [] };
+        case 'list':   return { kind: 'list', list: 'wishlist', op: 'in' };
+        default:
+            if (field.startsWith('trait:')) {
+                return { kind: 'trait', name: field.slice(6), op: 'is', values: [] };
+            }
+            return { kind: 'facet', field: 'Artist', op: 'is', values: [] };
     }
 }
 
 function fieldKeyOf(r: ComposerRule): string {
-    return r.kind === 'facet' ? r.field : r.kind;
+    if (r.kind === 'facet') return r.field;
+    if (r.kind === 'trait') return `trait:${r.name}`;
+    return r.kind;
 }
 
 /** Label a Project facet value ('@slug') with its display name. */
@@ -123,6 +136,84 @@ export default function ComposerModal() {
     const { rows, mintedSlugs, loading } = useComposerData(isOpen);
     const me = siweAddress ? siweAddress.toLowerCase() : null;
 
+    /* ── the viewer's world (v1.1) — follow graph + pin stores + the two
+          per-project derivations. All existing machinery: the follows
+          endpoint is useProjectSocial's, the key-sets are the pin stores',
+          and top-holders/Cartel derive straight off the dataset. ── */
+    const [graph, setGraph] = useState<{ following: Set<string>; followers: Set<string> }>(
+        { following: new Set(), followers: new Set() },
+    );
+    useEffect(() => {
+        if (!isOpen || !me) { setGraph({ following: new Set(), followers: new Set() }); return; }
+        let cancelled = false;
+        fetch('/api/follows/' + me, { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+                if (cancelled || !d) return;
+                const norm = (arr: unknown) => new Set(
+                    (Array.isArray(arr) ? (arr as string[]) : []).map((v) => String(v).toLowerCase().replace(/^@/, '')),
+                );
+                setGraph({ following: norm(d.following), followers: norm(d.followers) });
+            })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [isOpen, me]);
+
+    const [starredKeys, setStarredKeys] = useState<ReadonlySet<string>>(() => getStarredKeys());
+    const [wishlistKeys, setWishlistKeys] = useState<ReadonlySet<string>>(() => getWishlistKeys());
+    const [albumKeys, setAlbumKeys] = useState<ReadonlySet<string>>(
+        () => new Set(getAlbums().flatMap((a) => [...a.keys])),
+    );
+    useEffect(() => subscribeStarred(setStarredKeys), []);
+    useEffect(() => subscribeWishlist(setWishlistKeys), []);
+    useEffect(() => subscribeAlbums(() => setAlbumKeys(new Set(getAlbums().flatMap((a) => [...a.keys])))), []);
+
+    const ctx = useMemo<ComposerCtx>(() => {
+        /* Per-project holder tallies once; top-5 per project (the
+           useProjectSocial derivation, over the composer dataset). */
+        const counts = new Map<string, Map<string, number>>();
+        for (const r of rows) {
+            if (!r.ownerAddr) continue;
+            const m = counts.get(r.slug) ?? new Map<string, number>();
+            m.set(r.ownerAddr, (m.get(r.ownerAddr) ?? 0) + 1);
+            counts.set(r.slug, m);
+        }
+        const topHoldersBySlug = new Map<string, ReadonlySet<string>>();
+        for (const [slug, m] of counts) {
+            topHoldersBySlug.set(
+                slug,
+                new Set([...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map((e) => e[0])),
+            );
+        }
+        /* THE CARTEL ⟁ — the Friend Inspector's shared-holdings read, per
+           project: my mutuals who hold ground where I hold ground. */
+        const cartelBySlug = new Map<string, ReadonlySet<string>>();
+        if (me) {
+            const isMutual = (r: { ownerAddr: string; ownerHandle: string | null }) =>
+                (graph.following.has(r.ownerAddr) || (r.ownerHandle != null && graph.following.has(r.ownerHandle.toLowerCase())))
+                && (graph.followers.has(r.ownerAddr) || (r.ownerHandle != null && graph.followers.has(r.ownerHandle.toLowerCase())));
+            const mySlugs = new Set(rows.filter((r) => r.ownerAddr === me).map((r) => r.slug));
+            for (const slug of mySlugs) {
+                const members = new Set<string>();
+                for (const r of rows) {
+                    if (r.slug === slug && r.ownerAddr !== me && isMutual(r)) members.add(r.ownerAddr);
+                }
+                if (members.size) cartelBySlug.set(slug, members);
+            }
+        }
+        return {
+            ...EMPTY_CTX,
+            me,
+            following: graph.following,
+            followers: graph.followers,
+            starred: starredKeys,
+            wishlist: wishlistKeys,
+            albums: albumKeys,
+            topHoldersBySlug,
+            cartelBySlug,
+        };
+    }, [rows, me, graph, starredKeys, wishlistKeys, albumKeys]);
+
     /* Value pools for the facet trays, computed over the scoped dataset. */
     const scopeRows = useMemo(
         () => (query.scope ? rows.filter((r) => query.scope!.includes(r.slug)) : rows),
@@ -149,9 +240,9 @@ export default function ComposerModal() {
     /* The match, timed — the machine brags about its speed in the live strip. */
     const [matched, queryMs] = useMemo<[ReturnType<typeof runQuery>, number]>(() => {
         const t0 = performance.now();
-        const m = runQuery(query, rows, me);
+        const m = runQuery(query, rows, ctx);
         return [m, Math.max(1, Math.round(performance.now() - t0))];
-    }, [query, rows, me]);
+    }, [query, rows, ctx]);
 
     /* Count delta — every rule edit visibly bites: a +N/−N chip flashes
        beside the count, then leaves (the fade IS the meaning: it's a
@@ -294,8 +385,8 @@ export default function ComposerModal() {
 
     /* Live counts on the shelf. */
     const programCounts = useMemo(
-        () => programs.map((p) => runQuery(p.query, rows, me).length),
-        [programs, rows, me],
+        () => programs.map((p) => runQuery(p.query, rows, ctx).length),
+        [programs, rows, ctx],
     );
 
     /* ── render helpers ─────────────────────────────────────────────── */
@@ -316,6 +407,16 @@ export default function ComposerModal() {
                 { key: 'owner', glyph: FIELD_GLYPH.owner, label: 'OWNER' },
                 { key: 'color', glyph: FIELD_GLYPH.color, label: 'COLOUR' },
                 { key: 'rarity', glyph: FIELD_GLYPH.rarity, label: 'RARITY' },
+                { key: 'list', glyph: FIELD_GLYPH.list, label: 'MY LISTS' },
+                /* Scope narrowed to ONE project → its own trait vocabulary
+                   joins the fields (the schema behind the trait pills). */
+                ...(query.scope?.length === 1
+                    ? Object.keys(fullTraitSchema(query.scope[0])).map((name) => ({
+                          key: `trait:${name}`,
+                          glyph: FIELD_GLYPH.trait,
+                          label: name.toUpperCase(),
+                      }))
+                    : []),
             ];
             return (
                 <div className="cmp-tray">
@@ -353,7 +454,24 @@ export default function ComposerModal() {
                 ops.push(
                     { label: 'IS ME', on: r.op === 'me', apply: () => patchRule(i, { kind: 'owner', op: 'me' }) },
                     { label: 'IS NOT ME', on: r.op === 'notMe', apply: () => patchRule(i, { kind: 'owner', op: 'notMe' }) },
+                    /* The social classes — Network filter + Friend Inspector
+                       vocabulary, canonical glyphs. */
+                    ...(['mutuals', 'following', 'followers', 'topHolders', 'cartel'] as OwnerClass[]).map((cls) => ({
+                        label: `${OWNER_CLASS_FACE[cls].glyph} ${OWNER_CLASS_FACE[cls].label}`,
+                        on: r.op === cls,
+                        apply: () => patchRule(i, { kind: 'owner', op: cls }),
+                    })),
                     { label: 'IS @…', on: r.op === 'handle', apply: () => patchRule(i, { kind: 'owner', op: 'handle', handle: r.handle ?? '' }) },
+                );
+            } else if (r.kind === 'list') {
+                ops.push(
+                    { label: 'IS ON', on: r.op === 'in', apply: () => patchRule(i, { ...r, op: 'in' }) },
+                    { label: 'IS NOT ON', on: r.op === 'notIn', apply: () => patchRule(i, { ...r, op: 'notIn' }) },
+                );
+            } else if (r.kind === 'trait') {
+                ops.push(
+                    { label: 'IS ANY OF', on: r.op === 'is', apply: () => patchRule(i, { ...r, op: 'is' }) },
+                    { label: 'IS NOT', on: r.op === 'isNot', apply: () => patchRule(i, { ...r, op: 'isNot' }) },
                 );
             } else if (r.kind === 'rarity') {
                 ops.push(
@@ -372,10 +490,11 @@ export default function ComposerModal() {
                             onClick={() => {
                                 o.apply();
                                 const needsValue =
-                                    r.kind === 'facet' || r.kind === 'color'
+                                    r.kind === 'facet' || r.kind === 'color' || r.kind === 'trait'
                                     || (r.kind === 'listed' && (o.label.startsWith('BELOW') || o.label.startsWith('ABOVE')))
                                     || (r.kind === 'owner' && o.label === 'IS @…')
-                                    || r.kind === 'rarity';
+                                    || r.kind === 'rarity'
+                                    || r.kind === 'list';
                                 setEditing(needsValue ? { rule: i, seg: 'value' } : null);
                             }}
                         >
@@ -461,6 +580,51 @@ export default function ComposerModal() {
                         onChange={(e) => patchRule(i, { ...r, handle: e.target.value })}
                         autoFocus
                     />
+                </div>
+            );
+        }
+        if (r.kind === 'list') {
+            return (
+                <div className="cmp-tray">
+                    {(['starred', 'wishlist', 'album'] as MyList[]).map((l) => (
+                        <button
+                            key={l}
+                            className={`cmp-pill${r.list === l ? ' is-on' : ''}`}
+                            onClick={() => { patchRule(i, { ...r, list: l }); setEditing(null); }}
+                        >
+                            <span className="cmp-pill-glyph">{LIST_FACE[l].glyph}</span> {LIST_FACE[l].label}
+                        </button>
+                    ))}
+                </div>
+            );
+        }
+        if (r.kind === 'trait') {
+            const pool: string[] = [];
+            const seen = new Set<string>();
+            for (const row of scopeRows) {
+                const v = row.traits[r.name];
+                if (v != null && !seen.has(v)) { seen.add(v); pool.push(v); }
+            }
+            pool.sort((a, b) => a.localeCompare(b));
+            return (
+                <div className="cmp-tray">
+                    {pool.length === 0 && <span className="cmp-tray-note">NOTHING MINTED YET</span>}
+                    {pool.map((v) => {
+                        const on = r.values.includes(v);
+                        return (
+                            <button
+                                key={v}
+                                className={`cmp-pill${on ? ' is-on' : ''}`}
+                                onClick={() =>
+                                    patchRule(i, {
+                                        ...r,
+                                        values: on ? r.values.filter((x) => x !== v) : [...r.values, v],
+                                    })}
+                            >
+                                {v.toUpperCase()}
+                            </button>
+                        );
+                    })}
                 </div>
             );
         }

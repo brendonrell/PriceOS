@@ -42,12 +42,27 @@ export interface ComposerRow {
 
 export type FacetField = 'Artist' | 'Project' | 'Fate';
 
+export type OwnerClass =
+    | 'me' | 'notMe' | 'handle'
+    /* Social classes (v1.1 — the Network-filter + Friend Inspector reads):
+       my mutuals · people I follow · my followers · a project's top-5
+       holders · THE CARTEL ⟁ (mutuals sharing a project's soil with me —
+       the Friend Inspector's shared-holdings read). */
+    | 'mutuals' | 'following' | 'followers' | 'topHolders' | 'cartel';
+
+export type MyList = 'starred' | 'wishlist' | 'album';
+
 export type ComposerRule =
     | { kind: 'facet'; field: FacetField; op: 'is' | 'isNot'; values: string[] }
     | { kind: 'listed'; op: 'listed' | 'unlisted' | 'below' | 'above'; eth?: string }
-    | { kind: 'owner'; op: 'me' | 'notMe' | 'handle'; handle?: string }
+    | { kind: 'owner'; op: OwnerClass; handle?: string }
     | { kind: 'color'; values: string[] }
-    | { kind: 'rarity'; op: 'top' | 'bottom'; pct: number };
+    | { kind: 'rarity'; op: 'top' | 'bottom'; pct: number }
+    /* v1.1 — my-lists membership (starred ★ / wishlist ✛ / albums ◰). */
+    | { kind: 'list'; list: MyList; op: 'in' | 'notIn' }
+    /* v1.1 — a PROJECT's own trait (only offered under single-project
+       scope; the schema is that project's trait vocabulary). */
+    | { kind: 'trait'; name: string; op: 'is' | 'isNot'; values: string[] };
 
 export type ComposerSortKey = 'price' | 'id' | 'rarity' | 'az';
 
@@ -78,12 +93,52 @@ export function ruleIsComplete(r: ComposerRule): boolean {
         case 'owner':  return r.op !== 'handle' || !!r.handle?.trim();
         case 'color':  return r.values.length > 0;
         case 'rarity': return Number.isFinite(r.pct) && r.pct > 0 && r.pct <= 100;
+        case 'list':   return true;
+        case 'trait':  return r.values.length > 0;
     }
+}
+
+/* ── evaluation context — the viewer's world the social/list rules read ──
+   Everything here is the EXISTING machinery's data, handed in by the modal:
+   the follow graph (useProjectSocial's /api/follows shape), the pin stores'
+   `slug:id` key-sets, and two per-project derivations computed straight off
+   the composer dataset (top-5 holders; the Cartel = my mutuals who hold a
+   project I also hold). */
+export interface ComposerCtx {
+    /** Viewer wallet, lowercase (null = signed out). */
+    me: string | null;
+    /** Lowercased handles+addresses, no @ — the /api/follows shape. */
+    following: ReadonlySet<string>;
+    followers: ReadonlySet<string>;
+    /** `slug:id` keys from the pin stores. */
+    starred: ReadonlySet<string>;
+    wishlist: ReadonlySet<string>;
+    albums: ReadonlySet<string>;
+    /** slug → top-5 holder addresses (derived from the dataset). */
+    topHoldersBySlug: ReadonlyMap<string, ReadonlySet<string>>;
+    /** slug → cartel member addresses (derived: mutuals holding where I hold). */
+    cartelBySlug: ReadonlyMap<string, ReadonlySet<string>>;
+}
+
+export const EMPTY_CTX: ComposerCtx = {
+    me: null,
+    following: new Set(),
+    followers: new Set(),
+    starred: new Set(),
+    wishlist: new Set(),
+    albums: new Set(),
+    topHoldersBySlug: new Map(),
+    cartelBySlug: new Map(),
+};
+
+function inGraph(set: ReadonlySet<string>, row: ComposerRow): boolean {
+    return set.has(row.ownerAddr) || (row.ownerHandle != null && set.has(row.ownerHandle.toLowerCase()));
 }
 
 /* ── evaluation ──────────────────────────────────────────────────────── */
 
-function matchRule(r: ComposerRule, row: ComposerRow, me: string | null): boolean {
+function matchRule(r: ComposerRule, row: ComposerRow, ctx: ComposerCtx): boolean {
+    const me = ctx.me;
     switch (r.kind) {
         case 'facet': {
             const v = row.traits[r.field];
@@ -101,6 +156,14 @@ function matchRule(r: ComposerRule, row: ComposerRow, me: string | null): boolea
             const mine = me != null && row.ownerAddr === me;
             if (r.op === 'me') return mine;
             if (r.op === 'notMe') return !mine;
+            if (r.op === 'following') return inGraph(ctx.following, row);
+            if (r.op === 'followers') return inGraph(ctx.followers, row);
+            if (r.op === 'mutuals')
+                return inGraph(ctx.following, row) && inGraph(ctx.followers, row);
+            if (r.op === 'topHolders')
+                return ctx.topHoldersBySlug.get(row.slug)?.has(row.ownerAddr) ?? false;
+            if (r.op === 'cartel')
+                return ctx.cartelBySlug.get(row.slug)?.has(row.ownerAddr) ?? false;
             const h = (r.handle ?? '').trim().replace(/^@/, '').toLowerCase();
             return !!h && (row.ownerHandle?.toLowerCase() === h || row.ownerAddr === h);
         }
@@ -115,21 +178,33 @@ function matchRule(r: ComposerRule, row: ComposerRow, me: string | null): boolea
             const band = r.pct / 100;
             return r.op === 'top' ? pctile <= band : pctile > 1 - band;
         }
+        case 'list': {
+            const key = `${row.slug}:${row.token_id}`;
+            const set = r.list === 'starred' ? ctx.starred
+                : r.list === 'wishlist' ? ctx.wishlist : ctx.albums;
+            return r.op === 'in' ? set.has(key) : !set.has(key);
+        }
+        case 'trait': {
+            const v = row.traits[r.name];
+            const hit = v != null && r.values.includes(v);
+            return r.op === 'is' ? hit : !hit;
+        }
     }
 }
 
 /** Run the query's rules (ANDed; incomplete rules skipped) over the dataset.
- *  Scope is applied first. `me` = viewer's wallet (lowercase) for OWNER. */
+ *  Scope is applied first; `ctx` carries the viewer's world (wallet, follow
+ *  graph, pin stores, per-project derivations) for the social/list rules. */
 export function runQuery(
     query: ComposerQuery,
     rows: readonly ComposerRow[],
-    me: string | null,
+    ctx: ComposerCtx,
 ): ComposerRow[] {
     const scope = query.scope ? new Set(query.scope) : null;
     const active = query.rules.filter(ruleIsComplete);
     return rows.filter((row) => {
         if (scope && !scope.has(row.slug)) return false;
-        for (const r of active) if (!matchRule(r, row, me)) return false;
+        for (const r of active) if (!matchRule(r, row, ctx)) return false;
         return true;
     });
 }
@@ -139,6 +214,25 @@ export function runQuery(
 export const FIELD_GLYPH: Record<string, string> = {
     Artist: '✺︎', Project: '⬚︎', Fate: '䷲︎',
     listed: '✹︎', owner: '⌂︎', color: '◉︎', rarity: '❖︎',
+    /* v1.1 — canonical marks: ★ the star family (lists), ⨝ the trait icon. */
+    list: '★︎', trait: '⨝︎',
+};
+
+/* Owner-class faces — every glyph is the concept's canonical mark
+   (GLYPHS.md): ⚭ mutuals · ⚯ following · ⚬ followers · △ top holders ·
+   ⟁ the Cartel. */
+export const OWNER_CLASS_FACE: Record<string, { glyph: string; label: string }> = {
+    mutuals:    { glyph: '⚭︎', label: 'MY MUTUALS' },
+    following:  { glyph: '⚯︎', label: 'FOLLOWING' },
+    followers:  { glyph: '⚬︎', label: 'FOLLOWERS' },
+    topHolders: { glyph: '△︎', label: 'TOP HOLDERS' },
+    cartel:     { glyph: '⟁︎', label: 'THE CARTEL' },
+};
+
+export const LIST_FACE: Record<MyList, { glyph: string; label: string }> = {
+    starred:  { glyph: '★︎', label: 'STARRED' },
+    wishlist: { glyph: '✛︎', label: 'WISHLIST' },
+    album:    { glyph: '◰︎', label: 'AN ALBUM' },
 };
 
 export function ruleFieldLabel(r: ComposerRule): { glyph: string; label: string } {
@@ -148,6 +242,8 @@ export function ruleFieldLabel(r: ComposerRule): { glyph: string; label: string 
         case 'owner':  return { glyph: FIELD_GLYPH.owner, label: 'OWNER' };
         case 'color':  return { glyph: FIELD_GLYPH.color, label: 'COLOUR' };
         case 'rarity': return { glyph: FIELD_GLYPH.rarity, label: 'RARITY' };
+        case 'list':   return { glyph: FIELD_GLYPH.list, label: 'MY LISTS' };
+        case 'trait':  return { glyph: FIELD_GLYPH.trait, label: r.name.toUpperCase() };
     }
 }
 
@@ -157,9 +253,12 @@ export function ruleOpLabel(r: ComposerRule): string {
         case 'listed':
             return r.op === 'listed' ? 'YES' : r.op === 'unlisted' ? 'NO'
                 : r.op === 'below' ? 'BELOW' : 'ABOVE';
-        case 'owner':  return r.op === 'me' ? 'IS' : r.op === 'notMe' ? 'IS NOT' : 'IS';
+        case 'owner':  return r.op === 'me' || r.op === 'handle' ? 'IS'
+            : r.op === 'notMe' ? 'IS NOT' : 'IS';
         case 'color':  return 'IS ANY OF';
         case 'rarity': return r.op === 'top' ? 'TOP' : 'BOTTOM';
+        case 'list':   return r.op === 'in' ? 'IS ON' : 'IS NOT ON';
+        case 'trait':  return r.op === 'is' ? 'IS ANY OF' : 'IS NOT';
     }
 }
 
@@ -178,9 +277,19 @@ export function ruleValueLabel(r: ComposerRule): string {
             return r.op === 'listed' || r.op === 'unlisted'
                 ? '' : `${r.eth ?? '?'} ◊︎`;
         case 'owner':
-            return r.op === 'me' ? 'ME' : r.op === 'notMe' ? 'ME'
-                : (r.handle ? '@' + r.handle.replace(/^@/, '') : 'PICK…');
+            return r.op === 'me' || r.op === 'notMe' ? 'ME'
+                : r.op === 'handle'
+                ? (r.handle ? '@' + r.handle.replace(/^@/, '') : 'PICK…')
+                : OWNER_CLASS_FACE[r.op].label;
         case 'rarity': return `${r.pct}%`;
+        case 'list':   return LIST_FACE[r.list].label;
+        case 'trait': {
+            if (r.values.length === 0) return 'PICK…';
+            const first = r.values[0];
+            return r.values.length > 1
+                ? `${first.toUpperCase()} +${r.values.length - 1}`
+                : first.toUpperCase();
+        }
     }
 }
 
@@ -241,7 +350,23 @@ export function querySentence(q: ComposerQuery): string {
             case 'owner':
                 clauses.push(r.op === 'me' ? 'that I own'
                     : r.op === 'notMe' ? "that I don't own"
+                    : r.op === 'mutuals' ? 'held by my mutuals'
+                    : r.op === 'following' ? 'held by people I follow'
+                    : r.op === 'followers' ? 'held by my followers'
+                    : r.op === 'topHolders' ? 'held by top holders'
+                    : r.op === 'cartel' ? 'held by the Cartel ⟁︎'
                     : `held by @${(r.handle ?? '').replace(/^@/, '')}`);
+                break;
+            case 'list':
+                clauses.push(
+                    r.list === 'starred' ? (r.op === 'in' ? 'that I starred' : "that I haven't starred")
+                    : r.list === 'wishlist' ? (r.op === 'in' ? 'on my wishlist' : 'not on my wishlist')
+                    : (r.op === 'in' ? 'in one of my albums' : 'in none of my albums'));
+                break;
+            case 'trait':
+                clauses.push(r.op === 'is'
+                    ? `whose ${r.name} is ${spokenValues(r.values, (v) => v.toUpperCase())}`
+                    : `whose ${r.name} is never ${spokenValues(r.values, (v) => v.toUpperCase())}`);
                 break;
         }
     }
