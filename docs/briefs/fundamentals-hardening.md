@@ -68,10 +68,13 @@ stopped, work to a clean stopping point, follow the end-of-session ritual.
   the choice (create free Upstash db + set secrets, vs. Cloudflare
   rate-limiting rules). The middleware needs NO code change for Upstash.
 - [ ] **2. CI on every push (§3.2).** `.github/workflows/ci.yml`: on push +
-  PR to `dev` — install, `tsc --noEmit`, `next build`. No deploy step
-  (deploys stay manual unless Brendon later opts into a stored token —
-  that's HIS call, present it once, don't push it). Config-only → its push
-  is pre-approved. Prove it: one green run on GitHub.
+  PR to `dev` — install, `tsc --noEmit`, `next build`. **NOTE (2026-07-13,
+  supersedes the report §3.2's "manual deploy" framing): pushing `dev` now
+  AUTO-DEPLOYS via Cloudflare's build — never ask for a CF token.** That
+  makes this item MORE load-bearing, and the PR run is the real gate: the
+  Action must be green on the feature-branch PR BEFORE the merge to dev,
+  because the dev push itself goes straight to the live preview. Config-only
+  → its push is pre-approved. Prove it: one green run on GitHub.
 - [ ] **3. ESLint baseline (§3.2).** `next/core-web-vitals` config + fix or
   explicitly disable (with a reason comment) every finding. Wire into CI.
   Rule choices must not force product-code rewrites — tune config to the

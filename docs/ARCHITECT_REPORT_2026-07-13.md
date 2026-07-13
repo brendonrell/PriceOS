@@ -45,7 +45,7 @@ none of it requires touching product, and most of it is Opus-able.
    This is a genuinely well-shaped serverless pipeline.
 5. **Registry-as-code for Projects.** Every project = one engine file + one
    registry entry, deterministic in tokenId, seeded rng, platform traits
-   (Fate) layered on top. For a curated platform this is the right call —
+   (Fate) layered on top. For a filtered platform this is the right call —
    auditable, reviewable, no CMS goo.
 6. **Fail-closed crons + dead-man switch.** Five probe-and-exit sweeps on one
    1-minute trigger, heartbeat stamped to KV, ops ping if it stalls. Good ops
@@ -89,6 +89,10 @@ eyeballs catch it. This is the single highest-leverage investment available.
   the standing detector.
 
 ### 3.2 No CI, no lint, and a manual deploy with no safety rail
+> **SUPERSEDED IN PART (2026-07-13, same day):** the deploy is no longer
+> manual — pushing `dev` now auto-builds and deploys (CLAUDE.md §1). That
+> RAISES this item's urgency: with every dev push going straight live, the
+> pre-merge machine check is the only rail. See the hardening brief, item 2.
 There is no .github/, no eslint config, nothing that runs `tsc` or `next
 build` on push. A broken commit on dev is discovered only when someone
 builds or deploys by hand. The deploy itself is a hand-run recipe with a
