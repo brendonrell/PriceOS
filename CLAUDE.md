@@ -192,6 +192,15 @@ contract that keeps it working:
 **PriceOS** — the Next.js 14 frontend + API for **Price Discussion (PD)**, a
 web3 social platform where the community discussing prices is the product.
 
+> **⛔ PD IS FILTERED, NOT CURATED (Brendon, 2026-07-13 — wording lock, all
+> surfaces).** The artist whitelist is a **quality floor, not a taste-making
+> gate**; the platform does not editorialize the catalog. Never write "curated
+> platform" / "curation thesis" / "PD curates" in any copy, doc, or reply —
+> the word for the platform gate is **the filter**. USER-level curation (a
+> user's own Showcase, Albums, Gen Curated) is fine. The public docs, the
+> About PD modal, and ClickUp were corrected 2026-07-13; old drafts saying
+> "curated" are stale — never propagate them.
+
 - Stack: Next.js 14 (App Router) · React 18 · TypeScript · raw CSS · Supabase ·
   SIWE · wagmi/viem · Alchemy.
 - Deploy: **Cloudflare** (migrated off Vercel, 2026-07 — Brendon). Runs as a

@@ -8,6 +8,12 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ✅ **2026-07-13 batch LIVE (deployed version 5f13f570, verified on the
+   preview).** Footer is COMPLETE: About PD modal + Support modal v1 +
+   Dispatch × close, plus viewer-local times sitewide, the genesis-moment
+   fix, and the sitewide **filtered-not-curated** correction (docs + ClickUp
+   + CLAUDE.md wording lock). See SHIPPED 2026-07-13 below. Brendon to eyeball
+   both new modals on device and edit copy from there (his stated plan).
 1. ✅ **EVERYTHING IS LIVE (deployed 2026-07-12 evening, version 9727e7ff,
    verified end-to-end).** The pings WOW PASS + the entire mega-batch below
    are on the preview. Verified live: config baked (Supabase URL in the
@@ -45,6 +51,48 @@
    task; wrapper art done, chain shows zero sheets).
 7. **PD Studio next phases** — unchanged (`docs/briefs/studio-phase2.md`,
    epic `86bavub9k`).
+
+## ✅ SHIPPED 2026-07-13 (Fable) — FOOTER COMPLETE + TIMES + FILTERED-NOT-CURATED (on dev + DEPLOYED 5f13f570, verified live)
+
+One push (merge ab1ee0b). ClickUp task `86bawpvpq` records the ship.
+- **About PD modal** — the footer link (was a COMING SOON toast) now opens the
+  real thing, built on the PriceosModal changelog chrome verbatim (figlet
+  header + scale-to-fit, close-hint, collectors-list scroll body). Content:
+  "FILTERED, NOT CURATED" ASCII statement box · two SVG diagrams (the loop:
+  artist → filter → project → outputs → market → the talk; the stack: PriceOS
+  social layer over the Ethereum art layer) · THE STORY timeline (NOV 19 2021
+  #price-discussion channel → the sim → the real app → contracts → the
+  language → $PRICE mainnet → the edge → the tools → NEXT: mainnet) · BY THE
+  NUMBERS computed live from the real registries (projects, artists, edition
+  range, achievements TOTAL_COUNT, MAX_PRICE_SCORE, True Names, 95% artist
+  take, 100% on-chain art) · FIND US (X / Instagram / YouTube =
+  @pricediscussion + Discord) · CONTACT (price@ + support@pricediscussion.com).
+- **Support modal v1** — footer Support link (was a bare mailto) opens a
+  prelim modal: support email + Discord fast lane. Brendon edits copy from
+  this base (his stated plan for both modals).
+- **The Dispatch ×** — standard close-hint fixed top-right on /dispatch;
+  history-back when the reader came from inside the app, home on a cold link.
+- **⛔ Viewer-local times, always and forever (new §9 rule in CLAUDE.md).**
+  All displayed clock times now render in the USER's zone: news rail, home
+  New-Uploads feed stamps, profile feed stamps (each had been pinned to UTC).
+  Deliberate exceptions stay: day-keyed platform concepts (PriceDay, the
+  Dispatch's covered day, natal, Mood Ring) + date-of-record stamps (member
+  since / upload date, date-only, still UTC-keyed).
+- **Genesis moment fixed** — `#price-discussion` started 11/19/21 08:28 EST;
+  was stored 08:28Z (rendered 5h early for everyone). Now stored at its true
+  instant **13:28Z**; verified on the live API. Closes the old QUEUED item.
+- **Filtered, not curated — sitewide correction (Brendon's order).** The
+  platform-level "curated / curation thesis" claim was my drafting mistake.
+  Corrected: all `content/docs/` pages (glossary got a Filtered entry;
+  user-level curation like Albums/Showcase/Gen Curated untouched) · README
+  already correct · **CLAUDE.md §1 wording lock added** · ClickUp: banners on
+  PD-Docs doc top page + pages 9 & 61, Atlas "Curation, Identity & Chrome" →
+  "Taste, Identity & Chrome" (+ same in Reconciliation), wording note on the
+  Master Feature List.
+- Deploy: fresh chat-only CF token (NOT stored), OpenNext build + pinned
+  wrangler per the recipe; verified live: Supabase URL in the client chunk,
+  About modal in the served layout chunk, dp-close on /dispatch, 13:28Z from
+  the feed API.
 
 ## ✅ SHIPPED 2026-07-13 (Fable, overnight) — THE ARCHITECT REPORT (docs only)
 
@@ -360,10 +408,11 @@ redeployed** (needs Brendon's Cloudflare token — see the DEPLOY RECIPE below).
 
 ## 🧭 WAITING ON BRENDON
 
-- **Fresh Cloudflare token** → redeploy so the pings wow pass goes live
-  (NEXT UP #1).
-- **Delete the chat branch** `claude/pings-system-redesign-r5kbew` (work is
-  on dev): https://github.com/brendonrell/PriceOS/branches
+- **Eyeball + edit the two new footer modals** (About PD · Support) on
+  device — copy is v1, Brendon edits from there.
+- **Delete the chat branches** `claude/pings-system-redesign-r5kbew` and
+  `claude/pd-about-modal-history-3wpdyo` (work is on dev):
+  https://github.com/brendonrell/PriceOS/branches
 - **Ticker copy review (2026-07-12)** — Brendon to eyeball the new store +
   marketplace crawl lines and send any wording edits (he said he'd review shortly).
 - Feature Atlas re-order · ASCII-Mode glyph ⠿ iPhone check · Lane Runner
@@ -379,7 +428,6 @@ redeployed** (needs Brendon's Cloudflare token — see the DEPLOY RECIPE below).
 
 ## 📋 QUEUED (older, not started)
 
-- Genesis message timeline fix (store 13:28 UTC).
 - Group sorts rework · Languages as a gen-art trait — discussion only.
 
 ## ⚠️ Known / deferred (older)
