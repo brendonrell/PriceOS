@@ -45,6 +45,9 @@ export default {
     call("/api/cron/dispatch");
     // Hostile-takeover windows — resolves expired ones (one probe when idle).
     call("/api/cron/takeover-sweep");
+    // The Dispatch DIGEST (email) — prints 3×/month after 9AM Montreal;
+    // every other run exits on clock math alone.
+    call("/api/cron/newsletter");
     // Economy conservation audit — once a day (KV gate; every other tick is
     // one KV read). Anomalies land in app_errors.
     call("/api/cron/economy-audit");

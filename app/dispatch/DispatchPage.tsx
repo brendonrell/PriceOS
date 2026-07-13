@@ -6,6 +6,7 @@
 
 import type { DispatchBody } from '@/lib/dispatch/build.server';
 import DispatchClose from './DispatchClose';
+import DigestSignup from './DigestSignup';
 
 export interface DispatchNav {
   prev: string | null;
@@ -63,6 +64,8 @@ export default function DispatchPage({ body, nav }: { body: DispatchBody; nav: D
           {body.horizon.map((n, i) => <li key={i}>{n}</li>)}
         </ul>
       </section>
+
+      <DigestSignup />
 
       <nav className="dp-nav">
         {nav.prev ? <a href={`/dispatch/${nav.prev}`}>{'‹︎'} PREVIOUS</a> : <span />}

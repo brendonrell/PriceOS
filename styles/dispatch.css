@@ -96,3 +96,33 @@
 /* The standard modal × on the paper — fixed so it survives the scroll;
    closes the mode back to wherever the reader came from (DispatchClose). */
 .dp-close { position: fixed; }
+
+/* ── The Digest slip — email sign-up in the paper's own chrome ── */
+.dp-digest-row { display: flex; gap: 8px; margin-top: 10px; }
+.dp-digest-input {
+    flex: 1;
+    min-width: 0;
+    box-sizing: border-box;
+    background: var(--bg-color);
+    border: 2px solid var(--text-color);
+    color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 11px 12px;
+}
+.dp-digest-input::placeholder { color: var(--text-color); opacity: 0.7; }
+.dp-digest-btn {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--bg-color);
+    background: var(--text-color);
+    border: 2px solid var(--text-color);
+    padding: 11px 16px;
+    cursor: pointer;
+    line-height: 1;
+    white-space: nowrap;
+}
+.dp-digest-btn:disabled { cursor: default; opacity: 0.5; }
