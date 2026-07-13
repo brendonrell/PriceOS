@@ -659,7 +659,10 @@ export function GlobalSearchBar() {
                             }}
                         >
                             <span className="gsr-composer-glyph" aria-hidden="true">{`⊚${VS15}`}</span>
-                            <span className="gsr-main">The Composer</span>
+                            {/* "open Composer ⤤" — Composer the only
+                                capitalized word (Brendon, 2026-07-13);
+                                ⤤ = his pick, device-verify per the gate. */}
+                            <span className="gsr-main">open Composer {'⤤\uFE0E'}</span>
                             <span className="gsr-sub">query builder</span>
                         </div>
                         {recent.length > 0 && (
