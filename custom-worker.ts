@@ -48,6 +48,9 @@ export default {
     // The Dispatch DIGEST (email) — prints 3×/month after 9AM Montreal;
     // every other run exits on clock math alone.
     call("/api/cron/newsletter");
+    // The Sentinel — BUY targets + armed workflows watched server-side;
+    // crossings ping (inbox + native) exactly once via the fired-ledger.
+    call("/api/cron/sentinel");
     // Economy conservation audit — once a day (KV gate; every other tick is
     // one KV read). Anomalies land in app_errors.
     call("/api/cron/economy-audit");

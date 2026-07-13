@@ -118,6 +118,8 @@ const WATCH_ICONS: Record<string, string> = {
 /** Reminder / Artist Push / system glyphs — PING subtypes. */
 const PING_ICONS: Record<string, string> = {
   todo:     '❍︎', // ❍ To-Do
+  sentinel: '❍︎', // ❍ the Sentinel IS a to-do — same mark, its READY moment
+  workflow: '☇︎', // ☇ Workflows (GLYPHS: the TEXT lightning)
   calendar: '▦︎', // ▦ Calendar
   streak:   '◈︎', // ◈ streak (the streak glyph — the guard speaks for it)
   artist:   '✺︎', // ✺ Artist Push speaks as the artist
@@ -267,6 +269,13 @@ export function renderPing(row: FeedItem): RenderedPing {
         action = days
           ? `${days}-day streak on the line — one action today keeps it alive`
           : 'Your streak is on the line — one action today keeps it alive';
+      } else if (reminder === 'sentinel') {
+        // The Sentinel struck — a BUY target's live price crossed under it.
+        handle = '';
+        action = typeof row.data?.text === 'string' && row.data.text ? (row.data.text as string) : 'READY — a price target hit';
+      } else if (reminder === 'workflow') {
+        handle = '';
+        action = typeof row.data?.text === 'string' && row.data.text ? (row.data.text as string) : 'Workflow: FIRED';
       } else if (reminder === 'ops') {
         handle = '';
         action = typeof row.data?.text === 'string' ? (row.data.text as string) : 'System notice';
