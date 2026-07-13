@@ -42,11 +42,17 @@ export function serverError(detail?: unknown): NextResponse<ApiError> {
   // Postgres messages expose table, column, constraint and RPC names — free
   // schema recon for an attacker. Log the detail server-side; return generic.
   if (detail !== undefined) {
-    // eslint-disable-next-line no-console
+     
     console.error(
       '[api] server error:',
       detail instanceof Error ? (detail.stack ?? detail.message) : detail
     );
+    // Error visibility (Architect Report §3.3): every 500 also lands in
+    // app_errors so prod faults are findable. Fire-and-forget; never blocks
+    // the response and never throws.
+    void import('@/lib/telemetry/server')
+      .then((t) => t.recordServerError(detail))
+      .catch(() => {});
   }
   return NextResponse.json<ApiError>(
     { error: 'Internal server error', code: 'SERVER_ERROR' },

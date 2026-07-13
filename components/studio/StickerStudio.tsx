@@ -148,7 +148,7 @@ export function StickerStudio() {
                         {pkg.stickers.map((s, i) => (
                             <div key={`${s.name}${i}`} className="pd-studio-cell" style={{ cursor: 'default' }}>
                                 {/* img sandboxes the SVG — no scripts execute */}
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                { }
                                 <img
                                     src={`data:image/svg+xml;utf8,${encodeURIComponent(s.svg)}`}
                                     alt={s.name}

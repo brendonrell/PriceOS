@@ -59,7 +59,7 @@ export function usePriceDayPopover() {
             window.removeEventListener('scroll', track, true);
             window.removeEventListener('resize', track);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+         
     }, [priceDayOpen]);
 
     const openPriceDay = () => {

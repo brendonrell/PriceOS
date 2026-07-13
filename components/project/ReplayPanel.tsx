@@ -147,7 +147,7 @@ export default function ReplayPanel() {
     const tick = (ts: number) => {
       const dt = ts - last;
       last = ts;
-      let p = progressRef.current + dt / (BASE_DURATION_MS / speedRef.current);
+      const p = progressRef.current + dt / (BASE_DURATION_MS / speedRef.current);
       if (p >= 1) {
         setProg(1);
         setPlaying(false);

@@ -12,6 +12,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getSupabaseService } from '@/lib/supabase';
 import { requireAuth, verifySiweSession } from '@/lib/auth/siwe';
+import { withIdempotency } from '@/lib/api/idempotency';
 import { badRequest, serverError } from '@/lib/errors';
 import { createPing } from '@/lib/pings/createPing';
 import { SHEETS } from '@/lib/stickers/catalog';
@@ -190,6 +191,9 @@ interface Body {
 }
 
 export const POST = requireAuth(async (req, _ctx, address) => {
+  // Double-submit protection (§5.2): an Idempotency-Key header makes this
+  // POST execute at most once; replays get the stored response.
+  return withIdempotency(req, address, 'stickers-market', async () => {
   let body: Body;
   try {
     body = (await req.json()) as Body;
@@ -471,4 +475,5 @@ export const POST = requireAuth(async (req, _ctx, address) => {
   } catch (err) {
     return serverError(err instanceof Error ? err.message : 'Unknown error');
   }
+  });
 });

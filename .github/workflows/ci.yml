@@ -1,0 +1,49 @@
+# CI — the pre-merge safety rail.
+#
+# Every push to dev AUTO-DEPLOYS to the live preview (Cloudflare git build,
+# wired 2026-07-13), so this workflow is the only machine check that can catch
+# a broken build BEFORE it goes live: it runs on every feature-branch PR into
+# dev, and on dev itself as the post-merge confirmation. Keep it fast and
+# boring: types, then the real production build.
+name: CI
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+    branches: [dev]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci --no-audit --no-fund
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit + route smoke tests
+        run: npm test --if-present
+
+      - name: Production build
+        run: npm run build
+        env:
+          # next build reads the committed .env.production for the public
+          # config; nothing secret is needed to compile.
+          NODE_ENV: production

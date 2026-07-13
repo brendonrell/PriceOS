@@ -51,6 +51,15 @@ export interface OutputMarketState {
   viewer: { address: string; isOwner: boolean; balance: number } | null;
 }
 
+
+/** Headers for state-changing market POSTs. Each call mints a fresh
+ *  Idempotency-Key (one user intent = one marketClient call), so a re-sent
+ *  request — browser retry, keepalive replay, future retry logic — executes
+ *  the action at most once server-side (lib/api/idempotency). */
+function moneyHeaders(): Record<string, string> {
+  return { 'content-type': 'application/json', 'idempotency-key': crypto.randomUUID() };
+}
+
 async function jsonOrThrow(r: Response): Promise<Record<string, unknown>> {
   const j = (await r.json().catch(() => ({}))) as Record<string, unknown>;
   if (!r.ok) throw new Error(j?.error ? String(j.error) : 'Request failed');
@@ -201,7 +210,7 @@ export async function listOutputs(
     opts.onStep?.('POSTING');
     const r = await fetch('/api/market/orders', {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: moneyHeaders(),
       body: JSON.stringify({
         action: 'batch_list',
         durationSec,
@@ -234,7 +243,7 @@ export async function cancelListing(
     await jsonOrThrow(
       await fetch(`/api/output/${slug}-${id}/market`, {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: moneyHeaders(),
         body: JSON.stringify({ action: 'cancel_order', orderHash: listing.order_hash, txHash }),
       }),
     );
@@ -242,7 +251,7 @@ export async function cancelListing(
     await jsonOrThrow(
       await fetch(`/api/output/${slug}-${id}/market`, {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: moneyHeaders(),
         body: JSON.stringify({ action: 'cancel' }),
       }),
     );
@@ -321,7 +330,7 @@ export async function makeItemOffers(
     opts.onStep?.('POSTING');
     const r = await fetch('/api/market/orders', {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: moneyHeaders(),
       body: JSON.stringify({
         action: 'batch_offer',
         durationSec,
@@ -387,7 +396,7 @@ export async function sweepBuy(
       await jsonOrThrow(
         await fetch(`/api/output/${it.slug}-${it.id}/market`, {
           method: 'POST',
-          headers: { 'content-type': 'application/json' },
+          headers: moneyHeaders(),
           body: JSON.stringify({ action: 'buy' }),
         }),
       );
@@ -410,7 +419,7 @@ export async function sweepBuy(
       await jsonOrThrow(
         await fetch('/api/market/orders', {
           method: 'POST',
-          headers: { 'content-type': 'application/json' },
+          headers: moneyHeaders(),
           body: JSON.stringify({
             action: 'confirm_fills',
             txHash,
@@ -459,7 +468,7 @@ export async function makeOffer(
       await jsonOrThrow(
         await fetch(`/api/output/${target.slug}-${target.id}/market`, {
           method: 'POST',
-          headers: { 'content-type': 'application/json' },
+          headers: moneyHeaders(),
           body: JSON.stringify({ action: 'offer', price: Number(priceEth), durationSec }),
         }),
       );
@@ -467,7 +476,7 @@ export async function makeOffer(
       await jsonOrThrow(
         await fetch('/api/market/orders', {
           method: 'POST',
-          headers: { 'content-type': 'application/json' },
+          headers: moneyHeaders(),
           body: JSON.stringify({
             action: 'criteria_offer',
             slug: target.slug,
@@ -523,7 +532,7 @@ export async function makeOffer(
     await jsonOrThrow(
       await fetch(`/api/output/${target.slug}-${target.id}/market`, {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: moneyHeaders(),
         body: JSON.stringify({
           action: 'offer_order',
           order: signed.order,
@@ -535,7 +544,7 @@ export async function makeOffer(
     await jsonOrThrow(
       await fetch('/api/market/orders', {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: moneyHeaders(),
         body: JSON.stringify({
           action: 'criteria_offer',
           slug: target.slug,
@@ -575,7 +584,7 @@ export async function acceptOffer(
     await jsonOrThrow(
       await fetch('/api/market/orders', {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: moneyHeaders(),
         body: JSON.stringify({
           action: 'confirm_offer_fill',
           offerId: offer.id,
@@ -590,7 +599,7 @@ export async function acceptOffer(
     await jsonOrThrow(
       await fetch(`/api/output/${slug}-${tokenId}/market`, {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: moneyHeaders(),
         body: JSON.stringify({ action: 'accept', offerId: offer.id }),
       }),
     );
@@ -599,7 +608,7 @@ export async function acceptOffer(
     await jsonOrThrow(
       await fetch('/api/market/orders', {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: moneyHeaders(),
         body: JSON.stringify({
           action: 'accept_criteria',
           offerId: offer.id,
@@ -631,7 +640,7 @@ export async function counterOffer(
   await jsonOrThrow(
     await fetch('/api/market/orders', {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: moneyHeaders(),
       body: JSON.stringify({ action: 'counter_ping', offerId: offer.id, slug, tokenId: String(tokenId), price: Number(priceEth) }),
     }),
   );
@@ -644,7 +653,7 @@ export async function declineOffer(offerId: string): Promise<void> {
   await jsonOrThrow(
     await fetch('/api/market/orders', {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: moneyHeaders(),
       body: JSON.stringify({ action: 'decline_offer', offerId }),
     }),
   );
@@ -666,7 +675,7 @@ export async function cancelOffer(
   await jsonOrThrow(
     await fetch('/api/market/orders', {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: moneyHeaders(),
       body: JSON.stringify({ action: 'cancel_offer', offerId: offer.id, txHash }),
     }),
   );

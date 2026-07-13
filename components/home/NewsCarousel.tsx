@@ -180,7 +180,7 @@ export default function NewsCarousel({ items = PLACEHOLDER_ITEMS }: { items?: Ne
             window.removeEventListener('resize', apply);
             rail.classList.remove('news-rail-anim');
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+         
     }, [sig]);
 
     if (items.length === 0) return null;

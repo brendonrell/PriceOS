@@ -329,7 +329,7 @@ export default function AlbumsPanel({ own }: { own: boolean }) {
             )}
 
             {members.length === 0 && (
-                <p className="album-empty-note">Empty — add pieces from any artwork's ◰{VS15} or a multi-select bar.</p>
+                <p className="album-empty-note">Empty — add pieces from any artwork&rsquo;s ◰{VS15} or a multi-select bar.</p>
             )}
 
             <div className="album-pieces">

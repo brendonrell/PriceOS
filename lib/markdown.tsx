@@ -17,7 +17,7 @@ type Span = { kind: 'text' | 'code' | 'bold' | 'em'; value: string };
 
 function parseSpans(input: string): Span[] {
     const spans: Span[] = [];
-    let rest = input;
+    const rest = input;
 
     // First pass: split on backticks. Inside-backtick chunks are code,
     // outside chunks get further parsed for bold/italic.

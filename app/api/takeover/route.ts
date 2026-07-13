@@ -19,6 +19,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getSupabaseService } from '@/lib/supabase';
 import { requireAuth } from '@/lib/auth/siwe';
+import { withIdempotency } from '@/lib/api/idempotency';
 import { badRequest, serverError } from '@/lib/errors';
 import { getProject } from '@/lib/project/registry';
 import { createPing } from '@/lib/pings/createPing';
@@ -124,6 +125,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 }
 
 export const POST = requireAuth(async (req, _ctx, address) => {
+  // Double-submit protection (§5.2): an Idempotency-Key header makes this
+  // POST execute at most once; replays get the stored response.
+  return withIdempotency(req, address, 'takeover', async () => {
   try {
     const body = (await req.json()) as { target?: string; slug?: string; priceEth?: number };
     const target = String(body.target ?? '').toLowerCase();
@@ -240,4 +244,5 @@ export const POST = requireAuth(async (req, _ctx, address) => {
   } catch (err) {
     return serverError(err instanceof Error ? err.message : 'Unknown error');
   }
+  });
 });

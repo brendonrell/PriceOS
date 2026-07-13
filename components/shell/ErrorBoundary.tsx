@@ -24,6 +24,7 @@
  */
 
 import { Component, type ReactNode, type ErrorInfo } from 'react';
+import { initTelemetry, reportClientError } from '@/lib/telemetry/client';
 
 interface Props {
     children: ReactNode;
@@ -47,15 +48,24 @@ export class ErrorBoundary extends Component<Props, State> {
         return { hasError: true };
     }
 
+    componentDidMount() {
+        // Idempotent: the first mounted boundary installs the window-level
+        // error + unhandled-rejection beacons (lib/telemetry/client), so
+        // uncaught crashes ANYWHERE — not just render-phase — get reported.
+        initTelemetry();
+    }
+
     componentDidCatch(error: Error, info: ErrorInfo) {
         // Keep the evidence. A contained crash that logs nothing is a bug
         // we can never find again.
-        // eslint-disable-next-line no-console
+         
         console.error(
             `[ErrorBoundary${this.props.name ? `: ${this.props.name}` : ''}] contained a crash:`,
             error,
             info.componentStack,
         );
+        // …and ship it home so prod crashes are visible (§3.3).
+        reportClientError(error, this.props.name ?? 'boundary');
     }
 
     render() {

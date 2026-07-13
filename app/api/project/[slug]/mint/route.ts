@@ -10,6 +10,7 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseService, type MoneyOpResult } from '@/lib/supabase';
 import { requireAuth } from '@/lib/auth/siwe';
+import { withIdempotency } from '@/lib/api/idempotency';
 import { badRequest, serverError } from '@/lib/errors';
 import { getProject, MINT_FEE_ETH } from '@/lib/project/registry';
 import { MINTING_NOW_THRESHOLD } from '@/lib/home/homeData';
@@ -35,6 +36,9 @@ function milestoneCrossed(prev: number, now: number): number | null {
 }
 
 export const POST = requireAuth<{ slug: string }>(async (req, ctx, address) => {
+  // Double-submit protection (§5.2): an Idempotency-Key header makes this
+  // POST execute at most once; replays get the stored response.
+  return withIdempotency(req, address, 'mint', async () => {
   const slug = (await ctx.params).slug?.toLowerCase();
   const def = slug ? getProject(slug) : null;
   if (!def) return badRequest('Unknown project');
@@ -194,4 +198,5 @@ export const POST = requireAuth<{ slug: string }>(async (req, ctx, address) => {
   } catch (err) {
     return serverError(err instanceof Error ? err.message : 'Unknown error');
   }
+  });
 });

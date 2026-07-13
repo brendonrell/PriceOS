@@ -249,7 +249,7 @@ export function stickerHue(s: Sticker): number {
         const b = parseInt(hex.slice(5, 7), 16) / 255;
         const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
         if (d > 0.04) {
-            let h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+            const h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
             return ((h * 60) + 360) % 360;
         }
     }

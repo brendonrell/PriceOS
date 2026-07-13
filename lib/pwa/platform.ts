@@ -15,7 +15,7 @@ export type InstallOS = 'ios' | 'ipados' | 'android' | 'desktop';
 export function isStandalone(): boolean {
     if (typeof window === 'undefined') return false;
     // navigator.standalone is the iOS-only signal; display-mode covers the rest.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const iosStandalone = (window.navigator as any)?.standalone === true;
     const displayMode = window.matchMedia?.('(display-mode: standalone)')?.matches === true;
     return iosStandalone || displayMode;

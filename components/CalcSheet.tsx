@@ -96,7 +96,7 @@ export default function CalcSheet({ config, onClose }: Props) {
         if (config.price != null) return config.price.toFixed(3);
         if (config.floor != null) return config.floor.toFixed(3);
         return '';
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+         
     }, [config]);
     const [offer, setOffer] = useState<string>(initialOffer);
 

@@ -85,7 +85,7 @@ export default function DiscordSection({
             {linked ? (
                 <>
                     <div className="pd-discord-card">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        { }
                         <img
                             className="pd-discord-avatar"
                             src={avatarUrl(discordId!, discordAvatar)}

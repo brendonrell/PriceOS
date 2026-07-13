@@ -526,7 +526,7 @@ export default function ArtworkPageBody({
             tiles.push({ glyph: `✦${VS}`, label: 'The Spread', value: `${formatEth(spread)} ETH`, sub: 'ask − best bid' });
         }
         return { key: 'market', label: 'Market', tiles };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+         
     }, [market, athEth, feedRows]);
 
     const owned = market?.viewer?.isOwner ?? false;

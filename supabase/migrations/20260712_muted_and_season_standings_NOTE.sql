@@ -1,0 +1,13 @@
+-- RECONSTRUCTION NOTE (not for re-apply — tables already live).
+-- `muted` (2026-07-12 pings wow pass) and `season_standings` were created on
+-- the live DB without entries in the Supabase migration history. Recorded here
+-- 2026-07-13 so the repo mirror describes the full schema. Their FK indexes
+-- were added by 20260713_perf_lint_fixes.sql.
+--
+-- muted:            user_address text NOT NULL, muted_address text NOT NULL,
+--                   created_at timestamptz NOT NULL DEFAULT now()
+--                   RLS: muted_own_only (ALL, keyed app.current_user_address)
+-- season_standings: season_id integer NOT NULL, user_address text NOT NULL,
+--                   final_score integer NOT NULL DEFAULT 0, final_place integer
+--                   RLS: initplan-fixed policy per 20260713_perf_lint_fixes.
+SELECT 1; -- no-op by design

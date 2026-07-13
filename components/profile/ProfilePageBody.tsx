@@ -758,7 +758,7 @@ function ProfilePageBodyInner({
             };
         });
         return () => cleanups.forEach((c) => c());
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+         
     }, [createdCarouselsActive, nameCarouselOpen, artistProjects, visibleArtistProjects.length]);
 
     return (

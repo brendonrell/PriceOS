@@ -784,7 +784,7 @@ function HomePageBodyInner({
         });
         return () => cleanups.forEach((c) => c());
         // mintingKey re-binds when sort/filter changes the rendered row set.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+         
     }, [activeTab, feed, mintingKey]);
 
     /* Shuffle — each visit surfaces a DIFFERENT random project + a fresh 24

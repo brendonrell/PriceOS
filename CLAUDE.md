@@ -213,7 +213,7 @@ contract that keeps it working:
 
 ## 1. What this repo is
 
-**PriceOS** — the Next.js 14 frontend + API for **Price Discussion (PD)**, a
+**PriceOS** — the Next.js 15 frontend + API for **Price Discussion (PD)**, a
 web3 social platform where the community discussing prices is the product.
 
 > **⛔ PD IS FILTERED, NOT CURATED (Brendon, 2026-07-13 — wording lock, all
@@ -225,8 +225,9 @@ web3 social platform where the community discussing prices is the product.
 > About PD modal, and ClickUp were corrected 2026-07-13; old drafts saying
 > "curated" are stale — never propagate them.
 
-- Stack: Next.js 14 (App Router) · React 18 · TypeScript · raw CSS · Supabase ·
-  SIWE · wagmi/viem · Alchemy.
+- Stack: Next.js 15 (App Router) · React 19 · TypeScript · raw CSS · Supabase ·
+  SIWE · wagmi/viem · Alchemy. (Corrected 2026-07-13 — said 14/18 long after
+  the upgrade; deployed code wins, per §5.)
 - Deploy: **Cloudflare** (migrated off Vercel, 2026-07 — Brendon). Runs as a
   Worker named `pricediscussion`. **Live preview URL:**
   `https://pricediscussion.pricediscussion.workers.dev/` — publicly reachable AND

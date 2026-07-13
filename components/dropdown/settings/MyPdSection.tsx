@@ -187,7 +187,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                 el.classList.remove('flash-applied');
                 // Force reflow so the animation re-fires when the same
                 // class is re-added in quick succession.
-                // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+                 
                 void el.offsetWidth;
                 el.classList.add('flash-applied');
                 window.setTimeout(() => {

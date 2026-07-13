@@ -225,14 +225,23 @@ export const PATCH = requireAuth(async (req, _ctx, address) => {
         // never carries an address, so this can only ever write the caller's
         // own row. price_sprite/handle/account_level are not in the patch, so
         // they are physically untouchable through this path.
-        const { data, error } = await supabase
-            .from('users')
-            .update(result.patch as never)
-            .eq('address', address)
-            .select('*')
-            .maybeSingle();
+        //
+        // MERGE, not replace (2026-07-13, Architect Report §3.4): the write
+        // goes through app_merge_user_state, which folds only the PROVIDED
+        // top-level keys of each jsonb envelope into the stored value in one
+        // atomic statement. Two devices writing different keys can no longer
+        // clobber each other's settings/todos/notes; scalar columns behave
+        // exactly as before. The RPC is service_role-only.
+        const { data: merged, error } = await (supabase.rpc as (
+            fn: string,
+            args: Record<string, unknown>
+        ) => PromiseLike<{ data: unknown; error: { message: string } | null }>)(
+            'app_merge_user_state',
+            { p_address: address, p_patch: result.patch }
+        );
 
         if (error) return serverError(error.message);
+        const data = Array.isArray(merged) ? (merged[0] as UserRow | undefined) : undefined;
         if (!data) return notFound('No account row for this address');
 
         // Factions: a profile_logo write may be an enlistment or a defection.

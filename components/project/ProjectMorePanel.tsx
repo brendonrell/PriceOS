@@ -107,7 +107,7 @@ export default function ProjectMorePanel({
         const onR = () => load();
         window.addEventListener('pd:project-refresh', onR);
         return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onR); };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+         
     }, [project.slug]);
 
     /* Social — the project's follow graph (Brendon, 2026-06-14). FOLLOWERS =

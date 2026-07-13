@@ -1,7 +1,8 @@
 # PriceOS API Spec
 
-Production base: `https://api.pricediscussion.com`
-Stack: Next.js 14 (App Router) on Vercel serverless · Supabase (Postgres) · Alchemy (chain reads)
+Production base: `https://pricediscussion.pricediscussion.workers.dev` (the app Worker serves the API; a custom domain comes with mainnet)
+Stack: Next.js 15 (App Router) on a Cloudflare Worker (OpenNext) · Supabase (Postgres) · Alchemy (chain reads)
+Verified against code: 2026-07-13. (Header previously said Vercel + api.pricediscussion.com — stale since the 2026-07 Cloudflare migration.)
 
 ## Auth model
 

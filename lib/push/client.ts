@@ -209,7 +209,7 @@ export async function disableNativePings(): Promise<void> {
 /** Mirror the unread count onto the installed app icon (no-op if unsupported). */
 export function setAppBadge(count: number): void {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const n = navigator as any;
     if (typeof n.setAppBadge === 'function') {
       if (count > 0) n.setAppBadge(count);
@@ -222,7 +222,7 @@ export function setAppBadge(count: number): void {
 
 export function clearAppBadge(): void {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const n = navigator as any;
     n.clearAppBadge?.();
   } catch {

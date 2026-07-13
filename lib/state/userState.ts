@@ -433,19 +433,45 @@ export function pushState(patch: UserStatePatch, opts?: { keepalive?: boolean })
     });
 }
 
+/* ── Changed-keys tracking (2026-07-13, Architect Report §3.4) ───────────────
+   The server now MERGES the provided settings keys into the stored envelope
+   (app_merge_user_state), so the client sends ONLY the keys that actually
+   changed since the last successful flush. A device that changed the colorway
+   no longer ships its (possibly stale) copy of todos/notes/albums with it —
+   that was the cross-device clobber. On a failed flush the keys go back in
+   the dirty set, so the next change retries them. */
+const _dirtySettingsKeys = new Set<keyof UserSettings>();
+
+function sendDirtySettings(keepalive = false): void {
+    if (!_hydrated || !_address || _dirtySettingsKeys.size === 0) return;
+    const keys = [..._dirtySettingsKeys];
+    _dirtySettingsKeys.clear();
+    const envelope: Partial<UserSettings> = {};
+    for (const k of keys) {
+        (envelope as Record<string, unknown>)[k] = _settings[k];
+    }
+    void patchUserState({ settings: envelope as UserSettings }, keepalive ? { keepalive: true } : undefined)
+        .catch(() => {
+            /* network blip — re-arm the keys so the next flush retries them */
+            for (const k of keys) _dirtySettingsKeys.add(k);
+        });
+}
+
 /**
  * Merge a partial settings change into the in-memory mirror and write the
- * COMPLETE settings envelope through to the server. Use this for everything
- * that lives inside the `settings` jsonb column (colorway, sort, haze, notifs)
- * so sibling keys are preserved. Top-level columns (profile_hex, showcase,
- * showcase_style) use pushState() directly.
+ * CHANGED KEYS through to the server (the server merges them into the stored
+ * envelope — sibling keys are preserved server-side). Use this for everything
+ * that lives inside the `settings` jsonb column (colorway, sort, haze, notifs).
+ * Top-level columns (profile_hex, showcase, showcase_style) use pushState()
+ * directly.
  */
 export function pushSettings(partial: Partial<UserSettings>): void {
     _settings = { ..._settings, ...partial };
-    /* An immediate write already sends the whole envelope (incl. anything a
-       debounced write was about to flush) — so cancel any pending flush. */
+    for (const k of Object.keys(partial) as (keyof UserSettings)[]) _dirtySettingsKeys.add(k);
+    /* An immediate write flushes everything dirty (incl. anything a debounced
+       write was about to send) — so cancel any pending flush. */
     cancelSettingsFlush();
-    pushState({ settings: _settings });
+    sendDirtySettings();
 }
 
 /* ── Debounced settings write (Brendon, 2026-06-24) ──────────────────────────
@@ -470,11 +496,12 @@ function cancelSettingsFlush(): void {
 
 function flushSettings(keepalive = false): void {
     cancelSettingsFlush();
-    pushState({ settings: _settings }, keepalive ? { keepalive: true } : undefined);
+    sendDirtySettings(keepalive);
 }
 
 export function pushSettingsDebounced(partial: Partial<UserSettings>): void {
     _settings = { ..._settings, ...partial };
+    for (const k of Object.keys(partial) as (keyof UserSettings)[]) _dirtySettingsKeys.add(k);
     if (!_hydrated || !_address || typeof window === 'undefined') return;
     const now = Date.now();
     if (_settingsDeadline === 0) _settingsDeadline = now + SETTINGS_MAX_WAIT_MS;
@@ -484,7 +511,7 @@ export function pushSettingsDebounced(partial: Partial<UserSettings>): void {
 }
 
 if (typeof window !== 'undefined') {
-    const flushOnHide = () => { if (_settingsTimer != null) flushSettings(true); };
+    const flushOnHide = () => { if (_settingsTimer != null || _dirtySettingsKeys.size) flushSettings(true); };
     window.addEventListener('pagehide', flushOnHide);
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') flushOnHide();

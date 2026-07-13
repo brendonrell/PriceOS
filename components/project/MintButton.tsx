@@ -100,7 +100,8 @@ export default function MintButton({
     try {
       const r = await fetch(`/api/project/${slug}/mint`, {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        // One key per press: a re-sent request can't double-mint (§5.2).
+        headers: { 'content-type': 'application/json', 'idempotency-key': crypto.randomUUID() },
         body: JSON.stringify({ quantity: qty }),
       });
       j = await r.json().catch(() => ({}));

@@ -16,6 +16,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getSupabaseService, type MoneyOpResult } from '@/lib/supabase';
 import { requireAuth, verifySiweSession } from '@/lib/auth/siwe';
+import { withIdempotency } from '@/lib/api/idempotency';
 import { badRequest, serverError } from '@/lib/errors';
 import { getProject, outputTraits } from '@/lib/project/registry';
 import { createPing } from '@/lib/pings/createPing';
@@ -252,6 +253,9 @@ const SIM_MONEY_ACTIONS = new Set(['list', 'buy', 'offer', 'accept']);
 const CHAIN_ACTIONS = new Set(['list_order', 'offer_order', 'cancel_order']);
 
 export const POST = requireAuth<{ id: string }>(async (req, ctx, address) => {
+  // Double-submit protection (§5.2): an Idempotency-Key header makes this
+  // POST execute at most once; replays get the stored response.
+  return withIdempotency(req, address, 'output-market', async () => {
   const parsed = parseId((await ctx.params).id);
   if (!parsed) return badRequest('Bad output id');
   const { slug, tokenId } = parsed;
@@ -513,4 +517,5 @@ export const POST = requireAuth<{ id: string }>(async (req, ctx, address) => {
   } catch (err) {
     return serverError(err instanceof Error ? err.message : 'Unknown error');
   }
+  });
 });

@@ -346,7 +346,7 @@ export function decodeSetupCode(raw: string): DecodeResult {
 export function notifsPatchFromDecodedState(state: DecodedState): Partial<PdNotifs> {
     const patch: Partial<PdNotifs> = { tape: state.tape };
     for (const key of SETUP_CODE_FLAG_KEYS) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         (patch as any)[key] = !!state.flags[key];
     }
     // Multi-value settings reset to their DEFAULT when the code omits them.

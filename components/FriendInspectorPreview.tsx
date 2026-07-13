@@ -196,7 +196,7 @@ function WireRow({ items, reverse }: { items: WireItem[]; reverse: boolean }) {
             window.removeEventListener('resize', apply);
             rail.classList.remove('anim');
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+         
     }, [sig]);
 
     return (

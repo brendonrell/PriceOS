@@ -27,7 +27,7 @@ export default function RouteError({
     reset: () => void;
 }) {
     useEffect(() => {
-        // eslint-disable-next-line no-console
+         
         console.error('[route error]', error);
     }, [error]);
 

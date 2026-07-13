@@ -26,12 +26,12 @@ function supported(): boolean {
 async function acquireSentinel(): Promise<void> {
   if (!supported() || sentinel || holders === 0) return;
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const s = await (navigator as any).wakeLock.request('screen');
     sentinel = s as WakeLockSentinel;
     // If the OS auto-releases it (tab hidden), forget the stale handle so the
     // visibility handler knows to re-request.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     (s as any).addEventListener?.('release', () => {
       if (sentinel === s) sentinel = null;
     });

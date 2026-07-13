@@ -45,6 +45,9 @@ export default {
     call("/api/cron/dispatch");
     // Hostile-takeover windows — resolves expired ones (one probe when idle).
     call("/api/cron/takeover-sweep");
+    // Economy conservation audit — once a day (KV gate; every other tick is
+    // one KV read). Anomalies land in app_errors.
+    call("/api/cron/economy-audit");
     // The war sweep — marks recorder every run (one probe when idle); the
     // grip/siege/conquest derivation at most every 5 min.
     call("/api/cron/war-sweep");

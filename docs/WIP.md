@@ -8,6 +8,27 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+-9. ✅ **THE HARDENING ROUND — 19 of 22 Architect-Report items DONE, on dev
+   (2026-07-13 overnight, Fable; Brendon: "fix it all in this chat").**
+   Full per-item status lives IN the brief's checklist —
+   **`docs/briefs/fundamentals-hardening.md` is the baton for this
+   workstream**, read it before touching anything hardening-related.
+   Highlights: CI gate (tsc+lint+27 tests+build) · error visibility
+   (app_errors sink + /api/telemetry + /api/health) · settings clobber KILLED
+   (server-side atomic merge + dirty-key client, scratch-row proven) ·
+   idempotency keys on all 5 money routes · engine determinism harness
+   (tools/engine-hashes, 112 projects, goldens committed — REQUIRED gate for
+   any lib/art change) · daily economy audit sweep · DB advisor lint cleared ·
+   migration mirror backfilled + generated types snapshot · CSP report-only ·
+   secrets inventory · cutover contract DRAFT (his 5 calls pending) · 6
+   ClickUp zombies closed. **Brendon taps: ClickUp `86bax31xd`** (Upstash =
+   rate limiter is verifiably OFF in prod · uptime pinger · free-plan backup
+   decision · cutover calls). Deferred to own sessions, reasons in brief:
+   per-engine code-splitting (#12), giants split (#14), money-math queue
+   remainder (#16). New migrations applied to live DB this round: perf lint
+   fixes, app_errors (+fns), app_merge_user_state, idempotency_keys (+fn) —
+   all mirrored in supabase/migrations/.
+
 0. ⏳ **THE OPEN QUEUE (from the 2026-07-13 pre-launch batch — everything
    else that day SHIPPED, see -5):**
    - **SPELL BOOK STUBS — first build once Brendon says go.** Plan presented

@@ -46,6 +46,15 @@ const nextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()',
           },
+          // REPORT-ONLY script CSP (2026-07-13, hardening item 16): blocks
+          // nothing, but every would-be violation posts to /api/telemetry —
+          // this is the tuning data the future BLOCKING script-src policy
+          // needs (wallet/3rd-party script origins). Promote to a blocking
+          // Content-Security-Policy only after the reports run quiet.
+          {
+            key: 'Content-Security-Policy-Report-Only',
+            value: "script-src 'self' 'unsafe-inline'; report-uri /api/telemetry",
+          },
         ],
       },
     ];
