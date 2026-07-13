@@ -8,12 +8,15 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-1. **REDEPLOY the app Worker (needs a fresh CF token from Brendon) — the
-   pings WOW PASS (a019bd3) is on dev but NOT yet live.** The main pings
-   redesign (be249c7) IS live (deployed 2026-07-12, version 8394e132,
-   verified). Brendon's token died before the second deploy (auth 10000).
-   Follow the DEPLOY RECIPE below. After deploy, verify: POST /api/social/mute
-   returns 401 (not 404) and a lock-screen ping deep-links to its piece.
+1. **REDEPLOY the app Worker (needs a fresh CF token from Brendon) — dev is
+   now MANY builds ahead of the live preview.** Awaiting deploy: the pings
+   WOW PASS (a019bd3) + the ENTIRE 2026-07-12/13 mega-batch (Cartography,
+   engine perf pass, Rewind, Dispatch, Hostile Takeover, docs — see SHIPPED).
+   Follow the DEPLOY RECIPE below. Post-deploy verify: home title long-press
+   opens the Cartography · triple-tap docks the Rewind · /dispatch prints its
+   first edition on the first cron tick after 9AM Montreal (or immediately if
+   past 9AM) · POST /api/social/mute returns 401 (not 404) · a ⚑ TAKEOVER
+   button shows on other collectors' profiles.
    ⚠️ iOS push pipeline is PROVEN WORKING (Brendon's banner test succeeded) —
    the old "malformed key" suspicion is closed.
 2. ✅ **Indexer sweep — LIVE (2026-07-11 afternoon).** `ALCHEMY_RPC_URL` set,
@@ -42,6 +45,53 @@
    task; wrapper art done, chain shows zero sheets).
 7. **PD Studio next phases** — unchanged (`docs/briefs/studio-phase2.md`,
    epic `86bavub9k`).
+
+## ✅ SHIPPED 2026-07-12/13 (Fable) — THE MEGA-BATCH (all on dev, ALL AWAITING DEPLOY)
+
+Six pushes, in dev order. ClickUp updated per feature (86b9eth7w, 86barg53e,
+86b9fcn0d, 86b9g6c7c, 86bafgw65 all complete; 86b9fbrx9 commented).
+- **The Cartography ◫ (86b9eth7w):** living ecosystem map — territories from
+  minted supply w/ seeded coastlines, holders as inhabitants, artist ✺ capital,
+  shared-collector continents (periodic force layout), realtime event layer
+  (mint ripple+growth, sale comets, listing beacons), 3 LOD depths, wallet
+  focus mode. Canvas 2D, zero deps, /api/cartography seed + Realtime channel.
+  ENTRY: long-press the home "Price Discussion" name (project-title gesture
+  verbatim). WebGL deferred until scale demands (noted in task).
+- **Engine perf pass (86bafgw65 + fleetwide):** all 84 engines benchmarked
+  headless (playwright + esbuild harness in scratchpad); ~45 were 1-4s/piece.
+  Shared grain/mottle/hazeSheet storms → bucket-batched path fills / pixel
+  buffers (same rng order); bespoke fixes: vanguard (PIP dot culling, 4.2s →
+  0.9s), goldenangle (layer-blur glow, 4.1s → 50ms), corallogic (int grid
+  keys), diffusion (inlined laplacian), chladni (near-band mask + LUT
+  deposits, 3.3s → 1.65s = current fleet worst). ⚠️ 9 projects' texture layer
+  changed → ZEROED to 0 mints on Brendon's order (chladni pressroom ictus
+  caustics cyanotype vanguard frost-fern conservatory topiary; holders/events/
+  listings/offers rows deleted, aggregates reset). pd-test-alpha untouched.
+- **The Rewind ◄ v1 (86barg53e):** triple-tap the home name → whole-OS docked
+  at any PriceDay: banner + spine scrubber + RETURN TO NOW; as-of home (stats,
+  lists, day log) + as-of project pages (stats-then, gallery capped to
+  minted-by-then); read-only by construction (/api/rewind GET only).
+  **Daily social tape STARTED** (social_snapshots table + cron — the
+  can't-wait piece; R4 profile/leaderboard rewind now possible later).
+- **The Dispatch ▤ (86b9fcn0d):** morning paper, 9AM Montreal, covers prior
+  day; deterministic seeded prose off the almanac engine ($0/day); immutable
+  editions in `dispatches` table; /dispatch + /dispatch/YYYY-MM-DD forever-
+  URLs; entries = news-rail ▤ pill + footer 2nd row before Mood Ring.
+- **HOSTILE TAKEOVER ⚑ (86b9g6c7c) + own-book offers decision (86b9fbrx9 =
+  Option A, Brendon's call):** blanket premium bid on a 3+-piece position;
+  1.2× premium enforced (lowest listing → floor → mint); 72h non-cancellable
+  (cancel path refuses takeover offers); real per-piece offers w/
+  offers.takeover_id; accept flow records yields live; sweep stamps
+  COMPLETED/PARTIAL/WITHSTOOD (180d mark); profile ⚑ TAKEOVER action + cast
+  sheet + inscription banners; Offers HQ badges blanket rows. NEW glyphs
+  logged in GLYPHS.md: ◫ ◄ ▤ ⚑ (all need the iOS device gate).
+- **PD-Docs:** new pages for all four tools + corrected the stale "PD does
+  not operate a marketplace" claim (own book documented), grouping toggle
+  documented, overview/discovery cross-links.
+- New crons on the 1-min trigger (all probe-and-exit): social-snapshot,
+  dispatch, takeover-sweep.
+- DB migrations applied (live Supabase): social_snapshots, dispatches,
+  takeovers + takeover_acceptances, offers.takeover_id.
 
 ## ✅ SHIPPED 2026-07-12 (Fable, night) — PINGS SYSTEM REDESIGN + ACHIEVEMENT DE-SPAM (dev; batch 1 LIVE)
 
