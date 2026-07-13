@@ -76,7 +76,10 @@ win** — update this file in place and note it.
 >   affordances.
 > - **The fix for a washout is NEVER to force a dark background on the
 >   surface** (that's designing for your own preference, not the app) — the
->   fix is full-strength chrome on whatever the page paints.
+>   fix is full-strength chrome on whatever the page paints. (A deliberate
+>   dark-only surface is a separate thing and is Brendon's call alone: the
+>   Composer ◎ is pinned dark by his 2026-07-13 decision — don't "fix" it
+>   back to colorway.)
 > - Before presenting any new surface: screenshot it on a MID-TONE colorway
 >   page (the Mood Ring green that exposed this), not just the dark default.
 
