@@ -197,6 +197,12 @@ One push (merge ab1ee0b). ClickUp task `86bawpvpq` records the ship.
   ClickUp tasks + Opus briefs on his word.** Also flagged: ~6 zombie ClickUp
   tasks (shipped work still open) need his confirm before closing; CLAUDE.md
   §1 stack line + api-spec.md are stale (noted in report §4.7, not yet edited).
+- **UPDATE (same night): Brendon approved ALL 22 items** ("fix all of them
+  without disrupting the current flow"). Execution brief written:
+  **`docs/briefs/fundamentals-hardening.md`** — the multi-session playbook
+  (checklist IS the baton for that workstream; sessions flip its boxes).
+  Brendon starts fresh Opus chats pointed at it. Ship gates + no-product-
+  disruption rules are baked into the brief; Brendon-gated asks are batched.
 
 ## ✅ SHIPPED 2026-07-12/13 (Fable) — THE MEGA-BATCH (all on dev + DEPLOYED, verified live)
 
