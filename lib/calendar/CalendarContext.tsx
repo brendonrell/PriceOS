@@ -38,7 +38,8 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
   const [selY, setSelY] = useState<number>(CAL_TODAY.y);
   const [selM, setSelM] = useState<number>(CAL_TODAY.m);
   const [selD, setSelD] = useState<number>(CAL_TODAY.d);
-  const [todosMode, setTodosMode] = useState<boolean>(false);
+  // To-Dos layer defaults ON (Brendon, 2026-07-13 — was off by default).
+  const [todosMode, setTodosMode] = useState<boolean>(true);
   const [dayNotes, setDayNotes] = useState<DayNotesMap>({});
 
   // Hydrate day notes from localStorage on mount, and re-read when the account

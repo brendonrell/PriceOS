@@ -426,7 +426,10 @@ export function TodosBox() {
 
             {shown.map((t) => {
                 const ready = isReady(t);
-                const p1 = t.priority === 1 && !t.done;
+                /* p1 keeps its class when done — the Hothurt ring survives
+                   completion at the done-row fade (Brendon, 2026-07-13); the
+                   .done rules still win weight/box colour in the cascade. */
+                const p1 = t.priority === 1;
                 const href =
                     t.kind === 'output' && t.source
                         ? `/art/${t.source.slug}/${t.source.tokenId}`

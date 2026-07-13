@@ -214,6 +214,23 @@ export default function AboutPdModal() {
                         PriceOS — reads the resulting price movement as a
                         community talking about art.
                     </p>
+                    <pre className="apd-ascii-box" aria-label="The 60-day cooldown">
+{`+------------------------------------------+
+|   THE 60-DAY COOLDOWN                    |
+|   One project per artist per 60 days --  |
+|   enforced on-chain by the factory.      |
+|   No exceptions, no admin override.      |
++------------------------------------------+`}
+                    </pre>
+                    <p className="apd-p">
+                        The cooldown is PD&apos;s heartbeat. Every artist gets
+                        one deployment per 60 days — the clock starts the
+                        moment a Project goes on-chain, and the factory
+                        physically refuses the next one until day 60. An
+                        artist can&apos;t flood the catalog, a release costs
+                        its maker two months of silence, and every drop is an
+                        event because it has to be worth the wait.
+                    </p>
                     <pre className="apd-ascii-box" aria-label="PD is filtered, not curated">
 {`+------------------------------------------+
 |   PD IS FILTERED, NOT CURATED.           |
@@ -345,6 +362,7 @@ export default function AboutPdModal() {
                         <div className="apd-stat"><span className="apd-stat-k">ACHIEVEMENTS</span><span className="apd-stat-v">{TOTAL_COUNT.toLocaleString('en-US')}</span></div>
                         <div className="apd-stat"><span className="apd-stat-k">MAX PRICESCORE</span><span className="apd-stat-v">{MAX_PRICE_SCORE.toLocaleString('en-US')}</span></div>
                         <div className="apd-stat"><span className="apd-stat-k">TRUE NAME NAMESPACE</span><span className="apd-stat-v">4,879,681</span></div>
+                        <div className="apd-stat"><span className="apd-stat-k">ARTIST COOLDOWN</span><span className="apd-stat-v">60 DAYS</span></div>
                         <div className="apd-stat"><span className="apd-stat-k">ARTIST TAKE AT PRIMARY</span><span className="apd-stat-v">95%</span></div>
                         <div className="apd-stat"><span className="apd-stat-k">ART STORED ON ETHEREUM</span><span className="apd-stat-v">100%</span></div>
                     </div>

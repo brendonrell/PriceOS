@@ -1093,8 +1093,22 @@ export default function ArtworkPageBody({
                     <div className="feed-list home-activity-feed output-timeline-feed">
                         {feedItems.length === 0 ? (
                             <GhostFeedRows />
-                        ) : feedItems.map((row) => (
-                            <div className="feed-row" key={row.key}>
+                        ) : feedItems.map((row, i) => {
+                            /* Time-gap scaling (Brendon, 2026-07-13): in
+                               chronological (FEED) order, a >1yr gap to the
+                               adjacent row doubles the dashed connector,
+                               5+yrs triples it, 10+yrs quadruples. Price
+                               sort breaks chronology, so no scaling there. */
+                            let gapCls = '';
+                            const next = feedItems[i + 1];
+                            if (outSort.key === 'feed' && next && row.ts > 0 && next.ts > 0) {
+                                const years = Math.abs(row.ts - next.ts) / 31_557_600_000;
+                                if (years >= 10) gapCls = ' tl-gap-4x';
+                                else if (years >= 5) gapCls = ' tl-gap-3x';
+                                else if (years >= 1) gapCls = ' tl-gap-2x';
+                            }
+                            return (
+                            <div className={`feed-row${gapCls}`} key={row.key}>
                                 <div className="feed-line" />
                                 {/* The PriceOS logo row uses the REAL corner-logo per-mille
                                     (glyph-only variant) as a small SVG, not the ‰ character. */}
@@ -1111,7 +1125,8 @@ export default function ArtworkPageBody({
                                 </div>
                                 <div className="f-content">{row.content}</div>
                             </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </section>
             </section>

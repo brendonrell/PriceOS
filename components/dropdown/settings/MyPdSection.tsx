@@ -711,33 +711,16 @@ export function MyPdSection({ onTripleTap }: Props) {
                     />
                     <SettingsToggle
                         id="sn-tape"
-                        title="The Tape — tap to cycle"
-                        active={notifs.tape !== 0}
+                        title="Menu Tape"
+                        active={notifs.menutape !== 0}
                         onClick={() => {
-                            /* Brendon list item 9 — sim 9287-9306. Desktop
-                               cycles all 5 states (0→1→2→3→4→0); mobile
-                               skips Faded (1) + Standard (2) which sim
-                               annotates as "illegible at mobile sizes"
-                               (sim 9286). Width threshold matches sim
-                               9292's `(max-width: 600px)` matchMedia. */
-                            const isMobile =
-                                typeof window !== 'undefined' &&
-                                window.matchMedia('(max-width: 600px)').matches;
-                            const cycle: number[] = isMobile ? [0, 3, 4] : [0, 1, 2, 3, 4];
-                            const idx = cycle.indexOf(notifs.tape);
-                            const next: number =
-                                (idx === -1
-                                    ? cycle[0]
-                                    : cycle[(idx + 1) % cycle.length]) ?? 0;
-                            update({ tape: next as 0 | 1 | 2 | 3 | 4 });
-                            const labels: Record<number, string> = {
-                                0: 'OFF',
-                                1: 'FADED (DESKTOP ONLY)',
-                                2: 'STANDARD (DESKTOP ONLY)',
-                                3: 'BOLD',
-                                4: 'FRAMED',
-                            };
-                            showToast('The Tape: ' + (labels[next] ?? 'OFF'));
+                            /* Swap (Brendon, 2026-07-13): this pill now owns
+                               the MENU tape (0 → 3 → 0, framed mode 4 removed
+                               — letters only); the top-menu glyph it traded
+                               jobs with runs The Tape's full 5-state cycle. */
+                            const next = notifs.menutape === 0 ? 3 : 0;
+                            update({ menutape: next as 0 | 3 });
+                            showToast('Menu Tape: ' + (next === 0 ? 'OFF' : 'BOLD'));
                         }}
                         icon={'⏥\uFE0E'}
                         iconStyle={{ fontSize: '15px', lineHeight: '1', margin: '0 1px' }}

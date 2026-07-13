@@ -1516,7 +1516,9 @@ body.ascii-id-mode .id-row-sprite     { display: none !important; }
    eye lands on them first. */
 .notif-item--high {
     font-weight: 900;
-    box-shadow: inset 2px 0 0 var(--hothurt);
+    /* 2026-07-13: the P1 to-do ring, not the old left rail — the left
+       tab/rail treatment is retired app-wide (Brendon). */
+    box-shadow: inset 0 0 0 1px var(--hothurt);
 }
 .notif-item--high .n-icon { opacity: 1; color: var(--hothurt); }
 
@@ -11288,6 +11290,14 @@ body.colorway-dark .ghost-feed-bar {
 .output-timeline-feed .f-content .upload-title { text-transform: none; }
 /* Timeline rail — dashed connectors at 90% opacity (Brendon, 2026-06-27). */
 .output-timeline-feed .feed-line { opacity: 0.9; }
+/* Time reads as distance (Brendon, 2026-07-13): a >1yr gap between adjacent
+   rows doubles the dashed connector's run, 5+yrs triples it, 10+yrs
+   quadruples. Base inter-row run is the two 12px pads; each tier adds a
+   connector-length below the row (class set in ArtworkPageBody, FEED order
+   only). */
+.output-timeline-feed .feed-row.tl-gap-2x { padding-bottom: 36px; }
+.output-timeline-feed .feed-row.tl-gap-3x { padding-bottom: 60px; }
+.output-timeline-feed .feed-row.tl-gap-4x { padding-bottom: 84px; }
 /* The ETH amount under the action name reads bold (Brendon, 2026-06-27).
    Italic added as a live test that this rule is reaching the element at all. */
 .output-timeline-feed .af-type .af-price { font-weight: 700; font-style: italic; }

@@ -292,11 +292,16 @@
 .todo-row.done .todo-title,
 .todo-row.done .todo-chips { text-decoration: line-through; }
 .todo-row.done .todo-box { color: #1a8f4a; opacity: 1; text-decoration: none; }
+/* Completed P1 — the Hothurt ring survives completion at reduced strength
+   (the row's 0.45 fade takes it to half or a bit under — Brendon, 2026-07-13). */
+.todo-row.done.p1 { box-shadow: inset 0 0 0 1px var(--hothurt, #ff0055); }
 
-/* The Sentinel — a BUY target whose live price hit. Glows to pull the eye. */
+/* The Sentinel — a BUY target whose live price hit. Glows to pull the eye.
+   2026-07-13: wears the P1 ring (the left tab/rail treatment is retired
+   app-wide — Brendon). */
 .todo-row.ready {
     background: color-mix(in srgb, var(--hothurt, #ff0055) 12%, transparent);
-    box-shadow: inset 3px 0 0 var(--hothurt, #ff0055), 0 0 0 1px color-mix(in srgb, var(--hothurt, #ff0055) 22%, transparent);
+    box-shadow: inset 0 0 0 1px var(--hothurt, #ff0055);
     animation: todo-ready-pulse 2.4s ease-in-out infinite;
 }
 .todo-row.ready .todo-box { color: var(--hothurt, #ff0055); opacity: 1; }
@@ -311,8 +316,8 @@
     vertical-align: middle;
 }
 @keyframes todo-ready-pulse {
-    0%, 100% { box-shadow: inset 3px 0 0 var(--hothurt, #ff0055), 0 0 0 1px color-mix(in srgb, var(--hothurt, #ff0055) 20%, transparent); }
-    50% { box-shadow: inset 3px 0 0 var(--hothurt, #ff0055), 0 0 9px 1px color-mix(in srgb, var(--hothurt, #ff0055) 28%, transparent); }
+    0%, 100% { box-shadow: inset 0 0 0 1px var(--hothurt, #ff0055); }
+    50% { box-shadow: inset 0 0 0 1px var(--hothurt, #ff0055), 0 0 9px 1px color-mix(in srgb, var(--hothurt, #ff0055) 28%, transparent); }
 }
 @media (prefers-reduced-motion: reduce) {
     .todo-row.ready { animation: none; }

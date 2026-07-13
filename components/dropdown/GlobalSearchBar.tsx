@@ -84,6 +84,7 @@ import { useRouter } from 'next/navigation';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useDropdown, type DropdownView } from '../../lib/state/DropdownContext';
 import { useModal } from '../../lib/state/ModalContext';
+import { useToast } from '../../lib/state/ToastContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import CalendarHeaderInline from '../CalendarHeaderInline';
 import SpriteFace from '../SpriteFace';
@@ -213,6 +214,7 @@ function GlobeIcon({ id }: { id?: string }) {
 
 export function GlobalSearchBar() {
     const { notifs, update } = usePdNotifs();
+    const { showToast } = useToast();
     const { view, setView } = useDropdown();
     const { open: openPlatformModal } = useModal();
     const router = useRouter();
@@ -402,11 +404,27 @@ export function GlobalSearchBar() {
         return false;
     };
 
-    // Cycle menu tape mode 0 → 3 → 0 (framed mode 4 removed — letters only)
-    const cycleMenuTape = () => {
-        const cycle: Array<0 | 3> = [0, 3];
-        const next = notifs.menutape === 0 ? 3 : 0;
-        update({ menutape: next });
+    // Swap (Brendon, 2026-07-13): the top-menu glyph now cycles THE TAPE —
+    // same cycle + toast as the My PD pill it traded jobs with (that pill now
+    // owns the Menu Tape). Desktop cycles all 5 states; mobile skips Faded (1)
+    // + Standard (2), which the sim annotates as illegible at mobile sizes.
+    const cycleTape = () => {
+        const isMobile =
+            typeof window !== 'undefined' &&
+            window.matchMedia('(max-width: 600px)').matches;
+        const cycle: number[] = isMobile ? [0, 3, 4] : [0, 1, 2, 3, 4];
+        const idx = cycle.indexOf(notifs.tape);
+        const next: number =
+            (idx === -1 ? cycle[0] : cycle[(idx + 1) % cycle.length]) ?? 0;
+        update({ tape: next as 0 | 1 | 2 | 3 | 4 });
+        const labels: Record<number, string> = {
+            0: 'OFF',
+            1: 'FADED (DESKTOP ONLY)',
+            2: 'STANDARD (DESKTOP ONLY)',
+            3: 'BOLD',
+            4: 'FRAMED',
+        };
+        showToast('The Tape: ' + (labels[next] ?? 'OFF'));
     };
 
     const toggleTopBarCalendar = () => {
@@ -547,16 +565,16 @@ export function GlobalSearchBar() {
                 {(view === 'links' || view === 'calendar') && (calendarOpen || !active) && (
                     <span className="top-menu-icons">
                         <span
-                            className={`dm-icon dm-icon-menutape${notifs.menutape !== 0 ? ' active' : ''}`}
+                            className={`dm-icon dm-icon-menutape${notifs.tape !== 0 ? ' active' : ''}`}
                             id="sn-menutape-top"
                             role="button"
                             tabIndex={0}
-                            title="Menu Tape"
-                            onClick={cycleMenuTape}
+                            title="The Tape — tap to cycle"
+                            onClick={cycleTape}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
-                                    cycleMenuTape();
+                                    cycleTape();
                                 }
                             }}
                         >
