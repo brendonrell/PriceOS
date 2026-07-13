@@ -30,6 +30,7 @@ import ProjectFollowButton from './ProjectFollowButton';
 import ProjectAnointPanel from './ProjectAnointPanel';
 import Hero from '../hero/Hero';
 import { formatEth } from '../../lib/format/eth';
+import { useAuth } from '../../lib/state/AuthContext';
 
 /* + More sub-nav (Brendon, 2026-06-13) — same trait-pill tab system as the
    profile's + More. The panel's stacked sections are grouped under pills so
@@ -93,6 +94,7 @@ export default function ProjectMorePanel({
     const [marketRead, setMarketRead] = useState<{
         label: string; detail: string; open_listings: number; open_offers: number;
         ath_eth: number | null; ath_token: string | null; ath_ts: number | null; holders: number;
+        held_pieces?: number; list_pct?: number | null; hodl_pct?: number | null;
     } | null>(null);
     useEffect(() => {
         if (!project.slug) return;
@@ -109,6 +111,56 @@ export default function ProjectMorePanel({
         return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onR); };
          
     }, [project.slug]);
+
+    /* PRICE TARGETS — the real crowd game (Brendon greenlight 2026-07-13).
+       Monthly window, one call per wallet, sealed until the month turns,
+       then last month's crowd reveals as a histogram beside the floor. */
+    const { siweAddress } = useAuth();
+    const [preds, setPreds] = useState<{
+        window_key: string; reveals_on: string; sealed_count: number;
+        mine: number | null; ladder: number[] | null;
+        last: null | {
+            window_key: string; count: number; median_eth: number; floor_now_eth: number | null;
+            buckets: { from: number; to: number; count: number }[];
+        };
+    } | null>(null);
+    const [casting, setCasting] = useState(false);
+    useEffect(() => {
+        if (!project.slug) return;
+        let cancelled = false;
+        const load = () => {
+            fetch(`/api/project/${project.slug}/predictions`, { cache: 'no-store' })
+                .then((r) => (r.ok ? r.json() : null))
+                .then((d) => { if (!cancelled && d) setPreds(d); })
+                .catch(() => {});
+        };
+        load();
+        const onR = () => load();
+        window.addEventListener('pd:project-refresh', onR);
+        return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onR); };
+    }, [project.slug, siweAddress]);
+    const castTarget = async (eth: number) => {
+        if (casting) return;
+        setCasting(true);
+        try {
+            const r = await fetch(`/api/project/${project.slug}/predictions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ floor_eth: eth }),
+            });
+            if (r.ok) {
+                const retarget = preds?.mine != null;
+                setPreds((p) => (p ? { ...p, mine: eth, sealed_count: p.mine == null ? p.sealed_count + 1 : p.sealed_count } : p));
+                showToast(`Price Target: ${retarget ? 'RETARGETED' : 'CAST'} · ◊${formatEth(eth)}`);
+            } else {
+                showToast('Price Target: TRY AGAIN');
+            }
+        } catch {
+            showToast('Price Target: TRY AGAIN');
+        } finally {
+            setCasting(false);
+        }
+    };
 
     /* Social — the project's follow graph (Brendon, 2026-06-14). FOLLOWERS =
        wallets that clicked Follow; FOLLOWING = the project's current holders
@@ -366,40 +418,89 @@ export default function ProjectMorePanel({
             </div>
             </>)}
             {moreL1 === 'sentiment' && (<>
-            {/* PRICE TARGETS — sim 5285-5306 */}
+            {/* PRICE TARGETS — REAL (Brendon greenlight 2026-07-13; was the
+                sim 5285-5306 mock). Cast this month, sealed till it turns;
+                last month's crowd shows as the histogram, vs the floor. */}
             <div className="more-section-header">PRICE TARGETS</div>
             <div className="more-seal-wrap">
                 <div
                     className="more-seal-card"
                     onClick={() =>
                         showToast(
-                            'Price Targets — predictions reveal after window closes'
+                            preds
+                                ? `Price Targets — ${preds.sealed_count} sealed call${preds.sealed_count === 1 ? '' : 's'} this window · reveals ${preds.reveals_on}`
+                                : 'Price Targets — the crowd calls the 30-day floor'
                         )
                     }
                 >
                     <div className="more-seal-label">
                         WHERE THE CROWD THINKS FLOOR LANDS IN 30D
                     </div>
-                    <div className="more-seal-buckets">
-                        <div className="msb-bar" style={{ height: '18%' }} />
-                        <div className="msb-bar" style={{ height: '32%' }} />
-                        <div className="msb-bar" style={{ height: '52%' }} />
-                        <div className="msb-bar" style={{ height: '78%' }} />
-                        <div
-                            className="msb-bar msb-peak"
-                            style={{ height: '94%' }}
-                        />
-                        <div className="msb-bar" style={{ height: '66%' }} />
-                        <div className="msb-bar" style={{ height: '42%' }} />
-                        <div className="msb-bar" style={{ height: '28%' }} />
-                        <div className="msb-bar" style={{ height: '14%' }} />
+
+                    {/* This window — sealed, honest count, your standing call. */}
+                    <div className="more-seal-status">
+                        {preds
+                            ? `THIS WINDOW: SEALED · ${preds.sealed_count} CALL${preds.sealed_count === 1 ? '' : 'S'} · REVEALS ${preds.reveals_on}`
+                            : 'THIS WINDOW: SEALED'}
                     </div>
-                    <div className="more-seal-axis">
-                        <span>0.008</span>
-                        <span>0.012</span>
-                        <span>0.018</span>
-                        <span>0.024</span>
-                    </div>
+                    {siweAddress && preds?.ladder ? (
+                        <>
+                            <div className="more-seal-cast-label">
+                                {preds.mine != null
+                                    ? <>YOUR CALL · <span className="eth-mark">◊</span>{formatEth(preds.mine)} — tap a rung to retarget</>
+                                    : 'CAST YOURS — tap where the floor lands'}
+                            </div>
+                            <div className="more-seal-cast-row" onClick={(e) => e.stopPropagation()}>
+                                {preds.ladder.map((v) => (
+                                    <button
+                                        key={v}
+                                        type="button"
+                                        className={`pill pill-l1 more-seal-rung${preds.mine === v ? ' active' : ''}`}
+                                        disabled={casting}
+                                        onClick={() => { void castTarget(v); }}
+                                    >
+                                        <span className="stat-name"><span className="eth-mark">◊</span>{formatEth(v)}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </>
+                    ) : !siweAddress ? (
+                        <div className="more-seal-cast-label">
+                            CONNECT TO CAST YOURS — ONE CALL PER WINDOW, SEALED UNTIL IT TURNS
+                        </div>
+                    ) : null}
+
+                    {/* Last window — the reveal: the real crowd vs the floor. */}
+                    {preds?.last ? (
+                        <>
+                            <div className="more-seal-status more-seal-reveal">
+                                LAST WINDOW · {preds.last.count} CALL{preds.last.count === 1 ? '' : 'S'} · MEDIAN <span className="eth-mark">◊</span>{formatEth(preds.last.median_eth)}
+                                {preds.last.floor_now_eth != null ? <> · FLOOR NOW <span className="eth-mark">◊</span>{formatEth(preds.last.floor_now_eth)}</> : null}
+                            </div>
+                            <div className="more-seal-buckets">
+                                {(() => {
+                                    const max = Math.max(1, ...preds.last!.buckets.map((b) => b.count));
+                                    return preds.last!.buckets.map((b, i) => (
+                                        <div
+                                            key={i}
+                                            className={`msb-bar${b.count === max && b.count > 0 ? ' msb-peak' : ''}`}
+                                            style={{ height: `${Math.max(4, Math.round((b.count / max) * 94))}%` }}
+                                        />
+                                    ));
+                                })()}
+                            </div>
+                            <div className="more-seal-axis">
+                                <span>{formatEth(preds.last.buckets[0].from)}</span>
+                                <span>{formatEth(preds.last.buckets[2].to)}</span>
+                                <span>{formatEth(preds.last.buckets[5].to)}</span>
+                                <span>{formatEth(preds.last.buckets[8].to)}</span>
+                            </div>
+                        </>
+                    ) : preds ? (
+                        <div className="more-seal-status more-seal-reveal">
+                            FIRST WINDOW — THE CROWD REVEALS {preds.reveals_on}
+                        </div>
+                    ) : null}
                 </div>
             </div>
 
@@ -433,31 +534,43 @@ export default function ProjectMorePanel({
 
             </>)}
             {moreL1 === 'sentiment' && (<>
-            {/* DISAGREEMENT SCORE — sim 5323-5335 */}
+            {/* DISAGREEMENT SCORE — REAL (2026-07-13; was the sim 5323-5335
+                mock 62/38). The measured split of what holders are DOING:
+                pieces on the market (LIST) vs held tight (HODL). */}
             <div className="more-section-header">DISAGREEMENT SCORE</div>
             <div className="more-disagree-wrap">
                 <div
                     className="more-disagree-card"
                     onClick={() =>
                         showToast(
-                            'Disagreement Score — holder conviction split'
+                            marketRead?.list_pct != null
+                                ? `Disagreement — ${marketRead.open_listings} of ${marketRead.held_pieces} held pieces on the market`
+                                : 'Disagreement Score — holder conviction split'
                         )
                     }
                 >
-                    <div className="mdg-bar">
-                        <div
-                            className="mdg-fill mdg-fill-left"
-                            style={{ width: '62%' }}
-                        />
-                        <div
-                            className="mdg-fill mdg-fill-right"
-                            style={{ width: '38%' }}
-                        />
-                    </div>
-                    <div className="mdg-labels">
-                        <span className="mdg-label-l">HODL · 62%</span>
-                        <span className="mdg-label-r">38% · LIST</span>
-                    </div>
+                    {marketRead?.list_pct != null && marketRead?.hodl_pct != null ? (
+                        <>
+                            <div className="mdg-bar">
+                                <div
+                                    className="mdg-fill mdg-fill-left"
+                                    style={{ width: `${marketRead.hodl_pct}%` }}
+                                />
+                                <div
+                                    className="mdg-fill mdg-fill-right"
+                                    style={{ width: `${marketRead.list_pct}%` }}
+                                />
+                            </div>
+                            <div className="mdg-labels">
+                                <span className="mdg-label-l">HODL · {marketRead.hodl_pct}%</span>
+                                <span className="mdg-label-r">{marketRead.list_pct}% · LIST</span>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="mdg-labels">
+                            <span className="mdg-label-l">NO HELD PIECES YET — THE SPLIT APPEARS WITH THE FIRST MINT</span>
+                        </div>
+                    )}
                 </div>
             </div>
             </>)}

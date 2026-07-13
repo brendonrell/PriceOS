@@ -216,6 +216,21 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             }
         };
         window.addEventListener('pageshow', onPageShow);
+        /* EVERY page opens AT ITS TOP (Brendon, 2026-07-13 — the Studio
+           "loads slightly scrolled down" bug applies sitewide). pageshow
+           alone missed the revisit paths where the browser restores a prior
+           visit's position before our manual scrollRestoration takes hold,
+           so the document also pins itself once at hydration, and again next
+           frame to beat late restores. Hash deep-links keep their jump; a
+           modal scroll-lock is never fought. */
+        if (!window.location.hash && !document.body.classList.contains('modal-open')) {
+            window.scrollTo(0, 0);
+            requestAnimationFrame(() => {
+                if (!window.location.hash && !document.body.classList.contains('modal-open')) {
+                    window.scrollTo(0, 0);
+                }
+            });
+        }
         return () => window.removeEventListener('pageshow', onPageShow);
     }, []);
 

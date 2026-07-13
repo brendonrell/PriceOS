@@ -58,9 +58,13 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ slug: st
     const openOffers = offersRes.count ?? 0;
     const lastTs = (lastEvRes.data as { timestamp?: number } | null)?.timestamp ?? null;
     const athRow = athRes.data as { price_eth?: number; token_id?: string; timestamp?: number } | null;
-    const holders = new Set(
-      ((holdersRes.data ?? []) as { owner_address: string }[]).map((h) => h.owner_address.toLowerCase()),
-    ).size;
+    const holderRows = (holdersRes.data ?? []) as { owner_address: string }[];
+    const holders = new Set(holderRows.map((h) => h.owner_address.toLowerCase())).size;
+    // Disagreement Score, for real: of every piece someone holds, how many
+    // are sitting on the market right now (LIST) vs held tight (HODL). One
+    // row in `holders` = one held piece; open listings are the LIST side.
+    const heldPieces = holderRows.length;
+    const listPct = heldPieces > 0 ? Math.min(100, Math.round((openListings / heldPieces) * 100)) : null;
     const quietDays = lastTs ? Math.floor((now - lastTs) / 86400) : null;
 
     let label: 'SURGING' | 'WARM' | 'COOL' | 'QUIET';
@@ -87,6 +91,9 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ slug: st
       ath_token: athRow?.token_id ?? null,
       ath_ts: athRow?.timestamp ?? null,
       holders,
+      held_pieces: heldPieces,
+      list_pct: listPct,
+      hodl_pct: listPct != null ? 100 - listPct : null,
     });
   } catch (err) {
     return serverError(err instanceof Error ? err.message : 'Unknown error');

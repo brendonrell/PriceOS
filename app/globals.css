@@ -11611,3 +11611,28 @@ body.is-pwa .fullscreen-back {
    2026-07-06): lift its layer above the jumbo backdrop (z 1330) while the
    Friend Inspector+ is open. */
 body.fi-plus-open #familiar-layer { z-index: 1340; }
+
+/* ── PRICE TARGETS, real (2026-07-13) — the cast + reveal chrome. Full-
+   strength site tokens per Rule #2 (12px+, bold, no washes). */
+.more-seal-status {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.6px;
+    margin: 2px 0 10px;
+}
+.more-seal-reveal { margin-top: 14px; }
+.more-seal-cast-label {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.4px;
+    margin: 0 0 8px;
+}
+.more-seal-cast-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+.more-seal-rung { cursor: pointer; }
+.more-seal-rung:disabled { cursor: default; }
+.more-seal-rung { font: inherit; color: inherit; }
