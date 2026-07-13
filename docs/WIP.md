@@ -87,11 +87,20 @@
    of Global Search** (slick half-opacity fill row; Spell Book pill
    REMOVED). Glyph re-shuffle the same day: Composer ⊚ · Price Lens ◎ ·
    Genome ≎ · ⌾ freed — GLYPHS.md carries all of it.
+   **SAME-DAY POST-SHIP ROUND (dev `3665456`):** Program-tap crash FIXED
+   (cards need TraitsProvider inside the modal — reproduced w/ injected
+   data, verified); launcher copy "launch Composer ⤤"; **v1.2** — results
+   DO things: ❐ SELECT bulk mode (HomeMsFloatBar verbatim) · CART ALL ·
+   ALBUM ALL (numbered snapshot vs live Program) · WISHLIST ALL · ⧉ LINK
+   (?q= share URL opens the Composer onto the live query); **finale** —
+   Σ listed value in the live strip · THE SPECTRUM (each Program wears
+   its current answer's colour distribution) · THE LOOSENER (empty match
+   names the strangling rule as a tappable "frees N" pill).
    **Remaining beats:** ① server-stored Programs table (wallet, name,
    query_json, created_at) — PROD MIGRATION, Brendon's §4 approval gate;
-   ② iPhone device-verify ⊚ ◎ ≎ (the #1 glyph gate); ③ phase 2/3 rules
+   ② iPhone device-verify ⊚ ◎ ≎ ⤤ (the #1 glyph gate); ③ phase 2/3 rules
    (birth facets need mint timestamps at chain cutover; ATH/hold-time/
-   last-sold history predicates; ?q= share slug). Also shipped this
+   last-sold history predicates). Also shipped this
    session: search Recently-Viewed thumbs cover-crop (History fix
    ported); DEFAULT SORT truth pass (icon-only GROUP pill @13px, #ID/
    $PRICE tightened, AZ before FEED); **Rule #2 sharpened in CLAUDE.md**
