@@ -7,13 +7,26 @@
  * Dressed in the paper's own chrome (dp-* rules — Rule #0).
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useToast } from '@/lib/state/ToastContext';
 
 export default function DigestSignup() {
   const { showToast } = useToast();
   const [email, setEmail] = useState('');
   const [busy, setBusy] = useState(false);
+
+  /* The print run — 1,000 seats, shown live so scarcity is honest. */
+  const [seats, setSeats] = useState<{ cap: number; remaining: number } | null>(null);
+  useEffect(() => {
+    let live = true;
+    fetch('/api/newsletter/subscribe')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (live && d?.ok && typeof d.remaining === 'number') setSeats({ cap: d.cap, remaining: d.remaining });
+      })
+      .catch(() => {});
+    return () => { live = false; };
+  }, []);
 
   const submit = async () => {
     const v = email.trim();
@@ -43,10 +56,17 @@ export default function DigestSignup() {
     <section className="dp-section dp-digest">
       <h2 className="dp-rule">THE DIGEST — THIS PAPER, IN YOUR INBOX</h2>
       <p className="dp-prose">
-        Three editions a month — the 1st, 11th and 22nd. The stretch&apos;s ledger,
-        what came through the filter, and the art itself. Assembled by the
-        platform, read in one coffee.
+        Three editions a month, never more — the 1st, 11th and 22nd. The
+        stretch&apos;s ledger, what came through the filter, and the art itself.
+        Assembled by the platform, read in one coffee.
       </p>
+      {seats && (
+        <p className="dp-digest-seats">
+          {seats.remaining <= 0
+            ? `PRINT RUN OF ${seats.cap.toLocaleString()} — FULL. SEATS OPEN AS READERS LEAVE.`
+            : `A PRINT RUN OF ${seats.cap.toLocaleString()} — ${seats.remaining.toLocaleString()} SEAT${seats.remaining === 1 ? '' : 'S'} STILL OPEN.`}
+        </p>
+      )}
       <div className="dp-digest-row">
         <input
           className="dp-digest-input"

@@ -126,3 +126,10 @@
     white-space: nowrap;
 }
 .dp-digest-btn:disabled { cursor: default; opacity: 0.5; }
+
+.dp-digest-seats {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    margin: 10px 0 0;
+}

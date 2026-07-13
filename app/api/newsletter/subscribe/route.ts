@@ -12,15 +12,27 @@
 
 import { NextResponse } from 'next/server';
 import { badRequest } from '@/lib/errors';
-import { DIGEST_SEGMENT_ID } from '@/lib/newsletter/digest.server';
+import { DIGEST_SEGMENT_ID, DIGEST_CAP, countDigestSubscribers, bustSeatCache } from '@/lib/newsletter/digest.server';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const CAP = 1000;
+const CAP = DIGEST_CAP;
 const API = 'https://api.resend.com';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+/** GET — the print run's seat count, for the Dispatch page's scarcity line. */
+export async function GET(): Promise<Response> {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return NextResponse.json({ ok: false }, { status: 503 });
+  try {
+    const taken = await countDigestSubscribers(key);
+    return NextResponse.json({ ok: true, cap: CAP, taken, remaining: Math.max(0, CAP - taken) });
+  } catch {
+    return NextResponse.json({ ok: false }, { status: 502 });
+  }
+}
 
 export async function POST(req: Request): Promise<Response> {
   const key = process.env.RESEND_API_KEY;
@@ -43,20 +55,9 @@ export async function POST(req: Request): Promise<Response> {
   const auth = { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' };
 
   try {
-    // Cap check — count the segment (paginated; the cap keeps this small).
+    // Cap check — best-effort count of the segment (never blocks on failure).
     let count = 0;
-    let after: string | null = null;
-    for (let page = 0; page < 12; page++) {
-      const qs = new URLSearchParams({ limit: '100', segment_id: DIGEST_SEGMENT_ID });
-      if (after) qs.set('after', after);
-      const r = await fetch(`${API}/contacts?${qs}`, { headers: auth });
-      if (!r.ok) break; // cap check is best-effort — never block a subscribe on it
-      const j = (await r.json()) as { data?: { id: string }[]; has_more?: boolean };
-      const rows = j.data ?? [];
-      count += rows.length;
-      if (!j.has_more || rows.length === 0) break;
-      after = rows[rows.length - 1].id;
-    }
+    try { count = await countDigestSubscribers(key); } catch { /* best-effort */ }
     if (count >= CAP) {
       return NextResponse.json(
         { ok: false, error: 'The print run is full — 1,000 readers. Seats open as they free up.' },
@@ -69,7 +70,7 @@ export async function POST(req: Request): Promise<Response> {
       headers: auth,
       body: JSON.stringify({ email, segments: [{ id: DIGEST_SEGMENT_ID }] }),
     });
-    if (create.ok) return NextResponse.json({ ok: true, state: 'subscribed' });
+    if (create.ok) { bustSeatCache(); return NextResponse.json({ ok: true, state: 'subscribed' }); }
 
     // Already a contact → make sure the digest segment is on them.
     if (create.status === 409 || create.status === 422) {

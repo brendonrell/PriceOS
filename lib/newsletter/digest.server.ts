@@ -30,6 +30,40 @@ export const DIGEST_DAYS = [1, 11, 22] as const;
 /** The "Dispatch Digest" Resend segment (created 2026-07-13; not a secret). */
 export const DIGEST_SEGMENT_ID = 'fb22999d-a121-4feb-aaa8-84d69994492c';
 
+/** The print run: 1,000 readers × 3 editions/month = the free 3k sends. */
+export const DIGEST_CAP = 1000;
+
+/* Seat count, cached per Worker instance for 5 min — the Dispatch page asks
+ * on every view and Resend shouldn't feel that. */
+let seatCache: { at: number; taken: number } | null = null;
+
+/** How many of the print run's seats are taken (Resend segment count). */
+export async function countDigestSubscribers(key: string): Promise<number> {
+  if (seatCache && Date.now() - seatCache.at < 5 * 60_000) return seatCache.taken;
+  let taken = 0;
+  let after: string | null = null;
+  for (let page = 0; page < 12; page++) {
+    const qs = new URLSearchParams({ limit: '100', segment_id: DIGEST_SEGMENT_ID });
+    if (after) qs.set('after', after);
+    const r = await fetch(`https://api.resend.com/contacts?${qs}`, {
+      headers: { Authorization: `Bearer ${key}` },
+    });
+    if (!r.ok) break;
+    const j = (await r.json()) as { data?: { id: string }[]; has_more?: boolean };
+    const rows = j.data ?? [];
+    taken += rows.length;
+    if (!j.has_more || rows.length === 0) break;
+    after = rows[rows.length - 1].id;
+  }
+  seatCache = { at: Date.now(), taken };
+  return taken;
+}
+
+/** Forget the cached seat count (a subscribe just landed). */
+export function bustSeatCache(): void {
+  seatCache = null;
+}
+
 const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
 /** Montreal-local {y, m (1-12), d} for a given instant. */
