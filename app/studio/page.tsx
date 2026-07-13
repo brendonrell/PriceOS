@@ -19,6 +19,7 @@ import { hasStudioAccess } from '../../lib/studio/access';
 import { StickerStudio } from '../../components/studio/StickerStudio';
 import { GodMode } from '../../components/studio/GodMode';
 import { StudioAnalytics } from '../../components/studio/StudioAnalytics';
+import { VouchCard } from '../../components/studio/VouchCard';
 import Hero from '../../components/hero/Hero';
 import SoundtrackStarButton from '../../components/project/SoundtrackStarButton';
 import { deriveSlug } from '../../lib/project/deriveSlug';
@@ -681,6 +682,10 @@ export default function StudioPage() {
                 <div className="pd-studio-section-title">Dashboard — analytics</div>
                 <StudioAnalytics handle={handle ?? null} god={god} />
             </div>
+
+            {/* ── VOUCH — whitelisted artists' two forward-an-artist slots;
+                   renders nothing for everyone else. ── */}
+            <VouchCard address={address ?? null} />
 
             {/* ── DASHBOARD · DRAFTS ── */}
             <div className="pd-studio-section">

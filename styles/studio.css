@@ -360,3 +360,12 @@
     padding: 10px 12px;
     margin: 14px 0 0;
 }
+
+/* ── Soundtrack manager row (analytics card) ── */
+.pd-studio-strack { margin-top: 10px; }
+.pd-studio-strack-row { display: flex; gap: 8px; align-items: stretch; }
+.pd-studio-strack-row .pd-studio-input { flex: 1; min-width: 0; }
+.pd-studio-strack-save { width: auto; margin-top: 0; }
+
+/* ── Drop Kit button (analytics card) ── */
+.pd-studio-dropkit { margin-top: 12px; }

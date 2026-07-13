@@ -21,7 +21,8 @@ import { getArtistStatus } from '@/lib/artists/allowlist';
 import ProfilePageBody from '@/components/profile/ProfilePageBody';
 import ArtworkPageBody from '@/components/artwork/ArtworkPageBody';
 import { profileColorBootScript } from '@/lib/colorway/profileBootPaint';
-import { artistSignatureColor } from '@/lib/project/registry';
+import { artistSignatureColor, projectsByArtist, artImageUrl, ART_REV } from '@/lib/project/registry';
+import { getPreviewBucket } from '@/lib/cf/r2';
 
 // Always render fresh (Brendon 2026-06-12 — collected art was lagging behind
 // new mints). Without this the server render (and its seeded holdings) can be
@@ -126,6 +127,31 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   // type checker (this metadata is never shown; the redirect short-circuits).
   if (r.kind === 'profileByAddress') {
     return { title: 'Price Discussion' };
+  }
+  // ARTIST profiles unfurl with their art (Brendon, 2026-07-13 — the artist
+  // batch): sharing an artist's page is a gallery invite, so the embed leads
+  // with a piece from their first project, storage-probed like every other
+  // unfurl. Non-artist profiles keep the mark via the root defaults.
+  const artistProjects = projectsByArtist(r.handle.replace(/^@/, ''));
+  if (artistProjects.length > 0) {
+    const slug = artistProjects[0].slug;
+    let hasArt = true;
+    try {
+      const bucket = getPreviewBucket();
+      if (bucket) hasArt = (await bucket.head(`${slug}/1.${ART_REV}.png`)) != null;
+    } catch { /* keep the candidate */ }
+    const art = hasArt ? artImageUrl(slug, 1) : null;
+    if (art) {
+      const ogTitle = `@${r.handle.replace(/^@/, '')} — artist on Price Discussion`;
+      const description = `Generative art by @${r.handle.replace(/^@/, '')} on Price Discussion — ${artistProjects.length} project${artistProjects.length === 1 ? '' : 's'} through the filter.`;
+      return {
+        title: `${r.handle} · Price Discussion`,
+        alternates: { canonical: `/${r.handle}` },
+        description,
+        openGraph: { title: ogTitle, description, type: 'profile', url: `/${r.handle}`, images: [{ url: art, alt: ogTitle }] },
+        twitter: { card: 'summary_large_image', title: ogTitle, description, images: [art] },
+      };
+    }
   }
   return {
     title: `${r.handle} · Price Discussion`,
