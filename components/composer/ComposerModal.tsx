@@ -42,7 +42,7 @@ import {
 } from '../../lib/composer/useComposerGallery';
 import {
     runQuery, ruleIsComplete, ruleFieldLabel, ruleOpLabel, ruleValueLabel,
-    querySummary, EMPTY_QUERY, FIELD_GLYPH,
+    querySummary, querySentence, EMPTY_QUERY, FIELD_GLYPH,
     type ComposerQuery, type ComposerRule, type ComposerSortKey, type FacetField,
 } from '../../lib/composer/query';
 import {
@@ -146,7 +146,29 @@ export default function ComposerModal() {
     }, [scopeRows]);
 
     /* ── the live match ─────────────────────────────────────────────── */
-    const matched = useMemo(() => runQuery(query, rows, me), [query, rows, me]);
+    /* The match, timed — the machine brags about its speed in the live strip. */
+    const [matched, queryMs] = useMemo<[ReturnType<typeof runQuery>, number]>(() => {
+        const t0 = performance.now();
+        const m = runQuery(query, rows, me);
+        return [m, Math.max(1, Math.round(performance.now() - t0))];
+    }, [query, rows, me]);
+
+    /* Count delta — every rule edit visibly bites: a +N/−N chip flashes
+       beside the count, then leaves (the fade IS the meaning: it's a
+       moment, not a state). */
+    const prevCount = useRef<number | null>(null);
+    const [delta, setDelta] = useState<number | null>(null);
+    useEffect(() => {
+        if (loading) return;
+        const n = matched.length;
+        if (prevCount.current != null && n !== prevCount.current) {
+            setDelta(n - prevCount.current);
+            prevCount.current = n;
+            const t = window.setTimeout(() => setDelta(null), 1100);
+            return () => window.clearTimeout(t);
+        }
+        prevCount.current = n;
+    }, [matched.length, loading]);
     const { blocks, runs, collapsedGroups, toggleGroupCollapse } =
         useComposerGallery(matched, query.sort, query.dir, query.group);
 
@@ -466,8 +488,16 @@ export default function ComposerModal() {
             <span className="cmp-live-count">
                 {loading
                     ? 'COMPOSING…'
-                    : <><b>{matched.length}</b> MATCH · LIVE</>}
+                    : <>
+                        <b key={matched.length} className="cmp-count-pop">{matched.length}</b>
+                        {' '}MATCH · LIVE<span className="cmp-ms"> · {queryMs}ms</span>
+                    </>}
             </span>
+            {delta != null && !loading && (
+                <span className="cmp-delta" aria-hidden="true">
+                    {delta > 0 ? '+' : ''}{delta}
+                </span>
+            )}
             {withView ? (
                 <button className="cmp-live-open" onClick={() => setView('results')}>
                     VIEW ▸︎
@@ -484,7 +514,7 @@ export default function ComposerModal() {
         const f = ruleFieldLabel(r);
         const v = ruleValueLabel(r);
         return (
-            <span key={i} className="cmp-chip">
+            <span key={i} className="cmp-chip" style={{ ['--i' as string]: i }}>
                 <span className="cmp-pill-glyph">{f.glyph}</span>{' '}
                 {r.kind === 'listed' && !v
                     ? <>listed <b>{ruleOpLabel(r)}</b></>
@@ -723,6 +753,13 @@ export default function ComposerModal() {
                                 ))}
                             </div>
 
+                            {/* The readout — the query reading itself back in
+                                plain English, live with every tap. */}
+                            <div className="cmp-readout">
+                                <span className="cmp-readout-glyph">⊚︎</span>
+                                {querySentence(query)}
+                            </div>
+
                             {liveStrip(true)}
 
                             {saveOpen ? (
@@ -754,8 +791,12 @@ export default function ComposerModal() {
                     {view === 'results' && (
                         <div className="cmp-scroll">
                             <div className="cmp-chips">
-                                {chips.length > 0 ? chips : <span className="cmp-chip">everything</span>}
-                                <button className="cmp-chip is-btn" onClick={() => setView('builder')}>
+                                {chips.length > 0 ? chips : <span className="cmp-chip" style={{ ['--i' as string]: 0 }}>everything</span>}
+                                <button
+                                    className="cmp-chip is-btn"
+                                    style={{ ['--i' as string]: chips.length || 1 }}
+                                    onClick={() => setView('builder')}
+                                >
                                     EDIT ▸︎
                                 </button>
                             </div>
@@ -772,6 +813,7 @@ export default function ComposerModal() {
                                     <div
                                         key={`${p.name}-${p.created_at}`}
                                         className="cmp-prog-row"
+                                        style={{ ['--i' as string]: i }}
                                         role="button"
                                         tabIndex={0}
                                         onPointerDown={rowPressDown(i)}

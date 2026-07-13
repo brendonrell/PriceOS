@@ -123,7 +123,7 @@ export const ATLAS: AtlasFeature[] = [
     F(73, 'Feed signals — Sniped · Velocity · Departure · Cascade · Diaspora · Goodbye · Price Gravity · Debate Density', 'Project Page'),
     F(74, 'First Blood · Time to First Offer', 'Project Page'),
     F(75, 'Fog', 'Project Page'),
-    F(76, 'The Genome', 'Project Page', '◎'),
+    F(76, 'The Genome', 'Project Page', '≎'),
     F(77, 'Grid + sort', 'Project Page'),
     F(78, 'Grid presets', 'Project Page'),
     F(79, 'Mint overlay — The Radar', 'Project Page', '⊕'),

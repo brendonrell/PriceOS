@@ -17,9 +17,10 @@
  */
 
 import type { OutputTraits } from '../project/types';
-import type { SortDir, GroupKey } from '../state/SortContext';
+import { GROUP_LABEL, type SortDir, type GroupKey } from '../state/SortContext';
 import { pdRarityRank } from '../output/rarity';
 import { resolveBucket } from '../art/colorStore';
+import { getProject } from '../project/registry';
 
 /* ── the dataset row ─────────────────────────────────────────────────── */
 
@@ -181,6 +182,86 @@ export function ruleValueLabel(r: ComposerRule): string {
                 : (r.handle ? '@' + r.handle.replace(/^@/, '') : 'PICK…');
         case 'rarity': return `${r.pct}%`;
     }
+}
+
+/* ── the readout — the query reading itself back in plain English ────── */
+
+/** "MODIÐA or KIKI" / "MODIÐA, KIKI or 3 others" — spoken value lists. */
+function spokenValues(values: string[], face: (v: string) => string): string {
+    const faces = values.map(face);
+    if (faces.length === 1) return faces[0];
+    if (faces.length === 2) return `${faces[0]} or ${faces[1]}`;
+    return `${faces[0]}, ${faces[1]} or ${faces.length - 2} other${faces.length - 2 > 1 ? 's' : ''}`;
+}
+
+/** The live English sentence for the builder's readout line:
+ *  "Every listed piece by MODIÐA, under 0.5◊, from the rarest 10%, that I
+ *   don't own — cheapest first, grouped by artist." Composes clause-by-clause
+ *  from the complete rules; half-built rules stay silent, so the sentence
+ *  always tells the truth about what's filtering. */
+export function querySentence(q: ComposerQuery): string {
+    const rules = q.rules.filter(ruleIsComplete);
+    const artistFace = (v: string) => v.replace(/^@/, '').toUpperCase();
+    const projectFace = (v: string) =>
+        getProject(v.replace(/^@/, ''))?.displayName ?? v.replace(/^@/, '').toUpperCase();
+
+    let listedAdj = '';
+    const clauses: string[] = [];
+    for (const r of rules) {
+        switch (r.kind) {
+            case 'listed':
+                if (r.op === 'listed') listedAdj = 'listed ';
+                else if (r.op === 'unlisted') listedAdj = 'unlisted ';
+                else clauses.push(`${r.op === 'below' ? 'under' : 'over'} ${r.eth}◊︎`);
+                break;
+            case 'facet': {
+                if (r.field === 'Artist') {
+                    clauses.push(r.op === 'is'
+                        ? `by ${spokenValues(r.values, artistFace)}`
+                        : `not by ${spokenValues(r.values, artistFace)}`);
+                } else if (r.field === 'Project') {
+                    clauses.push(r.op === 'is'
+                        ? `from ${spokenValues(r.values, projectFace)}`
+                        : `not from ${spokenValues(r.values, projectFace)}`);
+                } else {
+                    clauses.push(r.op === 'is'
+                        ? `fated ${spokenValues(r.values, (v) => v.toUpperCase())}`
+                        : `never fated ${spokenValues(r.values, (v) => v.toUpperCase())}`);
+                }
+                break;
+            }
+            case 'color':
+                clauses.push(`in ${spokenValues(r.values, (v) => v.toUpperCase())}`);
+                break;
+            case 'rarity':
+                clauses.push(r.op === 'top'
+                    ? `from the rarest ${r.pct}%`
+                    : `from the commonest ${r.pct}%`);
+                break;
+            case 'owner':
+                clauses.push(r.op === 'me' ? 'that I own'
+                    : r.op === 'notMe' ? "that I don't own"
+                    : `held by @${(r.handle ?? '').replace(/^@/, '')}`);
+                break;
+        }
+    }
+
+    const scope =
+        q.scope == null ? ''
+        : q.scope.length === 1 ? `${projectFace(q.scope[0])} `
+        : `${q.scope.length}-project `;
+    let s = `Every ${listedAdj}${scope}piece`;
+    if (clauses.length) s += ` ${clauses.join(', ')}`;
+    else if (!listedAdj && !scope) s += ' on PD';
+
+    const sortTail =
+        q.sort === 'price' ? (q.dir === 'asc' ? 'cheapest first' : 'priciest first')
+        : q.sort === 'rarity' ? (q.dir === 'asc' ? 'rarest first' : 'commonest first')
+        : q.sort === 'az' ? (q.dir === 'asc' ? 'A to Z' : 'Z to A')
+        : (q.dir === 'asc' ? 'in mint order' : 'latest mints first');
+    s += ` — ${sortTail}`;
+    if (q.group !== 'none') s += `, grouped by ${GROUP_LABEL[q.group].toLowerCase()}`;
+    return s + '.';
 }
 
 /** One-line summary of a whole query (Program shelf sub-line). */
