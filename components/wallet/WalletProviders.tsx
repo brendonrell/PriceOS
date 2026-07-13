@@ -409,6 +409,7 @@ export function WalletProviders({
             priceRank={userRow?.price_rank ?? 0}
             priceScore={userRow?.price_score ?? 0}
             priceStreak={userRow?.price_streak ?? 0}
+            sigilForged={!!userRow?.sigil_forged_at}
             needsSignup={needsSignup}
             onAccountCreated={handleAccountCreated}
             signOut={signOutFull}

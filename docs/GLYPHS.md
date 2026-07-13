@@ -421,6 +421,21 @@ colour; a swatch/flag in the faction hex is its only mark.
 > long-proven text; ⚐ shares ⚑'s already-shipped family) — if one tofus, swap
 > it before the war UI locks.
 
+### The Sigil (generative — like True Names, not a fixed glyph)
+
+**THE SIGIL** (`lib/sigil/sigil.ts`, 2026-07-13) is a per-wallet generative
+3–4 glyph rune-string — deterministic from the address, forged once,
+permanent. Its glyph POOLS are part of this fixed vocabulary and are
+**LOCKED**: edges `⟨⟩ ❮❯ ◁▷ ⌐¬ ⌜⌝ ⌞⌟ ⟦⟧ ‹›`, cores
+`✦ ◆ ❖ ✛ ◈ ⌖ ✜ ⊕ ✚ ◍ ❂ ⍟ ✢ ⟡ ✣ ◉`, sides `· ∙ : ⋮ — ~ ≡ ° ∴`, plus
+combining accents above/below (the PriceSprite-eyebrow mechanic). Changing a
+pool re-rolls every forged tattoo on the platform — append-only, Brendon's
+sign-off required, device-verify any addition per the #1 gate. Grammar rules:
+no brow-curve edges, no mirrored squiggle flanks (faces are banned — a Sigil
+is never a Sprite), no cross/dagger strokes (martial reads are banned).
+Renders wherever a name renders: after the @name (tape · navbar · profile),
+the carousel Sigil ring, the corner-logo override, the Marginalia stamps.
+
 ---
 
 *Source files: `components/dropdown/settings/MyPingsRow.tsx`,

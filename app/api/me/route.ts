@@ -33,7 +33,7 @@ import {
     type Showcase,
 } from '@/lib/supabase';
 import { requireAuth } from '@/lib/auth/siwe';
-import { isValidProfileLogo } from '@/lib/profile/profileLogos';
+import { isValidProfileLogo, isSigilLogo } from '@/lib/profile/profileLogos';
 import { recordOath } from '@/lib/factions/oath';
 import { badRequest, notFound, serverError } from '@/lib/errors';
 
@@ -184,10 +184,42 @@ export const PATCH = requireAuth(async (req, _ctx, address) => {
     }
 
     const result = sanitisePatch(raw);
-    if (!result.ok) return badRequest(result.reason);
+    /* THE FORGE — `forge_sigil: true` is the one non-column verb this route
+       accepts. Set-once by construction (the UPDATE below only fires while
+       the column is still null); there is no unforge, ever — a tattoo. */
+    const forgeSigil = (raw as Record<string, unknown>).forge_sigil === true;
+    if (!result.ok && !forgeSigil) return badRequest(result.reason);
 
     try {
         const supabase = getSupabaseService();
+
+        if (forgeSigil) {
+            await supabase
+                .from('users')
+                .update({ sigil_forged_at: new Date().toISOString() } as never)
+                .eq('address', address)
+                .is('sigil_forged_at', null);
+            if (!result.ok) {
+                // Forge-only call: return the fresh row.
+                const { data } = await supabase.from('users').select('*').eq('address', address).maybeSingle();
+                if (!data) return notFound('No account row for this address');
+                return NextResponse.json(data as UserRow);
+            }
+        }
+
+        if (!result.ok) return badRequest(result.reason);
+
+        // A Sigil Profile Logo is only wearable by a wallet that forged one.
+        if (isSigilLogo(result.patch.profile_logo)) {
+            const { data: row } = await supabase
+                .from('users')
+                .select('sigil_forged_at')
+                .eq('address', address)
+                .maybeSingle();
+            if (!(row as { sigil_forged_at: string | null } | null)?.sigil_forged_at) {
+                return badRequest('Sigil not forged');
+            }
+        }
 
         // Ownership: key the update on the session address only. The body
         // never carries an address, so this can only ever write the caller's

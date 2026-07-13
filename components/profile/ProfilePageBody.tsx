@@ -55,6 +55,9 @@ import { StickerArt } from '../stickers/StickerArt';
 import { PROFILE_LOGO_CAROUSEL, PROFILE_LOGO_OFF } from '../../lib/profile/profileLogos';
 import { useProfileLogo } from '../../lib/hooks/useProfileLogo';
 import { factionForLogo } from '../../lib/factions/factions';
+import { PROFILE_SIGIL_RING } from '../../lib/profile/profileLogos';
+import { useSigilForged } from '../../lib/sigil/useSigilForged';
+import SigilArt from '../SigilArt';
 import { useProfileSpriteHex } from '../../lib/hooks/useProfileSpriteHex';
 import { setActiveProfileLogo } from '../../lib/profile/profileLogoActive';
 import GhostRows from './GhostRows';
@@ -180,9 +183,15 @@ function ProfilePageBodyInner({
     );
     const ownerLogo = isOwnProfile ? myProfileLogo : user.profile_logo;
     useEffect(() => {
-        setActiveProfileLogo(ownerLogo ?? null);
+        /* The owner address rides along so a Sigil pick can render the
+           owner's own mark in the corner (per-wallet art). */
+        setActiveProfileLogo(ownerLogo ?? null, user.address);
         return () => setActiveProfileLogo(null);
-    }, [ownerLogo]);
+    }, [ownerLogo, user.address]);
+
+    /* THE SIGIL — forged state gates the carousel's Sigil ring; the forge
+       tile itself is always the carousel's last stop. */
+    const sigilForged = useSigilForged();
 
     /* FACTIONS (spec v3.1, settled #2/#4): picking a blank bubble reveals the
        allegiance it carries — the toast IS the tutorial. Only faction logos
@@ -893,6 +902,46 @@ function ProfilePageBodyInner({
                                             <StickerArt sticker={logo} fill />
                                         </div>
                                     ))}
+                                    {/* THE SIGIL ring — forged wallets fly their mark in
+                                        every colour; picking one raises that flag exactly
+                                        like the blanks (the toast is the reveal). */}
+                                    {sigilForged && PROFILE_SIGIL_RING.map((logo) => (
+                                        <div
+                                            className={`pl-logo-card pl-logo-sigil${ownerLogo === logo.id ? ' is-active' : ''}`}
+                                            key={logo.id}
+                                            role="button"
+                                            tabIndex={0}
+                                            aria-label={`Set Profile Logo: ${logo.name}`}
+                                            aria-pressed={ownerLogo === logo.id}
+                                            onClick={() => pickProfileLogo(logo.id)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                    e.preventDefault();
+                                                    pickProfileLogo(logo.id);
+                                                }
+                                            }}
+                                        >
+                                            <SigilArt address={user.address} hex={logo.color} fill />
+                                        </div>
+                                    ))}
+                                    {/* THE FORGE — the carousel's last stop, always. */}
+                                    <div
+                                        className={`pl-logo-card pl-logo-sigil pl-logo-forge${sigilForged ? ' is-forged' : ''}`}
+                                        role="button"
+                                        tabIndex={0}
+                                        aria-label="The Sigil — open the forge"
+                                        title={sigilForged ? 'Your Sigil' : 'The Forge'}
+                                        onClick={() => openModal('sigilForge')}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                openModal('sigilForge');
+                                            }
+                                        }}
+                                    >
+                                        <SigilArt address={user.address} fill />
+                                        <span className="pl-forge-label">{sigilForged ? 'SIGIL' : 'FORGE'}</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -944,6 +993,17 @@ function ProfilePageBodyInner({
                                         </>
                                     )}
                                 </a>
+                                {/* THE SIGIL — the forged mark trails the name
+                                    (sprite + rank lead it), faction ink when the
+                                    owner flies a flag. */}
+                                {user.sigil_forged_at && (
+                                    <SigilArt
+                                        address={user.address}
+                                        hex={factionForLogo(ownerLogo)?.hex}
+                                        className="sigil-after-name"
+                                        title="Sigil"
+                                    />
+                                )}
                                 {/* Artist badge — whitelisted wallets only. Sits in
                                     the identity line right after the address, in
                                     Courier at the row's size and the address's own

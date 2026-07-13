@@ -16,6 +16,9 @@
  */
 
 let active: string | null = null;
+/** The viewed profile OWNER's wallet — needed when the logo is a Sigil pick
+ *  (the mark is per-wallet art, computed from this address). */
+let activeOwner: string | null = null;
 const subs = new Set<() => void>();
 
 /** The owner-logo id for the profile being viewed, or null (no override). */
@@ -23,12 +26,19 @@ export function getActiveProfileLogo(): string | null {
     return active;
 }
 
+/** The viewed profile owner's address (set alongside the logo id). */
+export function getActiveProfileLogoOwner(): string | null {
+    return activeOwner;
+}
+
 /** Register (or clear, with null) the viewed profile's owner logo. No-ops when
  *  unchanged so subscribers don't churn. */
-export function setActiveProfileLogo(id: string | null): void {
+export function setActiveProfileLogo(id: string | null, ownerAddress?: string | null): void {
     const next = id && id.length > 0 ? id : null;
-    if (next === active) return;
+    const nextOwner = next ? (ownerAddress ?? null) : null;
+    if (next === active && nextOwner === activeOwner) return;
     active = next;
+    activeOwner = nextOwner;
     subs.forEach((fn) => fn());
 }
 

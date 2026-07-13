@@ -11,6 +11,7 @@ import { badRequest, serverError } from '@/lib/errors';
 import { MARGIN_SLOTS } from '@/lib/factions/factions';
 import { composeResolved, composeSprite, type ResolvedSprite } from '@/lib/sprites/composer';
 import type { PriceSpriteVibe } from '@/lib/sprites/vibes';
+import { sigilFor } from '@/lib/sigil/sigil';
 
 export const dynamic = 'force-dynamic';
 
@@ -72,20 +73,25 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const [oathRes, userRes] = addrs.size > 0
       ? await Promise.all([
           db.from('faction_oaths').select('address, faction').in('address', [...addrs]),
-          db.from('users').select('address, handle, price_sprite, price_sprite_resolved').in('address', [...addrs]),
+          db.from('users').select('address, handle, price_sprite, price_sprite_resolved, sigil_forged_at').in('address', [...addrs]),
         ])
       : [{ data: [] }, { data: [] }];
     const factionBy = new Map(((oathRes.data ?? []) as { address: string; faction: string }[]).map((o) => [o.address.toLowerCase(), o.faction]));
     const userRows = (userRes.data ?? []) as {
       address: string; handle: string | null;
       price_sprite: PriceSpriteVibe | null; price_sprite_resolved: ResolvedSprite | null;
+      sigil_forged_at: string | null;
     }[];
     const handleBy = new Map(userRows.map((u) => [u.address.toLowerCase(), u.handle]));
-    // Each hand wears its REAL PriceSprite (frozen resolution when stored;
-    // computed from the wallet hash for unclaimed wallets — same fallback the
-    // sprite engine uses).
+    // Each hand wears its REAL PriceSprite — UPGRADED to the wallet's forged
+    // Sigil when one exists (spec §1: stamps default to the sprite and
+    // upgrade to the Sigil; nothing breaks for the unforged).
     const faceBy = new Map<string, string>();
     for (const u of userRows) {
+      if (u.sigil_forged_at) {
+        faceBy.set(u.address.toLowerCase(), sigilFor(u.address));
+        continue;
+      }
       const composed = u.price_sprite_resolved
         ? composeResolved(u.price_sprite_resolved)
         : composeSprite(u.address, u.price_sprite ?? 'observer');

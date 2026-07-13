@@ -41,6 +41,29 @@ fly BLUE. Same faction, different shade of the same jersey.
 and every holo finish (including the holo blank bubble). Those are all
 neutral. Style, not allegiance.
 
+## The Sigil — the mark you forge
+
+Scroll the Profile Logo carousel to its very last tile and you'll find **the
+Forge**. Inside is a mark you've never seen before — three or four carved
+glyphs, unlike anyone else's — and the truth about it: it was **written into
+your wallet before you ever arrived**. The Forge doesn't design it. It only
+reveals it.
+
+- **Forging is a choice, and it's forever.** One tap, no undo, no re-roll.
+  The stone remembers.
+- **Once forged, the Sigil trails your @name** — on the tape, on your
+  profile, in the navbar next to your PriceSprite and PriceRank. Sprite and
+  rank lead the name; the Sigil signs it.
+- **Your Sigil ring joins the carousel** — your mark in every faction
+  colour, right after the holo finishes. Raising a Sigil colour is raising
+  that faction's flag, exactly like the blanks: the toast will tell you what
+  you just swore.
+- **The art remembers it too.** Your hand in every margin upgrades from
+  your PriceSprite to your Sigil — your tattoo in the stone of every piece
+  you ever held.
+- Unforged wallets lose nothing: the PriceSprite carries identity
+  everywhere, the way it always has.
+
 ## The oath
 
 - **The flag flies until you raise another.** Switching to a neutral logo

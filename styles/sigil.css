@@ -1,0 +1,121 @@
+/* ── THE SIGIL — the forged personal mark ───────────────────────────────────
+   Pure text, forced Courier (GLYPHS.md conventions). Inline after the @name
+   by default; scaled in tiles / the corner logo. Rule #2: full-strength ink
+   always — the colour carries the faction, never the opacity. */
+
+.sigil-mark {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 700;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+}
+.sigil-mark-fill {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-size: 15px;
+}
+
+/* trailing the @name — the tattoo beside the signature */
+.sigil-after-name {
+    margin-left: 6px;
+    font-size: 0.92em;
+}
+
+/* the corner-logo override (the owner flies their mark) */
+.sigil-corner {
+    display: flex;
+    align-items: center;
+    height: 28px;
+    font-size: 14px;
+}
+
+/* carousel tiles — the Sigil ring + the forge (last stop) */
+.pl-logo-card.pl-logo-sigil {
+    position: relative;
+}
+.pl-logo-forge {
+    border: 1px dashed currentColor;
+    border-radius: 10px;
+}
+.pl-logo-forge .pl-forge-label {
+    position: absolute;
+    bottom: 4px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+}
+
+/* THE FORGE modal */
+.sigil-forge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 26px 22px 30px;
+    font-family: 'Courier New', Courier, monospace;
+    text-align: center;
+}
+.sigil-forge .sf-title {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+}
+.sigil-forge .sf-mark {
+    width: 100%;
+    min-height: 86px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.sigil-forge .sf-mark .sigil-mark-fill {
+    font-size: 42px;
+}
+/* the hammer falls — continuous motion while the write is in flight */
+.sigil-forge .sf-mark.is-striking .sigil-mark-fill {
+    animation: sf-strike 0.5s ease-in-out infinite;
+}
+@keyframes sf-strike {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+}
+.sigil-forge .sf-mark.is-forged .sigil-mark-fill {
+    animation: sf-bound 0.5s cubic-bezier(0.3, 1.7, 0.4, 1);
+}
+@keyframes sf-bound {
+    0% { transform: scale(1.4); }
+    100% { transform: scale(1); }
+}
+.sigil-forge .sf-line {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+.sigil-forge .sf-copy {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.6;
+    max-width: 360px;
+}
+.sigil-forge .sf-forge-btn {
+    margin-top: 6px;
+    padding: 10px 22px;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+}
+.sigil-forge .sf-forge-btn.is-striking {
+    animation: sf-strike 0.7s ease-in-out infinite;
+}

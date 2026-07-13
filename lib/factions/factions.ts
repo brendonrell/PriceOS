@@ -95,12 +95,16 @@ export const FACTIONS: readonly Faction[] = (() => {
     const byName = new Map<string, Faction>();
     for (const s of BLANK_SHADES) {
         const key = s.name.toUpperCase();
+        /* The Sigil ring mirrors the blank ring colour-for-colour — picking
+           your Sigil in a colour raises that flag exactly like the blank
+           (settled #4: blanks + Sigil options fire the toast). */
+        const sigilId = s.logoId.replace('plogo-blank-', 'plogo-sigil-');
         const f = byName.get(key);
         if (f) {
-            f.logoIds.push(s.logoId);
+            f.logoIds.push(s.logoId, sigilId);
             f.shades.push(s.hex);
         } else {
-            byName.set(key, { key, name: key, hex: s.hex, logoIds: [s.logoId], shades: [s.hex] });
+            byName.set(key, { key, name: key, hex: s.hex, logoIds: [s.logoId, sigilId], shades: [s.hex] });
         }
     }
     return Array.from(byName.values());

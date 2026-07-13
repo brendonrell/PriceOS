@@ -94,6 +94,7 @@ import StickersModal from '../StickersModal';
 import SpiteBookModal from '../SpiteBookModal';
 import PanopticonConfirmModal from '../PanopticonConfirmModal';
 import CartographyModal from '../CartographyModal';
+import SigilForgeModal from '../SigilForgeModal';
 import RewindBar from './RewindBar';
 import TakeoverCastModal from '../takeover/TakeoverCastModal';
 import PanopticonOverlay from './PanopticonOverlay';
@@ -489,6 +490,9 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="CartographyModal">
                 <CartographyModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="SigilForgeModal">
+                <SigilForgeModal />
             </ErrorBoundary>
             <ErrorBoundary name="RewindBar">
                 <RewindBar />

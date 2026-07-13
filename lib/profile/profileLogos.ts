@@ -131,6 +131,32 @@ const PROFILE_HOLO: Sticker[] = [
     { id: 'plogo-holo-blank', sheet: 'holo', kind: 'logo', name: 'Holo Bubble', color: '#FFFFFF', cutout: '#1A1A1A', holo: true, blank: true },
 ];
 
+/* THE SIGIL ring (Factions v3.1 §1 — appends to the very END of the
+ * carousel, after the holo finishes). One entry per blank-ring colour: your
+ * forged mark flying that colour — and like the blanks, picking one IS
+ * raising that faction's flag (the registry maps these ids too). The art is
+ * per-wallet (the owner's Sigil string), so these render through SigilArt
+ * at the two render sites, never through StickerArt; `glyph` is a
+ * placeholder that must not paint. Gated: only forged wallets may save one
+ * (/api/me checks sigil_forged_at). */
+const PROFILE_SIGIL: Sticker[] = [
+    { id: 'plogo-sigil-hot', sheet: 'genesis', kind: 'face', name: 'Sigil — Hothurt', glyph: '✦︎', color: PRICE_RED, cutout: cutoutFor(PRICE_RED) },
+    ...LOGO_HUES.map<Sticker>((h) => ({
+        id: `plogo-sigil-${h.key}`,
+        sheet: 'genesis',
+        kind: 'face',
+        name: `Sigil — ${h.name}`,
+        glyph: '✦︎',
+        color: h.hex,
+        cutout: cutoutFor(h.hex),
+    })),
+];
+
+/** A Profile Logo id that renders the owner's forged Sigil. */
+export function isSigilLogo(id: string | null | undefined): boolean {
+    return !!id && id.startsWith('plogo-sigil-');
+}
+
 /** The Profile Logo set — every variant, flat (id lookup + save validation). */
 export const PROFILE_LOGOS: Sticker[] = [
     ...PROFILE_SOLID,
@@ -138,7 +164,12 @@ export const PROFILE_LOGOS: Sticker[] = [
     ...PROFILE_BLANK,
     ...PROFILE_PETEY,
     ...PROFILE_HOLO,
+    ...PROFILE_SIGIL,
 ];
+
+/** The Sigil ring alone — the carousel appends it after the holo, and only
+ *  for forged wallets. */
+export const PROFILE_SIGIL_RING: readonly Sticker[] = PROFILE_SIGIL;
 
 /** Carousel order for the Profile Logo picker (Brendon 2026-06-23): the two
  *  $PRICE variants, then the upright bubble finishes (solid → blank), then the

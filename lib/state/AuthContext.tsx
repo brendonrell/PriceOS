@@ -96,6 +96,10 @@ interface AuthContextValue {
         `users.price_streak`; 0 by default. Activates (starts feeding Score)
         at 60 days; a missed day resets it to 0. */
     priceStreak: number;
+    /** THE SIGIL — true when this wallet has forged its personal mark
+        (users.sigil_forged_at not null). Seeds useSigilForged; flips live
+        via the pd:sigil-forged broadcast when the forge fires. */
+    sigilForged: boolean;
     /** True when the SIWE-auth'd address has no claimed handle yet.
         AccountCreateModal mounts on this. False during the auth-cookie
         hydration AND during the post-SIWE user-row fetch, so the modal
@@ -118,6 +122,7 @@ interface AuthContextProviderProps {
     priceRank: number;
     priceScore: number;
     priceStreak: number;
+    sigilForged: boolean;
     needsSignup: boolean;
     onAccountCreated: (user: UserRow) => void;
     signOut: () => Promise<void>;
@@ -131,6 +136,7 @@ export function AuthContextProvider({
     priceRank,
     priceScore,
     priceStreak,
+    sigilForged,
     needsSignup,
     onAccountCreated,
     signOut,
@@ -149,6 +155,7 @@ export function AuthContextProvider({
             priceRank,
             priceScore,
             priceStreak,
+            sigilForged,
             needsSignup,
             onAccountCreated,
             signOut,
@@ -160,6 +167,7 @@ export function AuthContextProvider({
             priceRank,
             priceScore,
             priceStreak,
+            sigilForged,
             needsSignup,
             onAccountCreated,
             signOut,

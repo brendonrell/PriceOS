@@ -95,6 +95,8 @@ import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { DropdownStack } from '../dropdown/DropdownStack';
 import SpriteEyeSlot from '../SpriteEyeSlot';
+import SigilArt from '../SigilArt';
+import { useFaction } from '../../lib/factions/useFaction';
 import {
     getSpriteFrame,
     subscribeSprite,
@@ -124,7 +126,7 @@ export function UserMenuButtons() {
         !!pathname && pathname.startsWith('/art/') && pathname.endsWith('/full');
     const showBackButton = notifs.backButton && !isFullscreenRoute;
     const { items, openPanel: openCartPanel } = useCart();
-    const { siweAddress, handle, priceRank, isAuthenticating } = useAuth();
+    const { siweAddress, handle, priceRank, isAuthenticating, sigilForged } = useAuth();
     const { showToast } = useToast();
 
     /* ENS resolution — published on the walletBus by the deferred wallet
@@ -160,6 +162,8 @@ export function UserMenuButtons() {
     }, [menuOpen]);
 
     const isAuthed = !!siweAddress;
+    /* Faction ink for the navbar Sigil — the viewer's own flying flag. */
+    const ownFactionHex = useFaction()?.hex ?? null;
 
     /* Wrapper carries .active when menu open (CSS reveals sprite +
        badge + dropdown stack). */
@@ -308,6 +312,17 @@ export function UserMenuButtons() {
                     {'⟠\uFE0E'}
                 </span>
                 <span className="user-text">{pillText}</span>
+                {/* THE SIGIL — the forged mark trails the @name (the sprite +
+                    rank badge lead it on the left). Faction ink when a flag
+                    flies; menu-open only, like the name itself. */}
+                {menuOpen && isAuthed && sigilForged && siweAddress && (
+                    <SigilArt
+                        address={siweAddress}
+                        hex={ownFactionHex}
+                        className="sigil-after-name"
+                        title="Your Sigil"
+                    />
+                )}
             </button>
 
             <DropdownStack />

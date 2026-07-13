@@ -33,11 +33,13 @@
 
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { usePdNotifs } from '@/lib/state/PdNotifsContext';
-import { PROFILE_LOGOS_BY_ID } from '@/lib/profile/profileLogos';
+import { PROFILE_LOGOS_BY_ID, isSigilLogo } from '@/lib/profile/profileLogos';
 import {
     getActiveProfileLogo,
+    getActiveProfileLogoOwner,
     subscribeActiveProfileLogo,
 } from '@/lib/profile/profileLogoActive';
+import SigilArt from '../SigilArt';
 import {
     getSentimentState,
     subscribeSentiment,
@@ -57,7 +59,13 @@ export function PeteyLogo() {
         getActiveProfileLogo,
         () => null,
     );
-    const override = activeLogoId ? PROFILE_LOGOS_BY_ID.get(activeLogoId) ?? null : null;
+    /* Sigil override — the owner flies their forged mark as the corner logo.
+       Per-wallet art: rendered from the owner's address, in the pick's
+       faction colour, replacing the bubble entirely. */
+    const overrideSigil = activeLogoId && isSigilLogo(activeLogoId)
+        ? { sticker: PROFILE_LOGOS_BY_ID.get(activeLogoId) ?? null, owner: getActiveProfileLogoOwner() }
+        : null;
+    const override = activeLogoId && !overrideSigil ? PROFILE_LOGOS_BY_ID.get(activeLogoId) ?? null : null;
     const overrideBubble = override?.kind === 'logo' ? override : null;
     const overridePrice = override?.kind === 'price' ? override : null;
     // Petey = a rotated bubble logo: it RESTS rotated and a tap brings up the
@@ -72,9 +80,9 @@ export function PeteyLogo() {
     const overrideOutline = !!overrideBubble?.outline;
     const HOLO_GRAD_ID = 'pd-corner-holo';
 
-    // The override forces the form (bubble vs $PRICE); otherwise the viewer's
-    // own Price Logo setting decides.
-    const showPrice = override ? !!overridePrice : notifs.priceLogo;
+    // The override forces the form (bubble vs $PRICE vs Sigil); otherwise the
+    // viewer's own Price Logo setting decides.
+    const showPrice = overrideSigil ? false : override ? !!overridePrice : notifs.priceLogo;
     const showSentiment = notifs.sentimentOn;
 
     // Fill overrides. Applied as inline style so a Profile Logo's colours win
@@ -150,6 +158,14 @@ export function PeteyLogo() {
                 aria-label="Price Discussion — toggle home menu"
                 title="Price Discussion — Click to Rotate"
             >
+                {overrideSigil?.owner && (
+                    <SigilArt
+                        address={overrideSigil.owner}
+                        hex={overrideSigil.sticker?.color}
+                        className="sigil-corner"
+                        title="The owner's Sigil"
+                    />
+                )}
                 <svg
                     className="logo-default"
                     viewBox="0 0 761 655"
@@ -157,7 +173,7 @@ export function PeteyLogo() {
                     xmlns="http://www.w3.org/2000/svg"
                     role="img"
                     aria-label="Price Discussion Logo"
-                    style={showPrice ? { display: 'none' } : undefined}
+                    style={showPrice || overrideSigil ? { display: 'none' } : undefined}
                 >
                     {overrideHolo && (
                         <defs>

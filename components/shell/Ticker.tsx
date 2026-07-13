@@ -66,7 +66,7 @@ function RailItem({ item }: { item: TapeFeedItem }) {
                 <>
                     <b>{item.name}</b>
                     {item.sigil && (
-                        <span className="tape-sigil">{item.sigil}</span>
+                        <span className="tape-sigil" style={item.sigilHex ? { color: item.sigilHex } : undefined}>{item.sigil}</span>
                     )}
                     {' '}
                 </>

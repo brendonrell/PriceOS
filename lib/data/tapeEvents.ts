@@ -28,7 +28,12 @@ export type TapeEventType =
 export interface TapeFeedItem {
     type: TapeEventType;
     name: string | null;
+    /** THE SIGIL — the named wallet's forged mark, worn right after the
+     *  @name (this slot predates the feature — GLYPHS.md §6 always reserved
+     *  the tape's per-user sigil position). Empty = unforged. */
     sigil: string;
+    /** The sigil's ink — the wallet's faction colour, bone when neutral. */
+    sigilHex?: string;
     verb: string;
     coll: string;
     id: number;
@@ -70,11 +75,13 @@ export function eventToTapeItem(e: DbEventRow): TapeFeedItem {
     const useFrom = unfollow || !(e.type === 'MINT' || e.type === 'SALE');
     const handle = useFrom ? e.from_handle : e.to_handle;
     const addr = useFrom ? e.from_address : e.to_address;
+    const sigil = useFrom ? e.from_sigil : e.to_sigil;
     const tid = e.token_id ? e.token_id.slice(e.token_id.lastIndexOf('-') + 1) : '0';
     return {
         type: TAPE_TYPE[e.type] ?? 'mint',
         name: handle ? `@${handle}` : tapeShortAddr(addr ?? null),
-        sigil: '',
+        sigil: sigil?.mark ?? '',
+        sigilHex: sigil?.hex,
         verb: TAPE_VERB[e.type] ?? 'updated',
         coll: e.project_id,
         id: Number(tid) || 0,
