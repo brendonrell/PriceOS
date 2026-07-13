@@ -84,6 +84,7 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
             'app/spell-book',
             'app/achievements',
             'app/discovery',
+            'app/the-composer',
             'app/the-cartography',
             'app/the-factions',
             'app/the-rewind',

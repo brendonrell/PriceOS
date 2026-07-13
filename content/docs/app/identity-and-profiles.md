@@ -40,6 +40,18 @@ Three ways of holding work you don't (yet) own, with deliberate privacy defaults
 
 **Grail Pins** (⟟) elevate the few pieces that matter most, pinned to the top of your rows.
 
+## The Vault
+
+Every profile carries **the Vault** (+ More › Vault) — one canonical home per
+wallet, public by design: drop a link to anyone's vault. A near-black door
+slides open like a MiniDisc shutter; the **seal** on it is the wallet's forged
+[Sigil](/docs/app/the-factions) in faction ink. Before it even opens, the
+**verdict line** — faction · pieces held · days under oath — makes the closed
+door a flex or an indictment. Inside, every held piece hangs with its
+**appraisal plate** (PD Rarity and edition rank); tap a plate to enter the
+piece. The Vault ships no new verbs — it is the wallet's existing record,
+consolidated and staged.
+
 ## Social
 
 Follows are asymmetric and read at a glance beside any @name: mutual ⚭, following ⚯, follower ⚬. Following a person, a Project, or an Output routes its activity into your [Pings](/docs/pings/overview). **PriceRank** (❂) is the platform's standing system, fed by achievements and activity.

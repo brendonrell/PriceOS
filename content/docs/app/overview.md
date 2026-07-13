@@ -21,6 +21,8 @@ PriceOS is the software layer of Price Discussion — the app collectors and art
 - **[Pings](/docs/pings/overview)** — the notification system: what fires, what you control, and how pings reach your devices.
 - **[Achievements](/docs/app/achievements)** — the unlock system across thirteen categories.
 - **[Discovery](/docs/app/discovery)** — search, the home surfaces, feeds, and PriceRank.
+- **[The Composer ⊚](/docs/app/the-composer)** — the visual query builder: compose a question about the whole catalog, watch it answer live, save it as a Program.
+- **[The Factions](/docs/app/the-factions)** — the colour war: allegiance, the Sigil, the Marginalia, sieges and the Book of Conquests.
 - **[The Cartography ◫](/docs/app/the-cartography)** — the living map of the whole platform: territories, inhabitants, and market events in real time.
 - **[The Rewind ◄](/docs/app/the-rewind)** — the whole-OS time scrubber: browse PD as it stood on any past PriceDay.
 - **[The Dispatch ▤](/docs/app/the-dispatch)** — the morning paper: yesterday on the record, printed daily, archived forever.

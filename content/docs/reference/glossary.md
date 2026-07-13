@@ -26,6 +26,8 @@ Definitions for terms used throughout Price Discussion, alphabetically. The nome
 
 **Collector** — A user who owns one or more Outputs. Used where ownership is the salient fact — not a generic synonym for "user."
 
+**The Composer** (⊚) — The visual query builder: compose a live question about the catalog from tappable rules, save it as a Program, act on the answer in bulk. See [The Composer](/docs/app/the-composer).
+
 **Curated** — What PD is **not**. See **Filtered**.
 
 ## E–M
@@ -68,6 +70,8 @@ Definitions for terms used throughout Price Discussion, alphabetically. The nome
 
 **Price Story** — The narrative interpretation of a Project's or Output's price history.
 
+**Program** — A saved Composer query that keeps answering live; it wears the Spectrum (its current answer’s colour distribution). See [The Composer](/docs/app/the-composer).
+
 **Project** — An artist's body of work, deployed as one immutable PDProject contract. Lives at `/art/{slug}`.
 
 **Provenance** — The full chain-of-custody record of a Token, readable from standard `Transfer` events. See [The Secondary Market](/docs/for-collectors/the-secondary-market).
@@ -95,6 +99,8 @@ Definitions for terms used throughout Price Discussion, alphabetically. The nome
 **True Name** — A Project's permanent, unique 4-letter name in uppercase Glagolitic (for example `ⰅⰒⰗⰚ`). See [Projects & Minting](/docs/app/projects-and-minting).
 
 **The Watch** (⬬) — Per-page watchlists whose hits route into Pings. See [Collector Tools](/docs/app/collector-tools).
+
+**The Vault** — Every profile’s public one-per-wallet consolidation: the near-black door, the Sigil seal, the verdict line, and appraisal plates over the held pieces. See [Identity & Profiles](/docs/app/identity-and-profiles).
 
 **Wishlist** (✛) — A user's private buy-intent mark on an Output. Drives financial Pings — the opposite of a Star.
 
