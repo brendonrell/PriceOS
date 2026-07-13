@@ -39,8 +39,8 @@ import { useToast } from '../../../lib/state/ToastContext';
 import { SettingsToggle } from './SettingsToggle';
 
 const SORT_NAMES: Record<SortKey, string> = {
-    id:    '# ID',
-    price: '$ Price',
+    id:    '#ID',
+    price: '$PRICE',
     feed:  'Feed',
     // Fog now lives in the Spell Book (Brendon, 2026-07-12).
     fog:   'Fog',
@@ -50,8 +50,8 @@ const SORT_NAMES: Record<SortKey, string> = {
 const SORTS: Array<{ key: SortKey; title: string }> = [
     { key: 'id',    title: 'Sort by ID' },
     { key: 'price', title: 'Sort by Price' },
-    { key: 'feed',  title: 'Activity Feed' },
     { key: 'az',    title: 'Sort A–Z by project' },
+    { key: 'feed',  title: 'Activity Feed' },
 ];
 
 export function DefaultSortRow() {
@@ -70,21 +70,21 @@ export function DefaultSortRow() {
             if (sort === 'id') {
                 return (
                     <>
-                        # ID {arrow(dir === 'asc' ? '↑\uFE0E' : '↓\uFE0E')}
+                        #ID {arrow(dir === 'asc' ? '↑\uFE0E' : '↓\uFE0E')}
                     </>
                 );
             }
-            return '# ID';
+            return '#ID';
         }
         if (key === 'price') {
             if (sort === 'price') {
                 return (
                     <>
-                        $ PRICE {arrow(dir === 'asc' ? '↑\uFE0E' : '↓\uFE0E')}
+                        $PRICE {arrow(dir === 'asc' ? '↑\uFE0E' : '↓\uFE0E')}
                     </>
                 );
             }
-            return '$ PRICE';
+            return '$PRICE';
         }
         if (key === 'feed') {
             if (sort === 'feed') {
@@ -115,13 +115,17 @@ export function DefaultSortRow() {
                 {/* Default GROUP — leads the row like the grid group toggle.
                     Icon = the live dimension's glyph (▥ when off); the label
                     names the dimension so the pick reads at a glance. */}
+                {/* Icon-only, mirroring the grid's group toggle exactly
+                    (Brendon, 2026-07-13 — the pill reflects what the real
+                    toggle looks like); glyph 1.5 sizes down from the 16px
+                    st-icon base. The toast still names the dimension. */}
                 <SettingsToggle
                     id="ss-group"
                     active={groupOn}
                     title="Default grouping — cycles every dimension"
                     icon={groupOn ? GROUP_GLYPH[defaultGroup] : GROUP_BTN_ICON}
-                    iconStyle={{ fontFamily: "'Courier New', Courier, monospace" }}
-                    label={groupOn ? GROUP_LABEL[defaultGroup] : 'GROUP'}
+                    iconStyle={{ fontFamily: "'Courier New', Courier, monospace", fontSize: '13px', marginRight: 0 }}
+                    style={{ padding: '0 7px', minWidth: 0, width: 'auto' }}
                     onClick={() => {
                         const next = cycleDefaultGroup();
                         showToast('Default Group: ' + GROUP_LABEL[next]);

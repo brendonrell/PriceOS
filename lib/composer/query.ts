@@ -226,7 +226,7 @@ export const OWNER_CLASS_FACE: Record<string, { glyph: string; label: string }> 
     following:  { glyph: '⚯︎', label: 'FOLLOWING' },
     followers:  { glyph: '⚬︎', label: 'FOLLOWERS' },
     topHolders: { glyph: '△︎', label: 'TOP HOLDERS' },
-    cartel:     { glyph: '⟁︎', label: 'THE CARTEL' },
+    cartel:     { glyph: '⟁︎', label: 'CARTEL' },
 };
 
 export const LIST_FACE: Record<MyList, { glyph: string; label: string }> = {
@@ -354,7 +354,7 @@ export function querySentence(q: ComposerQuery): string {
                     : r.op === 'following' ? 'held by people I follow'
                     : r.op === 'followers' ? 'held by my followers'
                     : r.op === 'topHolders' ? 'held by top holders'
-                    : r.op === 'cartel' ? 'held by the Cartel ⟁︎'
+                    : r.op === 'cartel' ? 'held by Cartel ⟁︎'
                     : `held by @${(r.handle ?? '').replace(/^@/, '')}`);
                 break;
             case 'list':
