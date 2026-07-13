@@ -44,18 +44,25 @@
       (Brendon, 2026-07-13). Row anatomy is the panel's own .gsr-row;
       this only dresses the mark: a thumb-sized ⊚ tile breathing in the
       Composer's rhythm, in whatever ink the panel is themed. ── */
-.gsr-composer-glyph {
-    width: 36px;
-    height: 36px;
-    flex: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid currentColor;
+.gsr-row.gsr-composer {
+    /* The news-pill fill pattern: the site's half-opacity fill token as the
+       container, full-strength text on top (the approved Rule #2 shape —
+       readability lives on the content, not the container). */
+    background: var(--stat-bg);
     border-radius: 4px;
-    font-size: 18px;
-    line-height: 1;
+    height: 32px;
+    min-height: 32px;
+    padding: 0 11px;
+    align-items: center;
+    gap: 8px;
     box-sizing: border-box;
+    transition: transform 0.12s ease;
+}
+.gsr-row.gsr-composer:active { transform: scale(0.98); }
+.gsr-composer-glyph {
+    flex: none;
+    font-size: 16px;
+    line-height: 1;
     animation: cmp-glyph-breathe 1.6s ease-in-out infinite;
 }
 .gsr-row.gsr-composer .gsr-main { font-weight: bold; letter-spacing: 1px; }
