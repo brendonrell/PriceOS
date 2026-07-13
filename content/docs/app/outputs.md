@@ -34,6 +34,13 @@ The Output's verbs, in canonical glyphs, one tap each:
 
 Starring a PIECE is deliberately silent — a frequent, low-stress bookmark that never generates a notification. Starring an artist, a project, or a trait is the opposite of silent: those stars are your declared taste, and movement on them drives your interest [Pings](/docs/pings/overview). Wishlist is the strongest signal of all — buy intent that drives financial Pings like wishlist hits.
 
+## The piece's timeline
+
+An Output's event history reads **time as distance**: in feed order, a gap of
+a year or more between events stretches the connector between them — longer
+still at five and ten years — so a piece's quiet decades are visible at a
+glance, not compressed into a uniform list.
+
 ## Sorting & grouping the gallery
 
 Every gallery sort is one tap — each pill cycles its directions — and a standalone **grouping toggle** (⁘ at rest) leads the sort row: tap it to fold the grid into collapsible groups by **artist ✺, project ⬚, owner ⌂, dominant colour ◉, rarity ❖**, or two-level combos. The active sort becomes a shareable link, grids remember their grouping per page, and up to three saved **grid presets** restore a whole view — layout, sort, and grouping — in one tap.

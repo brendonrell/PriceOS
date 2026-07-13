@@ -28,6 +28,13 @@ The filter is Brendon, with input from a small invited circle. Submissions are e
 - **Not yet.** A specific reason, and what would unlock further conversation.
 - **Not a fit.** A direct explanation of why the work sits outside PD's thesis — often with a suggestion of platforms that fit it better.
 
+### The vouch route
+
+There is a second door: every whitelisted PD artist holds **two vouch slots**
+and can put an artist forward from [their Studio](/docs/studio/overview). A
+vouch lands directly on the founder's desk and opens the conversation — it is
+input to the filter, never automatic admission.
+
 ## From acceptance to deployment
 
 1. **Whitelisting.** The factory admin whitelists your wallet on-chain (`PDFactory.whitelistArtist`). Deployment is impossible without it.

@@ -52,8 +52,9 @@ listings, offers, and sales of your work).
 
 ## Who can use it
 
-Anyone with a wallet can enter the Studio and test work — the draft and test
-side is open, and drafts are private to the wallet that made them.
+Anyone can walk into the Studio — wallet or not — and draft, upload a
+script, and run unlimited test mints; drafts stay private on the device that
+made them. Connect a wallet when it's time to publish.
 **Publishing** is gated the same way deployment has always been gated on PD:
 by [the submission filter and the on-chain artist whitelist](/docs/for-artists/submit-a-project).
 The Studio doesn't change the thesis; it gives accepted artists a

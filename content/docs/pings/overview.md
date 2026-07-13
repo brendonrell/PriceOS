@@ -27,6 +27,8 @@ This section is the complete manual: this page covers what fires and how the inb
 | Achievement | ◍ | You unlock an achievement |
 | Streak | ◈ | A streak milestone lands |
 | Reminder | ❍ / ▦ | A to-do you dated comes due, or a calendar item's day arrives |
+| The Sentinel | ❍ | A BUY target you set gets hit — the live ask crosses under your ◊ price, even with the app closed |
+| Workflow | ☇ | An armed Workflow fires: the price you named crossed, or the artist you watch uploaded |
 | Artist Push | ✺ | An artist whose work you hold sends their monthly note |
 
 **Your declared taste** — the five interest toggles, each with its own glyph:
@@ -65,7 +67,7 @@ Three escalating layers, all yours to set (detail in [Controls](/docs/pings/cont
 
 Phones are sacred. PD's push rules are fixed, platform-wide, and deliberately conservative:
 
-- **Always pushed:** offers on your work, offers resolving, your sales, gifts, wishlist hits, reminders you set yourself, and Artist Pushes (hard-capped at one per artist per project per month).
+- **Always pushed:** offers on your work, offers resolving, your sales, gifts, wishlist hits, reminders you set yourself, your Sentinel targets and Workflow fires, and Artist Pushes (hard-capped at one per artist per project per month).
 - **Budgeted:** interest and social pings (the five taste toggles, follows, mint milestones) push at most **a few times an hour** — anything past the budget lands silently in the inbox instead of buzzing you. Repeats of the same thing collapse into one.
 - **Never pushed:** achievements, streaks, and the whole follow feed. You were here when you earned it; you'll see the feed when you visit.
 - **Silent Mode** (⏾) mutes everything, everywhere, until you flip it back — pings still record silently.

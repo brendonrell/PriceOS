@@ -11636,3 +11636,74 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
 .more-seal-rung { cursor: pointer; }
 .more-seal-rung:disabled { cursor: default; }
 .more-seal-rung { font: inherit; color: inherit; }
+
+/* ── Gas Tracker wow pass (2026-07-13) — THE READ, THE PULSE, live ticks.
+   Full-strength chrome per Rule #2; motion carries the "it's alive" story. */
+.gas-tracker-read {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-align: center;
+    margin: -6px 0 14px;
+    animation: gas-read-in 260ms ease-out;
+}
+.gas-tracker-read-state {
+    background: var(--text-color);
+    color: var(--bg-color);
+    padding: 1px 6px;
+}
+@keyframes gas-read-in {
+    from { opacity: 0; transform: translateY(3px); }
+    to   { opacity: 1; transform: none; }
+}
+.gas-tracker-card-gwei.tick { animation: gas-tick 340ms ease-out; }
+@keyframes gas-tick {
+    0%   { transform: scale(1.22); }
+    60%  { transform: scale(0.97); }
+    100% { transform: scale(1); }
+}
+.gas-tracker-card-gwei.waiting { animation: gas-breathe 1.6s ease-in-out infinite; }
+@keyframes gas-breathe {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.55; }
+}
+.gas-tracker-pulse {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 44px;
+    margin: 2px 20px 24px;
+    padding: 0 2px 14px;
+    border-bottom: 1px solid var(--text-color);
+    box-sizing: border-box;
+}
+.gas-tracker-pulse-bar {
+    flex: 1;
+    min-width: 3px;
+    background: var(--text-color);
+    opacity: 0.8;
+    animation: gas-bar-in 220ms ease-out;
+    transform-origin: bottom;
+}
+.gas-tracker-pulse-bar.now { opacity: 1; }
+@keyframes gas-bar-in {
+    from { transform: scaleY(0); }
+    to   { transform: scaleY(1); }
+}
+.gas-tracker-pulse-label {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -2px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-align: center;
+}
+.gas-tracker-footer { animation: gas-read-in 260ms ease-out; }
+@media (max-width: 600px) {
+    .gas-tracker-pulse { margin: 2px 14px 22px; }
+}

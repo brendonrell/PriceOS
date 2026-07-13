@@ -25,6 +25,8 @@ The platform's front door, wearing the daily Mood Ring colour:
 
 One field in the navbar, the whole platform behind it: Projects, Outputs, artists, collectors, @names. Search is the fastest path anywhere.
 
+Search’s special first row launches **[The Composer ⊚](/docs/app/the-composer)** — when the question is bigger than a name, compose it from rules and watch the catalog answer live.
+
 ## Artist surfaces
 
 The artists view lists the whitelisted roster; each artist's page carries their released Projects and their identity (✺). Following an artist routes their releases and milestones into your Pings.

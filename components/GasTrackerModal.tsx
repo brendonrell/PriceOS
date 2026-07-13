@@ -28,10 +28,21 @@
  *   interval.
  */
 
+import { useEffect, useRef, useState } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useGasData, type GasData } from '../lib/hooks/useGasData';
 
 const VS15 = '\uFE0E';
+
+/* THE READ \u2014 the modal calls the moment, deterministically from the base
+   fee. The state word gets the ALLCAPS (house toast rule); thresholds are
+   editorial but the number beside them is always the real fee. */
+function gasRead(baseFeeGwei: number): { state: string; line: string } {
+    if (baseFeeGwei < 1) return { state: 'CHEAP', line: 'the chain is napping \u2014 send anything' };
+    if (baseFeeGwei < 10) return { state: 'CALM', line: 'ordinary seas \u2014 mint at will' };
+    if (baseFeeGwei < 30) return { state: 'BUSY', line: 'blocks are filling \u2014 time your move' };
+    return { state: 'SURGE', line: 'someone lit the mempool \u2014 waiting is a strategy' };
+}
 
 /* Standard ETH transfer = 21,000 gas. USD = gwei × gas × ETH/USD / 1e9. */
 const TRANSFER_GAS = 21000;
@@ -61,6 +72,22 @@ export default function GasTrackerModal() {
     const { openModal, close } = useModal();
     const isOpen = openModal?.name === 'gasTracker';
     const { data, error } = useGasData(isOpen);
+
+    /* THE PULSE — the base fee's recent heartbeat, accumulated while the
+       modal is open (one bar per poll, newest rightmost). Real reads only,
+       reset each open, capped to the last 24. */
+    const [pulse, setPulse] = useState<number[]>([]);
+    const lastStamp = useRef(0);
+    useEffect(() => {
+        if (!isOpen) { setPulse([]); lastStamp.current = 0; return; }
+        if (!data || data.fetchedAt === lastStamp.current) return;
+        lastStamp.current = data.fetchedAt;
+        setPulse((p) => [...p.slice(-23), data.baseFeeGwei]);
+    }, [isOpen, data]);
+    const pulseMax = Math.max(0.0001, ...pulse);
+    const pulseMin = Math.min(...(pulse.length ? pulse : [0]));
+
+    const read = data ? gasRead(data.baseFeeGwei) : null;
 
     return (
         <div
@@ -93,13 +120,43 @@ export default function GasTrackerModal() {
                     ) : null}
                 </div>
 
+                {/* THE READ — the moment, called plainly. */}
+                {read && (
+                    <div className="gas-tracker-read" key={read.state}>
+                        THE READ: <span className="gas-tracker-read-state">{read.state}</span> — {read.line}
+                    </div>
+                )}
+
                 <div className="gas-tracker-cards">
                     <GasCard label="STANDARD" gwei={data?.standardGwei} ethUsd={data?.ethUsd} />
                     <GasCard label="FAST" gwei={data?.fastGwei} ethUsd={data?.ethUsd} />
                     <GasCard label="RAPID" gwei={data?.rapidGwei} ethUsd={data?.ethUsd} />
                 </div>
 
-                <div className="gas-tracker-footer">
+                {/* THE PULSE — one bar per live read while you watch; the
+                    newest beat stands full-strength at the right. */}
+                {pulse.length > 1 && (
+                    <div className="gas-tracker-pulse" aria-label="Base fee, recent reads">
+                        {pulse.map((v, i) => {
+                            const span = pulseMax - pulseMin;
+                            const h = span > 0 ? 18 + ((v - pulseMin) / span) * 82 : 60;
+                            return (
+                                <span
+                                    key={i}
+                                    className={`gas-tracker-pulse-bar${i === pulse.length - 1 ? ' now' : ''}`}
+                                    style={{ height: `${Math.round(h)}%` }}
+                                    title={`${formatGwei(v)} gwei`}
+                                />
+                            );
+                        })}
+                        <span className="gas-tracker-pulse-label">THE PULSE · BASE FEE, LIVE</span>
+                    </div>
+                )}
+
+                <div
+                    className="gas-tracker-footer"
+                    key={data ? data.blockNumber : 'waiting'}
+                >
                     {error
                         ? `Error: ${error}`
                         : data
@@ -124,7 +181,12 @@ function GasCard({ label, gwei, ethUsd }: GasCardProps) {
     return (
         <div className="gas-tracker-card">
             <div className="gas-tracker-card-label">{label}</div>
-            <div className="gas-tracker-card-gwei">
+            {/* Keyed by value: a fresh read remounts the number, and the
+                remount IS the pop — the price visibly ticks alive. */}
+            <div
+                className={`gas-tracker-card-gwei${gwei !== undefined ? ' tick' : ' waiting'}`}
+                key={gwei ?? 'waiting'}
+            >
                 {gwei !== undefined ? formatGwei(gwei) : '—'}
             </div>
             <div className="gas-tracker-card-gwei-unit">gwei</div>
