@@ -12,7 +12,7 @@ Five paths into Price Discussion, each in under a minute of reading. Pick the on
 
 ## I am an artist
 
-Read [How PD Works](/docs/for-artists/how-pd-works) for the curation thesis and the deal in plain terms. When you are ready:
+Read [How PD Works](/docs/for-artists/how-pd-works) for the thesis and the deal in plain terms. When you are ready:
 
 1. [Submit a Project](/docs/for-artists/submit-a-project) covers what to send and what happens next.
 2. [The Mint Flow](/docs/for-artists/the-mint-flow) is what actually happens on-chain when your Project deploys and mints.
@@ -49,7 +49,7 @@ Authenticity of any claimed PD Project is verifiable on-chain with one call: `PD
 
 ## I am just curious
 
-Read the [Introduction](/docs) for the platform in one page, then the [App overview](/docs/app/overview) for what PriceOS actually feels like. The curation thesis in one sentence: **secondary market prices as aesthetic discourse.** That sentence is the door.
+Read the [Introduction](/docs) for the platform in one page, then the [App overview](/docs/app/overview) for what PriceOS actually feels like. The thesis in one sentence: **secondary market prices as aesthetic discourse.** That sentence is the door.
 
 ## Further reading
 

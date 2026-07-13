@@ -18,7 +18,7 @@ $PRICE is a transferable ERC-20 distributed to a community as a cultural artifac
 
 A vanilla fixed-supply ERC-20 — the entire contract is a constructor and an import. 18 decimals, 100,000,000 supply minted in a single deployment-time mint, no further mint authority, no admin role, no upgrade path. Transferable like any token, listed wherever third parties choose to list it, priced by whatever market forms around it.
 
-It is connected to Price Discussion by name and origin: it carries PD's branding and was distributed to the community PD's curation thesis aligns with. It has **no contract-level connection to any other PD system**. PD's contracts do not read $PRICE balances; no feature behaves differently for holders.
+It is connected to Price Discussion by name and origin: it carries PD's branding and was distributed to the community PD's thesis aligns with. It has **no contract-level connection to any other PD system**. PD's contracts do not read $PRICE balances; no feature behaves differently for holders.
 
 ## What $PRICE is not
 

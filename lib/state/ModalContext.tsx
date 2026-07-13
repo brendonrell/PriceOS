@@ -37,6 +37,8 @@ export type ModalName =
     | 'priceSprite'
     | 'familiar'
     | 'priceos'
+    | 'aboutPd'
+    | 'support'
     | 'gasTracker'
     | 'stickers'
     | 'spiteBook'

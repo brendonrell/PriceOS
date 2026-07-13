@@ -8,7 +8,7 @@ last_updated: "2026-07-10"
 
 # Price Discussion Documentation
 
-Price Discussion is a curated generative art platform on Ethereum where the community discussing prices is the product. Artists deploy fully on-chain generative Projects through a factory contract; collectors mint Outputs at primary and trade on the secondary market; and the platform — PriceOS — treats the resulting price movement as a form of aesthetic discourse.
+Price Discussion is a generative art platform on Ethereum — filtered, not curated — where the community discussing prices is the product. Artists deploy fully on-chain generative Projects through a factory contract; collectors mint Outputs at primary and trade on the secondary market; and the platform — PriceOS — treats the resulting price movement as a form of aesthetic discourse.
 
 This documentation covers the three layers of the platform: **the app** (PriceOS, the software collectors and artists actually use), **the smart contracts** (the on-chain protocol every Project runs on), and **the $PRICE token**.
 
@@ -26,7 +26,7 @@ PriceOS is optimized for **iPhone (iPhone 12 and up)** — and in particular for
 
 ## What Price Discussion is
 
-A curation layer on Ethereum's existing primitives. Each Project on PD is a separately deployed, immutable ERC-721 contract (**PDProject**) created by a single factory (**PDFactory**). The generative script itself is stored on Ethereum — `tokenURI` returns a self-contained document that renders the artwork from chain data alone, with no server, no IPFS pin, and no external dependency for the art. Royalties are signalled through EIP-2981. A Project's terms at mint are its terms forever: no admin keys, no pausing, no upgrades.
+A filter on Ethereum's existing primitives — a quality floor, not a taste-making gate. Each Project on PD is a separately deployed, immutable ERC-721 contract (**PDProject**) created by a single factory (**PDFactory**). The generative script itself is stored on Ethereum — `tokenURI` returns a self-contained document that renders the artwork from chain data alone, with no server, no IPFS pin, and no external dependency for the art. Royalties are signalled through EIP-2981. A Project's terms at mint are its terms forever: no admin keys, no pausing, no upgrades.
 
 PD is not a marketplace. Primary mints happen through the PDProject contract directly. Secondary trading happens on third-party marketplaces that honor EIP-2981; PriceOS aggregates and interprets that activity.
 

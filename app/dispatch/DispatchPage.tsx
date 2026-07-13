@@ -5,6 +5,7 @@
  */
 
 import type { DispatchBody } from '@/lib/dispatch/build.server';
+import DispatchClose from './DispatchClose';
 
 export interface DispatchNav {
   prev: string | null;
@@ -14,6 +15,7 @@ export interface DispatchNav {
 export default function DispatchPage({ body, nav }: { body: DispatchBody; nav: DispatchNav }) {
   return (
     <main className="dispatch-page">
+      <DispatchClose />
       <header className="dp-masthead">
         <div className="dp-paper-name">THE PD DISPATCH</div>
         <div className="dp-edition-line">

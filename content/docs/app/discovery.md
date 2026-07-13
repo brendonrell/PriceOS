@@ -8,7 +8,7 @@ last_updated: "2026-07-12"
 
 # The App — Discovery
 
-Discovery on PD is built around one conviction: the market's activity, read well, is the best curator after the curator. The surfaces below all turn live platform activity into ways of finding work.
+Discovery on PD is built around one conviction: the market's activity, read well, is the best curator there is — PD itself deliberately isn't one (filtered, not curated). The surfaces below all turn live platform activity into ways of finding work.
 
 ## The home page
 

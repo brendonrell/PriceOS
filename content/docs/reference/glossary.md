@@ -14,7 +14,7 @@ Definitions for terms used throughout Price Discussion, alphabetically. The nome
 
 **Album** — A user-curated, named grouping of Outputs within a Project. Public by default; a user can keep several per Project. See [Identity & Profiles](/docs/app/identity-and-profiles).
 
-**Anointment** — The platform's recognition mechanism for elevating specific works into curated visibility.
+**Anointment** — The community's recognition mechanism for elevating specific works into higher visibility.
 
 **Artist** — A whitelisted user who has deployed at least one Project through [PDFactory](/docs/contracts/pd-factory). The artist address is set at deployment and immutable.
 
@@ -26,13 +26,15 @@ Definitions for terms used throughout Price Discussion, alphabetically. The nome
 
 **Collector** — A user who owns one or more Outputs. Used where ownership is the salient fact — not a generic synonym for "user."
 
-**Curated** — On PD, every Project is curated. There is no permissionless deployment; the gate is the [submission process](/docs/for-artists/submit-a-project) plus the on-chain whitelist.
+**Curated** — What PD is **not**. See **Filtered**.
 
 ## E–M
 
 **EIP-2981** — Ethereum's royalty-signalling standard. Every PD Project answers it with a 5% royalty to its own splitter. See [Royalties](/docs/for-artists/royalties).
 
 **ENS** — The Ethereum Name Service. PD reads and displays ENS names alongside @names.
+
+**Filtered** — PD is filtered, not curated. There is no permissionless deployment — the gate is the [submission process](/docs/for-artists/submit-a-project) plus the on-chain whitelist — but that gate is a quality floor, not a taste-making program. PD does not editorialize the catalog; the market's conversation does the ranking.
 
 **Genome** — The parameter-space map of a generative Project. See [Projects & Minting](/docs/app/projects-and-minting).
 
@@ -58,7 +60,7 @@ Definitions for terms used throughout Price Discussion, alphabetically. The nome
 
 **$PRICE** — The platform's ERC-20 token; zero platform utility by design. See [$PRICE Overview](/docs/price-token/overview).
 
-**PriceOS** — The complete software platform built on PD's curation thesis — the app these docs document. See [The App](/docs/app/overview).
+**PriceOS** — The complete software platform built on PD's thesis — the app these docs document. See [The App](/docs/app/overview).
 
 **PriceRank** (❂) — The platform's standing system, fed by achievements and activity.
 

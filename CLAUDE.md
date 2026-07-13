@@ -659,6 +659,16 @@ explicit chat confirmation.
   state screams. `Tab: SHUFFLE`, `Wishlist: ADDED · 3`, `Soundtracks: NONE
   YET` — never `TAB: Shuffle`. The eye must land on what's new, not the
   category word. Applies to every toast, every surface, no exceptions.
+- **⛔ CLOCK TIMES ARE VIEWER-LOCAL — ALWAYS AND FOREVER (Brendon, 2026-07-13).**
+  Every displayed clock time (feed stamps, timelines, news rail, history rows —
+  anything with an HH:MM) renders in the USER's local zone, and its paired date
+  column tracks the same zone so date and time never disagree. Never pin a
+  displayed time to UTC or any fixed zone. Store instants as true UTC; render
+  local. (Deliberate exceptions — day-keyed platform concepts, not clock times:
+  PriceDay, the Dispatch's covered day, natal charts, the Mood Ring.) The
+  failure that birthed this: the genesis `#price-discussion` moment stored as
+  08:28Z instead of its true instant 13:28Z, rendering five hours early for
+  its own EST audience.
 - **Always feel moving forward — never "is anything happening?" (Brendon,
   2026-06-07).** Any async/wait surface (mint, buy, list, offer, load, fetch,
   reveal) must show continuous motion — a spinner, a filling progress bar, a

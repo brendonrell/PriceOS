@@ -106,22 +106,24 @@ type HomeTab = 'minting' | 'new' | 'shuffle';
    name shown in the feed. */
 interface HomeFeedItem { slug: string; title: string; label: string; glyph: string; cls?: string; ts: number; seq: number }
 
-/* "JUN 11" — compact upload-date stamp for the feed's time column. */
+/* "JUN 11" — compact upload-date stamp for the feed's time column.
+   Viewer-local (Brendon, 2026-07-13: displayed times always render in the
+   user's own zone; the date tracks the same zone as the time). */
 function fmtUploadDate(ms: number | null): string {
     if (ms == null) return '—';
     const d = new Date(ms);
-    const mon = d.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' }).toUpperCase();
-    const day = String(d.getUTCDate()).padStart(2, '0');
-    return `${mon} ${day} ’${String(d.getUTCFullYear()).slice(-2)}`;
+    const mon = d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${mon} ${day} ’${String(d.getFullYear()).slice(-2)}`;
 }
 
 /* "15:42" — clock time of the upload (24-hour, PD house style), shown in place
    of the redundant "UPLOAD" type label (the New Uploads header already says
-   what these are). */
+   what these are). Viewer-local, same rule as above. */
 function fmtUploadTime(ms: number | null): string {
     if (ms == null) return '—';
     return new Date(ms)
-        .toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' });
+        .toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
 }
 
 /* The "owned by you" check (same glyph the cards carry — a ringed CSS

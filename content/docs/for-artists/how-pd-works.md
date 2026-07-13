@@ -1,20 +1,20 @@
 ---
 title: "For Artists — How PD Works"
-description: "The platform from the artist's side: the curation thesis, what deploying on PD actually means, the economics in plain terms, and what makes PD different."
+description: "The platform from the artist's side: the thesis, what deploying on PD actually means, the economics in plain terms, and what makes PD different."
 category: "for-artists"
-keywords: ["artists", "curation", "onboarding", "generative art"]
+keywords: ["artists", "filtered", "onboarding", "generative art"]
 last_updated: "2026-07-10"
 ---
 
 # For Artists — How PD Works
 
-Price Discussion is a curated platform for generative art where the market conversation around a work is treated as part of the work's life. This page is the plain-terms framing; the deeper pages cover [submission](/docs/for-artists/submit-a-project), [the mint flow](/docs/for-artists/the-mint-flow), and [royalties](/docs/for-artists/royalties).
+Price Discussion is a filtered — not curated — platform for generative art where the market conversation around a work is treated as part of the work's life. This page is the plain-terms framing; the deeper pages cover [submission](/docs/for-artists/submit-a-project), [the mint flow](/docs/for-artists/the-mint-flow), and [royalties](/docs/for-artists/royalties).
 
-## The curation thesis
+## The thesis
 
-**Secondary market prices as aesthetic discourse.** PD curates generative work where price discovery becomes part of the conceptual frame — not a vehicle for the work, but a contributor to it. The platform's entire surface (Price Story, the Genome, the Tape, Pings) is built to read market movement as a community talking about art.
+**Secondary market prices as aesthetic discourse.** PD filters for generative work where price discovery becomes part of the conceptual frame — not a vehicle for the work, but a contributor to it. The platform's entire surface (Price Story, the Genome, the Tape, Pings) is built to read market movement as a community talking about art.
 
-Every Project on PD is curated. There is no permissionless deployment; the curation gate is enforced off-chain through the [submission process](/docs/for-artists/submit-a-project), and on-chain through an artist whitelist on the factory contract.
+Every Project on PD passed the filter. There is no permissionless deployment; the gate is enforced off-chain through the [submission process](/docs/for-artists/submit-a-project), and on-chain through an artist whitelist on the factory contract. But the gate is a **quality floor, not a taste-making program** — PD does not editorialize the catalog. What rises is the market's call, not the platform's.
 
 ## What deploying on PD means
 

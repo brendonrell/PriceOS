@@ -1,6 +1,6 @@
 ---
 title: "PD Studio — Publishing"
-description: "The road from a tested draft to a live Project: the curation gate, the Studio's preflight checks, and the deploy you sign from your own wallet — on your phone."
+description: "The road from a tested draft to a live Project: the filter, the Studio's preflight checks, and the deploy you sign from your own wallet — on your phone."
 category: "studio"
 keywords: ["publishing", "deploy", "preflight", "whitelist", "createProject"]
 last_updated: "2026-07-10"
@@ -16,8 +16,8 @@ boring — every surprise should have been used up in
 
 ## The gate hasn't moved
 
-PD is curated, and the Studio doesn't change that.
-[Submission and curation](/docs/for-artists/submit-a-project) work as they
+PD is filtered, not curated, and the Studio doesn't change that.
+[Submission and the filter](/docs/for-artists/submit-a-project) work as they
 always have, and deployment still requires your wallet on the factory's
 on-chain whitelist. What changes is everything around the gate: the brief you
 submit can be born from a Studio draft — real rendered ranges instead of
