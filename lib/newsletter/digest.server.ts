@@ -1,6 +1,6 @@
 /*
  * The Dispatch DIGEST — PD's email edition (Resend), an extension of the
- * morning paper. Three editions a month (the 1st, 11th and 21st, Montreal
+ * morning paper. Three editions a month (the 1st, 11th and 22nd, Montreal
  * time), each covering the stretch since the previous one. Everything is
  * assembled from the live ledger — zero generated prose, the platform
  * reporting itself, $0 to build.
@@ -25,7 +25,7 @@ const SITE =
   'https://pricediscussion.pricediscussion.workers.dev';
 
 /** Digest publication days of the month (Montreal calendar). */
-export const DIGEST_DAYS = [1, 11, 21] as const;
+export const DIGEST_DAYS = [1, 11, 22] as const;
 
 /** The "Dispatch Digest" Resend segment (created 2026-07-13; not a secret). */
 export const DIGEST_SEGMENT_ID = 'fb22999d-a121-4feb-aaa8-84d69994492c';
@@ -47,7 +47,7 @@ export function montrealYMD(at: Date): { y: number; m: number; d: number } {
  *  window just needs to tile cleanly edition to edition). */
 export function digestWindow(y: number, m: number, d: number): { fromSec: number; toSec: number; label: string } {
   let py = y, pm = m, pd: number;
-  if (d === 1) { pd = 21; pm = m - 1; if (pm === 0) { pm = 12; py = y - 1; } }
+  if (d === 1) { pd = 22; pm = m - 1; if (pm === 0) { pm = 12; py = y - 1; } }
   else if (d === 11) pd = 1;
   else pd = 11;
   const from = Date.UTC(py, pm - 1, pd, 4, 0, 0); // ~midnight Montreal
@@ -116,7 +116,7 @@ function editionStamp(editionName: string): string {
     }
     rows.push(`<tr>${cells.join('')}</tr>`);
   }
-  return `<table cellpadding="0" cellspacing="0" border="0" style="border:2px solid #111111;"><tbody>${rows.join('')}</tbody></table>`;
+  return `<table cellpadding="0" cellspacing="0" border="0"><tbody>${rows.join('')}</tbody></table>`;
 }
 
 function pieceName(slug: string, tokenId: string | number): string {
@@ -232,7 +232,7 @@ export async function buildDigest(
   const heroBlock = hero && heroImg ? `
     <tr><td style="padding-top:26px;" align="center">
       <a href="${pieceUrl(hero.slug, hero.id)}" style="text-decoration:none;">
-        <img src="${heroImg}" alt="${esc(pieceName(hero.slug, hero.id))}" width="560" height="560" border="0" style="display:block;width:100%;max-width:560px;height:auto;border:2px solid #111111;" />
+        <img src="${heroImg}" alt="${esc(pieceName(hero.slug, hero.id))}" width="560" height="560" border="0" style="display:block;width:100%;max-width:560px;height:auto;" />
       </a>
     </td></tr>
     <tr><td align="center" style="font-family:${MONO};color:#111111;font-size:13px;font-weight:bold;letter-spacing:1px;padding-top:10px;">
@@ -348,7 +348,7 @@ export async function buildDigest(
   <tr><td align="center" style="border-top:3px double #111111;margin-top:30px;padding-top:16px;">
     <div style="font-family:${MONO};color:#111111;font-size:11px;font-weight:bold;letter-spacing:1px;line-height:17px;padding-top:14px;">
       ASSEMBLED BY THE PLATFORM ITSELF, STRAIGHT FROM THE LEDGER.<br>
-      THREE EDITIONS A MONTH — THE 1ST · 11TH · 21ST.
+      THREE EDITIONS A MONTH — THE 1ST · 11TH · 22ND.
     </div>
     <div style="font-family:${MONO};font-size:12px;line-height:18px;padding-top:12px;">
       <a href="${SITE}/dispatch" style="color:#111111;text-decoration:underline;font-weight:bold;">READ THE DAILY DISPATCH</a>

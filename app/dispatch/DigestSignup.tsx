@@ -2,7 +2,7 @@
 
 /*
  * DigestSignup — the Dispatch page's subscription slip for the email DIGEST
- * (3 editions a month: the 1st, 11th and 21st). Posts to
+ * (3 editions a month: the 1st, 11th and 22nd). Posts to
  * /api/newsletter/subscribe; the list of record lives in Resend.
  * Dressed in the paper's own chrome (dp-* rules — Rule #0).
  */
@@ -43,7 +43,7 @@ export default function DigestSignup() {
     <section className="dp-section dp-digest">
       <h2 className="dp-rule">THE DIGEST — THIS PAPER, IN YOUR INBOX</h2>
       <p className="dp-prose">
-        Three editions a month — the 1st, 11th and 21st. The stretch&apos;s ledger,
+        Three editions a month — the 1st, 11th and 22nd. The stretch&apos;s ledger,
         what came through the filter, and the art itself. Assembled by the
         platform, read in one coffee.
       </p>

@@ -1,6 +1,6 @@
 /*
  * The Dispatch DIGEST press run. Rides the 1-min Cron Trigger exactly like
- * the daily Dispatch: on the 1st, 11th and 21st (Montreal), once the clock
+ * the daily Dispatch: on the 1st, 11th and 22nd (Montreal), once the clock
  * passes 9AM, build the digest from the ledger and hand it to Resend as a
  * broadcast (create + send in one call). Idempotent WITHOUT a database:
  * each edition carries a deterministic name (pd-digest-YYYY-MM-DD) and the
