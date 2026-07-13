@@ -35,6 +35,7 @@ import {
 import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
 import { getProject } from '../../lib/project/registry';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
+import { TraitsProvider } from '../../lib/state/TraitsContext';
 import ArtworkCard from '../ArtworkCard';
 import { useComposerData } from '../../lib/composer/useComposerData';
 import {
@@ -776,6 +777,14 @@ export default function ComposerModal() {
             aria-label="The Composer"
         >
             {isOpen && (
+                /* TraitsProvider — ArtworkCard's multi-select machinery
+                   (useMultiSelect) lives in TraitsContext, which pages
+                   provide but a shell-mounted modal doesn't inherit.
+                   Without it the first real card render THREW and the
+                   ErrorBoundary blanked the modal (the tap-a-Program
+                   crash, 2026-07-13 — invisible against an empty local
+                   dataset, where no card ever mounted). */
+                <TraitsProvider>
                 <div className="cmp-stage">
                     {/* ── top bar ── */}
                     <div className="cmp-topbar">
@@ -1053,6 +1062,7 @@ export default function ComposerModal() {
                         </div>
                     )}
                 </div>
+                </TraitsProvider>
             )}
         </div>
     );
