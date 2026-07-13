@@ -13,7 +13,7 @@ import type { Metadata } from 'next';
 import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import ArtworkPageBody from '@/components/artwork/ArtworkPageBody';
-import { getProject } from '@/lib/project/registry';
+import { getProject, artImageUrl } from '@/lib/project/registry';
 import { getSupabaseService } from '@/lib/supabase';
 
 type Props = { params: Promise<{ slug: string; localId: string }> };
@@ -23,7 +23,10 @@ type Props = { params: Promise<{ slug: string; localId: string }> };
    fine without them) and request-deduped via cache() so metadata + body
    share ONE read. Query shapes mirror the outputs/story routes. */
 const fetchOutputFacts = cache(
-  async (slug: string, tokenId: number): Promise<{ scene: string | null; listedEth: number | null }> => {
+  async (
+    slug: string,
+    tokenId: number,
+  ): Promise<{ scene: string | null; listedEth: number | null; minted: boolean }> => {
     try {
       const supabase = getSupabaseService();
       const now = new Date().toISOString();
@@ -48,9 +51,11 @@ const fetchOutputFacts = cache(
       const scene = (o.data as { scene?: string | null } | null)?.scene ?? null;
       const p = (l.data as { price_eth?: string | number | null } | null)?.price_eth;
       const listedEth = p != null && Number(p) > 0 ? Number(p) : null;
-      return { scene, listedEth };
+      // An outputs row exists exactly for minted pieces — that's the gate for
+      // pointing the share image at the stored preview (unminted ids have none).
+      return { scene, listedEth, minted: o.data != null };
     } catch {
-      return { scene: null, listedEth: null };
+      return { scene: null, listedEth: null, minted: false };
     }
   },
 );
@@ -155,7 +160,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     const t = (project?.traitsOf?.(localId) as Record<string, unknown>) ?? {};
     traitLine = Object.entries(t).slice(0, 6).map(([k, v]) => `${k}: ${v}`).join(' · ');
   } catch { /* ship without traits */ }
-  const { scene, listedEth } = await fetchOutputFacts(slug, localId);
+  const { scene, listedEth, minted } = await fetchOutputFacts(slug, localId);
   const description = [
     `Generative artwork #${localId} of ${project?.outputs ?? '?'}`,
     project?.artistHandle ? `by @${project.artistHandle}` : null,
@@ -164,22 +169,31 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     listedEth ? `Listed at ${listedEth} ETH.` : null,
     traitLine || null,
   ].filter(Boolean).join(' ');
+  // Share/unfurl image — THE PIECE ITSELF (its stored preview PNG, served
+  // publicly from our own /preview route), as a large card. Sharing an Output
+  // is PD's word-of-mouth engine; the art must be the first thing anyone sees.
+  // Unminted ids have no stored preview, so they fall back to the PD mark.
+  const art = minted ? artImageUrl(slug, localId) : null;
+  const ogImages = art
+    ? [{ url: art, alt: ogTitle }]
+    : [{ url: '/icon-1024px.png', width: 1024, height: 1024, alt: 'Price Discussion' }];
   // TODO: canonical should point to /{globalId} once indexer mapping is live.
   // Shell omits canonical to avoid self-pointing at the alt URL.
   return {
     title: `${name} #${localId} · Price Discussion`,
     description,
-    // Share/preview image — the PWA icon, so the OS share sheet + link unfurls
-    // for an Output show our mark instead of the browser's generic placeholder.
     openGraph: {
       title: ogTitle,
+      description,
       type: 'website',
-      images: [{ url: '/icon-1024px.png', width: 1024, height: 1024, alt: 'Price Discussion' }],
+      url: `/art/${slug}/${localId}`,
+      images: ogImages,
     },
     twitter: {
-      card: 'summary',
+      card: art ? 'summary_large_image' : 'summary',
       title: ogTitle,
-      images: ['/icon-1024px.png'],
+      description,
+      images: [art ?? '/icon-1024px.png'],
     },
   };
 }

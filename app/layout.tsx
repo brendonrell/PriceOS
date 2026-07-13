@@ -58,12 +58,14 @@ import { WalletProviders } from '../components/wallet/WalletProviders';
 import { DevLoginButton } from '../components/dev/DevLoginButton';
 import { getSession } from '../lib/auth/siwe';
 
-/* Canonical origin for absolute preview-image URLs. On Vercel each deploy sets
-   VERCEL_URL to its own host, so the share image resolves on dev + prod alike;
-   the dev preview is the fallback for local/other contexts. */
+/* Canonical origin for absolute share/preview URLs (og:image and friends must
+   be absolute or link unfurlers can't fetch them). Set via NEXT_PUBLIC_SITE_URL
+   in .env.production; falls back to the live Cloudflare preview. The old
+   Vercel-era fallback pointed unfurlers at a dead host — every share embed
+   rendered imageless until this (found 2026-07-13, the Discord share bug). */
 const SITE_URL =
-    (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) ||
-    'https://price-os-git-dev-pricediscussion.vercel.app';
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    'https://pricediscussion.pricediscussion.workers.dev';
 
 const SITE_DESCRIPTION =
     'A web3 social platform where the community discussing secondary prices is the product. Browse projects, track grail pins, and explore generative art.';

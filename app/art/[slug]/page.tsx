@@ -14,9 +14,10 @@
 // client fetch (the old ghost→art flip + "appear late" gap). The client
 // reconcile in ProjectContext still runs for live owners/prices/stats.
 import type { Metadata } from 'next';
+import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import ProjectPageBody from '../../../components/project/ProjectPageBody';
-import { getProject } from '../../../lib/project/registry';
+import { getProject, artImageUrl } from '../../../lib/project/registry';
 import { getSupabaseService } from '../../../lib/supabase';
 
 export const dynamic = 'force-dynamic';
@@ -29,8 +30,9 @@ type Props = { params: Promise<{ slug: string }> };
 const COOLDOWN_MS = 60 * 24 * 60 * 60 * 1000;
 
 /* Server-side seed read. Best-effort: any failure falls back to (0, [], null)
-   so the page still renders (ghosts + client reconcile) rather than erroring. */
-async function fetchSeed(
+   so the page still renders (ghosts + client reconcile) rather than erroring.
+   Request-deduped via cache() — generateMetadata and the page share ONE read. */
+const fetchSeed = cache(async function fetchSeed(
     slug: string,
 ): Promise<{ total: number; showcaseIds: number[]; uploadedAt: number | null; floorEth: number | null; projectNo: number | null }> {
     try {
@@ -64,7 +66,7 @@ async function fetchSeed(
     } catch {
         return { total: 0, showcaseIds: [], uploadedAt: null, floorEth: null, projectNo: null };
     }
-}
+});
 
 export default async function ProjectPage(props: Props) {
     const params = await props.params;
@@ -111,13 +113,34 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     if (!def) {
         return { title: 'Not Found · Price Discussion' };
     }
+    const description = [
+        `${def.displayName} — a generative art project`,
+        def.artistHandle ? `by @${def.artistHandle}` : null,
+        `on Price Discussion. ${def.outputs} pieces, each rendered live from deterministic code.`,
+    ].filter(Boolean).join(' ');
+    // Share/unfurl image — a real piece from the project (the first showcase
+    // pick, else #1), as a large card. Unminted projects fall back to the mark.
+    const { total, showcaseIds } = await fetchSeed(slug);
+    const art = total > 0 ? artImageUrl(slug, showcaseIds[0] ?? 1) : null;
+    const ogTitle = `${def.displayName} on Price Discussion`;
     return {
         title: `${def.displayName} · Price Discussion`,
-        description: [
-            `${def.displayName} — a generative art project`,
-            def.artistHandle ? `by @${def.artistHandle}` : null,
-            `on Price Discussion. ${def.outputs} pieces, each rendered live from deterministic code.`,
-        ].filter(Boolean).join(' '),
+        description,
         alternates: { canonical: `/art/${slug}` },
+        openGraph: {
+            title: ogTitle,
+            description,
+            type: 'website',
+            url: `/art/${slug}`,
+            images: art
+                ? [{ url: art, alt: ogTitle }]
+                : [{ url: '/icon-1024px.png', width: 1024, height: 1024, alt: 'Price Discussion' }],
+        },
+        twitter: {
+            card: art ? 'summary_large_image' : 'summary',
+            title: ogTitle,
+            description,
+            images: [art ?? '/icon-1024px.png'],
+        },
     };
 }
