@@ -83,6 +83,7 @@ import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useDropdown, type DropdownView } from '../../lib/state/DropdownContext';
+import { useModal } from '../../lib/state/ModalContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import CalendarHeaderInline from '../CalendarHeaderInline';
 import SpriteFace from '../SpriteFace';
@@ -213,6 +214,7 @@ function GlobeIcon({ id }: { id?: string }) {
 export function GlobalSearchBar() {
     const { notifs, update } = usePdNotifs();
     const { view, setView } = useDropdown();
+    const { open: openPlatformModal } = useModal();
     const router = useRouter();
     const [active, setActive] = useState(false);
     const [value, setValue] = useState('');
@@ -264,7 +266,10 @@ export function GlobalSearchBar() {
     // menu-links / accordion boxes / settings panel / artists panel. Refs are
     // captured at the moment the effect runs so cleanup restores the same
     // nodes — even if React re-renders or unmounts the bar mid-search.
-    const engaged = isGlobalSearching || (active && (recentCount > 0 || minting.length > 0));
+    /* The Composer launcher row is permanent first-row content (Brendon,
+       2026-07-13), so an open search is ALWAYS engaged — a fresh user with
+       no trail and nothing minting still gets the launcher + syntax hint. */
+    const engaged = isGlobalSearching || active;
     useEffect(() => {
         if (!engaged) return;
 
@@ -619,6 +624,26 @@ export function GlobalSearchBar() {
                 {eggOn && <LaneRunner />}
                 {!eggOn && engaged && !isGlobalSearching && (
                     <>
+                        {/* THE COMPOSER ⊚ — the launcher's home (Brendon,
+                            2026-07-13): the special first row whenever search
+                            opens. Search is where questions start; this is
+                            the power-question tool. */}
+                        <div
+                            className="global-result-item gsr-row gsr-composer"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => openPlatformModal('composer')}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    openPlatformModal('composer');
+                                }
+                            }}
+                        >
+                            <span className="gsr-composer-glyph" aria-hidden="true">{`⊚${VS15}`}</span>
+                            <span className="gsr-main">The Composer</span>
+                            <span className="gsr-sub">query builder</span>
+                        </div>
                         {recent.length > 0 && (
                             <div className="settings-header gsr-header">Recently Viewed</div>
                         )}

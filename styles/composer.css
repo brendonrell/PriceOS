@@ -40,6 +40,26 @@
     to   { opacity: 1; transform: none; }
 }
 
+/* ── the search launcher — the special first row of Global Search
+      (Brendon, 2026-07-13). Row anatomy is the panel's own .gsr-row;
+      this only dresses the mark: a thumb-sized ⊚ tile breathing in the
+      Composer's rhythm, in whatever ink the panel is themed. ── */
+.gsr-composer-glyph {
+    width: 36px;
+    height: 36px;
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid currentColor;
+    border-radius: 4px;
+    font-size: 18px;
+    line-height: 1;
+    box-sizing: border-box;
+    animation: cmp-glyph-breathe 1.6s ease-in-out infinite;
+}
+.gsr-row.gsr-composer .gsr-main { font-weight: bold; letter-spacing: 1px; }
+
 /* ── top bar ── */
 .cmp-topbar {
     flex: none;
