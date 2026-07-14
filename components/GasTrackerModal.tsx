@@ -153,7 +153,7 @@ export default function GasTrackerModal() {
                                 />
                             );
                         })}
-                        <span className="gas-tracker-pulse-label">THE PULSE · BASE FEE, LIVE</span>
+                        <span className="gas-tracker-pulse-label">GAS PULSE · BASE FEE, LIVE</span>
                     </div>
                 )}
 

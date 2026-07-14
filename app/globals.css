@@ -2168,13 +2168,14 @@ body.theme-bright .news-pill-name {
     #fmTab-followers .fm-icon { font-size: 16px; }
     #fmTab-projects .fm-icon  { font-size: 15px; }
 }
-/* Friend Inspector title glyph (⚬) — one size up + nudged up 2px. Scoped to the
-   inspector so the Sticker Manager title glyph is untouched (Brendon, 2026-07-11). */
+/* Friend Inspector title glyph (⚬) — one size up + nudged up 1px. Scoped to the
+   inspector so the Sticker Manager title glyph is untouched (Brendon, 2026-07-11;
+   dropped 1px 2026-07-14). */
 .followers-pop .smgr-title-ic,
 .followers-plus .smgr-title-ic {
     font-size: 23px;
     position: relative;
-    top: -2px;
+    top: -1px;
 }
 /* Vertically centre every category-pill glyph against its label so the icons
    sit on one line (Brendon, 2026-07-11 — align all button glyphs inside). */
@@ -2184,6 +2185,15 @@ body.theme-bright .news-pill-name {
     align-items: center;
     justify-content: center;
     line-height: 1;
+}
+
+/* MY PD settings pills — mobile-only glyph centring (Brendon, 2026-07-14):
+   Sticker Mode ⊞ drops 1px; Auto-Scroll ⍖ has a left-heavy bearing that reads
+   as extra space on its right — nudged right to centre (no stray space, just
+   the glyph's own metrics). */
+@media (max-width: 600px) {
+    #sn-sticker .st-icon { top: 1px !important; }
+    #sn-autoscroll .st-icon { transform: translateX(1px); }
 }
 
 /* ============================================================
@@ -9027,6 +9037,12 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
 .gas-tracker-info {
     max-width: 520px;
     width: 100%;
+    /* Pin against iOS text-inflation: rotating to landscape and back must NOT
+       resize the portrait text. The global html/body pin doesn't hold inside
+       this fixed overlay (same reason .info-rubik carries its own), so the
+       modal locks its own text scale (Brendon, 2026-07-14). */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
 }
 .gas-tracker-title {
     font-family: var(--font-rubik-mono), sans-serif;
@@ -11696,6 +11712,16 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
 }
 @media (orientation: landscape) {
     .gas-tracker-price { display: inline; margin-left: 10px; }
+}
+/* Landscape phones: width > 600px pulls in the desktop card sizing, but there's
+   only ~350-430px of height, so the pulse + footer fall below the fold. Scale
+   the whole panel down uniformly — every row stays visible, nothing reflows,
+   portrait is untouched (Brendon, 2026-07-14). */
+@media (orientation: landscape) and (max-height: 500px) {
+    #gasTrackerModal .gas-tracker-info {
+        transform: scale(0.74);
+        transform-origin: center center;
+    }
 }
 .gas-tracker-read-state {
     background: var(--text-color);
