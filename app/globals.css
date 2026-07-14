@@ -9030,12 +9030,13 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     font-family: var(--font-rubik-mono), sans-serif;
     letter-spacing: 1.5px;
     text-align: center;
-    margin-bottom: 18px;
+    margin-bottom: 22px;
 }
 .gas-tracker-ethusd {
     font-family: 'Courier New', Courier, monospace;
     letter-spacing: normal;
     font-size: 0.85em;
+    font-weight: bold;
 }
 .gas-tracker-cards {
     display: grid;
@@ -9044,17 +9045,17 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     width: 100%;
     padding: 0 20px;
     box-sizing: border-box;
-    margin-bottom: 14px;
+    margin-bottom: 22px;
 }
 .gas-tracker-card {
     border: 2px dotted var(--text-color);
     background: var(--bg-color);
-    padding: 14px 8px 12px 8px;
+    padding: 16px 8px 14px 8px;
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
+    gap: 4px;
 }
 .gas-tracker-card-label {
     font-family: var(--font-rubik-mono), sans-serif;
@@ -9073,18 +9074,21 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
 .gas-tracker-card-gwei-unit {
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px;
+    font-weight: bold;
     letter-spacing: 0.5px;
     text-transform: uppercase;
 }
 .gas-tracker-card-usd {
     font-family: 'Courier New', Courier, monospace;
     font-size: 13px;
+    font-weight: bold;
     margin-top: 4px;
     color: var(--text-color);
 }
 .gas-tracker-footer {
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px;
+    font-weight: bold;
     text-align: center;
     letter-spacing: 0.5px;
     padding: 0 20px;
@@ -11677,7 +11681,7 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     font-weight: bold;
     letter-spacing: 0.5px;
     text-align: center;
-    margin: -6px 0 14px;
+    margin: -2px 0 22px;
     animation: gas-read-in 260ms ease-out;
 }
 .gas-tracker-read-state {
@@ -11710,7 +11714,7 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     align-self: stretch;
     gap: 3px;
     height: 44px;
-    margin: 2px 20px 24px;
+    margin: 10px 20px 28px;
     padding: 0 2px 14px;
     border-bottom: 1px solid var(--text-color);
     box-sizing: border-box;
@@ -11741,5 +11745,5 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
 }
 .gas-tracker-footer { animation: gas-read-in 260ms ease-out; }
 @media (max-width: 600px) {
-    .gas-tracker-pulse { margin: 2px 14px 22px; }
+    .gas-tracker-pulse { margin: 10px 14px 26px; }
 }
