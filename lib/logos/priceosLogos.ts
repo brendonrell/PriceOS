@@ -142,3 +142,13 @@ export const FLAT_LOGOS: readonly string[] = [
 export function pickRandomLogo(): string {
     return FLAT_LOGOS[Math.floor(Math.random() * FLAT_LOGOS.length)];
 }
+
+/* The About PD modal's title spells ABOUT, not the PriceOS logo (Brendon,
+   2026-07-14). Its own figlet pool so the shared PriceOS logos stay untouched. */
+export const ABOUT_LOGOS: readonly string[] = [
+    "    _    _                 _   \n   / \\  | |__   ___  _   _| |_ \n  / _ \\ | '_ \\ / _ \\| | | | __|\n / ___ \\| |_) | (_) | |_| | |_ \n/_/   \\_\\_.__/ \\___/ \\__,_|\\__|",
+];
+
+export function pickRandomAbout(): string {
+    return ABOUT_LOGOS[Math.floor(Math.random() * ABOUT_LOGOS.length)];
+}

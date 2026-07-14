@@ -29,7 +29,7 @@ import {
     type MouseEvent as ReactMouseEvent,
 } from 'react';
 import { useModal } from '../lib/state/ModalContext';
-import { FLAT_LOGOS, pickRandomLogo } from '../lib/logos/priceosLogos';
+import { ABOUT_LOGOS, pickRandomAbout } from '../lib/logos/priceosLogos';
 import { allProjects } from '../lib/project/registry';
 import { TOTAL_COUNT, MAX_PRICE_SCORE } from '../lib/achievements/catalog';
 import { DISCORD_URL } from '../lib/config/discord';
@@ -100,7 +100,7 @@ export default function AboutPdModal() {
     const { openModal, close } = useModal();
     const isOpen = openModal?.name === 'aboutPd';
 
-    const [logo, setLogo] = useState<string>(FLAT_LOGOS[0]);
+    const [logo, setLogo] = useState<string>(ABOUT_LOGOS[0]);
 
     const preRef = useRef<HTMLPreElement>(null);
     const wrapRef = useRef<HTMLDivElement>(null);
@@ -110,7 +110,7 @@ export default function AboutPdModal() {
     const prevIsOpen = useRef(false);
     if (isOpen && !prevIsOpen.current) {
         prevIsOpen.current = true;
-        setLogo(pickRandomLogo());
+        setLogo(pickRandomAbout());
     } else if (!isOpen && prevIsOpen.current) {
         prevIsOpen.current = false;
     }
