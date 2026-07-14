@@ -1449,6 +1449,18 @@ export default function CartographyModal() {
                                 aria-label="Search territories"
                             />
                         )}
+                        {searchOpen && (
+                            <span
+                                className="carto-search-close"
+                                role="button"
+                                tabIndex={0}
+                                title="Close search"
+                                onClick={() => { setSearchOpen(false); setQuery(''); }}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSearchOpen(false); setQuery(''); } }}
+                            >
+                                {'×︎'}
+                            </span>
+                        )}
                         {searchOpen && hits.length > 0 && (
                             <div className="carto-search-hits">
                                 {hits.map((hit) => (

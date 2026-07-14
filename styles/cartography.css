@@ -127,8 +127,10 @@
 
 .carto-search {
     position: absolute;
-    top: calc(14px + env(safe-area-inset-top));
-    right: 64px;
+    /* Below the close × (top-right), not overlapping the title row — expands
+       leftward from the right edge when open (Brendon, 2026-07-14). */
+    top: calc(56px + env(safe-area-inset-top));
+    right: 18px;
     z-index: 21;
     display: flex;
     align-items: center;
@@ -158,6 +160,23 @@
     outline: none;
 }
 .carto-search-input::placeholder { color: #B9C2CF; }
+/* Small close × beside the field — clears + collapses the search. */
+.carto-search-close {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+    color: #E9EDF4;
+    background: rgba(7, 9, 13, 0.82);
+    border: 1px solid #E9EDF4;
+    border-radius: 999px;
+    width: 26px;
+    height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+}
 .carto-search-hits {
     position: absolute;
     top: calc(100% + 6px);

@@ -37,7 +37,7 @@ export default function HomeTitleCartography() {
             longFired.current = true;
             timerRef.current = null;
             open('cartography');
-        }, 460);
+        }, 920);   // deliberate longer hold for Cartography — 2× the standard 460ms name-hold (Brendon, 2026-07-14)
     };
     const onPointerMove = (e: React.PointerEvent) => {
         if (timerRef.current == null || !startPt.current) return;
