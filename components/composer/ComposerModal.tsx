@@ -1016,6 +1016,7 @@ export default function ComposerModal() {
                         <span className="cmp-topbar-right">
                             {view === 'builder' && (
                                 <button className="cmp-nav-btn" onClick={() => setView('programs')}>
+                                    <span className="btn-icon-play">▶&#xFE0E;</span>
                                     PROGRAMS{programs.length > 0 ? ` · ${programs.length}` : ''}
                                 </button>
                             )}

@@ -462,7 +462,7 @@ export default function LaneRunner() {
                     </div>
                 ))}
             </div>
-            <div className="lr-hint">{'tap a lane · oil slides you · everything else ends you'}</div>
+            <div className="lr-hint">{'tap a lane · oil slides you'}<br />{'everything else ends you'}</div>
         </div>
     );
 }

@@ -1195,7 +1195,7 @@ body.ascii-id-mode .id-row-sprite     { display: none !important; }
 .lr-car { position: absolute; left: 50%; top: 50%; width: 21px; height: 37px; transform: translate(-50%, -50%); display: block; }
 .lr-hazard { opacity: 0.85; }
 .lr-crashed { animation: fmPulse 0.45s ease-in-out 4; }
-.lr-hint { font-size: 10px; opacity: 0.4; white-space: normal; overflow-wrap: break-word; max-width: 100%; text-align: center; line-height: 1.5; }
+.lr-hint { font-size: 12px; font-weight: bold; white-space: normal; overflow-wrap: break-word; max-width: 100%; text-align: center; line-height: 1.6; }
 /* Oil slide — a quick cartoon fishtail on the remounted hero slot. */
 .lr-hero-slot { position: absolute; inset: 0; animation: lr-fishtail 0.35s ease-out; }
 @keyframes lr-fishtail {
