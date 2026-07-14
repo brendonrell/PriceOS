@@ -22,7 +22,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useToast } from '../../lib/state/ToastContext';
 import { useAuth } from '../../lib/state/AuthContext';
-import { SHEETS, type SheetId, type SheetMeta } from '../../lib/stickers/catalog';
+import { SHEETS, fanFor, type SheetId, type SheetMeta } from '../../lib/stickers/catalog';
 import { getOwnedIds, ownsSheet } from '../../lib/stickers/owned';
 import { StickerArt } from './StickerArt';
 import { DURATION_CHOICES, DEFAULT_DURATION_SEC } from '../../lib/market/chain';
@@ -230,8 +230,18 @@ export default function StickerMarket() {
                             onClick={() => setOpenSheet(s.id)}
                             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpenSheet(s.id); } }}
                         >
-                            <div className="cart-item-thumb skm-thumb" aria-hidden="true">
-                                <StickerArt sticker={s.cover} size={30} />
+                            <div className="skm-cover-fan" aria-hidden="true">
+                                <span className="ss-fan">
+                                    {fanFor(s).map((st, i) => (
+                                        <span
+                                            key={st.id}
+                                            className="ss-fan-item"
+                                            style={{ transform: `rotate(${[-9, 0, 9][i] ?? 0}deg)` }}
+                                        >
+                                            <StickerArt sticker={st} size={32} />
+                                        </span>
+                                    ))}
+                                </span>
                             </div>
                             <div className="cart-item-meta">
                                 <div className="cart-item-name">

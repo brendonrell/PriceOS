@@ -252,6 +252,20 @@ a.notif-item--link:hover { opacity: 0.85; }
    to fit instead of bleeding under the row text (cohesion pass, 2026-07-10). */
 .skm-thumb { display: flex; align-items: center; justify-content: center; width: 56px; flex: 0 0 56px; }
 .skm-thumb svg { max-width: 52px; max-height: 30px; height: auto; width: auto; }
+/* Marketplace row cover — the STORE's 3-sticker fan (ported 2026-07-14) so the
+   secondary wears the exact same banner as the store card. Fixed tile, fan
+   centered, kept FULLY VISIBLE (wide chips scale to fit, never the old crush). */
+.skm-cover-fan {
+    flex: 0 0 96px;
+    width: 96px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+.skm-cover-fan .ss-fan { gap: 2px; }
+.skm-cover-fan .ss-fan-item svg { max-width: 34px; max-height: 44px; width: auto; height: auto; }
 .skm-prices { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
 .skm-prices .skm-sub { font-size: 10px; opacity: 0.6; font-weight: bold; }
 .skm-back {

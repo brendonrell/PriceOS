@@ -253,6 +253,10 @@
     gap: 14px;
     padding: 16px 18px 8px;
     max-height: 56vh;
+    /* Flex child of the sheet column: without this the grid's auto min-height
+       equals its full content, defeating max-height so EVERY row showed. This
+       lets the cap bite and the grid scroll (matches .skm-wrap). */
+    min-height: 0;
     overflow-y: auto;
     scrollbar-width: none;
 }

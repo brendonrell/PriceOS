@@ -24,7 +24,7 @@ import { useModal } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useDragScroll, useDragScrollY } from '../lib/hooks/useDragScroll';
 import {
-    SHEETS as REAL_SHEETS, stickersForSheet, type SheetMeta, type SheetId, type Sticker,
+    SHEETS as REAL_SHEETS, stickersForSheet, fanFor, type SheetMeta, type SheetId, type Sticker,
 } from '../lib/stickers/catalog';
 import { StickerArt } from './stickers/StickerArt';
 import { BuySheetButton } from './stickers/BuySheetButton';
@@ -34,21 +34,6 @@ import { useOwnedStickerIds, ownsSheet } from '../lib/stickers/owned';
 import { buildStoreTicker, buildMarketTicker } from '../lib/stickers/ticker';
 
 const VS15 = '︎';
-
-/* A 3-sticker fan for a live sheet's card art — spaced across the range. */
-function fanFor(sheet: SheetMeta) {
-    const all = stickersForSheet(sheet.id);
-    /* Rarity preview reads better with a SHORT word (small chip) in the middle. */
-    if (sheet.id === 'rarity') {
-        const pick = ['rarity-common', 'rarity-rare', 'rarity-grail']
-            .map((id) => all.find((s) => s.id === id))
-            .filter((s): s is Sticker => Boolean(s));
-        if (pick.length === 3) return pick;
-    }
-    if (all.length <= 3) return all;
-    const mid = Math.floor(all.length / 2);
-    return [all[0]!, all[mid]!, all[all.length - 1]!];
-}
 
 export default function StickersModal() {
     const { openModal, close } = useModal();
@@ -430,7 +415,7 @@ export default function StickersModal() {
                                 aria-label={marketOn || albumOn ? 'Back to the Sticker Store' : 'Open the Sticker Marketplace'}
                                 onClick={() => {
                                     if (marketOn || albumOn) { setMarketOn(false); setAlbumOn(false); showToast('Stickers: STORE'); }
-                                    else { setAlbumOn(false); setMarketOn(true); showToast('Stickers: MARKET'); }
+                                    else { setAlbumOn(false); setMarketOn(true); showToast('Stickers: MARKETPLACE'); }
                                 }}
                             >
                                 <span className="ss-mktline-track" aria-hidden="true">
@@ -448,7 +433,7 @@ export default function StickersModal() {
                                 title={marketOn ? 'Back to the Sticker Store' : 'Open the Sticker Marketplace'}
                                 onClick={() => {
                                     if (marketOn) { setMarketOn(false); showToast('Stickers: STORE'); }
-                                    else { setAlbumOn(false); setMarketOn(true); showToast('Stickers: MARKET'); }
+                                    else { setAlbumOn(false); setMarketOn(true); showToast('Stickers: MARKETPLACE'); }
                                 }}
                             >
                                 {marketOn ? 'BACK TO STORE' : 'MARKETPLACE'}
@@ -458,7 +443,7 @@ export default function StickersModal() {
                                 className={`ss-mktline-cap${albumOn ? ' is-on' : ''}`}
                                 title={albumOn ? 'Sticker Market — secondary' : 'My Sticker Album — got / need'}
                                 onClick={() => {
-                                    if (albumOn) { setAlbumOn(false); setMarketOn(true); showToast('Stickers: MARKET'); }
+                                    if (albumOn) { setAlbumOn(false); setMarketOn(true); showToast('Stickers: MARKETPLACE'); }
                                     else { setMarketOn(false); setAlbumOn(true); showToast('Stickers: ALBUM'); }
                                 }}
                             >

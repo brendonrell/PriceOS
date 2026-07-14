@@ -411,6 +411,22 @@ export function stickersForSheet(id: SheetId): Sticker[] {
     return STICKERS.filter((s) => s.sheet === id);
 }
 
+/* A 3-sticker fan for a sheet's card art — spaced across its range. Shared by
+   the STORE card and the MARKETPLACE row so both wear the exact same banner. */
+export function fanFor(sheet: SheetMeta): Sticker[] {
+    const all = stickersForSheet(sheet.id);
+    /* Rarity preview reads better with a SHORT word (small chip) in the middle. */
+    if (sheet.id === 'rarity') {
+        const pick = ['rarity-common', 'rarity-rare', 'rarity-grail']
+            .map((id) => all.find((s) => s.id === id))
+            .filter((s): s is Sticker => Boolean(s));
+        if (pick.length === 3) return pick;
+    }
+    if (all.length <= 3) return all;
+    const mid = Math.floor(all.length / 2);
+    return [all[0]!, all[mid]!, all[all.length - 1]!];
+}
+
 /* ── Ownership (simulated seed) ──────────────────────────────────────────── */
 /* Zeroed out — no profile is seeded; everyone (Brendon included) starts with no
    stickers and builds their set by buying. (Brendon 2026-06-22.) */
