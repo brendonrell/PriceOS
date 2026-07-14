@@ -198,7 +198,8 @@
    to the right edge while filter pills stay left-aligned. */
 .portfolio-hide-icon {
     margin-left: auto;
-    font-size: 18px;
+    /* 2 sizes up from 18px (Brendon, 2026-07-14). */
+    font-size: 22px;
     opacity: 0.5;
     cursor: pointer;
     line-height: 1;

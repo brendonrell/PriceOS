@@ -666,7 +666,9 @@ export function MyPdSection({ onTripleTap }: Props) {
                         active={notifs.spell_pricelens}
                         onClick={() => toggleWithToast('spell_pricelens', 'Price Lens')}
                         icon={'◎\uFE0E'}
-                        iconStyle={{ fontSize: '13px', lineHeight: '1', margin: '0 1px' }}
+                        /* ◎ is the bullseye (U+25CE) — already the correct mark; 13→15px
+                           so the center dot reads as a bullseye at row size (2026-07-14). */
+                        iconStyle={{ fontSize: '15px', lineHeight: '1', margin: '0 1px' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
                     />
                     <SettingsToggle
