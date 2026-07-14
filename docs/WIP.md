@@ -8,6 +8,27 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ✅ **SPOT-EDIT BATCH (2026-07-14, Opus) — all on dev, auto-deployed, tree
+   clean.** Seen pings fade (½-opacity) instead of strike (strike now = done
+   to-dos ONLY); gas modal "THE PULSE"→"GAS PULSE" + landscape scales whole
+   panel to fit above the fold (no reflow, portrait untouched) + portrait
+   text pinned so a landscape trip stops inflating it; Composer launcher pill
+   less transparent + Programs button wears the Composer-pill look; Friend
+   Inspector title glyph −1px; MY PD Price Lens bullseye ◎ 13→15px (glyph was
+   ALREADY correct — U+25CE, verified code+dev), Sticker/Auto-Scroll glyph
+   nudges (mobile), artist-list inactive star 0.6→0.72 / note 0.28→0.5;
+   Portfolio hide icon 18→22px; **Followers tab folds in projects that follow
+   you** (held) beneath people + count; **Artists A–Z 'Collected' filter pill**
+   (✶ = artists you hold ≥1 piece by, mapped via registry).
+   **DATA (live prod write to `follows`):** 10 AI artists now follow @brendon
+   (sanctuary·fathom·veil·umbra·lowgravity·deepend·dyelot·countyline·meridian·
+   liquidmetal).
+   **Raised, NOT committed (ideas only — no go-ahead):** Portfolio wow-pass =
+   wire real floor/last/avg/ATH values (today ONLY mint-mode is real; Shadow +
+   Stickers tabs are empty stubs) then hide the empty stubs; Incognito Proxy is
+   a UI shell (toggle/pill/tooltip, zero behavior) — real = medium build
+   (thread a "viewed address ≠ connected address" through every wallet read).
+
 -10. ✅ **SHARING · STUDIO · DIGEST ROUND (2026-07-13 evening, Fable; Brendon's
    4-item batch, pushes pre-approved in chat "when you have something ready
    push"). Three pushes on dev, all auto-deployed:**
