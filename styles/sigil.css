@@ -36,6 +36,39 @@
 .pl-logo-card.pl-logo-sigil {
     position: relative;
 }
+
+/* A forged Sigil worn AS a logo — the blank bubble with the mark on top, the
+   mark riding the bubble's cutout ink (contrast) so it reads BOLD against the
+   bubble instead of floating uncoloured on the page (Brendon 2026-07-14). */
+.sigil-bubble {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+.sigil-bubble .sigil-on-bubble {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Sit in the bubble body, clear of the tail at the bottom. */
+    padding-bottom: 12%;
+    font-weight: 700;
+    line-height: 1;
+    pointer-events: none;
+}
+/* Carousel Sigil tiles: match the other bubbles' scale; size the mark to sit
+   inside the bubble body. */
+.pl-logo-sigil .sigil-bubble { transform: translateY(-1px) scale(0.905); }
+.pl-logo-sigil .sigil-on-bubble { font-size: 12px; letter-spacing: 0; }
+
+/* corner-logo Sigil — the owner flies their forged mark AS the bubble logo
+   (28px tall like the corner logo it replaces). */
+.sigil-corner-bubble { width: auto; height: 28px; }
+.sigil-corner-bubble .sigil-on-bubble { font-size: 10px; padding-bottom: 10%; }
 .pl-logo-forge {
     border: 1px dashed currentColor;
     border-radius: 10px;

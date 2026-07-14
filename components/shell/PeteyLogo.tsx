@@ -39,7 +39,7 @@ import {
     getActiveProfileLogoOwner,
     subscribeActiveProfileLogo,
 } from '@/lib/profile/profileLogoActive';
-import SigilArt from '../SigilArt';
+import SigilBubble from '../SigilBubble';
 import {
     getSentimentState,
     subscribeSentiment,
@@ -158,12 +158,15 @@ export function PeteyLogo() {
                 aria-label="Price Discussion — toggle home menu"
                 title="Price Discussion — Click to Rotate"
             >
-                {overrideSigil?.owner && (
-                    <SigilArt
+                {overrideSigil?.owner && overrideSigil.sticker && (
+                    <SigilBubble
                         address={overrideSigil.owner}
-                        hex={overrideSigil.sticker?.color}
-                        className="sigil-corner"
-                        title="The owner's Sigil"
+                        color={overrideSigil.sticker.color!}
+                        cutout={overrideSigil.sticker.cutout!}
+                        rotated={!!overrideSigil.sticker.rotated}
+                        holo={!!overrideSigil.sticker.holo}
+                        className="sigil-corner-bubble"
+                        fill
                     />
                 )}
                 <svg

@@ -57,7 +57,9 @@ import { useProfileLogo } from '../../lib/hooks/useProfileLogo';
 import { factionForLogo } from '../../lib/factions/factions';
 import { PROFILE_SIGIL_RING } from '../../lib/profile/profileLogos';
 import { useSigilForged } from '../../lib/sigil/useSigilForged';
+import { SIGIL_BONE } from '../../lib/sigil/sigil';
 import SigilArt from '../SigilArt';
+import SigilBubble from '../SigilBubble';
 import { useProfileSpriteHex } from '../../lib/hooks/useProfileSpriteHex';
 import { setActiveProfileLogo } from '../../lib/profile/profileLogoActive';
 import GhostRows from './GhostRows';
@@ -937,7 +939,12 @@ function ProfilePageBodyInner({
                                                 }
                                             }}
                                         >
-                                            <SigilArt address={user.address} hex={logo.color} fill />
+                                            <SigilBubble
+                                                address={user.address}
+                                                color={logo.color ?? SIGIL_BONE}
+                                                cutout={logo.cutout ?? '#1A1A1A'}
+                                                fill
+                                            />
                                         </div>
                                     ))}
                                     {/* THE FORGE — the carousel's last stop, always. */}
@@ -956,7 +963,6 @@ function ProfilePageBodyInner({
                                         }}
                                     >
                                         <SigilArt address={user.address} fill />
-                                        <span className="pl-forge-label">{sigilForged ? 'SIGIL' : 'FORGE'}</span>
                                     </div>
                                 </div>
                             </div>
