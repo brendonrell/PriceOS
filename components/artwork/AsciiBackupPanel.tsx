@@ -272,7 +272,7 @@ export default function AsciiBackupPanel({ slug, id }: { slug: string; id: numbe
                     disabled={!!bulk}
                     onClick={() => void runBulk('collection')}
                 >
-                    {bulk?.kind === 'collection' ? `${bulk.done}/${bulk.total}` : 'COPY MY FULL PD COLLECTED ASCII BACKUP JSON'}
+                    {bulk?.kind === 'collection' ? `${bulk.done}/${bulk.total}` : <>{'⧉︎'} MY FULL PD COLLECTED ASCII BACKUP JSON</>}
                 </button>
                 {/* ASCII Art Mode — the SITEWIDE toggle, now LAST after the backup
                     buttons (Brendon, 2026-07-11): every artwork surface renders its

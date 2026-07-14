@@ -81,8 +81,16 @@ export default function GasTrackerModal() {
     useEffect(() => {
         if (!isOpen) { setPulse([]); lastStamp.current = 0; return; }
         if (!data || data.fetchedAt === lastStamp.current) return;
+        const firstLoad = lastStamp.current === 0;
         lastStamp.current = data.fetchedAt;
-        setPulse((p) => [...p.slice(-23), data.baseFeeGwei]);
+        setPulse((p) =>
+            /* First read of a fresh open: seed with the recent on-chain base-fee
+               history (same fetch, no extra cost) so the pulse is populated the
+               instant the modal opens. Every later poll appends one live beat. */
+            firstLoad && data.baseFeeSeriesGwei?.length
+                ? data.baseFeeSeriesGwei.slice(-24)
+                : [...p.slice(-23), data.baseFeeGwei]
+        );
     }, [isOpen, data]);
     const pulseMax = Math.max(0.0001, ...pulse);
     const pulseMin = Math.min(...(pulse.length ? pulse : [0]));

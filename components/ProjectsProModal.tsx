@@ -30,9 +30,12 @@ export default function ProjectsProModal() {
     // Reset to compact on every open (matches the Friend Inspector).
     useEffect(() => {
         if (!isOpen) { setFull(false); return; }
+        /* Lock the page only in PLUS (full) mode; compact floats and lets the
+           page scroll behind it (Brendon, 2026-07-14). */
+        if (!full) return;
         lockBodyScroll();
         return () => unlockBodyScroll();
-    }, [isOpen]);
+    }, [isOpen, full]);
 
     // Esc: step out of PLUS first, then close.
     useEffect(() => {
@@ -75,7 +78,10 @@ export default function ProjectsProModal() {
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(p.slug); } }}
                     >
                         {face && <SpriteFace className="collected-sprite" face={face} />}
-                        <span className="projects-pro-name">{p.displayName}</span>
+                        <span className="projects-pro-name">
+                            <span className="ppn-head">{p.displayName.slice(0, -6)}</span>
+                            <span className="ppn-tail">{p.displayName.slice(-6)}</span>
+                        </span>
                         <span className="projects-pro-leader" />
                         <span className="projects-pro-artist">@{p.artistHandle}</span>
                     </div>

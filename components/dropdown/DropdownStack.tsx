@@ -42,11 +42,21 @@ export function DropdownStack() {
         <div className="dropdown-stack">
             <UserDropdown />
             {showAccordions && (
-                <>
-                    <PingsBox />
-                    <TodosBox />
-                    {onStudio ? <StudioProjectsBox /> : <NotesBox />}
-                </>
+                onStudio ? (
+                    /* PD Studio — two accordions only: Projects on top, then
+                       Project Pings below (renamed Pings, filtered to the artist's
+                       released-project pings). No To-Dos / Notes (Brendon, 2026-07-14). */
+                    <>
+                        <StudioProjectsBox />
+                        <PingsBox projectPings />
+                    </>
+                ) : (
+                    <>
+                        <PingsBox />
+                        <TodosBox />
+                        <NotesBox />
+                    </>
+                )
             )}
         </div>
     );

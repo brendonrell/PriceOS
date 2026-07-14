@@ -58,6 +58,9 @@ export interface GasResponse {
     ethUsd: number;
     blockNumber: number;
     fetchedAt: number;
+    /** Recent base-fee series (gwei) from the SAME eth_feeHistory call — lets
+        the modal's pulse render populated instantly, at no extra API cost. */
+    baseFeeSeriesGwei: number[];
 }
 
 function alchemyUrl(): string {
@@ -186,6 +189,7 @@ export async function GET(_req: NextRequest): Promise<NextResponse> {
             rapidGwei: baseFeeGwei + rapidPriority,
             ethUsd,
             blockNumber,
+            baseFeeSeriesGwei: baseFees.map(hexWeiToGwei),
             fetchedAt: Date.now(),
         };
 

@@ -32,7 +32,7 @@ export default function RarityReceiptButton({ slug, id }: { slug: string; id: nu
             aria-busy={busy}
         >
             <span className="rrb-glyph">❖</span>
-            {busy ? 'BUILDING RECEIPT…' : 'RARITY RECEIPT'}
+            <span className="rrb-label">{busy ? 'BUILDING RECEIPT…' : 'RARITY RECEIPT'}</span>
         </button>
     );
 }

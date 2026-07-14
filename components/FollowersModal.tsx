@@ -218,12 +218,13 @@ export default function FollowersModal() {
         return () => { alive = false; };
     }, [isOpen, myHandle]);
 
-    /* Freeze the page underneath while open (matches the Sticker Manager). */
+    /* Freeze the page underneath ONLY in PLUS (full) mode. Compact is a small
+       floating panel — the page stays scrollable behind it (Brendon, 2026-07-14). */
     useEffect(() => {
-        if (!isOpen) return;
+        if (!isOpen || !full) return;
         lockBodyScroll();
         return () => unlockBodyScroll();
-    }, [isOpen]);
+    }, [isOpen, full]);
 
     /* PLUS mode lets the Digital Familiar walk IN FRONT of the panel and
        talk (Brendon, 2026-07-06) — the body flag lifts the familiar layer

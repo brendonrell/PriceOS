@@ -543,6 +543,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                     {/* + More sub-nav trait pills — same surface as the
                         profile's + More. Groups the panel's sections. */}
                     {onAlbumsTab && (
+                        <>
                         <TraitsUI
                             visible
                             hideSortBar
@@ -571,32 +572,35 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                                     >
                                         {'⌕︎'}
                                     </span>
-                                    {searchOpen && (
-                                        <span className="attr-pill-search-row">
-                                            <input
-                                                type="text"
-                                                className="search-input"
-                                                placeholder={moreL1 === 'offers' ? 'Search offers' : 'Search attributes'}
-                                                value={searchQuery}
-                                                onChange={(e) => setSearchQuery(e.target.value)}
-                                                spellCheck={false}
-                                                autoCapitalize="none"
-                                                autoCorrect="off"
-                                                aria-label="Search"
-                                                autoFocus
-                                            />
-                                            {searchQuery && (
-                                                <span className="search-clear" role="button" tabIndex={0} title="Clear"
-                                                    onClick={() => setSearchQuery('')}
-                                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSearchQuery(''); } }}>
-                                                    {'×︎'}
-                                                </span>
-                                            )}
-                                        </span>
-                                    )}
                                 </span>
                             ) : undefined}
                         />
+                        {searchableTab && (
+                            /* Search opens in the STANDARD full-width row below the
+                               pills (same .search-row slot every other page uses),
+                               not crammed inline beside the ⌕ (Brendon, 2026-07-14). */
+                            <div className={`search-row${searchOpen ? ' open' : ''}`}>
+                                <input
+                                    type="text"
+                                    className="search-input"
+                                    placeholder={moreL1 === 'offers' ? 'Search offers' : 'Search attributes'}
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    spellCheck={false}
+                                    autoCapitalize="none"
+                                    autoCorrect="off"
+                                    aria-label="Search"
+                                />
+                                {searchQuery && (
+                                    <span className="search-clear" role="button" tabIndex={0} title="Clear"
+                                        onClick={() => setSearchQuery('')}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSearchQuery(''); } }}>
+                                        {'×︎'}
+                                    </span>
+                                )}
+                            </div>
+                        )}
+                        </>
                     )}
             </Hero>
 

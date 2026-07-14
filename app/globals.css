@@ -2220,7 +2220,11 @@ body.theme-bright .news-pill-name {
     transition: background 0.15s;
 }
 .projects-pro-row:hover { background: rgba(127, 127, 127, 0.14); }
-.projects-pro-name { font-weight: bold; white-space: nowrap; }
+.projects-pro-name { font-weight: bold; display: flex; min-width: 0; flex: 0 1 auto; overflow: hidden; }
+/* When a name is too long for its row, truncate the MIDDLE — the head
+   ellipsises while the tail (last few chars) stays pinned (Brendon, 2026-07-14). */
+.projects-pro-name .ppn-head { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.projects-pro-name .ppn-tail { white-space: nowrap; flex: 0 0 auto; }
 .projects-pro-leader { flex: 1 1 auto; border-bottom: 2px dotted currentColor; opacity: 0.22; margin: 0 8px; }
 .projects-pro-artist { flex: 0 0 auto; font-size: 12px; opacity: 0.7; white-space: nowrap; }
 .followers-pop .fm-tabs,
@@ -7826,29 +7830,53 @@ a.f-highlight { color: inherit; }
 
 /* Rarity Receipt — the shareable-card trigger at the head of the character
    sheet. Quiet mono button; pulses while the PNG builds (always feel moving). */
+/* RARITY RECEIPT — a printed ticket-stub, not a plain pill: solid colorway
+   frame with an inner dashed perforation (the 'receipt' tell), full-strength
+   tokens, and a lift on press-in. Inverts on hover like every PD chrome pill
+   (Brendon, 2026-07-14). */
 .rarity-receipt-btn {
-    display: inline-flex;
+    position: relative;
+    display: flex;
     align-items: center;
     justify-content: center;
     white-space: nowrap;
-    gap: 8px;
-    margin: 14px 0 0 0;
-    padding: 9px 30px;
-    border: 1px solid var(--text-color);
-    border-radius: 5px;
-    background: transparent;
+    gap: 10px;
+    width: 100%;
+    max-width: 300px;
+    margin: 18px auto 4px auto;
+    padding: 15px 24px;
+    border: 1.5px solid var(--text-color);
+    border-radius: 6px;
+    background: var(--bg-color);
     color: var(--text-color);
     font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: bold;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
     cursor: pointer;
-    transition: background 0.2s, color 0.2s, opacity 0.2s;
+    transition: background 0.2s, color 0.2s, transform 0.12s, box-shadow 0.2s;
 }
-.rarity-receipt-btn:hover { background: var(--text-color); color: var(--bg-color); }
+/* inner dashed perforation frame — currentColor so it inverts with the button */
+.rarity-receipt-btn::before {
+    content: '';
+    position: absolute;
+    inset: 5px;
+    border: 1px dashed currentColor;
+    border-radius: 3px;
+    pointer-events: none;
+}
+.rarity-receipt-btn .rrb-glyph,
+.rarity-receipt-btn .rrb-label { position: relative; z-index: 1; }
+.rarity-receipt-btn:hover {
+    background: var(--text-color);
+    color: var(--bg-color);
+    transform: translateY(-1px);
+    box-shadow: 0 5px 16px rgba(0, 0, 0, 0.22);
+}
+.rarity-receipt-btn:active { transform: translateY(0); box-shadow: none; }
 .rarity-receipt-btn:disabled { cursor: default; }
 .rarity-receipt-btn[aria-busy='true'] { animation: rrb-pulse 1s ease-in-out infinite; }
-.rrb-glyph { font-size: 13px; }
+.rrb-glyph { font-size: 15px; }
 @keyframes rrb-pulse { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
 
 /* Genome placeholder (legacy static card — retained for reference) */
@@ -9007,7 +9035,6 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
 .gas-tracker-ethusd {
     font-family: 'Courier New', Courier, monospace;
     letter-spacing: normal;
-    opacity: 0.7;
     font-size: 0.85em;
 }
 .gas-tracker-cards {
@@ -9045,23 +9072,20 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
 }
 .gas-tracker-card-gwei-unit {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 10px;
-    opacity: 0.55;
+    font-size: 12px;
     letter-spacing: 0.5px;
     text-transform: uppercase;
 }
 .gas-tracker-card-usd {
     font-family: 'Courier New', Courier, monospace;
     font-size: 13px;
-    opacity: 0.75;
     margin-top: 4px;
     color: var(--text-color);
 }
 .gas-tracker-footer {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 11px;
+    font-size: 12px;
     text-align: center;
-    opacity: 0.6;
     letter-spacing: 0.5px;
     padding: 0 20px;
 }
@@ -9069,8 +9093,8 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
     .gas-tracker-cards { padding: 0 14px; gap: 6px; }
     .gas-tracker-card { padding: 10px 4px 8px 4px; }
     .gas-tracker-card-gwei { font-size: 18px; }
-    .gas-tracker-card-usd { font-size: 11px; }
-    .gas-tracker-card-label { font-size: 9px; letter-spacing: 1px; }
+    .gas-tracker-card-usd { font-size: 12px; }
+    .gas-tracker-card-label { font-size: 10px; letter-spacing: 1px; }
 }
 
 /* ============================================================
@@ -11680,6 +11704,10 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     position: relative;
     display: flex;
     align-items: flex-end;
+    /* Fill the modal width even with only a couple of bars — the parent is a
+       centered flex column, so without this the box shrinks to the bars and the
+       absolutely-positioned label wraps into a broken pile (Brendon, 2026-07-14). */
+    align-self: stretch;
     gap: 3px;
     height: 44px;
     margin: 2px 20px 24px;

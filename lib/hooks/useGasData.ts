@@ -32,6 +32,7 @@ export interface GasData {
     ethUsd: number;
     blockNumber: number;
     fetchedAt: number;
+    baseFeeSeriesGwei: number[];
 }
 
 interface UseGasDataReturn {

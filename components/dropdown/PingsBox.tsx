@@ -26,6 +26,7 @@ import { useTapeFeed } from '../../lib/feed/useTapeFeed';
 import type { TapeFeedItem } from '../../lib/data/tapeEvents';
 import { subscribeTapeRail } from '../../lib/engines/tapeEngine';
 import { useSpiteMatcher } from '../../lib/pins/spiteStore';
+import { allProjects } from '../../lib/project/registry';
 
 function RailItem({ item }: { item: TapeFeedItem }) {
     const isSpited = useSpiteMatcher();
@@ -71,10 +72,10 @@ function RailItem({ item }: { item: TapeFeedItem }) {
     );
 }
 
-export function PingsBox() {
+export function PingsBox({ projectPings = false }: { projectPings?: boolean } = {}) {
     const { notifs, setAccordion } = usePdNotifs();
     const { state: pingsState, markSeen, refresh } = usePings();
-    const { siweAddress } = useAuth();
+    const { siweAddress, handle } = useAuth();
     const { showToast } = useToast();
     const isSpited = useSpiteMatcher();
     const railRef = useRef<HTMLDivElement>(null);
@@ -192,18 +193,28 @@ export function PingsBox() {
     // through). Within each block: attention tier (HIGH → LOW), recency
     // preserved inside a tier (the API hands items newest-first; sort is
     // stable).
+    /* Studio "Project Pings" — restrict to pings about the artist's OWN
+       released (live in the registry) projects (Brendon, 2026-07-14). */
+    const releasedSlugs = useMemo(
+        () => (projectPings && handle
+            ? new Set(allProjects().filter((p) => p.artistHandle === handle).map((p) => p.slug))
+            : null),
+        [projectPings, handle]
+    );
+
     const rendered = useMemo(
         () =>
             pingsState.items
                 .filter((p) => passesCategoryPrefs(p, notifs.pings))
                 .filter((p) => !moneyOnly || isFinancial(p.kind))
+                .filter((p) => !releasedSlugs || (p.project_id != null && releasedSlugs.has(p.project_id)))
                 .map((p) => ({ ...renderPing(p), href: pingHref(p), src: p }))
                 .sort(
                     (a, b) =>
                         (a.read ? 1 : 0) - (b.read ? 1 : 0) ||
                         PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority]
                 ),
-        [pingsState.items, notifs.pings, moneyOnly]
+        [pingsState.items, notifs.pings, moneyOnly, releasedSlugs]
     );
     const unreadShown = rendered.filter((r) => !r.read).length;
 
@@ -288,7 +299,7 @@ export function PingsBox() {
             header={
                 <div className="pings-header-row">
                     <span className="pings-label">
-                        PINGS
+                        {projectPings ? 'PROJECT PINGS' : 'PINGS'}
                         {/* Honest count: UNREAD only. Zero unread = no number —
                             never the old perpetual "(100)" window size. */}
                         {unreadShown > 0 && <span className="notif-count">({unreadShown})</span>}
