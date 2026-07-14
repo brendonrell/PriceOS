@@ -51,6 +51,33 @@
    Search now opens it (FNV-1a hashes beside the porsche word).
    ⑪ **Two rough docs sections** — What's Public / What's Private, wired into the
    docs nav.
+   **Night batch (Opus) — dev `d4641be` (tip):**
+   ⑫ **Sticker Marketplace** rows now wear the STORE's 3-sticker fan banner
+   (shared `fanFor` moved to the catalog) · toast MARKET→MARKETPLACE · stacked
+   store capped ~6 rows then scrolls (grid lacked `min-height:0`, so flex
+   auto-min defeated its `max-height` — every row showed).
+   ⑬ **Achievements +more** counts to the full **1,000** (mystery incl.), matching
+   the PriceSprite modal (was 848, visible-only → `VISIBLE_COUNT`→`TOTAL_COUNT`).
+   ⑭ **Vault:** sealed card ~2× taller (breathes); the ‰ now renders as the REAL
+   logo SVG (`PerMilleMark`, same as the My PD toggle), never a font glyph.
+   ⑮ **Sigil worn AS the bubble logo** — the forged mark sits where the ‰ goes on
+   the blank faction bubble, in the CUTOUT ink so it's bold/legible, NOT a bare
+   mark; carousel ring + corner-logo override both use new `SigilBubble`. Dropped
+   the FORGE word from the forge tile.
+   ⑯ **Profile share pill:** full ↗ SHARE when it stands alone, glyph-only ↗ ONLY
+   when the Takeover pill is present; ↗ glyph +2 sizes (10→14px).
+   ⑰ **Dispatch ×** recentred to top-middle (was top-right).
+   ⑱ **liminal-ai** profile colour → lime `#A3E635` (a DB value in
+   `users.profile_hex`, NOT code — profile colour is the user row, not projects).
+   ⑲ **Cartography:** search moved below the top-right × (was covering the title)
+   + a small close × beside the field; long-press-to-open 460→920ms.
+   ⑳ **"The" dropped from Cartography & Composer** everywhere shown — app UI +
+   public docs (URL slugs `/docs/app/the-*` + grammatical lowercase 'the' left
+   intact); Cartography title 15→19px.
+   **⚠ PENDING (Brendon's call):** he expected the Cartography long-press near
+   3s; it was only 0.46s, now doubled to 0.92s — I offered the full 3s and am
+   awaiting his word. Also still open (pre-existing): apply ↗ to the artwork +
+   project share buttons too.
    **STILL QUEUED → ClickUp (02 · PriceOS UI, Backlog):** Completionism Zoom —
    3-depth completion (slider=depth, tap=cell) `86baxgv9y` · **Albums → public**
    `86baxgvhk` — a REAL build, NOT a gate flip: albums are stored per-viewer in
