@@ -95,8 +95,10 @@
 
 /* The standard modal × on the paper — fixed so it survives the scroll;
    closes the mode back to wherever the reader came from (DispatchClose).
-   Centered at the top, not the right corner (Brendon, 2026-07-14). */
-.dp-close {
+   Centered at the top, not the right corner (Brendon, 2026-07-14). Needs BOTH
+   classes to out-rank the base .close-hint's right:30px (a later same-specificity
+   rule was pinning it right → the × stretched off-centre). */
+.close-hint.dp-close {
     position: fixed;
     right: auto;
     left: 50%;
