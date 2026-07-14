@@ -225,9 +225,14 @@ function Blocker({ score }: { score: number }) {
 interface RowState {
     cells: Cell[];
     key: number;
+    /** The score AT SPAWN — freezes each obstacle's look so a hazard already on
+        screen never morphs (pylon → barrier) when a depth threshold flips. New
+        rows spawned past the threshold get the new look; the ones mid-screen
+        finish leaving as what they were. */
+    spawnScore: number;
 }
 
-const emptyRow = (key: number): RowState => ({ cells: [0, 0, 0] as Cell[], key });
+const emptyRow = (key: number): RowState => ({ cells: [0, 0, 0] as Cell[], key, spawnScore: 0 });
 
 export default function LaneRunner() {
     const [lane, setLane] = useState(1);
@@ -307,7 +312,7 @@ export default function LaneRunner() {
                     const r = Math.random();
                     cells[l] = r < 0.4 ? OIL : r < 0.75 || score < 40 ? CONE : POTHOLE;
                 }
-                const next = [{ cells, key: keyRef.current++ }, ...prev.slice(0, ROWS - 1)];
+                const next = [{ cells, key: keyRef.current++, spawnScore: score }, ...prev.slice(0, ROWS - 1)];
                 const hit = next[ROWS - 1].cells[laneRef.current];
 
                 if (hit === CONE || hit === POTHOLE) {
@@ -433,7 +438,7 @@ export default function LaneRunner() {
                             return (
                                 <div className="lr-cell" key={l}>
                                     {cell === OIL && <OilSlick />}
-                                    {cell === CONE && <Blocker score={score} />}
+                                    {cell === CONE && <Blocker score={row.spawnScore} />}
                                     {cell === POTHOLE && <Pothole />}
                                     {isHero && (
                                         <span key={slid} className="lr-hero-slot">
