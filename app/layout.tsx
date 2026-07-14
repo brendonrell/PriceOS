@@ -363,7 +363,6 @@ const PREHYDRATION_SCRIPT = `
                 if (notifs2.degen)            classList.add('degen-mode');
                 if (notifs2.zerocontext)      classList.add('zero-context-mode');
                 if (notifs2.asciiId)          classList.add('ascii-id-mode');
-                if (notifs2.sigilHidden)      classList.add('sigil-hidden');
                 if (notifs2.echo)             classList.add('echo-mode');
             }
         }

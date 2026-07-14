@@ -340,6 +340,11 @@ export interface UserRow {
    *  never cleared — a tattoo. The mark itself is never stored: it's
    *  recomputed from the address (lib/sigil/sigil.ts). */
   sigil_forged_at: string | null;
+  /** THE SIGIL — hidden platform-wide when true (the Forge's show/hide toggle).
+   *  Suppresses the mark that trails the @name everywhere — the owner's own
+   *  connect pill AND every viewer's render of the owner's profile. Default
+   *  false (shown). Written via the /api/me guarded route. */
+  sigil_hidden: boolean;
   /** The user's chosen Discord profile accent colour, as an integer (0xRRGGBB).
    *  Null = none set. */
   discord_accent_color: number | null;
@@ -683,7 +688,7 @@ const timeoutFetch: typeof fetch = (input, init) => {
  *  Public profile reads select THIS instead of '*', otherwise Postgres refuses
  *  the whole query (anon has no table-level SELECT, only these columns). */
 export const PUBLIC_USER_COLUMNS =
-  'address, ens_name, handle, price_sprite, price_sprite_resolved, account_level, price_rank, price_score, price_streak, streak_best, profile_hex, profile_logo, profile_sprite_hex, sticker_state, signature_hex, showcase, showcase_style, discord_id, discord_username, discord_avatar, discord_accent_color, discord_in_server, sigil_forged_at, created_at';
+  'address, ens_name, handle, price_sprite, price_sprite_resolved, account_level, price_rank, price_score, price_streak, streak_best, profile_hex, profile_logo, profile_sprite_hex, sticker_state, signature_hex, showcase, showcase_style, discord_id, discord_username, discord_avatar, discord_accent_color, discord_in_server, sigil_forged_at, sigil_hidden, created_at';
 
 /** Browser-side client (anon key, RLS-bound) — exists for Supabase Realtime
  *  subscriptions from client components. Singleton so the whole app shares ONE

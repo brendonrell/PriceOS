@@ -188,7 +188,12 @@ export const PATCH = requireAuth(async (req, _ctx, address) => {
        accepts. Set-once by construction (the UPDATE below only fires while
        the column is still null); there is no unforge, ever — a tattoo. */
     const forgeSigil = (raw as Record<string, unknown>).forge_sigil === true;
-    if (!result.ok && !forgeSigil) return badRequest(result.reason);
+    /* Sigil visibility — the Forge's platform-wide show/hide. A plain boolean
+       scalar written directly here (not through the jsonb merge RPC), mirroring
+       the forge verb; unlike forging it flips both ways. */
+    const sigilHiddenRaw = (raw as Record<string, unknown>).sigil_hidden;
+    const hasSigilHidden = typeof sigilHiddenRaw === 'boolean';
+    if (!result.ok && !forgeSigil && !hasSigilHidden) return badRequest(result.reason);
 
     try {
         const supabase = getSupabaseService();
@@ -199,8 +204,21 @@ export const PATCH = requireAuth(async (req, _ctx, address) => {
                 .update({ sigil_forged_at: new Date().toISOString() } as never)
                 .eq('address', address)
                 .is('sigil_forged_at', null);
-            if (!result.ok) {
+            if (!result.ok && !hasSigilHidden) {
                 // Forge-only call: return the fresh row.
+                const { data } = await supabase.from('users').select('*').eq('address', address).maybeSingle();
+                if (!data) return notFound('No account row for this address');
+                return NextResponse.json(data as UserRow);
+            }
+        }
+
+        if (hasSigilHidden) {
+            await supabase
+                .from('users')
+                .update({ sigil_hidden: sigilHiddenRaw } as never)
+                .eq('address', address);
+            if (!result.ok) {
+                // Visibility-only call: return the fresh row.
                 const { data } = await supabase.from('users').select('*').eq('address', address).maybeSingle();
                 if (!data) return notFound('No account row for this address');
                 return NextResponse.json(data as UserRow);

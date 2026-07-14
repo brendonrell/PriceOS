@@ -36,13 +36,11 @@
 .btn-user .sigil-after-name {
     margin-left: 3px;
 }
-/* Sigil hidden — the Forge's show/hide toggle drops the mark that trails the
-   @name everywhere it appears (the pill + profile identity rows). The Forge
-   preview, the carousel Sigil ring, and a Sigil worn as a bubble-logo all use
-   other classes, so they stay visible. (Brendon, 2026-07-14) */
-body.sigil-hidden .sigil-after-name {
-    display: none;
-}
+/* The Forge's show/hide toggle is platform-wide: the mark that trails the
+   @name (.sigil-after-name — the pill + profile identity rows) is gated on the
+   owner's users.sigil_hidden at render time, so hiding removes it for every
+   viewer. The Forge preview, the carousel Sigil ring, and a Sigil worn as a
+   bubble-logo use other classes, so they always stay. (Brendon, 2026-07-14) */
 
 /* the corner-logo override (the owner flies their mark) */
 .sigil-corner {

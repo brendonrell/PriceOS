@@ -126,7 +126,7 @@ export function UserMenuButtons() {
         !!pathname && pathname.startsWith('/art/') && pathname.endsWith('/full');
     const showBackButton = notifs.backButton && !isFullscreenRoute;
     const { items, openPanel: openCartPanel } = useCart();
-    const { siweAddress, handle, priceRank, isAuthenticating, sigilForged } = useAuth();
+    const { siweAddress, handle, priceRank, isAuthenticating, sigilForged, sigilHidden } = useAuth();
     const { showToast } = useToast();
 
     /* ENS resolution — published on the walletBus by the deferred wallet
@@ -317,8 +317,9 @@ export function UserMenuButtons() {
                     flies; menu-open only, like the name itself. Neutral falls
                     back to currentColor (the pill's own ink), NOT the bone
                     default — the pill is an inverted/light surface, where
-                    bone-white washes out. */}
-                {menuOpen && isAuthed && sigilForged && siweAddress && (
+                    bone-white washes out. Hidden entirely when the owner has
+                    switched their Sigil off from the Forge (platform-wide). */}
+                {menuOpen && isAuthed && sigilForged && !sigilHidden && siweAddress && (
                     <SigilArt
                         address={siweAddress}
                         hex={ownFactionHex ?? 'currentColor'}

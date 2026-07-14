@@ -14,11 +14,10 @@
  * a dead wait).
  */
 
-import { useCallback, useState, type MouseEvent as ReactMouseEvent } from 'react';
+import { useCallback, useEffect, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useAuth } from '../lib/state/AuthContext';
 import { useToast } from '../lib/state/ToastContext';
-import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import { useFaction } from '../lib/factions/useFaction';
 import { useSigilForged, SIGIL_FORGED_EVENT } from '../lib/sigil/useSigilForged';
 import SigilArt from './SigilArt';
@@ -28,21 +27,40 @@ const VS15 = '︎';
 export default function SigilForgeModal() {
     const { openModal, close } = useModal();
     const isOpen = openModal?.name === 'sigilForge';
-    const { siweAddress } = useAuth();
+    const { siweAddress, sigilHidden } = useAuth();
     const { showToast } = useToast();
-    const { notifs, update } = usePdNotifs();
     const faction = useFaction();
     const forged = useSigilForged();
     const [striking, setStriking] = useState(false);
 
-    /* Show/hide the forged mark across PD (the pill + profile identity rows).
-       Negative flag: sigilHidden=true means hidden. Toast screams the new
-       state (house casing rule). */
-    const sigilHidden = notifs.sigilHidden;
-    const toggleSigilVisibility = () => {
-        const nextHidden = !sigilHidden;
-        update({ sigilHidden: nextHidden });
-        showToast('Sigil: ' + (nextHidden ? 'HIDDEN' : 'SHOWN'));
+    /* Show/hide the forged mark PLATFORM-WIDE (users.sigil_hidden). Hiding it
+       removes the mark for every viewer — the owner's own pill AND everyone
+       who visits their profile — not just the owner's view (Brendon,
+       2026-07-14). The optimistic overlay flips the button the instant it's
+       tapped; the account write + row refetch confirm, then the overlay clears
+       once the server truth catches up. */
+    const [pendingHidden, setPendingHidden] = useState<boolean | null>(null);
+    const hidden = pendingHidden ?? sigilHidden;
+    useEffect(() => {
+        if (pendingHidden !== null && pendingHidden === sigilHidden) setPendingHidden(null);
+    }, [sigilHidden, pendingHidden]);
+    const toggleSigilVisibility = async () => {
+        const next = !hidden;
+        setPendingHidden(next);
+        showToast('Sigil: ' + (next ? 'HIDDEN' : 'SHOWN'));
+        try {
+            const res = await fetch('/api/me', {
+                method: 'PATCH',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ sigil_hidden: next }),
+            });
+            if (!res.ok) throw new Error(String(res.status));
+            // Refetch the account row so the navbar pill reflects it live.
+            try { window.dispatchEvent(new Event('pd:sigil-visibility-changed')); } catch { /* refetch is a nicety */ }
+        } catch {
+            setPendingHidden(null); // revert to the server truth
+            showToast('Sigil: SAVE FAILED · try again');
+        }
     };
 
     const onBackdropClick = useCallback(
@@ -119,13 +137,13 @@ export default function SigilForgeModal() {
                                 </p>
                                 <button
                                     type="button"
-                                    className={`sf-toggle${sigilHidden ? '' : ' is-on'}`}
+                                    className={`sf-toggle${hidden ? '' : ' is-on'}`}
                                     role="switch"
-                                    aria-checked={!sigilHidden}
-                                    title={sigilHidden ? 'Show your Sigil across PD' : 'Hide your Sigil across PD'}
-                                    onClick={toggleSigilVisibility}
+                                    aria-checked={!hidden}
+                                    title={hidden ? 'Show your Sigil across PD' : 'Hide your Sigil across PD'}
+                                    onClick={() => void toggleSigilVisibility()}
                                 >
-                                    {sigilHidden ? 'HIDDEN ACROSS PD' : 'SHOWN ACROSS PD'}
+                                    {hidden ? 'HIDDEN ACROSS PD' : 'SHOWN ACROSS PD'}
                                 </button>
                             </>
                         ) : (

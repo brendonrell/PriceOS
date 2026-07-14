@@ -1017,8 +1017,10 @@ function ProfilePageBodyInner({
                                 </a>
                                 {/* THE SIGIL — the forged mark trails the name
                                     (sprite + rank lead it), faction ink when the
-                                    owner flies a flag. */}
-                                {user.sigil_forged_at && (
+                                    owner flies a flag. Suppressed when the owner
+                                    switched their Sigil off from the Forge — the
+                                    hide is platform-wide, so no viewer sees it. */}
+                                {user.sigil_forged_at && !user.sigil_hidden && (
                                     <SigilArt
                                         address={user.address}
                                         hex={factionForLogo(ownerLogo)?.hex}

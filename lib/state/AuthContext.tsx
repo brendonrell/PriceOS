@@ -100,6 +100,11 @@ interface AuthContextValue {
         (users.sigil_forged_at not null). Seeds useSigilForged; flips live
         via the pd:sigil-forged broadcast when the forge fires. */
     sigilForged: boolean;
+    /** THE SIGIL — hidden platform-wide (users.sigil_hidden). When true the
+        viewer's own mark is suppressed in their connect pill; the same column
+        is read on every profile so the hide reaches everyone. Flips live via
+        the pd:sigil-visibility-changed refetch. */
+    sigilHidden: boolean;
     /** True when the SIWE-auth'd address has no claimed handle yet.
         AccountCreateModal mounts on this. False during the auth-cookie
         hydration AND during the post-SIWE user-row fetch, so the modal
@@ -123,6 +128,7 @@ interface AuthContextProviderProps {
     priceScore: number;
     priceStreak: number;
     sigilForged: boolean;
+    sigilHidden: boolean;
     needsSignup: boolean;
     onAccountCreated: (user: UserRow) => void;
     signOut: () => Promise<void>;
@@ -137,6 +143,7 @@ export function AuthContextProvider({
     priceScore,
     priceStreak,
     sigilForged,
+    sigilHidden,
     needsSignup,
     onAccountCreated,
     signOut,
@@ -156,6 +163,7 @@ export function AuthContextProvider({
             priceScore,
             priceStreak,
             sigilForged,
+            sigilHidden,
             needsSignup,
             onAccountCreated,
             signOut,
@@ -168,6 +176,7 @@ export function AuthContextProvider({
             priceScore,
             priceStreak,
             sigilForged,
+            sigilHidden,
             needsSignup,
             onAccountCreated,
             signOut,

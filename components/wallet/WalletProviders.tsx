@@ -313,6 +313,20 @@ export function WalletProviders({
         return () => window.removeEventListener('pd:pricerank-changed', onChange);
     }, [siweAddress]);
 
+    /* Sigil show/hide — re-pull the row when the Forge toggle fires
+       'pd:sigil-visibility-changed', so the navbar pill reflects the new
+       visibility without a reload. */
+    useEffect(() => {
+        if (!siweAddress) return;
+        const onSigilVis = () => {
+            fetchUserRow(siweAddress)
+                .then((row) => { if (row) { setUserRow(row); writeUserRowCache(siweAddress, row); } })
+                .catch(() => {});
+        };
+        window.addEventListener('pd:sigil-visibility-changed', onSigilVis);
+        return () => window.removeEventListener('pd:sigil-visibility-changed', onSigilVis);
+    }, [siweAddress]);
+
     /* User-state hydration — "log in anywhere, exactly as you left it."
        Decoupled from the needsSignup fetch above so it can't regress the
        signup flow, and so it survives the follows-join issue on the public
@@ -410,6 +424,7 @@ export function WalletProviders({
             priceScore={userRow?.price_score ?? 0}
             priceStreak={userRow?.price_streak ?? 0}
             sigilForged={!!userRow?.sigil_forged_at}
+            sigilHidden={!!userRow?.sigil_hidden}
             needsSignup={needsSignup}
             onAccountCreated={handleAccountCreated}
             signOut={signOutFull}
