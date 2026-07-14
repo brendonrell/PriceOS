@@ -101,9 +101,10 @@ import type { SearchResponse, SearchUserResult } from '../../app/api/search/rout
 
 const VS15 = '︎';
 
-/* A certain word opens a side door. Stored as an FNV-1a hash on purpose —
-   nothing greppable ships in the bundle. Sleuths: keep going. */
-const SIDE_DOOR = 1562394851;
+/* A certain word opens a side door — and so does the game's own name now
+   (Brendon, 2026-07-14: "lane runner" / "lanerunner" launch it too). Stored as
+   FNV-1a hashes on purpose — nothing greppable ships in the bundle. */
+const SIDE_DOORS = new Set([1562394851, 3020638419, 3049086085]);
 
 /** 0x1234…5678 — the compact address face for handle-less wallets. */
 function shortAddress(addr: string): string {
@@ -300,14 +301,14 @@ export function GlobalSearchBar() {
     }, [engaged]);
 
     // The side door — checked before any fetch fires.
-    const eggOn = hashString(value.trim().toLowerCase()) === SIDE_DOOR;
+    const eggOn = SIDE_DOORS.has(hashString(value.trim().toLowerCase()));
 
     // LIVE search: debounce-fetch /api/search on every keystroke ≥2 chars.
     // AbortController cancels the in-flight request when the value changes
     // or the bar unmounts; stale responses can never land over fresh ones.
     useEffect(() => {
         const q = value.trim();
-        if (q.length < 2 || hashString(q.toLowerCase()) === SIDE_DOOR) {
+        if (q.length < 2 || SIDE_DOORS.has(hashString(q.toLowerCase()))) {
             setResults(null);
             setSearching(false);
             return;

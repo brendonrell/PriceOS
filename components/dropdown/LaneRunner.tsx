@@ -65,6 +65,19 @@ const MOMENTS: Array<{ at: number; label: string }> = [
     { at: 777, label: `HALO ⬭${VS15}` },
 ];
 
+/* Y2K arcade launch logo — a road edge, the block wordmark, then lane dashes.
+   Scales down to fit any width via CSS (clamp font-size). */
+const LOGO = [
+    '▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄',
+    '    █   ▄▀▄  █▄ █  █▀▀',
+    '    █   █▀█  █ ▀█  █▀ ',
+    '    █▄▄ ▀ ▀  ▀  ▀  ▀▀▀',
+    '█▀▄ █ █ █▄ █ █▄ █ █▀▀ █▀▄',
+    '█▀▄ █ █ █ ▀█ █ ▀█ █▀  █▀▄',
+    '▀ ▀ ▀▀▀ ▀  ▀ ▀  ▀ ▀▀▀ ▀ ▀',
+    ' ╎    ╎    ╎    ╎    ╎   ',
+].join('\n');
+
 /** The hero — a certain rear-engined coupe, top view, nose up.
     Clear (bright) headlights, cabin glass, whale tail. */
 function HeroCar({ night, hot }: { night: boolean; hot: boolean }) {
@@ -249,6 +262,8 @@ export default function LaneRunner() {
     const [lbOpen, setLbOpen] = useState(false);
     const wr = lb.length > 0 && lb[0].best > 0 ? { score: lb[0].best, handle: lb[0].handle } : null;
     const [alive, setAlive] = useState(true);
+    /* The game opens on a launch screen; TAP TO START begins the run. */
+    const [started, setStarted] = useState(false);
     const [slid, setSlid] = useState(0); // flash counter for the oil-slide moment
     const [moment, setMoment] = useState<string | null>(null);
     const laneRef = useRef(1);
@@ -293,10 +308,17 @@ export default function LaneRunner() {
         setAlive(true);
     }, []);
 
+    /* Launch → play: clear the board list and start a fresh run. */
+    const startGame = useCallback(() => {
+        setLbOpen(false);
+        setStarted(true);
+        restart();
+    }, [restart]);
+
     // The tick — hazards step one row toward you; the board is a grid of
     // lit cells, not a scroller (LED-handheld rules).
     useEffect(() => {
-        if (!alive) return;
+        if (!started || !alive) return;
         const tick = Math.max(TICK_MIN_MS, TICK_START_MS - score * 3);
         const t = window.setInterval(() => {
             setRows((prev) => {
@@ -362,7 +384,7 @@ export default function LaneRunner() {
             });
         }, tick);
         return () => window.clearInterval(t);
-    }, [alive, score]);
+    }, [started, alive, score]);
 
     useEffect(() => () => window.clearTimeout(momentT.current), []);
 
@@ -370,13 +392,14 @@ export default function LaneRunner() {
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
             if (e.key === 'Escape') return; // the search input owns Escape
+            if (!started) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); startGame(); } return; }
             if (!alive) { e.preventDefault(); restart(); return; }
             if (e.key === 'ArrowLeft') { e.preventDefault(); move(laneRef.current - 1); }
             if (e.key === 'ArrowRight') { e.preventDefault(); move(laneRef.current + 1); }
         };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
-    }, [alive, move, restart]);
+    }, [started, alive, move, restart, startGame]);
 
     // No buttons — the board IS the controller: tap the lane you want.
     const onBoardPointer = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -385,6 +408,50 @@ export default function LaneRunner() {
         const rect = e.currentTarget.getBoundingClientRect();
         move(Math.floor(((e.clientX - rect.left) / rect.width) * LANES));
     };
+
+    const lbList = lbOpen && (
+        <div className="lr-lb" aria-label="Lane Runner top 10">
+            {lb.length === 0 && <div className="lr-lb-row">No records yet — set one.</div>}
+            {lb.map((row, i) => (
+                <div className="lr-lb-row" key={`${row.handle}-${i}`}>
+                    <span className="lr-lb-rank">{i < 3 ? `${'❶❷❸'[i]}︎` : i + 1}</span>
+                    <span className="lr-lb-handle">@{row.handle}</span>
+                    <span className="lr-lb-score">{row.best}</span>
+                </div>
+            ))}
+        </div>
+    );
+
+    /* The launch screen — Y2K ASCII logo + the two options. TAP TO START
+       begins the run; LEADERBOARD unfolds the top 10 right here. */
+    if (!started) {
+        return (
+            <div className="lr-wrap lr-launch">
+                <pre className="lr-logo" aria-label="LANE RUNNER">{LOGO}</pre>
+                <div className="lr-launch-tag">
+                    {best > 0 ? `BEST ${best}` : 'the sleuth’s road'}
+                    {wr ? ` · WR ${wr.score} @${wr.handle}` : ''}
+                </div>
+                <div className="lr-launch-opts">
+                    <button
+                        type="button"
+                        className="lr-launch-btn lr-launch-go"
+                        onPointerDown={(e) => { e.stopPropagation(); startGame(); }}
+                    >
+                        {'» TAP TO START «'}
+                    </button>
+                    <button
+                        type="button"
+                        className="lr-launch-btn"
+                        onPointerDown={(e) => { e.stopPropagation(); setLbOpen((v) => { if (!v) loadBoard(); return !v; }); }}
+                    >
+                        LEADERBOARD
+                    </button>
+                </div>
+                {lbList}
+            </div>
+        );
+    }
 
     return (
         <div className="lr-wrap">
@@ -423,18 +490,7 @@ export default function LaneRunner() {
                             </>
                         )}
             </div>
-            {lbOpen && (
-                <div className="lr-lb" aria-label="Lane Runner top 10">
-                    {lb.length === 0 && <div className="lr-lb-row">No records yet — set one.</div>}
-                    {lb.map((row, i) => (
-                        <div className="lr-lb-row" key={`${row.handle}-${i}`}>
-                            <span className="lr-lb-rank">{i < 3 ? `${'❶❷❸'[i]}︎` : i + 1}</span>
-                            <span className="lr-lb-handle">@{row.handle}</span>
-                            <span className="lr-lb-score">{row.best}</span>
-                        </div>
-                    ))}
-                </div>
-            )}
+            {lbList}
             <div
                 className={`lr-board${alive ? '' : ' lr-crashed'}${night ? ' lr-night' : ''}`}
                 onPointerDown={onBoardPointer}
