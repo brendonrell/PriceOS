@@ -120,12 +120,8 @@ export default function GasTrackerModal() {
             <div className="modal-info gas-tracker-info">
                 <div className="modal-title gas-tracker-title">
                     GAS TRACKER
-                    {data ? (
-                        <span className="gas-tracker-ethusd">
-                            {' · ETH '}
-                            {formatEthUsd(data.ethUsd)}
-                        </span>
-                    ) : null}
+                    {data && <span className="gas-tracker-ethusd">{' · ETH'}</span>}
+                    {data && <span className="gas-tracker-price">{formatEthUsd(data.ethUsd)}</span>}
                 </div>
 
                 {/* THE READ — the moment, called plainly. */}

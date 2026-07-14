@@ -146,7 +146,12 @@ export function pickRandomLogo(): string {
 /* The About PD modal's title spells ABOUT, not the PriceOS logo (Brendon,
    2026-07-14). Its own figlet pool so the shared PriceOS logos stay untouched. */
 export const ABOUT_LOGOS: readonly string[] = [
+    // Standard
     "    _    _                 _   \n   / \\  | |__   ___  _   _| |_ \n  / _ \\ | '_ \\ / _ \\| | | | __|\n / ___ \\| |_) | (_) | |_| | |_ \n/_/   \\_\\_.__/ \\___/ \\__,_|\\__|",
+    // Slant
+    "    ___    __                __ \n   /   |  / /_  ____  __  __/ /_\n  / /| | / __ \\/ __ \\/ / / / __/\n / ___ |/ /_/ / /_/ / /_/ / /_  \n/_/  |_/_.___/\\____/\\__,_/\\__/  ",
+    // ANSI Shadow (block — distinct from PriceOS's thin Shadow)
+    " █████╗ ██████╗  ██████╗ ██╗   ██╗████████╗\n██╔══██╗██╔══██╗██╔═══██╗██║   ██║╚══██╔══╝\n███████║██████╔╝██║   ██║██║   ██║   ██║   \n██╔══██║██╔══██╗██║   ██║██║   ██║   ██║   \n██║  ██║██████╔╝╚██████╔╝╚██████╔╝   ██║   \n╚═╝  ╚═╝╚═════╝  ╚═════╝  ╚═════╝    ╚═╝   ",
 ];
 
 export function pickRandomAbout(): string {

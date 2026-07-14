@@ -11680,12 +11680,23 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
    Full-strength chrome per Rule #2; motion carries the "it's alive" story. */
 .gas-tracker-read {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
+    font-size: 17px;
     font-weight: bold;
     letter-spacing: 0.5px;
     text-align: center;
     margin: -2px 0 22px;
     animation: gas-read-in 260ms ease-out;
+}
+/* ETH/USD price: its own line in portrait, joins the title line in landscape
+   where there's room (Brendon, 2026-07-14). */
+.gas-tracker-price {
+    display: block;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.85em;
+    font-weight: bold;
+}
+@media (orientation: landscape) {
+    .gas-tracker-price { display: inline; margin-left: 10px; }
 }
 .gas-tracker-read-state {
     background: var(--text-color);

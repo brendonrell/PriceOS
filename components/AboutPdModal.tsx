@@ -203,7 +203,7 @@ export default function AboutPdModal() {
 
                 <div
                     className="collectors-list priceos-changelog-list apd-body"
-                    style={{ maxHeight: 420, width: '100%' }}
+                    style={{ maxHeight: 'calc(100dvh - 240px)', width: '100%' }}
                 >
                     {sep('ABOUT PD')}
                     <p className="apd-p">
