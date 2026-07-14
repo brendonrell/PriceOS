@@ -178,7 +178,7 @@ There are no classes and no points. Behaviour is the class:
 
 ## The war on the map
 
-[The Cartography](/docs/app/the-cartography) is the war map. Enlisted users
+[Cartography](/docs/app/the-cartography) is the war map. Enlisted users
 get a **WAR** control on the map — a layer toggle, **off by default**:
 
 - Held territories wear a thin coastline ring in the holding faction's

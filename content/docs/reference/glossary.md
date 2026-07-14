@@ -26,7 +26,7 @@ Definitions for terms used throughout Price Discussion, alphabetically. The nome
 
 **Collector** — A user who owns one or more Outputs. Used where ownership is the salient fact — not a generic synonym for "user."
 
-**The Composer** (⊚) — The visual query builder: compose a live question about the catalog from tappable rules, save it as a Program, act on the answer in bulk. See [The Composer](/docs/app/the-composer).
+**Composer** (⊚) — The visual query builder: compose a live question about the catalog from tappable rules, save it as a Program, act on the answer in bulk. See [Composer](/docs/app/the-composer).
 
 **Curated** — What PD is **not**. See **Filtered**.
 
@@ -70,7 +70,7 @@ Definitions for terms used throughout Price Discussion, alphabetically. The nome
 
 **Price Story** — The narrative interpretation of a Project's or Output's price history.
 
-**Program** — A saved Composer query that keeps answering live; it wears the Spectrum (its current answer’s colour distribution). See [The Composer](/docs/app/the-composer).
+**Program** — A saved Composer query that keeps answering live; it wears the Spectrum (its current answer’s colour distribution). See [Composer](/docs/app/the-composer).
 
 **Project** — An artist's body of work, deployed as one immutable PDProject contract. Lives at `/art/{slug}`.
 

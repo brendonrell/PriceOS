@@ -1,9 +1,9 @@
-# BRIEF · The Composer ◎ — v1 build session
+# BRIEF · Composer ◎ — v1 build session
 
 > **For the session picking this up:** read `CLAUDE.md` first (the operating
 > contract — reply-first, reuse-never-reinvent, present-before-push, no scope
 > invention), scan `docs/GLYPHS.md` (fixed icon vocabulary), then this brief.
-> The product spec is ClickUp task **86b9eu9wn** ("FEATURE · The Composer ◎",
+> The product spec is ClickUp task **86b9eu9wn** ("FEATURE · Composer ◎",
 > 02 · PriceOS / Ideas) — this brief scopes v1 of that spec against what the
 > codebase actually has today (2026-07-12). Where this brief and Brendon's
 > chat direction disagree, his word wins.

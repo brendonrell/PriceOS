@@ -1,7 +1,7 @@
 'use client';
 
 /*
- * The Composer ⊚ — visual query builder over PD's whole dataset.
+ * Composer ⊚ — visual query builder over PD's whole dataset.
  *
  * Spec: ClickUp task 86b9eu9wn + docs/briefs/composer-v1.md; UI per the
  * approved 2026-07-13 mocks (builder · results · Programs · Spell Book
@@ -19,7 +19,7 @@
  *              long-press a row to rename/delete, + NEW PROGRAM.
  *
  * A Program stores the CONFIG, never results — every open re-runs live.
- * Opened from the Spell Book's The Composer pill (temporary switch —
+ * Opened from the Spell Book's Composer pill (temporary switch —
  * Brendon is choosing the permanent home). Mounted globally in
  * PriceOSShell; fire useModal().open('composer').
  */

@@ -269,7 +269,7 @@ export function GlobalSearchBar() {
     // menu-links / accordion boxes / settings panel / artists panel. Refs are
     // captured at the moment the effect runs so cleanup restores the same
     // nodes — even if React re-renders or unmounts the bar mid-search.
-    /* The Composer launcher row is permanent first-row content (Brendon,
+    /* Composer launcher row is permanent first-row content (Brendon,
        2026-07-13), so an open search is ALWAYS engaged — a fresh user with
        no trail and nothing minting still gets the launcher + syntax hint. */
     const engaged = isGlobalSearching || active;
@@ -643,7 +643,7 @@ export function GlobalSearchBar() {
                 {eggOn && <LaneRunner />}
                 {!eggOn && engaged && !isGlobalSearching && (
                     <>
-                        {/* THE COMPOSER ⊚ — the launcher's home (Brendon,
+                        {/* COMPOSER ⊚ — the launcher's home (Brendon,
                             2026-07-13): the special first row whenever search
                             opens. Search is where questions start; this is
                             the power-question tool. */}

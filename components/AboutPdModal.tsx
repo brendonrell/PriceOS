@@ -87,7 +87,7 @@ const TIMELINE: { date: string; title: string; body: string }[] = [
     {
         date: 'JUL 12 2026',
         title: 'THE TOOLS',
-        body: `The tools era: The Cartography ◫${VS15} (a living map), The Rewind ◄${VS15} (the whole OS at any day), The Dispatch ▤${VS15} (a morning paper that printed its first edition by itself), Takeover ⚑${VS15}.`,
+        body: `The tools era: Cartography ◫${VS15} (a living map), The Rewind ◄${VS15} (the whole OS at any day), The Dispatch ▤${VS15} (a morning paper that printed its first edition by itself), Takeover ⚑${VS15}.`,
     },
     {
         date: 'NEXT',

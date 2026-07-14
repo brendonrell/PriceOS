@@ -1,12 +1,12 @@
 ---
-title: "The App — The Cartography ◫"
+title: "The App — Cartography ◫"
 description: "The living map of the whole platform: Projects as territories, collectors as inhabitants, sales as movement — real-time, zoomable, opened by long-pressing the Price Discussion name."
 category: "app"
 keywords: ["cartography", "map", "ecosystem", "territories", "long press", "live"]
 last_updated: "2026-07-13"
 ---
 
-# The Cartography ◫
+# Cartography ◫
 
 PD drawn as a world. Every Project is a territory with its own generated coastline, every collector an inhabitant living on the land they hold, and every market action a visible event — the whole platform, alive on one map.
 

@@ -1,4 +1,4 @@
-/* ── The Cartography ◫ — full-screen living ecosystem map ──────────────
+/* ── Cartography ◫ — full-screen living ecosystem map ──────────────
    Rides the .platform-modal scaffold (styles/modal.css) but fills the
    whole viewport: the map IS the surface, chrome floats over it.
    Rule #2: every chip/label here is full-strength and readable — the only
@@ -39,7 +39,8 @@
     font-family: 'Courier New', Courier, monospace;
 }
 .carto-title {
-    font-size: 15px;
+    /* Two sizes larger — the section's name reads at a glance (Brendon, 2026-07-14). */
+    font-size: 19px;
     font-weight: 700;
     letter-spacing: 0.08em;
     color: #E9EDF4;

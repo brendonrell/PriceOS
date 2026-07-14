@@ -118,7 +118,7 @@ export const ATLAS: AtlasFeature[] = [
     F(68, 'Batch List / Re-List / Make Offer', 'Project Page'),
     F(69, 'The Bloodline', 'Project Page', '◈'),
     F(70, 'Breadcrumbs', 'Project Page'),
-    F(71, 'The Certificate ⊞ · The Cartography ◫', 'Project Page'),
+    F(71, 'The Certificate ⊞ · Cartography ◫', 'Project Page'),
     F(72, 'Disagreement Score', 'Project Page'),
     F(73, 'Feed signals — Sniped · Velocity · Departure · Cascade · Diaspora · Goodbye · Price Gravity · Debate Density', 'Project Page'),
     F(74, 'First Blood · Time to First Offer', 'Project Page'),

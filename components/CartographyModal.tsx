@@ -1,7 +1,7 @@
 'use client';
 
 /*
- * The Cartography ◫ — the living ecosystem map.
+ * Cartography ◫ — the living ecosystem map.
  *
  * Full-screen zoomable map of the whole platform as a generative landscape:
  * Projects are territories (organic coastlines seeded per slug, area grows
@@ -1378,7 +1378,7 @@ export default function CartographyModal() {
             className={`platform-modal carto-modal${isOpen ? ' active' : ''}`}
             role="dialog"
             aria-modal="true"
-            aria-label="The Cartography"
+            aria-label="Cartography"
         >
             <div
                 className="close-hint"
@@ -1400,7 +1400,7 @@ export default function CartographyModal() {
                 <div className="carto-stage">
                     <canvas ref={canvasRef} className="carto-canvas" />
                     <div className="carto-head">
-                        <span className="carto-title">THE CARTOGRAPHY {'◫︎'}</span>
+                        <span className="carto-title">CARTOGRAPHY {'◫︎'}</span>
                         <span className={`carto-live${status === 'live' ? ' is-live' : ''}`}>
                             {status === 'loading' ? 'CHARTING…' : status === 'error' ? 'NO SIGNAL' : status === 'live' ? '● LIVE' : '○ SYNC'}
                         </span>

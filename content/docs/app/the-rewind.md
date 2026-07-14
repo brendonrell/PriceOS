@@ -12,7 +12,7 @@ Every platform shows you now. PD can also show you *then* — the entire app, do
 
 ## Opening it
 
-**Triple-tap the "Price Discussion" name on the home page.** PD docks at yesterday and a full-strength banner frames the app: the PriceDay number, the date, a scrubber, and **RETURN TO NOW**. (The name's sibling gesture, the long-press, opens [The Cartography](/docs/app/the-cartography) — hold for space, tap thrice for time.)
+**Triple-tap the "Price Discussion" name on the home page.** PD docks at yesterday and a full-strength banner frames the app: the PriceDay number, the date, a scrubber, and **RETURN TO NOW**. (The name's sibling gesture, the long-press, opens [Cartography](/docs/app/the-cartography) — hold for space, tap thrice for time.)
 
 ## The scrubber
 

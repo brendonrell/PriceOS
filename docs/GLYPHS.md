@@ -403,11 +403,11 @@ Wishlist rows (and the held-by / collected-by chips):
 
 | Tool | Glyph | Codepoint | Notes |
 |---|---|---|---|
-| The Cartography (living map) | ◫ | U+25EB | from the feature's own task name (`FEATURE · The Cartography ◫`); modal header + docs |
+| Cartography (living map) | ◫ | U+25EB | from the feature's own task name (`FEATURE · Cartography ◫`); modal header + docs |
 | The Rewind (time scrubber) | ◄ | U+25C4 | the spec's candidate glyph, adopted; RewindBar banner |
 | The Dispatch (morning paper) | ▤ | U+25A4 | NEW — printed-page square; leads the home news rail pill. No collision (▥ freed 2026-07-12 stays free) |
 | Takeover | ⚑ | U+2691 | the raid flag; profile inscriptions, cast sheet, Offers-HQ badge. Deliberately NOT ◈ (spec draft used it, but ◈ is the streak glyph). Renamed from "Hostile Takeover" 2026-07-14 |
-| The Composer (query builder) | ⊚ | U+229A | Brendon's pick 2026-07-13 from a 20-option round — math's composition operator (f∘g), the truest "compose". Wears: modal title, Spell Book pill, SAVE AS PROGRAM, Programs shelf. Replaced the spec-era ◎, which moved to Price Lens the same day. Device-verify per the #1 gate |
+| Composer (query builder) | ⊚ | U+229A | Brendon's pick 2026-07-13 from a 20-option round — math's composition operator (f∘g), the truest "compose". Wears: modal title, Spell Book pill, SAVE AS PROGRAM, Programs shelf. Replaced the spec-era ◎, which moved to Price Lens the same day. Device-verify per the #1 gate |
 | Price Lens | ◎ | U+25CE | took the bullseye from the Composer (Brendon, 2026-07-13) — the lens you read prices through. MY PD pill + docs feature index. Frees **⌾ (U+233E)**, Price Lens's old mark. The Genome's docs entry (which also wore ◎) moved to ≎ the same day — no collision |
 | The Genome | ≎ | U+224E | Brendon's pick 2026-07-13 — the stacked kin-pair, deliberate blood-relative of ≍ Closest Sibling (§7) so the two kinship reads rhyme. Docs feature index + any future Genome surface. Device-verify per the #1 gate |
 | Composer launcher arrow | ⤤ | U+2924 | Brendon's pick 2026-07-13 — trails "launch Composer ⤤" on the Global Search first-row launcher (the open-elsewhere hook arrow). Only there; not a general "open" mark. Device-verify per the #1 gate |

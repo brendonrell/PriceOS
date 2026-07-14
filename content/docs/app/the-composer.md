@@ -1,16 +1,16 @@
 ---
-title: "The App — The Composer ⊚"
+title: "The App — Composer ⊚"
 description: "PD's visual query builder: compose a question about the whole catalog from tappable rules, watch it answer live, save it as a Program, and act on the result in bulk."
 category: "app"
 keywords: ["composer", "query", "search", "programs", "filters", "bulk", "spectrum"]
 last_updated: "2026-07-13"
 ---
 
-# The Composer ⊚
+# Composer ⊚
 
 Every serious collector eventually has a question the search box can't hold:
 *owned by a mutual, under half an ETH, warm palette, from a project I star.*
-The Composer is where that question gets built — visually, rule by rule — and
+Composer is where that question gets built — visually, rule by rule — and
 answered live against the whole catalog.
 
 ## Where it lives

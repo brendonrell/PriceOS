@@ -5,7 +5,7 @@
  * carrying the SAME long-press gesture as every other name on the site
  * (ProjectTitleStar: 460ms hold, 10px drift cancel, context-menu
  * suppressed). The name is the platform's secret compass:
- *   • long-press  → The Cartography ◫ (space — the living ecosystem map)
+ *   • long-press  → Cartography ◫ (space — the living ecosystem map)
  *   • triple-tap  → The Rewind ◄ (time — docks the OS at yesterday)
  *
  * The gesture mechanics are copied verbatim from

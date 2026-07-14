@@ -411,7 +411,7 @@ One push (merge ab1ee0b). ClickUp task `86bawpvpq` records the ship.
 
 Six pushes, in dev order. ClickUp updated per feature (86b9eth7w, 86barg53e,
 86b9fcn0d, 86b9g6c7c, 86bafgw65 all complete; 86b9fbrx9 commented).
-- **The Cartography ◫ (86b9eth7w):** living ecosystem map — territories from
+- **Cartography ◫ (86b9eth7w):** living ecosystem map — territories from
   minted supply w/ seeded coastlines, holders as inhabitants, artist ✺ capital,
   shared-collector continents (periodic force layout), realtime event layer
   (mint ripple+growth, sale comets, listing beacons), 3 LOD depths, wallet
