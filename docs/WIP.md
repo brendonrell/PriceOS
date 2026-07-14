@@ -8,26 +8,38 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **SPOT-EDIT BATCH (2026-07-14, Opus) — all on dev, auto-deployed, tree
-   clean.** Seen pings fade (½-opacity) instead of strike (strike now = done
-   to-dos ONLY); gas modal "THE PULSE"→"GAS PULSE" + landscape scales whole
-   panel to fit above the fold (no reflow, portrait untouched) + portrait
-   text pinned so a landscape trip stops inflating it; Composer launcher pill
-   less transparent + Programs button wears the Composer-pill look; Friend
-   Inspector title glyph −1px; MY PD Price Lens bullseye ◎ 13→15px (glyph was
-   ALREADY correct — U+25CE, verified code+dev), Sticker/Auto-Scroll glyph
-   nudges (mobile), artist-list inactive star 0.6→0.72 / note 0.28→0.5;
-   Portfolio hide icon 18→22px; **Followers tab folds in projects that follow
-   you** (held) beneath people + count; **Artists A–Z 'Collected' filter pill**
-   (✶ = artists you hold ≥1 piece by, mapped via registry).
-   **DATA (live prod write to `follows`):** 10 AI artists now follow @brendon
-   (sanctuary·fathom·veil·umbra·lowgravity·deepend·dyelot·countyline·meridian·
-   liquidmetal).
-   **Raised, NOT committed (ideas only — no go-ahead):** Portfolio wow-pass =
-   wire real floor/last/avg/ATH values (today ONLY mint-mode is real; Shadow +
-   Stickers tabs are empty stubs) then hide the empty stubs; Incognito Proxy is
-   a UI shell (toggle/pill/tooltip, zero behavior) — real = medium build
-   (thread a "viewed address ≠ connected address" through every wallet read).
+0. ✅ **2026-07-14 POLISH — all on dev, auto-deployed, tree clean.**
+   **Morning batch (Opus, shipped):** seen pings fade not strike (strike = done
+   to-dos ONLY) · gas modal GAS PULSE + landscape-fit + portrait text pinned ·
+   Programs button = Composer-pill look · Friend Inspector glyph −1px · Price
+   Lens ◎ 13→15px · Sticker/Auto-Scroll glyph nudges · artist-list star
+   0.6→0.72 / note 0.28→0.5 · Portfolio hide icon 18→22px · Followers folds in
+   projects that follow you · Artists A–Z 'Collected' pill · 10 AI artists now
+   follow @brendon (live `follows` write).
+   **Afternoon batch (Opus) — dev `f8d0582`:**
+   ① **Dispatch news pill** was Montreal-locked "every morning · 9AM" → now
+   shows each reader the drop time in THEIR own zone (9AM Montreal converted
+   client-side after mount; server + first paint show plain "Prints daily", so
+   no hydration mismatch).
+   ② **VAULT sealed door** rebuilt into a compact card matching the open view
+   (was a tall near-black slab w/ a 64px Courier ‰); the ‰ per-mille now renders
+   in Inter in BOTH states.
+   ③ **REVERTED** the morning's Composer launcher pill "less transparent" tweak
+   — it was a 20%-text-color wash that read MORE faded on most colorways
+   (opposite effect); back to the site fill token (Programs button left as
+   restyled).
+   ④ Two stray War "takeover" mentions → **"siege"** (keeps Takeover as the
+   collector mechanic's exclusive brand; War stays Siege/Conquest).
+   ⑤ **NEW CLAUDE.md §9 rule:** the ‰ is the PD LOGO → always Inter, never
+   Courier unless genuinely required (Setup Codes).
+   **QUEUED this session → ClickUp (02 · PriceOS UI, Backlog):** Completionism
+   Zoom — 3-depth completion (slider=depth, tap=cell) `86baxgv9y` ·
+   Completionism leaderboard + podium for all boards `86baxgvgj` · Albums →
+   public / drop the private gate `86baxgvhk` · Rename Hostile Takeover →
+   Takeover + Share icon-only `86baxgvjg`.
+   **Raised earlier, NOT committed (ideas):** Portfolio wow-pass (real floor/
+   last/avg/ATH — today only mint-mode is real) then hide empty stubs;
+   Incognito Proxy = UI shell only (real = medium build).
 
 -10. ✅ **SHARING · STUDIO · DIGEST ROUND (2026-07-13 evening, Fable; Brendon's
    4-item batch, pushes pre-approved in chat "when you have something ready
@@ -675,8 +687,9 @@ redeployed** (needs Brendon's Cloudflare token — see the DEPLOY RECIPE below).
 
 - **Eyeball + edit the two new footer modals** (About PD · Support) on
   device — copy is v1, Brendon edits from there.
-- **Delete the chat branches** `claude/pings-system-redesign-r5kbew` and
-  `claude/pd-about-modal-history-3wpdyo` (work is on dev):
+- **Delete the chat branches** — all merged trash, work is on dev:
+  `claude/pd-polish-edits-wg8ao6` (this chat),
+  `claude/pings-system-redesign-r5kbew`, `claude/pd-about-modal-history-3wpdyo`:
   https://github.com/brendonrell/PriceOS/branches
 - **Ticker copy review (2026-07-12)** — Brendon to eyeball the new store +
   marketplace crawl lines and send any wording edits (he said he'd review shortly).
