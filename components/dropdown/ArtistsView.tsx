@@ -37,6 +37,7 @@
  *   - status filters (cooldown / active): row passes if status ∈ active
  *   - starred filter: row must be pinned
  *   - notes filter: row must have a note
+ *   - collected filter: you hold ≥1 piece by the artist
  *   - search: case-insensitive substring on artist name
  *   All filters AND together; multiple rel chips OR within their group.
  */
@@ -52,6 +53,7 @@ import { pushSettings, STATE_CACHE_KEYS, USERSTATE_HYDRATED_EVENT } from '../../
 import type { ArtistsRosterResponse, ArtistsRosterRow } from '../../app/api/artists/route';
 import type { FollowsListResponse } from '../../app/api/follows/[address]/route';
 import { useSpiteMatcher } from '../../lib/pins/spiteStore';
+import { getProject } from '../../lib/project/registry';
 
 const PIN_LIMIT = 5;
 
@@ -84,6 +86,7 @@ const STATUS_ICONS: Record<ArtistStatus, string> = {
 type FilterKey =
     | 'starred'
     | 'notes'
+    | 'collected'
     | 'mutual'
     | 'following'
     | 'followers'
@@ -93,6 +96,7 @@ type FilterKey =
 const FILTER_PILLS: { key: FilterKey; glyph: string; label: string }[] = [
     { key: 'starred',   glyph: '\u2605\uFE0E',  label: 'Starred' },        // ★
     { key: 'notes',     glyph: '\u229F\uFE0E',  label: 'Artist Notes' },   // ⊟ unified note icon
+    { key: 'collected', glyph: '\u2736\uFE0E',  label: 'Collected' },      // ✶ collected/mint glyph — artists you hold
     { key: 'mutual',    glyph: '\u26AD\uFE0E',  label: 'Mutuals' },        // ⚭
     { key: 'following', glyph: '\u26AF\uFE0E',  label: 'Following' },      // ⚯
     { key: 'followers', glyph: '\u26AC\uFE0E',  label: 'Followers' },      // ⚬
@@ -198,6 +202,28 @@ export function ArtistsView() {
         return () => { cancelled = true; };
     }, [siweAddress]);
 
+    /* Artists you've COLLECTED — the set of artist handles you hold ≥1 piece by,
+       mapped from your owned project slugs through the registry. Powers the
+       Collected filter pill (Brendon, 2026-07-14). */
+    const [collectedArtists, setCollectedArtists] = useState<Set<string>>(() => new Set());
+    useEffect(() => {
+        if (!siweAddress) { setCollectedArtists(new Set()); return; }
+        let cancelled = false;
+        fetch(`/api/user/${siweAddress.toLowerCase()}/owned-projects`, { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d: { slugs?: string[] } | null) => {
+                if (cancelled || !Array.isArray(d?.slugs)) return;
+                const handles = new Set<string>();
+                for (const slug of d.slugs) {
+                    const h = getProject(slug)?.artistHandle;
+                    if (h) handles.add(h.toLowerCase());
+                }
+                setCollectedArtists(handles);
+            })
+            .catch(() => { /* keep last good */ });
+        return () => { cancelled = true; };
+    }, [siweAddress]);
+
     const artists = useMemo<ArtistRow[]>(() => {
         if (!roster) return [];
         return roster.map((a) => {
@@ -256,6 +282,7 @@ export function ArtistsView() {
             .map((k) => k as 'cooldown' | 'active');
         const starredOn = activeFilters.has('starred');
         const notesOn = activeFilters.has('notes');
+        const collectedOn = activeFilters.has('collected');
 
         const filtered = artists.filter((a) => {
             if (searchLower && !a.name.toLowerCase().includes(searchLower)) return false;
@@ -263,6 +290,7 @@ export function ArtistsView() {
             if (activeStatuses.length > 0 && !activeStatuses.includes(a.status)) return false;
             if (starredOn && !pinned.includes(a.name)) return false;
             if (notesOn && !notes[a.name]) return false;
+            if (collectedOn && !(a.handle && collectedArtists.has(a.handle.toLowerCase()))) return false;
             return true;
         });
 
@@ -273,7 +301,7 @@ export function ArtistsView() {
             .filter((a): a is ArtistRow => Boolean(a));
         const unpinned = filtered.filter((a) => !pinSet.has(a.name));
         return [...pinnedRows, ...unpinned];
-    }, [artists, search, activeFilters, pinned, notes]);
+    }, [artists, search, activeFilters, pinned, notes, collectedArtists]);
 
     return (
         <div

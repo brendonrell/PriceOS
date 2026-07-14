@@ -340,7 +340,7 @@ export default function FollowersModal() {
     }, [isOpen, targetAddrLc, siweAddress]);
 
     const counts: Record<FollowersTab, number> = {
-        followers: graph.followers.length,
+        followers: graph.followers.length + projects.filter((p) => p.held).length,
         following: graph.following.length,
         mutuals: graph.mutuals.length,
         cartel: cartelHandles.length,
@@ -435,7 +435,15 @@ export default function FollowersModal() {
         return [...pinned, ...rest];
     }, [projects, starredProjects]);
 
-    const isEmpty = tab === 'projects' ? projectRows.length === 0 : peopleRows.length === 0;
+    /* Projects that FOLLOW YOU (you hold a piece) — folded into the Followers
+       tab beneath the people who follow you (Brendon, 2026-07-14). */
+    const followerProjects = useMemo(() => projectRows.filter((p) => p.held), [projectRows]);
+
+    const isEmpty = tab === 'projects'
+        ? projectRows.length === 0
+        : tab === 'followers'
+            ? peopleRows.length === 0 && followerProjects.length === 0
+            : peopleRows.length === 0;
 
     /* The whole circle, deduped, for the preview strip (Wire + Constellation). */
     const previewPeople = useMemo<PreviewPerson[]>(() => {
@@ -512,26 +520,39 @@ export default function FollowersModal() {
                         />
                     ))
                 ) : (
-                    peopleRows.map((handle) => (
-                        <PersonRow
-                            key={handle}
-                            handle={handle}
-                            stat={statOf(handle)}
-                            tag={relTag(handle)}
-                            shared={tab === 'cartel' ? sharedBy?.[lc(handle)] ?? 0 : null}
-                            starred={starredPeople.has(lc(handle))}
-                            onStar={onStarPerson}
-                            inspected={inspected === lc(handle)}
-                            onInspect={() => setInspected((cur) => (cur === lc(handle) ? null : lc(handle)))}
-                            friendAddr={handleToAddr[lc(handle)] ?? null}
-                            mySlugs={mySlugs}
-                            myStat={siweAddress ? statByAddr[siweAddress.toLowerCase()] : undefined}
-                            myScore={myScore}
-                            following={followingSet.has(lc(handle))}
-                            followBusy={followBusy}
-                            onToggleFollow={() => void toggleFollow(handle)}
-                        />
-                    ))
+                    <>
+                        {peopleRows.map((handle) => (
+                            <PersonRow
+                                key={handle}
+                                handle={handle}
+                                stat={statOf(handle)}
+                                tag={relTag(handle)}
+                                shared={tab === 'cartel' ? sharedBy?.[lc(handle)] ?? 0 : null}
+                                starred={starredPeople.has(lc(handle))}
+                                onStar={onStarPerson}
+                                inspected={inspected === lc(handle)}
+                                onInspect={() => setInspected((cur) => (cur === lc(handle) ? null : lc(handle)))}
+                                friendAddr={handleToAddr[lc(handle)] ?? null}
+                                mySlugs={mySlugs}
+                                myStat={siweAddress ? statByAddr[siweAddress.toLowerCase()] : undefined}
+                                myScore={myScore}
+                                following={followingSet.has(lc(handle))}
+                                followBusy={followBusy}
+                                onToggleFollow={() => void toggleFollow(handle)}
+                            />
+                        ))}
+                        {/* Projects that follow you (you hold a piece) fold in below
+                            the people who follow you (Brendon, 2026-07-14). */}
+                        {tab === 'followers' && followerProjects.map((proj) => (
+                            <ProjectRow
+                                key={`fp:${proj.project_id}`}
+                                proj={proj}
+                                enabled={isOpen}
+                                starred={starredProjects.has(proj.project_id.toLowerCase())}
+                                onStar={onStarProject}
+                            />
+                        ))}
+                    </>
                 )}
             </div>
         </>
