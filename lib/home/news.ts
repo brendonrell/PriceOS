@@ -83,10 +83,35 @@ const DISPATCH_PILL: NewsItem = {
     glyph: '▤︎',
     tag: 'THE DISPATCH',
     title: 'Yesterday, on the record',
-    meta: 'Prints every morning · 9AM',
+    meta: 'Prints daily',
     href: '/dispatch',
 };
 
-export function buildNewsItems(feed: HomeResponse | null): NewsItem[] {
-    return [DISPATCH_PILL, ...CURATED_NEWS, ...autoNewsItems(feed)];
+/* The Dispatch prints at 09:00 in Montreal (America/Toronto). "Every morning ·
+   9AM" is only true THERE — for a reader in Tokyo it lands late at night. So we
+   show each reader the drop time in THEIR OWN zone (Brendon, 2026-07-13: every
+   displayed clock time is viewer-local). Client-only — call it after mount so
+   the server paint and first client paint agree on the plain 'Prints daily'
+   and there's no hydration mismatch. */
+export function dispatchPrintsMeta(): string {
+    const now = new Date();
+    const tp = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/Toronto',
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+    }).formatToParts(now);
+    const g = (t: string) => Number(tp.find((p) => p.type === t)?.value);
+    let hh = g('hour'); if (hh === 24) hh = 0;
+    // Toronto's current UTC offset (ms) = its wall clock read as UTC, minus now.
+    const asUTC = Date.UTC(g('year'), g('month') - 1, g('day'), hh, g('minute'), g('second'));
+    const offset = asUTC - now.getTime();
+    // Today's 09:00 Toronto as a real instant, rendered in the viewer's zone.
+    const instant = Date.UTC(g('year'), g('month') - 1, g('day'), 9, 0, 0) - offset;
+    const local = new Date(instant).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    return `Prints daily · ${local}`;
+}
+
+export function buildNewsItems(feed: HomeResponse | null, dispatchMeta?: string): NewsItem[] {
+    const dispatch = dispatchMeta ? { ...DISPATCH_PILL, meta: dispatchMeta } : DISPATCH_PILL;
+    return [dispatch, ...CURATED_NEWS, ...autoNewsItems(feed)];
 }

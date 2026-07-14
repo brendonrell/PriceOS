@@ -12,47 +12,30 @@
     font-family: 'Courier New', Courier, monospace;
 }
 
-/* ── The door ──────────────────────────────────────────────────────────── */
+/* ── The door (SEALED) ───────────────────────────────────────────────────
+   A COMPACT card that reads the same size + style as the open view's head —
+   NOT a tall slab (Brendon, 2026-07-14: sealed must match unsealed). The whole
+   row is the tap target and slides aside on unseal. It reuses the inner-head
+   classes (.vault-inner-seal / -verdict / .vault-reseal) so the two states are
+   the same family by construction. */
 
 .vault-door {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 14px;
-    min-height: 300px;
-    padding: 28px 16px;
+    gap: 10px;
+    padding: 14px 16px;
     cursor: pointer;
-    /* Machined-metal face: two hairline gradients read as brushed steel
-       without ever dropping text contrast (decor only, behind the type). */
-    background:
-        linear-gradient(180deg, #101014 0%, #0b0b0e 55%, #0d0d11 100%);
+    /* Machined-metal face: a hairline gradient reads as brushed steel behind
+       the full-strength type (decor only, never drops contrast). */
+    background: linear-gradient(180deg, #101014 0%, #0b0b0e 55%, #0d0d11 100%);
     transition: transform 0.42s cubic-bezier(0.4, 0, 0.2, 1);
 }
 /* MiniDisc shutter — the whole face slides aside. */
 .vault-door.is-sliding { transform: translateX(-102%); }
 
-.vault-seal { line-height: 1; }
-.vault-seal .sigil-mark-fill { font-size: 64px; }
-.vault-seal-mark { font-size: 64px; font-weight: 700; }
-
-.vault-verdict {
-    color: #e9edf4;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    text-align: center;
-}
-
-.vault-hint {
-    color: #e9edf4;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    border: 1px solid #e9edf4;
-    border-radius: 4px;
-    padding: 5px 12px;
-}
+/* The ‰ is the PD per-mille LOGO mark, not a glyph — it wears Inter (the font
+   we ship to draw the logo), never the stage's Courier. See CLAUDE.md §9. */
+.vault-permille { font-family: var(--font-inter), Inter, sans-serif; font-weight: 700; }
 
 /* ── Inside ────────────────────────────────────────────────────────────── */
 

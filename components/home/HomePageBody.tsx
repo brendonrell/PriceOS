@@ -37,7 +37,7 @@ import NewsCarousel from './NewsCarousel';
 import HomeTitleCartography from './HomeTitleCartography';
 import RewindHome from './RewindHome';
 import { useRewindOptional } from '../../lib/state/RewindContext';
-import { buildNewsItems } from '../../lib/home/news';
+import { buildNewsItems, dispatchPrintsMeta } from '../../lib/home/news';
 import { TraitsProvider, useTraits } from '../../lib/state/TraitsContext';
 import { ProjectProvider, useProject } from '../../lib/state/ProjectContext';
 import { useAuth } from '../../lib/state/AuthContext';
@@ -483,6 +483,12 @@ function HomePageBodyInner({
         window.addEventListener('pd:follows-changed', onCh);
         return () => { cancelled = true; window.removeEventListener('pd:follows-changed', onCh); };
     }, [siweAddress, viewerHandle]);
+
+    /* The Dispatch pill's print time, localized to the viewer's own zone. Left
+       undefined for the server paint + first client paint (both show the plain
+       'Prints daily', so no hydration mismatch), then filled in after mount. */
+    const [dispatchMeta, setDispatchMeta] = useState<string | undefined>(undefined);
+    useEffect(() => { setDispatchMeta(dispatchPrintsMeta()); }, []);
 
     /* The live home payload (stats + uploads + minting now). Server-seeded,
        re-pulled on every Realtime push / refresh nudge, poll fallback. */
@@ -937,7 +943,7 @@ function HomePageBodyInner({
                     the Tape engine, sitting directly above the action row. Auto
                     pills = live Uploaded / Graduated / Sold-Out moments; the
                     curated slot (empty for now) fills from the future studio. */}
-                <NewsCarousel items={buildNewsItems(feed)} />
+                <NewsCarousel items={buildNewsItems(feed, dispatchMeta)} />
 
                 {/* Action row — same chrome as the project page's mint +
                     soundtrack pair. Primary = Join The Chat (Discord);

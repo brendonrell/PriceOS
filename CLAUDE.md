@@ -726,3 +726,18 @@ explicit chat confirmation.
   sessions keep grabbing it; **IGNORE IT EVERY TIME.** Never propose, render,
   store, or serve WebP for a preview. Need it smaller? Render at a **lower
   resolution** — still PNG. There is no WebP path, ever.
+- **⛔ THE ‰ PER-MILLE IS THE PD LOGO — IT WEARS INTER, NEVER COURIER. Hard
+  rule (Brendon, 2026-07-14 — yelled into the Md on purpose so no session
+  misses it, because none of you comply unless it's screamed).** The ‰ is the
+  brand's per-mille **logo mark**, and **Inter ships with the app for the SOLE
+  purpose of drawing it as the logo.** So **whenever a ‰ is shown AS THE PD
+  LOGO** — and the surface can take Inter without breaking — it renders in
+  **Inter, bold, full-strength**, exactly like the navbar logo and
+  `.af-ic--mille` (`font-family: var(--font-inter)`). **A Courier-New ‰ is
+  BANNED** — never let the ‰ silently inherit a Courier block; override it to
+  Inter. **The ONLY exception is where Courier is genuinely REQUIRED** — e.g.
+  **Setup Codes**, where every character must sit in the same monospaced grid
+  to be read and typed. Even there, prefer rendering the ‰ in Inter in the
+  field **if it can while the copied value stays byte-identical.** When in
+  doubt, the ‰ is the logo → Inter. (Born from the Vault sealed door: a 64px
+  Courier ‰ rendered broken; the fix was Inter, the logo font.)

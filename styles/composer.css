@@ -45,11 +45,10 @@
       this only dresses the mark: a thumb-sized ⊚ tile breathing in the
       Composer's rhythm, in whatever ink the panel is themed. ── */
 .gsr-row.gsr-composer {
-    /* The news-pill fill pattern: full-strength text on a container wash (the
-       approved Rule #2 shape — readability lives on the content). A bit more
-       opaque than --stat-bg so the pill reads more present, colorway-safe
-       (Brendon, 2026-07-14). */
-    background: color-mix(in srgb, var(--text-color) 20%, transparent);
+    /* The news-pill fill pattern: the site's half-opacity fill token as the
+       container, full-strength text on top (the approved Rule #2 shape —
+       readability lives on the content, not the container). */
+    background: var(--stat-bg);
     border-radius: 4px;
     height: 32px;
     min-height: 32px;

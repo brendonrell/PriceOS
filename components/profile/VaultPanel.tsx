@@ -126,21 +126,23 @@ export default function VaultPanel({
                     }}
                     title="Unseal the vault"
                 >
-                    <div className="vault-seal" style={{ color: ink }}>
+                    <span className="vault-inner-seal" style={{ color: ink }}>
                         {sigilForged ? (
-                            <SigilArt address={address} hex={ink} fill />
+                            <SigilArt address={address} hex={ink} />
+                        ) : faction ? (
+                            `⚐${VS15}`
                         ) : (
-                            <span className="vault-seal-mark">{faction ? `⚐${VS15}` : `‰`}</span>
+                            <span className="vault-permille">‰</span>
                         )}
-                    </div>
-                    <div className="vault-verdict">{verdict}</div>
-                    <div className="vault-hint">TAP TO UNSEAL</div>
+                    </span>
+                    <span className="vault-inner-verdict">{verdict}</span>
+                    <span className="vault-reseal">TAP TO UNSEAL</span>
                 </div>
             ) : (
                 <div className="vault-inner">
                     <div className="vault-inner-head">
                         <span className="vault-inner-seal" style={{ color: ink }}>
-                            {sigilForged ? <SigilArt address={address} hex={ink} /> : (faction ? `⚐${VS15}` : '‰')}
+                            {sigilForged ? <SigilArt address={address} hex={ink} /> : faction ? `⚐${VS15}` : <span className="vault-permille">‰</span>}
                         </span>
                         <span className="vault-inner-verdict">{verdict}</span>
                         <span
