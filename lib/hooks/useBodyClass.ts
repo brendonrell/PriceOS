@@ -108,6 +108,10 @@ const ALL_FLAG_CLASSES = [
     // informational for any CSS that wants to react (the swaps themselves
     // are React-driven in ArtworkCard / OutputPreview / OutputThumb).
     'ascii-art-mode',
+    // Sigil hidden — negative flag from the Forge. Hides the mark that trails
+    // the @name across PD (the pill + profile identity rows). CSS rule in
+    // app/globals.css gates .sigil-after-name display:none on this class.
+    'sigil-hidden',
     // Phase 5 mode batch 3 — echo-mode. Sim 9458-9479 + 9957 + 13039.
     // Sim flips `body.echo-mode` from `_applyEchoMode` and adds two
     // imperative DOM filters (`.notif-item` without `.ico-mutual` →
@@ -167,6 +171,8 @@ export function useBodyClass() {
         // _asciiUpdateVisibility (sim 12200-12206).
         if (notifs.asciiId)          cl.add('ascii-id-mode');
         if (notifs.asciiArt)         cl.add('ascii-art-mode');
+        // Sigil hidden — the Forge's show/hide toggle (Brendon, 2026-07-14).
+        if (notifs.sigilHidden)      cl.add('sigil-hidden');
         // Phase 5 mode batch 3 — echo-mode (sim 9460). Sim 9462-9472 also
         // walks `.notif-item` and `.artist-row` and sets inline display
         // styles; the React port replaces that imperative walk with CSS

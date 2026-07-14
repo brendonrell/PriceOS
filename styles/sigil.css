@@ -30,6 +30,19 @@
     margin-left: 6px;
     font-size: 0.92em;
 }
+/* Connect-menu pill — the gap between the @name and the mark was too wide;
+   halve it here only (the profile identity row keeps the 6px). (Brendon,
+   2026-07-14) */
+.btn-user .sigil-after-name {
+    margin-left: 3px;
+}
+/* Sigil hidden — the Forge's show/hide toggle drops the mark that trails the
+   @name everywhere it appears (the pill + profile identity rows). The Forge
+   preview, the carousel Sigil ring, and a Sigil worn as a bubble-logo all use
+   other classes, so they stay visible. (Brendon, 2026-07-14) */
+body.sigil-hidden .sigil-after-name {
+    display: none;
+}
 
 /* the corner-logo override (the owner flies their mark) */
 .sigil-corner {
@@ -158,4 +171,35 @@
 }
 .sigil-forge .sf-forge-btn.is-striking {
     animation: sf-strike 0.7s ease-in-out infinite;
+}
+
+/* Show/hide toggle — the forged Sigil's platform visibility, right on the
+   Forge (Brendon, 2026-07-14). Filled = SHOWN, hollow = HIDDEN. Keyed off the
+   modal's own ink (currentColor = --text-color) so it reads on the dark shell;
+   the filled state paints that ink and drops the label onto --modal-bg. */
+.sigil-forge .sf-toggle {
+    margin-top: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    background: transparent;
+    color: currentColor;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+}
+.sigil-forge .sf-toggle.is-on {
+    background: var(--text-color);
+    color: var(--modal-bg);
+}
+.sigil-forge .sf-toggle:active {
+    transform: scale(0.97);
 }

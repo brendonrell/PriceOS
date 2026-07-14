@@ -150,6 +150,10 @@ export interface PdNotifs {
     /* Back Button Mode — a persistent back arrow parked under the connect
        menu, site-wide. Not part of the Setup Code (a personal nav pref). */
     backButton: boolean;
+    /* Sigil visibility — negative flag (active = your forged Sigil is HIDDEN).
+       Toggled from the Forge. Drives body.sigil-hidden, which hides the mark
+       that trails the @name across PD. Personal display pref, not Setup Code. */
+    sigilHidden: boolean;
     degen: boolean;
     autoscroll: boolean;
     /* Ambient Strip — the LED light bar under the Tape. Off by default;
@@ -245,6 +249,7 @@ const DEFAULTS: PdNotifs = {
     asciiId: false,
     asciiArt: false,
     backButton: false,
+    sigilHidden: false,
     degen: false,
     autoscroll: false,
     ambientStrip: false,

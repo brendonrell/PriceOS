@@ -18,6 +18,7 @@ import { useCallback, useState, type MouseEvent as ReactMouseEvent } from 'react
 import { useModal } from '../lib/state/ModalContext';
 import { useAuth } from '../lib/state/AuthContext';
 import { useToast } from '../lib/state/ToastContext';
+import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import { useFaction } from '../lib/factions/useFaction';
 import { useSigilForged, SIGIL_FORGED_EVENT } from '../lib/sigil/useSigilForged';
 import SigilArt from './SigilArt';
@@ -29,9 +30,20 @@ export default function SigilForgeModal() {
     const isOpen = openModal?.name === 'sigilForge';
     const { siweAddress } = useAuth();
     const { showToast } = useToast();
+    const { notifs, update } = usePdNotifs();
     const faction = useFaction();
     const forged = useSigilForged();
     const [striking, setStriking] = useState(false);
+
+    /* Show/hide the forged mark across PD (the pill + profile identity rows).
+       Negative flag: sigilHidden=true means hidden. Toast screams the new
+       state (house casing rule). */
+    const sigilHidden = notifs.sigilHidden;
+    const toggleSigilVisibility = () => {
+        const nextHidden = !sigilHidden;
+        update({ sigilHidden: nextHidden });
+        showToast('Sigil: ' + (nextHidden ? 'HIDDEN' : 'SHOWN'));
+    };
 
     const onBackdropClick = useCallback(
         (e: ReactMouseEvent<HTMLDivElement>) => {
@@ -105,6 +117,16 @@ export default function SigilForgeModal() {
                                     every colour at the end of the Profile Logo carousel.
                                     Raise one and the colour knows whose side you&apos;re on.
                                 </p>
+                                <button
+                                    type="button"
+                                    className={`sf-toggle${sigilHidden ? '' : ' is-on'}`}
+                                    role="switch"
+                                    aria-checked={!sigilHidden}
+                                    title={sigilHidden ? 'Show your Sigil across PD' : 'Hide your Sigil across PD'}
+                                    onClick={toggleSigilVisibility}
+                                >
+                                    {sigilHidden ? 'HIDDEN ACROSS PD' : 'SHOWN ACROSS PD'}
+                                </button>
                             </>
                         ) : (
                             <>
