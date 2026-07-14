@@ -74,6 +74,29 @@
    ⑳ **"The" dropped from Cartography & Composer** everywhere shown — app UI +
    public docs (URL slugs `/docs/app/the-*` + grammatical lowercase 'the' left
    intact); Cartography title 15→19px.
+   **Late batch (Opus) — dev `a67144a` (tip):**
+   ㉑ **Lane Runner launch screen themed** — logo + TAP TO START were keyed to
+   `--text-color`, but the launch lives inside `.user-dropdown` which INVERTS the
+   colorway (surface = `--text-color`), so they painted the same colour as the
+   panel and vanished. Swapped to `--bg-color` ink: START = solid fill,
+   LEADERBOARD = outlined. Comment warns not to swap back.
+   ㉒ **Connect-pill Sigil ink** — with no faction flying it fell back to
+   `SIGIL_BONE` (#E9EDF4) and washed out on the light pill; now passes
+   `currentColor` so it inherits the pill ink. `.sigil-mark` gained a
+   `-webkit-text-stroke: .4px` (+ `paint-order`) for weight — Courier tops out at
+   700, so a stroke is the only lever. Connect-pill `.sigil-after-name` gap
+   halved (6→3px, `.btn-user`-scoped; profile rows keep 6px).
+   ㉓ **Sigil SHOW/HIDE — PLATFORM-WIDE (account column, not a view toggle).**
+   Toggle on the Forge (forged state) shows/hides the mark that trails the @name.
+   Hiding removes it for EVERYONE — the owner's own pill AND every visitor's
+   render of their profile. New `users.sigil_hidden` (boolean, default false) +
+   public SELECT grant, applied to Supabase and mirrored in
+   `supabase/migrations/20260714_sigil_hidden.sql`. Written via a guarded
+   `/api/me` verb (mirrors `forge_sigil`); read on `PUBLIC_USER_COLUMNS`; gated at
+   render on the pill (viewer's own row via `useAuth().sigilHidden`, live
+   `pd:sigil-visibility-changed` refetch) and the profile identity row (owner's
+   `user.sigil_hidden`). The first local-only take (notifs flag + body class +
+   CSS hide) was reverted — Brendon: "zero point hiding it for you only."
    **⚠ PENDING (Brendon's call):** he expected the Cartography long-press near
    3s; it was only 0.46s, now doubled to 0.92s — I offered the full 3s and am
    awaiting his word. Also still open (pre-existing): apply ↗ to the artwork +
