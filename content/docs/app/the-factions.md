@@ -137,7 +137,7 @@ holding pieces there, of **time-under-flag × standing**.
   the **Warden** of that collection.
 - **Siege** — a rival's grip crosses the siege line (85% of the leader's).
   A siege is **broadcast when it opens** and must be **held for 72 hours**
-  before anything falls. There is no sniping — every takeover is visible
+  before anything falls. There is no sniping — every siege is visible
   coming, which is exactly when the fighting gets loud.
 - **Conquest** — the siege holds and the lead flips. Broadcast once,
   permanent forever. The corners fall.

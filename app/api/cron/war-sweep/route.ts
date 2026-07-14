@@ -275,7 +275,7 @@ async function deriveWar(db: DB, age: number): Promise<void> {
       }
     } else {
       // The computed leader flipped. A conquest only lands if the challenger
-      // kept a siege open for the full window — every takeover is visible
+      // kept a siege open for the full window — every siege is visible
       // coming. Otherwise the old leader keeps the ground and the siege
       // clock runs.
       const siegeOpenMs = next.siege_faction === topFaction && next.siege_since
