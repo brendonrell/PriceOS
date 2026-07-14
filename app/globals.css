@@ -1191,29 +1191,35 @@ body.ascii-id-mode .id-row-sprite     { display: none !important; }
 .lr-row { display: flex; }
 .lr-cell { position: relative; width: 46px; height: 40px; }
 
-/* Lane Runner launch screen — the Y2K ASCII title + two options. Full-strength
-   ink (Rule #2); the logo scales down to fit any width. (Brendon, 2026-07-14) */
+/* Lane Runner launch screen — the Y2K ASCII title + two options. Lives inside
+   .user-dropdown, which INVERTS the colorway (background: var(--text-color);
+   color: var(--bg-color)) — so the readable ink here is --bg-color, and a fill
+   that should match the surface is --text-color. Keying these to --text-color
+   (as if on a normal surface) painted the logo/tag the SAME colour as the
+   dropdown and they vanished; the TAP TO START fill went invisible too. Ink =
+   --bg-color, primary fill = --bg-color, outlined fill = --text-color. Do NOT
+   swap these back. Full-strength both (Rule #2). (Brendon, 2026-07-14) */
 .lr-launch { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; padding: 8px 4px 12px; }
 .lr-logo {
     display: inline-block; margin: 2px auto 0;
     font-family: 'Courier New', Courier, monospace;
     font-size: clamp(7px, 3vw, 12px); line-height: 1.02;
-    white-space: pre; color: var(--text-color);
+    white-space: pre; color: var(--bg-color);
     font-weight: bold; overflow: hidden;
 }
 .lr-launch-tag {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 11px; font-weight: bold; letter-spacing: 1px; color: var(--text-color);
+    font-size: 11px; font-weight: bold; letter-spacing: 1px; color: var(--bg-color);
 }
 .lr-launch-opts { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 2px; }
 .lr-launch-btn {
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px; font-weight: bold; letter-spacing: 1px;
     padding: 7px 14px; border-radius: 4px; cursor: pointer;
-    border: 1px solid var(--text-color); background: var(--bg-color); color: var(--text-color);
+    border: 1px solid var(--bg-color); background: var(--text-color); color: var(--bg-color);
     -webkit-user-select: none; user-select: none; touch-action: manipulation;
 }
-.lr-launch-go { background: var(--text-color); color: var(--bg-color); }
+.lr-launch-go { background: var(--bg-color); color: var(--text-color); }
 .lr-launch-btn:active { transform: scale(0.96); }
 .lr-cell + .lr-cell { border-left: 1px dashed color-mix(in srgb, currentColor 22%, transparent); }
 .lr-car { position: absolute; left: 50%; top: 50%; width: 21px; height: 37px; transform: translate(-50%, -50%); display: block; }

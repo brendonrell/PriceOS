@@ -314,11 +314,14 @@ export function UserMenuButtons() {
                 <span className="user-text">{pillText}</span>
                 {/* THE SIGIL — the forged mark trails the @name (the sprite +
                     rank badge lead it on the left). Faction ink when a flag
-                    flies; menu-open only, like the name itself. */}
+                    flies; menu-open only, like the name itself. Neutral falls
+                    back to currentColor (the pill's own ink), NOT the bone
+                    default — the pill is an inverted/light surface, where
+                    bone-white washes out. */}
                 {menuOpen && isAuthed && sigilForged && siweAddress && (
                     <SigilArt
                         address={siweAddress}
-                        hex={ownFactionHex}
+                        hex={ownFactionHex ?? 'currentColor'}
                         className="sigil-after-name"
                         title="Your Sigil"
                     />

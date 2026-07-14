@@ -8,6 +8,13 @@
     font-weight: 700;
     white-space: nowrap;
     letter-spacing: 0.02em;
+    /* Extra weight — Courier has nothing above 700, so the thin marks read
+       faint at small sizes (the pill, the identity row, the tape). A stroke in
+       the glyph's own ink fattens every stroke; paint-order keeps the fill on
+       top so the counters stay open and the shape crisp. (Brendon, 2026-07-14) */
+    -webkit-text-stroke: 0.4px currentColor;
+    text-stroke: 0.4px currentColor;
+    paint-order: stroke fill;
 }
 .sigil-mark-fill {
     display: flex;
