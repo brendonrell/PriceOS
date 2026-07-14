@@ -4933,6 +4933,9 @@ button,
     align-items: center;
     justify-content: center;
 }
+/* Profile share pill — the ↗ share glyph runs two sizes larger than the stock
+   play icon so it reads at a glance (Brendon, 2026-07-14). */
+.profile-share-glyph { font-size: 14px; }
 
 /* ── PROFILE MORE TAB — stats moved from hero ───────────── */
 .more-tab-stats {

@@ -1232,10 +1232,12 @@ function ProfilePageBodyInner({
                                 else if (result === 'unavailable') showToast('Share: UNAVAILABLE');
                             }}
                         >
-                            {/* The canonical PD share glyph ↗ (Brendon, 2026-07-14),
-                                icon-only so a Takeover can sit beside it without the
-                                row overflowing. The title carries the label. */}
-                            <span className="btn-icon-play">↗&#xFE0E;</span>
+                            {/* The canonical PD share glyph ↗ (Brendon, 2026-07-14).
+                                Full pill with the SHARE label when it stands alone;
+                                icon-only when the Takeover pill sits beside it so the
+                                row can't overflow. The glyph runs two sizes larger. */}
+                            <span className="btn-icon-play profile-share-glyph">↗&#xFE0E;</span>
+                            {!canTakeover && <>{' '}<span>SHARE</span></>}
                         </button>
                     </div>
 

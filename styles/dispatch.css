@@ -94,8 +94,14 @@
 }
 
 /* The standard modal × on the paper — fixed so it survives the scroll;
-   closes the mode back to wherever the reader came from (DispatchClose). */
-.dp-close { position: fixed; }
+   closes the mode back to wherever the reader came from (DispatchClose).
+   Centered at the top, not the right corner (Brendon, 2026-07-14). */
+.dp-close {
+    position: fixed;
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+}
 
 /* ── The Digest slip — email sign-up in the paper's own chrome ── */
 .dp-digest-row { display: flex; gap: 8px; margin-top: 10px; }
