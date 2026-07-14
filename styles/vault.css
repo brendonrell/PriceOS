@@ -23,7 +23,10 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 14px 16px;
+    /* Sealed view stands ~2× the open head's height so the closed door reads as
+       a real card and the seal + verdict breathe (Brendon, 2026-07-14). */
+    min-height: 96px;
+    padding: 18px 16px;
     cursor: pointer;
     /* Machined-metal face: a hairline gradient reads as brushed steel behind
        the full-strength type (decor only, never drops contrast). */
@@ -33,9 +36,11 @@
 /* MiniDisc shutter — the whole face slides aside. */
 .vault-door.is-sliding { transform: translateX(-102%); }
 
-/* The ‰ is the PD per-mille LOGO mark, not a glyph — it wears Inter (the font
-   we ship to draw the logo), never the stage's Courier. See CLAUDE.md §9. */
-.vault-permille { font-family: var(--font-inter), Inter, sans-serif; font-weight: 700; }
+/* The ‰ is the REAL PD per-mille LOGO mark rendered as the logo SVG
+   (PerMilleMark) — pixel-exact to the corner logo, the SAME treatment as the
+   My PD "Price Logo" toggle — never a font glyph. Colour rides the seal's ink
+   via currentColor; size tracks the seal's font-size. (Brendon, 2026-07-14.) */
+.vault-permille { height: 1em; width: auto; display: block; }
 
 /* ── Inside ────────────────────────────────────────────────────────────── */
 

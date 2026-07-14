@@ -66,7 +66,7 @@ import AchievementsGrid from '../achievements/AchievementsGrid';
 import ProfileAnointedPanel from './ProfileAnointedPanel';
 import VaultPanel from './VaultPanel';
 import DiscordSection from './DiscordSection';
-import { MAX_PRICE_SCORE, VISIBLE_COUNT } from '../../lib/achievements/catalog';
+import { MAX_PRICE_SCORE, TOTAL_COUNT } from '../../lib/achievements/catalog';
 import Hero from '../hero/Hero';
 import CompletionismModal from '../CompletionismModal';
 import FollowButton from './FollowButton';
@@ -1518,7 +1518,7 @@ function ProfilePageBodyInner({
                                     <span className="ach-summary-label">PRICERANK</span>
                                 </span>
                                 <span className="ach-summary-stat">
-                                    <span className="ach-summary-val">{achData.unlockedCount} / {VISIBLE_COUNT}</span>
+                                    <span className="ach-summary-val">{achData.unlockedCount} / {TOTAL_COUNT.toLocaleString()}</span>
                                     <span className="ach-summary-label">UNLOCKED</span>
                                 </span>
                                 <span className="ach-summary-stat">

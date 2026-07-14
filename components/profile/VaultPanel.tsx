@@ -24,6 +24,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import SigilArt from '../SigilArt';
+import { PerMilleMark } from '../shell/PerMilleMark';
 import { factionForLogo } from '../../lib/factions/factions';
 import { pdRarity, pdRarityRank } from '../../lib/output/rarity';
 import { getProject } from '../../lib/project/registry';
@@ -132,7 +133,7 @@ export default function VaultPanel({
                         ) : faction ? (
                             `⚐${VS15}`
                         ) : (
-                            <span className="vault-permille">‰</span>
+                            <PerMilleMark className="vault-permille" />
                         )}
                     </span>
                     <span className="vault-inner-verdict">{verdict}</span>
@@ -142,7 +143,7 @@ export default function VaultPanel({
                 <div className="vault-inner">
                     <div className="vault-inner-head">
                         <span className="vault-inner-seal" style={{ color: ink }}>
-                            {sigilForged ? <SigilArt address={address} hex={ink} /> : faction ? `⚐${VS15}` : <span className="vault-permille">‰</span>}
+                            {sigilForged ? <SigilArt address={address} hex={ink} /> : faction ? `⚐${VS15}` : <PerMilleMark className="vault-permille" />}
                         </span>
                         <span className="vault-inner-verdict">{verdict}</span>
                         <span
