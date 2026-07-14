@@ -407,10 +407,21 @@ export default function LaneRunner() {
                 }}
             >
                 {!alive
-                    ? `WIPEOUT · ${score} · BEST ${best}${wr ? ` · WR ${wr.score} @${wr.handle}` : ''} — TAP`
+                    ? (
+                        <>
+                            {`WIPEOUT · ${score} · BEST ${best}`}
+                            {wr && <><br />{`WR ${wr.score} @${wr.handle}`}</>}
+                            {' — TAP'}
+                        </>
+                    )
                     : moment
                         ? moment
-                        : `SCORE ${score}${best > 0 ? ` · BEST ${best}` : ''}${wr ? ` · WR ${wr.score} @${wr.handle}` : ''}`}
+                        : (
+                            <>
+                                {`SCORE ${score}${best > 0 ? ` · BEST ${best}` : ''}`}
+                                {wr && <><br />{`WR ${wr.score} @${wr.handle}`}</>}
+                            </>
+                        )}
             </div>
             {lbOpen && (
                 <div className="lr-lb" aria-label="Lane Runner top 10">
