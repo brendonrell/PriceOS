@@ -32,11 +32,33 @@
    collector mechanic's exclusive brand; War stays Siege/Conquest).
    ⑤ **NEW CLAUDE.md §9 rule:** the ‰ is the PD LOGO → always Inter, never
    Courier unless genuinely required (Setup Codes).
-   **QUEUED this session → ClickUp (02 · PriceOS UI, Backlog):** Completionism
-   Zoom — 3-depth completion (slider=depth, tap=cell) `86baxgv9y` ·
-   Completionism leaderboard + podium for all boards `86baxgvgj` · Albums →
-   public / drop the private gate `86baxgvhk` · Rename Hostile Takeover →
-   Takeover + Share icon-only `86baxgvjg`.
+   **Evening batch (Opus) — dev `f2c64f8` + `ecc83a6`:**
+   ⑥ **↗ = the canonical PD share glyph** (Brendon's pick from a 20-option
+   round, GLYPHS.md §7). Profile Share pill is now glyph-only ↗ so a Takeover
+   fits beside it without reading as an account-flag.
+   ⑦ **"Hostile Takeover" → "Takeover"** everywhere (button · cast sheet · About
+   changelog · feature registry · both docs pages · glyph glossary).
+   ⑧ **Takeover gating** — the profile Takeover action shows ONLY when a
+   takeover is actually castable (target holds 3+ of one project); else the full
+   Share button stands alone.
+   ⑨ **Subtle podiums on every board** (PriceScore · Clubhouse · Lane Runner):
+   faint descending row tint + medal numerals ❶❷❸, no colour; Clubhouse keeps ⛳
+   for #1. Already DB-queryable via the daily social snapshot (no new plumbing
+   for a future podium filter).
+   ⑩ **Lane Runner launch screen** — a Y2K block-ASCII LANE RUNNER logo (road
+   edge + lane dashes, scales to any width) with TAP TO START + LEADERBOARD; the
+   game no longer auto-runs. Typing "lane runner" / "lanerunner" in Global
+   Search now opens it (FNV-1a hashes beside the porsche word).
+   ⑪ **Two rough docs sections** — What's Public / What's Private, wired into the
+   docs nav.
+   **STILL QUEUED → ClickUp (02 · PriceOS UI, Backlog):** Completionism Zoom —
+   3-depth completion (slider=depth, tap=cell) `86baxgv9y` · **Albums → public**
+   `86baxgvhk` — a REAL build, NOT a gate flip: albums are stored per-viewer in
+   private settings today and aren't even fetched for other profiles, so public
+   = serve the owner's albums to visitors in a READ-ONLY view · Completionism
+   **leaderboard** itself `86baxgvgj` (podium shipped; needs the ranking metric).
+   **Done this session:** Takeover rename + ↗ + gating `86baxgvjg` (closed).
+   Small open follow-up: apply ↗ to the artwork + project share buttons too.
    **Raised earlier, NOT committed (ideas):** Portfolio wow-pass (real floor/
    last/avg/ATH — today only mint-mode is real) then hide empty stubs;
    Incognito Proxy = UI shell only (real = medium build).
