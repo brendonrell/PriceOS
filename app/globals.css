@@ -1527,6 +1527,9 @@ body.ascii-id-mode .id-row-sprite     { display: none !important; }
 .notif-item--high.read {
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hothurt) 50%, transparent);
 }
+/* In the Pings accordion only, a completed (read) ping drops its ring entirely
+   — no half-strength survivor (Brendon, 2026-07-14). */
+#notifList .notif-item--high.read { box-shadow: none; }
 
 /* Low-priority pings — sunk to the bottom (sorted in PingsBox) and dimmed a
    touch so they read as background. */
