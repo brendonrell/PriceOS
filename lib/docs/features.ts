@@ -247,7 +247,7 @@ export const ATLAS: AtlasFeature[] = [
     F(188, 'The Bequeath', 'WOW Tier'),
     F(189, 'The Dispatch', 'WOW Tier'),
     F(190, 'The Dossier', 'WOW Tier'),
-    F(191, 'Hostile Takeover', 'WOW Tier'),
+    F(191, 'Takeover', 'WOW Tier'),
     F(192, 'The Kindred', 'WOW Tier'),
     F(193, 'The Lantern', 'WOW Tier'),
     F(194, 'The Ledger', 'WOW Tier'),

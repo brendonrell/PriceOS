@@ -102,7 +102,7 @@ export default function TakeoverCastModal() {
       </div>
       {isOpen && (
         <div className="modal-info tko-sheet" style={{ marginTop: 0, maxWidth: 460, width: '100%' }}>
-          <div className="tko-head">{'⚑︎'} HOSTILE TAKEOVER</div>
+          <div className="tko-head">{'⚑︎'} TAKEOVER</div>
           <div className="tko-sub">Target: <span className="tko-target">{targetLabel}</span></div>
 
           {positions == null ? (

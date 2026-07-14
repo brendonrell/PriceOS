@@ -1,12 +1,12 @@
 ---
-title: "For Collectors — Hostile Takeover ⚑"
+title: "For Collectors — Takeover ⚑"
 description: "Wall Street's most dramatic move, translated to collecting: one blanket premium offer on another collector's entire position in a project. 72 hours, public, non-cancellable."
 category: "for-collectors"
 keywords: ["hostile takeover", "takeover", "offers", "premium", "tender", "withstood"]
 last_updated: "2026-07-12"
 ---
 
-# Hostile Takeover ⚑
+# Takeover ⚑
 
 A takeover is one collector making a public, premium, simultaneous offer on **every piece** of another collector's position in a single project. The street gets to watch.
 

@@ -252,6 +252,17 @@ These belong to a *user*, never to an action.
 - **⧉ (U+29C9) = COPY** — copy-to-clipboard affordance (address/ID copy in
   ProfilePageBody, ProjectMorePanel, AmbientStrip, StickerManagerModal).
   Never reuse for anything else. (Noted 2026-07-11.)
+- **↗ (U+2197) = SHARE** — the canonical PD share/send glyph. The profile
+  action-row share pill wears it icon-only (so a ⚑ Takeover fits beside it),
+  and it's THE share mark platform-wide. Brendon's pick 2026-07-14 from a
+  20-option round — chosen for a clean "send this outward" read with zero
+  flag/report baggage (a lone ⚑ was misreading as "report this account").
+  Device-verify as monochrome text on iOS per the #1 gate.
+- **Podium medals ❶ ❷ ❸ (U+2776–U+2778)** = the top-3 ranks on every
+  leaderboard (PriceScore · Clubhouse · Lane Runner). Filled negative-circled
+  digits; ranks 4+ stay plain numerals. The Clubhouse keeps ⛳ for #1 (its
+  leader flag) and wears ❷ ❸ for 2nd/3rd. Paired with a faint descending row
+  tint, NO colour (Brendon, 2026-07-14). Device-verify per the #1 gate.
 - Force **Courier** (`'Courier New', Courier, monospace`) anywhere a glyph shows.
 - When a glyph doesn't fit a context, it's fine to **omit** it rather than force
   a mismatched icon (taste call — Brendon, 2026-06-14).
@@ -395,7 +406,7 @@ Wishlist rows (and the held-by / collected-by chips):
 | The Cartography (living map) | ◫ | U+25EB | from the feature's own task name (`FEATURE · The Cartography ◫`); modal header + docs |
 | The Rewind (time scrubber) | ◄ | U+25C4 | the spec's candidate glyph, adopted; RewindBar banner |
 | The Dispatch (morning paper) | ▤ | U+25A4 | NEW — printed-page square; leads the home news rail pill. No collision (▥ freed 2026-07-12 stays free) |
-| Hostile Takeover | ⚑ | U+2691 | NEW — the raid flag; profile inscriptions, cast sheet, Offers-HQ badge. Deliberately NOT ◈ (spec draft used it, but ◈ is the streak glyph) |
+| Takeover | ⚑ | U+2691 | the raid flag; profile inscriptions, cast sheet, Offers-HQ badge. Deliberately NOT ◈ (spec draft used it, but ◈ is the streak glyph). Renamed from "Hostile Takeover" 2026-07-14 |
 | The Composer (query builder) | ⊚ | U+229A | Brendon's pick 2026-07-13 from a 20-option round — math's composition operator (f∘g), the truest "compose". Wears: modal title, Spell Book pill, SAVE AS PROGRAM, Programs shelf. Replaced the spec-era ◎, which moved to Price Lens the same day. Device-verify per the #1 gate |
 | Price Lens | ◎ | U+25CE | took the bullseye from the Composer (Brendon, 2026-07-13) — the lens you read prices through. MY PD pill + docs feature index. Frees **⌾ (U+233E)**, Price Lens's old mark. The Genome's docs entry (which also wore ◎) moved to ≎ the same day — no collision |
 | The Genome | ≎ | U+224E | Brendon's pick 2026-07-13 — the stacked kin-pair, deliberate blood-relative of ≍ Closest Sibling (§7) so the two kinship reads rhyme. Docs feature index + any future Genome surface. Device-verify per the #1 gate |
@@ -416,7 +427,7 @@ colour; a swatch/flag in the faction hex is its only mark.
 |---|---|---|---|
 | Corner (quadrant, fallen) | ▟ | U+259F | block-element quadrant — the corner IS a quadrant; mirrored per corner via CSS transforms |
 | Siege (contested ground) | ▞ | U+259E | opposing quadrants — two colours contesting one square |
-| Banner (swept / conquest) | ⚐ | U+2690 | the HOLLOW flag. Deliberately NOT ⚑ (U+2691) — that's Hostile Takeover's, and the takeover is money while the banner is war |
+| Banner (swept / conquest) | ⚐ | U+2690 | the HOLLOW flag. Deliberately NOT ⚑ (U+2691) — that's Takeover's, and the takeover is money while the banner is war |
 | The Book of Conquests | ≣ | U+2263 | ledger lines — the chronicle |
 | Struck from the stone / the crypt | ‡ | U+2021 | double dagger — kin to First Blood's single † (§8), struck twice |
 

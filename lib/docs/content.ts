@@ -46,6 +46,10 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
         slugs: ['', 'quickstart'],
     },
     {
+        title: 'Public & Private',
+        slugs: ['whats-public', 'whats-private'],
+    },
+    {
         title: 'For Artists',
         slugs: [
             'for-artists/how-pd-works',

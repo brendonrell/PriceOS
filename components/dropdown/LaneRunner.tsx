@@ -428,7 +428,7 @@ export default function LaneRunner() {
                     {lb.length === 0 && <div className="lr-lb-row">No records yet — set one.</div>}
                     {lb.map((row, i) => (
                         <div className="lr-lb-row" key={`${row.handle}-${i}`}>
-                            <span className="lr-lb-rank">{i + 1}</span>
+                            <span className="lr-lb-rank">{i < 3 ? `${'❶❷❸'[i]}︎` : i + 1}</span>
                             <span className="lr-lb-handle">@{row.handle}</span>
                             <span className="lr-lb-score">{row.best}</span>
                         </div>

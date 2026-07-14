@@ -2295,6 +2295,15 @@ body.theme-bright .news-pill-name {
     border-radius: 4px;
 }
 .lb-row.lb-me .lb-pos { opacity: 1; }
+
+/* Podium — the top three wear a faint DESCENDING tint + a medal numeral, no
+   colour (Brendon, 2026-07-14): a little shine so 2nd and 3rd are worth it.
+   Declared after .lb-me so a podium row you also own still reads as podium. */
+.lb-row.lb-podium { border-radius: 4px; }
+.lb-row.lb-rank1 { background: color-mix(in srgb, var(--text-color) 13%, transparent); }
+.lb-row.lb-rank2 { background: color-mix(in srgb, var(--text-color) 9%, transparent); }
+.lb-row.lb-rank3 { background: color-mix(in srgb, var(--text-color) 5%, transparent); }
+.lb-row.lb-podium .lb-pos { opacity: 1; font-size: 15px; }
 .fm-stat b { font-weight: bold; }
 
 /* ============================================================

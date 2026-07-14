@@ -25,6 +25,8 @@ import CollectedPair from './hero/CollectedPair';
 import type { LeaderboardRow } from '../app/api/leaderboard/route';
 
 const VS15 = '︎';
+/* Podium medals for the top three (GLYPHS.md §7); ranks 4+ stay plain. */
+const MEDALS = [`❶${VS15}`, `❷${VS15}`, `❸${VS15}`];
 
 export default function LeaderboardModal() {
     const { openModal, close } = useModal();
@@ -89,8 +91,8 @@ export default function LeaderboardModal() {
                             <div className="fm-empty">No ranked collectors yet — the board is wide open.</div>
                         ) : (
                             rows.map((r, i) => (
-                                <div className={`fm-row lb-row${me === r.address ? ' lb-me' : ''}`} key={r.address}>
-                                    <span className="lb-pos">{i + 1}</span>
+                                <div className={`fm-row lb-row${i < 3 ? ` lb-podium lb-rank${i + 1}` : ''}${me === r.address ? ' lb-me' : ''}`} key={r.address}>
+                                    <span className="lb-pos">{i < 3 ? MEDALS[i] : i + 1}</span>
                                     <div className="fm-row-main">
                                         <div className="fm-row-id">
                                             <CollectedPair handle={r.handle} />

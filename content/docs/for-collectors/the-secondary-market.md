@@ -1,6 +1,6 @@
 ---
 title: "For Collectors — The Secondary Market"
-description: "How PD Outputs trade after mint: PD's own market and offer book, Hostile Takeovers, third-party venues, the 5% EIP-2981 royalty, and how to verify authenticity before buying."
+description: "How PD Outputs trade after mint: PD's own market and offer book, Takeovers, third-party venues, the 5% EIP-2981 royalty, and how to verify authenticity before buying."
 category: "for-collectors"
 keywords: ["secondary market", "trading", "offers", "listings", "takeover", "royalties", "verification", "isProject"]
 last_updated: "2026-07-12"
@@ -17,7 +17,7 @@ PD runs its **own order book** — listings and offers live in the app, and the 
 - **List, buy, and offer** from any Output page. Offers come in three scopes: a single piece, **any piece of a collection**, or **any piece with a trait** you name.
 - **Batch actions** — multi-select pieces to list, re-list, or offer on many at once with one signature; **sweeps** fill several listings in one motion.
 - **The Offers book** — every Project's **+More → Offers** tab is the offers HQ: the full live book of item, collection, and trait bids, searchable, with each row actionable on its piece.
-- **[Hostile Takeover](/docs/for-collectors/hostile-takeover) ⚑** — the blanket premium bid on another collector's entire position. Takeover offers ride the same book, wear a badge in the Offers tab, and cannot be withdrawn during their 72-hour window — enforceable precisely because the book is PD's own.
+- **[Takeover](/docs/for-collectors/hostile-takeover) ⚑** — the blanket premium bid on another collector's entire position. Takeover offers ride the same book, wear a badge in the Offers tab, and cannot be withdrawn during their 72-hour window — enforceable precisely because the book is PD's own.
 
 During the test phase the book settles in sim ETH; at chain cutover the same book carries wallet-signed Seaport orders and settles on-chain. Nothing about the surfaces changes.
 

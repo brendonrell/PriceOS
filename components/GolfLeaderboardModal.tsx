@@ -18,6 +18,8 @@ import { lockBodyScroll, unlockBodyScroll } from '../lib/state/bodyScrollLock';
 import { golfLeaderboard } from '../lib/project/golfScore';
 
 const VS15 = '︎';
+/* Podium medals for 2nd/3rd; #1 keeps the ⛳ clubhouse flag (GLYPHS.md §7). */
+const MEDALS = [`❶${VS15}`, `❷${VS15}`, `❸${VS15}`];
 
 export default function GolfLeaderboardModal() {
     const { openModal, currentModalSlug, close } = useModal();
@@ -62,8 +64,8 @@ export default function GolfLeaderboardModal() {
                             <div className="fm-empty">No ranked engines yet.</div>
                         ) : (
                             rows.map((r) => (
-                                <div className={`fm-row lb-row golf-row${r.slug === currentModalSlug ? ' lb-me' : ''}`} key={r.slug}>
-                                    <span className="lb-pos">{r.rank === 1 ? `⛳${VS15}` : r.rank}</span>
+                                <div className={`fm-row lb-row golf-row${r.rank <= 3 ? ` lb-podium lb-rank${r.rank}` : ''}${r.slug === currentModalSlug ? ' lb-me' : ''}`} key={r.slug}>
+                                    <span className="lb-pos">{r.rank === 1 ? `⛳${VS15}` : r.rank <= 3 ? MEDALS[r.rank - 1] : r.rank}</span>
                                     <div className="fm-row-main">
                                         <div className="fm-row-id golf-id">
                                             <span className="golf-artist">@{r.artistHandle}{r.rank === 1 && <span className="golf-flag" title="Clubhouse leader">{` ⛳${VS15}`}</span>}</span>

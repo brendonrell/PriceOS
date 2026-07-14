@@ -472,6 +472,21 @@ function ProfilePageBodyInner({
         collapsedGroups, toggleGroupCollapse,
     } = useCollectedGallery(holdings);
 
+    /* Takeover only shows when one could actually be CAST on this wallet — the
+       floor is 3+ pieces of a single project (api/takeover). No holdings, or
+       only scattered singles, means no takeover is possible → hide it and keep
+       the full Share button. Never on your own profile. */
+    const canTakeover = useMemo(() => {
+        if (isOwnProfile) return false;
+        const perProject = new Map<string, number>();
+        for (const h of holdings) {
+            const n = (perProject.get(h.slug) ?? 0) + 1;
+            perProject.set(h.slug, n);
+            if (n >= 3) return true;
+        }
+        return false;
+    }, [isOwnProfile, holdings]);
+
     // Identity-row copy: copies the chosen ENS if set, else the FULL wallet
     // address (row shows truncated, copy gives the whole thing — same as the
     // settings wallet copy). Inline checkmark swap for 1.5s.
@@ -1181,14 +1196,15 @@ function ProfilePageBodyInner({
                     />
                     <div className="action-row">
                         <FollowButton targetAddress={user.address} targetHandle={user.handle ?? displayHandle} />
-                        {/* HOSTILE TAKEOVER — first-class profile action (spec
-                            86b9g6c7c): open the cast sheet on this collector.
-                            Only on OTHER people's profiles; the sheet + API
-                            enforce the 3+-pieces and premium rules. */}
-                        {!isOwnProfile && (
+                        {/* TAKEOVER — first-class profile action (spec 86b9g6c7c):
+                            open the cast sheet on this collector. Shown ONLY when a
+                            takeover could actually be cast (3+ pieces of one
+                            project); the sheet + API enforce the premium rules.
+                            Below that floor the full Share button stands alone. */}
+                        {canTakeover && (
                             <button
                                 className="btn-soundtrack tko-cast-entry"
-                                title={`Cast a Hostile Takeover on @${displayHandle}`}
+                                title={`Cast a Takeover on @${displayHandle}`}
                                 onClick={() => openModal('takeover', user.handle ?? displayHandle, user.address)}
                             >
                                 {'⚑︎'} TAKEOVER
@@ -1210,13 +1226,14 @@ function ProfilePageBodyInner({
                                 else if (result === 'unavailable') showToast('Share: UNAVAILABLE');
                             }}
                         >
-                            {/* Play icon stays on the soundtrack button no matter the
-                                label (Brendon, 2026-06-15). */}
-                            <span className="btn-icon-play">▶&#xFE0E;</span>{' '}<span>SHARE</span>
+                            {/* The canonical PD share glyph ↗ (Brendon, 2026-07-14),
+                                icon-only so a Takeover can sit beside it without the
+                                row overflowing. The title carries the label. */}
+                            <span className="btn-icon-play">↗&#xFE0E;</span>
                         </button>
                     </div>
 
-                    {/* HOSTILE TAKEOVER inscriptions — active windows + the
+                    {/* TAKEOVER inscriptions — active windows + the
                         permanent marks. Renders nothing when clean. */}
                     <TakeoverBanners address={user.address} />
 
