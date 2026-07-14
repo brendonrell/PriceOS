@@ -624,10 +624,9 @@ body.sentiment-on .sentiment-widget {
 .ping-ic--MINT,
 .ping-ic--SALE { font-size: 16px; transform: translateY(-1px); } /* ✶ small + low */
 
-/* Seen (read) pings fade back + strike through to read as "handled"; the strike
-   skips the glyph so the icon stays clean. The empty-state line is muted. */
-.notif-item.read { opacity: 0.8; text-decoration: line-through; }
-.notif-item.read .n-icon { text-decoration: none; }
+/* Seen (read) pings fade back to read as "handled" — half-opacity, no strike.
+   Strikethrough is reserved for completed to-dos (crossed off = "done"). */
+.notif-item.read { opacity: 0.5; }
 
 /* The SEEN divider — the boundary between the fresh stack and history in the
    Pings list. Full-strength label (it carries meaning), hairlines both sides. */
