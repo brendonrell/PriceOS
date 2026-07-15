@@ -247,7 +247,10 @@ a.notif-item--link:hover { opacity: 0.85; }
     max-height: 56vh;
     overflow-y: auto; scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
-    padding: 4px 14px 14px;
+    /* 16px top = the store grid's top gap, so the same 406px cap shows exactly
+       6.5 rows (6 full + a half peek), not 6.7 — the source of the height
+       mismatch (Brendon, 2026-07-15). */
+    padding: 16px 14px 14px;
     font-family: 'Courier New', Courier, monospace;
 }
 .skm-wrap::-webkit-scrollbar { display: none; }
