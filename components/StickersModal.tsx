@@ -462,15 +462,22 @@ export default function StickersModal() {
                         ) : marketOn ? (
                             <StickerMarket />
                         ) : expanded ? (
+                            /* The cap + scroll ride this plain-block wrapper, never the
+                               grid itself — iOS Safari won't clip a grid that is its own
+                               scroll port, so all 9 rows leaked. Wrapper clips to ~6.5
+                               rows and scrolls; the grid just lays out. */
                             <div
-                                className="ss-grid-view"
+                                className="ss-grid-scroll"
                                 ref={gridRef}
                                 onScroll={(e) => { gridYRef.current = e.currentTarget.scrollTop; }}
-                                /* Mobile/tablet: two-up columns; the 6.5-row height cap + scroll
-                                   lives in CSS so rows keep their exact height. */
-                                style={!isDesktop ? { gridTemplateColumns: `repeat(${Math.max(2, Math.ceil(REAL_SHEETS.length / 9))}, 1fr)` } : undefined}
                             >
-                                {REAL_SHEETS.map((s) => (isDesktop ? renderPreviewCard(s) : renderCard(s)))}
+                                <div
+                                    className="ss-grid-view"
+                                    /* Mobile/tablet: two-up columns. */
+                                    style={!isDesktop ? { gridTemplateColumns: `repeat(${Math.max(2, Math.ceil(REAL_SHEETS.length / 9))}, 1fr)` } : undefined}
+                                >
+                                    {REAL_SHEETS.map((s) => (isDesktop ? renderPreviewCard(s) : renderCard(s)))}
+                                </div>
                             </div>
                         ) : (
                             <div className="ss-rail" ref={railRef} onScroll={(e) => saveRailX(e.currentTarget.scrollLeft)}>

@@ -246,22 +246,28 @@
    2026-06-23 — compact carousel needs mouse drag). */
 .ss-rail[data-dragging] { scroll-snap-type: none; cursor: grabbing; }
 
-/* Expanded view — two sheets across, scrolls down inside the sheet. */
+/* Expanded view — two sheets across, scrolls down inside the sheet.
+   THE CAP + SCROLL live on this plain-block wrapper, NOT on the grid. iOS
+   Safari refuses to clip a grid-container that is simultaneously the flex-child
+   AND its own scroll port — max-height was ignored and all 9 rows leaked. A
+   plain block that owns min-height:0 + max-height + overflow clips and scrolls
+   reliably (the proven .skm-wrap shape); the grid inside just lays out. */
+.ss-grid-scroll {
+    flex: 0 1 auto;
+    min-height: 0;
+    max-height: 56vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.ss-grid-scroll::-webkit-scrollbar { display: none; }
+.ss-grid-scroll[data-dragging] { cursor: grabbing; }
 .ss-grid-view {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 14px;
     padding: 16px 18px 8px;
-    max-height: 56vh;
-    /* Flex child of the sheet column: without this the grid's auto min-height
-       equals its full content, defeating max-height so EVERY row showed. This
-       lets the cap bite and the grid scroll (matches .skm-wrap). */
-    min-height: 0;
-    overflow-y: auto;
-    scrollbar-width: none;
 }
-.ss-grid-view::-webkit-scrollbar { display: none; }
-.ss-grid-view[data-dragging] { cursor: grabbing; }
 .ss-grid-view .ss-card { width: auto; }
 
 .ss-card {
@@ -447,11 +453,14 @@
         padding: 0 4px;
         border-bottom: none;
     }
-    /* Show 6.5 rows then scroll — 6 full + a peek of the 7th. Rows keep their
-       exact height (align-content never stretches them); the grid just clips and
-       scrolls (Brendon, 2026-07-12). A row = 62px art + 2px border + 14px gap. */
-    .ss-grid-view {
+    /* Show ~6.5 rows then scroll — 6 full + a peek of the 7th. The cap rides
+       the scroll wrapper; the grid keeps align-content:start so its rows never
+       stretch to fill (Brendon, 2026-07-12/15). A row = 62px art + 2px border
+       + 14px gap. */
+    .ss-grid-scroll {
         max-height: calc(16px + 6 * 78px + 32px);
+    }
+    .ss-grid-view {
         align-content: start;
     }
 }

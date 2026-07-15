@@ -66,6 +66,13 @@
     animation: cmp-glyph-breathe 1.6s ease-in-out infinite;
 }
 .gsr-row.gsr-composer .gsr-main { font-weight: bold; letter-spacing: 1px; }
+/* Bright colorway → the dropdown panel flips DARK (its bg is --text-color), and
+   --stat-bg there is a dark-ink wash that vanishes on the dark panel. Tint the
+   pill from --bg-color instead so it still subtly reads (Brendon, 2026-07-15:
+   keep current on the light panel, 6% on the dark one). */
+body.theme-bright .gsr-row.gsr-composer {
+    background: color-mix(in srgb, var(--bg-color) 6%, transparent);
+}
 
 /* ── top bar ── */
 .cmp-topbar {
