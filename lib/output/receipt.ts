@@ -444,3 +444,271 @@ export async function shareRarityReceipt(slug: string, id: number): Promise<Rece
     URL.revokeObjectURL(url);
     return 'downloaded';
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE IDENTITY PLATE — the third King-Mode document. Where the Rarity Receipt
+   and The Receipt frame an OUTPUT, the Identity Plate frames a PERSON: the live
+   PriceSprite as the hero portrait, the wallet's @handle as the headline, and
+   the account's standing (PriceRank · PriceScore · PriceStreak · Achievements)
+   composited onto the same near-black card in the user's own colorway accent.
+   Same client-canvas build + native-share / download path as the receipts —
+   no hosting, no AI, $0.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+export interface IdentityPlateData {
+    /** Live PriceSprite face (single-string ASCII) — the hero portrait. */
+    face: string;
+    /** @handle when set, else a 0x… short address, else 'anon'. */
+    name: string;
+    /** PriceRank glyph — ⓿ / ❶..❿. */
+    rankGlyph: string;
+    /** Live account standing. */
+    priceScore: number;
+    streak: number;
+    achUnlocked: number;
+    achTotal: number;
+}
+
+function parseRGB(c: string): [number, number, number] | null {
+    const s = c.trim();
+    const m = s.match(/rgba?\(([^)]+)\)/i);
+    if (m) {
+        const p = m[1].split(',').map((x) => parseFloat(x));
+        if (p.length >= 3 && isFinite(p[0]) && isFinite(p[1]) && isFinite(p[2])) {
+            return [p[0], p[1], p[2]];
+        }
+    }
+    const h6 = s.match(/^#([0-9a-f]{6})$/i);
+    if (h6) {
+        const n = parseInt(h6[1], 16);
+        return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    }
+    const h3 = s.match(/^#([0-9a-f]{3})$/i);
+    if (h3) {
+        return [
+            parseInt(h3[1][0] + h3[1][0], 16),
+            parseInt(h3[1][1] + h3[1][1], 16),
+            parseInt(h3[1][2] + h3[1][2], 16),
+        ];
+    }
+    return null;
+}
+
+const luma = (rgb: [number, number, number]) => 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2];
+
+/** The user's colorway accent that reliably reads on the near-black plate: the
+ *  lighter of --text-color / --bg-color, or INK when both are too dark to pop
+ *  off the #0B0B0D ground (a light colorway's dark text can't be the accent). */
+function plateAccent(): string {
+    if (typeof document === 'undefined') return INK;
+    const root = getComputedStyle(document.documentElement);
+    let best = INK;
+    let bestL = -1;
+    for (const v of ['--text-color', '--bg-color']) {
+        const c = root.getPropertyValue(v).trim();
+        const rgb = c ? parseRGB(c) : null;
+        if (!rgb) continue;
+        const L = luma(rgb);
+        if (L > bestL) { bestL = L; best = c; }
+    }
+    return bestL >= 70 ? best : INK;
+}
+
+/** Build the Identity Plate card canvas for a wallet, or null if it can't. */
+export async function buildIdentityPlate(d: IdentityPlateData): Promise<HTMLCanvasElement | null> {
+    if (typeof document === 'undefined') return null;
+    if (document.fonts?.ready) { try { await document.fonts.ready; } catch { /* fallbacks */ } }
+
+    const accent = plateAccent();
+    const mono = "'Courier New', Courier, monospace";
+    const rubik = cssFont('--font-rubik-mono', 'monospace');
+
+    const card = document.createElement('canvas');
+    card.width = W;
+    card.height = H;
+    const ctx = card.getContext('2d');
+    if (!ctx) return null;
+
+    // Ground.
+    ctx.fillStyle = BG;
+    ctx.fillRect(0, 0, W, H);
+
+    // ── Frosted header — title left, dateline right. ─────────────────────────
+    ctx.fillStyle = INK;
+    ctx.globalAlpha = 0.07;
+    ctx.fillRect(0, 0, W, 96);
+    ctx.globalAlpha = 0.62;
+    ctx.textBaseline = 'alphabetic';
+    ctx.textAlign = 'left';
+    ctx.font = `26px ${mono}`;
+    ctx.fillText('PRICE DISCUSSION · IDENTITY', PAD, 60);
+    const dateline = fmtDate(Date.now());
+    const dlw = ctx.measureText(dateline).width;
+    ctx.fillText(dateline, W - PAD - dlw, 60);
+    ctx.globalAlpha = 1;
+
+    // ── Sprite hero — the live familiar, big, accent-lit, colorway frame. ────
+    const boxX = PAD, boxY = 140, boxW = W - PAD * 2, boxH = 560;
+    ctx.fillStyle = accent;                 // faint wash for depth
+    ctx.globalAlpha = 0.06;
+    ctx.fillRect(boxX, boxY, boxW, boxH);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = INK;                    // caption
+    ctx.globalAlpha = 0.5;
+    ctx.font = `18px ${mono}`;
+    ctx.fillText('◎ PRICESPRITE', boxX, boxY - 14);
+    ctx.globalAlpha = 1;
+    // Fit the face to the box, draw it centred with an accent glow.
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    let fs = 240;
+    ctx.font = `bold ${fs}px ${mono}`;
+    while (fs > 48 && ctx.measureText(d.face).width > boxW - 120) {
+        fs -= 4;
+        ctx.font = `bold ${fs}px ${mono}`;
+    }
+    ctx.save();
+    ctx.shadowColor = accent;
+    ctx.shadowBlur = 30;
+    ctx.fillStyle = INK;
+    ctx.fillText(d.face, W / 2, boxY + boxH / 2 + 6);
+    ctx.restore();
+    ctx.strokeStyle = accent;               // colorway frame
+    ctx.lineWidth = 3;
+    ctx.strokeRect(boxX, boxY, boxW, boxH);
+
+    // ── Name headline — the wallet's @handle in Rubik Mono, accent. ──────────
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    let y = boxY + boxH + 74;
+    ctx.fillStyle = accent;
+    ctx.globalAlpha = 0.85;
+    ctx.font = `24px ${mono}`;
+    ctx.fillText('◈ SIGNED IN AS', PAD, y);
+    ctx.globalAlpha = 1;
+    y += 96;
+    let ns = 88;
+    ctx.font = `${ns}px ${rubik}`;
+    while (ns > 34 && ctx.measureText(d.name).width > W - PAD * 2) {
+        ns -= 3;
+        ctx.font = `${ns}px ${rubik}`;
+    }
+    ctx.fillStyle = accent;
+    ctx.fillText(d.name, PAD, y);
+
+    // Divider.
+    y += 44;
+    ctx.strokeStyle = accent;
+    ctx.globalAlpha = 0.22;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(PAD, y);
+    ctx.lineTo(W - PAD, y);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // ── Stat trio — PRICERANK · PRICESCORE · STREAK. ─────────────────────────
+    const cols = [
+        { big: d.rankGlyph, label: 'PRICERANK' },
+        { big: d.priceScore.toLocaleString(), label: 'PRICESCORE' },
+        { big: d.streak > 0 ? `◈ ${d.streak}` : '◈ 0', label: d.streak > 0 ? 'DAY STREAK' : 'NO STREAK' },
+    ];
+    const cx = [W * 0.25, W * 0.5, W * 0.75];
+    const numY = y + 96;
+    const labY = numY + 38;
+    ctx.textAlign = 'center';
+    for (let i = 0; i < cols.length; i++) {
+        // Bold mono for the trio — reliably renders the circled-numeral rank
+        // and the ◈ streak glyph (both absent from the Rubik display face),
+        // and matches how the receipts treat secondary stats.
+        let bs = 60;
+        ctx.font = `bold ${bs}px ${mono}`;
+        while (bs > 24 && ctx.measureText(cols[i].big).width > W / 3 - 40) {
+            bs -= 2;
+            ctx.font = `bold ${bs}px ${mono}`;
+        }
+        ctx.fillStyle = accent;
+        ctx.fillText(cols[i].big, cx[i], numY);
+        ctx.fillStyle = INK;
+        ctx.globalAlpha = 0.55;
+        ctx.font = `20px ${mono}`;
+        ctx.fillText(cols[i].label, cx[i], labY);
+        ctx.globalAlpha = 1;
+    }
+
+    // ── Achievements bar. ────────────────────────────────────────────────────
+    const barLabelY = labY + 92;
+    ctx.textAlign = 'left';
+    ctx.fillStyle = INK;
+    ctx.font = `26px ${mono}`;
+    ctx.fillText('ACHIEVEMENTS', PAD, barLabelY);
+    ctx.textAlign = 'right';
+    ctx.globalAlpha = 0.8;
+    ctx.fillText(`${d.achUnlocked.toLocaleString()} / ${d.achTotal.toLocaleString()}`, W - PAD, barLabelY);
+    ctx.globalAlpha = 1;
+    ctx.textAlign = 'left';
+    const trackY = barLabelY + 22;
+    const trackW = W - PAD * 2;
+    ctx.fillStyle = INK;
+    ctx.globalAlpha = 0.15;
+    roundRect(ctx, PAD, trackY, trackW, 10, 5);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    const frac = d.achTotal > 0 ? Math.max(0, Math.min(1, d.achUnlocked / d.achTotal)) : 0;
+    if (frac > 0) {
+        ctx.fillStyle = accent;
+        roundRect(ctx, PAD, trackY, Math.max(10, trackW * frac), 10, 5);
+        ctx.fill();
+    }
+
+    // ── Footer. ──────────────────────────────────────────────────────────────
+    ctx.fillStyle = INK;
+    ctx.globalAlpha = 0.5;
+    ctx.font = `24px ${mono}`;
+    ctx.fillText(`${d.name} · PRICEOS`, PAD, H - PAD);
+    ctx.textAlign = 'right';
+    ctx.fillText('one wallet · one identity', W - PAD, H - PAD);
+    ctx.globalAlpha = 1;
+    ctx.textAlign = 'left';
+
+    return card;
+}
+
+/** Build + share the Identity Plate. Native share sheet with the PNG where
+ *  files are shareable; downloads it otherwise. Same path as the receipts. */
+export async function shareIdentityPlate(d: IdentityPlateData): Promise<ReceiptResult> {
+    const card = await buildIdentityPlate(d);
+    if (!card) return 'unavailable';
+
+    const blob = await new Promise<Blob | null>((res) => card.toBlob(res, 'image/png'));
+    if (!blob) return 'unavailable';
+
+    const safe = d.name.replace(/[^a-z0-9]+/gi, '').toLowerCase() || 'anon';
+    const name = `priceos-identity-${safe}.png`;
+    const file = new File([blob], name, { type: 'image/png' });
+
+    const nav = typeof navigator !== 'undefined' ? navigator : null;
+    if (nav && typeof nav.share === 'function' && nav.canShare?.({ files: [file] })) {
+        try {
+            await nav.share({
+                files: [file],
+                title: `${d.name} · Price Discussion`,
+                text: 'My PriceOS identity plate',
+            });
+            return 'shared';
+        } catch (err) {
+            if (err instanceof Error && err.name === 'AbortError') return 'shared';
+            // fall through to download
+        }
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    return 'downloaded';
+}
