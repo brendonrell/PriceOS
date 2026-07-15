@@ -8,7 +8,33 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-14 POLISH — all on dev, auto-deployed, tree clean.**
+0. ✅ **2026-07-15 POLISH — all on dev, auto-deployed, tree clean. Tip `f8783aa`.**
+   Ad-hoc visual batch (Opus session):
+   ① **Composer Programs button** reverted to the filled grey pill (black text).
+   ② **Profile Share button** back to the ▶ play icon — the ↗ share-glyph trial
+   is REVERTED on the buttons; ↗ stays catalogued in GLYPHS.md, just not worn.
+   (SUPERSEDES the old "apply ↗ to the share buttons" follow-up — that's DEAD.)
+   ③ **Output "Full Screen"** now opens in-app via the smooth router (dropped the
+   new-tab `target=_blank`); the fullscreen back arrow already prefers history.
+   ④ **Identity Plate (PriceSprite modal) fully redone** — a King-Mode share card
+   (3rd doc beside the Rarity/Trade receipts in `lib/output/receipt.ts`): live
+   PriceSprite hero · @handle headline · PriceRank/Score/Streak/Achievements on
+   the user's colorway accent, handed to the native share sheet (download
+   fallback) — SAME path + reused `rarity-receipt-btn` (ticket-stub + busy pulse)
+   as the Rarity Receipt. Accent = lighter of the user's text/bg colorway (≥70
+   luma, else INK) so it reads on the near-black ground. Brendon tweaks: sprite
+   glow halved · hero-box outline removed (faint colorway wash panel kept) · all
+   secondary labels lifted to 0.9 (nothing faded).
+   ⑤ **ASCII Backup panel:** the 3 copy buttons now lead with the ⧉ copy icon
+   (matching MY FULL PD); COPY TXT/JSON flash inline **COPIED!** on tap (the two
+   instant clipboard copies; PROJECT/FULL-PD keep their live count + SAVED — they
+   download a file, matching each other).
+   ⑥ **Home carousel ASCII aspect** fixed — a tile reached fresh in ASCII Mode
+   kept the project's provisional aspect (squashed); now shapes to the painted
+   ASCII canvas's real proportions in the existing `onReady`, mirroring the
+   stored-image/canvas paths (no new mechanism — Brendon's steer).
+
+✅ **2026-07-14 POLISH — all on dev, auto-deployed, tree clean.**
    **Morning batch (Opus, shipped):** seen pings fade not strike (strike = done
    to-dos ONLY) · gas modal GAS PULSE + landscape-fit + portrait text pinned ·
    Programs button = Composer-pill look · Friend Inspector glyph −1px · Price
@@ -108,7 +134,7 @@
    = serve the owner's albums to visitors in a READ-ONLY view · Completionism
    **leaderboard** itself `86baxgvgj` (podium shipped; needs the ranking metric).
    **Done this session:** Takeover rename + ↗ + gating `86baxgvjg` (closed).
-   Small open follow-up: apply ↗ to the artwork + project share buttons too.
+   Small open follow-up: ↗-on-share-buttons DROPPED 2026-07-15 (buttons wear ▶; ↗ = catalogued glyph only).
    **Raised earlier, NOT committed (ideas):** Portfolio wow-pass (real floor/
    last/avg/ATH — today only mint-mode is real) then hide empty stubs;
    Incognito Proxy = UI shell only (real = medium build).
