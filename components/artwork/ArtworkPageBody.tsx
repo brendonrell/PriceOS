@@ -59,8 +59,11 @@ import type { AttrInput } from '../../lib/output/attributes';
 import { handRead, type HandRead } from '../../lib/output/hand';
 import { shareReceipt } from '../../lib/output/receipt';
 import AsciiBackupPanel from './AsciiBackupPanel';
+import TribunalPanel from './TribunalPanel';
 import OutputAlbumsTab from '../album/OutputAlbumsTab';
 import { formatEth } from '../../lib/format/eth';
+import { usePdNotifs } from '../../lib/state/PdNotifsContext';
+import type { MarketOfferRow } from '../../lib/market/orderTypes';
 
 function shortAddr(a: string | null): string {
     if (!a || a.length < 10) return a || '—';
@@ -159,7 +162,10 @@ type ArtworkTab = 'artwork' | 'albums' | 'more';
 /* + More sub-sections — same set as the project page's + More. */
 type MoreL1 =
     | 'replay' | 'stats'
-    | 'social' | 'attributes' | 'pricestory' | 'asciibackup' | 'offers' | 'neighbourhood';
+    | 'social' | 'attributes' | 'pricestory' | 'asciibackup' | 'offers' | 'neighbourhood'
+    /* Tribunal — the Spell Book case file. Only in the pill row when
+       spell_tribunal is on (appended in-component, not in MORE_PILLS). */
+    | 'tribunal';
 const MORE_PILLS: { key: MoreL1; label: string }[] = [
     { key: 'attributes', label: 'Attributes' },
     { key: 'offers', label: 'Offers' },
@@ -195,6 +201,7 @@ export default function ArtworkPageBody({
     const [confirmUnlist, setConfirmUnlist] = useState(false);
 
     const { open: openModal } = useModal();
+    const { notifs } = usePdNotifs();
     const [activeTab, setActiveTab] = useState<ArtworkTab>('artwork');
     const [moreL1, setMoreL1] = useState<MoreL1>('attributes');
     /* Search beside the +More pills — filters the active searchable tab. */
@@ -202,6 +209,17 @@ export default function ArtworkPageBody({
     const [searchQuery, setSearchQuery] = useState('');
     const searchableTab = moreL1 === 'attributes' || moreL1 === 'offers';
     useEffect(() => { setSearchOpen(false); setSearchQuery(''); }, [moreL1]);
+
+    /* Tribunal (Spell Book) — the case-file pill only joins the +More row when
+       the spell is on. If it's switched off while the tab is open, fall back to
+       Attributes so the surface never strands on a vanished pill. */
+    const tribunalOn = notifs.spell_tribunal;
+    const morePills: { key: MoreL1; label: string }[] = tribunalOn
+        ? [...MORE_PILLS, { key: 'tribunal', label: 'Tribunal' }]
+        : MORE_PILLS;
+    useEffect(() => {
+        if (!tribunalOn && moreL1 === 'tribunal') setMoreL1('attributes');
+    }, [tribunalOn, moreL1]);
 
     /* Stat-icon toast helper — mirrors project + profile pages. */
     const iconToastProps = (label: string) => ({
@@ -278,7 +296,7 @@ export default function ArtworkPageBody({
     const [market, setMarket] = useState<{
         owner: string | null; owner_handle: string | null;
         listing: { price_eth: string; end_time: number | null } | null;
-        offers: { id: string }[];
+        offers: MarketOfferRow[];
         last_sale: string | null; floor: string | null; volume_eth: string | null;
         followers: number | null;
         viewer: { address: string; isOwner: boolean; balance: number } | null;
@@ -867,7 +885,7 @@ export default function ArtworkPageBody({
                         <TraitsUI
                             visible
                             hideSortBar
-                            profilePills={MORE_PILLS.map((p) => ({
+                            profilePills={morePills.map((p) => ({
                                 key: p.key,
                                 label: p.label,
                                 active: moreL1 === p.key,
@@ -1322,9 +1340,22 @@ export default function ArtworkPageBody({
                     <AsciiBackupPanel slug={slug} id={globalId} />
                 )}
 
+                {/* TRIBUNAL — the Spell Book case file (spell-gated pill). Built
+                    from the ledger + market already on the page; no extra fetch. */}
+                {moreL1 === 'tribunal' && tribunalOn && (
+                    <TribunalPanel
+                        slug={slug}
+                        id={numberPart}
+                        projectName={projectName}
+                        feedRows={feedRows}
+                        market={market}
+                        mintMs={mintMs}
+                    />
+                )}
+
                 {/* Every other section — titled dotted box, same as the Project
                     page's not-yet-filled sections. Content lands later. */}
-                {moreL1 !== 'stats' && moreL1 !== 'attributes' && moreL1 !== 'replay' && moreL1 !== 'social' && moreL1 !== 'pricestory' && moreL1 !== 'offers' && moreL1 !== 'asciibackup' && (
+                {moreL1 !== 'stats' && moreL1 !== 'attributes' && moreL1 !== 'replay' && moreL1 !== 'social' && moreL1 !== 'pricestory' && moreL1 !== 'offers' && moreL1 !== 'asciibackup' && moreL1 !== 'tribunal' && (
                     <>
                         <div className="more-section-header">
                             {(MORE_PILLS.find((p) => p.key === moreL1)?.label ?? '').toUpperCase()}

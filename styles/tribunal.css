@@ -1,0 +1,186 @@
+/* ── TRIBUNAL — the Spell Book case file (+More ▸ Tribunal) ─────────────
+   Spell-gated forensic record for one Output. The exhibits reuse the +More
+   box language (more-section-header / more-box-card) so they align with every
+   sibling tab; only the docket crown + the entry rows are bespoke.
+
+   Full-strength colorway tokens throughout — the file is meant to be READ
+   (Rule #2): borders + text ride var(--text-color), labels are bold, nothing
+   on a primary line drops below 12px. No hardcoded greys, no low-alpha washes
+   beyond the app's own dashed-timeline idiom. */
+
+.tribunal { }
+
+/* The docket crown — a heavy bordered caption above the exhibits. Same width
+   + inset as the boxes (it sits in a .more-box-wrap), a full-strength border
+   so it reads as an official header on any colorway. */
+.tribunal-docket {
+    border: 1.5px solid var(--text-color);
+    border-radius: 5px;
+    padding: 16px 18px;
+    background: transparent;
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--text-color);
+}
+.tribunal-crest {
+    display: block;
+    font-size: 30px;
+    line-height: 1;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+.tribunal-docket-title {
+    display: block;
+    font-size: 15px;
+    font-weight: bold;
+    letter-spacing: 3px;
+}
+.tribunal-caption {
+    display: block;
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    margin-top: 6px;
+}
+.tribunal-docket-no {
+    display: block;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-top: 4px;
+    opacity: 0.75;
+    font-variant-numeric: tabular-nums;
+}
+.tribunal-rule {
+    height: 0;
+    border-top: 1px solid var(--text-color);
+    opacity: 0.4;
+    margin: 12px 0;
+}
+.tribunal-charge {
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.55;
+}
+
+/* Exhibit label — the reused +More section header, un-faded (this is a
+   heading you're meant to read) and carrying its market glyph. */
+.tribunal-xhead {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    opacity: 1;
+}
+.tribunal-xglyph { font-size: 13px; }
+
+/* A docket entry — glyph rail + heading (act + date) + the detail line. Rises
+   in on open, like the Price Story chapters, so the file feels convened. */
+.tribunal-entry {
+    display: flex;
+    gap: 12px;
+    animation: tribunal-in 0.3s cubic-bezier(0.25, 1, 0.5, 1) both;
+}
+@keyframes tribunal-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .tribunal-entry { animation: none; }
+}
+.tribunal-entry-rail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 20px;
+    flex-shrink: 0;
+}
+.tribunal-entry-glyph {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 15px;
+    line-height: 1.4;
+    color: var(--text-color);
+}
+.tribunal-entry-line {
+    flex: 1 1 auto;
+    width: 0;
+    border-left: 1px dashed color-mix(in srgb, var(--text-color) 45%, transparent);
+    margin: 2px 0;
+    min-height: 14px;
+}
+.tribunal-entry-body {
+    padding-bottom: 14px;
+    min-width: 0;
+}
+.tribunal-entry-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+}
+.tribunal-entry-title {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: var(--text-color);
+}
+.tribunal-entry-date {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    opacity: 0.8;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+    color: var(--text-color);
+}
+.tribunal-entry-text {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12.5px;
+    line-height: 1.5;
+    margin: 3px 0 0;
+    color: var(--text-color);
+}
+
+/* Parties of record — full-strength, underlined so a wallet reads as a name
+   you can pursue (taps through to the profile). */
+.tribunal-party {
+    font-weight: bold;
+    color: var(--text-color);
+    text-decoration: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--text-color) 45%, transparent);
+}
+.tribunal-party:hover { border-bottom-color: var(--text-color); }
+.tribunal-price {
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+}
+
+/* The tally line that closes an exhibit — the standing fact of record. */
+.tribunal-verdict {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 4px;
+    padding-top: 10px;
+    border-top: 1px solid color-mix(in srgb, var(--text-color) 40%, transparent);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    color: var(--text-color);
+    font-variant-numeric: tabular-nums;
+}
+
+/* An empty exhibit — still a full-strength line of testimony, never a whisper. */
+.tribunal-empty {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+/* OFF THE RECORD — the honest gap note, at reading strength. */
+.tribunal-gap {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text-color);
+}
