@@ -269,14 +269,15 @@ a.notif-item--link:hover { opacity: 0.85; }
    to fit instead of bleeding under the row text (cohesion pass, 2026-07-10). */
 .skm-thumb { display: flex; align-items: center; justify-content: center; width: 56px; flex: 0 0 56px; }
 .skm-thumb svg { max-width: 52px; max-height: 30px; height: auto; width: auto; }
-/* Marketplace row cover = the STORE stacked banner, ported EXACTLY: the store
-   card-art tile (62px tall + diagonal ground) carrying the size-52 fan,
-   centered and CLIPPED like the store card — never the squished-to-fit crush
-   (Brendon, 2026-07-15). */
+/* Marketplace row cover = the STORE stacked banner, ported EXACTLY and LOCKED.
+   Height is PINNED to the store card-art height (44px, styles/stickers.css
+   `.ss-grid-view .ss-card-art`) so the size-52 fan clips identically in both —
+   DO NOT change one without the other, and do not retune this to "fit" a row
+   (Brendon, 2026-07-15: lock the sizes, they must stop moving). */
 .skm-cover-fan {
     flex: 0 0 138px;
     width: 138px;
-    height: 46px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
