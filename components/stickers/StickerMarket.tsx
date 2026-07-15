@@ -218,6 +218,7 @@ export default function StickerMarket() {
     /* ── SUMMARY ─────────────────────────────────────────────────────────── */
     if (!openSheet) {
         return (
+            <>
             <div className="skm-wrap">
                 {SHEETS.map((s) => {
                     const sum = summary?.[s.id];
@@ -268,10 +269,12 @@ export default function StickerMarket() {
                         </div>
                     );
                 })}
-                <div className="ss-foot">
-                    floor · {`✦${VS15}`} best offer — tap a sheet for its book · settles in sim ETH
-                </div>
             </div>
+            <div className="ss-foot">
+                {SHEETS.length} sheets · tap a sheet for its book · settles in sim ETH ·{' '}
+                <a className="ss-foot-link" href="https://opensea.io" target="_blank" rel="noopener noreferrer">OpenSea</a>
+            </div>
+            </>
         );
     }
 
