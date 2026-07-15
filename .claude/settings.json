@@ -50,7 +50,11 @@
       "Bash(mv:*)",
       "Bash(diff:*)",
       "Bash(sort:*)",
-      "Bash(uniq:*)"
+      "Bash(uniq:*)",
+      "mcp__ClickUp",
+      "mcp__Supabase",
+      "mcp__Cloudflare_Developer_Platform",
+      "mcp__github"
     ],
     "ask": [
       "Bash(rm:*)"
