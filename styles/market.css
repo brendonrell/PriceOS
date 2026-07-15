@@ -278,8 +278,12 @@ a.notif-item--link:hover { opacity: 0.85; }
    DO NOT change one without the other, and do not retune this to "fit" a row
    (Brendon, 2026-07-15: lock the sizes, they must stop moving). */
 .skm-cover-fan {
-    flex: 0 0 138px;
-    width: 138px;
+    /* SAME WIDTH as a store stacked card ((100vw − 36 grid pad − 14 gap) / 2 =
+       50vw − 25px) so the strip is the exact same size as the store's, not a
+       narrower 138px (Brendon, 2026-07-15). */
+    flex: 0 0 calc(50vw - 25px);
+    width: calc(50vw - 25px);
+    max-width: 174px;
     height: 44px;
     display: flex;
     align-items: center;
