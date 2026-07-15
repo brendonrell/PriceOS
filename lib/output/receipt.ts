@@ -537,7 +537,7 @@ export async function buildIdentityPlate(d: IdentityPlateData): Promise<HTMLCanv
     ctx.fillStyle = INK;
     ctx.globalAlpha = 0.07;
     ctx.fillRect(0, 0, W, 96);
-    ctx.globalAlpha = 0.62;
+    ctx.globalAlpha = 0.9;
     ctx.textBaseline = 'alphabetic';
     ctx.textAlign = 'left';
     ctx.font = `26px ${mono}`;
@@ -547,18 +547,19 @@ export async function buildIdentityPlate(d: IdentityPlateData): Promise<HTMLCanv
     ctx.fillText(dateline, W - PAD - dlw, 60);
     ctx.globalAlpha = 1;
 
-    // ── Sprite hero — the live familiar, big, accent-lit, colorway frame. ────
+    // ── Sprite hero — the live familiar, big, accent-lit. No frame; it sits
+    //    on a barely-there wash of the colorway (Brendon, 2026-07-15). ────────
     const boxX = PAD, boxY = 140, boxW = W - PAD * 2, boxH = 560;
-    ctx.fillStyle = accent;                 // faint wash for depth
+    ctx.fillStyle = accent;                 // faint wash for depth (the panel)
     ctx.globalAlpha = 0.06;
     ctx.fillRect(boxX, boxY, boxW, boxH);
     ctx.globalAlpha = 1;
     ctx.fillStyle = INK;                    // caption
-    ctx.globalAlpha = 0.5;
+    ctx.globalAlpha = 0.9;
     ctx.font = `18px ${mono}`;
     ctx.fillText('◎ PRICESPRITE', boxX, boxY - 14);
     ctx.globalAlpha = 1;
-    // Fit the face to the box, draw it centred with an accent glow.
+    // Fit the face to the box, draw it centred with a soft accent glow.
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     let fs = 240;
@@ -569,13 +570,10 @@ export async function buildIdentityPlate(d: IdentityPlateData): Promise<HTMLCanv
     }
     ctx.save();
     ctx.shadowColor = accent;
-    ctx.shadowBlur = 30;
+    ctx.shadowBlur = 15;
     ctx.fillStyle = INK;
     ctx.fillText(d.face, W / 2, boxY + boxH / 2 + 6);
     ctx.restore();
-    ctx.strokeStyle = accent;               // colorway frame
-    ctx.lineWidth = 3;
-    ctx.strokeRect(boxX, boxY, boxW, boxH);
 
     // ── Name headline — the wallet's @handle in Rubik Mono, accent. ──────────
     ctx.textAlign = 'left';
@@ -599,7 +597,7 @@ export async function buildIdentityPlate(d: IdentityPlateData): Promise<HTMLCanv
     // Divider.
     y += 44;
     ctx.strokeStyle = accent;
-    ctx.globalAlpha = 0.22;
+    ctx.globalAlpha = 0.42;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(PAD, y);
@@ -630,7 +628,7 @@ export async function buildIdentityPlate(d: IdentityPlateData): Promise<HTMLCanv
         ctx.fillStyle = accent;
         ctx.fillText(cols[i].big, cx[i], numY);
         ctx.fillStyle = INK;
-        ctx.globalAlpha = 0.55;
+        ctx.globalAlpha = 0.9;
         ctx.font = `20px ${mono}`;
         ctx.fillText(cols[i].label, cx[i], labY);
         ctx.globalAlpha = 1;
@@ -643,14 +641,14 @@ export async function buildIdentityPlate(d: IdentityPlateData): Promise<HTMLCanv
     ctx.font = `26px ${mono}`;
     ctx.fillText('ACHIEVEMENTS', PAD, barLabelY);
     ctx.textAlign = 'right';
-    ctx.globalAlpha = 0.8;
+    ctx.globalAlpha = 0.9;
     ctx.fillText(`${d.achUnlocked.toLocaleString()} / ${d.achTotal.toLocaleString()}`, W - PAD, barLabelY);
     ctx.globalAlpha = 1;
     ctx.textAlign = 'left';
     const trackY = barLabelY + 22;
     const trackW = W - PAD * 2;
     ctx.fillStyle = INK;
-    ctx.globalAlpha = 0.15;
+    ctx.globalAlpha = 0.3;
     roundRect(ctx, PAD, trackY, trackW, 10, 5);
     ctx.fill();
     ctx.globalAlpha = 1;
@@ -663,7 +661,7 @@ export async function buildIdentityPlate(d: IdentityPlateData): Promise<HTMLCanv
 
     // ── Footer. ──────────────────────────────────────────────────────────────
     ctx.fillStyle = INK;
-    ctx.globalAlpha = 0.5;
+    ctx.globalAlpha = 0.9;
     ctx.font = `24px ${mono}`;
     ctx.fillText(`${d.name} · PRICEOS`, PAD, H - PAD);
     ctx.textAlign = 'right';
