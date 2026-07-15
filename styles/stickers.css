@@ -448,20 +448,23 @@
        stickers filling the card, LIVE + owned ✓ riding on top. No name, no
        buy; tap opens the sheet as always. Compact rail cards unchanged. */
     .ss-grid-view .ss-card-meta { display: none; }
+    /* Row height REVERTED to the original tight hug + HARD-LOCKED so it can't
+       drift (Brendon, 2026-07-15). 44px art + 2px card border = a fixed 46px
+       card; meta stays hidden so nothing can grow the row, and grid-auto-rows
+       pins every row to exactly that. */
     .ss-grid-view .ss-card-art {
-        height: 62px;
+        height: 44px;
         padding: 0 4px;
         border-bottom: none;
     }
     /* Show ~6.5 rows then scroll — 6 full + a peek of the 7th. The cap rides
-       the scroll wrapper; the grid keeps align-content:start so its rows never
-       stretch to fill (Brendon, 2026-07-12/15). A row = 62px art + 2px border
-       + 14px gap. */
+       the scroll wrapper. A row = 44px art + 2px border + 14px gap = 60px. */
     .ss-grid-scroll {
-        max-height: calc(16px + 6 * 78px + 32px);
+        max-height: calc(16px + 6 * 60px + 30px);
     }
     .ss-grid-view {
         align-content: start;
+        grid-auto-rows: 46px;
     }
 }
 
