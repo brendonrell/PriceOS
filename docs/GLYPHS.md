@@ -252,12 +252,14 @@ These belong to a *user*, never to an action.
 - **⧉ (U+29C9) = COPY** — copy-to-clipboard affordance (address/ID copy in
   ProfilePageBody, ProjectMorePanel, AmbientStrip, StickerManagerModal).
   Never reuse for anything else. (Noted 2026-07-11.)
-- **↗ (U+2197) = SHARE** — the canonical PD share/send glyph. The profile
-  action-row share pill wears it icon-only (so a ⚑ Takeover fits beside it),
-  and it's THE share mark platform-wide. Brendon's pick 2026-07-14 from a
-  20-option round — chosen for a clean "send this outward" read with zero
-  flag/report baggage (a lone ⚑ was misreading as "report this account").
-  Device-verify as monochrome text on iOS per the #1 gate.
+- **↗ (U+2197) = SHARE** — catalogued as the PD share/send glyph, kept in the
+  vocabulary. NOTE: the share buttons themselves wear the **▶ play mark**, not
+  ↗ — Brendon reverted the ↗-on-buttons trial 2026-07-15 (the play icon reads
+  better to him); ↗ stays reserved here for future share/send use. Brendon's
+  pick 2026-07-14 from a 20-option round — chosen for a clean "send this
+  outward" read with zero flag/report baggage (a lone ⚑ was misreading as
+  "report this account"). Device-verify as monochrome text on iOS per the #1
+  gate.
 - **Podium medals ❶ ❷ ❸ (U+2776–U+2778)** = the top-3 ranks on every
   leaderboard (PriceScore · Clubhouse · Lane Runner). Filled negative-circled
   digits; ranks 4+ stay plain numerals. The Clubhouse keeps ⛳ for #1 (its

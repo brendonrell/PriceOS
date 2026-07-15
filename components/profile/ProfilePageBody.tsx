@@ -1234,11 +1234,14 @@ function ProfilePageBodyInner({
                                 else if (result === 'unavailable') showToast('Share: UNAVAILABLE');
                             }}
                         >
-                            {/* The canonical PD share glyph ↗ (Brendon, 2026-07-14).
+                            {/* ▶ play icon is the share/soundtrack button mark
+                                (Brendon, 2026-06-15; the ↗ share-glyph trial was
+                                reverted 2026-07-15 — ↗ stays catalogued in
+                                GLYPHS.md but the buttons wear the play icon).
                                 Full pill with the SHARE label when it stands alone;
                                 icon-only when the Takeover pill sits beside it so the
-                                row can't overflow. The glyph runs two sizes larger. */}
-                            <span className="btn-icon-play profile-share-glyph">↗&#xFE0E;</span>
+                                row can't overflow. */}
+                            <span className="btn-icon-play">▶&#xFE0E;</span>
                             {!canTakeover && <>{' '}<span>SHARE</span></>}
                         </button>
                     </div>

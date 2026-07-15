@@ -148,12 +148,12 @@
     gap: 6px;
     height: 28px;
     padding: 0 14px;
-    border: 1px solid var(--text-color);
+    border: none;
     border-radius: 4px;
-    /* Same styling as the Composer pill: colorway fill + full-strength
-       border/text (Brendon, 2026-07-14). */
-    background: var(--bg-color);
-    color: var(--text-color);
+    /* Filled grey/low-opacity pill with black text (Brendon, 2026-07-14;
+       restored 2026-07-15). */
+    background: rgba(255, 255, 255, 0.7);
+    color: #000;
     font-family: inherit;
     font-size: 12px;
     font-weight: bold;
