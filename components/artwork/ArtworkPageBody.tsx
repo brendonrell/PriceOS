@@ -954,8 +954,6 @@ export default function ArtworkPageBody({
                         <a
                             className="aff-fullscreen"
                             href={fullscreenHref}
-                            target="_blank"
-                            rel="noopener noreferrer"
                         >
                             Full Screen
                         </a>
