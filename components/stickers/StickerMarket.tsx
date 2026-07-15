@@ -238,7 +238,7 @@ export default function StickerMarket() {
                                             className="ss-fan-item"
                                             style={{ transform: `rotate(${[-9, 0, 9][i] ?? 0}deg)` }}
                                         >
-                                            <StickerArt sticker={st} size={32} />
+                                            <StickerArt sticker={st} size={52} />
                                         </span>
                                     ))}
                                 </span>

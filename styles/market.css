@@ -239,33 +239,47 @@ a.notif-item--link:hover { opacity: 0.85; }
 }
 
 /* ── STICKER MARKET — the in-store secondary ─────────────────── */
+/* Height LOCKED to the store's stacked scroll region (same 56vh / 6.5-row cap
+   as .ss-grid-scroll) so the whole marketplace is the exact same height as the
+   store and scrolls the same (Brendon, 2026-07-15). */
 .skm-wrap {
-    flex: 1 1 auto; min-height: 0;
+    flex: 0 1 auto; min-height: 0;
+    max-height: 56vh;
     overflow-y: auto; scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
     padding: 4px 14px 14px;
     font-family: 'Courier New', Courier, monospace;
 }
 .skm-wrap::-webkit-scrollbar { display: none; }
+/* Phone: the EXACT store stacked cap so the marketplace is the same height. */
+@media (max-width: 600px) {
+    .skm-wrap { max-height: calc(16px + 6 * 78px + 32px); }
+}
 .skm-row { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 /* Sheet covers stay INSIDE their slot — wide chips (names, familiars) shrink
    to fit instead of bleeding under the row text (cohesion pass, 2026-07-10). */
 .skm-thumb { display: flex; align-items: center; justify-content: center; width: 56px; flex: 0 0 56px; }
 .skm-thumb svg { max-width: 52px; max-height: 30px; height: auto; width: auto; }
-/* Marketplace row cover — the STORE's 3-sticker fan (ported 2026-07-14) so the
-   secondary wears the exact same banner as the store card. Fixed tile, fan
-   centered, kept FULLY VISIBLE (wide chips scale to fit, never the old crush). */
+/* Marketplace row cover = the STORE stacked banner, ported EXACTLY: the store
+   card-art tile (62px tall + diagonal ground) carrying the size-52 fan,
+   centered and CLIPPED like the store card — never the squished-to-fit crush
+   (Brendon, 2026-07-15). */
 .skm-cover-fan {
-    flex: 0 0 96px;
-    width: 96px;
-    height: 48px;
+    flex: 0 0 138px;
+    width: 138px;
+    height: 62px;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    border-radius: 6px;
+    background: repeating-linear-gradient(
+        45deg,
+        color-mix(in srgb, var(--text-color) 3%, transparent) 0 8px,
+        color-mix(in srgb, var(--text-color) 7%, transparent) 8px 16px
+    );
 }
-.skm-cover-fan .ss-fan { gap: 2px; }
-.skm-cover-fan .ss-fan-item svg { max-width: 34px; max-height: 44px; width: auto; height: auto; }
+.skm-cover-fan .ss-fan { gap: 4px; }
 .skm-prices { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
 .skm-prices .skm-sub { font-size: 10px; opacity: 0.6; font-weight: bold; }
 .skm-back {
