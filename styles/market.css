@@ -253,7 +253,7 @@ a.notif-item--link:hover { opacity: 0.85; }
 .skm-wrap::-webkit-scrollbar { display: none; }
 /* Phone: the EXACT store stacked cap so the marketplace is the same height. */
 @media (max-width: 600px) {
-    .skm-wrap { max-height: calc(16px + 6 * 78px + 32px); }
+    .skm-wrap { max-height: calc(16px + 6 * 60px + 30px); }
 }
 .skm-row { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 /* Sheet covers stay INSIDE their slot — wide chips (names, familiars) shrink
@@ -267,7 +267,7 @@ a.notif-item--link:hover { opacity: 0.85; }
 .skm-cover-fan {
     flex: 0 0 138px;
     width: 138px;
-    height: 62px;
+    height: 46px;
     display: flex;
     align-items: center;
     justify-content: center;
