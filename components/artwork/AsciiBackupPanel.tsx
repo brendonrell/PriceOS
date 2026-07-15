@@ -65,6 +65,11 @@ export default function AsciiBackupPanel({ slug, id }: { slug: string; id: numbe
     const { notifs, toggle } = usePdNotifs();
     /* Bulk backup progress — the running button's label ticks n/total. */
     const [bulk, setBulk] = useState<{ kind: 'project' | 'collection'; done: number; total: number } | null>(null);
+    /* Inline COPIED! flash for the instant-copy buttons — the button label
+       flips to COPIED! for 1.5s on tap, the site's usual copy feedback. */
+    const [copiedKey, setCopiedKey] = useState<'txt' | 'json' | null>(null);
+    const copiedTimer = useRef<number | null>(null);
+    useEffect(() => () => { if (copiedTimer.current != null) window.clearTimeout(copiedTimer.current); }, []);
 
     useEffect(() => {
         let cancelled = false;
@@ -168,6 +173,9 @@ export default function AsciiBackupPanel({ slug, id }: { slug: string; id: numbe
         const payload = what === 'txt' ? artifact.text : JSON.stringify(artifact);
         try { navigator.clipboard?.writeText(payload); } catch { /* ignore */ }
         showToast(`ASCII Backup: ${what === 'txt' ? '.TXT' : '.JSON'} COPIED`);
+        setCopiedKey(what);
+        if (copiedTimer.current != null) window.clearTimeout(copiedTimer.current);
+        copiedTimer.current = window.setTimeout(() => setCopiedKey(null), 1500);
     };
 
     /* Bulk backups — the whole PROJECT (every minted piece of this one) or
@@ -243,14 +251,14 @@ export default function AsciiBackupPanel({ slug, id }: { slug: string; id: numbe
                     title="Copy the raw text glyphs"
                     onClick={() => copy('txt')}
                 >
-                    COPY TXT
+                    {copiedKey === 'txt' ? 'COPIED!' : <>{'⧉︎'} TXT</>}
                 </button>
                 <button
                     className="btn-soundtrack"
                     title="Copy the full-colour backup — paste-able JSON that restores the piece"
                     onClick={() => copy('json')}
                 >
-                    COPY JSON
+                    {copiedKey === 'json' ? 'COPIED!' : <>{'⧉︎'} JSON</>}
                 </button>
                 {/* Whole-PROJECT backup — sits right after COPY .JSON (Brendon,
                     2026-07-11). Ticks n/total while it runs. */}
@@ -260,7 +268,7 @@ export default function AsciiBackupPanel({ slug, id }: { slug: string; id: numbe
                     disabled={!!bulk}
                     onClick={() => void runBulk('project')}
                 >
-                    {bulk?.kind === 'project' ? `${bulk.done}/${bulk.total}` : 'COPY PROJECT JSON'}
+                    {bulk?.kind === 'project' ? `${bulk.done}/${bulk.total}` : <>{'⧉︎'} PROJECT JSON</>}
                 </button>
             </div>
             <div className="action-row" style={{ marginTop: 10 }}>

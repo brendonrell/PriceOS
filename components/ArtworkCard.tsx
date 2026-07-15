@@ -868,7 +868,21 @@ function ArtworkCard({
                             widthPx={384}
                             className="output-canvas visible"
                             onMiss={() => setAsciiMiss(true)}
-                            onReady={() => setAsciiReady(true)}
+                            onReady={() => {
+                                setAsciiReady(true);
+                                /* Shape the tile to the ASCII art's real proportions,
+                                   read off the just-painted canvas — the same
+                                   wrapper.aspectRatio the stored-image/canvas paths
+                                   set on load. This was the one gap: a tile reached
+                                   fresh in ASCII (the home carousels) otherwise kept
+                                   the project's provisional aspect and rendered
+                                   squashed. */
+                                const wrapper = wrapperRef.current;
+                                const cv = wrapper?.querySelector('canvas');
+                                if (wrapper && cv instanceof HTMLCanvasElement && cv.width > 0 && cv.height > 0) {
+                                    wrapper.style.aspectRatio = String(cv.width / cv.height);
+                                }
+                            }}
                         />
                     ) : imgSrc ? (
                         /* Stored preview — native lazy load, browser-managed,
