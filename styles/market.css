@@ -255,7 +255,16 @@ a.notif-item--link:hover { opacity: 0.85; }
 @media (max-width: 600px) {
     .skm-wrap { max-height: calc(16px + 6 * 60px + 30px); }
 }
-.skm-row { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+/* Force every row to the STORE stacked row height (46px card + 14px gap = 60px)
+   so marketplace rows are identical to store rows — the banner + text center
+   inside, never taller (Brendon, 2026-07-15). */
+.skm-row {
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    height: 60px;
+    box-sizing: border-box;
+    padding: 0;
+    overflow: hidden;
+}
 /* Sheet covers stay INSIDE their slot — wide chips (names, familiars) shrink
    to fit instead of bleeding under the row text (cohesion pass, 2026-07-10). */
 .skm-thumb { display: flex; align-items: center; justify-content: center; width: 56px; flex: 0 0 56px; }
