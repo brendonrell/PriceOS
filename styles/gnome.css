@@ -36,9 +36,36 @@
 .gn-metric b { font-size: 13px; margin-right: 3px; }
 
 .gnome-stage {
+    position: relative;
     display: flex;
     justify-content: center;
     padding: 4px 0 0 0;
+    cursor: pointer;
+}
+
+/* THE GREETING — the keeper speaks on tap. Full-strength site tokens. */
+.gnome-speech {
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: min(340px, 88%);
+    padding: 7px 11px;
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
+    border-radius: 10px;
+    color: var(--text-color);
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+    text-align: center;
+    z-index: 2;
+    animation: gnome-speech-in 0.18s ease-out;
+    pointer-events: none;
+}
+@keyframes gnome-speech-in {
+    from { opacity: 0; transform: translateX(-50%) translateY(4px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 .gnome-svg {
     display: block;
@@ -67,6 +94,9 @@
     .gnome-figure, .gnome-eyes { animation: none; }
 }
 
+/* Mood pacing — at work in the vein, the keeper moves quicker. */
+.gnome-figure--mining { animation-duration: 3.4s; }
+
 /* The collectible trait row — full-strength, 12px bold (the visibility rule). */
 .gnome-traits {
     text-align: center;
@@ -74,4 +104,39 @@
     font-weight: bold;
     letter-spacing: 0.5px;
     margin-top: 6px;
+}
+
+/* THE FAVOUR → APPRAISER — the keeper's written case for your piece. */
+.gnome-appraisal {
+    margin-top: 12px;
+    border: 1px solid var(--text-color);
+    border-radius: 6px;
+    padding: 10px 12px;
+}
+.ga-head {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+}
+.ga-case {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+}
+.ga-sig {
+    margin-top: 7px;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-align: right;
+}
+
+/* Not yet favoured — the honest tenure line. */
+.gnome-favour-note {
+    margin-top: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-align: center;
 }

@@ -9,21 +9,46 @@
  * Project's colorway; the creature itself never changes. Sits in the +More
  * GNOME tab, beside the Genome — the pun is the point.
  *
+ * What it DOES (Brendon's go, 2026-07-16):
+ *   • MARKET MOOD — its brows + bearing read the project's day from state
+ *     already on the page ($0): still minting = AT WORK IN THE VEIN; heavy
+ *     listing pressure = WATCHING THE DOOR; otherwise KEEPING THE HOARD.
+ *   • THE GREETING — tap it and it speaks in-temperament (speech bubble),
+ *     different lines for strangers vs holders, rotating per tap.
+ *   • THE FAVOUR → APPRAISER — hold a piece ≥ FAVOUR_DAYS unlisted and the
+ *     Gnome writes a real case for it (lib/project/gnomeVoice), built only
+ *     from true ledger/engine facts. Lose the favour, lose the appraiser.
+ *
  * Same card family as Replay / Genome (readout head, card chrome), so it
- * reads as native +More furniture. Pure client render — no fetch, $0.
+ * reads as native +More furniture.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useProject } from '../../lib/state/ProjectContext';
+import { useAuth } from '../../lib/state/AuthContext';
 import { projectColorway } from '../../lib/project/registry';
+import { getGenome } from '../../lib/output/genome';
+import { readOutputFate } from '../../lib/project/fate';
+import { useProjectFloor } from './useProjectMarket';
 import {
     projectGnome, gnomePalette,
     HAT_LABELS, BEARD_LABELS, KEEPSAKE_LABELS,
     type ProjectGnome, type GnomePalette,
 } from '../../lib/project/gnome';
+import { gnomeGreeting, gnomeAppraisal, gnomeSignature } from '../../lib/project/gnomeVoice';
+import type { GnomeFavourResponse, GnomeFavourPiece } from '../../app/api/project/[slug]/gnome/route';
+
+type GnomeMood = 'mining' | 'wary' | 'content';
+
+const MOOD_STATE: Record<GnomeMood, string> = {
+    mining: 'AT WORK IN THE VEIN',
+    wary: 'WATCHING THE DOOR',
+    content: 'KEEPING THE HOARD',
+};
 
 export default function GnomePanel() {
     const project = useProject();
+    const { siweAddress } = useAuth();
     const gnome = useMemo(() => projectGnome(project.slug), [project.slug]);
 
     /* Re-dress on a live colorway change (artist edits custom_color) — the
@@ -41,24 +66,121 @@ export default function GnomePanel() {
         [gnome, project.slug, colorTick],
     );
 
+    /* MARKET MOOD — read from state already on the page, no fetch. */
+    const { lowestFloor } = useProjectFloor();
+    const listedCount = useMemo(() => {
+        let n = 0;
+        project.outputs.forEach((o) => { if (o.price) n++; });
+        return n;
+    }, [project.outputs]);
+    const mood: GnomeMood = useMemo(() => {
+        if (project.maxSupply > 0 && project.totalOutputs < project.maxSupply) return 'mining';
+        if (project.totalOutputs >= 10 && listedCount / project.totalOutputs > 0.2) return 'wary';
+        return 'content';
+    }, [project.maxSupply, project.totalOutputs, listedCount]);
+
+    /* THE FAVOUR — the wallet's tenure per held piece in this project. */
+    const [favour, setFavour] = useState<GnomeFavourResponse | null>(null);
+    useEffect(() => {
+        setFavour(null);
+        if (!siweAddress) return;
+        let cancelled = false;
+        const load = () => {
+            fetch(`/api/project/${project.slug}/gnome?address=${siweAddress.toLowerCase()}`, { cache: 'no-store' })
+                .then((r) => (r.ok ? r.json() : null))
+                .then((d) => { if (!cancelled && d) setFavour(d); })
+                .catch(() => {});
+        };
+        load();
+        const onR = () => load();
+        window.addEventListener('pd:project-refresh', onR);
+        return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onR); };
+    }, [project.slug, siweAddress]);
+
+    const isHolder = (favour?.pieces.length ?? 0) > 0;
+    /* The piece the Gnome speaks for: the longest-held favoured one. */
+    const favoured: GnomeFavourPiece | null = favour?.pieces.find((p) => p.favoured) ?? null;
+    /* The nearest hopeful when nothing is favoured yet (rows sort by tenure). */
+    const closest: GnomeFavourPiece | null = !favoured && isHolder ? favour!.pieces[0] : null;
+
+    /* THE GREETING — tap the keeper and it speaks; lines rotate per tap. */
+    const [speech, setSpeech] = useState<string | null>(null);
+    const tapCount = useRef(0);
+    const speechTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    useEffect(() => () => { if (speechTimer.current) clearTimeout(speechTimer.current); }, []);
+    const onGnomeTap = () => {
+        const line = gnomeGreeting(project.slug, gnome.temperament, isHolder ? 'holder' : 'stranger', tapCount.current++);
+        setSpeech(line);
+        if (speechTimer.current) clearTimeout(speechTimer.current);
+        speechTimer.current = setTimeout(() => setSpeech(null), 4500);
+    };
+
+    /* THE APPRAISAL — the written case for the favoured piece, from real
+       engine + ledger facts only. */
+    const appraisal = useMemo(() => {
+        if (!favoured) return null;
+        const genome = getGenome(project.slug);
+        const pt = genome?.byId.get(favoured.token_id) ?? null;
+        const fate = readOutputFate(project.slug, favoured.token_id);
+        return gnomeAppraisal(project.slug, gnome.temperament, {
+            tokenId: favoured.token_id,
+            isolationRank: pt ? pt.isolationRank : null,
+            isolationOf: pt ? project.totalOutputs : null,
+            noneAlike: pt ? pt.twins === 1 : false,
+            fate: fate.fate,
+            fateName: fate.primary.name,
+            heldDays: favoured.held_days,
+            floorEth: lowestFloor,
+            listedCount,
+            minted: project.totalOutputs,
+        });
+    }, [favoured, project.slug, project.totalOutputs, gnome, lowestFloor, listedCount]);
+
     return (
         <div className="more-box-wrap">
             <div className="gnome-card">
                 <div className="gnome-readout">
                     <div className="gn-head">
-                        <span className="gn-state">PROJECT GUARDIAN</span>
+                        <span className="gn-state">PROJECT GUARDIAN · {MOOD_STATE[mood]}</span>
                         <span className="gn-title">{gnome.name}</span>
                     </div>
                     <div className="gn-metrics">
                         <span className="gn-metric"><b>{gnome.temperament}</b> TEMPERAMENT</span>
                     </div>
                 </div>
-                <div className="gnome-stage">
-                    <GnomeFigure gnome={gnome} palette={palette} />
+                <div
+                    className="gnome-stage"
+                    role="button"
+                    tabIndex={0}
+                    title="Speak to the keeper"
+                    onClick={onGnomeTap}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onGnomeTap(); }
+                    }}
+                >
+                    {speech && <div className="gnome-speech">{speech}</div>}
+                    <GnomeFigure gnome={gnome} palette={palette} mood={mood} />
                 </div>
                 <div className="gnome-traits">
                     {HAT_LABELS[gnome.hat]} · {BEARD_LABELS[gnome.beard]} · {KEEPSAKE_LABELS[gnome.keepsake]}
                 </div>
+
+                {favoured && appraisal && (
+                    <div className="gnome-appraisal">
+                        <div className="ga-head">
+                            THE GNOME&rsquo;S FAVOUR · #{favoured.token_id} · HELD {favoured.held_days} DAYS
+                        </div>
+                        <p className="ga-case">{appraisal}</p>
+                        <div className="ga-sig">{gnomeSignature(gnome.name, project.slug)}</div>
+                    </div>
+                )}
+                {closest && (
+                    <div className="gnome-favour-note">
+                        THE GNOME&rsquo;S FAVOUR · earned at {favour!.favour_days} days held, unlisted —
+                        your closest: #{closest.token_id}, {closest.held_days} {closest.held_days === 1 ? 'day' : 'days'}
+                        {closest.listed ? ' (listed — favour withheld)' : ''}
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -66,10 +188,13 @@ export default function GnomePanel() {
 
 /* ── The drawing ──────────────────────────────────────────────────────────────
    Layer order (back → front): shadow · hoard · boots · tunic · belt · arms ·
-   head · beard · mustache · cheeks · eyes · nose · hat · keepsake. The whole
-   figure (minus its shadow) breathes on a slow bob; the eyes blink. */
+   head · beard · mustache · cheeks · eyes · brows · nose · hat · keepsake.
+   The whole figure (minus its shadow) breathes on a slow bob; the eyes blink;
+   the brows carry the mood. */
 
-export function GnomeFigure({ gnome: g, palette: p }: { gnome: ProjectGnome; palette: GnomePalette }) {
+export function GnomeFigure({ gnome: g, palette: p, mood = 'content' }: {
+    gnome: ProjectGnome; palette: GnomePalette; mood?: GnomeMood;
+}) {
     const w = g.girth; // 0.9–1.1 — how this gnome carries itself
     const X = (off: number) => 120 + off * w;
 
@@ -101,6 +226,14 @@ export function GnomeFigure({ gnome: g, palette: p }: { gnome: ProjectGnome; pal
                  C 128,58 126,74 132,88 C 136,97 144,101 152,106 Z`,
     }[g.hat];
 
+    /* Mood brows — two short strokes tucked under the brim.
+       mining = raised (at it, happily) · wary = knit inward · content = level. */
+    const brows = {
+        mining: { l: 'M 100,115 L 112,112.5', r: 'M 128,112.5 L 140,115' },
+        wary: { l: 'M 100,112.5 L 112,116', r: 'M 128,116 L 140,112.5' },
+        content: { l: 'M 100,114 L 112,114', r: 'M 128,114 L 140,114' },
+    }[mood];
+
     /* Right hand — the keepsake anchor (keepsake art is drawn for hx=178
        and shifted to the true hand when girth moves it). */
     const hx = X(58);
@@ -116,7 +249,7 @@ export function GnomeFigure({ gnome: g, palette: p }: { gnome: ProjectGnome; pal
             {/* Ground shadow — stays put while the gnome bobs. */}
             <ellipse cx="120" cy="272" rx={62 * w} ry="9" fill={p.ink} opacity="0.12" />
 
-            <g className="gnome-figure">
+            <g className={`gnome-figure gnome-figure--${mood}`}>
                 {/* The hoard so far — gems at the keeper's feet. */}
                 {Array.from({ length: g.hoard }).map((_, i) => {
                     const gx = [70, 55, 84][i];
@@ -163,6 +296,8 @@ export function GnomeFigure({ gnome: g, palette: p }: { gnome: ProjectGnome; pal
                     <circle cx="106" cy="119" r="3" fill={p.ink} />
                     <circle cx="134" cy="119" r="3" fill={p.ink} />
                 </g>
+                <path d={brows.l} stroke={p.ink} strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                <path d={brows.r} stroke={p.ink} strokeWidth="2.5" strokeLinecap="round" fill="none" />
                 <circle cx="120" cy="133" r={g.nose} fill={p.skin} stroke={p.ink} strokeWidth="2.5" />
 
                 {/* Hat — crown, then the brim band over the brow. */}
