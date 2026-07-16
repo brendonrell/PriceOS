@@ -40,6 +40,7 @@ import {
 import { useToast } from '../lib/state/ToastContext';
 import { usePriceDay } from '../lib/priceday/usePriceDay';
 import { PRICEDAY_EPOCH, priceDayNumber } from '../lib/priceday/priceday';
+import CalendarSheet from './CalendarSheet';
 
 interface CalApiItem {
   id?: string;
@@ -63,14 +64,12 @@ export default function CalendarPanel() {
   /* THE REAL CALENDAR — month items from the ledger + the stored layers
      (global schedule · your items · auto milestones + retrospectives). */
   const [monthItems, setMonthItems] = useState<Record<string, CalApiItem[]>>({});
-  const [canGlobal, setCanGlobal] = useState(false);
   const loadMonth = useCallback(() => {
     fetch(`/api/calendar?year=${viewY}&month=${viewM + 1}`, { cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (!d) return;
         setMonthItems((d.days as Record<string, CalApiItem[]>) ?? {});
-        setCanGlobal(!!d.can_global);
       })
       .catch(() => {});
   }, [viewY, viewM]);
@@ -86,12 +85,9 @@ export default function CalendarPanel() {
     return subscribeTodos(read);
   }, []);
 
-  /* Add-item composer (+ beside the Day Note icon). */
-  const [composeOpen, setComposeOpen] = useState(false);
-  const [composeTitle, setComposeTitle] = useState('');
-  const [composeTime, setComposeTime] = useState('');
-  const [composeGlobal, setComposeGlobal] = useState(false);
-  const [composeBusy, setComposeBusy] = useState(false);
+  /* The Calendar Sheet (2026-07-16) — the + opens the full-day modal
+     (view + edit + per-item ping plans) instead of the old inline composer. */
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   /* PriceDay ↔ calendar: the selected day's almanac line rides the column. */
   const selDate = useMemo(() => new Date(selY, selM, selD, 12), [selY, selM, selD]);
@@ -239,15 +235,15 @@ export default function CalendarPanel() {
                 className="cal-daynote-btn cal-add-btn"
                 role="button"
                 tabIndex={0}
-                onClick={(e) => { e.stopPropagation(); setComposeOpen((v) => !v); }}
+                onClick={(e) => { e.stopPropagation(); setSheetOpen(true); }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     e.stopPropagation();
-                    setComposeOpen((v) => !v);
+                    setSheetOpen(true);
                   }
                 }}
-                title="Add calendar item"
+                title="Open the day — view, add, edit"
               >
                 {'+'}
               </span>
@@ -273,72 +269,6 @@ export default function CalendarPanel() {
           </div>
 
           <div className="cal-day-col-events" id="calDayColEvents">
-            {composeOpen && isAuthed && (
-              <div className="cal-compose" onClick={(e) => e.stopPropagation()}>
-                <input
-                  className="cal-compose-input"
-                  type="text"
-                  placeholder="what's happening?"
-                  value={composeTitle}
-                  maxLength={200}
-                  autoFocus
-                  onChange={(e) => setComposeTitle(e.target.value)}
-                />
-                <div className="cal-compose-row">
-                  <input
-                    className="cal-compose-input cal-compose-time"
-                    type="text"
-                    placeholder="time?"
-                    value={composeTime}
-                    maxLength={24}
-                    onChange={(e) => setComposeTime(e.target.value)}
-                  />
-                  {canGlobal && (
-                    <button
-                      type="button"
-                      className={`cal-compose-global${composeGlobal ? ' is-on' : ''}`}
-                      onClick={() => setComposeGlobal((v) => !v)}
-                      title="Write to the GLOBAL calendar (everyone sees it)"
-                    >
-                      GLOBAL
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    className="cal-compose-save"
-                    disabled={composeBusy || !composeTitle.trim()}
-                    onClick={() => {
-                      if (composeBusy || !composeTitle.trim()) return;
-                      setComposeBusy(true);
-                      fetch('/api/calendar', {
-                        method: 'POST',
-                        headers: { 'content-type': 'application/json' },
-                        body: JSON.stringify({
-                          action: 'add',
-                          dateKey: selKey,
-                          time: composeTime.trim(),
-                          title: composeTitle.trim(),
-                          scope: composeGlobal ? 'global' : 'personal',
-                        }),
-                      })
-                        .then(async (r) => {
-                          if (!r.ok) throw new Error(((await r.json().catch(() => ({}))) as { error?: string })?.error ?? 'FAILED');
-                          showToast(`Calendar: ADDED${composeGlobal ? ' · GLOBAL' : ''}`);
-                          setComposeTitle('');
-                          setComposeTime('');
-                          setComposeOpen(false);
-                          loadMonth();
-                        })
-                        .catch((err: unknown) => showToast(err instanceof Error ? err.message : 'Calendar: FAILED'))
-                        .finally(() => setComposeBusy(false));
-                    }}
-                  >
-                    {composeBusy ? '…' : 'ADD'}
-                  </button>
-                </div>
-              </div>
-            )}
-
             {/* PriceDay ↔ calendar — the selected day's almanac line. */}
             {selInPdRange && (
               <div className="cal-event-item cal-event-priceday" title={selPd.flavor ?? undefined}>
@@ -441,6 +371,9 @@ export default function CalendarPanel() {
           </div>
         </div>
       </div>
+      {/* THE DAY, full screen — view + edit + per-item ping plans. Reloads
+          the month on close so the panel reflects sheet writes. */}
+      {sheetOpen && <CalendarSheet onClose={() => { setSheetOpen(false); loadMonth(); }} />}
     </div>
   );
 }

@@ -456,3 +456,74 @@
 .wf-sheet .wf-compose { padding: 10px 0 12px; }
 .wf-list { overflow-y: auto; min-height: 0; }
 .wf-sheet .wf-row { padding: 8px 2px; }
+
+/* ── The Calendar Sheet (2026-07-16) — the day, full screen. Same shell as
+   the Workflows modal; these are only the calendar-specific extensions.
+   Everything wears the sheet's inherited ink at full strength (Rule #2). */
+.cal-sheet-head {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+.cal-sheet-nav {
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 1;
+    padding: 2px 10px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.cal-sheet-nav:active { transform: scale(0.9); }
+.cal-sheet-date { text-align: center; }
+.cal-sheet-weekday {
+    display: block;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.14em;
+    margin-top: 2px;
+}
+.cal-sheet-new { align-self: flex-start; margin: 8px 0 10px; }
+.cal-sheet-list { flex: 1 1 auto; }
+.cal-sheet-row { align-items: center; gap: 8px; }
+.cal-sheet-row.is-mine { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.cal-sheet-timecol {
+    display: inline-block;
+    min-width: 46px;
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+    margin-right: 4px;
+}
+.cal-sheet-flavor { font-weight: normal; }
+.cal-sheet-ghost { font-style: italic; }
+/* Ping badge — the item's reminder plan at a glance. OFF earns the done-fade
+   (meaning-carrying: this item deliberately won't speak). */
+.cal-ping-badge {
+    flex-shrink: 0;
+    font: bold 12px 'Courier New', Courier, monospace;
+    letter-spacing: 0.05em;
+    padding: 2px 6px;
+    border: 1px solid currentColor;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+.cal-ping-badge.is-off { opacity: 0.5; }
+.cal-remind-chip { padding: 4px 7px; }
+.cal-sheet-compose .wf-fields { row-gap: 8px; }
+.cal-sheet-time { width: 64px; }
+.cal-sheet-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 4px;
+}
+.cal-sheet-floor {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 10px;
+    margin-top: 6px;
+    border-top: 1px dashed color-mix(in srgb, currentColor 45%, transparent);
+}

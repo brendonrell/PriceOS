@@ -59,6 +59,12 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
     const s = readCalState();
     return typeof s.todosMode === 'boolean' ? s.todosMode : true;
   });
+  // Calendar↔pings fine control (2026-07-16): the GLOBAL schedule pings this
+  // account unless switched off. Rides the same account-backed column.
+  const [globalPings, setGlobalPings] = useState<boolean>(() => {
+    const s = readCalState();
+    return typeof s.globalPings === 'boolean' ? s.globalPings : true;
+  });
   const [dayNotes, setDayNotes] = useState<DayNotesMap>({});
 
   // Hydrate day notes from localStorage on mount, and re-read when the account
@@ -68,9 +74,10 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const read = () => {
       try {
-        // calendar_state — the account's stored layer choice wins on hydrate.
+        // calendar_state — the account's stored choices win on hydrate.
         const cal = readCalState();
         if (typeof cal.todosMode === 'boolean') setTodosMode(cal.todosMode);
+        if (typeof cal.globalPings === 'boolean') setGlobalPings(cal.globalPings);
         const raw = localStorage.getItem(DAY_NOTES_KEY);
         if (!raw) return;
         const parsed = JSON.parse(raw);
@@ -128,6 +135,20 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const toggleGlobalPings = useCallback(() => {
+    setGlobalPings((on) => {
+      const next = !on;
+      // Same write-through as the To-Dos layer — the reminder sweep reads
+      // this straight off users.calendar_state.
+      try {
+        const state = { ...readCalState(), globalPings: next };
+        localStorage.setItem(STATE_CACHE_KEYS.calState, JSON.stringify(state));
+        pushState({ calendar_state: state });
+      } catch { /* private mode — in-memory state still flips */ }
+      return next;
+    });
+  }, []);
+
   const setDayNote = useCallback((dayKey: string, note: string) => {
     setDayNotes((prev) => {
       const next = { ...prev };
@@ -144,12 +165,12 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<CalendarContextValue>(
     () => ({
-      viewY, viewM, selY, selM, selD, todosMode, dayNotes,
-      selectDay, navMonth, jumpToToday, toggleTodos, setDayNote,
+      viewY, viewM, selY, selM, selD, todosMode, globalPings, dayNotes,
+      selectDay, navMonth, jumpToToday, toggleTodos, toggleGlobalPings, setDayNote,
     }),
     [
-      viewY, viewM, selY, selM, selD, todosMode, dayNotes,
-      selectDay, navMonth, jumpToToday, toggleTodos, setDayNote,
+      viewY, viewM, selY, selM, selD, todosMode, globalPings, dayNotes,
+      selectDay, navMonth, jumpToToday, toggleTodos, toggleGlobalPings, setDayNote,
     ]
   );
 

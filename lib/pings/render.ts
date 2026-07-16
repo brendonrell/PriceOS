@@ -262,7 +262,15 @@ export function renderPing(row: FeedItem): RenderedPing {
         handle = '';
         const text = typeof row.data?.text === 'string' && row.data.text ? (row.data.text as string) : 'an event';
         const when = typeof row.data?.time === 'string' && row.data.time ? ` · ${row.data.time}` : '';
-        action = `Today: ${text}${when}`;
+        // Lead-aware wording (2026-07-16 Calendar Sheet fine control).
+        const lead = typeof row.data?.lead === 'string' ? (row.data.lead as string) : null;
+        action = lead === '1d'
+          ? `Tomorrow: ${text}${when}`
+          : lead === '1h'
+            ? `In 1 hour: ${text}${when}`
+            : lead === '15m'
+              ? `In 15 min: ${text}${when}`
+              : `Today: ${text}${when}`;
       } else if (reminder === 'streak') {
         handle = '';
         const days = typeof row.data?.days === 'number' ? (row.data.days as number) : null;

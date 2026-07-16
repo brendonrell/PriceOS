@@ -107,15 +107,24 @@ export async function GET(req: Request): Promise<Response> {
     /** Streaks shorter than this are not worth interrupting an evening for. */
     const STREAK_GUARD_MIN_DAYS = 30;
 
+    /* Per-user calendar↔pings switch (2026-07-16 Calendar Sheet): the
+       account's calendar_state may opt OUT of GLOBAL-schedule pings.
+       Collected during the same per-address walk the to-dos already do. */
+    const globalPingsOff = new Set<string>();
+
     for (const address of addresses) {
       const { data: uRow } = await db
         .from('users')
-        .select('settings, price_streak, streak_last_active')
+        .select('settings, price_streak, streak_last_active, calendar_state')
         .eq('address', address)
         .maybeSingle();
       const settings = ((uRow as { settings?: Record<string, unknown> } | null)?.settings ?? {}) as {
         todos?: unknown;
       };
+      const calState = ((uRow as { calendar_state?: Record<string, unknown> } | null)?.calendar_state ?? {}) as {
+        globalPings?: unknown;
+      };
+      if (calState.globalPings === false) globalPingsOff.add(address);
 
       // ── Streak guard — a 30-day-plus streak dies at midnight and its owner
       // hasn't acted today: one evening ping, ~5 hours of runway left.
@@ -156,36 +165,50 @@ export async function GET(req: Request): Promise<Response> {
     }
 
     // ── Calendar — same sweep, same window. Personal items ping their owner;
-    // GLOBAL items (@brendon's platform schedule) ping every subscriber. The
-    // calendar is Montreal wall-clock by design (see 20260702_calendar_items),
-    // so "today" and item times are read in America/Toronto.
+    // GLOBAL items (@brendon's platform schedule) ping every subscriber who
+    // hasn't switched global pings off. Each item carries its own reminder
+    // plan (2026-07-16 Calendar Sheet): off · at time · 15m/1h before · the
+    // day before. The calendar is Montreal wall-clock by design (see
+    // 20260702_calendar_items), so "today" and item times read America/Toronto.
     let calSent = 0;
     try {
       const todayKey = mtlToday;
       const nowMin = mtlNowMin;
+      const tomorrowKey = new Date(Date.parse(`${todayKey}T00:00:00Z`) + 86400_000)
+        .toISOString()
+        .slice(0, 10);
 
+      // Today's rows fire their at-time / before-leads; tomorrow's rows are
+      // in play for day-before ('1d') and for small leads that cross midnight.
       const { data: calRows } = await db
         .from('calendar_items')
-        .select('scope, owner_address, time_label, title')
-        .eq('date_key', todayKey);
+        .select('scope, owner_address, time_label, title, date_key, remind')
+        .in('date_key', [todayKey, tomorrowKey]);
       const items = (calRows ?? []) as Array<{
-        scope: string; owner_address: string | null; time_label: string | null; title: string;
+        scope: string; owner_address: string | null; time_label: string | null;
+        title: string; date_key: string; remind: string | null;
       }>;
+      const LEAD_MIN: Record<string, number> = { attime: 0, '15m': 15, '1h': 60, '1d': 1440 };
       const subscriberSet = new Set(addresses);
       for (const item of items) {
+        const remind = item.remind && item.remind in LEAD_MIN ? item.remind : item.remind === 'off' ? 'off' : 'attime';
+        if (remind === 'off') continue;
         // Reminder minute: an explicit HH:MM in the label, else the day-of
         // default (09:00 Montreal — morning heads-up for all-day items).
         const tm = item.time_label && /(\d{1,2}):(\d{2})/.exec(item.time_label);
         const itemMin = tm
           ? Math.min(23, Number(tm[1])) * 60 + Math.min(59, Number(tm[2]))
           : 9 * 60;
-        // Same tiling as to-dos: fire in the one sweep whose window the
-        // reminder minute just passed (WINDOW_MS == the cron cadence).
-        const delta = nowMin - itemMin;
+        // Fire minute measured on TODAY's clock: tomorrow's items sit at
+        // +1440, then the lead walks the reminder back. Same window tiling
+        // as to-dos (WINDOW_MS == the cron cadence) — each reminder falls in
+        // exactly one sweep, whichever day it lands on.
+        const fireMin = itemMin + (item.date_key === tomorrowKey ? 1440 : 0) - LEAD_MIN[remind];
+        const delta = nowMin - fireMin;
         if (delta < 0 || delta * 60_000 >= WINDOW_MS) continue;
         const recipients =
           item.scope === 'global'
-            ? addresses
+            ? addresses.filter((a) => !globalPingsOff.has(a))
             : item.owner_address && subscriberSet.has(item.owner_address.toLowerCase())
               ? [item.owner_address.toLowerCase()]
               : [];
@@ -197,6 +220,7 @@ export async function GET(req: Request): Promise<Response> {
               reminder: 'calendar',
               text: item.title,
               ...(item.time_label ? { time: item.time_label } : {}),
+              ...(remind !== 'attime' ? { lead: remind } : {}),
             },
           });
           calSent += 1;

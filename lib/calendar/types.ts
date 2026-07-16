@@ -23,6 +23,9 @@ export interface CalendarState {
   selD: number;
   /** When true: red to-do dots on grid + red to-do rows above events list. */
   todosMode: boolean;
+  /** When false the GLOBAL schedule never pings this account (2026-07-16
+   *  Calendar Sheet — calendar↔pings fine control). Default true. */
+  globalPings: boolean;
   /** Day notes keyed by 'YYYY-MM-DD'. */
   dayNotes: DayNotesMap;
 }
@@ -32,6 +35,7 @@ export interface CalendarActions {
   navMonth: (dir: -1 | 1) => void;
   jumpToToday: () => void;
   toggleTodos: () => void;
+  toggleGlobalPings: () => void;
   setDayNote: (dayKey: string, note: string) => void;
 }
 

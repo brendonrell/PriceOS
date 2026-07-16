@@ -21,12 +21,18 @@ const VS15 = '︎';
 const DAY_MS = 86_400_000;
 const BUSY_MINTS = 8; // a day this hot earns a retrospective note
 
+/** Per-item reminder plan (2026-07-16 Calendar Sheet — calendar↔pings fine
+ *  control). 'attime' is the legacy behaviour every old row keeps. */
+export type CalRemind = 'off' | 'attime' | '15m' | '1h' | '1d';
+const REMINDS: readonly CalRemind[] = ['off', 'attime', '15m', '1h', '1d'];
+
 interface CalItem {
   id?: string;
   scope: 'personal' | 'global' | 'auto';
   time?: string | null;
   title: string;
   mine?: boolean;
+  remind?: CalRemind;
 }
 
 function montrealTodayKey(): string {
@@ -68,7 +74,7 @@ export async function GET(req: NextRequest) {
 
     const [storedRes, projRes, mintRes, saleRes] = await Promise.all([
       db.from('calendar_items')
-        .select('id, scope, owner_address, date_key, time_label, title')
+        .select('id, scope, owner_address, date_key, time_label, title, remind')
         .like('date_key', `${monthPrefix}%`)
         .order('created_at', { ascending: true })
         .limit(300),
@@ -90,7 +96,7 @@ export async function GET(req: NextRequest) {
     };
 
     // 1+2. Stored items (global for everyone; personal only for the viewer).
-    for (const r of (storedRes.data ?? []) as { id: string; scope: string; owner_address: string | null; date_key: string; time_label: string | null; title: string }[]) {
+    for (const r of (storedRes.data ?? []) as { id: string; scope: string; owner_address: string | null; date_key: string; time_label: string | null; title: string; remind: string | null }[]) {
       if (r.scope === 'personal' && (!viewer || r.owner_address?.toLowerCase() !== viewer)) continue;
       push(r.date_key, {
         id: r.id,
@@ -98,6 +104,7 @@ export async function GET(req: NextRequest) {
         time: r.time_label,
         title: r.title,
         mine: r.scope === 'personal' || (r.scope === 'global' && !!viewer && r.owner_address?.toLowerCase() === viewer),
+        remind: (REMINDS.includes((r.remind ?? '') as CalRemind) ? r.remind : 'attime') as CalRemind,
       });
     }
 
@@ -153,15 +160,19 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// ── POST — add / delete items ────────────────────────────────────────────────
+// ── POST — add / update / delete items ───────────────────────────────────────
 interface Body {
-  action: 'add' | 'delete';
+  action: 'add' | 'update' | 'delete';
   dateKey?: string;
   time?: string;
   title?: string;
   scope?: 'personal' | 'global';
   id?: string;
+  remind?: string;
 }
+
+const cleanRemind = (v: unknown): CalRemind =>
+  (REMINDS.includes(v as CalRemind) ? (v as CalRemind) : 'attime');
 
 export const POST = requireAuth(async (req, _ctx, address) => {
   let body: Body;
@@ -187,9 +198,31 @@ export const POST = requireAuth(async (req, _ctx, address) => {
         date_key: dateKey,
         time_label: (body.time ?? '').trim().slice(0, 24) || null,
         title,
+        remind: cleanRemind(body.remind),
       } as never).select('id').single();
       if (r.error) return serverError(r.error.message);
       return NextResponse.json({ ok: true, id: (r.data as { id: string }).id });
+    }
+    if (body.action === 'update') {
+      // The Calendar Sheet's edit path (2026-07-16) — own items only (or a
+      // global item under the same authorship rule as delete).
+      if (!body.id) return badRequest('Missing id');
+      const r = await db.from('calendar_items').select('owner_address, scope').eq('id', body.id).maybeSingle();
+      const row = r.data as { owner_address?: string | null; scope?: string } | null;
+      if (!row) return badRequest('Not found');
+      const ownsIt = row.owner_address?.toLowerCase() === address;
+      if (!ownsIt && !(row.scope === 'global' && (await isBrendon(db, address)))) {
+        return badRequest('Not yours to edit');
+      }
+      const title = (body.title ?? '').trim();
+      if (!title || title.length > 200) return badRequest('Bad title');
+      const u = await db.from('calendar_items').update({
+        title,
+        time_label: (body.time ?? '').trim().slice(0, 24) || null,
+        remind: cleanRemind(body.remind),
+      } as never).eq('id', body.id);
+      if (u.error) return serverError(u.error.message);
+      return NextResponse.json({ ok: true });
     }
     if (body.action === 'delete') {
       if (!body.id) return badRequest('Missing id');
