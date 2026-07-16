@@ -82,7 +82,9 @@ import { useToast } from '../lib/state/ToastContext';
 import { useProject, paintOutput } from '../lib/state/ProjectContext';
 import { getProject } from '../lib/project/registry';
 import { sampleCanvasFingerprint } from '../lib/art/sampleColor';
-import { needsColorSample, reportFingerprint, reportTraits } from '../lib/art/colorStore';
+import { needsColorSample, reportFingerprint, reportTraits, resolveBucket, resolveFingerprint, useStoredColors } from '../lib/art/colorStore';
+import { BUCKET_HEX, fateDetail } from '../lib/output/derive';
+import { primaryTrait, traitRarity, fateRarity, colorRarity, overallRarity } from '../lib/output/rarity';
 import { ART_IMAGE_BASE, artImageUrl, artThumbUrl, artProvisionalAspect, rememberArtAspect } from '../lib/project/registry';
 import { useCelestialMark, celestialOpacity } from '../lib/output/celestial';
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
@@ -650,9 +652,50 @@ function ArtworkCard({
        in render order. */
     const auraAngle = (id * 137) % 360;
     const auraDuration = (10 + ((id * 23) % 60) / 10).toFixed(2) + 's';
+
+    /* AURA wow pass (2026-07-16): the halo is the piece's OWN light — its
+       dominant colour + accent from the sampled fingerprint, and the glow's
+       strength scales with real edition-set rarity (the rare ones radiate).
+       Until the colours hydrate the CSS falls back to the original 6-hue
+       field. colorsVer re-memos when the stored colours land. */
+    const auraOn = !!notifs.spell_aura;
+    const colorsVer = useStoredColors(auraOn ? [slug] : []);
+    const auraVars = useMemo(() => {
+        if (!auraOn) return null;
+        const bucket = resolveBucket(slug, id);
+        const c1 = bucket ? BUCKET_HEX[bucket] : null;
+        if (!bucket || !c1) return null;
+        const accent = resolveFingerprint(slug, id)?.accent ?? null;
+        const c2 = (accent && BUCKET_HEX[accent]) || c1;
+        let power = 0.55;
+        try {
+            const pt = primaryTrait(slug, id);
+            const tf = pt ? traitRarity(slug, pt.name, pt.value) : null;
+            const cf = colorRarity(slug, bucket);
+            const ff = fateRarity(slug, fateDetail(slug, id).fate);
+            const score = overallRarity([tf, ff, cf])?.score ?? null;
+            if (score != null) power = 0.45 + (score / 100) * 0.4; // 0.45–0.85
+        } catch { /* rarity unknown — the base glow stands */ }
+        return {
+            c1, c2,
+            power: power.toFixed(2),
+            inset: `${-16 - Math.round((power - 0.45) * 15)}px`, // -16..-22
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [auraOn, slug, id, colorsVer]);
+
     const articleStyle: CSSProperties = {
         ['--aura-angle' as string]: auraAngle + 'deg',
         ['--aura-duration' as string]: auraDuration,
+        ['--aura-breathe' as string]: (7 + ((id * 31) % 80) / 10).toFixed(1) + 's',
+        ...(auraVars
+            ? {
+                  ['--aura-c1' as string]: auraVars.c1,
+                  ['--aura-c2' as string]: auraVars.c2,
+                  ['--aura-opacity' as string]: auraVars.power,
+                  ['--aura-inset' as string]: auraVars.inset,
+              }
+            : {}),
     };
 
     /* Build 22 — sim 8041-8057. Hover overlay icons. v1 wiring stubs to

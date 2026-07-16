@@ -7215,18 +7215,32 @@ body.aura-active .output-card {
     position: relative;
     isolation: isolate;
 }
+/* 2026-07-16 wow pass — the halo is the piece's OWN light. ArtworkCard
+   stamps --aura-c1 (dominant colour) / --aura-c2 (accent) from the sampled
+   fingerprint plus --aura-opacity / --aura-inset from real edition-set
+   rarity (rarer = brighter + wider). Every per-stop fallback below rebuilds
+   the original 6-hue rainbow, so unhydrated cards keep the old field. The
+   glow also BREATHES on a per-card seeded period (opacity keyframes only —
+   no extra layers, same paint cost). */
 body.aura-active .output-card::before {
     content: '';
     position: absolute;
-    inset: -16px;
+    inset: var(--aura-inset, -16px);
     background: conic-gradient(from var(--aura-angle, 0deg),
-        #FF0055, #FFE600, #14EACE, #FF8A3D, #D600FF, #00FF66, #FF0055);
+        var(--aura-c1, #FF0055),
+        color-mix(in srgb, var(--aura-c1, #FFE600) 72%, #fff),
+        var(--aura-c2, #14EACE),
+        color-mix(in srgb, var(--aura-c2, #FF8A3D) 60%, var(--aura-c1, #D600FF)),
+        color-mix(in srgb, var(--aura-c1, #00FF66) 82%, #000),
+        var(--aura-c1, #FF0055));
     filter: blur(22px);
-    opacity: 0.55;
+    opacity: var(--aura-opacity, 0.55);
     z-index: -1;
     pointer-events: none;
     border-radius: 12px;
-    animation: auraRotate var(--aura-duration, 14s) linear infinite;
+    animation:
+        auraRotate var(--aura-duration, 14s) linear infinite,
+        auraBreathe var(--aura-breathe, 9s) ease-in-out infinite;
 }
 body.aura-active { overflow-x: hidden; }
 body.aura-active #gallery { overflow-x: clip; }
@@ -7234,8 +7248,12 @@ body.aura-active #gallery { overflow-x: clip; }
     from { transform: rotate(0deg); }
     to   { transform: rotate(360deg); }
 }
+@keyframes auraBreathe {
+    0%, 100% { opacity: var(--aura-opacity, 0.55); }
+    50% { opacity: calc(var(--aura-opacity, 0.55) * 0.7); }
+}
 @media (prefers-reduced-motion: reduce) {
-    body.aura-active .output-card::before { animation: none; opacity: 0.45; }
+    body.aura-active .output-card::before { animation: none; opacity: var(--aura-opacity, 0.45); }
 }
 
 /* ── BREADCRUMB CRUMB — sim 3893-3914 + 8072-8082 ──
