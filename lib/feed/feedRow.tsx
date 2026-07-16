@@ -13,6 +13,8 @@ import type { ReactNode } from 'react';
 import type { EventRow } from '../supabase';
 import type { TxStar } from '../pins/txStarStore';
 import { useSpiteMatcher } from '../pins/spiteStore';
+import { usePdNotifs } from '../state/PdNotifsContext';
+import { GossipLine } from './gossip';
 
 export interface FeedEvent {
     id: string;
@@ -36,18 +38,18 @@ export interface FeedEvent {
 
 /** The standard feed sentence — actor + verb, with the Spite Book treatment
  *  on the actor (dimmed + struck when the handle is in the viewer's book).
- *  One implementation for every surface that renders a FeedEvent line. */
+ *  One implementation for every surface that renders a FeedEvent line.
+ *  GOSSIP PROTOCOL reads here too: when the spell is on, the same event —
+ *  same actor link, same token link, same price — is told as a rumor. */
 export function FeedActorLine({ fe }: { fe: FeedEvent }) {
     const isSpited = useSpiteMatcher();
+    const { notifs } = usePdNotifs();
     const cls = `f-highlight${isSpited(fe.actorName) ? ' spited' : ''}`;
-    return (
-        <>
-            {fe.actorHref
-                ? <a className={cls} href={fe.actorHref} onClick={(e) => e.stopPropagation()}>{fe.actorName}</a>
-                : <span className={cls}>{fe.actorName}</span>}
-            {' '}{fe.verb}
-        </>
-    );
+    const actor = fe.actorHref
+        ? <a className={cls} href={fe.actorHref} onClick={(e) => e.stopPropagation()}>{fe.actorName}</a>
+        : <span className={cls}>{fe.actorName}</span>;
+    if (notifs.spell_gossip) return <GossipLine fe={fe} actor={actor} />;
+    return <>{actor}{' '}{fe.verb}</>;
 }
 
 export const FEED_ICON: Record<FeedEvent['type'], string> = {

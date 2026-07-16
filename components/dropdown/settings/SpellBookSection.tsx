@@ -115,6 +115,11 @@ export function SpellBookSection({ onTripleTap }: Props) {
             showToast(next ? '☽ Reading the Birth Skies ☽' : 'Celestial Tracker: OFF');
             return;
         }
+        // Gossip Protocol — flavour on, plain off (Cartel/Celestial precedent).
+        if (spell.id === 'gossip') {
+            showToast(next ? '⑃ Rumor Has It… ⑃' : 'Gossip Protocol: OFF');
+            return;
+        }
         // Offer Shield — flip + toast, and raise the ward (the OfferShieldCast
         // flourish) when it comes on.
         if (spell.id === 'offershield') {
