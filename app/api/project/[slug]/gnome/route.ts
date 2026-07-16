@@ -24,6 +24,9 @@ export interface GnomeFavourPiece {
   listed: boolean;
   /** held ≥ FAVOUR_DAYS and not listed. */
   favoured: boolean;
+  /** The piece's MINT instant (Unix seconds) — the strike date the
+   *  appraisal cites. Null if no MINT event on record. */
+  mint_ts: number | null;
 }
 
 export interface GnomeFavourResponse {
@@ -53,7 +56,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ slug: str
       return NextResponse.json({ favour_days: FAVOUR_DAYS, pieces: [] } satisfies GnomeFavourResponse);
     }
 
-    const [evRes, listRes] = await Promise.all([
+    const [evRes, listRes, mintRes] = await Promise.all([
       db.from('events')
         .select('token_id, timestamp')
         .eq('project_id', slug)
@@ -65,9 +68,15 @@ export async function GET(req: NextRequest, props: { params: Promise<{ slug: str
         .eq('active', true)
         .or(`end_time.is.null,end_time.gt.${now}`)
         .in('token_id', tokenIds.map(String)),
+      db.from('events')
+        .select('token_id, timestamp')
+        .eq('project_id', slug)
+        .eq('type', 'MINT')
+        .in('token_id', tokenIds.map(String)),
     ]);
     if (evRes.error) return serverError(evRes.error.message);
     if (listRes.error) return serverError(listRes.error.message);
+    if (mintRes.error) return serverError(mintRes.error.message);
 
     // Acquired = the LATEST transfer-in per token (a re-buy resets tenure).
     const acquired = new Map<number, number>();
@@ -77,6 +86,10 @@ export async function GET(req: NextRequest, props: { params: Promise<{ slug: str
       if (!acquired.has(id) || ts > acquired.get(id)!) acquired.set(id, ts);
     }
     const listed = new Set(((listRes.data ?? []) as { token_id: string | number }[]).map((r) => Number(r.token_id)));
+    const mintTs = new Map<number, number>();
+    for (const m of (mintRes.data ?? []) as { token_id: string | number; timestamp: number | string }[]) {
+      mintTs.set(Number(m.token_id), Number(m.timestamp));
+    }
 
     const pieces: GnomeFavourPiece[] = tokenIds
       .map((id) => {
@@ -90,6 +103,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ slug: str
           held_days: heldDays,
           listed: isListed,
           favoured: heldDays >= FAVOUR_DAYS && !isListed,
+          mint_ts: mintTs.get(id) ?? null,
         };
       })
       .sort((a, b) => b.held_days - a.held_days || a.token_id - b.token_id);

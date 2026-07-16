@@ -28,7 +28,7 @@ export const FAVOUR_DAYS = 7;
 
 /* ── Greetings ────────────────────────────────────────────────────────────── */
 
-type Audience = 'stranger' | 'holder';
+type Audience = 'stranger' | 'holder' | 'favoured';
 
 const GREETINGS: Record<GnomeTemperament, Record<Audience, readonly string[]>> = {
   GRUFF: {
@@ -41,6 +41,10 @@ const GREETINGS: Record<GnomeTemperament, Record<Audience, readonly string[]>> =
       'Oh. It’s you. …The good lamp’s by the door.',
       'You hold. Fine. I don’t say that to everyone.',
     ],
+    favoured: [
+      'The one I speak for. Come in. Wipe your boots anyway.',
+      'You I make time for. Don’t spread it around.',
+    ],
   },
   KINDLY: {
     stranger: [
@@ -51,6 +55,10 @@ const GREETINGS: Record<GnomeTemperament, Record<Audience, readonly string[]>> =
     holder: [
       'Ah, one of ours! Your piece asked after you.',
       'Welcome home. I kept it dusted.',
+    ],
+    favoured: [
+      'Ah — the friend of the house! Your chair’s where you left it.',
+      'The stone lights up before you reach the door now. Truly.',
     ],
   },
   MERRY: {
@@ -63,6 +71,10 @@ const GREETINGS: Record<GnomeTemperament, Record<Audience, readonly string[]>> =
       'The collector returns! Drinks on the hoard!',
       'There you are! Your stone hums when you’re near, you know.',
     ],
+    favoured: [
+      'THE favourite returns! I’ve told the whole hoard about you!',
+      'You! Sit, sit — I saved the good lamp oil for this!',
+    ],
   },
   WARY: {
     stranger: [
@@ -73,6 +85,10 @@ const GREETINGS: Record<GnomeTemperament, Record<Audience, readonly string[]>> =
     holder: [
       'You again. Good. I remember who holds.',
       'The door knows your knock now. Come through.',
+    ],
+    favoured: [
+      'You, I trust. That list is one name long.',
+      'For you the door was already open. Notice I knew.',
     ],
   },
   STOIC: {
@@ -85,6 +101,10 @@ const GREETINGS: Record<GnomeTemperament, Record<Audience, readonly string[]>> =
       'You hold. That is enough.',
       'The stone remembers your hands. So do I.',
     ],
+    favoured: [
+      'Keeper greets keeper. That is what you are now.',
+      'You have held. The vein holds you in return.',
+    ],
   },
   SLY: {
     stranger: [
@@ -95,6 +115,10 @@ const GREETINGS: Record<GnomeTemperament, Record<Audience, readonly string[]>> =
     holder: [
       'Ah, my favourite accomplice.',
       'Yours is the one I’d have kept. Don’t repeat that.',
+    ],
+    favoured: [
+      'Partner. The others still think I like them best.',
+      'For you? The real numbers. Later. Walls have ears.',
     ],
   },
   DOTING: {
@@ -107,6 +131,10 @@ const GREETINGS: Record<GnomeTemperament, Record<Audience, readonly string[]>> =
       'Oh, it’s YOU! Your piece has been so good today.',
       'I tucked yours in facing the lamp. It likes the lamp.',
     ],
+    favoured: [
+      'Oh, my dear friend! The piece knew you were coming, I swear it.',
+      'You’re here! It’s been asking. Stones ask, you know. In their way.',
+    ],
   },
   GRUMPY: {
     stranger: [
@@ -117,6 +145,10 @@ const GREETINGS: Record<GnomeTemperament, Record<Audience, readonly string[]>> =
     holder: [
       'You. Hmph. …I polished yours. Don’t mention it.',
       'Took you long enough. It’s fine. Everything’s fine.',
+    ],
+    favoured: [
+      'Oh. The good one. …Well don’t just stand there being appreciated.',
+      'You. Fine. You I’m actually pleased to see. There. I said it.',
     ],
   },
   HEARTY: {
@@ -129,6 +161,10 @@ const GREETINGS: Record<GnomeTemperament, Record<Audience, readonly string[]>> =
       'HO! A holder! The best kind of company!',
       'Pull up a crate — yours is the pride of the rack!',
     ],
+    favoured: [
+      'HO HO! The vein’s own! Best hands in the business!',
+      'Friend of the mine! Your name’s carved over the good seam!',
+    ],
   },
   SOLEMN: {
     stranger: [
@@ -139,6 +175,10 @@ const GREETINGS: Record<GnomeTemperament, Record<Audience, readonly string[]>> =
     holder: [
       'You keep the stone. The stone keeps you.',
       'Few hold. Fewer understand why. You may.',
+    ],
+    favoured: [
+      'Few earn the favour. Fewer keep it. Be welcome.',
+      'The rock speaks your name slowly. That is its highest speed.',
     ],
   },
   IMPISH: {
@@ -151,6 +191,10 @@ const GREETINGS: Record<GnomeTemperament, Record<Audience, readonly string[]>> =
       'Shh — I moved your piece an inch. Did you notice?',
       'I told the others yours is cursed so they’d stop touching it. You’re welcome.',
     ],
+    favoured: [
+      'My co-conspirator! I un-cursed your piece. Mostly.',
+      'It’s you! Quick, look serious — the other stones get jealous.',
+    ],
   },
   STALWART: {
     stranger: [
@@ -161,6 +205,10 @@ const GREETINGS: Record<GnomeTemperament, Record<Audience, readonly string[]>> =
     holder: [
       'Holder on deck. Post secure.',
       'Your piece is under my watch. It has never been safer.',
+    ],
+    favoured: [
+      'Favour-holder on deck. All posts, at ease.',
+      'You hold the favour. In this mine that outranks me. Almost.',
     ],
   },
 };
@@ -200,6 +248,8 @@ export interface AppraisalFacts {
   listedCount: number;
   /** Edition size minted so far (for early-strike framing). */
   minted: number;
+  /** The piece's mint instant (Unix seconds) — the strike date, if known. */
+  mintTs: number | null;
 }
 
 const OPENINGS: Record<GnomeTemperament, readonly string[]> = {
@@ -257,6 +307,14 @@ export function gnomeAppraisal(
     parts.push(pick([
       `It sits rank ${f.isolationRank} of ${f.isolationOf} for isolation — out on the lone edge of the seam, where the digging is hardest.`,
       `Rank ${f.isolationRank} of ${f.isolationOf} in the genome — far from the crowd, and the far stones are the ones I count at night.`,
+      `Isolation rank ${f.isolationRank} of ${f.isolationOf}. The deep seam. I lose a lamp a week down where this one was cut.`,
+    ], r));
+  }
+  if (f.mintTs != null) {
+    const d = new Date(f.mintTs * 1000).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    parts.push(pick([
+      `Struck from the rock on ${d} — I remember the dust of that day.`,
+      `Its strike date is ${d}. Write that down; provenance is half the stone.`,
     ], r));
   }
   if (f.noneAlike) {
@@ -284,6 +342,7 @@ export function gnomeAppraisal(
   parts.push(pick([
     `And you — ${f.heldDays} days you’ve kept it, never once posting it at the door. I notice such things. It’s why we’re talking.`,
     `${f.heldDays} days held, unlisted. That is how favour is earned in my mine.`,
+    `${f.heldDays} days in your keeping and not a single hour at the door. The stone has settled. So have I, about you.`,
   ], r));
 
   parts.push(pick(CLOSINGS[temperament], r));

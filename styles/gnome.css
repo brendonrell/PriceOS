@@ -67,6 +67,32 @@
     from { opacity: 0; transform: translateX(-50%) translateY(4px); }
     to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
+/* The bubble's tail — points down at the speaker. */
+.gnome-speech::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -6px;
+    width: 10px;
+    height: 10px;
+    transform: translateX(-50%) rotate(45deg);
+    background: var(--bg-color);
+    border-right: 1px solid var(--text-color);
+    border-bottom: 1px solid var(--text-color);
+}
+
+/* The greeting hop — one small delighted bounce on tap. */
+.gnome-hop-wrap { display: flex; justify-content: center; width: 100%; }
+.gnome-hop { animation: gnome-hop 0.42s ease-out; }
+@keyframes gnome-hop {
+    0%, 100% { transform: translateY(0); }
+    35% { transform: translateY(-9px); }
+    70% { transform: translateY(0); }
+    85% { transform: translateY(-3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .gnome-hop { animation: none; }
+}
 .gnome-svg {
     display: block;
     width: min(230px, 62vw);
@@ -118,6 +144,31 @@
     font-weight: bold;
     letter-spacing: 1px;
     margin-bottom: 6px;
+}
+/* Several favoured pieces → pills switch whose case the keeper argues.
+   Same recipe as the proven lens/rung pills: full-strength tokens. */
+.ga-pick-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+.ga-pick {
+    padding: 3px 9px;
+    border: 1px solid var(--text-color);
+    border-radius: 3px;
+    background: transparent;
+    color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+.ga-pick-on {
+    background: var(--text-color);
+    color: var(--bg-color);
 }
 .ga-case {
     margin: 0;

@@ -36,6 +36,7 @@ import {
     type ProjectGnome, type GnomePalette,
 } from '../../lib/project/gnome';
 import { gnomeGreeting, gnomeAppraisal, gnomeSignature } from '../../lib/project/gnomeVoice';
+import { hashString } from '../../lib/art/rng';
 import type { GnomeFavourResponse, GnomeFavourPiece } from '../../app/api/project/[slug]/gnome/route';
 
 type GnomeMood = 'mining' | 'wary' | 'content';
@@ -98,8 +99,13 @@ export default function GnomePanel() {
     }, [project.slug, siweAddress]);
 
     const isHolder = (favour?.pieces.length ?? 0) > 0;
-    /* The piece the Gnome speaks for: the longest-held favoured one. */
-    const favoured: GnomeFavourPiece | null = favour?.pieces.find((p) => p.favoured) ?? null;
+    /* Everything favoured (rows arrive sorted by tenure) — the keeper will
+       speak for any of them; longest-held leads, pills switch the case. */
+    const favouredAll = useMemo(() => favour?.pieces.filter((p) => p.favoured) ?? [], [favour]);
+    const [pickedId, setPickedId] = useState<number | null>(null);
+    useEffect(() => { setPickedId(null); }, [project.slug, siweAddress]);
+    const favoured: GnomeFavourPiece | null =
+        favouredAll.find((p) => p.token_id === pickedId) ?? favouredAll[0] ?? null;
     /* The nearest hopeful when nothing is favoured yet (rows sort by tenure). */
     const closest: GnomeFavourPiece | null = !favoured && isHolder ? favour!.pieces[0] : null;
 
@@ -108,12 +114,26 @@ export default function GnomePanel() {
     const tapCount = useRef(0);
     const speechTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     useEffect(() => () => { if (speechTimer.current) clearTimeout(speechTimer.current); }, []);
+    const [hop, setHop] = useState(false);
+    const hopTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    useEffect(() => () => { if (hopTimer.current) clearTimeout(hopTimer.current); }, []);
     const onGnomeTap = () => {
-        const line = gnomeGreeting(project.slug, gnome.temperament, isHolder ? 'holder' : 'stranger', tapCount.current++);
+        const audience = favoured ? 'favoured' as const : isHolder ? 'holder' as const : 'stranger' as const;
+        const line = gnomeGreeting(project.slug, gnome.temperament, audience, tapCount.current++);
         setSpeech(line);
         if (speechTimer.current) clearTimeout(speechTimer.current);
         speechTimer.current = setTimeout(() => setSpeech(null), 4500);
+        setHop(true);
+        if (hopTimer.current) clearTimeout(hopTimer.current);
+        hopTimer.current = setTimeout(() => setHop(false), 450);
     };
+
+    /* Each keeper has its own rhythm — a seeded phase offset so the world's
+       gnomes don't all breathe and blink in unison. */
+    const rhythm = useMemo(() => {
+        const h = hashString(`rhythm:${project.slug.toLowerCase()}`);
+        return { bob: -((h % 56) / 10), blink: -(((h >> 8) % 52) / 10) };
+    }, [project.slug]);
 
     /* THE APPRAISAL — the written case for the favoured piece, from real
        engine + ledger facts only. */
@@ -133,6 +153,7 @@ export default function GnomePanel() {
             floorEth: lowestFloor,
             listedCount,
             minted: project.totalOutputs,
+            mintTs: favoured.mint_ts,
         });
     }, [favoured, project.slug, project.totalOutputs, gnome, lowestFloor, listedCount]);
 
@@ -159,7 +180,9 @@ export default function GnomePanel() {
                     }}
                 >
                     {speech && <div className="gnome-speech">{speech}</div>}
-                    <GnomeFigure gnome={gnome} palette={palette} mood={mood} />
+                    <div className={hop ? 'gnome-hop-wrap gnome-hop' : 'gnome-hop-wrap'}>
+                        <GnomeFigure gnome={gnome} palette={palette} mood={mood} rhythm={rhythm} />
+                    </div>
                 </div>
                 <div className="gnome-traits">
                     {HAT_LABELS[gnome.hat]} · {BEARD_LABELS[gnome.beard]} · {KEEPSAKE_LABELS[gnome.keepsake]}
@@ -170,6 +193,20 @@ export default function GnomePanel() {
                         <div className="ga-head">
                             THE GNOME&rsquo;S FAVOUR · #{favoured.token_id} · HELD {favoured.held_days} DAYS
                         </div>
+                        {favouredAll.length > 1 && (
+                            <div className="ga-pick-row">
+                                {favouredAll.map((pc) => (
+                                    <button
+                                        key={pc.token_id}
+                                        type="button"
+                                        className={`ga-pick${pc.token_id === favoured.token_id ? ' ga-pick-on' : ''}`}
+                                        onClick={() => setPickedId(pc.token_id)}
+                                    >
+                                        #{pc.token_id}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                         <p className="ga-case">{appraisal}</p>
                         <div className="ga-sig">{gnomeSignature(gnome.name, project.slug)}</div>
                     </div>
@@ -192,8 +229,10 @@ export default function GnomePanel() {
    The whole figure (minus its shadow) breathes on a slow bob; the eyes blink;
    the brows carry the mood. */
 
-export function GnomeFigure({ gnome: g, palette: p, mood = 'content' }: {
+export function GnomeFigure({ gnome: g, palette: p, mood = 'content', rhythm }: {
     gnome: ProjectGnome; palette: GnomePalette; mood?: GnomeMood;
+    /** Seeded phase offsets (s) so each keeper breathes/blinks on its own beat. */
+    rhythm?: { bob: number; blink: number };
 }) {
     const w = g.girth; // 0.9–1.1 — how this gnome carries itself
     const X = (off: number) => 120 + off * w;
@@ -249,7 +288,10 @@ export function GnomeFigure({ gnome: g, palette: p, mood = 'content' }: {
             {/* Ground shadow — stays put while the gnome bobs. */}
             <ellipse cx="120" cy="272" rx={62 * w} ry="9" fill={p.ink} opacity="0.12" />
 
-            <g className={`gnome-figure gnome-figure--${mood}`}>
+            <g
+                className={`gnome-figure gnome-figure--${mood}`}
+                style={rhythm ? { animationDelay: `${rhythm.bob}s` } : undefined}
+            >
                 {/* The hoard so far — gems at the keeper's feet. */}
                 {Array.from({ length: g.hoard }).map((_, i) => {
                     const gx = [70, 55, 84][i];
@@ -292,7 +334,7 @@ export function GnomeFigure({ gnome: g, palette: p, mood = 'content' }: {
                 <path d="M 98,134 Q 120,124 142,134 Q 120,143 98,134 Z" fill={p.beard} stroke={p.ink} strokeWidth="2" />
                 <circle cx="97" cy="130" r="6" fill="#e06a5a" opacity="0.35" />
                 <circle cx="143" cy="130" r="6" fill="#e06a5a" opacity="0.35" />
-                <g className="gnome-eyes">
+                <g className="gnome-eyes" style={rhythm ? { animationDelay: `${rhythm.blink}s` } : undefined}>
                     <circle cx="106" cy="119" r="3" fill={p.ink} />
                     <circle cx="134" cy="119" r="3" fill={p.ink} />
                 </g>
