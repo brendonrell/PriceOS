@@ -8,6 +8,22 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ✅ **2026-07-16 THE PROJECT GNOME — on dev `cd4e35d`, auto-deployed, tree
+   clean. Branch `claude/gnome-build-r90zyr` = merged trash (Brendon deletes).**
+   Fable session. The +More GNOME tab's empty box is now the real thing:
+   `lib/project/gnome.ts` (embedded gen-art engine — deterministic per slug,
+   True Name/Fate discipline; name · temperament · 5 hats/patch · 5 beards ·
+   6 keepsakes · girth/nose/tones · 0–3 hoard gems; **draw order = frozen
+   contract, never reorder**) + `GnomePanel` (layered SVG, Replay/Genome card
+   family, breathes/blinks, reduced-motion safe). Hat+tunic wear the LIVE
+   colorway (`pd:custom-color-changed` re-dresses; creature never re-rolls).
+   $0, no fetch. Proof-sheeted on mid-tone + dark via headless Chromium
+   (container HAS Playwright+Chromium preinstalled — /opt/pw-browsers).
+   ClickUp: generator `86bafffka` closed; umbrella `86baka0v2` = open for
+   BEHAVIOURS — ideas round delivered in chat, Brendon picking what Gnomes DO
+   (his first instinct: the Favour→Appraiser `86baka0hc`). Next session likely
+   builds the chosen behaviour(s).
+
 0. ✅ **2026-07-16 DISPATCH + PRICEDAY WOW PASS — on dev `f8463bd`,
    auto-deployed, tree clean.** Same Fable session as the Gossip ship.
    The Dispatch + almanac writing engines rebuilt on one voice kit
