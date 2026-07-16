@@ -251,6 +251,10 @@ a.notif-item--link:hover { opacity: 0.85; }
        6.5 rows (6 full + a half peek), not 6.7 — the source of the height
        mismatch (Brendon, 2026-07-15). */
     padding: 16px 14px 14px;
+    /* border-box so the cap counts the padding — content-box made the box
+       406 + 30px of padding tall, which showed a 7th full row where the store
+       shows 6.5 (Brendon, 2026-07-16: both faces cut at exactly 6.5). */
+    box-sizing: border-box;
     font-family: 'Courier New', Courier, monospace;
 }
 .skm-wrap::-webkit-scrollbar { display: none; }
@@ -454,25 +458,16 @@ a.notif-item--link:hover { opacity: 0.85; }
 }
 .ss-restock { top: 26px; }
 
-/* Toy-shop skin — market prices wear little price tags. Full-strength dashed
-   edge + punch-hole, and a shared min width so the tags read as one aligned
-   price column down the right side (polish pass, Brendon 2026-07-16). */
+/* Prices — the clean cart-row readout, right-aligned as one column: floor
+   bold on top, best offer under it. (The dashed toy-tag chrome was retired
+   by Brendon, 2026-07-16 — plain full-strength numbers, no box.) */
 .skm-prices, .skm-wrap .cart-item-price {
     font-family: 'Courier New', Courier, monospace;
-    border: 1px dashed color-mix(in srgb, var(--text-color) 70%, transparent);
-    border-radius: 3px 8px 8px 3px;
-    padding: 3px 8px 3px 10px;
-    position: relative;
-    font-size: 12px;
+    font-size: 13px;
+    font-weight: bold;
     min-width: 46px;
     text-align: right;
-}
-.skm-prices::before, .skm-wrap .cart-item-price::before {
-    content: '';
-    position: absolute; left: 3px; top: 50%;
-    width: 4px; height: 4px; margin-top: -2px;
-    border-radius: 50%;
-    background: color-mix(in srgb, var(--text-color) 70%, transparent);
+    font-variant-numeric: tabular-nums;
 }
 .skm-match { font-weight: bold; opacity: 0.9; }
 .skm-quick-row { display: flex; gap: 8px; padding: 2px 0 6px; flex-wrap: wrap; }

@@ -295,7 +295,7 @@ export default function StickersModal() {
                     ) : (
                         <>
                             <div className="ss-title">
-                                <span className="ss-title-main">{albumOn ? 'MY STICKER ALBUM' : marketOn ? 'STICKER MARKET' : 'STICKER STORE'}</span>
+                                <span className="ss-title-main">{albumOn ? 'STICKER ALBUM' : marketOn ? 'STICKER MARKET' : 'STICKER STORE'}</span>
                                 <span className="ss-title-sub">{`⊞${VS15} ${albumOn ? 'GOT / NEED' : marketOn ? 'SECONDARY' : 'BY PD'}`}</span>
                             </div>
                             {!marketOn && !albumOn && (

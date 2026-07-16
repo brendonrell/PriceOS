@@ -46,6 +46,11 @@
     display: flex;
     flex-direction: column;
     font-family: 'Courier New', Courier, monospace;
+    /* Phones were auto-inflating the long nowrap crawls (the 11px marketplace
+       line rendered ~16px on iPhone while desktop obeyed the spec). Sizes in
+       this sheet are design-locked — render them as written, every device. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
 }
 .sticker-sheet-backdrop.active .sticker-sheet {
     transform: translateY(0);
@@ -184,7 +189,11 @@
 .ss-mktline-track {
     display: inline-flex;
     white-space: nowrap;
-    font-size: 11px;
+    /* 14px = the phone's rendered look Brendon locked as correct, minus the 2
+       he asked off (2026-07-16). Devices were silently auto-inflating the old
+       11px crawl (~16px on iPhone) while desktop showed 11px — the size is now
+       pinned in the spec (see the text-size-adjust lock on .sticker-sheet). */
+    font-size: 14px;
     font-weight: bold;
     letter-spacing: 0.22em;
     color: var(--text-color);
@@ -208,6 +217,9 @@
     -webkit-tap-highlight-color: transparent;
 }
 .ss-mktline-cap:hover { background: color-mix(in srgb, var(--text-color) 12%, transparent); }
+/* The active face's cap wears the fill (the look locked from Brendon's
+   2026-07-16 screenshot — the tapped cap stays visibly on). */
+.ss-mktline-cap.is-on { background: color-mix(in srgb, var(--text-color) 12%, transparent); }
 
 .ss-ticker {
     overflow: hidden;
