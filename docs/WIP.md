@@ -8,6 +8,36 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ✅ **2026-07-16 STICKER SPLITS = ART SPLITS + FULL 22/22 SEPOLIA RUN —
+   contracts on pd-contracts `main` (`ccef013`), tester on dev (merge
+   `4164ebe`), auto-deploy verified serving, trees clean. Branch
+   `claude/sticker-splits-alignment-blfcyg` (both repos) = merged trash
+   (Brendon deletes).** Fable session, Brendon's alignment call: ONE rate
+   card platform-wide.
+   ① CONTRACTS: PDStickers now pushes **5% of every primary sale to the
+   factory's LIVE platformWallet()** (same read + rotation point as
+   Project mints); the 95% artist side splits per sheet collab terms
+   (collabBps re-scoped to the ARTIST side). Royalties (5%) now ALWAYS
+   pay a StickerSplitter vault carrying the Project split — 60/40
+   artist-side/platform = **3%/2% of sale**: shared SOLO vault deployed
+   in the constructor (artist side → live admin), per-sheet vaults for
+   collabs. StickerSplitter = three-way PaymentSplitter sibling (ETH +
+   ERC-20 legs, monotonic entitlements, pendings sum to balance).
+   **Constructor is now (admin, factory)** — /deploy step 4 updated +
+   artifacts regenerated. 319 Foundry tests green (was 313).
+   ② TESTER: /test runs BOTH contracts in one tap — after R1–T9 the
+   pasted test key deploys its OWN throwaway sticker shop wired to the
+   real factory and runs **S1–S10** (purchase → platform 5% verified to
+   the wei · peel · uri · royalty vault 3%/2% withdraw · collab sheet ·
+   real Seaport ERC-1155 sealed-sheet sale). Zero wallet taps.
+   ③ **Brendon ran it 2026-07-16: 22/22 PASS**, ~0.0146 SepETH gas.
+   Test shop 0x27b2c11dca960a704b633d9578fbbc1db416f6a0.
+   ClickUp: run logged on `86b9v5w77`; **Mythic Audit Pass `86b9v5wj4`
+   scope-commented — sticker money paths changed post-July-audits, the
+   re-audit trigger applies.** Old Sepolia PDStickers (single-arg
+   constructor, pre-alignment) is legacy — ignore it; mainnet deploys
+   fresh via the updated /deploy.
+
 0. ✅ **2026-07-16 COMPLETIONISM WOW + FRIEND INSPECTOR RESCUE — on dev
    `a644e0f`, auto-deploy verified serving the new bundle, tree clean. Branch
    `claude/completionism-friend-inspector-slon0v` = merged trash (Brendon
