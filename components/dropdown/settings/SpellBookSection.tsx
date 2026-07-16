@@ -293,7 +293,7 @@ export function SpellBookSection({ onTripleTap }: Props) {
                     onClick={() => {
                         const next = !notifs.echo;
                         toggle('echo');
-                        showToast(`Echo Chamber: ${next ? 'ON' : 'OFF'}`);
+                        showToast(`Echo Chamber: ${next ? 'MUTUALS ONLY' : 'OFF'}`);
                     }}
                     icon={'≫︎'}
                     label="Echo Chamber"
