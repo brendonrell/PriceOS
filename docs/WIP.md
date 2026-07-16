@@ -8,6 +8,22 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ✅ **2026-07-16 GOSSIP PROTOCOL — on dev `cf0cdb2`, auto-deployed, tree
+   clean. Branch `claude/gossip-protocol-build-936rtf` = merged trash (Brendon
+   deletes).** Fable session. The ⑃ spell is real: when on, the ONE shared
+   feed sentence (`FeedActorLine`) is told as a plain-English rumor —
+   `lib/feed/gossip.tsx` template engine, 28 tellings (7 per event kind),
+   seeded per event id so a row keeps its rumor across renders + surfaces.
+   Project feed · profile feed · artwork page feed · Starred Tx rows all
+   inherit; actor link (Spite treatment), token link, exact price preserved.
+   Tribunal deliberately untouched (court record stays sworn). Cast toast
+   "⑃ Rumor Has It… ⑃" (Cartel/Celestial precedent), plain OFF. Atlas Spell
+   Book page refreshed (build-state now truth: 07-16 ships live, Gravity =
+   ????); comment on `86bad5g4t`. **Spell stubs remaining: Sybil Net ·
+   Arbitrage Map.** ⚠ Container note: this env's local `dev` was a stale
+   unrelated snapshot — real dev is `origin/dev`; reset local dev onto it
+   before merging (already handled this session).
+
 0. ✅ **2026-07-16 SPELL BOOK BUILD-OUT — all on dev, auto-deployed, tree clean.
    Tip `1ba8ed1`. Branch `claude/tribunal-feature-s7dj1k` = merged trash (Brendon
    deletes).** Opus session — turning Spell Book stubs into real features
