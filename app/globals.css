@@ -5288,6 +5288,47 @@ button,
     #sb-watch .st-icon { transform: translateY(1px); }
 }
 
+/* ── OFFER SHIELD — the "ward goes up" cast flourish (Brendon, 2026-07-16) ──
+   A brief, non-blocking shield-raise when the spell flips on: a ring wards
+   outward while the shield glyph rises and fades. Colorway-aware, full-strength. */
+.shield-cast {
+    position: fixed;
+    inset: 0;
+    z-index: 100001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+.shield-cast-ring {
+    position: absolute;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid var(--text-color);
+    animation: shield-cast-ring 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+@keyframes shield-cast-ring {
+    0%   { transform: scale(0.2); opacity: 0; }
+    18%  { opacity: 0.85; }
+    100% { transform: scale(16); opacity: 0; }
+}
+.shield-cast-glyph {
+    font-size: 64px;
+    font-weight: bold;
+    color: var(--text-color);
+    animation: shield-cast-glyph 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+@keyframes shield-cast-glyph {
+    0%   { transform: translateY(28px) scale(0.7); opacity: 0; }
+    32%  { transform: translateY(0) scale(1.06); opacity: 1; }
+    70%  { opacity: 1; }
+    100% { transform: translateY(-6px) scale(1); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .shield-cast-ring, .shield-cast-glyph { animation-duration: 0.01ms; }
+}
+
 /* Echo Chamber star sits a touch larger desktop-side. */
 #sn-echo .st-icon { font-size: 16px !important; }
 

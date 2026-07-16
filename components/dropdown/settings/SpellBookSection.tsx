@@ -115,6 +115,15 @@ export function SpellBookSection({ onTripleTap }: Props) {
             showToast(next ? '☽ Reading the Birth Skies ☽' : 'Celestial Tracker: OFF');
             return;
         }
+        // Offer Shield — flip + toast, and raise the ward (the OfferShieldCast
+        // flourish) when it comes on.
+        if (spell.id === 'offershield') {
+            showToast(`Offer Shield: ${next ? 'ON' : 'OFF'}`);
+            if (next && typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('pd:offer-shield-cast'));
+            }
+            return;
+        }
         showToast(`${spell.name}: ${next ? 'ON' : 'OFF'}`);
     };
 

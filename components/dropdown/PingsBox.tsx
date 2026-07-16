@@ -18,6 +18,7 @@ import { usePings } from '../../lib/state/PingsContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { renderPing, passesCategoryPrefs, pingHref, PRIORITY_RANK } from '../../lib/pings/render';
 import { isFinancial } from '../../lib/pings/tiers';
+import { useOfferShield } from '../../lib/pings/useOfferShield';
 import { useToast } from '../../lib/state/ToastContext';
 import { removeProjectStar } from '../../lib/pins/projectStarStore';
 import { removeArtistStar } from '../../lib/pins/artistStarStore';
@@ -202,19 +203,25 @@ export function PingsBox({ projectPings = false }: { projectPings?: boolean } = 
         [projectPings, handle]
     );
 
+    /* Offer Shield (Spell Book) — when on, hide incoming offers under 50% of
+       their collection floor. Fail-open: only offers PROVEN low are hidden, so
+       it can never swallow a real ping. */
+    const shielded = useOfferShield(pingsState.items, notifs.spell_offershield);
+
     const rendered = useMemo(
         () =>
             pingsState.items
                 .filter((p) => passesCategoryPrefs(p, notifs.pings))
                 .filter((p) => !moneyOnly || isFinancial(p.kind))
                 .filter((p) => !releasedSlugs || (p.project_id != null && releasedSlugs.has(p.project_id)))
+                .filter((p) => !shielded.has(p.id))
                 .map((p) => ({ ...renderPing(p), href: pingHref(p), src: p }))
                 .sort(
                     (a, b) =>
                         (a.read ? 1 : 0) - (b.read ? 1 : 0) ||
                         PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority]
                 ),
-        [pingsState.items, notifs.pings, moneyOnly, releasedSlugs]
+        [pingsState.items, notifs.pings, moneyOnly, releasedSlugs, shielded]
     );
     const unreadShown = rendered.filter((r) => !r.read).length;
 
