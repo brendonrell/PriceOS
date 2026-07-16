@@ -8,6 +8,39 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ✅ **2026-07-16 COMPLETIONISM WOW + FRIEND INSPECTOR RESCUE — on dev
+   `a644e0f`, auto-deploy verified serving the new bundle, tree clean. Branch
+   `claude/completionism-friend-inspector-slon0v` = merged trash (Brendon
+   deletes).** Fable session, Brendon's 2-feature batch ("build and push
+   both, full autonomy"):
+   ① COMPLETIONISM: the header count is now **(n/N MONTHS)** (it was a bare
+   (0/3) — it counts release months fully collected); a small **STATS** pill
+   beside it unfolds **The Completionist's Ledger** (hidden by default —
+   minimalist resting modal, Brendon's spec): tiles (releases / months /
+   stickers / % complete), month-by-month completion bars, and **THE CLOSE**
+   — the nearest-to-finish month priced from live floors (≤12 floor probes,
+   fails soft). Month tallies off the faint 10px wash.
+   ② FRIEND INSPECTOR: compact 254→520px so 3–4 friends show on open;
+   **Constellation is a real map now** (pinch zoom · drag pan · wheel ·
+   double-tap reset; all labels return past 1.6× zoom; canvas is
+   touch-action none); Wire pills 10.5→12.5px. Rows re-cut to the proven
+   treatments per Brendon's screenshots: people rows speak **Courier, no
+   Rubik, no chip tint** (his order); project rows wear the **Projects Pro+
+   line verbatim** (sprite · bold title mid-truncated · dotted leader ·
+   @artist) + minted/cartel ahead of the artist. **LENSES** persona row
+   (LEDGER / DRAMA / SLEUTH, device-persisted `pd_fi_lens`): DRAMA = live
+   3-stat duel vs YOU under every row, tightest races first; SLEUTH = last
+   on-ledger move + age (one /api/feed read), freshest first. Lenses
+   annotate + re-order, never hide.
+   ③ SITEWIDE: Global Search collector-row stats off the 0.55 wash (full
+   strength 12px bold — Brendon's faintness callout); PriceSprite faces
+   `white-space: nowrap` so a face never wraps mid-kaomoji.
+   Proof: tsc/lint/40 tests green, real build, compiled-CSS greps, headless
+   mid-tone pixel proof (the Playwright pattern). ClickUp: ad-hoc chat batch,
+   no tasks of record (six-ship precedent). Pre-existing follow-ups that
+   TOUCH this surface stay queued: Completionism Zoom `86baxgv9y` ·
+   Completionism leaderboard `86baxgvgj`.
+
 0. ✅ **2026-07-16 STICKER LAUNCH-POLISH — on dev (merge `dac8b8e`),
    auto-deploy VERIFIED serving the new bundle, tree clean. Branch
    `claude/sticker-market-polish-vjo5lo` = merged trash (Brendon deletes).**
