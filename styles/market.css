@@ -458,16 +458,23 @@ a.notif-item--link:hover { opacity: 0.85; }
 }
 .ss-restock { top: 26px; }
 
-/* Prices — the clean cart-row readout, right-aligned as one column: floor
-   bold on top, best offer under it. (The dashed toy-tag chrome was retired
-   by Brendon, 2026-07-16 — plain full-strength numbers, no box.) */
-.skm-prices, .skm-wrap .cart-item-price {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 13px;
-    font-weight: bold;
-    min-width: 46px;
-    text-align: right;
+/* Prices — the price wears the HOUSE PILL (the .pill.pill-l2 reference
+   treatment: solid page fill · full-strength border + bold text), replacing
+   the retired dashed toy-tag (Brendon, 2026-07-16 — "use our pills"). Sized
+   down to sit inside the locked 60px market rows; one shared min width so
+   the pills read as an aligned column. The ✦ best-offer line rides under. */
+.skm-wrap .cart-item-price { font-family: 'Courier New', Courier, monospace; }
+/* Two-class selector on purpose: the base .pill sizing lives in globals.css,
+   which loads AFTER this file — the market sizing has to outrank it. */
+.skm-wrap .skm-price-pill {
+    height: 22px;
+    padding: 0 8px;
+    min-width: 56px;
+    justify-content: center;
+    font-size: 12px;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    font-family: 'Courier New', Courier, monospace;
 }
 .skm-match { font-weight: bold; opacity: 0.9; }
 .skm-quick-row { display: flex; gap: 8px; padding: 2px 0 6px; flex-wrap: wrap; }

@@ -170,7 +170,7 @@ export function buildStoreTicker(): string {
         'buy it sealed · drag to peel it open',
         'every sticker is one of our logos, recoloured',
         'stick them on your profile · rearrange anytime',
-        'complete a sheet for the ✓ in your album',
+        'complete a sheet for the ✓ in your binder',
         `cheapest in · ${f.cheapest.name} · ${px(f.cheapest.price)}`,
         `top shelf · ${f.priciest.name} · ${px(f.priciest.price)}`,
         `${f.mythic} mythic sheets on the wall`,

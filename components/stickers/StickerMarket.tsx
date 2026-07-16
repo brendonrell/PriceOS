@@ -263,7 +263,7 @@ export default function StickerMarket() {
                                 )}
                             </div>
                             <div className="cart-item-price skm-prices">
-                                <span>{sum?.floor != null ? `${formatEth(sum.floor)}` : '—'}</span>
+                                <span className="pill pill-l2 skm-price-pill">{sum?.floor != null ? `${formatEth(sum.floor)}` : '—'}</span>
                                 <span className="skm-sub">{sum?.best_offer != null ? `✦${VS15}${formatEth(sum.best_offer)}` : `✦${VS15}—`}</span>
                             </div>
                         </div>
@@ -347,7 +347,7 @@ export default function StickerMarket() {
                                 <div className="cart-item-name">{who(l.handle, l.seller_address)}{mine ? ' (you)' : ''}</div>
                                 <div className="cart-item-artist">×{l.qty} · expires {expiresIn(l.end_time)}</div>
                             </div>
-                            <div className="cart-item-price">{formatEth(Number(l.price_eth))} ea</div>
+                            <div className="cart-item-price"><span className="pill pill-l2 skm-price-pill">{formatEth(Number(l.price_eth))} ea</span></div>
                             <div className="cart-item-actions mk-offer-actions">
                                 {mine ? (
                                     <button type="button" className="mk-offer-btn" disabled={busy}
@@ -379,7 +379,7 @@ export default function StickerMarket() {
                                 <div className="cart-item-name">{who(o.handle, o.bidder_address)}{mine ? ' (you)' : ''}</div>
                                 <div className="cart-item-artist">wants ×{o.qty} · expires {expiresIn(o.end_time)}</div>
                             </div>
-                            <div className="cart-item-price">{formatEth(Number(o.price_eth))} ea</div>
+                            <div className="cart-item-price"><span className="pill pill-l2 skm-price-pill">{formatEth(Number(o.price_eth))} ea</span></div>
                             <div className="cart-item-actions mk-offer-actions">
                                 {mine ? (
                                     <button type="button" className="mk-offer-btn" disabled={busy}
