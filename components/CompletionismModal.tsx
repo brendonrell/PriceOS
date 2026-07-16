@@ -151,7 +151,7 @@ export default function CompletionismModal({
                                 );
                             })}
                         </div>
-                        <div className="cpl-foot">full sheet detail → My Sticker Album, in the store</div>
+                        <div className="cpl-foot">full sheet detail → My Sticker Binder, in the store</div>
                     </div>
                 </div>
             </div>

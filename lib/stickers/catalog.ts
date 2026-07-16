@@ -400,11 +400,12 @@ export const SHEETS: readonly SheetMeta[] = [
     { id: 'output', name: 'OUTPUTS', tag: 'MYTHIC', count: OUTPUTS.length, price: '0.020', cover: OUTPUTS[0]! },
     { id: 'achievement', name: 'ACHIEVEMENTS', tag: 'RARE', count: ACHIEVEMENTS.length, price: '0.012', cover: ACHIEVEMENTS[0]! },
     { id: 'rarity', name: 'RARITY', tag: 'UNCOMMON', count: RARITIES.length, price: '0.010', cover: RARITIES[0]! },
-    { id: 'truename', name: 'TRUE NAMES', tag: 'MYTHIC', count: TRUENAMES.length, price: '0.016', cover: TRUENAMES[0]! },
+    /* TRUE NAMES ⇄ ANIMATED swapped spots (Brendon, 2026-07-16). */
+    { id: 'animated', name: 'ANIMATED', tag: 'MYTHIC', count: ANIMATED.length, price: '0.022', cover: ANIMATED[0]! },
     { id: 'quip', name: 'QUIPS', tag: 'COMMON', count: QUIP_STICKERS.length, price: '0.006', cover: QUIP_STICKERS[0]! },
     { id: 'warbanner', name: 'WAR BANNERS', tag: 'COMMON', count: WAR_BANNERS.length, price: '0.006', cover: WAR_BANNERS[0]! },
     { id: 'holo', name: 'HOLO', tag: 'MYTHIC', count: HOLO.length, price: '0.024', cover: HOLO[0]! },
-    { id: 'animated', name: 'ANIMATED', tag: 'MYTHIC', count: ANIMATED.length, price: '0.022', cover: ANIMATED[0]! },
+    { id: 'truename', name: 'TRUE NAMES', tag: 'MYTHIC', count: TRUENAMES.length, price: '0.016', cover: TRUENAMES[0]! },
 ];
 
 export function stickersForSheet(id: SheetId): Sticker[] {

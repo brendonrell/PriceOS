@@ -251,6 +251,10 @@ a.notif-item--link:hover { opacity: 0.85; }
        6.5 rows (6 full + a half peek), not 6.7 — the source of the height
        mismatch (Brendon, 2026-07-15). */
     padding: 16px 14px 14px;
+    /* border-box so the cap counts the padding — content-box made the box
+       406 + 30px of padding tall, which showed a 7th full row where the store
+       shows 6.5 (Brendon, 2026-07-16: both faces cut at exactly 6.5). */
+    box-sizing: border-box;
     font-family: 'Courier New', Courier, monospace;
 }
 .skm-wrap::-webkit-scrollbar { display: none; }
@@ -298,15 +302,16 @@ a.notif-item--link:hover { opacity: 0.85; }
 }
 .skm-cover-fan .ss-fan { gap: 4px; }
 .skm-prices { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
-.skm-prices .skm-sub { font-size: 10px; opacity: 0.6; font-weight: bold; }
+.skm-prices .skm-sub { font-size: 11px; opacity: 0.9; font-weight: bold; }
 .skm-back {
-    font-size: 11px; font-weight: bold; letter-spacing: 0.6px;
-    opacity: 0.7; cursor: pointer; padding: 6px 0;
+    font-size: 12px; font-weight: bold; letter-spacing: 0.6px;
+    opacity: 0.85; cursor: pointer; padding: 6px 0;
     -webkit-tap-highlight-color: transparent;
 }
 .skm-back:hover { opacity: 1; }
 .skm-book-head {
     display: flex; justify-content: space-between; align-items: baseline;
+    gap: 10px;
     padding: 2px 0 8px;
 }
 .skm-book-title { font-family: var(--font-rubik-mono), sans-serif; font-size: 13px; letter-spacing: 1px; }
@@ -314,17 +319,17 @@ a.notif-item--link:hover { opacity: 0.85; }
    in (market cohesion pass, Brendon 2026-07-10). */
 .skm-book-thumb { flex: 0 0 auto; margin-right: 8px; align-self: center; }
 .skm-book-head .skm-book-pos { margin-left: auto; }
-.skm-book-pos { font-size: 10px; opacity: 0.6; font-variant-numeric: tabular-nums; }
+.skm-book-pos { font-size: 11px; opacity: 0.85; font-variant-numeric: tabular-nums; }
 .skm-side-label {
-    font-size: 10px; font-weight: bold; letter-spacing: 1px;
-    opacity: 0.55; padding: 10px 0 2px;
+    font-size: 11px; font-weight: bold; letter-spacing: 1px;
+    opacity: 0.85; padding: 10px 0 2px;
 }
 .skm-composers { padding-top: 14px; }
 .skm-compose {
     display: flex; align-items: center; gap: 8px;
     padding: 6px 0; flex-wrap: wrap;
 }
-.skm-compose-label { font-size: 10px; font-weight: bold; letter-spacing: 0.8px; opacity: 0.7; width: 58px; }
+.skm-compose-label { font-size: 11px; font-weight: bold; letter-spacing: 0.8px; opacity: 0.9; width: 58px; }
 .skm-durations { padding-top: 8px; }
 .skm-qty { display: inline-flex; align-items: center; gap: 6px; }
 .skm-step {
@@ -398,12 +403,23 @@ a.notif-item--link:hover { opacity: 0.85; }
 }
 .alb-progress-all { margin: 2px 0 10px; }
 .alb-slots { display: flex; flex-wrap: wrap; gap: 8px; }
+/* The album NEVER scrolls sideways (Brendon, 2026-07-16 — it was sloppy):
+   x is hard-clipped and touch pans are vertical-only, so the page is locked
+   to vertical scrolling absolutely. */
+.alb-wrap { overflow-x: clip; touch-action: pan-y; }
 .alb-slot {
     display: inline-flex; align-items: center; justify-content: center;
     width: 44px; height: 44px;
     border: 1px dashed color-mix(in srgb, var(--text-color) 30%, transparent);
     border-radius: 6px;
+    /* Nothing ever bleeds past its slot — the root cause of the sideways
+       scroll was wide chips (@names / sprites / familiars) overflowing their
+       44px slot and shoving the whole page wider than the screen. */
+    overflow: hidden;
 }
+/* Wide chips shrink to fit their slot — the same proven treatment as the
+   market row covers (.skm-thumb, cohesion pass 2026-07-10). */
+.alb-slot svg { max-width: 38px; max-height: 34px; width: auto; height: auto; }
 .alb-slot:not(.is-got) { opacity: 0.28; filter: grayscale(0.8); }
 .alb-slot.is-got { border-style: solid; }
 
@@ -442,25 +458,27 @@ a.notif-item--link:hover { opacity: 0.85; }
 }
 .ss-restock { top: 26px; }
 
-/* Toy-shop skin — market prices wear little price tags. */
-.skm-prices, .skm-wrap .cart-item-price {
-    font-family: 'Courier New', Courier, monospace;
-    border: 1px dashed color-mix(in srgb, var(--text-color) 40%, transparent);
-    border-radius: 3px 8px 8px 3px;
-    padding: 3px 8px 3px 10px;
-    position: relative;
+/* Prices — the price wears the HOUSE PILL (the .pill.pill-l2 reference
+   treatment: solid page fill · full-strength border + bold text), replacing
+   the retired dashed toy-tag (Brendon, 2026-07-16 — "use our pills"). Sized
+   down to sit inside the locked 60px market rows; one shared min width so
+   the pills read as an aligned column. The ✦ best-offer line rides under. */
+.skm-wrap .cart-item-price { font-family: 'Courier New', Courier, monospace; }
+/* Two-class selector on purpose: the base .pill sizing lives in globals.css,
+   which loads AFTER this file — the market sizing has to outrank it. */
+.skm-wrap .skm-price-pill {
+    height: 22px;
+    padding: 0 8px;
+    min-width: 56px;
+    justify-content: center;
     font-size: 12px;
-}
-.skm-prices::before, .skm-wrap .cart-item-price::before {
-    content: '';
-    position: absolute; left: 3px; top: 50%;
-    width: 4px; height: 4px; margin-top: -2px;
-    border-radius: 50%;
-    background: color-mix(in srgb, var(--text-color) 45%, transparent);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    font-family: 'Courier New', Courier, monospace;
 }
 .skm-match { font-weight: bold; opacity: 0.9; }
 .skm-quick-row { display: flex; gap: 8px; padding: 2px 0 6px; flex-wrap: wrap; }
-.skm-compose-for { font-size: 10px; opacity: 0.6; }
+.skm-compose-for { font-size: 11px; opacity: 0.85; }
 .skm-select {
     background: transparent; color: var(--text-color);
     border: 1px solid color-mix(in srgb, var(--text-color) 40%, transparent);

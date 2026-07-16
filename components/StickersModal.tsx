@@ -55,8 +55,9 @@ export default function StickersModal() {
     /* SECONDARY — the in-store sheet market (the only place it lives,
        besides OpenSea once on-chain). Toggled from the header. */
     const [marketOn, setMarketOn] = useState(false);
-    /* MY STICKER ALBUM — the completionist view (named to never collide with
-       the app's Albums feature). */
+    /* MY STICKER BINDER — the completionist view (wears "Binder" everywhere
+       user-facing so it never collides with the app's Albums feature —
+       Brendon, 2026-07-16; internal names keep the album- prefix). */
     const [albumOn, setAlbumOn] = useState(false);
 
     /* THE PEEL — a sealed sheet you own peels open with a real drag (the rip
@@ -295,7 +296,7 @@ export default function StickersModal() {
                     ) : (
                         <>
                             <div className="ss-title">
-                                <span className="ss-title-main">{albumOn ? 'MY STICKER ALBUM' : marketOn ? 'STICKER MARKET' : 'STICKER STORE'}</span>
+                                <span className="ss-title-main">{albumOn ? 'STICKER BINDER' : marketOn ? 'STICKER MARKET' : 'STICKER STORE'}</span>
                                 <span className="ss-title-sub">{`⊞${VS15} ${albumOn ? 'GOT / NEED' : marketOn ? 'SECONDARY' : 'BY PD'}`}</span>
                             </div>
                             {!marketOn && !albumOn && (
@@ -441,13 +442,13 @@ export default function StickersModal() {
                             <button
                                 type="button"
                                 className={`ss-mktline-cap${albumOn ? ' is-on' : ''}`}
-                                title={albumOn ? 'Sticker Market — secondary' : 'My Sticker Album — got / need'}
+                                title={albumOn ? 'Sticker Market — secondary' : 'My Sticker Binder — got / need'}
                                 onClick={() => {
                                     if (albumOn) { setAlbumOn(false); setMarketOn(true); showToast('Stickers: MARKETPLACE'); }
-                                    else { setMarketOn(false); setAlbumOn(true); showToast('Stickers: ALBUM'); }
+                                    else { setMarketOn(false); setAlbumOn(true); showToast('Stickers: BINDER'); }
                                 }}
                             >
-                                {albumOn ? 'MARKET' : 'MY ALBUM'}
+                                {albumOn ? 'MARKET' : 'MY BINDER'}
                             </button>
                         </div>
                         <div className="ss-ticker" aria-hidden="true">

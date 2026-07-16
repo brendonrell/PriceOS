@@ -6,7 +6,7 @@
  * Two intake paths → one Package → preview grid → approve with wallet.
  */
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../lib/state/AuthContext';
 import { getWalletSignMessage, openConnectModal } from '../../lib/wallet/walletBus';
 import type { Hex } from 'viem';
@@ -19,6 +19,16 @@ import {
     type ApprovedPackage,
     type StickerPackage,
 } from '../../lib/studio/stickerPackages';
+import { SHEETS } from '../../lib/stickers/catalog';
+
+/* Collector collabs — a sheet with a collab pays that user the 3% creator
+   share of every secondary trade (platform keeps its 2%; no collab → the 3%
+   defaults to Brendon's wallet). Brendon, 2026-07-16. */
+interface SheetCollab {
+    sheet_id: string;
+    collab_address: string;
+    collab_handle: string | null;
+}
 
 export function StickerStudio() {
     /* Identity from the SIWE session — no wagmi hooks in the app tree (the
@@ -33,6 +43,41 @@ export function StickerStudio() {
     const [error, setError] = useState<string | null>(null);
     const jsonRef = useRef<HTMLInputElement>(null);
     const svgRef = useRef<HTMLInputElement>(null);
+
+    /* Collector collabs (3% share routing) — server-backed, sheet-keyed. */
+    const [collabs, setCollabs] = useState<SheetCollab[]>([]);
+    const [collabSheet, setCollabSheet] = useState('');
+    const [collabUser, setCollabUser] = useState('');
+    const [collabBusy, setCollabBusy] = useState(false);
+    const [collabErr, setCollabErr] = useState<string | null>(null);
+    useEffect(() => {
+        if (!address) return;
+        fetch('/api/studio/sticker-collabs', { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => { if (d?.collabs) setCollabs(d.collabs as SheetCollab[]); })
+            .catch(() => {});
+    }, [address]);
+    const postCollab = async (body: Record<string, unknown>) => {
+        setCollabBusy(true);
+        setCollabErr(null);
+        try {
+            const r = await fetch('/api/studio/sticker-collabs', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+            const j = (await r.json().catch(() => ({}))) as { error?: string; collabs?: SheetCollab[] };
+            if (!r.ok) throw new Error(j?.error ? String(j.error) : 'Failed');
+            const fresh = await fetch('/api/studio/sticker-collabs', { cache: 'no-store' });
+            const fd = (await fresh.json().catch(() => null)) as { collabs?: SheetCollab[] } | null;
+            if (fd?.collabs) setCollabs(fd.collabs);
+            setCollabUser('');
+        } catch (e) {
+            setCollabErr(e instanceof Error ? e.message : String(e));
+        } finally {
+            setCollabBusy(false);
+        }
+    };
 
     const intakeJson = (raw: string) => {
         setError(null);
@@ -178,6 +223,60 @@ export function StickerStudio() {
                             <span className="pd-studio-row-stat">
                                 {p.stickers.length} · signed {new Date(p.approvedAt).toLocaleDateString()}
                             </span>
+                        </div>
+                    ))}
+                </>
+            )}
+
+            {/* Collector collabs — route a sheet's 3% creator share to a user.
+                No collab on a sheet → the 3% defaults to Brendon's wallet;
+                the 2% platform share never moves. */}
+            <label className="pd-studio-label">Collector collabs — the sheet&apos;s 3% trade share</label>
+            <div className="pd-studio-fieldrow">
+                <select
+                    className="pd-studio-input"
+                    value={collabSheet}
+                    onChange={(e) => setCollabSheet(e.target.value)}
+                >
+                    <option value="">sheet…</option>
+                    {SHEETS.map((s) => (
+                        <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                </select>
+                <input
+                    className="pd-studio-input"
+                    placeholder="@user (existing)"
+                    value={collabUser}
+                    onChange={(e) => setCollabUser(e.target.value)}
+                />
+                <button
+                    type="button"
+                    className="pd-studio-btn"
+                    disabled={collabBusy || !collabSheet || !collabUser.trim()}
+                    onClick={() => void postCollab({ action: 'set', sheet: collabSheet, user: collabUser.trim() })}
+                >
+                    {collabBusy ? 'SAVING…' : 'SET COLLAB'}
+                </button>
+            </div>
+            {collabErr && <div className="pd-studio-err">{collabErr}</div>}
+            {collabs.length > 0 && (
+                <>
+                    {collabs.map((c) => (
+                        <div key={c.sheet_id} className="pd-studio-row">
+                            <span className="pd-studio-row-name">
+                                {SHEETS.find((s) => s.id === c.sheet_id)?.name ?? c.sheet_id}
+                            </span>
+                            <span className="pd-studio-row-stat">
+                                3% → {c.collab_handle ? `@${c.collab_handle}` : `${c.collab_address.slice(0, 6)}…${c.collab_address.slice(-4)}`}
+                            </span>
+                            <button
+                                type="button"
+                                className="pd-studio-btn"
+                                disabled={collabBusy}
+                                onClick={() => void postCollab({ action: 'remove', sheet: c.sheet_id })}
+                            >
+                                REMOVE
+                            </button>
                         </div>
                     ))}
                 </>

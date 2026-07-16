@@ -1,9 +1,11 @@
 'use client';
 
 /*
- * StickerAlbum — MY STICKER ALBUM (named so it never collides with the app's
- * Albums feature). The completionist face of the Sticker Exchange: every
- * sheet is an album page of slots — stickers you hold print full-strength,
+ * StickerAlbum — MY STICKER BINDER (user-facing word is Binder, Brendon
+ * 2026-07-16, so it never collides with the app's Albums feature; internal
+ * names keep the album- prefix). The completionist face of the Sticker
+ * Exchange: every sheet is a binder page of slots — held stickers print
+ * full-strength,
  * missing ones sit as dimmed outlines in their slot. Per-sheet tallies, a
  * COMPLETE ✓ when a page is done, and the total at the top. Got/need at a
  * glance is what sends people to the MKT view for the ones they're missing.
@@ -29,9 +31,9 @@ export default function StickerAlbum() {
     const totalAll = pages.reduce((n, p) => n + p.total, 0);
 
     return (
-        <div className="skm-wrap">
+        <div className="skm-wrap alb-wrap">
             <div className="skm-book-head">
-                <span className="skm-book-title">MY STICKER ALBUM</span>
+                <span className="skm-book-title">MY STICKER BINDER</span>
                 <span className="skm-book-pos">{gotAll}/{totalAll} collected</span>
             </div>
             <div className="alb-progress alb-progress-all" aria-hidden="true">
