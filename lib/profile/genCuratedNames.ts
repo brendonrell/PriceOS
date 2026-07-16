@@ -129,6 +129,43 @@ export const MUTED_NAMES = ["Muted","Pastel Hour","Faded","Soft Focus","Dusty","
 export const BUSY_NAMES = ["Busy Signal","Maximalist","A Lot Going On","Dense","Detail Overload","Visual Noise","Packed","Intricate","Wall of Detail","Information Density"];
 export const MINIMAL_NAMES = ["Minimalist","Less Is More","Negative Space","Clean","Sparse","Breathing Room","Quiet Composition","Bare","Restraint","White Space"];
 
+/* ── The birth sky — minted under the same moon (2026-07-16 wow pass).
+   Keyed by lunarPhase()'s 8 exact phase words. ─────────────────────────── */
+export const MOONPHASE_NAMES: Record<string, string[]> = {
+    "New Moon": ["Dark of the Moon","New Moon Mints","Born Moonless","No Moon That Night","The Dark Batch","Minted Blind","Moon Zero","The Unlit","New Moon Energy","Started in the Dark"],
+    "Waxing Crescent": ["Waxing Crescent","First Sliver","The Thin Moon","Moon on the Rise","Barely Lit","The Young Moon","Crescent Fresh","A Sliver of Light","Early Moon Club","Growing Light"],
+    "First Quarter": ["First Quarter","Half Moon Rising","The Half-Lit","Quarter Moon Club","Half Light","Split Moon","Halfway to Full","The Waxing Half","Moon at the Turn","Fifty Percent Moon"],
+    "Waxing Gibbous": ["Waxing Gibbous","Almost Full","Nearly There","The Swelling Moon","On the Way Up","Moonrise Momentum","The Gibbous Set","Three-Quarter Moon","Filling Fast","The Build-Up"],
+    "Full Moon": ["Full Moon Mints","Minted at Full Moon","Moonstruck","Under the Full Moon","Lunacy","High Tide","The Full Moon Batch","Peak Moon","Wolf Hour","Moonlit and Loud","Full Beam","Total Illumination"],
+    "Waning Gibbous": ["Waning Gibbous","Just Past Full","The Afterglow","Coming Down Slow","Moon on the Wane","The Gibbous Fade","Still Mostly Lit","Post-Peak","Late Moon Light","The Long Exhale"],
+    "Last Quarter": ["Last Quarter","The Waning Half","Half Moon Falling","Quarter to New","The Closing Half","Split Moon, Falling","Half Light Leaving","Moon in Retreat","The Late Quarter","Winding Down"],
+    "Waning Crescent": ["Waning Crescent","The Old Moon","Last Sliver","Almost Gone","The Fading Crescent","Moon on Empty","The Thin End","Final Light","Old Moon Club","Down to a Sliver"],
+};
+
+/* {x}=the weekday. Minted on the same day of the week. */
+export const WEEKDAY_NAMES = ["The {x} Mints","Born on a {x}","{x} Babies","The {x} Batch","Minted on a {x}","{x} Club","Every One a {x}","{x}s Only","The {x} Crowd","A {x} Habit"];
+
+/* Keyed by birthSeason()'s exact words. */
+export const SEASON_NAMES: Record<string, string[]> = {
+    Winter: ["Winter Batch","Born in Winter","The Winter Mints","Cold Births","Wintered","Snow Season","The Cold Cohort","Deep Winter","Minted in the Cold","Frost Dates"],
+    Spring: ["Spring Batch","Born in Spring","The Spring Mints","First Thaw","Sprung","The Green Season","Spring Cohort","New Growth","Minted in Bloom","April-ish"],
+    Summer: ["Summer Batch","Born in Summer","The Summer Mints","High Season","Heat Births","Long Days","The Summer Cohort","Minted in the Sun","Peak Summer","Dog Days"],
+    Autumn: ["Autumn Batch","Born in Autumn","The Fall Mints","Harvest Cohort","Leaf Season","The Turning","Minted in the Fall","October Country","Late Light","Sweater Weather"],
+};
+
+/* Keyed by birthTimeOfDay()'s exact words. */
+export const TOD_NAMES: Record<string, string[]> = {
+    Dawn: ["Dawn Patrol","Born at Dawn","First Light","The Dawn Mints","Daybreak Batch","Up Before Everyone","Sunrise Cohort","The Early Hours","Minted at First Light","Dawn Chorus"],
+    Morning: ["The Morning Mints","Born in the Morning","Before Noon","Morning People","The AM Batch","Coffee Hours","Minted by Breakfast","The Morning Shift","Early Risers","Business Hours"],
+    Midday: ["High Noon","The Midday Mints","Born at Noon","Lunch Break Mints","Twelve Sharp","The Noon Batch","Middle of the Day","Peak Daylight","Minted at Midday","No Shadows"],
+    Afternoon: ["The Afternoon Mints","Born After Lunch","PM Batch","Golden Afternoon","The Three O'Clock Club","Minted After Noon","Afternoon People","The Long Afternoon","Daylight Hours","Slow Afternoon"],
+    Dusk: ["Dusk Mints","Born at Dusk","Golden Hour","The Twilight Batch","Last Light","Sundown Cohort","Minted at Sunset","The Gloaming","Evening Colours","Magic Hour Mints"],
+    Night: ["Night Shift Mints","Born After Dark","The Midnight Batch","Nocturnal","Minted by Moonlight","The Small Hours","Night Owls","After Hours","The Late Crowd","Insomnia Mints"],
+};
+
+/* The collection's genuinely rarest — scored with the real edition-set math. */
+export const CROWN_NAMES = ["The Crown Jewels","Rarest of the Rare","The Trophy Case","Top Shelf","Museum Grade","The Reliquary","Blue Chips","The Prize Pieces","One-in-a-Hundred","The Vault Within the Vault","Certified Rare","The Heavy Hitters","Statistical Anomalies","The Short List","Do Not Touch"];
+
 export const VIBE_CAPTIONS = {
     observer: ["{handle}'s Eye","Noticed These","Under Observation","The Quiet Picks","Seen and Filed","A Pattern Emerged","Nothing Loud Here","Caught in Passing","The Long Look","Six Things Worth Watching","Filed Without Comment","Tonal, As Expected","Observed and Kept","The Understated Set","Quietly Noted","Watching, Always","A Study in Restraint","Less, On Purpose","The Periphery","Held in View","Subtle by Selection","Noted, Not Announced","The Margins Speak","What Stayed Still","Collected in Silence","The Soft Inventory","Recorded, Unhurried","Six Calm Findings","The Watcher's Shortlist","Edges and Undertones","Seen From a Distance","Nothing Insists Here","The Patient Six","Catalogued Quietly","A Low Hum of Things","The Overlooked, Reconsidered","Logged at Dusk","Faint Signals","What the Room Forgot","Witnessed, Then Chosen"],
     instigator: ["{handle}'s Sprite Says Fight Me","Stirring the Pot","Loud on Purpose","No Notes, All Nerve","Picked to Provoke","Six Ways to Argue","Clash Intended","Try and Look Away","Made You Look","Six Reasons to Riot","Bold or Nothing","The Pot, Officially Stirred","Volume at Eleven","Come Get Mad","Subtle Is for Cowards","Six Slaps to the Eye","Yeah I Said It","Pick a Fight","The Chaos Slate","Unapologetically Loud","Don't @ Me","Maximum, On Brand","Six Dares","Disagree, I Dare You","All Gas, No Calm","Pure Nerve, Zero Chill","The Provocation Set","Wake the Room","Six Shots Fired","Hotter Takes","Built to Rattle","This One's a Statement","Boldface, Underlined","The Mess, Curated","Six Reasons to Stare","No Apology Issued","Walk It Off","Eyes Up, Cowards","The Loud Six","Cause a Scene"],

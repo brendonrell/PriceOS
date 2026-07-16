@@ -23,13 +23,14 @@
  */
 
 import { CAST } from './cast';
-import { pickAwareness, type Stage } from './awareness';
+import { pickAwareness, surfaceLines, fillSurfaceLine, type Stage, type SurfaceKind } from './awareness';
 import type { PieceInView } from './inview';
 import {
     SIGHT, SIGHT_SCENE, EXCHANGES, STREAK, REVISIT, PREDICT_ARM, PREDICT_HIT, PREDICT_MISS,
     IDLE, PACING, NIGHT, MORNING, DIRECT, FOURTHWALL, colorWord,
     ACTION_LINES, ACTION_EXCHANGES, BUYBET_ARM, BUYBET_HIT, BUYBET_MISS,
     DUET_OPENERS, DUET_REPLIES, ADOPTION_SCENES, LOYAL, XOVER_SCENES, MUTE_REACTS,
+    SPELL_NOTICE,
     type Sight, type Exchange,
 } from './scenarios';
 import {
@@ -58,6 +59,12 @@ export interface DirectorCtx {
     familiarOn: boolean;
     /** Its species name, for {familiar}. */
     familiarName: string | null;
+    /** The menu/modal the viewer is inside right now (2026-07-16 upgrade) —
+     *  Composer, Cartography, Spite Book, Friend Inspector, the works. */
+    surface: SurfaceKind | null;
+    /** Spells the cast can SEE from the couch: the birth skies + the purple. */
+    celestialOn: boolean;
+    stargazingOn: boolean;
 }
 
 export interface PlayBeat {
@@ -71,6 +78,7 @@ export interface PlayBeat {
 
 const last: Record<string, number> = {};
 let lastPolarity: 'dark' | 'light' | null = null;
+let lastSurface: SurfaceKind | null = null;
 
 function cooled(key: string, ms: number): boolean {
     return Date.now() - (last[key] ?? 0) >= ms;
@@ -258,6 +266,38 @@ export function directorTick(ctx: DirectorCtx): PlayBeat[] | null {
         if (pool?.length) {
             const p = rand(pool);
             if (!ctx.activeIds.has(p.who)) return single(p.who, p.text, { ...f, piece: lapsed.label });
+        }
+    }
+
+    /* 0.5 — you just opened a SURFACE (menu/modal awareness, 2026-07-16).
+       The cast clocks the Composer / Cartography / Spite Book / Friend
+       Inspector / the rest, and says something that shows they know what it
+       does. Per-surface cooldown keeps re-opens quiet. */
+    if (ctx.surface !== lastSurface) {
+        const s = ctx.surface;
+        lastSurface = ctx.surface;
+        if (s && cooled(`surface:${s}`, 240000) && Math.random() < 0.8) {
+            stamp(`surface:${s}`);
+            const beats = surfaceBeat(s, ctx);
+            if (beats) return beats;
+        }
+    }
+
+    /* 0.6 — a spell the cast can SEE flipped the room. Once per session per
+       spell; the random gate lets it land on a natural later tick instead of
+       always the first one. Celestia leads (she noticed first, obviously). */
+    if (ctx.celestialOn && Math.random() < 0.35) {
+        const pool = SPELL_NOTICE.celestial.filter((p) => !ctx.activeIds.has(p.who));
+        if (pool.length && fireOnce('spell-celestial')) {
+            const p = rand(pool);
+            return single(p.who, p.text, f);
+        }
+    }
+    if (ctx.stargazingOn && Math.random() < 0.45) {
+        const pool = SPELL_NOTICE.stargazing.filter((p) => !ctx.activeIds.has(p.who));
+        if (pool.length && fireOnce('spell-stargazing')) {
+            const p = rand(pool);
+            return single(p.who, p.text, f);
         }
     }
 
@@ -526,7 +566,27 @@ function sightBeat(ctx: DirectorCtx, sight: Sight, f: FillCtx): PlayBeat[] | nul
     return single(pick.id, pick.text, f);
 }
 
+/** A surface-awareness line — any idle resident with a take on the open menu. */
+function surfaceBeat(surface: SurfaceKind, ctx: DirectorCtx): PlayBeat[] | null {
+    const candidates = idleChars(ctx).flatMap((id) =>
+        surfaceLines(id, surface)
+            .filter((text) => !text.includes('{name}') || ctx.name)
+            .map((text) => ({ id, text })),
+    );
+    const pick = freshest(candidates, (c) => lineKey(c.id, c.text));
+    if (!pick) return null;
+    markUsed(lineKey(pick.id, pick.text));
+    return [{ who: pick.id, text: fillSurfaceLine(pick.text, ctx.name), gapMs: 0 }];
+}
+
 function glanceBeat(ctx: DirectorCtx, f: FillCtx): PlayBeat[] | null {
+    /* While a surface is open, the glance is ABOUT the surface (talking about
+       the page hiding behind an open modal reads as blind) — fall through to
+       the page read only when nobody has surface material left. */
+    if (ctx.surface) {
+        const beats = surfaceBeat(ctx.surface, ctx);
+        if (beats) return beats;
+    }
     const ids = idleChars(ctx);
     if (!ids.length) return null;
     // A couple of tries — some characters have nothing for some stages.

@@ -15,6 +15,7 @@ import {
     lunarIllumination,
     birthSeason,
     birthTimeOfDay,
+    birthWeekday,
     natalElement,
     natalHarmony,
     fateDetail,
@@ -64,17 +65,23 @@ export function composeCelestialReading(input: ReadingInput): string | null {
     const lit = Math.round(lunarIllumination(mintMs) * 100);
     const season = birthSeason(mintMs).toLowerCase();
     const tod = birthTimeOfDay(mintMs).toLowerCase();
+    const weekday = birthWeekday(mintMs);
 
     const subject = choose(['This piece', 'This Output', 'It']);
-    const verb = choose(['was struck', 'first drew breath', 'came into being', 'surfaced', 'was minted into the world']);
+    const verb = choose(['was struck', 'first drew breath', 'came into being', 'surfaced', 'was minted into the world', 'arrived']);
 
     // 1 — birth circumstances (always present).
-    const s1 = `${subject} ${verb} under a ${phase} — ${lit}% lit — in the ${tod} of ${season}.`;
+    const s1 = choose([
+        `${subject} ${verb} under a ${phase} — ${lit}% lit — in the ${tod} of ${season}.`,
+        `${subject} ${verb} on a ${weekday}, in the ${tod}, under a ${phase} at ${lit}% light.`,
+        `A ${weekday} ${tod} in ${season}; the moon a ${phase}, ${lit}% lit. That is when it ${verb}.`,
+    ]);
 
     // 2 — natal character (only when the sky is known).
     let s2 = '';
     const sun = input.sun ?? null;
     const moon = input.moon ?? null;
+    const rising = input.rising ?? null;
     if (sun) {
         const el = natalElement(sun);
         const trait = ELEMENT_TRAIT[el] ?? 'its own quiet logic';
@@ -88,6 +95,13 @@ export function composeCelestialReading(input: ReadingInput): string | null {
         } else {
             s2 = `Born to a ${sun} sun, it is ${trait}.`;
         }
+        if (rising) {
+            s2 += ' ' + choose([
+                `${rising} rises over it, and that is the face it shows first.`,
+                `It wears ${rising} rising — the first impression is not the whole story.`,
+                `${rising} was climbing the horizon; strangers meet that side of it.`,
+            ]);
+        }
     }
 
     // 3 — the Fate (always present, pure from slug:id).
@@ -96,6 +110,8 @@ export function composeCelestialReading(input: ReadingInput): string | null {
         `The oracle settles on ${fd.hexagramName} — its fate is ${fd.fate}.`,
         `Cast against the I Ching, it reads ${fd.hexagramName}: ${fd.fate}.`,
         `Its hexagram is ${fd.hexagramName}; the line it walks is ${fd.fate}.`,
+        `The coins fell as ${fd.hexagramName}. Its fate reads ${fd.fate}, and fates keep their own schedule.`,
+        `Last, the oracle: ${fd.hexagramName}. It carries ${fd.fate} wherever it hangs.`,
     ]);
 
     return [s1, s2, closer].filter(Boolean).join(' ');

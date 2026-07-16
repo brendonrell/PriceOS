@@ -94,7 +94,7 @@ const COLOR_ORDER = [...(COLOR_BUCKET_ORDER as readonly string[]), 'Other'];
 
 /* The after-name project badges — the Cartel count (⟁ + the viewer's mutuals
    controlling this project) and the Celestial Tracker (the project's Fate
-   hexagram + sky row) — exactly as they ride beside the project name on the
+   hexagram + name) — exactly as they ride beside the project name on the
    project page (ProjectTitleStar). Each is gated on its own spell; renders
    nothing when both are off. Drop after a project @name on the Starred + History
    project cards. */
@@ -114,7 +114,7 @@ function ProjectNameBadges({ slug }: { slug: string }) {
             {projFate && (
                 <span className="project-celestial" aria-label={`Fate ${projFate.name}`}>
                     <span className="pcel-hex">{projFate.glyph}</span>
-                    <span className="pcel-sky" aria-hidden="true">{'☉︎ ☽︎ ↑︎'}</span>
+                    <span className="pcel-name">{projFate.name}</span>
                 </span>
             )}
         </>

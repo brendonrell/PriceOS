@@ -25,8 +25,10 @@ import { usePathname } from 'next/navigation';
 import { usePdNotifs } from '@/lib/state/PdNotifsContext';
 import { useAuth } from '@/lib/state/AuthContext';
 import { useToast } from '@/lib/state/ToastContext';
+import { useModal } from '@/lib/state/ModalContext';
+import { useDropdown } from '@/lib/state/DropdownContext';
 import { CAST, styleText } from '@/lib/npc/cast';
-import { readStage } from '@/lib/npc/awareness';
+import { readStage, readSurface } from '@/lib/npc/awareness';
 import { directorTick, directorNav, directorMuteReaction, type DirectorCtx, type PlayBeat } from '@/lib/npc/director';
 import { readPieceInView } from '@/lib/npc/inview';
 import { subscribeActions } from '@/lib/npc/actions';
@@ -115,6 +117,19 @@ export function NpcCast() {
     const stage = useMemo(() => readStage(pathname), [pathname]);
     const stageRef = useRef(stage);
     stageRef.current = stage;
+
+    /* Which SURFACE you're inside (menu/modal awareness, 2026-07-16) — the
+       open modal wins over an open user-menu view. Read via refs so the
+       running timers always see the latest without restarting. */
+    const { openModal } = useModal();
+    const { menuOpen, view } = useDropdown();
+    const surface = readSurface(openModal?.name ?? null, menuOpen ? view : null);
+    const surfaceRef = useRef(surface);
+    surfaceRef.current = surface;
+
+    /* Spells the cast can see from the couch (birth skies + the purple). */
+    const spellsRef = useRef({ celestial: !!notifs.spell_celestial, stargazing: !!notifs.stargazing });
+    spellsRef.current = { celestial: !!notifs.spell_celestial, stargazing: !!notifs.stargazing };
 
     /* Activity + "they noticed" tracking. */
     const lastActivity = useRef(Date.now());
@@ -292,6 +307,9 @@ export function NpcCast() {
                 ]),
                 familiarOn: familiarOnRef.current,
                 familiarName: familiarOnRef.current ? getFamiliarSpeciesName() || null : null,
+                surface: surfaceRef.current,
+                celestialOn: spellsRef.current.celestial,
+                stargazingOn: spellsRef.current.stargazing,
             };
             const beats = directorTick(ctx);
             if (beats && beats.length) runPlayout(beats);
@@ -310,9 +328,20 @@ export function NpcCast() {
         };
 
         /* Watch for a new piece coming into view mid-lull: a light poll that
-           only shortens the wait when something actually changed. */
+           only shortens the wait when something actually changed. The same
+           poll notices a menu/modal opening (surface awareness) — the cast
+           reacts within a few seconds instead of waiting out the lull. */
+        let noticedSurface = surfaceRef.current;
         const noticer = setInterval(() => {
             if (playing) return;
+            if (surfaceRef.current !== noticedSurface) {
+                noticedSurface = surfaceRef.current;
+                if (noticedSurface) {
+                    clearTimeout(tickTimer);
+                    scheduleTick(2600 + Math.random() * 2600);
+                    return;
+                }
+            }
             const piece = readPieceInView();
             const key = piece ? `${piece.slug}:${piece.id}` : null;
             if (key && key !== noticeKey.current) {

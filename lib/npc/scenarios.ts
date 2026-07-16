@@ -664,6 +664,36 @@ export const EXCHANGES: Exchange[] = [
             { who: 'mimi', text: 'Second visits spend.' },
         ],
     },
+
+    /* — 2026-07-16 upgrade round: more room in the room — */
+    {
+        id: 'x-menus', kind: 'couch', beats: [
+            { who: 'eddie', text: 'They know where everything is now. Menus, maps, the book. A regular.' },
+            { who: 'mick', text: 'Thirty-one days makes a regular. House rule.' },
+            { who: 'eddie', text: 'Says who.' },
+            { who: 'mick', text: 'The house. I write for the house.' },
+        ],
+    },
+    {
+        id: 'x-fatecheck', kind: 'couch', beats: [
+            { who: 'celestia', text: 'I read the room\'s fate this morning. It was fine. Suspiciously fine.' },
+            { who: 'rocco', text: 'Fine is the correct amount of fate.' },
+        ],
+    },
+    {
+        id: 'x-switchflip', kind: 'drift', beats: [
+            { who: 'steven', text: 'I flipped a switch in the spell book once. Everything went purple for a week.' },
+            { who: 'celestia', text: 'That was stargazing. It was the best week.' },
+            { who: 'steven', text: 'It was okay.' },
+        ],
+    },
+    {
+        id: 'x-quietday', kind: 'idle', beats: [
+            { who: 'romy', text: 'Nothing happening is also something happening. Slower.' },
+            { who: 'carl', text: 'That is not how anything works.' },
+            { who: 'romy', text: 'And yet the day passes.' },
+        ],
+    },
 ];
 
 /* ── STREAKS — they keep opening the same colour ({color}, {n}) ────────── */
@@ -1137,6 +1167,11 @@ export const DUET_OPENERS: DuetOpener[] = [
     { who: 'carl', topic: 'watching', text: 'They are deciding something. The scroll got careful.' },
     { who: 'steven', topic: 'watching', text: 'They have been on this page a while. It is a good page.' },
     { who: 'mimi', topic: 'taste', text: 'Their taste got expensive lately. I track these things.' },
+    /* — 2026-07-16 upgrade round — */
+    { who: 'eddie', topic: 'smalltalk', text: 'Somebody forged a Sigil this week. Not saying who. It was tasteful.' },
+    { who: 'mick', topic: 'watching', text: 'They use the tools now. Composer, the map. The file says: settled in.' },
+    { who: 'romy', topic: 'smalltalk', text: 'The morning paper had a nice line in it today. I read it twice.' },
+    { who: 'celestia', topic: 'smalltalk', text: 'The moon is doing the thing again. The one from March.' },
 ];
 
 export const DUET_REPLIES: DuetReply[] = [
@@ -1200,7 +1235,37 @@ export const DUET_REPLIES: DuetReply[] = [
     { who: 'eddie', topics: ['watching'], text: 'I noticed it too. Before anyone. For the record.' },
     { who: 'mick', topics: ['taste'], text: 'The record supports it.' },
     { who: 'mimi', topics: ['taste'], text: 'Expensive taste keeps this room lit.' },
+    /* — 2026-07-16 upgrade round — */
+    { who: 'carl', topics: ['smalltalk'], text: 'If it\'s good news, wait.' },
+    { who: 'romy', topics: ['smalltalk'], text: 'That\'s nice. I mean it, whatever it was.' },
+    { who: 'steven', topics: ['watching'], text: 'Regulars are good. I\'m a regular somewhere too.' },
+    { who: 'eddie', topics: ['watching'], text: 'Settled-in viewers make MOVES. Stay sharp.' },
 ];
+
+/* ── SPELL NOTICE — the cast clocks a spell flipping the room (2026-07-16).
+   Once per session per spell (director-gated). Celestia leads the celestial
+   ones — the birth skies and the stargazing purple are HER weather. ──────── */
+
+export const SPELL_NOTICE: Record<'celestial' | 'stargazing', { who: string; text: string }[]> = {
+    celestial: [
+        { who: 'celestia', text: "They turned on the birth skies. Finally. I've been reading them alone for months." },
+        { who: 'celestia', text: 'Moons on the artworks. They can see what I see now. Some of it.' },
+        { who: 'celestia', text: 'The Celestial Tracker is on. Every piece wears its mint moon now. Told you they all had one.' },
+        { who: 'eddie', text: "They switched on the moon tracker. Celestia's been insufferable for about nine seconds." },
+        { who: 'steven', text: "There are little moons on the art now. That's a setting, apparently. It's kind of nice." },
+        { who: 'romy', text: 'They turned on the little moons. Every piece gets its own sky. Sweetest switch in the book.' },
+        { who: 'carl', text: 'Birth skies, on. Now the art has horoscopes. Sure. Why not.' },
+    ],
+    stargazing: [
+        { who: 'celestia', text: 'They turned the whole sky on. Stargazing. Correct. The stars appreciate an audience.' },
+        { who: 'celestia', text: 'The room went night. Every star up there is exactly where I left it.' },
+        { who: 'steven', text: "Everything's purple and there are stars now. I don't hate it." },
+        { who: 'carl', text: "Stars everywhere. Pretty. You still can't see the floor from up there." },
+        { who: 'eddie', text: "The room went full night sky. A shooting star just crossed. I'm counting them. Three so far." },
+        { who: 'mick', text: 'Stargazing mode. Three hundred and eighty stars, if my count holds. It holds.' },
+        { who: 'romy', text: 'They put the stars on. Everyone hush a minute.' },
+    ],
+};
 
 /* ── LOYALTY — after a resident adopts you (the favourites form) ────────── */
 

@@ -5,24 +5,25 @@
  *
  * The mode reads the rich celestial layer we track and surfaces it wherever
  * you are:
- *   • Output — the moon it was minted under (☽, brightness = illumination at
- *     mint) PLUS its I Ching Fate (hexagram + name). The moon needs the stored
- *     mint timestamp (fills in as pieces are browsed); the Fate is pure from
- *     (slug, id), so it's always there.
+ *   • Output — the moon it was minted under (the TRUE phase disc, drawn with
+ *     the character sheet's lunarGlyph vocabulary; brightness = illumination
+ *     at mint) PLUS its I Ching Fate (hexagram + name). The moon needs the
+ *     stored mint timestamp (fills in as pieces are browsed); the Fate is
+ *     pure from (slug, id), so it's always there.
  *   • Project — its own Fate hexagram (pure from the slug), shown beside the
  *     project name.
  *
- * Every glyph here is iOS-safe text (moon ☽, the I Ching hexagram block) —
- * never an emoji. The card keeps the compact moon; the name spots carry the
- * fuller readout.
+ * Every glyph here is iOS-safe text (the lunar circle discs, the I Ching
+ * hexagram block) — never an emoji. The card keeps the compact moon; the
+ * name spots carry the fuller readout.
  */
 
 import { resolveStoredTraits, useStoredColors } from '../art/colorStore';
-import { lunarPhase, lunarIllumination, fateDetail } from './derive';
+import { lunarPhase, lunarGlyph, lunarIllumination, fateDetail } from './derive';
 import { projectFateReading } from '../project/fate';
 
 export interface CelestialMark {
-    glyph: string;   // ☽
+    glyph: string;   // the phase-true disc (lunarGlyph: ● ◕ ◑ ◔ ○ …)
     phase: string;   // "Waning Gibbous"
     illum: number;   // 0..1
 }
@@ -43,7 +44,7 @@ export function celestialMark(slug: string, id: number): CelestialMark | null {
     if (!t?.mintedAt) return null;
     const ms = Date.parse(t.mintedAt);
     if (!Number.isFinite(ms)) return null;
-    return { glyph: '☽', phase: lunarPhase(ms), illum: lunarIllumination(ms) };
+    return { glyph: lunarGlyph(ms), phase: lunarPhase(ms), illum: lunarIllumination(ms) };
 }
 
 export function outputCelestial(slug: string, id: number): OutputCelestial {
@@ -79,7 +80,14 @@ export function useProjectCelestial(slug: string, enabled: boolean): FateMark | 
     return projectCelestial(slug);
 }
 
-/** Brightness for the moon glyph: always faintly present, brighter when fuller. */
+/** Brightness for the moon glyph: the fade IS the illumination read, but the
+ *  floor stays high enough that even a new moon is plainly visible (Rule #2 —
+ *  meaning-carrying fade, never a washout). */
 export function celestialOpacity(illum: number): number {
-    return 0.3 + 0.7 * Math.max(0, Math.min(1, illum));
+    return 0.55 + 0.45 * Math.max(0, Math.min(1, illum));
+}
+
+/** "98% LIT" — the label the moon wears beside its phase word. */
+export function celestialLit(illum: number): string {
+    return `${Math.round(Math.max(0, Math.min(1, illum)) * 100)}% LIT`;
 }

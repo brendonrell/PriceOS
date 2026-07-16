@@ -434,10 +434,21 @@ function ProfilePageBodyInner({
         setShowcaseLocal(getShowcaseItems());
         return subscribeShowcase(() => setShowcaseLocal(getShowcaseItems()));
     }, []);
-    const ownShowcaseItems = useMemo(
-        () => showcaseLocal.filter((s) => getProject(s.slug) != null),
-        [showcaseLocal],
-    );
+    const ownShowcaseItems = useMemo(() => {
+        const items = showcaseLocal.filter((s) => getProject(s.slug) != null);
+        /* Generative reshuffles the OWN-profile picks too — it only touched the
+           visitor path (showcaseSlots) before, so the owner's Generative mode
+           looked identical to Static (fixed 2026-07-16). */
+        if (showcaseStyleVal === 'generative') {
+            const a = [...items];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+        return items;
+    }, [showcaseLocal, showcaseStyleVal]);
     const [showcasePickerOpen, setShowcasePickerOpen] = useState(false);
 
     /* Holdings refresh wiring (state itself is declared above the identity-
@@ -689,7 +700,7 @@ function ProfilePageBodyInner({
 
     const {
         isArtist, artistProjects, effStyle, artistMode, createdUnderMore,
-        showcaseView, setShowcaseView, artistShowcaseCreated, genCurated,
+        showcaseView, setShowcaseView, artistShowcaseCreated, genCurated, recurate,
         enrichedArtistProjects, mintSort, onMintSort, applyMintSort,
         visibleArtistProjects, artistFeedView,
     } = useArtistShowcase({
@@ -1649,10 +1660,29 @@ function ProfilePageBodyInner({
                     only built on first visit, so switching tabs never rebuilds. */}
                 {visitedShowcase.current && (
                 <div style={{ display: onShowcase ? 'contents' : 'none' }}>
-                {/* Gen Curated's set name — a full-row grid item so it lines up
-                    with the cards' left edge at every width. */}
+                {/* Gen Curated's placard — the set's name as a gallery wall
+                    label, a full-row grid item so it lines up with the cards'
+                    left edge at every width. Tapping it draws a fresh set
+                    (2026-07-16 wow pass). */}
                 {effStyle === 'gen-curated' && genCurated && genCurated.picks.length > 0 && (
-                    <div className="gencurated-caption">{genCurated.caption}</div>
+                    <div
+                        className="gencurated-caption"
+                        role="button"
+                        tabIndex={0}
+                        title="Draw a fresh set"
+                        onClick={() => { recurate(); showToast('Showcase: RE-CURATED'); }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                recurate();
+                                showToast('Showcase: RE-CURATED');
+                            }
+                        }}
+                    >
+                        <span className="gc-glyph" aria-hidden="true">{'⑈︎'}</span>
+                        <span className="gc-title">{genCurated.caption}</span>
+                        <span className="gc-count">{`· ${genCurated.picks.length}`}</span>
+                    </div>
                 )}
                 {(effStyle === 'gen-curated'
                         ? (genCurated && genCurated.picks.length > 0

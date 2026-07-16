@@ -10689,53 +10689,69 @@ body.colorway-dark .ghost-feed-bar {
     .project-cartel .pc-ico { font-size: 0.95em; }
 }
 
-/* Celestial Tracker — the mint moon. On the artwork card it sits in the art's
-   top-left corner; beside the Output name it pairs the moon glyph with the
-   phase. Glyph brightness (opacity) is set inline from mint illumination. */
+/* Celestial Tracker — the birth sky (2026-07-16 revamp: phase-TRUE moon discs
+   off the character sheet's lunarGlyph vocabulary, fixed legible sizes, no
+   whisper text). On the artwork card the moon sits in the art's top-left
+   corner and breathes; beside the Output/Project name the sky reads as one
+   clean chip row. Moon-glyph opacity is set inline from mint illumination —
+   the fade IS the phase data (floor 0.55, so even a new moon is visible). */
 .celestial-moon {
     position: absolute;
     top: 6px;
     left: 7px;
     z-index: 3;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 15px;
+    font-size: 16px;
     line-height: 1;
     color: #fff;
-    text-shadow: 0 0 6px rgba(0, 0, 0, 0.55);
+    text-shadow: 0 0 7px rgba(0, 0, 0, 0.7), 0 0 3px rgba(0, 0, 0, 0.9);
     pointer-events: none;
+    animation: cel-moon-breathe 5.2s ease-in-out infinite;
+}
+/* The moon breathes like the Audience dot — a slow halo swell, never a fade
+   (the inline opacity is illumination data and stays untouched). */
+@keyframes cel-moon-breathe {
+    0%, 100% { text-shadow: 0 0 7px rgba(0, 0, 0, 0.7), 0 0 3px rgba(0, 0, 0, 0.9); transform: scale(1); }
+    50% { text-shadow: 0 0 11px rgba(0, 0, 0, 0.85), 0 0 4px rgba(0, 0, 0, 0.95), 0 0 14px rgba(255, 255, 255, 0.35); transform: scale(1.08); }
 }
 .output-celestial,
 .project-celestial {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
     vertical-align: middle;
-    line-height: 0;
-    margin-left: 0.4em;
+    line-height: 1;
+    margin-left: 0.55em;
+    gap: 9px;
     font-family: 'Courier New', Courier, monospace;
     color: var(--accent);
     white-space: nowrap;
 }
-.output-celestial .oc-moon,
-.output-celestial .oc-hex,
-.project-celestial .pcel-hex { font-size: 0.9em; vertical-align: middle; }
-/* Sky row after the hexagram — sun · moon · rising, compact iOS-safe glyphs
-   (no word, no zodiac emoji). (Brendon 2026-06-23.) */
-.project-celestial .pcel-sky {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 0.6em;
-    letter-spacing: 0.06em;
-    margin-left: 0.4em;
-    vertical-align: middle;
-    opacity: 0.82;
+.output-celestial .oc-sky,
+.output-celestial .oc-fate {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
 }
-.output-celestial .oc-fate { margin-left: 0.5em; }
-.output-celestial .oc-phase,
+/* Glyphs at fixed legible sizes — never em-fractions of the big title. */
+.output-celestial .oc-moon { font-size: 14px; line-height: 1; }
+.output-celestial .oc-hex,
+.project-celestial .pcel-hex { font-size: 16px; line-height: 1; }
+/* Labels: 12px minimum, bold, full-strength (Rule #2 — no whisper text). */
+.output-celestial .oc-label,
 .project-celestial .pcel-name {
-    font-size: 0.5em;
-    letter-spacing: 0.04em;
-    margin-left: 0.4em;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
-    opacity: 0.8;
     font-family: 'Courier New', Courier, monospace;
+}
+/* The % LIT readout rides one step quieter than the phase word only because
+   it's the same fact restated — still 12px, still bold. */
+.output-celestial .oc-lit {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.05em;
+    opacity: 0.85;
 }
 
 /* Celestial reading — the per-Output birth-sky horoscope, shown atop the
@@ -10980,16 +10996,28 @@ body.colorway-dark .ghost-feed-bar {
 /* ── Gen Curated caption — the set's name/synopsis ─────────────────────── */
 /* Same small, fully-visible card-meta type as the project name under each
    piece. Plainly readable (Brendon 2026-06-20). */
+/* Gen Curated placard — the set's gallery-wall label. Leads with the ⑈
+   Gen Curated glyph, tappable to draw a fresh set (2026-07-16 wow pass).
+   Full-strength text tokens, no washes (Rule #2). */
 .gencurated-caption {
     grid-column: 1 / -1;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: bold;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
     color: var(--text-color);
     margin: 0;
     user-select: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
 }
+.gencurated-caption .gc-glyph { font-size: 15px; line-height: 1; }
+.gencurated-caption .gc-count { font-size: 12px; }
+.gencurated-caption:active .gc-glyph { transform: scale(1.15); }
 
 /* ── Profile Achievements wall ─────────────────────────────────────── */
 .ach-section {

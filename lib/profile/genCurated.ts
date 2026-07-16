@@ -21,6 +21,8 @@
  */
 
 import { COLOR_BUCKET_ORDER, type ColorBucket } from '../art/outputColor';
+import { lunarPhase, birthWeekday, birthSeason, birthTimeOfDay, fateDetail } from '../output/derive';
+import { primaryTrait, traitRarity, fateRarity, colorRarity, overallRarity } from '../output/rarity';
 import {
     COLOR_NAMES, PAIR_NAMES, ARTIST_NAMES, PROJECT_NAMES, RANDOM_NAMES,
     FAMILY_NAMES, SUN_NAMES, MOON_NAMES, RISING_NAMES,
@@ -30,6 +32,7 @@ import {
     ANGEL_NAMES, LOWMINT_NAMES, SAMENUM_NAMES, LISTED_NAMES, HELD_NAMES,
     TRIPLE_NAMES, MODALITY_NAMES, ASPECT_NAMES, FOLLOWING_NAMES, VIBE_CAPTIONS,
     DARK_NAMES, LIGHT_NAMES, VIVID_NAMES, MUTED_NAMES, BUSY_NAMES, MINIMAL_NAMES,
+    MOONPHASE_NAMES, WEEKDAY_NAMES, SEASON_NAMES, TOD_NAMES, CROWN_NAMES,
 } from './genCuratedNames';
 
 export type SpriteVibe = 'observer' | 'instigator' | 'hacker' | 'mystic';
@@ -52,6 +55,9 @@ export interface CuratedCandidate {
     saturation?: number;   // 0..1
     complexity?: number;   // 0..1
     following?: boolean;   // this piece's artist is followed by the profile owner
+    /** Mint moment in ms (from the stored traits) — lights up the birth-sky
+     *  and calendar recipes (moon phase / weekday / season / time of day). */
+    mintMs?: number | null;
 }
 export interface CuratedPick { slug: string; id: number; }
 export interface CuratedResult { picks: CuratedPick[]; caption: string; }
@@ -84,10 +90,10 @@ const MODALITIES: Record<'Cardinal' | 'Fixed' | 'Mutable', string[]> = {
 
 /* Which kinds each PriceSprite vibe is drawn to when it curates. */
 const VIBE_AFFINITY: Record<SpriteVibe, string[]> = {
-    observer: ['mono', 'neutral', 'cool', 'monochrome', 'analogous', 'range', 'held', 'aspect', 'muted', 'minimal', 'dark'],
-    instigator: ['complement', 'triadic', 'rainbow', 'warm', 'samenum', 'listed', 'angel', 'vivid', 'busy', 'light'],
-    hacker: ['random', 'rainbow', 'range', 'angel', 'samenum', 'triadic', 'lowmint', 'busy', 'vivid'],
-    mystic: ['sun', 'moon', 'rising', 'element', 'modality', 'triple', 'fate', 'cohort'],
+    observer: ['mono', 'neutral', 'cool', 'monochrome', 'analogous', 'range', 'held', 'aspect', 'muted', 'minimal', 'dark', 'weekday', 'season'],
+    instigator: ['complement', 'triadic', 'rainbow', 'warm', 'samenum', 'listed', 'angel', 'vivid', 'busy', 'light', 'crown'],
+    hacker: ['random', 'rainbow', 'range', 'angel', 'samenum', 'triadic', 'lowmint', 'busy', 'vivid', 'crown', 'weekday'],
+    mystic: ['sun', 'moon', 'rising', 'element', 'modality', 'triple', 'fate', 'cohort', 'moonphase', 'timeofday', 'season'],
 };
 
 const MAX = 6;
@@ -329,6 +335,64 @@ function band(
     return out;
 }
 
+/* ── The birth sky + calendar (2026-07-16 wow pass) — mint-moment recipes.
+   All light up automatically as mint timestamps hydrate with the colours. ── */
+
+/** Minted under the same moon — the Celestial Tracker's own recipe. */
+function moonCohort(pool: CuratedCandidate[]): Recipe[] {
+    const out: Recipe[] = [];
+    const timed = pool.filter((c) => c.mintMs != null && Number.isFinite(c.mintMs));
+    for (const [phase, g] of groupBy(timed, (c) => lunarPhase(c.mintMs!))) {
+        if (g.length < 4) continue;
+        const names = MOONPHASE_NAMES[phase];
+        if (!names) continue;
+        out.push({ kind: 'moonphase', picks: shuffle(g).slice(0, MAX), caption: randOf(names) ?? phase });
+    }
+    return out;
+}
+
+/** Same weekday / season / time-of-day — the mint calendar. */
+function calendarCohorts(pool: CuratedCandidate[]): Recipe[] {
+    const out: Recipe[] = [];
+    const timed = pool.filter((c) => c.mintMs != null && Number.isFinite(c.mintMs));
+    for (const [day, g] of groupBy(timed, (c) => birthWeekday(c.mintMs!))) {
+        if (g.length < 4) continue;
+        out.push({ kind: 'weekday', picks: shuffle(g).slice(0, MAX), caption: fill(randOf(WEEKDAY_NAMES) ?? 'The {x} Mints', { x: day }) });
+    }
+    for (const [season, g] of groupBy(timed, (c) => birthSeason(c.mintMs!))) {
+        if (g.length < 4) continue;
+        const names = SEASON_NAMES[season as keyof typeof SEASON_NAMES];
+        if (!names) continue;
+        out.push({ kind: 'season', picks: shuffle(g).slice(0, MAX), caption: randOf(names) ?? season });
+    }
+    for (const [tod, g] of groupBy(timed, (c) => birthTimeOfDay(c.mintMs!))) {
+        if (g.length < 4) continue;
+        const names = TOD_NAMES[tod as keyof typeof TOD_NAMES];
+        if (!names) continue;
+        out.push({ kind: 'timeofday', picks: shuffle(g).slice(0, MAX), caption: randOf(names) ?? tod });
+    }
+    return out;
+}
+
+/** The Crown Jewels — the collection's genuinely rarest pieces, scored with
+ *  the SAME edition-set rarity the character sheet shows (never faked). */
+function crownJewels(pool: CuratedCandidate[]): Recipe[] {
+    const scored: { c: CuratedCandidate; score: number }[] = [];
+    for (const c of pool) {
+        try {
+            const pt = primaryTrait(c.slug, c.id);
+            const tf = pt ? traitRarity(c.slug, pt.name, pt.value) : null;
+            const cf = c.color ? colorRarity(c.slug, c.color) : null;
+            const ff = fateRarity(c.slug, fateDetail(c.slug, c.id).fate);
+            const score = overallRarity([tf, ff, cf])?.score ?? null;
+            if (score != null && score >= 75) scored.push({ c, score });
+        } catch { /* unreadable piece — it just doesn't make the case */ }
+    }
+    if (scored.length < 3) return [];
+    scored.sort((a, b) => b.score - a.score);
+    return [{ kind: 'crown', picks: scored.slice(0, MAX).map((s) => s.c), caption: randOf(CROWN_NAMES) ?? 'The Crown Jewels' }];
+}
+
 /* Lights up once the owner's follow graph is threaded in. */
 function following(pool: CuratedCandidate[]): Recipe[] {
     const items = pool.filter((c) => c.following === true);
@@ -362,6 +426,7 @@ function allRecipes(pool: CuratedCandidate[]): Recipe[] {
         ...element(pool), ...modality(pool), ...triple(pool),
         ...fate(pool), ...cohort(pool), ...tokenMagic(pool), ...status(pool),
         ...aspect(pool), ...following(pool), ...range(pool),
+        ...moonCohort(pool), ...calendarCohorts(pool), ...crownJewels(pool),
         ...band(pool, (c) => c.brightness, 0.3, 0.7, 'dark', 'light', DARK_NAMES, LIGHT_NAMES),
         ...band(pool, (c) => c.saturation, 0.25, 0.6, 'muted', 'vivid', MUTED_NAMES, VIVID_NAMES),
         ...band(pool, (c) => c.complexity, 0.25, 0.6, 'minimal', 'busy', MINIMAL_NAMES, BUSY_NAMES),

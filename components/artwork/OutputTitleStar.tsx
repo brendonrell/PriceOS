@@ -15,7 +15,7 @@ import React from 'react';
 import { useToast } from '../../lib/state/ToastContext';
 import { isStarred, toggleStar, subscribeStarred } from '../../lib/pins/starStore';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
-import { useOutputCelestial, celestialOpacity } from '../../lib/output/celestial';
+import { useOutputCelestial, celestialOpacity, celestialLit } from '../../lib/output/celestial';
 
 export default function OutputTitleStar({
     slug,
@@ -85,22 +85,24 @@ export default function OutputTitleStar({
                 {projectName}
             </a>{' '}#{id}
             {starred && <span className="project-name-star" aria-hidden="true">{'★︎'}</span>}
-            {/* Celestial Tracker — the Output's birth sky beside the name: the
-                mint moon (brightness = illumination) + its I Ching Fate. */}
+            {/* Celestial Tracker — the Output's birth sky beside the name, as
+                one clean chip row: the TRUE mint-moon disc (brightness =
+                illumination) + phase + % lit, then its I Ching Fate. */}
             {cel && (
                 <span
                     className="output-celestial"
                     aria-label={`Fate ${cel.fate.name}${cel.moon ? `, minted under a ${cel.moon.phase}` : ''}`}
                 >
                     {cel.moon && (
-                        <>
+                        <span className="oc-sky">
                             <span className="oc-moon" style={{ opacity: celestialOpacity(cel.moon.illum) }}>{cel.moon.glyph}</span>
-                            <span className="oc-phase">{cel.moon.phase}</span>
-                        </>
+                            <span className="oc-label">{cel.moon.phase}</span>
+                            <span className="oc-lit">{celestialLit(cel.moon.illum)}</span>
+                        </span>
                     )}
                     <span className="oc-fate">
                         <span className="oc-hex">{cel.fate.glyph}</span>
-                        <span className="oc-phase">{cel.fate.name}</span>
+                        <span className="oc-label">{cel.fate.name}</span>
                     </span>
                 </span>
             )}

@@ -19,7 +19,7 @@ import {
 import { FEED_LIFECYCLE, FEED_SEQ, milestoneByKey } from '../../lib/home/milestones';
 import { effectiveShowcaseStyle } from '../../lib/profile/showcaseStyle';
 import { genCuratedSet, type CuratedCandidate, type SpriteVibe } from '../../lib/profile/genCurated';
-import { resolveBucket, resolveFingerprint } from '../../lib/art/colorStore';
+import { resolveBucket, resolveFingerprint, resolveStoredTraits } from '../../lib/art/colorStore';
 import type { UserProfileData } from '../../lib/profile/getUserProfileByHandle';
 import type { EnrichedHolding } from './ProfileFacetBar';
 import {
@@ -101,10 +101,18 @@ export function useArtistShowcase({
        a fresh themed pull from the owner's WHOLE collection (re-rolled each
        mount). The PriceSprite vibe + @handle let the sprite curate in character.
        colorsVer re-rolls once the captured colours hydrate. */
+    /* Manual re-curate — tapping the set's placard draws a fresh recipe
+       (2026-07-16 wow pass). A deliberate user action, unlike the async-dep
+       re-shuffle this memo's note below forbids. */
+    const [genRoll, setGenRoll] = useState(0);
+    const recurate = () => setGenRoll((n) => n + 1);
+
     const genCurated = useMemo(() => {
         if (!onShowcase || effStyle !== 'gen-curated') return null;
         const pool: CuratedCandidate[] = enriched.map((h) => {
             const fp = resolveFingerprint(h.slug, h.token_id);
+            const mintedAt = resolveStoredTraits(h.slug, h.token_id)?.mintedAt ?? null;
+            const mintMs = mintedAt ? Date.parse(mintedAt) : null;
             return {
                 slug: h.slug,
                 id: h.token_id,
@@ -125,6 +133,7 @@ export function useArtistShowcase({
                 saturation: fp?.saturation ?? undefined,
                 complexity: fp?.complexity ?? undefined,
                 following: ownerFollowing.has((h.traits.Artist ?? '').replace(/^@/, '').toLowerCase()),
+                mintMs: Number.isFinite(mintMs as number) ? mintMs : null,
             };
         });
         return genCuratedSet(pool, {
@@ -135,8 +144,9 @@ export function useArtistShowcase({
         // follows / captured colours arrive async — those late deps were what made
         // the set visibly re-shuffle a second time after one tap (Brendon,
         // 2026-06-24). It reads whatever following/colour data is loaded at build.
+        // genRoll is the one extra trigger: the user's own placard tap.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [onShowcase, effStyle, enriched]);
+    }, [onShowcase, effStyle, enriched, genRoll]);
 
     /* Live per-project stats for this artist's projects (birth time, mint
        count, graduation, sold-out, milestones) — the ledger timestamps the
@@ -271,6 +281,7 @@ export function useArtistShowcase({
         setShowcaseView,
         artistShowcaseCreated,
         genCurated,
+        recurate,
         enrichedArtistProjects,
         mintSort,
         onMintSort,

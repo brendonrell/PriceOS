@@ -136,6 +136,9 @@ export const CAST: NpcCharacter[] = [
             "Somebody just called it 'content.' I need a minute.",
             "Liked it. Quietly. The way it's done.",
             "Don't ask me what's next. You'll crowd it.",
+            'Somebody asked me for a list of what to buy. No.',
+            'The new stuff is fine. Fine is not a compliment.',
+            "I don't do threads. I do sentences.",
         ],
     },
     {
@@ -154,6 +157,9 @@ export const CAST: NpcCharacter[] = [
             "Everyone remembers it differently. That's why I write it down.",
             'Quiet week. Logged it anyway.',
             'The old floor was better. I have it in writing.',
+            "The archive doesn't keep itself. Actually it mostly does now. I supervise.",
+            "Someone corrected one of my dates once. They were wrong. It's in the notes.",
+            'A quiet ledger is a healthy ledger. Suspicious, but healthy.',
         ],
     },
     {
@@ -172,6 +178,9 @@ export const CAST: NpcCharacter[] = [
             "I lowballed a friend once. We're still friends. I have the piece.",
             "Someone's going to list low tonight. I can feel it from here.",
             "I made three offers today. Insulting ones. It's called a start.",
+            "My best purchase this year was somebody's worst morning.",
+            'I re-read my old offers sometimes. Poetry.',
+            'Floors are opinions. Mine are facts.',
         ],
     },
     {
@@ -191,6 +200,9 @@ export const CAST: NpcCharacter[] = [
             "I like the blue ones. That's the whole analysis.",
             'Went outside earlier. Recommend it.',
             'I have the sound off. No offense.',
+            'I fixed the squeaky gate today. Big day. Genuinely.',
+            'Somebody explained the moon thing to me. The art has birthdays. Sure.',
+            'I rank my pieces by which one the dog looks at.',
         ],
     },
     {
@@ -210,6 +222,9 @@ export const CAST: NpcCharacter[] = [
             'Two listings, same minute, same price. Sure.',
             'Someone screenshotted the floor. You only do that before something.',
             "I know who it was. I'm just enjoying the not-saying.",
+            'Four wallets went quiet at the same time this week. THE SAME TIME.',
+            'I keep a list of coincidences. It stopped being a list of coincidences months ago.',
+            'The quiet weeks are when the maps get drawn. Look busy.',
         ],
     },
     {
@@ -229,6 +244,9 @@ export const CAST: NpcCharacter[] = [
             "They're celebrating over there. I can hear it. It'll pass.",
             "I don't get excited. Saves a step.",
             "Somebody's whistling. Never a good sign.",
+            'I was up two percent this morning. Was.',
+            'Every green week is a red week in the waiting room.',
+            "Someone asked how I'm doing. Positionally? Don't ask.",
         ],
     },
     {
@@ -248,6 +266,9 @@ export const CAST: NpcCharacter[] = [
             "It's a nice day in here.",
             "I checked on the old projects. They're doing fine. Nobody checks.",
             "Somebody's first sale went through. They're not cool about it. I love that.",
+            "An artist posted their first piece today and apologised for it. Don't you dare apologise.",
+            'I re-hung my little collection today. Same pieces. New room.',
+            "Someone's grandma minted a piece this week. Best collector we have.",
         ],
     },
     {
@@ -268,6 +289,9 @@ export const CAST: NpcCharacter[] = [
             "The tower card again. Someone's floor, probably.",
             'Certain pieces hum. Not to everyone.',
             "Dreamt a number. Not telling. It's not mine to spend.",
+            'The moon minted nothing tonight. Even she holds sometimes.',
+            'I read three fates today. Two were polite. One I put back.',
+            "Certain numbers keep showing up for them. I won't say which. Watch the corners.",
         ],
     },
 ];
