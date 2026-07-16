@@ -134,12 +134,38 @@ function AlbumShow({ album, number, onClose }: { album: AlbumRecord; number: num
       Wears its worth quietly: the sum of its currently-listed members.
       Sizing is 100% CSS (square tiles in an auto-fill grid — the sticker-grid
       system): the canvases paint at a fixed resolution and stretch to their
-      cell, so nothing is ever measured or resized in JS. ── */
+      cell, so nothing is ever measured or resized in JS.
+
+      LIVING COVERS (2026-07-16 wow pass): a mosaic with more pieces than
+      cells slowly drifts through its WHOLE membership — every few seconds
+      one cell crossfades to a piece not currently showing, on a per-album
+      stagger so the wall never blinks in unison. A chosen single cover
+      stays perfectly still (it was chosen). ── */
 function AlbumCoverTile({ album, number, listedEth, onOpen }: {
     album: AlbumRecord; number: number; listedEth: number; onOpen: () => void;
 }) {
     const coverKey = album.cover && album.keys.includes(album.cover) ? album.cover : null;
-    const cells = coverKey ? [coverKey] : album.keys.slice(0, 4);
+    const [cells, setCells] = useState<string[]>(() => (coverKey ? [coverKey] : album.keys.slice(0, 4)));
+    const keysSig = album.keys.join(',');
+    useEffect(() => {
+        setCells(coverKey ? [coverKey] : album.keys.slice(0, 4));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [coverKey, keysSig]);
+    useEffect(() => {
+        if (coverKey || album.keys.length <= 4) return;
+        const t = window.setInterval(() => {
+            setCells((cur) => {
+                const pool = album.keys.filter((k) => !cur.includes(k));
+                if (pool.length === 0) return cur;
+                const next = [...cur];
+                next[Math.floor(Math.random() * next.length)] =
+                    pool[Math.floor(Math.random() * pool.length)];
+                return next;
+            });
+        }, 4200 + ((number - 1) % 5) * 750);
+        return () => window.clearInterval(t);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [coverKey, keysSig, number]);
     return (
         <button
             type="button"
@@ -148,9 +174,15 @@ function AlbumCoverTile({ album, number, listedEth, onOpen }: {
             onClick={onOpen}
         >
             <span className={`album-tile-art${coverKey ? ' single' : ''}${cells.length === 0 ? ' empty' : ''}`}>
-                {cells.map((k) => {
+                {cells.map((k, i) => {
                     const m = parseKey(k);
-                    return m ? <OutputThumb key={k} slug={m.slug} id={m.id} size={coverKey ? 170 : 85} crop /> : null;
+                    // Key carries the CELL index + piece: a swapped cell
+                    // remounts and runs the crossfade; still cells sit still.
+                    return m ? (
+                        <span key={`${i}-${k}`} className="album-cell">
+                            <OutputThumb slug={m.slug} id={m.id} size={coverKey ? 170 : 85} crop />
+                        </span>
+                    ) : null;
                 })}
                 {!coverKey && cells.length === 0 && <span className="album-tile-empty">◰{VS15}</span>}
             </span>
@@ -233,7 +265,10 @@ export default function AlbumsPanel({ own }: { own: boolean }) {
                 {albums.length === 0 && (
                     <p className="album-empty-note">No albums yet — start your first.</p>
                 )}
-                <div className="albums-grid">
+                {/* .albums-covers, NOT .albums-grid — that name belongs to the
+                    project page's legacy albums tab and drags its padding in
+                    (the 2026-07-16 buffer bug). */}
+                <div className="albums-covers">
                     {albums.map((a, i) => (
                         <AlbumCoverTile key={a.id} album={a} number={i + 1} listedEth={albumWorth(a)} onOpen={() => setOpenId(a.id)} />
                     ))}
@@ -333,7 +368,7 @@ export default function AlbumsPanel({ own }: { own: boolean }) {
             )}
 
             <div className="album-pieces">
-                {members.map((m) => {
+                {members.map((m, i) => {
                     const k = `${m.slug}:${m.id}`;
                     const isSel = selected.has(k);
                     return (
@@ -341,6 +376,7 @@ export default function AlbumsPanel({ own }: { own: boolean }) {
                             key={k}
                             type="button"
                             className={`album-piece${isSel ? ' selected' : ''}`}
+                            style={{ animationDelay: `${Math.min(i, 8) * 45}ms` }}
                             onClick={() => (selecting ? toggleSel(k) : openModal('output', m.id, m.slug))}
                         >
                             <OutputThumb slug={m.slug} id={m.id} size={130} crop />

@@ -17,8 +17,13 @@
 /* ── Covers grid ──
    Sizing is 100% CSS (no JS measuring, ever): square tiles in an auto-fill
    grid — the sticker-grid system. Canvases paint at a fixed resolution and
-   stretch to their cell, so the wall never jumps while panels animate open. */
-.albums-grid {
+   stretch to their cell, so the wall never jumps while panels animate open.
+   ⛔ Named .albums-covers ON PURPOSE (2026-07-16, THE buffer bug): the old
+   name `.albums-grid` collides with the PROJECT page's legacy albums tab in
+   globals.css, whose `padding: 10px 40px` (20px sides on mobile) silently
+   inset this wall — the exact "added buffer" every earlier fix missed
+   because it lived in the other file. Never rename this back. */
+.albums-covers {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 18px 14px;
@@ -40,7 +45,8 @@
     gap: 2px;
     width: 100%;
     aspect-ratio: 1;
-    border-radius: 10px;
+    /* Square corners — Brendon's call, 2026-07-16 (albums wear no radius). */
+    border-radius: 0;
     overflow: hidden;
     background: color-mix(in srgb, currentColor 8%, transparent);
 }
@@ -126,14 +132,15 @@
     border: none;
     padding: 0;
     cursor: pointer;
-    border-radius: 8px;
+    /* Square corners — Brendon's call, 2026-07-16. */
+    border-radius: 0;
     overflow: hidden;
     line-height: 0;
     aspect-ratio: 1;
     min-width: 0;
 }
 .album-piece canvas {
-    border-radius: 8px !important;
+    border-radius: 0 !important;
     width: 100% !important;
     height: 100% !important;
     object-fit: cover;
@@ -251,6 +258,30 @@
     to   { opacity: 1; transform: none; }
 }
 
+/* ── 2026-07-16 wow pass ── */
+
+/* LIVING COVERS: each mosaic cell is a span the grid sizes; a freshly-swapped
+   cell remounts and crossfades in over the old paint. */
+.album-cell {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    line-height: 0;
+    animation: album-cell-in 0.9s ease both;
+}
+@keyframes album-cell-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Pieces inside an album arrive with the same staggered rise as the covers
+   (delay set inline, capped at 8 steps). */
+.album-piece {
+    animation: album-tile-in 0.3s cubic-bezier(0.25, 1, 0.5, 1) both;
+}
+
 /* Each album wears its worth (sum of listed members) beside the count. */
 .album-tile-worth .eth-mark { color: var(--hothurt, #ff0055); }
 
@@ -276,4 +307,6 @@
 @media (prefers-reduced-motion: reduce) {
     .album-tile { animation: none; }
     .album-show-art.front { animation: none; }
+    .album-cell { animation: none; }
+    .album-piece { animation: none; }
 }
