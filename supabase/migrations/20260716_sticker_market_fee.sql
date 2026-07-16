@@ -4,8 +4,8 @@
 -- Studio — collector collabs) routes its 3% to that collaborator instead.
 -- Swaps and gifts move no money → no fee, unchanged.
 --
--- ⛔ NOT YET APPLIED — apply live at the ship, together with the dev push
--- (the deployed app calls these RPCs the moment they change).
+-- APPLIED LIVE 2026-07-16 (sticker_market_fee) — routing verified: default
+-- creator/platform recipients resolve for a solo sheet.
 
 -- Fee routing config — one row, editable without a deploy.
 create table public.sticker_fee_config (
