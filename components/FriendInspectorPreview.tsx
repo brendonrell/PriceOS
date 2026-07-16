@@ -236,6 +236,12 @@ function Constellation({
 }) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const dotsRef = useRef<Array<{ handle: string; x: number; y: number }>>([]);
+    /* The sky's viewport — pinch/drag/wheel zoomable like any map (Brendon,
+       2026-07-16). scale 1 = the whole circle in frame; pan in CSS px. */
+    const viewRef = useRef({ scale: 1, ox: 0, oy: 0 });
+    const pointersRef = useRef(new Map<number, { x: number; y: number }>());
+    const gestureRef = useRef<{ dist: number; scale: number } | null>(null);
+    const draggedRef = useRef(false);
 
     /* One rAF loop while mounted — stars breathe, threads shimmer. */
     useEffect(() => {
@@ -262,10 +268,13 @@ function Constellation({
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
             ctx.clearRect(0, 0, w, h);
             const base = getComputedStyle(canvas).color;
-            const cx = w / 2;
-            const cy = h / 2;
+            const view = viewRef.current;
+            const cx = w / 2 + view.ox;
+            const cy = h / 2 + view.oy;
             const maxR = Math.min(w / 2 - 24, h / 2 - 10);
             const maxShared = Math.max(1, ...people.map((p) => p.shared ?? 0));
+            /* Zoomed in, every star earns its name back. */
+            const labelAll = view.scale >= 1.6;
 
             const dots: Array<{ handle: string; x: number; y: number }> = [];
             for (const p of people) {
@@ -274,7 +283,7 @@ function Constellation({
                 // Cartel gravity — shared holdings pull a star toward you.
                 const pull = (p.shared ?? 0) / maxShared;
                 // Radius floor keeps even the tightest cartel star off YOU.
-                const r = Math.max(20, maxR * (1 - 0.55 * pull) * (0.55 + ((hsh >>> 12) % 100) / 220));
+                const r = Math.max(20, maxR * (1 - 0.55 * pull) * (0.55 + ((hsh >>> 12) % 100) / 220)) * view.scale;
                 const x = cx + Math.cos(angle) * r;
                 const y = cy + Math.sin(angle) * r * 0.82;
                 dots.push({ handle: p.handle, x, y });
@@ -289,27 +298,30 @@ function Constellation({
                     ctx.stroke();
                 }
 
-                // The star — tinted with its owner's profile colorway.
+                // The star — tinted with its owner's profile colorway. Size
+                // rides the zoom gently so close-ups feel closer.
                 const breathe = 1 + 0.22 * Math.sin(t / 700 + (hsh % 7));
+                const zoomGain = Math.sqrt(view.scale);
                 const isInspected = inspected === p.handle;
                 ctx.globalAlpha = 1;
                 ctx.fillStyle = p.stat?.profileHex || base;
                 ctx.beginPath();
-                ctx.arc(x, y, (p.mutual ? 3.4 : 2.5) * breathe, 0, Math.PI * 2);
+                ctx.arc(x, y, (p.mutual ? 4.2 : 3.2) * breathe * zoomGain, 0, Math.PI * 2);
                 ctx.fill();
                 if (isInspected) {
                     ctx.strokeStyle = p.stat?.profileHex || base;
                     ctx.beginPath();
-                    ctx.arc(x, y, 8 + 1.6 * Math.sin(t / 300), 0, Math.PI * 2);
+                    ctx.arc(x, y, (9 + 1.6 * Math.sin(t / 300)) * zoomGain, 0, Math.PI * 2);
                     ctx.stroke();
                 }
                 // Labels stay readable: past a dozen stars only mutuals + the
-                // inspected star keep their names; the rest read on tap.
-                if (people.length <= 12 || p.mutual || isInspected) {
-                    ctx.font = "bold 9px 'Courier New', Courier, monospace";
+                // inspected star keep their names — until you zoom in, when
+                // every star earns its name back.
+                if (labelAll || people.length <= 12 || p.mutual || isInspected) {
+                    ctx.font = "bold 11px 'Courier New', Courier, monospace";
                     ctx.fillStyle = base;
                     ctx.textAlign = 'center';
-                    ctx.fillText(`@${p.handle}`, x, y + 15);
+                    ctx.fillText(`@${p.handle}`, x, y + 17 * zoomGain);
                 }
             }
             dotsRef.current = dots;
@@ -318,11 +330,11 @@ function Constellation({
             ctx.globalAlpha = 1;
             ctx.fillStyle = base;
             ctx.beginPath();
-            ctx.arc(cx, cy, 4.2 + 0.5 * Math.sin(t / 500), 0, Math.PI * 2);
+            ctx.arc(cx, cy, 5 + 0.5 * Math.sin(t / 500), 0, Math.PI * 2);
             ctx.fill();
-            ctx.font = "bold 9px 'Courier New', Courier, monospace";
+            ctx.font = "bold 11px 'Courier New', Courier, monospace";
             ctx.textAlign = 'center';
-            ctx.fillText('YOU', cx, cy + 15);
+            ctx.fillText('YOU', cx, cy + 17);
 
             // The duel readout for the inspected star.
             const target = people.find((p) => p.handle === inspected);
@@ -333,7 +345,7 @@ function Constellation({
                     else if (myStat[k] < target.stat![k]) them++;
                 });
                 ctx.textAlign = 'left';
-                ctx.font = "bold 10px 'Courier New', Courier, monospace";
+                ctx.font = "bold 12px 'Courier New', Courier, monospace";
                 ctx.fillText(
                     `DUEL ${you}–${them} ${myHandle ? `@${myHandle}` : 'YOU'} vs @${target.handle}`,
                     8, h - 8,
@@ -346,6 +358,7 @@ function Constellation({
     }, [people, inspected, myStat, myHandle]);
 
     const onTap = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+        if (draggedRef.current) { draggedRef.current = false; return; }
         const rect = e.currentTarget.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
@@ -357,6 +370,81 @@ function Constellation({
         if (best) onInspect(best.handle);
     }, [onInspect]);
 
+    /* ── The map gestures — pinch to zoom, drag to pan, wheel to zoom,
+       double-tap to reset. Pan is clamped so the sky can't be lost. ── */
+    const clampView = useCallback(() => {
+        const v = viewRef.current;
+        v.scale = Math.min(4, Math.max(1, v.scale));
+        const canvas = canvasRef.current;
+        const limX = (canvas?.clientWidth ?? 300) * 0.6 * v.scale;
+        const limY = (canvas?.clientHeight ?? 150) * 0.6 * v.scale;
+        v.ox = Math.min(limX, Math.max(-limX, v.ox));
+        v.oy = Math.min(limY, Math.max(-limY, v.oy));
+    }, []);
+
+    const onPointerDown = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
+        e.currentTarget.setPointerCapture(e.pointerId);
+        pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (pointersRef.current.size === 2) {
+            const [a, b] = [...pointersRef.current.values()];
+            gestureRef.current = { dist: Math.hypot(a.x - b.x, a.y - b.y), scale: viewRef.current.scale };
+        }
+    }, []);
+
+    const onPointerMove = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
+        const p = pointersRef.current.get(e.pointerId);
+        if (!p) return;
+        const prev = { ...p };
+        p.x = e.clientX;
+        p.y = e.clientY;
+        if (pointersRef.current.size === 2 && gestureRef.current) {
+            const [a, b] = [...pointersRef.current.values()];
+            const dist = Math.hypot(a.x - b.x, a.y - b.y);
+            if (gestureRef.current.dist > 0) {
+                viewRef.current.scale = gestureRef.current.scale * (dist / gestureRef.current.dist);
+                clampView();
+            }
+            draggedRef.current = true;
+        } else if (pointersRef.current.size === 1) {
+            const dx = p.x - prev.x;
+            const dy = p.y - prev.y;
+            if (Math.abs(dx) + Math.abs(dy) > 0) {
+                viewRef.current.ox += dx;
+                viewRef.current.oy += dy;
+                clampView();
+                if (Math.abs(dx) + Math.abs(dy) > 2) draggedRef.current = true;
+            }
+        }
+    }, [clampView]);
+
+    const onPointerEnd = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
+        pointersRef.current.delete(e.pointerId);
+        if (pointersRef.current.size < 2) gestureRef.current = null;
+    }, []);
+
+    const onWheel = useCallback((e: React.WheelEvent<HTMLCanvasElement>) => {
+        viewRef.current.scale *= e.deltaY < 0 ? 1.12 : 0.9;
+        clampView();
+    }, [clampView]);
+
+    const onDouble = useCallback(() => {
+        viewRef.current = { scale: 1, ox: 0, oy: 0 };
+        draggedRef.current = false;
+    }, []);
+
     if (people.length === 0) return <div className="fm-empty">Your sky fills as friends arrive.</div>;
-    return <canvas ref={canvasRef} className="fi-map" onClick={onTap} aria-label="Your circle as a constellation" />;
+    return (
+        <canvas
+            ref={canvasRef}
+            className="fi-map"
+            onClick={onTap}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerEnd}
+            onPointerCancel={onPointerEnd}
+            onWheel={onWheel}
+            onDoubleClick={onDouble}
+            aria-label="Your circle as a constellation — pinch to zoom, drag to pan"
+        />
+    );
 }

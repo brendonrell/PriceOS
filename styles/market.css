@@ -360,10 +360,65 @@ a.notif-item--link:hover { opacity: 0.85; }
 }
 .cpl-month-tally {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 10px; font-weight: bold; opacity: 0.6;
+    font-size: 12px; font-weight: bold;
     font-variant-numeric: tabular-nums;
 }
-.cpl-month-tally.is-complete { opacity: 1; }
+.cpl-month-tally.is-complete { letter-spacing: 0.5px; }
+
+/* ── THE COMPLETIONIST'S LEDGER — the analytics fold. The STATS button wears
+   the house pill treatment (solid fill · full-strength border + text · bold);
+   the panel keeps the modal's courier voice at full strength (Rule #2). ── */
+.cpl-stats-btn {
+    margin-left: 10px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px; font-weight: bold; letter-spacing: 1px;
+    padding: 3px 10px; border-radius: 999px;
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    cursor: pointer; line-height: 1.2;
+    vertical-align: middle;
+    -webkit-tap-highlight-color: transparent;
+}
+.cpl-stats-btn.on {
+    background: var(--stat-active-bg);
+    color: var(--stat-active-text);
+    border-color: var(--stat-active-bg);
+}
+.cpl-ledger {
+    display: flex; flex-direction: column; gap: 14px;
+    border: 1px solid color-mix(in srgb, var(--text-color) 35%, transparent);
+    border-radius: 6px; padding: 12px;
+    margin: 2px 0 14px;
+    font-family: 'Courier New', Courier, monospace;
+}
+.cpl-tiles {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+    gap: 8px;
+}
+.cpl-tile {
+    display: flex; flex-direction: column; gap: 4px;
+    border: 1px solid color-mix(in srgb, var(--text-color) 35%, transparent);
+    border-radius: 4px; padding: 8px;
+}
+.cpl-tile-label { font-size: 12px; font-weight: bold; letter-spacing: 0.5px; white-space: nowrap; }
+.cpl-tile-value { font-size: 16px; font-weight: bold; font-variant-numeric: tabular-nums; }
+.cpl-bars { display: flex; flex-direction: column; gap: 6px; }
+.cpl-bar-row {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: bold; font-variant-numeric: tabular-nums;
+}
+.cpl-bar-label { flex: 0 0 auto; width: 7ch; white-space: nowrap; }
+.cpl-bar {
+    flex: 1 1 auto; height: 10px; border-radius: 3px;
+    border: 1px solid color-mix(in srgb, var(--text-color) 45%, transparent);
+    overflow: hidden;
+}
+.cpl-bar-fill { display: block; height: 100%; background: var(--text-color); transition: width 0.4s ease; }
+.cpl-bar-n { flex: 0 0 auto; min-width: 5ch; text-align: right; }
+.cpl-close { display: flex; flex-direction: column; gap: 3px; }
+.cpl-close-head { font-size: 12px; font-weight: bold; letter-spacing: 1px; }
+.cpl-close-line { font-size: 12px; font-weight: bold; }
 .cpl-grid { display: flex; flex-wrap: wrap; gap: 6px; }
 .cpl-item {
     display: inline-flex; align-items: center; gap: 5px;
@@ -382,7 +437,7 @@ a.notif-item--link:hover { opacity: 0.85; }
 .cpl-check { font-weight: bold; }
 .cpl-foot {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 10px; opacity: 0.5; padding: 8px 0 2px;
+    font-size: 12px; opacity: 0.7; padding: 8px 0 2px;
 }
 .alb-page { padding: 10px 0 4px; }
 /* Album progress — one thin fill per page (and one for the whole album) so

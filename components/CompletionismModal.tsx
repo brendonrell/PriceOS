@@ -11,10 +11,11 @@
  * Shell = the Cart panel verbatim (house slide-up), two-stage mounted/active.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { SHEETS } from '../lib/stickers/catalog';
 import { getOwnedIds, ownsSheet, useOwnedStickerIds } from '../lib/stickers/owned';
+import { formatEth } from '../lib/format/eth';
 
 const VS15 = '︎';
 const UNMOUNT_DELAY_MS = 240;
@@ -28,6 +29,118 @@ interface MonthRow {
     projects: { slug: string; title: string; collected: boolean }[];
 }
 
+/* ── THE COMPLETIONIST'S LEDGER — the whole analytics read, hidden behind the
+   one small STATS button so the resting modal stays minimal (Brendon,
+   2026-07-16). Everything computes from the months payload already fetched;
+   the only extra reads are the floor probes for THE CLOSE. ── */
+
+/** "AUGUST 2026" → "AUG 26" — bar-chart-width month labels. */
+function shortLabel(label: string): string {
+    const [m, y] = label.split(' ');
+    return `${m.slice(0, 3)} ${y.slice(2)}`;
+}
+
+function CompletionLedger({
+    months,
+    sheetsOwned,
+    sheetsTotal,
+}: {
+    months: MonthRow[];
+    sheetsOwned: number;
+    sheetsTotal: number;
+}) {
+    const stats = useMemo(() => {
+        const totalReleases = months.reduce((n, m) => n + m.total, 0);
+        const totalCollected = months.reduce((n, m) => n + m.collected, 0);
+        const monthsComplete = months.filter((m) => m.complete).length;
+        const pct = totalReleases > 0 ? Math.round((totalCollected / totalReleases) * 100) : 0;
+        /* THE CLOSE — the incomplete month you're nearest to finishing. */
+        const open = months
+            .filter((m) => !m.complete && m.total > 0)
+            .map((m) => ({ ...m, missing: m.projects.filter((p) => !p.collected) }))
+            .sort((a, b) => a.missing.length - b.missing.length);
+        const closest = open[0] ?? null;
+        /* Chronological for the chart (payload arrives newest-first). */
+        const chart = [...months].reverse();
+        return { totalReleases, totalCollected, monthsComplete, pct, closest, chart };
+    }, [months]);
+
+    /* THE CLOSE's price tag — live floors for the missing releases (capped;
+       fails soft to "no live listing"). This is the buy-the-gap read. */
+    const [floors, setFloors] = useState<Record<string, number | null> | null>(null);
+    const closest = stats.closest;
+    useEffect(() => {
+        if (!closest) { setFloors(null); return; }
+        let alive = true;
+        const slugs = closest.missing.slice(0, 12).map((p) => p.slug);
+        Promise.all(slugs.map(async (slug) => {
+            try {
+                const j = await fetch(`/api/project/${slug}/floor`).then((r) => (r.ok ? r.json() : null));
+                return [slug, typeof j?.floor_eth === 'number' ? j.floor_eth : null] as const;
+            } catch { return [slug, null] as const; }
+        })).then((entries) => { if (alive) setFloors(Object.fromEntries(entries)); });
+        return () => { alive = false; };
+    }, [closest]);
+
+    const closeRead = useMemo(() => {
+        if (!closest) return null;
+        const m = closest;
+        if (!floors) return { month: m.label, missing: m.missing.length, line: 'pricing the gap…' };
+        const listed = m.missing.map((p) => floors[p.slug]).filter((f): f is number => typeof f === 'number');
+        const line = listed.length === 0
+            ? 'no live listings — watch the market'
+            : `${listed.length} of ${m.missing.length} listed now · from ${formatEth(listed.reduce((a, b) => a + b, 0))} total`;
+        return { month: m.label, missing: m.missing.length, line };
+    }, [closest, floors]);
+
+    return (
+        <div className="cpl-ledger">
+            <div className="cpl-tiles">
+                <div className="cpl-tile">
+                    <span className="cpl-tile-label">{`⬚${VS15}`} RELEASES</span>
+                    <span className="cpl-tile-value">{stats.totalCollected}/{stats.totalReleases}</span>
+                </div>
+                <div className="cpl-tile">
+                    <span className="cpl-tile-label">{`▦${VS15}`} MONTHS</span>
+                    <span className="cpl-tile-value">{stats.monthsComplete}/{months.length}</span>
+                </div>
+                <div className="cpl-tile">
+                    <span className="cpl-tile-label">{`⊞${VS15}`} STICKERS</span>
+                    <span className="cpl-tile-value">{sheetsOwned}/{sheetsTotal}</span>
+                </div>
+                <div className="cpl-tile">
+                    <span className="cpl-tile-label">{`✓${VS15}`} COMPLETE</span>
+                    <span className="cpl-tile-value">{stats.pct}%</span>
+                </div>
+            </div>
+
+            {/* Month-by-month — one bar per release month, fill = collected share. */}
+            <div className="cpl-bars" role="img" aria-label="Completion by month">
+                {stats.chart.map((m) => (
+                    <div className="cpl-bar-row" key={m.key}>
+                        <span className="cpl-bar-label">{shortLabel(m.label)}</span>
+                        <span className="cpl-bar">
+                            <span
+                                className={`cpl-bar-fill${m.complete ? ' is-complete' : ''}`}
+                                style={{ width: `${m.total > 0 ? Math.max(2, Math.round((m.collected / m.total) * 100)) : 0}%` }}
+                            />
+                        </span>
+                        <span className="cpl-bar-n">{m.collected}/{m.total}</span>
+                    </div>
+                ))}
+            </div>
+
+            {/* THE CLOSE — the nearest finish line, priced live. */}
+            {closeRead && (
+                <div className="cpl-close">
+                    <span className="cpl-close-head">THE CLOSE — {closeRead.month}</span>
+                    <span className="cpl-close-line">{closeRead.missing} to go · {closeRead.line}</span>
+                </div>
+            )}
+        </div>
+    );
+}
+
 export default function CompletionismModal({
     address,
     open,
@@ -38,6 +151,8 @@ export default function CompletionismModal({
     onClose: () => void;
 }) {
     const [months, setMonths] = useState<MonthRow[] | null>(null);
+    /* The ledger folds away by default — the resting modal stays minimal. */
+    const [statsOpen, setStatsOpen] = useState(false);
     const ownedIds = useOwnedStickerIds();
 
     /* Two-stage mounted/active — CartPanel's open/close, verbatim. */
@@ -90,9 +205,20 @@ export default function CompletionismModal({
                     <span className="cart-panel-title">
                         COMPLETIONISM
                         {months && (
-                            <span className="cart-panel-title-count">
-                                ({months.filter((m) => m.complete).length}/{months.length})
+                            <span className="cart-panel-title-count" title="Release months fully collected">
+                                ({months.filter((m) => m.complete).length}/{months.length} MONTHS)
                             </span>
+                        )}
+                        {months && months.length > 0 && (
+                            <button
+                                type="button"
+                                className={`cpl-stats-btn${statsOpen ? ' on' : ''}`}
+                                onClick={() => setStatsOpen((v) => !v)}
+                                aria-expanded={statsOpen}
+                                title="The Completionist's Ledger"
+                            >
+                                STATS
+                            </button>
                         )}
                     </span>
                     <span className="cart-panel-close-x" role="button" tabIndex={0} onClick={onClose} title="Close">
@@ -101,6 +227,13 @@ export default function CompletionismModal({
                 </div>
 
                 <div className="cart-items-list">
+                    {statsOpen && months && months.length > 0 && (
+                        <CompletionLedger
+                            months={months}
+                            sheetsOwned={sheetsOwned}
+                            sheetsTotal={SHEETS.length}
+                        />
+                    )}
                     {months == null ? (
                         <div className="mk-story-loading">Reading the calendar…</div>
                     ) : months.length === 0 ? (

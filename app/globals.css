@@ -1160,9 +1160,11 @@ body.ascii-id-mode .id-row-sprite     { display: none !important; }
 .gsr-ic { font-size: 12px; opacity: 0.8; flex: none; }
 .gsr-main { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: none; max-width: 55%; }
 .gsr-sub { margin-left: auto; opacity: 0.55; font-weight: normal; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 0 1 auto; }
-.gsr-sprite { font-family: 'Courier New', Courier, monospace; font-size: 11px; font-weight: bold; line-height: 1; flex: none; }
+.gsr-sprite { font-family: 'Courier New', Courier, monospace; font-size: 11px; font-weight: bold; line-height: 1; flex: none; white-space: nowrap; }
 .gsr-badge { font-family: 'Courier New', Courier, monospace; font-size: 11px; opacity: 0.8; flex: none; }
-.gsr-stats { white-space: pre; font-family: 'Courier New', Courier, monospace; }
+/* The profile-stats readout on a collector row reads at FULL strength — the
+   .gsr-sub wash made it near-invisible on device (Brendon, 2026-07-16). */
+.gsr-stats { white-space: pre; font-family: 'Courier New', Courier, monospace; opacity: 1; font-size: 12px; font-weight: bold; }
 .gsr-empty { opacity: 0.55; cursor: default; }
 /* Live 36px engine paints — the row-size artwork preview. object-fit
    cover = the History-page thumb fix (2026-06-26) brought to search
@@ -2259,9 +2261,11 @@ body.theme-bright .news-pill-name {
    no cut-off. Each row is two lines: identity, then icon+number stats.
    ============================================================ */
 .followers-backdrop { display: flex; align-items: flex-start; justify-content: center; padding: 52px 8px 8px; }
-/* FIXED compact height — same as the Sticker Manager. Loads at this height and
-   never grows with content; the list scrolls inside. PLUS is the full screen. */
-.followers-pop { width: min(480px, 96vw); height: min(254px, calc(100dvh - 100px)); }
+/* FIXED compact height. Tall enough that 3–4 friend rows show under the
+   tabs+sort chrome the moment it opens (Brendon, 2026-07-16 — it was 254px
+   and the list got nothing); never grows with content; the list scrolls
+   inside. PLUS is the full screen. */
+.followers-pop { width: min(480px, 96vw); height: min(520px, calc(100dvh - 120px)); }
 /* PLUS covers the available screen (dvh = safe under the mobile URL bar). */
 .sticker-mgr-plus.followers-plus { height: 100dvh; max-height: 100dvh; }
 /* Reserved preview slot at the top of PLUS — empty, no border (Brendon, 2026-06-25). */
@@ -4385,6 +4389,9 @@ body.persona-default .stats-row-2 { display: none !important; }
 .collected-sprite {
     font-family: 'Courier New', Courier, monospace;
     font-size: 11px;
+    /* A PriceSprite face is ATOMIC — its inner spaces must never wrap it onto
+       two lines (Brendon, 2026-07-16). */
+    white-space: nowrap;
     /* Bolder face so the PriceSprite reads against the tinted rectangle
        (Brendon, 2026-06-19 — hard to see otherwise). Applies to every ID
        Rectangle since they all share this class. */
@@ -11727,6 +11734,42 @@ body.is-pwa .fullscreen-back {
 .fi-line-main .collected-pair .profile-link {
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
 }
+/* The inspector speaks COURIER, not Rubik (Brendon, 2026-07-16) — every
+   @name here wears the search-row voice: Courier bold, lowercase, no chip
+   tint. Same treatment on the dossier's project chips. */
+.followers-pop .collected-pair,
+.followers-plus .collected-pair { background: transparent; padding: 0; }
+.followers-pop .collected-pair .profile-link,
+.followers-plus .collected-pair .profile-link {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px; font-weight: bold; text-transform: none;
+}
+/* The relationship/faction tags drop Rubik too — Courier bold, readable size. */
+.followers-pop .fm-tag,
+.followers-plus .fm-tag {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px; font-weight: bold; letter-spacing: 0.05em;
+}
+/* The lens annotation line — DRAMA's duel verdict / SLEUTH's last move.
+   Full-strength courier, indented to the name column. */
+.fi-lens-line {
+    margin: 7px 0 0 31px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px; font-weight: bold;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.fm-lens-label { margin-left: 10px; }
+/* Projects rows wear the Projects Pro+ line verbatim, plus this surface's
+   minted/cartel reads ahead of the artist. The line IS the link. */
+.fi-projrow { flex: 1 1 auto; min-width: 0; padding: 0; color: inherit; text-decoration: none; }
+.fi-projrow:hover { background: transparent; }
+.fi-projrow .projects-pro-name { font-size: 13px; }
+.fi-projrow-stats {
+    flex: 0 0 auto; display: inline-flex; gap: 10px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px; font-weight: bold; white-space: nowrap;
+}
+.fi-projrow .projects-pro-artist { opacity: 1; }
 .fi-rel { flex: 0 0 auto; font-size: 14px; line-height: 1; }
 .fi-artist {
     flex: 0 0 auto; display: inline-flex; align-items: baseline; gap: 3px;
@@ -11787,7 +11830,7 @@ body.is-pwa .fullscreen-back {
 .fi-faction-tag { display: inline-flex; align-items: center; gap: 5px; }
 
 /* ── THE PREVIEW STRIP (PLUS) — Circle Wire / Constellation. ── */
-.followers-plus-preview { height: 132px; min-height: 132px; position: relative; overflow: hidden; }
+.followers-plus-preview { height: 176px; min-height: 176px; position: relative; overflow: hidden; }
 .fi-preview {
     position: relative; height: 100%;
     display: flex; flex-direction: column; justify-content: center; gap: 7px;
@@ -11821,7 +11864,7 @@ body.is-pwa .fullscreen-back {
     display: flex; flex-direction: column; justify-content: center; gap: 8px;
 }
 .fi-wire-row {
-    position: relative; height: 26px; overflow: hidden;
+    position: relative; height: 32px; overflow: hidden;
     -webkit-mask-image: linear-gradient(to right, transparent 0, black 24px, black calc(100% - 24px), transparent 100%);
     mask-image: linear-gradient(to right, transparent 0, black 24px, black calc(100% - 24px), transparent 100%);
 }
@@ -11837,18 +11880,19 @@ body.is-pwa .fullscreen-back {
 }
 .fi-wire-pill {
     flex-shrink: 0; display: inline-flex; align-items: baseline; gap: 6px;
-    margin-right: 10px; padding: 4px 12px;
+    margin-right: 10px; padding: 5px 13px;
     border-radius: 999px;
     background: var(--stat-bg);
     border: 1px solid var(--border-color);
-    font: bold 10.5px 'Courier New', Courier, monospace; letter-spacing: 0.04em;
+    font: bold 12.5px 'Courier New', Courier, monospace; letter-spacing: 0.04em;
     color: var(--text-color);
 }
-.fi-wire-glyph { font-size: 11px; }
+.fi-wire-glyph { font-size: 13px; }
 
 /* The Constellation — the circle as a canvas starfield; inherits the
-   colorway via currentColor. */
-.fi-map { flex: 1 1 auto; min-height: 0; width: 100%; color: var(--text-color); cursor: pointer; }
+   colorway via currentColor. touch-action off so pinch/drag drive the MAP,
+   not the page (the sky is a real zoomable map — Brendon, 2026-07-16). */
+.fi-map { flex: 1 1 auto; min-height: 0; width: 100%; color: var(--text-color); cursor: pointer; touch-action: none; }
 
 /* PLUS mode invites the Digital Familiar IN FRONT of the panel (Brendon,
    2026-07-06): lift its layer above the jumbo backdrop (z 1330) while the

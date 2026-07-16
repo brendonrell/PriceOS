@@ -63,6 +63,36 @@ const VS15 = '︎';
 type FollowersTab = 'followers' | 'following' | 'mutuals' | 'cartel' | 'projects';
 type SortKey = 'default' | 'followers' | 'collected' | 'spent' | 'faction';
 
+/* ── THE LENSES — personas for how you read your circle (Brendon, 2026-07-16;
+   the Workspaces-personas idea, worn here). One device-persisted pick:
+     LEDGER — the terminal read as-is (power users).
+     DRAMA  — every row carries its live duel against YOU, tightest races
+              first (drama lovers).
+     SLEUTH — every row carries the person's last on-ledger move + how long
+              ago, freshest movers first (the sleuths).
+   A lens ANNOTATES and RE-ORDERS — it never hides anyone. ── */
+type LensKey = 'ledger' | 'drama' | 'sleuth';
+const LENSES: { key: LensKey; label: string }[] = [
+    { key: 'ledger', label: 'LEDGER' },
+    { key: 'drama', label: 'DRAMA' },
+    { key: 'sleuth', label: 'SLEUTH' },
+];
+const LENS_KEY = 'pd_fi_lens';
+
+/* The last on-ledger move a circle member made (SLEUTH's raw material). */
+interface LastMove { verb: string; project: string; piece: string; ts: number; glyph: string }
+
+const MOVE_GLYPH: Record<string, string> = { MINT: '✶', SALE: '✶', LIST: '✹', XFER: '✸' };
+
+/** Viewer-relative age — "2h ago" (clock times are always viewer-local, §9). */
+function fmtAgo(ts: number): string {
+    const s = Math.max(0, Math.floor((Date.now() - ts) / 1000));
+    if (s < 60) return 'just now';
+    if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+    if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+    return `${Math.floor(s / 86400)}d ago`;
+}
+
 const TABS: { key: FollowersTab; label: string; icon: string }[] = [
     { key: 'followers', label: 'FOLLOWERS', icon: '⚬' },
     { key: 'following', label: 'FOLLOWING', icon: '⚯' },
@@ -155,6 +185,19 @@ export default function FollowersModal() {
 
     const [tab, setTabState] = useState<FollowersTab>('followers');
     const [sort, setSort] = useState<SortKey>('default');
+    /* The active lens — device-persisted, like the Wire/Map pick. */
+    const [lens, setLensState] = useState<LensKey>('ledger');
+    useEffect(() => {
+        try {
+            const v = localStorage.getItem(LENS_KEY);
+            if (v === 'drama' || v === 'sleuth') setLensState(v);
+        } catch { /* ledger stands */ }
+    }, []);
+    const setLens = useCallback((l: LensKey) => {
+        setLensState(l);
+        try { localStorage.setItem(LENS_KEY, l); } catch { /* device-local nicety */ }
+        showToast(`Lens: ${l.toUpperCase()}`);
+    }, [showToast]);
     /* The dossier — one friend open at a time; resets on tab/open change. */
     const [inspected, setInspected] = useState<string | null>(null);
     const [mySlugs, setMySlugs] = useState<string[] | null>(null);
@@ -263,6 +306,45 @@ export default function FollowersModal() {
         [graph.mutuals, sharedBy],
     );
 
+    /* SLEUTH's raw material — the live feed, read once per open when the lens
+       first turns (the same read the Circle Wire rides). Newest event per
+       handle wins; quiet members simply carry no line. */
+    const [lastMoveBy, setLastMoveBy] = useState<Record<string, LastMove> | null>(null);
+    useEffect(() => {
+        if (!isOpen) { setLastMoveBy(null); return; }
+        if (lens !== 'sleuth' || lastMoveBy) return;
+        let alive = true;
+        fetch('/api/feed?limit=100', { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((j) => {
+                if (!alive) return;
+                const map: Record<string, LastMove> = {};
+                if (Array.isArray(j?.events)) {
+                    for (const e of j.events as Array<{
+                        type: string; project_id: string; token_id: string | null;
+                        from_handle?: string | null; to_handle?: string | null; timestamp: string;
+                    }>) {
+                        const ts = Date.parse(e.timestamp);
+                        if (!Number.isFinite(ts)) continue;
+                        const piece = e.token_id ? ` #${e.token_id.split('-').pop()}` : '';
+                        const note = (handle: string | null | undefined, verb: string) => {
+                            if (!handle) return;
+                            const k = lc(handle);
+                            if (map[k]) return; // events arrive newest-first
+                            map[k] = { verb, project: e.project_id, piece, ts, glyph: MOVE_GLYPH[e.type] ?? '✶' };
+                        };
+                        if (e.type === 'MINT') note(e.to_handle, 'collected');
+                        else if (e.type === 'SALE') { note(e.from_handle, 'sold'); note(e.to_handle, 'bought'); }
+                        else if (e.type === 'LIST') note(e.from_handle, 'listed');
+                        else if (e.type === 'XFER') { note(e.from_handle, 'sent'); note(e.to_handle, 'received'); }
+                    }
+                }
+                setLastMoveBy(map);
+            })
+            .catch(() => { if (alive) setLastMoveBy({}); });
+        return () => { alive = false; };
+    }, [isOpen, lens, lastMoveBy]);
+
     /* Esc: step out of PLUS first, then close. */
     useEffect(() => {
         if (!isOpen) return;
@@ -352,6 +434,52 @@ export default function FollowersModal() {
         return addr ? statByAddr[addr] : undefined;
     }, [handleToAddr, statByAddr]);
 
+    const myCircleStat = siweAddress ? statByAddr[siweAddress.toLowerCase()] : undefined;
+
+    /* DRAMA — each row's live duel against YOU from the stats already in hand:
+       the 3-stat verdict (the dossier duel's exact scoring) + the leader's
+       widest margin. Heat = how tight the race is (dead heats first). */
+    const dramaOf = useCallback((handle: string): { line: string; heat: number } | null => {
+        const their = statOf(handle);
+        if (!their || !myCircleStat) return null;
+        let you = 0, them = 0;
+        (['collected', 'spentEth', 'followers'] as const).forEach((k) => {
+            if (myCircleStat[k] > their[k]) you++;
+            else if (myCircleStat[k] < their[k]) them++;
+        });
+        const gaps: Array<{ d: number; text: string }> = [
+            { d: their.collected - myCircleStat.collected, text: `${Math.abs(their.collected - myCircleStat.collected)} ⬚${VS15}` },
+            { d: their.spentEth - myCircleStat.spentEth, text: `${Math.abs(their.spentEth - myCircleStat.spentEth).toFixed(2)} ⟠${VS15}` },
+            { d: their.followers - myCircleStat.followers, text: `${Math.abs(their.followers - myCircleStat.followers)} ⚬${VS15}` },
+        ];
+        const leaderSign = them > you ? 1 : -1;
+        const widest = gaps
+            .filter((g) => (them === you ? g.d !== 0 : Math.sign(g.d) === leaderSign))
+            .sort((a, b) => Math.abs(b.d) - Math.abs(a.d))[0];
+        const margin = widest ? ` · by ${widest.text}` : '';
+        const line = them > you
+            ? `LEADS YOU ${them}–${you}${margin}`
+            : you > them
+                ? `YOU LEAD ${you}–${them}${margin}`
+                : 'DEAD HEAT';
+        /* Tightest races read hottest; among equals the bigger account wins. */
+        const heat = -Math.abs(you - them) * 1000 + Math.min(999, their.collected + their.followers);
+        return { line, heat };
+    }, [statOf, myCircleStat]);
+
+    /* The one annotation line a lens paints under a row (LEDGER paints none). */
+    const lensLineOf = useCallback((handle: string): string | null => {
+        if (lens === 'drama') return dramaOf(handle)?.line ?? null;
+        if (lens === 'sleuth') {
+            if (lastMoveBy === null) return '…';
+            const m = lastMoveBy[lc(handle)];
+            return m
+                ? `${m.glyph}${VS15} ${m.verb} @${m.project}${m.piece} · ${fmtAgo(m.ts)}`
+                : 'quiet — no recent moves';
+        }
+        return null;
+    }, [lens, dramaOf, lastMoveBy]);
+
     const followerSet = useMemo(() => new Set(graph.followers.map(lc)), [graph.followers]);
     const followingSet = useMemo(() => new Set(graph.following.map(lc)), [graph.following]);
     const relTag = useCallback((handle: string): string | null => {
@@ -423,9 +551,17 @@ export default function FollowersModal() {
             return arr.sort(alpha);
         };
         const pinned = all.filter((h) => starredPeople.has(lc(h))).sort(alpha);
-        const rest = sortRest(all.filter((h) => !starredPeople.has(lc(h))));
+        let rest = sortRest(all.filter((h) => !starredPeople.has(lc(h))));
+        /* An active lens owns the order: DRAMA = tightest duels first,
+           SLEUTH = freshest movers first (the quiet sink, alphabetised). */
+        if (lens === 'drama') {
+            rest = [...rest].sort((a, b) => (dramaOf(b)?.heat ?? -Infinity) - (dramaOf(a)?.heat ?? -Infinity) || alpha(a, b));
+        } else if (lens === 'sleuth' && lastMoveBy) {
+            rest = [...rest].sort((a, b) =>
+                (lastMoveBy[lc(b)]?.ts ?? 0) - (lastMoveBy[lc(a)]?.ts ?? 0) || alpha(a, b));
+        }
         return [...pinned, ...rest];
-    }, [tab, graph, sort, statOf, starredPeople, cartelHandles, sharedBy]);
+    }, [tab, graph, sort, statOf, starredPeople, cartelHandles, sharedBy, lens, dramaOf, lastMoveBy]);
 
     /* Projects, starred pinned to the top (alphabetised), then by title. */
     const projectRows = useMemo(() => {
@@ -487,7 +623,7 @@ export default function FollowersModal() {
             </div>
 
             {tab !== 'projects' && (
-                <div className="fm-sort" role="group" aria-label="Sort">
+                <div className="fm-sort" role="group" aria-label="Sort and lens">
                     <span className="fm-sort-label">SORT</span>
                     {SORTS.map((s) => (
                         <button
@@ -497,6 +633,17 @@ export default function FollowersModal() {
                             onClick={() => setSort(s.key)}
                         >
                             {s.label}
+                        </button>
+                    ))}
+                    <span className="fm-sort-label fm-lens-label">LENS</span>
+                    {LENSES.map((l) => (
+                        <button
+                            key={l.key}
+                            type="button"
+                            className={`ambient-chip fm-sort-chip${lens === l.key ? ' on' : ''}`}
+                            onClick={() => setLens(l.key)}
+                        >
+                            {l.label}
                         </button>
                     ))}
                 </div>
@@ -532,6 +679,7 @@ export default function FollowersModal() {
                                 onStar={onStarPerson}
                                 inspected={inspected === lc(handle)}
                                 onInspect={() => setInspected((cur) => (cur === lc(handle) ? null : lc(handle)))}
+                                lensLine={lensLineOf(handle)}
                                 friendAddr={handleToAddr[lc(handle)] ?? null}
                                 mySlugs={mySlugs}
                                 myStat={siweAddress ? statByAddr[siweAddress.toLowerCase()] : undefined}
@@ -639,12 +787,12 @@ export default function FollowersModal() {
    size, relationship glyph, and the three stats in fixed aligned columns.
    Tapping the row (not the chip link / star) unfolds THE DUEL beneath. ── */
 function PersonRow({
-    handle, stat, tag, shared, starred, onStar, inspected, onInspect, friendAddr, mySlugs,
+    handle, stat, tag, shared, starred, onStar, inspected, onInspect, lensLine, friendAddr, mySlugs,
     myStat, myScore, following, followBusy, onToggleFollow,
 }: {
     handle: string; stat: CircleStat | undefined; tag: string | null; shared: number | null;
     starred: boolean; onStar: (h: string) => void; inspected: boolean; onInspect: () => void;
-    friendAddr: string | null; mySlugs: string[] | null;
+    lensLine: string | null; friendAddr: string | null; mySlugs: string[] | null;
     myStat: CircleStat | undefined; myScore: number | null;
     following: boolean; followBusy: boolean; onToggleFollow: () => void;
 }) {
@@ -711,6 +859,10 @@ function PersonRow({
                     </span>
                 </div>
             </div>
+            {/* The lens annotation — DRAMA's duel verdict / SLEUTH's last move. */}
+            {lensLine && (
+                <div className={`fi-lens-line${lensLine === '…' ? ' fm-loading' : ''}`}>{lensLine}</div>
+            )}
             {inspected && (
                 <FriendDossier
                     handle={lc(handle)}
@@ -894,14 +1046,17 @@ function DuelTile({
     );
 }
 
-/* One project row — the project's own sprite+@name chip, creator, mint count,
-   and how many of your mutuals collect it (Cartel ⟁), in the same aligned
-   ledger columns as the people rows. */
+/* One project row — the Projects Pro+ row treatment verbatim (Brendon,
+   2026-07-16: "copy/paste" it here): sprite · bold title (middle-truncated) ·
+   dotted leader · @artist, plus this surface's own ⬚ minted / ⟁ cartel reads
+   riding just ahead of the artist. The whole line links to the art. */
 function ProjectRow({ proj, enabled, starred, onStar }: { proj: FollowedProjectRow; enabled: boolean; starred: boolean; onStar: (slug: string) => void }) {
     /* Spite Book — a spited creator renders redacted on the row. */
     const fmIsSpited = useSpiteMatcher();
     const cartel = useCartelMutualCount(proj.project_id, enabled);
     const h = proj.handle ?? proj.project_id;
+    const face = projectSpriteFace(proj.project_id);
+    const name = proj.title || `@${h}`;
     return (
         <div className="fi-row">
             <div className="fi-line">
@@ -914,22 +1069,23 @@ function ProjectRow({ proj, enabled, starred, onStar }: { proj: FollowedProjectR
                 >
                     {starred ? `★${VS15}` : `☆${VS15}`}
                 </button>
-                <div className="fi-line-main">
-                    <ProjectChip slug={h} faceId={proj.project_id} />
+                <a className="projects-pro-row fi-projrow" href={`/art/${h}`} title={name}>
+                    {face && <SpriteFace className="collected-sprite" face={face} />}
+                    <span className="projects-pro-name">
+                        <span className="ppn-head">{name.slice(0, -6)}</span>
+                        <span className="ppn-tail">{name.slice(-6)}</span>
+                    </span>
+                    <span className="projects-pro-leader" />
+                    <span className="fi-projrow-stats" title="Minted · Mutuals who collect">
+                        <span title="Minted">{`⬚${VS15} ${proj.minted}${proj.supply ? `/${proj.supply}` : ''}`}</span>
+                        <span title="Mutuals who collect">{`⟁${VS15} ${cartel}`}</span>
+                    </span>
                     {proj.artist && (
-                        <span className="fi-artist" title="Creator">
-                            {`✺${VS15}`}<b className={fmIsSpited(proj.artist) ? 'spited' : undefined}>@{proj.artist}</b>
+                        <span className={`projects-pro-artist${fmIsSpited(proj.artist) ? ' spited' : ''}`} title="Creator">
+                            @{proj.artist}
                         </span>
                     )}
-                    <span className="fi-cols">
-                        <span className="fi-col fi-col-mint" title="Minted">
-                            <span className="fm-stat-ic">{`⬚${VS15}`}</span>{proj.minted}{proj.supply ? `/${proj.supply}` : ''}
-                        </span>
-                        <span className="fi-col fi-col-n" title="Mutuals who collect">
-                            <span className="fm-stat-ic">{`⟁${VS15}`}</span>{cartel}
-                        </span>
-                    </span>
-                </div>
+                </a>
             </div>
         </div>
     );
