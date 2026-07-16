@@ -101,6 +101,20 @@ export function MyPdSection({ onTripleTap }: Props) {
         return () => { cancelled = true; };
     }, [siweAddress]);
 
+    // Collected count — gates the Gen Curated showcase (it needs a deep
+    // collection to curate from; unlocks at 100, Brendon 2026-07-16). Light
+    // head-count read, no holdings payload.
+    const [ownedCount, setOwnedCount] = useState(0);
+    useEffect(() => {
+        if (!siweAddress) { setOwnedCount(0); return; }
+        let cancelled = false;
+        fetch(`/api/user/${siweAddress}/count`, { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => { if (!cancelled && d && typeof d.total === 'number') setOwnedCount(d.total); })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [siweAddress]);
+
     const showcaseMode = effectiveShowcaseStyle(rawShowcase, isArtist, siweAddress ?? undefined);
     const cycleUserShowcaseMode = () => {
         // Order: Artist › Static › Generative › Gen Curated (Brendon 2026-06-20);
@@ -110,6 +124,18 @@ export function MyPdSection({ onTripleTap }: Props) {
             : ['static', 'generative', 'gen-curated'];
         const idx = order.indexOf(showcaseMode);
         const next: ShowcaseStyle = order[(idx + 1) % order.length] ?? 'static';
+        // Gen Curated needs a deep collection to curate from — gated at 100 pieces
+        // (Brendon 2026-07-16). Below the floor, the tap surfaces the unlock and
+        // steps over Gen Curated to the next style rather than landing on it.
+        if (next === 'gen-curated' && ownedCount < 100) {
+            const stepped: ShowcaseStyle = order[(idx + 2) % order.length] ?? 'static';
+            try { localStorage.setItem(USER_SHOWCASE_KEY, stepped); } catch { /* ignore */ }
+            setRawShowcase(stepped);
+            pushState({ showcase_style: stepped });
+            window.dispatchEvent(new CustomEvent('pd:showcase-style-changed', { detail: stepped }));
+            showToast(`Gen Curated: ${ownedCount}/100 TO UNLOCK`);
+            return;
+        }
         try { localStorage.setItem(USER_SHOWCASE_KEY, next); } catch { /* ignore */ }
         setRawShowcase(next);
         pushState({ showcase_style: next });
