@@ -8,6 +8,47 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ✅ **2026-07-16 STICKER LAUNCH-POLISH — on dev (merge `dac8b8e`),
+   auto-deploy VERIFIED serving the new bundle, tree clean. Branch
+   `claude/sticker-market-polish-vjo5lo` = merged trash (Brendon deletes).**
+   One Fable session, whole sticker exchange launch-hardened:
+   ① MARKET polish: prices wear the HOUSE PILL (`.pill.pill-l2` +
+   `.skm-price-pill` sizing — the dashed toy-tag is RETIRED, Brendon's
+   call after one polish round); labels off tiny/faint; market cut at
+   EXACTLY 6.5 rows like the store (root cause: `.skm-wrap` cap measured
+   content-box — now border-box).
+   ② TICKER BANNERS design-locked from Brendon's device screenshot: crawl
+   14px (his look −2), `text-size-adjust:100%` on the sticker sheet kills
+   per-device auto-inflation (iPhone was rendering the 11px crawl ~16px —
+   never "fix" this by eye on desktop again), active mktline cap keeps a
+   12% fill.
+   ③ THE BINDER: MY STICKER ALBUM renamed **Binder** in every user-facing
+   string (header STICKER BINDER · cap MY BINDER · toast · crawl ·
+   completionism foot) — Brendon's word-lock, "album" belongs to the app's
+   Albums feature. Internal names keep the album- prefix. Binder is locked
+   to VERTICAL scroll (overflow-x clip + pan-y; wide chips shrink-to-fit
+   their 44px slots — they were shoving the page sideways).
+   ④ 💰 5% SECONDARY FEE, the art split (Brendon's spec): seller nets 95%,
+   3% → his personal wallet `0x65c3…9395` (@brendon) or the sheet's collab,
+   2% → platform `0x1460…b9b8` — atomic inside `app_sticker_buy` +
+   `app_sticker_accept`. Migration `20260716_sticker_market_fee` APPLIED
+   LIVE + mirrored; routing config = one-row `sticker_fee_config`; collabs
+   = `sticker_sheet_collabs`. Swaps/gifts move no money → no fee.
+   ⑤ Sticker Studio: COLLECTOR-COLLAB manager (sheet + existing user →
+   3% routes to them; REMOVE reverts) via `/api/studio/sticker-collabs`,
+   gated to the studio seed wallet.
+   ⑥ Catalog: TRUE NAMES ⇄ ANIMATED swapped spots (store/market/binder
+   share the one order). Duration picker STAYS — Brendon: identical to the
+   art listing modal IS the simpler approach.
+   **Decisions of record:** launch keeps all 18 sheets but ALL become
+   LIMITED print runs (queued: ClickUp `86bayvczh` — primary buy must move
+   server-side to enforce caps; contract already has maxSheets/SheetSoldOut).
+   Contract read-back (PDStickers/StickerSplitter): 5% royalty on-chain pays
+   ONE receiver (solo → admin key, collab → per-sheet vault at its locked
+   ratio; collab terms immutable at createSheet and include a PRIMARY
+   share) — cutover must set collabs at sheet creation. ClickUp `86baw12ek`
+   carries the full alignment comment.
+
 0. ✅ **2026-07-16 THE SIX-SHIP MARATHON — ALL on dev (tip `b7d6343`),
    auto-deployed, tree clean. Branch
    `claude/showcase-celestial-npc-passes-tfy9io` = merged trash (Brendon
