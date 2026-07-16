@@ -8,6 +8,60 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ✅ **2026-07-16 THE SIX-SHIP MARATHON — ALL on dev (tip `b7d6343`),
+   auto-deployed, tree clean. Branch
+   `claude/showcase-celestial-npc-passes-tfy9io` = merged trash (Brendon
+   deletes).** One Fable session, six approved ships, in dev order:
+   ① SHOWCASE + CELESTIAL + NPC round: Gen Curated wow (5 new recipe kinds
+   incl. moon-phase/crown-jewels; FIXED Generative-never-shuffled-own-profile
+   bug; ⑈ placard is DISPLAY-ONLY — fresh set per tab entry, Brendon's call);
+   Celestial revamp (phase-TRUE lunarGlyph moons everywhere, clean 12px chip
+   row on Output titles, project names wear the BARE hexagram — no word, no
+   ☉☽↑ row, both Brendon's calls; card moon breathes); NPC menu awareness
+   (~90 surface lines — Composer/Cartography/Spite Book/Friend Inspector/
+   Tarot/Forge/etc; Celestia notices Celestial Tracker + Stargazing once per
+   session; Dispatch glances; variety pass).
+   ② WORKSPACES: defaults are WORK personas — Main · Zen · Appraiser ·
+   Trader · Curator · Scout (`lib/state/workspaceDefaults.ts` = the shipped
+   set + seed-version pass so existing users receive new dots once; high ids
+   101+; load flourishes). ⛔ TOP-BAR RULE test-guarded: defaults never carry
+   TBCL/HMMR/PLGO/ANON (tape IS fine — "low enough"); dead/consent-gated
+   tokens banned everywhere (MOOD/ASTR/PRTL/FLAR/GRAV/SYBN/ARBT/PURL/PURD/
+   INVS/PNOP). SPACES preset shelf in the create-workspace sheet (12 moods
+   incl. retired Degen + the demoted Observatory/Museum/Village; no
+   restrictions by Brendon's order); value-prompt sheet grew an optional
+   single-select chip row (reusable). SETUP CODES proven 100%: 500-state
+   fuzz roundtrip test + legacy ARTS token decode (tests/setup-code.test.ts
+   + tests/workspace-defaults.test.ts).
+   ③ AURA wow: halo = the piece's OWN sampled colours; rarity scales
+   glow/reach; per-card breathing; rainbow fallback until colours hydrate.
+   ④ LANE RUNNER revamp: logo L rebuilt (no more "Tane"); frame NEVER
+   resizes mid-run (fixed 2-line status + hint); ONE lane per tap; odometer
+   counts every other row + density ramps with depth (night 50 is a feat);
+   8 stages (new: mile markers 100 · stanchions 1000 · blooms 1200 — PD
+   milestone numbers); LED-padded score, spinout, deep-road tints, pauses
+   while tab hidden.
+   ⑤ CALENDAR SHEET: the + opens THE DAY as a modal (Workflows shell) —
+   view (day nav ‹›, PriceDay, schedule, note, to-dos) + edit (builder,
+   items now UPDATABLE). Calendar↔pings fine control: per-item `remind`
+   column (off/attime/15m/1h/1d — migration `20260716_calendar_remind`
+   APPLIED to live DB + mirrored, zero rows affected) with a lead-aware
+   sweep (walks today+tomorrow) + per-account GLOBAL SCHEDULE PINGS switch
+   (users.calendar_state.globalPings, read by the sweep).
+   ⑥ ALBUMS: THE buffer bug KILLED — root cause was a CLASS COLLISION: the
+   profile wall's `.albums-grid` name is owned by the project page's legacy
+   albums tab in globals.css (padding 10px 40px / 20px mobile sides) — why
+   every prior fix to styles/albums.css failed. Profile wall renamed
+   `.albums-covers` (never rename back; pixel-proven vs compiled CSS:
+   tile left 40→20px, +20px width). Square corners everywhere (Brendon).
+   WOW: LIVING COVERS (mosaic cells drift through the whole membership,
+   staggered crossfades; chosen covers stay still) + staggered piece
+   entrances.
+   **Notes for future sessions:** container HAS Playwright+Chromium at
+   /opt/pw-browsers — static-harness pixel proofs against compiled CSS work
+   great (the albums proof pattern). ClickUp: nothing closed/queued — the
+   whole session was ad-hoc chat batches with no tasks of record.
+
 0. ✅ **2026-07-16 THE PROJECT GNOME — figure + behaviours + wow pass ALL on
    dev (tip `eaa8fc9`), auto-deployed, tree clean. Branch
    `claude/gnome-build-r90zyr` = merged trash (Brendon deletes).**
