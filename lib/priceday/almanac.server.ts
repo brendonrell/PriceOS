@@ -13,6 +13,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getProject } from '@/lib/project/registry';
+import { walkPick, fill, plural, eth, ordinal } from '@/lib/dispatch/voice';
 import { PRICEDAY_EPOCH } from './priceday';
 
 const DAY_MS = 86_400_000;
@@ -55,23 +56,159 @@ export function dayWindow(n: number): { startSec: number; endSec: number; calDay
   };
 }
 
-function fnv(s: string): number {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 0x01000193);
-  }
-  return h >>> 0;
-}
-function pick<T>(seed: number, salt: number, options: T[]): T {
-  return options[(seed + salt * 2654435761) >>> 0 % options.length % options.length] ?? options[0];
-}
+/* ── THE ALMANAC VOICE (2026-07-16 wow pass) ──────────────────────────
+ * Deep phrase pools picked with walkPick — the stateless anti-repeat
+ * engine from the Dispatch's voice kit. Each pool is walked with a
+ * coprime stride as the day number advances, so CONSECUTIVE DAYS ARE
+ * GUARANTEED DIFFERENT PHRASINGS until a pool fully cycles (pool of 12 →
+ * 12 days minimum before a line returns), while every day keeps its own
+ * sentences forever (deterministic, never stored).
+ *
+ * This replaces the launch-era picker, whose index math always resolved
+ * to option one — every day was wearing the same sentence. Caught and
+ * fixed in this pass.
+ *
+ * House voice rules: facts in the slots, never in the template; every
+ * line must read clean for any realistic value. */
+
+const ALM = {
+  FLAVOR_QUIET: [
+    'A quiet day. The record keeps it anyway.',
+    'Nothing moved. Somebody was watching, though.',
+    'The room held its breath.',
+    'No entries. The page still counts.',
+    'The ledger rested. The watchers didn’t.',
+    'Zero in every column — faithfully recorded.',
+    'A still day on the tape.',
+    'The market said nothing, at length.',
+    'All quiet. The archive filed it without comment.',
+    'A blank page, kept on purpose.',
+    'The day passed unbought and unsold.',
+    'Stillness, notarized.',
+    'Nobody blinked today.',
+    'The record notes: patience, platform-wide.',
+  ],
+  FLAVOR_TRADE: [
+    'A trading day — {SALES} sales, {VOL} changed hands.',
+    '{VOL} on the move across {SALES} sales.',
+    '{SALES} deals closed; {VOL} found new homes.',
+    'Money talked: {SALES} sales, {VOL} total.',
+    '{SALES} handshakes worth {VOL}.',
+    'The tape ran warm — {VOL} across {SALES} sales.',
+    '{SALES} sales printed. {VOL} settled.',
+    'A day of agreements: {SALES} of them, {VOL} deep.',
+    '{VOL} moved and the room felt it.',
+    'Commerce, conducted: {SALES} sales for {VOL}.',
+  ],
+  FLAVOR_MINT: [
+    'A minting day — {N} new pieces found keepers.',
+    '{N} fresh mints. The supply grew, the room with it.',
+    '{N} presses of the button, {N} new keepers.',
+    'The wall gained {N} pieces.',
+    '{N} mints — the catalog thickened.',
+    'Fresh ink: {N} pieces joined the record.',
+    '{N} new pieces walked in and hung themselves properly.',
+    'Keepers stepped up {N} times.',
+    'Genesis in miniature, {N} times over.',
+    'Supply met demand {N} times and both left happy.',
+  ],
+  FLAVOR_UPLOAD: [
+    '{ARRIVE}. Genesis energy.',
+    '{ARRIVE}. The day belonged to the artists.',
+    '{ARRIVE} — the filter opened and the wall grew.',
+    '{ARRIVE}. The market can wait; the work comes first.',
+    '{ARRIVE}. New arguments, freshly hung.',
+    '{ARRIVE} — day one of somebody’s long story.',
+    '{ARRIVE}. The catalog turned a page.',
+  ],
+  FLAVOR_MIXED_TAIL: [
+    'a working day on the record.',
+    'honest bookkeeping.',
+    'the machine ticked over.',
+    'small moves, all kept.',
+    'a day of minor history.',
+    'all filed without fuss.',
+    'quiet commerce, duly noted.',
+    'the record took it in stride.',
+  ],
+  STORY_OPEN: [
+    'PriceDay {N} opened like any other. It wasn’t.',
+    'Day {N} on the record.',
+    'The {NTH} day PD had been running.',
+    'PriceDay {N}, as the ledger tells it.',
+    'Page {N} of the book.',
+    'Entry {N}, written in real time.',
+    'PriceDay {N} — the record picks up mid-sentence, as always.',
+    'Day {N}, and the room came as it was.',
+    'PriceDay {N} started quietly. They all do.',
+    'The book opened to day {N}.',
+    'Day {N}: the platform kept its appointment.',
+    'PriceDay {N}, witnessed.',
+  ],
+  STORY_MINT: [
+    '{MINTS_CAP} — the collectors came.',
+    'The mint button earned its keep: {MINTS} printed.',
+    '{MINTS_CAP} found keepers before the day was out.',
+    'The supply grew by {N}; nobody objected.',
+    '{MINTS_CAP} printed, each one somebody’s small conviction.',
+    '{MINTS_CAP} took first owners.',
+    'Demand did its plain work: {MINTS}.',
+    '{MINTS_CAP} entered the book.',
+    'The button was pressed {N} {TIMES} and meant every one.',
+  ],
+  STORY_SALE: [
+    'The big one: {PIECE} for {PRICE}.',
+    '{WHO} paid {PRICE} for {PIECE} and made the day’s headline.',
+    '{PIECE} cleared at {PRICE} — the number of the day.',
+    'The gavel moment: {PIECE}, {PRICE}.',
+    '{PRICE} moved for {PIECE}; the room recalibrated.',
+    '{PIECE} found its number: {PRICE}.',
+    '{WHO} took {PIECE} home at {PRICE}.',
+    'The headline transaction: {PIECE} at {PRICE}.',
+    '{PIECE} at {PRICE} — argued, agreed, archived.',
+    '{PRICE} for {PIECE}. Somebody meant it.',
+  ],
+  STORY_BOOK: [
+    '{BOOK_CAP} hit the book.',
+    '{BOOK_CAP} went on the record.',
+    'The order book took {BOOK}.',
+    '{BOOK_CAP} — positions declared.',
+    '{BOOK_CAP} joined the standing argument.',
+    'Paper moved: {BOOK}.',
+  ],
+  STORY_QUIET: [
+    'The ledger has quiet pages too.',
+    'A rest day. They count the same.',
+    'Nothing printed; the page holds its shape.',
+    'The room watched itself watch.',
+    'No entries — the day kept its own company.',
+    'Stillness, filed under history.',
+    'The tape stayed blank and honest.',
+    'Even silence gets a line in this book.',
+  ],
+  STORY_CLOSE: [
+    'The page turned on schedule.',
+    'Filed, sealed, survived.',
+    'And the book moved on.',
+    'The day went into the permanent record without complaint.',
+    'Tomorrow inherits the floor.',
+    'The ink dried by midnight.',
+    'All of it kept, none of it negotiable.',
+    'The archive accepted the day as-is.',
+    'One more page the platform can point to.',
+    'End of entry. The record never sleeps; it paginates.',
+  ],
+} as const;
+
+const say = (n: number, pool: keyof typeof ALM, vars: Record<string, string | number> = {}) =>
+  fill(walkPick(n, `alm:${pool}`, ALM[pool]), vars);
+
+const capFirst = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : s);
 
 export async function buildPriceDayAlmanac(db: SupabaseClient, n: number): Promise<PriceDayAlmanac> {
   const { startSec, endSec, calDay } = dayWindow(n);
   const startMs = startSec * 1000;
   const endMs = endSec * 1000;
-  const seed = fnv(`priceday:${n}`);
 
   const [mintRes, saleRes, listRes, offerRes, projRes] = await Promise.all([
     db.from('events').select('project_id, token_id, to_address, timestamp')
@@ -139,66 +276,58 @@ export async function buildPriceDayAlmanac(db: SupabaseClient, n: number): Promi
   const listsN = listRes.count ?? 0;
   const offersN = offerRes.count ?? 0;
 
-  // THE DAY — the one-liner the modals wear.
+  // THE DAY — the one-liner the modals + calendar wear. Deep pools via the
+  // day-walking picker: consecutive days are guaranteed different lines.
   let flavor: string;
   if (mints.length === 0 && sales.length === 0 && uploads.length === 0 && listsN === 0 && offersN === 0) {
-    flavor = pick(seed, 1, [
-      'A quiet day. The record keeps it anyway.',
-      'Nothing moved. Somebody was watching, though.',
-      'The room held its breath.',
-    ]);
+    flavor = say(n, 'FLAVOR_QUIET');
   } else if (volume > 0 && sales.length >= 3) {
-    flavor = pick(seed, 2, [
-      `A trading day — ${sales.length} sales, ${Number(volume.toFixed(3))} ETH changed hands.`,
-      `${Number(volume.toFixed(3))} ETH on the move across ${sales.length} sales.`,
-    ]);
+    flavor = say(n, 'FLAVOR_TRADE', { SALES: sales.length, VOL: eth(volume) });
   } else if (mints.length >= 5) {
-    flavor = pick(seed, 3, [
-      `A minting day — ${mints.length} new pieces found keepers.`,
-      `${mints.length} fresh mints. The supply grew, the room with it.`,
-    ]);
+    flavor = say(n, 'FLAVOR_MINT', { N: mints.length });
   } else if (uploads.length > 0) {
-    flavor = pick(seed, 4, [
-      `${uploads.length === 1 ? 'A new project arrived' : `${uploads.length} new projects arrived`}. Genesis energy.`,
-      'New work on the wall. The day belonged to the artists.',
-    ]);
+    flavor = say(n, 'FLAVOR_UPLOAD', {
+      ARRIVE: uploads.length === 1 ? 'A new project arrived' : `${uploads.length} new projects arrived`,
+    });
   } else {
     const bits: string[] = [];
-    if (mints.length > 0) bits.push(`${mints.length} mint${mints.length === 1 ? '' : 's'}`);
-    if (sales.length > 0) bits.push(`${sales.length} sale${sales.length === 1 ? '' : 's'}`);
-    if (listsN > 0) bits.push(`${listsN} listing${listsN === 1 ? '' : 's'}`);
-    if (offersN > 0) bits.push(`${offersN} offer${offersN === 1 ? '' : 's'}`);
-    flavor = `${bits.join(' · ')} — a working day on the record.`;
+    if (mints.length > 0) bits.push(`${mints.length} ${plural(mints.length, 'mint')}`);
+    if (sales.length > 0) bits.push(`${sales.length} ${plural(sales.length, 'sale')}`);
+    if (listsN > 0) bits.push(`${listsN} ${plural(listsN, 'listing')}`);
+    if (offersN > 0) bits.push(`${offersN} ${plural(offersN, 'offer')}`);
+    flavor = `${bits.join(' · ')} — ${say(n, 'FLAVOR_MIXED_TAIL')}`;
   }
 
   // THE DAY'S PRICE STORY — a scene in beats (distinct voice from an
-  // output's biography): opener → market beat → closer.
+  // output's biography): opener → market beats → closer. Every beat pulls
+  // from its own walked pool, so the scene's shape AND wording both move
+  // day to day.
   const story: string[] = [];
-  story.push(pick(seed, 5, [
-    `PriceDay ${n} opened like any other. It wasn't.`,
-    `Day ${n} on the record.`,
-    `The ${n}${n % 10 === 1 && n % 100 !== 11 ? 'st' : n % 10 === 2 && n % 100 !== 12 ? 'nd' : n % 10 === 3 && n % 100 !== 13 ? 'rd' : 'th'} day PD had been running.`,
-  ]));
+  story.push(say(n, 'STORY_OPEN', { N: n, NTH: ordinal(n) }));
   if (mints.length > 0) {
-    story.push(pick(seed, 6, [
-      `${mints.length} mint${mints.length === 1 ? '' : 's'} — ${mints.length === 1 ? 'one keeper stepped up' : 'the collectors came'}.`,
-      `The mint button earned its keep: ${mints.length} pressed it.`,
-    ]));
+    const mintsPhrase = mints.length === 1 ? 'one mint' : `${mints.length} mints`;
+    story.push(say(n, 'STORY_MINT', {
+      N: mints.length,
+      MINTS: mintsPhrase,
+      MINTS_CAP: capFirst(mintsPhrase),
+      TIMES: mints.length === 1 ? 'time' : 'times',
+    }));
   }
   if (top) {
-    story.push(pick(seed, 7, [
-      `The big one: ${titleOf(top.project_id)} #${top.token_id} for ${Number(Number(top.price_eth).toFixed(3))} ETH.`,
-      `${who(top.to_address)} paid ${Number(Number(top.price_eth).toFixed(3))} ETH for ${titleOf(top.project_id)} #${top.token_id} and made the day's headline.`,
-    ]));
+    story.push(say(n, 'STORY_SALE', {
+      PIECE: `${titleOf(top.project_id)} #${top.token_id}`,
+      PRICE: eth(Number(top.price_eth)),
+      WHO: who(top.to_address),
+    }));
   }
   if (offersN > 0 || listsN > 0) {
-    story.push(`${listsN > 0 ? `${listsN} listing${listsN === 1 ? '' : 's'}` : ''}${listsN > 0 && offersN > 0 ? ' and ' : ''}${offersN > 0 ? `${offersN} offer${offersN === 1 ? '' : 's'}` : ''} hit the book.`);
+    const book = `${listsN > 0 ? `${listsN} ${plural(listsN, 'listing')}` : ''}${listsN > 0 && offersN > 0 ? ' and ' : ''}${offersN > 0 ? `${offersN} ${plural(offersN, 'offer')}` : ''}`;
+    story.push(say(n, 'STORY_BOOK', { BOOK: book, BOOK_CAP: capFirst(book) }));
   }
   if (story.length === 1) {
-    story.push(pick(seed, 8, [
-      'The ledger has quiet pages too.',
-      'A rest day. They count the same.',
-    ]));
+    story.push(say(n, 'STORY_QUIET'));
+  } else {
+    story.push(say(n, 'STORY_CLOSE'));
   }
 
   const dateLabel = new Date(calDay).toLocaleDateString('en-US', {

@@ -46,6 +46,34 @@ export default function DispatchPage({ body, nav }: { body: DispatchBody; nav: D
         </table>
       </section>
 
+      {/* The desks (2026-07-16+ editions) — each prints whatever it carries;
+          older stored editions simply have none. Same paper chrome. */}
+      {(body.desks ?? []).map((d) => (
+        <section className="dp-section" key={d.head}>
+          <h2 className="dp-rule">{d.head}</h2>
+          {d.prose?.map((p, i) => <p className="dp-prose" key={i}>{p}</p>)}
+          {d.list && (
+            <ul className="dp-noted">
+              {d.list.map((n, i) => <li key={i}>{n}</li>)}
+            </ul>
+          )}
+          {d.rows && (
+            <table className="dp-numbers">
+              <tbody>
+                {d.rows.map((row) => (
+                  <tr key={row.label}>
+                    <td className="dp-num-label">{row.label}</td>
+                    <td className="dp-num-value">
+                      {row.href ? <a href={row.href}>{row.value}</a> : row.value}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
+      ))}
+
       <section className="dp-section">
         <h2 className="dp-rule">FROM THE SALON</h2>
         <p className="dp-prose">{body.salon}</p>
