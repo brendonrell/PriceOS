@@ -33,6 +33,7 @@ import { cancelListing } from '../../lib/market/marketClient';
 import { getWalletClientOnDemand } from '../../lib/wallet/walletClientOnDemand';
 import { useColorway, type ColorwayKey } from '../../lib/state/ColorwayContext';
 import { useModal } from '../../lib/state/ModalContext';
+import { useValuePrompt } from '../../lib/state/ValuePromptContext';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
 import { TraitsProvider } from '../../lib/state/TraitsContext';
 import { getProject } from '../../lib/project/registry';
@@ -55,7 +56,7 @@ import { eventToFeedEvent, FeedActorLine, type FeedEvent } from '../../lib/feed/
 import { PerMilleMark } from '../shell/PerMilleMark';
 import type { EventRow } from '../../lib/supabase';
 import { projectSpriteFace } from '../../lib/project/projectSprite';
-import type { AttrInput } from '../../lib/output/attributes';
+import type { AttrInput, AttrTile } from '../../lib/output/attributes';
 import { handRead, type HandRead } from '../../lib/output/hand';
 import { shareReceipt } from '../../lib/output/receipt';
 import AsciiBackupPanel from './AsciiBackupPanel';
@@ -201,6 +202,7 @@ export default function ArtworkPageBody({
     const [confirmUnlist, setConfirmUnlist] = useState(false);
 
     const { open: openModal } = useModal();
+    const { openAnchorPrompt } = useValuePrompt();
     const { notifs } = usePdNotifs();
     const [activeTab, setActiveTab] = useState<ArtworkTab>('artwork');
     const [moreL1, setMoreL1] = useState<MoreL1>('attributes');
@@ -253,6 +255,25 @@ export default function ArtworkPageBody({
        same source as the Project page. Falls back to a title-cased slug only for
        an unknown project. */
     const projectName = getProject(slug)?.displayName ?? (projectSlug ? titleCase(projectSlug) : 'Prisms');
+
+    /* Your Anchor (the D17 reference-price system) for this collection — read the
+       saved value + keep it live via the anchors-changed event. Keyed by the
+       project name, the same reference you set on the collection page. */
+    const anchorKey = projectName;
+    const [outputAnchor, setOutputAnchor] = useState<number | null>(null);
+    useEffect(() => {
+        const read = () => {
+            try {
+                const raw = localStorage.getItem('pd_anchors');
+                const anchors = raw ? (JSON.parse(raw) as Record<string, number>) : {};
+                const v = anchors?.[anchorKey];
+                setOutputAnchor(typeof v === 'number' && v > 0 ? v : null);
+            } catch { setOutputAnchor(null); }
+        };
+        read();
+        window.addEventListener('pd:anchors-changed', read);
+        return () => window.removeEventListener('pd:anchors-changed', read);
+    }, [anchorKey]);
     const soundtrack = getProject(slug)?.soundtrack ?? null;
     const projectHref = `/art/${slug}`;
     const fullscreenHref = `/art/${slug}/${numberPart}/full`;
@@ -548,6 +569,18 @@ export default function ArtworkPageBody({
     }, [market, athEth, feedRows]);
 
     const owned = market?.viewer?.isOwner ?? false;
+
+    /* STATS tile group — the piece's status stats (Holding · Sentiment · Anchor)
+       as tiles, matching the Market wall below (Brendon, 2026-07-16). The Anchor
+       tile is tappable → the real reference-price prompt. */
+    const statusAttrGroup = useMemo<{ key: string; label: string; tiles: AttrTile[] }>(() => {
+        const tiles: AttrTile[] = [
+            { glyph: '⊡', label: 'Holding', value: owned ? 'OWNED' : '—' },
+            { glyph: '∿', label: 'Sentiment', value: sentiment?.label ?? '—', tapKey: 'sentiment' },
+            { glyph: '⚓', label: 'Anchor', value: outputAnchor != null ? `${formatEth(outputAnchor)} ETH` : 'TAP TO SET', tapKey: 'anchor' },
+        ];
+        return { key: 'stats', label: 'Stats', tiles };
+    }, [owned, sentiment, outputAnchor]);
 
     /* SHARE → print The Receipt: the moment card for THIS piece, from the data
        already on the page — listing price (or last sale), the Hand verdict,
@@ -1168,64 +1201,18 @@ export default function ArtworkPageBody({
                 style={{ display: onMore ? 'block' : 'none' }}
             >
                 {moreL1 === 'stats' && (
-                    <>
-                        <div className="more-section-header">STATS</div>
-                        <div className="more-box-wrap">
-                          <div className="more-box-card">
-                            <div className="stats-row stats-row-2">
-                                <span className="stat-item">
-                                    <span
-                                        className="stat-icon stat-icon-box stat-icon-owned"
-                                        {...iconToastProps('Your Holding Status')}
-                                    >
-                                        ⊡&#xFE0E;
-                                    </span>{' '}
-                                    <span className="stat-val stat-val-empty">{owned ? 'OWNED' : ''}</span>
-                                </span>
-                                <span className="stat-item">
-                                    <span
-                                        className="stat-icon stat-icon-box stat-icon-spent"
-                                        {...iconToastProps('Floor Price')}
-                                    >
-                                        ↨&#xFE0E;
-                                    </span>{' '}
-                                    <span className="stat-val">{market?.floor ? `${formatEth(Number(market.floor))} ETH` : '—'}</span>
-                                </span>
-                                <span
-                                    className="stat-item"
-                                    {...iconToastProps(sentiment ? `Sentiment — ${sentiment.detail}` : 'Sentiment')}
-                                >
-                                    <span className="stat-val">{sentiment?.label ?? '—'}</span>
-                                </span>
-                                <span className="stat-item stat-item-anchor">
-                                    <span
-                                        className="stat-icon stat-icon-box"
-                                        {...iconToastProps('Your Personal Reference Price')}
-                                    >
-                                        ⚓&#xFE0E;
-                                    </span>{' '}
-                                    <span
-                                        className="stat-val stat-val-empty"
-                                        role="button"
-                                        tabIndex={0}
-                                        title="Tap to set"
-                                        onClick={() => showToast('Anchor: COMING SOON')}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' || e.key === ' ') {
-                                                e.preventDefault();
-                                                showToast('Anchor: COMING SOON');
-                                            }
-                                        }}
-                                    ></span>
-                                </span>
-                            </div>
-                          </div>
-                        </div>
-                        {/* THE MARKET WALL — the piece's live market read as
-                            attribute tiles (AttrWall verbatim — Brendon,
-                            2026-07-02: secondary stats, attributes-style). */}
-                        <AttrWall groups={[marketAttrGroup]} />
-                    </>
+                    /* STATS — the piece's status (Holding · Sentiment · Anchor)
+                       and the live market, one consistent tile grid (Brendon,
+                       2026-07-16: the cramped top row redone as tiles like the
+                       Market wall). Floor is now the real live collection floor;
+                       the Anchor tile opens the real reference-price prompt. */
+                    <AttrWall
+                        groups={[statusAttrGroup, marketAttrGroup]}
+                        onTileTap={(key) => {
+                            if (key === 'anchor') openAnchorPrompt({ key: anchorKey, label: anchorKey });
+                            else if (key === 'sentiment' && sentiment) showToast(`Sentiment — ${sentiment.detail}`);
+                        }}
+                    />
                 )}
 
                 {/* ATTRIBUTES — this Output's full character sheet: identity +

@@ -90,7 +90,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
   try {
     const db = getSupabaseService();
     const now = nowSec();
-    const [holder, listing, offers, lastSale, proj, vol, follows] = await Promise.all([
+    const [holder, listing, offers, lastSale, proj, vol, follows, floorRes] = await Promise.all([
       db.from('holders').select('owner_address').eq('project_id', slug).eq('token_id', tokenId).maybeSingle(),
       db.from('listings')
         .select('price_eth, end_time, source, order_hash, order_json')
@@ -112,6 +112,15 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
       // Followers of THIS OUTPUT (shown on the Output page hero). The parent
       // project's parental-support follow is added below (+1), so never 0.
       db.from('output_follows').select('*', { count: 'exact', head: true }).eq('project_id', slug).eq('token_id', tokenId),
+      // Collection FLOOR — the lowest active listing across the whole project.
+      // The real, live floor; projects.floor_price_eth is a stale/unset cache.
+      db.from('listings')
+        .select('price_eth')
+        .eq('project_id', slug).eq('active', true)
+        .or(liveOr(now))
+        .order('price_eth', { ascending: true })
+        .limit(1)
+        .maybeSingle(),
     ]);
     // Surface a real DB failure instead of silently returning empty market
     // state (which would paint a wrong owner / missing listing — e.g. a BUY
@@ -126,6 +135,9 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
 
     const volumeEth = ((vol.data ?? []) as { price_eth: number | string | null }[])
       .reduce((s, e) => s + Number(e.price_eth ?? 0), 0);
+    // Live collection floor — lowest active listing (the stored floor_price_eth
+    // is a stale/unset cache), falling back to the stored value if nothing's live.
+    const liveFloor = (floorRes.data as { price_eth?: number } | null)?.price_eth ?? null;
 
     const owner = (holder.data as { owner_address?: string } | null)?.owner_address ?? null;
     let ownerHandle: string | null = null;
@@ -223,7 +235,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
       last_sale: (lastSale.data as { price_eth?: number } | null)?.price_eth != null
         ? String((lastSale.data as unknown as { price_eth: number }).price_eth)
         : null,
-      floor: projRow?.floor_price_eth != null ? String(projRow.floor_price_eth) : null,
+      floor: liveFloor != null ? String(liveFloor) : (projRow?.floor_price_eth != null ? String(projRow.floor_price_eth) : null),
       volume_eth: String(Number(volumeEth.toFixed(4))),
       followers: (follows.count ?? 0) + 1, // + the parent project (parental support)
       on_chain: !!projRow?.contract_address,
