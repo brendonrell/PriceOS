@@ -40,6 +40,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { MAX_WORKSPACES, useWorkspaces, type Workspace } from '../../../lib/state/WorkspacesContext';
+import { SPACES } from '../../../lib/state/workspaceDefaults';
 import { useToast } from '../../../lib/state/ToastContext';
 import { useValuePrompt } from '../../../lib/state/ValuePromptContext';
 import { useAuth } from '../../../lib/state/AuthContext';
@@ -56,6 +57,7 @@ export function WorkspaceSwitcher() {
         loadWorkspace,
         saveCurrentToWorkspace,
         saveCurrentAsNewWorkspace,
+        createWorkspaceFromCode,
         restoreDefaultWorkspace,
         deleteWorkspace,
     } = useWorkspaces();
@@ -96,9 +98,20 @@ export function WorkspaceSwitcher() {
         // openValuePrompt seeds an empty input, slides up the bottom sheet,
         // focuses field 1 after the 280ms transition, and routes Enter →
         // submit / Esc → cancel via the same handlers the Anchor flow uses.
+        // "Spaces" (Brendon, 2026-07-16) — preset picker in the same sheet:
+        // CURRENT saves the live Setup Code (the original flow); any Space
+        // mints + loads its preset code, prefilling the name (editable).
         openValuePrompt({
             title: 'Name Your Workspace',
-            help: 'Saves the current Setup Code to a new workspace dot.',
+            help: 'Saves the current Setup Code to a new workspace dot — or start from a Space.',
+            chips: {
+                label: 'SPACE',
+                options: [
+                    { key: 'current', label: 'CURRENT' },
+                    ...SPACES.map((s) => ({ key: s.key, label: s.name.toUpperCase(), fill: s.name })),
+                ],
+                initial: 'current',
+            },
             fields: [
                 {
                     label: 'NAME',
@@ -107,10 +120,14 @@ export function WorkspaceSwitcher() {
                 },
             ],
             submit: 'Save',
-            onSubmit: (vals) => {
+            onSubmit: (vals, chip) => {
                 if (!vals) return; // cancel / backdrop close
-                const trimmed = vals[0]?.trim();
-                if (trimmed) {
+                const space = chip && chip !== 'current' ? SPACES.find((s) => s.key === chip) : undefined;
+                const trimmed = vals[0]?.trim() || space?.name || '';
+                if (!trimmed) return;
+                if (space) {
+                    createWorkspaceFromCode(trimmed, space.code);
+                } else {
                     saveCurrentAsNewWorkspace(trimmed);
                     showToast('SAVED');
                 }

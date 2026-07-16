@@ -37,7 +37,7 @@ import type { ValuePromptConfig } from '../lib/state/ValuePromptContext';
 
 interface Props {
     config: ValuePromptConfig | null;
-    onSubmit: (values: string[]) => void;
+    onSubmit: (values: string[], chip?: string) => void;
     onCancel: () => void;
 }
 
@@ -94,11 +94,17 @@ export default function ValuePromptModal({ config, onSubmit, onCancel }: Props) 
     const input1Ref = useRef<HTMLInputElement>(null);
     const input2Ref = useRef<HTMLInputElement>(null);
 
+    /* Optional chip row (2026-07-16 — the Workspace "Spaces" picker).
+       Single-select; seeded from config.chips.initial (else first option).
+       A chip with `fill` writes its string into field 1 on select. */
+    const [chip, setChip] = useState<string | undefined>(undefined);
+
     // Open: when config arrives, mount + rAF-active + reset values + focus.
     useEffect(() => {
         if (!config) return;
 
         setValues(initialValues);
+        setChip(config.chips ? (config.chips.initial ?? config.chips.options[0]?.key) : undefined);
         setMounted(true);
 
         // rAF to give the browser a frame to paint .mounted (display:flex
@@ -147,8 +153,20 @@ export default function ValuePromptModal({ config, onSubmit, onCancel }: Props) 
     }, []);
 
     const handleSubmit = useCallback(() => {
-        onSubmit(values.slice(0, fieldCount));
-    }, [onSubmit, values, fieldCount]);
+        onSubmit(values.slice(0, fieldCount), chip);
+    }, [onSubmit, values, fieldCount, chip]);
+
+    const selectChip = useCallback((key: string) => {
+        setChip(key);
+        const opt = config?.chips?.options.find((o) => o.key === key);
+        if (opt?.fill != null) {
+            setValues((prev) => {
+                const next = [...prev];
+                next[0] = opt.fill!;
+                return next;
+            });
+        }
+    }, [config]);
 
     const handleEnter = useCallback(
         (idx: number) => {
@@ -230,6 +248,30 @@ export default function ValuePromptModal({ config, onSubmit, onCancel }: Props) 
                 {help && (
                     <div className="value-prompt-help" id="valuePromptHelp">
                         {help}
+                    </div>
+                )}
+
+                {/* Optional single-select chip row — the Workspace "Spaces"
+                    preset picker (2026-07-16). Same button anatomy as the
+                    sheet's own actions; selected chip wears the active
+                    tokens. */}
+                {renderConfig?.chips && (
+                    <div className="value-prompt-chips" role="radiogroup" aria-label={renderConfig.chips.label}>
+                        <div className="value-prompt-field-label">{renderConfig.chips.label}</div>
+                        <div className="value-prompt-chip-row">
+                            {renderConfig.chips.options.map((o) => (
+                                <button
+                                    key={o.key}
+                                    type="button"
+                                    role="radio"
+                                    aria-checked={chip === o.key}
+                                    className={`value-prompt-chip${chip === o.key ? ' active' : ''}`}
+                                    onClick={() => selectChip(o.key)}
+                                >
+                                    {o.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 )}
 

@@ -51,6 +51,15 @@ export interface ValuePromptField {
     inputmode?: 'text' | 'decimal' | 'numeric' | 'tel' | 'email' | 'url';
 }
 
+/** One option in the optional single-select chip row (see `chips`). */
+export interface ValuePromptChip {
+    key: string;
+    label: string;
+    /** When set, selecting this chip writes the string into field 1 —
+     *  the Workspace "Spaces" picker uses it to prefill the name. */
+    fill?: string;
+}
+
 export interface ValuePromptConfig {
     /**
      * Title of the sheet. Limited HTML allowed for italics on project
@@ -62,10 +71,20 @@ export interface ValuePromptConfig {
     help?: string;
     /** 1 or 2 fields. More than 2 are ignored (matches sim's cap). */
     fields: ValuePromptField[];
+    /** Optional single-select chip row above the fields (2026-07-16 —
+     *  built for the Workspace "Spaces" preset picker). Exactly one chip
+     *  is always selected; the chosen key rides onSubmit's second arg. */
+    chips?: {
+        label: string;
+        options: ValuePromptChip[];
+        /** Initially-selected key. Defaults to the first option. */
+        initial?: string;
+    };
     /** Submit button label. Default 'Save'. */
     submit?: string;
-    /** Receives string[] on save, null on cancel. */
-    onSubmit: (values: string[] | null) => void;
+    /** Receives string[] on save, null on cancel. `chip` carries the
+     *  selected chip key when the config declared a chip row. */
+    onSubmit: (values: string[] | null, chip?: string) => void;
 }
 
 interface ValuePromptContextValue {
@@ -239,11 +258,11 @@ export function ValuePromptProvider({ children }: { children: ReactNode }) {
      * Modal's own animation logic decides when to actually unmount.
      */
     const handleSubmit = useCallback(
-        (values: string[]) => {
+        (values: string[], chip?: string) => {
             const cb = config?.onSubmit;
             setConfig(null);
             if (cb) {
-                try { cb(values); } catch { /* swallow */ }
+                try { cb(values, chip); } catch { /* swallow */ }
             }
         },
         [config]

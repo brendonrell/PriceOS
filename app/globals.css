@@ -3570,6 +3570,34 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     color: var(--text-color);
     border-color: var(--bg-color);
 }
+/* Chip row — the sheet's optional single-select (the Workspace "Spaces"
+   preset picker, 2026-07-16). Same button anatomy as .value-prompt-btn;
+   the selected chip wears the primary fill. Wraps on narrow screens. */
+.value-prompt-chips { margin-bottom: 12px; }
+.value-prompt-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+}
+.value-prompt-chip {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: 1.5px solid color-mix(in srgb, var(--bg-color) 35%, transparent);
+    background: transparent;
+    color: var(--bg-color);
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+}
+.value-prompt-chip.active {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border-color: var(--bg-color);
+}
 
 
 /* ============================================================

@@ -115,6 +115,9 @@ interface WorkspacesContextValue {
     loadWorkspace: (id: number) => void;
     saveCurrentToWorkspace: (id: number) => void;
     saveCurrentAsNewWorkspace: (name: string) => void;
+    /** Mint a new workspace from an arbitrary Setup Code (the "Spaces"
+     *  preset path, 2026-07-16) and load it. Returns false on a bad code. */
+    createWorkspaceFromCode: (name: string, code: string) => boolean;
     restoreDefaultWorkspace: (id: number) => void;
     deleteWorkspace: (id: number) => void;
     /** Apply an arbitrary Setup Code (paste path from the field). */
@@ -339,6 +342,32 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
         [workspaces, colorway, sort, notifs, showToast]
     );
 
+    const createWorkspaceFromCode = useCallback(
+        (name: string, code: string): boolean => {
+            if (workspaces.length >= MAX_WORKSPACES) {
+                showToast('Workspaces: CAP REACHED');
+                return false;
+            }
+            const parsed = decodeSetupCode(code);
+            if (!parsed.ok || !parsed.state) {
+                showToast('Setup Code: INVALID');
+                return false;
+            }
+            const newId = workspaces.reduce((m, w) => Math.max(m, w.id), 0) + 1;
+            const trimmed = (name || 'WS' + newId).slice(0, 24);
+            setWorkspaces((prev) => [
+                ...prev,
+                { id: newId, name: trimmed, code, isDefault: false },
+            ]);
+            setActiveId(newId);
+            // A preset is a destination, not a snapshot — apply it on mint.
+            applyDecodedState(parsed.state);
+            showToast(`Workspace: ${trimmed.toUpperCase()}`);
+            return true;
+        },
+        [workspaces, applyDecodedState, showToast]
+    );
+
     const restoreDefaultWorkspace = useCallback(
         (id: number) => {
             const def = DEFAULT_WORKSPACES.find((d) => d.id === id);
@@ -413,6 +442,7 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
             loadWorkspace,
             saveCurrentToWorkspace,
             saveCurrentAsNewWorkspace,
+            createWorkspaceFromCode,
             restoreDefaultWorkspace,
             deleteWorkspace,
             applyCode,
@@ -420,7 +450,7 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
         [
             workspaces, activeId, currentCode,
             loadWorkspace, saveCurrentToWorkspace, saveCurrentAsNewWorkspace,
-            restoreDefaultWorkspace, deleteWorkspace, applyCode,
+            createWorkspaceFromCode, restoreDefaultWorkspace, deleteWorkspace, applyCode,
         ]
     );
 

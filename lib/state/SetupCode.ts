@@ -86,9 +86,16 @@ const COLORWAY_TO_TOKEN: Record<NonNullable<ColorwayKey>, string> = {
     haze:    'HAZE',
 };
 
-const TOKEN_TO_COLORWAY: Record<string, ColorwayKey> = Object.fromEntries(
-    Object.entries(COLORWAY_TO_TOKEN).map(([k, v]) => [v, k as ColorwayKey])
-);
+const TOKEN_TO_COLORWAY: Record<string, ColorwayKey> = {
+    ...Object.fromEntries(
+        Object.entries(COLORWAY_TO_TOKEN).map(([k, v]) => [v, k as ColorwayKey])
+    ),
+    /* Legacy: ARTS was Custom's token before the 2026-06-20 rename. Pasted
+       old codes (and the OLD_DEFAULT_CODES forms) must still decode to the
+       right colorway instead of falling into `unknown` (share-accuracy
+       pass, 2026-07-16). Decode-only — encode always emits CSTM. */
+    ARTS: 'custom',
+};
 
 // ── Sort tokens (sim 9717-9732) ────────────────────────────────
 // Encode side — base key + sim's default direction:
