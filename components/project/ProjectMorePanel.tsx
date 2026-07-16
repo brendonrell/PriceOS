@@ -24,6 +24,7 @@ import { projectSpriteFace } from '../../lib/project/projectSprite';
 import { projectContractAddress, shortAddress } from '../../lib/project/projectAddress';
 import ReplayPanel from './ReplayPanel';
 import GenomePanel from './GenomePanel';
+import GnomePanel from './GnomePanel';
 import PriceStoryPanel from '../market/PriceStoryPanel';
 import OffersInline from '../market/OffersInline';
 import ProjectFollowButton from './ProjectFollowButton';
@@ -410,12 +411,11 @@ export default function ProjectMorePanel({
             <GenomePanel />
             </>)}
             {moreL1 === 'gnome' && (<>
-            {/* GNOME — paired with Genome for the pun; empty for now
-                (Brendon, 2026-06-16). Empty box gives the title a home. */}
+            {/* GNOME — the Project's guardian (GnomePanel): its one keeper,
+                cast deterministically at birth, dressed in the colorway.
+                Paired with Genome for the pun. */}
             <div className="more-section-header">GNOME</div>
-            <div className="more-box-wrap">
-                <div className="more-box-card more-box-empty" />
-            </div>
+            <GnomePanel />
             </>)}
             {moreL1 === 'sentiment' && (<>
             {/* PRICE TARGETS — REAL (Brendon greenlight 2026-07-13; was the
