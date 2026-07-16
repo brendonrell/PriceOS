@@ -3,29 +3,28 @@
  * library (pure data, no React).
  *
  * Six dots out of the box (2026-07-16 wow pass — Brendon: "4 awesome
- * defaults", joining Main + Zen; Degen's retirement note always promised
- * replacements):
+ * defaults", joining Main + Zen; same day he pinned their register: WORK
+ * personas — job setups, not moods. The mood sets moved to SPACES below):
  *
- *   1   · Main        — ‰CSTM-IDAS                                   (clean)
- *   2   · Zen         — ‰BLUE-NASC-NSTK-ZNMD-IDAS                    (zen, blue)
- *   101 · Observatory — ‰DARK-AURA-CLST-TROT-FOG-TAPF                (the mystic)
- *   102 · The Floor   — ‰REDD-LENS-PTON-SHLD-SNTM-WTCH-PRAS-TAPB     (the trader)
- *   103 · Museum      — ‰LITE-ASCR-NASC-NAUD-NSTK-IDAS               (the exhibition)
- *   104 · The Village — ‰ORNG-CRTL-FMLR-GSSP-NPCM-FDTD-TAPS          (the company)
+ *   1   · Main      — ‰CSTM-IDAS                                   (clean)
+ *   2   · Zen       — ‰BLUE-NASC-NSTK-ZNMD-IDAS                    (zen, blue)
+ *   101 · Appraiser — ‰DARK-CLST-LENS-SNTM-IDAS-TAPF               (valuation work)
+ *   102 · Trader    — ‰REDD-LENS-PTON-SHLD-SNTM-WTCH-PRAS-TAPB     (market work)
+ *   103 · Curator   — ‰LITE-NASC-NAUD-NSTK-IDAS                    (collection work)
+ *   104 · Scout     — ‰HAZE-PTON-WTCH-FDTD-TAPS                    (discovery work)
  *
- * The four personas, and why each token is there:
- *   OBSERVATORY — the dark room where the skies read themselves: Celestial
- *     Tracker (birth moons + fates), Tarot Spread, Aura glow on every card,
- *     a faded tape, sorted by Fog. Dark colorway.
- *   THE FLOOR — the trading desk: Price Lens on every card, Sentiment on,
- *     Offer Shield up, The Watch chip ticking platform vitals, money pings
- *     popping as toasts, the tape in BOLD, sorted by price. Red colorway.
- *   MUSEUM — the exhibition that walks itself: light colorway, chrome
- *     stripped (no stickers, no ASCII-ID), presence broadcasting off, tape
- *     silent, and Auto-Scroll strolling the gallery for you.
- *   THE VILLAGE — the inhabited one: the NPC cast on the walls, a Familiar
- *     on screen, the Gossip Protocol telling the feed as rumors, Cartel
- *     counts on projects, the standard tape chattering, feed sort. Orange.
+ * The four work personas, and why each token is there:
+ *   APPRAISER — the piece-study desk: Price Lens on every card, Sentiment
+ *     on, the Celestial Tracker surfacing the full birth-data layer the
+ *     character sheet appraises by, faded tape, edition order. Dark.
+ *   TRADER — the execution desk: Price Lens, Sentiment, Offer Shield up,
+ *     The Watch ticking platform vitals, money pings popping as toasts,
+ *     the tape in BOLD, sorted by price. Red.
+ *   CURATOR — the arranging room: light, chrome stripped (no stickers, no
+ *     ASCII-ID), presence broadcasting off, tape silent — nothing between
+ *     the eye and the work.
+ *   SCOUT — the discovery post: feed sort, the standard tape chattering,
+ *     The Watch on vitals, ping toasts flagging moves as they land. Haze.
  *
  * ⛔ TOP-BAR RULE (Brendon, 2026-07-16): no shipped default may carry a
  * token that adds/removes anything in the top bar — switching dots must
@@ -70,10 +69,10 @@ export const SHIPPED_WORKSPACES: ReadonlyArray<Workspace> = [
     { id: 2, name: 'Zen', code: '‰BLUE-NASC-NSTK-ZNMD-IDAS', isDefault: true },
     // The 2026-07-16 four. High fixed ids so they can never collide with
     // user-created workspaces (which count up from max+1 and started at 3).
-    { id: 101, name: 'Observatory', code: '‰DARK-AURA-CLST-TROT-FOG-TAPF', isDefault: true },
-    { id: 102, name: 'The Floor', code: '‰REDD-LENS-PTON-SHLD-SNTM-WTCH-PRAS-TAPB', isDefault: true },
-    { id: 103, name: 'Museum', code: '‰LITE-ASCR-NASC-NAUD-NSTK-IDAS', isDefault: true },
-    { id: 104, name: 'The Village', code: '‰ORNG-CRTL-FMLR-GSSP-NPCM-FDTD-TAPS', isDefault: true },
+    { id: 101, name: 'Appraiser', code: '‰DARK-CLST-LENS-SNTM-IDAS-TAPF', isDefault: true },
+    { id: 102, name: 'Trader', code: '‰REDD-LENS-PTON-SHLD-SNTM-WTCH-PRAS-TAPB', isDefault: true },
+    { id: 103, name: 'Curator', code: '‰LITE-NASC-NAUD-NSTK-IDAS', isDefault: true },
+    { id: 104, name: 'Scout', code: '‰HAZE-PTON-WTCH-FDTD-TAPS', isDefault: true },
 ];
 
 /* ── SPACES — the preset library in the Name-Your-Workspace modal ────────
@@ -93,6 +92,24 @@ export interface SpacePreset {
 }
 
 export const SPACES: ReadonlyArray<SpacePreset> = [
+    /* The mood sets — first drafted as shipped defaults, moved here the
+       same day when Brendon pinned the defaults' register to WORK personas.
+       This is where moods belong. */
+    {
+        key: 'observatory', name: 'Observatory',
+        code: '‰DARK-AURA-CLST-TROT-FOG-TAPF',
+        blurb: 'The dark room where the skies read themselves — auras, birth moons, tarot, Fog order.',
+    },
+    {
+        key: 'museum', name: 'Museum',
+        code: '‰LITE-ASCR-NASC-NAUD-NSTK-IDAS',
+        blurb: 'The exhibition that walks itself — light, chrome stripped, Auto-Scroll strolling.',
+    },
+    {
+        key: 'village', name: 'The Village',
+        code: '‰ORNG-CRTL-FMLR-GSSP-NPCM-FDTD-TAPS',
+        blurb: 'The inhabited one — the cast on the walls, your creature out, the feed told as gossip.',
+    },
     {
         key: 'stargazer', name: 'Stargazer',
         code: '‰DARK-CLST-STAR-FOG',
@@ -140,15 +157,16 @@ export const SPACES: ReadonlyArray<SpacePreset> = [
     },
 ];
 
-/* Load flourish — the four personas announce themselves in the cast-toast
-   voice (Gossip/Celestial precedent: glyph-framed, the NAME is the ALLCAPS
+/* Load flourish — the four work personas clock in with a cast-toast line
+   (Gossip/Celestial precedent: glyph-framed, the NAME is the ALLCAPS
    changed-thing). Only spoken while the default still wears its shipped
    code — a re-saved (customised) default goes back to the plain toast.
-   Glyphs from the fixed vocabulary: ☽ celestial · ✹ listed/market ·
-   ⑆ showcase · ⚭ social. Main and Zen keep their plain toasts. */
+   Glyphs from the fixed vocabulary, each the persona's trade mark:
+   ❖ rarity (appraisal) · ✹ listed (the market) · ⑆ showcase (curation) ·
+   ✧ new upload (scouting). Main and Zen keep their plain toasts. */
 export const DEFAULT_LOAD_TOASTS: Record<number, string> = {
-    101: '☽︎ Workspace: OBSERVATORY ☽︎',
-    102: '✹︎ Workspace: THE FLOOR ✹︎',
-    103: '⑆︎ Workspace: MUSEUM ⑆︎',
-    104: '⚭︎ Workspace: THE VILLAGE ⚭︎',
+    101: '❖︎ Workspace: APPRAISER ❖︎',
+    102: '✹︎ Workspace: TRADER ✹︎',
+    103: '⑆︎ Workspace: CURATOR ⑆︎',
+    104: '✧︎ Workspace: SCOUT ✧︎',
 };

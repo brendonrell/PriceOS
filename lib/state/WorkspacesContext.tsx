@@ -7,7 +7,7 @@
  * render + popover + long-press attach + init).
  *
  * Owns the user's saved Setup Code workspaces. SIX defaults ship out of
- * the box — Main · Zen · Observatory · The Floor · Museum · The Village
+ * the box — Main · Zen · Appraiser · Trader · Curator · Scout (work personas)
  * (the shipped set, codes, personas, top-bar rule, and load flourishes all
  * live in lib/state/workspaceDefaults.ts — 2026-07-16 wow pass; Degen
  * stays RETIRED, its promised replacements arrived).
@@ -74,8 +74,8 @@ export interface Workspace {
 
 export const MAX_WORKSPACES = 10;
 
-// The shipped set (Main · Zen · Observatory · The Floor · Museum · The
-// Village) lives in workspaceDefaults.ts — pure data, testable, and the
+// The shipped set (Main · Zen · Appraiser · Trader · Curator · Scout)
+// lives in workspaceDefaults.ts — pure data, testable, and the
 // top-bar rule is documented there.
 const DEFAULT_WORKSPACES: ReadonlyArray<Workspace> = SHIPPED_WORKSPACES;
 
@@ -188,8 +188,8 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
         if (next.length !== beforeRetire) migrated = true;
 
         // Seed-version pass — NEW shipped defaults reach EXISTING users
-        // exactly once per DEFAULTS_SEED_VERSION (2026-07-16: Observatory ·
-        // The Floor · Museum · The Village). An unstamped user counts as
+        // exactly once per DEFAULTS_SEED_VERSION (2026-07-16: Appraiser ·
+        // Trader · Curator · Scout). An unstamped user counts as
         // version 1 (the Main/Zen baseline) so v1 ids are never re-injected —
         // old deletions of Main/Zen stick, and deleting a seeded default
         // afterwards sticks too (the stamp stops it coming back). Cap-aware.
