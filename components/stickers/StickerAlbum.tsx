@@ -29,7 +29,7 @@ export default function StickerAlbum() {
     const totalAll = pages.reduce((n, p) => n + p.total, 0);
 
     return (
-        <div className="skm-wrap">
+        <div className="skm-wrap alb-wrap">
             <div className="skm-book-head">
                 <span className="skm-book-title">MY STICKER ALBUM</span>
                 <span className="skm-book-pos">{gotAll}/{totalAll} collected</span>
