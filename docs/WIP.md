@@ -8,6 +8,24 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ✅ **2026-07-16 DISPATCH + PRICEDAY WOW PASS — on dev `f8463bd`,
+   auto-deployed, tree clean.** Same Fable session as the Gossip ship.
+   The Dispatch + almanac writing engines rebuilt on one voice kit
+   (`lib/dispatch/voice.ts`): ~10× phrase pools; Dispatch uses ROTATION
+   MEMORY (editions store `voice.used`; builder reads last 120 editions,
+   LRU fallback — sim-verified repeat gap == pool size); almanac uses the
+   stateless day-walk (`walkPick` — consecutive PriceDays guaranteed
+   different lines; also killed the old picker bug that always chose
+   option one, so calendar/PriceDay prose never varied). New data-gated
+   desks: MARKET DESK (deltas/streaks/records vs archive) · PERSONS OF
+   INTEREST · NUMBER OF THE DAY · ON THIS DAY (self-archive quotes) ·
+   THE WEEK BRIEFLY (Sun) · odometer milestones in NOTED (≤10-multiples
+   guard). Editions now store `tallies` + `voice`; old rows parse + render
+   untouched (`desks` optional in DispatchPage). Smoke-verified read-only
+   vs live ledger. New engine prints from tomorrow's 9AM edition.
+   Newsletter digest already 3×/month (1st/11th/22nd) — Brendon confirmed
+   cadence, no change. ClickUp `86b9fcn0d` commented.
+
 0. ✅ **2026-07-16 GOSSIP PROTOCOL — on dev `cf0cdb2`, auto-deployed, tree
    clean. Branch `claude/gossip-protocol-build-936rtf` = merged trash (Brendon
    deletes).** Fable session. The ⑃ spell is real: when on, the ONE shared
