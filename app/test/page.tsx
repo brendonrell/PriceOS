@@ -28,6 +28,23 @@
  *   T7     royalty sim: 0.001 ETH → splitter → pending 60/40 →
  *          withdrawArtist + withdrawPlatform → deltas, splitter drained
  *   T8     transferFrom A→B (secondary movement for the indexer)
+ *   T9     Seaport sale (signed listing + on-chain fulfillment, 5% royalty)
+ *
+ * STICKERS (S1-S10, same run, zero wallet taps): the test key deploys its
+ * OWN throwaway PDStickers shop wired to the real Sepolia factory — so the
+ * platform's 5% primary cut and the vaults' 2% royalty leg pay the REAL
+ * platform wallet, exactly as mainnet will. Splits are the art splits:
+ * 5% platform primary; 5% royalty split 3% artist-side / 2% platform.
+ *   S1     deploy PDStickers(test, factory) + shared solo royalty vault
+ *   S2     create solo sheet · 2 stickers · activate
+ *   S3     wrong payment rejected (free, via call)
+ *   S4     purchase ×2 → platform got EXACTLY 5%, shop custody zero
+ *   S5     peel → sealed burned, stickers delivered
+ *   S6     uri() valid metadata JSON (sticker + sealed)
+ *   S7     royaltyInfo = solo vault · 5%
+ *   S8     royalty sim → vault pends 3%/2% of sale → withdrawals drain it
+ *   S9     collab sheet → collab gets its slice of the artist side + own vault
+ *   S10    Seaport sale of a sealed sheet (ERC-1155) → price + 5% royalty
  * Progress persists in localStorage; the run resumes after a refresh.
  */
 
@@ -90,6 +107,15 @@ const factoryAbi = (artifacts.PDFactory as { abi: Abi }).abi;
 const registryAbi = (artifacts.PDLibraryRegistry as { abi: Abi }).abi;
 const projectAbi = (testerAbis.PDProject as { abi: Abi }).abi;
 const splitterAbi = (testerAbis.PaymentSplitter as { abi: Abi }).abi;
+
+/* ── Stickers: the test key deploys its own shop, so bytecode ships too ── */
+const stickersAbi = (artifacts.PDStickers as { abi: Abi }).abi;
+const stickersBytecode = (artifacts.PDStickers as unknown as { bytecode: Hex }).bytecode;
+const stickerVaultAbi = (testerAbis.StickerSplitter as { abi: Abi }).abi;
+
+const SHEET_PRICE = parseEther('0.0004');
+const SEALED_OFFSET = 1n << 128n;
+const STICKER_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 8"><rect width="8" height="8" fill="#141414"/><text x="4" y="5" font-size="3" fill="#fafafa" text-anchor="middle">PD</text></svg>';
 
 /* ── Seaport 1.6 (the marketplace contract OpenSea uses; same address on
    every chain). T9 runs a REAL signed-order sale through it — OpenSea shut
@@ -230,6 +256,11 @@ type StepResult = {
 type TestState = {
     project?: Address;
     splitter?: Address;
+    stickers?: Address;
+    soloVault?: Address;
+    soloSheet?: number;
+    collabSheet?: number;
+    collabVault?: Address;
     results: Record<string, StepResult>;
     totalGasWei?: string;
 };
@@ -319,6 +350,16 @@ const MATRIX: Array<{ key: string; title: string }> = [
     { key: 'T7', title: 'secondary royalty 60/40 withdraw' },
     { key: 'T8', title: 'transfer A→B (indexer event)' },
     { key: 'T9', title: 'Seaport sale → price + 5% royalty' },
+    { key: 'S1', title: 'deploy sticker shop + solo vault' },
+    { key: 'S2', title: 'create sheet · 2 stickers · activate' },
+    { key: 'S3', title: 'wrong payment rejected' },
+    { key: 'S4', title: 'purchase ×2 → platform 5% exactly' },
+    { key: 'S5', title: 'peel → stickers delivered' },
+    { key: 'S6', title: 'uri valid metadata JSON' },
+    { key: 'S7', title: 'royaltyInfo = solo vault · 5%' },
+    { key: 'S8', title: 'royalty 3%/2% withdraw, vault drained' },
+    { key: 'S9', title: 'collab sheet → artist-side slice + vault' },
+    { key: 'S10', title: 'Seaport sealed-sheet sale + 5% royalty' },
 ];
 
 function Tester() {
@@ -723,6 +764,310 @@ function Tester() {
                     tx: hb, gasEth: formatEther(saleGas),
                 });
             }
+
+            /* ── STICKERS — the test key's OWN throwaway shop, wired to the
+               REAL factory so the platform legs pay the real wallet. ── */
+
+            /* S1 — deploy PDStickers(test admin, factory); the constructor
+               also deploys the shared solo royalty vault. */
+            if (!next.stickers) {
+                const hash = await wallet.deployContract({
+                    abi: stickersAbi, bytecode: stickersBytecode, args: [A, FACTORY],
+                });
+                const rcpt = await publicClient.waitForTransactionReceipt({ hash });
+                if (rcpt.status !== 'success' || !rcpt.contractAddress) throw new Error('sticker shop deploy reverted');
+                const gas = rcpt.gasUsed * rcpt.effectiveGasPrice;
+                totalGas += gas;
+                const solo = await publicClient.readContract({
+                    address: rcpt.contractAddress, abi: stickersAbi, functionName: 'soloSplitter',
+                }) as Address;
+                next.stickers = rcpt.contractAddress;
+                next.soloVault = solo;
+                record('S1', {
+                    status: 'pass',
+                    detail: `shop ${rcpt.contractAddress} · solo vault ${solo}`,
+                    tx: hash, gasEth: formatEther(gas),
+                });
+            }
+            const SHOP = next.stickers!;
+            const SOLO_VAULT = next.soloVault!;
+
+            /* S2 — solo sheet: create, add 2 open-edition stickers, activate. */
+            if (!next.soloSheet) {
+                const svg = stringToHex(STICKER_SVG);
+                const c = await send('createSheet', ['PD TEST SHEET', SHEET_PRICE, 0n, svg, zeroAddress, 0], SHOP, stickersAbi);
+                let sheetId: bigint | undefined;
+                for (const log of c.rcpt.logs) {
+                    try {
+                        const ev = decodeEventLog({ abi: stickersAbi, data: log.data, topics: log.topics });
+                        if (ev.eventName === 'SheetCreated') sheetId = (ev.args as unknown as { sheetId: bigint }).sheetId;
+                    } catch { /* other contracts' logs */ }
+                }
+                if (!sheetId) throw new Error('SheetCreated event not found');
+                await send('addSticker', [sheetId, 'PD TEST STICKER A', 0n, svg], SHOP, stickersAbi);
+                await send('addSticker', [sheetId, 'PD TEST STICKER B', 0n, svg], SHOP, stickersAbi);
+                const act = await send('setSheetActive', [sheetId, true], SHOP, stickersAbi);
+                next.soloSheet = Number(sheetId);
+                record('S2', {
+                    status: 'pass',
+                    detail: `sheet ${sheetId} live — 2 open-edition stickers`,
+                    tx: act.hash, gasEth: act.gasEth,
+                });
+            }
+            const SOLO_SHEET = BigInt(next.soloSheet!);
+            const SOLO_SEALED = SEALED_OFFSET + SOLO_SHEET;
+
+            /* S3 — wrong payment (simulated revert, no gas) */
+            if (next.results.S3?.status !== 'pass') {
+                const detail = await expectRevert({
+                    address: SHOP, abi: stickersAbi, functionName: 'purchaseSheet',
+                    args: [SOLO_SHEET, 1n], account: testAccount, value: SHEET_PRICE - 1n,
+                } as unknown as Parameters<typeof publicClient.simulateContract>[0], 'IncorrectPayment');
+                record('S3', { status: 'pass', detail });
+            }
+
+            /* S4 — purchase ×2: the factory's LIVE platform wallet must
+               receive EXACTLY 5% (the art rate) and the shop custodies 0. */
+            if (next.results.S4?.status !== 'pass') {
+                const platWallet = await publicClient.readContract({
+                    address: FACTORY, abi: factoryAbi, functionName: 'platformWallet',
+                }) as Address;
+                const before = await publicClient.getBalance({ address: platWallet });
+                const paid = SHEET_PRICE * 2n;
+                const { hash, gasEth } = await send('purchaseSheet', [SOLO_SHEET, 2n], SHOP, stickersAbi, paid);
+                const after = await publicClient.getBalance({ address: platWallet });
+                const sealed = await publicClient.readContract({
+                    address: SHOP, abi: stickersAbi, functionName: 'balanceOf', args: [A, SOLO_SEALED],
+                }) as bigint;
+                const custody = await publicClient.getBalance({ address: SHOP });
+                const expected = (paid * 500n) / 10_000n;
+                const ok = after - before === expected && sealed === 2n && custody === 0n;
+                record('S4', {
+                    status: ok ? 'pass' : 'fail',
+                    detail: ok
+                        ? `platform received ${formatEther(expected)} (5% exactly) · 2 sealed held · zero custody`
+                        : `platform delta ${formatEther(after - before)} vs ${formatEther(expected)} · sealed ${sealed} · custody ${formatEther(custody)}`,
+                    tx: hash, gasEth,
+                });
+            }
+
+            /* S5 — peel one sealed sheet: burn + deliver every sticker. */
+            if (next.results.S5?.status !== 'pass') {
+                const { hash, gasEth } = await send('peel', [SOLO_SHEET, 1n], SHOP, stickersAbi);
+                const [sealed, ids] = await Promise.all([
+                    publicClient.readContract({ address: SHOP, abi: stickersAbi, functionName: 'balanceOf', args: [A, SOLO_SEALED] }) as Promise<bigint>,
+                    publicClient.readContract({ address: SHOP, abi: stickersAbi, functionName: 'getSheetStickerIds', args: [SOLO_SHEET] }) as Promise<bigint[]>,
+                ]);
+                let delivered = 0;
+                for (const id of ids) {
+                    const bal = await publicClient.readContract({
+                        address: SHOP, abi: stickersAbi, functionName: 'balanceOf', args: [A, id],
+                    }) as bigint;
+                    if (bal === 1n) delivered++;
+                }
+                const ok = sealed === 1n && delivered === ids.length;
+                record('S5', {
+                    status: ok ? 'pass' : 'fail',
+                    detail: ok
+                        ? `sealed burned (1 left) · ${delivered}/${ids.length} stickers delivered`
+                        : `sealed ${sealed} · delivered ${delivered}/${ids.length}`,
+                    tx: hash, gasEth,
+                });
+            }
+
+            /* S6 — uri() decodes for both token kinds. */
+            if (next.results.S6?.status !== 'pass') {
+                const parse = (u: string) => {
+                    const p = 'data:application/json;base64,';
+                    if (!u.startsWith(p)) throw new Error(`uri is not a base64 JSON data URI (${u.slice(0, 40)}…)`);
+                    return JSON.parse(atob(u.slice(p.length))) as { name?: unknown; image?: unknown };
+                };
+                const ids = await publicClient.readContract({
+                    address: SHOP, abi: stickersAbi, functionName: 'getSheetStickerIds', args: [SOLO_SHEET],
+                }) as bigint[];
+                const sticker = parse(await publicClient.readContract({
+                    address: SHOP, abi: stickersAbi, functionName: 'uri', args: [ids[0]],
+                }) as string);
+                const sealedMeta = parse(await publicClient.readContract({
+                    address: SHOP, abi: stickersAbi, functionName: 'uri', args: [SOLO_SEALED],
+                }) as string);
+                const ok = typeof sticker.name === 'string' && String(sticker.image).startsWith('data:image/svg+xml;base64,')
+                    && typeof sealedMeta.name === 'string' && String(sealedMeta.name).includes('SEALED');
+                record('S6', {
+                    status: ok ? 'pass' : 'fail',
+                    detail: ok ? `sticker "${sticker.name}" + sealed "${sealedMeta.name}" both decode` : 'metadata JSON malformed',
+                });
+            }
+
+            /* S7 — royaltyInfo → the shared solo vault at 5%. */
+            if (next.results.S7?.status !== 'pass') {
+                const [recv, amt] = await publicClient.readContract({
+                    address: SHOP, abi: stickersAbi, functionName: 'royaltyInfo', args: [SOLO_SEALED, parseEther('1')],
+                }) as [Address, bigint];
+                const ok = recv.toLowerCase() === SOLO_VAULT.toLowerCase() && amt === parseEther('0.05');
+                record('S7', {
+                    status: ok ? 'pass' : 'fail',
+                    detail: ok ? 'solo vault receives 5% of every secondary sale' : `got ${recv} @ ${formatEther(amt)}`,
+                });
+            }
+
+            /* S8 — royalty sim: the vault pends 60/40 (3%/2% of the sale)
+               and both withdrawals drain it, platform leg to the live wallet. */
+            if (next.results.S8?.status !== 'pass') {
+                const sim = parseEther('0.001');
+                const h1 = await wallet.sendTransaction({ to: SOLO_VAULT, value: sim });
+                const r1 = await publicClient.waitForTransactionReceipt({ hash: h1 });
+                totalGas += r1.gasUsed * r1.effectiveGasPrice;
+                const [pa, pp] = await Promise.all([
+                    publicClient.readContract({ address: SOLO_VAULT, abi: stickerVaultAbi, functionName: 'pendingAdmin' }) as Promise<bigint>,
+                    publicClient.readContract({ address: SOLO_VAULT, abi: stickerVaultAbi, functionName: 'pendingPlatform' }) as Promise<bigint>,
+                ]);
+                if (pa !== (sim * 60n) / 100n || pp !== sim - (sim * 60n) / 100n) {
+                    throw new Error(`vault split wrong: artist ${formatEther(pa)} / platform ${formatEther(pp)}`);
+                }
+                const w1 = await send('withdrawAdmin', [], SOLO_VAULT, stickerVaultAbi);
+                const w2 = await send('withdrawPlatform', [], SOLO_VAULT, stickerVaultAbi);
+                const left = await publicClient.getBalance({ address: SOLO_VAULT });
+                record('S8', {
+                    status: left === 0n ? 'pass' : 'fail',
+                    detail: left === 0n
+                        ? `0.001 in → 60/40 pending (3%/2% of sale) → both withdrawn, vault drained`
+                        : `vault still holds ${formatEther(left)}`,
+                    tx: w2.hash, gasEth: w1.gasEth,
+                });
+            }
+
+            /* S9 — collab sheet: the collaborator takes their locked slice of
+               the ARTIST SIDE and royalties route to the sheet's own vault. */
+            if (next.results.S9?.status !== 'pass') {
+                const svg = stringToHex(STICKER_SVG);
+                let collabSheet = next.collabSheet ? BigInt(next.collabSheet) : undefined;
+                if (!collabSheet) {
+                    const c = await send('createSheet', ['PD COLLAB SHEET', SHEET_PRICE, 0n, svg, receiver.address, 3000], SHOP, stickersAbi);
+                    for (const log of c.rcpt.logs) {
+                        try {
+                            const ev = decodeEventLog({ abi: stickersAbi, data: log.data, topics: log.topics });
+                            if (ev.eventName === 'SheetCreated') {
+                                const args = ev.args as unknown as { sheetId: bigint; splitter: Address };
+                                collabSheet = args.sheetId;
+                                next.collabVault = args.splitter;
+                            }
+                        } catch { /* other contracts' logs */ }
+                    }
+                    if (!collabSheet) throw new Error('SheetCreated event not found (collab)');
+                    next.collabSheet = Number(collabSheet);
+                    save({ ...next });
+                    await send('addSticker', [collabSheet, 'PD COLLAB STICKER', 0n, svg], SHOP, stickersAbi);
+                    await send('setSheetActive', [collabSheet, true], SHOP, stickersAbi);
+                }
+                const collabBefore = await publicClient.getBalance({ address: receiver.address });
+                const { hash, gasEth } = await send('purchaseSheet', [collabSheet, 1n], SHOP, stickersAbi, SHEET_PRICE);
+                const collabAfter = await publicClient.getBalance({ address: receiver.address });
+                const artistTotal = SHEET_PRICE - (SHEET_PRICE * 500n) / 10_000n;
+                const expected = (artistTotal * 3000n) / 10_000n;
+                const [recv] = await publicClient.readContract({
+                    address: SHOP, abi: stickersAbi, functionName: 'royaltyInfo', args: [SEALED_OFFSET + collabSheet, parseEther('1')],
+                }) as [Address, bigint];
+                const ok = collabAfter - collabBefore === expected
+                    && !!next.collabVault && recv.toLowerCase() === next.collabVault.toLowerCase();
+                record('S9', {
+                    status: ok ? 'pass' : 'fail',
+                    detail: ok
+                        ? `collab got ${formatEther(expected)} (30% of the artist side) · royalties → its own vault`
+                        : `collab delta ${formatEther(collabAfter - collabBefore)} vs ${formatEther(expected)} · royalty recv ${recv}`,
+                    tx: hash, gasEth,
+                });
+            }
+
+            /* S10 — Seaport sale of the remaining sealed sheet (ERC-1155):
+               signed listing with 5% creator earnings, buyer fulfills. */
+            if (next.results.S10?.status !== 'pass') {
+                const price = parseEther('0.001');
+                const royalty = price / 20n; // 5% creator earnings → solo vault
+                const proceeds = price - royalty;
+
+                /* Fund the derived buyer for the purchase + gas. */
+                const bBal = await publicClient.getBalance({ address: receiver.address });
+                const needs = price + parseEther('0.002');
+                if (bBal < needs) {
+                    const hf = await wallet.sendTransaction({ to: receiver.address, value: needs - bBal });
+                    const rf = await publicClient.waitForTransactionReceipt({ hash: hf });
+                    totalGas += rf.gasUsed * rf.effectiveGasPrice;
+                }
+
+                /* Seller approves Seaport for the shop's tokens once. */
+                const approved = await publicClient.readContract({
+                    address: SHOP, abi: stickersAbi, functionName: 'isApprovedForAll', args: [A, SEAPORT],
+                }) as boolean;
+                if (!approved) {
+                    await send('setApprovalForAll', [SEAPORT, true], SHOP, stickersAbi);
+                }
+
+                const counter = await publicClient.readContract({
+                    address: SEAPORT, abi: seaportAbi, functionName: 'getCounter', args: [A],
+                }) as bigint;
+                const nowS = Math.floor(Date.now() / 1000);
+                const params = {
+                    offerer: A,
+                    zone: zeroAddress,
+                    offer: [{
+                        itemType: 3, token: SHOP, identifierOrCriteria: SOLO_SEALED,
+                        startAmount: 1n, endAmount: 1n,
+                    }],
+                    consideration: [
+                        {
+                            itemType: 0, token: zeroAddress, identifierOrCriteria: 0n,
+                            startAmount: proceeds, endAmount: proceeds, recipient: A,
+                        },
+                        {
+                            itemType: 0, token: zeroAddress, identifierOrCriteria: 0n,
+                            startAmount: royalty, endAmount: royalty, recipient: SOLO_VAULT,
+                        },
+                    ],
+                    orderType: 0,
+                    startTime: BigInt(nowS - 300),
+                    endTime: BigInt(nowS + 86400),
+                    zoneHash: zeroHash,
+                    salt: BigInt(nowS),
+                    conduitKey: zeroHash,
+                } as const;
+                const signature = await wallet.signTypedData({
+                    account: testAccount,
+                    domain: { name: 'Seaport', version: '1.6', chainId: sepolia.id, verifyingContract: SEAPORT },
+                    types: SEAPORT_712_TYPES,
+                    primaryType: 'OrderComponents',
+                    message: { ...params, counter } as never,
+                });
+
+                const clientB = createWalletClient({ account: receiver, chain: sepolia, transport: http() });
+                const vaultBefore = await publicClient.getBalance({ address: SOLO_VAULT });
+                const { request: fr } = await publicClient.simulateContract({
+                    address: SEAPORT, abi: seaportAbi, functionName: 'fulfillOrder',
+                    args: [
+                        { parameters: { ...params, totalOriginalConsiderationItems: 2n }, signature },
+                        zeroHash,
+                    ],
+                    account: receiver, value: price,
+                } as unknown as Parameters<typeof publicClient.simulateContract>[0]);
+                const hb2 = await clientB.writeContract(fr);
+                const rb2 = await publicClient.waitForTransactionReceipt({ hash: hb2 });
+                if (rb2.status !== 'success') throw new Error('sticker fulfillOrder reverted on-chain');
+                const saleGas2 = rb2.gasUsed * rb2.effectiveGasPrice;
+                totalGas += saleGas2;
+
+                const bal = await publicClient.readContract({
+                    address: SHOP, abi: stickersAbi, functionName: 'balanceOf', args: [receiver.address, SOLO_SEALED],
+                }) as bigint;
+                const vaultAfter = await publicClient.getBalance({ address: SOLO_VAULT });
+                const ok = bal >= 1n && vaultAfter - vaultBefore === royalty;
+                record('S10', {
+                    status: ok ? 'pass' : 'fail',
+                    detail: ok
+                        ? `sealed sheet sold for ${formatEther(price)} — buyer holds it, vault got ${formatEther(royalty)} (5%)`
+                        : `buyer sealed bal ${bal} · vault delta ${formatEther(vaultAfter - vaultBefore)} vs ${formatEther(royalty)}`,
+                    tx: hb2, gasEth: formatEther(saleGas2),
+                });
+            }
         } catch (e: unknown) {
             setError((e instanceof Error ? e.message : String(e)).split('\n')[0].slice(0, 300));
         } finally {
@@ -741,6 +1086,7 @@ function Tester() {
             `PD SEPOLIA READINESS — ${passCount}/${MATRIX.length} PASS${failCount ? ` · ${failCount} FAIL` : ''}`,
             `factory ${FACTORY}`,
             state.project ? `test project ${state.project}` : '',
+            state.stickers ? `test sticker shop ${state.stickers}` : '',
             ...MATRIX.map((m) => {
                 const r = results[m.key];
                 return `${r ? (r.status === 'pass' ? 'PASS' : 'FAIL') : '—  '} ${m.key} ${m.title}${r?.gasEth ? ` · gas ${Number(r.gasEth).toFixed(5)}` : ''}${r && r.status === 'fail' ? ` · ${r.detail}` : ''}`;
@@ -754,7 +1100,7 @@ function Tester() {
         <div style={S.page}>
             <style>{'@keyframes pdspin{to{transform:rotate(360deg)}}'}</style>
             <div style={S.h1}>PD // SEPOLIA TESTER</div>
-            <div style={S.sub}>the mainnet-readiness matrix · one run, green or red</div>
+            <div style={S.sub}>the mainnet-readiness matrix · projects + stickers · one run, green or red</div>
 
             <div style={S.card}>
                 <div style={S.stepTitle}>1 · TEST ACCOUNT (throwaway key — testnet only)</div>
@@ -771,7 +1117,7 @@ function Tester() {
                         <div style={S.addr}>{testAccount.address}</div>
                         <div style={{ ...S.addr, opacity: 0.65 }}>
                             balance: {testBal === null ? '…' : `${Number(formatEther(testBal)).toFixed(4)} SepETH`}
-                            {testBal !== null && testBal < parseEther('0.02') && ' — fund with ~0.03 before running'}
+                            {testBal !== null && testBal < parseEther('0.03') && ' — fund with ~0.05 before running (the run deploys its own sticker shop)'}
                         </div>
                     </>
                 )}
@@ -826,6 +1172,7 @@ function Tester() {
                         {allPass ? 'ALL GREEN — READY FOR THE AUDIT PASS' : `${passCount}/${MATRIX.length} PASS${failCount ? ` · ${failCount} FAIL` : ''}`}
                     </div>
                     {state.project && <div style={S.addr}>test project: {state.project}</div>}
+                    {state.stickers && <div style={S.addr}>test sticker shop: {state.stickers}</div>}
                     <div style={S.addr}>gas spent: {Number(formatEther(BigInt(state.totalGasWei || '0'))).toFixed(5)} SepETH</div>
                     <button style={S.btn} onClick={report}>COPY REPORT</button>
                 </div>
