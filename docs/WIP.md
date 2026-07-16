@@ -8,21 +8,29 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-16 THE PROJECT GNOME — on dev `cd4e35d`, auto-deployed, tree
-   clean. Branch `claude/gnome-build-r90zyr` = merged trash (Brendon deletes).**
-   Fable session. The +More GNOME tab's empty box is now the real thing:
-   `lib/project/gnome.ts` (embedded gen-art engine — deterministic per slug,
-   True Name/Fate discipline; name · temperament · 5 hats/patch · 5 beards ·
-   6 keepsakes · girth/nose/tones · 0–3 hoard gems; **draw order = frozen
-   contract, never reorder**) + `GnomePanel` (layered SVG, Replay/Genome card
-   family, breathes/blinks, reduced-motion safe). Hat+tunic wear the LIVE
-   colorway (`pd:custom-color-changed` re-dresses; creature never re-rolls).
-   $0, no fetch. Proof-sheeted on mid-tone + dark via headless Chromium
-   (container HAS Playwright+Chromium preinstalled — /opt/pw-browsers).
-   ClickUp: generator `86bafffka` closed; umbrella `86baka0v2` = open for
-   BEHAVIOURS — ideas round delivered in chat, Brendon picking what Gnomes DO
-   (his first instinct: the Favour→Appraiser `86baka0hc`). Next session likely
-   builds the chosen behaviour(s).
+0. ✅ **2026-07-16 THE PROJECT GNOME — figure + behaviours + wow pass ALL on
+   dev (tip `eaa8fc9`), auto-deployed, tree clean. Branch
+   `claude/gnome-build-r90zyr` = merged trash (Brendon deletes).**
+   Fable session, full arc in one chat. ① THE FIGURE: `lib/project/gnome.ts`
+   (embedded gen-art engine — deterministic per slug, True Name/Fate
+   discipline; name · temperament · 5 hats/patch · 5 beards · 6 keepsakes ·
+   girth/nose/tones · 0–3 hoard gems; **draw order = frozen contract, never
+   reorder**) + `GnomePanel` (layered SVG, Replay/Genome card family).
+   Hat+tunic wear the LIVE colorway (re-dresses on `pd:custom-color-changed`;
+   creature never re-rolls). ② BEHAVIOURS (Brendon's picks from the ideas
+   round): GREETINGS (tap → in-temperament speech bubble; stranger/holder/
+   favoured tiers, seeded rotation — `lib/project/gnomeVoice.ts`) · MARKET
+   MOOD (brows/pace/readout from page state, $0: mining / wary >20% listed /
+   content) · FAVOUR→APPRAISER (`/api/project/[slug]/gnome`: favour = held
+   ≥7d unbroken + unlisted; the keeper writes a true-facts-only case —
+   isolation rank, one-of-one, early strike, Fate, strike date, door price,
+   tenure — seeded stable per piece; honest progress line otherwise). ③ WOW:
+   favoured-friend greeting tier, piece-picker pills, bubble tail + tap hop,
+   per-slug breath/blink phase. Proof-sheeted mid-tone + dark via headless
+   Chromium (container HAS Playwright+Chromium — /opt/pw-browsers).
+   ClickUp: `86bafffka` + `86baka0hc` closed; umbrella `86baka0v2` holds the
+   unbuilt idea pool (night watch, hoard recital, lore narrator, fool's gold,
+   sightings, birthday, kin) for Brendon's next picks.
 
 0. ✅ **2026-07-16 DISPATCH + PRICEDAY WOW PASS — on dev `f8463bd`,
    auto-deployed, tree clean.** Same Fable session as the Gossip ship.
