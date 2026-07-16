@@ -42,6 +42,9 @@ export function panopticonViewLabel(path: string | null): string {
 export function usePanopticonPresence(): Watcher[] {
     const { notifs } = usePdNotifs();
     const enabled = !!notifs.spell_panopticon;
+    // Deactivate — when on, suppress your own presence broadcast: you still see
+    // the room, but the room no longer sees you (one-way glass).
+    const invisible = !!notifs.spell_invisible;
     const { siweAddress, handle } = useAuth();
     const pathname = usePathname();
     const [watchers, setWatchers] = useState<Watcher[]>([]);
@@ -89,7 +92,8 @@ export function usePanopticonPresence(): Watcher[] {
 
             channel.on('presence', { event: 'sync' }, sync);
             channel.subscribe((status) => {
-                if (status === 'SUBSCRIBED' && channel) {
+                // Broadcast self only when NOT deactivated (one-way glass).
+                if (status === 'SUBSCRIBED' && channel && !invisible) {
                     void channel.track({ name: selfName, view });
                 }
             });
@@ -118,14 +122,16 @@ export function usePanopticonPresence(): Watcher[] {
     useEffect(() => {
         if (!enabled) return;
         const channel = channelRef.current;
-        if (channel) {
-            try {
-                void channel.track({ name: selfName, view });
-            } catch {
-                /* not subscribed yet — the subscribe callback covers the first track */
-            }
+        if (!channel) return;
+        try {
+            // Deactivate flips live: untrack to vanish, re-track to reappear —
+            // without tearing down the channel (you keep seeing others).
+            if (invisible) void channel.untrack();
+            else void channel.track({ name: selfName, view });
+        } catch {
+            /* not subscribed yet — the subscribe callback covers the first track */
         }
-    }, [enabled, selfName, view]);
+    }, [enabled, selfName, view, invisible]);
 
     return watchers;
 }

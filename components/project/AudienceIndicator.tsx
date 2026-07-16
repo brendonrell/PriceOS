@@ -49,7 +49,8 @@ export default function AudienceIndicator({
         [siweAddress, notifs.anon, token],
     );
 
-    const live = useProjectAudience(slug, self, notifs.audience);
+    // Deactivate suppresses your own presence broadcast (you still see the room).
+    const live = useProjectAudience(slug, self, notifs.audience, !notifs.spell_invisible);
 
     // Solo-preview seed — `?crowd=N` pads the room with simulated watchers so the
     // indicator can be exercised without a real crowd. Client-only; never real.

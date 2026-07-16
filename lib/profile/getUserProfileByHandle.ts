@@ -1,4 +1,4 @@
-import { getSupabaseAnon, PUBLIC_USER_COLUMNS, type UserRow } from '@/lib/supabase';
+import { getSupabaseAnon, getSupabaseService, PUBLIC_USER_COLUMNS, type UserRow } from '@/lib/supabase';
 import { getUserOwnedProjectsCount, getUserSpendEth } from './getUserHoldings';
 
 /** Profile row plus follower/following counts — the shape both the
@@ -10,6 +10,10 @@ export interface UserProfileData extends UserRow {
   owned_projects: number;
   /** Cumulative ETH spent acquiring Outputs over the account's lifetime. */
   volume_spent_eth: number;
+  /** DEACTIVATE (Spell Book) — the owner has turned on the public "deactivated"
+   *  display. Derived server-side from their own saved setting; a visitor sees
+   *  the deactivated shell, while the owner still sees their real profile. */
+  deactivated: boolean;
 }
 
 // Handle shape mirrors lib/slug.ts: ASCII alphanumerics, underscore, hyphen.
@@ -94,11 +98,28 @@ export async function getUserProfileByHandle(
     }
   } catch { /* leave 0 */ }
 
+  // DEACTIVATE — the owner's public "deactivated profile" display, derived from
+  // their own saved Spell Book flag (settings.notifs.spell_invisible). Read with
+  // the service key server-side so the private settings envelope is never
+  // exposed — only this one boolean leaves the server. Best-effort → false.
+  let deactivated = false;
+  try {
+    const svc = getSupabaseService();
+    const { data: dRow } = await svc
+      .from('users')
+      .select('settings')
+      .eq('handle', userHandle)
+      .maybeSingle();
+    const s = (dRow as { settings?: { notifs?: Record<string, unknown> } } | null)?.settings;
+    deactivated = !!(s?.notifs?.spell_invisible);
+  } catch { /* leave false */ }
+
   return {
     ...userRow,
     follower_count: followersRes.count ?? 0,
     following_count: followingRes.count ?? 0,
     owned_projects: ownedProjects,
     volume_spent_eth: volumeSpent,
+    deactivated,
   };
 }

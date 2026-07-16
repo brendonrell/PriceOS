@@ -104,6 +104,21 @@ import { useSpiteMatcher } from '../../lib/pins/spiteStore';
 import { useCollectedGallery } from './useCollectedGallery';
 import { useArtistShowcase } from './useArtistShowcase';
 
+/* DEACTIVATE (Spell Book) — the understated "account deactivated" state a
+   VISITOR sees on a deactivated profile. Deliberately plain (not corny — the
+   read an IG profile gives when someone deactivates): an empty avatar, the
+   @handle, one line. The owner never sees this; their profile stays fully
+   theirs behind it. */
+function DeactivatedProfile({ handle }: { handle: string }) {
+    return (
+        <section className="deactivated-profile" aria-label="Deactivated account">
+            <div className="deactivated-avatar" aria-hidden="true" />
+            <div className="deactivated-handle">@{handle}</div>
+            <p className="deactivated-msg">This account is deactivated.</p>
+        </section>
+    );
+}
+
 function ProfilePageBodyInner({
     handle,
     initialUser,
@@ -778,8 +793,20 @@ function ProfilePageBodyInner({
          
     }, [createdCarouselsActive, nameCarouselOpen, artistProjects, visibleArtistProjects.length]);
 
+    // DEACTIVATE (Spell Book) — a VISITOR to a deactivated profile gets the
+    // understated shell; the owner always sees their real profile (with the
+    // small cue below), so the account stays fully usable behind the front.
+    if (initialUser.deactivated && !isOwnProfile) {
+        return <DeactivatedProfile handle={handle} />;
+    }
+
     return (
         <>
+            {isOwnProfile && notifs.spell_invisible && (
+                <div className="deactivated-owner-note">
+                    Deactivated — only you can see your profile.
+                </div>
+            )}
             <Hero
                 ariaLabel="Profile Info"
                 titleRow={

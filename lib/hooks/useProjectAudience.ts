@@ -49,6 +49,9 @@ export function useProjectAudience(
     slug: string,
     self: AudienceSelf,
     enabled = true,
+    /** DEACTIVATE — false = subscribe + read the room but DON'T broadcast self,
+     *  so a deactivated viewer sees the count without inflating it (or appearing). */
+    broadcast = true,
 ): AudienceMember[] {
     const [members, setMembers] = useState<AudienceMember[]>([]);
 
@@ -87,7 +90,7 @@ export function useProjectAudience(
 
             channel.on('presence', { event: 'sync' }, sync);
             channel.subscribe((status) => {
-                if (status === 'SUBSCRIBED' && channel) {
+                if (status === 'SUBSCRIBED' && channel && broadcast) {
                     void channel.track({ anon: self.anon, token: self.token });
                 }
             });
@@ -107,7 +110,7 @@ export function useProjectAudience(
                 }
             }
         };
-    }, [slug, self.id, self.anon, self.token, enabled]);
+    }, [slug, self.id, self.anon, self.token, enabled, broadcast]);
 
     return members;
 }

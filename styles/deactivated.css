@@ -1,0 +1,55 @@
+/* ── DEACTIVATE (Spell Book) — the public "account deactivated" profile ─────
+   Understated by design (Brendon: not corny — the plain read an IG profile
+   gives when someone deactivates). Full-strength colorway tokens so it stays
+   legible on any page; the quiet comes from space + restraint, not fading. */
+
+.deactivated-profile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 14px;
+    min-height: 60vh;
+    padding: 48px 24px 96px;
+    color: var(--text-color);
+}
+/* An empty avatar — a plain ring, no face. Reads as "no one home" without a
+   wash or a cute placeholder. */
+.deactivated-avatar {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    border: 1.5px solid var(--text-color);
+    box-sizing: border-box;
+}
+.deactivated-handle {
+    font-size: 18px;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+    color: var(--text-color);
+}
+.deactivated-msg {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+/* The owner's own cue — a quiet, full-strength chip above their real profile
+   so they remember it's deactivated to everyone else. */
+.deactivated-owner-note {
+    max-width: min(62.5vw, 900px);
+    margin: 0 auto 10px;
+    padding: 8px 14px;
+    border: 1px solid var(--text-color);
+    border-radius: 5px;
+    font-size: 12.5px;
+    font-weight: bold;
+    text-align: center;
+    color: var(--text-color);
+    box-sizing: border-box;
+}
+@media (max-width: 600px) {
+    .deactivated-owner-note { max-width: none; }
+}
