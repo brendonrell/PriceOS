@@ -1,0 +1,285 @@
+/* ── TAROT SPREAD (Spell Book) — the reading table ─────────────────────────
+   A deliberately-themed surface, like the Spite Book's parchment: a candlelit
+   twilight table with gold leaf. Self-contained palette (not colorway) — but
+   every readable element is FULL-STRENGTH cream/gold on deep ground (Rule #2):
+   the mood comes from the palette + ornament + motion, never from fading text. */
+
+.tarot-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(8, 6, 16, 0.7);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+.tarot-backdrop.active { opacity: 1; pointer-events: auto; }
+
+.tarot-sheet {
+    /* Palette — the reading's own, full-strength. */
+    --tarot-ink: #ece3cf;      /* cream — primary text */
+    --tarot-gold: #cca457;     /* gold leaf — accents, frames */
+    --tarot-deep: #151024;     /* twilight ground */
+    --tarot-panel: #1e1836;    /* card interior */
+    --tarot-edge: #3a2f56;     /* structural lines */
+
+    position: relative;
+    width: min(940px, 100%);
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding: 30px 26px 26px;
+    border-radius: 12px;
+    border: 1.5px solid var(--tarot-gold);
+    background:
+        radial-gradient(120% 80% at 50% -10%, #241b40 0%, var(--tarot-deep) 60%);
+    color: var(--tarot-ink);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), inset 0 0 60px rgba(0, 0, 0, 0.35);
+    transform: translateY(10px) scale(0.99);
+    transition: transform 0.28s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.tarot-backdrop.active .tarot-sheet { transform: none; }
+
+.tarot-close {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    font-size: 24px;
+    line-height: 1;
+    color: var(--tarot-gold);
+    cursor: pointer;
+    user-select: none;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.tarot-head {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--tarot-edge);
+    margin-bottom: 22px;
+}
+.tarot-head-glyph {
+    font-size: 22px;
+    letter-spacing: 3px;
+    color: var(--tarot-gold);
+}
+.tarot-head-title {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 24px;
+    font-weight: bold;
+    letter-spacing: 6px;
+    color: var(--tarot-ink);
+}
+.tarot-head-sub {
+    font-size: 12.5px;
+    letter-spacing: 0.5px;
+    color: var(--tarot-ink);
+}
+
+/* ── The spread ──────────────────────────────────────────────────────────── */
+.tarot-spread {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    align-items: start;
+}
+@media (max-width: 640px) {
+    .tarot-spread { grid-template-columns: 1fr; gap: 26px; }
+}
+
+.tarot-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-width: 0;
+    animation: tarot-deal 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes tarot-deal {
+    from { opacity: 0; transform: translateY(18px) rotate(-1.5deg); }
+    to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) { .tarot-card { animation: none; } }
+
+.tarot-card-pos {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 3px;
+    color: var(--tarot-gold);
+    margin-bottom: 8px;
+}
+
+/* The card itself — a gold-edged plate, art up top, name below. */
+.tarot-card-frame {
+    width: 100%;
+    border: 1.5px solid var(--tarot-gold);
+    border-radius: 8px;
+    background: var(--tarot-panel);
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+.tarot-card-art {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    background: #0e0a1a;
+}
+/* A reversed card hangs upside-down — only the ART flips; the plate stays up so
+   the name + meaning read normally. */
+.tarot-card-frame.reversed .tarot-card-art { transform: rotate(180deg); }
+
+.tarot-card-plate {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 10px 8px 12px;
+    border-top: 1px solid var(--tarot-gold);
+}
+.tarot-card-roman {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    color: var(--tarot-gold);
+}
+.tarot-card-name {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 16px;
+    font-weight: bold;
+    line-height: 1.1;
+    color: var(--tarot-ink);
+}
+.tarot-card-orient {
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: var(--tarot-gold);
+}
+.tarot-card-faceid {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+    color: var(--tarot-ink);
+    margin-top: 10px;
+}
+.tarot-card-read {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--tarot-ink);
+    margin: 6px 2px 0;
+}
+
+/* ── Foot / re-roll ──────────────────────────────────────────────────────── */
+.tarot-foot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-top: 24px;
+    padding-top: 18px;
+    border-top: 1px solid var(--tarot-edge);
+}
+.tarot-reroll {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: var(--tarot-deep);
+    background: var(--tarot-gold);
+    border: none;
+    border-radius: 6px;
+    padding: 9px 20px;
+    cursor: pointer;
+    transition: filter 0.15s ease;
+}
+.tarot-reroll:hover { filter: brightness(1.08); }
+.tarot-foot-note {
+    font-size: 11.5px;
+    color: var(--tarot-ink);
+}
+
+.tarot-loading {
+    text-align: center;
+    padding: 48px 20px;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 15px;
+    letter-spacing: 1px;
+    color: var(--tarot-ink);
+}
+
+/* ── Locked state — the face-down hook ───────────────────────────────────── */
+.tarot-locked {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 14px;
+    padding: 30px 20px 40px;
+}
+.tarot-veil {
+    width: 92px;
+    height: 132px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+    color: var(--tarot-gold);
+    border: 1.5px solid var(--tarot-gold);
+    border-radius: 8px;
+    background:
+        repeating-linear-gradient(45deg, #201a3a 0 8px, #1a1531 8px 16px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+.tarot-locked-title {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 19px;
+    font-weight: bold;
+    letter-spacing: 3px;
+    color: var(--tarot-ink);
+}
+.tarot-locked-line {
+    font-size: 13.5px;
+    line-height: 1.6;
+    max-width: 420px;
+    color: var(--tarot-ink);
+}
+.tarot-locked-line b { color: var(--tarot-gold); }
+.tarot-progress {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: min(300px, 100%);
+}
+.tarot-progress-bar {
+    width: 100%;
+    height: 8px;
+    border-radius: 999px;
+    background: #0e0a1a;
+    border: 1px solid var(--tarot-edge);
+    overflow: hidden;
+}
+.tarot-progress-fill {
+    height: 100%;
+    background: var(--tarot-gold);
+    transition: width 0.4s ease;
+}
+.tarot-progress-count {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: var(--tarot-gold);
+}

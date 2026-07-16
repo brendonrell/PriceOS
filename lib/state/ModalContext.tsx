@@ -42,6 +42,7 @@ export type ModalName =
     | 'gasTracker'
     | 'stickers'
     | 'spiteBook'
+    | 'tarot'
     | 'panopticonConfirm'
     | 'leaderboard'
     | 'golf-leaderboard'

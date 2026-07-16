@@ -210,7 +210,9 @@ export function SpellBookSection({ onTripleTap }: Props) {
                             onClick={() =>
                                 spell.id === 'spitebook'
                                     ? open('spiteBook')
-                                    : toggleSpellWithToast(spell)
+                                    : spell.id === 'tarot'
+                                        ? open('tarot')
+                                        : toggleSpellWithToast(spell)
                             }
                             icon={spell.icon}
                             iconStyle={{

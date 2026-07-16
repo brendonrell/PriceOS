@@ -92,6 +92,7 @@ import GolfLeaderboardModal from '../GolfLeaderboardModal';
 import GasTrackerModal from '../GasTrackerModal';
 import StickersModal from '../StickersModal';
 import SpiteBookModal from '../SpiteBookModal';
+import TarotSpreadModal from '../TarotSpreadModal';
 import PanopticonConfirmModal from '../PanopticonConfirmModal';
 import CartographyModal from '../CartographyModal';
 import ComposerModal from '../composer/ComposerModal';
@@ -500,6 +501,9 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="SpiteBookModal">
                 <SpiteBookModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="TarotSpreadModal">
+                <TarotSpreadModal />
             </ErrorBoundary>
             <ErrorBoundary name="PanopticonConfirmModal">
                 <PanopticonConfirmModal />
