@@ -5278,6 +5278,16 @@ button,
     #sb-redacted .st-icon { font-size: 14px !important; }
 }
 
+/* Per-pill MOBILE icon-position nudges (Brendon, 2026-07-16). Overrides the
+   base .st-icon translateY(1px); each icon's inline `top` still composes, so
+   the net shift is exactly the requested nudge: Price Ghost (top -1px) and
+   Tarot Spread (top -2px) drop 2px; The Watch (no top) drops 0.5px. */
+@media (max-width: 600px) {
+    #sb-priceghost .st-icon,
+    #sb-tarot .st-icon { transform: translateY(3px); }
+    #sb-watch .st-icon { transform: translateY(1.5px); }
+}
+
 /* Echo Chamber star sits a touch larger desktop-side. */
 #sn-echo .st-icon { font-size: 16px !important; }
 
