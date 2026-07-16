@@ -114,7 +114,6 @@ function ProjectNameBadges({ slug }: { slug: string }) {
             {projFate && (
                 <span className="project-celestial" aria-label={`Fate ${projFate.name}`}>
                     <span className="pcel-hex">{projFate.glyph}</span>
-                    <span className="pcel-name">{projFate.name}</span>
                 </span>
             )}
         </>

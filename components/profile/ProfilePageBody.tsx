@@ -700,7 +700,7 @@ function ProfilePageBodyInner({
 
     const {
         isArtist, artistProjects, effStyle, artistMode, createdUnderMore,
-        showcaseView, setShowcaseView, artistShowcaseCreated, genCurated, recurate,
+        showcaseView, setShowcaseView, artistShowcaseCreated, genCurated,
         enrichedArtistProjects, mintSort, onMintSort, applyMintSort,
         visibleArtistProjects, artistFeedView,
     } = useArtistShowcase({
@@ -1662,23 +1662,10 @@ function ProfilePageBodyInner({
                 <div style={{ display: onShowcase ? 'contents' : 'none' }}>
                 {/* Gen Curated's placard — the set's name as a gallery wall
                     label, a full-row grid item so it lines up with the cards'
-                    left edge at every width. Tapping it draws a fresh set
-                    (2026-07-16 wow pass). */}
+                    left edge at every width. Display only: a fresh set comes
+                    from re-entering the tab, never a tap (Brendon, 2026-07-16). */}
                 {effStyle === 'gen-curated' && genCurated && genCurated.picks.length > 0 && (
-                    <div
-                        className="gencurated-caption"
-                        role="button"
-                        tabIndex={0}
-                        title="Draw a fresh set"
-                        onClick={() => { recurate(); showToast('Showcase: RE-CURATED'); }}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                recurate();
-                                showToast('Showcase: RE-CURATED');
-                            }
-                        }}
-                    >
+                    <div className="gencurated-caption">
                         <span className="gc-glyph" aria-hidden="true">{'⑈︎'}</span>
                         <span className="gc-title">{genCurated.caption}</span>
                         <span className="gc-count">{`· ${genCurated.picks.length}`}</span>

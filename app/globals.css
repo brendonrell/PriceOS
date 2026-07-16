@@ -10736,9 +10736,10 @@ body.colorway-dark .ghost-feed-bar {
 .output-celestial .oc-moon { font-size: 14px; line-height: 1; }
 .output-celestial .oc-hex,
 .project-celestial .pcel-hex { font-size: 16px; line-height: 1; }
-/* Labels: 12px minimum, bold, full-strength (Rule #2 — no whisper text). */
-.output-celestial .oc-label,
-.project-celestial .pcel-name {
+/* Labels: 12px minimum, bold, full-strength (Rule #2 — no whisper text).
+   Output titles only — the project name wears the bare hexagram, no word
+   (Brendon, 2026-07-16). */
+.output-celestial .oc-label {
     font-size: 12px;
     font-weight: bold;
     letter-spacing: 0.05em;
@@ -10996,9 +10997,9 @@ body.colorway-dark .ghost-feed-bar {
 /* ── Gen Curated caption — the set's name/synopsis ─────────────────────── */
 /* Same small, fully-visible card-meta type as the project name under each
    piece. Plainly readable (Brendon 2026-06-20). */
-/* Gen Curated placard — the set's gallery-wall label. Leads with the ⑈
-   Gen Curated glyph, tappable to draw a fresh set (2026-07-16 wow pass).
-   Full-strength text tokens, no washes (Rule #2). */
+/* Gen Curated placard — the set's gallery-wall label, leading with the ⑈
+   Gen Curated glyph. Display only — a fresh set comes from re-entering the
+   tab, never a tap (Brendon, 2026-07-16). Full-strength tokens (Rule #2). */
 .gencurated-caption {
     grid-column: 1 / -1;
     display: inline-flex;
@@ -11012,12 +11013,9 @@ body.colorway-dark .ghost-feed-bar {
     color: var(--text-color);
     margin: 0;
     user-select: none;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
 }
 .gencurated-caption .gc-glyph { font-size: 15px; line-height: 1; }
 .gencurated-caption .gc-count { font-size: 12px; }
-.gencurated-caption:active .gc-glyph { transform: scale(1.15); }
 
 /* ── Profile Achievements wall ─────────────────────────────────────── */
 .ach-section {

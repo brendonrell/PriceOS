@@ -84,14 +84,13 @@ export default function ProjectTitleStar({ slug, title }: { slug: string; title:
                     <span className="pc-num">{cartelCount}</span>
                 </span>
             )}
-            {/* Celestial Tracker — the project's I Ching Fate: hexagram + its
-                NAME, matching the Output title treatment (2026-07-16 revamp —
-                replaced the old decorative ☉☽↑ placeholder row, which carried
-                no real data). */}
+            {/* Celestial Tracker — the project's I Ching Fate hexagram, glyph
+                ONLY beside the name (Brendon, 2026-07-16: no word here — words
+                were part of the tracker's clutter problem; the old decorative
+                ☉☽↑ placeholder row stays gone too). */}
             {projFate && (
                 <span className="project-celestial" aria-label={`Fate ${projFate.name}`}>
                     <span className="pcel-hex">{projFate.glyph}</span>
-                    <span className="pcel-name">{projFate.name}</span>
                 </span>
             )}
             {floatId > 0 && <span key={floatId} className={`project-name-star-float${floatDown ? ' is-down' : ''}`} aria-hidden="true">{'★︎'}</span>}
