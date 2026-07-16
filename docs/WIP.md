@@ -8,6 +8,54 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ✅ **2026-07-16 SPELL BOOK BUILD-OUT — all on dev, auto-deployed, tree clean.
+   Tip `1ba8ed1`. Branch `claude/tribunal-feature-s7dj1k` = merged trash (Brendon
+   deletes).** Opus session — turning Spell Book stubs into real features
+   (ClickUp `86bad5g4t`):
+   ① **TRIBUNAL** — the Output +More gains a spell-gated "Tribunal" pill: an
+   inline case file (Chain of Custody · The Money · On the Block · Standing
+   Offers) built from the ledger + market already on the page; missing strands
+   (past/withdrawn offers, view history) named OFF THE RECORD, not faked.
+   `components/artwork/TribunalPanel.tsx` + `styles/tribunal.css`.
+   ② **GRAVITY** pill → icon-less **"????"** mystery button (fires a "????"
+   toast, never toggles — its coming-soon stub, reframed).
+   ③ **DEACTIVATE** (spell_invisible) = "public ragequit, secretly still active",
+   BOTH halves: (a) a visitor to a deactivated profile sees an understated
+   IG-style "account deactivated" shell — server-derived from the owner's own
+   saved setting, NO schema change (`getUserProfileByHandle` returns
+   `deactivated`); owner still sees their real profile + a small cue. (b)
+   presence drop-out — you stop broadcasting to the Panopticon overlay + Audience
+   counts (one-way glass, still see the room). `styles/deactivated.css`.
+   ④ **TAROT SPREAD** — the pill opens a themed reading modal
+   (`TarotSpreadModal.tsx`, Spite Book precedent): 3 real Major Arcana
+   (`lib/data/tarot.ts`) into Past/Present/Future, each wearing one of your
+   Collected pieces as its face, real upright/reversed meanings + a woven read
+   (`lib/tarot/reading.ts`), deterministic per local day + re-roll. **Gated at 22
+   collected** (below = a face-down "the cards aren't ready · N/22" unlock).
+   `styles/tarot.css`.
+   ⑤ **GEN CURATED SHOWCASE gated at 100** — the MY PD showcase-style cycle skips
+   Gen Curated below 100 with a "Gen Curated: N/100 TO UNLOCK" toast; backed by a
+   light count endpoint `app/api/user/[address]/count`.
+   ⑥ **ECHO CHAMBER** — recon found it's ALREADY LIVE (not a stub): mutuals-only
+   filter on pings + the artists list via `body.echo-mode` CSS. Only change: its
+   toast now reads **"MUTUALS ONLY"** on (explains itself).
+   ⑦ **OFFER SHIELD** — when on, incoming offers under **50% of the collection
+   floor** are hidden from Pings (`lib/pings/useOfferShield.ts` + `PingsBox.tsx`;
+   floor from a new light endpoint `app/api/project/[slug]/floor`, fail-open so it
+   can never eat a real ping). Plus a little **"ward goes up"** cast flourish on
+   activation (`components/OfferShieldCast.tsx`, `.shield-cast`).
+   ⑧ **OUTPUT STATS tab** — FLOOR now real (live lowest active listing, computed
+   in the output market read — was a stale `projects.floor_price_eth` cache); the
+   cramped top row redone as **tiles** (Holding · Sentiment · Anchor) matching the
+   Market wall via AttrWall; the **⚓ Anchor is real here** now (opens the D17
+   reference-price prompt, collection-keyed — was a coming-soon stub). ⚠ Sentiment
+   tile wears **∿** (a picked mark — no canonical sentiment glyph existed;
+   Brendon's iconography call to keep/swap).
+   ⑨ Mobile-only Spell Book icon nudges (Price Ghost/Tarot/The Watch) + a
+   `.claude` MCP allowlist (ClickUp/Supabase/Cloudflare/GitHub).
+   **STILL STUB (not built this session):** Sybil Net · Gossip Protocol ·
+   Arbitrage Map (specs on the Atlas "Spell Book" page). Gravity held as ????.
+
 0. ✅ **2026-07-15 POLISH — all on dev, auto-deployed, tree clean. Tip `f8783aa`.**
    Ad-hoc visual batch (Opus session):
    ① **Composer Programs button** reverted to the filled grey pill (black text).
