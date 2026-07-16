@@ -1232,6 +1232,27 @@ body.ascii-id-mode .id-row-sprite     { display: none !important; }
 .lr-hint { font-size: 12px; font-weight: bold; white-space: normal; overflow-wrap: break-word; max-width: 100%; text-align: center; line-height: 1.6; }
 /* Oil slide — a quick cartoon fishtail on the remounted hero slot. */
 .lr-hero-slot { position: absolute; inset: 0; animation: lr-fishtail 0.35s ease-out; }
+/* 2026-07-16 revamp — the frame NEVER resizes mid-run: both status lines
+   and the hint hold fixed heights whatever they show. */
+.lr-score-line {
+    height: 1.5em;
+    line-height: 1.5em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+.lr-score-sub { opacity: 0.85; }
+.lr-hint { height: 3.2em; }
+/* Wipeout — the car spins out where it stood. */
+.lr-spinout { animation: lr-spinout 0.7s ease-out forwards; }
+@keyframes lr-spinout {
+    0% { transform: rotate(0deg) scale(1); }
+    100% { transform: rotate(540deg) scale(0.9); }
+}
+/* Deep-road tints — the frame keeps its size, only its light changes. */
+.lr-hot { border-color: color-mix(in srgb, #FF0055 55%, currentColor); }
+.lr-halo-road { border-color: color-mix(in srgb, #ffffff 60%, currentColor); box-shadow: 0 0 14px color-mix(in srgb, #ffffff 30%, transparent); }
 @keyframes lr-fishtail {
     0% { transform: rotate(-10deg) translateX(-3px); }
     60% { transform: rotate(7deg) translateX(2px); }

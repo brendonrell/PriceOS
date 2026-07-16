@@ -12,42 +12,55 @@
  * POTHOLES — no head-on traffic. Oil doesn't end the run, it SLIDES you a
  * lane sideways (chaos, not carnage). Blockers and potholes end it: WIPEOUT.
  *
- * THE ROAD SHOWS ITS DEPTH (Brendon, 2026-07-10): the blocker's LOOK
- * changes as the run goes deeper — same mechanics, new scenery, so what
- * you're dodging tells you how far in you are:
- *   0+   city streets  — traffic CONES
- *   22+  roadwork      — striped BARRIERS
- *   50+  night shift   — reflective road BARRELS (the dark was already here)
- *   111+ hothurt strip — pink FLAMINGOS (lawn-ornament country)
- *   777+ the halo road — floating HALOS ⬭ (nothing up here can hurt you,
- *        except that it can)
+ * THE ROAD SHOWS ITS DEPTH (Brendon, 2026-07-10; deepened 2026-07-16):
+ * the blocker's LOOK changes as the run goes deeper — same mechanics, new
+ * scenery, so what you're dodging tells you how far in you are:
+ *   0+    city streets   — traffic CONES
+ *   18+   roadwork       — striped BARRIERS (you GRADUATED)
+ *   50+   night shift    — reflective road BARRELS (the dark was already here)
+ *   100+  century road   — MILE MARKERS (stone country)
+ *   111+  hothurt strip  — pink FLAMINGOS (lawn-ornament country)
+ *   777+  the halo road  — floating HALOS ⬭ (nothing up here can hurt you,
+ *         except that it can)
+ *   1000+ the velvet road — STANCHIONS (per-mille country, members only)
+ *   1200+ archetype fields — BLOOMS ✻ (the flowers are also solid)
  *
  * The road keeps secrets of its own (PD milestone numbers, GLYPHS.md §8):
- *   22  — LUCKY 22 ♧
- *   50  — NIGHT SHIFT: the road goes dark, your headlights come on
- *   100 — CENTURY CLUB Ⅽ
- *   111 — HOTHURT: the car runs hot-pink from here
- *   777 — HALO ⬭ (if you ever get there, screenshot it)
+ *   18   — GRADUATED ⟢⟢
+ *   22   — LUCKY 22 ♧
+ *   50   — NIGHT SHIFT: the road goes dark, your headlights come on
+ *   100  — CENTURY CLUB Ⅽ
+ *   111  — HOTHURT: the car runs hot-pink from here
+ *   777  — HALO ⬭ (if you ever get there, screenshot it)
+ *   1000 — PER MILLE CLUB
+ *   1200 — ARCHETYPE ✻
  *
  * How you get HERE is deliberately not written down anywhere in this file.
  * The word is checked as an FNV-1a hash upstream (GlobalSearchBar), so
  * bundle-grepping finds nothing. If you found this: you earned it.
  *
- * Controls: no buttons — tap the LANE you want to be in (the whole board
- * is the controller, RACEWAY rules). ← → also work on desktop. Exits with
- * the search input (clear / Escape), like any other result.
+ * Controls: no buttons — tap the side of the road you want to move TOWARD;
+ * the car changes ONE lane per tap (LED-handheld rules — Brendon,
+ * 2026-07-16: no lane-jumping). ← → also work on desktop. Exits with the
+ * search input (clear / Escape), like any other result.
  *
- * Pace is tuned for HUMANS: ~2 rows/sec at the start, ramping gently to a
- * ~4 rows/sec ceiling — challenging, never strobe-impossible.
+ * Pace + depth (2026-07-16 revamp — "night mode should be a real
+ * achievement"): the odometer counts every OTHER row, the speed ramp is
+ * gentler but the road gets DENSER with depth, so the run is longer and
+ * the late stages are earned. The tick pauses while the tab is hidden —
+ * no background deaths. The frame NEVER resizes mid-run: the status and
+ * hint areas are fixed two-line blocks.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 const LANES = 3;
 const ROWS = 6;
-/** Human-calibrated: 520ms/row start → 240ms/row floor, -3ms per point. */
+/** Human-calibrated, stretched 2026-07-16: 520ms/row start → 215ms/row
+    floor, -2.5ms per point. With the odometer counting every other row,
+    the ramp lands the floor around the 200s — a long, earnable run. */
 const TICK_START_MS = 520;
-const TICK_MIN_MS = 240;
+const TICK_MIN_MS = 215;
 
 /** Hazard kinds per cell. 0 = clear road. */
 type Cell = 0 | 1 | 2 | 3; // 1 oil · 2 cone · 3 pothole
@@ -58,20 +71,27 @@ const POTHOLE = 3 as const;
 const VS15 = '︎';
 /** PD milestone moments (home-feed glyphs, GLYPHS.md §8). */
 const MOMENTS: Array<{ at: number; label: string }> = [
+    { at: 18, label: `GRADUATED ⟢⟢${VS15}` },
     { at: 22, label: `LUCKY 22 ♧${VS15}` },
     { at: 50, label: 'NIGHT SHIFT' },
     { at: 100, label: `CENTURY CLUB Ⅽ${VS15}` },
     { at: 111, label: 'HOTHURT' },
     { at: 777, label: `HALO ⬭${VS15}` },
+    { at: 1000, label: 'PER MILLE CLUB' },
+    { at: 1200, label: `ARCHETYPE ✻${VS15}` },
 ];
 
 /* Y2K arcade launch logo — a road edge, the block wordmark, then lane dashes.
-   Scales down to fit any width via CSS (clamp font-size). */
+   Scales down to fit any width via CSS (clamp font-size). 2026-07-16: the
+   L rebuilt with a full-height double column + wide foot, and a breather
+   line under the road edge — the old thin `█` under the solid bar read as
+   a T ("Tane Runner", Brendon). */
 const LOGO = [
     '▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄',
-    '    █   ▄▀▄  █▄ █  █▀▀',
-    '    █   █▀█  █ ▀█  █▀ ',
-    '    █▄▄ ▀ ▀  ▀  ▀  ▀▀▀',
+    '',
+    '██    ▄▀▄  █▄ █  █▀▀',
+    '██    █▀█  █ ▀█  █▀ ',
+    '██▄▄▄ ▀ ▀  ▀  ▀  ▀▀▀',
     '',
     '█▀▄ █ █ █▄ █ █▄ █ █▀▀ █▀▄',
     '█▀▄ █ █ █ ▀█ █ ▀█ █▀  █▀▄',
@@ -209,6 +229,55 @@ function HaloRing() {
     );
 }
 
+/** Mile marker — a stone post with the century arc carved in. Depth 100+. */
+function MileMarker() {
+    return (
+        <svg viewBox="0 0 24 44" className="lr-car lr-hazard" aria-hidden="true">
+            {/* the post — rounded stone slab */}
+            <path d="M7 10 C7 7.6 17 7.6 17 10 L17.6 32 L6.4 32 Z" fill="currentColor" opacity="0.72" />
+            {/* the carved Ⅽ — an open arc facing right */}
+            <path d="M15 15.5 C10.5 13.5 8 16.5 8 20 C8 23.5 10.5 26.5 15 24.5" stroke="var(--text-color, #111)" strokeWidth="2.2" fill="none" opacity="0.72" strokeLinecap="round" />
+            {/* plinth */}
+            <rect x="4.5" y="31.5" width="15" height="3" rx="1.2" fill="currentColor" opacity="0.75" />
+        </svg>
+    );
+}
+
+/** Velvet-rope stanchion — per-mille country, members only. Depth 1000+. */
+function Stanchion() {
+    return (
+        <svg viewBox="0 0 24 44" className="lr-car lr-hazard" aria-hidden="true">
+            {/* rope swags to the neighbours */}
+            <path d="M0 15 C5 19 8 19 12 15.5 M12 15.5 C16 19 19 19 24 15" stroke="currentColor" strokeWidth="1.6" fill="none" opacity="0.55" strokeLinecap="round" />
+            {/* the ball top */}
+            <circle cx="12" cy="12.6" r="2.4" fill="currentColor" opacity="0.9" />
+            {/* the post */}
+            <path d="M11 15 L10.4 31 L13.6 31 L13 15 Z" fill="currentColor" opacity="0.8" />
+            {/* weighted base */}
+            <ellipse cx="12" cy="32.4" rx="6.4" ry="1.9" fill="currentColor" opacity="0.8" />
+        </svg>
+    );
+}
+
+/** Archetype bloom — the six-teardrop ✻, grown roadside-size. Depth 1200+. */
+function Bloom() {
+    return (
+        <svg viewBox="0 0 24 44" className="lr-car lr-hazard" aria-hidden="true">
+            <g opacity="0.85">
+                {[0, 60, 120, 180, 240, 300].map((deg) => (
+                    <ellipse
+                        key={deg}
+                        cx="12" cy="15.2" rx="2" ry="6.4"
+                        fill="currentColor"
+                        transform={`rotate(${deg} 12 21)`}
+                    />
+                ))}
+            </g>
+            <circle cx="12" cy="21" r="2.2" fill="var(--text-color, #111)" opacity="0.7" />
+        </svg>
+    );
+}
+
 /** Pothole — a jagged little crater. */
 function Pothole() {
     return (
@@ -227,12 +296,16 @@ function Pothole() {
 }
 
 /** The blocking hazard's look by depth — same mechanics, deeper scenery.
-    Thresholds ride the MOMENTS numbers so the scenery flips on the beat. */
+    Thresholds ride the MOMENTS numbers so the scenery flips on the beat.
+    Eight stages deep (2026-07-16 revamp). */
 function Blocker({ score }: { score: number }) {
+    if (score >= 1200) return <Bloom />;
+    if (score >= 1000) return <Stanchion />;
     if (score >= 777) return <HaloRing />;
     if (score >= 111) return <Flamingo />;
+    if (score >= 100) return <MileMarker />;
     if (score >= 50) return <Barrel />;
-    if (score >= 22) return <Barrier />;
+    if (score >= 18) return <Barrier />;
     return <Cone />;
 }
 
@@ -272,6 +345,9 @@ export default function LaneRunner() {
     /** The guaranteed weavable channel random-walks one lane per row. */
     const channelRef = useRef(1);
     const momentT = useRef(0);
+    /** Rows survived this run — the odometer ticks every OTHER row
+        (2026-07-16: the run is the length; the score is the depth). */
+    const rowsRunRef = useRef(0);
 
     const night = alive && score >= 50;
     const hot = alive && score >= 111;
@@ -302,6 +378,7 @@ export default function LaneRunner() {
     const restart = useCallback(() => {
         channelRef.current = 1;
         laneRef.current = 1;
+        rowsRunRef.current = 0;
         setLane(1);
         setRows(Array.from({ length: ROWS }, () => emptyRow(keyRef.current++)));
         setScore(0);
@@ -320,20 +397,29 @@ export default function LaneRunner() {
     // lit cells, not a scroller (LED-handheld rules).
     useEffect(() => {
         if (!started || !alive) return;
-        const tick = Math.max(TICK_MIN_MS, TICK_START_MS - score * 3);
+        const tick = Math.max(TICK_MIN_MS, TICK_START_MS - score * 2.5);
         const t = window.setInterval(() => {
+            // No background deaths — the road waits while the tab is hidden.
+            if (typeof document !== 'undefined' && document.hidden) return;
             setRows((prev) => {
                 // Channel wanders ±1; it is always clear, so a line always exists.
                 const drift = Math.random();
                 const ch = Math.max(0, Math.min(LANES - 1,
                     channelRef.current + (drift < 0.3 ? -1 : drift < 0.6 ? 1 : 0)));
                 channelRef.current = ch;
+                /* Depth = density (2026-07-16): the road starts sparse and
+                   CROWDS as the run deepens — spawn chance per off-channel
+                   lane climbs 45% → 82%, and oil (the survivable hazard)
+                   thins out in favour of the enders. Speed alone no longer
+                   carries the difficulty, so the deep stages are earned. */
+                const spawnChance = Math.min(0.82, 0.45 + score * 0.002);
+                const oilShare = Math.max(0.18, 0.4 - score * 0.001);
                 const cells: Cell[] = [0, 0, 0];
                 for (let l = 0; l < LANES; l++) {
-                    if (l === ch || Math.random() >= 0.45) continue;
+                    if (l === ch || Math.random() >= spawnChance) continue;
                     // Hazard mix evolves with the run: potholes join at 40+.
                     const r = Math.random();
-                    cells[l] = r < 0.4 ? OIL : r < 0.75 || score < 40 ? CONE : POTHOLE;
+                    cells[l] = r < oilShare ? OIL : r < 0.75 || score < 40 ? CONE : POTHOLE;
                 }
                 const next = [{ cells, key: keyRef.current++, spawnScore: score }, ...prev.slice(0, ROWS - 1)];
                 const hit = next[ROWS - 1].cells[laneRef.current];
@@ -371,16 +457,22 @@ export default function LaneRunner() {
                     setSlid((n) => n + 1);
                 }
 
-                setScore((s) => {
-                    const ns = s + 1;
-                    const m = MOMENTS.find((mm) => mm.at === ns);
-                    if (m) {
-                        setMoment(m.label);
-                        window.clearTimeout(momentT.current);
-                        momentT.current = window.setTimeout(() => setMoment(null), 2200);
-                    }
-                    return ns;
-                });
+                // The odometer ticks every OTHER row survived — the run is
+                // twice the road it used to be, so 50 (night) is a feat and
+                // 777 is legend (2026-07-16 depth pass).
+                rowsRunRef.current += 1;
+                if (rowsRunRef.current % 2 === 0) {
+                    setScore((s) => {
+                        const ns = s + 1;
+                        const m = MOMENTS.find((mm) => mm.at === ns);
+                        if (m) {
+                            setMoment(m.label);
+                            window.clearTimeout(momentT.current);
+                            momentT.current = window.setTimeout(() => setMoment(null), 2200);
+                        }
+                        return ns;
+                    });
+                }
                 return next;
             });
         }, tick);
@@ -402,13 +494,19 @@ export default function LaneRunner() {
         return () => window.removeEventListener('keydown', onKey);
     }, [started, alive, move, restart, startGame]);
 
-    // No buttons — the board IS the controller: tap the lane you want.
+    // No buttons — the board IS the controller. One lane per tap (Brendon,
+    // 2026-07-16): the car steps TOWARD the side you touch, never jumps.
     const onBoardPointer = (e: React.PointerEvent<HTMLDivElement>) => {
         e.preventDefault();
         if (!alive) { restart(); return; }
         const rect = e.currentTarget.getBoundingClientRect();
-        move(Math.floor(((e.clientX - rect.left) / rect.width) * LANES));
+        const target = Math.floor(((e.clientX - rect.left) / rect.width) * LANES);
+        if (target === laneRef.current) return;
+        move(laneRef.current + (target > laneRef.current ? 1 : -1));
     };
+
+    /* LED odometer read — zero-padded four digits, handheld rules. */
+    const odo = String(score).padStart(4, '0');
 
     const lbList = lbOpen && (
         <div className="lr-lb" aria-label="Lane Runner top 10">
@@ -474,26 +572,22 @@ export default function LaneRunner() {
                     }
                 }}
             >
-                {!alive
-                    ? (
-                        <>
-                            {`WIPEOUT · ${score} · BEST ${best}`}
-                            {wr && <><br />{`WR ${wr.score} @${wr.handle}`}</>}
-                            {' — TAP'}
-                        </>
-                    )
-                    : moment
-                        ? moment
-                        : (
-                            <>
-                                {`SCORE ${score}${best > 0 ? ` · BEST ${best}` : ''}`}
-                                {wr && <><br />{`WR ${wr.score} @${wr.handle}`}</>}
-                            </>
-                        )}
+                {/* Fixed TWO-LINE block — the frame must never resize
+                    mid-run (Brendon, 2026-07-16). Line 1 carries the state
+                    (odometer / moment / wipeout); line 2 carries the WR or
+                    holds its space. */}
+                <div className="lr-score-line">
+                    {!alive
+                        ? `WIPEOUT ${odo} · BEST ${best}`
+                        : moment ?? `SCORE ${odo}${best > 0 ? ` · BEST ${best}` : ''}`}
+                </div>
+                <div className="lr-score-line lr-score-sub">
+                    {wr ? `WR ${wr.score} @${wr.handle}` : ' '}
+                </div>
             </div>
             {lbList}
             <div
-                className={`lr-board${alive ? '' : ' lr-crashed'}${night ? ' lr-night' : ''}`}
+                className={`lr-board${alive ? '' : ' lr-crashed'}${night ? ' lr-night' : ''}${hot ? ' lr-hot' : ''}${score >= 777 ? ' lr-halo-road' : ''}`}
                 onPointerDown={onBoardPointer}
                 role="application"
                 aria-label="lane runner"
@@ -509,7 +603,7 @@ export default function LaneRunner() {
                                     {cell === CONE && <Blocker score={row.spawnScore} />}
                                     {cell === POTHOLE && <Pothole />}
                                     {isHero && (
-                                        <span key={slid} className="lr-hero-slot">
+                                        <span key={slid} className={`lr-hero-slot${alive ? '' : ' lr-spinout'}`}>
                                             <HeroCar night={night} hot={hot} />
                                         </span>
                                     )}
@@ -519,7 +613,12 @@ export default function LaneRunner() {
                     </div>
                 ))}
             </div>
-            <div className="lr-hint">{'tap a lane · oil slides you'}<br />{'everything else ends you'}</div>
+            {/* Fixed two lines here too — swaps content, never height. */}
+            <div className="lr-hint">
+                {alive
+                    ? <>{'tap a side · one lane at a time'}<br />{'oil slides you · the rest ends you'}</>
+                    : <>{'TAP TO RETRY'}<br />{'(any key works too)'}</>}
+            </div>
         </div>
     );
 }
