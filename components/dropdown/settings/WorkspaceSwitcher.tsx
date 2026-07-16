@@ -137,8 +137,10 @@ export function WorkspaceSwitcher() {
                         active={w.id === activeId}
                         managing={managing}
                         onTap={() => {
+                            // loadWorkspace owns the toast (plain name, or a
+                            // shipped default's flourish line) — the old
+                            // duplicate here was overriding it.
                             loadWorkspace(w.id);
-                            showToast(`Workspace: ${w.name.toUpperCase()}`);
                         }}
                         onOpenMenu={(rect) => {
                             justOpenedRef.current = true;

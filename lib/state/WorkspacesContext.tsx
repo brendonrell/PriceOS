@@ -6,12 +6,11 @@
  * Sim refs: 10097-10450 (storage + load/save/delete/restore + dot
  * render + popover + long-press attach + init).
  *
- * Owns the user's saved Setup Code workspaces. Two default workspaces
- * ship out of the box (Degen RETIRED 2026-06-12 — Brendon: a new default
- * will replace it later; Zen gained the blue colorway the same day):
- *
- *   1 · Main  — ‰CSTM-IDAS                                      (clean)
- *   2 · Zen   — ‰BLUE-NASC-NSTK-ZNMD-IDAS                       (zen, blue)
+ * Owns the user's saved Setup Code workspaces. SIX defaults ship out of
+ * the box — Main · Zen · Observatory · The Floor · Museum · The Village
+ * (the shipped set, codes, personas, top-bar rule, and load flourishes all
+ * live in lib/state/workspaceDefaults.ts — 2026-07-16 wow pass; Degen
+ * stays RETIRED, its promised replacements arrived).
  *
  * Tapping a dot loads (decode + apply via applySetupCodeState). Long-press
  * opens the popover; trailing + creates a new workspace from current state.
@@ -32,7 +31,10 @@
  * when a default's shipped code changes, the OLD code goes into the
  * migration map so existing users get bumped on next load. Workspaces
  * whose code matches NEITHER current NOR a known previous default are
- * treated as user-customised and left alone.
+ * treated as user-customised and left alone. NEW shipped defaults reach
+ * existing users via the seed-version pass (workspaceDefaults.ts): hydrate
+ * appends missing shipped ids ONCE per DEFAULTS_SEED_VERSION, so deleting
+ * one afterwards sticks.
  */
 
 import {
@@ -55,6 +57,13 @@ import {
     notifsPatchFromDecodedState,
     type DecodedState,
 } from './SetupCode';
+import {
+    SHIPPED_WORKSPACES,
+    DEFAULT_LOAD_TOASTS,
+    DEFAULTS_SEED_VERSION,
+    DEFAULTS_SEED_KEY,
+    WORKSPACE_SEED_VERSION,
+} from './workspaceDefaults';
 
 export interface Workspace {
     id: number;
@@ -65,13 +74,10 @@ export interface Workspace {
 
 export const MAX_WORKSPACES = 10;
 
-const DEFAULT_WORKSPACES: ReadonlyArray<Workspace> = [
-    // Sim 10120-10127 — codes are post-v1.0.45 short form.
-    { id: 1, name: 'Main',  code: '\u2030CSTM-IDAS', isDefault: true },
-    // Zen carries the blue colorway (Brendon 2026-06-12 — "pick a colour";
-    // blue is the calm pick). Pre-blue Zen migrates via OLD_DEFAULT_CODES.
-    { id: 2, name: 'Zen',   code: '\u2030BLUE-NASC-NSTK-ZNMD-IDAS', isDefault: true },
-];
+// The shipped set (Main · Zen · Observatory · The Floor · Museum · The
+// Village) lives in workspaceDefaults.ts — pure data, testable, and the
+// top-bar rule is documented there.
+const DEFAULT_WORKSPACES: ReadonlyArray<Workspace> = SHIPPED_WORKSPACES;
 
 // Sim 10133-10141. When changing a default workspace's shipped code,
 // drop the OLD code into this map so existing users migrate automatically.
@@ -178,6 +184,29 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
         });
         if (next.length !== beforeRetire) migrated = true;
 
+        // Seed-version pass — NEW shipped defaults reach EXISTING users
+        // exactly once per DEFAULTS_SEED_VERSION (2026-07-16: Observatory ·
+        // The Floor · Museum · The Village). An unstamped user counts as
+        // version 1 (the Main/Zen baseline) so v1 ids are never re-injected —
+        // old deletions of Main/Zen stick, and deleting a seeded default
+        // afterwards sticks too (the stamp stops it coming back). Cap-aware.
+        try {
+            const seeded = Math.max(1, parseInt(localStorage.getItem(DEFAULTS_SEED_KEY) ?? '1', 10) || 1);
+            if (seeded < DEFAULTS_SEED_VERSION) {
+                for (const def of DEFAULT_WORKSPACES) {
+                    if (next.length >= MAX_WORKSPACES) break;
+                    if ((WORKSPACE_SEED_VERSION[def.id] ?? 1) <= seeded) continue;
+                    if (!next.some((w) => w.id === def.id)) {
+                        next.push({ ...def });
+                        migrated = true;
+                    }
+                }
+                localStorage.setItem(DEFAULTS_SEED_KEY, String(DEFAULTS_SEED_VERSION));
+            }
+        } catch {
+            /* ignore */
+        }
+
         let activeFromStorage: number | null = next.length > 0 ? next[0].id : null;
         try {
             const a = localStorage.getItem(STORAGE_KEY_ACTIVE);
@@ -263,7 +292,15 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
             }
             setActiveId(id);
             applyDecodedState(parsed.state);
-            showToast(`Workspace: ${ws.name.toUpperCase()}`);
+            // The 2026-07-16 personas announce themselves in the cast-toast
+            // voice — but only while still wearing their SHIPPED code; a
+            // re-saved (customised) default goes back to the plain toast.
+            const def = DEFAULT_WORKSPACES.find((d) => d.id === id);
+            const flourish =
+                ws.isDefault && def && ws.code === def.code
+                    ? DEFAULT_LOAD_TOASTS[id]
+                    : undefined;
+            showToast(flourish ?? `Workspace: ${ws.name.toUpperCase()}`);
         },
         [workspaces, applyDecodedState, showToast]
     );
