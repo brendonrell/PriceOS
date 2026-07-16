@@ -9,7 +9,7 @@
  *   1. PDLibraryRegistry            (no args)
  *   2. PDFactory                    (admin, wallets, registry, fee corridor)
  *   3. registry.wireFactory(factory) — one-shot bind
- *   4. PDStickers                   (admin)
+ *   4. PDStickers                   (admin, factory — platform fees read live)
  *
  * Self-contained wallet stack: its OWN wagmi config (Sepolia-only, same
  * RainbowKit roster + WalletConnect projectId as the app) mounted locally,
@@ -272,11 +272,13 @@ function Deployer() {
             key: 'stickers',
             title: '4 · STICKERS',
             done: !!state.stickers,
-            ready: isConnected && !wrongChain,
+            ready: isConnected && !wrongChain && !!state.factory,
             result: state.stickers,
             action: () =>
                 run('stickers', async () => {
-                    const { addr, tx } = await deployContract('PDStickers', [address]);
+                    /* Factory second: the shop reads platformWallet() live for
+                       its 5% primary cut and the vaults' 2% royalty leg. */
+                    const { addr, tx } = await deployContract('PDStickers', [address, state.factory]);
                     return { stickers: addr, txs: { stickers: tx } };
                 }),
         },
