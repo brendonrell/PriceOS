@@ -2491,8 +2491,8 @@ body.stargazing-mode .platform-modal {
    rarity / traits / price; the art is deliberately absent). The old sim
    port (grey wash, 9px 0.6-opacity trait words) was a Rule-#2 failure.
    The tile is now a full-strength DATA SLAB in the site tokens: solid
-   --bg-color fill, dashed --text-color frame (the dash carries meaning —
-   art deliberately withheld), everything bold Courier ≥12px:
+   --bg-color fill, NO frame (Brendon, 2026-07-17 — borderless), everything
+   bold Courier ≥12px:
      #28              ← the id
      ❖87 · 3/105      ← PD Rarity score + rank across the edition set
      AURORA ×7        ← primary trait value, ×N existing
@@ -2500,9 +2500,9 @@ body.stargazing-mode .platform-modal {
      0.032 ETH        ← the ask (UNLISTED dims — a meaning-carrying fade)
    pointer-events: none so clicks fall through to the card button. */
 body.degen-mode .output-canvas { opacity: 0 !important; transition: none !important; }
+/* No frame (Brendon, 2026-07-17) — the slab sits borderless on the solid fill. */
 body.degen-mode .canvas-wrapper {
     background: var(--bg-color) !important;
-    border: 1.5px dashed var(--text-color) !important;
     display: flex !important; align-items: center !important; justify-content: center !important;
 }
 .degen-overlay {
@@ -2531,7 +2531,6 @@ body.degen-mode .canvas-wrapper {
     position: relative; inset: auto;
     width: min(78vw, 420px); aspect-ratio: 1;
     background: var(--bg-color);
-    border: 2px dashed var(--text-color);
     border-radius: 8px;
     gap: 10px;
 }
@@ -2544,11 +2543,10 @@ body.degen-mode .canvas-wrapper {
    included (the master itself already carries .output-canvas). */
 body.degen-mode .modal-art-loading { display: none !important; }
 /* The no-art row thumb (Starred/Wishlist/History rows, search results):
-   the row's own text carries the data, the square wears the dashed
-   no-art frame — same visual language as the grid slab. */
+   the row's own text carries the data, the square goes to the plain solid
+   fill — same borderless language as the grid slab. */
 .degen-thumb {
     background: var(--bg-color);
-    border: 1.5px dashed var(--text-color);
     box-sizing: border-box;
     border-radius: 6px;
     flex: none;

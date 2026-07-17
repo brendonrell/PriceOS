@@ -140,7 +140,7 @@ function ArtThumb({ slug, id }: { slug: string; id: string | number }) {
         paintNormal();
     }, [slug, id, ascii, degen]);
     /* Degen Mode — no art anywhere: the row's own text carries the data, the
-       thumb goes to the dashed no-art frame (2026-07-17). */
+       thumb goes to the plain no-art square (2026-07-17). */
     if (degen) return <span className="gsr-thumb degen-thumb" aria-hidden="true" />;
     return <canvas ref={ref} className="gsr-thumb" width={36} height={36} aria-hidden="true" />;
 }
