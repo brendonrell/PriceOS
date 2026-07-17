@@ -2,35 +2,30 @@
 
 Production base: `https://pricediscussion.pricediscussion.workers.dev` (the app Worker serves the API; a custom domain comes with mainnet)
 Stack: Next.js 15 (App Router) on a Cloudflare Worker (OpenNext) · Supabase (Postgres) · Alchemy (chain reads)
-Verified against code: 2026-07-13. (Header previously said Vercel + api.pricediscussion.com — stale since the 2026-07 Cloudflare migration.)
+**Verified against code: 2026-07-17 — 96 route files.** This document is the
+verified route INDEX plus the platform-wide contracts (auth, errors, rate
+limits). Per-route request/response shapes live as header comments in each
+route file — that's the always-true source; this page is the map.
+
+> History: the pre-2026-07 version of this file described the original
+> scaffold (mocked indexer routes, a `/api/notifications` surface that became
+> Pings, "future" auth routes that have long shipped). All of that is gone —
+> what follows was generated from the actual route tree and spot-verified.
 
 ## Auth model
 
-Reads are open — no API key, no auth required.
-Write operations (follows, mark-notifications-read, future stars/wishlist writes) require a SIWE (Sign-In With Ethereum) session, stored in an httpOnly encrypted cookie via `iron-session`.
+- **Reads are mostly open** — no API key. Public reads go through the anon
+  Supabase client and RLS.
+- **Writes require a SIWE session** (Sign-In With Ethereum), stored in an
+  httpOnly encrypted cookie (`iron-session`, 14-day rolling TTL). The wrapped
+  handler receives the session address — clients never send their own
+  identity.
+- **Deliberate open-write exceptions:** the ascii/preview pin routes
+  (write-once, first-viewer-wins), `/api/telemetry` (rate-limited error
+  beacon), newsletter subscribe, the auth flow itself, the HMAC-verified
+  Alchemy webhook, and the CRON_SECRET-gated sweeps.
 
-## Cache TTLs (encoded as Next.js `revalidate`)
-
-| Surface | TTL | Used by |
-|---|---|---|
-| Project stats | 15s | `GET /api/project/[slug]`, `GET /api/output/[id]` |
-| Feed events | 5s | `GET /api/feed`, `GET /api/project/[slug]/feed` |
-| Artist info / cooldown | 30s | `GET /api/artist/[address]` |
-| Project outputs | 300s | `GET /api/project/[slug]/outputs` |
-| $PRICE balance | 10s | `GET /api/price/[address]` |
-| Search | 60s | `GET /api/search` |
-| Platform stats | 60s | `GET /api/stats` |
-| User profile | dynamic | `GET /api/user/[address]` (writes invalidate immediately) |
-| All `POST` / `DELETE` | dynamic | force-dynamic |
-
-## Status legend
-
-- **ready-to-build** — wired to Supabase / chain. Works once env vars are set.
-- **blocked-on-indexer** — returns typed mock data matching the spec. Replace with Supabase queries once the indexer populates the relevant table.
-
-## Error response shape
-
-Every non-2xx response uses this envelope (see `lib/errors.ts`):
+## Error envelope (every non-2xx, all routes — `lib/errors.ts`)
 
 ```ts
 interface ApiError {
@@ -40,466 +35,126 @@ interface ApiError {
 }
 ```
 
-## Rate limiting
+500s never leak internals (fingerprinted into the `app_errors` sink instead).
 
-Edge middleware (`middleware.ts`) applies a 100 req/min per-IP cap on every `/api/*` route. The current implementation is an in-memory `Map` per instance (good enough for dev / abuse blunting); production should swap in Upstash Redis. See the comment at the top of `middleware.ts` for the swap pseudocode.
+## Rate limiting (`middleware.ts`)
 
----
+Per-IP, on every `/api/*` request: **100/min normal bucket · 15/min sensitive
+bucket** (auth flows, account creation, anoint/streak/achievement writes,
+handle-check enumeration, and the scriptable social writes). Distributed
+limiting rides Upstash Redis when its two secrets are set on the Worker;
+without them it falls back to per-instance memory (≈ no real limit on
+Workers). **As of 2026-07-17 the Upstash secrets are NOT set — turning them
+on is a standing Brendon tap (ClickUp 86bax31xd).** Limiter fails open.
 
-## Supabase-direct routes
+## Caching
 
-### `GET /api/user/[address]`
+Hot public reads carry short timed caches (5–300s, via `revalidate` /
+KV-backed data cache); everything session-scoped or state-changing is
+force-dynamic. The home surface is deliberately no-store (Realtime re-pulls).
 
-Profile data plus follower / following counts.
+## Money paths
 
-- **Auth:** none
-- **Source:** `users`, `follows` (Supabase)
-- **Cache:** dynamic
-- **Status:** ready-to-build
-
-```ts
-// Path params
-interface Params { address: string; } // 0x[40-hex]
-
-// Response (200)
-interface UserProfileResponse {
-  address: string;
-  ens_name: string | null;
-  display_name: string | null;
-  bio: string | null;
-  avatar_url: string | null;
-  created_at: string;
-  follower_count: number;
-  following_count: number;
-}
-```
-
-Errors: `400 BAD_REQUEST` (invalid address), `404 NOT_FOUND` (user row missing), `500 SERVER_ERROR`.
+All value movement happens inside atomic Postgres RPCs locked to the service
+role (`app_mint`, `app_buy`, `app_accept_offer`, `app_sticker_buy`,
+`app_sticker_accept`, …). The five money POST routes accept an
+`Idempotency-Key` header; replays return the recorded outcome. The market
+route runs **two rails** switched per project by `projects.contract_address`
+(NULL = sim economy, set = real Seaport orders).
 
 ---
 
-### `POST /api/follows`
-
-Follow a wallet. Idempotent — re-posting the same `{follower, target}` pair is a no-op.
-
-- **Auth:** SIWE (follower address taken from session, not the body)
-- **Source:** `follows` (Supabase, service role)
-- **Cache:** dynamic
-- **Status:** ready-to-build
-
-```ts
-interface FollowRequestBody { target: string; } // 0x[40-hex], must differ from caller
-
-// Response (201)
-interface FollowResponse {
-  follower_address: string;
-  following_address: string;
-  created_at: string;
-}
-```
-
-Errors: `400 BAD_REQUEST` (invalid target / self-follow / bad JSON), `401 UNAUTHORIZED` (no SIWE session).
-
----
-
-### `DELETE /api/follows?target=0x...`
-
-Unfollow a wallet. Idempotent — deleting a row that doesn't exist returns 200 with `{ ok: true }`.
-
-- **Auth:** SIWE
-- **Source:** `follows` (Supabase, service role)
-- **Cache:** dynamic
-- **Status:** ready-to-build
-
-```ts
-// Query: ?target=0x[40-hex]
-
-// Response (200)
-interface UnfollowResponse {
-  ok: true;
-  follower_address: string;
-  following_address: string;
-}
-```
-
-Errors: `400 BAD_REQUEST`, `401 UNAUTHORIZED`.
-
----
-
-### `GET /api/follows/[address]`
-
-Followers + following lists for a given address.
-
-- **Auth:** none
-- **Source:** `follows` (Supabase)
-- **Cache:** dynamic
-- **Status:** ready-to-build
-
-```ts
-interface Params { address: string; }
-
-// Response (200)
-interface FollowsListResponse {
-  address: string;
-  followers: string[];          // addresses following `address`
-  following: string[];          // addresses `address` follows
-  follower_count: number;
-  following_count: number;
-}
-```
-
-Errors: `400 BAD_REQUEST`.
-
----
-
-### `GET /api/notifications/[address]`
-
-Notification list for a wallet. Caller must be authenticated as that wallet — cross-account reads are rejected with 401.
-
-- **Auth:** SIWE (path address must match session address)
-- **Source:** `notifications` (Supabase, service role)
-- **Cache:** dynamic
-- **Status:** ready-to-build
-
-```ts
-interface Params { address: string; }
-// Query: ?limit=50&cursor=<ISO timestamp from previous page's last notification>
-
-interface NotificationsListResponse {
-  address: string;
-  unread_count: number;
-  notifications: NotificationRow[];
-  next_cursor: string | null;
-}
-
-interface NotificationRow {
-  id: string;
-  recipient_address: string;
-  event_id: string;
-  type: 'FOLLOW' | 'MINT' | 'LIST' | 'SALE' | 'XFER' | 'OFFER';
-  read: boolean;
-  created_at: string;
-}
-```
-
-Errors: `400 BAD_REQUEST`, `401 UNAUTHORIZED` (no session OR session-address mismatch).
-
----
-
-### `POST /api/notifications/read`
-
-Mark notifications read in bulk. Scoped to the caller — passing a notification ID that belongs to another address is silently ignored (won't update the row).
-
-- **Auth:** SIWE
-- **Source:** `notifications` (Supabase, service role)
-- **Cache:** dynamic
-- **Status:** ready-to-build
-
-```ts
-interface MarkReadRequestBody { ids: string[]; } // 1..200 notification IDs
-
-// Response (200)
-interface MarkReadResponse {
-  ok: true;
-  updated: number; // number of rows actually changed
-}
-```
-
-Errors: `400 BAD_REQUEST` (empty array, > 200 IDs, bad JSON), `401 UNAUTHORIZED`.
-
----
-
-### `GET /api/search?q=`
-
-Full-text search over projects (by title) and users (by ENS / display name / address). Min query length: 2 chars. Max results per category: 20.
-
-- **Auth:** none
-- **Source:** `projects`, `users` (Supabase, ILIKE)
-- **Cache:** 60s ISR
-- **Status:** ready-to-build
-
-```ts
-// Query: ?q=<string, min 2 chars>
-
-interface SearchResponse {
-  query: string;
-  projects: Array<{
-    id: string;
-    title: string;
-    artist_address: string;
-    minted_count: number;
-    max_supply: number;
-  }>;
-  users: Array<{
-    address: string;
-    ens_name: string | null;
-    display_name: string | null;
-  }>;
-}
-```
-
-Errors: `400 BAD_REQUEST`.
-
-Future: when project / user counts grow past a few thousand rows, swap ILIKE for Postgres `tsvector` + GIN index, or move to a dedicated search service (Meilisearch / Typesense). Response shape stays the same.
-
----
-
-## Indexer-derived routes (mocked)
-
-Each route below currently returns typed mock data shaped to match the production response. The mock reflects the Kiki genesis project (2,222 editions, ~$22 mint price) with the locked trait names (Palette / Mode / Encounter / State).
-
-### `GET /api/project/[slug]`
-
-- **Auth:** none
-- **Source:** `projects` (Supabase, indexer-written)
-- **Cache:** 15s ISR
-- **Status:** blocked-on-indexer
-
-```ts
-interface Params { id: string; }
-
-interface ProjectResponse {
-  id: string;
-  artist_address: string;
-  title: string;
-  description: string;
-  minted_count: number;
-  max_supply: number;
-  floor_price_eth: string;
-  volume_eth: string;
-  all_time_high_eth: string;
-  cooldown_until: string | null;     // ISO; null while primary still open
-  primary_active: boolean;
-  traits: Array<{ name: string; values: string[] }>;
-}
-```
-
----
-
-### `GET /api/project/[slug]/outputs`
-
-- **Auth:** none
-- **Source:** `outputs` (derived view; indexer-written)
-- **Cache:** 300s ISR
-- **Status:** blocked-on-indexer
-
-```ts
-interface Params { id: string; }
-// Query: ?page=1&page_size=24 (max 100)
-
-interface ProjectOutputsResponse {
-  project_id: string;
-  total: number;
-  page: number;
-  page_size: number;
-  outputs: OutputSummary[];
-}
-
-interface OutputSummary {
-  id: string;                       // "{project_id}-{edition}"
-  project_id: string;
-  edition: number;
-  owner: string;
-  minter: string;
-  list_price_eth: string | null;
-  last_sale_eth: string | null;
-  traits: { Palette: string; Mode: string; Encounter: string; State: string };
-}
-```
-
----
-
-### `GET /api/project/[slug]/feed`
-
-- **Auth:** none
-- **Source:** `events` filtered by `project_id` (indexer-written)
-- **Cache:** 5s ISR
-- **Status:** blocked-on-indexer
-
-```ts
-interface Params { id: string; }
-// Query: ?limit=20
-
-interface ProjectFeedResponse {
-  project_id: string;
-  events: EventRow[];
-  next_cursor: string | null;       // ISO timestamp of oldest event in page
-}
-
-interface EventRow {
-  id: string;
-  type: 'MINT' | 'LIST' | 'SALE' | 'XFER';
-  project_id: string;
-  token_id: string | null;
-  from_address: string | null;
-  to_address: string | null;
-  price_eth: string | null;
-  timestamp: string;
-}
-```
-
----
-
-### `GET /api/output/[id]`
-
-Token detail plus full event history.
-
-- **Auth:** none
-- **Source:** derived `outputs` view + `events` (indexer-written)
-- **Cache:** 15s ISR
-- **Status:** blocked-on-indexer
-
-```ts
-interface Params { id: string; }    // "{project_id}-{edition}"
-
-interface OutputDetailResponse {
-  id: string;
-  project_id: string;
-  edition: number;
-  owner: string;
-  minter: string;
-  minted_at: string;
-  list_price_eth: string | null;
-  last_sale_eth: string | null;
-  traits: { Palette: string; Mode: string; Encounter: string; State: string };
-  history: EventRow[];
-}
-```
-
----
-
-### `GET /api/artist/[address]`
-
-Artist profile, cooldown status (60-day enforcement), and their projects.
-
-- **Auth:** none
-- **Source:** `users` + `projects` (Supabase, indexer-written for cooldown)
-- **Cache:** 30s ISR
-- **Status:** blocked-on-indexer
-
-```ts
-interface Params { address: string; }
-
-interface ArtistResponse {
-  address: string;
-  ens_name: string | null;
-  display_name: string | null;
-  bio: string | null;
-  avatar_url: string | null;
-  cooldown_until: string | null;     // ISO; mint-end + 60 days
-  cooldown_active: boolean;
-  cooldown_days_remaining: number;
-  projects: Array<{
-    id: string;
-    title: string;
-    minted_count: number;
-    max_supply: number;
-    floor_price_eth: string | null;
-    volume_eth: string;
-  }>;
-  total_volume_eth: string;
-}
-```
-
----
-
-### `GET /api/feed`
-
-Global activity feed. Filterable by project and event type.
-
-- **Auth:** none
-- **Source:** `events` (indexer-written)
-- **Cache:** 5s ISR
-- **Status:** blocked-on-indexer
-
-```ts
-// Query:
-//   ?limit=20                                 (max 100)
-//   ?types=MINT,SALE                          (default: all four types)
-//   ?project_id=kiki                       (optional, scopes to one project)
-
-interface GlobalFeedResponse {
-  events: EventRow[];
-  next_cursor: string | null;
-  filter: {
-    types: Array<'MINT' | 'LIST' | 'SALE' | 'XFER'>;
-    project_id: string | null;
-  };
-}
-```
-
----
-
-### `GET /api/stats`
-
-Platform-wide totals.
-
-- **Auth:** none
-- **Source:** `projects` + `events` aggregates (indexer-written; likely a materialized view)
-- **Cache:** 60s ISR
-- **Status:** blocked-on-indexer
-
-```ts
-interface PlatformStatsResponse {
-  total_projects: number;
-  total_minted: number;
-  total_holders: number;
-  total_volume_eth: string;
-  primary_volume_eth: string;
-  secondary_volume_eth: string;
-  active_artists: number;
-  artists_in_cooldown: number;
-}
-```
-
----
-
-## Chain-read routes
-
-### `GET /api/price/[address]`
-
-$PRICE ERC-20 balance via Alchemy `eth_call → balanceOf(address)`. No indexer dependency — this is a direct chain read.
-
-- **Auth:** none
-- **Source:** Ethereum mainnet via Alchemy JSON-RPC
-- **Cache:** 10s ISR
-- **Status:** ready-to-build (returns `0` until `PRICE_TOKEN_ADDRESS` is set)
-
-```ts
-interface Params { address: string; }
-
-interface PriceBalanceResponse {
-  address: string;
-  token_address: string;
-  balance_wei: string;
-  balance_formatted: string;       // human-readable, 18 decimals stripped
-  decimals: number;                // 18
-}
-```
-
-Errors: `400 BAD_REQUEST` (invalid address), `500 SERVER_ERROR` (Alchemy upstream failure).
-
----
-
-## Environment variables
-
-Required for full functionality:
-
-| Var | Used by | Notes |
-|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | All Supabase routes | Project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Read routes | Subject to RLS |
-| `SUPABASE_SERVICE_ROLE_KEY` | Write routes | Server-only — never bundle into client |
-| `NEXT_PUBLIC_ALCHEMY_API_KEY` | `/api/price/[address]` | Mainnet endpoint |
-| `SIWE_SESSION_SECRET` | SIWE auth | 32+ char string for cookie encryption |
-| `PRICE_TOKEN_ADDRESS` | `/api/price/[address]` | $PRICE ERC-20 address (set once deployed) |
-
-## Future routes (not in this scaffold)
-
-These are referenced in the auth lifecycle and will land alongside the wallet-connect UI:
-
-- `POST /api/auth/nonce` — issue a CSRF-safe nonce, write into the SIWE session.
-- `POST /api/auth/verify` — verify `{ message, signature }`, write the recovered address into the session.
-- `POST /api/auth/logout` — destroy the session cookie.
-
-Stars and wishlist write routes (`POST/DELETE /api/stars`, `POST/DELETE /api/wishlist`) follow the same pattern as `/api/follows` once the read surfaces are designed.
+## Route index (96 files · method(s) · auth · purpose)
+
+### Auth & account
+| Route | Methods | Auth | Purpose |
+|---|---|---|---|
+| `/api/auth/nonce` | POST | open | Issue SIWE nonce into session |
+| `/api/auth/siwe` | GET·POST·DELETE | open | Session read / verify sign-in / sign-out |
+| `/api/auth/dev-login` | POST | env-gated | Dev-preview login shortcut (404 unless enabled) |
+| `/api/auth/discord` | GET·DELETE | SIWE | Start Discord link / unlink |
+| `/api/auth/discord/callback` | GET | open (state-CSRF) | Discord OAuth return leg |
+| `/api/users/create` | POST | SIWE | Create the account row (grant on new rows only) |
+| `/api/me` | GET·PATCH | SIWE | Own row hydrate / whitelisted state writes (atomic merge) |
+| `/api/me/artist` | GET | SIWE | Own artist/whitelist status |
+| `/api/me/bench` | GET·PUT | SIWE (session-scoped handler) | The Bench collection |
+| `/api/me/cart` | GET·PUT | SIWE (session-scoped handler) | The Cart collection |
+| `/api/handle/check` · `/api/project-handle/check` | GET | open (sensitive-bucket) | Handle availability |
+
+### Identity & profiles
+| Route | Methods | Auth | Purpose |
+|---|---|---|---|
+| `/api/user/[address]` | GET | open | Public profile (never private state) |
+| `/api/user/[address]/count` · `/outputs` · `/owned-projects` | GET | open | Profile sub-reads |
+| `/api/user/by-handle/[handle]` | GET | open | Handle → profile |
+| `/api/anoint` | GET·POST·DELETE | SIWE | Anointment |
+| `/api/achievements/[address]` | GET | open | Achievement reads |
+| `/api/achievements/evaluate` | POST | SIWE | Own achievement evaluation |
+| `/api/streak/ping` | POST | SIWE | Daily streak |
+| `/api/game-score` | GET·POST | SIWE | Lane Runner board |
+| `/api/leaderboard` | GET | open | Boards |
+
+### Projects, outputs, art
+| Route | Methods | Auth | Purpose |
+|---|---|---|---|
+| `/api/project/[slug]` | GET | open | Project detail |
+| `/api/project/[slug]/outputs` · `/feed` · `/floor` · `/story` · `/replay` · `/cartel` · `/factions` · `/gnome` · `/sentiment` | GET | open | Project sub-surfaces |
+| `/api/project/[slug]/mint` | POST | SIWE | Mint (server-priced, atomic, idempotent) |
+| `/api/project/[slug]/predictions` | GET·POST | SIWE | Price Targets (sealed monthly window) |
+| `/api/project/[slug]/artist-push` | GET·POST | SIWE | Artist ping to holders |
+| `/api/home` · `/api/artists` · `/api/artist/[address]` | GET | open | Home / catalog / artist reads |
+| `/api/output/[id]` · `/feed` · `/story` | GET | open | Output detail surfaces |
+| `/api/output/[id]/market` | GET open · POST SIWE | mixed | Market read / list·buy·offer·accept (two rails) |
+| `/api/outputs/colors` | GET | open | Color-bucket reads |
+| `/api/outputs/color` · `/api/outputs/traits` | POST | SIWE (first-writer-wins) | Fingerprint/trait self-population |
+| `/api/preview/[slug]/[id]` · `/api/ascii/[slug]/[id]` | POST | open by design | Write-once render pins (R2) |
+| `/api/output-views` | POST | SIWE | View counter |
+| `/api/output-follows` | GET·POST·DELETE | SIWE (reads open bucket) | Piece follows |
+
+### Social & signals
+| Route | Methods | Auth | Purpose |
+|---|---|---|---|
+| `/api/follows` | POST·DELETE | SIWE | Follow graph writes |
+| `/api/follows/[address]` | GET | open | Follow lists |
+| `/api/project-follows` (+`/[id]`) | GET·POST·DELETE | SIWE writes | Project follows |
+| `/api/pings` · `/count` · `/read` | GET·POST | SIWE | The Pings inbox |
+| `/api/social/circle-stats` | GET | open | Circle stats |
+| `/api/social/mute` | POST | SIWE | Mutes |
+| `/api/feed` | GET | open | Global ledger feed |
+| `/api/history` | GET·DELETE | SIWE | Own browse history |
+| `/api/search` | GET | open | Global search (+ query log) |
+| `/api/takeover` | GET·POST | SIWE | Takeovers |
+| `/api/war` · `/api/war/piece` | GET | open | Faction war reads |
+| `/api/cartography` | GET | open | The map (incl. Sybil nets) |
+| `/api/completionism` | GET | open | Sticker-month completion |
+| `/api/rewind` | GET | open | The Rewind |
+| `/api/priceday/[n]` | GET | open | PriceDay |
+| `/api/calendar` | GET·POST | SIWE | Calendar items |
+
+### Stickers & studio
+| Route | Methods | Auth | Purpose |
+|---|---|---|---|
+| `/api/stickers/market` | GET open · POST SIWE | mixed | Sticker marketplace (atomic RPCs, 95/3/2 fees; store catalog is client-side) |
+| `/api/studio/playlist` | GET | open | Studio reads |
+| `/api/studio/soundtrack` | PATCH | SIWE (artist-gated) | Soundtrack manager |
+| `/api/studio/vouch` | GET·POST | SIWE (whitelisted) | Artist vouches |
+| `/api/studio/sticker-collabs` | GET·POST | SIWE (studio-gated) | Collector-collab routing |
+
+### Platform, chain, ops
+| Route | Methods | Auth | Purpose |
+|---|---|---|---|
+| `/api/stats` | GET | open | Platform stats |
+| `/api/market/orders` | GET·POST | SIWE writes | Seaport order book |
+| `/api/price/[address]` | GET | open | $PRICE balance (chain read) |
+| `/api/gas` · `/api/fx` · `/api/rpc-ping` | GET | open | Gas / fiat / RPC probes |
+| `/api/newsletter/subscribe` | GET·POST | open | Digest signup (Resend-backed; the Dispatch itself prints via its cron and renders as pages) |
+| `/api/push/pubkey` | GET | open | VAPID public key |
+| `/api/push/subscribe` · `/unsubscribe` | POST | SIWE | Push subscriptions |
+| `/api/telemetry` | POST | open (rate-limited) | Client error beacon → app_errors |
+| `/api/health` | GET | open | Platform health (db · sweep · ledger · Dispatch + system stamps) |
+| `/api/webhooks/alchemy` | POST | HMAC (raw-body) | Indexer ingest |
+| `/api/cron/*` (9 sweeps) | GET | CRON_SECRET bearer, fail-closed | todo-reminders · indexer-reconcile · social-snapshot · dispatch · takeover-sweep · newsletter · sentinel · war-sweep · economy-audit |
+
+Secrets/env inventory lives in `docs/security/secrets-inventory.md` (names
+only). Keep this page honest: when routes are added or re-shaped, update the
+index and the verified stamp in the same session.
