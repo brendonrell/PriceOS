@@ -1,11 +1,11 @@
 // ===========================================================================
-// TRANSPLANT FILE — drop into PriceOS at:  app/api/webhooks/alchemy/route.ts
+// POST /api/webhooks/alchemy — the indexer's real-time ingest door.
 //
-// Pairs with the indexer core, which moves into PriceOS at  lib/indexer/
-// (this repo's  src/  →  PriceOS  lib/indexer/ ; this repo's  abis/  →
-// PriceOS  lib/indexer/abis/ ). The "@/lib/indexer/..." imports below assume
-// PriceOS's existing "@/*" path alias. Not type-checked in this repo on
-// purpose — it compiles in PriceOS, against PriceOS's Next.js types.
+// Alchemy delivers chain activity here; handleWebhook (lib/indexer/runtime)
+// verifies the HMAC signature over the RAW request bytes, then applies the
+// events idempotently. The 1-minute reconcile sweep
+// (/api/cron/indexer-reconcile) is the catch-up net behind this route.
+// Fails closed: bad/missing signature never writes.
 // ===========================================================================
 
 import { handleWebhook } from "@/lib/indexer/runtime/handleWebhook";
