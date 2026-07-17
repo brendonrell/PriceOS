@@ -2,8 +2,8 @@
 title: "The App — Discovery"
 description: "Finding work on PriceOS: the home page and its carousels, the live feed and milestones, global search, artist surfaces, and PriceRank."
 category: "app"
-keywords: ["discovery", "search", "home", "feed", "pricerank"]
-last_updated: "2026-07-12"
+keywords: ["discovery", "search", "home", "feed", "pricerank", "stickers", "lane runner"]
+last_updated: "2026-07-17"
 ---
 
 # The App — Discovery
@@ -20,6 +20,7 @@ The platform's front door, wearing the daily Mood Ring colour:
 - **Ownership marks** — the grid quietly checks (✓) what you already own as you browse.
 - **The name itself** — "Price Discussion" is the platform's compass: **long-press** it to open [Cartography ◫](/docs/app/the-cartography), **triple-tap** it to enter [The Rewind ◄](/docs/app/the-rewind).
 - **The Dispatch pill** — the news rail leads with the ▤ pointer to [the morning paper](/docs/app/the-dispatch).
+- **The STICKERS button** (⊞) — the action row's door to [the Sticker Exchange](/docs/stickers/overview): store, marketplace, and binder in one slide-up sheet.
 
 ## Global search
 
@@ -33,7 +34,7 @@ The artists view lists the whitelisted roster; each artist's page carries their 
 
 ## PriceRank ❂
 
-The standing system, as a surface: the platform-wide ranking fed by achievements and activity, with network filters for slicing the leaderboard to the people you care about. Leaderboards elsewhere in the app (including sillier ones) share its machinery.
+The standing system, as a surface: the platform-wide ranking fed by achievements and activity, with network filters for slicing the leaderboard to the people you care about. Leaderboards elsewhere in the app (including sillier ones) share its machinery — up to and including **Lane Runner**, the platform's hidden arcade cabinet, which keeps its own board. (Typing its name into Global Search is one way in.)
 
 ## The Calendar ▦
 

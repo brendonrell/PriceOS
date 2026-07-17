@@ -3,7 +3,7 @@ title: "Building on PD"
 description: "PD wants community-built tools: what you can build on today (the fully open chain surface), what's coming to the API reference, and the conventions that make agents and tools first-class citizens."
 category: "building"
 keywords: ["build", "developers", "community tools", "api", "integrations"]
-last_updated: "2026-07-10"
+last_updated: "2026-07-17"
 ---
 
 # Building on PD
@@ -19,6 +19,7 @@ Everything tokenized lives on Ethereum, readable by anyone, with no key, no rate
 - **The art itself** — `tokenURI` returns the complete, self-contained artwork; `getScript()` hands you the raw generative script. You can re-render any Output from chain data alone — that's the [whole design](/docs/contracts/pd-project).
 - **Live activity** — `Minted` and `ProjectCreated` events are the platform's real-time pulse; every indexer trick that works on Ethereum works on PD.
 - **Money mechanics** — royalty splits, pending balances, and every payout are readable on the [Project](/docs/contracts/pd-project) and [splitter](/docs/contracts/payment-splitter) contracts.
+- **The sticker economy** — sheets, print runs, sealed supply, and pool state are all public reads on [PDStickers](/docs/contracts/pd-stickers); `sealedOutstanding` alone is a market-data feed waiting for a chart.
 
 A weekend's work gets you a mint bot, a floor tracker, a provenance checker, a portfolio dashboard, or a renderer — with no dependency on PD's servers at all.
 

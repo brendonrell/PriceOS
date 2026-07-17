@@ -101,6 +101,15 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
         slugs: ['pings/overview', 'pings/controls', 'pings/artist-push'],
     },
     {
+        title: 'Stickers',
+        slugs: [
+            'stickers/overview',
+            'stickers/the-store',
+            'stickers/the-marketplace',
+            'stickers/the-binder-and-your-profile',
+        ],
+    },
+    {
         title: 'Build on PD',
         slugs: ['building-on-pd', 'mcp'],
     },
@@ -111,6 +120,7 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
             'contracts/pd-factory',
             'contracts/pd-project',
             'contracts/payment-splitter',
+            'contracts/pd-stickers',
             'contracts/library-registry',
         ],
     },

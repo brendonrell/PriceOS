@@ -3,7 +3,7 @@ title: "Pings — Overview"
 description: "PD's notification system in full: what earns a ping, the inbox and its read-by-scroll model, every glyph, and how pings reach your screen, your toasts, and your phone."
 category: "pings"
 keywords: ["pings", "notifications", "inbox", "unread", "push", "glyphs"]
-last_updated: "2026-07-12"
+last_updated: "2026-07-17"
 ---
 
 # Pings — Overview
@@ -62,6 +62,21 @@ Three escalating layers, all yours to set (detail in [Controls](/docs/pings/cont
 1. **The inbox** — always. Every ping you haven't filtered out lands here silently.
 2. **Pingtoasts** — live in-app toasts while you're browsing.
 3. **3D Pingtoasts** — real lock-screen push notifications, opt-in, delivered by your recipient's own PriceSprite.
+
+<svg viewBox="0 0 720 176" role="img" aria-labelledby="ping-reach-title" style="width:100%;height:auto;display:block;margin:14px 0 0">
+<title id="ping-reach-title">The three reach layers of a ping: every ping lands in the inbox; pingtoasts surface them live in the app; 3D pingtoasts reach the lock screen, opt-in, budgeted.</title>
+<g font-family="'Courier New', Courier, monospace" font-size="13" font-weight="bold">
+<rect x="10" y="10" width="700" height="150" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="26" y="36" fill="currentColor">1 · THE INBOX</text>
+<text x="26" y="55" fill="currentColor" font-weight="normal" font-size="12">every ping, always, silently — scrolling is what marks it read</text>
+<rect x="200" y="68" width="510" height="92" fill="var(--bg-color)" stroke="currentColor" stroke-width="1.5"/>
+<text x="216" y="94" fill="currentColor">2 · PINGTOASTS</text>
+<text x="216" y="113" fill="currentColor" font-weight="normal" font-size="12">live in-app toasts while you browse</text>
+<rect x="420" y="122" width="290" height="38" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="436" y="140" fill="currentColor">3 · 3D PINGTOASTS</text>
+<text x="436" y="154" fill="currentColor" font-weight="normal" font-size="12">the lock screen — opt-in, budgeted</text>
+</g>
+</svg>
 
 ## The respect policy
 

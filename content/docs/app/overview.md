@@ -3,7 +3,7 @@ title: "The App — Overview"
 description: "A map of PriceOS: the shell, Projects and minting, Outputs, identity, the collector toolset, the Spell Book, Pings, achievements, discovery, and display settings."
 category: "app"
 keywords: ["priceos", "app", "features", "overview"]
-last_updated: "2026-07-12"
+last_updated: "2026-07-17"
 ---
 
 # The App — Overview
@@ -19,6 +19,7 @@ PriceOS is the software layer of Price Discussion — the app collectors and art
 - **[Collector Tools](/docs/app/collector-tools)** — the OS-tools layer: To-Dos, Notes, the Cart, the Bench, the Calc, the Calendar, Workflows, and Portfolio.
 - **[The Spell Book](/docs/app/spell-book)** — pill-toggleable view modifiers and the platform's stranger surfaces.
 - **[Pings](/docs/pings/overview)** — the notification system: what fires, what you control, and how pings reach your devices.
+- **[Stickers ⊞](/docs/stickers/overview)** — the second economy: sealed sheets, the peel, the binder, and a marketplace of its own.
 - **[Achievements](/docs/app/achievements)** — the unlock system across thirteen categories.
 - **[Discovery](/docs/app/discovery)** — search, the home surfaces, feeds, and PriceRank.
 - **[Composer ⊚](/docs/app/the-composer)** — the visual query builder: compose a question about the whole catalog, watch it answer live, save it as a Program.

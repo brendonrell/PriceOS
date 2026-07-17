@@ -3,7 +3,7 @@ title: "Price Discussion Documentation"
 description: "Reference and onboarding for Price Discussion — the generative art platform where the community discussing prices is the product. The app, the smart contracts, and the $PRICE token."
 category: "introduction"
 keywords: ["price discussion", "priceos", "generative art", "ethereum", "documentation"]
-last_updated: "2026-07-10"
+last_updated: "2026-07-17"
 ---
 
 # Price Discussion Documentation
@@ -33,7 +33,8 @@ PD is not a marketplace. Primary mints happen through the PDProject contract dir
 ## What this documentation covers
 
 - **[The App](/docs/app/overview)** — every PriceOS surface: Projects and minting, Outputs, identity and profiles, the collector toolset, the Spell Book, Pings, achievements, discovery, and display settings.
-- **[Smart contracts](/docs/contracts/overview)** — the factory, the per-Project ERC-721, the royalty splitter, and the on-chain library registry, with real function signatures from the deployed source.
+- **[Stickers](/docs/stickers/overview)** — the platform's second economy: on-chain SVG collectibles in sealed sheets, with a store, a marketplace, and a binder of their own.
+- **[Smart contracts](/docs/contracts/overview)** — the factory, the per-Project ERC-721, the royalty splitters, the sticker shop, and the on-chain library registry, with real function signatures from the deployed source.
 - **[$PRICE token](/docs/price-token/overview)** — what it is, what it deliberately is not, tokenomics, and the contract reference.
 - **Onboarding** — guided paths for [artists](/docs/for-artists/how-pd-works) and [collectors](/docs/for-collectors/how-pd-works).
 
@@ -55,7 +56,7 @@ Claude-made communicates quality.
 
 ## Platform status
 
-The PriceOS app and the contract suite are complete and running against Ethereum's Sepolia test network, where all five contracts are deployed and source-verified on Etherscan. Mainnet deployment is the launch event; contract addresses are published in these docs when they exist. The [$PRICE token](/docs/price-token/contract) is already live on Ethereum mainnet.
+The PriceOS app and the contract suite are complete and running against Ethereum's Sepolia test network, where the full suite — factory, Project, splitters, library registry, and the sticker shop — is deployed and exercised end to end. Mainnet deployment is the launch event; contract addresses are published in these docs when they exist. The [$PRICE token](/docs/price-token/contract) is already live on Ethereum mainnet.
 
 ## Further reading
 

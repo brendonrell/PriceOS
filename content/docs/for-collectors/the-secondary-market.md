@@ -3,7 +3,7 @@ title: "For Collectors — The Secondary Market"
 description: "How PD Outputs trade after mint: PD's own market and offer book, Takeovers, third-party venues, the 5% EIP-2981 royalty, and how to verify authenticity before buying."
 category: "for-collectors"
 keywords: ["secondary market", "trading", "offers", "listings", "takeover", "royalties", "verification", "isProject"]
-last_updated: "2026-07-12"
+last_updated: "2026-07-17"
 ---
 
 # For Collectors — The Secondary Market
@@ -20,6 +20,8 @@ PD runs its **own order book** — listings and offers live in the app, and the 
 - **[Takeover](/docs/for-collectors/hostile-takeover) ⚑** — the blanket premium bid on another collector's entire position. Takeover offers ride the same book, wear a badge in the Offers tab, and cannot be withdrawn during their 72-hour window — enforceable precisely because the book is PD's own.
 
 During the test phase the book settles in sim ETH; at chain cutover the same book carries wallet-signed Seaport orders and settles on-chain. Nothing about the surfaces changes.
+
+(The art market has a sibling: [sticker sheets trade on their own book](/docs/stickers/the-marketplace), with the same fee rates and the same order grammar at pocket-money stakes.)
 
 ## Trading elsewhere
 

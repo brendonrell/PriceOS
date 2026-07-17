@@ -3,7 +3,7 @@ title: "For Artists — The Mint Flow"
 description: "What happens on-chain when a Project deploys and mints: the createProject call, on-chain script storage, per-token hashes, and the push-pattern payout in every mint."
 category: "for-artists"
 keywords: ["mint", "deploy", "createProject", "on-chain", "token hash"]
-last_updated: "2026-07-10"
+last_updated: "2026-07-17"
 ---
 
 # For Artists — The Mint Flow
@@ -40,6 +40,31 @@ Collectors call `mint(uint256 quantity)` on your Project (up to 22 per transacti
 1. **Checks payment exactly.** `msg.value` must equal `mintPrice × quantity` plus the per-token storage fee — no overpayment accepted, nothing to refund.
 2. **Assigns each token its hash.** Token IDs are 1-indexed and sequential. Each Output's `tokenHash` is derived from the previous block's hash, the inclusion block's `prevrandao`, the token ID, and the minter — unknowable before the transaction lands, so outcomes cannot be precomputed.
 3. **Pays everyone immediately.** 95% of the mint price goes to your wallet and 5% to the platform wallet **in the same transaction**. The storage fee goes to the platform's storage wallet. The contract's balance is zero before and after every transaction — there is no escrow and no withdrawal step for primary proceeds.
+
+<svg viewBox="0 0 720 210" role="img" aria-labelledby="mint-split-title" style="width:100%;height:auto;display:block;margin:14px 0">
+<title id="mint-split-title">One mint transaction pays three parties atomically: 95% of the mint price to the artist, 5% to the platform wallet, and the flat storage fee to the storage wallet. The contract holds nothing.</title>
+<g font-family="'Courier New', Courier, monospace" font-size="13" font-weight="bold">
+<rect x="10" y="72" width="190" height="66" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="105" y="98" fill="currentColor" text-anchor="middle">mint(quantity)</text>
+<text x="105" y="117" fill="currentColor" text-anchor="middle" font-weight="normal" font-size="12">exact ETH in ·</text>
+<text x="105" y="131" fill="currentColor" text-anchor="middle" font-weight="normal" font-size="12">contract keeps nothing</text>
+<path d="M200 88 L 330 34" stroke="currentColor" stroke-width="1.5" fill="none"/>
+<path d="M328 29 L 341 30 L 332 40 Z" fill="currentColor"/>
+<path d="M200 105 H 330" stroke="currentColor" stroke-width="1.5" fill="none"/>
+<path d="M330 100 L 342 105 L 330 110 Z" fill="currentColor"/>
+<path d="M200 122 L 330 176" stroke="currentColor" stroke-width="1.5" fill="none"/>
+<path d="M332 170 L 341 180 L 328 181 Z" fill="currentColor"/>
+<rect x="345" y="6" width="365" height="48" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="355" y="26" fill="currentColor">ARTIST · 95% of mint price</text>
+<text x="355" y="44" fill="currentColor" font-weight="normal" font-size="12">your immutable address — paid inside the mint</text>
+<rect x="345" y="81" width="365" height="48" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="355" y="101" fill="currentColor">PLATFORM · 5% of mint price</text>
+<text x="355" y="119" fill="currentColor" font-weight="normal" font-size="12">platformWallet(), read live from the factory</text>
+<rect x="345" y="156" width="365" height="48" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="355" y="176" fill="currentColor">STORAGE · flat fee per token</text>
+<text x="355" y="194" fill="currentColor" font-weight="normal" font-size="12">funds previews — corridor-capped, forever</text>
+</g>
+</svg>
 
 ## Where the art lives
 

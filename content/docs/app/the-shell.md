@@ -3,7 +3,7 @@ title: "The App — The Shell"
 description: "PriceOS's persistent layer: the Tape ticker, the navbar, the footer's live readouts and easter eggs, the installable PWA, and the colorway system."
 category: "app"
 keywords: ["shell", "tape", "pwa", "footer", "colorways"]
-last_updated: "2026-07-10"
+last_updated: "2026-07-17"
 ---
 
 # The App — The Shell
@@ -23,7 +23,7 @@ Navigation, global search, your PriceSprite, and the connect surface. It fades w
 Deliberately under-used real estate, currently three rows:
 
 - **System row** — the PriceOS version (tap for the changelog), connection status, live gas in gwei, and the current Ethereum block number.
-- **Easter-egg row** — the **Mood Ring** (⌬), today's platform-wide generative colour, and **Today's Stars** (☉ ☽ ↑), the natal sky over Montreal at today's UTC midnight; every Output minted today is born under it.
+- **Easter-egg row** — [the Dispatch](/docs/app/the-dispatch) (▤), the **Mood Ring** (⌬), today's platform-wide generative colour, and **Today's Stars** (☉ ☽ ↑), the natal sky over Montreal at today's UTC midnight; every Output minted today is born under it.
 - **Links row** — About, Discord, these Docs, Support, Studio.
 
 ## The installable app

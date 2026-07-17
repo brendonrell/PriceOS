@@ -2,8 +2,8 @@
 title: "The App — Collector Tools"
 description: "The OS-tools layer of PriceOS: To-Dos with ETH targets, private Notes, the Cart, the drag-only Bench, the Calc, the Calendar, Workflows, and the Portfolio."
 category: "app"
-keywords: ["os tools", "todos", "notes", "cart", "bench", "workflows"]
-last_updated: "2026-07-10"
+keywords: ["os tools", "todos", "notes", "cart", "bench", "workflows", "anchor", "sentinel"]
+last_updated: "2026-07-17"
 ---
 
 # The App — Collector Tools
@@ -36,6 +36,10 @@ A pricing scratchpad in a sheet — quick math on editions, targets, and splits 
 
 The platform's temporal surface: what minted when, what's minting, and your own marks on the timeline.
 
+## The Anchor ⚓
+
+Your own reference price, per collection: set the number a Project's prices should be read against, and surfaces that price against it. An anchor is a private opinion the interface respects.
+
 ## Portfolio
 
 The full holdings view: everything the wallet owns with the market layer on — and **The Shadow** (◐), its paper-trading twin, for the positions you didn't take.
@@ -47,6 +51,10 @@ Per-page watchlists — items you're actively monitoring, with **watch hits** ro
 ## Global search
 
 One field, the whole platform: Projects, Outputs, artists, collectors, @names.
+
+## Workspaces
+
+Whole tool arrangements — every mode, spell, and setting — saved as one-tap personas (Appraiser, Trader, Curator, Scout…) and switchable from settings. They ride Setup Codes, so a workspace is also shareable. See [Settings & Display](/docs/app/settings-and-display).
 
 ## Further reading
 

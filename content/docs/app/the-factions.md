@@ -3,7 +3,7 @@ title: "The App — Factions ⚐"
 description: "The colour war: your Sigil is who you are, your colour is who you fight for, and every artwork remembers both. Allegiance, the Marginalia, sieges, conquests, and the Book of Conquests — the full rules of PD's quiet war."
 category: "app"
 keywords: ["factions", "war", "marginalia", "oath", "siege", "conquest", "book of conquests", "corners", "banner", "grip", "relic", "crypt", "struck from the stone", "war banners"]
-last_updated: "2026-07-13"
+last_updated: "2026-07-17"
 ---
 
 # Factions ⚐
@@ -114,6 +114,41 @@ flag flies on your profile.
 The whole platform is the board. Every collection is territory.
 
 **The loop: ENLIST → HOLD → MARK → SIEGE → CONQUER → the Book remembers.**
+
+<svg viewBox="0 0 720 128" role="img" aria-labelledby="war-loop-title" style="width:100%;height:auto;display:block;margin:14px 0 0">
+<title id="war-loop-title">The war loop: enlist by raising a colour, hold to compound grip, every trade marks the margins, sieges open in public and take 72 hours, conquest flips the ground, and the Book of Conquests records it forever.</title>
+<g font-family="'Courier New', Courier, monospace" font-size="13" font-weight="bold">
+<rect x="10" y="24" width="96" height="44" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="58" y="50" fill="currentColor" text-anchor="middle">ENLIST</text>
+<path d="M106 46 H 124" stroke="currentColor" stroke-width="1.5"/>
+<path d="M124 41 L 134 46 L 124 51 Z" fill="currentColor"/>
+<rect x="136" y="24" width="88" height="44" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="180" y="50" fill="currentColor" text-anchor="middle">HOLD</text>
+<path d="M224 46 H 242" stroke="currentColor" stroke-width="1.5"/>
+<path d="M242 41 L 252 46 L 242 51 Z" fill="currentColor"/>
+<rect x="254" y="24" width="88" height="44" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="298" y="50" fill="currentColor" text-anchor="middle">MARK</text>
+<path d="M342 46 H 360" stroke="currentColor" stroke-width="1.5"/>
+<path d="M360 41 L 370 46 L 360 51 Z" fill="currentColor"/>
+<rect x="372" y="24" width="94" height="44" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="419" y="50" fill="currentColor" text-anchor="middle">SIEGE ▞</text>
+<path d="M466 46 H 484" stroke="currentColor" stroke-width="1.5"/>
+<path d="M484 41 L 494 46 L 484 51 Z" fill="currentColor"/>
+<rect x="496" y="24" width="110" height="44" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="551" y="50" fill="currentColor" text-anchor="middle">CONQUER ⚐</text>
+<path d="M606 46 H 624" stroke="currentColor" stroke-width="1.5"/>
+<path d="M624 41 L 634 46 L 624 51 Z" fill="currentColor"/>
+<rect x="636" y="24" width="74" height="44" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="673" y="50" fill="currentColor" text-anchor="middle">≣</text>
+<text x="58" y="90" fill="currentColor" text-anchor="middle" font-weight="normal" font-size="12">raise a colour</text>
+<text x="180" y="90" fill="currentColor" text-anchor="middle" font-weight="normal" font-size="12">time × standing</text>
+<text x="298" y="90" fill="currentColor" text-anchor="middle" font-weight="normal" font-size="12">every trade signs</text>
+<text x="419" y="90" fill="currentColor" text-anchor="middle" font-weight="normal" font-size="12">public · 72h</text>
+<text x="551" y="90" fill="currentColor" text-anchor="middle" font-weight="normal" font-size="12">the corners fall</text>
+<text x="673" y="90" fill="currentColor" text-anchor="middle" font-weight="normal" font-size="12">the Book</text>
+<text x="673" y="106" fill="currentColor" text-anchor="middle" font-weight="normal" font-size="12">remembers</text>
+</g>
+</svg>
 
 ### Grip — what holding means
 

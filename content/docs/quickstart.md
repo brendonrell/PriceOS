@@ -3,7 +3,7 @@ title: "Quickstart"
 description: "Five paths into Price Discussion: artists submitting work, collectors connecting a wallet, developers reading the contracts, agents fetching markdown, and the curious."
 category: "introduction"
 keywords: ["quickstart", "getting started", "introduction"]
-last_updated: "2026-07-10"
+last_updated: "2026-07-17"
 ---
 
 # Quickstart
@@ -26,7 +26,7 @@ Connect a wallet on the app and sign in with Ethereum — your wallet is your id
 2. [The Secondary Market](/docs/for-collectors/the-secondary-market) covers trading PD Outputs and verifying authenticity before you buy.
 3. [The App overview](/docs/app/overview) tours the surfaces you'll actually live in.
 
-Browsing, starring, wishlisting, and following are free. Fees exist only where a transaction touches the chain: minting and trading.
+Browsing, starring, wishlisting, and following are free. Fees exist only where a transaction touches the chain: minting and trading. (And when the art market feels heavy, [the sticker economy](/docs/stickers/overview) is the same platform at pocket-money stakes.)
 
 ## I am a developer
 
