@@ -177,7 +177,25 @@ per dimension:
 | Project + colour | ⬚◉ | — | two-level combo (project over colour) |
 | Owner + colour | ⌂◉ | — | two-level combo (project page — owner over colour) |
 | Last sold $ | $ | — | coming soon |
-| Rarity | ❖ | U+2756 | freed from rank for rarity sitewide |
+| Rarity | ❖ | U+2756 | freed from rank for rarity sitewide — **REAL since 2026-07-16** (pdRarity tiers, the Vault's read) |
+
+**The 2026-07-16 expansion** (Brendon: "way more group options… deep cuts deep
+in the cycle") — every face reuses an existing meaning or a plain character
+(the `$` precedent); values resolve in `lib/state/groupDimensions.ts`:
+
+| Group | Glyph | Codepoint | Source |
+|---|---|---|---|
+| Listed | ✹ | U+2739 | the canonical Listed star (§1) |
+| Fate | ䷲ | U+4DF2 | the Fate facet-bar L1 pill glyph (already shipped) |
+| Temperature (warm/cool) | ° | U+00B0 | plain char (`$` precedent) |
+| Light (brightness bands) | ◑ | U+25D1 | the lunarGlyph disc family (shipped in Celestial); NOT ◐ — that stays Shadow's |
+| Mood (tone words) | ~ | U+007E | plain char |
+| Orientation | ▭ | U+25AD | block-element family (long-proven text) |
+| Moon phase | ○ | U+25CB | the lunarGlyph full-moon disc (shipped in Celestial) |
+| Zodiac (natal sun) | ⍟ | U+235F | the sky/Stargazing star — context disambiguates (the ◉ precedent) |
+| Born on (weekday) | ▦ | U+25A6 | the Calendar square (§7) — a birth-day read |
+| Faction | ⚐ | U+2690 | the war banner (§13); the faction itself stays a colour, per the war rule |
+| Numerology | # | U+0023 | plain char — id classes (The First · Palindromes · Primes · Round Numbers · Sevens) |
 
 > Grouping headers are **collapsible**: a small triangle leads each header —
 > ▾ (U+25BE) open, ▸ (U+25B8) folded — and tapping the row folds its pieces

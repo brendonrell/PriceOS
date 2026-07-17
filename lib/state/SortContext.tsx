@@ -70,17 +70,32 @@ export type FeedKind = 'time' | 'price';
 export type GroupKey =
     | 'none' | 'artist' | 'project' | 'artistProject'
     | 'artistColor' | 'projectColor' | 'ownerColor'
-    | 'owner' | 'color' | 'lastSold' | 'rarity';
+    | 'owner' | 'color' | 'lastSold' | 'rarity'
+    /* THE EXPANSION (Brendon, 2026-07-16 — "way more group options… deep cuts
+       deep in the cycle"). Everyday cuts first, the esoterica buried deep:
+       market state · Fate · REAL pdRarity tiers · the stored visual
+       fingerprint (temperature/light/mood/orientation) · the mint sky
+       (moon phase/zodiac/weekday) · the war (owner faction) · numerology.
+       Values resolve through lib/state/groupDimensions (shared by both
+       galleries). */
+    | 'listed' | 'fate' | 'temperature' | 'light' | 'mood' | 'orientation'
+    | 'moon' | 'zodiac' | 'weekday' | 'faction' | 'numerology';
 
 export const PROJECT_GROUP_ORDER: GroupKey[] =
-    ['none', 'owner', 'color', 'ownerColor', 'lastSold', 'rarity'];
+    ['none', 'owner', 'color', 'ownerColor', 'listed', 'fate', 'rarity',
+        'temperature', 'light', 'mood', 'orientation',
+        'moon', 'zodiac', 'weekday', 'faction', 'numerology', 'lastSold'];
 export const COLLECTED_GROUP_ORDER: GroupKey[] =
-    ['none', 'artist', 'project', 'artistProject', 'color', 'artistColor', 'projectColor', 'lastSold', 'rarity'];
+    ['none', 'artist', 'project', 'artistProject', 'color', 'artistColor', 'projectColor',
+        'listed', 'fate', 'rarity', 'temperature', 'light', 'mood', 'orientation',
+        'moon', 'zodiac', 'weekday', 'numerology', 'lastSold'];
 /* The settings DEFAULT SORT row's group pill cycles the full master order —
    every dimension, in the §comment order above (Brendon, 2026-07-12). A
    surface that doesn't carry the chosen dimension simply shows ungrouped. */
 export const DEFAULT_GROUP_ORDER: GroupKey[] =
-    ['none', 'artist', 'project', 'artistProject', 'owner', 'color', 'artistColor', 'projectColor', 'ownerColor', 'lastSold', 'rarity'];
+    ['none', 'artist', 'project', 'artistProject', 'owner', 'color', 'artistColor', 'projectColor', 'ownerColor',
+        'listed', 'fate', 'rarity', 'temperature', 'light', 'mood', 'orientation',
+        'moon', 'zodiac', 'weekday', 'faction', 'numerology', 'lastSold'];
 
 /* Single-character glyph per dimension (docs/GLYPHS.md). 'none' shows NO glyph
    in group headers (Brendon, 2026-06-18); the standalone group TOGGLE wears
@@ -98,6 +113,23 @@ export const GROUP_GLYPH: Record<GroupKey, string> = {
     color: '◉︎',
     lastSold: '$',
     rarity: '❖︎',
+    /* The expansion (2026-07-16, docs/GLYPHS.md §4). Reuse before invention:
+       ✹ = the canonical Listed star · ䷲ = the Fate hexagram (facet-bar L1
+       pill) · ▦ = the Calendar square (born-on) · ⍟ = the sky/Stargazing star
+       (context disambiguates, the ◉ precedent) · ⚐ = the war banner ·
+       ○/◑ = the shipped lunarGlyph disc family. Plain chars ($ precedent):
+       ° temperature · ~ mood · # numerology. */
+    listed: '✹︎',
+    fate: '䷲︎',
+    temperature: '°',
+    light: '◑︎',
+    mood: '~',
+    orientation: '▭︎',
+    moon: '○︎',
+    zodiac: '⍟︎',
+    weekday: '▦︎',
+    faction: '⚐︎',
+    numerology: '#',
 };
 
 /* Resting face of the standalone group toggle (grouping OFF) — the four-dot
@@ -114,10 +146,16 @@ export const GROUP_LABEL: Record<GroupKey, string> = {
     ownerColor: 'OWNER + COLOR',
     owner: 'OWNER',
     color: 'COLOR', lastSold: 'LAST SOLD', rarity: 'RARITY',
+    listed: 'LISTED', fate: 'FATE', temperature: 'TEMPERATURE',
+    light: 'LIGHT', mood: 'MOOD', orientation: 'ORIENTATION',
+    moon: 'MOON PHASE', zodiac: 'ZODIAC', weekday: 'BORN ON',
+    faction: 'FACTION', numerology: 'NUMEROLOGY',
 };
 
-/* Dimensions with no data yet — render as a single greyed "coming soon" group. */
-export const GROUP_SOON: Partial<Record<GroupKey, boolean>> = { lastSold: true, rarity: true };
+/* Dimensions with no data yet — render as a single greyed "coming soon" group.
+   RARITY left this list 2026-07-16: pdRarity ranks compute pure client-side
+   (the Vault's appraisal read), so its tiers are real now. */
+export const GROUP_SOON: Partial<Record<GroupKey, boolean>> = { lastSold: true };
 
 /* Per-LEVEL dimension key for a grouping — so a group HEADER can show the glyph
    for what THAT header represents (level-1 = primary dimension, level-2 = the
@@ -128,6 +166,10 @@ export const GROUP_PRIMARY_KEY: Record<GroupKey, GroupKey> = {
     color: 'color', lastSold: 'lastSold', rarity: 'rarity',
     artistProject: 'artist', artistColor: 'artist', projectColor: 'project',
     ownerColor: 'owner',
+    listed: 'listed', fate: 'fate', temperature: 'temperature',
+    light: 'light', mood: 'mood', orientation: 'orientation',
+    moon: 'moon', zodiac: 'zodiac', weekday: 'weekday',
+    faction: 'faction', numerology: 'numerology',
 };
 export const GROUP_SECONDARY_KEY: Partial<Record<GroupKey, GroupKey>> = {
     artistProject: 'project', artistColor: 'color', projectColor: 'color',
@@ -142,6 +184,8 @@ export function groupHeaderGlyph(group: GroupKey, level: 1 | 2): string {
 const ALL_GROUP_KEYS: GroupKey[] = [
     'none', 'artist', 'project', 'artistProject', 'artistColor', 'projectColor',
     'ownerColor', 'owner', 'color', 'lastSold', 'rarity',
+    'listed', 'fate', 'temperature', 'light', 'mood', 'orientation',
+    'moon', 'zodiac', 'weekday', 'faction', 'numerology',
 ];
 function isGroupKey(v: unknown): v is GroupKey {
     return typeof v === 'string' && (ALL_GROUP_KEYS as string[]).includes(v);

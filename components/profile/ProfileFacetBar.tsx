@@ -64,6 +64,9 @@ export interface EnrichedHolding {
     /** Full platform traits (Artist/Project/PriceDay/Sun/Moon/Rising/Fate). */
     traits: OutputTraits;
     listed: boolean;
+    /** Mint moment in ms (null until indexed) — feeds the sky groupings
+        (moon phase / born-on) without another stored-traits round trip. */
+    mintMs?: number | null;
 }
 
 /* Facet order = birth-order. 'Status' is the live market facet (derived from

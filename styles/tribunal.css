@@ -184,3 +184,80 @@
     line-height: 1.6;
     color: var(--text-color);
 }
+
+/* ── Depth pass (2026-07-16): parties · findings · the ruling ─────────── */
+
+/* EXHIBIT E rows — the verdict-line language, one per named hand. The first
+   row keeps the exhibit's top edge clean (no double border). */
+.tribunal-party-row { border-top: none; padding-top: 6px; margin-top: 0; }
+.tribunal-party-row + .tribunal-party-row {
+    border-top: 1px dashed color-mix(in srgb, var(--text-color) 35%, transparent);
+}
+.tribunal-party-row > span:last-child {
+    font-weight: normal;
+    text-align: right;
+    min-width: 0;
+}
+
+/* FINDINGS OF FACT — ¶-numbered statements, court margin on the left. */
+.tribunal-finding {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+}
+.tribunal-finding + .tribunal-finding { margin-top: 8px; }
+.tribunal-finding-no {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    flex-shrink: 0;
+    width: 26px;
+    color: var(--text-color);
+    font-variant-numeric: tabular-nums;
+}
+.tribunal-finding-text {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12.5px;
+    line-height: 1.55;
+    margin: 0;
+    color: var(--text-color);
+}
+
+/* THE RULING — the stamp that closes the file: a double-struck full-strength
+   frame, centred, the verdict word heavy. Same width language as the docket
+   crown so the file opens and closes with the court's own voice. */
+.tribunal-ruling {
+    border: 3px double var(--text-color);
+    border-radius: 5px;
+    padding: 16px 18px;
+    text-align: center;
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--text-color);
+}
+.tribunal-ruling-label {
+    display: block;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+.tribunal-ruling-verdict {
+    display: block;
+    font-size: 22px;
+    font-weight: bold;
+    letter-spacing: 4px;
+    margin-top: 6px;
+}
+.tribunal-ruling-body {
+    font-size: 12.5px;
+    line-height: 1.55;
+    margin: 10px 0 0;
+}
+.tribunal-ruling-foot {
+    display: block;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid color-mix(in srgb, var(--text-color) 40%, transparent);
+}

@@ -13,6 +13,8 @@ import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { useProject } from '../../lib/state/ProjectContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useSort, GROUP_SOON, GROUP_LABEL, PROJECT_GROUP_ORDER } from '../../lib/state/SortContext';
+import { EXTRA_GROUP_DIMS, groupSectionLabel, groupLabelComparator } from '../../lib/state/groupDimensions';
+import { factionOf, useProjectFactions } from '../../lib/factions/factionStore';
 import { useTraits, type TraitCategory } from '../../lib/state/TraitsContext';
 import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
 import { resolveBucket, useStoredColors } from '../../lib/art/colorStore';
@@ -67,6 +69,9 @@ export function useProjectGallery({
     /* Stored dominant colours for this project (re-renders grouping when they
        arrive); resolveBucket prefers them, falls back to live palette-math. */
     const colorsVer = useStoredColors([project.slug]);
+    /* Owner→faction map — fetched lazily, ONLY once the viewer actually lands
+       on the FACTION grouping (cycling past it costs nothing). */
+    const factionsVer = useProjectFactions(project.slug, group === 'faction');
 
     /* Decouple the gallery from the trait pills (Brendon, 2026-06-18). Pills read
        the live filter state and dim instantly; the heavy gallery predicate reads
@@ -358,6 +363,29 @@ export function useProjectGallery({
         if (GROUP_SOON[group]) {
             return [{ ckey: 'soon', l1Key: 'soon', level: 1, label: GROUP_LABEL[group], ids: visibleTokenIds, total: visibleTokenIds.length, soon: true }];
         }
+
+        /* The 2026-07-16 expansion dimensions — every value resolves through
+           the shared engine (lib/state/groupDimensions), so this one block
+           serves listed/fate/rarity/fingerprint/sky/faction/numerology alike.
+           Pieces the data can't place land in the honest tail bucket, which
+           the comparator pins last. */
+        if (EXTRA_GROUP_DIMS.has(group)) {
+            const map = new Map<string, number[]>();
+            for (const id of visibleTokenIds) {
+                const meta = project.outputs.get(id);
+                const label = groupSectionLabel(group, project.slug, id, {
+                    listed: meta?.price != null,
+                    fate: meta?.traits?.Fate ?? null,
+                    faction: group === 'faction' ? factionOf(project.slug, meta?.ownerFull) : null,
+                });
+                const arr = map.get(label);
+                if (arr) arr.push(id); else map.set(label, [id]);
+            }
+            const cmp = groupLabelComparator(group);
+            return [...map.entries()]
+                .sort((a, b) => cmp([a[0], a[1].length], [b[0], b[1].length]))
+                .map(([label, ids]) => ({ ckey: label, l1Key: label, level: 1 as const, label, ids, total: ids.length, soon: false }));
+        }
         const colorOrder = [...(COLOR_BUCKET_ORDER as string[]), 'Other'];
 
         // owner + colour — two-level: each holder titles a section, colour
@@ -406,7 +434,7 @@ export function useProjectGallery({
             sections.sort((a, b) => colorOrder.indexOf(a.label) - colorOrder.indexOf(b.label));
         }
         return sections;
-    }, [group, sort, visibleTokenIds, project, colorsVer]);
+    }, [group, sort, visibleTokenIds, project, colorsVer, factionsVer]);
 
     /* Stable "first screenful" set, by lowest token id — membership does NOT
        change when sort/group reorders the grid, so a card's `eager` flag never

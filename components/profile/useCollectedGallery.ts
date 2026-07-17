@@ -14,6 +14,7 @@ import {
     useSort,
     GROUP_SOON, GROUP_LABEL, COLLECTED_GROUP_ORDER,
 } from '../../lib/state/SortContext';
+import { EXTRA_GROUP_DIMS, groupSectionLabel, groupLabelComparator } from '../../lib/state/groupDimensions';
 import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
 import { resolveBucket, useStoredColors } from '../../lib/art/colorStore';
 import { getProject, outputTraits } from '../../lib/project/registry';
@@ -66,6 +67,7 @@ export function useCollectedGallery(holdings: Holding[]) {
                         h.token_id,
                         h.mint_ts != null ? h.mint_ts * 1000 : undefined,
                     ),
+                    mintMs: h.mint_ts != null ? h.mint_ts * 1000 : null,
                 })),
         [holdings],
     );
@@ -201,6 +203,30 @@ export function useCollectedGallery(holdings: Holding[]) {
                 heads: [{ level: 1, label: GROUP_LABEL[group], soon: true }],
                 cards: shownCollected.map((h) => ({ slug: h.slug, id: h.token_id })),
             }];
+        }
+
+        /* The 2026-07-16 expansion dimensions — resolved through the shared
+           engine (lib/state/groupDimensions), exactly like the project page.
+           Cross-project like colour: each piece renders per-card in its own
+           provider; tail buckets (Unsampled/Undated) pin last. FACTION is
+           project-page-only (a wallet's own grid has one owner). */
+        if (EXTRA_GROUP_DIMS.has(group)) {
+            const buckets = new Map<string, { slug: string; id: number }[]>();
+            for (const h of shownCollected) {
+                const label = groupSectionLabel(group, h.slug, h.token_id, {
+                    listed: h.listed,
+                    fate: h.traits.Fate ?? null,
+                    sun: h.traits.Sun ?? null,
+                    mintMs: h.mintMs ?? null,
+                });
+                const arr = buckets.get(label) ?? [];
+                arr.push({ slug: h.slug, id: h.token_id });
+                buckets.set(label, arr);
+            }
+            const cmp = groupLabelComparator(group);
+            return [...buckets.entries()]
+                .sort((a, b) => cmp([a[0], a[1].length], [b[0], b[1].length]))
+                .map(([label, cards]) => ({ key: `x-${label}`, l1Key: `x-${label}`, heads: [{ level: 1 as const, label, count: cards.length }], cards }));
         }
 
         // Colour cuts across projects — bucket every piece, render each in its

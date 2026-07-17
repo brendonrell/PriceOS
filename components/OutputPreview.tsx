@@ -94,7 +94,7 @@ import { useMarketSheet } from '../lib/state/MarketSheetContext';
 import { cancelListing } from '../lib/market/marketClient';
 import { getWalletClientOnDemand } from '../lib/wallet/walletClientOnDemand';
 import { useProject, buildOutputMetaFor } from '../lib/state/ProjectContext';
-import { getProject, artImageUrl, ART_IMAGE_BASE } from '../lib/project/registry';
+import { getProject, artImageUrl, artThumbUrl, ART_IMAGE_BASE } from '../lib/project/registry';
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
 import { formatEth } from '../lib/format/eth';
 import { useFiat } from '../lib/state/FiatContext';
@@ -343,6 +343,11 @@ export default function OutputPreview() {
         return [artImageUrl(slug, id), `${ART_IMAGE_BASE}/${slug}/${id}.png`].filter((u): u is string => !!u);
     }, [slug, id]);
     const modalImgSrc = modalCandidates[imgStage] ?? null;
+    /* Speed pass (Brendon, 2026-07-16): while the heavy master is in flight the
+       loading panel shows the piece's own ~256px tile thumbnail — the exact
+       file the grid card already loaded, so it's a browser-cache hit and paints
+       instantly. The ring keeps spinning over it until the master lands. */
+    const modalThumbSrc = id != null ? artThumbUrl(slug, id) : null;
     useEffect(() => { setImgLoaded(false); setImgStage(0); }, [slug, id]);
     const onModalImgError = () => {
         if (imgStage === 0 && id != null) {
@@ -594,6 +599,25 @@ export default function OutputPreview() {
     const mintedBound = isForeignProject
         ? (foreignMinted ?? (id ?? 1))
         : proj.totalOutputs;
+
+    /* Speed pass (2026-07-16): once the current master is on screen, quietly
+       warm the prev/next neighbours' masters (the exact files the ‹ › walk
+       would fetch) so scanning the modal is instant. Browser-cache only — no
+       state, no repaint; ASCII mode never fetches masters. */
+    useEffect(() => {
+        if (!isOpen || id == null || !imgLoaded || notifs.asciiArt) return;
+        if (!Number.isFinite(mintedBound) || mintedBound <= 1) return;
+        const nextId = id >= mintedBound ? 1 : id + 1;
+        const prevId = id <= 1 ? Math.max(1, mintedBound) : id - 1;
+        for (const nId of new Set([nextId, prevId])) {
+            if (nId === id) continue;
+            const u = artImageUrl(slug, nId);
+            if (!u) continue;
+            const im = new Image();
+            im.decoding = 'async';
+            im.src = u;
+        }
+    }, [isOpen, id, slug, imgLoaded, notifs.asciiArt, mintedBound]);
 
     /* Sim renders the canvas synchronously inside openModal() — no state
        round-trip. Mirror that by rendering imperatively here before
@@ -949,6 +973,7 @@ export default function OutputPreview() {
                         src={modalImgSrc}
                         alt={id != null ? `${slug} #${id} — artwork` : 'Artwork'}
                         decoding="async"
+                        fetchPriority="high"
                         draggable={false}
                         onLoad={() => setImgLoaded(true)}
                         onError={onModalImgError}
@@ -969,6 +994,19 @@ export default function OutputPreview() {
                     fires on that path. */}
                 {!(notifs.asciiArt && !asciiMiss && id != null ? asciiReady : imgLoaded) && (
                     <div className="modal-art-loading" aria-hidden="true">
+                        {/* The piece itself, from the grid tile already in the
+                            browser cache — instant art while the master fetches
+                            (speed pass, 2026-07-16). ASCII mode never shows it
+                            (the standin path owns that surface). */}
+                        {modalThumbSrc && !notifs.asciiArt && (
+                            <img
+                                className="modal-art-loading-thumb"
+                                src={modalThumbSrc}
+                                alt=""
+                                decoding="async"
+                                draggable={false}
+                            />
+                        )}
                         <span className="pd-ring" />
                     </div>
                 )}
@@ -1197,6 +1235,7 @@ export default function OutputPreview() {
                         src={modalImgSrc}
                         alt={id != null ? `${slug} #${id} — artwork` : 'Artwork'}
                         decoding="async"
+                        fetchPriority="high"
                         draggable={false}
                         onLoad={() => setImgLoaded(true)}
                         onError={onModalImgError}
