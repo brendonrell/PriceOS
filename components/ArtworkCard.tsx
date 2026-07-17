@@ -84,7 +84,7 @@ import { getProject } from '../lib/project/registry';
 import { sampleCanvasFingerprint } from '../lib/art/sampleColor';
 import { needsColorSample, reportFingerprint, reportTraits, resolveBucket, resolveFingerprint, useStoredColors } from '../lib/art/colorStore';
 import { BUCKET_HEX, fateDetail } from '../lib/output/derive';
-import { primaryTrait, traitRarity, fateRarity, colorRarity, overallRarity } from '../lib/output/rarity';
+import { primaryTrait, traitRarity, fateRarity, colorRarity, overallRarity, pdRarity, pdRarityRank } from '../lib/output/rarity';
 import { arbitrageRead } from '../lib/output/arbitrage';
 import { ART_IMAGE_BASE, artImageUrl, artThumbUrl, artProvisionalAspect, rememberArtAspect } from '../lib/project/registry';
 import { useCelestialMark, celestialOpacity } from '../lib/output/celestial';
@@ -666,6 +666,28 @@ function ArtworkCard({
         [arbOn, outputs, slug, id],
     );
 
+    /* Degen Mode ⚔ tile data (reimagined 2026-07-17 — Brendon: "shop purely
+       by rarity and traits… 'what about the art??' is not what this mode is
+       about"). The overlay is a data slab: PD Rarity score + edition rank
+       (the same pdRarity math the Vault and RARITY grouping read), the
+       primary artist trait + Fate with their real ×N scarcity counts, and
+       the ask. All deterministic + project-cached — no fetch. */
+    const degenRead = useMemo(() => {
+        if (!notifs.degen) return null;
+        const r = pdRarity(slug, id);
+        const rank = pdRarityRank(slug, id);
+        const pt = primaryTrait(slug, id);
+        const ptFreq = pt ? traitRarity(slug, pt.name, pt.value) : null;
+        const fate = fateDetail(slug, id).fate;
+        const fFreq = fateRarity(slug, fate);
+        return {
+            score: r?.score ?? null,
+            rank,
+            trait: pt ? { value: pt.value, count: ptFreq?.count ?? null } : null,
+            fate: { value: fate, count: fFreq?.count ?? null },
+        };
+    }, [notifs.degen, slug, id]);
+
     /* AURA wow pass (2026-07-16): the halo is the piece's OWN light — its
        dominant colour + accent from the sampled fingerprint, and the glow's
        strength scales with real edition-set rarity (the rare ones radiate).
@@ -1016,20 +1038,39 @@ function ArtworkCard({
                         the canvas and shows the dashed border). pointer-
                         events: none in CSS so clicks fall through to the
                         output-content button. */}
-                    {notifs.degen && (
+                    {notifs.degen && degenRead && (
                         <div className="degen-overlay">
                             <span className="d-id">#{id}</span>
-                            <div className="d-grid">
-                                <span className="d-cell">
-                                    {Object.values(meta?.traits ?? {})[0] || 'NONE'}
+                            {/* The degen number: PD Rarity score + where it
+                                ranks across the whole edition set. ❖ is the
+                                sitewide RARITY glyph. */}
+                            {degenRead.score != null && (
+                                <span className="d-rarity">
+                                    {'❖︎'}{degenRead.score}
+                                    {degenRead.rank && (
+                                        <> · {degenRead.rank.rank}/{degenRead.rank.total}</>
+                                    )}
                                 </span>
-                                <span className="d-cell">
-                                    {Object.values(meta?.traits ?? {})[1] || 'NONE'}
-                                </span>
-                            </div>
-                            {meta?.price && (
-                                <span className="d-price">{meta.price}</span>
                             )}
+                            {/* Scarcity reads: trait value ×N existing, Fate
+                                ×N — apples-to-apples down the whole grid. */}
+                            {degenRead.trait && (
+                                <span className="d-trait">
+                                    {degenRead.trait.value}
+                                    {degenRead.trait.count != null && (
+                                        <span className="d-count"> ×{degenRead.trait.count}</span>
+                                    )}
+                                </span>
+                            )}
+                            <span className="d-trait">
+                                {degenRead.fate.value}
+                                {degenRead.fate.count != null && (
+                                    <span className="d-count"> ×{degenRead.fate.count}</span>
+                                )}
+                            </span>
+                            <span className={`d-price${meta?.price ? '' : ' d-unlisted'}`}>
+                                {meta?.price ?? 'UNLISTED'}
+                            </span>
                         </div>
                     )}
                     {/* Build 23 + chat #4 — sim 8038-8040 mute overlay.
