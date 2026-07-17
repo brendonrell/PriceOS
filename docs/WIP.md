@@ -8,6 +8,49 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ✅ **2026-07-17 GROUPS EXPANSION + MODAL SPEED + TRIBUNAL DEPTH + ASCII
+   TOAST — all on dev (tip `909e6ab8`), auto-deploy rolling, tree clean.
+   Branch `claude/groups-modal-performance-akxqm5` = merged trash (Brendon
+   deletes).** Fable session, Brendon's 4-item batch (+1 idea approved from
+   mocks). ⚠ Container note: this env needed a FRESH RECLONE of PriceOS
+   (Brendon's call — old clone stale); reclone was clean, no GitHub errors.
+   ① GROUPS: 11 new grouping dimensions on the project + Collected galleries,
+   deep cuts deep in the cycle — LISTED · FATE · **RARITY made REAL**
+   (pdRarity rank tiers, off GROUP_SOON) · TEMPERATURE / LIGHT / MOOD /
+   ORIENTATION (stored visual fingerprint) · MOON PHASE / ZODIAC / BORN ON
+   (mint sky) · FACTION (project page, owner oaths — new light endpoint
+   `/api/project/[slug]/factions` + lazy `lib/factions/factionStore`) ·
+   NUMEROLOGY (id classes, zero data). Shared value engine
+   `lib/state/groupDimensions.ts`; honest tail buckets (Unsampled/Undated/
+   Neutral) always sort last; glyphs catalogued in GLYPHS.md §4 (reuse-first:
+   ✹ ䷲ ⍟ ▦ ⚐ + lunarGlyph discs + plain chars). Settings DEFAULT SORT pill
+   cycles the full master order. lastSold stays coming-soon.
+   ② MODAL SPEED PASS: the artwork modal paints the piece's own grid-tile
+   thumbnail inside the loading panel instantly (browser-cache hit) while the
+   master fetches; master rides fetchpriority=high; prev/next masters pre-warm
+   after load so ‹ › scanning is instant. Masters stay the modal's art —
+   nothing amputated.
+   ③ FULLSCREEN VERIFIED (no change needed): output feature pages + full
+   screen run the LIVE engine only (`ArtworkLive` → `paintOutput(live:true)`);
+   ASCII mode keeps its own standin path, untouched.
+   ④ TRIBUNAL DEPTH (wow pass on Opus's build, nothing removed): per-hand
+   tenure + seller flip reads on the custody chain, EXHIBIT E · THE PARTIES
+   (per-wallet in/out/net), FINDINGS OF FACT (¶-numbered — hands, tenures,
+   fastest flip, appreciation vs mint, ask vs floor, last motion), THE RULING
+   double-struck closing stamp (ON THE BLOCK / UNDER CLAIM / TIGHTLY HELD /
+   AT REST). All computed from rows already on the page — still no extra
+   fetch; gossip untouched (court record stays sworn).
+   ⑤ ASCII TOAST (Brendon approved from iPhone-framed mocks — stacked look,
+   borderless, text wraps in a compact card): high-tier output pings carry
+   a row of up to 3 mint-pinned ASCII artifacts above the BYTE-IDENTICAL
+   message. **Deliberately selective (his order — "people will get
+   annoyed"): art rides ONLY the HIGH ping tier** (SALE/OFFER/OFFER_ACCEPTED/
+   COUNTER/WISHLIST_HIT); batches show pieces only when ≤3 AND all art-grade;
+   artifact miss = today's plain pill. `ToastContext` art payload +
+   `ActionToast` reuses `AsciiArtImage` verbatim.
+   Proof: tsc/lint/40 tests green ×2, real builds, compiled-CSS+JS greps.
+   ClickUp: ad-hoc chat batch, no tasks of record (six-ship precedent).
+
 0. ✅ **2026-07-16 STICKER SPLITS = ART SPLITS + FULL 22/22 SEPOLIA RUN —
    contracts on pd-contracts `main` (`ccef013`), tester on dev (merge
    `4164ebe`), auto-deploy verified serving, trees clean. Branch
