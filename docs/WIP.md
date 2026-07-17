@@ -8,6 +8,33 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ✅ **2026-07-17 (same session, second batch) DEGEN SLAB SITE-WIDE +
+   CELESTIAL BIRTH SKY + FOG REPAIR + LENS GLYPH — on dev (tip `4c62d50`),
+   auto-deploy rolling, tree clean.** Brendon's 4-item batch + one edit
+   round (frames off):
+   ① DEGEN ⚔ reimagined (his spec: shop purely by rarity/traits — art
+   deliberately absent): tiles are a borderless full-strength DATA SLAB
+   (#id · ❖ pdRarity score + edition rank · primary trait ×N · Fate ×N ·
+   ask, UNLISTED dimmed) via shared `components/DegenSlab.tsx`; the
+   artwork modal wears a scaled slab (both orientations); Starred/
+   Wishlist/History + search thumbs go to plain no-art squares. NO dashed
+   frames anywhere (his edit — borderless on solid fill).
+   ② CELESTIAL TRACKER redesigned (his call — old one "atrocious", wordy,
+   hexagram-obsessed): now the BIG THREE — sun sign · TRUE mint-moon disc
+   (brightness = real illumination, breathes) · rising sign — silent glyph
+   trio on card top edges + output titles, from the REAL natal engine
+   (`lib/project/natal.ts`, Montreal sky at mint). No words; tooltips
+   carry the reading. Project-name hexagram chips REMOVED. ⚠ Zodiac
+   glyphs (U+2648–53) are NEW — Brendon must device-verify on iPhone per
+   the #1 glyph gate (GLYPHS.md §12b); if emoji, swap the family.
+   ③ FOG repaired sitewide: reveal handler moved to document level
+   (`lib/hooks/useFogReveal.ts` in the shell) — was #gallery-only, so
+   carousels fogged forever; blur moved onto the art itself (no smudge
+   halo past card edges); drifting wisps replace the flat pulse.
+   ④ Price Lens pill glyph 15→17px, raised 0.5px.
+   Proof: tsc/lint clean, 40/40 tests, real build + compiled greps.
+   ClickUp: Atlas Spell Book page refreshed (Degen/Celestial/Fog sections).
+
 0. ✅ **2026-07-17 SPELL BOOK COMPLETE — Sybil Net ∾ + Arbitrage Map ⇄ (the
    last two stubs) on dev (tip `654ca73`), auto-deploy rolling, tree clean.
    Branch `claude/arbitrage-map-sybil-net-kxdspe` = merged trash (Brendon
