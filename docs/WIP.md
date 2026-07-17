@@ -8,6 +8,31 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ✅ **2026-07-17 SPELL BOOK COMPLETE — Sybil Net ∾ + Arbitrage Map ⇄ (the
+   last two stubs) on dev (tip `654ca73`), auto-deploy rolling, tree clean.
+   Branch `claude/arbitrage-map-sybil-net-kxdspe` = merged trash (Brendon
+   deletes).** Fable session. **The Spell Book stub list is now EMPTY** —
+   every pill does its real thing except the deliberate "????" mystery
+   button (Gravity slot, Brendon's 2026-07-16 call).
+   ① ARBITRAGE MAP ⇄: listed pieces asking below their trait-bucket's
+   average ask wear the real discount badge on the art ("⇄ −38%", top-left)
+   + an .arb-under ring scaling with the gap (--arb-heat). Bucket = primary
+   artist trait value (Fate fallback); averages from REAL DB listings,
+   WeakMap-cached per reconcile (`lib/output/arbitrage.ts`). Lone-listing
+   buckets and unlisted pieces never flag — nothing synthesized.
+   ② SYBIL NET ∾: Cartography draws animated dotted lines chaining wallet
+   clusters linked by REAL unpriced wallet→wallet transfers (union-find
+   server-side in `/api/cartography`, ships as `nets`). Wallet focus narrows
+   to the focused wallet's net. Honest limit (named at ship): true funding-
+   source tracing needs bank-roll history the indexer doesn't capture —
+   transfer clustering is the real signal today; funding graph slots in
+   later without touching visuals.
+   ③ Cast toasts: "∾ The Net Is Cast ∾" / "⇄ Reading the Spreads ⇄"
+   (Gossip/Celestial precedent; dispel plain OFF).
+   Proof: tsc clean, lint clean, 40/40 tests, real build + compiled
+   CSS/JS greps. ClickUp: Atlas Spell Book page build-state refreshed
+   (stub list empty), progress comment on queue task 86bad5g4t.
+
 0. ✅ **2026-07-17 GROUPS EXPANSION + MODAL SPEED + TRIBUNAL DEPTH + ASCII
    TOAST — all on dev (tip `11cdaecf`, incl. the thumb same-box fix), auto-deploy rolling, tree clean.
    Branch `claude/groups-modal-performance-akxqm5` = merged trash (Brendon
