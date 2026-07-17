@@ -1,83 +1,43 @@
-# THE MAINNET CUTOVER CONTRACT — what happens to the sim world on real-money day
-**Drafted 2026-07-13 (hardening item 19 / report §5.7). STATUS: DRAFT —
-every numbered decision below is BRENDON'S CALL. Each carries my
-recommendation; nothing here is decided until he says so in chat, and his
-answers get written back into this page as the record.**
-
-The single hairiest transition PD has ahead: the day on-chain state becomes
-the source of truth, the playful sim economy's forgiveness disappears. This
-page exists so that day is a checklist, not an improvisation.
+# THE MAINNET CUTOVER RUNBOOK
+**Status: RULED — Brendon, 2026-07-17.** The earlier version of this page
+framed the sim era's fate as five open decisions with recommendations; that
+framing was my invention — the plan was always the wipe and it never
+changed. This page is now the runbook. Do not reopen the "decisions."
 
 ---
 
-## Decision 1 — sim-ETH balances
-Every account holds play-ETH (signups seeded 1,000,000). At cutover real
-wallets hold real ETH.
-- **(a) Freeze & display**: sim balances stop mattering, kept visible as a
-  "Beta Era" keepsake stat.
-- (b) Wipe entirely.
-- **RECOMMENDATION: (a).** Zero risk of confusion with real balances if the
-  UI labels it clearly, and it preserves beta users' history (identity/
-  nostalgia is PD's whole texture). Wiping erases early-adopter lore for no
-  gain.
+## The ruling (the governing spec, Brendon's words)
 
-## Decision 2 — sim-era market history (events, sales, listings, offers)
-- **(a) Archive-and-mark**: keep every row, tag pre-cutover events as the
-  Beta Era (feeds/rewind render them, clearly marked; the Dispatch archive
-  stays intact).
-- (b) Wipe to a clean chain-only ledger.
-- **RECOMMENDATION: (a).** The Rewind, the Dispatch archive, natal charts,
-  and the Book of Conquests are built on continuity — a wipe amputates the
-  platform's own mythology. The indexer writes chain events from block zero
-  of PD's contracts anyway, so the ledgers don't collide.
+> It all gets wiped. It all goes, the real platform arrives. The only things
+> that survive are account **@names** and **PriceSprites**.
 
-## Decision 3 — achievements / PriceScore / PriceRank earned in the sim era
-- **(a) Carry over untouched** — the climb is the climb.
-- (b) Reset everyone to zero for a "fair" mainnet start.
-- (c) Carry over but stamp a "Founder" cohort marker.
-- **RECOMMENDATION: (c).** Carrying over rewards the people who built the
-  place; the cohort stamp turns a fairness complaint into a status symbol.
-  A reset punishes exactly the users PD needs evangelizing at launch.
+Concretely: at cutover the sim era ends and its artifacts go — sim-ETH
+balances, all sim market history (sales, listings, offers, feeds, archives),
+sim-era achievements, PriceScore/PriceRank standings, streaks, and every
+other sim-era stat. Accounts persist as identity only: the @name and the
+PriceSprite. Mainnet starts clean; the chain is the ledger from block one of
+PD's contracts.
 
-## Decision 4 — the zeroed projects (chladni, pressroom, ictus, caustics,
-## cyanotype, vanguard, frost-fern, conservatory, topiary)
-Zeroed 2026-07-12 after the texture-layer perf pass. At cutover all projects
-start minting on-chain from zero anyway.
-- **RECOMMENDATION: no action needed** — cutover naturally supersedes; just
-  confirm the registry's test prices are final real prices (Decision 5).
+## The flip checklist (mechanical — no decisions left in here)
 
-## Decision 5 — test prices in the registry
-`bulletin 0.2222` · `reliquary 22.222` (flagged in WIP since June).
-- **RECOMMENDATION:** price pass over the FULL registry as a cutover-week
-  task (every project's mint price is suddenly real money); the two test
-  values are just the known-wrong ones.
+1. **Staging split live BEFORE anything else** (report §3.5): dev deploys to
+   a staging Worker + DB branch; `main` deploys to production. From that day
+   a dev merge no longer touches the real platform.
+2. **The wipe migration.** One reviewed migration that clears the sim era
+   and reduces user rows to identity (@name, PriceSprite, auth linkage).
+   The PR enumerates every table and column it clears, line by line, and is
+   rehearsed in the CI rig (`docs/briefs/rpc-test-rig.md`) before cutover
+   day; it reaches the live DB through the standing prod-data gate like any
+   other migration.
+3. **Environment flip:** chain id → mainnet, Alchemy URL/key → mainnet,
+   webhook re-pointed at the mainnet contracts + signing key rotated,
+   `SIGNUP_SIM_ETH_GRANT` → 0.
+4. **Registry price pass.** Every project's mint price is real money at the
+   flip; the two known test values (bulletin 0.2222 / reliquary 22.222 —
+   flagged in WIP since June) corrected in the same pass.
+5. **Indexer proof.** Webhook + reconcile verified against the first real
+   mint before any announcement.
 
-## Decision 6 — the signup grant
-`SIGNUP_SIM_ETH_GRANT` → `0` at cutover (already the plan; Worker secret
-flip, no deploy needed). **RECOMMENDATION: yes, in the same hour as the
-chain flip.**
-
-## Decision 7 — the mechanical flip (no decision, the checklist)
-1. `.env.production`: `NEXT_PUBLIC_CHAIN_ID` → 1, Alchemy URL/key → mainnet.
-2. Worker secret `ALCHEMY_RPC_URL` → mainnet endpoint.
-3. Alchemy webhook re-pointed at mainnet contracts; signing key rotated →
-   Worker secret updated.
-4. `SIGNUP_SIM_ETH_GRANT` → 0.
-5. Registry price pass (Decision 5) merged.
-6. Staging split live BEFORE any of the above (report §3.5): dev deploys to
-   a staging Worker + Supabase branch; `main` deploys to the real one. From
-   that day, dev-merge ≠ touch-production.
-7. Indexer webhook + reconcile verified against the first real mint before
-   announcing.
-
-## Decision 8 — sim trading between cutover announcement and the flip
-Announce a freeze window? A last "closing bell" event (very PD — the
-Dispatch covers the sim era's final day)?
-- **RECOMMENDATION:** 24h announced wind-down + a commemorative final
-  Dispatch edition; cheap, on-brand, prevents "my last-minute sim trade
-  vanished" complaints.
-
----
-
-**When Brendon rules on 1–3, 5, 8: write the answers here, then this page
-becomes the cutover runbook and feeds the Mythic Audit (86b9v5wj4).**
+Feeds the Mythic Audit (`86b9v5wj4`). The wipe also retires every
+"sim-era data migration" concern from earlier planning — there is nothing
+to migrate.
