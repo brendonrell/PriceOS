@@ -144,7 +144,13 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             loader.animate(
                 [{ opacity: 1 }, { opacity: 0 }],
                 { duration: 350, easing: 'ease-out', fill: 'forwards' }
-            ).onfinish = () => loader.remove();
+            ).onfinish = () => {
+                loader.remove();
+                /* Boot is over — stamp the dismissal so a React re-injection
+                   of the loader markup (see the layout's #pd-loader notes)
+                   stays invisible and inert for the rest of the session. */
+                document.documentElement.setAttribute('data-pd-loader-done', '');
+            };
         }, 600);
     }, []);
 
