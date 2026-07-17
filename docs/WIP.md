@@ -9,7 +9,7 @@
 ## 🧭 NEXT UP — fresh session starts HERE
 
 0. ✅ **2026-07-17 GROUPS EXPANSION + MODAL SPEED + TRIBUNAL DEPTH + ASCII
-   TOAST — all on dev (tip `909e6ab8`), auto-deploy rolling, tree clean.
+   TOAST — all on dev (tip `11cdaecf`, incl. the thumb same-box fix), auto-deploy rolling, tree clean.
    Branch `claude/groups-modal-performance-akxqm5` = merged trash (Brendon
    deletes).** Fable session, Brendon's 4-item batch (+1 idea approved from
    mocks). ⚠ Container note: this env needed a FRESH RECLONE of PriceOS
