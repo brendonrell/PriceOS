@@ -35,6 +35,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useAuth } from '../lib/state/AuthContext';
+import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import { getSupabaseBrowser } from '../lib/supabase';
 import { projectColorway, getProject } from '../lib/project/registry';
 import { useFaction } from '../lib/factions/useFaction';
@@ -221,6 +222,15 @@ class CartoEngine {
     private myFactionHex: string | null = null;
     private myAddr: string | null = null;
 
+    /* Sybil Net ∾ (Spell Book, 2026-07-17). Wallet clusters linked by real
+       unpriced wallet→wallet transfers (computed server-side in
+       /api/cartography from the full event fetch). While the spell is on,
+       dotted lines connect clustered wallets wherever their dots co-occur
+       on the map. netOf: addr → cluster index, for O(1) membership. */
+    private sybilOn = false;
+    private nets: string[][] = [];
+    private netOf = new Map<string, number>();
+
     constructor(canvas: HTMLCanvasElement, cb: EngineCallbacks) {
         this.canvas = canvas;
         const ctx = canvas.getContext('2d');
@@ -252,6 +262,12 @@ class CartoEngine {
     }
     warFor(slug: string): WarTerritory | null {
         return this.war.get(slug) ?? null;
+    }
+
+    /* ── Sybil Net plumbing (React owns the spell flag) ─────────────────── */
+
+    setSybilNet(on: boolean): void {
+        this.sybilOn = on;
     }
 
     /** The live territory list (minted land only) — the search box's index. */
@@ -344,6 +360,13 @@ class CartoEngine {
 
         for (const h of data.holders) this.seatInhabitant(h);
         for (const t of this.terrs) this.sortInhabitants(t);
+
+        /* Sybil Net — index the server-computed transfer clusters. */
+        this.nets = data.nets ?? [];
+        this.netOf.clear();
+        this.nets.forEach((net, k) => {
+            for (const a of net) this.netOf.set(a, k);
+        });
 
         this.buildAffinity();
 
@@ -992,6 +1015,10 @@ class CartoEngine {
             ctx.globalAlpha = 1;
         }
 
+        /* Sybil Net ∾ — dotted lines between clustered wallets, under dots
+           (and under the focus arcs, which stay the louder read). */
+        if (this.sybilOn) this.drawSybilNets(ctx, now, wallet);
+
         /* wallet arcs under dots */
         if (wallet) this.drawWalletArcs(ctx, wallet, now);
 
@@ -1125,6 +1152,59 @@ class CartoEngine {
         ctx.strokeText(text, x, y);
         ctx.fillStyle = color;
         ctx.fillText(text, x, y);
+    }
+
+    /* Sybil Net ∾ — for each transfer-linked wallet cluster, chain dotted
+       lines through every seat its members hold on currently-visible land.
+       Seats only count where their dots actually render (territory zoomed
+       to individuals + not dimmed), so a line never points at empty coast.
+       Dotted [2,4] — deliberately distinct from the focus arcs' [5,5] dash;
+       same drifting offset so the net reads alive. In wallet mode only the
+       focused wallet's net draws (the fade carries meaning: focus). */
+    private drawSybilNets(ctx: CanvasRenderingContext2D, now: number, wallet: string | null): void {
+        if (this.nets.length === 0) return;
+        const focusNet = wallet != null ? this.netOf.get(wallet) : undefined;
+        if (wallet != null && focusNet === undefined) return;
+        /* Which territories are showing their inhabitants this frame. */
+        const visible: Territory[] = [];
+        for (const t of this.terrs) {
+            const rpx = t.r * this.cam.z;
+            if (rpx < 46) continue;
+            if (wallet != null && !t.byAddr.has(wallet)) continue;
+            visible.push(t);
+        }
+        if (visible.length === 0) return;
+        const pts = new Map<number, { x: number; y: number }[]>();
+        for (const t of visible) {
+            for (const i of t.inhabitants) {
+                if (i.n === 0 && !i.isArtist) continue;
+                const k = this.netOf.get(i.addr);
+                if (k === undefined) continue;
+                if (focusNet !== undefined && k !== focusNet) continue;
+                const p = this.inhabitantWorld(t, i, now);
+                const s = this.toScreen(p.x, p.y);
+                const arr = pts.get(k);
+                if (arr) arr.push(s);
+                else pts.set(k, [s]);
+            }
+        }
+        ctx.strokeStyle = this.colText;
+        ctx.lineWidth = 1;
+        ctx.setLineDash([2, 4]);
+        ctx.lineDashOffset = this.reduceMotion ? 0 : -(now / 90) % 6;
+        for (const arr of pts.values()) {
+            if (arr.length < 2) continue;
+            for (let i = 0; i < arr.length - 1; i++) {
+                const a = arr[i], b = arr[i + 1];
+                const mx = (a.x + b.x) / 2;
+                const my = (a.y + b.y) / 2 - Math.min(60, Math.hypot(b.x - a.x, b.y - a.y) * 0.15);
+                ctx.beginPath();
+                ctx.moveTo(a.x, a.y);
+                ctx.quadraticCurveTo(mx, my, b.x, b.y);
+                ctx.stroke();
+            }
+        }
+        ctx.setLineDash([]);
     }
 
     private drawWalletArcs(ctx: CanvasRenderingContext2D, wallet: string, now: number): void {
@@ -1285,6 +1365,7 @@ export default function CartographyModal() {
     const isOpen = openModal?.name === 'cartography';
     const { siweAddress } = useAuth();
     const faction = useFaction();
+    const { notifs } = usePdNotifs();
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const engineRef = useRef<CartoEngine | null>(null);
@@ -1353,6 +1434,11 @@ export default function CartographyModal() {
         eng.setWarLayer(Boolean(warOn && faction));
         eng.setWarData(warData, faction?.hex ?? null, warData?.me?.markedProjects ?? [], siweAddress ?? null);
     }, [warOn, warData, faction, siweAddress, isOpen]);
+
+    /* Sybil Net ∾ — the Spell Book flag drives the dotted-line layer. */
+    useEffect(() => {
+        engineRef.current?.setSybilNet(!!notifs.spell_sybilnet);
+    }, [notifs.spell_sybilnet, isOpen]);
 
     const toggleWar = () => {
         const next = !warOn;

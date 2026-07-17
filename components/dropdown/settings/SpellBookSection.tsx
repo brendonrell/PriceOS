@@ -120,6 +120,16 @@ export function SpellBookSection({ onTripleTap }: Props) {
             showToast(next ? '⑃ Rumor Has It… ⑃' : 'Gossip Protocol: OFF');
             return;
         }
+        // Sybil Net — flavour on, plain off (same precedent).
+        if (spell.id === 'sybilnet') {
+            showToast(next ? '∾ The Net Is Cast ∾' : 'Sybil Net: OFF');
+            return;
+        }
+        // Arbitrage Map — flavour on, plain off (same precedent).
+        if (spell.id === 'arbitrage') {
+            showToast(next ? '⇄ Reading the Spreads ⇄' : 'Arbitrage Map: OFF');
+            return;
+        }
         // Offer Shield — flip + toast, and raise the ward (the OfferShieldCast
         // flourish) when it comes on.
         if (spell.id === 'offershield') {

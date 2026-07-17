@@ -7366,6 +7366,28 @@ body.pm-active .price-memory-ghost { opacity: 0.75; }
 body.pm-active .output-content:hover .price-memory-ghost { opacity: 1; }
 body.feed-mode .price-memory-ghost { display: none !important; }
 
+/* ── ARBITRAGE MAP ⇄ (Spell Book, 2026-07-17) ─────────────────────────
+   A listed piece asking below its trait-bucket average wears the real
+   discount top-left ("⇄ −38%") and a ring whose weight scales with the
+   gap (--arb-heat 0..1, stamped by ArtworkCard). Badge is full-strength
+   white over a dark halo (it sits ON the art); the ring wears the site
+   text token so it holds on every colorway page. */
+.arb-badge {
+    position: absolute; top: 5px; left: 6px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px; font-weight: bold;
+    letter-spacing: 0.5px;
+    color: #fff; line-height: 1;
+    text-shadow: 0 0 3px rgba(0,0,0,0.85), 0 1px 2px rgba(0,0,0,0.7);
+    pointer-events: none; user-select: none;
+    z-index: 4;
+}
+.output-card.arb-under .canvas-wrapper {
+    box-shadow: 0 0 0 calc(1.5px + var(--arb-heat, 0) * 2.5px) var(--text-color);
+}
+body.zen-mode .arb-badge { display: none !important; }
+body.feed-mode .arb-badge { display: none !important; }
+
 /* ── ACTIVITY FEED — sim ~3035-3046 ──────────────────────── */
 #activity-feed {
     display: none;

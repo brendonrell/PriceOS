@@ -85,6 +85,7 @@ import { sampleCanvasFingerprint } from '../lib/art/sampleColor';
 import { needsColorSample, reportFingerprint, reportTraits, resolveBucket, resolveFingerprint, useStoredColors } from '../lib/art/colorStore';
 import { BUCKET_HEX, fateDetail } from '../lib/output/derive';
 import { primaryTrait, traitRarity, fateRarity, colorRarity, overallRarity } from '../lib/output/rarity';
+import { arbitrageRead } from '../lib/output/arbitrage';
 import { ART_IMAGE_BASE, artImageUrl, artThumbUrl, artProvisionalAspect, rememberArtAspect } from '../lib/project/registry';
 import { useCelestialMark, celestialOpacity } from '../lib/output/celestial';
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
@@ -200,7 +201,7 @@ function ArtworkCard({
 }: ArtworkCardProps) {
     const { open } = useModal();
     const { showToast } = useToast();
-    const { title: projectTitle, slug } = useProject();
+    const { title: projectTitle, slug, outputs } = useProject();
     const { notifs } = usePdNotifs();
     const { openOutputNoteEditor } = useNotePrompt();
     const meta = useOutputMeta(id);
@@ -653,6 +654,18 @@ function ArtworkCard({
     const auraAngle = (id * 137) % 360;
     const auraDuration = (10 + ((id * 23) % 60) / 10).toFixed(2) + 's';
 
+    /* Arbitrage Map ⇄ (Spell Book, 2026-07-17). When the spell is on, a
+       listed piece asking BELOW its trait-bucket's average ask wears the
+       ⇄ badge with the real discount ("⇄ −38%") plus an .arb-under ring
+       whose weight scales with the gap (--arb-heat 0..1). All real DB
+       listings via the outputs snapshot — unlisted cards and lone-listing
+       buckets never flag (see lib/output/arbitrage.ts). */
+    const arbOn = !!notifs.spell_arbitrage;
+    const arb = useMemo(
+        () => (arbOn ? arbitrageRead(outputs, slug, id) : null),
+        [arbOn, outputs, slug, id],
+    );
+
     /* AURA wow pass (2026-07-16): the halo is the piece's OWN light — its
        dominant colour + accent from the sampled fingerprint, and the glow's
        strength scales with real edition-set rarity (the rare ones radiate).
@@ -694,6 +707,13 @@ function ArtworkCard({
                   ['--aura-c2' as string]: auraVars.c2,
                   ['--aura-opacity' as string]: auraVars.power,
                   ['--aura-inset' as string]: auraVars.inset,
+              }
+            : {}),
+        ...(arb
+            ? {
+                  /* Ring weight scales with the discount: 15% below reads
+                     thin, 60%+ below reads heavy. Clamped 0..1. */
+                  ['--arb-heat' as string]: Math.min(1, arb.pctBelow / 60).toFixed(2),
               }
             : {}),
     };
@@ -822,6 +842,8 @@ function ArtworkCard({
            body.budget-active CSS keys off the inverse — non-.in-budget
            cards drop to opacity 0.22 (sim 3957-3964). */
         (inBudget ? ' in-budget' : '') +
+        /* Arbitrage Map — the under-the-average ring + badge gate. */
+        (arb ? ' arb-under' : '') +
         (isSelected ? ' ms-selected' : '') +
         (multiSelectActive ? ' ms-eligible' : '');
 
@@ -1202,6 +1224,19 @@ function ArtworkCard({
                             title="Breadcrumb · recently visited"
                         >
                             {'\u2B24'}
+                        </span>
+                    )}
+                    {/* Arbitrage Map ⇄ — the discount badge, top-left (the
+                        free corner: grail wears top-right, ghost bottom-left,
+                        breadcrumb bottom-right). Real % below the trait-
+                        bucket's average ask. Renders only while the spell is
+                        on AND the read is real. */}
+                    {arb && (
+                        <span
+                            className="arb-badge"
+                            title={`Asking ${arb.pctBelow.toFixed(1)}% below its trait bucket's average (${arb.avgEth.toFixed(3)} ETH avg · ${arb.listings} listed)`}
+                        >
+                            {'⇄︎'} −{Math.round(arb.pctBelow)}%
                         </span>
                     )}
                     {/* Build 22 — sim 8086-8089 price-memory ghost. Always
