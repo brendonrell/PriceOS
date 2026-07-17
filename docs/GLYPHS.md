@@ -448,7 +448,7 @@ sky at mint) + the proven lunarGlyph discs.
 
 | Concept | Glyphs | Codepoints | Notes |
 |---|---|---|---|
-| Zodiac signs (sun + rising) | ♈♉♊♋♌♍♎♏♐♑♒♓ | U+2648–U+2653 | NEW family — VS-15 + forced Courier like all system glyphs. ⚠ **Device-verify per the #1 gate**: zodiac signs are a known emoji-presentation risk on iOS; if they tofu or colour, the family needs a swap |
+| Zodiac signs (sun + rising) | ♈♉♊♋♌♍♎♏♐♑♒♓ | U+2648–U+2653 | ✅ **iOS device-verified 2026-07-17** (Brendon's iPhone, all 12 + the trio render monochrome text with VS-15) — family LOCKED |
 | Moon phase | ○◔◑◕● + waning twins | (lunarGlyph) | already shipped/proven — the disc's inline opacity IS the illumination at mint |
 
 ## 13. THE WAR — Factions glyphs (2026-07-13 build, spec v3.1 §11)
