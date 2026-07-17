@@ -8,29 +8,53 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-17 PD-DOCS TECHNICAL-WRITER PASS — RESCUED + ON DEV (tip
-   `1e6358e2`), auto-deploy VERIFIED serving the new pages, tree clean.
+0. ✅ **2026-07-17 PD-DOCS WOW PASS + DOCS LOADER FIX — BOTH on dev (tip
+   `7bcf462` merge + this WIP push re-kicking the deploy), tree clean.
    Branches `claude/docs-technical-writer-pass-om54h6` (PR #30, merged) +
    `claude/user-docs-changes-8wu78u` (empty harness branch) = trash (Brendon
-   deletes).** The docs-overhaul chat CRASHED mid-wrap — cause: its own
-   cleanup command (`pkill -9 -f "next"`) matched the session's process and
-   killed the chat. **Nothing was lost:** the full pass (+848/−124, 29 files)
-   was already committed on PR #30; this session fast-forwarded it to dev.
-   The pass: Stickers section (4 pages) · PDStickers contract reference ·
-   What's Public / What's Private real pages · Spell Book all 23 spells ·
-   SVG diagrams · accuracy sweep ~20 pages · glossary ~doubled.
-   ⚠ **The "loading-screen bug" that gated that chat's push DOES NOT EXIST
-   in shipped code** — reproduced the hunt on a fresh build + headless
-   Chromium (local prod server, docs pages + home): `#pd-loader` exits clean
-   everywhere, even with APIs 500ing; the docs parse-time loader-skip script
-   in `app/layout.tsx` predates the crash and works. The crashed chat's tail
-   was fighting its own wedged local server (stale chunks / stuck port 3111);
-   its 3 uncommitted "fix" edits (layout.tsx +11/+5−1, PriceOSShell.tsx
-   +7−1) died with the container, unproven and NOT needed. If a real
-   loader-strand report ever comes from a device, hunt fresh — don't chase
-   those lost edits. ClickUp: ad-hoc batch, no task of record.
-   ⚠ Container lesson (why the crash): NEVER `pkill -f "next"` / broad
-   name-match kills — kill the exact PID (`next-server`) or by port.
+   deletes).** One Fable session across two container crashes (cause of
+   crash #1: my own cleanup `pkill -f "next start"` matched the session's
+   process — NEVER broad name-match kills; kill by exact PID or port. A
+   rescue chat fast-forwarded the docs to dev as `6d3dc12` mid-outage;
+   this session's merge `7bcf462` then landed the loader fix on top).
+   ① THE DOCS PASS (+848/−124, 29 files): NEW top-level STICKERS section —
+   overview (sealed model + lifecycle diagram) · store (18-sheet catalog,
+   the peel, print runs, FIXED vs PACK) · marketplace (books, partial
+   fills, escrow, swaps, gifts, want-list matchmaking, 95/3/2 fees) ·
+   binder + profile (Manager, locked compositions, Sticker Setup Codes) —
+   plus NEW `contracts/pd-stickers.md`. whats-public + whats-private
+   rebuilt from stubs. Spell Book rewritten: ALL 23 pills incl. the
+   triple-tap door; ???? stays ????. Settings rewritten to the real pill
+   rows (killed the never-shipped "ritual modes/Cooling Pool" claim).
+   NINE inline SVG diagrams in colorway ink. Accuracy sweep ~20 pages
+   (16-dim grouping, Celestial trio, Tribunal, Gnome, Completionism,
+   Friend Inspector, Identity Plate, honest Albums wording, glossary ~2×).
+   51 pages prerender; llms.txt carries all. Proof: tsc/lint 0 errors/
+   40 tests/full build + compiled-HTML greps. Launch-readiness read (in
+   chat): content-complete for launch shape; open ends = mainnet
+   addresses (deploy-day) · HTTP API reference (post-launch) · Albums
+   wording flip at `86baxgvhk` · docs custom domain pointing.
+   ② ⚠ **CORRECTION OF THE RESCUE ENTRY — THE LOADER BUG IS REAL AND THE
+   FIX IS COMMITTED, not lost.** Brendon hit it on device (screenshot) and
+   it REPRODUCES headless: hard-load /docs, tap any IN-BODY link → the
+   first client-side nav RE-INJECTS `#pd-loader` (opacity 1, eats every
+   tap, forever — Playwright: "pd-loader intercepts pointer events", 30s+).
+   Root cause: React 19 re-inserts the loader wrapper's innerHTML on the
+   first route change when the node was removed PRE-hydration (the docs
+   parse-time strip) — regressed with the 2026-07-13 React 19 upgrade.
+   The rescue chat's hunt (hard loads + home boot) never performed that
+   exact gesture, hence its "does not exist" — superseded here. THE FIX
+   (`185e64c`, in dev): both dismissal paths stamp `data-pd-loader-done`
+   on <html>; CSS makes any resurrected `#pd-loader` display:none +
+   pointer-events:none. Boot loader untouched. Brendon approved it in.
+   ③ ⚠ DEPLOY STATE AT WRAP: live preview still served the `6d3dc12`
+   build (docs yes, fix no — no `pd-loader-done` in served HTML); the
+   `7bcf462` build never landed (likely failed or superseded racing the
+   rescue push). This WIP push re-kicks the build from the full tip.
+   **VERIFY NEXT:** live /docs HTML contains `pd-loader-done`, then tap
+   an in-body docs link — no veil. If still absent, check the Workers
+   build history for the failed build. ClickUp: ad-hoc batch, no task of
+   record (six-ship precedent).
 
 0. ✅ **2026-07-17 (same session, second batch) DEGEN SLAB SITE-WIDE +
    CELESTIAL BIRTH SKY + FOG REPAIR + LENS GLYPH — on dev (tip `4c62d50`),
