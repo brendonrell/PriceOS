@@ -3438,6 +3438,26 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     opacity: 1;
     transform: translateX(-50%) translateY(0);
 }
+/* With-art toast (Brendon, 2026-07-17): the same pill, extended — a row of up
+   to three ASCII artifacts above the message, text wrapping inside a compact
+   centred card instead of one long line (iPhone-first). Message string is
+   byte-identical to the plain pill's. */
+.ens-copy-toast.mounted.with-art {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    max-width: 240px;
+    white-space: normal;
+    line-height: 1.5;
+    padding: 10px 16px 9px;
+}
+.toast-art-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
 
 
 /* ============================================================

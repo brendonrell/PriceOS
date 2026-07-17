@@ -33,10 +33,38 @@ import {
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { getSupabaseBrowser } from '../supabase';
 import { useAuth } from './AuthContext';
-import { useToast } from './ToastContext';
+import { useToast, TOAST_ART_MAX, type ToastArt } from './ToastContext';
 import { usePdNotifs, showsRegularToasts, showsNativePings } from './PdNotifsContext';
 import { passesCategoryPrefs, renderPing, type FeedItem } from '../pings/render';
 import { setAppBadge, clearAppBadge, ensureFreshSubscription } from '../push/client';
+
+/* The with-art toast is DELIBERATELY selective (Brendon, 2026-07-17 — "very
+   selective… otherwise people will get annoyed"): the ASCII artifact row rides
+   ONLY the app's own HIGH tier — money landing / act-now on a specific piece
+   (sale · offer · accepted · counter · wishlist hit). Everything else keeps
+   today's plain pill. A batch shows art only when it's small enough to show
+   whole (≤3) and EVERY fresh ping is art-grade — a mixed or big batch stays
+   plain. */
+const TOAST_ART_KINDS = new Set(['SALE', 'OFFER', 'OFFER_ACCEPTED', 'COUNTER', 'WISHLIST_HIT']);
+function pingArt(p: FeedItem): ToastArt | null {
+  if (!TOAST_ART_KINDS.has(p.kind)) return null;
+  if (!p.project_id || p.token_id == null || p.token_id === '') return null;
+  const id = Number(p.token_id);
+  if (!Number.isFinite(id) || id < 1) return null;
+  return { slug: p.project_id, id };
+}
+function toastArtFor(fresh: FeedItem[]): ToastArt[] | null {
+  if (fresh.length > TOAST_ART_MAX) return null;
+  const arts: ToastArt[] = [];
+  const seen = new Set<string>();
+  for (const p of fresh) {
+    const a = pingArt(p);
+    if (!a) return null; // one non-art-grade ping → the whole toast stays plain
+    const k = `${a.slug}:${a.id}`;
+    if (!seen.has(k)) { seen.add(k); arts.push(a); }
+  }
+  return arts.length > 0 ? arts : null;
+}
 
 // Poll cadence (reliability FALLBACK). The live market feed below drives the
 // near-instant path (a directed ping surfaces in ~1s via the realtime nudge);
@@ -202,9 +230,9 @@ export function PingsProvider({ children }: { children: ReactNode }) {
       if (primed.current && toastsOn && fresh.length > 0) {
         if (fresh.length === 1) {
           const r = renderPing(fresh[0]);
-          showToast(`Ping: ${[r.handle, r.action].filter(Boolean).join(' ')}`.trim());
+          showToast(`Ping: ${[r.handle, r.action].filter(Boolean).join(' ')}`.trim(), undefined, undefined, toastArtFor([fresh[0]]));
         } else {
-          showToast(`Pings: ${fresh.length} NEW`);
+          showToast(`Pings: ${fresh.length} NEW`, undefined, undefined, toastArtFor(fresh));
         }
       }
       items.forEach((p) => seenIds.current.add(p.id));
