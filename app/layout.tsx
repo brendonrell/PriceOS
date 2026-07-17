@@ -422,6 +422,17 @@ const LOADER_HTML = `<style>
     transform: translateZ(0);
     will-change: opacity;
   }
+  /* The loader is BOOT-ONLY. Once dismissed (either dismissal path stamps
+     this attribute), any copy of it is invisible and inert — React 19
+     re-injects the innerHTML of this wrapper on the first client-side
+     route change when the node was removed BEFORE hydration (the /docs
+     parse-time removal below), which resurrected a permanent full-screen
+     loader over the docs on every first link tap. The stamp outlives any
+     re-injection, so a resurrected loader can never paint or eat taps. */
+  html[data-pd-loader-done] #pd-loader {
+    display: none !important;
+    pointer-events: none !important;
+  }
   #pd-loader-panel {
     background: #000;
     height: 28px;
@@ -460,8 +471,12 @@ const LOADER_HTML = `<style>
      HTML — the content is already fully painted underneath, so holding a
      "Loading" overlay until the app bundle hydrates (the shell removes it
      post-mount) just delays reading, and a stalled hydration strands it
-     forever. Runs during document parse, before first paint. */
+     forever. Runs during document parse, before first paint. The stamp on
+     <html> (see the #pd-loader style block) is the part that makes this
+     stick: removing the node alone regressed after React 19, which
+     re-injects it on the first client-side navigation. */
   if (/^\\/docs(\\/|$)/.test(location.pathname)) {
+    document.documentElement.setAttribute('data-pd-loader-done', '');
     var pdl = document.getElementById('pd-loader');
     if (pdl) pdl.remove();
   }
