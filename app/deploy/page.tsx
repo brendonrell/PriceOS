@@ -1,25 +1,30 @@
 'use client';
 
 /*
- * /deploy — Brendon's one-thumb Sepolia launcher (private tool page).
+ * /deploy — Brendon's one-thumb MAINNET launcher (private tool page).
  *
- * Deploys the PD contract stack to SEPOLIA from a phone wallet (Rainbow
- * via WalletConnect / injected), in the wired order:
+ * Deploys the complete PD contract stack to ETHEREUM MAINNET from a phone
+ * wallet (Rainbow via WalletConnect / injected), in the wired order:
  *
  *   1. PDLibraryRegistry            (no args)
  *   2. PDFactory                    (admin, wallets, registry, fee corridor)
  *   3. registry.wireFactory(factory) — one-shot bind
- *   4. PDStickers                   (admin, factory — platform fees read live)
+ *   4. PDStickers                   (admin, factory — platform fees read live;
+ *                                    deploys its own solo StickerSplitter vault)
  *
- * Self-contained wallet stack: its OWN wagmi config (Sepolia-only, same
+ * That is the ENTIRE top-level surface: PDProject + PaymentSplitter deploy
+ * per-project through the factory, collab StickerSplitter vaults through
+ * the stickers shop. After step 4 nothing else ever needs deploying.
+ *
+ * Self-contained wallet stack: its OWN wagmi config (mainnet-only, same
  * RainbowKit roster + WalletConnect projectId as the app) mounted locally,
  * with a SEPARATE cookie key so it can never touch the live app's
- * mainnet wallet state. Progress persists in localStorage so the iOS
- * Safari deep-link round-trip to Rainbow can't lose a half-done deploy.
+ * wallet state. Progress persists in localStorage so the iOS Safari
+ * deep-link round-trip to Rainbow can't lose a half-done deploy.
  *
  * Bytecode + ABIs come from lib/deploy/artifacts.json, exported verbatim
  * from the pd-contracts build (solc 0.8.24, via-ir, 200 runs) — what you
- * deploy here is byte-for-byte what the test suite proved.
+ * deploy here is byte-for-byte what the test suite + audits proved.
  */
 
 import { useEffect, useMemo, useState } from 'react';
@@ -48,11 +53,22 @@ import {
     useSwitchChain,
     useWalletClient,
 } from 'wagmi';
-import { sepolia } from 'wagmi/chains';
+import { mainnet } from 'wagmi/chains';
 import { parseEther, type Abi, type Address, type Hex } from 'viem';
 import '@rainbow-me/rainbowkit/styles.css';
 
 import artifacts from '../../lib/deploy/artifacts.json';
+import { useGasData } from '../../lib/hooks/useGasData';
+
+/* Gas units per transaction, measured from the audited pd-contracts build
+   (forge gas report @ repo HEAD — the same build artifacts.json is exported
+   from). The wallet shows the exact number at signing; these price the plan. */
+const GAS_UNITS: Record<string, number> = {
+    registry: 930_703,   // PDLibraryRegistry deployment
+    factory: 5_448_280,  // PDFactory deployment (embeds PDProject + PaymentSplitter)
+    wire: 67_000,        // registry.wireFactory tx (45,341 execution + intrinsic/calldata)
+    stickers: 5_220_811, // PDStickers deployment (deploys its solo vault inside)
+};
 
 /* Same Reown Cloud project as lib/wallet/wagmiConfig.ts (public value). */
 const projectId = 'dddf23db294ed8117609933e1a6ae83c';
@@ -71,24 +87,24 @@ const connectors = connectorsForWallets(
         },
     ],
     {
-        appName: 'PD Sepolia Deploy',
-        appDescription: 'Deploy the Price Discussion contract stack to Sepolia.',
+        appName: 'PD Mainnet Deploy',
+        appDescription: 'Deploy the Price Discussion contract stack to Ethereum mainnet.',
         appUrl: 'https://pricediscussion.com',
         projectId,
     }
 );
 
 const deployConfig = createConfig({
-    chains: [sepolia],
+    chains: [mainnet],
     connectors,
-    transports: { [sepolia.id]: http() },
+    transports: { [mainnet.id]: http() },
     ssr: true,
-    storage: createStorage({ storage: cookieStorage, key: 'pd-deploy-wagmi' }),
+    storage: createStorage({ storage: cookieStorage, key: 'pd-mainnet-deploy-wagmi' }),
 });
 
 const queryClient = new QueryClient();
 
-const STORE_KEY = 'pd-sepolia-deploy-v1';
+const STORE_KEY = 'pd-mainnet-deploy-v1';
 
 type DeployState = {
     registry?: Address;
@@ -138,6 +154,9 @@ const S: Record<string, React.CSSProperties> = {
     addr: { fontSize: 11, wordBreak: 'break-all' as const, marginTop: 8, opacity: 0.9 },
     tx: { fontSize: 10, wordBreak: 'break-all' as const, opacity: 0.55, marginTop: 4 },
     err: { color: '#ff7676', fontSize: 11, marginTop: 8, wordBreak: 'break-word' as const },
+    gasRow: { fontSize: 12, marginTop: 6 },
+    gasTotal: { fontSize: 13, fontWeight: 700, marginTop: 10 },
+    gasAt: { fontSize: 11, opacity: 0.65, marginTop: 8 },
     spin: {
         display: 'inline-block', width: 12, height: 12, marginRight: 8,
         border: '2px solid #0a0a0a', borderTopColor: 'transparent',
@@ -177,13 +196,13 @@ function Deployer() {
         localStorage.setItem(STORE_KEY, JSON.stringify(next));
     };
 
-    const wrongChain = isConnected && chainId !== sepolia.id;
+    const wrongChain = isConnected && chainId !== mainnet.id;
 
-    // Auto-prompt the wallet to switch to Sepolia the moment it connects on
+    // Auto-prompt the wallet to switch to mainnet the moment it connects on
     // the wrong chain — the banner + connect-pill switcher stay as fallback.
     const { switchChain } = useSwitchChain();
     useEffect(() => {
-        if (wrongChain) switchChain({ chainId: sepolia.id });
+        if (wrongChain) switchChain({ chainId: mainnet.id });
     }, [wrongChain, switchChain]);
 
     async function run(step: string, fn: () => Promise<Partial<DeployState>>) {
@@ -207,12 +226,25 @@ function Deployer() {
             abi: art.abi,
             bytecode: art.bytecode,
             args,
-            chain: sepolia,
+            chain: mainnet,
         });
         const receipt = await publicClient!.waitForTransactionReceipt({ hash });
         if (!receipt.contractAddress) throw new Error('no contract address in receipt');
         return { addr: receipt.contractAddress, tx: hash };
     }
+
+    // Live gas pricing — same feed as the site's gas tracker (/api/gas).
+    const { data: gas } = useGasData(true);
+    const gwei = gas?.standardGwei ?? null;
+    const ethUsd = gas?.ethUsd ?? null;
+    const costEth = (units: number) => (gwei == null ? null : (units * gwei) / 1e9);
+    const fmtRow = (units: number) => {
+        const eth = costEth(units);
+        if (eth == null) return `${units.toLocaleString()} gas`;
+        const usd = ethUsd == null ? '' : ` · $${(eth * ethUsd).toFixed(2)}`;
+        return `${units.toLocaleString()} gas · ${eth.toFixed(5)} ETH${usd}`;
+    };
+    const totalUnits = Object.values(GAS_UNITS).reduce((a, b) => a + b, 0);
 
     const steps = [
         {
@@ -262,7 +294,7 @@ function Deployer() {
                         abi: art.abi,
                         functionName: 'wireFactory',
                         args: [state.factory],
-                        chain: sepolia,
+                        chain: mainnet,
                     });
                     await publicClient!.waitForTransactionReceipt({ hash });
                     return { wired: true, txs: { wire: hash } };
@@ -289,12 +321,12 @@ function Deployer() {
     return (
         <div style={S.page}>
             <style>{'@keyframes pdspin{to{transform:rotate(360deg)}}'}</style>
-            <div style={S.h1}>PD // SEPOLIA DEPLOY</div>
-            <div style={S.sub}>registry → factory → wire → stickers · one tap each</div>
+            <div style={S.h1}>PD // MAINNET DEPLOY</div>
+            <div style={S.sub}>registry → factory → wire → stickers · one tap each · REAL ETH</div>
 
             <div style={S.card}>
                 <ConnectButton showBalance={false} chainStatus="full" />
-                {wrongChain && <div style={S.err}>Switch the wallet to Sepolia first.</div>}
+                {wrongChain && <div style={S.err}>Switch the wallet to Ethereum mainnet first.</div>}
             </div>
 
             <div style={S.card}>
@@ -315,6 +347,20 @@ function Deployer() {
                 </div>
             </div>
 
+            <div style={S.card}>
+                <div style={S.stepTitle}>ESTIMATED GAS</div>
+                <div style={S.gasRow}>1 · registry — {fmtRow(GAS_UNITS.registry)}</div>
+                <div style={S.gasRow}>2 · factory — {fmtRow(GAS_UNITS.factory)}</div>
+                <div style={S.gasRow}>3 · wire — {fmtRow(GAS_UNITS.wire)}</div>
+                <div style={S.gasRow}>4 · stickers — {fmtRow(GAS_UNITS.stickers)}</div>
+                <div style={S.gasTotal}>TOTAL — {fmtRow(totalUnits)}</div>
+                <div style={S.gasAt}>
+                    {gwei == null
+                        ? 'fetching current gas…'
+                        : `@ ${gwei} gwei · ETH $${ethUsd == null ? '—' : ethUsd.toLocaleString()} · live, refreshes every 30s`}
+                </div>
+            </div>
+
             {steps.map((s) => (
                 <div key={s.key} style={S.card}>
                     <div style={S.stepTitle}>{s.title}</div>
@@ -325,7 +371,7 @@ function Deployer() {
                             {state.txs[s.key] && (
                                 <a
                                     style={{ ...S.tx, color: '#8ab4ff', display: 'block' }}
-                                    href={`https://sepolia.etherscan.io/tx/${state.txs[s.key]}`}
+                                    href={`https://etherscan.io/tx/${state.txs[s.key]}`}
                                     target="_blank"
                                     rel="noreferrer"
                                 >
@@ -360,7 +406,7 @@ function Deployer() {
 
             {allDone && (
                 <div style={{ ...S.card, borderColor: '#2e5c3c' }}>
-                    <div style={S.stepTitle}>ALL DEPLOYED — SEPOLIA ADDRESSES</div>
+                    <div style={S.stepTitle}>ALL DEPLOYED — MAINNET ADDRESSES</div>
                     <div style={S.addr}>registry: {state.registry}</div>
                     <div style={S.addr}>factory: {state.factory}</div>
                     <div style={S.addr}>stickers: {state.stickers}</div>
@@ -368,7 +414,7 @@ function Deployer() {
                         style={S.btn}
                         onClick={() =>
                             navigator.clipboard.writeText(
-                                `PD Sepolia\nregistry: ${state.registry}\nfactory: ${state.factory}\nstickers: ${state.stickers}`
+                                `PD Mainnet\nregistry: ${state.registry}\nfactory: ${state.factory}\nstickers: ${state.stickers}`
                             )
                         }
                     >
@@ -391,7 +437,8 @@ function Deployer() {
 }
 
 export default function DeployPage() {
-    // Local, Sepolia-only wallet stack — never touches the app's mainnet one.
+    // Local, mainnet-only wallet stack with its own cookie key — never
+    // touches the app's session wallet state.
     const theme = useMemo(() => darkTheme({ accentColor: '#fafafa', accentColorForeground: '#0a0a0a' }), []);
     return (
         <WagmiProvider config={deployConfig}>
