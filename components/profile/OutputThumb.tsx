@@ -29,7 +29,9 @@ export default function OutputThumb({
     const ref = useRef<HTMLCanvasElement>(null);
     const { notifs } = usePdNotifs();
     const ascii = notifs.asciiArt;
+    const degen = notifs.degen;
     useEffect(() => {
+        if (degen) return;
         const cv = ref.current;
         if (!cv) return;
         let painted = false;
@@ -66,7 +68,18 @@ export default function OutputThumb({
             const cancel = (window as unknown as { cancelIdleCallback?: (h: number) => void }).cancelIdleCallback;
             if (idle) { cancel ? cancel(idle) : window.clearTimeout(idle); }
         };
-    }, [slug, id, size, ascii]);
+    }, [slug, id, size, ascii, degen]);
+    /* Degen Mode — no art anywhere: the row's own text carries the data, the
+       thumb goes to the dashed no-art frame (2026-07-17). */
+    if (degen) {
+        return (
+            <span
+                className="degen-thumb"
+                aria-hidden="true"
+                style={{ width: size, height: size, display: 'block', borderRadius: 6 }}
+            />
+        );
+    }
     return (
         <canvas
             ref={ref}

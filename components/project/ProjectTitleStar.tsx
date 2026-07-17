@@ -14,7 +14,6 @@ import React from 'react';
 import { useToast } from '../../lib/state/ToastContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useCartelMutualCount } from '../../lib/social/cartel';
-import { useProjectCelestial } from '../../lib/output/celestial';
 import {
     isProjectStarred,
     toggleProjectStar,
@@ -26,7 +25,6 @@ export default function ProjectTitleStar({ slug, title }: { slug: string; title:
     const { notifs } = usePdNotifs();
     const cartelOn = notifs.spell_cartel;
     const cartelCount = useCartelMutualCount(slug, cartelOn);
-    const projFate = useProjectCelestial(slug, notifs.spell_celestial);
     const [starred, setStarred] = React.useState(false);
     React.useEffect(() => {
         setStarred(isProjectStarred(slug));
@@ -84,15 +82,10 @@ export default function ProjectTitleStar({ slug, title }: { slug: string; title:
                     <span className="pc-num">{cartelCount}</span>
                 </span>
             )}
-            {/* Celestial Tracker — the project's I Ching Fate hexagram, glyph
-                ONLY beside the name (Brendon, 2026-07-16: no word here — words
-                were part of the tracker's clutter problem; the old decorative
-                ☉☽↑ placeholder row stays gone too). */}
-            {projFate && (
-                <span className="project-celestial" aria-label={`Fate ${projFate.name}`}>
-                    <span className="pcel-hex">{projFate.glyph}</span>
-                </span>
-            )}
+            {/* Celestial Tracker redesign (Brendon, 2026-07-17): the tracker
+                is the BIRTH SKY — sun · moon · rising on pieces. The project
+                Fate hexagram chip is gone ("too focused on hexagrams for no
+                reason"); projects have no mint moment, so they wear nothing. */}
             {floatId > 0 && <span key={floatId} className={`project-name-star-float${floatDown ? ' is-down' : ''}`} aria-hidden="true">{'★︎'}</span>}
         </span>
     );

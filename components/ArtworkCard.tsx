@@ -84,10 +84,11 @@ import { getProject } from '../lib/project/registry';
 import { sampleCanvasFingerprint } from '../lib/art/sampleColor';
 import { needsColorSample, reportFingerprint, reportTraits, resolveBucket, resolveFingerprint, useStoredColors } from '../lib/art/colorStore';
 import { BUCKET_HEX, fateDetail } from '../lib/output/derive';
-import { primaryTrait, traitRarity, fateRarity, colorRarity, overallRarity, pdRarity, pdRarityRank } from '../lib/output/rarity';
+import { primaryTrait, traitRarity, fateRarity, colorRarity, overallRarity } from '../lib/output/rarity';
 import { arbitrageRead } from '../lib/output/arbitrage';
+import DegenSlab from './DegenSlab';
 import { ART_IMAGE_BASE, artImageUrl, artThumbUrl, artProvisionalAspect, rememberArtAspect } from '../lib/project/registry';
-import { useCelestialMark, celestialOpacity } from '../lib/output/celestial';
+import { useBirthSky, celestialOpacity } from '../lib/output/celestial';
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
 import {
     registerCanvas,
@@ -372,9 +373,10 @@ function ArtworkCard({
     }, []);
     const starred = starredKeys.has(`${slug}:${id}`);
 
-    /* Celestial Tracker — the moon the piece was minted under, shown in the
-       art's corner when the spell is on. Brightness = mint illumination. */
-    const celMark = useCelestialMark(slug, id, notifs.spell_celestial);
+    /* Celestial Tracker — the piece's BIG THREE (sun sign · true mint-moon ·
+       rising sign), a silent glyph run along the art's top edge when the
+       spell is on. No words; moon brightness = mint illumination. */
+    const sky = useBirthSky(slug, id, notifs.spell_celestial);
 
     /* Wishlist — "want to buy". Same Project-exact, account-backed store as
        stars; the heart on the card adds/removes. */
@@ -666,27 +668,9 @@ function ArtworkCard({
         [arbOn, outputs, slug, id],
     );
 
-    /* Degen Mode ⚔ tile data (reimagined 2026-07-17 — Brendon: "shop purely
-       by rarity and traits… 'what about the art??' is not what this mode is
-       about"). The overlay is a data slab: PD Rarity score + edition rank
-       (the same pdRarity math the Vault and RARITY grouping read), the
-       primary artist trait + Fate with their real ×N scarcity counts, and
-       the ask. All deterministic + project-cached — no fetch. */
-    const degenRead = useMemo(() => {
-        if (!notifs.degen) return null;
-        const r = pdRarity(slug, id);
-        const rank = pdRarityRank(slug, id);
-        const pt = primaryTrait(slug, id);
-        const ptFreq = pt ? traitRarity(slug, pt.name, pt.value) : null;
-        const fate = fateDetail(slug, id).fate;
-        const fFreq = fateRarity(slug, fate);
-        return {
-            score: r?.score ?? null,
-            rank,
-            trait: pt ? { value: pt.value, count: ptFreq?.count ?? null } : null,
-            fate: { value: fate, count: fFreq?.count ?? null },
-        };
-    }, [notifs.degen, slug, id]);
+    /* Degen Mode ⚔ (reimagined 2026-07-17 — Brendon: "shop purely by rarity
+       and traits… 'what about the art??' is not what this mode is about").
+       The tile becomes the shared DegenSlab data slab — see DegenSlab.tsx. */
 
     /* AURA wow pass (2026-07-16): the halo is the piece's OWN light — its
        dominant colour + accent from the sampled fingerprint, and the glow's
@@ -1011,14 +995,25 @@ function ArtworkCard({
                             <span className="pd-ring" />
                         </span>
                     )}
-                    {celMark && (
+                    {/* Celestial Tracker — the birth-sky trio across the art's
+                        top edge: sun sign · TRUE mint-moon disc · rising sign.
+                        Sun/Moon/Rising order is the astrological convention —
+                        the order is the label; no words render. Tooltip
+                        carries the reading for the curious. */}
+                    {sky && (
                         <span
-                            className="celestial-moon"
-                            style={{ opacity: celestialOpacity(celMark.illum) }}
-                            title={`Minted under a ${celMark.phase}`}
+                            className="celestial-sky"
+                            title={`${sky.sun} sun · ${sky.phase} · ${sky.rising} rising`}
                             aria-hidden="true"
                         >
-                            {celMark.glyph}
+                            <span className="cs-sign">{sky.sunGlyph}</span>
+                            <span
+                                className="cs-moon"
+                                style={{ opacity: celestialOpacity(sky.illum) }}
+                            >
+                                {sky.moonGlyph}
+                            </span>
+                            <span className="cs-sign">{sky.risingGlyph}</span>
                         </span>
                     )}
                     {/* Brendon list item 8 — Degen Mode overlay.
@@ -1038,40 +1033,8 @@ function ArtworkCard({
                         the canvas and shows the dashed border). pointer-
                         events: none in CSS so clicks fall through to the
                         output-content button. */}
-                    {notifs.degen && degenRead && (
-                        <div className="degen-overlay">
-                            <span className="d-id">#{id}</span>
-                            {/* The degen number: PD Rarity score + where it
-                                ranks across the whole edition set. ❖ is the
-                                sitewide RARITY glyph. */}
-                            {degenRead.score != null && (
-                                <span className="d-rarity">
-                                    {'❖︎'}{degenRead.score}
-                                    {degenRead.rank && (
-                                        <> · {degenRead.rank.rank}/{degenRead.rank.total}</>
-                                    )}
-                                </span>
-                            )}
-                            {/* Scarcity reads: trait value ×N existing, Fate
-                                ×N — apples-to-apples down the whole grid. */}
-                            {degenRead.trait && (
-                                <span className="d-trait">
-                                    {degenRead.trait.value}
-                                    {degenRead.trait.count != null && (
-                                        <span className="d-count"> ×{degenRead.trait.count}</span>
-                                    )}
-                                </span>
-                            )}
-                            <span className="d-trait">
-                                {degenRead.fate.value}
-                                {degenRead.fate.count != null && (
-                                    <span className="d-count"> ×{degenRead.fate.count}</span>
-                                )}
-                            </span>
-                            <span className={`d-price${meta?.price ? '' : ' d-unlisted'}`}>
-                                {meta?.price ?? 'UNLISTED'}
-                            </span>
-                        </div>
+                    {notifs.degen && (
+                        <DegenSlab slug={slug} id={id} price={meta?.price ?? null} />
                     )}
                     {/* Build 23 + chat #4 — sim 8038-8040 mute overlay.
                         Always mounted; CSS gates visibility on body.hammer-

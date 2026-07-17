@@ -2524,6 +2524,35 @@ body.degen-mode .canvas-wrapper {
 .degen-overlay .d-price  { font-size: 13px; line-height: 1; margin-top: 2px; }
 /* UNLISTED fades because it MEANS something: not shoppable. */
 .degen-overlay .d-price.d-unlisted { opacity: 0.55; }
+/* The artwork modal wears the same slab, scaled up (Degen works across the
+   site, 2026-07-17). The modal's canvas wrap has no dashed frame of its own,
+   so the slab brings one. */
+.degen-overlay--modal {
+    position: relative; inset: auto;
+    width: min(78vw, 420px); aspect-ratio: 1;
+    background: var(--bg-color);
+    border: 2px dashed var(--text-color);
+    border-radius: 8px;
+    gap: 10px;
+}
+.degen-overlay--modal .d-id     { font-size: 26px; }
+.degen-overlay--modal .d-rarity { font-size: 19px; }
+.degen-overlay--modal .d-trait  { font-size: 16px; }
+.degen-overlay--modal .d-count  { font-size: 16px; }
+.degen-overlay--modal .d-price  { font-size: 19px; }
+/* Degen hides ART, everywhere: the modal's instant-thumbnail loading panel
+   included (the master itself already carries .output-canvas). */
+body.degen-mode .modal-art-loading { display: none !important; }
+/* The no-art row thumb (Starred/Wishlist/History rows, search results):
+   the row's own text carries the data, the square wears the dashed
+   no-art frame — same visual language as the grid slab. */
+.degen-thumb {
+    background: var(--bg-color);
+    border: 1.5px dashed var(--text-color);
+    box-sizing: border-box;
+    border-radius: 6px;
+    flex: none;
+}
 
 /* F38 — zero-context-mode CSS (BUG-08). Sim 1525-1537, 3307, 3403.
    The `.tape-wrap` hide for zero-context-mode is consolidated into the
@@ -5554,7 +5583,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     #sn-zen .st-icon          { font-size: 16px !important; }
     #sn-sticker .st-icon      { font-size: 17px !important; }
     #sn-zerocontext .st-icon  { font-size: 15px !important; }
-    #sn-pricelens .st-icon    { font-size: 15px !important; }
+    #sn-pricelens .st-icon    { font-size: 17px !important; }
     #sn-sentiment .st-icon    { font-size: 15px !important; }
     #sn-asciiId .st-icon      { font-size: 15px !important; }
     #sn-degen .st-icon        { font-size: 16px !important; }
@@ -5569,7 +5598,7 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     #sn-zen .st-icon          { position: relative; top: 1px; }
     #sn-sticker .st-icon      { position: relative; top: 0; }
     #sn-zerocontext .st-icon  { position: relative; top: 0; }
-    #sn-pricelens .st-icon    { position: relative; top: 1px; }
+    #sn-pricelens .st-icon    { position: relative; top: 0.5px; }
     #sn-echo .st-icon         { position: relative; top: 1px; }
     #sn-sentiment .st-icon    { position: relative; top: 0; }
     #sn-asciiId .st-icon      { position: relative; top: 0; }
@@ -8665,24 +8694,35 @@ body.hammer-mode .modal-canvas-wrap .mute-overlay { display: flex; }
    _startFogObserver / _stopFogObserver). Body class toggle lives in
    useBodyClass driven by SortContext (sim 8334-8338). */
 body.fog-mode .output-card:not(.fog-revealed) { cursor: pointer; }
-body.fog-mode .output-card:not(.fog-revealed) .canvas-wrapper {
-    filter: blur(28px) brightness(0.75) saturate(0.5);
-    transition: filter 0.6s ease;
+/* 2026-07-17 repair: the blur moves off the WRAPPER onto the ART itself.
+   Blurring the wrapper bled 28px of smudge past every card edge (the ugly
+   halo on carousels); blurring the child keeps the wrapper's overflow clip,
+   so cards stay crisp-edged with foggy art inside. scale pushes the blur's
+   transparent fringe past the clip — no vignette gap. */
+body.fog-mode .output-card:not(.fog-revealed) .canvas-wrapper .output-canvas {
+    filter: blur(26px) brightness(0.8) saturate(0.55);
+    transform: scale(1.12);
+    transition: filter 0.6s ease, transform 0.6s ease;
 }
-body.fog-mode .output-card.fog-revealed .canvas-wrapper {
+body.fog-mode .output-card.fog-revealed .canvas-wrapper .output-canvas {
     filter: none;
-    transition: filter 0.8s ease;
+    transform: none;
+    transition: filter 0.8s ease, transform 0.8s ease;
 }
-/* Subtle pulse on unrevealed cards so the fog feels alive */
+/* The fog itself — soft wisps drifting slowly across the veiled art (the
+   low-alpha layer IS the fog, a meaning-carrying veil, never chrome). */
 body.fog-mode .output-card:not(.fog-revealed) .canvas-wrapper::after {
-    content: ''; position: absolute; inset: 0;
-    background: rgba(0,0,0,0.08);
-    animation: fogPulse 4s ease-in-out infinite;
+    content: ''; position: absolute; inset: -35%;
+    background:
+        radial-gradient(38% 30% at 30% 35%, rgba(255,255,255,0.16), transparent 70%),
+        radial-gradient(46% 34% at 72% 62%, rgba(255,255,255,0.10), transparent 70%),
+        radial-gradient(30% 26% at 55% 18%, rgba(255,255,255,0.13), transparent 70%);
+    animation: fogDrift 14s ease-in-out infinite alternate;
     pointer-events: none;
 }
-@keyframes fogPulse {
-    0%, 100% { opacity: 0.3; }
-    50%      { opacity: 0.7; }
+@keyframes fogDrift {
+    from { transform: translate3d(-5%, -3%, 0); }
+    to   { transform: translate3d(5%, 4%, 0); }
 }
 @media (prefers-reduced-motion: reduce) {
     body.fog-mode .output-card:not(.fog-revealed) .canvas-wrapper::after { animation: none; }
@@ -10597,8 +10637,7 @@ body.colorway-dark .ghost-feed-bar {
 /* History (output rows): note a touch larger + nudged down 1px (Brendon). */
 .starred-rows--timeline .starred-row-id .meta-note-ic { font-size: 1.22em; top: 1.5px; }
 .srl-flag-star { color: var(--text-color); }
-.starred-row-id .project-cartel,
-.starred-row-id .project-celestial {
+.starred-row-id .project-cartel {
     display: inline-block;
     text-decoration: none;
 }
@@ -10813,23 +10852,35 @@ body.colorway-dark .ghost-feed-bar {
     .project-cartel .pc-ico { font-size: 0.95em; }
 }
 
-/* Celestial Tracker — the birth sky (2026-07-16 revamp: phase-TRUE moon discs
-   off the character sheet's lunarGlyph vocabulary, fixed legible sizes, no
-   whisper text). On the artwork card the moon sits in the art's top-left
-   corner and breathes; beside the Output/Project name the sky reads as one
-   clean chip row. Moon-glyph opacity is set inline from mint illumination —
-   the fade IS the phase data (floor 0.55, so even a new moon is visible). */
-.celestial-moon {
+/* Celestial Tracker — the birth sky (2026-07-17 redesign, Brendon's call:
+   sun · moon · rising, subtle, around the pieces — NO words, NO hexagrams).
+   The trio floats along the art's top edge on cards and rides beside the
+   Output title: sun sign glyph, the TRUE mint-moon disc (inline opacity =
+   illumination — the fade IS the phase data, floor 0.55), rising sign glyph.
+   Sun/Moon/Rising order is the astrological convention — the order is the
+   label. The moon breathes; the signs hold still (the sky moves, the chart
+   doesn't). Zodiac glyphs are new to the vocabulary — device-verify per the
+   #1 glyph gate (GLYPHS.md). */
+.celestial-sky {
     position: absolute;
     top: 6px;
-    left: 7px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 16px;
+    font-weight: bold;
     line-height: 1;
     color: #fff;
     text-shadow: 0 0 7px rgba(0, 0, 0, 0.7), 0 0 3px rgba(0, 0, 0, 0.9);
     pointer-events: none;
+    white-space: nowrap;
+}
+.celestial-sky .cs-sign { font-size: 13px; }
+.celestial-sky .cs-moon {
+    font-size: 14px;
     animation: cel-moon-breathe 5.2s ease-in-out infinite;
 }
 /* The moon breathes like the Audience dot — a slow halo swell, never a fade
@@ -10838,46 +10889,24 @@ body.colorway-dark .ghost-feed-bar {
     0%, 100% { text-shadow: 0 0 7px rgba(0, 0, 0, 0.7), 0 0 3px rgba(0, 0, 0, 0.9); transform: scale(1); }
     50% { text-shadow: 0 0 11px rgba(0, 0, 0, 0.85), 0 0 4px rgba(0, 0, 0, 0.95), 0 0 14px rgba(255, 255, 255, 0.35); transform: scale(1.08); }
 }
-.output-celestial,
-.project-celestial {
+@media (prefers-reduced-motion: reduce) {
+    .celestial-sky .cs-moon { animation: none; }
+}
+/* Beside the Output title — same trio, inline, accent ink, no words. */
+.output-celestial {
     display: inline-flex;
     align-items: center;
     vertical-align: middle;
     line-height: 1;
     margin-left: 0.55em;
-    gap: 9px;
+    gap: 8px;
     font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
     color: var(--accent);
     white-space: nowrap;
 }
-.output-celestial .oc-sky,
-.output-celestial .oc-fate {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-}
-/* Glyphs at fixed legible sizes — never em-fractions of the big title. */
-.output-celestial .oc-moon { font-size: 14px; line-height: 1; }
-.output-celestial .oc-hex,
-.project-celestial .pcel-hex { font-size: 16px; line-height: 1; }
-/* Labels: 12px minimum, bold, full-strength (Rule #2 — no whisper text).
-   Output titles only — the project name wears the bare hexagram, no word
-   (Brendon, 2026-07-16). */
-.output-celestial .oc-label {
-    font-size: 12px;
-    font-weight: bold;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    font-family: 'Courier New', Courier, monospace;
-}
-/* The % LIT readout rides one step quieter than the phase word only because
-   it's the same fact restated — still 12px, still bold. */
-.output-celestial .oc-lit {
-    font-size: 12px;
-    font-weight: bold;
-    letter-spacing: 0.05em;
-    opacity: 0.85;
-}
+.output-celestial .oc-sign { font-size: 15px; line-height: 1; }
+.output-celestial .oc-moon { font-size: 15px; line-height: 1; }
 
 /* Celestial reading — the per-Output birth-sky horoscope, shown atop the
    Attributes character sheet while Celestial Tracker is on. A serif blockquote

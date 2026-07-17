@@ -27,7 +27,6 @@ import { useNotePrompt } from '../../lib/state/NotePromptContext';
 import { useStarLongPress, useTokenNote } from '../../lib/hooks/rowFlags';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useCartelMutualCount } from '../../lib/social/cartel';
-import { useProjectCelestial } from '../../lib/output/celestial';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
 import { useOutputMeta } from '../../lib/hooks/useOutputMeta';
 import { outputTraits, getProject, projectColorway, projectsByArtist } from '../../lib/project/registry';
@@ -92,28 +91,21 @@ function sectionize<T>(rows: T[], keyOf: (r: T) => string, order?: string[]): Se
 }
 const COLOR_ORDER = [...(COLOR_BUCKET_ORDER as readonly string[]), 'Other'];
 
-/* The after-name project badges — the Cartel count (⟁ + the viewer's mutuals
-   controlling this project) and the Celestial Tracker (the project's Fate
-   hexagram + name) — exactly as they ride beside the project name on the
-   project page (ProjectTitleStar). Each is gated on its own spell; renders
-   nothing when both are off. Drop after a project @name on the Starred + History
-   project cards. */
+/* The after-name project badge — the Cartel count (⟁ + the viewer's mutuals
+   controlling this project), exactly as it rides beside the project name on
+   the project page (ProjectTitleStar). Gated on the Cartel spell. The old
+   Celestial hexagram chip is gone (2026-07-17 redesign — the tracker is the
+   birth sky on PIECES; projects have no mint moment). */
 function ProjectNameBadges({ slug }: { slug: string }) {
     const { notifs } = usePdNotifs();
     const cartelOn = notifs.spell_cartel;
     const cartelCount = useCartelMutualCount(slug, cartelOn);
-    const projFate = useProjectCelestial(slug, notifs.spell_celestial);
     return (
         <>
             {cartelOn && (
                 <span className="project-cartel" aria-label={`${cartelCount} mutuals in the cartel`}>
                     <span className="pc-ico">{'⟁︎'}</span>
                     <span className="pc-num">{cartelCount}</span>
-                </span>
-            )}
-            {projFate && (
-                <span className="project-celestial" aria-label={`Fate ${projFate.name}`}>
-                    <span className="pcel-hex">{projFate.glyph}</span>
                 </span>
             )}
         </>

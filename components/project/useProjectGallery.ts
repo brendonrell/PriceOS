@@ -164,51 +164,9 @@ export function useProjectGallery({
         });
     }, [showGhosts, def]);
 
-    /* Build 23 — Fog-mode click-to-reveal (sim 8364-8398). When sort is
-       'fog', body.fog-mode CSS blurs every .output-card .canvas-wrapper
-       until the card carries .fog-revealed. First tap on a fogged card
-       adds the class and swallows the click so the modal doesn't open
-       on the same gesture (sim 8378-8385); a second tap on the now-
-       revealed card opens the modal normally.
-
-       The handler is attached in the capture phase on #gallery so it
-       runs before the .output-content onClick that opens the modal.
-       Imperative DOM mutation (classList.add) mirrors sim's
-       _startFogObserver pattern verbatim — no per-card React state
-       needed, and switching sort away from 'fog' clears all
-       .fog-revealed classes so re-entering fog starts clean
-       (sim 8395-8398). */
-    useEffect(() => {
-        if (sort !== 'fog') {
-            // Sim 8395-8398 cleanup: when fog turns off, scrub every
-            // .fog-revealed flag so the next entry re-fogs the grid.
-            document
-                .querySelectorAll('.output-card.fog-revealed')
-                .forEach((c) => c.classList.remove('fog-revealed'));
-            return;
-        }
-        const gallery = document.getElementById('gallery');
-        if (!gallery) return;
-
-        const handler = (ev: Event) => {
-            // Re-check inside the handler in case body.fog-mode was
-            // dropped between attach and click (defensive — sim 8375).
-            if (!document.body.classList.contains('fog-mode')) return;
-            const target = ev.target as HTMLElement | null;
-            if (!target) return;
-            const card = target.closest('.output-card');
-            if (!card || card.classList.contains('fog-revealed')) return;
-            card.classList.add('fog-revealed');
-            ev.preventDefault();
-            ev.stopPropagation();
-        };
-
-        // Capture phase — runs before .output-content's bubbled onClick.
-        gallery.addEventListener('click', handler, true);
-        return () => {
-            gallery.removeEventListener('click', handler, true);
-        };
-    }, [sort]);
+    /* Fog-mode click-to-reveal moved to lib/hooks/useFogReveal (2026-07-17) —
+       document-level in PriceOSShell, so fog works on EVERY grid (home
+       carousels included), not just this page's #gallery. */
 
     /* Build 19: filter + sort pipeline.
        ───────────────────────────────────────────────────────────────────

@@ -110,6 +110,7 @@ import { toggleShowcase } from '../lib/pins/userShowcaseStore';
 import { getStarredKeys, toggleStar as storeToggleStar, subscribeStarred } from '../lib/pins/starStore';
 import { getWishlistKeys, toggleWishlist as storeToggleWishlist, subscribeWishlist } from '../lib/pins/wishlistStore';
 import AlbumPickerCard from './album/AlbumPickerCard';
+import DegenSlab from './DegenSlab';
 import { useSpiteMatcher } from '../lib/pins/spiteStore';
 import {
     getMutedKeys,
@@ -1010,6 +1011,13 @@ export default function OutputPreview() {
                         <span className="pd-ring" />
                     </div>
                 )}
+                {/* Degen Mode — the modal keeps the shopping numbers, not the
+                    art (body.degen-mode CSS already hides the master; this
+                    fills the panel with the same data slab the grid wears,
+                    scaled up). 2026-07-17: Degen works across the site. */}
+                {notifs.degen && id != null && (
+                    <DegenSlab slug={slug} id={id} price={meta?.price ?? null} modal />
+                )}
                 {/* chat #4 D011 — sim 5369-5372. Modal-scoped MUTE overlay,
                     visible only when body.hammer-mode is active (gated by
                     globals.css `body.hammer-mode .modal-canvas-wrap
@@ -1227,6 +1235,10 @@ export default function OutputPreview() {
             </div>
 
             <div className="ls-canvas-wrap">
+                {/* Degen Mode — same data slab, landscape layout. */}
+                {notifs.degen && id != null && (
+                    <DegenSlab slug={slug} id={id} price={meta?.price ?? null} modal />
+                )}
                 {modalImgSrc && (
                     <img
                         id="modalCanvasLs"

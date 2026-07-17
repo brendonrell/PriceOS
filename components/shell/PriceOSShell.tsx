@@ -58,6 +58,7 @@ import { useModal } from '../../lib/state/ModalContext';
 import { useCart } from '../../lib/state/CartContext';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { useBodyClass } from '../../lib/hooks/useBodyClass';
+import { useFogReveal } from '../../lib/hooks/useFogReveal';
 import { useNavFade } from '../../lib/hooks/useNavFade';
 import { pickTabstractTitle } from '../../lib/title/tabstract';
 import { getProject } from '../../lib/project/registry';
@@ -110,6 +111,9 @@ import NativePingsFirstRun from './NativePingsFirstRun';
 export function PriceOSShell({ children }: { children: ReactNode }) {
     useBodyClass();
     useNavFade();
+    /* Fog-mode tap-to-reveal — document-level so fog works on EVERY grid
+       (home carousels, profile, project), not just #gallery (2026-07-17). */
+    useFogReveal();
     const pathname = usePathname();
     const router = useRouter();
     const { close: closeModal } = useModal();

@@ -1,93 +1,84 @@
 'use client';
 
 /*
- * Celestial Tracker — the per-entity "birth sky".
+ * Celestial Tracker — the birth sky (redesigned 2026-07-17, Brendon's call:
+ * "it should be showing sun moon and rising subtly around things" — NO words,
+ * NO hexagram focus; the old fate-chip readout was wrong).
  *
- * The mode reads the rich celestial layer we track and surfaces it wherever
- * you are:
- *   • Output — the moon it was minted under (the TRUE phase disc, drawn with
- *     the character sheet's lunarGlyph vocabulary; brightness = illumination
- *     at mint) PLUS its I Ching Fate (hexagram + name). The moon needs the
- *     stored mint timestamp (fills in as pieces are browsed); the Fate is
- *     pure from (slug, id), so it's always there.
- *   • Project — its own Fate hexagram (pure from the slug), shown beside the
- *     project name.
+ * The mode surfaces each Output's astrological BIG THREE from the real natal
+ * engine (lib/project/natal.ts — the sky over Montreal at the mint instant):
+ *   ☉ SUN sign      — the zodiac glyph
+ *   ☽ MOON          — the TRUE phase disc (lunarGlyph; brightness = illumination)
+ *   ↑ RISING sign   — the zodiac glyph
+ * rendered as a silent three-glyph run around the piece (card top edge, output
+ * title). Sun · Moon · Rising order is the astrological convention — the order
+ * IS the label; no words render anywhere. Needs the stored mint timestamp
+ * (fills in as pieces are browsed); no timestamp → no marks, nothing faked.
  *
- * Every glyph here is iOS-safe text (the lunar circle discs, the I Ching
- * hexagram block) — never an emoji. The card keeps the compact moon; the
- * name spots carry the fuller readout.
+ * Zodiac glyphs U+2648–U+2653 ship with VS-15 + forced Courier like every PD
+ * glyph. Device-verify on iOS per the #1 glyph gate (GLYPHS.md).
  */
 
 import { resolveStoredTraits, useStoredColors } from '../art/colorStore';
-import { lunarPhase, lunarGlyph, lunarIllumination, fateDetail } from './derive';
-import { projectFateReading } from '../project/fate';
+import { lunarPhase, lunarGlyph, lunarIllumination } from './derive';
+import { natalChart } from '../project/natal';
 
-export interface CelestialMark {
-    glyph: string;   // the phase-true disc (lunarGlyph: ● ◕ ◑ ◔ ○ …)
-    phase: string;   // "Waning Gibbous"
-    illum: number;   // 0..1
+const VS15 = '︎';
+
+/** Zodiac sign → glyph (VS-15 text presentation). */
+export const ZODIAC_GLYPH: Record<string, string> = {
+    Aries: `♈${VS15}`, Taurus: `♉${VS15}`, Gemini: `♊${VS15}`,
+    Cancer: `♋${VS15}`, Leo: `♌${VS15}`, Virgo: `♍${VS15}`,
+    Libra: `♎${VS15}`, Scorpio: `♏${VS15}`, Sagittarius: `♐${VS15}`,
+    Capricorn: `♑${VS15}`, Aquarius: `♒${VS15}`, Pisces: `♓${VS15}`,
+};
+
+export interface BirthSky {
+    /** Sun sign glyph (♌︎). */
+    sunGlyph: string;
+    /** TRUE mint-moon phase disc (● ◕ ◑ ◔ ○ …). */
+    moonGlyph: string;
+    /** Rising sign glyph (♓︎). */
+    risingGlyph: string;
+    /** Words for tooltips / aria only — never rendered as text. */
+    sun: string;
+    phase: string;
+    rising: string;
+    /** Moon illumination at mint, 0..1 (drives the disc's brightness). */
+    illum: number;
 }
 
-export interface FateMark {
-    glyph: string;   // hexagram glyph
-    name: string;    // "The Creative"
-    n: number;       // hexagram number
-}
-
-export interface OutputCelestial {
-    moon: CelestialMark | null; // null until the mint timestamp is loaded
-    fate: FateMark;             // always present (pure)
-}
-
-export function celestialMark(slug: string, id: number): CelestialMark | null {
+/** The Output's birth sky — null until the mint timestamp is stored. */
+export function birthSky(slug: string, id: number): BirthSky | null {
     const t = resolveStoredTraits(slug, id);
     if (!t?.mintedAt) return null;
     const ms = Date.parse(t.mintedAt);
     if (!Number.isFinite(ms)) return null;
-    return { glyph: lunarGlyph(ms), phase: lunarPhase(ms), illum: lunarIllumination(ms) };
-}
-
-export function outputCelestial(slug: string, id: number): OutputCelestial {
-    const fd = fateDetail(slug, id);
+    const chart = natalChart(ms);
+    const sunGlyph = ZODIAC_GLYPH[chart.sun];
+    const risingGlyph = ZODIAC_GLYPH[chart.rising];
+    if (!sunGlyph || !risingGlyph) return null;
     return {
-        moon: celestialMark(slug, id),
-        fate: { glyph: fd.glyph, name: fd.hexagramName, n: fd.hexagram },
+        sunGlyph,
+        moonGlyph: lunarGlyph(ms),
+        risingGlyph,
+        sun: chart.sun,
+        phase: lunarPhase(ms),
+        rising: chart.rising,
+        illum: lunarIllumination(ms),
     };
 }
 
-export function projectCelestial(slug: string): FateMark {
-    const r = projectFateReading(slug);
-    return { glyph: r.glyph, name: r.primary.name, n: r.primary.n };
-}
-
-/** Card hook — the compact moon only. */
-export function useCelestialMark(slug: string, id: number, enabled: boolean): CelestialMark | null {
+/** Hook — re-renders as stored mint timestamps hydrate. */
+export function useBirthSky(slug: string, id: number, enabled: boolean): BirthSky | null {
     useStoredColors(enabled ? [slug] : []);
     if (!enabled) return null;
-    return celestialMark(slug, id);
+    return birthSky(slug, id);
 }
 
-/** Output name hook — moon + Fate. */
-export function useOutputCelestial(slug: string, id: number, enabled: boolean): OutputCelestial | null {
-    useStoredColors(enabled ? [slug] : []);
-    if (!enabled) return null;
-    return outputCelestial(slug, id);
-}
-
-/** Project name hook — the project's Fate (always available). */
-export function useProjectCelestial(slug: string, enabled: boolean): FateMark | null {
-    if (!enabled) return null;
-    return projectCelestial(slug);
-}
-
-/** Brightness for the moon glyph: the fade IS the illumination read, but the
+/** Brightness for the moon disc: the fade IS the illumination read, but the
  *  floor stays high enough that even a new moon is plainly visible (Rule #2 —
  *  meaning-carrying fade, never a washout). */
 export function celestialOpacity(illum: number): number {
     return 0.55 + 0.45 * Math.max(0, Math.min(1, illum));
-}
-
-/** "98% LIT" — the label the moon wears beside its phase word. */
-export function celestialLit(illum: number): string {
-    return `${Math.round(Math.max(0, Math.min(1, illum)) * 100)}% LIT`;
 }

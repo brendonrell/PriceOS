@@ -436,6 +436,21 @@ Wishlist rows (and the held-by / collected-by chips):
 > the standard #1 glyph gate: device-verify as monochrome TEXT on iOS; if one
 > tofus, it needs a swap.
 
+## 12b. Celestial Tracker — the birth-sky trio (2026-07-17 redesign)
+
+The Celestial Tracker spell renders each Output's astrological **big three**
+as a silent glyph run (card top edge · output title): **sun sign · TRUE
+mint-moon phase disc · rising sign**, in that order — Sun/Moon/Rising is the
+astrological convention, so **the order IS the label; no words render**
+(Brendon, 2026-07-17 — words and the hexagram focus were the old tracker's
+failure). Data is the real natal engine (`lib/project/natal.ts`, the Montreal
+sky at mint) + the proven lunarGlyph discs.
+
+| Concept | Glyphs | Codepoints | Notes |
+|---|---|---|---|
+| Zodiac signs (sun + rising) | ♈♉♊♋♌♍♎♏♐♑♒♓ | U+2648–U+2653 | NEW family — VS-15 + forced Courier like all system glyphs. ⚠ **Device-verify per the #1 gate**: zodiac signs are a known emoji-presentation risk on iOS; if they tofu or colour, the family needs a swap |
+| Moon phase | ○◔◑◕● + waning twins | (lunarGlyph) | already shipped/proven — the disc's inline opacity IS the illumination at mint |
+
 ## 13. THE WAR — Factions glyphs (2026-07-13 build, spec v3.1 §11)
 
 One vocabulary across the ceremony, the tape, pings, the Book, and the
