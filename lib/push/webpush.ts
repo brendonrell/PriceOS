@@ -20,13 +20,23 @@
 // fetch — the same code runs in Node dev and the deployed worker).
 import { sendWebPush } from '@/lib/push/transport';
 import { getSupabaseService } from '@/lib/supabase';
-import { showsNativePings, type PingToastMode } from '@/lib/state/PdNotifsContext';
+import type { PingToastMode } from '@/lib/state/PdNotifsContext';
 import { formatNativePing } from '@/lib/push/format';
 import { passesCategoryPrefs, pingHref, type FeedItem, type PingCategoryPrefs } from '@/lib/pings/render';
 import { composeResolved, composeSprite, type ResolvedSprite } from '@/lib/sprites/composer';
 import { isPriceSpriteVibe } from '@/lib/sprites/vibes';
 
 type DB = ReturnType<typeof getSupabaseService>;
+
+/** Native pings show on 3D or COMBO. Inlined, server-safe copy of
+ *  showsNativePings — that function lives in the 'use client' PdNotifsContext,
+ *  and calling a client function from the server THROWS ("cannot invoke a
+ *  client function from the server"), which detonated the send before a single
+ *  push left the worker and silently killed every native Pingtoast for weeks
+ *  (found + fixed 2026-07-18). Keep in lockstep with showsNativePings. */
+function modeShowsNative(mode: PingToastMode | string | undefined | null): boolean {
+  return mode === '3d' || mode === 'combo';
+}
 
 // PriceSprite standin when a recipient has no resolved sprite yet — the same
 // awake placeholder string the engine uses (priceSpriteEngine STANDIN_AWAKE_R).
@@ -241,7 +251,7 @@ async function fetchGate(
     pings?: Partial<PingCategoryPrefs>;
   };
   const mode = (notifs.pingToasts ?? 'off') as PingToastMode;
-  const allowed = showsNativePings(mode) && notifs.nightmode !== true; // Silent Mode keeps it quiet
+  const allowed = modeShowsNative(mode) && notifs.nightmode !== true; // Silent Mode keeps it quiet
   const prefs: PingCategoryPrefs = { ...DEFAULT_CATEGORY_PREFS, ...(notifs.pings ?? {}) };
   return { allowed, spriteFace: spriteFaceFor(row, mood), prefs };
 }
@@ -387,7 +397,7 @@ export async function sendTodoReminder(
       .maybeSingle();
     const notifs = (((uRow as { settings?: Record<string, unknown> } | null)?.settings ?? {})
       .notifs ?? {}) as { pingToasts?: PingToastMode; nightmode?: boolean };
-    if (!showsNativePings(notifs.pingToasts ?? 'off') || notifs.nightmode === true) return;
+    if (!modeShowsNative(notifs.pingToasts ?? 'off') || notifs.nightmode === true) return;
 
     const payload = JSON.stringify({
       title,
