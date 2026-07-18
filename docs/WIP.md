@@ -8,6 +8,48 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ✅ **2026-07-18 NATIVE PUSH FIXED (for real) + DAY'S POLISH — all on dev
+   (tip `0bce005`), auto-deploy rolling, tree clean.** Long Opus session,
+   Brendon's running batch:
+   ① **THE PUSH BUG KILLED — root cause found + confirmed working (banner
+   landed on Brendon's lock screen).** Native pings had silently died: the
+   reminder sweep called `showsNativePings()`, which lives in a `'use client'`
+   module — calling it server-side threw and killed delivery before send.
+   Fixed with a server-safe `modeShowsNative(mode)` at both send gates
+   (`lib/push/webpush.ts`). The in-app unread badge runs off the DB (not
+   push), which is why it read as "delayed" for weeks and masked the real
+   failure. The ~30s delay after the set time is the Cloudflare 1-min cron
+   floor — inherent, not a bug; explained, no change.
+   ② **PriceSprite mouth** — reminder pings no longer wear the open-mouth
+   face ('yawning'→'awake'); sprites don't open their mouth to talk.
+   ③ **Two-line native ping body** (Brendon's Option 3): label line + detail
+   line so a long to-do / piece name never truncates (`lib/push/format.ts`).
+   ④ **To-do composer**: clock glyph moved BETWEEN the date + time (always
+   shown, small gap each side); when the colorway is red, todos flip Hothurt
+   → Attention Yellow so P1/etc. selection stays legible (`body.bg-is-red
+   #todosBox` token swap).
+   ⑤ **CALENDAR = GCal day timeline**: to-dos merge into the day's event list,
+   time-sorted (no-time = all-day, floats to top; timed shows its time) on
+   BOTH the dropdown panel and the full-screen day. Day Note pinned back to
+   the TOP; order Day Note → Events → PriceDay; white dot on the month grid
+   for any day carrying a Day Note (sibling to the red to-do dot); more space
+   between events. (Brendon vetoed a bold/opacity tweak mid-batch — spacing is
+   what makes events distinct; reverted, bold untouched.)
+   Proof: tsc/lint clean, tests green, real build + compiled greps.
+   **QUEUED (raised, NOT done this session):**
+   - **Currency picker + 3D-pings toggle colorway reactivity + YELLOW colour-
+     sensing** (Brendon's ask): `FiatCurrencyPicker` + `MyPingsRow` are pinned
+     Attention Yellow today; make them react to the colorway, and add a
+     `bg-is-yellow` detector alongside `bg-is-red`. One call is his: what
+     colour they become when reactive.
+   - **Strip push diagnostics** left in to catch the bug: `/api/push/test`,
+     the `/api/push/receipt` beacon in `public/sw.js`, and the `[push-sent]`
+     logging — safe to remove now the banner's confirmed live.
+   ClickUp: ad-hoc chat batch, no tasks of record (six-ship precedent); the
+   earlier ClickUp cleanup + zombie sweep this session already landed.
+   Branch `claude/pd-priceos-arch-review-xiy7w0` = trash (all work went to
+   dev) — Brendon deletes at https://github.com/brendonrell/PriceOS/branches.
+
 0. ✅ **2026-07-17 PD-DOCS WOW PASS + DOCS LOADER FIX — BOTH on dev (tip
    `7bcf462` merge + this WIP push re-kicking the deploy), tree clean.
    Branches `claude/docs-technical-writer-pass-om54h6` (PR #30, merged) +
