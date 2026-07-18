@@ -8,6 +8,41 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ✅ **2026-07-18 (later session) UI POLISH BATCH — Zen retired · mobile
+   nudges · Portfolio tidy+collapse · Project stats makeover — ALL on dev
+   (tip `2adb1ef`), auto-deploy rolling, tree clean. Branch
+   `claude/remove-zen-workspace-ep2r5p` = trash (Brendon deletes at
+   https://github.com/brendonrell/PriceOS/branches).** Opus session, Brendon's
+   running batch across the day:
+   ① ZEN DEFAULT WORKSPACE RETIRED — dropped from the shipped set (new accounts
+   get 5: Main + the four work personas). Existing users' UNCUSTOMISED Zen is
+   pruned on load via `RETIRED_DEFAULT_CODES` (the Degen-retirement mechanism,
+   all historical Zen codes listed); a re-saved Zen stays theirs. Tests updated
+   (ships-five). Zen MODE / Zen Garden untouched — this was the workspace only.
+   ② MOBILE ICON NUDGES (My PD, mobile only): ambient ☼ up 0.5px; Price Lens ◎
+   up 1px + one size larger (15→16). Fiat pill: non-USD/CAD glyphs (£/€/¥ = the
+   `.fiat-cur-nonusd` set; CAD renders $ so it's already excluded) one size
+   larger (14.5→15.5) + up 1px. TAROT SPREAD modal now respects the notch +
+   home-indicator safe areas (starts below the status bar, fits the screen,
+   body scrolls inside).
+   ③ PORTFOLIO (connect menu): budget pill tidied — trimmed the room flanking
+   the edit pencil (padding 5→3, dropped the extra margin, gap 5→4), pencil
+   +0.5px, the "2.2 ETH" readout now matches the budget-name size (9→11px). The
+   portfolio tree is COLLAPSIBLE at every grouping level (category / artist /
+   project) with the usual ▾/▸ fold — reused the gallery's collapse grammar;
+   the whole header row is the tap target; subtree hides when folded.
+   ④ PROJECT STATS TAB (+More ▸ Stats) got the OUTPUT stats makeover: renders
+   through the shared `AttrWall` tile grid (Price Stats: Listed/Floor/Anchor ·
+   ATH & Holders: All-Time High/Holder Map [⌂ owner glyph]); the Anchor tile
+   opens the reference-price prompt. ANCHOR GLYPH FIXED: forced text
+   presentation on `.attr-tile-glyph` (`font-variant-emoji: text`) so the
+   emoji-default ⚓ renders monochrome on iOS instead of the colour emoji —
+   fixes the Output wall too (both share the grid). ⚠ `font-variant-emoji`
+   needs iOS 17.4+; the VS15 append stays as the legacy fallback.
+   Proof: tsc clean each batch, real builds green, compiled-CSS greps confirmed
+   (`pf-fold`, budget-pill sizes, `font-variant-emoji:text`). ClickUp: ad-hoc
+   chat batch, no tasks of record (six-ship precedent).
+
 0. ✅ **2026-07-18 NATIVE PUSH FIXED (for real) + DAY'S POLISH — all on dev
    (tip `0f03e5c`), auto-deploy rolling, tree clean.** Long Opus session,
    Brendon's running batch:
