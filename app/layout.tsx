@@ -334,6 +334,9 @@ const PREHYDRATION_SCRIPT = `
                 if (r > g + 40 && r > b + 40 && r > 100) {
                     document.body.classList.add('bg-is-red');
                 }
+                if (r > b + 40 && g > b + 40 && r > 120 && g > 120) {
+                    document.body.classList.add('bg-is-yellow');
+                }
             }
         }
 

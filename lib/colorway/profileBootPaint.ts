@@ -63,5 +63,6 @@ s.setProperty('--pill-l1-bg-img','none');
 s.setProperty('--pill-l1-active-bg-img','none');
 var tcm=document.getElementById('theme-color-meta');if(tcm)tcm.setAttribute('content',bg);
 if(document.body&&r>g+40&&r>b+40&&r>100)document.body.classList.add('bg-is-red');
+if(document.body&&r>b+40&&g>b+40&&r>120&&g>120)document.body.classList.add('bg-is-yellow');
 }catch(e){}})();`;
 }

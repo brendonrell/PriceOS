@@ -35,16 +35,18 @@
    for any day carrying a Day Note (sibling to the red to-do dot); more space
    between events. (Brendon vetoed a bold/opacity tweak mid-batch — spacing is
    what makes events distinct; reverted, bold untouched.)
+   ⑥ **COLORWAY-REACTIVE SIGNATURE CHROME + YELLOW COLOUR-SENSING**: added a
+   `bg-is-yellow` detector (mirror of `bg-is-red`, all four paint paths —
+   ColorwayContext ×2, profileBootPaint, layout boot script). The Attention-
+   Yellow currency-picker bubble now flips to the Hothurt-red treatment on a
+   yellow colorway; the Hothurt-red 3D-Pingtoast bubble flips to Attention
+   Yellow on a red colorway — a signature-coloured affordance never blends
+   into a matching page (same logic as the to-do markers' flip).
+   ⑦ **PUSH DIAGNOSTICS REMOVED** now banners are confirmed live: deleted
+   `/api/push/test` + `/api/push/receipt`, the SW receipt beacon, `sendTestPush`,
+   and the `[push-sent]` success logging. The real failure-logging into
+   app_errors (the thing that caught the bug) stays.
    Proof: tsc/lint clean, tests green, real build + compiled greps.
-   **QUEUED (raised, NOT done this session):**
-   - **Currency picker + 3D-pings toggle colorway reactivity + YELLOW colour-
-     sensing** (Brendon's ask): `FiatCurrencyPicker` + `MyPingsRow` are pinned
-     Attention Yellow today; make them react to the colorway, and add a
-     `bg-is-yellow` detector alongside `bg-is-red`. One call is his: what
-     colour they become when reactive.
-   - **Strip push diagnostics** left in to catch the bug: `/api/push/test`,
-     the `/api/push/receipt` beacon in `public/sw.js`, and the `[push-sent]`
-     logging — safe to remove now the banner's confirmed live.
    ClickUp: ad-hoc chat batch, no tasks of record (six-ship precedent); the
    earlier ClickUp cleanup + zombie sweep this session already landed.
    Branch `claude/pd-priceos-arch-review-xiy7w0` = trash (all work went to

@@ -562,6 +562,11 @@ body.sentiment-on .sentiment-widget {
     border: 5px solid transparent;
     border-top-color: var(--hothurt);
 }
+/* JUL 18 (Brendon): colour-sensing safety. On a red colorway the red 3D-Pingtoast
+   bubble would vanish into the page — flip it to the Attention-Yellow treatment
+   (dark text), the mirror of the currency bubble's flip on a yellow bg. */
+body.bg-is-red .pingtoast-3d-confirm { background: var(--attention); color: #1a1a1a; }
+body.bg-is-red .pingtoast-3d-confirm::after { border-top-color: var(--attention); }
 @keyframes pingtoast-3d-flash {
     0%   { opacity: 0.35; filter: brightness(1.9); }
     100% { opacity: 1;    filter: brightness(1); }
@@ -4894,6 +4899,14 @@ button,
     -webkit-tap-highlight-color: transparent;
 }
 .fiat-opt-on { background: #1a1a1a; color: var(--attention); border-color: #1a1a1a; }
+/* JUL 18 (Brendon): colour-sensing safety. On a yellow colorway the yellow
+   currency bubble would vanish into the page — flip it to the Hothurt red
+   treatment (white text) so it always reads, mirroring the to-do markers'
+   Hothurt->Attention flip on a red bg. */
+body.bg-is-yellow .fiat-picker-bubble { background: var(--hothurt); color: #fff; }
+body.bg-is-yellow .fiat-picker-bubble::after { border-top-color: var(--hothurt); }
+body.bg-is-yellow .fiat-opt { color: #fff; border-color: rgba(255, 255, 255, 0.55); }
+body.bg-is-yellow .fiat-opt-on { background: #fff; color: var(--hothurt); border-color: #fff; }
 
 /* Friend Inspector PriceSprite card — same body-portal + tail placement as the
    Fiat bubble above, but taller and theme-coloured: stacks the @name (→ profile),

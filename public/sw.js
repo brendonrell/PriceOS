@@ -38,8 +38,7 @@ self.addEventListener('fetch', () => { /* network passthrough */ });
 self.addEventListener('push', (event) => {
   event.waitUntil((async () => {
     var data = {};
-    var parseError = null;
-    try { data = event.data ? event.data.json() : {}; } catch (e) { parseError = String((e && e.message) || e); }
+    try { data = event.data ? event.data.json() : {}; } catch (e) { /* malformed payload — fall back to the default banner */ }
     var title = data.title || 'Price Discussion';
     var options = {
       body: data.body || '',
@@ -51,32 +50,10 @@ self.addEventListener('push', (event) => {
       renotify: true,
       data: { url: data.url || '/' },
     };
-    var shown = false;
-    var showError = null;
-    try {
-      await self.registration.showNotification(title, options);
-      shown = true;
-    } catch (e) {
-      showError = String((e && e.message) || e);
-    }
-    /* DIAGNOSTIC beacon (2026-07-18, the banner hunt) — report device-side
-       receipt so the server can SEE that this push reached the service worker.
-       Fires whether or not the banner displayed, so absent-receipt vs
-       receipt-but-no-banner cleanly splits "never delivered" from "iOS didn't
-       display". Remove once native banners are confirmed end to end. */
-    try {
-      await fetch('/api/push/receipt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          hadData: !!event.data,
-          parseError: parseError,
-          hadTitle: !!data.title,
-          shown: shown,
-          showError: showError,
-        }),
-      });
-    } catch (e) { /* ignore — never let the beacon break the notification */ }
+    // iOS requires the push handler to ALWAYS show a notification — skip it and
+    // the OS posts its own "site updated in the background" line and can revoke
+    // permission after repeated misses.
+    await self.registration.showNotification(title, options);
   })());
 });
 

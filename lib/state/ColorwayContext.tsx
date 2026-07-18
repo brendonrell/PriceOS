@@ -239,6 +239,18 @@ function isRedBg(bgHex: string): boolean {
     return r > g + 40 && r > b + 40 && r > 100;
 }
 
+/** Detect a "yellow-ish" bg (both red + green channels high, blue low). Mirror
+   of isRedBg — used so Attention-Yellow chrome (the currency picker) can flip
+   to a contrasting colour when the colorway itself is yellow, the same way the
+   Hothurt to-do markers flip on a red bg. */
+function isYellowBg(bgHex: string): boolean {
+    const hex = bgHex.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16) || 0;
+    const g = parseInt(hex.substring(2, 4), 16) || 0;
+    const b = parseInt(hex.substring(4, 6), 16) || 0;
+    return r > b + 40 && g > b + 40 && r > 120 && g > 120;
+}
+
 /* Detect a near-black NEUTRAL bg — a colorway dark enough AND grey enough to
    read as "black", so it should inherit the named Dark colorway's full button
    treatment (inverted mint, hatched L1 pills) instead of leaving them looking
@@ -462,6 +474,7 @@ export function applyBgHex(bgHex: string, key: ColorwayKey) {
     body.classList.toggle('colorway-custom',  key === 'custom');
     body.classList.toggle('colorway-haze',    key === 'haze');
     body.classList.toggle('bg-is-red',        isRedBg(bg));
+    body.classList.toggle('bg-is-yellow',     isYellowBg(bg));
 }
 
 /* Hash Synesthesia rework (Brendon, 2026-07-10): now that cards are stored
@@ -510,6 +523,7 @@ export function applyHashSynSample(bgHex: string) {
         body.classList.toggle('price-logo-swap', sat > 0.35 && (hue >= 335 || hue < 18));
     }
     body.classList.toggle('bg-is-red', isRedBg(bgHex));
+    body.classList.toggle('bg-is-yellow', isYellowBg(bgHex));
 }
 
 /* Single source of truth for "what does THIS path paint?" — used by BOTH the
