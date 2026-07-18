@@ -11,7 +11,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 24px;
+    /* Respect the notch + home indicator so the sheet clears the status bar
+       and the home bar on notched phones (Brendon, 2026-07-18). */
+    padding: max(24px, env(safe-area-inset-top, 0px)) 24px max(24px, env(safe-area-inset-bottom, 0px));
+    box-sizing: border-box;
     background: rgba(8, 6, 16, 0.7);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
@@ -31,7 +34,9 @@
 
     position: relative;
     width: min(940px, 100%);
-    max-height: calc(100vh - 48px);
+    /* Fit within the safe-area-padded backdrop — never taller than the space
+       between the notch and the home bar; the body scrolls inside. */
+    max-height: 100%;
     overflow-y: auto;
     box-sizing: border-box;
     padding: 30px 26px 26px;
