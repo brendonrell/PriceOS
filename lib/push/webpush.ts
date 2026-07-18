@@ -306,6 +306,17 @@ export async function sendNativePing(recipientAddress: string, item: FeedItem): 
             vapidConfig()!,
             { urgency: 'high' },
           );
+          // DIAGNOSTIC (2026-07-18, the banner hunt): record each ACCEPTED send
+          // so success is VISIBLE, not merely inferred from the absence of an
+          // error. Pairs with the SW receipt beacon: sent-but-no-receipt = the
+          // push service accepted it but the device never got it. Remove with
+          // the beacon once banners are confirmed.
+          void import('@/lib/telemetry/server')
+            .then((t) => t.recordError({
+              kind: 'server', route: '/push-sent',
+              message: `[push-sent ${Date.now()}] ok ${new URL(s.endpoint).origin} kind=${item.kind}`,
+            }))
+            .catch(() => {});
         } catch (err) {
           // 404/410 → the browser dropped this subscription; prune it. Anything
           // else gets logged — a silent swallow here hid a dead send path for
@@ -332,7 +343,15 @@ export async function sendNativePing(recipientAddress: string, item: FeedItem): 
       await db.from('push_subscriptions').delete().in('id', dead);
     }
   } catch (err) {
-    console.error('[push] sendNativePing error:', err instanceof Error ? err.message : err);
+    // The whole send path (gate, sprite composition, payload format, loop) sits
+    // inside this try. A throw here — e.g. sprite composition failing for a
+    // specific recipient — killed the push with only a console line to show for
+    // it. Record it so an early-path failure is finally VISIBLE (2026-07-18).
+    const line = `[push] sendNativePing threw: ${err instanceof Error ? (err.stack ?? err.message) : String(err)}`;
+    console.error(line);
+    void import('@/lib/telemetry/server')
+      .then((t) => t.recordServerError(new Error(line)))
+      .catch(() => {});
   }
 }
 
