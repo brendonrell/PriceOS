@@ -263,10 +263,15 @@ export async function sendNativePing(recipientAddress: string, item: FeedItem): 
           if (code === 404 || code === 410) dead.push(s.id);
           else {
             const body = (err as { body?: string })?.body;
-            console.error(
-              `[push] send failed status=${code ?? 'none'} ${err instanceof Error ? err.message : err}`,
-              body ? String(body).slice(0, 200) : '',
-            );
+            const line = `[push] send failed status=${code ?? 'none'} ${new URL(s.endpoint).origin} ${err instanceof Error ? err.message : err} ${body ? String(body).slice(0, 200) : ''}`;
+            console.error(line);
+            // console output is unreadable on the Workers runtime — every
+            // rejection ALSO lands in app_errors so the push service's actual
+            // answer (403 key mismatch, 400 payload…) is readable in prod
+            // (2026-07-17, the banner hunt). Fire-and-forget, never throws.
+            void import('@/lib/telemetry/server')
+              .then((t) => t.recordServerError(new Error(line)))
+              .catch(() => {});
           }
         }
       }),
@@ -334,15 +339,17 @@ export async function sendTodoReminder(
             { urgency: 'high' },
           );
         } catch (err) {
-          // Same contract as sendNativePing: prune dead subs, log the rest.
+          // Same contract as sendNativePing: prune dead subs, record the rest
+          // in app_errors (console-only was invisible — 2026-07-17).
           const code = (err as { statusCode?: number })?.statusCode;
           if (code === 404 || code === 410) dead.push(s.id);
           else {
             const body = (err as { body?: string })?.body;
-            console.error(
-              `[push] send failed status=${code ?? 'none'} ${err instanceof Error ? err.message : err}`,
-              body ? String(body).slice(0, 200) : '',
-            );
+            const line = `[push] send failed status=${code ?? 'none'} ${new URL(s.endpoint).origin} ${err instanceof Error ? err.message : err} ${body ? String(body).slice(0, 200) : ''}`;
+            console.error(line);
+            void import('@/lib/telemetry/server')
+              .then((t) => t.recordServerError(new Error(line)))
+              .catch(() => {});
           }
         }
       }),
