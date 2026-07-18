@@ -996,6 +996,14 @@ body.modal-open { overflow: hidden; touch-action: none; }
     font-weight: bold; opacity: 0.55;
     margin-left: 4px;
 }
+/* House mark sitting to the right of the (n/N) count — the holders/owner
+   grouping glyph, same size as the count, full-strength so it reads. */
+.cart-panel-title-glyph {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    margin-left: 6px;
+    color: var(--text-color);
+}
 .cart-panel-close-x {
     font-size: 18px; cursor: pointer;
     opacity: 0.7; line-height: 1;

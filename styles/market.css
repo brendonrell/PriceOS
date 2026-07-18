@@ -360,10 +360,10 @@ a.notif-item--link:hover { opacity: 0.85; }
 }
 .cpl-month-tally {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 12px; font-weight: bold;
+    font-size: 10px; font-weight: bold; opacity: 0.6;
     font-variant-numeric: tabular-nums;
 }
-.cpl-month-tally.is-complete { letter-spacing: 0.5px; }
+.cpl-month-tally.is-complete { opacity: 1; }
 
 /* ── THE COMPLETIONIST'S LEDGER — the analytics fold. The STATS button wears
    the house pill treatment (solid fill · full-strength border + text · bold);
@@ -437,7 +437,7 @@ a.notif-item--link:hover { opacity: 0.85; }
 .cpl-check { font-weight: bold; }
 .cpl-foot {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 12px; opacity: 0.7; padding: 8px 0 2px;
+    font-size: 10px; opacity: 0.5; padding: 8px 0 2px;
 }
 .alb-page { padding: 10px 0 4px; }
 /* Album progress — one thin fill per page (and one for the whole album) so

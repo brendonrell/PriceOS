@@ -205,9 +205,12 @@ export default function CompletionismModal({
                     <span className="cart-panel-title">
                         COMPLETIONISM
                         {months && (
-                            <span className="cart-panel-title-count" title="Release months fully collected">
-                                ({months.filter((m) => m.complete).length}/{months.length} MONTHS)
-                            </span>
+                            <>
+                                <span className="cart-panel-title-count">
+                                    ({months.filter((m) => m.complete).length}/{months.length})
+                                </span>
+                                <span className="cart-panel-title-glyph">{`⌂${VS15}`}</span>
+                            </>
                         )}
                         {months && months.length > 0 && (
                             <button
