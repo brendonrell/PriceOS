@@ -105,6 +105,57 @@ function ensureConfigured(): boolean {
   return vapidConfig() !== null;
 }
 
+/** DIAGNOSTIC (2026-07-18, the banner hunt): send a raw test push to every
+ *  device an address has registered, BYPASSING all gating (mode / Silent /
+ *  category / tier / budget) and returning the push service's exact per-device
+ *  response. Isolates the transport from the preference gate: if this reports
+ *  ok on a device and no banner shows, the break is on the device, not here.
+ *  Only ever called for the caller's own address (see /api/push/test). */
+export async function sendTestPush(recipientAddress: string): Promise<{
+  configured: boolean;
+  devices: Array<{ host: string; ok: boolean; status: number | null; error?: string }>;
+}> {
+  const cfg = vapidConfig();
+  if (!cfg) return { configured: false, devices: [] };
+  const db = getSupabaseService();
+  const address = recipientAddress.toLowerCase();
+  const { data: subRows } = await db
+    .from('push_subscriptions')
+    .select('id, endpoint, p256dh, auth')
+    .eq('user_address', address);
+  const subs = (subRows ?? []) as SubRow[];
+  const payload = JSON.stringify({
+    title: 'Price Discussion',
+    body: '◍ Test push — if you see this banner, native pings work.',
+    tag: `pd-test-${Date.now()}`,
+    icon: '/icon-192px.png',
+    badge: '/icon-192-maskable.png',
+    url: '/',
+  });
+  const dead: string[] = [];
+  const devices = await Promise.all(
+    subs.map(async (s) => {
+      let host = 'bad-endpoint';
+      try { host = new URL(s.endpoint).host; } catch { /* keep default */ }
+      try {
+        await sendWebPush(
+          { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
+          payload,
+          cfg,
+          { urgency: 'high' },
+        );
+        return { host, ok: true, status: 201 };
+      } catch (err) {
+        const status = (err as { statusCode?: number })?.statusCode ?? null;
+        if (status === 404 || status === 410) dead.push(s.id);
+        return { host, ok: false, status, error: err instanceof Error ? err.message : String(err) };
+      }
+    }),
+  );
+  if (dead.length) await db.from('push_subscriptions').delete().in('id', dead);
+  return { configured: true, devices };
+}
+
 interface SubRow {
   id: string;
   endpoint: string;

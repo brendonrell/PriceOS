@@ -36,20 +36,48 @@ self.addEventListener('fetch', () => { /* network passthrough */ });
  * PriceSprite face, body carries the canonical ping glyph + content — all plain
  * text, so it renders on-brand on iOS, Android and desktop Chrome alike. */
 self.addEventListener('push', (event) => {
-  let data = {};
-  try { data = event.data ? event.data.json() : {}; } catch { data = {}; }
-  const title = data.title || 'Price Discussion';
-  const options = {
-    body: data.body || '',
-    tag: data.tag || 'pd-ping',
-    icon: data.icon || '/icon-192px.png',
-    badge: data.badge || '/icon-192-maskable.png',
-    // renotify so a fresh ping in an existing tag still buzzes (not silently
-    // replaced). data.url is where a tap lands.
-    renotify: true,
-    data: { url: data.url || '/' },
-  };
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil((async () => {
+    var data = {};
+    var parseError = null;
+    try { data = event.data ? event.data.json() : {}; } catch (e) { parseError = String((e && e.message) || e); }
+    var title = data.title || 'Price Discussion';
+    var options = {
+      body: data.body || '',
+      tag: data.tag || 'pd-ping',
+      icon: data.icon || '/icon-192px.png',
+      badge: data.badge || '/icon-192-maskable.png',
+      // renotify so a fresh ping in an existing tag still buzzes (not silently
+      // replaced). data.url is where a tap lands.
+      renotify: true,
+      data: { url: data.url || '/' },
+    };
+    var shown = false;
+    var showError = null;
+    try {
+      await self.registration.showNotification(title, options);
+      shown = true;
+    } catch (e) {
+      showError = String((e && e.message) || e);
+    }
+    /* DIAGNOSTIC beacon (2026-07-18, the banner hunt) — report device-side
+       receipt so the server can SEE that this push reached the service worker.
+       Fires whether or not the banner displayed, so absent-receipt vs
+       receipt-but-no-banner cleanly splits "never delivered" from "iOS didn't
+       display". Remove once native banners are confirmed end to end. */
+    try {
+      await fetch('/api/push/receipt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          hadData: !!event.data,
+          parseError: parseError,
+          hadTitle: !!data.title,
+          shown: shown,
+          showError: showError,
+        }),
+      });
+    } catch (e) { /* ignore — never let the beacon break the notification */ }
+  })());
 });
 
 // Tap a notification → focus an open PD window if there is one, else open it.
