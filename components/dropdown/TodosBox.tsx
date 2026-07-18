@@ -344,7 +344,6 @@ export function TodosBox() {
                             carries its own transparent native picker. */}
                         <span className={`todo-chip todo-chip-due${due ? ' set' : ''}`}>
                             <label className="todo-chip-seg" title="Due date">
-                                <span className="todo-chip-ico">◷</span>
                                 <span className="todo-chip-lbl">{due ? fmtDue(due) : 'due'}</span>
                                 <input
                                     className="todo-chip-native"
@@ -353,17 +352,20 @@ export function TodosBox() {
                                     onChange={(e) => setDue(e.target.value)}
                                 />
                             </label>
-                            {due && (
-                                <label className="todo-chip-seg" title="Reminder time">
-                                    <span className="todo-chip-lbl">{dueTime || 'time'}</span>
-                                    <input
-                                        className="todo-chip-native"
-                                        type="time"
-                                        value={dueTime}
-                                        onChange={(e) => setDueTime(e.target.value)}
-                                    />
-                                </label>
-                            )}
+                            {/* Clock sits BETWEEN the date and time and is always
+                                shown, a hair of space on each side (Brendon,
+                                2026-07-18). The time segment is always present so
+                                the clock always has both sides to sit between. */}
+                            <span className="todo-chip-ico todo-chip-clock">◷</span>
+                            <label className="todo-chip-seg" title="Reminder time">
+                                <span className="todo-chip-lbl">{dueTime || 'time'}</span>
+                                <input
+                                    className="todo-chip-native"
+                                    type="time"
+                                    value={dueTime}
+                                    onChange={(e) => setDueTime(e.target.value)}
+                                />
+                            </label>
                         </span>
                         <span className={`todo-chip todo-chip-price${price ? ' set' : ''}`} title="ETH target / budget">
                             <span className="todo-chip-ico eth-mark">◊</span>

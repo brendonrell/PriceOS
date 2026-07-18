@@ -8,6 +8,16 @@
  * priority + to-do accents. Metrics mirror .notif-item.
  */
 
+/* Red-colorway awareness (Brendon, 2026-07-18). On a RED page the signature
+   Hothurt red reads red-on-red — the priority ring, "set" chip accents and the
+   READY glow vanish and you can't tell what's selected. The red detector
+   (body.bg-is-red, set by the colorway system) flips the WHOLE To-Dos surface's
+   Hothurt to Attention Yellow so every selected state stays legible. One line
+   does it because every accent here reads var(--hothurt): overriding the token
+   on the box re-tints them all. Scoped to #todosBox — other Hothurt uses
+   (notifications, the install pill) keep the signature red. */
+body.bg-is-red #todosBox { --hothurt: #FFE600; }
+
 /* Header row — label left, add "+" right. */
 .todos-header-row {
     display: flex;
@@ -134,6 +144,10 @@
     justify-content: center;
 }
 .todo-chip-due .todo-chip-ico  { font-size: 13px; }
+/* The clock separates the date and time segments (the chip's own 5px flex gap
+   sits on each side); this adds a deliberate hair more so it breathes between
+   them, always visible (Brendon, 2026-07-18). */
+.todo-chip-clock { margin: 0 1px; }
 .todo-chip-lbl { line-height: 14px; height: 14px; display: inline-flex; align-items: center; }
 /* Segments inside the due pill — date | time, each wearing its own transparent
    native picker (one pill, two tap targets — Brendon, 2026-07-10). */
