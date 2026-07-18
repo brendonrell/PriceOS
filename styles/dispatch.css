@@ -92,6 +92,17 @@
     padding-top: 10px;
     word-break: break-all;
 }
+/* Portrait: the permanent URL drops onto its own line under the note — the
+   middot only joins them on the wider landscape row (which stays as-is). The
+   ⧉ after it is the standard copy icon (inline ✓ + toast). (Brendon, 2026-07-18.) */
+@media (orientation: portrait) {
+    .dp-colophon-sep { display: none; }
+    .dp-colophon-url {
+        display: block;
+        margin-top: 5px;
+        white-space: nowrap;
+    }
+}
 
 /* The standard modal × on the paper — fixed so it survives the scroll;
    closes the mode back to wherever the reader came from (DispatchClose).

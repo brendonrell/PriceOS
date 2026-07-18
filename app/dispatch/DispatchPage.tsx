@@ -7,6 +7,7 @@
 import type { DispatchBody } from '@/lib/dispatch/build.server';
 import DispatchClose from './DispatchClose';
 import DigestSignup from './DigestSignup';
+import DispatchColophonUrl from './DispatchColophonUrl';
 
 export interface DispatchNav {
   prev: string | null;
@@ -101,7 +102,8 @@ export default function DispatchPage({ body, nav }: { body: DispatchBody; nav: D
         {nav.next ? <a href={`/dispatch/${nav.next}`}>NEXT {'›︎'}</a> : <span />}
       </nav>
       <div className="dp-colophon">
-        PRINTED ONCE, KEPT FOREVER · pricediscussion.com/dispatch/{body.cal_date}
+        PRINTED ONCE, KEPT FOREVER<span className="dp-colophon-sep"> · </span>
+        <DispatchColophonUrl url={`pricediscussion.com/dispatch/${body.cal_date}`} />
       </div>
     </main>
   );
