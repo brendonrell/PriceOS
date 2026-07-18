@@ -19,6 +19,7 @@ import { getProject } from '../../lib/project/registry';
 import { buildProjectAttributes } from '../../lib/project/projectAttributes';
 import { MINTING_NOW_THRESHOLD } from '../../lib/home/homeData';
 import AttrWall from '../artwork/AttrWall';
+import type { AttrTile, AttrGroup } from '../../lib/output/attributes';
 import CollectionAttributes from './CollectionAttributes';
 import { projectSpriteFace } from '../../lib/project/projectSprite';
 import { projectContractAddress, shortAddress } from '../../lib/project/projectAddress';
@@ -208,6 +209,33 @@ export default function ProjectMorePanel({
         },
     });
 
+    /* STATS tiles — the project's price stats + ATH/holders rendered through the
+       SAME AttrWall tile grid as the Output stats wall (Brendon, 2026-07-18).
+       Canonical glyphs: ⊡ listed · ↨ floor · ⚓ anchor · ✶ ATH · ⌂ holders. */
+    const statsGroups = useMemo<AttrGroup[]>(() => {
+        const pctListed =
+            marketRead != null && project.totalOutputs > 0
+                ? `${Math.round(((marketRead.open_listings ?? 0) / project.totalOutputs) * 100)}%`
+                : '—';
+        const athSub =
+            marketRead?.ath_token != null
+                ? `#${marketRead.ath_token}${marketRead.ath_ts ? ` · ${new Date(marketRead.ath_ts * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}` : ''}`
+                : 'NO SALES YET';
+        const priceTiles: AttrTile[] = [
+            { glyph: '⊡', label: 'Listed', value: pctListed },
+            { glyph: '↨', label: 'Floor', value: lowestFloor !== null ? `${formatEth(lowestFloor)} ETH` : '—' },
+            { glyph: '⚓', label: 'Anchor', value: anchorEth != null ? `${formatEth(anchorEth)} ETH` : 'TAP TO SET', tapKey: 'anchor' },
+        ];
+        const holderTiles: AttrTile[] = [
+            { glyph: '✶', label: 'All-Time High', value: marketRead?.ath_eth != null ? `${formatEth(Number(marketRead.ath_eth))} ETH` : '—', sub: athSub },
+            { glyph: '⌂', label: 'Holder Map', value: String(marketRead?.holders ?? '—'), sub: 'UNIQUE HOLDERS' },
+        ];
+        return [
+            { key: 'pricestats', label: 'Price Stats', tiles: priceTiles },
+            { key: 'athholders', label: 'ATH & Holders', tiles: holderTiles },
+        ];
+    }, [marketRead, lowestFloor, anchorEth, project.totalOutputs]);
+
     return (
         <section
             id="albums-panel"
@@ -291,86 +319,17 @@ export default function ProjectMorePanel({
             </div>
             </>)}
             {moreL1 === 'anoint' && <ProjectAnointPanel />}
-            {moreL1 === 'stats' && (<>
-            {/* PRICE STATS — stats-row-2 restored here from hero.
-                Percent Listed, Floor Price, and Anchor. The ⚓ anchor
-                tap opens the ValuePrompt to set / clear your reference
-                price. Moved out of the hero into +More so it is
-                accessible without crowding the main hero on mobile. */}
-            <div className="more-section-header">PRICE STATS</div>
-            <div className="more-box-wrap">
-              <div className="more-box-card">
-                <div className="stats-row stats-row-2">
-                <span className="stat-item">
-                    <span
-                        className="stat-icon stat-icon-box stat-icon-owned"
-                        {...iconToastProps('Percent Listed')}
-                    >
-                        ⊡&#xFE0E;
-                    </span>{' '}
-                    <span className="stat-val" id="statOwnedVal">
-                        {marketRead != null && project.totalOutputs > 0
-                            ? `${Math.round(((marketRead.open_listings ?? 0) / project.totalOutputs) * 100)}%`
-                            : '—'}
-                    </span>
-                </span>
-                <span className="stat-item">
-                    <span
-                        className="stat-icon stat-icon-box stat-icon-spent"
-                        {...iconToastProps('Floor Price')}
-                    >
-                        ↨&#xFE0E;
-                    </span>{' '}
-                    <span className="stat-val" id="statSpentVal">
-                        {lowestFloor !== null
-                            ? `${formatEth(lowestFloor)} ETH`
-                            : '—'}
-                    </span>
-                </span>
-                <span className="stat-item stat-item-anchor">
-                    <span
-                        className="stat-icon stat-icon-box"
-                        {...iconToastProps('Your Personal Reference Price')}
-                    >
-                        ⚓&#xFE0E;
-                    </span>{' '}
-                    <span
-                        className={
-                            anchorEth != null
-                                ? 'stat-val'
-                                : 'stat-val stat-val-empty'
-                        }
-                        id="statAnchorVal"
-                        role="button"
-                        tabIndex={0}
-                        title="Tap to set"
-                        data-anchor-key={project.title}
-                        onClick={(e) => {
-                            const key =
-                                e.currentTarget.dataset.anchorKey ||
-                                project.title;
-                            openAnchorPrompt({ key, label: key });
-                        }}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                const key =
-                                    e.currentTarget.dataset.anchorKey ||
-                                    project.title;
-                                openAnchorPrompt({ key, label: key });
-                            }
-                        }}
-                    >
-                        {anchorEth != null
-                            ? `${formatEth(anchorEth)} ETH`
-                            : ''}
-                    </span>
-                </span>
-                </div>
-              </div>
-            </div>
-
-            </>)}
+            {moreL1 === 'stats' && (
+            /* STATS — the project's price stats + ATH/holders as one tile grid,
+               the SAME AttrWall wall the Output stats tab wears (Brendon,
+               2026-07-18). The Anchor tile opens the reference-price prompt. */
+            <AttrWall
+                groups={statsGroups}
+                onTileTap={(key) => {
+                    if (key === 'anchor') openAnchorPrompt({ key: project.title, label: project.title });
+                }}
+            />
+            )}
             {moreL1 === 'replay' && (<>
             {/* REPLAY — Project time machine. Static mockup (sim 5207-5228)
                 promoted to the live player: ReplayPanel animates seeded,
@@ -501,34 +460,6 @@ export default function ProjectMorePanel({
                             FIRST WINDOW — THE CROWD REVEALS {preds.reveals_on}
                         </div>
                     ) : null}
-                </div>
-            </div>
-
-            </>)}
-            {moreL1 === 'stats' && (<>
-            {/* ATH & HOLDERS — REAL ledger reads (was mock — the secondary
-                build turned these live, 2026-07-02). */}
-            <div className="more-section-header">ATH & HOLDERS</div>
-            <div className="more-stats-grid">
-                <div
-                    className="more-stat-tile"
-                    onClick={() =>
-                        showToast(marketRead?.ath_eth != null ? `All-time high · ${formatEth(marketRead.ath_eth)} ETH` : 'All-time high — no sales yet')
-                    }
-                >
-                    <div className="mst-label">ALL-TIME HIGH</div>
-                    <div className="mst-value">{marketRead?.ath_eth != null ? `${formatEth(Number(marketRead.ath_eth))} ETH` : '—'}</div>
-                    <div className="mst-sub">{marketRead?.ath_token != null ? `#${marketRead.ath_token}${marketRead.ath_ts ? ` · ${new Date(marketRead.ath_ts * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}` : ''}` : 'NO SALES YET'}</div>
-                </div>
-                <div
-                    className="more-stat-tile"
-                    onClick={() =>
-                        showToast(`Holder map — ${marketRead?.holders ?? 0} unique holders`)
-                    }
-                >
-                    <div className="mst-label">HOLDER MAP</div>
-                    <div className="mst-value">{marketRead?.holders ?? '—'}</div>
-                    <div className="mst-sub">UNIQUE HOLDERS</div>
                 </div>
             </div>
 

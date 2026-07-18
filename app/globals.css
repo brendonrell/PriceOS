@@ -11365,6 +11365,11 @@ body.colorway-dark .ghost-feed-bar {
     font-size: 20px;
     line-height: 1;
     margin-bottom: 1px;
+    /* Force text (monochrome) presentation — the ⚓ anchor is emoji-default and
+       otherwise renders as the colour-emoji anchor on iOS despite its VS15
+       (Brendon, 2026-07-18). Only affects emoji-default glyphs; the rest are
+       already text. */
+    font-variant-emoji: text;
 }
 .attr-tile-label {
     font-size: 9px;
