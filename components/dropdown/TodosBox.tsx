@@ -373,6 +373,7 @@ export function TodosBox() {
                                 className="todo-chip-price-input"
                                 type="text"
                                 inputMode="decimal"
+                                maxLength={8}
                                 placeholder="price"
                                 value={price}
                                 onChange={(e) => setPrice(e.target.value.replace(/[^0-9.]/g, ''))}
