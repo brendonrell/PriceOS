@@ -9,7 +9,7 @@
 ## 🧭 NEXT UP — fresh session starts HERE
 
 0. ✅ **2026-07-18 NATIVE PUSH FIXED (for real) + DAY'S POLISH — all on dev
-   (tip `18dd8eb`), auto-deploy rolling, tree clean.** Long Opus session,
+   (tip `0f03e5c`), auto-deploy rolling, tree clean.** Long Opus session,
    Brendon's running batch:
    ① **THE PUSH BUG KILLED — root cause found + confirmed working (banner
    landed on Brendon's lock screen).** Native pings had silently died: the
@@ -49,10 +49,16 @@
    ⑧ **CALENDAR EVENT TIMES**: every event/milestone shows its time INLINE in
    the row (no new column — Brendon's constraint); no-time events read
    "all day". Panel + sheet, calendar items + to-dos.
-   ⑨ **COMPOSER CHIP FONTS UNIFIED**: a bare `.todo-chip { font: 700 10px }`
-   meant for saved rows was leaking onto the composer, so due/time/P1 rendered
-   10px while price/icons were 12px. Scoped it to `.todo-chips .todo-chip`;
-   composer chips are now uniformly 12px (labels + price + every icon).
+   ⑨ **COMPOSER CHIP FONTS + PRICE BOX**: due/time/P1 labels were 10px while
+   price was 12px (a bare saved-row `.todo-chip { font: 700 10px }` leaked onto
+   the composer container, and only the labels inherited it). Fixed with an
+   EXPLICIT `.todo-chip-lbl { font-size: 12px }` — labels now match price;
+   pill SHAPE + icon sizes left exactly as they were. ⚠ First attempt scoped the
+   leaking rule to `.todo-chips .todo-chip`, which ALSO turned the composer pills
+   into full capsules (unasked change — Brendon caught it, reverted); the
+   targeted label rule is the surgical fix. Price input now hugs its content
+   (`field-sizing: content`, `maxLength=8`, `max-width` cap) instead of a fixed
+   44px box, so the "price" placeholder no longer leaves a trailing gap.
    ⑩ **LOGO YELLOW INVERSE**: `body.bg-is-yellow` locks the logo's red-disc /
    yellow-mark treatment — the mirror of the red-bg -> yellow-mark swap — so
    the mark reads on a yellow colorway.
