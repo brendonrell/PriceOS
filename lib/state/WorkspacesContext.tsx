@@ -6,11 +6,11 @@
  * Sim refs: 10097-10450 (storage + load/save/delete/restore + dot
  * render + popover + long-press attach + init).
  *
- * Owns the user's saved Setup Code workspaces. SIX defaults ship out of
- * the box — Main · Zen · Appraiser · Trader · Curator · Scout (work personas)
+ * Owns the user's saved Setup Code workspaces. FIVE defaults ship out of
+ * the box — Main · Appraiser · Trader · Curator · Scout (work personas)
  * (the shipped set, codes, personas, top-bar rule, and load flourishes all
- * live in lib/state/workspaceDefaults.ts — 2026-07-16 wow pass; Degen
- * stays RETIRED, its promised replacements arrived).
+ * live in lib/state/workspaceDefaults.ts — 2026-07-16 wow pass; Degen and
+ * Zen stay RETIRED — see RETIRED_DEFAULT_CODES).
  *
  * Tapping a dot loads (decode + apply via applySetupCodeState). Long-press
  * opens the popover; trailing + creates a new workspace from current state.
@@ -74,7 +74,7 @@ export interface Workspace {
 
 export const MAX_WORKSPACES = 10;
 
-// The shipped set (Main · Zen · Appraiser · Trader · Curator · Scout)
+// The shipped set (Main · Appraiser · Trader · Curator · Scout)
 // lives in workspaceDefaults.ts — pure data, testable, and the
 // top-bar rule is documented there.
 const DEFAULT_WORKSPACES: ReadonlyArray<Workspace> = SHIPPED_WORKSPACES;
@@ -83,18 +83,21 @@ const DEFAULT_WORKSPACES: ReadonlyArray<Workspace> = SHIPPED_WORKSPACES;
 // drop the OLD code into this map so existing users migrate automatically.
 const OLD_DEFAULT_CODES: Record<number, string[]> = {
     1: ['[\u2030-ARTS-IDAS-V1]', '\u2030ARTS-IDAS'],
-    2: [
-        '[\u2030-ARTS-NASC-NSTK-ZNMD-ZRCX-IDAS-V1]', // v1.0.34 had ZRCX (removed v1.0.35)
-        '[\u2030-ARTS-NASC-NSTK-ZNMD-IDAS-V1]',
-        '\u2030ARTS-NASC-NSTK-ZNMD-IDAS', // pre-blue Zen (colour added 2026-06-12)
-    ],
 };
 
-// Degen RETIRED as a shipped default (Brendon 2026-06-12 — a new default
-// replaces it later). Hydrate REMOVES a stored Degen whose code still
-// matches any shipped/migrated form of the default; a user-customised
-// Degen (re-saved with their own code) is the user's and is left alone.
+// Retired shipped defaults — Zen (Brendon 2026-07-18 — "remove the Zen
+// one") and Degen (Brendon 2026-06-12). Hydrate REMOVES a stored default
+// whose code still matches any shipped/migrated form listed here; a
+// user-customised copy (re-saved with their own code) doesn't match and
+// is the user's, so it's left alone.
 const RETIRED_DEFAULT_CODES: Record<number, string[]> = {
+    // Zen's blue form + every pre-blue / V1 form it ever shipped.
+    2: [
+        '‰BLUE-NASC-NSTK-ZNMD-IDAS',
+        '[‰-ARTS-NASC-NSTK-ZNMD-ZRCX-IDAS-V1]', // v1.0.34 had ZRCX (removed v1.0.35)
+        '[‰-ARTS-NASC-NSTK-ZNMD-IDAS-V1]',
+        '‰ARTS-NASC-NSTK-ZNMD-IDAS', // pre-blue Zen (colour added 2026-06-12)
+    ],
     3: [
         '\u2030DARK-DGEN-ECHO-HMMR-LENS-SNTM-FDTD-TAPB',
         '[\u2030-DARK-AURA-DGEN-ECHO-HMMR-LENS-SNTM-FDTD-TAPB-V1]',

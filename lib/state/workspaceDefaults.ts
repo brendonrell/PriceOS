@@ -2,12 +2,13 @@
  * workspaceDefaults — the SHIPPED workspace set + the SPACES preset
  * library (pure data, no React).
  *
- * Six dots out of the box (2026-07-16 wow pass — Brendon: "4 awesome
- * defaults", joining Main + Zen; same day he pinned their register: WORK
- * personas — job setups, not moods. The mood sets moved to SPACES below):
+ * Five dots out of the box (2026-07-16 wow pass — Brendon: "4 awesome
+ * defaults", joining Main; same day he pinned their register: WORK
+ * personas — job setups, not moods. The mood sets moved to SPACES below).
+ * Zen retired 2026-07-18 (Brendon: "remove the Zen one") — existing users'
+ * uncustomised Zen is pruned on load via RETIRED_DEFAULT_CODES:
  *
  *   1   · Main      — ‰CSTM-IDAS                                   (clean)
- *   2   · Zen       — ‰BLUE-NASC-NSTK-ZNMD-IDAS                    (zen, blue)
  *   101 · Appraiser — ‰DARK-CLST-LENS-SNTM-IDAS-TAPF               (valuation work)
  *   102 · Trader    — ‰REDD-LENS-PTON-SHLD-SNTM-WTCH-PRAS-TAPB     (market work)
  *   103 · Curator   — ‰LITE-NASC-NAUD-NSTK-IDAS                    (collection work)
@@ -31,7 +32,7 @@
  * never make the navbar jump. Banned from the DEFAULT codes forever: TBCL
  * (top-bar calendar), HMMR (Hammer pill), PLGO (logo swap), ANON. The
  * TAPE is explicitly FINE ("it's low enough" — Brendon, same day), and
- * colorway repaints are fine (Zen has shipped blue since 2026-06-12).
+ * colorway repaints are fine (the personas ship DARK/REDD/LITE/HAZE).
  * SPACES presets (below) have NO restrictions at all — also his call.
  *
  * ⛔ INERT-FLAG RULE: never put a token in a shipped code or a Space that
@@ -57,16 +58,13 @@ export const DEFAULTS_SEED_KEY = 'pd_ws_defaults_seeded';
  *  deleted — those deletions must stick, so v1 ids are NEVER re-injected).
  *  Only ids newer than the user's stamp get appended by the seed pass. */
 export const WORKSPACE_SEED_VERSION: Record<number, number> = {
-    1: 1, 2: 1,
+    1: 1,
     101: 2, 102: 2, 103: 2, 104: 2,
 };
 
 export const SHIPPED_WORKSPACES: ReadonlyArray<Workspace> = [
     // Sim 10120-10127 — codes are post-v1.0.45 short form.
     { id: 1, name: 'Main', code: '‰CSTM-IDAS', isDefault: true },
-    // Zen carries the blue colorway (Brendon 2026-06-12 — "pick a colour";
-    // blue is the calm pick). Pre-blue Zen migrates via OLD_DEFAULT_CODES.
-    { id: 2, name: 'Zen', code: '‰BLUE-NASC-NSTK-ZNMD-IDAS', isDefault: true },
     // The 2026-07-16 four. High fixed ids so they can never collide with
     // user-created workspaces (which count up from max+1 and started at 3).
     { id: 101, name: 'Appraiser', code: '‰DARK-CLST-LENS-SNTM-IDAS-TAPF', isDefault: true },
@@ -163,7 +161,7 @@ export const SPACES: ReadonlyArray<SpacePreset> = [
    code — a re-saved (customised) default goes back to the plain toast.
    Glyphs from the fixed vocabulary, each the persona's trade mark:
    ❖ rarity (appraisal) · ✹ listed (the market) · ⑆ showcase (curation) ·
-   ✧ new upload (scouting). Main and Zen keep their plain toasts. */
+   ✧ new upload (scouting). Main keeps its plain toast. */
 export const DEFAULT_LOAD_TOASTS: Record<number, string> = {
     101: '❖︎ Workspace: APPRAISER ❖︎',
     102: '✹︎ Workspace: TRADER ✹︎',
