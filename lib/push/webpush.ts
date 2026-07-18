@@ -51,12 +51,14 @@ interface UserGateRow {
 
 /** Sprite MOOD per ping — the lock-screen face matches the news, using ONLY
  *  the engine's existing frames (never a new face): money = awake (alert),
- *  social/interest ambience = blinking (the wink), reminders = yawning
- *  (time's voice). */
+ *  social/interest ambience = blinking (the wink). Reminders use the normal
+ *  awake face — the sprite talks with its mouth closed; the yawning frame
+ *  (forced open 'o' mouth) is NOT used for notifications (Brendon, 2026-07-18:
+ *  "they don't need to open their mouth to talk"). */
 type SpriteMood = 'awake' | 'blinking' | 'yawning';
 function moodFor(item: FeedItem): SpriteMood {
   const reminder = typeof item.data?.reminder === 'string' ? (item.data.reminder as string) : null;
-  if (reminder) return 'yawning';
+  if (reminder) return 'awake';
   switch (item.kind) {
     case 'OFFER':
     case 'OFFER_ACCEPTED':
