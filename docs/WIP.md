@@ -8,6 +8,30 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ✅ **2026-07-18 COMPLETIONISM WOW-PASS REVERTED (stats screen kept) — on
+   dev (tip `70e98e19`), auto-deploy rolling, tree clean. Branch
+   `claude/completionism-revert-stats-ywwi2s` = trash (Brendon deletes at
+   https://github.com/brendonrell/PriceOS/branches).** Opus session — Brendon's
+   surgical revert of the Completionism half of Fable's 2026-07-16 wow pass
+   (`a644e0f`; that entry below is now PARTIALLY SUPERSEDED — Friend Inspector +
+   sitewide bits of that commit are untouched, only Completionism rolled back):
+   ① REVERTED: header count back to the bare **(n/N)** (dropped the " MONTHS"
+   gloss + its tooltip); month tallies + sticker-sheet footer back to the prior
+   quiet 10px style.
+   ② KEPT (Brendon's explicit call): the **STATS** pill + **The Completionist's
+   Ledger** fold — left exactly as Fable built it.
+   ③ ADDED: the holders/owner **house mark ⌂** (GLYPHS.md grouping glyphs,
+   U+2302) to the right of the count — same size, full-strength
+   (`.cart-panel-title-glyph`). Brendon named ⌂ after an initial ◇ placeholder;
+   swap the glyph if he calls a different one later.
+   ⚠ Container: FRESH RECLONE this session (Brendon's call) — fresh dev was
+   ahead of the session-start base (the 2026-07-18 UI-polish tip); reclone was
+   clean, no GitHub errors. Proof: edits grep-confirmed; the change is the
+   prior clean-compiling shape with only the glyph char swapped (⌂ for ◇), so
+   no new build risk — a text/CSS/glyph change. ClickUp: ad-hoc revert, no task
+   of record (six-ship precedent); the standing Completionism follow-ups
+   `86baxgv9y` (Zoom) / `86baxgvgj` (leaderboard) are untouched.
+
 0. ✅ **2026-07-18 (later session) UI POLISH BATCH — Zen retired · mobile
    nudges · Portfolio tidy+collapse · Project stats makeover — ALL on dev
    (tip `2adb1ef`), auto-deploy rolling, tree clean. Branch
