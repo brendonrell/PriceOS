@@ -357,8 +357,8 @@ export default function CalendarPanel() {
                       }
                     }}
                   >
-                    {t.dueTime && <div className="cal-event-time">{t.dueTime}</div>}
                     <div className="cal-event-title">
+                      <span className="cal-event-time">{t.dueTime || 'all day'}</span>{' '}
                       <span className="cal-todo-icon">
                         {'❍'}{'︎'}
                       </span>{' '}
@@ -370,8 +370,8 @@ export default function CalendarPanel() {
               const it = entry.item;
               return (
                 <div key={it.id ?? `${it.scope}-${it.title}`} className={`cal-event-item cal-event-${it.scope}`}>
-                  {it.time && <div className="cal-event-time">{it.time}</div>}
                   <div className="cal-event-title">
+                    <span className="cal-event-time">{it.time || 'all day'}</span>{' '}
                     {it.scope === 'global' && <span className="cal-global-mark">{'⊞︎'} </span>}
                     {it.title}
                     {it.mine && it.id && (

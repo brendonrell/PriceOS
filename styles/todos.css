@@ -143,10 +143,11 @@ body.bg-is-red #todosBox { --hothurt: #FFE600; }
     align-items: center;
     justify-content: center;
 }
-.todo-chip-due .todo-chip-ico  { font-size: 13px; }
 /* The clock separates the date and time segments (the chip's own 5px flex gap
    sits on each side); this adds a deliberate hair more so it breathes between
-   them, always visible (Brendon, 2026-07-18). */
+   them, always visible (Brendon, 2026-07-18). Every icon shares the one 12px
+   size as the labels + price so the whole row reads at a single weight
+   (Brendon, 2026-07-18 — no more mixed sizes). */
 .todo-chip-clock { margin: 0 1px; }
 .todo-chip-lbl { line-height: 14px; height: 14px; display: inline-flex; align-items: center; }
 /* Segments inside the due pill — date | time, each wearing its own transparent
@@ -271,7 +272,10 @@ body.bg-is-red #todosBox { --hothurt: #FFE600; }
 .todo-link:hover .todo-title { text-decoration: underline; }
 
 .todo-chips { display: flex; flex-wrap: wrap; gap: 5px; }
-.todo-chip {
+/* Saved-row chips ONLY — scoped to .todo-chips so this 10px treatment never
+   leaks onto the composer chips (which are their own 12px pills); the bare
+   selector was clobbering the composer labels to 10px (Brendon, 2026-07-18). */
+.todo-chips .todo-chip {
     font: 700 10px/1 'Courier New', Courier, monospace;
     letter-spacing: 0.3px;
     background: color-mix(in srgb, currentColor 14%, transparent);

@@ -349,7 +349,7 @@ export default function CalendarSheet({ onClose }: { onClose: () => void }) {
                                             }}
                                         >
                                             <span className="wf-sentence">
-                                                {t.dueTime && <span className="cal-sheet-timecol">{t.dueTime}</span>}
+                                                <span className="cal-sheet-timecol">{t.dueTime || 'all day'}</span>{' '}
                                                 {'❍︎ '}{t.text}
                                             </span>
                                         </div>
@@ -372,7 +372,7 @@ export default function CalendarSheet({ onClose }: { onClose: () => void }) {
                                         }}
                                     >
                                         <span className="wf-sentence">
-                                            {it.time && <span className="cal-sheet-timecol">{it.time}</span>}
+                                            <span className="cal-sheet-timecol">{it.time || 'all day'}</span>{' '}
                                             {it.scope === 'global' && <span>{'⊞︎ '}</span>}
                                             {it.title}
                                         </span>
