@@ -9,7 +9,7 @@
 ## 🧭 NEXT UP — fresh session starts HERE
 
 0. ✅ **2026-07-18 NATIVE PUSH FIXED (for real) + DAY'S POLISH — all on dev
-   (tip `0bce005`), auto-deploy rolling, tree clean.** Long Opus session,
+   (tip `18dd8eb`), auto-deploy rolling, tree clean.** Long Opus session,
    Brendon's running batch:
    ① **THE PUSH BUG KILLED — root cause found + confirmed working (banner
    landed on Brendon's lock screen).** Native pings had silently died: the
@@ -46,7 +46,20 @@
    `/api/push/test` + `/api/push/receipt`, the SW receipt beacon, `sendTestPush`,
    and the `[push-sent]` success logging. The real failure-logging into
    app_errors (the thing that caught the bug) stays.
-   Proof: tsc/lint clean, tests green, real build + compiled greps.
+   ⑧ **CALENDAR EVENT TIMES**: every event/milestone shows its time INLINE in
+   the row (no new column — Brendon's constraint); no-time events read
+   "all day". Panel + sheet, calendar items + to-dos.
+   ⑨ **COMPOSER CHIP FONTS UNIFIED**: a bare `.todo-chip { font: 700 10px }`
+   meant for saved rows was leaking onto the composer, so due/time/P1 rendered
+   10px while price/icons were 12px. Scoped it to `.todo-chips .todo-chip`;
+   composer chips are now uniformly 12px (labels + price + every icon).
+   ⑩ **LOGO YELLOW INVERSE**: `body.bg-is-yellow` locks the logo's red-disc /
+   yellow-mark treatment — the mirror of the red-bg -> yellow-mark swap — so
+   the mark reads on a yellow colorway.
+   Proof: tsc/lint clean, tests green, real build + compiled greps, PLUS a
+   headless Chromium render pass (the /opt/pw-browsers static-harness pattern)
+   that measured all six composer chip elements at 12px, confirmed the inline
+   "all day" calendar rows, and confirmed the logo disc/mark fills on yellow.
    ClickUp: ad-hoc chat batch, no tasks of record (six-ship precedent); the
    earlier ClickUp cleanup + zombie sweep this session already landed.
    Branch `claude/pd-priceos-arch-review-xiy7w0` = trash (all work went to
