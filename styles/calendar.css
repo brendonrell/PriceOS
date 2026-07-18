@@ -129,6 +129,13 @@
     width: 5px; height: 5px; border-radius: 50%;
     background: #FF0055; opacity: 1; flex-shrink: 0;
 }
+/* JUL 18: Day-Note dot — white marker, sibling to the red to-do dot. Appears on
+   any day that has a Day Note, matching the white post-it treatment of the note
+   row in the day column. Independent of the To-Dos toggle (notes always show). */
+.cal-day-note-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: #fff; opacity: 1; flex-shrink: 0;
+}
 /* To-do row in the day detail column — icon + red text to visually stand out
    from the ordinary events above it. Hothurt red on every colorway (see note above). */
 .cal-event-todo {
@@ -226,7 +233,7 @@
     margin-right: 4px;
 }
 .cal-day-col-events {
-    display: flex; flex-direction: column; gap: 5px;
+    display: flex; flex-direction: column; gap: 8px;
     font-size: 12px; line-height: 1.3;
     overflow-y: auto;
     /* Events column absorbs slack within the calendar-panel's fixed height.

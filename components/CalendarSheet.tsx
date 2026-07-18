@@ -129,12 +129,31 @@ export default function CalendarSheet({ onClose }: { onClose: () => void }) {
         priceDayNumber(selDate) <= priceDayNumber(new Date());
     const isToday = selY === CAL_TODAY.y && selM === CAL_TODAY.m && selD === CAL_TODAY.d;
 
-    const dayItems = useMemo(
-        () => [...(monthItems[selKey] ?? [])].sort((a, b) => timeMin(a.time) - timeMin(b.time)),
-        [monthItems, selKey],
-    );
     const dayNote = isAuthed ? (dayNotes[selKey] || '') : '';
-    const todos = isAuthed ? (todoMap[selKey] ?? []) : [];
+    /* GCal-like day timeline (Brendon, 2026-07-18): calendar items and to-dos
+       share ONE ordered list, sorted by clock time — no-time entries (all-day,
+       including a to-do that has a date but no time) float to the top; timed
+       ones follow in order. Each keeps its own row treatment + interactions. */
+    const dayEntries = useMemo(() => {
+        const out: Array<
+            | { kind: 'item'; sortMin: number; item: CalApiItem }
+            | { kind: 'todo'; sortMin: number; todo: TodoItem }
+        > = [];
+        for (const it of monthItems[selKey] ?? []) {
+            out.push({ kind: 'item', sortMin: timeMin(it.time), item: it });
+        }
+        if (isAuthed) {
+            for (const t of todoMap[selKey] ?? []) {
+                out.push({ kind: 'todo', sortMin: timeMin(t.dueTime), todo: t });
+            }
+        }
+        // Stable: all-day (-1) first, then chronological; equal times keep
+        // insertion order (calendar items before to-dos at the same minute).
+        return out
+            .map((e, i) => ({ e, i }))
+            .sort((a, b) => a.e.sortMin - b.e.sortMin || a.i - b.i)
+            .map(({ e }) => e);
+    }, [monthItems, todoMap, selKey, isAuthed]);
 
     /* ── The editor (the workflows-like screen) ─────────────────────────── */
     const [editing, setEditing] = useState<null | { id?: string }>(null);
@@ -295,57 +314,6 @@ export default function CalendarSheet({ onClose }: { onClose: () => void }) {
                             </button>
                         )}
                         <div className="wf-list cal-sheet-list">
-                            {inPdRange && (
-                                <div className="wf-row cal-sheet-row cal-sheet-pd" title={pd.flavor ?? undefined}>
-                                    <span className="wf-sentence">
-                                        {'✶︎ PriceDay '}{pd.number}
-                                        {pd.flavor && <span className="cal-sheet-flavor"> — {pd.flavor}</span>}
-                                    </span>
-                                </div>
-                            )}
-                            {dayItems.map((it) => (
-                                <div
-                                    key={it.id ?? `${it.scope}-${it.title}`}
-                                    className={`wf-row cal-sheet-row cal-sheet-${it.scope}${it.mine && it.id ? ' is-mine' : ''}`}
-                                    role={it.mine && it.id ? 'button' : undefined}
-                                    tabIndex={it.mine && it.id ? 0 : undefined}
-                                    title={it.mine && it.id ? 'Edit item' : undefined}
-                                    onClick={() => openEdit(it)}
-                                    onKeyDown={(e) => {
-                                        if ((e.key === 'Enter' || e.key === ' ') && it.mine && it.id) {
-                                            e.preventDefault();
-                                            openEdit(it);
-                                        }
-                                    }}
-                                >
-                                    <span className="wf-sentence">
-                                        {it.time && <span className="cal-sheet-timecol">{it.time}</span>}
-                                        {it.scope === 'global' && <span>{'⊞︎ '}</span>}
-                                        {it.title}
-                                    </span>
-                                    {it.mine && it.id && (
-                                        <>
-                                            <span className={`cal-ping-badge${(it.remind ?? 'attime') === 'off' ? ' is-off' : ''}`}>
-                                                {'⇡︎ '}{REMIND_BADGE[it.remind ?? 'attime']}
-                                            </span>
-                                            <span
-                                                className="todo-del"
-                                                role="button"
-                                                tabIndex={0}
-                                                title="Remove"
-                                                onClick={(e) => { e.stopPropagation(); remove(it.id!); }}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === 'Enter' || e.key === ' ') {
-                                                        e.preventDefault(); e.stopPropagation(); remove(it.id!);
-                                                    }
-                                                }}
-                                            >
-                                                {'×︎'}
-                                            </span>
-                                        </>
-                                    )}
-                                </div>
-                            ))}
                             {isAuthed && (
                                 <div
                                     className="wf-row cal-sheet-row is-mine"
@@ -363,24 +331,84 @@ export default function CalendarSheet({ onClose }: { onClose: () => void }) {
                                     </span>
                                 </div>
                             )}
-                            {todos.map((t) => (
-                                <div
-                                    key={t.id}
-                                    className="wf-row cal-sheet-row cal-sheet-todo is-mine"
-                                    role="button"
-                                    tabIndex={0}
-                                    title="Complete to-do"
-                                    onClick={() => { toggleTodo(t.id); showToast('To-Do: DONE'); }}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' || e.key === ' ') {
-                                            e.preventDefault(); toggleTodo(t.id); showToast('To-Do: DONE');
-                                        }
-                                    }}
-                                >
-                                    <span className="wf-sentence">{'❍︎ '}{t.text}</span>
+                            {dayEntries.map((entry) => {
+                                if (entry.kind === 'todo') {
+                                    const t = entry.todo;
+                                    return (
+                                        <div
+                                            key={`todo-${t.id}`}
+                                            className="wf-row cal-sheet-row cal-sheet-todo is-mine"
+                                            role="button"
+                                            tabIndex={0}
+                                            title="Complete to-do"
+                                            onClick={() => { toggleTodo(t.id); showToast('To-Do: DONE'); }}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                    e.preventDefault(); toggleTodo(t.id); showToast('To-Do: DONE');
+                                                }
+                                            }}
+                                        >
+                                            <span className="wf-sentence">
+                                                {t.dueTime && <span className="cal-sheet-timecol">{t.dueTime}</span>}
+                                                {'❍︎ '}{t.text}
+                                            </span>
+                                        </div>
+                                    );
+                                }
+                                const it = entry.item;
+                                return (
+                                    <div
+                                        key={it.id ?? `${it.scope}-${it.title}`}
+                                        className={`wf-row cal-sheet-row cal-sheet-${it.scope}${it.mine && it.id ? ' is-mine' : ''}`}
+                                        role={it.mine && it.id ? 'button' : undefined}
+                                        tabIndex={it.mine && it.id ? 0 : undefined}
+                                        title={it.mine && it.id ? 'Edit item' : undefined}
+                                        onClick={() => openEdit(it)}
+                                        onKeyDown={(e) => {
+                                            if ((e.key === 'Enter' || e.key === ' ') && it.mine && it.id) {
+                                                e.preventDefault();
+                                                openEdit(it);
+                                            }
+                                        }}
+                                    >
+                                        <span className="wf-sentence">
+                                            {it.time && <span className="cal-sheet-timecol">{it.time}</span>}
+                                            {it.scope === 'global' && <span>{'⊞︎ '}</span>}
+                                            {it.title}
+                                        </span>
+                                        {it.mine && it.id && (
+                                            <>
+                                                <span className={`cal-ping-badge${(it.remind ?? 'attime') === 'off' ? ' is-off' : ''}`}>
+                                                    {'⇡︎ '}{REMIND_BADGE[it.remind ?? 'attime']}
+                                                </span>
+                                                <span
+                                                    className="todo-del"
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    title="Remove"
+                                                    onClick={(e) => { e.stopPropagation(); remove(it.id!); }}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter' || e.key === ' ') {
+                                                            e.preventDefault(); e.stopPropagation(); remove(it.id!);
+                                                        }
+                                                    }}
+                                                >
+                                                    {'×︎'}
+                                                </span>
+                                            </>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                            {inPdRange && (
+                                <div className="wf-row cal-sheet-row cal-sheet-pd" title={pd.flavor ?? undefined}>
+                                    <span className="wf-sentence">
+                                        {'✶︎ PriceDay '}{pd.number}
+                                        {pd.flavor && <span className="cal-sheet-flavor"> — {pd.flavor}</span>}
+                                    </span>
                                 </div>
-                            ))}
-                            {dayItems.length === 0 && todos.length === 0 && !dayNote && !inPdRange && (
+                            )}
+                            {dayEntries.length === 0 && !dayNote && !inPdRange && (
                                 <div className="todo-empty">Nothing on this day yet.</div>
                             )}
                         </div>

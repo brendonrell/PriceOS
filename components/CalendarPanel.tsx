@@ -50,6 +50,12 @@ interface CalApiItem {
   mine?: boolean;
 }
 
+/** Sort key for the day list — timed items in clock order, all-day first. */
+function timeMin(label: string | null | undefined): number {
+  const m = label && /(\d{1,2}):(\d{2})/.exec(label);
+  return m ? Math.min(23, Number(m[1])) * 60 + Math.min(59, Number(m[2])) : -1;
+}
+
 export default function CalendarPanel() {
   const {
     viewY, viewM, selY, selM, selD,
@@ -126,8 +132,28 @@ export default function CalendarPanel() {
   const hasNote = Boolean(dayNote);
   const dateLabel = `${CAL_MONTH_SHORT[selM]} ${selD}`;
 
-  const todos = isAuthed && todosMode ? (todoMap[selKey] || []) : [];
-  const empty = todos.length === 0 && !dayNote;
+  /* GCal-like day timeline (Brendon, 2026-07-18): calendar items and to-dos
+     share ONE ordered list, sorted by clock time — no-time entries (all-day,
+     including a dated to-do with no time) float to the top; timed ones follow.
+     To-dos still ride the To-Dos toggle + sign-in. */
+  const dayEntries = useMemo(() => {
+    const out: Array<
+      | { kind: 'item'; sortMin: number; item: CalApiItem }
+      | { kind: 'todo'; sortMin: number; todo: TodoItem }
+    > = [];
+    for (const it of monthItems[selKey] ?? []) {
+      out.push({ kind: 'item', sortMin: timeMin(it.time), item: it });
+    }
+    if (isAuthed && todosMode) {
+      for (const t of todoMap[selKey] ?? []) {
+        out.push({ kind: 'todo', sortMin: timeMin(t.dueTime), todo: t });
+      }
+    }
+    return out
+      .map((e, i) => ({ e, i }))
+      .sort((a, b) => a.e.sortMin - b.e.sortMin || a.i - b.i)
+      .map(({ e }) => e);
+  }, [monthItems, todoMap, selKey, isAuthed, todosMode]);
 
   return (
     <div className="calendar-panel active" id="calendarPanel">
@@ -157,6 +183,9 @@ export default function CalendarPanel() {
               const hasTodo =
                 isAuthed && todosMode && !c.other &&
                 Boolean(todoMap[k] && todoMap[k].length);
+              const hasNote =
+                isAuthed && !c.other &&
+                Boolean(dayNotes[k] && dayNotes[k].trim());
 
               return (
                 <div
@@ -178,6 +207,7 @@ export default function CalendarPanel() {
                   <span>{c.d}</span>
                   <span className="cal-day-dots">
                     {hasTodo && <span className="cal-day-todo-dot" />}
+                    {hasNote && <span className="cal-day-note-dot" />}
                     {Array.from({ length: dotCount }).map((_, j) => (
                       <span key={j} className="cal-day-dot" />
                     ))}
@@ -269,46 +299,8 @@ export default function CalendarPanel() {
           </div>
 
           <div className="cal-day-col-events" id="calDayColEvents">
-            {/* PriceDay ↔ calendar — the selected day's almanac line. */}
-            {selInPdRange && (
-              <div className="cal-event-item cal-event-priceday" title={selPd.flavor ?? undefined}>
-                <div className="cal-event-title">
-                  <span className="cal-pd-num">{'✶\uFE0E'} PriceDay {selPd.number}</span>
-                  {selPd.flavor && <span className="cal-pd-flavor"> — {selPd.flavor}</span>}
-                </div>
-              </div>
-            )}
-
-            {(monthItems[selKey] || []).map((it) => (
-              <div key={it.id ?? `${it.scope}-${it.title}`} className={`cal-event-item cal-event-${it.scope}`}>
-                {it.time && <div className="cal-event-time">{it.time}</div>}
-                <div className="cal-event-title">
-                  {it.scope === 'global' && <span className="cal-global-mark">{'⊞\uFE0E'} </span>}
-                  {it.title}
-                  {it.mine && it.id && (
-                    <span
-                      className="cal-item-del"
-                      role="button"
-                      tabIndex={0}
-                      title="Remove"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        fetch('/api/calendar', {
-                          method: 'POST',
-                          headers: { 'content-type': 'application/json' },
-                          body: JSON.stringify({ action: 'delete', id: it.id }),
-                        }).then(() => { showToast('Calendar: REMOVED'); loadMonth(); }).catch(() => {});
-                      }}
-                    >
-                      {'×\uFE0E'}
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
-
-            {empty && (monthItems[selKey] || []).length === 0 && !selInPdRange && <div className="cal-event-empty">No events</div>}
-
+            {/* Day Note — pinned to the TOP of the day (Brendon, 2026-07-18:
+                restored to its sim.html home, above events + PriceDay). */}
             {dayNote && (
               <div
                 className="cal-event-item cal-event-daynote"
@@ -326,7 +318,7 @@ export default function CalendarPanel() {
               >
                 <div className="cal-daynote-title">
                   <span className="cal-daynote-row-icon">
-                    {'\u229F'}{'\uFE0E'}
+                    {'⊟'}{'︎'}
                   </span>
                   <span
                     dangerouslySetInnerHTML={{ __html: renderNoteMarkdown(dayNote) }}
@@ -343,31 +335,79 @@ export default function CalendarPanel() {
               </div>
             )}
 
-            {todos.map((t) => (
-              <div
-                key={t.id}
-                className="cal-event-item cal-event-todo"
-                role="button"
-                tabIndex={0}
-                title="Complete to-do"
-                onClick={(e) => { e.stopPropagation(); toggleTodo(t.id); showToast('To-Do: DONE'); }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    toggleTodo(t.id);
-                    showToast('To-Do: DONE');
-                  }
-                }}
-              >
+            {/* Events — calendar items + to-dos, one time-sorted list
+                (all-day first). To-dos ride the To-Dos toggle. */}
+            {dayEntries.map((entry) => {
+              if (entry.kind === 'todo') {
+                const t = entry.todo;
+                return (
+                  <div
+                    key={`todo-${t.id}`}
+                    className="cal-event-item cal-event-todo"
+                    role="button"
+                    tabIndex={0}
+                    title="Complete to-do"
+                    onClick={(e) => { e.stopPropagation(); toggleTodo(t.id); showToast('To-Do: DONE'); }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleTodo(t.id);
+                        showToast('To-Do: DONE');
+                      }
+                    }}
+                  >
+                    {t.dueTime && <div className="cal-event-time">{t.dueTime}</div>}
+                    <div className="cal-event-title">
+                      <span className="cal-todo-icon">
+                        {'❍'}{'︎'}
+                      </span>{' '}
+                      {t.text}
+                    </div>
+                  </div>
+                );
+              }
+              const it = entry.item;
+              return (
+                <div key={it.id ?? `${it.scope}-${it.title}`} className={`cal-event-item cal-event-${it.scope}`}>
+                  {it.time && <div className="cal-event-time">{it.time}</div>}
+                  <div className="cal-event-title">
+                    {it.scope === 'global' && <span className="cal-global-mark">{'⊞︎'} </span>}
+                    {it.title}
+                    {it.mine && it.id && (
+                      <span
+                        className="cal-item-del"
+                        role="button"
+                        tabIndex={0}
+                        title="Remove"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          fetch('/api/calendar', {
+                            method: 'POST',
+                            headers: { 'content-type': 'application/json' },
+                            body: JSON.stringify({ action: 'delete', id: it.id }),
+                          }).then(() => { showToast('Calendar: REMOVED'); loadMonth(); }).catch(() => {});
+                        }}
+                      >
+                        {'×︎'}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* PriceDay — the almanac line, now at the FOOT of the day. */}
+            {selInPdRange && (
+              <div className="cal-event-item cal-event-priceday" title={selPd.flavor ?? undefined}>
                 <div className="cal-event-title">
-                  <span className="cal-todo-icon">
-                    {'\u274D'}{'\uFE0E'}
-                  </span>{' '}
-                  {t.text}
+                  <span className="cal-pd-num">{'✶︎'} PriceDay {selPd.number}</span>
+                  {selPd.flavor && <span className="cal-pd-flavor"> — {selPd.flavor}</span>}
                 </div>
               </div>
-            ))}
+            )}
+
+            {dayEntries.length === 0 && !dayNote && !selInPdRange && <div className="cal-event-empty">No events</div>}
           </div>
         </div>
       </div>
