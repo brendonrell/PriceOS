@@ -683,10 +683,6 @@ export default function StudioPage() {
                 <StudioAnalytics handle={handle ?? null} god={god} />
             </div>
 
-            {/* ── VOUCH — whitelisted artists' two forward-an-artist slots;
-                   renders nothing for everyone else. ── */}
-            <VouchCard address={address ?? null} />
-
             {/* ── DASHBOARD · DRAFTS ── */}
             <div className="pd-studio-section">
                 <div className="pd-studio-section-title">Dashboard — your drafts</div>
@@ -705,6 +701,11 @@ export default function StudioPage() {
                     ))
                 )}
             </div>
+
+            {/* ── VOUCH — whitelisted artists' two forward-an-artist slots;
+                   renders nothing for everyone else. Sits at the bottom of the
+                   dashboard (Brendon, 2026-07-18). ── */}
+            <VouchCard address={address ?? null} />
 
             {/* ── GOD MODE — private layer, analytics side ── */}
             {god && <GodMode />}
