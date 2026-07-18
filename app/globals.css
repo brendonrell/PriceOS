@@ -3341,6 +3341,17 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
 }
 .pf-project .pf-label { flex: 0 0 auto; font-style: italic; }
 .pf-project .pf-est { font-style: normal; opacity: 0.85; flex: 0 0 auto; }
+/* Collapse affordance on the portfolio grouping rows — the usual ▾/▸ fold
+   (GLYPHS §4). The whole header row is the tap target (Brendon, 2026-07-18). */
+.pf-cat, .pf-artist, .pf-project { cursor: pointer; }
+.pf-fold {
+    flex: 0 0 auto;
+    margin-right: 5px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    line-height: 1;
+    opacity: 0.85;
+}
 /* Artwork row — leaf. TOC-style leader dots fill the space between label
    and price column (classic book table-of-contents pattern). Dots render
    always; when $ is off the price element is absent so leader extends

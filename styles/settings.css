@@ -154,20 +154,21 @@
 }
 
 .pill-budget {
-    gap: 5px;
+    gap: 4px;
 }
 
 .pill-budget-eth {
     opacity: 0.55;
-    font-size: 9px;
+    font-size: 11px;
     letter-spacing: 0.02em;
     flex-shrink: 0;
 }
 
-/* Edit pencil — sits between the ETH value and the × delete.
-   Extra padding on each side for fat-finger tap targets. */
+/* Edit pencil — sits between the ETH value and the × delete. The larger
+   glyph carries the tap target; the flanking room is trimmed so the pill
+   reads tidy (Brendon, 2026-07-18). */
 .pill-budget-edit {
-    font-size: 15px;
+    font-size: 15.5px;
     line-height: 1;
     opacity: 0.45;
     cursor: pointer;
@@ -175,8 +176,7 @@
     transition: opacity 0.15s;
     display: inline-flex;
     align-items: center;
-    padding: 0 5px;
-    margin-left: 2px;
+    padding: 0 3px;
 }
 .pill-budget-edit:hover { opacity: 1; }
 

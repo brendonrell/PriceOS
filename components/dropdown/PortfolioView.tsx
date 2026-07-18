@@ -201,6 +201,19 @@ export function PortfolioView() {
         false
     );
 
+    /* Grouping collapse — the usual ▾/▸ fold on every portfolio section header
+       (category · artist · project), reusing the gallery's collapse grammar
+       (Brendon, 2026-07-18). In-memory, like the gallery's collapsedGroups. */
+    const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(() => new Set<string>());
+    const toggleFold = useCallback((key: string) => {
+        setCollapsed((prev) => {
+            const next = new Set(prev);
+            if (next.has(key)) next.delete(key);
+            else next.add(key);
+            return next;
+        });
+    }, []);
+
     // Sim has no expand/collapse — the entire tree renders flat. F58
     // dropped the expanded-keys Set and toggleExpand callback that the
     // pre-F58 port carried over from a tree-widget pattern that didn't
@@ -732,11 +745,25 @@ export function PortfolioView() {
                            Restructure: the .pf-cat div now contains ONLY
                            .pf-cat-head + optional .pf-est. Children render
                            as siblings via React.Fragment. */
+                        const catKey = `cat:${cat.name}`;
+                        const catFolded = collapsed.has(catKey);
                         return (
                             <Fragment key={cat.name}>
-                                <div className="pf-cat">
+                                <div
+                                    className="pf-cat"
+                                    role="button"
+                                    tabIndex={0}
+                                    aria-expanded={!catFolded}
+                                    onClick={() => toggleFold(catKey)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            toggleFold(catKey);
+                                        }
+                                    }}
+                                >
                                     <span className="pf-cat-head">
-                                        <span className="pf-cat-glyph">{'\u2794\uFE0E'}</span>
+                                        <span className="pf-cat-glyph" aria-hidden="true">{catFolded ? '\u25B8\uFE0E' : '\u25BE\uFE0E'}</span>
                                         <span className="pf-label">{catLabel}</span>
                                     </span>
                                     {showDollar && (
@@ -745,7 +772,7 @@ export function PortfolioView() {
                                         </span>
                                     )}
                                 </div>
-                                {cat.type === 'tree' ? (
+                                {!catFolded && (cat.type === 'tree' ? (
                                     groupMode === 'project' ? (
                                         // Project view — flat A–Z list of projects, no
                                         // artist headers (Brendon 2026-06-25).
@@ -758,6 +785,9 @@ export function PortfolioView() {
                                                     coll={coll}
                                                     showDollar={showDollar}
                                                     portfolioHidden={portfolioHidden}
+                                                    keyPrefix={cat.name}
+                                                    collapsed={collapsed}
+                                                    toggleFold={toggleFold}
                                                 />
                                             ))
                                     ) : (
@@ -774,7 +804,10 @@ export function PortfolioView() {
                                                     artistSum={artistSum}
                                                     showDollar={showDollar}
                                                     portfolioHidden={portfolioHidden}
+                                                    catName={cat.name}
                                                     projects={art.projects}
+                                                    collapsed={collapsed}
+                                                    toggleFold={toggleFold}
                                                 />
                                             );
                                         })
@@ -791,7 +824,7 @@ export function PortfolioView() {
                                             )}
                                         </div>
                                     ))
-                                )}
+                                ))}
                             </Fragment>
                         );
                     })
@@ -871,17 +904,38 @@ function PortfolioArtistRows({
     showDollar,
     portfolioHidden,
     projects,
+    catName,
+    collapsed,
+    toggleFold,
 }: {
     artistName: string;
     artistSum: number;
     showDollar: boolean;
     portfolioHidden: boolean;
     projects: PortfolioProject[];
+    catName: string;
+    collapsed: ReadonlySet<string>;
+    toggleFold: (key: string) => void;
 }) {
     const pfHide = (val: string) => (portfolioHidden ? '***' : val);
+    const artKey = `art:${catName}/${artistName}`;
+    const folded = collapsed.has(artKey);
     return (
         <>
-            <div className="pf-artist">
+            <div
+                className="pf-artist"
+                role="button"
+                tabIndex={0}
+                aria-expanded={!folded}
+                onClick={() => toggleFold(artKey)}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleFold(artKey);
+                    }
+                }}
+            >
+                <span className="pf-fold" aria-hidden="true">{folded ? '▸︎' : '▾︎'}</span>
                 <span className="pf-label">{artistName}</span>
                 {showDollar && (
                     <span className="pf-est" style={{ marginLeft: 'auto' }}>
@@ -889,12 +943,15 @@ function PortfolioArtistRows({
                     </span>
                 )}
             </div>
-            {projects.map((coll) => (
+            {!folded && projects.map((coll) => (
                 <PortfolioProjectRows
                     key={coll.name}
                     coll={coll}
                     showDollar={showDollar}
                     portfolioHidden={portfolioHidden}
+                    keyPrefix={`${catName}/${artistName}`}
+                    collapsed={collapsed}
+                    toggleFold={toggleFold}
                 />
             ))}
         </>
@@ -910,17 +967,38 @@ function PortfolioProjectRows({
     coll,
     showDollar,
     portfolioHidden,
+    keyPrefix,
+    collapsed,
+    toggleFold,
 }: {
     coll: PortfolioProject;
     showDollar: boolean;
     portfolioHidden: boolean;
+    keyPrefix: string;
+    collapsed: ReadonlySet<string>;
+    toggleFold: (key: string) => void;
 }) {
     const pfHide = (val: string) => (portfolioHidden ? '***' : val);
     // Sim 11011: collSum = floor * tokens.length.
     const collSum = (coll.floor || 0) * coll.tokens.length;
+    const projKey = `proj:${keyPrefix}/${coll.name}`;
+    const folded = collapsed.has(projKey);
     return (
         <div>
-            <div className="pf-project">
+            <div
+                className="pf-project"
+                role="button"
+                tabIndex={0}
+                aria-expanded={!folded}
+                onClick={() => toggleFold(projKey)}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleFold(projKey);
+                    }
+                }}
+            >
+                <span className="pf-fold" aria-hidden="true">{folded ? '▸︎' : '▾︎'}</span>
                 <span className="pf-label">{coll.name}</span>
                 {showDollar && (
                     <span className="pf-est" style={{ marginLeft: 'auto' }}>
@@ -928,7 +1006,7 @@ function PortfolioProjectRows({
                     </span>
                 )}
             </div>
-            {coll.tokens.map((tid) => (
+            {!folded && coll.tokens.map((tid) => (
                 <div key={tid} className="pf-artwork">
                     <span className="pf-label">#{tid}</span>
                     <span className="pf-leader" />
