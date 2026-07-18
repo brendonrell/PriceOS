@@ -8,6 +8,13 @@
     padding: 0;
     background: #07090d;
 }
+/* The close × wears the map's own light ink. It inherits the page-theme
+   --text-color everywhere else, which goes dark-on-dark over the near-black
+   sea (an invisible ×). The map owns its palette — full-strength light. */
+.carto-modal .close-hint {
+    color: #E9EDF4;
+    opacity: 1;
+}
 .carto-stage {
     position: absolute;
     inset: 0;
@@ -105,6 +112,16 @@
     letter-spacing: 0.05em;
     color: #E9EDF4;
 }
+/* Portrait: pieces + territories stack onto their own lines (the middot only
+   joins them on the wider landscape row). Landscape stays a single line. */
+@media (orientation: portrait) {
+    .carto-wallet .cw-stats {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .carto-wallet .cw-dot { display: none; }
+}
 
 /* legend — canonical market glyphs, bottom-left */
 .carto-legend {
@@ -128,9 +145,10 @@
 
 .carto-search {
     position: absolute;
-    /* Below the close × (top-right), not overlapping the title row — expands
-       leftward from the right edge when open (Brendon, 2026-07-14). */
-    top: calc(56px + env(safe-area-inset-top));
+    /* Its own row BELOW the breadcrumb (top-left @name / territory crumb) so an
+       open search never slides over the name; expands leftward from the right
+       edge when open (Brendon, 2026-07-14; dropped a row 2026-07-18). */
+    top: calc(80px + env(safe-area-inset-top));
     right: 18px;
     z-index: 21;
     display: flex;

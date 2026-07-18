@@ -1640,7 +1640,11 @@ export default function CartographyModal() {
                     {wallet && (
                         <div className="carto-wallet">
                             <span className="cw-name">{wallet.label}</span>
-                            <span className="cw-stats">{wallet.pieces} PIECES · {wallet.lands} {wallet.lands === 1 ? 'TERRITORY' : 'TERRITORIES'}</span>
+                            <span className="cw-stats">
+                                <span className="cw-stat">{wallet.pieces} PIECES</span>
+                                <span className="cw-dot"> · </span>
+                                <span className="cw-stat">{wallet.lands} {wallet.lands === 1 ? 'TERRITORY' : 'TERRITORIES'}</span>
+                            </span>
                         </div>
                     )}
                     <div className="carto-legend" aria-hidden="true">
