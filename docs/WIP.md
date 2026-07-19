@@ -8,6 +8,62 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ⚙ **2026-07-19 THE COMMAND STONE ⌘ — stages 1–3 LIVE on dev (tip
+   `4daeba2`), auto-deploy rolling, tree clean. STAGE 4 (the widget deck)
+   IS THE NEXT BUILD — brief: `docs/briefs/command-stone.md`. Branch
+   `claude/command-stone-feature-yjt1wz` = merged trash (Brendon deletes at
+   https://github.com/brendonrell/PriceOS/branches).** Fable session,
+   Brendon's spec-confirm → staged ships, each approved + pushed:
+   ① THE VESSEL — logged-in-only thin black bar (⌘, Brendon-approved
+   glyph) hovering above the safe-area; swipe-up/tap opens the full-height
+   pure-black stone (his approved idle: EMPTY, flashing block indicator,
+   no prompt text — Composer-dark precedent, token re-base); long-press
+   collapses; folds on route change. `components/stone/CommandStone.tsx` +
+   `styles/stone.css`.
+   ② GO/FIND — rides the REAL Global Search (`/api/search` + the .gsr row
+   anatomy, exported from `GlobalSearchBar` — one door): live results,
+   inline answers, pages, Enter = top hit, then folds.
+   ③ ETCH (`lib/stone/etch.ts`) — todo:/note/anchor/watch/wishlist lines
+   → preview chip (`❍ BUY · Prisms #22 · ◊0.1 — etch?`) → commit on second
+   touch, riding the real stores: the magic quick-add parser + todoStore
+   (Sentinel arms BUY targets) · tokenNotes `writeNoteFor` (append, never
+   clobber; NotePromptContext now re-reads on `pd:notes-changed` so editor
+   saves can't clobber stone notes) · NEW `lib/pins/anchorStore.ts` (ONE
+   anchor write path — ValuePromptContext refactored onto it, behaviour
+   identical) · projectStarStore · wishlistStore. Answer-and-act: a floor
+   answer offers `↧ anchor it?` inline.
+   ④ CAST (`lib/stone/cast.ts`) — EXACT names only (no prefix guessing):
+   spells/modes flip with the pills' own flags + toast strings (flavour
+   lines incl.; panopticon keeps its consent modal; spitebook/tarot open
+   their surfaces, stone folds); workspaces load via loadWorkspace (persona
+   flourishes). **Brendon's word-lock: the Spell Book is just a NAME — a
+   cast is a plain settings flip, no ceremony. SpellBookSection deliberately
+   untouched** (a shared-hook extraction was built then reverted on his
+   call — don't redo it).
+   **Glyph decisions (all in GLYPHS.md §12a):** the Stone = ⌘ (U+2318) ·
+   Stone anchor chip = ↧ (U+21A7) — ⚓ is emoji-default = BANNED; first pick
+   ⏚ collided with GRID PRESETS (shipped but uncatalogued — now in the
+   glossary; **lesson recorded there: grep the codebase, not just the
+   glossary, before claiming a glyph free**).
+   **Proof:** 70/70 tests (16 ETCH parser + 6 CAST matcher new), tsc clean,
+   real builds green each stage, compiled CSS/JS greps, headless mid-tone +
+   open-stone pixel proofs.
+   **BRENDON ACTIONS:** device-check ⌘ and ↧ render as monochrome text on
+   iPhone (#1 glyph gate).
+   **STAGE 4 QUEUED (next session builds this — recon already done):**
+   the widget deck ("almost WatchOS"): CALENDAR + PRICEDAY widgets
+   summoned by name in the stone (calendar: `/api/calendar` days map +
+   `datedTodosByDay` — the TopBarCalendar read; PriceDay:
+   `lib/priceday/priceday.ts` `priceDayContents`/`usePriceDay` + the
+   `.priceday-popover` row markup in `PriceDaySlot.tsx`) · CALC (the
+   CalcSheet via `useCalcSheet` — needs a config {tokenId, projectTitle,
+   price, floor}, and note it auto-closes unless the output modal is open —
+   check that coupling before wiring) · then dossiers (collector/artist) ·
+   mini gallery · Matrix Maker · wallet ASCII gen art (deterministic,
+   `paintAsciiStandin`) · Ask PD folded in · docs search (ride the docs
+   index Fable is building separately). ClickUp: ad-hoc chat build, no task
+   of record (six-ship precedent).
+
 0. ✅ **2026-07-19 THE GNOME WORLD — full arc, SIX ships all on dev (tip
    `c9f7a3c`), auto-deploy rolling, tree clean. Branch
    `claude/gnome-wow-pass-marketplace-iwk46j` = merged trash (Brendon deletes
