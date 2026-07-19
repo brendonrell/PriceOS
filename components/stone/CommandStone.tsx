@@ -30,8 +30,10 @@
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '../../lib/state/AuthContext';
+import { useToast } from '../../lib/state/ToastContext';
 import SpriteFace from '../SpriteFace';
 import { projectSpriteFace } from '../../lib/project/projectSprite';
+import { parseEtch, commitEtch, resolveProject } from '../../lib/stone/etch';
 import {
     ArtThumb,
     SearchUserRow,
@@ -55,6 +57,7 @@ const LONG_PRESS_DRIFT_PX = 8;
 
 export default function CommandStone() {
     const { siweAddress, needsSignup, handle: myHandle } = useAuth();
+    const { showToast } = useToast();
     const router = useRouter();
     const pathname = usePathname();
 
@@ -63,9 +66,15 @@ export default function CommandStone() {
     const [results, setResults] = useState<SearchResponse | null>(null);
     const [searching, setSearching] = useState(false);
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+    /** The stone's own confirmation line after a commit ("✓ ETCHED · …"). */
+    const [etched, setEtched] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement | null>(null);
 
     const searchingNow = value.trim().length > 0;
+
+    /* ETCH — a verb word turns the line into a creation plan; bare words
+       stay GO/FIND. Pure parse, runs every keystroke. */
+    const etchPlan = useMemo(() => parseEtch(value), [value]);
 
     /* Route change → the stone folds away clean (same manners as every
        overlay in the shell: nothing bleeds onto the next page). */
@@ -88,7 +97,9 @@ export default function CommandStone() {
        (D25): ≥2 chars, 220ms debounce, stale responses can never land. */
     useEffect(() => {
         const q = value.trim();
-        if (q.length < 2) {
+        /* An ETCH line never hits search — the preview chip owns the panel
+           (and "todo: buy prisms" is not a search query). */
+        if (q.length < 2 || parseEtch(q)) {
             setResults(null);
             setSearching(false);
             return;
@@ -143,6 +154,37 @@ export default function CommandStone() {
         setOpen(false);
         setValue('');
     };
+
+    /* ETCH commit — carve the plan through the real stores, confirm in
+       the stone's own voice (plus the standard toast for the app record),
+       clear the line, keep the stone open for the next command. */
+    const doEtch = () => {
+        if (!etchPlan) return;
+        const toast = commitEtch(etchPlan);
+        showToast(toast);
+        setEtched(`✓ ${toast}`);
+        setValue('');
+        inputRef.current?.focus();
+    };
+
+    /* ANSWER AND ACT (the brief): "Fumage floor?" answers inline AND
+       offers to anchor it right there. When the query reads as a floor
+       question on a resolvable project and the answer carries an ETH
+       number, the offer chip appears under the answers. */
+    const anchorOffer = useMemo(() => {
+        const m = /^(.+?)\s+floor\??$/i.exec(value.trim());
+        if (!m || !results) return null;
+        const proj = resolveProject(m[1]);
+        if (!proj) return null;
+        for (const a of results.answers) {
+            const priceM = /(\d+(?:\.\d+)?)\s*(?:ETH|◊)/i.exec(a.text);
+            if (priceM) {
+                const price = parseFloat(priceM[1]);
+                if (price > 0 && isFinite(price)) return { title: proj.title, price };
+            }
+        }
+        return null;
+    }, [value, results]);
 
     /* Enter = go: the top hit wins — pages → answers → projects →
        collectors → outputs → soundtracks → traits (the search bar's own
@@ -277,17 +319,43 @@ export default function CommandStone() {
                             spellCheck={false}
                             enterKeyHint="go"
                             value={value}
-                            onChange={(e) => setValue(e.target.value)}
+                            onChange={(e) => {
+                                setValue(e.target.value);
+                                setEtched(null);
+                            }}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
                                     e.preventDefault();
-                                    enterToGo();
+                                    if (etchPlan) doEtch();
+                                    else enterToGo();
                                 }
                             }}
                         />
                     </div>
 
                     <div className="stone-results">
+                        {/* the stone confirms its own carving */}
+                        {etched && !searchingNow && (
+                            <div className="stone-etched">{etched}</div>
+                        )}
+                        {/* ETCH preview chip — the plan flashes before it
+                            commits; tap (or Enter) carves it. */}
+                        {etchPlan && (
+                            <div
+                                className="stone-etch-chip"
+                                role="button"
+                                tabIndex={0}
+                                onClick={doEtch}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        doEtch();
+                                    }
+                                }}
+                            >
+                                {etchPlan.chip}
+                            </div>
+                        )}
                         {searchingNow && searching && !r && (
                             <div className="global-result-item gsr-empty fm-loading">{`⌕${VS15} reading the stone…`}</div>
                         )}
@@ -304,6 +372,33 @@ export default function CommandStone() {
                                         <span className="gsr-main">{ans.text}</span>
                                     </div>
                                 ))}
+
+                                {/* answer AND act — the anchor offer rides
+                                    a floor answer, one tap to carve it. */}
+                                {anchorOffer && (
+                                    <div
+                                        className="stone-etch-chip stone-offer-chip"
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={() => {
+                                            const toast = commitEtch({
+                                                kind: 'anchor',
+                                                title: anchorOffer.title,
+                                                price: anchorOffer.price,
+                                                chip: '',
+                                            });
+                                            showToast(toast);
+                                            setEtched(`✓ ${toast}`);
+                                            setValue('');
+                                            inputRef.current?.focus();
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') e.preventDefault();
+                                        }}
+                                    >
+                                        {`⚓${VS15} anchor it at ◊${anchorOffer.price}?`}
+                                    </div>
+                                )}
 
                                 {pageHits.length > 0 && (
                                     <div className="settings-header gsr-header">Pages</div>

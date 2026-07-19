@@ -183,7 +183,17 @@ export function NotePromptProvider({ children }: { children: ReactNode }) {
             } catch { /* ignore */ }
         };
         window.addEventListener(USERSTATE_HYDRATED_EVENT, reread);
-        return () => window.removeEventListener(USERSTATE_HYDRATED_EVENT, reread);
+        /* Out-of-editor writers (the Command Stone's ETCH via
+           tokenNotes.writeNoteFor) fire 'pd:notes-changed' after writing
+           storage directly. Re-read on it so this context's in-memory map
+           never goes stale — without this, the next editor save would
+           write its stale copy over a stone-etched note. Re-reading after
+           our own dispatches is a harmless no-op (state already matches). */
+        window.addEventListener('pd:notes-changed', reread);
+        return () => {
+            window.removeEventListener(USERSTATE_HYDRATED_EVENT, reread);
+            window.removeEventListener('pd:notes-changed', reread);
+        };
     }, [setOutputNotes, setArtistNotes]);
 
     const openDayNoteEditor = useCallback((dayKey: string) => {

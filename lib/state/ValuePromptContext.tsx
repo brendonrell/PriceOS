@@ -41,6 +41,7 @@ import {
 import ValuePromptModal from '../../components/ValuePromptModal';
 import { useToast } from './ToastContext';
 import { lockBodyScroll, unlockBodyScroll } from './bodyScrollLock';
+import { readAnchors, writeAnchor } from '../pins/anchorStore';
 
 export interface ValuePromptField {
     label: string;
@@ -142,26 +143,14 @@ export function ValuePromptProvider({ children }: { children: ReactNode }) {
     }, [config]);
 
     /* ── D17 anchor helper ──
-       Reads pd_anchors from localStorage, opens the value prompt
-       prefilled with the current value for the given key, and on save
-       writes back + toggles body.anchor-active + dispatches
-       'pd:anchors-changed' so listeners can re-stamp deltas. */
+       Reads pd_anchors, opens the value prompt prefilled with the current
+       value for the given key, and on save writes through anchorStore —
+       the ONE write path (storage + body.anchor-active + the
+       'pd:anchors-changed' event). The Command Stone's ETCH writes
+       through the same store, so the two can never drift. */
     const openAnchorPrompt = useCallback(
         ({ key, label }: { key: string; label?: string }) => {
-            // Defensive read — bad JSON or unavailable storage falls back to {}.
-            let anchors: Record<string, number> = {};
-            try {
-                if (typeof window !== 'undefined') {
-                    const raw = window.localStorage.getItem('pd_anchors');
-                    if (raw) {
-                        const parsed = JSON.parse(raw);
-                        if (parsed && typeof parsed === 'object') {
-                            anchors = parsed as Record<string, number>;
-                        }
-                    }
-                }
-            } catch { /* keep empty */ }
-
+            const anchors = readAnchors();
             const cur = anchors[key];
             const curValid =
                 typeof cur === 'number' && isFinite(cur) && cur > 0;
@@ -184,46 +173,11 @@ export function ValuePromptProvider({ children }: { children: ReactNode }) {
                 onSubmit: (vals) => {
                     if (!vals) return; // Cancelled
 
-                    const finalize = (next: Record<string, number>) => {
-                        try {
-                            if (typeof window !== 'undefined') {
-                                window.localStorage.setItem(
-                                    'pd_anchors',
-                                    JSON.stringify(next)
-                                );
-                            }
-                        } catch { /* swallow */ }
-                        if (typeof document !== 'undefined') {
-                            const hasAny = Object.values(next).some(
-                                (v) =>
-                                    typeof v === 'number' &&
-                                    isFinite(v) &&
-                                    v > 0
-                            );
-                            document.body.classList.toggle(
-                                'anchor-active',
-                                hasAny
-                            );
-                        }
-                        if (typeof window !== 'undefined') {
-                            window.dispatchEvent(
-                                new CustomEvent('pd:anchors-changed', {
-                                    detail: {
-                                        key,
-                                        value: next[key] ?? null,
-                                    },
-                                })
-                            );
-                        }
-                    };
-
                     const trimmed = (vals[0] || '').trim();
 
                     // Empty → clear.
                     if (trimmed === '') {
-                        const next = { ...anchors };
-                        delete next[key];
-                        finalize(next);
+                        writeAnchor(key, null);
                         showToast('Anchor: CLEARED');
                         return;
                     }
@@ -236,15 +190,12 @@ export function ValuePromptProvider({ children }: { children: ReactNode }) {
 
                     // Tap-twice-with-same-value → clear.
                     if (curValid && v === cur) {
-                        const next = { ...anchors };
-                        delete next[key];
-                        finalize(next);
+                        writeAnchor(key, null);
                         showToast('Anchor: CLEARED');
                         return;
                     }
 
-                    const next = { ...anchors, [key]: v };
-                    finalize(next);
+                    writeAnchor(key, v);
                     showToast(`Anchor: ${v} ETH`);
                 },
             });

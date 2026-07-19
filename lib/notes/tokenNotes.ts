@@ -52,6 +52,32 @@ export function readNoteFor(slug: string | null, id: number): string {
     return typeof legacy === 'string' ? legacy : '';
 }
 
+/**
+ * Write one Output's note — the store's front door for non-editor writers
+ * (the Command Stone's ETCH). Same mechanics as the editor save: writes the
+ * Project-exact key, deletes the legacy bare-id key it supersedes, empty
+ * text clears, and 'pd:notes-changed' fires so every consumer (and the
+ * editor context, which re-reads on that event) stays coherent. The caller
+ * schedules the account sync (scheduleNotesPush) itself.
+ */
+export function writeNoteFor(slug: string | null, id: number, text: string): void {
+    const notes = readAllNotes();
+    const key = noteKey(slug, id);
+    const legacyKey = String(id);
+    const trimmed = text.trim();
+    if (trimmed) notes[key] = trimmed;
+    else delete notes[key];
+    if (key !== legacyKey) delete notes[legacyKey];
+    try {
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(notes));
+        }
+    } catch { /* swallow */ }
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('pd:notes-changed'));
+    }
+}
+
 /** Parse a storage key back to its parts. Legacy bare-id keys → slug null. */
 export function parseNoteKey(key: string): { slug: string | null; id: number } {
     const sep = key.lastIndexOf(':');

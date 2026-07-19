@@ -135,6 +135,36 @@
     animation: stone-blink 1.06s step-end infinite;
 }
 
+/* ── ETCH — the preview chip + the carved confirmation ── */
+.stone-etch-chip {
+    display: flex;
+    align-items: center;
+    margin: 4px 8px;
+    padding: 10px 12px;
+    background: #111111;
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    color: var(--text-color);
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    /* ⚓ ships an emoji default on iOS — force text like .attr-tile-glyph */
+    font-variant-emoji: text;
+    transition: transform 0.12s ease;
+}
+.stone-etch-chip:active { transform: scale(0.98); }
+.stone-offer-chip { margin-top: 2px; }
+.stone-etched {
+    margin: 4px 8px;
+    padding: 10px 12px;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    color: var(--text-color);
+    font-variant-emoji: text;
+}
+
 /* results — rides the app's own .global-result-item / .gsr row anatomy */
 .stone-results {
     flex: 1;
