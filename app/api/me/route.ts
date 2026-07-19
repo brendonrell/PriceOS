@@ -34,6 +34,8 @@ import {
 } from '@/lib/supabase';
 import { requireAuth } from '@/lib/auth/siwe';
 import { isValidProfileLogo, isSigilLogo } from '@/lib/profile/profileLogos';
+import { isPersonaId } from '@/lib/tags/catalog';
+import { isValidNameFont } from '@/lib/profile/nameFont';
 import { recordOath } from '@/lib/factions/oath';
 import { badRequest, notFound, serverError } from '@/lib/errors';
 
@@ -124,6 +126,35 @@ function sanitisePatch(
             return { ok: false, reason: 'profile_sprite_hex must be a #RRGGBB hex or null' };
         }
         patch.profile_sprite_hex = v === null ? null : (v as string).toUpperCase();
+    }
+
+    if ('profile_tags' in body) {
+        const v = body.profile_tags;
+        if (v === null) {
+            patch.profile_tags = null;
+        } else if (Array.isArray(v)) {
+            // A user may only ever self-apply PERSONAS — earned/granted/id tags
+            // are derived or assigned out-of-band, never written here. Keep only
+            // valid persona ids, deduped and sanity-capped.
+            const clean = [...new Set(v.filter(isPersonaId))];
+            if (clean.length > 24) {
+                return { ok: false, reason: 'too many tags' };
+            }
+            patch.profile_tags = clean;
+        } else {
+            return { ok: false, reason: 'profile_tags must be an array of tag ids or null' };
+        }
+    }
+
+    if ('name_font' in body) {
+        const v = body.name_font;
+        if (v === null || v === 'default') {
+            patch.name_font = null;
+        } else if (isValidNameFont(v)) {
+            patch.name_font = v;
+        } else {
+            return { ok: false, reason: 'name_font must be a known font id or null' };
+        }
     }
 
     if ('showcase_style' in body) {

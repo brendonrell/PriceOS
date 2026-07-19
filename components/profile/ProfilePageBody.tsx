@@ -73,6 +73,12 @@ import Hero from '../hero/Hero';
 import CompletionismModal from '../CompletionismModal';
 import FollowButton from './FollowButton';
 import { HeroStickers } from '../stickers/HeroStickers';
+import { ProfileTags } from './ProfileTags';
+import { useProfileTags } from '../../lib/hooks/useProfileTags';
+import { useNameFont } from '../../lib/hooks/useNameFont';
+import { deriveTags } from '../../lib/tags/derive';
+import { PERSONA_TAGS } from '../../lib/tags/catalog';
+import { NAME_FONTS, styleName } from '../../lib/profile/nameFont';
 import { getProject, allProjects, projectsByArtist, artistSignatureColor } from '../../lib/project/registry';
 import HomeProjectFacetBar from '../home/HomeProjectFacetBar';
 import GhostCard from '../project/GhostCard';
@@ -234,6 +240,24 @@ function ProfilePageBodyInner({
     const ownerSpriteHex = isOwnProfile ? mySpriteHex : user.profile_sprite_hex;
 
     const displayHandle = user.handle ?? handle;
+
+    /* PROFILE TAGS + @name FONT — the owner's picks are live on their own
+       profile (paint instantly on edit), server values for visitors. The tag
+       list shown on the hero is derived (picked personas + earned + granted +
+       the platform-number tag); the picker only ever writes personas. */
+    const { tags: myTags, toggle: toggleTag } = useProfileTags(isOwnProfile ? user.profile_tags : undefined);
+    const { font: myNameFont, setFont: setMyNameFont } = useNameFont(isOwnProfile ? user.name_font : undefined);
+    const ownerNameFont = isOwnProfile ? myNameFont : user.name_font;
+    /* The @name letters, restyled in the owner's chosen Unicode font ("@" and the
+       underlying handle stay plain; this is display only). */
+    const styledHandle = styleName(displayHandle, ownerNameFont ?? null);
+    const displayTags = useMemo(() => deriveTags({
+        profileTags: isOwnProfile ? myTags : (user.profile_tags ?? []),
+        grantedTags: user.granted_tags ?? [],
+        userNumber: user.user_number ?? null,
+        isArtist: !!artistStatus,
+        createdAt: user.created_at,
+    }), [isOwnProfile, myTags, user.profile_tags, user.granted_tags, user.user_number, artistStatus, user.created_at]);
 
     const {
         eggOpen, preEggHex, handleNameTap,
@@ -837,10 +861,10 @@ function ProfilePageBodyInner({
                                 onContextMenu={(e) => { if (isOwnProfile) e.preventDefault(); }}
                                 style={{ userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none', touchAction: 'manipulation' }}
                             >
-                                @{displayHandle}
+                                @{styledHandle}
                             </span>
                         ) : (
-                            <ArtistTitleStar handle={displayHandle} />
+                            <ArtistTitleStar handle={displayHandle} display={`@${styledHandle}`} />
                         )}
                         <span className="project-date-wrap" ref={priceDayRef}>
                             <span
@@ -869,7 +893,8 @@ function ProfilePageBodyInner({
                         </span>
                     </h1>
                     {isOwnProfile && eggOpen && (
-                        <div className="profile-egg-row">
+                        <>
+                        <div className="profile-egg-row cust-scroll">
                             {eggPills.map((p) => {
                                 const active =
                                     (myProfileHex ?? '').toUpperCase() === p.hex.toUpperCase();
@@ -911,6 +936,58 @@ function ProfilePageBodyInner({
                                 <span className="stat-name">{'⇠⇠︎'}</span>
                             </div>
                         </div>
+                        {/* Row 2 — TAGS: pick your personas. Earned / granted /
+                            number tags aren't pickable here — they appear on you
+                            automatically. */}
+                        <div className="profile-egg-row cust-scroll profile-tags-picker">
+                            {PERSONA_TAGS.map((t) => {
+                                const on = myTags.includes(t.id);
+                                const flip = () => {
+                                    toggleTag(t.id);
+                                    showToast(`Tag: ${on ? 'REMOVED' : t.label.toUpperCase()}`);
+                                };
+                                return (
+                                    <div
+                                        key={t.id}
+                                        className={`pill pill-l3 tag-pick${on ? ' active' : ''}`}
+                                        style={{ ['--tag' as string]: t.color }}
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={flip}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flip(); } }}
+                                        title={t.blurb ?? t.label}
+                                    >
+                                        {t.glyph && <span className="tag-pick-glyph">{t.glyph}</span>}
+                                        <span className="stat-name">{t.label}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        {/* Row 3 — FONT: restyle the @name. Each pill previews
+                            itself; the "@" always stays plain. */}
+                        <div className="profile-egg-row cust-scroll profile-fonts-picker">
+                            {NAME_FONTS.map((f) => {
+                                const on = (ownerNameFont ?? 'default') === f.id;
+                                const pick = () => {
+                                    setMyNameFont(f.id === 'default' ? null : f.id);
+                                    showToast(`Font: ${f.label.toUpperCase()}`);
+                                };
+                                return (
+                                    <div
+                                        key={f.id}
+                                        className={`pill pill-l3${on ? ' active' : ''}`}
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={pick}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } }}
+                                        title={f.label}
+                                    >
+                                        <span className="stat-name">{f.id === 'default' ? 'Default' : styleName(f.label, f.id)}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        </>
                     )}
                     {/* Triple-tap the @name → the carousel (same scroll chrome as
                         Now-Minting), shoved open INLINE under the title like the
@@ -1234,6 +1311,7 @@ function ProfilePageBodyInner({
                     </div>
                 }
             >
+                    <ProfileTags tags={displayTags} />
                     <HeroStickers
                         ownerHandle={user.handle ?? handle}
                         isOwn={isOwnProfile}

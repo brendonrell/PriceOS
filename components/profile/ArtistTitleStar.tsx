@@ -20,7 +20,7 @@ import {
 } from '../../lib/pins/artistStarStore';
 import { useSpiteMatcher } from '../../lib/pins/spiteStore';
 
-export default function ArtistTitleStar({ handle }: { handle: string }) {
+export default function ArtistTitleStar({ handle, display }: { handle: string; display?: string }) {
     const name = `@${handle}`;
     const { showToast } = useToast();
     /* Spite Book — a spited user's own profile title renders redacted. */
@@ -71,7 +71,7 @@ export default function ArtistTitleStar({ handle }: { handle: string }) {
             onPointerCancel={endPress}
             onContextMenu={(e) => e.preventDefault()}
         >
-            <span className={isSpited(name) ? 'spited' : undefined}>{name}</span>
+            <span className={isSpited(name) ? 'spited' : undefined}>{display ?? name}</span>
             {starred && <span className="project-name-star" aria-hidden="true">{'★︎'}</span>}
             {floatId > 0 && <span key={floatId} className={`project-name-star-float${floatDown ? ' is-down' : ''}`} aria-hidden="true">{'★︎'}</span>}
         </span>

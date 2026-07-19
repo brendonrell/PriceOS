@@ -40,6 +40,14 @@ export const STATE_CACHE_KEYS = {
      *  = inherit the colorway text colour). Read + written by useProfileSpriteHex;
      *  persisted to the top-level `users.profile_sprite_hex` column. */
     profileSpriteHex: 'pd_profile_sprite_hex',
+    /** PROFILE TAGS — the persona ids the user self-applied. Read + written by
+     *  useProfileTags; persisted to the public `users.profile_tags` column and
+     *  broadcast on `pd:profile-tags-changed`. */
+    profileTags: 'pd_profile_tags',
+    /** Chosen @name Unicode font id (or absent = default). Read + written by
+     *  useNameFont; persisted to the public `users.name_font` column and
+     *  broadcast on `pd:name-font-changed`. */
+    nameFont: 'pd_name_font',
     /** Sticker ownership + active-state (owned ids / off-sheets / off-stickers).
      *  Read + written by lib/stickers/owned.ts; synced to the top-level
      *  `users.sticker_state` column so stickers follow the account across
@@ -207,6 +215,32 @@ export function hydrateFromRow(row: UserRow): void {
                 detail: (typeof row.profile_sprite_hex === 'string' && HEX_RE.test(row.profile_sprite_hex))
                     ? row.profile_sprite_hex.toUpperCase()
                     : null,
+            })
+        );
+
+        // profile_tags → pd_profile_tags (the user's picked personas). Own slot +
+        // event, like profile_hex. Array or null; empty array is a valid "none".
+        if (Array.isArray(row.profile_tags)) {
+            localStorage.setItem(STATE_CACHE_KEYS.profileTags, JSON.stringify(row.profile_tags));
+        } else {
+            localStorage.removeItem(STATE_CACHE_KEYS.profileTags);
+        }
+        window.dispatchEvent(
+            new CustomEvent<string[]>('pd:profile-tags-changed', {
+                detail: Array.isArray(row.profile_tags) ? row.profile_tags : [],
+            })
+        );
+
+        // name_font → pd_name_font (the user's chosen @name font). Own slot +
+        // event; absent/null = default (no styling).
+        if (typeof row.name_font === 'string' && row.name_font.length > 0) {
+            localStorage.setItem(STATE_CACHE_KEYS.nameFont, row.name_font);
+        } else {
+            localStorage.removeItem(STATE_CACHE_KEYS.nameFont);
+        }
+        window.dispatchEvent(
+            new CustomEvent<string | null>('pd:name-font-changed', {
+                detail: (row.name_font as string | null) ?? null,
             })
         );
 

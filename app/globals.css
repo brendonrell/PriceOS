@@ -3846,6 +3846,66 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ── PROFILE TAGS + the 3-row customization menu (Brendon 2026-07-19) ─────────
+   The long-press-@name menu is three side-scrolling pill rows (Colours / Tags /
+   Fonts) — nowrap + horizontal scroll so a long font list never wraps into a
+   giant block that shoves the hero down. Reuses .profile-egg-row + .pill.pill-l3;
+   this only swaps wrap → scroll on the rows that carry the modifier. */
+.cust-scroll {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: none;
+}
+.cust-scroll::-webkit-scrollbar { display: none; }
+.cust-scroll > * { flex-shrink: 0; }
+
+/* Tags picker pills wear their tag's flair colour as a full-strength border +
+   glyph when resting; selected pills fill with the standard active token. */
+.tag-pick:not(.active) {
+    background: var(--bg-color);
+    border: 1px solid var(--tag, var(--text-color));
+}
+.tag-pick-glyph {
+    color: var(--tag, var(--text-color));
+    font-family: 'Courier New', Courier, monospace;
+    line-height: 1;
+}
+.tag-pick.active .tag-pick-glyph { color: var(--stat-active-text); }
+
+/* The tag pills shown on the hero, right above the stickers. Site pill shape,
+   the tag colour as a full-strength accent (border + glyph); the label stays the
+   colorway text colour so it's legible on any repainted page. */
+.profile-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 2px 0 10px;
+}
+.profile-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 24px;
+    padding: 0 9px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    box-sizing: border-box;
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1.5px solid var(--tag, var(--text-color));
+    white-space: nowrap;
+}
+.profile-tag-glyph {
+    color: var(--tag, var(--text-color));
+    font-family: 'Courier New', Courier, monospace;
+    line-height: 1;
+}
+.profile-tag-label { line-height: 1; }
+
 /* Long-press the PriceSprite → inline colour picker. Reuses the egg row's
    shove-open + pills; stacks the Save/undo actions above the wheel + pills
    (Brendon 2026-06-23). */
