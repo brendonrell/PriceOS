@@ -24,7 +24,7 @@ The awakening is written once and never rewritten. Selling the crossing piece la
 
 ## The keeping, on record
 
-Once awake, the gnome's tab shows the full record under its journal: who keeps it (their `.gnome` name and `6n0m3…` address), the awakening date, the piece that struck the hour, and the rarity. Everyone can see it; it is part of the project's story.
+Once awake, the gnome's tab shows the full record under its journal: who keeps it (their PD handle), the awakening date, the piece that struck the hour, and the rarity. Everyone can see it; it is part of the project's story. The keeper's gnome-world identity — the `.gnome` name, the `6n0m3…` address, the wallet itself — never appears in the tab; that whole world lives behind the [gnomewallet](/docs/gnomes/the-gnomewallet) pill in settings.
 
 ## Respect — the keeper's ladder
 

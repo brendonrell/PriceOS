@@ -38,7 +38,7 @@ import {
 import { gnomeGreeting, gnomeAppraisal, gnomeSignature } from '../../lib/project/gnomeVoice';
 import { gnomeRespect, respectAudience, RESPECT_TOP } from '../../lib/project/gnomeRespect';
 import { gnomeJournal } from '../../lib/project/gnomeJournal';
-import { GNOME_GLYPH, gnomeEns, shortGnomeAddress } from '../../lib/project/gnomeWorld';
+import { GNOME_GLYPH } from '../../lib/project/gnomeWorld';
 import { fmtFeedDate, fmtFeedTime } from '../profile/profilePageShared';
 import { hashString } from '../../lib/art/rng';
 import type { GnomeFavourResponse, GnomeFavourPiece } from '../../app/api/project/[slug]/gnome/route';
@@ -254,6 +254,17 @@ export default function GnomePanel() {
                     {HAT_LABELS[gnome.hat]} · {BEARD_LABELS[gnome.beard]} · {KEEPSAKE_LABELS[gnome.keepsake]}
                 </div>
 
+                {/* THE KEEPING — one line under the gnome, platform identity
+                    only (the gnome-world identity + the wallet live solely in
+                    the settings Wallet row — Brendon, 2026-07-19). */}
+                <div className="gnome-keeping">
+                    {GNOME_GLYPH}&#xFE0E; IN THE KEEPING OF{' '}
+                    {awakening.owner_handle
+                        ? `@${awakening.owner_handle}`
+                        : `0x${awakening.owner_address.slice(2, 6)}…${awakening.owner_address.slice(-4)}`}
+                    {' · '}{awakening.rarity}
+                </div>
+
                 {/* RESPECT — your rung on the keeper's ladder (signed-in only;
                     real ledger facts, drawn as the gnome's own gems). */}
                 {siweAddress && favour && (
@@ -296,22 +307,6 @@ export default function GnomePanel() {
                                 <div className="f-content">{e.body}</div>
                             </div>
                         ))}
-                    </div>
-                </div>
-
-                {/* THE KEEPING — who awakened this gnome (their mint struck
-                    the hidden hour) and the rarity cast at that moment. */}
-                <div className="gnome-owner">
-                    <div className="go-head">{GNOME_GLYPH}&#xFE0E; IN THE KEEPING OF</div>
-                    <div className="go-keeper">
-                        <b>{gnomeEns(awakening.owner_handle) ?? shortGnomeAddress(awakening.owner_address)}</b>
-                        {awakening.owner_handle && (
-                            <span className="go-addr"> · {shortGnomeAddress(awakening.owner_address)}</span>
-                        )}
-                    </div>
-                    <div className="go-facts">
-                        AWAKENED {fmtFeedDate(Date.parse(awakening.awakened_at))} · PIECE #{awakening.token_id} STRUCK
-                        THE HOUR · {awakening.rarity}
                     </div>
                 </div>
 

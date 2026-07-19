@@ -179,27 +179,13 @@
     letter-spacing: 0.3px;
 }
 
-/* THE KEEPING — who awakened this gnome. Same plate chrome as the appraisal. */
-.gnome-owner {
-    margin-top: 12px;
-    border: 1px solid var(--text-color);
-    border-radius: 6px;
-    padding: 10px 12px;
-}
-.go-head {
-    font-size: 12px;
-    font-weight: bold;
-    letter-spacing: 1px;
-    margin-bottom: 4px;
-}
-.go-keeper { font-size: 13px; letter-spacing: 0.5px; }
-.go-keeper b { font-size: 14px; }
-.go-addr { font-weight: bold; }
-.go-facts {
-    margin-top: 5px;
+/* THE KEEPING — one plain line under the gnome (traits-row treatment). */
+.gnome-keeping {
+    text-align: center;
     font-size: 12px;
     font-weight: bold;
     letter-spacing: 0.5px;
+    margin-top: 4px;
 }
 
 /* THE KEEPER'S JOURNAL — the feed timeline grammar reused verbatim
