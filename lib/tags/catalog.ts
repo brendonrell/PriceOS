@@ -124,3 +124,15 @@ export const ID_RANGES: ReadonlyArray<{ id: string; label: string; max: number }
     { id: 'id-first-500',  label: 'First 500',  max: 500 },
     { id: 'id-first-1000', label: 'First 1000', max: 1000 },
 ];
+
+/** Label colour (near-black or white) that reads on a SOLID pill of `hex` —
+ *  the tag chips fill with their colour, so the label must contrast it. */
+export function tagTextOn(hex: string): string {
+    const h = hex.replace('#', '');
+    if (h.length < 6) return '#ffffff';
+    const r = parseInt(h.slice(0, 2), 16);
+    const g = parseInt(h.slice(2, 4), 16);
+    const b = parseInt(h.slice(4, 6), 16);
+    const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+    return lum > 0.6 ? '#111111' : '#ffffff';
+}

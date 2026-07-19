@@ -11,7 +11,7 @@
  * colorway text colour so it's always legible on any repainted page).
  */
 
-import type { Tag } from '../../lib/tags/catalog';
+import { type Tag, tagTextOn } from '../../lib/tags/catalog';
 
 export function ProfileTags({ tags }: { tags: Tag[] }) {
     if (!tags.length) return null;
@@ -21,7 +21,7 @@ export function ProfileTags({ tags }: { tags: Tag[] }) {
                 <span
                     key={t.id}
                     className="profile-tag"
-                    style={{ ['--tag' as string]: t.color }}
+                    style={{ ['--tag' as string]: t.color, ['--tag-text' as string]: tagTextOn(t.color) }}
                     title={t.label}
                 >
                     {t.glyph && <span className="profile-tag-glyph">{t.glyph}</span>}

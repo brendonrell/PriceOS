@@ -77,7 +77,7 @@ import { ProfileTags } from './ProfileTags';
 import { useProfileTags } from '../../lib/hooks/useProfileTags';
 import { useNameFont } from '../../lib/hooks/useNameFont';
 import { deriveTags } from '../../lib/tags/derive';
-import { PERSONA_TAGS } from '../../lib/tags/catalog';
+import { PERSONA_TAGS, tagTextOn } from '../../lib/tags/catalog';
 import { NAME_FONTS, styleName } from '../../lib/profile/nameFont';
 import { getProject, allProjects, projectsByArtist, artistSignatureColor } from '../../lib/project/registry';
 import HomeProjectFacetBar from '../home/HomeProjectFacetBar';
@@ -950,7 +950,7 @@ function ProfilePageBodyInner({
                                     <div
                                         key={t.id}
                                         className={`pill pill-l3 tag-pick${on ? ' active' : ''}`}
-                                        style={{ ['--tag' as string]: t.color }}
+                                        style={{ ['--tag' as string]: t.color, ['--tag-text' as string]: tagTextOn(t.color) }}
                                         role="button"
                                         tabIndex={0}
                                         onClick={flip}
@@ -982,7 +982,7 @@ function ProfilePageBodyInner({
                                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } }}
                                         title={f.label}
                                     >
-                                        <span className="stat-name">{f.id === 'default' ? 'Default' : styleName(f.label, f.id)}</span>
+                                        <span className="stat-name" style={f.id === 'default' ? { fontFamily: 'var(--font-rubik-mono), sans-serif' } : undefined}>{f.id === 'default' ? 'Default' : styleName(f.label, f.id)}</span>
                                     </div>
                                 );
                             })}

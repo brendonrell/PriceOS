@@ -3858,26 +3858,34 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: none;
+    /* Half the vertical gap between the three rows (Brendon 2026-07-19). */
+    margin: 8px 0;
 }
 .cust-scroll::-webkit-scrollbar { display: none; }
 .cust-scroll > * { flex-shrink: 0; }
 
-/* Tags picker pills wear their tag's flair colour as a full-strength border +
-   glyph when resting; selected pills fill with the standard active token. */
+/* Tags picker: an UNpicked persona shows as a full-strength tag-colour outline
+   (available); a PICKED one fills SOLID with its colour + a contrast-picked
+   label — the same solid look the tag wears on the hero. */
 .tag-pick:not(.active) {
     background: var(--bg-color);
     border: 1px solid var(--tag, var(--text-color));
+}
+.pill-l3.tag-pick.active {
+    background: var(--tag, var(--stat-active-bg));
+    color: var(--tag-text, var(--stat-active-text));
+    border-color: var(--tag, var(--stat-active-bg));
 }
 .tag-pick-glyph {
     color: var(--tag, var(--text-color));
     font-family: 'Courier New', Courier, monospace;
     line-height: 1;
 }
-.tag-pick.active .tag-pick-glyph { color: var(--stat-active-text); }
+.pill-l3.tag-pick.active .tag-pick-glyph { color: var(--tag-text, var(--stat-active-text)); }
 
-/* The tag pills shown on the hero, right above the stickers. Site pill shape,
-   the tag colour as a full-strength accent (border + glyph); the label stays the
-   colorway text colour so it's legible on any repainted page. */
+/* The tag pills on the hero, right above the stickers: a SOLID single-colour
+   pill in the tag's colour, with a contrast-picked label + glyph so it stays
+   legible on any tag colour (Brendon 2026-07-19 — solid, not outlined). */
 .profile-tags {
     display: flex;
     flex-wrap: wrap;
@@ -3894,13 +3902,13 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     font-size: 12px;
     font-weight: bold;
     box-sizing: border-box;
-    background: var(--bg-color);
-    color: var(--text-color);
+    background: var(--tag, var(--text-color));
+    color: var(--tag-text, var(--bg-color));
     border: 1.5px solid var(--tag, var(--text-color));
     white-space: nowrap;
 }
 .profile-tag-glyph {
-    color: var(--tag, var(--text-color));
+    color: var(--tag-text, var(--bg-color));
     font-family: 'Courier New', Courier, monospace;
     line-height: 1;
 }
