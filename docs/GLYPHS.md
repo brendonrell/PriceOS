@@ -436,6 +436,16 @@ Wishlist rows (and the held-by / collected-by chips):
 > the standard #1 glyph gate: device-verify as monochrome TEXT on iOS; if one
 > tofus, it needs a swap.
 
+## 12a. The Command Stone ⌘ (2026-07-19 build)
+
+| Concept | Glyph | Codepoint | Notes |
+|---|---|---|---|
+| The Command Stone | ⌘ | U+2318 | Brendon's approval 2026-07-19 — the command sign. The bar, the panel header. Device-verify per the #1 gate |
+| Anchor (Stone chips) | ⏚ | U+23DA | grounding symbol — "anchored to earth." Chosen 2026-07-19 because **⚓ is emoji-default on iOS and banned** (Brendon); the AttrWall tiles still wear ⚓ only via the 2026-07-18 forced-text fix (`font-variant-emoji`, iOS 17.4+). ⏚ is a true text glyph, U+23xx technical family (⏾'s kin). NOT ⟟ — that's the Grail Pin. Device-verify per the #1 gate |
+
+> The Stone's other chips reuse canon exactly: ❍ To-Do · ⊟ Note · ⬚ Watch
+> (project star) · ✛ Wishlist.
+
 ## 12b. Celestial Tracker — the birth-sky trio (2026-07-17 redesign)
 
 The Celestial Tracker spell renders each Output's astrological **big three**

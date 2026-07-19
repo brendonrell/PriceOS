@@ -76,12 +76,15 @@ export function resolveProject(name: string): { slug: string; title: string } | 
         : null;
 }
 
-/** The etch mark each plan kind wears — the concept's own canonical glyph. */
+/** The etch mark each plan kind wears — the concept's own canonical glyph.
+    Anchor = ⏚ (U+23DA, grounding — anchored to earth): the ⚓ carries an
+    emoji default on iOS and is banned here (Brendon, 2026-07-19); ⏚ is a
+    true text glyph from the proven U+23xx technical family (⏾'s kin). */
 const CHIP_GLYPH: Record<EtchPlan['kind'], string> = {
     'todo-output': `❍${VS15}`,
     'todo-raw': `❍${VS15}`,
     note: `⊟${VS15}`,
-    anchor: `⚓${VS15}`,
+    anchor: `⏚${VS15}`,
     watch: `⬚${VS15}`,
     wishlist: `✛${VS15}`,
 };
