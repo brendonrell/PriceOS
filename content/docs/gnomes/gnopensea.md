@@ -1,8 +1,8 @@
 ---
 title: "The Gnomes — gnopensea"
-description: "The gnome market hall: hanging a FOR SALE sign, the 5% platform fee on secondary sales, and why gnomes trade only on Price Discussion."
+description: "The gnome market hall: hanging a FOR SALE sign, striking the deal, the no-fee schedule (gnome ore fees), and why gnomes trade only on Price Discussion."
 category: "gnomes"
-keywords: ["gnopensea", "gnome market", "mushroom market", "for sale", "secondary", "fees", "trading"]
+keywords: ["gnopensea", "gnome market", "mushroom market", "for sale", "strike the deal", "gnome ore fees", "trading"]
 last_updated: "2026-07-19"
 ---
 
@@ -19,9 +19,9 @@ Every hung sign in the world stands in the market hall, keeper and price on the 
 ## The deal
 
 - **Getting a gnome is free** — always, forever. The only way one enters the world is the [Awakening](/docs/gnomes/the-awakening), and PD never charges for it.
-- **Secondary sales are real**: the buyer pays the seller's ask in real ETH, wallet to wallet, and PD's ledger moves the gnome the moment the payment is confirmed on-chain. The seller has no delivery step and no way to renege — the hanging sign is the standing commitment, and payment executes it.
-- **The platform takes 5%** of every secondary sale. The other 95% is the seller's.
-- **The counting house is under construction**: signs hang today and the hall is open to browse; paid deals settle when the counting house opens. Nothing about a hung sign changes when it does — asks carry straight over.
+- **Fees: gnome ore fees.** That is the entire fee schedule. No platform cut, no royalties, no gas games — the seller keeps 100% of every sale.
+- **Secondary sales are real.** Tap **STRIKE THE DEAL** on a listed door and your wallet opens pre-filled: the exact ask, paid straight to the seller's real wallet, with a receipt stamped into the transaction naming the deal. PD never touches the money — the payment goes wallet to wallet.
+- **The counting house does the books.** Once the payment is confirmed on-chain, PD's ledger flips the gnome into your [burrow](/docs/gnomes/the-gnomewallet) automatically. The seller has no delivery step and no way to renege — the hanging sign is the standing commitment, and payment executes it. If your connection drops mid-count, tap the door again: the deal resumes where it left off.
 
 ## Only on Price Discussion
 

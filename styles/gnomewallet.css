@@ -449,6 +449,42 @@
 }
 .gw-btn:disabled { cursor: default; }
 .gw-btn-quiet { background: var(--gw-deep); text-shadow: none; }
+/* The money button — lamplight gold, the hall's biggest affordance. */
+.gw-btn-deal {
+    background: var(--gw-gold);
+    color: var(--gw-deep);
+    text-shadow: none;
+    box-shadow: inset 0 0 0 1.5px #b28a2e, 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* The deal in motion — always visibly counting (never a dead pause). */
+.gw-dealing {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: var(--gw-gold);
+}
+.gw-dealing-dots::after {
+    content: '···';
+    animation: gw-dots 1.4s infinite;
+}
+@keyframes gw-dots {
+    0% { content: ''; }
+    25% { content: '·'; }
+    50% { content: '··'; }
+    75% { content: '···'; }
+}
+
+/* The fee line — the whole fee schedule of the gnome world. */
+.gw-feeline {
+    margin-top: 12px;
+    text-align: center;
+    font-size: 12px;
+    font-style: italic;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: var(--gw-gold);
+}
 .gw-ask-input {
     width: 84px;
     padding: 5px 8px;

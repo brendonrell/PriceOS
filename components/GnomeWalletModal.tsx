@@ -26,9 +26,11 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { parseEther } from 'viem';
 import { useModal } from '../lib/state/ModalContext';
 import { useAuth } from '../lib/state/AuthContext';
 import { useToast } from '../lib/state/ToastContext';
+import { getWalletClientOnDemand } from '../lib/wallet/walletClientOnDemand';
 import { getProject, projectColorway } from '../lib/project/registry';
 import { projectGnome, gnomePalette } from '../lib/project/gnome';
 import { gnomeGreeting } from '../lib/project/gnomeVoice';
@@ -114,15 +116,22 @@ function fmtAsk(v: number): string {
     return String(Number(v.toFixed(4)));
 }
 
+type DealPhase = 'idle' | 'striking' | 'counting';
+
 /* One hobbit door — a gnome standing in its round-top doorway. `mine` doors
-   carry the sign controls; market doors show the keeper + the price. */
+   carry the sign controls; market doors show the keeper + the price and,
+   for a signed-in stranger, the STRIKE THE DEAL flow (the counting house). */
 function GnomeDoor({
-    g, mine, onSign,
+    g, mine, onSign, canDeal, onSettled, showToast,
 }: {
     g: GnomeAwakening;
     mine: boolean;
     /** Hang (ask > 0) or take down (null) the sign — burrow wing only. */
     onSign?: (projectId: string, ask: number | null) => Promise<boolean>;
+    /** Market wing: the signed-in viewer may buy this door. */
+    canDeal?: boolean;
+    onSettled?: () => void;
+    showToast?: (msg: string) => void;
 }) {
     const gnome = useMemo(() => projectGnome(g.project_id), [g.project_id]);
     const palette = useMemo(
@@ -174,6 +183,73 @@ function GnomeDoor({
         setBusy(false);
     };
 
+    /* THE DEAL — strike it, pay the seller straight (100%, no fee: gnome
+       ore fees), then poll the counting house until the books flip. */
+    const [dealPhase, setDealPhase] = useState<DealPhase>('idle');
+    const dealAlive = useRef(true);
+    useEffect(() => () => { dealAlive.current = false; }, []);
+    const strikeDeal = async () => {
+        if (dealPhase !== 'idle') return;
+        setDealPhase('striking');
+        try {
+            const startRes = await fetch('/api/gnomes/deal', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'start', project_id: g.project_id }),
+            });
+            if (!startRes.ok) throw new Error('start');
+            const slip = await startRes.json() as {
+                deal_id: string; to: string; value_eth: string; data: string; tx_hash: string | null;
+            };
+
+            let hash = slip.tx_hash;
+            if (!hash) {
+                const wallet = await getWalletClientOnDemand();
+                if (!wallet || !wallet.account) {
+                    showToast?.('gnome: CONNECT YOUR WALLET');
+                    setDealPhase('idle');
+                    return;
+                }
+                hash = await wallet.sendTransaction({
+                    account: wallet.account,
+                    chain: wallet.chain,
+                    to: slip.to as `0x${string}`,
+                    value: parseEther(slip.value_eth),
+                    data: slip.data as `0x${string}`,
+                });
+            }
+
+            setDealPhase('counting');
+            for (let i = 0; i < 45; i++) {
+                if (!dealAlive.current) return;
+                const cRes = await fetch('/api/gnomes/deal', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'confirm', deal_id: slip.deal_id, tx_hash: hash }),
+                });
+                if (cRes.ok) {
+                    const c = await cRes.json() as { settled?: boolean; pending?: boolean };
+                    if (c.settled) {
+                        showToast?.('gnome: THE DEAL IS STRUCK');
+                        setDealPhase('idle');
+                        onSettled?.();
+                        return;
+                    }
+                } else {
+                    throw new Error('confirm');
+                }
+                await new Promise((res) => setTimeout(res, 4000));
+            }
+            /* Payment sent but not yet counted — resumable: tapping the door
+               again re-enters the same deal with the remembered hash. */
+            showToast?.('gnome: STILL COUNTING — come back');
+            setDealPhase('idle');
+        } catch {
+            showToast?.('gnome: THE DEAL FELL THROUGH');
+            setDealPhase('idle');
+        }
+    };
+
     return (
         <div className="gw-door">
             <div className={`gw-door-rarity gw-r-${g.rarity.toLowerCase()}`}>{g.rarity}</div>
@@ -212,6 +288,21 @@ function GnomeDoor({
                 <div className="gw-sign">
                     <span className="gw-sign-rope" aria-hidden="true" />
                     FOR SALE · ◊{fmtAsk(g.ask_eth)}
+                </div>
+            )}
+
+            {!mine && canDeal && g.ask_eth != null && (
+                <div className="gw-door-actions">
+                    {dealPhase === 'idle' ? (
+                        <button type="button" className="gw-btn gw-btn-deal" onClick={strikeDeal}>
+                            STRIKE THE DEAL · ◊{fmtAsk(g.ask_eth)}
+                        </button>
+                    ) : (
+                        <span className="gw-dealing">
+                            {dealPhase === 'striking' ? 'striking the deal' : 'the counting house counts'}
+                            <span className="gw-dealing-dots" aria-hidden="true" />
+                        </span>
+                    )}
                 </div>
             )}
 
@@ -395,15 +486,31 @@ export default function GnomeWalletModal() {
                 ) : market === null ? (
                     <div className="gw-empty">Sweeping the market floor…</div>
                 ) : market.length === 0 ? (
-                    <div className="gw-empty">
-                        No signs hung today. When a keeper lists a gnome, its door stands here.
-                    </div>
+                    <>
+                        <div className="gw-empty">
+                            No signs hung today. When a keeper lists a gnome, its door stands here.
+                        </div>
+                        <div className="gw-feeline">fees: gnome ore fees</div>
+                    </>
                 ) : (
-                    <div className="gw-grid">
-                        {market.map((g) => (
-                            <GnomeDoor key={g.project_id} g={g} mine={false} />
-                        ))}
-                    </div>
+                    <>
+                        <div className="gw-grid">
+                            {market.map((g) => (
+                                <GnomeDoor
+                                    key={g.project_id}
+                                    g={g}
+                                    mine={false}
+                                    canDeal={!!siweAddress && g.owner_address.toLowerCase() !== siweAddress.toLowerCase()}
+                                    onSettled={() => {
+                                        loadMine();
+                                        setWing('burrow');
+                                    }}
+                                    showToast={showToast}
+                                />
+                            ))}
+                        </div>
+                        <div className="gw-feeline">fees: gnome ore fees</div>
+                    </>
                 )}
 
                 <MushroomRing />
