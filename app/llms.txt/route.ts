@@ -20,7 +20,7 @@ export function GET() {
     const lines: string[] = [
         '# Price Discussion Documentation',
         '',
-        '> Price Discussion (PD) is a curated generative art platform on Ethereum where',
+        '> Price Discussion (PD) is a filtered generative art platform on Ethereum where',
         '> the community discussing prices is the product. This documentation covers the',
         '> PriceOS app surface, the smart contracts, and the $PRICE token. Every page',
         '> here is also available as raw markdown by appending .md to its URL.',

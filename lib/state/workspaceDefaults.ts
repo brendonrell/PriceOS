@@ -6,16 +6,18 @@
  * defaults", joining Main; same day he pinned their register: WORK
  * personas — job setups, not moods. The mood sets moved to SPACES below).
  * Zen retired 2026-07-18 (Brendon: "remove the Zen one") — existing users'
- * uncustomised Zen is pruned on load via RETIRED_DEFAULT_CODES:
+ * uncustomised Zen is pruned on load via RETIRED_DEFAULT_CODES.
+ * Appraiser renamed ORACLE 2026-07-19 (Brendon), and he pinned the persona
+ * order: Curator > Scout > Trader > Oracle (Main first, always):
  *
- *   1   · Main      — ‰CSTM-IDAS                                   (clean)
- *   101 · Appraiser — ‰DARK-CLST-LENS-SNTM-IDAS-TAPF               (valuation work)
- *   102 · Trader    — ‰REDD-LENS-PTON-SHLD-SNTM-WTCH-PRAS-TAPB     (market work)
- *   103 · Curator   — ‰LITE-NASC-NAUD-NSTK-IDAS                    (collection work)
- *   104 · Scout     — ‰HAZE-PTON-WTCH-FDTD-TAPS                    (discovery work)
+ *   1   · Main    — ‰CSTM-IDAS                                   (clean)
+ *   103 · Curator — ‰LITE-NASC-NAUD-NSTK-IDAS                    (collection work)
+ *   104 · Scout   — ‰HAZE-PTON-WTCH-FDTD-TAPS                    (discovery work)
+ *   102 · Trader  — ‰REDD-LENS-PTON-SHLD-SNTM-WTCH-PRAS-TAPB     (market work)
+ *   101 · Oracle  — ‰DARK-CLST-LENS-SNTM-IDAS-TAPF               (valuation work)
  *
  * The four work personas, and why each token is there:
- *   APPRAISER — the piece-study desk: Price Lens on every card, Sentiment
+ *   ORACLE — the piece-study desk: Price Lens on every card, Sentiment
  *     on, the Celestial Tracker surfacing the full birth-data layer the
  *     character sheet appraises by, faded tape, edition order. Dark.
  *   TRADER — the execution desk: Price Lens, Sentiment, Offer Shield up,
@@ -65,12 +67,13 @@ export const WORKSPACE_SEED_VERSION: Record<number, number> = {
 export const SHIPPED_WORKSPACES: ReadonlyArray<Workspace> = [
     // Sim 10120-10127 — codes are post-v1.0.45 short form.
     { id: 1, name: 'Main', code: '‰CSTM-IDAS', isDefault: true },
-    // The 2026-07-16 four. High fixed ids so they can never collide with
+    // The 2026-07-16 four, in Brendon's 2026-07-19 order (Curator > Scout >
+    // Trader > Oracle). High fixed ids so they can never collide with
     // user-created workspaces (which count up from max+1 and started at 3).
-    { id: 101, name: 'Appraiser', code: '‰DARK-CLST-LENS-SNTM-IDAS-TAPF', isDefault: true },
-    { id: 102, name: 'Trader', code: '‰REDD-LENS-PTON-SHLD-SNTM-WTCH-PRAS-TAPB', isDefault: true },
     { id: 103, name: 'Curator', code: '‰LITE-NASC-NAUD-NSTK-IDAS', isDefault: true },
     { id: 104, name: 'Scout', code: '‰HAZE-PTON-WTCH-FDTD-TAPS', isDefault: true },
+    { id: 102, name: 'Trader', code: '‰REDD-LENS-PTON-SHLD-SNTM-WTCH-PRAS-TAPB', isDefault: true },
+    { id: 101, name: 'Oracle', code: '‰DARK-CLST-LENS-SNTM-IDAS-TAPF', isDefault: true },
 ];
 
 /* ── SPACES — the preset library in the Name-Your-Workspace modal ────────
@@ -163,7 +166,7 @@ export const SPACES: ReadonlyArray<SpacePreset> = [
    ❖ rarity (appraisal) · ✹ listed (the market) · ⑆ showcase (curation) ·
    ✧ new upload (scouting). Main keeps its plain toast. */
 export const DEFAULT_LOAD_TOASTS: Record<number, string> = {
-    101: '❖︎ Workspace: APPRAISER ❖︎',
+    101: '❖︎ Workspace: ORACLE ❖︎',
     102: '✹︎ Workspace: TRADER ✹︎',
     103: '⑆︎ Workspace: CURATOR ⑆︎',
     104: '✧︎ Workspace: SCOUT ✧︎',

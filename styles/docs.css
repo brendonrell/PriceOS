@@ -616,3 +616,103 @@
     white-space: pre-wrap;
     overflow-wrap: break-word;
 }
+
+/* ── Docs search (SEARCH button + panel — the INDEX chrome, one input,
+      ranked results; comprehensive full-text over the whole corpus) ── */
+.pd-docs-search-panel { display: block; }
+
+.pd-docs-search-input {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px; /* ≥16px so iOS never auto-zooms the field */
+    font-weight: bold;
+    color: var(--text-color);
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
+    padding: 10px 12px;
+    outline: none;
+}
+
+.pd-docs-search-input::placeholder {
+    color: var(--text-color);
+    font-weight: bold;
+}
+
+.pd-docs-search-count {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    padding: 10px 0 4px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 6px;
+}
+
+.pd-docs-search-results {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.pd-docs-search-hit {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    border-left: 2px solid transparent;
+    padding: 9px 8px;
+    cursor: pointer;
+    color: var(--text-color);
+    font-family: inherit;
+}
+
+.pd-docs-search-hit:hover {
+    border-left-color: var(--text-color);
+    background: var(--stat-bg);
+}
+
+.pd-docs-search-hit-meta {
+    display: block;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.pd-docs-search-hit-title {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    margin-top: 1px;
+}
+
+.pd-docs-search-hit-heading { font-weight: 700; }
+
+.pd-docs-search-hit-snippet {
+    display: block;
+    font-size: 13px;
+    line-height: 1.45;
+    margin-top: 2px;
+}
+
+.pd-docs-search-hit-snippet mark {
+    background: var(--text-color);
+    color: var(--bg-color);
+    padding: 0 1px;
+}
+
+@media (min-width: 1024px) {
+    /* SEARCH stays in the desktop top bar (INDEX hides — the rail has it);
+       the panel reuses the mobile drop-down chrome, narrowed to a column. */
+    .pd-docs-index-btn.pd-docs-search-btn { display: inline-block; }
+    .pd-docs-mobile-nav.pd-docs-search-panel {
+        display: block;
+        left: auto;
+        right: 0;
+        width: 520px;
+        border-left: 1px solid var(--border-color);
+    }
+}

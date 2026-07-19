@@ -64,6 +64,7 @@
 import { useEffect, useState, type KeyboardEvent } from 'react';
 import { useProject, ProjectProvider } from '../../lib/state/ProjectContext';
 import { getRememberedTab, rememberTab } from '../../lib/state/tabMemoryStore';
+import { readViewParam, setViewParam } from '../../lib/state/viewLink';
 import AudienceIndicator from './AudienceIndicator';
 import { useCart } from '../../lib/state/CartContext';
 import { getProject } from '../../lib/project/registry';
@@ -183,6 +184,13 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
     const { netSets, artistSocial, topHolders } = useProjectSocial();
 
     const [activeTab, setActiveTab] = useState<ProjectTab>(() => {
+        /* A pasted deep link's ?tab= wins over everything — the shared view
+           IS the view (Share Any View, Brendon 2026-07-19; same precedent
+           as the ?sort= slug). */
+        const shared = readViewParam('tab');
+        if (shared === 'artworks' || shared === 'albums' || shared === 'project-showcase') {
+            return shared;
+        }
         /* Per-user, per-project memory wins — the saved tab is the ONLY thing
            that overrides the content-aware default (Brendon, 2026-06-16). */
         const remembered = getRememberedTab('project', project.slug);
@@ -207,7 +215,21 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
     };
 
     /* + More sub-nav pills — sections live in ProjectMorePanel. */
-    const [moreL1, setMoreL1] = useState<ProjectMoreL1>('attributes');
+    const MORE_L1_KEYS: ReadonlySet<string> = new Set<ProjectMoreL1>(['social', 'stats', 'replay', 'albums', 'genome', 'gnome', 'sentiment', 'attributes', 'pricestory', 'offers', 'anoint']);
+    const [moreL1, setMoreL1] = useState<ProjectMoreL1>(() => {
+        // A pasted deep link's ?sub= wins (Share Any View, Brendon 2026-07-19).
+        const shared = readViewParam('sub');
+        return shared && MORE_L1_KEYS.has(shared) ? (shared as ProjectMoreL1) : 'attributes';
+    });
+
+    /* Share Any View — register the live tab state so the SHARE VIEW pill
+       composes an exact deep link at copy time (lib/state/viewLink.ts).
+       (The +More tab's internal key is 'albums' — legacy name, kept.) */
+    useEffect(() => {
+        setViewParam('tab', activeTab);
+        setViewParam('sub', activeTab === 'albums' ? moreL1 : null);
+        return () => { setViewParam('tab', null); setViewParam('sub', null); };
+    }, [activeTab, moreL1]);
 
     /* Search beside the +More pills — our usual gen-art search, in the pill row.
        Filters the active searchable tab (Attributes tiles · Offers list). */

@@ -69,11 +69,11 @@ The **Setup Code** field encodes your entire PD configuration as a short shareab
 
 ## Workspaces
 
-Workspaces are saved configurations you switch between with one tap — the same collection, held differently for different jobs. The shipped set is six working personas:
+Workspaces are saved configurations you switch between with one tap — the same collection, held differently for different jobs. The shipped set is five working personas:
 
-**Main · Zen · Appraiser · Trader · Curator · Scout**
+**Main · Curator · Scout · Trader · Oracle**
 
-— each a Setup Code under the hood (the Appraiser leads with Celestial and Price Lens; the Trader arms Price Lens, Panopticon, Offer Shield, Sentiment, and the Watch; the Scout hazes the room and watches everything). Creating your own workspace opens the naming sheet with the **Spaces** shelf — a library of mood presets (Observatory, Museum, The Village, Stargazer, Mission Control, and more) to start from, or start from exactly what you're wearing now.
+— each a Setup Code under the hood (the Oracle leads with Celestial and Price Lens; the Trader arms Price Lens, Panopticon, Offer Shield, Sentiment, and the Watch; the Scout hazes the room and watches everything). Creating your own workspace opens the naming sheet with the **Spaces** shelf — a library of mood presets (Observatory, Museum, The Village, Stargazer, Mission Control, and more) to start from, or start from exactly what you're wearing now.
 
 ## Pings & the Default Sort
 

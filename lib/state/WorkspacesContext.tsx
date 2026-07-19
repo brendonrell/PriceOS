@@ -170,7 +170,15 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
             if (!ws.isDefault) continue;
             const def = DEFAULT_WORKSPACES.find((d) => d.id === ws.id);
             if (!def) continue;
-            if (ws.code === def.code) continue;
+            if (ws.code === def.code) {
+                // Code untouched = uncustomised: keep the shipped NAME in sync
+                // too (Appraiser → Oracle, Brendon 2026-07-19).
+                if (def.name && ws.name !== def.name) {
+                    ws.name = def.name;
+                    migrated = true;
+                }
+                continue;
+            }
             const oldCodes = OLD_DEFAULT_CODES[ws.id] || [];
             if (oldCodes.includes(ws.code)) {
                 ws.code = def.code;

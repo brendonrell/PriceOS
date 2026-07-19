@@ -57,6 +57,7 @@ import HomeProjectFacetBar, {
 } from './HomeProjectFacetBar';
 import { FEED_LIFECYCLE, FEED_SEQ, milestoneByKey } from '../../lib/home/milestones';
 import { getRememberedTab, rememberTab } from '../../lib/state/tabMemoryStore';
+import { readViewParam, setViewParam } from '../../lib/state/viewLink';
 import { openExternal } from '../../lib/pwa/openExternal';
 import { DISCORD_URL } from '../../lib/config/discord';
 import type { HomeResponse } from '../../lib/home/homeData';
@@ -360,9 +361,20 @@ function HomePageBodyInner({
     /* Land on the tab the viewer last used here — so leaving New Gen Art and
        coming back (or hitting Back) returns you to it, not the default. */
     const [activeTab, setActiveTab] = useState<HomeTab>(() => {
+        /* A pasted deep link's ?tab= wins — the shared view IS the view
+           (Share Any View, Brendon 2026-07-19). */
+        const shared = readViewParam('tab');
+        if (shared === 'new' || shared === 'shuffle' || shared === 'minting') return shared;
         const r = getRememberedTab('home', 'home');
         return r === 'new' || r === 'shuffle' || r === 'minting' ? r : 'minting';
     });
+
+    /* Share Any View — register the live tab so the SHARE VIEW pill composes
+       an exact deep link at copy time (lib/state/viewLink.ts). */
+    useEffect(() => {
+        setViewParam('tab', activeTab);
+        return () => setViewParam('tab', null);
+    }, [activeTab]);
     const selectTab = (id: HomeTab, label: string) => {
         setActiveTab(id);
         rememberTab('home', 'home', id);

@@ -29,6 +29,7 @@ import { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef, Fra
 import { TraitsProvider } from '../../lib/state/TraitsContext';
 import { formatEth } from '../../lib/format/eth';
 import { getRememberedTab, rememberTab } from '../../lib/state/tabMemoryStore';
+import { readViewParam, setViewParam } from '../../lib/state/viewLink';
 import { useAuth } from '../../lib/state/AuthContext';
 import { rankSocialCandidates } from '../../lib/social/relevance';
 import { useSpriteFace } from '../../lib/hooks/useSpriteFace';
@@ -602,6 +603,13 @@ function ProfilePageBodyInner({
        rule on project pages (Artworks). Initializer only — once mounted,
        the user's tap wins. */
     const [activeTab, setActiveTab] = useState<ProfileTab>(() => {
+        /* A pasted deep link's ?tab= wins over everything — the shared view
+           IS the view (Share Any View, Brendon 2026-07-19; same precedent
+           as the ?sort= slug). */
+        const shared = readViewParam('tab');
+        if (shared === 'showcase' || shared === 'collected' || shared === 'more') {
+            return shared;
+        }
         /* Per-user, per-profile memory wins — the saved tab is the ONLY thing
            that overrides the content-aware default (Brendon, 2026-06-16). */
         const remembered = getRememberedTab('profile', user.handle ?? handle);
@@ -627,10 +635,21 @@ function ProfilePageBodyInner({
     const moreMemId = `${user.handle ?? handle}:more`;
     const MORE_KEYS: ReadonlySet<string> = new Set<ProfileMoreL1>(['created', 'starred', 'wishlists', 'albums', 'offers', 'vault', 'sigil', 'loyalty', 'counterparties', 'history', 'info', 'achievements', 'discord', 'anointed', 'targets']);
     const [moreL1, setMoreL1] = useState<ProfileMoreL1>(() => {
+        // A pasted deep link's ?sub= wins here too (Share Any View).
+        const shared = readViewParam('sub');
+        if (shared && MORE_KEYS.has(shared)) return shared as ProfileMoreL1;
         const remembered = getRememberedTab('profile', moreMemId);
         return remembered && MORE_KEYS.has(remembered) ? (remembered as ProfileMoreL1) : 'starred';
     });
     useEffect(() => { rememberTab('profile', moreMemId, moreL1); }, [moreL1, moreMemId]);
+
+    /* Share Any View — register the live tab state so the SHARE VIEW pill
+       composes an exact deep link at copy time (lib/state/viewLink.ts). */
+    useEffect(() => {
+        setViewParam('tab', activeTab);
+        setViewParam('sub', activeTab === 'more' ? moreL1 : null);
+        return () => { setViewParam('tab', null); setViewParam('sub', null); };
+    }, [activeTab, moreL1]);
 
     const {
         starredValid, traitStarsValid, artistStars,
@@ -686,6 +705,37 @@ function ProfilePageBodyInner({
     });
 
     const { priceDayOpen, priceDayPos, priceDayRef, priceDayPopRef, openPriceDay } = usePriceDayPopover();
+
+    /* Long-press the join date → it flips to the profile's platform user
+       number (#N, hardcoded in the DB — Brendon is #1). Long-press again
+       flips back. Same gesture grammar as the @name long-press (460ms,
+       10px move cancel); a plain TAP still opens the PriceDay almanac —
+       the fired guard keeps the two apart. Works on every profile. */
+    const [dateShowsNum, setDateShowsNum] = useState(false);
+    const dateLpTimer = useRef<number | null>(null);
+    const dateLpFired = useRef(false);
+    const dateLpStart = useRef<{ x: number; y: number } | null>(null);
+    const clearDateLp = () => {
+        if (dateLpTimer.current != null) { window.clearTimeout(dateLpTimer.current); dateLpTimer.current = null; }
+    };
+    const onDatePointerDown = (e: React.PointerEvent) => {
+        if (user.user_number == null) return;
+        dateLpFired.current = false;
+        dateLpStart.current = { x: e.clientX, y: e.clientY };
+        clearDateLp();
+        dateLpTimer.current = window.setTimeout(() => {
+            dateLpFired.current = true;
+            dateLpTimer.current = null;
+            setDateShowsNum((v) => !v);
+        }, 460);
+    };
+    const onDatePointerMove = (e: React.PointerEvent) => {
+        if (dateLpTimer.current == null || !dateLpStart.current) return;
+        const dx = e.clientX - dateLpStart.current.x;
+        const dy = e.clientY - dateLpStart.current.y;
+        if (dx * dx + dy * dy > 100) clearDateLp();
+    };
+    const onDatePressEnd = () => clearDateLp();
 
     /* The profile date popover is the NORMAL PriceDay almanac (Brendon
        2026-06-10 — the bespoke "origin" card was never asked for). It shows
@@ -871,15 +921,24 @@ function ProfilePageBodyInner({
                                 className={`project-date${priceDayOpen ? ' pd-active' : ''}`}
                                 role="button"
                                 tabIndex={0}
-                                onClick={openPriceDay}
+                                onClick={() => { if (dateLpFired.current) { dateLpFired.current = false; return; } openPriceDay(); }}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' || e.key === ' ') {
                                         e.preventDefault();
                                         openPriceDay();
                                     }
                                 }}
-                                title="PriceDay"
-                            >{memberSince || '\u2014'}</span>
+                                onPointerDown={onDatePointerDown}
+                                onPointerMove={onDatePointerMove}
+                                onPointerUp={onDatePressEnd}
+                                onPointerLeave={onDatePressEnd}
+                                onPointerCancel={onDatePressEnd}
+                                onContextMenu={(e) => { if (user.user_number != null) e.preventDefault(); }}
+                                style={{ userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none', touchAction: 'manipulation' }}
+                                title={dateShowsNum ? `PD user #${user.user_number}` : 'PriceDay'}
+                            >{dateShowsNum && user.user_number != null
+                                ? `#${user.user_number}`
+                                : (memberSince || '\u2014')}</span>
                             {priceDayOpen && priceDayPos && joinDayContents && (
                                 <JoinDayPopover
                                     popRef={priceDayPopRef}

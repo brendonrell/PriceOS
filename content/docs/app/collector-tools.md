@@ -54,7 +54,7 @@ One field, the whole platform: Projects, Outputs, artists, collectors, @names.
 
 ## Workspaces
 
-Whole tool arrangements — every mode, spell, and setting — saved as one-tap personas (Appraiser, Trader, Curator, Scout…) and switchable from settings. They ride Setup Codes, so a workspace is also shareable. See [Settings & Display](/docs/app/settings-and-display).
+Whole tool arrangements — every mode, spell, and setting — saved as one-tap personas (Curator, Scout, Trader, Oracle…) and switchable from settings. They ride Setup Codes, so a workspace is also shareable. See [Settings & Display](/docs/app/settings-and-display).
 
 ## Further reading
 

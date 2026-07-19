@@ -17,6 +17,7 @@ import { usePathname } from 'next/navigation';
 import type { NavSection } from '../../lib/docs/content';
 import { ColorwayPicker } from '../dropdown/settings/ColorwayPicker';
 import { PerMilleMark } from '../shell/PerMilleMark';
+import { DocsSearch } from './DocsSearch';
 
 function NavList({ nav, onNavigate }: { nav: NavSection[]; onNavigate?: () => void }) {
     const pathname = usePathname();
@@ -54,20 +55,23 @@ function NavList({ nav, onNavigate }: { nav: NavSection[]; onNavigate?: () => vo
 
 export function DocsChrome({ nav }: { nav: NavSection[] }) {
     const [open, setOpen] = useState(false);
+    /* SEARCH and INDEX share the panel slot — opening one closes the other. */
+    const [searchOpen, setSearchOpen] = useState(false);
     return (
         <>
             <header className="pd-docs-topbar">
-                <Link href="/docs" className="pd-docs-wordmark" onClick={() => setOpen(false)}>
+                <Link href="/docs" className="pd-docs-wordmark" onClick={() => { setOpen(false); setSearchOpen(false); }}>
                     <PerMilleMark className="pd-docs-logo-mark" /> PRICE DISCUSSION <span className="pd-docs-wordmark-docs">DOCS</span>
                 </Link>
                 <div className="pd-docs-topbar-right">
                     <a href="/" className="pd-docs-applink">THE APP</a>
+                    <DocsSearch open={searchOpen} onToggle={(v) => { setSearchOpen(v); if (v) setOpen(false); }} />
                     <button
                         type="button"
                         className={`pd-docs-index-btn${open ? ' open' : ''}`}
                         aria-expanded={open}
                         aria-controls="pdDocsMobileNav"
-                        onClick={() => setOpen((v) => !v)}
+                        onClick={() => setOpen((v) => { if (!v) setSearchOpen(false); return !v; })}
                     >
                         {open ? 'CLOSE' : 'INDEX'}
                     </button>
