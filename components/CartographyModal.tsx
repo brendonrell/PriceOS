@@ -142,6 +142,8 @@ interface EngineCallbacks {
     onLevel: (level: Level, name: string) => void;
     onWallet: (info: { label: string; pieces: number; lands: number } | null) => void;
     onSelect: (sel: PlaceSelection | null) => void;
+    /** Double-tap a territory → open its project. */
+    onOpen: (slug: string) => void;
 }
 
 function territoryRadius(minted: number): number {
@@ -231,6 +233,13 @@ class CartoEngine {
     private nets: string[][] = [];
     private netOf = new Map<string, number>();
 
+    /* Legend filter (2026-07-19) — the bottom-left legend is now a toggle
+       row; each flag gates whether that event kind's pulse draws. The land,
+       seats + counts always update — only the animation is withheld. */
+    private show = { mint: true, list: true, xfer: true };
+    /* Double-tap a territory (same slug, within the tap window) opens it. */
+    private lastTapSlug: string | null = null;
+
     constructor(canvas: HTMLCanvasElement, cb: EngineCallbacks) {
         this.canvas = canvas;
         const ctx = canvas.getContext('2d');
@@ -268,6 +277,19 @@ class CartoEngine {
 
     setSybilNet(on: boolean): void {
         this.sybilOn = on;
+    }
+
+    /* ── legend filter (React owns the toggles) ─────────────────────────── */
+
+    setLegendFilter(show: { mint: boolean; list: boolean; xfer: boolean }): void {
+        this.show = show;
+    }
+    /** Map an event type to its legend flag. */
+    private kindOn(type: string): boolean {
+        const t = type.toUpperCase();
+        if (t === 'MINT') return this.show.mint;
+        if (t === 'LIST') return this.show.list;
+        return this.show.xfer; // XFER / SALE
     }
 
     /** The live territory list (minted land only) — the search box's index. */
@@ -725,24 +747,29 @@ class CartoEngine {
         const seed = `${ev.p}:${ev.id ?? 0}:${ev.ts}`;
 
         if (!live) {
+            /* Echo pings honour the legend filter too. */
+            if (!this.kindOn(ev.t)) return;
             const p = this.shorePoint(t, seed);
             this.ripples.push({ x: p.x, y: p.y, t0: now, hue: t.color, big: false });
             return;
         }
 
         if (ev.t === 'MINT') {
-            /* New land: grow the territory, seat the collector, ripple gold. */
+            /* New land: grow the territory, seat the collector, ripple gold.
+               The land + seat always update; only the pulse is filter-gated. */
             t.minted += 1;
             t.targetR = territoryRadius(t.minted);
             if (ev.to) {
                 this.seatInhabitant({ p: ev.p, a: ev.to, n: (t.byAddr.get(ev.to)?.n ?? 0) + 1, h: t.byAddr.get(ev.to)?.handle ?? null });
                 this.sortInhabitants(t);
             }
-            const p = ev.to && t.byAddr.get(ev.to)
-                ? this.inhabitantWorld(t, t.byAddr.get(ev.to)!, now)
-                : this.shorePoint(t, seed);
-            this.ripples.push({ x: p.x, y: p.y, t0: now, hue: this.colAccent, big: true });
-            if (ev.e > 0) this.flashes.push({ x: p.x, y: p.y, t0: now, text: `✶ Ξ${fmtEth(ev.e)}`, hue: this.colAccent });
+            if (this.show.mint) {
+                const p = ev.to && t.byAddr.get(ev.to)
+                    ? this.inhabitantWorld(t, t.byAddr.get(ev.to)!, now)
+                    : this.shorePoint(t, seed);
+                this.ripples.push({ x: p.x, y: p.y, t0: now, hue: this.colAccent, big: true });
+                if (ev.e > 0) this.flashes.push({ x: p.x, y: p.y, t0: now, text: `✶ Ξ${fmtEth(ev.e)}`, hue: this.colAccent });
+            }
         } else if ((ev.t === 'XFER' || ev.t === 'SALE') && ev.e > 0) {
             /* A sale sails: comet from seller's seat to the buyer's. */
             if (ev.to) {
@@ -752,25 +779,31 @@ class CartoEngine {
             const fromI = ev.f ? t.byAddr.get(ev.f) : undefined;
             const toI = ev.to ? t.byAddr.get(ev.to) : undefined;
             if (fromI) fromI.n = Math.max(0, fromI.n - 1);
-            const a = fromI ? this.inhabitantWorld(t, fromI, now) : this.shorePoint(t, `${seed}:f`);
-            const b = toI ? this.inhabitantWorld(t, toI, now) : this.shorePoint(t, `${seed}:t`);
-            const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
-            const dx = b.x - a.x, dy = b.y - a.y;
-            const lift = Math.max(40, Math.hypot(dx, dy) * 0.35);
-            this.comets.push({
-                x0: a.x, y0: a.y, x1: b.x, y1: b.y,
-                cx: mx - dy / Math.hypot(dx, dy || 1) * lift,
-                cy: my + dx / Math.hypot(dx, dy || 1) * lift,
-                t0: now, dur: this.reduceMotion ? 1 : 1400,
-                hue: t.color, price: ev.e,
-            });
+            if (this.show.xfer) {
+                const a = fromI ? this.inhabitantWorld(t, fromI, now) : this.shorePoint(t, `${seed}:f`);
+                const b = toI ? this.inhabitantWorld(t, toI, now) : this.shorePoint(t, `${seed}:t`);
+                const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+                const dx = b.x - a.x, dy = b.y - a.y;
+                const lift = Math.max(40, Math.hypot(dx, dy) * 0.35);
+                this.comets.push({
+                    x0: a.x, y0: a.y, x1: b.x, y1: b.y,
+                    cx: mx - dy / Math.hypot(dx, dy || 1) * lift,
+                    cy: my + dx / Math.hypot(dx, dy || 1) * lift,
+                    t0: now, dur: this.reduceMotion ? 1 : 1400,
+                    hue: t.color, price: ev.e,
+                });
+            }
         } else if (ev.t === 'LIST') {
-            const p = this.shorePoint(t, seed);
-            this.beacons.push({ x: p.x, y: p.y, t0: now, hue: t.color });
+            if (this.show.list) {
+                const p = this.shorePoint(t, seed);
+                this.beacons.push({ x: p.x, y: p.y, t0: now, hue: t.color });
+            }
         } else if (ev.t === 'XFER') {
             /* unpriced transfer — quiet ripple */
-            const p = this.shorePoint(t, seed);
-            this.ripples.push({ x: p.x, y: p.y, t0: now, hue: t.color, big: false });
+            if (this.show.xfer) {
+                const p = this.shorePoint(t, seed);
+                this.ripples.push({ x: p.x, y: p.y, t0: now, hue: t.color, big: false });
+            }
         }
     }
 
@@ -858,13 +891,17 @@ class CartoEngine {
                 const d = Math.hypot(w.x - p.x, w.y - p.y);
                 if (d < bestD) { bestD = d; best = i; }
             }
-            if (best) { this.focusWallet(best.addr); return; }
+            if (best) { this.lastTapSlug = null; this.focusWallet(best.addr); return; }
         }
 
-        /* Then territories. */
+        /* Then territories. A quick SECOND tap on the same territory opens the
+           project (Brendon, 2026-07-19) — the first tap has already flown in
+           and shown its card. */
         for (const t of this.terrs) {
             const d = Math.hypot(w.x - t.x, w.y - t.y);
             if (d <= t.r * this.coast(t, Math.atan2(w.y - t.y, w.x - t.x))) {
+                if (dbl && this.lastTapSlug === t.slug) { this.cb.onOpen(t.slug); return; }
+                this.lastTapSlug = t.slug;
                 if (this.walletAddr) { this.walletAddr = null; this.cb.onWallet(null); }
                 this.focusTerritory(t);
                 return;
@@ -872,6 +909,7 @@ class CartoEngine {
         }
 
         /* Open sea: double-tap zooms in, single tap steps out of wallet mode. */
+        this.lastTapSlug = null;
         if (this.walletAddr) { this.up(); return; }
         if (dbl) {
             this.flyTo(w.x, w.y, Math.min(6, this.cam.z * 1.9), 420);
@@ -1048,6 +1086,7 @@ class CartoEngine {
         this.drawLabels(ctx, w, h, wallet);
 
         this.drawFx(ctx, now);
+        this.drawMinimap(ctx, w, h);
 
         this.reportLevel();
     };
@@ -1344,6 +1383,62 @@ class CartoEngine {
         return out;
     }
 
+    /* ── minimap — a corner overview + viewport box, shown once you've zoomed
+       past the whole-world view (and no place/wallet card is up) so you never
+       lose the archipelago (Brendon, 2026-07-19). Drawn on the canvas, on top. */
+    private drawMinimap(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+        if (this.terrs.length < 2) return;
+        if (this.focusSlug || this.walletAddr) return; // a card is holding the view
+        let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+        for (const t of this.terrs) {
+            x0 = Math.min(x0, t.x - t.r); y0 = Math.min(y0, t.y - t.r);
+            x1 = Math.max(x1, t.x + t.r); y1 = Math.max(y1, t.y + t.r);
+        }
+        const worldW = x1 - x0, worldH = y1 - y0;
+        if (worldW <= 0 || worldH <= 0) return;
+        /* Only surface it once the whole world no longer fits the screen. */
+        const fitZ = Math.min(w / (worldW + 160), h / (worldH + 200));
+        if (this.cam.z <= fitZ * 1.25) return;
+
+        const size = Math.max(64, Math.min(104, Math.min(w, h) * 0.24));
+        const pad = 18, cr = 8;
+        const mx = pad;                   // left edge
+        const my = h - pad - 30 - size;   // sits above the legend row
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(mx + cr, my);
+        ctx.arcTo(mx + size, my, mx + size, my + size, cr);
+        ctx.arcTo(mx + size, my + size, mx, my + size, cr);
+        ctx.arcTo(mx, my + size, mx, my, cr);
+        ctx.arcTo(mx, my, mx + size, my, cr);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(7, 9, 13, 0.82)';
+        ctx.fill();
+        ctx.strokeStyle = this.colText;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.clip();
+
+        const inner = size - 12;
+        const s = Math.min(inner / worldW, inner / worldH);
+        const ox = mx + size / 2 - ((x0 + x1) / 2) * s;
+        const oy = my + size / 2 - ((y0 + y1) / 2) * s;
+        for (const t of this.terrs) {
+            ctx.fillStyle = t.color;
+            ctx.beginPath();
+            ctx.arc(ox + t.x * s, oy + t.y * s, Math.max(1.2, t.r * s * 0.5), 0, TAU);
+            ctx.fill();
+        }
+        /* the viewport rectangle — where you're looking right now */
+        const vw = w / this.cam.z, vh = h / this.cam.z;
+        const vx = this.cam.x - vw / 2, vy = this.cam.y - vh / 2;
+        ctx.strokeStyle = this.colAccent;
+        ctx.lineWidth = 1.25;
+        ctx.strokeRect(ox + vx * s, oy + vy * s, vw * s, vh * s);
+        ctx.restore();
+    }
+
     private reportLevel(): void {
         let level: Level = 'MACRO';
         let name = 'MACRO';
@@ -1387,6 +1482,8 @@ export default function CartographyModal() {
        The preference is per-device, like a Maps layer. */
     const [warOn, setWarOn] = useState(false);
     const [warData, setWarData] = useState<WarResponse | null>(null);
+    /* Legend filter — which market pulses draw (tap the bottom-left legend). */
+    const [legend, setLegend] = useState({ mint: true, list: true, xfer: true });
 
     useEffect(() => {
         if (!isOpen) return;
@@ -1406,6 +1503,7 @@ export default function CartographyModal() {
                 onLevel: (lv, name) => setLevel({ level: lv, name }),
                 onWallet: setWallet,
                 onSelect: setPlace,
+                onOpen: (slug) => { window.location.href = `/art/${slug}`; },
             });
             engineRef.current = eng;
             void eng.start();
@@ -1447,6 +1545,11 @@ export default function CartographyModal() {
     useEffect(() => {
         engineRef.current?.setSybilNet(!!notifs.spell_sybilnet);
     }, [notifs.spell_sybilnet, isOpen]);
+
+    /* Legend filter — the bottom-left toggles gate which pulses draw. */
+    useEffect(() => {
+        engineRef.current?.setLegendFilter(legend);
+    }, [legend, isOpen]);
 
     const toggleWar = () => {
         const next = !warOn;
@@ -1680,10 +1783,31 @@ export default function CartographyModal() {
                             </span>
                         </div>
                     )}
-                    <div className="carto-legend" aria-hidden="true">
-                        <span>{'✶︎'} COLLECTED</span>
-                        <span>{'✹︎'} LISTED</span>
-                        <span>{'✸︎'} XFER</span>
+                    <div className="carto-legend">
+                        <span
+                            className={`carto-leg${legend.mint ? '' : ' is-off'}`}
+                            role="button"
+                            tabIndex={0}
+                            title="Toggle mints"
+                            onClick={() => setLegend((l) => ({ ...l, mint: !l.mint }))}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setLegend((l) => ({ ...l, mint: !l.mint })); } }}
+                        >{'✶︎'} COLLECTED</span>
+                        <span
+                            className={`carto-leg${legend.list ? '' : ' is-off'}`}
+                            role="button"
+                            tabIndex={0}
+                            title="Toggle listings"
+                            onClick={() => setLegend((l) => ({ ...l, list: !l.list }))}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setLegend((l) => ({ ...l, list: !l.list })); } }}
+                        >{'✹︎'} LISTED</span>
+                        <span
+                            className={`carto-leg${legend.xfer ? '' : ' is-off'}`}
+                            role="button"
+                            tabIndex={0}
+                            title="Toggle transfers & sales"
+                            onClick={() => setLegend((l) => ({ ...l, xfer: !l.xfer }))}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setLegend((l) => ({ ...l, xfer: !l.xfer })); } }}
+                        >{'✸︎'} XFER</span>
                     </div>
                     <div className="carto-hint" aria-hidden="true">
                         DRAG TO SAIL · PINCH OR SCROLL TO ZOOM · TAP A TERRITORY

@@ -142,8 +142,15 @@
     font-weight: 700;
     letter-spacing: 0.05em;
     color: #E9EDF4;
-    pointer-events: none;
 }
+/* Legend items are filter toggles — full-strength when on; an OFF flag wears
+   the one meaningful fade (its pulse is hidden). Tap to toggle. */
+.carto-leg {
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+}
+.carto-leg.is-off { opacity: 0.4; }
 
 /* ── Maps-inspired chrome (2026-07-13): search · control stack · place card.
    The map OWNS its ink (always-dark sea → always-light text); never inherit
