@@ -396,7 +396,7 @@ export default function CommandStone() {
                                             if (e.key === 'Enter' || e.key === ' ') e.preventDefault();
                                         }}
                                     >
-                                        {`⏚${VS15} anchor it at ◊${anchorOffer.price}?`}
+                                        {`↧${VS15} anchor it at ◊${anchorOffer.price}?`}
                                     </div>
                                 )}
 

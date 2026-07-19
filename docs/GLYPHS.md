@@ -441,7 +441,8 @@ Wishlist rows (and the held-by / collected-by chips):
 | Concept | Glyph | Codepoint | Notes |
 |---|---|---|---|
 | The Command Stone | ⌘ | U+2318 | Brendon's approval 2026-07-19 — the command sign. The bar, the panel header. Device-verify per the #1 gate |
-| Anchor (Stone chips) | ⏚ | U+23DA | grounding symbol — "anchored to earth." Chosen 2026-07-19 because **⚓ is emoji-default on iOS and banned** (Brendon); the AttrWall tiles still wear ⚓ only via the 2026-07-18 forced-text fix (`font-variant-emoji`, iOS 17.4+). ⏚ is a true text glyph, U+23xx technical family (⏾'s kin). NOT ⟟ — that's the Grail Pin. Device-verify per the #1 gate |
+| Anchor (Stone chips) | ↧ | U+21A7 | down-arrow to bar — "pinned to the line." Chosen 2026-07-19 because **⚓ is emoji-default on iOS and banned** (Brendon); the AttrWall tiles still wear ⚓ only via the 2026-07-18 forced-text fix (`font-variant-emoji`, iOS 17.4+). Arrow family (⇡ ↗ ⤤ precedent). NOT ⟟ (Grail Pin), NOT ⏚ (Grid Presets — see below). Device-verify per the #1 gate |
+| **Grid Presets** | ⏚ | U+23DA | ⚠ CATALOGUED LATE (2026-07-19): this has SHIPPED on the Collected/project/home facet bars (grid-preset slots popup) since the presets build but was never entered here — a Stone-session anchor pick collided with it and Brendon caught it. The glossary is only trustworthy if EVERY shipped glyph lands here: **grep the codebase, not just this file, before claiming a glyph is free** |
 
 > The Stone's other chips reuse canon exactly: ❍ To-Do · ⊟ Note · ⬚ Watch
 > (project star) · ✛ Wishlist.

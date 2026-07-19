@@ -77,14 +77,16 @@ export function resolveProject(name: string): { slug: string; title: string } | 
 }
 
 /** The etch mark each plan kind wears — the concept's own canonical glyph.
-    Anchor = ⏚ (U+23DA, grounding — anchored to earth): the ⚓ carries an
-    emoji default on iOS and is banned here (Brendon, 2026-07-19); ⏚ is a
-    true text glyph from the proven U+23xx technical family (⏾'s kin). */
+    Anchor = ↧ (U+21A7, down-arrow to bar — pinned to the line): ⚓ is
+    emoji-default on iOS and banned (Brendon, 2026-07-19), and the first
+    swap ⏚ turned out to be the Grid Presets button (in code, uncatalogued
+    — now in GLYPHS.md §12a). ↧ is grep-verified unused, arrow family
+    (⇡ / ↗ / ⤤ precedent, all iOS-proven text). */
 const CHIP_GLYPH: Record<EtchPlan['kind'], string> = {
     'todo-output': `❍${VS15}`,
     'todo-raw': `❍${VS15}`,
     note: `⊟${VS15}`,
-    anchor: `⏚${VS15}`,
+    anchor: `↧${VS15}`,
     watch: `⬚${VS15}`,
     wishlist: `✛${VS15}`,
 };
