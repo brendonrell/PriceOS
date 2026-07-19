@@ -36,6 +36,8 @@ import {
     type ProjectGnome, type GnomePalette,
 } from '../../lib/project/gnome';
 import { gnomeGreeting, gnomeAppraisal, gnomeSignature } from '../../lib/project/gnomeVoice';
+import { gnomeJournal } from '../../lib/project/gnomeJournal';
+import { fmtFeedDate, fmtFeedTime } from '../profile/profilePageShared';
 import { hashString } from '../../lib/art/rng';
 import type { GnomeFavourResponse, GnomeFavourPiece } from '../../app/api/project/[slug]/gnome/route';
 
@@ -135,6 +137,20 @@ export default function GnomePanel() {
         return { bob: -((h % 56) / 10), blink: -(((h >> 8) % 52) / 10) };
     }, [project.slug]);
 
+    /* THE JOURNAL — the keeper's dated life under the figure (Brendon,
+       2026-07-19). Deterministic ($0, no fetch): frozen early milestones,
+       a rotating daily thought, and today's live mood page. */
+    const journal = useMemo(
+        () => gnomeJournal(project.slug, gnome.temperament, {
+            minted: project.totalOutputs,
+            supply: project.maxSupply,
+            listedCount,
+            mood,
+            name: gnome.name,
+        }),
+        [project.slug, gnome, project.totalOutputs, project.maxSupply, listedCount, mood],
+    );
+
     /* THE APPRAISAL — the written case for the favoured piece, from real
        engine + ledger facts only. */
     const appraisal = useMemo(() => {
@@ -186,6 +202,28 @@ export default function GnomePanel() {
                 </div>
                 <div className="gnome-traits">
                     {HAT_LABELS[gnome.hat]} · {BEARD_LABELS[gnome.beard]} · {KEEPSAKE_LABELS[gnome.keepsake]}
+                </div>
+
+                {/* THE KEEPER'S JOURNAL — the feed timeline grammar (node ·
+                    dashed spine · stacked stamp) carrying story entries. */}
+                <div className="gnome-journal">
+                    <div className="gj-head">THE KEEPER&rsquo;S JOURNAL</div>
+                    <div className="feed-list home-activity-feed gnome-journal-feed">
+                        {journal.map((e) => (
+                            <div className="feed-row" key={e.ts}>
+                                <div className="feed-line" />
+                                <div className="f-icon-wrap af-ic">{e.glyph}&#xFE0E;</div>
+                                <div className="f-time">
+                                    <span>{fmtFeedDate(e.ts)}</span>
+                                    <span>{fmtFeedTime(e.ts)}</span>
+                                </div>
+                                <div className="f-type af-type">
+                                    <span>{e.title}</span>
+                                </div>
+                                <div className="f-content">{e.body}</div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
                 {favoured && appraisal && (

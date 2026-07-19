@@ -93,9 +93,11 @@
 @media (prefers-reduced-motion: reduce) {
     .gnome-hop { animation: none; }
 }
+/* Half-scale figure (Brendon, 2026-07-19 — the journal lives underneath;
+   text elements around it keep their sizes). */
 .gnome-svg {
     display: block;
-    width: min(230px, 62vw);
+    width: min(115px, 31vw);
     height: auto;
 }
 
@@ -130,6 +132,17 @@
     font-weight: bold;
     letter-spacing: 0.5px;
     margin-top: 6px;
+}
+
+/* THE KEEPER'S JOURNAL — the feed timeline grammar reused verbatim
+   (feed-row · feed-line · f-icon-wrap · stacked f-time · af-type label);
+   only the section head is new chrome, full-strength like the card's heads. */
+.gnome-journal { margin-top: 14px; }
+.gj-head {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-bottom: 2px;
 }
 
 /* THE FAVOUR → APPRAISER — the keeper's written case for your piece. */
