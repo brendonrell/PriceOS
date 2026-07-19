@@ -34,6 +34,11 @@ import { useToast } from '../../lib/state/ToastContext';
 import SpriteFace from '../SpriteFace';
 import { projectSpriteFace } from '../../lib/project/projectSprite';
 import { parseEtch, commitEtch, resolveProject } from '../../lib/stone/etch';
+import { matchCast, type CastTarget } from '../../lib/stone/cast';
+import { usePdNotifs } from '../../lib/state/PdNotifsContext';
+import { useSort } from '../../lib/state/SortContext';
+import { useModal } from '../../lib/state/ModalContext';
+import { useWorkspaces } from '../../lib/state/WorkspacesContext';
 import {
     ArtThumb,
     SearchUserRow,
@@ -75,6 +80,134 @@ export default function CommandStone() {
     /* ETCH — a verb word turns the line into a creation plan; bare words
        stay GO/FIND. Pure parse, runs every keystroke. */
     const etchPlan = useMemo(() => parseEtch(value), [value]);
+
+    /* CAST — an exact toggle/workspace name flips it. The "spells" are
+       just settings with a fun name (Brendon): a cast is a plain toggle +
+       the pill's own toast, nothing more. ETCH wins on collision. */
+    const { notifs, toggle } = usePdNotifs();
+    const { sort, setSort, cycleSort } = useSort();
+    const { open: openModal } = useModal();
+    const { workspaces, loadWorkspace } = useWorkspaces();
+    const castHit = useMemo(
+        () => (etchPlan ? null : matchCast(value, workspaces)),
+        [value, workspaces, etchPlan]
+    );
+    const castActive = (hit: CastTarget): boolean => {
+        if (hit.kind === 'spell') return !!notifs[hit.spell.flag];
+        if (hit.kind === 'mode') {
+            if (hit.key === 'fog') return sort === 'fog';
+            const flags = {
+                degen: notifs.degen, audience: notifs.audience,
+                redacted: notifs.redactedMode, thewatch: notifs.watch,
+                npc: notifs.spell_npc, stargazing: notifs.stargazing,
+                echo: notifs.echo,
+            } as const;
+            return flags[hit.key];
+        }
+        return false;
+    };
+    const doCast = (hit: CastTarget) => {
+        const confirmAnd = (msg: string) => {
+            showToast(msg);
+            setEtched(`✓ ${msg}`);
+            setValue('');
+            inputRef.current?.focus();
+        };
+        if (hit.kind === 'workspace') {
+            loadWorkspace(hit.id); // toasts itself (persona flourishes incl.)
+            setEtched(`✓ Workspace: ${hit.label.toUpperCase()}`);
+            setValue('');
+            inputRef.current?.focus();
+            return;
+        }
+        if (hit.kind === 'spell') {
+            const s = hit.spell;
+            // The pills that open a surface / need consent hand off to
+            // their modal — the stone folds so the modal is visible.
+            if (s.id === 'spitebook' || s.id === 'tarot' ||
+                (s.id === 'panopticon' && !notifs.spell_panopticon)) {
+                openModal(
+                    s.id === 'spitebook' ? 'spiteBook'
+                        : s.id === 'tarot' ? 'tarot'
+                        : 'panopticonConfirm'
+                );
+                setOpen(false);
+                setValue('');
+                return;
+            }
+            if (s.id === 'gravitydrop') { confirmAnd('????'); return; }
+            const next = !notifs[s.flag];
+            toggle(s.flag);
+            const flavour: Record<string, string> = {
+                cartel: '⟁ You + Your Mutuals = The Cabal ⟁',
+                celestial: '☽ Reading the Birth Skies ☽',
+                gossip: '⑃ Rumor Has It… ⑃',
+                sybilnet: '∾ The Net Is Cast ∾',
+                arbitrage: '⇄ Reading the Spreads ⇄',
+            };
+            if (s.id === 'offershield' && next && typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('pd:offer-shield-cast'));
+            }
+            confirmAnd(
+                next && flavour[s.id]
+                    ? flavour[s.id]
+                    : `${s.name}: ${next ? 'ON' : 'OFF'}`
+            );
+            return;
+        }
+        // hardcoded modes — same flip + toast as their pills
+        switch (hit.key) {
+            case 'degen': {
+                const next = !notifs.degen;
+                toggle('degen');
+                if (next) setSort('price');
+                confirmAnd(`Degen: ${next ? 'ON' : 'OFF'}`);
+                return;
+            }
+            case 'audience': {
+                const next = !notifs.audience;
+                toggle('audience');
+                confirmAnd(`Audience: ${next ? 'ON' : 'OFF'}`);
+                return;
+            }
+            case 'redacted': {
+                const next = !notifs.redactedMode;
+                toggle('redactedMode');
+                confirmAnd(`Redacted Mode: ${next ? 'ON' : 'OFF'}`);
+                return;
+            }
+            case 'thewatch': {
+                const next = !notifs.watch;
+                toggle('watch');
+                confirmAnd(`The Watch: ${next ? 'ON' : 'OFF'}`);
+                return;
+            }
+            case 'npc': {
+                const next = !notifs.spell_npc;
+                toggle('spell_npc');
+                confirmAnd(`NPC Cast: ${next ? 'ON' : 'OFF'}`);
+                return;
+            }
+            case 'stargazing': {
+                const next = !notifs.stargazing;
+                toggle('stargazing');
+                confirmAnd(`Stargazing Mode: ${next ? 'ON' : 'OFF'}`);
+                return;
+            }
+            case 'echo': {
+                const next = !notifs.echo;
+                toggle('echo');
+                confirmAnd(`Echo Chamber: ${next ? 'MUTUALS ONLY' : 'OFF'}`);
+                return;
+            }
+            case 'fog': {
+                const next = sort !== 'fog';
+                cycleSort('fog');
+                confirmAnd(`Fog: ${next ? 'ON' : 'OFF'}`);
+                return;
+            }
+        }
+    };
 
     /* Route change → the stone folds away clean (same manners as every
        overlay in the shell: nothing bleeds onto the next page). */
@@ -327,6 +460,7 @@ export default function CommandStone() {
                                 if (e.key === 'Enter') {
                                     e.preventDefault();
                                     if (etchPlan) doEtch();
+                                    else if (castHit) doCast(castHit);
                                     else enterToGo();
                                 }
                             }}
@@ -354,6 +488,25 @@ export default function CommandStone() {
                                 }}
                             >
                                 {etchPlan.chip}
+                            </div>
+                        )}
+                        {/* CAST — the matched toggle/persona, one tap flips it */}
+                        {castHit && (
+                            <div
+                                className="stone-etch-chip"
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => doCast(castHit)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        doCast(castHit);
+                                    }
+                                }}
+                            >
+                                {castHit.kind === 'workspace'
+                                    ? `Workspace · ${castHit.label} — load?`
+                                    : `${'icon' in castHit && castHit.icon ? `${castHit.icon} ` : ''}${castHit.label} — ${castActive(castHit) ? 'off?' : 'cast?'}`}
                             </div>
                         )}
                         {searchingNow && searching && !r && (
