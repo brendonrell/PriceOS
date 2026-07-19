@@ -41,7 +41,6 @@ export function idTagFor(userNumber: number | null | undefined): Tag | null {
         return {
             id: `id-${userNumber}`,
             label: `#${userNumber}`,
-            glyph: ID_TAG_STYLE.glyph,
             color: ID_TAG_STYLE.color,
             kind: 'id',
             order: 10,
@@ -52,7 +51,6 @@ export function idTagFor(userNumber: number | null | undefined): Tag | null {
             return {
                 id: range.id,
                 label: range.label,
-                glyph: ID_TAG_STYLE.glyph,
                 color: ID_TAG_STYLE.color,
                 kind: 'id',
                 order: 11,

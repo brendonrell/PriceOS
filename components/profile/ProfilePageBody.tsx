@@ -894,7 +894,7 @@ function ProfilePageBodyInner({
                     </h1>
                     {isOwnProfile && eggOpen && (
                         <>
-                        <div className="profile-egg-row cust-scroll">
+                        <div className="profile-egg-row cust-scroll profile-colours-picker">
                             {eggPills.map((p) => {
                                 const active =
                                     (myProfileHex ?? '').toUpperCase() === p.hex.toUpperCase();

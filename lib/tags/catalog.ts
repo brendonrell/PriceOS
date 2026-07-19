@@ -13,11 +13,12 @@
  *   • id       — auto from the user's platform number (#1–22 each their own,
  *                then ranges). Generated in derive.ts, styled by ID_TAG_STYLE.
  *
- * Glyphs: only assigned where an EXISTING PD glyph EXACTLY matches the concept
- * (docs/GLYPHS.md — collector ☻, trader ⊟, curator ✦, artist ✺, minter ✶,
- * og ⌖, id #). Every other tag ships colour + label and NO glyph — per the glyph
- * rule, omitting beats inventing. Brendon assigns the rest from the vocabulary.
- * Colours are first-pass flair, tunable in one place (here).
+ * Glyphs: assigned ONLY where an existing PD glyph EXACTLY matches the concept
+ * AND carries no more-prominent clashing meaning (docs/GLYPHS.md — collector ☻,
+ * writer ⊟ [Note = writing], minter ✶, artist ✺, og ⌖). Everything else ships
+ * colour + label and NO glyph — omitting beats a clash (Trader dropped ⊟ = the
+ * Note glyph; Curator dropped ✦ = the Offer glyph; the # tags carry the number
+ * in the label, so no # glyph). Colours are first-pass flair, tunable here.
  */
 
 const VS15 = '︎';
@@ -46,9 +47,9 @@ export interface Tag {
    Artist is NOT here — it's earned (whitelist-gated). */
 const PERSONAS: Tag[] = [
     { id: 'collector',  label: 'Collector',  glyph: '☻' + VS15, color: '#2563EB', kind: 'persona', order: 50, blurb: 'Here for the pieces.' },
-    { id: 'curator',    label: 'Curator',    glyph: '✦' + VS15, color: '#7C3AED', kind: 'persona', order: 51, blurb: 'Builds the sets worth seeing.' },
-    { id: 'trader',     label: 'Trader',     glyph: '⊟' + VS15, color: '#16A34A', kind: 'persona', order: 52, blurb: 'Lives on the order book.' },
-    { id: 'writer',     label: 'Writer',     color: '#0EA5E9', kind: 'persona', order: 53, blurb: 'Says it in words.' },
+    { id: 'curator',    label: 'Curator',    color: '#7C3AED', kind: 'persona', order: 51, blurb: 'Builds the sets worth seeing.' },
+    { id: 'trader',     label: 'Trader',     color: '#16A34A', kind: 'persona', order: 52, blurb: 'Lives on the order book.' },
+    { id: 'writer',     label: 'Writer',     glyph: '⊟' + VS15, color: '#0EA5E9', kind: 'persona', order: 53, blurb: 'Says it in words.' },
     { id: 'podcaster',  label: 'Podcaster',  color: '#DB2777', kind: 'persona', order: 54, blurb: 'Says it out loud.' },
     { id: 'media',      label: 'Media',      color: '#EA580C', kind: 'persona', order: 55, blurb: 'Covers the scene.' },
     { id: 'host',       label: 'Host',       color: '#E11D48', kind: 'persona', order: 56, blurb: 'Runs the room.' },
@@ -113,9 +114,9 @@ export function isPersonaId(id: unknown): id is string {
 
 /* ── ID TAGS — auto from users.user_number (built in derive.ts) ──────────────
    #1–22 are each their own tag; past that they bucket into ranges. All wear the
-   gold prestige colour + the numerology # glyph. Brendon can name/recolour the
-   individual low numbers later. */
-export const ID_TAG_STYLE = { color: '#EAB308', glyph: '#' + VS15 } as const;
+   gold prestige colour; the number lives in the LABEL ("#1"), so there is NO
+   separate # glyph (that read as "# #1"). Brendon can name/recolour lows later. */
+export const ID_TAG_STYLE = { color: '#EAB308' } as const;
 
 /** Range buckets past #22 (first-pass cuts, Brendon 2026-07-19). id = the tag id,
  *  label = the chip, max = the inclusive upper bound of the range. */
