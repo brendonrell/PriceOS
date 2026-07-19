@@ -60,6 +60,8 @@ type GnomeRow = {
   owner_address: string;
   token_id: number | string;
   rarity: string;
+  ask_eth: number | string | null;
+  listed_at: string | null;
 };
 
 export async function GET(req: NextRequest, props: { params: Promise<{ slug: string }> }) {
@@ -133,6 +135,8 @@ export async function GET(req: NextRequest, props: { params: Promise<{ slug: str
         owner_handle: (handleRes.data as { handle?: string } | null)?.handle ?? null,
         token_id: Number(gnomeRow.token_id),
         rarity: gnomeRow.rarity as GnomeAwakening['rarity'],
+        ask_eth: gnomeRow.ask_eth == null ? null : Number(gnomeRow.ask_eth),
+        listed_at: gnomeRow.listed_at ?? null,
       };
     }
 

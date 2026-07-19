@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
     const db = getSupabaseService();
     const res = await db
       .from('gnomes')
-      .select('project_id, awakened_at, owner_address, token_id, rarity')
+      .select('project_id, awakened_at, owner_address, token_id, rarity, ask_eth, listed_at')
       .eq('owner_address', address)
       .order('awakened_at', { ascending: true });
     if (res.error) return serverError(res.error.message);
@@ -36,6 +36,7 @@ export async function GET(req: NextRequest) {
     const gnomes: GnomeAwakening[] = ((res.data ?? []) as {
       project_id: string; awakened_at: string; owner_address: string;
       token_id: number | string; rarity: string;
+      ask_eth: number | string | null; listed_at: string | null;
     }[]).map((r) => ({
       project_id: r.project_id,
       awakened_at: r.awakened_at,
@@ -43,6 +44,8 @@ export async function GET(req: NextRequest) {
       owner_handle: handle,
       token_id: Number(r.token_id),
       rarity: r.rarity as GnomeAwakening['rarity'],
+      ask_eth: r.ask_eth == null ? null : Number(r.ask_eth),
+      listed_at: r.listed_at ?? null,
     }));
 
     return NextResponse.json({ gnomes } satisfies GnomesResponse);

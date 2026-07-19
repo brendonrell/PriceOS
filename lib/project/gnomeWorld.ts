@@ -17,9 +17,11 @@ import { mulberry32, hashString } from '../art/rng';
 /** The gnomewallet's word. Locked (Brendon, 2026-07-19). */
 export const GNOME_TAGLINE = 'GNOME MATTER WHAT';
 
-/** Placeholder gnome mark (pending Brendon's pick from the 20-option round +
-    the #1 device gate). VS-15 appended at render like every PD glyph. */
-export const GNOME_GLYPH = '☖';
+/** The gnome mark — ⍙ (U+2359, delta underbar: the hat standing on the
+    ground). Brendon's pick, 2026-07-19, from the 20-option round. Carries
+    the standard #1 device gate (verify monochrome text on iPhone; if it
+    tofus, swap). VS-15 appended at render like every PD glyph. */
+export const GNOME_GLYPH = '⍙';
 
 /* ── The 6n0m3 address system ─────────────────────────────────────────────────
    Every real wallet casts exactly one gnome-wallet address: same 42-char
@@ -76,4 +78,7 @@ export interface GnomeAwakening {
   /** The piece whose mint woke the gnome. */
   token_id: number;
   rarity: GnomeRarity;
+  /** The sign on the door: listed ask in real ETH, null = not for sale. */
+  ask_eth: number | null;
+  listed_at: string | null;
 }

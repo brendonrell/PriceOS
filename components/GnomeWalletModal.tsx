@@ -1,23 +1,26 @@
 'use client';
 
 /*
- * GnomeWalletModal — the GNOMEWALLET (Brendon, 2026-07-19).
+ * GnomeWalletModal — the gnomewallet (one word, all lowercase — Brendon,
+ * 2026-07-19).
  *
  * YOUR side of the gnome world: the tab is the gnome's home; this modal is
  * the keeper's own wallet — an entire other world behind the settings pill
- * (beside Fiat, revealed by your first gnome). Deliberately themed like the
- * gnomes and NOT the platform — stepping in is the magic-mushroom trip into
- * gnome pfp trading world (a Brendon-approved pinned-theme surface, like the
- * Composer's dark: never "fix" it back to colorway).
+ * (beside Fiat, revealed by your first gnome). The design brief, verbatim
+ * intent: "the most exaggerated Keebler elf Tolkien gnomish wallet and
+ * marketplace UI you could imagine, like taking some magic mushrooms" —
+ * carved woodwork chrome, a hanging shingle sign, hobbit-door cards, vine
+ * and toadstool trim, lamplight. A Brendon-approved pinned-theme surface
+ * (Composer-dark precedent): never "fix" it back to colorway; every
+ * readable element stays FULL-STRENGTH cream on timber (Rule #2).
  *
- * The charm (Brendon: "extra gnome charm"): a swaying lantern lights the
- * door, spores drift, a mushroom ring grows along the floor, and every gnome
- * in your keeping breathes on its own beat and SPEAKS when tapped — the
- * favoured greeting, because in here you're their person.
- *
- * Shows every gnome this wallet has awakened (its mint struck the project's
- * hidden waking hour): the figure, the gnomenclature (your 6n0m3… address +
- * name.gnome), rarity, and the awakening record. Trading comes next.
+ * Two wings:
+ *   • MY BURROW — every gnome in your keeping, alive (seeded breath/blink,
+ *     tap → the favoured greeting). List one by hanging a sign on its door
+ *     (ask in real ETH, ≤4dp) or take the sign down. Listing moves no money.
+ *   • THE MUSHROOM MARKET — every listed gnome on the platform, keeper +
+ *     price on the door. The paid deal (the counting house) is the NEXT
+ *     mechanic — no dead buy buttons until it's real.
  *
  * Mounted once in PriceOSShell; rides ModalContext (Tarot precedent).
  */
@@ -25,6 +28,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useModal } from '../lib/state/ModalContext';
 import { useAuth } from '../lib/state/AuthContext';
+import { useToast } from '../lib/state/ToastContext';
 import { getProject, projectColorway } from '../lib/project/registry';
 import { projectGnome, gnomePalette } from '../lib/project/gnome';
 import { gnomeGreeting } from '../lib/project/gnomeVoice';
@@ -38,6 +42,8 @@ import { GnomeFigure } from './project/GnomePanel';
 
 const VS15 = '︎';
 
+type Wing = 'burrow' | 'market';
+
 /* The lantern over the door — lamplight for the whole hall. Sways gently;
    the glow breathes (both CSS). Drawn in the keepsake-lantern style. */
 function HallLantern() {
@@ -48,6 +54,25 @@ function HallLantern() {
             <circle className="gw-lantern-glow" cx="30" cy="46" r="24" fill="#ffd75e" opacity="0.22" />
             <rect x="17" y="26" width="26" height="36" rx="6" fill="#4a3526" stroke="#2a2622" strokeWidth="2.5" />
             <circle className="gw-lantern-flame" cx="30" cy="44" r="9" fill="#ffd75e" stroke="#2a2622" strokeWidth="2" />
+        </svg>
+    );
+}
+
+/* The carved vine — the divider trim, in the drawing style of the figures. */
+function VineTrim() {
+    return (
+        <svg className="gw-vine" viewBox="0 0 300 18" preserveAspectRatio="none" aria-hidden="true">
+            <path
+                d="M 0,9 Q 25,0 50,9 Q 75,18 100,9 Q 125,0 150,9 Q 175,18 200,9 Q 225,0 250,9 Q 275,18 300,9"
+                fill="none" stroke="#6b4f2f" strokeWidth="2.5"
+            />
+            {[30, 90, 150, 210, 270].map((x, i) => (
+                <path
+                    key={x}
+                    d={`M ${x},${i % 2 ? 13 : 5} q 4,${i % 2 ? 5 : -5} 9,${i % 2 ? 2 : -2} q -5,${i % 2 ? 3 : -3} -9,${i % 2 ? -2 : 2} Z`}
+                    fill="#5a7a3a" stroke="#2a2622" strokeWidth="1.5"
+                />
+            ))}
         </svg>
     );
 }
@@ -84,7 +109,20 @@ function Spores() {
     );
 }
 
-function GnomeCard({ g }: { g: GnomeAwakening }) {
+function fmtAsk(v: number): string {
+    return String(Number(v.toFixed(4)));
+}
+
+/* One hobbit door — a gnome standing in its round-top doorway. `mine` doors
+   carry the sign controls; market doors show the keeper + the price. */
+function GnomeDoor({
+    g, mine, onSign,
+}: {
+    g: GnomeAwakening;
+    mine: boolean;
+    /** Hang (ask > 0) or take down (null) the sign — burrow wing only. */
+    onSign?: (projectId: string, ask: number | null) => Promise<boolean>;
+}) {
     const gnome = useMemo(() => projectGnome(g.project_id), [g.project_id]);
     const palette = useMemo(
         () => gnomePalette(gnome, projectColorway(g.project_id)),
@@ -98,7 +136,8 @@ function GnomeCard({ g }: { g: GnomeAwakening }) {
         return { bob: -((h % 56) / 10), blink: -(((h >> 8) % 52) / 10) };
     }, [g.project_id]);
 
-    /* Tap → it speaks. In here you're their person: the favoured greeting. */
+    /* Tap → it speaks. In your burrow you're their person (favoured);
+       in the market you're a browsing stranger. */
     const [speech, setSpeech] = useState<string | null>(null);
     const tapCount = useRef(0);
     const speechTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -107,7 +146,7 @@ function GnomeCard({ g }: { g: GnomeAwakening }) {
     const hopTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     useEffect(() => () => { if (hopTimer.current) clearTimeout(hopTimer.current); }, []);
     const onTap = () => {
-        setSpeech(gnomeGreeting(g.project_id, gnome.temperament, 'favoured', tapCount.current++));
+        setSpeech(gnomeGreeting(g.project_id, gnome.temperament, mine ? 'favoured' : 'stranger', tapCount.current++));
         if (speechTimer.current) clearTimeout(speechTimer.current);
         speechTimer.current = setTimeout(() => setSpeech(null), 4500);
         setHop(true);
@@ -115,27 +154,105 @@ function GnomeCard({ g }: { g: GnomeAwakening }) {
         hopTimer.current = setTimeout(() => setHop(false), 450);
     };
 
+    /* The sign — inline ask entry (burrow only). */
+    const [signing, setSigning] = useState(false);
+    const [askDraft, setAskDraft] = useState('');
+    const [busy, setBusy] = useState(false);
+    const submitSign = async () => {
+        const v = Number(askDraft);
+        if (!Number.isFinite(v) || v <= 0 || !onSign) return;
+        setBusy(true);
+        const ok = await onSign(g.project_id, Number(v.toFixed(4)));
+        setBusy(false);
+        if (ok) { setSigning(false); setAskDraft(''); }
+    };
+    const takeDown = async () => {
+        if (!onSign) return;
+        setBusy(true);
+        await onSign(g.project_id, null);
+        setBusy(false);
+    };
+
     return (
-        <div className="gw-card">
-            <div className={`gw-card-rarity gw-r-${g.rarity.toLowerCase()}`}>{g.rarity}</div>
-            <div
-                className="gw-card-stage"
-                role="button"
-                tabIndex={0}
-                title="Speak to your gnome"
-                onClick={onTap}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onTap(); } }}
-            >
-                {speech && <div className="gw-speech">{speech}</div>}
-                <div className={hop ? 'gnome-hop-wrap gnome-hop' : 'gnome-hop-wrap'}>
-                    <GnomeFigure gnome={gnome} palette={palette} rhythm={rhythm} />
+        <div className="gw-door">
+            <div className={`gw-door-rarity gw-r-${g.rarity.toLowerCase()}`}>{g.rarity}</div>
+            <div className="gw-door-arch">
+                <div className="gw-door-hinge gw-door-hinge-top" aria-hidden="true" />
+                <div className="gw-door-hinge gw-door-hinge-low" aria-hidden="true" />
+                <div className="gw-door-knob" aria-hidden="true" />
+                <div
+                    className="gw-door-stage"
+                    role="button"
+                    tabIndex={0}
+                    title={mine ? 'Speak to your gnome' : 'Speak to the keeper'}
+                    onClick={onTap}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onTap(); } }}
+                >
+                    {speech && <div className="gw-speech">{speech}</div>}
+                    <div className={hop ? 'gnome-hop-wrap gnome-hop' : 'gnome-hop-wrap'}>
+                        <GnomeFigure gnome={gnome} palette={palette} rhythm={rhythm} />
+                    </div>
                 </div>
             </div>
-            <div className="gw-card-name">{gnome.name}</div>
-            <div className="gw-card-proj">KEEPER OF {projName}</div>
-            <div className="gw-card-fact">
+
+            <div className="gw-door-name">{gnome.name}</div>
+            <div className="gw-door-proj">KEEPER OF {projName}</div>
+            {!mine && (
+                <div className="gw-door-keeper">
+                    KEPT BY {gnomeEns(g.owner_handle) ?? shortGnomeAddress(g.owner_address)}
+                </div>
+            )}
+            <div className="gw-door-fact">
                 AWAKENED {fmtFeedDate(Date.parse(g.awakened_at))} · #{g.token_id} STRUCK THE HOUR
             </div>
+
+            {/* The sign on the door. */}
+            {g.ask_eth != null && (
+                <div className="gw-sign">
+                    <span className="gw-sign-rope" aria-hidden="true" />
+                    FOR SALE · ◊{fmtAsk(g.ask_eth)}
+                </div>
+            )}
+
+            {mine && !signing && (
+                <div className="gw-door-actions">
+                    {g.ask_eth == null ? (
+                        <button type="button" className="gw-btn" onClick={() => setSigning(true)}>
+                            HANG A SIGN
+                        </button>
+                    ) : (
+                        <button type="button" className="gw-btn" disabled={busy} onClick={takeDown}>
+                            TAKE THE SIGN DOWN
+                        </button>
+                    )}
+                </div>
+            )}
+            {mine && signing && (
+                <div className="gw-door-actions">
+                    <input
+                        className="gw-ask-input"
+                        type="number"
+                        inputMode="decimal"
+                        min="0"
+                        step="0.001"
+                        placeholder="◊ ask"
+                        enterKeyHint="done"
+                        value={askDraft}
+                        onChange={(e) => setAskDraft(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') submitSign(); }}
+                    />
+                    <button type="button" className="gw-btn" disabled={busy} onClick={submitSign}>
+                        HANG IT
+                    </button>
+                    <button
+                        type="button"
+                        className="gw-btn gw-btn-quiet"
+                        onClick={() => { setSigning(false); setAskDraft(''); }}
+                    >
+                        NEVER MIND
+                    </button>
+                </div>
+            )}
         </div>
     );
 }
@@ -143,20 +260,56 @@ function GnomeCard({ g }: { g: GnomeAwakening }) {
 export default function GnomeWalletModal() {
     const { openModal, close } = useModal();
     const { siweAddress, handle } = useAuth();
+    const { showToast } = useToast();
     const isOpen = openModal?.name === 'gnomewallet';
 
+    const [wing, setWing] = useState<Wing>('burrow');
+    useEffect(() => { if (isOpen) setWing('burrow'); }, [isOpen]);
+
     const [gnomes, setGnomes] = useState<GnomeAwakening[] | null>(null);
-    useEffect(() => {
-        if (!isOpen) return;
+    const loadMine = () => {
         if (!siweAddress) { setGnomes([]); return; }
-        let cancelled = false;
-        setGnomes(null);
         fetch(`/api/gnomes?address=${siweAddress.toLowerCase()}`, { cache: 'no-store' })
             .then((r) => (r.ok ? r.json() : null))
-            .then((d) => { if (!cancelled && d) setGnomes(Array.isArray(d.gnomes) ? d.gnomes : []); })
-            .catch(() => { if (!cancelled) setGnomes([]); });
-        return () => { cancelled = true; };
+            .then((d) => { if (d) setGnomes(Array.isArray(d.gnomes) ? d.gnomes : []); })
+            .catch(() => setGnomes([]));
+    };
+    useEffect(() => {
+        if (!isOpen) return;
+        setGnomes(null);
+        loadMine();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen, siweAddress]);
+
+    const [market, setMarket] = useState<GnomeAwakening[] | null>(null);
+    useEffect(() => {
+        if (!isOpen || wing !== 'market') return;
+        let cancelled = false;
+        setMarket(null);
+        fetch('/api/gnomes/market', { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => { if (!cancelled && d) setMarket(Array.isArray(d.listings) ? d.listings : []); })
+            .catch(() => { if (!cancelled) setMarket([]); });
+        return () => { cancelled = true; };
+    }, [isOpen, wing]);
+
+    /* Hang / take down the sign, then re-read the burrow. */
+    const onSign = async (projectId: string, ask: number | null): Promise<boolean> => {
+        try {
+            const r = await fetch('/api/gnomes/list', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ project_id: projectId, ask_eth: ask }),
+            });
+            if (!r.ok) { showToast('Gnome: SIGN TROUBLE'); return false; }
+            showToast(ask == null ? 'Gnome: SIGN DOWN' : `Gnome: SIGN HUNG · ◊${fmtAsk(ask)}`);
+            loadMine();
+            return true;
+        } catch {
+            showToast('Gnome: SIGN TROUBLE');
+            return false;
+        }
+    };
 
     const ens = gnomeEns(handle);
 
@@ -165,7 +318,7 @@ export default function GnomeWalletModal() {
             className={`gw-backdrop${isOpen ? ' active' : ''}`}
             role="dialog"
             aria-modal="true"
-            aria-label="Gnomewallet"
+            aria-label="gnomewallet"
             onClick={(e) => { if (e.target === e.currentTarget) close(); }}
         >
             <div className="gw-sheet" onClick={(e) => e.stopPropagation()}>
@@ -183,7 +336,13 @@ export default function GnomeWalletModal() {
 
                 <div className="gw-head">
                     <HallLantern />
-                    <span className="gw-head-title">{`${GNOME_GLYPH}${VS15}`} GNOMEWALLET {`${GNOME_GLYPH}${VS15}`}</span>
+                    <div className="gw-shingle">
+                        <span className="gw-shingle-rope gw-shingle-rope-l" aria-hidden="true" />
+                        <span className="gw-shingle-rope gw-shingle-rope-r" aria-hidden="true" />
+                        <span className="gw-shingle-word">
+                            {`${GNOME_GLYPH}${VS15}`} gnomewallet {`${GNOME_GLYPH}${VS15}`}
+                        </span>
+                    </div>
                     <span className="gw-head-tag">{GNOME_TAGLINE}</span>
                 </div>
 
@@ -197,18 +356,52 @@ export default function GnomeWalletModal() {
                     </div>
                 )}
 
-                {!siweAddress ? (
-                    <div className="gw-empty">The hill doesn&rsquo;t open for nameless folk. Connect your wallet.</div>
-                ) : gnomes === null ? (
-                    <div className="gw-empty">Lighting the lamps…</div>
-                ) : gnomes.length === 0 ? (
+                {/* The signposts — the two wings of the hall. */}
+                <div className="gw-wings">
+                    <button
+                        type="button"
+                        className={`gw-wing-post${wing === 'burrow' ? ' gw-wing-on' : ''}`}
+                        onClick={() => setWing('burrow')}
+                    >
+                        MY BURROW
+                    </button>
+                    <button
+                        type="button"
+                        className={`gw-wing-post${wing === 'market' ? ' gw-wing-on' : ''}`}
+                        onClick={() => setWing('market')}
+                    >
+                        THE MUSHROOM MARKET
+                    </button>
+                </div>
+
+                <VineTrim />
+
+                {wing === 'burrow' ? (
+                    !siweAddress ? (
+                        <div className="gw-empty">The hill doesn&rsquo;t open for nameless folk. Connect your wallet.</div>
+                    ) : gnomes === null ? (
+                        <div className="gw-empty">Lighting the lamps…</div>
+                    ) : gnomes.length === 0 ? (
+                        <div className="gw-empty">
+                            No gnomes in your keeping yet. One wakes when your mint strikes a
+                            project&rsquo;s hidden hour — keep mining.
+                        </div>
+                    ) : (
+                        <div className="gw-grid">
+                            {gnomes.map((g) => <GnomeDoor key={g.project_id} g={g} mine onSign={onSign} />)}
+                        </div>
+                    )
+                ) : market === null ? (
+                    <div className="gw-empty">Sweeping the market floor…</div>
+                ) : market.length === 0 ? (
                     <div className="gw-empty">
-                        No gnomes in your keeping yet. One wakes when your mint strikes a
-                        project&rsquo;s hidden hour — keep mining.
+                        No signs hung today. When a keeper lists a gnome, its door stands here.
                     </div>
                 ) : (
                     <div className="gw-grid">
-                        {gnomes.map((g) => <GnomeCard key={g.project_id} g={g} />)}
+                        {market.map((g) => (
+                            <GnomeDoor key={g.project_id} g={g} mine={false} />
+                        ))}
                     </div>
                 )}
 

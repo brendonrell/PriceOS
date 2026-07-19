@@ -351,7 +351,7 @@ export function WalletSection() {
                             e.stopPropagation();
                             openModal('gnomewallet');
                         }}
-                        title="Gnomewallet — gnome matter what"
+                        title="gnomewallet — gnome matter what"
                         role="button"
                         tabIndex={0}
                         onKeyDown={(e) => {

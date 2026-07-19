@@ -1,9 +1,13 @@
-/* ── GNOMEWALLET — the other-world wallet ──────────────────────────────────
-   Stepping through the mushroom: the gnome pfp collection's own trading-world
-   chrome, deliberately NOT the platform's (Brendon-approved pinned theme, the
-   Tarot/Spite Book precedent). Earth, lamplight and mushroom red — and every
-   readable element FULL-STRENGTH cream on deep ground (Rule #2): the mood is
-   palette + ornament, never faded text. */
+/* ── gnomewallet — the other-world wallet & market hall ────────────────────
+   One word, all lowercase (Brendon, 2026-07-19). The design brief, his
+   words: "the most exaggerated Keebler elf Tolkien gnomish wallet and
+   marketplace UI you could imagine, like taking some magic mushrooms."
+   Carved timber everything: plank walls, a hanging shingle sign, hobbit
+   doors with brass knobs, vine trim, toadstools, lamplight — and a slow
+   psychedelic breath in the light. Deliberately NOT the platform's chrome
+   (pinned-theme surface, Composer-dark precedent). Every readable element
+   is FULL-STRENGTH cream on timber (Rule #2): the trip is in the palette,
+   carving and motion — never in faded text. */
 
 .gw-backdrop {
     position: fixed;
@@ -24,13 +28,15 @@
 .gw-backdrop.active { opacity: 1; pointer-events: auto; }
 
 .gw-sheet {
-    /* The hill's own palette — full-strength. */
+    /* The hall's own palette — full-strength. */
     --gw-ink: #f0e8d8;        /* cream — primary text (the mushroom stalk) */
     --gw-red: #c0392b;        /* mushroom cap — accents */
     --gw-gold: #ffd75e;       /* lamplight — highlights */
     --gw-deep: #1c130b;       /* under-hill ground */
-    --gw-panel: #2a1d10;      /* card interior */
-    --gw-edge: #4a3526;       /* timber lines */
+    --gw-plank: #2e1f10;      /* timber wall */
+    --gw-plank2: #34240f;     /* its neighbouring board */
+    --gw-timber: #4a3526;     /* structural beams (the figures' leather) */
+    --gw-carve: #6b4f2f;      /* carved edge highlight */
 
     position: relative;
     width: min(880px, 100%);
@@ -38,12 +44,28 @@
     overflow-y: auto;
     box-sizing: border-box;
     padding: 30px 26px 24px;
-    border-radius: 12px;
-    border: 1.5px solid var(--gw-red);
-    background: radial-gradient(120% 80% at 50% -10%, #33220f 0%, var(--gw-deep) 60%);
+    border-radius: 14px;
+    /* The carved frame: a thick beam, its outer bark line, and the inner
+       chisel line — three strokes of timber. */
+    border: 6px solid var(--gw-timber);
+    outline: 2px solid #2a2622;
+    box-shadow:
+        inset 0 0 0 2px #2a2622,
+        inset 0 0 0 5px var(--gw-carve),
+        0 24px 80px rgba(0, 0, 0, 0.6),
+        inset 0 0 70px rgba(0, 0, 0, 0.45);
+    /* Plank wall: alternating boards with seam lines, over the deep ground. */
+    background:
+        repeating-linear-gradient(
+            90deg,
+            var(--gw-plank) 0 46px,
+            #241809 46px 48px,
+            var(--gw-plank2) 48px 94px,
+            #241809 94px 96px
+        ),
+        var(--gw-deep);
     color: var(--gw-ink);
     font-family: 'Courier New', Courier, monospace;
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), inset 0 0 60px rgba(0, 0, 0, 0.35);
     /* The trip in — through the mushroom: swells from small + soft to sharp. */
     transform: translateY(14px) scale(0.92);
     filter: blur(4px);
@@ -52,8 +74,25 @@
         filter 0.34s ease;
 }
 .gw-backdrop.active .gw-sheet { transform: none; filter: none; }
+
+/* The mushroom breath — a slow psychedelic drift in the lamplight wash.
+   Pure light, never text: an overlay glow whose hue wanders. */
+.gw-sheet::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(120% 70% at 50% -10%, rgba(255, 215, 94, 0.16) 0%, transparent 60%);
+    animation: gw-breath 14s ease-in-out infinite;
+}
+@keyframes gw-breath {
+    0%, 100% { filter: hue-rotate(0deg); opacity: 1; }
+    33% { filter: hue-rotate(-28deg); opacity: 0.8; }
+    66% { filter: hue-rotate(24deg); opacity: 0.9; }
+}
 @media (prefers-reduced-motion: reduce) {
     .gw-sheet { filter: none; transform: none; }
+    .gw-sheet::before { animation: none; }
 }
 
 .gw-close {
@@ -65,23 +104,18 @@
     color: var(--gw-gold);
     cursor: pointer;
     user-select: none;
+    z-index: 3;
 }
 
-/* ── Header ──────────────────────────────────────────────────────────────── */
+/* ── Header — lantern + the hanging shingle ──────────────────────────────── */
 .gw-head {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    gap: 5px;
-    padding-bottom: 14px;
-    border-bottom: 1px solid var(--gw-edge);
+    gap: 0;
     margin-bottom: 14px;
-}
-.gw-head-title {
-    font-size: 20px;
-    font-weight: bold;
-    letter-spacing: 4px;
 }
 /* The hall lantern — sways on its hook, flame breathes. */
 .gw-lantern {
@@ -102,6 +136,51 @@
 @keyframes gw-flame {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.12); }
+}
+
+/* The shingle: a carved plank on two ropes, swinging just barely. */
+.gw-shingle {
+    position: relative;
+    margin-top: 2px;
+    padding: 10px 22px 9px;
+    border: 3px solid #2a2622;
+    border-radius: 7px;
+    background:
+        repeating-linear-gradient(0deg, var(--gw-timber) 0 9px, #543d2b 9px 18px);
+    box-shadow:
+        inset 0 0 0 2px var(--gw-carve),
+        0 6px 14px rgba(0, 0, 0, 0.5);
+    transform-origin: 50% -18px;
+    animation: gw-shingle-swing 6.2s ease-in-out infinite;
+}
+@keyframes gw-shingle-swing {
+    0%, 100% { transform: rotate(-0.8deg); }
+    50% { transform: rotate(0.8deg); }
+}
+.gw-shingle-rope {
+    position: absolute;
+    top: -16px;
+    width: 3px;
+    height: 16px;
+    background: #8a6238;
+    border: 1px solid #2a2622;
+}
+.gw-shingle-rope-l { left: 18%; transform: rotate(8deg); }
+.gw-shingle-rope-r { right: 18%; transform: rotate(-8deg); }
+/* Carved letters: cream ink cut into the wood (a chisel shadow, not a fade). */
+.gw-shingle-word {
+    font-size: 21px;
+    font-weight: bold;
+    letter-spacing: 3px;
+    color: var(--gw-ink);
+    text-shadow: 0 2px 0 #17100a;
+}
+.gw-head-tag {
+    margin-top: 9px;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    color: var(--gw-gold);
 }
 
 /* Drifting spores — gold motes riding the lamplight. */
@@ -130,14 +209,8 @@
     100% { transform: translateY(-540px) translateX(14px); opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-    .gw-lantern, .gw-lantern-glow, .gw-lantern-flame, .gw-mote { animation: none; }
+    .gw-lantern, .gw-lantern-glow, .gw-lantern-flame, .gw-shingle, .gw-mote { animation: none; }
     .gw-mote { display: none; }
-}
-.gw-head-tag {
-    font-size: 12px;
-    font-weight: bold;
-    letter-spacing: 2px;
-    color: var(--gw-gold);
 }
 
 /* ── The gnomenclature — your name.gnome + 6n0m3… address ────────────────── */
@@ -146,8 +219,9 @@
     flex-direction: column;
     align-items: center;
     gap: 3px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     text-align: center;
+    position: relative;
 }
 .gw-ens { font-size: 15px; font-weight: bold; letter-spacing: 1px; }
 .gw-addr {
@@ -161,38 +235,113 @@
     font-size: 12px;
     font-weight: bold;
     letter-spacing: 1.5px;
-    color: var(--gw-red);
+    color: var(--gw-ink);
 }
 
-/* ── The keeping — one card per gnome ────────────────────────────────────── */
+/* ── The wings — signpost tabs to the burrow + the market ────────────────── */
+.gw-wings {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    position: relative;
+    flex-wrap: wrap;
+}
+.gw-wing-post {
+    padding: 7px 14px;
+    border: 2.5px solid #2a2622;
+    border-radius: 6px;
+    background: repeating-linear-gradient(0deg, var(--gw-timber) 0 8px, #543d2b 8px 16px);
+    box-shadow: inset 0 0 0 1.5px var(--gw-carve), 0 3px 8px rgba(0, 0, 0, 0.45);
+    color: var(--gw-ink);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    text-shadow: 0 1.5px 0 #17100a;
+}
+.gw-wing-on {
+    background: var(--gw-gold);
+    color: var(--gw-deep);
+    text-shadow: none;
+    box-shadow: inset 0 0 0 1.5px #b28a2e, 0 3px 8px rgba(0, 0, 0, 0.45);
+}
+
+/* The carved vine trim under the signposts. */
+.gw-vine {
+    display: block;
+    width: min(460px, 92%);
+    height: 18px;
+    margin: 0 auto 14px;
+}
+
+/* ── The doors — each gnome in a round-top hobbit doorway ────────────────── */
 .gw-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 16px;
+    position: relative;
 }
-.gw-card {
+.gw-door {
     position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 4px;
-    padding: 14px 12px 12px;
-    border: 1.5px solid var(--gw-edge);
-    border-radius: 10px;
-    background: var(--gw-panel);
     text-align: center;
 }
-.gw-card-stage { position: relative; width: 100%; display: flex; justify-content: center; cursor: pointer; }
-/* The figure draws full-card here (its own world) — not the tab's half-size. */
-.gw-card .gnome-svg { width: min(150px, 60%); }
+.gw-door-arch {
+    position: relative;
+    width: 100%;
+    padding: 26px 10px 10px;
+    box-sizing: border-box;
+    /* The round-top door: timber planks, heavy frame, brass fittings. */
+    border: 4px solid #2a2622;
+    border-radius: 46% 46% 10px 10px / 34% 34% 10px 10px;
+    background:
+        repeating-linear-gradient(90deg, var(--gw-plank2) 0 26px, #241809 26px 28px, #3a2a12 28px 54px, #241809 54px 56px);
+    box-shadow:
+        inset 0 0 0 3px var(--gw-timber),
+        inset 0 0 0 4.5px var(--gw-carve),
+        inset 0 -18px 30px rgba(0, 0, 0, 0.4),
+        0 6px 16px rgba(0, 0, 0, 0.5);
+}
+.gw-door-knob {
+    position: absolute;
+    right: 12px;
+    top: 56%;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--gw-gold);
+    border: 2px solid #2a2622;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    z-index: 2;
+}
+.gw-door-hinge {
+    position: absolute;
+    left: 6px;
+    width: 18px;
+    height: 7px;
+    border-radius: 3px;
+    background: #8a6238;
+    border: 1.5px solid #2a2622;
+    z-index: 2;
+}
+.gw-door-hinge-top { top: 34%; }
+.gw-door-hinge-low { top: 72%; }
+.gw-door-stage { position: relative; display: flex; justify-content: center; cursor: pointer; }
+/* The figure stands in its doorway — bigger than the tab's half-size. */
+.gw-door .gnome-svg { width: min(150px, 74%); }
 
 /* Your gnome speaks — the tab's bubble, dressed for the hall. */
 .gw-speech {
     position: absolute;
-    top: 2px;
+    top: -14px;
     left: 50%;
     transform: translateX(-50%);
-    max-width: 94%;
+    max-width: 96%;
     padding: 7px 11px;
     background: var(--gw-deep);
     border: 1px solid var(--gw-gold);
@@ -202,7 +351,7 @@
     font-weight: bold;
     letter-spacing: 0.3px;
     text-align: center;
-    z-index: 2;
+    z-index: 3;
     animation: gnome-speech-in 0.18s ease-out;
     pointer-events: none;
 }
@@ -218,24 +367,97 @@
     border-right: 1px solid var(--gw-gold);
     border-bottom: 1px solid var(--gw-gold);
 }
-.gw-card-name { font-size: 13px; font-weight: bold; letter-spacing: 1px; }
-.gw-card-proj { font-size: 12px; font-weight: bold; letter-spacing: 0.5px; color: var(--gw-gold); }
-.gw-card-fact { font-size: 12px; font-weight: bold; letter-spacing: 0.3px; }
 
-/* Rarity plate — top-left, cap-red by default; the high tiers go lamplight. */
-.gw-card-rarity {
+.gw-door-name { margin-top: 6px; font-size: 13px; font-weight: bold; letter-spacing: 1px; }
+.gw-door-proj { font-size: 12px; font-weight: bold; letter-spacing: 0.5px; color: var(--gw-gold); }
+.gw-door-keeper { font-size: 12px; font-weight: bold; letter-spacing: 0.5px; }
+.gw-door-fact { font-size: 12px; font-weight: bold; letter-spacing: 0.3px; }
+
+/* Rarity plate — nailed over the arch; high tiers go lamplight. */
+.gw-door-rarity {
     position: absolute;
-    top: 8px;
-    left: 8px;
-    padding: 2px 7px;
+    top: -7px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-2deg);
+    z-index: 3;
+    padding: 2px 8px;
     border-radius: 3px;
+    border: 2px solid #2a2622;
     font-size: 12px;
     font-weight: bold;
     letter-spacing: 1px;
     background: var(--gw-red);
     color: var(--gw-ink);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 }
 .gw-r-legendary, .gw-r-mythic { background: var(--gw-gold); color: var(--gw-deep); }
+
+/* The FOR SALE sign — a little plank hung off the door. */
+.gw-sign {
+    position: relative;
+    margin-top: 6px;
+    padding: 4px 10px;
+    border: 2px solid #2a2622;
+    border-radius: 4px;
+    background: repeating-linear-gradient(0deg, var(--gw-timber) 0 7px, #543d2b 7px 14px);
+    box-shadow: inset 0 0 0 1.5px var(--gw-carve);
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: var(--gw-gold);
+    text-shadow: 0 1.5px 0 #17100a;
+    transform: rotate(1.2deg);
+}
+.gw-sign-rope {
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    width: 3px;
+    height: 8px;
+    background: #8a6238;
+    border: 1px solid #2a2622;
+}
+
+/* Door actions — carved wooden buttons + the ask slot. */
+.gw-door-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 7px;
+}
+.gw-btn {
+    padding: 5px 11px;
+    border: 2px solid #2a2622;
+    border-radius: 5px;
+    background: repeating-linear-gradient(0deg, var(--gw-timber) 0 7px, #543d2b 7px 14px);
+    box-shadow: inset 0 0 0 1.5px var(--gw-carve), 0 2px 6px rgba(0, 0, 0, 0.4);
+    color: var(--gw-ink);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+    text-shadow: 0 1.5px 0 #17100a;
+}
+.gw-btn:disabled { cursor: default; }
+.gw-btn-quiet { background: var(--gw-deep); text-shadow: none; }
+.gw-ask-input {
+    width: 84px;
+    padding: 5px 8px;
+    box-sizing: border-box;
+    border: 2px solid #2a2622;
+    border-radius: 5px;
+    background: var(--gw-deep);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6);
+    color: var(--gw-ink);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+.gw-ask-input::placeholder { color: var(--gw-gold); opacity: 1; }
 
 .gw-empty {
     padding: 26px 10px;
@@ -244,6 +466,7 @@
     font-weight: bold;
     letter-spacing: 0.5px;
     line-height: 1.6;
+    position: relative;
 }
 
 /* The mushroom ring along the floor — the way home. */
@@ -252,15 +475,17 @@
     width: min(420px, 80%);
     margin: 18px auto 0;
     height: 34px;
+    position: relative;
 }
 
 .gw-foot {
     margin-top: 10px;
     padding-top: 12px;
-    border-top: 1px solid var(--gw-edge);
+    border-top: 2px solid var(--gw-timber);
     text-align: center;
     font-size: 12px;
     font-weight: bold;
     letter-spacing: 1.5px;
     color: var(--gw-gold);
+    position: relative;
 }
