@@ -44,10 +44,17 @@
     color: var(--gw-ink);
     font-family: 'Courier New', Courier, monospace;
     box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), inset 0 0 60px rgba(0, 0, 0, 0.35);
-    transform: translateY(10px) scale(0.99);
-    transition: transform 0.28s cubic-bezier(0.25, 1, 0.5, 1);
+    /* The trip in — through the mushroom: swells from small + soft to sharp. */
+    transform: translateY(14px) scale(0.92);
+    filter: blur(4px);
+    transition:
+        transform 0.34s cubic-bezier(0.25, 1, 0.5, 1),
+        filter 0.34s ease;
 }
-.gw-backdrop.active .gw-sheet { transform: none; }
+.gw-backdrop.active .gw-sheet { transform: none; filter: none; }
+@media (prefers-reduced-motion: reduce) {
+    .gw-sheet { filter: none; transform: none; }
+}
 
 .gw-close {
     position: absolute;
@@ -71,11 +78,60 @@
     border-bottom: 1px solid var(--gw-edge);
     margin-bottom: 14px;
 }
-.gw-head-glyph { font-size: 26px; color: var(--gw-red); }
 .gw-head-title {
     font-size: 20px;
     font-weight: bold;
     letter-spacing: 4px;
+}
+/* The hall lantern — sways on its hook, flame breathes. */
+.gw-lantern {
+    width: 46px;
+    height: auto;
+    transform-origin: 50% 0;
+    animation: gw-lantern-sway 5.4s ease-in-out infinite;
+}
+@keyframes gw-lantern-sway {
+    0%, 100% { transform: rotate(-3deg); }
+    50% { transform: rotate(3deg); }
+}
+.gw-lantern-glow, .gw-lantern-flame {
+    animation: gw-flame 2.6s ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+}
+@keyframes gw-flame {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.12); }
+}
+
+/* Drifting spores — gold motes riding the lamplight. */
+.gw-spores { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.gw-mote {
+    position: absolute;
+    bottom: -8px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--gw-gold);
+    opacity: 0;
+    animation: gw-mote-rise 11s linear infinite;
+}
+.gw-mote:nth-child(1) { left: 8%; animation-delay: 0s; }
+.gw-mote:nth-child(2) { left: 22%; animation-delay: 3.2s; animation-duration: 13s; }
+.gw-mote:nth-child(3) { left: 39%; animation-delay: 6.5s; }
+.gw-mote:nth-child(4) { left: 54%; animation-delay: 1.6s; animation-duration: 14s; }
+.gw-mote:nth-child(5) { left: 68%; animation-delay: 8.1s; }
+.gw-mote:nth-child(6) { left: 81%; animation-delay: 4.7s; animation-duration: 12s; }
+.gw-mote:nth-child(7) { left: 93%; animation-delay: 9.8s; }
+@keyframes gw-mote-rise {
+    0% { transform: translateY(0) translateX(0); opacity: 0; }
+    12% { opacity: 0.7; }
+    60% { opacity: 0.45; }
+    100% { transform: translateY(-540px) translateX(14px); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .gw-lantern, .gw-lantern-glow, .gw-lantern-flame, .gw-mote { animation: none; }
+    .gw-mote { display: none; }
 }
 .gw-head-tag {
     font-size: 12px;
@@ -101,6 +157,12 @@
     color: var(--gw-gold);
     word-break: break-all;
 }
+.gw-count {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    color: var(--gw-red);
+}
 
 /* ── The keeping — one card per gnome ────────────────────────────────────── */
 .gw-grid {
@@ -120,9 +182,42 @@
     background: var(--gw-panel);
     text-align: center;
 }
-.gw-card-stage { width: 100%; display: flex; justify-content: center; }
+.gw-card-stage { position: relative; width: 100%; display: flex; justify-content: center; cursor: pointer; }
 /* The figure draws full-card here (its own world) — not the tab's half-size. */
 .gw-card .gnome-svg { width: min(150px, 60%); }
+
+/* Your gnome speaks — the tab's bubble, dressed for the hall. */
+.gw-speech {
+    position: absolute;
+    top: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 94%;
+    padding: 7px 11px;
+    background: var(--gw-deep);
+    border: 1px solid var(--gw-gold);
+    border-radius: 10px;
+    color: var(--gw-ink);
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+    text-align: center;
+    z-index: 2;
+    animation: gnome-speech-in 0.18s ease-out;
+    pointer-events: none;
+}
+.gw-speech::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -6px;
+    width: 10px;
+    height: 10px;
+    transform: translateX(-50%) rotate(45deg);
+    background: var(--gw-deep);
+    border-right: 1px solid var(--gw-gold);
+    border-bottom: 1px solid var(--gw-gold);
+}
 .gw-card-name { font-size: 13px; font-weight: bold; letter-spacing: 1px; }
 .gw-card-proj { font-size: 12px; font-weight: bold; letter-spacing: 0.5px; color: var(--gw-gold); }
 .gw-card-fact { font-size: 12px; font-weight: bold; letter-spacing: 0.3px; }
@@ -151,8 +246,16 @@
     line-height: 1.6;
 }
 
+/* The mushroom ring along the floor — the way home. */
+.gw-shroom-ring {
+    display: block;
+    width: min(420px, 80%);
+    margin: 18px auto 0;
+    height: 34px;
+}
+
 .gw-foot {
-    margin-top: 16px;
+    margin-top: 10px;
     padding-top: 12px;
     border-top: 1px solid var(--gw-edge);
     text-align: center;
