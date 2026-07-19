@@ -8,6 +8,70 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ✅ **2026-07-19 THE GNOME WORLD — full arc, SIX ships all on dev (tip
+   `c9f7a3c`), auto-deploy rolling, tree clean. Branch
+   `claude/gnome-wow-pass-marketplace-iwk46j` = merged trash (Brendon deletes
+   at https://github.com/brendonrell/PriceOS/branches).** Fable session,
+   Brendon's arc from "gnome extra wow pass" to a complete real-fake NFT
+   economy. In ship order:
+   ① HALF-SIZE GNOME + THE KEEPER'S JOURNAL — figure at half (text
+   untouched); a hybrid feed-grammar timeline under it (node ⊟/✶ · dashed
+   spine · viewer-local stamps): frozen casting + early milestones
+   (`lib/project/gnomeJournal.ts`), a rotating daily in-temperament thought,
+   today's live mood page written at a seeded morning hour.
+   ② THE AWAKENING — gnomes SLEEP (shut mine-mouth, lamplit blinking eyes,
+   "SOMETHING LIVES DOWN HERE"); a server-only seeded threshold (12–74% of
+   supply, `wakeThreshold` in the gnome route — NEVER ship it clientside);
+   the minter of the crossing piece OWNS the gnome; rarity cast from real
+   traded volume at the hour (COMMON→MYTHIC), written once to `gnomes`
+   (migration APPLIED LIVE + mirrored). **Verified against live ledger: every
+   gnome genuinely asleep today; closest hills = quiet-mutiny + papercountry
+   (~10 mints out). The first real awakening = first live exercise of the
+   write path.**
+   ③ gnomewallet (ONE WORD, LOWERCASE — the ENTIRE gnome world is a
+   lowercase world, Brendon's lock) — revealed beside Fiat in the Wallet row
+   at first gnome; a pinned-theme other-world modal (Composer-dark
+   precedent): carved timber + plank walls, hanging shingle, hobbit-door
+   cards w/ brass knobs, vine trim, mushroom ring, lantern sway, spores,
+   psychedelic hue-breath, gnomes alive + speaking (favoured greeting).
+   Motto treatment: *"gnome matter what"* quoted · italic · 10px (Brendon's
+   explicit size call, deliberate 12px-floor exception).
+   ④ RESPECT — the keeper's ladder (`lib/project/gnomeRespect.ts`), grown
+   from the Favour: A STRANGER → KNOWN AT THE DOOR → FRIEND OF THE HILL →
+   FAVOURED → KIN OF THE VEIN, real ledger facts only; drawn as the gnome's
+   own gems + honest next-rung line; greeting pools follow the rung.
+   ⑤ VARIATION PASS — APPEND-ONLY draws 14–21 (draw order stays a frozen
+   contract, nobody re-rolled): nicknames (~1/5, pool 40) + epithets (~1/3,
+   pool 48) → `SNORRI "TWO LAMPS" FLINTPICK THE UNDERSOLD`; figures gain
+   spectacles / hat feather / earring / snail companion.
+   ⑥ gnopensea (Brendon's coinage) + THE COUNTING HOUSE — signs (owner-only
+   SIWE listing, ask in ETH, no money moves) + **no-fee deals LIVE
+   ("gnome ore fees" = the whole fee schedule, printed in the hall +
+   docs)**: STRIKE THE DEAL assembles a direct buyer→seller send (100%, no
+   custody, NO CONTRACT — fee removal killed the router-contract need) with
+   a deal-id tag in the data; `/api/gnomes/deal` verifies on-chain (exact
+   value/payer/seller/tag, +1 conf) and flips the gnome. Resumable,
+   idempotent, one payment settles at most one deal (unique tx index).
+   Migrations `gnomes` / `gnome_market` / `gnome_deals` all APPLIED LIVE +
+   mirrored.
+   ⑦ DOCS — full four-page section (overview · the-awakening · gnopensea ·
+   the-gnomewallet) at stickers grade, wired into the nav, prerendered;
+   "real-fake NFT collection" stated plainly.
+   **Wording/design locks:** gnomewallet + gnopensea + gnome world =
+   lowercase; ⍙ (U+2359) = the gnome mark (Brendon's pick of 20); the gnome
+   TAB never shows the wallet/gnome-world identity — keeping is ONE plain
+   line (⍙ IN THE KEEPING OF @handle · RARITY); fees = none, forever
+   ("gnome ore fees").
+   **BRENDON ACTIONS (ClickUp `86bb06zju`, assigned + due 07-20):**
+   ⓐ set `ALCHEMY_RPC_URL` (mainnet) secret on the Worker — deals can't
+   confirm payment until it exists; ⓑ device-check ⍙ renders as text on
+   iPhone (#1 glyph gate).
+   **QUEUED (not built):** deal pings/tape events · gnome trade history
+   surface (gnome_deals is public-read, ready) · marketplace filters as the
+   collection grows. Proof: tsc/48 tests/real builds green every ship,
+   compiled greps, headless mid-tone proofs (journal · sleeping hill ·
+   woodwork hall · respect plate), live-ledger threshold verification.
+
 0. ✅ **2026-07-19 CARTOGRAPHY CHROME + CONTROLS — on dev (tip `d33ae3e8`),
    auto-deploy rolling, tree clean. Branch `claude/cartography-feature-ideas-vtkw8z`
    = trash (Brendon deletes at https://github.com/brendonrell/PriceOS/branches).**
