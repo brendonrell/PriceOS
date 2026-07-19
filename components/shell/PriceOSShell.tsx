@@ -107,6 +107,7 @@ import CartPanel from '../CartPanel';
 import MarketSheets from '../market/MarketSheets';
 import TheWatch from './TheWatch';
 import BenchDock from '../BenchDock';
+import CommandStone from '../stone/CommandStone';
 import NativePingsFirstRun from './NativePingsFirstRun';
 
 export function PriceOSShell({ children }: { children: ReactNode }) {
@@ -555,6 +556,9 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="BenchDock">
                 <BenchDock />
+            </ErrorBoundary>
+            <ErrorBoundary name="CommandStone">
+                <CommandStone />
             </ErrorBoundary>
             <ErrorBoundary name="NativePingsFirstRun">
                 <NativePingsFirstRun />

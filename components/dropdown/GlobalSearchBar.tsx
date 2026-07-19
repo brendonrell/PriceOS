@@ -113,8 +113,9 @@ function shortAddress(addr: string): string {
 
 /* Tiny live artwork preview — the SAME deterministic engine paint every
    surface uses (paintOutput), just at row size. Engine cost scales with
-   pixels, so a 36px paint is ~two orders cheaper than a gallery card. */
-function ArtThumb({ slug, id }: { slug: string; id: string | number }) {
+   pixels, so a 36px paint is ~two orders cheaper than a gallery card.
+   Exported for the Command Stone ⌘ — its GO/FIND rows are these rows. */
+export function ArtThumb({ slug, id }: { slug: string; id: string | number }) {
     const ref = useRef<HTMLCanvasElement | null>(null);
     const { notifs } = usePdNotifs();
     const ascii = notifs.asciiArt;
@@ -146,8 +147,9 @@ function ArtThumb({ slug, id }: { slug: string; id: string | number }) {
 }
 
 /* Page / panel destinations — nav via the search bar ("home", "artists",
-   "settings"…). Pages route; panels swap the dropdown view in place. */
-const PAGE_ROWS: Array<{ words: string[]; label: string; kind: 'route' | 'view'; to: string }> = [
+   "settings"…). Pages route; panels swap the dropdown view in place.
+   Exported for the Command Stone ⌘ (GO shares the one destination list). */
+export const PAGE_ROWS: Array<{ words: string[]; label: string; kind: 'route' | 'view'; to: string }> = [
     { words: ['home', 'homepage', 'main'], label: 'Home', kind: 'route', to: '/' },
     { words: ['artists', 'artist'], label: 'Artists', kind: 'route', to: '/artists' },
     { words: ['profile', 'me'], label: 'Profile', kind: 'route', to: '__profile__' },
@@ -157,18 +159,19 @@ const PAGE_ROWS: Array<{ words: string[]; label: string; kind: 'route' | 'view';
 ];
 
 /** Rows shown per section before the `+N more` expander. */
-const SECTION_PREVIEW = 5;
+export const SECTION_PREVIEW = 5;
 
 /** "Prisms #7" — the app's piece-naming convention (ArtworkCard's grail
     toasts): sentence-cased project name, then the edition number. */
-function pieceName(title: string, id: string | number): string {
+export function pieceName(title: string, id: string | number): string {
     return `${title.charAt(0)}${title.slice(1).toLowerCase()} #${id}`;
 }
 
 /* One collector row, formatted FOR search (Brendon, 2026-07-02: no ID
    Rectangle in here — just the PriceSprite, the @name, the ✺ badge and the
-   three profile stats, all in the results' own courier voice). */
-function SearchUserRow({
+   three profile stats, all in the results' own courier voice).
+   Exported for the Command Stone ⌘ — same row, same voice. */
+export function SearchUserRow({
     user,
     onGo,
 }: {
