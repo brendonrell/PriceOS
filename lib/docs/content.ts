@@ -110,6 +110,15 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
         ],
     },
     {
+        title: 'The Gnomes',
+        slugs: [
+            'gnomes/overview',
+            'gnomes/the-awakening',
+            'gnomes/gnopensea',
+            'gnomes/the-gnomewallet',
+        ],
+    },
+    {
         title: 'Build on PD',
         slugs: ['building-on-pd', 'mcp'],
     },

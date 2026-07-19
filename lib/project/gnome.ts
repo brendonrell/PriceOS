@@ -49,6 +49,34 @@ const SURNAME_TOOL = [
   'ANVIL', 'BARROW',
 ] as const;
 
+/** Epithets — appended honorifics, drawn for ~a third of keepers (the
+    2026-07-19 name-variation pass; append-only, like every pool here). */
+const EPITHETS = [
+  'THE ELDER', 'THE YOUNGER', 'THE UNDERSOLD', 'OF THE DEEP SEAM',
+  'THE TWICE-COUNTED', 'THE LAMPLIT', 'OF THE NORTH VEIN', 'THE QUIET',
+  'THE LOUD', 'THE PATIENT', 'THE UNMOVED', 'KEEPER OF KEEPERS',
+  'THE FAR-DIGGER', 'OF THE OLD DOOR', 'THE STONE-SWORN', 'THE UNHURRIED',
+  'THE WELL-BOOTED', 'OF THE SEVENTH SHAFT', 'THE GEM-EYED', 'THE HALF-PINT',
+  'THE BOTTOMLESS', 'THE BARELY-BEARDED', 'THE OVERLADEN', 'OF THE ECHO HALL',
+  'THE FLINT-HEARTED', 'THE KETTLE-PROUD', 'THE MOSS-BACKED', 'THE DUST-BLESSED',
+  'THE EVER-COUNTING', 'OF THE LOW BEAM', 'THE DOOR-PROUD', 'THE UNSPENT',
+  'THE TWICE-BLESSED', 'THE DAMP-PROOF', 'THE ORE-DRUNK', 'THE SOFT-SPOKEN',
+  'THE HARD-BARGAINED', 'OF THE GLIMMER ROW', 'THE WAKEFUL', 'THE HALF-ASLEEP',
+  'THE PICK-BENT', 'THE ROOT-WISE', 'THE CANDLE-RICH', 'OF THE HOLLOW HILL',
+  'THE SUREFOOTED', 'THE STOUT', 'THE THRIFTY', 'THE GENEROUS',
+] as const;
+
+/** Nicknames — a mine name, worn in quotes between first and surname. */
+const NICKNAMES = [
+  'TWO LAMPS', 'THE NOSE', 'BUTTONS', 'OLD SPARK', 'HALF-BOOT', 'THE WHISPER',
+  'GEMPOCKET', 'MUDDY', 'TIPTOE', 'THE HAMMER', 'SOOT', 'PEBBLES',
+  'THE SNIFFER', 'LUCKY', 'KNUCKLES', 'THE MOLE', 'DUSTY', 'TWINKLE',
+  'THE BADGER', 'COBWEB', 'SPLINTERS', 'THE OWL', 'RUMBLE', 'FLICKER',
+  'THE FERRET', 'BRAMBLE', 'CLINKER', 'THE YAWN', 'NUGGET', 'THE GRIP',
+  'WICK', 'THUMBS', 'THE HUMMER', 'MOSSY', 'SPUDS', 'THE CREAK',
+  'EMBER', 'THE SQUINT', 'TANKARD', 'ROOTS',
+] as const;
+
 /** Temperament — how this keeper takes to visitors (umbrella spec: the
     per-project NPC's disposition). */
 export const GNOME_TEMPERAMENTS = [
@@ -102,7 +130,7 @@ export interface GnomePalette {
 }
 
 export interface ProjectGnome {
-  /** e.g. "GRIMBLE PYRITEBUTTON" */
+  /** The full name, e.g. `SNORRI "TWO LAMPS" FLINTPICK THE UNDERSOLD`. */
   name: string;
   temperament: GnomeTemperament;
   hat: GnomeHat;
@@ -119,6 +147,20 @@ export interface ProjectGnome {
   /** Indices into the fixed tone pools (palette resolves at render time). */
   beardTone: number;
   skinTone: number;
+  /* ── The 2026-07-19 variation pass — draws APPENDED to the contract
+        (14+), so every prior trait of every gnome stands exactly as cast. */
+  /** Appended honorific, ~1 in 3 (null = none). */
+  epithet: string | null;
+  /** Quoted mine name between first and surname, ~1 in 5 (null = none). */
+  nickname: string | null;
+  /** Little round spectacles, ~15%. */
+  spectacles: boolean;
+  /** A feather in the hat band, ~18%. */
+  feather: boolean;
+  /** A small gold earring, ~12%. */
+  earring: boolean;
+  /** The snail companion at its feet, ~8%. */
+  snail: boolean;
 }
 
 /** Cast a Project's Gnome from its slug. Pure + deterministic — the same
@@ -139,10 +181,30 @@ export function projectGnome(slug: string): ProjectGnome {
   const girth = 0.9 + r() * 0.2;               // 11. girth
   const beardTone = Math.floor(r() * BEARD_TONES.length); // 12. beard tone
   const skinTone = Math.floor(r() * SKIN_TONES.length);   // 13. skin tone
+  // ── APPENDED draws (2026-07-19 variation pass). Every feature consumes a
+  //    FIXED number of draws (roll + index) whether it lands or not, so the
+  //    sequence stays a clean frozen contract for future appends.
+  const epithetRoll = r();                                  // 14. epithet roll
+  const epithetIdx = Math.floor(r() * EPITHETS.length);     // 15. epithet pick
+  const epithet = epithetRoll < 0.35 ? EPITHETS[epithetIdx] : null;
+  const nicknameRoll = r();                                 // 16. nickname roll
+  const nicknameIdx = Math.floor(r() * NICKNAMES.length);   // 17. nickname pick
+  const nickname = nicknameRoll < 0.2 ? NICKNAMES[nicknameIdx] : null;
+  const spectacles = r() < 0.15;               // 18. spectacles
+  const feather = r() < 0.18;                  // 19. hat feather
+  const earring = r() < 0.12;                  // 20. earring
+  const snail = r() < 0.08;                    // 21. snail companion
+  const name = [
+    first,
+    nickname ? `“${nickname}”` : null,
+    `${ore}${tool}`,
+    epithet,
+  ].filter(Boolean).join(' ');
   return {
-    name: `${first} ${ore}${tool}`,
+    name,
     temperament, hat, hatPatch, beard, keepsake, hoard, nose, girth,
     beardTone, skinTone,
+    epithet, nickname, spectacles, feather, earring, snail,
   };
 }
 

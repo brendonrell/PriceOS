@@ -134,6 +134,34 @@
     margin-top: 6px;
 }
 
+/* RESPECT — the keeper's ladder (full-strength; gems drawn, not glyphs). */
+.gnome-respect { margin-top: 10px; }
+.gr-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.gr-head {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+.gr-meter { width: 93px; height: 20px; flex: 0 0 auto; }
+.gr-level {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+.gr-next {
+    margin-top: 3px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+}
+
 /* ASLEEP — the shut hill (no keeper facts show until the waking hour). */
 .gnome-stage-sleep { cursor: default; }
 .gnome-sleep-note {

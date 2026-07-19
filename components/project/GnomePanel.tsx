@@ -36,6 +36,7 @@ import {
     type ProjectGnome, type GnomePalette,
 } from '../../lib/project/gnome';
 import { gnomeGreeting, gnomeAppraisal, gnomeSignature } from '../../lib/project/gnomeVoice';
+import { gnomeRespect, respectAudience, RESPECT_TOP } from '../../lib/project/gnomeRespect';
 import { gnomeJournal } from '../../lib/project/gnomeJournal';
 import { GNOME_GLYPH, gnomeEns, shortGnomeAddress } from '../../lib/project/gnomeWorld';
 import { fmtFeedDate, fmtFeedTime } from '../profile/profilePageShared';
@@ -108,6 +109,17 @@ export default function GnomePanel() {
     const awakening = favour?.gnome ?? null;
 
     const isHolder = (favour?.pieces.length ?? 0) > 0;
+
+    /* RESPECT — the keeper's ladder, from the same favour read (real ledger
+       facts only: pieces, unbroken held-days, favoured count). */
+    const respect = useMemo(() => {
+        const pieces = favour?.pieces ?? [];
+        return gnomeRespect({
+            pieces: pieces.length,
+            totalHeldDays: pieces.reduce((s, p) => s + p.held_days, 0),
+            favoured: pieces.filter((p) => p.favoured).length,
+        });
+    }, [favour]);
     /* Everything favoured (rows arrive sorted by tenure) — the keeper will
        speak for any of them; longest-held leads, pills switch the case. */
     const favouredAll = useMemo(() => favour?.pieces.filter((p) => p.favoured) ?? [], [favour]);
@@ -127,7 +139,8 @@ export default function GnomePanel() {
     const hopTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     useEffect(() => () => { if (hopTimer.current) clearTimeout(hopTimer.current); }, []);
     const onGnomeTap = () => {
-        const audience = favoured ? 'favoured' as const : isHolder ? 'holder' as const : 'stranger' as const;
+        /* The voice follows the ladder: the rung picks the greeting pool. */
+        const audience = respectAudience(respect.level);
         const line = gnomeGreeting(project.slug, gnome.temperament, audience, tapCount.current++);
         setSpeech(line);
         if (speechTimer.current) clearTimeout(speechTimer.current);
@@ -240,6 +253,29 @@ export default function GnomePanel() {
                 <div className="gnome-traits">
                     {HAT_LABELS[gnome.hat]} · {BEARD_LABELS[gnome.beard]} · {KEEPSAKE_LABELS[gnome.keepsake]}
                 </div>
+
+                {/* RESPECT — your rung on the keeper's ladder (signed-in only;
+                    real ledger facts, drawn as the gnome's own gems). */}
+                {siweAddress && favour && (
+                    <div className="gnome-respect">
+                        <div className="gr-row">
+                            <span className="gr-head">RESPECT</span>
+                            <svg className="gr-meter" viewBox="0 0 93 20" aria-hidden="true">
+                                {Array.from({ length: RESPECT_TOP }).map((_, i) => (
+                                    <path
+                                        key={i}
+                                        d={`M ${12 + i * 23},2 L ${20 + i * 23},10 L ${12 + i * 23},18 L ${4 + i * 23},10 Z`}
+                                        fill={i < respect.level ? palette.gem : 'none'}
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                    />
+                                ))}
+                            </svg>
+                            <span className="gr-level">{respect.name}</span>
+                        </div>
+                        {respect.next && <div className="gr-next">NEXT RUNG: {respect.next}</div>}
+                    </div>
+                )}
 
                 {/* THE KEEPER'S JOURNAL — the feed timeline grammar (node ·
                     dashed spine · stacked stamp) carrying story entries. */}
@@ -419,6 +455,19 @@ export function GnomeFigure({ gnome: g, palette: p, mood = 'content', rhythm }: 
                 className={`gnome-figure gnome-figure--${mood}`}
                 style={rhythm ? { animationDelay: `${rhythm.bob}s` } : undefined}
             >
+                {/* The snail companion — keeps to the right of the boots. */}
+                {g.snail && (
+                    <g>
+                        <path d="M 162,266 q 11,-7 23,0 l 0,4 l -23,0 Z" fill="#d9d3c6" stroke={p.ink} strokeWidth="2" strokeLinejoin="round" />
+                        <line x1="164" y1="262" x2="161" y2="255" stroke={p.ink} strokeWidth="1.5" />
+                        <line x1="168" y1="261" x2="167" y2="254" stroke={p.ink} strokeWidth="1.5" />
+                        <circle cx="161" cy="254" r="1.4" fill={p.ink} />
+                        <circle cx="167" cy="253" r="1.4" fill={p.ink} />
+                        <circle cx="178" cy="258" r="8" fill="#c9a227" stroke={p.ink} strokeWidth="2" />
+                        <circle cx="178" cy="258" r="3.5" fill="none" stroke={p.ink} strokeWidth="1.5" />
+                    </g>
+                )}
+
                 {/* The hoard so far — gems at the keeper's feet. */}
                 {Array.from({ length: g.hoard }).map((_, i) => {
                     const gx = [70, 55, 84][i];
@@ -469,8 +518,30 @@ export function GnomeFigure({ gnome: g, palette: p, mood = 'content', rhythm }: 
                 <path d={brows.r} stroke={p.ink} strokeWidth="2.5" strokeLinecap="round" fill="none" />
                 <circle cx="120" cy="133" r={g.nose} fill={p.skin} stroke={p.ink} strokeWidth="2.5" />
 
-                {/* Hat — crown, then the brim band over the brow. */}
+                {/* Round spectacles — perched over the eyes. */}
+                {g.spectacles && (
+                    <g fill="none" stroke={p.ink} strokeWidth="2">
+                        <circle cx="106" cy="119" r="7.5" />
+                        <circle cx="134" cy="119" r="7.5" />
+                        <path d="M 113.5,119 Q 120,115 126.5,119" />
+                        <path d="M 98.5,119 L 91,116 M 141.5,119 L 149,116" strokeWidth="1.5" />
+                    </g>
+                )}
+
+                {/* A gold earring at the head's edge. */}
+                {g.earring && (
+                    <circle cx="150.5" cy="121" r="3.5" fill="none" stroke="#c9a227" strokeWidth="2.5" />
+                )}
+
+                {/* Hat — crown, the feather tucked in the band, then the brim. */}
                 <path d={hatCrown} fill={p.hat} stroke={p.ink} strokeWidth="3" strokeLinejoin="round" />
+                {g.feather && (
+                    <g transform="rotate(8 150 100)">
+                        <path d="M 150,104 Q 158,80 172,70 Q 165,90 156,106 Z"
+                            fill={p.gem} stroke={p.ink} strokeWidth="2" strokeLinejoin="round" />
+                        <line x1="153" y1="102" x2="164" y2="78" stroke={p.ink} strokeWidth="1.2" />
+                    </g>
+                )}
                 {g.hatPatch && (
                     <g transform="rotate(-12 120 72)">
                         <rect x="112" y="66" width="16" height="13" rx="2" fill={p.tunic} stroke={p.ink} strokeWidth="2" />

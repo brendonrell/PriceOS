@@ -33,7 +33,8 @@ import { getProject, projectColorway } from '../lib/project/registry';
 import { projectGnome, gnomePalette } from '../lib/project/gnome';
 import { gnomeGreeting } from '../lib/project/gnomeVoice';
 import {
-    GNOME_GLYPH, GNOME_TAGLINE, gnomeAddress, gnomeEns, shortGnomeAddress,
+    GNOME_GLYPH, GNOME_TAGLINE, GNOME_MARKET_NAME,
+    gnomeAddress, gnomeEns, shortGnomeAddress,
     type GnomeAwakening,
 } from '../lib/project/gnomeWorld';
 import { hashString } from '../lib/art/rng';
@@ -343,7 +344,7 @@ export default function GnomeWalletModal() {
                             {`${GNOME_GLYPH}${VS15}`} gnomewallet {`${GNOME_GLYPH}${VS15}`}
                         </span>
                     </div>
-                    <span className="gw-head-tag">{GNOME_TAGLINE}</span>
+                    <span className="gw-head-tag">&ldquo;{GNOME_TAGLINE}&rdquo;</span>
                 </div>
 
                 {siweAddress && (
@@ -363,14 +364,14 @@ export default function GnomeWalletModal() {
                         className={`gw-wing-post${wing === 'burrow' ? ' gw-wing-on' : ''}`}
                         onClick={() => setWing('burrow')}
                     >
-                        MY BURROW
+                        my burrow
                     </button>
                     <button
                         type="button"
                         className={`gw-wing-post${wing === 'market' ? ' gw-wing-on' : ''}`}
                         onClick={() => setWing('market')}
                     >
-                        THE MUSHROOM MARKET
+                        {GNOME_MARKET_NAME}
                     </button>
                 </div>
 

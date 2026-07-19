@@ -14,8 +14,13 @@
 
 import { mulberry32, hashString } from '../art/rng';
 
-/** The gnomewallet's word. Locked (Brendon, 2026-07-19). */
-export const GNOME_TAGLINE = 'GNOME MATTER WHAT';
+/** The gnomewallet's word — all lowercase, worn in quotes + italics, two
+    sizes down (Brendon, 2026-07-19: the entire gnome world is a lowercase
+    world). Locked. */
+export const GNOME_TAGLINE = 'gnome matter what';
+
+/** The market hall's name (Brendon's coinage, 2026-07-19). Lowercase world. */
+export const GNOME_MARKET_NAME = 'gnopensea';
 
 /** The gnome mark — ⍙ (U+2359, delta underbar: the hat standing on the
     ground). Brendon's pick, 2026-07-19, from the 20-option round. Carries

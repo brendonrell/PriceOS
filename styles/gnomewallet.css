@@ -66,6 +66,9 @@
         var(--gw-deep);
     color: var(--gw-ink);
     font-family: 'Courier New', Courier, monospace;
+    /* The entire gnome world is a lowercase world (Brendon, 2026-07-19):
+       every word in the hall renders lowercase, addresses included. */
+    text-transform: lowercase;
     /* The trip in — through the mushroom: swells from small + soft to sharp. */
     transform: translateY(14px) scale(0.92);
     filter: blur(4px);
@@ -175,9 +178,12 @@
     color: var(--gw-ink);
     text-shadow: 0 2px 0 #17100a;
 }
+/* “gnome matter what” — quoted, italic, two sizes down (Brendon's exact
+   treatment call, 2026-07-19 — deliberate exception to the 12px floor). */
 .gw-head-tag {
     margin-top: 9px;
-    font-size: 12px;
+    font-size: 10px;
+    font-style: italic;
     font-weight: bold;
     letter-spacing: 2px;
     color: var(--gw-gold);
