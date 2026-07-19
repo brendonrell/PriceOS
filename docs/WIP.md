@@ -8,6 +8,57 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ✅ **2026-07-19 PROFILE TAGS + @NAME UNICODE FONTS + PLATFORM USER NUMBERS —
+   on dev (tip `76ce28d`), auto-deploy rolling, tree clean. Branch
+   `claude/profile-tags-feature-pl4j97` = trash (Brendon deletes at
+   https://github.com/brendonrell/PriceOS/branches).** Opus session, Brendon's
+   spec built + polished across several edit rounds:
+   ① TAG PILLS on the profile hero, right above the stickers — SOLID single-
+   colour chips (contrast-picked label/glyph). The shown set is DERIVED: the
+   personas the user PICKED + earned (Artist=whitelist, Veteran=tenure) + granted
+   (from `users.granted_tags`) + the platform-number tag (#1–22 each their own,
+   then First 100/500/1000). `lib/tags/{catalog,derive}.ts` +
+   `components/profile/ProfileTags.tsx`.
+   ② LONG-PRESS @name menu is now THREE side-scroll rows (Colours / Tags / Fonts)
+   via `.cust-scroll` (nowrap + overflow-x; tight between rows, more air top +
+   bottom). Tags row = the persona picker (tap toggles; picked = solid + inset
+   ring; NEVER outlined/dimmed).
+   ③ @NAME UNICODE FONTS — 22 styles (`lib/profile/nameFont.ts`): the 14 math-
+   alphanumeric families + Small Caps / Super / Sub / Parenthesized / Strike /
+   Underline / Spaced / Upside-Down. The "@" + punctuation always stay plain and
+   the real handle is untouched (display only, styled for EVERY viewer via the
+   `ArtistTitleStar` `display` prop + the own-name span). Default pill previews in
+   Rubik Mono One. **Emoji-verified: 0 emoji glyphs across all 22 fonts** (Circled
+   cap-M Ⓜ forced to text via VS-15; handles are lowercase regardless).
+   ④ PLATFORM USER NUMBERS — `users.user_number`, backfilled by join order
+   (**#1 = brendon**, verified) + a BEFORE INSERT trigger for new signups.
+   ⑤ PERSISTENCE (same rail as profile colour/logo): new PUBLIC columns
+   `profile_tags` / `granted_tags` / `name_font` / `user_number`; `useProfileTags`
+   + `useNameFont` hooks; `/api/me` validates picks (personas ONLY) + font;
+   `hydrateFromRow` + `PUBLIC_USER_COLUMNS` extended; the merge RPC writes tags +
+   font. **Migration `20260719_profile_tags` APPLIED LIVE + mirrored** (additive,
+   non-destructive — Brendon approved it out via "push").
+   ⑥ GLYPHS (GLYPHS.md-checked after a Trader=Note miss Brendon caught): collector
+   ☻ · writer ⊟ (Note = writing) · minter ✶ · artist ✺ · og ⌖. Trader + Curator
+   ship GLYPH-LESS (⊟ is Note, ✦ is Offer — clashes); number tags carry the # in
+   the label, no separate glyph.
+   Proof: tsc clean, real builds green each round, compiled-CSS greps confirmed
+   (solid `.tag-pick` / `.profile-tag` / `.cust-scroll`), emoji-safety scripted,
+   migration verified (55 users numbered).
+   **QUEUED FOLLOW-UPS (not built — Brendon's scope):**
+   ⓐ **SITE-WIDE TAG FILTERS** — the point of Brendon's "these can THEN be
+   filters": filter by tag across groups / friend inspector / follower lists.
+   The tags are structured for it; this is the next build pass.
+   ⓑ **Earned Whale / Diamond Hands / Minter NOT lit** — catalogued but not
+   derived (need the right on-chain signal + Brendon's thresholds; deliberately
+   not faked on live profiles). `deriveTags` has the honest hook.
+   ⓒ **Granting mechanism for OG + granted tags** — OG goes to the newpdogs
+   Discord crew as a one-time grant; today `granted_tags` is a column with NO
+   admin UI (set out-of-band). Needs a grant path.
+   ⓓ **Tag colours + glyphs are first-pass** and the Veteran tenure cut is
+   provisional (180d) — Brendon to tune. ClickUp: ad-hoc chat build, follow-ups
+   captured here (six-ship precedent); no task of record.
+
 0. ✅ **2026-07-18 COMPLETIONISM WOW-PASS REVERTED (stats screen kept) — on
    dev (tip `70e98e19`), auto-deploy rolling, tree clean. Branch
    `claude/completionism-revert-stats-ywwi2s` = trash (Brendon deletes at
