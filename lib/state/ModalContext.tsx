@@ -49,7 +49,8 @@ export type ModalName =
     | 'cartography'
     | 'takeover'
     | 'sigilForge'
-    | 'composer';
+    | 'composer'
+    | 'gnomewallet';
 
 interface OpenModalState {
     name: ModalName;

@@ -1,9 +1,16 @@
-// /api/project/[slug]/gnome?address=0x… — the Gnome's Favour read.
+// /api/project/[slug]/gnome?address=0x… — the Gnome read.
 //
-// For one wallet's held pieces in one project: how long each has been held
-// (acquired = the wallet's latest transfer-in event for the token) and
-// whether it currently stands listed at the door. The Favour rule lives in
-// lib/project/gnomeVoice (FAVOUR_DAYS): held ≥ N days, unbroken, unlisted.
+// Two duties:
+//   • THE AWAKENING (Brendon, 2026-07-19) — a gnome sleeps in the hill until
+//     an unknown amount of the project is minted. The threshold is seeded
+//     HERE, server-side only, so it stays unknown; when the minted count
+//     crosses it, the gnome wakes and is OWNED by the wallet whose mint
+//     struck the hour (the minter of the crossing piece). The awakening is
+//     written once to `gnomes` with a rarity cast from the project's real
+//     traded volume at that moment — permanent, never updated.
+//   • THE FAVOUR (address optional) — for one wallet's held pieces: tenure +
+//     listing state feeding the Appraiser (FAVOUR_DAYS in gnomeVoice).
+//
 // Ledger-only, deterministic, $0 — same discipline as /sentiment.
 
 import { type NextRequest, NextResponse } from 'next/server';
@@ -11,10 +18,21 @@ import { getSupabaseService } from '@/lib/supabase';
 import { badRequest, serverError } from '@/lib/errors';
 import { getProject } from '@/lib/project/registry';
 import { FAVOUR_DAYS } from '@/lib/project/gnomeVoice';
+import { gnomeRarityForVolume, type GnomeAwakening } from '@/lib/project/gnomeWorld';
+import { mulberry32, hashString } from '@/lib/art/rng';
 
 export const dynamic = 'force-dynamic';
 
 const ADDRESS_RE = /^0x[0-9a-f]{40}$/;
+
+/* The waking hour — seeded per project, 12%–74% of the vein, never shipped
+   to the client. Nobody outside this file knows the number. */
+function wakeThreshold(slug: string, supply: number): number {
+  const r = mulberry32(hashString(`gnome-wake:${slug}`) || 1);
+  if (supply <= 0) return 22; // unknown vein — the Lucky 22 floor
+  const frac = 0.12 + r() * 0.62;
+  return Math.max(2, Math.min(supply, Math.round(supply * frac)));
+}
 
 export interface GnomeFavourPiece {
   token_id: number;
@@ -32,18 +50,96 @@ export interface GnomeFavourPiece {
 export interface GnomeFavourResponse {
   favour_days: number;
   pieces: GnomeFavourPiece[];
+  /** Awakening state: null while the gnome still sleeps in the hill. */
+  gnome: GnomeAwakening | null;
 }
+
+type GnomeRow = {
+  project_id: string;
+  awakened_at: string;
+  owner_address: string;
+  token_id: number | string;
+  rarity: string;
+};
 
 export async function GET(req: NextRequest, props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
   const slug = params.slug.toLowerCase();
   if (!getProject(slug)) return badRequest('Unknown project');
   const address = (req.nextUrl.searchParams.get('address') ?? '').toLowerCase();
-  if (!ADDRESS_RE.test(address)) return badRequest('Invalid Ethereum address');
+  if (address && !ADDRESS_RE.test(address)) return badRequest('Invalid Ethereum address');
 
   try {
     const db = getSupabaseService();
     const now = Math.floor(Date.now() / 1000);
+
+    /* ── THE AWAKENING ──────────────────────────────────────────────────── */
+    let gnomeRow: GnomeRow | null = null;
+    {
+      const res = await db.from('gnomes').select('*').eq('project_id', slug).maybeSingle();
+      if (res.error) return serverError(res.error.message);
+      gnomeRow = (res.data as GnomeRow | null) ?? null;
+    }
+    if (!gnomeRow) {
+      const projRes = await db.from('projects').select('minted_count').eq('id', slug).maybeSingle();
+      const minted = Number((projRes.data as { minted_count?: number } | null)?.minted_count ?? 0);
+      const supply = getProject(slug)?.outputs ?? 0;
+      const threshold = wakeThreshold(slug, supply);
+      if (minted >= threshold) {
+        /* The hour has struck. The owner is the minter of the crossing piece;
+           if the mint event is missing, the piece's current keeper stands in
+           (never fake an owner from nothing). */
+        const [mintRes, holderRes, volRes] = await Promise.all([
+          db.from('events').select('to_address').eq('project_id', slug).eq('type', 'MINT')
+            .eq('token_id', String(threshold)).maybeSingle(),
+          db.from('holders').select('owner_address').eq('project_id', slug)
+            .eq('token_id', String(threshold)).maybeSingle(),
+          db.from('events').select('price_eth').eq('project_id', slug),
+        ]);
+        const owner =
+          ((mintRes.data as { to_address?: string } | null)?.to_address ??
+            (holderRes.data as { owner_address?: string } | null)?.owner_address ??
+            null)?.toLowerCase() ?? null;
+        if (owner) {
+          let volume = 0;
+          for (const e of (volRes.data ?? []) as { price_eth: number | string | null }[]) {
+            volume += Number(e.price_eth ?? 0);
+          }
+          const payload = {
+            project_id: slug,
+            owner_address: owner,
+            token_id: threshold,
+            rarity: gnomeRarityForVolume(volume),
+          };
+          const insert = await db.from('gnomes').upsert(
+            payload as never,
+            { onConflict: 'project_id', ignoreDuplicates: true },
+          );
+          if (insert.error) return serverError(insert.error.message);
+          const reread = await db.from('gnomes').select('*').eq('project_id', slug).maybeSingle();
+          gnomeRow = (reread.data as GnomeRow | null) ?? null;
+        }
+      }
+    }
+
+    let gnome: GnomeAwakening | null = null;
+    if (gnomeRow) {
+      const handleRes = await db.from('users').select('handle')
+        .ilike('address', gnomeRow.owner_address).maybeSingle();
+      gnome = {
+        project_id: slug,
+        awakened_at: gnomeRow.awakened_at,
+        owner_address: gnomeRow.owner_address,
+        owner_handle: (handleRes.data as { handle?: string } | null)?.handle ?? null,
+        token_id: Number(gnomeRow.token_id),
+        rarity: gnomeRow.rarity as GnomeAwakening['rarity'],
+      };
+    }
+
+    /* ── THE FAVOUR (only with a wallet to read for) ────────────────────── */
+    if (!address) {
+      return NextResponse.json({ favour_days: FAVOUR_DAYS, pieces: [], gnome } satisfies GnomeFavourResponse);
+    }
 
     const heldRes = await db
       .from('holders')
@@ -53,7 +149,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ slug: str
     if (heldRes.error) return serverError(heldRes.error.message);
     const tokenIds = ((heldRes.data ?? []) as { token_id: string | number }[]).map((r) => Number(r.token_id));
     if (tokenIds.length === 0) {
-      return NextResponse.json({ favour_days: FAVOUR_DAYS, pieces: [] } satisfies GnomeFavourResponse);
+      return NextResponse.json({ favour_days: FAVOUR_DAYS, pieces: [], gnome } satisfies GnomeFavourResponse);
     }
 
     const [evRes, listRes, mintRes] = await Promise.all([
@@ -108,7 +204,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ slug: str
       })
       .sort((a, b) => b.held_days - a.held_days || a.token_id - b.token_id);
 
-    return NextResponse.json({ favour_days: FAVOUR_DAYS, pieces } satisfies GnomeFavourResponse);
+    return NextResponse.json({ favour_days: FAVOUR_DAYS, pieces, gnome } satisfies GnomeFavourResponse);
   } catch (err) {
     return serverError(err instanceof Error ? err.message : 'Unknown error');
   }

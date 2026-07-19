@@ -94,6 +94,7 @@ import GasTrackerModal from '../GasTrackerModal';
 import StickersModal from '../StickersModal';
 import SpiteBookModal from '../SpiteBookModal';
 import TarotSpreadModal from '../TarotSpreadModal';
+import GnomeWalletModal from '../GnomeWalletModal';
 import OfferShieldCast from '../OfferShieldCast';
 import PanopticonConfirmModal from '../PanopticonConfirmModal';
 import CartographyModal from '../CartographyModal';
@@ -515,6 +516,9 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="TarotSpreadModal">
                 <TarotSpreadModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="GnomeWalletModal">
+                <GnomeWalletModal />
             </ErrorBoundary>
             <ErrorBoundary name="OfferShieldCast">
                 <OfferShieldCast />

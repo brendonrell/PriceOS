@@ -84,6 +84,8 @@ import { getEnsNames, subscribeEnsNames } from '../../../lib/engines/ensEngine';
 import { fetchMe } from '../../../lib/wallet/accountClient';
 import { pushState } from '../../../lib/state/userState';
 import { useDragScroll } from '../../../lib/hooks/useDragScroll';
+import { useModal } from '../../../lib/state/ModalContext';
+import { GNOME_GLYPH } from '../../../lib/project/gnomeWorld';
 import { FiatCurrencyPicker } from './FiatCurrencyPicker';
 
 /* Placeholder values shown while !isAuthed so the S2 logged-out preview
@@ -118,6 +120,22 @@ export function WalletSection() {
     }, []);
 
     const priceBalance = usePriceBalance(siweAddress);
+
+    /* GNOMEWALLET (Brendon, 2026-07-19) — the pill beside Fiat appears only
+       once this wallet keeps its first gnome (it awakened one by minting a
+       project's hidden crossing piece). One light read per address. */
+    const { open: openModal } = useModal();
+    const [gnomeCount, setGnomeCount] = useState(0);
+    useEffect(() => {
+        setGnomeCount(0);
+        if (!siweAddress) return;
+        let cancelled = false;
+        fetch(`/api/gnomes?address=${siweAddress.toLowerCase()}`, { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => { if (!cancelled && d) setGnomeCount(Array.isArray(d.gnomes) ? d.gnomes.length : 0); })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [siweAddress]);
 
     const handle = isAuthed && siweAddress
         ? shortAddr(siweAddress)
@@ -325,6 +343,28 @@ export function WalletSection() {
                     </span>
                 </span>
                 <FiatCurrencyPicker gated={!isAuthed} />
+                {gnomeCount > 0 && (
+                    <span
+                        className="rpc-ping-btn gnome-wallet-btn"
+                        id="gnomeWalletBtn"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            openModal('gnomewallet');
+                        }}
+                        title="Gnomewallet — gnome matter what"
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                openModal('gnomewallet');
+                            }
+                        }}
+                    >
+                        {GNOME_GLYPH}{'︎'}
+                    </span>
+                )}
                 <span
                     className={`rpc-ping-btn incognito-btn${incognitoActive ? ' rpc-active' : ''}`}
                     id="incognitoProxyBtn"

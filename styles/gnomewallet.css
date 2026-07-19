@@ -1,0 +1,163 @@
+/* ── GNOMEWALLET — the other-world wallet ──────────────────────────────────
+   Stepping through the mushroom: the gnome pfp collection's own trading-world
+   chrome, deliberately NOT the platform's (Brendon-approved pinned theme, the
+   Tarot/Spite Book precedent). Earth, lamplight and mushroom red — and every
+   readable element FULL-STRENGTH cream on deep ground (Rule #2): the mood is
+   palette + ornament, never faded text. */
+
+.gw-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: max(24px, env(safe-area-inset-top, 0px)) 24px max(24px, env(safe-area-inset-bottom, 0px));
+    box-sizing: border-box;
+    background: rgba(12, 8, 4, 0.72);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+.gw-backdrop.active { opacity: 1; pointer-events: auto; }
+
+.gw-sheet {
+    /* The hill's own palette — full-strength. */
+    --gw-ink: #f0e8d8;        /* cream — primary text (the mushroom stalk) */
+    --gw-red: #c0392b;        /* mushroom cap — accents */
+    --gw-gold: #ffd75e;       /* lamplight — highlights */
+    --gw-deep: #1c130b;       /* under-hill ground */
+    --gw-panel: #2a1d10;      /* card interior */
+    --gw-edge: #4a3526;       /* timber lines */
+
+    position: relative;
+    width: min(880px, 100%);
+    max-height: 100%;
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding: 30px 26px 24px;
+    border-radius: 12px;
+    border: 1.5px solid var(--gw-red);
+    background: radial-gradient(120% 80% at 50% -10%, #33220f 0%, var(--gw-deep) 60%);
+    color: var(--gw-ink);
+    font-family: 'Courier New', Courier, monospace;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), inset 0 0 60px rgba(0, 0, 0, 0.35);
+    transform: translateY(10px) scale(0.99);
+    transition: transform 0.28s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.gw-backdrop.active .gw-sheet { transform: none; }
+
+.gw-close {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    font-size: 24px;
+    line-height: 1;
+    color: var(--gw-gold);
+    cursor: pointer;
+    user-select: none;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.gw-head {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 5px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--gw-edge);
+    margin-bottom: 14px;
+}
+.gw-head-glyph { font-size: 26px; color: var(--gw-red); }
+.gw-head-title {
+    font-size: 20px;
+    font-weight: bold;
+    letter-spacing: 4px;
+}
+.gw-head-tag {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    color: var(--gw-gold);
+}
+
+/* ── The gnomenclature — your name.gnome + 6n0m3… address ────────────────── */
+.gw-identity {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    margin-bottom: 16px;
+    text-align: center;
+}
+.gw-ens { font-size: 15px; font-weight: bold; letter-spacing: 1px; }
+.gw-addr {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    color: var(--gw-gold);
+    word-break: break-all;
+}
+
+/* ── The keeping — one card per gnome ────────────────────────────────────── */
+.gw-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+}
+.gw-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 14px 12px 12px;
+    border: 1.5px solid var(--gw-edge);
+    border-radius: 10px;
+    background: var(--gw-panel);
+    text-align: center;
+}
+.gw-card-stage { width: 100%; display: flex; justify-content: center; }
+/* The figure draws full-card here (its own world) — not the tab's half-size. */
+.gw-card .gnome-svg { width: min(150px, 60%); }
+.gw-card-name { font-size: 13px; font-weight: bold; letter-spacing: 1px; }
+.gw-card-proj { font-size: 12px; font-weight: bold; letter-spacing: 0.5px; color: var(--gw-gold); }
+.gw-card-fact { font-size: 12px; font-weight: bold; letter-spacing: 0.3px; }
+
+/* Rarity plate — top-left, cap-red by default; the high tiers go lamplight. */
+.gw-card-rarity {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    background: var(--gw-red);
+    color: var(--gw-ink);
+}
+.gw-r-legendary, .gw-r-mythic { background: var(--gw-gold); color: var(--gw-deep); }
+
+.gw-empty {
+    padding: 26px 10px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    line-height: 1.6;
+}
+
+.gw-foot {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--gw-edge);
+    text-align: center;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    color: var(--gw-gold);
+}

@@ -37,6 +37,7 @@ import {
 } from '../../lib/project/gnome';
 import { gnomeGreeting, gnomeAppraisal, gnomeSignature } from '../../lib/project/gnomeVoice';
 import { gnomeJournal } from '../../lib/project/gnomeJournal';
+import { GNOME_GLYPH, gnomeEns, shortGnomeAddress } from '../../lib/project/gnomeWorld';
 import { fmtFeedDate, fmtFeedTime } from '../profile/profilePageShared';
 import { hashString } from '../../lib/art/rng';
 import type { GnomeFavourResponse, GnomeFavourPiece } from '../../app/api/project/[slug]/gnome/route';
@@ -82,14 +83,16 @@ export default function GnomePanel() {
         return 'content';
     }, [project.maxSupply, project.totalOutputs, listedCount]);
 
-    /* THE FAVOUR — the wallet's tenure per held piece in this project. */
+    /* THE FAVOUR + THE AWAKENING — one read. Runs signed-out too (the
+       awakening state is public: everyone sees whether the hill has opened
+       and who keeps the gnome). */
     const [favour, setFavour] = useState<GnomeFavourResponse | null>(null);
     useEffect(() => {
         setFavour(null);
-        if (!siweAddress) return;
         let cancelled = false;
         const load = () => {
-            fetch(`/api/project/${project.slug}/gnome?address=${siweAddress.toLowerCase()}`, { cache: 'no-store' })
+            const q = siweAddress ? `?address=${siweAddress.toLowerCase()}` : '';
+            fetch(`/api/project/${project.slug}/gnome${q}`, { cache: 'no-store' })
                 .then((r) => (r.ok ? r.json() : null))
                 .then((d) => { if (!cancelled && d) setFavour(d); })
                 .catch(() => {});
@@ -99,6 +102,10 @@ export default function GnomePanel() {
         window.addEventListener('pd:project-refresh', onR);
         return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onR); };
     }, [project.slug, siweAddress]);
+
+    /* Asleep until the awakening read says otherwise — the mine mouth doubles
+       as the loading face, so nothing secret ever flashes. */
+    const awakening = favour?.gnome ?? null;
 
     const isHolder = (favour?.pieces.length ?? 0) > 0;
     /* Everything favoured (rows arrive sorted by tenure) — the keeper will
@@ -173,6 +180,36 @@ export default function GnomePanel() {
         });
     }, [favoured, project.slug, project.totalOutputs, gnome, lowestFloor, listedCount]);
 
+    /* ASLEEP — the hill hasn't opened. Nothing about the keeper (name,
+       temperament, look, journal) shows until the waking hour strikes;
+       the mine mouth also stands in while the awakening read loads. */
+    if (!awakening) {
+        return (
+            <div className="more-box-wrap">
+                <div className="gnome-card">
+                    <div className="gnome-readout">
+                        <div className="gn-head">
+                            <span className="gn-state">PROJECT GUARDIAN · UNDER THE HILL</span>
+                            <span className="gn-title">?????</span>
+                        </div>
+                        <div className="gn-metrics">
+                            <span className="gn-metric"><b>UNKNOWN</b> TEMPERAMENT</span>
+                        </div>
+                    </div>
+                    <div className="gnome-stage gnome-stage-sleep">
+                        <div className="gnome-hop-wrap"><MineMouth /></div>
+                    </div>
+                    <div className="gnome-sleep-note">
+                        SOMETHING LIVES DOWN HERE
+                        <span className="gnome-sleep-sub">
+                            It stirs as the vein is mined. Nobody knows the hour.
+                        </span>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="more-box-wrap">
             <div className="gnome-card">
@@ -226,6 +263,22 @@ export default function GnomePanel() {
                     </div>
                 </div>
 
+                {/* THE KEEPING — who awakened this gnome (their mint struck
+                    the hidden hour) and the rarity cast at that moment. */}
+                <div className="gnome-owner">
+                    <div className="go-head">{GNOME_GLYPH}&#xFE0E; IN THE KEEPING OF</div>
+                    <div className="go-keeper">
+                        <b>{gnomeEns(awakening.owner_handle) ?? shortGnomeAddress(awakening.owner_address)}</b>
+                        {awakening.owner_handle && (
+                            <span className="go-addr"> · {shortGnomeAddress(awakening.owner_address)}</span>
+                        )}
+                    </div>
+                    <div className="go-facts">
+                        AWAKENED {fmtFeedDate(Date.parse(awakening.awakened_at))} · PIECE #{awakening.token_id} STRUCK
+                        THE HOUR · {awakening.rarity}
+                    </div>
+                </div>
+
                 {favoured && appraisal && (
                     <div className="gnome-appraisal">
                         <div className="ga-head">
@@ -258,6 +311,42 @@ export default function GnomePanel() {
                 )}
             </div>
         </div>
+    );
+}
+
+/* ── The closed hill ──────────────────────────────────────────────────────────
+   The sleeping state's face: a shut mine mouth in the figure's own drawing
+   style (self-contained inks), with two lamplit eyes blinking in the dark —
+   something lives down here. Same canvas + half-size class as the figure. */
+
+function MineMouth() {
+    return (
+        <svg
+            className="gnome-svg"
+            viewBox="0 0 240 300"
+            role="img"
+            aria-label="A closed hillside — something lives down here"
+        >
+            <ellipse cx="120" cy="272" rx="88" ry="9" fill="#2a2622" opacity="0.12" />
+            {/* The hill */}
+            <path
+                d="M 22,268 C 32,150 88,88 120,86 C 152,88 208,150 218,268 Z"
+                fill="#4a3526" stroke="#2a2622" strokeWidth="3" strokeLinejoin="round"
+            />
+            {/* Tufts on the crown */}
+            <path d="M 100,96 Q 104,86 110,94 M 118,90 Q 122,80 128,88 M 136,96 Q 140,86 146,94"
+                fill="none" stroke="#2a2622" strokeWidth="2.5" strokeLinecap="round" />
+            {/* The shut mouth of the mine */}
+            <path
+                d="M 86,268 L 86,200 A 34 42 0 0 1 154,200 L 154,268 Z"
+                fill="#17130f" stroke="#2a2622" strokeWidth="3" strokeLinejoin="round"
+            />
+            {/* Lamplit eyes in the dark */}
+            <g className="gnome-eyes">
+                <circle cx="108" cy="226" r="4" fill="#ffd75e" />
+                <circle cx="132" cy="226" r="4" fill="#ffd75e" />
+            </g>
+        </svg>
     );
 }
 
