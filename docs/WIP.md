@@ -8,6 +8,44 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ✅ **2026-07-19 CARTOGRAPHY CHROME + CONTROLS — on dev (tip `d33ae3e8`),
+   auto-deploy rolling, tree clean. Branch `claude/cartography-feature-ideas-vtkw8z`
+   = trash (Brendon deletes at https://github.com/brendonrell/PriceOS/branches).**
+   Opus session — Brendon's Cartography adds, plus a big ideation round that seeded
+   the FABLE HANDOFF below.
+   ① ZOOM ± — two search-button-sized pills directly above the search button; each
+   eases the camera one step (reuses `flyTo`). ② CLOSE × moved to the true top-right
+   corner, on the title/LIVE line, right-aligned with the search/zoom column.
+   ③ MINIMAP — bottom-left corner overview + yellow viewport box, shown once zoomed
+   past the whole-world view; hidden while a place/wallet card holds the view.
+   ④ LEGEND = FILTER — the bottom-left legend is tappable now: COLLECTED/LISTED/XFER
+   toggle whether those pulses draw (land/seats/counts still update live; only the
+   animation is gated; off = 0.4 dim, the one meaningful fade). ⑤ DOUBLE-TAP A
+   TERRITORY → opens its project (`/art/{slug}`).
+   Proof: two real builds green, compiled-CSS greps confirmed (`.carto-zoom-btn`,
+   `.carto-leg`, repositioned `.carto-modal .close-hint`). ClickUp: ad-hoc chat
+   build, no task of record (six-ship precedent).
+   **QUEUED (Time Machine ⇠◷✧): the button + timeline-scrubber is spec'd, NOT built —
+   see the handoff brief.**
+
+   **⛔ FABLE HANDOFF — this session's ideation queued as detailed briefs (Brendon:
+   "get detailed specs into the baton for Fable in a fresh chat"). Build each on a
+   fresh chat, dev rules, present before pushing:**
+   - `docs/briefs/command-stone.md` — THE big one. PD's "AI character" (power +
+     intelligence, vs the personality characters). **$0 SIMULATED** (no model) + full
+     data access; a thin bottom bar (swipe-up to open · long-press to close · never
+     touches Safari chrome · WatchOS-style widgets); the **GO/FIND/ETCH/CAST** intent
+     model; **Ask PD folded in**; logged-in only.
+   - `docs/briefs/cartography-time-machine.md` — the `⇠ ◷ ✧` button under FIT + the
+     approved timeline scrubber (drag to rewind the whole map, ▶ plays it
+     genesis→now). Slots into the control stack shipped above.
+   - `docs/briefs/pd-fm.md` — the bottom "session radio" over the projects' PUBLIC
+     YT playlists (YT IFrame player; the honest lock-screen limit written in).
+   - `docs/briefs/fable-queue-2026-07-19.md` — PD Wrapped (cadence TBD) · Mint Night ·
+     PDTV (exhibition) · Share-any-view · Quiet hours · Sound (synthesized Web Audio).
+     Plus the **DEAD list**: Instant Offline Open (stale-cache) + Widgets (native-only;
+     PD is PWA-only) — do NOT build.
+
 0. ✅ **2026-07-19 PROFILE TAGS + @NAME UNICODE FONTS + PLATFORM USER NUMBERS —
    on dev (tip `76ce28d`), auto-deploy rolling, tree clean. Branch
    `claude/profile-tags-feature-pl4j97` = trash (Brendon deletes at
