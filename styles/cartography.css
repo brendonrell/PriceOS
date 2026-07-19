@@ -12,8 +12,14 @@
    --text-color everywhere else, which goes dark-on-dark over the near-black
    sea (an invisible ×). The map owns its palette — full-strength light. */
 .carto-modal .close-hint {
+    /* True top-right corner, on the title/LIVE line and right-aligned with
+       the search + zoom column (Brendon, 2026-07-19). */
     color: #E9EDF4;
     opacity: 1;
+    top: calc(14px + env(safe-area-inset-top));
+    right: 18px;
+    font-size: 22px;
+    line-height: 1;
 }
 .carto-stage {
     position: absolute;
@@ -215,6 +221,34 @@
     cursor: pointer;
 }
 .carto-search-hit:hover { background: rgba(233, 237, 244, 0.14); }
+
+/* Zoom ± — search-button-sized pills, directly above the search button on
+   the right edge (Brendon, 2026-07-19). */
+.carto-zoom {
+    position: absolute;
+    top: calc(47px + env(safe-area-inset-top));
+    right: 18px;
+    z-index: 21;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Courier New', Courier, monospace;
+}
+.carto-zoom-btn {
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1;
+    color: #E9EDF4;
+    background: rgba(7, 9, 13, 0.82);
+    border: 1px solid #E9EDF4;
+    border-radius: 999px;
+    min-width: 34px;
+    padding: 3px 10px;
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+}
 
 .carto-controls {
     position: absolute;

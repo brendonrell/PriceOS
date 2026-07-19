@@ -642,6 +642,14 @@ class CartoEngine {
         this.fitAll();
     }
 
+    /** Zoom one step around the map centre (the ± controls). Eases via
+     *  flyTo so it moves like every other camera change. */
+    zoomStep(dir: number): void {
+        const f = dir > 0 ? 1.6 : 1 / 1.6;
+        const z = Math.min(6, Math.max(0.04, this.cam.z * f));
+        this.flyTo(this.cam.x, this.cam.y, z, 260);
+    }
+
     private focusWallet(addr: string): void {
         this.walletAddr = addr;
         let pieces = 0;
@@ -1563,6 +1571,31 @@ export default function CartographyModal() {
                                 ))}
                             </div>
                         )}
+                    </div>
+
+                    {/* Zoom — ± around the map centre, matched to the search
+                        button and sitting directly above it (Brendon, 2026-07-19). */}
+                    <div className="carto-zoom">
+                        <span
+                            className="carto-zoom-btn"
+                            role="button"
+                            tabIndex={0}
+                            title="Zoom in"
+                            onClick={() => engineRef.current?.zoomStep(1)}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); engineRef.current?.zoomStep(1); } }}
+                        >
+                            +
+                        </span>
+                        <span
+                            className="carto-zoom-btn"
+                            role="button"
+                            tabIndex={0}
+                            title="Zoom out"
+                            onClick={() => engineRef.current?.zoomStep(-1)}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); engineRef.current?.zoomStep(-1); } }}
+                        >
+                            {'−'}
+                        </span>
                     </div>
 
                     {/* Control stack (Maps-inspired): fit the whole map, fly to
