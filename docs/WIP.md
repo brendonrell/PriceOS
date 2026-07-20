@@ -8,6 +8,48 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ✅ **2026-07-20 THE EXCHANGE ⇌ — head-to-head trading LIVE on dev (merge
+   `6de2b71`, PR #31), auto-deploy rolling, tree clean, migration APPLIED
+   LIVE. Branch `claude/runescape-trading-interface-mcr0a1` = merged trash
+   (Brendon deletes at https://github.com/brendonrell/PriceOS/branches).**
+   Fable session, Brendon's "the RuneScape trading interface — let's build
+   it" → ClickUp `86ba0apqr` (now complete, shipped-comment on task).
+   ① THE WINDOW — cart-shell modal, two square panels stacked for portrait
+   (YOU OFFER / YOU ASK · viewing: YOU GIVE / YOU RECEIVE), square art
+   slots painted with the real pieces, one-sided ◊ ETH sweetener, duration
+   pills, RuneScape's own confirm line ("Are you sure you want to make this
+   trade?"). Sequential accept flow per spec — no live session.
+   ② THE FLOW — propose → counterparty ACCEPT / DECLINE / COUNTER (counter
+   supersedes + flips roles), proposer CANCEL; trades expire on the offer
+   durations. Ownership re-verified atomically at accept.
+   ③ TWO RAILS, ONE BOOK (`trades` table): sim settles via row-locked
+   `app_execute_trade` (holders flip, one ETH leg, stale listings retired,
+   XFER events sale_direction TRADE); chain rail BUILT + DORMANT till
+   cutover — ONE proposer-signed Seaport order (pieces + WETH kicker /
+   native-ETH ask), server gate `checkTradeOrder` demands EXACT side match
+   (9 tests), counterparty fills. Mixed sim+chain trades refused (can't
+   settle atomically).
+   ④ **DECISIONS (Brendon approved via push):** NO fee/royalty on trades —
+   barter moves no sale price (sticker swap/gift precedent); glyph = **⇌
+   (U+21CC)** because the task-name ⇄ is the Arbitrage Map's (GLYPHS.md
+   catalogued, collision noted).
+   ⑤ ENTRIES + PINGS: profile TRADE pill (beside FOLLOW/TAKEOVER) ·
+   output-page TRADE pill (pre-seeded asking that piece) · new TRADE /
+   TRADE_ACCEPTED / TRADE_DECLINED ping kinds (⇌, offers category,
+   financial tier) whose href `/?trade=<id>` deep-links into the window,
+   native push included. Migration also grew the pings kind CHECK.
+   ⑥ CI note: first PR run failed on a test-file type slip (fixture typing
+   only, app code untouched) — fixed `4f6520a`; local tsc had run before
+   the test file existed. Lesson: tsc AFTER the last file lands.
+   Proof: tsc clean · 99/99 tests (9 new) · real build green · compiled
+   CSS/JS greps · mid-tone Courier pixel proof (green colorway, 390×844).
+   **BRENDON ACTIONS:** ⓐ delete the merged branch (link above);
+   ⓑ device-check ⇌ renders as monochrome text on iPhone (#1 glyph gate).
+   **QUEUED (not built, spec-lean kept):** DM surface (spec's "if
+   shipped" — no DMs yet) · an open-trades inbox view (today: pings are
+   the inbox) · trade rows on tape/history surfaces (events already
+   written, sale_direction TRADE, ready to read).
+
 0. ✅ **2026-07-20 COMMAND STONE STAGES 4+5 — THE WIDGET DECK + THE ALIVE
    PASS, both on dev (tip = the stage-5 commit), auto-deploy rolling, tree
    clean. Branch `claude/watchos-spec-qmi85u` = merged trash (Brendon
