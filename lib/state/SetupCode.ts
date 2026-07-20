@@ -209,7 +209,13 @@ const SPELL_KEY_TO_TOKEN: Partial<Record<keyof PdNotifs, string>> = Object.fromE
 //   watchMetric: 0 (default) omitted; 1-3 → WMT1..3
 //   pingToasts:  'off' (default) omitted; on/3d/combo → PTON/PT3D/PTCO
 //   menutape:    0 (default) omitted; 3/4 → MNT3/MNT4
-//   audience:    true (default) omitted; false → NAUD
+//   audience:    NOT in the envelope (Brendon, 2026-07-20 — "the haunted
+//                toggle"). Its default is ON, so codes minted without NAUD
+//                resurrected it on every workspace load, overriding the
+//                user's off. It's a personal presence pref now, like
+//                backButton: workspace/code applies never touch it. NAUD
+//                still DECODES (legacy shared codes must not error) but the
+//                patch ignores it.
 const TOKEN_TO_WATCHMETRIC: Record<string, number> = { WMT1: 1, WMT2: 2, WMT3: 3 };
 const PINGTOAST_TO_TOKEN: Record<PingToastMode, string> = { off: 'PTOF', on: 'PTON', '3d': 'PT3D', combo: 'PTCO' };
 // Decode includes legacy tokens (PTMN/PTSO/PTAL, the old money/social/all cycle)
@@ -259,7 +265,6 @@ export function encodeSetupCode(
     if (notifs.watchMetric >= 1 && notifs.watchMetric <= 3) activeTokens.push(`WMT${notifs.watchMetric}`);
     if (notifs.pingToasts && notifs.pingToasts !== 'off') activeTokens.push(PINGTOAST_TO_TOKEN[notifs.pingToasts]);
     if (notifs.menutape === 3 || notifs.menutape === 4) activeTokens.push(`MNT${notifs.menutape}`);
-    if (!notifs.audience) activeTokens.push('NAUD');
     activeTokens.sort();
 
     // Tape — only included if non-zero (sim 9822-9824).
@@ -360,7 +365,7 @@ export function notifsPatchFromDecodedState(state: DecodedState): Partial<PdNoti
     patch.watchMetric = state.watchMetric ?? 0;
     patch.pingToasts = state.pingToasts ?? 'off';
     patch.menutape = state.menutape ?? 0;
-    patch.audience = state.audience ?? true;
+    // audience deliberately absent — personal pref, never moved by a code.
     return patch;
 }
 
