@@ -85,15 +85,19 @@
    included after it bit once).
    **BRENDON ACTIONS:** delete the merged branch (link above).
    **⛔ UNFINISHED — FRESH CHAT STARTS HERE:**
-   - **SOUND LAYER (his pick, excited):** Web Audio synth blips (mint
-     chime · win sparkle · toggle tick), **default OFF**. TOGGLE PLACEMENT
-     LOCKED BY BRENDON: **the FINAL icon in the workspace dots row**
-     (after ⋯), **2 font sizes larger** than the row's 11px keys (→13px).
-     GLYPH: must evoke SPEAKER — **not music, not waves** ("wave means
-     water"); screened: ∿ TAKEN (Sentiment) · ⌇/≈ shipped elsewhere ·
-     recommendation **⍾ U+237E (bell — the phone-ringer metaphor)**,
-     confirm with him first. He wants to HEAR it: render the synth recipes
-     to WAV offline and SEND them (he asked "what might it sound like").
+   - ✅ **SOUND LAYER SHIPPED (2026-07-20, follow-on Fable session — on dev
+     `856c6ed`, auto-deploy rolling).** Brendon picked **⚟ U+269F** from a
+     15-option speaker round (GLYPHS.md §12e) and locked the sound SET by
+     ear from rendered WAV rounds: **v1 chime (mint) · v1 sparkle
+     (achievement) · v1 tick (settings pills) · coin (your sale) · seal
+     (offer/trade accepted)** — v2 chime/sparkle/tick variants and
+     boink/ping-pop REJECTED, never resurrect. All synthesized live
+     (`lib/sound/recipes.ts`, deterministic — no audio files); toggle =
+     final key in the workspace dots row after ⋯, 13px, default OFF
+     (`pd_sound_on`), tap unlocks iOS audio + ticks on enable. Ping blips
+     gate on the same rules as ping toasts (Pingtoasts + Silent Mode), one
+     blip per toast. Proof: tsc · 110/110 (5 new) · real build · compiled
+     greps · real-Courier mid-tone row proof, both states.
    - **Quiet Hours** — pings schedule silencing native push in a local-time
      window (in-app pings still land); concept explained + liked; the
      schedule UI placement = HIS call (settings are sacred).
