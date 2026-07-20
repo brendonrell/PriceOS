@@ -97,6 +97,7 @@ import { formatEthAmount } from '../../lib/format/eth';
 import { useProjectAnchor } from './useProjectAnchor';
 import { useBudgetStepLine } from './useBudgetStepLine';
 import ProjectMorePanel, { type ProjectMoreL1 } from './ProjectMorePanel';
+import MintRoomModal from './MintRoomModal';
 import RewindProjectView from './RewindProjectView';
 import { useRewindOptional } from '../../lib/state/RewindContext';
 
@@ -149,6 +150,10 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
         if (isRecordingEnabled()) recordProjectView(project.slug);
     }, [project.slug]);
     const { showToast } = useToast();
+    /* MINT ROOM (Brendon, 2026-07-20): THE DOOR IS THE LONG-PRESS on the
+       MINT button — that's the whole launch, his words. No toggle, no
+       settings row. Optional by nature: only people who know press long. */
+    const [mintRoomOpen, setMintRoomOpen] = useState(false);
     const { open } = useModal();
     /* Spite Book — spited handles render redacted on the hero's social rows. */
     const isSpited = useSpiteMatcher();
@@ -491,6 +496,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                                 projectTitle={project.title}
                                 mintPrice={mintPrice}
                                 remaining={remaining}
+                                onLongPress={() => setMintRoomOpen(true)}
                             />
                         )}
                         {soundtrack && (
@@ -783,6 +789,14 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                     <div ref={gallerySentinelRef} className="gallery-load-sentinel" aria-hidden="true" />
                 )}
             </section>
+
+            {mintRoomOpen && (
+                <MintRoomModal
+                    mintPrice={mintPrice}
+                    remaining={remaining}
+                    onClose={() => setMintRoomOpen(false)}
+                />
+            )}
 
             {/* Activity feed — REAL pre-chain rows from Supabase `events`
                 (Brendon, 2026-06-13). Hidden by default; surfaces only when

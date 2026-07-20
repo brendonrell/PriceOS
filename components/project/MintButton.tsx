@@ -29,11 +29,16 @@ export default function MintButton({
   projectTitle,
   mintPrice,
   remaining,
+  onLongPress,
 }: {
   slug: string;
   projectTitle: string;
   mintPrice: number;
   remaining: number;
+  /** MINT ROOM door (Brendon, 2026-07-20): long-press the idle pill and it
+   *  blooms into the room. Absent (or any non-idle phase) = inert; a fired
+   *  long-press swallows the click so it never starts a mint. */
+  onLongPress?: () => void;
 }) {
   const { siweAddress } = useAuth();
   const { showToast } = useToast();
@@ -84,6 +89,31 @@ export default function MintButton({
     if (!siweAddress) { showToast('Wallet: CONNECT TO MINT'); return; }
     setQty(1);
     setPhase('choosing');
+  };
+
+  /* Long-press (the stone's 550ms/8px grammar): fires the MINT ROOM door and
+     suppresses the release's click. */
+  const lpTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lpStart = useRef<{ x: number; y: number } | null>(null);
+  const lpFired = useRef(false);
+  const lpClear = () => {
+    if (lpTimer.current) { clearTimeout(lpTimer.current); lpTimer.current = null; }
+    lpStart.current = null;
+  };
+  const onPillPointerDown = (e: React.PointerEvent) => {
+    if (!onLongPress || phase !== 'idle') return;
+    lpFired.current = false;
+    lpStart.current = { x: e.clientX, y: e.clientY };
+    lpTimer.current = setTimeout(() => {
+      lpTimer.current = null;
+      lpFired.current = true;
+      onLongPress();
+    }, 550);
+  };
+  const onPillPointerMove = (e: React.PointerEvent) => {
+    const s0 = lpStart.current;
+    if (!s0 || !lpTimer.current) return;
+    if (Math.hypot(e.clientX - s0.x, e.clientY - s0.y) > 8) lpClear();
   };
 
   const confirm = async () => {
@@ -195,7 +225,15 @@ export default function MintButton({
       // success readout FITS the fixed 224px pill (it used to overflow and
       // clip on desktop — Brendon 2026-06-12).
       className={`btn-mint${phase === 'done' ? ' mint-done' : ''}${idleFiat ? ' mint-btn-fiat' : ''}${idleFiat && (ethToFiatValue(perOutput) ?? 0) >= 10 ? ' mint-fiat-on' : ''}`}
-      onClick={phase === 'idle' ? start : undefined}
+      onClick={phase === 'idle' ? () => {
+        if (lpFired.current) { lpFired.current = false; return; }
+        start();
+      } : undefined}
+      onPointerDown={onPillPointerDown}
+      onPointerMove={onPillPointerMove}
+      onPointerUp={lpClear}
+      onPointerCancel={lpClear}
+      onPointerLeave={lpClear}
       disabled={phase !== 'idle'}
       style={{ position: 'relative', overflow: 'hidden' }}
     >

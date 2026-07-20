@@ -1,0 +1,186 @@
+/* ══════════════════════════════════════════════════════════════════════
+   MINT ROOM (Brendon, 2026-07-20) — the drop as a venue.
+   Long-press the mint button → it EXPANDS keeping its own 4px cut: a
+   monochrome chassis (black; white when the page's buttons run dark — the
+   stone's polarity read), holding the ROOM WINDOW: a rounder-cornered
+   square themed to the PROJECT (the page's own colorway tokens).
+   Full-strength chrome (Rule #2); corner law honored (4px chassis = the
+   button's own cut; the window's 14px is this surface's deliberate face).
+   ══════════════════════════════════════════════════════════════════════ */
+
+.mintroom-veil {
+    position: fixed;
+    inset: 0;
+    z-index: 10010;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+}
+
+/* the chassis — the mint button blown up, same 4px radius, monochrome */
+.mintroom-chassis {
+    width: min(92vw, 420px);
+    max-height: min(84vh, 640px);
+    background: #0b0b0b;
+    border-radius: 4px; /* the mint button's own cut, kept (his spec) */
+    padding: 10px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+    transform-origin: bottom center;
+    animation: mr-bloom 0.24s cubic-bezier(0.18, 0.9, 0.26, 1.04);
+    display: flex;
+}
+body.theme-bright .mintroom-chassis { background: #ffffff; }
+
+@keyframes mr-bloom {
+    from { transform: scale(0.55) translateY(40px); opacity: 0; }
+    to { transform: scale(1) translateY(0); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .mintroom-chassis { animation: none; }
+}
+
+/* the room window — themed to the project, rounder square */
+.mr-window {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    background: var(--bg-color);
+    color: var(--text-color);
+    border-radius: 14px;
+    padding: 14px;
+    overflow: hidden;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.mr-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.mr-title { font-size: 13px; font-weight: bold; letter-spacing: 1.5px; }
+.mr-live {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: #ffffff;
+    background: #FF0055; /* Hothurt — the live wire */
+    border-radius: 999px;
+    padding: 2px 8px;
+    animation: mr-breathe 2.2s ease-in-out infinite; /* live signal, not chrome fade */
+}
+@keyframes mr-breathe {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .mr-live { animation: none; }
+}
+.mr-close {
+    margin-left: auto;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 15px;
+    font-weight: bold;
+    line-height: 1;
+    color: var(--text-color);
+    background: transparent;
+    border: none;
+    padding: 2px 6px;
+    cursor: pointer;
+}
+
+.mr-proj { font-size: 16px; font-weight: bold; letter-spacing: 1px; margin: 8px 0 2px; }
+
+.mr-crowd {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    margin: 8px 0 12px;
+}
+.mr-crowd-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-color);
+    animation: mr-breathe 2.2s ease-in-out infinite;
+}
+
+/* the shared supply bar — the wall everyone watches together */
+.mr-supply {
+    position: relative;
+    height: 18px;
+    background: var(--stat-bg, rgba(0, 0, 0, 0.08));
+    border: 1.5px solid var(--text-color);
+    overflow: hidden; /* square — corner law */
+}
+.mr-supply-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    background: var(--text-color);
+    transition: width 0.9s ease; /* every mint visibly lands */
+}
+.mr-supply-read {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin: 6px 0 4px;
+}
+
+/* reactions — rising sparks over the room */
+.mr-sparks {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+.mr-spark {
+    position: absolute;
+    bottom: 60px;
+    font-size: 17px;
+    font-weight: bold;
+    color: var(--text-color);
+    animation: mr-rise 1.9s ease-out forwards;
+}
+@keyframes mr-rise {
+    from { transform: translateY(0); opacity: 1; }
+    to { transform: translateY(-180px); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .mr-spark { animation: none; opacity: 0; }
+}
+
+.mr-react-row {
+    display: flex;
+    gap: 6px;
+    margin: 10px 0 12px;
+    flex-wrap: wrap;
+}
+.mr-react,
+.mr-tune {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--text-color);
+    background: var(--bg-color);
+    border: 1.5px solid var(--text-color);
+    border-radius: 999px;
+    padding: 5px 12px;
+    cursor: pointer;
+    line-height: 1;
+}
+.mr-tune { letter-spacing: 0.5px; }
+
+.mr-mint { display: flex; justify-content: center; }
+.mr-out {
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-align: center;
+    padding: 10px 0 4px;
+}
