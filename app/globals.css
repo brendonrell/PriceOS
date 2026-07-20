@@ -3899,6 +3899,10 @@ body.pd-stone-open .ens-copy-toast {
     margin: 5px 0;
 }
 .cust-scroll::-webkit-scrollbar { display: none; }
+/* Scroll-end room: iOS drops trailing padding on an overflow row, so the last
+   pill jammed against the edge and the row read as un-scrollable to the end
+   (Brendon, 2026-07-20). A real flex spacer always survives. */
+.cust-scroll::after { content: ''; flex: 0 0 28px; }
 .cust-scroll > * { flex-shrink: 0; }
 /* More breathing room at the very top + bottom of the customization stack. */
 .profile-colours-picker { margin-top: 16px; }
@@ -3921,6 +3925,8 @@ body.pd-stone-open .ens-copy-toast {
     color: var(--tag-text, var(--text-color));
     font-family: 'Courier New', Courier, monospace;
     line-height: 1;
+    /* Larger than the label so the mark reads (Brendon, 2026-07-20). */
+    font-size: 16px;
 }
 
 /* The tag pills on the hero, right above the stickers: a SOLID single-colour
@@ -3955,6 +3961,8 @@ body.pd-stone-open .ens-copy-toast {
     color: var(--tag-text, var(--bg-color));
     font-family: 'Courier New', Courier, monospace;
     line-height: 1;
+    /* Larger than the label so the mark reads (Brendon, 2026-07-20). */
+    font-size: 16px;
 }
 .profile-tag-label { line-height: 1; }
 

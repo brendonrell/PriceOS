@@ -12,8 +12,15 @@
  */
 
 import { type Tag, tagTextOn } from '../../lib/tags/catalog';
+import { styleName } from '../../lib/profile/nameFont';
 
-export function ProfileTags({ tags }: { tags: Tag[] }) {
+export function ProfileTags({ tags, font }: {
+    tags: Tag[];
+    /** The owner's chosen @name font (users.name_font) — tag labels wear it
+     *  too (Brendon, 2026-07-20). Untouched underneath: display-only, same
+     *  as the @name itself. */
+    font?: string | null;
+}) {
     if (!tags.length) return null;
     return (
         <div className="profile-tags" aria-label="Tags">
@@ -25,7 +32,7 @@ export function ProfileTags({ tags }: { tags: Tag[] }) {
                     title={t.label}
                 >
                     {t.glyph && <span className="profile-tag-glyph">{t.glyph}</span>}
-                    <span className="profile-tag-label">{t.label}</span>
+                    <span className="profile-tag-label">{styleName(t.label, font)}</span>
                 </span>
             ))}
         </div>

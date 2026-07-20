@@ -1374,7 +1374,7 @@ function ProfilePageBodyInner({
                     </div>
                 }
             >
-                    <ProfileTags tags={displayTags} />
+                    <ProfileTags tags={displayTags} font={ownerNameFont} />
                     <HeroStickers
                         ownerHandle={user.handle ?? handle}
                         isOwn={isOwnProfile}
