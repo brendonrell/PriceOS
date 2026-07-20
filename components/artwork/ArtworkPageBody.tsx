@@ -25,7 +25,7 @@ import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNod
 import { createPortal } from 'react-dom';
 import { priceDayContents } from '../../lib/priceday/priceday';
 import { usePriceDay } from '../../lib/priceday/usePriceDay';
-import { playlistWatchUrl } from '../../lib/project/soundtrack';
+import { fmPlay } from '../../lib/fm/fmBus';
 import { useToast } from '../../lib/state/ToastContext';
 import { useCart } from '../../lib/state/CartContext';
 import { useMarketSheet } from '../../lib/state/MarketSheetContext';
@@ -1081,16 +1081,17 @@ export default function ArtworkPageBody({
                                 </div>
                             ))}
                             {soundtrack && (
-                                <a
+                                <div
                                     className="pill-colorway output-soundtrack-btn"
-                                    href={playlistWatchUrl(soundtrack.playlistId)}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                    role="button"
+                                    tabIndex={0}
                                     title={`Soundtrack — ${soundtrack.label}`}
                                     aria-label="Project soundtrack"
+                                    onClick={() => { fmPlay({ playlistId: soundtrack.playlistId, label: soundtrack.label, slug }); showToast('PD miniplayer: ON AIR'); }}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fmPlay({ playlistId: soundtrack.playlistId, label: soundtrack.label, slug }); showToast('PD miniplayer: ON AIR'); } }}
                                 >
                                     <span>{'♫︎'}</span>
-                                </a>
+                                </div>
                             )}
                         </div>
                         <div className="sort-btn-group" style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'nowrap' }}>

@@ -92,7 +92,7 @@ import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { buildOutputMetaFor } from '../../lib/state/ProjectContext';
 import { getProject } from '../../lib/project/registry';
 import { projectMarketStat, traitMarketStat } from '../../lib/market/starredMarket';
-import { playlistWatchUrl } from '../../lib/project/soundtrack';
+import { fmPlay } from '../../lib/fm/fmBus';
 import { FEED_ICON } from '../../lib/feed/feedRow';
 import { useModal } from '../../lib/state/ModalContext';
 import { useToast } from '../../lib/state/ToastContext';
@@ -275,7 +275,8 @@ export function TopBarRow() {
                                     if ((pin.kind === 'output' || pin.kind === 'wishlist') && pin.id != null) {
                                         openOutputModal('output', pin.id, pin.slug);
                                     } else if (pin.kind === 'soundtrack' && pin.playlistId) {
-                                        window.open(playlistWatchUrl(pin.playlistId), '_blank', 'noopener,noreferrer');
+                                        fmPlay({ playlistId: pin.playlistId, label: getProject(pin.slug)?.soundtrack?.label ?? pin.title ?? pin.slug, slug: pin.slug });
+                                        showToast('PD miniplayer: ON AIR');
                                     } else if (pin.kind === 'artist') {
                                         // In-app route to the canonical bare handle (strip any
                                         // leading @, which would 301-redirect through a blank hop).

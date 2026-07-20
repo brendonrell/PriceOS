@@ -47,7 +47,7 @@ import { getGrails, subscribeGrails, togglePinItem, grailKey, type GrailPin } fr
 import { useStarredPrices, priceOf } from '../../lib/pins/starredPriceStore';
 import { useArtistColors, artistBucket, artistFollowers, artistSprite, artistProjectsOwned } from '../../lib/pins/artistColorStore';
 import { useArtistSocial, relGlyphOf, relLabelOf, fmtFollowers } from '../../lib/social/useArtistSocial';
-import { playlistWatchUrl } from '../../lib/project/soundtrack';
+import { fmPlay } from '../../lib/fm/fmBus';
 import { projectSpriteFace } from '../../lib/project/projectSprite';
 import OutputThumb from './OutputThumb';
 import GhostRows from './GhostRows';
@@ -991,10 +991,10 @@ export default function StarredList({
                                         className="starred-row-cta"
                                         role="button"
                                         tabIndex={0}
-                                        title="Play on YouTube"
+                                        title="Play in the PD miniplayer"
                                         aria-label="Play"
-                                        onClick={() => window.open(playlistWatchUrl(r.playlistId), '_blank', 'noopener,noreferrer')}
-                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.open(playlistWatchUrl(r.playlistId), '_blank', 'noopener,noreferrer'); } }}
+                                        onClick={() => { fmPlay({ playlistId: r.playlistId, label: getProject(r.slug)?.soundtrack?.label ?? r.title, slug: r.slug }); showToast('PD miniplayer: ON AIR'); }}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fmPlay({ playlistId: r.playlistId, label: getProject(r.slug)?.soundtrack?.label ?? r.title, slug: r.slug }); showToast('PD miniplayer: ON AIR'); } }}
                                     >
                                         ▶︎ Play
                                     </span>

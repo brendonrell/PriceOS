@@ -4,7 +4,9 @@
  * SoundtrackStarButton — the project page's SOUNDTRACK button, with the same
  * long-press-to-star behaviour as the trait pills (Brendon, 2026-06-19).
  *
- *   • Tap            → open the YouTube playlist (unchanged).
+ *   • Tap            → play the soundtrack in the PD miniplayer (Brendon,
+ *                      2026-07-20 — every soundtrack button is a miniplayer
+ *                      door now; the old YouTube jump-out is gone).
  *   • Long-press     → star/unstar this Project's soundtrack: a persistent ★
  *                      sits on the button and a star floats up to confirm.
  *
@@ -14,8 +16,7 @@
 
 import React from 'react';
 import { useToast } from '../../lib/state/ToastContext';
-import { playlistWatchUrl } from '../../lib/project/soundtrack';
-import { suppressNav } from '../../lib/pwa/navSuppress';
+import { fmPlay } from '../../lib/fm/fmBus';
 import {
     isSoundtrackStarred,
     toggleSoundtrackStar,
@@ -34,7 +35,6 @@ export default function SoundtrackStarButton({
     title: string;
 }) {
     const { showToast } = useToast();
-    const url = playlistWatchUrl(playlistId);
 
     const [starred, setStarred] = React.useState(false);
     React.useEffect(() => {
@@ -57,9 +57,6 @@ export default function SoundtrackStarButton({
         timerRef.current = window.setTimeout(() => {
             longFired.current = true;
             timerRef.current = null;
-            // Swallow the trailing click so the PWA link-interceptor doesn't open
-            // YouTube when the press was meant to star (Brendon 2026-06-19).
-            suppressNav();
             const r = toggleSoundtrackStar(slug, playlistId, title);
             setFloatDown(r !== 'starred');
             setFloatId((n) => n + 1);
@@ -76,11 +73,13 @@ export default function SoundtrackStarButton({
 
     return (
         <a
-            href={url}
+            role="button"
+            tabIndex={0}
             onClick={(e) => {
                 e.preventDefault();
                 if (longFired.current) { longFired.current = false; return; }
-                window.open(url, '_blank', 'noopener,noreferrer');
+                fmPlay({ playlistId, label, slug });
+                showToast('PD miniplayer: ON AIR');
             }}
             className={`btn-soundtrack${starred ? ' soundtrack-starred' : ''}`}
             title={label}
