@@ -6762,6 +6762,26 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 /* Scroll-load sentinel — a zero-height full-row marker; when it nears the
    viewport the gallery reveals its next chunk of tiles (Brendon 2026-06-23). */
 .gallery-load-sentinel { grid-column: 1 / -1; height: 1px; }
+
+/* ── Artist Showcase layouts (Brendon, 2026-07-20 — per-project Studio
+   customization). Showcase tab only; classes set by ProjectPageBody from
+   projects.showcase_layout / showcase_titles. ── */
+#gallery.sc-masonry { display: block; columns: 2; column-gap: 20px; }
+#gallery.sc-masonry .output-card { break-inside: avoid; margin-bottom: 20px; }
+#gallery.sc-mixed .sc-lead { grid-column: 1 / -1; }
+/* the little titles — the pick's number as a bold placard under the art */
+#gallery.sc-titles .project-showcase-pick::after {
+    content: '#' attr(data-mint-id);
+    display: block;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--text-color);
+    padding-top: 5px;
+}
+/* the Gen Curated placard above the Showcase grid — the profile placard
+   grammar, project-page placement */
+.sc-placard { padding: 0 40px 6px; }
 /* Group-by section headers (Brendon, 2026-06-13) — span the full grid row so
    the gallery reads as labelled colour/owner sections. */
 /* Grouped-gallery section title — reuses the HOME carousel title look

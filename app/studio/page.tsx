@@ -20,6 +20,7 @@ import { StickerStudio } from '../../components/studio/StickerStudio';
 import { GodMode } from '../../components/studio/GodMode';
 import { StudioAnalytics } from '../../components/studio/StudioAnalytics';
 import { VouchCard } from '../../components/studio/VouchCard';
+import { ShowcaseEditor } from '../../components/studio/ShowcaseEditor';
 import Hero from '../../components/hero/Hero';
 import SoundtrackStarButton from '../../components/project/SoundtrackStarButton';
 import { deriveSlug } from '../../lib/project/deriveSlug';
@@ -705,6 +706,11 @@ export default function StudioPage() {
             {/* ── VOUCH — whitelisted artists' two forward-an-artist slots;
                    renders nothing for everyone else. Sits at the bottom of the
                    dashboard (Brendon, 2026-07-18). ── */}
+            {/* ── SHOWCASE — per-project artist customization (Brendon,
+                   2026-07-20): manual placement first-class, turnkey second.
+                   Renders only for artists with minted releases. ── */}
+            <ShowcaseEditor address={address ?? null} />
+
             <VouchCard address={address ?? null} />
 
             {/* ── GOD MODE — private layer, analytics side ── */}

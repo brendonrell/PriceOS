@@ -260,6 +260,8 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
     const onArtworksTab = activeTab === 'artworks';
     const onAlbumsTab = activeTab === 'albums';
     const onShowcaseTab = activeTab === 'project-showcase';
+    /* MIXED layout's lead — the set's first pick (insertion order). */
+    const showcaseLeadId = [...projectShowcasePicks][0] ?? null;
     const feedActive = onArtworksTab && sort === 'feed';
     const galleryVisible = (onShowcaseTab || onArtworksTab) && !feedActive;
     const feedVisible = onArtworksTab && feedActive;
@@ -644,12 +646,25 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                 .project-showcase-mode; 6 random picks from page-load carry
                 .project-showcase-pick; CSS hides all other cards + their
                 .meta. Full list still mounted — CSS does the filtering. */}
+            {/* Artist Showcase placard — the profile Gen Curated caption,
+                verbatim markup + classes (Rule #0; 2026-07-20). */}
+            {onShowcaseTab && !showGhosts && project.showcaseCaption && (
+                <div className="gencurated-caption sc-placard">
+                    <span className="gc-glyph" aria-hidden="true">{'⑈︎'}</span>
+                    <span className="gc-title">{project.showcaseCaption}</span>
+                    <span className="gc-count">{`· ${projectShowcasePicks.size}`}</span>
+                </div>
+            )}
             <section
                 id="gallery"
                 data-my-notes={dMyNotesActive ? '1' : undefined}
                 aria-label="Gallery"
                 className={[
                     onShowcaseTab ? 'project-showcase-mode' : null,
+                    /* Artist layouts (2026-07-20): masonry / mixed large-small
+                       + the little titles — Showcase tab only. */
+                    onShowcaseTab && project.showcaseLayout !== 'classic' ? `sc-${project.showcaseLayout}` : null,
+                    onShowcaseTab && project.showcaseTitles ? 'sc-titles' : null,
                 ].filter(Boolean).join(' ') || undefined}
                 style={{ display: galleryVisible ? undefined : 'none' }}
             >
@@ -726,6 +741,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                                         key={id}
                                         id={id}
                                         projectShowcasePick={projectShowcasePicks.has(id)}
+                                        showcaseLead={onShowcaseTab && id === showcaseLeadId}
                                         isBreadcrumb={breadcrumbSample.has(id)}
                                         eager={eagerIds.has(id)}
                                     />
@@ -740,6 +756,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                                 key={id}
                                 id={id}
                                 projectShowcasePick={projectShowcasePicks.has(id)}
+                                showcaseLead={onShowcaseTab && id === showcaseLeadId}
                                 isBreadcrumb={breadcrumbSample.has(id)}
                                 eager={eagerIds.has(id)}
                             />
@@ -756,6 +773,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                                 key={`sc-extra-${id}`}
                                 id={id}
                                 projectShowcasePick
+                                showcaseLead={id === showcaseLeadId}
                                 isBreadcrumb={false}
                                 eager
                             />
