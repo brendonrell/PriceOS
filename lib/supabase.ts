@@ -426,7 +426,10 @@ export type PingKind =
   | 'COUNTER'
   | 'XFER'
   | 'WISHLIST_HIT'
-  | 'WATCH_HIT';
+  | 'WATCH_HIT'
+  | 'TRADE'
+  | 'TRADE_ACCEPTED'
+  | 'TRADE_DECLINED';
 
 /** One row of the unified `pings` inbox. */
 export interface PingRow {

@@ -29,6 +29,7 @@ import { playlistWatchUrl } from '../../lib/project/soundtrack';
 import { useToast } from '../../lib/state/ToastContext';
 import { useCart } from '../../lib/state/CartContext';
 import { useMarketSheet } from '../../lib/state/MarketSheetContext';
+import { useExchange } from '../../lib/state/ExchangeContext';
 import { cancelListing } from '../../lib/market/marketClient';
 import { getWalletClientOnDemand } from '../../lib/wallet/walletClientOnDemand';
 import { useColorway, type ColorwayKey } from '../../lib/state/ColorwayContext';
@@ -198,6 +199,7 @@ export default function ArtworkPageBody({
     const { showToast } = useToast();
     const { add: cartAdd, has: cartHas, items: cartItems } = useCart();
     const { openListSheet, openOfferSheet, openOffersPanel } = useMarketSheet();
+    const { openExchange } = useExchange();
     const [ctaBusy, setCtaBusy] = useState(false);
     const [confirmUnlist, setConfirmUnlist] = useState(false);
 
@@ -838,6 +840,23 @@ export default function ArtworkPageBody({
                                 title="Open offers"
                             >
                                 {'✦︎'} {market!.offers.length} {market!.offers.length === 1 ? 'OFFER' : 'OFFERS'}
+                            </button>
+                        )}
+                        {/* THE EXCHANGE — trade head-to-head with this piece's
+                            holder, window pre-seeded with the piece
+                            (spec 86ba0apqr: output-page surface). */}
+                        {!owned && market?.viewer && market?.owner && (
+                            <button
+                                type="button"
+                                className="mk-offers-pill"
+                                onClick={() => openExchange(
+                                    market.owner as string,
+                                    market.owner_handle,
+                                    { project_id: slug, token_id: String(numberPart) },
+                                )}
+                                title={`Trade with ${heldBy}`}
+                            >
+                                {'⇌︎'} TRADE
                             </button>
                         )}
                         {/* Owner of a live listing: edit price in place (the sheet

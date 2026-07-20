@@ -20,6 +20,9 @@ export const FINANCIAL_KINDS: ReadonlySet<RenderKind> = new Set<RenderKind>([
   'WISHLIST_HIT',
   'WATCH_HIT',
   'LIST',
+  'TRADE',
+  'TRADE_ACCEPTED',
+  'TRADE_DECLINED',
 ]);
 
 export function isFinancial(kind: RenderKind): boolean {
@@ -33,6 +36,7 @@ export const PING_FINANCIAL_DAYS = 365;  // financial signal: a year of history
 /** Stored ping kinds by tier (LIST excluded — broadcast-only, never stored). */
 export const STORED_FINANCIAL_KINDS: PingKind[] = [
   'OFFER', 'OFFER_ACCEPTED', 'COUNTER', 'SALE', 'XFER', 'WISHLIST_HIT', 'WATCH_HIT',
+  'TRADE', 'TRADE_ACCEPTED', 'TRADE_DECLINED',
 ];
 export const STORED_EPHEMERAL_KINDS: PingKind[] = [
   'FOLLOW', 'PROJECT_FOLLOW', 'ACHIEVEMENT', 'STREAK', 'MINT',

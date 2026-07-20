@@ -48,6 +48,7 @@ import { CalcSheetProvider } from '../lib/state/CalcSheetContext';
 import { ProjectProvider } from '../lib/state/ProjectContext';
 import { CartProvider } from '../lib/state/CartContext';
 import { MarketSheetProvider } from '../lib/state/MarketSheetContext';
+import { ExchangeProvider } from '../lib/state/ExchangeContext';
 import { BenchProvider } from '../lib/state/BenchContext';
 import { PersonaProvider } from '../lib/state/PersonaContext';
 import { CalendarProvider } from '../lib/calendar/CalendarContext';
@@ -670,6 +671,7 @@ export default async function RootLayout({
                                                                 <ProjectProvider>
                                                                     <CartProvider>
                                                                       <MarketSheetProvider>
+                                                                       <ExchangeProvider>
                                                                         <BenchProvider>
                                                                             <WorkspacesProvider>
                                                                                 <FiatProvider>
@@ -677,6 +679,7 @@ export default async function RootLayout({
                                                                                 </FiatProvider>
                                                                             </WorkspacesProvider>
                                                                         </BenchProvider>
+                                                                       </ExchangeProvider>
                                                                       </MarketSheetProvider>
                                                                     </CartProvider>
                                                                 </ProjectProvider>

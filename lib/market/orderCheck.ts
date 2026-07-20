@@ -252,3 +252,70 @@ export async function checkOfferOrder(
   await checkSignature(order, opts.address);
   return { priceEth: formatEther(total), currency: 'WETH', ...window };
 }
+
+/** THE EXCHANGE ⇌ — a bilateral trade order:
+ *    offer          = the proposer's pieces (+ WETH kicker when give_eth > 0)
+ *    consideration  = the requested pieces to the proposer
+ *                     (+ native ETH to the proposer when get_eth > 0)
+ *  No royalty legs — trades are barter, no sale price moves (the sticker
+ *  swap/gift precedent). The declared sides must match the order EXACTLY. */
+export async function checkTradeOrder(
+  order: SeaportOrderJson,
+  opts: {
+    address: string;
+    give: { contract: string; tokenId: string }[];
+    get: { contract: string; tokenId: string }[];
+    giveEthWei: bigint;
+    getEthWei: bigint;
+  },
+): Promise<{ startTime: number; endTime: number }> {
+  checkShell(order, opts.address);
+  const p = order.parameters;
+  const window = checkWindow(p);
+
+  const key = (contract: string, id: string | number) =>
+    `${contract.toLowerCase()}:${BigInt(id)}`;
+
+  // Offer side: every give piece exactly once, plus at most one WETH item.
+  const offerNfts = p.offer.filter((o) => Number(o.itemType) === ITEM_ERC721);
+  const offerMoney = p.offer.filter((o) => Number(o.itemType) !== ITEM_ERC721);
+  if (offerNfts.length + offerMoney.length !== p.offer.length) fail('Bad offer items');
+  const giveKeys = new Set(opts.give.map((g) => key(g.contract, g.tokenId)));
+  if (offerNfts.length !== opts.give.length) fail('Offered pieces mismatch');
+  for (const o of offerNfts) {
+    if (!giveKeys.delete(key(o.token, o.identifierOrCriteria))) fail('Offered pieces mismatch');
+    if (asBig(o.startAmount) !== 1n || asBig(o.endAmount) !== 1n) fail('Bad piece amount');
+  }
+  if (opts.giveEthWei > 0n) {
+    if (offerMoney.length !== 1) fail('ETH side mismatch');
+    const m = offerMoney[0];
+    if (Number(m.itemType) !== ITEM_ERC20 || m.token.toLowerCase() !== WETH_ADDRESS.toLowerCase())
+      fail('Trade ETH rides WETH');
+    if (asBig(m.startAmount) !== opts.giveEthWei || asBig(m.endAmount) !== opts.giveEthWei)
+      fail('ETH amount mismatch');
+  } else if (offerMoney.length !== 0) fail('Unexpected ETH in offer');
+
+  // Consideration side: every get piece to the proposer, plus at most one
+  // native-ETH item to the proposer.
+  const considNfts = p.consideration.filter((c) => Number(c.itemType) === ITEM_ERC721);
+  const considMoney = p.consideration.filter((c) => Number(c.itemType) !== ITEM_ERC721);
+  if (considNfts.length + considMoney.length !== p.consideration.length) fail('Bad consideration items');
+  const getKeys = new Set(opts.get.map((g) => key(g.contract, g.tokenId)));
+  if (considNfts.length !== opts.get.length) fail('Requested pieces mismatch');
+  for (const c of considNfts) {
+    if (!getKeys.delete(key(c.token, c.identifierOrCriteria))) fail('Requested pieces mismatch');
+    if (c.recipient.toLowerCase() !== opts.address.toLowerCase()) fail('Pieces must deliver to the proposer');
+    if (asBig(c.startAmount) !== 1n || asBig(c.endAmount) !== 1n) fail('Bad piece amount');
+  }
+  if (opts.getEthWei > 0n) {
+    if (considMoney.length !== 1) fail('ETH side mismatch');
+    const m = considMoney[0];
+    if (Number(m.itemType) !== ITEM_NATIVE) fail('Requested ETH settles native');
+    if (m.recipient.toLowerCase() !== opts.address.toLowerCase()) fail('ETH must deliver to the proposer');
+    if (asBig(m.startAmount) !== opts.getEthWei || asBig(m.endAmount) !== opts.getEthWei)
+      fail('ETH amount mismatch');
+  } else if (considMoney.length !== 0) fail('Unexpected ETH in consideration');
+
+  await checkSignature(order, opts.address);
+  return window;
+}
