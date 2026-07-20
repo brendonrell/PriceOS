@@ -92,8 +92,11 @@ export default function DiscordSection({
                 <div className="attr-grid">
                     {linked ? (
                         <>
+                            {/* The identity tile is the tab's personality: one WIDE
+                                rectangle across the grid (same tile anatomy), the
+                                real Discord pfp + handle front and centre. */}
                             <a
-                                className="attr-tile attr-tile-tap pd-discord-tile"
+                                className="attr-tile attr-tile-tap pd-discord-tile pd-discord-tile-wide"
                                 href={`https://discord.com/users/${discordId}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
@@ -106,8 +109,8 @@ export default function DiscordSection({
                                         className="pd-discord-avatar"
                                         src={avatarUrl(discordId!, discordAvatar)}
                                         alt=""
-                                        width={20}
-                                        height={20}
+                                        width={28}
+                                        height={28}
                                         style={accentHex ? { border: `2px solid ${accentHex}` } : undefined}
                                     />
                                     @{discordUsername}
