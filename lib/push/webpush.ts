@@ -25,6 +25,7 @@ import { formatNativePing } from '@/lib/push/format';
 import { passesCategoryPrefs, pingHref, type FeedItem, type PingCategoryPrefs } from '@/lib/pings/render';
 import { composeResolved, composeSprite, type ResolvedSprite } from '@/lib/sprites/composer';
 import { isPriceSpriteVibe } from '@/lib/sprites/vibes';
+import { quietWindowActive, type QuietHours } from '@/lib/quiet/quietHours';
 
 type DB = ReturnType<typeof getSupabaseService>;
 
@@ -199,10 +200,13 @@ async function fetchGate(
   const notifs = (settings.notifs ?? {}) as {
     pingToasts?: PingToastMode;
     nightmode?: boolean;
+    quietHours?: QuietHours | null;
     pings?: Partial<PingCategoryPrefs>;
   };
   const mode = (notifs.pingToasts ?? 'off') as PingToastMode;
-  const allowed = modeShowsNative(mode) && notifs.nightmode !== true; // Silent Mode keeps it quiet
+  const allowed = modeShowsNative(mode)
+    && notifs.nightmode !== true // Silent Mode keeps it quiet
+    && !quietWindowActive(notifs.quietHours, new Date()); // Quiet Hours sleeps native in-window
   const prefs: PingCategoryPrefs = { ...DEFAULT_CATEGORY_PREFS, ...(notifs.pings ?? {}) };
   return { allowed, spriteFace: spriteFaceFor(row, mood), prefs };
 }
@@ -336,8 +340,9 @@ export async function sendTodoReminder(
       .eq('address', address)
       .maybeSingle();
     const notifs = (((uRow as { settings?: Record<string, unknown> } | null)?.settings ?? {})
-      .notifs ?? {}) as { pingToasts?: PingToastMode; nightmode?: boolean };
+      .notifs ?? {}) as { pingToasts?: PingToastMode; nightmode?: boolean; quietHours?: QuietHours | null };
     if (!modeShowsNative(notifs.pingToasts ?? 'off') || notifs.nightmode === true) return;
+    if (quietWindowActive(notifs.quietHours, new Date())) return; // Quiet Hours — native sleeps in-window
 
     const payload = JSON.stringify({
       title,

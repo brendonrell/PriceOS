@@ -193,6 +193,12 @@ export interface PdNotifs {
 
     // Misc UI prefs
     nightmode: boolean;
+    /* Quiet Hours — the Silent Mode pill's second stage (Brendon,
+       2026-07-20): ⏾ cycles OFF → ON → QUIET HOURS → OFF. Inside the
+       window only NATIVE push sleeps; in-app stays live. Schema in
+       lib/quiet/quietHours.ts; the push sender reads this same shape
+       from users.settings.notifs. Null = never configured. */
+    quietHours: import('../quiet/quietHours').QuietHours | null;
     priceLogo: boolean;
     /* Pingtoasts — how far a ping reaches. OFF (silent inbox) → ON (in-app
        toasts + connect-icon badge) → 3D (native OS notifications, opt-in) →
@@ -275,6 +281,7 @@ const DEFAULTS: PdNotifs = {
     },
 
     nightmode: false,
+    quietHours: null,
     priceLogo: false,
     /* Pingtoasts default OFF — the feature is buried + opt-in (Brendon,
        2026-06-26). Users turn it on (regular), 3D (native), or COMBO via the

@@ -24,12 +24,15 @@ import { createPortal } from 'react-dom';
 import { usePdNotifs, PING_TOAST_CYCLE, showsNativePings } from '../../../lib/state/PdNotifsContext';
 import { useToast } from '../../../lib/state/ToastContext';
 import { useAuth } from '../../../lib/state/AuthContext';
+import { useValuePrompt } from '../../../lib/state/ValuePromptContext';
 import { enableNativePings, getNativeStatus, nativePushSupported } from '../../../lib/push/client';
 import { SettingsToggle } from './SettingsToggle';
+import { parseClockTime, QUIET_DEFAULT_START, QUIET_DEFAULT_END } from '../../../lib/quiet/quietHours';
 
 export function MyPingsRow() {
     const { notifs, update, toggle } = usePdNotifs();
     const { showToast } = useToast();
+    const { openValuePrompt } = useValuePrompt();
     const { siweAddress } = useAuth();
     const isAuthed = !!siweAddress;
     const gatedClass = isAuthed ? '' : ' auth-gated';
@@ -244,14 +247,51 @@ export function MyPingsRow() {
                     iconStyle={{ fontSize: '15px', lineHeight: '1' }}
                     style={{ padding: '0 6px', minWidth: 0, width: 'auto' }}
                 />
+                {/* Silent Mode cycles OFF → ON → QUIET HOURS → OFF (Brendon,
+                    2026-07-20 — the Pingtoasts-cycle grammar). Landing on
+                    QUIET HOURS opens the house value prompt to set the local
+                    window (pre-filled); cancel keeps the current stage.
+                    QUIET HOURS silences only NATIVE push inside the window —
+                    in-app toasts stay live (full ON still quiets everything). */}
                 <SettingsToggle
                     id="sn-nightmode"
                     title="Silent Mode"
-                    active={notifs.nightmode}
+                    active={notifs.nightmode || notifs.quietHours?.on === true}
                     onClick={() => {
-                        const next = !notifs.nightmode;
-                        toggle('nightmode');
-                        showToast(`Silent Mode: ${next ? 'ON' : 'OFF'}`);
+                        if (notifs.nightmode) {
+                            // ON → QUIET HOURS: confirm/set the window first.
+                            const q = notifs.quietHours;
+                            openValuePrompt({
+                                title: 'Quiet Hours',
+                                help: 'Native pings sleep between these local times. In-app pings still land.',
+                                fields: [
+                                    { label: 'FROM', value: q?.start ?? QUIET_DEFAULT_START, placeholder: '10pm', inputmode: 'text' },
+                                    { label: 'UNTIL', value: q?.end ?? QUIET_DEFAULT_END, placeholder: '8am', inputmode: 'text' },
+                                ],
+                                submit: 'Set',
+                                onSubmit: (vals) => {
+                                    if (!vals) return; // cancel — stay on ON
+                                    const start = parseClockTime(vals[0] ?? '');
+                                    const end = parseClockTime(vals[1] ?? '');
+                                    if (!start || !end || start === end) {
+                                        showToast('Quiet Hours: BAD TIMES');
+                                        return;
+                                    }
+                                    let tz = 'UTC';
+                                    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; } catch { /* keep UTC */ }
+                                    update({ nightmode: false, quietHours: { on: true, start, end, tz } });
+                                    showToast(`Silent Mode: QUIET HOURS · ${start}–${end}`);
+                                },
+                            });
+                        } else if (notifs.quietHours?.on) {
+                            // QUIET HOURS → OFF (window kept for next time).
+                            update({ quietHours: { ...notifs.quietHours, on: false } });
+                            showToast('Silent Mode: OFF');
+                        } else {
+                            // OFF → ON (full silence, the original behaviour).
+                            toggle('nightmode');
+                            showToast('Silent Mode: ON');
+                        }
                     }}
                     icon={'⏾\uFE0E'}
                     iconBare
