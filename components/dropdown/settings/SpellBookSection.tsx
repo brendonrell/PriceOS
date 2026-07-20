@@ -281,21 +281,6 @@ export function SpellBookSection({ onTripleTap }: Props) {
                     icon={'⬬︎'}
                     label="The Watch"
                 />
-                {/* MINT ROOM — the drop as a venue (Brendon, 2026-07-20).
-                    Reveals the door: long-press a minting project's MINT
-                    button and it blooms into the room. ✶ is the canon mint
-                    mark. */}
-                <SettingsToggle
-                    id="sb-mintroom"
-                    active={notifs.mintRoom}
-                    onClick={() => {
-                        const next = !notifs.mintRoom;
-                        toggle('mintRoom');
-                        showToast(next ? '✶︎ Mint Room: ON — long-press a MINT button ✶︎' : 'Mint Room: OFF');
-                    }}
-                    icon={'✶︎'}
-                    label="Mint Room"
-                />
                 {/* NPC — drives the off-screen NPC Cast. Simple on/off pill. */}
                 <SettingsToggle
                     id="sb-npc"

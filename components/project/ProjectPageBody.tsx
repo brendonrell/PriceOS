@@ -76,7 +76,6 @@ import FeedEventRow from '../feed/FeedEventRow';
 import { useSort, groupHeaderGlyph } from '../../lib/state/SortContext';
 import { useGalleryCols, colsWidth } from '../../lib/hooks/useGalleryCols';
 import { useToast } from '../../lib/state/ToastContext';
-import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { TraitsProvider } from '../../lib/state/TraitsContext';
 import ArtworkCard from '../ArtworkCard';
@@ -151,9 +150,9 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
         if (isRecordingEnabled()) recordProjectView(project.slug);
     }, [project.slug]);
     const { showToast } = useToast();
-    /* MINT ROOM (Brendon, 2026-07-20): the Spell Book toggle reveals the
-       door — long-press the MINT button, the room blooms. */
-    const { notifs } = usePdNotifs();
+    /* MINT ROOM (Brendon, 2026-07-20): THE DOOR IS THE LONG-PRESS on the
+       MINT button — that's the whole launch, his words. No toggle, no
+       settings row. Optional by nature: only people who know press long. */
     const [mintRoomOpen, setMintRoomOpen] = useState(false);
     const { open } = useModal();
     /* Spite Book — spited handles render redacted on the hero's social rows. */
@@ -497,7 +496,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                                 projectTitle={project.title}
                                 mintPrice={mintPrice}
                                 remaining={remaining}
-                                onLongPress={notifs.mintRoom ? () => setMintRoomOpen(true) : undefined}
+                                onLongPress={() => setMintRoomOpen(true)}
                             />
                         )}
                         {soundtrack && (

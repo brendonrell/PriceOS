@@ -170,11 +170,6 @@ export interface PdNotifs {
        advanced by tapping the chip. */
     watch: boolean;
     watchMetric: number;
-    /* MINT ROOM — the drop as a venue (Brendon, 2026-07-20). OFF by
-       default, totally optional: the Spell Book pill reveals the door
-       (long-press the mint button). Door confirmed before build
-       (Rule #-0.4). */
-    mintRoom: boolean;
     /** The Audience — live per-project viewer presence. ON = you're counted in
      *  and see the "watching now" indicator; OFF = you opt out (no presence
      *  broadcast, indicator hidden for you). Default ON (Brendon, 2026-06-16). */
@@ -264,7 +259,6 @@ const DEFAULTS: PdNotifs = {
     miniplayerOpen: false,
     watch: false,
     watchMetric: 0,
-    mintRoom: false,
     audience: true,
 
     pings: {
