@@ -3,7 +3,7 @@ title: "The App — Cartography ◫"
 description: "The living map of the whole platform: Projects as territories, collectors as inhabitants, sales as movement — real-time, zoomable, opened by long-pressing the Price Discussion name."
 category: "app"
 keywords: ["cartography", "map", "ecosystem", "territories", "long press", "live"]
-last_updated: "2026-07-13"
+last_updated: "2026-07-20"
 ---
 
 # Cartography ◫
@@ -49,11 +49,21 @@ reads at a glance over any territory colour.
 ## The chart tools
 
 - **Search ⌕** (top right) — type a territory's name and jump straight to it.
+- **Zoom ±** — two keys under the search that ease the camera in and out one
+  step at a time; pinch works too.
 - **FIT** — recenter and fit the whole known world on screen.
 - **ME** — fly home: your own wallet's empire, every territory you hold,
   connected by arcs.
+- **The minimap** — once you're zoomed past the whole-world view, a corner
+  overview appears with a frame marking where you are, so you can never lose
+  the world.
+- **The legend is a filter** — tap COLLECTED, LISTED, or XFER in the legend
+  to switch that kind of pulse off or on. Land, seats, and counts keep
+  updating live either way; you're choosing which motion draws.
 - **Tap a territory** and its card slides up: minted count, population,
   volume, and an OPEN button that takes you to the project itself.
+  **Double-tap a territory** to skip the card and go straight to the
+  project's page.
 
 ## New land
 

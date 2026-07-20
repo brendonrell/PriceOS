@@ -3,16 +3,20 @@ title: "The App — Projects & Minting"
 description: "The Project page: minting from the UI, live presence, traits and the Genome, grid sorts and grouping, project milestones, True Names, and per-Project colour."
 category: "app"
 keywords: ["project page", "minting", "genome", "milestones", "true name", "gnome"]
-last_updated: "2026-07-17"
+last_updated: "2026-07-20"
 ---
 
 # The App — Projects & Minting
 
 Every Project on PD gets a page that is part gallery, part market floor, part observatory. It lives at `/art/{slug}`, wears the artist's own colour, and carries every tool the platform has for reading one body of work.
 
+The stats row reads minted / volume / owners at a glance — tap the owners count and the **OWNERS** list opens: every holder ranked by pieces held, sortable (pieces · listed · A–Z), medals on the top three, your own row highlighted. The **Artist Showcase** tab is arranged by the artist themself — their chosen pieces, in their chosen layout (classic, masonry, or mixed with a lead piece), optionally titled, with a placard when the set is Gen Curated.
+
 ## Minting from the UI
 
 While a Project is minting, its page carries the mint button. The button itself shows live progress — from tap, through wallet confirmation, to the chain's answer — as a filling bar inside the control, so a mint never feels frozen. The wallet sheet shows the exact total (mint price plus the flat storage fee per Output); the contract accepts exact payment only. What happens on-chain is documented in [The Mint Flow](/docs/for-artists/the-mint-flow).
+
+**The Mint Room** — long-press the mint button and it blooms into the project's own listening room: the live crowd count, the shared supply bar, reaction sparks from everyone in the room, and the project soundtrack — with the real mint button at the center. Minting as an event, not a form.
 
 ## The grid
 

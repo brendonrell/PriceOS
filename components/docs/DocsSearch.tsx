@@ -114,9 +114,13 @@ export function DocsSearch({ open, onToggle }: { open: boolean; onToggle: (v: bo
                 className={`pd-docs-index-btn pd-docs-search-btn${open ? ' open' : ''}`}
                 aria-expanded={open}
                 aria-controls="pdDocsSearchPanel"
+                aria-label={open ? 'Close search' : 'Search the docs'}
+                title={open ? 'Close search' : 'Search the docs'}
                 onClick={() => onToggle(!open)}
             >
-                {open ? 'CLOSE' : 'SEARCH'}
+                {/* Glyph-only (Brendon, 2026-07-20): ⌕ — the canonical search
+                    mark (GLYPHS.md; the artwork row's search key) — × open. */}
+                {open ? '×︎' : '⌕︎'}
             </button>
             {open && (
                 <div id="pdDocsSearchPanel" className="pd-docs-mobile-nav pd-docs-search-panel">

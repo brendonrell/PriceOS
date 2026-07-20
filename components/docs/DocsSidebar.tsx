@@ -64,8 +64,10 @@ export function DocsChrome({ nav }: { nav: NavSection[] }) {
                     <PerMilleMark className="pd-docs-logo-mark" /> PRICE DISCUSSION <span className="pd-docs-wordmark-docs">DOCS</span>
                 </Link>
                 <div className="pd-docs-topbar-right">
-                    <a href="/" className="pd-docs-applink">THE APP</a>
+                    {/* Search leads the row — glyph-only (Brendon, 2026-07-20:
+                        first item after the title, no word). */}
                     <DocsSearch open={searchOpen} onToggle={(v) => { setSearchOpen(v); if (v) setOpen(false); }} />
+                    <a href="/" className="pd-docs-applink">THE APP</a>
                     <button
                         type="button"
                         className={`pd-docs-index-btn${open ? ' open' : ''}`}

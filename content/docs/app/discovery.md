@@ -3,7 +3,7 @@ title: "The App — Discovery"
 description: "Finding work on PriceOS: the home page and its carousels, the live feed and milestones, global search, artist surfaces, and PriceRank."
 category: "app"
 keywords: ["discovery", "search", "home", "feed", "pricerank", "stickers", "lane runner"]
-last_updated: "2026-07-17"
+last_updated: "2026-07-20"
 ---
 
 # The App — Discovery
@@ -34,7 +34,7 @@ The artists view lists the whitelisted roster; each artist's page carries their 
 
 ## PriceRank ❂
 
-The standing system, as a surface: the platform-wide ranking fed by achievements and activity, with network filters for slicing the leaderboard to the people you care about. Leaderboards elsewhere in the app (including sillier ones) share its machinery — up to and including **Lane Runner**, the platform's hidden arcade cabinet, which keeps its own board. (Typing its name into Global Search is one way in.)
+The standing system, as a surface: the platform-wide ranking fed by achievements and activity, with network filters for slicing the leaderboard to the people you care about. Tap the PriceRank medallion in your PriceSprite card and the **Top 100 leaderboard** opens — the platform's collectors ranked by PriceScore, medals on the podium, your own row highlighted so you always know where you stand. Leaderboards elsewhere in the app (including sillier ones) share its machinery — up to and including **Lane Runner**, the platform's hidden arcade cabinet, which keeps its own board. (Typing its name into Global Search is one way in.)
 
 ## The Calendar ▦
 

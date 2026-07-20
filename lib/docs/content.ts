@@ -73,6 +73,7 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
             'for-collectors/how-pd-works',
             'for-collectors/wallet-setup',
             'for-collectors/the-secondary-market',
+            'for-collectors/the-exchange',
             'for-collectors/hostile-takeover',
         ],
     },

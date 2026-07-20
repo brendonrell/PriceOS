@@ -3,7 +3,7 @@ title: "The App — Outputs"
 description: "The individual artwork surface: live on-chain rendering, fullscreen, attributes and rarity receipts, the action row, the ASCII backup, and Output-level follows."
 category: "app"
 keywords: ["output", "artwork", "live render", "rarity", "ascii backup", "grouping", "tribunal"]
-last_updated: "2026-07-17"
+last_updated: "2026-07-20"
 ---
 
 # The App — Outputs
@@ -40,6 +40,13 @@ An Output's event history reads **time as distance**: in feed order, a gap of
 a year or more between events stretches the connector between them — longer
 still at five and ten years — so a piece's quiet decades are visible at a
 glance, not compressed into a uniform list.
+
+## The Neighbourhood
+
+A piece's +More carries its **Neighbourhood**: the wallets in its story —
+the keeper, the original minter, past hands — and what else each of them
+holds, drawn as tappable art tiles. Provenance as a place you can walk
+around in.
 
 ## Spell-aware surfaces
 

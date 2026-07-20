@@ -3,7 +3,7 @@ title: "The App — Collector Tools"
 description: "The OS-tools layer of PriceOS: To-Dos with ETH targets, private Notes, the Cart, the drag-only Bench, the Calc, the Calendar, Workflows, and the Portfolio."
 category: "app"
 keywords: ["os tools", "todos", "notes", "cart", "bench", "workflows", "anchor", "sentinel"]
-last_updated: "2026-07-17"
+last_updated: "2026-07-20"
 ---
 
 # The App — Collector Tools
@@ -55,6 +55,30 @@ One field, the whole platform: Projects, Outputs, artists, collectors, @names.
 ## Workspaces
 
 Whole tool arrangements — every mode, spell, and setting — saved as one-tap personas (Curator, Scout, Trader, Oracle, Socialite, Insider, Degen, DJ…) and switchable from settings. They ride Setup Codes, so a workspace is also shareable. See [Settings & Display](/docs/app/settings-and-display).
+
+## The PD miniplayer ♫
+
+Play any soundtrack — a project page's SOUNDTRACK button, a piece's ♫ key,
+your Starred Soundtracks, a pinned soundtrack in the top bar — and the PD
+miniplayer appears on the bottom band: a compact deck with the real video as
+a tiny album-art window, the track readout, and transport keys. It exists
+only while music is playing; close it and it's gone completely. Navigation
+never interrupts the audio.
+
+- **Five faces.** The ⎇ MODE key cycles the deck through five looks, from
+  the full deck to a bare signal chip — the key rides every face and
+  switches instantly.
+- **The station picker.** Tap the screen to change stations: your starred
+  soundtracks first, then every album on the platform.
+- **Honest tuning.** A station that can't be reached says DEAD LINK within
+  seconds instead of spinning; broken tracks skip themselves.
+
+## PD Wrapped
+
+Your collecting story, on demand: summon `wrapped` (or `recap`, or
+`wrapped 90d` for a custom window) in the Command Stone and PD plays back
+your period — pieces in and out, net ◊ flow, your biggest realized flip,
+your best floor call, and your top counterparty.
 
 ## Further reading
 

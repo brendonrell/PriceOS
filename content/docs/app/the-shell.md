@@ -3,7 +3,7 @@ title: "The App — The Shell"
 description: "PriceOS's persistent layer: the Tape ticker, the navbar, the footer's live readouts and easter eggs, the installable PWA, and the colorway system."
 category: "app"
 keywords: ["shell", "tape", "pwa", "footer", "colorways"]
-last_updated: "2026-07-17"
+last_updated: "2026-07-20"
 ---
 
 # The App — The Shell
@@ -33,6 +33,29 @@ PriceOS is a PWA: installable to the home screen on iOS and Android, with an off
 ## Colorways
 
 The whole app is painted through one variable system. Defaults are per-page — home wears the daily Mood Ring, Projects wear their artist's colour, profiles wear their owner's — and an explicit pick in [settings](/docs/app/settings-and-display) (Light, Dark, Orange, Blueberry, Cherry, Hash Synesthesia, Haze, or a fully custom colour) wins everywhere, painted before first frame so there is never a flash. These docs default to Dark and carry the same picker.
+
+## The Command Stone ⌘
+
+Signed in, a swipe up from the lower part of any page summons a slim black
+bar — the Command Stone, the platform's command line in a speech bubble.
+Type into it and it answers in kind:
+
+- **Find anything** — the real global search, inline: people, projects,
+  pieces, pages; Enter takes the top hit.
+- **Ask it** — floors, ATHs, volumes, docs answers; glanceable black cards
+  with act-on-it keys (anchor a floor, wishlist a piece, follow a
+  collector).
+- **Etch** — type a to-do, a note, an anchor, a watch, a wishlist line and
+  commit it on a second touch. It rides the same stores the full tools use.
+- **Cast** — spell, mode, and workspace names flip the real settings, by
+  their exact names.
+- **Summon widgets by name** — `calendar`, `priceday`, `calc`, `gallery`,
+  `matrix`, `dossier @name`, `brief`, `wrapped`, a project's `30d` trend
+  sparkline, and more.
+
+It remembers the subject you're on (ask "prisms floor", then just "ath"),
+folds away on an outside tap, and hides completely with a swipe down —
+by default it's fully off screen.
 
 ## Ambient Strip
 

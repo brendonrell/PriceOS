@@ -3,7 +3,7 @@ title: "The App — Settings & Display"
 description: "MY PD in full: the colorway picker and Haze, every display-mode pill on both rows, Setup Codes, the Default Sort row, Workspaces and Spaces, and the door to the Spell Book."
 category: "app"
 keywords: ["settings", "my pd", "colorways", "display modes", "setup code", "workspaces"]
-last_updated: "2026-07-17"
+last_updated: "2026-07-20"
 ---
 
 # The App — Settings & Display
@@ -79,6 +79,28 @@ Workspaces are saved configurations you switch between with one tap — the same
 
 - The **MY PINGS** bank — what reaches you and how loudly, pill by pill, including Silent Mode ⏾ — has [its own page](/docs/pings/controls).
 - The **DEFAULT SORT** row sets the sort and the **grouping** (the ⁘ pill, cycling the full dimension order — see [Outputs](/docs/app/outputs)) that boot the app and re-apply on every project entry.
+
+## Fiat mode & currencies
+
+Prices can wear a fiat estimate beside the ◊. Seven currencies ride the
+fiat pill: **USD · CAD · GBP · EUR · AUD · PHP · JPY**, live-rated. Dollar
+currencies print a plain $ — no letter prefixes, ever.
+
+## Sound ⚟
+
+The platform's sound layer lives behind the ⚟ key — the last key in the
+workspace dots row, **off by default**. Switched on, real moments get real
+sounds: a chime when a mint lands, a sparkle on an achievement unlock, a
+tick on settings keys, a coin when one of your pieces sells, a seal when an
+offer or trade is accepted. Ping blips follow the same rules as ping toasts,
+so silence settings are always respected.
+
+## Silent Mode & Quiet Hours ⏾
+
+The Silent Mode pill cycles **OFF → ON → QUIET HOURS**. Quiet Hours silences
+**native push only** inside a nightly window you set (pre-filled 22:00–08:00,
+your local time) — in-app pings keep landing, and everything is waiting for
+you in the morning.
 
 ## One hard rule of the design
 

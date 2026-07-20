@@ -3,7 +3,7 @@ title: "The App — Identity & Profiles"
 description: "The identity layer: @names, PriceSprites, profile pages and their owner's colour, Showcase modes, and the Collected / Starred / Wishlist / Albums system."
 category: "app"
 keywords: ["identity", "@name", "pricesprite", "profile", "showcase", "albums", "completionism", "friend inspector"]
-last_updated: "2026-07-17"
+last_updated: "2026-07-20"
 ---
 
 # The App — Identity & Profiles
@@ -13,6 +13,16 @@ PD's identity layer sits on top of your wallet: the address signs, the identity 
 ## The @name
 
 Your handle across the platform — on the Tape, in Pings, on everything you touch. The @ is part of the noun. Underneath it your address (and ENS, where set) remains readable; the @name is how the community knows you.
+
+Long-press your @name on your own profile and the customization rows open: your **profile colour**, your **tags**, and your **name font** — twenty-two Unicode styles (bold, script, fraktur, small caps, upside-down…) that restyle your displayed name for every viewer. The @ stays plain and the real handle underneath never changes.
+
+## Profile tags
+
+Identity chips on your hero, above the stickers. Some you **pick** (Collector, Trader, Analyst, Degen ⚔, Podcaster ⚲, and more — toggle them in the tags row of the customization menu), some are **earned** from the record (Artist ✺, Minter ✶, Veteran), some are **granted** (OG ⌖), and one is **yours by number**: every account carries its platform number — *User #1* through *#22* stand alone, then First 100 / 500 / 1000. Tag labels wear your chosen name font, and the paint chips at the end of the tags row can dress every tag in one colour — all black, all white, or a brand primary — with the lettering flipped to match.
+
+## Your platform number
+
+Accounts are numbered in join order, forever. Long-press the join date on any profile to flip it to the platform number; tap to open the joining PriceDay.
 
 ## The PriceSprite
 
@@ -62,6 +72,14 @@ Follows are asymmetric and read at a glance beside any @name: mutual ⚭, follow
 ### The Friend Inspector
 
 The Followers modal carries the **Friend Inspector** — your circle, instrumented. Two views behind a toggle: **the Wire**, your circle's live story as counter-scrolling ticker rows (their mints, sales, and listings, riding the news rail's exact mechanics), and **the Constellation**, the circle as a navigable starfield — you at the center, friends pulled closer by shared holdings, cartel threads drawn between you, pinch-zoomable like a real map. Three **lenses** re-read the same people: LEDGER (the plain record), DRAMA (a live three-stat duel of every friend against you, tightest races first), and SLEUTH (each friend's last on-ledger move, freshest first). Lenses annotate and re-order; they never hide anyone.
+
+### Counterparties & The Nemesis
+
+The profile's **Counterparties** tab reads the wallet's trading history as a who-with list: everyone this collector has actually dealt with, ranked by deals then volume, medals ❶❷❸ on the top three. From there, **DECLARE NEMESIS** — one declared rival per account. A declared nemesis shows as a public head-to-head plate: both sides' held counts and floor-priced positions with a live AHEAD / BEHIND read.
+
+### Targets ⬚
+
+The profile's **Targets** tab is the wallet's public record of price calls. A call inside its open window shows **SEALED** (with its reveal date) to everyone but its author; once the window closes it becomes permanent public record, scored against today's floor — per-call gap and the running average miss.
 
 ### The Identity Plate
 
