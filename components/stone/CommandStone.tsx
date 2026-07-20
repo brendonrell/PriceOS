@@ -88,6 +88,35 @@ export default function CommandStone() {
     /* The stealth console's persisted style (accent hex · forced stage)
        repaints on boot — stoneStyle.ts, deliberately absent from the docs. */
     useEffect(() => { applyStoneStyle(); }, []);
+
+    /* THE VOICE — one terse line for the bubble's reserved top slot.
+       Priority: a fresh confirmation > the summoned hand's line > an etch
+       or cast on offer > the search read > listening. */
+    const sayLine = (): string => {
+        if (etched) return etched;
+        if (activeWidget) {
+            const SAY: Record<string, string> = {
+                calendar: 'Your slate, read.',
+                priceday: 'The day, according to PD.',
+                calc: 'The math, done.',
+                dossier: 'The file, pulled.',
+                gallery: 'Hung and lit.',
+                matrix: 'Side by side.',
+                ascii: 'Your mark, carved.',
+                docs: 'The manual knows.',
+                glance: 'The glance.',
+                trend: 'The last 30 days, read.',
+            };
+            return SAY[activeWidget.kind] ?? 'Here.';
+        }
+        if (etchPlan) return 'Carve it? Touch the chip.';
+        if (castHit) return 'Say the word and it flips.';
+        if (searchingNow && results) {
+            const n = (results.projects?.length ?? 0) + (results.users?.length ?? 0) + (results.answers?.length ?? 0);
+            return n > 0 ? 'Found this.' : 'Nothing by that name.';
+        }
+        return 'Listening.';
+    };
     const open = stage === 'open';
     const setOpen = (v: boolean) => setStage(v ? 'open' : 'hidden');
     const [value, setValue] = useState('');
@@ -590,6 +619,10 @@ export default function CommandStone() {
             >
                     {hasTab && (
                     <div className="stone-deck stone-results">
+                        {/* THE VOICE — the bubble's reserved top lines: the
+                            stone speaks or summarizes before showing
+                            (Brendon's structure, 2026-07-20). TARS-terse. */}
+                        <div className="stone-say">{sayLine()}</div>
                         {/* THE WIDGET DECK — a summoned hand owns the tab */}
                         {activeWidget && (
                             <WidgetDeck

@@ -155,10 +155,11 @@ export interface PdNotifs {
     /* Ambient Strip — the LED light bar under the Tape. Off by default;
        toggled from MY PD. When off the strip isn't rendered at all. */
     ambientStrip: boolean;
-    /* pd miniplayer — the bottom-right soundtrack device. ON by default;
-       the bar's × key and the MY PD pill both flip this. When off the bar
-       isn't rendered and audio stops. Not part of the Setup Code (a
-       personal device pref, like backButton). */
+    /* PD miniplayer — the bottom-right soundtrack device. OFF by default
+       (Brendon, 2026-07-20: never auto-open chrome on people) — closed
+       means THE DOT; tapping it summons the deck. The × collapses back and
+       stops audio. Not part of the Setup Code (a personal device pref,
+       like backButton). */
     miniplayer: boolean;
     /* The Watch — a small persistent live-stat chip that floats over every
        page. Off by default; enabled from the Spell Book (took the retired
@@ -253,7 +254,7 @@ const DEFAULTS: PdNotifs = {
     degen: false,
     autoscroll: false,
     ambientStrip: false,
-    miniplayer: true,
+    miniplayer: false,
     watch: false,
     watchMetric: 0,
     audience: true,

@@ -62,6 +62,46 @@ body.pd-stone-force-white .stone-float {
     --stone-active-ink: #ffffff;
 }
 
+/* The stone's PRIMARIES (Brendon, 2026-07-20 — the widget world pops in
+   the brand's own three): Hothurt red · Attention Yellow · @brendon blue. */
+.stone-peek, .stone-float {
+    --stone-red: #FF0055;
+    --stone-yellow: #FFE600;
+    --stone-blue: #0109FF;
+}
+
+/* THE TAIL — a plain triangle at the bubble's BOTTOM MIDDLE, pointing at
+   the bar (Brendon, 2026-07-20 — nothing fancier). Lives on the FLOAT (the
+   deck scrolls — a tail on it would clip). Only while the bubble is out. */
+.stone-float--docked::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 48px; /* flush under the bubble (pill 44 + 12 gap − 8 tall) */
+    width: 0;
+    height: 0;
+    border-left: 9px solid transparent;
+    border-right: 9px solid transparent;
+    border-top: 9px solid var(--stone-bg-deep);
+    z-index: 1;
+}
+
+/* THE VOICE — the bubble's reserved top two lines: the stone speaks or
+   summarizes before any widget shows (Brendon's structure, 2026-07-20). */
+.stone-say {
+    flex: none;
+    padding: 8px 8px 6px;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.4px;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+}
+
 /* The console's accent (`stone #hex`, set as --stone-accent on the root) —
    the caret, the ⌘, the ON-AIR LED. Falls back to the stage ink, so an
    untouched stone looks exactly as before. */
@@ -81,7 +121,8 @@ body.pd-stone-force-white .stone-float {
     width: min(46vw, 220px);
     height: 13px;
     background: var(--stone-bg);
-    border: 1px solid var(--stone-line);
+    /* NO OUTLINE — Brendon 2026-07-20: the stone never wears one. */
+    border: none;
     border-radius: 6px;
     cursor: pointer;
     touch-action: none; /* the bar owns its swipes — never scrolls the page */
@@ -142,7 +183,7 @@ body.pd-stone-force-white .stone-float {
     height: 44px;
     padding: 0 16px;
     background: var(--stone-bg-deep);
-    border: 1px solid var(--stone-line);
+    border: none; /* NO OUTLINE — Brendon 2026-07-20, stone-wide */
     /* THE STONE IS NEVER ROUNDED (Brendon, 2026-07-20 — raised in fury
        after a capsule leaked into a preview). The typing bar wears the
        ORIGINAL stone bar's own 6px cut, same as .stone-peek — the one
@@ -216,10 +257,14 @@ body.pd-stone-force-white .stone-float {
     max-height: min(52vh, 440px);
     min-height: 0;
     background: var(--stone-bg-deep);
-    border: 1px solid var(--stone-line);
-    border-radius: 18px 18px 12px 12px;
-    margin-bottom: -8px; /* tucks under the pill's top — the smooth join */
-    padding: 6px 8px 14px;
+    /* THE SPEECH BUBBLE (Brendon 2026-07-20): no outline, fully rounded,
+       FLOATING above the typing bar with Petey's tail below (the ::before
+       on .stone-float--docked — the deck itself scrolls, so the tail can't
+       live here or it would clip). The stone is an AI character talking. */
+    border: none;
+    border-radius: 14px;
+    margin-bottom: 12px; /* floats clear of the bar — no more tuck */
+    padding: 6px 8px 12px;
     overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
@@ -303,6 +348,23 @@ body.pd-stone-force-white .stone-float {
     color: var(--text-color);
 }
 .sw-title-glyph { flex: none; letter-spacing: 0; }
+/* Primary pops (Brendon, 2026-07-20) — card glyphs rotate through the brand
+   three in deck draw order; key figures pop red, row glyphs pop blue. */
+.stone-deck .sw-card:nth-of-type(3n + 1) .sw-title-glyph { color: var(--stone-red); }
+.stone-deck .sw-card:nth-of-type(3n + 2) .sw-title-glyph { color: var(--stone-yellow); }
+.stone-deck .sw-card:nth-of-type(3n)     .sw-title-glyph { color: var(--stone-blue); }
+.stone-deck .sw-stat-v { color: var(--stone-red); }
+.stone-deck .sw-hit-ic { color: var(--stone-blue); }
+/* WHITE stage: Attention Yellow text vanishes on white (Rule #2) — the
+   yellow slot becomes a filled yellow chip with dark ink, same signature-
+   colour-never-blends move as the red-page/yellow-page flips. Square per
+   the corner law. */
+body.theme-bright:not(.pd-stone-force-black) .stone-float .stone-deck .sw-card:nth-of-type(3n + 2) .sw-title-glyph,
+body.pd-stone-force-white .stone-float .stone-deck .sw-card:nth-of-type(3n + 2) .sw-title-glyph {
+    background: var(--stone-yellow);
+    color: #111111;
+    padding: 0 3px;
+}
 .sw-title-label { flex: none; }
 /* the pd miniplayer is a lowercase name (Brendon's word-lock) */
 .sw-title-label--lower { text-transform: none; letter-spacing: 1px; }
@@ -790,7 +852,7 @@ body.pd-stone-force-white .stone-float {
     line-height: 1;
     color: var(--stone-ink);
     background: transparent;
-    border: 1px solid var(--stone-line);
+    border: none; /* outline removal ONLY — the bar is otherwise untouched */
     border-radius: 6px; /* the stone's own cut — never a capsule here */
     padding: 5px 7px;
     cursor: pointer;
