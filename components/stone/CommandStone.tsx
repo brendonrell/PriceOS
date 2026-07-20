@@ -14,9 +14,10 @@
  *     flashing typing indicator and NO prompt text (Brendon's call: empty
  *     idle — pure black stone, silent until touched).
  *   - LONG-PRESS the open stage → collapses back to the thin bar.
- *   - GO/FIND ride the real Global Search (/api/search + the exported
- *     .gsr row anatomy from GlobalSearchBar — Rule #0, one door): live
- *     results, inline answers, pages, Enter = top hit.
+ *   - GO/FIND ride the real Global Search (/api/search — Rule #0, one
+ *     door): live results, inline answers, pages, Enter = top hit.
+ *     Presentation is the stone's own (StoneDeck, stage 4): TARS-voice
+ *     answers + glanceable cards, plus the summonable widget deck.
  *
  * Later stages (the brief): ETCH (natural-language creation with the
  * preview chip) · CAST (spells + workspaces by name) · the widget deck
@@ -31,23 +32,17 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type MouseE
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
-import SpriteFace from '../SpriteFace';
-import { projectSpriteFace } from '../../lib/project/projectSprite';
 import { parseEtch, commitEtch, resolveProject } from '../../lib/stone/etch';
 import { subscribeFm, getFm, fmPlay, fmToggle, fmNext } from '../../lib/fm/fmBus';
 import { getProject } from '../../lib/project/registry';
 import { matchCast, type CastTarget } from '../../lib/stone/cast';
+import { parseWidget } from '../../lib/stone/widgets';
+import { WidgetDeck, SearchDeck } from './StoneDeck';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useSort } from '../../lib/state/SortContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { useWorkspaces } from '../../lib/state/WorkspacesContext';
-import {
-    ArtThumb,
-    SearchUserRow,
-    PAGE_ROWS,
-    SECTION_PREVIEW,
-    pieceName,
-} from '../dropdown/GlobalSearchBar';
+import { PAGE_ROWS } from '../dropdown/GlobalSearchBar';
 import type { SearchResponse } from '../../app/api/search/route';
 
 const VS15 = '︎';
@@ -80,7 +75,6 @@ export default function CommandStone() {
     const [value, setValue] = useState('');
     const [results, setResults] = useState<SearchResponse | null>(null);
     const [searching, setSearching] = useState(false);
-    const [expanded, setExpanded] = useState<Record<string, boolean>>({});
     /** The stone's own confirmation line after a commit ("✓ ETCHED · …"). */
     const [etched, setEtched] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement | null>(null);
@@ -95,6 +89,11 @@ export default function CommandStone() {
     /* ETCH — a verb word turns the line into a creation plan; bare words
        stay GO/FIND. Pure parse, runs every keystroke. */
     const etchPlan = useMemo(() => parseEtch(value), [value]);
+
+    /* THE WIDGET DECK (stage 4) — a summon word calls its hand: calendar ·
+       priceday · calc · dossier · gallery · matrix · ascii · docs. ETCH and
+       CAST outrank a summon (a workspace named "calendar" stays castable). */
+    const widgetPlan = useMemo(() => parseWidget(value), [value]);
 
     /* CAST — an exact toggle/workspace name flips it. The "spells" are
        just settings with a fun name (Brendon): a cast is a plain toggle +
@@ -246,8 +245,9 @@ export default function CommandStone() {
     useEffect(() => {
         const q = value.trim();
         /* An ETCH line never hits search — the preview chip owns the panel
-           (and "todo: buy prisms" is not a search query). */
-        if (q.length < 2 || parseEtch(q)) {
+           (and "todo: buy prisms" is not a search query). A widget summon
+           owns it too — its card does any reading it needs itself. */
+        if (q.length < 2 || parseEtch(q) || parseWidget(q)) {
             setResults(null);
             setSearching(false);
             return;
@@ -276,8 +276,6 @@ export default function CommandStone() {
             ctl.abort();
         };
     }, [value]);
-
-    useEffect(() => { setExpanded({}); }, [value]);
 
     /* GO — pages by word prefix; routes only in the stone (the dropdown
        panel views stay the dropdown's own doors for now). Profile resolves
@@ -475,11 +473,15 @@ export default function CommandStone() {
     if (!siweAddress || needsSignup) return null;
 
     const r = results;
+    /* Cast outranks a summon (a workspace named "calendar" stays castable);
+       ETCH outranks both. */
+    const activeWidget = etchPlan || castHit ? null : widgetPlan;
     /* The tab renders ONLY when it has something to say — an empty open
        stone is just the pill + the flashing block (Brendon's idle). */
     const cmdCardOn =
         (etched && !searchingNow) || !!etchPlan || !!castHit || (searchingNow && searching && !r);
-    const hasTab = (searchingNow && (pageHits.length > 0 || !!r)) || cmdCardOn;
+    const hasTab =
+        (searchingNow && (pageHits.length > 0 || !!r)) || cmdCardOn || !!activeWidget;
 
     return (
         <>
@@ -519,192 +521,50 @@ export default function CommandStone() {
             >
                     {hasTab && (
                     <div className="stone-deck stone-results">
-                        {searchingNow && (pageHits.length > 0 || r) && (
-                            <div className="stone-widget stone-widget-results">
-                                {r && r.answers.map((ans, i) => (
-                                    <div
-                                        key={`ans:${i}`}
-                                        className={`global-result-item gsr-row gsr-answer${ans.href ? '' : ' gsr-empty'}`}
-                                        role={ans.href ? 'button' : undefined}
-                                        tabIndex={ans.href ? 0 : undefined}
-                                        onClick={ans.href ? (e) => go(e, ans.href as string) : undefined}
-                                    >
-                                        <span className="gsr-main">{ans.text}</span>
-                                    </div>
-                                ))}
+                        {/* THE WIDGET DECK — a summoned hand owns the tab */}
+                        {activeWidget && (
+                            <WidgetDeck plan={activeWidget} address={siweAddress} onGo={go} />
+                        )}
 
-                                {/* answer AND act — the anchor offer rides
-                                    a floor answer, one tap to carve it. */}
-                                {anchorOffer && (
-                                    <div
-                                        className="stone-etch-chip stone-offer-chip"
-                                        role="button"
-                                        tabIndex={0}
-                                        onClick={() => {
-                                            const toast = commitEtch({
-                                                kind: 'anchor',
-                                                title: anchorOffer.title,
-                                                price: anchorOffer.price,
-                                                chip: '',
-                                            });
-                                            showToast(toast);
-                                            setEtched(`✓ ${toast}`);
-                                            setValue('');
-                                            inputRef.current?.focus();
-                                        }}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' || e.key === ' ') e.preventDefault();
-                                        }}
-                                    >
-                                        {`↧${VS15} anchor it at ◊${anchorOffer.price}?`}
-                                    </div>
-                                )}
-
-                                {pageHits.length > 0 && (
-                                    <div className="settings-header gsr-header">Pages</div>
-                                )}
-                                {pageHits.map((p) => (
-                                    <div
-                                        key={`pg:${p.label}`}
-                                        className="global-result-item gsr-row"
-                                        role="button"
-                                        tabIndex={0}
-                                        onClick={(e) => go(e, p.to)}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter') go(null, p.to);
-                                        }}
-                                    >
-                                        <span className="gsr-main">{p.label}</span>
-                                        <span className="gsr-sub">page</span>
-                                    </div>
-                                ))}
-
-                                {r && r.projects.length > 0 && (
-                                    <div className="settings-header gsr-header">Projects</div>
-                                )}
-                                {r && r.projects
-                                    .slice(0, expanded.projects ? undefined : SECTION_PREVIEW)
-                                    .map((p) => (
-                                    <div
-                                        key={`p:${p.id}`}
-                                        className="global-result-item gsr-row"
-                                        role="button"
-                                        tabIndex={0}
-                                        onClick={(e) => go(e, `/art/${p.id}`)}
-                                    >
-                                        <SpriteFace className="gsr-sprite" face={projectSpriteFace(p.id)} />
-                                        <span className="gsr-main">{p.title}</span>
-                                        <span className="gsr-sub">
-                                            {p.match
-                                                ? p.match
-                                                : `@${p.artist_handle ?? p.handle ?? ''} · ${p.minted_count}/${p.max_supply}`}
-                                        </span>
-                                    </div>
-                                ))}
-                                {r && !expanded.projects && r.projects.length > SECTION_PREVIEW && (
-                                    <div
-                                        className="global-result-item gsr-empty gsr-more"
-                                        role="button"
-                                        tabIndex={0}
-                                        onClick={() => setExpanded((x) => ({ ...x, projects: true }))}
-                                    >
-                                        {`+ ${r.projects.length - SECTION_PREVIEW} more`}
-                                    </div>
-                                )}
-
-                                {r && r.users.length > 0 && (
-                                    <div className="settings-header gsr-header">Collectors</div>
-                                )}
-                                {r && r.users
-                                    .slice(0, expanded.users ? undefined : SECTION_PREVIEW)
-                                    .map((u) => (
-                                        <SearchUserRow key={`u:${u.address}`} user={u} onGo={go} />
-                                    ))}
-                                {r && !expanded.users && r.users.length > SECTION_PREVIEW && (
-                                    <div
-                                        className="global-result-item gsr-empty gsr-more"
-                                        role="button"
-                                        tabIndex={0}
-                                        onClick={() => setExpanded((x) => ({ ...x, users: true }))}
-                                    >
-                                        {`+ ${r.users.length - SECTION_PREVIEW} more`}
-                                    </div>
-                                )}
-
-                                {r && r.artworks.length > 0 && (
-                                    <div className="settings-header gsr-header">Outputs</div>
-                                )}
-                                {r && r.artworks
-                                    .slice(0, expanded.artworks ? undefined : SECTION_PREVIEW)
-                                    .map((a) => (
-                                    <div
-                                        key={`a:${a.project_id}:${a.token_id}`}
-                                        className="global-result-item gsr-row"
-                                        role="button"
-                                        tabIndex={0}
-                                        onClick={(e) => go(e, `/art/${a.project_id}/${a.token_id}`)}
-                                    >
-                                        <ArtThumb slug={a.project_id} id={a.token_id} />
-                                        <span className="gsr-main">{pieceName(a.project_title, a.token_id)}</span>
-                                        <span className="gsr-sub">
-                                            {a.label
-                                                ? `${a.label} · ⚬${VS15} ${a.followers}`
-                                                : `⚬${VS15} ${a.followers}`}
-                                        </span>
-                                    </div>
-                                ))}
-                                {r && !expanded.artworks && r.artworks.length > SECTION_PREVIEW && (
-                                    <div
-                                        className="global-result-item gsr-empty gsr-more"
-                                        role="button"
-                                        tabIndex={0}
-                                        onClick={() => setExpanded((x) => ({ ...x, artworks: true }))}
-                                    >
-                                        {`+ ${r.artworks.length - SECTION_PREVIEW} more`}
-                                    </div>
-                                )}
-
-                                {r && r.traits.length > 0 && (
-                                    <div className="settings-header gsr-header">Traits</div>
-                                )}
-                                {r && r.traits.map((t) => (
-                                    <div
-                                        key={`t:${t.project_id}:${t.trait_name}:${t.value}`}
-                                        className="global-result-item gsr-row"
-                                        role="button"
-                                        tabIndex={0}
-                                        onClick={(e) => go(e, `/art/${t.project_id}`)}
-                                    >
-                                        <span className="gsr-ic">{`⨝${VS15}`}</span>
-                                        <span className="gsr-main">{t.value}</span>
-                                        <span className="gsr-sub">{`${t.trait_name} · ${t.project_title}`}</span>
-                                    </div>
-                                ))}
-
-                                {pageHits.length === 0 &&
-                                    r &&
-                                    r.answers.length === 0 &&
-                                    r.projects.length === 0 &&
-                                    r.users.length === 0 &&
-                                    r.artworks.length === 0 &&
-                                    r.soundtracks.length === 0 &&
-                                    r.traits.length === 0 &&
-                                    !searching && (
-                                        <div className="global-result-item gsr-empty">{`⌕${VS15} THE STONE IS SILENT`}</div>
-                                    )}
-                            </div>
+                        {/* GO/FIND — answers in the TARS voice, results as
+                            glanceable cards (StoneDeck's presentation) */}
+                        {!activeWidget && searchingNow && (pageHits.length > 0 || r) && (
+                            <SearchDeck
+                                r={r}
+                                pageHits={pageHits}
+                                anchorOffer={anchorOffer}
+                                onAnchor={() => {
+                                    if (!anchorOffer) return;
+                                    const toast = commitEtch({
+                                        kind: 'anchor',
+                                        title: anchorOffer.title,
+                                        price: anchorOffer.price,
+                                        chip: '',
+                                    });
+                                    showToast(toast);
+                                    setEtched(`✓ ${toast}`);
+                                    setValue('');
+                                    inputRef.current?.focus();
+                                }}
+                                onGo={go}
+                            />
                         )}
 
                         {/* miniplayer mini — soundtrack hits become a tiny
                             playable deck; the audio lives in the real
                             miniplayer below (one player, bus-driven) */}
                         {searchingNow && r && r.soundtracks.length > 0 && (
-                            <div className="stone-widget stone-widget-fm">
-                                <div className="settings-header gsr-header">{`▶${VS15} miniplayer mini`}</div>
+                            <div className="stone-widget sw-card stone-widget-fm">
+                                {/* lowercase by Brendon's word-lock — the pd
+                                    miniplayer is a lowercase name, always */}
+                                <div className="sw-title">
+                                    <span className="sw-title-glyph">{`▶${VS15}`}</span>
+                                    <span className="sw-title-label sw-title-label--lower">miniplayer mini</span>
+                                </div>
                                 {r.soundtracks.map((s) => (
                                     <div
                                         key={`s:${s.project_id}`}
-                                        className="global-result-item gsr-row"
+                                        className="sw-hit sw-tap"
                                         role="button"
                                         tabIndex={0}
                                         onClick={() => {
@@ -714,9 +574,11 @@ export default function CommandStone() {
                                             showToast('pd miniplayer: ON AIR');
                                         }}
                                     >
-                                        <span className="gsr-ic">{`▶${VS15}`}</span>
-                                        <span className="gsr-main">{s.label}</span>
-                                        <span className="gsr-sub">{s.project_title}</span>
+                                        <span className="sw-hit-ic">{`▶${VS15}`}</span>
+                                        <span className="sw-hit-body">
+                                            <span className="sw-hit-main">{s.label}</span>
+                                            <span className="sw-hit-sub">{s.project_title}</span>
+                                        </span>
                                     </div>
                                 ))}
                                 {fm.status !== 'idle' && fm.station && (
@@ -776,7 +638,7 @@ export default function CommandStone() {
                                     </div>
                                 )}
                                 {searchingNow && searching && !r && (
-                                    <div className="global-result-item gsr-empty">{`⌕${VS15} reading the stone…`}</div>
+                                    <div className="sw-say">{`⌕${VS15} READING THE STONE…`}</div>
                                 )}
                             </div>
                         )}

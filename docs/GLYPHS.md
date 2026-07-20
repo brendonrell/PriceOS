@@ -459,6 +459,16 @@ Wishlist rows (and the held-by / collected-by chips):
 > The Stone's other chips reuse canon exactly: ❍ To-Do · ⊟ Note · ⬚ Watch
 > (project star) · ✛ Wishlist.
 
+| Concept | Glyph | Codepoint | Notes |
+|---|---|---|---|
+| **The Calc** | ƒ | U+0192 | ⚠ CATALOGUED LATE (2026-07-20): shipped on the artwork modal's calc tab (`OutputPreview`) since the Calc build but never entered here — found during the Stone stage-4 pass (the Grid-Presets lesson again: grep the codebase, not just this file). Now also titles the Stone's CALC widget |
+
+> **Stage 4 widget titles (2026-07-20) reuse canon only — nothing new:**
+> ▦ Calendar · ✶ PriceDay (the search-answer precedent) · ƒ Calc ·
+> ☻/✺ Dossier (collector/artist row tiles) · ⬚ Gallery (project) ·
+> ⍢ Wallet ASCII (the ASCII-ID mark, §11) · MATRIX and DOCS deliberately
+> glyph-less (no canon fit — omission over a forced icon, §7).
+
 ## 12b. Celestial Tracker — the birth-sky trio (2026-07-17 redesign)
 
 The Celestial Tracker spell renders each Output's astrological **big three**

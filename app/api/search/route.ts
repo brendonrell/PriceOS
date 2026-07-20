@@ -48,6 +48,12 @@ export interface SearchProjectResult {
   artist_handle: string | null;
   minted_count: number;
   max_supply: number;
+  /** Live ledger stats (ETH) — already read for the answers; exposed so the
+      Stone's widget cards (calc · matrix · dossier) speak real numbers
+      through the one search door. Null when the ledger has no figure. */
+  floor_eth: number | null;
+  volume_eth: number | null;
+  ath_eth: number | null;
   /** Why it matched, when not by name (e.g. 'soundtrack' | 'true name…'). */
   match?: string;
 }
@@ -433,6 +439,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       projRows.set(row.id, row);
       const prev = projMap.get(row.id);
       if (prev && prev.score >= score) return;
+      const num = (v: string | null | undefined): number | null => {
+        if (v == null) return null;
+        const n = Number(v);
+        return Number.isFinite(n) ? n : null;
+      };
       projMap.set(row.id, {
         id: row.id,
         title: row.title,
@@ -440,6 +451,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         artist_handle: getProject(row.id)?.artistHandle ?? null,
         minted_count: row.minted_count,
         max_supply: row.max_supply,
+        floor_eth: num(row.floor_price_eth),
+        volume_eth: num(row.volume_eth),
+        ath_eth: num(row.all_time_high_eth),
         ...(match ? { match } : {}),
         score,
         vol: Number(row.volume_eth ?? 0) || 0,

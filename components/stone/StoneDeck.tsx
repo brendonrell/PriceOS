@@ -1,0 +1,897 @@
+'use client';
+
+/*
+ * THE WIDGET DECK — stage 4 of the Command Stone, the presentation pass
+ * (docs/briefs/command-stone.md ⛔ STAGE 4 ADDENDUM).
+ *
+ * "Magic tablet meets Spotlight meets TARS meets watchOS; Raycast is a
+ * big inspo" — watchOS as the REFERENCE, not the blueprint (Brendon,
+ * 2026-07-20). The tab's contents are CUSTOM BLACK WIDGETS: big type,
+ * real data, glanceable cards, in PD's own language (Courier · square
+ * corners inside the vessel · the canon glyphs).
+ *
+ * Two halves, both rendered inside CommandStone's tab:
+ *   · WidgetDeck — the summoned hands (calendar · priceday · calc ·
+ *     dossier · gallery · matrix · wallet ascii · docs), each riding
+ *     the REAL feature it fronts (Rule #0): /api/calendar + todoStore,
+ *     usePriceDay, the CalcSheet rate card, /api/search stats, the art
+ *     engines via paintOutput, the docs search index + scoring.
+ *   · SearchDeck — GO/FIND re-presented: answers as TARS lines (terse,
+ *     confident, large), results as glanceable cards — the borrowed
+ *     .gsr search-row anatomy is retired inside the stone.
+ */
+
+import {
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+    type MouseEvent,
+} from 'react';
+import SpriteFace from '../SpriteFace';
+import { projectSpriteFace } from '../../lib/project/projectSprite';
+import { useSpriteFace } from '../../lib/hooks/useSpriteFace';
+import { fmtFollowers } from '../../lib/social/useArtistSocial';
+import { formatEth } from '../../lib/format/eth';
+import { paintOutput } from '../../lib/state/ProjectContext';
+import { paintAsciiStandin } from '../../lib/art/asciiStandin';
+import { usePdNotifs } from '../../lib/state/PdNotifsContext';
+import { projectsByArtist } from '../../lib/project/registry';
+import { usePriceDay } from '../../lib/priceday/usePriceDay';
+import { formatPriceDate } from '../../lib/priceday/priceday';
+import { CAL_TODAY } from '../../lib/calendar/data';
+import { dateKey } from '../../lib/calendar/utils';
+import { getTodos, subscribeTodos, datedTodosByDay, type TodoItem } from '../../lib/todos/todoStore';
+import { buildWalletMark } from '../../lib/stone/mark';
+import type { WidgetPlan } from '../../lib/stone/widgets';
+import { CALC_ROYALTY_PCT, CALC_GAS_ESTIMATE_ETH } from '../CalcSheet';
+import { searchIndex, hrefFor, type Hit } from '../docs/DocsSearch';
+import type { SearchEntry } from '../../lib/docs/search';
+import { pieceName } from '../dropdown/GlobalSearchBar';
+import type {
+    SearchResponse,
+    SearchProjectResult,
+    SearchUserResult,
+    SearchArtworkResult,
+    SearchTraitResult,
+} from '../../app/api/search/route';
+import { shortAddress } from '../../lib/project/projectAddress';
+
+const VS15 = '︎';
+
+type GoFn = (e: MouseEvent | null, href: string) => void;
+
+/* ── shared plumbing ─────────────────────────────────────────────────── */
+
+/** Session-cached /api/search reads for the widgets that speak live
+    numbers (calc · matrix · dossier · gallery). One door (Rule #0). */
+const searchCache = new Map<string, Promise<SearchResponse | null>>();
+function fetchSearch(q: string): Promise<SearchResponse | null> {
+    const key = q.toLowerCase();
+    let p = searchCache.get(key);
+    if (!p) {
+        p = fetch(`/api/search?q=${encodeURIComponent(q)}`)
+            .then((r) => (r.ok ? r.json() : null))
+            .catch(() => null);
+        searchCache.set(key, p);
+    }
+    return p;
+}
+
+/** The docs corpus — fetched once per session, shared with nothing else
+    (the docs pages ship their own copy of the same build-time index). */
+let docsIndexP: Promise<SearchEntry[] | null> | null = null;
+function fetchDocsIndex(): Promise<SearchEntry[] | null> {
+    if (!docsIndexP) {
+        docsIndexP = fetch('/docs/search-index.json')
+            .then((r) => (r.ok ? r.json() : null))
+            .catch(() => {
+                docsIndexP = null;
+                return null;
+            });
+    }
+    return docsIndexP;
+}
+
+/** "◊ 0.42" — the stone's ETH figure (◊ is the canon secondary mark). */
+function eth(n: number | null | undefined): string {
+    return n == null || !Number.isFinite(n) ? '—' : `◊${formatEth(n)}`;
+}
+
+/** Widget title row — every card leads with its name, 12px bold caps. */
+function SwTitle({ glyph, label, sub }: { glyph?: string; label: string; sub?: string }) {
+    return (
+        <div className="sw-title">
+            {glyph && <span className="sw-title-glyph">{glyph}</span>}
+            <span className="sw-title-label">{label}</span>
+            {sub && <span className="sw-title-sub">{sub}</span>}
+        </div>
+    );
+}
+
+/** The TARS voice — a terse, confident, large line. */
+function SwSay({ children, lead, onClick }: {
+    children: React.ReactNode; lead?: boolean; onClick?: () => void;
+}) {
+    return (
+        <div
+            className={`sw-say${lead ? ' sw-say--lead' : ''}${onClick ? ' sw-tap' : ''}`}
+            role={onClick ? 'button' : undefined}
+            tabIndex={onClick ? 0 : undefined}
+            onClick={onClick}
+            onKeyDown={onClick ? (e) => {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); }
+            } : undefined}
+        >
+            {children}
+        </div>
+    );
+}
+
+/** Usage hint when a summon needs more words — the stone teaching its
+    own grammar, one line. */
+function SwHint({ text }: { text: string }) {
+    return <div className="sw-hint">{text}</div>;
+}
+
+/** A glanceable art thumb at stone scale — ArtThumb's exact ascii/degen
+    manners (components/dropdown/GlobalSearchBar) at a bigger size. */
+function SwThumb({ slug, id, size }: { slug: string; id: string | number; size: number }) {
+    const ref = useRef<HTMLCanvasElement | null>(null);
+    const { notifs } = usePdNotifs();
+    const ascii = notifs.asciiArt;
+    const degen = notifs.degen;
+    useEffect(() => {
+        if (degen) return;
+        const canvas = ref.current;
+        if (!canvas) return;
+        const paintNormal = () => {
+            try { paintOutput(canvas, slug, Number(id), size); } catch { /* unknown slug */ }
+        };
+        if (ascii) {
+            paintAsciiStandin(canvas, slug, Number(id), size * 2)
+                .then((ok) => { if (!ok) paintNormal(); })
+                .catch(paintNormal);
+            return;
+        }
+        paintNormal();
+    }, [slug, id, ascii, degen, size]);
+    if (degen) return <span className="sw-thumb sw-thumb--degen" style={{ width: size, height: size }} aria-hidden="true" />;
+    return (
+        <canvas
+            ref={ref}
+            className="sw-thumb"
+            width={size}
+            height={size}
+            style={{ width: size, height: size }}
+            aria-hidden="true"
+        />
+    );
+}
+
+/* ══ THE HANDS ═════════════════════════════════════════════════════════ */
+
+/* ── ▦ CALENDAR — the week, real events + to-dos (the TopBarCalendar
+      read: /api/calendar merged by day + datedTodosByDay) ── */
+
+interface CalApiItem {
+    scope: 'personal' | 'global' | 'auto';
+    time?: string | null;
+    title: string;
+}
+
+const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'] as const;
+const MONTH_WORDS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'] as const;
+const DAY_WORDS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'] as const;
+
+function CalendarWidget() {
+    const [selDay, setSelDay] = useState({ y: CAL_TODAY.y, m: CAL_TODAY.m, d: CAL_TODAY.d });
+    const [calItems, setCalItems] = useState<Record<string, CalApiItem[]>>({});
+    const [todoMap, setTodoMap] = useState<Record<string, TodoItem[]>>({});
+
+    useEffect(() => {
+        const read = () => setTodoMap(datedTodosByDay(getTodos()));
+        read();
+        return subscribeTodos(read);
+    }, []);
+
+    useEffect(() => {
+        const start = new Date(CAL_TODAY.y, CAL_TODAY.m, CAL_TODAY.d);
+        start.setDate(start.getDate() - start.getDay());
+        const months = new Map<string, { y: number; m: number }>();
+        for (let i = 0; i < 7; i++) {
+            const dt = new Date(start);
+            dt.setDate(start.getDate() + i);
+            months.set(`${dt.getFullYear()}-${dt.getMonth()}`, { y: dt.getFullYear(), m: dt.getMonth() });
+        }
+        let cancelled = false;
+        Promise.all(
+            Array.from(months.values()).map(({ y, m }) =>
+                fetch(`/api/calendar?year=${y}&month=${m + 1}`, { cache: 'no-store' })
+                    .then((r) => (r.ok ? r.json() : null))
+                    .then((d) => (d?.days as Record<string, CalApiItem[]>) ?? {})
+                    .catch(() => ({} as Record<string, CalApiItem[]>)),
+            ),
+        ).then((results) => {
+            if (cancelled) return;
+            const merged: Record<string, CalApiItem[]> = {};
+            for (const days of results) {
+                for (const k of Object.keys(days)) merged[k] = (merged[k] || []).concat(days[k]);
+            }
+            setCalItems(merged);
+        });
+        return () => { cancelled = true; };
+    }, []);
+
+    const weekStart = new Date(CAL_TODAY.y, CAL_TODAY.m, CAL_TODAY.d);
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+    const cells = Array.from({ length: 7 }, (_, i) => {
+        const dt = new Date(weekStart);
+        dt.setDate(weekStart.getDate() + i);
+        const y = dt.getFullYear(); const m = dt.getMonth(); const d = dt.getDate();
+        const key = dateKey(y, m, d);
+        return {
+            y, m, d,
+            letter: DAY_LETTERS[i],
+            count: (calItems[key] || []).length,
+            hasTodo: !!(todoMap[key] && todoMap[key].length),
+            isToday: y === CAL_TODAY.y && m === CAL_TODAY.m && d === CAL_TODAY.d,
+        };
+    });
+
+    const selKey = dateKey(selDay.y, selDay.m, selDay.d);
+    const selDate = new Date(selDay.y, selDay.m, selDay.d);
+    const events = calItems[selKey] || [];
+    const todos = todoMap[selKey] || [];
+
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle
+                glyph={`▦${VS15}`}
+                label="CALENDAR"
+                sub={`${DAY_WORDS[selDate.getDay()]} ${MONTH_WORDS[selDay.m]} ${selDay.d}`}
+            />
+            <div className="sw-cal-strip">
+                {cells.map((c, i) => {
+                    const sel = c.y === selDay.y && c.m === selDay.m && c.d === selDay.d;
+                    return (
+                        <span
+                            key={i}
+                            className={`sw-cal-cell${sel ? ' sw-cal-cell--sel' : ''}${c.isToday ? ' sw-cal-cell--today' : ''}`}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => setSelDay({ y: c.y, m: c.m, d: c.d })}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    setSelDay({ y: c.y, m: c.m, d: c.d });
+                                }
+                            }}
+                        >
+                            <span className="sw-cal-letter">{c.letter}</span>
+                            <span className="sw-cal-num">{c.d}</span>
+                            <span className="sw-cal-count">
+                                {c.hasTodo && <span className="sw-cal-tododot" />}
+                                {c.count}
+                            </span>
+                        </span>
+                    );
+                })}
+            </div>
+            <div className="sw-cal-list">
+                {events.length === 0 && todos.length === 0 && (
+                    <SwSay>NOTHING SCHEDULED.</SwSay>
+                )}
+                {todos.map((t, i) => (
+                    <div key={`t${i}`} className="sw-cal-item">
+                        <span className="sw-cal-ic">{`❍${VS15}`}</span>
+                        <span className="sw-cal-text">{t.text}</span>
+                    </div>
+                ))}
+                {events.map((ev, i) => (
+                    <div key={`e${i}`} className="sw-cal-item">
+                        <span className="sw-cal-time">{ev.time || 'ALL DAY'}</span>
+                        <span className="sw-cal-text">{ev.title}</span>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+/* ── ✶ PRICEDAY — today's almanac, the big number (usePriceDay: seeded
+      placeholder instantly, the real day swaps in) ── */
+
+function PriceDayWidget() {
+    const day = usePriceDay();
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle glyph={`✶${VS15}`} label="PRICEDAY" sub={formatPriceDate()} />
+            <div className="sw-pd-number">{day.number}</div>
+            {day.flavor && <SwSay lead>{day.flavor}</SwSay>}
+            <div className="sw-rows">
+                {day.minted.map((r, i) => (
+                    <div key={`m${i}`} className="sw-row-line">
+                        <span className="sw-row-l">{`✶${VS15} ${r.label}`}</span>
+                        <span className="sw-row-r">{r.value}</span>
+                    </div>
+                ))}
+                {day.uploaded.map((r, i) => (
+                    <div key={`u${i}`} className="sw-row-line">
+                        <span className="sw-row-l">{`✧${VS15} ${r.label}`}</span>
+                        <span className="sw-row-r">{r.value}</span>
+                    </div>
+                ))}
+                {day.biggestSale && (
+                    <div className="sw-row-line">
+                        <span className="sw-row-l">{`⟠${VS15} ${day.biggestSale.label}`}</span>
+                        <span className="sw-row-r">{day.biggestSale.value}</span>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+/* ── ƒ CALC — the P&L ladder vs the live floor (the CalcSheet's exact
+      rate card: 5% royalty + the gas figure) ── */
+
+function CalcWidget({ plan }: { plan: Extract<WidgetPlan, { kind: 'calc' }> }) {
+    const [floor, setFloor] = useState<number | null | 'loading'>('loading');
+    const { slug, title } = plan;
+
+    useEffect(() => {
+        if (!slug || !title) return;
+        let cancelled = false;
+        setFloor('loading');
+        fetchSearch(title).then((r) => {
+            if (cancelled) return;
+            const proj = r?.projects.find((p) => p.id === slug) ?? r?.projects[0] ?? null;
+            setFloor(proj?.floor_eth ?? null);
+        });
+        return () => { cancelled = true; };
+    }, [slug, title]);
+
+    if (!slug || !title) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`ƒ${VS15}`} label="CALC" />
+                <SwHint text="calc <project> <price> — buy at price, flip at floor." />
+            </div>
+        );
+    }
+    if (floor === 'loading') {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`ƒ${VS15}`} label="CALC" sub={title.toUpperCase()} />
+                <SwSay>READING THE FLOOR…</SwSay>
+            </div>
+        );
+    }
+    if (floor == null) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`ƒ${VS15}`} label="CALC" sub={title.toUpperCase()} />
+                <SwSay>{`${title.toUpperCase()} HAS NO FLOOR YET.`}</SwSay>
+            </div>
+        );
+    }
+
+    const buy = plan.price ?? floor;
+    const royalty = floor * CALC_ROYALTY_PCT;
+    const takehome = floor - royalty - CALC_GAS_ESTIMATE_ETH;
+    const net = takehome - buy;
+    const pct = buy > 0 ? (net / buy) * 100 : null;
+    const sign = net >= 0 ? '+' : '−';
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle glyph={`ƒ${VS15}`} label="CALC" sub={title.toUpperCase()} />
+            <SwSay lead>
+                {`NET ${sign}${formatEth(Math.abs(net))}${pct != null ? ` (${sign}${Math.abs(pct).toFixed(1)}%)` : ''}`}
+            </SwSay>
+            <div className="sw-rows">
+                <div className="sw-row-line"><span className="sw-row-l">BUY</span><span className="sw-row-r">{eth(buy)}</span></div>
+                <div className="sw-row-line"><span className="sw-row-l">FLIP AT FLOOR</span><span className="sw-row-r">{eth(floor)}</span></div>
+                <div className="sw-row-line"><span className="sw-row-l">− ROYALTY 5%</span><span className="sw-row-r">{eth(royalty)}</span></div>
+                <div className="sw-row-line"><span className="sw-row-l">− GAS</span><span className="sw-row-r">{eth(CALC_GAS_ESTIMATE_ETH)}</span></div>
+                <div className="sw-row-line"><span className="sw-row-l">TAKEHOME</span><span className="sw-row-r">{eth(takehome)}</span></div>
+            </div>
+        </div>
+    );
+}
+
+/* ── ☻/✺ DOSSIER — the read on any collector or artist (search's live
+      circle stats + the registry's body of work) ── */
+
+function DossierWidget({ name, onGo }: { name: string; onGo: GoFn }) {
+    const [user, setUser] = useState<SearchUserResult | null | 'loading'>('loading');
+
+    useEffect(() => {
+        let cancelled = false;
+        setUser('loading');
+        fetchSearch(name).then((r) => {
+            if (cancelled) return;
+            const users = r?.users ?? [];
+            const exact = users.find((u) => (u.handle ?? '').toLowerCase() === name.toLowerCase());
+            setUser(exact ?? users[0] ?? null);
+        });
+        return () => { cancelled = true; };
+    }, [name]);
+
+    const handle = user !== 'loading' && user ? user.handle : null;
+    const face = useSpriteFace(handle ?? '');
+
+    if (user === 'loading') {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`☻${VS15}`} label="DOSSIER" />
+                <SwSay>{`PULLING THE FILE ON ${name.toUpperCase()}…`}</SwSay>
+            </div>
+        );
+    }
+    if (!user) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`☻${VS15}`} label="DOSSIER" />
+                <SwSay>{`THE STONE KNOWS NO ${name.toUpperCase()}.`}</SwSay>
+            </div>
+        );
+    }
+
+    const display = user.handle ? `@${user.handle}` : user.ens_name ?? shortAddress(user.address);
+    const dest = `/${user.handle ?? user.address}`;
+    const works = user.is_artist && user.handle ? projectsByArtist(user.handle) : [];
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle
+                glyph={user.is_artist ? `✺${VS15}` : `☻${VS15}`}
+                label="DOSSIER"
+                sub={user.is_artist ? 'ARTIST' : 'COLLECTOR'}
+            />
+            <div className="sw-id sw-tap" role="button" tabIndex={0} onClick={(e) => onGo(e, dest)}>
+                {face && <SpriteFace className="sw-id-face" face={face} />}
+                <span className="sw-id-name">{display}</span>
+            </div>
+            <div className="sw-stats">
+                <div className="sw-stat">
+                    <span className="sw-stat-v">{user.collected}</span>
+                    <span className="sw-stat-l">{`⬚${VS15} COLLECTED`}</span>
+                </div>
+                <div className="sw-stat">
+                    <span className="sw-stat-v">{`⟠${VS15} ${user.spent_eth.toFixed(2)}`}</span>
+                    <span className="sw-stat-l">SPENT</span>
+                </div>
+                <div className="sw-stat">
+                    <span className="sw-stat-v">{fmtFollowers(user.followers)}</span>
+                    <span className="sw-stat-l">{`⚬${VS15} FOLLOWERS`}</span>
+                </div>
+            </div>
+            {works.length > 0 && (
+                <div className="sw-rows">
+                    <div className="sw-rows-head">BODY OF WORK</div>
+                    {works.map((p) => (
+                        <div
+                            key={p.slug}
+                            className="sw-row-line sw-tap"
+                            role="button"
+                            tabIndex={0}
+                            onClick={(e) => onGo(e, `/art/${p.slug}`)}
+                        >
+                            <span className="sw-row-l">{`⬚${VS15} ${p.displayName}`}</span>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
+/* ── ⬚ MINI GALLERY — ‹ › through a project's pieces, art at card scale ── */
+
+function GalleryWidget({ slug, title, onGo }: { slug: string | null; title: string | null; onGo: GoFn }) {
+    const [id, setId] = useState(1);
+    const [minted, setMinted] = useState<number | null>(null);
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+    useEffect(() => { setId(1); }, [slug]);
+
+    useEffect(() => {
+        if (!slug || !title) return;
+        let cancelled = false;
+        fetchSearch(title).then((r) => {
+            if (cancelled) return;
+            const proj = r?.projects.find((p) => p.id === slug);
+            setMinted(proj ? proj.minted_count : null);
+        });
+        return () => { cancelled = true; };
+    }, [slug, title]);
+
+    useEffect(() => {
+        if (!slug) return;
+        const cv = canvasRef.current;
+        if (!cv) return;
+        try { paintOutput(cv, slug, id, 640); } catch { /* unknown slug */ }
+    }, [slug, id, minted]);
+
+    if (!slug || !title) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`⬚${VS15}`} label="GALLERY" />
+                <SwHint text="gallery <project> — walk the pieces." />
+            </div>
+        );
+    }
+    if (minted != null && minted <= 0) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`⬚${VS15}`} label="GALLERY" sub={title.toUpperCase()} />
+                <SwSay>NOTHING MINTED YET.</SwSay>
+            </div>
+        );
+    }
+
+    const max = minted ?? 1;
+    const step = (dir: 1 | -1) => setId((cur) => ((cur - 1 + dir + max) % max) + 1);
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle glyph={`⬚${VS15}`} label="GALLERY" sub={title.toUpperCase()} />
+            <canvas
+                ref={canvasRef}
+                className="sw-gallery-art"
+                role="button"
+                tabIndex={0}
+                onClick={(e) => onGo(e, `/art/${slug}/${id}`)}
+            />
+            <div className="sw-gallery-bar">
+                <button type="button" className="sw-key" onClick={() => step(-1)} aria-label="Previous piece">‹</button>
+                <span className="sw-gallery-name">
+                    {pieceName(title, id)}
+                    <span className="sw-gallery-count">{minted != null ? ` · ${id} / ${minted}` : ''}</span>
+                </span>
+                <button type="button" className="sw-key" onClick={() => step(1)} aria-label="Next piece">›</button>
+            </div>
+        </div>
+    );
+}
+
+/* ── MATRIX — the mini table maker: projects × live ledger stats ── */
+
+interface MatrixCol { title: string; proj: SearchProjectResult | null }
+
+function MatrixWidget({ names }: { names: string[] }) {
+    const [cols, setCols] = useState<MatrixCol[] | 'loading'>('loading');
+
+    useEffect(() => {
+        if (names.length < 2) return;
+        let cancelled = false;
+        setCols('loading');
+        Promise.all(
+            names.map((n) =>
+                fetchSearch(n).then((r) => ({
+                    title: n,
+                    proj: r?.projects[0] ?? null,
+                })),
+            ),
+        ).then((out) => { if (!cancelled) setCols(out); });
+        return () => { cancelled = true; };
+    }, [names.join('|')]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    if (names.length < 2) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle label="MATRIX" />
+                <SwHint text="matrix <a> vs <b> — up to three, side by side." />
+            </div>
+        );
+    }
+    if (cols === 'loading') {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle label="MATRIX" />
+                <SwSay>ASSEMBLING THE TABLE…</SwSay>
+            </div>
+        );
+    }
+
+    const rows: Array<{ label: string; pick: (p: SearchProjectResult) => string }> = [
+        { label: 'FLOOR', pick: (p) => eth(p.floor_eth) },
+        { label: 'VOLUME', pick: (p) => eth(p.volume_eth) },
+        { label: 'ATH', pick: (p) => eth(p.ath_eth) },
+        { label: 'MINTED', pick: (p) => `${p.minted_count}/${p.max_supply}` },
+    ];
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle label="MATRIX" />
+            <div className="sw-matrix" style={{ gridTemplateColumns: `auto repeat(${cols.length}, 1fr)` }}>
+                <span className="sw-matrix-corner" />
+                {cols.map((c, i) => (
+                    <span key={`h${i}`} className="sw-matrix-head">
+                        {(c.proj?.title ?? c.title).toUpperCase()}
+                    </span>
+                ))}
+                {rows.map((row) => (
+                    <MatrixRow key={row.label} label={row.label} cols={cols} pick={row.pick} />
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function MatrixRow({ label, cols, pick }: {
+    label: string; cols: MatrixCol[]; pick: (p: SearchProjectResult) => string;
+}) {
+    return (
+        <>
+            <span className="sw-matrix-label">{label}</span>
+            {cols.map((c, i) => (
+                <span key={i} className="sw-matrix-cell">{c.proj ? pick(c.proj) : '—'}</span>
+            ))}
+        </>
+    );
+}
+
+/* ── ⍢ WALLET ASCII — the deterministic gen-art mark of the signed-in
+      wallet (lib/stone/mark — same wallet, same mark, forever) ── */
+
+function AsciiWidget({ address }: { address: string }) {
+    const mark = useMemo(() => buildWalletMark(address), [address]);
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle glyph={`⍢${VS15}`} label="WALLET ASCII" sub={shortAddress(address)} />
+            <pre className="sw-mark" style={{ color: `hsl(${mark.hue} 55% 72%)` }} aria-hidden="true">
+                {mark.lines.join('\n')}
+            </pre>
+        </div>
+    );
+}
+
+/* ── DOCS — search inside the published docs (the build-time index +
+      the docs' own scoring, exported from DocsSearch) ── */
+
+function DocsWidget({ query, onGo }: { query: string; onGo: GoFn }) {
+    const [index, setIndex] = useState<SearchEntry[] | null>(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        fetchDocsIndex().then((idx) => { if (!cancelled) setIndex(idx); });
+        return () => { cancelled = true; };
+    }, []);
+
+    if (!query.trim()) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle label="DOCS" />
+                <SwHint text="docs <anything> — search the published docs." />
+            </div>
+        );
+    }
+    if (!index) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle label="DOCS" sub={query.toUpperCase()} />
+                <SwSay>OPENING THE BOOKS…</SwSay>
+            </div>
+        );
+    }
+
+    const hits = searchIndex(index, query).slice(0, 5);
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle label="DOCS" sub={query.toUpperCase()} />
+            {hits.length === 0 && <SwSay>THE DOCS ARE SILENT ON THAT.</SwSay>}
+            {hits.map((hit: Hit) => (
+                <div
+                    key={hit.entry.slug + (hit.heading?.id ?? '')}
+                    className="sw-doc-hit sw-tap"
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => onGo(e, hrefFor(hit))}
+                >
+                    <span className="sw-doc-title">
+                        {hit.entry.title}
+                        {hit.heading && <span className="sw-doc-heading">{` § ${hit.heading.text}`}</span>}
+                    </span>
+                    <span className="sw-doc-section">{hit.entry.section}</span>
+                    {hit.snippet && (
+                        <span className="sw-doc-snippet">
+                            {hit.snippet.pre}<mark>{hit.snippet.hit}</mark>{hit.snippet.post}
+                        </span>
+                    )}
+                </div>
+            ))}
+        </div>
+    );
+}
+
+/* ── the deck router — one summoned plan, one card ── */
+
+export function WidgetDeck({ plan, address, onGo }: {
+    plan: WidgetPlan;
+    address: string;
+    onGo: GoFn;
+}) {
+    switch (plan.kind) {
+        case 'calendar': return <CalendarWidget />;
+        case 'priceday': return <PriceDayWidget />;
+        case 'calc': return <CalcWidget plan={plan} />;
+        case 'dossier': return <DossierWidget name={plan.name} onGo={onGo} />;
+        case 'gallery': return <GalleryWidget slug={plan.slug} title={plan.title} onGo={onGo} />;
+        case 'matrix': return <MatrixWidget names={plan.names} />;
+        case 'ascii': return <AsciiWidget address={address} />;
+        case 'docs': return <DocsWidget query={plan.query} onGo={onGo} />;
+    }
+}
+
+/* ══ SEARCH, RE-PRESENTED — GO/FIND as glanceable cards ═══════════════ */
+
+const PREVIEW = 4;
+
+function MoreRow({ n, onClick }: { n: number; onClick: () => void }) {
+    return (
+        <div className="sw-more" role="button" tabIndex={0} onClick={onClick}>
+            {`+ ${n} MORE`}
+        </div>
+    );
+}
+
+export function SearchDeck({ r, pageHits, anchorOffer, onAnchor, onGo }: {
+    r: SearchResponse | null;
+    pageHits: Array<{ label: string; to: string }>;
+    anchorOffer: { title: string; price: number } | null;
+    onAnchor: () => void;
+    onGo: GoFn;
+}) {
+    const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+    useEffect(() => { setExpanded({}); }, [r, pageHits]);
+
+    const empty =
+        pageHits.length === 0 && r &&
+        r.answers.length === 0 && r.projects.length === 0 && r.users.length === 0 &&
+        r.artworks.length === 0 && r.soundtracks.length === 0 && r.traits.length === 0;
+
+    return (
+        <div className="stone-widget sw-card sw-card--results">
+            {/* THE ANSWERS — the TARS voice: terse, confident, large. */}
+            {r && r.answers.length > 0 && (
+                <div className="sw-answers">
+                    {r.answers.map((ans, i) => (
+                        <SwSay
+                            key={`ans:${i}`}
+                            lead={i === 0}
+                            onClick={ans.href ? () => onGo(null, ans.href as string) : undefined}
+                        >
+                            {ans.text}
+                        </SwSay>
+                    ))}
+                    {anchorOffer && (
+                        <div className="stone-etch-chip stone-offer-chip" role="button" tabIndex={0} onClick={onAnchor}>
+                            {`↧${VS15} anchor it at ◊${anchorOffer.price}?`}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {pageHits.length > 0 && (
+                <>
+                    <div className="sw-sect">PAGES</div>
+                    {pageHits.map((p) => (
+                        <div key={`pg:${p.label}`} className="sw-hit sw-tap" role="button" tabIndex={0} onClick={(e) => onGo(e, p.to)}>
+                            <span className="sw-hit-main">{p.label.toUpperCase()}</span>
+                            <span className="sw-hit-sub">PAGE</span>
+                        </div>
+                    ))}
+                </>
+            )}
+
+            {r && r.projects.length > 0 && (
+                <>
+                    <div className="sw-sect">PROJECTS</div>
+                    {r.projects.slice(0, expanded.projects ? undefined : PREVIEW).map((p) => (
+                        <ProjectCard key={`p:${p.id}`} p={p} onGo={onGo} />
+                    ))}
+                    {!expanded.projects && r.projects.length > PREVIEW && (
+                        <MoreRow n={r.projects.length - PREVIEW} onClick={() => setExpanded((x) => ({ ...x, projects: true }))} />
+                    )}
+                </>
+            )}
+
+            {r && r.users.length > 0 && (
+                <>
+                    <div className="sw-sect">COLLECTORS</div>
+                    {r.users.slice(0, expanded.users ? undefined : PREVIEW).map((u) => (
+                        <UserCard key={`u:${u.address}`} u={u} onGo={onGo} />
+                    ))}
+                    {!expanded.users && r.users.length > PREVIEW && (
+                        <MoreRow n={r.users.length - PREVIEW} onClick={() => setExpanded((x) => ({ ...x, users: true }))} />
+                    )}
+                </>
+            )}
+
+            {r && r.artworks.length > 0 && (
+                <>
+                    <div className="sw-sect">OUTPUTS</div>
+                    {r.artworks.slice(0, expanded.artworks ? undefined : PREVIEW).map((a) => (
+                        <ArtCard key={`a:${a.project_id}:${a.token_id}`} a={a} onGo={onGo} />
+                    ))}
+                    {!expanded.artworks && r.artworks.length > PREVIEW && (
+                        <MoreRow n={r.artworks.length - PREVIEW} onClick={() => setExpanded((x) => ({ ...x, artworks: true }))} />
+                    )}
+                </>
+            )}
+
+            {r && r.traits.length > 0 && (
+                <>
+                    <div className="sw-sect">TRAITS</div>
+                    {r.traits.map((t) => (
+                        <TraitCard key={`t:${t.project_id}:${t.trait_name}:${t.value}`} t={t} onGo={onGo} />
+                    ))}
+                </>
+            )}
+
+            {empty && <SwSay>{`⌕${VS15} THE STONE IS SILENT.`}</SwSay>}
+        </div>
+    );
+}
+
+function ProjectCard({ p, onGo }: { p: SearchProjectResult; onGo: GoFn }) {
+    return (
+        <div className="sw-hit sw-tap" role="button" tabIndex={0} onClick={(e) => onGo(e, `/art/${p.id}`)}>
+            <SpriteFace className="sw-hit-sprite" face={projectSpriteFace(p.id)} />
+            <span className="sw-hit-body">
+                <span className="sw-hit-main">{p.title}</span>
+                <span className="sw-hit-sub">
+                    {p.match ?? `@${p.artist_handle ?? p.handle ?? ''}`}
+                </span>
+            </span>
+            <span className="sw-hit-figures">
+                <span className="sw-fig">{`${p.minted_count}/${p.max_supply}`}</span>
+                {p.floor_eth != null && <span className="sw-fig sw-fig--sub">{`FLOOR ${eth(p.floor_eth)}`}</span>}
+            </span>
+        </div>
+    );
+}
+
+function UserCard({ u, onGo }: { u: SearchUserResult; onGo: GoFn }) {
+    const face = useSpriteFace(u.handle ?? '');
+    const name = u.handle ? `@${u.handle}` : u.ens_name ?? shortAddress(u.address);
+    return (
+        <div className="sw-hit sw-tap" role="button" tabIndex={0} onClick={(e) => onGo(e, `/${u.handle ?? u.address}`)}>
+            {face && <SpriteFace className="sw-hit-sprite" face={face} />}
+            <span className="sw-hit-body">
+                <span className="sw-hit-main">
+                    {name}
+                    {u.is_artist && <span className="sw-hit-badge">{` ✺${VS15}`}</span>}
+                </span>
+                <span className="sw-hit-sub">
+                    {`⬚${VS15} ${u.collected} · ⟠${VS15} ${u.spent_eth.toFixed(2)} · ⚬${VS15} ${fmtFollowers(u.followers)}`}
+                </span>
+            </span>
+        </div>
+    );
+}
+
+function ArtCard({ a, onGo }: { a: SearchArtworkResult; onGo: GoFn }) {
+    return (
+        <div className="sw-hit sw-tap" role="button" tabIndex={0} onClick={(e) => onGo(e, `/art/${a.project_id}/${a.token_id}`)}>
+            <SwThumb slug={a.project_id} id={a.token_id} size={48} />
+            <span className="sw-hit-body">
+                <span className="sw-hit-main">{pieceName(a.project_title, a.token_id)}</span>
+                <span className="sw-hit-sub">
+                    {a.label ? `${a.label} · ⚬${VS15} ${a.followers}` : `⚬${VS15} ${a.followers}`}
+                </span>
+            </span>
+        </div>
+    );
+}
+
+function TraitCard({ t, onGo }: { t: SearchTraitResult; onGo: GoFn }) {
+    return (
+        <div className="sw-hit sw-tap" role="button" tabIndex={0} onClick={(e) => onGo(e, `/art/${t.project_id}`)}>
+            <span className="sw-hit-ic">{`⨝${VS15}`}</span>
+            <span className="sw-hit-body">
+                <span className="sw-hit-main">{t.value}</span>
+                <span className="sw-hit-sub">{`${t.trait_name} · ${t.project_title}`}</span>
+            </span>
+        </div>
+    );
+}

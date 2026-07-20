@@ -214,6 +214,393 @@
     padding: 10px 10px 2px;
 }
 
+/* ══ STAGE 4 — THE WIDGET DECK (.sw-*) ═══════════════════════════════
+   "Magic tablet meets Spotlight meets TARS meets watchOS; Raycast is a
+   big inspo" — watchOS as reference, not blueprint (Brendon 2026-07-20).
+   Big type, real data, glanceable black cards. Corner law inside the
+   vessel: every card/chip/key/cell is SQUARE; the only pills are the two
+   Brendon named (peek + typing pill). Rule #2: 12px minimum, bold,
+   full-strength on the dark stage. */
+
+.sw-card {
+    padding: 8px 6px;
+}
+
+/* widget title — every card leads with its name */
+.sw-title {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 2px 4px 8px;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    color: var(--text-color);
+}
+.sw-title-glyph { flex: none; letter-spacing: 0; }
+.sw-title-label { flex: none; }
+/* the pd miniplayer is a lowercase name (Brendon's word-lock) */
+.sw-title-label--lower { text-transform: none; letter-spacing: 1px; }
+.sw-title-sub {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 1px;
+}
+
+/* the TARS voice — terse, confident, large */
+.sw-say {
+    padding: 4px 4px 6px;
+    font-size: 16px;
+    font-weight: bold;
+    line-height: 1.3;
+    color: var(--text-color);
+    font-variant-emoji: text;
+    overflow-wrap: break-word;
+}
+.sw-say--lead { font-size: 19px; }
+
+/* grammar hint — the stone teaching its own summons */
+.sw-hint {
+    padding: 4px 4px 6px;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    color: var(--text-color);
+}
+
+.sw-tap { cursor: pointer; transition: transform 0.12s ease; }
+.sw-tap:active { transform: scale(0.985); }
+
+/* section head inside the results card */
+.sw-sect {
+    padding: 10px 4px 4px;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    color: var(--text-color);
+}
+
+/* a glanceable hit card — sprite/thumb · big main line · data sub-line */
+.sw-hit {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 4px;
+    color: var(--text-color);
+}
+.sw-hit + .sw-hit { border-top: 1px solid rgba(255, 255, 255, 0.15); }
+.sw-hit-sprite { flex: none; font-size: 15px; }
+.sw-hit-ic { flex: none; font-size: 16px; font-weight: bold; }
+.sw-hit-body {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.sw-hit-main {
+    font-size: 14px;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-variant-emoji: text;
+}
+.sw-hit-badge { font-weight: bold; }
+.sw-hit-sub {
+    font-size: 12px;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-variant-emoji: text;
+}
+.sw-hit-figures {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+.sw-fig { font-size: 13px; font-weight: bold; white-space: nowrap; }
+.sw-fig--sub { font-size: 12px; }
+.sw-thumb {
+    flex: none;
+    display: block;
+    background: #111111;
+}
+.sw-thumb--degen { border: 1px solid var(--text-color); }
+.sw-more {
+    padding: 6px 4px;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: var(--text-color);
+    cursor: pointer;
+}
+
+/* label · figure rows (priceday · calc · dossier body of work) */
+.sw-rows { padding: 2px 0; }
+.sw-rows-head {
+    padding: 8px 4px 2px;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+}
+.sw-row-line {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 5px 4px;
+    font-variant-emoji: text;
+}
+.sw-row-line + .sw-row-line { border-top: 1px solid rgba(255, 255, 255, 0.15); }
+.sw-row-l {
+    font-size: 13px;
+    font-weight: bold;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.sw-row-r { font-size: 13px; font-weight: bold; white-space: nowrap; }
+
+/* ── ▦ calendar ── */
+.sw-cal-strip {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    padding: 0 2px 8px;
+}
+.sw-cal-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 0 5px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    /* square — corner law */
+    cursor: pointer;
+    color: var(--text-color);
+}
+.sw-cal-cell--today { border-color: var(--text-color); }
+.sw-cal-cell--sel {
+    background: var(--stat-active-bg);
+    color: var(--stat-active-text);
+}
+.sw-cal-letter { font-size: 12px; font-weight: bold; line-height: 1; }
+.sw-cal-num { font-size: 16px; font-weight: bold; line-height: 1.1; }
+.sw-cal-count {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1;
+}
+.sw-cal-tododot {
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%; /* a dot, not a corner treatment */
+    background: #FF0055;
+}
+.sw-cal-list { padding: 0 2px; }
+.sw-cal-item {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 6px 2px;
+    font-variant-emoji: text;
+}
+.sw-cal-item + .sw-cal-item { border-top: 1px solid rgba(255, 255, 255, 0.15); }
+.sw-cal-time {
+    flex: none;
+    min-width: 52px;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+.sw-cal-ic { flex: none; min-width: 52px; font-size: 14px; font-weight: bold; }
+.sw-cal-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 14px;
+    font-weight: bold;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ── ✶ priceday ── */
+.sw-pd-number {
+    padding: 0 4px;
+    font-size: 44px;
+    font-weight: bold;
+    line-height: 1;
+    letter-spacing: 1px;
+    color: var(--text-color);
+}
+
+/* ── ☻/✺ dossier ── */
+.sw-id {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 2px 4px 8px;
+}
+.sw-id-face { flex: none; font-size: 18px; }
+.sw-id-name {
+    font-size: 20px;
+    font-weight: bold;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.sw-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    padding: 0 2px 4px;
+}
+.sw-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 8px 6px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    /* square — corner law */
+    font-variant-emoji: text;
+}
+.sw-stat-v { font-size: 17px; font-weight: bold; line-height: 1.1; white-space: nowrap; }
+.sw-stat-l { font-size: 12px; font-weight: bold; letter-spacing: 0.5px; white-space: nowrap; }
+
+/* ── ⬚ mini gallery ── */
+.sw-gallery-art {
+    display: block;
+    width: 100%;
+    height: auto;
+    background: #111111;
+    cursor: pointer;
+}
+.sw-gallery-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 2px 2px;
+}
+.sw-key {
+    flex: none;
+    width: 34px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 1;
+    color: var(--text-color);
+    background: #111111;
+    border: 1px solid var(--text-color);
+    /* square — corner law */
+    cursor: pointer;
+}
+.sw-key:active { transform: scale(0.95); }
+.sw-gallery-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.sw-gallery-count { font-size: 12px; font-weight: bold; }
+
+/* ── matrix ── */
+.sw-matrix {
+    display: grid;
+    gap: 0;
+    padding: 0 2px;
+    overflow-x: auto;
+}
+.sw-matrix-corner { border-bottom: 1px solid rgba(255, 255, 255, 0.35); }
+.sw-matrix-head {
+    padding: 4px 6px 6px;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+}
+.sw-matrix-label {
+    padding: 7px 6px 7px 0;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+.sw-matrix-cell {
+    padding: 7px 6px;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: right;
+    white-space: nowrap;
+    font-variant-emoji: text;
+}
+
+/* ── ⍢ wallet ascii ── */
+.sw-mark {
+    margin: 0;
+    padding: 4px 0 2px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 9px;
+    font-weight: bold;
+    line-height: 1.05;
+    letter-spacing: 0;
+    text-align: center;
+    overflow: hidden;
+    user-select: none;
+}
+
+/* ── docs ── */
+.sw-doc-hit {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 8px 4px;
+    color: var(--text-color);
+}
+.sw-doc-hit + .sw-doc-hit { border-top: 1px solid rgba(255, 255, 255, 0.15); }
+.sw-doc-title { font-size: 14px; font-weight: bold; line-height: 1.25; }
+.sw-doc-heading { font-weight: bold; }
+.sw-doc-section {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+.sw-doc-snippet {
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1.35;
+    overflow-wrap: break-word;
+}
+.sw-doc-snippet mark {
+    background: var(--stat-active-bg);
+    color: var(--stat-active-text);
+}
+
 /* ── Stacking over the pd miniplayer ─────────────────────────────────
    While the miniplayer is live (body.pd-fm-live, set by FmBar) it IS the
    bottom of the viewport — the stone summons and floats one band above

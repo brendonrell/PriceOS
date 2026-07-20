@@ -14,7 +14,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { SearchEntry } from '../../lib/docs/search';
 
-type Hit = {
+export type Hit = {
     entry: SearchEntry;
     score: number;
     /* Best matching heading (deep anchor), when the match is heading-tier. */
@@ -23,7 +23,10 @@ type Hit = {
     snippet: { pre: string; hit: string; post: string } | null;
 };
 
-function hrefFor(hit: Hit): string {
+/* hrefFor + searchIndex are exported for the Command Stone's docs widget
+   (stage 4) — the Stone rides this exact index + scoring, one corpus,
+   one ranking (Rule #0). */
+export function hrefFor(hit: Hit): string {
     const base = hit.entry.slug === '' ? '/docs' : `/docs/${hit.entry.slug}`;
     return hit.heading ? `${base}#${hit.heading.id}` : base;
 }
@@ -40,7 +43,7 @@ function snippetAround(text: string, term: string): Hit['snippet'] {
     };
 }
 
-function searchIndex(index: SearchEntry[], query: string): Hit[] {
+export function searchIndex(index: SearchEntry[], query: string): Hit[] {
     const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
     if (terms.length === 0) return [];
     const hits: Hit[] = [];

@@ -42,8 +42,10 @@ interface Props {
     onClose: () => void;
 }
 
-const CALC_ROYALTY_PCT = 0.05;
-const CALC_GAS_ESTIMATE_ETH = 0.0008;
+/* Exported for the Command Stone's calc widget (stage 4) — one rate card,
+   one gas figure, wherever the ladder is computed. */
+export const CALC_ROYALTY_PCT = 0.05;
+export const CALC_GAS_ESTIMATE_ETH = 0.0008;
 
 const FOCUS_DELAY_MS = 280;
 const CLOSE_FADE_MS  = 240;
