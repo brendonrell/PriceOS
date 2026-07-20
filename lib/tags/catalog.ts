@@ -85,9 +85,8 @@ const GRANTED: Tag[] = [
     { id: 'wtbs',       label: 'WTBS',      color: '#FF0055', kind: 'granted', order: 21 },
     { id: 'influencer', label: 'Influencer', color: '#DB2777', kind: 'granted', order: 22 },
     { id: 'team',       label: 'Team',      color: '#0109FF', kind: 'granted', order: 23 },
-    { id: 'verified',   label: 'Verified',  color: '#0EA5E9', kind: 'granted', order: 24 },
-    { id: 'partner',    label: 'Partner',   color: '#14B8A6', kind: 'granted', order: 25 },
-    { id: 'featured',   label: 'Featured',  color: '#F97316', kind: 'granted', order: 26 },
+    /* Verified / Partner / Featured REMOVED (Brendon, 2026-07-20). A stray
+       grant of a removed id is a silent no-op — derive skips unknown ids. */
 ];
 
 export const TAGS: Tag[] = [...PERSONAS, ...EARNED, ...GRANTED];
