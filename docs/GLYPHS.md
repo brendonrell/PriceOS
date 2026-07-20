@@ -555,6 +555,18 @@ sky at mint) + the proven lunarGlyph discs.
 > tag catalog stays colour + label until Brendon picks from the 2026-07-20
 > options menu (five screened, unused candidates per glyphless tag).
 
+## 12g. The Nemesis — ☍ (2026-07-20 build)
+
+| Use | Glyph | Codepoint |
+|---|---|---|
+| Nemesis Pings (the declared rival moved) | ☍ | U+260D OPPOSITION |
+
+> The astrological OPPOSITION mark — two bodies at 180°, the exact chart
+> aspect for a rival — from the same celestial family as the natal-chart
+> glyphs (§12b). Globally unique at pick time (screened repo-wide incl.
+> escapes), text-default on iOS. VS-15 at render like every PD glyph.
+> Rides WATCH_HIT rows with reason `nemesis` (`lib/pings/interest.ts`).
+
 ## 13. THE WAR — Factions glyphs (2026-07-13 build, spec v3.1 §11)
 
 One vocabulary across the ceremony, the tape, pings, the Book, and the

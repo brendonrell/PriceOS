@@ -37,15 +37,19 @@ const MAX_PUSHES = 200;
 const MAX_TRAIT_KEYS = 16;
 
 export type InterestEvent = 'minted' | 'listed' | 'sold';
-export type InterestReason = 'mutual' | 'artist' | 'rarity' | 'project' | 'trait';
+export type InterestReason = 'nemesis' | 'mutual' | 'artist' | 'rarity' | 'project' | 'trait';
 
-/** Reason precedence — strongest first. One ping per recipient per event. */
+/** Reason precedence — strongest first. One ping per recipient per event.
+ *  NEMESIS outranks everything: the declared rival moving is the whole point
+ *  of the declaration (ClickUp 86b9jfjmu — "Nemesis Pings fire when the
+ *  rival buys, lists a grail, or makes a major move"). */
 const REASON_RANK: Record<InterestReason, number> = {
-  mutual: 0,
-  artist: 1,
-  rarity: 2,
-  project: 3,
-  trait: 4,
+  nemesis: 0,
+  mutual: 1,
+  artist: 2,
+  rarity: 3,
+  project: 4,
+  trait: 5,
 };
 
 /** RARITY pings — market action on a piece ranked inside this PD-Rarity top
@@ -156,8 +160,17 @@ export async function pingInterested(db: DB, args: InterestArgs): Promise<string
     }
 
     // ── Gather each audience in parallel ──
-    const [mutuals, artistWatchers, projectWatchers, rarityHolders, ...traitBatches] =
+    const [rivals, mutuals, artistWatchers, projectWatchers, rarityHolders, ...traitBatches] =
       await Promise.all([
+        // NEMESIS — everyone who declared THIS actor their rival.
+        db
+          .from('users')
+          .select('address')
+          .eq('nemesis_address', actor)
+          .limit(MAX_RECIPIENTS)
+          .then(({ data }) =>
+            ((data ?? []) as AddressRow[]).map((r) => r.address.toLowerCase()),
+          ),
         actorName ? mutualAddressesOf(db, actorName) : Promise.resolve([]),
         actorName
           ? usersContaining(db, { artistStars: [actorName] }, MAX_RECIPIENTS)
@@ -192,6 +205,7 @@ export async function pingInterested(db: DB, args: InterestArgs): Promise<string
         if (!prev || REASON_RANK[reason] < REASON_RANK[prev]) reasonFor.set(a, reason);
       }
     };
+    claim(rivals, 'nemesis');
     claim(mutuals, 'mutual');
     claim(artistWatchers, 'artist');
     claim(rarityHolders, 'rarity');

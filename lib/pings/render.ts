@@ -114,6 +114,7 @@ const ICONS: Record<RenderKind, string> = {
 /** Interest-ping glyphs — the WATCH_HIT reason wears the exact glyph its
  *  concept wears everywhere else (the MY PINGS pills / Starred tiles). */
 const WATCH_ICONS: Record<string, string> = {
+  nemesis: '☍︎', // ☍ opposition — the declared rival moved (Nemesis Pings)
   mutual:  '⚭︎', // ⚭ mutuals pill
   artist:  '✺︎', // ✺ artists pill / starred-artist tile
   project: '⬚︎', // ⬚ projects pill / starred-project tile
@@ -262,6 +263,7 @@ export function renderPing(row: FeedItem): RenderedPing {
         action = join(verb, what) + priced + standing;
       } else {
         const why =
+          reason === 'nemesis' ? 'YOUR NEMESIS' :
           reason === 'mutual' ? 'mutual' :
           reason === 'artist' ? '★ artist' :
           reason === 'project' ? '★ project' : '★ trait';
@@ -428,6 +430,7 @@ export function passesCategoryPrefs(
     case 'WATCH_HIT': {
       const reason = typeof item.data?.watch === 'string' ? (item.data.watch as string) : null;
       switch (reason) {
+        case 'nemesis': return true; // declared it yourself; renounce = off
         case 'mutual':  return prefs.mutuals;
         case 'artist':  return prefs.artists;
         case 'project': return prefs.projects;
