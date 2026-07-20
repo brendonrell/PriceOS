@@ -18,9 +18,9 @@
    minimum, bold labels.
    ══════════════════════════════════════════════════════════════════════ */
 
-/* ── the resting pill — THE stone bar we always had (Brendon 2026-07-20:
-      unchanged look; swipe up summons it, swipe down puts it away, and it
-      LIVES there while you scroll) ── */
+/* ── the resting bar (Brendon 2026-07-20: NO glyph, a bare black bar at
+      HALF the old 26px height; swipe up summons it, swipe down puts it
+      away, and it LIVES there while you scroll) ── */
 .stone-peek {
     position: fixed;
     left: 50%;
@@ -28,16 +28,12 @@
     bottom: calc(14px + env(safe-area-inset-bottom, 0px));
     z-index: 10004;
     width: min(46vw, 220px);
-    height: 26px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    height: 13px;
     background: #111111;
-    color: #e0e0e0;
     border: 1px solid rgba(255, 255, 255, 0.35);
     border-radius: 6px;
     cursor: pointer;
-    touch-action: none; /* the pill owns its swipes — never scrolls the page */
+    touch-action: none; /* the bar owns its swipes — never scrolls the page */
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
     transition: opacity 0.2s ease, transform 0.2s ease;
 }
@@ -46,11 +42,12 @@
     pointer-events: none;
     transform: translateX(-50%) translateY(10px);
 }
-.stone-peek-glyph {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 14px;
-    font-weight: bold;
-    line-height: 1;
+/* Generous tap target around the skinny bar — the visual is 13px, the
+   finger zone isn't. */
+.stone-peek::after {
+    content: '';
+    position: absolute;
+    inset: -12px;
 }
 
 /* ── the floating vessel — deck above, pill below ── */

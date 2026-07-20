@@ -205,21 +205,29 @@ export function hashSynNotifyCanvasPaint(): void {
 }
 
 /**
- * Apply a hex directly through the registered callback — no canvas
- * sampling. Used for per-card pointer triggers (ArtworkCard hover/tap)
- * and, once ArtworkModal v0 lands, the modal-open lock (sim 8800:
- * openModal calls `_origSetTheme(data.palette.c1)` when hashsyn is the
- * current colorway — deterministic, single-frame, zero gate failures on
- * near-gray or near-black canvases). The retry cascade and scroll +
- * paint-notify resamples still run; this is the per-token override
- * that gives hashsyn a reactive surface before the muddy channel-mean
- * locks the bg on static views (Showcase tab, short pages).
+ * The modal-open lock — sim 8800: openModal sets the theme to the OPENED
+ * PIECE's own colour when hashsyn is active (sim used data.palette.c1;
+ * stored-image tiles have no palette, so we sample the modal image's own
+ * centre pixels through the same gates every other sample uses). Real
+ * artwork colour only — never a synthesized hue. 2026-07-20: this replaces
+ * an invented per-card hover trigger + fake `hsl(id*37)` accent that was
+ * never in the sim and made touching any card slam the page colour
+ * (the "changes buttons" bug).
  *
- * No-op when the engine isn't enabled.
+ * No-op when the engine isn't enabled. On a gate miss (near-gray/near-black
+ * art) the caller-supplied fallback applies when given — the piece's own
+ * palette hex (lib/art/outputColor.outputPaletteHex, the fingerprint-math
+ * enhancement) — else the current colour stands.
  */
-export function hashSynApplyHex(hex: string): void {
+export function hashSynLockToElement(el: HTMLElement, fallbackHex?: string | null): void {
     if (!_onApplyHex) return;
-    _onApplyHex(hex);
+    const col = el instanceof HTMLCanvasElement
+        ? hashSynSampleColor(el)
+        : el instanceof HTMLImageElement
+            ? hashSynSampleImage(el)
+            : null;
+    if (col) _onApplyHex(hashSynToHex(col));
+    else if (fallbackHex) _onApplyHex(fallbackHex);
 }
 
 /**

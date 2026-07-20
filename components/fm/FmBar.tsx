@@ -270,6 +270,23 @@ export default function FmBar() {
 
     if (rotation.length === 0) return null;
 
+    /* Closed = the chip (Brendon's pick, 2026-07-20 — dot is the fallback if
+       Safari chrome fights it): an icon-only mini pill on the bar's exact
+       anchor. Tapping it brings the full device back. */
+    if (!enabled) {
+        return (
+            <button
+                type="button"
+                className="fm-nub"
+                onClick={() => updateNotifs({ miniplayer: true })}
+                title="pd miniplayer"
+                aria-label="Open the pd miniplayer"
+            >
+                {'▶︎'}
+            </button>
+        );
+    }
+
     const tuneOffer = onAir && context && context.playlistId !== onAir.playlistId;
 
     return (
@@ -331,6 +348,20 @@ export default function FmBar() {
                         </span>
                     </span>
                 )}
+            </button>
+            {/* the door out — collapses the device to the chip and stops the
+                audio (Rule #-0.4: every feature ships with a close). */}
+            <button
+                type="button"
+                className="fm-btn fm-close"
+                onClick={() => {
+                    updateNotifs({ miniplayer: false });
+                    showToast('pd miniplayer: CLOSED');
+                }}
+                title="Close the miniplayer"
+                aria-label="Close the pd miniplayer"
+            >
+                ×
             </button>
         </div>
     );

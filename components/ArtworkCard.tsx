@@ -94,7 +94,7 @@ import {
     registerCanvas,
     unregisterCanvas,
 } from '../lib/virtualization/canvasVirtualizer';
-import { hashSynApplyHex, hashSynNotifyCanvasPaint } from '../lib/engines/hashSynEngine';
+import { hashSynNotifyCanvasPaint } from '../lib/engines/hashSynEngine';
 import {
     getGrails,
     subscribeGrails,
@@ -902,14 +902,6 @@ function ArtworkCard({
                         handleOpen();
                     }
                 }}
-                /* Hash Synesthesia per-card trigger — sim 8800
-                   parallel (openModal locks bg to data.palette.c1
-                   when hashsyn is active). PointerEnter fires on
-                   desktop hover and on first touch on mobile, so
-                   the same handler covers both inputs. hashSynApplyHex
-                   no-ops when the engine isn't enabled, so this is
-                   inert under every other colorway. */
-                onPointerEnter={() => hashSynApplyHex(`hsl(${(id * 37) % 360}, 70%, 50%)`)}
             >
                 <div
                     ref={wrapperRef}

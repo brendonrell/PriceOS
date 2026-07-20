@@ -55,6 +55,32 @@
     background: transparent;
 }
 
+/* the chip — the closed miniplayer's relaunch nub (Brendon's pick,
+   2026-07-20). Icon-only mini pill on the bar's exact anchor; the visual
+   stays tiny while the ::after pad keeps the tap target finger-sized. */
+.fm-nub {
+    position: fixed;
+    right: max(14px, env(safe-area-inset-right));
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    z-index: 8990;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1;
+    color: var(--text-color);
+    background: var(--bg-color);
+    border: 1.5px solid var(--text-color);
+    border-radius: 999px;
+    padding: 4px 9px;
+    cursor: pointer;
+}
+
+.fm-nub::after {
+    content: '';
+    position: absolute;
+    inset: -10px;
+}
+
 /* transport keys — pills, like every PD control */
 .fm-btn {
     flex: 0 0 auto;

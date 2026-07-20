@@ -93,6 +93,20 @@ export function classifyRgb(r: number, g: number, b: number): ColorBucket {
 }
 
 /**
+ * The Output's own first palette stop as '#rrggbb', or null when its engine
+ * exposes no palette. This is the sim's `data.palette.c1` — the colour the
+ * sim's hashsyn modal lock used (sim 8800). The Hash Synesthesia rebuild
+ * (2026-07-20) uses it as the lock's fallback when pixel sampling gate-misses:
+ * real per-piece palette math enhancing the sampler, never replacing it.
+ */
+export function outputPaletteHex(slug: string, id: number): string | null {
+    const first = stopsFor(slug, id)?.[0];
+    if (!first) return null;
+    const s = first.replace('#', '');
+    return /^[0-9a-fA-F]{6}$/.test(s) ? `#${s.toLowerCase()}` : null;
+}
+
+/**
  * Dominant colour bucket for an Output. Hothurt wins if the palette carries the
  * signature hex; otherwise the bucket is the majority of the three stops, or —
  * when all three differ — the bucket of their averaged colour.

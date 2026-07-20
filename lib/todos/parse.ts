@@ -95,7 +95,10 @@ export function parseTodo(raw: string): ParsedTodo {
     }
 
     // 4. Price — qualified ("under .4", "@0.4", "◊0.4") or a bare decimal ("0.4 eth")
-    const qualified = /(?:under|below|max|@|≤|<=|<|◊|Ξ)\s*(\d+(?:\.\d+)?)\s*(?:eth|Ξ|◊)?/i.exec(s);
+    /* `\.\d+` alternative: "under .4" (the header's own example) — the old
+       \d+-first pattern silently missed bare-dot decimals (caught 2026-07-20
+       by the time-parse tests). */
+    const qualified = /(?:under|below|max|@|≤|<=|<|◊|Ξ)\s*(\d+(?:\.\d+)?|\.\d+)\s*(?:eth|Ξ|◊)?/i.exec(s);
     if (qualified) {
         priceEth = parseFloat(qualified[1]);
         s = s.replace(qualified[0], ' ');
