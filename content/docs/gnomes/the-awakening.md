@@ -20,7 +20,7 @@ Every project has a **waking threshold**: a mint count at which its gnome wakes.
 
 **The wallet whose mint strikes the hour owns the gnome.** That's the whole rule. The crossing piece's minter is recorded as the keeper's keeper the moment the threshold is crossed, permanently, along with the piece number that struck the hour and a rarity cast from the project's real traded volume at that instant. Every mint you make in an unawakened project is a lottery ticket you were buying anyway.
 
-The awakening is written once and never rewritten. Selling the crossing piece later changes nothing — the gnome is not attached to the piece; it was won at the hour and lives in your [gnomewallet](/docs/gnomes/the-gnomewallet) until you trade it on [gnopensea](/docs/gnomes/gnopensea).
+The awakening is written once and never rewritten. Selling the crossing piece later changes nothing — the gnome is not attached to the piece; it was won at the hour and lives in your [gnomewallet](/docs/gnomes/the-gnomewallet) until you trade it on [the mushroom market](/docs/gnomes/the-mushroom-market).
 
 ## The keeping, on record
 

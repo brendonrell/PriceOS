@@ -10,7 +10,7 @@ last_updated: "2026-07-19"
 
 The GNOME tab is the gnome's home. The **gnomewallet** is yours — an entire world in a modal, and deliberately not the platform's world: carved timber, plank walls, a shingle sign swinging on ropes, hobbit doors with brass knobs, a lantern over everything, spores in the lamplight, and a mushroom ring along the floor. Stepping in is meant to feel like the mushroom worked.
 
-One convention rules the whole place: **the gnome world is a lowercase world.** gnomewallet, gnopensea, your `.gnome` name, the motto — *"gnome matter what"* — all of it, always.
+One convention rules the whole place: **the gnome world is a lowercase world.** gnomewallet, the mushroom market, your `.gnome` name, the motto — *"gnome matter what"* — all of it, always.
 
 ## Getting in
 
@@ -26,7 +26,7 @@ Crossing the threshold issues your identity in the gnome world, derived from you
 ## The two wings
 
 - **my burrow** — every gnome in your keeping, each standing in its own door: figure alive on its own beat, rarity plate over the arch, the awakening record below, and the sign controls (hang a FOR SALE sign, or take it down). Tap a gnome and it speaks to you as its favorite person — in your own burrow, you always rank.
-- **[gnopensea](/docs/gnomes/gnopensea)** — the market hall, one signpost over.
+- **[the mushroom market](/docs/gnomes/the-mushroom-market)** — the market hall, one signpost over.
 
 ## What the gnomewallet is not
 

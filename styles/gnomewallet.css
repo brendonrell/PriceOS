@@ -485,6 +485,46 @@
     letter-spacing: 1px;
     color: var(--gw-gold);
 }
+/* The ledger — the counting house's public page under the market floor:
+   every struck deal on one carved board, newest first. Full-strength hall
+   tokens (cream ink, lamplight gold, timber rules). */
+.gw-ledger {
+    margin-top: 18px;
+    padding: 12px 14px 10px;
+    border: 2px solid var(--gw-timber);
+    border-radius: 8px;
+    background: var(--gw-deep);
+}
+.gw-ledger-head {
+    margin-bottom: 8px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: bold;
+    font-style: italic;
+    letter-spacing: 1.5px;
+    color: var(--gw-gold);
+}
+.gw-ledger-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 5px 0;
+    border-top: 1px solid var(--gw-timber);
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--gw-ink);
+}
+.gw-ledger-glyph { color: var(--gw-red); }
+.gw-ledger-names {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.gw-ledger-ask { color: var(--gw-gold); }
+.gw-ledger-when { color: var(--gw-ink); }
+
 .gw-ask-input {
     width: 84px;
     padding: 5px 8px;

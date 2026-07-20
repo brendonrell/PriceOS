@@ -475,7 +475,8 @@
    contract, nobody re-rolled): nicknames (~1/5, pool 40) + epithets (~1/3,
    pool 48) → `SNORRI "TWO LAMPS" FLINTPICK THE UNDERSOLD`; figures gain
    spectacles / hat feather / earring / snail companion.
-   ⑥ gnopensea (Brendon's coinage) + THE COUNTING HOUSE — signs (owner-only
+   ⑥ the mushroom market (renamed back from 'gnopensea', Brendon 2026-07-20)
+   + THE COUNTING HOUSE — signs (owner-only
    SIWE listing, ask in ETH, no money moves) + **no-fee deals LIVE
    ("gnome ore fees" = the whole fee schedule, printed in the hall +
    docs)**: STRIKE THE DEAL assembles a direct buyer→seller send (100%, no
@@ -485,11 +486,12 @@
    idempotent, one payment settles at most one deal (unique tx index).
    Migrations `gnomes` / `gnome_market` / `gnome_deals` all APPLIED LIVE +
    mirrored.
-   ⑦ DOCS — full four-page section (overview · the-awakening · gnopensea ·
-   the-gnomewallet) at stickers grade, wired into the nav, prerendered;
+   ⑦ DOCS — full four-page section (overview · the-awakening ·
+   the-mushroom-market · the-gnomewallet) at stickers grade, wired into the
+   nav, prerendered;
    "real-fake NFT collection" stated plainly.
-   **Wording/design locks:** gnomewallet + gnopensea + gnome world =
-   lowercase; ⍙ (U+2359) = the gnome mark (Brendon's pick of 20); the gnome
+   **Wording/design locks:** gnomewallet + the mushroom market + gnome world =
+   lowercase (⛔ 'gnopensea' is DEAD — renamed back 2026-07-20, never revive); ⍙ (U+2359) = the gnome mark (Brendon's pick of 20); the gnome
    TAB never shows the wallet/gnome-world identity — keeping is ONE plain
    line (⍙ IN THE KEEPING OF @handle · RARITY); fees = none, forever
    ("gnome ore fees").

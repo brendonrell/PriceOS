@@ -1,14 +1,14 @@
 ---
-title: "The Gnomes — gnopensea"
+title: "The Gnomes — the mushroom market"
 description: "The gnome market hall: hanging a FOR SALE sign, striking the deal, the no-fee schedule (gnome ore fees), and why gnomes trade only on Price Discussion."
 category: "gnomes"
-keywords: ["gnopensea", "gnome market", "mushroom market", "for sale", "strike the deal", "gnome ore fees", "trading"]
-last_updated: "2026-07-19"
+keywords: ["mushroom market", "gnome market", "for sale", "strike the deal", "gnome ore fees", "trading"]
+last_updated: "2026-07-20"
 ---
 
-# gnopensea
+# the mushroom market
 
-The gnome world's market hall — yes, it's called **gnopensea**, and yes, it's the only venue in existence where a gnome can change hands. It's the second wing of the [gnomewallet](/docs/gnomes/the-gnomewallet), past the signpost.
+The gnome world's market hall — **the mushroom market**, the only venue in existence where a gnome can change hands. It's the second wing of the [gnomewallet](/docs/gnomes/the-gnomewallet), past the signpost.
 
 ## Hanging a sign
 

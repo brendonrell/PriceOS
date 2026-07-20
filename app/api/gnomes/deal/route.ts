@@ -31,6 +31,7 @@ import { getSupabaseService } from '@/lib/supabase';
 import { requireAuth } from '@/lib/auth/siwe';
 import { badRequest, serverError } from '@/lib/errors';
 import { publicClient } from '@/lib/indexer/chain';
+import { createPing } from '@/lib/pings/createPing';
 
 export const dynamic = 'force-dynamic';
 
@@ -166,6 +167,27 @@ export const POST = requireAuth(async (req, _ctx, address) => {
         .update({ status: 'settled', settled_at: new Date().toISOString() } as never)
         .eq('id', dealId);
       if (settle.error) return serverError(settle.error.message);
+
+      /* The town crier — both parties hear the deal settle (best-effort,
+         never blocks the books). Seller's row wears the buyer's handle;
+         the buyer gets the receipt. */
+      await Promise.all([
+        createPing({
+          recipientAddress: deal.seller_address,
+          kind: 'PING',
+          actorAddress: buyer,
+          projectId: deal.project_id,
+          amountEth: Number(deal.ask_eth),
+          data: { gnome: true, side: 'sold', deal_id: deal.id },
+        }),
+        createPing({
+          recipientAddress: buyer,
+          kind: 'PING',
+          projectId: deal.project_id,
+          amountEth: Number(deal.ask_eth),
+          data: { gnome: true, side: 'bought', deal_id: deal.id },
+        }),
+      ]);
 
       return NextResponse.json({ settled: true });
     }

@@ -2,7 +2,7 @@
 title: "The Gnomes — Overview"
 description: "PD's real-fake NFT collection: one guardian gnome per project, free to awaken, alive in its tab, owned and traded entirely inside Price Discussion."
 category: "gnomes"
-keywords: ["gnomes", "gnome", "gnomewallet", "gnopensea", "real-fake NFT", "awakening", "keeper", "respect"]
+keywords: ["gnomes", "gnome", "gnomewallet", "mushroom market", "real-fake NFT", "awakening", "keeper", "respect"]
 last_updated: "2026-07-19"
 ---
 
@@ -43,6 +43,6 @@ The tab is the gnome's home, and it behaves like someone lives there:
 
 - **The GNOME tab** — the gnome's home: the figure, journal, mood, respect, and the record of who keeps it.
 - **The [gnomewallet](/docs/gnomes/the-gnomewallet)** — your side: every gnome in your keeping, in a fully gnomish world of its own.
-- **[gnopensea](/docs/gnomes/gnopensea)** — the market hall where keepers hang FOR SALE signs.
+- **[the mushroom market](/docs/gnomes/the-mushroom-market)** — the market hall where keepers hang FOR SALE signs.
 
 How a gnome becomes yours is its own story — the best mechanic in the system: [The Awakening](/docs/gnomes/the-awakening).

@@ -130,6 +130,7 @@ const PING_ICONS: Record<string, string> = {
   streak:   '◈︎', // ◈ streak (the streak glyph — the guard speaks for it)
   artist:   '✺︎', // ✺ Artist Push speaks as the artist
   pingart:  '⎀︎', // ⎀ PingArt — the daily ascii transmission (ascii concept mark)
+  gnome:    '⍙︎', // ⍙ the gnome mark — a mushroom-market deal settled
   system:   '⇡︎', // ⇡ the pings system speaking about itself (away rollup, ops)
 };
 
@@ -307,6 +308,15 @@ export function renderPing(row: FeedItem): RenderedPing {
         handle = '';
         const day = typeof row.data?.day === 'string' ? (row.data.day as string) : '';
         action = `PingArt: today's transmission${day ? ` · ${day}` : ''}`;
+      } else if (row.data?.gnome === true) {
+        // The counting house speaks — a mushroom-market deal settled.
+        // Lowercase world: the gnome copy never shouts.
+        if (row.data?.side === 'sold') {
+          action = `struck the deal — your ${p ? `${p} ` : ''}gnome sold${eth ? ` · ${eth}` : ''}`;
+        } else {
+          handle = '';
+          action = `the deal is struck — the ${p ? `${p} ` : ''}gnome is yours`;
+        }
       } else if (reminder === 'ops') {
         handle = '';
         action = typeof row.data?.text === 'string' ? (row.data.text as string) : 'System notice';
@@ -339,7 +349,9 @@ export function renderPing(row: FeedItem): RenderedPing {
       reminder === 'ops'
         ? 'system'
         : reminder ||
-          (row.data?.artist_push === true ? 'artist' : row.data?.away === true ? 'system' : '');
+          (row.data?.gnome === true
+            ? 'gnome'
+            : row.data?.artist_push === true ? 'artist' : row.data?.away === true ? 'system' : '');
     ownIcon = PING_ICONS[sub] ?? null;
   }
 

@@ -115,7 +115,7 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
         slugs: [
             'gnomes/overview',
             'gnomes/the-awakening',
-            'gnomes/gnopensea',
+            'gnomes/the-mushroom-market',
             'gnomes/the-gnomewallet',
         ],
     },

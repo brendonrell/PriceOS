@@ -41,6 +41,7 @@ import {
 } from '../lib/project/gnomeWorld';
 import { hashString } from '../lib/art/rng';
 import { fmtFeedDate } from './profile/profilePageShared';
+import type { GnomeDealEntry } from '../app/api/gnomes/market/route';
 import { GnomeFigure } from './project/GnomePanel';
 
 const VS15 = '︎';
@@ -374,13 +375,19 @@ export default function GnomeWalletModal() {
     }, [isOpen, siweAddress]);
 
     const [market, setMarket] = useState<GnomeAwakening[] | null>(null);
+    const [ledger, setLedger] = useState<GnomeDealEntry[]>([]);
     useEffect(() => {
         if (!isOpen || wing !== 'market') return;
         let cancelled = false;
         setMarket(null);
+        setLedger([]);
         fetch('/api/gnomes/market', { cache: 'no-store' })
             .then((r) => (r.ok ? r.json() : null))
-            .then((d) => { if (!cancelled && d) setMarket(Array.isArray(d.listings) ? d.listings : []); })
+            .then((d) => {
+                if (cancelled || !d) return;
+                setMarket(Array.isArray(d.listings) ? d.listings : []);
+                setLedger(Array.isArray(d.deals) ? d.deals : []);
+            })
             .catch(() => { if (!cancelled) setMarket([]); });
         return () => { cancelled = true; };
     }, [isOpen, wing]);
@@ -485,31 +492,49 @@ export default function GnomeWalletModal() {
                     )
                 ) : market === null ? (
                     <div className="gw-empty">Sweeping the market floor…</div>
-                ) : market.length === 0 ? (
-                    <>
-                        <div className="gw-empty">
-                            No signs hung today. When a keeper lists a gnome, its door stands here.
-                        </div>
-                        <div className="gw-feeline">fees: gnome ore fees</div>
-                    </>
                 ) : (
                     <>
-                        <div className="gw-grid">
-                            {market.map((g) => (
-                                <GnomeDoor
-                                    key={g.project_id}
-                                    g={g}
-                                    mine={false}
-                                    canDeal={!!siweAddress && g.owner_address.toLowerCase() !== siweAddress.toLowerCase()}
-                                    onSettled={() => {
-                                        loadMine();
-                                        setWing('burrow');
-                                    }}
-                                    showToast={showToast}
-                                />
-                            ))}
-                        </div>
+                        {market.length === 0 ? (
+                            <div className="gw-empty">
+                                No signs hung today. When a keeper lists a gnome, its door stands here.
+                            </div>
+                        ) : (
+                            <div className="gw-grid">
+                                {market.map((g) => (
+                                    <GnomeDoor
+                                        key={g.project_id}
+                                        g={g}
+                                        mine={false}
+                                        canDeal={!!siweAddress && g.owner_address.toLowerCase() !== siweAddress.toLowerCase()}
+                                        onSettled={() => {
+                                            loadMine();
+                                            setWing('burrow');
+                                        }}
+                                        showToast={showToast}
+                                    />
+                                ))}
+                            </div>
+                        )}
                         <div className="gw-feeline">fees: gnome ore fees</div>
+                        {ledger.length > 0 && (
+                            /* The ledger — the counting house's public page:
+                               every struck deal, newest first. */
+                            <div className="gw-ledger">
+                                <div className="gw-ledger-head">the ledger</div>
+                                {ledger.map((d) => (
+                                    <div key={`${d.project_id}-${d.settled_at}`} className="gw-ledger-row">
+                                        <span className="gw-ledger-glyph">{`${GNOME_GLYPH}${VS15}`}</span>
+                                        <span className="gw-ledger-names">
+                                            {gnomeEns(d.seller_handle) ?? shortGnomeAddress(d.seller_address)}
+                                            {' → '}
+                                            {gnomeEns(d.buyer_handle) ?? shortGnomeAddress(d.buyer_address)}
+                                        </span>
+                                        <span className="gw-ledger-ask">◊{fmtAsk(d.ask_eth)}</span>
+                                        <span className="gw-ledger-when">{fmtFeedDate(Date.parse(d.settled_at))}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </>
                 )}
 
