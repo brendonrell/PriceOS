@@ -514,6 +514,19 @@ sky at mint) + the proven lunarGlyph discs.
 > not just raw glyphs, before declaring a codepoint free.** ⠿ is retired and
 > free again. Device-verify ⎀ on iPhone per the #1 gate.
 
+## 12d-bis. Cartography Time Machine — ⇠ ◷ ✧ (2026-07-20 build, brief-locked)
+
+| Use | Glyphs | Codepoints |
+|---|---|---|
+| Time Machine key (carto control stack, under FIT) | ⇠ ◷ ✧ | U+21E0 · U+25F7 · U+2727 |
+
+> The trio reads rewind · time · arrives (the brief's approved mark,
+> Brendon 2026-07-19). ◷ is the established Recent/clock mark (§12) and ✧
+> the Uploaded star (§8) — context disambiguates (the ◉ precedent). ⇠
+> (U+21E0, dashed leftwards arrow) is NEW to the vocabulary — reserved to
+> this key; deliberately NOT ◄ (the Rewind bar's, §12) and NOT ⏪-family
+> (emoji). Playback keys inside the timeline reuse miniplayer canon ▶ / ‖.
+
 ## 12e. Sound layer — ⚟ (2026-07-20, Brendon's pick)
 
 | Use | Glyph | Codepoint |

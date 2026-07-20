@@ -144,7 +144,14 @@ interface EngineCallbacks {
     onSelect: (sel: PlaceSelection | null) => void;
     /** Double-tap a territory → open its project. */
     onOpen: (slug: string) => void;
+    /** Time Machine playback ticks the React slider (0..1). */
+    onTimeCursor: (frac: number) => void;
+    /** Playback reached NOW. */
+    onTimePlayEnd: () => void;
 }
+
+/** Time Machine playback length — genesis → now as one time-lapse. */
+const TM_PLAY_MS = 24_000;
 
 function territoryRadius(minted: number): number {
     return 30 * Math.sqrt(minted + 3) + 12;
@@ -237,6 +244,26 @@ class CartoEngine {
        row; each flag gates whether that event kind's pulse draws. The land,
        seats + counts always update — only the animation is withheld. */
     private show = { mint: true, list: true, xfer: true };
+
+    /* THE TIME MACHINE ⇠◷✧ (2026-07-20, the approved timeline brief) — a
+       time-cursor LAYER over the live world, never a separate screen. The
+       full seed ledger (ascending) is the history; land size at cursor T =
+       live minted minus the mints that happened after T (per-slug sorted
+       mint stamps, binary-searched). Land whose count reaches 0 sinks back
+       into the sea. Scrubbing/playing forward replays the crossed events
+       through the existing FX (ripple/comet/beacon) — visual only, no
+       state mutates; leaving the machine restores live sizes from data.
+       Seats stay today's seats (per-holder history isn't in the payload —
+       the land is the show). While the machine is on, live arrivals update
+       DATA only (no ceremony) and the poll refetch waits. */
+    private tmOn = false;
+    private tmT = 0; // cursor, unix seconds
+    private tmLastT = 0;
+    private tmPlaying = false;
+    private tmPlayT0 = 0; // performance.now() at play start
+    private tmPlayFrom = 0; // cursor fraction at play start
+    private ledger: CartoEvent[] = []; // ascending by ts
+    private mintTs = new Map<string, number[]>(); // slug → asc mint stamps
     /* Double-tap a territory (same slug, within the tap window) opens it. */
     private lastTapSlug: string | null = null;
 
@@ -295,6 +322,112 @@ class CartoEngine {
     /** The live territory list (minted land only) — the search box's index. */
     searchIndex(): { slug: string; title: string }[] {
         return this.terrs.map((t) => ({ slug: t.slug, title: t.title }));
+    }
+
+    /* ── the Time Machine ⇠◷✧ ───────────────────────────────────────────── */
+
+    /** The scrubbable range: earliest held history → now. */
+    tmRange(): { t0: number; t1: number } {
+        const t1 = Math.floor(Date.now() / 1000);
+        const t0 = this.ledger.length ? this.ledger[0].ts : t1 - 3600;
+        return { t0: Math.min(t0, t1 - 1), t1 };
+    }
+
+    setTimeMachine(on: boolean): void {
+        this.tmOn = on;
+        this.tmPlaying = false;
+        if (on) {
+            const { t1 } = this.tmRange();
+            this.tmT = t1;
+            this.tmLastT = t1;
+        } else {
+            /* Back to live — land grows home to its real size. */
+            for (const t of this.terrs) t.targetR = territoryRadius(t.minted);
+        }
+    }
+
+    /** Minted count for a territory at moment T — live count minus the
+     *  mints stamped after T (asc array, binary search). */
+    private mintedAt(t: Territory, T: number): number {
+        const arr = this.mintTs.get(t.slug);
+        if (!arr || arr.length === 0) return t.minted; // predates the window — already land
+        let lo = 0, hi = arr.length;
+        while (lo < hi) {
+            const mid = (lo + hi) >> 1;
+            if (arr[mid] <= T) lo = mid + 1;
+            else hi = mid;
+        }
+        const after = arr.length - lo;
+        return Math.max(0, t.minted - after);
+    }
+
+    /** Move the cursor (0..1 across the range). Forward motion replays the
+     *  crossed moments through the live FX. */
+    setTimeCursorFrac(frac: number): void {
+        if (!this.tmOn) return;
+        const { t0, t1 } = this.tmRange();
+        const T = t0 + Math.min(1, Math.max(0, frac)) * (t1 - t0);
+        if (T > this.tmLastT) {
+            /* Events crossed since the last cursor — replay a bounded sample. */
+            const crossed: CartoEvent[] = [];
+            for (const ev of this.ledger) {
+                if (ev.ts > this.tmLastT && ev.ts <= T) crossed.push(ev);
+                else if (ev.ts > T) break;
+            }
+            const step = Math.max(1, Math.ceil(crossed.length / 16));
+            for (let i = 0; i < crossed.length; i += step) this.replayFx(crossed[i]);
+        }
+        this.tmT = T;
+        this.tmLastT = T;
+        for (const t of this.terrs) {
+            const m = this.mintedAt(t, T);
+            t.targetR = m > 0 ? territoryRadius(m) : 0; // 0 = sunk beneath the sea
+        }
+    }
+
+    /** ▶ — run the time-lapse from `fromFrac` to now. */
+    tmPlay(fromFrac: number): void {
+        if (!this.tmOn) return;
+        this.tmPlaying = true;
+        this.tmPlayT0 = performance.now();
+        this.tmPlayFrom = Math.min(1, Math.max(0, fromFrac));
+        this.setTimeCursorFrac(this.tmPlayFrom);
+    }
+
+    tmPause(): void {
+        this.tmPlaying = false;
+    }
+
+    /** FX-only replay of one crossed moment — the live ceremonies without
+     *  any state mutation (the cursor owns land size; seats don't move). */
+    private replayFx(ev: CartoEvent): void {
+        if (this.reduceMotion || !this.kindOn(ev.t)) return;
+        const t = this.bySlug.get(ev.p);
+        if (!t || t.r < 1) return;
+        const now = performance.now();
+        const seed = `${ev.p}:${ev.id ?? 0}:${ev.ts}`;
+        if (ev.t === 'MINT') {
+            const p = this.shorePoint(t, seed);
+            this.ripples.push({ x: p.x, y: p.y, t0: now, hue: this.colAccent, big: true });
+            if (ev.e > 0) this.flashes.push({ x: p.x, y: p.y, t0: now, text: `✶ Ξ${fmtEth(ev.e)}`, hue: this.colAccent });
+        } else if ((ev.t === 'XFER' || ev.t === 'SALE') && ev.e > 0) {
+            const a = this.shorePoint(t, `${seed}:f`);
+            const b = this.shorePoint(t, `${seed}:t`);
+            const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+            const dx = b.x - a.x, dy = b.y - a.y;
+            const lift = Math.max(40, Math.hypot(dx, dy) * 0.35);
+            this.comets.push({
+                x0: a.x, y0: a.y, x1: b.x, y1: b.y,
+                cx: mx - dy / Math.hypot(dx, dy || 1) * lift,
+                cy: my + dx / Math.hypot(dx, dy || 1) * lift,
+                t0: now, dur: 1400, hue: t.color, price: ev.e,
+            });
+        } else if (ev.t === 'LIST') {
+            this.beacons.push({ x: this.shorePoint(t, seed).x, y: this.shorePoint(t, seed).y, t0: now, hue: t.color });
+        } else {
+            const p = this.shorePoint(t, seed);
+            this.ripples.push({ x: p.x, y: p.y, t0: now, hue: t.color, big: false });
+        }
     }
 
     async start(): Promise<void> {
@@ -414,6 +547,16 @@ class CartoEngine {
                 .slice(0, 120)
                 .map((ev, i) => ({ ev, at: now + 600 + i * 90 }));
         }
+
+        /* The Time Machine's history — the whole seed window, oldest first. */
+        this.ledger = [...data.events].sort((a, b) => a.ts - b.ts);
+        this.mintTs.clear();
+        for (const ev of this.ledger) {
+            if (ev.t !== 'MINT') continue;
+            const arr = this.mintTs.get(ev.p);
+            if (arr) arr.push(ev.ts);
+            else this.mintTs.set(ev.p, [ev.ts]);
+        }
     }
 
     private addTerritory(p: CartoProject, pos?: { sx: number; sy: number; x: number; y: number }): void {
@@ -510,6 +653,7 @@ class CartoEngine {
     }
 
     private async refetch(): Promise<void> {
+        if (this.tmOn) return; // never rebuild the world under the cursor
         try {
             const res = await fetch('/api/cartography');
             if (!res.ok) return;
@@ -707,7 +851,8 @@ class CartoEngine {
         const minted = Number(row.minted_count ?? t.minted);
         if (minted !== t.minted) {
             t.minted = minted;
-            t.targetR = territoryRadius(minted);
+            /* Cursor owns the land while the Time Machine is on. */
+            if (!this.tmOn) t.targetR = territoryRadius(minted);
         }
     }
 
@@ -721,6 +866,22 @@ class CartoEngine {
             e: Number(row.price_eth ?? 0) || 0,
             ts: Number(row.timestamp) || 0,
         };
+        /* History grows even mid-rewind, so re-entering the machine later
+           knows about this moment. */
+        this.ledger.push(ev);
+        if (ev.t === 'MINT') {
+            const arr = this.mintTs.get(ev.p);
+            if (arr) arr.push(ev.ts);
+            else this.mintTs.set(ev.p, [ev.ts]);
+        }
+        if (this.tmOn) {
+            /* Data only — no ceremony while the past is on screen. */
+            if (ev.t === 'MINT') {
+                const t = this.bySlug.get(ev.p);
+                if (t) t.minted += 1;
+            }
+            return;
+        }
         this.playEvent(ev, true);
     }
 
@@ -960,6 +1121,17 @@ class CartoEngine {
         this.resize();
         this.tickCamera(now);
 
+        /* Time Machine playback — advance the cursor genesis → now. */
+        if (this.tmOn && this.tmPlaying) {
+            const frac = Math.min(1, this.tmPlayFrom + (now - this.tmPlayT0) / TM_PLAY_MS * (1 - this.tmPlayFrom));
+            this.setTimeCursorFrac(frac);
+            this.cb.onTimeCursor(frac);
+            if (frac >= 1) {
+                this.tmPlaying = false;
+                this.cb.onTimePlayEnd();
+            }
+        }
+
         /* ease render state toward sim state */
         for (const t of this.terrs) {
             t.x += (t.sx - t.x) * 0.06;
@@ -990,6 +1162,8 @@ class CartoEngine {
             const s = this.toScreen(t.x, t.y);
             const rpx = t.r * this.cam.z;
             if (s.x + rpx * 1.3 < 0 || s.x - rpx * 1.3 > w || s.y + rpx * 1.3 < 0 || s.y - rpx * 1.3 > h) continue;
+            /* Time Machine: land that hadn't risen yet stays beneath the sea. */
+            if (this.tmOn && t.targetR <= 0 && t.r < 1.2) continue;
 
             ctx.save();
             ctx.translate(s.x, s.y);
@@ -1484,6 +1658,10 @@ export default function CartographyModal() {
     const [warData, setWarData] = useState<WarResponse | null>(null);
     /* Legend filter — which market pulses draw (tap the bottom-left legend). */
     const [legend, setLegend] = useState({ mint: true, list: true, xfer: true });
+    /* The Time Machine ⇠◷✧ — a time-cursor layer over the live map. */
+    const [tmOn, setTmOn] = useState(false);
+    const [tmFrac, setTmFrac] = useState(1);
+    const [tmPlaying, setTmPlaying] = useState(false);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -1504,6 +1682,10 @@ export default function CartographyModal() {
                 onWallet: setWallet,
                 onSelect: setPlace,
                 onOpen: (slug) => { window.location.href = `/art/${slug}`; },
+                /* Playback ticks arrive per frame — quantised to the slider's
+                   1000 steps so React re-renders only when the handle moves. */
+                onTimeCursor: (f) => setTmFrac(Math.round(f * 1000) / 1000),
+                onTimePlayEnd: () => setTmPlaying(false),
             });
             engineRef.current = eng;
             void eng.start();
@@ -1519,6 +1701,9 @@ export default function CartographyModal() {
             setPlace(null);
             setSearchOpen(false);
             setQuery('');
+            setTmOn(false);
+            setTmFrac(1);
+            setTmPlaying(false);
         };
     }, [isOpen]);
 
@@ -1556,6 +1741,43 @@ export default function CartographyModal() {
         setWarOn(next);
         try { localStorage.setItem('pd_carto_war', next ? '1' : '0'); } catch { /* ignore */ }
     };
+
+    /* Tap ⇠◷✧ — drop into the machine (cursor at NOW) or return to live. */
+    const toggleTm = () => {
+        const next = !tmOn;
+        setTmOn(next);
+        setTmPlaying(false);
+        setTmFrac(1);
+        engineRef.current?.setTimeMachine(next);
+    };
+    const tmScrub = (frac: number) => {
+        setTmPlaying(false);
+        engineRef.current?.tmPause();
+        setTmFrac(frac);
+        engineRef.current?.setTimeCursorFrac(frac);
+    };
+    const tmTogglePlay = () => {
+        if (tmPlaying) {
+            setTmPlaying(false);
+            engineRef.current?.tmPause();
+            return;
+        }
+        /* ▶ from the end restarts at genesis — watch it all grow up. */
+        const from = tmFrac >= 0.999 ? 0 : tmFrac;
+        setTmFrac(from);
+        setTmPlaying(true);
+        engineRef.current?.tmPlay(from);
+    };
+    /* The cursor's viewer-local date label; the far right edge reads NOW. */
+    const tmLabel = useMemo(() => {
+        if (!tmOn || tmFrac >= 0.999) return 'NOW';
+        const range = engineRef.current?.tmRange();
+        if (!range) return 'NOW';
+        const d = new Date((range.t0 + tmFrac * (range.t1 - range.t0)) * 1000);
+        const day = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }).toUpperCase();
+        const time = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+        return `${day} · ${time}`;
+    }, [tmOn, tmFrac]);
 
     /* Search — type-ahead over the LIVE territories (minted land only). */
     const index = useMemo(() => {
@@ -1739,7 +1961,56 @@ export default function CartographyModal() {
                         >
                             FIT
                         </span>
+                        {/* The Time Machine — placement LOCKED by Brendon:
+                            directly under FIT (the brief, 2026-07-19). */}
+                        <span
+                            className={`carto-ctl carto-ctl-tm${tmOn ? ' is-on' : ''}`}
+                            role="button"
+                            tabIndex={0}
+                            title="Time Machine"
+                            onClick={toggleTm}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleTm(); } }}
+                        >
+                            {'⇠︎ ◷︎ ✧︎'}
+                        </span>
                     </div>
+
+                    {/* The timeline — genesis on the left, NOW on the right.
+                        Drag to rewind the world; ▶ plays it forward. */}
+                    {tmOn && (
+                        <div className="carto-timeline">
+                            <span
+                                className="carto-tl-key"
+                                role="button"
+                                tabIndex={0}
+                                title={tmPlaying ? 'Pause' : 'Play genesis → now'}
+                                onClick={tmTogglePlay}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tmTogglePlay(); } }}
+                            >
+                                {tmPlaying ? '‖︎' : '▶︎'}
+                            </span>
+                            <input
+                                className="carto-tl-track"
+                                type="range"
+                                min={0}
+                                max={1000}
+                                value={Math.round(tmFrac * 1000)}
+                                onChange={(e) => tmScrub(Number(e.target.value) / 1000)}
+                                aria-label="Time cursor"
+                            />
+                            <span className="carto-tl-date">{tmLabel}</span>
+                            <span
+                                className="carto-tl-close"
+                                role="button"
+                                tabIndex={0}
+                                title="Return to live"
+                                onClick={toggleTm}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleTm(); } }}
+                            >
+                                {'×︎'}
+                            </span>
+                        </div>
+                    )}
 
                     {/* Place card — the Maps-style bottom sheet for the tapped
                         territory. War line only for the enlisted w/ layer on. */}
@@ -1809,9 +2080,13 @@ export default function CartographyModal() {
                             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setLegend((l) => ({ ...l, xfer: !l.xfer })); } }}
                         >{'✸︎'} XFER</span>
                     </div>
-                    <div className="carto-hint" aria-hidden="true">
-                        DRAG TO SAIL · PINCH OR SCROLL TO ZOOM · TAP A TERRITORY
-                    </div>
+                    {/* The timeline takes the bottom band while the machine is
+                        on — the sailing hint yields its slot. */}
+                    {!tmOn && (
+                        <div className="carto-hint" aria-hidden="true">
+                            DRAG TO SAIL · PINCH OR SCROLL TO ZOOM · TAP A TERRITORY
+                        </div>
+                    )}
                 </div>
             )}
         </div>
