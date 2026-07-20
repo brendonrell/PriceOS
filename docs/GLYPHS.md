@@ -485,6 +485,33 @@ sky at mint) + the proven lunarGlyph discs.
 | Zodiac signs (sun + rising) | ♈♉♊♋♌♍♎♏♐♑♒♓ | U+2648–U+2653 | ✅ **iOS device-verified 2026-07-17** (Brendon's iPhone, all 12 + the trio render monochrome text with VS-15) — family LOCKED |
 | Moon phase | ○◔◑◕● + waning twins | (lunarGlyph) | already shipped/proven — the disc's inline opacity IS the illumination at mint |
 
+## 12c. PD miniplayer (components/fm/FmBar — 2026-07-20 build)
+
+| Use | Glyph | Codepoint |
+|---|---|---|
+| MODE key — cycles the player's five faces | ⎇ | U+2387 ALTERNATIVE KEY SYMBOL |
+| Play / transport (established) | ▶ | U+25B6 (VS-15) |
+| Pause key | ‖ | U+2016 |
+| Next-track key | ≫ | U+226B |
+
+> ⎇ is **Brendon's pick (2026-07-20)** from an 8-option round (the APL quad
+> family + key symbols — all screened against this glossary AND the codebase).
+> Device-verify ⎇ ‖ ≫ render as monochrome text on iPhone per the #1 gate.
+> The closed player is **THE DOT** — a bare 9px `--text-color` disc, no glyph
+> (the ▶-chip trial read as a play button and was pulled the same day).
+
+## 12d. ASCII Art Mode — ⎀ (2026-07-20, Brendon's pick)
+
+| Use | Glyph | Codepoint |
+|---|---|---|
+| ASCII Art Mode toggle (`AsciiBackupPanel`) | ⎀ | U+2380 INSERTION SYMBOL |
+
+> Picked from a twenty-option round. Replaces **⠿ (U+283F)**, which had
+> shipped UNCATALOGUED as an escaped literal (`⠿`) — the second audit
+> miss of this kind (⏚ precedent, §12a): **grep escaped `\uXXXX` forms too,
+> not just raw glyphs, before declaring a codepoint free.** ⠿ is retired and
+> free again. Device-verify ⎀ on iPhone per the #1 gate.
+
 ## 13. THE WAR — Factions glyphs (2026-07-13 build, spec v3.1 §11)
 
 One vocabulary across the ceremony, the tape, pings, the Book, and the

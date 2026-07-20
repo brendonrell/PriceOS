@@ -284,9 +284,10 @@ export default function AsciiBackupPanel({ slug, id }: { slug: string; id: numbe
                 </button>
                 {/* ASCII Art Mode — the SITEWIDE toggle, now LAST after the backup
                     buttons (Brendon, 2026-07-11): every artwork surface renders its
-                    ASCII standin while it's on. Glyph U+283F (Braille full cell =
-                    dot-matrix, the ASCII-art aesthetic) — iOS-safe text; device-verify
-                    per the glyph gate. */}
+                    ASCII standin while it's on. Glyph ⎀ INSERTION SYMBOL (U+2380) —
+                    Brendon's pick from the 2026-07-20 twenty-option round (replaced
+                    the shipped-uncatalogued ⠿, which had dodged the glyph audit as
+                    an escaped literal). Device-verify per the #1 gate. */}
                 <button
                     className={`btn-soundtrack ascii-mode-btn${notifs.asciiArt ? ' active' : ''}`}
                     title="ASCII Art Mode — every artwork on the site renders as its text backup"
@@ -297,7 +298,7 @@ export default function AsciiBackupPanel({ slug, id }: { slug: string; id: numbe
                         showToast(next ? 'ASCII Art Mode: ON — the whole site, in text' : 'ASCII Art Mode: OFF');
                     }}
                 >
-                    {'\u283F'} ACTIVATE ASCII MODE
+                    {'\u2380\uFE0E'} ACTIVATE ASCII MODE
                 </button>
             </div>
         </div>

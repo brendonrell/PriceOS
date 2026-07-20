@@ -37,6 +37,7 @@ import { subscribeFm, getFm, fmPlay, fmToggle, fmNext } from '../../lib/fm/fmBus
 import { getProject } from '../../lib/project/registry';
 import { matchCast, type CastTarget } from '../../lib/stone/cast';
 import { parseWidget } from '../../lib/stone/widgets';
+import { runStoneCommand, applyStoneStyle } from '../../lib/stone/stoneStyle';
 import { expandFollowUp, type StoneSubject } from '../../lib/stone/memory';
 import { WidgetDeck, SearchDeck } from './StoneDeck';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
@@ -83,6 +84,10 @@ export default function CommandStone() {
             document.body.classList.remove('pd-stone-peek', 'pd-stone-open');
         };
     }, [stage]);
+
+    /* The stealth console's persisted style (accent hex · forced stage)
+       repaints on boot — stoneStyle.ts, deliberately absent from the docs. */
+    useEffect(() => { applyStoneStyle(); }, []);
     const open = stage === 'open';
     const setOpen = (v: boolean) => setStage(v ? 'open' : 'hidden');
     const [value, setValue] = useState('');
@@ -745,6 +750,16 @@ export default function CommandStone() {
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
                                         e.preventDefault();
+                                        /* The stealth console outranks all —
+                                           it starts with the stone's own
+                                           name, nothing else does. */
+                                        const stone = runStoneCommand(value);
+                                        if (stone) {
+                                            showToast(stone.line);
+                                            setEtched(`✓ ${stone.line}`);
+                                            setValue('');
+                                            return;
+                                        }
                                         if (etchPlan) doEtch();
                                         else if (castHit) doCast(castHit);
                                         else enterToGo();
