@@ -72,7 +72,7 @@ export interface Workspace {
     isDefault: boolean;
 }
 
-export const MAX_WORKSPACES = 10;
+export const MAX_WORKSPACES = 22; // Brendon 2026-07-20 — the platform number, raised from 10 for the nine-dot shipped set
 
 // The shipped set (Main · Appraiser · Trader · Curator · Scout)
 // lives in workspaceDefaults.ts — pure data, testable, and the

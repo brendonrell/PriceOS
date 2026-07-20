@@ -56,9 +56,8 @@
    **⛔ NEXT BUILD (fresh chat, Brendon's order): STAGE 4 = THE PRESENTATION
    PASS — watchOS/Raycast/TARS widgets INSIDE the tab, not search rows. Read
    the ⛔ STAGE 4 ADDENDUM in `docs/briefs/command-stone.md` FIRST.**
-   **BRENDON ACTIONS:** ⓐ delete the merged branch (link above); ⓑ the
-   MAX_WORKSPACES call (9/10 — raise to 15?); ⓒ device-check ⌘ ⚔ ⚭ ⑃ render
-   as monochrome text on iPhone (#1 glyph gate).
+   **BRENDON ACTIONS:** ⓐ delete the merged branch (link above); ⓑ
+   device-check ⌘ ⚔ ⚭ ⑃ render as monochrome text on iPhone (#1 glyph gate).
 
 
 0. ⚙ **2026-07-19 THE COMMAND STONE ⌘ — stages 1–3 LIVE on dev (tip
