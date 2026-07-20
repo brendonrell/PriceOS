@@ -21,7 +21,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { fmPlay, getFm } from '../../lib/fm/fmBus';
 import OutputThumb from '../profile/OutputThumb';
 import AlbumPickerCard from './AlbumPickerCard';
 import { getProject } from '../../lib/project/registry';
@@ -109,31 +108,6 @@ function AlbumShow({ album, number, onClose }: { album: AlbumRecord; number: num
         const t = window.setInterval(() => setIdx((i) => (i + 1) % members.length), 4500);
         return () => window.clearInterval(t);
     }, [members.length]);
-
-    /* PDTV (2026-07-20 — the exhibition brief rides THE SHOW). Entering asks
-       the platform for true fullscreen — a real ask on desktop/TV browsers;
-       iPhone Safari offers no element fullscreen, and there the portal
-       already fills the PWA viewport, which IS the iOS fullscreen. If the
-       one player is silent, the show tunes the first exhibited project's
-       soundtrack; a player already live is NEVER yanked (the house audio
-       law), and leaving keeps the record spinning (nav never stops audio). */
-    const showRef = useRef<HTMLDivElement | null>(null);
-    useEffect(() => {
-        try { void showRef.current?.requestFullscreen?.(); } catch { /* not offered here */ }
-        if (getFm().status === 'idle') {
-            for (const m of members) {
-                const p = getProject(m.slug);
-                if (p?.soundtrack) {
-                    fmPlay({ playlistId: p.soundtrack.playlistId, label: p.soundtrack.label, slug: m.slug });
-                    break;
-                }
-            }
-        }
-        return () => {
-            try { if (document.fullscreenElement) void document.exitFullscreen(); } catch { /* fine */ }
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
         window.addEventListener('keydown', onKey);
@@ -143,7 +117,7 @@ function AlbumShow({ album, number, onClose }: { album: AlbumRecord; number: num
     if (members.length === 0) return null;
     const current = members[idx];
     return createPortal(
-        <div ref={showRef} className="album-show" role="dialog" aria-label={`Album ${number} — full screen show`} onClick={onClose}>
+        <div className="album-show" role="dialog" aria-label={`Album ${number} — full screen show`} onClick={onClose}>
             <canvas ref={canvasA} className={`album-show-art${front === 'a' ? ' front' : ''}`} />
             <canvas ref={canvasB} className={`album-show-art${front === 'b' ? ' front' : ''}`} />
             {/* The placard — gallery-wall label for the piece on show. */}
