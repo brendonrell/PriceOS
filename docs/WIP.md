@@ -8,6 +8,43 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ✅ **2026-07-20 (later) SITE-EDITS FIVE-SHIP — on dev (tip `3ba2b8d`,
+   PR #32 record), auto-deploy rolling, tree clean. Branch
+   `claude/site-edits-features-cg3dmg` = merged trash (Brendon deletes at
+   https://github.com/brendonrell/PriceOS/branches).** Fable session,
+   Brendon's five-item batch + edit rounds:
+   ① DISCORD +More section — redone to the ATTRIBUTES-TAB anatomy after two
+   wrong first takes (blurple hero banner → killed; "match the other +More
+   sections" means the `.attr-group`/`.attr-grid`/`.attr-tile` character
+   sheet, with per-tab personality = the identity tile as ONE WIDE rectangle
+   spanning the grid). Tiles: HANDLE (real Discord pfp + @name, taps to
+   Discord) · STATUS · SERVER; house-pill CTAs below; blurple ONLY on the
+   small mark. ⚠ LESSON, hard-learned twice this session: PD dollar
+   currencies NEVER wear letter prefixes — **no A$, no C$, plain $ only**
+   (Brendon, in fury). And "match the current UI" = find the exact existing
+   surface and ride its classes, don't restyle.
+   ② AUD in fiat mode — USD·CAD·GBP·EUR·AUD·JPY (sits between EUR and JPY);
+   CoinGecko + ECB fallback carry aud; symbol plain $, en-AU formatting.
+   ③ Marginalia hold bars 3px → 1px (his ask). The "little markings" on the
+   bound frame = the seeded matrix motif; explained, kept — he hasn't ruled.
+   ④ STATUS PAGE — `workers/pd-status/`: standalone one-file Worker
+   (site/API/Supabase probes, HTML + /status.json), deliberately separate
+   from the app Worker so it survives app outages. GO-LIVE IS BRENDON'S:
+   deploy + point status.pricediscussion.com — ClickUp `86bb0d896`
+   (Shared Infra, assigned, due 07-23, inbox comment). Supabase health probe
+   verified live 200 with the publishable key.
+   ⑤ @NAME INLINE LOOKUP — `components/MentionLookup.tsx`: typing @ in the
+   To-Do composer, Notes editor, AND calendar event builder pops matching
+   collectors via the one /api/search user lane rendered in the search's own
+   `SearchUserRow`s; picking completes the handle. Saved @handles link to
+   profiles: to-do titles (`lib/mentions/render.tsx`) + every note surface
+   (renderNoteMarkdown — modal/calendar/bench).
+   Proof: tsc clean · full builds · 99/99 tests · compiled-CSS greps each
+   round. Open ends: downtime ALERTS to Brendon (status page only informs
+   users — raised, no call) · privacy/terms pages don't exist (raised).
+   Session note: Brendon ended with "you're acting like Opus" — expect
+   sharper reuse-first discipline next chat.
+
 0. ✅ **2026-07-20 THE EXCHANGE ⇌ — head-to-head trading LIVE on dev (merge
    `6de2b71`, PR #31), auto-deploy rolling, tree clean, migration APPLIED
    LIVE. Branch `claude/runescape-trading-interface-mcr0a1` = merged trash
