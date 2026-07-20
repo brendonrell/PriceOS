@@ -20,15 +20,35 @@
     gap: 5px;
     width: max-content;
     max-width: min(88vw, 380px);
-    /* Sony-deck rework (Brendon, 2026-07-20): quarter shorter than the old
-       42px-inner body — keys LEFT, one screen RIGHT. */
-    height: 34px;
+    /* Sony-deck rework (Brendon, 2026-07-20): a band shorter than the old
+       45px body — keys LEFT, one screen RIGHT, and the screen sits INSIDE
+       the chassis with air around it (37 = 3 border + 32 screen + 2). */
+    height: 37px;
     padding: 0 6px 0 9px;
     background: var(--bg-color);
     color: var(--text-color);
     border: 1.5px solid var(--text-color);
     border-radius: 999px; /* the pill — PD's shape */
     font-family: 'Courier New', Courier, monospace;
+    transition: transform 0.22s ease, opacity 0.18s ease, bottom 0.22s ease;
+}
+
+/* ── Reacting to the Command Stone (body classes from CommandStone) ──
+   The stone is ANCHORED; the deck yields. Resting stone bar out → the deck
+   lifts one band above it. Stone tab OPEN → the deck docks away offscreen
+   (transform only — the YT iframe stays rendered, so audio never dies;
+   the stone's own ON-AIR LED is the player's face meanwhile). */
+body.pd-stone-peek .fm-bar {
+    bottom: calc(35px + env(safe-area-inset-bottom, 0px));
+}
+body.pd-stone-open .fm-bar {
+    transform: translateY(160%);
+    opacity: 0;
+    pointer-events: none;
+}
+body.pd-stone-open .fm-nub {
+    opacity: 0;
+    pointer-events: none;
 }
 
 /* ── THE screen — one display, square inset like the MD readout. The art
@@ -40,7 +60,8 @@
     display: flex;
     align-items: stretch;
     gap: 0;
-    height: 30px;
+    height: 32px; /* 30 inner + border — fits the 37px chassis with air */
+    align-self: center;
     padding: 0;
     background: var(--stat-bg, var(--bg-color));
     border: 1px solid var(--text-color);
@@ -56,8 +77,8 @@
 /* the art window inside the screen */
 .fm-video {
     flex: 0 0 auto;
-    width: 44px;
-    height: 28px;
+    width: 46px;
+    height: 30px;
     overflow: hidden;
     background: #000;
     border-right: 1px solid var(--text-color);
@@ -69,8 +90,8 @@
 
 .fm-video iframe {
     display: block;
-    width: 44px;
-    height: 28px;
+    width: 46px;
+    height: 30px;
     border: 0;
 }
 
@@ -99,14 +120,18 @@
     display: block;
     font-size: 10px;
     font-weight: bold;
-    line-height: 1.05;
+    line-height: 1.0;
     letter-spacing: 0.4px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.fm-row-track { font-size: 11px; }
+.fm-row-track { letter-spacing: 0.2px; }
+
+/* the wordmark — PD mini*player* (Brendon, 2026-07-20: PD capitalized,
+   only the "player" part italic to start) */
+.fm-wm-it { font-style: italic; }
 
 /* the chip — the closed miniplayer's relaunch nub (Brendon's pick,
    2026-07-20). Icon-only mini pill on the bar's exact anchor; the visual

@@ -71,6 +71,18 @@ export default function CommandStone() {
          open   — …the floating pill you type right into; results pop up
                   ABOVE it as black widget cards (the watch-style deck). */
     const [stage, setStage] = useState<'hidden' | 'peek' | 'open'>('hidden');
+
+    /* The bottom band is SHARED REAL ESTATE (Brendon, 2026-07-20: the stone
+       and the miniplayer must always react to each other). The stone
+       broadcasts its stage as body classes; fm.css reads them — the deck
+       lifts above the resting bar, and docks away while the tab is out. */
+    useEffect(() => {
+        document.body.classList.toggle('pd-stone-peek', stage === 'peek');
+        document.body.classList.toggle('pd-stone-open', stage === 'open');
+        return () => {
+            document.body.classList.remove('pd-stone-peek', 'pd-stone-open');
+        };
+    }, [stage]);
     const open = stage === 'open';
     const setOpen = (v: boolean) => setStage(v ? 'open' : 'hidden');
     const [value, setValue] = useState('');
@@ -396,7 +408,7 @@ export default function CommandStone() {
             const st = getProject(r.soundtracks[0].project_id)?.soundtrack;
             if (st) {
                 fmPlay({ playlistId: st.playlistId, label: st.label, slug: r.soundtracks[0].project_id });
-                showToast('pd miniplayer: ON AIR');
+                showToast('PD miniplayer: ON AIR');
             } else {
                 go(null, `/art/${r.soundtracks[0].project_id}`);
             }
@@ -628,7 +640,7 @@ export default function CommandStone() {
                                             const st = getProject(s.project_id)?.soundtrack;
                                             if (!st) { go(null, `/art/${s.project_id}`); return; }
                                             fmPlay({ playlistId: st.playlistId, label: st.label, slug: s.project_id });
-                                            showToast('pd miniplayer: ON AIR');
+                                            showToast('PD miniplayer: ON AIR');
                                         }}
                                     >
                                         <span className="sw-hit-ic">{`▶${VS15}`}</span>
@@ -740,6 +752,22 @@ export default function CommandStone() {
                                 }}
                             />
                         </div>
+                        {/* THE THIRD FACE of the PD miniplayer (Brendon,
+                            2026-07-20): while the tab is out the deck docks
+                            away, and live audio shows as this LED on the
+                            stone itself — tap toggles play/pause through
+                            the one-player bus. */}
+                        {(fm.status === 'playing' || fm.status === 'paused') && (
+                            <button
+                                type="button"
+                                className={`stone-fm-led${fm.status === 'playing' ? ' stone-fm-led--on' : ''}`}
+                                onClick={(e) => { e.stopPropagation(); fmToggle(); }}
+                                title={fm.status === 'playing' ? 'ON AIR — tap to pause' : 'Paused — tap to play'}
+                                aria-label="PD miniplayer"
+                            >
+                                {fm.status === 'playing' ? `▶${VS15}` : '‖'}
+                            </button>
+                        )}
                     </div>
             </div>
         </>

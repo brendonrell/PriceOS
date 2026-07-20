@@ -724,15 +724,33 @@
     .sw-cal-strip .sw-cal-cell:nth-child(7) { animation-delay: 0.18s; }
 }
 
-/* ── Stacking over the pd miniplayer ─────────────────────────────────
-   While the miniplayer is live (body.pd-fm-live, set by FmBar) it IS the
-   bottom of the viewport — the stone summons and floats one band above
-   it instead of on top of it. */
-body.pd-fm-live .stone-peek {
-    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+/* ── The bottom band convention (Brendon, 2026-07-20) ─────────────────
+   THE STONE IS ANCHORED — it never moves for the miniplayer. The deck is
+   the one that yields (fm.css reads body.pd-stone-peek / pd-stone-open,
+   set by CommandStone). The old body.pd-fm-live stone lift is retired —
+   two elements both yielding was the pile-up. */
+
+/* the ON AIR LED — the miniplayer's third face, on the open stone's pill */
+.stone-fm-led {
+    flex: none;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1;
+    color: #e0e0e0;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 6px; /* the stone's own cut — never a capsule here */
+    padding: 5px 7px;
+    cursor: pointer;
 }
-body.pd-fm-live .stone-float {
-    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+.stone-fm-led--on { animation: stone-led-breathe 2.2s ease-in-out infinite; }
+@keyframes stone-led-breathe {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; } /* meaning-carrying pulse — live signal, not chrome fade */
+}
+@media (prefers-reduced-motion: reduce) {
+    .stone-fm-led--on { animation: none; }
 }
 
 /* ── miniplayer mini — the Stone's tiny transport (fm widget) ── */

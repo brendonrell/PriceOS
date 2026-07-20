@@ -3511,8 +3511,18 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.2s, transform 0.2s;
-    z-index: 9999;
+    /* NOTHING EVER COVERS A TOAST (Brendon, 2026-07-20) — above the stone
+       (10004), the miniplayer (8990), and every modal band. */
+    z-index: 12000;
     text-align: center;
+}
+/* Bottom furniture live (stone bar/tab or the miniplayer) → the toast's
+   resting spot lifts clear of the band so they never share the same pixels
+   even for the fade-in frame. */
+body.pd-fm-live .ens-copy-toast,
+body.pd-stone-peek .ens-copy-toast,
+body.pd-stone-open .ens-copy-toast {
+    bottom: calc(96px + env(safe-area-inset-bottom, 0px));
 }
 .ens-copy-toast.mounted { display: block; }
 .ens-copy-toast.mounted.show {

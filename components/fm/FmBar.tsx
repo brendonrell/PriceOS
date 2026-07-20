@@ -1,8 +1,9 @@
 'use client';
 
 /*
- * pd miniplayer (Brendon's name, all lowercase — 2026-07-20; grew out of
- * the PD.fm brief, docs/briefs/pd-fm.md).
+ * PD miniplayer (Brendon's name; capitalization updated 2026-07-20 — "PD"
+ * caps, wordmark renders PD mini*player* with the player part italic; grew
+ * out of the PD.fm brief, docs/briefs/pd-fm.md).
  *
  * A persistent bottom mini-player streaming the platform's soundtracks —
  * the projects' PUBLIC YouTube playlists from the registry — through the
@@ -141,7 +142,7 @@ export default function FmBar() {
             startingRef.current = false;
             if (!host) return;
             playerRef.current = new YT.Player(host, {
-                width: '44',
+                width: '46',
                 height: '30',
                 playerVars: {
                     listType: 'playlist',
@@ -166,9 +167,9 @@ export default function FmBar() {
     const onPlayTap = () => {
         if (status === 'idle') {
             const st = context ?? nextFromRotation();
-            if (!st) { showToast('pd miniplayer: NO SOUNDTRACKS YET'); return; }
+            if (!st) { showToast('PD miniplayer: NO SOUNDTRACKS YET'); return; }
             start(st);
-            showToast('pd miniplayer: ON AIR');
+            showToast('PD miniplayer: ON AIR');
             return;
         }
         if (status === 'playing') { playerRef.current?.pauseVideo(); return; }
@@ -178,9 +179,10 @@ export default function FmBar() {
     const onNextTap = () => playerRef.current?.nextVideo();
 
     /* ── The bus: other surfaces (the Stone's miniplayer mini) drive this
-       one player + read its state. And while live, the miniplayer IS the
-       bottom of the viewport — body.pd-fm-live lifts the Command Stone
-       one band above it (stone.css). */
+       one player + read its state. body.pd-fm-live still flags the live
+       deck (toast lift reads it) — but the stacking convention is now THE
+       STONE IS ANCHORED, THE DECK YIELDS (fm.css reads pd-stone-peek /
+       pd-stone-open; 2026-07-20). */
     const statusRef = useRef(status);
     useEffect(() => { statusRef.current = status; });
     /* Playing from anywhere (the Stone's miniplayer mini) LAUNCHES a closed
@@ -233,7 +235,7 @@ export default function FmBar() {
     const onTuneTap = () => {
         if (context) {
             start(context);
-            showToast('pd miniplayer: TUNED');
+            showToast('PD miniplayer: TUNED');
         }
     };
 
@@ -280,8 +282,8 @@ export default function FmBar() {
                 type="button"
                 className="fm-nub"
                 onClick={() => updateNotifs({ miniplayer: true })}
-                title="pd miniplayer"
-                aria-label="Open the pd miniplayer"
+                title="PD miniplayer"
+                aria-label="Open the PD miniplayer"
             >
                 {'▶︎'}
             </button>
@@ -295,8 +297,11 @@ export default function FmBar() {
        Ring's day index flips it, so the deck rearranges itself day to day. */
     const artRight = moodOfDay().day % 2 === 1;
 
-    /* The three LCD rows — Sony minidisc grammar: static, compact, no crawl. */
-    const rowTrack = status === 'idle' ? 'pd miniplayer' : (trackTitle || onAir?.label || '…');
+    /* The three LCD rows — Sony minidisc grammar: static, compact, no crawl.
+       The wordmark is PD mini*player* (Brendon, 2026-07-20: PD capitalized,
+       the "player" part italic to start). */
+    const wordmark = <>PD mini<span className="fm-wm-it">player</span></>;
+    const rowTrack = status === 'idle' ? wordmark : (trackTitle || onAir?.label || '…');
     const rowStation = status === 'idle' ? 'the platform soundtracks' : (onAir?.label ?? '');
     const rowStatus =
         status === 'playing' ? '▶︎ PLAYING' :
@@ -307,7 +312,7 @@ export default function FmBar() {
         <div
             ref={barRef}
             className={`fm-bar${status === 'idle' ? ' fm-idle' : ' fm-live'}`}
-            title="pd miniplayer — the platform's soundtracks. Tap the screen to pick a station."
+            title="PD miniplayer — the platform's soundtracks. Tap the screen to pick a station."
         >
             {pickerOpen && (
                 <div className="fm-picker" role="listbox" aria-label="Stations">
@@ -345,10 +350,10 @@ export default function FmBar() {
                 className="fm-btn fm-close"
                 onClick={() => {
                     updateNotifs({ miniplayer: false });
-                    showToast('pd miniplayer: CLOSED');
+                    showToast('PD miniplayer: CLOSED');
                 }}
                 title="Close the miniplayer"
-                aria-label="Close the pd miniplayer"
+                aria-label="Close the PD miniplayer"
             >
                 ×
             </button>
