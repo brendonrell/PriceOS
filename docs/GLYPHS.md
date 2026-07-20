@@ -9,6 +9,18 @@
 
 All glyphs below ship with a trailing `︎`. Codepoints are the base char.
 
+> **⛔ THE CORNER LAW — PILLS OR SQUARE, NEVER IN BETWEEN (Brendon, 2026-07-20 —
+> "WE USE PILLS BOT", raised in fury after mid-rounded corners kept shipping).**
+> PD's shape language has exactly TWO corner treatments:
+> - **PILLS** (`border-radius: 999px`) — every control: buttons, chips, toggles,
+>   inputs-as-pills, badges. The house pills ARE the design.
+> - **SQUARE** (`border-radius: 0`) — every panel, card, tile, window, list.
+>   (The Albums square-corners call, 2026-07-16, made this platform-wide.)
+> **Mid-rounded corners (4–16px etc.) are BANNED.** Sessions keep reflexively
+> reaching for them on new surfaces — it is not our UI design and it gets caught
+> every time. When styling anything: pill if it's a control, square if it's a
+> surface. No third option.
+
 ---
 
 ## 1. Market / trade actions (canonical — from the MY PINGS settings pills)

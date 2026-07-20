@@ -151,7 +151,7 @@
     flex: none;
     background: #0b0b0b;
     border: 1px solid rgba(255, 255, 255, 0.35);
-    border-radius: 16px;
+    /* square corners — PD's panel shape (pills are for controls) */
     padding: 6px 8px;
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
 }
@@ -170,7 +170,7 @@
     padding: 10px 12px;
     background: #111111;
     border: 1px solid var(--text-color);
-    border-radius: 12px;
+    border-radius: 999px; /* a chip is a pill */
     color: var(--text-color);
     font-size: 12px;
     font-weight: bold;
@@ -202,4 +202,49 @@
     color: var(--text-color);
     font-family: 'Courier New', Courier, monospace;
     padding: 10px 10px 2px;
+}
+
+/* ── Stacking over the pd miniplayer ─────────────────────────────────
+   While the miniplayer is live (body.pd-fm-live, set by FmBar) it IS the
+   bottom of the viewport — the stone summons and floats one band above
+   it instead of on top of it. */
+body.pd-fm-live .stone-peek {
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+}
+body.pd-fm-live .stone-float {
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+}
+
+/* ── miniplayer mini — the Stone's tiny transport (fm widget) ── */
+.stone-fm-transport {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    margin-top: 4px;
+}
+.stone-fm-key {
+    flex: none;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    color: var(--text-color);
+    background: #111111;
+    border: 1px solid var(--text-color);
+    border-radius: 999px; /* pill — the corner law */
+    padding: 4px 9px;
+    line-height: 1;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.stone-fm-now {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 12px;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

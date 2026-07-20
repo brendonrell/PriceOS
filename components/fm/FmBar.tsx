@@ -29,6 +29,7 @@ import { usePathname } from 'next/navigation';
 import { useToast } from '../../lib/state/ToastContext';
 import { allProjects, getProject, projectTrueName } from '../../lib/project/registry';
 import { getSoundtrackStarItems } from '../../lib/pins/soundtrackStarStore';
+import { registerFmDriver, publishFm, type FmStation } from '../../lib/fm/fmBus';
 
 /* ── Minimal YT IFrame API surface (no @types dependency) ── */
 interface YTPlayer {
@@ -68,12 +69,7 @@ function loadYT(): Promise<YTNamespace> {
     return ytReady;
 }
 
-interface Station {
-    playlistId: string;
-    label: string;
-    /** Project slug when the station is a project's own soundtrack. */
-    slug: string | null;
-}
+type Station = FmStation;
 
 type FmStatus = 'idle' | 'loading' | 'playing' | 'paused';
 
@@ -173,6 +169,28 @@ export default function FmBar() {
     };
 
     const onNextTap = () => playerRef.current?.nextVideo();
+
+    /* ── The bus: other surfaces (the Stone's miniplayer mini) drive this
+       one player + read its state. And while live, the miniplayer IS the
+       bottom of the viewport — body.pd-fm-live lifts the Command Stone
+       one band above it (stone.css). */
+    const statusRef = useRef(status);
+    useEffect(() => { statusRef.current = status; });
+    useEffect(() => registerFmDriver({
+        play: (st) => start(st),
+        toggle: () => {
+            if (statusRef.current === 'playing') playerRef.current?.pauseVideo();
+            else playerRef.current?.playVideo();
+        },
+        next: () => playerRef.current?.nextVideo(),
+    }), [start]);
+    useEffect(() => {
+        publishFm({ status, station: onAir, trackTitle });
+    }, [status, onAir, trackTitle]);
+    useEffect(() => {
+        document.body.classList.toggle('pd-fm-live', status !== 'idle');
+        return () => document.body.classList.remove('pd-fm-live');
+    }, [status]);
 
     const onTuneTap = () => {
         if (context) {

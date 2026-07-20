@@ -27,13 +27,15 @@
  * swipe handler, which is what makes iOS raise the keyboard.
  */
 
-import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type MouseEvent } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
 import SpriteFace from '../SpriteFace';
 import { projectSpriteFace } from '../../lib/project/projectSprite';
 import { parseEtch, commitEtch, resolveProject } from '../../lib/stone/etch';
+import { subscribeFm, getFm, fmPlay, fmToggle, fmNext } from '../../lib/fm/fmBus';
+import { getProject } from '../../lib/project/registry';
 import { matchCast, type CastTarget } from '../../lib/stone/cast';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useSort } from '../../lib/state/SortContext';
@@ -84,6 +86,11 @@ export default function CommandStone() {
     const inputRef = useRef<HTMLInputElement | null>(null);
 
     const searchingNow = value.trim().length > 0;
+
+    /* The pd miniplayer's live state — the Stone carries a "miniplayer
+       mini" widget when a search surfaces soundtracks (one player, driven
+       over the fmBus; audio lives in FmBar and survives the stone). */
+    const fm = useSyncExternalStore(subscribeFm, getFm, getFm);
 
     /* ETCH — a verb word turns the line into a creation plan; bare words
        stay GO/FIND. Pure parse, runs every keystroke. */
@@ -338,7 +345,16 @@ export default function CommandStone() {
         if (r.projects[0]) { go(null, `/art/${r.projects[0].id}`); return; }
         if (r.users[0]) { go(null, `/${r.users[0].handle ?? r.users[0].address}`); return; }
         if (r.artworks[0]) { go(null, `/art/${r.artworks[0].project_id}/${r.artworks[0].token_id}`); return; }
-        if (r.soundtracks[0]) { go(null, `/art/${r.soundtracks[0].project_id}`); return; }
+        if (r.soundtracks[0]) {
+            const st = getProject(r.soundtracks[0].project_id)?.soundtrack;
+            if (st) {
+                fmPlay({ playlistId: st.playlistId, label: st.label, slug: r.soundtracks[0].project_id });
+                showToast('pd miniplayer: ON AIR');
+            } else {
+                go(null, `/art/${r.soundtracks[0].project_id}`);
+            }
+            return;
+        }
         if (r.traits[0]) { go(null, `/art/${r.traits[0].project_id}`); return; }
     };
 
@@ -618,23 +634,6 @@ export default function CommandStone() {
                                     </div>
                                 )}
 
-                                {r && r.soundtracks.length > 0 && (
-                                    <div className="settings-header gsr-header">Soundtracks</div>
-                                )}
-                                {r && r.soundtracks.map((s) => (
-                                    <div
-                                        key={`s:${s.project_id}`}
-                                        className="global-result-item gsr-row"
-                                        role="button"
-                                        tabIndex={0}
-                                        onClick={(e) => go(e, `/art/${s.project_id}`)}
-                                    >
-                                        <span className="gsr-ic">{`▶${VS15}`}</span>
-                                        <span className="gsr-main">{s.label}</span>
-                                        <span className="gsr-sub">{s.project_title}</span>
-                                    </div>
-                                ))}
-
                                 {r && r.traits.length > 0 && (
                                     <div className="settings-header gsr-header">Traits</div>
                                 )}
@@ -663,6 +662,42 @@ export default function CommandStone() {
                                     !searching && (
                                         <div className="global-result-item gsr-empty">{`⌕${VS15} THE STONE IS SILENT`}</div>
                                     )}
+                            </div>
+                        )}
+
+                        {/* miniplayer mini — soundtrack hits become a tiny
+                            playable deck; the audio lives in the real
+                            miniplayer below (one player, bus-driven) */}
+                        {searchingNow && r && r.soundtracks.length > 0 && (
+                            <div className="stone-widget stone-widget-fm">
+                                <div className="settings-header gsr-header">{`▶${VS15} miniplayer mini`}</div>
+                                {r.soundtracks.map((s) => (
+                                    <div
+                                        key={`s:${s.project_id}`}
+                                        className="global-result-item gsr-row"
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={() => {
+                                            const st = getProject(s.project_id)?.soundtrack;
+                                            if (!st) { go(null, `/art/${s.project_id}`); return; }
+                                            fmPlay({ playlistId: st.playlistId, label: st.label, slug: s.project_id });
+                                            showToast('pd miniplayer: ON AIR');
+                                        }}
+                                    >
+                                        <span className="gsr-ic">{`▶${VS15}`}</span>
+                                        <span className="gsr-main">{s.label}</span>
+                                        <span className="gsr-sub">{s.project_title}</span>
+                                    </div>
+                                ))}
+                                {fm.status !== 'idle' && fm.station && (
+                                    <div className="stone-fm-transport">
+                                        <button type="button" className="stone-fm-key" onClick={fmToggle}>
+                                            {fm.status === 'playing' ? 'PAUSE' : `▶${VS15} PLAY`}
+                                        </button>
+                                        <button type="button" className="stone-fm-key" onClick={fmNext}>NEXT</button>
+                                        <span className="stone-fm-now">{fm.trackTitle || fm.station.label}</span>
+                                    </div>
+                                )}
                             </div>
                         )}
 

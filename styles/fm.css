@@ -1,12 +1,13 @@
 /* ══════════════════════════════════════════════════════════════════════
    pd miniplayer (components/fm/FmBar) — PD.fm is the automated rotation
    inside it; the station picker is the customization.
-   A thin persistent mini-player pinned bottom-right. Full-strength site
-   tokens (Rule #2): solid --bg-color fill, --text-color border + text,
-   bold, 12px labels — the STICKERS-pill reference treatment. The playing
-   state carries the real YT video as a small tile (ToS-visible player =
-   our album art). When the Command Stone's resting bar is present
-   (logged in), PD.fm lifts one row above it.
+   A compact minidisc-style device pinned bottom-right: PILL body (the
+   house shape — never mid-rounded corners), square disc window with the
+   real video peeking through, square inset LCD with the crawling track
+   name, pill transport keys. Full-strength site tokens (Rule #2): solid
+   --bg-color fill, --text-color border + text, bold, 12px labels.
+   When the player is live it owns the bottom band — the Command Stone
+   stacks ABOVE it (body.pd-fm-live offsets in stone.css).
    ══════════════════════════════════════════════════════════════════════ */
 
 .fm-bar {
@@ -17,25 +18,24 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    max-width: min(78vw, 380px);
-    padding: 4px 8px;
+    width: max-content;
+    max-width: min(88vw, 380px);
+    padding: 5px 14px 5px 9px; /* extra right room — the square LCD vs the pill's curve */
     background: var(--bg-color);
     color: var(--text-color);
-    border: 1px solid var(--text-color);
-    border-radius: 6px;
+    border: 1.5px solid var(--text-color);
+    border-radius: 999px; /* the pill — PD's shape */
     font-family: 'Courier New', Courier, monospace;
 }
 
-.fm-bar.fm-above-stone {
-    bottom: calc(48px + env(safe-area-inset-bottom, 0px));
-}
-
+/* the disc window — the video peeks through square-cornered, like the
+   little door on a minidisc deck */
 .fm-video {
     flex: 0 0 auto;
     width: 57px;
     height: 32px;
     overflow: hidden;
-    border: 1px solid var(--text-color);
+    border: 1.5px solid var(--text-color);
     background: #000;
 }
 
@@ -55,6 +55,7 @@
     background: transparent;
 }
 
+/* transport keys — pills, like every PD control */
 .fm-btn {
     flex: 0 0 auto;
     font-family: 'Courier New', Courier, monospace;
@@ -64,8 +65,8 @@
     color: var(--text-color);
     background: var(--bg-color);
     border: 1px solid var(--text-color);
-    border-radius: 4px;
-    padding: 3px 7px;
+    border-radius: 999px;
+    padding: 4px 9px;
     line-height: 1;
     cursor: pointer;
     white-space: nowrap;
@@ -82,7 +83,7 @@
 }
 
 .fm-label {
-    flex: 0 1 auto;
+    flex: 1 1 auto;
     min-width: 0;
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px;
@@ -100,15 +101,16 @@
 
 .fm-wordmark { letter-spacing: 0.5px; }
 
-/* the LCD — an inset readout strip; the track name crawls through it
+/* the LCD — a square inset readout; the track name crawls through it
    like a minidisc display (the toy, not the gallery) */
 .fm-lcd {
     display: block;
-    max-width: 150px;
+    width: 100%;
+    max-width: 160px;
+    box-sizing: border-box;
     overflow: hidden;
     background: var(--stat-bg, var(--bg-color));
     border: 1px solid var(--text-color);
-    border-radius: 5px;
     padding: 3px 6px;
 }
 
@@ -123,18 +125,17 @@
     animation: fm-crawl 9s linear infinite;
 }
 
-/* ── The station picker — opens upward off the label ── */
+/* ── The station picker — square panel opening upward off the readout ── */
 .fm-picker {
     position: absolute;
-    right: -1px;
-    bottom: calc(100% + 6px);
+    right: 0;
+    bottom: calc(100% + 8px);
     width: min(78vw, 320px);
     max-height: min(52vh, 380px);
     overflow-y: auto;
     background: var(--bg-color);
     color: var(--text-color);
-    border: 1px solid var(--text-color);
-    border-radius: 6px;
+    border: 1.5px solid var(--text-color);
     padding: 6px;
 }
 
