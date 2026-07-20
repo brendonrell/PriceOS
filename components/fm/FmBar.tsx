@@ -90,7 +90,7 @@ export default function FmBar() {
        the bar exists at all — the bar's × key and the MY PD ▶ pill both
        flip it. Closed = bar gone + audio stopped. */
     const { notifs, update: updateNotifs } = usePdNotifs();
-    const enabled = notifs.miniplayer;
+    const enabled = notifs.miniplayerOpen;
 
     const [status, setStatus] = useState<FmStatus>('idle');
     const [onAir, setOnAir] = useState<Station | null>(null);
@@ -228,7 +228,7 @@ export default function FmBar() {
         play: (st) => {
             if (!enabledRef.current) {
                 pendingRef.current = st;
-                updateNotifs({ miniplayer: true });
+                updateNotifs({ miniplayerOpen: true });
                 return;
             }
             start(st);
@@ -314,7 +314,7 @@ export default function FmBar() {
             <button
                 type="button"
                 className="fm-nub"
-                onClick={() => updateNotifs({ miniplayer: true })}
+                onClick={() => updateNotifs({ miniplayerOpen: true })}
                 title="PD miniplayer"
                 aria-label="Open the PD miniplayer"
             />
@@ -401,7 +401,7 @@ export default function FmBar() {
                     type="button"
                     className="fm-btn fm-close"
                     onClick={() => {
-                        updateNotifs({ miniplayer: false });
+                        updateNotifs({ miniplayerOpen: false });
                         showToast('PD miniplayer: CLOSED');
                     }}
                     title="Close the miniplayer"

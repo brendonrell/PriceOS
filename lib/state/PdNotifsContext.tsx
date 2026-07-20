@@ -155,12 +155,14 @@ export interface PdNotifs {
     /* Ambient Strip — the LED light bar under the Tape. Off by default;
        toggled from MY PD. When off the strip isn't rendered at all. */
     ambientStrip: boolean;
-    /* PD miniplayer — the bottom-right soundtrack device. OFF by default
-       (Brendon, 2026-07-20: never auto-open chrome on people) — closed
-       means THE DOT; tapping it summons the deck. The × collapses back and
-       stops audio. Not part of the Setup Code (a personal device pref,
-       like backButton). */
-    miniplayer: boolean;
+    /* PD miniplayer — the bottom-right soundtrack device. OFF by default:
+       closed = THE DOT; tapping it summons the deck; × collapses and stops
+       audio. ⛔ KEY RENAMED from `miniplayer` (2026-07-20): the flag shipped
+       default-ON for a few hours and saved bags kept resurrecting the open
+       deck over the new OFF default — Brendon's second haunted toggle in a
+       day. The rename makes every stale save meaningless; never reuse the
+       old key. Not part of the Setup Code (a personal device pref). */
+    miniplayerOpen: boolean;
     /* The Watch — a small persistent live-stat chip that floats over every
        page. Off by default; enabled from the Spell Book (took the retired
        Solar Flare slot, 2026-06-14). `watchMetric` is the index into the
@@ -254,7 +256,7 @@ const DEFAULTS: PdNotifs = {
     degen: false,
     autoscroll: false,
     ambientStrip: false,
-    miniplayer: false,
+    miniplayerOpen: false,
     watch: false,
     watchMetric: 0,
     audience: true,
