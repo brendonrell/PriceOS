@@ -36,6 +36,7 @@ import { usePathname } from 'next/navigation';
 import { useToast } from '../../lib/state/ToastContext';
 
 import { allProjects, getProject, projectTrueName } from '../../lib/project/registry';
+import { playlistWatchUrl } from '../../lib/project/soundtrack';
 import { getSoundtrackStarItems } from '../../lib/pins/soundtrackStarStore';
 import { registerFmDriver, publishFm, type FmStation } from '../../lib/fm/fmBus';
 
@@ -406,9 +407,30 @@ export default function FmBar() {
                 title="Pick a station"
             >
                 {/* The video host stays mounted for the session — YT replaces
-                    it with the iframe; a remount kills the audio. */}
-                <span className="fm-video">
+                    it with the iframe; a remount kills the audio. Tapping the
+                    album-art window opens the full playlist on YouTube in a
+                    new tab (Brendon, 2026-07-20); the overlay carries the tap
+                    so the iframe never swallows it. */}
+                <span
+                    className="fm-video"
+                    role="button"
+                    tabIndex={0}
+                    title="Open the full playlist on YouTube"
+                    aria-label="Open the full playlist on YouTube"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(playlistWatchUrl(onAir.playlistId), '_blank', 'noopener,noreferrer');
+                    }}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            window.open(playlistWatchUrl(onAir.playlistId), '_blank', 'noopener,noreferrer');
+                        }
+                    }}
+                >
                     <span ref={videoHostRef} />
+                    <span className="fm-video-tap" aria-hidden="true" />
                 </span>
                 <span className="fm-rows">
                     <span className="fm-lcd-row fm-lcd-track">{rowTrack}</span>

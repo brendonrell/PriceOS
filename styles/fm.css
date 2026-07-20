@@ -84,15 +84,20 @@ body.pd-stone-open .fm-bar {
 }
 
 
-/* the art window inside the screen */
+/* the art window inside the screen — tapping it opens the full playlist
+   on YouTube in a new tab (Brendon, 2026-07-20). The iframe eats pointer
+   events, so an invisible overlay carries the tap. */
 .fm-video {
     flex: 0 0 auto;
+    position: relative;
     width: 46px;
     height: 30px;
     overflow: hidden;
     background: #000;
     border-right: 1px solid var(--text-color);
+    cursor: pointer;
 }
+.fm-video-tap { position: absolute; inset: 0; z-index: 2; }
 
 .fm-video iframe {
     display: block;

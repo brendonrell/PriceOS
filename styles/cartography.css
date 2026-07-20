@@ -16,7 +16,9 @@
        the search + zoom column (Brendon, 2026-07-19). */
     color: #E9EDF4;
     opacity: 1;
-    top: calc(14px + env(safe-area-inset-top));
+    /* +4 optical nudge — the × sat visibly higher than the title's line
+       (Brendon, 2026-07-20); this centers it on CARTOGRAPHY's cap line. */
+    top: calc(18px + env(safe-area-inset-top));
     right: 18px;
     font-size: 22px;
     line-height: 1;
@@ -303,6 +305,10 @@
     align-items: center;
     gap: 10px;
     width: min(560px, calc(100vw - 28px));
+    /* No universal border-box in this app — without this the padding+border
+       rode ON TOP of the 100vw math and the pill ran off both screen edges
+       (Brendon's 2026-07-20 screenshot). */
+    box-sizing: border-box;
     background: rgba(7, 9, 13, 0.9);
     border: 1px solid #E9EDF4;
     border-radius: 999px;
