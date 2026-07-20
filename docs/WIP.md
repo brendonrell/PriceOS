@@ -8,6 +8,59 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ⚙ **2026-07-20 LAUNCH-READINESS MEGA-BATCH — ALL on dev (tip `6116031`),
+   auto-deploy rolling, tree clean. Branch `claude/launch-readiness-tasks-kp3q8l`
+   = merged trash (Brendon deletes at
+   https://github.com/brendonrell/PriceOS/branches).** Fable session, Brendon's
+   potpourri + several correction rounds:
+   ① USER # — long-press the profile join date → flips to the platform user
+   number (#N); tap still opens PriceDay. **#22 RESERVED for the deployer:
+   live DB swap APPLIED + verified (@pricediscussion = #22, umbra-ai → #55),
+   migration mirrored** (`20260719_reserve_user_22.sql`).
+   ② WORKSPACES: Appraiser → **ORACLE**; shipped order Curator > Scout >
+   Trader > Oracle; **FOUR NEW defaults by his picks: Socialite (⚭, warm/
+   mutuals) · Insider (⑃, alpha/gossip) · Degen (⚔, classic minus HMMR —
+   top-bar rule) · DJ (▶, blue + ambient + autoscroll)**. NINE dots shipped,
+   seed v4, guard tests ships-nine, docs updated. ⚠ **OPEN CALL for Brendon:
+   MAX_WORKSPACES is 10 and we ship 9 — recommend raising to 15.**
+   ③ SHARE ANY VIEW (the fable-queue winner): pure URL — ?tab=/?sub= restore
+   on home/profile/project (pasted link wins over tab memory, ?sort= precedent);
+   the ↗ share mark rides the Setup Code row beside the ⧉ copy ("VIEW LINK
+   COPIED!" field-swap feedback), composed at copy time from live state.
+   ④ PD-DOCS SEARCH: SEARCH button in the docs top bar; build-time full-text
+   index (`/docs/search-index.json`, 55 pages: titles/headings/keywords/body),
+   ranked results, deep heading anchors, snippets. (Also fixed a stale
+   "curated" in llms.txt → "filtered", wording lock.)
+   ⑤ **pd miniplayer** (grew from the PD.fm brief; lowercase, Brendon's name):
+   persistent bottom-right minidisc-style device — PILL body, square disc
+   window (real YT video visible = ToS + album art), square LCD with crawling
+   track title, pill transport keys, station picker (starred soundtracks →
+   full catalog). PD.fm = the automated rotation inside it; project pages
+   auto-tune; nav never yanks audio (TUNE pill offers). One player, bus-driven
+   (`lib/fm/fmBus.ts`).
+   ⑥ **COMMAND STONE VESSEL CORRECTED (Brendon: the full-screen takeover was
+   improperly implemented — never his spec).** Final form: INVISIBLE at rest;
+   swipe up from the bottom edge summons THE original resting pill (unchanged
+   look); it lives there while you scroll (swipe down hides; outside taps only
+   fold the tab; route change keeps the pill); typing opens ONE giant black
+   tab extending out of the stone — rounded top corners (his explicit call),
+   inline, never takes the window. **miniplayer mini** shipped inside it
+   (soundtrack hits play through the one player; pill transport). While the
+   miniplayer is live the stone stacks one band above it (body.pd-fm-live).
+   GO/FIND/ETCH/CAST engines untouched.
+   ⑦ **⛔ THE CORNER LAW written into `docs/GLYPHS.md`** (Brendon, raised in
+   fury: pills or square, NEVER mid-rounded — the one exception is the stone
+   tab's rounded top, his explicit call). Read it before styling anything.
+   Proof: tsc/70 tests/real builds green every round, compiled greps, mid-tone
+   headless proofs (miniplayer, vessel, 4 stone demo screens).
+   **⛔ NEXT BUILD (fresh chat, Brendon's order): STAGE 4 = THE PRESENTATION
+   PASS — watchOS/Raycast/TARS widgets INSIDE the tab, not search rows. Read
+   the ⛔ STAGE 4 ADDENDUM in `docs/briefs/command-stone.md` FIRST.**
+   **BRENDON ACTIONS:** ⓐ delete the merged branch (link above); ⓑ the
+   MAX_WORKSPACES call (9/10 — raise to 15?); ⓒ device-check ⌘ ⚔ ⚭ ⑃ render
+   as monochrome text on iPhone (#1 glyph gate).
+
+
 0. ⚙ **2026-07-19 THE COMMAND STONE ⌘ — stages 1–3 LIVE on dev (tip
    `4daeba2`), auto-deploy rolling, tree clean. STAGE 4 (the widget deck)
    IS THE NEXT BUILD — brief: `docs/briefs/command-stone.md`. Branch

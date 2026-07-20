@@ -116,3 +116,33 @@ engines · the docs index. The Stone is the surface that unifies them.
   device-verify per the #1 glyph gate (`docs/GLYPHS.md`). Do not invent silently.
 - **Second launch spot** — Brendon may add one beyond swipe-up.
 - **Idle-state flourish** (empty vs. ascii-sparkle) — his call.
+
+---
+
+## ⛔ STAGE 4 ADDENDUM — THE PRESENTATION PASS (Brendon, 2026-07-20 — read this FIRST in the fresh chat)
+
+**The vessel is FINAL — do not redesign it.** As shipped 2026-07-20 (dev): the
+resting pill is THE original stone bar (26px, 6px corners, look untouched);
+swipe up from the bottom edge summons it, swipe down puts it away, and it
+LIVES there while you scroll (outside taps only fold the tab; route changes
+keep the pill). Typing opens results as **ONE giant black tab extending out of
+the stone's top — rounded top corners (his explicit call), inline, never
+taking the window.** The pill flattens its top to receive the tab. When the
+pd miniplayer is live, the stone stacks one band ABOVE it (body.pd-fm-live).
+
+**What stage 4 actually is (his words): the PRESENTATION is the gap.**
+"I was hoping for watchOS, not search we already have." North stars, verbatim:
+**magic tablet meets macOS Spotlight meets TARS meets watchOS**, and **Raycast
+is a big inspo**. The tab's contents must become CUSTOM BLACK WIDGETS — big
+type, real data, glanceable cards — not the .gsr search rows (those already
+exist in Global Search; reusing their anatomy inside the tab was scaffolding,
+not the destination). Answers should read like TARS: terse, confident, large.
+
+Widget list = the numbered deck above (calendar · PriceDay · calc · dossiers ·
+mini gallery · Matrix Maker · wallet ASCII gen art · Ask PD · docs search).
+**miniplayer mini is SHIPPED** (soundtrack hits play through the one real
+player over `lib/fm/fmBus.ts` — extend its widget, don't rebuild it).
+
+**Corner law inside the vessel:** the tab wears Brendon's rounded top corners;
+the two pills are pills; every chip/key/region inside is SQUARE. Sitewide, the
+corner law now lives in `docs/GLYPHS.md` — read it.
