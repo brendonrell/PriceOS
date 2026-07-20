@@ -8,6 +8,44 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ✅ **2026-07-20 (latest) NEIGHBOURHOOD + TARGETS + COUNTERPARTIES TABS MADE
+   REAL — on dev (merge `6f46a9c`, PR #33), auto-deploy rolling, tree clean.
+   Branch `claude/neighbourhood-feature-tabs-dh0yxq` = merged trash (Brendon
+   deletes at https://github.com/brendonrell/PriceOS/branches).** Fable
+   session, Brendon's "make the placeholder tabs real; Rivals/Nemesis could be
+   part of Counterparties":
+   ① NEIGHBOURHOOD (artwork +More) = the Taste Cluster idea (`86b9erkce`, now
+   complete): `/api/output/[id]/neighbourhood` walks the piece's ledger wallets
+   (KEEPER · MINTER · PAST HAND, zero-address excluded, cap 8) + their other
+   holdings (cap 8/wallet); panel = one `.attr-group` per wallet with
+   `OutputThumb` art tiles (squared per the Corner Law) linking to pieces.
+   ② COUNTERPARTIES (profile +More): `/api/user/[address]/counterparties`
+   aggregates XFER events where the profile is a side (mints have no
+   counterparty; ⇌ trades counted via sale_direction TRADE) → rows ranked
+   deals→volume, podium ❶❷❸ on top 3, `.starred-row` grammar, two-line
+   DECLARE NEMESIS CTA (project-offer-cta precedent — single-line overlapped,
+   caught in the pixel proof).
+   ③ THE NEMESIS: one declared rival per user (`users.nemesis_address`,
+   migration `20260720_nemesis` APPLIED LIVE + mirrored; SIWE write at
+   `/api/user/nemesis`, no self-nemesis). Public wide plate (Discord wide-tile
+   anatomy): both sides' held count + Σ pieces × project floor value and an
+   AHEAD/BEHIND delta — floors-honest (unfloored projects add 0). Nemesis idea
+   `86b9jfjmu` scope-commented: HUD + Nemesis Pings deliberately NOT built.
+   ④ TARGETS (profile +More): `/api/user/[address]/targets` reads
+   price_predictions per wallet — **the seal holds**: open-window values
+   return ONLY to the SIWE owner (others see SEALED · reveals date); closed
+   windows are public record vs today's floor (per-call gap % + AVG MISS).
+   Glyph note: rows wear ⬚ (a call on a project) — no invented target icon.
+   Proof: tsc clean · 99/99 tests · production build green · compiled-CSS
+   greps · real-Courier mid-tone proof (390×844, green colorway) which caught
+   the CTA overlap pre-ship. ClickUp moved with the work (Taste Cluster
+   closed, Nemesis scope comment).
+   **BRENDON ACTIONS:** ⓐ delete the merged branch (link above); ⓑ device-check
+   ❶❷❸ (already-canon podium family) render monochrome in the new rows.
+   **QUEUED (not built, named for later):** Nemesis Top-Bar HUD + Nemesis
+   Pings (the rest of `86b9jfjmu`) · project-page Network filter
+   "Counterparties" narrow is still pill-only (predates this build).
+
 0. ✅ **2026-07-20 (later) SITE-EDITS FIVE-SHIP — on dev (tip `3ba2b8d`,
    PR #32 record), auto-deploy rolling, tree clean. Branch
    `claude/site-edits-features-cg3dmg` = merged trash (Brendon deletes at
