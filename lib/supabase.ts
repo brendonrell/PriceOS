@@ -293,6 +293,10 @@ export interface UserRow {
    *  Default (no styling). PUBLIC (the styled @name shows to every visitor); the
    *  real handle underneath is untouched. Cached at `pd_name_font`. */
   name_font: string | null;
+  /** The user's all-tags paint (lib/tags/catalog TAG_PAINTS). null = each tag
+   *  wears its own colour. PUBLIC — the painted pills show to every visitor.
+   *  Cached at `pd_tag_paint`. */
+  tag_paint: string | null;
   /** Sequential platform number, assigned by join order (Brendon = #1). Drives
    *  the auto id-tags (#1–22 each their own, then ranges). PUBLIC, read-only —
    *  set once by the signup trigger, never user-writable. */
@@ -386,6 +390,8 @@ export interface UserStatePatch {
   profile_tags?: string[] | null;
   /** The user's chosen @name Unicode font id (validated server-side). */
   name_font?: string | null;
+  /** The user's all-tags paint id (validated server-side). */
+  tag_paint?: string | null;
   sticker_state?: {
     owned: string[];
     offSheets: string[];
@@ -714,7 +720,7 @@ const timeoutFetch: typeof fetch = (input, init) => {
  *  Public profile reads select THIS instead of '*', otherwise Postgres refuses
  *  the whole query (anon has no table-level SELECT, only these columns). */
 export const PUBLIC_USER_COLUMNS =
-  'address, ens_name, handle, price_sprite, price_sprite_resolved, account_level, price_rank, price_score, price_streak, streak_best, profile_hex, profile_logo, profile_sprite_hex, profile_tags, granted_tags, name_font, user_number, sticker_state, signature_hex, showcase, showcase_style, discord_id, discord_username, discord_avatar, discord_accent_color, discord_in_server, sigil_forged_at, sigil_hidden, created_at';
+  'address, ens_name, handle, price_sprite, price_sprite_resolved, account_level, price_rank, price_score, price_streak, streak_best, profile_hex, profile_logo, profile_sprite_hex, profile_tags, granted_tags, name_font, tag_paint, user_number, sticker_state, signature_hex, showcase, showcase_style, discord_id, discord_username, discord_avatar, discord_accent_color, discord_in_server, sigil_forged_at, sigil_hidden, created_at';
 
 /** Browser-side client (anon key, RLS-bound) — exists for Supabase Realtime
  *  subscriptions from client components. Singleton so the whole app shares ONE

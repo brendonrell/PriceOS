@@ -80,8 +80,9 @@ import { HeroStickers } from '../stickers/HeroStickers';
 import { ProfileTags } from './ProfileTags';
 import { useProfileTags } from '../../lib/hooks/useProfileTags';
 import { useNameFont } from '../../lib/hooks/useNameFont';
+import { useTagPaint } from '../../lib/hooks/useTagPaint';
 import { deriveTags } from '../../lib/tags/derive';
-import { PERSONA_TAGS, tagTextOn } from '../../lib/tags/catalog';
+import { PERSONA_TAGS, tagTextOn, TAG_PAINTS } from '../../lib/tags/catalog';
 import { NAME_FONTS, styleName } from '../../lib/profile/nameFont';
 import { getProject, allProjects, projectsByArtist, artistSignatureColor } from '../../lib/project/registry';
 import HomeProjectFacetBar from '../home/HomeProjectFacetBar';
@@ -252,6 +253,8 @@ function ProfilePageBodyInner({
     const { tags: myTags, toggle: toggleTag } = useProfileTags(isOwnProfile ? user.profile_tags : undefined);
     const { font: myNameFont, setFont: setMyNameFont } = useNameFont(isOwnProfile ? user.name_font : undefined);
     const ownerNameFont = isOwnProfile ? myNameFont : user.name_font;
+    const { paint: myTagPaint, setPaint: setMyTagPaint } = useTagPaint(isOwnProfile ? user.tag_paint : undefined);
+    const ownerTagPaint = isOwnProfile ? myTagPaint : user.tag_paint;
     /* The @name letters, restyled in the owner's chosen Unicode font ("@" and the
        underlying handle stay plain; this is display only). */
     const styledHandle = styleName(displayHandle, ownerNameFont ?? null);
@@ -1025,6 +1028,32 @@ function ProfilePageBodyInner({
                                     </div>
                                 );
                             })}
+                            {/* THE PAINT — all-tags overrides at the very end
+                                (Brendon, 2026-07-20): one colour for every
+                                pill, lettering contrast-flipped. Tapping the
+                                active paint again returns each tag to its own
+                                colour. */}
+                            {TAG_PAINTS.map((p) => {
+                                const on = myTagPaint === p.id;
+                                const pick = () => {
+                                    setMyTagPaint(on ? null : p.id);
+                                    showToast(on ? 'Tags: THEIR OWN COLOURS' : `Tags: ${p.label.toUpperCase()}`);
+                                };
+                                return (
+                                    <div
+                                        key={p.id}
+                                        className={`pill pill-l3 tag-pick${on ? ' active' : ''}`}
+                                        style={{ ['--tag' as string]: p.hex, ['--tag-text' as string]: tagTextOn(p.hex) }}
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={pick}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } }}
+                                        title={`Paint every tag — ${p.label}`}
+                                    >
+                                        <span className="stat-name">{p.label}</span>
+                                    </div>
+                                );
+                            })}
                         </div>
                         {/* Row 3 — FONT: restyle the @name. Each pill previews
                             itself; the "@" always stays plain. */}
@@ -1374,7 +1403,7 @@ function ProfilePageBodyInner({
                     </div>
                 }
             >
-                    <ProfileTags tags={displayTags} font={ownerNameFont} />
+                    <ProfileTags tags={displayTags} font={ownerNameFont} paint={ownerTagPaint} />
                     <HeroStickers
                         ownerHandle={user.handle ?? handle}
                         isOwn={isOwnProfile}

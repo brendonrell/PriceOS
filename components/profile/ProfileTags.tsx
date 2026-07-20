@@ -11,30 +11,37 @@
  * colorway text colour so it's always legible on any repainted page).
  */
 
-import { type Tag, tagTextOn } from '../../lib/tags/catalog';
+import { type Tag, tagPaintHex, tagTextOn } from '../../lib/tags/catalog';
 import { styleName } from '../../lib/profile/nameFont';
 
-export function ProfileTags({ tags, font }: {
+export function ProfileTags({ tags, font, paint }: {
     tags: Tag[];
     /** The owner's chosen @name font (users.name_font) — tag labels wear it
      *  too (Brendon, 2026-07-20). Untouched underneath: display-only, same
      *  as the @name itself. */
     font?: string | null;
+    /** The owner's all-tags paint (users.tag_paint) — every pill one colour,
+     *  lettering contrast-flipped. null = each tag's own colour. */
+    paint?: string | null;
 }) {
     if (!tags.length) return null;
+    const paintHex = tagPaintHex(paint);
     return (
         <div className="profile-tags" aria-label="Tags">
-            {tags.map((t) => (
+            {tags.map((t) => {
+                const hex = paintHex ?? t.color;
+                return (
                 <span
                     key={t.id}
                     className="profile-tag"
-                    style={{ ['--tag' as string]: t.color, ['--tag-text' as string]: tagTextOn(t.color) }}
+                    style={{ ['--tag' as string]: hex, ['--tag-text' as string]: tagTextOn(hex) }}
                     title={t.label}
                 >
                     {t.glyph && <span className="profile-tag-glyph">{t.glyph}</span>}
                     <span className="profile-tag-label">{styleName(t.label, font)}</span>
                 </span>
-            ))}
+                );
+            })}
         </div>
     );
 }

@@ -3897,6 +3897,25 @@ body.pd-stone-open .ens-copy-toast {
     /* Tight between the three rows; the first/last rows add air top + bottom
        below (Brendon 2026-07-19). */
     margin: 5px 0;
+    /* FULL-BLEED like the home carousels (the .profile-name-carousel
+       treatment — Brendon, 2026-07-20): the row spans the whole viewport and
+       pills slide offscreen under the page edge. This also pins the rows to
+       the SCREEN: inside the shrink-to-fit hero they were sizing to a
+       phantom 900px box, so short rows sat clipped without scrolling and
+       long rows scrolled toward an edge past the screen. */
+    width: 100vw;
+    max-width: 100vw;
+    box-sizing: border-box;
+    margin-left: -40px;
+    padding-left: 40px;
+    padding-right: 40px;
+}
+@media (max-width: 600px) {
+    .cust-scroll {
+        margin-left: -20px;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
 }
 .cust-scroll::-webkit-scrollbar { display: none; }
 /* Scroll-end room: iOS drops trailing padding on an overflow row, so the last

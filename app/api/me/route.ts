@@ -36,6 +36,7 @@ import { requireAuth } from '@/lib/auth/siwe';
 import { isValidProfileLogo, isSigilLogo } from '@/lib/profile/profileLogos';
 import { isPersonaId } from '@/lib/tags/catalog';
 import { isValidNameFont } from '@/lib/profile/nameFont';
+import { isValidTagPaint } from '@/lib/tags/catalog';
 import { recordOath } from '@/lib/factions/oath';
 import { badRequest, notFound, serverError } from '@/lib/errors';
 
@@ -154,6 +155,17 @@ function sanitisePatch(
             patch.name_font = v;
         } else {
             return { ok: false, reason: 'name_font must be a known font id or null' };
+        }
+    }
+
+    if ('tag_paint' in body) {
+        const v = body.tag_paint;
+        if (v === null) {
+            patch.tag_paint = null;
+        } else if (isValidTagPaint(v)) {
+            patch.tag_paint = v;
+        } else {
+            return { ok: false, reason: 'tag_paint must be a known paint id or null' };
         }
     }
 

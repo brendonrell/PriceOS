@@ -126,6 +126,29 @@ export const ID_RANGES: ReadonlyArray<{ id: string; label: string; max: number }
     { id: 'id-first-1000', label: 'First 1000', max: 1000 },
 ];
 
+/* ── TAG PAINT — the all-tags override (Brendon, 2026-07-20): the profile
+   owner can paint EVERY tag one colour from the end of the tags picker.
+   Black / White / the brand primaries; lettering flips by contrast
+   (tagTextOn). null = each tag wears its own colour. ── */
+export const TAG_PAINTS: ReadonlyArray<{ id: string; label: string; hex: string }> = [
+    { id: 'black',     label: 'All Black',     hex: '#000000' },
+    { id: 'white',     label: 'All White',     hex: '#FFFFFF' },
+    { id: 'hothurt',   label: 'All Hothurt',   hex: '#FF0055' },
+    { id: 'attention', label: 'All Attention', hex: '#FFE600' },
+    { id: 'blue',      label: 'All Blue',      hex: '#0109FF' },
+];
+
+const PAINT_BY_ID = new Map(TAG_PAINTS.map((p) => [p.id, p]));
+
+export function isValidTagPaint(id: unknown): id is string {
+    return typeof id === 'string' && PAINT_BY_ID.has(id);
+}
+
+/** The paint's pill colour, or null for unknown/absent (own colours). */
+export function tagPaintHex(id: string | null | undefined): string | null {
+    return (id && PAINT_BY_ID.get(id)?.hex) || null;
+}
+
 /** Label colour (near-black or white) that reads on a SOLID pill of `hex` —
  *  the tag chips fill with their colour, so the label must contrast it. */
 export function tagTextOn(hex: string): string {

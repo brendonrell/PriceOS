@@ -48,6 +48,10 @@ export const STATE_CACHE_KEYS = {
      *  useNameFont; persisted to the public `users.name_font` column and
      *  broadcast on `pd:name-font-changed`. */
     nameFont: 'pd_name_font',
+    /** All-tags paint id (or absent = each tag's own colour). Read + written by
+     *  useTagPaint; persisted to the public `users.tag_paint` column and
+     *  broadcast on `pd:tag-paint-changed`. */
+    tagPaint: 'pd_tag_paint',
     /** Sticker ownership + active-state (owned ids / off-sheets / off-stickers).
      *  Read + written by lib/stickers/owned.ts; synced to the top-level
      *  `users.sticker_state` column so stickers follow the account across
@@ -241,6 +245,19 @@ export function hydrateFromRow(row: UserRow): void {
         window.dispatchEvent(
             new CustomEvent<string | null>('pd:name-font-changed', {
                 detail: (row.name_font as string | null) ?? null,
+            })
+        );
+
+        // tag_paint → pd_tag_paint (the all-tags paint). Own slot + event;
+        // absent/null = each tag wears its own colour.
+        if (typeof row.tag_paint === 'string' && row.tag_paint.length > 0) {
+            localStorage.setItem(STATE_CACHE_KEYS.tagPaint, row.tag_paint);
+        } else {
+            localStorage.removeItem(STATE_CACHE_KEYS.tagPaint);
+        }
+        window.dispatchEvent(
+            new CustomEvent<string | null>('pd:tag-paint-changed', {
+                detail: (row.tag_paint as string | null) ?? null,
             })
         );
 
