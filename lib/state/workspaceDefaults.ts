@@ -2,19 +2,22 @@
  * workspaceDefaults — the SHIPPED workspace set + the SPACES preset
  * library (pure data, no React).
  *
- * Five dots out of the box (2026-07-16 wow pass — Brendon: "4 awesome
+ * Seven dots out of the box (2026-07-16 wow pass — Brendon: "4 awesome
  * defaults", joining Main; same day he pinned their register: WORK
- * personas — job setups, not moods. The mood sets moved to SPACES below).
+ * personas — job setups, not moods. The mood sets moved to SPACES below.
+ * 2026-07-19: the social pair Socialite + Insider joined by his call).
  * Zen retired 2026-07-18 (Brendon: "remove the Zen one") — existing users'
  * uncustomised Zen is pruned on load via RETIRED_DEFAULT_CODES.
  * Appraiser renamed ORACLE 2026-07-19 (Brendon), and he pinned the persona
  * order: Curator > Scout > Trader > Oracle (Main first, always):
  *
- *   1   · Main    — ‰CSTM-IDAS                                   (clean)
- *   103 · Curator — ‰LITE-NASC-NAUD-NSTK-IDAS                    (collection work)
- *   104 · Scout   — ‰HAZE-PTON-WTCH-FDTD-TAPS                    (discovery work)
- *   102 · Trader  — ‰REDD-LENS-PTON-SHLD-SNTM-WTCH-PRAS-TAPB     (market work)
- *   101 · Oracle  — ‰DARK-CLST-LENS-SNTM-IDAS-TAPF               (valuation work)
+ *   1   · Main      — ‰CSTM-IDAS                                   (clean)
+ *   103 · Curator   — ‰LITE-NASC-NAUD-NSTK-IDAS                    (collection work)
+ *   104 · Scout     — ‰HAZE-PTON-WTCH-FDTD-TAPS                    (discovery work)
+ *   102 · Trader    — ‰REDD-LENS-PTON-SHLD-SNTM-WTCH-PRAS-TAPB     (market work)
+ *   101 · Oracle    — ‰DARK-CLST-LENS-SNTM-IDAS-TAPF               (valuation work)
+ *   105 · Socialite — ‰ORNG-AMBS-ECHO-FMLR-NPCM-FDTD-TAPS          (social, fun with friends)
+ *   106 · Insider   — ‰DARK-GSSP-LENS-PTON-SNTM-WTCH-FDTD-TAPB     (social, alpha/gossip)
  *
  * The four work personas, and why each token is there:
  *   ORACLE — the piece-study desk: Price Lens on every card, Sentiment
@@ -23,6 +26,12 @@
  *   TRADER — the execution desk: Price Lens, Sentiment, Offer Shield up,
  *     The Watch ticking platform vitals, money pings popping as toasts,
  *     the tape in BOLD, sorted by price. Red.
+ *   SOCIALITE (105, 2026-07-19) — the good-times room: warm orange, ambient
+ *     glow, your creature beside you, the cast chattering, the feed narrowed
+ *     to your mutuals (Echo) — fun with friends, prices second.
+ *   INSIDER (106, 2026-07-19) — the alpha desk: dark, the feed told as
+ *     gossip, Price Lens + Sentiment reading the room, The Watch on vitals,
+ *     pings popping the moment anything moves, bold tape. First to hear.
  *   CURATOR — the arranging room: light, chrome stripped (no stickers, no
  *     ASCII-ID), presence broadcasting off, tape silent — nothing between
  *     the eye and the work.
@@ -52,7 +61,7 @@
 import type { Workspace } from './WorkspacesContext';
 
 /** Bump when the shipped set gains a NEW workspace id. */
-export const DEFAULTS_SEED_VERSION = 2;
+export const DEFAULTS_SEED_VERSION = 3;
 export const DEFAULTS_SEED_KEY = 'pd_ws_defaults_seeded';
 
 /** Which seed version each shipped id arrived in. Version 1 = the original
@@ -62,6 +71,7 @@ export const DEFAULTS_SEED_KEY = 'pd_ws_defaults_seeded';
 export const WORKSPACE_SEED_VERSION: Record<number, number> = {
     1: 1,
     101: 2, 102: 2, 103: 2, 104: 2,
+    105: 3, 106: 3,
 };
 
 export const SHIPPED_WORKSPACES: ReadonlyArray<Workspace> = [
@@ -74,6 +84,11 @@ export const SHIPPED_WORKSPACES: ReadonlyArray<Workspace> = [
     { id: 104, name: 'Scout', code: '‰HAZE-PTON-WTCH-FDTD-TAPS', isDefault: true },
     { id: 102, name: 'Trader', code: '‰REDD-LENS-PTON-SHLD-SNTM-WTCH-PRAS-TAPB', isDefault: true },
     { id: 101, name: 'Oracle', code: '‰DARK-CLST-LENS-SNTM-IDAS-TAPF', isDefault: true },
+    // The 2026-07-19 social pair (Brendon: "add both socialite and insider" —
+    // Insider is the alpha/gossip persona, Socialite the positive one, fun
+    // with friends).
+    { id: 105, name: 'Socialite', code: '‰ORNG-AMBS-ECHO-FMLR-NPCM-FDTD-TAPS', isDefault: true },
+    { id: 106, name: 'Insider', code: '‰DARK-GSSP-LENS-PTON-SNTM-WTCH-FDTD-TAPB', isDefault: true },
 ];
 
 /* ── SPACES — the preset library in the Name-Your-Workspace modal ────────
@@ -170,4 +185,8 @@ export const DEFAULT_LOAD_TOASTS: Record<number, string> = {
     102: '✹︎ Workspace: TRADER ✹︎',
     103: '⑆︎ Workspace: CURATOR ⑆︎',
     104: '✧︎ Workspace: SCOUT ✧︎',
+    /* The social pair — ⚭ mutuals (the marriage glyph, the Socialite's
+       trade mark) · ⑃ gossip (the Insider trades in rumor). */
+    105: '⚭︎ Workspace: SOCIALITE ⚭︎',
+    106: '⑃︎ Workspace: INSIDER ⑃︎',
 };
