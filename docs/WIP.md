@@ -53,9 +53,18 @@
    wrapped new) · real builds · compiled greps · real-Courier proofs
    (dots-row key both states · TM chrome). ClickUp: ad-hoc chat builds,
    no tasks of record (six-ship precedent).
-   **STANDING (unchanged):** privacy/terms pages (his call) · status-page
-   go-live `86bb0d896` (his action) · Mint Room follow-ups gated on the
-   first real mint · Wrapped cadence + share-card once picked.
+   ⑧ **RULINGS AT WRAP (Brendon):** MINT NIGHT **IS** THE MINT ROOM —
+   already shipped, queue item CLOSED, never pitch/build a separate one
+   (the proposed countdown add was NOT approved). WRAPPED IS SETTLED —
+   never re-raise its decisions. **PROCESS, re-sharpened in anger BOTH
+   ways this session: every door is discussed BEFORE building (a "continue
+   the list" NEVER waives it — the PDTV revert is the case file), AND
+   every feature gets a SPEC LIST + his OK before build, AND every push
+   to dev gets his push word (app code; docs stay pre-approved). Present →
+   OK → build → present → PUSH word → dev. No exceptions, no momentum.**
+   **STANDING (unchanged):** PDTV = his spec, deferred · privacy/terms
+   pages (his call) · status-page go-live `86bb0d896` (his action, due
+   07-23) · Mint Room follow-ups gated on the first real mint.
 
 0. ⚙ **2026-07-20 PRE-LAUNCH REFINEMENTS MARATHON — ALL on dev (tip
    `c4e0482`), auto-deploy rolling, tree clean. Branch
