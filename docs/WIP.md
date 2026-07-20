@@ -62,9 +62,14 @@
    every feature gets a SPEC LIST + his OK before build, AND every push
    to dev gets his push word (app code; docs stay pre-approved). Present →
    OK → build → present → PUSH word → dev. No exceptions, no momentum.**
-   **STANDING (unchanged):** PDTV = his spec, deferred · privacy/terms
-   pages (his call) · status-page go-live `86bb0d896` (his action, due
-   07-23) · Mint Room follow-ups gated on the first real mint.
+   **⛔ PDTV IS OFF THE LIST ENTIRELY (Brendon, at wrap) — removed, not
+   deferred. Do not pitch it, spec it, or carry it forward; it returns
+   only if HE raises it.**
+   **QUEUED (committed):** Privacy + Terms pages — his YES at wrap;
+   ClickUp `86bb0rr1f` (Backlog, beside the status page): draft both,
+   spec list + placement to him BEFORE build, his push word before dev.
+   **STANDING:** status-page go-live `86bb0d896` (his action, due 07-23)
+   · Mint Room follow-ups gated on the first real mint.
 
 0. ⚙ **2026-07-20 PRE-LAUNCH REFINEMENTS MARATHON — ALL on dev (tip
    `c4e0482`), auto-deploy rolling, tree clean. Branch
