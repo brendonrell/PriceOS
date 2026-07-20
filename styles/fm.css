@@ -1,5 +1,6 @@
 /* ══════════════════════════════════════════════════════════════════════
-   PD.fm — the session radio (components/fm/FmBar).
+   pd miniplayer (components/fm/FmBar) — PD.fm is the automated rotation
+   inside it; the station picker is the customization.
    A thin persistent mini-player pinned bottom-right. Full-strength site
    tokens (Rule #2): solid --bg-color fill, --text-color border + text,
    bold, 12px labels — the STICKERS-pill reference treatment. The playing
@@ -83,11 +84,93 @@
 .fm-label {
     flex: 0 1 auto;
     min-width: 0;
+    font-family: 'Courier New', Courier, monospace;
     font-size: 12px;
     font-weight: bold;
+    color: var(--text-color);
+    background: transparent;
+    border: none;
+    padding: 0;
+    text-align: left;
+    cursor: pointer;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .fm-wordmark { letter-spacing: 0.5px; }
+
+/* the LCD — an inset readout strip; the track name crawls through it
+   like a minidisc display (the toy, not the gallery) */
+.fm-lcd {
+    display: block;
+    max-width: 150px;
+    overflow: hidden;
+    background: var(--stat-bg, var(--bg-color));
+    border: 1px solid var(--text-color);
+    border-radius: 5px;
+    padding: 3px 6px;
+}
+
+@keyframes fm-crawl {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+.fm-lcd-scroll {
+    display: inline-block;
+    white-space: nowrap;
+    animation: fm-crawl 9s linear infinite;
+}
+
+/* ── The station picker — opens upward off the label ── */
+.fm-picker {
+    position: absolute;
+    right: -1px;
+    bottom: calc(100% + 6px);
+    width: min(78vw, 320px);
+    max-height: min(52vh, 380px);
+    overflow-y: auto;
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    border-radius: 6px;
+    padding: 6px;
+}
+
+.fm-picker-head {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    padding: 6px 6px 4px;
+    border-bottom: 1px solid var(--border-color, var(--text-color));
+    margin-bottom: 2px;
+}
+
+.fm-picker-row {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--text-color);
+    background: transparent;
+    border: none;
+    border-left: 2px solid transparent;
+    padding: 7px 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fm-picker-row:hover {
+    border-left-color: var(--text-color);
+    background: var(--stat-bg, transparent);
+}
+
+.fm-picker-glyph { margin-right: 2px; }
+
+.fm-picker-proj { font-weight: bold; }

@@ -3,109 +3,109 @@
    Power + intelligence where the other characters are charm. $0 simulated:
    intent-parsing + full data access, never a model.
 
-   Form (Brendon's spec, 2026-07-19): a thin bar pinned at the bottom,
-   hovering clear of Safari's chrome (safe-area). Swipe up / tap → the
-   stone opens full-height; long-press → collapses back to the bar.
-   Idle state = EMPTY (Brendon's call — pure black stone, silent until
-   touched). Dark-only stage by the same approval ("pure black stone"),
-   the Composer-◎ precedent: tokens re-based locally so the surface
-   resolves dark on any colorway. Rule #2 otherwise: full-strength
-   chrome, 12px minimum, bold labels.
+   Form (Brendon's spec, CORRECTED 2026-07-20 — the full-screen takeover
+   was an implementation error, none of it was in his spec):
+     · INVISIBLE at rest. A swipe up from the bottom edge summons the
+       skinny peek pill.
+     · Tap the peek pill → the floating pill, typed into directly.
+     · Results pop up ABOVE the pill in the same black, as widget cards —
+       the watch-style deck (stage 4 grows the custom widgets).
+     · Long-press puts it away; so does any outside tap; folds on route
+       change. Logged-in only.
+   Dark-only stage by Brendon's approval ("pure black stone", the
+   Composer-◎ precedent): tokens re-based locally so the surface resolves
+   dark on any colorway. Rule #2 otherwise: full-strength chrome, 12px
+   minimum, bold labels.
    ══════════════════════════════════════════════════════════════════════ */
 
-/* ── the resting bar — the stone asleep ── */
-.stone-bar {
+/* ── the peek pill — the stone surfacing (skinny, summoned by swipe) ── */
+.stone-peek {
     position: fixed;
     left: 50%;
     transform: translateX(-50%);
     bottom: calc(14px + env(safe-area-inset-bottom, 0px));
-    z-index: 9000;
-    width: min(46vw, 220px);
-    height: 26px;
+    z-index: 10004;
+    width: 92px;
+    height: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: #111111;
     color: #e0e0e0;
     border: 1px solid rgba(255, 255, 255, 0.35);
-    border-radius: 6px;
-    font-family: 'Courier New', Courier, monospace;
+    border-radius: 999px;
     cursor: pointer;
-    touch-action: none; /* the bar owns its swipe — never scrolls the page */
-    transition: opacity 0.2s ease, transform 0.2s ease;
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+    transition: opacity 0.2s ease, transform 0.2s ease;
 }
-.stone-bar--hidden {
+.stone-peek--hidden {
     opacity: 0;
     pointer-events: none;
-    transform: translateX(-50%) translateY(8px);
+    transform: translateX(-50%) translateY(10px);
 }
-.stone-bar-glyph {
-    font-size: 14px;
+.stone-peek-glyph {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
     font-weight: bold;
     line-height: 1;
 }
 
-/* ── the open stone — full-height panel ── */
-.stone-panel {
+/* ── the floating vessel — deck above, pill below ── */
+.stone-float {
     position: fixed;
-    inset: 0;
+    left: 50%;
+    transform: translateX(-50%) translateY(12px);
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
     z-index: 10004;
-    transform: translateY(100%);
-    transition: transform 0.3s cubic-bezier(0.18, 0.9, 0.26, 1.04);
-    visibility: hidden;
-}
-.stone-panel.stone-open {
-    transform: translateY(0);
-    visibility: visible;
-}
-.stone-stage {
-    position: absolute;
-    inset: 0;
+    width: min(92vw, 420px);
     display: flex;
     flex-direction: column;
-    /* Dark-only stage — the Composer precedent, token re-base local to the
-       surface so every inherited rule (incl. the reused .gsr rows) reads
-       dark on any colorway. */
+    gap: 8px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: transform 0.22s cubic-bezier(0.18, 0.9, 0.26, 1.04), opacity 0.18s ease;
+    /* Dark-only stage — token re-base local to the surface so every
+       inherited rule (incl. the reused .gsr rows) reads dark on any
+       colorway. */
     --bg-color: #111111;
     --text-color: #e0e0e0;
     --border-color: rgba(255, 255, 255, 0.15);
     --stat-active-bg: #e0e0e0;
     --stat-active-text: #000000;
-    background: #0b0b0b;
     color: var(--text-color);
     font-family: 'Courier New', Courier, monospace;
-    padding: calc(12px + env(safe-area-inset-top, 0px)) 0
-        calc(10px + env(safe-area-inset-bottom, 0px));
+}
+.stone-float--open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
 }
 
-/* header — the carved identity line */
-.stone-head {
+/* ── the pill — typed into directly ── */
+.stone-pill {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 16px 10px;
-    flex: none;
+    gap: 10px;
+    height: 44px;
+    padding: 0 16px;
+    background: #0b0b0b;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 999px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
 }
-.stone-head-glyph {
-    font-size: 16px;
+.stone-pill-glyph {
+    font-size: 15px;
     font-weight: bold;
     line-height: 1;
-}
-.stone-head-title {
-    font-size: 12px;
-    font-weight: bold;
-    letter-spacing: 2px;
+    flex: none;
 }
 
-/* the etching line — no prompt text, just the flashing indicator */
 .stone-input-row {
     position: relative;
-    flex: none;
-    margin: 0 16px 8px;
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    border-radius: 4px;
-    background: #111111;
+    flex: 1;
+    min-width: 0;
 }
 .stone-input {
     width: 100%;
@@ -118,7 +118,7 @@
     font-family: 'Courier New', Courier, monospace;
     font-size: 16px; /* ≥16px — iOS never zoom-jumps the stone */
     font-weight: bold;
-    padding: 10px 12px;
+    padding: 10px 0;
 }
 @keyframes stone-blink {
     0%, 49% { opacity: 1; }
@@ -126,7 +126,7 @@
 }
 .stone-caret {
     position: absolute;
-    left: 12px;
+    left: 0;
     top: 50%;
     transform: translateY(-50%);
     font-size: 16px;
@@ -135,15 +135,42 @@
     animation: stone-blink 1.06s step-end infinite;
 }
 
+/* ── the deck — black widget cards stacked above the pill ── */
+.stone-deck {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 8px;
+    max-height: min(52vh, 440px);
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+}
+.stone-widget {
+    flex: none;
+    background: #0b0b0b;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 16px;
+    padding: 6px 8px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+}
+.stone-widget-results {
+    overflow-y: auto;
+    max-height: min(44vh, 380px);
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
 /* ── ETCH — the preview chip + the carved confirmation ── */
 .stone-etch-chip {
     display: flex;
     align-items: center;
-    margin: 4px 8px;
+    margin: 4px 2px;
     padding: 10px 12px;
     background: #111111;
     border: 1px solid var(--text-color);
-    border-radius: 4px;
+    border-radius: 12px;
     color: var(--text-color);
     font-size: 12px;
     font-weight: bold;
@@ -156,8 +183,8 @@
 .stone-etch-chip:active { transform: scale(0.98); }
 .stone-offer-chip { margin-top: 2px; }
 .stone-etched {
-    margin: 4px 8px;
-    padding: 10px 12px;
+    margin: 4px 2px;
+    padding: 8px 12px;
     font-size: 12px;
     font-weight: bold;
     letter-spacing: 0.5px;
@@ -166,14 +193,6 @@
 }
 
 /* results — rides the app's own .global-result-item / .gsr row anatomy */
-.stone-results {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
-    padding: 0 8px;
-}
 .stone-results .global-result-item { opacity: 1; }
 .stone-results .gsr-header {
     font-size: 12px;

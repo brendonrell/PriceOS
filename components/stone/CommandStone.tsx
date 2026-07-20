@@ -66,7 +66,15 @@ export default function CommandStone() {
     const router = useRouter();
     const pathname = usePathname();
 
-    const [open, setOpen] = useState(false);
+    /* The vessel's three states (Brendon's spec, corrected 2026-07-20 —
+       the full-screen takeover was wrong):
+         hidden — NOTHING shows. A swipe up from the bottom edge reveals…
+         peek   — …the skinny pill. Tapping it expands to…
+         open   — …the floating pill you type right into; results pop up
+                  ABOVE it as black widget cards (the watch-style deck). */
+    const [stage, setStage] = useState<'hidden' | 'peek' | 'open'>('hidden');
+    const open = stage === 'open';
+    const setOpen = (v: boolean) => setStage(v ? 'open' : 'hidden');
     const [value, setValue] = useState('');
     const [results, setResults] = useState<SearchResponse | null>(null);
     const [searching, setSearching] = useState(false);
@@ -334,28 +342,63 @@ export default function CommandStone() {
         if (r.traits[0]) { go(null, `/art/${r.traits[0].project_id}`); return; }
     };
 
-    /* ── open: shared by tap + swipe. focus() runs synchronously inside
+    /* ── open: tapping the peek pill. focus() runs synchronously inside
        the gesture handler so iOS raises the keyboard. ── */
     const openStone = () => {
         inputRef.current?.focus();
-        setOpen(true);
+        setStage('open');
     };
 
-    /* Swipe-up on the bar. touch-action: none on the bar means these are
-       the only moves the gesture can make — no scroll fight. */
-    const barTouchY = useRef<number | null>(null);
-    const onBarTouchStart = (e: React.TouchEvent) => {
-        barTouchY.current = e.touches[0]?.clientY ?? null;
-    };
-    const onBarTouchMove = (e: React.TouchEvent) => {
-        const start = barTouchY.current;
-        const now = e.touches[0]?.clientY;
-        if (start == null || now == null) return;
-        if (start - now >= SWIPE_OPEN_PX) {
-            barTouchY.current = null;
-            openStone();
-        }
-    };
+    /* Reveal gesture — the stone is INVISIBLE at rest. A swipe UP that
+       starts near the bottom edge summons the skinny peek pill. Window
+       listeners (no DOM strip, so nothing under the edge loses its taps);
+       the start zone sits above the iOS home-indicator band so the system
+       gesture keeps winning the very edge. Desktop: gliding the pointer
+       onto the bottom edge peeks it too. */
+    const revealTouch = useRef<{ y: number } | null>(null);
+    useEffect(() => {
+        if (stage !== 'hidden') return;
+        const onTouchStart = (e: TouchEvent) => {
+            const y = e.touches[0]?.clientY;
+            if (y == null) return;
+            revealTouch.current =
+                y > window.innerHeight - 96 ? { y } : null;
+        };
+        const onTouchMove = (e: TouchEvent) => {
+            const start = revealTouch.current;
+            const now = e.touches[0]?.clientY;
+            if (!start || now == null) return;
+            if (start.y - now >= SWIPE_OPEN_PX) {
+                revealTouch.current = null;
+                setStage('peek');
+            }
+        };
+        const onMouseMove = (e: globalThis.MouseEvent) => {
+            if (e.clientY >= window.innerHeight - 8) setStage('peek');
+        };
+        window.addEventListener('touchstart', onTouchStart, { passive: true });
+        window.addEventListener('touchmove', onTouchMove, { passive: true });
+        window.addEventListener('mousemove', onMouseMove);
+        return () => {
+            window.removeEventListener('touchstart', onTouchStart);
+            window.removeEventListener('touchmove', onTouchMove);
+            window.removeEventListener('mousemove', onMouseMove);
+        };
+    }, [stage]);
+
+    /* Any tap outside the vessel puts the stone away (peek or open). */
+    const vesselRef = useRef<HTMLDivElement | null>(null);
+    const peekRef = useRef<HTMLDivElement | null>(null);
+    useEffect(() => {
+        if (stage === 'hidden') return;
+        const onDown = (e: PointerEvent) => {
+            const t = e.target as Node;
+            if (vesselRef.current?.contains(t) || peekRef.current?.contains(t)) return;
+            setStage('hidden');
+        };
+        document.addEventListener('pointerdown', onDown, true);
+        return () => document.removeEventListener('pointerdown', onDown, true);
+    }, [stage]);
 
     /* Long-press the open stage → collapse. Presses that start on live
        elements (the input, result rows, buttons) never count — those
@@ -397,16 +440,15 @@ export default function CommandStone() {
 
     return (
         <>
-            {/* the resting bar — the stone asleep */}
+            {/* the peek pill — the stone surfacing (swipe-up summons it) */}
             <div
-                className={`stone-bar${open ? ' stone-bar--hidden' : ''}`}
+                ref={peekRef}
+                className={`stone-peek${stage === 'peek' ? '' : ' stone-peek--hidden'}`}
                 id="commandStoneBar"
                 role="button"
-                tabIndex={0}
+                tabIndex={stage === 'peek' ? 0 : -1}
                 aria-label="The Command Stone"
                 onClick={openStone}
-                onTouchStart={onBarTouchStart}
-                onTouchMove={onBarTouchMove}
                 onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
@@ -414,106 +456,25 @@ export default function CommandStone() {
                     }
                 }}
             >
-                <span className="stone-bar-glyph">{STONE_GLYPH}</span>
+                <span className="stone-peek-glyph">{STONE_GLYPH}</span>
             </div>
 
-            {/* the open stone */}
+            {/* the floating vessel — deck of widgets above, the pill you
+                type into below. Mounted always so focus() can fire inside
+                the opening gesture (iOS keyboard). */}
             <div
-                className={`stone-panel${open ? ' stone-open' : ''}`}
+                ref={vesselRef}
+                className={`stone-float${open ? ' stone-float--open' : ''}`}
                 id="commandStonePanel"
                 aria-hidden={!open}
+                onPointerDown={onStagePointerDown}
+                onPointerMove={onStagePointerMove}
+                onPointerUp={clearPress}
+                onPointerCancel={clearPress}
             >
-                <div
-                    className="stone-stage"
-                    onPointerDown={onStagePointerDown}
-                    onPointerMove={onStagePointerMove}
-                    onPointerUp={clearPress}
-                    onPointerCancel={clearPress}
-                >
-                    <div className="stone-head">
-                        <span className="stone-head-glyph">{STONE_GLYPH}</span>
-                        <span className="stone-head-title">THE COMMAND STONE</span>
-                    </div>
-
-                    <div className="stone-input-row">
-                        {/* No prompt text — just the flashing indicator
-                            until the first character lands. */}
-                        {value === '' && (
-                            <span className="stone-caret" aria-hidden="true">▮</span>
-                        )}
-                        <input
-                            ref={inputRef}
-                            className="stone-input"
-                            id="commandStoneInput"
-                            type="text"
-                            autoComplete="off"
-                            autoCapitalize="off"
-                            autoCorrect="off"
-                            spellCheck={false}
-                            enterKeyHint="go"
-                            value={value}
-                            onChange={(e) => {
-                                setValue(e.target.value);
-                                setEtched(null);
-                            }}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    e.preventDefault();
-                                    if (etchPlan) doEtch();
-                                    else if (castHit) doCast(castHit);
-                                    else enterToGo();
-                                }
-                            }}
-                        />
-                    </div>
-
-                    <div className="stone-results">
-                        {/* the stone confirms its own carving */}
-                        {etched && !searchingNow && (
-                            <div className="stone-etched">{etched}</div>
-                        )}
-                        {/* ETCH preview chip — the plan flashes before it
-                            commits; tap (or Enter) carves it. */}
-                        {etchPlan && (
-                            <div
-                                className="stone-etch-chip"
-                                role="button"
-                                tabIndex={0}
-                                onClick={doEtch}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        e.preventDefault();
-                                        doEtch();
-                                    }
-                                }}
-                            >
-                                {etchPlan.chip}
-                            </div>
-                        )}
-                        {/* CAST — the matched toggle/persona, one tap flips it */}
-                        {castHit && (
-                            <div
-                                className="stone-etch-chip"
-                                role="button"
-                                tabIndex={0}
-                                onClick={() => doCast(castHit)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        e.preventDefault();
-                                        doCast(castHit);
-                                    }
-                                }}
-                            >
-                                {castHit.kind === 'workspace'
-                                    ? `Workspace · ${castHit.label} — load?`
-                                    : `${'icon' in castHit && castHit.icon ? `${castHit.icon} ` : ''}${castHit.label} — ${castActive(castHit) ? 'off?' : 'cast?'}`}
-                            </div>
-                        )}
-                        {searchingNow && searching && !r && (
-                            <div className="global-result-item gsr-empty fm-loading">{`⌕${VS15} reading the stone…`}</div>
-                        )}
+                    <div className="stone-deck stone-results">
                         {searchingNow && (pageHits.length > 0 || r) && (
-                            <>
+                            <div className="stone-widget stone-widget-results">
                                 {r && r.answers.map((ans, i) => (
                                     <div
                                         key={`ans:${i}`}
@@ -702,10 +663,94 @@ export default function CommandStone() {
                                     !searching && (
                                         <div className="global-result-item gsr-empty">{`⌕${VS15} THE STONE IS SILENT`}</div>
                                     )}
-                            </>
+                            </div>
+                        )}
+
+                        {/* the command widget — carve/cast feedback, always
+                            the card nearest the pill */}
+                        {((etched && !searchingNow) || etchPlan || castHit || (searchingNow && searching && !r)) && (
+                            <div className="stone-widget stone-widget-cmd">
+                                {etched && !searchingNow && (
+                                    <div className="stone-etched">{etched}</div>
+                                )}
+                                {/* ETCH preview chip — the plan flashes before
+                                    it commits; tap (or Enter) carves it. */}
+                                {etchPlan && (
+                                    <div
+                                        className="stone-etch-chip"
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={doEtch}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                doEtch();
+                                            }
+                                        }}
+                                    >
+                                        {etchPlan.chip}
+                                    </div>
+                                )}
+                                {/* CAST — the matched toggle/persona, one tap */}
+                                {castHit && (
+                                    <div
+                                        className="stone-etch-chip"
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={() => doCast(castHit)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                doCast(castHit);
+                                            }
+                                        }}
+                                    >
+                                        {castHit.kind === 'workspace'
+                                            ? `Workspace · ${castHit.label} — load?`
+                                            : `${'icon' in castHit && castHit.icon ? `${castHit.icon} ` : ''}${castHit.label} — ${castActive(castHit) ? 'off?' : 'cast?'}`}
+                                    </div>
+                                )}
+                                {searchingNow && searching && !r && (
+                                    <div className="global-result-item gsr-empty">{`⌕${VS15} reading the stone…`}</div>
+                                )}
+                            </div>
                         )}
                     </div>
-                </div>
+
+                    {/* the pill — you type right in it; ⌘ carved on the left,
+                        the flashing block alone until the first character */}
+                    <div className="stone-pill">
+                        <span className="stone-pill-glyph">{STONE_GLYPH}</span>
+                        <div className="stone-input-row">
+                            {value === '' && (
+                                <span className="stone-caret" aria-hidden="true">▮</span>
+                            )}
+                            <input
+                                ref={inputRef}
+                                className="stone-input"
+                                id="commandStoneInput"
+                                type="text"
+                                autoComplete="off"
+                                autoCapitalize="off"
+                                autoCorrect="off"
+                                spellCheck={false}
+                                enterKeyHint="go"
+                                value={value}
+                                onChange={(e) => {
+                                    setValue(e.target.value);
+                                    setEtched(null);
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        if (etchPlan) doEtch();
+                                        else if (castHit) doCast(castHit);
+                                        else enterToGo();
+                                    }
+                                }}
+                            />
+                        </div>
+                    </div>
             </div>
         </>
     );

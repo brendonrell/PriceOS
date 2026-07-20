@@ -18,6 +18,8 @@
  *   101 · Oracle    — ‰DARK-CLST-LENS-SNTM-IDAS-TAPF               (valuation work)
  *   105 · Socialite — ‰ORNG-AMBS-ECHO-FMLR-NPCM-FDTD-TAPS          (social, fun with friends)
  *   106 · Insider   — ‰DARK-GSSP-LENS-PTON-SNTM-WTCH-FDTD-TAPB     (social, alpha/gossip)
+ *   107 · Degen     — ‰DARK-DGEN-ECHO-LENS-SNTM-FDTD-TAPB          (numbers over art)
+ *   108 · DJ        — ‰BLUE-AMBS-ASCR-FDTD-TAPF                    (the booth — rides the pd miniplayer)
  *
  * The four work personas, and why each token is there:
  *   ORACLE — the piece-study desk: Price Lens on every card, Sentiment
@@ -61,7 +63,7 @@
 import type { Workspace } from './WorkspacesContext';
 
 /** Bump when the shipped set gains a NEW workspace id. */
-export const DEFAULTS_SEED_VERSION = 3;
+export const DEFAULTS_SEED_VERSION = 4;
 export const DEFAULTS_SEED_KEY = 'pd_ws_defaults_seeded';
 
 /** Which seed version each shipped id arrived in. Version 1 = the original
@@ -72,6 +74,7 @@ export const WORKSPACE_SEED_VERSION: Record<number, number> = {
     1: 1,
     101: 2, 102: 2, 103: 2, 104: 2,
     105: 3, 106: 3,
+    107: 4, 108: 4,
 };
 
 export const SHIPPED_WORKSPACES: ReadonlyArray<Workspace> = [
@@ -89,6 +92,12 @@ export const SHIPPED_WORKSPACES: ReadonlyArray<Workspace> = [
     // with friends).
     { id: 105, name: 'Socialite', code: '‰ORNG-AMBS-ECHO-FMLR-NPCM-FDTD-TAPS', isDefault: true },
     { id: 106, name: 'Insider', code: '‰DARK-GSSP-LENS-PTON-SNTM-WTCH-FDTD-TAPB', isDefault: true },
+    // Degen + DJ (Brendon 2026-07-20: "I also wanted degen and dj still").
+    // Degen = the Space's classic minus HMMR (the top-bar rule bans Hammer
+    // from shipped defaults; the Space keeps its Hammer variant). DJ rides
+    // the pd miniplayer — light rig on, the room scrolls itself like a set.
+    { id: 107, name: 'Degen', code: '‰DARK-DGEN-ECHO-LENS-SNTM-FDTD-TAPB', isDefault: true },
+    { id: 108, name: 'DJ', code: '‰BLUE-AMBS-ASCR-FDTD-TAPF', isDefault: true },
 ];
 
 /* ── SPACES — the preset library in the Name-Your-Workspace modal ────────
@@ -189,4 +198,7 @@ export const DEFAULT_LOAD_TOASTS: Record<number, string> = {
        trade mark) · ⑃ gossip (the Insider trades in rumor). */
     105: '⚭︎ Workspace: SOCIALITE ⚭︎',
     106: '⑃︎ Workspace: INSIDER ⑃︎',
+    /* ⚔ is the Degen mode's own mark; ▶ the catalogued soundtrack mark. */
+    107: '⚔︎ Workspace: DEGEN ⚔︎',
+    108: '▶︎ Workspace: DJ ▶︎',
 };

@@ -35,8 +35,8 @@ function expectCanonical(name: string, code: string) {
 }
 
 describe('shipped workspace defaults', () => {
-    it('ships seven, ids unique, names within the 24-char cap', () => {
-        expect(SHIPPED_WORKSPACES.length).toBe(7);
+    it('ships nine, ids unique, names within the 24-char cap', () => {
+        expect(SHIPPED_WORKSPACES.length).toBe(9);
         const ids = SHIPPED_WORKSPACES.map((w) => w.id);
         expect(new Set(ids).size).toBe(ids.length);
         for (const w of SHIPPED_WORKSPACES) {
@@ -81,9 +81,9 @@ describe('shipped workspace defaults', () => {
         }
     });
 
-    it('the six personas carry their flourish toasts; Main stays plain', () => {
+    it('the eight personas carry their flourish toasts; Main stays plain', () => {
         expect(DEFAULT_LOAD_TOASTS[1]).toBeUndefined();
-        for (const id of [101, 102, 103, 104, 105, 106]) {
+        for (const id of [101, 102, 103, 104, 105, 106, 107, 108]) {
             const ws = SHIPPED_WORKSPACES.find((w) => w.id === id)!;
             expect(ws).toBeTruthy();
             const toast = DEFAULT_LOAD_TOASTS[id];

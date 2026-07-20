@@ -1,25 +1,23 @@
 'use client';
 
 /*
- * PD.fm — the session radio (Brendon's name; brief docs/briefs/pd-fm.md).
+ * pd miniplayer (Brendon's name, all lowercase — 2026-07-20; grew out of
+ * the PD.fm brief, docs/briefs/pd-fm.md).
  *
  * A persistent bottom mini-player streaming the platform's soundtracks —
  * the projects' PUBLIC YouTube playlists from the registry — through the
  * YouTube IFrame Player. Lives in the shell so it keeps playing across
  * client navigation (never unmounts).
  *
- * THE HONEST LIMIT (spec: write it into the UI, never imply otherwise):
- * phones stop YouTube audio the moment the screen locks or the app
- * backgrounds — YouTube does this on purpose and no embed trick beats it.
- * PD.fm plays while PD is open; it is not pocket radio. The bar's tooltip
- * says exactly that.
+ * PD.fm is the AUTOMATED PROGRAMMING inside it: hit play with no picks
+ * and the platform rotation cycles the registry albums; a project page's
+ * own soundtrack takes the deck when you start there. The CUSTOMIZATION
+ * is the station picker — tap the label and choose your own station:
+ * starred soundtracks first, then the full album catalog.
  *
- * YT ToS wants the embed visibly present — so while playing, the actual
- * video renders as a small tile in the bar (also just right for a radio
- * with album playlists). Auto-tunes to context: on a project page the
- * station is that project's own soundtrack; elsewhere it's the platform
- * rotation. If you're already listening, navigation NEVER yanks the
- * audio — a TUNE pill offers this page's station instead.
+ * While playing, the actual video renders as a small tile in the bar
+ * (the visible player is also the album art). Navigation never yanks
+ * the audio — on another project's page a TUNE pill offers its station.
  *
  * Chrome: full-strength site tokens (Rule #2) — solid --bg-color fill,
  * --text-color border and text, bold, 12px labels. ▶ is the catalogued
@@ -28,9 +26,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
-import { allProjects, getProject } from '../../lib/project/registry';
+import { allProjects, getProject, projectTrueName } from '../../lib/project/registry';
+import { getSoundtrackStarItems } from '../../lib/pins/soundtrackStarStore';
 
 /* ── Minimal YT IFrame API surface (no @types dependency) ── */
 interface YTPlayer {
@@ -79,25 +77,22 @@ interface Station {
 
 type FmStatus = 'idle' | 'loading' | 'playing' | 'paused';
 
-const HONEST_TITLE =
-    'PD.fm — session radio over the projects’ public soundtracks. Plays while PD is open; locking the screen stops it (YouTube’s rule, not ours).';
-
 export default function FmBar() {
     const pathname = usePathname();
-    const { siweAddress, needsSignup } = useAuth();
     const { showToast } = useToast();
 
     const [status, setStatus] = useState<FmStatus>('idle');
     const [onAir, setOnAir] = useState<Station | null>(null);
     const [trackTitle, setTrackTitle] = useState('');
+    const [pickerOpen, setPickerOpen] = useState(false);
 
     const playerRef = useRef<YTPlayer | null>(null);
     const videoHostRef = useRef<HTMLDivElement | null>(null);
-    /* The station a mid-flight start() belongs to — a second tap before the
-       API resolves must not double-create the player. */
+    const barRef = useRef<HTMLDivElement | null>(null);
+    /* A second tap before the API resolves must not double-create. */
     const startingRef = useRef(false);
 
-    /* Platform rotation — every registry project carrying a soundtrack. */
+    /* PD.fm — the automated rotation: every registry soundtrack. */
     const rotation = useMemo<Station[]>(
         () =>
             allProjects()
@@ -111,7 +106,7 @@ export default function FmBar() {
     );
     const rotationIdx = useRef(0);
 
-    /* Context station — a project page's own soundtrack, else the rotation. */
+    /* Context station — a project page's own soundtrack. */
     const context = useMemo<Station | null>(() => {
         const m = pathname?.match(/^\/art\/([^/]+)/);
         if (m) {
@@ -127,9 +122,6 @@ export default function FmBar() {
         rotationIdx.current += 1;
         return st;
     }, [rotation]);
-
-    /* What the ▶ starts: this page's station, else the platform rotation. */
-    const upNext = context ?? rotation[rotationIdx.current % Math.max(1, rotation.length)] ?? null;
 
     const start = useCallback((station: Station) => {
         if (startingRef.current) return;
@@ -171,9 +163,9 @@ export default function FmBar() {
     const onPlayTap = () => {
         if (status === 'idle') {
             const st = context ?? nextFromRotation();
-            if (!st) { showToast('PD.fm: NO SOUNDTRACKS YET'); return; }
+            if (!st) { showToast('pd miniplayer: NO SOUNDTRACKS YET'); return; }
             start(st);
-            showToast('PD.fm: ON AIR');
+            showToast('pd miniplayer: ON AIR');
             return;
         }
         if (status === 'playing') { playerRef.current?.pauseVideo(); return; }
@@ -185,9 +177,38 @@ export default function FmBar() {
     const onTuneTap = () => {
         if (context) {
             start(context);
-            showToast('PD.fm: TUNED');
+            showToast('pd miniplayer: TUNED');
         }
     };
+
+    /* ── The station picker — the customization (tap the label) ── */
+    const pickStation = (st: Station) => {
+        setPickerOpen(false);
+        start(st);
+        showToast(`Station: ${st.label.toUpperCase()}`);
+    };
+
+    /* Starred soundtracks lead the picker; the full catalog follows. */
+    const starred = useMemo<Station[]>(() => {
+        if (!pickerOpen) return [];
+        return getSoundtrackStarItems().map((s) => ({
+            playlistId: s.playlistId,
+            label: s.title,
+            slug: s.slug,
+        }));
+    }, [pickerOpen]);
+    const starredIds = new Set(starred.map((s) => s.playlistId));
+
+    /* Close the picker on any outside tap. */
+    useEffect(() => {
+        if (!pickerOpen) return;
+        const onDown = (e: PointerEvent) => {
+            if (barRef.current?.contains(e.target as Node)) return;
+            setPickerOpen(false);
+        };
+        document.addEventListener('pointerdown', onDown, true);
+        return () => document.removeEventListener('pointerdown', onDown, true);
+    }, [pickerOpen]);
 
     /* Destroy the player only when the whole shell unmounts (full reload). */
     useEffect(() => () => { playerRef.current?.destroy(); playerRef.current = null; }, []);
@@ -195,18 +216,33 @@ export default function FmBar() {
     if (rotation.length === 0) return null;
 
     const tuneOffer = onAir && context && context.playlistId !== onAir.playlistId;
-    /* The Command Stone's resting bar owns the bottom line when logged in —
-       PD.fm lifts one row above it. */
-    const stonePresent = !!siweAddress && !needsSignup;
 
     return (
         <div
-            className={`fm-bar${status === 'idle' ? ' fm-idle' : ''}${stonePresent ? ' fm-above-stone' : ''}`}
-            title={HONEST_TITLE}
+            ref={barRef}
+            className={`fm-bar${status === 'idle' ? ' fm-idle' : ' fm-live'}`}
+            title="pd miniplayer — the platform's soundtracks. Tap the readout to pick a station."
         >
+            {pickerOpen && (
+                <div className="fm-picker" role="listbox" aria-label="Stations">
+                    {starred.length > 0 && <div className="fm-picker-head">STARRED</div>}
+                    {starred.map((st) => (
+                        <button key={`s-${st.playlistId}`} type="button" className="fm-picker-row" onClick={() => pickStation(st)}>
+                            <span className="fm-picker-glyph">▶︎</span> {st.label}
+                        </button>
+                    ))}
+                    <div className="fm-picker-head">ALL ALBUMS</div>
+                    {rotation.filter((st) => !starredIds.has(st.playlistId)).map((st) => (
+                        <button key={st.playlistId} type="button" className="fm-picker-row" onClick={() => pickStation(st)}>
+                            <span className="fm-picker-glyph">▶︎</span> {st.label}
+                            {st.slug && <span className="fm-picker-proj"> · {projectTrueName(st.slug)}</span>}
+                        </button>
+                    ))}
+                </div>
+            )}
             {/* The video host stays mounted from first play on — YT replaces
                 it with the iframe; hiding it kills audio, so it only shrinks
-                (ToS: keep the player visible; it's our album art anyway). */}
+                to zero footprint pre-play. */}
             <div className={`fm-video${status === 'idle' ? ' fm-video-hidden' : ''}`}>
                 <div ref={videoHostRef} />
             </div>
@@ -223,12 +259,24 @@ export default function FmBar() {
                     TUNE
                 </button>
             )}
-            <span className="fm-label">
-                <span className="fm-wordmark">PD.fm</span>
-                {status === 'idle'
-                    ? (upNext ? ` — ${upNext.label}` : '')
-                    : ` — ${trackTitle || onAir?.label || ''}`}
-            </span>
+            <button
+                type="button"
+                className="fm-label"
+                onClick={() => setPickerOpen((v) => !v)}
+                title="Pick a station"
+            >
+                {status === 'idle' ? (
+                    <span className="fm-wordmark">pd miniplayer</span>
+                ) : (
+                    /* the LCD — a minidisc-style scrolling readout */
+                    <span className="fm-lcd">
+                        <span className="fm-lcd-scroll">
+                            {`${trackTitle || onAir?.label || 'pd miniplayer'} · `}
+                            {`${trackTitle || onAir?.label || 'pd miniplayer'} · `}
+                        </span>
+                    </span>
+                )}
+            </button>
         </div>
     );
 }
