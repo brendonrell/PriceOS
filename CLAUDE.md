@@ -33,15 +33,32 @@ win** — update this file in place and note it.
 > desktop but fights iOS is WRONG by definition. Previews render at iPhone
 > size in real fonts (§6) because that is the real app.
 
-> **⛔ RULE #-0.4 — EVERY FEATURE SHIPS WITH A DOOR: A WAY TO LAUNCH IT AND A
-> WAY TO CLOSE/TURN IT OFF. (Brendon, 2026-07-20 — after the miniplayer
-> shipped with no off switch.)** Nothing gets built that the user can't
-> summon AND dismiss. If the spec doesn't say how a surface launches and how
-> it closes, that is a GAP TO RAISE WITH BRENDON before building — never
-> ship the feature doorless and never invent the door silently (the door is
-> product design, his call). Applies to every persistent chrome element,
-> overlay, player, bar, and mode: a working on AND off, reachable by a
-> normal human, or it doesn't ship.
+> **⛔ RULE #-0.4 — EVERY FEATURE SHIPS WITH A DOOR, AND THE DOOR IS
+> CONFIRMED BEFORE THE BUILD STARTS. (Brendon, 2026-07-20; SHARPENED the
+> same day after repeated liberties — his words: "those are the liberties
+> needing squashing".)** Nothing gets built that the user can't summon AND
+> dismiss — and BOTH the launch and the close are CONFIRMED WITH BRENDON
+> **BEFORE** any code is written, never invented mid-build, never patched
+> in after. The day this rule was sharpened produced the whole case file:
+> the miniplayer shipped with no off switch; its relaunch door got picked
+> unilaterally (a settings pill — vetoed); the closed-state chip shipped as
+> a play button he never chose; a sound toggle got sited without asking.
+> Every one burned his time. The companion laws:
+> - **⛔ NO FEATURE IS DEFAULT-ON UNLESS BRENDON EXPLICITLY ASKED FOR
+>   DEFAULT-ON.** Auto-open chrome, auto-enabled modes, anything the user
+>   meets without choosing it — banned. Default is OFF/closed, full stop.
+>   (The miniplayer shipped default-open and had to be killed twice — the
+>   second time because the stale saved state resurrected it.)
+> - **⛔ THE SETTINGS MENU IS PIXEL-PERFECT, SACRED GROUND — the absolute
+>   LAST place to touch without EXPLICIT instruction.** It is not a
+>   fast-and-loose shelf for new icons, pills, or toggles. Adding ANYTHING
+>   to any settings surface (MY PD, MY PINGS, the Spell Book, the pill
+>   rows) requires Brendon naming that exact placement first.
+> - **Don't hallucinate scope.** A brief saying "behind a clear toggle"
+>   authorizes the toggle's EXISTENCE, not its location, look, or default —
+>   those are open questions FOR BRENDON, asked before building.
+> Applies to every persistent chrome element, overlay, player, bar, and
+> mode: a confirmed way on, a confirmed way off, or it doesn't get built.
 
 > **⛔ RULE #0 — REUSE, NEVER REINVENT. DO EXACTLY WHAT BRENDON SAYS, NOTHING
 > EXTRA. (Brendon, 2026-06-22 — the rule above all rules, by his order.)**
