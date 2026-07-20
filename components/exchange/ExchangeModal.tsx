@@ -28,7 +28,7 @@ import { getProject } from '../../lib/project/registry';
 import { formatEth } from '../../lib/format/eth';
 import { DURATION_CHOICES, DEFAULT_DURATION_SEC } from '../../lib/market/chain';
 import {
-    acceptTrade, cancelTrade, counterTrade, declineTrade, fetchTrade, proposeTrade,
+    acceptTrade, cancelTrade, counterTrade, declineTrade, fetchTrade, fetchTrades, proposeTrade,
 } from '../../lib/market/tradeClient';
 import { TRADE_MAX_ITEMS_PER_SIDE, type TradeItem, type TradeRow } from '../../lib/market/tradeTypes';
 import BenchArt from '../bench/BenchArt';
@@ -338,6 +338,8 @@ function ComposeFace({
                     ))}
                 </div>
                 {bothEth && <div className="exch-note">ETH rides one side only.</div>}
+
+                <OpenTradesStrip me={me} />
             </div>
             <button
                 type="button"
@@ -349,6 +351,56 @@ function ComposeFace({
                 {busy ? `${step ?? 'SENDING'}…` : counterOf ? 'SEND COUNTER' : 'SEND TRADE'}
             </button>
         </>
+    );
+}
+
+/* ── Open trades — the window IS the inbox (Brendon, 2026-07-20:
+   "an open-trades inbox view"). Composing shows every trade you have in
+   flight — either direction — one tap from its own seat. ── */
+function OpenTradesStrip({ me }: { me: string }) {
+    const { openTrade } = useExchange();
+    const [trades, setTrades] = useState<TradeRow[] | null>(null);
+    useEffect(() => {
+        let alive = true;
+        fetchTrades()
+            .then((d) => { if (alive) setTrades(d.trades.filter((t) => t.status === 'open')); })
+            .catch(() => { if (alive) setTrades([]); });
+        return () => { alive = false; };
+    }, []);
+    if (!trades || trades.length === 0) return null;
+    const now = Math.floor(Date.now() / 1000);
+    const left = (end: number | null) => {
+        if (end == null) return '';
+        const s = end - now;
+        if (s <= 0) return ' · EXPIRED';
+        if (s >= 86400) return ` · ends in ${Math.round(s / 86400)}d`;
+        if (s >= 3600) return ` · ends in ${Math.round(s / 3600)}h`;
+        return ` · ends in ${Math.max(1, Math.round(s / 60))}m`;
+    };
+    const sideLabel = (t: TradeRow) => {
+        const mine = t.proposer_address.toLowerCase() === me;
+        const other = mine
+            ? (t.counterparty_handle ? `@${t.counterparty_handle}` : shortAddr(t.counterparty_address))
+            : (t.proposer_handle ? `@${t.proposer_handle}` : shortAddr(t.proposer_address));
+        const giveN = t.give.length + (Number(t.give_eth) > 0 ? 1 : 0);
+        const getN = t.get.length + (Number(t.get_eth) > 0 ? 1 : 0);
+        return `${mine ? 'to' : 'from'} ${other} · ${mine ? giveN : getN} for ${mine ? getN : giveN}${left(t.end_time)}`;
+    };
+    return (
+        <div className="exch-open-strip">
+            <div className="exch-open-head">YOUR OPEN TRADES · {trades.length}</div>
+            {trades.map((t) => (
+                <button
+                    key={t.id}
+                    type="button"
+                    className="exch-open-row"
+                    onClick={() => openTrade(t.id)}
+                >
+                    <span className="exch-open-glyph">{`⇌${VS15}`}</span>
+                    <span className="exch-open-lbl">{sideLabel(t)}</span>
+                </button>
+            ))}
+        </div>
     );
 }
 

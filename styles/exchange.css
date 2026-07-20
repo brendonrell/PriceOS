@@ -123,3 +123,32 @@
 .exch-actions-row { display: flex; gap: 8px; }
 .exch-actions-row .mk-offer-btn { flex: 1 1 0; font-size: 12px; padding: 8px 7px; }
 .exch-actions > .mk-offer-btn { font-size: 12px; padding: 8px 7px; }
+
+/* ── Open trades — the inbox strip inside the compose face (2026-07-20).
+   Full-strength chrome on the cart-shell's tokens (Rule #2). ── */
+.exch-open-strip {
+    margin-top: 14px;
+    border-top: 1px dashed var(--text-color);
+    padding-top: 10px;
+}
+.exch-open-head {
+    font: bold 12px 'Courier New', Courier, monospace;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+}
+.exch-open-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    background: none;
+    border: none;
+    color: inherit;
+    text-align: left;
+    font: bold 12px 'Courier New', Courier, monospace;
+    padding: 6px 2px;
+    cursor: pointer;
+}
+.exch-open-row:hover { background: var(--stat-bg, transparent); }
+.exch-open-glyph { flex: 0 0 auto; }
+.exch-open-lbl { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
