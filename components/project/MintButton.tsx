@@ -19,6 +19,7 @@ import { formatEthAmount } from '../../lib/format/eth';
 import { MINT_FEE_ETH } from '../../lib/project/registry';
 import { acquireWakeLock } from '../../lib/pwa/wakeLock';
 import { storeMintPreviews } from '../../lib/art/storePreview';
+import { playSound } from '../../lib/sound/engine';
 
 const MAX_PER_MINT = 22;
 
@@ -159,6 +160,7 @@ export default function MintButton({
     const balance = parseFloat(Number(j.balance ?? 0).toFixed(3));
     setResult({ count, balance });
     setPhase('done');
+    playSound('chime'); // sound layer — the mint chime (no-op when off)
     if (typeof window !== 'undefined') window.dispatchEvent(new Event('pd:project-refresh'));
     // Linger well past the default + fade gently — gives the buyer confidence
     // (Brendon 2026-06-13, doubled to 4000ms). Slow 700ms fade (vs 250).

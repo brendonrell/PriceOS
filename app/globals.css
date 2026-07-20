@@ -9383,6 +9383,23 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
 }
 .ws-manage:hover { opacity: 0.9; }
 .ws-manage.on { opacity: 1; }
+/* Sound layer key ⚟ — the row's final icon (Brendon, 2026-07-20): same
+   treatment as the ⋯ manage key, two font sizes up (11 → 13px). */
+.ws-sound {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--bg-color);
+    opacity: 0.4;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px; font-weight: bold;
+    line-height: 1;
+    width: 16px; height: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity 0.18s;
+}
+.ws-sound:hover { opacity: 0.9; }
+.ws-sound.on { opacity: 1; }
 .workspace-switcher.managing .ws-dot::before {
     opacity: 0.9;
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--bg-color) 25%, transparent);

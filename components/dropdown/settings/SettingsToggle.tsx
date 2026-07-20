@@ -16,6 +16,7 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react';
+import { playSound } from '../../../lib/sound/engine';
 
 interface Props {
     /** DOM id — matches sim's `sn-` / `sb-` / `ss-` prefixed ids. */
@@ -108,7 +109,12 @@ export function SettingsToggle({
             disabled={disabled}
             onClick={(e) => {
                 e.stopPropagation();
-                if (!disabled) onClick?.();
+                if (!disabled) {
+                    // Sound layer: every settings pill flip ticks (no-op
+                    // while the sound flag is off).
+                    playSound('tick');
+                    onClick?.();
+                }
             }}
             style={style}
         >

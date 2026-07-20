@@ -514,6 +514,20 @@ sky at mint) + the proven lunarGlyph discs.
 > not just raw glyphs, before declaring a codepoint free.** ⠿ is retired and
 > free again. Device-verify ⎀ on iPhone per the #1 gate.
 
+## 12e. Sound layer — ⚟ (2026-07-20, Brendon's pick)
+
+| Use | Glyph | Codepoint |
+|---|---|---|
+| Sound toggle (workspace dots row, final key) | ⚟ | U+269F THREE LINES CONVERGING LEFT |
+
+> Brendon's pick from a fifteen-option speaker round (sound radiating from a
+> source). Screened against this glossary AND the codebase. Its mirror twin
+> **⚞ (U+269E) stays free**. The toggle is the LAST icon in the workspace
+> dots row, 13px (two sizes above the row's 11px keys), default OFF. The five
+> locked blips live in `lib/sound/recipes.ts` — chime (mint) · sparkle
+> (achievement) · tick (settings pills) · coin (your sale) · seal
+> (offer/trade accepted).
+
 ## 13. THE WAR — Factions glyphs (2026-07-13 build, spec v3.1 §11)
 
 One vocabulary across the ceremony, the tape, pings, the Book, and the

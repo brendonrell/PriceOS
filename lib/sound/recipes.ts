@@ -1,0 +1,174 @@
+/*
+ * PD sound layer — the five locked recipes (Brendon, 2026-07-20).
+ *
+ * Pure data, no Web Audio here: each sound is a list of synth voices the
+ * engine renders sample-by-sample. Everything is generated — no audio
+ * files ship, ever. The set Brendon approved from the WAV rounds:
+ *   chime   — mint success (v1: two rising bells)
+ *   sparkle — achievement unlock (v1: five-note ascending run)
+ *   tick    — settings toggle flip (v1: dry 25ms click)
+ *   coin    — your piece sold (v2: two bright metallic taps + glitter)
+ *   seal    — offer/trade accepted (v2: four-note rising resolve + glitter)
+ * The v2 chime/sparkle/tick variants and boink/ping-pop were REJECTED —
+ * do not resurrect them.
+ */
+
+export interface SoundVoice {
+    /** start offset in seconds */
+    at: number;
+    /** voice length in seconds */
+    dur: number;
+    /** start frequency (Hz) */
+    f0: number;
+    /** glide target frequency — omitted = no glide */
+    f1?: number;
+    /** glide speed (exponential approach rate) */
+    glide?: number;
+    /** harmonic stack: [multiple, amplitude][] */
+    partials: [number, number][];
+    gain: number;
+    /** attack seconds (default 0.004) */
+    attack?: number;
+    /** exponential decay rate (default 6) */
+    tail?: number;
+    /** slow phase wobble rate in Hz (the v1 "detune" vibrato) */
+    wobble?: number;
+    /** detuned twin partial at ×1.006 (the v2 sparkle sheen) */
+    shimmer?: boolean;
+}
+
+export interface SoundRecipe {
+    /** total render length in seconds */
+    dur: number;
+    voices: SoundVoice[];
+}
+
+export type SoundName = 'chime' | 'sparkle' | 'tick' | 'coin' | 'seal';
+
+const BELL: [number, number][] = [[1, 1], [2, 0.35], [4, 0.12]];
+const METAL: [number, number][] = [[1, 1], [2.76, 0.4], [5.4, 0.15]];
+const METAL_HI: [number, number][] = [[1, 1], [2.76, 0.35], [5.4, 0.12]];
+const GLASS: [number, number][] = [[1, 1], [3, 0.2], [5.4, 0.08]];
+const SINE: [number, number][] = [[1, 1]];
+
+/* Deterministic PRNG for the glitter clouds — same seeds as the approved
+   WAV renders, so what ships is byte-for-byte what Brendon heard. */
+function mulberry32(seed: number): () => number {
+    return function () {
+        seed |= 0;
+        seed = (seed + 0x6d2b79f5) | 0;
+        let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+}
+
+const TWINKLE_HI = [2637, 3136, 3520, 3951, 4699]; // high E-major pentatonic
+
+function glitter(
+    seed: number, at: number, span: number, count: number, gain: number
+): SoundVoice[] {
+    const rnd = mulberry32(seed);
+    const out: SoundVoice[] = [];
+    for (let i = 0; i < count; i++) {
+        out.push({
+            at: at + rnd() * span,
+            dur: 0.10 + rnd() * 0.12,
+            f0: TWINKLE_HI[Math.floor(rnd() * TWINKLE_HI.length)],
+            partials: [[1, 1], [2, 0.15]],
+            gain: gain * (0.5 + rnd() * 0.5),
+            shimmer: true,
+            attack: 0.002,
+            tail: 8,
+        });
+    }
+    return out;
+}
+
+export const SOUND_RECIPES: Record<SoundName, SoundRecipe> = {
+    // v1 mint chime — E5 then B5, warm bells, nothing else.
+    chime: {
+        dur: 0.75,
+        voices: [
+            { at: 0.00, dur: 0.45, f0: 659.26, partials: BELL, gain: 0.9, tail: 7 },
+            { at: 0.09, dur: 0.55, f0: 987.77, partials: BELL, gain: 1.0, tail: 6 },
+        ],
+    },
+    // v1 win sparkle — five-note ascending pentatonic run, soft wobble.
+    sparkle: {
+        dur: 0.85,
+        voices: [
+            { at: 0.00, dur: 0.30, f0: 880.00, partials: SINE, gain: 0.7, wobble: 6, tail: 8 },
+            { at: 0.06, dur: 0.30, f0: 1108.73, partials: SINE, gain: 0.7, wobble: 6, tail: 8 },
+            { at: 0.12, dur: 0.32, f0: 1318.51, partials: SINE, gain: 0.75, wobble: 6, tail: 8 },
+            { at: 0.18, dur: 0.36, f0: 1760.00, partials: SINE, gain: 0.8, wobble: 6, tail: 7 },
+            { at: 0.24, dur: 0.50, f0: 2217.46, partials: BELL, gain: 0.9, wobble: 6, tail: 6 },
+        ],
+    },
+    // v1 toggle tick — one dry 25ms click with a bright transient.
+    tick: {
+        dur: 0.08,
+        voices: [
+            { at: 0, dur: 0.025, f0: 1800, partials: SINE, gain: 1.0, attack: 0.001, tail: 9 },
+            { at: 0, dur: 0.010, f0: 3600, partials: SINE, gain: 0.35, attack: 0.0005, tail: 10 },
+        ],
+    },
+    // coin — the sale: two bright metallic taps, octave hop, small glitter.
+    coin: {
+        dur: 0.85,
+        voices: [
+            { at: 0.00, dur: 0.18, f0: 1975.53, partials: METAL, gain: 0.9, shimmer: true, attack: 0.001, tail: 7 },
+            { at: 0.09, dur: 0.55, f0: 2637.02, partials: METAL_HI, gain: 1.0, shimmer: true, attack: 0.001, tail: 5 },
+            ...glitter(5, 0.18, 0.25, 5, 0.2),
+        ],
+    },
+    // seal — deal done: a rising four-note resolve that blooms into glitter.
+    seal: {
+        dur: 1.25,
+        voices: [
+            { at: 0.00, dur: 0.40, f0: 523.25, partials: BELL, gain: 0.8, shimmer: true, tail: 6 },
+            { at: 0.10, dur: 0.45, f0: 659.26, partials: BELL, gain: 0.85, shimmer: true, tail: 6 },
+            { at: 0.20, dur: 0.60, f0: 783.99, partials: BELL, gain: 0.9, shimmer: true, tail: 5 },
+            { at: 0.30, dur: 0.85, f0: 1046.50, partials: GLASS, gain: 1.0, shimmer: true, tail: 4 },
+            ...glitter(13, 0.40, 0.45, 8, 0.22),
+        ],
+    },
+};
+
+/**
+ * Render a recipe to raw samples — the same math the WAV approval rounds
+ * used. Exported so the engine (and tests) share one renderer.
+ */
+export function renderRecipe(recipe: SoundRecipe, sampleRate: number): Float32Array {
+    const n = Math.ceil(recipe.dur * sampleRate);
+    const buf = new Float32Array(n);
+    for (const v of recipe.voices) {
+        const start = Math.floor(v.at * sampleRate);
+        const len = Math.ceil(v.dur * sampleRate);
+        const f1 = v.f1 ?? v.f0;
+        const k = v.glide ?? 18;
+        const attack = v.attack ?? 0.004;
+        const tail = v.tail ?? 6;
+        let phase = 0;
+        for (let i = 0; i < len && start + i < n; i++) {
+            const t = i / sampleRate;
+            const f = f1 + (v.f0 - f1) * Math.exp(-k * t);
+            phase += (2 * Math.PI * f) / sampleRate;
+            const wob = v.wobble ? Math.sin(2 * Math.PI * v.wobble * t) : 0;
+            let s = 0;
+            for (const [mult, amp] of v.partials) {
+                s += amp * Math.sin(phase * mult + wob);
+                if (v.shimmer) s += amp * 0.5 * Math.sin(phase * mult * 1.006);
+            }
+            const a = t < attack ? t / attack : 1;
+            buf[start + i] += v.gain * s * a * Math.exp(-tail * (t / v.dur));
+        }
+    }
+    let peak = 0;
+    for (let i = 0; i < n; i++) peak = Math.max(peak, Math.abs(buf[i]));
+    if (peak > 0) {
+        const norm = 0.707 / peak;
+        for (let i = 0; i < n; i++) buf[i] *= norm;
+    }
+    return buf;
+}

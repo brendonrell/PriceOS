@@ -37,6 +37,7 @@ import { useToast, TOAST_ART_MAX, type ToastArt } from './ToastContext';
 import { usePdNotifs, showsRegularToasts, showsNativePings } from './PdNotifsContext';
 import { passesCategoryPrefs, renderPing, type FeedItem } from '../pings/render';
 import { setAppBadge, clearAppBadge, ensureFreshSubscription } from '../push/client';
+import { playSound } from '../sound/engine';
 
 /* The with-art toast is DELIBERATELY selective (Brendon, 2026-07-17 — "very
    selective… otherwise people will get annoyed"): the ASCII artifact row rides
@@ -234,6 +235,13 @@ export function PingsProvider({ children }: { children: ReactNode }) {
         } else {
           showToast(`Pings: ${fresh.length} NEW`, undefined, undefined, toastArtFor(fresh));
         }
+        // Sound layer (no-op when off) — one blip per toast, picked by the
+        // weightiest fresh kind: seal (deal done) > coin (your sale) >
+        // sparkle (achievement). Other kinds stay silent.
+        const kinds = new Set(fresh.map((p) => p.kind));
+        if (kinds.has('OFFER_ACCEPTED') || kinds.has('TRADE_ACCEPTED')) playSound('seal');
+        else if (kinds.has('SALE')) playSound('coin');
+        else if (kinds.has('ACHIEVEMENT')) playSound('sparkle');
       }
       items.forEach((p) => seenIds.current.add(p.id));
       primed.current = true;

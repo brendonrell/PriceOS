@@ -44,6 +44,8 @@ import { SPACES } from '../../../lib/state/workspaceDefaults';
 import { useToast } from '../../../lib/state/ToastContext';
 import { useValuePrompt } from '../../../lib/state/ValuePromptContext';
 import { useAuth } from '../../../lib/state/AuthContext';
+import { readSoundOn, writeSoundOn } from '../../../lib/sound/soundStore';
+import { playSound, unlockSound } from '../../../lib/sound/engine';
 
 interface PopoverState {
     wsId: number;
@@ -69,6 +71,16 @@ export function WorkspaceSwitcher() {
     const [popover, setPopover] = useState<PopoverState | null>(null);
     const [managing, setManaging] = useState(false);
     const justOpenedRef = useRef(false);
+
+    // Sound layer key (Brendon, 2026-07-20 — the FINAL icon in this row,
+    // after ⋯, two font sizes up). Default OFF; flag lives in soundStore.
+    const [soundOn, setSoundOn] = useState(false);
+    useEffect(() => {
+        setSoundOn(readSoundOn()); // post-mount read — SSR renders off
+        const onChange = () => setSoundOn(readSoundOn());
+        window.addEventListener('pd:sound-changed', onChange);
+        return () => window.removeEventListener('pd:sound-changed', onChange);
+    }, []);
 
     // Outside-click dismissal — 100ms grace via justOpenedRef.
     useEffect(() => {
@@ -205,6 +217,27 @@ export function WorkspaceSwitcher() {
                         ⋯
                     </button>
                 )}
+                {/* Sound layer toggle — the row's FINAL key (Brendon's
+                    placement lock, 2026-07-20). The tap is the user
+                    gesture that unlocks iOS audio; flipping ON ticks so
+                    the switch proves itself audibly. */}
+                <button
+                    type="button"
+                    className={`ws-sound${soundOn ? ' on' : ''}`}
+                    aria-label="Sound"
+                    aria-pressed={soundOn}
+                    title="Sound"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        const next = !soundOn;
+                        unlockSound();
+                        writeSoundOn(next);
+                        if (next) playSound('tick');
+                        showToast(next ? 'Sound: ON' : 'Sound: OFF');
+                    }}
+                >
+                    {'⚟︎'}
+                </button>
             </div>
 
             {popover && ws ? (
