@@ -13,6 +13,10 @@
  *   • id       — auto from the user's platform number (#1–22 each their own,
  *                then ranges). Generated in derive.ts, styled by ID_TAG_STYLE.
  *
+ * Glyph picks (Brendon, 2026-07-20): ⚲ (mic-on-a-stem) = Podcaster AND WTBS,
+ * his call, one mark for both; ⚔ = Degen (the Degen workspace's own mark —
+ * same concept, same glyph).
+ *
  * Glyphs: assigned ONLY where an existing PD glyph EXACTLY matches the concept
  * AND carries no more-prominent clashing meaning (docs/GLYPHS.md — collector ☻,
  * writer ⊟ [Note = writing], minter ✶, artist ✺, og ⌖). Everything else ships
@@ -50,7 +54,7 @@ const PERSONAS: Tag[] = [
     { id: 'curator',    label: 'Curator',    color: '#7C3AED', kind: 'persona', order: 51, blurb: 'Builds the sets worth seeing.' },
     { id: 'trader',     label: 'Trader',     color: '#16A34A', kind: 'persona', order: 52, blurb: 'Lives on the order book.' },
     { id: 'writer',     label: 'Writer',     glyph: '⊟' + VS15, color: '#0EA5E9', kind: 'persona', order: 53, blurb: 'Says it in words.' },
-    { id: 'podcaster',  label: 'Podcaster',  color: '#DB2777', kind: 'persona', order: 54, blurb: 'Says it out loud.' },
+    { id: 'podcaster',  label: 'Podcaster',  glyph: '⚲' + VS15, color: '#DB2777', kind: 'persona', order: 54, blurb: 'Says it out loud.' },
     { id: 'media',      label: 'Media',      color: '#EA580C', kind: 'persona', order: 55, blurb: 'Covers the scene.' },
     { id: 'host',       label: 'Host',       color: '#E11D48', kind: 'persona', order: 56, blurb: 'Runs the room.' },
     { id: 'critic',     label: 'Critic',     color: '#4F46E5', kind: 'persona', order: 57, blurb: 'Has takes, shares them.' },
@@ -59,7 +63,7 @@ const PERSONAS: Tag[] = [
     { id: 'historian',  label: 'Historian',  color: '#9A3412', kind: 'persona', order: 60, blurb: 'Keeps the lore.' },
     { id: 'builder',    label: 'Builder',    color: '#475569', kind: 'persona', order: 61, blurb: 'Ships the tools.' },
     { id: 'ambassador', label: 'Ambassador', color: '#0D9488', kind: 'persona', order: 62, blurb: 'Brings people in.' },
-    { id: 'degen',      label: 'Degen',      color: '#DC2626', kind: 'persona', order: 63, blurb: 'Sends it.' },
+    { id: 'degen',      label: 'Degen',      glyph: '⚔' + VS15, color: '#DC2626', kind: 'persona', order: 63, blurb: 'Sends it.' },
     { id: 'shitposter', label: 'Shitposter', color: '#F59E0B', kind: 'persona', order: 64, blurb: 'You know the one.' },
     { id: 'lurker',     label: 'Lurker',     color: '#6D28D9', kind: 'persona', order: 65, blurb: 'Watching. Always watching.' },
 ];
@@ -82,7 +86,7 @@ const EARNED: Tag[] = [
    perks (WTBS…) and the internal marks live here too. */
 const GRANTED: Tag[] = [
     { id: 'og',         label: 'OG',        glyph: '⌖' + VS15, color: '#EAB308', kind: 'granted', order: 20 },
-    { id: 'wtbs',       label: 'WTBS',      color: '#FF0055', kind: 'granted', order: 21 },
+    { id: 'wtbs',       label: 'WTBS',      glyph: '⚲' + VS15, color: '#FF0055', kind: 'granted', order: 21 },
     { id: 'influencer', label: 'Influencer', color: '#DB2777', kind: 'granted', order: 22 },
     { id: 'team',       label: 'Team',      color: '#0109FF', kind: 'granted', order: 23 },
     /* Verified / Partner / Featured REMOVED (Brendon, 2026-07-20). A stray

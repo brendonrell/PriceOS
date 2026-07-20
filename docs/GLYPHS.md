@@ -541,6 +541,20 @@ sky at mint) + the proven lunarGlyph discs.
 > (achievement) · tick (settings pills) · coin (your sale) · seal
 > (offer/trade accepted).
 
+## 12f. Profile tags — glyph picks (2026-07-20, Brendon's picks)
+
+| Use | Glyph | Codepoint |
+|---|---|---|
+| Podcaster tag · WTBS tag | ⚲ | U+26B2 NEUTER |
+| Degen tag | ⚔ | U+2694 CROSSED SWORDS |
+
+> ⚲ reads as a mic on a stem — Brendon's pick from a mic-shaped round
+> (real microphone codepoints exist only as emoji and never ship), and his
+> explicit call to use ONE mark for BOTH tags. ⚔ is the Degen workspace's
+> own mark — same concept, same glyph, per the reuse rule. The rest of the
+> tag catalog stays colour + label until Brendon picks from the 2026-07-20
+> options menu (five screened, unused candidates per glyphless tag).
+
 ## 13. THE WAR — Factions glyphs (2026-07-13 build, spec v3.1 §11)
 
 One vocabulary across the ceremony, the tape, pings, the Book, and the
