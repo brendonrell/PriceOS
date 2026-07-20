@@ -4973,9 +4973,6 @@ button,
    low — size them a full step up and nudge up 1px so they read level with $
    (Brendon, 2026-07-13; sized up + nudged 2026-07-18). */
 .rpc-ping-btn.fiat-cur-btn.fiat-cur-nonusd { font-size: 15.5px; top: -1px; }
-/* Two-character symbols (A$) — full-size Courier pairs read huge at the nonusd
-   bump; step back down so the pair sits level with its single-glyph neighbours. */
-.rpc-ping-btn.fiat-cur-btn.fiat-cur-wide { font-size: 12.5px; top: -1px; letter-spacing: -1px; }
 
 /* Currency picker bubble — the SAME body-portal + tail placement as the
    3D-Pingtoast confirm, themed ATTENTION YELLOW (dark text for full legibility)

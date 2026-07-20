@@ -37,7 +37,7 @@ const CURRENCY_META: Record<FiatCode, { symbol: string; decimals: number; locale
     CAD: { symbol: '$', decimals: 2, locale: 'en-CA' },
     GBP: { symbol: '£', decimals: 2, locale: 'en-GB' },
     EUR: { symbol: '€', decimals: 2, locale: 'de-DE' },
-    AUD: { symbol: 'A$', decimals: 2, locale: 'en-AU' },
+    AUD: { symbol: '$', decimals: 2, locale: 'en-AU' },
     JPY: { symbol: '¥', decimals: 0, locale: 'ja-JP' },
 };
 
@@ -70,7 +70,7 @@ function formatFiat(eth: number, code: FiatCode, rate: number): string {
 interface FiatContextValue {
     currency: FiatCode | null;
     setCurrency: (next: FiatCode | null) => void;
-    /** Formatted "~C$0.74" for an ETH amount, or null when it must not render. */
+    /** Formatted "~$0.74" for an ETH amount, or null when it must not render. */
     ethToFiat: (eth: number) => string | null;
     /** The raw numeric fiat value for an ETH amount (null when off/untrusted). */
     ethToFiatValue: (eth: number) => number | null;

@@ -8,7 +8,8 @@
  * 3D-Pingtoast confirm uses (escapes the dropdown's clipping, stays on-screen)
  * — but themed ATTENTION YELLOW instead of Hothurt red. It lists OFF · USD ·
  * CAD · GBP · EUR · AUD · JPY; picking one is set-and-forget. The pill glyph
- * then shows that currency's symbol ($, £, €, A$, ¥).
+ * then shows that currency's symbol — dollar currencies all wear the plain $
+ * (Brendon, 2026-07-20: no A$/C$ prefixes, ever), plus £ € ¥.
  */
 
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
@@ -78,7 +79,7 @@ export function FiatCurrencyPicker({ gated }: { gated: boolean }) {
         <>
             <span
                 ref={cellRef}
-                className={`rpc-ping-btn fiat-cur-btn${currency ? ' rpc-active' : ''}${fiatSymbol(currency) !== '$' ? ' fiat-cur-nonusd' : ''}${fiatSymbol(currency).length > 1 ? ' fiat-cur-wide' : ''}`}
+                className={`rpc-ping-btn fiat-cur-btn${currency ? ' rpc-active' : ''}${fiatSymbol(currency) !== '$' ? ' fiat-cur-nonusd' : ''}`}
                 id="fiatCurrencyBtn"
                 role="button"
                 tabIndex={gated ? -1 : 0}
