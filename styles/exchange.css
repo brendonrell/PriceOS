@@ -1,0 +1,125 @@
+/* THE EXCHANGE ⇌ — the head-to-head trade window (ExchangeModal).
+ * Rides the cart-panel shell; these are only the trade-window pieces.
+ * Chrome rules: full-strength site tokens, min 12px bold labels, panels
+ * SQUARE + controls PILL-or-existing (the Corner Law). */
+
+.exch-body { display: flex; flex-direction: column; gap: 10px; }
+
+.exch-with {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px; font-weight: bold; letter-spacing: 0.5px;
+    color: var(--text-color);
+    padding: 2px 0 4px;
+}
+.exch-with b { font-weight: bold; }
+.exch-stamp { font-weight: bold; }
+.exch-expiry { font-size: 12px; font-weight: bold; }
+
+/* One side of the window — a square panel (surface → square, Corner Law). */
+.exch-panel {
+    border: 1px solid var(--text-color);
+    border-radius: 0;
+    padding: 8px;
+    background: var(--bg-color);
+}
+.exch-panel-head {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px; font-weight: bold; letter-spacing: 0.6px;
+    color: var(--text-color);
+    margin-bottom: 8px;
+}
+
+/* The item slots — RuneScape's trade grid, PD-shaped: square art tiles. */
+.exch-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+}
+.exch-slot {
+    position: relative;
+    aspect-ratio: 1;
+    border: 1px solid var(--text-color);
+    border-radius: 0;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg-color);
+}
+.exch-slot--editable { cursor: pointer; }
+.exch-slot-art { position: absolute; inset: 0; }
+.exch-slot-art canvas { width: 100%; height: 100%; object-fit: cover; display: block; }
+.exch-slot-id {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px; font-weight: bold; text-align: center;
+    color: var(--text-color);
+    background: var(--bg-color);
+    padding: 1px 2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.exch-slot-x {
+    position: absolute; top: 0; right: 2px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px; font-weight: bold;
+    color: var(--text-color);
+    text-shadow: 0 0 3px var(--bg-color);
+}
+.exch-slot--eth .exch-eth-mark {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 22px; font-weight: bold;
+    color: var(--text-color);
+    transform: translateY(-6px);
+}
+.exch-slot--add { cursor: pointer; }
+.exch-add-mark {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 24px; font-weight: bold; line-height: 1;
+    color: var(--text-color);
+}
+.exch-empty {
+    grid-column: 1 / -1;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px; font-weight: bold; letter-spacing: 0.6px;
+    color: var(--text-color);
+    text-align: center; padding: 12px 0;
+}
+
+/* The ⇌ between the two panels. */
+.exch-swap-mark {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 18px; font-weight: bold; text-align: center; line-height: 1;
+    color: var(--text-color);
+    margin: -2px 0;
+}
+
+/* ETH line inside a panel. */
+.exch-eth-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 8px; gap: 8px;
+}
+.exch-eth-lbl {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px; font-weight: bold; letter-spacing: 0.5px;
+    color: var(--text-color);
+}
+.exch-eth-row .mk-price-input:disabled { cursor: not-allowed; }
+
+.exch-note {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px; font-weight: bold;
+    color: var(--text-color);
+}
+
+/* Picker rows — the multi-select badge (canonical ❐/▣). */
+.exch-pick-row { cursor: pointer; }
+.exch-pick-badge {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px; font-weight: bold;
+    color: var(--text-color);
+    margin-left: auto; padding-left: 8px;
+}
+
+/* Action stack on the trade face. */
+.exch-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 2px; }
+.exch-actions-row { display: flex; gap: 8px; }
+.exch-actions-row .mk-offer-btn { flex: 1 1 0; font-size: 12px; padding: 8px 7px; }
+.exch-actions > .mk-offer-btn { font-size: 12px; padding: 8px 7px; }

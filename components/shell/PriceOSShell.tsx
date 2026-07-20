@@ -105,6 +105,7 @@ import TakeoverCastModal from '../takeover/TakeoverCastModal';
 import PanopticonOverlay from './PanopticonOverlay';
 import CartPanel from '../CartPanel';
 import MarketSheets from '../market/MarketSheets';
+import ExchangeModal from '../exchange/ExchangeModal';
 import TheWatch from './TheWatch';
 import BenchDock from '../BenchDock';
 import CommandStone from '../stone/CommandStone';
@@ -551,6 +552,9 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="MarketSheets">
                 <MarketSheets />
+            </ErrorBoundary>
+            <ErrorBoundary name="ExchangeModal">
+                <ExchangeModal />
             </ErrorBoundary>
             <ErrorBoundary name="TheWatch">
                 <TheWatch />

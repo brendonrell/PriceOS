@@ -55,6 +55,9 @@ const PRIORITY: Record<RenderKind, PingPriority> = {
   OFFER:          'high',
   OFFER_ACCEPTED: 'high',
   COUNTER:        'high',
+  TRADE:          'high',
+  TRADE_ACCEPTED: 'high',
+  TRADE_DECLINED: 'medium',
   WISHLIST_HIT:   'high',
   PING:           'high', // reminders (to-do / calendar) + Artist Push — act-now
   FOLLOW:         'low',
@@ -99,6 +102,9 @@ const ICONS: Record<RenderKind, string> = {
   OFFER:          '✦︎', // ✦ offered (matches OFFERS pill)
   OFFER_ACCEPTED: '✦︎', // ✦ offer resolved
   COUNTER:        '✦︎', // ✦ countered (offer family)
+  TRADE:          '⇌︎', // ⇌ the Exchange (⇄ is Arbitrage Map's — GLYPHS.md)
+  TRADE_ACCEPTED: '⇌︎', // ⇌ trade resolved
+  TRADE_DECLINED: '⇌︎', // ⇌ trade resolved
   XFER:           '✸︎', // ✸ transfer (matches XFERS pill)
   WISHLIST_HIT:   '✛︎', // ✛ wishlist (matches the artwork Wishlist glyph)
   WATCH_HIT:      '✛︎', // ✛ watch (interest pings override per reason below)
@@ -197,6 +203,15 @@ export function renderPing(row: FeedItem): RenderedPing {
       break;
     case 'COUNTER':
       action = join('countered', eth ? `at ${eth}` : '', 'on', join(p, t) || 'your offer');
+      break;
+    case 'TRADE':
+      action = row.data?.counter === true ? 'countered your trade' : 'proposed a trade';
+      break;
+    case 'TRADE_ACCEPTED':
+      action = 'accepted your trade';
+      break;
+    case 'TRADE_DECLINED':
+      action = 'declined your trade';
       break;
     case 'XFER':
       if (row.data?.gift === true) {
@@ -335,7 +350,13 @@ export function renderPing(row: FeedItem): RenderedPing {
 /** Where a ping points — the piece (market pings), the project, or nowhere.
  *  Offer-family pings open the piece WITH the offers panel up (?offers=1)
  *  so accept is two taps from the ping (confirm card included). */
-export function pingHref(p: { kind: RenderKind; project_id?: string | null; token_id?: string | null }): string | null {
+export function pingHref(p: { kind: RenderKind; project_id?: string | null; token_id?: string | null; data?: Record<string, unknown> | null }): string | null {
+  // Trade pings open the Exchange window on that trade (the ?trade= restore —
+  // the share-any-view URL-param precedent).
+  if (p.kind === 'TRADE' || p.kind === 'TRADE_ACCEPTED' || p.kind === 'TRADE_DECLINED') {
+    const tid = p.data?.trade_id;
+    return typeof tid === 'string' && tid ? `/?trade=${tid}` : null;
+  }
   if (!p.project_id) return null;
   if (p.token_id != null && p.token_id !== '') {
     const base = `/art/${p.project_id}/${p.token_id}`;
@@ -376,7 +397,10 @@ export function passesCategoryPrefs(
     case 'OFFER':
     case 'OFFER_ACCEPTED':
     case 'COUNTER':
-      return prefs.offers;
+    case 'TRADE':
+    case 'TRADE_ACCEPTED':
+    case 'TRADE_DECLINED':
+      return prefs.offers; // trades ride the OFFERS category (offer family)
     case 'XFER':
       return prefs.xfers;
     case 'WISHLIST_HIT':

@@ -268,6 +268,69 @@ export async function createBulkOffers(
   return orders.map((o) => toSignedOrder(rig.seaport, o));
 }
 
+/** THE EXCHANGE ⇌ — sign one bilateral trade order:
+ *  offer = your pieces (+ WETH kicker), consideration = the pieces you want
+ *  delivered to you (+ native ETH from the counterparty). No royalty legs —
+ *  trades are barter (no sale price). The counterparty fills it like any
+ *  listing; owning the requested pieces is what makes them the only filler. */
+export interface TradeOrderInput {
+  give: { contract: string; tokenId: string }[];
+  get: { contract: string; tokenId: string }[];
+  /** ETH added by the proposer (rides as WETH — offer items can't be native). */
+  giveEth?: string;
+  /** ETH requested from the counterparty (settles native at fill). */
+  getEth?: string;
+  startTime: number;
+  endTime: number;
+}
+
+export async function createTradeOrder(
+  wallet: WalletClient,
+  input: TradeOrderInput,
+  onStep?: StepCb,
+): Promise<SignedOrder> {
+  const rig = await rigFor(wallet);
+  const giveWei = input.giveEth && Number(input.giveEth) > 0 ? ethToWei(input.giveEth) : 0n;
+  const getWei = input.getEth && Number(input.getEth) > 0 ? ethToWei(input.getEth) : 0n;
+  if (giveWei > 0n) await ensureWeth(rig, giveWei, onStep);
+
+  const offer: CreateOrderInput['offer'][number][] = input.give.map((g) => ({
+    itemType: ItemType.ERC721,
+    token: g.contract,
+    identifier: g.tokenId,
+  }));
+  if (giveWei > 0n) offer.push({ token: WETH_ADDRESS, amount: giveWei.toString() });
+
+  const consideration: CreateOrderInput['consideration'][number][] = input.get.map((g) => ({
+    itemType: ItemType.ERC721,
+    token: g.contract,
+    identifier: g.tokenId,
+    recipient: rig.address,
+  }));
+  if (getWei > 0n) consideration.push({ amount: getWei.toString(), recipient: rig.address });
+
+  const useCase = await rig.seaport.createOrder(
+    { offer, consideration, startTime: input.startTime, endTime: input.endTime },
+    rig.address,
+  );
+  const order = (await runCreateActions(useCase, onStep)) as OrderWithCounter;
+  return toSignedOrder(rig.seaport, order);
+}
+
+/** Fill a trade order you're the counterparty of (approvals + one tx). */
+export async function fulfillTrade(
+  wallet: WalletClient,
+  order: SeaportOrderJson,
+  onStep?: StepCb,
+): Promise<string> {
+  const rig = await rigFor(wallet);
+  const useCase = await rig.seaport.fulfillOrder({
+    order: order as unknown as OrderWithCounter,
+    accountAddress: rig.address,
+  });
+  return runExchange(useCase as never, onStep);
+}
+
 /** Run a fulfillment use case: approvals then the exchange tx. Returns the
  *  exchange tx hash once mined. */
 async function runExchange(

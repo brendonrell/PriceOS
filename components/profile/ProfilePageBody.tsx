@@ -34,6 +34,7 @@ import { useAuth } from '../../lib/state/AuthContext';
 import { rankSocialCandidates } from '../../lib/social/relevance';
 import { useSpriteFace } from '../../lib/hooks/useSpriteFace';
 import { useModal } from '../../lib/state/ModalContext';
+import { useExchange } from '../../lib/state/ExchangeContext';
 import SpriteFace from '../SpriteFace';
 import { useColorway } from '../../lib/state/ColorwayContext';
 import { useProfileHex, PROFILE_HEX_DEFAULT } from '../../lib/hooks/useProfileHex';
@@ -274,6 +275,7 @@ function ProfilePageBodyInner({
        not the loud chip that was reverted on the project hero. */
     const nameFace = useSpriteFace(displayHandle);
     const { open: openModal } = useModal();
+    const { openExchange } = useExchange();
     const memberSince = formatMemberSince(user.created_at);
 
     /* Chosen ENS, live on your OWN profile: the picker in Settings fires
@@ -1391,6 +1393,17 @@ function ProfilePageBodyInner({
                                 onClick={() => openModal('takeover', user.handle ?? displayHandle, user.address)}
                             >
                                 {'⚑︎'} TAKEOVER
+                            </button>
+                        )}
+                        {/* THE EXCHANGE — head-to-head trade with this collector
+                            (spec 86ba0apqr: profile-page surface). */}
+                        {isAuthed && !isOwnProfile && (
+                            <button
+                                className="btn-soundtrack"
+                                title={`Trade with @${displayHandle}`}
+                                onClick={() => openExchange(user.address, user.handle ?? displayHandle)}
+                            >
+                                {'⇌︎'} TRADE
                             </button>
                         )}
                         <button
