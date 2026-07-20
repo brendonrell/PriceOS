@@ -33,15 +33,20 @@
    live. Timeline right edge FLUSH with the control stack (his edit —
    "ends where the buttons end"). GLYPHS.md 12d-bis catalogues the trio
    (⇠ NEW + reserved).
-   ⑤ PDTV — rides Albums' THE SHOW exactly (the baton's call): entering
-   requests true fullscreen where offered (TV/desktop; the portal already
-   fills the iPhone PWA) and tunes the first exhibited project's
-   soundtrack IF the player is silent — a live player is never yanked.
-   ⑥ PD WRAPPED — cadence-agnostic engine (`/api/stone/wrapped`, days
-   7–365 param; CADENCE = his standing open call) + Command Stone summon
-   (`wrapped` / `recap` / `wrapped 90d`): pieces in/out, net ◊ flow,
-   biggest realized flip, best revealed floor call, top counterparty.
-   Share-card render deliberately NOT built until cadence lands.
+   ⑤ ⛔ PDTV RIPPED OUT + DEFERRED (Brendon's ruling). A version riding
+   Albums' THE SHOW (auto-fullscreen + auto-soundtrack) shipped with a
+   DOOR I PICKED WITHOUT HIM — Rule #-0.4 violation, called out hard,
+   reverted same session (`4623b64`; THE SHOW is exactly as it was).
+   **PDTV is SOMETHING ELSE, not THE SHOW — deferred until Brendon specs
+   it. Never rebuild the SHOW version.** The session's rule sharpened in
+   anger: "continue the list" NEVER authorizes inventing a door — every
+   door is discussed first, no exceptions, even mid-marathon.
+   ⑥ PD WRAPPED — KEPT (Brendon confirmed the door). Cadence-agnostic
+   engine (`/api/stone/wrapped`, days 7–365 param; CADENCE = his standing
+   open call) + Command Stone summon (`wrapped` / `recap` / `wrapped
+   90d`): pieces in/out, net ◊ flow, biggest realized flip, best revealed
+   floor call, top counterparty. Share-card render deliberately NOT built
+   until cadence lands.
    ⑦ Workspace-cap stale note KILLED (cap is 22 in code, settled) — a
    stale baton line burned a round; both entries corrected.
    Proof each ship: tsc · tests (117/117 now: 5 sound + 6 quiet + 1
