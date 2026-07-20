@@ -34,6 +34,7 @@ import { usePriceDay } from '../lib/priceday/usePriceDay';
 import { PRICEDAY_EPOCH, priceDayNumber } from '../lib/priceday/priceday';
 import { CAL_MONTH_SHORT, CAL_TODAY } from '../lib/calendar/data';
 import { dateKey, renderNoteMarkdown } from '../lib/calendar/utils';
+import { MentionLookup } from './MentionLookup';
 import {
     getTodos, subscribeTodos, toggleTodo, datedTodosByDay, type TodoItem,
 } from '../lib/todos/todoStore';
@@ -158,6 +159,9 @@ export default function CalendarSheet({ onClose }: { onClose: () => void }) {
     /* ── The editor (the workflows-like screen) ─────────────────────────── */
     const [editing, setEditing] = useState<null | { id?: string }>(null);
     const [title, setTitle] = useState('');
+    // @name lookup — caret + node for the mention popover on the title input.
+    const [titleCaret, setTitleCaret] = useState<number | null>(null);
+    const titleInputRef = useRef<HTMLInputElement>(null);
     const [time, setTime] = useState('');
     const [remind, setRemind] = useState<CalRemind>('attime');
     const [asGlobal, setAsGlobal] = useState(false);
@@ -262,14 +266,31 @@ export default function CalendarSheet({ onClose }: { onClose: () => void }) {
                             />
                             <span className="wf-when">—</span>
                             <input
+                                ref={titleInputRef}
                                 className="wf-input"
                                 type="text"
                                 placeholder="what's happening?"
                                 maxLength={200}
                                 autoFocus
                                 value={title}
-                                onChange={(e) => setTitle(e.target.value)}
+                                onChange={(e) => { setTitle(e.target.value); setTitleCaret(e.target.selectionStart); }}
+                                onKeyUp={(e) => setTitleCaret(e.currentTarget.selectionStart)}
+                                onClick={(e) => setTitleCaret(e.currentTarget.selectionStart)}
                                 onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); save(); } }}
+                            />
+                            <MentionLookup
+                                value={title}
+                                caret={titleCaret}
+                                anchorRef={titleInputRef}
+                                onPick={(next, caretAfter) => {
+                                    setTitle(next);
+                                    setTitleCaret(caretAfter);
+                                    const el = titleInputRef.current;
+                                    if (el) {
+                                        el.focus();
+                                        requestAnimationFrame(() => el.setSelectionRange(caretAfter, caretAfter));
+                                    }
+                                }}
                             />
                         </div>
                         <div className="wf-fields">

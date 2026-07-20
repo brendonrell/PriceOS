@@ -1711,7 +1711,7 @@ body.ascii-id-mode .id-row-sprite     { display: none !important; }
    .gsr-row anatomy (same precedent as the Command Stone results). */
 .mention-pop {
     position: fixed;
-    z-index: 10001;
+    z-index: 10002; /* above the bottom sheets (10001) it pops out of */
     display: flex;
     flex-direction: column;
     padding: 4px;
@@ -11149,109 +11149,37 @@ body.colorway-dark .ghost-feed-bar {
 }
 
 /* ── Profile Discord sub-tab ───────────────────────────────────────── */
-/* Discord blurple #5865F2 · online green #3BA55D. Reuses .ach-section for the
-   monospace body + spacing. Redone 2026-07-20 (Brendon: "Discord is huge for
-   us"): a solid blurple hero banner carries the mark + the genesis channel;
-   chrome is full-strength (Rule #2) and corner-law compliant — square panels,
-   pill controls. */
-.pd-discord-hero {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 18px 16px;
-    margin-bottom: 16px;
-    background: #5865F2;
-    color: #ffffff;
-    border-radius: 0;
-}
+/* Redone 2026-07-20 (Brendon: professional + clean, match the other +More
+   sections — the ATTRIBUTES tab look). The section rides the character
+   sheet's own .attr-group / .attr-grid / .attr-tile anatomy verbatim; only
+   the bits below are Discord-specific. Blurple #5865F2 survives only as the
+   small Discord mark; online green #3BA55D carries linked/member state. */
 /* Desktop: keep the Discord panel from sprawling — cap it to the content
    column so it stops where the Starred/Wishlist content stops (Brendon, 2026-06-22). */
 @media (min-width: 601px) {
     .pd-discord { max-width: 560px; }
 }
-.pd-discord-hero-text {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    min-width: 0;
+.pd-discord .attr-tile-glyph .pd-discord-logo {
+    display: block;
+    color: #5865F2;
+    width: 20px;
+    height: 20px;
 }
-.pd-discord-wordmark {
-    font-size: 24px;
-    font-weight: bold;
-    letter-spacing: 0.5px;
-    line-height: 1;
-    color: #ffffff;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-.pd-discord-herosub {
-    font-size: 12px;
-    font-weight: bold;
-    color: #ffffff;
-}
-.pd-discord-card {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px;
-    border-radius: 0;
-    background: color-mix(in srgb, #5865F2 14%, transparent);
-    border: 1px solid #5865F2;
-    margin-bottom: 14px;
-}
+.pd-discord-tile { color: inherit; text-decoration: none; }
+.pd-discord-ok { color: #3BA55D; }
 .pd-discord-avatar {
-    width: 48px;
-    height: 48px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     flex-shrink: 0;
-    background: #5865F2;
 }
-.pd-discord-avatar--empty {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: 22px;
-    font-weight: bold;
-    opacity: 0.45;
-}
-.pd-discord-meta {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    flex: 1;
-    min-width: 0;
-}
-.pd-discord-status {
-    font-size: 12px;
-    font-weight: bold;
-    letter-spacing: 1.2px;
-}
-.pd-discord-status.is-on { color: #3BA55D; }
-.pd-discord-handle {
-    font-size: 16px;
-    font-weight: bold;
-    color: var(--text-color);
-    text-decoration: none;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-.pd-discord-handle:hover { text-decoration: underline; }
-.pd-discord-sub { font-size: 12px; }
-.pd-discord-member {
-    font-size: 12px;
-    font-weight: bold;
-    letter-spacing: 0.5px;
-}
-.pd-discord-member.is-in { color: #3BA55D; }
-/* Not-connected state — the purple Discord buttons, stacked + left-aligned. */
+/* The CTA pills under the grid, stacked + left-aligned. */
 .pd-discord-cta-col {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
+    padding-top: 4px;
 }
 .pd-discord-join {
     flex-shrink: 0;
@@ -11259,13 +11187,14 @@ body.colorway-dark .ghost-feed-bar {
     font-family: inherit;
     font-size: 13px;
     font-weight: bold;
-    color: #fff;
-    background: #5865F2;
-    border: none;
+    color: var(--text-color);
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
     border-radius: 999px;
     padding: 10px 18px;
     transition: opacity 0.15s;
 }
+.pd-discord-join .pd-discord-logo { color: #5865F2; }
 .pd-discord-join:hover { opacity: 0.85; }
 .pd-discord-join.auth-gated { opacity: 0.4; cursor: not-allowed; }
 .pd-discord-unlink {

@@ -76,69 +76,84 @@ export default function DiscordSection({
         </a>
     );
 
+    const tileCount = linked ? 3 : 1;
+
     return (
         <div className="ach-section pd-discord">
-            {/* The blurple banner — Discord is the centre of the PD world and the
-                hero says so: the mark, the genesis channel as the wordmark, the
-                thesis line. Solid brand fill, white type, square panel. */}
-            <div className="pd-discord-hero">
-                <DiscordLogo size={34} />
-                <div className="pd-discord-hero-text">
-                    <span className="pd-discord-wordmark">#price-discussion</span>
-                    <span className="pd-discord-herosub">The community discussing prices — live on Discord.</span>
+            {/* The Attributes-tab treatment, adapted (Brendon, 2026-07-20:
+                match the +More sections' look — the same .attr-group /
+                .attr-grid / .attr-tile anatomy the character sheet uses).
+                The small Discord mark is the one blurple accent. */}
+            <section className="attr-group" aria-label="Discord">
+                <div className="attr-group-head">
+                    <span className="attr-group-name">Discord · #price-discussion</span>
+                    <span className="attr-group-count">{tileCount}</span>
                 </div>
-            </div>
-
-            {linked ? (
-                <>
-                    <div className="pd-discord-card">
-                        { }
-                        <img
-                            className="pd-discord-avatar"
-                            src={avatarUrl(discordId!, discordAvatar)}
-                            alt=""
-                            width={48}
-                            height={48}
-                            style={accentHex ? { border: `2px solid ${accentHex}` } : undefined}
-                        />
-                        <div className="pd-discord-meta">
-                            <span className="pd-discord-status is-on">● LINKED</span>
+                <div className="attr-grid">
+                    {linked ? (
+                        <>
                             <a
-                                className="pd-discord-handle"
+                                className="attr-tile attr-tile-tap pd-discord-tile"
                                 href={`https://discord.com/users/${discordId}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
+                                title="Open on Discord"
                             >
-                                @{discordUsername}
+                                <span className="attr-tile-glyph"><DiscordLogo /></span>
+                                <span className="attr-tile-label">Handle</span>
+                                <span className="attr-tile-value">
+                                    <img
+                                        className="pd-discord-avatar"
+                                        src={avatarUrl(discordId!, discordAvatar)}
+                                        alt=""
+                                        width={20}
+                                        height={20}
+                                        style={accentHex ? { border: `2px solid ${accentHex}` } : undefined}
+                                    />
+                                    @{discordUsername}
+                                </span>
                             </a>
-                            {discordInServer === true && (
-                                <span className="pd-discord-member is-in">✓ In the PD Discord</span>
-                            )}
-                            {discordInServer === false && (
-                                <span className="pd-discord-member">Not in the server yet</span>
-                            )}
+                            <div className="attr-tile">
+                                <span className="attr-tile-glyph">{'●︎'}</span>
+                                <span className="attr-tile-label">Status</span>
+                                <span className="attr-tile-value pd-discord-ok">LINKED</span>
+                            </div>
+                            <div className="attr-tile">
+                                <span className="attr-tile-glyph"><DiscordLogo /></span>
+                                <span className="attr-tile-label">Server</span>
+                                {discordInServer === true ? (
+                                    <span className="attr-tile-value pd-discord-ok">IN THE PD DISCORD</span>
+                                ) : (
+                                    <span className="attr-tile-value">{discordInServer === false ? 'NOT JOINED' : '—'}</span>
+                                )}
+                            </div>
+                        </>
+                    ) : (
+                        <div className="attr-tile">
+                            <span className="attr-tile-glyph"><DiscordLogo /></span>
+                            <span className="attr-tile-label">Status</span>
+                            <span className="attr-tile-value">NOT LINKED</span>
                         </div>
-                        {isOwnProfile && (
-                            <button type="button" className="pd-discord-unlink" onClick={unlink}>Unlink</button>
-                        )}
-                    </div>
-                    {visitBtn}
-                </>
-            ) : (
-                <div className="pd-discord-cta-col">
-                    {isOwnProfile && (
-                        <button
-                            type="button"
-                            className={`pd-discord-join${!isAuthed ? ' auth-gated' : ''}`}
-                            onClick={link}
-                        >
-                            <DiscordLogo />
-                            Connect Discord
-                        </button>
                     )}
-                    {visitBtn}
                 </div>
-            )}
+            </section>
+
+            <div className="pd-discord-cta-col">
+                {isOwnProfile && !linked && (
+                    <button
+                        type="button"
+                        className={`pd-discord-join${!isAuthed ? ' auth-gated' : ''}`}
+                        onClick={link}
+                    >
+                        <DiscordLogo />
+                        Connect Discord
+                    </button>
+                )}
+                {visitBtn}
+                {isOwnProfile && linked && (
+                    <button type="button" className="pd-discord-unlink" onClick={unlink}>Unlink</button>
+                )}
+            </div>
         </div>
     );
 }
