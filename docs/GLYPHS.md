@@ -261,8 +261,10 @@ These belong to a *user*, never to an action.
 - **Strictly non-emoji / 100% iOS-safe.** A glyph is allowed only if iOS renders
   it as a monochrome TEXT glyph, never a colour emoji. Many symbols carry an emoji
   presentation iOS applies even WITH VS-15 — ☘ (shamrock), ☀ ♥ ♦ ⚡ ⚙, dice ⚀–⚅,
-  ✴, ❄, ⚛, etc. — BANNED here regardless. Verify a new glyph on a real device
-  before locking it. (Brendon, 2026-06-15.)
+  ✴, ❄, ⚛, etc. — BANNED here regardless. (Brendon, 2026-06-15.)
+  **⛔ NEVER ask Brendon to device-check a glyph (2026-07-20, raised in fury):
+  he sees every glyph automatically by using the app — a wrong one surfaces
+  itself. The gate is the screening above, not icon homework for the CEO.**
 - **▦ (U+25A6) = Calendar** (connect-menu panel, `CalendarPanel.tsx`; also the calendar-reminder Ping glyph since 2026-07-12).
 - **◊ (U+25CA) = ETH (secondary mark)** — the lozenge the sticker store prices in
   (`components/stickers/BuySheetButton.tsx`), reused for To-Do ETH targets/budgets

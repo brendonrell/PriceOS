@@ -49,6 +49,11 @@ export interface ProjectOutputsResponse {
       comes from the registry. A fresh project returns 0 here. */
   total: number;
   showcase_ids: number[];
+  /** Artist Showcase presentation (2026-07-20): layout · little titles ·
+      the Gen Curated placard caption (null = no placard). */
+  showcase_layout: 'classic' | 'masonry' | 'mixed';
+  showcase_titles: boolean;
+  showcase_caption: string | null;
   /** Bare YouTube playlist id (normalized) or null — the project's soundtrack,
       sourced from the DB `projects.soundtrack` column. */
   soundtrack: string | null;
@@ -71,7 +76,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ slug: str
     const supabase = getSupabaseService();
 
     const [projectRes, holdersRes, listingsRes, eventsRes, followsRes] = await Promise.all([
-      supabase.from('projects').select('minted_count, showcase_ids, soundtrack, custom_color, price_sprite').eq('id', slug).maybeSingle(),
+      supabase.from('projects').select('minted_count, showcase_ids, showcase_layout, showcase_titles, showcase_caption, soundtrack, custom_color, price_sprite').eq('id', slug).maybeSingle(),
       supabase.from('holders').select('token_id, owner_address').eq('project_id', slug),
       supabase.from('listings').select('token_id, price_eth').eq('project_id', slug).eq('active', true)
         .or(`end_time.is.null,end_time.gt.${Math.floor(Date.now() / 1000)}`),
@@ -86,7 +91,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ slug: str
     if (listingsRes.error) return serverError(listingsRes.error.message);
     if (eventsRes.error) return serverError(eventsRes.error.message);
 
-    const project = projectRes.data as { minted_count?: number; showcase_ids?: number[]; soundtrack?: string | null; custom_color?: string | null; price_sprite?: string | null } | null;
+    const project = projectRes.data as { minted_count?: number; showcase_ids?: number[]; showcase_layout?: string | null; showcase_titles?: boolean | null; showcase_caption?: string | null; soundtrack?: string | null; custom_color?: string | null; price_sprite?: string | null } | null;
     const holders = (holdersRes.data ?? []) as { token_id: string; owner_address: string }[];
 
     // PriceSprite — projects carry one like users. Self-heal: if the row exists
@@ -173,6 +178,9 @@ export async function GET(req: NextRequest, props: { params: Promise<{ slug: str
       project_id: slug,
       total: project?.minted_count ?? outputs.length,
       showcase_ids: Array.isArray(project?.showcase_ids) ? project!.showcase_ids! : [],
+      showcase_layout: (project?.showcase_layout === 'masonry' || project?.showcase_layout === 'mixed') ? project.showcase_layout : 'classic',
+      showcase_titles: project?.showcase_titles === true,
+      showcase_caption: project?.showcase_caption ?? null,
       soundtrack: normalizePlaylistId(project?.soundtrack),
       colorway: (project?.custom_color ?? null),
       price_sprite: priceSprite,

@@ -150,6 +150,8 @@ interface ArtworkCardProps {
        (globals.css ~3553) shows only picks and hides their .meta.
        Optional + defaults to false so the Artworks tab path is unchanged. */
     projectShowcasePick?: boolean;
+    /** Artist Showcase MIXED layout — this pick leads (spans the grid). */
+    showcaseLead?: boolean;
     /* Build 22 — sim 8072-8082. Page picks 5 random ids per session as
        "recently visited" breadcrumbs and stamps a ⬤ sticker on each.
        The dot mounts on .canvas-wrapper bottom-right (half-on/half-off
@@ -194,6 +196,7 @@ const MOCK_FLOOR_ETH = 0.042;
 function ArtworkCard({
     id,
     projectShowcasePick = false,
+    showcaseLead = false,
     isBreadcrumb = false,
     eager = false,
     hideOwnedBadge = false,
@@ -837,6 +840,9 @@ function ArtworkCard({
            #gallery.project-showcase-mode hides all cards except those
            wearing this class. Outside project-showcase-mode it is inert. */
         (projectShowcasePick ? ' project-showcase-pick' : '') +
+        /* Artist Showcase MIXED layout (2026-07-20): the set's first pick
+           is the lead — CSS spans it full-width on the Showcase tab. */
+        (showcaseLead ? ' sc-lead' : '') +
         /* F50 (BUG-02) — sim 12397-12399. The article wears `.grail-pinned`
            whenever this id is in the grail set; downstream CSS (none yet,
            but the class is the contractual hook future styling reads)

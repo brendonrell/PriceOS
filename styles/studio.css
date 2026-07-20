@@ -369,3 +369,71 @@
 
 /* ── Drop Kit button (analytics card) ── */
 .pd-studio-dropkit { margin-top: 12px; }
+
+/* ══ ShowcaseEditor — the per-project Showcase customizer (2026-07-20) ══
+   Full-strength site tokens (Rule #2): solid fills, bold, 12px floor.
+   Tiles square (corner law); controls are the house pills. */
+.sce-card {
+    border: 1.5px solid var(--text-color);
+    background: var(--bg-color);
+    color: var(--text-color);
+    padding: 14px;
+    margin: 18px 0;
+    font-family: 'Courier New', Courier, monospace;
+}
+.sce-head { font-size: 13px; font-weight: bold; letter-spacing: 1.5px; margin-bottom: 10px; }
+.sce-sub { font-size: 12px; font-weight: bold; letter-spacing: 1px; margin: 14px 0 8px; }
+.sce-projrow { display: flex; flex-wrap: wrap; gap: 6px; }
+.sce-pill {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px; font-weight: bold; letter-spacing: 0.5px;
+    color: var(--text-color); background: var(--bg-color);
+    border: 1.5px solid var(--text-color); border-radius: 999px;
+    padding: 5px 10px; cursor: pointer; white-space: nowrap;
+}
+.sce-pill.on { background: var(--stat-active-bg, var(--text-color)); color: var(--stat-active-text, var(--bg-color)); }
+.sce-slots { display: flex; gap: 6px; flex-wrap: wrap; }
+.sce-slot {
+    position: relative; width: 72px; height: 72px;
+    border: 1.5px solid var(--text-color); overflow: hidden;
+    background: var(--stat-bg, transparent);
+}
+.sce-slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sce-slot-id { display: flex; align-items: center; justify-content: center; height: 100%; font-size: 12px; font-weight: bold; }
+.sce-slot-empty { display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; border-style: dashed; }
+.sce-ord {
+    position: absolute; left: 3px; top: 2px; font-size: 12px; font-weight: bold;
+    color: #f2f2f2; text-shadow: 0 0 3px #000;
+}
+.sce-slot-keys { position: absolute; right: 0; bottom: 0; left: 0; display: flex; }
+.sce-slot-keys button {
+    flex: 1; font-family: 'Courier New', Courier, monospace;
+    font-size: 12px; font-weight: bold; line-height: 1;
+    color: #f2f2f2; background: rgba(0, 0, 0, 0.72);
+    border: none; padding: 3px 0; cursor: pointer;
+}
+.sce-hint, .sce-hint2 { font-size: 12px; font-weight: bold; margin-top: 8px; }
+.sce-addrow { display: flex; align-items: center; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
+.sce-add {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px; /* ≥16px — iOS never zoom-jumps the field */
+    font-weight: bold; color: var(--text-color); background: var(--bg-color);
+    border: 1.5px solid var(--text-color); border-radius: 999px;
+    padding: 5px 12px; width: 220px; max-width: 100%;
+}
+.sce-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; max-height: 320px; overflow-y: auto; padding: 2px; }
+.sce-pick { position: relative; aspect-ratio: 1 / 1; border: 1.5px solid var(--text-color); background: var(--stat-bg, transparent); padding: 0; cursor: pointer; overflow: hidden; }
+.sce-pick img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sce-pick span:not(.sce-ms) { display: flex; align-items: center; justify-content: center; height: 100%; font-size: 12px; font-weight: bold; color: var(--text-color); font-family: 'Courier New', Courier, monospace; }
+.sce-pick.on { outline: 3px solid var(--text-color); outline-offset: -3px; }
+.sce-ms { position: absolute; top: 2px; right: 3px; font-size: 13px; font-weight: bold; color: #f2f2f2; text-shadow: 0 0 3px #000; }
+.sce-save {
+    display: block; width: 100%; margin-top: 14px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px; font-weight: bold; letter-spacing: 1px;
+    color: var(--stat-active-text, var(--bg-color));
+    background: var(--stat-active-bg, var(--text-color));
+    border: 1.5px solid var(--text-color); border-radius: 999px;
+    padding: 10px 0; cursor: pointer;
+}
+.sce-save:disabled { cursor: default; }

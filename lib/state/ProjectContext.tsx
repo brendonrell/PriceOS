@@ -51,6 +51,11 @@ export interface ProjectState {
     outputs: ReadonlyMap<number, OutputMeta>;
     /** Fixed featured ids for the Project Showcase tab. */
     showcaseIds: readonly number[];
+    /** Artist Showcase presentation (2026-07-20): layout · little titles ·
+        the Gen Curated placard caption (null = none). */
+    showcaseLayout: 'classic' | 'masonry' | 'mixed';
+    showcaseTitles: boolean;
+    showcaseCaption: string | null;
     /** YouTube playlist soundtrack (DB-driven, registry as fallback) or null. */
     soundtrack: { playlistId: string; label: string } | null;
     /** Aggregate hero stats (collectors, volume, floor, recent collectors). */
@@ -126,6 +131,9 @@ function buildInitial(
         floorEth: MOCK_PROJECT_FLOOR_ETH,
         outputs,
         showcaseIds: initialShowcaseIds,
+        showcaseLayout: 'classic',
+        showcaseTitles: false,
+        showcaseCaption: null,
         // Registry value is the synchronous fallback; the DB reconcile below is
         // the source of truth and overrides it once /outputs lands.
         soundtrack: def?.soundtrack ?? null,
@@ -180,7 +188,10 @@ export function ProjectProvider({
         const load = () => {
             fetch(`/api/project/${lower}/outputs`, { cache: 'no-store' })
                 .then((r) => (r.ok ? r.json() : null))
-                .then((data: { outputs?: OutputOwnerDTO[]; showcase_ids?: number[]; total?: number; stats?: ProjectStats; soundtrack?: string | null; colorway?: string | null } | null) => {
+                .then((data: { outputs?: OutputOwnerDTO[]; showcase_ids?: number[];
+    showcase_layout?: 'classic' | 'masonry' | 'mixed';
+    showcase_titles?: boolean;
+    showcase_caption?: string | null; total?: number; stats?: ProjectStats; soundtrack?: string | null; colorway?: string | null } | null) => {
                     if (cancelled || !data) return;
                     // DB colorway (projects.custom_color) overrides the registry
                     // fallback; repaint the page bg if it's currently showing the
@@ -220,6 +231,9 @@ export function ProjectProvider({
                             ...prev,
                             outputs,
                             showcaseIds,
+                            showcaseLayout: data.showcase_layout ?? 'classic',
+                            showcaseTitles: data.showcase_titles === true,
+                            showcaseCaption: data.showcase_caption ?? null,
                             soundtrack,
                             totalOutputs: data.total ?? prev.totalOutputs,
                             stats: data.stats ?? prev.stats,

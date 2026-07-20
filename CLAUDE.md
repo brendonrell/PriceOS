@@ -494,6 +494,15 @@ explicit chat confirmation.
   or push a fix on a hunch about what a file holds or what state the repo/deploy
   is in. Read the actual file / compiled output FIRST. Guessing wastes Brendon's
   time and is banned.
+- **⛔ NEVER ASK BRENDON TO "DEVICE-CHECK" / "DEVICE-VERIFY" A GLYPH
+  (Brendon, 2026-07-20 — "it fucking happens automatically when I look at
+  them", raised in fury after the ask appeared in every ship note).** He
+  SEES every glyph the moment he uses the app; a broken one surfaces itself.
+  The "BRENDON ACTIONS: device-check ▲▼◆" line is BANNED from ship notes,
+  WIP entries, and replies, forever. The glyph GATE itself stands — never
+  ship a glyph iOS renders as emoji, screen candidates against the glossary
+  AND the codebase (escaped `\uXXXX` forms too) — but verification is
+  passive: if a glyph is wrong he'll say so. Never assign him icon homework.
 - **ICONS: scan `docs/GLYPHS.md` every fresh chat — never guess a glyph
   (Brendon, 2026-06-15 — hard rule).** PD's iconography is a FIXED VS-15 Unicode
   vocabulary where each glyph MEANS something and reuse must be exact. At the
