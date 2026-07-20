@@ -428,45 +428,55 @@ export function WalletSection() {
 
             <div
                 className={`settings-ens-row price-held-row${gatedClass}`}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    if (!isAuthed) return;
-                    const next = !balanceHidden;
-                    setBalanceHidden(next);
-                    showToast(next ? '$PRICE Balance: HIDDEN' : '$PRICE Balance: SHOWN');
-                }}
-                role="button"
-                tabIndex={isAuthed ? 0 : -1}
                 style={{
-                    cursor: 'pointer',
                     userSelect: 'none',
                     ...(isAuthed ? { opacity: 0.6 } : {}),
                     fontSize: 11,
                     marginTop: -6,
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 6,
                 }}
-                title="Toggle balance visibility"
             >
-                <span id="priceBalanceText">
-                    {balanceHidden ? '***' : balanceDisplay}
-                </span>{' '}
-                PRICE
+                {/* The tap zone is ONLY this inner span — the full-width row
+                    kept swallowing thumbs aimed at the Spell Book below it
+                    (Brendon, 2026-07-20). */}
                 <span
-                    className="balance-toggle-icon"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        if (!isAuthed) return;
+                        const next = !balanceHidden;
+                        setBalanceHidden(next);
+                        showToast(next ? '$PRICE Balance: HIDDEN' : '$PRICE Balance: SHOWN');
+                    }}
+                    role="button"
+                    tabIndex={isAuthed ? 0 : -1}
+                    title="Toggle balance visibility"
                     style={{
-                        fontSize: 14,
-                        position: 'relative',
-                        top: -1,
-                        opacity: 0.8,
-                        transition: 'opacity 0.2s',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6,
                     }}
                 >
-                    {/* Predictive icon: shows what pressing will DO.
-                        Visible → ⊘ (pressing will hide).
-                        Hidden  → ⊙ (pressing will reveal). */}
-                    {balanceHidden ? '⊙\uFE0E' : '⊘\uFE0E'}
+                    <span id="priceBalanceText">
+                        {balanceHidden ? '***' : balanceDisplay}
+                    </span>{' '}
+                    PRICE
+                    <span
+                        className="balance-toggle-icon"
+                        style={{
+                            fontSize: 14,
+                            position: 'relative',
+                            top: -1,
+                            opacity: 0.8,
+                            transition: 'opacity 0.2s',
+                        }}
+                    >
+                        {/* Predictive icon: shows what pressing will DO.
+                            Visible → ⊘ (pressing will hide).
+                            Hidden  → ⊙ (pressing will reveal). */}
+                        {balanceHidden ? '⊙\uFE0E' : '⊘\uFE0E'}
+                    </span>
                 </span>
             </div>
         </>
