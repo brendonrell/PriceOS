@@ -987,7 +987,7 @@ function GlanceWidget({ address }: { address: string }) {
     return (
         <div className="stone-widget sw-card sw-glance">
             <SwTitle glyph={`⌘${VS15}`} label="THE GLANCE" sub={formatPriceDate()} />
-            <div className="sw-glance-line"><span className="sw-glance-l">PRICEDAY</span><span className="sw-glance-r">{day.number}</span></div>
+            <div className="sw-glance-line"><span className="sw-glance-l">PRICEDAY</span><span className="sw-glance-r"><span className="sw-disc sw-disc--blue">{day.number}</span></span></div>
             <div className="sw-glance-line">
                 <span className="sw-glance-l">TODAY</span>
                 <span className="sw-glance-r">
@@ -996,7 +996,11 @@ function GlanceWidget({ address }: { address: string }) {
             </div>
             <div className="sw-glance-line">
                 <span className="sw-glance-l">PINGS</span>
-                <span className="sw-glance-r">{unreadCount > 0 ? `${unreadCount} UNREAD` : 'ALL READ'}</span>
+                <span className="sw-glance-r">
+                    {unreadCount > 0
+                        ? <><span className="sw-disc sw-disc--red">{unreadCount}</span> UNREAD</>
+                        : 'ALL READ'}
+                </span>
             </div>
             {floors && floors.length > 0 && (
                 <>

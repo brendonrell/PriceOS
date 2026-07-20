@@ -510,7 +510,8 @@ body.pd-stone-force-white .stone-float .stone-deck .sw-card:nth-of-type(3n + 2) 
     align-items: center;
     gap: 2px;
     padding: 6px 0 5px;
-    border: 1px solid var(--stone-line);
+    background: var(--stone-hairline); /* filled tile — no outlines in the stone */
+    border: none;
     /* square — corner law */
     cursor: pointer;
     color: var(--text-color);
@@ -601,7 +602,8 @@ body.pd-stone-force-white .stone-float .stone-deck .sw-card:nth-of-type(3n + 2) 
     flex-direction: column;
     gap: 3px;
     padding: 8px 6px;
-    border: 1px solid var(--stone-line);
+    background: var(--stone-hairline); /* filled tile — no outlines in the stone */
+    border: none;
     /* square — corner law */
     font-variant-emoji: text;
 }
@@ -899,3 +901,40 @@ body.pd-stone-force-white .stone-float .stone-deck .sw-card:nth-of-type(3n + 2) 
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+/* ── The watch pass (Brendon, 2026-07-20: "dark mode look but more
+   graphical with pops and maybe some circles") — discs + primary pops on
+   the flat dark stage; every pop full-strength (Rule #2). ── */
+/* today's calendar day — a Hothurt disc (the dot family, not a corner) */
+.sw-cal-cell--today .sw-cal-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--stone-red);
+    color: #ffffff;
+    font-weight: bold;
+}
+/* value discs — bold numerals in filled circles (glance PRICEDAY · pings) */
+.sw-disc {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 5px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #ffffff;
+}
+.sw-disc--blue { background: var(--stone-blue); }
+.sw-disc--red { background: var(--stone-red); }
+/* the trend sparkline glows Attention Yellow on the dark stage… */
+.sw-spark-c { color: var(--stone-yellow); }
+/* …and flips to @brendon blue on the white stone (yellow-on-white is
+   invisible — the signature-never-blends move). */
+body.theme-bright:not(.pd-stone-force-black) .stone-float .sw-spark-c,
+body.pd-stone-force-white .stone-float .sw-spark-c { color: var(--stone-blue); }
