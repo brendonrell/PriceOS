@@ -482,6 +482,10 @@ export interface EventRow {
    *  by the feed routes so the UI can read "@you did X" without a second hop. */
   from_handle?: string | null;
   to_handle?: string | null;
+  /** XFER only (2026-07-20): this transfer settled through THE EXCHANGE ⇌
+   *  (events.sale_direction = 'TRADE'). Barter moves no sale price, so a
+   *  trade NEVER reads as a SALE — surfaces verb it "traded" under ⇌. */
+  trade?: boolean;
   /** SALE only: true when the seller now owns ZERO of this project (dumped
    *  their whole bag) — drives the "{PROJECT} unfollowed @seller" tape gag.
    *  Distinct from a project being sold out (Brendon, 2026-06-22). */

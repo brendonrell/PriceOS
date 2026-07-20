@@ -75,7 +75,7 @@ export default function FeedEventRow({ fe }: { fe: FeedEvent }) {
             <div className="feed-line" />
             <div className="f-icon-wrap">{fe.icon}&#xFE0E;</div>
             <div className="f-time">{fe.time}</div>
-            <div className="f-type">{fe.type}</div>
+            <div className="f-type">{fe.trade ? 'TRADE' : fe.type}</div>
             <div className="f-content" style={{ position: 'relative' }}>
                 <FeedActorLine fe={fe} />
                 {starred && <span className="project-name-star" aria-hidden="true">{'★︎'}</span>}

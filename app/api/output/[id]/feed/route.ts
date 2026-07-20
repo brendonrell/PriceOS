@@ -87,6 +87,7 @@ interface DbEvent {
   from_address: string | null;
   to_address: string | null;
   price_eth: number | string | null;
+  sale_direction?: string | null;
   timestamp: number | string;
 }
 
@@ -102,9 +103,13 @@ function parseId(id: string): { slug: string; tokenId: string } | null {
 
 function toEventRow(e: DbEvent): EventRow | null {
   let type: EventType;
+  /* THE EXCHANGE ⇌ (2026-07-20): a trade settlement is an XFER with
+     sale_direction TRADE. Barter moves no sale price — even with an ETH
+     kicker it must never read as a SALE. */
+  const isTrade = e.type === 'XFER' && e.sale_direction === 'TRADE';
   if (e.type === 'MINT') type = 'MINT';
   else if (e.type === 'LIST') type = 'LIST';
-  else if (e.type === 'XFER') type = e.price_eth != null ? 'SALE' : 'XFER';
+  else if (e.type === 'XFER') type = !isTrade && e.price_eth != null ? 'SALE' : 'XFER';
   else return null;
   return {
     id: e.id,
@@ -115,6 +120,7 @@ function toEventRow(e: DbEvent): EventRow | null {
     to_address: e.to_address,
     price_eth: e.price_eth != null ? String(e.price_eth) : null,
     timestamp: new Date(Number(e.timestamp) * 1000).toISOString(),
+    ...(isTrade ? { trade: true } : {}),
   };
 }
 
@@ -267,7 +273,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     const db = getSupabaseService();
     const { data, error } = await db
       .from('events')
-      .select('id, type, project_id, token_id, from_address, to_address, price_eth, timestamp')
+      .select('id, type, project_id, token_id, from_address, to_address, price_eth, sale_direction, timestamp')
       .eq('project_id', slug)
       .eq('token_id', tokenId)
       .order('timestamp', { ascending: false })

@@ -105,6 +105,7 @@ function CircleWire({ people }: { people: PreviewPerson[] }) {
                     type: string; project_id: string; token_id: string | null;
                     from_address: string | null; to_address: string | null;
                     from_handle?: string | null; to_handle?: string | null; price_eth: string | null;
+                    trade?: boolean;
                 }>) {
                     const actorHandle =
                         (e.to_handle && circleHandles.has(e.to_handle.toLowerCase()) && e.to_handle) ||
@@ -117,8 +118,8 @@ function CircleWire({ people }: { people: PreviewPerson[] }) {
                     const who = actorHandle ? `@${actorHandle.toLowerCase()}` : 'a friend';
                     const piece = e.token_id ? `#${e.token_id.split('-').pop()}` : '';
                     items.push({
-                        glyph: FEED_GLYPH[e.type] ?? '✶',
-                        text: `${who} ${FEED_VERB[e.type] ?? 'moved'} @${e.project_id} ${piece}`.trim(),
+                        glyph: e.trade ? '⇌' : (FEED_GLYPH[e.type] ?? '✶'),
+                        text: `${who} ${e.trade ? 'traded' : (FEED_VERB[e.type] ?? 'moved')} @${e.project_id} ${piece}`.trim(),
                         meta: e.price_eth ? `${formatEth(Number(e.price_eth))}` : undefined,
                     });
                     if (items.length >= 24) break;

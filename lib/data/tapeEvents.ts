@@ -82,7 +82,7 @@ export function eventToTapeItem(e: DbEventRow): TapeFeedItem {
         name: handle ? `@${handle}` : tapeShortAddr(addr ?? null),
         sigil: sigil?.mark ?? '',
         sigilHex: sigil?.hex,
-        verb: TAPE_VERB[e.type] ?? 'updated',
+        verb: e.trade ? 'traded' : (TAPE_VERB[e.type] ?? 'updated'),
         coll: e.project_id,
         id: Number(tid) || 0,
         price: e.price_eth ? `${e.price_eth} ETH` : null,

@@ -21,6 +21,8 @@ export interface FeedEvent {
     icon: string;
     time: string;
     type: 'MINT' | 'LIST' | 'SALE' | 'XFER';
+    /** THE EXCHANGE ⇌ — this XFER settled a head-to-head trade. */
+    trade?: boolean;
     /** The acting wallet's display name ('@handle' or short 0x…) — rendered by
      *  FeedEventRow with the Spite Book treatment when the handle is spited. */
     actorName: string;
@@ -95,10 +97,12 @@ export function eventToFeedEvent(e: EventRow): FeedEvent {
     if (type === 'MINT') verb = <>collected {tok}{price ? ` for ${e.price_eth} ETH` : ''}</>;
     else if (type === 'LIST') verb = <>listed {tok}{price ? ` for ${e.price_eth} ETH` : ''}</>;
     else if (type === 'SALE') verb = <>bought {tok}{price ? ` for ${e.price_eth} ETH` : ''}</>;
+    else if (e.trade) verb = <>traded {tok}{price ? ` (◊${e.price_eth} kicker)` : ''}</>;
     else verb = <>transferred {tok}</>;
     return {
         id: e.id,
-        icon: FEED_ICON[type] ?? '✶',
+        icon: e.trade ? '⇌' : (FEED_ICON[type] ?? '✶'),
+        trade: e.trade === true || undefined,
         // On-chain events carry a UTC timestamp (one base); show the time in the
         // VIEWER's local zone, like every app — no fixed Montreal clock.
         time: new Date(ms).toLocaleTimeString('en-GB', {
