@@ -14,15 +14,12 @@ const CONTRACT_B = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
 const ZERO = '0x0000000000000000000000000000000000000000';
 const ZERO32 = '0x0000000000000000000000000000000000000000000000000000000000000000';
 
-function nft(token: string, id: string, recipient?: string) {
-  const base = {
-    itemType: ITEM_ERC721,
-    token,
-    identifierOrCriteria: id,
-    startAmount: '1',
-    endAmount: '1',
-  };
-  return recipient ? { ...base, recipient } : base;
+function offerNft(token: string, id: string): SeaportOrderJson['parameters']['offer'][number] {
+  return { itemType: ITEM_ERC721, token, identifierOrCriteria: id, startAmount: '1', endAmount: '1' };
+}
+
+function considNft(token: string, id: string, recipient: string): SeaportOrderJson['parameters']['consideration'][number] {
+  return { ...offerNft(token, id), recipient };
 }
 
 function order(
@@ -55,7 +52,7 @@ const GET = [{ contract: CONTRACT_B, tokenId: '9' }];
 
 describe('checkTradeOrder — the chain-rail trade gate', () => {
   it('accepts a clean piece-for-piece trade', async () => {
-    const o = order([nft(CONTRACT_A, '7')], [nft(CONTRACT_B, '9', PROPOSER)]);
+    const o = order([offerNft(CONTRACT_A, '7')], [considNft(CONTRACT_B, '9', PROPOSER)]);
     const w = await checkTradeOrder(o, {
       address: PROPOSER, give: GIVE, get: GET, giveEthWei: 0n, getEthWei: 0n,
     });
@@ -64,8 +61,8 @@ describe('checkTradeOrder — the chain-rail trade gate', () => {
 
   it('accepts a trade with a WETH kicker on the give side', async () => {
     const o = order(
-      [nft(CONTRACT_A, '7'), { itemType: ITEM_ERC20, token: WETH_ADDRESS, identifierOrCriteria: '0', startAmount: '500', endAmount: '500' }],
-      [nft(CONTRACT_B, '9', PROPOSER)],
+      [offerNft(CONTRACT_A, '7'), { itemType: ITEM_ERC20, token: WETH_ADDRESS, identifierOrCriteria: '0', startAmount: '500', endAmount: '500' }],
+      [considNft(CONTRACT_B, '9', PROPOSER)],
     );
     await expect(checkTradeOrder(o, {
       address: PROPOSER, give: GIVE, get: GET, giveEthWei: 500n, getEthWei: 0n,
@@ -74,8 +71,8 @@ describe('checkTradeOrder — the chain-rail trade gate', () => {
 
   it('accepts a trade asking native ETH from the counterparty', async () => {
     const o = order(
-      [nft(CONTRACT_A, '7')],
-      [nft(CONTRACT_B, '9', PROPOSER), { itemType: ITEM_NATIVE, token: ZERO, identifierOrCriteria: '0', startAmount: '500', endAmount: '500', recipient: PROPOSER }],
+      [offerNft(CONTRACT_A, '7')],
+      [considNft(CONTRACT_B, '9', PROPOSER), { itemType: ITEM_NATIVE, token: ZERO, identifierOrCriteria: '0', startAmount: '500', endAmount: '500', recipient: PROPOSER }],
     );
     await expect(checkTradeOrder(o, {
       address: PROPOSER, give: GIVE, get: GET, giveEthWei: 0n, getEthWei: 500n,
@@ -83,14 +80,14 @@ describe('checkTradeOrder — the chain-rail trade gate', () => {
   });
 
   it('rejects when the order offers a DIFFERENT piece than declared', async () => {
-    const o = order([nft(CONTRACT_A, '8')], [nft(CONTRACT_B, '9', PROPOSER)]);
+    const o = order([offerNft(CONTRACT_A, '8')], [considNft(CONTRACT_B, '9', PROPOSER)]);
     await expect(checkTradeOrder(o, {
       address: PROPOSER, give: GIVE, get: GET, giveEthWei: 0n, getEthWei: 0n,
     })).rejects.toThrow(/mismatch/i);
   });
 
   it('rejects when a requested piece would deliver to someone else', async () => {
-    const o = order([nft(CONTRACT_A, '7')], [nft(CONTRACT_B, '9', '0x2222222222222222222222222222222222222222')]);
+    const o = order([offerNft(CONTRACT_A, '7')], [considNft(CONTRACT_B, '9', '0x2222222222222222222222222222222222222222')]);
     await expect(checkTradeOrder(o, {
       address: PROPOSER, give: GIVE, get: GET, giveEthWei: 0n, getEthWei: 0n,
     })).rejects.toThrow(/proposer/i);
@@ -98,8 +95,8 @@ describe('checkTradeOrder — the chain-rail trade gate', () => {
 
   it('rejects a smuggled ETH leg the declared sides never named', async () => {
     const o = order(
-      [nft(CONTRACT_A, '7'), { itemType: ITEM_ERC20, token: WETH_ADDRESS, identifierOrCriteria: '0', startAmount: '500', endAmount: '500' }],
-      [nft(CONTRACT_B, '9', PROPOSER)],
+      [offerNft(CONTRACT_A, '7'), { itemType: ITEM_ERC20, token: WETH_ADDRESS, identifierOrCriteria: '0', startAmount: '500', endAmount: '500' }],
+      [considNft(CONTRACT_B, '9', PROPOSER)],
     );
     await expect(checkTradeOrder(o, {
       address: PROPOSER, give: GIVE, get: GET, giveEthWei: 0n, getEthWei: 0n,
@@ -108,8 +105,8 @@ describe('checkTradeOrder — the chain-rail trade gate', () => {
 
   it('rejects a kicker amount that differs from the declared amount', async () => {
     const o = order(
-      [nft(CONTRACT_A, '7'), { itemType: ITEM_ERC20, token: WETH_ADDRESS, identifierOrCriteria: '0', startAmount: '499', endAmount: '499' }],
-      [nft(CONTRACT_B, '9', PROPOSER)],
+      [offerNft(CONTRACT_A, '7'), { itemType: ITEM_ERC20, token: WETH_ADDRESS, identifierOrCriteria: '0', startAmount: '499', endAmount: '499' }],
+      [considNft(CONTRACT_B, '9', PROPOSER)],
     );
     await expect(checkTradeOrder(o, {
       address: PROPOSER, give: GIVE, get: GET, giveEthWei: 500n, getEthWei: 0n,
@@ -117,7 +114,7 @@ describe('checkTradeOrder — the chain-rail trade gate', () => {
   });
 
   it('rejects an order signed by someone other than the proposer', async () => {
-    const o = order([nft(CONTRACT_A, '7')], [nft(CONTRACT_B, '9', PROPOSER)]);
+    const o = order([offerNft(CONTRACT_A, '7')], [considNft(CONTRACT_B, '9', PROPOSER)]);
     o.parameters.offerer = '0x3333333333333333333333333333333333333333';
     await expect(checkTradeOrder(o, {
       address: PROPOSER, give: GIVE, get: GET, giveEthWei: 0n, getEthWei: 0n,
@@ -125,7 +122,7 @@ describe('checkTradeOrder — the chain-rail trade gate', () => {
   });
 
   it('rejects an already-expired order window', async () => {
-    const o = order([nft(CONTRACT_A, '7')], [nft(CONTRACT_B, '9', PROPOSER)]);
+    const o = order([offerNft(CONTRACT_A, '7')], [considNft(CONTRACT_B, '9', PROPOSER)]);
     o.parameters.endTime = Math.floor(Date.now() / 1000) - 10;
     await expect(checkTradeOrder(o, {
       address: PROPOSER, give: GIVE, get: GET, giveEthWei: 0n, getEthWei: 0n,

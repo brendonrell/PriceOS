@@ -1,5 +1,5 @@
 -- THE EXCHANGE ⇌ — head-to-head bilateral trading (ClickUp 86ba0apqr).
--- NOT YET APPLIED — apply live at ship approval, then update this line.
+-- APPLIED LIVE 2026-07-20 (the_exchange) — table + RPC + kinds verified.
 --
 -- A trade is a two-sided proposal: the proposer commits pieces (+ optional
 -- ETH on exactly one side), names what they want from the counterparty, and
