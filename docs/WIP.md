@@ -105,8 +105,10 @@
      untouched) · PDTV (ride Albums' THE SHOW) · PD Wrapped (cadence
      unpicked; build cadence-agnostic) · Mint Room follow-ups (pings/tape
      events later, first real-mint exercise).
-   - Standing: MAX_WORKSPACES 10 vs ship-9 (recommend 15) · privacy/terms
-     pages don't exist · status-page go-live (`86bb0d896`).
+   - Standing: privacy/terms pages don't exist · status-page go-live
+     (`86bb0d896`). (Workspace cap is SETTLED = 22, the platform number —
+     already live in code; the old "10 vs ship-9" note here was stale and
+     burned a round of Brendon's time on 2026-07-20. Code wins, check it.)
 
 0. ✅ **2026-07-20 NEIGHBOURHOOD + TARGETS + COUNTERPARTIES TABS MADE
    REAL — on dev (merge `6f46a9c`, PR #33), auto-deploy rolling, tree clean.
@@ -279,8 +281,8 @@
    Trader > Oracle; **FOUR NEW defaults by his picks: Socialite (⚭, warm/
    mutuals) · Insider (⑃, alpha/gossip) · Degen (⚔, classic minus HMMR —
    top-bar rule) · DJ (▶, blue + ambient + autoscroll)**. NINE dots shipped,
-   seed v4, guard tests ships-nine, docs updated. ⚠ **OPEN CALL for Brendon:
-   MAX_WORKSPACES is 10 and we ship 9 — recommend raising to 15.**
+   seed v4, guard tests ships-nine, docs updated. (Cap question SETTLED
+   since: it's 22, the platform number, live in code.)
    ③ SHARE ANY VIEW (the fable-queue winner): pure URL — ?tab=/?sub= restore
    on home/profile/project (pasted link wins over tab memory, ?sort= precedent);
    the ↗ share mark rides the Setup Code row beside the ⧉ copy ("VIEW LINK
