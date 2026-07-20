@@ -19,6 +19,30 @@ win** — update this file in place and note it.
 > back. Never go silent and disappear into tools while he waits. Reply → then act.
 > Every message. Every time. Instantly.
 
+> **⛔ RULE #-0.5 — THE TARGET IS iOS SAFARI + THE PWA. ALWAYS. (Brendon,
+> 2026-07-20 — "I feel sometimes you forget", elevated to a headline rule by
+> his order.)** PD is used on an iPhone, in Safari and as the installed
+> home-screen app. That pair IS the product surface — desktop is secondary.
+> Every feature, layout, gesture, and fix is designed for and judged on iOS
+> Safari + PWA FIRST: Safari's bottom chrome (the collapsing URL bar),
+> the home-indicator/safe-area zones, Apple's reserved edge gestures (bottom
+> swipe = home/app-switcher — a page can NEVER intercept it), PWA standalone
+> viewport differences, iOS glyph/emoji rendering (the #1 glyph gate), and
+> iPhone-width layouts. Before proposing any interaction, ask: does this
+> collide with Safari or system chrome on an iPhone? A feature that works on
+> desktop but fights iOS is WRONG by definition. Previews render at iPhone
+> size in real fonts (§6) because that is the real app.
+
+> **⛔ RULE #-0.4 — EVERY FEATURE SHIPS WITH A DOOR: A WAY TO LAUNCH IT AND A
+> WAY TO CLOSE/TURN IT OFF. (Brendon, 2026-07-20 — after the miniplayer
+> shipped with no off switch.)** Nothing gets built that the user can't
+> summon AND dismiss. If the spec doesn't say how a surface launches and how
+> it closes, that is a GAP TO RAISE WITH BRENDON before building — never
+> ship the feature doorless and never invent the door silently (the door is
+> product design, his call). Applies to every persistent chrome element,
+> overlay, player, bar, and mode: a working on AND off, reachable by a
+> normal human, or it doesn't ship.
+
 > **⛔ RULE #0 — REUSE, NEVER REINVENT. DO EXACTLY WHAT BRENDON SAYS, NOTHING
 > EXTRA. (Brendon, 2026-06-22 — the rule above all rules, by his order.)**
 > We do **NOT** roll our own version of anything the site already has. Before
