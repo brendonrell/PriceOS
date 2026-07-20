@@ -163,8 +163,9 @@ export function TodosBox() {
         const explicitPrice = Number.isFinite(eth) && eth > 0 ? eth : null;
         const finalDue = due || p.due || null;
         /* A time only means something on a dated to-do — the reminder fires
-           at date+time (TodoReminders.dueEpoch already reads dueTime). */
-        const finalDueTime = finalDue ? (dueTime || null) : null;
+           at date+time (TodoReminders.dueEpoch already reads dueTime). The
+           picked time wins; else the parsed "3pm"-style time rides along. */
+        const finalDueTime = finalDue ? (dueTime || p.dueTime || null) : null;
         const finalPrice = explicitPrice ?? p.priceEth ?? null;
         const finalPriority = (priority || p.priority || 0) as TodoPriority;
         if (p.output) {

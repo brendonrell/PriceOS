@@ -155,6 +155,11 @@ export interface PdNotifs {
     /* Ambient Strip — the LED light bar under the Tape. Off by default;
        toggled from MY PD. When off the strip isn't rendered at all. */
     ambientStrip: boolean;
+    /* pd miniplayer — the bottom-right soundtrack device. ON by default;
+       the bar's × key and the MY PD pill both flip this. When off the bar
+       isn't rendered and audio stops. Not part of the Setup Code (a
+       personal device pref, like backButton). */
+    miniplayer: boolean;
     /* The Watch — a small persistent live-stat chip that floats over every
        page. Off by default; enabled from the Spell Book (took the retired
        Solar Flare slot, 2026-06-14). `watchMetric` is the index into the
@@ -248,6 +253,7 @@ const DEFAULTS: PdNotifs = {
     degen: false,
     autoscroll: false,
     ambientStrip: false,
+    miniplayer: true,
     watch: false,
     watchMetric: 0,
     audience: true,

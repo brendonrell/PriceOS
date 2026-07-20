@@ -27,6 +27,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useToast } from '../../lib/state/ToastContext';
+import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { allProjects, getProject, projectTrueName } from '../../lib/project/registry';
 import { getSoundtrackStarItems } from '../../lib/pins/soundtrackStarStore';
 import { registerFmDriver, publishFm, type FmStation } from '../../lib/fm/fmBus';
@@ -76,6 +77,11 @@ type FmStatus = 'idle' | 'loading' | 'playing' | 'paused';
 export default function FmBar() {
     const pathname = usePathname();
     const { showToast } = useToast();
+    /* Launch/close (Brendon, 2026-07-20): the miniplayer flag owns whether
+       the bar exists at all — the bar's × key and the MY PD ▶ pill both
+       flip it. Closed = bar gone + audio stopped. */
+    const { notifs, update: updateNotifs } = usePdNotifs();
+    const enabled = notifs.miniplayer;
 
     const [status, setStatus] = useState<FmStatus>('idle');
     const [onAir, setOnAir] = useState<Station | null>(null);
@@ -176,14 +182,45 @@ export default function FmBar() {
        one band above it (stone.css). */
     const statusRef = useRef(status);
     useEffect(() => { statusRef.current = status; });
+    /* Playing from anywhere (the Stone's miniplayer mini) LAUNCHES a closed
+       bar: with the flag off there's no video host yet, so the station waits
+       here and the relaunch effect below starts it once the bar renders. */
+    const pendingRef = useRef<Station | null>(null);
+    const enabledRef = useRef(enabled);
+    useEffect(() => { enabledRef.current = enabled; });
     useEffect(() => registerFmDriver({
-        play: (st) => start(st),
+        play: (st) => {
+            if (!enabledRef.current) {
+                pendingRef.current = st;
+                updateNotifs({ miniplayer: true });
+                return;
+            }
+            start(st);
+        },
         toggle: () => {
             if (statusRef.current === 'playing') playerRef.current?.pauseVideo();
             else playerRef.current?.playVideo();
         },
         next: () => playerRef.current?.nextVideo(),
-    }), [start]);
+    }), [start, updateNotifs]);
+    useEffect(() => {
+        if (enabled && pendingRef.current) {
+            const st = pendingRef.current;
+            pendingRef.current = null;
+            start(st);
+        }
+    }, [enabled, start]);
+    /* Closing kills the audio, not just the chrome. */
+    useEffect(() => {
+        if (enabled) return;
+        playerRef.current?.destroy();
+        playerRef.current = null;
+        startingRef.current = false;
+        setStatus('idle');
+        setOnAir(null);
+        setTrackTitle('');
+        setPickerOpen(false);
+    }, [enabled]);
     useEffect(() => {
         publishFm({ status, station: onAir, trackTitle });
     }, [status, onAir, trackTitle]);
