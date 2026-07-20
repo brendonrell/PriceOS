@@ -37,6 +37,7 @@ import { subscribeFm, getFm, fmPlay, fmToggle, fmNext } from '../../lib/fm/fmBus
 import { getProject } from '../../lib/project/registry';
 import { matchCast, type CastTarget } from '../../lib/stone/cast';
 import { parseWidget } from '../../lib/stone/widgets';
+import { expandFollowUp, type StoneSubject } from '../../lib/stone/memory';
 import { WidgetDeck, SearchDeck } from './StoneDeck';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useSort } from '../../lib/state/SortContext';
@@ -87,13 +88,25 @@ export default function CommandStone() {
     const fm = useSyncExternalStore(subscribeFm, getFm, getFm);
 
     /* ETCH — a verb word turns the line into a creation plan; bare words
-       stay GO/FIND. Pure parse, runs every keystroke. */
+       stay GO/FIND. Pure parse, runs every keystroke. Always on the RAW
+       line — memory never rewrites a carving. */
     const etchPlan = useMemo(() => parseEtch(value), [value]);
 
+    /* MEMORY (stage 5) — the stone remembers its last subject. "prisms
+       floor" then a bare "ath" → the stone hears "prisms ath"; a bare
+       "calc 0.5" or "gallery" or "30d" rides the same subject. The heard
+       line drives widgets + search; ETCH and CAST stay on the raw line. */
+    const [subject, setSubject] = useState<StoneSubject | null>(null);
+    const line = useMemo(
+        () => expandFollowUp(value, subject) ?? value,
+        [value, subject]
+    );
+
     /* THE WIDGET DECK (stage 4) — a summon word calls its hand: calendar ·
-       priceday · calc · dossier · gallery · matrix · ascii · docs. ETCH and
-       CAST outrank a summon (a workspace named "calendar" stays castable). */
-    const widgetPlan = useMemo(() => parseWidget(value), [value]);
+       priceday · calc · dossier · gallery · matrix · ascii · docs · glance ·
+       trend. ETCH and CAST outrank a summon (a workspace named "calendar"
+       stays castable). */
+    const widgetPlan = useMemo(() => parseWidget(line), [line]);
 
     /* CAST — an exact toggle/workspace name flips it. The "spells" are
        just settings with a fun name (Brendon): a cast is a plain toggle +
@@ -106,6 +119,27 @@ export default function CommandStone() {
         () => (etchPlan ? null : matchCast(value, workspaces)),
         [value, workspaces, etchPlan]
     );
+    /* Cast outranks a summon (a workspace named "calendar" stays castable);
+       ETCH outranks both. */
+    const activeWidget = useMemo(
+        () => (etchPlan || castHit ? null : widgetPlan),
+        [etchPlan, castHit, widgetPlan]
+    );
+    /* MEMORY capture from summoned hands — a dossier's person or a
+       summoned project becomes the subject too. */
+    useEffect(() => {
+        if (!activeWidget) return;
+        if (activeWidget.kind === 'dossier') {
+            setSubject({ kind: 'user', name: `@${activeWidget.name}` });
+        } else if (
+            (activeWidget.kind === 'gallery' || activeWidget.kind === 'calc') &&
+            activeWidget.title
+        ) {
+            setSubject({ kind: 'project', name: activeWidget.title });
+        } else if (activeWidget.kind === 'trend') {
+            setSubject({ kind: 'project', name: activeWidget.title });
+        }
+    }, [activeWidget]);
     const castActive = (hit: CastTarget): boolean => {
         if (hit.kind === 'spell') return !!notifs[hit.spell.flag];
         if (hit.kind === 'mode') {
@@ -243,11 +277,14 @@ export default function CommandStone() {
     /* LIVE search — the same debounce/abort discipline as GlobalSearchBar
        (D25): ≥2 chars, 220ms debounce, stale responses can never land. */
     useEffect(() => {
-        const q = value.trim();
+        /* The stone searches what it HEARD (the memory-expanded line) —
+           a bare "ath" after "prisms floor" really asks about Prisms. */
+        const q = line.trim();
+        const raw = value.trim();
         /* An ETCH line never hits search — the preview chip owns the panel
            (and "todo: buy prisms" is not a search query). A widget summon
            owns it too — its card does any reading it needs itself. */
-        if (q.length < 2 || parseEtch(q) || parseWidget(q)) {
+        if (raw.length < 2 || parseEtch(raw) || parseWidget(q)) {
             setResults(null);
             setSearching(false);
             return;
@@ -275,7 +312,18 @@ export default function CommandStone() {
             window.clearTimeout(t);
             ctl.abort();
         };
-    }, [value]);
+    }, [value, line]);
+
+    /* MEMORY capture — the last subject the stone resolved: the top
+       project of a search, a dossier's person, or a summoned project
+       hand. Persists for the session (that's the point). */
+    useEffect(() => {
+        if (results?.projects?.[0]) {
+            setSubject({ kind: 'project', name: results.projects[0].title });
+        } else if (results?.users?.[0]?.handle && (results?.projects?.length ?? 0) === 0) {
+            setSubject({ kind: 'user', name: `@${results.users[0].handle}` });
+        }
+    }, [results]);
 
     /* GO — pages by word prefix; routes only in the stone (the dropdown
        panel views stay the dropdown's own doors for now). Profile resolves
@@ -318,7 +366,8 @@ export default function CommandStone() {
        question on a resolvable project and the answer carries an ETH
        number, the offer chip appears under the answers. */
     const anchorOffer = useMemo(() => {
-        const m = /^(.+?)\s+floor\??$/i.exec(value.trim());
+        /* On the heard line, so a remembered-subject "floor" offers too. */
+        const m = /^(.+?)\s+floor\??$/i.exec(line.trim());
         if (!m || !results) return null;
         const proj = resolveProject(m[1]);
         if (!proj) return null;
@@ -330,7 +379,7 @@ export default function CommandStone() {
             }
         }
         return null;
-    }, [value, results]);
+    }, [line, results]);
 
     /* Enter = go: the top hit wins — pages → answers → projects →
        collectors → outputs → soundtracks → traits (the search bar's own
@@ -473,9 +522,6 @@ export default function CommandStone() {
     if (!siweAddress || needsSignup) return null;
 
     const r = results;
-    /* Cast outranks a summon (a workspace named "calendar" stays castable);
-       ETCH outranks both. */
-    const activeWidget = etchPlan || castHit ? null : widgetPlan;
     /* The tab renders ONLY when it has something to say — an empty open
        stone is just the pill + the flashing block (Brendon's idle). */
     const cmdCardOn =
@@ -523,7 +569,12 @@ export default function CommandStone() {
                     <div className="stone-deck stone-results">
                         {/* THE WIDGET DECK — a summoned hand owns the tab */}
                         {activeWidget && (
-                            <WidgetDeck plan={activeWidget} address={siweAddress} onGo={go} />
+                            <WidgetDeck
+                                plan={activeWidget}
+                                address={siweAddress}
+                                onGo={go}
+                                onAct={(t) => showToast(t)}
+                            />
                         )}
 
                         {/* GO/FIND — answers in the TARS voice, results as

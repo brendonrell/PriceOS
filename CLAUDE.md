@@ -493,6 +493,30 @@ explicit chat confirmation.
   its own `CLAUDE.md` with the exact copy-paste recipe** (forge from npm, deps
   from soldeer, symlinked into `lib/`; ~1 min to 284 tests green). Read that
   file before touching contract tests.
+- **⛔ MOBILE PREVIEWS NEVER SHIP IN ROBOTO/LINUX FONTS (Brendon, 2026-07-20 —
+  raised in fury after one android-looking preview too many).** PD is
+  iOS-targeted and Brendon reads every preview on iPhone. The container's
+  fontconfig silently swaps **Courier New → Liberation Mono** (and any sans →
+  DejaVu/Roboto-looking type), which makes every screenshot read as ANDROID.
+  That is banned. **No device mockup either** — no drawn bezel/notch/status
+  bar (it covers the screen); a preview is the bare page at iPhone size.
+  **The method that ACTUALLY WORKS here (sessions have wrongly claimed
+  "unable"):**
+  1. **Fonts first:** fetch real Courier-shaped type from npm (allowed through
+     the proxy): `npm pack @fontsource/courier-prime` → untar → `@font-face`
+     the woff2s **aliased as `'Courier New'`** (400 + 700) in the harness so
+     the app's own font stacks resolve to it. Sans slots (Inter/Rubik) use the
+     repo's real files in `app/fonts/`. Never screenshot type on the fallback.
+  2. **Static harness:** write an HTML file, inline the compiled
+     `.next/static/css/*.css`, add the surface's real markup on a MID-TONE
+     colorway page.
+  3. **Screenshot with the PRE-INSTALLED browser:**
+     `require('playwright').chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })`
+     — the `executablePath` is the whole trick: bare `chromium.launch()`
+     errors ("run npx playwright install") because the npx playwright version
+     mismatches the pinned browser dir. NEVER run `npx playwright install`
+     (proxy-blocked, unnecessary); never conclude screenshots are impossible.
+     Viewport **390×844, deviceScaleFactor 2**, `page.goto('file://…')`.
 - **Confirm the deploy is the one being viewed before pointing Brendon at it.**
   The recurring rage this session: he screenshots a STALE preview (old commit)
   and "the fix isn't there." Before claiming a change is visible, verify the

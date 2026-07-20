@@ -95,13 +95,19 @@
     padding: 0 16px;
     background: #0b0b0b;
     border: 1px solid rgba(255, 255, 255, 0.35);
-    border-radius: 999px;
+    /* THE STONE IS NEVER ROUNDED (Brendon, 2026-07-20 — raised in fury
+       after a capsule leaked into a preview). The typing bar wears the
+       ORIGINAL stone bar's own 6px cut, same as .stone-peek — the one
+       rounded thing in the vessel is the TAB's top, his explicit call. */
+    border-radius: 6px;
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
 }
-/* While the tab is out, the pill flattens its top to receive it — the
-   two read as one carved object. */
+/* While the tab is out the pill STAYS a pill — the narrower deck tucks
+   into its top for a smooth, rounded transition (Brendon, 2026-07-20;
+   supersedes the flattened-top join). The pill just paints above it. */
 .stone-float--docked .stone-pill {
-    border-radius: 0 0 22px 22px;
+    position: relative;
+    z-index: 1;
 }
 .stone-pill-glyph {
     font-size: 15px;
@@ -145,22 +151,33 @@
 
 /* ── the tab — the giant black window extending out of the stone
       (rounded corners by Brendon's explicit call; widgets or text live
-      inside it) ── */
+      inside it). 2026-07-20 edit (Brendon): the deck sits SLIGHTLY
+      NARROWER than the stone pill and the two meet in a smooth, rounded
+      transition — the tab grows out of the pill, one carved object. ── */
+@keyframes stone-tab-rise {
+    from { opacity: 0; transform: translateY(10px) scaleY(0.98); }
+    to { opacity: 1; transform: translateY(0) scaleY(1); }
+}
 .stone-deck {
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
+    align-self: center;
+    width: calc(100% - 28px); /* slightly narrower than the pill */
+    box-sizing: border-box;
     max-height: min(52vh, 440px);
     min-height: 0;
     background: #0b0b0b;
     border: 1px solid rgba(255, 255, 255, 0.35);
-    border-bottom: none;
-    border-radius: 18px 18px 0 0;
-    padding: 6px 8px;
+    border-radius: 18px 18px 12px 12px;
+    margin-bottom: -8px; /* tucks under the pill's top — the smooth join */
+    padding: 6px 8px 14px;
     overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+    transform-origin: bottom center;
+    animation: stone-tab-rise 0.24s cubic-bezier(0.18, 0.9, 0.26, 1.04);
 }
 /* sections inside the tab — plain regions now, the watchOS widgets grow
    here (fresh-chat build) */
@@ -599,6 +616,115 @@
 .sw-doc-snippet mark {
     background: var(--stat-active-bg);
     color: var(--stat-active-text);
+}
+
+/* ══ STAGE 5 — memory · acts · glance · trend + the motion pass ═══════ */
+
+/* answer-AND-act chip spacing (the etch-chip treatment, one lever/card) */
+.sw-act { margin-top: 8px; }
+
+/* word keys (FOLLOW / FOLLOWING) — the square key, sized for a word */
+.sw-key--word {
+    width: auto;
+    padding: 0 12px;
+    font-size: 12px;
+    letter-spacing: 1px;
+}
+.sw-key--word:disabled { cursor: default; }
+
+/* dossier identity row carries the FOLLOW key on its right */
+.sw-id-tap {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ── ⌘ THE GLANCE — the boot readout ── */
+.sw-glance-line {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 6px 4px;
+}
+.sw-glance-line + .sw-glance-line { border-top: 1px solid rgba(255, 255, 255, 0.15); }
+.sw-glance-l {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    white-space: nowrap;
+}
+.sw-glance-r {
+    font-size: 15px;
+    font-weight: bold;
+    text-align: right;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-variant-emoji: text;
+}
+
+/* ── TREND — the Courier sparkline ── */
+.sw-spark {
+    padding: 2px 4px 6px;
+    font-size: 17px;
+    font-weight: bold;
+    line-height: 1;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    color: var(--text-color);
+}
+/* a quiet day is ABSENCE — the dim carries that meaning (the legend-off
+   precedent; not resting-UI fade) */
+.sw-spark-c--quiet { opacity: 0.5; }
+
+/* ── THE MOTION PASS (widgets only, Brendon's visual wow ask) —
+      everything arrives like it was just carved: cards rise, the glance
+      boots line by line, tiles and the spark settle in. Square + full
+      strength throughout; motion is the only flourish. ── */
+@media (prefers-reduced-motion: no-preference) {
+    @keyframes sw-rise {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes sw-sweep {
+        from { clip-path: inset(0 100% 0 0); }
+        to { clip-path: inset(0 0 0 0); }
+    }
+    @keyframes sw-pop {
+        from { opacity: 0; transform: translateY(6px) scale(0.96); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .stone-deck .sw-card { animation: sw-rise 0.22s cubic-bezier(0.18, 0.9, 0.26, 1.04) backwards; }
+    .stone-deck .sw-card:nth-child(2) { animation-delay: 0.05s; }
+    .stone-deck .sw-card:nth-child(3) { animation-delay: 0.1s; }
+    .sw-glance .sw-glance-line,
+    .sw-glance .sw-rows-head,
+    .sw-glance .sw-say { animation: sw-rise 0.2s ease backwards; }
+    .sw-glance .sw-glance-line:nth-child(2) { animation-delay: 0.05s; }
+    .sw-glance .sw-glance-line:nth-child(3) { animation-delay: 0.1s; }
+    .sw-glance .sw-glance-line:nth-child(4) { animation-delay: 0.15s; }
+    .sw-glance .sw-glance-line:nth-child(5) { animation-delay: 0.2s; }
+    .sw-glance .sw-glance-line:nth-child(6) { animation-delay: 0.25s; }
+    .sw-glance .sw-glance-line:nth-child(7) { animation-delay: 0.3s; }
+    .sw-glance .sw-rows-head { animation-delay: 0.2s; }
+    .sw-glance .sw-say { animation-delay: 0.35s; }
+    .sw-stats .sw-stat { animation: sw-pop 0.2s ease backwards; }
+    .sw-stats .sw-stat:nth-child(2) { animation-delay: 0.06s; }
+    .sw-stats .sw-stat:nth-child(3) { animation-delay: 0.12s; }
+    .sw-pd-number { animation: sw-pop 0.24s cubic-bezier(0.18, 0.9, 0.26, 1.04); }
+    .sw-spark { animation: sw-sweep 0.5s ease-out; }
+    .sw-cal-strip .sw-cal-cell { animation: sw-pop 0.18s ease backwards; }
+    .sw-cal-strip .sw-cal-cell:nth-child(2) { animation-delay: 0.03s; }
+    .sw-cal-strip .sw-cal-cell:nth-child(3) { animation-delay: 0.06s; }
+    .sw-cal-strip .sw-cal-cell:nth-child(4) { animation-delay: 0.09s; }
+    .sw-cal-strip .sw-cal-cell:nth-child(5) { animation-delay: 0.12s; }
+    .sw-cal-strip .sw-cal-cell:nth-child(6) { animation-delay: 0.15s; }
+    .sw-cal-strip .sw-cal-cell:nth-child(7) { animation-delay: 0.18s; }
 }
 
 /* ── Stacking over the pd miniplayer ─────────────────────────────────

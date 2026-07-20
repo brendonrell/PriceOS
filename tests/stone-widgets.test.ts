@@ -8,6 +8,7 @@
 import { describe, expect, it } from 'vitest';
 import { parseWidget } from '../lib/stone/widgets';
 import { buildWalletMark, MARK_COLS, MARK_ROWS } from '../lib/stone/mark';
+import { expandFollowUp, type StoneSubject } from '../lib/stone/memory';
 
 describe('parseWidget — bare-word summons', () => {
     it('summons the calendar', () => {
@@ -78,6 +79,53 @@ describe('parseWidget — docs · matrix · calc · gallery', () => {
         if (p?.kind === 'gallery') expect(p.slug).toBe('prisms');
         expect(parseWidget('gallery zzzznope')).toBeNull();
         expect(parseWidget('gallery')?.kind).toBe('gallery');
+    });
+});
+
+describe('parseWidget — glance + trend (stage 5)', () => {
+    it('summons the glance', () => {
+        expect(parseWidget('brief')?.kind).toBe('glance');
+        expect(parseWidget('glance')?.kind).toBe('glance');
+        expect(parseWidget('morning')?.kind).toBe('glance');
+    });
+    it('a project + Nd summons the trend; unresolved names fall through', () => {
+        const p = parseWidget('prisms 30d');
+        expect(p?.kind).toBe('trend');
+        if (p?.kind === 'trend') {
+            expect(p.slug).toBe('prisms');
+            expect(p.days).toBe(30);
+        }
+        expect(parseWidget('zzzznope 30d')).toBeNull();
+        expect(parseWidget('30d')).toBeNull();
+    });
+});
+
+describe('expandFollowUp — the stone remembers its subject (stage 5)', () => {
+    const PROJ: StoneSubject = { kind: 'project', name: 'PRISMS' };
+    const USER: StoneSubject = { kind: 'user', name: '@gmoney' };
+    it('bare answer words ride the project subject', () => {
+        expect(expandFollowUp('ath', PROJ)).toBe('PRISMS ath');
+        expect(expandFollowUp('floor?', PROJ)).toBe('PRISMS floor');
+        expect(expandFollowUp('volume', PROJ)).toBe('PRISMS volume');
+        expect(expandFollowUp('who holds 7', PROJ)).toBe('who holds PRISMS 7');
+        expect(expandFollowUp('holds 7', PROJ)).toBe('who holds PRISMS 7');
+    });
+    it('bare summons ride the project subject too', () => {
+        expect(expandFollowUp('calc 0.5', PROJ)).toBe('calc PRISMS 0.5');
+        expect(expandFollowUp('calc', PROJ)).toBe('calc PRISMS');
+        expect(expandFollowUp('gallery', PROJ)).toBe('gallery PRISMS');
+        expect(expandFollowUp('30d', PROJ)).toBe('PRISMS 30d');
+    });
+    it('user words ride the user subject', () => {
+        expect(expandFollowUp('spent', USER)).toBe('@gmoney spent');
+        expect(expandFollowUp('followers?', USER)).toBe('@gmoney followers');
+        expect(expandFollowUp('floor', USER)).toBeNull(); // project word, user subject
+    });
+    it('never expands a line that stands on its own', () => {
+        expect(expandFollowUp('fumage floor', PROJ)).toBeNull();
+        expect(expandFollowUp('todo: buy prisms', PROJ)).toBeNull();
+        expect(expandFollowUp('ath', null)).toBeNull();
+        expect(expandFollowUp('', PROJ)).toBeNull();
     });
 });
 

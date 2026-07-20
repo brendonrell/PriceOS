@@ -8,6 +8,47 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ✅ **2026-07-20 COMMAND STONE STAGES 4+5 — THE WIDGET DECK + THE ALIVE
+   PASS, both on dev (tip = the stage-5 commit), auto-deploy rolling, tree
+   clean. Branch `claude/watchos-spec-qmi85u` = merged trash (Brendon
+   deletes at https://github.com/brendonrell/PriceOS/branches).** Fable
+   session, Brendon's arc "build the watchOS spec" → all-five wow adds:
+   ① STAGE 4 — the tab's contents are CUSTOM BLACK WIDGETS (TARS-voice
+   answers, glanceable cards; the borrowed .gsr search rows are RETIRED
+   inside the stone): summon-by-name deck in `lib/stone/widgets.ts` +
+   `components/stone/StoneDeck.tsx` — CALENDAR (the TopBarCalendar read) ·
+   PRICEDAY · CALC (the CalcSheet rate card vs live floor; the real
+   CalcSheet stays modal-coupled, the stone has its own card) · DOSSIER
+   (@name or `dossier x`) · GALLERY (paintOutput + ‹›) · MATRIX (≤3
+   side-by-side) · WALLET ASCII (`lib/stone/mark.ts`, deterministic per
+   wallet) · DOCS (rides the docs index + DocsSearch's exported scoring).
+   `/api/search` projects now carry floor/volume/ath (additive).
+   ② STAGE 5 — MEMORY (`lib/stone/memory.ts`: "prisms floor" → bare
+   "ath"/"calc 0.5"/"gallery"/"30d" ride the remembered subject) ·
+   answer-AND-act chips on every card (calc→Sentinel BUY to-do ·
+   gallery→wishlist · matrix→anchor cheapest · dossier→FOLLOW key on the
+   real /api/follows wire) · THE GLANCE (`brief`: priceday · today's
+   schedule · pings unread · your held floors) · TREND (`prisms 30d` —
+   NEW `/api/stone/trend`, real SALE medians per Montreal day, Courier
+   sparkline ▁▂▃▄▅▆▇█, quiet days honest dots) · RARITY WALK (gallery ❖
+   key, pdRarityRank order) · the motion pass (cards rise, glance boots
+   line-by-line, spark sweeps; reduced-motion respected).
+   ③ VESSEL EDIT (Brendon): the deck sits SLIGHTLY NARROWER than the
+   stone with a smooth rounded transition INTO it — and **⛔ THE STONE
+   BAR IS NEVER ROUNDED (raised in fury): the typing bar wears the
+   original 6px cut, the tab's rounded top stays the ONE exception.**
+   ④ ⛔ NEW Md RULE (Brendon, in fury): **mobile previews NEVER ship in
+   Roboto/Linux fallback fonts and NO device mockups** — the working
+   recipe (npm Courier Prime aliased as Courier New + the
+   /opt/pw-browsers/chromium executablePath trick) is in CLAUDE.md §6.
+   GLYPHS.md: ƒ Calc catalogued (was shipped-uncatalogued), stage 4/5
+   titles reuse canon only.
+   Proof: tsc clean, 90/90 tests (20 new: summons · memory · mark), real
+   builds green, compiled greps, real-Courier mid-tone proofs.
+   **BRENDON ACTIONS:** device-check the spark blocks ▁▂▃▄▅▆▇█ render as
+   monochrome text on iPhone (#1 glyph gate; block-element family is
+   long-proven — confirm anyway).
+
 0. ⚙ **2026-07-20 LAUNCH-READINESS MEGA-BATCH — ALL on dev (tip `6116031`),
    auto-deploy rolling, tree clean. Branch `claude/launch-readiness-tasks-kp3q8l`
    = merged trash (Brendon deletes at

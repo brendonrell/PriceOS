@@ -33,7 +33,10 @@ export type WidgetPlan =
     | { kind: 'gallery'; slug: string | null; title: string | null }
     | { kind: 'matrix'; names: string[] }
     | { kind: 'ascii' }
-    | { kind: 'docs'; query: string };
+    | { kind: 'docs'; query: string }
+    /* stage 5 hands */
+    | { kind: 'glance' }
+    | { kind: 'trend'; slug: string; title: string; days: number };
 
 function norm(s: string): string {
     return s.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -44,6 +47,8 @@ function norm(s: string): string {
 const CALENDAR_WORDS = new Set(['calendar', 'cal', 'week', 'schedule']);
 const PRICEDAY_WORDS = new Set(['priceday', 'price day', 'today', 'almanac']);
 const ASCII_WORDS = new Set(['ascii', 'my ascii', 'my mark', 'wallet art']);
+/** THE GLANCE — the composed morning card (stage 5). */
+const GLANCE_WORDS = new Set(['brief', 'glance', 'morning', 'the glance']);
 
 /** `@handle` — bare handle lines summon the dossier (the stone's own
     presentation of the person). Same charset the app allows in handles. */
@@ -64,6 +69,15 @@ export function parseWidget(line: string): WidgetPlan | null {
     if (CALENDAR_WORDS.has(q)) return { kind: 'calendar' };
     if (PRICEDAY_WORDS.has(q)) return { kind: 'priceday' };
     if (ASCII_WORDS.has(q)) return { kind: 'ascii' };
+    if (GLANCE_WORDS.has(q)) return { kind: 'glance' };
+
+    /* `<project> 30d` — the sales trend in Courier (stage 5). Window is
+       clamped 7–90 by the API; unresolved names fall through to search. */
+    const trend = /^(.+?)\s+(\d{1,3})d$/.exec(q);
+    if (trend) {
+        const proj = resolveProject(trend[1]);
+        if (proj) return { kind: 'trend', slug: proj.slug, title: proj.title, days: parseInt(trend[2], 10) };
+    }
 
     const handle = HANDLE_RE.exec(q);
     if (handle) return { kind: 'dossier', name: handle[1] };
