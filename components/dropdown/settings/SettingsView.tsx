@@ -43,7 +43,6 @@ import { WalletSection } from './WalletSection';
 import { MyPdSection } from './MyPdSection';
 import { ColorwayPicker } from './ColorwayPicker';
 import { DefaultSortRow } from './DefaultSortRow';
-import { ShareViewRow } from './ShareViewRow';
 import { MyPingsRow } from './MyPingsRow';
 import { SpellBookSection } from './SpellBookSection';
 import { WorkspaceSwitcher } from './WorkspaceSwitcher';
@@ -117,8 +116,6 @@ export function SettingsView() {
                         <ColorwayPicker />
                         <div className="dropdown-divider" />
                         <DefaultSortRow />
-                        <div className="dropdown-divider" />
-                        <ShareViewRow />
                         <div className="dropdown-divider" />
                         <MyPingsRow />
                     </>

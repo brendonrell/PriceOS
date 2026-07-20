@@ -1,0 +1,93 @@
+/* ══════════════════════════════════════════════════════════════════════
+   PD.fm — the session radio (components/fm/FmBar).
+   A thin persistent mini-player pinned bottom-right. Full-strength site
+   tokens (Rule #2): solid --bg-color fill, --text-color border + text,
+   bold, 12px labels — the STICKERS-pill reference treatment. The playing
+   state carries the real YT video as a small tile (ToS-visible player =
+   our album art). When the Command Stone's resting bar is present
+   (logged in), PD.fm lifts one row above it.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.fm-bar {
+    position: fixed;
+    right: max(14px, env(safe-area-inset-right));
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    z-index: 8990;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    max-width: min(78vw, 380px);
+    padding: 4px 8px;
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    border-radius: 6px;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.fm-bar.fm-above-stone {
+    bottom: calc(48px + env(safe-area-inset-bottom, 0px));
+}
+
+.fm-video {
+    flex: 0 0 auto;
+    width: 57px;
+    height: 32px;
+    overflow: hidden;
+    border: 1px solid var(--text-color);
+    background: #000;
+}
+
+.fm-video iframe {
+    display: block;
+    width: 57px;
+    height: 32px;
+    border: 0;
+}
+
+/* Pre-play the tile is absent — but the host div must stay in the DOM so
+   the player can be created into it; zero footprint, not display:none. */
+.fm-video-hidden {
+    width: 0;
+    height: 0;
+    border: none;
+    background: transparent;
+}
+
+.fm-btn {
+    flex: 0 0 auto;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    color: var(--text-color);
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    padding: 3px 7px;
+    line-height: 1;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.fm-btn:hover {
+    background: var(--text-color);
+    color: var(--bg-color);
+}
+
+.fm-tune {
+    background: var(--stat-active-bg, var(--text-color));
+    color: var(--stat-active-text, var(--bg-color));
+}
+
+.fm-label {
+    flex: 0 1 auto;
+    min-width: 0;
+    font-size: 12px;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fm-wordmark { letter-spacing: 0.5px; }

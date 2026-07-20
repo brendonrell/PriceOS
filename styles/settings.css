@@ -653,3 +653,8 @@
 @media (max-width: 600px) {
     #sn-sentiment .st-icon { transform: translateY(-0.5px); }
 }
+
+/* Share Any View ↗ — rides the Setup Code row beside the ⧉ copy (Brendon
+   2026-07-20: "beside or near setup codes"). Same treatment as the copy
+   mark; the negative-margin tap targets need a divider gap between them. */
+.setup-code-share { margin-left: 4px; }

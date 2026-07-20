@@ -25,6 +25,8 @@ import { usePdNotifs, type PdNotifs } from '../../../lib/state/PdNotifsContext';
 import { useColorway } from '../../../lib/state/ColorwayContext';
 import { useToast } from '../../../lib/state/ToastContext';
 import { useWorkspaces } from '../../../lib/state/WorkspacesContext';
+import { useSort, encodeSortSlug } from '../../../lib/state/SortContext';
+import { composeViewLink } from '../../../lib/state/viewLink';
 import { useProfileHex } from '../../../lib/hooks/useProfileHex';
 import { useAuth } from '../../../lib/state/AuthContext';
 import { pushState, USERSTATE_HYDRATED_EVENT } from '../../../lib/state/userState';
@@ -46,6 +48,7 @@ export function MyPdSection({ onTripleTap }: Props) {
     const { colorway, setColorway } = useColorway();
     const { showToast } = useToast();
     const { currentCode, applyCode } = useWorkspaces();
+    const { sort, dir, feedKind, group } = useSort();
     const { siweAddress } = useAuth();
     const isAuthed = !!siweAddress;
 
@@ -232,6 +235,28 @@ export function MyPdSection({ onTripleTap }: Props) {
         }
         copyingRef.current = true;
         setInputValue('SETUP CODE COPIED!');
+        window.setTimeout(() => {
+            copyingRef.current = false;
+            setInputValue(currentCode);
+        }, 1500);
+    };
+
+    /* Share Any View (Brendon 2026-07-19; moved into the Setup Code row by
+       his 2026-07-20 call) — ↗ is the catalogued share/send mark. Copies a
+       deep link to the exact current view (page, tab, sub-tab, sort,
+       grouping), composed at copy time from live state; same field-swap
+       feedback as the ⧉ Setup Code copy. */
+    const handleShareView = (e: React.MouseEvent | React.KeyboardEvent) => {
+        e.stopPropagation();
+        const link = composeViewLink(encodeSortSlug(sort, dir, feedKind, group));
+        if (!link) return;
+        try {
+            navigator.clipboard?.writeText(link);
+        } catch {
+            // ignore
+        }
+        copyingRef.current = true;
+        setInputValue('VIEW LINK COPIED!');
         window.setTimeout(() => {
             copyingRef.current = false;
             setInputValue(currentCode);
@@ -453,6 +478,21 @@ export function MyPdSection({ onTripleTap }: Props) {
                         tabIndex={0}
                     >
                         ⧉{'\uFE0E'}
+                    </span>
+                    <span
+                        className="setup-code-copy setup-code-share"
+                        onClick={handleShareView}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                handleShareView(e);
+                            }
+                        }}
+                        title="Share this view — copy a link that restores this exact page, tab, sort, and grouping"
+                        role="button"
+                        tabIndex={0}
+                    >
+                        ↗{'\uFE0E'}
                     </span>
                 </div>
             </div>
