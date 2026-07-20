@@ -40,7 +40,7 @@ export function idTagFor(userNumber: number | null | undefined): Tag | null {
     if (userNumber <= 22) {
         return {
             id: `id-${userNumber}`,
-            label: `#${userNumber}`,
+            label: `User #${userNumber}`,
             color: ID_TAG_STYLE.color,
             kind: 'id',
             order: 10,

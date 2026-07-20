@@ -5,30 +5,35 @@
  * caps, wordmark renders PD mini*player* with the player part italic; grew
  * out of the PD.fm brief, docs/briefs/pd-fm.md).
  *
- * A persistent bottom mini-player streaming the platform's soundtracks —
- * the projects' PUBLIC YouTube playlists from the registry — through the
- * YouTube IFrame Player. Lives in the shell so it keeps playing across
- * client navigation (never unmounts).
+ * THE DOOR (Brendon, 2026-07-20 — his revision, supersedes THE DOT):
+ * the player exists ONLY while a soundtrack session is live. Playing a
+ * soundtrack anywhere (the Command Stone's soundtrack cards, the Mint
+ * Room, the TUNE key) summons it; the × key stops the audio and the
+ * device fully disappears — no dot, no resting chrome, nothing.
  *
- * PD.fm is the AUTOMATED PROGRAMMING inside it: hit play with no picks
- * and the platform rotation cycles the registry albums; a project page's
- * own soundtrack takes the deck when you start there. The CUSTOMIZATION
- * is the station picker — tap the label and choose your own station:
- * starred soundtracks first, then the full album catalog.
+ * The streaming rail is unchanged: the projects' PUBLIC YouTube playlists
+ * through the YT IFrame Player, mounted in the shell so client navigation
+ * never yanks the audio. While playing, the actual video renders as a
+ * small tile in the chassis (the visible player is also the album art).
+ * The station picker (tap the screen) is the customization: starred
+ * soundtracks first, then the full catalog.
  *
- * While playing, the actual video renders as a small tile in the bar
- * (the visible player is also the album art). Navigation never yanks
- * the audio — on another project's page a TUNE pill offers its station.
+ * FIVE FACES, one markup (DECK · MICRO · THE DISC · THE SLAB · THE
+ * SIGNAL): the ⎇ MODE key is VISIBLE ON EVERY FACE and switches
+ * INSTANTLY (Brendon, 2026-07-20 — the old deck-peek dance made the key
+ * look dead and is gone). × rides every face too, so the door out is
+ * never more than one tap. The video host never remounts — a DOM move
+ * reloads the iframe and cuts the audio — so faces are CSS over the same
+ * slots. The chassis is CENTERED on the screen's bottom band.
  *
  * Chrome: full-strength site tokens (Rule #2) — solid --bg-color fill,
- * --text-color border and text, bold, 12px labels. ▶ is the catalogued
- * soundtrack/play mark.
+ * --text-color border and text, bold, 12px labels (the 10px LCD rows are
+ * the flagged deliberate exception).
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useToast } from '../../lib/state/ToastContext';
-import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 
 import { allProjects, getProject, projectTrueName } from '../../lib/project/registry';
 import { getSoundtrackStarItems } from '../../lib/pins/soundtrackStarStore';
@@ -86,16 +91,15 @@ const FM_DISPLAY_NAMES: Record<FmDisplay, string> = {
 export default function FmBar() {
     const pathname = usePathname();
     const { showToast } = useToast();
-    /* Launch/close (Brendon, 2026-07-20): the miniplayer flag owns whether
-       the bar exists at all — the bar's × key and the MY PD ▶ pill both
-       flip it. Closed = bar gone + audio stopped. */
-    const { notifs, update: updateNotifs } = usePdNotifs();
-    const enabled = notifs.miniplayerOpen;
 
     const [status, setStatus] = useState<FmStatus>('idle');
     const [onAir, setOnAir] = useState<Station | null>(null);
     const [trackTitle, setTrackTitle] = useState('');
     const [pickerOpen, setPickerOpen] = useState(false);
+    /* A station that never reaches PLAYING — or errors repeatedly — is a
+       dead link; the LCD says so instead of tuning forever (Brendon,
+       2026-07-20: switching must be snappy and honest). */
+    const [deadLink, setDeadLink] = useState(false);
 
     /* The display face — device-local, read after mount (SSR-safe). */
     const [display, setDisplay] = useState<FmDisplay>('deck');
@@ -105,31 +109,26 @@ export default function FmBar() {
             if (raw && (FM_DISPLAYS as readonly string[]).includes(raw)) setDisplay(raw as FmDisplay);
         } catch { /* private mode */ }
     }, []);
-    /* Tapping a compact face summons the full deck briefly (auto-collapses). */
-    const [deckPeek, setDeckPeek] = useState(false);
-    const peekTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const armDeckPeek = useCallback(() => {
-        setDeckPeek(true);
-        if (peekTimer.current) clearTimeout(peekTimer.current);
-        peekTimer.current = setTimeout(() => setDeckPeek(false), 6000);
-    }, []);
-    useEffect(() => () => { if (peekTimer.current) clearTimeout(peekTimer.current); }, []);
+    /* MODE — cycles the face IMMEDIATELY, from any face (Brendon,
+       2026-07-20: "when I press this button IT SHOULD DO SOMETHING"). */
     const cycleDisplay = () => {
         const next = FM_DISPLAYS[(FM_DISPLAYS.indexOf(display) + 1) % FM_DISPLAYS.length];
         setDisplay(next);
         try { window.localStorage.setItem('pd_fm_display', next); } catch { /* fine */ }
-        if (next !== 'deck') armDeckPeek(); // keep the deck up so cycling continues
-        else setDeckPeek(false);
         showToast(`PD miniplayer: ${FM_DISPLAY_NAMES[next]}`);
     };
 
     const playerRef = useRef<YTPlayer | null>(null);
     const videoHostRef = useRef<HTMLSpanElement | null>(null);
     const barRef = useRef<HTMLDivElement | null>(null);
-    /* A second tap before the API resolves must not double-create. */
+    /* One create at a time; the latest asked-for station wins the boot. */
     const startingRef = useRef(false);
+    const wantRef = useRef<Station | null>(null);
+    /* Dead-link armor: consecutive player errors + a tune watchdog. */
+    const errCountRef = useRef(0);
+    const watchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    /* PD.fm — the automated rotation: every registry soundtrack. */
+    /* Every registry soundtrack — the station picker's ALL ALBUMS shelf. */
     const rotation = useMemo<Station[]>(
         () =>
             allProjects()
@@ -141,7 +140,6 @@ export default function FmBar() {
                 })),
         [],
     );
-    const rotationIdx = useRef(0);
 
     /* Context station — a project page's own soundtrack. */
     const context = useMemo<Station | null>(() => {
@@ -153,27 +151,46 @@ export default function FmBar() {
         return null;
     }, [pathname]);
 
-    const nextFromRotation = useCallback((): Station | null => {
-        if (rotation.length === 0) return null;
-        const st = rotation[rotationIdx.current % rotation.length];
-        rotationIdx.current += 1;
-        return st;
-    }, [rotation]);
+    /* Begin (or retune) a session. The chassis renders off `onAir`, so a
+       play from anywhere summons the device; the boot effect below creates
+       the YT player once the video host is really in the DOM. */
+    const armWatchdog = useCallback(() => {
+        if (watchdogRef.current) clearTimeout(watchdogRef.current);
+        /* 12s of silence after a tune = the link is dead (private, deleted,
+           or unreachable playlist). Only a stuck TUNING flags — a user pause
+           never does. */
+        watchdogRef.current = setTimeout(() => {
+            if (statusRef.current === 'loading') {
+                setDeadLink(true);
+                setStatus('paused');
+                showToast('Station: DEAD LINK');
+            }
+        }, 12000);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const start = useCallback((station: Station) => {
-        if (startingRef.current) return;
+        wantRef.current = station;
         setOnAir(station);
         setTrackTitle('');
         setStatus('loading');
+        setDeadLink(false);
+        errCountRef.current = 0;
+        armWatchdog();
         if (playerRef.current) {
             playerRef.current.loadPlaylist({ list: station.playlistId, listType: 'playlist' });
-            return;
         }
+    }, [armWatchdog]);
+
+    /* Boot — after the chassis (and the host span) exists. */
+    useEffect(() => {
+        if (!onAir || playerRef.current || startingRef.current) return;
         startingRef.current = true;
         void loadYT().then((YT) => {
             const host = videoHostRef.current;
             startingRef.current = false;
-            if (!host) return;
+            const station = wantRef.current;
+            if (!host || playerRef.current || !station) return;
             playerRef.current = new YT.Player(host, {
                 width: '46',
                 height: '30',
@@ -188,82 +205,84 @@ export default function FmBar() {
                     onStateChange: (e: { data: number; target: YTPlayer }) => {
                         const title = e.target.getVideoData?.()?.title ?? '';
                         if (title) setTrackTitle(title);
-                        if (e.data === YT.PlayerState.PLAYING) setStatus('playing');
+                        if (e.data === YT.PlayerState.PLAYING) {
+                            setStatus('playing');
+                            setDeadLink(false);
+                            errCountRef.current = 0;
+                            if (watchdogRef.current) { clearTimeout(watchdogRef.current); watchdogRef.current = null; }
+                        }
                         else if (e.data === YT.PlayerState.PAUSED) setStatus('paused');
                         else if (e.data === YT.PlayerState.ENDED) setStatus('paused');
+                    },
+                    /* Dead-video armor: a broken/private/pulled video SKIPS
+                       to the next track; three strikes in a row (or a bad
+                       playlist id) = the station is a dead link. */
+                    onError: (e: { data: number }) => {
+                        if (e.data === 2) {
+                            setDeadLink(true);
+                            setStatus('paused');
+                            showToast('Station: DEAD LINK');
+                            return;
+                        }
+                        errCountRef.current += 1;
+                        if (errCountRef.current >= 3) {
+                            setDeadLink(true);
+                            setStatus('paused');
+                            showToast('Station: DEAD LINK');
+                            return;
+                        }
+                        playerRef.current?.nextVideo();
                     },
                 },
             });
         });
-    }, []);
+    }, [onAir]);
+
+    /* × — the whole device goes away: audio dead, chrome gone, nothing
+       left behind (Brendon, 2026-07-20 — supersedes THE DOT). */
+    const closePlayer = () => {
+        playerRef.current?.destroy();
+        playerRef.current = null;
+        startingRef.current = false;
+        wantRef.current = null;
+        if (watchdogRef.current) { clearTimeout(watchdogRef.current); watchdogRef.current = null; }
+        errCountRef.current = 0;
+        setDeadLink(false);
+        setStatus('idle');
+        setOnAir(null);
+        setTrackTitle('');
+        setPickerOpen(false);
+        showToast('PD miniplayer: CLOSED');
+    };
 
     const onPlayTap = () => {
-        if (status === 'idle') {
-            const st = context ?? nextFromRotation();
-            if (!st) { showToast('PD miniplayer: NO SOUNDTRACKS YET'); return; }
-            start(st);
-            showToast('PD miniplayer: ON AIR');
-            return;
-        }
         if (status === 'playing') { playerRef.current?.pauseVideo(); return; }
         playerRef.current?.playVideo();
     };
 
     const onNextTap = () => playerRef.current?.nextVideo();
 
-    /* ── The bus: other surfaces (the Stone's miniplayer mini) drive this
-       one player + read its state. body.pd-fm-live still flags the live
-       deck (toast lift reads it) — but the stacking convention is now THE
-       STONE IS ANCHORED, THE DECK YIELDS (fm.css reads pd-stone-peek /
-       pd-stone-open; 2026-07-20). */
+    /* ── The bus: other surfaces (the Stone's miniplayer mini, the Mint
+       Room) drive this one player + read its state. Playing from anywhere
+       IS the door — the device appears with the session. body.pd-fm-live
+       flags the live deck (toast lift + stone stacking read it). */
     const statusRef = useRef(status);
     useEffect(() => { statusRef.current = status; });
-    /* Playing from anywhere (the Stone's miniplayer mini) LAUNCHES a closed
-       bar: with the flag off there's no video host yet, so the station waits
-       here and the relaunch effect below starts it once the bar renders. */
-    const pendingRef = useRef<Station | null>(null);
-    const enabledRef = useRef(enabled);
-    useEffect(() => { enabledRef.current = enabled; });
     useEffect(() => registerFmDriver({
-        play: (st) => {
-            if (!enabledRef.current) {
-                pendingRef.current = st;
-                updateNotifs({ miniplayerOpen: true });
-                return;
-            }
-            start(st);
-        },
+        play: (st) => start(st),
         toggle: () => {
             if (statusRef.current === 'playing') playerRef.current?.pauseVideo();
             else playerRef.current?.playVideo();
         },
         next: () => playerRef.current?.nextVideo(),
-    }), [start, updateNotifs]);
-    useEffect(() => {
-        if (enabled && pendingRef.current) {
-            const st = pendingRef.current;
-            pendingRef.current = null;
-            start(st);
-        }
-    }, [enabled, start]);
-    /* Closing kills the audio, not just the chrome. */
-    useEffect(() => {
-        if (enabled) return;
-        playerRef.current?.destroy();
-        playerRef.current = null;
-        startingRef.current = false;
-        setStatus('idle');
-        setOnAir(null);
-        setTrackTitle('');
-        setPickerOpen(false);
-    }, [enabled]);
+    }), [start]);
     useEffect(() => {
         publishFm({ status, station: onAir, trackTitle });
     }, [status, onAir, trackTitle]);
     useEffect(() => {
-        document.body.classList.toggle('pd-fm-live', status !== 'idle');
+        document.body.classList.toggle('pd-fm-live', onAir !== null);
         return () => document.body.classList.remove('pd-fm-live');
-    }, [status]);
+    }, [onAir]);
 
     const onTuneTap = () => {
         if (context) {
@@ -272,7 +291,7 @@ export default function FmBar() {
         }
     };
 
-    /* ── The station picker — the customization (tap the label) ── */
+    /* ── The station picker — the customization (tap the screen) ── */
     const pickStation = (st: Station) => {
         setPickerOpen(false);
         start(st);
@@ -302,56 +321,30 @@ export default function FmBar() {
     }, [pickerOpen]);
 
     /* Destroy the player only when the whole shell unmounts (full reload). */
-    useEffect(() => () => { playerRef.current?.destroy(); playerRef.current = null; }, []);
+    useEffect(() => () => {
+        playerRef.current?.destroy();
+        playerRef.current = null;
+        if (watchdogRef.current) clearTimeout(watchdogRef.current);
+    }, []);
 
-    if (rotation.length === 0) return null;
+    /* No session, no device — playing a soundtrack is the only door in. */
+    if (rotation.length === 0 || !onAir) return null;
 
-    /* Closed = THE DOT (Brendon, 2026-07-20 — final call): one solid dot on
-       the bar's anchor, tap zone far bigger than the speck. Tapping it
-       brings the full device back. */
-    if (!enabled) {
-        return (
-            <button
-                type="button"
-                className="fm-nub"
-                onClick={() => updateNotifs({ miniplayerOpen: true })}
-                title="PD miniplayer"
-                aria-label="Open the PD miniplayer"
-            />
-        );
-    }
+    const tuneOffer = context && context.playlistId !== onAir.playlistId;
+    const isDeckFace = display === 'deck';
 
-    const tuneOffer = onAir && context && context.playlistId !== onAir.playlistId;
-
-    /* Art pinned LEFT — the approved mock's layout, exactly. (The mood-day
-       side flip shipped once, read as a bait-and-switch against the approved
-       look, and got pulled — 2026-07-20. Don't re-add without Brendon.) */
-
-    /* ── FIVE FACES (Brendon, 2026-07-20 — "ship them all"): DECK · MICRO ·
-       THE DISC · THE SLAB · THE SIGNAL. One markup, mode classes only — the
-       video host must NEVER remount (a DOM move reloads the iframe and cuts
-       the audio), so every face is CSS over the same slots. The video window
-       stays visible in every face (YT requires it; smallest in SIGNAL).
-       Switching: the deck's MODE key cycles; tapping a compact face brings
-       the full deck back for a few seconds. Device-local pref. */
-    const effectiveMode = status === 'idle' || deckPeek || display === 'deck' ? 'deck' : display;
-    const isDeckFace = effectiveMode === 'deck';
-
-    /* The three LCD rows — Sony minidisc grammar: static, compact, no crawl.
-       The wordmark is PD mini*player* (Brendon, 2026-07-20: PD capitalized,
-       the "player" part italic to start). */
-    const wordmark = <>PD mini<span className="fm-wm-it">player</span></>;
-    const rowTrack = status === 'idle' ? wordmark : (trackTitle || onAir?.label || '…');
-    const rowStation = status === 'idle' ? 'the platform soundtracks' : (onAir?.label ?? '');
+    /* The three LCD rows — Sony minidisc grammar: static, compact, no crawl. */
+    const rowTrack = trackTitle || onAir.label;
+    const rowStation = onAir.label;
     const rowStatus =
+        deadLink ? '✕︎ DEAD LINK' :
         status === 'playing' ? '▶︎ PLAYING' :
-        status === 'paused' ? '‖ PAUSED' :
-        status === 'loading' ? '… TUNING' : 'tap ▶︎';
+        status === 'paused' ? '‖ PAUSED' : '… TUNING';
 
     return (
         <div
             ref={barRef}
-            className={`fm-bar fm-mode-${effectiveMode}${status === 'idle' ? ' fm-idle' : ' fm-live'}`}
+            className={`fm-bar fm-mode-${display} fm-live`}
             title="PD miniplayer — the platform's soundtracks. Tap the screen to pick a station."
         >
             {pickerOpen && (
@@ -372,14 +365,15 @@ export default function FmBar() {
                 </div>
             )}
             {/* ── transport keys — LEFT side, like the deck of a Sony MD.
-                Compact faces hide them (CSS); the slots stay so the video
-                host below never shifts and remounts. ── */}
+                ▶/≫/TUNE are the deck's; ⎇ MODE and × ride EVERY face
+                (Brendon, 2026-07-20). Static slots — the video host below
+                must never shift and remount. ── */}
             {isDeckFace && (
                 <button type="button" className="fm-btn fm-play" onClick={onPlayTap}>
                     {status === 'playing' || status === 'loading' ? '‖' : '▶︎'}
                 </button>
             )}
-            {isDeckFace && status !== 'idle' && (
+            {isDeckFace && (
                 <button type="button" className="fm-btn" onClick={onNextTap} title="Next track">
                     ≫
                 </button>
@@ -389,49 +383,37 @@ export default function FmBar() {
                     TUNE
                 </button>
             )}
-            {isDeckFace && status !== 'idle' && (
-                <button type="button" className="fm-btn fm-modekey" onClick={cycleDisplay} title="Change how the player shows">
-                    {/* ⎇ ALTERNATE (U+2387) — Brendon's pick 2026-07-20 for
-                        the face-cycler; catalogued in GLYPHS.md. */}
-                    {'⎇︎'}
-                </button>
-            )}
-            {isDeckFace && (
-                <button
-                    type="button"
-                    className="fm-btn fm-close"
-                    onClick={() => {
-                        updateNotifs({ miniplayerOpen: false });
-                        showToast('PD miniplayer: CLOSED');
-                    }}
-                    title="Close the miniplayer"
-                    aria-label="Close the PD miniplayer"
-                >
-                    ×
-                </button>
-            )}
+            <button type="button" className="fm-btn fm-modekey" onClick={cycleDisplay} title="Change how the player shows">
+                {/* ⎇ ALTERNATE (U+2387) — Brendon's pick 2026-07-20 for
+                    the face-cycler; catalogued in GLYPHS.md. */}
+                {'⎇︎'}
+            </button>
+            <button
+                type="button"
+                className="fm-btn fm-close"
+                onClick={closePlayer}
+                title="Close the miniplayer"
+                aria-label="Close the PD miniplayer"
+            >
+                ×
+            </button>
             {/* ── THE screen — one display: the forced-YT art window IS part
-                of it (left/right by the day's mood), beside the readout rows.
-                Deck tap = station picker; compact-face tap = the deck back. ── */}
+                of it, beside the readout rows. Tap = station picker. ── */}
             <button
                 type="button"
                 className="fm-screen"
-                onClick={() => {
-                    if (isDeckFace) setPickerOpen((v) => !v);
-                    else armDeckPeek();
-                }}
-                title={isDeckFace ? 'Pick a station' : 'PD miniplayer'}
+                onClick={() => setPickerOpen((v) => !v)}
+                title="Pick a station"
             >
-                {/* The video host stays mounted from first play on — YT
-                    replaces it with the iframe; hiding kills audio, so it
-                    only shrinks to zero footprint pre-play. */}
-                <span className={`fm-video${status === 'idle' ? ' fm-video-hidden' : ''}`}>
+                {/* The video host stays mounted for the session — YT replaces
+                    it with the iframe; a remount kills the audio. */}
+                <span className="fm-video">
                     <span ref={videoHostRef} />
                 </span>
                 <span className="fm-rows">
-                    <span className="fm-row fm-row-track">{rowTrack}</span>
-                    <span className="fm-row">{rowStation}</span>
-                    <span className="fm-row">{rowStatus}</span>
+                    <span className="fm-lcd-row fm-lcd-track">{rowTrack}</span>
+                    <span className="fm-lcd-row">{rowStation}</span>
+                    <span className="fm-lcd-row">{rowStatus}</span>
                 </span>
                 {/* THE SIGNAL's equalizer — present in every face, shown by
                     its mode class only. */}

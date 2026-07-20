@@ -1,10 +1,11 @@
 /* ══════════════════════════════════════════════════════════════════════
    pd miniplayer (components/fm/FmBar) — PD.fm is the automated rotation
    inside it; the station picker is the customization.
-   A compact minidisc-style device pinned bottom-right: PILL body (the
-   house shape — never mid-rounded corners), square disc window with the
-   real video peeking through, square inset LCD with the crawling track
-   name, pill transport keys. Full-strength site tokens (Rule #2): solid
+   A compact minidisc-style device CENTERED on the bottom band: PILL body
+   (the house shape — never mid-rounded corners), square disc window with
+   the real video peeking through, square inset LCD readout, pill
+   transport keys. It exists ONLY while a soundtrack session is live
+   (Brendon, 2026-07-20 — play summons it, × removes it entirely). Full-strength site tokens (Rule #2): solid
    --bg-color fill, --text-color border + text, bold, 12px labels.
    When the player is live it owns the bottom band — the Command Stone
    stacks ABOVE it (body.pd-fm-live offsets in stone.css).
@@ -12,14 +13,22 @@
 
 .fm-bar {
     position: fixed;
-    right: max(14px, env(safe-area-inset-right));
+    /* CENTERED on the bottom band (Brendon, 2026-07-20 — it sat shoved
+       left; the slab face zeroes --fm-tx and goes edge-to-edge instead). */
+    left: 50%;
+    --fm-tx: -50%;
+    transform: translateX(var(--fm-tx));
     bottom: calc(14px + env(safe-area-inset-bottom, 0px));
     z-index: 8990;
     display: flex;
     align-items: center;
     gap: 5px;
-    width: max-content;
-    max-width: min(88vw, 380px);
+    /* Shrink-to-fit, clamped. ⚠ Never width:max-content here — on iOS the
+       clamped chassis kept its max-content flex layout and the screen ran
+       out past the pill's right edge (the 2026-07-20 "all messed up"
+       screenshot). Auto + max-width reflows the flex line inside the clamp. */
+    width: auto;
+    max-width: min(92vw, 380px);
     /* Sony-deck rework (Brendon, 2026-07-20): a band shorter than the old
        45px body — keys LEFT, one screen RIGHT, and the screen sits INSIDE
        the chassis with air around it (37 = 3 border + 32 screen + 2). */
@@ -48,11 +57,7 @@ body.pd-stone-peek .fm-bar {
     bottom: calc(35px + env(safe-area-inset-bottom, 0px));
 }
 body.pd-stone-open .fm-bar {
-    transform: translateY(160%);
-    opacity: 0;
-    pointer-events: none;
-}
-body.pd-stone-open .fm-nub {
+    transform: translateX(var(--fm-tx)) translateY(160%);
     opacity: 0;
     pointer-events: none;
 }
@@ -96,18 +101,15 @@ body.pd-stone-open .fm-nub {
     border: 0;
 }
 
-/* Pre-play the window is absent — but the host must stay in the DOM so the
-   player can be created into it; zero footprint, not display:none. */
-.fm-video-hidden {
-    width: 0;
-    border: none;
-    background: transparent;
-}
-
-/* the three readout rows — static, compact, no crawl (the one-line crawler
+/* The three readout rows — static, compact, no crawl (the one-line crawler
    read as one giant distracting readout — Brendon, 2026-07-20).
    ⚠ 10px by the quarter-height cut — a deliberate LCD exception to the 12px
-   floor, flagged to Brendon at build time. */
+   floor, flagged to Brendon at build time.
+   ⛔ Named .fm-lcd-row ON PURPOSE (2026-07-20, THE broken-screen bug): the
+   old name `.fm-row` collided with the Followers Manager's row class in
+   globals.css, whose padding + border-bottom + 1.6 line-height inflated
+   the LCD rows until the readout burst out of the screen — the exact
+   "all messed up" screenshot. Never rename these back to .fm-row. */
 .fm-rows {
     flex: 1 1 auto;
     min-width: 0;
@@ -119,9 +121,13 @@ body.pd-stone-open .fm-nub {
     flex-direction: column;
     justify-content: center;
     padding: 0 6px;
+    /* The LCD clips its OWN rows too — a boosted or wrapped row must never
+       paint outside the screen glass (the 2026-07-20 escaped-title bug). */
+    max-height: 100%;
+    overflow: hidden;
 }
 
-.fm-row {
+.fm-lcd-row {
     display: block;
     font-size: 10px;
     font-weight: bold;
@@ -132,39 +138,50 @@ body.pd-stone-open .fm-nub {
     text-overflow: ellipsis;
 }
 
-.fm-row-track { letter-spacing: 0.2px; }
+.fm-lcd-track { letter-spacing: 0.2px; }
 
 /* ═══ THE FIVE FACES (Brendon, 2026-07-20 — "ship them all") ═══
    One markup, CSS per face. The video window exists in EVERY face — YT
    requires the playing video visible, and hiding the iframe kills audio.
-   MODE key on the deck cycles; tapping a compact face recalls the deck. */
+   The ⎇ MODE key rides every face and switches INSTANTLY (his order —
+   the deck-peek dance that deferred the switch is dead). */
+
+/* ═ Compact-face keys: ⎇ MODE + × ride EVERY face (Brendon, 2026-07-20 —
+   a mode button that only exists on one face reads as broken). Slightly
+   tighter pills so the small chassis keep their proportions; 12px floor
+   holds. ═ */
+.fm-mode-micro .fm-btn,
+.fm-mode-disc .fm-btn,
+.fm-mode-slab .fm-btn,
+.fm-mode-signal .fm-btn { padding: 3px 7px; font-size: 12px; }
 
 /* MICRO — the screen alone in a squat pill; one readout row */
-.fm-mode-micro { height: 34px; padding: 0 3px; }
+.fm-mode-micro { height: 34px; padding: 0 6px; }
 .fm-mode-micro .fm-screen { height: 28px; border: none; background: transparent; }
 .fm-mode-micro .fm-video { width: 42px; height: 28px; border-radius: 999px 0 0 999px; border-right: none; }
 .fm-mode-micro .fm-video iframe { width: 42px; height: 28px; }
 .fm-mode-micro .fm-rows { padding: 0 8px 0 6px; }
-.fm-mode-micro .fm-row { display: none; }
-.fm-mode-micro .fm-row-track { display: block; font-size: 11px; max-width: 110px; }
+.fm-mode-micro .fm-lcd-row { display: none; }
+.fm-mode-micro .fm-lcd-track { display: block; font-size: 11px; max-width: 110px; }
 
-/* THE DISC — the round window; the real video, circle-cropped */
-.fm-mode-disc { height: 48px; width: 48px; padding: 0; border: none; background: transparent; }
+/* THE DISC — the round window; the real video, circle-cropped. The
+   chassis goes transparent and shrinks to the keys + the circle. */
+.fm-mode-disc { height: 48px; width: auto; padding: 0; border: none; background: transparent; }
 .fm-mode-disc .fm-screen { height: 48px; width: 48px; border-radius: 50%; border: 1.5px solid var(--text-color); background: #000; }
 .fm-mode-disc .fm-video { width: 48px; height: 48px; border: none; }
 .fm-mode-disc .fm-video iframe { width: 86px; height: 48px; margin-left: -19px; }
 .fm-mode-disc .fm-rows { display: none; }
 
 /* THE SLAB — full-width whisper bar, one line */
-.fm-mode-slab { left: 14px; right: 14px; width: auto; max-width: none; height: 26px; padding: 0 10px; }
+.fm-mode-slab { left: 14px; right: 14px; --fm-tx: 0; width: auto; max-width: none; height: 30px; padding: 0 10px; }
 .fm-mode-slab .fm-screen { height: 20px; border: none; background: transparent; }
 .fm-mode-slab .fm-video { width: 30px; height: 18px; align-self: center; border: 1px solid var(--text-color); }
 .fm-mode-slab .fm-video iframe { width: 30px; height: 18px; }
-.fm-mode-slab .fm-row { display: none; }
-.fm-mode-slab .fm-row-track { display: block; font-size: 11px; max-width: none; }
+.fm-mode-slab .fm-lcd-row { display: none; }
+.fm-mode-slab .fm-lcd-track { display: block; font-size: 11px; max-width: none; }
 
 /* THE SIGNAL — proof of life: a thumbnail window + the pulse bars */
-.fm-mode-signal { height: 24px; padding: 0 4px; }
+.fm-mode-signal { height: 28px; padding: 0 6px; }
 .fm-mode-signal .fm-screen { height: 18px; border: none; background: transparent; align-items: center; }
 .fm-mode-signal .fm-video { width: 24px; height: 16px; border: 1px solid var(--text-color); }
 .fm-mode-signal .fm-video iframe { width: 24px; height: 16px; }
@@ -191,28 +208,9 @@ body.pd-stone-open .fm-nub {
    only the "player" part italic to start) */
 .fm-wm-it { font-style: italic; }
 
-/* THE DOT — the closed miniplayer's corner speck (Brendon's final call,
-   2026-07-20 — the chip read as a play button and got pulled). One solid
-   dot; the ::after pad keeps the tap target finger-sized. */
-.fm-nub {
-    position: fixed;
-    right: max(14px, env(safe-area-inset-right));
-    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
-    z-index: 8990;
-    width: 9px;
-    height: 9px;
-    padding: 0;
-    background: var(--text-color);
-    border: none;
-    border-radius: 999px;
-    cursor: pointer;
-}
-
-.fm-nub::after {
-    content: '';
-    position: absolute;
-    inset: -14px;
-}
+/* THE DOT is DEAD (Brendon, 2026-07-20 — his revision): no resting
+   chrome at all. Playing a soundtrack is the only door in; × is the
+   door out and leaves nothing behind. */
 
 /* transport keys — pills on the LEFT, like the deck of a Sony MD */
 .fm-btn {
@@ -244,7 +242,8 @@ body.pd-stone-open .fm-nub {
 /* ── The station picker — square panel opening upward off the screen ── */
 .fm-picker {
     position: absolute;
-    right: 0;
+    left: 50%;
+    transform: translateX(-50%);
     bottom: calc(100% + 8px);
     width: min(78vw, 320px);
     max-height: min(52vh, 380px);

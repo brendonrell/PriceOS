@@ -468,7 +468,7 @@ export default function CommandStone() {
        ~56px above the bottom, so iOS never claims it and the gesture stays
        ours. Desktop: gliding the pointer onto the bottom edge peeks it,
        unchanged. */
-    const revealTouch = useRef<{ y: number } | null>(null);
+    const revealTouch = useRef<{ y: number; scrollY: number } | null>(null);
     useEffect(() => {
         if (stage !== 'hidden') return;
         const onTouchStart = (e: TouchEvent) => {
@@ -476,12 +476,21 @@ export default function CommandStone() {
             if (y == null) return;
             const h = window.innerHeight;
             revealTouch.current =
-                y > h - 220 && y < h - 56 ? { y } : null;
+                y > h - 220 && y < h - 56 ? { y, scrollY: window.scrollY } : null;
         };
         const onTouchMove = (e: TouchEvent) => {
             const start = revealTouch.current;
             const now = e.touches[0]?.clientY;
             if (!start || now == null) return;
+            /* FULLY OFF SCREEN BY DEFAULT (Brendon, 2026-07-20): a swipe
+               that scrolls the page IS a scroll — every upward flick in the
+               band was summoning the stone, so it was never actually off
+               screen. If the page moved with the finger, this gesture is
+               not for the stone. */
+            if (Math.abs(window.scrollY - start.scrollY) > 6) {
+                revealTouch.current = null;
+                return;
+            }
             if (start.y - now >= SWIPE_OPEN_PX) {
                 revealTouch.current = null;
                 setStage('peek');

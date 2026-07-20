@@ -1890,6 +1890,20 @@ body.modal-open { overflow: hidden; touch-action: none; }
     overscroll-behavior: contain;
 }
 .collectors-list::-webkit-scrollbar { display: none; }
+
+/* OWNERS (2026-07-20 real rebuild): sort pills + the standard two-half
+   holder rows (fm-row/lb-* — the leaderboard grammar) inside the modal. */
+.collectors-sort-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin: 10px 0 4px;
+}
+.collectors-list .collectors-holders {
+    text-align: left;
+    padding: 4px 8px;
+}
+.collectors-holders .lb-pos { min-width: 2.5ch; }
 .modal-stats-bottom {
     margin-top: 15px;
     border-top: 1px dashed var(--border-color);

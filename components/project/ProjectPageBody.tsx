@@ -430,17 +430,14 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                 }
                 statsRow={
                     <div className="hero-line stats-row">
-                        <span className="stat-item">
-                            <span
-                                className="stat-icon stat-icon-box"
-                                {...iconToastProps('Outputs Minted / Total Supply')}
-                            >
+                        <span className="stat-item" {...iconToastProps('Outputs Minted / Total Supply')}>
+                            <span className="stat-icon stat-icon-box">
                                 ⬚&#xFE0E;
                             </span>{' '}
                             <span className="stat-val">{project.totalOutputs}/{project.maxSupply}</span>
                         </span>
-                        <span className="stat-item stat-item-vol">
-                            <span className="stat-icon-eth" {...iconToastProps('Total Volume')}>⟠&#xFE0E;</span>{' '}
+                        <span className="stat-item stat-item-vol" {...iconToastProps('Total Volume')}>
+                            <span className="stat-icon-eth">⟠&#xFE0E;</span>{' '}
                             <span className="stat-val stat-val-vol">{project.stats.volume_eth} VOL</span>
                         </span>
                         <span

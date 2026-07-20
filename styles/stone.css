@@ -120,13 +120,24 @@ body.pd-stone-force-white .stone-float {
     z-index: 10004;
     width: min(46vw, 220px);
     height: 13px;
-    background: var(--stone-bg);
-    /* NO OUTLINE — Brendon 2026-07-20: the stone never wears one. */
+    /* The 3D stone (Brendon, 2026-07-20 — "gradient 3d effect on the
+       minimized pill to make it clearer to see"): lit from above, shaded
+       below, built off the stone's own polarity token so the white stone
+       carves the same way. Still NO OUTLINE — the stone never wears one. */
+    background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--stone-bg) 72%, #ffffff) 0%,
+        var(--stone-bg) 52%,
+        color-mix(in srgb, var(--stone-bg) 82%, #000000) 100%
+    );
     border: none;
     border-radius: 6px;
     cursor: pointer;
     touch-action: none; /* the bar owns its swipes — never scrolls the page */
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+    box-shadow:
+        0 6px 24px rgba(0, 0, 0, 0.45),
+        inset 0 1px 1px color-mix(in srgb, #ffffff 30%, transparent),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.5);
     transition: opacity 0.2s ease, transform 0.2s ease;
 }
 .stone-peek--hidden {

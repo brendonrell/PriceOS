@@ -3930,7 +3930,11 @@ body.pd-stone-open .ens-copy-toast {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    margin: 2px 0 10px;
+    /* 16px above AND below (Brendon, 2026-07-20): match the hero rhythm —
+       the same gap the tabs row keeps above the facet row. Above = group-1's
+       24px bottom margin pulled back 8; below = group-2's own 16px flex gap,
+       so the pill row adds NO margins of its own. */
+    margin: -8px 0 0;
 }
 .profile-tag {
     display: inline-flex;
