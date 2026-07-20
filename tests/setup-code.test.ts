@@ -46,7 +46,6 @@ function randomNotifs(rand: () => number): Partial<PdNotifs> {
     n.watchMetric = Math.floor(rand() * 4); // 0..3
     n.pingToasts = PING_MODES[Math.floor(rand() * PING_MODES.length)];
     n.menutape = MENUTAPES[Math.floor(rand() * MENUTAPES.length)];
-    n.audience = rand() < 0.7;
     return n as Partial<PdNotifs>;
 }
 
@@ -79,7 +78,10 @@ describe('Setup Code share contract', () => {
             expect(patch.watchMetric).toBe(notifs.watchMetric);
             expect(patch.pingToasts).toBe(notifs.pingToasts);
             expect(patch.menutape).toBe(notifs.menutape);
-            expect(patch.audience).toBe(notifs.audience);
+            // audience is NOT in the envelope (2026-07-20 — the haunted
+            // toggle): a code must never carry or move it.
+            expect(patch.audience).toBeUndefined();
+            expect(code.includes('NAUD')).toBe(false);
         }
     });
 

@@ -12,7 +12,7 @@
  * order: Curator > Scout > Trader > Oracle (Main first, always):
  *
  *   1   · Main      — ‰CSTM-IDAS                                   (clean)
- *   103 · Curator   — ‰LITE-NASC-NAUD-NSTK-IDAS                    (collection work)
+ *   103 · Curator   — ‰LITE-NASC-NSTK-IDAS                    (collection work)
  *   104 · Scout     — ‰HAZE-PTON-WTCH-FDTD-TAPS                    (discovery work)
  *   102 · Trader    — ‰REDD-LENS-PTON-SHLD-SNTM-WTCH-PRAS-TAPB     (market work)
  *   101 · Oracle    — ‰DARK-CLST-LENS-SNTM-IDAS-TAPF               (valuation work)
@@ -83,7 +83,7 @@ export const SHIPPED_WORKSPACES: ReadonlyArray<Workspace> = [
     // The 2026-07-16 four, in Brendon's 2026-07-19 order (Curator > Scout >
     // Trader > Oracle). High fixed ids so they can never collide with
     // user-created workspaces (which count up from max+1 and started at 3).
-    { id: 103, name: 'Curator', code: '‰LITE-NASC-NAUD-NSTK-IDAS', isDefault: true },
+    { id: 103, name: 'Curator', code: '‰LITE-NASC-NSTK-IDAS', isDefault: true },
     { id: 104, name: 'Scout', code: '‰HAZE-PTON-WTCH-FDTD-TAPS', isDefault: true },
     { id: 102, name: 'Trader', code: '‰REDD-LENS-PTON-SHLD-SNTM-WTCH-PRAS-TAPB', isDefault: true },
     { id: 101, name: 'Oracle', code: '‰DARK-CLST-LENS-SNTM-IDAS-TAPF', isDefault: true },
@@ -127,7 +127,7 @@ export const SPACES: ReadonlyArray<SpacePreset> = [
     },
     {
         key: 'museum', name: 'Museum',
-        code: '‰LITE-ASCR-NASC-NAUD-NSTK-IDAS',
+        code: '‰LITE-ASCR-NASC-NSTK-IDAS',
         blurb: 'The exhibition that walks itself — light, chrome stripped, Auto-Scroll strolling.',
     },
     {
@@ -157,7 +157,7 @@ export const SPACES: ReadonlyArray<SpacePreset> = [
     },
     {
         key: 'ghost', name: 'Ghost',
-        code: '‰DARK-ANON-NAUD-PGHO-IDAS',
+        code: '‰DARK-ANON-PGHO-IDAS',
         blurb: 'No presence, no prices, no name. Browse as a rumor.',
     },
     {

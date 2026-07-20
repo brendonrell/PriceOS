@@ -16,6 +16,8 @@ import type { TodoPriority, TodoRecurrence, TodoVerb } from './types';
 export interface ParsedTodo {
     text: string;
     due: string | null;
+    /** Time-of-day as 'HH:MM' (24h), parsed from "3pm" / "3:30 pm" / "15:30". */
+    dueTime: string | null;
     priceEth: number | null;
     priority: TodoPriority;
     labels: string[];
@@ -93,7 +95,10 @@ export function parseTodo(raw: string): ParsedTodo {
     }
 
     // 4. Price — qualified ("under .4", "@0.4", "◊0.4") or a bare decimal ("0.4 eth")
-    const qualified = /(?:under|below|max|@|≤|<=|<|◊|Ξ)\s*(\d+(?:\.\d+)?)\s*(?:eth|Ξ|◊)?/i.exec(s);
+    /* `\.\d+` alternative: "under .4" (the header's own example) — the old
+       \d+-first pattern silently missed bare-dot decimals (caught 2026-07-20
+       by the time-parse tests). */
+    const qualified = /(?:under|below|max|@|≤|<=|<|◊|Ξ)\s*(\d+(?:\.\d+)?|\.\d+)\s*(?:eth|Ξ|◊)?/i.exec(s);
     if (qualified) {
         priceEth = parseFloat(qualified[1]);
         s = s.replace(qualified[0], ' ');
@@ -106,7 +111,25 @@ export function parseTodo(raw: string): ParsedTodo {
     }
     if (priceEth != null && !(priceEth > 0)) priceEth = null;
 
-    // 5. Date (only if a recurrence didn't already set one)
+    // 5. Time-of-day — "3pm" / "3 pm" / "3:30pm" / "at 3pm" / 24h "15:30".
+    //    Runs before the date pass so the hour digits never get eaten by the
+    //    M/D or output-id captures. am/pm forms win over the bare 24h form.
+    let dueTime: string | null = null;
+    const ampm = /(?:\bat\s+)?\b(1[0-2]|0?[1-9])(?::([0-5]\d))?\s*([ap])\.?m\.?(?=[\s,.!]|$)/i.exec(s);
+    if (ampm) {
+        let h = Number(ampm[1]) % 12;
+        if (ampm[3].toLowerCase() === 'p') h += 12;
+        dueTime = `${String(h).padStart(2, '0')}:${ampm[2] ?? '00'}`;
+        s = s.replace(ampm[0], ' ');
+    } else {
+        const h24 = /(?:\bat\s+)?\b([01]?\d|2[0-3]):([0-5]\d)\b/.exec(s);
+        if (h24) {
+            dueTime = `${String(Number(h24[1])).padStart(2, '0')}:${h24[2]}`;
+            s = s.replace(h24[0], ' ');
+        }
+    }
+
+    // 6. Date (only if a recurrence didn't already set one)
     if (!due) {
         if (/\btoday\b/i.test(s)) {
             due = iso(now);
@@ -152,7 +175,10 @@ export function parseTodo(raw: string): ParsedTodo {
         }
     }
 
-    // 6. verb + project + id → an output to-do
+    // A bare time with no date means TODAY — "call bank 3pm" is today's 3pm.
+    if (dueTime && !due) due = iso(now);
+
+    // 7. verb + project + id → an output to-do
     let output: ParsedTodo['output'] = null;
     const verbM = new RegExp(`\\b(${VERBS.join('|')})\\b`, 'i').exec(s);
     if (verbM) {
@@ -170,7 +196,7 @@ export function parseTodo(raw: string): ParsedTodo {
     }
 
     const text = s.replace(/\s+/g, ' ').trim();
-    return { text, due, priceEth, priority, labels, recurrence, output };
+    return { text, due, dueTime, priceEth, priority, labels, recurrence, output };
 }
 
 /** Resolve a month(0-11)+day to the next such date at-or-after today (rolls to

@@ -99,7 +99,8 @@ import { useOutputMeta } from '../lib/hooks/useOutputMeta';
 import { formatEth } from '../lib/format/eth';
 import { useFiat } from '../lib/state/FiatContext';
 
-import { hashSynApplyHex } from '../lib/engines/hashSynEngine';
+import { hashSynLockToElement } from '../lib/engines/hashSynEngine';
+import { outputPaletteHex } from '../lib/art/outputColor';
 import {
     getGrails,
     subscribeGrails,
@@ -356,11 +357,9 @@ export default function OutputPreview() {
         }
         setImgStage((s) => s + 1);
     };
-    /* Per-piece hashsyn accent, preserved from the old canvas paint (no-op unless
-       the Hash Synesthesia colorway is active). */
-    useEffect(() => {
-        if (id != null) hashSynApplyHex(`hsl(${(id * 37) % 360}, 70%, 50%)`);
-    }, [id]);
+    /* Hash Synesthesia modal lock rides the image's own onLoad below — the
+       opened piece's REAL sampled colour, sim 8800's palette lock translated
+       to stored images. The old synthesized per-id hue is gone (2026-07-20). */
 
     /* Breadcrumbs — the REAL trail (lib/pins/breadcrumbStore). Every Output
        this modal shows was actually visited by the viewer, including
@@ -620,47 +619,39 @@ export default function OutputPreview() {
         }
     }, [isOpen, id, slug, imgLoaded, notifs.asciiArt, mintedBound]);
 
-    /* Sim renders the canvas synchronously inside openModal() — no state
-       round-trip. Mirror that by rendering imperatively here before
-       setCurrentModalId so the art swaps on the same frame as the press. */
-    /* Nav (prev/next) swaps the piece by changing the modal id — the <img> src
-       follows it and the browser shows the cached image instantly. hashsyn accent
-       kept for the active colorway. */
-    const renderToCanvas = useCallback((nextId: number) => {
-        hashSynApplyHex(`hsl(${(nextId * 37) % 360}, 70%, 50%)`);
-    }, []);
+    /* Nav (prev/next) swaps the piece by changing the modal id — the <img>
+       src follows it and the browser shows the cached image instantly. The
+       hashsyn lock rides the img onLoad (fires on every src swap, cached
+       included), so nav needs no imperative accent call (2026-07-20 — the
+       synthesized per-id hue that lived here is gone). */
 
     /* Walk the captured grid sequence (the grid AS SHOWN — across projects and
        carousels) when one was captured at open and the current piece is in it.
-       step = +1 (next) or -1 (prev), wrapping at the ends. Same-project hops
-       still paint imperatively for snappiness; cross-project hops let the
-       [isOpen, id, slug] paint effect repaint. Returns true if it handled it. */
+       step = +1 (next) or -1 (prev), wrapping at the ends. Returns true if it
+       handled it. */
     const stepSequence = useCallback((step: 1 | -1): boolean => {
         if (id == null || !outputSequence) return false;
         const here = slug.toLowerCase();
         const pos = outputSequence.findIndex((s) => s.slug === here && s.id === id);
         if (pos < 0) return false;
         const t = outputSequence[(pos + step + outputSequence.length) % outputSequence.length];
-        if (t.slug === here) renderToCanvas(t.id);
         setCurrentModalOutput(t.slug, t.id);
         return true;
-    }, [id, slug, outputSequence, setCurrentModalOutput, renderToCanvas]);
+    }, [id, slug, outputSequence, setCurrentModalOutput]);
 
     const goNext = useCallback(() => {
         if (id == null) return;
         if (stepSequence(1)) return;
         const nextId = id >= mintedBound ? 1 : id + 1;
-        renderToCanvas(nextId);
         setCurrentModalId(nextId);
-    }, [id, mintedBound, setCurrentModalId, renderToCanvas, stepSequence]);
+    }, [id, mintedBound, setCurrentModalId, stepSequence]);
 
     const goPrev = useCallback(() => {
         if (id == null) return;
         if (stepSequence(-1)) return;
         const nextId = id <= 1 ? Math.max(1, mintedBound) : id - 1;
-        renderToCanvas(nextId);
         setCurrentModalId(nextId);
-    }, [id, mintedBound, setCurrentModalId, renderToCanvas, stepSequence]);
+    }, [id, mintedBound, setCurrentModalId, stepSequence]);
 
     /* Arrow keys for nav. Escape is owned by ModalContext. */
     useEffect(() => {
@@ -976,7 +967,17 @@ export default function OutputPreview() {
                         decoding="async"
                         fetchPriority="high"
                         draggable={false}
-                        onLoad={() => setImgLoaded(true)}
+                        onLoad={(e) => {
+                            setImgLoaded(true);
+                            /* Sim 8800 modal lock — the opened piece's own
+                               sampled colour becomes the hashsyn bg; palette
+                               math is the gate-miss fallback. No-op under
+                               every other colorway. */
+                            hashSynLockToElement(
+                                e.currentTarget,
+                                id != null ? outputPaletteHex(slug, id) : null,
+                            );
+                        }}
                         onError={onModalImgError}
                         onClick={() => {
                             if (id == null) return;
@@ -1249,7 +1250,17 @@ export default function OutputPreview() {
                         decoding="async"
                         fetchPriority="high"
                         draggable={false}
-                        onLoad={() => setImgLoaded(true)}
+                        onLoad={(e) => {
+                            setImgLoaded(true);
+                            /* Sim 8800 modal lock — the opened piece's own
+                               sampled colour becomes the hashsyn bg; palette
+                               math is the gate-miss fallback. No-op under
+                               every other colorway. */
+                            hashSynLockToElement(
+                                e.currentTarget,
+                                id != null ? outputPaletteHex(slug, id) : null,
+                            );
+                        }}
                         onError={onModalImgError}
                         onClick={() => {
                             if (id == null) return;

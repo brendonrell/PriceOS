@@ -412,20 +412,25 @@ export default function CommandStone() {
         setStage('open');
     };
 
-    /* Reveal gesture — the stone is INVISIBLE at rest. A swipe UP that
-       starts near the bottom edge summons the skinny peek pill. Window
-       listeners (no DOM strip, so nothing under the edge loses its taps);
-       the start zone sits above the iOS home-indicator band so the system
-       gesture keeps winning the very edge. Desktop: gliding the pointer
-       onto the bottom edge peeks it too. */
+    /* Reveal gesture — the stone is INVISIBLE at rest. A swipe UP summons
+       the bare peek bar. Window listeners (no DOM strip, so nothing under
+       the edge loses its taps). 2026-07-20 iOS rework (Brendon: Apple
+       dominates the bottom edge — Safari/app-switcher grab any swipe that
+       BEGINS at the edge, and a page can never intercept that): the start
+       zone is now a BAND lifted clear of the system strip — the swipe
+       starts on page content in the lower quarter of the screen, at least
+       ~56px above the bottom, so iOS never claims it and the gesture stays
+       ours. Desktop: gliding the pointer onto the bottom edge peeks it,
+       unchanged. */
     const revealTouch = useRef<{ y: number } | null>(null);
     useEffect(() => {
         if (stage !== 'hidden') return;
         const onTouchStart = (e: TouchEvent) => {
             const y = e.touches[0]?.clientY;
             if (y == null) return;
+            const h = window.innerHeight;
             revealTouch.current =
-                y > window.innerHeight - 96 ? { y } : null;
+                y > h - 220 && y < h - 56 ? { y } : null;
         };
         const onTouchMove = (e: TouchEvent) => {
             const start = revealTouch.current;
@@ -549,7 +554,8 @@ export default function CommandStone() {
                     }
                 }}
             >
-                <span className="stone-peek-glyph">{STONE_GLYPH}</span>
+                {/* No glyph — the resting stone is a bare half-height black
+                    bar (Brendon, 2026-07-20). */}
             </div>
 
             {/* the floating vessel — deck of widgets above, the pill you

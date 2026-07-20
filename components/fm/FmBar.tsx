@@ -27,6 +27,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useToast } from '../../lib/state/ToastContext';
+import { usePdNotifs } from '../../lib/state/PdNotifsContext';
+import { moodOfDay } from '../../lib/mood/mood';
 import { allProjects, getProject, projectTrueName } from '../../lib/project/registry';
 import { getSoundtrackStarItems } from '../../lib/pins/soundtrackStarStore';
 import { registerFmDriver, publishFm, type FmStation } from '../../lib/fm/fmBus';
@@ -76,6 +78,11 @@ type FmStatus = 'idle' | 'loading' | 'playing' | 'paused';
 export default function FmBar() {
     const pathname = usePathname();
     const { showToast } = useToast();
+    /* Launch/close (Brendon, 2026-07-20): the miniplayer flag owns whether
+       the bar exists at all — the bar's × key and the MY PD ▶ pill both
+       flip it. Closed = bar gone + audio stopped. */
+    const { notifs, update: updateNotifs } = usePdNotifs();
+    const enabled = notifs.miniplayer;
 
     const [status, setStatus] = useState<FmStatus>('idle');
     const [onAir, setOnAir] = useState<Station | null>(null);
@@ -83,7 +90,7 @@ export default function FmBar() {
     const [pickerOpen, setPickerOpen] = useState(false);
 
     const playerRef = useRef<YTPlayer | null>(null);
-    const videoHostRef = useRef<HTMLDivElement | null>(null);
+    const videoHostRef = useRef<HTMLSpanElement | null>(null);
     const barRef = useRef<HTMLDivElement | null>(null);
     /* A second tap before the API resolves must not double-create. */
     const startingRef = useRef(false);
@@ -134,8 +141,8 @@ export default function FmBar() {
             startingRef.current = false;
             if (!host) return;
             playerRef.current = new YT.Player(host, {
-                width: '57',
-                height: '32',
+                width: '44',
+                height: '30',
                 playerVars: {
                     listType: 'playlist',
                     list: station.playlistId,
@@ -176,14 +183,45 @@ export default function FmBar() {
        one band above it (stone.css). */
     const statusRef = useRef(status);
     useEffect(() => { statusRef.current = status; });
+    /* Playing from anywhere (the Stone's miniplayer mini) LAUNCHES a closed
+       bar: with the flag off there's no video host yet, so the station waits
+       here and the relaunch effect below starts it once the bar renders. */
+    const pendingRef = useRef<Station | null>(null);
+    const enabledRef = useRef(enabled);
+    useEffect(() => { enabledRef.current = enabled; });
     useEffect(() => registerFmDriver({
-        play: (st) => start(st),
+        play: (st) => {
+            if (!enabledRef.current) {
+                pendingRef.current = st;
+                updateNotifs({ miniplayer: true });
+                return;
+            }
+            start(st);
+        },
         toggle: () => {
             if (statusRef.current === 'playing') playerRef.current?.pauseVideo();
             else playerRef.current?.playVideo();
         },
         next: () => playerRef.current?.nextVideo(),
-    }), [start]);
+    }), [start, updateNotifs]);
+    useEffect(() => {
+        if (enabled && pendingRef.current) {
+            const st = pendingRef.current;
+            pendingRef.current = null;
+            start(st);
+        }
+    }, [enabled, start]);
+    /* Closing kills the audio, not just the chrome. */
+    useEffect(() => {
+        if (enabled) return;
+        playerRef.current?.destroy();
+        playerRef.current = null;
+        startingRef.current = false;
+        setStatus('idle');
+        setOnAir(null);
+        setTrackTitle('');
+        setPickerOpen(false);
+    }, [enabled]);
     useEffect(() => {
         publishFm({ status, station: onAir, trackTitle });
     }, [status, onAir, trackTitle]);
@@ -233,13 +271,43 @@ export default function FmBar() {
 
     if (rotation.length === 0) return null;
 
+    /* Closed = the chip (Brendon's pick, 2026-07-20 — dot is the fallback if
+       Safari chrome fights it): an icon-only mini pill on the bar's exact
+       anchor. Tapping it brings the full device back. */
+    if (!enabled) {
+        return (
+            <button
+                type="button"
+                className="fm-nub"
+                onClick={() => updateNotifs({ miniplayer: true })}
+                title="pd miniplayer"
+                aria-label="Open the pd miniplayer"
+            >
+                {'▶︎'}
+            </button>
+        );
+    }
+
     const tuneOffer = onAir && context && context.playlistId !== onAir.playlistId;
+
+    /* The art window sits on the screen's left or right by the day's MOOD
+       (Brendon, 2026-07-20 — "depending on the mood or something"): the Mood
+       Ring's day index flips it, so the deck rearranges itself day to day. */
+    const artRight = moodOfDay().day % 2 === 1;
+
+    /* The three LCD rows — Sony minidisc grammar: static, compact, no crawl. */
+    const rowTrack = status === 'idle' ? 'pd miniplayer' : (trackTitle || onAir?.label || '…');
+    const rowStation = status === 'idle' ? 'the platform soundtracks' : (onAir?.label ?? '');
+    const rowStatus =
+        status === 'playing' ? '▶︎ PLAYING' :
+        status === 'paused' ? '‖ PAUSED' :
+        status === 'loading' ? '… TUNING' : 'tap ▶︎';
 
     return (
         <div
             ref={barRef}
             className={`fm-bar${status === 'idle' ? ' fm-idle' : ' fm-live'}`}
-            title="pd miniplayer — the platform's soundtracks. Tap the readout to pick a station."
+            title="pd miniplayer — the platform's soundtracks. Tap the screen to pick a station."
         >
             {pickerOpen && (
                 <div className="fm-picker" role="listbox" aria-label="Stations">
@@ -258,18 +326,13 @@ export default function FmBar() {
                     ))}
                 </div>
             )}
-            {/* The video host stays mounted from first play on — YT replaces
-                it with the iframe; hiding it kills audio, so it only shrinks
-                to zero footprint pre-play. */}
-            <div className={`fm-video${status === 'idle' ? ' fm-video-hidden' : ''}`}>
-                <div ref={videoHostRef} />
-            </div>
+            {/* ── transport keys — LEFT side, like the deck of a Sony MD ── */}
             <button type="button" className="fm-btn fm-play" onClick={onPlayTap}>
-                {status === 'playing' || status === 'loading' ? 'PAUSE' : '▶︎ PLAY'}
+                {status === 'playing' || status === 'loading' ? '‖' : '▶︎'}
             </button>
             {status !== 'idle' && (
                 <button type="button" className="fm-btn" onClick={onNextTap} title="Next track">
-                    NEXT
+                    ≫
                 </button>
             )}
             {tuneOffer && (
@@ -279,21 +342,36 @@ export default function FmBar() {
             )}
             <button
                 type="button"
-                className="fm-label"
+                className="fm-btn fm-close"
+                onClick={() => {
+                    updateNotifs({ miniplayer: false });
+                    showToast('pd miniplayer: CLOSED');
+                }}
+                title="Close the miniplayer"
+                aria-label="Close the pd miniplayer"
+            >
+                ×
+            </button>
+            {/* ── THE screen — one display: the forced-YT art window IS part
+                of it (left/right by the day's mood), beside three compact
+                readout rows. Tap = station picker. ── */}
+            <button
+                type="button"
+                className={`fm-screen${artRight ? ' fm-screen--art-right' : ''}`}
                 onClick={() => setPickerOpen((v) => !v)}
                 title="Pick a station"
             >
-                {status === 'idle' ? (
-                    <span className="fm-wordmark">pd miniplayer</span>
-                ) : (
-                    /* the LCD — a minidisc-style scrolling readout */
-                    <span className="fm-lcd">
-                        <span className="fm-lcd-scroll">
-                            {`${trackTitle || onAir?.label || 'pd miniplayer'} · `}
-                            {`${trackTitle || onAir?.label || 'pd miniplayer'} · `}
-                        </span>
-                    </span>
-                )}
+                {/* The video host stays mounted from first play on — YT
+                    replaces it with the iframe; hiding kills audio, so it
+                    only shrinks to zero footprint pre-play. */}
+                <span className={`fm-video${status === 'idle' ? ' fm-video-hidden' : ''}`}>
+                    <span ref={videoHostRef} />
+                </span>
+                <span className="fm-rows">
+                    <span className="fm-row fm-row-track">{rowTrack}</span>
+                    <span className="fm-row">{rowStation}</span>
+                    <span className="fm-row">{rowStatus}</span>
+                </span>
             </button>
         </div>
     );
