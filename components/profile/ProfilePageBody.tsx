@@ -70,6 +70,8 @@ import AchievementsGrid from '../achievements/AchievementsGrid';
 import ProfileAnointedPanel from './ProfileAnointedPanel';
 import VaultPanel from './VaultPanel';
 import DiscordSection from './DiscordSection';
+import CounterpartiesPanel from './CounterpartiesPanel';
+import TargetsPanel from './TargetsPanel';
 import { MAX_PRICE_SCORE, TOTAL_COUNT } from '../../lib/achievements/catalog';
 import Hero from '../hero/Hero';
 import CompletionismModal from '../CompletionismModal';
@@ -1729,6 +1731,28 @@ function ProfilePageBodyInner({
                             </div>
                             <AchievementsGrid unlocked={achData.unlocked} />
                         </div>
+                    )}
+
+                    {/* Counterparties — the wallets this profile has actually
+                        dealt with (ledger-real), crowned by THE NEMESIS: the
+                        one declared rival + the honest floor-value delta. */}
+                    {onMore && effMoreL1 === 'counterparties' && (
+                        <CounterpartiesPanel
+                            address={user.address}
+                            handle={displayHandle}
+                            isOwnProfile={isOwnProfile}
+                            isAuthed={isAuthed}
+                        />
+                    )}
+
+                    {/* Targets — this wallet's Price Target record (the Seal
+                        system): open calls sealed, closed windows public
+                        against today's floor. */}
+                    {onMore && effMoreL1 === 'targets' && (
+                        <TargetsPanel
+                            address={user.address}
+                            isOwnProfile={isOwnProfile}
+                        />
                     )}
 
                     {onMore && effMoreL1 === 'anointed' && (

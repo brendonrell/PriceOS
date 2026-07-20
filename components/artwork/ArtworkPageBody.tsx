@@ -61,6 +61,7 @@ import type { AttrInput, AttrTile } from '../../lib/output/attributes';
 import { handRead, type HandRead } from '../../lib/output/hand';
 import { shareReceipt } from '../../lib/output/receipt';
 import AsciiBackupPanel from './AsciiBackupPanel';
+import NeighbourhoodPanel from './NeighbourhoodPanel';
 import TribunalPanel from './TribunalPanel';
 import OutputAlbumsTab from '../album/OutputAlbumsTab';
 import { formatEth } from '../../lib/format/eth';
@@ -1329,6 +1330,13 @@ export default function ArtworkPageBody({
                         <div className="more-section-header">OFFERS</div>
                         <OffersInline slug={slug} id={Number(numberPart)} query={searchQuery} />
                     </>
+                )}
+
+                {/* NEIGHBOURHOOD — the taste neighbourhood this piece lives in
+                    (the Taste Cluster idea): the wallets around it and what
+                    else they keep, from the real ledger. */}
+                {moreL1 === 'neighbourhood' && (
+                    <NeighbourhoodPanel slug={slug} id={Number(numberPart)} />
                 )}
 
                 {/* PRICE STORY — the piece's market biography, chapters from
