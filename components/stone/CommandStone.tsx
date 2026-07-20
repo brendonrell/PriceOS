@@ -227,7 +227,7 @@ export default function CommandStone() {
     /* Route change → the stone folds away clean (same manners as every
        overlay in the shell: nothing bleeds onto the next page). */
     useEffect(() => {
-        setOpen(false);
+        setStage((st) => (st === 'open' ? 'peek' : st));
         setValue('');
     }, [pathname]);
 
@@ -235,7 +235,7 @@ export default function CommandStone() {
     useEffect(() => {
         if (!open) return;
         const onKey = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') setOpen(false);
+            if (e.key === 'Escape') setStage('peek');
         };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
@@ -402,19 +402,41 @@ export default function CommandStone() {
         };
     }, [stage]);
 
-    /* Any tap outside the vessel puts the stone away (peek or open). */
+    /* The resting pill LIVES there while you scroll (Brendon 2026-07-20).
+       An outside tap only folds the OPEN tab back to the resting pill;
+       hiding is the swipe-down / long-press. */
     const vesselRef = useRef<HTMLDivElement | null>(null);
     const peekRef = useRef<HTMLDivElement | null>(null);
     useEffect(() => {
-        if (stage === 'hidden') return;
+        if (stage !== 'open') return;
         const onDown = (e: PointerEvent) => {
             const t = e.target as Node;
             if (vesselRef.current?.contains(t) || peekRef.current?.contains(t)) return;
-            setStage('hidden');
+            setStage('peek');
         };
         document.addEventListener('pointerdown', onDown, true);
         return () => document.removeEventListener('pointerdown', onDown, true);
     }, [stage]);
+
+    /* Swipes on the pill itself: up opens, down puts it away (resting) or
+       minimizes back to resting (open). */
+    const pillTouchY = useRef<number | null>(null);
+    const onPillTouchStart = (e: React.TouchEvent) => {
+        pillTouchY.current = e.touches[0]?.clientY ?? null;
+    };
+    const makePillTouchMove = (mode: 'peek' | 'open') => (e: React.TouchEvent) => {
+        const start = pillTouchY.current;
+        const now = e.touches[0]?.clientY;
+        if (start == null || now == null) return;
+        if (start - now >= SWIPE_OPEN_PX && mode === 'peek') {
+            pillTouchY.current = null;
+            openStone();
+        } else if (now - start >= SWIPE_OPEN_PX) {
+            pillTouchY.current = null;
+            if (mode === 'open') { inputRef.current?.blur(); setStage('peek'); }
+            else setStage('hidden');
+        }
+    };
 
     /* Long-press the open stage → collapse. Presses that start on live
        elements (the input, result rows, buttons) never count — those
@@ -453,6 +475,11 @@ export default function CommandStone() {
     if (!siweAddress || needsSignup) return null;
 
     const r = results;
+    /* The tab renders ONLY when it has something to say — an empty open
+       stone is just the pill + the flashing block (Brendon's idle). */
+    const cmdCardOn =
+        (etched && !searchingNow) || !!etchPlan || !!castHit || (searchingNow && searching && !r);
+    const hasTab = (searchingNow && (pageHits.length > 0 || !!r)) || cmdCardOn;
 
     return (
         <>
@@ -465,6 +492,8 @@ export default function CommandStone() {
                 tabIndex={stage === 'peek' ? 0 : -1}
                 aria-label="The Command Stone"
                 onClick={openStone}
+                onTouchStart={onPillTouchStart}
+                onTouchMove={makePillTouchMove('peek')}
                 onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
@@ -480,7 +509,7 @@ export default function CommandStone() {
                 the opening gesture (iOS keyboard). */}
             <div
                 ref={vesselRef}
-                className={`stone-float${open ? ' stone-float--open' : ''}`}
+                className={`stone-float${open ? ' stone-float--open' : ''}${open && hasTab ? ' stone-float--docked' : ''}`}
                 id="commandStonePanel"
                 aria-hidden={!open}
                 onPointerDown={onStagePointerDown}
@@ -488,6 +517,7 @@ export default function CommandStone() {
                 onPointerUp={clearPress}
                 onPointerCancel={clearPress}
             >
+                    {hasTab && (
                     <div className="stone-deck stone-results">
                         {searchingNow && (pageHits.length > 0 || r) && (
                             <div className="stone-widget stone-widget-results">
@@ -752,9 +782,15 @@ export default function CommandStone() {
                         )}
                     </div>
 
+                    )}
+
                     {/* the pill — you type right in it; ⌘ carved on the left,
                         the flashing block alone until the first character */}
-                    <div className="stone-pill">
+                    <div
+                        className="stone-pill"
+                        onTouchStart={onPillTouchStart}
+                        onTouchMove={makePillTouchMove('open')}
+                    >
                         <span className="stone-pill-glyph">{STONE_GLYPH}</span>
                         <div className="stone-input-row">
                             {value === '' && (

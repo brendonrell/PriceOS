@@ -18,23 +18,26 @@
    minimum, bold labels.
    ══════════════════════════════════════════════════════════════════════ */
 
-/* ── the peek pill — the stone surfacing (skinny, summoned by swipe) ── */
+/* ── the resting pill — THE stone bar we always had (Brendon 2026-07-20:
+      unchanged look; swipe up summons it, swipe down puts it away, and it
+      LIVES there while you scroll) ── */
 .stone-peek {
     position: fixed;
     left: 50%;
     transform: translateX(-50%);
     bottom: calc(14px + env(safe-area-inset-bottom, 0px));
     z-index: 10004;
-    width: 92px;
-    height: 16px;
+    width: min(46vw, 220px);
+    height: 26px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: #111111;
     color: #e0e0e0;
     border: 1px solid rgba(255, 255, 255, 0.35);
-    border-radius: 999px;
+    border-radius: 6px;
     cursor: pointer;
+    touch-action: none; /* the pill owns its swipes — never scrolls the page */
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
     transition: opacity 0.2s ease, transform 0.2s ease;
 }
@@ -45,7 +48,7 @@
 }
 .stone-peek-glyph {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: bold;
     line-height: 1;
 }
@@ -60,7 +63,7 @@
     width: min(92vw, 420px);
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 0; /* the tab EXTENDS out of the pill — one object, no gap */
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
@@ -94,6 +97,11 @@
     border: 1px solid rgba(255, 255, 255, 0.35);
     border-radius: 999px;
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+}
+/* While the tab is out, the pill flattens its top to receive it — the
+   two read as one carved object. */
+.stone-float--docked .stone-pill {
+    border-radius: 0 0 22px 22px;
 }
 .stone-pill-glyph {
     font-size: 15px;
@@ -135,31 +143,32 @@
     animation: stone-blink 1.06s step-end infinite;
 }
 
-/* ── the deck — black widget cards stacked above the pill ── */
+/* ── the tab — the giant black window extending out of the stone
+      (rounded corners by Brendon's explicit call; widgets or text live
+      inside it) ── */
 .stone-deck {
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    gap: 8px;
     max-height: min(52vh, 440px);
     min-height: 0;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
-}
-.stone-widget {
-    flex: none;
     background: #0b0b0b;
     border: 1px solid rgba(255, 255, 255, 0.35);
-    /* square corners — PD's panel shape (pills are for controls) */
+    border-bottom: none;
+    border-radius: 18px 18px 0 0;
     padding: 6px 8px;
-    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
-}
-.stone-widget-results {
     overflow-y: auto;
-    max-height: min(44vh, 380px);
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+}
+/* sections inside the tab — plain regions now, the watchOS widgets grow
+   here (fresh-chat build) */
+.stone-widget { flex: none; }
+.stone-widget + .stone-widget {
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    margin-top: 4px;
+    padding-top: 4px;
 }
 
 /* ── ETCH — the preview chip + the carved confirmation ── */
@@ -170,7 +179,8 @@
     padding: 10px 12px;
     background: #111111;
     border: 1px solid var(--text-color);
-    border-radius: 999px; /* a chip is a pill */
+    /* square — the vessel carries NO rounded corners (Brendon 2026-07-20);
+       the only pills in the stone are the two he named: peek + typing pill */
     color: var(--text-color);
     font-size: 12px;
     font-weight: bold;
@@ -233,7 +243,7 @@ body.pd-fm-live .stone-float {
     color: var(--text-color);
     background: #111111;
     border: 1px solid var(--text-color);
-    border-radius: 999px; /* pill — the corner law */
+    /* square — vessel rule */
     padding: 4px 9px;
     line-height: 1;
     cursor: pointer;
