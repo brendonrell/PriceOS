@@ -8,7 +8,51 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ⚙ **2026-07-20 (latest) PRE-LAUNCH REFINEMENTS MARATHON — ALL on dev (tip
+0. ✅ **2026-07-20 (latest) THE QUEUE-CLEARING SESSION — SEVEN ships, ALL on
+   dev (tip `075e2f1`), auto-deploy rolling, tree clean. Branch
+   `claude/sound-glyph-options-1z3s3d` = merged trash (Brendon deletes at
+   https://github.com/brendonrell/PriceOS/branches).** Fable session,
+   Brendon driving ship-by-ship then "continue the list, don't stop":
+   ① SOUND LAYER ⚟ (see the marathon entry below — shipped first).
+   ② QUIET HOURS — Brendon's call: NOT a long-press; the Silent Mode ⏾
+   pill now CYCLES OFF → ON → QUIET HOURS → OFF (the Pingtoasts grammar).
+   Landing on QUIET HOURS opens the house value prompt (pre-filled
+   22:00–08:00, quick-add time forms parse); only NATIVE push sleeps in
+   the window (in-app stays live); schedule rides users.settings.notifs
+   (no migration), zone captured at set time, both send gates check it
+   and FAIL OPEN on broken input. 6 tests (overnight wrap, zone math).
+   ③ ₱ PHILIPPINE PESO — the seventh + final fiat slot (his pick after a
+   symbol-only options round; ₩ Korea REJECTED — "no Koreans in gen art";
+   letters-rendering currencies REJECTED). Popup order LOCKED:
+   USD·CAD·GBP·EUR·AUD·PHP·JPY (PHP second-last, before JPY, his call).
+   Both rate sources verified serving PHP live.
+   ④ CARTOGRAPHY TIME MACHINE ⇠◷✧ — the brief built: key under FIT,
+   slim bottom timeline (genesis→NOW), drag rewinds the world (land
+   sinks/shrinks via per-slug mint stamps), crossed moments replay
+   through the existing FX, ▶ plays a 24s time-lapse, ×/key returns to
+   live. Timeline right edge FLUSH with the control stack (his edit —
+   "ends where the buttons end"). GLYPHS.md 12d-bis catalogues the trio
+   (⇠ NEW + reserved).
+   ⑤ PDTV — rides Albums' THE SHOW exactly (the baton's call): entering
+   requests true fullscreen where offered (TV/desktop; the portal already
+   fills the iPhone PWA) and tunes the first exhibited project's
+   soundtrack IF the player is silent — a live player is never yanked.
+   ⑥ PD WRAPPED — cadence-agnostic engine (`/api/stone/wrapped`, days
+   7–365 param; CADENCE = his standing open call) + Command Stone summon
+   (`wrapped` / `recap` / `wrapped 90d`): pieces in/out, net ◊ flow,
+   biggest realized flip, best revealed floor call, top counterparty.
+   Share-card render deliberately NOT built until cadence lands.
+   ⑦ Workspace-cap stale note KILLED (cap is 22 in code, settled) — a
+   stale baton line burned a round; both entries corrected.
+   Proof each ship: tsc · tests (117/117 now: 5 sound + 6 quiet + 1
+   wrapped new) · real builds · compiled greps · real-Courier proofs
+   (dots-row key both states · TM chrome). ClickUp: ad-hoc chat builds,
+   no tasks of record (six-ship precedent).
+   **STANDING (unchanged):** privacy/terms pages (his call) · status-page
+   go-live `86bb0d896` (his action) · Mint Room follow-ups gated on the
+   first real mint · Wrapped cadence + share-card once picked.
+
+0. ⚙ **2026-07-20 PRE-LAUNCH REFINEMENTS MARATHON — ALL on dev (tip
    `c4e0482`), auto-deploy rolling, tree clean. Branch
    `claude/pre-launch-refinements-702aka` = merged trash (Brendon deletes at
    https://github.com/brendonrell/PriceOS/branches).** Fable session, Brendon's
