@@ -24,6 +24,7 @@ import CollectionAttributes from './CollectionAttributes';
 import { projectSpriteFace } from '../../lib/project/projectSprite';
 import { projectContractAddress, shortAddress } from '../../lib/project/projectAddress';
 import ReplayPanel from './ReplayPanel';
+import ProjectAlbumsTab from '../album/ProjectAlbumsTab';
 import GenomePanel from './GenomePanel';
 import GnomePanel from './GnomePanel';
 import PriceStoryPanel from '../market/PriceStoryPanel';
@@ -339,29 +340,11 @@ export default function ProjectMorePanel({
 
             </>)}
             {moreL1 === 'albums' && (<>
-            {/* ALBUMS — sim 5230-5244 */}
+            {/* ALBUMS — real (2026-07-20): YOUR albums holding pieces of this
+                project, wearing the covers-wall 4-art mosaics. Replaced the
+                sim 5230-5244 named-mock cards with their empty cells. */}
             <div className="more-section-header">ALBUMS</div>
-            <div id="albumsGrid" className="albums-grid">
-                {[
-                    { name: 'Favourites', count: 12 },
-                    { name: 'Dark Modes', count: 8 },
-                    { name: 'Vibrant', count: 6 },
-                    { name: 'Boss Encounters', count: 4 },
-                ].map((a) => (
-                    <div className="album-card" key={a.name}>
-                        <div className="album-thumb-grid">
-                            <div className="atg-cell" />
-                            <div className="atg-cell" />
-                            <div className="atg-cell" />
-                            <div className="atg-cell" />
-                        </div>
-                        <div className="album-meta">
-                            <span className="album-name">{a.name}</span>
-                            <span className="album-count">{a.count}</span>
-                        </div>
-                    </div>
-                ))}
-            </div>
+            <ProjectAlbumsTab slug={project.slug} />
 
             </>)}
             {moreL1 === 'genome' && (<>

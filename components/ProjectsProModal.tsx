@@ -21,7 +21,7 @@ import SpriteFace from './SpriteFace';
 const VS15 = '︎';
 
 export default function ProjectsProModal() {
-    const { openModal, close } = useModal();
+    const { openModal, close, closeAll } = useModal();
     const { showToast } = useToast();
     const router = useRouter();
     const isOpen = openModal?.name === 'projectsPro';
@@ -61,7 +61,7 @@ export default function ProjectsProModal() {
         </span>
     );
 
-    const go = (slug: string) => { router.push(`/art/${slug}`); close(); };
+    const go = (slug: string) => { router.push(`/art/${slug}`); closeAll(); };
 
     const list = (
         <div className="projects-pro-list">

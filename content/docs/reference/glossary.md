@@ -140,7 +140,7 @@ Definitions for terms used throughout Price Discussion, alphabetically. The nome
 
 **Token hash** — The Output's immutable generative seed, assigned in the mint transaction. The script renders the Artwork from it, forever.
 
-**True Name** — A Project's permanent, unique 4-letter name in uppercase Glagolitic (for example `ⰅⰒⰗⰚ`). See [Projects & Minting](/docs/app/projects-and-minting).
+**True Name** — A Project's permanent, unique 4-letter name in uppercase Glagolitic (for example Kiki's, `ⰅⰕⰭⰧ`). See [Projects & Minting](/docs/app/projects-and-minting).
 
 **The Watch** (⬬) — Per-page watchlists whose hits route into Pings. See [Collector Tools](/docs/app/collector-tools).
 

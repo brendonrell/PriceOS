@@ -817,6 +817,9 @@ function PersonRow({
                 >
                     {starred ? `★${VS15}` : `☆${VS15}`}
                 </button>
+                {/* The STANDARD user row (Brendon, 2026-07-20): the
+                    leaderboard's two-half anatomy — top half sprite + @name,
+                    bottom half the stats. fm-row-main/-id/-stats verbatim. */}
                 <div
                     className="fi-line-main"
                     role="button"
@@ -825,38 +828,46 @@ function PersonRow({
                     onClick={(e) => { if ((e.target as HTMLElement).closest('a')) return; onInspect(); }}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onInspect(); } }}
                 >
-                    <CollectedPair handle={handle} onSpriteTap={(rect) => setSpriteAnchor(rect)} />
-                    {spriteAnchor && (
-                        <FriendSpritePopover
-                            handle={handle}
-                            anchor={spriteAnchor}
-                            stat={stat}
-                            onClose={() => setSpriteAnchor(null)}
-                        />
-                    )}
-                    {stat?.isArtist && <span className="fm-artist-badge" title="Artist">{`✺${VS15}`}</span>}
-                    {faction && (
-                        <span className="fi-faction" title={faction.name}>
-                            <StickerArt sticker={faction} size={15} />
-                        </span>
-                    )}
-                    {tag && <span className="fi-rel" title={tag}>{REL_GLYPH[tag]}{VS15}</span>}
-                    <span className="fi-cols">
-                        {shared !== null && (
-                            <span className="fi-col fi-col-n" title="Shared holdings">
-                                <span className="fm-stat-ic">{`⟁${VS15}`}</span>{shared}
+                    <div className="fm-row-main">
+                        <div className="fm-row-id">
+                            <CollectedPair handle={handle} onSpriteTap={(rect) => setSpriteAnchor(rect)} />
+                            {spriteAnchor && (
+                                <FriendSpritePopover
+                                    handle={handle}
+                                    anchor={spriteAnchor}
+                                    stat={stat}
+                                    onClose={() => setSpriteAnchor(null)}
+                                />
+                            )}
+                            {stat?.isArtist && <span className="fm-artist-badge" title="Artist">{`✺${VS15}`}</span>}
+                            {faction && (
+                                <span className="fi-faction" title={faction.name}>
+                                    <StickerArt sticker={faction} size={15} />
+                                </span>
+                            )}
+                            {tag && <span className="fi-rel" title={tag}>{REL_GLYPH[tag]}{VS15}</span>}
+                        </div>
+                        <div className="fm-row-stats">
+                            {shared !== null && (
+                                <span className="fm-stat" title="Shared holdings">
+                                    <span className="fm-stat-ic">{`⟁${VS15}`}</span>
+                                    <b>{shared}</b>
+                                </span>
+                            )}
+                            <span className="fm-stat" title="Outputs Collected">
+                                <span className="fm-stat-ic">{`⬚${VS15}`}</span>
+                                <b>{stat ? stat.collected : '—'}</b>
                             </span>
-                        )}
-                        <span className="fi-col fi-col-n" title="Outputs Collected">
-                            <span className="fm-stat-ic">{`⬚${VS15}`}</span>{stat ? stat.collected : '—'}
-                        </span>
-                        <span className="fi-col fi-col-eth" title="Volume Spent">
-                            <span className="fm-stat-ic">{`⟠${VS15}`}</span>{stat ? stat.spentEth.toFixed(2) : '—'}
-                        </span>
-                        <span className="fi-col fi-col-n fi-col-flw" title="Followers">
-                            <span className="fm-stat-ic">{`⚬${VS15}`}</span>{stat ? fmtFollowers(stat.followers) : '—'}
-                        </span>
-                    </span>
+                            <span className="fm-stat" title="Volume Spent">
+                                <span className="fm-stat-ic">{`⟠${VS15}`}</span>
+                                <b>{stat ? stat.spentEth.toFixed(2) : '—'}</b>
+                            </span>
+                            <span className="fm-stat" title="Followers">
+                                <span className="fm-stat-ic">{`⚬${VS15}`}</span>
+                                <b>{stat ? fmtFollowers(stat.followers) : '—'}</b>
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
             {/* The lens annotation — DRAMA's duel verdict / SLEUTH's last move. */}
@@ -1069,22 +1080,34 @@ function ProjectRow({ proj, enabled, starred, onStar }: { proj: FollowedProjectR
                 >
                     {starred ? `★${VS15}` : `☆${VS15}`}
                 </button>
+                {/* Projects wear the SAME standard two-half row as users
+                    (Brendon, 2026-07-20): same top half — sprite + name —
+                    with a project-shaped bottom half of stats. */}
                 <a className="projects-pro-row fi-projrow" href={`/art/${h}`} title={name}>
-                    {face && <SpriteFace className="collected-sprite" face={face} />}
-                    <span className="projects-pro-name">
-                        <span className="ppn-head">{name.slice(0, -6)}</span>
-                        <span className="ppn-tail">{name.slice(-6)}</span>
-                    </span>
-                    <span className="projects-pro-leader" />
-                    <span className="fi-projrow-stats" title="Minted · Mutuals who collect">
-                        <span title="Minted">{`⬚${VS15} ${proj.minted}${proj.supply ? `/${proj.supply}` : ''}`}</span>
-                        <span title="Mutuals who collect">{`⟁${VS15} ${cartel}`}</span>
-                    </span>
-                    {proj.artist && (
-                        <span className={`projects-pro-artist${fmIsSpited(proj.artist) ? ' spited' : ''}`} title="Creator">
-                            @{proj.artist}
+                    <span className="fm-row-main">
+                        <span className="fm-row-id">
+                            {face && <SpriteFace className="collected-sprite" face={face} />}
+                            <span className="projects-pro-name">
+                                <span className="ppn-head">{name.slice(0, -6)}</span>
+                                <span className="ppn-tail">{name.slice(-6)}</span>
+                            </span>
+                            {proj.artist && (
+                                <span className={`projects-pro-artist${fmIsSpited(proj.artist) ? ' spited' : ''}`} title="Creator">
+                                    @{proj.artist}
+                                </span>
+                            )}
                         </span>
-                    )}
+                        <span className="fm-row-stats">
+                            <span className="fm-stat" title="Minted">
+                                <span className="fm-stat-ic">{`⬚${VS15}`}</span>
+                                <b>{proj.minted}{proj.supply ? `/${proj.supply}` : ''}</b>
+                            </span>
+                            <span className="fm-stat" title="Mutuals who collect">
+                                <span className="fm-stat-ic">{`⟁${VS15}`}</span>
+                                <b>{cartel}</b>
+                            </span>
+                        </span>
+                    </span>
                 </a>
             </div>
         </div>

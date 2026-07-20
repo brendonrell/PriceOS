@@ -109,6 +109,7 @@ import {
 } from '../lib/pins/grailStore';
 import { toggleShowcase } from '../lib/pins/userShowcaseStore';
 import { getStarredKeys, toggleStar as storeToggleStar, subscribeStarred } from '../lib/pins/starStore';
+import { addOutputTodo } from '../lib/todos/todoStore';
 import { getWishlistKeys, toggleWishlist as storeToggleWishlist, subscribeWishlist } from '../lib/pins/wishlistStore';
 import AlbumPickerCard from './album/AlbumPickerCard';
 import DegenSlab from './DegenSlab';
@@ -222,7 +223,7 @@ function buildMockOffers(outputId: number): MockOffer[] {
 }
 
 export default function OutputPreview() {
-    const { openModal, currentModalId, currentModalSlug, outputSequence, setCurrentModalId, setCurrentModalOutput, close } = useModal();
+    const { openModal, currentModalId, currentModalSlug, outputSequence, setCurrentModalId, setCurrentModalOutput, close, closeAll } = useModal();
     const { showToast } = useToast();
     const { ethToFiat } = useFiat();
     const { openCalcSheet } = useCalcSheet();
@@ -709,6 +710,13 @@ export default function OutputPreview() {
         showToast(r === 'added' ? 'Added to your Wishlist (Private)' : 'Removed from your Wishlist');
     };
     const openAlbumPicker = () => { if (id != null) setAlbumPickerOpen(true); };
+    /* Same store + toasts as the gallery card's ❍ (ArtworkCard) — the modal
+       pill was a toast-only stub until 2026-07-20. */
+    const handleTodo = () => {
+        if (id == null) return;
+        const r = addOutputTodo(slug, id, 'BUY');
+        showToast(r === 'exists' ? 'To-Do: ALREADY ADDED' : 'To-Do: ADDED');
+    };
 
     /* Shared main-button click — identical in portrait + landscape modals.
        The CTA is ownership/listing-AWARE now, but the secondary marketplace
@@ -853,7 +861,7 @@ export default function OutputPreview() {
                 <div className="dp-row">
                     <span className="dp-label">Artwork Page</span>
                     <span className="dp-value">
-                        <button className="dp-link-btn" onClick={(e) => { e.stopPropagation(); if (id != null) { setDetailsOpen(false); close(); window.scrollTo(0, 0); router.push(`/art/${slug}/${id}`); } }}>
+                        <button className="dp-link-btn" onClick={(e) => { e.stopPropagation(); if (id != null) { setDetailsOpen(false); closeAll(); window.scrollTo(0, 0); router.push(`/art/${slug}/${id}`); } }}>
                             <span className="dp-value-text">Open Full Artwork {`\u2197${VS15}`}</span>
                         </button>
                     </span>
@@ -1059,8 +1067,8 @@ export default function OutputPreview() {
                                 role="button"
                                 tabIndex={0}
                                 title="Go to project"
-                                onClick={() => { close(); window.scrollTo(0, 0); router.push(`/art/${slug}`); }}
-                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); close(); window.scrollTo(0, 0); router.push(`/art/${slug}`); } }}
+                                onClick={() => { closeAll(); window.scrollTo(0, 0); router.push(`/art/${slug}`); }}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); closeAll(); window.scrollTo(0, 0); router.push(`/art/${slug}`); } }}
                             >
                                 {title}
                             </span>
@@ -1070,8 +1078,8 @@ export default function OutputPreview() {
                                 role="button"
                                 tabIndex={0}
                                 title="Go to this output"
-                                onClick={() => { if (id != null) { close(); window.scrollTo(0, 0); router.push(`/art/${slug}/${id}`); } }}
-                                onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && id != null) { e.preventDefault(); close(); window.scrollTo(0, 0); router.push(`/art/${slug}/${id}`); } }}
+                                onClick={() => { if (id != null) { closeAll(); window.scrollTo(0, 0); router.push(`/art/${slug}/${id}`); } }}
+                                onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && id != null) { e.preventDefault(); closeAll(); window.scrollTo(0, 0); router.push(`/art/${slug}/${id}`); } }}
                             >
                                 #{id}
                             </span>
@@ -1108,7 +1116,7 @@ export default function OutputPreview() {
                             <span
                                 className="modal-pill"
                                 title="Add to To-Do"
-                                onClick={() => showToast('To-Dos: ADDED')}
+                                onClick={handleTodo}
                             >
                                 {`\u274D${VS15}`}
                             </span>
@@ -1322,7 +1330,7 @@ export default function OutputPreview() {
                     >
                         {`\u27DF${VS15}`}
                     </span>
-                    <span className="modal-pill" title="Add to To-Do" onClick={() => showToast('To-Dos: ADDED')}>
+                    <span className="modal-pill" title="Add to To-Do" onClick={handleTodo}>
                         {`\u274D${VS15}`}
                     </span>
                     <span

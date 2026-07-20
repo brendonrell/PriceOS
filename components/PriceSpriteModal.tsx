@@ -134,7 +134,7 @@ function CountUpValue({ value, active }: { value: string; active: boolean }) {
 }
 
 export default function PriceSpriteModal() {
-    const { openModal, close, open } = useModal();
+    const { openModal, close, closeAll, open } = useModal();
     const { showToast } = useToast();
     const { priceRank, priceScore, priceStreak, handle, siweAddress } = useAuth();
     const { notifs, toggle } = usePdNotifs();
@@ -460,7 +460,7 @@ export default function PriceSpriteModal() {
                     onClick={(e) => {
                         e.stopPropagation();
                         if (pledge) {
-                            close();
+                            closeAll();
                             router.push(`/art/${pledge.project_id}`);
                         } else {
                             showToast('Anointment: PLACE IT ON ANY PROJECT');
@@ -470,7 +470,7 @@ export default function PriceSpriteModal() {
                         if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
                             if (pledge) {
-                                close();
+                                closeAll();
                                 router.push(`/art/${pledge.project_id}`);
                             } else {
                                 showToast('Anointment: PLACE IT ON ANY PROJECT');

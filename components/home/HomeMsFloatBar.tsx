@@ -23,6 +23,7 @@ import { useTraits } from '../../lib/state/TraitsContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { isStarred, toggleStar } from '../../lib/pins/starStore';
 import { isWishlisted, toggleWishlist } from '../../lib/pins/wishlistStore';
+import { addOutputTodo } from '../../lib/todos/todoStore';
 import AlbumPickerCard from '../album/AlbumPickerCard';
 import { getMarket, subscribeMarket } from '../../lib/home/visibleMarketStore';
 import { useMarketSheet } from '../../lib/state/MarketSheetContext';
@@ -109,6 +110,14 @@ export default function HomeMsFloatBar() {
         });
         showToast(added === 0 ? 'ALL ALREADY WISHLISTED' : `Added ${added} to your Wishlist (Private)`);
     };
+    /* Make To-Do — the artwork ❍ across the selection (was a coming-soon stub). */
+    const handleTodoAll = () => {
+        let added = 0;
+        selectedItems.forEach(({ slug, id }) => {
+            if (addOutputTodo(slug, id, 'BUY') === 'added') added++;
+        });
+        showToast(added === 0 ? 'To-Do: ALL ALREADY ADDED' : added === 1 ? 'To-Do: ADDED' : `To-Dos: ADDED · ${added}`);
+    };
 
     /* Ownership-scoped stubs — report how many eligible pieces the action hit. */
     const ownerEligible = ['Add to Showcase', 'List/Re-List', 'Transfer'];
@@ -165,6 +174,7 @@ export default function HomeMsFloatBar() {
         setConfirmOpen(false);
         if (current === 'Star') { handleStarAll(); return; }
         if (current === 'Wishlist') { handleWishlistAll(); return; }
+        if (current === 'Make To-Do') { handleTodoAll(); return; }
         const n = eligibleCount(current);
         const lbl = n === 1 ? '1 output' : `${n} outputs`;
         if (n === 0) { showToast(`${current}: NONE ELIGIBLE`); return; }

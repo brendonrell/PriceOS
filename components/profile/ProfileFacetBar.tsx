@@ -41,6 +41,7 @@ import { useToast } from '../../lib/state/ToastContext';
 import type { OutputTraits } from '../../lib/project/types';
 import { isStarred, toggleStar } from '../../lib/pins/starStore';
 import { isWishlisted, toggleWishlist } from '../../lib/pins/wishlistStore';
+import { addOutputTodo } from '../../lib/todos/todoStore';
 import { getArtistStars, toggleArtistStar, subscribeArtistStars } from '../../lib/pins/artistStarStore';
 import { getProjectStars, toggleProjectStar, subscribeProjectStars } from '../../lib/pins/projectStarStore';
 import { L3Pill, GroupBtn } from '../project/traitsUIPills';
@@ -757,6 +758,14 @@ function CollectedMsFloatBar({
         });
         showToast(added === 0 ? 'ALL ALREADY WISHLISTED' : `Added ${added} to your Wishlist (Private)`);
     };
+    /* Make To-Do — the artwork ❍ across the selection (was a coming-soon stub). */
+    const handleTodoAll = () => {
+        let added = 0;
+        selectedItems.forEach(({ slug, id }) => {
+            if (addOutputTodo(slug, id, 'BUY') === 'added') added++;
+        });
+        showToast(added === 0 ? 'To-Do: ALL ALREADY ADDED' : added === 1 ? 'To-Do: ADDED' : `To-Dos: ADDED · ${added}`);
+    };
 
     const sheetItems = () => selected.map((h) => ({
         slug: h.slug,
@@ -792,6 +801,7 @@ function CollectedMsFloatBar({
         setConfirmOpen(false);
         if (current === 'Star') { handleStarAll(); return; }
         if (current === 'Wishlist') { handleWishlistAll(); return; }
+        if (current === 'Make To-Do') { handleTodoAll(); return; }
         if (current === 'Add to Cart') {
             let added = 0;
             for (const h of selected) {

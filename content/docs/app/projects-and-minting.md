@@ -35,7 +35,7 @@ The Project's Outputs, in a grid built for long sessions:
 ## Project identity
 
 - **The artist's colour** — each Project paints the app in its own colorway while you're on it.
-- **The True Name** — every Project receives a permanent, unique 4-letter name in uppercase Glagolitic (`ⰅⰒⰗⰚ`), the platform's golem-mythos signature, shown in the Project's social panel.
+- **The True Name** — every Project receives a permanent, unique 4-letter name in uppercase Glagolitic (Kiki's is `ⰅⰕⰭⰧ`), the platform's golem-mythos signature, shown in the Project's social panel.
 - **Milestones** — lifecycle events the whole platform celebrates in the home feed: Uploaded ✧, Graduated ⟢⟢, First Blood †, Lucky 22 ♧, Century Club Ⅽ, Halo ⬭ (777), Per Mille ‰ (1,000), Archetype ✻, Hi-Def ⬢, and Ascension ▲ at sell-out.
 
 ## The Gnome — the Project's keeper

@@ -12,6 +12,7 @@ import { useProject } from '../../lib/state/ProjectContext';
 import { getGrails, subscribeGrails, MAX_GRAIL_PINS, type GrailPin } from '../../lib/pins/grailStore';
 import { isStarred, toggleStar } from '../../lib/pins/starStore';
 import { isWishlisted, toggleWishlist } from '../../lib/pins/wishlistStore';
+import { addOutputTodo } from '../../lib/todos/todoStore';
 import { getActiveBudgetEth } from '../../lib/engines/budgetEngine';
 import AlbumPickerCard from '../album/AlbumPickerCard';
 import { formatEth } from '../../lib/format/eth';
@@ -82,6 +83,16 @@ export default function MsFloatBar() {
         showToast(added === 0 ? 'ALL ALREADY WISHLISTED' : `Added ${added} to your Wishlist (Private)`);
     };
 
+    /* Make To-Do — the artwork ❍ across the selection: one BUY to-do per
+       selected Output, idempotent (dupes report, never double). */
+    const handleTodoAll = () => {
+        let added = 0;
+        selectedItems.forEach(({ slug: s2, id }) => {
+            if (addOutputTodo(s2, id, 'BUY') === 'added') added++;
+        });
+        showToast(added === 0 ? 'To-Do: ALL ALREADY ADDED' : added === 1 ? 'To-Do: ADDED' : `To-Dos: ADDED · ${added}`);
+    };
+
     const handleAddToCart = () => {
         if (count === 0) { showToast('Select items first'); return; }
         let added = 0;
@@ -98,7 +109,7 @@ export default function MsFloatBar() {
         { label: 'Star',         exec: handleStarAll },
         { label: 'Wishlist',     exec: handleWishlistAll },
         { label: 'Add to Album', exec: () => setAlbumPickerOpen(true) },
-        { label: 'Make To-Do',   exec: stub('Make To-Do') },
+        { label: 'Make To-Do',   exec: handleTodoAll },
     );
     const sheetItems = () => selectedItems.map(({ slug: s2, id }) => {
         const price = outputs.get(id)?.price;

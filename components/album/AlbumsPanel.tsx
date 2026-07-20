@@ -43,7 +43,7 @@ import type { AlbumRecord } from '../../lib/supabase';
 
 const VS15 = '︎';
 
-function parseKey(k: string): { slug: string; id: number } | null {
+export function parseKey(k: string): { slug: string; id: number } | null {
     const i = k.lastIndexOf(':');
     if (i <= 0) return null;
     const id = Number(k.slice(i + 1));
@@ -141,8 +141,8 @@ function AlbumShow({ album, number, onClose }: { album: AlbumRecord; number: num
       one cell crossfades to a piece not currently showing, on a per-album
       stagger so the wall never blinks in unison. A chosen single cover
       stays perfectly still (it was chosen). ── */
-function AlbumCoverTile({ album, number, listedEth, onOpen }: {
-    album: AlbumRecord; number: number; listedEth: number; onOpen: () => void;
+export function AlbumCoverArt({ album, number, listedEth }: {
+    album: AlbumRecord; number: number; listedEth: number;
 }) {
     const coverKey = album.cover && album.keys.includes(album.cover) ? album.cover : null;
     const [cells, setCells] = useState<string[]>(() => (coverKey ? [coverKey] : album.keys.slice(0, 4)));
@@ -167,12 +167,7 @@ function AlbumCoverTile({ album, number, listedEth, onOpen }: {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [coverKey, keysSig, number]);
     return (
-        <button
-            type="button"
-            className="album-tile"
-            style={{ animationDelay: `${Math.min(number - 1, 8) * 55}ms` }}
-            onClick={onOpen}
-        >
+        <>
             <span className={`album-tile-art${coverKey ? ' single' : ''}${cells.length === 0 ? ' empty' : ''}`}>
                 {cells.map((k, i) => {
                     const m = parseKey(k);
@@ -193,8 +188,46 @@ function AlbumCoverTile({ album, number, listedEth, onOpen }: {
                     {album.keys.length}
                 </span>
             </span>
+        </>
+    );
+}
+
+function AlbumCoverTile({ album, number, listedEth, onOpen }: {
+    album: AlbumRecord; number: number; listedEth: number; onOpen: () => void;
+}) {
+    return (
+        <button
+            type="button"
+            className="album-tile"
+            style={{ animationDelay: `${Math.min(number - 1, 8) * 55}ms` }}
+            onClick={onOpen}
+        >
+            <AlbumCoverArt album={album} number={number} listedEth={listedEth} />
         </button>
     );
+}
+
+/* The covers wall's quiet worth line, shareable: sum of each album's
+   currently-listed members off the same live feed the grail pins read.
+   Returns a lookup so one price subscription serves a whole wall. */
+export function useAlbumsWorth(albums: ReadonlyArray<AlbumRecord>): (a: AlbumRecord) => number {
+    const slugs = useMemo(() => {
+        const s = new Set<string>();
+        for (const a of albums) for (const k of a.keys) { const m = parseKey(k); if (m) s.add(m.slug); }
+        return Array.from(s);
+    }, [albums]);
+    const priceVersion = useStarredPrices(slugs);
+    return useCallback((a: AlbumRecord): number => {
+        let total = 0;
+        for (const k of a.keys) {
+            const m = parseKey(k);
+            if (!m) continue;
+            const p = priceOf(m.slug, m.id);
+            if (p != null && p > 0) total += p;
+        }
+        return total;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [priceVersion]);
 }
 
 export default function AlbumsPanel({ own }: { own: boolean }) {

@@ -24,6 +24,7 @@ import {
     useContext,
     useEffect,
     useMemo,
+    useRef,
     useState,
     type ReactNode,
 } from 'react';
@@ -95,7 +96,14 @@ interface ModalContextValue {
      *  prev/next arrows walk this (null = no grid; fall back to per-project nav). */
     outputSequence: OutputRef[] | null;
     open: (name: ModalName, payload?: number | string, slug?: string) => void;
+    /** Close the TOP modal only — whatever was underneath comes back
+     *  (Brendon, 2026-07-20: launching a modal over a modal must never lose
+     *  the one underneath). With nothing stacked this closes everything,
+     *  exactly as before. */
     close: () => void;
+    /** Close the WHOLE stack — for leaving modal-land entirely (navigation
+     *  to a page). */
+    closeAll: () => void;
     /** Set the OutputPreview's output id (for prev/next nav within one project). */
     setCurrentModalId: (id: number | null) => void;
     /** Move the output modal to a specific (slug, id) — used to walk the grid
@@ -106,13 +114,38 @@ interface ModalContextValue {
 const ModalContext = createContext<ModalContextValue | null>(null);
 
 export function ModalProvider({ children }: { children: ReactNode }) {
-    const [openModal, setOpenModal] = useState<OpenModalState | null>(null);
+    /* The modal STACK (Brendon, 2026-07-20 — the PriceRank leaderboard was
+       killing the PriceSprite modal under it). open() pushes, close() pops:
+       whatever sat underneath comes back exactly as it was. `openModal`
+       stays the TOP of the stack, so every existing consumer reads the
+       same single-modal shape it always did. */
+    const [stack, setStack] = useState<OpenModalState[]>([]);
+    const openModal = stack.length > 0 ? stack[stack.length - 1] : null;
     const [currentModalId, setCurrentModalId] = useState<number | null>(null);
     const [currentModalSlug, setCurrentModalSlug] = useState<string | null>(null);
     const [outputSequence, setOutputSequence] = useState<OutputRef[] | null>(null);
+    /* Escape is heard by BOTH this provider and some modals' own handlers —
+       one keypress must pop exactly ONE entry. The guard swallows the same-
+       tick duplicate close() call (both fire synchronously in one dispatch). */
+    const closeGuard = useRef(false);
+
+    /* Live mirrors of the output-modal position — open() freezes these into
+       a covered output entry without re-creating its callback per render. */
+    const idRef = useRef<number | null>(null);
+    const slugRef = useRef<string | null>(null);
+    useEffect(() => { idRef.current = currentModalId; slugRef.current = currentModalSlug; }, [currentModalId, currentModalSlug]);
 
     const open = useCallback((name: ModalName, payload?: number | string, slug?: string) => {
-        setOpenModal({ name, payload, slug });
+        setStack((s) => {
+            /* Before covering an open output modal, freeze its CURRENT piece
+               into its stack entry (prev/next may have walked it) so popping
+               back restores the piece that was actually on screen. */
+            const top = s[s.length - 1];
+            const base = top?.name === 'output' && idRef.current != null
+                ? [...s.slice(0, -1), { ...top, payload: idRef.current, slug: slugRef.current ?? undefined }]
+                : s;
+            return [...base, { name, payload, slug }];
+        });
         if (name === 'output' && typeof payload === 'number') {
             setCurrentModalId(payload);
             setCurrentModalSlug(slug ? slug.toLowerCase() : null);
@@ -129,7 +162,27 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const close = useCallback(() => {
-        setOpenModal(null);
+        if (closeGuard.current) return;
+        closeGuard.current = true;
+        queueMicrotask(() => { closeGuard.current = false; });
+        setStack((s) => {
+            const next = s.slice(0, -1);
+            const top = next[next.length - 1] ?? null;
+            if (top?.name === 'output' && typeof top.payload === 'number') {
+                // Popping back onto an output modal — restore its piece.
+                setCurrentModalId(top.payload);
+                setCurrentModalSlug(top.slug ? top.slug.toLowerCase() : null);
+            } else {
+                setCurrentModalId(null);
+                setCurrentModalSlug(null);
+                if (next.length === 0) setOutputSequence(null);
+            }
+            return next;
+        });
+    }, []);
+
+    const closeAll = useCallback(() => {
+        setStack([]);
         setCurrentModalId(null);
         setCurrentModalSlug(null);
         setOutputSequence(null);
@@ -200,8 +253,8 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     }, [openModal]);
 
     const value = useMemo<ModalContextValue>(
-        () => ({ openModal, currentModalId, currentModalSlug, outputSequence, open, close, setCurrentModalId, setCurrentModalOutput }),
-        [openModal, currentModalId, currentModalSlug, outputSequence, open, close, setCurrentModalOutput]
+        () => ({ openModal, currentModalId, currentModalSlug, outputSequence, open, close, closeAll, setCurrentModalId, setCurrentModalOutput }),
+        [openModal, currentModalId, currentModalSlug, outputSequence, open, close, closeAll, setCurrentModalOutput]
     );
 
     return <ModalContext.Provider value={value}>{children}</ModalContext.Provider>;

@@ -12,7 +12,7 @@ PDMCP is Price Discussion's public [Model Context Protocol](https://modelcontext
 server: the standard plug that lets ANY AI agent — Claude, ChatGPT, Claude
 Code, Cursor, a LangChain pipeline, your own bot — read PD as live,
 structured tools instead of scraping HTML. Ask your assistant *"is this
-contract a real PD Project?"*, *"who owns Chladni #22 and what has it sold
+contract a real PD Project?"*, *"who owns Kiki #22 and what has it sold
 for?"*, *"does landscape or portrait sell better?"*, or *"show me the piece"*
 — and it answers from the same public data the site itself runs on.
 
@@ -50,15 +50,15 @@ trusting any marketplace listing that says "PD."
 
 ### `get_project` — the Project card
 
-**Ask it:** "What's the state of Chladni?"
-**Arguments:** `slug` (lowercase project slug, e.g. `chladni`).
+**Ask it:** "What's the state of Kiki?"
+**Arguments:** `slug` (lowercase project slug, e.g. `kiki`).
 **Answers:** minted count, signature colorway, the Project's PriceSprite,
 soundtrack, market stats, live listed count and floor, and the canonical
 page URL.
 
 ### `get_output` — one piece, completely
 
-**Ask it:** "Tell me about Chladni #22."
+**Ask it:** "Tell me about Kiki #22."
 **Arguments:** `slug`, `token_id` (1-based).
 **Answers:** current owner, original minter, mint moment, the piece's
 [True Name](/docs/app/outputs), listing state and last sale, the full trait
@@ -79,7 +79,7 @@ it against the chain any time.
 
 ### `get_ascii` — SHOW the artwork, inline
 
-**Ask it:** "Show me Chladni #22."
+**Ask it:** "Show me Kiki #22."
 **Arguments:** `slug`, `token_id`.
 **Answers:** the piece's permanent [ASCII backup artifact](/docs/app/outputs)
 — real, renderable art derived deterministically from the same generative

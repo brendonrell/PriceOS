@@ -215,6 +215,28 @@
     .album-show-art { transition: none; }
 }
 
+/* ── Artwork / project page ▸ Albums tab — the covers-wall tiles
+   (AlbumCoverArt) shown outside the profile shelf (2026-07-20: "fully show
+   the 4 album preview"). Tiles here are display, not doors — no tap-through
+   yet — so the span variant drops the button cursor; the artwork tab's ✕
+   keeps its one-tap pull-out riding the tile's corner. ── */
+.output-albums-wrap { display: flex; flex-direction: column; gap: 14px; }
+.output-albums-covers { width: 100%; }
+.output-album-tile { position: relative; display: block; cursor: default; }
+.output-album-tile .output-album-tile-x {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    z-index: 2;
+    cursor: pointer;
+    font: bold 14px 'Courier New', Courier, monospace;
+    line-height: 1;
+    color: var(--text-color);
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
+    padding: 3px 5px;
+}
+
 /* ── Artwork page ▸ Albums tab — this piece's album chips ── */
 .output-albums-row {
     display: flex;
