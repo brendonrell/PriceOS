@@ -31,6 +31,15 @@ describe('parseWidget — bare-word summons', () => {
         expect(parseWidget('prisms')).toBeNull();
         expect(parseWidget('')).toBeNull();
     });
+
+    it('summons PD Wrapped — bare = 30d, `wrapped 90d` picks the window', () => {
+        expect(parseWidget('wrapped')).toEqual({ kind: 'wrapped', days: 30 });
+        expect(parseWidget('recap')).toEqual({ kind: 'wrapped', days: 30 });
+        expect(parseWidget('my wrapped')).toEqual({ kind: 'wrapped', days: 30 });
+        expect(parseWidget('wrapped 90d')).toEqual({ kind: 'wrapped', days: 90 });
+        expect(parseWidget('recap 7')).toEqual({ kind: 'wrapped', days: 7 });
+        expect(parseWidget('wrappedd')).toBeNull(); // inexact falls through
+    });
 });
 
 describe('parseWidget — dossier', () => {

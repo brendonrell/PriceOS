@@ -48,6 +48,7 @@ import { buildWalletMark } from '../../lib/stone/mark';
 import { commitEtch } from '../../lib/stone/etch';
 import type { WidgetPlan } from '../../lib/stone/widgets';
 import type { StoneTrendResponse } from '../../app/api/stone/trend/route';
+import type { StoneWrappedResponse } from '../../app/api/stone/wrapped/route';
 import { CALC_ROYALTY_PCT, CALC_GAS_ESTIMATE_ETH } from '../CalcSheet';
 import { searchIndex, hrefFor, type Hit } from '../docs/DocsSearch';
 import type { SearchEntry } from '../../lib/docs/search';
@@ -934,6 +935,83 @@ function TrendWidget({ plan }: { plan: Extract<WidgetPlan, { kind: 'trend' }> })
     );
 }
 
+/* ── PD WRAPPED — your own story over a period, straight from the ledger
+      (2026-07-20; cadence-agnostic — `wrapped` = 30d, `wrapped 90d` picks).
+      Real events only: a quiet period reads honestly quiet. ── */
+
+function WrappedWidget({ plan, address }: { plan: Extract<WidgetPlan, { kind: 'wrapped' }>; address: string }) {
+    const [data, setData] = useState<StoneWrappedResponse | null | 'loading'>('loading');
+    const { days } = plan;
+
+    useEffect(() => {
+        let cancelled = false;
+        setData('loading');
+        fetch(`/api/stone/wrapped?me=${encodeURIComponent(address.toLowerCase())}&days=${days}`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((j) => { if (!cancelled) setData(j); })
+            .catch(() => { if (!cancelled) setData(null); });
+        return () => { cancelled = true; };
+    }, [address, days]);
+
+    if (data === 'loading') {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle label="WRAPPED" sub={`${days}D`} />
+                <SwSay>READING YOUR LEDGER…</SwSay>
+            </div>
+        );
+    }
+    if (!data) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle label="WRAPPED" sub={`${days}D`} />
+                <SwSay>THE LEDGER ISN&apos;T ANSWERING.</SwSay>
+            </div>
+        );
+    }
+    const quiet = data.collected === 0 && data.sold === 0 && data.trades === 0;
+    const sign = data.net_eth >= 0 ? '+' : '−';
+    const flipTitle = data.flip
+        ? `${(getProject(data.flip.project_id)?.displayName ?? data.flip.project_id).toUpperCase()}${data.flip.token_id != null ? ` #${data.flip.token_id}` : ''}`
+        : null;
+    const callTitle = data.best_call
+        ? (getProject(data.best_call.project_id)?.displayName ?? data.best_call.project_id).toUpperCase()
+        : null;
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle label="WRAPPED" sub={`YOUR ${data.days} DAYS`} />
+            {quiet ? (
+                <SwSay>{`A QUIET ${data.days} DAYS. THE LEDGER WAITS.`}</SwSay>
+            ) : (
+                <SwSay lead>{`${data.collected} PIECE${data.collected === 1 ? '' : 'S'} IN · ${data.sold} OUT · ${sign}◊${Math.abs(data.net_eth)}`}</SwSay>
+            )}
+            <div className="sw-rows">
+                {data.minted > 0 && (
+                    <div className="sw-row-line"><span className="sw-row-l">{`✶${VS15} MINTED`}</span><span className="sw-row-r">{data.minted}</span></div>
+                )}
+                {data.bought > 0 && (
+                    <div className="sw-row-line"><span className="sw-row-l">{`✸${VS15} BOUGHT`}</span><span className="sw-row-r">{`${data.bought} · ${eth(data.spent_eth)}`}</span></div>
+                )}
+                {data.sold > 0 && (
+                    <div className="sw-row-line"><span className="sw-row-l">{`✹${VS15} SOLD`}</span><span className="sw-row-r">{`${data.sold} · ${eth(data.earned_eth)}`}</span></div>
+                )}
+                {data.trades > 0 && (
+                    <div className="sw-row-line"><span className="sw-row-l">{`⇌${VS15} TRADES`}</span><span className="sw-row-r">{data.trades}</span></div>
+                )}
+                {data.flip && flipTitle && (
+                    <div className="sw-row-line"><span className="sw-row-l">BIGGEST FLIP · {flipTitle}</span><span className="sw-row-r">{`${data.flip.profit_eth >= 0 ? '+' : '−'}◊${Math.abs(data.flip.profit_eth)}`}</span></div>
+                )}
+                {data.best_call && callTitle && (
+                    <div className="sw-row-line"><span className="sw-row-l">BEST CALL · {callTitle}</span><span className="sw-row-r">{`${Math.abs(data.best_call.gap_pct)}% OFF`}</span></div>
+                )}
+                {data.top_counterparty && (
+                    <div className="sw-row-line"><span className="sw-row-l">TOP COUNTERPARTY</span><span className="sw-row-r">{`${data.top_counterparty.handle ? '@' + data.top_counterparty.handle : shortAddress(data.top_counterparty.address)} · ${data.top_counterparty.deals}`}</span></div>
+                )}
+            </div>
+        </div>
+    );
+}
+
 /* ── THE GLANCE — the composed morning card (stage 5): the day, your
       schedule, your pings, your held floors — one boot readout ── */
 
@@ -1040,6 +1118,7 @@ export function WidgetDeck({ plan, address, onGo, onAct }: {
         case 'docs': return <DocsWidget query={plan.query} onGo={onGo} />;
         case 'glance': return <GlanceWidget address={address} />;
         case 'trend': return <TrendWidget plan={plan} />;
+        case 'wrapped': return <WrappedWidget plan={plan} address={address} />;
     }
 }
 

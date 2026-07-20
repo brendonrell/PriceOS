@@ -36,7 +36,9 @@ export type WidgetPlan =
     | { kind: 'docs'; query: string }
     /* stage 5 hands */
     | { kind: 'glance' }
-    | { kind: 'trend'; slug: string; title: string; days: number };
+    | { kind: 'trend'; slug: string; title: string; days: number }
+    /* PD WRAPPED (2026-07-20) — your own recap; cadence-agnostic (days). */
+    | { kind: 'wrapped'; days: number };
 
 function norm(s: string): string {
     return s.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -49,6 +51,10 @@ const PRICEDAY_WORDS = new Set(['priceday', 'price day', 'today', 'almanac']);
 const ASCII_WORDS = new Set(['ascii', 'my ascii', 'my mark', 'wallet art']);
 /** THE GLANCE — the composed morning card (stage 5). */
 const GLANCE_WORDS = new Set(['brief', 'glance', 'morning', 'the glance']);
+/** PD WRAPPED — bare word = the default 30-day look-back; `wrapped 90d`
+    picks the window (cadence is Brendon's open call — the days parameter
+    IS the cadence-agnosticism). */
+const WRAPPED_WORDS = new Set(['wrapped', 'my wrapped', 'pd wrapped', 'recap', 'my recap']);
 
 /** `@handle` — bare handle lines summon the dossier (the stone's own
     presentation of the person). Same charset the app allows in handles. */
@@ -70,6 +76,11 @@ export function parseWidget(line: string): WidgetPlan | null {
     if (PRICEDAY_WORDS.has(q)) return { kind: 'priceday' };
     if (ASCII_WORDS.has(q)) return { kind: 'ascii' };
     if (GLANCE_WORDS.has(q)) return { kind: 'glance' };
+    if (WRAPPED_WORDS.has(q)) return { kind: 'wrapped', days: 30 };
+
+    /* `wrapped 90d` / `recap 7d` — a chosen window. */
+    const wrapped = /^(?:wrapped|recap)\s+(\d{1,3})d?$/.exec(q);
+    if (wrapped) return { kind: 'wrapped', days: parseInt(wrapped[1], 10) };
 
     /* `<project> 30d` — the sales trend in Courier (stage 5). Window is
        clamped 7–90 by the API; unresolved names fall through to search. */
