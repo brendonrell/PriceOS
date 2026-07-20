@@ -28,6 +28,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useToast } from '../../lib/state/ToastContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
+import { moodOfDay } from '../../lib/mood/mood';
 import { allProjects, getProject, projectTrueName } from '../../lib/project/registry';
 import { getSoundtrackStarItems } from '../../lib/pins/soundtrackStarStore';
 import { registerFmDriver, publishFm, type FmStation } from '../../lib/fm/fmBus';
@@ -89,7 +90,7 @@ export default function FmBar() {
     const [pickerOpen, setPickerOpen] = useState(false);
 
     const playerRef = useRef<YTPlayer | null>(null);
-    const videoHostRef = useRef<HTMLDivElement | null>(null);
+    const videoHostRef = useRef<HTMLSpanElement | null>(null);
     const barRef = useRef<HTMLDivElement | null>(null);
     /* A second tap before the API resolves must not double-create. */
     const startingRef = useRef(false);
@@ -140,8 +141,8 @@ export default function FmBar() {
             startingRef.current = false;
             if (!host) return;
             playerRef.current = new YT.Player(host, {
-                width: '57',
-                height: '32',
+                width: '44',
+                height: '30',
                 playerVars: {
                     listType: 'playlist',
                     list: station.playlistId,
@@ -289,11 +290,24 @@ export default function FmBar() {
 
     const tuneOffer = onAir && context && context.playlistId !== onAir.playlistId;
 
+    /* The art window sits on the screen's left or right by the day's MOOD
+       (Brendon, 2026-07-20 — "depending on the mood or something"): the Mood
+       Ring's day index flips it, so the deck rearranges itself day to day. */
+    const artRight = moodOfDay().day % 2 === 1;
+
+    /* The three LCD rows — Sony minidisc grammar: static, compact, no crawl. */
+    const rowTrack = status === 'idle' ? 'pd miniplayer' : (trackTitle || onAir?.label || '…');
+    const rowStation = status === 'idle' ? 'the platform soundtracks' : (onAir?.label ?? '');
+    const rowStatus =
+        status === 'playing' ? '▶︎ PLAYING' :
+        status === 'paused' ? '‖ PAUSED' :
+        status === 'loading' ? '… TUNING' : 'tap ▶︎';
+
     return (
         <div
             ref={barRef}
             className={`fm-bar${status === 'idle' ? ' fm-idle' : ' fm-live'}`}
-            title="pd miniplayer — the platform's soundtracks. Tap the readout to pick a station."
+            title="pd miniplayer — the platform's soundtracks. Tap the screen to pick a station."
         >
             {pickerOpen && (
                 <div className="fm-picker" role="listbox" aria-label="Stations">
@@ -312,18 +326,13 @@ export default function FmBar() {
                     ))}
                 </div>
             )}
-            {/* The video host stays mounted from first play on — YT replaces
-                it with the iframe; hiding it kills audio, so it only shrinks
-                to zero footprint pre-play. */}
-            <div className={`fm-video${status === 'idle' ? ' fm-video-hidden' : ''}`}>
-                <div ref={videoHostRef} />
-            </div>
+            {/* ── transport keys — LEFT side, like the deck of a Sony MD ── */}
             <button type="button" className="fm-btn fm-play" onClick={onPlayTap}>
-                {status === 'playing' || status === 'loading' ? 'PAUSE' : '▶︎ PLAY'}
+                {status === 'playing' || status === 'loading' ? '‖' : '▶︎'}
             </button>
             {status !== 'idle' && (
                 <button type="button" className="fm-btn" onClick={onNextTap} title="Next track">
-                    NEXT
+                    ≫
                 </button>
             )}
             {tuneOffer && (
@@ -331,26 +340,6 @@ export default function FmBar() {
                     TUNE
                 </button>
             )}
-            <button
-                type="button"
-                className="fm-label"
-                onClick={() => setPickerOpen((v) => !v)}
-                title="Pick a station"
-            >
-                {status === 'idle' ? (
-                    <span className="fm-wordmark">pd miniplayer</span>
-                ) : (
-                    /* the LCD — a minidisc-style scrolling readout */
-                    <span className="fm-lcd">
-                        <span className="fm-lcd-scroll">
-                            {`${trackTitle || onAir?.label || 'pd miniplayer'} · `}
-                            {`${trackTitle || onAir?.label || 'pd miniplayer'} · `}
-                        </span>
-                    </span>
-                )}
-            </button>
-            {/* the door out — collapses the device to the chip and stops the
-                audio (Rule #-0.4: every feature ships with a close). */}
             <button
                 type="button"
                 className="fm-btn fm-close"
@@ -362,6 +351,27 @@ export default function FmBar() {
                 aria-label="Close the pd miniplayer"
             >
                 ×
+            </button>
+            {/* ── THE screen — one display: the forced-YT art window IS part
+                of it (left/right by the day's mood), beside three compact
+                readout rows. Tap = station picker. ── */}
+            <button
+                type="button"
+                className={`fm-screen${artRight ? ' fm-screen--art-right' : ''}`}
+                onClick={() => setPickerOpen((v) => !v)}
+                title="Pick a station"
+            >
+                {/* The video host stays mounted from first play on — YT
+                    replaces it with the iframe; hiding kills audio, so it
+                    only shrinks to zero footprint pre-play. */}
+                <span className={`fm-video${status === 'idle' ? ' fm-video-hidden' : ''}`}>
+                    <span ref={videoHostRef} />
+                </span>
+                <span className="fm-rows">
+                    <span className="fm-row fm-row-track">{rowTrack}</span>
+                    <span className="fm-row">{rowStation}</span>
+                    <span className="fm-row">{rowStatus}</span>
+                </span>
             </button>
         </div>
     );

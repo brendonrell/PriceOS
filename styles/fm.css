@@ -17,10 +17,13 @@
     z-index: 8990;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     width: max-content;
     max-width: min(88vw, 380px);
-    padding: 5px 14px 5px 9px; /* extra right room — the square LCD vs the pill's curve */
+    /* Sony-deck rework (Brendon, 2026-07-20): quarter shorter than the old
+       42px-inner body — keys LEFT, one screen RIGHT. */
+    height: 34px;
+    padding: 0 6px 0 9px;
     background: var(--bg-color);
     color: var(--text-color);
     border: 1.5px solid var(--text-color);
@@ -28,32 +31,82 @@
     font-family: 'Courier New', Courier, monospace;
 }
 
-/* the disc window — the video peeks through square-cornered, like the
-   little door on a minidisc deck */
+/* ── THE screen — one display, square inset like the MD readout. The art
+   window (the YT player we're required to show) is PART of the display,
+   sitting on its left or right by the day's mood. Tap = station picker. ── */
+.fm-screen {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    height: 30px;
+    padding: 0;
+    background: var(--stat-bg, var(--bg-color));
+    border: 1px solid var(--text-color);
+    overflow: hidden;
+    cursor: pointer;
+    color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    text-align: left;
+}
+
+.fm-screen--art-right { flex-direction: row-reverse; }
+
+/* the art window inside the screen */
 .fm-video {
     flex: 0 0 auto;
-    width: 57px;
-    height: 32px;
+    width: 44px;
+    height: 28px;
     overflow: hidden;
-    border: 1.5px solid var(--text-color);
     background: #000;
+    border-right: 1px solid var(--text-color);
+}
+.fm-screen--art-right .fm-video {
+    border-right: none;
+    border-left: 1px solid var(--text-color);
 }
 
 .fm-video iframe {
     display: block;
-    width: 57px;
-    height: 32px;
+    width: 44px;
+    height: 28px;
     border: 0;
 }
 
-/* Pre-play the tile is absent — but the host div must stay in the DOM so
-   the player can be created into it; zero footprint, not display:none. */
+/* Pre-play the window is absent — but the host must stay in the DOM so the
+   player can be created into it; zero footprint, not display:none. */
 .fm-video-hidden {
     width: 0;
-    height: 0;
     border: none;
     background: transparent;
 }
+
+/* the three readout rows — static, compact, no crawl (the one-line crawler
+   read as one giant distracting readout — Brendon, 2026-07-20).
+   ⚠ 10px by the quarter-height cut — a deliberate LCD exception to the 12px
+   floor, flagged to Brendon at build time. */
+.fm-rows {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 6px;
+}
+
+.fm-row {
+    display: block;
+    font-size: 10px;
+    font-weight: bold;
+    line-height: 1.05;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fm-row-track { font-size: 11px; }
 
 /* the chip — the closed miniplayer's relaunch nub (Brendon's pick,
    2026-07-20). Icon-only mini pill on the bar's exact anchor; the visual
@@ -81,7 +134,7 @@
     inset: -10px;
 }
 
-/* transport keys — pills, like every PD control */
+/* transport keys — pills on the LEFT, like the deck of a Sony MD */
 .fm-btn {
     flex: 0 0 auto;
     font-family: 'Courier New', Courier, monospace;
@@ -92,7 +145,7 @@
     background: var(--bg-color);
     border: 1px solid var(--text-color);
     border-radius: 999px;
-    padding: 4px 9px;
+    padding: 4px 8px;
     line-height: 1;
     cursor: pointer;
     white-space: nowrap;
@@ -108,50 +161,7 @@
     color: var(--stat-active-text, var(--bg-color));
 }
 
-.fm-label {
-    flex: 1 1 auto;
-    min-width: 0;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
-    font-weight: bold;
-    color: var(--text-color);
-    background: transparent;
-    border: none;
-    padding: 0;
-    text-align: left;
-    cursor: pointer;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.fm-wordmark { letter-spacing: 0.5px; }
-
-/* the LCD — a square inset readout; the track name crawls through it
-   like a minidisc display (the toy, not the gallery) */
-.fm-lcd {
-    display: block;
-    width: 100%;
-    max-width: 160px;
-    box-sizing: border-box;
-    overflow: hidden;
-    background: var(--stat-bg, var(--bg-color));
-    border: 1px solid var(--text-color);
-    padding: 3px 6px;
-}
-
-@keyframes fm-crawl {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
-}
-
-.fm-lcd-scroll {
-    display: inline-block;
-    white-space: nowrap;
-    animation: fm-crawl 9s linear infinite;
-}
-
-/* ── The station picker — square panel opening upward off the readout ── */
+/* ── The station picker — square panel opening upward off the screen ── */
 .fm-picker {
     position: absolute;
     right: 0;
