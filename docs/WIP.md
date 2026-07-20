@@ -8,7 +8,103 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-20 (latest) NEIGHBOURHOOD + TARGETS + COUNTERPARTIES TABS MADE
+0. ⚙ **2026-07-20 (latest) PRE-LAUNCH REFINEMENTS MARATHON — ALL on dev (tip
+   `c4e0482`), auto-deploy rolling, tree clean. Branch
+   `claude/pre-launch-refinements-702aka` = merged trash (Brendon deletes at
+   https://github.com/brendonrell/PriceOS/branches).** Fable session, Brendon's
+   rolling all-day batch. SHIPPED:
+   ① HASH SYNESTHESIA REBUILT TO SPEC — samples move ONLY the colorway hex;
+   every colour from REAL artwork pixels (modal locks to the opened piece,
+   sim 8800; `outputPaletteHex` palette math as gate-miss fallback). The
+   invented per-card hover trigger + synthesized `hsl(id*37)` hues (the
+   "changes buttons" bug) are DEAD — never re-add a non-sim trigger.
+   ② QUICK-ADD TIMES — "3pm / 3:30 pm / at 3 / 15:30" parse (bare time =
+   today); fixed "under .4" bare-dot prices silently ignored. 6 new tests.
+   ③ AUDIENCE EXORCISED — left the Setup Code envelope (NAUD decodes,
+   never applies); only the toggle moves it. Ghost/Curator/Museum codes no
+   longer quiet presence — a code can NEVER move audience.
+   ④ PD MINIPLAYER SAGA — Sony deck (keys LEFT, ONE screen, 3 static 10px
+   rows, art window IN the display); FIVE FACES all shipped (DECK · MICRO ·
+   THE DISC · THE SLAB · THE SIGNAL, ⎇ MODE key cycles, compact-face tap
+   recalls the deck 6s); closed = THE DOT (9px, chip REJECTED as "play
+   button"); wordmark PD mini*player* (PD caps, player italic);
+   **flag RENAMED `miniplayerOpen` default FALSE** — the default-ON hours
+   left stale saves resurrecting the deck (the second haunted toggle);
+   never reuse the old `miniplayer` key. Readout capped 150px (a long
+   title once stretched the deck to the viewport edge — mock constraints
+   MUST ship), 22px right air in the chassis.
+   ⑤ COMMAND STONE SAGA — resting bar bare + 13px (no glyph); summon swipe
+   moved OFF Apple's edge zone (start band 56–220px above bottom — a page
+   can never intercept the edge swipe); POLARITY = OPPOSITE of the
+   colorway's buttons (body.theme-bright → white stone, tokens in
+   stone.css); STEALTH CONSOLE (`stone #hex/white/black/auto/reset` typed
+   into the stone, undocumented BY DESIGN — bare `stone` whispers the
+   list; lib/stone/stoneStyle.ts); THE DECK IS A SPEECH BUBBLE — no
+   outlines ANYWHERE in the stone (his law), fully rounded, floating,
+   plain centred triangle tail, reserved 2-line VOICE on top (TARS-terse
+   `sayLine()`); primaries = Hothurt #FF0055 · Attention #FFE600 ·
+   @brendon blue #0109FF rotating card glyphs (white stage chips the
+   yellow); WATCH PASS: tiles filled not outlined, today = red disc,
+   PRICEDAY/pings = value discs, spark = yellow (blue on white stage).
+   ⑥ BOTTOM BAND LAW — stone ANCHORED, deck YIELDS (lifts over peek,
+   docks away on open — transform only, audio survives; ON-AIR LED on the
+   stone pill = the player's third face); **TOASTS ABOVE EVERYTHING**
+   (z 12000) + lifted clear of live furniture. NOTHING covers a toast.
+   ⑦ COOLDOWN MADE REAL — **migration `20260720_real_cooldown` APPLIED
+   LIVE + mirrored**: trigger stamps uploaded_at+60d, backfill done
+   (75 cooling ☽ · 37 expired · 0 null). ☽ fires for real now.
+   ⑧ STUDIO SHOWCASE SUITE — per-project artist customization:
+   `showcase_layout/titles/caption` columns (**migration
+   `20260720_showcase_config` APPLIED LIVE + mirrored**), PATCH
+   `/api/project/[slug]/showcase` (SIWE artist-only), Studio
+   `ShowcaseEditor` (manual-first: slots + nudges + add-by-number +
+   tap-to-seat; turnkey FIRST MINTS / GEN CURATED ⑈ via the profile
+   engine; layout + titles pills); project page renders masonry / mixed
+   (slot-1 lead spans) / #N placards / gencurated-caption placard.
+   ⑨ MINT ROOM — **THE DOOR IS THE LONG-PRESS on the MINT button,
+   NOTHING ELSE** (no toggle — a Spell Book pill was built unauthorized
+   and RIPPED OUT; see the Md rule below). Blooms into a monochrome
+   chassis (mint button's own 4px cut, white on theme-bright) holding the
+   project-themed 14px room window: Audience-channel crowd count, shared
+   supply bar (6s pd:project-refresh nudge), breathing LIVE mark, ✶ ✧ ◊
+   reaction sparks (broadcast channel `mintroom:<slug>`), soundtrack via
+   the fm bus, real MintButton inside. Long-press swallows its click.
+   ⑩ GLYPHS — ⎇ U+2387 = miniplayer MODE · ⎀ U+2380 = ASCII Art Mode
+   (replaced ⠿ which shipped uncatalogued as an ESCAPED literal — **grep
+   `\\uXXXX` forms too before calling a glyph free**, lesson recorded).
+   ⑪ Balance-hide tap zone confined to its visible face (the full-width
+   row swallowed Spell Book taps).
+   ⑫ **Md RULES ADDED (read them)**: iOS Safari + PWA IS the target
+   (Rule #-0.5) · every feature ships with a door AND the door is
+   confirmed BEFORE build · NOTHING default-on unless asked · THE
+   SETTINGS MENU IS SACRED GROUND (Rule #-0.4, sharpened after repeated
+   liberties) · NEVER ask Brendon to device-check glyphs (§6 — he sees
+   them by using the app).
+   Proof: tsc + 105/105 tests + real builds + compiled greps every round;
+   real-Courier mid-tone pixel proofs throughout (long-title failure case
+   included after it bit once).
+   **BRENDON ACTIONS:** delete the merged branch (link above).
+   **⛔ UNFINISHED — FRESH CHAT STARTS HERE:**
+   - **SOUND LAYER (his pick, excited):** Web Audio synth blips (mint
+     chime · win sparkle · toggle tick), **default OFF**. TOGGLE PLACEMENT
+     LOCKED BY BRENDON: **the FINAL icon in the workspace dots row**
+     (after ⋯), **2 font sizes larger** than the row's 11px keys (→13px).
+     GLYPH: must evoke SPEAKER — **not music, not waves** ("wave means
+     water"); screened: ∿ TAKEN (Sentiment) · ⌇/≈ shipped elsewhere ·
+     recommendation **⍾ U+237E (bell — the phone-ringer metaphor)**,
+     confirm with him first. He wants to HEAR it: render the synth recipes
+     to WAV offline and SEND them (he asked "what might it sound like").
+   - **Quiet Hours** — pings schedule silencing native push in a local-time
+     window (in-app pings still land); concept explained + liked; the
+     schedule UI placement = HIS call (settings are sacred).
+   - **Opus queue remainder:** Cartography Time Machine (brief approved,
+     untouched) · PDTV (ride Albums' THE SHOW) · PD Wrapped (cadence
+     unpicked; build cadence-agnostic) · Mint Room follow-ups (pings/tape
+     events later, first real-mint exercise).
+   - Standing: MAX_WORKSPACES 10 vs ship-9 (recommend 15) · privacy/terms
+     pages don't exist · status-page go-live (`86bb0d896`).
+
+0. ✅ **2026-07-20 NEIGHBOURHOOD + TARGETS + COUNTERPARTIES TABS MADE
    REAL — on dev (merge `6f46a9c`, PR #33), auto-deploy rolling, tree clean.
    Branch `claude/neighbourhood-feature-tabs-dh0yxq` = merged trash (Brendon
    deletes at https://github.com/brendonrell/PriceOS/branches).** Fable
