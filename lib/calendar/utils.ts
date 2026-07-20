@@ -82,7 +82,13 @@ export function renderNoteMarkdown(s: string): string {
     /(https?:\/\/[^\s&<>"]+)/g,
     '<a class="note-ext-link" href="$1" data-external="1">$1</a>'
   );
-  return linked
+  // @name → profile link (must follow start/whitespace so emails and the
+  // userinfo part of URLs never linkify). Same handle charset as /[handle].
+  const mentioned = linked.replace(
+    /(^|\s)@([a-zA-Z0-9_-]{2,})/g,
+    (_all, pre: string, h: string) => `${pre}<a class="note-mention" href="/${h.toLowerCase()}">@${h}</a>`
+  );
+  return mentioned
     .replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>')
     .replace(/_([^_]+?)_/g, '<em>$1</em>')
     .replace(/`([^`]+?)`/g, '<code>$1</code>');

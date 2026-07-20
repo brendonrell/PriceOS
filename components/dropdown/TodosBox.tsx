@@ -21,9 +21,11 @@
  * Completed to-dos strike through and sink to the bottom (never deleted).
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AccordionBox } from './AccordionBox';
+import { MentionLookup } from '../MentionLookup';
+import { renderMentions } from '../../lib/mentions/render';
 import { WorkflowsSheet } from './WorkflowsSheet';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useToast } from '../../lib/state/ToastContext';
@@ -76,6 +78,9 @@ export function TodosBox() {
     // Workflows ☇ — the modal's ONLY entry surface (Brendon, 2026-07-05).
     const [workflowsOpen, setWorkflowsOpen] = useState(false);
     const [text, setText] = useState('');
+    // @name lookup — caret position + the input node, for the mention popover.
+    const [caret, setCaret] = useState<number | null>(null);
+    const composeInputRef = useRef<HTMLInputElement>(null);
     const [due, setDue] = useState('');
     const [dueTime, setDueTime] = useState('');
     const [price, setPrice] = useState('');
@@ -321,18 +326,35 @@ export function TodosBox() {
                         {'×︎'}
                     </span>
                     <input
+                        ref={composeInputRef}
                         className="todo-compose-input"
                         type="text"
                         placeholder="Add a to-do…  (try: buy prisms 22 under .4 fri)"
                         value={text}
                         maxLength={200}
                         autoFocus
-                        onChange={(e) => setText(e.target.value)}
+                        onChange={(e) => { setText(e.target.value); setCaret(e.target.selectionStart); }}
+                        onKeyUp={(e) => setCaret(e.currentTarget.selectionStart)}
+                        onClick={(e) => setCaret(e.currentTarget.selectionStart)}
                         onPaste={onPasteList}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                                 e.preventDefault();
                                 submit();
+                            }
+                        }}
+                    />
+                    <MentionLookup
+                        value={text}
+                        caret={caret}
+                        anchorRef={composeInputRef}
+                        onPick={(next, caretAfter) => {
+                            setText(next);
+                            setCaret(caretAfter);
+                            const el = composeInputRef.current;
+                            if (el) {
+                                el.focus();
+                                requestAnimationFrame(() => el.setSelectionRange(caretAfter, caretAfter));
                             }
                         }}
                     />
@@ -439,7 +461,7 @@ export function TodosBox() {
                         : null;
                 const title = (
                     <span className="todo-title">
-                        {t.text}
+                        {t.kind === 'output' ? t.text : renderMentions(t.text)}
                         {ready && <span className="todo-ready">READY</span>}
                     </span>
                 );

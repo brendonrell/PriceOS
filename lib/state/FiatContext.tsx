@@ -4,7 +4,7 @@
  * FiatContext — the app-wide fiat-conversion layer.
  *
  * OFF by default. A user opts in from the Wallet settings row (the $ picker),
- * choosing one of USD · CAD · GBP · EUR · JPY (USD is the first pick). It's a
+ * choosing one of USD · CAD · GBP · EUR · AUD · JPY (USD is the first pick). It's a
  * set-and-forget preference, remembered in localStorage.
  *
  * While a currency is selected we poll /api/fx (one globally-shared, edge-cached
@@ -37,10 +37,11 @@ const CURRENCY_META: Record<FiatCode, { symbol: string; decimals: number; locale
     CAD: { symbol: '$', decimals: 2, locale: 'en-CA' },
     GBP: { symbol: '£', decimals: 2, locale: 'en-GB' },
     EUR: { symbol: '€', decimals: 2, locale: 'de-DE' },
+    AUD: { symbol: 'A$', decimals: 2, locale: 'en-AU' },
     JPY: { symbol: '¥', decimals: 0, locale: 'ja-JP' },
 };
 
-export const FIAT_OPTIONS: FiatCode[] = ['USD', 'CAD', 'GBP', 'EUR', 'JPY'];
+export const FIAT_OPTIONS: FiatCode[] = ['USD', 'CAD', 'GBP', 'EUR', 'AUD', 'JPY'];
 
 /** The picker glyph: the chosen currency's symbol, or a neutral $ when off. */
 export function fiatSymbol(code: FiatCode | null): string {

@@ -1,10 +1,10 @@
 /*
- * /api/fx — edge-cached ETH→fiat rate source (USD · CAD · GBP · EUR · JPY).
+ * /api/fx — edge-cached ETH→fiat rate source (USD · CAD · GBP · EUR · AUD · JPY).
  *
  * This price is READ BLIND: a buyer spends a known amount of ETH trusting the
  * fiat conversion we show. So the bar is reliability, not just "a number":
  *
- *   1. Primary  — CoinGecko gives ETH priced in all five fiats in one call.
+ *   1. Primary  — CoinGecko gives ETH priced in all six fiats in one call.
  *   2. Anchor   — Chainlink ETH/USD (via Alchemy, the exact read the gas
  *                 tracker already trusts) is an INDEPENDENT second opinion on
  *                 the USD leg. If CoinGecko's USD and Chainlink's USD disagree
@@ -12,7 +12,7 @@
  *                 and the UI hides the ~$ rather than show a figure we can't
  *                 stand behind.
  *   3. Fallback — if CoinGecko is down, we anchor on Chainlink USD and derive
- *                 the four crosses from ECB reference rates (frankfurter.app).
+ *                 the five crosses from ECB reference rates (frankfurter.app).
  *
  * One global number set, shared by every client and cached 60s at the edge —
  * so this is free at any scale (a handful of upstream fetches per hour total,
@@ -44,11 +44,11 @@ async function fetchWithTimeout(url: string, ms: number, init?: RequestInit): Pr
     }
 }
 
-/** CoinGecko — ETH in all five fiats in a single request. */
+/** CoinGecko — ETH in all six fiats in a single request. */
 async function coingecko(): Promise<Partial<Record<FiatCode, number>> | null> {
     try {
         const res = await fetchWithTimeout(
-            'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd,cad,gbp,eur,jpy',
+            'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd,cad,gbp,eur,aud,jpy',
             7000,
             { next: { revalidate: 60 }, headers: { accept: 'application/json' } },
         );
@@ -61,6 +61,7 @@ async function coingecko(): Promise<Partial<Record<FiatCode, number>> | null> {
         if (typeof e.cad === 'number') out.CAD = e.cad;
         if (typeof e.gbp === 'number') out.GBP = e.gbp;
         if (typeof e.eur === 'number') out.EUR = e.eur;
+        if (typeof e.aud === 'number') out.AUD = e.aud;
         if (typeof e.jpy === 'number') out.JPY = e.jpy;
         return Object.keys(out).length ? out : null;
     } catch {
@@ -94,11 +95,11 @@ async function chainlinkUsd(): Promise<number | null> {
     }
 }
 
-/** ECB reference cross-rates USD→{CAD,GBP,EUR,JPY} — fallback for the crosses. */
+/** ECB reference cross-rates USD→{CAD,GBP,EUR,AUD,JPY} — fallback for the crosses. */
 async function ecbCrosses(): Promise<Partial<Record<FiatCode, number>> | null> {
     try {
         const res = await fetchWithTimeout(
-            'https://api.frankfurter.dev/v1/latest?from=USD&to=CAD,GBP,EUR,JPY',
+            'https://api.frankfurter.dev/v1/latest?from=USD&to=CAD,GBP,EUR,AUD,JPY',
             7000,
             { next: { revalidate: 3600 }, headers: { accept: 'application/json' } },
         );
@@ -138,6 +139,7 @@ export async function GET(_req: NextRequest): Promise<NextResponse> {
                 if (typeof crosses.CAD === 'number') rates.CAD = anchorUsd * crosses.CAD;
                 if (typeof crosses.GBP === 'number') rates.GBP = anchorUsd * crosses.GBP;
                 if (typeof crosses.EUR === 'number') rates.EUR = anchorUsd * crosses.EUR;
+                if (typeof crosses.AUD === 'number') rates.AUD = anchorUsd * crosses.AUD;
                 if (typeof crosses.JPY === 'number') rates.JPY = anchorUsd * crosses.JPY;
             }
             trusted = true;

@@ -1,0 +1,9 @@
+{
+    "$schema": "../../node_modules/wrangler/config-schema.json",
+    "name": "pd-status",
+    "main": "worker.js",
+    "compatibility_date": "2025-08-21"
+    // Custom domain: add status.pricediscussion.com under the Worker's
+    // Settings → Domains & Routes in the Cloudflare dash (one click once the
+    // pricediscussion.com zone is on the account). No other config needed.
+}

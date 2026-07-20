@@ -32,7 +32,7 @@
 .mg-bar-t, .mg-bar-b {
     left: 50%;
     width: calc(var(--mg-p) * 100%);
-    height: 3px;
+    height: 1px;
     transform: translateX(-50%);
 }
 .mg-bar-t { top: 0; }
@@ -40,7 +40,7 @@
 .mg-bar-l, .mg-bar-r {
     top: 50%;
     height: calc(var(--mg-p) * 100%);
-    width: 3px;
+    width: 1px;
     transform: translateY(-50%);
 }
 .mg-bar-l { left: 0; }

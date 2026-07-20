@@ -41,6 +41,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { renderNoteMarkdown } from '../lib/calendar/utils';
+import { MentionLookup } from './MentionLookup';
 
 interface NotePromptModalProps {
   open: boolean;
@@ -76,6 +77,9 @@ export default function NotePromptModal({
 
   // Live textarea value. Reset to initialValue on each open.
   const [value, setValue] = useState('');
+
+  // @name lookup — caret position for the mention popover.
+  const [caret, setCaret] = useState<number | null>(null);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -212,8 +216,26 @@ export default function NotePromptModal({
           placeholder="type your note..."
           rows={5}
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => { setValue(e.target.value); setCaret(e.target.selectionStart); }}
+          onKeyUp={(e) => setCaret(e.currentTarget.selectionStart)}
+          onClick={(e) => setCaret(e.currentTarget.selectionStart)}
         />
+        {mode === 'edit' && (
+          <MentionLookup
+            value={value}
+            caret={caret}
+            anchorRef={textareaRef}
+            onPick={(next, caretAfter) => {
+              setValue(next);
+              setCaret(caretAfter);
+              const el = textareaRef.current;
+              if (el) {
+                el.focus();
+                requestAnimationFrame(() => el.setSelectionRange(caretAfter, caretAfter));
+              }
+            }}
+          />
+        )}
         <div
           className="note-prompt-view"
           dangerouslySetInnerHTML={{ __html: renderNoteMarkdown(initialValue) }}
