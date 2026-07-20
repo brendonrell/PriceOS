@@ -294,14 +294,15 @@
    the bottom band above the legend; the sailing hint yields while it's on. */
 .carto-timeline {
     position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
+    /* Right edge flush with the control stack (right: 14px) — the bar ends
+       where the buttons end, on every width (Brendon, 2026-07-20). */
+    right: 14px;
     bottom: calc(44px + env(safe-area-inset-bottom));
     z-index: 21;
     display: flex;
     align-items: center;
     gap: 10px;
-    width: min(560px, calc(100vw - 32px));
+    width: min(560px, calc(100vw - 28px));
     background: rgba(7, 9, 13, 0.9);
     border: 1px solid #E9EDF4;
     border-radius: 999px;
