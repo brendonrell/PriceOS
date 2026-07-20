@@ -5,9 +5,9 @@
  * symbols.
  */
 
-export type FiatCode = 'USD' | 'CAD' | 'GBP' | 'EUR' | 'AUD' | 'JPY';
+export type FiatCode = 'USD' | 'CAD' | 'GBP' | 'EUR' | 'AUD' | 'JPY' | 'PHP';
 
-export const FIAT_CODES: FiatCode[] = ['USD', 'CAD', 'GBP', 'EUR', 'AUD', 'JPY'];
+export const FIAT_CODES: FiatCode[] = ['USD', 'CAD', 'GBP', 'EUR', 'AUD', 'PHP', 'JPY'];
 
 export interface FxResponse {
     /** ETH price in each fiat. Missing keys mean that currency couldn't be sourced. */

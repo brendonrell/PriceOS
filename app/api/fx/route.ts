@@ -1,5 +1,5 @@
 /*
- * /api/fx — edge-cached ETH→fiat rate source (USD · CAD · GBP · EUR · AUD · JPY).
+ * /api/fx — edge-cached ETH→fiat rate source (USD · CAD · GBP · EUR · AUD · JPY · PHP).
  *
  * This price is READ BLIND: a buyer spends a known amount of ETH trusting the
  * fiat conversion we show. So the bar is reliability, not just "a number":
@@ -44,11 +44,11 @@ async function fetchWithTimeout(url: string, ms: number, init?: RequestInit): Pr
     }
 }
 
-/** CoinGecko — ETH in all six fiats in a single request. */
+/** CoinGecko — ETH in all seven fiats in a single request. */
 async function coingecko(): Promise<Partial<Record<FiatCode, number>> | null> {
     try {
         const res = await fetchWithTimeout(
-            'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd,cad,gbp,eur,aud,jpy',
+            'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd,cad,gbp,eur,aud,jpy,php',
             7000,
             { next: { revalidate: 60 }, headers: { accept: 'application/json' } },
         );
@@ -63,6 +63,7 @@ async function coingecko(): Promise<Partial<Record<FiatCode, number>> | null> {
         if (typeof e.eur === 'number') out.EUR = e.eur;
         if (typeof e.aud === 'number') out.AUD = e.aud;
         if (typeof e.jpy === 'number') out.JPY = e.jpy;
+        if (typeof e.php === 'number') out.PHP = e.php;
         return Object.keys(out).length ? out : null;
     } catch {
         return null;
@@ -95,11 +96,11 @@ async function chainlinkUsd(): Promise<number | null> {
     }
 }
 
-/** ECB reference cross-rates USD→{CAD,GBP,EUR,AUD,JPY} — fallback for the crosses. */
+/** ECB reference cross-rates USD→{CAD,GBP,EUR,AUD,JPY,PHP} — fallback for the crosses. */
 async function ecbCrosses(): Promise<Partial<Record<FiatCode, number>> | null> {
     try {
         const res = await fetchWithTimeout(
-            'https://api.frankfurter.dev/v1/latest?from=USD&to=CAD,GBP,EUR,AUD,JPY',
+            'https://api.frankfurter.dev/v1/latest?from=USD&to=CAD,GBP,EUR,AUD,JPY,PHP',
             7000,
             { next: { revalidate: 3600 }, headers: { accept: 'application/json' } },
         );
@@ -141,6 +142,7 @@ export async function GET(_req: NextRequest): Promise<NextResponse> {
                 if (typeof crosses.EUR === 'number') rates.EUR = anchorUsd * crosses.EUR;
                 if (typeof crosses.AUD === 'number') rates.AUD = anchorUsd * crosses.AUD;
                 if (typeof crosses.JPY === 'number') rates.JPY = anchorUsd * crosses.JPY;
+                if (typeof crosses.PHP === 'number') rates.PHP = anchorUsd * crosses.PHP;
             }
             trusted = true;
             source = crosses ? 'chainlink+ecb' : 'chainlink';

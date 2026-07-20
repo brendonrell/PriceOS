@@ -39,9 +39,14 @@ const CURRENCY_META: Record<FiatCode, { symbol: string; decimals: number; locale
     EUR: { symbol: '€', decimals: 2, locale: 'de-DE' },
     AUD: { symbol: '$', decimals: 2, locale: 'en-AU' },
     JPY: { symbol: '¥', decimals: 0, locale: 'ja-JP' },
+    /* PHP — Brendon's pick 2026-07-20 (the final slot; symbol-only rule: ₱,
+       never letters). Whole-peso display like ¥ would be wrong — centavos
+       are real; standard 2-decimal money formatting. */
+    PHP: { symbol: '₱', decimals: 2, locale: 'en-PH' },
 };
 
-export const FIAT_OPTIONS: FiatCode[] = ['USD', 'CAD', 'GBP', 'EUR', 'AUD', 'JPY'];
+/* Order is Brendon's: PHP sits second-last, before JPY (2026-07-20). */
+export const FIAT_OPTIONS: FiatCode[] = ['USD', 'CAD', 'GBP', 'EUR', 'AUD', 'PHP', 'JPY'];
 
 /** The picker glyph: the chosen currency's symbol, or a neutral $ when off. */
 export function fiatSymbol(code: FiatCode | null): string {
