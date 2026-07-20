@@ -76,6 +76,7 @@ import FeedEventRow from '../feed/FeedEventRow';
 import { useSort, groupHeaderGlyph } from '../../lib/state/SortContext';
 import { useGalleryCols, colsWidth } from '../../lib/hooks/useGalleryCols';
 import { useToast } from '../../lib/state/ToastContext';
+import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { TraitsProvider } from '../../lib/state/TraitsContext';
 import ArtworkCard from '../ArtworkCard';
@@ -97,6 +98,7 @@ import { formatEthAmount } from '../../lib/format/eth';
 import { useProjectAnchor } from './useProjectAnchor';
 import { useBudgetStepLine } from './useBudgetStepLine';
 import ProjectMorePanel, { type ProjectMoreL1 } from './ProjectMorePanel';
+import MintRoomModal from './MintRoomModal';
 import RewindProjectView from './RewindProjectView';
 import { useRewindOptional } from '../../lib/state/RewindContext';
 
@@ -149,6 +151,10 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
         if (isRecordingEnabled()) recordProjectView(project.slug);
     }, [project.slug]);
     const { showToast } = useToast();
+    /* MINT ROOM (Brendon, 2026-07-20): the Spell Book toggle reveals the
+       door — long-press the MINT button, the room blooms. */
+    const { notifs } = usePdNotifs();
+    const [mintRoomOpen, setMintRoomOpen] = useState(false);
     const { open } = useModal();
     /* Spite Book — spited handles render redacted on the hero's social rows. */
     const isSpited = useSpiteMatcher();
@@ -491,6 +497,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                                 projectTitle={project.title}
                                 mintPrice={mintPrice}
                                 remaining={remaining}
+                                onLongPress={notifs.mintRoom ? () => setMintRoomOpen(true) : undefined}
                             />
                         )}
                         {soundtrack && (
@@ -783,6 +790,14 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                     <div ref={gallerySentinelRef} className="gallery-load-sentinel" aria-hidden="true" />
                 )}
             </section>
+
+            {mintRoomOpen && (
+                <MintRoomModal
+                    mintPrice={mintPrice}
+                    remaining={remaining}
+                    onClose={() => setMintRoomOpen(false)}
+                />
+            )}
 
             {/* Activity feed — REAL pre-chain rows from Supabase `events`
                 (Brendon, 2026-06-13). Hidden by default; surfaces only when
