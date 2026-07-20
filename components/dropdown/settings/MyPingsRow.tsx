@@ -150,9 +150,31 @@ export function MyPingsRow() {
         setBubbleLayout({ centerX, tailDx });
     }, [show3dConfirm, confirmPos]);
 
+    /* PingArt ⎀ — the hidden daily-transmission subscription (Brendon,
+       2026-07-20: "hidden behind a triple tap on my pings"). No visible
+       toggle anywhere — the header itself is the door. */
+    const pingartTaps = useRef<{ count: number; last: number }>({ count: 0, last: 0 });
+    const onPingsHeaderTap = () => {
+        const now = Date.now();
+        const t = pingartTaps.current;
+        if (now - t.last > 600) t.count = 1;
+        else t.count += 1;
+        t.last = now;
+        if (t.count >= 3) {
+            t.count = 0;
+            const on = !notifs.pingartDaily;
+            update({ pingartDaily: on });
+            showToast(on ? 'PingArt: SUBSCRIBED — one transmission a day' : 'PingArt: OFF');
+        }
+    };
+
     return (
         <>
-            <div className={`settings-header${gatedClass}`}>MY PINGS</div>
+            <div
+                className={`settings-header${gatedClass}`}
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+                onClick={onPingsHeaderTap}
+            >MY PINGS</div>
             <div className={`settings-pill-row${gatedClass}`}>
                 <span className="pingtoast-cell" ref={cellRef}>
                 <SettingsToggle

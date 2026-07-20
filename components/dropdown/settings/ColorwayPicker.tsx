@@ -63,7 +63,28 @@ const THEME_NAMES: Record<NonNullable<ColorwayKey>, string> = {
     custom: 'CUSTOM COLOR', light: 'LIGHT MODE', dark: 'DARK MODE',
     orange: 'ORANGE MODE', hashsyn: 'HASH SYNESTHESIA',
     blue: 'BLUEBERRY MODE', red: 'CHERRY MODE', haze: 'HAZE MODE',
+    hothurt: 'HOTHURT', attention: 'ATTENTION', bblue: '@BRENDON BLUE',
+    kiki: 'KIKI',
 };
+
+/* PRIMARY+SECONDARY (Brendon, 2026-07-20) — the hidden long-press menu on
+   the DEFAULT COLORWAY header: the brand primaries + the Kiki secondaries.
+   Each pill is a solid swatch of its hue. (Precog + Cookies join when their
+   Kiki-palette hexes land.) */
+const PS_PILLS: { key: NonNullable<ColorwayKey>; hex: string; letter: string; title: string }[] = [
+    { key: 'hothurt',   hex: '#FF0055', letter: 'H', title: 'Hothurt' },
+    { key: 'attention', hex: '#FFE600', letter: 'A', title: 'Attention' },
+    { key: 'bblue',     hex: '#0109FF', letter: 'B', title: '@brendon blue' },
+    { key: 'kiki',      hex: '#C488FF', letter: 'K', title: 'Kiki' },
+];
+
+/** Near-black or white lettering on a solid swatch — the tag-pill read. */
+function psTextOn(hex: string): string {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.6 ? '#111111' : '#ffffff';
+}
 
 const VARIATION_CYCLE: HazeVariation[] = ['pure', 'tint', 'drift', 'pulse', 'chromatic'];
 
@@ -118,15 +139,47 @@ export function ColorwayPicker() {
     const { showToast } = useToast();
 
     const [hazeMode, setHazeMode] = useState(false);
+    /* PRIMARY+SECONDARY — long-press the header (the triple-tap slot is
+       Haze's). Press-and-hold 500ms, drift cancels. */
+    const [psMode, setPsMode] = useState(false);
     const tapState = useRef<{ count: number; lastTap: number }>({ count: 0, lastTap: 0 });
+    const pressTimer = useRef<number | null>(null);
+    const pressFired = useRef(false);
+    const pressStart = useRef<{ x: number; y: number } | null>(null);
+
+    const clearPress = () => {
+        if (pressTimer.current != null) { window.clearTimeout(pressTimer.current); pressTimer.current = null; }
+        pressStart.current = null;
+    };
+    const onHeaderPointerDown = (e: React.PointerEvent) => {
+        pressFired.current = false;
+        pressStart.current = { x: e.clientX, y: e.clientY };
+        clearPress();
+        pressStart.current = { x: e.clientX, y: e.clientY };
+        pressTimer.current = window.setTimeout(() => {
+            pressTimer.current = null;
+            pressFired.current = true;
+            setPsMode((v) => !v);
+            setHazeMode(false);
+        }, 500);
+    };
+    const onHeaderPointerMove = (e: React.PointerEvent) => {
+        const s = pressStart.current;
+        if (!s || pressTimer.current == null) return;
+        const dx = e.clientX - s.x;
+        const dy = e.clientY - s.y;
+        if (dx * dx + dy * dy > 100) clearPress();
+    };
 
     const handleHeaderTap = () => {
+        /* The long-press swallows its trailing click. */
+        if (pressFired.current) { pressFired.current = false; return; }
         const now = Date.now();
         const s = tapState.current;
         if (now - s.lastTap > 600) s.count = 1;
         else s.count += 1;
         s.lastTap = now;
-        if (s.count >= 3) { s.count = 0; setHazeMode((v) => !v); }
+        if (s.count >= 3) { s.count = 0; setHazeMode((v) => !v); setPsMode(false); }
     };
 
     const [hazeHex, setHazeHex] = useState<string>(() => readHazeColor());
@@ -170,6 +223,47 @@ export function ColorwayPicker() {
         showToast(`Haze Mode: ${VARIATION_LABELS[next]}`);
         if (colorway !== 'haze') setColorway('haze');
     };
+
+    if (psMode) {
+        return (
+            <>
+                <div
+                    className="settings-header"
+                    style={{ cursor: 'pointer', userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none' }}
+                    title="Long-press to go back"
+                    onClick={handleHeaderTap}
+                    onPointerDown={onHeaderPointerDown}
+                    onPointerMove={onHeaderPointerMove}
+                    onPointerUp={clearPress}
+                    onPointerLeave={clearPress}
+                    onPointerCancel={clearPress}
+                    onContextMenu={(e) => e.preventDefault()}
+                >
+                    PRIMARY+SECONDARY
+                </div>
+                <div className="settings-pill-row colorway-pills">
+                    {PS_PILLS.map((p) => (
+                        <button
+                            key={p.key}
+                            type="button"
+                            id={`st-${p.key}`}
+                            className={`pill-colorway${colorway === p.key ? ' active' : ''}`}
+                            title={p.title}
+                            aria-pressed={colorway === p.key}
+                            style={{ backgroundColor: p.hex, color: psTextOn(p.hex), border: '1px solid currentColor' }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setColorway(p.key);
+                                showToast('Default Colorway: ' + THEME_NAMES[p.key]);
+                            }}
+                        >
+                            <span style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: 11, fontWeight: 'bold', letterSpacing: 0 }}>{p.letter}</span>
+                        </button>
+                    ))}
+                </div>
+            </>
+        );
+    }
 
     if (hazeMode) {
         return (
@@ -345,9 +439,15 @@ export function ColorwayPicker() {
         <>
             <div
                 className="settings-header"
-                style={{ cursor: 'pointer', userSelect: 'none' }}
+                style={{ cursor: 'pointer', userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none' }}
                 title="Triple-tap for Haze mode"
                 onClick={handleHeaderTap}
+                onPointerDown={onHeaderPointerDown}
+                onPointerMove={onHeaderPointerMove}
+                onPointerUp={clearPress}
+                onPointerLeave={clearPress}
+                onPointerCancel={clearPress}
+                onContextMenu={(e) => e.preventDefault()}
             >
                 DEFAULT COLORWAY
             </div>

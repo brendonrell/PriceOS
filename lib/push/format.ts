@@ -28,6 +28,16 @@ export interface NativePingText {
 
 export function formatNativePing(item: FeedItem, spriteFace: string): NativePingText {
   const r = renderPing(item);
+  /* PingArt ⎀ — the daily transmission IS the notification: the label line,
+     then the piece itself (block-shade rows hold their grid in the system
+     font). Bypasses the colon-split so the art never gets re-broken. */
+  if (item.kind === 'PING' && item.data?.reminder === 'pingart' && typeof item.data?.art === 'string') {
+    return {
+      title: spriteFace,
+      body: `⎀ PingArt\n${item.data.art as string}`,
+      tag: 'pd-PINGART',
+    };
+  }
   // Split the ping into a LABEL line and a DETAIL line. An actor ping (a real
   // handle) breaks who | what-they-did; a label-style ping (To-Do due: X,
   // Unlocked: X, Today: X) breaks at its colon; a free-text reminder with

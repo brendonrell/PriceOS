@@ -25,6 +25,10 @@ export type PersistedColorway =
   | 'orange'
   | 'blue'
   | 'red'
+  | 'hothurt'
+  | 'attention'
+  | 'bblue'
+  | 'kiki'
   | 'haze'
   | null;
 

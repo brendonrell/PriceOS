@@ -84,6 +84,11 @@ const COLORWAY_TO_TOKEN: Record<NonNullable<ColorwayKey>, string> = {
     blue:    'BLUE',
     red:     'REDD',
     haze:    'HAZE',
+    /* PRIMARY+SECONDARY (Brendon, 2026-07-20). */
+    hothurt:   'HOTH',
+    attention: 'ATTN',
+    bblue:     'BBLU',
+    kiki:      'KIKI',
 };
 
 const TOKEN_TO_COLORWAY: Record<string, ColorwayKey> = {

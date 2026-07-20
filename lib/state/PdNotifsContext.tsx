@@ -163,6 +163,9 @@ export interface PdNotifs {
        day. The rename makes every stale save meaningless; never reuse the
        old key. Not part of the Setup Code (a personal device pref). */
     miniplayerOpen: boolean;
+    /** PingArt ⎀ — the daily ascii transmission (Brendon, 2026-07-20).
+     *  Hidden subscription: triple-tap the MY PINGS header. Default OFF. */
+    pingartDaily: boolean;
     /* The Watch — a small persistent live-stat chip that floats over every
        page. Off by default; enabled from the Spell Book (took the retired
        Solar Flare slot, 2026-06-14). `watchMetric` is the index into the
@@ -263,6 +266,7 @@ const DEFAULTS: PdNotifs = {
     autoscroll: false,
     ambientStrip: false,
     miniplayerOpen: false,
+    pingartDaily: false,
     watch: false,
     watchMetric: 0,
     audience: true,

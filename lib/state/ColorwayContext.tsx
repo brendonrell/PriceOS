@@ -61,6 +61,12 @@ export type ColorwayKey =
     | 'red'
     | 'hashsyn'
     | 'haze'
+    /* PRIMARY+SECONDARY (Brendon, 2026-07-20) — the hidden long-press menu
+       on DEFAULT COLORWAY: the brand primaries + the Kiki secondaries. */
+    | 'hothurt'
+    | 'attention'
+    | 'bblue'
+    | 'kiki'
     | null; // null = factory default (Dot)
 
 const COLORWAYS: Record<NonNullable<ColorwayKey>, string> = {
@@ -81,6 +87,11 @@ const COLORWAYS: Record<NonNullable<ColorwayKey>, string> = {
     /* Haze — user-chosen bg color, same persistence pattern as custom.
        COLORWAYS.haze is the fallback when no custom hex has been saved. */
     haze:    '#25EC00',
+    /* PRIMARY+SECONDARY — fixed brand hues (Brendon, 2026-07-20). */
+    hothurt:   '#FF0055',
+    attention: '#FFE600',
+    bblue:     '#0109FF',
+    kiki:      '#C488FF',
 };
 
 /* The "Custom" colorway's bg slot. Custom = the PAGE OWNER's colour

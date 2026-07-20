@@ -163,7 +163,13 @@ const PREHYDRATION_SCRIPT = `
             orange:  '#ff6600',
             blue:    '#3D9EFF',
             red:     '#FF0033',
-            hashsyn: '#7B2FFF'
+            hashsyn: '#7B2FFF',
+            // PRIMARY+SECONDARY (Brendon, 2026-07-20) — keep in lockstep
+            // with ColorwayContext.
+            hothurt:   '#FF0055',
+            attention: '#FFE600',
+            bblue:     '#0109FF',
+            kiki:      '#C488FF'
         };
 
         // Helper: write every colorway-derived CSS var so the FOH matches

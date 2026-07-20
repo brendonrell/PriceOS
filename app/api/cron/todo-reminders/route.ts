@@ -18,6 +18,7 @@
 
 import { getSupabaseService } from '@/lib/supabase';
 import { createPing } from '@/lib/pings/createPing';
+import { buildPingArt } from '@/lib/pings/pingart';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -111,6 +112,9 @@ export async function GET(req: Request): Promise<Response> {
        account's calendar_state may opt OUT of GLOBAL-schedule pings.
        Collected during the same per-address walk the to-dos already do. */
     const globalPingsOff = new Set<string>();
+    /* PingArt ⎀ subscribers (settings.notifs.pingartDaily, the hidden
+       triple-tap toggle) — collected during the same walk. */
+    const pingartSubs: string[] = [];
 
     for (const address of addresses) {
       const { data: uRow } = await db
@@ -120,7 +124,9 @@ export async function GET(req: Request): Promise<Response> {
         .maybeSingle();
       const settings = ((uRow as { settings?: Record<string, unknown> } | null)?.settings ?? {}) as {
         todos?: unknown;
+        notifs?: { pingartDaily?: unknown } | null;
       };
+      if (settings.notifs?.pingartDaily === true) pingartSubs.push(address);
       const calState = ((uRow as { calendar_state?: Record<string, unknown> } | null)?.calendar_state ?? {}) as {
         globalPings?: unknown;
       };
@@ -230,7 +236,30 @@ export async function GET(req: Request): Promise<Response> {
       console.error('[cron] calendar sweep error:', err instanceof Error ? err.message : err);
     }
 
-    return Response.json({ ok: true, subscribers: addresses.length, scanned, sent, calSent });
+    // ── PingArt ⎀ — the daily ascii transmission (Brendon, 2026-07-20).
+    // One piece per Montreal day, the same for every subscriber, fired at
+    // 09:00 Montreal with the sweep's own window tiling (exactly-once).
+    let artSent = 0;
+    try {
+      const PINGART_MIN = 9 * 60;
+      const pingartWindow =
+        mtlNowMin - PINGART_MIN >= 0 && (mtlNowMin - PINGART_MIN) * 60_000 < WINDOW_MS;
+      if (pingartWindow && pingartSubs.length > 0) {
+        const piece = buildPingArt(mtlToday);
+        for (const address of pingartSubs) {
+          await createPing({
+            recipientAddress: address,
+            kind: 'PING',
+            data: { reminder: 'pingart', art: piece.lines.join('\n'), day: piece.day },
+          });
+          artSent += 1;
+        }
+      }
+    } catch (err) {
+      console.error('[cron] pingart sweep error:', err instanceof Error ? err.message : err);
+    }
+
+    return Response.json({ ok: true, subscribers: addresses.length, scanned, sent, calSent, artSent });
   } catch (err) {
     return Response.json(
       { ok: false, error: err instanceof Error ? err.message : 'sweep failed' },

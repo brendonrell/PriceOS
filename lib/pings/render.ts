@@ -129,6 +129,7 @@ const PING_ICONS: Record<string, string> = {
   calendar: '▦︎', // ▦ Calendar
   streak:   '◈︎', // ◈ streak (the streak glyph — the guard speaks for it)
   artist:   '✺︎', // ✺ Artist Push speaks as the artist
+  pingart:  '⎀︎', // ⎀ PingArt — the daily ascii transmission (ascii concept mark)
   system:   '⇡︎', // ⇡ the pings system speaking about itself (away rollup, ops)
 };
 
@@ -299,6 +300,13 @@ export function renderPing(row: FeedItem): RenderedPing {
       } else if (reminder === 'workflow') {
         handle = '';
         action = typeof row.data?.text === 'string' && row.data.text ? (row.data.text as string) : 'Workflow: FIRED';
+      } else if (reminder === 'pingart') {
+        // PingArt ⎀ — the row stays one line; the art itself rides the
+        // native push body (lib/push/format.ts) where the day's piece
+        // lands on the lock screen.
+        handle = '';
+        const day = typeof row.data?.day === 'string' ? (row.data.day as string) : '';
+        action = `PingArt: today's transmission${day ? ` · ${day}` : ''}`;
       } else if (reminder === 'ops') {
         handle = '';
         action = typeof row.data?.text === 'string' ? (row.data.text as string) : 'System notice';
