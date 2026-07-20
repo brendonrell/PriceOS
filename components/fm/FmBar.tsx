@@ -29,7 +29,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useToast } from '../../lib/state/ToastContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
-import { moodOfDay } from '../../lib/mood/mood';
+
 import { allProjects, getProject, projectTrueName } from '../../lib/project/registry';
 import { getSoundtrackStarItems } from '../../lib/pins/soundtrackStarStore';
 import { registerFmDriver, publishFm, type FmStation } from '../../lib/fm/fmBus';
@@ -76,6 +76,13 @@ type Station = FmStation;
 
 type FmStatus = 'idle' | 'loading' | 'playing' | 'paused';
 
+/* The five faces (Brendon picked all five from the 2026-07-20 mocks). */
+const FM_DISPLAYS = ['deck', 'micro', 'disc', 'slab', 'signal'] as const;
+type FmDisplay = (typeof FM_DISPLAYS)[number];
+const FM_DISPLAY_NAMES: Record<FmDisplay, string> = {
+    deck: 'THE DECK', micro: 'MICRO', disc: 'THE DISC', slab: 'THE SLAB', signal: 'THE SIGNAL',
+};
+
 export default function FmBar() {
     const pathname = usePathname();
     const { showToast } = useToast();
@@ -89,6 +96,32 @@ export default function FmBar() {
     const [onAir, setOnAir] = useState<Station | null>(null);
     const [trackTitle, setTrackTitle] = useState('');
     const [pickerOpen, setPickerOpen] = useState(false);
+
+    /* The display face — device-local, read after mount (SSR-safe). */
+    const [display, setDisplay] = useState<FmDisplay>('deck');
+    useEffect(() => {
+        try {
+            const raw = window.localStorage.getItem('pd_fm_display');
+            if (raw && (FM_DISPLAYS as readonly string[]).includes(raw)) setDisplay(raw as FmDisplay);
+        } catch { /* private mode */ }
+    }, []);
+    /* Tapping a compact face summons the full deck briefly (auto-collapses). */
+    const [deckPeek, setDeckPeek] = useState(false);
+    const peekTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const armDeckPeek = useCallback(() => {
+        setDeckPeek(true);
+        if (peekTimer.current) clearTimeout(peekTimer.current);
+        peekTimer.current = setTimeout(() => setDeckPeek(false), 6000);
+    }, []);
+    useEffect(() => () => { if (peekTimer.current) clearTimeout(peekTimer.current); }, []);
+    const cycleDisplay = () => {
+        const next = FM_DISPLAYS[(FM_DISPLAYS.indexOf(display) + 1) % FM_DISPLAYS.length];
+        setDisplay(next);
+        try { window.localStorage.setItem('pd_fm_display', next); } catch { /* fine */ }
+        if (next !== 'deck') armDeckPeek(); // keep the deck up so cycling continues
+        else setDeckPeek(false);
+        showToast(`PD miniplayer: ${FM_DISPLAY_NAMES[next]}`);
+    };
 
     const playerRef = useRef<YTPlayer | null>(null);
     const videoHostRef = useRef<HTMLSpanElement | null>(null);
@@ -273,9 +306,9 @@ export default function FmBar() {
 
     if (rotation.length === 0) return null;
 
-    /* Closed = the chip (Brendon's pick, 2026-07-20 — dot is the fallback if
-       Safari chrome fights it): an icon-only mini pill on the bar's exact
-       anchor. Tapping it brings the full device back. */
+    /* Closed = THE DOT (Brendon, 2026-07-20 — final call): one solid dot on
+       the bar's anchor, tap zone far bigger than the speck. Tapping it
+       brings the full device back. */
     if (!enabled) {
         return (
             <button
@@ -284,18 +317,25 @@ export default function FmBar() {
                 onClick={() => updateNotifs({ miniplayer: true })}
                 title="PD miniplayer"
                 aria-label="Open the PD miniplayer"
-            >
-                {'▶︎'}
-            </button>
+            />
         );
     }
 
     const tuneOffer = onAir && context && context.playlistId !== onAir.playlistId;
 
-    /* The art window sits on the screen's left or right by the day's MOOD
-       (Brendon, 2026-07-20 — "depending on the mood or something"): the Mood
-       Ring's day index flips it, so the deck rearranges itself day to day. */
-    const artRight = moodOfDay().day % 2 === 1;
+    /* Art pinned LEFT — the approved mock's layout, exactly. (The mood-day
+       side flip shipped once, read as a bait-and-switch against the approved
+       look, and got pulled — 2026-07-20. Don't re-add without Brendon.) */
+
+    /* ── FIVE FACES (Brendon, 2026-07-20 — "ship them all"): DECK · MICRO ·
+       THE DISC · THE SLAB · THE SIGNAL. One markup, mode classes only — the
+       video host must NEVER remount (a DOM move reloads the iframe and cuts
+       the audio), so every face is CSS over the same slots. The video window
+       stays visible in every face (YT requires it; smallest in SIGNAL).
+       Switching: the deck's MODE key cycles; tapping a compact face brings
+       the full deck back for a few seconds. Device-local pref. */
+    const effectiveMode = status === 'idle' || deckPeek || display === 'deck' ? 'deck' : display;
+    const isDeckFace = effectiveMode === 'deck';
 
     /* The three LCD rows — Sony minidisc grammar: static, compact, no crawl.
        The wordmark is PD mini*player* (Brendon, 2026-07-20: PD capitalized,
@@ -311,7 +351,7 @@ export default function FmBar() {
     return (
         <div
             ref={barRef}
-            className={`fm-bar${status === 'idle' ? ' fm-idle' : ' fm-live'}`}
+            className={`fm-bar fm-mode-${effectiveMode}${status === 'idle' ? ' fm-idle' : ' fm-live'}`}
             title="PD miniplayer — the platform's soundtracks. Tap the screen to pick a station."
         >
             {pickerOpen && (
@@ -331,40 +371,56 @@ export default function FmBar() {
                     ))}
                 </div>
             )}
-            {/* ── transport keys — LEFT side, like the deck of a Sony MD ── */}
-            <button type="button" className="fm-btn fm-play" onClick={onPlayTap}>
-                {status === 'playing' || status === 'loading' ? '‖' : '▶︎'}
-            </button>
-            {status !== 'idle' && (
+            {/* ── transport keys — LEFT side, like the deck of a Sony MD.
+                Compact faces hide them (CSS); the slots stay so the video
+                host below never shifts and remounts. ── */}
+            {isDeckFace && (
+                <button type="button" className="fm-btn fm-play" onClick={onPlayTap}>
+                    {status === 'playing' || status === 'loading' ? '‖' : '▶︎'}
+                </button>
+            )}
+            {isDeckFace && status !== 'idle' && (
                 <button type="button" className="fm-btn" onClick={onNextTap} title="Next track">
                     ≫
                 </button>
             )}
-            {tuneOffer && (
+            {isDeckFace && tuneOffer && (
                 <button type="button" className="fm-btn fm-tune" onClick={onTuneTap} title={`Tune to ${context!.label}`}>
                     TUNE
                 </button>
             )}
-            <button
-                type="button"
-                className="fm-btn fm-close"
-                onClick={() => {
-                    updateNotifs({ miniplayer: false });
-                    showToast('PD miniplayer: CLOSED');
-                }}
-                title="Close the miniplayer"
-                aria-label="Close the PD miniplayer"
-            >
-                ×
-            </button>
+            {isDeckFace && status !== 'idle' && (
+                <button type="button" className="fm-btn fm-modekey" onClick={cycleDisplay} title="Change how the player shows">
+                    {/* ⎇ ALTERNATE (U+2387) — Brendon's pick 2026-07-20 for
+                        the face-cycler; catalogued in GLYPHS.md. */}
+                    {'⎇︎'}
+                </button>
+            )}
+            {isDeckFace && (
+                <button
+                    type="button"
+                    className="fm-btn fm-close"
+                    onClick={() => {
+                        updateNotifs({ miniplayer: false });
+                        showToast('PD miniplayer: CLOSED');
+                    }}
+                    title="Close the miniplayer"
+                    aria-label="Close the PD miniplayer"
+                >
+                    ×
+                </button>
+            )}
             {/* ── THE screen — one display: the forced-YT art window IS part
-                of it (left/right by the day's mood), beside three compact
-                readout rows. Tap = station picker. ── */}
+                of it (left/right by the day's mood), beside the readout rows.
+                Deck tap = station picker; compact-face tap = the deck back. ── */}
             <button
                 type="button"
-                className={`fm-screen${artRight ? ' fm-screen--art-right' : ''}`}
-                onClick={() => setPickerOpen((v) => !v)}
-                title="Pick a station"
+                className="fm-screen"
+                onClick={() => {
+                    if (isDeckFace) setPickerOpen((v) => !v);
+                    else armDeckPeek();
+                }}
+                title={isDeckFace ? 'Pick a station' : 'PD miniplayer'}
             >
                 {/* The video host stays mounted from first play on — YT
                     replaces it with the iframe; hiding kills audio, so it
@@ -376,6 +432,11 @@ export default function FmBar() {
                     <span className="fm-row fm-row-track">{rowTrack}</span>
                     <span className="fm-row">{rowStation}</span>
                     <span className="fm-row">{rowStatus}</span>
+                </span>
+                {/* THE SIGNAL's equalizer — present in every face, shown by
+                    its mode class only. */}
+                <span className="fm-sigbars" aria-hidden="true">
+                    <span className="fm-sb" /><span className="fm-sb" /><span className="fm-sb" /><span className="fm-sb" />
                 </span>
             </button>
         </div>

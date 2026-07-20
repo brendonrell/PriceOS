@@ -18,6 +18,57 @@
    minimum, bold labels.
    ══════════════════════════════════════════════════════════════════════ */
 
+/* ── THE STONE'S POLARITY (Brendon, 2026-07-20): the stone is the OPPOSITE
+   of the colorway's buttons. Buttons dark (body.theme-bright, light pages)
+   → WHITE stone, black ink. Buttons light (dark pages) → the black stone.
+   One token set, flipped by the same YIQ read the buttons use. ── */
+.stone-peek,
+.stone-float {
+    --stone-bg: #111111;
+    --stone-bg-deep: #0b0b0b;
+    --stone-ink: #e0e0e0;
+    --stone-line: rgba(255, 255, 255, 0.35);
+    --stone-hairline: rgba(255, 255, 255, 0.15);
+    --stone-active-ink: #000000;
+}
+body.theme-bright .stone-peek,
+body.theme-bright .stone-float {
+    --stone-bg: #f4f4f4;
+    --stone-bg-deep: #ffffff;
+    --stone-ink: #111111;
+    --stone-line: rgba(0, 0, 0, 0.4);
+    --stone-hairline: rgba(0, 0, 0, 0.15);
+    --stone-active-ink: #ffffff;
+}
+
+/* The stealth console's stage overrides (stoneStyle.ts — `stone white` /
+   `stone black`) outrank the auto rule; `stone auto` clears them. */
+body.pd-stone-force-black .stone-peek,
+body.pd-stone-force-black .stone-float {
+    --stone-bg: #111111;
+    --stone-bg-deep: #0b0b0b;
+    --stone-ink: #e0e0e0;
+    --stone-line: rgba(255, 255, 255, 0.35);
+    --stone-hairline: rgba(255, 255, 255, 0.15);
+    --stone-active-ink: #000000;
+}
+body.pd-stone-force-white .stone-peek,
+body.pd-stone-force-white .stone-float {
+    --stone-bg: #f4f4f4;
+    --stone-bg-deep: #ffffff;
+    --stone-ink: #111111;
+    --stone-line: rgba(0, 0, 0, 0.4);
+    --stone-hairline: rgba(0, 0, 0, 0.15);
+    --stone-active-ink: #ffffff;
+}
+
+/* The console's accent (`stone #hex`, set as --stone-accent on the root) —
+   the caret, the ⌘, the ON-AIR LED. Falls back to the stage ink, so an
+   untouched stone looks exactly as before. */
+.stone-caret { color: var(--stone-accent, var(--stone-ink)); }
+.stone-pill-glyph { color: var(--stone-accent, var(--stone-ink)); }
+.stone-fm-led { color: var(--stone-accent, var(--stone-ink)); }
+
 /* ── the resting bar (Brendon 2026-07-20: NO glyph, a bare black bar at
       HALF the old 26px height; swipe up summons it, swipe down puts it
       away, and it LIVES there while you scroll) ── */
@@ -29,8 +80,8 @@
     z-index: 10004;
     width: min(46vw, 220px);
     height: 13px;
-    background: #111111;
-    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: var(--stone-bg);
+    border: 1px solid var(--stone-line);
     border-radius: 6px;
     cursor: pointer;
     touch-action: none; /* the bar owns its swipes — never scrolls the page */
@@ -68,11 +119,11 @@
     /* Dark-only stage — token re-base local to the surface so every
        inherited rule (incl. the reused .gsr rows) reads dark on any
        colorway. */
-    --bg-color: #111111;
-    --text-color: #e0e0e0;
-    --border-color: rgba(255, 255, 255, 0.15);
-    --stat-active-bg: #e0e0e0;
-    --stat-active-text: #000000;
+    --bg-color: var(--stone-bg);
+    --text-color: var(--stone-ink);
+    --border-color: var(--stone-hairline);
+    --stat-active-bg: var(--stone-ink);
+    --stat-active-text: var(--stone-active-ink);
     color: var(--text-color);
     font-family: 'Courier New', Courier, monospace;
 }
@@ -90,8 +141,8 @@
     gap: 10px;
     height: 44px;
     padding: 0 16px;
-    background: #0b0b0b;
-    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: var(--stone-bg-deep);
+    border: 1px solid var(--stone-line);
     /* THE STONE IS NEVER ROUNDED (Brendon, 2026-07-20 — raised in fury
        after a capsule leaked into a preview). The typing bar wears the
        ORIGINAL stone bar's own 6px cut, same as .stone-peek — the one
@@ -164,8 +215,8 @@
     box-sizing: border-box;
     max-height: min(52vh, 440px);
     min-height: 0;
-    background: #0b0b0b;
-    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: var(--stone-bg-deep);
+    border: 1px solid var(--stone-line);
     border-radius: 18px 18px 12px 12px;
     margin-bottom: -8px; /* tucks under the pill's top — the smooth join */
     padding: 6px 8px 14px;
@@ -180,7 +231,7 @@
    here (fresh-chat build) */
 .stone-widget { flex: none; }
 .stone-widget + .stone-widget {
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    border-top: 1px solid var(--stone-hairline);
     margin-top: 4px;
     padding-top: 4px;
 }
@@ -191,7 +242,7 @@
     align-items: center;
     margin: 4px 2px;
     padding: 10px 12px;
-    background: #111111;
+    background: var(--stone-bg);
     border: 1px solid var(--text-color);
     /* square — the vessel carries NO rounded corners (Brendon 2026-07-20);
        the only pills in the stone are the two he named: peek + typing pill */
@@ -306,7 +357,7 @@
     padding: 7px 4px;
     color: var(--text-color);
 }
-.sw-hit + .sw-hit { border-top: 1px solid rgba(255, 255, 255, 0.15); }
+.sw-hit + .sw-hit { border-top: 1px solid var(--stone-hairline); }
 .sw-hit-sprite { flex: none; font-size: 15px; }
 .sw-hit-ic { flex: none; font-size: 16px; font-weight: bold; }
 .sw-hit-body {
@@ -345,7 +396,7 @@
 .sw-thumb {
     flex: none;
     display: block;
-    background: #111111;
+    background: var(--stone-bg);
 }
 .sw-thumb--degen { border: 1px solid var(--text-color); }
 .sw-more {
@@ -373,7 +424,7 @@
     padding: 5px 4px;
     font-variant-emoji: text;
 }
-.sw-row-line + .sw-row-line { border-top: 1px solid rgba(255, 255, 255, 0.15); }
+.sw-row-line + .sw-row-line { border-top: 1px solid var(--stone-hairline); }
 .sw-row-l {
     font-size: 13px;
     font-weight: bold;
@@ -397,7 +448,7 @@
     align-items: center;
     gap: 2px;
     padding: 6px 0 5px;
-    border: 1px solid rgba(255, 255, 255, 0.35);
+    border: 1px solid var(--stone-line);
     /* square — corner law */
     cursor: pointer;
     color: var(--text-color);
@@ -432,7 +483,7 @@
     padding: 6px 2px;
     font-variant-emoji: text;
 }
-.sw-cal-item + .sw-cal-item { border-top: 1px solid rgba(255, 255, 255, 0.15); }
+.sw-cal-item + .sw-cal-item { border-top: 1px solid var(--stone-hairline); }
 .sw-cal-time {
     flex: none;
     min-width: 52px;
@@ -488,7 +539,7 @@
     flex-direction: column;
     gap: 3px;
     padding: 8px 6px;
-    border: 1px solid rgba(255, 255, 255, 0.35);
+    border: 1px solid var(--stone-line);
     /* square — corner law */
     font-variant-emoji: text;
 }
@@ -500,7 +551,7 @@
     display: block;
     width: 100%;
     height: auto;
-    background: #111111;
+    background: var(--stone-bg);
     cursor: pointer;
 }
 .sw-gallery-bar {
@@ -521,7 +572,7 @@
     font-weight: bold;
     line-height: 1;
     color: var(--text-color);
-    background: #111111;
+    background: var(--stone-bg);
     border: 1px solid var(--text-color);
     /* square — corner law */
     cursor: pointer;
@@ -546,7 +597,7 @@
     padding: 0 2px;
     overflow-x: auto;
 }
-.sw-matrix-corner { border-bottom: 1px solid rgba(255, 255, 255, 0.35); }
+.sw-matrix-corner { border-bottom: 1px solid var(--stone-line); }
 .sw-matrix-head {
     padding: 4px 6px 6px;
     font-size: 13px;
@@ -556,7 +607,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+    border-bottom: 1px solid var(--stone-line);
 }
 .sw-matrix-label {
     padding: 7px 6px 7px 0;
@@ -596,7 +647,7 @@
     padding: 8px 4px;
     color: var(--text-color);
 }
-.sw-doc-hit + .sw-doc-hit { border-top: 1px solid rgba(255, 255, 255, 0.15); }
+.sw-doc-hit + .sw-doc-hit { border-top: 1px solid var(--stone-hairline); }
 .sw-doc-title { font-size: 14px; font-weight: bold; line-height: 1.25; }
 .sw-doc-heading { font-weight: bold; }
 .sw-doc-section {
@@ -646,7 +697,7 @@
     gap: 10px;
     padding: 6px 4px;
 }
-.sw-glance-line + .sw-glance-line { border-top: 1px solid rgba(255, 255, 255, 0.15); }
+.sw-glance-line + .sw-glance-line { border-top: 1px solid var(--stone-hairline); }
 .sw-glance-l {
     font-size: 12px;
     font-weight: bold;
@@ -737,9 +788,9 @@
     font-size: 12px;
     font-weight: bold;
     line-height: 1;
-    color: #e0e0e0;
+    color: var(--stone-ink);
     background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.35);
+    border: 1px solid var(--stone-line);
     border-radius: 6px; /* the stone's own cut — never a capsule here */
     padding: 5px 7px;
     cursor: pointer;
@@ -759,7 +810,7 @@
     align-items: center;
     gap: 6px;
     padding: 8px 10px 6px;
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    border-top: 1px solid var(--stone-hairline);
     margin-top: 4px;
 }
 .stone-fm-key {
@@ -769,7 +820,7 @@
     font-weight: bold;
     letter-spacing: 0.5px;
     color: var(--text-color);
-    background: #111111;
+    background: var(--stone-bg);
     border: 1px solid var(--text-color);
     /* square — vessel rule */
     padding: 4px 9px;
