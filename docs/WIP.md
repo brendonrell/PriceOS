@@ -8,7 +8,43 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-21 (latest) COLORWAYS + KIKI EXTRACTION + SUBTRAITS-IN-UPLOAD
+0. ✅ **2026-07-21 (latest) COMMAND STONE → TRIPLE-TAP SUMMON · 3D MINIPLAYER ·
+   THE DOT MINIMIZE — all SHIPPED on dev (tip `a34872d`), auto-deploy rolling,
+   tree clean. Task branch `claude/command-stone-triple-tap-kvm9wb` = merged
+   trash (delete at https://github.com/brendonrell/PriceOS/branches).** Opus
+   session, Brendon's spec, present→push loop. ⛔ **SUPERSEDES the old stone
+   summon/minimize model in the entries below — read THIS for current truth:**
+   ① SUMMON = **TRIPLE-TAP THE PAGE BACKGROUND**, the ONLY way in now, live on
+   every page incl. docs (studio/dispatch were already under the shell; the
+   bare-docs branch of `PriceOSShell` now mounts the stone too). Opens straight
+   to the full typing view, keyboard up. Toast: `⌘ Summoned: COMMAND STONE ⌘`.
+   Pointer-events (not click) so iOS fires on bare bg; excludes taps on
+   controls/links/the stone/the miniplayer/while a modal is open; the app's
+   `user-scalable=no` already kills iOS double-tap-zoom so the gesture can't be
+   hijacked.
+   ② MINIMIZED STATE = **THE DOT** — the retired miniplayer nub (9px
+   `--text-color` disc, bottom-right, finger pad) resurrected verbatim from
+   history as `.stone-dot`. Minimize to it = swipe-down / long-press the pill,
+   OR type "minimize" (variants min/dock/shrink/tuck/stow). Tap the dot → reopen.
+   ③ CLOSE (fully gone) = **triple-tap the bg again** (primary), OR type "close"
+   (variants dismiss/hide/exit/quit/leave/done/bye/go away/shut down).
+   ④ **THE PEEK BAR IS RETIRED** — the old swipe-up-from-the-band summon + the
+   centre skinny `.stone-peek` are gone. Stone states are now `hidden | open |
+   dot`; route change / Escape park an open stone at the dot. `pd-stone-peek`
+   retired everywhere (fm.css dock rule + globals toast-lift now key on
+   `pd-stone-open`).
+   ⑤ **MINIPLAYER IS 3D** — the stone pill's exact gradient + inset
+   highlight/shadow + drop shadow lifted onto the `.fm-bar` chassis, built off
+   `--bg-color` so it carves on any colorway; its border + pill shape untouched
+   (the transparent disc face zeroes the shadow). Brendon: "just bring the
+   gradient over, we'll optimise later if need be."
+   Touched: `CommandStone.tsx` · `PriceOSShell.tsx` (docs mount) · `stone.css` ·
+   `fm.css` · `globals.css`. Proof: two real builds green, 43/43 stone tests,
+   compiled-CSS greps (`.stone-dot` + `.fm-bar` gradient confirmed, peek block
+   gone). ClickUp: ad-hoc chat build, no task of record (Command Stone
+   precedent; connector was down this session regardless).
+
+0. ✅ **2026-07-21 COLORWAYS + KIKI EXTRACTION + SUBTRAITS-IN-UPLOAD
    — all SHIPPED. PriceOS work is on dev (auto-deploy rolling), tree clean.
    Task branch `claude/spot-edits-colorways-mw06n7` exists on BOTH PriceOS +
    kiki-genart = merged/pushed trash for PriceOS; delete PriceOS branch at
