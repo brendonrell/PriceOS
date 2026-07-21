@@ -36,6 +36,7 @@ import { formatEth } from '../../lib/format/eth';
 import { paintOutput } from '../../lib/state/ProjectContext';
 import { paintAsciiStandin } from '../../lib/art/asciiStandin';
 import { parseQuery } from '../../lib/search/parse';
+import { loadIntel } from '../../lib/familiar/intel';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { usePings } from '../../lib/state/PingsContext';
 import { projectsByArtist, getProject } from '../../lib/project/registry';
@@ -1100,6 +1101,48 @@ function GlanceWidget({ address }: { address: string }) {
     );
 }
 
+/* ── ⚝ OMNISCIENCE — the familiar's read on YOU, ported to the stone. The
+      SAME live account + ledger knowledge the companion emerges over time
+      (loadIntel — Rule #0). The familiar drips it out slowly; the stone,
+      summoned by name ("me"), lays the whole file down at once. ── */
+function OmniWidget({ address }: { address: string }) {
+    const [facts, setFacts] = useState<string[] | null>(null);
+    useEffect(() => {
+        let cancelled = false;
+        loadIntel(address)
+            .then((f) => { if (!cancelled) setFacts(f); })
+            .catch(() => { if (!cancelled) setFacts([]); });
+        return () => { cancelled = true; };
+    }, [address]);
+
+    if (facts === null) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`⚝${VS15}`} label="OMNISCIENCE" />
+                <SwSay>READING EVERYTHING ABOUT YOU…</SwSay>
+            </div>
+        );
+    }
+    if (facts.length === 0) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`⚝${VS15}`} label="OMNISCIENCE" />
+                <SwSay>NOTHING ON YOU YET. MAKE A MOVE.</SwSay>
+            </div>
+        );
+    }
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle glyph={`⚝${VS15}`} label="OMNISCIENCE" sub={`${facts.length} KNOWN`} />
+            <div className="sw-rows">
+                {facts.map((f, i) => (
+                    <div key={i} className="sw-omni-line">{f}</div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
 /* ── the deck router — one summoned plan, one card ── */
 
 export function WidgetDeck({ plan, address, onGo, onAct }: {
@@ -1118,6 +1161,7 @@ export function WidgetDeck({ plan, address, onGo, onAct }: {
         case 'ascii': return <AsciiWidget address={address} />;
         case 'docs': return <DocsWidget query={plan.query} onGo={onGo} />;
         case 'glance': return <GlanceWidget address={address} />;
+        case 'omni': return <OmniWidget address={address} />;
         case 'trend': return <TrendWidget plan={plan} />;
         case 'wrapped': return <WrappedWidget plan={plan} address={address} />;
     }

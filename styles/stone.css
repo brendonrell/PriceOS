@@ -488,6 +488,18 @@ body.pd-stone-force-white .stone-float .stone-deck .sw-card:nth-of-type(3n + 2) 
 }
 .sw-row-r { font-size: 13px; font-weight: bold; white-space: nowrap; }
 
+/* ── ⚝ omniscience — the familiar's "I know this about you" lines, laid
+   down all at once. Full-strength, readable (Rule #2); hairline between. */
+.sw-omni-line {
+    padding: 7px 4px;
+    font-size: 13px;
+    font-weight: bold;
+    line-height: 1.3;
+    color: var(--text-color);
+    overflow-wrap: break-word;
+}
+.sw-omni-line + .sw-omni-line { border-top: 1px solid var(--stone-hairline); }
+
 /* ── ▦ calendar ── */
 .sw-cal-strip {
     display: grid;

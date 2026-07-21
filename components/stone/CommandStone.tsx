@@ -39,6 +39,8 @@ import { matchCast, type CastTarget } from '../../lib/stone/cast';
 import { parseWidget } from '../../lib/stone/widgets';
 import { runStoneCommand, applyStoneStyle } from '../../lib/stone/stoneStyle';
 import { expandFollowUp, type StoneSubject } from '../../lib/stone/memory';
+import { readStage } from '../../lib/npc/awareness';
+import { readPieceInView } from '../../lib/npc/inview';
 import { WidgetDeck, SearchDeck } from './StoneDeck';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useSort } from '../../lib/state/SortContext';
@@ -136,6 +138,7 @@ export default function CommandStone() {
                 ascii: 'Your mark, carved.',
                 docs: 'The manual knows.',
                 glance: 'The glance.',
+                omni: 'I know you.',
                 trend: 'The last 30 days, read.',
             };
             return SAY[activeWidget.kind] ?? 'Here.';
@@ -232,6 +235,30 @@ export default function CommandStone() {
             setSubject({ kind: 'project', name: activeWidget.title });
         }
     }, [activeWidget]);
+
+    /* SEEING (the cast's eyes, ported to the stone) — on open, the stone
+       reads what's on screen EXACTLY as the NPC Cast does: the piece in view
+       (lib/npc/inview), else the page it's on (lib/npc/awareness). It adopts
+       that as its subject, so a bare "floor" / "calc 0.2" / "gallery" /
+       "anchor 0.5" means the very thing you're LOOKING at — no name needed.
+       A neutral page (home / search) keeps whatever the stone last
+       remembered; a typed subject always wins next. */
+    useEffect(() => {
+        if (!open) return;
+        const piece = readPieceInView();
+        if (piece) {
+            setSubject({ kind: 'project', name: getProject(piece.slug)?.displayName ?? piece.slug });
+            return;
+        }
+        const st = readStage(pathname);
+        if ((st.kind === 'artwork' || st.kind === 'project') && st.slug) {
+            setSubject({ kind: 'project', name: getProject(st.slug)?.displayName ?? st.slug });
+            return;
+        }
+        if (st.kind === 'profile' && st.slug) {
+            setSubject({ kind: 'user', name: `@${st.slug}` });
+        }
+    }, [open, pathname]);
     const castActive = (hit: CastTarget): boolean => {
         if (hit.kind === 'spell') return !!notifs[hit.spell.flag];
         if (hit.kind === 'mode') {
@@ -424,6 +451,9 @@ export default function CommandStone() {
     const pageHits = useMemo(() => {
         const v = value.trim().toLowerCase();
         if (v.length < 2) return [];
+        /* The Omniscience summon ("me") owns its line — it must not also offer
+           the profile jump; "profile" stays the profile door (Brendon). */
+        if (parseWidget(v)?.kind === 'omni') return [];
         return PAGE_ROWS.filter(
             (p) => p.kind === 'route' && p.words.some((w) => w.startsWith(v))
         ).map((p) => ({

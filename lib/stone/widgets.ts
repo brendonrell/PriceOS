@@ -37,6 +37,8 @@ export type WidgetPlan =
     /* stage 5 hands */
     | { kind: 'glance' }
     | { kind: 'trend'; slug: string; title: string; days: number }
+    /* the familiar's Omniscience, ported to the stone — the read on YOU. */
+    | { kind: 'omni' }
     /* PD WRAPPED (2026-07-20) — your own recap; cadence-agnostic (days). */
     | { kind: 'wrapped'; days: number };
 
@@ -51,6 +53,8 @@ const PRICEDAY_WORDS = new Set(['priceday', 'price day', 'today', 'almanac']);
 const ASCII_WORDS = new Set(['ascii', 'my ascii', 'my mark', 'wallet art']);
 /** THE GLANCE — the composed morning card (stage 5). */
 const GLANCE_WORDS = new Set(['brief', 'glance', 'morning', 'the glance']);
+/** OMNISCIENCE — the familiar's read on YOU, summoned by name. */
+const OMNI_WORDS = new Set(['me', 'myself', 'omniscience', 'about me', 'know me']);
 /** PD WRAPPED — bare word = the default 30-day look-back; `wrapped 90d`
     picks the window (cadence is Brendon's open call — the days parameter
     IS the cadence-agnosticism). */
@@ -76,6 +80,7 @@ export function parseWidget(line: string): WidgetPlan | null {
     if (PRICEDAY_WORDS.has(q)) return { kind: 'priceday' };
     if (ASCII_WORDS.has(q)) return { kind: 'ascii' };
     if (GLANCE_WORDS.has(q)) return { kind: 'glance' };
+    if (OMNI_WORDS.has(q)) return { kind: 'omni' };
     if (WRAPPED_WORDS.has(q)) return { kind: 'wrapped', days: 30 };
 
     /* `wrapped 90d` / `recap 7d` — a chosen window. */
