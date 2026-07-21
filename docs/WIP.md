@@ -43,6 +43,14 @@
    compiled-CSS greps (`.stone-dot` + `.fm-bar` gradient confirmed, peek block
    gone). ClickUp: ad-hoc chat build, no task of record (Command Stone
    precedent; connector was down this session regardless).
+   ⑥ **FOLLOW-ONS (same session, dev tip `bb2a4d4`):** on a deliberate CLOSE
+   the toast now draws the stone's ASCII face + one of its lines — the toast
+   gained an optional monospace face row (`showToast(msg,...,face)` → `.toast-face`
+   / `.with-face`). NO flash (a bespoke flicker overlay was built then ripped
+   out on Brendon's word — it's just the face on the closing toast). Miniplayer:
+   chassis outline removed; the DECK-face screen flips colours + small black
+   border + a dim CRT/LCD veil (`.fm-mode-deck .fm-screen::after`) so it reads
+   as album art, not an ad. Compact faces untouched.
 
 0. ✅ **2026-07-21 COLORWAYS + KIKI EXTRACTION + SUBTRAITS-IN-UPLOAD
    — all SHIPPED. PriceOS work is on dev (auto-deploy rolling), tree clean.
