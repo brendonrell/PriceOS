@@ -10,7 +10,7 @@
  */
 
 import { useCallback, type MouseEvent as ReactMouseEvent } from 'react';
-import { useModal } from '../lib/state/ModalContext';
+import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { DISCORD_URL } from '../lib/config/discord';
 
 const VS15 = '︎';
@@ -18,7 +18,7 @@ const SUPPORT_EMAIL = 'support@pricediscussion.com';
 
 export default function SupportModal() {
     const { openModal, close } = useModal();
-    const isOpen = openModal?.name === 'support';
+    const { isOpen, isTopStacked } = useModalLayer('support');
 
     const onBackdropClick = useCallback(
         (e: ReactMouseEvent<HTMLDivElement>) => {
@@ -31,6 +31,7 @@ export default function SupportModal() {
         <div
             id="supportModal"
             className={`platform-modal${isOpen ? ' active' : ''}`}
+            data-stack-top={isTopStacked || undefined}
             role="dialog"
             aria-modal="true"
             onClick={onBackdropClick}

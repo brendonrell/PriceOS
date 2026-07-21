@@ -10,7 +10,7 @@
  * and needs no modal. Mounted once in PriceOSShell.
  */
 
-import { useModal } from '../lib/state/ModalContext';
+import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import { useToast } from '../lib/state/ToastContext';
 
@@ -20,7 +20,7 @@ export default function PanopticonConfirmModal() {
     const { openModal, close } = useModal();
     const { toggle } = usePdNotifs();
     const { showToast } = useToast();
-    const isOpen = openModal?.name === 'panopticonConfirm';
+    const { isOpen, isTopStacked } = useModalLayer('panopticonConfirm');
 
     const turnOn = () => {
         toggle('spell_panopticon');
@@ -31,6 +31,7 @@ export default function PanopticonConfirmModal() {
     return (
         <div
             className={`pan-backdrop${isOpen ? ' active' : ''}`}
+            data-stack-top={isTopStacked || undefined}
             role="dialog"
             aria-modal="true"
             aria-label="Panopticon"

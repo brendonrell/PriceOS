@@ -13,7 +13,7 @@
 
 import { useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { useModal } from '../lib/state/ModalContext';
+import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { lockBodyScroll, unlockBodyScroll } from '../lib/state/bodyScrollLock';
 import { golfLeaderboard } from '../lib/project/golfScore';
 
@@ -23,7 +23,7 @@ const MEDALS = [`❶${VS15}`, `❷${VS15}`, `❸${VS15}`];
 
 export default function GolfLeaderboardModal() {
     const { openModal, currentModalSlug, close } = useModal();
-    const isOpen = openModal?.name === 'golf-leaderboard';
+    const { isOpen, isTopStacked } = useModalLayer('golf-leaderboard');
 
     const rows = useMemo(() => (isOpen ? golfLeaderboard() : []), [isOpen]);
 
@@ -43,7 +43,7 @@ export default function GolfLeaderboardModal() {
     if (!isOpen || typeof document === 'undefined') return null;
 
     return createPortal(
-        <div className="sticker-mgr-backdrop followers-backdrop" role="dialog" aria-modal="true" aria-label="Clubhouse" onClick={close}>
+        <div className="sticker-mgr-backdrop followers-backdrop" data-stack-top={isTopStacked || undefined} role="dialog" aria-modal="true" aria-label="Clubhouse" onClick={close}>
             <div className="ambient-pop followers-pop" role="dialog" aria-label="Clubhouse" onClick={(e) => e.stopPropagation()}>
                 <span className="ambient-pop-close" role="button" tabIndex={0} title="Close" onClick={close}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); close(); } }}>

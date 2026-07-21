@@ -20,7 +20,7 @@
  */
 
 import { useCallback, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
-import { useModal } from '../lib/state/ModalContext';
+import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { useAuth } from '../lib/state/AuthContext';
 import { useProject } from '../lib/state/ProjectContext';
 import { getProject } from '../lib/project/registry';
@@ -51,7 +51,7 @@ export default function CollectorsModal() {
     const listRef = useRef<HTMLDivElement>(null);
     const [sort, setSort] = useState<OwnerSort>('pieces');
 
-    const isOpen = openModal?.name === 'collectors';
+    const { isOpen, isTopStacked } = useModalLayer('collectors');
 
     const onBackdropClick = useCallback(
         (e: ReactMouseEvent<HTMLDivElement>) => {
@@ -117,6 +117,7 @@ export default function CollectorsModal() {
             className={`platform-modal${isOpen ? ' active' : ''}`}
             role="dialog"
             aria-modal="true"
+            data-stack-top={isTopStacked || undefined}
             onClick={onBackdropClick}
         >
             <div

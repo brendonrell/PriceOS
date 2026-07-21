@@ -87,7 +87,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { useModal } from '../lib/state/ModalContext';
+import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useCalcSheet } from '../lib/state/CalcSheetContext';
 import { useMarketSheet } from '../lib/state/MarketSheetContext';
@@ -311,7 +311,7 @@ export default function OutputPreview() {
     const [imgLoaded, setImgLoaded] = useState(false);
     const [imgStage, setImgStage] = useState(0);
 
-    const isOpen = openModal?.name === 'output';
+    const { isOpen, isTopStacked } = useModalLayer('output');
     const id = isOpen ? currentModalId : null;
     useEffect(() => { setAsciiMiss(false); setAsciiReady(false); }, [slug, id]);
     useEffect(() => setAsciiReady(false), [notifs.asciiArt]);
@@ -913,6 +913,7 @@ export default function OutputPreview() {
             className={`platform-modal${isOpen ? ' active' : ''}`}
             role="dialog"
             aria-modal="true"
+            data-stack-top={isTopStacked || undefined}
             onClick={onBackdropClick}
         >
             <div

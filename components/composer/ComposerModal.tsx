@@ -25,7 +25,7 @@
  */
 
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
-import { useModal } from '../../lib/state/ModalContext';
+import { useModal, useModalLayer } from '../../lib/state/ModalContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
 import {
@@ -241,7 +241,7 @@ export default function ComposerModal() {
     const { openModal, open, close } = useModal();
     const { siweAddress } = useAuth();
     const { showToast } = useToast();
-    const isOpen = openModal?.name === 'composer';
+    const { isOpen, isTopStacked } = useModalLayer('composer');
 
     /* ── query + view state (survives close/reopen within the session) ── */
     const [query, setQuery] = useState<ComposerQuery>(EMPTY_QUERY);
@@ -989,6 +989,7 @@ export default function ComposerModal() {
         <div
             id="composerModal"
             className={`platform-modal composer-modal${isOpen ? ' active' : ''}`}
+            data-stack-top={isTopStacked || undefined}
             role="dialog"
             aria-modal="true"
             aria-label="Composer"

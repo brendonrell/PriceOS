@@ -17,7 +17,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useModal } from '../lib/state/ModalContext';
+import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { useAuth } from '../lib/state/AuthContext';
 import { useToast } from '../lib/state/ToastContext';
 import { paintOutput } from '../lib/state/ProjectContext';
@@ -60,7 +60,7 @@ export default function TarotSpreadModal() {
     const { openModal, close } = useModal();
     const { showToast } = useToast();
     const { siweAddress } = useAuth();
-    const isOpen = openModal?.name === 'tarot';
+    const { isOpen, isTopStacked } = useModalLayer('tarot');
 
     const [holdings, setHoldings] = useState<TarotHolding[] | null>(null);
     const [total, setTotal] = useState<number | null>(null);
@@ -106,6 +106,7 @@ export default function TarotSpreadModal() {
     return (
         <div
             className={`tarot-backdrop${isOpen ? ' active' : ''}`}
+            data-stack-top={isTopStacked || undefined}
             role="dialog"
             aria-modal="true"
             aria-label="Tarot Spread"

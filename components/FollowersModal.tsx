@@ -38,7 +38,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
-import { useModal } from '../lib/state/ModalContext';
+import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { useAuth } from '../lib/state/AuthContext';
 import { useToast } from '../lib/state/ToastContext';
 import { lockBodyScroll, unlockBodyScroll } from '../lib/state/bodyScrollLock';
@@ -173,7 +173,7 @@ export default function FollowersModal() {
     const { openModal, close } = useModal();
     const { siweAddress, handle: myHandle } = useAuth();
     const { showToast } = useToast();
-    const isOpen = openModal?.name === 'followers';
+    const { isOpen, isTopStacked } = useModalLayer('followers');
 
     /* Whose circle we're showing. Opened from a profile, the inspector reflects
        THAT user's followers (Brendon, 2026-07-11 view-as); with no target it
@@ -717,7 +717,7 @@ export default function FollowersModal() {
     // ── FRIEND INSPECTOR+ — full jumbo panel (matches Sticker Manager Plus) ──
     if (full) {
         return createPortal(
-            <div className="sticker-mgr-plus-backdrop" role="dialog" aria-modal="true" aria-label="Friend Inspector" onClick={close}>
+            <div className="sticker-mgr-plus-backdrop" data-stack-top={isTopStacked || undefined} role="dialog" aria-modal="true" aria-label="Friend Inspector" onClick={close}>
                 <div className="sticker-mgr-plus followers-plus" onClick={(e) => e.stopPropagation()}>
                     <div className="smgr-plus-head">
                         {title('FRIEND INSPECTOR+')}
@@ -759,7 +759,7 @@ export default function FollowersModal() {
 
     // ── FRIEND INSPECTOR — compact floating popup ──
     return createPortal(
-        <div className="sticker-mgr-backdrop followers-backdrop" role="dialog" aria-modal="true" aria-label="Friend Inspector" onClick={close}>
+        <div className="sticker-mgr-backdrop followers-backdrop" data-stack-top={isTopStacked || undefined} role="dialog" aria-modal="true" aria-label="Friend Inspector" onClick={close}>
             <div className="ambient-pop followers-pop" role="dialog" aria-label="Friend Inspector" onClick={(e) => e.stopPropagation()}>
                 <span className="ambient-pop-close" role="button" tabIndex={0} title="Close" onClick={close}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); close(); } }}>

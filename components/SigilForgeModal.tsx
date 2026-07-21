@@ -15,7 +15,7 @@
  */
 
 import { useCallback, useEffect, useState, type MouseEvent as ReactMouseEvent } from 'react';
-import { useModal } from '../lib/state/ModalContext';
+import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { useAuth } from '../lib/state/AuthContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useFaction } from '../lib/factions/useFaction';
@@ -26,7 +26,7 @@ const VS15 = '︎';
 
 export default function SigilForgeModal() {
     const { openModal, close } = useModal();
-    const isOpen = openModal?.name === 'sigilForge';
+    const { isOpen, isTopStacked } = useModalLayer('sigilForge');
     const { siweAddress, sigilHidden } = useAuth();
     const { showToast } = useToast();
     const faction = useFaction();
@@ -97,6 +97,7 @@ export default function SigilForgeModal() {
         <div
             id="sigilForgeModal"
             className="platform-modal active"
+            data-stack-top={isTopStacked || undefined}
             role="dialog"
             aria-modal="true"
             aria-label="The Forge"

@@ -27,7 +27,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { parseEther } from 'viem';
-import { useModal } from '../lib/state/ModalContext';
+import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { useAuth } from '../lib/state/AuthContext';
 import { useToast } from '../lib/state/ToastContext';
 import { getWalletClientOnDemand } from '../lib/wallet/walletClientOnDemand';
@@ -354,7 +354,7 @@ export default function GnomeWalletModal() {
     const { openModal, close } = useModal();
     const { siweAddress, handle } = useAuth();
     const { showToast } = useToast();
-    const isOpen = openModal?.name === 'gnomewallet';
+    const { isOpen, isTopStacked } = useModalLayer('gnomewallet');
 
     const [wing, setWing] = useState<Wing>('burrow');
     useEffect(() => { if (isOpen) setWing('burrow'); }, [isOpen]);
@@ -415,6 +415,7 @@ export default function GnomeWalletModal() {
     return (
         <div
             className={`gw-backdrop${isOpen ? ' active' : ''}`}
+            data-stack-top={isTopStacked || undefined}
             role="dialog"
             aria-modal="true"
             aria-label="gnomewallet"

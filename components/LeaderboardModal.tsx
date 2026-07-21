@@ -18,7 +18,7 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useModal } from '../lib/state/ModalContext';
+import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { useAuth } from '../lib/state/AuthContext';
 import { lockBodyScroll, unlockBodyScroll } from '../lib/state/bodyScrollLock';
 import CollectedPair from './hero/CollectedPair';
@@ -31,7 +31,7 @@ const MEDALS = [`❶${VS15}`, `❷${VS15}`, `❸${VS15}`];
 export default function LeaderboardModal() {
     const { openModal, close } = useModal();
     const { siweAddress } = useAuth();
-    const isOpen = openModal?.name === 'leaderboard';
+    const { isOpen, isTopStacked } = useModalLayer('leaderboard');
 
     const [rows, setRows] = useState<LeaderboardRow[]>([]);
     const [loading, setLoading] = useState(false);
@@ -71,7 +71,7 @@ export default function LeaderboardModal() {
     const me = siweAddress?.toLowerCase() ?? null;
 
     return createPortal(
-        <div className="sticker-mgr-backdrop followers-backdrop" role="dialog" aria-modal="true" aria-label="Leaderboard" onClick={close}>
+        <div className="sticker-mgr-backdrop followers-backdrop" role="dialog" aria-modal="true" aria-label="Leaderboard" data-stack-top={isTopStacked || undefined} onClick={close}>
             <div className="ambient-pop followers-pop" role="dialog" aria-label="Leaderboard" onClick={(e) => e.stopPropagation()}>
                 <span className="ambient-pop-close" role="button" tabIndex={0} title="Close" onClick={close}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); close(); } }}>

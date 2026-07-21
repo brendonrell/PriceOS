@@ -13,7 +13,7 @@
  */
 
 import { useEffect, useRef, useState, useCallback, type MouseEvent as ReactMouseEvent } from 'react';
-import { useModal } from '../../lib/state/ModalContext';
+import { useModal, useModalLayer } from '../../lib/state/ModalContext';
 import { useToast } from '../../lib/state/ToastContext';
 
 interface Position { slug: string; title: string; pieces: number; min_price_eth: number | null }
@@ -21,7 +21,7 @@ interface Position { slug: string; title: string; pieces: number; min_price_eth:
 export default function TakeoverCastModal() {
   const { openModal, close } = useModal();
   const { showToast } = useToast();
-  const isOpen = openModal?.name === 'takeover';
+  const { isOpen, isTopStacked } = useModalLayer('takeover');
   const target = (openModal?.slug ?? '').toLowerCase();
   const targetLabel = typeof openModal?.payload === 'string' && openModal.payload ? `@${openModal.payload}` : `${target.slice(0, 6)}…${target.slice(-4)}`;
 
@@ -86,6 +86,7 @@ export default function TakeoverCastModal() {
     <div
       id="takeoverModal"
       className={`platform-modal${isOpen ? ' active' : ''}`}
+      data-stack-top={isTopStacked || undefined}
       role="dialog"
       aria-modal="true"
       onClick={onBackdropClick}

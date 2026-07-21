@@ -29,7 +29,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { useModal } from '../lib/state/ModalContext';
+import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { useGasData, type GasData } from '../lib/hooks/useGasData';
 
 const VS15 = '\uFE0E';
@@ -70,7 +70,7 @@ function formatEthUsd(ethUsd: number): string {
 
 export default function GasTrackerModal() {
     const { openModal, close } = useModal();
-    const isOpen = openModal?.name === 'gasTracker';
+    const { isOpen, isTopStacked } = useModalLayer('gasTracker');
     const { data, error } = useGasData(isOpen);
 
     /* THE PULSE — the base fee's recent heartbeat, accumulated while the
@@ -103,6 +103,7 @@ export default function GasTrackerModal() {
             className={`platform-modal${isOpen ? ' active' : ''}`}
             role="dialog"
             aria-modal="true"
+            data-stack-top={isTopStacked || undefined}
             onClick={(e) => {
                 if (e.target === e.currentTarget) close();
             }}

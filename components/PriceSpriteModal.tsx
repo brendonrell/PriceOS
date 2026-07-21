@@ -47,7 +47,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useModal } from '../lib/state/ModalContext';
+import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useAuth } from '../lib/state/AuthContext';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
@@ -134,7 +134,7 @@ function CountUpValue({ value, active }: { value: string; active: boolean }) {
 }
 
 export default function PriceSpriteModal() {
-    const { openModal, stack, close, closeAll, open } = useModal();
+    const { close, closeAll, open } = useModal();
     const { showToast } = useToast();
     const { priceRank, priceScore, priceStreak, handle, siweAddress } = useAuth();
     const { notifs, toggle } = usePdNotifs();
@@ -144,9 +144,9 @@ export default function PriceSpriteModal() {
     const { pledge } = useMyAnoint();
     /* Stay VISIBLE while anywhere in the stack — not only when we're the top
        modal — so opening the Leaderboard (or Golf board) OVER this modal
-       leaves it sitting unchanged underneath (Brendon, 2026-07-21). Those
-       boards use a transparent, higher-z backdrop, so this shows through. */
-    const isOpen = stack.some((m) => m.name === 'priceSprite');
+       leaves it sitting unchanged underneath (Brendon, 2026-07-21). The
+       shared rule (useModalLayer) does this for every modal now. */
+    const { isOpen, isTopStacked } = useModalLayer('priceSprite');
 
     /* ASCII-ID lives here now (moved off the MY PD settings row — this is
        where people look). It's a negative flag: asciiId=true means the
@@ -242,6 +242,7 @@ export default function PriceSpriteModal() {
         <div
             id="priceSpriteModal"
             className={`platform-modal${isOpen ? ' active' : ''}`}
+            data-stack-top={isTopStacked || undefined}
             role="dialog"
             aria-modal="true"
             onClick={(e) => {

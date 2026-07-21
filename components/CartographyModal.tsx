@@ -33,7 +33,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useModal } from '../lib/state/ModalContext';
+import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { useAuth } from '../lib/state/AuthContext';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import { getSupabaseBrowser } from '../lib/supabase';
@@ -1639,7 +1639,7 @@ class CartoEngine {
 
 export default function CartographyModal() {
     const { openModal, close } = useModal();
-    const isOpen = openModal?.name === 'cartography';
+    const { isOpen, isTopStacked } = useModalLayer('cartography');
     const { siweAddress } = useAuth();
     const faction = useFaction();
     const { notifs } = usePdNotifs();
@@ -1795,6 +1795,7 @@ export default function CartographyModal() {
         <div
             id="cartographyModal"
             className={`platform-modal carto-modal${isOpen ? ' active' : ''}`}
+            data-stack-top={isTopStacked || undefined}
             role="dialog"
             aria-modal="true"
             aria-label="Cartography"

@@ -19,7 +19,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { useModal } from '../lib/state/ModalContext';
+import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import {
     getSpiteSlots,
@@ -89,7 +89,7 @@ function AddLine({
 export default function SpiteBookModal() {
     const { openModal, close } = useModal();
     const { showToast } = useToast();
-    const isOpen = openModal?.name === 'spiteBook';
+    const { isOpen, isTopStacked } = useModalLayer('spiteBook');
 
     const [slots, setSlots] = useState<readonly (string | null)[]>([]);
     const [spread, setSpread] = useState(0);
@@ -253,6 +253,7 @@ export default function SpiteBookModal() {
     return (
         <div
             className={`spite-backdrop${isOpen ? ' active' : ''}`}
+            data-stack-top={isTopStacked || undefined}
             role="dialog"
             aria-modal="true"
             aria-label="The Spite Book"

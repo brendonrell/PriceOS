@@ -10619,6 +10619,14 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 }
 /* Remove-from-Starred confirm — reuses the multi-select confirm card style,
    re-centred as a modal over the page (Brendon 2026-06-19). */
+/* SITE-WIDE modal stacking (Brendon, 2026-07-21): a modal that opens over
+   another stays visible underneath (see useModalLayer). The one on TOP tags
+   its root with data-stack-top; this lifts it above every modal's hardcoded
+   z-index (the band tops out ~1340) while staying below the miniplayer (8990),
+   the Command Stone (10004) and the toast (12000) — so ordering is always
+   correct no matter which pair is stacked. */
+[data-stack-top] { z-index: 4000 !important; }
+
 .starred-confirm-overlay {
     position: fixed;
     inset: 0;

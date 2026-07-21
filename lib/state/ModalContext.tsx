@@ -272,3 +272,26 @@ export function useModal(): ModalContextValue {
     }
     return ctx;
 }
+
+/**
+ * SITE-WIDE RULE (Brendon, 2026-07-21): opening a modal over another modal
+ * leaves the one underneath exactly as it was — visible, unchanged, just
+ * covered. Every modal gates its visibility on this hook instead of
+ * `openModal?.name === name`:
+ *   - `isOpen` is true whenever the modal is ANYWHERE in the stack (so a modal
+ *     that launched another stays rendered beneath it), not only when it's the
+ *     top. With a single modal open this is identical to the old top-only check,
+ *     so nothing changes outside a genuine stack.
+ *   - `isTopStacked` is true only for the top modal WHILE others sit beneath it.
+ *     The modal tags its root with `data-stack-top` when this is set; a single
+ *     global CSS rule lifts that element above every modal's hardcoded z-index
+ *     so the top always sits on top regardless of the pair's natural ordering.
+ *     The ones beneath keep their z and show through (their backdrops are dimmed
+ *     by the top's), which is the whole point.
+ */
+export function useModalLayer(name: ModalName): { isOpen: boolean; isTop: boolean; isTopStacked: boolean } {
+    const { openModal, stack } = useModal();
+    const isOpen = stack.some((m) => m.name === name);
+    const isTop = openModal?.name === name;
+    return { isOpen, isTop, isTopStacked: isTop && stack.length > 1 };
+}

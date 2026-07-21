@@ -33,7 +33,7 @@ import {
     useState,
     type MouseEvent as ReactMouseEvent,
 } from 'react';
-import { useModal } from '../lib/state/ModalContext';
+import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { FLAT_LOGOS, pickRandomLogo } from '../lib/logos/priceosLogos';
 
 interface ChangelogEntry {
@@ -138,7 +138,7 @@ function pickLogo(): string {
 
 export default function PriceosModal() {
     const { openModal, close } = useModal();
-    const isOpen = openModal?.name === 'priceos';
+    const { isOpen, isTopStacked } = useModalLayer('priceos');
 
     const [logo, setLogo] = useState<string>(FLAT_LOGOS[0]);
 
@@ -225,6 +225,7 @@ export default function PriceosModal() {
         <div
             id="priceosModal"
             className={`platform-modal${isOpen ? ' active' : ''}`}
+            data-stack-top={isTopStacked || undefined}
             role="dialog"
             aria-modal="true"
             onClick={onBackdropClick}

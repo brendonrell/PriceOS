@@ -19,7 +19,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { useModal } from '../lib/state/ModalContext';
+import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import {
@@ -60,7 +60,7 @@ export default function FamiliarModal() {
     const { openModal, close } = useModal();
     const { showToast } = useToast();
     const { update } = usePdNotifs();
-    const isOpen = openModal?.name === 'familiar';
+    const { isOpen, isTopStacked } = useModalLayer('familiar');
 
     const [title, setTitle] = useState('FAMILIAR');
     const [species, setSpecies] = useState('');
@@ -101,6 +101,7 @@ export default function FamiliarModal() {
         <div
             id="familiarModal"
             className={`platform-modal${isOpen ? ' active' : ''}`}
+            data-stack-top={isTopStacked || undefined}
             role="dialog"
             aria-modal="true"
             onClick={(e) => {

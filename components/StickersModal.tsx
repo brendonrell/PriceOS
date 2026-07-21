@@ -20,7 +20,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useModal } from '../lib/state/ModalContext';
+import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useDragScroll, useDragScrollY } from '../lib/hooks/useDragScroll';
 import {
@@ -38,7 +38,7 @@ const VS15 = '︎';
 export default function StickersModal() {
     const { openModal, close } = useModal();
     const { showToast } = useToast();
-    const isOpen = openModal?.name === 'stickers';
+    const { isOpen, isTopStacked } = useModalLayer('stickers');
 
     /* Toggle the view mode + toast it (house style: new state in CAPS). Fires
        only on this switch, never on opening the store. */
@@ -259,6 +259,7 @@ export default function StickersModal() {
     return (
         <div
             className={`sticker-sheet-backdrop${isOpen ? ' active' : ''}`}
+            data-stack-top={isTopStacked || undefined}
             role="dialog"
             aria-modal="true"
             aria-label="Sticker Exchange"

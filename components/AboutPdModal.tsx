@@ -28,7 +28,7 @@ import {
     useState,
     type MouseEvent as ReactMouseEvent,
 } from 'react';
-import { useModal } from '../lib/state/ModalContext';
+import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { ABOUT_LOGOS, pickRandomAbout } from '../lib/logos/priceosLogos';
 import { allProjects } from '../lib/project/registry';
 import { TOTAL_COUNT, MAX_PRICE_SCORE } from '../lib/achievements/catalog';
@@ -98,7 +98,7 @@ const TIMELINE: { date: string; title: string; body: string }[] = [
 
 export default function AboutPdModal() {
     const { openModal, close } = useModal();
-    const isOpen = openModal?.name === 'aboutPd';
+    const { isOpen, isTopStacked } = useModalLayer('aboutPd');
 
     const [logo, setLogo] = useState<string>(ABOUT_LOGOS[0]);
 
@@ -169,6 +169,7 @@ export default function AboutPdModal() {
             className={`platform-modal${isOpen ? ' active' : ''}`}
             role="dialog"
             aria-modal="true"
+            data-stack-top={isTopStacked || undefined}
             onClick={onBackdropClick}
         >
             <div

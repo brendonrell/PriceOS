@@ -11,7 +11,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { useModal } from '../lib/state/ModalContext';
+import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { useToast } from '../lib/state/ToastContext';
 import { lockBodyScroll, unlockBodyScroll } from '../lib/state/bodyScrollLock';
 import { allProjects } from '../lib/project/registry';
@@ -24,7 +24,7 @@ export default function ProjectsProModal() {
     const { openModal, close, closeAll } = useModal();
     const { showToast } = useToast();
     const router = useRouter();
-    const isOpen = openModal?.name === 'projectsPro';
+    const { isOpen, isTopStacked } = useModalLayer('projectsPro');
     const [full, setFull] = useState(false);
 
     // Reset to compact on every open (matches the Friend Inspector).
@@ -93,7 +93,7 @@ export default function ProjectsProModal() {
     // ── PROJECTS PRO+ — full jumbo panel ──
     if (full) {
         return createPortal(
-            <div className="sticker-mgr-plus-backdrop" role="dialog" aria-modal="true" aria-label="Projects Pro" onClick={close}>
+            <div className="sticker-mgr-plus-backdrop" data-stack-top={isTopStacked || undefined} role="dialog" aria-modal="true" aria-label="Projects Pro" onClick={close}>
                 <div className="sticker-mgr-plus followers-plus projects-pro-plus" onClick={(e) => e.stopPropagation()}>
                     <div className="smgr-plus-head">
                         {title('PROJECTS PRO+')}
@@ -116,7 +116,7 @@ export default function ProjectsProModal() {
 
     // ── PROJECTS PRO — compact floating popup ──
     return createPortal(
-        <div className="sticker-mgr-backdrop followers-backdrop" role="dialog" aria-modal="true" aria-label="Projects Pro" onClick={close}>
+        <div className="sticker-mgr-backdrop followers-backdrop" data-stack-top={isTopStacked || undefined} role="dialog" aria-modal="true" aria-label="Projects Pro" onClick={close}>
             <div className="ambient-pop followers-pop projects-pro-pop" role="dialog" aria-label="Projects Pro" onClick={(e) => e.stopPropagation()}>
                 <span className="ambient-pop-close" role="button" tabIndex={0} title="Close" onClick={close}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); close(); } }}>
