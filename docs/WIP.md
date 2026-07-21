@@ -8,7 +8,55 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-21 (latest) COMMAND STONE → TRIPLE-TAP SUMMON · 3D MINIPLAYER ·
+0. ✅ **2026-07-21 (latest) COMMAND STONE — SEEING + OMNISCIENCE · RICH SEARCH ·
+   RECOLOUR · TOAST WRAP · DEEP THOUGHT — all SHIPPED on dev (tip `346f159`),
+   auto-deploy rolling, tree clean. Branch
+   `claude/command-stone-omniscience-thudk7` = merged trash (delete at
+   https://github.com/brendonrell/PriceOS/branches).** Opus session, Brendon's
+   spec, present→push loop, type-only (the bar's gestures + scope untouched).
+   ① RICH PROJECT SEARCH CARD — a typed project leads with a real card: the
+   output painted big (the exact edition typed like "prisms 7", else #1), the
+   project row, live floor·volume·ath; the hero piece drops from the OUTPUTS
+   list so it never doubles. Fixes "typing an output shows nothing" + the thin
+   sprite row (`StoneDeck.tsx` ProjectHero/StoneArt, reuses parseQuery +
+   paintOutput).
+   ② THE STONE SEES + KNOWS — the NPC Cast's eyes (`readStage`/`readPieceInView`)
+   seed the stone's subject on open, so a bare floor/calc/gallery/anchor means
+   the piece you're LOOKING at; the Familiar's Omniscience (`loadIntel`) is a
+   summonable hand: type **me** (myself/omniscience) → the whole "I know this
+   about you" file at once. **"profile" stays the profile door; "me" is
+   Omniscience only** (Brendon's call).
+   ③ CHROME — the DOT wears the stone's own fill (tracks the recolour accent +
+   light/dark); SUMMON toast is two lines ("Summoned:" / "COMMAND STONE", no
+   glyphs, via the toast face slot); CLOSE toast dropped the ascii face for a
+   text goodbye wrapped in ⌘ both sides (305-line pool).
+   ④ NAMED-COLOUR RECOLOUR — the stealth console now knows ~90 colour WORDS
+   (`stonecolor: cinnabar`, `stone <name>`, or #hex; `lib/stone/colors.ts`).
+   Recolour fires a toast that WEARS the colour, black/white ink auto-picked by
+   the colorway YIQ system (`resolveTextColor` exported from ColorwayContext),
+   name in ⌘…⌘; the dot follows the colour.
+   ⑤ SITE-WIDE TOAST WRAP RULE — a `Label: action` toast whose one line would
+   overrun the pill STACKS: label+colon alone on top, action wraps below (the
+   summon shape). Measured in the real font (ActionToast canvas); art/face/tint/
+   short toasts untouched.
+   ⑥ DEEP THOUGHT (`lib/stone/deepThought.ts`) — type a plain word that ISN'T a
+   PD thing (empty search, not page/command/widget/etch/cast) and the stone
+   always has a line back: **1046 common words × 4 = 4,184 lines**, random, no
+   repeat-tracking, $0/deterministic. Voice = an ORIGINAL grand-dry-omniscient
+   register — **TARS × Deep Thought are the COMPASS, NOT quoted** (a first pass
+   mimicked the source literally — 42 / six-million-years / typewriters —
+   Brendon caught it, FULLY REWRITTEN; a merge-time scan confirms zero borrowed
+   lifts). Fires only on non-PD; gibberish it doesn't know stays quiet;
+   "stone …" console lines own their answer.
+   Touched: `CommandStone.tsx` · `StoneDeck.tsx` · `widgets.ts` · `stoneStyle.ts`
+   · `ToastContext.tsx` · `ActionToast.tsx` · `ColorwayContext.tsx` · `stone.css`
+   · `globals.css`; new `lib/stone/colors.ts` + `lib/stone/deepThought.ts`. Proof:
+   tsc + real builds green every push, compiled-bundle greps. Deep Thought corpus
+   authored by 8 parallel Opus subagents (word list + quips), merged +
+   banned-lift-scanned. ClickUp: ad-hoc chat build, no task of record (Command
+   Stone precedent).
+
+0. ✅ **2026-07-21 COMMAND STONE → TRIPLE-TAP SUMMON · 3D MINIPLAYER ·
    THE DOT MINIMIZE — all SHIPPED on dev (tip `a34872d`), auto-deploy rolling,
    tree clean. Task branch `claude/command-stone-triple-tap-kvm9wb` = merged
    trash (delete at https://github.com/brendonrell/PriceOS/branches).** Opus
