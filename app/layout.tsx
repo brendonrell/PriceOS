@@ -169,7 +169,9 @@ const PREHYDRATION_SCRIPT = `
             hothurt:   '#FF0055',
             attention: '#FFE600',
             bblue:     '#0109FF',
-            kiki:      '#C488FF'
+            kiki:      '#C488FF',
+            cookies:   '#FF6347',
+            precog:    '#33FF9C'
         };
 
         // Helper: write every colorway-derived CSS var so the FOH matches

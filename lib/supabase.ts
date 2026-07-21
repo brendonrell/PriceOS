@@ -29,6 +29,8 @@ export type PersistedColorway =
   | 'attention'
   | 'bblue'
   | 'kiki'
+  | 'cookies'
+  | 'precog'
   | 'haze'
   | null;
 

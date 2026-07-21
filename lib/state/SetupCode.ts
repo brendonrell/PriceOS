@@ -89,6 +89,8 @@ const COLORWAY_TO_TOKEN: Record<NonNullable<ColorwayKey>, string> = {
     attention: 'ATTN',
     bblue:     'BBLU',
     kiki:      'KIKI',
+    cookies:   'COOK',
+    precog:    'PREC',
 };
 
 const TOKEN_TO_COLORWAY: Record<string, ColorwayKey> = {

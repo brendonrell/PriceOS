@@ -67,6 +67,8 @@ export type ColorwayKey =
     | 'attention'
     | 'bblue'
     | 'kiki'
+    | 'cookies'
+    | 'precog'
     | null; // null = factory default (Dot)
 
 const COLORWAYS: Record<NonNullable<ColorwayKey>, string> = {
@@ -92,6 +94,10 @@ const COLORWAYS: Record<NonNullable<ColorwayKey>, string> = {
     attention: '#FFE600',
     bblue:     '#0109FF',
     kiki:      '#C488FF',
+    /* Kiki secondaries — the exact orange + green from the KIKI palette
+       table (COOKIES + PRECOGNITION on brendon.world/kiki). */
+    cookies:   '#FF6347',
+    precog:    '#33FF9C',
 };
 
 /* The "Custom" colorway's bg slot. Custom = the PAGE OWNER's colour

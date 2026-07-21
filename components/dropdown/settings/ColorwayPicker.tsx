@@ -64,27 +64,22 @@ const THEME_NAMES: Record<NonNullable<ColorwayKey>, string> = {
     orange: 'ORANGE MODE', hashsyn: 'HASH SYNESTHESIA',
     blue: 'BLUEBERRY MODE', red: 'CHERRY MODE', haze: 'HAZE MODE',
     hothurt: 'HOTHURT', attention: 'ATTENTION', bblue: '@BRENDON BLUE',
-    kiki: 'KIKI',
+    kiki: 'KIKI', cookies: 'COOKIES', precog: 'PRECOG',
 };
 
 /* PRIMARY+SECONDARY (Brendon, 2026-07-20) — the hidden long-press menu on
    the DEFAULT COLORWAY header: the brand primaries + the Kiki secondaries.
-   Each pill is a solid swatch of its hue. (Precog + Cookies join when their
-   Kiki-palette hexes land.) */
-const PS_PILLS: { key: NonNullable<ColorwayKey>; hex: string; letter: string; title: string }[] = [
-    { key: 'hothurt',   hex: '#FF0055', letter: 'H', title: 'Hothurt' },
-    { key: 'attention', hex: '#FFE600', letter: 'A', title: 'Attention' },
-    { key: 'bblue',     hex: '#0109FF', letter: 'B', title: '@brendon blue' },
-    { key: 'kiki',      hex: '#C488FF', letter: 'K', title: 'Kiki' },
+   Rendered as text pills in the Default Sort style (Brendon, 2026-07-21).
+   Cookies + Precog carry the exact orange + green from the KIKI palette
+   table (brendon.world/kiki). */
+const PS_PILLS: { key: NonNullable<ColorwayKey>; label: string; title: string }[] = [
+    { key: 'hothurt',   label: 'Hothurt',   title: 'Hothurt' },
+    { key: 'attention', label: 'Attention', title: 'Attention' },
+    { key: 'bblue',     label: '@brendon',  title: '@brendon blue' },
+    { key: 'kiki',      label: 'Kiki',      title: 'Kiki' },
+    { key: 'cookies',   label: 'Cookies',   title: 'Cookies' },
+    { key: 'precog',    label: 'Precog',    title: 'Precog' },
 ];
-
-/** Near-black or white lettering on a solid swatch — the tag-pill read. */
-function psTextOn(hex: string): string {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.6 ? '#111111' : '#ffffff';
-}
 
 const VARIATION_CYCLE: HazeVariation[] = ['pure', 'tint', 'drift', 'pulse', 'chromatic'];
 
@@ -239,26 +234,22 @@ export function ColorwayPicker() {
                     onPointerCancel={clearPress}
                     onContextMenu={(e) => e.preventDefault()}
                 >
-                    PRIMARY+SECONDARY
+                    PRIMARY + SECONDARY
                 </div>
-                <div className="settings-pill-row colorway-pills">
+                <div className="settings-pill-row">
                     {PS_PILLS.map((p) => (
-                        <button
+                        <SettingsToggle
                             key={p.key}
-                            type="button"
                             id={`st-${p.key}`}
-                            className={`pill-colorway${colorway === p.key ? ' active' : ''}`}
+                            active={colorway === p.key}
                             title={p.title}
-                            aria-pressed={colorway === p.key}
-                            style={{ backgroundColor: p.hex, color: psTextOn(p.hex), border: '1px solid currentColor' }}
-                            onClick={(e) => {
-                                e.stopPropagation();
+                            label={p.label}
+                            bareLabel
+                            onClick={() => {
                                 setColorway(p.key);
                                 showToast('Default Colorway: ' + THEME_NAMES[p.key]);
                             }}
-                        >
-                            <span style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: 11, fontWeight: 'bold', letterSpacing: 0 }}>{p.letter}</span>
-                        </button>
+                        />
                     ))}
                 </div>
             </>
