@@ -36,9 +36,9 @@ The whole app is painted through one variable system. Defaults are per-page — 
 
 ## The Command Stone ⌘
 
-Signed in, a swipe up from the lower part of any page summons a slim black
-bar — the Command Stone, the platform's command line in a speech bubble.
-Type into it and it answers in kind:
+Signed in, **triple-tap the background of any page** — anywhere in the app,
+docs included — to summon the Command Stone, the platform's command line in a
+speech bubble. It opens ready to type, and answers in kind:
 
 - **Find anything** — the real global search, inline: people, projects,
   pieces, pages; Enter takes the top hit.
@@ -53,9 +53,10 @@ Type into it and it answers in kind:
   `matrix`, `dossier @name`, `brief`, `wrapped`, a project's `30d` trend
   sparkline, and more.
 
-It remembers the subject you're on (ask "prisms floor", then just "ath"),
-folds away on an outside tap, and hides completely with a swipe down —
-by default it's fully off screen.
+It remembers the subject you're on (ask "prisms floor", then just "ath").
+Minimize it to a single dot in the corner — swipe the bar down, press and
+hold, or type "minimize" — and tap the dot to bring it back. Close it
+completely with another triple-tap on the background, or by typing "close".
 
 ## Ambient Strip
 
