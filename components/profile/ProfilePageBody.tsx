@@ -1214,7 +1214,10 @@ function ProfilePageBodyInner({
                                     rel="noopener noreferrer"
                                 >
                                     {ensName ? (
-                                        viaLabel
+                                        // The chosen Unicode font also styles the ENS
+                                        // (Brendon, 2026-07-21) — same treatment as the
+                                        // @name. The wallet-address fallback stays plain.
+                                        styleName(viaLabel, ownerNameFont ?? null)
                                     ) : (
                                         <>
                                             0<span className="addr-x">x</span>
@@ -1398,7 +1401,7 @@ function ProfilePageBodyInner({
                                         openModal('followers', 'followers', user.address);
                                     }
                                 }}
-                            >{counts.followers} {counts.followers === 1 ? 'FOLLOWER' : 'FOLLOWERS'}</span>
+                            >{counts.followers} {styleName(counts.followers === 1 ? 'FOLLOWER' : 'FOLLOWERS', ownerNameFont ?? null)}</span>
                         </span>
                     </div>
                 }
