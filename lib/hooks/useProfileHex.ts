@@ -38,9 +38,13 @@ const STORAGE_KEY = 'pd_profile_hex';
    profile reads intentionally BLANK (Brendon 2026-06-13). Only paints when
    nothing is saved or the saved value is malformed. The old violet default
    (#C488FF) is retired — it's reserved for the genesis project and must not
-   appear anywhere in the app — so it's migrated away below. */
+   appear anywhere in the app — so it's migrated away below.
+   ⛔ Attention Yellow (#FFE600) is NOT in this list: it's a PICKABLE pill in
+   the @name colorway menu, so migrating it would silently revert a real pick
+   to Matrix White on the next load (Brendon, 2026-07-21). A chosen colorway
+   stays until the user changes it. */
 export const PROFILE_HEX_DEFAULT = '#E0E0E0';
-const OLD_DEFAULTS = ['#FF0033', '#FF6B35', '#FFE600', '#C488FF'];
+const OLD_DEFAULTS = ['#FF0033', '#FF6B35', '#C488FF'];
 const HEX_RE = /^#[0-9A-F]{6}$/i;
 const EVENT_NAME = 'pd:profile-hex-changed';
 const CSS_VAR = '--profile-hex';
