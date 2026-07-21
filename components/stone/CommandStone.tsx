@@ -59,12 +59,14 @@ const LONG_PRESS_MS = 550;
 /** Finger drift (px) that cancels a long-press (it became a scroll). */
 const LONG_PRESS_DRIFT_PX = 8;
 
-/* Natural-language CLOSE (Brendon, 2026-07-21): typing "close" or "minimize"
-   — or a natural variant — fully dismisses the stone. (The gesture minimize
-   parks it at the dot; this typed path is the secondary full-close, alongside
-   the primary triple-tap-the-bg.) Anchored so real queries never match. */
+/* Typed MINIMIZE (Brendon, 2026-07-21): "minimize" — or a natural variant —
+   parks the stone at the dot, exactly like the swipe/long-press gesture. */
+const MINIMIZE_RE =
+    /^\s*(minimi[sz]e|min|dock|shrink|tuck|stow)(\s+it)?\s*[.!]*\s*$/i;
+/* Typed CLOSE: "close" — or a natural variant — fully dismisses the stone.
+   Both anchored so real queries never match. */
 const CLOSE_RE =
-    /^\s*(close|minimi[sz]e|dismiss|hide|exit|quit|shut(\s*(it|down))?|go\s*away|leave|done|bye)\s*!*\.?\s*$/i;
+    /^\s*(close|dismiss|hide|exit|quit|leave|done|bye|go\s*away|shut(\s*down)?)(\s+it)?\s*[.!]*\s*$/i;
 
 export default function CommandStone() {
     const { siweAddress, needsSignup, handle: myHandle } = useAuth();
@@ -814,8 +816,14 @@ export default function CommandStone() {
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
                                         e.preventDefault();
-                                        /* Typed close — "close"/"minimize"/a
-                                           natural variant fully dismisses. */
+                                        /* Typed minimize → the dot; typed
+                                           close → fully gone. */
+                                        if (MINIMIZE_RE.test(value)) {
+                                            inputRef.current?.blur();
+                                            setStage('dot');
+                                            setValue('');
+                                            return;
+                                        }
                                         if (CLOSE_RE.test(value)) {
                                             inputRef.current?.blur();
                                             setStage('hidden');
