@@ -48,7 +48,7 @@
         color-mix(in srgb, var(--bg-color) 82%, #000000) 100%
     );
     color: var(--text-color);
-    border: 1.5px solid var(--text-color);
+    border: none; /* outline off (Brendon, 2026-07-21) — the gradient + inset edges carry the pill */
     border-radius: 999px; /* the pill — PD's shape */
     box-shadow:
         0 6px 24px rgba(0, 0, 0, 0.45),
@@ -92,6 +92,32 @@ body.pd-stone-open .fm-bar {
     color: var(--text-color);
     font-family: 'Courier New', Courier, monospace;
     text-align: left;
+}
+
+/* The deck face's screen reads as a dim album-art LCD, not a bright ad
+   (Brendon, 2026-07-21): flipped panel, a small black border, and a faint
+   CRT veil dimming the whole screen (the video included). Scoped to the deck
+   so the compact faces keep their own legible treatment. */
+.fm-mode-deck .fm-screen {
+    position: relative;
+    background: var(--text-color);
+    color: var(--bg-color);
+    border: 1px solid #000;
+}
+.fm-mode-deck .fm-screen::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 3;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.24) 0px,
+        rgba(0, 0, 0, 0.24) 1px,
+        rgba(0, 0, 0, 0) 2px,
+        rgba(0, 0, 0, 0) 3px
+    );
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
 }
 
 

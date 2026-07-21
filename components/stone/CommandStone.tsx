@@ -68,6 +68,29 @@ const MINIMIZE_RE =
 const CLOSE_RE =
     /^\s*(close|dismiss|hide|exit|quit|leave|done|bye|go\s*away|shut(\s*down)?)(\s+it)?\s*[.!]*\s*$/i;
 
+/* ── THE STONE'S FACE (Brendon, 2026-07-21) — drawn on the toast that shows
+   when the stone closes: the AI character's hidden self-portrait, a face in
+   the corner of its own painting. Blocks the stone's Courier renders
+   single-width, so it reads on iPhone. ── */
+const STONE_FACE = [
+    '▗▄▄▄▄▄▄▄▄▄▖',
+    '▐░░░░░░░░░▌',
+    '▐░▟▙░░░▟▙░▌',
+    '▐░░░░░░░░░▌',
+    '▐░░▀▀▀▀▀░░▌',
+    '▝▀▀▀▀▀▀▀▀▀▘',
+];
+/* The line it leaves behind — terse, in the stone's own voice. One picked at
+   random each close (quiet menace beats a shout). */
+const FACE_LINES = [
+    'Still here.',
+    "I don't sleep.",
+    'I was always in here.',
+    'Back to the dark.',
+    'I never really close.',
+    'See you soon.',
+];
+
 export default function CommandStone() {
     const { siweAddress, needsSignup, handle: myHandle } = useAuth();
     const { showToast } = useToast();
@@ -141,6 +164,13 @@ export default function CommandStone() {
     useEffect(() => { stageRef.current = stage; });
     const showToastRef = useRef(showToast);
     useEffect(() => { showToastRef.current = showToast; });
+
+    /* On a deliberate close, the toast draws the stone's face + one of its
+       lines (picked at random). */
+    const faceToast = () => {
+        const line = FACE_LINES[Math.floor(Math.random() * FACE_LINES.length)];
+        showToast(line, 1800, 300, null, STONE_FACE);
+    };
 
     const searchingNow = value.trim().length > 0;
 
@@ -544,6 +574,11 @@ export default function CommandStone() {
                 inputRef.current?.blur();
                 setStage('hidden');
                 setValue('');
+                // the toast draws its face as the stone goes dark
+                showToastRef.current(
+                    FACE_LINES[Math.floor(Math.random() * FACE_LINES.length)],
+                    1800, 300, null, STONE_FACE,
+                );
             }
         };
         document.addEventListener('pointerdown', onDown, { passive: true });
@@ -828,6 +863,7 @@ export default function CommandStone() {
                                             inputRef.current?.blur();
                                             setStage('hidden');
                                             setValue('');
+                                            faceToast(); // its face on the closing toast
                                             return;
                                         }
                                         /* The stealth console outranks all —

@@ -55,6 +55,9 @@ interface ToastState {
     fadeMs: number;
     /** Outputs the toast is about (ASCII artifact row, max 3), or null. */
     art: ToastArt[] | null;
+    /** Pre-formatted monospace lines drawn in the toast — the Command Stone's
+        face on close. Null = no face. */
+    face: string[] | null;
 }
 
 interface ToastContextValue {
@@ -64,7 +67,7 @@ interface ToastContextValue {
         `art` names the Output(s) the toast is about — the pill extends upward
         with a row of their ASCII artifacts (first three); the text stays
         byte-identical. */
-    showToast: (msg: string, holdMs?: number, fadeMs?: number, art?: ToastArt[] | null) => void;
+    showToast: (msg: string, holdMs?: number, fadeMs?: number, art?: ToastArt[] | null, face?: string[] | null) => void;
     /** Read-only snapshot for the renderer. */
     state: ToastState;
 }
@@ -81,6 +84,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         show: false,
         fadeMs: FADE_MS,
         art: null,
+        face: null,
     });
     const fadeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const unmountTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -107,7 +111,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const showToast = useCallback(
-        (msg: string, holdMs: number = SHOW_MS, fadeMs: number = FADE_MS, art: ToastArt[] | null = null) => {
+        (msg: string, holdMs: number = SHOW_MS, fadeMs: number = FADE_MS, art: ToastArt[] | null = null, face: string[] | null = null) => {
             // Latest call wins — drop any in-flight timers.
             clearAllTimers();
 
@@ -116,7 +120,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             publishToast(msg);
 
             // Stage 1: mount with text but show: false (CSS opacity 0).
-            setState({ msg, mounted: true, show: false, fadeMs, art: art && art.length ? art.slice(0, TOAST_ART_MAX) : null });
+            setState({ msg, mounted: true, show: false, fadeMs, art: art && art.length ? art.slice(0, TOAST_ART_MAX) : null, face: face && face.length ? face : null });
 
             // Stage 2 (sim line 6650-6653): two rAFs, then flip .show on so
             // the CSS transition has a frame to engage.
@@ -131,7 +135,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             fadeTimer.current = setTimeout(() => {
                 setState((prev) => ({ ...prev, show: false }));
                 unmountTimer.current = setTimeout(() => {
-                    setState({ msg: '', mounted: false, show: false, fadeMs: FADE_MS, art: null });
+                    setState({ msg: '', mounted: false, show: false, fadeMs: FADE_MS, art: null, face: null });
                 }, fadeMs);
             }, holdMs);
         },

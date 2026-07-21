@@ -33,11 +33,16 @@ export default function ActionToast() {
     /* One piece rides big; a row of three shares the card width. */
     const artMax = pieces.length === 1 ? 110 : pieces.length === 2 ? 94 : 68;
 
+    /* The Command Stone's face — monospace lines drawn in the toast on close. */
+    const face = state.face ?? null;
+    const showFace = !!face && face.length > 0;
+
     const cls = [
         'ens-copy-toast',
         state.mounted ? 'mounted' : '',
         state.show ? 'show' : '',
         showArt ? 'with-art' : '',
+        showFace ? 'with-face' : '',
     ]
         .filter(Boolean)
         .join(' ');
@@ -50,6 +55,7 @@ export default function ActionToast() {
             aria-atomic="true"
             style={{ transitionDuration: `${state.fadeMs}ms` }}
         >
+            {showFace && <pre className="toast-face">{face.join('\n')}</pre>}
             {showArt && (
                 <div className="toast-art-row">
                     {pieces.map((a) => {
