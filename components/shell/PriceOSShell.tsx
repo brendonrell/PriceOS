@@ -435,7 +435,17 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
        colorway paint still apply (the docs mount the ColorwayPicker), and
        the loader-exit effect above has already run. */
     if (pathname === '/docs' || pathname?.startsWith('/docs/')) {
-        return <main key={pathname}>{children}</main>;
+        return (
+            <>
+                <main key={pathname}>{children}</main>
+                {/* The Command Stone lives ABOVE realms — summonable even on
+                    the bare docs surface (Brendon, 2026-07-21: triple-tap the
+                    background, anywhere, docs included). */}
+                <ErrorBoundary name="CommandStone">
+                    <CommandStone />
+                </ErrorBoundary>
+            </>
+        );
     }
 
     return (

@@ -36,10 +36,24 @@
     /* Real air on BOTH ends — the square screen must never kiss the pill's
        curve (Brendon, 2026-07-20, after it shipped flush to the edge). */
     padding: 0 22px 0 9px;
-    background: var(--bg-color);
+    /* THE 3D PILL (Brendon, 2026-07-21): the Command Stone's own gradient
+       chassis, lifted onto the miniplayer — lit from above, shaded below,
+       built off the miniplayer's full-strength --bg-color so it carves on
+       any colorway. The pill's border + PD shape stay; only the flat fill
+       becomes the domed gradient (the exact effect from the stone's pill). */
+    background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--bg-color) 72%, #ffffff) 0%,
+        var(--bg-color) 52%,
+        color-mix(in srgb, var(--bg-color) 82%, #000000) 100%
+    );
     color: var(--text-color);
     border: 1.5px solid var(--text-color);
     border-radius: 999px; /* the pill — PD's shape */
+    box-shadow:
+        0 6px 24px rgba(0, 0, 0, 0.45),
+        inset 0 1px 1px color-mix(in srgb, #ffffff 30%, transparent),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.5);
     font-family: 'Courier New', Courier, monospace;
     /* iOS font boosting inflated the 10px readout rows on device until they
        clipped — pin the LCD to its designed size. */
@@ -48,14 +62,11 @@
     transition: transform 0.22s ease, opacity 0.18s ease, bottom 0.22s ease;
 }
 
-/* ── Reacting to the Command Stone (body classes from CommandStone) ──
-   The stone is ANCHORED; the deck yields. Resting stone bar out → the deck
-   lifts one band above it. Stone tab OPEN → the deck docks away offscreen
-   (transform only — the YT iframe stays rendered, so audio never dies;
-   the stone's own ON-AIR LED is the player's face meanwhile). */
-body.pd-stone-peek .fm-bar {
-    bottom: calc(35px + env(safe-area-inset-bottom, 0px));
-}
+/* ── Reacting to the Command Stone (body class from CommandStone) ──
+   The stone is ANCHORED; the deck yields. Stone OPEN → the deck docks away
+   offscreen (transform only — the YT iframe stays rendered, so audio never
+   dies; the stone's own ON-AIR LED is the player's face meanwhile). The
+   minimized stone is a corner dot now, so it never shares the deck's band. */
 body.pd-stone-open .fm-bar {
     transform: translateX(var(--fm-tx)) translateY(160%);
     opacity: 0;
@@ -171,7 +182,7 @@ body.pd-stone-open .fm-bar {
 
 /* THE DISC — the round window; the real video, circle-cropped. The
    chassis goes transparent and shrinks to the keys + the circle. */
-.fm-mode-disc { height: 48px; width: auto; padding: 0; border: none; background: transparent; }
+.fm-mode-disc { height: 48px; width: auto; padding: 0; border: none; background: transparent; box-shadow: none; }
 .fm-mode-disc .fm-screen { height: 48px; width: 48px; border-radius: 50%; border: 1.5px solid var(--text-color); background: #000; }
 .fm-mode-disc .fm-video { width: 48px; height: 48px; border: none; }
 .fm-mode-disc .fm-video iframe { width: 86px; height: 48px; margin-left: -19px; }

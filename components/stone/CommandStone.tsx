@@ -59,30 +59,36 @@ const LONG_PRESS_MS = 550;
 /** Finger drift (px) that cancels a long-press (it became a scroll). */
 const LONG_PRESS_DRIFT_PX = 8;
 
+/* Natural-language CLOSE (Brendon, 2026-07-21): typing "close" or "minimize"
+   — or a natural variant — fully dismisses the stone. (The gesture minimize
+   parks it at the dot; this typed path is the secondary full-close, alongside
+   the primary triple-tap-the-bg.) Anchored so real queries never match. */
+const CLOSE_RE =
+    /^\s*(close|minimi[sz]e|dismiss|hide|exit|quit|shut(\s*(it|down))?|go\s*away|leave|done|bye)\s*!*\.?\s*$/i;
+
 export default function CommandStone() {
     const { siweAddress, needsSignup, handle: myHandle } = useAuth();
     const { showToast } = useToast();
     const router = useRouter();
     const pathname = usePathname();
 
-    /* The vessel's three states (Brendon's spec, corrected 2026-07-20 —
-       the full-screen takeover was wrong):
-         hidden — NOTHING shows. A swipe up from the bottom edge reveals…
-         peek   — …the skinny pill. Tapping it expands to…
+    /* The vessel's three states (Brendon's spec, 2026-07-21 — triple-tap
+       rework):
+         hidden — NOTHING shows. A TRIPLE-TAP on the page background summons…
          open   — …the floating pill you type right into; results pop up
-                  ABOVE it as black widget cards (the watch-style deck). */
-    const [stage, setStage] = useState<'hidden' | 'peek' | 'open'>('hidden');
+                  ABOVE it as black widget cards (the watch-style deck).
+         dot    — minimized to a single corner dot (the old miniplayer nub);
+                  tap it to reopen. Triple-tap the bg again fully closes. */
+    const [stage, setStage] = useState<'hidden' | 'open' | 'dot'>('hidden');
 
     /* The bottom band is SHARED REAL ESTATE (Brendon, 2026-07-20: the stone
        and the miniplayer must always react to each other). The stone
-       broadcasts its stage as body classes; fm.css reads them — the deck
-       lifts above the resting bar, and docks away while the tab is out. */
+       broadcasts its OPEN stage as a body class; fm.css reads it and docks
+       the miniplayer away while the vessel is out. (The minimized stone is a
+       corner dot, so it never fights the centered deck.) */
     useEffect(() => {
-        document.body.classList.toggle('pd-stone-peek', stage === 'peek');
         document.body.classList.toggle('pd-stone-open', stage === 'open');
-        return () => {
-            document.body.classList.remove('pd-stone-peek', 'pd-stone-open');
-        };
+        return () => { document.body.classList.remove('pd-stone-open'); };
     }, [stage]);
 
     /* The stealth console's persisted style (accent hex · forced stage)
@@ -125,6 +131,14 @@ export default function CommandStone() {
     /** The stone's own confirmation line after a commit ("✓ ETCHED · …"). */
     const [etched, setEtched] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement | null>(null);
+
+    /* The triple-tap summon reads live stage + toast through refs so its one
+       document listener never re-binds mid-gesture (a re-bind would zero the
+       tap count between taps). */
+    const stageRef = useRef(stage);
+    useEffect(() => { stageRef.current = stage; });
+    const showToastRef = useRef(showToast);
+    useEffect(() => { showToastRef.current = showToast; });
 
     const searchingNow = value.trim().length > 0;
 
@@ -303,18 +317,19 @@ export default function CommandStone() {
         }
     };
 
-    /* Route change → the stone folds away clean (same manners as every
-       overlay in the shell: nothing bleeds onto the next page). */
+    /* Route change → an open stone parks at the dot (it lives above realms,
+       so navigating minimizes it rather than destroying it; nothing bleeds
+       onto the next page). */
     useEffect(() => {
-        setStage((st) => (st === 'open' ? 'peek' : st));
+        setStage((st) => (st === 'open' ? 'dot' : st));
         setValue('');
     }, [pathname]);
 
-    /* Escape closes (desktop keyboard crowd). */
+    /* Escape minimizes to the dot (desktop keyboard crowd). */
     useEffect(() => {
         if (!open) return;
         const onKey = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') setStage('peek');
+            if (e.key === 'Escape') { inputRef.current?.blur(); setStage('dot'); }
         };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
@@ -451,97 +466,111 @@ export default function CommandStone() {
         if (r.traits[0]) { go(null, `/art/${r.traits[0].project_id}`); return; }
     };
 
-    /* ── open: tapping the peek pill. focus() runs synchronously inside
-       the gesture handler so iOS raises the keyboard. ── */
+    /* ── open: tapping the dot reopens the stone. focus() runs synchronously
+       inside the gesture handler so iOS raises the keyboard. ── */
     const openStone = () => {
         inputRef.current?.focus();
         setStage('open');
     };
 
-    /* Reveal gesture — the stone is INVISIBLE at rest. A swipe UP summons
-       the bare peek bar. Window listeners (no DOM strip, so nothing under
-       the edge loses its taps). 2026-07-20 iOS rework (Brendon: Apple
-       dominates the bottom edge — Safari/app-switcher grab any swipe that
-       BEGINS at the edge, and a page can never intercept that): the start
-       zone is now a BAND lifted clear of the system strip — the swipe
-       starts on page content in the lower quarter of the screen, at least
-       ~56px above the bottom, so iOS never claims it and the gesture stays
-       ours. Desktop: gliding the pointer onto the bottom edge peeks it,
-       unchanged. */
-    const revealTouch = useRef<{ y: number; scrollY: number } | null>(null);
+    /* THE SUMMON — triple-tap the page background (Brendon, 2026-07-21): the
+       ONE way in, live on every page in the app (docs, studio, dispatch, all
+       of it — every page has a background). Three quick taps on non-interactive
+       background toggle the stone — hidden → open (summoned, keyboard up);
+       open or the dot → fully closed. Taps on controls, links, the stone/dot,
+       the miniplayer, or while a modal owns the screen never count. Uses
+       pointer events (not click) so iOS fires it on bare background too;
+       user-scalable=no already kills double-tap-zoom, so Safari can't hijack
+       the gesture. */
     useEffect(() => {
-        if (stage !== 'hidden') return;
-        const onTouchStart = (e: TouchEvent) => {
-            const y = e.touches[0]?.clientY;
-            if (y == null) return;
-            const h = window.innerHeight;
-            revealTouch.current =
-                y > h - 220 && y < h - 56 ? { y, scrollY: window.scrollY } : null;
+        if (!siweAddress || needsSignup) return;
+        let taps = 0;
+        let lastT = 0;
+        let lastX = 0;
+        let lastY = 0;
+        let downX = 0;
+        let downY = 0;
+        let downT = 0;
+        const onDown = (e: PointerEvent) => {
+            if (!e.isPrimary) return;
+            downX = e.clientX;
+            downY = e.clientY;
+            downT = e.timeStamp;
         };
-        const onTouchMove = (e: TouchEvent) => {
-            const start = revealTouch.current;
-            const now = e.touches[0]?.clientY;
-            if (!start || now == null) return;
-            /* FULLY OFF SCREEN BY DEFAULT (Brendon, 2026-07-20): a swipe
-               that scrolls the page IS a scroll — every upward flick in the
-               band was summoning the stone, so it was never actually off
-               screen. If the page moved with the finger, this gesture is
-               not for the stone. */
-            if (Math.abs(window.scrollY - start.scrollY) > 6) {
-                revealTouch.current = null;
+        const onUp = (e: PointerEvent) => {
+            if (!e.isPrimary) return;
+            /* only a clean tap counts — not a scroll, drag, or long hold */
+            if (
+                e.timeStamp - downT > 400 ||
+                Math.abs(e.clientX - downX) > 10 ||
+                Math.abs(e.clientY - downY) > 10
+            ) {
+                taps = 0;
                 return;
             }
-            if (start.y - now >= SWIPE_OPEN_PX) {
-                revealTouch.current = null;
-                setStage('peek');
+            const el = e.target as HTMLElement | null;
+            if (
+                !el ||
+                el.closest(
+                    'a,button,input,textarea,select,[role="button"],[role="link"],[contenteditable],label,' +
+                    '#commandStonePanel,.stone-dot,.fm-bar,.fm-picker'
+                ) ||
+                document.body.classList.contains('modal-open')
+            ) {
+                taps = 0;
+                return;
+            }
+            /* a fresh run if the taps drift apart in time or space */
+            if (
+                e.timeStamp - lastT > 500 ||
+                Math.abs(e.clientX - lastX) > 44 ||
+                Math.abs(e.clientY - lastY) > 44
+            ) {
+                taps = 0;
+            }
+            taps += 1;
+            lastT = e.timeStamp;
+            lastX = e.clientX;
+            lastY = e.clientY;
+            if (taps < 3) return;
+            taps = 0;
+            if (stageRef.current === 'hidden') {
+                inputRef.current?.focus(); // synchronous in the gesture → iOS keyboard
+                setStage('open');
+                showToastRef.current(`${STONE_GLYPH} Summoned: COMMAND STONE ${STONE_GLYPH}`);
+            } else {
+                inputRef.current?.blur();
+                setStage('hidden');
+                setValue('');
             }
         };
-        const onMouseMove = (e: globalThis.MouseEvent) => {
-            if (e.clientY >= window.innerHeight - 8) setStage('peek');
-        };
-        window.addEventListener('touchstart', onTouchStart, { passive: true });
-        window.addEventListener('touchmove', onTouchMove, { passive: true });
-        window.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('pointerdown', onDown, { passive: true });
+        document.addEventListener('pointerup', onUp, { passive: true });
         return () => {
-            window.removeEventListener('touchstart', onTouchStart);
-            window.removeEventListener('touchmove', onTouchMove);
-            window.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('pointerdown', onDown);
+            document.removeEventListener('pointerup', onUp);
         };
-    }, [stage]);
+    }, [siweAddress, needsSignup]);
 
-    /* The resting pill LIVES there while you scroll (Brendon 2026-07-20).
-       An outside tap only folds the OPEN tab back to the resting pill;
-       hiding is the swipe-down / long-press. */
+    /* Minimize to the dot is the pill's own put-away gesture (swipe down or
+       long-press). The bg triple-tap is the only summon and the primary
+       close, so there is no tap-away-to-dismiss to conflict with it. */
     const vesselRef = useRef<HTMLDivElement | null>(null);
-    const peekRef = useRef<HTMLDivElement | null>(null);
-    useEffect(() => {
-        if (stage !== 'open') return;
-        const onDown = (e: PointerEvent) => {
-            const t = e.target as Node;
-            if (vesselRef.current?.contains(t) || peekRef.current?.contains(t)) return;
-            setStage('peek');
-        };
-        document.addEventListener('pointerdown', onDown, true);
-        return () => document.removeEventListener('pointerdown', onDown, true);
-    }, [stage]);
 
-    /* Swipes on the pill itself: up opens, down puts it away (resting) or
-       minimizes back to resting (open). */
+    /* Swipe DOWN on the open pill → minimize to the dot (the current
+       put-away gesture, now parking at the stone's minimized form). */
     const pillTouchY = useRef<number | null>(null);
     const onPillTouchStart = (e: React.TouchEvent) => {
         pillTouchY.current = e.touches[0]?.clientY ?? null;
     };
-    const makePillTouchMove = (mode: 'peek' | 'open') => (e: React.TouchEvent) => {
+    const onPillTouchMove = (e: React.TouchEvent) => {
         const start = pillTouchY.current;
         const now = e.touches[0]?.clientY;
         if (start == null || now == null) return;
-        if (start - now >= SWIPE_OPEN_PX && mode === 'peek') {
+        if (now - start >= SWIPE_OPEN_PX) {
             pillTouchY.current = null;
-            openStone();
-        } else if (now - start >= SWIPE_OPEN_PX) {
-            pillTouchY.current = null;
-            if (mode === 'open') { inputRef.current?.blur(); setStage('peek'); }
-            else setStage('hidden');
+            inputRef.current?.blur();
+            setStage('dot');
         }
     };
 
@@ -564,7 +593,9 @@ export default function CommandStone() {
         pressStart.current = { x: e.clientX, y: e.clientY };
         pressTimer.current = window.setTimeout(() => {
             clearPress();
-            setOpen(false);
+            /* Long-press collapses the open stone to the dot (minimize). */
+            inputRef.current?.blur();
+            setStage('dot');
         }, LONG_PRESS_MS);
     };
     const onStagePointerMove = (e: React.PointerEvent) => {
@@ -591,27 +622,18 @@ export default function CommandStone() {
 
     return (
         <>
-            {/* the peek pill — the stone surfacing (swipe-up summons it) */}
-            <div
-                ref={peekRef}
-                className={`stone-peek${stage === 'peek' ? '' : ' stone-peek--hidden'}`}
-                id="commandStoneBar"
-                role="button"
-                tabIndex={stage === 'peek' ? 0 : -1}
-                aria-label="The Command Stone"
-                onClick={openStone}
-                onTouchStart={onPillTouchStart}
-                onTouchMove={makePillTouchMove('peek')}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        openStone();
-                    }
-                }}
-            >
-                {/* No glyph — the resting stone is a bare half-height black
-                    bar (Brendon, 2026-07-20). */}
-            </div>
+            {/* THE DOT — the stone's minimized form (the retired miniplayer
+                nub, resurrected here). Tap it to reopen the full stone. */}
+            {stage === 'dot' && (
+                <button
+                    type="button"
+                    className="stone-dot"
+                    id="commandStoneDot"
+                    aria-label="The Command Stone — minimized. Tap to open."
+                    title="The Command Stone"
+                    onClick={openStone}
+                />
+            )}
 
             {/* the floating vessel — deck of widgets above, the pill you
                 type into below. Mounted always so focus() can fire inside
@@ -767,7 +789,7 @@ export default function CommandStone() {
                     <div
                         className="stone-pill"
                         onTouchStart={onPillTouchStart}
-                        onTouchMove={makePillTouchMove('open')}
+                        onTouchMove={onPillTouchMove}
                     >
                         <span className="stone-pill-glyph">{STONE_GLYPH}</span>
                         <div className="stone-input-row">
@@ -792,6 +814,14 @@ export default function CommandStone() {
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
                                         e.preventDefault();
+                                        /* Typed close — "close"/"minimize"/a
+                                           natural variant fully dismisses. */
+                                        if (CLOSE_RE.test(value)) {
+                                            inputRef.current?.blur();
+                                            setStage('hidden');
+                                            setValue('');
+                                            return;
+                                        }
                                         /* The stealth console outranks all —
                                            it starts with the stone's own
                                            name, nothing else does. */

@@ -109,48 +109,28 @@ body.pd-stone-force-white .stone-float {
 .stone-pill-glyph { color: var(--stone-accent, var(--stone-ink)); }
 .stone-fm-led { color: var(--stone-accent, var(--stone-ink)); }
 
-/* ── the resting bar (Brendon 2026-07-20: NO glyph, a bare black bar at
-      HALF the old 26px height; swipe up summons it, swipe down puts it
-      away, and it LIVES there while you scroll) ── */
-.stone-peek {
+/* ── THE DOT — the Command Stone's minimized form (Brendon, 2026-07-21).
+      The retired PD-miniplayer nub, resurrected AS the stone's minimized
+      state: one bare disc in the colorway ink, pinned bottom-right, with a
+      finger-sized invisible tap pad. Tap it → the stone reopens to the full
+      typing view. Reused verbatim from the old .fm-nub (Rule #0). ── */
+.stone-dot {
     position: fixed;
-    left: 50%;
-    transform: translateX(-50%);
+    right: max(14px, env(safe-area-inset-right));
     bottom: calc(14px + env(safe-area-inset-bottom, 0px));
     z-index: 10004;
-    width: min(46vw, 220px);
-    height: 13px;
-    /* The 3D stone (Brendon, 2026-07-20 — "gradient 3d effect on the
-       minimized pill to make it clearer to see"): lit from above, shaded
-       below, built off the stone's own polarity token so the white stone
-       carves the same way. Still NO OUTLINE — the stone never wears one. */
-    background: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--stone-bg) 72%, #ffffff) 0%,
-        var(--stone-bg) 52%,
-        color-mix(in srgb, var(--stone-bg) 82%, #000000) 100%
-    );
+    width: 9px;
+    height: 9px;
+    padding: 0;
+    background: var(--text-color);
     border: none;
-    border-radius: 6px;
+    border-radius: 999px;
     cursor: pointer;
-    touch-action: none; /* the bar owns its swipes — never scrolls the page */
-    box-shadow:
-        0 6px 24px rgba(0, 0, 0, 0.45),
-        inset 0 1px 1px color-mix(in srgb, #ffffff 30%, transparent),
-        inset 0 -1px 1px rgba(0, 0, 0, 0.5);
-    transition: opacity 0.2s ease, transform 0.2s ease;
 }
-.stone-peek--hidden {
-    opacity: 0;
-    pointer-events: none;
-    transform: translateX(-50%) translateY(10px);
-}
-/* Generous tap target around the skinny bar — the visual is 13px, the
-   finger zone isn't. */
-.stone-peek::after {
+.stone-dot::after {
     content: '';
     position: absolute;
-    inset: -12px;
+    inset: -14px;
 }
 
 /* ── the floating vessel — deck above, pill below ── */
@@ -852,8 +832,8 @@ body.pd-stone-force-white .stone-float .stone-deck .sw-card:nth-of-type(3n + 2) 
 
 /* ── The bottom band convention (Brendon, 2026-07-20) ─────────────────
    THE STONE IS ANCHORED — it never moves for the miniplayer. The deck is
-   the one that yields (fm.css reads body.pd-stone-peek / pd-stone-open,
-   set by CommandStone). The old body.pd-fm-live stone lift is retired —
+   the one that yields (fm.css reads body.pd-stone-open, set by
+   CommandStone). The old body.pd-fm-live stone lift is retired —
    two elements both yielding was the pile-up. */
 
 /* the ON AIR LED — the miniplayer's third face, on the open stone's pill */

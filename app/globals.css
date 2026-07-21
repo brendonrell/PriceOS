@@ -3521,7 +3521,6 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
    resting spot lifts clear of the band so they never share the same pixels
    even for the fade-in frame. */
 body.pd-fm-live .ens-copy-toast,
-body.pd-stone-peek .ens-copy-toast,
 body.pd-stone-open .ens-copy-toast {
     bottom: calc(96px + env(safe-area-inset-bottom, 0px));
 }
