@@ -17,6 +17,7 @@ import Link from 'next/link';
 import { useAuth } from '../../lib/state/AuthContext';
 import { hasStudioAccess } from '../../lib/studio/access';
 import { StickerStudio } from '../../components/studio/StickerStudio';
+import { SubtraitEditor } from '../../components/studio/SubtraitEditor';
 import { GodMode } from '../../components/studio/GodMode';
 import { StudioAnalytics } from '../../components/studio/StudioAnalytics';
 import { VouchCard } from '../../components/studio/VouchCard';
@@ -509,6 +510,16 @@ export default function StudioPage() {
                 </div>
             )}
 
+            {/* ── TRAITS & SUBTRAITS — declare the artist trait taxonomy from
+                   the script's published $traits (upload-flow subtraits). ── */}
+            {active && (
+                <SubtraitEditor
+                    script={active.script}
+                    traitSchema={active.traitSchema}
+                    onChange={(traitSchema) => update({ traitSchema })}
+                />
+            )}
+
             {/* ── PREVIEW — the would-be Project page, faithful: the REAL hero
                    component + the app's own colorway variable derivations,
                    scoped to this full-width wrapper. Change the colorway, the
@@ -599,6 +610,11 @@ export default function StudioPage() {
                                 <div className="stats-container">
                                     {Object.values(PLATFORM_TRAIT).map((t) => (
                                         <div key={t} className="pill pill-l1"><span className="stat-name">{t}</span></div>
+                                    ))}
+                                    {/* Artist traits declared in the Subtrait editor join the
+                                        platform traits, exactly as they will on the live page. */}
+                                    {(active.traitSchema?.traits ?? []).map((t) => (
+                                        <div key={t.name} className="pill pill-l1"><span className="stat-name">{t.name}</span></div>
                                     ))}
                                 </div>
                             </div>

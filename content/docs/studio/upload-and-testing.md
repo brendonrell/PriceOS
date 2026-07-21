@@ -55,6 +55,52 @@ Flat traits (no subtraits) are perfectly fine; the drill-down simply goes
 straight to values. But if your trait space is large or has natural families,
 Subtraits are how you make it legible.
 
+### Publishing traits from your script
+
+The Studio learns your traits from the script itself — the values come from
+the real engine, so they can never drift from a hand-typed list. As your
+script renders a token, set a plain object on `window.$traits`, keyed by
+trait name:
+
+```js
+// inside your render, once you've derived this token's values
+window.$traits = { Palette: "COOKIES", Mode: "STANDARD" };
+```
+
+Values are read as text. Set `$traits` for **every** token (it is per-token
+data), deterministically from `tokenData.hash` like the rest of your render.
+Publish nothing and your work still mints — it simply carries the platform
+traits and no artist traits, which is a perfectly good choice.
+
+### Scanning traits
+
+In the upload flow's **Traits & Subtraits** panel, choose a sample size and
+**Scan**. The Studio renders that many simulated tokens in the background,
+reads each one's `$traits`, and collects the distinct values it finds into a
+value pool per trait — exactly the pool your collectors will see. Scans
+accumulate, so a rare value that only turns up one-in-a-thousand is caught by
+running a larger scan (or scanning again); the more you scan, the more
+complete the pool. This is the same "what you test is what you ship" idea as a
+test run: the trait list is discovered from the work, not declared on faith.
+
+### Grouping into Subtraits
+
+Once a trait's values are scanned, add named buckets and place each value in
+one. Two conveniences make large trait spaces quick: **+rest** sweeps every
+still-unbucketed value into a bucket in one tap, and tapping a value cycles it
+through the buckets. A trait shows as a Subtrait only once **every** value is
+placed — until then it stays flat, so a half-finished grouping never ships a
+broken drill-down. Because the grouping is schema, you can rename or re-bucket
+any time, before or after mint-out, without touching the chain.
+
+**Worked example — KIKI's Palette.** KIKI publishes one artist trait,
+`Palette`, with 100 named values. Six of them are the headline **Main**
+palettes; the other 94 are **Special**. In the panel you add two buckets —
+*Main* and *Special* — tap the six Mains into *Main*, then **+rest** on
+*Special* to sweep the remaining 94. Now a collector filtering KIKI browses
+*Palette → Main / Special → the palette*, and the split is a schema edit away
+from being re-drawn if you ever change your mind.
+
 ## Test runs
 
 A test run is a simulated mint-out, sized however you like. For each

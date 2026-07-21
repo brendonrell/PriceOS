@@ -437,3 +437,129 @@
     padding: 10px 0; cursor: pointer;
 }
 .sce-save:disabled { cursor: default; }
+
+/* ── Traits & Subtraits (upload flow) ─────────────────────────────────────
+   Full-strength colorway tokens only — the panel repaints per colorway like
+   the rest of the Studio; no greys, no alpha washes. */
+
+/* Hidden harvest iframes: run the script off-screen to read window.$traits.
+   Kept in layout (display:none can stop some engines painting) but 1px and
+   invisible. */
+.pd-studio-harvest {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    left: -9999px;
+}
+.pd-studio-harvest iframe { width: 1px; height: 1px; border: 0; }
+
+.pd-studio-note code {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    border: 1px solid var(--border-color);
+    padding: 1px 4px;
+    white-space: nowrap;
+}
+
+.pd-studio-trait {
+    border-top: 1px solid var(--border-color);
+    padding-top: 12px;
+    margin-top: 12px;
+}
+
+.pd-studio-trait-head {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.pd-studio-trait-name {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text-color);
+}
+.pd-studio-trait-meta {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--text-color);
+    flex: 1;
+    min-width: 0;
+}
+.pd-studio-trait-x {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--text-color);
+    background: transparent;
+    border: 1px solid var(--text-color);
+    line-height: 1;
+    padding: 4px 7px;
+    cursor: pointer;
+}
+
+.pd-studio-buckets {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+.pd-studio-bucket-add {
+    width: auto;
+    flex: 0 0 auto;
+    max-width: 170px;
+    padding: 6px 8px;
+    font-size: 12px;
+}
+
+.pd-studio-values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    max-height: 210px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 2px;
+}
+
+.pd-studio-vchip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+    color: var(--text-color);
+    background: transparent;
+    border: 1px solid var(--text-color);
+    padding: 6px 8px;
+    line-height: 1;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.pd-studio-vchip.assigned {
+    background: var(--text-color);
+    color: var(--bg-color);
+}
+.pd-studio-vchip-tag {
+    font-size: 11px;
+    font-weight: bold;
+    border: 1px solid currentColor;
+    padding: 1px 4px;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.pd-studio-warn {
+    border-left: 3px solid var(--text-color);
+    padding-left: 8px;
+    font-weight: bold;
+}

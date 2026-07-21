@@ -10,6 +10,7 @@
 
 import { encodePacked, keccak256, type Address, type Hex } from 'viem';
 import type { PriceSpriteVibe } from '../sprites/vibes';
+import type { TraitSchema } from '../project/types';
 
 export type StudioRun = {
     id: string;
@@ -41,6 +42,13 @@ export type StudioDraft = {
     playlist?: string;
     /** Soundtrack display label, e.g. "Artist — Album". */
     playlistLabel?: string;
+    /** Artist trait taxonomy (Trait → Subtrait → Value), declared in the upload
+        flow: the Subtrait editor harvests each trait's values from the script's
+        published `window.$traits` across a test run, then the artist groups them
+        into named buckets. Schema, not token data — editable up to publish and
+        beyond. Absent = the script publishes no artist traits (platform traits
+        still apply). */
+    traitSchema?: TraitSchema;
     createdAt: number;
     updatedAt: number;
     runs: StudioRun[];
@@ -139,6 +147,31 @@ export function buildEnvelope(script: string, hash: Hex, tokenId: number): strin
         '<style>html,body{margin:0;padding:0;background:#0a0a0a;overflow:hidden;}canvas{display:block;}</style>' +
         `</head><body><script>var tokenData={hash:"${hash}",tokenId:"${tokenId}"};</scr` +
         `ipt><script>${script.replace(/<\/script>/gi, '<\\/script>')}</scr` +
+        'ipt></body></html>'
+    );
+}
+
+/*
+ * Studio-only twin of buildEnvelope for the Subtrait editor's trait harvest.
+ * Identical setup + script, PLUS a trailer that reports the script's published
+ * `window.$traits` back to the parent via postMessage once the render settles.
+ * The on-chain envelope (buildEnvelope) stays pure — this trailer never ships;
+ * it exists only so the upload flow can learn a trait's value pool to bucket.
+ */
+export function buildHarvestEnvelope(script: string, hash: Hex, tokenId: number): string {
+    const trailer =
+        ';(function(){function r(){try{var t=window.$traits;var c=null;' +
+        'if(t&&typeof t==="object"){c={};for(var k in t){if(Object.prototype.hasOwnProperty.call(t,k)){c[String(k)]=String(t[k]);}}}' +
+        `parent.postMessage({__pdHarvest:true,tokenId:${tokenId},traits:c},"*");}` +
+        `catch(e){parent.postMessage({__pdHarvest:true,tokenId:${tokenId},traits:null},"*");}}` +
+        'if(document.readyState==="complete"){setTimeout(r,60);}else{window.addEventListener("load",function(){setTimeout(r,60);});}})();';
+    return (
+        '<!DOCTYPE html><html><head><meta charset="utf-8">' +
+        '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+        '<style>html,body{margin:0;padding:0;background:#0a0a0a;overflow:hidden;}canvas{display:block;}</style>' +
+        `</head><body><script>var tokenData={hash:"${hash}",tokenId:"${tokenId}"};</scr` +
+        `ipt><script>${script.replace(/<\/script>/gi, '<\\/script>')}</scr` +
+        `ipt><script>${trailer}</scr` +
         'ipt></body></html>'
     );
 }
