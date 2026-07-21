@@ -395,6 +395,14 @@ export default function AboutPdModal() {
                         </a>
                     </div>
 
+                    {sep('THE FINE PRINT')}
+                    <div className="apd-links">
+                        <a className="apd-link-row" href="/docs/privacy-and-terms">
+                            <span className="apd-link-k">PRIVACY {'&'} TERMS</span>
+                            <span className="apd-link-v">plain language, one page</span>
+                        </a>
+                    </div>
+
                     <pre className="apd-signoff" aria-hidden="true">
 {`     *     .    *        .       *
   .     PRICE IS THE CONVERSATION.   .

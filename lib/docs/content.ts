@@ -145,7 +145,7 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
     },
     {
         title: 'Reference',
-        slugs: ['reference/glossary'],
+        slugs: ['reference/glossary', 'privacy-and-terms'],
     },
 ];
 

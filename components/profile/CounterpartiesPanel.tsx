@@ -16,6 +16,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '../../lib/state/ToastContext';
+import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { shortAddress } from '../../lib/project/projectAddress';
 import type { CounterpartiesResponse, CounterpartyRow } from '../../app/api/user/[address]/counterparties/route';
 
@@ -53,6 +54,7 @@ export default function CounterpartiesPanel({
 }) {
     const router = useRouter();
     const { showToast } = useToast();
+    const { notifs, update } = usePdNotifs();
     const [data, setData] = useState<CounterpartiesResponse | null>(null);
     const [failed, setFailed] = useState(false);
     const [busy, setBusy] = useState(false);
@@ -74,7 +76,11 @@ export default function CounterpartiesPanel({
                 headers: { 'content-type': 'application/json' },
                 body: JSON.stringify({ address: target.address }),
             });
-            if (r.ok) { showToast(`Nemesis: ${nameOf(target).toUpperCase()}`); load(); }
+            if (r.ok) {
+                showToast(`Nemesis: ${nameOf(target).toUpperCase()}`);
+                load();
+                window.dispatchEvent(new Event('pd:nemesis-changed'));
+            }
             else showToast('Nemesis: FAILED');
         } finally { setBusy(false); }
     };
@@ -83,9 +89,21 @@ export default function CounterpartiesPanel({
         setBusy(true);
         try {
             const r = await fetch('/api/user/nemesis', { method: 'DELETE' });
-            if (r.ok) { showToast('Nemesis: RENOUNCED'); load(); }
+            if (r.ok) {
+                showToast('Nemesis: RENOUNCED');
+                load();
+                window.dispatchEvent(new Event('pd:nemesis-changed'));
+            }
             else showToast('Nemesis: FAILED');
         } finally { setBusy(false); }
+    };
+    /* The HUD door (Brendon, 2026-07-20 — all Nemesis doors live HERE).
+       Summon + dismiss the top-bar delta pill; default OFF. */
+    const toggleHud = () => {
+        const next = !notifs.nemesisHud;
+        update({ nemesisHud: next });
+        showToast(next ? 'Nemesis HUD: ON' : 'Nemesis HUD: OFF');
+        window.dispatchEvent(new Event('pd:nemesis-changed'));
     };
 
     const nem = data?.nemesis ?? null;
@@ -104,14 +122,26 @@ export default function CounterpartiesPanel({
                             <div className="attr-group-head">
                                 <span className="attr-group-name">Nemesis · the declared rival</span>
                                 {isOwnProfile && (
-                                    <span
-                                        className="attr-group-count cp-nem-renounce"
-                                        role="button"
-                                        tabIndex={0}
-                                        onClick={renounce}
-                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); void renounce(); } }}
-                                    >
-                                        RENOUNCE ✕{VS15}
+                                    <span className="cp-nem-doors">
+                                        <span
+                                            className="attr-group-count cp-nem-renounce"
+                                            role="button"
+                                            tabIndex={0}
+                                            title="Summon / dismiss the top-bar Nemesis HUD"
+                                            onClick={toggleHud}
+                                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleHud(); } }}
+                                        >
+                                            ☍{VS15} HUD: {notifs.nemesisHud ? 'ON' : 'OFF'}
+                                        </span>
+                                        <span
+                                            className="attr-group-count cp-nem-renounce"
+                                            role="button"
+                                            tabIndex={0}
+                                            onClick={renounce}
+                                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); void renounce(); } }}
+                                        >
+                                            RENOUNCE ✕{VS15}
+                                        </span>
                                     </span>
                                 )}
                             </div>

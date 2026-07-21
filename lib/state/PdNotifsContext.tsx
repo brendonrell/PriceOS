@@ -130,6 +130,10 @@ export interface PdNotifs {
 
     // Top Bar Calendar visibility
     topBarCalendar: boolean;
+    /** Nemesis HUD — the top-bar you-vs-rival floor-value delta (Brendon,
+     *  2026-07-20). Doors live in the profile Counterparties tab (his call):
+     *  summon + dismiss are the HUD button on the nemesis plate. Default OFF. */
+    nemesisHud: boolean;
 
     // Build 26 — additional MY PD mode flags introduced for Setup Code
     // roundtrip parity with sim's _SETUP_MODES table (sim 9746-9764).
@@ -252,6 +256,7 @@ const DEFAULTS: PdNotifs = {
     anon: false,
 
     topBarCalendar: false,
+    nemesisHud: false,
 
     // Build 26 — Setup Code roundtrip flags (no UI yet, see interface comment).
     pure_light: false,

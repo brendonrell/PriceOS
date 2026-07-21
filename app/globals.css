@@ -9191,6 +9191,10 @@ body.fog-mode .output-card:not(.fog-revealed) .canvas-wrapper::after {
 }
 .grail-pill-unpin:hover { opacity: 1; }
 
+/* Nemesis HUD pill — grail-pill anatomy; the verdict chip underlines when
+   you're AHEAD (the cp-nem-verdict convention). */
+.nem-hud-pill .grail-pill-price.is-ahead { text-decoration: underline; }
+
 /* F50 (BUG-02) — sim 1361-1368 .grail-badge. Small ⟟ glyph painted
    absolutely in the top-right corner of the canvas-wrapper on any
    pinned card. Sim builds it imperatively (renderGrailBar appends a
@@ -11370,6 +11374,8 @@ body.colorway-dark .ghost-feed-bar {
 .cp-nem-verdict.is-ahead { text-decoration: underline; }
 /* RENOUNCE is tappable — full strength, not the resting count wash. */
 .cp-nem-renounce { opacity: 1; cursor: pointer; }
+/* The plate's door row — HUD toggle + RENOUNCE side by side. */
+.cp-nem-doors { display: inline-flex; gap: 14px; align-items: baseline; }
 /* The window chip after a Target row's project name. */
 .tgt-window {
     margin-left: 8px;

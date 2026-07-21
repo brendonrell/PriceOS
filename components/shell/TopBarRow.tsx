@@ -89,6 +89,9 @@ import {
     toggleIncognito,
 } from '../../lib/incognito/incognitoEngine';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
+import { useAuth } from '../../lib/state/AuthContext';
+import { shortAddress } from '../../lib/project/projectAddress';
+import type { NemesisRead } from '../../app/api/user/[address]/counterparties/route';
 import { buildOutputMetaFor } from '../../lib/state/ProjectContext';
 import { getProject } from '../../lib/project/registry';
 import { projectMarketStat, traitMarketStat } from '../../lib/market/starredMarket';
@@ -111,6 +114,28 @@ export function TopBarRow() {
     const { open: openOutputModal } = useModal();
     const { showToast } = useToast();
     const router = useRouter();
+    const { siweAddress, handle: myHandle } = useAuth();
+
+    /* Nemesis HUD (Brendon, 2026-07-20) — the you-vs-rival floor-value delta.
+       Doors live in the profile Counterparties tab (summon + dismiss); the
+       pill only exists while notifs.nemesisHud is on AND a rival is declared.
+       Reads the same counterparties read the plate uses — one fetch when the
+       HUD wakes, refreshed when the tab declares/renounces/toggles
+       (pd:nemesis-changed). */
+    const [nemHud, setNemHud] = useState<NemesisRead | null>(null);
+    useEffect(() => {
+        if (!notifs.nemesisHud || !siweAddress) { setNemHud(null); return; }
+        let cancel = false;
+        const load = () => {
+            fetch(`/api/user/${siweAddress.toLowerCase()}/counterparties`)
+                .then((r) => (r.ok ? r.json() : null))
+                .then((j) => { if (!cancel) setNemHud(j?.nemesis ?? null); })
+                .catch(() => { /* keep last read */ });
+        };
+        load();
+        window.addEventListener('pd:nemesis-changed', load);
+        return () => { cancel = true; window.removeEventListener('pd:nemesis-changed', load); };
+    }, [notifs.nemesisHud, siweAddress]);
 
     // Subscribe to engine state. We mirror engine state into React
     // state so toggles trigger re-renders. Initialised lazily from
@@ -232,6 +257,10 @@ export function TopBarRow() {
        imperative DOM mutation. */
     const grailsVisible =
         grailPins.length > 0 && !incognitoActive && !hasHammer;
+    /* Nemesis HUD masks with the grails: Incognito/Hammer hide YOUR portfolio
+       read for the same privacy/focus reasons. */
+    const hudVisible =
+        !!notifs.nemesisHud && !!nemHud && !incognitoActive && !hasHammer;
     /* sim 12390 — the inner row's own visibility key still tracks the
        grail count so we don't render an empty 24px-min-height grey
        strip when only the calendar row is on. Grails count toward the
@@ -240,7 +269,7 @@ export function TopBarRow() {
        grails part already false when masked, so the masking flows
        through. We mirror that with `grailsVisible`. */
     const showCenter = incognitoActive || hasHammer;
-    const showRow = grailsVisible || showCenter || rpcActive;
+    const showRow = grailsVisible || hudVisible || showCenter || rpcActive;
     const showWrapper = hasTopBarCalendar || showRow;
 
     if (!showWrapper) return null;
@@ -254,6 +283,30 @@ export function TopBarRow() {
             <TopBarCalendar />
             {showRow ? (
                 <div className="top-bar-row" id="topBarInner">
+                    {/* Nemesis HUD pill — rides the grail-pill anatomy (Rule #0).
+                        ☍ · the rival · AHEAD/BEHIND ◊delta at today's floors.
+                        Tap → your profile (the Counterparties tab holds the
+                        doors). No × here — dismiss lives on the plate. */}
+                    {hudVisible && nemHud && (() => {
+                        const rival = nemHud.handle ? `@${nemHud.handle}` : shortAddress(nemHud.address);
+                        const ahead = nemHud.mine.floor_value_eth - nemHud.theirs.floor_value_eth;
+                        const verdict = `${ahead >= 0 ? 'AHEAD' : 'BEHIND'} ◊${formatEth(Math.abs(ahead))}`;
+                        const go = () => router.push('/' + (myHandle ?? siweAddress ?? ''));
+                        return (
+                            <span
+                                className="grail-pill nem-hud-pill"
+                                title={`Nemesis ${rival} — you ◊${formatEth(nemHud.mine.floor_value_eth)} · them ◊${formatEth(nemHud.theirs.floor_value_eth)}, at today’s floors`}
+                                onClick={go}
+                                role="button"
+                                tabIndex={0}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }}
+                            >
+                                <span className="grail-pill-play grail-pill-play--trait" aria-hidden="true">☍{'︎'}</span>
+                                <span className={`grail-pill-title${rival.length <= 8 ? ' short' : ''}`}>{rival}</span>
+                                <span className={`grail-pill-price${ahead >= 0 ? ' is-ahead' : ''}`}>{verdict}</span>
+                            </span>
+                        );
+                    })()}
                     {/* F50 (BUG-02) — sim 12343-12362 grail pill list.
                         Inserted BEFORE the center wrap so the row reads
                         left→ pills → center (incognito/hammer) → right
