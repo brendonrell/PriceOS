@@ -145,6 +145,15 @@ export const STATE_CACHE_KEYS = {
     /** Spite Book slots (72 entries, nulls preserved). Read + written by
      *  spiteStore; lives in the settings envelope. Account-backed 2026-07-06. */
     spite: 'pd_spite_names',
+    /** Sound layer on/off (the ⚟ key). Read + written by soundStore; lives in
+     *  the settings envelope. Account-backed 2026-07-21. */
+    sound: 'pd_sound_on',
+    /** PD miniplayer display face. Read + written by FmBar; lives in the
+     *  settings envelope. Account-backed 2026-07-21. */
+    fmDisplay: 'pd_fm_display',
+    /** Command Stone stealth style (accent + stage). Read + written by
+     *  stoneStyle; lives in the settings envelope. Account-backed 2026-07-21. */
+    stoneStyle: 'pd_stone_style',
 } as const;
 
 /** Fired after a server snapshot is written into the caches. Any context that
@@ -432,6 +441,27 @@ export function hydrateFromRow(row: UserRow): void {
         // local note caches. Seeds only when the account carries the key (same
         // precedent as grails/mutes) and fires the notes change events itself.
         hydrateNotesToLocal(s.notes);
+
+        // Sound / miniplayer face / Command Stone style — newly account-backed
+        // (Brendon, 2026-07-21). Seed ONLY when the account carries the key
+        // (grails/mutes precedent), so a pre-sync device choice is never wiped;
+        // the first change on this device pushes it up. Fire each subsystem's
+        // own change event so a live surface updates without a reload.
+        if (typeof s.sound === 'boolean') {
+            if (s.sound) localStorage.setItem(STATE_CACHE_KEYS.sound, '1');
+            else localStorage.removeItem(STATE_CACHE_KEYS.sound);
+            window.dispatchEvent(new CustomEvent('pd:sound-changed', { detail: { on: s.sound } }));
+        }
+        if (typeof s.fmDisplay === 'string' && s.fmDisplay) {
+            localStorage.setItem(STATE_CACHE_KEYS.fmDisplay, s.fmDisplay);
+            window.dispatchEvent(new CustomEvent('pd:fm-display-changed', { detail: s.fmDisplay }));
+        }
+        if (s.stoneStyle && typeof s.stoneStyle === 'object' && !Array.isArray(s.stoneStyle)) {
+            const st = s.stoneStyle;
+            if (st.accent || st.stage) localStorage.setItem(STATE_CACHE_KEYS.stoneStyle, JSON.stringify(st));
+            else localStorage.removeItem(STATE_CACHE_KEYS.stoneStyle);
+            window.dispatchEvent(new CustomEvent('pd:stone-style-changed'));
+        }
 
         // grid_presets → unified cache the presetStore reads (Gallery View
         // Presets). Server wins; presetStore re-reads this key on the

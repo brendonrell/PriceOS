@@ -239,8 +239,14 @@ export default function CommandStone() {
     }, [stage]);
 
     /* The stealth console's persisted style (accent hex · forced stage)
-       repaints on boot — stoneStyle.ts, deliberately absent from the docs. */
-    useEffect(() => { applyStoneStyle(); }, []);
+       repaints on boot — stoneStyle.ts, deliberately absent from the docs. Also
+       repaints when the account snapshot hydrates the style (login anywhere). */
+    useEffect(() => {
+        applyStoneStyle();
+        const onChange = () => applyStoneStyle();
+        window.addEventListener('pd:stone-style-changed', onChange);
+        return () => window.removeEventListener('pd:stone-style-changed', onChange);
+    }, []);
 
     /* THE VOICE — one terse line for the bubble's reserved top slot.
        Priority: a fresh confirmation > the summoned hand's line > an etch
@@ -519,6 +525,29 @@ export default function CommandStone() {
         return () => window.removeEventListener('keydown', onKey);
     }, [open]);
 
+    /* KEYBOARD-AWARE DECK HEIGHT — while the stone is open the soft keyboard
+       shrinks the visible area; track the live visual viewport into --stone-vvh
+       so the deck's max-height caps to the space that's actually on-screen and
+       never spills off the top while typing (Brendon, 2026-07-21). Scoped to a
+       var the fixed-position stone reads — it never touches the document's own
+       geometry, so it can't trigger the --app-height scroll-nudge (§ above). */
+    useEffect(() => {
+        if (!open || typeof window === 'undefined') return;
+        const vv = window.visualViewport;
+        const root = document.documentElement;
+        const set = () => {
+            root.style.setProperty('--stone-vvh', `${vv ? vv.height : window.innerHeight}px`);
+        };
+        set();
+        vv?.addEventListener('resize', set);
+        vv?.addEventListener('scroll', set);
+        return () => {
+            vv?.removeEventListener('resize', set);
+            vv?.removeEventListener('scroll', set);
+            root.style.removeProperty('--stone-vvh');
+        };
+    }, [open]);
+
     /* LIVE search — the same debounce/abort discipline as GlobalSearchBar
        (D25): ≥2 chars, 220ms debounce, stale responses can never land. */
     useEffect(() => {
@@ -731,7 +760,11 @@ export default function CommandStone() {
                 !el ||
                 el.closest(
                     'a,button,input,textarea,select,[role="button"],[role="link"],[contenteditable],label,' +
-                    '#commandStonePanel,.stone-dot,.fm-bar,.fm-picker'
+                    '#commandStonePanel,.stone-dot,.fm-bar,.fm-picker,' +
+                    /* the connect menu (the dropdown under the connect button)
+                       owns its own triple-tap eggs — a tap that lands on it must
+                       never summon the stone through it (Brendon, 2026-07-21). */
+                    '.user-menu-wrapper'
                 ) ||
                 document.body.classList.contains('modal-open')
             ) {

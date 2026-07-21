@@ -88,6 +88,11 @@ function readOutputSequence(): OutputRef[] {
 
 interface ModalContextValue {
     openModal: OpenModalState | null;
+    /** The full modal stack, bottom → top. A modal that launched another
+     *  sits below the top; consumers that want to STAY VISIBLE underneath the
+     *  one on top of them read this instead of `openModal` (Brendon,
+     *  2026-07-21 — opening a modal must leave what's underneath unchanged). */
+    stack: OpenModalState[];
     /** The currently-displayed output id in the OutputPreview. */
     currentModalId: number | null;
     /** Project slug for the currently-open output modal (null = active route project). */
@@ -253,8 +258,8 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     }, [openModal]);
 
     const value = useMemo<ModalContextValue>(
-        () => ({ openModal, currentModalId, currentModalSlug, outputSequence, open, close, closeAll, setCurrentModalId, setCurrentModalOutput }),
-        [openModal, currentModalId, currentModalSlug, outputSequence, open, close, closeAll, setCurrentModalOutput]
+        () => ({ openModal, stack, currentModalId, currentModalSlug, outputSequence, open, close, closeAll, setCurrentModalId, setCurrentModalOutput }),
+        [openModal, stack, currentModalId, currentModalSlug, outputSequence, open, close, closeAll, setCurrentModalOutput]
     );
 
     return <ModalContext.Provider value={value}>{children}</ModalContext.Provider>;

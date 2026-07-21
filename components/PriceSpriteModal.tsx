@@ -134,7 +134,7 @@ function CountUpValue({ value, active }: { value: string; active: boolean }) {
 }
 
 export default function PriceSpriteModal() {
-    const { openModal, close, closeAll, open } = useModal();
+    const { openModal, stack, close, closeAll, open } = useModal();
     const { showToast } = useToast();
     const { priceRank, priceScore, priceStreak, handle, siweAddress } = useAuth();
     const { notifs, toggle } = usePdNotifs();
@@ -142,7 +142,11 @@ export default function PriceSpriteModal() {
        taps through to the anointed project (Brendon 2026-07-07). */
     const router = useRouter();
     const { pledge } = useMyAnoint();
-    const isOpen = openModal?.name === 'priceSprite';
+    /* Stay VISIBLE while anywhere in the stack — not only when we're the top
+       modal — so opening the Leaderboard (or Golf board) OVER this modal
+       leaves it sitting unchanged underneath (Brendon, 2026-07-21). Those
+       boards use a transparent, higher-z backdrop, so this shows through. */
+    const isOpen = stack.some((m) => m.name === 'priceSprite');
 
     /* ASCII-ID lives here now (moved off the MY PD settings row — this is
        where people look). It's a negative flag: asciiId=true means the

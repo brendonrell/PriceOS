@@ -100,7 +100,7 @@ export default function LeaderboardModal() {
                                         <div className="fm-row-stats">
                                             <span className="fm-stat" title="PriceScore">
                                                 <span className="fm-stat-ic">{`◍${VS15}`}</span>
-                                                <b>{r.priceScore.toLocaleString()}</b>
+                                                <b className="lb-score-num">{r.priceScore.toLocaleString()}</b>
                                             </span>
                                         </div>
                                     </div>

@@ -445,9 +445,12 @@
     }
     #sn-profileTheme .st-icon { font-size: 14px !important; }
     /* Ambient ☼ reads small on mobile — two sizes up from its peers, and
-       nudged up 0.5px where it sits a hair low (Brendon). */
-    #sn-ambient .st-icon { font-size: 18px !important; transform: translateY(-0.5px); }
-    /* Price Lens ◎ — mobile: one size up (15→16) + nudged up 1px (Brendon). */
+       nudged up 1px where it sits a hair low (Brendon, 2026-07-21 — was 0.5px).
+       (Font-size here is superseded by the authoritative mobile block in
+       globals.css; the transform is this rule's alone and is what nudges it.) */
+    #sn-ambient .st-icon { font-size: 18px !important; transform: translateY(-1px); }
+    /* Price Lens ◎ — mobile: nudged up 1px (Brendon). Its SIZE is set in the
+       authoritative mobile block in globals.css (19px, two sizes up). */
     #sn-pricelens .st-icon { font-size: 16px !important; transform: translateY(-1px); }
     /* Tarot ▯▯▯ + Price Ghost ᗝ — mobile: nudge up 0.5px, they sit a hair
        low (Brendon, 2026-07-18). */

@@ -179,6 +179,18 @@ export interface UserSettings {
    *  the Thoughts & Memories kind, supported here ahead of its front end).
    *  Same envelope + privacy as `starred`. Shape owned by lib/notes/notesSync. */
   notes?: NoteRecord[];
+  /** SOUND LAYER on/off (the ⚟ key in the workspace dots row). Account-backed
+   *  so it stops resetting each session (Brendon, 2026-07-21). Was device-only
+   *  localStorage `pd_sound_on`. Absent = never set (default OFF). */
+  sound?: boolean;
+  /** PD MINIPLAYER display face ('deck' | 'micro' | 'disc' | 'slab' | 'signal').
+   *  Account-backed so the chosen face follows the viewer (Brendon, 2026-07-21).
+   *  Was device-only localStorage `pd_fm_display`. Absent = deck. */
+  fmDisplay?: string;
+  /** COMMAND STONE stealth style — accent hex + forced stage. Account-backed so
+   *  the recolour/stage survives across sessions + devices (Brendon,
+   *  2026-07-21). Was device-only localStorage `pd_stone_style`. */
+  stoneStyle?: { accent?: string; stage?: 'white' | 'black' };
 }
 
 /** One private note in the settings envelope (lib/notes/notesSync owns it). */

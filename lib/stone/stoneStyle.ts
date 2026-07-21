@@ -16,6 +16,7 @@
  */
 
 import { resolveStoneColor, stoneColorName } from './colors';
+import { pushSettings } from '../state/userState';
 
 const LS_KEY = 'pd_stone_style';
 
@@ -44,6 +45,9 @@ function writeStoneStyle(s: StoneStyle): void {
         if (!s.accent && !s.stage) window.localStorage.removeItem(LS_KEY);
         else window.localStorage.setItem(LS_KEY, JSON.stringify(s));
     } catch { /* private mode — session-only is fine */ }
+    // Account-backed (Brendon, 2026-07-21) — the recolour/stage now follows the
+    // account. No-ops until the snapshot hydrates for a signed-in user.
+    pushSettings({ stoneStyle: s });
 }
 
 /** Paint the current style onto the document (idempotent; call on boot +
