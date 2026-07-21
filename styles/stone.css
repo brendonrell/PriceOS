@@ -111,7 +111,7 @@ body.pd-stone-force-white .stone-float {
 
 /* ── THE DOT — the Command Stone's minimized form (Brendon, 2026-07-21).
       The retired PD-miniplayer nub, resurrected AS the stone's minimized
-      state: one bare disc in the colorway ink, pinned bottom-right, with a
+      state: one bare disc in the stone's own fill, pinned bottom-right, with a
       finger-sized invisible tap pad. Tap it → the stone reopens to the full
       typing view. Reused verbatim from the old .fm-nub (Rule #0). ── */
 .stone-dot {
@@ -122,11 +122,16 @@ body.pd-stone-force-white .stone-float {
     width: 9px;
     height: 9px;
     padding: 0;
-    background: var(--text-color);
+    /* the stone's own fill — the dot IS the stone, shrunk (Brendon,
+       2026-07-21). Values mirror --stone-bg-deep across the themes below. */
+    background: #0b0b0b;
     border: none;
     border-radius: 999px;
     cursor: pointer;
 }
+body.theme-bright .stone-dot { background: #f4f4f4; }
+body.pd-stone-force-black .stone-dot { background: #0b0b0b; }
+body.pd-stone-force-white .stone-dot { background: #f4f4f4; }
 .stone-dot::after {
     content: '';
     position: absolute;
