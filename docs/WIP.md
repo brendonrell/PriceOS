@@ -8,7 +8,38 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-21 (latest) COMMAND STONE — SEEING + OMNISCIENCE · RICH SEARCH ·
+0. ✅ **2026-07-21 (latest) SPOT-EDIT BATCH + 2 BUGS — all SHIPPED on dev (tip
+   `0213c57`), auto-deploy rolling, tree clean. Task branch
+   `claude/pd-spot-edits-3vu04w` = merged trash (delete at
+   https://github.com/brendonrell/PriceOS/branches).** Opus, present→push loop.
+   ① MY PD (mobile): Price Lens icon two sizes up (17→19, authoritative block in
+   globals.css — the settings.css rule is superseded), Ambient icon nudged up
+   0.5px (−0.5→−1, its transform is settings.css-only). ② "Precog" default
+   colorway renamed to full **Precognition** (pill label + toast). ③ Workspace
+   dots BREATHE in manage/delete mode; DELETE routes through the standard
+   `ms-confirm-card` modal. ④ **Sound · miniplayer face · Command Stone style now
+   account-backed** (settings envelope keys `sound`/`fmDisplay`/`stoneStyle` —
+   hydrate seeds-when-present + fires each subsystem's change event; server merge
+   is generic, no migration). ⑤ Command Stone triple-tap now bails on
+   `.user-menu-wrapper` (the connect menu) so its own eggs work; open deck capped
+   to `--stone-vvh` (live visual-viewport, set by CommandStone while open) so it
+   never spills off-screen while typing. ⑥ PriceRank leaderboard score NUMBER in
+   Rubik-Mono (glyph stays Courier); **modal stack now keeps the underneath modal
+   VISIBLE** — PriceSprite shows through under the (transparent-backdrop)
+   leaderboard via `stack` exposed from ModalContext + PriceSprite gating on
+   stack-presence. Making EVERY modal-over-modal show through is a broader sweep
+   NOT done (some older modals replace, not nest) — offered to Brendon, awaiting
+   word. ⑦ Dispatch footer LATEST pinned dead-centre (3-col grid). ⑧ Removed the
+   stray miniplayer TUNE button.
+   ▸ BUG A: **Attention Yellow profile colorway wasn't persisting** — `#FFE600`
+   was in useProfileHex `OLD_DEFAULTS`, so a real pick got rewritten to Matrix
+   White on next load. Removed it (only it collided with a pickable pill). His
+   yellow returns from the server value on next load.
+   ▸ BUG B / feat: the @name menu's **custom Unicode font now also styles the ENS
+   and the FOLLOWER/FOLLOWERS word** (same as @name + tags); follower COUNT + the
+   wallet-address fallback stay plain (the font transforms digits).
+
+0.5 ✅ **2026-07-21 COMMAND STONE — SEEING + OMNISCIENCE · RICH SEARCH ·
    RECOLOUR · TOAST WRAP · DEEP THOUGHT — all SHIPPED on dev (tip `346f159`),
    auto-deploy rolling, tree clean. Branch
    `claude/command-stone-omniscience-thudk7` = merged trash (delete at
