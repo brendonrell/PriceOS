@@ -8,7 +8,49 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-20 (latest) THE QUEUE-CLEARING SESSION — SEVEN ships, ALL on
+0. ✅ **2026-07-21 (latest) EXCHANGE → GNOMES → NEMESIS → PRIVACY — the
+   full remaining queue SHIPPED, all on dev (tip `9237eba`), auto-deploy
+   rolling, tree clean. Branch `claude/baton-tasks-spot-edits-orjjjv` =
+   merged trash (Brendon deletes at
+   https://github.com/brendonrell/PriceOS/branches).** Fable session,
+   push-as-you-go under Brendon's standing word. SHIPPED:
+   ① EXCHANGE LEFTOVERS — YOUR OPEN TRADES strip inside the ⇌ window's
+   compose face (the window IS the inbox) + trades read as TRADES
+   everywhere: feed/tape/inspector rows wear ⇌ + "traded" (never SALE,
+   even with an ETH kicker) via events.sale_direction=TRADE plumbed
+   additively.
+   ② THE MUSHROOM MARKET — renamed back from 'gnopensea' (his order;
+   ⛔ that coinage is DEAD, see the wording locks below): signpost via the
+   shared name constant, docs page re-slugged the-mushroom-market +
+   nav/cross-links, no old-name survivors (grepped).
+   ③ GNOME DEALS COMPLETE — settle now pings BOTH parties (⍙ rows,
+   lowercase-world copy: seller "struck the deal — your gnome sold · ◊x",
+   buyer "the deal is struck — the gnome is yours") + THE LEDGER: the
+   market wing prints recent settled deals (keeper → keeper · ◊ask ·
+   date, newest first) off the market read.
+   ④ NEMESIS — ClickUp `86b9jfjmu` CLOSED IN FULL. Pings: a NEMESIS
+   audience tops the interest fan-out (strongest reason; declaring = the
+   opt-in, renouncing = off; no settings pill) — rows wear ☍ (U+260D
+   OPPOSITION, NEW, GLYPHS.md §12g) + "· YOUR NEMESIS". HUD: top-bar
+   pill (grail-pill anatomy) ☍ · rival · AHEAD/BEHIND ◊delta at today's
+   floors; **doors = Brendon's placement call: BOTH on the nemesis plate
+   in Counterparties (☍ HUD: ON/OFF)**; default OFF, account-persisted,
+   masked under Incognito/Hammer, tap → your profile.
+   ⑤ PRIVACY & TERMS — ClickUp `86bb0rr1f` CLOSED. One plain-language
+   page `/docs/privacy-and-terms` (wallet is the whole account · what's
+   stored & why · NO tracking/analytics/selling, verified in code before
+   claiming · chain public by nature · as-is/irreversible/wallet-to-wallet
+   terms · filtered-not-curated). In docs nav + llms.txt; **placement =
+   his call: About PD modal, THE FINE PRINT link.**
+   Proof each push: tsc · 117/117 tests · real builds · compiled greps
+   (page prerendered, llms.txt carries it, HUD css ships). ClickUp moved
+   with the work (both tasks closed w/ ship comments).
+   **Standing/parked:** tag glyph picks (his options menu) · Precog +
+   Cookies colorway hexes (kiki repo connects in another session) ·
+   status-page go-live `86bb0d896` (his action) · Mint Room follow-ups
+   (gated on first real mint) · Sepolia → Mythic Audit path.
+
+0. ✅ **2026-07-20 THE QUEUE-CLEARING SESSION — SEVEN ships, ALL on
    dev (tip `075e2f1`), auto-deploy rolling, tree clean. Branch
    `claude/sound-glyph-options-1z3s3d` = merged trash (Brendon deletes at
    https://github.com/brendonrell/PriceOS/branches).** Fable session,
