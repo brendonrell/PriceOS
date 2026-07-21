@@ -8,61 +8,59 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ⚙ **2026-07-21 (latest) CONTESTED MINTS — SPEC + CONTRACTS + USER DOCS
-   SHIPPED; app-side build still queued for Opus.** Same Fable session,
-   three ships:
-   ① **SPEC** — `docs/briefs/contested-mints.md` (the Opus build brief).
-   ② **CONTRACTS LIVE on pd-contracts `main` (tip `2281e82`, Brendon's
-   push word, 349/349 tests green incl. 21 new).** PDProject grew the
-   optional entry window (off by default — zero-window deploys are
-   byte-identical legacy): during the window mint() is closed on-chain
-   (kills the direct-mint back door), settlement key closes it uncontested
-   (normal mint) or contested (winner seats + cascade add/revoke +
-   finishSettlement), settlement-minted tokens transfer-SEALED (write-once,
-   ≤72h cap). **FAIL-OPEN is the load-bearing guarantee: immutable
-   windowDeadline (≤4h) outranks every settlement state — dead server/lost
-   key can only delay, never halt.** Settlement key = choreography only
-   (no funds/supply/price/existing-token reach), lives in PDFactory with
-   the standard two-step rotation, STARTS UNSET (safe). Windowed
-   createProject overload added; original signature + all existing deploys
-   untouched. drawCommit anchored per close for transcript verifiability.
-   ③ **USER DOCS on dev — full "Contested Mints" PD-Docs section** (3
-   pages: Overview · How a Drop Settles · Fair Play), nav'd after For
-   Collectors, in llms.txt + search index (build-verified). Copy states
-   the public ladder loudly (held collection + lifetime spend, Brendon's
-   transparency call), keeps detection signals undocumented by design.
-   **NEXT (Opus, fresh chat): the app side per the brief §6 — wallet
-   sign-now-execute-later spike FIRST, then sim rail.** Task branches
-   `claude/contested-mints-brainstorm-glg7by` on BOTH repos = merged
-   trash (Brendon deletes: github.com/brendonrell/PriceOS/branches +
-   github.com/brendonrell/pd-contracts/branches).
-
-0. ⚙ **2026-07-21 CONTESTED MINTS — original spec entry. Full spec +
-   build brief: `docs/briefs/contested-mints.md` — an OPUS session builds it
-   (Fable handoff precedent), on dev (docs push, tip = this commit), tree
-   clean.** Fable brainstorm session with Brendon; every LOCKED decision in
-   the brief is his explicit call — do not re-litigate. The shape, one
-   breath: every drop launches identically; all mint presses in the opening
-   ~10s window are SIMULTANEOUS (nobody is "first" — kills gas-race
-   sniping); undersubscribed = everyone just mints, indistinguishable from
-   today; oversubscribed = the drop flips CONTESTED live → banded draw →
-   settlement. ONE TAP EVER (the press signs a mint order, sign-now-
-   execute-later — NO escrow, NO claim step, NO bills; losers' money never
-   moves; failed winner orders CASCADE so seats can't die). ID = two
-   ledgers: PUBLIC (transparent priority by held collection + lifetime PD
-   spend, tenure, wallet on-chain life, mild ENS; equal draw within a band;
-   thresholds never published) + SHADOW (silent, never surfaced: passkey
-   hardware anchor / funding archaeology / gesture correlation → silent
-   voids, cluster death, PERMANENT taint on @names/devices/funding
-   wallets — punish infrastructure, not accounts). Punish bad actors,
-   never reward performed behavior (farmable). Contested surface REUSES
-   the Mint Room. Sealed-hours reveal window = the sweep's adjudication
-   time. **Build order: §6.0 wallet-plumbing spike FIRST (sign-now-
-   execute-later is the one hard unknown), then sim rail, chain rail at
-   cutover; contract changes must beat the Mythic Audit gate or wait for
-   v2 — raise the scheduling at build start.** OPEN items (§7 of the
-   brief) are Brendon's — ask before building those. ClickUp: brief-file
-   handoff, no task of record (fable-queue precedent).
+0. ⚙ **2026-07-21 (latest) CONTESTED MINTS — the whole arc in one Fable
+   session: brainstorm → LOCKED design → SPEC → CONTRACTS SHIPPED → USER
+   DOCS SHIPPED. ⛔ NEXT BUILD (fresh OPUS chat) = THE APP SIDE. Start
+   here: read `docs/briefs/contested-mints.md` FIRST — it is the complete
+   build brief; every LOCKED decision in it is Brendon's explicit call, do
+   not re-litigate; §7 OPEN items are his, ask before building those.**
+   The design, one breath: every drop launches identically; presses in the
+   opening ~10s window are SIMULTANEOUS (nobody is "first" — kills
+   sniping); undersubscribed = everyone just mints; oversubscribed = the
+   drop flips CONTESTED live → banded draw → settlement. ONE TAP EVER
+   (the press signs a mint order, sign-now-execute-later — NO escrow, NO
+   claim step; losers' money never moves; failed winner orders CASCADE so
+   seats can't die). ID = two ledgers: PUBLIC (transparent priority:
+   held PD collection + lifetime spend, tenure, wallet on-chain life,
+   mild ENS; equal draw within a band; band thresholds never published)
+   + SHADOW (silent forever: passkey hardware anchor / funding
+   archaeology / gesture correlation → silent voids, cluster death,
+   PERMANENT taint on @names/devices/funding wallets — punish
+   infrastructure, not accounts; never reward performed behavior, it's
+   farmable). Contested surface REUSES the Mint Room.
+   **SHIPPED ①: CONTRACTS — pd-contracts `main` tip `2281e82`, Brendon's
+   push word, 349/349 green (21 new).** PDProject optional entry window
+   (off by default; zero-window deploys byte-identical legacy): mint()
+   closed on-chain during the window (kills the direct-mint back door);
+   settlement key closes uncontested (normal mint) or contested (winner
+   seats + cascade add/revoke + finishSettlement); settlement-minted
+   tokens transfer-SEALED (write-once, ≤72h). **FAIL-OPEN: immutable
+   windowDeadline (≤4h) outranks every settlement state — dead server or
+   lost key can only delay, never halt.** Settlement key = choreography
+   only (no funds/supply/price/existing-token reach), in PDFactory,
+   two-step rotation, STARTS UNSET (safe). Windowed createProject
+   overload; original signature + existing tests untouched. drawCommit
+   anchored per close for draw-transcript verifiability.
+   **SHIPPED ②: USER DOCS — dev tip `02b8cac`, auto-deploy rolling.**
+   Full PD-Docs "Contested Mints" section (Overview · How a Drop Settles
+   · Fair Play) nav'd after For Collectors, in llms.txt + search index,
+   build-verified prerendered. Public ladder stated loudly (his
+   transparency call); detection signals deliberately undocumented.
+   **OPUS BUILD ORDER (brief §6): ⓐ the §6.0 wallet spike FIRST —
+   sign-now-execute-later mint orders from ordinary iPhone wallets is THE
+   one hard unknown; prove it or pick the fallback route before anything
+   else. ⓑ Then the sim rail: window state machine, entry API, sequencer
+   bands, draw + transcript, settlement worker, basic sweep, Mint Room
+   contested surface (all UI doors/treatments = Brendon's call first,
+   Rule #-0.4). ⓒ Chain rail at cutover. Supabase per brief §6.3;
+   indexer feeds per §6.4 (serverless branch ONLY).**
+   **STANDING: the Mythic Audit Pass (`86b9v5wj4`) must now COVER the new
+   window code before mainnet — flag it when that task runs.** ClickUp:
+   brief-file handoff, no task of record (fable-queue precedent). Task
+   branches `claude/contested-mints-brainstorm-glg7by` on BOTH repos =
+   merged trash (Brendon deletes at
+   https://github.com/brendonrell/PriceOS/branches +
+   https://github.com/brendonrell/pd-contracts/branches).
 
 0. ✅ **2026-07-21 EXCHANGE → GNOMES → NEMESIS → PRIVACY — the
    full remaining queue SHIPPED, all on dev (tip `9237eba`), auto-deploy
