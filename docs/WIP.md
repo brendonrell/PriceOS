@@ -26,11 +26,14 @@
    never spills off-screen while typing. ⑥ PriceRank leaderboard score NUMBER in
    Rubik-Mono (glyph stays Courier); **modal stack now keeps the underneath modal
    VISIBLE** — PriceSprite shows through under the (transparent-backdrop)
-   leaderboard via `stack` exposed from ModalContext + PriceSprite gating on
-   stack-presence. Making EVERY modal-over-modal show through is a broader sweep
-   NOT done (some older modals replace, not nest) — offered to Brendon, awaiting
-   word. ⑦ Dispatch footer LATEST pinned dead-centre (3-col grid). ⑧ Removed the
-   stray miniplayer TUNE button.
+   leaderboard. **NOW SITE-WIDE (tip `90ba2ab`): every modal keeps what's
+   underneath visible** — all 21 ModalContext modals gate on the shared
+   `useModalLayer(name)` (visible whenever in the `stack`, not just when top);
+   the top-when-stacked modal tags its root `data-stack-top` and one global CSS
+   rule `[data-stack-top]{z-index:4000}` lifts it above the modal band (≤1340)
+   and below miniplayer/stone/toast, so ordering is always right. No-op unless
+   two modals are actually stacked. ⑦ Dispatch footer LATEST pinned dead-centre
+   (3-col grid). ⑧ Removed the stray miniplayer TUNE button.
    ▸ BUG A: **Attention Yellow profile colorway wasn't persisting** — `#FFE600`
    was in useProfileHex `OLD_DEFAULTS`, so a real pick got rewritten to Matrix
    White on next load. Removed it (only it collided with a pickable pill). His
