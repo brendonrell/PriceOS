@@ -64,7 +64,7 @@ const THEME_NAMES: Record<NonNullable<ColorwayKey>, string> = {
     orange: 'ORANGE MODE', hashsyn: 'HASH SYNESTHESIA',
     blue: 'BLUEBERRY MODE', red: 'CHERRY MODE', haze: 'HAZE MODE',
     hothurt: 'HOTHURT', attention: 'ATTENTION', bblue: '@BRENDON BLUE',
-    kiki: 'KIKI', cookies: 'COOKIES', precog: 'PRECOG',
+    kiki: 'KIKI', cookies: 'COOKIES', precog: 'PRECOGNITION',
 };
 
 /* PRIMARY+SECONDARY (Brendon, 2026-07-20) — the hidden long-press menu on
@@ -78,7 +78,7 @@ const PS_PILLS: { key: NonNullable<ColorwayKey>; label: string; title: string }[
     { key: 'bblue',     label: '@brendon',  title: '@brendon blue' },
     { key: 'kiki',      label: 'Kiki',      title: 'Kiki' },
     { key: 'cookies',   label: 'Cookies',   title: 'Cookies' },
-    { key: 'precog',    label: 'Precog',    title: 'Precog' },
+    { key: 'precog',    label: 'Precognition', title: 'Precognition' },
 ];
 
 const VARIATION_CYCLE: HazeVariation[] = ['pure', 'tint', 'drift', 'pulse', 'chromatic'];

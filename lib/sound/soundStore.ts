@@ -9,6 +9,8 @@
  * purpose — never reuse an old flag (the miniplayer stale-state lesson).
  */
 
+import { pushSettings } from '../state/userState';
+
 const SOUND_KEY = 'pd_sound_on';
 
 export function readSoundOn(): boolean {
@@ -27,6 +29,9 @@ export function writeSoundOn(on: boolean): void {
             else window.localStorage.removeItem(SOUND_KEY);
         }
     } catch { /* swallow */ }
+    // Account-backed (Brendon, 2026-07-21) — no-ops until the snapshot hydrates
+    // for a signed-in user, so it stops resetting each session.
+    pushSettings({ sound: on });
     if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('pd:sound-changed', { detail: { on } }));
     }

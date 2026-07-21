@@ -71,6 +71,9 @@ export function WorkspaceSwitcher() {
     const [popover, setPopover] = useState<PopoverState | null>(null);
     const [managing, setManaging] = useState(false);
     const justOpenedRef = useRef(false);
+    /* Delete now runs through the app's usual confirm modal (Brendon,
+       2026-07-21) — no silent destructive tap. */
+    const [confirm, setConfirm] = useState<{ question: string; onConfirm: () => void } | null>(null);
 
     // Sound layer key (Brendon, 2026-07-20 — the FINAL icon in this row,
     // after ⋯, two font sizes up). Default OFF; flag lives in soundStore.
@@ -281,14 +284,46 @@ export function WorkspaceSwitcher() {
                         className="ws-popover-item danger"
                         onClick={(e) => {
                             e.stopPropagation();
-                            deleteWorkspace(ws.id);
+                            const id = ws.id;
+                            const name = ws.name;
                             closePopover();
+                            setConfirm({
+                                question: `Delete workspace “${name}”?`,
+                                onConfirm: () => deleteWorkspace(id),
+                            });
                         }}
                     >
                         DELETE
                     </div>
                 </div>
             ) : null}
+
+            {confirm && (
+                <div
+                    className="starred-confirm-overlay"
+                    role="dialog"
+                    aria-modal="true"
+                    onClick={() => setConfirm(null)}
+                >
+                    <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
+                        <div className="ms-confirm-question">{confirm.question}</div>
+                        <div className="ms-confirm-btns">
+                            <button
+                                className="ms-confirm-btn ms-confirm-btn--cancel"
+                                onClick={() => setConfirm(null)}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="ms-confirm-btn ms-confirm-btn--ok"
+                                onClick={() => { confirm.onConfirm(); setConfirm(null); }}
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

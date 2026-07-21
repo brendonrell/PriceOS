@@ -32,13 +32,13 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { usePathname } from 'next/navigation';
 import { useToast } from '../../lib/state/ToastContext';
 
-import { allProjects, getProject, projectTrueName } from '../../lib/project/registry';
+import { allProjects, projectTrueName } from '../../lib/project/registry';
 import { playlistWatchUrl } from '../../lib/project/soundtrack';
 import { getSoundtrackStarItems } from '../../lib/pins/soundtrackStarStore';
 import { registerFmDriver, publishFm, type FmStation } from '../../lib/fm/fmBus';
+import { pushSettings } from '../../lib/state/userState';
 
 /* ── Minimal YT IFrame API surface (no @types dependency) ── */
 interface YTPlayer {
@@ -90,7 +90,6 @@ const FM_DISPLAY_NAMES: Record<FmDisplay, string> = {
 };
 
 export default function FmBar() {
-    const pathname = usePathname();
     const { showToast } = useToast();
 
     const [status, setStatus] = useState<FmStatus>('idle');
@@ -102,13 +101,20 @@ export default function FmBar() {
        2026-07-20: switching must be snappy and honest). */
     const [deadLink, setDeadLink] = useState(false);
 
-    /* The display face — device-local, read after mount (SSR-safe). */
+    /* The display face — account-backed (Brendon, 2026-07-21), read after mount
+       (SSR-safe). Also re-reads when the account snapshot hydrates the face so
+       the chosen face follows the viewer across devices without a reload. */
     const [display, setDisplay] = useState<FmDisplay>('deck');
     useEffect(() => {
-        try {
-            const raw = window.localStorage.getItem('pd_fm_display');
-            if (raw && (FM_DISPLAYS as readonly string[]).includes(raw)) setDisplay(raw as FmDisplay);
-        } catch { /* private mode */ }
+        const read = () => {
+            try {
+                const raw = window.localStorage.getItem('pd_fm_display');
+                if (raw && (FM_DISPLAYS as readonly string[]).includes(raw)) setDisplay(raw as FmDisplay);
+            } catch { /* private mode */ }
+        };
+        read();
+        window.addEventListener('pd:fm-display-changed', read);
+        return () => window.removeEventListener('pd:fm-display-changed', read);
     }, []);
     /* MODE — cycles the face IMMEDIATELY, from any face (Brendon,
        2026-07-20: "when I press this button IT SHOULD DO SOMETHING"). */
@@ -116,6 +122,7 @@ export default function FmBar() {
         const next = FM_DISPLAYS[(FM_DISPLAYS.indexOf(display) + 1) % FM_DISPLAYS.length];
         setDisplay(next);
         try { window.localStorage.setItem('pd_fm_display', next); } catch { /* fine */ }
+        pushSettings({ fmDisplay: next }); // account-backed
         showToast(`PD miniplayer: ${FM_DISPLAY_NAMES[next]}`);
     };
 
@@ -141,16 +148,6 @@ export default function FmBar() {
                 })),
         [],
     );
-
-    /* Context station — a project page's own soundtrack. */
-    const context = useMemo<Station | null>(() => {
-        const m = pathname?.match(/^\/art\/([^/]+)/);
-        if (m) {
-            const st = getProject(m[1])?.soundtrack;
-            if (st) return { playlistId: st.playlistId, label: st.label, slug: m[1] };
-        }
-        return null;
-    }, [pathname]);
 
     /* Begin (or retune) a session. The chassis renders off `onAir`, so a
        play from anywhere summons the device; the boot effect below creates
@@ -285,13 +282,6 @@ export default function FmBar() {
         return () => document.body.classList.remove('pd-fm-live');
     }, [onAir]);
 
-    const onTuneTap = () => {
-        if (context) {
-            start(context);
-            showToast('PD miniplayer: TUNED');
-        }
-    };
-
     /* ── The station picker — the customization (tap the screen) ── */
     const pickStation = (st: Station) => {
         setPickerOpen(false);
@@ -331,7 +321,6 @@ export default function FmBar() {
     /* No session, no device — playing a soundtrack is the only door in. */
     if (rotation.length === 0 || !onAir) return null;
 
-    const tuneOffer = context && context.playlistId !== onAir.playlistId;
     const isDeckFace = display === 'deck';
 
     /* The three LCD rows — Sony minidisc grammar: static, compact, no crawl. */
@@ -377,11 +366,6 @@ export default function FmBar() {
             {isDeckFace && (
                 <button type="button" className="fm-btn" onClick={onNextTap} title="Next track">
                     ≫
-                </button>
-            )}
-            {isDeckFace && tuneOffer && (
-                <button type="button" className="fm-btn fm-tune" onClick={onTuneTap} title={`Tune to ${context!.label}`}>
-                    TUNE
                 </button>
             )}
             <button type="button" className="fm-btn fm-modekey" onClick={cycleDisplay} title="Change how the player shows">

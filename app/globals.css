@@ -2401,6 +2401,16 @@ body.theme-bright .news-pill-name {
 .lb-row.lb-rank3 { background: color-mix(in srgb, var(--text-color) 5%, transparent); }
 .lb-row.lb-podium .lb-pos { opacity: 1; font-size: 15px; }
 .fm-stat b { font-weight: bold; }
+/* The leaderboard PriceScore NUMBER renders in Rubik (Rubik Mono One), not
+   Courier — just the digits; the ◍ glyph stays Courier (Brendon, 2026-07-21).
+   Rubik Mono is a 400-only face (no faux-bold) and runs large, so it's a
+   touch smaller than the Courier row size, with tabular figures. */
+.lb-row .fm-stat b.lb-score-num {
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-weight: 400;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
 
 /* ============================================================
    BACKGROUND LAYERS
@@ -9479,9 +9489,26 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
 }
 .ws-sound:hover { opacity: 0.9; }
 .ws-sound.on { opacity: 1; }
+/* Manage/delete mode — the dots BREATHE so it's obvious they're live and
+   editable (Brendon, 2026-07-21). A slow ring swell + opacity pulse; the
+   static values below are the reduced-motion resting look. */
+@keyframes ws-dot-breathe {
+    0%, 100% {
+        opacity: 0.55;
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--bg-color) 16%, transparent);
+    }
+    50% {
+        opacity: 1;
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--bg-color) 34%, transparent);
+    }
+}
 .workspace-switcher.managing .ws-dot::before {
     opacity: 0.9;
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--bg-color) 25%, transparent);
+    animation: ws-dot-breathe 1.8s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+    .workspace-switcher.managing .ws-dot::before { animation: none; }
 }
 
 /* Long-press popover — keeps its own dark surface so it reads
@@ -12049,7 +12076,8 @@ body.is-pwa .fullscreen-back {
     #sn-sticker .st-icon    { font-size: 19px !important; }
     #sn-ambient .st-icon    { font-size: 20px !important; }
     #sn-anon .st-icon       { font-size: 17px !important; }
-    #sn-pricelens .st-icon  { font-size: 17px !important; }
+    /* Price Lens ◎ — two sizes up (17→19), mobile only (Brendon, 2026-07-21). */
+    #sn-pricelens .st-icon  { font-size: 19px !important; }
     #sn-sentiment .st-icon  { font-size: 17px !important; }
     #sn-audience .st-icon   { font-size: 14px !important; }
     #sn-asciiId .st-icon    { font-size: 17px !important; }

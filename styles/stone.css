@@ -252,7 +252,12 @@ body.pd-stone-force-white .stone-dot { background: var(--stone-accent, #f4f4f4);
     align-self: center;
     width: calc(100% - 28px); /* slightly narrower than the pill */
     box-sizing: border-box;
-    max-height: min(52vh, 440px);
+    /* Cap to the LIVE visual viewport so the deck never balloons off the
+       top of the screen while the keyboard is up (Brendon, 2026-07-21 — the
+       deck was cut off mid-type). --stone-vvh is set by CommandStone from
+       visualViewport.height only while the stone is open; the fallback keeps
+       the old cap when it's absent. The deck scrolls internally past this. */
+    max-height: min(52vh, 440px, calc(var(--stone-vvh, 100dvh) - 110px));
     min-height: 0;
     background: var(--stone-bg-deep);
     /* THE SPEECH BUBBLE (Brendon 2026-07-20): no outline, fully rounded,
