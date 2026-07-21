@@ -8,7 +8,34 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-21 (latest) EXCHANGE → GNOMES → NEMESIS → PRIVACY — the
+0. ⚙ **2026-07-21 (latest) CONTESTED MINTS — SPEC'D, NOT BUILT. Full spec +
+   build brief: `docs/briefs/contested-mints.md` — an OPUS session builds it
+   (Fable handoff precedent), on dev (docs push, tip = this commit), tree
+   clean.** Fable brainstorm session with Brendon; every LOCKED decision in
+   the brief is his explicit call — do not re-litigate. The shape, one
+   breath: every drop launches identically; all mint presses in the opening
+   ~10s window are SIMULTANEOUS (nobody is "first" — kills gas-race
+   sniping); undersubscribed = everyone just mints, indistinguishable from
+   today; oversubscribed = the drop flips CONTESTED live → banded draw →
+   settlement. ONE TAP EVER (the press signs a mint order, sign-now-
+   execute-later — NO escrow, NO claim step, NO bills; losers' money never
+   moves; failed winner orders CASCADE so seats can't die). ID = two
+   ledgers: PUBLIC (transparent priority by held collection + lifetime PD
+   spend, tenure, wallet on-chain life, mild ENS; equal draw within a band;
+   thresholds never published) + SHADOW (silent, never surfaced: passkey
+   hardware anchor / funding archaeology / gesture correlation → silent
+   voids, cluster death, PERMANENT taint on @names/devices/funding
+   wallets — punish infrastructure, not accounts). Punish bad actors,
+   never reward performed behavior (farmable). Contested surface REUSES
+   the Mint Room. Sealed-hours reveal window = the sweep's adjudication
+   time. **Build order: §6.0 wallet-plumbing spike FIRST (sign-now-
+   execute-later is the one hard unknown), then sim rail, chain rail at
+   cutover; contract changes must beat the Mythic Audit gate or wait for
+   v2 — raise the scheduling at build start.** OPEN items (§7 of the
+   brief) are Brendon's — ask before building those. ClickUp: brief-file
+   handoff, no task of record (fable-queue precedent).
+
+0. ✅ **2026-07-21 EXCHANGE → GNOMES → NEMESIS → PRIVACY — the
    full remaining queue SHIPPED, all on dev (tip `9237eba`), auto-deploy
    rolling, tree clean. Branch `claude/baton-tasks-spot-edits-orjjjv` =
    merged trash (Brendon deletes at
