@@ -41,6 +41,7 @@ import { runStoneCommand, applyStoneStyle } from '../../lib/stone/stoneStyle';
 import { expandFollowUp, type StoneSubject } from '../../lib/stone/memory';
 import { readStage } from '../../lib/npc/awareness';
 import { readPieceInView } from '../../lib/npc/inview';
+import { deepThought } from '../../lib/stone/deepThought';
 import { WidgetDeck, SearchDeck } from './StoneDeck';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useSort } from '../../lib/state/SortContext';
@@ -264,6 +265,7 @@ export default function CommandStone() {
         }
         if (etchPlan) return 'Carve it? Touch the chip.';
         if (castHit) return 'Say the word and it flips.';
+        if (thought) return 'A thought, unbidden.';
         if (searchingNow && results) {
             const n = (results.projects?.length ?? 0) + (results.users?.length ?? 0) + (results.answers?.length ?? 0);
             return n > 0 ? 'Found this.' : 'Nothing by that name.';
@@ -277,6 +279,10 @@ export default function CommandStone() {
     const [searching, setSearching] = useState(false);
     /** The stone's own confirmation line after a commit ("✓ ETCHED · …"). */
     const [etched, setEtched] = useState<string | null>(null);
+    /** DEEP THOUGHT — the TARS × Deep Thought line shown when a typed word
+        turns up nothing PD (set by its effect; a word it knows gets a quip). */
+    const [thought, setThought] = useState<string | null>(null);
+    const thoughtWordRef = useRef<string | null>(null);
     const inputRef = useRef<HTMLInputElement | null>(null);
 
     /* The triple-tap summon reads live stage + toast through refs so its one
@@ -583,6 +589,37 @@ export default function CommandStone() {
         }));
     }, [value, myHandle, siweAddress]);
 
+    /* DEEP THOUGHT — when what you typed isn't an actual PD thing (the search
+       came back empty, and it's not a page / command / widget / etch / cast)
+       but IS a common word the stone knows, it always has SOMETHING: a
+       TARS × Deep Thought line instead of a dead end (Brendon, 2026-07-21).
+       Picked once per word so it doesn't flicker while you type; random, no
+       repeat-tracking. A stone-console line ("stone …") owns its own answer. */
+    useEffect(() => {
+        const raw = value.trim();
+        const w = raw.toLowerCase();
+        if (!raw || etchPlan || castHit || activeWidget || /^stone(\s|$)/i.test(raw)) {
+            thoughtWordRef.current = null;
+            setThought(null);
+            return;
+        }
+        const res = results;
+        const pd =
+            pageHits.length > 0 ||
+            (res != null &&
+                res.projects.length + res.users.length + res.artworks.length +
+                res.answers.length + res.soundtracks.length + res.traits.length > 0);
+        if (searching || res == null || pd) {
+            thoughtWordRef.current = null;
+            setThought(null);
+            return;
+        }
+        if (thoughtWordRef.current === w) return; // already musing on this word
+        const line = deepThought(w);
+        thoughtWordRef.current = line ? w : null;
+        setThought(line);
+    }, [value, results, pageHits, searching, etchPlan, castHit, activeWidget]);
+
     /* Every navigation folds the stone — GO means GO. */
     const go = (e: MouseEvent | null, href: string) => {
         e?.preventDefault();
@@ -803,7 +840,7 @@ export default function CommandStone() {
     const cmdCardOn =
         (etched && !searchingNow) || !!etchPlan || !!castHit || (searchingNow && searching && !r);
     const hasTab =
-        (searchingNow && (pageHits.length > 0 || !!r)) || cmdCardOn || !!activeWidget;
+        (searchingNow && (pageHits.length > 0 || !!r)) || cmdCardOn || !!activeWidget || !!thought;
 
     return (
         <>
@@ -849,9 +886,17 @@ export default function CommandStone() {
                             />
                         )}
 
+                        {/* DEEP THOUGHT — a common word that isn't a PD thing
+                            gets a TARS × Deep Thought line, not a dead end. */}
+                        {thought && (
+                            <div className="stone-widget sw-card">
+                                <div className="sw-say sw-say--lead">{thought}</div>
+                            </div>
+                        )}
+
                         {/* GO/FIND — answers in the TARS voice, results as
                             glanceable cards (StoneDeck's presentation) */}
-                        {!activeWidget && searchingNow && (pageHits.length > 0 || r) && (
+                        {!activeWidget && !thought && searchingNow && (pageHits.length > 0 || r) && (
                             <SearchDeck
                                 r={r}
                                 pageHits={pageHits}
