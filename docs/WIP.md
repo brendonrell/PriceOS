@@ -8,7 +8,36 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ⚙ **2026-07-21 (latest) CONTESTED MINTS — SPEC'D, NOT BUILT. Full spec +
+0. ⚙ **2026-07-21 (latest) CONTESTED MINTS — SPEC + CONTRACTS + USER DOCS
+   SHIPPED; app-side build still queued for Opus.** Same Fable session,
+   three ships:
+   ① **SPEC** — `docs/briefs/contested-mints.md` (the Opus build brief).
+   ② **CONTRACTS LIVE on pd-contracts `main` (tip `2281e82`, Brendon's
+   push word, 349/349 tests green incl. 21 new).** PDProject grew the
+   optional entry window (off by default — zero-window deploys are
+   byte-identical legacy): during the window mint() is closed on-chain
+   (kills the direct-mint back door), settlement key closes it uncontested
+   (normal mint) or contested (winner seats + cascade add/revoke +
+   finishSettlement), settlement-minted tokens transfer-SEALED (write-once,
+   ≤72h cap). **FAIL-OPEN is the load-bearing guarantee: immutable
+   windowDeadline (≤4h) outranks every settlement state — dead server/lost
+   key can only delay, never halt.** Settlement key = choreography only
+   (no funds/supply/price/existing-token reach), lives in PDFactory with
+   the standard two-step rotation, STARTS UNSET (safe). Windowed
+   createProject overload added; original signature + all existing deploys
+   untouched. drawCommit anchored per close for transcript verifiability.
+   ③ **USER DOCS on dev — full "Contested Mints" PD-Docs section** (3
+   pages: Overview · How a Drop Settles · Fair Play), nav'd after For
+   Collectors, in llms.txt + search index (build-verified). Copy states
+   the public ladder loudly (held collection + lifetime spend, Brendon's
+   transparency call), keeps detection signals undocumented by design.
+   **NEXT (Opus, fresh chat): the app side per the brief §6 — wallet
+   sign-now-execute-later spike FIRST, then sim rail.** Task branches
+   `claude/contested-mints-brainstorm-glg7by` on BOTH repos = merged
+   trash (Brendon deletes: github.com/brendonrell/PriceOS/branches +
+   github.com/brendonrell/pd-contracts/branches).
+
+0. ⚙ **2026-07-21 CONTESTED MINTS — original spec entry. Full spec +
    build brief: `docs/briefs/contested-mints.md` — an OPUS session builds it
    (Fable handoff precedent), on dev (docs push, tip = this commit), tree
    clean.** Fable brainstorm session with Brendon; every LOCKED decision in

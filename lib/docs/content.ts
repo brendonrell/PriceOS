@@ -78,6 +78,14 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
         ],
     },
     {
+        title: 'Contested Mints',
+        slugs: [
+            'contested-mints/overview',
+            'contested-mints/the-window',
+            'contested-mints/fair-play',
+        ],
+    },
+    {
         title: 'The App',
         slugs: [
             'app/overview',
