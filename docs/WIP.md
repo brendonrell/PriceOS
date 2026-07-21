@@ -8,7 +8,67 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ⚙ **2026-07-21 (latest) CONTESTED MINTS — the whole arc in one Fable
+0. ✅ **2026-07-21 (latest) COLORWAYS + KIKI EXTRACTION + SUBTRAITS-IN-UPLOAD
+   — all SHIPPED. PriceOS work is on dev (auto-deploy rolling), tree clean.
+   Task branch `claude/spot-edits-colorways-mw06n7` exists on BOTH PriceOS +
+   kiki-genart = merged/pushed trash for PriceOS; delete PriceOS branch at
+   https://github.com/brendonrell/PriceOS/branches (kiki branch stays — see
+   ②).** Opus session.
+   ① **COLORWAYS (on dev)** — Cookies (orange `#FF6347`) + Precog (green
+   `#33FF9C`), the EXACT hues from the KIKI palette table on the live site
+   (brendon.world/kiki — NOT the repo; the kiki-genart repo had no palette
+   code). Both live in the hidden PRIMARY+SECONDARY menu, which was restyled
+   to Default-Sort-style TEXT pills (Hothurt · Attention · @brendon · Kiki ·
+   Cookies · Precog) + header spaced "PRIMARY + SECONDARY". Registered across
+   all 5 mirror sites (colorway type · hex tables · prehydration paint ·
+   setup-code tokens · persisted union).
+   ② **KIKI EXTRACTION** — the KIKI engine + full 100-palette table were
+   extracted from the live site's inline script (the kiki-genart repo held only
+   README + CLAUDE.md — no code) and packaged as one upload-ready `kiki.js` on
+   the kiki-genart branch `claude/spot-edits-colorways-mw06n7`. Reads the token
+   hash from PD Studio's tokenURI envelope, seeds off it, paints one Output; sim
+   harness (RUN_OFFSET / fake wallets / gallery loop) stripped, art + palettes
+   verbatim. Verified rendering in the exact studio envelope, deterministic per
+   hash. ⛔ **kiki.js is on the branch, NOT main** (kiki repo has no dev/preview
+   pipeline) — merging to `main` is Brendon's call (needs explicit word).
+   ③ **SUBTRAITS IN THE UPLOAD FLOW (on dev)** — the full feature. Uploaded
+   scripts publish per-token traits via `window.$traits`; a new "Traits &
+   Subtraits" panel on the Studio upload side SCANS a sample run (hidden harvest
+   iframes — a studio-only twin of the tokenURI envelope postMessages each
+   render's `$traits`), folds distinct values into the draft's `traitSchema`,
+   then the artist groups a trait's values into named subtrait buckets
+   (Trait→Subtrait→Value) with a **+rest** sweep. Completeness invariant
+   enforced (a trait shows subtraits only when EVERY value is placed, else stays
+   flat). Declared traits show in the Studio preview pills + persist on the draft
+   through publish. Upload docs (`content/docs/studio/upload-and-testing.md`)
+   detail it with the KIKI Palette→Main(6)/Special(94) worked example. `kiki.js`
+   publishes its Palette trait so it buckets Main/Special like Prisms. Reference
+   subtrait schema = `lib/art/engines/prisms.ts` (`prismsSchema`, same 100-palette
+   Main/Special split — Prisms is derived from KIKI). New code:
+   `lib/studio/traits.ts`, `components/studio/SubtraitEditor.tsx`; touched
+   `lib/studio/drafts.ts` (traitSchema field + buildHarvestEnvelope),
+   `app/studio/page.tsx`, `styles/studio.css`. Proof: real build green (/studio
+   compiled), harvest verified end-to-end in the real envelope.
+   ⛔ **REMAINING STEPS (the reason this baton entry is long — Brendon's ask):**
+   • **LIVE-PAGE WIRING (the big one).** The subtrait schema lands on the DRAFT +
+     Studio preview ONLY. It is **not** on the live on-chain project page after
+     publish — because that pipeline doesn't exist yet: Studio-published projects
+     don't render as live project pages at all (first-party projects — Oracle,
+     Prisms — are code-defined `ProjectDef`s in `lib/project/registry.ts`). When
+     Studio-publish→live-page lands, the draft's `traitSchema` needs an off-chain
+     home (Supabase, RLS anon/auth) + a read path into the existing artwork-page
+     trait UI (`components/project/TraitsUI.tsx` already drills
+     Trait→Subtrait→Value, so the consumer is ready).
+   • **PUBLISH PACKAGE.** On-chain `createProject` does NOT carry traits (they're
+     off-chain schema). The publish handoff (`app/studio/publish`) must persist
+     the draft's `traitSchema` off-chain at deploy so the live page can read it.
+   • **HARVEST COVERAGE.** The scan surfaces the value pool from test renders;
+     low-weight values (KIKI Special palettes weight 12 vs Main 50) need larger
+     scans to fully appear. Scans accumulate; panel offers 50/200/500. Fine as-is
+     — just know a small scan won't surface all 100 palettes first try.
+   • **KIKI→main** decision (②) and delete the PriceOS task branch.
+
+0. ⚙ **2026-07-21 CONTESTED MINTS — the whole arc in one Fable
    session: brainstorm → LOCKED design → SPEC → CONTRACTS SHIPPED → USER
    DOCS SHIPPED. ⛔ NEXT BUILD (fresh OPUS chat) = THE APP SIDE. Start
    here: read `docs/briefs/contested-mints.md` FIRST — it is the complete
