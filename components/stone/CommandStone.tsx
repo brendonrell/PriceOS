@@ -707,6 +707,7 @@ export default function CommandStone() {
                             <SearchDeck
                                 r={r}
                                 pageHits={pageHits}
+                                query={line}
                                 anchorOffer={anchorOffer}
                                 onAnchor={() => {
                                     if (!anchorOffer) return;

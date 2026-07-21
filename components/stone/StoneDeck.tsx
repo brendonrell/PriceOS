@@ -35,6 +35,7 @@ import { fmtFollowers } from '../../lib/social/useArtistSocial';
 import { formatEth } from '../../lib/format/eth';
 import { paintOutput } from '../../lib/state/ProjectContext';
 import { paintAsciiStandin } from '../../lib/art/asciiStandin';
+import { parseQuery } from '../../lib/search/parse';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { usePings } from '../../lib/state/PingsContext';
 import { projectsByArtist, getProject } from '../../lib/project/registry';
@@ -1134,15 +1135,153 @@ function MoreRow({ n, onClick }: { n: number; onClick: () => void }) {
     );
 }
 
-export function SearchDeck({ r, pageHits, anchorOffer, onAnchor, onGo }: {
+/* Which output the project hero paints: the exact edition the line named
+   ("prisms 7" · "boreal #33" — the SAME parse the search API runs, Rule #0),
+   else output #1. Null when nothing is minted yet. */
+function projectFocusId(p: SearchProjectResult, query: string): number | null {
+    if (p.minted_count <= 0) return null;
+    const typed = parseQuery(query).tokenId;
+    const n = typed != null ? Number(typed) : NaN;
+    if (Number.isInteger(n) && n >= 1 && n <= p.minted_count) return n;
+    return 1;
+}
+
+/* A real output painted big — the same deterministic engine + ascii/degen
+   manners as ArtThumb (Rule #0), at hero scale. Taps through to the piece. */
+function StoneArt({ slug, id, onOpen }: { slug: string; id: number; onOpen: () => void }) {
+    const ref = useRef<HTMLCanvasElement | null>(null);
+    const { notifs } = usePdNotifs();
+    const ascii = notifs.asciiArt;
+    const degen = notifs.degen;
+    useEffect(() => {
+        if (degen) return;
+        const canvas = ref.current;
+        if (!canvas) return;
+        const paintNormal = () => {
+            try { paintOutput(canvas, slug, id, 512); } catch { /* unknown slug */ }
+        };
+        if (ascii) {
+            paintAsciiStandin(canvas, slug, id, 512)
+                .then((ok) => { if (!ok) paintNormal(); })
+                .catch(paintNormal);
+            return;
+        }
+        paintNormal();
+    }, [slug, id, ascii, degen]);
+    const onKey = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(); }
+    };
+    /* Degen Mode — no art anywhere: the plain no-art square, still tappable. */
+    if (degen) {
+        return (
+            <div
+                className="sw-gallery-art sw-thumb--degen sw-tap"
+                role="button"
+                tabIndex={0}
+                onClick={onOpen}
+                onKeyDown={onKey}
+                style={{ aspectRatio: '1 / 1' }}
+                aria-label="open artwork"
+            />
+        );
+    }
+    return (
+        <canvas
+            ref={ref}
+            className="sw-gallery-art sw-tap"
+            width={512}
+            height={512}
+            role="button"
+            tabIndex={0}
+            onClick={onOpen}
+            onKeyDown={onKey}
+            aria-label="open artwork"
+        />
+    );
+}
+
+/* ── ⬚ PROJECT — the rich read on a searched project (Brendon, 2026-07-21):
+      real output painted big (the typed edition, else #1), the project row,
+      and the live floor/volume/ath. Retires the thin sprite row for the top
+      hit; extra projects still list below. ── */
+function ProjectHero({ p, focusId, onGo }: {
+    p: SearchProjectResult; focusId: number | null; onGo: GoFn;
+}) {
+    return (
+        <>
+            <div className="sw-sect">PROJECT</div>
+            {focusId != null && (
+                <>
+                    <StoneArt slug={p.id} id={focusId} onOpen={() => onGo(null, `/art/${p.id}/${focusId}`)} />
+                    <div className="sw-gallery-bar">
+                        <span
+                            className="sw-gallery-name sw-tap"
+                            role="button"
+                            tabIndex={0}
+                            onClick={(e) => onGo(e, `/art/${p.id}/${focusId}`)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onGo(null, `/art/${p.id}/${focusId}`); }
+                            }}
+                        >
+                            {pieceName(p.title, focusId)}
+                        </span>
+                    </div>
+                </>
+            )}
+            <div
+                className="sw-hit sw-tap"
+                role="button"
+                tabIndex={0}
+                onClick={(e) => onGo(e, `/art/${p.id}`)}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onGo(null, `/art/${p.id}`); }
+                }}
+            >
+                <SpriteFace className="sw-hit-sprite" face={projectSpriteFace(p.id)} />
+                <span className="sw-hit-body">
+                    <span className="sw-hit-main">{p.title}</span>
+                    <span className="sw-hit-sub">
+                        {`${p.artist_handle ? `@${p.artist_handle} · ` : ''}⬚${VS15} ${p.minted_count}/${p.max_supply}`}
+                    </span>
+                </span>
+            </div>
+            <div className="sw-stats">
+                <div className="sw-stat">
+                    <span className="sw-stat-v">{eth(p.floor_eth)}</span>
+                    <span className="sw-stat-l">FLOOR</span>
+                </div>
+                <div className="sw-stat">
+                    <span className="sw-stat-v">{eth(p.volume_eth)}</span>
+                    <span className="sw-stat-l">VOLUME</span>
+                </div>
+                <div className="sw-stat">
+                    <span className="sw-stat-v">{eth(p.ath_eth)}</span>
+                    <span className="sw-stat-l">ATH</span>
+                </div>
+            </div>
+        </>
+    );
+}
+
+export function SearchDeck({ r, pageHits, anchorOffer, onAnchor, onGo, query }: {
     r: SearchResponse | null;
     pageHits: Array<{ label: string; to: string }>;
     anchorOffer: { title: string; price: number } | null;
     onAnchor: () => void;
     onGo: GoFn;
+    query: string;
 }) {
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
     useEffect(() => { setExpanded({}); }, [r, pageHits]);
+
+    /* The top project renders as the rich hero (real art + live stats); the
+       piece it paints is dropped from the OUTPUTS list so it never doubles. */
+    const heroProject = r && r.projects.length > 0 ? r.projects[0] : null;
+    const heroFocusId = heroProject ? projectFocusId(heroProject, query) : null;
+    const heroKey = heroProject && heroFocusId != null ? `${heroProject.id}:${heroFocusId}` : null;
+    const artworks = r
+        ? (heroKey ? r.artworks.filter((a) => `${a.project_id}:${a.token_id}` !== heroKey) : r.artworks)
+        : [];
 
     const empty =
         pageHits.length === 0 && r &&
@@ -1183,14 +1322,19 @@ export function SearchDeck({ r, pageHits, anchorOffer, onAnchor, onGo }: {
                 </>
             )}
 
-            {r && r.projects.length > 0 && (
+            {heroProject && (
                 <>
-                    <div className="sw-sect">PROJECTS</div>
-                    {r.projects.slice(0, expanded.projects ? undefined : PREVIEW).map((p) => (
-                        <ProjectCard key={`p:${p.id}`} p={p} onGo={onGo} />
-                    ))}
-                    {!expanded.projects && r.projects.length > PREVIEW && (
-                        <MoreRow n={r.projects.length - PREVIEW} onClick={() => setExpanded((x) => ({ ...x, projects: true }))} />
+                    <ProjectHero p={heroProject} focusId={heroFocusId} onGo={onGo} />
+                    {r && r.projects.length > 1 && (
+                        <>
+                            <div className="sw-sect">MORE PROJECTS</div>
+                            {r.projects.slice(1, expanded.projects ? undefined : PREVIEW + 1).map((p) => (
+                                <ProjectCard key={`p:${p.id}`} p={p} onGo={onGo} />
+                            ))}
+                            {!expanded.projects && r.projects.length > PREVIEW + 1 && (
+                                <MoreRow n={r.projects.length - (PREVIEW + 1)} onClick={() => setExpanded((x) => ({ ...x, projects: true }))} />
+                            )}
+                        </>
                     )}
                 </>
             )}
@@ -1207,14 +1351,14 @@ export function SearchDeck({ r, pageHits, anchorOffer, onAnchor, onGo }: {
                 </>
             )}
 
-            {r && r.artworks.length > 0 && (
+            {artworks.length > 0 && (
                 <>
                     <div className="sw-sect">OUTPUTS</div>
-                    {r.artworks.slice(0, expanded.artworks ? undefined : PREVIEW).map((a) => (
+                    {artworks.slice(0, expanded.artworks ? undefined : PREVIEW).map((a) => (
                         <ArtCard key={`a:${a.project_id}:${a.token_id}`} a={a} onGo={onGo} />
                     ))}
-                    {!expanded.artworks && r.artworks.length > PREVIEW && (
-                        <MoreRow n={r.artworks.length - PREVIEW} onClick={() => setExpanded((x) => ({ ...x, artworks: true }))} />
+                    {!expanded.artworks && artworks.length > PREVIEW && (
+                        <MoreRow n={artworks.length - PREVIEW} onClick={() => setExpanded((x) => ({ ...x, artworks: true }))} />
                     )}
                 </>
             )}
