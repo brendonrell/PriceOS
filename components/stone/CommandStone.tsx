@@ -1020,7 +1020,13 @@ export default function CommandStone() {
                                            name, nothing else does. */
                                         const stone = runStoneCommand(value);
                                         if (stone) {
-                                            showToast(stone.line);
+                                            if (stone.tint) {
+                                                // the recolour toast — the pill
+                                                // wears the colour, named, ⌘ both sides
+                                                showToast(`${STONE_GLYPH} ${stone.name} ${STONE_GLYPH}`, 1800, 250, null, null, stone.tint);
+                                            } else {
+                                                showToast(stone.line);
+                                            }
                                             setEtched(`✓ ${stone.line}`);
                                             setValue('');
                                             return;

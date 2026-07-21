@@ -3564,6 +3564,30 @@ body.pd-stone-open .ens-copy-toast {
     white-space: pre;
     color: var(--bg-color);
 }
+/* Recolour tint (Brendon, 2026-07-21) — the Command Stone's recolour toast
+   wears the chosen colour; bg + ink are set inline (ink via the colorway YIQ
+   system). Content is `⌘ NAME ⌘`, so it stays one tight line. */
+.ens-copy-toast.mounted.with-tint {
+    white-space: nowrap;
+    letter-spacing: 1px;
+    padding: 9px 16px;
+}
+/* The wrap rule (Brendon, 2026-07-21, SITE-WIDE) — a `Label: action` toast
+   whose one line would overrun the pill stacks: the label + colon sit alone on
+   the top row, the action wraps below (the summon-toast shape). */
+.ens-copy-toast.mounted.stacked {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    max-width: min(86vw, 330px);
+    white-space: normal;
+    line-height: 1.4;
+    text-align: center;
+    padding: 10px 16px 9px;
+}
+.ens-copy-toast.stacked .toast-label { white-space: nowrap; }
+.ens-copy-toast.stacked .toast-action { white-space: normal; overflow-wrap: anywhere; }
 .toast-art-row {
     display: flex;
     align-items: center;

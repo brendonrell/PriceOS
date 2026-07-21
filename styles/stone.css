@@ -122,16 +122,18 @@ body.pd-stone-force-white .stone-float {
     width: 9px;
     height: 9px;
     padding: 0;
-    /* the stone's own fill — the dot IS the stone, shrunk (Brendon,
-       2026-07-21). Values mirror --stone-bg-deep across the themes below. */
-    background: #0b0b0b;
+    /* the stone's own fill — the dot IS the stone, shrunk. When the stone is
+       recoloured (--stone-accent, the type-in easter egg), the dot wears that
+       colour too (Brendon, 2026-07-21); otherwise the stage fill, which
+       mirrors --stone-bg-deep across the themes below. */
+    background: var(--stone-accent, #0b0b0b);
     border: none;
     border-radius: 999px;
     cursor: pointer;
 }
-body.theme-bright .stone-dot { background: #f4f4f4; }
-body.pd-stone-force-black .stone-dot { background: #0b0b0b; }
-body.pd-stone-force-white .stone-dot { background: #f4f4f4; }
+body.theme-bright .stone-dot { background: var(--stone-accent, #f4f4f4); }
+body.pd-stone-force-black .stone-dot { background: var(--stone-accent, #0b0b0b); }
+body.pd-stone-force-white .stone-dot { background: var(--stone-accent, #f4f4f4); }
 .stone-dot::after {
     content: '';
     position: absolute;

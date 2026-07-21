@@ -8,18 +8,36 @@
  * id="actionToast"> at line 4960; we keep both class names so the
  * sim's existing CSS hooks port over verbatim.
  *
- * With-art extension (Brendon, 2026-07-17 — "our normal ones just extended"
- * · "up to 3 in a row, depending on the ping"): when the toast is about
- * specific Output(s), a row of their mint-pinned ASCII artifacts (max 3)
- * stacks above the message and the text wraps inside a compact card. The
- * message string is byte-identical either way; a piece whose artifact
- * misses simply drops out of the row, and an all-miss renders today's
- * plain pill.
+ * With-art extension (Brendon, 2026-07-17): a row of an Output's mint-pinned
+ * ASCII artifacts (max 3) stacks above the message for piece-about toasts.
+ *
+ * Recolour tint (Brendon, 2026-07-21): the Command Stone's recolour toast
+ * paints the pill the chosen colour, with the ink auto-picked for contrast by
+ * the SAME YIQ system the colorways use (resolveTextColor).
+ *
+ * The wrap rule (Brendon, 2026-07-21, SITE-WIDE): a `Label: action` toast
+ * whose single line would overrun the pill drops the WHOLE action to its own
+ * row, leaving the label + colon alone on top (the summon-toast shape). Only
+ * plain colon-labelled toasts wrap; art / face / tint toasts are untouched.
  */
 
-import { useState } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import { useToast } from '../lib/state/ToastContext';
+import { resolveTextColor } from '../lib/state/ColorwayContext';
 import AsciiArtImage from './AsciiArtImage';
+
+/* One shared canvas measures a toast's single line in its REAL font, so the
+   wrap decision needs no DOM pass (no flicker). */
+let _measureCtx: CanvasRenderingContext2D | null = null;
+function oneLineFits(text: string): boolean {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return true;
+    if (!_measureCtx) _measureCtx = document.createElement('canvas').getContext('2d');
+    if (!_measureCtx) return true;
+    _measureCtx.font = "bold 12px 'Courier New', Courier, monospace";
+    const w = _measureCtx.measureText(text).width;
+    const budget = Math.min(window.innerWidth * 0.86, 330) - 34; // pill max − padding
+    return w <= budget;
+}
 
 export default function ActionToast() {
     const { state } = useToast();
@@ -37,15 +55,38 @@ export default function ActionToast() {
     const face = state.face ?? null;
     const showFace = !!face && face.length > 0;
 
+    /* The recolour toast — the pill wears the chosen colour. */
+    const tint = state.tint ?? null;
+
+    /* The wrap rule — split a `Label: action` toast onto two rows ONLY when its
+       single line would overrun the pill. Skipped for art / face / tint. */
+    const labelSplit = useMemo(() => {
+        if (showArt || showFace || tint) return null;
+        const i = state.msg.indexOf(': ');
+        if (i <= 0 || i >= state.msg.length - 2) return null;
+        const label = state.msg.slice(0, i);
+        const action = state.msg.slice(i + 2);
+        if (oneLineFits(`${label}: ${action}`)) return null;
+        return { label, action };
+    }, [state.msg, showArt, showFace, tint]);
+
     const cls = [
         'ens-copy-toast',
         state.mounted ? 'mounted' : '',
         state.show ? 'show' : '',
         showArt ? 'with-art' : '',
         showFace ? 'with-face' : '',
+        tint ? 'with-tint' : '',
+        labelSplit ? 'stacked' : '',
     ]
         .filter(Boolean)
         .join(' ');
+
+    const style: CSSProperties = { transitionDuration: `${state.fadeMs}ms` };
+    if (tint) {
+        style.background = tint;
+        style.color = resolveTextColor(tint);
+    }
 
     return (
         <div
@@ -53,7 +94,7 @@ export default function ActionToast() {
             id="actionToast"
             aria-live="polite"
             aria-atomic="true"
-            style={{ transitionDuration: `${state.fadeMs}ms` }}
+            style={style}
         >
             {showFace && <pre className="toast-face">{face.join('\n')}</pre>}
             {showArt && (
@@ -74,7 +115,14 @@ export default function ActionToast() {
                     })}
                 </div>
             )}
-            {state.msg}
+            {labelSplit ? (
+                <>
+                    <span className="toast-label">{labelSplit.label}:</span>
+                    <span className="toast-action">{labelSplit.action}</span>
+                </>
+            ) : (
+                state.msg
+            )}
         </div>
     );
 }

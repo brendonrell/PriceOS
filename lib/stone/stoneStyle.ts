@@ -15,6 +15,8 @@
  *   stone           → the whisper (returns the hint line, applies nothing)
  */
 
+import { resolveStoneColor, stoneColorName } from './colors';
+
 const LS_KEY = 'pd_stone_style';
 
 export interface StoneStyle {
@@ -56,25 +58,45 @@ export function applyStoneStyle(s: StoneStyle = readStoneStyle()): void {
 }
 
 export interface StoneCommandResult {
-    /** The line the stone answers with (toast + etched line). */
+    /** The line the stone answers with (etched line + fallback toast). */
     line: string;
+    /** A chosen colour (#rrggbb) — the recolour toast paints itself this. */
+    tint?: string;
+    /** The colour's display name (or hex) for that toast: `⌘ NAME ⌘`. */
+    name?: string;
+}
+
+/** Set the accent to a resolved colour + answer with the coloured recolour
+    toast (Brendon, 2026-07-21): the pill wears the colour, named on it. */
+function paintStone(hex: string, spoken: string): StoneCommandResult {
+    const h = hex.toLowerCase();
+    writeStoneStyle({ ...readStoneStyle(), accent: h });
+    applyStoneStyle(readStoneStyle());
+    const name = (stoneColorName(h) ?? spoken.trim()).toUpperCase();
+    return { line: `Stone: ${name}`, tint: h, name };
 }
 
 /** Parse + execute a stone console line. Null = not a stone command. */
 export function runStoneCommand(raw: string): StoneCommandResult | null {
-    const m = /^stone(?:\s+(.+))?$/i.exec(raw.trim());
+    const t = raw.trim();
+
+    // `stonecolor: cinnabar` · `stone colour red` · `stonecolor #ff0055` — the
+    // named-colour door (Brendon, 2026-07-21). Knows the popular colour words.
+    const sc = /^stone\s*colou?r\s*:?\s+(.+)$/i.exec(t);
+    if (sc) {
+        const hex = resolveStoneColor(sc[1]);
+        if (hex) return paintStone(hex, sc[1]);
+        return { line: `the stone doesn't know "${sc[1].trim()}"` };
+    }
+
+    const m = /^stone(?:\s+(.+))?$/i.exec(t);
     if (!m) return null;
     const arg = (m[1] ?? '').trim().toLowerCase();
     const cur = readStoneStyle();
 
     if (!arg) {
         // The whisper — the only place the console is written down.
-        return { line: 'the stone hears: #hex · white · black · auto · reset' };
-    }
-    if (/^#[0-9a-f]{6}$/.test(arg)) {
-        writeStoneStyle({ ...cur, accent: arg });
-        applyStoneStyle(readStoneStyle());
-        return { line: `Stone accent: ${arg.toUpperCase()}` };
+        return { line: 'the stone hears: a colour · white · black · auto · reset' };
     }
     if (arg === 'white' || arg === 'black') {
         writeStoneStyle({ ...cur, stage: arg });
@@ -91,5 +113,8 @@ export function runStoneCommand(raw: string): StoneCommandResult | null {
         applyStoneStyle({});
         return { line: 'Stone: RESET' };
     }
+    // a hex or a known colour name → paint the accent, coloured toast.
+    const hex = resolveStoneColor(arg);
+    if (hex) return paintStone(hex, arg);
     return null; // "stone something-else" — not ours, fall through to GO/FIND
 }

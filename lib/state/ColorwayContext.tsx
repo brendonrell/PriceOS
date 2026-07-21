@@ -237,8 +237,10 @@ interface ColorwayContextValue {
 
 const ColorwayContext = createContext<ColorwayContextValue | null>(null);
 
-/** Compute text color from a bg hex via the YIQ luminance heuristic. */
-function resolveTextColor(bgHex: string): string {
+/** Compute text color from a bg hex via the YIQ luminance heuristic. Exported
+    so any surface painted a chosen colour (the Command Stone's recolour toast)
+    picks the same readable ink the colorways do. */
+export function resolveTextColor(bgHex: string): string {
     const hex = bgHex.replace('#', '');
     const r = parseInt(hex.substring(0, 2), 16) || 0;
     const g = parseInt(hex.substring(2, 4), 16) || 0;
