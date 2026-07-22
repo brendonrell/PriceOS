@@ -18,32 +18,6 @@
 
 const cp = (n: number) => String.fromCodePoint(n);
 
-/** Add uppercase keys mirroring a lowercase table (both cases → same glyph). */
-function withCaps(map: Record<string, string>): Record<string, string> {
-    const out: Record<string, string> = { ...map };
-    for (const [k, v] of Object.entries(map)) out[k.toUpperCase()] = v;
-    return out;
-}
-
-/* Small caps — both cases fold to the small-cap form. No small-cap 'x' exists,
-   so x/X pass through (stay plain). */
-const SMALLCAPS = withCaps({
-    a: 'ᴀ', b: 'ʙ', c: 'ᴄ', d: 'ᴅ', e: 'ᴇ', f: 'ꜰ', g: 'ɢ', h: 'ʜ', i: 'ɪ',
-    j: 'ᴊ', k: 'ᴋ', l: 'ʟ', m: 'ᴍ', n: 'ɴ', o: 'ᴏ', p: 'ᴘ', q: 'ꞯ', r: 'ʀ',
-    s: 'ꜱ', t: 'ᴛ', u: 'ᴜ', v: 'ᴠ', w: 'ᴡ', y: 'ʏ', z: 'ᴢ',
-});
-
-/* Superscript — lowercase is complete except 'q'; a subset of capitals exist;
-   digits are complete. Missing letters pass through. */
-const SUPER: Record<string, string> = {
-    a: 'ᵃ', b: 'ᵇ', c: 'ᶜ', d: 'ᵈ', e: 'ᵉ', f: 'ᶠ', g: 'ᵍ', h: 'ʰ', i: 'ⁱ',
-    j: 'ʲ', k: 'ᵏ', l: 'ˡ', m: 'ᵐ', n: 'ⁿ', o: 'ᵒ', p: 'ᵖ', r: 'ʳ', s: 'ˢ',
-    t: 'ᵗ', u: 'ᵘ', v: 'ᵛ', w: 'ʷ', x: 'ˣ', y: 'ʸ', z: 'ᶻ',
-    A: 'ᴬ', B: 'ᴮ', D: 'ᴰ', E: 'ᴱ', G: 'ᴳ', H: 'ᴴ', I: 'ᴵ', J: 'ᴶ', K: 'ᴷ',
-    L: 'ᴸ', M: 'ᴹ', N: 'ᴺ', O: 'ᴼ', P: 'ᴾ', R: 'ᴿ', T: 'ᵀ', U: 'ᵁ', V: 'ⱽ', W: 'ᵂ',
-    '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
-};
-
 /* Subscript — only a subset of lowercase letters exist (the rest pass through)
    plus complete digits. Best on numbers; some letters stay plain. */
 const SUB: Record<string, string> = {
@@ -109,13 +83,10 @@ export const NAME_FONTS: FontDef[] = [
     // to text with VS-15 so it can never render as the metro-M emoji. (Handles are
     // lowercase so it can't hit a real @name, but keep the set airtight anyway.)
     { id: 'circled', label: 'Circled', upper: 0x24b6, lower: 0x24d0, except: { M: 'Ⓜ︎', '0': '⓪', '1': '①', '2': '②', '3': '③', '4': '④', '5': '⑤', '6': '⑥', '7': '⑦', '8': '⑧', '9': '⑨' } },
-    // ── creative styles (Brendon 2026-07-19: "add all of them") ──
-    { id: 'smallcaps', label: 'Small Caps', tbl: SMALLCAPS },
-    { id: 'super', label: 'Superscript', tbl: SUPER },
+    // ── creative styles (Brendon 2026-07-19: "add all of them";
+    //    Small Caps · Superscript · Strikethrough · Underline pulled 2026-07-22) ──
     { id: 'sub', label: 'Subscript', tbl: SUB },
     { id: 'paren', label: 'Parenthesized', lower: 0x249c, except: { '1': '⑴', '2': '⑵', '3': '⑶', '4': '⑷', '5': '⑸', '6': '⑹', '7': '⑺', '8': '⑻', '9': '⑼' } },
-    { id: 'strike', label: 'Strikethrough', combine: '̶' },
-    { id: 'underline', label: 'Underline', combine: '̲' },
     { id: 'spaced', label: 'Spaced', transform: 'spaced' },
     { id: 'upsidedown', label: 'Upside Down', transform: 'upsidedown' },
 ];

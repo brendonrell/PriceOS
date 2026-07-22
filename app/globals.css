@@ -4203,7 +4203,7 @@ body.pd-stone-open .ens-copy-toast {
 }
 .project-custom { align-items: baseline; }
 .by-text { font-size: 13px; font-weight: bold; }
-.artist-lockup { display: flex; align-items: baseline; }
+.artist-lockup { display: flex; align-items: baseline; overflow: visible; }
 .artist-lockup a {
     font-family: var(--font-rubik-mono), sans-serif;
     font-weight: normal;
@@ -4211,7 +4211,15 @@ body.pd-stone-open .ens-copy-toast {
     text-transform: uppercase;
     text-decoration: none;
     color: inherit;
+    /* The ENS wears the chosen Unicode font too; tall styles (script/fraktur/
+       upside-down) have ascenders above the cap line. Give the line headroom so
+       the top is never clipped by the band's tight line-height (Brendon,
+       2026-07-22). */
+    line-height: 1.3;
 }
+/* The identity band otherwise inherits .hero-row's line-height:1 — let the ENS
+   line breathe so nothing cuts the glyph tops. */
+.hero-row-identity { line-height: 1.3; overflow: visible; }
 
 /* Profile identity-row PriceSprite — relocated from the title row (Brendon
    2026-06-15). Same Courier sprite look + size as before, but it now sits
