@@ -20,6 +20,7 @@ import { badRequest, serverError, unauthorized } from '@/lib/errors';
 import { getProject } from '@/lib/project/registry';
 import { createPing } from '@/lib/pings/createPing';
 import { checkTradeOrder } from '@/lib/market/orderCheck';
+import { verifySeaportFill } from '@/lib/market/verifyFill';
 import { DEFAULT_DURATION_SEC, MAX_DURATION_SEC } from '@/lib/market/chain';
 import type { SeaportOrderJson } from '@/lib/market/orderTypes';
 import { TRADE_MAX_ITEMS_PER_SIDE, type TradeItem, type TradeRow } from '@/lib/market/tradeTypes';
@@ -338,9 +339,24 @@ export const POST = requireAuth(async (req, _ctx, address) => {
             if (r.error === 'insufficient_balance') return badRequest('Insufficient balance');
             if (r.error) return badRequest(r.error);
           } else {
-            // Chain: the fill already settled on-chain client-side — book it.
+            // Chain: verify the counterparty actually filled the proposer's
+            // signed order on-chain before booking. The old code trusted the
+            // client's word and flipped the `holders` mirror with no proof,
+            // letting a two-wallet "trade" that never settled mint permanent
+            // achievements/PriceScore (security audit 2026-07-22).
             if (t.end_time != null && t.end_time <= nowSec()) return badRequest('Trade expired');
-            await bookChainSettle(db, t, body.txHash);
+            if (!t.order_hash) return badRequest('Trade has no on-chain order to verify');
+            const fill = await verifySeaportFill(String(body.txHash ?? ''));
+            if (!fill.ok) {
+              return fill.reason === 'pending'
+                ? badRequest('Fill not yet confirmed on-chain — try again in a moment')
+                : badRequest('On-chain fill could not be verified');
+            }
+            if (fill.from !== address) return badRequest('Fill was not sent from your wallet');
+            if (!fill.orderHashes.has(t.order_hash.toLowerCase())) {
+              return badRequest('That transaction did not fill this trade');
+            }
+            await bookChainSettle(db, t, String(body.txHash));
           }
           await createPing({
             recipientAddress: t.proposer_address,

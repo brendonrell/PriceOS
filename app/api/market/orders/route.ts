@@ -16,6 +16,7 @@ import { getProject } from '@/lib/project/registry';
 import { createPing } from '@/lib/pings/createPing';
 import { fanOutMarketPings } from '@/lib/pings/fanout';
 import { checkListingOrder, checkOfferOrder, resolveRoyaltyReceiver } from '@/lib/market/orderCheck';
+import { verifySeaportFill } from '@/lib/market/verifyFill';
 import { DEFAULT_DURATION_SEC, MAX_DURATION_SEC } from '@/lib/market/chain';
 import { tokenMatchesTrait, traitIdentifiers } from '@/lib/market/traitMatch';
 import type { OfferCriteria, SeaportOrderJson } from '@/lib/market/orderTypes';
@@ -532,6 +533,18 @@ export const POST = requireAuth(async (req, _ctx, address) => {
       case 'confirm_fills': {
         const fills = (body.fills ?? []).slice(0, 60);
         if (fills.length === 0 || !body.txHash) return badRequest('Missing fills');
+        // Bind the book close + SOLD pings to a REAL on-chain fill sent by THIS
+        // caller. The old code closed any listing by (project, token) on the
+        // client's word, letting any signed-in user de-list anyone's piece and
+        // spray fake SOLD pings (security audit 2026-07-22). One receipt read
+        // covers every listing in the sweep tx.
+        const fill = await verifySeaportFill(body.txHash);
+        if (!fill.ok) {
+          return fill.reason === 'pending'
+            ? badRequest('Fill not yet confirmed on-chain — try again in a moment')
+            : badRequest('On-chain fill could not be verified');
+        }
+        if (fill.from !== address) return badRequest('Fill was not sent from your wallet');
         let closed = 0;
         for (const f of fills) {
           const slug = f.slug.toLowerCase();
@@ -544,6 +557,9 @@ export const POST = requireAuth(async (req, _ctx, address) => {
           const listing = row.data as { price_eth?: number; order_hash?: string | null; source?: string } | null;
           if (!listing || listing.source === 'sim') continue;
           if (f.orderHash && listing.order_hash && f.orderHash !== listing.order_hash) continue;
+          // The listing's own order must actually appear as fulfilled in this
+          // transaction — the authoritative bind (never the client's orderHash).
+          if (!listing.order_hash || !fill.orderHashes.has(listing.order_hash.toLowerCase())) continue;
           await db.from('listings')
             .update({ active: false, tx_hash: body.txHash } as never)
             .eq('project_id', slug).eq('token_id', f.tokenId);
