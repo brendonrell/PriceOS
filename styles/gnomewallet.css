@@ -242,6 +242,9 @@
     font-weight: bold;
     letter-spacing: 1.5px;
     color: var(--gw-ink);
+    /* Breathing room above + below now the single-line sign reclaimed the
+       height (Brendon, 2026-07-22). */
+    margin: 9px 0 4px;
 }
 
 /* ── The wings — signpost tabs to the burrow + the market ────────────────── */

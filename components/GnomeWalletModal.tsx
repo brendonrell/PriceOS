@@ -440,7 +440,7 @@ export default function GnomeWalletModal() {
                         <span className="gw-shingle-rope gw-shingle-rope-l" aria-hidden="true" />
                         <span className="gw-shingle-rope gw-shingle-rope-r" aria-hidden="true" />
                         <span className="gw-shingle-word">
-                            {`${GNOME_GLYPH}${VS15}`} gnomewallet {`${GNOME_GLYPH}${VS15}`}
+                            {`${GNOME_GLYPH}${VS15}`} gnomewallet
                         </span>
                     </div>
                     <span className="gw-head-tag">&ldquo;{GNOME_TAGLINE}&rdquo;</span>
