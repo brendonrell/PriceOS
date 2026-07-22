@@ -395,11 +395,16 @@ export default function FmBar() {
                 ▶/≫/TUNE are the deck's; ⎇ MODE and × ride EVERY face
                 (Brendon, 2026-07-20). Static slots — the video host below
                 must never shift and remount. ── */}
-            {isDeckFace && (
-                <button type="button" className="fm-btn fm-play" onClick={onPlayTap}>
-                    {status === 'playing' || status === 'loading' ? '‖' : '▶︎'}
-                </button>
-            )}
+            {/* play/pause rides EVERY face (Brendon, 2026-07-22); ≫ next stays
+                deck-only. */}
+            <button
+                type="button"
+                className="fm-btn fm-play"
+                onClick={onPlayTap}
+                title={status === 'playing' ? 'Pause' : 'Play'}
+            >
+                {status === 'playing' || status === 'loading' ? '‖' : '▶︎'}
+            </button>
             {isDeckFace && (
                 <button type="button" className="fm-btn" onClick={onNextTap} title="Next track">
                     ≫
