@@ -993,8 +993,8 @@ export default function StarredList({
                                         tabIndex={0}
                                         title="Play in the PD miniplayer"
                                         aria-label="Play"
-                                        onClick={() => { fmPlay({ playlistId: r.playlistId, label: getProject(r.slug)?.soundtrack?.label ?? r.title, slug: r.slug }); showToast('PD miniplayer: ON AIR'); }}
-                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fmPlay({ playlistId: r.playlistId, label: getProject(r.slug)?.soundtrack?.label ?? r.title, slug: r.slug }); showToast('PD miniplayer: ON AIR'); } }}
+                                        onClick={() => { fmPlay({ playlistId: r.playlistId, label: getProject(r.slug)?.soundtrack?.label ?? r.title, slug: r.slug }); showToast('miniplayer: ON AIR'); }}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fmPlay({ playlistId: r.playlistId, label: getProject(r.slug)?.soundtrack?.label ?? r.title, slug: r.slug }); showToast('miniplayer: ON AIR'); } }}
                                     >
                                         ▶︎ Play
                                     </span>

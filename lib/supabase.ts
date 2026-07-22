@@ -183,7 +183,7 @@ export interface UserSettings {
    *  so it stops resetting each session (Brendon, 2026-07-21). Was device-only
    *  localStorage `pd_sound_on`. Absent = never set (default OFF). */
   sound?: boolean;
-  /** PD MINIPLAYER display face ('deck' | 'micro' | 'disc' | 'slab' | 'signal').
+  /** miniplayer display face ('deck' | 'signal' | 'disc'; `signal` shows as "Tab").
    *  Account-backed so the chosen face follows the viewer (Brendon, 2026-07-21).
    *  Was device-only localStorage `pd_fm_display`. Absent = deck. */
   fmDisplay?: string;

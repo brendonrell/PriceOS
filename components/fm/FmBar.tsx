@@ -18,8 +18,8 @@
  * The station picker (tap the screen) is the customization: starred
  * soundtracks first, then the full catalog.
  *
- * FIVE FACES, one markup (DECK · MICRO · THE DISC · THE SLAB · THE
- * SIGNAL): the ⎇ MODE key is VISIBLE ON EVERY FACE and switches
+ * THREE FACES, one markup (DECK · TAB · DISC — Micro + Slab retired
+ * 2026-07-22): the ⎇ MODE key is VISIBLE ON EVERY FACE and switches
  * INSTANTLY (Brendon, 2026-07-20 — the old deck-peek dance made the key
  * look dead and is gone). × rides every face too, so the door out is
  * never more than one tap. The video host never remounts — a DOM move
@@ -82,11 +82,13 @@ type Station = FmStation;
 
 type FmStatus = 'idle' | 'loading' | 'playing' | 'paused';
 
-/* The five faces (Brendon picked all five from the 2026-07-20 mocks). */
-const FM_DISPLAYS = ['deck', 'micro', 'disc', 'slab', 'signal'] as const;
+/* The three faces, cycled in this order (Brendon, 2026-07-22 — Micro + Slab
+   retired). The internal `signal` key stays (it drives the .fm-mode-signal
+   equalizer face and every saved value); its user-facing name is now "Tab". */
+const FM_DISPLAYS = ['deck', 'signal', 'disc'] as const;
 type FmDisplay = (typeof FM_DISPLAYS)[number];
 const FM_DISPLAY_NAMES: Record<FmDisplay, string> = {
-    deck: 'THE DECK', micro: 'MICRO', disc: 'THE DISC', slab: 'THE SLAB', signal: 'THE SIGNAL',
+    deck: 'Deck', signal: 'Tab', disc: 'Disc',
 };
 
 export default function FmBar() {
@@ -123,7 +125,9 @@ export default function FmBar() {
         setDisplay(next);
         try { window.localStorage.setItem('pd_fm_display', next); } catch { /* fine */ }
         pushSettings({ fmDisplay: next }); // account-backed
-        showToast(`PD miniplayer: ${FM_DISPLAY_NAMES[next]}`);
+        /* the ™ is a toast-only flourish (Brendon, 2026-07-22 — "for fun"); the
+           wordmark renders lowercase with the "player" half italic. */
+        showToast(`miniplayer ${FM_DISPLAY_NAMES[next]}™`);
     };
 
     const playerRef = useRef<YTPlayer | null>(null);
@@ -250,7 +254,7 @@ export default function FmBar() {
         setOnAir(null);
         setTrackTitle('');
         setPickerOpen(false);
-        showToast('PD miniplayer: CLOSED');
+        showToast('miniplayer: CLOSED');
     };
 
     const onPlayTap = () => {
@@ -368,7 +372,7 @@ export default function FmBar() {
         <div
             ref={barRef}
             className={`fm-bar fm-mode-${display} fm-live${status === 'playing' ? ' fm-playing' : ''}`}
-            title="PD miniplayer — the platform's soundtracks. Tap the screen to pick a station."
+            title="miniplayer — the platform's soundtracks. Tap the screen to pick a station."
         >
             {pickerOpen && (
                 <div className="fm-picker" role="listbox" aria-label="Stations">
@@ -411,7 +415,7 @@ export default function FmBar() {
                 className="fm-btn fm-close"
                 onClick={closePlayer}
                 title="Close the miniplayer"
-                aria-label="Close the PD miniplayer"
+                aria-label="Close the miniplayer"
             >
                 ×
             </button>
@@ -454,8 +458,8 @@ export default function FmBar() {
                     <span className="fm-lcd-row"><span className="fm-lcd-inner">{rowStation}</span></span>
                     <span className="fm-lcd-row"><span className="fm-lcd-inner">{rowStatus}</span></span>
                 </span>
-                {/* THE SIGNAL's equalizer — present in every face, shown by
-                    its mode class only. */}
+                {/* TAB's equalizer — present in every face, shown by its mode
+                    class only. */}
                 <span className="fm-sigbars" aria-hidden="true">
                     <span className="fm-sb" /><span className="fm-sb" /><span className="fm-sb" /><span className="fm-sb" />
                 </span>
