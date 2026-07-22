@@ -107,7 +107,7 @@ import {
     togglePin as storeTogglePin,
     type GrailPin,
 } from '../lib/pins/grailStore';
-import { toggleShowcase } from '../lib/pins/userShowcaseStore';
+import { toggleShowcase, getShowcaseItems, replaceInShowcase } from '../lib/pins/userShowcaseStore';
 import { getStarredKeys, toggleStar as storeToggleStar, subscribeStarred } from '../lib/pins/starStore';
 import { addOutputTodo } from '../lib/todos/todoStore';
 import { getWishlistKeys, toggleWishlist as storeToggleWishlist, subscribeWishlist } from '../lib/pins/wishlistStore';
@@ -231,6 +231,10 @@ export default function OutputPreview() {
     const { openListSheet, openOfferSheet } = useMarketSheet();
     const [unlistBusy, setUnlistBusy] = useState(false);
     const [confirmUnlist, setConfirmUnlist] = useState(false);
+    /* Showcase-full swap picker (Brendon, 2026-07-22) — when the 6 slots are
+       full, show the current picks so one can be replaced instead of a dead-end
+       "FULL" toast. */
+    const [showcaseSwap, setShowcaseSwap] = useState(false);
     /* The output modal is global, so its Project is whatever was passed to
        open('output', id, slug) — falling back to the active route Project. */
     const proj = useProject();
@@ -1170,7 +1174,8 @@ export default function OutputPreview() {
                                     if (calcMode === 'user-showcase') {
                                         if (id != null) {
                                             const r = toggleShowcase(slug, id);
-                                            showToast(r === 'full' ? 'Showcase: FULL · 6 max' : r === 'added' ? 'Showcase: ADDED' : 'Showcase: REMOVED');
+                                            if (r === 'full') { setShowcaseSwap(true); return; }
+                                            showToast(r === 'added' ? 'Showcase: ADDED' : 'Showcase: REMOVED');
                                         }
                                     } else if (calcMode === 'offer') {
                                         showToast('Offer Calc: COMING SOON');
@@ -1386,6 +1391,49 @@ export default function OutputPreview() {
                 </div>
             )}
         </div>
+        {/* Showcase-full swap picker — the 6 current picks as thumbnails; tap
+            one to replace it with this piece (Brendon, 2026-07-22). */}
+        {showcaseSwap && id != null && typeof document !== 'undefined' && createPortal(
+            <div className="starred-confirm-overlay" role="dialog" aria-modal="true" style={{ zIndex: 100000 }} onClick={() => setShowcaseSwap(false)}>
+                <div className="ms-confirm-card is-centered showcase-swap-card" onClick={(e) => e.stopPropagation()}>
+                    <div className="ms-confirm-question">Showcase full — swap in {title} #{id}?</div>
+                    <div className="showcase-swap-grid">
+                        {getShowcaseItems().map((it) => {
+                            const p = getProject(it.slug);
+                            const thumb = artThumbUrl(it.slug, it.id);
+                            return (
+                                <button
+                                    key={`${it.slug}:${it.id}`}
+                                    type="button"
+                                    className="showcase-swap-cell"
+                                    title={`Replace ${p?.displayName ?? it.slug} #${it.id}`}
+                                    onClick={() => {
+                                        const r = replaceInShowcase(it.slug, it.id, slug, id);
+                                        setShowcaseSwap(false);
+                                        showToast(
+                                            r === 'exists' ? 'Showcase: ALREADY IN'
+                                                : r === 'replaced' ? 'Showcase: SWAPPED'
+                                                : 'Showcase: UNCHANGED',
+                                        );
+                                    }}
+                                >
+                                    {thumb
+                                        ? <img className="showcase-swap-thumb" src={thumb} alt="" draggable={false} />
+                                        : <span className="showcase-swap-thumb showcase-swap-thumb--blank" aria-hidden="true" />}
+                                    <span className="showcase-swap-name">
+                                        {(p?.displayName ?? it.slug).charAt(0)}{(p?.displayName ?? it.slug).slice(1).toLowerCase()} #{it.id}
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                    <div className="ms-confirm-btns">
+                        <button type="button" className="ms-confirm-btn ms-confirm-btn--cancel" onClick={() => setShowcaseSwap(false)}>Keep all 6</button>
+                    </div>
+                </div>
+            </div>,
+            document.body,
+        )}
         {/* Unlist confirm — the same centered card the mint flow uses. */}
         {confirmUnlist && id != null && typeof document !== 'undefined' && createPortal(
             <div className="starred-confirm-overlay" role="dialog" aria-modal="true" style={{ zIndex: 100000 }} onClick={() => setConfirmUnlist(false)}>

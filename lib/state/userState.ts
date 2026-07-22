@@ -154,6 +154,9 @@ export const STATE_CACHE_KEYS = {
     /** Command Stone stealth style (accent + stage). Read + written by
      *  stoneStyle; lives in the settings envelope. Account-backed 2026-07-21. */
     stoneStyle: 'pd_stone_style',
+    /** Command Stone last bubble line — restores the last speech bubble on
+     *  reopen. Settings envelope. Account-backed 2026-07-22. */
+    stoneLastLine: 'pd_stone_last_line',
 } as const;
 
 /** Fired after a server snapshot is written into the caches. Any context that
@@ -461,6 +464,12 @@ export function hydrateFromRow(row: UserRow): void {
             if (st.accent || st.stage) localStorage.setItem(STATE_CACHE_KEYS.stoneStyle, JSON.stringify(st));
             else localStorage.removeItem(STATE_CACHE_KEYS.stoneStyle);
             window.dispatchEvent(new CustomEvent('pd:stone-style-changed'));
+        }
+        if (typeof s.stoneLastLine === 'string' && s.stoneLastLine.trim()) {
+            localStorage.setItem(STATE_CACHE_KEYS.stoneLastLine, s.stoneLastLine);
+            window.dispatchEvent(new CustomEvent('pd:stone-last-line-changed', { detail: s.stoneLastLine }));
+        } else if (s.stoneLastLine === null || s.stoneLastLine === '') {
+            localStorage.removeItem(STATE_CACHE_KEYS.stoneLastLine);
         }
 
         // grid_presets → unified cache the presetStore reads (Gallery View

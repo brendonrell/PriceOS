@@ -116,6 +116,14 @@ export function formatUnit(value: number, unit: Unit): string {
     return formatFiat(value, unit);
 }
 
+/** The primary conversion result — always names the currency AFTER the number
+ *  ("$8,243 CAD"), since the $ symbol alone is ambiguous (Brendon, 2026-07-22).
+ *  ETH stays the plain ◊ figure. */
+export function formatResult(value: number, unit: Unit): string {
+    if (unit === 'ETH') return formatUnit(value, unit);
+    return `${formatFiat(value, unit)} ${unit}`;
+}
+
 /** "1 ETH" / "500 USD" — the source label. */
 export function formatSource(amount: number, unit: Unit): string {
     const n = amount.toLocaleString('en-US', { maximumFractionDigits: 6 });

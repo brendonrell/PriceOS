@@ -153,6 +153,27 @@ export function toggleShowcase(slug: string, id: number): ToggleShowcaseResult {
     return 'added';
 }
 
+/** Replace one showcase pick with another, keeping its slot (Brendon,
+ *  2026-07-22 — the "full → pick one to swap" flow). Returns 'replaced', or
+ *  'exists' if the incoming piece is already in the showcase, or 'noop' if the
+ *  outgoing one isn't. */
+export function replaceInShowcase(
+    oldSlug: string, oldId: number, newSlug: string, newId: number,
+): 'replaced' | 'exists' | 'noop' {
+    hydrate();
+    const oldK = keyOf(oldSlug, oldId);
+    const newK = keyOf(newSlug, newId);
+    if (keys.has(newK)) return 'exists';
+    if (!keys.has(oldK)) return 'noop';
+    // Rebuild in order, swapping the chosen slot in place.
+    const next = new Set<string>();
+    keys.forEach((k) => next.add(k === oldK ? newK : k));
+    keys = next;
+    persist();
+    emit();
+    return 'replaced';
+}
+
 /** Subscribe to showcase changes. Returns an unsubscribe function. */
 export function subscribeShowcase(cb: Listener): () => void {
     hydrate();

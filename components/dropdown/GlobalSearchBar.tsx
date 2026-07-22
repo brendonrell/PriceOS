@@ -97,7 +97,7 @@ import { paintOutput } from '../../lib/state/ProjectContext';
 import { paintAsciiStandin } from '../../lib/art/asciiStandin';
 import { hashString } from '../../lib/art/rng';
 import { evalMath, formatMathValue } from '../../lib/stone/mathEval';
-import { parseConvert, convertValue, formatUnit, formatSource } from '../../lib/fx/convert';
+import { parseConvert, convertValue, formatResult, formatSource } from '../../lib/fx/convert';
 import { useFxRates } from '../../lib/fx/rates';
 import { useFiat } from '../../lib/state/FiatContext';
 import LaneRunner from './LaneRunner';
@@ -261,7 +261,7 @@ export function GlobalSearchBar() {
         ? `${mathAns.expr} = ${formatMathValue(mathAns.value)}`
         : convPlan
             ? (convAns
-                ? `${formatSource(convPlan.amount, convPlan.from)} = ${formatUnit(convAns.value, convAns.to)}`
+                ? `${formatSource(convPlan.amount, convPlan.from)} = ${formatResult(convAns.value, convAns.to)}`
                 : `${formatSource(convPlan.amount, convPlan.from)} …`)
             : null;
     const hasInline = isGlobalSearching && inlineAnswer != null;

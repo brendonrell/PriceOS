@@ -39,6 +39,7 @@ import { matchCast, type CastTarget } from '../../lib/stone/cast';
 import { parseWidget } from '../../lib/stone/widgets';
 import { runStoneCommand, applyStoneStyle } from '../../lib/stone/stoneStyle';
 import { expandFollowUp, type StoneSubject } from '../../lib/stone/memory';
+import { readLastLine, writeLastLine } from '../../lib/stone/lastLine';
 import { readStage } from '../../lib/npc/awareness';
 import { readPieceInView } from '../../lib/npc/inview';
 import { deepThought } from '../../lib/stone/deepThought';
@@ -283,6 +284,11 @@ export default function CommandStone() {
     const open = stage === 'open';
     const setOpen = (v: boolean) => setStage(v ? 'open' : 'hidden');
     const [value, setValue] = useState('');
+    /* THE LAST BUBBLE (Brendon, 2026-07-22) — remember the current line so a
+       tap-away → reopen brings the same speech bubble back. Only real (non-empty)
+       lines are saved, so clearing/closing never wipes the memory. Account-backed
+       (lib/stone/lastLine). */
+    useEffect(() => { if (value.trim()) writeLastLine(value); }, [value]);
     const [results, setResults] = useState<SearchResponse | null>(null);
     const [searching, setSearching] = useState(false);
     /** The stone's own confirmation line after a commit ("✓ ETCHED · …"). */
@@ -719,25 +725,31 @@ export default function CommandStone() {
        inside the gesture handler so iOS raises the keyboard. ── */
     const openStone = () => {
         inputRef.current?.focus();
+        /* restore the last bubble when reopening an empty stone. */
+        setValue((v) => v || readLastLine());
         setStage('open');
     };
 
-    /* THE SUMMON — triple-tap the page BACKGROUND (Brendon, 2026-07-21; tightened
-       2026-07-22 after it fired off the mint pill: "it needs to be the BACKGROUND
-       ONLY"). The ONE way in, live on every page. Three quick taps on the bare
-       page background toggle the stone — hidden → open (summoned, keyboard up);
-       open or the dot → fully closed.
+    /* THE SUMMON — triple-tap the page BACKGROUND (Brendon, 2026-07-21; the ONE
+       way in, live on every page). Three quick taps on the bare page background
+       toggle the stone — hidden → open (summoned, keyboard up); open or the dot
+       → fully closed.
 
-       "Background only" is now a POSITIVE test (summonSurface), not "anything
-       that isn't a button": a tap counts ONLY when it lands on the real page
-       backdrop — <body>/<main>, the page's own root wrapper, or the starfield —
-       so a container div (the mint chooser, a confirm overlay, any panel) can
-       never masquerade as background. Controls, links, the stone/dot, the
-       miniplayer, and any non-artwork modal never count.
+       "Background" (Brendon, 2026-07-22 — "do it properly"): a bare LAYOUT
+       surface — the page/section/hero wrappers, gutters, empty space where the
+       colorway paint shows. NOT controls, NOT art/media, NOT text, NOT cards or
+       overlays. The test is content-aware, not an allow-list of a couple tags
+       (that was too strict — it wouldn't fire on the hero at all):
+         · reject interactive chrome + the stone/player/menu;
+         · reject media (art, thumbs, icons) and known content/overlay surfaces;
+         · reject any element that DIRECTLY holds text (a heading, price, label,
+           card title) — layout wrappers hold only other elements, never raw
+           text, so the hero's own background still counts;
+         · everything else = background → summon.
 
-       ⛔ The ARTWORK MODAL is the exception Brendon named (2026-07-22): tapping
-       the modal's own dim backdrop ALSO summons the stone, and the stone floats
-       ABOVE the modal (z-index 10004 > the modal's 1000) and stays there.
+       ⛔ The ARTWORK MODAL is the exception Brendon named: tapping the modal's
+       own dim backdrop ALSO summons the stone, and it floats ABOVE the modal
+       (z-index 10004 > the modal's 1000) and stays there.
 
        Uses pointer events (not click) so iOS fires it on bare background too;
        user-scalable=no already kills double-tap-zoom, so Safari can't hijack
@@ -747,28 +759,48 @@ export default function CommandStone() {
         /* Never-summon chrome: interactive controls + the stone's own surfaces
            + the connect menu (it owns its own triple-tap eggs). */
         const CHROME =
-            'a,button,input,textarea,select,[role="button"],[role="link"],[contenteditable],label,' +
+            'a,button,input,textarea,select,[role="button"],[role="link"],[role="tab"],' +
+            '[contenteditable],label,summary,[tabindex],' +
             '#commandStonePanel,.stone-dot,.fm-bar,.fm-picker,.user-menu-wrapper';
+        /* Content + media + overlays that are NOT background even though some
+           are plain divs: art/thumbs/icons, cards/tiles/pills, the mint pill and
+           its chooser, portalled confirm overlays, sheets, toasts. */
+        const CONTENT =
+            'img,canvas,svg,video,picture,pre,code,table,p,h1,h2,h3,h4,h5,h6,li,' +
+            '[class*="card"],[class*="tile"],[class*="pill"],[class*="chip"],' +
+            '[class*="hero"] [class*="title"],.btn-mint,.mint-chooser,' +
+            '.starred-confirm-overlay,.ms-confirm-card,[class*="overlay"],[class*="sheet"],' +
+            '[class*="toast"],[class*="popover"],[class*="tooltip"],[class*="badge"]';
         /* The artwork modal's ART + controls — a tap here is for the piece, not
            a summon; only the dim backdrop around them counts. */
         const ART_CONTENT =
             '.modal-canvas-wrap,.ls-canvas-wrap,.modal-info,.modal-bottom-bar,' +
             '.ls-bottom-bar,.details-popover';
+        /* True when the element itself holds raw text (a leaf of real content),
+           false for pure layout wrappers (which only contain other elements). */
+        const holdsText = (el: HTMLElement): boolean => {
+            for (const n of Array.from(el.childNodes)) {
+                if (n.nodeType === 3 && (n.textContent ?? '').trim().length > 0) return true;
+            }
+            return false;
+        };
         const summonSurface = (el: HTMLElement | null): 'page' | 'modal' | null => {
-            if (!el || el.closest(CHROME)) return null;
+            if (!el) return null;
             /* The artwork modal's backdrop — summon ABOVE it (Brendon). */
             if (el.closest('#modal, #modalLandscape')) {
-                return el.closest(ART_CONTENT) ? null : 'modal';
+                return el.closest(`${CHROME},${ART_CONTENT}`) ? null : 'modal';
             }
-            /* Any OTHER modal owns the screen — no summon underneath it. */
-            if (document.body.classList.contains('modal-open')) return null;
-            /* The bare page background ONLY: body/html/main, the starfield, or
-               the page's own root wrapper (a direct child of <main>). */
-            if (el === document.body || el === document.documentElement || el.tagName === 'MAIN') return 'page';
-            if (el.id === 'starfield') return 'page';
-            const parent = el.parentElement;
-            if (parent && parent.tagName === 'MAIN') return 'page';
-            return null;
+            /* body / html / main / starfield are ALWAYS background (checked
+               before CHROME so a focus-tabindex on them can't disqualify). */
+            if (el === document.body || el === document.documentElement || el.tagName === 'MAIN' || el.id === 'starfield') {
+                return 'page';
+            }
+            /* Controls / the stone / the player / any other open modal. */
+            if (el.closest(CHROME) || document.body.classList.contains('modal-open')) return null;
+            /* Content, media, overlays, or a text-bearing leaf → not background. */
+            if (el.closest(CONTENT) || holdsText(el)) return null;
+            /* A bare layout wrapper (hero bg, section, gutter, empty area). */
+            return 'page';
         };
         let taps = 0;
         let lastT = 0;
@@ -798,6 +830,16 @@ export default function CommandStone() {
                 taps = 0;
                 return;
             }
+            /* OPEN → a single tap on the page tucks the stone to the dot so the
+               bubble is out of the way and you can carry on (Brendon, 2026-07-22).
+               The typed line + its bubble are KEPT — tap the dot and the same
+               speech bubble comes right back. No triple-tap needed from open. */
+            if (stageRef.current === 'open') {
+                taps = 0;
+                inputRef.current?.blur();
+                setStage('dot');
+                return;
+            }
             /* a fresh run if the taps drift apart in time or space */
             if (
                 e.timeStamp - lastT > 500 ||
@@ -814,13 +856,16 @@ export default function CommandStone() {
             taps = 0;
             if (stageRef.current === 'hidden') {
                 inputRef.current?.focus(); // synchronous in the gesture → iOS keyboard
+                /* restore the last bubble — the line that was up last time. */
+                setValue((v) => v || readLastLine());
                 setStage('open');
                 showToastRef.current('', 1800, 250, null, ['Summoned:', 'COMMAND STONE']);
             } else {
+                // the dot → fully close. The remembered line stays saved, so a
+                // future summon still brings the last bubble back.
                 inputRef.current?.blur();
                 setStage('hidden');
                 setValue('');
-                // the toast draws its face as the stone goes dark
                 showToastRef.current(
                     `${STONE_GLYPH} ${GOODBYE_LINES[Math.floor(Math.random() * GOODBYE_LINES.length)]} ${STONE_GLYPH}`,
                 );
@@ -834,9 +879,9 @@ export default function CommandStone() {
         };
     }, [siweAddress, needsSignup]);
 
-    /* Minimize to the dot is the pill's own put-away gesture (swipe down or
-       long-press). The bg triple-tap is the only summon and the primary
-       close, so there is no tap-away-to-dismiss to conflict with it. */
+    /* Put-away gestures: swipe down / long-press the pill, OR a single tap on
+       the page background while open (the tap-away, added 2026-07-22) — all
+       park at the dot with the bubble kept for restore. */
     const vesselRef = useRef<HTMLDivElement | null>(null);
 
     /* Swipe DOWN on the open pill → minimize to the dot (the current

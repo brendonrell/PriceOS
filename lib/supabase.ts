@@ -191,6 +191,10 @@ export interface UserSettings {
    *  the recolour/stage survives across sessions + devices (Brendon,
    *  2026-07-21). Was device-only localStorage `pd_stone_style`. */
   stoneStyle?: { accent?: string; stage?: 'white' | 'black' };
+  /** COMMAND STONE last line — the query that was up in the bubble last time,
+   *  so re-opening the stone brings the same speech bubble back (Brendon,
+   *  2026-07-22). Account-backed; mirror localStorage `pd_stone_last_line`. */
+  stoneLastLine?: string | null;
 }
 
 /** One private note in the settings envelope (lib/notes/notesSync owns it). */

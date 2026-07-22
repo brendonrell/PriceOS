@@ -49,7 +49,7 @@ import { getTodos, subscribeTodos, datedTodosByDay, type TodoItem } from '../../
 import { buildWalletMark } from '../../lib/stone/mark';
 import { commitEtch } from '../../lib/stone/etch';
 import { formatMathValue, pdNumberNote } from '../../lib/stone/mathEval';
-import { convertValue, formatUnit, formatSource } from '../../lib/fx/convert';
+import { convertValue, formatUnit, formatResult, formatSource } from '../../lib/fx/convert';
 import { useFxRates } from '../../lib/fx/rates';
 import { useFiat } from '../../lib/state/FiatContext';
 import type { FiatCode } from '../../lib/fx/types';
@@ -1206,7 +1206,7 @@ function ConvertWidget({ plan }: { plan: Extract<WidgetPlan, { kind: 'convert' }
     return (
         <div className="stone-widget sw-card">
             <SwTitle glyph={`⇄${VS15}`} label="CONVERT" sub={formatSource(conv.amount, conv.from)} />
-            <SwSay lead>{`= ${formatUnit(primary.value, primary.to)}`}</SwSay>
+            <SwSay lead>{`= ${formatResult(primary.value, primary.to)}`}</SwSay>
             {extras.length > 0 && (
                 <div className="sw-rows">
                     {extras.map((x) => (

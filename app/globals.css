@@ -10649,6 +10649,47 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     position: static;
     width: 240px;
 }
+
+/* ── Showcase-full swap picker (Brendon, 2026-07-22) — the 6 current picks as
+   small thumbnails on the confirm card; tap one to replace it. Lives on the
+   inverted confirm card (bg = --text-color), so cell chrome uses --bg-color. */
+.showcase-swap-card { width: min(92vw, 340px); }
+.showcase-swap-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+.showcase-swap-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 4px;
+    background: none;
+    border: 1.5px solid var(--bg-color);
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--bg-color);
+    font-family: 'Courier New', Courier, monospace;
+}
+.showcase-swap-cell:active { transform: scale(0.97); }
+.showcase-swap-thumb {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    display: block;
+    border-radius: 2px;
+    background: color-mix(in srgb, var(--bg-color) 15%, transparent);
+}
+.showcase-swap-name {
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
 .starred-row-id {
     font-weight: bold;
     color: var(--text-color);
