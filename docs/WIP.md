@@ -8,10 +8,34 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-22 (latest) DEAD SOUNDTRACKS + MINIPLAYER BATCH — all SHIPPED on
-   dev (tip `1497be7`), auto-deploy rolling, tree clean. Task branch
-   `claude/remove-broken-yt-playlists-w3di4o` = merged trash (delete at
-   https://github.com/brendonrell/PriceOS/branches).** Opus, present→push loop.
+0. ✅ **2026-07-22 (LATEST) MINIPLAYER NAMING + AUTO-PLAYLIST PURGE — all SHIPPED
+   on dev (tip `07c9676`), auto-deploy rolling, tree clean. Task branch
+   `claude/miniplayer-naming-updates-nphfx6` = trash once this is confirmed
+   (delete at https://github.com/brendonrell/PriceOS/branches).** Opus,
+   present→push loop.
+   ① **Faces renamed + trimmed:** Micro & Slab retired; cycle is now Deck → Tab
+   → Disc (Tab = the old Signal/equalizer face, internal key `signal` kept).
+   ② **Wordmark = lowercase mini*player*** everywhere, "player" italic; toasts
+   render the italic via a tiny helper in ActionToast. The ™ is a toast-only
+   flourish on the face names (Deck™/Tab™/Disc™); "PD" and "The" dropped.
+   ③ **Play/pause now rides every face** (was deck-only); ≫ next stays deck-only.
+   ④ **Top readout row = song + playlist**, joined " - ", marquee crawls the
+   whole line; clears the instant you change channel (title only trusted on
+   PLAYING, so the old song no longer sticks). ⑤ **THE BIG ONE — every
+   auto-generated OLAK album-playlist purged.** All 52 registry references (30
+   unique albums) swapped to normal user playlists / full-album videos. Player
+   now plays **single full-album videos** too, not just playlists (`isPlaylistId`
+   splits the two in FmBar boot/start/watch-url). This is the real fix for the
+   widespread DEAD LINK reports — OLAK auto-album lists are the embed-block kind.
+   ⚠️ **Same embed-verification limit as below still applies:** the container
+   can't drive YouTube's real player (proxy resets browser→YT), so replacements
+   are real, correct links pulled from live search results but NOT in-app
+   embed-tested here. Brendon spot-checks on device; if a specific album plays
+   dead, name it → swap that one to a user full-album upload.
+
+0.1 ✅ **2026-07-22 (prev) DEAD SOUNDTRACKS + MINIPLAYER BATCH — SHIPPED on
+   dev (tip `1497be7`). Task branch `claude/remove-broken-yt-playlists-w3di4o`
+   = merged trash.** Opus, present→push loop.
    ① **Dead YouTube soundtracks replaced.** Swept all 49 registry playlists;
    5 were unusable → replaced with verified live/embeddable ones: Boards of
    Canada – MHTRTC (→ the official album already in-code), Stars of the Lid –
