@@ -4,6 +4,7 @@
  * Editions are immutable rows; this component never computes market data.
  */
 
+import Link from 'next/link';
 import type { DispatchBody } from '@/lib/dispatch/build.server';
 import DispatchClose from './DispatchClose';
 import DigestSignup from './DigestSignup';
@@ -96,10 +97,12 @@ export default function DispatchPage({ body, nav }: { body: DispatchBody; nav: D
 
       <DigestSignup />
 
+      {/* The day arrows swap the edition IN PLACE — client navigation, so an
+          installed PWA never spawns a new tab per day (Brendon, 2026-07-22). */}
       <nav className="dp-nav">
-        {nav.prev ? <a href={`/dispatch/${nav.prev}`}>{'‹︎'} PREVIOUS</a> : <span />}
-        <a href="/dispatch">LATEST</a>
-        {nav.next ? <a href={`/dispatch/${nav.next}`}>NEXT {'›︎'}</a> : <span />}
+        {nav.prev ? <Link href={`/dispatch/${nav.prev}`}>{'‹︎'} PREVIOUS</Link> : <span />}
+        <Link href="/dispatch">LATEST</Link>
+        {nav.next ? <Link href={`/dispatch/${nav.next}`}>NEXT {'›︎'}</Link> : <span />}
       </nav>
       <div className="dp-colophon">
         PRINTED ONCE, KEPT FOREVER<span className="dp-colophon-sep"> · </span>
