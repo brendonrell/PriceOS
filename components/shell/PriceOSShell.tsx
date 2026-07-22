@@ -433,23 +433,19 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
        its own header, nav, and footer, so the app chrome (navbar, tape,
        footer, modal/overlay islands) stays off it. Providers and the
        colorway paint still apply (the docs mount the ColorwayPicker), and
-       the loader-exit effect above has already run. */
-    if (pathname === '/docs' || pathname?.startsWith('/docs/')) {
-        return (
-            <>
-                <main key={pathname}>{children}</main>
-                {/* The Command Stone lives ABOVE realms — summonable even on
-                    the bare docs surface (Brendon, 2026-07-21: triple-tap the
-                    background, anywhere, docs included). */}
-                <ErrorBoundary name="CommandStone">
-                    <CommandStone />
-                </ErrorBoundary>
-            </>
-        );
-    }
+       the loader-exit effect above has already run.
+       ⛔ The Command Stone AND the miniplayer are the exception: they live
+       ABOVE realms and must persist ACROSS the docs boundary (Brendon,
+       2026-07-22: "keep the player in docs — can always × it out"). So they
+       are rendered ONCE in the shared tail below, at a stable position, and
+       NEVER inside the docs-only branch — mounting a second copy would be a
+       different React instance and would cut the audio on entering docs. */
+    const isDocs = pathname === '/docs' || pathname?.startsWith('/docs/');
 
     return (
         <>
+            {!isDocs && (
+            <>
             <ErrorBoundary name="Backgrounds">
                 <Backgrounds />
             </ErrorBoundary>
@@ -465,6 +461,8 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             <ErrorBoundary name="PreviewHealer">
                 <PreviewHealer />
             </ErrorBoundary>
+            </>
+            )}
             {/* Key the page body on the path so each route mounts a FRESH
                 subtree — matching the old full-reload semantics exactly, so no
                 page that assumed a reload keeps stale per-route state. The shell,
@@ -473,6 +471,8 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
                 content remounts. Keyed on pathname only (not query/hash), so an
                 in-page #hash jump or a query tweak never forces a remount. */}
             <main key={pathname}>{children}</main>
+            {!isDocs && (
+            <>
             <ErrorBoundary name="Footer">
                 <Footer />
             </ErrorBoundary>
@@ -572,14 +572,20 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             <ErrorBoundary name="BenchDock">
                 <BenchDock />
             </ErrorBoundary>
+            <ErrorBoundary name="NativePingsFirstRun">
+                <NativePingsFirstRun />
+            </ErrorBoundary>
+            </>
+            )}
+            {/* ── ABOVE REALMS — mounted ONCE, on every surface including docs,
+                at a stable position so navigating in/out of docs never remounts
+                them (the miniplayer's audio survives; the Stone stays summonable
+                everywhere). Brendon, 2026-07-22. ── */}
             <ErrorBoundary name="CommandStone">
                 <CommandStone />
             </ErrorBoundary>
             <ErrorBoundary name="FmBar">
                 <FmBar />
-            </ErrorBoundary>
-            <ErrorBoundary name="NativePingsFirstRun">
-                <NativePingsFirstRun />
             </ErrorBoundary>
         </>
     );
