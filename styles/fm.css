@@ -201,13 +201,15 @@ body.pd-stone-open .fm-bar {
     will-change: transform;
 }
 .fm-lcd-row--scroll .fm-lcd-inner {
-    animation: fm-lcd-marquee var(--fm-dur, 8s) ease-in-out infinite alternate;
+    /* Linear = steady constant crawl (real MP3 tickers don't accelerate);
+       the pauses live in the keyframe holds, not the easing. */
+    animation: fm-lcd-marquee var(--fm-dur, 8s) linear infinite alternate;
 }
 @keyframes fm-lcd-marquee {
     /* hold at the start, crawl to reveal the tail, hold at the end (alternate
        runs it back) — the classic reveal-and-return, not a frantic loop. */
-    0%, 12% { transform: translateX(0); }
-    88%, 100% { transform: translateX(var(--fm-shift, 0)); }
+    0%, 16% { transform: translateX(0); }
+    84%, 100% { transform: translateX(var(--fm-shift, 0)); }
 }
 @media (prefers-reduced-motion: reduce) {
     .fm-lcd-row--scroll .fm-lcd-inner { animation: none; }

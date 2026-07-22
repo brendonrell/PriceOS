@@ -301,7 +301,10 @@ export default function FmBar() {
                     const shift = overflow + 6;
                     row.classList.add('fm-lcd-row--scroll');
                     row.style.setProperty('--fm-shift', `-${shift}px`);
-                    row.style.setProperty('--fm-dur', `${Math.max(4, shift / 22 + 2).toFixed(1)}s`);
+                    /* Slow, old-MP3 crawl (Brendon, 2026-07-22 — the first pass
+                       raced). ~half the speed; longer names take proportionally
+                       longer, with a clear pause held at each end (keyframes). */
+                    row.style.setProperty('--fm-dur', `${Math.max(7, shift / 11 + 4).toFixed(1)}s`);
                 }
             });
         });
@@ -349,9 +352,13 @@ export default function FmBar() {
 
     const isDeckFace = display === 'deck';
 
-    /* The three LCD rows — Sony minidisc grammar: static, compact, no crawl. */
+    /* The three LCD rows — Sony minidisc grammar: static, compact, no crawl.
+       Row 1 = the SONG now playing (the crawling ticker reveals long names);
+       row 2 = WHOSE OST it is, the project handle (@name OST), not the album
+       title (Brendon, 2026-07-22). Falls back to the album label only when a
+       station carries no project (never, in practice). */
     const rowTrack = trackTitle || onAir.label;
-    const rowStation = onAir.label;
+    const rowStation = onAir.slug ? `@${onAir.slug} OST` : onAir.label;
     const rowStatus =
         deadLink ? '✕︎ DEAD LINK' :
         status === 'playing' ? '▶︎ PLAYING' :
