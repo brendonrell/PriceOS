@@ -8,7 +8,41 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-21 (latest) SPOT-EDIT BATCH + 2 BUGS — all SHIPPED on dev (tip
+0. ✅ **2026-07-22 (latest) DEAD SOUNDTRACKS + MINIPLAYER BATCH — all SHIPPED on
+   dev (tip `1497be7`), auto-deploy rolling, tree clean. Task branch
+   `claude/remove-broken-yt-playlists-w3di4o` = merged trash (delete at
+   https://github.com/brendonrell/PriceOS/branches).** Opus, present→push loop.
+   ① **Dead YouTube soundtracks replaced.** Swept all 49 registry playlists;
+   5 were unusable → replaced with verified live/embeddable ones: Boards of
+   Canada – MHTRTC (→ the official album already in-code), Stars of the Lid –
+   Tired Sounds Of, Drexciya – Neptune's Lair, **Loscil – Clara → Loscil –
+   Plume** (Clara has NO stable playlist anywhere — that's why it died), and
+   **Burial – Untrue** (was the auto-generated OLAK "Album -" list, which
+   BLOCKS in-app embedding → played as DEAD LINK; swapped to a user full-album
+   upload of all 13 tracks). ② **Miniplayer never changes size** — readout
+   pinned to a fixed 150px panel (`.fm-mode-deck .fm-rows`), so title length
+   can't grow/shrink the chassis. ③ **MP3 ticker** — `.fm-lcd-inner` +
+   `fm-lcd-marquee`; a per-row rAF effect in FmBar measures overflow and only
+   scrolls rows whose text doesn't fit (reveal-and-return, short names stay
+   still). ④ **Miniplayer persists across docs + studio** — the shell's
+   `/docs` early-return used to render its own Stone and omit FmBar; both now
+   render ONCE in a shared tail (gated the rest of the chrome on `!isDocs`) at
+   a stable position so nav in/out of docs never remounts them (audio
+   survives). Studio already rode the full shell. ⑤ **Reverted BUG B** from
+   2026-07-21: the custom Unicode font no longer styles the FOLLOWER/FOLLOWERS
+   word in the stats row (back to plain, per Brendon 2026-07-22).
+   ⚠️ **OPEN — embed verification:** this build container is BLOCKED from
+   driving YouTube's real player (browser→YT reset at the proxy; innertube
+   returns EMBEDDER_IDENTITY_DENIED uniformly; curl only proves the playlist
+   PAGE loads, NOT that it embeds). So "verified live" this session means the
+   page loads, not that it plays in-app. The OLAK "Album -" auto-lists are the
+   embed-block risk; Burial was the confirmed case. Brendon is spot-checking
+   the rest on the live app and will flag any that play dead → swap each to a
+   user full-album upload (the reliably-embeddable kind). A real fix path if it
+   recurs broadly: a one-time in-app sweep that runs the actual player against
+   every registry playlist and logs the failures.
+
+0.0 ✅ **2026-07-21 (prev) SPOT-EDIT BATCH + 2 BUGS — all SHIPPED on dev (tip
    `0213c57`), auto-deploy rolling, tree clean. Task branch
    `claude/pd-spot-edits-3vu04w` = merged trash (delete at
    https://github.com/brendonrell/PriceOS/branches).** Opus, present→push loop.
