@@ -8,7 +8,30 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-22 (LATEST) STONE + TAGS + SHOWCASE + ALBUMS ROUND 2 — all
+0. ✅ **2026-07-22 (LATEST) FULL-APP SECURITY REVIEW — 4 findings fixed &
+   SHIPPED on dev (tip `e3126d5`), auto-deploy rolling, tree clean. Task branch
+   `claude/security-review-app-ygx7qj` = trash (delete at
+   https://github.com/brendonrell/PriceOS/branches).**
+   Ran the Claude Security skill whole-repo across all 4 repos (full report:
+   `docs/security-review-2026-07-22.md`). No critical/HIGH. Fixed:
+   ⓐ **Output-view RPCs locked to service_role** — `record_output_view` +
+   `output_view_stats` were SECURITY DEFINER with EXECUTE open to anon/PUBLIC,
+   so anyone could forge another user's view History + leak the viewer/follow
+   graph straight through `/rest/v1/rpc`. Migration
+   `20260722_revoke_public_execute_output_view_rpcs.sql`; applied to the LIVE DB
+   + committed (subtractive — app calls them via service_role only).
+   ⓑ **Exchange chain-rail `accept` now verifies the on-chain fill** before
+   flipping the `holders` mirror — was client-trusted, so a two-wallet "trade"
+   that never actually settled minted PERMANENT achievements/PriceScore.
+   ⓒ **market/orders `confirm_fills` now verifies the on-chain fill** (sender ==
+   session wallet + the listing's `order_hash` actually fulfilled in that tx)
+   before closing a listing / firing SOLD pings — was: any signed-in user could
+   de-list anyone's piece and spray fake SOLD notifications.
+   ⓑⓒ share new `lib/market/verifyFill.ts` (reuses the indexer's Seaport
+   OrderFulfilled decode + the gnome-deal receipt rigor). tsc + full build green.
+   ── prior task branch `claude/ceo-tag-command-stone-math-7macqi` also = trash.
+
+0. ✅ **2026-07-22 STONE + TAGS + SHOWCASE + ALBUMS ROUND 2 — all
    SHIPPED on dev (tip `01b8071`), auto-deploy rolling, tree clean. Working
    directly on `dev` now; task branch `claude/ceo-tag-command-stone-math-7macqi`
    = trash (delete at https://github.com/brendonrell/PriceOS/branches).**
