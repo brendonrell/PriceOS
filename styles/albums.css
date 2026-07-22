@@ -63,7 +63,7 @@
 .album-tile-plus {
     font-size: 44px;
     font-weight: bold;
-    border: 1.5px dashed color-mix(in srgb, currentColor 65%, transparent);
+    border: none;
     background: none;
 }
 .album-tile-label {
