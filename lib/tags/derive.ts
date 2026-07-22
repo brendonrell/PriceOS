@@ -15,11 +15,15 @@
 
 import {
     type Tag, tagById, isPersonaId, GRANTED_IDS,
-    ID_TAG_STYLE, ID_RANGES,
+    ID_TAG_STYLE, ID_RANGES, CEO_TAG,
 } from './catalog';
 
 /** Provisional Veteran cut (Brendon to confirm the real tenure). */
 export const VETERAN_DAYS = 180;
+
+/** Brendon's wallet (pricediscussion.eth) — the ONLY holder of the CEO tag.
+ *  Same address the Studio access seed uses. */
+const CEO_ADDRESS = '0x146034ec25c277f30f63933b151297689e15b9b8';
 
 export interface DeriveInput {
     /** Personas the user picked (users.profile_tags). */
@@ -32,6 +36,8 @@ export interface DeriveInput {
     isArtist?: boolean;
     /** Account creation timestamp (drives the Veteran tenure tag). */
     createdAt?: string | null;
+    /** The profile owner's wallet — gates the one-of-one CEO tag. */
+    address?: string | null;
 }
 
 /** The single id tag a platform number earns, or null (no number / past 1000). */
@@ -73,6 +79,9 @@ export function deriveTags(input: DeriveInput): Tag[] {
     const add = (t: Tag | undefined | null) => {
         if (t && !seen.has(t.id)) { seen.add(t.id); out.push(t); }
     };
+
+    // CEO — Brendon's wallet only, one of one (never from granted_tags).
+    if (input.address && input.address.toLowerCase() === CEO_ADDRESS) add(CEO_TAG);
 
     // Personas the user chose (validated against the catalog).
     for (const id of input.profileTags ?? []) {

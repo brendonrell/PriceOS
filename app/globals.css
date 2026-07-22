@@ -4039,6 +4039,15 @@ body.pd-stone-open .ens-copy-toast {
 }
 .profile-tag-label { line-height: 1; }
 
+/* ── CEO — Brendon's one-of-one chip (2026-07-22): Hothurt fill · Attention-
+   yellow lettering (both pinned in JS, paint-proof) · RUBIK, never Courier.
+   The Rubik lock lives here so no @name font can override it. ── */
+.profile-tag--ceo .profile-tag-label {
+    font-family: var(--font-rubik-mono), 'Rubik Mono One', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+}
+
 /* Long-press the PriceSprite → inline colour picker. Reuses the egg row's
    shove-open + pills; stacks the Save/undo actions above the wheel + pills
    (Brendon 2026-06-23). */

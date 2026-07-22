@@ -39,10 +39,17 @@ export interface Tag {
     /** Flair colour (#RRGGBB) — the chip's accent (border + glyph), full-strength. */
     color: string;
     kind: TagKind;
-    /** Hero display order (lower first): id → granted → earned → personas. */
+    /** Hero display order (lower first): ceo → id → granted → earned → personas. */
     order: number;
     /** One-line meaning, shown in the toast when a persona is toggled on. */
     blurb?: string;
+    /** Explicit label colour — overrides the auto-contrast (tagTextOn). Used by
+     *  the fixed-style tags (the CEO chip's Attention-yellow lettering). */
+    textColor?: string;
+    /** Locked style: this chip ignores the all-tags paint AND the owner's @name
+     *  font, always wearing its own fixed treatment (the CEO tag: Rubik, no
+     *  paint, no font — Brendon 2026-07-22). */
+    lockStyle?: boolean;
 }
 
 /* ── PERSONAS — the pick-your-owns (self-applied) ────────────────────────────
@@ -92,6 +99,21 @@ const GRANTED: Tag[] = [
     /* Verified / Partner / Featured REMOVED (Brendon, 2026-07-20). A stray
        grant of a removed id is a silent no-op — derive skips unknown ids. */
 ];
+
+/* ── CEO — Brendon's own, one of one (Brendon, 2026-07-22). NOT grantable to
+   anyone: derived only for his wallet in derive.ts, never a value in
+   granted_tags. Hothurt fill, Attention-yellow lettering, no glyph, and it
+   wears RUBIK — the all-tags paint and the custom @name font can't touch it
+   (lockStyle). Order 5 → it always leads the row. ── */
+export const CEO_TAG: Tag = {
+    id: 'ceo',
+    label: 'CEO',
+    color: '#FF0055',      // Hothurt background
+    textColor: '#FFE600',  // Attention-yellow lettering
+    kind: 'granted',
+    order: 5,
+    lockStyle: true,
+};
 
 export const TAGS: Tag[] = [...PERSONAS, ...EARNED, ...GRANTED];
 

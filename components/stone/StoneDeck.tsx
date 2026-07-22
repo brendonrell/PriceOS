@@ -48,6 +48,11 @@ import { dateKey } from '../../lib/calendar/utils';
 import { getTodos, subscribeTodos, datedTodosByDay, type TodoItem } from '../../lib/todos/todoStore';
 import { buildWalletMark } from '../../lib/stone/mark';
 import { commitEtch } from '../../lib/stone/etch';
+import { formatMathValue, pdNumberNote } from '../../lib/stone/mathEval';
+import { convertValue, formatUnit, formatSource } from '../../lib/fx/convert';
+import { useFxRates } from '../../lib/fx/rates';
+import { useFiat } from '../../lib/state/FiatContext';
+import type { FiatCode } from '../../lib/fx/types';
 import type { WidgetPlan } from '../../lib/stone/widgets';
 import type { StoneTrendResponse } from '../../app/api/stone/trend/route';
 import type { StoneWrappedResponse } from '../../app/api/stone/wrapped/route';
@@ -1143,6 +1148,79 @@ function OmniWidget({ address }: { address: string }) {
     );
 }
 
+/* ── ƒ MATH — the inline calculator: type "3*546", answer instantly, and if
+      the result lands on a number PD cares about, the stone says so (the "lol"
+      note). Global Search shows the bare answer; this is the fuller card. ── */
+
+function MathWidget({ plan }: { plan: Extract<WidgetPlan, { kind: 'math' }> }) {
+    const note = pdNumberNote(plan.value);
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle glyph={`ƒ${VS15}`} label="MATH" sub={plan.expr} />
+            <SwSay lead>{`= ${formatMathValue(plan.value)}`}</SwSay>
+            {note && <SwSay>{note}</SwSay>}
+        </div>
+    );
+}
+
+/* ── ⇄ CONVERT — the $0 inline ETH↔fiat converter. The primary result big;
+      the stone's "extra" is a few more currencies at a glance (Global Search
+      shows only the one line). Rides /api/fx (edge-cached, free forever) and
+      works whether or not fiat mode is on. ── */
+
+const CONVERT_ALSO: readonly FiatCode[] = ['USD', 'EUR', 'GBP', 'JPY'];
+
+function ConvertWidget({ plan }: { plan: Extract<WidgetPlan, { kind: 'convert' }> }) {
+    const { currency } = useFiat();
+    const fx = useFxRates(true);
+    const fallback = currency ?? 'USD';
+    const conv = plan.conv;
+    const primary = convertValue(conv, fx, fallback);
+
+    if (!fx) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`⇄${VS15}`} label="CONVERT" sub={formatSource(conv.amount, conv.from)} />
+                <SwSay>READING THE RATE…</SwSay>
+            </div>
+        );
+    }
+    if (!primary) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`⇄${VS15}`} label="CONVERT" sub={formatSource(conv.amount, conv.from)} />
+                <SwSay>NO TRUSTED RATE RIGHT NOW.</SwSay>
+            </div>
+        );
+    }
+
+    /* The extra glance: when converting FROM eth with no explicit target, show
+       the other majors too. A targeted or reverse conversion stays single. */
+    const showExtra = conv.from === 'ETH' && conv.to == null;
+    const extras = showExtra
+        ? CONVERT_ALSO.filter((c) => c !== primary.to)
+            .map((c) => ({ code: c, r: convertValue({ ...conv, to: c }, fx, fallback) }))
+            .filter((x): x is { code: FiatCode; r: NonNullable<ReturnType<typeof convertValue>> } => !!x.r)
+        : [];
+
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle glyph={`⇄${VS15}`} label="CONVERT" sub={formatSource(conv.amount, conv.from)} />
+            <SwSay lead>{`= ${formatUnit(primary.value, primary.to)}`}</SwSay>
+            {extras.length > 0 && (
+                <div className="sw-rows">
+                    {extras.map((x) => (
+                        <div key={x.code} className="sw-row-line">
+                            <span className="sw-row-l">{x.code}</span>
+                            <span className="sw-row-r">{formatUnit(x.r.value, x.r.to)}</span>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
 /* ── the deck router — one summoned plan, one card ── */
 
 export function WidgetDeck({ plan, address, onGo, onAct }: {
@@ -1154,6 +1232,8 @@ export function WidgetDeck({ plan, address, onGo, onAct }: {
     switch (plan.kind) {
         case 'calendar': return <CalendarWidget />;
         case 'priceday': return <PriceDayWidget />;
+        case 'math': return <MathWidget plan={plan} />;
+        case 'convert': return <ConvertWidget plan={plan} />;
         case 'calc': return <CalcWidget plan={plan} onAct={onAct} />;
         case 'dossier': return <DossierWidget name={plan.name} me={address} onGo={onGo} onAct={onAct} />;
         case 'gallery': return <GalleryWidget slug={plan.slug} title={plan.title} onGo={onGo} onAct={onAct} />;

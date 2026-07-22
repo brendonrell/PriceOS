@@ -24,10 +24,14 @@
  */
 
 import { resolveProject } from './etch';
+import { evalMath } from './mathEval';
+import { parseConvert, type ConvertPlan } from '../fx/convert';
 
 export type WidgetPlan =
     | { kind: 'calendar' }
     | { kind: 'priceday' }
+    | { kind: 'math'; expr: string; value: number }
+    | { kind: 'convert'; conv: ConvertPlan }
     | { kind: 'calc'; slug: string | null; title: string | null; price: number | null }
     | { kind: 'dossier'; name: string }
     | { kind: 'gallery'; slug: string | null; title: string | null }
@@ -124,6 +128,17 @@ export function parseWidget(line: string): WidgetPlan | null {
         if (!rest) return { kind: 'matrix', names: [] };
         return { kind: 'matrix', names: splitMatrixNames(rest).slice(0, 3) };
     }
+
+    /* CONVERT — "1 eth", "0.5 eth in gbp", "500 usd to eth" (the $0 inline
+       ETH↔fiat converter). Checked before the calc prefix so a bare amount
+       reads as a conversion, not a project search. */
+    const conv = parseConvert(q);
+    if (conv) return { kind: 'convert', conv };
+
+    /* MATH — "3*546" answers instantly. Needs an operator + a digit, so a
+       bare number or a name never reads as a calculation. */
+    const math = evalMath(q);
+    if (math) return { kind: 'math', expr: math.expr, value: math.value };
 
     const calc = /^calc(?:\s+(.+))?$/.exec(q);
     if (calc) {

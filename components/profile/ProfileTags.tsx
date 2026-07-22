@@ -29,16 +29,22 @@ export function ProfileTags({ tags, font, paint }: {
     return (
         <div className="profile-tags" aria-label="Tags">
             {tags.map((t) => {
-                const hex = paintHex ?? t.color;
+                /* Locked-style tags (the CEO chip) wear their OWN colours and
+                   font — the all-tags paint and the @name font can't touch
+                   them (Brendon, 2026-07-22). */
+                const hex = t.lockStyle ? t.color : (paintHex ?? t.color);
+                const textHex = t.lockStyle && t.textColor ? t.textColor : tagTextOn(hex);
                 return (
                 <span
                     key={t.id}
-                    className="profile-tag"
-                    style={{ ['--tag' as string]: hex, ['--tag-text' as string]: tagTextOn(hex) }}
+                    className={`profile-tag${t.lockStyle ? ` profile-tag--${t.id}` : ''}`}
+                    style={{ ['--tag' as string]: hex, ['--tag-text' as string]: textHex }}
                     title={t.label}
                 >
                     {t.glyph && <span className="profile-tag-glyph">{t.glyph}</span>}
-                    <span className="profile-tag-label">{styleName(t.label, font)}</span>
+                    <span className="profile-tag-label">
+                        {t.lockStyle ? t.label : styleName(t.label, font)}
+                    </span>
                 </span>
                 );
             })}

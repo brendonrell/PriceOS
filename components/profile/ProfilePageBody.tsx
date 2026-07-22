@@ -264,7 +264,8 @@ function ProfilePageBodyInner({
         userNumber: user.user_number ?? null,
         isArtist: !!artistStatus,
         createdAt: user.created_at,
-    }), [isOwnProfile, myTags, user.profile_tags, user.granted_tags, user.user_number, artistStatus, user.created_at]);
+        address: user.address,
+    }), [isOwnProfile, myTags, user.profile_tags, user.granted_tags, user.user_number, artistStatus, user.created_at, user.address]);
 
     const {
         eggOpen, preEggHex, handleNameTap,

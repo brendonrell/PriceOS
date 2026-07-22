@@ -96,6 +96,10 @@ import { projectSpriteFace } from '../../lib/project/projectSprite';
 import { paintOutput } from '../../lib/state/ProjectContext';
 import { paintAsciiStandin } from '../../lib/art/asciiStandin';
 import { hashString } from '../../lib/art/rng';
+import { evalMath, formatMathValue } from '../../lib/stone/mathEval';
+import { parseConvert, convertValue, formatUnit, formatSource } from '../../lib/fx/convert';
+import { useFxRates } from '../../lib/fx/rates';
+import { useFiat } from '../../lib/state/FiatContext';
 import LaneRunner from './LaneRunner';
 import type { SearchResponse, SearchUserResult } from '../../app/api/search/route';
 
@@ -242,6 +246,26 @@ export function GlobalSearchBar() {
     // Mirrors sim's `isGlobalSearching` flag (sim.html 8914 + 8968).
     const isGlobalSearching = value.trim().length > 0;
 
+    // INLINE MATH + ETH CONVERTER (Brendon, 2026-07-22) — the same two powers
+    // the Command Stone gained, here in the bare form: Global Search shows ONLY
+    // the answer, none of the stone's extra (no PD note, no multi-currency).
+    const mathAns = useMemo(() => evalMath(value), [value]);
+    const convPlan = useMemo(() => (mathAns ? null : parseConvert(value)), [value, mathAns]);
+    const { currency } = useFiat();
+    const fx = useFxRates(!!convPlan);
+    const convAns = useMemo(
+        () => (convPlan ? convertValue(convPlan, fx, currency ?? 'USD') : null),
+        [convPlan, fx, currency],
+    );
+    const inlineAnswer: string | null = mathAns
+        ? `${mathAns.expr} = ${formatMathValue(mathAns.value)}`
+        : convPlan
+            ? (convAns
+                ? `${formatSource(convPlan.amount, convPlan.from)} = ${formatUnit(convAns.value, convAns.to)}`
+                : `${formatSource(convPlan.amount, convPlan.from)} …`)
+            : null;
+    const hasInline = isGlobalSearching && inlineAnswer != null;
+
     // RECENTLY VIEWED — the breadcrumb trail (the History feature) surfaces
     // the moment search opens, before a single keystroke; typing swaps it for
     // live results. Loaded on activation so the freshest trail always shows.
@@ -316,7 +340,8 @@ export function GlobalSearchBar() {
     // or the bar unmounts; stale responses can never land over fresh ones.
     useEffect(() => {
         const q = value.trim();
-        if (q.length < 2 || SIDE_DOORS.has(hashString(q.toLowerCase()))) {
+        // A math/conversion line owns the panel — never fire a search for it.
+        if (q.length < 2 || SIDE_DOORS.has(hashString(q.toLowerCase())) || evalMath(value) || parseConvert(value)) {
             setResults(null);
             setSearching(false);
             return;
@@ -649,7 +674,13 @@ export function GlobalSearchBar() {
                 }}
             >
                 {eggOn && <LaneRunner />}
-                {!eggOn && engaged && !isGlobalSearching && (
+                {/* INLINE MATH / CONVERSION — the bare answer, nothing else. */}
+                {!eggOn && hasInline && (
+                    <div className="global-result-item gsr-row gsr-answer">
+                        <span className="gsr-main">{inlineAnswer}</span>
+                    </div>
+                )}
+                {!eggOn && !hasInline && engaged && !isGlobalSearching && (
                     <>
                         {/* COMPOSER ⊚ — the launcher's home (Brendon,
                             2026-07-13): the special first row whenever search
@@ -713,10 +744,10 @@ export function GlobalSearchBar() {
                         </div>
                     </>
                 )}
-                {!eggOn && isGlobalSearching && searching && !ordered && (
+                {!eggOn && !hasInline && isGlobalSearching && searching && !ordered && (
                     <div className="global-result-item gsr-empty fm-loading">{`⌕${VS15} searching…`}</div>
                 )}
-                {!eggOn && isGlobalSearching && (pageHits.length > 0 || ordered) && (
+                {!eggOn && !hasInline && isGlobalSearching && (pageHits.length > 0 || ordered) && (
                     <>
                         {ordered && ordered.answers.map((ans, i) => (
                             <div
