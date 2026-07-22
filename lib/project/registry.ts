@@ -190,7 +190,7 @@ const PRISMS: ProjectDef = {
   // v2 colorway = the bench's custom theme hex (Brendon 2026-06-11).
   colorway: '#E8FF47',
   mintPriceEth: 0,
-  soundtrack: { playlistId: 'PLUEMihO9lT7-yvLCQxUOojL_dcRNwRW06', label: 'Boards of Canada — Music Has the Right to Children' },
+  soundtrack: { playlistId: 'OLAK5uy_mTZiCulgHFbzkIChf8KQbUL3DWh2PCmSI', label: 'Boards of Canada — Music Has the Right to Children' },
   aspects: PRISMS_ASPECTS,
   traitSchema: prismsSchema,
   render: renderPrisms,
@@ -258,7 +258,7 @@ const BOREAL: ProjectDef = {
   outputs: 222,
   colorway: '#15c08a',
   mintPriceEth: 0,
-  soundtrack: { playlistId: 'PL4NXUZspQ7BwHO5UnqrS6ZX-Pn7Hc_XwS', label: 'Stars of the Lid — The Tired Sounds Of' },
+  soundtrack: { playlistId: 'PLvaPUJKLJcQzRvWhVWov0Iq4TE3AvPRnR', label: 'Stars of the Lid — The Tired Sounds Of' },
   aspects: BOREAL_ASPECTS,
   traitSchema: borealSchema,
   render: renderBoreal,
@@ -366,7 +366,7 @@ const TERMINAL_NETWORK: ProjectDef = {
   outputs: 111,
   colorway: '#1f44d0',
   mintPriceEth: 0.1,
-  soundtrack: { playlistId: 'PLPN0gicPJTTV1_LQXmzAGJiABox3lPp-Z', label: "Drexciya — Neptune's Lair" },
+  soundtrack: { playlistId: 'PLryJ-4UNwXnfNR1h7RHPT2_TT6hu91G1o', label: "Drexciya — Neptune's Lair" },
   aspects: TERMINAL_NETWORK_ASPECTS,
   traitSchema: terminalNetworkSchema,
   render: renderTerminalNetwork,
@@ -527,7 +527,7 @@ const CINDER: ProjectDef = {
 const CATENARY: ProjectDef = {
   slug: 'catenary', displayName: 'Catenary', artistHandle: 'lanternlight-ai', outputs: 222,
   colorway: '#ffb02e', mintPriceEth: 0.1,
-  soundtrack: { playlistId: 'PL4NXUZspQ7BwHO5UnqrS6ZX-Pn7Hc_XwS', label: 'Stars of the Lid — The Tired Sounds Of' },
+  soundtrack: { playlistId: 'PLvaPUJKLJcQzRvWhVWov0Iq4TE3AvPRnR', label: 'Stars of the Lid — The Tired Sounds Of' },
   aspects: INTERCHANGE_ASPECTS, traitSchema: interchangeSchema, render: renderInterchange, traitsOf: interchangeTraits,
 };
 const TOPIARY: ProjectDef = {
@@ -613,7 +613,7 @@ const AI_SOUNDTRACKS: Record<string, { playlistId: string; label: string }> = {
   'full-faith-credit':      { playlistId: 'PLTMN6OMDTnKmPEshAkltDlfJYLft6taZO', label: 'Tom Waits — Small Change' },
   'delisted':               { playlistId: 'OLAK5uy_mrUY03jLjKAJrWRq3UOqcvdVncCE8FDnI', label: 'Oneohtrix Point Never — Replica' },
   'the-river-disagrees':    { playlistId: 'OLAK5uy_lMvRyOBHG4AfghMmIfEOiWKhK2XPN61MY', label: 'Talk Talk — Spirit of Eden' },
-  'stars-nobody-named':     { playlistId: 'PL4NXUZspQ7BwHO5UnqrS6ZX-Pn7Hc_XwS', label: 'Stars of the Lid — The Tired Sounds Of' },
+  'stars-nobody-named':     { playlistId: 'PLvaPUJKLJcQzRvWhVWov0Iq4TE3AvPRnR', label: 'Stars of the Lid — The Tired Sounds Of' },
   'thank-you-no-refunds':   { playlistId: 'PLn_xnHmgpm0ZZPxjHYsxJtcZHyw28_ARu', label: 'Vulfpeck — Thrill of the Arts' },
   'elevations':             { playlistId: 'OLAK5uy_mKWrzbnbuO-wJqnjdz4xO1nrsdD9Q0m2k', label: 'Philip Glass — Glassworks' },
   'dyed-in-the-wool':       { playlistId: 'OLAK5uy_l61jyu2-HfVxbgW4KFUruUOjU56T0az-s', label: 'Alice Coltrane — Journey in Satchidananda' },
@@ -652,7 +652,7 @@ const AI_SOUNDTRACKS: Record<string, { playlistId: string; label: string }> = {
   'asterism':               { playlistId: 'OLAK5uy_lCS1RuGli5eF1wKf8uJSisyzFsOYrY4AA', label: 'Brian Eno — Apollo: Atmospheres & Soundtracks' },
   'facets':                 { playlistId: 'OLAK5uy_mGng1-1F5dTzxQK7ONy9aqE350bh9ayHc', label: 'Arvo Pärt — Tabula Rasa' },
   'quasicrystal':           { playlistId: 'OLAK5uy_msIUSKs_bvqV-eWDtz84ZMQ2ZxCcWZWeM', label: 'Alva Noto + Ryuichi Sakamoto — Vrioon' },
-  'circuit':                { playlistId: 'PLPN0gicPJTTV1_LQXmzAGJiABox3lPp-Z', label: "Drexciya — Neptune's Lair" },
+  'circuit':                { playlistId: 'PLryJ-4UNwXnfNR1h7RHPT2_TT6hu91G1o', label: "Drexciya — Neptune's Lair" },
   'the-pendulum':           { playlistId: 'OLAK5uy_lpG0l4Qyw1VEijbIO1usIb9gMy7V7zFnA', label: 'Max Richter — The Blue Notebooks' },
   /* ── new set (2026-06-18): four projects, soundtracks matched to the work
      (drawn from our verified public-playlist set). ── */
@@ -767,7 +767,7 @@ const INTERFERENCE: ProjectDef = {
 const AGAINST_LIGHT: ProjectDef = {
   slug: 'against-the-light', displayName: 'Against The Light', artistHandle: 'veil-ai', outputs: 222,
   colorway: '#b8a070', mintPriceEth: 0,
-  soundtrack: { playlistId: 'PL4NXUZspQ7BwHO5UnqrS6ZX-Pn7Hc_XwS', label: 'Stars of the Lid — The Tired Sounds Of' },
+  soundtrack: { playlistId: 'PLvaPUJKLJcQzRvWhVWov0Iq4TE3AvPRnR', label: 'Stars of the Lid — The Tired Sounds Of' },
   aspects: AGAINSTLIGHT_ASPECTS, traitSchema: againstLightSchema, render: renderAgainstLight, traitsOf: againstLightTraits,
 };
 const DRAPERY: ProjectDef = {
@@ -873,7 +873,7 @@ const NOCTILUCENT: ProjectDef = {
   outputs: 111,
   colorway: '#9FC4DA',
   mintPriceEth: 0,
-  soundtrack: { playlistId: 'PLvsYXqtYjMYd1On1Rqof9AboHuAkOcZ5A', label: 'Loscil — Clara' },
+  soundtrack: { playlistId: 'PL37F99A58695CDB7C', label: 'Loscil — Plume' },
   aspects: NOCTILUCENT_ASPECTS,
   traitSchema: noctilucentSchema,
   render: renderNoctilucent,
