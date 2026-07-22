@@ -21,9 +21,12 @@ import {
 /** Provisional Veteran cut (Brendon to confirm the real tenure). */
 export const VETERAN_DAYS = 180;
 
-/** Brendon's wallet (pricediscussion.eth) — the ONLY holder of the CEO tag.
- *  Same address the Studio access seed uses. */
-const CEO_ADDRESS = '0x146034ec25c277f30f63933b151297689e15b9b8';
+/** Brendon's wallets — the ONLY holder of the CEO tag. His @brendon profile
+ *  plus the pricediscussion.eth treasury (both are him). */
+const CEO_ADDRESSES: ReadonlySet<string> = new Set([
+    '0x65c34afda745c12745db70ffa809311339279395', // @brendon
+    '0x146034ec25c277f30f63933b151297689e15b9b8', // pricediscussion.eth
+]);
 
 export interface DeriveInput {
     /** Personas the user picked (users.profile_tags). */
@@ -81,7 +84,7 @@ export function deriveTags(input: DeriveInput): Tag[] {
     };
 
     // CEO — Brendon's wallet only, one of one (never from granted_tags).
-    if (input.address && input.address.toLowerCase() === CEO_ADDRESS) add(CEO_TAG);
+    if (input.address && CEO_ADDRESSES.has(input.address.toLowerCase())) add(CEO_TAG);
 
     // Personas the user chose (validated against the catalog).
     for (const id of input.profileTags ?? []) {
