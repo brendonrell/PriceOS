@@ -4051,6 +4051,11 @@ body.pd-stone-open .ens-copy-toast {
     font-size: 11px;
     letter-spacing: 0.5px;
 }
+/* WTBS wears Inter (loaded with the app), never Courier (Brendon, 2026-07-22). */
+.profile-tag--wtbs .profile-tag-label {
+    font-family: var(--font-inter), sans-serif;
+    letter-spacing: 0.3px;
+}
 
 /* Long-press the PriceSprite → inline colour picker. Reuses the egg row's
    shove-open + pills; stacks the Save/undo actions above the wheel + pills

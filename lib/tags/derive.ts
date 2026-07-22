@@ -15,8 +15,9 @@
 
 import {
     type Tag, tagById, isPersonaId, GRANTED_IDS,
-    ID_TAG_STYLE, ID_RANGES, CEO_TAG,
+    ID_TAG_STYLE, ID_RANGES, CEO_TAG, PRICEDAY_TAG_COLOR,
 } from './catalog';
+import { priceDayNumber } from '../priceday/priceday';
 
 /** Provisional Veteran cut (Brendon to confirm the real tenure). */
 export const VETERAN_DAYS = 180;
@@ -37,22 +38,41 @@ export interface DeriveInput {
     userNumber?: number | null;
     /** Whitelisted artist (drives the Artist earned tag). */
     isArtist?: boolean;
-    /** Account creation timestamp (drives the Veteran tenure tag). */
+    /** Account creation timestamp (drives Veteran + the PriceDay-join tag). */
     createdAt?: string | null;
     /** The profile owner's wallet — gates the one-of-one CEO tag. */
     address?: string | null;
+    /** Tag ids the owner switched OFF — filtered from the shown set (every tag,
+     *  CEO included, can be hidden and tapped back on). Brendon, 2026-07-22. */
+    hiddenTags?: string[] | null;
+}
+
+/** The PriceDay-of-join tag — everyone gets one; the PriceDay number of the day
+ *  they joined (Brendon, 2026-07-22). Purple, sits in the Earned section. */
+function priceDayJoinTag(createdAt: string | null | undefined): Tag | null {
+    if (!createdAt) return null;
+    const d = new Date(createdAt);
+    if (Number.isNaN(d.getTime())) return null;
+    return {
+        id: 'priceday-join',
+        label: `PriceDay #${priceDayNumber(d)}`,
+        color: PRICEDAY_TAG_COLOR,
+        kind: 'earned',
+        order: 21,
+    };
 }
 
 /** The single id tag a platform number earns, or null (no number / past 1000). */
 export function idTagFor(userNumber: number | null | undefined): Tag | null {
     if (!userNumber || userNumber < 1) return null;
+    // Order 20 → the id tag opens the EARNED section (Brendon, 2026-07-22).
     if (userNumber <= 22) {
         return {
             id: `id-${userNumber}`,
             label: `User #${userNumber}`,
             color: ID_TAG_STYLE.color,
             kind: 'id',
-            order: 10,
+            order: 20,
         };
     }
     for (const range of ID_RANGES) {
@@ -62,7 +82,7 @@ export function idTagFor(userNumber: number | null | undefined): Tag | null {
                 label: range.label,
                 color: ID_TAG_STYLE.color,
                 kind: 'id',
-                order: 11,
+                order: 20,
             };
         }
     }
@@ -92,6 +112,8 @@ export function deriveTags(input: DeriveInput): Tag[] {
     }
 
     // Earned — only what we can derive honestly today.
+    add(idTagFor(input.userNumber));           // User #N (opens Earned)
+    add(priceDayJoinTag(input.createdAt));     // PriceDay #N (join day)
     if (input.isArtist) add(tagById('artist'));
     if (input.createdAt && daysSince(input.createdAt) >= VETERAN_DAYS) add(tagById('veteran'));
 
@@ -100,8 +122,9 @@ export function deriveTags(input: DeriveInput): Tag[] {
         if (GRANTED_IDS.has(id)) add(tagById(id));
     }
 
-    // Platform-number tag.
-    add(idTagFor(input.userNumber));
-
-    return out.sort((a, b) => a.order - b.order);
+    const ordered = out.sort((a, b) => a.order - b.order);
+    // Hidden ones (the user switched them off) drop from the SHOWN set. Pass no
+    // hiddenTags (the picker) to get every tag back for the on/off toggles.
+    const hidden = new Set(input.hiddenTags ?? []);
+    return hidden.size ? ordered.filter((t) => !hidden.has(t.id)) : ordered;
 }

@@ -14,6 +14,10 @@ export interface UserProfileData extends UserRow {
    *  display. Derived server-side from their own saved setting; a visitor sees
    *  the deactivated shell, while the owner still sees their real profile. */
   deactivated: boolean;
+  /** Tag ids the owner switched OFF — one array lifted from the private settings
+   *  envelope server-side so every visitor renders the same curated tag row
+   *  (Brendon, 2026-07-22). */
+  hidden_tags: string[];
 }
 
 // Handle shape mirrors lib/slug.ts: ASCII alphanumerics, underscore, hyphen.
@@ -103,6 +107,7 @@ export async function getUserProfileByHandle(
   // the service key server-side so the private settings envelope is never
   // exposed — only this one boolean leaves the server. Best-effort → false.
   let deactivated = false;
+  let hiddenTags: string[] = [];
   try {
     const svc = getSupabaseService();
     const { data: dRow } = await svc
@@ -110,9 +115,10 @@ export async function getUserProfileByHandle(
       .select('settings')
       .eq('handle', userHandle)
       .maybeSingle();
-    const s = (dRow as { settings?: { notifs?: Record<string, unknown> } } | null)?.settings;
+    const s = (dRow as { settings?: { notifs?: Record<string, unknown>; hiddenTags?: unknown } } | null)?.settings;
     deactivated = !!(s?.notifs?.spell_invisible);
-  } catch { /* leave false */ }
+    if (Array.isArray(s?.hiddenTags)) hiddenTags = s.hiddenTags.filter((x): x is string => typeof x === 'string');
+  } catch { /* leave defaults */ }
 
   return {
     ...userRow,
@@ -121,5 +127,6 @@ export async function getUserProfileByHandle(
     owned_projects: ownedProjects,
     volume_spent_eth: volumeSpent,
     deactivated,
+    hidden_tags: hiddenTags,
   };
 }

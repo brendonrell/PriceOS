@@ -43,7 +43,10 @@ export function ProfileTags({ tags, font, paint }: {
                 >
                     {t.glyph && <span className="profile-tag-glyph">{t.glyph}</span>}
                     <span className="profile-tag-label">
-                        {t.lockStyle ? t.label : styleName(t.label, font)}
+                        {/* CEO stays locked (its own treatment). WTBS renders its
+                           label plain so its Inter face shows — the @name Unicode
+                           restyle never touches either. */}
+                        {(t.lockStyle || t.font) ? t.label : styleName(t.label, font)}
                     </span>
                 </span>
                 );

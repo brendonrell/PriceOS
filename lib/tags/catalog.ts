@@ -50,6 +50,9 @@ export interface Tag {
      *  font, always wearing its own fixed treatment (the CEO tag: Rubik, no
      *  paint, no font — Brendon 2026-07-22). */
     lockStyle?: boolean;
+    /** Fixed label font — renders the label plain (no @name Unicode restyle) in
+     *  this face. 'inter' = the WTBS tag (Brendon 2026-07-22). */
+    font?: 'inter';
 }
 
 /* ── PERSONAS — the pick-your-owns (self-applied) ────────────────────────────
@@ -91,11 +94,13 @@ const EARNED: Tag[] = [
 /* ── GRANTED — admin hands these out (a value in users.granted_tags) ─────────
    OG goes to the newpdogs Discord crew as a one-time grant; the influencer
    perks (WTBS…) and the internal marks live here too. */
+/* ── MANUAL section (Brendon, 2026-07-22): the admin-granted marks lead the
+   carousel + the profile, ordered before Earned + Chosen. WTBS wears Inter. ── */
 const GRANTED: Tag[] = [
-    { id: 'og',         label: 'OG',        glyph: '⌖' + VS15, color: '#EAB308', kind: 'granted', order: 20 },
-    { id: 'wtbs',       label: 'WTBS',      glyph: '⚲' + VS15, color: '#FF0055', kind: 'granted', order: 21 },
-    { id: 'influencer', label: 'Influencer', color: '#DB2777', kind: 'granted', order: 22 },
-    { id: 'team',       label: 'Team',      color: '#0109FF', kind: 'granted', order: 23 },
+    { id: 'og',         label: 'OG',        glyph: '⌖' + VS15, color: '#EAB308', kind: 'granted', order: 6 },
+    { id: 'wtbs',       label: 'WTBS',      glyph: '⚲' + VS15, color: '#FF0055', kind: 'granted', order: 7, font: 'inter' },
+    { id: 'influencer', label: 'Influencer', color: '#DB2777', kind: 'granted', order: 8 },
+    { id: 'team',       label: 'Team',      color: '#0109FF', kind: 'granted', order: 9 },
     /* Verified / Partner / Featured REMOVED (Brendon, 2026-07-20). A stray
        grant of a removed id is a silent no-op — derive skips unknown ids. */
 ];
@@ -114,6 +119,9 @@ export const CEO_TAG: Tag = {
     order: 5,
     lockStyle: true,
 };
+
+/** PriceDay-join tag colour — a distinct purple (Brendon, 2026-07-22). */
+export const PRICEDAY_TAG_COLOR = '#9333EA';
 
 export const TAGS: Tag[] = [...PERSONAS, ...EARNED, ...GRANTED];
 

@@ -81,6 +81,7 @@ import { ProfileTags } from './ProfileTags';
 import { useProfileTags } from '../../lib/hooks/useProfileTags';
 import { useNameFont } from '../../lib/hooks/useNameFont';
 import { useTagPaint } from '../../lib/hooks/useTagPaint';
+import { useHiddenTags } from '../../lib/hooks/useHiddenTags';
 import { deriveTags } from '../../lib/tags/derive';
 import { PERSONA_TAGS, tagTextOn, TAG_PAINTS } from '../../lib/tags/catalog';
 import { NAME_FONTS, styleName } from '../../lib/profile/nameFont';
@@ -255,10 +256,15 @@ function ProfilePageBodyInner({
     const ownerNameFont = isOwnProfile ? myNameFont : user.name_font;
     const { paint: myTagPaint, setPaint: setMyTagPaint } = useTagPaint(isOwnProfile ? user.tag_paint : undefined);
     const ownerTagPaint = isOwnProfile ? myTagPaint : user.tag_paint;
+    /* Tags the owner switched OFF — hidden from the shown row (every viewer),
+       but still listed in the owner's picker to tap back on (Brendon,
+       2026-07-22). */
+    const { hidden: myHidden, toggleHidden } = useHiddenTags(isOwnProfile ? user.hidden_tags : undefined);
+    const ownerHidden = isOwnProfile ? myHidden : (user.hidden_tags ?? []);
     /* The @name letters, restyled in the owner's chosen Unicode font ("@" and the
        underlying handle stay plain; this is display only). */
     const styledHandle = styleName(displayHandle, ownerNameFont ?? null);
-    const displayTags = useMemo(() => deriveTags({
+    const tagInput = useMemo(() => ({
         profileTags: isOwnProfile ? myTags : (user.profile_tags ?? []),
         grantedTags: user.granted_tags ?? [],
         userNumber: user.user_number ?? null,
@@ -266,6 +272,18 @@ function ProfilePageBodyInner({
         createdAt: user.created_at,
         address: user.address,
     }), [isOwnProfile, myTags, user.profile_tags, user.granted_tags, user.user_number, artistStatus, user.created_at, user.address]);
+    /* Shown on the hero: full derived set minus the hidden ones (Manual → Earned
+       → Chosen order via each tag's `order`). */
+    const displayTags = useMemo(
+        () => deriveTags({ ...tagInput, hiddenTags: ownerHidden }),
+        [tagInput, ownerHidden],
+    );
+    /* The owner's picker lists EVERY tag they have (unfiltered) so hidden ones
+       can be tapped back on. Personas come from the full catalog separately. */
+    const myAutoTags = useMemo(
+        () => deriveTags(tagInput).filter((t) => t.kind !== 'persona'),
+        [tagInput],
+    );
 
     const {
         eggOpen, preEggHex, handleNameTap,
@@ -1003,10 +1021,34 @@ function ProfilePageBodyInner({
                                 <span className="stat-name">{'⇠⇠︎'}</span>
                             </div>
                         </div>
-                        {/* Row 2 — TAGS: pick your personas. Earned / granted /
-                            number tags aren't pickable here — they appear on you
-                            automatically. */}
+                        {/* Row 2 — TAGS. Hidden sequence Manual → Earned → Chosen
+                            (Brendon, 2026-07-22): your Manual (CEO/WTBS…) + Earned
+                            (User #N/PriceDay #N/artist…) tags list first as
+                            on/off toggles, then the pick-your-own personas, then
+                            the all-tags paints at the end. No section headers. */}
                         <div className="profile-egg-row cust-scroll profile-tags-picker">
+                            {myAutoTags.map((t) => {
+                                const on = !myHidden.includes(t.id);
+                                const flip = () => {
+                                    toggleHidden(t.id);
+                                    showToast(`Tag: ${on ? 'HIDDEN' : 'SHOWN'} · ${t.label.toUpperCase()}`);
+                                };
+                                return (
+                                    <div
+                                        key={t.id}
+                                        className={`pill pill-l3 tag-pick${on ? ' active' : ''}`}
+                                        style={{ ['--tag' as string]: t.color, ['--tag-text' as string]: t.textColor ?? tagTextOn(t.color) }}
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={flip}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flip(); } }}
+                                        title={t.label}
+                                    >
+                                        {t.glyph && <span className="tag-pick-glyph">{t.glyph}</span>}
+                                        <span className="stat-name">{t.label}</span>
+                                    </div>
+                                );
+                            })}
                             {PERSONA_TAGS.map((t) => {
                                 const on = myTags.includes(t.id);
                                 const flip = () => {

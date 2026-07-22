@@ -157,6 +157,8 @@ export const STATE_CACHE_KEYS = {
     /** Command Stone last bubble line — restores the last speech bubble on
      *  reopen. Settings envelope. Account-backed 2026-07-22. */
     stoneLastLine: 'pd_stone_last_line',
+    /** Profile tags switched OFF by the owner. Settings envelope. 2026-07-22. */
+    hiddenTags: 'pd_hidden_tags',
 } as const;
 
 /** Fired after a server snapshot is written into the caches. Any context that
@@ -470,6 +472,10 @@ export function hydrateFromRow(row: UserRow): void {
             window.dispatchEvent(new CustomEvent('pd:stone-last-line-changed', { detail: s.stoneLastLine }));
         } else if (s.stoneLastLine === null || s.stoneLastLine === '') {
             localStorage.removeItem(STATE_CACHE_KEYS.stoneLastLine);
+        }
+        if (Array.isArray(s.hiddenTags)) {
+            localStorage.setItem(STATE_CACHE_KEYS.hiddenTags, JSON.stringify(s.hiddenTags));
+            window.dispatchEvent(new CustomEvent('pd:hidden-tags-changed', { detail: s.hiddenTags }));
         }
 
         // grid_presets → unified cache the presetStore reads (Gallery View
