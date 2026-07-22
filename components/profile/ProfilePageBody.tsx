@@ -286,7 +286,7 @@ function ProfilePageBodyInner({
     );
 
     const {
-        eggOpen, preEggHex, handleNameTap,
+        eggOpen, preEggHex, handleNameTap, toggleEgg,
         nameCarouselOpen, nameLpFired, onNamePointerDown, onNamePointerMove, onNamePressEnd,
         spritePickerOpen, spriteLpFired, preSpriteHex,
         onSpritePointerDown, onSpritePointerMove, onSpritePressEnd,
@@ -1449,7 +1449,7 @@ function ProfilePageBodyInner({
                     </div>
                 }
             >
-                    <ProfileTags tags={displayTags} font={ownerNameFont} paint={ownerTagPaint} />
+                    <ProfileTags tags={displayTags} font={ownerNameFont} paint={ownerTagPaint} onTagTap={isOwnProfile ? toggleEgg : undefined} />
                     <HeroStickers
                         ownerHandle={user.handle ?? handle}
                         isOwn={isOwnProfile}

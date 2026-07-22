@@ -14,7 +14,7 @@
 import { type Tag, tagPaintHex, tagTextOn } from '../../lib/tags/catalog';
 import { styleName } from '../../lib/profile/nameFont';
 
-export function ProfileTags({ tags, font, paint }: {
+export function ProfileTags({ tags, font, paint, onTagTap }: {
     tags: Tag[];
     /** The owner's chosen @name font (users.name_font) — tag labels wear it
      *  too (Brendon, 2026-07-20). Untouched underneath: display-only, same
@@ -23,6 +23,9 @@ export function ProfileTags({ tags, font, paint }: {
     /** The owner's all-tags paint (users.tag_paint) — every pill one colour,
      *  lettering contrast-flipped. null = each tag's own colour. */
     paint?: string | null;
+    /** Own profile only: tapping a tag opens the customization menu, same as
+     *  long-pressing the @name (Brendon, 2026-07-22). Absent = display-only. */
+    onTagTap?: () => void;
 }) {
     if (!tags.length) return null;
     const paintHex = tagPaintHex(paint);
@@ -38,8 +41,12 @@ export function ProfileTags({ tags, font, paint }: {
                 <span
                     key={t.id}
                     className={`profile-tag profile-tag--${t.id}`}
-                    style={{ ['--tag' as string]: hex, ['--tag-text' as string]: textHex }}
+                    style={{ ['--tag' as string]: hex, ['--tag-text' as string]: textHex, ...(onTagTap ? { cursor: 'pointer' } : null) }}
                     title={t.label}
+                    role={onTagTap ? 'button' : undefined}
+                    tabIndex={onTagTap ? 0 : undefined}
+                    onClick={onTagTap}
+                    onKeyDown={onTagTap ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onTagTap(); } } : undefined}
                 >
                     {t.glyph && <span className="profile-tag-glyph">{t.glyph}</span>}
                     <span className="profile-tag-label">

@@ -82,6 +82,16 @@ export function useProfileEggs({
     };
     const onNamePressEnd = () => clearNameLp();
 
+    /* Tapping your OWN tags opens the same customization menu the @name
+       long-press does (Brendon, 2026-07-22) — toggles the egg. */
+    const toggleEgg = () => {
+        if (!isOwnProfile) return;
+        setEggOpen((v) => {
+            if (!v) preEggHex.current = myProfileHex;
+            return !v;
+        });
+    };
+
     /* Long-press the PriceSprite (own profile) → an inline colour picker pops up:
        a native colour wheel + the same colorway pills as the @name egg, with
        Save and an undo button above it. A plain TAP still opens the PriceSprite
@@ -136,7 +146,7 @@ export function useProfileEggs({
     }, [user.address, displayHandle]);
 
     return {
-        eggOpen, preEggHex, handleNameTap,
+        eggOpen, preEggHex, handleNameTap, toggleEgg,
         nameCarouselOpen, nameLpFired, onNamePointerDown, onNamePointerMove, onNamePressEnd,
         spritePickerOpen, spriteLpFired, preSpriteHex,
         onSpritePointerDown, onSpritePointerMove, onSpritePressEnd,
