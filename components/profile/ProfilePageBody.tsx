@@ -1401,7 +1401,7 @@ function ProfilePageBodyInner({
                                         openModal('followers', 'followers', user.address);
                                     }
                                 }}
-                            >{counts.followers} {styleName(counts.followers === 1 ? 'FOLLOWER' : 'FOLLOWERS', ownerNameFont ?? null)}</span>
+                            >{counts.followers} {counts.followers === 1 ? 'FOLLOWER' : 'FOLLOWERS'}</span>
                         </span>
                     </div>
                 }

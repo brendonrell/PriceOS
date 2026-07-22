@@ -282,6 +282,32 @@ export default function FmBar() {
         return () => document.body.classList.remove('pd-fm-live');
     }, [onAir]);
 
+    /* THE TICKER (Brendon, 2026-07-22) — measure every LCD row after paint;
+       a row whose text overflows the glass gets the sideways crawl (shift +
+       speed sized to how much is hidden), a row that fits stays perfectly
+       still. Re-runs whenever the readout text or the face changes. */
+    useEffect(() => {
+        const root = barRef.current;
+        if (!root) return;
+        const raf = requestAnimationFrame(() => {
+            root.querySelectorAll<HTMLElement>('.fm-lcd-row').forEach((row) => {
+                const inner = row.firstElementChild as HTMLElement | null;
+                row.classList.remove('fm-lcd-row--scroll');
+                row.style.removeProperty('--fm-shift');
+                row.style.removeProperty('--fm-dur');
+                if (!inner || row.clientWidth === 0) return;
+                const overflow = inner.scrollWidth - row.clientWidth;
+                if (overflow > 2) {
+                    const shift = overflow + 6;
+                    row.classList.add('fm-lcd-row--scroll');
+                    row.style.setProperty('--fm-shift', `-${shift}px`);
+                    row.style.setProperty('--fm-dur', `${Math.max(4, shift / 22 + 2).toFixed(1)}s`);
+                }
+            });
+        });
+        return () => cancelAnimationFrame(raf);
+    }, [trackTitle, onAir, deadLink, status, display]);
+
     /* ── The station picker — the customization (tap the screen) ── */
     const pickStation = (st: Station) => {
         setPickerOpen(false);
@@ -417,9 +443,9 @@ export default function FmBar() {
                     <span className="fm-video-tap" aria-hidden="true" />
                 </span>
                 <span className="fm-rows">
-                    <span className="fm-lcd-row fm-lcd-track">{rowTrack}</span>
-                    <span className="fm-lcd-row">{rowStation}</span>
-                    <span className="fm-lcd-row">{rowStatus}</span>
+                    <span className="fm-lcd-row fm-lcd-track"><span className="fm-lcd-inner">{rowTrack}</span></span>
+                    <span className="fm-lcd-row"><span className="fm-lcd-inner">{rowStation}</span></span>
+                    <span className="fm-lcd-row"><span className="fm-lcd-inner">{rowStatus}</span></span>
                 </span>
                 {/* THE SIGNAL's equalizer — present in every face, shown by
                     its mode class only. */}

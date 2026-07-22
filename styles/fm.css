@@ -169,6 +169,13 @@ body.pd-stone-open .fm-bar {
     overflow: hidden;
 }
 
+/* ⛔ THE DEVICE NEVER CHANGES SIZE (Brendon, 2026-07-22). width:auto let a
+   short title shrink the readout and a long one grow it — the chassis
+   breathed with the text. Pin the readout to a FIXED width so the deck is a
+   constant-size device; long titles scroll INSIDE this box (the ticker
+   below) instead of stretching it. */
+.fm-mode-deck .fm-rows { width: 150px; flex: 0 0 150px; max-width: 150px; }
+
 .fm-lcd-row {
     display: block;
     font-size: 10px;
@@ -181,6 +188,30 @@ body.pd-stone-open .fm-bar {
 }
 
 .fm-lcd-track { letter-spacing: 0.2px; }
+
+/* ── THE TICKER (Brendon, 2026-07-22) — old-MP3 behaviour: a name that FITS
+   sits still; a name too long to fit scrolls sideways to reveal the whole
+   thing, pauses at each end, then slides back. FmBar measures each row and
+   adds fm-lcd-row--scroll + the shift/duration only when the text overflows,
+   so short titles never move. Same sideways-crawl grammar as the app's
+   ticker tape, scoped to the LCD glass. */
+.fm-lcd-inner {
+    display: inline-block;
+    white-space: nowrap;
+    will-change: transform;
+}
+.fm-lcd-row--scroll .fm-lcd-inner {
+    animation: fm-lcd-marquee var(--fm-dur, 8s) ease-in-out infinite alternate;
+}
+@keyframes fm-lcd-marquee {
+    /* hold at the start, crawl to reveal the tail, hold at the end (alternate
+       runs it back) — the classic reveal-and-return, not a frantic loop. */
+    0%, 12% { transform: translateX(0); }
+    88%, 100% { transform: translateX(var(--fm-shift, 0)); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .fm-lcd-row--scroll .fm-lcd-inner { animation: none; }
+}
 
 /* ═══ THE FIVE FACES (Brendon, 2026-07-20 — "ship them all") ═══
    One markup, CSS per face. The video window exists in EVERY face — YT

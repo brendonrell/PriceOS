@@ -308,7 +308,7 @@ const ARCOLOGY: ProjectDef = {
   outputs: 222,
   colorway: '#111111',
   mintPriceEth: 0.2,
-  soundtrack: { playlistId: 'OLAK5uy_l-q8XlDmU4d7d2dgjpZBYPC-wFFKQTKrA', label: 'Burial — Untrue' },
+  soundtrack: { playlistId: 'PL333NRV9w0mXU72yJa3pX7_-QY5nW5i4H', label: 'Burial — Untrue' },
   aspects: ARCOLOGY_ASPECTS,
   traitSchema: arcologySchema,
   render: renderArcology,
@@ -656,7 +656,7 @@ const AI_SOUNDTRACKS: Record<string, { playlistId: string; label: string }> = {
   'the-pendulum':           { playlistId: 'OLAK5uy_lpG0l4Qyw1VEijbIO1usIb9gMy7V7zFnA', label: 'Max Richter — The Blue Notebooks' },
   /* ── new set (2026-06-18): four projects, soundtracks matched to the work
      (drawn from our verified public-playlist set). ── */
-  'setback':                { playlistId: 'OLAK5uy_l-q8XlDmU4d7d2dgjpZBYPC-wFFKQTKrA', label: 'Burial — Untrue' },
+  'setback':                { playlistId: 'PL333NRV9w0mXU72yJa3pX7_-QY5nW5i4H', label: 'Burial — Untrue' },
   'simultaneous':           { playlistId: 'OLAK5uy_lYdwxvfKoDIiUba2_Dh1Pc-zOLLANCwKY', label: 'Tame Impala — Currents' },
   'strata':                 { playlistId: 'OLAK5uy_neqQaWuMLHzuuz7wgua5Z-o0W_yo4bXIY', label: 'Bonobo — Black Sands' },
   /* ── new cohort (2026-06-19): five fresh projects, soundtracks drawn from our
