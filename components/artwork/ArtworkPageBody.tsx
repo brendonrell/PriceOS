@@ -1087,8 +1087,8 @@ export default function ArtworkPageBody({
                                     tabIndex={0}
                                     title={`Soundtrack — ${soundtrack.label}`}
                                     aria-label="Project soundtrack"
-                                    onClick={() => { fmPlay({ playlistId: soundtrack.playlistId, label: soundtrack.label, slug }); showToast('PD miniplayer: ON AIR'); }}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fmPlay({ playlistId: soundtrack.playlistId, label: soundtrack.label, slug }); showToast('PD miniplayer: ON AIR'); } }}
+                                    onClick={() => { fmPlay({ playlistId: soundtrack.playlistId, label: soundtrack.label, slug }); showToast('miniplayer: ON AIR'); }}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fmPlay({ playlistId: soundtrack.playlistId, label: soundtrack.label, slug }); showToast('miniplayer: ON AIR'); } }}
                                 >
                                     <span>{'♫︎'}</span>
                                 </div>

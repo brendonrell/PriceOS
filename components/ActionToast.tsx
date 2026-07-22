@@ -21,7 +21,7 @@
  * plain colon-labelled toasts wrap; art / face / tint toasts are untouched.
  */
 
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { useToast } from '../lib/state/ToastContext';
 import { resolveTextColor } from '../lib/state/ColorwayContext';
 import AsciiArtImage from './AsciiArtImage';
@@ -37,6 +37,18 @@ function oneLineFits(text: string): boolean {
     const w = _measureCtx.measureText(text).width;
     const budget = Math.min(window.innerWidth * 0.86, 330) - 34; // pill max − padding
     return w <= budget;
+}
+
+/* The mini*player* wordmark — the ONLY toast token drawn with markup: the
+   "player" half renders italic (Brendon's word-lock, 2026-07-22). Matches the
+   lowercase wordmark exactly; every other toast string passes through plain. */
+function withWordmark(text: string): ReactNode {
+    if (!text.includes('miniplayer')) return text;
+    return text.split(/(miniplayer)/).map((seg, i) =>
+        seg === 'miniplayer'
+            ? <span key={i}>mini<span style={{ fontStyle: 'italic' }}>player</span></span>
+            : seg,
+    );
 }
 
 export default function ActionToast() {
@@ -117,11 +129,11 @@ export default function ActionToast() {
             )}
             {labelSplit ? (
                 <>
-                    <span className="toast-label">{labelSplit.label}:</span>
-                    <span className="toast-action">{labelSplit.action}</span>
+                    <span className="toast-label">{withWordmark(labelSplit.label)}:</span>
+                    <span className="toast-action">{withWordmark(labelSplit.action)}</span>
                 </>
             ) : (
-                state.msg
+                withWordmark(state.msg)
             )}
         </div>
     );
