@@ -8,11 +8,30 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-22 (LATEST) CEO TAG · STONE SUMMON FIX · MATH + ETH CONVERTER ·
-   DISPATCH NAV — all SHIPPED on dev (tip `6bd1412`), auto-deploy rolling, tree
-   clean. Task branch `claude/ceo-tag-command-stone-math-7macqi` = trash
-   (delete at https://github.com/brendonrell/PriceOS/branches).** Opus,
-   present→push loop.
+0. ✅ **2026-07-22 (LATEST) STONE + TAGS + SHOWCASE + ALBUMS ROUND 2 — all
+   SHIPPED on dev (tip `01b8071`), auto-deploy rolling, tree clean. Working
+   directly on `dev` now; task branch `claude/ceo-tag-command-stone-math-7macqi`
+   = trash (delete at https://github.com/brendonrell/PriceOS/branches).**
+   Follow-ups this round (on top of the round-1 entry below):
+   ⓐ **CEO tag gate FIXED** — was keyed only to the treasury wallet; @brendon
+   signs in with `0x65c3…9395`, so it never showed. `CEO_ADDRESSES` now = both.
+   ⓑ **Stone summon done PROPERLY** — the strict allow-list wouldn't fire on the
+   hero. Now a content-aware test (`summonSurface`): rejects controls/media/
+   text/cards/overlays, summons on bare layout (hero bg, gutters). Still fires
+   on the artwork-modal backdrop.
+   ⓒ **Stone LAST-BUBBLE memory** — single tap on the page while open tucks the
+   stone to the dot (bubble kept); reopening restores the last line. Account-
+   backed: `settings.stoneLastLine` + `lib/stone/lastLine.ts` + cache key +
+   hydrate; CommandStone persists on value change, seeds on open.
+   ⓓ **Converter names the currency AFTER the number** (`$8,243 CAD`) via
+   `formatResult` — stone + global search.
+   ⓔ **Showcase FULL → swap picker** — `replaceInShowcase` in the store; inline
+   card in OutputPreview shows the 6 thumbnails to swap one out.
+   ⓕ **Tag polish** — default (Courier) labels explicitly bold; artist glyph
+   18px (one step up); every tag span now carries `profile-tag--<id>`.
+   ⓖ **New Album tile** — dashed frame removed (`.album-tile-plus` border:none).
+
+   ── round 1 (same session, tip `6bd1412`) ──────────────────────────────────
    ① **CEO tag** — Brendon's one-of-one profile chip: Hothurt fill · Attention-
    yellow letters · no glyph · **Rubik** (paint- AND @name-font-proof via
    `lockStyle`). Defined as `CEO_TAG` in tags/catalog; derived in tags/derive
