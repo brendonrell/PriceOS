@@ -64,12 +64,12 @@ export const NAME_FONTS: FontDef[] = [
         id: 'script', label: 'Script', upper: 0x1d49c, lower: 0x1d4b6,
         except: { B: 'ℬ', E: 'ℰ', F: 'ℱ', H: 'ℋ', I: 'ℐ', L: 'ℒ', M: 'ℳ', R: 'ℛ', e: 'ℯ', g: 'ℊ', o: 'ℴ' },
     },
-    { id: 'boldscript', label: 'Bold Script', upper: 0x1d4d0, lower: 0x1d4ea },
+    { id: 'boldscript', label: 'Script Bold', upper: 0x1d4d0, lower: 0x1d4ea },
     {
         id: 'fraktur', label: 'Fraktur', upper: 0x1d504, lower: 0x1d51e,
         except: { C: 'ℭ', H: 'ℌ', I: 'ℑ', R: 'ℜ', Z: 'ℨ' },
     },
-    { id: 'boldfraktur', label: 'Bold Fraktur', upper: 0x1d56c, lower: 0x1d586 },
+    { id: 'boldfraktur', label: 'Fraktur Bold', upper: 0x1d56c, lower: 0x1d586 },
     {
         id: 'double', label: 'Double-Struck', upper: 0x1d538, lower: 0x1d552, digit: 0x1d7d8,
         except: { C: 'ℂ', H: 'ℍ', N: 'ℕ', P: 'ℙ', Q: 'ℚ', R: 'ℝ', Z: 'ℤ' },
