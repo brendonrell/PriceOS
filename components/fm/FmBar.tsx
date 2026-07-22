@@ -46,6 +46,7 @@ interface YTPlayer {
     pauseVideo(): void;
     nextVideo(): void;
     loadPlaylist(opts: { list: string; listType: 'playlist' }): void;
+    loadVideoById(id: string): void;
     getVideoData?(): { title?: string } | undefined;
     destroy(): void;
 }
@@ -81,6 +82,14 @@ function loadYT(): Promise<YTNamespace> {
 type Station = FmStation;
 
 type FmStatus = 'idle' | 'loading' | 'playing' | 'paused';
+
+/* A station id is either a YouTube PLAYLIST (PL…/OLAK…/UU… etc.) or a single
+   full-album VIDEO (a bare 11-char id). The player loads each differently. */
+const isPlaylistId = (id: string) => /^(PL|OLAK|RD|UU|FL|LL)/.test(id);
+const stationWatchUrl = (id: string) =>
+    isPlaylistId(id)
+        ? playlistWatchUrl(id)
+        : `https://www.youtube.com/watch?v=${encodeURIComponent(id)}`;
 
 /* The three faces, cycled in this order (Brendon, 2026-07-22 — Micro + Slab
    retired). The internal `signal` key stays (it drives the .fm-mode-signal
@@ -180,7 +189,10 @@ export default function FmBar() {
         errCountRef.current = 0;
         armWatchdog();
         if (playerRef.current) {
-            playerRef.current.loadPlaylist({ list: station.playlistId, listType: 'playlist' });
+            if (isPlaylistId(station.playlistId))
+                playerRef.current.loadPlaylist({ list: station.playlistId, listType: 'playlist' });
+            else
+                playerRef.current.loadVideoById(station.playlistId);
         }
     }, [armWatchdog]);
 
@@ -193,21 +205,27 @@ export default function FmBar() {
             startingRef.current = false;
             const station = wantRef.current;
             if (!host || playerRef.current || !station) return;
+            const asPlaylist = isPlaylistId(station.playlistId);
             playerRef.current = new YT.Player(host, {
                 width: '46',
                 height: '30',
+                ...(asPlaylist ? {} : { videoId: station.playlistId }),
                 playerVars: {
-                    listType: 'playlist',
-                    list: station.playlistId,
+                    ...(asPlaylist ? { listType: 'playlist', list: station.playlistId } : {}),
                     autoplay: 1,
                     playsinline: 1,
                 },
                 events: {
                     onReady: (e: { target: YTPlayer }) => e.target.playVideo(),
                     onStateChange: (e: { data: number; target: YTPlayer }) => {
-                        const title = e.target.getVideoData?.()?.title ?? '';
-                        if (title) setTrackTitle(title);
+                        /* Only trust the title on PLAYING — the freshly-started
+                           video. Reading it on the old video's PAUSED/ENDED
+                           events (which fire mid-switch) is what left the
+                           previous track's name stuck on the readout after a
+                           channel change (Brendon, 2026-07-22). */
                         if (e.data === YT.PlayerState.PLAYING) {
+                            const title = e.target.getVideoData?.()?.title ?? '';
+                            if (title) setTrackTitle(title);
                             setStatus('playing');
                             setDeadLink(false);
                             errCountRef.current = 0;
@@ -448,13 +466,13 @@ export default function FmBar() {
                     aria-label="Open the full playlist on YouTube"
                     onClick={(e) => {
                         e.stopPropagation();
-                        window.open(playlistWatchUrl(onAir.playlistId), '_blank', 'noopener,noreferrer');
+                        window.open(stationWatchUrl(onAir.playlistId), '_blank', 'noopener,noreferrer');
                     }}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
                             e.stopPropagation();
-                            window.open(playlistWatchUrl(onAir.playlistId), '_blank', 'noopener,noreferrer');
+                            window.open(stationWatchUrl(onAir.playlistId), '_blank', 'noopener,noreferrer');
                         }
                     }}
                 >
