@@ -8,11 +8,31 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-22 (LATEST) MINIPLAYER NAMING + AUTO-PLAYLIST PURGE — all SHIPPED
-   on dev (tip `07c9676`), auto-deploy rolling, tree clean. Task branch
-   `claude/miniplayer-naming-updates-nphfx6` = trash once this is confirmed
+0. ✅ **2026-07-22 (LATEST) CEO TAG · STONE SUMMON FIX · MATH + ETH CONVERTER ·
+   DISPATCH NAV — all SHIPPED on dev (tip `6bd1412`), auto-deploy rolling, tree
+   clean. Task branch `claude/ceo-tag-command-stone-math-7macqi` = trash
    (delete at https://github.com/brendonrell/PriceOS/branches).** Opus,
    present→push loop.
+   ① **CEO tag** — Brendon's one-of-one profile chip: Hothurt fill · Attention-
+   yellow letters · no glyph · **Rubik** (paint- AND @name-font-proof via
+   `lockStyle`). Defined as `CEO_TAG` in tags/catalog; derived in tags/derive
+   for his wallet ONLY (`0x1460…B9B8`), never grantable. New Tag fields
+   `textColor`/`lockStyle`; ProfileTags honours them; `.profile-tag--ceo` locks
+   the Rubik font. ProfilePageBody now passes `address` into deriveTags.
+   ② **Command Stone summon = BACKGROUND ONLY** — replaced the "anything that
+   isn't a button" blocklist with a POSITIVE `summonSurface` test (body/main/
+   page-root/starfield). Killed the mint-pill false-fire. ALSO summons on the
+   **artwork modal's dim backdrop** and floats ABOVE it (stone z 10004 > modal
+   1000) — Brendon's explicit ask. Non-artwork modals still block.
+   ③ **Inline MATH + $0 ETH↔FIAT CONVERTER** — new pure libs `stone/mathEval`
+   (safe shunting-yard, no eval; `pdNumberNote` easter egg) + `fx/convert`,
+   `fx/format`, `fx/rates` (on-demand `/api/fx`, works with fiat mode OFF).
+   Routed through `parseWidget` → new `math`/`convert` WidgetDeck cards (rich:
+   PD note + multi-currency). Global Search shows the BARE result only. 18 new
+   tests (`stone-math-convert`), full suite 135 green.
+   ④ **Dispatch day nav** — prev/latest/next were plain anchors that spawned a
+   new PWA tab per day; switched to client `<Link>` so the edition swaps in
+   place. Both `/dispatch` + `/dispatch/[date]` feed the same nav.
    ① **Faces renamed + trimmed:** Micro & Slab retired; cycle is now Deck → Tab
    → Disc (Tab = the old Signal/equalizer face, internal key `signal` kept).
    ② **Wordmark = lowercase mini*player*** everywhere, "player" italic; toasts
