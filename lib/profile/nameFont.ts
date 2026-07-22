@@ -77,6 +77,7 @@ export const NAME_FONTS: FontDef[] = [
     { id: 'sans', label: 'Sans', upper: 0x1d5a0, lower: 0x1d5ba, digit: 0x1d7e2 },
     { id: 'sansbold', label: 'Sans Bold', upper: 0x1d5d4, lower: 0x1d5ee, digit: 0x1d7ec },
     { id: 'sansitalic', label: 'Sans Italic', upper: 0x1d608, lower: 0x1d622 },
+    { id: 'sansbolditalic', label: 'Sans Bold Italic', upper: 0x1d63c, lower: 0x1d656 },
     { id: 'mono', label: 'Mono', upper: 0x1d670, lower: 0x1d68a, digit: 0x1d7f6 },
     { id: 'fullwidth', label: 'Fullwidth', upper: 0xff21, lower: 0xff41, digit: 0xff10 },
     // Circled: capital M (Ⓜ U+24C2) carries emoji presentation on iOS — force it
