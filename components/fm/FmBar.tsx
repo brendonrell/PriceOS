@@ -357,11 +357,14 @@ export default function FmBar() {
     const isDeckFace = display === 'deck';
 
     /* The three LCD rows — Sony minidisc grammar: static, compact, no crawl.
-       Row 1 = the SONG now playing (the crawling ticker reveals long names);
-       row 2 = WHOSE OST it is, the project handle (@name OST), not the album
-       title (Brendon, 2026-07-22). Falls back to the album label only when a
-       station carries no project (never, in practice). */
-    const rowTrack = trackTitle || onAir.label;
+       Row 1 = the SONG now playing AND the playlist it's from, joined with
+       " - "; the marquee crawls the whole line (Brendon, 2026-07-22). Falls
+       back to whichever half exists if the other hasn't reported yet.
+       Row 2 = WHOSE OST it is, the project handle (@name OST). */
+    const rowTrack =
+        trackTitle && trackTitle !== onAir.label
+            ? `${trackTitle} - ${onAir.label}`
+            : (trackTitle || onAir.label);
     const rowStation = onAir.slug ? `@${onAir.slug} OST` : onAir.label;
     const rowStatus =
         deadLink ? '✕︎ DEAD LINK' :
