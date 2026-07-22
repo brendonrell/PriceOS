@@ -37,7 +37,7 @@ export function ProfileTags({ tags, font, paint }: {
                 return (
                 <span
                     key={t.id}
-                    className={`profile-tag${t.lockStyle ? ` profile-tag--${t.id}` : ''}`}
+                    className={`profile-tag profile-tag--${t.id}`}
                     style={{ ['--tag' as string]: hex, ['--tag-text' as string]: textHex }}
                     title={t.label}
                 >

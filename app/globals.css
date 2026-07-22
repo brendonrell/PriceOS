@@ -4037,7 +4037,10 @@ body.pd-stone-open .ens-copy-toast {
     /* Larger than the label so the mark reads (Brendon, 2026-07-20). */
     font-size: 16px;
 }
-.profile-tag-label { line-height: 1; }
+/* Artist glyph one step larger (Brendon, 2026-07-22). */
+.profile-tag--artist .profile-tag-glyph { font-size: 18px; }
+/* Default (Courier) tag labels are bold (Brendon, 2026-07-22). */
+.profile-tag-label { line-height: 1; font-weight: bold; }
 
 /* ── CEO — Brendon's one-of-one chip (2026-07-22): Hothurt fill · Attention-
    yellow lettering (both pinned in JS, paint-proof) · RUBIK, never Courier.
