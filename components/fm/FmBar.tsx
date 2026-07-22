@@ -367,7 +367,7 @@ export default function FmBar() {
     return (
         <div
             ref={barRef}
-            className={`fm-bar fm-mode-${display} fm-live`}
+            className={`fm-bar fm-mode-${display} fm-live${status === 'playing' ? ' fm-playing' : ''}`}
             title="PD miniplayer — the platform's soundtracks. Tap the screen to pick a station."
         >
             {pickerOpen && (

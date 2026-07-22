@@ -247,6 +247,19 @@ body.pd-stone-open .fm-bar {
 .fm-mode-disc .fm-video iframe { width: 86px; height: 48px; margin-left: -19px; }
 .fm-mode-disc .fm-rows { display: none; }
 
+/* THE DISC spins like a record — but ONLY while playing (Brendon,
+   2026-07-22). Paused/tuning holds it still, so the stop reads as a stop.
+   The circular screen clips it, so the video image turns inside the ring. */
+.fm-mode-disc .fm-video {
+    animation: fm-disc-spin 4.5s linear infinite;
+    animation-play-state: paused;
+}
+.fm-playing.fm-mode-disc .fm-video { animation-play-state: running; }
+@keyframes fm-disc-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+    .fm-mode-disc .fm-video { animation: none; }
+}
+
 /* THE SLAB — full-width whisper bar, one line */
 .fm-mode-slab { left: 14px; right: 14px; --fm-tx: 0; width: auto; max-width: none; height: 30px; padding: 0 10px; }
 .fm-mode-slab .fm-screen { height: 20px; border: none; background: transparent; }
