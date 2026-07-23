@@ -278,10 +278,19 @@ function TailBubble({
         setLayout({ centerX, tailDx });
     }, [anchor]);
 
-    /* Same dismiss guard as the fiat bubble. */
+    /* An outside tap closes the bubble ONLY — we swallow the trailing click so
+       it never falls through to the artwork (or any pill) underneath (Brendon,
+       2026-07-23). Same click-swallow the hold-drag engine uses. */
     useEffect(() => {
         const onDown = (e: PointerEvent) => {
             if (ref.current?.contains(e.target as Node)) return;
+            const swallow = (ce: Event) => {
+                ce.stopPropagation();
+                ce.preventDefault();
+                window.removeEventListener('click', swallow, true);
+            };
+            window.addEventListener('click', swallow, true);
+            window.setTimeout(() => window.removeEventListener('click', swallow, true), 500);
             onDismiss();
         };
         const dismiss = () => onDismiss();
@@ -554,6 +563,15 @@ export default function OutputPreview() {
             // Click inside either bottom bar (includes the details pill that
             // toggles it) → keep open; the pill's own onClick handles toggle.
             if (t.closest('#mBottomBar, .ls-bottom-bar')) return;
+            // Outside tap → close ONLY the popover; swallow the trailing click so
+            // it never falls through to the artwork underneath (Brendon, 2026-07-23).
+            const swallow = (ce: Event) => {
+                ce.stopPropagation();
+                ce.preventDefault();
+                window.removeEventListener('click', swallow, true);
+            };
+            window.addEventListener('click', swallow, true);
+            window.setTimeout(() => window.removeEventListener('click', swallow, true), 500);
             setDetailsOpen(false);
         };
         document.addEventListener('mousedown', handler);
