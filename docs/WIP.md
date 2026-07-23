@@ -8,6 +8,25 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ✅ **2026-07-23 (LATEST) ARTWORK MODAL — mobile swipes + To-Do chooser +
+   slim swap card. All SHIPPED on dev (tip `be75664`), auto-deploy rolling,
+   tree clean. Working directly on `dev`; task branch
+   `claude/artwork-modal-swipes-81817n` = trash (delete at
+   https://github.com/brendonrell/PriceOS/branches).**
+   ⓐ **Mobile swipes on the artwork** — horizontal swipe walks prev/next
+   (same as the ◀ ▶ pills), swipe-down dismisses (same as ×). Threshold-based
+   (Command Stone idiom), touch-only so desktop is untouched; a small move
+   stays a tap and still opens the full artwork page (guarded so a swipe never
+   navigates). Both portrait + landscape canvas.
+   ⓑ **To-Do pill → small chooser** — instead of auto-guessing the verb, opens
+   a compact card so the user picks BUY / OFFER / LIST / SEND (`todo-verb-card`,
+   reuses `ms-confirm-card`). Replaced the interim ownership auto-pick.
+   ⓒ **Showcase-full swap card rebuilt small** — was an oversized, overflowing
+   box (no-wrap names blew the grid tracks wide). Now just "Replace?" over the
+   6 picks as bare `OutputThumb` squares (History painter), 2×3 in showcase
+   order so each square is its slot; no box, no labels, tap-outside dismiss.
+   Verified both cards at 390×844 in real Courier on a mid-tone colorway.
+
 0. ✅ **2026-07-22 (LATEST) FULL-APP SECURITY REVIEW — 4 findings fixed &
    SHIPPED on dev (tip `e3126d5`), auto-deploy rolling, tree clean. Task branch
    `claude/security-review-app-ygx7qj` = trash (delete at
