@@ -381,12 +381,17 @@ body.modal-open { overflow: hidden; touch-action: none; }
     z-index: 10;
     box-shadow: 0 4px 20px rgba(0,0,0,0.25);
     font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: normal;
     letter-spacing: 0.4px;
     box-sizing: border-box;
     animation: dp-fade-in 0.15s ease;
 }
+/* +2 across the details-popover content (Brendon, 2026-07-23). Scoped to
+   .details-popover so the shared .dp-* calendar popover keeps its own sizes. */
+.details-popover .dp-title { font-size: 19px; }
+.details-popover .dp-value { font-size: 14px; }
+.details-popover .dp-copy-btn { font-size: 18px; }
 @keyframes dp-fade-in {
     from { opacity: 0; transform: translateY(4px); }
     to   { opacity: 1; transform: translateY(0); }

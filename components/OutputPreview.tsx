@@ -1052,7 +1052,7 @@ export default function OutputPreview() {
                     <span className="dp-label">Artwork Page</span>
                     <span className="dp-value">
                         <button className="dp-link-btn" onClick={(e) => { e.stopPropagation(); if (id != null) { setDetailsOpen(false); closeAll(); window.scrollTo(0, 0); router.push(`/art/${slug}/${id}`); } }}>
-                            <span className="dp-value-text">Open Full Artwork {`\u2197${VS15}`}</span>
+                            <span className="dp-value-text">Full Artwork {`\u2197${VS15}`}</span>
                         </button>
                     </span>
                 </div>
