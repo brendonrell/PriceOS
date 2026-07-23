@@ -286,6 +286,12 @@ export interface UserRow {
   price_sprite_resolved: ResolvedSprite | null;
   account_level: number;
   created_at: string;
+  /** $PRICE holdings — filled by the price-holdings sweep. `price_held` is the
+   *  wallet's balance in whole $PRICE tokens; `price_hold_rank` is its position
+   *  among named holders (1 = most), null when it holds none / isn't ranked.
+   *  Drive the Top Holders board + the "$PRICE Top N · #r" earned tag. */
+  price_held: number;
+  price_hold_rank: number | null;
 
   // ── Per-user persisted state (the user-state feature) ───────────────────────
   /** The user's PROFILE COLORWAY colour — the colour the profile owner picked
@@ -749,7 +755,7 @@ const timeoutFetch: typeof fetch = (input, init) => {
  *  Public profile reads select THIS instead of '*', otherwise Postgres refuses
  *  the whole query (anon has no table-level SELECT, only these columns). */
 export const PUBLIC_USER_COLUMNS =
-  'address, ens_name, handle, price_sprite, price_sprite_resolved, account_level, price_rank, price_score, price_streak, streak_best, profile_hex, profile_logo, profile_sprite_hex, profile_tags, granted_tags, name_font, tag_paint, user_number, sticker_state, signature_hex, showcase, showcase_style, discord_id, discord_username, discord_avatar, discord_accent_color, discord_in_server, sigil_forged_at, sigil_hidden, created_at';
+  'address, ens_name, handle, price_sprite, price_sprite_resolved, account_level, price_rank, price_score, price_streak, streak_best, price_held, price_hold_rank, profile_hex, profile_logo, profile_sprite_hex, profile_tags, granted_tags, name_font, tag_paint, user_number, sticker_state, signature_hex, showcase, showcase_style, discord_id, discord_username, discord_avatar, discord_accent_color, discord_in_server, sigil_forged_at, sigil_hidden, created_at';
 
 /** Browser-side client (anon key, RLS-bound) — exists for Supabase Realtime
  *  subscriptions from client components. Singleton so the whole app shares ONE

@@ -16,6 +16,7 @@
 import {
     type Tag, tagById, isPersonaId, GRANTED_IDS,
     ID_TAG_STYLE, ID_RANGES, CEO_TAG, PRICEDAY_TAG_COLOR,
+    PRICE_HOLD_TAG_BG, PRICE_HOLD_TAG_TEXT,
 } from './catalog';
 import { priceDayNumber } from '../priceday/priceday';
 
@@ -42,6 +43,9 @@ export interface DeriveInput {
     createdAt?: string | null;
     /** The profile owner's wallet — gates the one-of-one CEO tag. */
     address?: string | null;
+    /** The owner's $PRICE holder rank (users.price_hold_rank) — drives the
+     *  "$PRICE Top N · #r" earned tag; null/absent = unranked (no tag). */
+    priceHoldRank?: number | null;
     /** Tag ids the owner switched OFF — filtered from the shown set (every tag,
      *  CEO included, can be hidden and tapped back on). Brendon, 2026-07-22. */
     hiddenTags?: string[] | null;
@@ -89,6 +93,28 @@ export function idTagFor(userNumber: number | null | undefined): Tag | null {
     return null;
 }
 
+/** $PRICE holder-rank tiers — the label shows the TIGHTEST Top-N the rank falls
+ *  in, and the number is the live rank (Brendon, 2026-07-23). */
+const PRICE_HOLD_TIERS = [3, 10, 25, 50, 75, 100] as const;
+
+/** The $PRICE holder-rank tag, or null past #100 / unranked (it vanishes on its
+ *  own). Attention-yellow fill + Hothurt lettering, fixed treatment (lockStyle),
+ *  sitting in the Earned section. */
+export function priceHoldTag(rank: number | null | undefined): Tag | null {
+    if (!rank || rank < 1) return null;
+    const tier = PRICE_HOLD_TIERS.find((t) => rank <= t);
+    if (!tier) return null;
+    return {
+        id: 'price-hold',
+        label: `$PRICE Top ${tier} · #${rank}`,
+        color: PRICE_HOLD_TAG_BG,
+        textColor: PRICE_HOLD_TAG_TEXT,
+        kind: 'earned',
+        order: 22,
+        lockStyle: true,
+    };
+}
+
 function daysSince(iso: string): number {
     const then = new Date(iso).getTime();
     if (Number.isNaN(then)) return 0;
@@ -114,6 +140,7 @@ export function deriveTags(input: DeriveInput): Tag[] {
     // Earned — only what we can derive honestly today.
     add(idTagFor(input.userNumber));           // User #N (opens Earned)
     add(priceDayJoinTag(input.createdAt));     // PriceDay #N (join day)
+    add(priceHoldTag(input.priceHoldRank));    // $PRICE Top N · #r (holder rank)
     if (input.isArtist) add(tagById('artist'));
     if (input.createdAt && daysSince(input.createdAt) >= VETERAN_DAYS) add(tagById('veteran'));
 

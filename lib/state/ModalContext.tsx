@@ -46,6 +46,7 @@ export type ModalName =
     | 'tarot'
     | 'panopticonConfirm'
     | 'leaderboard'
+    | 'price-leaderboard'
     | 'golf-leaderboard'
     | 'cartography'
     | 'takeover'

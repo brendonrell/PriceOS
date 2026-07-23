@@ -89,6 +89,7 @@ import SupportModal from '../SupportModal';
 import FamiliarModal from '../FamiliarModal';
 import PriceSpriteModal from '../PriceSpriteModal';
 import LeaderboardModal from '../LeaderboardModal';
+import PriceLeaderboardModal from '../PriceLeaderboardModal';
 import GolfLeaderboardModal from '../GolfLeaderboardModal';
 import GasTrackerModal from '../GasTrackerModal';
 import StickersModal from '../StickersModal';
@@ -514,6 +515,9 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="LeaderboardModal">
                 <LeaderboardModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="PriceLeaderboardModal">
+                <PriceLeaderboardModal />
             </ErrorBoundary>
             <ErrorBoundary name="GolfLeaderboardModal">
                 <GolfLeaderboardModal />

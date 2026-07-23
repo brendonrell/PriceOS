@@ -33,6 +33,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { usePdNotifs } from '@/lib/state/PdNotifsContext';
+import { useModal } from '@/lib/state/ModalContext';
 import { PROFILE_LOGOS_BY_ID, isSigilLogo } from '@/lib/profile/profileLogos';
 import {
     getActiveProfileLogo,
@@ -50,6 +51,7 @@ import {
 export function PeteyLogo() {
     const [rotated, setRotated] = useState(false);
     const { notifs } = usePdNotifs();
+    const { open } = useModal();
 
     /* Profile Logo override — while you're on a profile whose owner picked a
        Profile Logo, the corner logo repaints to THEIR choice, overriding your
@@ -243,14 +245,17 @@ export function PeteyLogo() {
                     in-app (no preventDefault). $PRICE deliberately does NOT
                     close it. */}
                 <a href="/" className="pb-home" title="Home" onClick={() => setRotated(false)}>HOME</a>
-                {/* $PRICE is LIVE on mainnet (2026-07-03) — link the real
-                    contract on Etherscan (Brendon, 2026-07-05). */}
+                {/* $PRICE opens the Top Holders board (Brendon, 2026-07-23) —
+                    the Etherscan link this item used to carry now lives on the
+                    board's ETHERSCAN button. Closes the bubble on open. */}
                 <a
-                    href="https://etherscan.io/address/0x173a012c7c8ca3cfb531dcad84a40c53dbe74638"
                     className="pb-price"
-                    title="$PRICE Token on Etherscan"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    role="button"
+                    tabIndex={0}
+                    title="$PRICE — Top Holders"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => { setRotated(false); open('price-leaderboard'); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setRotated(false); open('price-leaderboard'); } }}
                 >
                     $PRICE
                 </a>

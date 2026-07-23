@@ -57,6 +57,9 @@ export default {
     // The war sweep — marks recorder every run (one probe when idle); the
     // grip/siege/conquest derivation at most every 5 min.
     call("/api/cron/war-sweep");
+    // $PRICE Top Holders sweep — ranks named wallets by $PRICE held (KV-gated
+    // to ~15 min; every other tick is one KV read).
+    call("/api/cron/price-holdings");
     // Dead-man switch: stamp the heartbeat so the app side can notice a
     // stalled Cron (lib/pings/heartbeat.ts checks it from the hot count poll).
     const kv = (env as unknown as {

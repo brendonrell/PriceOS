@@ -2415,6 +2415,18 @@ body.theme-bright .news-pill-name {
     font-size: 12px;
     font-variant-numeric: tabular-nums;
 }
+/* $PRICE Top Holders board — a small bold PRICE unit after the held amount,
+   matching the Wallet balance readout. Full-strength (Rule #2). */
+.lb-price-unit {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px; font-weight: bold; letter-spacing: 0.04em;
+    margin-left: 3px;
+}
+/* The shared ▶ store-button (here ETHERSCAN) sits inline in the board header,
+   clear of the absolute close × — the same treatment the Sticker Manager gives
+   it. */
+.price-lb-pop .ambient-pop-title { padding-right: 40px; }
+.price-lb-pop .ambient-pop-title .smgr-store { margin-left: 12px; margin-right: 0; white-space: nowrap; text-decoration: none; }
 
 /* ============================================================
    BACKGROUND LAYERS

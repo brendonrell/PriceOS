@@ -1955,6 +1955,8 @@ export type Database = {
           familiar_config: Json | null
           grid_presets: Json
           handle: string | null
+          price_held: number
+          price_hold_rank: number | null
           price_rank: number
           price_score: number
           price_sprite: string | null
@@ -1989,6 +1991,8 @@ export type Database = {
           familiar_config?: Json | null
           grid_presets?: Json
           handle?: string | null
+          price_held?: number
+          price_hold_rank?: number | null
           price_rank?: number
           price_score?: number
           price_sprite?: string | null
@@ -2023,6 +2027,8 @@ export type Database = {
           familiar_config?: Json | null
           grid_presets?: Json
           handle?: string | null
+          price_held?: number
+          price_hold_rank?: number | null
           price_rank?: number
           price_score?: number
           price_sprite?: string | null
@@ -2271,6 +2277,8 @@ export type Database = {
           familiar_config: Json | null
           grid_presets: Json
           handle: string | null
+          price_held: number
+          price_hold_rank: number | null
           price_rank: number
           price_score: number
           price_sprite: string | null

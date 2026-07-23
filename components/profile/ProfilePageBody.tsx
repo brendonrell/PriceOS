@@ -271,7 +271,8 @@ function ProfilePageBodyInner({
         isArtist: !!artistStatus,
         createdAt: user.created_at,
         address: user.address,
-    }), [isOwnProfile, myTags, user.profile_tags, user.granted_tags, user.user_number, artistStatus, user.created_at, user.address]);
+        priceHoldRank: user.price_hold_rank,
+    }), [isOwnProfile, myTags, user.profile_tags, user.granted_tags, user.user_number, artistStatus, user.created_at, user.address, user.price_hold_rank]);
     /* Shown on the hero: full derived set minus the hidden ones (Manual → Earned
        → Chosen order via each tag's `order`). */
     const displayTags = useMemo(

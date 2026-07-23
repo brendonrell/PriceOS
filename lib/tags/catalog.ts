@@ -123,6 +123,11 @@ export const CEO_TAG: Tag = {
 /** PriceDay-join tag colour — a distinct purple (Brendon, 2026-07-22). */
 export const PRICEDAY_TAG_COLOR = '#9333EA';
 
+/** $PRICE holder-rank tag — Attention-yellow fill + Hothurt lettering, a fixed
+ *  treatment (lockStyle), the inverse of the CEO chip (Brendon, 2026-07-23). */
+export const PRICE_HOLD_TAG_BG = '#FFE600';   // Attention yellow
+export const PRICE_HOLD_TAG_TEXT = '#FF0055'; // Hothurt
+
 export const TAGS: Tag[] = [...PERSONAS, ...EARNED, ...GRANTED];
 
 const BY_ID = new Map<string, Tag>(TAGS.map((t) => [t.id, t]));

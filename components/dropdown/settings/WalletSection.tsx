@@ -441,35 +441,56 @@ export function WalletSection() {
                     kept swallowing thumbs aimed at the Spell Book below it
                     (Brendon, 2026-07-20). */}
                 <span
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        if (!isAuthed) return;
-                        const next = !balanceHidden;
-                        setBalanceHidden(next);
-                        showToast(next ? '$PRICE Balance: HIDDEN' : '$PRICE Balance: SHOWN');
-                    }}
-                    role="button"
-                    tabIndex={isAuthed ? 0 : -1}
-                    title="Toggle balance visibility"
                     style={{
-                        cursor: 'pointer',
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: 6,
                     }}
                 >
+                    {/* Tapping your SHOWN balance opens the $PRICE Top Holders
+                        board (Brendon, 2026-07-23); while masked, a tap just
+                        reveals it. The eyeball always toggles hide/show, so the
+                        hide control is never lost. */}
+                    <span
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (!isAuthed) return;
+                            if (balanceHidden) {
+                                setBalanceHidden(false);
+                                showToast('$PRICE Balance: SHOWN');
+                            } else {
+                                openModal('price-leaderboard');
+                            }
+                        }}
+                        role="button"
+                        tabIndex={isAuthed ? 0 : -1}
+                        title={balanceHidden ? 'Reveal $PRICE balance' : '$PRICE — Top Holders'}
+                        style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                    >
                     <span id="priceBalanceText">
                         {balanceHidden ? '***' : balanceDisplay}
                     </span>{' '}
-                    PRICE
+                        PRICE
+                    </span>
                     <span
                         className="balance-toggle-icon"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (!isAuthed) return;
+                            const next = !balanceHidden;
+                            setBalanceHidden(next);
+                            showToast(next ? '$PRICE Balance: HIDDEN' : '$PRICE Balance: SHOWN');
+                        }}
+                        role="button"
+                        tabIndex={isAuthed ? 0 : -1}
+                        title="Toggle balance visibility"
                         style={{
                             fontSize: 14,
                             position: 'relative',
                             top: -1,
                             opacity: 0.8,
                             transition: 'opacity 0.2s',
+                            cursor: 'pointer',
                         }}
                     >
                         {/* Predictive icon: shows what pressing will DO.
