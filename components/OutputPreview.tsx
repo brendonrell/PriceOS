@@ -83,6 +83,7 @@ import {
     useRef,
     useState,
     type MouseEvent as ReactMouseEvent,
+    type TouchEvent as ReactTouchEvent,
     type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
@@ -669,6 +670,50 @@ export default function OutputPreview() {
         return () => window.removeEventListener('keydown', handler);
     }, [isOpen, goNext, goPrev]);
 
+    /* Mobile swipes on the artwork (Brendon 2026-07-23). Horizontal swipe
+       walks prev/next — identical to the ◀ ▶ pills and arrow keys — and a
+       swipe DOWN dismisses, identical to the × close. Threshold-based, the
+       same idiom as the Command Stone pill: a small move stays a TAP and
+       falls through to open the full artwork page. Touch-only handlers, so
+       desktop pointer behaviour is untouched. body.modal-open already sets
+       touch-action:none, so no native scroll/swipe-back competes. */
+    const swipeStart = useRef<{ x: number; y: number } | null>(null);
+    const didSwipe = useRef(false);
+    const onCanvasTouchStart = useCallback((e: ReactTouchEvent) => {
+        const t = e.touches[0];
+        if (!t) return;
+        swipeStart.current = { x: t.clientX, y: t.clientY };
+        didSwipe.current = false;
+    }, []);
+    const onCanvasTouchEnd = useCallback((e: ReactTouchEvent) => {
+        const start = swipeStart.current;
+        swipeStart.current = null;
+        if (!start) return;
+        const t = e.changedTouches[0];
+        if (!t) return;
+        const dx = t.clientX - start.x;
+        const dy = t.clientY - start.y;
+        const SWIPE_PX = 44;
+        if (Math.abs(dx) >= SWIPE_PX && Math.abs(dx) > Math.abs(dy)) {
+            didSwipe.current = true;
+            if (dx < 0) goNext();
+            else goPrev();
+        } else if (dy >= SWIPE_PX && dy > Math.abs(dx)) {
+            didSwipe.current = true;
+            close();
+        }
+    }, [goNext, goPrev, close]);
+
+    /* Tap on the artwork opens the full page — but a swipe must NOT also
+       navigate, so it's gated on the swipe flag the touch-end sets. */
+    const openFullPage = useCallback(() => {
+        if (didSwipe.current) { didSwipe.current = false; return; }
+        if (id == null) return;
+        close();
+        window.scrollTo(0, 0);
+        router.push(`/art/${slug}/${id}`);
+    }, [id, close, router, slug]);
+
     /* Grail pin toggle. Mirrors sim's toggleGrailPin (sim 12413), including
        the 5-pin cap and the "Prisms #N GRAIL PINNED / DE-PINNED" toast.
        F50 (BUG-02): delegates state mutation to grailStore so
@@ -942,7 +987,11 @@ export default function OutputPreview() {
                 {`\u229F${VS15}`}
             </div>
 
-            <div className="modal-canvas-wrap">
+            <div
+                className="modal-canvas-wrap"
+                onTouchStart={onCanvasTouchStart}
+                onTouchEnd={onCanvasTouchEnd}
+            >
                 {modalImgSrc && notifs.asciiArt && !asciiMiss && id != null && (
                     /* ASCII Art Mode — instant text-backup stand-in; a miss
                        falls through to the stored master below. */
@@ -954,12 +1003,7 @@ export default function OutputPreview() {
                         className="output-canvas visible"
                         onMiss={() => setAsciiMiss(true)}
                         onReady={() => setAsciiReady(true)}
-                        onClick={() => {
-                            if (id == null) return;
-                            close();
-                            window.scrollTo(0, 0);
-                            router.push(`/art/${slug}/${id}`);
-                        }}
+                        onClick={openFullPage}
                         title="Open output page"
                         /* Natural size, like the <img> path — the standin's
                            default 100%×100% fill stretched the element past
@@ -992,12 +1036,7 @@ export default function OutputPreview() {
                             );
                         }}
                         onError={onModalImgError}
-                        onClick={() => {
-                            if (id == null) return;
-                            close();
-                            window.scrollTo(0, 0);
-                            router.push(`/art/${slug}/${id}`);
-                        }}
+                        onClick={openFullPage}
                         style={{ cursor: 'pointer' }}
                         title="Open output page"
                     />
@@ -1249,7 +1288,11 @@ export default function OutputPreview() {
                 {`\u229F${VS15}`}
             </div>
 
-            <div className="ls-canvas-wrap">
+            <div
+                className="ls-canvas-wrap"
+                onTouchStart={onCanvasTouchStart}
+                onTouchEnd={onCanvasTouchEnd}
+            >
                 {/* Degen Mode — same data slab, landscape layout. */}
                 {notifs.degen && id != null && (
                     <DegenSlab slug={slug} id={id} price={meta?.price ?? null} modal />
@@ -1276,12 +1319,7 @@ export default function OutputPreview() {
                             );
                         }}
                         onError={onModalImgError}
-                        onClick={() => {
-                            if (id == null) return;
-                            close();
-                            window.scrollTo(0, 0);
-                            router.push(`/art/${slug}/${id}`);
-                        }}
+                        onClick={openFullPage}
                         style={{ cursor: 'pointer' }}
                         title="Open output page"
                     />
