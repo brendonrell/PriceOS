@@ -10680,16 +10680,19 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 .tail-bubble {
     box-sizing: border-box;
     border-radius: 10px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
+    /* drop-shadow (not box-shadow) traces the WHOLE silhouette — bubble + tail —
+       as one shape, so there's no shadow seam line cutting across the tail. */
+    filter: drop-shadow(0 5px 12px rgba(0, 0, 0, 0.3));
     font-family: 'Courier New', Courier, monospace;
 }
 .tail-bubble::after {
     content: '';
     position: absolute;
-    top: 100%;
+    /* Overlap by 1px so the tail base fuses to the bubble edge — one clean piece. */
+    top: calc(100% - 1px);
     left: calc(50% + var(--p3d-tail-dx, 0px));
     transform: translateX(-50%);
-    border: 7px solid transparent;
+    border: 8px solid transparent;
     border-top-color: var(--tail-color);
 }
 
@@ -10712,6 +10715,8 @@ body.bg-is-yellow .todo-verb-card {
     --tail-color: var(--hothurt);
 }
 .todo-verb-card .ms-confirm-question { color: inherit; }
+/* Piece name in the title — italic, wraps naturally if long. */
+.todo-verb-piece { font-style: italic; }
 .todo-verb-btns {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -10735,12 +10740,13 @@ body.bg-is-yellow .todo-verb-card {
 @media (hover: hover) { .todo-verb-btn:hover { opacity: 0.8; } }
 body.bg-is-yellow .todo-verb-btn { color: #fff; border-color: rgba(255, 255, 255, 0.55); }
 
-/* Replace? bubble — same tail treatment, tight edges. "Replace?" over the 6
-   showcase picks as bare History-style squares, 2 across × 3 down in showcase
-   order so each square IS the slot it will replace. No box, no labels. */
+/* Replace? bubble — SAME width + padding as the To-Do card (Brendon, 2026-07-23:
+   "make it the same as the todo modal"), so the squares fill it with no side
+   fat. "Replace?" over the 6 picks as bare History-style squares, 2 across × 3
+   down in showcase order so each square IS the slot it will replace. */
 .showcase-swap-card {
-    width: min(72vw, 210px);
-    padding: 8px;
+    width: min(78vw, 240px);
+    padding: 10px;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -10750,12 +10756,12 @@ body.bg-is-yellow .todo-verb-btn { color: #fff; border-color: rgba(255, 255, 255
 }
 .showcase-swap-grid {
     display: grid;
-    grid-template-columns: repeat(2, 84px);
-    justify-content: center;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
 }
 .showcase-swap-cell {
     display: block;
+    width: 100%;
     padding: 0;
     margin: 0;
     background: none;
@@ -10766,6 +10772,14 @@ body.bg-is-yellow .todo-verb-btn { color: #fff; border-color: rgba(255, 255, 255
     transition: transform 0.1s;
 }
 .showcase-swap-cell:active { transform: scale(0.95); }
+/* OutputThumb paints a fixed-size canvas; stretch it to fill the column so the
+   squares fill the card the same way the To-Do buttons do — no side gap. */
+.showcase-swap-cell .starred-row-thumb-canvas {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 1 / 1;
+    border-radius: 6px;
+}
 .starred-row-id {
     font-weight: bold;
     color: var(--text-color);

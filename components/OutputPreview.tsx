@@ -1524,7 +1524,10 @@ export default function OutputPreview() {
             pill; pick a verb (Brendon, 2026-07-23). */}
         {todoAnchor && id != null && (
             <TailBubble anchor={todoAnchor} className="todo-verb-card" onDismiss={() => setTodoAnchor(null)}>
-                <div className="ms-confirm-question">Create To-Do</div>
+                <div className="ms-confirm-question">
+                    Create To-Do for{' '}
+                    <em className="todo-verb-piece">{title.charAt(0) + title.slice(1).toLowerCase()} #{id}</em>
+                </div>
                 <div className="todo-verb-btns">
                     {(['BUY', 'OFFER', 'LIST', 'SEND'] as TodoVerb[]).map((v) => (
                         <button
@@ -1561,7 +1564,7 @@ export default function OutputPreview() {
                                 );
                             }}
                         >
-                            <OutputThumb slug={it.slug} id={it.id} size={84} crop />
+                            <OutputThumb slug={it.slug} id={it.id} size={110} crop />
                         </button>
                     ))}
                 </div>
