@@ -110,7 +110,7 @@ import {
 } from '../lib/pins/grailStore';
 import { toggleShowcase, getShowcaseItems, replaceInShowcase } from '../lib/pins/userShowcaseStore';
 import { getStarredKeys, toggleStar as storeToggleStar, subscribeStarred } from '../lib/pins/starStore';
-import { addOutputTodo } from '../lib/todos/todoStore';
+import { addOutputTodo, type TodoVerb } from '../lib/todos/todoStore';
 import { getWishlistKeys, toggleWishlist as storeToggleWishlist, subscribeWishlist } from '../lib/pins/wishlistStore';
 import AlbumPickerCard from './album/AlbumPickerCard';
 import DegenSlab from './DegenSlab';
@@ -763,7 +763,12 @@ export default function OutputPreview() {
        pill was a toast-only stub until 2026-07-20. */
     const handleTodo = () => {
         if (id == null) return;
-        const r = addOutputTodo(slug, id, 'BUY');
+        /* The verb follows ownership (Brendon 2026-07-23): a piece I own is a
+           LIST to-do, anything else is a BUY. Same owner signal the action
+           button reads (live market → seeded fallback). */
+        const ownsThis = market?.viewer?.isOwner ?? meta?.isOwnedByBrendon ?? false;
+        const verb: TodoVerb = ownsThis ? 'LIST' : 'BUY';
+        const r = addOutputTodo(slug, id, verb);
         showToast(r === 'exists' ? 'To-Do: ALREADY ADDED' : 'To-Do: ADDED');
     };
 
