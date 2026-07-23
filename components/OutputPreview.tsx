@@ -113,6 +113,7 @@ import { getStarredKeys, toggleStar as storeToggleStar, subscribeStarred } from 
 import { addOutputTodo, type TodoVerb } from '../lib/todos/todoStore';
 import { getWishlistKeys, toggleWishlist as storeToggleWishlist, subscribeWishlist } from '../lib/pins/wishlistStore';
 import AlbumPickerCard from './album/AlbumPickerCard';
+import OutputThumb from './profile/OutputThumb';
 import DegenSlab from './DegenSlab';
 import { useSpiteMatcher } from '../lib/pins/spiteStore';
 import {
@@ -236,6 +237,9 @@ export default function OutputPreview() {
        full, show the current picks so one can be replaced instead of a dead-end
        "FULL" toast. */
     const [showcaseSwap, setShowcaseSwap] = useState(false);
+    /* To-Do action chooser — a small inline card so the user picks the verb
+       instead of the app guessing (Brendon, 2026-07-23). */
+    const [todoChooser, setTodoChooser] = useState(false);
     /* The output modal is global, so its Project is whatever was passed to
        open('output', id, slug) — falling back to the active route Project. */
     const proj = useProject();
@@ -761,14 +765,15 @@ export default function OutputPreview() {
     const openAlbumPicker = () => { if (id != null) setAlbumPickerOpen(true); };
     /* Same store + toasts as the gallery card's ❍ (ArtworkCard) — the modal
        pill was a toast-only stub until 2026-07-20. */
+    /* The To-Do pill opens a small chooser (rendered below) — the user picks
+       the verb (Brendon 2026-07-23: give them the option, don't auto-guess). */
     const handleTodo = () => {
+        if (id != null) setTodoChooser(true);
+    };
+    const addTodoVerb = (verb: TodoVerb) => {
         if (id == null) return;
-        /* The verb follows ownership (Brendon 2026-07-23): a piece I own is a
-           LIST to-do, anything else is a BUY. Same owner signal the action
-           button reads (live market → seeded fallback). */
-        const ownsThis = market?.viewer?.isOwner ?? meta?.isOwnedByBrendon ?? false;
-        const verb: TodoVerb = ownsThis ? 'LIST' : 'BUY';
         const r = addOutputTodo(slug, id, verb);
+        setTodoChooser(false);
         showToast(r === 'exists' ? 'To-Do: ALREADY ADDED' : 'To-Do: ADDED');
     };
 
@@ -1434,44 +1439,57 @@ export default function OutputPreview() {
                 </div>
             )}
         </div>
+        {/* To-Do action chooser — a small inline card; the user picks which
+            verb the to-do captures (Brendon, 2026-07-23). */}
+        {todoChooser && id != null && typeof document !== 'undefined' && createPortal(
+            <div className="starred-confirm-overlay" role="dialog" aria-modal="true" style={{ zIndex: 100000 }} onClick={() => setTodoChooser(false)}>
+                <div className="ms-confirm-card is-centered todo-verb-card" onClick={(e) => e.stopPropagation()}>
+                    <div className="ms-confirm-question">To-Do &middot; {title} #{id}</div>
+                    <div className="todo-verb-btns">
+                        {(['BUY', 'OFFER', 'LIST', 'SEND'] as TodoVerb[]).map((v) => (
+                            <button
+                                key={v}
+                                type="button"
+                                className="todo-verb-btn"
+                                onClick={() => addTodoVerb(v)}
+                            >
+                                {v}
+                            </button>
+                        ))}
+                    </div>
+                    <div className="ms-confirm-btns">
+                        <button type="button" className="ms-confirm-btn ms-confirm-btn--cancel" onClick={() => setTodoChooser(false)}>Cancel</button>
+                    </div>
+                </div>
+            </div>,
+            document.body,
+        )}
         {/* Showcase-full swap picker — the 6 current picks as thumbnails; tap
             one to replace it with this piece (Brendon, 2026-07-22). */}
         {showcaseSwap && id != null && typeof document !== 'undefined' && createPortal(
             <div className="starred-confirm-overlay" role="dialog" aria-modal="true" style={{ zIndex: 100000 }} onClick={() => setShowcaseSwap(false)}>
                 <div className="ms-confirm-card is-centered showcase-swap-card" onClick={(e) => e.stopPropagation()}>
-                    <div className="ms-confirm-question">Showcase full — swap in {title} #{id}?</div>
+                    <div className="ms-confirm-question">Replace?</div>
                     <div className="showcase-swap-grid">
-                        {getShowcaseItems().map((it) => {
-                            const p = getProject(it.slug);
-                            const thumb = artThumbUrl(it.slug, it.id);
-                            return (
-                                <button
-                                    key={`${it.slug}:${it.id}`}
-                                    type="button"
-                                    className="showcase-swap-cell"
-                                    title={`Replace ${p?.displayName ?? it.slug} #${it.id}`}
-                                    onClick={() => {
-                                        const r = replaceInShowcase(it.slug, it.id, slug, id);
-                                        setShowcaseSwap(false);
-                                        showToast(
-                                            r === 'exists' ? 'Showcase: ALREADY IN'
-                                                : r === 'replaced' ? 'Showcase: SWAPPED'
-                                                : 'Showcase: UNCHANGED',
-                                        );
-                                    }}
-                                >
-                                    {thumb
-                                        ? <img className="showcase-swap-thumb" src={thumb} alt="" draggable={false} />
-                                        : <span className="showcase-swap-thumb showcase-swap-thumb--blank" aria-hidden="true" />}
-                                    <span className="showcase-swap-name">
-                                        {(p?.displayName ?? it.slug).charAt(0)}{(p?.displayName ?? it.slug).slice(1).toLowerCase()} #{it.id}
-                                    </span>
-                                </button>
-                            );
-                        })}
-                    </div>
-                    <div className="ms-confirm-btns">
-                        <button type="button" className="ms-confirm-btn ms-confirm-btn--cancel" onClick={() => setShowcaseSwap(false)}>Keep all 6</button>
+                        {getShowcaseItems().map((it) => (
+                            <button
+                                key={`${it.slug}:${it.id}`}
+                                type="button"
+                                className="showcase-swap-cell"
+                                title={`Replace ${getProject(it.slug)?.displayName ?? it.slug} #${it.id}`}
+                                onClick={() => {
+                                    const r = replaceInShowcase(it.slug, it.id, slug, id);
+                                    setShowcaseSwap(false);
+                                    showToast(
+                                        r === 'exists' ? 'Showcase: ALREADY IN'
+                                            : r === 'replaced' ? 'Showcase: SWAPPED'
+                                            : 'Showcase: UNCHANGED',
+                                    );
+                                }}
+                            >
+                                <OutputThumb slug={it.slug} id={it.id} size={84} crop />
+                            </button>
+                        ))}
                     </div>
                 </div>
             </div>,

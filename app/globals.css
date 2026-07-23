@@ -10673,42 +10673,56 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 /* ── Showcase-full swap picker (Brendon, 2026-07-22) — the 6 current picks as
    small thumbnails on the confirm card; tap one to replace it. Lives on the
    inverted confirm card (bg = --text-color), so cell chrome uses --bg-color. */
-.showcase-swap-card { width: min(92vw, 340px); }
+/* Small by design (Brendon, 2026-07-23) — just "Replace?" over the 6 showcase
+   picks as bare History-style squares, 2 across × 3 down in showcase order so
+   each square IS the slot it will replace. No box, no labels. The double class
+   beats `.ms-confirm-card.is-centered`'s width so this wins. */
+.ms-confirm-card.showcase-swap-card { width: min(78vw, 220px); gap: 10px; }
 .showcase-swap-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(2, 84px);
+    justify-content: center;
+    gap: 10px;
 }
 .showcase-swap-cell {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    padding: 4px;
-    background: none;
-    border: 1.5px solid var(--bg-color);
-    border-radius: 4px;
-    cursor: pointer;
-    color: var(--bg-color);
-    font-family: 'Courier New', Courier, monospace;
-}
-.showcase-swap-cell:active { transform: scale(0.97); }
-.showcase-swap-thumb {
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    object-fit: cover;
     display: block;
-    border-radius: 2px;
-    background: color-mix(in srgb, var(--bg-color) 15%, transparent);
+    padding: 0;
+    margin: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    line-height: 0;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.1s;
 }
-.showcase-swap-name {
-    font-size: 12px;
+.showcase-swap-cell:active { transform: scale(0.95); }
+
+/* To-Do action chooser — a small inline card (Brendon, 2026-07-23). Verb
+   buttons wear the full-strength site tokens (bg fill · text ink · bold),
+   the proven readable treatment (Rule #2). 2×2 so it stays compact. */
+.todo-verb-card { width: min(80vw, 230px); }
+.todo-verb-btns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+}
+.todo-verb-btn {
+    height: 34px;
+    border-radius: 3px;
+    border: 1.5px solid var(--bg-color);
+    background: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
     font-weight: bold;
-    line-height: 1.1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.1s;
+}
+.todo-verb-btn:active { opacity: 0.7; }
+@media (hover: hover) {
+    .todo-verb-btn:hover { opacity: 0.85; }
 }
 .starred-row-id {
     font-weight: bold;
