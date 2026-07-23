@@ -8,7 +8,23 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-23 (LATEST) $PRICE UTILITY — Top Holders leaderboard + $PRICE
+0. ✅ **2026-07-23 (LATEST) PROFILES 500 → FIXED, pushed to dev (tip `071b574`),
+   auto-deploy rolling.** The $PRICE UTILITY batch below took EVERY profile down:
+   it added `price_held` + `price_hold_rank` to the **public (anon) profile column
+   read** (`PUBLIC_USER_COLUMNS` in `lib/supabase.ts`), but anon has only
+   INSERT/UPDATE grants on those two columns — **NO SELECT**. Postgres refuses the
+   whole `users` query → every profile threw `permission denied for table users`
+   and 500'd (looked like a 404 to Brendon). Fix per Brendon's call: **revert just
+   the profile-read part** — dropped the two columns from the public read. The Top
+   Holders board (own service-role path), the @pricediscussion slug fix, and all
+   other work STAY. **Side effect:** the $PRICE rank/holding PROFILE TAGS now have
+   no data → silently don't show. To bring the tags back the RIGHT way later:
+   `grant select (price_held, price_hold_rank) on public.users to anon,
+   authenticated;` then re-add the two columns to `PUBLIC_USER_COLUMNS`. Task
+   branch `claude/profile-links-404-k6rxdu` = trash (delete at
+   https://github.com/brendonrell/PriceOS/branches).
+
+0. ✅ **2026-07-23 $PRICE UTILITY — Top Holders leaderboard + $PRICE
    profile tags, all SHIPPED on dev (tip `8c9488a`), auto-deploy rolling, tree
    clean. Task branch `claude/price-utility-features-xl4g8a` = trash (delete at
    https://github.com/brendonrell/PriceOS/branches).** Opus, present→push loop.
