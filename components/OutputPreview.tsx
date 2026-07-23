@@ -82,6 +82,7 @@ import {
     useMemo,
     useRef,
     useState,
+    type CSSProperties,
     type MouseEvent as ReactMouseEvent,
     type TouchEvent as ReactTouchEvent,
     type ReactNode,
@@ -224,6 +225,85 @@ function buildMockOffers(outputId: number): MockOffer[] {
     });
 }
 
+/* Anchor for a tail-bubble — the trigger pill's viewport top + horizontal
+   centre, captured at open. */
+type BubbleAnchor = { top: number; cx: number };
+function anchorFromEvent(e: ReactMouseEvent): BubbleAnchor {
+    const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    return { top: r.top, cx: r.left + r.width / 2 };
+}
+
+/* TailBubble — an inline speech-bubble card that floats above its trigger with
+   a little tail, reusing the fiat-picker / 3D-pingtoast placement verbatim: a
+   body portal, clamped on-screen, tail (--p3d-tail-dx) aimed back at the pill,
+   dismiss on outside tap / scroll / resize. No screen-dimming backdrop. */
+function TailBubble({
+    anchor,
+    className,
+    onDismiss,
+    children,
+}: {
+    anchor: BubbleAnchor;
+    className: string;
+    onDismiss: () => void;
+    children: ReactNode;
+}) {
+    const ref = useRef<HTMLDivElement>(null);
+    const [layout, setLayout] = useState<{ centerX: number; tailDx: number } | null>(null);
+
+    /* Clamp on-screen once measured, then aim the tail back at the trigger. */
+    useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        const half = el.offsetWidth / 2;
+        const margin = 8;
+        const vw = window.innerWidth;
+        const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
+        const centerX = clamp(anchor.cx, margin + half, vw - margin - half);
+        const tailDx = clamp(anchor.cx - centerX, -(half - 12), half - 12);
+        setLayout({ centerX, tailDx });
+    }, [anchor]);
+
+    /* Same dismiss guard as the fiat bubble. */
+    useEffect(() => {
+        const onDown = (e: PointerEvent) => {
+            if (ref.current?.contains(e.target as Node)) return;
+            onDismiss();
+        };
+        const dismiss = () => onDismiss();
+        document.addEventListener('pointerdown', onDown, true);
+        window.addEventListener('scroll', dismiss, true);
+        window.addEventListener('resize', dismiss);
+        return () => {
+            document.removeEventListener('pointerdown', onDown, true);
+            window.removeEventListener('scroll', dismiss, true);
+            window.removeEventListener('resize', dismiss);
+        };
+    }, [onDismiss]);
+
+    if (typeof document === 'undefined') return null;
+    return createPortal(
+        <div
+            ref={ref}
+            className={`tail-bubble ${className}`}
+            role="dialog"
+            aria-modal="true"
+            style={{
+                position: 'fixed',
+                top: anchor.top,
+                left: layout?.centerX ?? anchor.cx,
+                transform: 'translate(-50%, calc(-100% - 10px))',
+                visibility: layout ? 'visible' : 'hidden',
+                zIndex: 100000,
+                ['--p3d-tail-dx' as string]: `${layout?.tailDx ?? 0}px`,
+            } as CSSProperties}
+        >
+            {children}
+        </div>,
+        document.body,
+    );
+}
+
 export default function OutputPreview() {
     const { openModal, currentModalId, currentModalSlug, outputSequence, setCurrentModalId, setCurrentModalOutput, close, closeAll } = useModal();
     const { showToast } = useToast();
@@ -235,11 +315,11 @@ export default function OutputPreview() {
     const [confirmUnlist, setConfirmUnlist] = useState(false);
     /* Showcase-full swap picker (Brendon, 2026-07-22) — when the 6 slots are
        full, show the current picks so one can be replaced instead of a dead-end
-       "FULL" toast. */
-    const [showcaseSwap, setShowcaseSwap] = useState(false);
-    /* To-Do action chooser — a small inline card so the user picks the verb
-       instead of the app guessing (Brendon, 2026-07-23). */
-    const [todoChooser, setTodoChooser] = useState(false);
+       "FULL" toast. Anchored as a tail-bubble on the trigger (null = closed). */
+    const [swapAnchor, setSwapAnchor] = useState<BubbleAnchor | null>(null);
+    /* Create-To-Do chooser — a tail-bubble so the user picks the verb instead
+       of the app guessing (Brendon, 2026-07-23). Null = closed. */
+    const [todoAnchor, setTodoAnchor] = useState<BubbleAnchor | null>(null);
     /* The output modal is global, so its Project is whatever was passed to
        open('output', id, slug) — falling back to the active route Project. */
     const proj = useProject();
@@ -765,15 +845,15 @@ export default function OutputPreview() {
     const openAlbumPicker = () => { if (id != null) setAlbumPickerOpen(true); };
     /* Same store + toasts as the gallery card's ❍ (ArtworkCard) — the modal
        pill was a toast-only stub until 2026-07-20. */
-    /* The To-Do pill opens a small chooser (rendered below) — the user picks
-       the verb (Brendon 2026-07-23: give them the option, don't auto-guess). */
-    const handleTodo = () => {
-        if (id != null) setTodoChooser(true);
+    /* The To-Do pill opens the Create-To-Do bubble anchored on the tapped pill
+       (Brendon 2026-07-23: give them the option, don't auto-guess). */
+    const handleTodo = (e: ReactMouseEvent) => {
+        if (id != null) setTodoAnchor(anchorFromEvent(e));
     };
     const addTodoVerb = (verb: TodoVerb) => {
         if (id == null) return;
         const r = addOutputTodo(slug, id, verb);
-        setTodoChooser(false);
+        setTodoAnchor(null);
         showToast(r === 'exists' ? 'To-Do: ALREADY ADDED' : 'To-Do: ADDED');
     };
 
@@ -1219,11 +1299,12 @@ export default function OutputPreview() {
                             <button
                                 className={`modal-action-btn-calc${calcMode === 'user-showcase' ? ' is-showcase' : ''}`}
                                 id="mActionCalc"
-                                onClick={() => {
+                                onClick={(e) => {
                                     if (calcMode === 'user-showcase') {
                                         if (id != null) {
+                                            const anchor = anchorFromEvent(e);
                                             const r = toggleShowcase(slug, id);
-                                            if (r === 'full') { setShowcaseSwap(true); return; }
+                                            if (r === 'full') { setSwapAnchor(anchor); return; }
                                             showToast(r === 'added' ? 'Showcase: ADDED' : 'Showcase: REMOVED');
                                         }
                                     } else if (calcMode === 'offer') {
@@ -1439,61 +1520,52 @@ export default function OutputPreview() {
                 </div>
             )}
         </div>
-        {/* To-Do action chooser — a small inline card; the user picks which
-            verb the to-do captures (Brendon, 2026-07-23). */}
-        {todoChooser && id != null && typeof document !== 'undefined' && createPortal(
-            <div className="starred-confirm-overlay" role="dialog" aria-modal="true" style={{ zIndex: 100000 }} onClick={() => setTodoChooser(false)}>
-                <div className="ms-confirm-card is-centered todo-verb-card" onClick={(e) => e.stopPropagation()}>
-                    <div className="ms-confirm-question">To-Do &middot; {title} #{id}</div>
-                    <div className="todo-verb-btns">
-                        {(['BUY', 'OFFER', 'LIST', 'SEND'] as TodoVerb[]).map((v) => (
-                            <button
-                                key={v}
-                                type="button"
-                                className="todo-verb-btn"
-                                onClick={() => addTodoVerb(v)}
-                            >
-                                {v}
-                            </button>
-                        ))}
-                    </div>
-                    <div className="ms-confirm-btns">
-                        <button type="button" className="ms-confirm-btn ms-confirm-btn--cancel" onClick={() => setTodoChooser(false)}>Cancel</button>
-                    </div>
+        {/* Create-To-Do bubble — a colored tail-bubble anchored on the tapped
+            pill; pick a verb (Brendon, 2026-07-23). */}
+        {todoAnchor && id != null && (
+            <TailBubble anchor={todoAnchor} className="todo-verb-card" onDismiss={() => setTodoAnchor(null)}>
+                <div className="ms-confirm-question">Create To-Do</div>
+                <div className="todo-verb-btns">
+                    {(['BUY', 'OFFER', 'LIST', 'SEND'] as TodoVerb[]).map((v) => (
+                        <button
+                            key={v}
+                            type="button"
+                            className="todo-verb-btn"
+                            onClick={() => addTodoVerb(v)}
+                        >
+                            {v}
+                        </button>
+                    ))}
                 </div>
-            </div>,
-            document.body,
+            </TailBubble>
         )}
-        {/* Showcase-full swap picker — the 6 current picks as thumbnails; tap
-            one to replace it with this piece (Brendon, 2026-07-22). */}
-        {showcaseSwap && id != null && typeof document !== 'undefined' && createPortal(
-            <div className="starred-confirm-overlay" role="dialog" aria-modal="true" style={{ zIndex: 100000 }} onClick={() => setShowcaseSwap(false)}>
-                <div className="ms-confirm-card is-centered showcase-swap-card" onClick={(e) => e.stopPropagation()}>
-                    <div className="ms-confirm-question">Replace?</div>
-                    <div className="showcase-swap-grid">
-                        {getShowcaseItems().map((it) => (
-                            <button
-                                key={`${it.slug}:${it.id}`}
-                                type="button"
-                                className="showcase-swap-cell"
-                                title={`Replace ${getProject(it.slug)?.displayName ?? it.slug} #${it.id}`}
-                                onClick={() => {
-                                    const r = replaceInShowcase(it.slug, it.id, slug, id);
-                                    setShowcaseSwap(false);
-                                    showToast(
-                                        r === 'exists' ? 'Showcase: ALREADY IN'
-                                            : r === 'replaced' ? 'Showcase: SWAPPED'
+        {/* Showcase-full swap bubble — "Replace?" over the 6 picks as bare
+            History squares, 2×3 in showcase order (Brendon, 2026-07-23). */}
+        {swapAnchor && id != null && (
+            <TailBubble anchor={swapAnchor} className="showcase-swap-card" onDismiss={() => setSwapAnchor(null)}>
+                <div className="ms-confirm-question">Replace?</div>
+                <div className="showcase-swap-grid">
+                    {getShowcaseItems().map((it) => (
+                        <button
+                            key={`${it.slug}:${it.id}`}
+                            type="button"
+                            className="showcase-swap-cell"
+                            title={`Replace ${getProject(it.slug)?.displayName ?? it.slug} #${it.id}`}
+                            onClick={() => {
+                                const r = replaceInShowcase(it.slug, it.id, slug, id);
+                                setSwapAnchor(null);
+                                showToast(
+                                    r === 'exists' ? 'Showcase: ALREADY IN'
+                                        : r === 'replaced' ? 'Showcase: SWAPPED'
                                             : 'Showcase: UNCHANGED',
-                                    );
-                                }}
-                            >
-                                <OutputThumb slug={it.slug} id={it.id} size={84} crop />
-                            </button>
-                        ))}
-                    </div>
+                                );
+                            }}
+                        >
+                            <OutputThumb slug={it.slug} id={it.id} size={84} crop />
+                        </button>
+                    ))}
                 </div>
-            </div>,
-            document.body,
+            </TailBubble>
         )}
         {/* Unlist confirm — the same centered card the mint flow uses. */}
         {confirmUnlist && id != null && typeof document !== 'undefined' && createPortal(

@@ -10673,16 +10673,86 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 /* ── Showcase-full swap picker (Brendon, 2026-07-22) — the 6 current picks as
    small thumbnails on the confirm card; tap one to replace it. Lives on the
    inverted confirm card (bg = --text-color), so cell chrome uses --bg-color. */
-/* Small by design (Brendon, 2026-07-23) — just "Replace?" over the 6 showcase
-   picks as bare History-style squares, 2 across × 3 down in showcase order so
-   each square IS the slot it will replace. No box, no labels. The double class
-   beats `.ms-confirm-card.is-centered`'s width so this wins. */
-.ms-confirm-card.showcase-swap-card { width: min(78vw, 220px); gap: 10px; }
+/* Inline tail-bubble cards (Brendon, 2026-07-23) — the fiat-picker treatment:
+   a body-portal bubble that points at its trigger with a little tail, so it
+   floats over the modal instead of dimming/covering the screen. Position and
+   --p3d-tail-dx are set from JS (the shared fiat/pingtoast placement). */
+.tail-bubble {
+    box-sizing: border-box;
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
+    font-family: 'Courier New', Courier, monospace;
+}
+.tail-bubble::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: calc(50% + var(--p3d-tail-dx, 0px));
+    transform: translateX(-50%);
+    border: 7px solid transparent;
+    border-top-color: var(--tail-color);
+}
+
+/* Create-To-Do bubble — Attention yellow, flipping to Hothurt red on the
+   yellow colorway (same bg-sense as the fiat bubble) so it always reads
+   (Rule #2). Verb chips mirror .fiat-opt. */
+.todo-verb-card {
+    width: min(78vw, 240px);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: var(--attention);
+    color: #1a1a1a;
+    --tail-color: var(--attention);
+}
+body.bg-is-yellow .todo-verb-card {
+    background: var(--hothurt);
+    color: #fff;
+    --tail-color: var(--hothurt);
+}
+.todo-verb-card .ms-confirm-question { color: inherit; }
+.todo-verb-btns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+}
+.todo-verb-btn {
+    height: 34px;
+    border-radius: 6px;
+    border: 1px solid rgba(0, 0, 0, 0.35);
+    background: transparent;
+    color: #1a1a1a;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.1s;
+}
+.todo-verb-btn:active { opacity: 0.65; }
+@media (hover: hover) { .todo-verb-btn:hover { opacity: 0.8; } }
+body.bg-is-yellow .todo-verb-btn { color: #fff; border-color: rgba(255, 255, 255, 0.55); }
+
+/* Replace? bubble — same tail treatment, tight edges. "Replace?" over the 6
+   showcase picks as bare History-style squares, 2 across × 3 down in showcase
+   order so each square IS the slot it will replace. No box, no labels. */
+.showcase-swap-card {
+    width: min(72vw, 210px);
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: var(--text-color);
+    color: var(--bg-color);
+    --tail-color: var(--text-color);
+}
 .showcase-swap-grid {
     display: grid;
     grid-template-columns: repeat(2, 84px);
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
 }
 .showcase-swap-cell {
     display: block;
@@ -10696,34 +10766,6 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     transition: transform 0.1s;
 }
 .showcase-swap-cell:active { transform: scale(0.95); }
-
-/* To-Do action chooser — a small inline card (Brendon, 2026-07-23). Verb
-   buttons wear the full-strength site tokens (bg fill · text ink · bold),
-   the proven readable treatment (Rule #2). 2×2 so it stays compact. */
-.todo-verb-card { width: min(80vw, 230px); }
-.todo-verb-btns {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
-}
-.todo-verb-btn {
-    height: 34px;
-    border-radius: 3px;
-    border: 1.5px solid var(--bg-color);
-    background: var(--bg-color);
-    color: var(--text-color);
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 13px;
-    font-weight: bold;
-    letter-spacing: 0.5px;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition: opacity 0.1s;
-}
-.todo-verb-btn:active { opacity: 0.7; }
-@media (hover: hover) {
-    .todo-verb-btn:hover { opacity: 0.85; }
-}
 .starred-row-id {
     font-weight: bold;
     color: var(--text-color);
