@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { evalMath, formatMathValue, pdNumberNote } from '../lib/stone/mathEval';
-import { parseConvert, convertValue } from '../lib/fx/convert';
+import { parseConvert, convertValue, convertAll } from '../lib/fx/convert';
 import type { FxResponse } from '../lib/fx/types';
 import { parseWidget } from '../lib/stone/widgets';
 
@@ -75,6 +75,23 @@ describe('parseConvert + convertValue', () => {
     });
     it('a bare fiat amount converts to eth', () => {
         expect(parseConvert('3200 gbp')).toEqual({ amount: 3200, from: 'GBP', to: 'ETH' });
+    });
+    it('a dangling "to" / "in" reads as an all-currencies preview', () => {
+        expect(parseConvert('3 eth to')).toEqual({ amount: 3, from: 'ETH', to: null });
+        expect(parseConvert('3 eth in')).toEqual({ amount: 3, from: 'ETH', to: null });
+    });
+    it('strips a leading "convert"', () => {
+        expect(parseConvert('convert 3 eth to')).toEqual({ amount: 3, from: 'ETH', to: null });
+        expect(parseConvert('convert 3 eth to gbp')).toEqual({ amount: 3, from: 'ETH', to: 'GBP' });
+    });
+    it('convertAll maps every currency in the given order', () => {
+        const rows = convertAll(1, ['USD', 'EUR', 'GBP'], FX);
+        expect(rows).toEqual([
+            { code: 'USD', value: 4000 },
+            { code: 'EUR', value: 3600 },
+            { code: 'GBP', value: 3200 },
+        ]);
+        expect(convertAll(1, ['USD'], { ...FX, trusted: false })).toEqual([]);
     });
     it('rejects non-conversions', () => {
         expect(parseConvert('3*546')).toBeNull();

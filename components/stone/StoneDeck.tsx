@@ -49,10 +49,9 @@ import { getTodos, subscribeTodos, datedTodosByDay, type TodoItem } from '../../
 import { buildWalletMark } from '../../lib/stone/mark';
 import { commitEtch } from '../../lib/stone/etch';
 import { formatMathValue, pdNumberNote } from '../../lib/stone/mathEval';
-import { convertValue, formatUnit, formatResult, formatSource } from '../../lib/fx/convert';
+import { convertValue, convertAll, formatUnit, formatResult, formatSource } from '../../lib/fx/convert';
 import { useFxRates } from '../../lib/fx/rates';
-import { useFiat } from '../../lib/state/FiatContext';
-import type { FiatCode } from '../../lib/fx/types';
+import { useFiat, FIAT_OPTIONS } from '../../lib/state/FiatContext';
 import type { WidgetPlan } from '../../lib/stone/widgets';
 import type { StoneTrendResponse } from '../../app/api/stone/trend/route';
 import type { StoneWrappedResponse } from '../../app/api/stone/wrapped/route';
@@ -1168,7 +1167,6 @@ function MathWidget({ plan }: { plan: Extract<WidgetPlan, { kind: 'math' }> }) {
       shows only the one line). Rides /api/fx (edge-cached, free forever) and
       works whether or not fiat mode is on. ── */
 
-const CONVERT_ALSO: readonly FiatCode[] = ['USD', 'EUR', 'GBP', 'JPY'];
 
 function ConvertWidget({ plan }: { plan: Extract<WidgetPlan, { kind: 'convert' }> }) {
     const { currency } = useFiat();
@@ -1194,29 +1192,30 @@ function ConvertWidget({ plan }: { plan: Extract<WidgetPlan, { kind: 'convert' }
         );
     }
 
-    /* The extra glance: when converting FROM eth with no explicit target, show
-       the other majors too. A targeted or reverse conversion stays single. */
-    const showExtra = conv.from === 'ETH' && conv.to == null;
-    const extras = showExtra
-        ? CONVERT_ALSO.filter((c) => c !== primary.to)
-            .map((c) => ({ code: c, r: convertValue({ ...conv, to: c }, fx, fallback) }))
-            .filter((x): x is { code: FiatCode; r: NonNullable<ReturnType<typeof convertValue>> } => !!x.r)
-        : [];
+    /* From ETH with no explicit target → preview EVERY currency in the
+       fiat-picker's order (Brendon, 2026-07-23). A targeted or reverse
+       conversion stays a single line. */
+    if (conv.from === 'ETH' && conv.to == null) {
+        const rows = convertAll(conv.amount, FIAT_OPTIONS, fx);
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`⇄${VS15}`} label="CONVERT" sub={formatSource(conv.amount, conv.from)} />
+                <div className="sw-rows">
+                    {rows.map((x) => (
+                        <div key={x.code} className="sw-row-line">
+                            <span className="sw-row-l">{x.code}</span>
+                            <span className="sw-row-r">{formatUnit(x.value, x.code)}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="stone-widget sw-card">
             <SwTitle glyph={`⇄${VS15}`} label="CONVERT" sub={formatSource(conv.amount, conv.from)} />
             <SwSay lead>{`= ${formatResult(primary.value, primary.to)}`}</SwSay>
-            {extras.length > 0 && (
-                <div className="sw-rows">
-                    {extras.map((x) => (
-                        <div key={x.code} className="sw-row-line">
-                            <span className="sw-row-l">{x.code}</span>
-                            <span className="sw-row-r">{formatUnit(x.r.value, x.r.to)}</span>
-                        </div>
-                    ))}
-                </div>
-            )}
         </div>
     );
 }

@@ -40,9 +40,12 @@ function toUnit(raw: string): Unit | null {
 const NUM = String.raw`(\d[\d,]*(?:\.\d+)?|\.\d+)`;
 const UNIT = String.raw`([a-zA-Z]{2,8}|[£€¥₱$Ξξ◊])`;
 
-/** Parse a typed line into a conversion plan, or null. */
+/** Parse a typed line into a conversion plan, or null. An optional leading
+ *  "convert " is stripped, and a DANGLING connector ("3 eth to", "3 eth in")
+ *  with no target yet still parses (to: null) so the surfaces can preview every
+ *  currency the moment the intent is clear (Brendon, 2026-07-23). */
 export function parseConvert(line: string): ConvertPlan | null {
-    const s = line.trim();
+    const s = line.trim().replace(/^convert\s+/i, '');
     if (!s || s.length > 48) return null;
 
     // Form A: "$500 to eth" / "£20 in eth" — symbol-prefixed amount.
@@ -54,8 +57,9 @@ export function parseConvert(line: string): ConvertPlan | null {
         if (from && Number.isFinite(amount)) return finish(amount, from, to);
     }
 
-    // Form B: "<amount> <unit> [to|in <unit>]".
-    m = new RegExp(`^${NUM}\\s*${UNIT}(?:\\s*(?:to|in|=|->)\\s*${UNIT})?$`, 'i').exec(s);
+    // Form B: "<amount> <unit> [to|in [<unit>]]" — the target unit is optional
+    // after the connector, so "3 eth to" reads as an all-currencies preview.
+    m = new RegExp(`^${NUM}\\s*${UNIT}(?:\\s*(?:to|in|=|->)\\s*${UNIT}?)?$`, 'i').exec(s);
     if (m) {
         const amount = parseFloat(m[1].replace(/,/g, ''));
         const from = toUnit(m[2]);
@@ -77,6 +81,23 @@ function finish(amount: number, from: Unit, to: Unit | null): ConvertPlan | null
         return null;
     }
     return { amount, from, to };
+}
+
+/** ETH → every currency in `order` (that order preserved), skipping any without
+ *  a live rate. Powers the "3 eth to" all-currencies preview; the caller passes
+ *  the fiat-picker order so the list matches the modal (Brendon, 2026-07-23). */
+export function convertAll(
+    amountEth: number,
+    order: readonly FiatCode[],
+    fx: FxResponse | null,
+): { code: FiatCode; value: number }[] {
+    if (!fx || !fx.trusted || !Number.isFinite(amountEth) || amountEth < 0) return [];
+    const out: { code: FiatCode; value: number }[] = [];
+    for (const code of order) {
+        const rate = fx.rates?.[code];
+        if (typeof rate === 'number') out.push({ code, value: amountEth * rate });
+    }
+    return out;
 }
 
 /** The converted numeric value, or null when rates are missing/untrusted. */

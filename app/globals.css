@@ -1188,6 +1188,10 @@ body.ascii-id-mode .id-row-sprite     { display: none !important; }
 .gsr-thumb { width: 36px; height: 36px; border-radius: 3px; flex: none; display: block; object-fit: cover; }
 /* Inline answers — the ledger speaking; reads a step above the rows. */
 .gsr-answer { font-size: 13px; opacity: 0.95; }
+/* Multi-currency convert rows — code left, the converted amount full-strength
+   on the right (Rule #2), in the fiat-picker order (Brendon, 2026-07-23). */
+.gsr-conv .gsr-main { flex: none; font-weight: bold; }
+.gsr-conv-val { margin-left: auto; font-family: 'Courier New', Courier, monospace; font-size: 12px; font-weight: bold; opacity: 1; white-space: nowrap; flex: none; }
 /* The quiet syntax teacher + the per-section expander. */
 .gsr-hint { font-size: 10px; opacity: 0.4; }
 .gsr-more { cursor: pointer; font-size: 11px; }

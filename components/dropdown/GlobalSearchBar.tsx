@@ -97,9 +97,9 @@ import { paintOutput } from '../../lib/state/ProjectContext';
 import { paintAsciiStandin } from '../../lib/art/asciiStandin';
 import { hashString } from '../../lib/art/rng';
 import { evalMath, formatMathValue } from '../../lib/stone/mathEval';
-import { parseConvert, convertValue, formatResult, formatSource } from '../../lib/fx/convert';
+import { parseConvert, convertValue, convertAll, formatUnit, formatResult, formatSource } from '../../lib/fx/convert';
 import { useFxRates } from '../../lib/fx/rates';
-import { useFiat } from '../../lib/state/FiatContext';
+import { useFiat, FIAT_OPTIONS } from '../../lib/state/FiatContext';
 import LaneRunner from './LaneRunner';
 import type { SearchResponse, SearchUserResult } from '../../app/api/search/route';
 
@@ -264,6 +264,13 @@ export function GlobalSearchBar() {
                 ? `${formatSource(convPlan.amount, convPlan.from)} = ${formatResult(convAns.value, convAns.to)}`
                 : `${formatSource(convPlan.amount, convPlan.from)} …`)
             : null;
+    // "3 eth to" / "convert 3 eth to" (from ETH, no target yet) → preview every
+    // currency in the fiat-picker order, pre-filled — the same anticipation math
+    // gets (Brendon, 2026-07-23).
+    const convMulti = useMemo(
+        () => (convPlan && convPlan.from === 'ETH' && convPlan.to == null ? convertAll(convPlan.amount, FIAT_OPTIONS, fx) : null),
+        [convPlan, fx],
+    );
     const hasInline = isGlobalSearching && inlineAnswer != null;
 
     // RECENTLY VIEWED — the breadcrumb trail (the History feature) surfaces
@@ -676,9 +683,23 @@ export function GlobalSearchBar() {
                 {eggOn && <LaneRunner />}
                 {/* INLINE MATH / CONVERSION — the bare answer, nothing else. */}
                 {!eggOn && hasInline && (
-                    <div className="global-result-item gsr-row gsr-answer">
-                        <span className="gsr-main">{inlineAnswer}</span>
-                    </div>
+                    convPlan && convMulti && convMulti.length > 0 ? (
+                        <>
+                            <div className="global-result-item gsr-row gsr-answer">
+                                <span className="gsr-main">{formatSource(convPlan.amount, convPlan.from)} =</span>
+                            </div>
+                            {convMulti.map((x) => (
+                                <div key={x.code} className="global-result-item gsr-row gsr-answer gsr-conv">
+                                    <span className="gsr-main">{x.code}</span>
+                                    <span className="gsr-conv-val">{formatUnit(x.value, x.code)}</span>
+                                </div>
+                            ))}
+                        </>
+                    ) : (
+                        <div className="global-result-item gsr-row gsr-answer">
+                            <span className="gsr-main">{inlineAnswer}</span>
+                        </div>
+                    )
                 )}
                 {!eggOn && !hasInline && engaged && !isGlobalSearching && (
                     <>
