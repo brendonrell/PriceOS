@@ -111,7 +111,7 @@ import {
 } from '../lib/pins/grailStore';
 import { toggleShowcase, getShowcaseItems, replaceInShowcase } from '../lib/pins/userShowcaseStore';
 import { getStarredKeys, toggleStar as storeToggleStar, subscribeStarred } from '../lib/pins/starStore';
-import { addOutputTodo, type TodoVerb, type TodoPriority } from '../lib/todos/todoStore';
+import { addOutputTodo, getTodos, subscribeTodos, type TodoVerb, type TodoPriority } from '../lib/todos/todoStore';
 import { getWishlistKeys, toggleWishlist as storeToggleWishlist, subscribeWishlist } from '../lib/pins/wishlistStore';
 import AlbumPickerCard from './album/AlbumPickerCard';
 import OutputThumb from './profile/OutputThumb';
@@ -491,6 +491,19 @@ export default function OutputPreview() {
         check();
         window.addEventListener('pd:notes-changed', check);
         return () => window.removeEventListener('pd:notes-changed', check);
+    }, [slug, id]);
+    /* To-Do active state — the pill lights up if this output already has an open
+       to-do (any verb). It never blocks creating more (Brendon, 2026-07-23). */
+    const [hasTodo, setHasTodo] = useState(false);
+    useEffect(() => {
+        const check = () => {
+            if (id == null) { setHasTodo(false); return; }
+            setHasTodo(getTodos().some(
+                (t) => t.kind === 'output' && !t.done && t.source?.slug === slug && t.source?.tokenId === id,
+            ));
+        };
+        check();
+        return subscribeTodos(check);
     }, [slug, id]);
     const isMutedNow = id != null && mutedSet.has(`${slug}:${id}`);
 
@@ -1275,7 +1288,7 @@ export default function OutputPreview() {
                                 {`\u27DF${VS15}`}
                             </span>
                             <span
-                                className="modal-pill"
+                                className={`modal-pill${hasTodo || todoAnchor ? ' active' : ''}`}
                                 title="Add to To-Do"
                                 onClick={handleTodo}
                             >
@@ -1492,7 +1505,7 @@ export default function OutputPreview() {
                     >
                         {`\u27DF${VS15}`}
                     </span>
-                    <span className="modal-pill" title="Add to To-Do" onClick={handleTodo}>
+                    <span className={`modal-pill${hasTodo || todoAnchor ? ' active' : ''}`} title="Add to To-Do" onClick={handleTodo}>
                         {`\u274D${VS15}`}
                     </span>
                     <span
@@ -1555,20 +1568,9 @@ export default function OutputPreview() {
                     Create To-Do for{' '}
                     <em className="todo-verb-piece">{title.charAt(0) + title.slice(1).toLowerCase()} #{id}</em>
                 </div>
-                <div className="todo-verb-btns">
-                    {(['BUY', 'OFFER', 'LIST', 'SEND'] as TodoVerb[]).map((v) => (
-                        <button
-                            key={v}
-                            type="button"
-                            className="todo-verb-btn"
-                            onClick={() => addTodoVerb(v)}
-                        >
-                            {v}
-                        </button>
-                    ))}
-                </div>
                 {/* Date / time / priority — the composer's own selectors (reused
-                    verbatim from TodosBox), so the picked verb is filed with them. */}
+                    verbatim from TodosBox), sitting up top; the picked verb is
+                    filed with them (Brendon, 2026-07-23). */}
                 <div className="todo-compose-row">
                     <span className={`todo-chip todo-chip-due${todoDue ? ' set' : ''}`}>
                         <label className="todo-chip-seg" title="Due date">
@@ -1600,6 +1602,18 @@ export default function OutputPreview() {
                         <span className="todo-chip-ico">!</span>
                         <span className="todo-chip-lbl">P{todoPriority === 0 ? 1 : todoPriority}</span>
                     </button>
+                </div>
+                <div className="todo-verb-btns">
+                    {(['BUY', 'OFFER', 'LIST', 'SEND'] as TodoVerb[]).map((v) => (
+                        <button
+                            key={v}
+                            type="button"
+                            className="todo-verb-btn"
+                            onClick={() => addTodoVerb(v)}
+                        >
+                            {v}
+                        </button>
+                    ))}
                 </div>
             </TailBubble>
         )}
