@@ -8,11 +8,10 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-23 (LATEST) ARTWORK MODAL — mobile swipes + inline tail-bubble
-   Create-To-Do + Replace picker. All SHIPPED on dev (tip `5834799`),
-   auto-deploy rolling, tree clean. Working directly on `dev`; task branch
-   `claude/artwork-modal-swipes-81817n` = trash (delete at
-   https://github.com/brendonrell/PriceOS/branches).**
+0. ✅ **2026-07-23 (LATEST) ARTWORK MODAL round + inline currency convert. All
+   SHIPPED on dev (tip `f85b52a`), auto-deploy rolling, tree clean. Working
+   directly on `dev`; task branch `claude/artwork-modal-swipes-81817n` = trash
+   (delete at https://github.com/brendonrell/PriceOS/branches).**
    ⓐ **Mobile swipes on the artwork** — horizontal swipe walks prev/next
    (same as the ◀ ▶ pills), swipe-down dismisses (same as ×). Threshold-based
    (Command Stone idiom), touch-only so desktop is untouched; a small move
@@ -31,6 +30,20 @@
    bare `OutputThumb` squares (History painter) filling 2×3 in showcase order so
    each square is its slot; matched to the To-Do card width (no side fat),
    tap-outside dismiss.
+   ⓓ **Pill states + polish** — To-Do pill lights up while its bubble is open
+   and whenever the output already has an open to-do; Album pill lights up while
+   the picker is open and whenever the output is in any album, and the picker
+   marks (✓) which albums it's already in. Star glyph fattened (text-stroke, not
+   larger) to match the other icons. Details popover content bumped +2 (title
+   size unchanged); "Full Artwork" (dropped "Open").
+   ⓔ **Outside-tap fix** — an outside tap on the To-Do / Replace / details
+   popovers now ONLY closes them; the trailing click is swallowed so it never
+   falls through to open the artwork underneath (reuses the hold-drag swallow).
+   ⓕ **Convert anticipation** (search + Command Stone) — "3 eth to" / "convert
+   3 eth to" (a dangling connector) now previews EVERY fiat-picker currency
+   (USD·CAD·GBP·EUR·AUD·PHP·JPY, modal order) with live pre-filled results, like
+   math. `parseConvert` strips "convert" + accepts the dangling connector; new
+   `convertAll()`; 21 tests green.
    Verified every state at 390×844 in real Courier on a mid-tone colorway.
 
 0. ✅ **2026-07-22 (LATEST) FULL-APP SECURITY REVIEW — 4 findings fixed &
