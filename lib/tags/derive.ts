@@ -17,6 +17,8 @@ import {
     type Tag, tagById, isPersonaId, GRANTED_IDS,
     ID_TAG_STYLE, ID_RANGES, CEO_TAG, PRICEDAY_TAG_COLOR,
     PRICE_HOLD_TAG_BG, PRICE_HOLD_TAG_TEXT,
+    PRICE_HOLD_TOP3_BG, PRICE_HOLD_TOP3_TEXT,
+    PRICE_HOLD_TOP10_BG, PRICE_HOLD_TOP10_TEXT,
 } from './catalog';
 import { priceDayNumber } from '../priceday/priceday';
 
@@ -104,11 +106,16 @@ export function priceHoldTag(rank: number | null | undefined): Tag | null {
     if (!rank || rank < 1) return null;
     const tier = PRICE_HOLD_TIERS.find((t) => rank <= t);
     if (!tier) return null;
+    // Per-tier treatment: Top 3 = white / Hothurt; Top 10 = Attention / Dot
+    // black; the rest = black / Attention yellow (Brendon, 2026-07-23).
+    const color = tier === 3 ? PRICE_HOLD_TOP3_BG : tier === 10 ? PRICE_HOLD_TOP10_BG : PRICE_HOLD_TAG_BG;
+    const textColor = tier === 3 ? PRICE_HOLD_TOP3_TEXT : tier === 10 ? PRICE_HOLD_TOP10_TEXT : PRICE_HOLD_TAG_TEXT;
     return {
         id: 'price-hold',
         label: `$PRICE Top ${tier} · #${rank}`,
-        color: PRICE_HOLD_TAG_BG,
-        textColor: PRICE_HOLD_TAG_TEXT,
+        svgGlyph: 'price',
+        color,
+        textColor,
         kind: 'earned',
         order: 22,
         lockStyle: true,

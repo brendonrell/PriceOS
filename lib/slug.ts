@@ -26,7 +26,7 @@
  *      page 2kyd6gx6-3274 (Platform Nomenclature SoT).
  */
 
-import { isReservedHandle } from './reserved-handles';
+import { isReservedHandle, RESERVED_HANDLE_OWNERS } from './reserved-handles';
 
 export type Resolved =
   | { kind: 'output'; globalId: number }
@@ -105,8 +105,11 @@ function parseSlug(slug: string): Parsed {
     return { kind: 'invalid' };
   }
 
-  // Reserved (T1/T2/T3) handles never resolve.
-  if (isReservedHandle(handle)) {
+  // Reserved (T1/T2/T3) handles never resolve — EXCEPT a brand handle a
+  // designated owner may claim (RESERVED_HANDLE_OWNERS, e.g. @pricediscussion,
+  // the treasury). Those are real, claimed profiles; the row lookup 404s on its
+  // own if the handle isn't actually claimed (Brendon, 2026-07-23).
+  if (isReservedHandle(handle) && !(handle in RESERVED_HANDLE_OWNERS)) {
     return { kind: 'invalid' };
   }
 

@@ -36,6 +36,9 @@ export interface Tag {
     label: string;
     /** VS-15 glyph, or undefined = colour + label only (never invent one). */
     glyph?: string;
+    /** An SVG brand mark drawn in place of a text glyph — currently only the
+     *  $PRICE wordmark on the holder tag (Brendon, 2026-07-23). */
+    svgGlyph?: 'price';
     /** Flair colour (#RRGGBB) — the chip's accent (border + glyph), full-strength. */
     color: string;
     kind: TagKind;
@@ -123,10 +126,16 @@ export const CEO_TAG: Tag = {
 /** PriceDay-join tag colour — a distinct purple (Brendon, 2026-07-22). */
 export const PRICEDAY_TAG_COLOR = '#9333EA';
 
-/** $PRICE holder-rank tag — Attention-yellow fill + Hothurt lettering, a fixed
- *  treatment (lockStyle), the inverse of the CEO chip (Brendon, 2026-07-23). */
-export const PRICE_HOLD_TAG_BG = '#FFE600';   // Attention yellow
+/** $PRICE holder-rank tag — the default tier (Top 25/50/75/100): white fill +
+ *  Hothurt lettering, a fixed treatment (lockStyle) (Brendon, 2026-07-23). */
+export const PRICE_HOLD_TAG_BG = '#FFFFFF';   // white
 export const PRICE_HOLD_TAG_TEXT = '#FF0055'; // Hothurt
+/** Top 3 — Attention-yellow fill + Dot-black lettering (Brendon, 2026-07-23). */
+export const PRICE_HOLD_TOP3_BG = '#FFE600';   // Attention yellow
+export const PRICE_HOLD_TOP3_TEXT = '#111111'; // Dot black (--dot)
+/** Top 10 — Dot-black fill + Attention-yellow lettering (Brendon, 2026-07-23). */
+export const PRICE_HOLD_TOP10_BG = '#111111';   // Dot black (--dot)
+export const PRICE_HOLD_TOP10_TEXT = '#FFE600'; // Attention yellow (--dot)
 
 export const TAGS: Tag[] = [...PERSONAS, ...EARNED, ...GRANTED];
 
