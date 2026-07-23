@@ -135,7 +135,14 @@ export const PRICE_HOLD_TOP3_BG = '#FFE600';   // Attention yellow
 export const PRICE_HOLD_TOP3_TEXT = '#111111'; // Dot black (--dot)
 /** Top 10 — Dot-black fill + Attention-yellow lettering (Brendon, 2026-07-23). */
 export const PRICE_HOLD_TOP10_BG = '#111111';   // Dot black (--dot)
-export const PRICE_HOLD_TOP10_TEXT = '#FFE600'; // Attention yellow (--dot)
+export const PRICE_HOLD_TOP10_TEXT = '#FFE600'; // Attention yellow
+
+/** $PRICE holding-amount tags (100K+, 1M+) — starting colours, Brendon to tune
+ *  (Brendon, 2026-07-23). */
+export const PRICE_HELD_1M_BG = '#FFE600';    // Attention yellow
+export const PRICE_HELD_1M_TEXT = '#111111';  // Dot black
+export const PRICE_HELD_100K_BG = '#111111';  // Dot black
+export const PRICE_HELD_100K_TEXT = '#FFE600';// Attention yellow (--dot)
 
 export const TAGS: Tag[] = [...PERSONAS, ...EARNED, ...GRANTED];
 

@@ -19,6 +19,7 @@ import {
     PRICE_HOLD_TAG_BG, PRICE_HOLD_TAG_TEXT,
     PRICE_HOLD_TOP3_BG, PRICE_HOLD_TOP3_TEXT,
     PRICE_HOLD_TOP10_BG, PRICE_HOLD_TOP10_TEXT,
+    PRICE_HELD_1M_BG, PRICE_HELD_1M_TEXT, PRICE_HELD_100K_BG, PRICE_HELD_100K_TEXT,
 } from './catalog';
 import { priceDayNumber } from '../priceday/priceday';
 
@@ -48,6 +49,9 @@ export interface DeriveInput {
     /** The owner's $PRICE holder rank (users.price_hold_rank) — drives the
      *  "$PRICE Top N · #r" earned tag; null/absent = unranked (no tag). */
     priceHoldRank?: number | null;
+    /** The owner's $PRICE balance in whole tokens (users.price_held) — drives
+     *  the 100K+ / 1M+ holding tags. */
+    priceHeld?: number | string | null;
     /** Tag ids the owner switched OFF — filtered from the shown set (every tag,
      *  CEO included, can be hidden and tapped back on). Brendon, 2026-07-22. */
     hiddenTags?: string[] | null;
@@ -122,6 +126,35 @@ export function priceHoldTag(rank: number | null | undefined): Tag | null {
     };
 }
 
+/** $PRICE holding-amount tiers — the highest threshold met shows (Brendon,
+ *  2026-07-23). Starting colours; Brendon tunes. */
+const PRICE_HELD_TIERS: ReadonlyArray<{ min: number; label: string; bg: string; text: string }> = [
+    { min: 1_000_000, label: '1M $PRICE',   bg: PRICE_HELD_1M_BG,   text: PRICE_HELD_1M_TEXT },
+    { min: 100_000,   label: '100k $PRICE', bg: PRICE_HELD_100K_BG, text: PRICE_HELD_100K_TEXT },
+];
+
+/** The $PRICE holding-amount tag (100K+ / 1M+) — the highest threshold held, or
+ *  null below 100K. Wears the $PRICE logo glyph, fixed treatment, Earned. */
+export function priceHeldTag(held: number | string | null | undefined): Tag | null {
+    const n = Number(held);
+    if (!Number.isFinite(n) || n <= 0) return null;
+    for (const t of PRICE_HELD_TIERS) {
+        if (n >= t.min) {
+            return {
+                id: 'price-held',
+                label: t.label,
+                svgGlyph: 'price',
+                color: t.bg,
+                textColor: t.text,
+                kind: 'earned',
+                order: 23,
+                lockStyle: true,
+            };
+        }
+    }
+    return null;
+}
+
 function daysSince(iso: string): number {
     const then = new Date(iso).getTime();
     if (Number.isNaN(then)) return 0;
@@ -148,6 +181,7 @@ export function deriveTags(input: DeriveInput): Tag[] {
     add(idTagFor(input.userNumber));           // User #N (opens Earned)
     add(priceDayJoinTag(input.createdAt));     // PriceDay #N (join day)
     add(priceHoldTag(input.priceHoldRank));    // $PRICE Top N · #r (holder rank)
+    add(priceHeldTag(input.priceHeld));        // $PRICE 100K+ / 1M+ (amount held)
     if (input.isArtist) add(tagById('artist'));
     if (input.createdAt && daysSince(input.createdAt) >= VETERAN_DAYS) add(tagById('veteran'));
 
