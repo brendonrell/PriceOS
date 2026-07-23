@@ -387,9 +387,9 @@ body.modal-open { overflow: hidden; touch-action: none; }
     box-sizing: border-box;
     animation: dp-fade-in 0.15s ease;
 }
-/* +2 across the details-popover content (Brendon, 2026-07-23). Scoped to
-   .details-popover so the shared .dp-* calendar popover keeps its own sizes. */
-.details-popover .dp-title { font-size: 19px; }
+/* +2 on the details-popover CONTENT only — the Rubik title keeps its size
+   (Brendon, 2026-07-23). Scoped to .details-popover so the shared .dp-*
+   calendar popover keeps its own sizes. */
 .details-popover .dp-value { font-size: 14px; }
 .details-popover .dp-copy-btn { font-size: 18px; }
 @keyframes dp-fade-in {
