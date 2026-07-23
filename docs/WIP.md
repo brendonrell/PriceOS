@@ -8,7 +8,45 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-23 (LATEST) ARTWORK MODAL round + inline currency convert. All
+0. ✅ **2026-07-23 (LATEST) $PRICE UTILITY — Top Holders leaderboard + $PRICE
+   profile tags, all SHIPPED on dev (tip `8c9488a`), auto-deploy rolling, tree
+   clean. Task branch `claude/price-utility-features-xl4g8a` = trash (delete at
+   https://github.com/brendonrell/PriceOS/branches).** Opus, present→push loop.
+   ⓐ **$PRICE Top Holders leaderboard** — reuses the PriceScore leaderboard
+   shell/rows verbatim, ranked purely by $PRICE held (top 100, △ Top-Holders
+   title glyph, medals on top 3, your row highlighted). Opens from the **$PRICE**
+   link in the Petey logo menu AND by tapping your SHOWN $PRICE balance in Wallet
+   (the eyeball still toggles hide/show — nothing lost). Header carries the
+   Sticker-Manager ▶ store-button, here **ETHERSCAN** → the token contract (the
+   link the Petey $PRICE item used to hold). New `/api/leaderboard/price` +
+   `PriceLeaderboardModal` (layer `price-leaderboard`).
+   ⓑ **$PRICE holder-rank tags** — auto Earned tag wearing the **$PRICE logo
+   SVG** as the glyph (extracted to `lib/brand/priceLogoPaths.ts` +
+   `components/brand/PriceMark.tsx`; PeteyLogo still holds its own copy — DRY
+   later if kept) + label "$PRICE Top N · #r" (tightest of Top 3/10/25/50/75/100).
+   lockStyle fixed colours per tier: **Top 3 Attention-yellow / Dot-black · Top
+   10 Dot-black / Attention-yellow · rest (25–100) white / Hothurt**. Auto
+   appears/moves/vanishes with rank.
+   ⓒ **$PRICE holding tags** — two more auto Earned tags, same $PRICE logo glyph:
+   **"100k $PRICE"** (held ≥ 100,000) + **"1M $PRICE"** (held ≥ 1,000,000); the
+   highest threshold shows, sits alongside the rank tag. Starting colours (100k =
+   Dot-black / Attention, 1M = Attention / Dot-black) — **Brendon may still tune
+   these.**
+   ⓓ **@pricediscussion 404 FIXED** — the treasury (our #1 holder, all 100M)
+   404'd because the slug router rejects every reserved brand handle; now
+   owner-claimed brand handles (`RESERVED_HANDLE_OWNERS`) resolve as real
+   profiles (the row lookup 404s on its own if unclaimed).
+   ⓔ **Infra** — new `users.price_held` + `users.price_hold_rank` columns
+   (migration `20260723_price_holdings_rank` APPLIED LIVE + committed, additive);
+   `/api/cron/price-holdings` sweep (KV-gated ~15 min, fired from custom-worker)
+   reads every named wallet's $PRICE balance via Alchemy, ranks by amount held
+   (ties → earlier joiner), writes both columns. Board + tags read the stored
+   values. VERIFIED live: treasury = rank #1 / 100,000,000 held.
+   Proof: tsc + real builds green every push; compiled-CSS/route greps; tags
+   pixel-proofed at 390×844 in real Courier on a mid-tone colorway. ClickUp:
+   ad-hoc chat build, no task of record.
+
+0. ✅ **2026-07-23 ARTWORK MODAL round + inline currency convert. All
    SHIPPED on dev (tip `f85b52a`), auto-deploy rolling, tree clean. Working
    directly on `dev`; task branch `claude/artwork-modal-swipes-81817n` = trash
    (delete at https://github.com/brendonrell/PriceOS/branches).**
