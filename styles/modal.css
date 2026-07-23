@@ -352,6 +352,9 @@ body.modal-open { overflow: hidden; touch-action: none; }
     border-color: var(--text-color);
     opacity: 1;
 }
+/* The ☆/★ glyph draws thinner than the other pill icons — fatten its strokes
+   (not its size) so it matches their weight (Brendon, 2026-07-23). */
+.modal-pill--star { -webkit-text-stroke: 0.6px currentColor; }
 
 
 /* ── DETAILS POPOVER (↗ pill → connect-menu-style float) ─── */

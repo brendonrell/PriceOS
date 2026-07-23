@@ -6414,6 +6414,12 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     }
 }
 .album-sheet-count { opacity: 0.5; flex-shrink: 0; }
+/* Albums this output is already in — a leading ✓ and full-strength name so the
+   membership reads at a glance (Brendon, 2026-07-23). currentColor keeps it
+   legible on every colorway (Rule #2). */
+.album-sheet-name { display: inline-flex; align-items: center; min-width: 0; }
+.album-sheet-in { font-weight: 900; margin-right: 6px; flex-shrink: 0; }
+.album-sheet-item.is-in { background: color-mix(in srgb, currentColor 10%, transparent); }
 
 /* ── Add-to-Showcase picker grid (Brendon 2026-06-15) ──────────────────── */
 .showcase-pick-sheet { width: min(460px, 92vw); }

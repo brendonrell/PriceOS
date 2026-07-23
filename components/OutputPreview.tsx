@@ -113,6 +113,7 @@ import { toggleShowcase, getShowcaseItems, replaceInShowcase } from '../lib/pins
 import { getStarredKeys, toggleStar as storeToggleStar, subscribeStarred } from '../lib/pins/starStore';
 import { addOutputTodo, getTodos, subscribeTodos, type TodoVerb, type TodoPriority } from '../lib/todos/todoStore';
 import { getWishlistKeys, toggleWishlist as storeToggleWishlist, subscribeWishlist } from '../lib/pins/wishlistStore';
+import { albumsContaining, subscribeAlbums } from '../lib/pins/albumStore';
 import AlbumPickerCard from './album/AlbumPickerCard';
 import OutputThumb from './profile/OutputThumb';
 import DegenSlab from './DegenSlab';
@@ -504,6 +505,16 @@ export default function OutputPreview() {
         };
         check();
         return subscribeTodos(check);
+    }, [slug, id]);
+    /* Album active state — the pill lights up while the picker is open and
+       whenever this output is in ANY album (Brendon, 2026-07-23). */
+    const [hasAlbum, setHasAlbum] = useState(false);
+    useEffect(() => {
+        const check = () => {
+            setHasAlbum(id != null && albumsContaining(slug, id).length > 0);
+        };
+        check();
+        return subscribeAlbums(check);
     }, [slug, id]);
     const isMutedNow = id != null && mutedSet.has(`${slug}:${id}`);
 
@@ -1260,7 +1271,7 @@ export default function OutputPreview() {
                         </div>
                         <div className="modal-pill-row" id="mPillRow">
                             <span
-                                className={`modal-pill${starred ? ' active' : ''}`}
+                                className={`modal-pill modal-pill--star${starred ? ' active' : ''}`}
                                 title="Star"
                                 onClick={handleStar}
                             >
@@ -1274,7 +1285,7 @@ export default function OutputPreview() {
                                 {`\u271B${VS15}`}
                             </span>
                             <span
-                                className="modal-pill"
+                                className={`modal-pill${albumPickerOpen || hasAlbum ? ' active' : ''}`}
                                 title="Add to Album"
                                 onClick={openAlbumPicker}
                             >
@@ -1489,13 +1500,13 @@ export default function OutputPreview() {
                         {`\u25C0${VS15}`}
                     </div>
 
-                    <span className={`modal-pill${starred ? ' active' : ''}`} title="Star" onClick={handleStar}>
+                    <span className={`modal-pill modal-pill--star${starred ? ' active' : ''}`} title="Star" onClick={handleStar}>
                         {`${starred ? '\u2605' : '\u2606'}${VS15}`}
                     </span>
                     <span className={`modal-pill${wishlisted ? ' active' : ''}`} title="Wishlist" onClick={handleWishlist}>
                         {`\u271B${VS15}`}
                     </span>
-                    <span className="modal-pill" title="Add to Album" onClick={openAlbumPicker}>
+                    <span className={`modal-pill${albumPickerOpen || hasAlbum ? ' active' : ''}`} title="Add to Album" onClick={openAlbumPicker}>
                         {`\u25F0${VS15}`}
                     </span>
                     <span
@@ -1565,7 +1576,7 @@ export default function OutputPreview() {
         {todoAnchor && id != null && (
             <TailBubble anchor={todoAnchor} className="todo-verb-card" onDismiss={() => setTodoAnchor(null)} dismissOnScroll={false}>
                 <div className="ms-confirm-question">
-                    Create To-Do for{' '}
+                    Create <u>To-Do</u> for{' '}
                     <em className="todo-verb-piece">{title.charAt(0) + title.slice(1).toLowerCase()} #{id}</em>
                 </div>
                 {/* Date / time / priority — the composer's own selectors (reused
@@ -1621,7 +1632,7 @@ export default function OutputPreview() {
             History squares, 2×3 in showcase order (Brendon, 2026-07-23). */}
         {swapAnchor && id != null && (
             <TailBubble anchor={swapAnchor} className="showcase-swap-card" onDismiss={() => setSwapAnchor(null)}>
-                <div className="ms-confirm-question">Replace?</div>
+                <div className="ms-confirm-question">Showcase full. Replace?</div>
                 <div className="showcase-swap-grid">
                     {getShowcaseItems().map((it) => (
                         <button

@@ -121,17 +121,29 @@ export default function AlbumPickerCard({
                             No albums yet — start your first:
                         </div>
                     )}
-                    {albums.map((a, i) => (
-                        <button
-                            key={a.id}
-                            type="button"
-                            className="album-sheet-item"
-                            onClick={() => addTo(a, i + 1)}
-                        >
-                            <span className="album-sheet-name">Album #{i + 1}</span>
-                            <span className="album-sheet-count">{a.keys.length}</span>
-                        </button>
-                    ))}
+                    {albums.map((a, i) => {
+                        // Already-in when every picked item is a member (single
+                        // item from the modal → just that one).
+                        const inThis = items.length > 0 && items.every((it) => a.keys.includes(`${it.slug}:${it.id}`));
+                        return (
+                            <button
+                                key={a.id}
+                                type="button"
+                                className={`album-sheet-item${inThis ? ' is-in' : ''}`}
+                                onClick={() => addTo(a, i + 1)}
+                            >
+                                <span className="album-sheet-name">
+                                    {inThis && (
+                                        <span className="album-sheet-in" aria-label="Already in this album">
+                                            {'✓︎'}
+                                        </span>
+                                    )}
+                                    Album #{i + 1}
+                                </span>
+                                <span className="album-sheet-count">{a.keys.length}</span>
+                            </button>
+                        );
+                    })}
                 </div>
                 <div className="value-prompt-actions">
                     <button
