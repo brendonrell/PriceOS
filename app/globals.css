@@ -10717,6 +10717,21 @@ body.bg-is-yellow .todo-verb-card {
 .todo-verb-card .ms-confirm-question { color: inherit; }
 /* Piece name in the title — italic, wraps naturally if long. */
 .todo-verb-piece { font-style: italic; }
+/* Composer selectors (date / time / P!) at the bottom — reuse the TodosBox
+   chips; just center the row and let it wrap in the narrow bubble. The chips
+   inherit the bubble ink (dark on Attention, white on Hothurt). */
+.todo-verb-card .todo-compose-row {
+    margin-top: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+/* The app's set/on accent is Hothurt red — reads on the yellow bubble, but on
+   the Hothurt-red bubble red-on-red vanishes, so flip the accent to dark ink. */
+body.bg-is-yellow .todo-verb-card .todo-chip.set,
+body.bg-is-yellow .todo-verb-card .todo-chip-pri.on {
+    border-color: #1a1a1a;
+    color: #1a1a1a;
+}
 .todo-verb-btns {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));

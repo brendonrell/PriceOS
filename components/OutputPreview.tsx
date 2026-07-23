@@ -111,7 +111,7 @@ import {
 } from '../lib/pins/grailStore';
 import { toggleShowcase, getShowcaseItems, replaceInShowcase } from '../lib/pins/userShowcaseStore';
 import { getStarredKeys, toggleStar as storeToggleStar, subscribeStarred } from '../lib/pins/starStore';
-import { addOutputTodo, type TodoVerb } from '../lib/todos/todoStore';
+import { addOutputTodo, type TodoVerb, type TodoPriority } from '../lib/todos/todoStore';
 import { getWishlistKeys, toggleWishlist as storeToggleWishlist, subscribeWishlist } from '../lib/pins/wishlistStore';
 import AlbumPickerCard from './album/AlbumPickerCard';
 import OutputThumb from './profile/OutputThumb';
@@ -225,6 +225,15 @@ function buildMockOffers(outputId: number): MockOffer[] {
     });
 }
 
+/* Short due-date label for the To-Do composer chip — "2026-07-10" → "Jul 10"
+   (the same shape TodosBox uses). */
+const TODO_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function fmtTodoDue(due: string): string {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(due);
+    if (!m) return due;
+    return `${TODO_MONTHS[Number(m[2]) - 1] ?? ''} ${Number(m[3])}`;
+}
+
 /* Anchor for a tail-bubble — the trigger pill's viewport top + horizontal
    centre, captured at open. */
 type BubbleAnchor = { top: number; cx: number };
@@ -242,11 +251,15 @@ function TailBubble({
     className,
     onDismiss,
     children,
+    dismissOnScroll = true,
 }: {
     anchor: BubbleAnchor;
     className: string;
     onDismiss: () => void;
     children: ReactNode;
+    /* The To-Do bubble carries native date/time inputs — an iOS scroll-into-view
+       must NOT dismiss it, so it opts out. */
+    dismissOnScroll?: boolean;
 }) {
     const ref = useRef<HTMLDivElement>(null);
     const [layout, setLayout] = useState<{ centerX: number; tailDx: number } | null>(null);
@@ -272,14 +285,14 @@ function TailBubble({
         };
         const dismiss = () => onDismiss();
         document.addEventListener('pointerdown', onDown, true);
-        window.addEventListener('scroll', dismiss, true);
+        if (dismissOnScroll) window.addEventListener('scroll', dismiss, true);
         window.addEventListener('resize', dismiss);
         return () => {
             document.removeEventListener('pointerdown', onDown, true);
-            window.removeEventListener('scroll', dismiss, true);
+            if (dismissOnScroll) window.removeEventListener('scroll', dismiss, true);
             window.removeEventListener('resize', dismiss);
         };
-    }, [onDismiss]);
+    }, [onDismiss, dismissOnScroll]);
 
     if (typeof document === 'undefined') return null;
     return createPortal(
@@ -318,8 +331,12 @@ export default function OutputPreview() {
        "FULL" toast. Anchored as a tail-bubble on the trigger (null = closed). */
     const [swapAnchor, setSwapAnchor] = useState<BubbleAnchor | null>(null);
     /* Create-To-Do chooser — a tail-bubble so the user picks the verb instead
-       of the app guessing (Brendon, 2026-07-23). Null = closed. */
+       of the app guessing (Brendon, 2026-07-23). Null = closed. The composer's
+       date / time / priority selectors ride the bottom of it. */
     const [todoAnchor, setTodoAnchor] = useState<BubbleAnchor | null>(null);
+    const [todoDue, setTodoDue] = useState('');
+    const [todoDueTime, setTodoDueTime] = useState('');
+    const [todoPriority, setTodoPriority] = useState<TodoPriority>(0);
     /* The output modal is global, so its Project is whatever was passed to
        open('output', id, slug) — falling back to the active route Project. */
     const proj = useProject();
@@ -846,13 +863,23 @@ export default function OutputPreview() {
     /* Same store + toasts as the gallery card's ❍ (ArtworkCard) — the modal
        pill was a toast-only stub until 2026-07-20. */
     /* The To-Do pill opens the Create-To-Do bubble anchored on the tapped pill
-       (Brendon 2026-07-23: give them the option, don't auto-guess). */
+       (Brendon 2026-07-23: give them the option, don't auto-guess). Each open
+       starts the date / time / priority selectors fresh. */
     const handleTodo = (e: ReactMouseEvent) => {
-        if (id != null) setTodoAnchor(anchorFromEvent(e));
+        if (id == null) return;
+        setTodoDue('');
+        setTodoDueTime('');
+        setTodoPriority(0);
+        setTodoAnchor(anchorFromEvent(e));
     };
+    const cycleTodoPriority = () => setTodoPriority((p) => (((p + 1) % 4) as TodoPriority));
     const addTodoVerb = (verb: TodoVerb) => {
         if (id == null) return;
-        const r = addOutputTodo(slug, id, verb);
+        const r = addOutputTodo(slug, id, verb, {
+            due: todoDue || null,
+            dueTime: todoDue ? (todoDueTime || null) : null,
+            priority: todoPriority,
+        });
         setTodoAnchor(null);
         showToast(r === 'exists' ? 'To-Do: ALREADY ADDED' : 'To-Do: ADDED');
     };
@@ -1523,7 +1550,7 @@ export default function OutputPreview() {
         {/* Create-To-Do bubble — a colored tail-bubble anchored on the tapped
             pill; pick a verb (Brendon, 2026-07-23). */}
         {todoAnchor && id != null && (
-            <TailBubble anchor={todoAnchor} className="todo-verb-card" onDismiss={() => setTodoAnchor(null)}>
+            <TailBubble anchor={todoAnchor} className="todo-verb-card" onDismiss={() => setTodoAnchor(null)} dismissOnScroll={false}>
                 <div className="ms-confirm-question">
                     Create To-Do for{' '}
                     <em className="todo-verb-piece">{title.charAt(0) + title.slice(1).toLowerCase()} #{id}</em>
@@ -1539,6 +1566,40 @@ export default function OutputPreview() {
                             {v}
                         </button>
                     ))}
+                </div>
+                {/* Date / time / priority — the composer's own selectors (reused
+                    verbatim from TodosBox), so the picked verb is filed with them. */}
+                <div className="todo-compose-row">
+                    <span className={`todo-chip todo-chip-due${todoDue ? ' set' : ''}`}>
+                        <label className="todo-chip-seg" title="Due date">
+                            <span className="todo-chip-lbl">{todoDue ? fmtTodoDue(todoDue) : 'due'}</span>
+                            <input
+                                className="todo-chip-native"
+                                type="date"
+                                value={todoDue}
+                                onChange={(e) => setTodoDue(e.target.value)}
+                            />
+                        </label>
+                        <span className="todo-chip-ico todo-chip-clock">◷</span>
+                        <label className="todo-chip-seg" title="Reminder time">
+                            <span className="todo-chip-lbl">{todoDueTime || 'time'}</span>
+                            <input
+                                className="todo-chip-native"
+                                type="time"
+                                value={todoDueTime}
+                                onChange={(e) => setTodoDueTime(e.target.value)}
+                            />
+                        </label>
+                    </span>
+                    <button
+                        type="button"
+                        className={`todo-chip todo-chip-pri${todoPriority > 0 ? ` on p${todoPriority}` : ''}`}
+                        title="Priority"
+                        onClick={cycleTodoPriority}
+                    >
+                        <span className="todo-chip-ico">!</span>
+                        <span className="todo-chip-lbl">P{todoPriority === 0 ? 1 : todoPriority}</span>
+                    </button>
                 </div>
             </TailBubble>
         )}
