@@ -47,7 +47,7 @@ import FeedEventRow from '../feed/FeedEventRow';
 import ArtworkCard from '../ArtworkCard';
 import { subscribeBreadcrumbs, isRecordingEnabled, setRecordingEnabled } from '../../lib/pins/breadcrumbStore';
 import { fetchMyHistory, type HistoryEntry } from '../../lib/output/views';
-import { getShowcaseItems, subscribeShowcase } from '../../lib/pins/userShowcaseStore';
+import { getShowcaseItems, subscribeShowcase, moveShowcase, toggleShowcase } from '../../lib/pins/userShowcaseStore';
 import AddToShowcaseModal from './AddToShowcaseModal';
 import ArtistTitleStar from './ArtistTitleStar';
 import StarredList from './StarredList';
@@ -504,6 +504,23 @@ function ProfilePageBodyInner({
     }, [showcaseLocal, showcaseStyleVal]);
     const [showcasePickerOpen, setShowcasePickerOpen] = useState(false);
 
+    /* Showcase MOVE MODE (Brendon, 2026-07-24) — the iOS home-screen gesture on
+       your own Static showcase: press and hold a piece and the set goes into
+       move mode (every tile jiggles, each wears a little ×), the held piece
+       lifts on the Bench's own drag engine, and dropping it on another tile
+       lands it in that slot — that tile and everything after it bump one place
+       down the line. DONE is the way out (and leaving the tab). */
+    const [scMoveMode, setScMoveMode] = useState(false);
+    const enterScMove = useCallback(() => setScMoveMode(true), []);
+    const exitScMove = useCallback(() => setScMoveMode(false), []);
+    const onScMove = useCallback((fromKey: string, toKey: string) => {
+        if (moveShowcase(fromKey, toKey)) showToast('Showcase: MOVED');
+    }, [showToast]);
+    const onScRemove = useCallback((slug: string, id: number) => {
+        toggleShowcase(slug, id);
+        showToast('Showcase: REMOVED');
+    }, [showToast]);
+
     /* Holdings refresh wiring (state itself is declared above the identity-
        reset block). Spans both projects; grouped by slug for rendering.
        Re-fetches on 'pd:project-refresh' (fired after a mint / market
@@ -848,6 +865,14 @@ function ProfilePageBodyInner({
     /* #gallery shows for Collected and for the Top 6 grid; the Created view
        replaces it with project carousels below. */
     const galleryVisible = ((onShowcase && !artistShowcaseCreated) || onCollected) && !feedActive;
+
+    /* Showcase move mode only lives on YOUR OWN Static showcase grid. Leaving
+       the tab, switching showcase style, or landing on the Created view all
+       close it — the DONE pill is the deliberate way out. */
+    const scMoveEligible = isOwnProfile && onShowcase && effStyle === 'static' && !artistShowcaseCreated;
+    useEffect(() => {
+        if (!scMoveEligible && scMoveMode) setScMoveMode(false);
+    }, [scMoveEligible, scMoveMode]);
     /* Live grid column metrics — lets each grouping header cap its width to
        the columns its pieces occupy (glyph ends with the art, 2026-07-12). */
     const galleryCols = useGalleryCols(galleryVisible && onCollected && collectedGroups != null);
@@ -1922,6 +1947,15 @@ function ProfilePageBodyInner({
                         <span className="gc-count">{`· ${genCurated.picks.length}`}</span>
                     </div>
                 )}
+                {/* MOVE MODE bar — the way OUT of the iOS-style move mode the
+                    long-press turns on. Full-row grid item so it lines up with
+                    the tiles' left edge, full-strength chrome. */}
+                {scMoveEligible && scMoveMode && (
+                    <div className="sc-movebar">
+                        <span className="sc-movebar-label">MOVE MODE — DRAG TO REORDER · × REMOVES</span>
+                        <button type="button" className="sc-movebar-done" onClick={exitScMove}>DONE</button>
+                    </div>
+                )}
                 {(effStyle === 'gen-curated'
                         ? (genCurated && genCurated.picks.length > 0
                             ? genCurated.picks.map((s, i) => (
@@ -1936,7 +1970,16 @@ function ProfilePageBodyInner({
                         ? (isOwnProfile
                             ? ownShowcaseItems.map((s, i) => (
                                   <ProjectProvider key={`sc-${i}-${s.slug}-${s.id}`} slug={s.slug}>
-                                      <ArtworkCard id={s.id} showProjectName />
+                                      <ArtworkCard
+                                          id={s.id}
+                                          showProjectName
+                                          showcaseMove={scMoveEligible ? {
+                                              active: scMoveMode,
+                                              onEnter: enterScMove,
+                                              onRemove: () => onScRemove(s.slug, s.id),
+                                              onMove: onScMove,
+                                          } : undefined}
+                                      />
                                   </ProjectProvider>
                               ))
                             : showcaseSlots.map((slot, i) => (

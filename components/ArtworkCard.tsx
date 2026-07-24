@@ -187,6 +187,21 @@ interface ArtworkCardProps {
        mounts dozens of these at once, and the full-res paint is what chokes it
        (Brendon, 2026-06-16). Defaults to 400. */
     renderSize?: number;
+    /* Own-profile Showcase (Static) — this card is a Showcase slot, so it can be
+       hold-dragged onto another slot to REORDER the set, iOS-icon style. The
+       long-press also turns on move mode: every slot jiggles and wears a little
+       × that drops it from the Showcase (Brendon, 2026-07-24). Absent on every
+       other grid, which leaves those cards' behaviour untouched. */
+    showcaseMove?: {
+        /** Move mode is on — jiggle + show the ×. */
+        active: boolean;
+        /** The long-press engaged: turn move mode on. */
+        onEnter: () => void;
+        /** The little × — drop this pick from the Showcase. */
+        onRemove: () => void;
+        /** Dropped onto another slot — reorder. */
+        onMove: (fromKey: string, toKey: string) => void;
+    };
 }
 
 /* sim 8099 — mock floor used for the Price Lens pct readout. Real
@@ -202,6 +217,7 @@ function ArtworkCard({
     hideOwnedBadge = false,
     showProjectName = false,
     renderSize = 400,
+    showcaseMove,
 }: ArtworkCardProps) {
     const { open } = useModal();
     const { showToast } = useToast();
@@ -596,12 +612,21 @@ function ArtworkCard({
        always; CART when listed). Same gesture on touch and mouse. Disabled in
        multi-select so that mode keeps the long-press. */
     const { add: benchAdd, items: benchItems } = useBench();
+    /* Own-profile Showcase slot key — doubles as this card's reorder identity
+       and the drop key other slots hit-test against. */
+    const scKey = `${slug}:${id}`;
     const benchDrag = useHoldDrag({
         slug,
         id,
         listed,
         enabled: !multiSelectActive,
-        onDrop: (target) => {
+        reorderKey: showcaseMove ? scKey : null,
+        onEngage: showcaseMove?.onEnter,
+        onDrop: (target, key) => {
+            if (target === 'showcase') {
+                if (showcaseMove && key) showcaseMove.onMove(scKey, key);
+                return;
+            }
             if (target === 'cart') {
                 if (cartHas(slug, id)) {
                     showToast('Cart: ALREADY IN');
@@ -857,7 +882,9 @@ function ArtworkCard({
         /* Arbitrage Map — the under-the-average ring + badge gate. */
         (arb ? ' arb-under' : '') +
         (isSelected ? ' ms-selected' : '') +
-        (multiSelectActive ? ' ms-eligible' : '');
+        (multiSelectActive ? ' ms-eligible' : '') +
+        /* Own-profile Showcase move mode — the tile jiggles and wears its ×. */
+        (showcaseMove?.active ? ' sc-movable' : '');
 
     /* Note indicator — the ⊟ glyph in the caption UNDER the artwork, to the
        RIGHT of the owned check, shown in any grid when the logged-in viewer has
@@ -894,6 +921,10 @@ function ArtworkCard({
                by applyStepLine's #gallery walk (sim 11280). -1 for
                unlisted tokens matches sim's sentinel. */
             data-price={dataPriceAttr}
+            /* Showcase reorder target — the hold-drag hit-tests these zones and
+               reads the key to know which slot it was dropped on. */
+            data-bench-drop={showcaseMove ? 'showcase' : undefined}
+            data-drop-key={showcaseMove ? scKey : undefined}
             style={articleStyle}
         >
             <div
@@ -927,6 +958,21 @@ function ArtworkCard({
                        lay out cleanly with no further CSS work. */
                     style={{}}
                 >
+                    {/* Move mode's little × — drops this pick straight out of
+                        the Showcase, iOS-icon style. Top-left so it never sits
+                        under the ⟟ grail badge (top-right). */}
+                    {showcaseMove?.active && (
+                        <button
+                            type="button"
+                            className="sc-move-x"
+                            aria-label="Remove from Showcase"
+                            title="Remove from Showcase"
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onClick={(e) => { e.stopPropagation(); showcaseMove.onRemove(); }}
+                        >
+                            {`×${'︎'}`}
+                        </button>
+                    )}
                     {notifs.asciiArt && !asciiMiss ? (
                         /* ASCII Art Mode — the mint-pinned text backup stands in
                            for the artwork, painted instantly (no typing anim).

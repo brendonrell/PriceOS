@@ -40,19 +40,35 @@ interface HoldDragOpts {
     id: number;
     /** Listed pieces also light up the Cart dock. */
     listed: boolean;
-    /** Fired on release over a dock. */
-    onDrop: (target: DropTarget) => void;
+    /** Fired on release over a dock. `key` is the zone's own `slug:id` for
+     *  Showcase slots (the reorder target), null for the docks. */
+    onDrop: (target: DropTarget, key: string | null) => void;
     /** Skip wiring entirely (e.g. multi-select mode owns the gesture). */
     enabled?: boolean;
+    /** Set (to this piece's `slug:id`) when the piece is itself a Showcase
+     *  slot — only then do the OTHER slots arm as reorder targets. Its own
+     *  slot never arms, so a lift-and-drop-in-place is a no-op. */
+    reorderKey?: string | null;
+    /** Fired the moment the long-press engages — the Showcase uses it to turn
+     *  on iOS-style move mode (jiggle + the little ×). */
+    onEngage?: () => void;
 }
 
-function hitTest(x: number, y: number, listed: boolean): DropTarget | null {
+interface Hit { target: DropTarget; key: string | null; zone: HTMLElement | null }
+
+function hitTest(x: number, y: number, listed: boolean, reorderKey: string | null): Hit | null {
     const el = document.elementFromPoint(x, y) as HTMLElement | null;
     const zone = el?.closest('[data-bench-drop]') as HTMLElement | null;
     const t = zone?.getAttribute('data-bench-drop') as DropTarget | null;
     if (!t) return null;
     if (t === 'cart' && !listed) return null;
-    return t;
+    if (t === 'showcase') {
+        if (!reorderKey) return null;
+        const key = zone?.getAttribute('data-drop-key') ?? null;
+        if (!key || key === reorderKey) return null;
+        return { target: 'showcase', key, zone };
+    }
+    return { target: t, key: null, zone };
 }
 
 function createEngine(
@@ -68,9 +84,33 @@ function createEngine(
     let el: HTMLElement | null = null;
     let timer: ReturnType<typeof setTimeout> | null = null;
 
-    const publish = (armed: DropTarget | null) => {
+    const publish = (hit: Hit | null) => {
         const o = getOpts();
-        setDrag({ slug: o.slug, id: o.id, listed: o.listed, x: lastX, y: lastY, engaged: true, armed });
+        setDrag({
+            slug: o.slug, id: o.id, listed: o.listed,
+            x: lastX, y: lastY, engaged: true,
+            armed: hit?.target ?? null,
+            armedKey: hit?.key ?? null,
+        });
+    };
+
+    /* The hovered Showcase slot lights up. Painted straight onto the element
+       rather than through React: the gallery deliberately does NOT subscribe to
+       the drag store (a re-render per pointer move buries mobile Safari), so the
+       highlight rides a class the engine adds and removes itself. */
+    let armedEl: HTMLElement | null = null;
+    const paintArmed = (next: HTMLElement | null) => {
+        if (armedEl === next) return;
+        armedEl?.classList.remove('sc-drop-armed');
+        next?.classList.add('sc-drop-armed');
+        armedEl = next;
+    };
+
+    const probe = (x: number, y: number): Hit | null => {
+        const o = getOpts();
+        const hit = hitTest(x, y, o.listed, o.reorderKey ?? null);
+        paintArmed(hit?.target === 'showcase' ? hit.zone : null);
+        return hit;
     };
 
     const cleanup = () => {
@@ -83,6 +123,7 @@ function createEngine(
             try { el.releasePointerCapture(pointerId); } catch { /* never captured */ }
         }
         document.body.classList.remove('bench-dragging');
+        paintArmed(null);
         engaged = false;
         pointerId = -1;
         el = null;
@@ -107,7 +148,8 @@ function createEngine(
             try { navigator.vibrate(8); } catch { /* unsupported */ }
         }
         document.body.classList.add('bench-dragging');
-        publish(hitTest(lastX, lastY, getOpts().listed));
+        getOpts().onEngage?.();
+        publish(probe(lastX, lastY));
     };
 
     const onTouchMove = (e: TouchEvent) => {
@@ -124,18 +166,18 @@ function createEngine(
             }
             return;
         }
-        publish(hitTest(e.clientX, e.clientY, getOpts().listed));
+        publish(probe(e.clientX, e.clientY));
     };
 
     const onPointerUp = (e: PointerEvent) => {
         if (e.pointerId !== pointerId) return;
         const wasEngaged = engaged;
-        const target = wasEngaged ? hitTest(e.clientX, e.clientY, getOpts().listed) : null;
+        const hit = wasEngaged ? probe(e.clientX, e.clientY) : null;
         cleanup();
         if (wasEngaged) {
             swallowNextClick();
             setDrag(null);
-            if (target) getOpts().onDrop(target);
+            if (hit) getOpts().onDrop(hit.target, hit.key);
         }
     };
 

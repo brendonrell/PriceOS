@@ -11628,6 +11628,95 @@ body.colorway-dark .ghost-feed-bar {
 .gencurated-caption .gc-glyph { font-size: 15px; line-height: 1; }
 .gencurated-caption .gc-count { font-size: 12px; }
 
+/* ── Showcase MOVE MODE (Brendon, 2026-07-24) ──────────────────────────
+   Your own Static showcase, the iPhone home-screen gesture: press and hold a
+   piece → the whole set jiggles, each tile wears a little ×, and the held one
+   lifts on the Bench's drag engine. Drop it on another tile and it takes that
+   slot; that tile and everything after bump one place down. DONE gets out. */
+.sc-movebar {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 0 0 2px 0;
+    user-select: none;
+}
+.sc-movebar-label {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.6px;
+    color: var(--text-color);
+}
+/* House pill — solid fill, full-strength border + text (the STICKERS button
+   treatment), so it reads on every colorway. */
+.sc-movebar-done {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.6px;
+    padding: 5px 14px;
+    border-radius: 999px;
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    cursor: pointer;
+}
+.sc-movebar-done:active { background: var(--text-color); color: var(--bg-color); }
+
+/* The jiggle — iOS's wobble, kept small so the art stays readable. */
+@keyframes sc-jiggle {
+    0%   { transform: rotate(-0.7deg); }
+    50%  { transform: rotate(0.7deg); }
+    100% { transform: rotate(-0.7deg); }
+}
+.output-card.sc-movable .canvas-wrapper {
+    animation: sc-jiggle 0.28s ease-in-out infinite;
+    transform-origin: 50% 50%;
+}
+/* Stagger so the tiles don't wobble in lockstep. */
+.output-card.sc-movable:nth-child(2n) .canvas-wrapper { animation-delay: -0.09s; }
+.output-card.sc-movable:nth-child(3n) .canvas-wrapper { animation-delay: -0.17s; }
+@media (prefers-reduced-motion: reduce) {
+    .output-card.sc-movable .canvas-wrapper { animation: none; }
+}
+
+/* The little × — top-LEFT, clear of the ⟟ grail badge on the right. Solid
+   house chrome, sized for a fingertip. */
+.sc-move-x {
+    position: absolute;
+    top: -7px;
+    left: -7px;
+    z-index: 6;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: 999px;
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+    animation: none;
+}
+.sc-move-x:active { background: var(--text-color); color: var(--bg-color); }
+/* Same escape the breadcrumb crumb uses so the × can sit half-off the corner. */
+.canvas-wrapper:has(.sc-move-x) { overflow: visible; }
+
+/* The slot the dragged piece is hovering — where it will land. */
+.output-card.sc-drop-armed .canvas-wrapper {
+    outline: 2px solid var(--text-color);
+    outline-offset: 2px;
+}
+
 /* ── Profile Achievements wall ─────────────────────────────────────── */
 .ach-section {
     width: 100%;

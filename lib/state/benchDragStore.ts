@@ -12,7 +12,10 @@
  * during a drag.
  */
 
-export type DropTarget = 'bench' | 'cart';
+/* 'showcase' is a Showcase slot on your own profile in Static mode — the
+   drop that REORDERS the set (Brendon, 2026-07-24). Same lift, same ghost,
+   same dock arming as bench/cart; only the drop zone differs. */
+export type DropTarget = 'bench' | 'cart' | 'showcase';
 
 export interface BenchDragState {
     slug: string;
@@ -26,6 +29,9 @@ export interface BenchDragState {
     engaged: boolean;
     /** Which target the pointer is over (highlight + drop). */
     armed: DropTarget | null;
+    /** The armed zone's own key (`slug:id`) — set for 'showcase' slots so the
+     *  hovered slot can light up and the drop knows where to insert. */
+    armedKey: string | null;
 }
 
 let current: BenchDragState | null = null;

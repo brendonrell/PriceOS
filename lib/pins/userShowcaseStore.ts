@@ -174,6 +174,25 @@ export function replaceInShowcase(
     return 'replaced';
 }
 
+/** Drag-to-reorder, iOS-icon semantics (Brendon, 2026-07-24): the dragged pick
+ *  LANDS on the slot it was dropped on, and that pick — plus everything after
+ *  it — bumps one place down the line. Keys, not indexes: the rendered grid
+ *  filters out picks whose Project is gone, so positions can differ.
+ *  Returns true when the order actually changed. */
+export function moveShowcase(fromKey: string, toKey: string): boolean {
+    hydrate();
+    if (fromKey === toKey) return false;
+    const arr = Array.from(keys);
+    const toIdx = arr.indexOf(toKey);
+    if (toIdx < 0 || !keys.has(fromKey)) return false;
+    const next = arr.filter((k) => k !== fromKey);
+    next.splice(toIdx, 0, fromKey);
+    keys = new Set(next);
+    persist();
+    emit();
+    return true;
+}
+
 /** Subscribe to showcase changes. Returns an unsubscribe function. */
 export function subscribeShowcase(cb: Listener): () => void {
     hydrate();
