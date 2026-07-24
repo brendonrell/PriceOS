@@ -545,15 +545,27 @@ sky at mint) + the proven lunarGlyph discs.
 
 | Use | Glyph | Codepoint |
 |---|---|---|
-| Podcaster tag · WTBS tag | ⚲ | U+26B2 NEUTER |
+| Podcaster tag · WTBS tag | ☊ | U+260A ASCENDING NODE |
 | Degen tag | ⚔ | U+2694 CROSSED SWORDS |
+| Writer tag | ✎ | U+270E LOWER RIGHT PENCIL |
+| Curator tag | ⑆ | U+2446 (the Showcase mark, §3 — reused) |
+| Trader tag | ⇋ | U+21CB LEFTWARDS OVER RIGHTWARDS HARPOON |
+| Media tag | ⧈ | U+29C8 SQUARED SQUARE |
+| Critic tag | ⍨ | U+2368 APL TILDE DIAERESIS |
+| Analyst tag | ⊿ | U+22BF RIGHT TRIANGLE |
+| Patron tag | ⌑ | U+2311 SQUARE LOZENGE |
+| Historian tag | ⋕ | U+22D5 EQUAL AND PARALLEL |
+| Builder tag | ⍚ | U+235A APL COMMENT |
 
-> ⚲ reads as a mic on a stem — Brendon's pick from a mic-shaped round
-> (real microphone codepoints exist only as emoji and never ship), and his
-> explicit call to use ONE mark for BOTH tags. ⚔ is the Degen workspace's
-> own mark — same concept, same glyph, per the reuse rule. The rest of the
-> tag catalog stays colour + label until Brendon picks from the 2026-07-20
-> options menu (five screened, unused candidates per glyphless tag).
+> ☊ (mic-on-stem / headphones read) replaced ⚲ for Podcaster + WTBS
+> (Brendon, 2026-07-24) — still ONE mark for BOTH tags. Writer moved off the
+> Note glyph ⊟ to the pencil ✎ (U+270E — text-default; NOT the emoji ✏
+> U+270F; also the Portfolio edit-budget pencil, a shared functional reuse).
+> ⚔ is the Degen workspace's own mark. The eight persona glyphs above are
+> Brendon's picks 2026-07-24 from a screened options round (each collision-
+> checked against this file AND the whole codebase). Curator deliberately
+> reuses the Showcase ⑆. Still glyphless (colour + label) until Brendon
+> picks: Host · Ambassador · Shitposter · Lurker.
 
 ## 12g. The Nemesis — ☍ (2026-07-20 build)
 

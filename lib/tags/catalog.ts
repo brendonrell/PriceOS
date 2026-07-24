@@ -64,17 +64,17 @@ export interface Tag {
    Artist is NOT here — it's earned (whitelist-gated). */
 const PERSONAS: Tag[] = [
     { id: 'collector',  label: 'Collector',  glyph: '☻' + VS15, color: '#2563EB', kind: 'persona', order: 50, blurb: 'Here for the pieces.' },
-    { id: 'curator',    label: 'Curator',    color: '#7C3AED', kind: 'persona', order: 51, blurb: 'Builds the sets worth seeing.' },
-    { id: 'trader',     label: 'Trader',     color: '#16A34A', kind: 'persona', order: 52, blurb: 'Lives on the order book.' },
+    { id: 'curator',    label: 'Curator',    glyph: '⑆' + VS15, color: '#7C3AED', kind: 'persona', order: 51, blurb: 'Builds the sets worth seeing.' },
+    { id: 'trader',     label: 'Trader',     glyph: '⇋' + VS15, color: '#16A34A', kind: 'persona', order: 52, blurb: 'Lives on the order book.' },
     { id: 'writer',     label: 'Writer',     glyph: '✎' + VS15, color: '#0EA5E9', kind: 'persona', order: 53, blurb: 'Says it in words.' },
-    { id: 'podcaster',  label: 'Podcaster',  glyph: '⚲' + VS15, color: '#DB2777', kind: 'persona', order: 54, blurb: 'Says it out loud.' },
-    { id: 'media',      label: 'Media',      color: '#EA580C', kind: 'persona', order: 55, blurb: 'Covers the scene.' },
+    { id: 'podcaster',  label: 'Podcaster',  glyph: '☊' + VS15, color: '#DB2777', kind: 'persona', order: 54, blurb: 'Says it out loud.' },
+    { id: 'media',      label: 'Media',      glyph: '⧈' + VS15, color: '#EA580C', kind: 'persona', order: 55, blurb: 'Covers the scene.' },
     { id: 'host',       label: 'Host',       color: '#E11D48', kind: 'persona', order: 56, blurb: 'Runs the room.' },
-    { id: 'critic',     label: 'Critic',     color: '#4F46E5', kind: 'persona', order: 57, blurb: 'Has takes, shares them.' },
-    { id: 'analyst',    label: 'Analyst',    color: '#0891B2', kind: 'persona', order: 58, blurb: 'Reads the prices.' },
-    { id: 'patron',     label: 'Patron',     color: '#CA8A04', kind: 'persona', order: 59, blurb: 'Backs the artists.' },
-    { id: 'historian',  label: 'Historian',  color: '#9A3412', kind: 'persona', order: 60, blurb: 'Keeps the lore.' },
-    { id: 'builder',    label: 'Builder',    color: '#475569', kind: 'persona', order: 61, blurb: 'Ships the tools.' },
+    { id: 'critic',     label: 'Critic',     glyph: '⍨' + VS15, color: '#4F46E5', kind: 'persona', order: 57, blurb: 'Has takes, shares them.' },
+    { id: 'analyst',    label: 'Analyst',    glyph: '⊿' + VS15, color: '#0891B2', kind: 'persona', order: 58, blurb: 'Reads the prices.' },
+    { id: 'patron',     label: 'Patron',     glyph: '⌑' + VS15, color: '#CA8A04', kind: 'persona', order: 59, blurb: 'Backs the artists.' },
+    { id: 'historian',  label: 'Historian',  glyph: '⋕' + VS15, color: '#9A3412', kind: 'persona', order: 60, blurb: 'Keeps the lore.' },
+    { id: 'builder',    label: 'Builder',    glyph: '⍚' + VS15, color: '#475569', kind: 'persona', order: 61, blurb: 'Ships the tools.' },
     { id: 'ambassador', label: 'Ambassador', color: '#0D9488', kind: 'persona', order: 62, blurb: 'Brings people in.' },
     { id: 'degen',      label: 'Degen',      glyph: '⚔' + VS15, color: '#DC2626', kind: 'persona', order: 63, blurb: 'Sends it.' },
     { id: 'shitposter', label: 'Shitposter', color: '#F59E0B', kind: 'persona', order: 64, blurb: 'You know the one.' },
@@ -101,7 +101,7 @@ const EARNED: Tag[] = [
    carousel + the profile, ordered before Earned + Chosen. WTBS wears Inter. ── */
 const GRANTED: Tag[] = [
     { id: 'og',         label: 'OG',        glyph: '⌖' + VS15, color: '#EAB308', kind: 'granted', order: 6 },
-    { id: 'wtbs',       label: 'WTBS',      glyph: '⚲' + VS15, color: '#FF0055', kind: 'granted', order: 7, font: 'inter' },
+    { id: 'wtbs',       label: 'WTBS',      glyph: '☊' + VS15, color: '#FF0055', kind: 'granted', order: 7, font: 'inter' },
     { id: 'influencer', label: 'Influencer', color: '#DB2777', kind: 'granted', order: 8 },
     { id: 'team',       label: 'Team',      color: '#0109FF', kind: 'granted', order: 9 },
     /* Verified / Partner / Featured REMOVED (Brendon, 2026-07-20). A stray
