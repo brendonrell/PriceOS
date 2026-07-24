@@ -8,7 +8,89 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-00. ✅ **2026-07-24 (LATEST SHIP) SHOWCASE MOVE MODE — shipped to dev (`83ef215`),
+00. ✅ **2026-07-24 (LATEST SHIP) THE STICKER CHANNEL + LISTS + PROFILE TAGS —
+   all shipped to dev (`e93b818`), tree clean, nothing outstanding.** Five
+   pieces went out this session; each is done and pushed.
+
+   **① SUBTRAITS — 17 → 56 Projects (exactly half the site).** 39 Projects got
+   subtrait buckets; every bucket set was machine-validated as an exact
+   PARTITION of its trait's real value pool, so the "All" concat still
+   reproduces the flat pool (the types.ts invariant). Empyrean's grouping lives
+   at its Classic+Ascendant MERGE SITE, not on either half's schema — the merge
+   rebuilds TraitDefs and would drop subtraits declared underneath.
+   **Bug fixed in the same pass:** a Project trait with NO subtraits whose name
+   collided with a fixed feed key inherited the FEED's sub-buckets. Six live
+   Projects have a trait called "Event" (Lustre, Bloomwater, Voltaic, Facet,
+   Tokeh, Conservatory) and it drilled to Mints/Lists/Xfers. A Project trait now
+   ALWAYS defines its own L2 — its buckets, or empty when flat.
+
+   **② PROFILE TAGS ON 7 LIST SURFACES.** Both leaderboards, project Collectors,
+   Followers/Following, the Friend Inspector dossier, the artwork owner line,
+   search's collector hits. ONE data path: `/api/tags?handles=…` returns FACTS,
+   not finished chips, so `lib/tags/catalog` stays the only place a tag's colour
+   is ever defined — a colour edit there repaints every surface. `useUserTags`
+   holds a module-level cache + one batched read per list. The pill is drawn by
+   `ProfileTags` itself (given a wrapper class), so tag markup exists once.
+   Compact rows scroll sideways rather than wrap — a tag-heavy user can't make
+   their row taller than its neighbours.
+
+   **③ LEADERBOARD SELF-MARKER.** Your row wore only an 8% background wash, and
+   the podium tints are backgrounds declared AFTER it — so ranks 1–3 had no
+   marker at all. Now it's PD's own DOTTED RING (the profile-logo carousel's
+   active tile) + bold @name, declared after the podium so it stacks on any
+   tint. **⛔ The first cut used a left-edge accent bar; that motif is now BANNED
+   in CLAUDE.md §9 along with fully-rounded pills.**
+
+   **④ LISTS, built on Starred.** Starred stays the flat bookmark bucket; a List
+   is a NAMED slice of it (private, so the user CAN name them — unlike Albums,
+   which are numbered and never named). The Starred row CTA is now **Add to
+   List** (text, no glyph) → the value-prompt bottom sheet with **Wishlist
+   pinned as the permanent top option**, then the user's lists, then New List.
+   **MY LISTS** sits in Starred's sort row beside ◷ Recent (own profile only);
+   same button in and out, default OFF. The panel is alphabetical, each list
+   COLLAPSIBLE and collapsed by default, rows SHORT (40px thumb vs 64) carrying
+   price-if-listed else Fate. Rename = the budget pills' ✎ pencil, in place.
+   Delete = the app's own remove-confirm card, and it says the pieces stay in
+   Starred, because a List is a VIEW of Starred.
+
+   **⑤ THE STICKER CHANNEL** (the big one). The marketplace line is now a
+   handheld LCD panel — the row is deliberately TALLER to hold it. The old crawl
+   sheared off top and bottom; **the real cause was iOS auto-inflating a long
+   nowrap crawl inside a box sized for the written font** — fixed with an
+   explicit line-height + `text-size-adjust` pinned ON THE STRIP, not just the
+   modal. DMG screen palette on purpose (Brendon's reference); frame stays on PD
+   tokens. **22 transitions**, all transform/opacity/clip-path so they run on the
+   compositor.
+   - **THE SHOW:** a 22-second episode a day, **365 a year, keyed to the CALENDAR
+     DATE so it LOOPS** — PriceDay counts up forever and never comes back, which
+     is why it is explicitly NOT used here. Viewer-local. A generative
+     collection: 11 plot skeletons × the bestiary cast × the shop's rooms,
+     deterministic per day (day 200 is the same episode for everyone, every
+     year). Every 7th episode continues the CRATE serial. **Pure fiction — no
+     prices, no pitch.** Hand-written scripts in `SCRIPTS` claim their day
+     outright; the generated season plays underneath so all 365 days work today.
+   - **THE ADS:** a gated spot REGISTRY. Every spot declares what it advertises
+     and only airs while that thing is live, so nothing can advertise a feature
+     that doesn't exist. Store/Market/Binder/channel are on air; **swaps, wants
+     and sheet-drop spots are already written and sitting dark** — one word in
+     the airing list turns them on, the panel never changes. Voice is comic
+     back-page + 2am infomercial. **The one hard copy rule, written into the
+     file: sell the CHASE, never the RETURN** — no spot may imply a sticker
+     gains value.
+   - Bottom ticker got its height back + text to 12px; **MY BINDER no longer
+     renames itself to MARKET** when open — it stays put and wears the filled
+     state.
+
+   **Known gaps, named not hidden:** the Studio docs promise a trait "stays flat
+   until every value is bucketed" but the code will render a half-bucketed trait
+   (no live schema violates it — Brendon's call whether to make code match copy).
+
+01. **ClickUp NOT updated this session** — the ClickUp connector dropped
+   mid-session and never came back, so the queue there is stale as of
+   2026-07-24. First session with it connected should reconcile the five ships
+   above.
+
+02. ✅ **2026-07-24 SHOWCASE MOVE MODE — shipped to dev (`83ef215`),
    nothing outstanding.** Brendon's ask, built and pushed same session:
    **press-and-hold a piece on your OWN profile Showcase (Static style only)
    → iOS-home-screen move mode.** Tiles jiggle, each gets a little × (top-LEFT,
