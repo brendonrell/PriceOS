@@ -85,3 +85,50 @@ your best floor call, and your top counterparty.
 - [Pings](/docs/pings/overview)
 - [The Spell Book](/docs/app/spell-book)
 - [Identity & Profiles](/docs/app/identity-and-profiles)
+
+## Lists
+
+**Starred** is the flat pile — you liked it, you starred it, you can find it
+again. **Lists** are what you do once that pile gets big enough to need shape.
+
+A List is a **named slice of your Starred**. The same piece can sit in as many
+Lists as you like, and putting something in a List never stars or unstars
+anything — the pile underneath is untouched.
+
+They are **private**, which is precisely why you get to name them. Nobody else
+ever reads the name, so it can be as useful, or as rude, as you need. (This is
+what separates them from **Albums**, which are numbered by position and never
+named, because Albums are seen.)
+
+### Adding something
+
+Every row on your Starred surface carries an **ADD TO LIST** button. It opens a
+small sheet with, in order:
+
+1. **Wishlist** — always the top option, always there. Your "want to buy" pile is
+   never more than one tap away, and Lists never push it down the page.
+2. **Your Lists**, each showing a tick if this piece is already in it.
+3. **New List** — name it and the piece goes in with it, in one go.
+
+### Reading them back
+
+**MY LISTS** sits in Starred's sort row, beside the ◷ Recent control. It is your
+own shelf, so it only appears on your own profile. The same button opens it and
+closes it, and it starts closed.
+
+Inside, your Lists run **alphabetically**, each one **collapsed** — you scan the
+names first and open the one you want. The rows inside are deliberately short: a
+small thumbnail, the piece, and the one fact that helps you choose — its price if
+it is listed, otherwise its Fate. Tapping a row opens the artwork; the ✕ drops it
+from that List.
+
+### Renaming and deleting
+
+The **✎ pencil** on a List's header renames it in place. Enter or tapping away
+saves; Escape backs out. A List cannot be saved without a name.
+
+The **✕** deletes it, and asks first. Deleting a List removes **only the
+grouping** — every piece in it stays exactly where it was in your Starred. A List
+is a view of your collection, never the thing holding it.
+
+Lists follow your account across devices, like your stars.
