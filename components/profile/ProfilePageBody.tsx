@@ -963,9 +963,9 @@ function ProfilePageBodyInner({
                                 onPointerCancel={onDatePressEnd}
                                 onContextMenu={(e) => { if (user.user_number != null) e.preventDefault(); }}
                                 style={{ userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none', touchAction: 'manipulation' }}
-                                title={dateShowsNum ? `PD user #${user.user_number}` : 'PriceDay'}
+                                title={dateShowsNum ? `PD User #${user.user_number}` : 'PriceDay'}
                             >{dateShowsNum && user.user_number != null
-                                ? `#${user.user_number}`
+                                ? `PD User #${user.user_number}`
                                 : (memberSince || '\u2014')}</span>
                             {priceDayOpen && priceDayPos && joinDayContents && (
                                 <JoinDayPopover
