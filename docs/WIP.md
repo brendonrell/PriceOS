@@ -8,20 +8,23 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-23 (LATEST) PROFILES 500 → FIXED, pushed to dev (tip `071b574`),
-   auto-deploy rolling.** The $PRICE UTILITY batch below took EVERY profile down:
-   it added `price_held` + `price_hold_rank` to the **public (anon) profile column
-   read** (`PUBLIC_USER_COLUMNS` in `lib/supabase.ts`), but anon has only
-   INSERT/UPDATE grants on those two columns — **NO SELECT**. Postgres refuses the
-   whole `users` query → every profile threw `permission denied for table users`
-   and 500'd (looked like a 404 to Brendon). Fix per Brendon's call: **revert just
-   the profile-read part** — dropped the two columns from the public read. The Top
-   Holders board (own service-role path), the @pricediscussion slug fix, and all
-   other work STAY. **Side effect:** the $PRICE rank/holding PROFILE TAGS now have
-   no data → silently don't show. To bring the tags back the RIGHT way later:
+0. ✅ **2026-07-23/24 (LATEST) PROFILES 500 → FIXED, then $PRICE TAGS PROPERLY
+   RESTORED. Live on dev (tip `5623af5`), verified on the preview.** The $PRICE
+   UTILITY batch below took EVERY profile down: it added `price_held` +
+   `price_hold_rank` to the **public (anon) profile column read**
+   (`PUBLIC_USER_COLUMNS` in `lib/supabase.ts`), but the columns were created
+   WITHOUT a column-level **SELECT** grant for anon/authenticated (the migration
+   wrongly assumed the RLS policy covered them — it doesn't; this table grants
+   SELECT per-column). Postgres refuses the whole `users` query → every profile
+   threw `permission denied for table users` and 500'd (read as a 404 by Brendon).
+   **Step 1 (hotfix):** dropped the two columns from the public read → profiles
+   back, tags dormant. **Step 2 (real fix, Brendon's go):** applied
    `grant select (price_held, price_hold_rank) on public.users to anon,
-   authenticated;` then re-add the two columns to `PUBLIC_USER_COLUMNS`. Task
-   branch `claude/profile-links-404-k6rxdu` = trash (delete at
+   authenticated;` to the live DB (tracked migration + recorded in
+   `20260723_price_holdings_rank.sql`), then re-added the two columns to
+   `PUBLIC_USER_COLUMNS`. **Verified live:** all profiles 200; treasury
+   /pricediscussion shows `$PRICE Top 3 · #1` + `1M $PRICE`. Nothing else touched.
+   Task branch `claude/profile-links-404-k6rxdu` = trash (delete at
    https://github.com/brendonrell/PriceOS/branches).
 
 0. ✅ **2026-07-23 $PRICE UTILITY — Top Holders leaderboard + $PRICE
