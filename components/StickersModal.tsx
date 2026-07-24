@@ -31,6 +31,7 @@ import { BuySheetButton } from './stickers/BuySheetButton';
 import StickerMarket from './stickers/StickerMarket';
 import StickerAlbum from './stickers/StickerAlbum';
 import { useOwnedStickerIds, ownsSheet } from '../lib/stickers/owned';
+import StickerLcd from './stickers/StickerLcd';
 import { buildStoreTicker, buildMarketTicker } from '../lib/stickers/ticker';
 
 const VS15 = '︎';
@@ -420,14 +421,7 @@ export default function StickersModal() {
                                     else { setAlbumOn(false); setMarketOn(true); showToast('Stickers: MARKETPLACE'); }
                                 }}
                             >
-                                <span className="ss-mktline-track" aria-hidden="true">
-                                    {[0, 1].map((k) => (
-                                        <span key={k}>
-                                            {Array.from({ length: 8 }, () => (marketOn || albumOn ? 'BACK TO THE STICKER STORE' : 'OPEN THE STICKER MARKETPLACE')).join(' · ')}
-                                            {' · '}
-                                        </span>
-                                    ))}
-                                </span>
+                                <StickerLcd mode={albumOn ? 'binder' : marketOn ? 'market' : 'store'} />
                             </button>
                             <button
                                 type="button"
@@ -443,13 +437,17 @@ export default function StickersModal() {
                             <button
                                 type="button"
                                 className={`ss-mktline-cap${albumOn ? ' is-on' : ''}`}
-                                title={albumOn ? 'Sticker Market — secondary' : 'My Sticker Binder — got / need'}
+                                title="My Sticker Binder — got / need"
                                 onClick={() => {
-                                    if (albumOn) { setAlbumOn(false); setMarketOn(true); showToast('Stickers: MARKETPLACE'); }
+                                    if (albumOn) { setAlbumOn(false); showToast('Stickers: STORE'); }
                                     else { setMarketOn(false); setAlbumOn(true); showToast('Stickers: BINDER'); }
                                 }}
                             >
-                                {albumOn ? 'MARKET' : 'MY BINDER'}
+                                {/* Always MY BINDER — the label never swaps to
+                                    MARKET (Brendon, 2026-07-24). Being open is
+                                    said by the filled `is-on` cap, not by the
+                                    button renaming itself out from under you. */}
+                                MY BINDER
                             </button>
                         </div>
                         <div className="ss-ticker" aria-hidden="true">
