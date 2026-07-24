@@ -66,7 +66,7 @@ const PERSONAS: Tag[] = [
     { id: 'collector',  label: 'Collector',  glyph: '☻' + VS15, color: '#2563EB', kind: 'persona', order: 50, blurb: 'Here for the pieces.' },
     { id: 'curator',    label: 'Curator',    color: '#7C3AED', kind: 'persona', order: 51, blurb: 'Builds the sets worth seeing.' },
     { id: 'trader',     label: 'Trader',     color: '#16A34A', kind: 'persona', order: 52, blurb: 'Lives on the order book.' },
-    { id: 'writer',     label: 'Writer',     glyph: '⊟' + VS15, color: '#0EA5E9', kind: 'persona', order: 53, blurb: 'Says it in words.' },
+    { id: 'writer',     label: 'Writer',     glyph: '✎' + VS15, color: '#0EA5E9', kind: 'persona', order: 53, blurb: 'Says it in words.' },
     { id: 'podcaster',  label: 'Podcaster',  glyph: '⚲' + VS15, color: '#DB2777', kind: 'persona', order: 54, blurb: 'Says it out loud.' },
     { id: 'media',      label: 'Media',      color: '#EA580C', kind: 'persona', order: 55, blurb: 'Covers the scene.' },
     { id: 'host',       label: 'Host',       color: '#E11D48', kind: 'persona', order: 56, blurb: 'Runs the room.' },

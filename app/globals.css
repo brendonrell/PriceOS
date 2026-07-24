@@ -4055,7 +4055,9 @@ body.pd-stone-open .ens-copy-toast {
 }
 /* Artist glyph one step larger, nudged down 2px to sit on the baseline
    (Brendon, 2026-07-22). */
-.profile-tag--artist .profile-tag-glyph { font-size: 18px; position: relative; top: 2px; }
+.profile-tag--artist .profile-tag-glyph { font-size: 18px; position: relative; top: 1px; }
+.profile-tag--podcaster .profile-tag-glyph,
+.profile-tag--wtbs .profile-tag-glyph { position: relative; top: 1px; }
 /* Default (Courier) tag labels are bold (Brendon, 2026-07-22). */
 .profile-tag-label { line-height: 1; font-weight: bold; }
 
