@@ -401,9 +401,22 @@ export const renderElectrum: EngineFn = (canvas, tokenId, width) => {
 
 export const electrumSchema: TraitSchema = {
   traits: [
-    { name: 'Palette', values: PALS.map((p) => p.name) },
-    { name: 'Format', values: ['Square', 'Landscape', 'Portrait'] },
-    { name: 'Growth', values: ['Crown', 'Lattice', 'Frost', 'Starburst'] },
+    { name: 'Palette', values: PALS.map((p) => p.name),
+      subtraits: [
+        { name: 'Cool', values: ['Electric Teal', 'Cobalt Arc', 'Viridian Edge', 'Violet Surge'] },
+        { name: 'Warm', values: ['Magenta Flux', 'Amber Gold', 'Coral Flare', 'Nocturne Gold'] },
+        { name: 'Dark', values: ['Obsidian Oil'] },
+      ] },
+    { name: 'Format', values: ['Square', 'Landscape', 'Portrait'],
+      subtraits: [
+        { name: 'Upright', values: ['Square', 'Portrait'] },
+        { name: 'Broad', values: ['Landscape'] },
+      ] },
+    { name: 'Growth', values: ['Crown', 'Lattice', 'Frost', 'Starburst'],
+      subtraits: [
+        { name: 'Radiating', values: ['Crown', 'Starburst'] },
+        { name: 'Branching', values: ['Lattice', 'Frost'] },
+      ] },
     { name: 'Density', values: ['Sparse', 'Balanced', 'Thicket'] },
   ],
 };

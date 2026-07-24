@@ -950,6 +950,11 @@ export const bloomwaterSchema: TraitSchema = { traits: [
       "River",
       "Suminagashi",
       "Stone"
+    ],
+    "subtraits": [
+      { "name": "Combed", "values": ["Nonpareil", "Suminagashi"] },
+      { "name": "Flowing", "values": ["Confluence", "River"] },
+      { "name": "Dispersed", "values": ["Sparse", "Scatter", "Stone"] },
     ]
   },
   {
@@ -969,6 +974,10 @@ export const bloomwaterSchema: TraitSchema = { traits: [
       "Pink & Cobalt",
       "Jade & Coral",
       "Teal & Ember"
+    ],
+    "subtraits": [
+      { "name": "Warm-led", "values": ["Tangerine & Plum", "Crimson & Cobalt", "Grape & Fuchsia", "Wine & Tangerine", "Magenta & Teal", "Pink & Cobalt"] },
+      { "name": "Cool-led", "values": ["Emerald & Gold", "Cobalt & Coral", "Lime & Magenta", "Cyan & Vermilion", "Ultramarine & Saffron", "Violet & Chartreuse", "Jade & Coral", "Teal & Ember"] },
     ]
   },
   {
@@ -979,6 +988,10 @@ export const bloomwaterSchema: TraitSchema = { traits: [
       "Scroll",
       "Square",
       "Vista"
+    ],
+    "subtraits": [
+      { "name": "Upright", "values": ["Portrait", "Scroll", "Square"] },
+      { "name": "Broad", "values": ["Wide", "Vista"] },
     ]
   },
   {
@@ -995,6 +1008,10 @@ export const bloomwaterSchema: TraitSchema = { traits: [
       "Eclipse Pool",
       "None",
       "Gilded Veil"
+    ],
+    "subtraits": [
+      { "name": "Plain", "values": ["None"] },
+      { "name": "Anomaly", "values": ["Eclipse Pool", "Gilded Veil"] },
     ]
   }
 ] };

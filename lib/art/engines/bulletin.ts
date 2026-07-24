@@ -156,8 +156,20 @@ export const renderBulletin: EngineFn = (canvas, tokenId, width) => {
 
 export const bulletinSchema: TraitSchema = {
     traits: [
-        { name: 'Palette', values: PALETTES.map((x) => x.name) },
-        { name: 'Layout', values: [...LAYOUTS] },
-        { name: 'Density', values: [...DENS] },
+        { name: 'Palette', values: PALETTES.map((x) => x.name),
+          subtraits: [
+            { name: 'Full Colour', values: ['Ceefax', 'RGB'] },
+            { name: 'Monochrome', values: ['Amber', 'Phosphor', 'Magenta'] },
+          ] },
+        { name: 'Layout', values: [...LAYOUTS],
+          subtraits: [
+            { name: 'Blocked', values: ['Mosaic'] },
+            { name: 'Ruled', values: ['Bars', 'Columns'] },
+          ] },
+        { name: 'Density', values: [...DENS],
+          subtraits: [
+            { name: 'Open', values: ['Sparse'] },
+            { name: 'Crowded', values: ['Busy', 'Packed'] },
+          ] },
     ],
 };

@@ -230,10 +230,23 @@ export const renderCultivar: EngineFn = (canvas, tokenId, width) => {
 
 export const cultivarSchema: TraitSchema = {
     traits: [
-        { name: 'Palette', values: PALETTES.map((x) => x.name) },
-        { name: 'Form', values: [...FORMS] },
+        { name: 'Palette', values: PALETTES.map((x) => x.name),
+          subtraits: [
+            { name: 'Warm', values: ['Spring', 'Coral', 'Plum'] },
+            { name: 'Cool', values: ['Indigo', 'Blueprint'] },
+            { name: 'Ink', values: ['Sumi'] },
+          ] },
+        { name: 'Form', values: [...FORMS],
+          subtraits: [
+            { name: 'Upright', values: ['Sprout', 'Bush'] },
+            { name: 'Spreading', values: ['Vine', 'Radial'] },
+          ] },
         { name: 'Density', values: [...DENSITY] },
-        { name: 'Habit', values: [...HABIT] },
+        { name: 'Habit', values: [...HABIT],
+          subtraits: [
+            { name: 'Still', values: ['Upright', 'Weeping'] },
+            { name: 'Moved', values: ['Wind'] },
+          ] },
         { name: 'Bloom', values: ['Yes', 'No'] },
     ],
 };

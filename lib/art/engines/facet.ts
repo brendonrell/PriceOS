@@ -599,6 +599,11 @@ export const facetSchema: TraitSchema = { traits: [
       "Peach Prism",
       "Butter Spectrum",
       "Aqua Facet"
+    ],
+    "subtraits": [
+      { "name": "Warm", "values": ["Blush Quartz", "Sorbet Holo", "Peach Prism", "Butter Spectrum"] },
+      { "name": "Cool", "values": ["Lilac Refraction", "Seafoam Halo", "Mint Crystal", "Periwinkle Prism", "Aqua Facet"] },
+      { "name": "Iridescent", "values": ["Opal Drift"] },
     ]
   },
   {
@@ -610,6 +615,10 @@ export const facetSchema: TraitSchema = { traits: [
       "Cascade",
       "Pair",
       "Hero"
+    ],
+    "subtraits": [
+      { "name": "Massed", "values": ["Shoal", "Cascade", "Scatter"] },
+      { "name": "Few", "values": ["Sparse", "Pair", "Hero"] },
     ]
   },
   {
@@ -620,6 +629,10 @@ export const facetSchema: TraitSchema = { traits: [
       "Wide",
       "Square",
       "Portrait"
+    ],
+    "subtraits": [
+      { "name": "Upright", "values": ["Tall", "Square", "Portrait"] },
+      { "name": "Broad", "values": ["Vista", "Wide"] },
     ]
   },
   {
@@ -630,6 +643,10 @@ export const facetSchema: TraitSchema = { traits: [
       "Few",
       "Swarm",
       "Single"
+    ],
+    "subtraits": [
+      { "name": "Few", "values": ["Single", "Pair", "Few"] },
+      { "name": "Many", "values": ["Many", "Swarm"] },
     ]
   },
   {
@@ -654,6 +671,10 @@ export const facetSchema: TraitSchema = { traits: [
       "None",
       "Prism Split",
       "Caustic Supernova"
+    ],
+    "subtraits": [
+      { "name": "Plain", "values": ["None"] },
+      { "name": "Anomaly", "values": ["Prism Split", "Caustic Supernova"] },
     ]
   }
 ] };

@@ -102,10 +102,27 @@ function castStrata(seed){const r=rng(seed);const palI=Math.floor(r()*ST_PALS.le
 /* Strata — pressed-pigment sediment fields */
 export const strataTraits: TraitsFn = (id) => { const c = castStrata(id) as any; return { Palette: c.palette, Format: c.format, Structure: c.structure, Strata: c.strata, Key: c.key }; };
 export const strataSchema: TraitSchema = { traits: [
-  { name: 'Palette', values: ['Oxide Bed','Tidewater','Ironstone','Glacier','Verdigris','Ember Ash','Amethyst','Saltflat','Indigo Vein','Burnt Sienna','Malachite','Payne Slate','Tyrian'] },
-  { name: 'Format', values: ['Portrait','Square','Landscape'] },
-  { name: 'Structure', values: ['Bedded','Folded','Faulted','Lens','Unconformity'] },
-  { name: 'Strata', values: ['5','6','7','8','9'] },
+  { name: 'Palette', values: ['Oxide Bed','Tidewater','Ironstone','Glacier','Verdigris','Ember Ash','Amethyst','Saltflat','Indigo Vein','Burnt Sienna','Malachite','Payne Slate','Tyrian'],
+    subtraits: [
+      { name: 'Warm Mineral', values: ['Oxide Bed', 'Ironstone', 'Ember Ash', 'Burnt Sienna'] },
+      { name: 'Cool Mineral', values: ['Tidewater', 'Glacier', 'Verdigris', 'Indigo Vein', 'Malachite', 'Payne Slate', 'Saltflat'] },
+      { name: 'Rich Mineral', values: ['Amethyst', 'Tyrian'] },
+    ] },
+  { name: 'Format', values: ['Portrait','Square','Landscape'],
+    subtraits: [
+      { name: 'Upright', values: ['Portrait', 'Square'] },
+      { name: 'Broad', values: ['Landscape'] },
+    ] },
+  { name: 'Structure', values: ['Bedded','Folded','Faulted','Lens','Unconformity'],
+    subtraits: [
+      { name: 'Conformable', values: ['Bedded', 'Lens'] },
+      { name: 'Deformed', values: ['Folded', 'Faulted', 'Unconformity'] },
+    ] },
+  { name: 'Strata', values: ['5','6','7','8','9'],
+    subtraits: [
+      { name: 'Few', values: ['5', '6'] },
+      { name: 'Many', values: ['7', '8', '9'] },
+    ] },
   { name: 'Key', values: ['High','Low'] },
 ] };
 export const renderStrata = blit(strata, strataTraits);

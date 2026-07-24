@@ -2248,10 +2248,52 @@ for (const t of [...CLASSIC.empyreanSchema.traits, ...NEW.empyreanSchema.traits]
   else for (const v of t.values) if (!ex.values.includes(v)) ex.values.push(v);
 }
 
+/* Subtrait buckets (Trait → Subtrait → Value, lib/project/types.ts). Empyrean's
+   pools are the UNION of the Classic + Ascendant engines, so the grouping is
+   declared here — after the merge — rather than on either half's schema. Every
+   value of a bucketed trait sits in exactly one bucket. */
+const _SUBTRAITS: Record<string, { name: string; values: string[] }[]> = {
+  Palette: [
+    { name: 'Warm', values: ['Dragonfire', 'Crimson Siege', 'Golden Dawn', 'Sunset Citadel'] },
+    { name: 'Cool', values: ['Frost Kingdom', 'Emerald Vale', 'Twilight Empire', 'Void Portal', 'Amethyst Highlands', 'Aurora Reach'] },
+  ],
+  Beast: [
+    { name: 'Winged', values: ['Dragon', 'Griffin', 'Roc'] },
+    { name: 'Earthbound', values: ['Leviathan', 'Wyrm'] },
+    { name: 'Unclaimed', values: ['None'] },
+  ],
+  Season: [
+    { name: 'Warm Seasons', values: ['Spring Bloom', 'High Summer'] },
+    { name: 'Cold Seasons', values: ['Amber Autumn', 'Deep Winter'] },
+  ],
+  Omen: [
+    { name: 'Celestial', values: ['Great Moon', 'Ringed Planet', 'Twin Suns', 'Aurora'] },
+    { name: 'Portent', values: ['Portal Rift', 'Comet', 'Eclipse'] },
+    { name: 'Clear', values: ['Clear Heavens'] },
+  ],
+  Era: [
+    { name: 'Ascendant', values: ['Golden Age', 'Age of Sail', 'The Awakening'] },
+    { name: 'Waning', values: ['Age of Embers', 'The Long Winter', 'The Sundering'] },
+  ],
+  Scale: [
+    { name: 'Small', values: ['Lone Keep', 'Walled Town'] },
+    { name: 'Great', values: ['Marching Realm', 'Massed Empire'] },
+  ],
+  Format: [
+    { name: 'Upright', values: ['Square', 'Tall'] },
+    { name: 'Broad', values: ['Wide'] },
+  ],
+};
+
 export const empyreanTraits: TraitsFn = (id) => labelsM(paramsOf(rng(id)));
 
 export const empyreanSchema: TraitSchema = {
-  traits: [{ name: 'Style', values: ['Classic', 'Ascendant'] }, ..._byName.values()],
+  traits: [
+    { name: 'Style', values: ['Classic', 'Ascendant'] },
+    ...[..._byName.values()].map((t) =>
+      _SUBTRAITS[t.name] ? { ...t, subtraits: _SUBTRAITS[t.name] } : t,
+    ),
+  ],
 };
 
 export const renderEmpyrean: EngineFn = blit(draw, empyreanTraits);

@@ -132,8 +132,16 @@ function castRudxane(seed){
 /* Ode to Rudxane */
 export const rudxaneTraits: TraitsFn = (id) => { const c = castRudxane(id) as any; return { Palette: c.palette, Format: c.format, Layout: cap(c.layout), Reading: c.reading }; };
 export const rudxaneSchema: TraitSchema = { traits: [
-  { name: 'Palette', values: ['Ivory & Ink','Navy & Cream','Oxblood & Bone','Sage & Charcoal','Slate & Ecru','Gold Leaf','Graphite','Aubergine'] },
-  { name: 'Format', values: ['Folio','Tall','Square','Broadside'] },
+  { name: 'Palette', values: ['Ivory & Ink','Navy & Cream','Oxblood & Bone','Sage & Charcoal','Slate & Ecru','Gold Leaf','Graphite','Aubergine'],
+    subtraits: [
+      { name: 'Monochrome', values: ['Ivory & Ink', 'Slate & Ecru', 'Graphite'] },
+      { name: 'Coloured', values: ['Navy & Cream', 'Oxblood & Bone', 'Sage & Charcoal', 'Gold Leaf', 'Aubergine'] },
+    ] },
+  { name: 'Format', values: ['Folio','Tall','Square','Broadside'],
+    subtraits: [
+      { name: 'Upright', values: ['Folio', 'Tall', 'Square'] },
+      { name: 'Broad', values: ['Broadside'] },
+    ] },
   { name: 'Layout', values: ['Specimen','Plate','Ledger','Wave'] },
 ] };
 export const renderRudxane = blit(rudxane, rudxaneTraits);

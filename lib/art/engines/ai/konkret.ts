@@ -119,9 +119,22 @@ function castKonkret(seed){
 /* Konkret */
 export const konkretTraits: TraitsFn = (id) => { const c = castKonkret(id) as any; return { Palette: c.palette, Format: c.format, System: cap(c.system) }; };
 export const konkretSchema: TraitSchema = { traits: [
-  { name: 'Palette', values: ['De Stijl','Bauhaus','Concrete','Graphite','Ochre & Slate','Oxblood','Indigo & Cream','Sage'] },
-  { name: 'Format', values: ['Square','Portrait','Landscape','Tall'] },
-  { name: 'System', values: ['Grid','Destijl','Concentric','Lines','Bauhaus','Columns'] },
+  { name: 'Palette', values: ['De Stijl','Bauhaus','Concrete','Graphite','Ochre & Slate','Oxblood','Indigo & Cream','Sage'],
+    subtraits: [
+      { name: 'Primary', values: ['De Stijl', 'Bauhaus'] },
+      { name: 'Earth', values: ['Concrete', 'Graphite', 'Ochre & Slate', 'Sage'] },
+      { name: 'Jewel', values: ['Oxblood', 'Indigo & Cream'] },
+    ] },
+  { name: 'Format', values: ['Square','Portrait','Landscape','Tall'],
+    subtraits: [
+      { name: 'Upright', values: ['Square', 'Portrait', 'Tall'] },
+      { name: 'Broad', values: ['Landscape'] },
+    ] },
+  { name: 'System', values: ['Grid','Destijl','Concentric','Lines','Bauhaus','Columns'],
+    subtraits: [
+      { name: 'Orthogonal', values: ['Grid', 'Destijl', 'Lines', 'Columns'] },
+      { name: 'Centred', values: ['Concentric', 'Bauhaus'] },
+    ] },
 ] };
 export const renderKonkret = blit(konkret, konkretTraits);
 export const KONKRET_ASPECTS = [1, 0.8, 1.26, 0.69] as const;

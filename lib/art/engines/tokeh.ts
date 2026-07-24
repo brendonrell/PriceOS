@@ -531,12 +531,32 @@ export const tokehTraits: TraitsFn = (tokenId) => ENGINE.traits(tokenId);
 
 export const tokehSchema: TraitSchema = {
   traits: [
-    { name: "Palette", values: ["Indigo Bloom","Teal Aubergine","Limewing Night","Magenta Hush","Violet Spore","Orchid Drift","Cyan Vespers","Aubergine Glow"] },
+    { name: "Palette", values: ["Indigo Bloom","Teal Aubergine","Limewing Night","Magenta Hush","Violet Spore","Orchid Drift","Cyan Vespers","Aubergine Glow"],
+      subtraits: [
+        { name: 'Cool', values: ['Indigo Bloom', 'Teal Aubergine', 'Limewing Night', 'Cyan Vespers'] },
+        { name: 'Warm', values: ['Magenta Hush', 'Violet Spore', 'Orchid Drift', 'Aubergine Glow'] },
+      ] },
     { name: "Frame", values: ["Window","Portal","Vista"] },
-    { name: "Drifters", values: ["Air-Jellies","Spore-Clusters","Seed-Pods","Mixed","Lanterns"] },
-    { name: "Air", values: ["Updraft","Still","Crosswind"] },
-    { name: "Density", values: ["Swarm","Sparse","Many"] },
-    { name: "Event", values: ["Moonrise","Spore Fall","Bloom Burst"] },
+    { name: "Drifters", values: ["Air-Jellies","Spore-Clusters","Seed-Pods","Mixed","Lanterns"],
+      subtraits: [
+        { name: 'Living', values: ['Air-Jellies', 'Spore-Clusters', 'Seed-Pods'] },
+        { name: 'Other', values: ['Lanterns', 'Mixed'] },
+      ] },
+    { name: "Air", values: ["Updraft","Still","Crosswind"],
+      subtraits: [
+        { name: 'Moving', values: ['Updraft', 'Crosswind'] },
+        { name: 'Calm', values: ['Still'] },
+      ] },
+    { name: "Density", values: ["Swarm","Sparse","Many"],
+      subtraits: [
+        { name: 'Few', values: ['Sparse'] },
+        { name: 'Many', values: ['Many', 'Swarm'] },
+      ] },
+    { name: "Event", values: ["Moonrise","Spore Fall","Bloom Burst"],
+      subtraits: [
+        { name: 'Sky', values: ['Moonrise'] },
+        { name: 'Bloom', values: ['Spore Fall', 'Bloom Burst'] },
+      ] },
   ],
 };
 

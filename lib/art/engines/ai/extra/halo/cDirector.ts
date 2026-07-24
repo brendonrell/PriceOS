@@ -670,10 +670,27 @@ export const haloCTraits: TraitsFn = (id) => labels(paramsOf(rng(id)));
 
 export const haloCSchema: TraitSchema = {
   traits: [
-    { name: 'Layout',  values: LAYOUTS },
-    { name: 'Palette', values: PALS.map((p) => p.name) },
-    { name: 'Format',  values: ['Square', 'Tall', 'Wide'] },
-    { name: 'Density', values: DENSITY },
+    { name: 'Layout', values: LAYOUTS,
+      subtraits: [
+        { name: 'Centred', values: ['Radial Core', 'Ring World', 'Iso Skyline'] },
+        { name: 'Spread', values: ['Grid Sprawl', 'River Delta', 'Constellation'] },
+      ] },
+    { name: 'Palette', values: PALS.map((p) => p.name),
+      subtraits: [
+        { name: 'Hot', values: ['Magenta Mainframe', 'Sodium Override', 'Blood Protocol', 'Ember Grid', 'Plasma Core'] },
+        { name: 'Cold', values: ['Acid Terminal', 'Ion Drift', 'Toxic Subnet', 'Arctic Daemon'] },
+        { name: 'Full Bus', values: ['Spectrum Bus'] },
+      ] },
+    { name: 'Format', values: ['Square', 'Tall', 'Wide'],
+      subtraits: [
+        { name: 'Upright', values: ['Square', 'Tall'] },
+        { name: 'Broad', values: ['Wide'] },
+      ] },
+    { name: 'Density', values: DENSITY,
+      subtraits: [
+        { name: 'Open', values: ['Sparse'] },
+        { name: 'Built Up', values: ['Packed', 'Megacity'] },
+      ] },
     { name: 'Traffic', values: TRAFFIC },
     { name: 'Haze',    values: HAZE },
   ],

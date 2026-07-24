@@ -255,10 +255,28 @@ export const vespersTraits: TraitsFn = (id) => labels(paramsOf(rng(id)));
 
 export const vespersSchema: TraitSchema = {
   traits: [
-    { name:'Palette', values: PALS.map((p)=>p.name) },
-    { name:'Format',  values: ['Stele','Square','Wide'] },
-    { name:'Scene',   values: SCENE },
-    { name:'Seam',    values: SEAM },
+    { name: 'Palette', values: PALS.map((p)=>p.name),
+      subtraits: [
+        { name: 'Green', values: ['Viridian Vesper', 'Emerald Still', 'Teal Mirror', 'Glacial Mint'] },
+        { name: 'Blue', values: ['Sapphire Tide', 'Ultramarine', 'Sodium Lagoon'] },
+        { name: 'Violet & Red', values: ['Amethyst Deep', 'Orchid Drowned', 'Crimson Vigil'] },
+      ] },
+    { name: 'Format', values: ['Stele','Square','Wide'],
+      subtraits: [
+        { name: 'Upright', values: ['Stele', 'Square'] },
+        { name: 'Broad', values: ['Wide'] },
+      ] },
+    { name: 'Scene', values: SCENE,
+      subtraits: [
+        { name: 'Standing', values: ['Ziggurat', 'Obelisk Field', 'Slab Henge', 'Sunken Spires'] },
+        { name: 'Spanning', values: ['Great Ring', 'Arch Causeway', 'Aqueduct'] },
+        { name: 'Figure', values: ['Drowned Colossus'] },
+      ] },
+    { name: 'Seam', values: SEAM,
+      subtraits: [
+        { name: 'Clear', values: ['Calm', 'Glass'] },
+        { name: 'Veiled', values: ['Mist Veil'] },
+      ] },
   ],
 };
 

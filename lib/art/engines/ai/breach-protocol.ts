@@ -156,8 +156,16 @@ function castBreach(seed){
 /* Breach Protocol */
 export const breachTraits: TraitsFn = (id) => { const c = castBreach(id) as any; return { Palette: c.palette, Format: c.format, Layout: cap(c.layout), Density: c.density }; };
 export const breachSchema: TraitSchema = { traits: [
-  { name: 'Palette', values: ['Hazard','Militech','Arasaka','NetWatch','Trauma','Voodoo','Toxic','Kang Tao'] },
-  { name: 'Format', values: ['Square','Portrait','Landscape','Tall','Wide'] },
+  { name: 'Palette', values: ['Hazard','Militech','Arasaka','NetWatch','Trauma','Voodoo','Toxic','Kang Tao'],
+    subtraits: [
+      { name: 'Corp', values: ['Militech', 'Arasaka', 'NetWatch', 'Trauma', 'Kang Tao'] },
+      { name: 'Street', values: ['Hazard', 'Voodoo', 'Toxic'] },
+    ] },
+  { name: 'Format', values: ['Square','Portrait','Landscape','Tall','Wide'],
+    subtraits: [
+      { name: 'Upright', values: ['Square', 'Portrait', 'Tall'] },
+      { name: 'Broad', values: ['Landscape', 'Wide'] },
+    ] },
   { name: 'Layout', values: ['Reticle','Dashboard','Breach','Signage'] },
   { name: 'Density', values: ['Low','Mid','High'] },
 ] };

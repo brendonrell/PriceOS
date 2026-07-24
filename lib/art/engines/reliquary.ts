@@ -203,9 +203,21 @@ export const renderReliquary: EngineFn = (canvas, tokenId, width) => {
 
 export const reliquarySchema: TraitSchema = {
     traits: [
-        { name: 'Palette', values: PALETTES.map((x) => x.name) },
-        { name: 'Symmetry', values: ['8-fold', '10-fold', '12-fold', '16-fold'] },
+        { name: 'Palette', values: PALETTES.map((x) => x.name),
+          subtraits: [
+            { name: 'Cool', values: ['Chartres', 'Regal', 'Mystic', 'Twilight'] },
+            { name: 'Warm', values: ['Aurora', 'Ember'] },
+          ] },
+        { name: 'Symmetry', values: ['8-fold', '10-fold', '12-fold', '16-fold'],
+          subtraits: [
+            { name: 'Simple', values: ['8-fold', '10-fold'] },
+            { name: 'Complex', values: ['12-fold', '16-fold'] },
+          ] },
         { name: 'Rings', values: RINGS.map(String) },
-        { name: 'Core', values: [...CORES] },
+        { name: 'Core', values: [...CORES],
+          subtraits: [
+            { name: 'Figured', values: ['Rosette', 'Star'] },
+            { name: 'Open', values: ['Oculus'] },
+          ] },
     ],
 };

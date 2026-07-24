@@ -1223,12 +1223,33 @@ export const leviathanTraits: TraitsFn = (id) => labels(paramsOf(rng(id)));
 
 export const leviathanSchema: TraitSchema = {
   traits: [
-    { name: 'Depth',   values: ZONES.map((z) => z.name) },
-    { name: 'Palette', values: PALS.map((p) => p.name) },
-    { name: 'Format',  values: ['Square', 'Tall', 'Wide'] },
-    { name: 'Hero',    values: HEROES },
+    { name: 'Depth', values: ZONES.map((z) => z.name),
+      subtraits: [
+        { name: 'Sunlit', values: ['Sunlit Shallows', 'Reef Wall', 'Lagoon', 'Kelp Cathedral'] },
+        { name: 'Dark', values: ['Twilight Zone', 'Midnight Bioluminescent'] },
+      ] },
+    { name: 'Palette', values: PALS.map((p) => p.name),
+      subtraits: [
+        { name: 'Warm', values: ['Tropical Reef', 'Coral Garden', 'Sunset Lagoon', 'Mango Reef'] },
+        { name: 'Cool', values: ['Deep Sapphire', 'Bioluminescent', 'Emerald Kelp', 'Amethyst Deep', 'Electric Anemone', 'Cyan Drift'] },
+      ] },
+    { name: 'Format', values: ['Square', 'Tall', 'Wide'],
+      subtraits: [
+        { name: 'Upright', values: ['Square', 'Tall'] },
+        { name: 'Broad', values: ['Wide'] },
+      ] },
+    { name: 'Hero', values: HEROES,
+      subtraits: [
+        { name: 'Giants', values: ['Whale', 'Manta', 'Shark'] },
+        { name: 'Drifters', values: ['Turtle', 'Jellyfish Bloom'] },
+        { name: 'Empty Water', values: ['None'] },
+      ] },
     { name: 'Camera',  values: CAMERAS },
-    { name: 'Density', values: DENSITY },
+    { name: 'Density', values: DENSITY,
+      subtraits: [
+        { name: 'Open', values: ['Sparse Sandflat'] },
+        { name: 'Alive', values: ['Reef', 'Teeming'] },
+      ] },
   ],
 };
 

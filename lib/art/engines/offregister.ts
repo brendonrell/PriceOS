@@ -393,11 +393,33 @@ export const offRegisterTraits: TraitsFn = (id) => {
 
 export const offRegisterSchema: TraitSchema = {
   traits: [
-    { name: 'Palette', values: PALS.map((p) => p.name) },
-    { name: 'Mode',    values: MODES },
-    { name: 'Format',  values: ['Portrait', 'Square', 'Landscape'] },
-    { name: 'Screen',  values: ['Dot', 'Line', 'Grain', 'Solid', 'Mixed'] },
-    { name: 'Inks',    values: PALS.map((p) => p.inks.map((i) => i.name).join(' + ')) },
+    { name: 'Palette', values: PALS.map((p) => p.name),
+      subtraits: [
+        { name: 'Warm', values: ['Fluoro', 'Citrus', 'Brick', 'Ember', 'Carnival', 'Bazaar'] },
+        { name: 'Cool', values: ['Grape', 'Forest', 'Sky', 'Cobalt', 'Lagoon', 'Grove'] },
+        { name: 'Neutral', values: ['Press'] },
+      ] },
+    { name: 'Mode', values: MODES,
+      subtraits: [
+        { name: 'Registration', values: ['Overprint', 'Drift', 'Halftone', 'Streak'] },
+        { name: 'Geometry', values: ['Concentric', 'Columns', 'Grid', 'Diagonal'] },
+        { name: 'Figure', values: ['Cutout', 'Poster'] },
+      ] },
+    { name: 'Format', values: ['Portrait', 'Square', 'Landscape'],
+      subtraits: [
+        { name: 'Upright', values: ['Portrait', 'Square'] },
+        { name: 'Broad', values: ['Landscape'] },
+      ] },
+    { name: 'Screen', values: ['Dot', 'Line', 'Grain', 'Solid', 'Mixed'],
+      subtraits: [
+        { name: 'Patterned', values: ['Dot', 'Line', 'Grain', 'Mixed'] },
+        { name: 'Flat', values: ['Solid'] },
+      ] },
+    { name: 'Inks', values: PALS.map((p) => p.inks.map((i) => i.name).join(' + ')),
+      subtraits: [
+        { name: 'Two Colour', values: ['Fluoro Pink + Blue', 'Orange + Teal', 'Yellow + Purple', 'Green + Black', 'Red + Steel', 'Brown + Sky', 'Fluoro Green + Cobalt', 'Crimson + Charcoal', 'Aqua + Magenta'] },
+        { name: 'Three Colour', values: ['Fluoro Pink + Yellow + Blue', 'Red + Teal + Black', 'Orange + Purple + Sky', 'Green + Gold + Oxblood'] },
+      ] },
   ],
 };
 

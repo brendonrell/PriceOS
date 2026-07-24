@@ -105,10 +105,22 @@ function castSimultaneous(seed){const r=rng(seed);const palI=Math.floor(r()*SM_P
 /* Simultaneous — interacting colour fields */
 export const simultaneousTraits: TraitsFn = (id) => { const c = castSimultaneous(id) as any; return { Palette: c.palette, Harmony: c.harmony, Scaffold: c.scaffold, Motif: c.motif, Key: c.key }; };
 export const simultaneousSchema: TraitSchema = { traits: [
-  { name: 'Palette', values: ['Cadmium / Cyan','Ultramarine / Amber','Magenta / Viridian','Sienna / Teal','Plum / Chartreuse','Ochre Triad','Rose Analogous','Forest Analogous','Slate / Coral','Oxblood / Sky'] },
-  { name: 'Harmony', values: ['Complementary','Split','Triad','Analogous'] },
+  { name: 'Palette', values: ['Cadmium / Cyan','Ultramarine / Amber','Magenta / Viridian','Sienna / Teal','Plum / Chartreuse','Ochre Triad','Rose Analogous','Forest Analogous','Slate / Coral','Oxblood / Sky'],
+    subtraits: [
+      { name: 'Opposed', values: ['Cadmium / Cyan', 'Ultramarine / Amber', 'Magenta / Viridian', 'Sienna / Teal', 'Plum / Chartreuse', 'Slate / Coral', 'Oxblood / Sky'] },
+      { name: 'Kindred', values: ['Ochre Triad', 'Rose Analogous', 'Forest Analogous'] },
+    ] },
+  { name: 'Harmony', values: ['Complementary','Split','Triad','Analogous'],
+    subtraits: [
+      { name: 'Contrast', values: ['Complementary', 'Split', 'Triad'] },
+      { name: 'Adjacent', values: ['Analogous'] },
+    ] },
   { name: 'Scaffold', values: ['Field','Split','Quadrant','Bands'] },
-  { name: 'Motif', values: ['Disc','Fan','Rings','Wedge','Bars'] },
+  { name: 'Motif', values: ['Disc','Fan','Rings','Wedge','Bars'],
+    subtraits: [
+      { name: 'Round', values: ['Disc', 'Rings'] },
+      { name: 'Angular', values: ['Fan', 'Wedge', 'Bars'] },
+    ] },
   { name: 'Key', values: ['High','Low'] },
 ] };
 export const renderSimultaneous = blit(simultaneous, simultaneousTraits);

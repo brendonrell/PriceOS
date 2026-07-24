@@ -793,12 +793,29 @@ export const haloDTraits: TraitsFn = (id) => labels(paramsOf(rng(id)));
 
 export const haloDSchema: TraitSchema = {
   traits: [
-    { name: 'Layout',  values: LAYOUTS },
-    { name: 'Palette', values: PALS.map((p) => p.name) },
-    { name: 'Format',  values: ['Square', 'Portrait', 'Landscape'] },
+    { name: 'Layout', values: LAYOUTS,
+      subtraits: [
+        { name: 'Long View', values: ['Nave', 'Crypt', 'Apse'] },
+        { name: 'Frontal', values: ['Rose Window', 'Triptych'] },
+      ] },
+    { name: 'Palette', values: PALS.map((p) => p.name),
+      subtraits: [
+        { name: 'Cold Signal', values: ['Phosphor', 'Cryo', 'Mainframe', 'Glitchglass'] },
+        { name: 'Warm Relic', values: ['Reliquary', 'Amber CRT', 'Sanctum', 'Goldghost'] },
+        { name: 'Alarm', values: ['Reactor', 'Firewall'] },
+      ] },
+    { name: 'Format', values: ['Square', 'Portrait', 'Landscape'],
+      subtraits: [
+        { name: 'Upright', values: ['Square', 'Portrait'] },
+        { name: 'Broad', values: ['Landscape'] },
+      ] },
     { name: 'Density', values: DENSITY },
     { name: 'Signal',  values: SIGNAL },
-    { name: 'Rite',    values: RITE },
+    { name: 'Rite', values: RITE,
+      subtraits: [
+        { name: 'Hours', values: ['Vespers', 'Matins'] },
+        { name: 'Mass', values: ['Requiem'] },
+      ] },
   ],
 };
 

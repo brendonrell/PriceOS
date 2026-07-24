@@ -570,10 +570,27 @@ export const tickertapeTraits: TraitsFn = (id) => labels(paramsOf(rng(id)));
 
 export const tickertapeSchema: TraitSchema = {
   traits: [
-    { name:'Palette',   values: PALS.map(p => p.name) },
-    { name:'Format',    values: ['Square','Portrait','Landscape'] },
-    { name:'Layout',    values: LAYOUTS.slice() },
-    { name:'Confetti',  values: CONFETTI.slice() },
+    { name: 'Palette', values: PALS.map(p => p.name),
+      subtraits: [
+        { name: 'Full Spectrum', values: ['Full Party', 'Candy Pop', 'Confetti Pop', 'Hot Primaries', 'Kraft Carnival'] },
+        { name: 'Two Ink', values: ['Bright Newsprint', 'Brass & Navy', 'Cyan/Magenta', 'Gold Rush', 'Dusk Plum'] },
+      ] },
+    { name: 'Format', values: ['Square','Portrait','Landscape'],
+      subtraits: [
+        { name: 'Upright', values: ['Square', 'Portrait'] },
+        { name: 'Broad', values: ['Landscape'] },
+      ] },
+    { name: 'Layout', values: LAYOUTS.slice(),
+      subtraits: [
+        { name: 'Falling', values: ['Downpour', 'Drift Pile'] },
+        { name: 'Rising', values: ['Updraft'] },
+        { name: 'Standing', values: ['Canyon', 'Single Strip', 'Skyline'] },
+      ] },
+    { name: 'Confetti', values: CONFETTI.slice(),
+      subtraits: [
+        { name: 'Light', values: ['Sparse'] },
+        { name: 'Thick', values: ['Heavy', 'Blizzard'] },
+      ] },
     { name:'Streamers', values: STREAMERS.slice() },
   ],
 };

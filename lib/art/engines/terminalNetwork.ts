@@ -270,11 +270,28 @@ const PALETTE_NAMES = Array.from(new Set([...TPALS.map((p) => p.name), ...NPALS.
 export const terminalNetworkSchema: TraitSchema = {
   traits: [
     { name: 'System', values: ['Terminal', 'Network'] },
-    { name: 'Palette', values: PALETTE_NAMES },
-    { name: 'Format', values: ['Screen', 'Console', 'Stack', 'Field', 'Span', 'Column'] },
-    { name: 'Layout', values: [...TLAYOUTS] },
+    { name: 'Palette', values: PALETTE_NAMES,
+      subtraits: [
+        { name: 'Warm', values: ['Hazard', 'Amber Flood', 'Signal Red', 'Amber Day', 'Magenta Day'] },
+        { name: 'Cool', values: ['Cyan Print', 'Electric Teal', 'Klein Blue', 'Blueprint', 'Teal Sea', 'Viola'] },
+        { name: 'Bone & Acid', values: ['Bone OS', 'Acid Wash', 'Concrete', 'Acid'] },
+      ] },
+    { name: 'Format', values: ['Screen', 'Console', 'Stack', 'Field', 'Span', 'Column'],
+      subtraits: [
+        { name: 'Upright', values: ['Screen', 'Stack', 'Column'] },
+        { name: 'Broad', values: ['Console', 'Field', 'Span'] },
+      ] },
+    { name: 'Layout', values: [...TLAYOUTS],
+      subtraits: [
+        { name: 'Read-out', values: ['Boot', 'Dossier', 'Map'] },
+        { name: 'Event', values: ['Flood', 'Breach', 'Alert'] },
+      ] },
     { name: 'Density', values: ['Dense', 'Sparse'] },
-    { name: 'Topology', values: [...NTOPO] },
+    { name: 'Topology', values: [...NTOPO],
+      subtraits: [
+        { name: 'Centred', values: ['Core', 'Burst'] },
+        { name: 'Linked', values: ['Mesh', 'Spine', 'Circuit', 'Constellation'] },
+      ] },
     { name: 'Scale', values: ['Dense', 'Open'] },
   ],
 };

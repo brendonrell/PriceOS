@@ -1047,14 +1047,34 @@ export const conservatoryTraits: TraitsFn = (tokenId) => ENGINE.traits(tokenId);
 
 export const conservatorySchema: TraitSchema = {
   traits: [
-    { name: "Palette", values: ["Malachite Heat","Conservatory Dusk","Teal Vault","Verdant Furnace","Viridian Bloom","Spore Emerald","Emerald Glasshouse","Jade Aurora"] },
-    { name: "View", values: ["Hero","Aisle","Chamber","Jungle","Bed","Canopy","Field"] },
-    { name: "Architecture", values: ["Terraces","Tunnel","Nave","Dome","Broken Glass"] },
+    { name: "Palette", values: ["Malachite Heat","Conservatory Dusk","Teal Vault","Verdant Furnace","Viridian Bloom","Spore Emerald","Emerald Glasshouse","Jade Aurora"],
+      subtraits: [
+        { name: 'Hot Green', values: ['Malachite Heat', 'Verdant Furnace', 'Conservatory Dusk'] },
+        { name: 'Cool Green', values: ['Teal Vault', 'Viridian Bloom', 'Spore Emerald', 'Emerald Glasshouse', 'Jade Aurora'] },
+      ] },
+    { name: "View", values: ["Hero","Aisle","Chamber","Jungle","Bed","Canopy","Field"],
+      subtraits: [
+        { name: 'Close', values: ['Hero', 'Bed', 'Chamber'] },
+        { name: 'Wide', values: ['Aisle', 'Jungle', 'Canopy', 'Field'] },
+      ] },
+    { name: "Architecture", values: ["Terraces","Tunnel","Nave","Dome","Broken Glass"],
+      subtraits: [
+        { name: 'Intact', values: ['Terraces', 'Tunnel', 'Nave', 'Dome'] },
+        { name: 'Ruined', values: ['Broken Glass'] },
+      ] },
     { name: "Hall", values: ["Hall","Spire","Atrium"] },
     { name: "Flora", values: ["Vessels","Pods","Bulbs","Valves"] },
     { name: "Bloom", values: ["Globe","Trumpet","Star","Mixed"] },
-    { name: "Density", values: ["Lush","Sparse","Teeming","Open"] },
-    { name: "Event", values: ["Eclipse Bloom","Pollen Storm","Bloomfall","Glass Bloom"] },
+    { name: "Density", values: ["Lush","Sparse","Teeming","Open"],
+      subtraits: [
+        { name: 'Open', values: ['Sparse', 'Open'] },
+        { name: 'Full', values: ['Lush', 'Teeming'] },
+      ] },
+    { name: "Event", values: ["Eclipse Bloom","Pollen Storm","Bloomfall","Glass Bloom"],
+      subtraits: [
+        { name: 'Bloom', values: ['Eclipse Bloom', 'Bloomfall', 'Glass Bloom'] },
+        { name: 'Storm', values: ['Pollen Storm'] },
+      ] },
   ],
 };
 

@@ -192,8 +192,22 @@ export const renderBoreal: EngineFn = (canvas, tokenId, width) => {
 
 export const borealSchema: TraitSchema = {
     traits: [
-        { name: 'Palette', values: PALETTES.map((x) => x.name) },
-        { name: 'Veil', values: [...VEILS] },
-        { name: 'Activity', values: [...DENS] },
+        { name: 'Palette', values: PALETTES.map((x) => x.name),
+          subtraits: [
+            { name: 'Green', values: ['Classic', 'Emerald'] },
+            { name: 'Cool', values: ['Ultra', 'Ice'] },
+            { name: 'Warm', values: ['Solar', 'Rose'] },
+            { name: 'Full', values: ['Spectral'] },
+          ] },
+        { name: 'Veil', values: [...VEILS],
+          subtraits: [
+            { name: 'Banded', values: ['Arc', 'Curtain'] },
+            { name: 'Diffuse', values: ['Corona', 'Storm'] },
+          ] },
+        { name: 'Activity', values: [...DENS],
+          subtraits: [
+            { name: 'Calm', values: ['Quiet'] },
+            { name: 'Charged', values: ['Active', 'Substorm'] },
+          ] },
     ],
 };

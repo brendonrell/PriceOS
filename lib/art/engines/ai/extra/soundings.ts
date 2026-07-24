@@ -788,11 +788,28 @@ export const soundingsTraits: TraitsFn = (id) => labels(paramsOf(rng(id)));
 
 export const soundingsSchema: TraitSchema = {
   traits: [
-    { name: 'Palette', values: PALS.map((p) => p.name) },
-    { name: 'Format', values: ['Square', 'Portrait', 'Landscape'] },
-    { name: 'Layout', values: LAYOUTS.slice() },
+    { name: 'Palette', values: PALS.map((p) => p.name),
+      subtraits: [
+        { name: 'Scope Glow', values: ['Phosphor Green', 'Bright Cyan', 'Lime Scope', 'Ice Blue', 'Violet Sweep'] },
+        { name: 'Sodium Warm', values: ['Sodium Amber', 'Sodium on Navy', 'Red Alert', 'Magenta Lab', 'Amber Paper'] },
+        { name: 'Chart', values: ['Sea Chart'] },
+      ] },
+    { name: 'Format', values: ['Square', 'Portrait', 'Landscape'],
+      subtraits: [
+        { name: 'Upright', values: ['Square', 'Portrait'] },
+        { name: 'Broad', values: ['Landscape'] },
+      ] },
+    { name: 'Layout', values: LAYOUTS.slice(),
+      subtraits: [
+        { name: 'Instrument', values: ['Scope', 'Edge Arc', 'Waterfall', 'Twin Dials'] },
+        { name: 'Chart', values: ['Bathymetric Chart', 'Deep Field'] },
+      ] },
     { name: 'Contacts', values: DENS.slice() },
-    { name: 'Depth', values: DEPTHS.slice() },
+    { name: 'Depth', values: DEPTHS.slice(),
+      subtraits: [
+        { name: 'Shallow', values: ['Shelf', 'Slope'] },
+        { name: 'Deep', values: ['Trench'] },
+      ] },
   ],
 };
 

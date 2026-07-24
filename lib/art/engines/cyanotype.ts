@@ -734,6 +734,10 @@ export const cyanotypeSchema: TraitSchema = {
         "Prussian",
         "Cyan Bath",
         "Violet Salt"
+      ],
+      "subtraits": [
+        { "name": "Pale", "values": ["Sun Bleach", "Steelplate", "Delft", "Cyan Bath"] },
+        { "name": "Deep", "values": ["Indigo Veil", "Midnight", "Prussian", "Violet Salt"] },
       ]
     },
     {
@@ -748,6 +752,11 @@ export const cyanotypeSchema: TraitSchema = {
         "Lattice",
         "Frond",
         "Mirror"
+      ],
+      "subtraits": [
+        { "name": "Specimen", "values": ["Specimen", "Frond", "Mirror"] },
+        { "name": "Massed", "values": ["Swarm", "Constellation", "Cascade"] },
+        { "name": "Structured", "values": ["Lace", "Lattice", "Strata"] },
       ]
     },
     {
@@ -756,6 +765,10 @@ export const cyanotypeSchema: TraitSchema = {
         "Portrait",
         "Landscape",
         "Square"
+      ],
+      "subtraits": [
+        { "name": "Upright", "values": ["Portrait", "Square"] },
+        { "name": "Broad", "values": ["Landscape"] },
       ]
     },
     {
@@ -785,6 +798,11 @@ export const cyanotypeSchema: TraitSchema = {
         "S",
         "E",
         "NE"
+      ],
+      "subtraits": [
+        { "name": "North", "values": ["N", "NE", "NW"] },
+        { "name": "South", "values": ["S", "SE", "SW"] },
+        { "name": "East–West", "values": ["E", "W"] },
       ]
     },
     {

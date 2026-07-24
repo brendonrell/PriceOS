@@ -850,9 +850,26 @@ export const renderQuicksilver: EngineFn = (canvas, tokenId, width) => {
 export const quicksilverSchema: TraitSchema = {
   traits: [
     { name: 'Scale', values: ['Massive', 'Medium', 'Fine'] },
-    { name: 'Mode', values: ['Crown', 'Colony', 'Reef', 'Flow', 'Macro', 'Storm', 'Curtain', 'Spray', 'Weave'] },
-    { name: 'Palette', values: PALS.map((p) => p.name) },
-    { name: 'Format', values: ['Square', 'Landscape', 'Portrait'] },
-    { name: 'Finish', values: ['High Polish', 'Brushed', 'Wet'] },
+    { name: 'Mode', values: ['Crown', 'Colony', 'Reef', 'Flow', 'Macro', 'Storm', 'Curtain', 'Spray', 'Weave'],
+      subtraits: [
+        { name: 'Massed', values: ['Crown', 'Colony', 'Reef', 'Weave'] },
+        { name: 'Moving', values: ['Flow', 'Storm', 'Spray'] },
+        { name: 'Sheeted', values: ['Curtain', 'Macro'] },
+      ] },
+    { name: 'Palette', values: PALS.map((p) => p.name),
+      subtraits: [
+        { name: 'Metal', values: ['Aurum', 'Mercury', 'Obsidian', 'Oilslick'] },
+        { name: 'Colour', values: ['Plasma', 'Lagoon', 'Coral', 'Acid', 'Cobalt'] },
+      ] },
+    { name: 'Format', values: ['Square', 'Landscape', 'Portrait'],
+      subtraits: [
+        { name: 'Upright', values: ['Square', 'Portrait'] },
+        { name: 'Broad', values: ['Landscape'] },
+      ] },
+    { name: 'Finish', values: ['High Polish', 'Brushed', 'Wet'],
+      subtraits: [
+        { name: 'Reflective', values: ['High Polish', 'Wet'] },
+        { name: 'Matte', values: ['Brushed'] },
+      ] },
   ],
 };

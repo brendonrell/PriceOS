@@ -90,9 +90,22 @@ function castAscii(seed){
 /* Teletext */
 export const asciiTraits: TraitsFn = (id) => { const c = castAscii(id) as any; return { Format: c.fmtT, Field: cap(c.field), Palette: c.palName, Density: c.density }; };
 export const asciiSchema: TraitSchema = { traits: [
-  { name: 'Format', values: ['Square','Portrait','Landscape','Tall','Wide'] },
-  { name: 'Field', values: ['Rings','Sine','Interfere','Spiral','Blobs','Ripple'] },
-  { name: 'Palette', values: ['Paper','Noir','Amber','Phosphor','Night','Violet','Slate','Inkpaper'] },
+  { name: 'Format', values: ['Square','Portrait','Landscape','Tall','Wide'],
+    subtraits: [
+      { name: 'Upright', values: ['Square', 'Portrait', 'Tall'] },
+      { name: 'Broad', values: ['Landscape', 'Wide'] },
+    ] },
+  { name: 'Field', values: ['Rings','Sine','Interfere','Spiral','Blobs','Ripple'],
+    subtraits: [
+      { name: 'Radial', values: ['Rings', 'Spiral', 'Ripple'] },
+      { name: 'Linear', values: ['Sine', 'Interfere'] },
+      { name: 'Organic', values: ['Blobs'] },
+    ] },
+  { name: 'Palette', values: ['Paper','Noir','Amber','Phosphor','Night','Violet','Slate','Inkpaper'],
+    subtraits: [
+      { name: 'Broadcast', values: ['Amber', 'Phosphor', 'Night', 'Violet'] },
+      { name: 'Print', values: ['Paper', 'Noir', 'Slate', 'Inkpaper'] },
+    ] },
   { name: 'Density', values: ['Fine','Medium','Coarse'] },
 ] };
 export const renderAscii = blit(ascii, asciiTraits);

@@ -1412,13 +1412,37 @@ export const carnivaleTraits: TraitsFn = (id) => labels(paramsOf(rng(id)));
 
 export const carnivaleSchema: TraitSchema = {
   traits: [
-    { name: 'Time',       values: TIMES },
-    { name: 'Palette',    values: PALS.map((p) => p.name) },
-    { name: 'Camera',     values: LAYOUTS },
-    { name: 'Crowd',      values: CROWDS },
+    { name: 'Time', values: TIMES,
+      subtraits: [
+        { name: 'Early', values: ['Dusk Opening', 'Golden Hour'] },
+        { name: 'Late', values: ['Midnight Peak', 'Firework Finale', 'Lantern Release', 'Storm-broken'] },
+      ] },
+    { name: 'Palette', values: PALS.map((p) => p.name),
+      subtraits: [
+        { name: 'Warm', values: ['Festa Italiana', 'Diwali Gold', 'Carnaval Rio', 'Mardi Gras', 'Lunar Red', 'Bayou Lantern'] },
+        { name: 'Cool', values: ['Neon Fair', 'Hanabi', 'Midsummer', 'Aurora Fair'] },
+      ] },
+    { name: 'Camera', values: LAYOUTS,
+      subtraits: [
+        { name: 'Wheel', values: ['Wheel Left', 'Wheel Right', 'Wheel Centre Distant'] },
+        { name: 'Ground', values: ['Midway Row', 'Waterfront', 'Hilltop Overlook'] },
+      ] },
+    { name: 'Crowd', values: CROWDS,
+      subtraits: [
+        { name: 'Few', values: ['Intimate', 'Gathering'] },
+        { name: 'Many', values: ['Throng', 'Massive'] },
+      ] },
     { name: 'Foreground', values: FGROUNDS },
-    { name: 'Fireworks',  values: FWORKS },
-    { name: 'Format',     values: ['Square', 'Tall', 'Wide'] },
+    { name: 'Fireworks', values: FWORKS,
+      subtraits: [
+        { name: 'Quiet Sky', values: ['None', 'Early'] },
+        { name: 'Full Sky', values: ['Bursting', 'Finale Barrage'] },
+      ] },
+    { name: 'Format', values: ['Square', 'Tall', 'Wide'],
+      subtraits: [
+        { name: 'Upright', values: ['Square', 'Tall'] },
+        { name: 'Broad', values: ['Wide'] },
+      ] },
     { name: 'Frame',      values: FRAMES },
   ],
 };

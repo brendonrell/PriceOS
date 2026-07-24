@@ -215,10 +215,22 @@ function castChatroom(seed){
 export const chatroomTraits: TraitsFn = (id) => { const c = castChatroom(id) as any; return { Layout: cap(c.layout), Theme: c.theme, Accent: c.accent, Members: c.members, Notice: c.notice }; };
 export const chatroomSchema: TraitSchema = { traits: [
   { name: 'Layout', values: ['Thread','Hero','Lockscreen','Split','Presence','Panorama'] },
-  { name: 'Theme', values: ['Daylight','After Dark','Midnight','Mint','Paper','Noir','Bubblegum'] },
-  { name: 'Accent', values: ['Ultramarine','Hot Pink','Acid','Tangerine','Violet','Teal','Crimson','Gold'] },
+  { name: 'Theme', values: ['Daylight','After Dark','Midnight','Mint','Paper','Noir','Bubblegum'],
+    subtraits: [
+      { name: 'Light', values: ['Daylight', 'Mint', 'Paper', 'Bubblegum'] },
+      { name: 'Dark', values: ['After Dark', 'Midnight', 'Noir'] },
+    ] },
+  { name: 'Accent', values: ['Ultramarine','Hot Pink','Acid','Tangerine','Violet','Teal','Crimson','Gold'],
+    subtraits: [
+      { name: 'Warm', values: ['Hot Pink', 'Tangerine', 'Crimson', 'Gold'] },
+      { name: 'Cool', values: ['Ultramarine', 'Acid', 'Violet', 'Teal'] },
+    ] },
   { name: 'Members', values: ['Duo','Small','Crowd'] },
-  { name: 'Notice', values: ['None','Unread','Everyone Typing','Left On Read','Pinned'] },
+  { name: 'Notice', values: ['None','Unread','Everyone Typing','Left On Read','Pinned'],
+    subtraits: [
+      { name: 'Quiet', values: ['None', 'Pinned'] },
+      { name: 'Unanswered', values: ['Unread', 'Everyone Typing', 'Left On Read'] },
+    ] },
 ] };
 export const renderChatroom = blit(chatroom, chatroomTraits);
 export const CHATROOM_ASPECTS = [0.7, 1, 0.66, 1.51, 2.08] as const;

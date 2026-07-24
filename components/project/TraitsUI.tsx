@@ -276,12 +276,18 @@ export default function TraitsUI({
     );
     const L2_DICT_DYN = useMemo(() => {
         const m: Record<string, Record<string, readonly string[]>> = { ...L2_DICT };
+        /* A Project trait ALWAYS defines its own L2 — subtrait buckets when it
+           has them, empty (flat, no L2 row) when it doesn't. The `else` is
+           load-bearing: without it a flat trait whose name collides with one of
+           the fixed feed keys above (e.g. a project trait called "Event")
+           silently inherited the FEED's sub-buckets, so its pill drilled to
+           Mints / Lists / Xfers instead of the project's own values. */
         for (const t of projectTraits) {
-            if (t.subtraits && t.subtraits.length) {
-                m[t.name] = Object.fromEntries(
+            m[t.name] = t.subtraits && t.subtraits.length
+                ? Object.fromEntries(
                     t.subtraits.map((s) => [s.name, s.values] as [string, readonly string[]]),
-                );
-            }
+                )
+                : {};
         }
         m['Traits'] = Object.fromEntries(
             projectTraits

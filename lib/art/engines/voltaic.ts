@@ -891,6 +891,11 @@ export const voltaicSchema: TraitSchema = { traits: [
       "Holo Sweep",
       "Discharge",
       "Constellation"
+    ],
+    "subtraits": [
+      { "name": "Discharge", "values": ["Spark", "Discharge", "Holo Sweep"] },
+      { "name": "Mass", "values": ["Fluid Mass", "Nebula", "Plume"] },
+      { "name": "Shattered", "values": ["Prism Shards", "Constellation"] },
     ]
   },
   {
@@ -910,6 +915,11 @@ export const voltaicSchema: TraitSchema = { traits: [
       "PLASMA ORANGE",
       "FUCHSIA STORM",
       "SPECTRUM SURGE"
+    ],
+    "subtraits": [
+      { "name": "Hot", "values": ["MAGENTA ARC", "VOLTAGE YELLOW", "ACID SURGE", "NEON BLOOM", "VOLTAGE LIME", "PLASMA ORANGE", "FUCHSIA STORM"] },
+      { "name": "Cold", "values": ["SHOCK PULSE", "ION FIELD", "PLASMA VIOLET", "CYAN DISCHARGE", "ULTRAVIOLET STORM", "ELECTRO BLUE"] },
+      { "name": "Full", "values": ["SPECTRUM SURGE"] },
     ]
   },
   {
@@ -920,6 +930,10 @@ export const voltaicSchema: TraitSchema = { traits: [
       "Wide",
       "Square",
       "Tall"
+    ],
+    "subtraits": [
+      { "name": "Upright", "values": ["Column", "Square", "Tall"] },
+      { "name": "Broad", "values": ["Pano", "Wide"] },
     ]
   },
   {
@@ -943,6 +957,10 @@ export const voltaicSchema: TraitSchema = { traits: [
       "None",
       "Energy Burst",
       "Eclipse Core"
+    ],
+    "subtraits": [
+      { "name": "Plain", "values": ["None"] },
+      { "name": "Anomaly", "values": ["Energy Burst", "Eclipse Core"] },
     ]
   }
 ] };

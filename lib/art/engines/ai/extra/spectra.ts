@@ -567,9 +567,22 @@ export const spectraTraits: TraitsFn = (id) => labels(paramsOf(rng(id)));
 
 export const spectraSchema: TraitSchema = {
   traits: [
-    { name: 'Layout',  values: LAYOUTS },
-    { name: 'Palette', values: PALS.map((p) => p.name) },
-    { name: 'Format',  values: ['Square', 'Tall', 'Wide'] },
+    { name: 'Layout', values: LAYOUTS,
+      subtraits: [
+        { name: 'Beamed', values: ['Corner Prism', 'Edge Beam', 'Stack'] },
+        { name: 'Dispersed', values: ['Scatter', 'Spectral Field', 'Grid'] },
+      ] },
+    { name: 'Palette', values: PALS.map((p) => p.name),
+      subtraits: [
+        { name: 'Warm', values: ['Solar Flare', 'Magenta Bloom', 'Ruby Garnet', 'Gold Amber'] },
+        { name: 'Cool', values: ['Aqua Prism', 'Sapphire', 'Emerald Prism', 'Amethyst'] },
+        { name: 'Full Spectrum', values: ['Prismatic', 'Aurora'] },
+      ] },
+    { name: 'Format', values: ['Square', 'Tall', 'Wide'],
+      subtraits: [
+        { name: 'Upright', values: ['Square', 'Tall'] },
+        { name: 'Broad', values: ['Wide'] },
+      ] },
     { name: 'Scale',   values: SCALE },
     { name: 'Ground',  values: GROUNDF },
   ],

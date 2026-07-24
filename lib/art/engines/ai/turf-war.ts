@@ -76,8 +76,16 @@ export const turfWarTraits: TraitsFn = (id) => {
 };
 export const turfWarSchema: TraitSchema = {
   traits: [
-    { name: 'Factions', values: ['8', '9', '10', '11', '12', '13', '14', '15'] },
-    { name: 'Cycle', values: CYCLE },
+    { name: 'Factions', values: ['8', '9', '10', '11', '12', '13', '14', '15'],
+      subtraits: [
+        { name: 'Contested', values: ['8', '9', '10', '11'] },
+        { name: 'Crowded', values: ['12', '13', '14', '15'] },
+      ] },
+    { name: 'Cycle', values: CYCLE,
+      subtraits: [
+        { name: 'Warm', values: ['Pink Gold', 'Ember Teal', 'Violet Orange', 'Gold Crimson'] },
+        { name: 'Cool', values: ['Electric', 'Meadow'] },
+      ] },
   ],
 };
 export const renderTurfWar = blit(turfwar, turfWarTraits);

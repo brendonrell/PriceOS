@@ -556,11 +556,28 @@ export const shallowTraits: TraitsFn = (id) => labels(paramsOf(rng(id)));
 
 export const shallowSchema: TraitSchema = {
   traits: [
-    { name:'Palette',  values: PALS.map(p => p.name) },
-    { name:'Format',   values: ['Square','Portrait','Landscape'] },
-    { name:'Layout',   values: LAYOUTS.slice() },
+    { name: 'Palette', values: PALS.map(p => p.name),
+      subtraits: [
+        { name: 'Water', values: ['Chlorine Pop', 'Tropic Aqua', 'Emerald Jade', 'Deep Sapphire'] },
+        { name: 'Sun', values: ['High Noon', 'Sunlit Amber', 'Dawn Rose-Gold'] },
+        { name: 'After Dark', values: ['Dusk Violet', 'Night Swim', 'Storm Slate'] },
+      ] },
+    { name: 'Format', values: ['Square','Portrait','Landscape'],
+      subtraits: [
+        { name: 'Upright', values: ['Square', 'Portrait'] },
+        { name: 'Broad', values: ['Landscape'] },
+      ] },
+    { name: 'Layout', values: LAYOUTS.slice(),
+      subtraits: [
+        { name: 'Wide View', values: ['Overhead', 'Deep End', 'Lane'] },
+        { name: 'Close', values: ['Sunbeam', 'Macro', 'Steps'] },
+      ] },
     { name:'Caustics', values: DENS.slice() },
-    { name:'Surface',  values: SURFACES.slice() },
+    { name: 'Surface', values: SURFACES.slice(),
+      subtraits: [
+        { name: 'Calm', values: ['Still', 'Lapping'] },
+        { name: 'Broken', values: ['Choppy'] },
+      ] },
   ],
 };
 

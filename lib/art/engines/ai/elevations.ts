@@ -312,10 +312,22 @@ export const elevationsTraits: TraitsFn = (id) => {
 };
 export const elevationsSchema: TraitSchema = {
   traits: [
-    { name: 'Sheet', values: ['Ink', 'Blueprint', 'Daylight', 'Dusk', 'Nocturne'] },
+    { name: 'Sheet', values: ['Ink', 'Blueprint', 'Daylight', 'Dusk', 'Nocturne'],
+      subtraits: [
+        { name: 'Day', values: ['Blueprint', 'Daylight'] },
+        { name: 'Night', values: ['Ink', 'Dusk', 'Nocturne'] },
+      ] },
     { name: 'Storeys', values: ['Low', 'Mid', 'High'] },
-    { name: 'Window', values: ['Two-Pane', 'Arched', 'Four-Grid', 'Strip', 'Ribbon', 'Oriel'] },
-    { name: 'Roof', values: ['Water Tank', 'Antenna', 'Bulkhead', 'Parapet', 'Skylight'] },
+    { name: 'Window', values: ['Two-Pane', 'Arched', 'Four-Grid', 'Strip', 'Ribbon', 'Oriel'],
+      subtraits: [
+        { name: 'Rectilinear', values: ['Two-Pane', 'Four-Grid', 'Strip', 'Ribbon'] },
+        { name: 'Shaped', values: ['Arched', 'Oriel'] },
+      ] },
+    { name: 'Roof', values: ['Water Tank', 'Antenna', 'Bulkhead', 'Parapet', 'Skylight'],
+      subtraits: [
+        { name: 'Plant', values: ['Water Tank', 'Antenna', 'Bulkhead'] },
+        { name: 'Roofline', values: ['Parapet', 'Skylight'] },
+      ] },
   ],
 };
 export const renderElevations = blit(facade, elevationsTraits);

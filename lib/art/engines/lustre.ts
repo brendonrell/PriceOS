@@ -627,6 +627,11 @@ export const lustreSchema: TraitSchema = { traits: [
       "Shards",
       "Drape",
       "Pleat"
+    ],
+    "subtraits": [
+      { "name": "Folded", "values": ["Drape", "Pleat", "Crush"] },
+      { "name": "Broken", "values": ["Shards"] },
+      { "name": "Flowing", "values": ["Radial", "Pool"] },
     ]
   },
   {
@@ -642,6 +647,10 @@ export const lustreSchema: TraitSchema = { traits: [
       "Brass Patina",
       "Pewter Gold",
       "Magenta Bronze"
+    ],
+    "subtraits": [
+      { "name": "Gold", "values": ["Amber Chrome", "Champagne Foil", "Sunset Gold", "Molten Gold", "Pewter Gold"] },
+      { "name": "Copper", "values": ["Oxide Ember", "Liquid Copper", "Rose Bronze", "Brass Patina", "Magenta Bronze"] },
     ]
   },
   {
@@ -652,6 +661,10 @@ export const lustreSchema: TraitSchema = { traits: [
       "Tall",
       "Square",
       "Vista"
+    ],
+    "subtraits": [
+      { "name": "Upright", "values": ["Portrait", "Tall", "Square"] },
+      { "name": "Broad", "values": ["Wide", "Vista"] },
     ]
   },
   {
@@ -668,6 +681,10 @@ export const lustreSchema: TraitSchema = { traits: [
       "None",
       "Mirror Seam",
       "Spectrum Burst"
+    ],
+    "subtraits": [
+      { "name": "Plain", "values": ["None"] },
+      { "name": "Anomaly", "values": ["Mirror Seam", "Spectrum Burst"] },
     ]
   }
 ] };

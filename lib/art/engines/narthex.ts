@@ -836,6 +836,12 @@ export const narthexSchema: TraitSchema = {
         "Grail",
         "Aubergine Hero",
         "Sodium Ember"
+      ],
+      "subtraits": [
+        { "name": "Nocturne", "values": ["Ash Twilight", "Indigo Night", "Iris Nocturne"] },
+        { "name": "Aubergine", "values": ["Aubergine Sea", "Aubergine Hero"] },
+        { "name": "Ember", "values": ["Sodium Ember"] },
+        { "name": "Grail", "values": ["Grail"] },
       ]
     },
     {
@@ -847,6 +853,10 @@ export const narthexSchema: TraitSchema = {
         "Mirror Arch",
         "Night-in-Day",
         "Sea-in-Sand"
+      ],
+      "subtraits": [
+        { "name": "Arches", "values": ["Double Arch", "Ruined Arch", "Mirror Arch"] },
+        { "name": "Impossible", "values": ["Other Season", "Night-in-Day", "Sea-in-Sand"] },
       ]
     },
     {
@@ -856,6 +866,10 @@ export const narthexSchema: TraitSchema = {
         "Portrait",
         "Monumental",
         "Offset"
+      ],
+      "subtraits": [
+        { "name": "Framed", "values": ["Portrait", "Monumental"] },
+        { "name": "Placed", "values": ["Distant", "Offset"] },
       ]
     },
     {

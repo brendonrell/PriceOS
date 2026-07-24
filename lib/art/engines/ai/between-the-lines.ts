@@ -98,7 +98,11 @@ export const betweenTraits: TraitsFn = (id) => {
 };
 export const betweenSchema: TraitSchema = {
   traits: [
-    { name: 'Plates', values: ['Rings × Rings', 'Rings × Fan', 'Fan × Fan', 'Rings × Grid'] },
+    { name: 'Plates', values: ['Rings × Rings', 'Rings × Fan', 'Fan × Fan', 'Rings × Grid'],
+      subtraits: [
+        { name: 'Matched', values: ['Rings × Rings', 'Fan × Fan'] },
+        { name: 'Crossed', values: ['Rings × Fan', 'Rings × Grid'] },
+      ] },
     { name: 'Scheme', values: BTL_SCHEME },
   ],
 };

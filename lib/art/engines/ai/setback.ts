@@ -127,11 +127,28 @@ function castSetback(seed){const r=rng(seed);const palI=Math.floor(r()*SB_PALS.l
 /* Setback — axonometric brutalist massing */
 export const setbackTraits: TraitsFn = (id) => { const c = castSetback(id) as any; return { Palette: c.palette, Format: c.format, Massing: c.massing, Light: c.light, Aperture: c.aperture }; };
 export const setbackSchema: TraitSchema = { traits: [
-  { name: 'Palette', values: ['Raw Concrete','Travertine','Oxidized','Dusk','Blueprint','Ash Rose','Graphite','Béton Brut','Patina Bronze','Nocturne'] },
-  { name: 'Format', values: ['Portrait','Square','Landscape'] },
-  { name: 'Massing', values: ['Monolith','Twin','Skyline'] },
+  { name: 'Palette', values: ['Raw Concrete','Travertine','Oxidized','Dusk','Blueprint','Ash Rose','Graphite','Béton Brut','Patina Bronze','Nocturne'],
+    subtraits: [
+      { name: 'Stone', values: ['Raw Concrete', 'Travertine', 'Béton Brut', 'Graphite'] },
+      { name: 'Weathered', values: ['Oxidized', 'Patina Bronze', 'Ash Rose'] },
+      { name: 'Nocturne', values: ['Dusk', 'Blueprint', 'Nocturne'] },
+    ] },
+  { name: 'Format', values: ['Portrait','Square','Landscape'],
+    subtraits: [
+      { name: 'Upright', values: ['Portrait', 'Square'] },
+      { name: 'Broad', values: ['Landscape'] },
+    ] },
+  { name: 'Massing', values: ['Monolith','Twin','Skyline'],
+    subtraits: [
+      { name: 'Singular', values: ['Monolith', 'Twin'] },
+      { name: 'Multiple', values: ['Skyline'] },
+    ] },
   { name: 'Light', values: ['West','East'] },
-  { name: 'Aperture', values: ['Blank','Slits','Grid','Punched'] },
+  { name: 'Aperture', values: ['Blank','Slits','Grid','Punched'],
+    subtraits: [
+      { name: 'Solid', values: ['Blank'] },
+      { name: 'Perforated', values: ['Slits', 'Grid', 'Punched'] },
+    ] },
 ] };
 export const renderSetback = blit(setback, setbackTraits);
 export const SETBACK_ASPECTS = [0.82, 1, 1.27] as const;

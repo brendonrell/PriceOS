@@ -163,8 +163,16 @@ function castDiscord(seed){
 /* Riding The Oil (Discord) */
 export const discordTraits: TraitsFn = (id) => { const c = castDiscord(id) as any; return { Layout: cap(c.comp), Theme: c.theme, Density: c.dens === 1 ? 'Quiet' : c.dens === 2 ? 'Busy' : 'Packed' }; };
 export const discordSchema: TraitSchema = { traits: [
-  { name: 'Layout', values: ['Sales','Channel','Members','Emoji','Servers'] },
-  { name: 'Theme', values: ['Blurple','Midnight','Light','Crude','Mint','Rose'] },
+  { name: 'Layout', values: ['Sales','Channel','Members','Emoji','Servers'],
+    subtraits: [
+      { name: 'Rooms', values: ['Channel', 'Members', 'Servers'] },
+      { name: 'Feed', values: ['Sales', 'Emoji'] },
+    ] },
+  { name: 'Theme', values: ['Blurple','Midnight','Light','Crude','Mint','Rose'],
+    subtraits: [
+      { name: 'Dark', values: ['Blurple', 'Midnight', 'Crude'] },
+      { name: 'Light', values: ['Light', 'Mint', 'Rose'] },
+    ] },
   { name: 'Density', values: ['Quiet','Busy','Packed'] },
 ] };
 export const renderDiscord = blit(discord, discordTraits);

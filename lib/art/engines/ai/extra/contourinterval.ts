@@ -669,10 +669,27 @@ export const contourTraits: TraitsFn = (id) => labels(paramsOf(rng(id)));
 
 export const contourSchema: TraitSchema = {
   traits: [
-    { name: 'Layout',   values: LAYOUTS },
-    { name: 'Palette',  values: PALS.map((p) => p.name) },
-    { name: 'Format',   values: ['Square', 'Portrait', 'Landscape'] },
-    { name: 'Relief',   values: RELIEFS },
+    { name: 'Layout', values: LAYOUTS,
+      subtraits: [
+        { name: 'Whole Sheet', values: ['Survey Plate', 'Full Bleed', 'Twin Massif'] },
+        { name: 'Cropped', values: ['Coastal Crop', 'Plan + Section', 'Detail Inset'] },
+      ] },
+    { name: 'Palette', values: PALS.map((p) => p.name),
+      subtraits: [
+        { name: 'Survey', values: ['USGS Land', 'Sepia Survey', 'Blueprint Cyan', 'Blue Print', 'Alpine Snow'] },
+        { name: 'Terrain', values: ['Desert Relief', 'Bathymetric', 'Volcanic'] },
+        { name: 'Synthetic', values: ['Aurora', 'Neon Relief'] },
+      ] },
+    { name: 'Format', values: ['Square', 'Portrait', 'Landscape'],
+      subtraits: [
+        { name: 'Upright', values: ['Square', 'Portrait'] },
+        { name: 'Broad', values: ['Landscape'] },
+      ] },
+    { name: 'Relief', values: RELIEFS,
+      subtraits: [
+        { name: 'Low Ground', values: ['Basin', 'Rolling'] },
+        { name: 'High Ground', values: ['Massif', 'Caldera'] },
+      ] },
     { name: 'Interval', values: DENS },
   ],
 };
