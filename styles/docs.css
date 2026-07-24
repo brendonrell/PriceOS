@@ -708,8 +708,8 @@
     /* SEARCH stays in the desktop top bar (INDEX hides — the rail has it);
        the panel reuses the mobile drop-down chrome, narrowed to a column. */
     .pd-docs-index-btn.pd-docs-search-btn { display: inline-block; }
-/* Glyph-only search key (Brendon, 2026-07-20) — the ⌕ reads at 14px. */
-.pd-docs-search-btn { font-size: 14px; line-height: 1; }
+/* Glyph-only search key (Brendon, 2026-07-20) — the ⌕ reads at 18px. */
+.pd-docs-search-btn { font-size: 18px; line-height: 1; }
     .pd-docs-mobile-nav.pd-docs-search-panel {
         display: block;
         left: auto;
