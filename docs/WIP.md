@@ -8,7 +8,26 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-23/24 (LATEST) PROFILES 500 → FIXED, then $PRICE TAGS PROPERLY
+0. ✅ **2026-07-24 (LATEST) USER-NUMBER REALIGN — AI/placeholder accounts moved
+   to the 1000+ block, real humans now fill 1–999 first-come. SHIPPED on dev,
+   auto-deploy rolling, tree clean.** Opus, present→push. The problem: every
+   `user_number` 2–55 except #22 was a placeholder AI/model account (deleted
+   before launch), so the low numbers Brendon wants for real invitees were
+   occupied. Applied a tracked live-DB migration (`20260724_ai_artist_number_block.sql`):
+   ⓐ pushed all 53 non-reserved accounts to `user_number` 1000–1052 (order
+   preserved) — **#1 = Brendon, #22 = deployer** stay put;
+   ⓑ replaced the `assign_user_number` trigger — new signups now take the
+   SMALLEST free integer in [2,999] skipping reserved #22 (next real joiner = #2,
+   verified), leaving the 1000+ AI block alone;
+   ⓒ profile date long-press now renders **"PD User #N"** (was a bare, unexplained
+   "#N") — `components/profile/ProfilePageBody.tsx`.
+   **Note for future seeds:** any new AI artist MUST be inserted with an explicit
+   `user_number` ≥ 1000 or it grabs a human slot (seed scripts not yet updated —
+   do it when Brendon adds more artists). Task branch
+   `claude/ai-artist-user-ids-x94ojd` = trash (delete at
+   https://github.com/brendonrell/PriceOS/branches).
+
+0. ✅ **2026-07-23/24 PROFILES 500 → FIXED, then $PRICE TAGS PROPERLY
    RESTORED. Live on dev (tip `5623af5`), verified on the preview.** The $PRICE
    UTILITY batch below took EVERY profile down: it added `price_held` +
    `price_hold_rank` to the **public (anon) profile column read**
