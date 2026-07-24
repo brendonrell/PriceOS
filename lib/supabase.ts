@@ -755,7 +755,7 @@ const timeoutFetch: typeof fetch = (input, init) => {
  *  Public profile reads select THIS instead of '*', otherwise Postgres refuses
  *  the whole query (anon has no table-level SELECT, only these columns). */
 export const PUBLIC_USER_COLUMNS =
-  'address, ens_name, handle, price_sprite, price_sprite_resolved, account_level, price_rank, price_score, price_streak, streak_best, profile_hex, profile_logo, profile_sprite_hex, profile_tags, granted_tags, name_font, tag_paint, user_number, sticker_state, signature_hex, showcase, showcase_style, discord_id, discord_username, discord_avatar, discord_accent_color, discord_in_server, sigil_forged_at, sigil_hidden, created_at';
+  'address, ens_name, handle, price_sprite, price_sprite_resolved, account_level, price_rank, price_score, price_streak, streak_best, price_held, price_hold_rank, profile_hex, profile_logo, profile_sprite_hex, profile_tags, granted_tags, name_font, tag_paint, user_number, sticker_state, signature_hex, showcase, showcase_style, discord_id, discord_username, discord_avatar, discord_accent_color, discord_in_server, sigil_forged_at, sigil_hidden, created_at';
 
 /** Browser-side client (anon key, RLS-bound) — exists for Supabase Realtime
  *  subscriptions from client components. Singleton so the whole app shares ONE

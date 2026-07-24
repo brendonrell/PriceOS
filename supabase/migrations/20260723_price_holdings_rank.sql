@@ -25,3 +25,12 @@ alter table public.users add column if not exists price_hold_rank integer;
 create index if not exists users_price_hold_rank_idx
   on public.users (price_hold_rank)
   where price_hold_rank is not null;
+
+-- Column-level SELECT for the public roles. REQUIRED: the users table grants the
+-- anon/authenticated roles SELECT per-column (no table-wide SELECT), and the
+-- public profile read (PUBLIC_USER_COLUMNS) lists explicit columns — so a column
+-- WITHOUT this grant makes Postgres refuse the entire query ("permission denied
+-- for table users") and every profile page 500s. These two columns are public by
+-- design (Top Holders board + the "$PRICE Top N · #r" profile tag). Missing this
+-- on first apply is what took every profile down 2026-07-23.
+grant select (price_held, price_hold_rank) on public.users to anon, authenticated;
