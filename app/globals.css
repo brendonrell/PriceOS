@@ -6484,6 +6484,78 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 .album-sheet-in { font-weight: 900; margin-right: 6px; flex-shrink: 0; }
 .album-sheet-item.is-in { background: color-mix(in srgb, currentColor 10%, transparent); }
 
+/* ── ADD TO LIST sheet (Brendon, 2026-07-24) ───────────────────────────────
+   Same bottom-sheet anatomy as the Album picker above — Wishlist pinned as the
+   first row, then the user's own named lists, then New List. ── */
+.list-sheet-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: 38vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    margin: 0 -8px;
+    padding: 0 8px;
+}
+.list-sheet-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 34px;
+    padding: 0 8px;
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    border-radius: 4px;
+    color: inherit;
+    font: inherit;
+    font-weight: bold;
+    text-align: left;
+    cursor: pointer;
+}
+.list-sheet-item:active { background: color-mix(in srgb, var(--bg-color) 15%, transparent); }
+@media (hover: hover) {
+    .list-sheet-item:hover { background: color-mix(in srgb, var(--bg-color) 10%, transparent); }
+}
+.list-sheet-name { display: inline-flex; align-items: center; min-width: 0; }
+.list-sheet-in { font-weight: 900; margin-right: 6px; flex-shrink: 0; }
+.list-sheet-count { opacity: 0.6; flex-shrink: 0; }
+.list-sheet-item.is-in { background: color-mix(in srgb, currentColor 10%, transparent); }
+/* Wishlist is the permanent top option — a divider under it separates the
+   fixed choice from the user's own lists. */
+.list-sheet-item.is-wishlist {
+    border-bottom: 1px solid color-mix(in srgb, var(--text-color) 20%, transparent);
+    border-radius: 4px 4px 0 0;
+    margin-bottom: 4px;
+}
+.list-sheet-newbtn { border-top: 1px solid color-mix(in srgb, var(--text-color) 20%, transparent); margin-top: 4px; }
+.list-sheet-new { display: flex; align-items: center; gap: 8px; padding: 6px 8px; }
+.list-sheet-new .value-prompt-input { flex: 1 1 auto; min-width: 0; margin: 0; }
+
+/* ── MY LISTS panel, on Starred (Brendon, 2026-07-24) ──────────────────────
+   Alphabetical, each list COLLAPSIBLE, and the rows inside are SHORTER than a
+   Starred row: a 40px thumb (vs 64) and tighter padding, so a list scans as a
+   list rather than a second gallery. ── */
+.lists-panel { display: flex; flex-direction: column; gap: 2px; }
+.lists-section { display: flex; flex-direction: column; }
+.lists-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 0;
+    font-weight: bold;
+    cursor: pointer;
+    border-bottom: 1px solid color-mix(in srgb, var(--text-color) 15%, transparent);
+}
+.lists-head-caret { flex: 0 0 auto; font-family: 'Courier New', Courier, monospace; }
+.lists-head-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lists-head-count { flex: 0 0 auto; opacity: 0.6; }
+.lists-rows { display: flex; flex-direction: column; padding: 2px 0 6px; }
+/* The SHORT row — same starred-row anatomy, tightened. */
+.starred-row.lists-row { padding: 5px 0; gap: 10px; }
+.lists-empty { font-size: 12px; opacity: 0.7; padding: 8px 0; font-weight: bold; }
+
 /* ── Add-to-Showcase picker grid (Brendon 2026-06-15) ──────────────────── */
 .showcase-pick-sheet { width: min(460px, 92vw); }
 .showcase-pick-grid {

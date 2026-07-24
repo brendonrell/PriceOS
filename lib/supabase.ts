@@ -64,6 +64,12 @@ export interface UserSettings {
   /** Albums — named, ordered collections of Outputs (keys `${slug}:${id}`).
    *  Same envelope + privacy as `starred` until album sharing ships. */
   albums?: AlbumRecord[];
+  /** LISTS — the user's own NAMED groupings of saved Outputs, keys
+   *  `${slug}:${id}` (Brendon, 2026-07-24). Built on Starred: Starred is the
+   *  flat bookmark bucket, a List is a named slice of it. PRIVATE, same
+   *  envelope as `starred` — and unlike Albums (numbered, never named), the
+   *  user names these themselves. */
+  lists?: ListRecord[];
   /** Recently-viewed Outputs trail — most-recent-first visits. Each visit is
    *  `{ k: "${slug}:${id}", t: epochMs }` (t drives History's day grouping);
    *  legacy rows may hold bare `${slug}:${id}` strings. PRIVATE (owner-only),
@@ -252,6 +258,18 @@ export interface AlbumRecord {
   created_at: number;
   /** Chosen cover key (must be a member); absent = mosaic of the first four. */
   cover?: string;
+}
+
+/** A LIST — the user's own NAMED grouping of saved Outputs (Brendon,
+ *  2026-07-24). Built on Starred. Unlike an Album (numbered by position,
+ *  never named), a List carries a name the user typed. PRIVATE. */
+export interface ListRecord {
+  id: string;
+  /** The name the user typed. Always non-empty — display reads this. */
+  name: string;
+  /** Member Outputs, keyed `${slug}:${id}`, insertion-ordered. */
+  keys: string[];
+  created_at: number;
 }
 
 /** Showcase: exactly 6 ordered slots. Slot payload shape is owned by the

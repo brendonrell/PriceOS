@@ -93,6 +93,9 @@ export const STATE_CACHE_KEYS = {
     /** Albums (named lists of `${slug}:${id}` keys). Read + written by
      *  albumStore; lives inside the settings envelope server-side. */
     albums: 'pd_albums',
+    /** LISTS — the user's NAMED groupings of saved Outputs (Brendon,
+     *  2026-07-24). Built on Starred; PRIVATE, settings envelope. */
+    lists: 'pd_lists',
     /** Recently-viewed Outputs trail (`${slug}:${id}` keys, most-recent-first).
      *  Read + written by breadcrumbStore; lives in the settings envelope. */
     breadcrumbs: 'pd_breadcrumbs',

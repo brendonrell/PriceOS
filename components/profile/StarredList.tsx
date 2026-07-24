@@ -36,6 +36,7 @@ import { traitMarketStat, projectMarketStat, artistColor, artistFloorEth, artist
 import { toggleStar, isStarred, subscribeStarred } from '../../lib/pins/starStore';
 import { removeMyHistory, PROJECT_VIEW_ID } from '../../lib/output/views';
 import { isWishlisted, toggleWishlist, subscribeWishlist } from '../../lib/pins/wishlistStore';
+import AddToListCard from '../lists/AddToListCard';
 import { toggleTraitStar, type TraitStar } from '../../lib/pins/traitStarStore';
 import { removeArtistStar } from '../../lib/pins/artistStarStore';
 import { toggleSoundtrackStar, type SoundtrackStar } from '../../lib/pins/soundtrackStarStore';
@@ -671,10 +672,14 @@ export default function StarredList({
         });
     };
 
-    const handleWishlist = (e: React.MouseEvent, slug: string, id: number) => {
+    /* ADD TO LIST (Brendon, 2026-07-24) — the row CTA used to toggle the
+       wishlist outright; it now opens the picker, where Wishlist is still the
+       always-there top option. Wishlisting is unchanged, just one tap deeper,
+       and the same tap can drop the piece into any named list instead. */
+    const [listTarget, setListTarget] = useState<{ slug: string; id: number } | null>(null);
+    const openAddToList = (e: React.MouseEvent, slug: string, id: number) => {
         e.stopPropagation();
-        const r = toggleWishlist(slug, id);
-        showToast(r === 'added' ? 'Added to your Wishlist (Private)' : 'Removed from your Wishlist');
+        setListTarget({ slug, id });
     };
 
     const handleTraitUnstar = (e: React.MouseEvent, t: TraitStar) => {
@@ -795,7 +800,7 @@ export default function StarredList({
                                                 selected={selected.has(`${r.slug}:${r.id}`)}
                                                 onToggleSel={() => toggleSel(`${r.slug}:${r.id}`)}
                                                 onOpen={() => open('output', r.id, r.slug)}
-                                                onWishlist={(e) => handleWishlist(e, r.slug, r.id)}
+                                                onWishlist={(e) => openAddToList(e, r.slug, r.id)}
                                                 onOffer={() => openOfferSheet([{ slug: r.slug, id: r.id }])}
                                                 onUnstar={(e) => handleUnstar(e, r.slug, r.id)}
                                                 grailPinned={grailKeys.has(grailKey({ kind: 'output', slug: r.slug, id: r.id }))}
@@ -834,7 +839,7 @@ export default function StarredList({
                                                 selected={selected.has(`${r.slug}:${r.id}`)}
                                                 onToggleSel={() => toggleSel(`${r.slug}:${r.id}`)}
                                                 onOpen={() => open('output', r.id, r.slug)}
-                                                onWishlist={(e) => handleWishlist(e, r.slug, r.id)}
+                                                onWishlist={(e) => openAddToList(e, r.slug, r.id)}
                                                 onOffer={() => openOfferSheet([{ slug: r.slug, id: r.id }])}
                                                 onUnstar={(e) => handleUnstar(e, r.slug, r.id)}
                                                 grailPinned={grailKeys.has(grailKey({ kind: 'output', slug: r.slug, id: r.id }))}
@@ -1181,6 +1186,23 @@ export default function StarredList({
                     </div>
                 </div>
             )}
+
+            {/* ADD TO LIST — Wishlist on top, then the user's own lists, then
+                New List. Opens from the row CTA, closes on × / backdrop. */}
+            {listTarget && (
+                <AddToListCard
+                    items={[listTarget]}
+                    wishlisted={isWishlisted(listTarget.slug, listTarget.id)}
+                    onWishlist={() => {
+                        const r = toggleWishlist(listTarget.slug, listTarget.id);
+                        return r === 'added'
+                            ? 'Wishlist: ADDED'
+                            : 'Wishlist: REMOVED';
+                    }}
+                    onDone={(msg) => { setListTarget(null); showToast(msg); }}
+                    onClose={() => setListTarget(null)}
+                />
+            )}
         </section>
     );
 }
@@ -1354,12 +1376,13 @@ function StarredOutputRow({
                         className={`starred-row-cta${wished ? ' is-on' : ''}`}
                         role="button"
                         tabIndex={0}
-                        title={wished ? 'On your wishlist' : 'Add to wishlist'}
-                        aria-label={wished ? 'On your wishlist' : 'Add to wishlist'}
+                        title="Add to List"
+                        aria-label="Add to List"
                         onClick={onWishlist}
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onWishlist(e as unknown as React.MouseEvent); } }}
                     >
-                        {wished ? '✛︎ Wishlisted' : '✛︎ Wishlist'}
+                        {/* Text only — no glyph (Brendon, 2026-07-24). */}
+                        Add to List
                     </span>
                 )}
                 <span

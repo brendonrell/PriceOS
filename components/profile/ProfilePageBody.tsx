@@ -107,6 +107,7 @@ import JoinDayPopover from './JoinDayPopover';
 import { useProfileEggs } from './useProfileEggs';
 import { useStarredPins } from './useStarredPins';
 import { useMoreControls, MORE_CFG, MORE_SORT_LABEL, MORE_GROUP_GLYPH, type MoreMode } from './useMoreControls';
+import ListsPanel from '../lists/ListsPanel';
 import { GroupBtn } from '../project/traitsUIPills';
 import { useGalleryCols, colsWidth } from '../../lib/hooks/useGalleryCols';
 import { usePriceDayPopover } from '../../lib/hooks/usePriceDayPopover';
@@ -726,6 +727,15 @@ function ProfilePageBodyInner({
         return subscribeBreadcrumbs(() => setRecording(isRecordingEnabled()));
     }, []);
     const [recordingConfirm, setRecordingConfirm] = useState(false);
+
+    /* MY LISTS (Brendon, 2026-07-24) — the user's own NAMED groupings of saved
+       Outputs, living on Starred. The control sits in Starred's sort row beside
+       the ◷ Recent button; tapping it opens a row of the user's list pills, and
+       picking one narrows the Starred Outputs to that list's members.
+       The door: the MY LISTS button toggles the row open AND shut, and closing
+       it clears the active list — default OFF, nothing auto-opens. */
+    const [myListsOpen, setMyListsOpen] = useState(false);
+    const toggleMyLists = () => setMyListsOpen((v) => !v);
 
     const {
         moreSearchOpen, moreQuery, setMoreQuery, toggleMoreSearch, closeMoreSearch,
@@ -1694,11 +1704,26 @@ function ProfilePageBodyInner({
                                                 </span>
                                             );
                                         })}
+                                        {/* MY LISTS — beside the ◷ Recent sort
+                                            (Brendon, 2026-07-24). Own Starred
+                                            tab only; it's your private shelf. */}
+                                        {onStarredTab && isOwnProfile && (
+                                            <span
+                                                className={`sort-btn${myListsOpen ? ' active' : ''}`}
+                                                role="button"
+                                                tabIndex={0}
+                                                title="My Lists"
+                                                onClick={toggleMyLists}
+                                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMyLists(); } }}
+                                            >
+                                                <span className="sort-lbl">MY LISTS</span>
+                                            </span>
+                                        )}
                                     </div>
                                 ) : undefined
                             }
                             profileValueRow={
-                                onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.length > 0 || artistStars.length > 0 || soundtrackStars.length > 0 || projectStarsValid.length > 0 || txStars.length > 0) ? (
+onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.length > 0 || artistStars.length > 0 || soundtrackStars.length > 0 || projectStarsValid.length > 0 || txStars.length > 0) ? (
                                     <div className="stats-container collected-values" style={{ display: 'flex' }}>
                                         {([
                                             { key: 'all',         label: 'All Starred', count: starredValid.length + traitStarsValid.length + starredArtistHandles.length + starredCollectorHandles.length + soundtrackStars.length + projectStarsValid.length + txStars.length },
@@ -2179,7 +2204,12 @@ function ProfilePageBodyInner({
             {(onStarredTab || onWishlistTab) && isOwnProfile && (
                 <>
                     <div style={{ display: onStarredTab ? undefined : 'none' }}>
-                        {(starredValid.length > 0 || traitStarsValid.length > 0 || artistStars.length > 0 || soundtrackStars.length > 0 || projectStarsValid.length > 0 || txStars.length > 0) ? (
+                        {/* MY LISTS takes over the surface while it's open —
+                            the same Starred shelf, read by list instead of flat.
+                            The sort-row button is the way in AND out. */}
+                        {myListsOpen ? (
+                            <ListsPanel onToast={showToast} />
+                        ) : (starredValid.length > 0 || traitStarsValid.length > 0 || artistStars.length > 0 || soundtrackStars.length > 0 || projectStarsValid.length > 0 || txStars.length > 0) ? (
                             <StarredList
                                 items={starredValid}
                                 traits={traitStarsValid}
