@@ -8,7 +8,84 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-24 (LATEST) USER-NUMBER REALIGN — AI/placeholder accounts moved
+0. ⚙ **2026-07-24 (LATEST) FULL-APP SECURITY REVIEW #2 — 2 fixed & SHIPPED on
+   dev (tip `b23af15`), 7 QUEUED. Full report: `docs/security-review-2026-07-24.md`
+   (read it — every finding has file:line, exploit path and fix).**
+   Whole-repo review across all 4 repos, adversarial verification on every
+   candidate. Result: 1 CRITICAL, 4 HIGH, 7 MEDIUM.
+
+   **⛔ SCOPE RULING (Brendon, 2026-07-24 — a session misjudged this and burned
+   his time; do NOT repeat):** everything in the DB gets **WIPED for mainnet
+   except @names and PriceSprites**. Sim ETH is **testing scaffolding, not a
+   product** — "only if it's a real exploit do I care." So findings that only
+   corrupt throwaway data are **NOT findings**. Two were dropped outright on
+   this basis: the sim-rail free-buy / sim-ETH minting (`app_buy`,
+   `app_execute_trade`, `app_sticker_buy` fail open when the payer has no
+   users row) and the backdated PriceStreak walk. **Do not re-raise either.**
+   What still matters is code that survives the wipe to mainnet.
+
+   **SHIPPED ①: dev-login door REMOVED** (`ac3792f`). `/api/auth/dev-login`
+   minted a full 14-day owner session for `0x65c3…9395` with no signature,
+   nonce or secret — gated only by `DEV_LOGIN_ENABLED`, which **was set on the
+   public Worker**. Verified live: a bare POST returned 200 + a valid session
+   cookie, and the "Login Brendon" button shipped to every anonymous visitor.
+   That was full owner takeover against the production DB (incl. platform-wide
+   `global` calendar authorship, which keys off handle `brendon`). Route,
+   button and styles all deleted; wallet sign-in (injected · Coinbase ·
+   WalletConnect scan-QR for desktop) is the only door now. **Brendon should
+   still delete the `DEV_LOGIN_ENABLED` variable from the Worker** — belt and
+   braces, and it costs nothing.
+
+   **SHIPPED ②: stored XSS on every Artwork page CLOSED** (`b23af15`). The
+   JSON-LD block used `JSON.stringify` straight into `dangerouslySetInnerHTML`;
+   that escapes `"` and `\` but **not `<`/`>`**, and the tokenizer ends a
+   `<script>` on the literal bytes `</script` anywhere inside. The DB-sourced
+   `scene` field reached it — writable by ANY signed-in wallet via
+   `/api/outputs/color` with only a 140-char length check, and permanent once
+   written (first-viewer-wins). No CSP backstop (`script-src` is report-only
+   AND allows `unsafe-inline`). New `lib/jsonLd.ts` `jsonLdScript()` escapes
+   `< > &` + U+2028/2029 as JSON `\uXXXX` (parses back identically); applied to
+   the artwork page (was exploitable) and the project page (same pattern).
+   Proof: unit-checked the payload can't close the tag and round-trips, real
+   build green, compiled server output confirms both sinks call the helper.
+
+   **⛔ QUEUED — 7 REAL findings, none urgent TODAY (they corrupt data that
+   gets wiped), ALL must land before their gate:**
+   - **Before mainnet (4):** ⓐ artwork preview + ASCII writers are
+     unauthenticated and write-once, so anyone permanently owns a piece's
+     displayed image (~90% of keys unclaimed; reaches cards, the artwork modal
+     and social unfurls; recoverable only by R2 delete + edge purge). Harmless
+     on test art — **HIGH the day real art is minted.** ⓑ `confirm_offer_fill`
+     verifies nothing and doesn't even bind the offer's token, so any holder of
+     any token in a project can kill any open offer in it. ⓒ Seaport
+     `order_hash` is stored verbatim from the client, so the fill proof is
+     replayable — fabricated trade settlements flip `holders` permanently.
+     ⓓ `/api/stone/wrapped` has no auth (verified live, 200 for any address).
+   - **Before the contracts deploy (immutable after) — 3 on `PDStickers`:**
+     FIXED-sheet peel mints with zero supply accounting (restock or mode-flip
+     blows a capped rare wide open); `purchaseSheet` has no quantity bound (a
+     zero-price sheet overflows `sold` and bricks itself permanently); the pack
+     draw is decided in its own tx, so an atomic bundle gives free re-rolls
+     (`tx.origin` does NOT close this — fix the code or fix the audit claim).
+   - **Before the indexer cutover (2):** the sale handler never checks the
+     emitting contract (forged `OrderFulfilled` → fake prices/ATH/pings), and
+     `holders` has no monotonicity guard or repair path.
+   - **Low/hardening:** unsubscribe override, gnome wake threshold has no
+     secret salt, and one durable line worth applying —
+     `ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;`
+     (five definer functions have shipped default-open and been caught only by
+     audit, twice).
+   **Verified CLEAN:** `$PRICE` deployed bytecode matches source byte-for-byte
+   (no mint/owner/pause/upgrade, supply fixed); the contested-mint window's
+   fail-open property holds; SIWE/sessions/Discord; all 10 cron routes; the
+   Alchemy webhook HMAC; all 13 SECURITY DEFINER grants; no secret in the
+   client bundle. All four 2026-07-22 fixes held.
+   **PROCESS NOTE:** run the security skill **through the Workflow tool** —
+   Brendon watches the named workflow card with its phases in Background
+   Tasks. This session ran the cells as loose agents; same method, but he saw
+   plain tool calls and had to ask whether the skill ran at all.
+
+0. ✅ **2026-07-24 USER-NUMBER REALIGN — AI/placeholder accounts moved
    to the 1000+ block, real humans now fill 1–999 first-come. SHIPPED on dev,
    auto-deploy rolling, tree clean.** Opus, present→push. The problem: every
    `user_number` 2–55 except #22 was a placeholder AI/model account (deleted
