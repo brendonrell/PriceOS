@@ -545,27 +545,16 @@ sky at mint) + the proven lunarGlyph discs.
 
 | Use | Glyph | Codepoint |
 |---|---|---|
-| Podcaster tag · WTBS tag | ☊ | U+260A ASCENDING NODE |
-| Degen tag | ⚔ | U+2694 CROSSED SWORDS |
-| Writer tag | ✎ | U+270E LOWER RIGHT PENCIL |
-| Curator tag | ⑆ | U+2446 (the Showcase mark, §3 — reused) |
-| Trader tag | ⇋ | U+21CB LEFTWARDS OVER RIGHTWARDS HARPOON |
-| Media tag | ⧈ | U+29C8 SQUARED SQUARE |
-| Critic tag | ⍨ | U+2368 APL TILDE DIAERESIS |
-| Analyst tag | ⊿ | U+22BF RIGHT TRIANGLE |
-| Patron tag | ⌑ | U+2311 SQUARE LOZENGE |
-| Historian tag | ⋕ | U+22D5 EQUAL AND PARALLEL |
-| Builder tag | ⍚ | U+235A APL COMMENT |
+| WTBS tag | ☊ | U+260A ASCENDING NODE |
 
-> ☊ (mic-on-stem / headphones read) replaced ⚲ for Podcaster + WTBS
-> (Brendon, 2026-07-24) — still ONE mark for BOTH tags. Writer moved off the
-> Note glyph ⊟ to the pencil ✎ (U+270E — text-default; NOT the emoji ✏
-> U+270F; also the Portfolio edit-budget pencil, a shared functional reuse).
-> ⚔ is the Degen workspace's own mark. The eight persona glyphs above are
-> Brendon's picks 2026-07-24 from a screened options round (each collision-
-> checked against this file AND the whole codebase). Curator deliberately
-> reuses the Showcase ⑆. Still glyphless (colour + label) until Brendon
-> picks: Host · Ambassador · Shitposter · Lurker.
+> **⛔ PERSONA TAGS ARE GLYPHLESS (Brendon, 2026-07-24 — reversed the
+> 2026-07-24 assignment round).** Only a few tags wear a glyph: **Artist ✺**,
+> **Collector ☻**, the **$PRICE** holder tags (SVG mark), and **WTBS ☊**.
+> Every OTHER persona is **colour + label only** — Writer, Podcaster, Curator,
+> Trader, Media, Critic, Analyst, Patron, Historian, Builder, Degen all had
+> glyphs briefly and were stripped back. ⚲ (the old Podcaster/WTBS neuter) and
+> ⚔ (old Degen) are free again; WTBS moved to ☊ and KEEPS it. Do not
+> re-assign persona glyphs without Brendon's explicit word.
 
 ## 12g. The Nemesis — ☍ (2026-07-20 build)
 
