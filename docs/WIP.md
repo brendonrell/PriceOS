@@ -85,12 +85,42 @@
    until every value is bucketed" but the code will render a half-bucketed trait
    (no live schema violates it — Brendon's call whether to make code match copy).
 
-01. **ClickUp NOT updated this session** — the ClickUp connector dropped
+01. 🔨 **NEXT UP — STICKER SPREADS + STICKER COLOURS (specced with Brendon
+   2026-07-24, NOT started). Build these first.**
+
+   **① SPREADS** — saved, named sticker arrangements for the profile hero.
+   NAME IS LOCKED: **Spreads**, not "scenes" (ambient light owns Scenes) and not
+   "Layouts" (the sticker system already uses Layout for the generative
+   auto-arrangers). Both halves already exist and just need joining:
+   `lib/stickers/placements.ts` holds the LOCKED composition (every sticker's
+   x/y/z/rotation/scale + the aspect at lock time), and `lib/pins/presetStore.ts`
+   is the proven save-a-named-state pattern. A Spread = a named snapshot of the
+   current placements, restorable later. Ride `sticker_state` like placements do
+   — no new table.
+
+   **② BRAND COLOURS** — Hothurt `#FF0055` and Attention `#FFE600` already exist
+   in `lib/stickers/catalog.ts` as PRICE_RED / PRICE_YELLOW and are what every
+   "Classic" sticker wears. The ask is to expose them as NAMED, pickable brand
+   options beside the generated hue ramps — not to create new colour.
+
+   **③ ONE-TAP COLOUR — READ THIS BEFORE BUILDING.** A sticker's colour IS its
+   identity: each hue is its own sticker id, and that id is what the user owns.
+   So a "make my stickers Hothurt" button CANNOT repaint anything. Brendon's
+   agreed shape: it **FILTERS** the profile down to the stickers you already own
+   in that colour family, and quietly surfaces what you're missing (the
+   completionist hook does the selling — no paywall). Do NOT build a recolour.
+
+   **④ DONE ALREADY:** the Sticker Manager's switched-off sheet pills now dim to
+   0.65 again (both states had been forced to full strength by a visibility
+   pass; PD's pill vocabulary dims inactive to 0.6–0.7, and here the dim carries
+   meaning). Shipped with the docs commit.
+
+02. **ClickUp NOT updated this session** — the ClickUp connector dropped
    mid-session and never came back, so the queue there is stale as of
    2026-07-24. First session with it connected should reconcile the five ships
    above.
 
-02. ✅ **2026-07-24 SHOWCASE MOVE MODE — shipped to dev (`83ef215`),
+03. ✅ **2026-07-24 SHOWCASE MOVE MODE — shipped to dev (`83ef215`),
    nothing outstanding.** Brendon's ask, built and pushed same session:
    **press-and-hold a piece on your OWN profile Showcase (Static style only)
    → iOS-home-screen move mode.** Tiles jiggle, each gets a little × (top-LEFT,
