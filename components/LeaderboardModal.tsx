@@ -22,6 +22,8 @@ import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { useAuth } from '../lib/state/AuthContext';
 import { lockBodyScroll, unlockBodyScroll } from '../lib/state/bodyScrollLock';
 import CollectedPair from './hero/CollectedPair';
+import { UserTags } from './tags/UserTags';
+import { useUserTags } from '../lib/hooks/useUserTags';
 import type { LeaderboardRow } from '../app/api/leaderboard/route';
 
 const VS15 = '︎';
@@ -66,6 +68,9 @@ export default function LeaderboardModal() {
         return () => { alive = false; };
     }, [isOpen]);
 
+    /* Profile tags for the charted collectors — one batched read, shared cache. */
+    const tagSets = useUserTags(rows.map((r) => r.handle));
+
     if (!isOpen || typeof document === 'undefined') return null;
 
     const me = siweAddress?.toLowerCase() ?? null;
@@ -97,6 +102,7 @@ export default function LeaderboardModal() {
                                         <div className="fm-row-id">
                                             <CollectedPair handle={r.handle} />
                                         </div>
+                                        <UserTags set={tagSets[r.handle.toLowerCase()]} size="row" />
                                         <div className="fm-row-stats">
                                             <span className="fm-stat" title="PriceScore">
                                                 <span className="fm-stat-ic">{`◍${VS15}`}</span>

@@ -43,6 +43,8 @@ import { useAuth } from '../lib/state/AuthContext';
 import { useToast } from '../lib/state/ToastContext';
 import { lockBodyScroll, unlockBodyScroll } from '../lib/state/bodyScrollLock';
 import CollectedPair from './hero/CollectedPair';
+import { UserTags } from './tags/UserTags';
+import { useUserTags, type UserTagSet } from '../lib/hooks/useUserTags';
 import { useSpiteMatcher } from '../lib/pins/spiteStore';
 import SpriteFace from './SpriteFace';
 import { projectSpriteFace } from '../lib/project/projectSprite';
@@ -563,6 +565,11 @@ export default function FollowersModal() {
         return [...pinned, ...rest];
     }, [tab, graph, sort, statOf, starredPeople, cartelHandles, sharedBy, lens, dramaOf, lastMoveBy]);
 
+    /* Profile tags for everyone in the ledger — resolved ONCE here and handed
+       down, so a hundred rows are one read, not a hundred. The dossier reads
+       out of the same set. */
+    const peopleTagSets = useUserTags(peopleRows);
+
     /* Projects, starred pinned to the top (alphabetised), then by title. */
     const projectRows = useMemo(() => {
         const key = (p: FollowedProjectRow) => (p.handle ?? p.title).toLowerCase();
@@ -687,6 +694,7 @@ export default function FollowersModal() {
                                 following={followingSet.has(lc(handle))}
                                 followBusy={followBusy}
                                 onToggleFollow={() => void toggleFollow(handle)}
+                                tagSet={peopleTagSets[lc(handle)]}
                             />
                         ))}
                         {/* Projects that follow you (you hold a piece) fold in below
@@ -788,13 +796,15 @@ export default function FollowersModal() {
    Tapping the row (not the chip link / star) unfolds THE DUEL beneath. ── */
 function PersonRow({
     handle, stat, tag, shared, starred, onStar, inspected, onInspect, lensLine, friendAddr, mySlugs,
-    myStat, myScore, following, followBusy, onToggleFollow,
+    myStat, myScore, following, followBusy, onToggleFollow, tagSet,
 }: {
     handle: string; stat: CircleStat | undefined; tag: string | null; shared: number | null;
     starred: boolean; onStar: (h: string) => void; inspected: boolean; onInspect: () => void;
     lensLine: string | null; friendAddr: string | null; mySlugs: string[] | null;
     myStat: CircleStat | undefined; myScore: number | null;
     following: boolean; followBusy: boolean; onToggleFollow: () => void;
+    /* Their profile tags — resolved once for the whole ledger by the parent. */
+    tagSet: UserTagSet | undefined;
 }) {
     const slots = rivalrySlotsFor(lc(handle));
     /* Faction paint takes the reserved accent channel; explicit socket wins. */
@@ -847,6 +857,7 @@ function PersonRow({
                             )}
                             {tag && <span className="fi-rel" title={tag}>{REL_GLYPH[tag]}{VS15}</span>}
                         </div>
+                        <UserTags set={tagSet} size="row" />
                         <div className="fm-row-stats">
                             {shared !== null && (
                                 <span className="fm-stat" title="Shared holdings">
@@ -887,6 +898,7 @@ function PersonRow({
                     followBusy={followBusy}
                     onToggleFollow={onToggleFollow}
                     slots={slots}
+                    tagSet={tagSet}
                 />
             )}
         </div>
@@ -913,13 +925,16 @@ function ProjectChip({ slug, faceId }: { slug: string; faceId?: string }) {
    All real numbers; follow/unfollow rides the same row. ── */
 function FriendDossier({
     handle, stat, tag, friendAddr, mySlugs, myStat, myScore,
-    following, followBusy, onToggleFollow, slots,
+    following, followBusy, onToggleFollow, slots, tagSet,
 }: {
     handle: string; stat: CircleStat | undefined; tag: string | null;
     friendAddr: string | null; mySlugs: string[] | null;
     myStat: CircleStat | undefined; myScore: number | null;
     following: boolean; followBusy: boolean; onToggleFollow: () => void;
     slots: RivalrySlots;
+    /* Their profile tags — the fastest read of WHO you're sizing up, so they
+       lead the dossier, above the relationship line (Brendon, 2026-07-24). */
+    tagSet: UserTagSet | undefined;
 }) {
     const [theirSlugs, setTheirSlugs] = useState<string[] | null>(null);
     const [theirScore, setTheirScore] = useState<number | null>(null);
@@ -960,6 +975,7 @@ function FriendDossier({
 
     return (
         <div className="fi-dossier" onClick={(e) => e.stopPropagation()}>
+            <UserTags set={tagSet} size="inline" />
             <div className="fi-dossier-head">
                 {tag && <span className="fm-tag">{REL_GLYPH[tag]}{VS15} {tag}</span>}
                 {faction && (

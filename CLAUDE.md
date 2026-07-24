@@ -770,6 +770,22 @@ explicit chat confirmation.
 
 ## 9. UX standards (Brendon's product pet peeves → rules)
 
+- **⛔ BANNED AI-SLOP MOTIFS — the shapes Claude reaches for that are NOT PD
+  (Brendon, 2026-07-24, hard rule).** These are house-style tells every model
+  drifts into. They are banned on every PD surface, forever:
+  - **The left-edge accent bar / "shadow peeking out the left side."** The
+    stripe-down-the-left-of-a-row trope. Never use it to mark a selected,
+    active, current or "this one is you" row — not as a border, not as an
+    inset shadow, not as a pseudo-element. (Caught 2026-07-24 on the
+    leaderboard self-marker; replaced with PD's own dotted ring.)
+  - **Fully-rounded / pill-shaped everything.** PD pills are **4px radius**,
+    not `999px`. Stop rounding chrome into lozenges — it is not our design.
+  **What to use instead:** PD already owns its state vocabulary — the DOTTED
+  RING (`outline: 2px dotted var(--text-color)`, the profile-logo carousel's
+  active tile), the solid `--stat-active-*` fill (active pills), full-strength
+  `--text-color` borders, and bold. Reuse those (Rule #0) — never invent a
+  motif for a state PD already has a mark for.
+
 - **Toast casing — THE THING THAT CHANGED gets the ALLCAPS (Brendon,
   2026-06-12, hard rule).** The label/category stays normal case; the new
   state screams. `Tab: SHUFFLE`, `Wishlist: ADDED · 3`, `Soundtracks: NONE

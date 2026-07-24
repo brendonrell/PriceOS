@@ -25,6 +25,8 @@ import { useAuth } from '../lib/state/AuthContext';
 import { useProject } from '../lib/state/ProjectContext';
 import { getProject } from '../lib/project/registry';
 import CollectedPair from './hero/CollectedPair';
+import { UserTags } from './tags/UserTags';
+import { useUserTags } from '../lib/hooks/useUserTags';
 
 const VS15 = '︎';
 /* Podium medals for the top three — the leaderboard's rank grammar
@@ -99,6 +101,10 @@ export default function CollectorsModal() {
         else rows.sort((a, b) => b.pieces - a.pieces || b.listed - a.listed || name(a).localeCompare(name(b)));
         return rows;
     }, [holders, sort]);
+
+    /* Profile tags for the holders on screen — one batched read, shared cache.
+       Tells you what KIND of room is holding this project, not just how many. */
+    const tagSets = useUserTags(sorted.map((r) => r.handle));
 
     const me = siweAddress?.toLowerCase() ?? null;
     const artistHandle = getProject(slug)?.artistHandle?.toLowerCase() ?? null;
@@ -202,6 +208,9 @@ export default function CollectorsModal() {
                                                 <span className="fm-artist-badge" title="Artist">{`✺${VS15}`}</span>
                                             )}
                                         </div>
+                                        {r.handle && (
+                                            <UserTags set={tagSets[r.handle.toLowerCase()]} size="row" />
+                                        )}
                                         <div className="fm-row-stats">
                                             <span className="fm-stat" title="Pieces owned">
                                                 <span className="fm-stat-ic">{`⬚${VS15}`}</span>

@@ -25,6 +25,8 @@ import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { useAuth } from '../lib/state/AuthContext';
 import { lockBodyScroll, unlockBodyScroll } from '../lib/state/bodyScrollLock';
 import CollectedPair from './hero/CollectedPair';
+import { UserTags } from './tags/UserTags';
+import { useUserTags } from '../lib/hooks/useUserTags';
 import type { PriceHolderRow } from '../app/api/leaderboard/price/route';
 
 const VS15 = '︎';
@@ -79,6 +81,9 @@ export default function PriceLeaderboardModal() {
     return () => { alive = false; };
   }, [isOpen]);
 
+  /* Profile tags for the charted holders — one batched read, shared cache. */
+  const tagSets = useUserTags(rows.map((r) => r.handle));
+
   if (!isOpen || typeof document === 'undefined') return null;
 
   const me = siweAddress?.toLowerCase() ?? null;
@@ -119,6 +124,7 @@ export default function PriceLeaderboardModal() {
                     <div className="fm-row-id">
                       <CollectedPair handle={r.handle} />
                     </div>
+                    <UserTags set={tagSets[r.handle.toLowerCase()]} size="row" />
                     <div className="fm-row-stats">
                       <span className="fm-stat" title="$PRICE held">
                         <b className="lb-score-num">{fmtHeld(r.priceHeld)}</b>

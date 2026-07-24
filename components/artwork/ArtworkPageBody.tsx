@@ -39,6 +39,7 @@ import { ProjectProvider } from '../../lib/state/ProjectContext';
 import { TraitsProvider } from '../../lib/state/TraitsContext';
 import { getProject } from '../../lib/project/registry';
 import CollectedPair from '../hero/CollectedPair';
+import { UserTagsFor } from '../tags/UserTags';
 import Hero from '../hero/Hero';
 import TraitsUI from '../project/TraitsUI';
 import AudienceIndicator from '../project/AudienceIndicator';
@@ -776,6 +777,13 @@ export default function ArtworkPageBody({
                             )}
                         </span>
                     </div>
+                    {/* The holder's profile tags — who is holding this piece, at
+                        a glance (Brendon, 2026-07-24). */}
+                    {market?.owner_handle && (
+                        <div className="hero-line info-line">
+                            <UserTagsFor handle={market.owner_handle} size="inline" />
+                        </div>
+                    )}
 
                     {/* Stats row — transplanted from the profile hero so it lays
                         out identically (plain flex, not the grid). Same icons,

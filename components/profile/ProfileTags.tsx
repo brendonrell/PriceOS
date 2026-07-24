@@ -15,8 +15,13 @@ import { type Tag, tagPaintHex, tagTextOn } from '../../lib/tags/catalog';
 import { styleName } from '../../lib/profile/nameFont';
 import { PriceMark } from '../brand/PriceMark';
 
-export function ProfileTags({ tags, font, paint, onTagTap }: {
+export function ProfileTags({ tags, font, paint, onTagTap, className }: {
     tags: Tag[];
+    /** Wrapper class — the hero's own row by default. The list surfaces
+     *  (leaderboards, collectors, followers, dossier, owner line, search) pass
+     *  the compact row instead, so a tag pill is drawn from THIS one renderer
+     *  everywhere it appears (Brendon, 2026-07-24). */
+    className?: string;
     /** The owner's chosen @name font (users.name_font) — tag labels wear it
      *  too (Brendon, 2026-07-20). Untouched underneath: display-only, same
      *  as the @name itself. */
@@ -31,7 +36,7 @@ export function ProfileTags({ tags, font, paint, onTagTap }: {
     if (!tags.length) return null;
     const paintHex = tagPaintHex(paint);
     return (
-        <div className="profile-tags" aria-label="Tags">
+        <div className={className ?? 'profile-tags'} aria-label="Tags">
             {tags.map((t) => {
                 /* Locked-style tags (the CEO chip) wear their OWN colours and
                    font — the all-tags paint and the @name font can't touch

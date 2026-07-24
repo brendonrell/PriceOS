@@ -2404,6 +2404,21 @@ body.theme-bright .news-pill-name {
 .lb-row.lb-rank2 { background: color-mix(in srgb, var(--text-color) 9%, transparent); }
 .lb-row.lb-rank3 { background: color-mix(in srgb, var(--text-color) 5%, transparent); }
 .lb-row.lb-podium .lb-pos { opacity: 1; font-size: 15px; }
+/* YOUR row — marked with PD's OWN "this one is picked" treatment: the dotted
+   full-strength ring the profile logo carousel already wears on the active tile
+   (.pl-logo-card.is-active), plus the @name in bold. Declared AFTER the podium
+   block on purpose: the wash above is a BACKGROUND, so a podium tint overrode it
+   and ranks 1–3 carried no self-marker at all (Brendon, 2026-07-24).
+
+   ⛔ NOT a left-edge bar / peeking shadow — that motif is BANNED on PD (Brendon,
+   2026-07-24: an AI-slop design trope). Don't reintroduce it here or anywhere.
+   `outline` (not border) with a negative offset draws inside the row, so it
+   stacks over any podium tint and never shifts a pixel of layout. */
+.lb-row.lb-me {
+    outline: 2px dotted var(--text-color);
+    outline-offset: -2px;
+}
+.lb-row.lb-me .profile-link { font-weight: bold; }
 .fm-stat b { font-weight: bold; }
 /* The leaderboard PriceScore NUMBER renders in Rubik (Rubik Mono One), not
    Courier — just the digits; the ◍ glyph stays Courier (Brendon, 2026-07-21).
@@ -4073,6 +4088,37 @@ body.pd-stone-open .ens-copy-toast {
     font-family: var(--font-inter), sans-serif;
     letter-spacing: 0.3px;
 }
+
+/* ── Profile tags on LIST surfaces (Brendon, 2026-07-24) — leaderboards,
+   collectors, followers, the Friend Inspector dossier, the artwork owner line,
+   search. The PILL is the hero's own `.profile-tag` (one renderer, one look);
+   these two rules only give it a row to sit in.
+
+   `--row` is one line that scrolls sideways instead of wrapping: a user with
+   nine tags can never make their list row taller than everyone else's, which is
+   what would otherwise wreck a dense list on an iPhone. Labels stay at the hero's
+   12px/bold — nothing here goes smaller or fainter. ── */
+.user-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    min-width: 0;
+}
+.user-tags--row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    /* Room for the pill borders so nothing clips against the row edge. */
+    padding: 1px 0;
+}
+.user-tags--row::-webkit-scrollbar { display: none; }
+.user-tags--row .profile-tag { flex: 0 0 auto; height: 20px; padding: 0 7px; }
+.user-tags--row .profile-tag-glyph { font-size: 14px; }
+/* Search's collector row is a SINGLE line (sprite · @name · ✺ · tags · stats),
+   so the tag strip has to be the part that gives — it shrinks and scrolls
+   rather than shoving the stats readout off the right edge. */
+.gsr-user .user-tags--row { flex: 0 1 auto; min-width: 0; margin-left: 4px; }
 
 /* Long-press the PriceSprite → inline colour picker. Reuses the egg row's
    shove-open + pills; stacks the Save/undo actions above the wheel + pills

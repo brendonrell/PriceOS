@@ -101,6 +101,8 @@ import { parseConvert, convertValue, convertAll, formatUnit, formatResult, forma
 import { useFxRates } from '../../lib/fx/rates';
 import { useFiat, FIAT_OPTIONS } from '../../lib/state/FiatContext';
 import LaneRunner from './LaneRunner';
+import { UserTags } from '../tags/UserTags';
+import { useUserTags, type UserTagSet } from '../../lib/hooks/useUserTags';
 import type { SearchResponse, SearchUserResult } from '../../app/api/search/route';
 
 const VS15 = '︎';
@@ -178,9 +180,13 @@ export function pieceName(title: string, id: string | number): string {
 export function SearchUserRow({
     user,
     onGo,
+    tagSet,
 }: {
     user: SearchUserResult;
     onGo: (e: MouseEvent, href: string) => void;
+    /* Their profile tags — resolved in one batch by the list above, so a
+       results dropdown is one read, not one per row (Brendon, 2026-07-24). */
+    tagSet?: UserTagSet;
 }) {
     const face = useSpriteFace(user.handle ?? '');
     const name = user.handle
@@ -197,6 +203,7 @@ export function SearchUserRow({
             {face && <SpriteFace className="gsr-sprite" face={face} />}
             <span className="gsr-main">{name}</span>
             {user.is_artist && <span className="gsr-badge" title="Artist">{`✺${VS15}`}</span>}
+            <UserTags set={tagSet} size="row" />
             <span className="gsr-sub gsr-stats" title="Collected · Spent · Followers">
                 {`⬚${VS15} ${user.collected}  ⟠${VS15} ${user.spent_eth.toFixed(2)}  ⚬${VS15} ${fmtFollowers(user.followers)}`}
             </span>
@@ -416,6 +423,9 @@ export function GlobalSearchBar() {
                 : p.to,
         }));
     }, [value, myHandle, siweAddress]);
+
+    /* Profile tags for the collector hits — one batched read for the dropdown. */
+    const userTagSets = useUserTags(ordered?.users.map((u) => u.handle) ?? []);
 
     const goPage = (e: MouseEvent | null, page: { kind: 'route' | 'view'; to: string }) => {
         e?.preventDefault();
@@ -843,7 +853,7 @@ export function GlobalSearchBar() {
                         {ordered && ordered.users
                             .slice(0, expanded.users ? undefined : SECTION_PREVIEW)
                             .map((u) => (
-                                <SearchUserRow key={`u:${u.address}`} user={u} onGo={go} />
+                                <SearchUserRow key={`u:${u.address}`} user={u} onGo={go} tagSet={userTagSets[(u.handle ?? '').toLowerCase()]} />
                             ))}
                         {ordered && !expanded.users && ordered.users.length > SECTION_PREVIEW && (
                             <div
