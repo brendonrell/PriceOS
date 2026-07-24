@@ -359,6 +359,11 @@
 .ss-lcd-scene.is-slate .ss-lcd-say { letter-spacing: 0.16em; }
 .ss-lcd-scene.is-slate .ss-lcd-face { animation: ssLcdBlink 1s steps(2, end) infinite; }
 
+/* AN AD reads differently from the programme — the ink inverts, the way a
+   commercial break used to announce itself before you'd read a word of it. */
+.ss-lcd-scene.is-ad { background: rgba(15, 56, 15, 0.88); color: #9bbc0f; }
+.ss-lcd-scene.is-ad .ss-lcd-face { animation: none; }
+
 /* Reduced motion: the cast still rotates, it just cuts between scenes. */
 .ss-lcd-scene.is-still,
 .ss-lcd-scene.is-still .ss-lcd-face { animation: none; }

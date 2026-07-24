@@ -32,13 +32,15 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { lcdCast, lcdLines } from '../../lib/stickers/lcd';
+import { adBreak, AD_BUMPER, AD_RETURN } from '../../lib/stickers/ads';
 import { todaysEpisode, type Beat } from '../../lib/stickers/episodes';
 
-/** Title / sign-off cards hold a beat longer than a line of dialogue. */
+/** Title / bumper cards hold a beat longer than a line of dialogue. */
 const CARD_MS = 2400;
-/** How long one shop segment line holds. */
-const PITCH_MS = 3800;
+/** How long one line of an ad holds. */
+const AD_MS = 3200;
+/** Spots per break. Three is a break; four is an ordeal. */
+const SPOTS_PER_BREAK = 3;
 
 /* The 22 transitions (Brendon's count, 2026-07-24). Every one is transform /
    opacity / clip-path only — the three things a phone can animate on the
@@ -50,7 +52,7 @@ const MOVES = [
     'bars', 'sweep', 'bounce', 'spin', 'shrink', 'stagger',
 ] as const;
 
-type Frame = Beat & { slate?: boolean };
+type Frame = Beat & { slate?: boolean; ad?: boolean };
 
 export default function StickerLcd({ mode }: { mode: 'store' | 'market' | 'binder' }) {
     /* THE DAY'S CAROUSEL. The episode is one segment of it, not the whole
@@ -62,24 +64,24 @@ export default function StickerLcd({ mode }: { mode: 'store' | 'market' | 'binde
        happening in the middle of an animation. */
     const frames: Frame[] = useMemo(() => {
         const ep = todaysEpisode();
-        const slate: Frame = {
-            face: '▶︎',
-            line: `EP.${ep.day}/365 · ${ep.title}`,
-            ms: CARD_MS,
-            slate: true,
-        };
-        const outro: Frame = {
-            face: '▪︎',
-            line: 'THE STICKER CHANNEL · NEW EPISODE TOMORROW',
-            ms: CARD_MS,
-            slate: true,
-        };
-        const shop: Frame[] = lcdCast(lcdLines(mode)).map((sc) => ({
-            face: sc.face,
-            line: sc.line,
-            ms: PITCH_MS,
-        }));
-        return [slate, ...ep.beats, outro, ...shop];
+        const card = (face: string, line: string): Frame => ({ face, line, ms: CARD_MS, slate: true });
+        /* The ad faces are the channel's own marks, never a character — an ad
+           is the channel talking, not somebody in the shop. */
+        const ads: Frame[] = adBreak(mode, SPOTS_PER_BREAK).flatMap((spot) => [
+            ...spot.lines.map((line, n) => ({
+                face: n === 0 ? '◈︎' : '·',
+                line,
+                ms: AD_MS,
+                ad: true,
+            })),
+        ]);
+        return [
+            card('▶︎', `EP.${ep.day}/365 · ${ep.title}`),
+            ...ep.beats,
+            card('▪︎', AD_BUMPER),
+            ...ads,
+            card('▪︎', AD_RETURN),
+        ];
     }, [mode]);
 
     const [i, setI] = useState(0);
@@ -103,7 +105,7 @@ export default function StickerLcd({ mode }: { mode: 'store' | 'market' | 'binde
     iRef.current = i;
     useEffect(() => {
         if (frames.length < 2) return;
-        const hold = frames[iRef.current]?.ms ?? PITCH_MS;
+        const hold = frames[iRef.current]?.ms ?? AD_MS;
         const t = window.setTimeout(() => {
             setI((n) => (n + 1) % frames.length);
             setBeat((b) => b + 1);
@@ -122,7 +124,7 @@ export default function StickerLcd({ mode }: { mode: 'store' | 'market' | 'binde
             <span className="ss-lcd-grid" />
             <span
                 key={beat}
-                className={`ss-lcd-scene ss-lcd--${move}${reduced ? ' is-still' : ''}${frame.slate ? ' is-slate' : ''}`}
+                className={`ss-lcd-scene ss-lcd--${move}${reduced ? ' is-still' : ''}${frame.slate ? ' is-slate' : ''}${frame.ad ? ' is-ad' : ''}`}
             >
                 <span className="ss-lcd-face">{frame.face}</span>
                 <span className="ss-lcd-say">{frame.line}</span>
