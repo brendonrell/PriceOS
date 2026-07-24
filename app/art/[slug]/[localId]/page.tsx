@@ -16,6 +16,7 @@ import ArtworkPageBody from '@/components/artwork/ArtworkPageBody';
 import { getProject, artImageUrl, ART_REV } from '@/lib/project/registry';
 import { getPreviewBucket } from '@/lib/cf/r2';
 import { getSupabaseService } from '@/lib/supabase';
+import { jsonLdScript } from '@/lib/jsonLd';
 
 type Props = { params: Promise<{ slug: string; localId: string }> };
 
@@ -148,7 +149,7 @@ export default async function ProjectOutputPage(props: Props) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }}
       />
       <ArtworkPageBody
         globalId={localId}

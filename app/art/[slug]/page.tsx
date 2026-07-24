@@ -18,6 +18,7 @@ import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import ProjectPageBody from '../../../components/project/ProjectPageBody';
 import { getProject, artImageUrl, ART_REV } from '../../../lib/project/registry';
+import { jsonLdScript } from '../../../lib/jsonLd';
 import { getPreviewBucket } from '../../../lib/cf/r2';
 import { getSupabaseService } from '../../../lib/supabase';
 
@@ -94,7 +95,7 @@ export default async function ProjectPage(props: Props) {
         <>
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+                dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }}
             />
             <ProjectPageBody
                 slug={slug}
