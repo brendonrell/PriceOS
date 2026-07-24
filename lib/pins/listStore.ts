@@ -150,6 +150,33 @@ export function listsContaining(slug: string, id: number): ReadonlyArray<ListRec
     return snapshot(store.get().filter((l) => l.keys.includes(k)));
 }
 
+/**
+ * Rename a list. Same trim + cap as creation; an empty name is rejected
+ * (returns false) so a list can never lose the only thing identifying it.
+ */
+export function renameList(listId: string, rawName: string): boolean {
+    const name = rawName.trim().slice(0, LIST_NAME_MAX);
+    if (!name) return false;
+    const lists = snapshot(store.get());
+    const list = lists.find((l) => l.id === listId);
+    if (!list || list.name === name) return false;
+    list.name = name;
+    store.set(lists);
+    return true;
+}
+
+/**
+ * Delete a list. Only the grouping goes — the pieces themselves stay starred,
+ * because a List is a VIEW of Starred, never the thing holding them.
+ */
+export function deleteList(listId: string): boolean {
+    const lists = store.get();
+    const next = lists.filter((l) => l.id !== listId);
+    if (next.length === lists.length) return false;
+    store.set(snapshot(next));
+    return true;
+}
+
 /** Member keys of a list, or null when the list is gone. */
 export function listKeys(listId: string): ReadonlyArray<string> | null {
     const list = store.get().find((l) => l.id === listId);

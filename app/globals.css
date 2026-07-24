@@ -6551,6 +6551,27 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 .lists-head-caret { flex: 0 0 auto; font-family: 'Courier New', Courier, monospace; }
 .lists-head-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lists-head-count { flex: 0 0 auto; opacity: 0.6; }
+/* Rename + delete on a list header. Same ✎ pencil the budget pills wear, but
+   FULL STRENGTH here (Rule #2 — no reflexive half-opacity on live controls).
+   Generous padding so both stay comfortably tappable on an iPhone. */
+.lists-head-edit,
+.lists-head-delete {
+    flex: 0 0 auto;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    color: var(--text-color);
+}
+.lists-head-edit { font-size: 15.5px; padding: 0 4px 0 8px; }
+.lists-head-delete { font-size: 16px; font-weight: bold; padding: 0 2px 0 4px; }
+/* Renaming in place — the input takes the name's slot, nothing shifts. */
+.lists-head-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    font-size: 13px;
+}
 .lists-rows { display: flex; flex-direction: column; padding: 2px 0 6px; }
 /* The SHORT row — same starred-row anatomy, tightened. */
 .starred-row.lists-row { padding: 5px 0; gap: 10px; }
