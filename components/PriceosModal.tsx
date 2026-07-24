@@ -192,7 +192,26 @@ export default function PriceosModal() {
        reset transform → measure scrollWidth → if it exceeds available,
        compute scale and apply, then shrink the wrap height so it doesn't
        leave dead space below the scaled <pre>. Runs on every logo change
-       (modal open) inside requestAnimationFrame so layout has settled. */
+       (modal open) inside requestAnimationFrame so layout has settled.
+
+       2026-07-24 — off-centre clip fix (Brendon). The <pre> is an
+       inline-block in a text-align:center wrap, so it only gets centred
+       while it FITS. The moment it overflows, the browser parks it flush
+       at the wrap's left content edge, which puts the <pre>'s own centre
+       (the CSS transform-origin: center top) to the RIGHT of the wrap's
+       centre — so scale() shrank the figlet about the wrong axis and the
+       result hung past the wrap's right edge and got clipped by
+       overflow:hidden. Worst case measured on a 390px viewport: Doh lost
+       23px off its right side; 11 of the 211 pool entries were affected,
+       three of them already live.
+
+       Fix: scale from the LEFT edge instead, then translate by the exact
+       leftover slack so the shrunk block sits dead centre. Because
+       s = avail / actual, the scaled width is always exactly `avail`, so
+       the slack is the wrap's 4px measuring margin (2px a side) — but it
+       is computed rather than hardcoded so it stays correct if that
+       margin ever changes. Nothing about the fit maths or the height
+       collapse moves; only the anchor point. */
     useEffect(() => {
         if (!isOpen) return;
         const el = preRef.current;
@@ -200,13 +219,16 @@ export default function PriceosModal() {
         if (!el || !wrap) return;
         // Reset before measuring so prior transforms don't pollute scrollWidth.
         el.style.transform = '';
+        el.style.transformOrigin = '';
         wrap.style.height = '';
         const raf = requestAnimationFrame(() => {
             const avail = wrap.clientWidth - 4;
             const actual = el.scrollWidth;
             if (actual > avail && avail > 0) {
                 const s = avail / actual;
-                el.style.transform = `scale(${s})`;
+                const dx = (wrap.clientWidth - actual * s) / 2;
+                el.style.transformOrigin = 'left top';
+                el.style.transform = `translateX(${dx}px) scale(${s})`;
                 const origH = el.scrollHeight;
                 wrap.style.height = `${origH * s}px`;
             }
