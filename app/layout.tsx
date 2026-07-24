@@ -56,7 +56,6 @@ import { WorkspacesProvider } from '../lib/state/WorkspacesContext';
 import { PriceOSShell } from '../components/shell/PriceOSShell';
 import SwRegistrar from '../components/shell/SwRegistrar';
 import { WalletProviders } from '../components/wallet/WalletProviders';
-import { DevLoginButton } from '../components/dev/DevLoginButton';
 import { getSession } from '../lib/auth/siwe';
 
 /* Canonical origin for absolute share/preview URLs (og:image and friends must
@@ -564,15 +563,6 @@ export default async function RootLayout({
         initialAuth = undefined;
     }
 
-    /* Dev-preview "Login Brendon" shortcut button. Renders ONLY where
-       DEV_LOGIN_ENABLED=1 is explicitly set (Cloudflare dev deploy during
-       the build phase; localhost via .env.local). The /api/auth/dev-login
-       route is gated the same way server-side — that check is the real
-       boundary. At launch, deleting the variable removes button and door
-       together. (Was keyed off VERCEL_ENV — didn't exist on Cloudflare,
-       leaving the door open; caught in the 2026-07-03 wallet review.) */
-    const showDevLogin = process.env.DEV_LOGIN_ENABLED === '1';
-
     return (
         <html lang="en" className={`${rubikMono.variable} ${inter.variable}`}>
             <head>
@@ -661,7 +651,6 @@ export default async function RootLayout({
                     initialState={initialState}
                     initialAuth={initialAuth}
                 >
-                    {showDevLogin && <DevLoginButton />}
                     <ColorwayProvider>
                         <PersonaProvider>
                             <PdNotifsProvider>
