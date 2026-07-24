@@ -8,7 +8,28 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ⚙ **2026-07-24 (LATEST) FULL-APP SECURITY REVIEW #2 — 2 fixed & SHIPPED on
+00. ✅ **2026-07-24 (LATEST SHIP) SHOWCASE MOVE MODE — shipped to dev (`83ef215`),
+   nothing outstanding.** Brendon's ask, built and pushed same session:
+   **press-and-hold a piece on your OWN profile Showcase (Static style only)
+   → iOS-home-screen move mode.** Tiles jiggle, each gets a little × (top-LEFT,
+   clear of the ⟟ grail badge) that drops it from the Showcase; the held piece
+   lifts on **The Bench's existing hold-drag engine** (Rule #0 — reused, not
+   rebuilt: same 320ms hold, same ghost, same dock arming) and dropping it on
+   another tile lands it in that slot, bumping that tile and everything after
+   it one place down the line. **The door (Rule #-0.4): long-press in, DONE
+   pill out** — leaving the tab or switching showcase style also exits;
+   default OFF. Bench + Cart drops from a Showcase tile are UNTOUCHED. The new
+   order writes through to `users.showcase`, so visitors see it too.
+   Mechanics for the next session: `benchDragStore`/`useHoldDrag` gained a
+   `'showcase'` drop target carrying the zone's own `slug:id` key, an
+   `onEngage` hook, and an armed-slot highlight painted **directly on the DOM**
+   — the gallery deliberately does NOT subscribe to the drag store (a
+   re-render per pointer move buries mobile Safari, see that file's header).
+   `userShowcaseStore.moveShowcase()` does the insert BY KEY, never by index,
+   because the rendered grid filters out picks whose Project is gone.
+   ClickUp: `86bb38gea` (complete).
+
+0. ⚙ **2026-07-24 FULL-APP SECURITY REVIEW #2 — 2 fixed & SHIPPED on
    dev (tip `b23af15`), 7 QUEUED. Full report: `docs/security-review-2026-07-24.md`
    (read it — every finding has file:line, exploit path and fix).**
    Whole-repo review across all 4 repos, adversarial verification on every
