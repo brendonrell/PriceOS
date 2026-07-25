@@ -30,12 +30,13 @@ interface RewindProjectPayload {
 }
 
 export default function RewindProjectView({ slug }: { slug: string }) {
-  const { day } = useRewind();
+  const { day, today } = useRewind();
   const [data, setData] = useState<RewindProjectPayload | null>(null);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     if (day == null) return;
+    if (day < 1 || day > today) { setData(null); setFailed(false); return; }
     let dead = false;
     setData(null);
     setFailed(false);
@@ -44,9 +45,11 @@ export default function RewindProjectView({ slug }: { slug: string }) {
       .then((j) => { if (!dead) setData(j as RewindProjectPayload); })
       .catch(() => { if (!dead) setFailed(true); });
     return () => { dead = true; };
-  }, [day, slug]);
+  }, [day, slug, today]);
 
   if (day == null) return null;
+  if (day < 1) return <div className="rw-body"><div className="rw-empty">NOTHING HERE — PRICE DISCUSSION HADN&rsquo;T BEGUN.</div></div>;
+  if (day > today) return <div className="rw-body"><div className="rw-empty">NOTHING HERE YET — THIS DAY HASN&rsquo;T HAPPENED.</div></div>;
   if (failed) return <div className="rw-body"><div className="rw-empty">THE RECORD IS UNREACHABLE — TRY AGAIN</div></div>;
   if (!data) return <div className="rw-body"><div className="rw-loading" aria-label="Charting the day">CONSULTING THE RECORD<span className="rw-ellipsis" /></div></div>;
 

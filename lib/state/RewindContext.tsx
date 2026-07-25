@@ -29,10 +29,18 @@ export function RewindProvider({ children }: { children: ReactNode }) {
   const { showToast } = useToast();
   const today = priceDayNumber();
 
+  /* The scrubber and steppers can only ever produce a day ON the spine — they
+     are bounded by their own min/max. The DATE PICKER can land anywhere
+     (Brendon, 2026-07-25), so a day outside [1, today] is a legal state: the
+     surfaces render an honest empty for it rather than pretending. Stepping
+     and scrubbing walk straight back onto the spine. */
   const engage = useCallback((d: number) => {
-    const clamped = Math.min(Math.max(1, Math.floor(d)), priceDayNumber());
-    setDay(clamped);
-    showToast(`Rewind: DAY ${clamped}`);
+    const next = Math.floor(d);
+    setDay(next);
+    const t = priceDayNumber();
+    if (next < 1) showToast('Rewind: BEFORE DAY 1');
+    else if (next > t) showToast('Rewind: NOT YET');
+    else showToast(`Rewind: DAY ${next}`);
   }, [showToast]);
 
   const returnToNow = useCallback(() => {

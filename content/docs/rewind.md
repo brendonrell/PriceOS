@@ -16,7 +16,9 @@ Every platform shows you now. PD can also show you *then* — the entire app, do
 
 ## The scrubber
 
-The banner's slider runs the whole PriceDay spine — from Day 1 to today. Drag it, or step day by day with the ‹ › controls. Days are counted on the platform's own calendar (PriceDays flip at midnight Montreal, the same clock as the Mood Ring).
+The banner's slider runs the whole PriceDay spine — from Day 1 to today. Drag it, or step day by day with the ‹ › controls.
+
+**Tap the date** and the platform's own date picker opens on the PriceDay spine — travel straight to a day instead of dragging to it. Every date outside Day 1 → today is greyed out in the wheel, because there is no record there to show. Days are counted on the platform's own calendar (PriceDays flip at midnight Montreal, the same clock as the Mood Ring).
 
 ## What rewinds
 

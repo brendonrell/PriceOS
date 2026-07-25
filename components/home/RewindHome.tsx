@@ -37,12 +37,13 @@ function ProjectRow({ p }: { p: { slug: string; title: string; minted: number; s
 }
 
 export default function RewindHome() {
-  const { day } = useRewind();
+  const { day, today } = useRewind();
   const [data, setData] = useState<RewindHomePayload | null>(null);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     if (day == null) return;
+    if (day < 1 || day > today) { setData(null); setFailed(false); return; }
     let dead = false;
     setData(null);
     setFailed(false);
@@ -51,9 +52,17 @@ export default function RewindHome() {
       .then((j) => { if (!dead) setData(j as RewindHomePayload); })
       .catch(() => { if (!dead) setFailed(true); });
     return () => { dead = true; };
-  }, [day]);
+  }, [day, today]);
 
   if (day == null) return null;
+  /* Off the spine — a date the platform never lived through. Say so; never
+     invent a day (Brendon, 2026-07-25). */
+  if (day < 1) {
+    return <div className="rw-body"><div className="rw-empty">NOTHING HERE — PRICE DISCUSSION HADN&rsquo;T BEGUN.</div></div>;
+  }
+  if (day > today) {
+    return <div className="rw-body"><div className="rw-empty">NOTHING HERE YET — THIS DAY HASN&rsquo;T HAPPENED.</div></div>;
+  }
   if (failed) {
     return <div className="rw-body"><div className="rw-empty">THE RECORD IS UNREACHABLE — TRY AGAIN</div></div>;
   }
