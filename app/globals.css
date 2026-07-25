@@ -12416,6 +12416,27 @@ body.colorway-dark .ghost-feed-bar {
 .output-action-row .output-act-note span { font-size: 20px; position: relative; top: 1px; }
 .output-action-row .output-act-todo span { font-size: 19px; }
 .output-action-row .output-act-grail span { position: relative; top: 2px; }
+/* DEAD verb — the acquisition actions (wishlist · to-do · cart) on a piece the
+   viewer already owns. The ONLY sanctioned use of fading: a disabled control,
+   where the fade carries the meaning (CLAUDE.md Rule #2). Still legible, just
+   plainly inert. */
+.output-action-row .output-act-dead {
+    opacity: 0.45;
+    cursor: default;
+    pointer-events: auto;
+}
+.output-action-row .output-act-dead:hover,
+.output-action-row .output-act-dead:active { background: transparent; }
+
+/* SHADOW tab empty state (Brendon, 2026-07-25) — the ◐ leads the line that
+   tells you where the artworks come from. Full strength, like every other
+   readable thing on the site. */
+.pf-empty-shadow-glyph {
+    display: block;
+    font-size: 26px;
+    line-height: 1;
+    margin-bottom: 8px;
+}
 /* Share is a text button sitting in the row of square icon buttons — same height
    + border (.pill-colorway), but auto-width with a label. */
 .output-action-row .output-share-btn {

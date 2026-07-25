@@ -84,6 +84,7 @@ import {
 import {
     getShadowPositions,
     subscribeShadow,
+    setShadowMode as storeSetShadowMode,
     type ShadowPosition,
 } from '../../lib/pins/shadowStore';
 import { useAuth } from '../../lib/state/AuthContext';
@@ -182,6 +183,10 @@ export function PortfolioView() {
         setShadowPositions(getShadowPositions());
         return subscribeShadow(setShadowPositions);
     }, []);
+    /* SHADOW MODE — the Shadow pill IS the toggle (Brendon, 2026-07-25):
+       viewing the Shadow tab is being in shadow mode, and going back to Main
+       leaves it. No separate switch. Set from the two pills below; the artwork
+       modal reads it to decide whether its side tab is the ◐. */
 
     const liveCats = useMemo<PortfolioCategory[]>(
         () =>
@@ -642,11 +647,11 @@ export function PortfolioView() {
                     id="portfolioMainPill"
                     role="button"
                     tabIndex={0}
-                    onClick={() => { if (tab !== 'portfolio') { setTab('portfolio'); showToast('Main Portfolio: ON'); } }}
+                    onClick={() => { if (tab !== 'portfolio') { setTab('portfolio'); storeSetShadowMode(false); showToast('Main Portfolio: ON'); } }}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
-                            if (tab !== 'portfolio') { setTab('portfolio'); showToast('Main Portfolio: ON'); }
+                            if (tab !== 'portfolio') { setTab('portfolio'); storeSetShadowMode(false); showToast('Main Portfolio: ON'); }
                         }
                     }}
                     title="Main Portfolio"
@@ -659,11 +664,11 @@ export function PortfolioView() {
                     id="portfolioShadowPill"
                     role="button"
                     tabIndex={0}
-                    onClick={() => { if (tab !== 'shadow') { setTab('shadow'); showToast('Shadow Portfolio: ON'); } }}
+                    onClick={() => { if (tab !== 'shadow') { setTab('shadow'); storeSetShadowMode(true); showToast('◐︎ Shadow Portfolio Mode: ON ◐︎'); } }}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
-                            if (tab !== 'shadow') { setTab('shadow'); showToast('Shadow Portfolio: ON'); }
+                            if (tab !== 'shadow') { setTab('shadow'); storeSetShadowMode(true); showToast('◐︎ Shadow Portfolio Mode: ON ◐︎'); }
                         }
                     }}
                     title="Shadow Portfolio"
@@ -732,7 +737,17 @@ export function PortfolioView() {
             <div id="portfolioList" className="portfolio-list-container">
                 {visibleCats.length === 0 ? (
                     <div className="pf-empty">
-                        {search || activeCats.size > 0 ? 'No matches.' : 'Nothing here yet.'}
+                        {search || activeCats.size > 0 ? (
+                            'No matches.'
+                        ) : tab === 'shadow' ? (
+                            <>
+                                <span className="pf-empty-shadow-glyph">{'◐︎'}</span>
+                                You&rsquo;re now in Shadow Portfolio mode. Add artworks here
+                                via the artwork modal.
+                            </>
+                        ) : (
+                            'Nothing here yet.'
+                        )}
                     </div>
                 ) : (
                     visibleCats.map((cat) => {

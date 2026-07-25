@@ -94,6 +94,55 @@ export function shadowCostBasis(): number {
     return store.get().reduce((sum, p) => sum + (p.entry || 0), 0);
 }
 
+/* ── SHADOW MODE (Brendon, 2026-07-25) ───────────────────────────────────────
+   The door. Shadow mode is turned ON from a button inside the Portfolio's
+   Shadow tab, and while it's on the artwork modal's side tab becomes the ◐ —
+   so browsing IS paper-collecting. OFF by default, always; the same button
+   turns it back off, and that is the only way it ever switches.
+
+   Per-device (localStorage), not account state: it's a browsing mode you flip
+   for a session, not a preference that should follow you to another phone. */
+
+const MODE_KEY = 'pd_shadow_mode';
+export const SHADOW_MODE_EVENT = 'pd:shadow-mode-changed';
+
+let modeCache: boolean | null = null;
+
+export function isShadowMode(): boolean {
+    if (typeof window === 'undefined') return false;
+    if (modeCache === null) {
+        try {
+            modeCache = window.localStorage.getItem(MODE_KEY) === '1';
+        } catch {
+            modeCache = false;
+        }
+    }
+    return modeCache;
+}
+
+export function setShadowMode(on: boolean): void {
+    if (typeof window === 'undefined') return;
+    modeCache = on;
+    try {
+        if (on) window.localStorage.setItem(MODE_KEY, '1');
+        else window.localStorage.removeItem(MODE_KEY);
+    } catch {
+        /* private mode — the in-memory flag still drives this session */
+    }
+    window.dispatchEvent(new CustomEvent<boolean>(SHADOW_MODE_EVENT, { detail: on }));
+}
+
+export function subscribeShadowMode(cb: (on: boolean) => void): () => void {
+    if (typeof window === 'undefined') return () => {};
+    const handler = () => cb(isShadowMode());
+    window.addEventListener(SHADOW_MODE_EVENT, handler);
+    window.addEventListener('storage', handler);
+    return () => {
+        window.removeEventListener(SHADOW_MODE_EVENT, handler);
+        window.removeEventListener('storage', handler);
+    };
+}
+
 export function subscribeShadow(cb: (positions: readonly ShadowPosition[]) => void): () => void {
     return store.subscribe(cb);
 }

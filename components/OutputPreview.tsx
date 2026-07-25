@@ -110,6 +110,14 @@ import {
     type GrailPin,
 } from '../lib/pins/grailStore';
 import { toggleShowcase, getShowcaseItems, replaceInShowcase } from '../lib/pins/userShowcaseStore';
+import {
+    isShadowMode,
+    subscribeShadowMode,
+    getShadowPositions,
+    subscribeShadow,
+    toggleShadow as storeToggleShadow,
+    type ShadowPosition,
+} from '../lib/pins/shadowStore';
 import { getStarredKeys, toggleStar as storeToggleStar, subscribeStarred } from '../lib/pins/starStore';
 import { addOutputTodo, getTodos, subscribeTodos, type TodoVerb, type TodoPriority } from '../lib/todos/todoStore';
 import { getWishlistKeys, toggleWishlist as storeToggleWishlist, subscribeWishlist } from '../lib/pins/wishlistStore';
@@ -332,6 +340,14 @@ export default function OutputPreview() {
     const { showToast } = useToast();
     const { ethToFiat } = useFiat();
     const { openCalcSheet } = useCalcSheet();
+
+    /* SHADOW MODE — while it's on, the side tab becomes the ◐ and this modal
+       is how you paper-collect (Brendon, 2026-07-25). Turned on/off only from
+       the button in the Portfolio's Shadow tab. */
+    const [shadowMode, setShadowMode] = useState(false);
+    useEffect(() => { setShadowMode(isShadowMode()); return subscribeShadowMode(setShadowMode); }, []);
+    const [shadowPositions, setShadowPositions] = useState<readonly ShadowPosition[]>(() => getShadowPositions());
+    useEffect(() => { setShadowPositions(getShadowPositions()); return subscribeShadow(setShadowPositions); }, []);
     const { add: cartAdd, has: cartHas, items: cartItems } = useCart();
     const { openListSheet, openOfferSheet } = useMarketSheet();
     const [unlistBusy, setUnlistBusy] = useState(false);
@@ -972,7 +988,7 @@ export default function OutputPreview() {
     let hasCalc = false;
     let calcIcon = '\u0192';        // ƒ default
     let calcTitle = 'The Calc';
-    let calcMode: 'buy' | 'user-showcase' | 'offer' = 'buy';
+    let calcMode: 'buy' | 'user-showcase' | 'offer' | 'shadow' = 'buy';
     /* The MAIN button's real action, from LIVE ownership + listing (Brendon
        2026-06-15) — the viewer's own SIWE wallet via the market route, not the
        seeded meta flag. Fall back to meta only until the market read resolves
@@ -1012,7 +1028,30 @@ export default function OutputPreview() {
             calcTitle = 'Offer Calc';
             calcMode = 'offer';
         }
+
+        /* Shadow mode takes the side tab — but never on a piece you already
+           own. The Shadow is the position you DIDN'T take; there is nothing to
+           paper-trade about something already in your wallet, so an owned
+           piece keeps its ⑆ Add-to-Showcase tab. */
+        const ownsThisNow = market?.viewer?.isOwner ?? meta.isOwnedByBrendon;
+        if (shadowMode && !ownsThisNow) {
+            const already = id != null && shadowPositions.some((p) => p.slug === slug && p.id === id);
+            hasCalc = true;
+            calcIcon = '◐︎';        // ◐ the Shadow mark
+            calcTitle = already ? 'Stop shadowing this piece' : 'Shadow — track it as if owned';
+            calcMode = 'shadow';
+        }
     }
+
+    const shadowedHere = id != null && shadowPositions.some((p) => p.slug === slug && p.id === id);
+
+    /* The side tab's shadow action, shared by the portrait + landscape modals
+       so the two never drift. */
+    const onShadowTab = () => {
+        if (id == null) return;
+        const r = storeToggleShadow(slug, id);
+        showToast(r === 'opened' ? 'Shadow: TRACKING' : 'Shadow: DROPPED');
+    };
 
     /* Glyphs are written as Unicode literals + VS15 to dodge JSX entity
        parsing surprises and to keep iOS Safari from upgrading them to
@@ -1366,10 +1405,12 @@ export default function OutputPreview() {
                                 {actionLabel}
                             </button>
                             <button
-                                className={`modal-action-btn-calc${calcMode === 'user-showcase' ? ' is-showcase' : ''}`}
+                                className={`modal-action-btn-calc${calcMode === 'user-showcase' ? ' is-showcase' : ''}${calcMode === 'shadow' ? ' is-shadow' : ''}${calcMode === 'shadow' && shadowedHere ? ' active' : ''}`}
                                 id="mActionCalc"
                                 onClick={(e) => {
-                                    if (calcMode === 'user-showcase') {
+                                    if (calcMode === 'shadow') {
+                                        onShadowTab();
+                                    } else if (calcMode === 'user-showcase') {
                                         if (id != null) {
                                             const anchor = anchorFromEvent(e);
                                             const r = toggleShowcase(slug, id);
@@ -1553,9 +1594,11 @@ export default function OutputPreview() {
                             {actionLabel}
                         </button>
                         <button
-                            className={`modal-action-btn-calc${calcMode === 'user-showcase' ? ' is-showcase' : ''}`}
+                            className={`modal-action-btn-calc${calcMode === 'user-showcase' ? ' is-showcase' : ''}${calcMode === 'shadow' ? ' is-shadow' : ''}${calcMode === 'shadow' && shadowedHere ? ' active' : ''}`}
                             onClick={() => {
-                                if (calcMode === 'user-showcase') {
+                                if (calcMode === 'shadow') {
+                                    onShadowTab();
+                                } else if (calcMode === 'user-showcase') {
                                     showToast('Add to Showcase: COMING SOON');
                                 } else if (calcMode === 'offer') {
                                     showToast('Offer Calc: COMING SOON');

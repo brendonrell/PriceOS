@@ -565,6 +565,16 @@ body.modal-open { overflow: hidden; touch-action: none; }
 }
 .modal-action-btn-wrap.has-calc .modal-action-btn-calc { visibility: visible; }
 
+/* SHADOW MODE side tab (Brendon, 2026-07-25) — the ◐ takes the tab while the
+   mode is on. Full strength, never faded: it's a live control. Already
+   shadowing this piece = PD's own dotted ring, in --bg-color so it reads
+   against the filled tab. */
+.modal-action-btn-calc.is-shadow { opacity: 1; }
+.modal-action-btn-calc.is-shadow.active {
+    outline: 2px dotted var(--bg-color);
+    outline-offset: -5px;
+}
+
 .modal-action-btn-price {
     /* Price suffix inside the BUY/LIST button. Lighter weight than
        the Rubik Mono One verb so the action still leads the eye. */
@@ -718,6 +728,8 @@ body.modal-open { overflow: hidden; touch-action: none; }
     .modal-pill.modal-pill--grail { font-size: 21px; position: relative; top: 1px; }
     /* Showcase icon (⑆) in the calc tab beside LIST — one size larger (Brendon, 2026-06-24). */
     .modal-action-btn-calc.is-showcase { font-size: 21px; }
+    /* ◐ is a solid disc — one size larger so it reads like the ⑆ beside it. */
+    .modal-action-btn-calc.is-shadow { font-size: 21px; }
 }
 
 

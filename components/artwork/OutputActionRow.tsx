@@ -17,12 +17,11 @@ import { getGrails, subscribeGrails, togglePin as storeTogglePin, type GrailPin 
 import { addOutputTodo } from '../../lib/todos/todoStore';
 import { getStarredKeys, subscribeStarred, toggleStar as storeToggleStar } from '../../lib/pins/starStore';
 import { getWishlistKeys, subscribeWishlist, toggleWishlist as storeToggleWishlist } from '../../lib/pins/wishlistStore';
-import { getShadowPositions, subscribeShadow, toggleShadow as storeToggleShadow, type ShadowPosition } from '../../lib/pins/shadowStore';
 import { readNoteFor } from '../../lib/notes/tokenNotes';
 import { shareLink } from '../../lib/pwa/share';
 
 export default function OutputActionRow({
-    slug, id, listed, searchActive, onToggleSearch,
+    slug, id, listed, owned, searchActive, onToggleSearch,
 }: { slug: string; id: number; listed: boolean; owned: boolean; searchActive: boolean; onToggleSearch: () => void }) {
     const { showToast } = useToast();
     const { add: cartAdd, has: cartHas, items: cartItems } = useCart();
@@ -37,8 +36,6 @@ export default function OutputActionRow({
     useEffect(() => { setStarredKeys(getStarredKeys()); return subscribeStarred(setStarredKeys); }, []);
     const [wishlistKeys, setWishlistKeys] = useState<ReadonlySet<string>>(() => getWishlistKeys());
     useEffect(() => { setWishlistKeys(getWishlistKeys()); return subscribeWishlist(setWishlistKeys); }, []);
-    const [shadowPositions, setShadowPositions] = useState<readonly ShadowPosition[]>(() => getShadowPositions());
-    useEffect(() => { setShadowPositions(getShadowPositions()); return subscribeShadow(setShadowPositions); }, []);
 
     /* Does this Output already have a saved note? Same store + signal the gallery
        card reads, so the action-row button lights up when a note exists.
@@ -58,7 +55,6 @@ export default function OutputActionRow({
     const starred = starredKeys.has(`${slug}:${id}`);
     const wishlisted = wishlistKeys.has(`${slug}:${id}`);
     const pinned = pinnedSet.some((p) => p.kind === 'output' && p.slug === slug && p.id === id);
-    const shadowed = shadowPositions.some((p) => p.slug === slug && p.id === id);
     const hasNote = noteText.trim().length > 0;
 
     const stop = (e: React.MouseEvent) => e.stopPropagation();
@@ -79,11 +75,6 @@ export default function OutputActionRow({
         if (r === 'limit') { showToast('Grail Pin Limit: 10 MAX'); return; }
         showToast(r === 'unpinned' ? `${collName} #${id} DE-PINNED` : `${collName} #${id} GRAIL PINNED`);
     };
-    const onShadow = (e: React.MouseEvent) => {
-        stop(e);
-        const r = storeToggleShadow(slug, id);
-        showToast(r === 'opened' ? 'Shadow: TRACKING' : 'Shadow: DROPPED');
-    };
     const onCart = (e: React.MouseEvent) => {
         stop(e);
         if (cartHas(slug, id)) { showToast(`${collName} #${id}: ALREADY IN CART`); return; }
@@ -101,16 +92,25 @@ export default function OutputActionRow({
 
     /* Same square button as the colorway picker below (.pill-colorway): bordered
        box, glyph centred; the `active` state mirrors the colorway active fill. */
-    const Btn = ({ glyph, title, active, onClick, extra }: {
+    const Btn = ({ glyph, title, active, onClick, extra, dead }: {
         glyph: string; title: string; active?: boolean; onClick: (e: React.MouseEvent) => void; extra?: string;
+        /* DEAD = the verb doesn't apply to this piece for this viewer (today:
+           the acquisition verbs on a piece you already own). Half-opacity and
+           inert — the one place fading is allowed, because here the fade IS
+           the meaning: a disabled control (CLAUDE.md §Rule 2). */
+        dead?: boolean;
     }) => (
         <div
-            className={`pill-colorway output-act${active ? ' active' : ''}${extra ? ` ${extra}` : ''}`}
+            className={`pill-colorway output-act${active && !dead ? ' active' : ''}${dead ? ' output-act-dead' : ''}${extra ? ` ${extra}` : ''}`}
             role="button"
-            tabIndex={0}
+            tabIndex={dead ? -1 : 0}
+            aria-disabled={dead || undefined}
             title={title}
-            onClick={onClick}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(e as unknown as React.MouseEvent); } }}
+            onClick={dead ? (e) => e.stopPropagation() : onClick}
+            onKeyDown={(e) => {
+                if (dead) return;
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(e as unknown as React.MouseEvent); }
+            }}
         >
             <span>{glyph}</span>
         </div>
@@ -119,18 +119,36 @@ export default function OutputActionRow({
     return (
         <div className="output-action-row colorway-pills">
             <Btn glyph={starred ? '★︎' : '☆︎'} title="Star" active={starred} onClick={onStar} extra="output-act-star" />
-            <Btn glyph={'✛︎'} title={wishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'} active={wishlisted} onClick={onWishlist} />
+            <Btn
+                glyph={'✛︎'}
+                title={owned ? "You own this — there's nothing to wish for" : wishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                active={wishlisted}
+                dead={owned}
+                onClick={onWishlist}
+            />
             <Btn glyph={'◰︎'} title="Add to Album" onClick={(e) => { stop(e); showToast('Added to Album'); }} />
             <Btn glyph={'⊟︎'} title={hasNote ? 'Edit Note' : 'Add Note'} active={hasNote} extra="output-act-note" onClick={(e) => { stop(e); openOutputNoteEditor(id, undefined, slug); }} />
-            <Btn glyph={'❍︎'} title="Make To-Do" extra="output-act-todo" onClick={(e) => {
-                stop(e);
-                const r = addOutputTodo(slug, id, 'BUY');
-                showToast(r === 'exists' ? `To-Do: ALREADY ADDED` : `To-Do: ADDED`);
-            }} />
+            <Btn
+                glyph={'❍︎'}
+                title={owned ? 'You own this — a BUY to-do would be pointless' : 'Make To-Do'}
+                extra="output-act-todo"
+                dead={owned}
+                onClick={(e) => {
+                    stop(e);
+                    const r = addOutputTodo(slug, id, 'BUY');
+                    showToast(r === 'exists' ? `To-Do: ALREADY ADDED` : `To-Do: ADDED`);
+                }}
+            />
             <Btn glyph={'⟟︎'} title="Grail Pin" active={pinned} extra="output-act-grail" onClick={onGrail} />
-            <Btn glyph={'◐︎'} title={shadowed ? 'Stop shadowing' : 'Shadow — track it as if owned'} active={shadowed} onClick={onShadow} />
             <button type="button" className="pill-colorway output-share-btn" title="Share" onClick={onShare}>Share</button>
-            {listed && <Btn glyph={'▢︎'} title="Add to Cart" onClick={onCart} />}
+            {listed && (
+                <Btn
+                    glyph={'▢︎'}
+                    title={owned ? "You own this — it's your own listing" : 'Add to Cart'}
+                    dead={owned}
+                    onClick={onCart}
+                />
+            )}
             <div
                 className={`search-btn${searchActive ? ' active' : ''}`}
                 role="button"
