@@ -25,9 +25,12 @@ export const MORE_CFG: Record<string, { sorts: MoreSortKey[]; groups: string[] }
     outputs:     { sorts: ['recent', 'price', 'project'], groups: ['none', 'color', 'project', 'artist'] },
     traits:      { sorts: ['recent', 'price', 'project'], groups: ['none', 'project', 'artist'] },
     projects:    { sorts: ['recent', 'price', 'project'], groups: ['none', 'artist'] },
-    artists:     { sorts: ['recent', 'price', 'followers', 'project'], groups: ['none', 'color'] },
-    collectors:  { sorts: ['recent', 'price', 'followers', 'project'], groups: ['none', 'color'] },
-    soundtracks: { sorts: ['recent', 'price', 'project'], groups: ['none', 'artist', 'project'] },
+    /* No $PRICE on people or soundtracks — neither carries a price of its own
+       (Brendon, 2026-07-25). A transaction does, so it gains one. */
+    artists:     { sorts: ['recent', 'followers', 'project'], groups: ['none', 'color'] },
+    collectors:  { sorts: ['recent', 'followers', 'project'], groups: ['none', 'color'] },
+    soundtracks: { sorts: ['recent', 'project'],          groups: ['none', 'artist', 'project'] },
+    tx:          { sorts: ['recent', 'price', 'project'], groups: ['none'] },
     wishlist:    { sorts: ['recent', 'price', 'id', 'project'], groups: ['none'] },
 };
 
