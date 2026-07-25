@@ -8,7 +8,53 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0000. ✅ **2026-07-25 (LATEST SHIP) SHADOW PORTFOLIO · OWNERSHIP-AWARE VERBS ·
+00000. ✅ **2026-07-25 (LATEST SHIP) THE ATLAS CATCH-UP IS LIVE · DOCS
+   RESTRUCTURED · FAIR DRAW NAMED · REWIND POLISHED. All on `dev`, tree
+   clean.** ClickUp `86bb3f4jj`.
+
+   **① THE 60 ARE IN THE PUBLIC CATALOG — `#0202`–`#0261`.** `/docs/features`
+   had stopped at 201. Pure append; nothing renumbered. **Every entry was
+   verified against real code first** — that's how we caught that Contested
+   Mints has no trace in THIS repo (it's contract-side, in `pd-contracts`).
+   New section added: **PD Studio**.
+
+   **② "CONTESTED MINTS" IS NOW "FAIR DRAW"** — Brendon's name, chosen to
+   describe the mechanism rather than brand it. Renamed across the docs;
+   URLs are `/docs/fair-draw/...` (entry page: `how-a-drop-settles`).
+   ⚠️ **"Contested" SURVIVES where it's correct** — it's still the live STATE
+   a drop flips into. That's the mechanic, not the feature name. Don't purge it.
+
+   **③ NINE HIGHLIGHT SECTIONS WITH REAL URLs** (he cleared the URL moves —
+   pre-launch, nothing public): `/docs/cartography` · `/docs/rewind` ·
+   `/docs/composer` · `/docs/lists` · `/docs/dispatch` · `/docs/factions` ·
+   `/docs/exchange` · `/docs/takeover` · `/docs/command-stone`.
+   The Command Stone got its own page (The Shell points at it now).
+
+   **④ ⛔ A DEAD INTERNAL DOCS LINK NOW FAILS THE BUILD.** Lists nearly
+   shipped broken — its links were rewritten while the page hadn't moved, and
+   the build stayed green. **The manifest↔disk check only proves pages are
+   REACHABLE; it never checked that links resolve.** Both now run on every
+   build. If you move a docs page, the build will tell you what you broke.
+
+   **⑤ THE TIME MACHINE IS DOCUMENTED.** Shipped 2026-07-20 and was in NEITHER
+   the docs nor the catalog. It's the time cursor INSIDE Cartography (scrub
+   back, land sinks into the sea). Written into the Cartography page. **Stays
+   part of Cartography — no catalog number, Brendon's call.** Distinct from
+   The Rewind: the map's own history vs the whole platform docked at a day.
+
+   **⑥ REWIND POLISH** (his first time using it — he loves it): banner owns
+   the top edge · everything on one row · reads `PriceDay 43 · JUL 24 '26`
+   (the `'26` is LOCAL to this bar; the PriceDay surfaces keep the full year)
+   · RETURN TO NOW → the canonical **✕** · **tap the date for a picker**,
+   bounded Day 1 → today so iOS greys out off-record dates. The off-spine
+   empty states remain as a backstop.
+
+   **STILL OPEN:** `86bavmnzn` the Atlas numbering re-order — **the numbers
+   are now LIVE on the public page, so a re-order moves them in front of
+   users. Do it soon or not at all.** · `86bb3eg72` deep specs owed for the
+   sixty.
+
+0000. ✅ **2026-07-25 SHADOW PORTFOLIO · OWNERSHIP-AWARE VERBS ·
    THE EMOJI GLYPH PURGE. All on `dev`, tree clean.** ClickUp `86bb3exnv`.
 
    **⛔ FIRST: CLAUDE.md HAS A NEW TOP RULE — RULE #-2, ABOVE EVERYTHING.
