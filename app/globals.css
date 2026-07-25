@@ -6602,6 +6602,16 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     -webkit-tap-highlight-color: transparent;
 }
 .lists-head-total:active { opacity: 0.65; }
+/* A FOCUSED list (long-pressed) has the panel to itself. It wears PD's own
+   state mark — the dotted ring the profile-logo carousel uses for its active
+   tile — never an edge bar or a lozenge (§9 banned motifs). */
+.lists-section.is-focused .lists-head {
+    outline: 2px dotted var(--text-color);
+    outline-offset: -2px;
+    border-radius: 4px;
+    padding-left: 6px;
+    padding-right: 6px;
+}
 /* The owned ✓ on a member row — the picker's tick, at row scale. */
 .lists-owned {
     font-family: 'Courier New', Courier, monospace;

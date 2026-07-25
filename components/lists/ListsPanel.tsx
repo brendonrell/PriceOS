@@ -28,6 +28,7 @@
 
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useStarLongPress } from '../../lib/hooks/rowFlags';
 import { useModal } from '../../lib/state/ModalContext';
 import { useOutputMeta } from '../../lib/hooks/useOutputMeta';
 import { getProject, projectColorway, projectsByArtist } from '../../lib/project/registry';
@@ -79,11 +80,14 @@ function RemoveX({ onRemove }: { onRemove: () => void }) {
     );
 }
 
-/* ── One SHORT row: thumb · project #id · the one line that matters ── */
-function ListRow({ item, owned, onRemove }: {
+/* ── One SHORT row: thumb · project #id · the one line that matters ──
+   `full` is the FOCUSED reading of a list (long-pressed): the same row at the
+   Starred rows' own size, with the artist line the short row drops. */
+function ListRow({ item, owned, full, onRemove }: {
     item: Extract<ListMemberRef, { kind: 'output' }>;
     /** The viewer holds this piece — marked with the same ✓ the picker uses. */
     owned: boolean;
+    full: boolean;
     onRemove: () => void;
 }) {
     const { open } = useModal();
@@ -97,7 +101,7 @@ function ListRow({ item, owned, onRemove }: {
 
     return (
         <div
-            className="starred-row lists-row"
+            className={`starred-row${full ? '' : ' lists-row'}`}
             role="button"
             tabIndex={0}
             data-slug={item.slug}
@@ -107,7 +111,7 @@ function ListRow({ item, owned, onRemove }: {
                 if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open('output', item.id, item.slug); }
             }}
         >
-            <OutputThumb slug={item.slug} id={item.id} size={40} crop />
+            <OutputThumb slug={item.slug} id={item.id} size={full ? 64 : 40} crop />
             <div className="starred-row-meta">
                 <span className="starred-row-id is-split">
                     {owned && (
@@ -117,6 +121,11 @@ function ListRow({ item, owned, onRemove }: {
                     <span className="srl-suffix">#{item.id}</span>
                 </span>
                 <span className="starred-row-sub">{info}</span>
+                {full && (
+                    <span className="starred-row-sub srl-by">
+                        {project?.artistHandle ? `by: @${project.artistHandle}` : ' '}
+                    </span>
+                )}
             </div>
             <RemoveX onRemove={onRemove} />
         </div>
@@ -125,19 +134,20 @@ function ListRow({ item, owned, onRemove }: {
 
 /* ── The non-Output short rows — the Starred tile + glyph, shrunk ── */
 function TileRow({
-    glyph, glyphClass, color, title, info, onOpen, onRemove,
+    glyph, glyphClass, color, title, info, full, onOpen, onRemove,
 }: {
     glyph: string;
     glyphClass?: string;
     color?: string;
     title: React.ReactNode;
     info: React.ReactNode;
+    full: boolean;
     onOpen?: () => void;
     onRemove: () => void;
 }) {
     return (
         <div
-            className="starred-row lists-row"
+            className={`starred-row${full ? '' : ' lists-row'}`}
             role={onOpen ? 'button' : undefined}
             tabIndex={onOpen ? 0 : undefined}
             onClick={onOpen}
@@ -158,15 +168,17 @@ function TileRow({
 }
 
 /* One member of any kind — routed to the row that draws it. */
-function MemberRow({ member: m, viewerAddress, onRemove }: {
+function MemberRow({ member: m, viewerAddress, full, onRemove }: {
     member: ListMemberRef;
     viewerAddress?: string | null;
+    /** Focused reading — rows at the Starred rows' own size. */
+    full: boolean;
     onRemove: () => void;
 }) {
     const router = useRouter();
 
     if (m.kind === 'output') {
-        return <ListRow item={m} owned={isHeldBy(m.slug, m.id, viewerAddress)} onRemove={onRemove} />;
+        return <ListRow item={m} owned={isHeldBy(m.slug, m.id, viewerAddress)} full={full} onRemove={onRemove} />;
     }
 
     if (m.kind === 'project') {
@@ -178,6 +190,7 @@ function MemberRow({ member: m, viewerAddress, onRemove }: {
                 title={`@${m.slug}`}
                 info={<>Floor:<em>{stat.floor}</em></>}
                 onOpen={() => router.push('/art/' + m.slug)}
+                full={full}
                 onRemove={onRemove}
             />
         );
@@ -192,6 +205,7 @@ function MemberRow({ member: m, viewerAddress, onRemove }: {
                 color={projectColorway(m.slug) ?? undefined}
                 title={`@${m.slug} · ${m.category}: ${m.value}`}
                 info={<>Floor:<em>{stat.floor}</em></>}
+                full={full}
                 onRemove={onRemove}
             />
         );
@@ -211,6 +225,7 @@ function MemberRow({ member: m, viewerAddress, onRemove }: {
                     ? <>Floor:<em>{artistFloor(handle) ?? '—'}</em></>
                     : <>Top buy:<em>{collectorTopBuy(handle)}</em></>}
                 onOpen={() => router.push('/' + handle)}
+                full={full}
                 onRemove={onRemove}
             />
         );
@@ -225,6 +240,7 @@ function MemberRow({ member: m, viewerAddress, onRemove }: {
                 color={projectColorway(m.slug) ?? undefined}
                 title={`@${m.slug}`}
                 info={<>{`♫${VS15} `}<em>{label}</em></>}
+                full={full}
                 onRemove={onRemove}
             />
         );
@@ -242,19 +258,23 @@ function MemberRow({ member: m, viewerAddress, onRemove }: {
                 : undefined}
             title={<FeedActorLine fe={fe} />}
             info={`${fe.type} · ${fe.time}`}
+            full={full}
             onRemove={onRemove}
         />
     );
 }
 
 /* ── One collapsible list ── */
-function ListSection({ list, viewerAddress, totalMode, pricesVer, onCycleTotal, onToast, onAskDelete }: {
+function ListSection({ list, viewerAddress, totalMode, pricesVer, focused, onToggleFocus, onCycleTotal, onToast, onAskDelete }: {
     list: ListRecord;
     viewerAddress?: string | null;
     /** Which money the ◊ total counts — see ListsPanel. */
     totalMode: 'secondary' | 'primary';
     /** Bumps when the price/owner feed lands, so the totals recompute. */
     pricesVer: number;
+    /** This list has the panel to itself, its rows at full Starred size. */
+    focused: boolean;
+    onToggleFocus: () => void;
     onCycleTotal: () => void;
     onToast: (m: string) => void;
     onAskDelete: () => void;
@@ -262,6 +282,17 @@ function ListSection({ list, viewerAddress, totalMode, pricesVer, onCycleTotal, 
     /* Collapsed by default — the point of the panel is to scan your list NAMES
        first and open the one you want (Brendon: collapsible). */
     const [open, setOpen] = useState(false);
+    /* FOCUS — long-press the name to give this list the panel to itself and
+       read it at full Starred size; long-press the SAME name to let go
+       (Brendon, 2026-07-25: "longpress way out is always longpress again same
+       spot"). Reuses the app's own hold gesture, the one the feed's star rows
+       use, so a scroll-drag cancels it exactly as it does everywhere else. */
+    const lp = useStarLongPress(() => {
+        onToggleFocus();
+        return !focused;
+    });
+    /* Focusing a list opens it — a focused list you can't see is nothing. */
+    useEffect(() => { if (focused) setOpen(true); }, [focused]);
     /* Rename in place: the ✎ swaps the name for an input, Enter/blur commits,
        Esc backs out. Same pencil the budget pills use (Brendon, 2026-07-24). */
     const [editing, setEditing] = useState(false);
@@ -306,17 +337,25 @@ function ListSection({ list, viewerAddress, totalMode, pricesVer, onCycleTotal, 
     }, [items, viewerAddress, totalMode, pricesVer]);
 
     return (
-        <div className={`lists-section${open ? ' is-open' : ''}`}>
+        <div className={`lists-section${open ? ' is-open' : ''}${focused ? ' is-focused' : ''}`}>
             <div
                 className="lists-head"
                 role="button"
                 tabIndex={0}
                 aria-expanded={open}
-                onClick={() => { if (!editing) setOpen((v) => !v); }}
+                style={{ userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none', touchAction: 'pan-y' }}
+                /* The hold fired the focus toggle — swallow the tap it rides in
+                   on, or the header would also collapse (the same guard the
+                   Starred rows use). */
+                onClick={() => {
+                    if (lp.longFired.current) { lp.longFired.current = false; return; }
+                    if (!editing) setOpen((v) => !v);
+                }}
                 onKeyDown={(e) => {
                     if (editing) return;
                     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen((v) => !v); }
                 }}
+                {...(editing ? {} : lp.handlers)}
             >
                 <span className="lists-head-caret" aria-hidden="true">{open ? `▾${VS15}` : `▸${VS15}`}</span>
                 {editing ? (
@@ -395,6 +434,7 @@ function ListSection({ list, viewerAddress, totalMode, pricesVer, onCycleTotal, 
                                 <MemberRow
                                     member={it}
                                     viewerAddress={viewerAddress}
+                                    full={focused}
                                     onRemove={() => {
                                         removeFromList(list.id, [it.key]);
                                         onToast(`${list.name}: REMOVED`);
@@ -447,6 +487,20 @@ export default function ListsPanel({ onToast, dir = 'asc', viewerAddress }: {
     /* One mode for the whole panel, so two headers can never disagree about
        which money they're showing. Tapping any ◊ flips them all; the toast
        names the mode (§9 casing — the STATE screams). */
+    /* FOCUS — long-press a list's name and it takes the panel to itself, read
+       at full Starred size; long-press that same name to let go (Brendon,
+       2026-07-25). No new chrome: the way in and the way out are one gesture on
+       one spot, and the header never moves. */
+    const [focusedId, setFocusedId] = useState<string | null>(null);
+    const toggleFocus = (id: string, name: string) => {
+        setFocusedId((cur) => {
+            const next = cur === id ? null : id;
+            // §9 casing — the label stays normal case, the STATE screams.
+            onToast(next ? `${name}: FOCUSED` : `${name}: RELEASED`);
+            return next;
+        });
+    };
+
     const [totalMode, setTotalMode] = useState<'secondary' | 'primary'>('secondary');
     const cycleTotal = () => {
         setTotalMode((m) => {
@@ -499,8 +553,17 @@ export default function ListsPanel({ onToast, dir = 'asc', viewerAddress }: {
        ≡ LISTS again flips it, exactly like the sorts beside it. */
     const ordered = useMemo(() => {
         const sorted = [...lists].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
-        return dir === 'desc' ? sorted.reverse() : sorted;
-    }, [lists, dir]);
+        const byDir = dir === 'desc' ? sorted.reverse() : sorted;
+        /* A focused list has the panel to itself — the others stand down until
+           the same long-press releases it. */
+        const only = byDir.find((l) => l.id === focusedId);
+        return only ? [only] : byDir;
+    }, [lists, dir, focusedId]);
+
+    /* A list deleted while focused would strand the panel showing nothing. */
+    useEffect(() => {
+        if (focusedId && !lists.some((l) => l.id === focusedId)) setFocusedId(null);
+    }, [lists, focusedId]);
 
     if (ordered.length === 0) {
         return (
@@ -523,6 +586,8 @@ export default function ListsPanel({ onToast, dir = 'asc', viewerAddress }: {
                     viewerAddress={viewerAddress}
                     totalMode={totalMode}
                     pricesVer={pricesVer}
+                    focused={focusedId === l.id}
+                    onToggleFocus={() => toggleFocus(l.id, l.name)}
                     onCycleTotal={cycleTotal}
                     onToast={onToast}
                     onAskDelete={() => setConfirm(l)}

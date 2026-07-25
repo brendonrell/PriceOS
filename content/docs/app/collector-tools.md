@@ -127,7 +127,13 @@ It behaves like the sorts beside it: it opens your Lists, and tapping it again
 out — you land on your Starred rows under that sort.
 
 Inside, your Lists run **alphabetically**, each one **collapsed** — you scan the
-names first and open the one you want. The rows inside are deliberately short: a
+names first and open the one you want. **Long-press a list's name** and it takes
+the panel to itself, read at full size; long-press that same name to let it go.
+
+Each header carries what the list is worth to you: how many of its artworks you
+already own, and a **◊ total**. Tap the total to swap between what the listed
+pieces are asking right now and what they minted for. It counts artworks only —
+a trait or an artist has no single price. The rows inside are deliberately short: a
 small thumbnail (or the same tile the row wears in Starred), the thing, and the
 one fact that helps you choose — an artwork's price if it is listed, otherwise
 its Fate. Tapping a row goes where its Starred row goes; the ✕ drops it from that
