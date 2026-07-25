@@ -3,7 +3,7 @@ title: "The App — Settings & Display"
 description: "MY PD in full: the colorway picker and Haze, every display-mode pill on both rows, Setup Codes, the Default Sort row, Workspaces and Spaces, and the door to the Spell Book."
 category: "app"
 keywords: ["settings", "my pd", "colorways", "display modes", "setup code", "workspaces"]
-last_updated: "2026-07-20"
+last_updated: "2026-07-25"
 ---
 
 # The App — Settings & Display
@@ -50,7 +50,7 @@ Lenses on the rendering itself: stackable, persistent, instant, and each one toa
 | --- | --- | --- |
 | z | Zero Context | Removes explanatory context — the confident-collector setting |
 | ◎ | Price Lens | Floor-relative pricing: every price reads against its floor |
-| ◒ | Sentiment Weather | The crowd's mood as ambient weather |
+| ⛆ | Sentiment Weather | The crowd's mood as ambient weather — the eight skies are below |
 | ⟁ | Cartel | You + your mutuals = the Cabal: project pages count how many of your mutuals also hold the work |
 | ⍢ | ASCII-ID | Identity surfaces swap to their text-art form |
 | ⇠ | Back Button | A persistent back arrow under the menu, for collectors who navigate that way |
@@ -58,6 +58,23 @@ Lenses on the rendering itself: stackable, persistent, instant, and each one toa
 | ⍖ | Auto-Scroll | The interface browses for you |
 
 Modes compose — a Zen + Price Lens session is a different app from a Sticker + Ambient one, by design.
+
+## Sentiment Weather ⛆ — the eight skies
+
+With Sentiment Weather on, the interface carries a single mark for how the room is behaving right now. It is read from the live ledger — mints and sales are buying pressure, listings are supply — weighted so the last few hours matter most. Eight states, brightest to worst:
+
+| Sky | State | What the room is doing |
+| --- | --- | --- |
+| ☼ | Strong Bull | Buyers taking everything offered |
+| ✷ | Bull | Demand clearly leading supply |
+| ✵ | Lean Bull | Tilted to buyers, but not decisively |
+| ☽ | Neutral | Balanced — or too quiet to call, which reads the same and says so honestly |
+| ☁ | Lean Bear | Overcast: listings arriving faster than they clear |
+| ↯ | Bear | The strike — supply hitting hard |
+| ⛇ | Strong Bear | The freeze |
+| ☈ | Capitulation | The storm. Needs an extreme reading **and** real volume behind it — a quiet drift never reads as a crash |
+
+Every glyph in the ladder is drawn as text, never as a colour emoji, so the weather sits in the interface at the same weight as everything else PD draws.
 
 ## The Showcase pill
 
