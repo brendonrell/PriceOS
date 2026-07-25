@@ -651,11 +651,10 @@
 .ws-add.faded { opacity: 0.15; cursor: not-allowed; }
 
 
-/* Sentiment Weather pill icon — nudge up 0.5px on mobile only, where the
-   ◒ glyph sits a hair low against its neighbours (Brendon, 2026-06-26). */
-@media (max-width: 600px) {
-    #sn-sentiment .st-icon { transform: translateY(-0.5px); }
-}
+/* Sentiment Weather pill icon — the 0.5px mobile nudge here corrected ◒'s low
+   sit (Brendon, 2026-06-26). The pill wears ⛆ as of 2026-07-25, so the nudge
+   was measured against a glyph that is gone; dropped rather than carried over
+   onto a different shape. */
 
 /* Share Any View ↗ — rides the Setup Code row beside the ⧉ copy (Brendon
    2026-07-20: "beside or near setup codes"). Same treatment as the copy

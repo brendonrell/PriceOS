@@ -742,7 +742,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                         title="Sentiment Weather"
                         active={notifs.sentimentOn}
                         onClick={() => toggleWithToast('sentimentOn', 'Sentiment Weather')}
-                        icon={'◒\uFE0E'}
+                        icon={'⛆\uFE0E'}
                         iconStyle={{ fontSize: '14px', lineHeight: '1', margin: '0 1px' }}
                         style={{ padding: '0 5px', minWidth: 0, width: 'auto' }}
                     />

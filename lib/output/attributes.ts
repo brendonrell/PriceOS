@@ -199,7 +199,10 @@ export function buildOutputAttributes(input: AttrInput): AttrGroup[] {
     /* ── Almanac (mint moment) ────────────────────────────────────────── */
     if (mintMs != null) {
         const alm: AttrTile[] = [];
-        if (traits.PriceDay) alm.push({ glyph: '☀', label: 'PriceDay', value: traits.PriceDay.replace(/^PriceDay\s*/, '') });
+        /* ✶ is PriceDay's established mark (the search-answer precedent, GLYPHS
+           §12). Was ☀ — a glyph the glossary bans outright because iOS renders
+           it in colour no matter what we do to it. */
+        if (traits.PriceDay) alm.push({ glyph: '✶', label: 'PriceDay', value: traits.PriceDay.replace(/^PriceDay\s*/, '') });
         alm.push({ glyph: '✲', label: 'Weekday', value: birthWeekday(mintMs) });
         alm.push({ glyph: '◷', label: 'Born', value: birthTimeOfDay(mintMs) });
         alm.push({ glyph: '❅', label: 'Season', value: birthSeason(mintMs) });

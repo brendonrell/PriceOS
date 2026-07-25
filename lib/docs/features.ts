@@ -58,7 +58,7 @@ export const ATLAS: AtlasFeature[] = [
     F(12, 'NPC Cast', 'Global UI'),
     F(13, 'Price Ghost / Price Memory', 'Global UI', 'ᗝ'),
     F(14, 'RPC Ping', 'Global UI', '⌁'),
-    F(15, 'Sentiment Weather', 'Global UI', '◒'),
+    F(15, 'Sentiment Weather', 'Global UI', '⛆'),
     F(16, 'The Signal', 'Global UI'),
     F(17, 'Sigil', 'Global UI'),
     F(18, 'Stargazing', 'Global UI', '❇'),

@@ -262,6 +262,14 @@ These belong to a *user*, never to an action.
   it as a monochrome TEXT glyph, never a colour emoji. Many symbols carry an emoji
   presentation iOS applies even WITH VS-15 — ☘ (shamrock), ☀ ♥ ♦ ⚡ ⚙, dice ⚀–⚅,
   ✴, ❄, ⚛, etc. — BANNED here regardless. (Brendon, 2026-06-15.)
+  **⛔ THE SCREENING TEST, SHARPENED 2026-07-25 (Brendon caught this with a
+  screenshot).** Judging a glyph by whether its DEFAULT presentation is text is
+  WRONG and has shipped bad glyphs. `☁` and `☂` default to text on paper and
+  still render as a colour cloud and a purple umbrella in the real world. **The
+  only safe test: does the codepoint have an emoji mapping AT ALL?** If it
+  appears anywhere in Unicode's emoji data, it is banned — no exceptions, no
+  variation-selector rescue. Safe by this test and in use: ☼ ☈ ☽ ⛆ ✶ ✷ ✵ ☾ ⛇.
+  Banned by it: ☀ ☁ ☂ ⛅ ⛈ ☃ ☄ ☔.
   **⛔ NEVER ask Brendon to device-check a glyph (2026-07-20, raised in fury):
   he sees every glyph automatically by using the app — a wrong one surfaces
   itself. The gate is the screening above, not icon homework for the CEO.**
@@ -465,6 +473,8 @@ Wishlist rows (and the held-by / collected-by chips):
 
 | Concept | Glyph | Codepoint | Notes |
 |---|---|---|---|
+| **Sentiment Weather** (MY PD pill) | ⛆ | U+26C6 | Brendon's pick, 2026-07-25 — chosen from the feature's own weather set and the only member of it that survives the emoji test. Replaces ◒, which stays Gravity's (`lib/output/attributes.ts`) |
+| **PriceDay** (Output Almanac row) | ✶ | U+2736 | 2026-07-25 — was ☀, a glyph this file already banned. ✶ is PriceDay's established mark (the search-answer precedent, §12) |
 | **The Calc** | ƒ | U+0192 | ⚠ CATALOGUED LATE (2026-07-20): shipped on the artwork modal's calc tab (`OutputPreview`) since the Calc build but never entered here — found during the Stone stage-4 pass (the Grid-Presets lesson again: grep the codebase, not just this file). Now also titles the Stone's CALC widget |
 
 > **Stage 4 widget titles (2026-07-20) reuse canon only — nothing new:**
