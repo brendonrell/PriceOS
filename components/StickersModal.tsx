@@ -432,7 +432,15 @@ export default function StickersModal() {
                                     else { setAlbumOn(false); setMarketOn(true); showToast('Stickers: MARKETPLACE'); }
                                 }}
                             >
-                                {marketOn ? 'BACK TO STORE' : 'MARKETPLACE'}
+                                {/* Always MARKET — short, and it never renames
+                                    itself out from under you (Brendon,
+                                    2026-07-24, the same call he made for MY
+                                    BINDER). Being open is said by the filled
+                                    `is-on` cap; tapping it again crosses back
+                                    to the store. The old MARKETPLACE / BACK TO
+                                    STORE labels were also what pushed MY BINDER
+                                    off the right edge of an iPhone. */}
+                                MARKET
                             </button>
                             <button
                                 type="button"

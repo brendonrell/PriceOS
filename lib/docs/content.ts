@@ -116,6 +116,7 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
             'stickers/the-store',
             'stickers/the-marketplace',
             'stickers/the-binder-and-your-profile',
+            'stickers/the-sticker-channel',
         ],
     },
     {

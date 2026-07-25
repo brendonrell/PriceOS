@@ -228,6 +228,10 @@
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
+    /* Both caps hold one line and the pair is short enough to fit the narrowest
+       iPhone beside the screen — the row used to run MY BINDER off the right
+       edge (Brendon, 2026-07-24, screenshot). */
+    white-space: nowrap;
     border: none;
     border-left: 1px solid var(--border-color);
     background: none;
@@ -273,151 +277,41 @@
 }
 
 /* ════ THE LCD PANEL (Brendon, 2026-07-24) ═══════════════════════════════════
-   The marketplace line is now a handheld screen instead of one crawling
-   sentence. The row is deliberately TALLER than it was to hold it (his call).
-   The screen wears the classic DMG palette on purpose — that is the reference
-   he named — while the frame stays on PD's own tokens so it reads as a screen
-   INSET INTO the modal rather than a foreign block. */
+   The marketplace line is a handheld screen instead of one crawling sentence,
+   and the row is deliberately TALLER than it was to hold it (his call).
+
+   EVERYTHING INSIDE IS DRAWN, NOT STYLED. The panel is a canvas at two CSS
+   pixels to the screen pixel — bitmap font, bitmap cast, per-pixel transitions
+   (components/stickers/StickerLcd + lib/stickers/pixels). His note that killed
+   the first version: "this is normal stuff with a filter. I want like actual
+   awesome pixel graphics and animations." So there is nothing here to style:
+   no text, no dot-matrix overlay, no filter. Just the buffer.
+
+   IT WEARS THE THEME. Ink and screen are read live off --text-color /
+   --bg-color, so the panel repaints with every colorway — the DMG green it
+   launched in is gone (Brendon, 2026-07-24: "the same colour as the theme, not
+   actual gameboy colours"). */
 .ss-lcd {
     position: relative;
     flex: 1 1 auto;
     min-width: 0;
     height: 46px;
     overflow: hidden;
-    background: #9bbc0f;                 /* DMG screen */
-    color: #0f380f;                      /* DMG ink */
-    border-right: 1px solid var(--border-color);
-    display: flex;
-    align-items: center;
+    background: var(--bg-color);
     /* A screen sits BEHIND its bezel — the inner shadow is the glass lip, not
        the banned left-edge accent bar (it rings all four sides). */
-    box-shadow: inset 0 0 0 1px rgba(15, 56, 15, 0.35);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text-color) 45%, transparent);
+    border-right: 1px solid var(--border-color);
+    display: block;
 }
-/* The dot-matrix wash + a slow scanline drift: what makes it read as an LCD
-   rather than a green box. Painted OVER the content, never interactive. */
-.ss-lcd-grid {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 2;
-    background-image:
-        repeating-linear-gradient(0deg, rgba(15,56,15,0.16) 0 1px, transparent 1px 3px),
-        repeating-linear-gradient(90deg, rgba(15,56,15,0.10) 0 1px, transparent 1px 3px);
-    animation: ssLcdScan 7s linear infinite;
+/* The screen itself. Nearest-neighbour on every engine, so a screen pixel is a
+   hard 2×2 square and nothing anti-aliases the art back into mush. */
+.ss-lcd-canvas {
+    display: block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    -ms-interpolation-mode: nearest-neighbor;
 }
-@keyframes ssLcdScan {
-    0%   { background-position: 0 0, 0 0; }
-    100% { background-position: 0 3px, 3px 0; }
-}
-.ss-lcd-scene {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    min-width: 0;
-    padding: 0 12px;
-    box-sizing: border-box;
-    font-weight: bold;
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
-    animation-duration: 620ms;
-    animation-timing-function: steps(8, end);   /* the LCD's own coarse redraw */
-    animation-fill-mode: both;
-}
-/* The character. Bobs on the spot between entrances so the panel is never
-   completely still. */
-.ss-lcd-face {
-    flex: 0 0 auto;
-    font-size: 15px;
-    line-height: 1.2;
-    letter-spacing: 0.02em;
-    white-space: nowrap;
-    animation: ssLcdBob 1.6s steps(2, end) infinite;
-}
-@keyframes ssLcdBob {
-    0%, 100% { transform: translateY(0); }
-    50%      { transform: translateY(-1.5px); }
-}
-/* What they say. One line, clipped rather than wrapped — the panel is a screen,
-   not a paragraph — at a size that actually reads on an iPhone (Rule #2). */
-.ss-lcd-say {
-    flex: 1 1 auto;
-    min-width: 0;
-    font-size: 12px;
-    line-height: 1.4;
-    letter-spacing: 0.1em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: clip;
-}
-/* THE SLATE — the title card that opens each run ("EP.142 · ONE SHORT"). It
-   wears the ink as a filled bar so the show announces itself and today's
-   episode is unmistakably not yesterday's. */
-.ss-lcd-scene.is-slate { background: rgba(15, 56, 15, 0.10); }
-.ss-lcd-scene.is-slate .ss-lcd-say { letter-spacing: 0.16em; }
-.ss-lcd-scene.is-slate .ss-lcd-face { animation: ssLcdBlink 1s steps(2, end) infinite; }
-
-/* AN AD reads differently from the programme — the ink inverts, the way a
-   commercial break used to announce itself before you'd read a word of it. */
-.ss-lcd-scene.is-ad { background: rgba(15, 56, 15, 0.88); color: #9bbc0f; }
-.ss-lcd-scene.is-ad .ss-lcd-face { animation: none; }
-
-/* Reduced motion: the cast still rotates, it just cuts between scenes. */
-.ss-lcd-scene.is-still,
-.ss-lcd-scene.is-still .ss-lcd-face { animation: none; }
-@media (prefers-reduced-motion: reduce) {
-    .ss-lcd-scene, .ss-lcd-face, .ss-lcd-grid { animation: none !important; }
-}
-
-/* ── The 22 transitions ─────────────────────────────────────────────────────
-   All transform / opacity / clip-path, so every one runs on the compositor. */
-.ss-lcd--wipe    { animation-name: ssLcdWipe; }
-.ss-lcd--blink   { animation-name: ssLcdBlink; }
-.ss-lcd--slide   { animation-name: ssLcdSlide; }
-.ss-lcd--hop     { animation-name: ssLcdHop; }
-.ss-lcd--curtain { animation-name: ssLcdCurtain; }
-.ss-lcd--shutter { animation-name: ssLcdShutter; }
-.ss-lcd--typeout { animation-name: ssLcdTypeout; }
-.ss-lcd--dropin  { animation-name: ssLcdDropin; }
-.ss-lcd--flip    { animation-name: ssLcdFlip; }
-.ss-lcd--squash  { animation-name: ssLcdSquash; }
-.ss-lcd--zoom    { animation-name: ssLcdZoom; }
-.ss-lcd--iris    { animation-name: ssLcdIris; }
-.ss-lcd--pixel   { animation-name: ssLcdPixel; }
-.ss-lcd--scan    { animation-name: ssLcdScanIn; }
-.ss-lcd--rollup  { animation-name: ssLcdRollup; }
-.ss-lcd--glitch  { animation-name: ssLcdGlitch; }
-.ss-lcd--bars    { animation-name: ssLcdBars; }
-.ss-lcd--sweep   { animation-name: ssLcdSweep; }
-.ss-lcd--bounce  { animation-name: ssLcdBounce; }
-.ss-lcd--spin    { animation-name: ssLcdSpin; }
-.ss-lcd--shrink  { animation-name: ssLcdShrink; }
-.ss-lcd--stagger { animation-name: ssLcdStagger; }
-
-@keyframes ssLcdWipe    { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
-@keyframes ssLcdBlink   { 0%,40% { opacity: 0; } 50% { opacity: 1; } 60% { opacity: 0; } 100% { opacity: 1; } }
-@keyframes ssLcdSlide   { from { transform: translateX(102%); } to { transform: translateX(0); } }
-@keyframes ssLcdHop     { 0% { transform: translateY(-140%); } 60% { transform: translateY(8%); } 100% { transform: translateY(0); } }
-@keyframes ssLcdCurtain { from { clip-path: inset(0 50% 0 50%); } to { clip-path: inset(0 0 0 0); } }
-@keyframes ssLcdShutter { from { clip-path: inset(50% 0 50% 0); } to { clip-path: inset(0 0 0 0); } }
-@keyframes ssLcdTypeout { from { clip-path: inset(0 100% 0 0); opacity: 1; } to { clip-path: inset(0 0 0 0); } }
-@keyframes ssLcdDropin  { 0% { transform: translateY(-100%) scaleY(1.3); } 70% { transform: translateY(0) scaleY(0.85); } 100% { transform: translateY(0) scaleY(1); } }
-@keyframes ssLcdFlip    { from { transform: perspective(220px) rotateX(90deg); } to { transform: perspective(220px) rotateX(0); } }
-@keyframes ssLcdSquash  { 0% { transform: scaleY(0.05); } 65% { transform: scaleY(1.15); } 100% { transform: scaleY(1); } }
-@keyframes ssLcdZoom    { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-@keyframes ssLcdIris    { from { clip-path: circle(0% at 12% 50%); } to { clip-path: circle(140% at 12% 50%); } }
-@keyframes ssLcdPixel   { 0% { opacity: 0; transform: scale(1.25); } 50% { opacity: 0.6; transform: scale(0.94); } 100% { opacity: 1; transform: scale(1); } }
-@keyframes ssLcdScanIn  { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
-@keyframes ssLcdRollup  { from { transform: translateY(100%); } to { transform: translateY(0); } }
-@keyframes ssLcdGlitch  { 0% { transform: translateX(-6px); opacity: 0.3; } 25% { transform: translateX(5px); } 50% { transform: translateX(-3px); opacity: 1; } 75% { transform: translateX(2px); } 100% { transform: translateX(0); } }
-@keyframes ssLcdBars    { 0% { opacity: 0; clip-path: inset(0 0 0 0); } 30% { opacity: 1; clip-path: inset(30% 0 30% 0); } 100% { opacity: 1; clip-path: inset(0 0 0 0); } }
-@keyframes ssLcdSweep   { from { transform: translateX(-102%); } to { transform: translateX(0); } }
-@keyframes ssLcdBounce  { 0% { transform: translateY(120%); } 55% { transform: translateY(-12%); } 80% { transform: translateY(5%); } 100% { transform: translateY(0); } }
-@keyframes ssLcdSpin    { from { transform: rotate(-12deg) scale(0.5); opacity: 0; } to { transform: rotate(0) scale(1); opacity: 1; } }
-@keyframes ssLcdShrink  { from { transform: scale(1.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-@keyframes ssLcdStagger { 0% { transform: translateX(40%); opacity: 0; } 45% { transform: translateX(-4%); opacity: 1; } 100% { transform: translateX(0); } }
 
 /* The counter-direction pair of ssTicker — same distance, opposite way. */
 @keyframes ssTickerRev {
