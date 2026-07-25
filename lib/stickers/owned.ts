@@ -25,6 +25,8 @@ const OFF_SHEETS_KEY = STATE_CACHE_KEYS.stickerOffSheets;
 const OFF_IDS_KEY = STATE_CACHE_KEYS.stickerOffIds;
 const PLACEMENTS_KEY = STATE_CACHE_KEYS.stickerPlacements;
 const PLACE_ASPECT_KEY = STATE_CACHE_KEYS.stickerPlaceAspect;
+const SPREADS_KEY = STATE_CACHE_KEYS.stickerSpreads;
+const LOCK_KEY = STATE_CACHE_KEYS.stickerColourLock;
 const EVT = 'pd:stickers-changed';
 
 function readArr(key: string): string[] {
@@ -69,8 +71,99 @@ export function pushStickerState() {
             offIds: readArr(OFF_IDS_KEY),
             placements: readJson(PLACEMENTS_KEY, {} as Record<string, { x: number; y: number; z: number; r?: number; sc?: number }>),
             ...(Number.isFinite(aspectRaw) && aspectRaw > 0 ? { placementAspect: aspectRaw } : {}),
+            spreads: readJson(SPREADS_KEY, [] as unknown[]),
+            colourLock: readJson(LOCK_KEY, null as Record<string, unknown> | null) ?? undefined,
         },
     });
+}
+
+/* ── THE ONE-TAP COLOUR LOCK ───────────────────────────────────────────────
+ * "Make my stickers Hothurt" (Brendon, 2026-07-24). A sticker's colour IS its
+ * identity — each hue is its own sticker id and that id is what you own — so
+ * this CANNOT and DOES NOT repaint anything. It narrows your profile to the
+ * stickers you ALREADY OWN in that colour, and the manager quietly shows what
+ * you're missing underneath. No paywall; the completionist does the selling.
+ *
+ * It is reversible by construction: applying stores the exact active-state it
+ * was applied over, so turning it off puts every sticker back where you had it
+ * — and the record rides the account, so the way out survives closing the
+ * manager, reloading, or picking the app up on another device (Rule #-0.4: a
+ * confirmed way on AND a confirmed way off, or it doesn't get built).
+ */
+
+type RawPlacements = Record<string, { x: number; y: number; z: number; r?: number; sc?: number }>;
+
+export interface ColourLock {
+    /** Which filter is on — the swatch hex, family or brand key. */
+    key: string;
+    /** What to call it in the pill + the toast. */
+    label: string;
+    /** The off-stickers list as it stood BEFORE the lock. The way back. */
+    prevOffIds: string[];
+    /** And the hand-placed composition as it stood before it, for the same
+     *  reason — see the note on pruning below. */
+    prevPlacements?: RawPlacements;
+}
+
+/* Raw placement passthrough — same reason the reads above are raw: the
+   placement store imports pushStickerState from here, so importing it back
+   would close a cycle. Writes fire the same change event + account push. */
+function writePlacementsRaw(map: RawPlacements) {
+    try {
+        if (Object.keys(map).length === 0) window.localStorage.removeItem(PLACEMENTS_KEY);
+        else window.localStorage.setItem(PLACEMENTS_KEY, JSON.stringify(map));
+    } catch { /* quota */ }
+}
+
+export function getColourLock(): ColourLock | null {
+    const raw = readJson(LOCK_KEY, null as unknown);
+    if (!raw || typeof raw !== 'object') return null;
+    const r = raw as Partial<ColourLock>;
+    if (typeof r.key !== 'string' || typeof r.label !== 'string') return null;
+    return {
+        key: r.key,
+        label: r.label,
+        prevOffIds: Array.isArray(r.prevOffIds) ? r.prevOffIds.filter((x): x is string => typeof x === 'string') : [],
+        prevPlacements: (r.prevPlacements && typeof r.prevPlacements === 'object' && !Array.isArray(r.prevPlacements))
+            ? r.prevPlacements as RawPlacements : undefined,
+    };
+}
+
+/**
+ * Narrow the profile to `keepIds` — every OTHER owned sticker switches off.
+ * Sheets are left exactly as they are: this is a colour lens over what you
+ * own, not a re-run of your sheet choices.
+ */
+export function applyColourLock(key: string, label: string, keepIds: ReadonlyArray<string>, ownedIds: ReadonlyArray<string>) {
+    const existing = getColourLock();
+    /* Re-locking onto a different colour keeps the ORIGINAL way back, so two
+       taps in a row can't strand you in a state you never chose. */
+    const prevOffIds = existing ? existing.prevOffIds : readArr(OFF_IDS_KEY);
+    const prevPlacements = existing ? existing.prevPlacements : readJson(PLACEMENTS_KEY, {} as RawPlacements);
+    const keep = new Set(keepIds);
+    const nextOff = ownedIds.filter((id) => !keep.has(id));
+    /* A HAND-PLACED hero draws from the locked composition, not from the active
+       set — so switching stickers off would visibly do nothing on exactly the
+       profiles people care most about. Prune the composition to the kept
+       stickers too, keeping the original here so turning the lock off restores
+       every spot untouched. Contained to this feature: nothing else about how a
+       locked composition behaves changes. */
+    const pruned: RawPlacements = {};
+    for (const [id, p] of Object.entries(prevPlacements ?? {})) if (keep.has(id)) pruned[id] = p;
+    try {
+        window.localStorage.setItem(LOCK_KEY, JSON.stringify({ key, label, prevOffIds, prevPlacements: prevPlacements ?? {} }));
+    } catch { /* quota */ }
+    writePlacementsRaw(pruned);
+    writeArr(OFF_IDS_KEY, nextOff);
+}
+
+/** Turn the lock off — every sticker goes back exactly where it was, spots
+ *  included. */
+export function clearColourLock() {
+    const lock = getColourLock();
+    try { window.localStorage.removeItem(LOCK_KEY); } catch { /* ignore */ }
+    if (lock) writePlacementsRaw(lock.prevPlacements ?? {});
+    writeArr(OFF_IDS_KEY, lock ? lock.prevOffIds : readArr(OFF_IDS_KEY));
 }
 
 /* One-time hard reset — wipe every owned + active-state key on this device, once.

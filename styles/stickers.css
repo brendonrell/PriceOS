@@ -1117,6 +1117,104 @@ body.sticker-mode .hero-stickers { display: none; }
     opacity: 0.5;
     padding: 4px 0;
 }
+
+/* ════ THE BRAND COLOURS, BY NAME (Brendon, 2026-07-24) ══════════════════════
+   Hothurt and Attention already existed in the catalog as the colours every
+   "Classic" sticker wears; these expose them as pickable options. They sit with
+   the other text filters and carry a dot of the real colour, because the two
+   house colours should be findable by name AND recognisable on sight — by
+   nearest-swatch alone Hothurt files under "dark pink" and vanishes. */
+.smgr-hue-preset.is-brand::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    margin-right: 4px;
+    background: var(--smgr-brand, var(--text-color));
+    border: 1px solid color-mix(in srgb, var(--text-color) 40%, transparent);
+}
+
+/* ════ WEAR — the one-tap colour (Brendon, 2026-07-24) ═══════════════════════
+   Full-strength house chrome, the STICKERS-button treatment: solid fill,
+   --text-color border AND text, bold, 12px (Rule #2 — no tiny, skinny, faint
+   chrome on a surface every colorway repaints). Lit = the active-pill fill, so
+   "my profile is narrowed right now" is unmissable and the way out is the same
+   button that put it on. */
+.smgr-wear {
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    margin-left: 6px;
+    padding: 0 8px;
+    border-radius: 4px;
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+.smgr-wear.on {
+    background: var(--stat-active-bg);
+    color: var(--stat-active-text);
+    border-color: var(--stat-active-bg);
+}
+
+/* WHAT YOU'RE MISSING — the quiet half. The count line is full strength (it is
+   information, not decoration); the tiles are the only deliberately faded thing
+   here, because the fade IS the meaning: you don't own these yet. */
+.smgr-missing {
+    padding-top: 8px;
+    margin-top: 6px;
+    border-top: 1px solid color-mix(in srgb, var(--text-color) 25%, transparent);
+}
+.smgr-missing-line {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.08em;
+    color: var(--text-color);
+    padding-bottom: 6px;
+}
+.smgr-tile--ghost { opacity: 0.42; }
+.smgr-tile--ghost:active { opacity: 0.75; }
+.smgr-missing-more {
+    display: inline-flex;
+    align-items: center;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.06em;
+    color: var(--text-color);
+    padding: 0 4px;
+}
+
+/* ════ SPREADS — saved, named arrangements (Brendon, 2026-07-24) ═════════════
+   The gallery's saved-views pills, reused verbatim (Rule #0). Only two things
+   are added: the ✎ that renames in place (the budget pills' pencil, same as
+   Lists) and a rename field sized to the row. */
+.smgr-spreads-row .ambient-pop-chips { align-items: center; }
+.smgr-spread-edit {
+    flex-shrink: 0;
+    cursor: pointer;
+    /* A control you're meant to hit — full strength and finger-sized, not a
+       hairline (Rule #2). */
+    font-size: 13px;
+    line-height: 1;
+    padding: 2px 0 2px 3px;
+    opacity: 0.85;
+}
+@media (hover: hover) { .smgr-spread-edit:hover { opacity: 1; } }
+.smgr-spread-input {
+    height: 26px;
+    width: 11ch;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 0 8px;
+    border-radius: 4px;
+}
 /* The Sticker Setup Code carries the seed now (19 chars, vs Ambient's 9) — the
    shared code field widens inside the sticker manager so the whole code shows. */
 .sticker-pop .ambient-code-input,

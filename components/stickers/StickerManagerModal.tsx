@@ -22,11 +22,18 @@ import { createPortal } from 'react-dom';
 import { lockBodyScroll, unlockBodyScroll } from '../../lib/state/bodyScrollLock';
 import { useModal } from '../../lib/state/ModalContext';
 import { useToast } from '../../lib/state/ToastContext';
-import { SHEETS, type Sticker } from '../../lib/stickers/catalog';
+import {
+    SHEETS, STICKERS, BRAND_COLOURS, stickerFill, type Sticker,
+} from '../../lib/stickers/catalog';
 import {
     computeOwnedFor, getOffSheets, getOffIds, isActive,
     toggleSheetActive, toggleStickerActive,
+    getColourLock, applyColourLock, clearColourLock, type ColourLock,
 } from '../../lib/stickers/owned';
+import {
+    useSpreads, saveSpread, renameSpread, deleteSpread, applySpread,
+    SPREAD_NAME_MAX, MAX_SPREADS, type Spread,
+} from '../../lib/stickers/spreads';
 import {
     getArrange, getTilt, getExpand, getRows, getAlign, getFlip, getDensity, getBorder, getSeed,
     setArrange, setTilt, setExpand, setRows, setAlign, setFlip, setDensity, setBorder, setSeed, shuffleSeed,
@@ -42,6 +49,9 @@ import { StickerArt } from './StickerArt';
 
 const VS15 = '︎';
 const PAGE_KEY = 'pd_sticker_mgr_page';
+/** Slot marks for the Spreads row — the same numbering the gallery's saved
+ *  views use, so a saved thing looks like a saved thing everywhere. */
+const SLOT_GLYPHS = ['①', '②', '③'] as const;
 
 /* Colour filter — tap a swatch to show only stickers of that detected dominant
    colour. Expanded to 11 colour families × light/dark (Brendon, 2026-06-26): the
@@ -125,13 +135,28 @@ function swatchForHex(hex: string): string {
    CMYK maps to PD's palette per Brendon: cyan = light blue, magenta = dark
    (deep) pink, yellow = either yellow, black = either black. PRIMARY is the
    painter's red/yellow/blue triad. "Match" (added per-render) leads them. */
-interface Preset { key: string; label: string; hexes: string[] }
+interface Preset {
+    key: string;
+    label: string;
+    hexes: string[];
+    /* BRAND presets match a sticker's own fill EXACTLY rather than the nearest
+       swatch (Brendon, 2026-07-24). Without this the two house colours are
+       unfindable by name: Hothurt lands in the "dark pink" bucket and Attention
+       in "light yellow", so nothing tells you where the Classics went. */
+    exact?: string[];
+}
+const BRAND_PRESETS: Preset[] = BRAND_COLOURS.map((b) => ({
+    key: `BRAND:${b.key}`, label: b.name, hexes: [], exact: [b.hex],
+}));
 const STATIC_PRESETS: Preset[] = [
     { key: 'RGB',     label: 'RGB',     hexes: ['#FF6B6B', '#A30D2D', '#7BE37B', '#1F7A33', '#6FB7FF', '#163E8F'] },
     { key: 'CMYK',    label: 'CMYK',    hexes: ['#6FB7FF', '#C43E86', '#FFEB5C', '#C9A227', '#555555', '#0A0A0A'] },
     { key: 'PRIMARY', label: 'PR', hexes: ['#FF6B6B', '#A30D2D', '#FFEB5C', '#C9A227', '#6FB7FF', '#163E8F'] },
 ];
-const PAGES = 4;
+/** How many not-yet-owned stickers the "what you're missing" strip shows before
+ *  the count line does the talking. A wide hue can match hundreds. */
+const MISSING_SHOWN = 12;
+const PAGES = 5;
 
 export function StickerManagerModal({
     open, onClose, handle, previewNode,
@@ -166,6 +191,14 @@ export function StickerManagerModal({
        selects the WHOLE hue family (its light + dark), held in `famHexes`. */
     const [hueFilter, setHueFilter] = useState<string | null>(null);
     const [famHexes, setFamHexes] = useState<string[] | null>(null);
+    /* The one-tap colour lock, if the profile is currently narrowed to one.
+       Account-backed, so the way back out survives closing the menu. */
+    const [lock, setLock] = useState<ColourLock | null>(null);
+    /* Spreads — saved arrangements. Live, so a save shows instantly. */
+    const spreads = useSpreads();
+    const [renaming, setRenaming] = useState<string | null>(null);
+    const [renameText, setRenameText] = useState('');
+    const [confirmDelete, setConfirmDelete] = useState<Spread | null>(null);
 
     const pagerRef = useRef<HTMLDivElement | null>(null);
     const plusBodyRef = useRef<HTMLDivElement | null>(null);
@@ -203,6 +236,9 @@ export function StickerManagerModal({
         setSeedV(getSeed());
         setHueFilter(null);
         setFamHexes(null);
+        setLock(getColourLock());
+        setRenaming(null);
+        setConfirmDelete(null);
     }, [open, handle]);
 
     // Restore the last-open swipe page so reopening doesn't snap back to page 1.
@@ -273,7 +309,11 @@ export function StickerManagerModal({
        stable whether the menu is open or shut. */
     const { hex: profileHex } = useProfileHex();
     const PRESETS = useMemo<Preset[]>(
-        () => [{ key: 'MATCH', label: 'Match', hexes: [swatchForHex(profileHex)] }, ...STATIC_PRESETS],
+        () => [
+            { key: 'MATCH', label: 'Match', hexes: [swatchForHex(profileHex)] },
+            ...BRAND_PRESETS,
+            ...STATIC_PRESETS,
+        ],
         [profileHex],
     );
 
@@ -417,8 +457,56 @@ export function StickerManagerModal({
     const matchesHue = (s: Sticker) => {
         if (famHexes) return famHexes.includes(stickerSwatch(s));
         if (!hueFilter) return true;
+        if (activePreset?.exact) {
+            const fill = stickerFill(s);
+            return fill != null && activePreset.exact.some((h) => h.toLowerCase() === fill.toLowerCase());
+        }
         const sw = stickerSwatch(s);
         return activePreset ? activePreset.hexes.includes(sw) : sw === hueFilter;
+    };
+
+    /* ── THE ONE-TAP COLOUR (Brendon, 2026-07-24) ──────────────────────────
+       "Make my stickers Hothurt" narrows the profile to the ones you ALREADY
+       OWN in that colour — it cannot repaint anything, because a sticker's
+       colour IS its identity and that identity is what you own. What you're
+       missing shows underneath, unowned and unpushy; the completionist does
+       the selling, and there is no paywall anywhere in it. */
+    const filterOn = famHexes !== null || hueFilter !== null;
+    const filterKey = famHexes ? `fam:${famHexes.join(',')}` : hueFilter ?? '';
+    const filterLabel = (() => {
+        if (famHexes) {
+            const i = HUE_SWATCHES.findIndex((sw) => sw.hex === famHexes[0]);
+            return i >= 0 ? (HUE_FAMILY_NAMES[Math.floor(i / 2)] ?? 'COLOUR') : 'COLOUR';
+        }
+        if (!hueFilter) return '';
+        if (activePreset) return activePreset.label.toUpperCase();
+        const i = HUE_SWATCHES.findIndex((sw) => sw.hex === hueFilter);
+        return i >= 0 ? `${i % 2 === 0 ? 'LIGHT' : 'DARK'} ${HUE_FAMILY_NAMES[Math.floor(i / 2)] ?? ''}`.trim() : 'COLOUR';
+    })();
+    /* Everything in the whole catalog wearing this colour, and the split
+       between what you hold and what you don't. */
+    const inColour = filterOn ? STICKERS.filter(matchesHue) : [];
+    const ownedIdSet = new Set(owned.map((s) => s.id));
+    const haveInColour = inColour.filter((s) => ownedIdSet.has(s.id));
+    const missingInColour = inColour.filter((s) => !ownedIdSet.has(s.id));
+    const toggleWear = () => {
+        if (lock) {
+            /* Tapping the lit pill always UNDOES — the way out is the same
+               button as the way in (Rule #-0.4). */
+            clearColourLock();
+            setLock(null);
+            setOffIds(new Set(getOffIds()));
+            showToast(`Stickers: ALL BACK`);
+            return;
+        }
+        if (!filterOn || haveInColour.length === 0) {
+            showToast(`Stickers: NONE IN ${filterLabel || 'THIS COLOUR'}`);
+            return;
+        }
+        applyColourLock(filterKey, filterLabel, haveInColour.map((s) => s.id), owned.map((s) => s.id));
+        setLock(getColourLock());
+        setOffIds(new Set(getOffIds()));
+        showToast(`Profile: ${filterLabel}`);
     };
     /* Long-press a swatch → its whole hue family (the light + dark pair, which
        sit adjacent in HUE_SWATCHES). A normal tap stays single-colour. A toast
@@ -484,14 +572,30 @@ export function StickerManagerModal({
                     <button
                         key={p.key}
                         type="button"
-                        className={`smgr-hue-preset${hueFilter === p.key ? ' on' : ''}`}
+                        className={`smgr-hue-preset${p.exact ? ' is-brand' : ''}${hueFilter === p.key ? ' on' : ''}`}
                         title={hueFilter === p.key ? 'Show all colours' : `Filter to ${p.label}`}
                         aria-pressed={hueFilter === p.key}
+                        /* A brand pill wears its own colour as a dot, so the
+                           house colours are pickable BY NAME and by sight. */
+                        style={p.exact ? ({ ['--smgr-brand' as string]: p.exact[0] } as React.CSSProperties) : undefined}
                         onClick={() => { setFamHexes(null); setHueFilter((prev) => (prev === p.key ? null : p.key)); }}
                     >
                         {p.label}
                     </button>
                 ))}
+                {(filterOn || lock) && (
+                    <button
+                        type="button"
+                        className={`smgr-wear${lock ? ' on' : ''}`}
+                        aria-pressed={lock !== null}
+                        title={lock
+                            ? `Your profile is showing only ${lock.label} — tap to put every sticker back`
+                            : `Show only the ${filterLabel} stickers you own on your profile`}
+                        onClick={toggleWear}
+                    >
+                        {lock ? `WEARING · ${lock.label}` : 'WEAR'}
+                    </button>
+                )}
             </div>
             {ownedSheets.map((sh) => {
                 const tiles = owned.filter((s) => s.sheet === sh.id && matchesHue(s));
@@ -518,8 +622,149 @@ export function StickerManagerModal({
             {hueFilter && owned.every((s) => !matchesHue(s)) && (
                 <div className="smgr-hue-empty">No stickers in this colour.</div>
             )}
+            {/* WHAT YOU'RE MISSING — the quiet half of the one-tap colour. It
+                states the split and shows the gaps as unowned art; tapping one
+                opens the shelf. No price, no push, no paywall (Brendon,
+                2026-07-24: "the completionist hook does the selling"). */}
+            {filterOn && missingInColour.length > 0 && (
+                <div className="smgr-missing">
+                    <div className="smgr-missing-line">
+                        YOU HAVE {haveInColour.length} OF {inColour.length} · {filterLabel}
+                    </div>
+                    <div className="smgr-grid smgr-grid--ghost">
+                        {missingInColour.slice(0, MISSING_SHOWN).map((s) => (
+                            <button
+                                key={s.id}
+                                type="button"
+                                className="smgr-tile smgr-tile--ghost"
+                                title={`${s.name} — not yours yet`}
+                                onClick={() => { onClose(); openStore('stickers'); }}
+                            >
+                                <StickerArt sticker={s} size={34} />
+                            </button>
+                        ))}
+                        {missingInColour.length > MISSING_SHOWN && (
+                            <span className="smgr-missing-more">+{missingInColour.length - MISSING_SHOWN}</span>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
+
+    /* ── SPREADS — saved, named arrangements (Brendon, 2026-07-24) ─────────
+       The gallery's saved-views row, verbatim (Rule #0): SAVE, then up to three
+       numbered named slots, tap to restore, ✎ to rename in place, ✕ to remove.
+       A Spread captures the WHOLE picture — the hand-placed spots and the
+       generative look with its exact roll — so it comes back as you left it,
+       for you and for every visitor. */
+    const commitRename = () => {
+        const id = renaming;
+        const next = renameText.trim();
+        setRenaming(null);
+        if (!id || !next) return;
+        if (renameSpread(id, next)) showToast('Spread: RENAMED');
+    };
+    const spreadsRow = (
+        <div className="ambient-pop-row smgr-spreads-row">
+            <span className="ambient-pop-label">Spreads</span>
+            <div className="ambient-pop-chips">
+                <button
+                    type="button"
+                    className="pill-preset pill-preset--save"
+                    title="Save the hero exactly as it looks now"
+                    onClick={() => {
+                        const { spread, replaced } = saveSpread();
+                        showToast(`Spread: ${replaced ? 'REPLACED' : 'SAVED'} · ${spread.name}`);
+                    }}
+                >
+                    SAVE
+                </button>
+                {spreads.map((sp, i) => (renaming === sp.id ? (
+                    <input
+                        key={sp.id}
+                        autoFocus
+                        className="value-prompt-input smgr-spread-input"
+                        value={renameText}
+                        maxLength={SPREAD_NAME_MAX}
+                        onChange={(e) => setRenameText(e.target.value)}
+                        onBlur={commitRename}
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => {
+                            e.stopPropagation();
+                            if (e.key === 'Enter') { e.preventDefault(); commitRename(); }
+                            if (e.key === 'Escape') { e.preventDefault(); setRenaming(null); }
+                        }}
+                    />
+                ) : (
+                    <button
+                        key={sp.id}
+                        type="button"
+                        className="pill-preset"
+                        title={`Put “${sp.name}” back on your hero`}
+                        onClick={() => {
+                            applySpread(sp);
+                            setArr(getArrange()); setTl(getTilt()); setExp(getExpand());
+                            setRw(getRows()); setAl(getAlign()); setFl(getFlip());
+                            setDen(getDensity()); setBd(getBorder()); setSeedV(getSeed());
+                            showToast(`Spread: ${sp.name.toUpperCase()}`);
+                        }}
+                    >
+                        <span className="pill-preset__index">{SLOT_GLYPHS[i]}</span>
+                        <span className="pill-preset__name">{sp.name}</span>
+                        <span
+                            className="smgr-spread-edit"
+                            role="button"
+                            tabIndex={0}
+                            title="Rename spread"
+                            aria-label="Rename spread"
+                            onClick={(e) => { e.stopPropagation(); setRenameText(sp.name); setRenaming(sp.id); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setRenameText(sp.name); setRenaming(sp.id); } }}
+                        >{`✎${VS15}`}</span>
+                        <span
+                            className="pill-preset__delete"
+                            role="button"
+                            tabIndex={0}
+                            title="Remove spread"
+                            aria-label="Remove spread"
+                            onClick={(e) => { e.stopPropagation(); setConfirmDelete(sp); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setConfirmDelete(sp); } }}
+                        >{`×${VS15}`}</span>
+                    </button>
+                )))}
+                {Array.from({ length: Math.max(0, MAX_SPREADS - spreads.length) }).map((_, i) => (
+                    <span key={`empty-${i}`} className="pill-preset pill-preset--empty" title="Empty spread slot">
+                        {SLOT_GLYPHS[spreads.length + i]}
+                    </span>
+                ))}
+            </div>
+        </div>
+    );
+
+    /* The app's own remove-confirm card — a Spread is a saved look, and the
+       stickers themselves are untouched, so say that plainly. */
+    const spreadConfirm = confirmDelete ? (
+        <div className="starred-confirm-overlay" role="dialog" aria-modal="true" onClick={() => setConfirmDelete(null)}>
+            <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
+                <div className="ms-confirm-question">
+                    Remove the spread “{confirmDelete.name}”? Your stickers stay exactly as they are.
+                </div>
+                <div className="ms-confirm-btns">
+                    <button className="ms-confirm-btn ms-confirm-btn--cancel" onClick={() => setConfirmDelete(null)}>Cancel</button>
+                    <button
+                        className="ms-confirm-btn ms-confirm-btn--ok"
+                        onClick={() => {
+                            const name = confirmDelete.name;
+                            if (deleteSpread(confirmDelete.id)) showToast(`${name.toUpperCase()}: REMOVED`);
+                            setConfirmDelete(null);
+                        }}
+                    >
+                        Remove
+                    </button>
+                </div>
+            </div>
+        </div>
+    ) : null;
 
     /* Sheet toggles — styled like the trait value pills (outlined/greyed when
        off, filled when on) rather than the default chip. */
@@ -541,6 +786,7 @@ export function StickerManagerModal({
     if (full) {
         return createPortal(
             <div className="sticker-mgr-plus-backdrop" role="dialog" aria-modal="true" aria-label="Your stickers — full" onClick={onClose}>
+                {spreadConfirm}
                 <div className="sticker-mgr-plus" onClick={(e) => e.stopPropagation()}>
                     <div className="smgr-plus-head">
                         <span className="ambient-pop-title-text"><span className="smgr-title-ic">{`⊞${VS15}`}</span> <span className="smgr-title-words">STICKER MANAGER+</span></span>
@@ -575,6 +821,7 @@ export function StickerManagerModal({
                         <Row label="Rows">
                             {rowsChips}
                         </Row>
+                        {spreadsRow}
                         <Row label="Density">
                             {DENSITIES.map((d) => (<Chip key={d.id} on={density === d.id} onClick={() => pickDensity(d.id)}>{d.label}</Chip>))}
                         </Row>
@@ -611,6 +858,7 @@ export function StickerManagerModal({
 
     return createPortal(
         <div className="sticker-mgr-backdrop" role="dialog" aria-modal="true" aria-label="Your stickers" onClick={onClose}>
+            {spreadConfirm}
             <div
                 className="ambient-pop sticker-pop"
                 role="dialog"
@@ -659,7 +907,15 @@ export function StickerManagerModal({
                         </Row>
                     </div>
 
-                    {/* Page 2 — Density (stack pile) above Align + Tilt */}
+                    {/* Page 2 — SPREADS. Its own page on purpose: three named
+                        pills plus SAVE need two lines at iPhone width, and the
+                        compact pages are a FIXED height that never scrolls, so
+                        sharing a page with Layout would clip the third slot. */}
+                    <div className="ambient-pop-page">
+                        {spreadsRow}
+                    </div>
+
+                    {/* Page 3 — Density (stack pile) above Align + Tilt */}
                     <div className="ambient-pop-page">
                         <Row label="Density">
                             {DENSITIES.map((d) => (
@@ -678,7 +934,7 @@ export function StickerManagerModal({
                         </Row>
                     </div>
 
-                    {/* Page 3 */}
+                    {/* Page 4 */}
                     <div className="ambient-pop-page">
                         <Row label="Width">
                             <Chip on={!expand} onClick={() => pickExpand(false)}>FIT</Chip>
@@ -693,7 +949,7 @@ export function StickerManagerModal({
                         </Row>
                     </div>
 
-                    {/* Page 4 — Stickers. Scrolls AS ONE: sheet names not pinned,
+                    {/* Page 5 — Stickers. Scrolls AS ONE: sheet names not pinned,
                         they scroll together with the grid. */}
                     <div className="ambient-pop-page smgr-sheet-page">
                         <Row label="Sheets">

@@ -64,6 +64,23 @@ export interface Sticker {
 const PRICE_RED = '#FF0055';
 const PRICE_YELLOW = '#FFE600';
 
+/* ── THE BRAND COLOURS, BY NAME (Brendon, 2026-07-24) ──────────────────────
+   These two hexes already existed here and are what every "Classic" sticker
+   wears — this exposes them as NAMED, pickable options beside the generated
+   hue ramps. No new colour is created: PD has exactly two brand colours and
+   these are them. */
+export const BRAND_COLOURS: ReadonlyArray<{ key: string; name: string; hex: string }> = [
+    { key: 'hothurt', name: 'HOTHURT', hex: PRICE_RED },
+    { key: 'attention', name: 'ATTENTION', hex: PRICE_YELLOW },
+];
+
+/** A sticker's FILL — the colour it reads as from across the room. The cutout
+ *  and letter colours are the mark ON it, not the colour it IS, which is why a
+ *  Hothurt bubble with an Attention ‰ files under Hothurt. */
+export function stickerFill(s: Sticker): string | null {
+    return s.color ?? s.bg ?? null;
+}
+
 interface Hue { key: string; name: string; hex: string; }
 
 /* ── Colour generation — many vivid hues round the wheel ─────────────────── */

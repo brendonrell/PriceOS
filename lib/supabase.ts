@@ -362,6 +362,10 @@ export interface UserRow {
     offIds: string[];
     placements?: Record<string, { x: number; y: number; z: number; r?: number; sc?: number }>;
     placementAspect?: number;
+    /** Up to 3 named saved arrangements (lib/stickers/spreads). */
+    spreads?: unknown[];
+    /** The one-tap colour lock + the active-state it was applied over. */
+    colourLock?: Record<string, unknown>;
   } | null;
   /** The account's HIDDEN, UNIQUE signature colour — assigned + uniqueness-
    *  checked at signup, surfaced only in the profile-name easter egg. Distinct
@@ -447,6 +451,8 @@ export interface UserStatePatch {
     offIds: string[];
     placements?: Record<string, { x: number; y: number; z: number; r?: number; sc?: number }>;
     placementAspect?: number;
+    spreads?: unknown[];
+    colourLock?: Record<string, unknown>;
   };
   showcase?: Showcase;
   showcase_style?: ShowcaseStyle;

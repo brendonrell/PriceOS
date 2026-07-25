@@ -68,6 +68,15 @@ export const STATE_CACHE_KEYS = {
      *  saved %-positions scale faithfully at any screen width. Rides
      *  `users.sticker_state`. */
     stickerPlaceAspect: 'pd_sticker_place_aspect',
+    /** SPREADS — up to 3 named, saved sticker arrangements for the hero. A
+     *  Spread is a snapshot of the whole picture (hand-placed spots + the
+     *  generative look and its roll), restorable later. Read + written by
+     *  lib/stickers/spreads.ts; rides the `users.sticker_state` blob. */
+    stickerSpreads: 'pd_sticker_spreads',
+    /** The one-tap COLOUR LOCK — which colour the profile is currently narrowed
+     *  to, plus the exact active-state it was narrowed FROM, so turning it off
+     *  puts every sticker back where it was. Rides `users.sticker_state`. */
+    stickerColourLock: 'pd_sticker_colour_lock',
     hazeColor: 'pd_haze_color',
     hazeVariation: 'pd_haze_variation',
     sort: 'pd_settings_sort',
@@ -297,6 +306,14 @@ export function hydrateFromRow(row: UserRow): void {
             }
             if (typeof ss.placementAspect === 'number' && ss.placementAspect > 0) {
                 localStorage.setItem(STATE_CACHE_KEYS.stickerPlaceAspect, String(ss.placementAspect));
+            }
+            // Saved Spreads + the colour lock — same seed-only-when-present rule,
+            // so a signed-out device that already has them never gets wiped.
+            if (Array.isArray(ss.spreads)) {
+                localStorage.setItem(STATE_CACHE_KEYS.stickerSpreads, JSON.stringify(ss.spreads));
+            }
+            if (ss.colourLock && typeof ss.colourLock === 'object') {
+                localStorage.setItem(STATE_CACHE_KEYS.stickerColourLock, JSON.stringify(ss.colourLock));
             }
             window.dispatchEvent(new CustomEvent('pd:stickers-changed'));
         }
