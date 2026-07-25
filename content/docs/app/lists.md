@@ -78,7 +78,9 @@ Beside each List's name:
 
 ## The rows inside
 
-Deliberately short: the art (or the same tile and glyph the thing wears in Starred), what it is, and the one fact that helps you choose — an artwork's price if it's listed, otherwise its Fate. Tapping a row goes exactly where its Starred row goes: an artwork opens, a project opens its page, a person opens their profile.
+Deliberately short: the art (or the same tile and glyph the thing wears in Starred), what it is, and the facts worth that space. On an artwork that's **the artist's @name and its ❖ PD Rarity** — who made it and how rare it is, the two things you're actually scanning for. On a narrow screen the @name wins the room and the rarity steps aside.
+
+Tapping a row goes exactly where its Starred row goes: an artwork opens, a project opens its page, a person opens their profile.
 
 The ✕ on a row drops it from that List. The piece stays starred.
 

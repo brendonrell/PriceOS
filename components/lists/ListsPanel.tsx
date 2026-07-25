@@ -3,14 +3,15 @@
 /*
  * ListsPanel — MY LISTS, on the Starred surface (Brendon, 2026-07-24).
  *
- * Opened by the MY LISTS button in Starred's sort row (beside ◷ Recent) and
- * closed by the same button — default OFF, nothing auto-opens.
+ * Opened by the LISTS button that closes Starred's sort row; tapping any other
+ * sort is the way back out. Default OFF, nothing auto-opens.
  *
  * Shape, per Brendon: lists run ALPHABETICALLY, each one COLLAPSIBLE, and the
  * rows inside are SHORTER than a Starred row — thumbnail plus the relevant
  * info, nothing else. So the piece art still leads (it's what you recognise),
- * the id line stays, and the second line carries only what actually helps you
- * pick: the live price when it's listed, otherwise the piece's Fate.
+ * the id line stays, and an artwork's second line carries the two facts worth
+ * that space: the ARTIST's @name and its PD RARITY (Brendon, 2026-07-25 — it
+ * used to fall back to the piece's Fate, which just read as a stray trait).
  *
  * A list holds ANY starred kind (2026-07-25 — All Starred's row CTA is Add to
  * List on every row), so the panel draws a short row per kind: the Output keeps
@@ -31,9 +32,8 @@ import { useRouter } from 'next/navigation';
 import { useStarLongPress } from '../../lib/hooks/rowFlags';
 import { useListRowDrag, ROW_KEY_ATTR } from '../../lib/hooks/useListRowDrag';
 import { useModal } from '../../lib/state/ModalContext';
-import { useOutputMeta } from '../../lib/hooks/useOutputMeta';
 import { getProject, projectColorway, projectsByArtist } from '../../lib/project/registry';
-import { readOutputFate } from '../../lib/project/fate';
+import { pdRarity } from '../../lib/output/rarity';
 import { traitMarketStat, projectMarketStat, artistColor, artistFloor, collectorTopBuy } from '../../lib/market/starredMarket';
 import { useStarredPrices, priceOf, isHeldBy } from '../../lib/pins/starredPriceStore';
 import { getTxStarItems } from '../../lib/pins/txStarStore';
@@ -94,13 +94,16 @@ function ListRow({ item, owned, full, dragProps, onRemove }: {
     onRemove: () => void;
 }) {
     const { open } = useModal();
-    const meta = useOutputMeta(item.id);
     const project = getProject(item.slug);
-    /* The relevant info, in priority order: what it costs if you can buy it,
-       otherwise its Fate — the same two facts a Starred row leads with. */
-    const info = meta?.price != null
-        ? meta.price
-        : readOutputFate(item.slug, item.id).fate;
+    /* The two facts worth the one line a short row has (Brendon, 2026-07-25):
+       WHO MADE IT and HOW RARE IT IS. It used to fall back to the piece's Fate,
+       which reads as a stray trait word on an artwork row and told you nothing
+       about the piece you were scanning for. Rarity is PD Rarity — the same
+       0–100 the character sheet and the Vault lead with, wearing the canonical
+       ❖ — and it's the half that gives way when the artist's @name needs the
+       room (see .lists-row-rarity). */
+    const artist = project?.artistHandle ? `@${project.artistHandle}` : null;
+    const rarity = useMemo(() => pdRarity(item.slug, item.id)?.score ?? null, [item.slug, item.id]);
 
     return (
         <div
@@ -125,12 +128,14 @@ function ListRow({ item, owned, full, dragProps, onRemove }: {
                     <span className="srl-handle">{project?.displayName ?? item.slug}</span>
                     <span className="srl-suffix">#{item.id}</span>
                 </span>
-                <span className="starred-row-sub">{info}</span>
-                {full && (
-                    <span className="starred-row-sub srl-by">
-                        {project?.artistHandle ? `by: @${project.artistHandle}` : ' '}
-                    </span>
-                )}
+                <span className="starred-row-sub lists-row-info">
+                    <span className="lists-row-artist">{artist ?? ' '}</span>
+                    {rarity != null && (
+                        <span className="lists-row-rarity" title={`PD Rarity ${rarity}`}>
+                            {`❖${VS15}`}{rarity}
+                        </span>
+                    )}
+                </span>
             </div>
             <RemoveX onRemove={onRemove} />
         </div>

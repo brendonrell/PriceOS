@@ -6636,6 +6636,32 @@ body.lists-dragging { cursor: grabbing; }
     outline-offset: -2px;
     border-radius: 4px;
 }
+/* An artwork row's one info line: WHO made it, then HOW RARE it is (Brendon,
+   2026-07-25). The @name gets the room first and ellipsises rather than wrap;
+   the ❖ rarity is the half that gives way when there genuinely isn't space. */
+.lists-row-info {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-width: 0;
+}
+.lists-row-artist {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.lists-row-rarity {
+    flex: 0 0 auto;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    white-space: nowrap;
+}
+/* Narrow phones: the @name is the one that has to survive. */
+@media (max-width: 360px) {
+    .lists-row-rarity { display: none; }
+}
 /* The owned ✓ on a member row — the picker's tick, at row scale. */
 .lists-owned {
     font-family: 'Courier New', Courier, monospace;
