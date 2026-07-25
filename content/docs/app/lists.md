@@ -78,7 +78,7 @@ Beside each List's name:
 
 ## The rows inside
 
-Deliberately short: the art (or the same tile and glyph the thing wears in Starred), what it is, and the facts worth that space. On an artwork that's **the artist's @name and its ❖ PD Rarity** — who made it and how rare it is, the two things you're actually scanning for. On a narrow screen the @name wins the room and the rarity steps aside.
+Deliberately short: the art (or the same tile and glyph the thing wears in Starred), what it is, and the facts worth that space. On an artwork that's **the artist's @name**, then one number: **its asking price** when the piece is listed, otherwise **its ❖ PD Rarity**. A real ask beats any static read of the piece, so it takes the slot whenever there is one — and it holds its place at every screen width. The rarity is what steps aside when the @name needs the room.
 
 Tapping a row goes exactly where its Starred row goes: an artwork opens, a project opens its page, a person opens their profile.
 

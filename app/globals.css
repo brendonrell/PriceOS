@@ -6658,9 +6658,11 @@ body.lists-dragging { cursor: grabbing; }
     font-weight: bold;
     white-space: nowrap;
 }
-/* Narrow phones: the @name is the one that has to survive. */
+/* Narrow phones: the @name is the one that has to survive — the RARITY steps
+   aside for it. A live ask never does: a real asking price is the most valuable
+   thing on the row, so it holds its place at every width. */
 @media (max-width: 360px) {
-    .lists-row-rarity { display: none; }
+    .lists-row-rarity:not(.lists-row-ask) { display: none; }
 }
 /* The owned ✓ on a member row — the picker's tick, at row scale. */
 .lists-owned {
