@@ -32,10 +32,13 @@ export default function RewindBar() {
 
   if (day == null) return null;
   const shown = drag ?? day;
+  /* JUL 24 2026 → JUL 24 '26. Local to this bar on purpose: formatPriceDate
+     is shared with the PriceDay surfaces and they keep the full year. */
+  const stamp = date.replace(/\b(\d{2})(\d{2})\b/, "'$2");
 
   return (
     <div className="rewind-bar" role="region" aria-label="The Rewind">
-      <span className="rw-title">{'◄︎'} PD — DAY {shown}{date && drag == null ? ` · ${date}` : ''}</span>
+      <span className="rw-title">{'◄︎'} PriceDay {shown}{stamp && drag == null ? ` · ${stamp}` : ''}</span>
       <span className="rw-scrub">
         <button
           type="button"

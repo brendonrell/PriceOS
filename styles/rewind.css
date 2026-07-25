@@ -2,44 +2,57 @@
    Rule #2: the banner and every rewound readout are full-strength. The
    MARKER says "past" — never a washed-out UI. */
 
+/* The banner OWNS the top edge (Brendon, 2026-07-25: it didn't reach the top
+   and the see-through strip above it looked unpolished). It starts at 0 and
+   pads itself past the notch, so its own background fills the status-bar zone
+   instead of letting the page show through. */
 .rewind-bar {
     position: fixed;
-    top: env(safe-area-inset-top);
+    top: 0;
     left: 0;
     right: 0;
     z-index: 1200;
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 8px 14px;
+    gap: 8px;
+    padding: 8px 10px;
+    padding-top: calc(8px + env(safe-area-inset-top));
     background: var(--bg-color);
     border-bottom: 2px solid var(--accent);
     font-family: 'Courier New', Courier, monospace;
 }
+/* ONE ROW, always (Brendon: "we need a way to fit it all in one row"). The
+   title takes what it needs and truncates last; the slider is the only part
+   that gives, because the ‹ › steppers already cover precise stepping. */
 .rewind-bar .rw-title {
     font-size: 12px;
     font-weight: 700;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.04em;
     color: var(--accent);
     white-space: nowrap;
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .rewind-bar .rw-scrub {
     display: flex;
     align-items: center;
-    gap: 6px;
-    flex: 1;
-    min-width: 0;
+    gap: 5px;
+    flex: 1 1 44px;
+    min-width: 44px;
 }
 .rewind-bar .rw-step {
     background: none;
     border: 1px solid var(--text-color);
-    border-radius: 6px;
+    border-radius: 4px;
     color: var(--text-color);
     font-family: 'Courier New', Courier, monospace;
     font-size: 14px;
     font-weight: 700;
     line-height: 1;
-    padding: 3px 9px;
+    padding: 3px 7px;
+    flex: none;
     cursor: pointer;
 }
 .rewind-bar .rw-step:disabled { border-color: var(--text-color); opacity: 0.5; cursor: default; }
@@ -57,8 +70,9 @@
     font-family: 'Courier New', Courier, monospace;
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 0.05em;
-    padding: 6px 12px;
+    letter-spacing: 0.04em;
+    padding: 6px 10px;
+    flex: none;
     cursor: pointer;
     white-space: nowrap;
 }
