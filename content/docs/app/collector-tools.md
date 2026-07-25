@@ -119,7 +119,7 @@ ADD TO LIST opens a small sheet with, in order:
 
 ### Reading them back
 
-**MY LISTS** sits at the end of Starred's sort row, after ◷ Recent and AZ. It is
+**LISTS** sits at the end of Starred's sort row, after ◷ Recent and AZ. It is
 your own shelf, so it only appears on your own profile. The same button opens it
 and closes it, and it starts closed.
 

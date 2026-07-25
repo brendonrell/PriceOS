@@ -1704,19 +1704,21 @@ function ProfilePageBodyInner({
                                                 </span>
                                             );
                                         })}
-                                        {/* MY LISTS — beside the ◷ Recent sort
-                                            (Brendon, 2026-07-24). Own Starred
-                                            tab only; it's your private shelf. */}
+                                        {/* LISTS — last in the sort row, after
+                                            ◷ Recent and AZ (Brendon, 2026-07-24;
+                                            shortened from MY LISTS 2026-07-25).
+                                            Own Starred tab only; it's your
+                                            private shelf. */}
                                         {onStarredTab && isOwnProfile && (
                                             <span
                                                 className={`sort-btn${myListsOpen ? ' active' : ''}`}
                                                 role="button"
                                                 tabIndex={0}
-                                                title="My Lists"
+                                                title="Lists"
                                                 onClick={toggleMyLists}
                                                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMyLists(); } }}
                                             >
-                                                <span className="sort-lbl">MY LISTS</span>
+                                                <span className="sort-lbl">LISTS</span>
                                             </span>
                                         )}
                                     </div>
