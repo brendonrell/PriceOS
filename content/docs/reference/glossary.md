@@ -24,11 +24,11 @@ Definitions for terms used throughout Price Discussion, alphabetically. The nome
 
 **The Binder** — The sticker collection's got/need ledger: every sheet as a page of slots, missing stickers as dimmed outlines. See [Stickers](/docs/stickers/the-binder-and-your-profile).
 
-**Book of Conquests** (≣) — The war's only leaderboard: a permanent, dated chronicle of sieges, conquests, strongholds, relics, and struck stones. See [Factions](/docs/app/the-factions).
+**Book of Conquests** (≣) — The war's only leaderboard: a permanent, dated chronicle of sieges, conquests, strongholds, relics, and struck stones. See [Factions](/docs/factions).
 
-**Cartel** (⟁) — Your mutuals who also hold a given Project — the Cabal. A display mode counts them on every project page; the [Composer](/docs/app/the-composer) queries by it.
+**Cartel** (⟁) — Your mutuals who also hold a given Project — the Cabal. A display mode counts them on every project page; the [Composer](/docs/composer) queries by it.
 
-**Cartography** (◫) — The living map of the whole platform: Projects as territories, collectors as inhabitants. Long-press the Price Discussion name. See [Cartography](/docs/app/the-cartography).
+**Cartography** (◫) — The living map of the whole platform: Projects as territories, collectors as inhabitants. Long-press the Price Discussion name. See [Cartography](/docs/cartography).
 
 **Collected** — Profile tab for the Outputs a user owns. A route label, not an entity.
 
@@ -36,19 +36,19 @@ Definitions for terms used throughout Price Discussion, alphabetically. The nome
 
 **Completionism** — The profile's month count: how many of the platform's release months the wallet has fully collected, with the Completionist's Ledger behind it. See [Identity & Profiles](/docs/app/identity-and-profiles).
 
-**Composer** (⊚) — The visual query builder: compose a live question about the catalog from tappable rules, save it as a Program, act on the answer in bulk. See [Composer](/docs/app/the-composer).
+**Composer** (⊚) — The visual query builder: compose a live question about the catalog from tappable rules, save it as a Program, act on the answer in bulk. See [Composer](/docs/composer).
 
 **Curated** — What PD is **not**. See **Filtered**.
 
 ## D–M
 
-**The Dispatch** (▤) — PD's morning paper: printed daily at 9AM from the real ledger, archived forever at permanent URLs. See [The Dispatch](/docs/app/the-dispatch).
+**The Dispatch** (▤) — PD's morning paper: printed daily at 9AM from the real ledger, archived forever at permanent URLs. See [The Dispatch](/docs/dispatch).
 
 **EIP-2981** — Ethereum's royalty-signalling standard. Every PD Project answers it with a 5% royalty to its own splitter. See [Royalties](/docs/for-artists/royalties).
 
 **ENS** — The Ethereum Name Service. PD reads and displays ENS names alongside @names.
 
-**Faction** — The side a collector fights for in PD's quiet war, chosen by raising a blank colour bubble as a profile logo. The colour *is* the faction. See [Factions](/docs/app/the-factions).
+**Faction** — The side a collector fights for in PD's quiet war, chosen by raising a blank colour bubble as a profile logo. The colour *is* the faction. See [Factions](/docs/factions).
 
 **Fate** — A platform trait every Output carries from mint, alongside Artist, Project, PriceDay, and the natal chart.
 
@@ -60,7 +60,7 @@ Definitions for terms used throughout Price Discussion, alphabetically. The nome
 
 **Grail Pin** (⟟) — The elevation mark for the few pieces that matter most to a user.
 
-**Marginalia** — The ordered record, around every artwork, of every wallet that ever held it — revealed by the ceremonial long hold. Sales strike deep; private transfers land faint. See [Factions](/docs/app/the-factions).
+**Marginalia** — The ordered record, around every artwork, of every wallet that ever held it — revealed by the ceremonial long hold. Sales strike deep; private transfers land faint. See [Factions](/docs/factions).
 
 **Mint** — The act of bringing a new Output into existence on a Project. Token IDs are 1-indexed; the first mint produces token #1. See [The Mint Flow](/docs/for-artists/the-mint-flow).
 
@@ -70,7 +70,7 @@ Definitions for terms used throughout Price Discussion, alphabetically. The nome
 
 **@name** — A user's or Project's platform identifier; the @ is part of the noun. Stored internally as a handle, displayed everywhere the account acts.
 
-**Oath** — Time under a faction's flag. It compounds while the flag flies, survives going neutral, and resets only on defection — which scars. See [Factions](/docs/app/the-factions).
+**Oath** — Time under a faction's flag. It compounds while the flag flies, survives going neutral, and resets only on defection — which scars. See [Factions](/docs/factions).
 
 **Output** — The individual minted unit: the vessel bundling Artwork, Token, and metadata. The unit of scarcity on PD. See [Outputs](/docs/app/outputs).
 
@@ -88,7 +88,7 @@ Definitions for terms used throughout Price Discussion, alphabetically. The nome
 
 **$PRICE** — The platform's ERC-20 token; zero platform utility by design. See [$PRICE Overview](/docs/price-token/overview).
 
-**PriceDay** — The platform's own day count, flipping at midnight Montreal — the spine [the Rewind](/docs/app/the-rewind) scrubs along.
+**PriceDay** — The platform's own day count, flipping at midnight Montreal — the spine [the Rewind](/docs/rewind) scrubs along.
 
 **PriceOS** — The complete software platform built on PD's thesis — the app these docs document. See [The App](/docs/app/overview).
 
@@ -98,13 +98,13 @@ Definitions for terms used throughout Price Discussion, alphabetically. The nome
 
 **Price Story** — The narrative interpretation of a Project's or Output's price history.
 
-**Program** — A saved Composer query that keeps answering live; it wears the Spectrum (its current answer's colour distribution). See [Composer](/docs/app/the-composer).
+**Program** — A saved Composer query that keeps answering live; it wears the Spectrum (its current answer's colour distribution). See [Composer](/docs/composer).
 
 **Project** — An artist's body of work, deployed as one immutable PDProject contract. Lives at `/art/{slug}`.
 
 **Provenance** — The full chain-of-custody record of a Token, readable from standard `Transfer` events. See [The Secondary Market](/docs/for-collectors/the-secondary-market).
 
-**The Rewind** (◄) — The whole-OS time scrubber: PD exactly as it stood on any past PriceDay, read-only. Triple-tap the Price Discussion name. See [The Rewind](/docs/app/the-rewind).
+**The Rewind** (◄) — The whole-OS time scrubber: PD exactly as it stood on any past PriceDay, read-only. Triple-tap the Price Discussion name. See [The Rewind](/docs/rewind).
 
 ## S–W
 
@@ -118,7 +118,7 @@ Definitions for terms used throughout Price Discussion, alphabetically. The nome
 
 **Showcase** — A user's curated top-six selection, with four engine modes (Static, Generative, Gen Curated, Artist). Public.
 
-**Sigil** — The deterministic identity mark generated from a wallet address, forged once and permanent. See [Factions](/docs/app/the-factions).
+**Sigil** — The deterministic identity mark generated from a wallet address, forged once and permanent. See [Factions](/docs/factions).
 
 **SIWE** — Sign-In With Ethereum, PD's authentication. See [Wallet Setup](/docs/for-collectors/wallet-setup).
 
@@ -132,7 +132,7 @@ Definitions for terms used throughout Price Discussion, alphabetically. The nome
 
 **Subtrait** — An artist-defined bucket grouping a trait's values into a middle layer (Trait → Subtrait → Value) — schema, not token data. See [Upload & Testing](/docs/studio/upload-and-testing).
 
-**Takeover** (⚑) — One public, premium, non-cancellable blanket offer on another collector's entire position in a Project, open for 72 hours. See [Takeover](/docs/for-collectors/hostile-takeover).
+**Takeover** (⚑) — One public, premium, non-cancellable blanket offer on another collector's entire position in a Project, open for 72 hours. See [Takeover](/docs/takeover).
 
 **The Tape** — The persistent live ticker of market events in the app chrome. See [The Shell](/docs/app/the-shell).
 

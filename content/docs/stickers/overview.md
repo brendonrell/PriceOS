@@ -71,7 +71,7 @@ Sheets are priced in ETH at pocket-money levels (the platform targets roughly $2
 
 ## What stickers are not
 
-Stickers confer no power. They don't move [PriceRank](/docs/app/achievements), they don't weigh into [the war](/docs/app/the-factions) (the WAR BANNERS sheet sells every faction's flag cheap, and the faction constitution is explicit: cosmetics never touch power), and they gate nothing. They are jerseys, trophies, and trading-floor small talk — the collecting hobby, miniaturized and pointed back at the platform itself.
+Stickers confer no power. They don't move [PriceRank](/docs/app/achievements), they don't weigh into [the war](/docs/factions) (the WAR BANNERS sheet sells every faction's flag cheap, and the faction constitution is explicit: cosmetics never touch power), and they gate nothing. They are jerseys, trophies, and trading-floor small talk — the collecting hobby, miniaturized and pointed back at the platform itself.
 
 ## Further reading
 

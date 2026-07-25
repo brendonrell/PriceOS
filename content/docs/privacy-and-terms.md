@@ -21,7 +21,7 @@ and that address is your whole identity here. Everything PD knows about you
 hangs off a public wallet address you chose to connect.
 
 The single exception is opt-in and single-purpose: subscribing to
-[the Dispatch Digest](/docs/app/the-dispatch) stores the email you give it for
+[the Dispatch Digest](/docs/dispatch) stores the email you give it for
 exactly that delivery, with one-tap unsubscribe.
 
 ### What PD stores

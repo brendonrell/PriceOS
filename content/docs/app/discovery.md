@@ -18,15 +18,15 @@ The platform's front door, wearing the daily Mood Ring colour:
 - **The news carousel** — what the platform wants you to see today.
 - **The activity feed** — mints, sales, and **Project milestones** as they happen: a Project graduating into Now Minting (⟢⟢), a First Blood (†), a Century Club (Ⅽ), an Ascension (▲) at sell-out. The feed is where the platform celebrates in public.
 - **Ownership marks** — the grid quietly checks (✓) what you already own as you browse.
-- **The name itself** — "Price Discussion" is the platform's compass: **long-press** it to open [Cartography ◫](/docs/app/the-cartography), **triple-tap** it to enter [The Rewind ◄](/docs/app/the-rewind).
-- **The Dispatch pill** — the news rail leads with the ▤ pointer to [the morning paper](/docs/app/the-dispatch).
+- **The name itself** — "Price Discussion" is the platform's compass: **long-press** it to open [Cartography ◫](/docs/cartography), **triple-tap** it to enter [The Rewind ◄](/docs/rewind).
+- **The Dispatch pill** — the news rail leads with the ▤ pointer to [the morning paper](/docs/dispatch).
 - **The STICKERS button** (⊞) — the action row's door to [the Sticker Exchange](/docs/stickers/overview): store, marketplace, and binder in one slide-up sheet.
 
 ## Global search
 
 One field in the navbar, the whole platform behind it: Projects, Outputs, artists, collectors, @names. Search is the fastest path anywhere.
 
-Search’s special first row launches **[Composer ⊚](/docs/app/the-composer)** — when the question is bigger than a name, compose it from rules and watch the catalog answer live.
+Search’s special first row launches **[Composer ⊚](/docs/composer)** — when the question is bigger than a name, compose it from rules and watch the catalog answer live.
 
 ## Artist surfaces
 

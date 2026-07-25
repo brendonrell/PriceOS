@@ -1,9 +1,9 @@
 ---
-title: "Contested Mints — How a Drop Settles"
+title: "Fair Draw — How a Drop Settles"
 description: "The entry window, the CONTESTED flip, the draw, the sealed reveal, and the fail-open guarantee — the full life of an oversubscribed drop."
-category: "contested-mints"
+category: "fair-draw"
 keywords: ["entry window", "contested", "the draw", "sealed", "reveal", "settlement", "mint order", "fail-open"]
-last_updated: "2026-07-21"
+last_updated: "2026-07-25"
 ---
 
 # How a Drop Settles
@@ -24,7 +24,7 @@ If the window closes with enough supply for everyone who tapped, every order exe
 
 If more orders arrived than pieces exist, the room flips **CONTESTED** in front of everyone watching, and settlement runs:
 
-1. **Standing is snapshotted from before the drop.** Drops are surprises, so you enter as whoever you already were — there is nothing to game in the moment. See [Fair Play](/docs/contested-mints/fair-play).
+1. **Standing is snapshotted from before the drop.** Drops are surprises, so you enter as whoever you already were — there is nothing to game in the moment. See [Fair Play](/docs/fair-draw/fair-play).
 2. **The draw runs.** Provably fair: the draw's commitment is fingerprinted on Ethereum at settlement, and the full transcript is published for anyone to check. Within a priority band, every entrant has exactly equal odds.
 3. **Winners' orders execute — automatically.** The piece and the payment move in the same breath, straight from the tap you already made. Winners do nothing. If an order can't execute (the wallet spent its balance in the meantime), the seat passes to the next drawn name until every piece is placed — a seat can never be wasted.
 4. **Losing orders are torn up unexecuted.** Your money never moved, so there is nothing to claim back and nothing to wait for.

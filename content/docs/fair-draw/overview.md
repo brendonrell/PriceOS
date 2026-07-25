@@ -1,12 +1,12 @@
 ---
-title: "Contested Mints — Overview"
+title: "Fair Draw — Overview"
 description: "When more collectors want a drop than there are pieces, PD settles it with a human-speed race and a provably fair draw — no gas wars, no auctions, no allowlists, one tap."
-category: "contested-mints"
-keywords: ["contested mint", "drop", "mint window", "sniping", "bots", "the draw", "fair mint", "gas war"]
-last_updated: "2026-07-21"
+category: "fair-draw"
+keywords: ["fair draw", "contested mint", "drop", "mint window", "sniping", "bots", "the draw", "fair mint", "gas war"]
+last_updated: "2026-07-25"
 ---
 
-# Contested Mints — Overview
+# Fair Draw — Overview
 
 Some drops will have more real collectors than pieces. On most platforms that moment is where everything breaks: bots win the block race, gas fees explode, and the humans who showed up for the art walk away with nothing. Whole platforms have died on it.
 
@@ -32,10 +32,10 @@ Nothing new. You fly to the mint button like always:
 
 ## The two promises
 
-**The draw cannot be rigged — including by us.** Every contested draw runs against a commitment fingerprinted on Ethereum before settlement, and the full draw record is published. Anyone can verify that the result matches the commitment. See [How a Drop Settles](/docs/contested-mints/the-window).
+**The draw cannot be rigged — including by us.** Every contested draw runs against a commitment fingerprinted on Ethereum before settlement, and the full draw record is published. Anyone can verify that the result matches the commitment. See [How a Drop Settles](/docs/fair-draw/how-a-drop-settles).
 
 **A drop cannot be stranded — including by us.** If PD's own settlement service died mid-drop, minting opens by itself at a hard deadline written immutably into the project's contract at deploy. Nothing off-platform — and nothing at PD — can ever permanently stop a mint.
 
 ## Who wins when real collectors outnumber pieces
 
-When a drop is contested among genuine collectors, priority is a stated, public policy — read [Fair Play](/docs/contested-mints/fair-play) for exactly how it works and why it can afford to be transparent.
+When a drop is contested among genuine collectors, priority is a stated, public policy — read [Fair Play](/docs/fair-draw/fair-play) for exactly how it works and why it can afford to be transparent.

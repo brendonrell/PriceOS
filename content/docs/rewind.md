@@ -1,5 +1,5 @@
 ---
-title: "The App — The Rewind ◄"
+title: "The Rewind ◄"
 description: "The whole-OS time scrubber: triple-tap the Price Discussion name and browse PD exactly as it stood on any past PriceDay — read-only, day by day, with a RETURN TO NOW always in reach."
 category: "app"
 keywords: ["rewind", "time", "history", "priceday", "scrubber", "triple tap"]
@@ -12,7 +12,7 @@ Every platform shows you now. PD can also show you *then* — the entire app, do
 
 ## Opening it
 
-**Triple-tap the "Price Discussion" name on the home page.** PD docks at yesterday and a full-strength banner frames the app: the PriceDay number, the date, a scrubber, and **RETURN TO NOW**. (The name's sibling gesture, the long-press, opens [Cartography](/docs/app/the-cartography) — hold for space, tap thrice for time.)
+**Triple-tap the "Price Discussion" name on the home page.** PD docks at yesterday and a full-strength banner frames the app: the PriceDay number, the date, a scrubber, and **RETURN TO NOW**. (The name's sibling gesture, the long-press, opens [Cartography](/docs/cartography) — hold for space, tap thrice for time.)
 
 ## The scrubber
 

@@ -1,5 +1,5 @@
 ---
-title: "For Collectors — Takeover ⚑"
+title: "Takeover ⚑"
 description: "Wall Street's most dramatic move, translated to collecting: one blanket premium offer on another collector's entire position in a project. 72 hours, public, non-cancellable."
 category: "for-collectors"
 keywords: ["hostile takeover", "takeover", "offers", "premium", "tender", "withstood"]

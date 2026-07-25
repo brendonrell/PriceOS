@@ -76,11 +76,11 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
         ],
     },
     {
-        title: 'Contested Mints',
+        title: 'Fair Draw',
         slugs: [
-            'contested-mints/overview',
-            'contested-mints/the-window',
-            'contested-mints/fair-play',
+            'fair-draw/overview',
+            'fair-draw/how-a-drop-settles',
+            'fair-draw/fair-play',
         ],
     },
     {
@@ -104,35 +104,35 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
     },
     {
         title: 'Cartography',
-        slugs: ['app/the-cartography'],
+        slugs: ['cartography'],
     },
     {
         title: 'The Rewind',
-        slugs: ['app/the-rewind'],
+        slugs: ['rewind'],
     },
     {
         title: 'Composer',
-        slugs: ['app/the-composer'],
+        slugs: ['composer'],
     },
     {
         title: 'Lists',
-        slugs: ['app/lists'],
+        slugs: ['lists'],
     },
     {
         title: 'The Dispatch',
-        slugs: ['app/the-dispatch'],
+        slugs: ['dispatch'],
     },
     {
         title: 'The Exchange',
-        slugs: ['for-collectors/the-exchange'],
+        slugs: ['exchange'],
     },
     {
         title: 'Takeover',
-        slugs: ['for-collectors/hostile-takeover'],
+        slugs: ['takeover'],
     },
     {
         title: 'Factions',
-        slugs: ['app/the-factions'],
+        slugs: ['factions'],
     },
     {
         title: 'Pings',

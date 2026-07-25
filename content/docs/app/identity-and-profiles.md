@@ -39,7 +39,7 @@ Lives at `/{handle}`, painted in the owner's chosen colour. Its tabs and surface
 - **Portfolio** — the holdings view with the market layer on.
 - **Trade record** — the wallet's PD market history.
 - **Achievements** — the unlock grid. See [Achievements](/docs/app/achievements).
-- **Share ▶ / Takeover ⚑** — the share button hands the profile to the native share sheet; when the profile holds 3+ pieces of one Project, the [Takeover](/docs/for-collectors/hostile-takeover) action appears beside it.
+- **Share ▶ / Takeover ⚑** — the share button hands the profile to the native share sheet; when the profile holds 3+ pieces of one Project, the [Takeover](/docs/takeover) action appears beside it.
 
 ## Stars, Wishlist, Albums
 
@@ -58,7 +58,7 @@ Three ways of holding work you don't (yet) own, with deliberate privacy defaults
 Every profile carries **the Vault** (+ More › Vault) — one canonical home per
 wallet, public by design: drop a link to anyone's vault. A near-black door
 slides open like a MiniDisc shutter; the **seal** on it is the wallet's forged
-[Sigil](/docs/app/the-factions) in faction ink. Before it even opens, the
+[Sigil](/docs/factions) in faction ink. Before it even opens, the
 **verdict line** — faction · pieces held · days under oath — makes the closed
 door a flex or an indictment. Inside, every held piece hangs with its
 **appraisal plate** (PD Rarity and edition rank); tap a plate to enter the

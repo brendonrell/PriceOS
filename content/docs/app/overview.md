@@ -22,11 +22,11 @@ PriceOS is the software layer of Price Discussion — the app collectors and art
 - **[Stickers ⊞](/docs/stickers/overview)** — the second economy: sealed sheets, the peel, the binder, and a marketplace of its own.
 - **[Achievements](/docs/app/achievements)** — the unlock system across thirteen categories.
 - **[Discovery](/docs/app/discovery)** — search, the home surfaces, feeds, and PriceRank.
-- **[Composer ⊚](/docs/app/the-composer)** — the visual query builder: compose a question about the whole catalog, watch it answer live, save it as a Program.
-- **[The Factions](/docs/app/the-factions)** — the colour war: allegiance, the Sigil, the Marginalia, sieges and the Book of Conquests.
-- **[Cartography ◫](/docs/app/the-cartography)** — the living map of the whole platform: territories, inhabitants, and market events in real time.
-- **[The Rewind ◄](/docs/app/the-rewind)** — the whole-OS time scrubber: browse PD as it stood on any past PriceDay.
-- **[The Dispatch ▤](/docs/app/the-dispatch)** — the morning paper: yesterday on the record, printed daily, archived forever.
+- **[Composer ⊚](/docs/composer)** — the visual query builder: compose a question about the whole catalog, watch it answer live, save it as a Program.
+- **[The Factions](/docs/factions)** — the colour war: allegiance, the Sigil, the Marginalia, sieges and the Book of Conquests.
+- **[Cartography ◫](/docs/cartography)** — the living map of the whole platform: territories, inhabitants, and market events in real time.
+- **[The Rewind ◄](/docs/rewind)** — the whole-OS time scrubber: browse PD as it stood on any past PriceDay.
+- **[The Dispatch ▤](/docs/dispatch)** — the morning paper: yesterday on the record, printed daily, archived forever.
 - **[Settings & Display](/docs/app/settings-and-display)** — MY PD: colorways, display modes, and per-surface controls.
 
 ## Design language, briefly

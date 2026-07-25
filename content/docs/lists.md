@@ -1,5 +1,5 @@
 ---
-title: "The App — Lists"
+title: "Lists ≡"
 description: "Lists are your own named groupings of anything you've starred: artworks, projects, traits, artists, collectors, soundtracks, transactions. Private, portable, and priced."
 category: "app"
 keywords: ["lists", "starred", "wishlist", "add to list", "collection", "watchlist", "eth total"]

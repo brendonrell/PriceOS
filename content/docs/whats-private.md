@@ -35,7 +35,7 @@ Draft Projects in [PD Studio](/docs/studio/overview) — scripts, test runs, par
 
 ## What PD never asks for
 
-There is no personal-information layer to leak: **a wallet is the entire account.** No email, no name, no phone number, no KYC. The single exception is opt-in and single-purpose — subscribing to [the Dispatch Digest](/docs/app/the-dispatch) stores the email you give it for exactly that delivery, with one-tap unsubscribe.
+There is no personal-information layer to leak: **a wallet is the entire account.** No email, no name, no phone number, no KYC. The single exception is opt-in and single-purpose — subscribing to [the Dispatch Digest](/docs/dispatch) stores the email you give it for exactly that delivery, with one-tap unsubscribe.
 
 ## The line, in one sentence
 

@@ -1,5 +1,5 @@
 ---
-title: "The App — Composer ⊚"
+title: "Composer ⊚"
 description: "PD's visual query builder: compose a question about the whole catalog from tappable rules, watch it answer live, save it as a Program, and act on the result in bulk."
 category: "app"
 keywords: ["composer", "query", "search", "programs", "filters", "bulk", "spectrum"]

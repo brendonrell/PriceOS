@@ -1,5 +1,5 @@
 ---
-title: "For Collectors — The Exchange ⇌"
+title: "The Exchange ⇌"
 description: "Head-to-head trading: offer your pieces against another collector's, sweeten one side with ETH, and settle a swap in one atomic move — no fees, ever."
 category: "for-collectors"
 keywords: ["trade", "exchange", "swap", "barter", "head-to-head", "counter"]

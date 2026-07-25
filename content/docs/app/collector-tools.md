@@ -84,11 +84,11 @@ your best floor call, and your top counterparty.
 
 Your own **named groupings** of anything you've starred — artworks, projects,
 traits, artists, soundtracks, transactions. Private, priced, and reorderable.
-They have their own page: **[Lists](/docs/app/lists)**.
+They have their own page: **[Lists](/docs/lists)**.
 
 ## Further reading
 
 - [Pings](/docs/pings/overview)
 - [The Spell Book](/docs/app/spell-book)
-- [Lists](/docs/app/lists)
+- [Lists](/docs/lists)
 - [Identity & Profiles](/docs/app/identity-and-profiles)

@@ -1,9 +1,9 @@
 ---
-title: "Contested Mints — Fair Play"
+title: "Fair Draw — Fair Play"
 description: "Who has priority when a drop is contested — the public ladder of collecting on PD — and what happens to bots, wallet armies, and their infrastructure."
-category: "contested-mints"
+category: "fair-draw"
 keywords: ["priority", "collector standing", "bots", "sybil", "wallet army", "fair play", "the sweep", "voided"]
-last_updated: "2026-07-21"
+last_updated: "2026-07-25"
 ---
 
 # Fair Play

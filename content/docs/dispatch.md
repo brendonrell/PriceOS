@@ -1,5 +1,5 @@
 ---
-title: "The App — The Dispatch ▤"
+title: "The Dispatch ▤"
 description: "PD's morning paper: printed once every day at 9AM, covering the prior day from the real ledger. Permanent, citable URLs — an edition reads the same forever."
 category: "app"
 keywords: ["dispatch", "morning paper", "daily", "news", "archive"]

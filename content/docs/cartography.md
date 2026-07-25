@@ -1,5 +1,5 @@
 ---
-title: "The App — Cartography ◫"
+title: "Cartography ◫"
 description: "The living map of the whole platform: Projects as territories, collectors as inhabitants, sales as movement — real-time, zoomable, opened by long-pressing the Price Discussion name."
 category: "app"
 keywords: ["cartography", "map", "ecosystem", "territories", "long press", "live"]
@@ -12,7 +12,7 @@ PD drawn as a world. Every Project is a territory with its own generated coastli
 
 ## Opening it
 
-**Long-press the "Price Discussion" name on the home page.** The name is the platform's compass: hold it and the map unfolds full-screen. (Its sibling gesture, the triple-tap, opens [The Rewind](/docs/app/the-rewind).)
+**Long-press the "Price Discussion" name on the home page.** The name is the platform's compass: hold it and the map unfolds full-screen. (Its sibling gesture, the triple-tap, opens [The Rewind](/docs/rewind).)
 
 ## Reading the map
 
@@ -71,7 +71,7 @@ The map has a time cursor. Scrub it back and the world shrinks to what it was: t
 
 It is a **layer over the live map, never a separate screen**. Nothing is mutated while it runs; leaving the machine restores the live world instantly. Seats stay today's seats — the land is the show.
 
-This is the world's own history. For the whole platform docked at a past day — every page, every project, as it stood — that's [The Rewind](/docs/app/the-rewind), a different thing reached by a different gesture.
+This is the world's own history. For the whole platform docked at a past day — every page, every project, as it stood — that's [The Rewind](/docs/rewind), a different thing reached by a different gesture.
 
 ## New land
 
@@ -86,5 +86,5 @@ layer toggle, off by default, visible only to the enlisted. Switched on, held
 territories wear a thin ring in the holding faction's colour, live sieges
 pulse, your empire arcs fly your colour, and territory cards read the ground
 (`HELD · GOLD` · `SIEGE · BLUE vs GOLD`). The full rules of the war live in
-[Factions](/docs/app/the-factions). If none of that sentence made sense —
+[Factions](/docs/factions). If none of that sentence made sense —
 good. The map ships clean for civilians.

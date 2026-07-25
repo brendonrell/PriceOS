@@ -1,5 +1,5 @@
 ---
-title: "The App — Factions ⚐"
+title: "Factions ⚐"
 description: "The colour war: your Sigil is who you are, your colour is who you fight for, and every artwork remembers both. Allegiance, the Marginalia, sieges, conquests, and the Book of Conquests — the full rules of PD's quiet war."
 category: "app"
 keywords: ["factions", "war", "marginalia", "oath", "siege", "conquest", "book of conquests", "corners", "banner", "grip", "relic", "crypt", "struck from the stone", "war banners"]
@@ -213,7 +213,7 @@ There are no classes and no points. Behaviour is the class:
 
 ## The war on the map
 
-[Cartography](/docs/app/the-cartography) is the war map. Enlisted users
+[Cartography](/docs/cartography) is the war map. Enlisted users
 get a **WAR** control on the map — a layer toggle, **off by default**:
 
 - Held territories wear a thin coastline ring in the holding faction's

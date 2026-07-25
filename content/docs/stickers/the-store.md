@@ -60,7 +60,7 @@ Sheets are print runs. A sheet can carry a hard cap and **sell out** — once th
 | **RARITY** | UNCOMMON | The rarity words themselves — COMMON, UNCOMMON, RARE, MYTHIC, LEGENDARY, GRAIL — each a tag in its own colour. |
 | **ANIMATED** | MYTHIC | Five sprites that breathe: Wisp, Watcher, Slime, Spider, Orbit. Cycling-frame stickers. |
 | **QUIPS** | COMMON | Twelve one-liners of the culture: GM, WAGMI, PROBABLY NOTHING, HODL, TOUCH GRASS, NGMI, and friends. |
-| **WAR BANNERS** | COMMON | One flag per [faction](/docs/app/the-factions) colour — the blank bubble that enlists you, as a sticker to wave. Cosmetics only, by constitutional rule: no sticker moves the war. |
+| **WAR BANNERS** | COMMON | One flag per [faction](/docs/factions) colour — the blank bubble that enlists you, as a sticker to wave. Cosmetics only, by constitutional rule: no sticker moves the war. |
 | **HOLO** | MYTHIC | The logo and Petey in an iridescent holographic finish. Six stickers, all shine. |
 | **TRUE NAMES** | MYTHIC | Every Project's [True Name](/docs/app/projects-and-minting) — the four-letter Glagolitic marks — as tags. |
 

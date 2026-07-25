@@ -30,7 +30,7 @@ Spells are per-user and presentational — nothing here changes your data or any
 ## Instruments — the deep reads
 
 - **Tribunal ⚖** — every Output's +More gains a case file: the chain of custody with per-hand tenure and flip reads, the money, what's on the block, standing offers, the parties' per-wallet in/out/net, numbered findings of fact, and a double-struck ruling stamp (ON THE BLOCK · UNDER CLAIM · TIGHTLY HELD · AT REST). Built entirely from the record already on the page; anything the record doesn't hold is named OFF THE RECORD, never invented.
-- **Sybil Net ∾** — [Cartography](/docs/app/the-cartography) grows a forensic layer: animated dotted lines chain wallet clusters linked by real unpriced wallet-to-wallet transfers. Focus a wallet and the map narrows to its net.
+- **Sybil Net ∾** — [Cartography](/docs/cartography) grows a forensic layer: animated dotted lines chain wallet clusters linked by real unpriced wallet-to-wallet transfers. Focus a wallet and the map narrows to its net.
 - **Arbitrage Map ⇄** — listed pieces asking **below their trait cohort's average ask** wear a live discount badge (*⇄ −38%*) and a heat ring that scales with the gap. Cohorts come from real listings only; a piece with no comparables never flags.
 - **Tarot Spread ▯▯▯** — a themed reading: three real Major Arcana drawn into Past / Present / Future, each card wearing one of your own Collected pieces as its face, with genuine upright and reversed meanings woven into a read. Deterministic per day, with a re-roll. **Unlocks at 22 pieces collected** — below that, the cards lie face down with your count.
 - **Spite Book ⌧** — your private grudge ledger of *names*. Write a real @user or project onto a page of the book and that name renders struck through — dimmed, italic, crossed out — everywhere it appears across the site: their listings, bids, feed activity, and holder chips. Scratch a name out to lift it.
@@ -61,5 +61,5 @@ Display modes ([Settings & Display](/docs/app/settings-and-display)) change how 
 ## Further reading
 
 - [Settings & Display](/docs/app/settings-and-display)
-- [The Cartography](/docs/app/the-cartography) — where Sybil Net draws
+- [The Cartography](/docs/cartography) — where Sybil Net draws
 - [Achievements](/docs/app/achievements) — the lore category rewards finding things like these
