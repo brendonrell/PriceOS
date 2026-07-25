@@ -29,6 +29,7 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStarLongPress } from '../../lib/hooks/rowFlags';
+import { useListRowDrag, ROW_KEY_ATTR } from '../../lib/hooks/useListRowDrag';
 import { useModal } from '../../lib/state/ModalContext';
 import { useOutputMeta } from '../../lib/hooks/useOutputMeta';
 import { getProject, projectColorway, projectsByArtist } from '../../lib/project/registry';
@@ -40,7 +41,7 @@ import { txStarToFeedEvent, FeedActorLine } from '../../lib/feed/feedRow';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
 import OutputThumb from '../profile/OutputThumb';
 import {
-    getLists, subscribeLists, removeFromList, parseListKey,
+    getLists, subscribeLists, removeFromList, parseListKey, moveInList,
     renameList, deleteList, LIST_NAME_MAX, type ListMemberRef,
 } from '../../lib/pins/listStore';
 import type { ListRecord } from '../../lib/supabase';
@@ -83,11 +84,13 @@ function RemoveX({ onRemove }: { onRemove: () => void }) {
 /* ── One SHORT row: thumb · project #id · the one line that matters ──
    `full` is the FOCUSED reading of a list (long-pressed): the same row at the
    Starred rows' own size, with the artist line the short row drops. */
-function ListRow({ item, owned, full, onRemove }: {
+function ListRow({ item, owned, full, dragProps, onRemove }: {
     item: Extract<ListMemberRef, { kind: 'output' }>;
     /** The viewer holds this piece — marked with the same ✓ the picker uses. */
     owned: boolean;
     full: boolean;
+    /** Hold-to-drag reorder wiring for this row. */
+    dragProps: Record<string, unknown>;
     onRemove: () => void;
 }) {
     const { open } = useModal();
@@ -106,6 +109,8 @@ function ListRow({ item, owned, full, onRemove }: {
             tabIndex={0}
             data-slug={item.slug}
             data-mint-id={item.id}
+            {...{ [ROW_KEY_ATTR]: item.key }}
+            {...dragProps}
             onClick={() => open('output', item.id, item.slug)}
             onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open('output', item.id, item.slug); }
@@ -134,7 +139,7 @@ function ListRow({ item, owned, full, onRemove }: {
 
 /* ── The non-Output short rows — the Starred tile + glyph, shrunk ── */
 function TileRow({
-    glyph, glyphClass, color, title, info, full, onOpen, onRemove,
+    glyph, glyphClass, color, title, info, full, memberKey, dragProps, onOpen, onRemove,
 }: {
     glyph: string;
     glyphClass?: string;
@@ -142,6 +147,8 @@ function TileRow({
     title: React.ReactNode;
     info: React.ReactNode;
     full: boolean;
+    memberKey: string;
+    dragProps: Record<string, unknown>;
     onOpen?: () => void;
     onRemove: () => void;
 }) {
@@ -150,6 +157,8 @@ function TileRow({
             className={`starred-row${full ? '' : ' lists-row'}`}
             role={onOpen ? 'button' : undefined}
             tabIndex={onOpen ? 0 : undefined}
+            {...{ [ROW_KEY_ATTR]: memberKey }}
+            {...dragProps}
             onClick={onOpen}
             onKeyDown={onOpen ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(); } } : undefined}
         >
@@ -168,17 +177,18 @@ function TileRow({
 }
 
 /* One member of any kind — routed to the row that draws it. */
-function MemberRow({ member: m, viewerAddress, full, onRemove }: {
+function MemberRow({ member: m, viewerAddress, full, dragProps, onRemove }: {
     member: ListMemberRef;
     viewerAddress?: string | null;
     /** Focused reading — rows at the Starred rows' own size. */
     full: boolean;
+    dragProps: Record<string, unknown>;
     onRemove: () => void;
 }) {
     const router = useRouter();
 
     if (m.kind === 'output') {
-        return <ListRow item={m} owned={isHeldBy(m.slug, m.id, viewerAddress)} full={full} onRemove={onRemove} />;
+        return <ListRow item={m} owned={isHeldBy(m.slug, m.id, viewerAddress)} full={full} dragProps={dragProps} onRemove={onRemove} />;
     }
 
     if (m.kind === 'project') {
@@ -191,6 +201,8 @@ function MemberRow({ member: m, viewerAddress, full, onRemove }: {
                 info={<>Floor:<em>{stat.floor}</em></>}
                 onOpen={() => router.push('/art/' + m.slug)}
                 full={full}
+                memberKey={m.key}
+                dragProps={dragProps}
                 onRemove={onRemove}
             />
         );
@@ -206,6 +218,8 @@ function MemberRow({ member: m, viewerAddress, full, onRemove }: {
                 title={`@${m.slug} · ${m.category}: ${m.value}`}
                 info={<>Floor:<em>{stat.floor}</em></>}
                 full={full}
+                memberKey={m.key}
+                dragProps={dragProps}
                 onRemove={onRemove}
             />
         );
@@ -226,6 +240,8 @@ function MemberRow({ member: m, viewerAddress, full, onRemove }: {
                     : <>Top buy:<em>{collectorTopBuy(handle)}</em></>}
                 onOpen={() => router.push('/' + handle)}
                 full={full}
+                memberKey={m.key}
+                dragProps={dragProps}
                 onRemove={onRemove}
             />
         );
@@ -241,6 +257,8 @@ function MemberRow({ member: m, viewerAddress, full, onRemove }: {
                 title={`@${m.slug}`}
                 info={<>{`♫${VS15} `}<em>{label}</em></>}
                 full={full}
+                memberKey={m.key}
+                dragProps={dragProps}
                 onRemove={onRemove}
             />
         );
@@ -259,6 +277,8 @@ function MemberRow({ member: m, viewerAddress, full, onRemove }: {
             title={<FeedActorLine fe={fe} />}
             info={`${fe.type} · ${fe.time}`}
             full={full}
+            memberKey={m.key}
+            dragProps={dragProps}
             onRemove={onRemove}
         />
     );
@@ -293,6 +313,12 @@ function ListSection({ list, viewerAddress, totalMode, pricesVer, focused, onTog
     });
     /* Focusing a list opens it — a focused list you can't see is nothing. */
     useEffect(() => { if (focused) setOpen(true); }, [focused]);
+
+    /* DRAG TO REORDER — hold a row and drop it on another; members render in
+       stored order, so this IS the order you read (Brendon, 2026-07-25). */
+    const { rowHandlers } = useListRowDrag((fromKey, ontoKey) => {
+        if (moveInList(list.id, fromKey, ontoKey)) onToast(`${list.name}: REORDERED`);
+    });
     /* Rename in place: the ✎ swaps the name for an input, Enter/blur commits,
        Esc backs out. Same pencil the budget pills use (Brendon, 2026-07-24). */
     const [editing, setEditing] = useState(false);
@@ -435,6 +461,7 @@ function ListSection({ list, viewerAddress, totalMode, pricesVer, focused, onTog
                                     member={it}
                                     viewerAddress={viewerAddress}
                                     full={focused}
+                                    dragProps={rowHandlers(it.key)}
                                     onRemove={() => {
                                         removeFromList(list.id, [it.key]);
                                         onToast(`${list.name}: REMOVED`);

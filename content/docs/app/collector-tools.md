@@ -80,72 +80,15 @@ Your collecting story, on demand: summon `wrapped` (or `recap`, or
 your period — pieces in and out, net ◊ flow, your biggest realized flip,
 your best floor call, and your top counterparty.
 
+## Lists ≡
+
+Your own **named groupings** of anything you've starred — artworks, projects,
+traits, artists, soundtracks, transactions. Private, priced, and reorderable.
+They have their own page: **[Lists](/docs/app/lists)**.
+
 ## Further reading
 
 - [Pings](/docs/pings/overview)
 - [The Spell Book](/docs/app/spell-book)
+- [Lists](/docs/app/lists)
 - [Identity & Profiles](/docs/app/identity-and-profiles)
-
-## Lists
-
-**Starred** is the flat pile — you liked it, you starred it, you can find it
-again. **Lists** are what you do once that pile gets big enough to need shape.
-
-A List is a **named slice of your Starred**. The same piece can sit in as many
-Lists as you like, and putting something in a List never stars or unstars
-anything — the pile underneath is untouched.
-
-They are **private**, which is precisely why you get to name them. Nobody else
-ever reads the name, so it can be as useful, or as rude, as you need. (This is
-what separates them from **Albums**, which are numbered by position and never
-named, because Albums are seen.)
-
-### Adding something
-
-**All Starred is the list-building view.** While the surface is showing
-everything, every row — artwork, project, trait, artist, collector, soundtrack,
-transaction — carries the same **ADD TO LIST** button, so a List can hold any
-mix of them. The moment you filter to a single kind, each row gets its own
-button back: Wishlist on an artwork, Play on a soundtrack, the trait and project
-offers, Follow on a person.
-
-ADD TO LIST opens a small sheet with, in order:
-
-1. **✛ Wishlist** — the top option whenever it applies. Your "want to buy" pile
-   is never more than one tap away, and Lists never push it down the page. (Only
-   an artwork can be wishlisted, so it stands down for the other kinds.)
-2. **Your Lists**, each showing a tick if this is already in it.
-3. **New List** — name it and the piece goes in with it, in one go.
-
-### Reading them back
-
-**LISTS** closes Starred's sort row, after ◷ Recent and AZ. It is your own
-shelf, so it only appears on your own profile, and it starts closed.
-
-It behaves like the sorts beside it: it opens your Lists, and tapping it again
-**reorders** them A→Z / Z→A. Tapping any other sort in the row is the way back
-out — you land on your Starred rows under that sort.
-
-Inside, your Lists run **alphabetically**, each one **collapsed** — you scan the
-names first and open the one you want. **Long-press a list's name** and it takes
-the panel to itself, read at full size; long-press that same name to let it go.
-
-Each header carries what the list is worth to you: how many of its artworks you
-already own, and a **◊ total**. Tap the total to swap between what the listed
-pieces are asking right now and what they minted for. It counts artworks only —
-a trait or an artist has no single price. The rows inside are deliberately short: a
-small thumbnail (or the same tile the row wears in Starred), the thing, and the
-one fact that helps you choose — an artwork's price if it is listed, otherwise
-its Fate. Tapping a row goes where its Starred row goes; the ✕ drops it from that
-List.
-
-### Renaming and deleting
-
-The **✎ pencil** on a List's header renames it in place. Enter or tapping away
-saves; Escape backs out. A List cannot be saved without a name.
-
-The **✕** deletes it, and asks first. Deleting a List removes **only the
-grouping** — every piece in it stays exactly where it was in your Starred. A List
-is a view of your collection, never the thing holding it.
-
-Lists follow your account across devices, like your stars.

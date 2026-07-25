@@ -182,6 +182,26 @@ export function addToList(
     return added;
 }
 
+/**
+ * Move one member so it lands where another currently sits (Brendon,
+ * 2026-07-25 — drag to reorder inside a list). Members render in stored order,
+ * so this IS the order the user reads. No-ops when either key is missing or
+ * they're the same, and returns whether anything moved.
+ */
+export function moveInList(listId: string, key: string, ontoKey: string): boolean {
+    if (key === ontoKey) return false;
+    const lists = snapshot(store.get());
+    const list = lists.find((l) => l.id === listId);
+    if (!list) return false;
+    const from = list.keys.indexOf(key);
+    const onto = list.keys.indexOf(ontoKey);
+    if (from < 0 || onto < 0) return false;
+    list.keys.splice(from, 1);
+    list.keys.splice(onto, 0, key);
+    store.set(lists);
+    return true;
+}
+
 /** Drop members from a list. Returns how many were removed, or null if unknown. */
 export function removeFromList(
     listId: string,

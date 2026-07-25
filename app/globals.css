@@ -6612,6 +6612,30 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     padding-left: 6px;
     padding-right: 6px;
 }
+/* DRAG TO REORDER inside a list (Brendon, 2026-07-25) — the Bench drag's
+   gesture, so: rows never fight a scroll until the hold engages, the lifted row
+   follows the finger, and the row it would land on wears PD's dotted ring. */
+.lists-rows .starred-row {
+    /* Vertical panning stays the browser's until the hold fires. */
+    touch-action: pan-y;
+    -webkit-touch-callout: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+body.lists-dragging { cursor: grabbing; }
+.starred-row.lists-row-lifted,
+.starred-row.lists-row-lifted.lists-row {
+    position: relative;
+    z-index: 3;
+    opacity: 0.9;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+    background: var(--bg-color);
+}
+.starred-row.lists-row-armed {
+    outline: 2px dotted var(--text-color);
+    outline-offset: -2px;
+    border-radius: 4px;
+}
 /* The owned ✓ on a member row — the picker's tick, at row scale. */
 .lists-owned {
     font-family: 'Courier New', Courier, monospace;

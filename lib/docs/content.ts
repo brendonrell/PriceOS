@@ -94,6 +94,7 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
             'app/outputs',
             'app/identity-and-profiles',
             'app/collector-tools',
+            'app/lists',
             'app/spell-book',
             'app/achievements',
             'app/discovery',
