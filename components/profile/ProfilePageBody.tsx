@@ -1725,10 +1725,10 @@ function ProfilePageBodyInner({
                                                 onClick={toggleMyLists}
                                                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMyLists(); } }}
                                             >
-                                                <span className="sort-lbl">
-                                                    <span className="sort-lbl-ico">{'≡︎'}</span>
-                                                    LISTS
-                                                </span>
+                                                {/* Word only in the sort row — the ≡ stays PD's
+                                                    Lists mark, it just doesn't ride this button
+                                                    (Brendon, 2026-07-25). */}
+                                                <span className="sort-lbl">LISTS</span>
                                                 {/* The row's own direction arrow — ≡ carries a
                                                     sort like every button beside it. */}
                                                 <span className="sort-arrow">
