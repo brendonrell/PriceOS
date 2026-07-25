@@ -5664,6 +5664,7 @@ body.bg-is-yellow .fiat-opt-on { background: #fff; color: var(--hothurt); border
     font-family: 'Courier New', Courier, monospace;
     font-size: 1.15em;
     line-height: 1;
+    margin-right: 4px;
     display: inline-flex;
     align-items: center;
     position: relative;
