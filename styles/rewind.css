@@ -62,19 +62,21 @@
     accent-color: var(--accent);
     cursor: pointer;
 }
+/* The way out is the app's canonical ✕ in the corner, not a wide label
+   (Brendon, 2026-07-25 — the RETURN TO NOW pill crowded the row off-screen).
+   Square, 4px radius like every other PD control, full-strength accent. */
 .rewind-bar .rw-return {
-    background: var(--accent);
-    border: none;
-    border-radius: 999px;
-    color: var(--bg-color);
+    background: none;
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    color: var(--accent);
     font-family: 'Courier New', Courier, monospace;
-    font-size: 11px;
+    font-size: 14px;
     font-weight: 700;
-    letter-spacing: 0.04em;
-    padding: 6px 10px;
+    line-height: 1;
+    padding: 3px 7px;
     flex: none;
     cursor: pointer;
-    white-space: nowrap;
 }
 /* the app content clears the bar while rewound */
 .rewind-bar ~ * .hero-row-title { scroll-margin-top: 56px; }

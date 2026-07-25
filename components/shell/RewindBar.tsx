@@ -70,9 +70,13 @@ export default function RewindBar() {
           onClick={() => engage(day + 1)}
         >{'›︎'}</button>
       </span>
-      <button type="button" className="rw-return" onClick={returnToNow}>
-        RETURN TO NOW
-      </button>
+      <button
+        type="button"
+        className="rw-return"
+        onClick={returnToNow}
+        title="Return to now"
+        aria-label="Return to now"
+      >{'✕︎'}</button>
     </div>
   );
 }

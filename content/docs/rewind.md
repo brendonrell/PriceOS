@@ -1,9 +1,9 @@
 ---
 title: "The Rewind ◄"
-description: "The whole-OS time scrubber: triple-tap the Price Discussion name and browse PD exactly as it stood on any past PriceDay — read-only, day by day, with a RETURN TO NOW always in reach."
+description: "The whole-OS time scrubber: triple-tap the Price Discussion name and browse PD exactly as it stood on any past PriceDay — read-only, day by day, with the way back always one tap away."
 category: "app"
 keywords: ["rewind", "time", "history", "priceday", "scrubber", "triple tap"]
-last_updated: "2026-07-12"
+last_updated: "2026-07-25"
 ---
 
 # The Rewind ◄
@@ -12,7 +12,7 @@ Every platform shows you now. PD can also show you *then* — the entire app, do
 
 ## Opening it
 
-**Triple-tap the "Price Discussion" name on the home page.** PD docks at yesterday and a full-strength banner frames the app: the PriceDay number, the date, a scrubber, and **RETURN TO NOW**. (The name's sibling gesture, the long-press, opens [Cartography](/docs/cartography) — hold for space, tap thrice for time.)
+**Triple-tap the "Price Discussion" name on the home page.** PD docks at yesterday and a full-strength banner frames the app: the PriceDay number, the date, a scrubber, and the **✕** that returns you to now. (The name's sibling gesture, the long-press, opens [Cartography](/docs/cartography) — hold for space, tap thrice for time.)
 
 ## The scrubber
 
@@ -31,4 +31,4 @@ Landing on Day 1 and seeing the platform as a newborn is the point.
 - **As-of or nothing.** A rewound surface never mixes past and live numbers.
 - **The art is timeless.** Pieces render normally; it's the *provenance* that rewinds.
 
-Exit any time with RETURN TO NOW — a reload also always comes back to the present.
+Exit any time with the **✕** in the banner — a reload also always comes back to the present.
