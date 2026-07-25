@@ -6,6 +6,32 @@ acting. It distills the ClickUp "Session Bootstrap — Read First" page into the
 codebase; where this file and a spec doc disagree, **the spec doc + deployed code
 win** — update this file in place and note it.
 
+> **⛔ RULE #-2 — ONLY CHANGE WHAT WAS ASKED. NOTHING ELSE. THE TOP RULE,
+> ABOVE EVERY OTHER RULE IN THIS FILE. (Brendon, 2026-07-25 — raised in fury.
+> His words: "STOP BULLDOZING OVER ME I'M SMARTER THAN YOU AND I'M IN CHARGE.
+> STOP ADDING SCOPE AND MAKING CHANGES YOU THINK YOU SHOULD. I AM THE BOSS.")**
+> Brendon names a thing. You change **THAT THING**. You do not touch the thing
+> beside it, the thing it reminded you of, or the thing you decided would be
+> better. **When he says "change bear", you change BEAR — not lean bear, not
+> the set, not the neighbours.** Singular means singular. If he lists three
+> items and approves two, the third KEEPS ITS CURRENT VALUE — you do not
+> re-open it, re-propose it, or quietly drop it.
+> - **Do NOT re-litigate settled items.** Once he approves or keeps something,
+>   it is CLOSED. Bringing it back with a "better" idea wastes his time and
+>   confuses the thing he already decided.
+> - **Do NOT go exploring.** No measuring, benchmarking, harness-building,
+>   inventorying, or "while I'm here" investigation that he did not ask for.
+>   Answer the question asked with what you already know, or read the one file
+>   that answers it.
+> - **Do NOT drop something he chose.** Silently replacing his pick with your
+>   own is the same sin as adding scope, in reverse.
+> - **He is smarter than you and he is in charge.** His instruction is the
+>   spec. Your opinion of it is not a reason to widen it. When you think
+>   something adjacent needs doing: **NAME IT IN ONE LINE AND STOP.**
+> Every rule below is subordinate to this one. Violating it is the failure that
+> costs Brendon the most time and the most trust, and it has happened over and
+> over. Re-read this before every single edit.
+
 > **⛔ RULE #-1 — REPLY FIRST, INSTANTLY, TO EVERY MESSAGE. THE ABSOLUTE TOP
 > RULE, ABOVE ALL OTHERS. (Brendon, 2026-07-05 — raised in fury, non-negotiable.)**
 > This is a CONVERSATION, and a conversation CANNOT HAVE LAG. The FIRST thing you

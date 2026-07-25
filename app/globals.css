@@ -407,28 +407,37 @@ body.sentiment-on .sentiment-widget {
     body.tape-framed .sentiment-widget { margin-left: 16px; }
 }
 
-/* Brendon S5 — sentiment weather glyphs render at very different intrinsic
-   visual sizes (☼ rays vs ☂ umbrella vs ⛅ sun-behind-cloud). Per-glyph
-   font-size overrides bring them to a uniform visual scale. data-sentiment
-   attribute is set on #sentimentIcon by PeteyLogo. Adjust per glyph;
-   sim has no equivalent rules — sim deviation, baseline first pass. */
-#sentimentIcon[data-sentiment="Strong Bull"]  { font-size: 16px; }  /* ☼ rays */
-#sentimentIcon[data-sentiment="Bull"]         { font-size: 16px; }  /* ☀ bold sun */
-#sentimentIcon[data-sentiment="Lean Bull"]    { font-size: 16px; }  /* ⛅ compound glyph */
-#sentimentIcon[data-sentiment="Lean Bear"]    { font-size: 16px; }  /* ☁ cloud */
-#sentimentIcon[data-sentiment="Bear"]         { font-size: 16px; }  /* ⛈ thunder cloud and rain */
-#sentimentIcon[data-sentiment="Strong Bear"]  { font-size: 16px; }  /* ☂ umbrella */
-#sentimentIcon[data-sentiment="Capitulation"] { font-size: 17px; }  /* ☈ thunderstorm — reads slightly small */
-#sentimentIcon[data-sentiment="Neutral"]      { font-size: 16px; }  /* ☽ first quarter moon */
+/* Sentiment weather glyphs render at wildly different intrinsic ink heights,
+   so one flat font-size makes the ladder jump around as the state changes.
+   The old pass set nearly everything to the same number, which is why it
+   looked uneven (Brendon, 2026-07-25: "the current glyph sizing isn't great").
+
+   REDONE 2026-07-25 from MEASUREMENT, not eyeballing: each glyph was rendered
+   at 100px in a real Courier and its ink box scanned pixel by pixel. Measured
+   ink heights (100px render): ☼ 57 · ✷ 56 · ✵ 57 · ☽ 72 · ☈ 73 · ⛇ 84 · ☁ 60
+   · ⛈ 79. Sizes below are the ratio that brings each to one optical height,
+   so the moon, the thunderstorm and the snowman stop towering over the bursts.
+
+   data-sentiment is set on #sentimentIcon by PeteyLogo. Courier metrics differ
+   between the measuring font and iOS Courier, so these are the correct
+   RELATIVE scale; absolute pixels stay open to a nudge. */
+#sentimentIcon[data-sentiment="Strong Bull"]  { font-size: 16px; }  /* ☼ rays — the baseline */
+#sentimentIcon[data-sentiment="Bull"]         { font-size: 16px; }  /* ✷ burst — matches ☼ */
+#sentimentIcon[data-sentiment="Lean Bull"]    { font-size: 16px; }  /* ✵ pinwheel — matches ☼ */
+#sentimentIcon[data-sentiment="Lean Bear"]    { font-size: 15px; }  /* ☁ cloud — Brendon keeps the overcast look */
+#sentimentIcon[data-sentiment="Bear"]         { font-size: 12px; }  /* ↯ strike — tall ink */
+#sentimentIcon[data-sentiment="Strong Bear"]  { font-size: 11px; }  /* ⛇ snowman — tallest ink in the set */
+#sentimentIcon[data-sentiment="Capitulation"] { font-size: 12px; }  /* ☈ thunderstorm — tall */
+#sentimentIcon[data-sentiment="Neutral"]      { font-size: 12px; }  /* ☽ first quarter moon — tall */
 @media (max-width: 600px) {
     #sentimentIcon[data-sentiment="Strong Bull"]  { font-size: 20px; }
     #sentimentIcon[data-sentiment="Bull"]         { font-size: 20px; }
     #sentimentIcon[data-sentiment="Lean Bull"]    { font-size: 20px; }
-    #sentimentIcon[data-sentiment="Lean Bear"]    { font-size: 20px; }
-    #sentimentIcon[data-sentiment="Bear"]         { font-size: 20px; }
-    #sentimentIcon[data-sentiment="Strong Bear"]  { font-size: 20px; }
-    #sentimentIcon[data-sentiment="Capitulation"] { font-size: 21px; }
-    #sentimentIcon[data-sentiment="Neutral"]      { font-size: 20px; }
+    #sentimentIcon[data-sentiment="Lean Bear"]    { font-size: 19px; }
+    #sentimentIcon[data-sentiment="Bear"]         { font-size: 15px; }
+    #sentimentIcon[data-sentiment="Strong Bear"]  { font-size: 14px; }
+    #sentimentIcon[data-sentiment="Capitulation"] { font-size: 15px; }
+    #sentimentIcon[data-sentiment="Neutral"]      { font-size: 15px; }
 }
 
 

@@ -34,15 +34,26 @@ export interface SentimentState {
 }
 
 /* State ladder preserved verbatim from the sim port (order matters).
- * S5 changes kept: Bear → ⛈ U+26C8 (Thunder Cloud and Rain, broader
- * support); Neutral ☽ U+263D (First Quarter Moon) as 8th state. */
+ *
+ * 2026-07-25 — EMOJI PURGE (Brendon's picks, one at a time). Glyphs with an
+ * emoji mapping get painted in colour by iOS no matter what the variation
+ * selector says, so four were swapped for marks with NO emoji mapping at all:
+ *   Bull ☀ → ✷   Lean Bull ⛅ → ✵   Bear ⛈ → ↯   Strong Bear ☂ → ⛇
+ *
+ * ⛔ Lean Bear stays ☁ — BRENDON'S CALL, 2026-07-25: "leave the overcast look".
+ * It is the one remaining emoji-mapped glyph in the ladder and it STAYS until
+ * he says otherwise. Do not "fix" it.
+ *
+ * The rule the others were picked against (GLYPHS §7, sharpened the same day):
+ * a glyph is only safe if the codepoint has NO emoji mapping anywhere in
+ * Unicode — judging by default presentation is what shipped ☁ and ☂. */
 export const SENTIMENT_STATES: readonly SentimentState[] = [
     { icon: '\u263C\uFE0E', label: 'Strong Bull',  tip: 'Taker momentum: Strong Bull ☼' },
-    { icon: '\u2600\uFE0E', label: 'Bull',         tip: 'Taker momentum: Bull ☀' },
-    { icon: '\u26C5\uFE0E', label: 'Lean Bull',    tip: 'Taker momentum: Lean Bull ⛅' },
+    { icon: '\u2737\uFE0E', label: 'Bull',         tip: 'Taker momentum: Bull ✷' },
+    { icon: '\u2735\uFE0E', label: 'Lean Bull',    tip: 'Taker momentum: Lean Bull ✵' },
     { icon: '\u2601\uFE0E', label: 'Lean Bear',    tip: 'Taker momentum: Lean Bear ☁' },
-    { icon: '\u26C8\uFE0E', label: 'Bear',         tip: 'Taker momentum: Bear ⛈' },
-    { icon: '\u2602\uFE0E', label: 'Strong Bear',  tip: 'Taker momentum: Strong Bear ☂' },
+    { icon: '\u21AF\uFE0E', label: 'Bear',         tip: 'Taker momentum: Bear ↯' },
+    { icon: '\u26C7\uFE0E', label: 'Strong Bear',  tip: 'Taker momentum: Strong Bear ⛇' },
     { icon: '\u2608\uFE0E', label: 'Capitulation', tip: 'Taker momentum: Capitulation ☈' },
     { icon: '\u263D\uFE0E', label: 'Neutral',      tip: 'Taker momentum: Neutral ☽' },
 ];
