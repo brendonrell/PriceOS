@@ -728,14 +728,19 @@ function ProfilePageBodyInner({
     }, []);
     const [recordingConfirm, setRecordingConfirm] = useState(false);
 
-    /* MY LISTS (Brendon, 2026-07-24) — the user's own NAMED groupings of saved
-       Outputs, living on Starred. The control sits in Starred's sort row beside
-       the ◷ Recent button; tapping it opens a row of the user's list pills, and
-       picking one narrows the Starred Outputs to that list's members.
-       The door: the MY LISTS button toggles the row open AND shut, and closing
-       it clears the active list — default OFF, nothing auto-opens. */
+    /* LISTS (Brendon, 2026-07-24) — the user's own NAMED groupings of starred
+       things, living on Starred. The ≡ LISTS control closes Starred's sort row.
+       The door (Brendon, 2026-07-25): ≡ is the way IN and it behaves like the
+       sorts beside it — tapping it again REORDERS the lists (A→Z, Z→A) rather
+       than closing. The way OUT is tapping any other sort in the row, which
+       drops you back on the Starred rows under that sort. Default OFF. */
     const [myListsOpen, setMyListsOpen] = useState(false);
-    const toggleMyLists = () => setMyListsOpen((v) => !v);
+    const [myListsDir, setMyListsDir] = useState<'asc' | 'desc'>('asc');
+    const toggleMyLists = () => {
+        if (myListsOpen) { setMyListsDir((d) => (d === 'asc' ? 'desc' : 'asc')); return; }
+        setMyListsOpen(true);
+        setMyListsDir('asc');
+    };
 
     const {
         moreSearchOpen, moreQuery, setMoreQuery, toggleMoreSearch, closeMoreSearch,
@@ -1694,8 +1699,10 @@ function ProfilePageBodyInner({
                                                     role="button"
                                                     tabIndex={0}
                                                     title={`Sort by ${MORE_SORT_LABEL[key]}`}
-                                                    onClick={() => cycleMoreSort(key)}
-                                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleMoreSort(key); } }}
+                                                    /* Any sort other than ≡ LISTS is also the way
+                                                       OUT of the lists panel (Brendon, 2026-07-25). */
+                                                    onClick={() => { setMyListsOpen(false); cycleMoreSort(key); }}
+                                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMyListsOpen(false); cycleMoreSort(key); } }}
                                                 >
                                                     <span className={`sort-lbl${isRecentIcon ? ' sort-lbl-recent' : ''}`}>{isRecentIcon ? '◷︎' : lbl}</span>
                                                     <span className="sort-arrow">
@@ -1721,6 +1728,11 @@ function ProfilePageBodyInner({
                                                 <span className="sort-lbl">
                                                     <span className="sort-lbl-ico">{'≡︎'}</span>
                                                     LISTS
+                                                </span>
+                                                {/* The row's own direction arrow — ≡ carries a
+                                                    sort like every button beside it. */}
+                                                <span className="sort-arrow">
+                                                    {myListsOpen ? (myListsDir === 'asc' ? '↑︎' : '↓︎') : ''}
                                                 </span>
                                             </span>
                                         )}
@@ -2213,7 +2225,7 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                             the same Starred shelf, read by list instead of flat.
                             The sort-row button is the way in AND out. */}
                         {myListsOpen ? (
-                            <ListsPanel onToast={showToast} />
+                            <ListsPanel onToast={showToast} dir={myListsDir} />
                         ) : (starredValid.length > 0 || traitStarsValid.length > 0 || artistStars.length > 0 || soundtrackStars.length > 0 || projectStarsValid.length > 0 || txStars.length > 0) ? (
                             <StarredList
                                 items={starredValid}

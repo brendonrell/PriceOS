@@ -345,7 +345,11 @@ function ListSection({ list, onToast, onAskDelete }: {
     );
 }
 
-export default function ListsPanel({ onToast }: { onToast: (m: string) => void }) {
+export default function ListsPanel({ onToast, dir = 'asc' }: {
+    onToast: (m: string) => void;
+    /** Which way the names run — flipped by tapping ≡ LISTS again. */
+    dir?: 'asc' | 'desc';
+}) {
     const [lists, setLists] = useState<ReadonlyArray<ListRecord>>(() => getLists());
     useEffect(() => {
         setLists(getLists());
@@ -391,11 +395,12 @@ export default function ListsPanel({ onToast }: { onToast: (m: string) => void }
     ) : null;
 
     /* ALPHABETICAL (Brendon) — by name, case-insensitively, so "aurora" and
-       "Aurora" sort where a reader expects rather than by byte value. */
-    const ordered = useMemo(
-        () => [...lists].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })),
-        [lists],
-    );
+       "Aurora" sort where a reader expects rather than by byte value. Tapping
+       ≡ LISTS again flips it, exactly like the sorts beside it. */
+    const ordered = useMemo(() => {
+        const sorted = [...lists].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+        return dir === 'desc' ? sorted.reverse() : sorted;
+    }, [lists, dir]);
 
     if (ordered.length === 0) {
         return (

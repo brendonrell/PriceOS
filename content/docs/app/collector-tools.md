@@ -119,9 +119,12 @@ ADD TO LIST opens a small sheet with, in order:
 
 ### Reading them back
 
-**LISTS** sits at the end of Starred's sort row, after ◷ Recent and AZ. It is
-your own shelf, so it only appears on your own profile. The same button opens it
-and closes it, and it starts closed.
+**≡ LISTS** closes Starred's sort row, after ◷ Recent and AZ. It is your own
+shelf, so it only appears on your own profile, and it starts closed.
+
+It behaves like the sorts beside it: **≡** opens your Lists, and tapping it
+again **reorders** them A→Z / Z→A. Tapping any other sort in the row is the way
+back out — you land on your Starred rows under that sort.
 
 Inside, your Lists run **alphabetically**, each one **collapsed** — you scan the
 names first and open the one you want. The rows inside are deliberately short: a
