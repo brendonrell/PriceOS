@@ -61,6 +61,11 @@ export interface UserSettings {
   /** Wishlisted Outputs — PRIVATE "want to buy" list, keyed `${slug}:${id}`.
    *  Same envelope + privacy as `starred`. */
   wishlist?: string[];
+  /** SHADOW PORTFOLIO — the paper positions behind the Portfolio's Shadow tab
+   *  (Brendon, 2026-07-25). Each entry carries the piece plus the ETH price it
+   *  was taken at, so paper P&L stays honest. PRIVATE, same envelope as
+   *  `starred`; confers no ownership of anything. */
+  shadow?: { slug: string; id: number; entry: number; at: number }[];
   /** Albums — named, ordered collections of Outputs (keys `${slug}:${id}`).
    *  Same envelope + privacy as `starred` until album sharing ships. */
   albums?: AlbumRecord[];

@@ -75,11 +75,17 @@ import {
 } from '../../lib/portfolio/types';
 import {
     buildLivePortfolio,
+    buildShadowPortfolio,
     emptyPortfolio,
     sumPortfolioCats,
     type PortfolioHolding,
     type PortfolioValueMode,
 } from '../../lib/portfolio/livePortfolio';
+import {
+    getShadowPositions,
+    subscribeShadow,
+    type ShadowPosition,
+} from '../../lib/pins/shadowStore';
 import { useAuth } from '../../lib/state/AuthContext';
 import {
     addBudget as engineAddBudget,
@@ -167,9 +173,24 @@ export function PortfolioView() {
             .catch(() => {});
         return () => { cancelled = true; };
     }, [siweAddress]);
+    /* SHADOW — the paper book (Brendon, 2026-07-25). Same assembler, same
+       shape, so every control below reads it identically. */
+    const [shadowPositions, setShadowPositions] = useState<readonly ShadowPosition[]>(
+        () => getShadowPositions(),
+    );
+    useEffect(() => {
+        setShadowPositions(getShadowPositions());
+        return subscribeShadow(setShadowPositions);
+    }, []);
+
     const liveCats = useMemo<PortfolioCategory[]>(
-        () => (tab === 'portfolio' ? buildLivePortfolio(holdings, ensName, priceMode) : emptyPortfolio()),
-        [tab, holdings, ensName, priceMode],
+        () =>
+            tab === 'portfolio'
+                ? buildLivePortfolio(holdings, ensName, priceMode)
+                : shadowPositions.length > 0
+                  ? buildShadowPortfolio(shadowPositions, priceMode)
+                  : emptyPortfolio(),
+        [tab, holdings, ensName, priceMode, shadowPositions],
     );
     const [budgets, setBudgets] = useState<BudgetsState>(() => getBudgets());
     /* F57 (BUG-10) — subscribe to budgetEngine. The engine owns

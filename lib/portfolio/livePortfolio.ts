@@ -11,7 +11,8 @@
  *     for everyone today; the moment someone registers one it shows (price 0
  *     until a sale price exists).
  *
- * Shadow tab has no real dataset, so the view passes an empty set for it.
+ * The SHADOW tab is the paper-trading twin, assembled by buildShadowPortfolio
+ * from the owner's own shadow positions through this same assembler.
  */
 
 import { getProject } from '../project/registry';
@@ -91,7 +92,33 @@ export function buildLivePortfolio(
     ];
 }
 
-/** An empty tree set — used for the Shadow tab (no real shadow dataset yet). */
+/**
+ * The SHADOW tree — the paper positions, shaped exactly like the real one
+ * (Brendon, 2026-07-25: "build it").
+ *
+ * Deliberately the same assembler as the Main tab: same grouping, same
+ * $-mode valuation, same category shape. That is the whole point — the Shadow
+ * is the Main portfolio you didn't buy, so it has to be read the same way, and
+ * every downstream surface (grouping, totals, the $ button) works untouched.
+ *
+ * Shadow positions live only in the owner's settings envelope. Nothing here
+ * asserts ownership of anything.
+ */
+export function buildShadowPortfolio(
+    positions: ReadonlyArray<{ slug: string; id: number }>,
+    mode: PortfolioValueMode = 'floor',
+): PortfolioCategory[] {
+    const cats = buildLivePortfolio(
+        positions.map((p) => ({ slug: p.slug, token_id: p.id })),
+        null,
+        mode,
+    );
+    /* No ENS in the shadow book — you can't paper-trade a name you'd have
+       had to actually register. */
+    return cats.filter((c) => c.name !== 'ENS');
+}
+
+/** An empty tree set — signed-out, or a shadow book with nothing in it yet. */
 export function emptyPortfolio(): PortfolioCategory[] {
     return [
         { name: 'LONG-FORM', type: 'tree', artists: [] },

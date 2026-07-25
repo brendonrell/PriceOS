@@ -2,7 +2,7 @@
 
 /*
  * OutputActionRow — the artwork-modal action buttons (Star · Wishlist · Album ·
- * Note · To-Do · Grail · Cart), rendered as a static row just below the Output
+ * Note · To-Do · Grail · Shadow · Cart), rendered as a static row just below the Output
  * art on its page. Same glyphs, stores, handlers, and toasts as the gallery
  * card's hover row (components/ArtworkCard.tsx) — lifted so the page reuses the
  * real behaviour, recoloured for the on-page background (not the dark scrim).
@@ -17,6 +17,7 @@ import { getGrails, subscribeGrails, togglePin as storeTogglePin, type GrailPin 
 import { addOutputTodo } from '../../lib/todos/todoStore';
 import { getStarredKeys, subscribeStarred, toggleStar as storeToggleStar } from '../../lib/pins/starStore';
 import { getWishlistKeys, subscribeWishlist, toggleWishlist as storeToggleWishlist } from '../../lib/pins/wishlistStore';
+import { getShadowPositions, subscribeShadow, toggleShadow as storeToggleShadow, type ShadowPosition } from '../../lib/pins/shadowStore';
 import { readNoteFor } from '../../lib/notes/tokenNotes';
 import { shareLink } from '../../lib/pwa/share';
 
@@ -36,6 +37,8 @@ export default function OutputActionRow({
     useEffect(() => { setStarredKeys(getStarredKeys()); return subscribeStarred(setStarredKeys); }, []);
     const [wishlistKeys, setWishlistKeys] = useState<ReadonlySet<string>>(() => getWishlistKeys());
     useEffect(() => { setWishlistKeys(getWishlistKeys()); return subscribeWishlist(setWishlistKeys); }, []);
+    const [shadowPositions, setShadowPositions] = useState<readonly ShadowPosition[]>(() => getShadowPositions());
+    useEffect(() => { setShadowPositions(getShadowPositions()); return subscribeShadow(setShadowPositions); }, []);
 
     /* Does this Output already have a saved note? Same store + signal the gallery
        card reads, so the action-row button lights up when a note exists.
@@ -55,6 +58,7 @@ export default function OutputActionRow({
     const starred = starredKeys.has(`${slug}:${id}`);
     const wishlisted = wishlistKeys.has(`${slug}:${id}`);
     const pinned = pinnedSet.some((p) => p.kind === 'output' && p.slug === slug && p.id === id);
+    const shadowed = shadowPositions.some((p) => p.slug === slug && p.id === id);
     const hasNote = noteText.trim().length > 0;
 
     const stop = (e: React.MouseEvent) => e.stopPropagation();
@@ -74,6 +78,11 @@ export default function OutputActionRow({
         const r = storeTogglePin(slug, id);
         if (r === 'limit') { showToast('Grail Pin Limit: 10 MAX'); return; }
         showToast(r === 'unpinned' ? `${collName} #${id} DE-PINNED` : `${collName} #${id} GRAIL PINNED`);
+    };
+    const onShadow = (e: React.MouseEvent) => {
+        stop(e);
+        const r = storeToggleShadow(slug, id);
+        showToast(r === 'opened' ? 'Shadow: TRACKING' : 'Shadow: DROPPED');
     };
     const onCart = (e: React.MouseEvent) => {
         stop(e);
@@ -119,6 +128,7 @@ export default function OutputActionRow({
                 showToast(r === 'exists' ? `To-Do: ALREADY ADDED` : `To-Do: ADDED`);
             }} />
             <Btn glyph={'⟟︎'} title="Grail Pin" active={pinned} extra="output-act-grail" onClick={onGrail} />
+            <Btn glyph={'◐︎'} title={shadowed ? 'Stop shadowing' : 'Shadow — track it as if owned'} active={shadowed} onClick={onShadow} />
             <button type="button" className="pill-colorway output-share-btn" title="Share" onClick={onShare}>Share</button>
             {listed && <Btn glyph={'▢︎'} title="Add to Cart" onClick={onCart} />}
             <div

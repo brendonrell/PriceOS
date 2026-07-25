@@ -99,6 +99,9 @@ export const STATE_CACHE_KEYS = {
     /** Wishlisted Outputs (`${slug}:${id}` keys). Read + written by
      *  wishlistStore; lives inside the settings envelope server-side. */
     wishlist: 'pd_wishlist',
+    /** SHADOW PORTFOLIO positions — the paper trades (slug, id, entry, at).
+     *  Read + written by shadowStore; PRIVATE, settings envelope. */
+    shadow: 'pd_shadow',
     /** Albums (named lists of `${slug}:${id}` keys). Read + written by
      *  albumStore; lives inside the settings envelope server-side. */
     albums: 'pd_albums',
@@ -358,6 +361,10 @@ export function hydrateFromRow(row: UserRow): void {
         localStorage.setItem(
             STATE_CACHE_KEYS.wishlist,
             JSON.stringify(Array.isArray(s.wishlist) ? s.wishlist : []),
+        );
+        localStorage.setItem(
+            STATE_CACHE_KEYS.shadow,
+            JSON.stringify(Array.isArray(s.shadow) ? s.shadow : []),
         );
         localStorage.setItem(
             STATE_CACHE_KEYS.albums,
