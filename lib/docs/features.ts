@@ -37,6 +37,7 @@ export const ATLAS_SECTIONS = [
     'Curation, Identity & Chrome',
     'King Mode',
     'WOW Tier',
+    'PD Studio',
 ] as const;
 
 const F = (n: number, name: string, section: string, glyph?: string, tag?: AtlasFeature['tag']): AtlasFeature =>
@@ -259,6 +260,80 @@ export const ATLAS: AtlasFeature[] = [
     F(200, 'The Understudy', 'WOW Tier'),
     // ── Post-founding appends (the registry is append-only from here) ──
     F(201, 'ASCII Backup', 'Output Page', '⍞'),
+    // ── 2026-07-25 catch-up append — everything shipped between 2026-07-10
+    //    and 2026-07-25 that the Atlas had never captured. Every entry was
+    //    verified against the real code before it joined the catalog.
+    //    Numbers are permanent; the registry stays append-only.
+    // ── Global UI ──
+    F(202, 'The Command Stone', 'Global UI', '⌘'),
+    F(203, 'The PD Miniplayer', 'Global UI', '♫'),
+    F(204, 'Profile Tags', 'Global UI'),
+    F(205, 'PD User Number', 'Global UI'),
+    F(206, 'Fiat Mode + Currencies', 'Global UI'),
+    F(207, 'Sound Layer', 'Global UI', '⚟'),
+    F(208, 'Quiet Hours', 'Global UI', '⏾'),
+    // ── OS Tools ──
+    F(209, 'Lists', 'OS Tools', '≡'),
+    F(210, 'Workflows', 'OS Tools', '☇'),
+    F(211, 'The Sentinel', 'OS Tools'),
+    F(212, 'PD Wrapped', 'OS Tools'),
+    F(213, 'Spaces — workspace mood presets', 'OS Tools'),
+    // ── Spell Book ──
+    F(214, 'Degen', 'Spell Book', '⚔'),
+    F(215, 'Echo Chamber', 'Spell Book', '≫'),
+    F(216, 'The ???? pill', 'Spell Book'),
+    // ── Home / Discovery ──
+    F(217, 'Composer', 'Home / Discovery', '⊚'),
+    F(218, 'Programs — the Spectrum · the Loosener', 'Home / Discovery'),
+    // ── Project Page ──
+    F(219, "The Gnome — the Project's keeper", 'Project Page'),
+    F(220, 'The Mint Room', 'Project Page'),
+    F(221, 'OWNERS list', 'Project Page'),
+    F(222, 'Price Targets — sealed monthly calls', 'Project Page'),
+    F(223, 'Subtraits', 'Project Page'),
+    F(224, 'Artist Showcase layouts', 'Project Page'),
+    // ── Output Page ──
+    F(225, 'The Neighbourhood', 'Output Page'),
+    F(226, 'Time-as-distance timeline', 'Output Page'),
+    F(227, 'Rarity Receipt', 'Output Page'),
+    // ── Profile Page ──
+    F(228, 'Targets', 'Profile Page', '⬚'),
+    F(229, 'Counterparties', 'Profile Page'),
+    F(230, 'The Friend Inspector — the Wire · the Constellation · lenses', 'Profile Page'),
+    F(231, 'The Identity Plate', 'Profile Page'),
+    F(232, "The Completionist's Ledger · The Close", 'Profile Page'),
+    F(233, 'Name Font', 'Profile Page'),
+    F(234, 'Showcase Move Mode', 'Profile Page'),
+    // ── PD Studio ──
+    F(235, 'PD Studio', 'PD Studio'),
+    F(236, 'Drafts + Test Runs', 'PD Studio'),
+    F(237, 'Trait Scan + Subtrait Editor', 'PD Studio'),
+    F(238, 'Preflight + Publish', 'PD Studio'),
+    F(239, 'The Artist Dashboard', 'PD Studio'),
+    F(240, 'The Drop Kit', 'PD Studio'),
+    F(241, 'EARNED', 'PD Studio'),
+    F(242, 'Vouch', 'PD Studio'),
+    F(243, 'Sticker Studio', 'PD Studio'),
+    F(244, 'God Mode', 'PD Studio'),
+    F(245, 'Soundtrack Manager', 'PD Studio'),
+    // ── Pings ──
+    F(246, 'Artist Push', 'Pings', '✺'),
+    F(247, '3D Pingtoasts — native lock-screen push', 'Pings'),
+    F(248, 'Trade pings', 'Pings', '⇌'),
+    // ── Platform Systems ──
+    F(249, 'The Factions — the colour war', 'Platform Systems', '⚐'),
+    F(250, 'The Sigil Forge', 'Platform Systems'),
+    F(251, 'The Book of Conquests', 'Platform Systems', '≣'),
+    F(252, 'The Gnomes — the real-fake NFT collection', 'Platform Systems'),
+    F(253, 'The Awakening', 'Platform Systems'),
+    F(254, 'the gnomewallet', 'Platform Systems', '⍙'),
+    F(255, 'the mushroom market', 'Platform Systems'),
+    F(256, 'Fair Draw', 'Platform Systems'),
+    F(257, 'The Digest — the email edition · The Stamp', 'Platform Systems'),
+    F(258, 'PDMCP — the PD MCP server', 'Platform Systems'),
+    F(259, 'The Sticker Channel', 'Platform Systems'),
+    F(260, 'The Exchange', 'Platform Systems', '⇌'),
+    F(261, 'The Rewind', 'Platform Systems', '◄'),
 ];
 
 export function atlasId(n: number): string {
