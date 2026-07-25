@@ -33,6 +33,7 @@ import { useOutputMeta } from '../../lib/hooks/useOutputMeta';
 import { getProject, projectColorway, projectsByArtist } from '../../lib/project/registry';
 import { readOutputFate } from '../../lib/project/fate';
 import { traitMarketStat, projectMarketStat, artistColor, artistFloor, collectorTopBuy } from '../../lib/market/starredMarket';
+import { useStarredPrices, priceOf, isHeldBy } from '../../lib/pins/starredPriceStore';
 import { getTxStarItems } from '../../lib/pins/txStarStore';
 import { txStarToFeedEvent, FeedActorLine } from '../../lib/feed/feedRow';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
@@ -79,7 +80,12 @@ function RemoveX({ onRemove }: { onRemove: () => void }) {
 }
 
 /* ── One SHORT row: thumb · project #id · the one line that matters ── */
-function ListRow({ item, onRemove }: { item: Extract<ListMemberRef, { kind: 'output' }>; onRemove: () => void }) {
+function ListRow({ item, owned, onRemove }: {
+    item: Extract<ListMemberRef, { kind: 'output' }>;
+    /** The viewer holds this piece — marked with the same ✓ the picker uses. */
+    owned: boolean;
+    onRemove: () => void;
+}) {
     const { open } = useModal();
     const meta = useOutputMeta(item.id);
     const project = getProject(item.slug);
@@ -104,6 +110,9 @@ function ListRow({ item, onRemove }: { item: Extract<ListMemberRef, { kind: 'out
             <OutputThumb slug={item.slug} id={item.id} size={40} crop />
             <div className="starred-row-meta">
                 <span className="starred-row-id is-split">
+                    {owned && (
+                        <span className="lists-owned" title="You own this" aria-label="You own this">{`✓${VS15}`}</span>
+                    )}
                     <span className="srl-handle">{project?.displayName ?? item.slug}</span>
                     <span className="srl-suffix">#{item.id}</span>
                 </span>
@@ -149,10 +158,16 @@ function TileRow({
 }
 
 /* One member of any kind — routed to the row that draws it. */
-function MemberRow({ member: m, onRemove }: { member: ListMemberRef; onRemove: () => void }) {
+function MemberRow({ member: m, viewerAddress, onRemove }: {
+    member: ListMemberRef;
+    viewerAddress?: string | null;
+    onRemove: () => void;
+}) {
     const router = useRouter();
 
-    if (m.kind === 'output') return <ListRow item={m} onRemove={onRemove} />;
+    if (m.kind === 'output') {
+        return <ListRow item={m} owned={isHeldBy(m.slug, m.id, viewerAddress)} onRemove={onRemove} />;
+    }
 
     if (m.kind === 'project') {
         const stat = projectMarketStat(m.slug);
@@ -233,8 +248,14 @@ function MemberRow({ member: m, onRemove }: { member: ListMemberRef; onRemove: (
 }
 
 /* ── One collapsible list ── */
-function ListSection({ list, onToast, onAskDelete }: {
+function ListSection({ list, viewerAddress, totalMode, pricesVer, onCycleTotal, onToast, onAskDelete }: {
     list: ListRecord;
+    viewerAddress?: string | null;
+    /** Which money the ◊ total counts — see ListsPanel. */
+    totalMode: 'secondary' | 'primary';
+    /** Bumps when the price/owner feed lands, so the totals recompute. */
+    pricesVer: number;
+    onCycleTotal: () => void;
     onToast: (m: string) => void;
     onAskDelete: () => void;
 }) {
@@ -257,6 +278,32 @@ function ListSection({ list, onToast, onAskDelete }: {
     };
 
     const items = useMemo(() => parseKeys(list.keys), [list.keys]);
+
+    /* The two numbers a list header carries beside its count.
+       OWNED — how many of the artworks in here you already hold. Only artworks
+       can be owned, so a list of projects/people simply doesn't show it.
+       ◊ TOTAL — SECONDARY counts what the listed pieces are asking right now
+       (what finishing this list would cost today); PRIMARY counts what they
+       minted for. Both count ARTWORKS ONLY: a trait or an artist has no single
+       price, and summing them would be a lie. */
+    const { owned, ownable, total } = useMemo(() => {
+        let ownedN = 0;
+        let ownableN = 0;
+        let sum = 0;
+        for (const it of items) {
+            if (it.kind !== 'output') continue;
+            ownableN++;
+            if (isHeldBy(it.slug, it.id, viewerAddress)) ownedN++;
+            if (totalMode === 'secondary') {
+                const p = priceOf(it.slug, it.id);
+                if (p != null) sum += p;
+            } else {
+                sum += getProject(it.slug)?.mintPriceEth ?? 0;
+            }
+        }
+        return { owned: ownedN, ownable: ownableN, total: sum };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [items, viewerAddress, totalMode, pricesVer]);
 
     return (
         <div className={`lists-section${open ? ' is-open' : ''}`}>
@@ -291,6 +338,28 @@ function ListSection({ list, onToast, onAskDelete }: {
                     <span className="lists-head-name">{list.name}</span>
                 )}
                 <span className="lists-head-count">{items.length}</span>
+                {/* How many of this list's artworks you already hold. */}
+                {ownable > 0 && (
+                    <span className="lists-head-owned" title={`You own ${owned} of ${ownable}`}>
+                        {`✓${VS15}`}{owned}/{ownable}
+                    </span>
+                )}
+                {/* ◊ is PD's ETH mark. Tapping the number swaps every header
+                    between the live asks and what the pieces minted for. */}
+                {total > 0 && (
+                    <span
+                        className="lists-head-total"
+                        role="button"
+                        tabIndex={0}
+                        title={totalMode === 'secondary' ? 'Live asks — tap for mint' : 'Mint prices — tap for live asks'}
+                        onClick={(e) => { e.stopPropagation(); onCycleTotal(); }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onCycleTotal(); }
+                        }}
+                    >
+                        {`◊${VS15}`}{total.toFixed(total >= 100 ? 0 : 2)}
+                    </span>
+                )}
                 {/* Rename — the budget pills' pencil, same glyph. */}
                 <span
                     className="lists-head-edit"
@@ -325,6 +394,7 @@ function ListSection({ list, onToast, onAskDelete }: {
                             const row = (
                                 <MemberRow
                                     member={it}
+                                    viewerAddress={viewerAddress}
                                     onRemove={() => {
                                         removeFromList(list.id, [it.key]);
                                         onToast(`${list.name}: REMOVED`);
@@ -345,16 +415,46 @@ function ListSection({ list, onToast, onAskDelete }: {
     );
 }
 
-export default function ListsPanel({ onToast, dir = 'asc' }: {
+export default function ListsPanel({ onToast, dir = 'asc', viewerAddress }: {
     onToast: (m: string) => void;
     /** Which way the names run — flipped by tapping ≡ LISTS again. */
     dir?: 'asc' | 'desc';
+    /** The signed-in wallet — drives the owned ✓ and the n/m roll-up. */
+    viewerAddress?: string | null;
 }) {
     const [lists, setLists] = useState<ReadonlyArray<ListRecord>>(() => getLists());
     useEffect(() => {
         setLists(getLists());
         return subscribeLists(setLists);
     }, []);
+
+    /* Prices + ownership for every artwork in every list, from the one feed
+       that already carries both (Rule #0 — the Starred sort uses the same
+       store). Fetched per project, cached, so a collapsed list costs nothing
+       extra to total. */
+    const memberSlugs = useMemo(() => {
+        const s = new Set<string>();
+        for (const l of lists) {
+            for (const k of l.keys) {
+                const ref = parseListKey(k);
+                if (ref?.kind === 'output') s.add(ref.slug);
+            }
+        }
+        return [...s];
+    }, [lists]);
+    const pricesVer = useStarredPrices(memberSlugs);
+
+    /* One mode for the whole panel, so two headers can never disagree about
+       which money they're showing. Tapping any ◊ flips them all; the toast
+       names the mode (§9 casing — the STATE screams). */
+    const [totalMode, setTotalMode] = useState<'secondary' | 'primary'>('secondary');
+    const cycleTotal = () => {
+        setTotalMode((m) => {
+            const next = m === 'secondary' ? 'primary' : 'secondary';
+            onToast(`List total: ${next.toUpperCase()}`);
+            return next;
+        });
+    };
 
     /* Deleting a list asks first, through the app's own remove-confirm card —
        the same one the Starred rows use for their ✕ (Rule #0). */
@@ -416,8 +516,14 @@ export default function ListsPanel({ onToast, dir = 'asc' }: {
         <section className="starred-list lists-panel" aria-label="My Lists">
             {ordered.map((l) => (
                 <ListSection
+                    /* pricesVer in the key would remount and collapse open
+                       sections — the totals read it through the memo instead. */
                     key={l.id}
                     list={l}
+                    viewerAddress={viewerAddress}
+                    totalMode={totalMode}
+                    pricesVer={pricesVer}
+                    onCycleTotal={cycleTotal}
                     onToast={onToast}
                     onAskDelete={() => setConfirm(l)}
                 />

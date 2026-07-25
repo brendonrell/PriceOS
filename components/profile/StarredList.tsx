@@ -696,6 +696,34 @@ export default function StarredList({
         showToast(r === 'added' ? 'Wishlist: ADDED' : 'Wishlist: REMOVED');
     };
 
+    /* ADD TO LIST from MULTI-SELECT (Brendon, 2026-07-25) — the same door the
+       Album picker uses from its float bar: the selection becomes a batch and
+       the SAME sheet opens, which already takes many items at once. Resolving
+       the selection mirrors handleRemoveSelected exactly — the selected keys
+       are per-kind, so each visible block hands back the pins it owns. */
+    const [listBatch, setListBatch] = useState<GrailPin[] | null>(null);
+    const selectedPins = (): GrailPin[] => {
+        const inMode = (m: Mode) => mode === 'all' || mode === m || (isSocial && (m === 'collectors' || m === 'artists' || m === 'projects'));
+        const pins: GrailPin[] = [];
+        if (inMode('outputs')) visibleOutputs.forEach((r) => { if (selected.has(`${r.slug}:${r.id}`)) pins.push({ kind: 'output', slug: r.slug, id: r.id }); });
+        if (inMode('traits')) visibleTraits.forEach((r) => { if (selected.has(`${r.slug}|${r.category}|${r.value}`)) pins.push({ kind: 'trait', slug: r.slug, category: r.category, value: r.value }); });
+        if (inMode('artists')) visibleArtists.forEach((r) => { if (selected.has(r.name)) pins.push({ kind: 'artist', slug: r.handle }); });
+        if (inMode('collectors')) visibleCollectors.forEach((r) => { if (selected.has(r.name)) pins.push({ kind: 'artist', slug: r.handle }); });
+        if (inMode('soundtracks')) visibleSoundtracks.forEach((r) => { if (selected.has(`${r.slug}|${r.playlistId}`)) pins.push({ kind: 'soundtrack', slug: r.slug, playlistId: r.playlistId, title: r.title }); });
+        if (inMode('projects')) visibleProjects.forEach((r) => { if (selected.has(`p:${r.slug}`)) pins.push({ kind: 'project', slug: r.slug }); });
+        if (inMode('tx')) visibleTx.forEach((r) => {
+            if (!selected.has(`tx:${r.star.id}`)) return;
+            const tokenSlug = r.star.tokenId ? r.star.tokenId.slice(0, r.star.tokenId.lastIndexOf('-')) : '';
+            pins.push({ kind: 'tx', slug: tokenSlug, tx: r.star });
+        });
+        return pins;
+    };
+    const handleAddSelectedToList = () => {
+        const pins = selectedPins();
+        if (pins.length === 0) return;
+        setListBatch(pins);
+    };
+
     const handleTraitUnstar = (e: React.MouseEvent, t: TraitStar) => {
         e.stopPropagation();
         askRemove('Remove this trait from your Starred list?', () => {
@@ -1226,9 +1254,19 @@ export default function StarredList({
             </div>
             {multiActive && (
                 <div className="ms-float-bar" role="toolbar" aria-label="Multi-select actions">
+                    {/* Two fused actions — the constructive one first, Remove
+                        second. Both sized to their words so the bar still fits
+                        an iPhone (Brendon, 2026-07-25: keep the UI light). */}
                     <div className="ms-float-wrap">
                         <button
-                            className="ms-float-action"
+                            className="ms-float-action ms-float-action--fit"
+                            onClick={handleAddSelectedToList}
+                            disabled={selected.size === 0}
+                        >
+                            <span className="ms-float-label">Add to List</span>
+                        </button>
+                        <button
+                            className="ms-float-action ms-float-action--fit"
                             onClick={handleRemoveSelected}
                             disabled={selected.size === 0}
                         >
@@ -1284,6 +1322,34 @@ export default function StarredList({
                         : null}
                     onDone={(msg) => { setListTarget(null); showToast(msg); }}
                     onClose={() => setListTarget(null)}
+                />
+            )}
+
+            {/* The same sheet, opened from multi-select with the whole
+                selection. Wishlist only offers itself when every picked item
+                is an Output — nothing else can be wishlisted. */}
+            {listBatch && (
+                <AddToListCard
+                    items={listBatch}
+                    wishlisted={listBatch.every((p) => p.kind === 'output' && p.id != null && isWishlisted(p.slug, p.id))}
+                    onWishlist={listBatch.every((p) => p.kind === 'output' && p.id != null)
+                        ? () => {
+                            let n = 0;
+                            for (const p of listBatch) {
+                                if (isWishlisted(p.slug, p.id!)) continue;
+                                toggleWishlist(p.slug, p.id!);
+                                n++;
+                            }
+                            return n === 0 ? 'Wishlist: ALREADY ON' : `Wishlist: ADDED ${n}`;
+                        }
+                        : null}
+                    onDone={(msg) => {
+                        setListBatch(null);
+                        setSelected(new Set());
+                        onExitMulti?.();
+                        showToast(msg);
+                    }}
+                    onClose={() => setListBatch(null)}
                 />
             )}
         </section>

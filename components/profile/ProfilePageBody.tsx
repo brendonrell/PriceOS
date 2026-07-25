@@ -2225,7 +2225,7 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                             the same Starred shelf, read by list instead of flat.
                             The sort-row button is the way in AND out. */}
                         {myListsOpen ? (
-                            <ListsPanel onToast={showToast} dir={myListsDir} />
+                            <ListsPanel onToast={showToast} dir={myListsDir} viewerAddress={user.address} />
                         ) : (starredValid.length > 0 || traitStarsValid.length > 0 || artistStars.length > 0 || soundtrackStars.length > 0 || projectStarsValid.length > 0 || txStars.length > 0) ? (
                             <StarredList
                                 items={starredValid}

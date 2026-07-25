@@ -6193,6 +6193,13 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 }
 .ms-float-action:hover { opacity: 0.8; }
 .ms-float-action:active { opacity: 0.65; }
+/* Two fused actions in one bar (Starred's Add to List + Remove) — each sized to
+   its own word instead of the fixed 172px, so the pair still fits an iPhone.
+   A hairline in the shared fill keeps them reading as two buttons. */
+.ms-float-action--fit { width: auto; padding: 0 18px; }
+.ms-float-action--fit + .ms-float-action--fit {
+    box-shadow: inset 1px 0 0 color-mix(in srgb, var(--bg-color) 35%, transparent);
+}
 
 /* Arrow tab — fattened for easier tap */
 .ms-float-arrow {
@@ -6574,6 +6581,34 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 .lists-head-caret { flex: 0 0 auto; font-family: 'Courier New', Courier, monospace; }
 .lists-head-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lists-head-count { flex: 0 0 auto; opacity: 0.6; }
+/* Owned roll-up + the ◊ ETH total, riding the header beside the count
+   (Brendon, 2026-07-25). Full strength, 12px floor — these are live readouts,
+   not decoration (Rule #2). */
+.lists-head-owned,
+.lists-head-total {
+    flex: 0 0 auto;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1;
+    color: var(--text-color);
+    white-space: nowrap;
+}
+/* The total is tappable — it swaps live asks for mint prices. */
+.lists-head-total {
+    cursor: pointer;
+    padding: 3px 4px;
+    margin: -3px 0;
+    -webkit-tap-highlight-color: transparent;
+}
+.lists-head-total:active { opacity: 0.65; }
+/* The owned ✓ on a member row — the picker's tick, at row scale. */
+.lists-owned {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 900;
+    margin-right: 5px;
+    flex-shrink: 0;
+}
 /* Rename + delete on a list header. Same ✎ pencil the budget pills wear, but
    FULL STRENGTH here (Rule #2 — no reflexive half-opacity on live controls).
    Generous padding so both stay comfortably tappable on an iPhone. */
