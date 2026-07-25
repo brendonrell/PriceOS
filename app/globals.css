@@ -6520,6 +6520,17 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 }
 .list-sheet-name { display: inline-flex; align-items: center; min-width: 0; }
 .list-sheet-in { font-weight: 900; margin-right: 6px; flex-shrink: 0; }
+/* PD's ✛ wishlist glyph beside the word (Brendon, 2026-07-25) — tall + thin,
+   so it needs its own optical nudge (docs/GLYPHS.md §on ✛). */
+.list-sheet-glyph {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 15px;
+    line-height: 1;
+    margin-right: 6px;
+    flex-shrink: 0;
+    position: relative;
+    top: 0.5px;
+}
 .list-sheet-count { opacity: 0.6; flex-shrink: 0; }
 .list-sheet-item.is-in { background: color-mix(in srgb, currentColor 10%, transparent); }
 /* Wishlist is the permanent top option — a divider under it separates the
@@ -6575,6 +6586,13 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 .lists-rows { display: flex; flex-direction: column; padding: 2px 0 6px; }
 /* The SHORT row — same starred-row anatomy, tightened. */
 .starred-row.lists-row { padding: 5px 0; gap: 10px; }
+/* Non-Output members (Project · Trait · Artist · Soundtrack · Tx) wear the
+   Starred rows' own tile + glyph, shrunk from 64px to the short row's 40px
+   (Brendon, 2026-07-25). */
+.lists-row .trait-row-tile { width: 40px; height: 40px; border-radius: 5px; }
+.lists-row .artist-row-tile-glyph { font-size: 21px; }
+.lists-row .trait-row-tile-glyph { font-size: 19px; }
+.lists-row .soundtrack-tile-glyph { font-size: 16px; }
 .lists-empty { font-size: 12px; opacity: 0.7; padding: 8px 0; font-weight: bold; }
 
 /* ── Add-to-Showcase picker grid (Brendon 2026-06-15) ──────────────────── */

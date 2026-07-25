@@ -1,12 +1,12 @@
 'use client';
 
 /*
- * listStore — LISTS, the user's own named groupings of saved Outputs
- * (Brendon, 2026-07-24).
+ * listStore — LISTS, the user's own named groupings of STARRED things
+ * (Brendon, 2026-07-24; widened past Outputs 2026-07-25).
  *
  * Built ON TOP OF STARRED. Starred is the flat bookmark bucket ("like it, star
  * it, find it later"); a List is a NAMED slice of that bucket, so the same
- * saved piece can sit in as many lists as the user wants. Starring is
+ * saved thing can sit in as many lists as the user wants. Starring is
  * untouched — adding to a list never stars or unstars anything.
  *
  * The distinction from Albums, which look similar and are not: an Album is
@@ -14,25 +14,82 @@
  * no public-facing writing). Lists are PRIVATE, like Starred, which is exactly
  * why the user CAN name them — nobody else ever reads the name.
  *
- * State: ordered ListRecord { id, name, keys[], created_at }; keys are
- * `${slug}:${id}` (Project-exact, same as starStore — a bare token number
- * collides across Projects).
+ * A list holds ANY starred kind — Output, Project, Trait, Artist/Collector,
+ * Soundtrack, Transaction — because All Starred's row CTA is Add to List for
+ * every row (Brendon, 2026-07-25). Members are keyed with the GRAIL PIN key
+ * vocabulary (Rule #0 — grailKey already names every starred kind exactly
+ * once), so a member key round-trips back to the pin that drew the row.
+ *
+ * State: ordered ListRecord { id, name, keys[], created_at }.
  *
  * Persistence: the createPinStore protocol (localStorage cache + account
  * write-through via the settings envelope `lists`), so lists follow the viewer
- * across devices exactly like their stars.
+ * across devices exactly like their stars. Keys stored before the widening
+ * were bare `${slug}:${id}` Outputs; they hydrate as Output members.
  */
 
 import type { ListRecord } from '../supabase';
 import { pushSettings, STATE_CACHE_KEYS } from '../state/userState';
 import { createPinStore } from './createPinStore';
+import { grailKey, type GrailPin } from './grailStore';
 
 /** Longest name we store — long enough to be descriptive, short enough that a
  *  list pill never wraps the sort row on an iPhone. */
 export const LIST_NAME_MAX = 32;
 
-function keyOf(slug: string, id: number): string {
-    return `${slug}:${id}`;
+/** A list member is exactly a grail pin — same vocabulary, same key. */
+export type ListMember = GrailPin;
+
+/** The member key for a pin (grail key: `o:` `p:` `t:` `a:` `s:` `x:`). */
+export function listKeyOf(pin: ListMember): string {
+    return grailKey(pin);
+}
+
+const KINDED = /^[opwatsx]:/;
+
+/** Normalise a persisted key: pre-widening Outputs were stored bare. */
+function normalizeKey(k: string): string | null {
+    if (typeof k !== 'string' || !k.includes(':')) return null;
+    if (KINDED.test(k)) return k;
+    const i = k.lastIndexOf(':');
+    return Number.isFinite(Number(k.slice(i + 1))) ? `o:${k}` : null;
+}
+
+/** One member, parsed back out of its key — what a row needs to render. */
+export type ListMemberRef =
+    | { kind: 'output'; key: string; slug: string; id: number }
+    | { kind: 'project'; key: string; slug: string }
+    | { kind: 'trait'; key: string; slug: string; category: string; value: string }
+    | { kind: 'artist'; key: string; slug: string }
+    | { kind: 'soundtrack'; key: string; slug: string; playlistId: string }
+    | { kind: 'tx'; key: string; txId: string };
+
+export function parseListKey(key: string): ListMemberRef | null {
+    const rest = key.slice(2);
+    if (!rest) return null;
+    switch (key[0]) {
+        case 'o':
+        case 'w': {
+            const i = rest.lastIndexOf(':');
+            const id = Number(rest.slice(i + 1));
+            if (i < 0 || !Number.isFinite(id)) return null;
+            return { kind: 'output', key, slug: rest.slice(0, i), id };
+        }
+        case 'p': return { kind: 'project', key, slug: rest };
+        case 't': {
+            const parts = rest.split('|');
+            if (parts.length < 3) return null;
+            return { kind: 'trait', key, slug: parts[0], category: parts[1], value: parts.slice(2).join('|') };
+        }
+        case 'a': return { kind: 'artist', key, slug: rest };
+        case 's': {
+            const parts = rest.split('|');
+            if (parts.length < 2) return null;
+            return { kind: 'soundtrack', key, slug: parts[0], playlistId: parts.slice(1).join('|') };
+        }
+        case 'x': return { kind: 'tx', key, txId: rest };
+        default: return null;
+    }
 }
 
 /** Tolerate any cached shape; drop anything that isn't a usable record. */
@@ -49,7 +106,9 @@ function decodeLists(parsed: unknown): ListRecord[] {
             id: r.id,
             name,
             keys: Array.isArray(r.keys)
-                ? r.keys.filter((k): k is string => typeof k === 'string' && k.includes(':'))
+                ? r.keys
+                    .map((k) => (typeof k === 'string' ? normalizeKey(k) : null))
+                    .filter((k): k is string => k != null)
                 : [],
             created_at: typeof r.created_at === 'number' ? r.created_at : Date.now(),
         });
@@ -99,12 +158,13 @@ export function createList(rawName: string): ListRecord | null {
 }
 
 /**
- * Add Outputs to a list, de-duped and insertion-ordered. Returns how many were
- * actually added (0 = every one was already in), or null for an unknown list.
+ * Add starred things to a list, de-duped and insertion-ordered. Returns how
+ * many were actually added (0 = every one was already in), or null for an
+ * unknown list.
  */
 export function addToList(
     listId: string,
-    items: ReadonlyArray<{ slug: string; id: number }>,
+    items: ReadonlyArray<ListMember>,
 ): number | null {
     const lists = snapshot(store.get());
     const list = lists.find((l) => l.id === listId);
@@ -112,7 +172,7 @@ export function addToList(
     const have = new Set(list.keys);
     let added = 0;
     for (const it of items) {
-        const k = keyOf(it.slug, it.id);
+        const k = listKeyOf(it);
         if (have.has(k)) continue;
         have.add(k);
         list.keys.push(k);
@@ -122,7 +182,7 @@ export function addToList(
     return added;
 }
 
-/** Drop Outputs from a list. Returns how many were removed, or null if unknown. */
+/** Drop members from a list. Returns how many were removed, or null if unknown. */
 export function removeFromList(
     listId: string,
     keys: ReadonlyArray<string>,
@@ -138,15 +198,15 @@ export function removeFromList(
     return removed;
 }
 
-/** Whether an Output is already in a given list. */
-export function isInList(listId: string, slug: string, id: number): boolean {
+/** Whether a starred thing is already in a given list. */
+export function isInList(listId: string, member: ListMember): boolean {
     const list = store.get().find((l) => l.id === listId);
-    return !!list && list.keys.includes(keyOf(slug, id));
+    return !!list && list.keys.includes(listKeyOf(member));
 }
 
-/** Every list an Output belongs to — powers the "already in" ticks. */
-export function listsContaining(slug: string, id: number): ReadonlyArray<ListRecord> {
-    const k = keyOf(slug, id);
+/** Every list a starred thing belongs to — powers the "already in" ticks. */
+export function listsContaining(member: ListMember): ReadonlyArray<ListRecord> {
+    const k = listKeyOf(member);
     return snapshot(store.get().filter((l) => l.keys.includes(k)));
 }
 

@@ -19,7 +19,9 @@ export type MoreMode = 'all' | 'artists' | 'collectors' | 'outputs' | 'traits' |
    are cycled by the standalone GROUP toggle leading the sort row (Brendon,
    2026-07-12 — grouping no longer rides inside a sort button's cycle). */
 export const MORE_CFG: Record<string, { sorts: MoreSortKey[]; groups: string[] }> = {
-    all:         { sorts: ['recent'],                     groups: ['none'] },
+    /* All Starred carries AZ after the clock, the usual pairing — which also
+       puts MY LISTS last in the row (Brendon, 2026-07-25). */
+    all:         { sorts: ['recent', 'project'],          groups: ['none'] },
     outputs:     { sorts: ['recent', 'price', 'project'], groups: ['none', 'color', 'project', 'artist'] },
     traits:      { sorts: ['recent', 'price', 'project'], groups: ['none', 'project', 'artist'] },
     projects:    { sorts: ['recent', 'price', 'project'], groups: ['none', 'artist'] },

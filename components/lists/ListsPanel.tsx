@@ -12,50 +12,74 @@
  * the id line stays, and the second line carries only what actually helps you
  * pick: the live price when it's listed, otherwise the piece's Fate.
  *
+ * A list holds ANY starred kind (2026-07-25 — All Starred's row CTA is Add to
+ * List on every row), so the panel draws a short row per kind: the Output keeps
+ * its thumbnail, and Projects / Traits / Artists / Soundtracks / Transactions
+ * wear the SAME tile + glyph their Starred rows do, shrunk to the short row.
+ *
  * Reuse, not reinvention (Rule #0): the thumbnail is OutputThumb — the same
  * component the Starred / Wishlist / History rows use — the row skeleton is the
- * starred-row anatomy with a compact modifier, and tapping a row opens the
- * artwork modal exactly as a Starred row does.
+ * starred-row anatomy with a compact modifier, the tiles and glyphs are the
+ * Starred rows' own, and tapping a row goes exactly where its Starred row goes.
  *
  * Empty lists still render their header: a list you made and haven't filled is
  * information, and it's the only place you can see it exists.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useModal } from '../../lib/state/ModalContext';
 import { useOutputMeta } from '../../lib/hooks/useOutputMeta';
-import { getProject } from '../../lib/project/registry';
+import { getProject, projectColorway, projectsByArtist } from '../../lib/project/registry';
 import { readOutputFate } from '../../lib/project/fate';
+import { traitMarketStat, projectMarketStat, artistColor, artistFloor, collectorTopBuy } from '../../lib/market/starredMarket';
+import { getTxStarItems } from '../../lib/pins/txStarStore';
+import { txStarToFeedEvent, FeedActorLine } from '../../lib/feed/feedRow';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
 import OutputThumb from '../profile/OutputThumb';
 import {
-    getLists, subscribeLists, removeFromList,
-    renameList, deleteList, LIST_NAME_MAX,
+    getLists, subscribeLists, removeFromList, parseListKey,
+    renameList, deleteList, LIST_NAME_MAX, type ListMemberRef,
 } from '../../lib/pins/listStore';
 import type { ListRecord } from '../../lib/supabase';
 
 const VS15 = '︎';
 
-/** One member of a list, parsed out of its `${slug}:${id}` key. */
-interface ListItem { slug: string; id: number; key: string }
-
-function parseKeys(keys: ReadonlyArray<string>): ListItem[] {
-    const out: ListItem[] = [];
+function parseKeys(keys: ReadonlyArray<string>): ListMemberRef[] {
+    const out: ListMemberRef[] = [];
     for (const k of keys) {
-        const i = k.indexOf(':');
-        if (i < 0) continue;
-        const slug = k.slice(0, i);
-        const id = Number(k.slice(i + 1));
-        // Drop members whose Project has left the registry — same guard the
-        // Starred rows use, so a dead key never paints a broken row.
-        if (!Number.isFinite(id) || !getProject(slug)) continue;
-        out.push({ slug, id, key: k });
+        const ref = parseListKey(k);
+        if (!ref) continue;
+        // Drop members whose Project has left the registry — the same guard the
+        // Starred rows use, so a dead key never paints a broken row. A person
+        // and a transaction aren't Project-bound, so they skip the check.
+        if (ref.kind !== 'artist' && ref.kind !== 'tx' && !getProject(ref.slug)) continue;
+        out.push(ref);
     }
     return out;
 }
 
+/* The remove ✕ every short row carries, on the right. */
+function RemoveX({ onRemove }: { onRemove: () => void }) {
+    return (
+        <span
+            className="starred-row-unstar"
+            role="button"
+            tabIndex={0}
+            title="Remove from this list"
+            aria-label="Remove from this list"
+            onClick={(e) => { e.stopPropagation(); onRemove(); }}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onRemove(); }
+            }}
+        >
+            {`✕${VS15}`}
+        </span>
+    );
+}
+
 /* ── One SHORT row: thumb · project #id · the one line that matters ── */
-function ListRow({ item, onRemove }: { item: ListItem; onRemove: () => void }) {
+function ListRow({ item, onRemove }: { item: Extract<ListMemberRef, { kind: 'output' }>; onRemove: () => void }) {
     const { open } = useModal();
     const meta = useOutputMeta(item.id);
     const project = getProject(item.slug);
@@ -85,20 +109,126 @@ function ListRow({ item, onRemove }: { item: ListItem; onRemove: () => void }) {
                 </span>
                 <span className="starred-row-sub">{info}</span>
             </div>
-            <span
-                className="starred-row-unstar"
-                role="button"
-                tabIndex={0}
-                title="Remove from this list"
-                aria-label="Remove from this list"
-                onClick={(e) => { e.stopPropagation(); onRemove(); }}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onRemove(); }
-                }}
-            >
-                {`✕${VS15}`}
-            </span>
+            <RemoveX onRemove={onRemove} />
         </div>
+    );
+}
+
+/* ── The non-Output short rows — the Starred tile + glyph, shrunk ── */
+function TileRow({
+    glyph, glyphClass, color, title, info, onOpen, onRemove,
+}: {
+    glyph: string;
+    glyphClass?: string;
+    color?: string;
+    title: React.ReactNode;
+    info: React.ReactNode;
+    onOpen?: () => void;
+    onRemove: () => void;
+}) {
+    return (
+        <div
+            className="starred-row lists-row"
+            role={onOpen ? 'button' : undefined}
+            tabIndex={onOpen ? 0 : undefined}
+            onClick={onOpen}
+            onKeyDown={onOpen ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(); } } : undefined}
+        >
+            <div className="trait-row-tile artist-tile">
+                <span className={`artist-row-tile-glyph${glyphClass ? ' ' + glyphClass : ''}`} style={color ? { color } : undefined}>
+                    {glyph}{VS15}
+                </span>
+            </div>
+            <div className="starred-row-meta">
+                <span className="starred-row-id">{title}</span>
+                <span className="starred-row-sub">{info}</span>
+            </div>
+            <RemoveX onRemove={onRemove} />
+        </div>
+    );
+}
+
+/* One member of any kind — routed to the row that draws it. */
+function MemberRow({ member: m, onRemove }: { member: ListMemberRef; onRemove: () => void }) {
+    const router = useRouter();
+
+    if (m.kind === 'output') return <ListRow item={m} onRemove={onRemove} />;
+
+    if (m.kind === 'project') {
+        const stat = projectMarketStat(m.slug);
+        return (
+            <TileRow
+                glyph="⬚"
+                color={projectColorway(m.slug) ?? undefined}
+                title={`@${m.slug}`}
+                info={<>Floor:<em>{stat.floor}</em></>}
+                onOpen={() => router.push('/art/' + m.slug)}
+                onRemove={onRemove}
+            />
+        );
+    }
+
+    if (m.kind === 'trait') {
+        const stat = traitMarketStat(m.slug, m.category, m.value);
+        return (
+            <TileRow
+                glyph="⨝"
+                glyphClass="trait-row-tile-glyph"
+                color={projectColorway(m.slug) ?? undefined}
+                title={`@${m.slug} · ${m.category}: ${m.value}`}
+                info={<>Floor:<em>{stat.floor}</em></>}
+                onRemove={onRemove}
+            />
+        );
+    }
+
+    if (m.kind === 'artist') {
+        /* Artist vs collector is the same split Starred uses: a handle with at
+           least one project is an artist, everyone else is a collector. */
+        const handle = m.slug.replace(/^@/, '');
+        const isArtist = projectsByArtist(handle).length > 0;
+        return (
+            <TileRow
+                glyph={isArtist ? '✺' : '☻'}
+                color={artistColor(handle)}
+                title={`@${handle}`}
+                info={isArtist
+                    ? <>Floor:<em>{artistFloor(handle) ?? '—'}</em></>
+                    : <>Top buy:<em>{collectorTopBuy(handle)}</em></>}
+                onOpen={() => router.push('/' + handle)}
+                onRemove={onRemove}
+            />
+        );
+    }
+
+    if (m.kind === 'soundtrack') {
+        const label = getProject(m.slug)?.soundtrack?.label ?? m.playlistId;
+        return (
+            <TileRow
+                glyph="▶"
+                glyphClass="soundtrack-tile-glyph"
+                color={projectColorway(m.slug) ?? undefined}
+                title={`@${m.slug}`}
+                info={<>{`♫${VS15} `}<em>{label}</em></>}
+                onRemove={onRemove}
+            />
+        );
+    }
+
+    // Transaction — resolved live off the starred-tx store by its event id.
+    const star = getTxStarItems().find((s) => s.id === m.txId);
+    if (!star) return null;
+    const fe = txStarToFeedEvent(star);
+    return (
+        <TileRow
+            glyph={fe.icon}
+            color={(star.type === 'MINT' || star.type === 'SALE' ? star.toHandle : star.fromHandle)
+                ? artistColor(((star.type === 'MINT' || star.type === 'SALE' ? star.toHandle : star.fromHandle) as string).replace(/^@/, ''))
+                : undefined}
+            title={<FeedActorLine fe={fe} />}
+            info={`${fe.type} · ${fe.time}`}
+            onRemove={onRemove}
+        />
     );
 }
 
@@ -191,20 +321,23 @@ function ListSection({ list, onToast, onAskDelete }: {
                     <div className="lists-empty">Nothing in here yet.</div>
                 ) : (
                     <div className="lists-rows">
-                        {items.map((it) => (
-                            /* Each row paints its own Project's art, so it needs
-                               that Project's context — same wrap the Starred
-                               rows use for mixed-project lists. */
-                            <ProjectProvider key={it.key} slug={it.slug}>
-                                <ListRow
-                                    item={it}
+                        {items.map((it) => {
+                            const row = (
+                                <MemberRow
+                                    member={it}
                                     onRemove={() => {
                                         removeFromList(list.id, [it.key]);
                                         onToast(`${list.name}: REMOVED`);
                                     }}
                                 />
-                            </ProjectProvider>
-                        ))}
+                            );
+                            /* An Output row paints its own Project's art, so it
+                               needs that Project's context — same wrap the
+                               Starred rows use for mixed-project lists. */
+                            return it.kind === 'output'
+                                ? <ProjectProvider key={it.key} slug={it.slug}>{row}</ProjectProvider>
+                                : <Fragment key={it.key}>{row}</Fragment>;
+                        })}
                     </div>
                 )
             )}

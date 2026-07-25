@@ -10,8 +10,10 @@
  * unmount after the fade). Nothing new invented for the chrome.
  *
  * The order Brendon specified, top to bottom:
- *   1. WISHLIST — ALWAYS the top option, always present. Lists never displace
- *      it; the "want to buy" pile stays one tap away.
+ *   1. WISHLIST — ALWAYS the top option, wearing PD's ✛ wishlist glyph. Lists
+ *      never displace it; the "want to buy" pile stays one tap away. It's the
+ *      one row that can't apply to a non-Output pick (there's no wishlisting a
+ *      Project or an Artist), so it stands down for those.
  *   2. The user's own lists, each showing a tick when this piece is already in.
  *   3. NEW LIST — names it and drops the piece straight in, one go.
  *
@@ -28,8 +30,10 @@ import {
     addToList,
     createList,
     getLists,
+    listKeyOf,
     subscribeLists,
     LIST_NAME_MAX,
+    type ListMember,
 } from '../../lib/pins/listStore';
 import type { ListRecord } from '../../lib/supabase';
 
@@ -42,12 +46,15 @@ export default function AddToListCard({
     onDone,
     onClose,
 }: {
-    /** Outputs to add on pick. */
-    items: ReadonlyArray<{ slug: string; id: number }>;
+    /** Starred things to add on pick — any kind (Output, Project, Trait,
+     *  Artist, Soundtrack, Transaction). */
+    items: ReadonlyArray<ListMember>;
     /** Whether every picked item is already on the wishlist (drives the tick). */
     wishlisted: boolean;
-    /** Top option — the caller runs its own wishlist toggle + returns the toast. */
-    onWishlist: () => string;
+    /** Top option — the caller runs its own wishlist toggle + returns the toast.
+     *  Null when the pick isn't an Output: nothing but an Output can be
+     *  wishlisted, so the row doesn't render. */
+    onWishlist: (() => string) | null;
     /** Called after a pick — message is toast-ready. */
     onDone: (message: string) => void;
     /** Dismiss without adding. */
@@ -88,6 +95,7 @@ export default function AddToListCard({
     }, []);
 
     const pickWishlist = () => {
+        if (!onWishlist) return;
         const msg = onWishlist();
         dismiss(() => onDone(msg));
     };
@@ -133,25 +141,30 @@ export default function AddToListCard({
                 <div className="value-prompt-title">Add to List</div>
 
                 <div className="list-sheet-list">
-                    {/* 1 — WISHLIST, always first, always there. */}
-                    <button
-                        type="button"
-                        className={`list-sheet-item is-wishlist${wishlisted ? ' is-in' : ''}`}
-                        onClick={pickWishlist}
-                    >
-                        <span className="list-sheet-name">
-                            {wishlisted && (
-                                <span className="list-sheet-in" aria-label="Already on your wishlist">{'✓︎'}</span>
-                            )}
-                            Wishlist
-                        </span>
-                        <span className="list-sheet-count">{wishlisted ? 'ON' : ''}</span>
-                    </button>
+                    {/* 1 — WISHLIST, always first, always there (whenever the
+                        pick CAN be wishlisted — only an Output can). It wears
+                        the wishlist glyph, PD's ✛ (Brendon, 2026-07-25). */}
+                    {onWishlist && (
+                        <button
+                            type="button"
+                            className={`list-sheet-item is-wishlist${wishlisted ? ' is-in' : ''}`}
+                            onClick={pickWishlist}
+                        >
+                            <span className="list-sheet-name">
+                                {wishlisted && (
+                                    <span className="list-sheet-in" aria-label="Already on your wishlist">{'✓︎'}</span>
+                                )}
+                                <span className="list-sheet-glyph" aria-hidden="true">{'✛︎'}</span>
+                                Wishlist
+                            </span>
+                            <span className="list-sheet-count">{wishlisted ? 'ON' : ''}</span>
+                        </button>
+                    )}
 
                     {/* 2 — the user's own lists. */}
                     {lists.map((l) => {
                         const inThis = items.length > 0
-                            && items.every((it) => l.keys.includes(`${it.slug}:${it.id}`));
+                            && items.every((it) => l.keys.includes(listKeyOf(it)));
                         return (
                             <button
                                 key={l.id}

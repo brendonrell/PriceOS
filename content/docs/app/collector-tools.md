@@ -102,25 +102,33 @@ named, because Albums are seen.)
 
 ### Adding something
 
-Every row on your Starred surface carries an **ADD TO LIST** button. It opens a
-small sheet with, in order:
+**All Starred is the list-building view.** While the surface is showing
+everything, every row — artwork, project, trait, artist, collector, soundtrack,
+transaction — carries the same **ADD TO LIST** button, so a List can hold any
+mix of them. The moment you filter to a single kind, each row gets its own
+button back: Wishlist on an artwork, Play on a soundtrack, the trait and project
+offers, Follow on a person.
 
-1. **Wishlist** — always the top option, always there. Your "want to buy" pile is
-   never more than one tap away, and Lists never push it down the page.
-2. **Your Lists**, each showing a tick if this piece is already in it.
+ADD TO LIST opens a small sheet with, in order:
+
+1. **✛ Wishlist** — the top option whenever it applies. Your "want to buy" pile
+   is never more than one tap away, and Lists never push it down the page. (Only
+   an artwork can be wishlisted, so it stands down for the other kinds.)
+2. **Your Lists**, each showing a tick if this is already in it.
 3. **New List** — name it and the piece goes in with it, in one go.
 
 ### Reading them back
 
-**MY LISTS** sits in Starred's sort row, beside the ◷ Recent control. It is your
-own shelf, so it only appears on your own profile. The same button opens it and
-closes it, and it starts closed.
+**MY LISTS** sits at the end of Starred's sort row, after ◷ Recent and AZ. It is
+your own shelf, so it only appears on your own profile. The same button opens it
+and closes it, and it starts closed.
 
 Inside, your Lists run **alphabetically**, each one **collapsed** — you scan the
 names first and open the one you want. The rows inside are deliberately short: a
-small thumbnail, the piece, and the one fact that helps you choose — its price if
-it is listed, otherwise its Fate. Tapping a row opens the artwork; the ✕ drops it
-from that List.
+small thumbnail (or the same tile the row wears in Starred), the thing, and the
+one fact that helps you choose — an artwork's price if it is listed, otherwise
+its Fate. Tapping a row goes where its Starred row goes; the ✕ drops it from that
+List.
 
 ### Renaming and deleting
 

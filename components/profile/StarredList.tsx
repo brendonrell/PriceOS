@@ -496,6 +496,9 @@ export default function StarredList({
         const sorted = [...filtered];
         if (sortKey === 'price') sorted.sort((a, b) => a.fe.price - b.fe.price);
         else if (sortKey === 'id') sorted.sort((a, b) => a.fe.timestamp - b.fe.timestamp);
+        // AZ across a transaction = the token it concerns, then the event type.
+        else if (sortKey === 'project') sorted.sort((a, b) =>
+            (a.star.tokenId ?? '').localeCompare(b.star.tokenId ?? '') || a.star.type.localeCompare(b.star.type));
         else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
         return sortDir === 'desc' ? [...sorted].reverse() : sorted;
     }, [txEvents, query, sortKey, sortDir]);
@@ -672,14 +675,25 @@ export default function StarredList({
         });
     };
 
-    /* ADD TO LIST (Brendon, 2026-07-24) — the row CTA used to toggle the
-       wishlist outright; it now opens the picker, where Wishlist is still the
-       always-there top option. Wishlisting is unchanged, just one tap deeper,
-       and the same tap can drop the piece into any named list instead. */
-    const [listTarget, setListTarget] = useState<{ slug: string; id: number } | null>(null);
-    const openAddToList = (e: React.MouseEvent, slug: string, id: number) => {
+    /* ADD TO LIST (Brendon, 2026-07-24; scoped to All Starred 2026-07-25) —
+       ALL STARRED is the list-building view: every row, whatever its kind,
+       carries the same ADD TO LIST CTA. The moment a filter pill narrows the
+       surface to one kind, each row gets its REGULAR CTA back — Wishlist on an
+       Output, Play on a Soundtrack, the Trait / Project offers, Follow on a
+       person. The picker keeps Wishlist as its top option, so wishlisting is
+       never more than one tap deeper. */
+    const listCta = mode === 'all' && kind !== 'history';
+    const [listTarget, setListTarget] = useState<GrailPin | null>(null);
+    const openAddToList = (e: React.MouseEvent, pin: GrailPin) => {
         e.stopPropagation();
-        setListTarget({ slug, id });
+        setListTarget(pin);
+    };
+    /* The Output row's REGULAR CTA — a straight wishlist toggle, as it was
+       before Lists existed. Lives inside a single-kind filter only. */
+    const handleWishlist = (e: React.MouseEvent, slug: string, id: number) => {
+        e.stopPropagation();
+        const r = toggleWishlist(slug, id);
+        showToast(r === 'added' ? 'Wishlist: ADDED' : 'Wishlist: REMOVED');
     };
 
     const handleTraitUnstar = (e: React.MouseEvent, t: TraitStar) => {
@@ -800,7 +814,9 @@ export default function StarredList({
                                                 selected={selected.has(`${r.slug}:${r.id}`)}
                                                 onToggleSel={() => toggleSel(`${r.slug}:${r.id}`)}
                                                 onOpen={() => open('output', r.id, r.slug)}
-                                                onWishlist={(e) => openAddToList(e, r.slug, r.id)}
+                                                listCta={listCta}
+                                                onAddToList={(e) => openAddToList(e, { kind: 'output', slug: r.slug, id: r.id })}
+                                                onWishlist={(e) => handleWishlist(e, r.slug, r.id)}
                                                 onOffer={() => openOfferSheet([{ slug: r.slug, id: r.id }])}
                                                 onUnstar={(e) => handleUnstar(e, r.slug, r.id)}
                                                 grailPinned={grailKeys.has(grailKey({ kind: 'output', slug: r.slug, id: r.id }))}
@@ -839,7 +855,9 @@ export default function StarredList({
                                                 selected={selected.has(`${r.slug}:${r.id}`)}
                                                 onToggleSel={() => toggleSel(`${r.slug}:${r.id}`)}
                                                 onOpen={() => open('output', r.id, r.slug)}
-                                                onWishlist={(e) => openAddToList(e, r.slug, r.id)}
+                                                listCta={listCta}
+                                                onAddToList={(e) => openAddToList(e, { kind: 'output', slug: r.slug, id: r.id })}
+                                                onWishlist={(e) => handleWishlist(e, r.slug, r.id)}
                                                 onOffer={() => openOfferSheet([{ slug: r.slug, id: r.id }])}
                                                 onUnstar={(e) => handleUnstar(e, r.slug, r.id)}
                                                 grailPinned={grailKeys.has(grailKey({ kind: 'output', slug: r.slug, id: r.id }))}
@@ -879,6 +897,19 @@ export default function StarredList({
                                     <span className="starred-row-sub">Trait</span>
                                 </div>
                                 <div className="starred-row-actions">
+                                    {listCta ? (
+                                    <span
+                                        className="starred-row-cta"
+                                        role="button"
+                                        tabIndex={0}
+                                        title="Add to List"
+                                        aria-label="Add to List"
+                                        onClick={(e) => openAddToList(e, { kind: 'trait', slug: r.slug, category: r.category, value: r.value })}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAddToList(e as unknown as React.MouseEvent, { kind: 'trait', slug: r.slug, category: r.category, value: r.value }); } }}
+                                    >
+                                        Add to List
+                                    </span>
+                                    ) : (
                                     <span
                                         className="starred-row-cta trait-offer-cta"
                                         role="button"
@@ -890,6 +921,7 @@ export default function StarredList({
                                     >
                                         <span className="trait-offer-glyph">✦︎</span> Trait Offer
                                     </span>
+                                    )}
                                     <span
                                         className="starred-row-unstar"
                                         role="button"
@@ -928,6 +960,8 @@ export default function StarredList({
                                         multiActive={multiActive}
                                         selected={selected.has(r.name)}
                                         onToggleSel={() => toggleSel(r.name)}
+                                        listCta={listCta}
+                                        onAddToList={(e) => openAddToList(e, { kind: 'artist', slug: r.handle })}
                                         onUnstar={(e) => handleArtistUnstar(e, r.name)}
                                         grailPinned={grailKeys.has(grailKey({ kind: 'artist', slug: r.handle }))}
                                         onGrail={() => handleGrail({ kind: 'artist', slug: r.handle })}
@@ -954,6 +988,8 @@ export default function StarredList({
                                         multiActive={multiActive}
                                         selected={selected.has(r.name)}
                                         onToggleSel={() => toggleSel(r.name)}
+                                        listCta={listCta}
+                                        onAddToList={(e) => openAddToList(e, { kind: 'artist', slug: r.handle })}
                                         onUnstar={(e) => handleArtistUnstar(e, r.name)}
                                         grailPinned={grailKeys.has(grailKey({ kind: 'artist', slug: r.handle }))}
                                         onGrail={() => handleGrail({ kind: 'artist', slug: r.handle })}
@@ -992,6 +1028,19 @@ export default function StarredList({
                                     <span className="starred-row-sub">Soundtrack</span>
                                 </div>
                                 <div className="starred-row-actions">
+                                    {listCta ? (
+                                    <span
+                                        className="starred-row-cta"
+                                        role="button"
+                                        tabIndex={0}
+                                        title="Add to List"
+                                        aria-label="Add to List"
+                                        onClick={(e) => openAddToList(e, { kind: 'soundtrack', slug: r.slug, playlistId: r.playlistId, title: r.title })}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAddToList(e as unknown as React.MouseEvent, { kind: 'soundtrack', slug: r.slug, playlistId: r.playlistId, title: r.title }); } }}
+                                    >
+                                        Add to List
+                                    </span>
+                                    ) : (
                                     <span
                                         className="starred-row-cta"
                                         role="button"
@@ -1003,6 +1052,7 @@ export default function StarredList({
                                     >
                                         ▶︎ Play
                                     </span>
+                                    )}
                                     <span
                                         className="starred-row-unstar"
                                         role="button"
@@ -1053,6 +1103,19 @@ export default function StarredList({
                                     <span className="starred-row-sub">Project <span className="id-row-sprite">{projectSpriteFace(r.slug)}</span></span>
                                 </div>
                                 <div className="starred-row-actions">
+                                    {listCta ? (
+                                    <span
+                                        className="starred-row-cta"
+                                        role="button"
+                                        tabIndex={0}
+                                        title="Add to List"
+                                        aria-label="Add to List"
+                                        onClick={(e) => openAddToList(e, { kind: 'project', slug: r.slug })}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAddToList(e as unknown as React.MouseEvent, { kind: 'project', slug: r.slug }); } }}
+                                    >
+                                        Add to List
+                                    </span>
+                                    ) : (
                                     <span
                                         className="starred-row-cta trait-offer-cta project-offer-cta"
                                         role="button"
@@ -1064,6 +1127,7 @@ export default function StarredList({
                                     >
                                         <span className="trait-offer-glyph">✦︎</span> Project<br />Offer
                                     </span>
+                                    )}
                                     <span
                                         className="starred-row-unstar"
                                         role="button"
@@ -1121,6 +1185,22 @@ export default function StarredList({
                                     <span className="starred-row-sub">Transaction</span>
                                 </div>
                                 <div className="starred-row-actions">
+                                    {/* A transaction has no action of its own —
+                                        in All Starred it still takes the row
+                                        CTA, so every row can be listed. */}
+                                    {listCta && (
+                                    <span
+                                        className="starred-row-cta"
+                                        role="button"
+                                        tabIndex={0}
+                                        title="Add to List"
+                                        aria-label="Add to List"
+                                        onClick={(e) => openAddToList(e, txPin)}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAddToList(e as unknown as React.MouseEvent, txPin); } }}
+                                    >
+                                        Add to List
+                                    </span>
+                                    )}
                                     <span
                                         className="starred-row-unstar"
                                         role="button"
@@ -1192,13 +1272,16 @@ export default function StarredList({
             {listTarget && (
                 <AddToListCard
                     items={[listTarget]}
-                    wishlisted={isWishlisted(listTarget.slug, listTarget.id)}
-                    onWishlist={() => {
-                        const r = toggleWishlist(listTarget.slug, listTarget.id);
-                        return r === 'added'
-                            ? 'Wishlist: ADDED'
-                            : 'Wishlist: REMOVED';
-                    }}
+                    wishlisted={listTarget.kind === 'output' && listTarget.id != null
+                        && isWishlisted(listTarget.slug, listTarget.id)}
+                    /* Only an Output can be wishlisted — for any other kind the
+                       top option stands down rather than lying. */
+                    onWishlist={listTarget.kind === 'output' && listTarget.id != null
+                        ? () => {
+                            const r = toggleWishlist(listTarget.slug, listTarget.id!);
+                            return r === 'added' ? 'Wishlist: ADDED' : 'Wishlist: REMOVED';
+                        }
+                        : null}
                     onDone={(msg) => { setListTarget(null); showToast(msg); }}
                     onClose={() => setListTarget(null)}
                 />
@@ -1243,6 +1326,8 @@ function StarredOutputRow({
     selected,
     onToggleSel,
     onOpen,
+    listCta = false,
+    onAddToList,
     onWishlist,
     onOffer,
     onUnstar,
@@ -1261,6 +1346,9 @@ function StarredOutputRow({
     selected: boolean;
     onToggleSel: () => void;
     onOpen: () => void;
+    /** All Starred — every row wears ADD TO LIST instead of its own CTA. */
+    listCta?: boolean;
+    onAddToList: (e: React.MouseEvent) => void;
     onWishlist: (e: React.MouseEvent) => void;
     /** History rows swap the Wishlist CTA for an Offer CTA (Brendon 2026-06-27). */
     onOffer?: () => void;
@@ -1347,7 +1435,20 @@ function StarredOutputRow({
                 <span className="starred-row-sub">Output</span>
             </div>
             <div className="starred-row-actions">
-                {listed ? (
+                {listCta ? (
+                    <span
+                        className="starred-row-cta"
+                        role="button"
+                        tabIndex={0}
+                        title="Add to List"
+                        aria-label="Add to List"
+                        onClick={onAddToList}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onAddToList(e as unknown as React.MouseEvent); } }}
+                    >
+                        {/* Text only — no glyph (Brendon, 2026-07-24). */}
+                        Add to List
+                    </span>
+                ) : listed ? (
                     <span
                         className="starred-row-cta is-buy"
                         role="button"
@@ -1376,13 +1477,12 @@ function StarredOutputRow({
                         className={`starred-row-cta${wished ? ' is-on' : ''}`}
                         role="button"
                         tabIndex={0}
-                        title="Add to List"
-                        aria-label="Add to List"
+                        title={wished ? 'On your wishlist' : 'Add to wishlist'}
+                        aria-label={wished ? 'On your wishlist' : 'Add to wishlist'}
                         onClick={onWishlist}
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onWishlist(e as unknown as React.MouseEvent); } }}
                     >
-                        {/* Text only — no glyph (Brendon, 2026-07-24). */}
-                        Add to List
+                        {wished ? '✛︎ Wishlisted' : '✛︎ Wishlist'}
                     </span>
                 )}
                 <span
@@ -1527,6 +1627,8 @@ function StarredArtistRow({
     multiActive,
     selected,
     onToggleSel,
+    listCta = false,
+    onAddToList,
     onUnstar,
     grailPinned,
     onGrail,
@@ -1539,6 +1641,9 @@ function StarredArtistRow({
     multiActive: boolean;
     selected: boolean;
     onToggleSel: () => void;
+    /** All Starred — the row wears ADD TO LIST instead of Follow. */
+    listCta?: boolean;
+    onAddToList: (e: React.MouseEvent) => void;
     onUnstar: (e: React.MouseEvent) => void;
     grailPinned: boolean;
     onGrail: () => void;
@@ -1618,6 +1723,19 @@ function StarredArtistRow({
                 <span className="starred-row-sub">{variant === 'collector' ? 'Collector' : 'Artist'}{sprite ? ' ' + sprite : ''}</span>
             </div>
             <div className="starred-row-actions">
+                {listCta ? (
+                <span
+                    className="starred-row-cta"
+                    role="button"
+                    tabIndex={0}
+                    title="Add to List"
+                    aria-label="Add to List"
+                    onClick={onAddToList}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onAddToList(e as unknown as React.MouseEvent); } }}
+                >
+                    Add to List
+                </span>
+                ) : (
                 <span
                     className={`starred-row-cta${following ? ' is-on' : ''}`}
                     role="button"
@@ -1629,6 +1747,7 @@ function StarredArtistRow({
                 >
                     {followBusy ? '⚯︎ …' : following ? '⚯︎ Following' : '⚯︎ Follow'}
                 </span>
+                )}
                 <span
                     className="starred-row-unstar"
                     role="button"
