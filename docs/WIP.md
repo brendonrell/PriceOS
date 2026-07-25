@@ -8,7 +8,53 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-000. 📋 **2026-07-25 (LATEST) CLICKUP SUMMER CLEANING — the Feature Atlas is
+0000. ✅ **2026-07-25 (LATEST SHIP) SHADOW PORTFOLIO · OWNERSHIP-AWARE VERBS ·
+   THE EMOJI GLYPH PURGE. All on `dev`, tree clean.** ClickUp `86bb3exnv`.
+
+   **⛔ FIRST: CLAUDE.md HAS A NEW TOP RULE — RULE #-2, ABOVE EVERYTHING.
+   "ONLY CHANGE WHAT WAS ASKED."** Brendon raised it in fury this session
+   because I changed a glyph he never named and silently dropped one he had
+   already picked. **Singular means singular. Approved items are CLOSED — do
+   not re-open, re-propose, or quietly swap them. No unrequested measuring,
+   exploring or "while I'm here" work.** Read it before every edit.
+
+   **① THE SHADOW PORTFOLIO IS REAL.** It had shipped as a shell — pill and
+   tab present, empty data set, no way to add anything, while the user docs
+   promised collectors a paper-trading twin. Now: private account-backed
+   positions storing the piece + the ETH price it was taken at; the paper book
+   runs through the SAME assembler as real holdings so grouping/$ modes/totals
+   work untouched. **The ◐ Shadow pill IS the toggle** — viewing the tab is
+   shadow mode, Main leaves it (a separate ON/OFF button was built first and
+   VETOED). While on, the **artwork modal's side tab becomes the ◐** (the
+   Calc / Add-to-Showcase slot) — never on a piece you own, which keeps its ⑆.
+   The ◐ is deliberately **NOT** on the output page action row; Brendon is
+   placing that one himself.
+
+   **② OWNERSHIP-AWARE VERBS.** The action row was already being handed
+   ownership and ignoring it. Wishlist, the BUY to-do and the cart now go dead
+   at half opacity on a piece you own.
+
+   **③ THE GLYPH PURGE — and the test that was wrong.** Brendon caught it with
+   a screenshot. Judging a glyph by whether its DEFAULT presentation is text
+   passes ☁ and ☂, and iOS still paints them a colour cloud and a purple
+   umbrella. **The only valid test: does the codepoint have an emoji mapping AT
+   ALL?** Now written into `docs/GLYPHS.md` §7.
+   - Sentiment pill **◒ → ⛆**; Almanac PriceDay **☀ → ✶**.
+   - Ladder: Bull ☀→✷ · Lean Bull ⛅→✵ · Bear ⛈→↯ · Strong Bear ☂→⛇.
+   - ⛔ **LEAN BEAR STAYS ☁ — HIS EXPLICIT CALL, "leave the overcast look".**
+     It is the last emoji-mapped glyph in the ladder and it STAYS. Do not
+     "fix" it.
+   - Sizing redone from **measurement** (ink boxes scanned in a real Courier),
+     not eyeballing. Absolute pixels stay open to a nudge; the relative scale
+     is right.
+   - The eight skies are now a table in the user docs (Settings & Display).
+
+   **STILL OPEN from the Atlas pass:** `86bavmnzn` the numbering re-order
+   (Brendon's, locks the numbers forever) · `86bb3eg6r` pushing #0202–#0261
+   into the code registry (app change, needs his go) · `86bb3eg72` deep specs
+   owed for the sixty new features.
+
+000. 📋 **2026-07-25 CLICKUP SUMMER CLEANING — the Feature Atlas is
    reconciled. NO APP CODE TOUCHED; tree clean.** Brendon asked for a ClickUp
    catch-up because the user docs had run ahead of it. They had — badly.
 
