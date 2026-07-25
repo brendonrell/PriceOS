@@ -1729,11 +1729,6 @@ function ProfilePageBodyInner({
                                                     <span className="sort-lbl-ico">{'≡︎'}</span>
                                                     LISTS
                                                 </span>
-                                                {/* The row's own direction arrow — ≡ carries a
-                                                    sort like every button beside it. */}
-                                                <span className="sort-arrow">
-                                                    {myListsOpen ? (myListsDir === 'asc' ? '↑︎' : '↓︎') : ''}
-                                                </span>
                                             </span>
                                         )}
                                     </div>
