@@ -8,6 +8,52 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+000. 📋 **2026-07-25 (LATEST) CLICKUP SUMMER CLEANING — the Feature Atlas is
+   reconciled. NO APP CODE TOUCHED; tree clean.** Brendon asked for a ClickUp
+   catch-up because the user docs had run ahead of it. They had — badly.
+
+   **⛔ THE THING EVERY FUTURE SESSION NEEDS TO KNOW: the Atlas exists in THREE
+   places and they had all drifted apart.**
+   1. `lib/docs/features.ts` → the **public** `/docs/features` page. **201
+      features. This is CANON** (§5, deployed code wins). It deduped the
+      founding list 211 → 200 on 2026-07-10, then appended `#0201`.
+      **Append-only from there — numbers are NEVER reused or reassigned.**
+   2. The ClickUp **Master Feature List** — was still carrying the pre-dedup
+      211 numbering. **Now fixed:** matches the registry, then appends.
+   3. `content/docs/` — described ~60 features neither list had.
+
+   **Done this session (ClickUp only, all pre-approved docs/process):**
+   - **Master Feature List** rebuilt → `#0001`–`#0261`. Founding catalog now
+     mirrors the code registry exactly; `#0202`–`#0261` are the catch-up
+     append (Command Stone · Lists · Composer · Factions · Gnomes · Contested
+     Mints · PD Studio · Rewind · Exchange · Targets · Sentinel · PDMCP ·
+     Sticker Channel · Friend Inspector · profile tags · miniplayer · …).
+   - **Code ↔ Atlas Reconciliation** re-swept for 2026-07-25.
+   - **Dedicated Tools** — Composer said "spec'd, not built" and Cartography
+     said "IDEA". Both have been LIVE for weeks. Corrected.
+   - **Open Threads** — **Price Target was logged "not built" and that was
+     stale**; it shipped as Project-page Price Targets + the profile Targets
+     ⬚ tab. Corrected.
+   - **API Surface** — 34 → **53 route groups**, Vercel → **Cloudflare**, and
+     the removed `dev-login` route struck. The **serverless indexer now lives
+     in PriceOS** (`app/api/webhooks/alchemy` + `cron/indexer-reconcile`), not
+     on the indexer repo's branch.
+   - Closed 7 shipped tasks; queued `86bb3eg6r` (registry append) +
+     `86bb3eg72` (deep specs owed); assigned-commented the numbering-lock
+     decision `86bavmnzn`.
+
+   **⛔ TWO THINGS WAITING ON BRENDON:**
+   - **`86bavmnzn` — the one-time nostalgia RE-ORDER, then numbers LOCK
+     FOREVER.** Do it BEFORE the registry push so numbers move once, ever.
+   - **`86bb3eg6r` — pushing `#0202`–`#0261` into `lib/docs/features.ts` is an
+     APP change** (it changes the public `/docs/features`). Needs his go.
+
+   **⚠️ REAL FINDING — the docs oversell one feature.**
+   `content/docs/app/collector-tools.md` promises **The Shadow ◐** as the
+   Portfolio's paper-trading twin. `PortfolioView.tsx:149` says the Shadow tab
+   has no dataset → the tab is empty. Flagged on `86b9eu9qc`. Build it or
+   soften the line — Brendon's call.
+
 00. ✅ **2026-07-25 (LATEST SHIP) THE STICKER QUEUE IS CLOSED — pixel LCD
    panel · Spreads · brand colours · one-tap colour. All on dev (tip
    `e801b0e`), tree clean, nothing outstanding.** Opus, present→push loop.
