@@ -5658,6 +5658,18 @@ body.bg-is-yellow .fiat-opt-on { background: #fff; color: var(--hothurt); border
 @media (max-width: 600px) {
     .sort-lbl-recent { font-size: 1.3em; }
 }
+/* The ≡ that leads LISTS in the sort row (Brendon, 2026-07-25) — same Courier
+   treatment as the ◷, sized to sit level with the label beside it. */
+.sort-lbl-ico {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.15em;
+    line-height: 1;
+    margin-right: 4px;
+    display: inline-flex;
+    align-items: center;
+    position: relative;
+    top: -1px;
+}
 .sort-arrow {
     /* One size up (Brendon, 2026-07-12 — was 20/15). */
     font-size: 22px;

@@ -407,6 +407,7 @@ square tiles, and the top-bar Grail-pin pills.
 |---|---|---|---|
 | **Trait** (the trait icon) | ⨝ | U+2A1D | Starred trait-row square tile + the top-bar **trait** Grail pin. Replaced the old ★ tile (Brendon, 2026-06-19) |
 | Recent (sort) | ◷ | U+25F7 | the 'Recent' sort in the Starred/Wishlist sort bar shows this glyph (same icon as the project artworks trait pills); sort order is Recent ◷ → $PRICE → FLWRS → AZ. Also the home Now-Minting **date sort** — the word DATE is retired, the clock wears the slot (2026-07-12) |
+| **Lists** | ≡ | U+2261 | leads the LISTS button that closes the Starred sort row (◷ → AZ → ≡ LISTS), own profile only. The bars-family alternatives were all spoken for — ≣ is the Book of Conquests, ▤ the Dispatch, ▦ the Calendar, ☰ the Heaven trigram — so ≡ is PD's list mark (Brendon, 2026-07-25). Its only other appearances are inside the sigil/sprite/familiar character pools, never as an icon |
 | Soundtrack (row tile + Grail pin) | ▶ | U+25B6 | soundtrack row square + the top-bar **soundtrack** Grail pin leading glyph |
 | Project (row tile) | ⬚ | U+2B1A | project row square |
 | Artist / Collector (row tile) | ✺ / ☻ | U+273A / U+263B | artist vs collector row square |

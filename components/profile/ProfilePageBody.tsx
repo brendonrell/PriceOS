@@ -1718,7 +1718,10 @@ function ProfilePageBodyInner({
                                                 onClick={toggleMyLists}
                                                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMyLists(); } }}
                                             >
-                                                <span className="sort-lbl">LISTS</span>
+                                                <span className="sort-lbl">
+                                                    <span className="sort-lbl-ico">{'≡︎'}</span>
+                                                    LISTS
+                                                </span>
                                             </span>
                                         )}
                                     </div>
