@@ -8,7 +8,104 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-00. ✅ **2026-07-24 (LATEST SHIP) THE STICKER CHANNEL + LISTS + PROFILE TAGS —
+00. ✅ **2026-07-25 (LATEST SHIP) THE STICKER QUEUE IS CLOSED — pixel LCD
+   panel · Spreads · brand colours · one-tap colour. All on dev (tip
+   `e801b0e`), tree clean, nothing outstanding.** Opus, present→push loop.
+   ClickUp `86bb3b88f` (complete). Task branch
+   `claude/finish-sticker-work-khztt3` = trash (delete at
+   https://github.com/brendonrell/PriceOS/branches) — all work went straight
+   to `dev`.
+
+   **⛔ FIRST, THE THING THAT BIT US:** `dev` had been FAILING TO BUILD since
+   2026-07-24 — `content/docs/stickers/the-sticker-channel.md` was committed
+   without being added to `NAV_MANIFEST` in `lib/docs/content.ts`, and the docs
+   route's `generateStaticParams` throws on a file that isn't in the manifest.
+   **So nothing had auto-deployed for a day.** Fixed in the first push here.
+   **Lesson for every session: a new docs page MUST be added to the manifest in
+   the same commit, and `npm run build` is the only thing that catches it —
+   `tsc` is clean either way.**
+
+   **① THE CHANNEL PANEL IS REAL PIXEL ART** (`components/stickers/StickerLcd`
+   + new `lib/stickers/pixels`). Brendon's read on the first version: *"this is
+   normal stuff with a filter. I want like actual awesome pixel graphics and
+   animations."* He was right — it was styled text under a dot-matrix wash.
+   The panel is now a CANVAS: a 5×7 bitmap font and a 16×16 animated cast
+   authored on grids in `pixels.ts`, written pixel-by-pixel into a
+   `Uint32Array` buffer and `putImageData`'d at **2 CSS px per screen pixel**
+   (`image-rendering: pixelated`), so edges are square by construction.
+   - **All 22 transitions rewritten as per-pixel ops** — resamplers
+     (slide/zoom/glitch/pixelate) and masks (wipe/iris/bars/stagger) — replacing
+     the CSS keyframes, which were deleted with them. The show, the ad registry
+     and every script are UNTOUCHED; only the renderer changed.
+   - **It wears the theme** (his ask): ink = `--text-color`, screen =
+     `--bg-color`, read off the host with `getComputedStyle` and re-read via a
+     `MutationObserver` on `documentElement` (colorways are applied as inline
+     style there). The DMG green is gone. Two tones only, mid-tones dithered —
+     that constraint is WHY it can wear any colorway.
+   - **Nothing is clipped** (his ask "make sure the full content shows"): lines
+     word-wrap to the panel width and a beat too long for two lines PAGES, with
+     the classic blinking ▼. Type-on reveal per page. An ad break inverts the
+     screen.
+   - **MARKETPLACE / BACK TO STORE → `MARKET`**, fixed label (the same call he
+     made for MY BINDER on 2026-07-24 — a button never renames itself out from
+     under you; the filled state says it's open). Those long labels were also
+     what pushed MY BINDER off the right edge of an iPhone.
+   - ⚠️ **Do NOT "optimise" the panel back into DOM/text.** The canvas IS the
+     feature. The whole loop runs on refs inside one rAF — React never
+     re-renders for a beat, a typed character or a transition step.
+
+   **② SPREADS — the name is LOCKED** (not "Scenes", ambient light owns that;
+   not "Layouts", the generative arrangers own that). Up to **3** named saved
+   arrangements: `lib/stickers/spreads.ts`, own page (page 2 of 5) in the
+   Sticker Manager + a row in Manager Plus. Joined the two halves that already
+   existed (Rule #0): the locked composition from `placements.ts` and the
+   save-a-named-state pattern from `lib/pins/presetStore`, whose `.pill-preset`
+   markup is reused VERBATIM — SAVE, ①②③ slots, tap to restore, the budget
+   pencil ✎ to rename in place, the app's `ms-confirm-card` to delete.
+   **A Spread captures the WHOLE picture** — hand-placed spots AND the
+   generative look with its exact seed — so it restores whether you arranged by
+   hand or shuffled into it. It gets its own compact page because three named
+   pills need two lines at iPhone width and the compact pages are a FIXED
+   height that never scrolls.
+
+   **③ BRAND COLOURS BY NAME.** `BRAND_COLOURS` + `stickerFill()` exported from
+   `catalog.ts`; HOTHURT `#FF0055` and ATTENTION `#FFE600` are now pickable
+   filters beside Match/RGB/CMYK, each wearing a dot of the real colour. They
+   match a sticker's own FILL exactly — **by the nearest-swatch logic the house
+   colours are unfindable** (Hothurt lands in "dark pink", Attention in "light
+   yellow"). No new colour was created; only 4 stickers in the catalog wear
+   them, which is the honest size of the "Classics".
+
+   **④ ONE-TAP COLOUR — a FILTER, never a recolour** (his locked shape: a
+   sticker's colour IS its identity and that id is what you own). The **WEAR**
+   pill narrows the profile to the stickers you ALREADY OWN in the picked
+   colour; underneath, what you're missing shows as unowned art with an honest
+   count (`YOU HAVE 6 OF 11 · HOTHURT`) that opens the shelf. No paywall.
+   - **The door (Rule #-0.4):** default OFF, the lit pill is the way out, and
+     the restore record rides `sticker_state` — so the way back survives closing
+     the manager, a reload, or another device. Re-locking onto a second colour
+     keeps the ORIGINAL restore point.
+   - **⛔ The gap that had to be fixed inside the feature:** a hand-placed hero
+     renders `lockedItems` FROM THE PLACEMENT MAP and never consults the
+     active set, so flipping `offIds` is invisible on exactly the profiles
+     people care most about. The lock now prunes the composition to the kept
+     ids and restores every spot on release. (Same root cause means a manual
+     grid toggle also does nothing while a composition is locked — **named, not
+     folded in; Brendon's call whether that's a bug worth fixing.**)
+
+   Both new blobs ride `users.sticker_state` (`spreads`, `colourLock`) — no new
+   table, no migration; `/api/me` passes the envelope through whole. Proof: tsc
+   clean, real builds green each push, compiled-CSS greps, 133 tests pass, and
+   the manager + panel screenshotted at 390×844 in real Courier on a mid-tone
+   colorway.
+
+   **Method note worth keeping:** the panel was verified by bundling the REAL
+   component with esbuild into a static harness and driving it with the
+   pre-installed Chromium (`executablePath: '/opt/pw-browsers/chromium'`) — a
+   real render, not a port. Courier Prime from npm aliased as `'Courier New'`
+   per §6.
+
+01. ✅ **2026-07-24 THE STICKER CHANNEL + LISTS + PROFILE TAGS —
    all shipped to dev (`e93b818`), tree clean, nothing outstanding.** Five
    pieces went out this session; each is done and pushed.
 
@@ -85,8 +182,9 @@
    until every value is bucketed" but the code will render a half-bucketed trait
    (no live schema violates it — Brendon's call whether to make code match copy).
 
-01. 🔨 **NEXT UP — STICKER SPREADS + STICKER COLOURS (specced with Brendon
-   2026-07-24, NOT started). Build these first.**
+01b. ✅ **DONE 2026-07-25 — all three built and shipped, see entry 00.** The
+   spec below is kept because every LOCKED decision in it is Brendon's and
+   still governs the built feature.
 
    **① SPREADS** — saved, named sticker arrangements for the profile hero.
    NAME IS LOCKED: **Spreads**, not "scenes" (ambient light owns Scenes) and not
@@ -115,10 +213,10 @@
    pass; PD's pill vocabulary dims inactive to 0.6–0.7, and here the dim carries
    meaning). Shipped with the docs commit.
 
-02. **ClickUp NOT updated this session** — the ClickUp connector dropped
-   mid-session and never came back, so the queue there is stale as of
-   2026-07-24. First session with it connected should reconcile the five ships
-   above.
+02. ⚠️ **ClickUp is RECONNECTED and this session logged its own ship
+   (`86bb3b88f`, 02 · PriceOS (UI) → Done). Still outstanding: the FIVE ships
+   from 2026-07-24 (entry 01) were never logged** — the connector was down that
+   day. A session with spare room should close those out.
 
 03. ✅ **2026-07-24 SHOWCASE MOVE MODE — shipped to dev (`83ef215`),
    nothing outstanding.** Brendon's ask, built and pushed same session:
