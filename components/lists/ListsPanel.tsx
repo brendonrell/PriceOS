@@ -33,6 +33,7 @@ import { useRouter } from 'next/navigation';
 import { useStarLongPress } from '../../lib/hooks/rowFlags';
 import { useListRowDrag, ROW_KEY_ATTR } from '../../lib/hooks/useListRowDrag';
 import { useModal } from '../../lib/state/ModalContext';
+import { useLocalStorage } from '../../lib/hooks/useLocalStorage';
 import { useOutputMeta } from '../../lib/hooks/useOutputMeta';
 import { getProject, projectColorway, projectsByArtist } from '../../lib/project/registry';
 import { pdRarity } from '../../lib/output/rarity';
@@ -49,6 +50,19 @@ import {
 import type { ListRecord } from '../../lib/supabase';
 
 const VS15 = '︎';
+
+/* The ◊ money control, mirroring the Portfolio's $-button (Brendon, 2026-06-25
+   → Lists, 2026-07-25): a CYCLE that includes an OFF state, persisted, with the
+   toast naming the new mode. OFF hides every number and puts ❖ rarity back on
+   the rows — the ◊ itself stays put so there's always something to tap to
+   bring the money back. */
+export type ListPriceMode = 'secondary' | 'primary' | 'off';
+const PRICE_MODES: ListPriceMode[] = ['secondary', 'primary', 'off'];
+const PRICE_MODE_LABEL: Record<ListPriceMode, string> = {
+    secondary: 'SECONDARY',
+    primary: 'PRIMARY',
+    off: 'OFF',
+};
 
 function parseKeys(keys: ReadonlyArray<string>): ListMemberRef[] {
     const out: ListMemberRef[] = [];
@@ -86,11 +100,13 @@ function RemoveX({ onRemove }: { onRemove: () => void }) {
 /* ── One SHORT row: thumb · project #id · the one line that matters ──
    `full` is the FOCUSED reading of a list (long-pressed): the same row at the
    Starred rows' own size, with the artist line the short row drops. */
-function ListRow({ item, owned, full, dragProps, onRemove }: {
+function ListRow({ item, owned, full, priceMode, dragProps, onRemove }: {
     item: Extract<ListMemberRef, { kind: 'output' }>;
     /** The viewer holds this piece — marked with the same ✓ the picker uses. */
     owned: boolean;
     full: boolean;
+    /** The panel's ◊ money mode — OFF puts rarity back on every row. */
+    priceMode: ListPriceMode;
     /** Hold-to-drag reorder wiring for this row. */
     dragProps: Record<string, unknown>;
     onRemove: () => void;
@@ -101,16 +117,22 @@ function ListRow({ item, owned, full, dragProps, onRemove }: {
     /* The one info line a short row has (Brendon, 2026-07-25). It used to fall
        back to the piece's Fate, which reads as a stray trait word and tells you
        nothing about what you're scanning. Now: the ARTIST's @name always, then
-       ONE number on the right —
-         · the live ASKING PRICE when the piece is listed (a real ask beats any
-           static read of the piece), otherwise
-         · its PD RARITY, the same 0–100 the character sheet and the Vault lead
-           with, wearing the canonical ❖.
-       The @name takes the room first; the number is what gives way when there
-       isn't any (see .lists-row-rarity). */
+       ONE number on the right, and the header's ◊ control decides which —
+         · SECONDARY → the live ASKING PRICE (a real ask beats any static read),
+         · PRIMARY   → what the piece minted for,
+         · OFF       → its PD RARITY, the same 0–100 the character sheet and the
+                       Vault lead with, wearing the canonical ❖.
+       With money ON but no number to show (an unlisted piece, a free mint), the
+       row falls back to rarity rather than going blank.
+       The @name takes the room first; rarity is what gives way when there isn't
+       any (see .lists-row-rarity). */
     const artist = project?.artistHandle ? `@${project.artistHandle}` : null;
     const rarity = useMemo(() => pdRarity(item.slug, item.id)?.score ?? null, [item.slug, item.id]);
-    const price = meta?.price ?? null;
+    const money = priceMode === 'secondary'
+        ? (meta?.price ?? null)
+        : priceMode === 'primary'
+            ? (project?.mintPriceEth ? `${project.mintPriceEth} ETH` : null)
+            : null;
 
     return (
         <div
@@ -137,9 +159,12 @@ function ListRow({ item, owned, full, dragProps, onRemove }: {
                 </span>
                 <span className="starred-row-sub lists-row-info">
                     <span className="lists-row-artist">{artist ?? ' '}</span>
-                    {price != null ? (
-                        <span className="lists-row-rarity lists-row-ask" title={`Asking ${price}`}>
-                            {price}
+                    {money != null ? (
+                        <span
+                            className="lists-row-rarity lists-row-ask"
+                            title={priceMode === 'primary' ? `Minted at ${money}` : `Asking ${money}`}
+                        >
+                            {money}
                         </span>
                     ) : rarity != null ? (
                         <span className="lists-row-rarity" title={`PD Rarity ${rarity}`}>
@@ -193,18 +218,19 @@ function TileRow({
 }
 
 /* One member of any kind — routed to the row that draws it. */
-function MemberRow({ member: m, viewerAddress, full, dragProps, onRemove }: {
+function MemberRow({ member: m, viewerAddress, full, priceMode, dragProps, onRemove }: {
     member: ListMemberRef;
     viewerAddress?: string | null;
     /** Focused reading — rows at the Starred rows' own size. */
     full: boolean;
+    priceMode: ListPriceMode;
     dragProps: Record<string, unknown>;
     onRemove: () => void;
 }) {
     const router = useRouter();
 
     if (m.kind === 'output') {
-        return <ListRow item={m} owned={isHeldBy(m.slug, m.id, viewerAddress)} full={full} dragProps={dragProps} onRemove={onRemove} />;
+        return <ListRow item={m} owned={isHeldBy(m.slug, m.id, viewerAddress)} full={full} priceMode={priceMode} dragProps={dragProps} onRemove={onRemove} />;
     }
 
     if (m.kind === 'project') {
@@ -301,11 +327,11 @@ function MemberRow({ member: m, viewerAddress, full, dragProps, onRemove }: {
 }
 
 /* ── One collapsible list ── */
-function ListSection({ list, viewerAddress, totalMode, pricesVer, focused, onToggleFocus, onCycleTotal, onToast, onAskDelete }: {
+function ListSection({ list, viewerAddress, priceMode, pricesVer, focused, onToggleFocus, onCycleTotal, onToast, onAskDelete }: {
     list: ListRecord;
     viewerAddress?: string | null;
-    /** Which money the ◊ total counts — see ListsPanel. */
-    totalMode: 'secondary' | 'primary';
+    /** Which money the ◊ shows — or OFF. See ListsPanel. */
+    priceMode: ListPriceMode;
     /** Bumps when the price/owner feed lands, so the totals recompute. */
     pricesVer: number;
     /** This list has the panel to itself, its rows at full Starred size. */
@@ -367,16 +393,16 @@ function ListSection({ list, viewerAddress, totalMode, pricesVer, focused, onTog
             if (it.kind !== 'output') continue;
             ownableN++;
             if (isHeldBy(it.slug, it.id, viewerAddress)) ownedN++;
-            if (totalMode === 'secondary') {
+            if (priceMode === 'secondary') {
                 const p = priceOf(it.slug, it.id);
                 if (p != null) sum += p;
-            } else {
+            } else if (priceMode === 'primary') {
                 sum += getProject(it.slug)?.mintPriceEth ?? 0;
             }
         }
         return { owned: ownedN, ownable: ownableN, total: sum };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [items, viewerAddress, totalMode, pricesVer]);
+    }, [items, viewerAddress, priceMode, pricesVer]);
 
     return (
         <div className={`lists-section${open ? ' is-open' : ''}${focused ? ' is-focused' : ''}`}>
@@ -425,20 +451,22 @@ function ListSection({ list, viewerAddress, totalMode, pricesVer, focused, onTog
                         {`✓${VS15}`}{owned}/{ownable}
                     </span>
                 )}
-                {/* ◊ is PD's ETH mark. Tapping the number swaps every header
-                    between the live asks and what the pieces minted for. */}
-                {total > 0 && (
+                {/* ◊ is PD's ETH mark, and the panel's money control. It stays
+                    put in every mode — including OFF, where it shows the mark
+                    alone — so the way back to the numbers is always one tap on
+                    the same spot. */}
+                {ownable > 0 && (
                     <span
-                        className="lists-head-total"
+                        className={`lists-head-total${priceMode === 'off' ? ' is-off' : ''}`}
                         role="button"
                         tabIndex={0}
-                        title={totalMode === 'secondary' ? 'Live asks — tap for mint' : 'Mint prices — tap for live asks'}
+                        title={`Prices: ${PRICE_MODE_LABEL[priceMode]} — tap to cycle`}
                         onClick={(e) => { e.stopPropagation(); onCycleTotal(); }}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onCycleTotal(); }
                         }}
                     >
-                        {`◊${VS15}`}{total.toFixed(total >= 100 ? 0 : 2)}
+                        {`◊${VS15}`}{priceMode !== 'off' && total > 0 ? total.toFixed(total >= 100 ? 0 : 2) : ''}
                     </span>
                 )}
                 {/* Rename — the budget pills' pencil, same glyph. */}
@@ -477,6 +505,7 @@ function ListSection({ list, viewerAddress, totalMode, pricesVer, focused, onTog
                                     member={it}
                                     viewerAddress={viewerAddress}
                                     full={focused}
+                                    priceMode={priceMode}
                                     dragProps={rowHandlers(it.key)}
                                     onRemove={() => {
                                         removeFromList(list.id, [it.key]);
@@ -544,13 +573,17 @@ export default function ListsPanel({ onToast, dir = 'asc', viewerAddress }: {
         });
     };
 
-    const [totalMode, setTotalMode] = useState<'secondary' | 'primary'>('secondary');
+    /* One mode for the whole panel, so two headers can never disagree about
+       which money they're showing, and PERSISTED — the Portfolio's $-button
+       remembers its mode and this is the same control (Rule #0). Tapping any ◊
+       advances every header AND every row; the toast names the mode (§9 casing
+       — the STATE screams). */
+    const [priceMode, setPriceMode] = useLocalStorage<ListPriceMode>('pd_lists_price_mode', 'secondary');
     const cycleTotal = () => {
-        setTotalMode((m) => {
-            const next = m === 'secondary' ? 'primary' : 'secondary';
-            onToast(`List total: ${next.toUpperCase()}`);
-            return next;
-        });
+        const idx = PRICE_MODES.indexOf(priceMode);
+        const next = PRICE_MODES[(idx + 1) % PRICE_MODES.length];
+        setPriceMode(next);
+        onToast(`List prices: ${PRICE_MODE_LABEL[next]}`);
     };
 
     /* Deleting a list asks first, through the app's own remove-confirm card —
@@ -627,7 +660,7 @@ export default function ListsPanel({ onToast, dir = 'asc', viewerAddress }: {
                     key={l.id}
                     list={l}
                     viewerAddress={viewerAddress}
-                    totalMode={totalMode}
+                    priceMode={priceMode}
                     pricesVer={pricesVer}
                     focused={focusedId === l.id}
                     onToggleFocus={() => toggleFocus(l.id, l.name)}

@@ -70,15 +70,20 @@ Beside each List's name:
 
 - **The count** — how many things are in it.
 - **✓ 3/8** — how many of its artworks you already own. Only artworks can be owned, so a List of projects and people simply doesn't show it.
-- **◊ 2.41** — what the List is worth in ETH. Tap it to swap between:
+- **◊ 2.41** — what the List is worth in ETH, and the panel's money control. Tap it to cycle:
   - **SECONDARY** — what the listed pieces are asking right now. Read this as *what finishing this List would cost today*.
   - **PRIMARY** — what those pieces minted for.
+  - **OFF** — no numbers at all. Every row goes back to showing its ❖ rarity instead.
 
-  Tapping any total swaps every header at once, so two Lists can never disagree about which money they're showing, and a toast names the mode. The total counts **artworks only** — a trait or an artist has no single price, and summing them would be a lie.
+  The ◊ itself stays put in all three modes, so the way back to the prices is always one tap on the same spot. Tapping it moves **every header and every row at once** — two Lists can never disagree about which money they're showing — a toast names the new mode, and PD remembers it next time, exactly like the Portfolio's $ button.
+
+  The total counts **artworks only** — a trait or an artist has no single price, and summing them would be a lie.
 
 ## The rows inside
 
-Deliberately short: the art (or the same tile and glyph the thing wears in Starred), what it is, and the facts worth that space. On an artwork that's **the artist's @name**, then one number: **its asking price** when the piece is listed, otherwise **its ❖ PD Rarity**. A real ask beats any static read of the piece, so it takes the slot whenever there is one — and it holds its place at every screen width. The rarity is what steps aside when the @name needs the room.
+Deliberately short: the art (or the same tile and glyph the thing wears in Starred), what it is, and the facts worth that space. On an artwork that's **the artist's @name**, then one number, and the header's ◊ control decides which: its **asking price** on SECONDARY, what it **minted for** on PRIMARY, or its **❖ PD Rarity** when money is OFF. A piece with no number to show — an unlisted one, a free mint — falls back to its rarity rather than going blank.
+
+The @name takes the room first; on the narrowest phones the rarity is what steps aside for it, while a real price holds its place at every width.
 
 Tapping a row goes exactly where its Starred row goes: an artwork opens, a project opens its page, a person opens their profile.
 

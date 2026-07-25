@@ -6602,6 +6602,10 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     -webkit-tap-highlight-color: transparent;
 }
 .lists-head-total:active { opacity: 0.65; }
+/* Money OFF — the ◊ stays put and full strength (Rule #2: it's a live control,
+   not decoration), just without a number beside it. It's the only way back to
+   the prices, so it can never dim into nothing. */
+.lists-head-total.is-off { letter-spacing: 0; }
 /* A FOCUSED list (long-pressed) has the panel to itself. It wears PD's own
    state mark — the dotted ring the profile-logo carousel uses for its active
    tile — never an edge bar or a lozenge (§9 banned motifs). */
