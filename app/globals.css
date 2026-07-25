@@ -6587,12 +6587,28 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
 }
 .lists-head-edit { font-size: 15.5px; padding: 0 4px 0 8px; }
 .lists-head-delete { font-size: 16px; font-weight: bold; padding: 0 2px 0 4px; }
-/* Renaming in place — the input takes the name's slot, nothing shifts. */
+/* Renaming in place — the input takes the name's slot, nothing shifts.
+   The shared value-prompt input is built for the bottom SHEET, where the box is
+   painted --text-color and its contents sit in --bg-color. On this panel the
+   page IS --bg-color, so those inherited colours drew the name, the caret and
+   the underline invisibly — the keyboard opened over a field nobody could see
+   (Brendon, 2026-07-25). Repaint them in the panel's own foreground, at full
+   strength (Rule #2), and hold >= 16px so iOS doesn't zoom the page on focus. */
 .lists-head-input {
     flex: 1 1 auto;
     min-width: 0;
     margin: 0;
-    font-size: 13px;
+    font-size: 16px;
+    color: var(--text-color);
+    caret-color: var(--text-color);
+    border-bottom-color: color-mix(in srgb, var(--text-color) 45%, transparent);
+}
+.lists-head-input:focus {
+    border-bottom-color: var(--text-color);
+}
+.lists-head-input::placeholder {
+    color: var(--text-color);
+    opacity: 0.5;
 }
 .lists-rows { display: flex; flex-direction: column; padding: 2px 0 6px; }
 /* The SHORT row — same starred-row anatomy, tightened. */
