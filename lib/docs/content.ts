@@ -257,6 +257,27 @@ export function getAllDocs(): DocPage[] {
         const { fm, body } = parseFrontmatter(raw, file);
         return { slug, frontmatter: fm, body, raw };
     });
+
+    /* Every internal /docs link must resolve to a real page (Brendon,
+       2026-07-25 — "keep the link checker around").
+       WHY THIS EXISTS: the manifest↔disk check above proves every page is
+       reachable, and says NOTHING about whether the links between them point
+       anywhere. Moving the Lists page during the highlight-section pass left
+       its inbound links aimed at a slug that no longer existed and the build
+       stayed green. A dead link inside our own docs now fails the build.
+       Anchors (#…) and the markdown-parity .md twins are legitimate. */
+    const known = new Set(manifestSlugs);
+    const dead: string[] = [];
+    for (const page of cache) {
+        for (const [, href] of page.body.matchAll(/\]\((\/docs[^)\s]*)\)/g)) {
+            const target = href.slice('/docs'.length).split('#')[0].replace(/\.md$/, '').replace(/^\/|\/$/g, '');
+            if (!known.has(target)) dead.push(`${page.slug || 'index'}.md → ${href}`);
+        }
+    }
+    if (dead.length) {
+        throw new Error(`docs: ${dead.length} internal link(s) point at pages that do not exist:\n  ${dead.join('\n  ')}`);
+    }
+
     return cache;
 }
 
