@@ -73,8 +73,6 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
             'for-collectors/how-pd-works',
             'for-collectors/wallet-setup',
             'for-collectors/the-secondary-market',
-            'for-collectors/the-exchange',
-            'for-collectors/hostile-takeover',
         ],
     },
     {
@@ -94,17 +92,47 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
             'app/outputs',
             'app/identity-and-profiles',
             'app/collector-tools',
-            'app/lists',
             'app/spell-book',
             'app/achievements',
             'app/discovery',
-            'app/the-composer',
-            'app/the-cartography',
-            'app/the-factions',
-            'app/the-rewind',
-            'app/the-dispatch',
             'app/settings-and-display',
         ],
+    },
+    {
+        title: 'Command Stone',
+        slugs: ['command-stone'],
+    },
+    {
+        title: 'Cartography',
+        slugs: ['app/the-cartography'],
+    },
+    {
+        title: 'The Rewind',
+        slugs: ['app/the-rewind'],
+    },
+    {
+        title: 'Composer',
+        slugs: ['app/the-composer'],
+    },
+    {
+        title: 'Lists',
+        slugs: ['app/lists'],
+    },
+    {
+        title: 'The Dispatch',
+        slugs: ['app/the-dispatch'],
+    },
+    {
+        title: 'The Exchange',
+        slugs: ['for-collectors/the-exchange'],
+    },
+    {
+        title: 'Takeover',
+        slugs: ['for-collectors/hostile-takeover'],
+    },
+    {
+        title: 'Factions',
+        slugs: ['app/the-factions'],
     },
     {
         title: 'Pings',

@@ -36,27 +36,9 @@ The whole app is painted through one variable system. Defaults are per-page — 
 
 ## The Command Stone ⌘
 
-Signed in, **triple-tap the background of any page** — anywhere in the app,
-docs included — to summon the Command Stone, the platform's command line in a
-speech bubble. It opens ready to type, and answers in kind:
-
-- **Find anything** — the real global search, inline: people, projects,
-  pieces, pages; Enter takes the top hit.
-- **Ask it** — floors, ATHs, volumes, docs answers; glanceable black cards
-  with act-on-it keys (anchor a floor, wishlist a piece, follow a
-  collector).
-- **Etch** — type a to-do, a note, an anchor, a watch, a wishlist line and
-  commit it on a second touch. It rides the same stores the full tools use.
-- **Cast** — spell, mode, and workspace names flip the real settings, by
-  their exact names.
-- **Summon widgets by name** — `calendar`, `priceday`, `calc`, `gallery`,
-  `matrix`, `dossier @name`, `brief`, `wrapped`, a project's `30d` trend
-  sparkline, and more.
-
-It remembers the subject you're on (ask "prisms floor", then just "ath").
-Minimize it to a single dot in the corner — swipe the bar down, press and
-hold, or type "minimize" — and tap the dot to bring it back. Close it
-completely with another triple-tap on the background, or by typing "close".
+Triple-tap the background of any page and PD's command line rises — find
+anything, ask the ledger a question, etch a to-do, cast a spell by name, or
+summon a widget. It has [its own page](/docs/command-stone).
 
 ## Ambient Strip
 

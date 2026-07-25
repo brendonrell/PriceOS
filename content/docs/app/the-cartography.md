@@ -65,6 +65,14 @@ reads at a glance over any territory colour.
   **Double-tap a territory** to skip the card and go straight to the
   project's page.
 
+## The Time Machine
+
+The map has a time cursor. Scrub it back and the world shrinks to what it was: territories return to the size they were at that moment, and land whose mint count reaches zero **sinks back into the sea**. Play it forward and the whole history replays as a time-lapse — every crossed mint, sale and listing fires its real ripple, comet and beacon as the world grows out of the water to today.
+
+It is a **layer over the live map, never a separate screen**. Nothing is mutated while it runs; leaving the machine restores the live world instantly. Seats stay today's seats — the land is the show.
+
+This is the world's own history. For the whole platform docked at a past day — every page, every project, as it stood — that's [The Rewind](/docs/app/the-rewind), a different thing reached by a different gesture.
+
 ## New land
 
 A project has no territory until its **first mint** — unminted projects
