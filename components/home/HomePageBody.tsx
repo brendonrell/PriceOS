@@ -34,6 +34,7 @@ import PriceDaySlot from '../priceday/PriceDaySlot';
 import { GhostFeedRows } from '../GhostFeed';
 import { GhostCarousels, GhostGallery } from './HomeGhosts';
 import NewsCarousel from './NewsCarousel';
+import SocialFeed from './SocialFeed';
 import HomeTitleCartography from './HomeTitleCartography';
 import RewindHome from './RewindHome';
 import { useRewindOptional } from '../../lib/state/RewindContext';
@@ -590,7 +591,7 @@ function HomePageBodyInner({
         { key: 'date', dir: 'desc' },
     );
     /* Mark Now-Minting as seen so its carousels stay mounted once painted. */
-    useEffect(() => { if (activeTab === 'minting' && mintSort.key !== 'feed') setMintingSeen(true); }, [activeTab, mintSort.key]);
+    useEffect(() => { if (activeTab === 'minting' && mintSort.key !== 'feed' && mintSort.key !== 'social') setMintingSeen(true); }, [activeTab, mintSort.key]);
     const onMintSort = (key: HomeSortKey) =>
         setMintSort((prev) =>
             prev.key === key
@@ -1035,7 +1036,7 @@ function HomePageBodyInner({
                 painted canvases survive a tab switch — no repaint (Brendon,
                 2026-06-24). */}
             {mintingSeen && (
-                <section aria-label="Now Minting" style={activeTab === 'minting' && mintSort.key !== 'feed' ? undefined : { display: 'none' }}>
+                <section aria-label="Now Minting" style={activeTab === 'minting' && mintSort.key !== 'feed' && mintSort.key !== 'social' ? undefined : { display: 'none' }}>
                     {/* Loading OR no graduated projects yet → ghost carousels in
                         the exact shape of the live rows (Brendon, 2026-06-14 —
                         never a text null state). */}
@@ -1082,6 +1083,19 @@ function HomePageBodyInner({
                                 </div>
                             ))
                         )}
+                    </div>
+                </section>
+            )}
+
+            {/* SOCIAL ☻ sort on Now Minting → the social feed: what your
+                friends are doing in chronological order (top users when
+                logged out). Same feed-row family as the other home feeds;
+                the rows carry the market glyphs, full project names, and the
+                ⚭/⚯ relationship marks (Brendon, 2026-07-26). */}
+            {activeTab === 'minting' && mintSort.key === 'social' && (
+                <section className="home-uploads" aria-label="Social Feed">
+                    <div className="feed-list home-activity-feed">
+                        <SocialFeed dir={mintSort.dir} />
                     </div>
                 </section>
             )}

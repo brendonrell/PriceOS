@@ -62,8 +62,10 @@ export interface EnrichedProject {
 
 /* Local sort model for the home sort-bar (kept off the global SortContext).
    'feed' swaps the carousels for the activity feed (new-art events for now;
-   more event kinds later — Brendon 2026-06-15). 'az' sorts by project name. */
-export type HomeSortKey = 'date' | 'price' | 'feed' | 'az';
+   more event kinds later — Brendon 2026-06-15). 'az' sorts by project name.
+   'social' ☻ swaps them for the social feed — your graph's market activity
+   (top users when logged out), Brendon 2026-07-26. */
+export type HomeSortKey = 'date' | 'price' | 'feed' | 'az' | 'social';
 export type HomeSortDir = 'asc' | 'desc';
 
 /* Facet order = birth-order; Fate is pinned LAST as the hexagram pill (Brendon,
@@ -454,6 +456,21 @@ export default function HomeProjectFacetBar({
                     >
                         <span className="sort-lbl">FEED</span>
                         <span className="sort-arrow">{arrow('feed')}</span>
+                    </span>
+                    <span
+                        className={`sort-btn${sortKey === 'social' ? ' active' : ''}`}
+                        role="button"
+                        tabIndex={0}
+                        title="Social Feed"
+                        onClick={() => onSort('social')}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSort('social'); } }}
+                    >
+                        {/* ☻ — the collector/user smiley as the social mark
+                            (Brendon, 2026-07-26). Glyph only, no word — the row
+                            has no room; same Courier icon treatment as the ◷
+                            date sort. Works exactly like FEED, social focus. */}
+                        <span className="sort-lbl sort-lbl-recent">☻&#xFE0E;</span>
+                        <span className="sort-arrow">{arrow('social')}</span>
                     </span>
                 </div>
                 )}

@@ -14,6 +14,7 @@ import type { EventRow } from '../supabase';
 import type { TxStar } from '../pins/txStarStore';
 import { useSpiteMatcher } from '../pins/spiteStore';
 import { usePdNotifs } from '../state/PdNotifsContext';
+import { getProject } from '../project/registry';
 import { GossipLine } from './gossip';
 
 export interface FeedEvent {
@@ -31,6 +32,10 @@ export interface FeedEvent {
     actorHref: string | null;
     /** The rest of the sentence after the actor (verb + token + price). */
     verb: ReactNode;
+    /** Optional badge rendered right after the actor's name (the social feed's
+     *  ⚭ mutual / ⚯ following relationship mark — same canon glyphs as the
+     *  Starred rows). Travels with the actor into the gossip line too. */
+    badge?: ReactNode;
     timestamp: number;
     price: number;
     /* The event essentials captured for Starred Tx — long-pressing the row
@@ -47,9 +52,10 @@ export function FeedActorLine({ fe }: { fe: FeedEvent }) {
     const isSpited = useSpiteMatcher();
     const { notifs } = usePdNotifs();
     const cls = `f-highlight${isSpited(fe.actorName) ? ' spited' : ''}`;
-    const actor = fe.actorHref
+    const actorLink = fe.actorHref
         ? <a className={cls} href={fe.actorHref} onClick={(e) => e.stopPropagation()}>{fe.actorName}</a>
         : <span className={cls}>{fe.actorName}</span>;
+    const actor = fe.badge ? <>{actorLink}{fe.badge}</> : actorLink;
     if (notifs.spell_gossip) return <GossipLine fe={fe} actor={actor} />;
     return <>{actor}{' '}{fe.verb}</>;
 }
@@ -78,7 +84,21 @@ function feedSlug(tokenId: string | null): string {
     return i >= 0 ? tokenId.slice(0, i) : tokenId;
 }
 
+/** Standard mapping — bare #id token links (the per-project + per-profile
+ *  feeds, where context names the project). Unary so `.map(eventToFeedEvent)`
+ *  keeps working point-free. */
 export function eventToFeedEvent(e: EventRow): FeedEvent {
+    return buildFeedEvent(e, false);
+}
+
+/** Cross-project mapping — the token link names the project ("Prisms #12"),
+ *  for feeds that span every project (the social feed ☻), where a bare #id
+ *  is ambiguous. */
+export function eventToNamedFeedEvent(e: EventRow): FeedEvent {
+    return buildFeedEvent(e, true);
+}
+
+function buildFeedEvent(e: EventRow, withProject: boolean): FeedEvent {
     const type = e.type;
     const ms = Date.parse(e.timestamp) || 0;
     const price = e.price_eth ? parseFloat(e.price_eth) : 0;
@@ -90,9 +110,11 @@ export function eventToFeedEvent(e: EventRow): FeedEvent {
     const actor = handle ? `@${handle}` : feedShortAddr(addr ?? null);
     const actorHref = handle ? `/${handle}` : addr ? `/${addr}` : null;
     const tokHref = slug && lid ? `/art/${slug}/${lid}` : null;
+    const projName = withProject && slug ? (getProject(slug)?.displayName ?? null) : null;
+    const tokLabel = projName ? `${projName} #${lid}` : `#${lid}`;
     const tok = tokHref
-        ? <a className="f-highlight" href={tokHref} onClick={(e) => e.stopPropagation()}>#{lid}</a>
-        : <span className="f-highlight">#{lid}</span>;
+        ? <a className="f-highlight" href={tokHref} onClick={(e) => e.stopPropagation()}>{tokLabel}</a>
+        : <span className="f-highlight">{tokLabel}</span>;
     let verb: ReactNode;
     if (type === 'MINT') verb = <>collected {tok}{price ? ` for ${e.price_eth} ETH` : ''}</>;
     else if (type === 'LIST') verb = <>listed {tok}{price ? ` for ${e.price_eth} ETH` : ''}</>;

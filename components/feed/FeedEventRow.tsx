@@ -18,7 +18,16 @@ import { FeedActorLine, type FeedEvent } from '../../lib/feed/feedRow';
 import { useToast } from '../../lib/state/ToastContext';
 import { isTxStarred, toggleTxStar, subscribeTxStars } from '../../lib/pins/txStarStore';
 
-export default function FeedEventRow({ fe }: { fe: FeedEvent }) {
+export default function FeedEventRow({
+    fe,
+    dateStamp,
+}: {
+    fe: FeedEvent;
+    /** When set, the time column stacks date over time (the home activity
+     *  feed's column style) — for feeds spanning days (the social feed).
+     *  Absent → the single HH:MM the project/profile feeds always showed. */
+    dateStamp?: string;
+}) {
     const { showToast } = useToast();
     const [starred, setStarred] = React.useState(false);
     React.useEffect(() => {
@@ -74,7 +83,16 @@ export default function FeedEventRow({ fe }: { fe: FeedEvent }) {
         >
             <div className="feed-line" />
             <div className="f-icon-wrap">{fe.icon}&#xFE0E;</div>
-            <div className="f-time">{fe.time}</div>
+            <div className="f-time">
+                {dateStamp ? (
+                    <>
+                        <span>{dateStamp}</span>
+                        <span>{fe.time}</span>
+                    </>
+                ) : (
+                    fe.time
+                )}
+            </div>
             <div className="f-type">{fe.trade ? 'TRADE' : fe.type}</div>
             <div className="f-content" style={{ position: 'relative' }}>
                 <FeedActorLine fe={fe} />
