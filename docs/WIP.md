@@ -8,7 +8,33 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-00000. ✅ **2026-07-25 (LATEST SHIP) THE ATLAS CATCH-UP IS LIVE · DOCS
+000000. ✅ **2026-07-25 (LATEST) LISTS ≡ + GATED REORDER + THE CORNER LAW IS
+   FIXED. All on `dev`, tree clean.**
+
+   **⛔ THE CORNER RULE — SETTLED, AND IT WAS BACKWARDS IN ONE PLACE.**
+   Brendon: *"whatever the trait pills are, is the answer."* The trait pills
+   (`.pill` / `.pill-l1`) ship at **`border-radius: 4px`** — read from the
+   compiled stylesheet, not a note. So:
+   **CONTROLS = 4px · SURFACES = square (0) · `999px` lozenges BANNED.**
+   `docs/GLYPHS.md`'s Corner Law had said the OPPOSITE (999px controls, 4px
+   banned) since 2026-07-20 and contradicted `CLAUDE.md`. Every session picked
+   whichever it read first. **Now corrected in all four homes:** GLYPHS.md ·
+   CLAUDE.md · the Atlas **Spec Locks** page · the stale entry further down
+   this file. **Do not re-derive it — the code settled it.**
+   ⚠️ **KNOWN GAP, not fixed:** ~42 places in the shipped stylesheets still use
+   `999px`. The RULE is now right everywhere; the APP hasn't been swept. That's
+   a deliberate un-started job, not an oversight — Brendon asked for the rule,
+   not the restyle.
+
+   **LISTS ≡** — the Lists mark now leads every list name in the panel header.
+
+   **GATED REORDER** — dragging a list's rows works ONLY while that list is in
+   edit mode (the ✎). Outside it a hold does nothing, so browsing can't nudge
+   an order. The affordance is a **⠿ grip** that appears on every row when edit
+   mode opens. ⠿ (U+283F) was reclaimed, not invented — ASCII Art Mode retired
+   it when it took ⎀; catalogued in GLYPHS.md.
+
+00000. ✅ **2026-07-25 THE ATLAS CATCH-UP IS LIVE · DOCS
    RESTRUCTURED · FAIR DRAW NAMED · REWIND POLISHED. All on `dev`, tree
    clean.** ClickUp `86bb3f4jj`.
 
@@ -1336,6 +1362,10 @@
    ⑦ **⛔ THE CORNER LAW written into `docs/GLYPHS.md`** (Brendon, raised in
    fury: pills or square, NEVER mid-rounded — the one exception is the stone
    tab's rounded top, his explicit call). Read it before styling anything.
+   **⚠️ SUPERSEDED 2026-07-25 — that version said CONTROLS = 999px and BANNED
+   4px, which was backwards. The trait pills ship at 4px, so CONTROLS = 4px,
+   SURFACES = square, 999px lozenges banned. Corrected in GLYPHS.md, CLAUDE.md
+   and the Atlas Spec Locks page.**
    Proof: tsc/70 tests/real builds green every round, compiled greps, mid-tone
    headless proofs (miniplayer, vessel, 4 stone demo screens).
    **⛔ NEXT BUILD (fresh chat, Brendon's order): STAGE 4 = THE PRESENTATION

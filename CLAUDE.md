@@ -806,6 +806,11 @@ explicit chat confirmation.
     leaderboard self-marker; replaced with PD's own dotted ring.)
   - **Fully-rounded / pill-shaped everything.** PD pills are **4px radius**,
     not `999px`. Stop rounding chrome into lozenges — it is not our design.
+    **Verified against the code 2026-07-25** (Brendon: "whatever the trait
+    pills are, is the answer") — the trait pills ship at 4px, so controls are
+    4px and surfaces are square. `docs/GLYPHS.md` had a Corner Law demanding
+    the opposite; it was WRONG and is corrected. Full record on the Atlas's
+    Spec Locks page — don't re-derive it.
   **What to use instead:** PD already owns its state vocabulary — the DOTTED
   RING (`outline: 2px dotted var(--text-color)`, the profile-logo carousel's
   active tile), the solid `--stat-active-*` fill (active pills), full-strength

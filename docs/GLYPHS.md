@@ -9,17 +9,28 @@
 
 All glyphs below ship with a trailing `︎`. Codepoints are the base char.
 
-> **⛔ THE CORNER LAW — PILLS OR SQUARE, NEVER IN BETWEEN (Brendon, 2026-07-20 —
-> "WE USE PILLS BOT", raised in fury after mid-rounded corners kept shipping).**
+> **⛔ THE CORNER LAW — CONTROLS ARE 4px, SURFACES ARE SQUARE. THE TRAIT PILLS
+> ARE THE ANSWER (Brendon, 2026-07-25: "Whatever the trait pills are, is the
+> answer").**
 > PD's shape language has exactly TWO corner treatments:
-> - **PILLS** (`border-radius: 999px`) — every control: buttons, chips, toggles,
->   inputs-as-pills, badges. The house pills ARE the design.
-> - **SQUARE** (`border-radius: 0`) — every panel, card, tile, window, list.
+> - **CONTROLS — `border-radius: 4px`.** Buttons, chips, toggles, steppers,
+>   inputs-as-pills, badges. This is what `.pill` / `.pill-l1` — the trait pill
+>   rows on every Project page — have always been, read straight out of the
+>   compiled stylesheet. The house pills ARE the design, and they are 4px.
+> - **SURFACES — `border-radius: 0`.** Every panel, card, tile, window, list.
 >   (The Albums square-corners call, 2026-07-16, made this platform-wide.)
-> **Mid-rounded corners (4–16px etc.) are BANNED.** Sessions keep reflexively
-> reaching for them on new surfaces — it is not our UI design and it gets caught
-> every time. When styling anything: pill if it's a control, square if it's a
-> surface. No third option.
+> **`999px` lozenges are BANNED** — fully-rounded chrome is the AI-slop motif
+> `CLAUDE.md` bans by name, not our design. Anything between 5px and 16px is
+> equally wrong. When styling: 4px if it's a control, square if it's a surface.
+> No third option.
+>
+> **⚠️ CORRECTED 2026-07-25 — this block used to say the opposite.** The
+> 2026-07-20 version demanded `999px` pills and banned 4px, which contradicted
+> both the shipped trait pills and `CLAUDE.md`. It was written in frustration at
+> mid-rounded corners creeping in and overshot, banning the exact radius the
+> house pills use — so sessions reading it rounded controls into lozenges. The
+> code settled it. Locked in the Atlas's Spec Locks page too; **do not
+> re-derive it.**
 
 ---
 
