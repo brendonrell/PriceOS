@@ -8,7 +8,59 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0000000. ✅ **2026-07-26 (LATEST) THE SOCIAL FEED ☻ IS LIVE ON `dev` — the
+00000000. ✅ **2026-07-26 (LATEST) THE THREE LAUNCH KEEPERS SHIPPED — the
+   Conviction CALL LEDGER · DEEP ZOOM everywhere · RARITY LABS finished.
+   All on `dev` (tip `021b358`), tree clean, tsc + real build green, 138
+   tests pass. ClickUp `86bb3pey4` / `86bb3peyg` / `86bb3pez5` (complete).
+   Specs: `docs/briefs/conviction-call-ledger.md` / `deep-zoom.md` /
+   `rarity-labs.md` — Brendon approved doors + shapes in chat, then
+   "approved to build and push" with ONE edit: Deep Zoom in ALL settings,
+   desktop included.**
+
+   **① THE CALL LEDGER** — public, signed, IMMUTABLE price calls that
+   settle CROWNED/REKT against `projects.floor_price_eth`. New `calls`
+   table (migration `20260726_conviction_calls.sql`, APPLIED LIVE; RLS =
+   public read, service-only writes so immutability is structural).
+   `/api/calls` POST (SIWE; rejects already-true claims; max 5 open per
+   wallet per project) + GET with RESOLVE-ON-READ; `/api/cron/calls-resolve`
+   (KV-gated ~15 min on the minute trigger, added to custom-worker) shares
+   the same pure resolver (`lib/calls/resolve.ts`) so the two paths can
+   never disagree. Law: cross settles CROWNED early (inclusive), deadline
+   settles REKT, no-floor-data at deadline = REKT. UI: composer + recent
+   ledger on project +More › Sentiment (section "THE CALL LEDGER", beside
+   Price Targets — **Targets untouched, the two are opposites on purpose**)
+   · profile **Calls** pill/panel beside Targets (record chip + rows,
+   TargetsPanel anatomy). Calls do NOT feed PriceScore (v1) — can't farm
+   rank by talking.
+   **⚠️ NAMED, NOT BUILT: the resolved-call Receipt share.** The Receipt
+   card is piece-based; a call is project-level — what art fronts a call
+   receipt is Brendon's call. The card already has the CROWNED verdict
+   slot (`buildReceipt`), so it's a small wire-up once he picks.
+
+   **② DEEP ZOOM** — `components/art/DeepZoomLayer.tsx`, ONE layer on four
+   surfaces: artwork modal portrait + landscape, Full Screen view, artwork
+   page Artwork tab. Touch pinch + one-finger pan while zoomed; desktop
+   wheel/trackpad-pinch + drag pan (artwork page needs ctrl/⌘-wheel so the
+   page still scrolls; modal + fullscreen take plain wheel). Sharp
+   re-render from the ENGINE at gesture end via `paintOutput(live)` into
+   one reused overlay canvas — area-capped (~8.4M px) under the iOS canvas
+   ceiling, 8× max, readout chip, zoom never persists. **At 1× it
+   intercepts NOTHING** — native non-passive listeners stopPropagation
+   only while pinching/zoomed, so the modal's swipe nav + tap-to-page are
+   byte-identical. Disabled under ASCII/Degen modes.
+
+   **③ RARITY LABS (finish)** — math was already live in
+   `lib/output/rarity.ts`; added `popCount` (min census count across the
+   piece's axes) · `noneHigher` (pdRarityRank #1, ties share) ·
+   `projectCensus`. Surfaced: ❖ POP badge + inverted NONE HIGHER chip in
+   the artwork modal info column (portrait); POP/NONE HIGHER on the
+   character sheet's PD Rarity tile; POP TABLE section (full census,
+   rarest-first) on project +More › Attributes.
+
+   Next: verify the three on the preview once the auto-deploy lands;
+   Brendon names the call-receipt art if he wants the share wired.
+
+0000000. ✅ **2026-07-26 THE SOCIAL FEED ☻ IS LIVE ON `dev` — the
    home's mixed-media social timeline. Tree clean, ClickUp `86bb3pc41`.**
 
    **THE ☻ IS THE OVERARCHING SOCIAL/USER ICON now (Brendon's call —
