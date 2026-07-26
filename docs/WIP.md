@@ -8,7 +8,52 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-00000000. ✅ **2026-07-26 (LATEST) THE THREE LAUNCH KEEPERS SHIPPED — the
+000000000. ✅ **2026-07-26 (LATEST) TWELVE-ITEM SPOT-EDIT PASS SHIPPED — on
+   `dev` (tip `56f5443`), tree clean, tsc + real build green, 138 tests
+   pass. Brendon's list, verbatim, one item each; nothing adjacent touched.**
+
+   1. **gnomewallet ×** — sticky to the top of the sheet (the sheet is its
+      own scroll container, so the absolute × scrolled off). Negative
+      margins keep it exactly where it sat.
+   2. **Price Lens ◎ (MY PD)** — mobile size 19→20px, vertical nudge
+      -1px→-0.5px (i.e. half a pixel DOWN from where it was).
+   3. **miniplayer TAB bars** — white with a soft white glow (was
+      `--text-color`, no glow).
+   4. **Connect-menu footer in stargazing** — the gas readout, divider and
+      Log Out / Connect Wallet pills colour off `--bg-color` (the menu
+      normally paints inverted); stargazing's dark glass swallowed them.
+      Forced lavender + a visible border/divider under `stargazing-mode`.
+   5. **Long-press the star → ADD TO LIST** — new `lib/hooks/useLongPress.ts`
+      (the Pings-row hold contract, lifted verbatim per Rule #0), wired to
+      the star in the artwork modal (portrait + landscape pill rows) and the
+      Output page action row. Opens the existing `AddToListCard`. Only the
+      STAR got a hold action — the other buttons were not named.
+   6. **Profile tag paints** — free colour picker pill at the end of the
+      paint row (the colorway swatch's hidden-`input[type=color]` pattern).
+      `tag_paint` now accepts a raw `#rrggbb` alongside the named ids
+      (`isValidTagPaint`/`tagPaintHex` in `lib/tags/catalog.ts`, so the API
+      + `useTagPaint` inherit it free). **All Black → Dot `#111111`,
+      All White → Matrix `#E0E0E0`** — the brand tokens, ids unchanged so
+      saved values keep working.
+   7. **Miniplayer hides behind modals** — `body.modal-open .fm-bar` joins
+      the existing stone-yield dock (transform-only, so audio never dies).
+   8. **Bench half-protrudes in showcase move mode** — ProfilePageBody
+      broadcasts `body.pd-showcase-move`; `.bench-tab.active.collapsed`
+      rides `translateY(50%)` under it.
+   9. **To-Dos & Workflows** — new highlighted docs section
+      (`content/docs/todos-and-workflows.md` + NAV_MANIFEST entry, same
+      shape as Command Stone / Lists).
+   10. **List drag-and-drop now DROPS.** Real bug: the lifted row rides the
+       finger, so `elementFromPoint` hit IT on every move and no drop target
+       could ever arm. Fixed by taking the lifted row out of hit-testing for
+       the single lookup (`lib/hooks/useListRowDrag.ts`).
+   11. **Command Stone** — tapping outside no longer minimizes (swipe down /
+       long-press only, as before the 2026-07-22 change), and the stone no
+       longer reopens carrying a line from a past visit (that was the stale
+       "3" — the LAST BUBBLE restore on summon). `writeLastLine` is left in
+       place; only the two restore reads were removed.
+
+00000000. ✅ **2026-07-26 THE THREE LAUNCH KEEPERS SHIPPED — the
    Conviction CALL LEDGER · DEEP ZOOM everywhere · RARITY LABS finished.
    All on `dev` (tip `021b358`), tree clean, tsc + real build green, 138
    tests pass. ClickUp `86bb3pey4` / `86bb3peyg` / `86bb3pez5` (complete).
