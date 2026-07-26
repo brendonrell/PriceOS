@@ -2,47 +2,282 @@
 
 /*
  * SocialFeed ☻ — the home social activity feed (Brendon, 2026-07-26).
- * "What your friends are doing, in chronological order."
+ * "What your friends are doing, in chronological order" — as a MIXED-MEDIA
+ * timeline, not a text ledger. The dense market rows are the spine; between
+ * them, full-width visual blocks composed from the app's own proven pieces
+ * (Rule #0 — the Now Minting carousel track, ArtworkCard under per-card
+ * ProjectProviders exactly like the Gen Curated showcase, the stored art
+ * images). Four block kinds:
  *
- * Summoned by the ☻ sort at the end of the Now Minting sort row (glyph-only —
- * the row has no room for a word); dismissed by tapping any other sort. Works
- * exactly like the FEED sort, with a social focus:
+ *   ROW      — one market event (FeedEventRow: long-press star, stacked
+ *              date/time, ◊ price rail, ⚭/⚯ relationship marks).
+ *   STREAK   — ≥3 consecutive collects by one person in one project collapse
+ *              into a single summary row + a mini carousel of those exact
+ *              pieces. Density AND art.
+ *   SCENE ☻  — ≥3 DIFFERENT people hit the same project the same day → one
+ *              block: the names, the project, a carousel of what they took.
+ *              The "your circle is converging here" read — the most social
+ *              signal the ledger holds.
+ *   ALBUM ◰  — a friend shelved an album → its strip rides the feed
+ *              (albums are numbered, never named — "album #2 · 8 pieces").
+ *   PANORAMA — a collected piece that is genuinely WIDE (aspect ≥ 1.7)
+ *              renders full-bleed beneath its row, shown in its entirety.
  *
- *   - Logged in  → ledger events acted by the viewer's social graph, mutuals
- *                  weighted first when the window overflows (server-side).
- *   - Logged out / empty graph → the top collectors by PriceScore.
- *
- * No user options, by design — one optimized feed for everyone out of the box.
- * The rows compose PD's proven feed pieces (Rule #0, nothing invented):
- * FeedEventRow (market feed row + long-press-to-star), the home activity
- * feed's stacked date/time column, the canonical market glyphs ✶✹✦✸⇌, the
- * full project name in every sentence (a cross-project feed can't say a bare
- * #id), and the §12 relationship marks ⚭ mutual / ⚯ following after each
- * actor the viewer knows.
+ * Data: logged in → the viewer's follow graph, mutuals weighted first
+ * (server-side); logged out / empty graph → the top collectors by
+ * PriceScore. No user options — one optimized feed for everyone.
  */
 
 import { useEffect, useState } from 'react';
 import FeedEventRow from '../feed/FeedEventRow';
+import ArtworkCard from '../ArtworkCard';
 import { GhostFeedRows } from '../GhostFeed';
-import { eventToNamedFeedEvent } from '../../lib/feed/feedRow';
+import { eventToNamedFeedEvent, FEED_ICON } from '../../lib/feed/feedRow';
+import { ProjectProvider } from '../../lib/state/ProjectContext';
+import { getProject, artImageUrl, artProvisionalAspect } from '../../lib/project/registry';
 import { useAuth } from '../../lib/state/AuthContext';
 import type {
+    SocialAlbumRow,
     SocialEventRow,
     SocialFeedResponse,
+    SocialRelation,
 } from '../../app/api/feed/social/route';
 
-/* "JUL 26 ’26" — same compact viewer-local date stamp as the home activity
-   feed's time column (date + time always track the viewer's own zone). */
-function fmtFeedDate(ms: number): string {
+/* ── timeline model ─────────────────────────────────────────────────── */
+
+interface Piece { slug: string; id: number }
+
+interface Actor { name: string; href: string | null; relation: SocialRelation }
+
+type TimelineItem =
+    | { kind: 'row'; ts: number; e: SocialEventRow; pano: Piece | null }
+    | { kind: 'streak'; ts: number; e0: SocialEventRow; actor: Actor; slug: string;
+        type: 'MINT' | 'SALE'; n: number; totalEth: number; pieces: Piece[] }
+    | { kind: 'scene'; ts: number; slug: string; actors: Actor[]; pieces: Piece[]; n: number }
+    | { kind: 'album'; ts: number; a: SocialAlbumRow };
+
+/* Wide enough to earn a full-bleed panorama; cap so a wide-heavy page stays a
+   feed, not a gallery. */
+const PANO_ASPECT = 1.7;
+const PANO_CAP = 6;
+const STREAK_MIN = 3;
+const SCENE_MIN_ACTORS = 3;
+const SCENE_PIECES = 12;
+
+function tsOf(e: SocialEventRow): number {
+    return Date.parse(e.timestamp) || 0;
+}
+
+function pieceOf(e: SocialEventRow): Piece | null {
+    if (!e.token_id) return null;
+    const i = e.token_id.lastIndexOf('-');
+    if (i < 0) return null;
+    const id = Number(e.token_id.slice(i + 1));
+    const slug = e.token_id.slice(0, i);
+    return Number.isFinite(id) && getProject(slug) ? { slug, id } : null;
+}
+
+function actorOf(e: SocialEventRow): Actor {
+    const toSide = e.type === 'MINT' || e.type === 'SALE';
+    const handle = toSide ? e.to_handle : e.from_handle;
+    const addr = toSide ? e.to_address : e.from_address;
+    const short = addr ? (addr.length > 12 ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : addr) : 'someone';
+    return {
+        name: handle ? `@${handle}` : short,
+        href: handle ? `/${handle}` : addr ? `/${addr}` : null,
+        relation: e.relation,
+    };
+}
+
+/* Actor identity for grouping — handle when claimed, wallet otherwise. */
+function actorKey(e: SocialEventRow): string {
+    const toSide = e.type === 'MINT' || e.type === 'SALE';
+    return ((toSide ? e.to_handle : e.from_handle) ?? (toSide ? e.to_address : e.from_address) ?? '?').toLowerCase();
+}
+
+/* Viewer-local day key — SCENE groups by the day the viewer experiences. */
+function dayKey(ms: number): string {
+    const d = new Date(ms);
+    return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+/** Compose the newest-first timeline: collapse streaks, gather scenes, flag
+ *  panoramas, slot albums in by their shelved moment. */
+function composeTimeline(events: SocialEventRow[], albums: SocialAlbumRow[]): TimelineItem[] {
+    const items: TimelineItem[] = [];
+    const rows: SocialEventRow[] = [];
+
+    /* Pass 1 — STREAKS: consecutive same-actor same-project collects. */
+    let i = 0;
+    while (i < events.length) {
+        const e = events[i];
+        const collect = e.type === 'MINT' || e.type === 'SALE';
+        if (collect && pieceOf(e)) {
+            let j = i + 1;
+            while (
+                j < events.length &&
+                events[j].type === e.type &&
+                events[j].project_id === e.project_id &&
+                actorKey(events[j]) === actorKey(e) &&
+                pieceOf(events[j])
+            ) j++;
+            if (j - i >= STREAK_MIN) {
+                const run = events.slice(i, j);
+                items.push({
+                    kind: 'streak',
+                    ts: tsOf(e),
+                    e0: e,
+                    actor: actorOf(e),
+                    slug: e.project_id,
+                    type: e.type as 'MINT' | 'SALE',
+                    n: run.length,
+                    totalEth: run.reduce((s, r) => s + (r.price_eth ? parseFloat(r.price_eth) : 0), 0),
+                    pieces: run.map(pieceOf).filter((p): p is Piece => p !== null),
+                });
+                i = j;
+                continue;
+            }
+        }
+        rows.push(e);
+        i++;
+    }
+
+    /* Pass 2 — SCENES: ≥3 distinct actors in one project the same day. */
+    const sceneGroups = new Map<string, SocialEventRow[]>();
+    for (const e of rows) {
+        if ((e.type === 'MINT' || e.type === 'SALE') && pieceOf(e)) {
+            const k = `${dayKey(tsOf(e))}|${e.project_id}`;
+            const g = sceneGroups.get(k);
+            if (g) g.push(e); else sceneGroups.set(k, [e]);
+        }
+    }
+    const inScene = new Set<string>();
+    for (const g of sceneGroups.values()) {
+        const actors = new Map<string, Actor>();
+        for (const e of g) if (!actors.has(actorKey(e))) actors.set(actorKey(e), actorOf(e));
+        if (actors.size < SCENE_MIN_ACTORS) continue;
+        for (const e of g) inScene.add(e.id);
+        items.push({
+            kind: 'scene',
+            ts: Math.max(...g.map(tsOf)),
+            slug: g[0].project_id,
+            actors: [...actors.values()],
+            pieces: g.map(pieceOf).filter((p): p is Piece => p !== null).slice(0, SCENE_PIECES),
+            n: g.length,
+        });
+    }
+
+    /* Pass 3 — remaining rows; the widest collects carry a panorama. */
+    let panos = 0;
+    for (const e of rows) {
+        if (inScene.has(e.id)) continue;
+        let pano: Piece | null = null;
+        if (panos < PANO_CAP && (e.type === 'MINT' || e.type === 'SALE' || e.trade)) {
+            const p = pieceOf(e);
+            if (p && artImageUrl(p.slug, p.id) && artProvisionalAspect(p.slug, p.id) >= PANO_ASPECT) {
+                pano = p;
+                panos++;
+            }
+        }
+        items.push({ kind: 'row', ts: tsOf(e), e, pano });
+    }
+
+    /* Albums slot in by their shelved moment. */
+    for (const a of albums) {
+        items.push({ kind: 'album', ts: a.created_at, a });
+    }
+
+    return items.sort((x, y) => y.ts - x.ts);
+}
+
+/* ── presentation ───────────────────────────────────────────────────── */
+
+/* "JUL 26" — viewer-local, no year: a live social feed is this-week reading
+   and the year was dead width in the middle of every row. Time stacks under. */
+function fmtDate(ms: number): string {
     const d = new Date(ms);
     const mon = d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${mon} ${day} ’${String(d.getFullYear()).slice(-2)}`;
+    return `${mon} ${String(d.getDate()).padStart(2, '0')}`;
+}
+function fmtTime(ms: number): string {
+    return new Date(ms).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+}
+/* Trim a summed ETH figure to something the ◊ rail can wear. */
+function fmtEth(v: number): string {
+    return String(Math.round(v * 1000) / 1000);
+}
+
+function RelBadge({ relation }: { relation: SocialRelation }) {
+    if (relation === 'mutual') {
+        return <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>;
+    }
+    if (relation === 'follow') {
+        return <span className="follow-badge"><span className="ico-following" title="Following">⚯&#xFE0E;</span></span>;
+    }
+    return null;
+}
+
+function ActorLink({ actor }: { actor: Actor }) {
+    const inner = <>{actor.name}</>;
+    return (
+        <>
+            {actor.href
+                ? <a className="f-highlight" href={actor.href} onClick={(e) => e.stopPropagation()}>{inner}</a>
+                : <span className="f-highlight">{inner}</span>}
+            <RelBadge relation={actor.relation} />
+        </>
+    );
+}
+
+/** A block's summary row — the exact feed-row grammar (line · icon · stacked
+ *  date/time · stacked type column · sentence), no long-press (a block spans
+ *  many transactions; starring stays on single rows). */
+function BlockRow({
+    icon, ts, typeWord, typeSub, children,
+}: {
+    icon: string; ts: number; typeWord: string; typeSub?: string; children: React.ReactNode;
+}) {
+    return (
+        <div className="feed-row">
+            <div className="feed-line" />
+            <div className="f-icon-wrap">{icon}&#xFE0E;</div>
+            <div className="f-time">
+                <span>{fmtDate(ts)}</span>
+                <span>{fmtTime(ts)}</span>
+            </div>
+            <div className="f-type af-type">
+                <span>{typeWord}</span>
+                {typeSub && <span>{typeSub}</span>}
+            </div>
+            <div className="f-content">{children}</div>
+        </div>
+    );
+}
+
+/** Full-bleed strip under a block row — THE Now Minting carousel track, so
+ *  tiles align with the page inset and the scroll runs edge to edge. */
+function MediaStrip({ pieces, keyBase }: { pieces: Piece[]; keyBase: string }) {
+    return (
+        <div className="sf-media">
+            <div className="home-carousel-track">
+                {pieces.map((p, i) => (
+                    <ProjectProvider key={`${keyBase}-${i}-${p.slug}-${p.id}`} slug={p.slug}>
+                        <ArtworkCard id={p.id} renderSize={200} />
+                    </ProjectProvider>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function projLink(slug: string): React.ReactNode {
+    const title = getProject(slug)?.displayName ?? slug;
+    return <a className="f-highlight" href={`/art/${slug}`} onClick={(e) => e.stopPropagation()}>{title}</a>;
 }
 
 export default function SocialFeed({ dir }: { dir: 'asc' | 'desc' }) {
     const { siweAddress } = useAuth();
-    const [events, setEvents] = useState<SocialEventRow[] | null>(null);
+    const [data, setData] = useState<SocialFeedResponse | null>(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -51,7 +286,7 @@ export default function SocialFeed({ dir }: { dir: 'asc' | 'desc' }) {
             fetch(`/api/feed/social${addr ? `?viewer=${addr}` : ''}`, { cache: 'no-store' })
                 .then((r) => (r.ok ? r.json() : null))
                 .then((d: SocialFeedResponse | null) => {
-                    if (!cancelled && d) setEvents(d.events);
+                    if (!cancelled && d) setData(d);
                 })
                 .catch(() => {
                     /* offline / 5xx — last good rows stay up */
@@ -68,27 +303,102 @@ export default function SocialFeed({ dir }: { dir: 'asc' | 'desc' }) {
     }, [siweAddress]);
 
     /* Loading OR nothing yet → ghost rows, never a text null state. */
-    if (!events || events.length === 0) return <GhostFeedRows />;
+    if (!data || (data.events.length === 0 && data.albums.length === 0)) return <GhostFeedRows />;
 
-    const rows = dir === 'asc' ? [...events].reverse() : events;
+    let items = composeTimeline(data.events, data.albums);
+    if (dir === 'asc') items = [...items].reverse();
+
     return (
         <>
-            {rows.map((e) => {
-                const fe = eventToNamedFeedEvent(e);
-                if (e.relation === 'mutual') {
-                    fe.badge = (
-                        <span className="follow-badge">
-                            <span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span>
-                        </span>
-                    );
-                } else if (e.relation === 'follow') {
-                    fe.badge = (
-                        <span className="follow-badge">
-                            <span className="ico-following" title="Following">⚯&#xFE0E;</span>
-                        </span>
+            {items.map((it) => {
+                if (it.kind === 'row') {
+                    const fe = eventToNamedFeedEvent(it.e);
+                    if (it.e.relation === 'mutual' || it.e.relation === 'follow') {
+                        fe.badge = <RelBadge relation={it.e.relation} />;
+                    }
+                    /* The price rides the type column as a ◊ rail (not the
+                       sentence) — prices align, sentences stay short. */
+                    const typeSub = fe.price > 0 ? `◊${fe.price}` : undefined;
+                    return (
+                        <div key={fe.id}>
+                            <FeedEventRow fe={fe} dateStamp={fmtDate(fe.timestamp)} typeSub={typeSub} />
+                            {it.pano && (
+                                /* PANORAMA — a wide piece shown in its entirety,
+                                   full bleed. The art IS the row's payoff. */
+                                <a
+                                    className="sf-media sf-pano-link"
+                                    href={`/art/${it.pano.slug}/${it.pano.id}`}
+                                    aria-label="View artwork"
+                                >
+                                    <img
+                                        className="sf-pano"
+                                        src={artImageUrl(it.pano.slug, it.pano.id)!}
+                                        loading="lazy"
+                                        alt=""
+                                    />
+                                </a>
+                            )}
+                        </div>
                     );
                 }
-                return <FeedEventRow key={fe.id} fe={fe} dateStamp={fmtFeedDate(fe.timestamp)} />;
+                if (it.kind === 'streak') {
+                    const verb = it.type === 'MINT' ? 'collected' : 'bought';
+                    return (
+                        <div key={`streak-${it.e0.id}`}>
+                            <BlockRow
+                                icon={FEED_ICON[it.type]}
+                                ts={it.ts}
+                                typeWord={`${it.type} ×${it.n}`}
+                                typeSub={it.totalEth > 0 ? `◊${fmtEth(it.totalEth)}` : undefined}
+                            >
+                                <ActorLink actor={it.actor} /> {verb} {projLink(it.slug)} ×{it.n}
+                            </BlockRow>
+                            <MediaStrip pieces={it.pieces} keyBase={`streak-${it.e0.id}`} />
+                        </div>
+                    );
+                }
+                if (it.kind === 'scene') {
+                    return (
+                        <div key={`scene-${it.slug}-${it.ts}`}>
+                            {/* SCENE ☻ — the circle converged on one project
+                                today. The social smiley marks the moment. */}
+                            <BlockRow icon={'☻'} ts={it.ts} typeWord="SCENE" typeSub={`×${it.n}`}>
+                                {it.actors.map((a, i) => (
+                                    <span key={`${a.name}-${i}`}>
+                                        {i > 0 && (i === it.actors.length - 1 ? ' & ' : ', ')}
+                                        <ActorLink actor={a} />
+                                    </span>
+                                ))}{' '}
+                                in {projLink(it.slug)}
+                            </BlockRow>
+                            <MediaStrip pieces={it.pieces} keyBase={`scene-${it.slug}-${it.ts}`} />
+                        </div>
+                    );
+                }
+                /* ALBUM ◰ — a friend shelved; the strip rides the feed. */
+                const a = it.a;
+                const pieces = a.keys
+                    .map((k) => {
+                        const ci = k.lastIndexOf(':');
+                        if (ci < 0) return null;
+                        const slug = k.slice(0, ci);
+                        const id = Number(k.slice(ci + 1));
+                        return Number.isFinite(id) && getProject(slug) ? { slug, id } : null;
+                    })
+                    .filter((p): p is Piece => p !== null);
+                return (
+                    <div key={`album-${a.owner_address}-${a.position}-${a.created_at}`}>
+                        <BlockRow icon={'◰'} ts={it.ts} typeWord="ALBUM" typeSub={`#${a.position}`}>
+                            <ActorLink
+                                actor={{ name: `@${a.owner_handle}`, href: `/${a.owner_handle}`, relation: a.relation }}
+                            />{' '}
+                            shelved album #{a.position} · {a.count} pieces
+                        </BlockRow>
+                        {pieces.length > 0 && (
+                            <MediaStrip pieces={pieces} keyBase={`album-${a.owner_address}-${a.position}`} />
+                        )}
+                    </div>
+                );
             })}
         </>
     );

@@ -8135,6 +8135,40 @@ body.feed-mode .arb-badge { display: none !important; }
 }
 @media (max-width: 600px) { .home-activity-feed .f-time { width: 80px; } }
 
+/* ── Social feed ☻ — the tightened middle (Brendon, 2026-07-26) ──────────
+   Cohesion over white space: the base home-feed columns were sized for long
+   milestone labels (PER MILLE CLUB) and left the sentence a third of an
+   iPhone. Here the date sheds its year, the type column narrows to the short
+   market words and carries the ◊ price beneath, and the sentence column takes
+   back every freed pixel — each column reads two lines tall, so a row scans
+   as one connected fact instead of islands. */
+.home-social-feed .f-time { width: 58px; }
+.home-social-feed .f-type { width: 72px; }
+@media (max-width: 600px) {
+    .home-social-feed .f-time { width: 52px; }
+    .home-social-feed .f-type { width: 62px; }
+}
+/* Media strips (streak/scene carousels, album strips, panoramas) hang
+   full-bleed under their summary row: negative margins cancel the feed's
+   page inset so the scroll runs edge to edge, while the carousel track's
+   own padding (the Now Minting track, reused verbatim) keeps the tiles
+   aligned with the page rhythm. */
+.home-social-feed .sf-media {
+    display: block;
+    margin: 2px -40px 18px;
+}
+@media (max-width: 600px) {
+    .home-social-feed .sf-media { margin: 2px -20px 16px; }
+}
+/* A wide piece shown in its entirety — full bleed, natural aspect, square
+   corners (surfaces are square). The art is the whole statement: no frame. */
+.home-social-feed .sf-pano-link { line-height: 0; }
+.home-social-feed .sf-pano {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
 /* Per-glyph milestone-icon nudges (base size from .f-icon-wrap = 20px; final
    pixel sign-off is a real device — iOS Courier). */
 .af-ic--airdrop { font-size: 17px; position: relative; top: -1px; }  /* ⍜ airdrop — three steps down, nudged up 3px */

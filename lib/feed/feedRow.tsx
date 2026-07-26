@@ -93,12 +93,15 @@ export function eventToFeedEvent(e: EventRow): FeedEvent {
 
 /** Cross-project mapping — the token link names the project ("Prisms #12"),
  *  for feeds that span every project (the social feed ☻), where a bare #id
- *  is ambiguous. */
+ *  is ambiguous. The price leaves the sentence too — the social feed carries
+ *  it in the type column (◊ rail), so sentences stay short and wrap less. */
 export function eventToNamedFeedEvent(e: EventRow): FeedEvent {
     return buildFeedEvent(e, true);
 }
 
 function buildFeedEvent(e: EventRow, withProject: boolean): FeedEvent {
+    /* withProject = the cross-project (social) presentation: named token link,
+       price off the verb (it rides the type column instead). */
     const type = e.type;
     const ms = Date.parse(e.timestamp) || 0;
     const price = e.price_eth ? parseFloat(e.price_eth) : 0;
@@ -115,11 +118,12 @@ function buildFeedEvent(e: EventRow, withProject: boolean): FeedEvent {
     const tok = tokHref
         ? <a className="f-highlight" href={tokHref} onClick={(e) => e.stopPropagation()}>{tokLabel}</a>
         : <span className="f-highlight">{tokLabel}</span>;
+    const tail = withProject ? '' : price ? ` for ${e.price_eth} ETH` : '';
     let verb: ReactNode;
-    if (type === 'MINT') verb = <>collected {tok}{price ? ` for ${e.price_eth} ETH` : ''}</>;
-    else if (type === 'LIST') verb = <>listed {tok}{price ? ` for ${e.price_eth} ETH` : ''}</>;
-    else if (type === 'SALE') verb = <>bought {tok}{price ? ` for ${e.price_eth} ETH` : ''}</>;
-    else if (e.trade) verb = <>traded {tok}{price ? ` (◊${e.price_eth} kicker)` : ''}</>;
+    if (type === 'MINT') verb = <>collected {tok}{tail}</>;
+    else if (type === 'LIST') verb = <>listed {tok}{tail}</>;
+    else if (type === 'SALE') verb = <>bought {tok}{tail}</>;
+    else if (e.trade) verb = <>traded {tok}{!withProject && price ? ` (◊${e.price_eth} kicker)` : ''}</>;
     else verb = <>transferred {tok}</>;
     return {
         id: e.id,

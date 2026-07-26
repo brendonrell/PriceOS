@@ -21,12 +21,16 @@ import { isTxStarred, toggleTxStar, subscribeTxStars } from '../../lib/pins/txSt
 export default function FeedEventRow({
     fe,
     dateStamp,
+    typeSub,
 }: {
     fe: FeedEvent;
     /** When set, the time column stacks date over time (the home activity
      *  feed's column style) — for feeds spanning days (the social feed).
      *  Absent → the single HH:MM the project/profile feeds always showed. */
     dateStamp?: string;
+    /** Second line under the type word (the social feed's ◊ price rail) —
+     *  only rendered in stacked (dateStamp) mode. */
+    typeSub?: string;
 }) {
     const { showToast } = useToast();
     const [starred, setStarred] = React.useState(false);
@@ -93,7 +97,16 @@ export default function FeedEventRow({
                     fe.time
                 )}
             </div>
-            <div className="f-type">{fe.trade ? 'TRADE' : fe.type}</div>
+            <div className={dateStamp ? 'f-type af-type' : 'f-type'}>
+                {dateStamp ? (
+                    <>
+                        <span>{fe.trade ? 'TRADE' : fe.type}</span>
+                        {typeSub && <span>{typeSub}</span>}
+                    </>
+                ) : (
+                    fe.trade ? 'TRADE' : fe.type
+                )}
+            </div>
             <div className="f-content" style={{ position: 'relative' }}>
                 <FeedActorLine fe={fe} />
                 {starred && <span className="project-name-star" aria-hidden="true">{'★︎'}</span>}

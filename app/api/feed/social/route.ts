@@ -25,8 +25,27 @@ export interface SocialEventRow extends EventRow {
   relation: SocialRelation;
 }
 
+/** An album a graph member shelved — the feed's album block. Albums are
+ *  numbered, never named (the shelf position IS the identity). */
+export interface SocialAlbumRow {
+  owner_handle: string;
+  owner_address: string;
+  relation: SocialRelation;
+  /** 1-based position on the owner's shelf. */
+  position: number;
+  /** Total pieces in the album. */
+  count: number;
+  /** Leading members, `${slug}:${id}` (≤8) — the strip the feed shows. */
+  keys: string[];
+  /** Shelved moment (Unix ms). */
+  created_at: number;
+}
+
 export interface SocialFeedResponse {
   events: SocialEventRow[];
+  /** Recent albums shelved by the same wallets — merged into the timeline
+      client-side by their shelved moment. */
+  albums: SocialAlbumRow[];
   /** 'graph' = the viewer's own follows; 'top' = the logged-out/empty-graph
       fallback (top collectors by PriceScore). */
   mode: 'graph' | 'top';
@@ -39,6 +58,11 @@ const GRAPH_CAP = 120;
 const WINDOW = 200;
 const TOP_USERS = 50;
 const DEFAULT_LIMIT = 60;
+/* Album blocks per page + strip length; an album needs ≥2 pieces to show
+   (a one-piece shelf isn't a story yet). */
+const ALBUM_CAP = 8;
+const ALBUM_STRIP = 8;
+const ALBUM_MIN_PIECES = 2;
 
 interface DbEvent {
   id: string;
@@ -163,6 +187,47 @@ async function topAddresses(db: Db): Promise<Set<string>> {
   );
 }
 
+/** Recent albums shelved by the wallets — read out of each user's settings
+ *  envelope (`settings->albums`). Album sharing ships HERE (Brendon,
+ *  2026-07-26): the feed is the first surface where a friend's shelf shows. */
+async function albumsFor(
+  db: Db,
+  addrs: string[],
+  relationOf: (addr: string) => SocialRelation,
+): Promise<SocialAlbumRow[]> {
+  const { data, error } = await db
+    .from('users')
+    .select('address, handle, albums:settings->albums')
+    .in('address', addrs)
+    .not('handle', 'is', null);
+  if (error) throw new Error(error.message);
+
+  const out: SocialAlbumRow[] = [];
+  for (const row of (data ?? []) as {
+    address: string;
+    handle: string | null;
+    albums: unknown;
+  }[]) {
+    if (!row.handle || !Array.isArray(row.albums)) continue;
+    const addr = row.address.toLowerCase();
+    (row.albums as { keys?: unknown; created_at?: unknown }[]).forEach((a, i) => {
+      const keys = Array.isArray(a?.keys) ? (a.keys as string[]).filter((k) => typeof k === 'string') : [];
+      const created = typeof a?.created_at === 'number' ? a.created_at : 0;
+      if (keys.length < ALBUM_MIN_PIECES || created <= 0) return;
+      out.push({
+        owner_handle: row.handle!,
+        owner_address: addr,
+        relation: relationOf(addr),
+        position: i + 1,
+        count: keys.length,
+        keys: keys.slice(0, ALBUM_STRIP),
+        created_at: created,
+      });
+    });
+  }
+  return out.sort((a, b) => b.created_at - a.created_at).slice(0, ALBUM_CAP);
+}
+
 /** Newest ledger events touching any of the wallets, either side, deduped. */
 async function eventsFor(db: Db, addrs: string[]): Promise<EventRow[]> {
   const [fromRes, toRes] = await Promise.all([
@@ -208,7 +273,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const graph = viewer ? await graphAddresses(db, viewer) : null;
 
     if (graph) {
-      const rows = await eventsFor(db, [...graph.mutual, ...graph.follow]);
+      const graphAddrs = [...graph.mutual, ...graph.follow];
+      const relationOf = (a: string): SocialRelation =>
+        graph.mutual.has(a) ? 'mutual' : graph.follow.has(a) ? 'follow' : null;
+      const [rows, albums] = await Promise.all([
+        eventsFor(db, graphAddrs),
+        albumsFor(db, graphAddrs, relationOf),
+      ]);
       // Only rows the graph ACTED in — "what your friends are doing". A trade
       // has two actors, so either side in the graph qualifies it.
       const kept: SocialEventRow[] = [];
@@ -238,12 +309,17 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         page.sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp));
       }
       await attachHandles(db, page);
-      return NextResponse.json({ events: page, mode: 'graph' } satisfies SocialFeedResponse);
+      return NextResponse.json({ events: page, albums, mode: 'graph' } satisfies SocialFeedResponse);
     }
 
     // Top-users fallback — logged out, unclaimed, or an empty graph.
     const top = await topAddresses(db);
-    const rows = top.size > 0 ? await eventsFor(db, [...top]) : [];
+    const [rows, albums] = top.size > 0
+      ? await Promise.all([
+          eventsFor(db, [...top]),
+          albumsFor(db, [...top], () => null),
+        ])
+      : [[] as EventRow[], [] as SocialAlbumRow[]];
     const page: SocialEventRow[] = rows
       .filter((e) => {
         const actor = actorAddr(e);
@@ -252,7 +328,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       .slice(0, limit)
       .map((e) => ({ ...e, relation: null as SocialRelation }));
     await attachHandles(db, page);
-    return NextResponse.json({ events: page, mode: 'top' } satisfies SocialFeedResponse);
+    return NextResponse.json({ events: page, albums, mode: 'top' } satisfies SocialFeedResponse);
   } catch (err) {
     return serverError(err instanceof Error ? err.message : 'Unknown error');
   }
