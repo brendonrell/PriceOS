@@ -458,7 +458,7 @@ export default function HomeProjectFacetBar({
                         <span className="sort-arrow">{arrow('feed')}</span>
                     </span>
                     <span
-                        className={`sort-btn${sortKey === 'social' ? ' active' : ''}`}
+                        className={`sort-btn sort-btn-social${sortKey === 'social' ? ' active' : ''}`}
                         role="button"
                         tabIndex={0}
                         title="Social Feed"
