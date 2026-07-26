@@ -230,7 +230,14 @@ export const RUDXANE_INK = '#3B2A5C';   // deep violet lettering
 /** The REAL name's three faces (Brendon, 2026-07-26) — these come up alongside
  *  the respellings, so the chip sometimes just says his name, in one of these
  *  casings. */
-export const RUDXANE_PLAIN: ReadonlyArray<string> = ['Rudxane', 'rudxane', 'RUDXANE'];
+export const RUDXANE_PLAIN: ReadonlyArray<string> = [
+    'Rudxane', 'rudxane', 'RUDXANE',
+    /* Upside down (Brendon, 2026-07-26) — built with the app's OWN flip table
+       (lib/profile/nameFont FLIP, the "Upside Down" @name face), not a
+       hand-rolled one, so it can never drift from the font a user can pick.
+       Every character here is plain Latin/IPA, so it stays text on iOS. */
+    'ǝuɐxpnɹ',
+];
 
 /** Every face the chip can wear, respellings first. */
 export const RUDXANE_FACES: ReadonlyArray<string> = [...RUDXANE_SAYINGS, ...RUDXANE_PLAIN];
