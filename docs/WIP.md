@@ -8,7 +8,37 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-000000. ✅ **2026-07-25 (LATEST) LISTS ≡ + GATED REORDER + THE CORNER LAW IS
+0000000. ✅ **2026-07-26 (LATEST) THE SOCIAL FEED ☻ IS LIVE ON `dev` — the
+   home's mixed-media social timeline. Tree clean, ClickUp `86bb3pc41`.**
+
+   **THE ☻ IS THE OVERARCHING SOCIAL/USER ICON now (Brendon's call —
+   collector = user = same).** It ends the home sort row after FEED, glyph
+   only, and works like FEED: swaps the carousels for the social feed.
+   Logged in = your follow graph, mutuals weighted first; logged out /
+   empty graph = top collectors by PriceScore. Zero user options, on
+   purpose. Glyph is emoji-data-verified safe (U+263B has NO emoji
+   mapping; the hollow ☺ U+263A IS emoji — stays banned). GLYPHS.md §12h.
+
+   **The feed mixes text + art:** dense market rows (no year, ◊ price rail,
+   ⚭/⚯ marks, long-press star) · STREAK mini-carousels (≥3 collects, one
+   person, one project) · SCENE ☻ blocks (≥3 people, one project, one day)
+   · ALBUM ◰ strips · PANORAMAS (wide pieces full-bleed, aspect ≥1.7,
+   capped). All reuse: the Now Minting track, ArtworkCard under per-card
+   providers (the Gen Curated pattern), stored art images.
+
+   **⚠️ DECISIONS MADE THIS SESSION:**
+   - **Album sharing SHIPPED** — friends' albums now show in the feed
+     (they were private before). Flagged to Brendon pre-push; he pushed.
+   - **"SCENE" is a Claude-coined label** — Brendon hasn't named it;
+     rename is open if he wants a different word.
+   - Polish: ☻ one size up + 1.5px down; the home row's ◷ clock took the
+     same 1.5px drop (scoped to the home row ONLY — other ◷ surfaces
+     untouched).
+
+   Next: nothing queued on this feature. Verify on the preview once the
+   auto-deploy lands if picking this back up.
+
+000000. ✅ **2026-07-25 LISTS ≡ + GATED REORDER + THE CORNER LAW IS
    FIXED. All on `dev`, tree clean.**
 
    **⛔ THE CORNER RULE — SETTLED, AND IT WAS BACKWARDS IN ONE PLACE.**
