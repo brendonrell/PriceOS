@@ -116,6 +116,9 @@ export default function FmBar() {
        (SSR-safe). Also re-reads when the account snapshot hydrates the face so
        the chosen face follows the viewer across devices without a reload. */
     const [display, setDisplay] = useState<FmDisplay>('deck');
+    /* Tapping the album art leaves the app for YouTube on the DECK face only;
+       on TAB and DISC it opens the station picker instead (Brendon, 2026-07-26). */
+    const artOpensYouTube = display === 'deck';
     useEffect(() => {
         const read = () => {
             try {
@@ -447,6 +450,8 @@ export default function FmBar() {
             </button>
             {/* ── THE screen — one display: the forced-YT art window IS part
                 of it, beside the readout rows. Tap = station picker. ── */}
+            {/* Only the DECK face sends the album art out to YouTube; on TAB and
+                DISC it opens the picker instead (Brendon, 2026-07-26). */}
             <button
                 type="button"
                 className="fm-screen"
@@ -454,25 +459,36 @@ export default function FmBar() {
                 title="Pick a station"
             >
                 {/* The video host stays mounted for the session — YT replaces
-                    it with the iframe; a remount kills the audio. Tapping the
-                    album-art window opens the full playlist on YouTube in a
-                    new tab (Brendon, 2026-07-20); the overlay carries the tap
-                    so the iframe never swallows it. */}
+                    it with the iframe; a remount kills the audio. The overlay
+                    carries the tap so the iframe never swallows it.
+
+                    WHERE THE TAP GOES depends on the face (Brendon, 2026-07-26):
+                    DECK still opens the full playlist on YouTube in a new tab
+                    (2026-07-20), while TAB and DISC open the station picker —
+                    the same thing tapping the rest of the screen does. */}
                 <span
                     className="fm-video"
                     role="button"
                     tabIndex={0}
-                    title="Open the full playlist on YouTube"
-                    aria-label="Open the full playlist on YouTube"
+                    title={artOpensYouTube ? 'Open the full playlist on YouTube' : 'Pick a station'}
+                    aria-label={artOpensYouTube ? 'Open the full playlist on YouTube' : 'Pick a station'}
                     onClick={(e) => {
                         e.stopPropagation();
-                        window.open(stationWatchUrl(onAir.playlistId), '_blank', 'noopener,noreferrer');
+                        if (artOpensYouTube) {
+                            window.open(stationWatchUrl(onAir.playlistId), '_blank', 'noopener,noreferrer');
+                        } else {
+                            setPickerOpen((v) => !v);
+                        }
                     }}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
                             e.stopPropagation();
-                            window.open(stationWatchUrl(onAir.playlistId), '_blank', 'noopener,noreferrer');
+                            if (artOpensYouTube) {
+                                window.open(stationWatchUrl(onAir.playlistId), '_blank', 'noopener,noreferrer');
+                            } else {
+                                setPickerOpen((v) => !v);
+                            }
                         }
                     }}
                 >
