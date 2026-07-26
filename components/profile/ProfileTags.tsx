@@ -66,7 +66,7 @@ export function ProfileTags({ tags, font, paint, onTagTap, className }: {
                     {t.svgGlyph === 'price'
                         ? <PriceMark className="profile-tag-mark" />
                         : t.glyph && <span className="profile-tag-glyph">{t.glyph}</span>}
-                    <span className={`profile-tag-label${t.labelFont === 'courier' ? ' profile-tag-label--courier' : ''}`}>
+                    <span className="profile-tag-label">
                         {/* CEO stays locked (its own treatment). WTBS renders its
                            label plain so its Inter face shows — the @name Unicode
                            restyle never touches either. A two-tone label (the

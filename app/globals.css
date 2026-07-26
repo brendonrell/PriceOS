@@ -4146,16 +4146,13 @@ body.pd-stone-open .ens-copy-toast {
 }
 .profile-tag--edgeless { border-color: transparent; }
 
-/* BitVerse (@cspok) — the wordmark is monospaced, so this chip wears COURIER
-   where the WTBS family wears Inter (Brendon, 2026-07-26). Its two colour runs
-   ("bit" green · "Verse" dark) are painted inline from the catalog. */
-.profile-tag-label--courier {
-    font-family: 'Courier New', Courier, monospace;
-    letter-spacing: 0;
-}
-/* Rudxane (@rudxane) — the respellings run longer than a normal tag word, so
-   the chip is allowed its own width without the row reflowing around it. */
-.profile-tag--rudxane .profile-tag-label { letter-spacing: 0.2px; }
+/* BitVerse (@cspok) — the wordmark is monospaced, and an ordinary tag label is
+   ALREADY Courier (it inherits the body face), so this chip gets NO font rule
+   of its own: it must sit identically to every other Courier chip on the row
+   (Brendon, 2026-07-26 — "cspok needs to be the same as the other ones that
+   use it"). Only its two colour runs ("bit" green · "Verse" dark) are painted,
+   inline from the catalog. Do not add a font-family or letter-spacing here —
+   that is exactly what made it sit high the first time. */
 
 /* ── Profile tags on LIST surfaces (Brendon, 2026-07-24) — leaderboards,
    collectors, followers, the Friend Inspector dossier, the artwork owner line,

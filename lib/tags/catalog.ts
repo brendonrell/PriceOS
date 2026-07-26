@@ -66,9 +66,6 @@ export interface Tag {
      *  2026-07-26). Set, it replaces `label` for rendering; `label` stays the
      *  plain-text version for titles and toasts. */
     labelParts?: ReadonlyArray<{ text: string; color: string }>;
-    /** Fixed label font for chips that are NOT Inter — 'courier' is the
-     *  BitVerse chip, whose wordmark is monospaced (Brendon, 2026-07-26). */
-    labelFont?: 'courier';
 }
 
 /* ── PERSONAS — the pick-your-owns (self-applied) ────────────────────────────
@@ -204,7 +201,6 @@ export function bitverseTag(order: number, n: unknown): Tag {
         id: 'bitverse',
         label: 'bitVerse',
         labelParts: [{ text: 'bit', color: s.bit }, { text: 'Verse', color: s.verse }],
-        labelFont: 'courier',
         color: s.bg,
         textColor: s.verse,
         noBorder: !s.border,
@@ -231,13 +227,19 @@ export const RUDXANE_SAYINGS: ReadonlyArray<string> = [
 export const RUDXANE_BG = '#C9B6F0';    // light lilac field
 export const RUDXANE_INK = '#3B2A5C';   // deep violet lettering
 
-/** The label for a given roll. Roughly one in five lands on the plain name —
- *  "usually it's one of those" (Brendon), so the respellings dominate. */
+/** The REAL name's three faces (Brendon, 2026-07-26) — these come up alongside
+ *  the respellings, so the chip sometimes just says his name, in one of these
+ *  casings. */
+export const RUDXANE_PLAIN: ReadonlyArray<string> = ['Rudxane', 'rudxane', 'RUDXANE'];
+
+/** Every face the chip can wear, respellings first. */
+export const RUDXANE_FACES: ReadonlyArray<string> = [...RUDXANE_SAYINGS, ...RUDXANE_PLAIN];
+
+/** The label for a given roll. The 16 respellings outnumber the 3 plain faces
+ *  better than 5:1, so "usually it's one of those" holds (Brendon). */
 export function rudxaneLabel(roll: unknown): string {
     const n = Math.abs(Math.trunc(Number(roll)) || 0);
-    const slots = RUDXANE_SAYINGS.length + 4;  // 4 plain slots out of 20
-    const i = n % slots;
-    return i < RUDXANE_SAYINGS.length ? RUDXANE_SAYINGS[i] : 'Rudxane';
+    return RUDXANE_FACES[n % RUDXANE_FACES.length];
 }
 
 /** Build @rudxane's chip for this page load's roll. */
@@ -249,8 +251,10 @@ export function rudxaneTag(order: number, roll: unknown): Tag {
         textColor: RUDXANE_INK,
         kind: 'team',
         order,
+        /* lockStyle keeps the paint + @name restyle off it; no `font` means it
+           wears the ordinary label face (Courier), same as every other chip
+           (Brendon, 2026-07-26). */
         lockStyle: true,
-        font: 'inter',
     };
 }
 
