@@ -24,12 +24,28 @@
  *
  * The door: pinch in — pinch back below 1× (or close/walk the surface) out.
  * Zoom never persists; every open starts at 1×. Max zoom 8×.
+ *
+ * THE LOUPE (Brendon greenlight 2026-07-26 — ClickUp "The Lens", the
+ * jeweler's loupe artists asked for): press-and-hold on the art (any device)
+ * — or hover + hold L on desktop — summons a circular lens showing the piece
+ * at 4× under your finger/cursor, re-rendered live from the engine. Lift to
+ * dismiss; nothing persists. Only at 1× (pinch owns the zoomed state). By
+ * Brendon's call the long-press takes the gesture everywhere, including the
+ * modal image (which previously fell through to the iOS save-sheet callout).
  */
 
 import { useEffect, useRef, type RefObject } from 'react';
 import { paintOutput } from '../../lib/state/ProjectContext';
 
 const MAX_ZOOM = 8;
+/* Loupe: the specced 4× magnification, the lens diameter (CSS px, clamped to
+   the art), and the press-and-hold arming time. */
+const LOUPE_MAG = 4;
+const LOUPE_D = 220;
+const LONG_PRESS_MS = 400;
+const PRESS_CANCEL_PX = 10;
+/* Touch lifts the lens above the finger so it isn't under it; mouse doesn't. */
+const LOUPE_TOUCH_LIFT = 80;
 /* Backing-store area budget for the sharp re-render — bounded well under the
    iOS Safari canvas ceiling; ~2900×2900 equivalent. */
 const AREA_MAX = 8_400_000;
@@ -73,6 +89,7 @@ export default function DeepZoomLayer({
 }) {
     const sharpRef = useRef<HTMLCanvasElement | null>(null);
     const readoutRef = useRef<HTMLDivElement | null>(null);
+    const loupeRef = useRef<HTMLCanvasElement | null>(null);
 
     /* All live state on refs — the zoom loop never re-renders React. */
     const scaleRef = useRef(1);
@@ -211,11 +228,142 @@ export default function DeepZoomLayer({
             else { clampPan(); apply(); scheduleSharp(); }
         };
 
+        /* ── THE LOUPE — press-and-hold (or hover + L) jeweler's lens. ── */
+        const loupeSrc = { canvas: null as HTMLCanvasElement | null, key: '' };
+        let loupeOn = false;
+        let loupeIsTouch = false;
+        let pressTimer: number | null = null;
+        let pressAt = { x: 0, y: 0 };
+        let lastTouch = { x: 0, y: 0 };
+        let hovering = false;
+        let lastMouse = { x: 0, y: 0 };
+
+        const cancelPress = () => {
+            if (pressTimer != null) { window.clearTimeout(pressTimer); pressTimer = null; }
+        };
+
+        /* The lens source — the whole piece re-rendered once at ~4× the
+           displayed size (area-capped like the zoom overlay), then sampled
+           per frame. One offscreen canvas, reused across summons. */
+        const loupeEnsureSrc = (): HTMLCanvasElement | null => {
+            if (id == null) return null;
+            const box = baseBox();
+            if (!box) return null;
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            const aspect = box.w / box.h;
+            const capW = Math.floor(Math.sqrt(AREA_MAX * aspect));
+            const targetW = Math.min(Math.round(box.w * LOUPE_MAG * dpr), capW);
+            const k = `${key}@loupe${targetW}`;
+            if (loupeSrc.canvas && loupeSrc.key === k) return loupeSrc.canvas;
+            const c = loupeSrc.canvas ?? document.createElement('canvas');
+            try {
+                paintOutput(c, slug, id, targetW, true);
+            } catch {
+                return null;
+            }
+            loupeSrc.canvas = c;
+            loupeSrc.key = k;
+            return c;
+        };
+
+        const loupeDraw = (cx: number, cy: number) => {
+            const el = art();
+            const lens = loupeRef.current;
+            const src = loupeSrc.canvas;
+            if (!el || !lens || !src || !loupeOn) return;
+            const r = el.getBoundingClientRect();
+            const contR = container.getBoundingClientRect();
+            /* The focal point stays ON the art. */
+            const fx = Math.max(r.left, Math.min(r.right, cx));
+            const fy = Math.max(r.top, Math.min(r.bottom, cy));
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            const d = Math.min(LOUPE_D, Math.round(Math.min(contR.width, contR.height) * 0.7));
+            const px = Math.round(d * dpr);
+            if (lens.width !== px) { lens.width = px; lens.height = px; }
+            lens.style.width = `${d}px`;
+            lens.style.height = `${d}px`;
+            /* Lens sits centred on the focal point — lifted above a finger so
+               it's never under it — clamped inside the container. */
+            const lift = loupeIsTouch ? LOUPE_TOUCH_LIFT : 0;
+            const lx = Math.max(4, Math.min(contR.width - d - 4, fx - contR.left - d / 2));
+            const ly = Math.max(4, Math.min(contR.height - d - 4, fy - contR.top - d / 2 - lift));
+            lens.style.left = `${lx}px`;
+            lens.style.top = `${ly}px`;
+            /* Sample the window around the focal point at the specced 4×. */
+            const S = src.width / r.width;
+            let sw = (d / LOUPE_MAG) * S;
+            sw = Math.min(sw, src.width, src.height);
+            const sx = Math.max(0, Math.min(src.width - sw, (fx - r.left) * S - sw / 2));
+            const sy = Math.max(0, Math.min(src.height - sw, (fy - r.top) * S - sw / 2));
+            const g = lens.getContext('2d');
+            if (!g) return;
+            g.imageSmoothingEnabled = true;
+            g.clearRect(0, 0, px, px);
+            g.drawImage(src, sx, sy, sw, sw, 0, 0, px, px);
+        };
+
+        const loupeShow = (cx: number, cy: number, touch: boolean) => {
+            if (disabledRef.current || scaleRef.current > 1 || id == null) return;
+            const lens = loupeRef.current;
+            if (!lens || !loupeEnsureSrc()) return;
+            loupeOn = true;
+            loupeIsTouch = touch;
+            lastGestureAt.current = Date.now();
+            lens.style.display = 'block';
+            loupeDraw(cx, cy);
+        };
+
+        const loupeHide = () => {
+            cancelPress();
+            if (!loupeOn) return;
+            loupeOn = false;
+            lastGestureAt.current = Date.now();
+            const lens = loupeRef.current;
+            if (lens) lens.style.display = 'none';
+        };
+
+        /* The long-press takes the gesture on the art everywhere (Brendon's
+           call) — including the modal image, whose iOS save-sheet callout it
+           replaces. Idempotent; also re-applied at press time (the art
+           element mounts after the layer in the modal). */
+        const suppressCallout = () => {
+            const el = art();
+            if (!el) return;
+            el.style.setProperty('-webkit-touch-callout', 'none');
+            el.style.setProperty('-webkit-user-select', 'none');
+            el.style.setProperty('user-select', 'none');
+        };
+        suppressCallout();
+
         /* ── Touch: pinch to zoom, one-finger pan while zoomed. ── */
         const dist = (a: Touch, b: Touch) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
 
         const onTouchStart = (e: TouchEvent) => {
             if (disabledRef.current) return;
+            if (e.touches.length >= 2) {
+                /* A second finger is a pinch, never a loupe press. */
+                cancelPress();
+                loupeHide();
+            }
+            if (e.touches.length === 1 && scaleRef.current <= 1) {
+                /* Arm the loupe press — fires after a still hold; any real
+                   movement (a swipe, a scroll) cancels it below. */
+                const t = e.touches[0];
+                const el = art();
+                if (t && el) {
+                    const r = el.getBoundingClientRect();
+                    if (t.clientX >= r.left && t.clientX <= r.right && t.clientY >= r.top && t.clientY <= r.bottom) {
+                        suppressCallout();
+                        pressAt = { x: t.clientX, y: t.clientY };
+                        lastTouch = { x: t.clientX, y: t.clientY };
+                        cancelPress();
+                        pressTimer = window.setTimeout(() => {
+                            pressTimer = null;
+                            loupeShow(lastTouch.x, lastTouch.y, true);
+                        }, LONG_PRESS_MS);
+                    }
+                }
+            }
             if (e.touches.length >= 2) {
                 const [a, b] = [e.touches[0], e.touches[1]];
                 gestureRef.current = {
@@ -250,6 +398,21 @@ export default function DeepZoomLayer({
         };
 
         const onTouchMove = (e: TouchEvent) => {
+            if (e.touches.length === 1) {
+                const t = e.touches[0];
+                lastTouch = { x: t.clientX, y: t.clientY };
+                if (loupeOn) {
+                    /* The lens follows the finger; the page must not scroll. */
+                    loupeDraw(t.clientX, t.clientY);
+                    lastGestureAt.current = Date.now();
+                    e.stopPropagation();
+                    e.preventDefault();
+                    return;
+                }
+                if (pressTimer != null && Math.hypot(t.clientX - pressAt.x, t.clientY - pressAt.y) > PRESS_CANCEL_PX) {
+                    cancelPress(); // it's a swipe/scroll, not a hold
+                }
+            }
             const g = gestureRef.current;
             if (!g || disabledRef.current) return;
             lastGestureAt.current = Date.now();
@@ -284,6 +447,15 @@ export default function DeepZoomLayer({
         };
 
         const onTouchEnd = (e: TouchEvent) => {
+            cancelPress();
+            if (loupeOn) {
+                /* Lift = the lens goes away; swallow the tail so the tap
+                   action underneath (open page / swipe nav) never fires. */
+                loupeHide();
+                e.stopPropagation();
+                e.preventDefault();
+                return;
+            }
             const g = gestureRef.current;
             if (!g) return;
             e.stopPropagation();
@@ -344,12 +516,40 @@ export default function DeepZoomLayer({
 
         let mouseDrag: { x: number; y: number } | null = null;
         const onMouseDown = (e: MouseEvent) => {
-            if (disabledRef.current || scaleRef.current <= 1 || e.button !== 0) return;
+            if (disabledRef.current || e.button !== 0) return;
+            if (scaleRef.current <= 1) {
+                /* Hold-click arms the loupe on desktop — same press-and-hold
+                   as touch; moving before it fires cancels into a normal
+                   click/drag. */
+                const el = art();
+                if (el) {
+                    const r = el.getBoundingClientRect();
+                    if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
+                        pressAt = { x: e.clientX, y: e.clientY };
+                        lastMouse = { x: e.clientX, y: e.clientY };
+                        cancelPress();
+                        pressTimer = window.setTimeout(() => {
+                            pressTimer = null;
+                            loupeShow(lastMouse.x, lastMouse.y, false);
+                        }, LONG_PRESS_MS);
+                    }
+                }
+                return;
+            }
             mouseDrag = { x: e.clientX, y: e.clientY };
             e.preventDefault();
             e.stopPropagation();
         };
         const onMouseMove = (e: MouseEvent) => {
+            lastMouse = { x: e.clientX, y: e.clientY };
+            if (loupeOn && !loupeIsTouch) {
+                loupeDraw(e.clientX, e.clientY);
+                lastGestureAt.current = Date.now();
+                return;
+            }
+            if (pressTimer != null && Math.hypot(e.clientX - pressAt.x, e.clientY - pressAt.y) > PRESS_CANCEL_PX) {
+                cancelPress();
+            }
             if (!mouseDrag) return;
             txRef.current += e.clientX - mouseDrag.x;
             tyRef.current += e.clientY - mouseDrag.y;
@@ -359,9 +559,30 @@ export default function DeepZoomLayer({
             apply();
         };
         const onMouseUp = () => {
+            cancelPress();
+            if (loupeOn && !loupeIsTouch) { loupeHide(); return; }
             if (!mouseDrag) return;
             mouseDrag = null;
             settle();
+        };
+
+        /* Hover + L — the desktop hotkey summon (the specced pair). Held, not
+           toggled: keydown shows while the cursor is over the art, keyup
+           dismisses. Ignored while typing anywhere. */
+        const onEnter = () => { hovering = true; };
+        const onLeave = () => { hovering = false; loupeHide(); };
+        const typing = () => {
+            const a = document.activeElement;
+            return !!a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || (a as HTMLElement).isContentEditable);
+        };
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key !== 'l' && e.key !== 'L') return;
+            if (e.repeat || !hovering || typing() || disabledRef.current) return;
+            loupeShow(lastMouse.x, lastMouse.y, false);
+        };
+        const onKeyUp = (e: KeyboardEvent) => {
+            if (e.key !== 'l' && e.key !== 'L') return;
+            if (loupeOn && !loupeIsTouch) loupeHide();
         };
 
         /* While zoomed (or right after a gesture), a click must NOT fall
@@ -382,6 +603,15 @@ export default function DeepZoomLayer({
         window.addEventListener('mousemove', onMouseMove);
         window.addEventListener('mouseup', onMouseUp);
         container.addEventListener('click', onClickCapture, true);
+        container.addEventListener('mouseenter', onEnter);
+        container.addEventListener('mouseleave', onLeave);
+        window.addEventListener('keydown', onKeyDown);
+        window.addEventListener('keyup', onKeyUp);
+        /* The iOS long-press context menu on the art would race the loupe. */
+        const onContextMenu = (e: Event) => {
+            if (loupeOn || pressTimer != null) e.preventDefault();
+        };
+        container.addEventListener('contextmenu', onContextMenu);
 
         /* A new piece (or unmount) always starts back at 1×. */
         reset();
@@ -396,6 +626,12 @@ export default function DeepZoomLayer({
             window.removeEventListener('mousemove', onMouseMove);
             window.removeEventListener('mouseup', onMouseUp);
             container.removeEventListener('click', onClickCapture, true);
+            container.removeEventListener('mouseenter', onEnter);
+            container.removeEventListener('mouseleave', onLeave);
+            window.removeEventListener('keydown', onKeyDown);
+            window.removeEventListener('keyup', onKeyUp);
+            container.removeEventListener('contextmenu', onContextMenu);
+            loupeHide();
             if (wheelTimer.current != null) window.clearTimeout(wheelTimer.current);
             if (renderTimer.current != null) window.clearTimeout(renderTimer.current);
             /* Leave the art exactly as found. */
@@ -428,6 +664,7 @@ export default function DeepZoomLayer({
         <>
             <canvas ref={sharpRef} className="dz-sharp" aria-hidden="true" />
             <div ref={readoutRef} className="dz-readout" aria-hidden="true" />
+            <canvas ref={loupeRef} className="dz-loupe" aria-hidden="true" />
         </>
     );
 }

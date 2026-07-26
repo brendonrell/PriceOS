@@ -13284,3 +13284,17 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     background: var(--bg-color);
     color: var(--text-color);
 }
+
+/* THE LOUPE (2026-07-26) — the jeweler's lens: press-and-hold the art (or
+   hover + hold L on desktop) and the piece re-renders at 4× inside a circle
+   under your finger/cursor. Lives in the Deep Zoom layer; hidden at rest. */
+.dz-loupe {
+    display: none;
+    position: absolute;
+    z-index: 6;
+    border: 2px solid var(--text-color);
+    border-radius: 50%;
+    background: var(--bg-color);
+    box-shadow: 0 10px 34px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+}
