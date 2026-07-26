@@ -510,7 +510,15 @@ function ListSection({ list, viewerAddress, priceMode, pricesVer, focused, onTog
                                     viewerAddress={viewerAddress}
                                     full={focused}
                                     priceMode={priceMode}
-                                    dragProps={rowHandlers(it.key)}
+                                    /* Reorder is GATED BEHIND THE PENCIL
+                                       (Brendon, 2026-07-25): rows only become
+                                       draggable while this list is in edit
+                                       mode. Outside it a hold does nothing, so
+                                       normal browsing can never nudge an order
+                                       by accident. The data flag rides the same
+                                       spread both row shapes already do, which
+                                       is what paints the grip. */
+                                    dragProps={editing ? { ...rowHandlers(it.key), 'data-reorder': '' } : {}}
                                     onRemove={() => {
                                         removeFromList(list.id, [it.key]);
                                         onToast(`${list.name}: REMOVED`);

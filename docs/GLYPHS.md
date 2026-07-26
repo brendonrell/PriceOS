@@ -473,6 +473,7 @@ Wishlist rows (and the held-by / collected-by chips):
 
 | Concept | Glyph | Codepoint | Notes |
 |---|---|---|---|
+| **List row grab handle** | ⠿ | U+283F | 2026-07-25 — the grip on a List's rows while the list is in edit mode (the ✎). Reclaims the codepoint ASCII Art Mode retired in §12d; braille has no emoji mapping, so it passes §7 |
 | **Sentiment Weather** (MY PD pill) | ⛆ | U+26C6 | Brendon's pick, 2026-07-25 — chosen from the feature's own weather set and the only member of it that survives the emoji test. Replaces ◒, which stays Gravity's (`lib/output/attributes.ts`) |
 | **PriceDay** (Output Almanac row) | ✶ | U+2736 | 2026-07-25 — was ☀, a glyph this file already banned. ✶ is PriceDay's established mark (the search-answer precedent, §12) |
 | **The Calc** | ƒ | U+0192 | ⚠ CATALOGUED LATE (2026-07-20): shipped on the artwork modal's calc tab (`OutputPreview`) since the Calc build but never entered here — found during the Stone stage-4 pass (the Grid-Presets lesson again: grep the codebase, not just this file). Now also titles the Stone's CALC widget |

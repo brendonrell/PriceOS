@@ -93,9 +93,11 @@ The ✕ on a row drops it from that List. The piece stays starred.
 
 **Hold a List's name** and it takes the panel to itself, read at full size — bigger art, the artist line, nothing else competing for the screen. **Hold that same name again** to let it go. The way out is always under the thumb that opened it. A focused List wears a dotted ring.
 
-### Drag to reorder
+### Drag to reorder — behind the pencil
 
-**Hold a row and drag it** onto another to move it there. Your order is the order you'll read next time — Lists keep what you set, they don't re-sort themselves behind your back.
+Reordering lives in **edit mode**: tap the **✎** on a List's header and every row grows a **⠿ grip**, which is how you know they move. **Hold a row and drag it** onto another to place it there. Your order is the order you'll read next time — Lists keep what you set, they don't re-sort themselves behind your back.
+
+Leave edit mode and the grips vanish and the rows stop moving, so ordinary browsing can never nudge your order by accident.
 
 A short swipe still scrolls the panel normally; the drag only takes over once the hold engages, so you can never lose a scroll to a stray reorder.
 

@@ -6657,6 +6657,29 @@ body.lists-dragging { cursor: grabbing; }
     outline-offset: -2px;
     border-radius: 4px;
 }
+/* GRAB HANDLE — only while the list is in edit mode (the ✎). Reorder is gated
+   behind the pencil, so the grip is the thing that says "this row moves now"
+   (Brendon, 2026-07-25: "we need a way to make it clear they are grab-able").
+   ⠿ U+283F, free again since ASCII Art Mode took ⎀ (GLYPHS §12d). Full
+   strength — it's a live affordance, not decoration (Rule #2). */
+.starred-row[data-reorder] {
+    padding-left: 18px;
+    cursor: grab;
+}
+.starred-row[data-reorder]::before {
+    content: '⠿';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    line-height: 1;
+    color: var(--text-color);
+    pointer-events: none;
+}
+.starred-row[data-reorder].lists-row-lifted { cursor: grabbing; }
 /* An artwork row's one info line: WHO made it, then HOW RARE it is (Brendon,
    2026-07-25). The @name gets the room first and ellipsises rather than wrap;
    the ❖ rarity is the half that gives way when there genuinely isn't space. */
