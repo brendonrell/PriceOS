@@ -5692,9 +5692,13 @@ body.bg-is-yellow .fiat-opt-on { background: #fff; color: var(--hothurt); border
    glyph sits 1px lower to centre on the row (Brendon, same day). */
 .sort-btn.group-btn { margin-right: 7px; }
 .sort-btn.group-btn .sort-lbl-recent { transform: translateY(1px); }
-/* The social ☻ sits a touch high in the Courier line box — nudge down
-   (Brendon, 2026-07-26). */
-.sort-btn-social .sort-lbl-recent { transform: translateY(1.5px); }
+/* The social ☻ sits a touch high in the Courier line box — nudge down, and
+   one size up from the ◷'s base (the ◷'s own mobile step, +0.15em) so the
+   face reads at full strength (Brendon, 2026-07-26). */
+.sort-btn-social .sort-lbl-recent { transform: translateY(1.5px); font-size: 1.3em; }
+@media (max-width: 600px) {
+    .sort-btn-social .sort-lbl-recent { font-size: 1.45em; }
+}
 @media (max-width: 600px) { .sort-btn.group-btn { margin-right: 5px; } }
 
 /* ── ICON BUTTONS (burn / search) — sim 2317-2325 ── */
