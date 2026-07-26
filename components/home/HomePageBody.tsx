@@ -430,19 +430,34 @@ function HomePageBodyInner({
        2026-06-17). Join The Chat always stays. */
     const actionRowRef = useRef<HTMLDivElement>(null);
     const [hideStickers, setHideStickers] = useState(false);
+    /* Docking the Rewind swaps this whole surface out, so the action row
+       unmounts and remounts as a NEW node. The observer has to follow it —
+       otherwise it keeps watching the detached one and the row that IS on
+       screen is never measured again (Brendon, 2026-07-26). */
+    const rewindDocked = rewind?.day != null;
     useEffect(() => {
         const row = actionRowRef.current;
         if (!row || typeof window === 'undefined') return;
         const measure = () => {
+            /* NEVER judge a row that isn't laid out (Brendon, 2026-07-26 — the
+               Sticker store vanishing after Rewind). Docking the Rewind swaps
+               the whole home surface for the as-of one, so this row detaches.
+               A detached/hidden node reports every rect as 0, which reads as
+               "Stickers starts below the chat button" — wrapped — and hid the
+               button for good. Bail instead and keep the last real answer. */
+            if (row.getBoundingClientRect().width === 0) return;
             row.classList.add('row-measuring');
             const chat = row.querySelector<HTMLElement>('.btn-mint');
             const stick = row.querySelector<HTMLElement>('.btn-soundtrack');
             let wrapped = false;
             if (chat && stick) {
+                const chatR = chat.getBoundingClientRect();
+                const stickR = stick.getBoundingClientRect();
+                if (chatR.height === 0 || stickR.height === 0) { row.classList.remove('row-measuring'); return; }
                 // The two buttons differ in height and are centre-aligned, so a
                 // top-vs-top test misreads the same line — Stickers is only
                 // wrapped if it starts at/after the chat button's BOTTOM edge.
-                wrapped = stick.getBoundingClientRect().top >= chat.getBoundingClientRect().bottom - 2;
+                wrapped = stickR.top >= chatR.bottom - 2;
             }
             row.classList.remove('row-measuring');
             setHideStickers(wrapped);
@@ -459,7 +474,7 @@ function HomePageBodyInner({
             window.removeEventListener('resize', measure);
             window.removeEventListener('orientationchange', measure);
         };
-    }, []);
+    }, [rewindDocked]);
 
     /* @brendon's real follower count + mutual badge beside the home byline —
        PD is his art, so the home credits him exactly like an artist on a project
