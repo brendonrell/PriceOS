@@ -1719,18 +1719,41 @@ body.ascii-id-mode .id-row-sprite     { display: none !important; }
 .note-ext-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; word-break: break-all; }
 /* @name mentions — saved to-dos + notes link straight to the profile. */
 .note-mention, .todo-mention { color: inherit; font-weight: bold; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
-/* A MENTION IS TEXT, NOT A MENU ROW (Brendon, 2026-07-26). `.user-dropdown a`
-   styles the connect menu's own NAV links as 30px flex rows; a note rendered
-   inside that menu is prose, and an @name mid-sentence must stay inline or the
-   block box breaks the line either side of it. The To-Dos box is decoupled
-   wholesale in styles/todos.css; this covers the note flavour. */
-.user-dropdown a.note-mention {
+/* ⛔ THE NOTES BOX IS NOT THE CONNECT MENU'S NAV LIST (Brendon, 2026-07-26) —
+   the same decoupling the To-Dos box gets in styles/todos.css, for the same
+   reason. Notes happens to live inside .user-dropdown, and `.user-dropdown a`
+   styles every link under it as a 30px flex ROW with padding, a left border and
+   a fixed font-size. That is right for the menu's own nav links and wrong for a
+   note, which is PROSE: as a block box, any link breaks the line either side of
+   itself, so a note reads as stacked fragments instead of a sentence. It bites
+   @names AND the web links notes linkify on their own.
+
+   Every link in a note is plain inline text; .note-mention and .note-ext-link
+   below own their look. Only the menu rule's layout is undone. */
+#notesBox a {
     display: inline;
+    align-items: initial;
     height: auto;
     padding: 0;
-    border-left: none;
+    border-left: 0;
+    box-sizing: border-box;
     font-size: inherit;
+    font-weight: inherit;
+    color: inherit;
+    text-decoration: none;
+    transition: none;
+}
+/* …and both note link flavours keep their underline, at a weight the reset
+   can't outrank. */
+#notesBox a.note-mention {
+    font-weight: bold;
     text-decoration: underline;
+    text-underline-offset: 2px;
+}
+#notesBox a.note-ext-link {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    word-break: break-all;
 }
 
 /* ── Mention lookup popover (@name in To-Dos + Notes) ─────────────────────
