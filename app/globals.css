@@ -6588,6 +6588,14 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     border-bottom: 1px solid color-mix(in srgb, var(--text-color) 15%, transparent);
 }
 .lists-head-caret { flex: 0 0 auto; font-family: 'Courier New', Courier, monospace; }
+/* The ≡ leading each list's name — full strength, same weight as the name it
+   introduces (Brendon, 2026-07-25). No margin of its own: the header row's
+   own 8px gap already spaces it, and adding to that would set the ≡ further
+   from its name than every other gap in the row. */
+.lists-head-glyph {
+    flex: 0 0 auto;
+    font-family: 'Courier New', Courier, monospace;
+}
 .lists-head-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lists-head-count { flex: 0 0 auto; opacity: 0.6; }
 /* Owned roll-up + the ◊ ETH total, riding the header beside the count

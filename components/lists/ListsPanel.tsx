@@ -426,6 +426,10 @@ function ListSection({ list, viewerAddress, priceMode, pricesVer, focused, onTog
                 {...(editing ? {} : lp.handlers)}
             >
                 <span className="lists-head-caret" aria-hidden="true">{open ? `▾${VS15}` : `▸${VS15}`}</span>
+                {/* ≡ is the Lists mark across PD — it leads every list's name
+                    (Brendon, 2026-07-25). Sits outside the rename branch so it
+                    stays put while you're editing. */}
+                <span className="lists-head-glyph" aria-hidden="true">{`≡${VS15}`}</span>
                 {editing ? (
                     <input
                         ref={nameRef}
