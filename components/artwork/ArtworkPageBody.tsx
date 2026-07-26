@@ -45,6 +45,7 @@ import TraitsUI from '../project/TraitsUI';
 import AudienceIndicator from '../project/AudienceIndicator';
 import ReplayPanel from '../project/ReplayPanel';
 import ArtworkLive from './ArtworkLive';
+import DeepZoomLayer from '../art/DeepZoomLayer';
 import MarginaliaCeremony from './MarginaliaCeremony';
 import OutputTitleStar from './OutputTitleStar';
 import OutputFollowButton from './OutputFollowButton';
@@ -208,6 +209,8 @@ export default function ArtworkPageBody({
     const { open: openModal } = useModal();
     const { openAnchorPrompt } = useValuePrompt();
     const { notifs } = usePdNotifs();
+    /* Deep Zoom host — the Artwork tab's stage (gestures attach here). */
+    const featureStageRef = useRef<HTMLDivElement>(null);
     const [activeTab, setActiveTab] = useState<ArtworkTab>('artwork');
     const [moreL1, setMoreL1] = useState<MoreL1>('attributes');
     /* Search beside the +More pills — filters the active searchable tab. */
@@ -1006,6 +1009,7 @@ export default function ArtworkPageBody({
                 style={{ display: onArtwork ? undefined : 'none' }}
             >
                 <div
+                    ref={featureStageRef}
                     className="artwork-feature-stage"
                     role="button"
                     tabIndex={0}
@@ -1020,6 +1024,18 @@ export default function ArtworkPageBody({
                     <MarginaliaCeremony slug={slug} tokenNo={numberPart}>
                         <ArtworkLive slug={slug} id={globalId} contain className="artwork-feature-art" />
                     </MarginaliaCeremony>
+                    {/* DEEP ZOOM (2026-07-26) — pinch (or trackpad-pinch /
+                        ctrl-wheel, since this page scrolls) into the render;
+                        it re-paints sharp at the new scale. A plain tap at 1×
+                        still opens the modal exactly as before. */}
+                    <DeepZoomLayer
+                        containerRef={featureStageRef}
+                        getArt={() => featureStageRef.current?.querySelector('.artwork-feature-art') ?? null}
+                        slug={slug}
+                        id={globalId}
+                        disabled={notifs.asciiArt || !onArtwork}
+                        wheelNeedsModifier
+                    />
                 </div>
                 <div className="artwork-feature-foot">
                     <span className="aff-id">

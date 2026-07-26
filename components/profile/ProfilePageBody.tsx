@@ -72,6 +72,7 @@ import VaultPanel from './VaultPanel';
 import DiscordSection from './DiscordSection';
 import CounterpartiesPanel from './CounterpartiesPanel';
 import TargetsPanel from './TargetsPanel';
+import CallsPanel from './CallsPanel';
 import { MAX_PRICE_SCORE, TOTAL_COUNT } from '../../lib/achievements/catalog';
 import Hero from '../hero/Hero';
 import CompletionismModal from '../CompletionismModal';
@@ -679,7 +680,7 @@ function ProfilePageBodyInner({
        namespaced under the same store with a ":more" id so a refresh lands back
        on the same sub-section (e.g. My History), not just the +More tab. */
     const moreMemId = `${user.handle ?? handle}:more`;
-    const MORE_KEYS: ReadonlySet<string> = new Set<ProfileMoreL1>(['created', 'starred', 'wishlists', 'albums', 'offers', 'vault', 'sigil', 'loyalty', 'counterparties', 'history', 'info', 'achievements', 'discord', 'anointed', 'targets']);
+    const MORE_KEYS: ReadonlySet<string> = new Set<ProfileMoreL1>(['created', 'starred', 'wishlists', 'albums', 'offers', 'vault', 'sigil', 'loyalty', 'counterparties', 'history', 'info', 'achievements', 'discord', 'anointed', 'targets', 'calls']);
     const [moreL1, setMoreL1] = useState<ProfileMoreL1>(() => {
         // A pasted deep link's ?sub= wins here too (Share Any View).
         const shared = readViewParam('sub');
@@ -1625,6 +1626,7 @@ function ProfilePageBodyInner({
                                         { key: 'achievements', label: 'Achievements', active: effMoreL1 === 'achievements', onClick: () => setMoreL1('achievements') },
                                         { key: 'info',      label: 'Info',      active: effMoreL1 === 'info',      onClick: () => setMoreL1('info')      },
                                         { key: 'targets',   label: 'Targets',   active: effMoreL1 === 'targets',   onClick: () => setMoreL1('targets')   },
+                                        { key: 'calls',     label: 'Calls',     active: effMoreL1 === 'calls',     onClick: () => setMoreL1('calls')     },
                                         { key: 'anointed',  label: 'Anointed',  active: effMoreL1 === 'anointed',  onClick: () => setMoreL1('anointed')  },
                                         /* My History — PRIVATE, last pill in the row, own profile only. */
                                         ...(isOwnProfile
@@ -1894,6 +1896,16 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                         against today's floor. */}
                     {onMore && effMoreL1 === 'targets' && (
                         <TargetsPanel
+                            address={user.address}
+                            isOwnProfile={isOwnProfile}
+                        />
+                    )}
+
+                    {/* Calls — this wallet's Conviction record (the Call
+                        Ledger): public, immutable calls settled CROWNED/REKT
+                        against the floor. Sits beside Targets on purpose. */}
+                    {onMore && effMoreL1 === 'calls' && (
+                        <CallsPanel
                             address={user.address}
                             isOwnProfile={isOwnProfile}
                         />

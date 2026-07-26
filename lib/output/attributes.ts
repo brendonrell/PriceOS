@@ -16,7 +16,7 @@ import {
     paletteBand, contrastBand, warmthBand, symmetryBand, airBand, textureBand, gravityWord,
     valueKey, colourStory,
 } from './derive';
-import { primaryTrait, traitRarity, fateRarity, colorRarity, overallRarity, pdRarityRank, type Freq } from './rarity';
+import { primaryTrait, traitRarity, fateRarity, colorRarity, overallRarity, pdRarityRank, popCount, type Freq } from './rarity';
 import { outputIsolation, nearestKin } from './genome';
 import { percentileTag, mintOrderOf, ordinal, humanizeDelta, type EditionStats, type EditionAxis } from './editionStats';
 import type { HandRead } from './hand';
@@ -291,10 +291,17 @@ export function buildOutputAttributes(input: AttrInput): AttrGroup[] {
         /* The RANK across the whole edition set — "#3 rarest of 105". We
            always computed rarity; now it says where the piece STANDS. */
         const rr = pdRarityRank(slug, id);
+        /* POP + NONE HIGHER ride the headline tile (Rarity Labs, 2026-07-26):
+           POP n = the piece's smallest-club axis count; rank #1 reads NONE
+           HIGHER instead of its rank line. */
+        const pop = popCount(slug, id);
+        const popBit = pop != null ? ` · POP ${pop}` : '';
         rarity.unshift({
             glyph: '❖', label: 'PD Rarity', value: `${headline} / 100`,
             sub: rr
-                ? `#${rr.rank} rarest of ${rr.total}`
+                ? rr.rank === 1
+                    ? `NONE HIGHER · of ${rr.total}${popBit}`
+                    : `#${rr.rank} rarest of ${rr.total}${popBit}`
                 : overall && iso ? 'trait + genome' : overall ? 'trait-based' : 'genome-based',
             rare: headline >= 70 || (rr != null && rr.rank <= Math.max(1, Math.round(rr.total * 0.05))),
         });

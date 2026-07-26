@@ -158,6 +158,62 @@ export function pdRarityRank(slug: string, id: number): { rank: number; total: n
     return { rank: rarer + 1, total: scores.size };
 }
 
+/** POP — the census count of the piece's rarest single axis value (its
+ *  smallest club): the minimum count across every resolved artist trait, its
+ *  Fate, and its colour bucket. "POP 1" = an axis value nothing else has.
+ *  Null only when the project resolves no axes at all. (Rarity Labs, 2026-07-26.) */
+export function popCount(slug: string, id: number): number | null {
+    const r = getProjectRarity(slug);
+    const project = getProject(slug);
+    if (!r || !project) return null;
+    let min: number | null = null;
+    const take = (n: number | undefined | null) => {
+        if (n != null) min = min == null ? n : Math.min(min, n);
+    };
+    for (const [name, value] of Object.entries(project.traitsOf(id))) {
+        take(r.traits.get(name)?.get(value));
+    }
+    take(r.fate.get(readOutputFate(slug, id).fate));
+    const bucket = outputColorBucket(slug, id);
+    if (bucket) take(r.color.get(bucket));
+    return min;
+}
+
+/** NONE HIGHER — this piece is rank #1 by PD Rarity across its edition set
+ *  (ties share the top honestly: every #1 wears it). */
+export function noneHigher(slug: string, id: number): boolean {
+    const rr = pdRarityRank(slug, id);
+    return rr != null && rr.rank === 1;
+}
+
+/** The full project census for the Pop Table — every axis (artist traits ·
+ *  Fate · colour), each value with count + share, sorted rarest-first. */
+export interface CensusAxis {
+    name: string;
+    total: number;
+    values: { value: string; count: number; pct: number }[];
+}
+export function projectCensus(slug: string): CensusAxis[] | null {
+    const r = getProjectRarity(slug);
+    if (!r) return null;
+    const axisOf = (name: string, m: Map<string, number>, total: number): CensusAxis => ({
+        name,
+        total,
+        values: [...m.entries()]
+            .map(([value, count]) => ({ value, count, pct: count / total }))
+            .sort((a, b) => a.count - b.count || a.value.localeCompare(b.value)),
+    });
+    const axes: CensusAxis[] = [];
+    for (const [name, m] of r.traits) axes.push(axisOf(name, m, r.total));
+    if (r.fate.size) axes.push(axisOf('Fate', r.fate, r.total));
+    if (r.color.size) {
+        let colorTotal = 0;
+        for (const n of r.color.values()) colorTotal += n;
+        axes.push(axisOf('Colour', r.color, colorTotal));
+    }
+    return axes.length ? axes : null;
+}
+
 /** Rarity of an Output's dominant colour bucket across its project's editions. */
 export function colorRarity(slug: string, bucket: string): Freq | null {
     const r = getProjectRarity(slug);

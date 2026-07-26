@@ -1,8 +1,14 @@
 # BRIEF — Deep Zoom
 
-> **Status: SPEC'D 2026-07-26, not built.** Origin: King Mode Keeper #4
-> (ClickUp Atlas → "Keepers — Greenlit (full specs)"), re-verified against the
-> live app 2026-07-26. Pure client feature: no tables, no routes, $0.
+> **Status: BUILT 2026-07-26 (same day as the spec).** Origin: King Mode
+> Keeper #4. **Brendon's scope call, 2026-07-26: Deep Zoom lives in ALL
+> settings — desktop included — not just iPhone pinch in the modal.** Shipped
+> as one shared layer (`components/art/DeepZoomLayer.tsx`) mounted on four
+> surfaces: the artwork modal (portrait + landscape), the Full Screen view,
+> and the artwork page's Artwork tab. Touch = pinch + one-finger pan while
+> zoomed; desktop = wheel / trackpad-pinch + drag pan (on the scrolling
+> artwork page, ctrl/⌘-wheel so page scroll survives). Pure client: no
+> tables, no routes, $0.
 
 **One line:** pinch into any piece and it **re-renders razor-sharp at the new
 scale** — there is no stored image to pixelate, only the deterministic math.
