@@ -57,7 +57,18 @@
    character sheet's PD Rarity tile; POP TABLE section (full census,
    rarest-first) on project +More › Attributes.
 
-   Next: verify the three on the preview once the auto-deploy lands;
+   **④ THE LOUPE (shipped same day, tip `6b498dd`)** — Brendon's "Go!" on
+   expanding Deep Zoom into the specced Lens (ClickUp `86b9f1x41`, now
+   complete; an artist ask, e.g. Rudxane). Press-and-hold the art (any
+   device) or hover + hold **L** (desktop) → circular lens, the piece
+   re-rendered at 4× under the finger/cursor from the engine; lift
+   dismisses; 1× only (pinch owns zoomed state). Lives in DeepZoomLayer →
+   all four surfaces at once. **His accepted trade: the long-press takes
+   the gesture everywhere, replacing the iOS save-sheet callout on the
+   modal image** (saving lives in the details panel). A moved finger
+   before the hold fires still swipes/scrolls exactly as before.
+
+   Next: verify all four on the preview once the auto-deploy lands;
    Brendon names the call-receipt art if he wants the share wired.
 
 0000000. ✅ **2026-07-26 THE SOCIAL FEED ☻ IS LIVE ON `dev` — the
