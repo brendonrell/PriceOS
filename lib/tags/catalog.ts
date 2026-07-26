@@ -185,8 +185,10 @@ export const ID_RANGES: ReadonlyArray<{ id: string; label: string; max: number }
    Black / White / the brand primaries; lettering flips by contrast
    (tagTextOn). null = each tag wears its own colour. ── */
 export const TAG_PAINTS: ReadonlyArray<{ id: string; label: string; hex: string }> = [
-    { id: 'black',     label: 'All Black',     hex: '#000000' },
-    { id: 'white',     label: 'All White',     hex: '#FFFFFF' },
+    /* The two brand neutrals, named for what they are (Brendon, 2026-07-26):
+       Dot and Matrix, at the brand token values — not raw black/white. */
+    { id: 'black',     label: 'Dot',           hex: '#111111' },
+    { id: 'white',     label: 'Matrix',        hex: '#E0E0E0' },
     { id: 'hothurt',   label: 'All Hothurt',   hex: '#FF0055' },
     { id: 'attention', label: 'All Attention', hex: '#FFE600' },
     { id: 'blue',      label: 'All Blue',      hex: '#0109FF' },
@@ -194,13 +196,19 @@ export const TAG_PAINTS: ReadonlyArray<{ id: string; label: string; hex: string 
 
 const PAINT_BY_ID = new Map(TAG_PAINTS.map((p) => [p.id, p]));
 
+/** A free-chosen colour from the picker at the end of the paint row
+ *  (Brendon, 2026-07-26) — stored as the raw hex, alongside the named ids. */
+const CUSTOM_PAINT_RE = /^#[0-9a-f]{6}$/i;
+
 export function isValidTagPaint(id: unknown): id is string {
-    return typeof id === 'string' && PAINT_BY_ID.has(id);
+    return typeof id === 'string' && (PAINT_BY_ID.has(id) || CUSTOM_PAINT_RE.test(id));
 }
 
 /** The paint's pill colour, or null for unknown/absent (own colours). */
 export function tagPaintHex(id: string | null | undefined): string | null {
-    return (id && PAINT_BY_ID.get(id)?.hex) || null;
+    if (!id) return null;
+    if (CUSTOM_PAINT_RE.test(id)) return id.toUpperCase();
+    return PAINT_BY_ID.get(id)?.hex ?? null;
 }
 
 /** Label colour (near-black or white) that reads on a SOLID pill of `hex` —

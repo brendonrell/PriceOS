@@ -2545,6 +2545,23 @@ body.stargazing-mode .note-prompt-box {
 body.stargazing-mode .user-dropdown a { color: #c5a8f0; }
 body.stargazing-mode .user-dropdown a:hover { background: rgba(197, 168, 240, 0.08); }
 
+/* The menu's bottom footer — the gas readout, the divider, and the
+   Log Out / Connect Wallet pills all colour off --bg-color because the
+   menu normally paints inverted. Stargazing flips the menu to dark glass,
+   so that strip disappears into it (Brendon, 2026-07-26). */
+body.stargazing-mode .user-dropdown .gas-widget,
+body.stargazing-mode .user-dropdown .gas-glyph,
+body.stargazing-mode .user-dropdown .dropdown-pill,
+body.stargazing-mode .user-dropdown .logout-icon {
+    color: #c5a8f0 !important;
+}
+body.stargazing-mode .user-dropdown .dropdown-pill {
+    border-color: rgba(197, 168, 240, 0.45) !important;
+}
+body.stargazing-mode .user-dropdown .dropdown-divider {
+    background: rgba(197, 168, 240, 0.25) !important;
+}
+
 /* Stargazing global-search legibility (Brendon 2026-06-10, completed
    2026-06-13). EVERY search part colours off --bg-color, which stargazing
    remaps to near-black — so the dormant "Search" text + its globe, the field
@@ -4034,6 +4051,9 @@ body.pd-stone-open .ens-copy-toast {
 .pill.pill-l3.tag-pick.active {
     box-shadow: inset 0 0 0 2px var(--tag-text, var(--text-color));
 }
+/* The free-colour picker that closes the paint row — a normal paint pill that
+   happens to hold a hidden colour input (Brendon, 2026-07-26). */
+.pill.pill-l3.tag-pick-custom { position: relative; cursor: pointer; }
 .tag-pick-glyph {
     color: var(--tag-text, var(--text-color));
     font-family: 'Courier New', Courier, monospace;
@@ -12704,8 +12724,8 @@ body.is-pwa .fullscreen-back {
     #sn-sticker .st-icon    { font-size: 19px !important; }
     #sn-ambient .st-icon    { font-size: 20px !important; }
     #sn-anon .st-icon       { font-size: 17px !important; }
-    /* Price Lens ◎ — two sizes up (17→19), mobile only (Brendon, 2026-07-21). */
-    #sn-pricelens .st-icon  { font-size: 19px !important; }
+    /* Price Lens ◎ — up again to 20 (Brendon, 2026-07-26). */
+    #sn-pricelens .st-icon  { font-size: 20px !important; }
     #sn-sentiment .st-icon  { font-size: 17px !important; }
     #sn-audience .st-icon   { font-size: 14px !important; }
     #sn-asciiId .st-icon    { font-size: 17px !important; }

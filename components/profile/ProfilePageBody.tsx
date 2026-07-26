@@ -889,6 +889,13 @@ function ProfilePageBodyInner({
     useEffect(() => {
         if (!scMoveEligible && scMoveMode) setScMoveMode(false);
     }, [scMoveEligible, scMoveMode]);
+    /* The Bench reads move mode and only half-protrudes while it's on, so the
+       showcase grid stays visible under the drag (Brendon, 2026-07-26). */
+    useEffect(() => {
+        const on = scMoveEligible && scMoveMode;
+        document.body.classList.toggle('pd-showcase-move', on);
+        return () => { document.body.classList.remove('pd-showcase-move'); };
+    }, [scMoveEligible, scMoveMode]);
     /* Live grid column metrics — lets each grouping header cap its width to
        the columns its pieces occupy (glyph ends with the art, 2026-07-12). */
     const galleryCols = useGalleryCols(galleryVisible && onCollected && collectedGroups != null);
@@ -1140,6 +1147,38 @@ function ProfilePageBodyInner({
                                     </div>
                                 );
                             })}
+                            {/* THE PICKER — any colour you like, at the end of
+                                the paints (Brendon, 2026-07-26). Same hidden
+                                colour-input pattern as the colorway swatch. */}
+                            {(() => {
+                                const custom = /^#[0-9A-F]{6}$/i.test(myTagPaint ?? '');
+                                const hex = custom ? (myTagPaint as string) : '#FF0055';
+                                return (
+                                    <label
+                                        className={`pill pill-l3 tag-pick tag-pick-custom${custom ? ' active' : ''}`}
+                                        style={{ ['--tag' as string]: hex, ['--tag-text' as string]: tagTextOn(hex) }}
+                                        title="Paint every tag — your own colour"
+                                    >
+                                        <span className="stat-name">{`◩︎ ${custom ? hex : 'Custom'}`}</span>
+                                        <input
+                                            type="color"
+                                            value={hex}
+                                            onChange={(e) => {
+                                                const v = e.target.value.toUpperCase();
+                                                setMyTagPaint(v);
+                                                showToast(`Tags: ${v}`);
+                                            }}
+                                            tabIndex={-1}
+                                            aria-label="Paint every tag your own colour"
+                                            style={{
+                                                position: 'absolute', opacity: 0,
+                                                width: '1px', height: '1px',
+                                                bottom: 0, left: '50%', pointerEvents: 'none',
+                                            }}
+                                        />
+                                    </label>
+                                );
+                            })()}
                         </div>
                         {/* Row 3 — FONT: restyle the @name. Each pill previews
                             itself; the "@" always stays plain. */}

@@ -451,7 +451,7 @@
     #sn-ambient .st-icon { font-size: 18px !important; transform: translateY(-1px); }
     /* Price Lens ◎ — mobile: nudged up 1px (Brendon). Its SIZE is set in the
        authoritative mobile block in globals.css (19px, two sizes up). */
-    #sn-pricelens .st-icon { font-size: 16px !important; transform: translateY(-1px); }
+    #sn-pricelens .st-icon { font-size: 16px !important; transform: translateY(-0.5px); }
     /* Tarot ▯▯▯ + Price Ghost ᗝ — mobile: nudge up 0.5px, they sit a hair
        low (Brendon, 2026-07-18). */
     #sb-tarot .st-icon,

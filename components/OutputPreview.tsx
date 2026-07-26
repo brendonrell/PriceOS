@@ -123,6 +123,8 @@ import { addOutputTodo, getTodos, subscribeTodos, type TodoVerb, type TodoPriori
 import { getWishlistKeys, toggleWishlist as storeToggleWishlist, subscribeWishlist } from '../lib/pins/wishlistStore';
 import { albumsContaining, subscribeAlbums } from '../lib/pins/albumStore';
 import AlbumPickerCard from './album/AlbumPickerCard';
+import AddToListCard from './lists/AddToListCard';
+import { useLongPress } from '../lib/hooks/useLongPress';
 import OutputThumb from './profile/OutputThumb';
 import DegenSlab from './DegenSlab';
 import { useSpiteMatcher } from '../lib/pins/spiteStore';
@@ -403,6 +405,9 @@ export default function OutputPreview() {
         setGrailPins(getGrails());
         return subscribeGrails((next) => setGrailPins(next));
     }, []);
+
+    /* The ADD TO LIST sheet, opened by holding the star pill. */
+    const [listOpen, setListOpen] = useState(false);
 
     /* Star + Wishlist sets — same subscribe-on-mount pattern as ArtworkCard,
        so the modal pills reflect + toggle real state (Brendon 2026-06-13). */
@@ -924,6 +929,9 @@ export default function OutputPreview() {
         const r = storeToggleWishlist(slug, id);
         showToast(r === 'added' ? 'Added to your Wishlist (Private)' : 'Removed from your Wishlist');
     };
+    /* HOLD THE STAR → ADD TO LIST (Brendon, 2026-07-26). Tap still stars; the
+       hold opens the same sheet the Starred rows use. */
+    const holdStar = useLongPress(() => { if (id != null) setListOpen(true); });
     const openAlbumPicker = () => { if (id != null) setAlbumPickerOpen(true); };
     /* Same store + toasts as the gallery card's ❍ (ArtworkCard) — the modal
        pill was a toast-only stub until 2026-07-20. */
@@ -1162,6 +1170,20 @@ export default function OutputPreview() {
                 onClose={() => setAlbumPickerOpen(false)}
             />
         )}
+        {/* ADD TO LIST — the star pill's hold action. Same sheet the Starred
+            rows open; the × / backdrop is the way out (Rule #-0.4). */}
+        {listOpen && id != null && (
+            <AddToListCard
+                items={[{ kind: 'output', slug, id }]}
+                wishlisted={wishlisted}
+                onWishlist={() => {
+                    const r = storeToggleWishlist(slug, id);
+                    return r === 'added' ? 'Wishlist: ADDED' : 'Wishlist: REMOVED';
+                }}
+                onDone={(msg) => { setListOpen(false); showToast(msg); }}
+                onClose={() => setListOpen(false)}
+            />
+        )}
         <div
             id="modal"
             className={`platform-modal${isOpen ? ' active' : ''}`}
@@ -1363,7 +1385,8 @@ export default function OutputPreview() {
                         <div className="modal-pill-row" id="mPillRow">
                             <span
                                 className={`modal-pill modal-pill--star${starred ? ' active' : ''}`}
-                                title="Star"
+                                title="Star - hold to add to a list"
+                                {...holdStar}
                                 onClick={handleStar}
                             >
                                 {`${starred ? '\u2605' : '\u2606'}${VS15}`}
@@ -1602,7 +1625,7 @@ export default function OutputPreview() {
                         {`\u25C0${VS15}`}
                     </div>
 
-                    <span className={`modal-pill modal-pill--star${starred ? ' active' : ''}`} title="Star" onClick={handleStar}>
+                    <span className={`modal-pill modal-pill--star${starred ? ' active' : ''}`} title="Star - hold to add to a list" {...holdStar} onClick={handleStar}>
                         {`${starred ? '\u2605' : '\u2606'}${VS15}`}
                     </span>
                     <span className={`modal-pill${wishlisted ? ' active' : ''}`} title="Wishlist" onClick={handleWishlist}>

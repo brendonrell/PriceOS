@@ -98,10 +98,16 @@
     .gw-sheet::before { animation: none; }
 }
 
+/* The way out stays pinned to the top of the hall as it scrolls — the sheet
+   itself is the scroll container, so the × sticks rather than sliding off
+   (Brendon, 2026-07-26). Negative margins keep it out of the flow exactly
+   where the absolute version sat. */
 .gw-close {
-    position: absolute;
-    top: 12px;
-    right: 14px;
+    position: sticky;
+    top: 0;
+    width: 1em;
+    margin: -18px -12px -24px auto;
+    text-align: center;
     font-size: 24px;
     line-height: 1;
     color: var(--gw-gold);

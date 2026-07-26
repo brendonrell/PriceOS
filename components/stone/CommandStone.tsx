@@ -39,7 +39,7 @@ import { matchCast, type CastTarget } from '../../lib/stone/cast';
 import { parseWidget } from '../../lib/stone/widgets';
 import { runStoneCommand, applyStoneStyle } from '../../lib/stone/stoneStyle';
 import { expandFollowUp, type StoneSubject } from '../../lib/stone/memory';
-import { readLastLine, writeLastLine } from '../../lib/stone/lastLine';
+import { writeLastLine } from '../../lib/stone/lastLine';
 import { readStage } from '../../lib/npc/awareness';
 import { readPieceInView } from '../../lib/npc/inview';
 import { deepThought } from '../../lib/stone/deepThought';
@@ -725,8 +725,9 @@ export default function CommandStone() {
        inside the gesture handler so iOS raises the keyboard. ── */
     const openStone = () => {
         inputRef.current?.focus();
-        /* restore the last bubble when reopening an empty stone. */
-        setValue((v) => v || readLastLine());
+        /* The stone reopens with whatever is still in hand this session — it
+           never resurrects an old line from a previous visit (Brendon,
+           2026-07-26: it was loading with a stale character in the pill). */
         setStage('open');
     };
 
@@ -830,14 +831,11 @@ export default function CommandStone() {
                 taps = 0;
                 return;
             }
-            /* OPEN → a single tap on the page tucks the stone to the dot so the
-               bubble is out of the way and you can carry on (Brendon, 2026-07-22).
-               The typed line + its bubble are KEPT — tap the dot and the same
-               speech bubble comes right back. No triple-tap needed from open. */
+            /* OPEN → a tap on the page does NOTHING. Only the swipe down and
+               the long-press put the stone away (Brendon, 2026-07-26 — the
+               tap-away was never asked for). */
             if (stageRef.current === 'open') {
                 taps = 0;
-                inputRef.current?.blur();
-                setStage('dot');
                 return;
             }
             /* a fresh run if the taps drift apart in time or space */
@@ -856,13 +854,11 @@ export default function CommandStone() {
             taps = 0;
             if (stageRef.current === 'hidden') {
                 inputRef.current?.focus(); // synchronous in the gesture → iOS keyboard
-                /* restore the last bubble — the line that was up last time. */
-                setValue((v) => v || readLastLine());
+                /* Summons empty — no line carried over from a past visit. */
                 setStage('open');
                 showToastRef.current('', 1800, 250, null, ['Summoned:', 'COMMAND STONE']);
             } else {
-                // the dot → fully close. The remembered line stays saved, so a
-                // future summon still brings the last bubble back.
+                // the dot → fully close.
                 inputRef.current?.blur();
                 setStage('hidden');
                 setValue('');
