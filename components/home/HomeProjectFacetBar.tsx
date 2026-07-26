@@ -411,7 +411,7 @@ export default function HomeProjectFacetBar({
                     style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'nowrap' }}
                 >
                     <span
-                        className={`sort-btn${sortKey === 'date' ? ' active' : ''}`}
+                        className={`sort-btn sort-btn-clock${sortKey === 'date' ? ' active' : ''}`}
                         role="button"
                         tabIndex={0}
                         title="Sort by date (newest / oldest)"

@@ -5692,6 +5692,9 @@ body.bg-is-yellow .fiat-opt-on { background: #fff; color: var(--hothurt); border
    glyph sits 1px lower to centre on the row (Brendon, same day). */
 .sort-btn.group-btn { margin-right: 7px; }
 .sort-btn.group-btn .sort-lbl-recent { transform: translateY(1px); }
+/* The home sort row's ◷ clock sits a touch high too — same 1.5px drop as
+   the ☻ below, scoped to the home row only (Brendon, 2026-07-26). */
+.sort-btn-clock .sort-lbl-recent { transform: translateY(1.5px); }
 /* The social ☻ sits a touch high in the Courier line box — nudge down, and
    one size up from the ◷'s base (the ◷'s own mobile step, +0.15em) so the
    face reads at full strength (Brendon, 2026-07-26). */
