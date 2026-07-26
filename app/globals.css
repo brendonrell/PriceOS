@@ -4112,11 +4112,39 @@ body.pd-stone-open .ens-copy-toast {
     font-size: 11px;
     letter-spacing: 0.5px;
 }
-/* WTBS wears Inter (loaded with the app), never Courier (Brendon, 2026-07-22). */
-.profile-tag--wtbs .profile-tag-label {
+/* Deployer is the CEO chip with a different word — same Rubik lock
+   (Brendon, 2026-07-26). */
+.profile-tag--deployer .profile-tag-label {
+    font-family: var(--font-rubik-mono), 'Rubik Mono One', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+}
+
+/* WTBS wears Inter (loaded with the app), never Courier (Brendon, 2026-07-22).
+   Petey wears the same face — it is the same chip family (2026-07-26). */
+.profile-tag--wtbs .profile-tag-label,
+.profile-tag--petey .profile-tag-label {
     font-family: var(--font-inter), sans-serif;
     letter-spacing: 0.3px;
 }
+.profile-tag--petey .profile-tag-glyph { position: relative; top: 1px; }
+
+/* ── The WTBS-family treatments (Brendon, 2026-07-26) — twelve locked looks the
+   owner cycles by tapping their own chip. Two switches drive all twelve:
+
+   OUTLINED — hollow letterforms stroked in the tag colour, the WTBS headline
+   treatment. Heaviest weight available + a 0.9px stroke, so the letters read at
+   12px instead of turning into the hairline this file bans elsewhere.
+
+   EDGELESS — fill only, no pill border. The border box is KEPT as transparent
+   so an edgeless chip is exactly the same height as a bordered one and the row
+   never jumps as the cycle advances. ── */
+.profile-tag--outlined .profile-tag-label {
+    color: transparent;
+    -webkit-text-stroke: 0.9px var(--tag-stroke, var(--tag-text));
+    font-weight: 900;
+}
+.profile-tag--edgeless { border-color: transparent; }
 
 /* ── Profile tags on LIST surfaces (Brendon, 2026-07-24) — leaderboards,
    collectors, followers, the Friend Inspector dossier, the artwork owner line,
@@ -5712,13 +5740,13 @@ body.bg-is-yellow .fiat-opt-on { background: #fff; color: var(--hothurt); border
    glyph sits 1px lower to centre on the row (Brendon, same day). */
 .sort-btn.group-btn { margin-right: 7px; }
 .sort-btn.group-btn .sort-lbl-recent { transform: translateY(1px); }
-/* The home sort row's ◷ clock sits a touch high too — same 1.5px drop as
-   the ☻ below, scoped to the home row only (Brendon, 2026-07-26). */
-.sort-btn-clock .sort-lbl-recent { transform: translateY(1.5px); }
-/* The social ☻ sits a touch high in the Courier line box — nudge down, and
-   one size up from the ◷'s base (the ◷'s own mobile step, +0.15em) so the
-   face reads at full strength (Brendon, 2026-07-26). */
-.sort-btn-social .sort-lbl-recent { transform: translateY(1.5px); font-size: 1.3em; }
+/* The home sort row's ◷ clock — dropped 1.5px, then taken back UP 1px
+   (Brendon, 2026-07-26, second pass). Scoped to the home row only. */
+.sort-btn-clock .sort-lbl-recent { transform: translateY(0.5px); }
+/* The social ☻ — same 1px lift as the clock, and one size up from the ◷'s
+   base (the ◷'s own mobile step, +0.15em) so the face reads at full
+   strength (Brendon, 2026-07-26). */
+.sort-btn-social .sort-lbl-recent { transform: translateY(0.5px); font-size: 1.3em; }
 @media (max-width: 600px) {
     .sort-btn-social .sort-lbl-recent { font-size: 1.45em; }
 }

@@ -27,7 +27,7 @@
 
 const VS15 = '︎';
 
-export type TagKind = 'persona' | 'earned' | 'granted' | 'id';
+export type TagKind = 'team' | 'persona' | 'earned' | 'granted' | 'id';
 
 export interface Tag {
     /** Stable id — persisted in users.profile_tags (personas) / granted_tags. */
@@ -56,6 +56,11 @@ export interface Tag {
     /** Fixed label font — renders the label plain (no @name Unicode restyle) in
      *  this face. 'inter' = the WTBS tag (Brendon 2026-07-22). */
     font?: 'inter';
+    /** OUTLINED letterforms — the label is drawn hollow, stroked in this colour
+     *  (the WTBS headline treatment, Brendon 2026-07-26). Overrides textColor. */
+    stroke?: string;
+    /** Drop the pill's edge entirely — fill only (Brendon, 2026-07-26). */
+    noBorder?: boolean;
 }
 
 /* ── PERSONAS — the pick-your-owns (self-applied) ────────────────────────────
@@ -101,12 +106,94 @@ const EARNED: Tag[] = [
    carousel + the profile, ordered before Earned + Chosen. WTBS wears Inter. ── */
 const GRANTED: Tag[] = [
     { id: 'og',         label: 'OG',        glyph: '⌖' + VS15, color: '#EAB308', kind: 'granted', order: 6 },
-    { id: 'wtbs',       label: 'WTBS',      glyph: '☊' + VS15, color: '#FF0055', kind: 'granted', order: 7, font: 'inter' },
     { id: 'influencer', label: 'Influencer', color: '#DB2777', kind: 'granted', order: 8 },
     { id: 'team',       label: 'Team',      color: '#0109FF', kind: 'granted', order: 9 },
     /* Verified / Partner / Featured REMOVED (Brendon, 2026-07-20). A stray
-       grant of a removed id is a silent no-op — derive skips unknown ids. */
+       grant of a removed id is a silent no-op — derive skips unknown ids.
+       WTBS LEFT THIS SECTION 2026-07-26 — it is no longer admin-grantable; it
+       is reserved to @trinity + @willpop and derives from the handle (derive.ts),
+       exactly like CEO derives from the wallet. */
 ];
+
+/* ── TEAM — the 4th class (Brendon, 2026-07-26). "Works like earned but VIP":
+   NEVER chosen, NEVER granted, NEVER in granted_tags — each one derives from a
+   single fixed identity (a wallet or a handle) in derive.ts. Orders 1–4 put the
+   whole class FIRST, ahead of every other tag a profile carries. ────────────── */
+
+/** WTBS brand palette — pulled from wtbs.show's own stylesheet, not eyeballed
+ *  off a screenshot (Brendon, 2026-07-26: "pull them exactly"). Their :root is
+ *  exactly three values. The blue is NOT theirs — it is Safari's default control
+ *  colour showing through an unstyled button in their nav — but Brendon kept it
+ *  in the cycle after that was flagged, so it is a PD-side addition by his call. */
+export const WTBS_ACID = '#E8FF00';
+export const WTBS_BLACK = '#000000';
+export const WTBS_WHITE = '#FFFFFF';
+export const WTBS_BLUE = '#3A86F7';
+
+/** One WTBS-family chip treatment. `stroke` set = hollow outlined letters. */
+export interface TeamTagStyle {
+    /** Pill fill. */
+    bg: string;
+    /** Solid label colour — ignored when `stroke` is set. */
+    text: string;
+    /** The glyph's colour. */
+    glyph: string;
+    /** Hollow letters stroked in this colour (absent = solid letters). */
+    stroke?: string;
+    /** Keep the pill's edge (default is edgeless). */
+    border?: boolean;
+}
+
+/* The twelve Brendon locked 2026-07-26, in cycle order. Tapping the chip on your
+   own profile advances through them; the pick is public (settings.teamTagStyle).
+   Numbers here match the variation sheet he approved (its 13–24). */
+export const TEAM_TAG_STYLES: ReadonlyArray<TeamTagStyle> = [
+    { bg: WTBS_ACID,  text: WTBS_BLACK, glyph: WTBS_BLACK },                        //  1 · acid, solid black
+    { bg: WTBS_BLACK, text: WTBS_ACID,  glyph: WTBS_ACID  },                        //  2 · black, solid acid
+    { bg: WTBS_BLUE,  text: WTBS_ACID,  glyph: WTBS_ACID  },                        //  3 · blue, solid acid
+    { bg: WTBS_ACID,  text: WTBS_BLACK, glyph: WTBS_BLACK, stroke: WTBS_BLACK },    //  4 · acid, outlined black
+    { bg: WTBS_BLACK, text: WTBS_ACID,  glyph: WTBS_ACID,  stroke: WTBS_ACID  },    //  5 · black, outlined acid
+    { bg: WTBS_BLACK, text: WTBS_BLUE,  glyph: WTBS_BLUE,  stroke: WTBS_BLUE  },    //  6 · black, outlined blue
+    { bg: WTBS_BLUE,  text: WTBS_ACID,  glyph: WTBS_ACID,  stroke: WTBS_ACID  },    //  7 · blue, outlined acid
+    { bg: WTBS_BLUE,  text: WTBS_WHITE, glyph: WTBS_WHITE, stroke: WTBS_WHITE },    //  8 · blue, outlined white
+    { bg: WTBS_ACID,  text: WTBS_BLUE,  glyph: WTBS_BLUE,  stroke: WTBS_BLUE  },    //  9 · acid, outlined blue
+    { bg: WTBS_WHITE, text: WTBS_BLACK, glyph: WTBS_BLACK, stroke: WTBS_BLACK },    // 10 · white, outlined black
+    { bg: WTBS_ACID,  text: WTBS_BLACK, glyph: WTBS_BLACK, stroke: WTBS_BLACK, border: true },  // 11 · acid, edge kept
+    { bg: WTBS_BLACK, text: WTBS_ACID,  glyph: WTBS_ACID,  stroke: WTBS_ACID,  border: true },  // 12 · black, edge kept
+];
+
+/** The chips whose owner cycles their treatment by tapping them. CEO/Deployer
+ *  are team-class too but keep their own pinned look — only these two cycle. */
+export function isTeamStyleTag(id: string): boolean {
+    return id === 'wtbs' || id === 'petey';
+}
+
+/** Wrap a raw style index to a real one (a stale/absent pick lands on style 1). */
+export function teamStyleIndex(n: unknown): number {
+    const i = Math.trunc(Number(n));
+    if (!Number.isFinite(i) || i < 0) return 0;
+    return i % TEAM_TAG_STYLES.length;
+}
+
+/** Build a WTBS-family chip (WTBS, Petey) wearing style `n` of the cycle. */
+export function teamStyleTag(
+    id: string, label: string, order: number, n: unknown,
+): Tag {
+    const s = TEAM_TAG_STYLES[teamStyleIndex(n)];
+    return {
+        id,
+        label,
+        glyph: '☊' + VS15,
+        color: s.bg,
+        textColor: s.text,
+        stroke: s.stroke,
+        noBorder: !s.border,
+        kind: 'team',
+        order,
+        lockStyle: true,
+        font: 'inter',
+    };
+}
 
 /* ── CEO — Brendon's own, one of one (Brendon, 2026-07-22). NOT grantable to
    anyone: derived only for his wallet in derive.ts, never a value in
@@ -118,9 +205,19 @@ export const CEO_TAG: Tag = {
     label: 'CEO',
     color: '#FF0055',      // Hothurt background
     textColor: '#FFE600',  // Attention-yellow lettering
-    kind: 'granted',
-    order: 5,
+    kind: 'team',
+    order: 1,
     lockStyle: true,
+};
+
+/* DEPLOYER — @pricediscussion's chip (Brendon, 2026-07-26). The treasury wallet
+   used to wear CEO too; CEO is Brendon's personal one-of-one, so the treasury
+   now says what it actually is. Identical treatment, different word. */
+export const DEPLOYER_TAG: Tag = {
+    ...CEO_TAG,
+    id: 'deployer',
+    label: 'Deployer',
+    order: 2,
 };
 
 /** PriceDay-join tag colour — a distinct purple (Brendon, 2026-07-22). */

@@ -114,7 +114,9 @@ export function useUserTags(handles: readonly (string | null | undefined)[]): Re
                 address: f.address,
                 priceHoldRank: f.priceHoldRank,
                 priceHeld: f.priceHeld,
-                hiddenTags: f.hiddenTags,
+                shownTags: f.shownTags,
+                handle: f.handle,
+                teamTagStyle: f.teamTagStyle,
             });
             if (tags.length) out[h] = { tags, font: f.nameFont, paint: f.tagPaint };
         }

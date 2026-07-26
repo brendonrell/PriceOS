@@ -30,8 +30,10 @@ export function ProfileTags({ tags, font, paint, onTagTap, className }: {
      *  lettering contrast-flipped. null = each tag's own colour. */
     paint?: string | null;
     /** Own profile only: tapping a tag opens the customization menu, same as
-     *  long-pressing the @name (Brendon, 2026-07-22). Absent = display-only. */
-    onTagTap?: () => void;
+     *  long-pressing the @name (Brendon, 2026-07-22). Receives the tapped tag so
+     *  the owner of a WTBS-family chip can cycle THAT chip's treatment instead
+     *  (Brendon, 2026-07-26). Absent = display-only. */
+    onTagTap?: (t: Tag) => void;
 }) {
     if (!tags.length) return null;
     const paintHex = tagPaintHex(paint);
@@ -46,13 +48,20 @@ export function ProfileTags({ tags, font, paint, onTagTap, className }: {
                 return (
                 <span
                     key={t.id}
-                    className={`profile-tag profile-tag--${t.id}`}
-                    style={{ ['--tag' as string]: hex, ['--tag-text' as string]: textHex, ...(onTagTap ? { cursor: 'pointer' } : null) }}
+                    className={`profile-tag profile-tag--${t.id}${t.stroke ? ' profile-tag--outlined' : ''}${t.noBorder ? ' profile-tag--edgeless' : ''}`}
+                    style={{
+                        ['--tag' as string]: hex,
+                        ['--tag-text' as string]: textHex,
+                        /* The WTBS-family treatments (Brendon, 2026-07-26): hollow
+                           stroked letters and/or no pill edge. */
+                        ...(t.stroke ? { ['--tag-stroke' as string]: t.stroke } : null),
+                        ...(onTagTap ? { cursor: 'pointer' } : null),
+                    }}
                     title={t.label}
                     role={onTagTap ? 'button' : undefined}
                     tabIndex={onTagTap ? 0 : undefined}
-                    onClick={onTagTap}
-                    onKeyDown={onTagTap ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onTagTap(); } } : undefined}
+                    onClick={onTagTap ? () => onTagTap(t) : undefined}
+                    onKeyDown={onTagTap ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onTagTap(t); } } : undefined}
                 >
                     {t.svgGlyph === 'price'
                         ? <PriceMark className="profile-tag-mark" />
