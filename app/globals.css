@@ -1719,16 +1719,12 @@ body.ascii-id-mode .id-row-sprite     { display: none !important; }
 .note-ext-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; word-break: break-all; }
 /* @name mentions — saved to-dos + notes link straight to the profile. */
 .note-mention, .todo-mention { color: inherit; font-weight: bold; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
-/* ⛔ A MENTION IS TEXT, NOT A MENU ROW (Brendon, 2026-07-26).
-   `.user-dropdown a` turns every link in the connect menu into a 30px flex ROW
-   with padding and a border — right for the menu's own nav links, catastrophic
-   for an @name sitting mid-sentence in a to-do: the block box broke the line
-   either side of it, so "explorer @veil-ai releases" rendered as three stacked
-   lines the moment the name was recognised (and only then — a mention is the
-   only link a to-do ever contains). The padding is what indented the @name.
-   These two stay plain inline text wearing nothing but the underline. */
-.user-dropdown a.note-mention,
-.user-dropdown a.todo-mention {
+/* A MENTION IS TEXT, NOT A MENU ROW (Brendon, 2026-07-26). `.user-dropdown a`
+   styles the connect menu's own NAV links as 30px flex rows; a note rendered
+   inside that menu is prose, and an @name mid-sentence must stay inline or the
+   block box breaks the line either side of it. The To-Dos box is decoupled
+   wholesale in styles/todos.css; this covers the note flavour. */
+.user-dropdown a.note-mention {
     display: inline;
     height: auto;
     padding: 0;
