@@ -4154,6 +4154,14 @@ body.pd-stone-open .ens-copy-toast {
    inline from the catalog. Do not add a font-family or letter-spacing here —
    that is exactly what made it sit high the first time. */
 
+/* @rudxane's upside-down face — the REAL word turned 180°, not substitute
+   flipped characters (Brendon, 2026-07-26). inline-block so the rotation has a
+   box to turn in; the pill still centres it, so the chip keeps its height. */
+.profile-tag-label--rot180 {
+    display: inline-block;
+    transform: rotate(180deg);
+}
+
 /* ── Profile tags on LIST surfaces (Brendon, 2026-07-24) — leaderboards,
    collectors, followers, the Friend Inspector dossier, the artwork owner line,
    search. The PILL is the hero's own `.profile-tag` (one renderer, one look);

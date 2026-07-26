@@ -66,6 +66,9 @@ export interface Tag {
      *  2026-07-26). Set, it replaces `label` for rendering; `label` stays the
      *  plain-text version for titles and toasts. */
     labelParts?: ReadonlyArray<{ text: string; color: string }>;
+    /** Turn the label 180° — @rudxane's upside-down face (Brendon, 2026-07-26).
+     *  A real rotation of the real word, not substitute flipped characters. */
+    rotate?: boolean;
 }
 
 /* ── PERSONAS — the pick-your-owns (self-applied) ────────────────────────────
@@ -230,30 +233,40 @@ export const RUDXANE_INK = '#3B2A5C';   // deep violet lettering
 /** The REAL name's three faces (Brendon, 2026-07-26) — these come up alongside
  *  the respellings, so the chip sometimes just says his name, in one of these
  *  casings. */
-export const RUDXANE_PLAIN: ReadonlyArray<string> = [
-    'Rudxane', 'rudxane', 'RUDXANE',
-    /* Upside down (Brendon, 2026-07-26) — built with the app's OWN flip table
-       (lib/profile/nameFont FLIP, the "Upside Down" @name face), not a
-       hand-rolled one, so it can never drift from the font a user can pick.
-       Every character here is plain Latin/IPA, so it stays text on iOS. */
-    'ǝuɐxpnɹ',
+export const RUDXANE_PLAIN: ReadonlyArray<RudxaneFace> = [
+    { text: 'Rudxane' },
+    { text: 'rudxane' },
+    { text: 'RUDXANE' },
+    /* Upside down (Brendon, 2026-07-26) — the real spelling ROTATED 180°, NOT
+       the Unicode flipped-character trick. Turning the actual word keeps the
+       letterforms his (same face, same Courier), which the substitute glyphs
+       could not. */
+    { text: 'Rudxane', rotate: true },
 ];
 
-/** Every face the chip can wear, respellings first. */
-export const RUDXANE_FACES: ReadonlyArray<string> = [...RUDXANE_SAYINGS, ...RUDXANE_PLAIN];
+/** One face of the chip: the text, and whether it's turned upside down. */
+export interface RudxaneFace { text: string; rotate?: boolean }
 
-/** The label for a given roll. The 16 respellings outnumber the 3 plain faces
- *  better than 5:1, so "usually it's one of those" holds (Brendon). */
-export function rudxaneLabel(roll: unknown): string {
+/** Every face the chip can wear, respellings first. */
+export const RUDXANE_FACES: ReadonlyArray<RudxaneFace> = [
+    ...RUDXANE_SAYINGS.map((text) => ({ text })),
+    ...RUDXANE_PLAIN,
+];
+
+/** The face for a given roll. The 16 respellings outnumber the 4 plain faces
+ *  4:1, so "usually it's one of those" holds (Brendon). */
+export function rudxaneFace(roll: unknown): RudxaneFace {
     const n = Math.abs(Math.trunc(Number(roll)) || 0);
     return RUDXANE_FACES[n % RUDXANE_FACES.length];
 }
 
 /** Build @rudxane's chip for this page load's roll. */
 export function rudxaneTag(order: number, roll: unknown): Tag {
+    const face = rudxaneFace(roll);
     return {
         id: 'rudxane',
-        label: rudxaneLabel(roll),
+        label: face.text,
+        rotate: face.rotate,
         color: RUDXANE_BG,
         textColor: RUDXANE_INK,
         kind: 'team',
