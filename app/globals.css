@@ -4146,6 +4146,17 @@ body.pd-stone-open .ens-copy-toast {
 }
 .profile-tag--edgeless { border-color: transparent; }
 
+/* BitVerse (@cspok) — the wordmark is monospaced, so this chip wears COURIER
+   where the WTBS family wears Inter (Brendon, 2026-07-26). Its two colour runs
+   ("bit" green · "Verse" dark) are painted inline from the catalog. */
+.profile-tag-label--courier {
+    font-family: 'Courier New', Courier, monospace;
+    letter-spacing: 0;
+}
+/* Rudxane (@rudxane) — the respellings run longer than a normal tag word, so
+   the chip is allowed its own width without the row reflowing around it. */
+.profile-tag--rudxane .profile-tag-label { letter-spacing: 0.2px; }
+
 /* ── Profile tags on LIST surfaces (Brendon, 2026-07-24) — leaderboards,
    collectors, followers, the Friend Inspector dossier, the artwork owner line,
    search. The PILL is the hero's own `.profile-tag` (one renderer, one look);

@@ -21,6 +21,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { deriveTags } from '../tags/derive';
+import { useRudxaneRoll } from './useRudxaneRoll';
 import type { Tag } from '../tags/catalog';
 import type { TagFacts } from '../../app/api/tags/route';
 
@@ -88,6 +89,8 @@ export function useUserTags(handles: readonly (string | null | undefined)[]): Re
     }, [handles]);
 
     const [, setTick] = useState(0);
+    /* @rudxane's chip re-rolls per page load — one roll shared by every row. */
+    const rudxaneRoll = useRudxaneRoll();
 
     useEffect(() => {
         const l = () => setTick(version);
@@ -117,11 +120,12 @@ export function useUserTags(handles: readonly (string | null | undefined)[]): Re
                 shownTags: f.shownTags,
                 handle: f.handle,
                 teamTagStyle: f.teamTagStyle,
+                rudxaneRoll,
             });
             if (tags.length) out[h] = { tags, font: f.nameFont, paint: f.tagPaint };
         }
         return out;
         // `version` is the cache's change signal — the tick above re-runs this.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [key, version]);
+    }, [key, version, rudxaneRoll]);
 }

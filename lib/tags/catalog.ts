@@ -61,6 +61,14 @@ export interface Tag {
     stroke?: string;
     /** Drop the pill's edge entirely — fill only (Brendon, 2026-07-26). */
     noBorder?: boolean;
+    /** TWO-TONE label — the label drawn as coloured runs instead of one colour,
+     *  the way the BitVerse wordmark splits "bit" from "Verse" (Brendon,
+     *  2026-07-26). Set, it replaces `label` for rendering; `label` stays the
+     *  plain-text version for titles and toasts. */
+    labelParts?: ReadonlyArray<{ text: string; color: string }>;
+    /** Fixed label font for chips that are NOT Inter — 'courier' is the
+     *  BitVerse chip, whose wordmark is monospaced (Brendon, 2026-07-26). */
+    labelFont?: 'courier';
 }
 
 /* ── PERSONAS — the pick-your-owns (self-applied) ────────────────────────────
@@ -163,9 +171,87 @@ export const TEAM_TAG_STYLES: ReadonlyArray<TeamTagStyle> = [
 ];
 
 /** The chips whose owner cycles their treatment by tapping them. CEO/Deployer
- *  are team-class too but keep their own pinned look — only these two cycle. */
+ *  are team-class too but keep their own pinned look — only these cycle. */
 export function isTeamStyleTag(id: string): boolean {
-    return id === 'wtbs' || id === 'petey';
+    return id === 'wtbs' || id === 'petey' || id === 'bitverse';
+}
+
+/* ── BITVERSE — @cspok's chip (Brendon, 2026-07-26) ──────────────────────────
+   No glyph, the wordmark as the label, COURIER not Inter, and the logo's
+   two-tone split: "bit" in the green, "Verse" in the dark. bitverse.art is a
+   parked page with no stylesheet, so these are sampled from the wordmark Brendon
+   supplied — the only source that exists. */
+export const BITVERSE_GREEN = '#0EAE78';
+export const BITVERSE_DARK = '#2C3038';
+
+/** The BitVerse treatments, same cycle contract as the WTBS family. Each is a
+ *  fill plus the two runs of the wordmark, so the split survives every look. */
+export const BITVERSE_STYLES: ReadonlyArray<{
+    bg: string; bit: string; verse: string; border?: boolean;
+}> = [
+    { bg: WTBS_WHITE,      bit: BITVERSE_GREEN, verse: BITVERSE_DARK  },  // 1 · the wordmark as drawn
+    { bg: BITVERSE_DARK,   bit: BITVERSE_GREEN, verse: WTBS_WHITE     },  // 2 · inverted on the dark
+    { bg: BITVERSE_GREEN,  bit: BITVERSE_DARK,  verse: WTBS_WHITE     },  // 3 · green field
+    { bg: BITVERSE_DARK,   bit: WTBS_WHITE,     verse: BITVERSE_GREEN },  // 4 · dark, runs swapped
+    { bg: WTBS_WHITE,      bit: BITVERSE_GREEN, verse: BITVERSE_DARK, border: true }, // 5 · edge kept
+    { bg: BITVERSE_DARK,   bit: BITVERSE_GREEN, verse: WTBS_WHITE,    border: true }, // 6 · edge kept
+];
+
+/** Build @cspok's BitVerse chip wearing style `n` of its cycle. */
+export function bitverseTag(order: number, n: unknown): Tag {
+    const s = BITVERSE_STYLES[Math.abs(Math.trunc(Number(n)) || 0) % BITVERSE_STYLES.length];
+    return {
+        id: 'bitverse',
+        label: 'bitVerse',
+        labelParts: [{ text: 'bit', color: s.bit }, { text: 'Verse', color: s.verse }],
+        labelFont: 'courier',
+        color: s.bg,
+        textColor: s.verse,
+        noBorder: !s.border,
+        kind: 'team',
+        order,
+        lockStyle: true,
+    };
+}
+
+/* ── RUDXANE — @rudxane's chip (Brendon, 2026-07-26) ─────────────────────────
+   The tag IS his name, and it changes every refresh: usually one of the
+   contested respellings from the Ode to Rudxane project, sometimes just
+   "Rudxane" straight. Light purple tones. The respellings are lifted verbatim
+   from the project's own pronunciation table (lib/art/engines/ai/ode-to-rudxane)
+   so the chip and the artwork can never drift apart. */
+export const RUDXANE_SAYINGS: ReadonlyArray<string> = [
+    'ROOD-zayn', 'rudd-SHAHN', 'ROO-dayn', 'RUDD-zuhn', 'rud-ZAHN',
+    'roo-DEX-ayn', 'RUDD-jayn', 'roo-ZAHN', 'ruh-JAH-nay', 'ROOD-khayn',
+    'roo-KHAH-nay', 'RUD-ksan', 'ruh-DZYNE', 'ROO-juhn', 'rood-ZAH-nuh',
+    'ROO-dek-SAYN',
+];
+
+/** Light purple tones (Brendon, 2026-07-26). */
+export const RUDXANE_BG = '#C9B6F0';    // light lilac field
+export const RUDXANE_INK = '#3B2A5C';   // deep violet lettering
+
+/** The label for a given roll. Roughly one in five lands on the plain name —
+ *  "usually it's one of those" (Brendon), so the respellings dominate. */
+export function rudxaneLabel(roll: unknown): string {
+    const n = Math.abs(Math.trunc(Number(roll)) || 0);
+    const slots = RUDXANE_SAYINGS.length + 4;  // 4 plain slots out of 20
+    const i = n % slots;
+    return i < RUDXANE_SAYINGS.length ? RUDXANE_SAYINGS[i] : 'Rudxane';
+}
+
+/** Build @rudxane's chip for this page load's roll. */
+export function rudxaneTag(order: number, roll: unknown): Tag {
+    return {
+        id: 'rudxane',
+        label: rudxaneLabel(roll),
+        color: RUDXANE_BG,
+        textColor: RUDXANE_INK,
+        kind: 'team',
+        order,
+        lockStyle: true,
+        font: 'inter',
+    };
 }
 
 /** Wrap a raw style index to a real one (a stale/absent pick lands on style 1). */

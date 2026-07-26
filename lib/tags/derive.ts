@@ -15,7 +15,8 @@
 
 import {
     type Tag, tagById, isPersonaId, GRANTED_IDS,
-    ID_TAG_STYLE, ID_RANGES, CEO_TAG, DEPLOYER_TAG, teamStyleTag, PRICEDAY_TAG_COLOR,
+    ID_TAG_STYLE, ID_RANGES, CEO_TAG, DEPLOYER_TAG, teamStyleTag,
+    bitverseTag, rudxaneTag, PRICEDAY_TAG_COLOR,
     PRICE_HOLD_TAG_BG, PRICE_HOLD_TAG_TEXT,
     PRICE_HOLD_TOP3_BG, PRICE_HOLD_TOP3_TEXT,
     PRICE_HOLD_TOP10_BG, PRICE_HOLD_TOP10_TEXT,
@@ -50,6 +51,12 @@ const WTBS_HANDLES: ReadonlySet<string> = new Set(['trinity', 'willpop']);
 /** Petey — same treatment + palette as WTBS, one account. */
 const PETEY_HANDLES: ReadonlySet<string> = new Set(['petey']);
 
+/** BitVerse — @cspok. Courier wordmark, two-tone, no glyph. */
+const BITVERSE_HANDLES: ReadonlySet<string> = new Set(['cspok']);
+
+/** Rudxane — @rudxane. The label re-rolls every page load. */
+const RUDXANE_HANDLES: ReadonlySet<string> = new Set(['rudxane']);
+
 export interface DeriveInput {
     /** Personas the user picked (users.profile_tags). */
     profileTags?: string[] | null;
@@ -69,6 +76,11 @@ export interface DeriveInput {
     /** Which of the 12 WTBS-family treatments the owner cycled to
      *  (settings.teamTagStyle). Out-of-range/absent wraps to the first. */
     teamTagStyle?: number | null;
+    /** This page load's roll for @rudxane's chip, whose label changes every
+     *  refresh (usually an Ode to Rudxane respelling, sometimes the plain
+     *  name). Absent = the plain name, which is also what the server renders
+     *  so hydration never mismatches. */
+    rudxaneRoll?: number | null;
     /** The owner's $PRICE holder rank (users.price_hold_rank) — drives the
      *  "$PRICE Top N · #r" earned tag; null/absent = unranked (no tag). */
     priceHoldRank?: number | null;
@@ -203,6 +215,8 @@ export function deriveTags(input: DeriveInput): Tag[] {
     if (addr && DEPLOYER_ADDRESSES.has(addr)) add(DEPLOYER_TAG);
     if (hdl && WTBS_HANDLES.has(hdl)) add(teamStyleTag('wtbs', 'WTBS', 3, input.teamTagStyle));
     if (hdl && PETEY_HANDLES.has(hdl)) add(teamStyleTag('petey', 'Petey', 4, input.teamTagStyle));
+    if (hdl && BITVERSE_HANDLES.has(hdl)) add(bitverseTag(5, input.teamTagStyle));
+    if (hdl && RUDXANE_HANDLES.has(hdl)) add(rudxaneTag(6, input.rudxaneRoll));
 
     // Personas the user chose (validated against the catalog).
     for (const id of input.profileTags ?? []) {

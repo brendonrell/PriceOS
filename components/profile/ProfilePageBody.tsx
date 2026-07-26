@@ -83,6 +83,7 @@ import { useProfileTags } from '../../lib/hooks/useProfileTags';
 import { useNameFont } from '../../lib/hooks/useNameFont';
 import { useTagPaint } from '../../lib/hooks/useTagPaint';
 import { useTeamTagStyle } from '../../lib/hooks/useTeamTagStyle';
+import { useRudxaneRoll } from '../../lib/hooks/useRudxaneRoll';
 import { useShownTags } from '../../lib/hooks/useShownTags';
 import { deriveTags } from '../../lib/tags/derive';
 import { PERSONA_TAGS, tagTextOn, TAG_PAINTS, isTeamStyleTag } from '../../lib/tags/catalog';
@@ -272,6 +273,8 @@ function ProfilePageBodyInner({
         isOwnProfile ? user.team_tag_style : undefined,
     );
     const ownerTeamTagStyle = isOwnProfile ? myTeamTagStyle : (user.team_tag_style ?? 0);
+    /* @rudxane's chip re-rolls its pronunciation every page load. */
+    const rudxaneRoll = useRudxaneRoll();
     /* The @name letters, restyled in the owner's chosen Unicode font ("@" and the
        underlying handle stay plain; this is display only). */
     const styledHandle = styleName(displayHandle, ownerNameFont ?? null);
@@ -284,9 +287,10 @@ function ProfilePageBodyInner({
         address: user.address,
         handle: user.handle ?? handle,
         teamTagStyle: ownerTeamTagStyle,
+        rudxaneRoll,
         priceHoldRank: user.price_hold_rank,
         priceHeld: user.price_held,
-    }), [isOwnProfile, myTags, user.profile_tags, user.granted_tags, user.user_number, artistStatus, user.created_at, user.address, user.handle, handle, ownerTeamTagStyle, user.price_hold_rank, user.price_held]);
+    }), [isOwnProfile, myTags, user.profile_tags, user.granted_tags, user.user_number, artistStatus, user.created_at, user.address, user.handle, handle, ownerTeamTagStyle, rudxaneRoll, user.price_hold_rank, user.price_held]);
     /* Shown on the hero: full derived set minus the hidden ones (Manual → Earned
        → Chosen order via each tag's `order`). */
     const displayTags = useMemo(
