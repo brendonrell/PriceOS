@@ -18,7 +18,13 @@
     left: 50%;
     --fm-tx: -50%;
     transform: translateX(var(--fm-tx));
-    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    /* THE SHARED BOTTOM BAND (Brendon, 2026-07-26): the stone is anchored and
+       publishes how much of the band it occupies (--pd-stone-h, set by
+       CommandStone); the player sits ABOVE it. The variable is 0px whenever the
+       stone is gone, so this is byte-for-byte the old resting position — the
+       player bumps up only while the stone is there, and straight back down the
+       moment it leaves. Nothing is resized and nothing is hidden. */
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px) + var(--pd-stone-h, 0px));
     z-index: 8990;
     display: flex;
     align-items: center;
@@ -62,16 +68,13 @@
     transition: transform 0.22s ease, opacity 0.18s ease, bottom 0.22s ease;
 }
 
-/* ── Reacting to the Command Stone (body class from CommandStone) ──
-   The stone is ANCHORED; the deck yields. Stone OPEN → the deck docks away
-   offscreen (transform only — the YT iframe stays rendered, so audio never
-   dies; the stone's own ON-AIR LED is the player's face meanwhile). The
-   minimized stone is a corner dot now, so it never shares the deck's band. */
-body.pd-stone-open .fm-bar {
-    transform: translateX(var(--fm-tx)) translateY(160%);
-    opacity: 0;
-    pointer-events: none;
-}
+/* ── Reacting to the Command Stone (Brendon, 2026-07-26) ──
+   The stone is ANCHORED; the player moves. It no longer docks away when the
+   stone opens — both stay on screen, each with its own spot, the player riding
+   above the stone via --pd-stone-h on .fm-bar. That height is measured live, so
+   when the stone returns a response and grows taller the player rides up with
+   it instead of being buried underneath (the stone sits at z-index 10004, the
+   player at 8990, so anything shared was always the player covered). */
 
 /* ── Modals own the screen — the deck ducks out of the way whenever one is
    open (Brendon, 2026-07-26). Same transform-only dock as the stone yield, so

@@ -239,6 +239,42 @@ export default function CommandStone() {
         return () => { document.body.classList.remove('pd-stone-open'); };
     }, [stage]);
 
+    /* THE BOTTOM BAND IS SHARED — each gets its own spot (Brendon, 2026-07-26).
+       The stone stays anchored where it is and publishes how much of the band
+       it occupies; the miniplayer reads this and sits ABOVE it. Nothing is
+       resized and nothing is hidden — they simply stack.
+
+       Measured off the live element rather than hardcoded, because the vessel's
+       height changes with what's in it (typing view, results, the widgets
+       deck). The DOT state reports its full touch pad, not the 9px disc — the
+       pad is what the player would actually collide with. */
+    useEffect(() => {
+        const publish = () => {
+            let h = 0;
+            if (stage === 'open') {
+                /* the vessel plus the 12px it is translated down by */
+                h = (vesselRef.current?.getBoundingClientRect().height ?? 0) + 12;
+            } else if (stage === 'dot') {
+                /* 9px disc + the 14px invisible tap pad below it */
+                h = 23;
+            }
+            /* The 8px breathing gap rides INSIDE the published value, so it
+               only exists while the stone does — at 0 the player sits exactly
+               where it always has, with nothing added. */
+            document.body.style.setProperty('--pd-stone-h', h > 0 ? `${Math.round(h) + 8}px` : '0px');
+        };
+        publish();
+        /* The vessel grows and shrinks as results come and go. */
+        const ro = vesselRef.current ? new ResizeObserver(publish) : null;
+        if (ro && vesselRef.current) ro.observe(vesselRef.current);
+        window.addEventListener('resize', publish);
+        return () => {
+            ro?.disconnect();
+            window.removeEventListener('resize', publish);
+            document.body.style.setProperty('--pd-stone-h', '0px');
+        };
+    }, [stage]);
+
     /* The stealth console's persisted style (accent hex · forced stage)
        repaints on boot — stoneStyle.ts, deliberately absent from the docs. Also
        repaints when the account snapshot hydrates the style (login anywhere). */
