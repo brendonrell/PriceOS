@@ -1522,6 +1522,14 @@ export default function OutputPreview() {
             className={`platform-modal ls-modal${isOpen ? ' active' : ''}`}
             role="dialog"
             aria-modal="true"
+            /* The stacking tag the portrait root has carried since the
+               site-wide modal stacking landed (2026-07-21) and this one was
+               missed — the reason every landscape button was dead (Brendon,
+               2026-07-26). .platform-modal sits at z-index 1000 and the modal
+               band runs to ~1340, so any other open modal covered the whole
+               landscape surface and swallowed every tap. Portrait escaped to
+               4000 via this attribute; landscape never did. */
+            data-stack-top={isTopStacked || undefined}
             onClick={onBackdropClick}
         >
             <div
