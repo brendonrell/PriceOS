@@ -88,7 +88,7 @@ function feedSlug(tokenId: string | null): string {
  *  feeds, where context names the project). Unary so `.map(eventToFeedEvent)`
  *  keeps working point-free. */
 export function eventToFeedEvent(e: EventRow): FeedEvent {
-    return buildFeedEvent(e, false);
+    return buildFeedEvent(e, false, false);
 }
 
 /** Cross-project mapping — the token link names the project ("Prisms #12"),
@@ -96,12 +96,21 @@ export function eventToFeedEvent(e: EventRow): FeedEvent {
  *  is ambiguous. The price leaves the sentence too — the social feed carries
  *  it in the type column (◊ rail), so sentences stay short and wrap less. */
 export function eventToNamedFeedEvent(e: EventRow): FeedEvent {
-    return buildFeedEvent(e, true);
+    return buildFeedEvent(e, true, true);
 }
 
-function buildFeedEvent(e: EventRow, withProject: boolean): FeedEvent {
-    /* withProject = the cross-project (social) presentation: named token link,
-       price off the verb (it rides the type column instead). */
+/** Profile-feed mapping (Brendon, 2026-07-26) — a profile's feed spans every
+ *  project, so a bare "collected #7" doesn't say WHICH project. This names it
+ *  ("collected Prisms #7") but KEEPS the price in the sentence: the profile
+ *  feed has no type column to carry it, unlike the social feed. */
+export function eventToProjectNamedFeedEvent(e: EventRow): FeedEvent {
+    return buildFeedEvent(e, true, false);
+}
+
+function buildFeedEvent(e: EventRow, withProject: boolean, dropPrice: boolean): FeedEvent {
+    /* withProject = name the project in the token link. dropPrice = the social
+       feed's presentation, where the price rides the type column (◊ rail)
+       instead of the verb. */
     const type = e.type;
     const ms = Date.parse(e.timestamp) || 0;
     const price = e.price_eth ? parseFloat(e.price_eth) : 0;
@@ -118,12 +127,12 @@ function buildFeedEvent(e: EventRow, withProject: boolean): FeedEvent {
     const tok = tokHref
         ? <a className="f-highlight" href={tokHref} onClick={(e) => e.stopPropagation()}>{tokLabel}</a>
         : <span className="f-highlight">{tokLabel}</span>;
-    const tail = withProject ? '' : price ? ` for ${e.price_eth} ETH` : '';
+    const tail = dropPrice ? '' : price ? ` for ${e.price_eth} ETH` : '';
     let verb: ReactNode;
     if (type === 'MINT') verb = <>collected {tok}{tail}</>;
     else if (type === 'LIST') verb = <>listed {tok}{tail}</>;
     else if (type === 'SALE') verb = <>bought {tok}{tail}</>;
-    else if (e.trade) verb = <>traded {tok}{!withProject && price ? ` (◊${e.price_eth} kicker)` : ''}</>;
+    else if (e.trade) verb = <>traded {tok}{!dropPrice && price ? ` (◊${e.price_eth} kicker)` : ''}</>;
     else verb = <>transferred {tok}</>;
     return {
         id: e.id,

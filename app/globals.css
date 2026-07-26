@@ -8989,6 +8989,14 @@ a.f-highlight { color: inherit; }
            rule (sim 3248) collapses to 10px 20px shorthand. */
         padding: 10px 20px 100px 20px;
     }
+    /* ZOOMED OUT — a live grouping doubles the grid to 4-up on mobile, so the
+       groups themselves are what you read instead of a long 2-up scroll
+       (Brendon, 2026-07-26). Ungrouped stays 2-up, untouched. The group
+       headers measure the live tracks, so their caps follow automatically. */
+    #gallery.is-grouped {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+    }
     .hero-group-2 { gap: 16px; }
     .traits-header-bar { flex-direction: column; }
     .sort-bar {

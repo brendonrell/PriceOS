@@ -664,6 +664,9 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                 aria-label="Gallery"
                 className={[
                     onShowcaseTab ? 'project-showcase-mode' : null,
+                    /* Grouped = zoomed out: 4-up on mobile so a grouping reads
+                       as groups, not as a long 2-up scroll (Brendon, 2026-07-26). */
+                    !onShowcaseTab && groupedSections != null ? 'is-grouped' : null,
                     /* Artist layouts (2026-07-20): masonry / mixed large-small
                        + the little titles — Showcase tab only. */
                     onShowcaseTab && project.showcaseLayout !== 'classic' ? `sc-${project.showcaseLayout}` : null,

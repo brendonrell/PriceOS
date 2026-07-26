@@ -831,7 +831,7 @@ function ProfilePageBodyInner({
     if (onCollected) visitedCollected.current = true;
 
     const feedActive = onCollected && sort === 'feed';
-    const sortedFeedEvents = useLedgerFeed(feedActive, `/api/feed?address=${user.address.toLowerCase()}&limit=100`);
+    const sortedFeedEvents = useLedgerFeed(feedActive, `/api/feed?address=${user.address.toLowerCase()}&limit=100`, true);
 
     const {
         isArtist, artistProjects, effStyle, artistMode, createdUnderMore,
@@ -2022,6 +2022,9 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
             <section
                 id="gallery"
                 aria-label="Gallery"
+                /* Grouped Collected = zoomed out: 4-up on mobile so a grouping
+                   reads as groups, not a long 2-up scroll (Brendon, 2026-07-26). */
+                className={onCollected && collectedGroups != null ? 'is-grouped' : undefined}
                 style={{ display: galleryVisible ? undefined : 'none' }}
             >
                 {/* SHOWCASE tiles in a display:contents box — they stay real grid
