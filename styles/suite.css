@@ -62,3 +62,8 @@
 .suite-body .notif-list {
     max-height: none;
 }
+
+/* ☇ PriceFlow — the workflows builder + armed list as a Suite app; same
+   box chrome as its sibling tabs, content padded like the sheet */
+.suite-wf .wf-compose { padding: 10px 10px 12px; }
+.suite-wf .wf-list { padding: 0 10px 10px; }

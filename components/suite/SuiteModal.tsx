@@ -25,14 +25,16 @@ import { lockBodyScroll, unlockBodyScroll } from '../../lib/state/bodyScrollLock
 import CalendarPanel from '../CalendarPanel';
 import { TodosBox } from '../dropdown/TodosBox';
 import { NotesBox } from '../dropdown/NotesBox';
+import { WorkflowsSheet } from '../dropdown/WorkflowsSheet';
 
 const VS15 = '︎';
 
 /* Glyphs are the canonical ones from docs/GLYPHS.md — ▦ Calendar · ❍ To-Do
-   · ⊟ Note. Never swapped, never invented. */
+   · ☇ Workflows · ⊟ Note. Never swapped, never invented. */
 const APPS = [
     { key: 'cal', glyph: '▦', name: 'PriceCal' },
     { key: 'task', glyph: '❍', name: 'PriceTask' },
+    { key: 'flow', glyph: '☇', name: 'PriceFlow' },
     { key: 'notes', glyph: '⊟', name: 'PriceNotes' },
 ] as const;
 type AppKey = (typeof APPS)[number]['key'];
@@ -102,6 +104,7 @@ export default function SuiteModal() {
                 <div className="followers-plus-body suite-body">
                     {app === 'cal' && <div className="suite-cal"><CalendarPanel /></div>}
                     {app === 'task' && <TodosBox suite />}
+                    {app === 'flow' && <WorkflowsSheet inline />}
                     {app === 'notes' && <NotesBox suite />}
                 </div>
             </div>
