@@ -22,9 +22,10 @@ import { default as handler } from "./.open-next/worker.js";
 //     headers and BYPASS the cache entirely, so in-app navigation is
 //     untouched — only full document loads are cached.
 //   · Only 200 text/html responses with no Set-Cookie are stored.
-// TTL 30s: worst case a cold visitor's shell is 30s stale, and the shell's
-// numbers are re-fetched live on mount anyway.
-const PAGE_CACHE_TTL_S = 30;
+// TTL 300s (raised from 30s the same day — at quiet-site traffic a 30s
+// window expired between visits): the shell's numbers are re-fetched live
+// on mount anyway, so a stale shell is invisible to the user.
+const PAGE_CACHE_TTL_S = 300;
 
 function isCacheablePageRequest(request: Request): boolean {
   if (request.method !== "GET") return false;
