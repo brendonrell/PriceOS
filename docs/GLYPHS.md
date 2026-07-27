@@ -626,6 +626,23 @@ taste gets measured on the Fingerprint).
 > glyph — its task-name ◉ already lives in the vocabulary (the multi-context
 > precedent, §7), and its chrome is the standard × + the house pill.
 
+## 12j. PD Keychains — ⚷ (2026-07-27, Brendon's pick)
+
+| Use | Glyph | Codepoint |
+|---|---|---|
+| Keychains (the capsule machine) | ⚷ | U+26B7 CHIRON |
+
+> Brendon's pick from a five-option screened round — astrology's **Chiron,
+> literally "the key," the wounded healer** (his call: "Chiron is the
+> winner! Wounded healer!"); the glyph IS a key on a ring. Celestial family
+> precedent (☊ ☍, §12b/§12g). Screened by the sharpened §7 test: U+26B7 has
+> no emoji mapping; the obvious 🔑 ⛓ 🗝 are emoji-mapped and banned.
+> Codepoint free repo-wide including escapes at pick time (the ⚲ mention in
+> `lib/tags/catalog.ts` is a dead comment, not a claim). Wears: the
+> wallet-settings door beside the gnome ⍙ (14px; the gnome dropped
+> 14→13.5px the same day, Brendon's call) and the PriceSprite modal
+> KEYCHAINS action row. VS-15 + Courier per convention; standard #1 gate.
+
 ## 13. THE WAR — Factions glyphs (2026-07-13 build, spec v3.1 §11)
 
 One vocabulary across the ceremony, the tape, pings, the Book, and the

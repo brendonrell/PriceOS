@@ -1,11 +1,10 @@
 # PD KEYCHAINS — the capsule machine (system spec)
 
-> Locked with Brendon 2026-07-27 ("Let's build it!!!"). Contracts SHIPPED on
-> `pd-contracts` branch `claude/nft-generative-keychains-044gz5` (PDKeychains ·
-> PDKeychainRenderer · PDKeychainShapes/Faces, 23 tests, suite 372/372).
-> App-side build is QUEUED — **waiting on Brendon's doors** (his words: "I need
-> to figure out the doors"). Nothing gets wired into the app until he names
-> them (CLAUDE.md Rule #-0.4).
+> Locked with Brendon 2026-07-27 ("Let's build it!!!"). Contracts SHIPPED
+> (PDKeychains · PDKeychainRenderer · PDKeychainShapes/Faces, 23 tests, suite
+> 372/372). Same day: glyph ⚷ locked, store named THE DEPANNEUR, both doors
+> named by Brendon and shipped as toast doors, user-docs section live (see
+> "App side" below). The Depanneur surface itself is the next build.
 
 ## What it is
 
@@ -66,18 +65,27 @@ them: dizzy, lasers, sunglasses, 3D glasses, lashes, teary, iris colors.
 - Renderer is swappable by admin until `lockRenderer()` — then the art is
   frozen forever (art-bugfix window; Brendon calls the lock).
 
-## App side — QUEUED on Brendon's doors
+## App side — doors CONFIRMED 2026-07-27, surface build queued
 
-Decided concept, placement TBD by Brendon:
-1. **The capsule machine** (store surface — where you crank). Door: TBD.
-2. **The equipped mini charm** — keeper picks ONE keychain to wear; it
-   renders as a mini charm **at the end of the profile tags** (his idea —
-   the flex loop). Nothing shows until the keeper equips one (default-off
-   law). Tap → the full charm. Exact treatment TBD with him.
-3. **POLISH button** on the keychain view + the signing endpoint
-   (settlement key already lives app-side). Door: TBD.
-4. Test-phase note: runs on sim-ETH in-app like the sticker store until the
-   mainnet cutover; the contract is the mainnet machine.
+- **Glyph LOCKED: ⚷ (U+26B7 Chiron — "the key", the wounded healer).**
+  Brendon's pick from the screened round; GLYPHS.md §12j.
+- **The store is named THE DEPANNEUR** (Brendon: "instead of a 'store' the
+  keychain store will be called the 'Depanneur'") — the Montreal corner
+  store; the capsule machine lives inside it.
+- **Doors SHIPPED (as COMING-SOON toast doors until the Depanneur builds):**
+  1. **KEYCHAINS ⚷ button at the bottom of the PriceSprite modal** (his
+     placement) — `ps-action-row` anatomy, verbatim.
+  2. **⚷ key in the wallet settings row beside the gnome ⍙** (his
+     placement; the gnome glyph dropped 14→13.5px the same day, his call).
+  Both currently fire `Keychains: COMING SOON`; wiring them to the real
+  Depanneur surface replaces the toast.
+- **Still queued for the Depanneur build:** the shop surface itself
+  (sim-ETH in test phase like the sticker store), the equipped mini charm
+  at the end of the profile tags (default-off; tap → full charm), the
+  POLISH button + app signing endpoint (settlement key already app-side).
+- **User docs SHIPPED:** own nav section — `keychains/overview` ·
+  `keychains/the-depanneur` (odds table + the fair roll + money) ·
+  `keychains/the-living-charm` (polish · bond · christening · wearing).
 
 ## Facts future sessions need
 

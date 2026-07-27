@@ -10010,7 +10010,8 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
 .rpc-ping-btn.incognito-btn { font-size: 20px; }
 /* The gnome mark ⍙ has heavy ink for its em box — at the base 24px it reads
    ~2× its row-mates. Bring it into the row's visual band (Brendon, 2026-07-22). */
-.rpc-ping-btn.gnome-wallet-btn { font-size: 14px; }
+.rpc-ping-btn.gnome-wallet-btn { font-size: 13.5px; }
+.rpc-ping-btn.keychain-wallet-btn { font-size: 14px; }
 .rpc-ping-btn.rpc-active { opacity: 1; text-decoration: underline; text-underline-offset: 3px; }
 .rpc-ping-btn:hover { opacity: 1; }
 /* Wallet row: active icons (incognito / rpc / fiat $) lose the underline — the

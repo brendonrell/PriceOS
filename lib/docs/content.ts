@@ -161,6 +161,14 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
         ],
     },
     {
+        title: 'Keychains',
+        slugs: [
+            'keychains/overview',
+            'keychains/the-depanneur',
+            'keychains/the-living-charm',
+        ],
+    },
+    {
         title: 'The Gnomes',
         slugs: [
             'gnomes/overview',

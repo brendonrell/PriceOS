@@ -581,6 +581,23 @@ export default function PriceSpriteModal() {
                         {`ASCII-ID: ${asciiIdHidden ? 'OFF' : 'ON'}`}
                     </button>
                 </div>
+
+                {/* ⚷ Keychains — the capsule machine door (Brendon, 2026-07-27:
+                    "for now the door can be a button at the bottom of the
+                    PriceSprite modal"). Toast until the machine surface ships. */}
+                <div className="ps-action-row ps-reveal ps-d7">
+                    <button
+                        className="ps-action-btn"
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            showToast('Keychains: COMING SOON');
+                        }}
+                    >
+                        <span className="ps-action-icon">{`⚷${VS15}`}</span>
+                        {'KEYCHAINS'}
+                    </button>
+                </div>
             </div>
         </div>
     );

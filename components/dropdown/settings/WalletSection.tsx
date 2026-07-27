@@ -365,6 +365,30 @@ export function WalletSection() {
                         {GNOME_GLYPH}{'︎'}
                     </span>
                 )}
+                {/* ⚷ Keychains — the capsule machine door (Brendon, 2026-07-27:
+                    "add the glyph beside the gnome one now"). Chiron, astrology's
+                    "the key" — the wounded healer. Toast until the machine surface
+                    ships; then this opens it. */}
+                <span
+                    className="rpc-ping-btn keychain-wallet-btn"
+                    id="keychainWalletBtn"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        showToast('Keychains: COMING SOON');
+                    }}
+                    title="keychains — the capsule machine"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            showToast('Keychains: COMING SOON');
+                        }
+                    }}
+                >
+                    {'⚷'}{'︎'}
+                </span>
                 <span
                     className={`rpc-ping-btn incognito-btn${incognitoActive ? ' rpc-active' : ''}`}
                     id="incognitoProxyBtn"
