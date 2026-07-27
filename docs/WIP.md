@@ -8,7 +8,57 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-00000000000000. ✅ **2026-07-27 (LATEST) — PD KEYCHAINS: THE WHOLE SYSTEM
+000000000000000. ✅ **2026-07-27 (LATEST) — PRE-LAUNCH POLISH MEGA-BATCH
+   (Fable). All on `dev` (tip `1a55a59`), tree clean, tsc + real build green,
+   138 tests pass, every round Brendon-approved + pushed + auto-deployed.
+   ClickUp record: `86bb4cu8d` (02·UI, complete).**
+
+   **Nothing is in flight.**
+
+   1. **Command stone**: the ONLY minimize is the deliberate swipe down
+      (typed "minimize" kept, his 07-21 order). Route-change auto-park,
+      long-press collapse, Escape-to-dot — all removed (his 07-27 order:
+      "THERE IS NO OTHER WAY IT MINIMIZES"). miniplayer↔stone gap 8→4px.
+   2. **Portfolios wear fiat** (grand total + category totals, only when a
+      fiat currency is picked — site-standard ~fiat suffix).
+   3. **Ambient Light PRESETS** — the sticker Spreads row verbatim under
+      Scenes: SAVE + 3 numbered renameable slots, full options snapshot,
+      account-backed (`ambientPresets` in the settings envelope).
+   4. **Follow "rate limited" bug fixed** — middleware: normal bucket
+      100→300/min; anoint/streak/achievements moved to WRITE-only
+      sensitivity (their routine GETs were draining the shared 15/min
+      bucket the FOLLOW POST rides).
+   5. **ASCII backups at max fidelity** — 256-col grid (the format ceiling;
+      ultra-tall pieces clamp cols so rows ≤256), fallback derives sample a
+      1024px source. Old 192-wide pins left alone (Brendon: test-phase
+      pieces are disposable, no re-pin sweep).
+   6. **Sharing fixed** — every profile unfurls specific (@handle title +
+      member #/since · pieces held · PriceScore; #1 Showcase piece as a
+      large card when hung). ARTIST profiles lead with their LATEST MINTED
+      piece across all their projects (was first-project #1), falling back
+      to the old cover if the fresh mint's preview isn't stored yet.
+   7. **THE VAULT v2 — sealed door DELETED** (his order: "nonsensical…
+      clean page, USEFUL"). Albums-but-owned-only: numbered vaults
+      (vaultStore = albumStore twin, settings envelope), in-panel + ADD
+      picker of the owner's holdings (tap to vault/un-vault), public per
+      profile via `/api/vaults/[address]` (lifts ONLY the vaults key +
+      serves per-piece money facts), stats block BELOW the pieces (est at
+      floor · spent · net · best · avg hold · top rarity — all real).
+      Glyph **⧈** = GLYPHS.md §12k (my pick, flagged swappable; he loved
+      the ship). User docs corrected (identity-and-profiles, whats-public,
+      glossary).
+   8. **THE SPEED PASS (Raster round 1)** — edge-cached first paint in the
+      custom worker: GET page documents cached at the Cloudflare edge
+      (300s TTL; API/static/RSC-flight/Set-Cookie all bypass; page HTML is
+      viewer-independent — auth + data hydrate client-side). **Measured
+      live: home TTFB 2.6–3.9s → ~0.2–0.3s on cache hits.** Remaining
+      tail: first visitor after a quiet spell pays ~1–2s (isolate cold
+      start + full render) — the NEXT speed round is worker startup-weight
+      trim; Brendon hasn't ordered it yet.
+   9. Carry-over from the Soundtracks session note: its ClickUp sync was
+      never done (that session's features have no ClickUp records).
+
+00000000000000. ✅ **2026-07-27 — PD KEYCHAINS: THE WHOLE SYSTEM
    (Fable). Contracts on `pd-contracts` main (tip `4ef4c12`) · doors + user
    docs on `dev` (tip `94ba316`) · both trees clean · contracts suite
    372/372 · real build green · every art claim proven with renders FROM THE
