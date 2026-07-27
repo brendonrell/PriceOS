@@ -11,7 +11,7 @@ import { badRequest, serverError } from '@/lib/errors';
 import { getProject } from '@/lib/project/registry';
 import {
   brightnessBand, saturationBand, complexityBand, toneMood, colorTemperature, orientationOf,
-  paletteBand, contrastBand, warmthBand, symmetryBand, airBand, textureBand,
+  paletteBand, contrastBand, warmthBand, symmetryBand, airBand, textureBand, geometryBand,
 } from '@/lib/output/derive';
 
 export const revalidate = 0;
@@ -46,6 +46,7 @@ export const POST = requireAuth(async (req: NextRequest) => {
           symmetry?: number; air?: number; texture?: number;
           scene?: string | null; shapeCount?: number; pattern?: string | null;
           shapes?: { bucket?: string; kind?: string; share?: number; pos?: string }[];
+          geometry?: number | null;
         }
       | null;
     const slug = body?.slug?.trim().toLowerCase();
@@ -96,6 +97,8 @@ export const POST = requireAuth(async (req: NextRequest) => {
     const sy = unit(body?.symmetry); if (sy != null) { row.symmetry = sy; row.symmetry_band = symmetryBand(sy); }
     const ai = unit(body?.air); if (ai != null) { row.air = ai; row.air_band = airBand(ai); }
     const tx = unit(body?.texture); if (tx != null) { row.texture = tx; row.texture_band = textureBand(tx); }
+    // ── Geometry (fingerprint v4, 2026-07-27 — the taste-axes unlock) ──
+    const ge = unit(body?.geometry); if (ge != null) { row.geometry = ge; row.geometry_band = geometryBand(ge); }
 
     // ── The quantitative read (fingerprint v3) — scene + shapes ──
     const KINDS = new Set(['circle', 'square', 'bar', 'shape']);

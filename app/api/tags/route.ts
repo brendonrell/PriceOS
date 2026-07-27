@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAnon, getSupabaseService, type UserRow } from '@/lib/supabase';
 import { serverError } from '@/lib/errors';
+import { teamStyleIndex } from '@/lib/tags/catalog';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +20,7 @@ export const dynamic = 'force-dynamic';
  * them global so we only need to change once"). A colour edit there repaints
  * every surface at once, with nothing baked into a response.
  *
- * `hiddenTags` (the tags an owner switched off) lives in the private settings
+ * `shownTags` (the tags an owner switched ON — tags are off by default) lives in the private settings
  * envelope, so it's lifted with the service key exactly as the profile page does
  * — only that one array of ids leaves the server, never the envelope.
  */
@@ -34,12 +35,16 @@ export interface TagFacts {
   address: string | null;
   priceHoldRank: number | null;
   priceHeld: number | null;
-  hiddenTags: string[];
+  shownTags: string[];
   /** The owner's @name font — tag labels wear it on their profile, so they wear
    *  it here too; identity reads the same everywhere. */
   nameFont: string | null;
   /** The owner's all-tags paint (one colour across their whole row), or null. */
   tagPaint: string | null;
+  /** The owner's @handle — gates the handle-reserved TEAM tags (WTBS, Petey). */
+  handle: string | null;
+  /** Which of the twelve WTBS-family treatments the owner cycled to. */
+  teamTagStyle: number;
 }
 
 export interface TagsResponse {
@@ -97,16 +102,19 @@ export async function GET(req: Request): Promise<NextResponse> {
       } catch { /* no allowlist read → nobody gets the Artist tag, never a 500 */ }
     }
 
-    /* Hidden tags — private envelope, service key, one read, ids only. */
-    const hiddenByHandle = new Map<string, string[]>();
+    /* Shown tags + the WTBS-family style pick — private envelope, service key,
+       one read, and only those two values ever leave the server. */
+    const shownByHandle = new Map<string, string[]>();
+    const styleByHandle = new Map<string, number>();
     try {
       const svc = getSupabaseService();
       const s = await svc.from('users').select('handle, settings').in('handle', handles);
-      for (const r of (s.data ?? []) as Array<{ handle: string | null; settings?: { hiddenTags?: unknown } | null }>) {
+      for (const r of (s.data ?? []) as Array<{ handle: string | null; settings?: { shownTags?: unknown; teamTagStyle?: unknown } | null }>) {
         if (!r.handle) continue;
-        hiddenByHandle.set(r.handle.toLowerCase(), strList(r.settings?.hiddenTags));
+        shownByHandle.set(r.handle.toLowerCase(), strList(r.settings?.shownTags));
+        styleByHandle.set(r.handle.toLowerCase(), teamStyleIndex(r.settings?.teamTagStyle));
       }
-    } catch { /* leave empty — every tag shows rather than none */ }
+    } catch { /* leave empty — nobody's tags show, which is the default anyway */ }
 
     const users: Record<string, TagFacts> = {};
     for (const u of rows) {
@@ -122,9 +130,11 @@ export async function GET(req: Request): Promise<NextResponse> {
         address: addr,
         priceHoldRank: u.price_hold_rank ?? null,
         priceHeld: u.price_held == null ? null : Number(u.price_held),
-        hiddenTags: hiddenByHandle.get(h) ?? [],
+        shownTags: shownByHandle.get(h) ?? [],
         nameFont: u.name_font ?? null,
         tagPaint: u.tag_paint ?? null,
+        handle: h,
+        teamTagStyle: styleByHandle.get(h) ?? 0,
       };
     }
 

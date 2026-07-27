@@ -23,6 +23,7 @@
 
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { useRouter } from 'next/navigation';
 import { priceDayContents } from '../../lib/priceday/priceday';
 import { usePriceDay } from '../../lib/priceday/usePriceDay';
 import { fmPlay } from '../../lib/fm/fmBus';
@@ -45,6 +46,7 @@ import TraitsUI from '../project/TraitsUI';
 import AudienceIndicator from '../project/AudienceIndicator';
 import ReplayPanel from '../project/ReplayPanel';
 import ArtworkLive from './ArtworkLive';
+import DeepZoomLayer from '../art/DeepZoomLayer';
 import MarginaliaCeremony from './MarginaliaCeremony';
 import OutputTitleStar from './OutputTitleStar';
 import OutputFollowButton from './OutputFollowButton';
@@ -208,6 +210,8 @@ export default function ArtworkPageBody({
     const { open: openModal } = useModal();
     const { openAnchorPrompt } = useValuePrompt();
     const { notifs } = usePdNotifs();
+    /* Deep Zoom host — the Artwork tab's stage (gestures attach here). */
+    const featureStageRef = useRef<HTMLDivElement>(null);
     const [activeTab, setActiveTab] = useState<ArtworkTab>('artwork');
     const [moreL1, setMoreL1] = useState<MoreL1>('attributes');
     /* Search beside the +More pills — filters the active searchable tab. */
@@ -279,8 +283,10 @@ export default function ArtworkPageBody({
         return () => window.removeEventListener('pd:anchors-changed', read);
     }, [anchorKey]);
     const soundtrack = getProject(slug)?.soundtrack ?? null;
+    const router = useRouter();
     const projectHref = `/art/${slug}`;
     const fullscreenHref = `/art/${slug}/${numberPart}/full`;
+    const darkroomHref = `/art/${slug}/${numberPart}/darkroom`;
 
     const artistHandle = getProject(slug)?.artistHandle ?? 'opus4-6';
 
@@ -1006,6 +1012,7 @@ export default function ArtworkPageBody({
                 style={{ display: onArtwork ? undefined : 'none' }}
             >
                 <div
+                    ref={featureStageRef}
                     className="artwork-feature-stage"
                     role="button"
                     tabIndex={0}
@@ -1020,6 +1027,21 @@ export default function ArtworkPageBody({
                     <MarginaliaCeremony slug={slug} tokenNo={numberPart}>
                         <ArtworkLive slug={slug} id={globalId} contain className="artwork-feature-art" />
                     </MarginaliaCeremony>
+                    {/* DEEP ZOOM (2026-07-26) — pinch (or trackpad-pinch /
+                        ctrl-wheel, since this page scrolls) into the render;
+                        it re-paints sharp at the new scale. A plain tap at 1×
+                        still opens the modal exactly as before.
+                        THE DARKROOM DOOR (2026-07-27, Brendon's call): the
+                        long-press on this stage opens the Darkroom. */}
+                    <DeepZoomLayer
+                        containerRef={featureStageRef}
+                        getArt={() => featureStageRef.current?.querySelector('.artwork-feature-art') ?? null}
+                        slug={slug}
+                        id={globalId}
+                        disabled={notifs.asciiArt || !onArtwork}
+                        wheelNeedsModifier
+                        onLongPress={() => router.push(darkroomHref)}
+                    />
                 </div>
                 <div className="artwork-feature-foot">
                     <span className="aff-id">

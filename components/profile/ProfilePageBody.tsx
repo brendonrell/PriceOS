@@ -72,6 +72,7 @@ import VaultPanel from './VaultPanel';
 import DiscordSection from './DiscordSection';
 import CounterpartiesPanel from './CounterpartiesPanel';
 import TargetsPanel from './TargetsPanel';
+import CallsPanel from './CallsPanel';
 import { MAX_PRICE_SCORE, TOTAL_COUNT } from '../../lib/achievements/catalog';
 import Hero from '../hero/Hero';
 import CompletionismModal from '../CompletionismModal';
@@ -81,9 +82,11 @@ import { ProfileTags } from './ProfileTags';
 import { useProfileTags } from '../../lib/hooks/useProfileTags';
 import { useNameFont } from '../../lib/hooks/useNameFont';
 import { useTagPaint } from '../../lib/hooks/useTagPaint';
-import { useHiddenTags } from '../../lib/hooks/useHiddenTags';
+import { useTeamTagStyle } from '../../lib/hooks/useTeamTagStyle';
+import { useRudxaneRoll } from '../../lib/hooks/useRudxaneRoll';
+import { useShownTags } from '../../lib/hooks/useShownTags';
 import { deriveTags } from '../../lib/tags/derive';
-import { PERSONA_TAGS, tagTextOn, TAG_PAINTS } from '../../lib/tags/catalog';
+import { PERSONA_TAGS, tagTextOn, TAG_PAINTS, isTeamStyleTag } from '../../lib/tags/catalog';
 import { NAME_FONTS, styleName } from '../../lib/profile/nameFont';
 import { getProject, allProjects, projectsByArtist, artistSignatureColor } from '../../lib/project/registry';
 import HomeProjectFacetBar from '../home/HomeProjectFacetBar';
@@ -152,7 +155,7 @@ function ProfilePageBodyInner({
     const isSpited = useSpiteMatcher();
     const { notifs } = usePdNotifs();
     const isZen = notifs.zenMode;
-    const { sort, group, restoreGroupFor } = useSort();
+    const { sort, group, groupLayers, restoreGroupFor } = useSort();
 
     // Real user row — fetched server-side from the handle in the URL and
     // passed in, so the hero renders real values on first paint (no popin).
@@ -260,8 +263,18 @@ function ProfilePageBodyInner({
     /* Tags the owner switched OFF — hidden from the shown row (every viewer),
        but still listed in the owner's picker to tap back on (Brendon,
        2026-07-22). */
-    const { hidden: myHidden, toggleHidden } = useHiddenTags(isOwnProfile ? user.hidden_tags : undefined);
-    const ownerHidden = isOwnProfile ? myHidden : (user.hidden_tags ?? []);
+    /* ⛔ TAGS ARE OFF BY DEFAULT (Brendon, 2026-07-26) — a profile shows only the
+       tags its owner went and switched ON in the picker. */
+    const { shown: myShown, toggleShown } = useShownTags(isOwnProfile ? user.shown_tags : undefined);
+    const ownerShown = isOwnProfile ? myShown : (user.shown_tags ?? []);
+    /* The WTBS-family chip treatment (WTBS / Petey) — the owner cycles it by
+       tapping their own chip; visitors see the owner's pick (Brendon, 2026-07-26). */
+    const { style: myTeamTagStyle, cycleStyle: cycleTeamTagStyle } = useTeamTagStyle(
+        isOwnProfile ? user.team_tag_style : undefined,
+    );
+    const ownerTeamTagStyle = isOwnProfile ? myTeamTagStyle : (user.team_tag_style ?? 0);
+    /* @rudxane's chip re-rolls its pronunciation every page load. */
+    const rudxaneRoll = useRudxaneRoll();
     /* The @name letters, restyled in the owner's chosen Unicode font ("@" and the
        underlying handle stay plain; this is display only). */
     const styledHandle = styleName(displayHandle, ownerNameFont ?? null);
@@ -272,14 +285,17 @@ function ProfilePageBodyInner({
         isArtist: !!artistStatus,
         createdAt: user.created_at,
         address: user.address,
+        handle: user.handle ?? handle,
+        teamTagStyle: ownerTeamTagStyle,
+        rudxaneRoll,
         priceHoldRank: user.price_hold_rank,
         priceHeld: user.price_held,
-    }), [isOwnProfile, myTags, user.profile_tags, user.granted_tags, user.user_number, artistStatus, user.created_at, user.address, user.price_hold_rank, user.price_held]);
+    }), [isOwnProfile, myTags, user.profile_tags, user.granted_tags, user.user_number, artistStatus, user.created_at, user.address, user.handle, handle, ownerTeamTagStyle, rudxaneRoll, user.price_hold_rank, user.price_held]);
     /* Shown on the hero: full derived set minus the hidden ones (Manual → Earned
        → Chosen order via each tag's `order`). */
     const displayTags = useMemo(
-        () => deriveTags({ ...tagInput, hiddenTags: ownerHidden }),
-        [tagInput, ownerHidden],
+        () => deriveTags({ ...tagInput, shownTags: ownerShown }),
+        [tagInput, ownerShown],
     );
     /* The owner's picker lists EVERY tag they have (unfiltered) so hidden ones
        can be tapped back on. Personas come from the full catalog separately. */
@@ -679,7 +695,7 @@ function ProfilePageBodyInner({
        namespaced under the same store with a ":more" id so a refresh lands back
        on the same sub-section (e.g. My History), not just the +More tab. */
     const moreMemId = `${user.handle ?? handle}:more`;
-    const MORE_KEYS: ReadonlySet<string> = new Set<ProfileMoreL1>(['created', 'starred', 'wishlists', 'albums', 'offers', 'vault', 'sigil', 'loyalty', 'counterparties', 'history', 'info', 'achievements', 'discord', 'anointed', 'targets']);
+    const MORE_KEYS: ReadonlySet<string> = new Set<ProfileMoreL1>(['created', 'starred', 'wishlists', 'albums', 'offers', 'vault', 'sigil', 'loyalty', 'counterparties', 'history', 'info', 'achievements', 'discord', 'anointed', 'targets', 'calls']);
     const [moreL1, setMoreL1] = useState<ProfileMoreL1>(() => {
         // A pasted deep link's ?sub= wins here too (Share Any View).
         const shared = readViewParam('sub');
@@ -830,7 +846,7 @@ function ProfilePageBodyInner({
     if (onCollected) visitedCollected.current = true;
 
     const feedActive = onCollected && sort === 'feed';
-    const sortedFeedEvents = useLedgerFeed(feedActive, `/api/feed?address=${user.address.toLowerCase()}&limit=100`);
+    const sortedFeedEvents = useLedgerFeed(feedActive, `/api/feed?address=${user.address.toLowerCase()}&limit=100`, true);
 
     const {
         isArtist, artistProjects, effStyle, artistMode, createdUnderMore,
@@ -887,6 +903,13 @@ function ProfilePageBodyInner({
     const scMoveEligible = isOwnProfile && onShowcase && effStyle === 'static' && !artistShowcaseCreated;
     useEffect(() => {
         if (!scMoveEligible && scMoveMode) setScMoveMode(false);
+    }, [scMoveEligible, scMoveMode]);
+    /* The Bench reads move mode and only half-protrudes while it's on, so the
+       showcase grid stays visible under the drag (Brendon, 2026-07-26). */
+    useEffect(() => {
+        const on = scMoveEligible && scMoveMode;
+        document.body.classList.toggle('pd-showcase-move', on);
+        return () => { document.body.classList.remove('pd-showcase-move'); };
     }, [scMoveEligible, scMoveMode]);
     /* Live grid column metrics — lets each grouping header cap its width to
        the columns its pieces occupy (glyph ends with the art, 2026-07-12). */
@@ -1070,9 +1093,9 @@ function ProfilePageBodyInner({
                             the all-tags paints at the end. No section headers. */}
                         <div className="profile-egg-row cust-scroll profile-tags-picker">
                             {myAutoTags.map((t) => {
-                                const on = !myHidden.includes(t.id);
+                                const on = myShown.includes(t.id);
                                 const flip = () => {
-                                    toggleHidden(t.id);
+                                    toggleShown(t.id);
                                     showToast(`Tag: ${on ? 'HIDDEN' : 'SHOWN'} · ${t.label.toUpperCase()}`);
                                 };
                                 return (
@@ -1139,6 +1162,38 @@ function ProfilePageBodyInner({
                                     </div>
                                 );
                             })}
+                            {/* THE PICKER — any colour you like, at the end of
+                                the paints (Brendon, 2026-07-26). Same hidden
+                                colour-input pattern as the colorway swatch. */}
+                            {(() => {
+                                const custom = /^#[0-9A-F]{6}$/i.test(myTagPaint ?? '');
+                                const hex = custom ? (myTagPaint as string) : '#FF0055';
+                                return (
+                                    <label
+                                        className={`pill pill-l3 tag-pick tag-pick-custom${custom ? ' active' : ''}`}
+                                        style={{ ['--tag' as string]: hex, ['--tag-text' as string]: tagTextOn(hex) }}
+                                        title="Paint every tag — your own colour"
+                                    >
+                                        <span className="stat-name">{`◩︎ ${custom ? hex : 'Custom'}`}</span>
+                                        <input
+                                            type="color"
+                                            value={hex}
+                                            onChange={(e) => {
+                                                const v = e.target.value.toUpperCase();
+                                                setMyTagPaint(v);
+                                                showToast(`Tags: ${v}`);
+                                            }}
+                                            tabIndex={-1}
+                                            aria-label="Paint every tag your own colour"
+                                            style={{
+                                                position: 'absolute', opacity: 0,
+                                                width: '1px', height: '1px',
+                                                bottom: 0, left: '50%', pointerEvents: 'none',
+                                            }}
+                                        />
+                                    </label>
+                                );
+                            })()}
                         </div>
                         {/* Row 3 — FONT: restyle the @name. Each pill previews
                             itself; the "@" always stays plain. */}
@@ -1491,7 +1546,7 @@ function ProfilePageBodyInner({
                     </div>
                 }
             >
-                    <ProfileTags tags={displayTags} font={ownerNameFont} paint={ownerTagPaint} onTagTap={isOwnProfile ? toggleEgg : undefined} />
+                    <ProfileTags tags={displayTags} font={ownerNameFont} paint={ownerTagPaint} onTagTap={isOwnProfile ? (t) => (isTeamStyleTag(t.id) ? cycleTeamTagStyle() : toggleEgg()) : undefined} />
                     <HeroStickers
                         ownerHandle={user.handle ?? handle}
                         isOwn={isOwnProfile}
@@ -1625,6 +1680,7 @@ function ProfilePageBodyInner({
                                         { key: 'achievements', label: 'Achievements', active: effMoreL1 === 'achievements', onClick: () => setMoreL1('achievements') },
                                         { key: 'info',      label: 'Info',      active: effMoreL1 === 'info',      onClick: () => setMoreL1('info')      },
                                         { key: 'targets',   label: 'Targets',   active: effMoreL1 === 'targets',   onClick: () => setMoreL1('targets')   },
+                                        { key: 'calls',     label: 'Calls',     active: effMoreL1 === 'calls',     onClick: () => setMoreL1('calls')     },
                                         { key: 'anointed',  label: 'Anointed',  active: effMoreL1 === 'anointed',  onClick: () => setMoreL1('anointed')  },
                                         /* My History — PRIVATE, last pill in the row, own profile only. */
                                         ...(isOwnProfile
@@ -1899,6 +1955,16 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                         />
                     )}
 
+                    {/* Calls — this wallet's Conviction record (the Call
+                        Ledger): public, immutable calls settled CROWNED/REKT
+                        against the floor. Sits beside Targets on purpose. */}
+                    {onMore && effMoreL1 === 'calls' && (
+                        <CallsPanel
+                            address={user.address}
+                            isOwnProfile={isOwnProfile}
+                        />
+                    )}
+
                     {onMore && effMoreL1 === 'anointed' && (
                         <ProfileAnointedPanel
                             address={user.address}
@@ -1971,6 +2037,9 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
             <section
                 id="gallery"
                 aria-label="Gallery"
+                /* Grouped Collected = zoomed out: 4-up on mobile so a grouping
+                   reads as groups, not a long 2-up scroll (Brendon, 2026-07-26). */
+                className={onCollected && collectedGroups != null ? 'is-grouped' : undefined}
                 style={{ display: galleryVisible ? undefined : 'none' }}
             >
                 {/* SHOWCASE tiles in a display:contents box — they stay real grid
@@ -2052,28 +2121,32 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                                   const cards = blk.cards;
                                   const l1Collapsed = collapsedGroups.has(blk.l1Key);
                                   const l2Collapsed = blk.l2Key ? collapsedGroups.has(blk.l2Key) : false;
-                                  // Section folded → hide all cards (and any sub-header).
-                                  const cardsHidden = l1Collapsed || l2Collapsed;
+                                  const l3Collapsed = blk.l3Key ? collapsedGroups.has(blk.l3Key) : false;
+                                  // Any folded ancestor hides the cards (and every sub-header).
+                                  const cardsHidden = l1Collapsed || l2Collapsed || l3Collapsed;
                                   return (
                                       <Fragment key={blk.key}>
                                           {blk.heads.map((h, hi) => {
                                               const isL2 = h.level === 2;
-                                              // A folded level-1 also folds away its sub-headers.
-                                              if (isL2 && l1Collapsed) return null;
-                                              const ckey = isL2 ? blk.l2Key! : blk.l1Key;
-                                              const folded = isL2 ? l2Collapsed : l1Collapsed;
+                                              const isL3 = h.level === 3;
+                                              /* A folded ancestor folds away every header nested under
+                                                 it — two levels deep now (Brendon, 2026-07-26). */
+                                              if (h.level > 1 && l1Collapsed) return null;
+                                              if (isL3 && l2Collapsed) return null;
+                                              const ckey = isL3 ? blk.l3Key! : isL2 ? blk.l2Key! : blk.l1Key;
+                                              const folded = isL3 ? l3Collapsed : isL2 ? l2Collapsed : l1Collapsed;
                                               /* Cap the header to the columns its pieces occupy so the
                                                  trailing dimension glyph ends with the art, never at the
                                                  page edge (Brendon, 2026-07-12). */
                                               const nPieces = h.count ?? blk.group?.ids.length ?? blk.cards?.length ?? 0;
                                               const capW = !h.soon && galleryCols && nPieces > 0
-                                                  ? colsWidth(galleryCols, nPieces) + (isL2 ? 30 : 0)
+                                                  ? colsWidth(galleryCols, nPieces) + (isL2 ? 30 : 0) + (isL3 ? 60 : 0)
                                                   : undefined;
                                               return (
                                                   <div
                                                       key={hi}
                                                       style={capW ? { maxWidth: capW } : undefined}
-                                                      className={`gallery-group-header is-collapsible${isL2 ? ' level-2' : ''}${h.soon ? ' soon' : ''}${folded ? ' collapsed' : ''}`}
+                                                      className={`gallery-group-header is-collapsible${isL2 ? ' level-2' : ''}${isL3 ? ' level-3' : ''}${h.soon ? ' soon' : ''}${folded ? ' collapsed' : ''}`}
                                                       role="button"
                                                       tabIndex={0}
                                                       aria-expanded={!folded}
@@ -2094,8 +2167,8 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                                                       {!h.soon && h.count != null && h.count > 0
                                                           ? <span className="ggh-count">{h.count}</span>
                                                           : null}
-                                                      {!h.soon && groupHeaderGlyph(group, h.level)
-                                                          ? <span className="ggh-glyph" aria-hidden="true">{groupHeaderGlyph(group, h.level)}</span>
+                                                      {!h.soon && groupHeaderGlyph(groupLayers, h.level)
+                                                          ? <span className="ggh-glyph" aria-hidden="true">{groupHeaderGlyph(groupLayers, h.level)}</span>
                                                           : null}
                                                   </div>
                                               );

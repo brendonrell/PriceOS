@@ -12,7 +12,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { buildOutputAttributes, type AttrInput } from '../../lib/output/attributes';
 import { fetchEditionStats, type EditionStats } from '../../lib/output/editionStats';
-import { samplePaletteChips, type PaletteChip } from '../../lib/output/paletteChips';
+import { samplePaletteChips, sampleGeometry, type PaletteChip } from '../../lib/output/paletteChips';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { composeCelestialReading } from '../../lib/output/celestialReading';
@@ -43,10 +43,33 @@ export default function AttributesPanel({ query, ...props }: AttrInput & { query
         return () => { cancelled = true; window.clearTimeout(t); };
     }, [props.slug, props.id]);
 
-    const groups = useMemo(
-        () => buildOutputAttributes({ ...props, edition, palette }),
-        [props, edition, palette]
-    );
+    /* Geometry (taste axes, v4) — stored value when the row has it; otherwise
+       read live from the piece's own offscreen render (same deferred pattern
+       as the swatches; cached per piece). Rows captured before the v4 read
+       never re-capture (first-viewer-wins), so live IS their permanent path. */
+    const [liveGeometry, setLiveGeometry] = useState<number | null>(null);
+    useEffect(() => {
+        if (props.fingerprint?.geometry != null) return;
+        let cancelled = false;
+        const t = window.setTimeout(() => {
+            const g = sampleGeometry(props.slug, props.id);
+            if (!cancelled) setLiveGeometry(g);
+        }, 0);
+        return () => { cancelled = true; window.clearTimeout(t); };
+    }, [props.slug, props.id, props.fingerprint?.geometry]);
+
+    const groups = useMemo(() => {
+        const geometry = props.fingerprint?.geometry ?? liveGeometry;
+        const fingerprint = props.fingerprint
+            ? { ...props.fingerprint, geometry }
+            : geometry != null
+                ? {
+                      dominant_color: null, aspect: null, brightness: null,
+                      saturation: null, complexity: null, geometry,
+                  }
+                : null;
+        return buildOutputAttributes({ ...props, fingerprint, edition, palette });
+    }, [props, edition, palette, liveGeometry]);
     const { notifs } = usePdNotifs();
     const { showToast } = useToast();
     const { openCriteriaOfferSheet } = useMarketSheet();

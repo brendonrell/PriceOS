@@ -172,8 +172,12 @@ export const STATE_CACHE_KEYS = {
     /** Command Stone last bubble line — restores the last speech bubble on
      *  reopen. Settings envelope. Account-backed 2026-07-22. */
     stoneLastLine: 'pd_stone_last_line',
-    /** Profile tags switched OFF by the owner. Settings envelope. 2026-07-22. */
-    hiddenTags: 'pd_hidden_tags',
+    /** Profile tags switched ON by the owner — tags are OFF by default
+     *  platform-wide. Settings envelope. 2026-07-26. */
+    shownTags: 'pd_shown_tags',
+    /** Which of the twelve WTBS-family chip treatments the owner cycled to.
+     *  Settings envelope. 2026-07-26. */
+    teamTagStyle: 'pd_team_tag_style',
 } as const;
 
 /** Fired after a server snapshot is written into the caches. Any context that
@@ -500,9 +504,13 @@ export function hydrateFromRow(row: UserRow): void {
         } else if (s.stoneLastLine === null || s.stoneLastLine === '') {
             localStorage.removeItem(STATE_CACHE_KEYS.stoneLastLine);
         }
-        if (Array.isArray(s.hiddenTags)) {
-            localStorage.setItem(STATE_CACHE_KEYS.hiddenTags, JSON.stringify(s.hiddenTags));
-            window.dispatchEvent(new CustomEvent('pd:hidden-tags-changed', { detail: s.hiddenTags }));
+        if (Array.isArray(s.shownTags)) {
+            localStorage.setItem(STATE_CACHE_KEYS.shownTags, JSON.stringify(s.shownTags));
+            window.dispatchEvent(new CustomEvent('pd:shown-tags-changed', { detail: s.shownTags }));
+        }
+        if (typeof s.teamTagStyle === 'number' && Number.isFinite(s.teamTagStyle)) {
+            localStorage.setItem(STATE_CACHE_KEYS.teamTagStyle, JSON.stringify(s.teamTagStyle));
+            window.dispatchEvent(new CustomEvent('pd:team-tag-style-changed', { detail: s.teamTagStyle }));
         }
 
         // grid_presets → unified cache the presetStore reads (Gallery View

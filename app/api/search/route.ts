@@ -314,9 +314,17 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           .limit(16)
       : null;
 
+    /* An @handle FRAGMENT searches people from the very first letter (Brendon,
+       2026-07-26). The general text floor is 2 characters, which is right for
+       project/artwork text but made the inline @mention lookup look broken:
+       typing "@b" returned nothing and the popover only appeared on the second
+       letter. Scoped to the USER lane deliberately — the project lanes keep the
+       2-character floor, so this widens nothing else. */
+    const handleFragment = parsed.handle !== null && parsed.handle.length >= 1;
     const userFilters: string[] = [];
-    if (wantText) {
-      userFilters.push(`ens_name.ilike.${pattern}`, `handle.ilike.${pattern}`);
+    if (wantText || handleFragment) {
+      const userPattern = wantText ? pattern : ilikePattern(parsed.handle!);
+      userFilters.push(`ens_name.ilike.${userPattern}`, `handle.ilike.${userPattern}`);
     }
     if (parsed.address) userFilters.push(`address.ilike.${ilikePattern(parsed.address)}`);
     if (parsed.ens) userFilters.push(`ens_name.ilike.${ilikePattern(parsed.ens)}`);

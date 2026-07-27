@@ -290,13 +290,23 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
                 else setMgrOpen(true);
             }
         };
+        /* THE PAGE MUST SCROLL WHEN YOU DRAG THE STICKER AREA (Brendon,
+           2026-07-27). The area used to swallow every touch, so a finger that
+           landed on your stickers froze the page. It now scrolls like anything
+           else — and once a long-press has actually grabbed a sticker, this
+           blocks the scroll for that gesture so the drag still moves it. */
+        const onTouchMove = (e: TouchEvent) => {
+            if (press.current?.grabbed) e.preventDefault();
+        };
         window.addEventListener('pointermove', onMove);
         window.addEventListener('pointerup', onUp);
         window.addEventListener('pointercancel', onUp);
+        window.addEventListener('touchmove', onTouchMove, { passive: false });
         return () => {
             window.removeEventListener('pointermove', onMove);
             window.removeEventListener('pointerup', onUp);
             window.removeEventListener('pointercancel', onUp);
+            window.removeEventListener('touchmove', onTouchMove);
         };
     }, [isOwn, preview, clearLp]);
 
@@ -360,11 +370,10 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
             baseY = cr.height ? ((sr.top + sr.height / 2 - cr.top) / cr.height) * 100 : 50;
         }
         press.current = { id: s.id, startX: e.clientX, startY: e.clientY, moved: false, grabbed: false, baseX, baseY };
-        if (liftedRef.current === s.id) {
-            press.current.grabbed = true;
-            raiseSticker(s.id);
-            return;
-        }
+        /* A STICKER DOES NOT MOVE WHEN YOU TOUCH IT (Brendon, 2026-07-27).
+           Every grab — first or fiftieth — is earned by the long-press. A
+           lifted sticker used to hand itself over on contact, so the lightest
+           accidental touch shifted it. Touching it now settles it instead. */
         clearLp();
         lpTimer.current = window.setTimeout(() => {
             lpTimer.current = null;

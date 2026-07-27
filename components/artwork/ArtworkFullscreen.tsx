@@ -10,9 +10,17 @@
  * Mounted by app/art/[slug]/[localId]/full/page.tsx.
  */
 
+import { useRef } from 'react';
 import ArtworkLive from './ArtworkLive';
+import DeepZoomLayer from '../art/DeepZoomLayer';
+import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 
 export default function ArtworkFullscreen({ slug, id }: { slug: string; id: number }) {
+    /* Deep Zoom (2026-07-26) — pinch or scroll into the live render and it
+       re-paints sharp at the new scale. The host div gives the layer a
+       positioned, clippable box without touching the page layout. */
+    const hostRef = useRef<HTMLDivElement>(null);
+    const { notifs } = usePdNotifs();
     return (
         <div className="artwork-fullscreen">
             {/* Back to the artwork page — sits just under the connect-menu
@@ -53,7 +61,16 @@ export default function ArtworkFullscreen({ slug, id }: { slug: string; id: numb
             >
                 {'⇠⇠︎'}
             </a>
-            <ArtworkLive slug={slug} id={id} contain className="artwork-fullscreen-art" />
+            <div ref={hostRef} className="dz-host">
+                <ArtworkLive slug={slug} id={id} contain className="artwork-fullscreen-art" />
+                <DeepZoomLayer
+                    containerRef={hostRef}
+                    getArt={() => hostRef.current?.querySelector('.artwork-fullscreen-art') ?? null}
+                    slug={slug}
+                    id={id}
+                    disabled={notifs.asciiArt}
+                />
+            </div>
         </div>
     );
 }

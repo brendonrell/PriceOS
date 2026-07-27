@@ -19,6 +19,8 @@ import { getStarredKeys, subscribeStarred, toggleStar as storeToggleStar } from 
 import { getWishlistKeys, subscribeWishlist, toggleWishlist as storeToggleWishlist } from '../../lib/pins/wishlistStore';
 import { readNoteFor } from '../../lib/notes/tokenNotes';
 import { shareLink } from '../../lib/pwa/share';
+import { useLongPress } from '../../lib/hooks/useLongPress';
+import AddToListCard from '../lists/AddToListCard';
 
 export default function OutputActionRow({
     slug, id, listed, owned, searchActive, onToggleSearch,
@@ -90,10 +92,17 @@ export default function OutputActionRow({
         else if (r === 'unavailable') showToast('Share: UNAVAILABLE');
     };
 
+    /* HOLD THE STAR → ADD TO LIST (Brendon, 2026-07-26). The tap still stars;
+       the hold opens the same sheet the Starred rows use. */
+    const [listOpen, setListOpen] = useState(false);
+    const holdStar = useLongPress(() => setListOpen(true));
+
     /* Same square button as the colorway picker below (.pill-colorway): bordered
        box, glyph centred; the `active` state mirrors the colorway active fill. */
-    const Btn = ({ glyph, title, active, onClick, extra, dead }: {
+    const Btn = ({ glyph, title, active, onClick, extra, dead, hold }: {
         glyph: string; title: string; active?: boolean; onClick: (e: React.MouseEvent) => void; extra?: string;
+        /** Press-and-hold handlers spread onto the button. */
+        hold?: Record<string, unknown>;
         /* DEAD = the verb doesn't apply to this piece for this viewer (today:
            the acquisition verbs on a piece you already own). Half-opacity and
            inert — the one place fading is allowed, because here the fade IS
@@ -106,6 +115,7 @@ export default function OutputActionRow({
             tabIndex={dead ? -1 : 0}
             aria-disabled={dead || undefined}
             title={title}
+            {...(dead ? null : hold)}
             onClick={dead ? (e) => e.stopPropagation() : onClick}
             onKeyDown={(e) => {
                 if (dead) return;
@@ -118,7 +128,7 @@ export default function OutputActionRow({
 
     return (
         <div className="output-action-row colorway-pills">
-            <Btn glyph={starred ? '★︎' : '☆︎'} title="Star" active={starred} onClick={onStar} extra="output-act-star" />
+            <Btn glyph={starred ? '★︎' : '☆︎'} title="Star — hold to add to a list" active={starred} onClick={onStar} extra="output-act-star" hold={holdStar} />
             <Btn
                 glyph={'✛︎'}
                 title={owned ? "You own this — there's nothing to wish for" : wishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
@@ -159,6 +169,21 @@ export default function OutputActionRow({
             >
                 {'⌕︎'}
             </div>
+
+            {/* ADD TO LIST — opened by holding the star, closed by the × or the
+                backdrop (Rule #-0.4). Same sheet the Starred rows open. */}
+            {listOpen && (
+                <AddToListCard
+                    items={[{ kind: 'output', slug, id }]}
+                    wishlisted={wishlisted}
+                    onWishlist={() => {
+                        const r = storeToggleWishlist(slug, id);
+                        return r === 'added' ? 'Wishlist: ADDED' : 'Wishlist: REMOVED';
+                    }}
+                    onDone={(msg) => { setListOpen(false); showToast(msg); }}
+                    onClose={() => setListOpen(false)}
+                />
+            )}
         </div>
     );
 }

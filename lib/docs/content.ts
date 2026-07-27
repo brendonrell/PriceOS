@@ -103,6 +103,10 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
         slugs: ['command-stone'],
     },
     {
+        title: 'To-Dos & Workflows',
+        slugs: ['todos-and-workflows'],
+    },
+    {
         title: 'Cartography',
         slugs: ['cartography'],
     },
@@ -117,6 +121,10 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
     {
         title: 'Lists',
         slugs: ['lists'],
+    },
+    {
+        title: 'The Fingerprint',
+        slugs: ['fingerprint'],
     },
     {
         title: 'The Dispatch',

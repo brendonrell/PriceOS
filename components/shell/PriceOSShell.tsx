@@ -81,6 +81,8 @@ import TodoReminders from '../todos/TodoReminders';
 import WorkflowWatcher from '../workflows/WorkflowWatcher';
 import OutputPreview from '../OutputPreview';
 import CollectorsModal from '../CollectorsModal';
+import TagPeopleModal from '../TagPeopleModal';
+import PingModal from '../PingModal';
 import FollowersModal from '../FollowersModal';
 import ProjectsProModal from '../ProjectsProModal';
 import PriceosModal from '../PriceosModal';
@@ -96,6 +98,7 @@ import StickersModal from '../StickersModal';
 import SpiteBookModal from '../SpiteBookModal';
 import TarotSpreadModal from '../TarotSpreadModal';
 import GnomeWalletModal from '../GnomeWalletModal';
+import PalPanel from '../pal/PalPanel';
 import OfferShieldCast from '../OfferShieldCast';
 import PanopticonConfirmModal from '../PanopticonConfirmModal';
 import CartographyModal from '../CartographyModal';
@@ -492,6 +495,12 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             <ErrorBoundary name="CollectorsModal">
                 <CollectorsModal />
             </ErrorBoundary>
+            <ErrorBoundary name="TagPeopleModal">
+                <TagPeopleModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="PingModal">
+                <PingModal />
+            </ErrorBoundary>
             <ErrorBoundary name="FollowersModal">
                 <FollowersModal />
             </ErrorBoundary>
@@ -536,6 +545,9 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="GnomeWalletModal">
                 <GnomeWalletModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="PalPanel">
+                <PalPanel />
             </ErrorBoundary>
             <ErrorBoundary name="OfferShieldCast">
                 <OfferShieldCast />

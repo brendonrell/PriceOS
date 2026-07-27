@@ -8,11 +8,16 @@
  * swipe between; the dots track + jump pages.
  *
  * Self-contained: reads its state ONCE when it opens and manages a LOCAL copy,
- * so toggling updates instantly with no global re-render (no flash). Each change
- * is saved in the background and the hero updates live via its own subscription.
+ * so toggling updates instantly with no global re-render (no flash).
+ *
+ * SAVE (Brendon, 2026-07-27): opening the manager starts a DRAFT. Every change
+ * paints on your hero straight away — you're editing your real profile, not a
+ * mock-up — but nothing is published to your account until you press SAVE and
+ * confirm it. Close without saving and your stickers go back exactly as they
+ * were. Spreads keep their own SAVE and are never touched by a discard.
  */
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useProfileHex } from '../../lib/hooks/useProfileHex';
 
 /* Measure-before-paint on the client (plain effect on the server, where there's
@@ -28,7 +33,7 @@ import {
 import {
     computeOwnedFor, getOffSheets, getOffIds, isActive,
     toggleSheetActive, toggleStickerActive,
-    getColourLock, applyColourLock, clearColourLock, type ColourLock,
+    getColourLock, applyColourLock, clearColourLock, holdStickerPush, type ColourLock,
 } from '../../lib/stickers/owned';
 import {
     useSpreads, saveSpread, renameSpread, deleteSpread, applySpread,
@@ -41,6 +46,10 @@ import {
     type Arrange, type Tilt, type Rows, type Align, type Border,
 } from '../../lib/stickers/heroPrefs';
 import { clearPlacements } from '../../lib/stickers/placements';
+import {
+    beginStickerDraft, saveStickerDraft, discardStickerDraft, stickersDiffer,
+    type StickerSnapshot,
+} from '../../lib/stickers/draft';
 import {
     encodeStickerCode, decodeStickerCode,
     ARRANGE_IDS, ROW_IDS, ALIGN_IDS, TILT_IDS, type StickerLook,
@@ -159,7 +168,7 @@ const MISSING_SHOWN = 12;
 const PAGES = 5;
 
 export function StickerManagerModal({
-    open, onClose, handle, previewNode,
+    open, onClose: closeRequested, handle, previewNode,
 }: {
     open: boolean;
     onClose: () => void;
@@ -199,6 +208,11 @@ export function StickerManagerModal({
     const [renaming, setRenaming] = useState<string | null>(null);
     const [renameText, setRenameText] = useState('');
     const [confirmDelete, setConfirmDelete] = useState<Spread | null>(null);
+    /* THE DRAFT — the stickers exactly as they stood when this opened, and
+       whether anything has moved since. Nothing reaches the account until SAVE. */
+    const snapRef = useRef<StickerSnapshot>({});
+    const [unsaved, setUnsaved] = useState(false);
+    const [confirmSave, setConfirmSave] = useState(false);
 
     const pagerRef = useRef<HTMLDivElement | null>(null);
     const plusBodyRef = useRef<HTMLDivElement | null>(null);
@@ -239,7 +253,38 @@ export function StickerManagerModal({
         setLock(getColourLock());
         setRenaming(null);
         setConfirmDelete(null);
+        setConfirmSave(false);
+        setUnsaved(false);
+        snapRef.current = beginStickerDraft();
     }, [open, handle]);
+
+    /* Any change to any sticker surface re-checks the draft against the
+       snapshot, so SAVE lights the moment something really differs — and goes
+       dark again if you put it back yourself. */
+    useEffect(() => {
+        if (!open) return;
+        const check = () => setUnsaved(stickersDiffer(snapRef.current));
+        window.addEventListener('pd:stickers-changed', check);
+        return () => window.removeEventListener('pd:stickers-changed', check);
+    }, [open]);
+
+    /* Leaving without saving puts every sticker back where it was. The gate is
+       released either way, so a closed manager never holds an account write. */
+    const onClose = useCallback(() => {
+        const hadChanges = stickersDiffer(snapRef.current);
+        discardStickerDraft(snapRef.current);
+        if (hadChanges) showToast('Stickers: UNCHANGED');
+        setUnsaved(false);
+        setConfirmSave(false);
+        closeRequested();
+    }, [closeRequested, showToast]);
+
+    const commitSave = useCallback(() => {
+        snapRef.current = saveStickerDraft();
+        setUnsaved(false);
+        setConfirmSave(false);
+        showToast('Stickers: SAVED');
+    }, [showToast]);
 
     // Restore the last-open swipe page so reopening doesn't snap back to page 1.
     useEffect(() => {
@@ -297,6 +342,10 @@ export function StickerManagerModal({
         lockBodyScroll();
         return () => unlockBodyScroll();
     }, [open]);
+
+    /* Safety: a manager that disappears without going through its own close
+       must never leave the account write held shut. */
+    useEffect(() => () => { holdStickerPush(false); }, []);
 
     // Anchor the popup DIRECTLY BELOW the sticker area so your stickers stay
     // visible above it — you watch the changes land as you make them. Height is
@@ -766,6 +815,39 @@ export function StickerManagerModal({
         </div>
     ) : null;
 
+    /* SAVE — the commit for everything in here. Its own full-width bar at the
+       foot of the menu, so it's reachable from every page and never fights the
+       header for room. It appears ONLY when something is genuinely unsaved, so
+       the menu you know is untouched until you've changed something. */
+    const saveBar = unsaved ? (
+        <div className="smgr-save-bar">
+            <button
+                type="button"
+                className="smgr-save"
+                title="Save your stickers as they look now"
+                onClick={() => setConfirmSave(true)}
+            >
+                SAVE CHANGES
+            </button>
+        </div>
+    ) : null;
+
+    /* The app's own confirm card, same as the Spread remove — you get to decide
+       to keep your stickers as they are. */
+    const saveConfirm = confirmSave ? (
+        <div className="starred-confirm-overlay" role="dialog" aria-modal="true" onClick={() => setConfirmSave(false)}>
+            <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
+                <div className="ms-confirm-question">
+                    Save your stickers as they look now? Cancel and they stay exactly as they were.
+                </div>
+                <div className="ms-confirm-btns">
+                    <button className="ms-confirm-btn ms-confirm-btn--cancel" onClick={() => setConfirmSave(false)}>Cancel</button>
+                    <button className="ms-confirm-btn ms-confirm-btn--ok" onClick={commitSave}>Save</button>
+                </div>
+            </div>
+        </div>
+    ) : null;
+
     /* Sheet toggles — styled like the trait value pills (outlined/greyed when
        off, filled when on) rather than the default chip. */
     const sheetPill = (sh: (typeof SHEETS)[number]) => (
@@ -787,6 +869,7 @@ export function StickerManagerModal({
         return createPortal(
             <div className="sticker-mgr-plus-backdrop" role="dialog" aria-modal="true" aria-label="Your stickers — full" onClick={onClose}>
                 {spreadConfirm}
+                {saveConfirm}
                 <div className="sticker-mgr-plus" onClick={(e) => e.stopPropagation()}>
                     <div className="smgr-plus-head">
                         <span className="ambient-pop-title-text"><span className="smgr-title-ic">{`⊞${VS15}`}</span> <span className="smgr-title-words">STICKER MANAGER+</span></span>
@@ -850,6 +933,7 @@ export function StickerManagerModal({
                             {stickerGrid}
                         </div>
                     </div>
+                    {saveBar}
                 </div>
             </div>,
             document.body,
@@ -859,6 +943,7 @@ export function StickerManagerModal({
     return createPortal(
         <div className="sticker-mgr-backdrop" role="dialog" aria-modal="true" aria-label="Your stickers" onClick={onClose}>
             {spreadConfirm}
+            {saveConfirm}
             <div
                 className="ambient-pop sticker-pop"
                 role="dialog"
@@ -867,7 +952,12 @@ export function StickerManagerModal({
                 /* Stay invisible until the anchor is measured, so the menu never
                    flashes at its default spot above the stickers before dropping
                    into place below them (Brendon, 2026-06-24). */
-                style={anchor ? { position: 'fixed', top: anchor.top, left: anchor.left, marginTop: 0, maxHeight: anchor.maxH } : { visibility: 'hidden' }}
+                /* The SAVE bar ADDS to the menu's height rather than eating into
+                   it — the control pages keep the exact room they were designed
+                   for, so nothing clips when there's something to save. */
+                style={anchor
+                    ? { position: 'fixed', top: anchor.top, left: anchor.left, marginTop: 0, maxHeight: anchor.maxH + (unsaved ? 44 : 0) }
+                    : { visibility: 'hidden' }}
             >
                 <span
                     className="ambient-pop-close"
@@ -907,15 +997,7 @@ export function StickerManagerModal({
                         </Row>
                     </div>
 
-                    {/* Page 2 — SPREADS. Its own page on purpose: three named
-                        pills plus SAVE need two lines at iPhone width, and the
-                        compact pages are a FIXED height that never scrolls, so
-                        sharing a page with Layout would clip the third slot. */}
-                    <div className="ambient-pop-page">
-                        {spreadsRow}
-                    </div>
-
-                    {/* Page 3 — Density (stack pile) above Align + Tilt */}
+                    {/* Page 2 — Density (stack pile) above Align + Tilt */}
                     <div className="ambient-pop-page">
                         <Row label="Density">
                             {DENSITIES.map((d) => (
@@ -932,6 +1014,14 @@ export function StickerManagerModal({
                                 <Chip key={tl.id} on={tilt === tl.id} onClick={() => pickTilt(tl.id)}>{tl.label}</Chip>
                             ))}
                         </Row>
+                    </div>
+
+                    {/* Page 3 — SPREADS (Brendon, 2026-07-27: the third window).
+                        Its own page on purpose: three named pills plus SAVE need
+                        two lines at iPhone width, and the compact pages are a
+                        FIXED height that never scrolls. */}
+                    <div className="ambient-pop-page">
+                        {spreadsRow}
                     </div>
 
                     {/* Page 4 */}
@@ -1016,6 +1106,7 @@ export function StickerManagerModal({
                         Surprise
                     </button>
                 </div>
+                {saveBar}
             </div>
         </div>,
         document.body,

@@ -206,9 +206,15 @@ export interface UserSettings {
    *  so re-opening the stone brings the same speech bubble back (Brendon,
    *  2026-07-22). Account-backed; mirror localStorage `pd_stone_last_line`. */
   stoneLastLine?: string | null;
-  /** PROFILE TAGS the owner switched OFF (Brendon, 2026-07-22) — any tag, CEO
-   *  included, can be hidden and tapped back on. Mirror `pd_hidden_tags`. */
-  hiddenTags?: string[];
+  /** PROFILE TAGS the owner switched ON (Brendon, 2026-07-26). ⛔ Tags are OFF
+   *  by default platform-wide — an automatic tag stays dark until its owner
+   *  finds the picker and lights it. Mirror `pd_shown_tags`. Supersedes the
+   *  2026-07-22 opt-OUT `hiddenTags`, which had the opposite default. */
+  shownTags?: string[];
+  /** Which of the twelve WTBS-family chip treatments the owner cycled to
+   *  (lib/tags/catalog TEAM_TAG_STYLES) — the WTBS + Petey chips only
+   *  (Brendon, 2026-07-26). Mirror `pd_team_tag_style`. */
+  teamTagStyle?: number;
 }
 
 /** One private note in the settings envelope (lib/notes/notesSync owns it). */

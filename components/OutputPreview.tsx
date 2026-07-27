@@ -123,6 +123,8 @@ import { addOutputTodo, getTodos, subscribeTodos, type TodoVerb, type TodoPriori
 import { getWishlistKeys, toggleWishlist as storeToggleWishlist, subscribeWishlist } from '../lib/pins/wishlistStore';
 import { albumsContaining, subscribeAlbums } from '../lib/pins/albumStore';
 import AlbumPickerCard from './album/AlbumPickerCard';
+import AddToListCard from './lists/AddToListCard';
+import { useLongPress } from '../lib/hooks/useLongPress';
 import OutputThumb from './profile/OutputThumb';
 import DegenSlab from './DegenSlab';
 import { useSpiteMatcher } from '../lib/pins/spiteStore';
@@ -136,6 +138,8 @@ import { recordVisit, isRecordingEnabled } from '../lib/pins/breadcrumbStore';
 import { recordOutputView } from '../lib/output/views';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import AsciiArtImage from './AsciiArtImage';
+import DeepZoomLayer from './art/DeepZoomLayer';
+import { popCount, noneHigher } from '../lib/output/rarity';
 import { publishPieceInView, clearPieceInView } from '../lib/npc/inview';
 import { sampleCanvasFingerprint } from '../lib/art/sampleColor';
 import { useNotePrompt } from '../lib/state/NotePromptContext';
@@ -402,6 +406,9 @@ export default function OutputPreview() {
         return subscribeGrails((next) => setGrailPins(next));
     }, []);
 
+    /* The ADD TO LIST sheet, opened by holding the star pill. */
+    const [listOpen, setListOpen] = useState(false);
+
     /* Star + Wishlist sets — same subscribe-on-mount pattern as ArtworkCard,
        so the modal pills reflect + toggle real state (Brendon 2026-06-13). */
     const [starredKeys, setStarredKeys] = useState<ReadonlySet<string>>(() => getStarredKeys());
@@ -437,6 +444,11 @@ export default function OutputPreview() {
 
     const imgRef = useRef<HTMLImageElement>(null);
     const imgLsRef = useRef<HTMLImageElement>(null);
+    /* Deep Zoom (2026-07-26) — the layer attaches its pinch/wheel gestures to
+       the canvas wraps; at 1× it intercepts nothing, so swipes/taps are
+       byte-identical to before. */
+    const canvasWrapRef = useRef<HTMLDivElement>(null);
+    const lsCanvasWrapRef = useRef<HTMLDivElement>(null);
     /* The modal shows the stored high-res master as a plain <img> — exactly like
        the grid tiles: browser-cached, instant on reopen, no canvas render dance
        (Brendon 2026-07-07). imgStage walks master → previous-rev master. */
@@ -917,6 +929,9 @@ export default function OutputPreview() {
         const r = storeToggleWishlist(slug, id);
         showToast(r === 'added' ? 'Added to your Wishlist (Private)' : 'Removed from your Wishlist');
     };
+    /* HOLD THE STAR → ADD TO LIST (Brendon, 2026-07-26). Tap still stars; the
+       hold opens the same sheet the Starred rows use. */
+    const holdStar = useLongPress(() => { if (id != null) setListOpen(true); });
     const openAlbumPicker = () => { if (id != null) setAlbumPickerOpen(true); };
     /* Same store + toasts as the gallery card's ❍ (ArtworkCard) — the modal
        pill was a toast-only stub until 2026-07-20. */
@@ -1155,6 +1170,20 @@ export default function OutputPreview() {
                 onClose={() => setAlbumPickerOpen(false)}
             />
         )}
+        {/* ADD TO LIST — the star pill's hold action. Same sheet the Starred
+            rows open; the × / backdrop is the way out (Rule #-0.4). */}
+        {listOpen && id != null && (
+            <AddToListCard
+                items={[{ kind: 'output', slug, id }]}
+                wishlisted={wishlisted}
+                onWishlist={() => {
+                    const r = storeToggleWishlist(slug, id);
+                    return r === 'added' ? 'Wishlist: ADDED' : 'Wishlist: REMOVED';
+                }}
+                onDone={(msg) => { setListOpen(false); showToast(msg); }}
+                onClose={() => setListOpen(false)}
+            />
+        )}
         <div
             id="modal"
             className={`platform-modal${isOpen ? ' active' : ''}`}
@@ -1186,6 +1215,7 @@ export default function OutputPreview() {
             </div>
 
             <div
+                ref={canvasWrapRef}
                 className="modal-canvas-wrap"
                 onTouchStart={onCanvasTouchStart}
                 onTouchEnd={onCanvasTouchEnd}
@@ -1262,6 +1292,16 @@ export default function OutputPreview() {
                         <span className="pd-ring" />
                     </div>
                 )}
+                {/* DEEP ZOOM (2026-07-26) — pinch / trackpad-pinch / wheel into
+                    the art and the engine re-renders it sharp at the new scale.
+                    Sits above the master, below the loading panel + overlays. */}
+                <DeepZoomLayer
+                    containerRef={canvasWrapRef}
+                    getArt={() => imgRef.current}
+                    slug={slug}
+                    id={id}
+                    disabled={!imgLoaded || notifs.asciiArt || notifs.degen}
+                />
                 {/* Degen Mode — the modal keeps the shopping numbers, not the
                     art (body.degen-mode CSS already hides the master; this
                     fills the panel with the same data slab the grid wears,
@@ -1326,10 +1366,27 @@ export default function OutputPreview() {
                                 #{id}
                             </span>
                         </div>
+                        {/* RARITY LABS (2026-07-26) — the Pop badge: ❖ POP n =
+                            the census count of this piece's rarest single
+                            trait; rank #1 across the edition set additionally
+                            wears the inverted NONE HIGHER chip. Same memoised
+                            census the character sheet reads — no fetch. */}
+                        {(() => {
+                            const pop = popCount(slug, id);
+                            if (pop == null) return null;
+                            const top = noneHigher(slug, id);
+                            return (
+                                <div className="modal-pop-line" title="Pop — how many editions share this piece's rarest trait">
+                                    <span className="modal-pop-badge">{`❖${VS15} POP ${pop}`}</span>
+                                    {top && <span className="modal-pop-badge modal-pop-badge--top">NONE HIGHER</span>}
+                                </div>
+                            );
+                        })()}
                         <div className="modal-pill-row" id="mPillRow">
                             <span
                                 className={`modal-pill modal-pill--star${starred ? ' active' : ''}`}
-                                title="Star"
+                                title="Star - hold to add to a list"
+                                {...holdStar}
                                 onClick={handleStar}
                             >
                                 {`${starred ? '\u2605' : '\u2606'}${VS15}`}
@@ -1465,6 +1522,14 @@ export default function OutputPreview() {
             className={`platform-modal ls-modal${isOpen ? ' active' : ''}`}
             role="dialog"
             aria-modal="true"
+            /* The stacking tag the portrait root has carried since the
+               site-wide modal stacking landed (2026-07-21) and this one was
+               missed — the reason every landscape button was dead (Brendon,
+               2026-07-26). .platform-modal sits at z-index 1000 and the modal
+               band runs to ~1340, so any other open modal covered the whole
+               landscape surface and swallowed every tap. Portrait escaped to
+               4000 via this attribute; landscape never did. */
+            data-stack-top={isTopStacked || undefined}
             onClick={onBackdropClick}
         >
             <div
@@ -1490,10 +1555,19 @@ export default function OutputPreview() {
             </div>
 
             <div
+                ref={lsCanvasWrapRef}
                 className="ls-canvas-wrap"
                 onTouchStart={onCanvasTouchStart}
                 onTouchEnd={onCanvasTouchEnd}
             >
+                {/* DEEP ZOOM — same layer, landscape canvas. */}
+                <DeepZoomLayer
+                    containerRef={lsCanvasWrapRef}
+                    getArt={() => imgLsRef.current}
+                    slug={slug}
+                    id={id}
+                    disabled={!imgLoaded || notifs.asciiArt || notifs.degen}
+                />
                 {/* Degen Mode — same data slab, landscape layout. */}
                 {notifs.degen && id != null && (
                     <DegenSlab slug={slug} id={id} price={meta?.price ?? null} modal />
@@ -1559,7 +1633,7 @@ export default function OutputPreview() {
                         {`\u25C0${VS15}`}
                     </div>
 
-                    <span className={`modal-pill modal-pill--star${starred ? ' active' : ''}`} title="Star" onClick={handleStar}>
+                    <span className={`modal-pill modal-pill--star${starred ? ' active' : ''}`} title="Star - hold to add to a list" {...holdStar} onClick={handleStar}>
                         {`${starred ? '\u2605' : '\u2606'}${VS15}`}
                     </span>
                     <span className={`modal-pill${wishlisted ? ' active' : ''}`} title="Wishlist" onClick={handleWishlist}>

@@ -579,3 +579,98 @@ a.notif-item--link:hover { opacity: 0.85; }
 }
 .cal-item-del:hover { opacity: 1; }
 .cal-event-auto .cal-event-title { opacity: 0.85; }
+
+/* ── PURCHASE PAL / PROFIT PAL + the Marketplace page (2026-07-27) ──
+   Full-strength site tokens only (CLAUDE.md Rule #2) — 4px controls,
+   square surfaces, ≥12px bold labels. */
+
+/* Marketplace carousel head — floor readout beside the project title. */
+.mk-carousel-floor { font-size: 12px; font-weight: bold; }
+
+/* Market tape price — trails the piece name on activity rows. */
+.mk-tape-price {
+    margin-left: 8px;
+    font-size: 12px; font-weight: bold;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+/* The Pal's side tabs — the home pill row, snugged into the sheet. */
+.pal-tabs-row { margin: 0 0 12px; }
+
+/* Goal row — steppers cycle the release months. */
+.pal-goal-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 12px;
+}
+.pal-step {
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px; font-weight: bold; line-height: 1;
+    padding: 4px 9px; cursor: pointer; flex: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.pal-goal { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+.pal-goal-head { font-size: 13px; font-weight: bold; letter-spacing: 1px; }
+.pal-goal-line { font-size: 12px; font-weight: bold; }
+
+/* The knobs — preset buttons + the slider between them. */
+.pal-knobs { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.pal-knob-row { display: flex; gap: 6px; }
+.pal-knob-btn {
+    flex: 1;
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px; font-weight: bold; letter-spacing: 0.6px;
+    padding: 5px 0; cursor: pointer; line-height: 1.2;
+    -webkit-tap-highlight-color: transparent;
+}
+.pal-knob-btn.on {
+    background: var(--stat-active-bg);
+    color: var(--stat-active-text);
+    border-color: var(--stat-active-bg);
+}
+.pal-slider {
+    width: 100%;
+    accent-color: var(--text-color);
+    cursor: pointer;
+}
+
+/* Path row without a live listing — an empty thumb slot, dotted like the
+   app's unfilled states. */
+.pal-thumb-none { outline: 2px dotted var(--text-color); outline-offset: -2px; }
+
+/* THE HOT READ block — the Ledger's Close chrome, spaced for the Pal. */
+.pal-hot { margin: 2px 0 12px; }
+
+/* Profit rows — one project's held position + its exit paths. */
+.pal-hold {
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 9px 0;
+    border-top: 1px solid var(--text-color);
+}
+.pal-hold-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.pal-hold-name {
+    font-size: 13px; font-weight: bold;
+    color: var(--text-color); text-decoration: none;
+}
+.pal-hold-name:hover { text-decoration: underline; }
+.pal-hold-stat {
+    font-size: 12px; font-weight: bold;
+    font-variant-numeric: tabular-nums;
+}
+.pal-hold-paths { display: flex; gap: 14px; flex-wrap: wrap; }
+.pal-hold-path {
+    font-size: 12px; font-weight: bold; letter-spacing: 0.4px;
+    font-variant-numeric: tabular-nums;
+}
+
+/* The Completionism ⌂ is a door now — cursor + tap affordance only, the
+   glyph itself is untouched. */
+.cpl-house-door { cursor: pointer; -webkit-tap-highlight-color: transparent; }

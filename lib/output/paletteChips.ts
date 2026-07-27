@@ -9,6 +9,7 @@
  */
 
 import { paintOutput } from '../state/ProjectContext';
+import { sampleCanvasGeometry } from '../art/sampleColor';
 
 export interface PaletteChip {
     hex: string;
@@ -16,6 +17,27 @@ export interface PaletteChip {
 }
 
 const cache = new Map<string, PaletteChip[] | null>();
+const geomCache = new Map<string, number | null>();
+
+/** The v4 geometry read, live from the piece's own offscreen render — the
+ *  fallback for rows whose stored fingerprint predates the taste axes. Same
+ *  painter as the chips, same formula as the capture pass (sampleColor). */
+export function sampleGeometry(slug: string, id: number): number | null {
+    const key = `${slug}:${id}`;
+    if (geomCache.has(key)) return geomCache.get(key) ?? null;
+    let g: number | null = null;
+    if (typeof document !== 'undefined') {
+        try {
+            const canvas = document.createElement('canvas');
+            paintOutput(canvas, slug, id, 96);
+            g = sampleCanvasGeometry(canvas);
+        } catch {
+            g = null;
+        }
+    }
+    geomCache.set(key, g);
+    return g;
+}
 
 export function samplePaletteChips(slug: string, id: number): PaletteChip[] | null {
     const key = `${slug}:${id}`;

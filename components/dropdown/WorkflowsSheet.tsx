@@ -28,6 +28,7 @@ import {
     type WorkflowRecord,
 } from '../../lib/workflows/store';
 import { formatEth } from '../../lib/format/eth';
+import { MentionLookup } from '../MentionLookup';
 
 type TriggerKind = 'upload' | 'price';
 
@@ -40,6 +41,10 @@ export function WorkflowsSheet({ onClose }: { onClose: () => void }) {
     const closingRef = useRef(false);
     const [kind, setKind] = useState<TriggerKind>('upload');
     const [artist, setArtist] = useState('');
+    /* The @artist field takes a handle, so it gets the same inline @name lookup
+       the To-Dos and Notes composers use (Brendon, 2026-07-26). */
+    const artistRef = useRef<HTMLInputElement>(null);
+    const [artistCaret, setArtistCaret] = useState<number | null>(null);
     const [slug, setSlug] = useState('');
     const [tokenId, setTokenId] = useState('');
     const [price, setPrice] = useState('');
@@ -118,11 +123,28 @@ export function WorkflowsSheet({ onClose }: { onClose: () => void }) {
                         <div className="wf-fields">
                             <span className="wf-when">WHEN</span>
                             <input
+                                ref={artistRef}
                                 className="wf-input"
                                 type="text"
                                 placeholder="@artist"
                                 value={artist}
-                                onChange={(e) => setArtist(e.target.value)}
+                                onChange={(e) => { setArtist(e.target.value); setArtistCaret(e.target.selectionStart); }}
+                                onKeyUp={(e) => setArtistCaret(e.currentTarget.selectionStart)}
+                                onClick={(e) => setArtistCaret(e.currentTarget.selectionStart)}
+                            />
+                            <MentionLookup
+                                value={artist}
+                                caret={artistCaret}
+                                anchorRef={artistRef}
+                                onPick={(next, caretAfter) => {
+                                    setArtist(next);
+                                    setArtistCaret(caretAfter);
+                                    const el = artistRef.current;
+                                    if (el) {
+                                        el.focus();
+                                        requestAnimationFrame(() => el.setSelectionRange(caretAfter, caretAfter));
+                                    }
+                                }}
                             />
                             <span className="wf-when">UPLOADS → MINT ×</span>
                             <input

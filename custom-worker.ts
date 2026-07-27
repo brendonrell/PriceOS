@@ -60,6 +60,9 @@ export default {
     // $PRICE Top Holders sweep — ranks named wallets by $PRICE held (KV-gated
     // to ~15 min; every other tick is one KV read).
     call("/api/cron/price-holdings");
+    // Conviction Call Ledger — settles open calls CROWNED/REKT vs the floor
+    // (KV-gated to ~15 min; every other tick is one KV read).
+    call("/api/cron/calls-resolve");
     // Dead-man switch: stamp the heartbeat so the app side can notice a
     // stalled Cron (lib/pings/heartbeat.ts checks it from the hot count poll).
     const kv = (env as unknown as {

@@ -72,6 +72,7 @@ export function useListRowDrag(onReorder: (fromKey: string, ontoKey: string) => 
         if (s.row) {
             s.row.classList.remove('lists-row-lifted');
             s.row.style.transform = '';
+            s.row.style.pointerEvents = '';
             if (s.pointerId !== -1) {
                 try { s.row.releasePointerCapture(s.pointerId); } catch { /* never captured */ }
             }
@@ -102,8 +103,16 @@ export function useListRowDrag(onReorder: (fromKey: string, ontoKey: string) => 
         }
         s.moved = true;
         if (s.row) s.row.style.transform = `translateY(${dy}px)`;
-        // What's under the finger — the row it would land on.
+        /* What's under the finger — the row it would land on. The lifted row
+           travels WITH the finger, so it sits under the point for the whole
+           drag and would otherwise be the only thing ever hit-tested (which is
+           why a drag never found a drop target). Take it out of hit-testing for
+           the single lookup, then put it straight back. */
+        const row = s.row;
+        const prevPe = row ? row.style.pointerEvents : '';
+        if (row) row.style.pointerEvents = 'none';
         const el = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
+        if (row) row.style.pointerEvents = prevPe;
         const target = el?.closest(`[${ROW_KEY_ATTR}]`) as HTMLElement | null;
         paintArmed(target && target !== s.row ? target : null);
     };
