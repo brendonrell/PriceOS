@@ -123,6 +123,10 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
         slugs: ['lists'],
     },
     {
+        title: 'The Fingerprint',
+        slugs: ['fingerprint'],
+    },
+    {
         title: 'The Dispatch',
         slugs: ['dispatch'],
     },
