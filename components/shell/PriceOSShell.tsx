@@ -81,6 +81,8 @@ import TodoReminders from '../todos/TodoReminders';
 import WorkflowWatcher from '../workflows/WorkflowWatcher';
 import OutputPreview from '../OutputPreview';
 import CollectorsModal from '../CollectorsModal';
+import TagPeopleModal from '../TagPeopleModal';
+import PingModal from '../PingModal';
 import FollowersModal from '../FollowersModal';
 import ProjectsProModal from '../ProjectsProModal';
 import PriceosModal from '../PriceosModal';
@@ -491,6 +493,12 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="CollectorsModal">
                 <CollectorsModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="TagPeopleModal">
+                <TagPeopleModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="PingModal">
+                <PingModal />
             </ErrorBoundary>
             <ErrorBoundary name="FollowersModal">
                 <FollowersModal />

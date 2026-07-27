@@ -23,7 +23,11 @@ export const ALIGNS: { id: Align; label: string }[] = [
 ];
 
 export const ARRANGES: { id: Arrange; label: string }[] = [
-    { id: 'spread', label: 'SPREAD' },
+    /* Labelled SPACED, not "SPREAD" — SPREADS are the saved arrangements on
+       their own page, and two things called the same word in one menu is a
+       trap (Brendon, 2026-07-27). The stored id stays `spread` so every saved
+       Setup Code and every existing profile keeps working. */
+    { id: 'spread', label: 'SPACED' },
     { id: 'row', label: 'ROW' },
     { id: 'stack', label: 'STACK' },
     { id: 'scatter', label: 'SCATTER' },
@@ -66,6 +70,11 @@ const K_FLIP = 'pd_sticker_flip';
 const K_DENSITY = 'pd_sticker_density';
 const K_BORDER = 'pd_sticker_border';
 const EVT = 'pd:stickers-changed';
+
+/** Every look key, for the manager's draft snapshot (see lib/stickers/draft). */
+export const HERO_PREF_KEYS = [
+    K_ARRANGE, K_TILT, K_SEED, K_EXPAND, K_ROWS, K_ALIGN, K_FLIP, K_DENSITY, K_BORDER,
+] as const;
 
 function read(key: string, fallback: string): string {
     if (typeof window === 'undefined') return fallback;

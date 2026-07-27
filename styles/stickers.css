@@ -809,11 +809,16 @@ body.sticker-mode .hero-stickers { display: none; }
 .hero-stickers-canvas { position: relative; width: 100%; }
 /* A long-press is our lift gesture — suppress the OS text loupe / callout and
    any selection it would otherwise pop up over the stickers. Applies to the
-   sticker artwork too (SVG <text>), which iOS would otherwise highlight. */
+   sticker artwork too (SVG <text>), which iOS would otherwise highlight.
+
+   pan-y, NOT none (Brendon, 2026-07-27): a finger dragged down the sticker
+   area scrolls the page like it does everywhere else. A grab only takes the
+   gesture once the long-press has fired — HeroStickers blocks the scroll for
+   that one drag, so hand-placing still works exactly as it did. */
 .hero-stickers-canvas,
 .hero-stickers-canvas .hero-sticker,
 .hero-stickers-canvas .hero-sticker * {
-    touch-action: none;
+    touch-action: pan-y;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     user-select: none;
@@ -968,6 +973,37 @@ body.sticker-mode .hero-stickers { display: none; }
     cursor: pointer;
 }
 .smgr-store-ic { font-size: 9px; position: relative; top: -1px; }
+
+/* ── SAVE (Brendon, 2026-07-27) ────────────────────────────────────────────
+   Nothing you change in here reaches your account until this is pressed. Its
+   own full-width bar at the foot of the menu — reachable from every page,
+   fighting nothing for room — and it only exists while something is unsaved.
+   Full-strength inverse fill (the site's active-pill treatment), never faded:
+   it's the loudest thing in the menu because it's the one that commits. */
+.smgr-save-bar {
+    flex: 0 0 auto;
+    display: flex;
+    padding: 8px 0 2px;
+    border-top: 1px solid var(--border-color);
+    margin-top: 6px;
+}
+.smgr-save {
+    flex: 1 1 auto;
+    height: 28px;
+    padding: 0 12px;
+    background: var(--text-color);
+    color: var(--bg-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+.smgr-save:active { opacity: 0.85; }
 /* The YOUR STICKERS words sit up 3px — the ⊞ icon stays put (Brendon, 2026-06-24). */
 .smgr-title-words { position: relative; top: -3px; }
 

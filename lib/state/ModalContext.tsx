@@ -52,7 +52,12 @@ export type ModalName =
     | 'takeover'
     | 'sigilForge'
     | 'composer'
-    | 'gnomewallet';
+    | 'gnomewallet'
+    /* The two popup surfaces added 2026-07-27 (Brendon): a ping opens where it
+       points instead of dead-ending, and a Profile Tag opens the room of people
+       wearing it. Both are popups on top of where you are — never a nav away. */
+    | 'ping'
+    | 'tag';
 
 interface OpenModalState {
     name: ModalName;

@@ -62,8 +62,20 @@ function readJson<T>(key: string, fallback: T): T {
    across devices. No-op until the user's server snapshot has hydrated, so it
    never fires for a logged-out / boot-time device. Exported so the placement
    store reuses the exact same writer (one source of truth for the blob). */
-export function pushStickerState() {
-    const aspectRaw = typeof window !== 'undefined' ? parseFloat(window.localStorage.getItem(PLACE_ASPECT_KEY) || '') : NaN;
+/* ── THE DRAFT GATE (Brendon, 2026-07-27) ──────────────────────────────────
+   While the Sticker Manager is open, every change is a DRAFT: it shows on the
+   hero immediately, but nothing is published to the account until SAVE. This
+   flag holds the account write back for the duration; SAVE clears it and
+   pushes once, closing without saving restores the snapshot instead. */
+let pushHeld = false;
+export function holdStickerPush(hold: boolean) { pushHeld = hold; }
+
+export function pushStickerState(force = false) {
+    /* SPREADS force their way through: a Spread has its OWN save button, so
+       saving one is an explicit act that lands immediately — and a discarded
+       look never takes a saved Spread down with it. */
+    if (pushHeld && !force) return;
+    const aspectRaw =typeof window !== 'undefined' ? parseFloat(window.localStorage.getItem(PLACE_ASPECT_KEY) || '') : NaN;
     pushState({
         sticker_state: {
             owned: readArr(OWNED_KEY),

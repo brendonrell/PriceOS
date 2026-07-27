@@ -14,6 +14,7 @@
 import { type Tag, tagPaintHex, tagTextOn } from '../../lib/tags/catalog';
 import { styleName } from '../../lib/profile/nameFont';
 import { PriceMark } from '../brand/PriceMark';
+import { useModal } from '../../lib/state/ModalContext';
 
 export function ProfileTags({ tags, font, paint, onTagTap, className }: {
     tags: Tag[];
@@ -35,6 +36,12 @@ export function ProfileTags({ tags, font, paint, onTagTap, className }: {
      *  (Brendon, 2026-07-26). Absent = display-only. */
     onTagTap?: (t: Tag) => void;
 }) {
+    /* WITHOUT an owner handler, a tag opens ITS ROOM (Brendon, 2026-07-27):
+       everyone wearing it, sliceable — a popup over wherever you are, never a
+       nav. On your OWN profile the tap is already spoken for (the customization
+       menu / the WTBS cycle), and that keeps priority. */
+    const { open } = useModal();
+    const tap = onTagTap ?? ((t: Tag) => open('tag', t.id));
     if (!tags.length) return null;
     const paintHex = tagPaintHex(paint);
     return (
@@ -55,13 +62,16 @@ export function ProfileTags({ tags, font, paint, onTagTap, className }: {
                         /* The WTBS-family treatments (Brendon, 2026-07-26): hollow
                            stroked letters and/or no pill edge. */
                         ...(t.stroke ? { ['--tag-stroke' as string]: t.stroke } : null),
-                        ...(onTagTap ? { cursor: 'pointer' } : null),
+                        cursor: 'pointer',
                     }}
                     title={t.label}
-                    role={onTagTap ? 'button' : undefined}
-                    tabIndex={onTagTap ? 0 : undefined}
-                    onClick={onTagTap ? () => onTagTap(t) : undefined}
-                    onKeyDown={onTagTap ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onTagTap(t); } } : undefined}
+                    role="button"
+                    tabIndex={0}
+                    /* Tag pills ride inside rows that are themselves links, so
+                       the tap is claimed here — it opens the room, it never
+                       also fires the row underneath. */
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); tap(t); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); tap(t); } }}
                 >
                     {t.svgGlyph === 'price'
                         ? <PriceMark className="profile-tag-mark" />
