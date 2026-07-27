@@ -1,100 +1,47 @@
-/* THE VAULT — +More › Vault (components/profile/VaultPanel.tsx).
-   The near-black door is the SPEC (King Candidates › The Vault): a deliberate
-   dark stage like the Composer's, NOT a colorway surface. Everything painted
-   on it is full-strength bone or faction ink — no washes (Rule #2). */
+/* THE VAULT v2 — +More › Vault (components/profile/VaultPanel.tsx).
+   Rebuilt 2026-07-27 on Brendon's order: the sealed near-black door is GONE
+   ("a clean page — USEFUL"). The surface IS the Albums anatomy (albums.css
+   carries the covers grid, piece grid, head, tools, confirm) — this file adds
+   only the vault-specific pieces: the stats block and the + ADD control.
+   Everything full-strength site tokens on the page's own colorway (Rule #2). */
 
-.vault-stage {
-    background: #0b0b0e;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    margin: 10px 20px 16px;
-    overflow: hidden;
+/* The + ADD control sits with the head buttons; active state = the proven
+   selected-pill treatment, same family as the SELECT button beside it. */
+.vault-add-btn.on {
+    background: var(--stat-active-bg, var(--text-color));
+    color: var(--stat-active-text, var(--bg-color));
+}
+
+/* ── THE STATS BLOCK — below the artworks (Brendon's call). ──────────────
+   Tile row reuses the Pal's .cpl-tiles anatomy (market.css); the lines under
+   it carry the narrative stats. Bold, 12px+, full-strength — no washes. */
+.vault-stats {
+    margin: 12px 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
     font-family: 'Courier New', Courier, monospace;
 }
 
-/* ── The door (SEALED) ───────────────────────────────────────────────────
-   A COMPACT card that reads the same size + style as the open view's head —
-   NOT a tall slab (Brendon, 2026-07-14: sealed must match unsealed). The whole
-   row is the tap target and slides aside on unseal. It reuses the inner-head
-   classes (.vault-inner-seal / -verdict / .vault-reseal) so the two states are
-   the same family by construction. */
-
-.vault-door {
+.vault-stat-lines {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    /* Sealed view stands ~2× the open head's height so the closed door reads as
-       a real card and the seal + verdict breathe (Brendon, 2026-07-14). */
-    min-height: 96px;
-    padding: 18px 16px;
-    cursor: pointer;
-    /* Machined-metal face: a hairline gradient reads as brushed steel behind
-       the full-strength type (decor only, never drops contrast). */
-    background: linear-gradient(180deg, #101014 0%, #0b0b0e 55%, #0d0d11 100%);
-    transition: transform 0.42s cubic-bezier(0.4, 0, 0.2, 1);
-}
-/* MiniDisc shutter — the whole face slides aside. */
-.vault-door.is-sliding { transform: translateX(-102%); }
-
-/* The ‰ is the REAL PD per-mille LOGO mark rendered as the logo SVG
-   (PerMilleMark) — pixel-exact to the corner logo, the SAME treatment as the
-   My PD "Price Logo" toggle — never a font glyph. Colour rides the seal's ink
-   via currentColor; size tracks the seal's font-size. (Brendon, 2026-07-14.) */
-.vault-permille { height: 1em; width: auto; display: block; }
-
-/* ── Inside ────────────────────────────────────────────────────────────── */
-
-.vault-inner { padding: 14px 16px 18px; }
-
-.vault-inner-head {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding-bottom: 12px;
-    border-bottom: 1px dashed #3a3a42;
-    color: #e9edf4;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 1px;
-}
-.vault-inner-seal { font-size: 16px; }
-.vault-inner-verdict { flex: 1; min-width: 0; }
-.vault-reseal {
-    cursor: pointer;
-    border: 1px solid #e9edf4;
+    flex-direction: column;
+    gap: 6px;
+    border: 1px solid var(--text-color);
     border-radius: 4px;
-    padding: 3px 8px;
-    font-size: 12px;
-    font-weight: 700;
-    color: #e9edf4;
-    flex-shrink: 0;
+    padding: 10px 12px;
 }
 
-.vault-empty {
-    color: #e9edf4;
-    font-size: 13px;
-    font-weight: 700;
-    padding: 26px 4px;
-    text-align: center;
+.vault-stat-line {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    color: var(--text-color);
+    font-variant-numeric: tabular-nums;
 }
 
-.vault-plates { display: flex; flex-direction: column; }
-.vault-plate {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 10px 2px;
-    border-bottom: 1px dashed #2a2a31;
-    cursor: pointer;
-    color: #e9edf4;
-}
-.vault-plate:hover { background: #14141a; }
-.vault-plate-name { font-size: 13px; font-weight: 700; letter-spacing: 0.5px; }
-.vault-plate-appraisal {
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    white-space: nowrap;
-    flex-shrink: 0;
+/* The coverage note is information, not decoration — still 12px bold, never
+   faint (Rule #2); italic is its only distinction. */
+.vault-stat-note {
+    font-style: italic;
 }

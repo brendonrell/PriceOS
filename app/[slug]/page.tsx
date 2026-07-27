@@ -16,7 +16,8 @@ import {
   getUserProfileByHandle,
   getHandleByAddress,
 } from '@/lib/profile/getUserProfileByHandle';
-import type { getUserHoldings } from '@/lib/profile/getUserHoldings';
+import { getUserHoldingsCount, type getUserHoldings } from '@/lib/profile/getUserHoldings';
+import { getSupabaseAnon } from '@/lib/supabase';
 import { getArtistStatus } from '@/lib/artists/allowlist';
 import ProfilePageBody from '@/components/profile/ProfilePageBody';
 import ArtworkPageBody from '@/components/artwork/ArtworkPageBody';
@@ -153,8 +154,76 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
       };
     }
   }
+  // EVERY profile unfurls SPECIFIC (Brendon, 2026-07-27 — "our sharing still
+  // sucks": non-artist profiles fell through to the root defaults, so a shared
+  // profile link showed the generic PD blurb). Real facts, cheaply read —
+  // member number + since + pieces held + PriceScore — and the card leads with
+  // the owner's #1 Showcase piece when one is hung (storage-probed like every
+  // other unfurl), else the PD mark.
+  const bare = r.handle.replace(/^@/, '');
+  const ogTitle = `@${bare} on Price Discussion`;
+  let description = `@${bare}'s profile on Price Discussion — the collection, the showcase, and the talk.`;
+  let profileArt: string | null = null;
+  try {
+    const supabase = getSupabaseAnon();
+    const { data } = await supabase
+      .from('users')
+      .select('address, created_at, user_number, price_score, showcase')
+      .eq('handle', bare)
+      .maybeSingle();
+    const row = data as {
+      address?: string;
+      created_at?: string | null;
+      user_number?: number | null;
+      price_score?: number | null;
+      showcase?: { slots?: ({ project_id?: string; token_id?: number } | null)[] } | null;
+    } | null;
+    if (row?.address) {
+      const pieces = await getUserHoldingsCount(row.address);
+      const since = row.created_at
+        ? new Date(row.created_at).toLocaleString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+        : null;
+      const member = [
+        row.user_number != null ? `member #${row.user_number}` : null,
+        since ? `since ${since}` : null,
+      ].filter(Boolean).join(' ');
+      const facts = [
+        member || null,
+        `${pieces} ${pieces === 1 ? 'piece' : 'pieces'} held`,
+        row.price_score ? `PriceScore ${row.price_score.toLocaleString('en-US')}` : null,
+      ].filter(Boolean).join(' · ');
+      description = `@${bare} on Price Discussion — ${facts}.`;
+      const slot = row.showcase?.slots?.find(
+        (sl) => !!sl && !!sl.project_id && sl.token_id != null,
+      );
+      if (slot?.project_id && slot.token_id != null) {
+        let hasArt = true;
+        try {
+          const bucket = getPreviewBucket();
+          if (bucket) hasArt = (await bucket.head(`${slot.project_id}/${slot.token_id}.${ART_REV}.png`)) != null;
+        } catch { /* keep the candidate */ }
+        if (hasArt) profileArt = artImageUrl(slot.project_id, slot.token_id);
+      }
+    }
+  } catch { /* facts are best-effort — the specific title still ships */ }
   return {
     title: `${r.handle} · Price Discussion`,
     alternates: { canonical: `/${r.handle}` },
+    description,
+    openGraph: {
+      title: ogTitle,
+      description,
+      type: 'profile',
+      url: `/${r.handle}`,
+      images: profileArt
+        ? [{ url: profileArt, alt: ogTitle }]
+        : [{ url: '/icon-1024px.png', width: 1024, height: 1024, alt: 'Price Discussion' }],
+    },
+    twitter: {
+      card: profileArt ? 'summary_large_image' : 'summary',
+      title: ogTitle,
+      description,
+      images: [profileArt ?? '/icon-1024px.png'],
+    },
   };
 }

@@ -1973,18 +1973,15 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                         />
                     )}
 
-                    {/* THE VAULT — the King Mode consolidation surface (Atlas
-                        spec, 2026-07-13). Public on every profile: the door,
-                        the verdict line, the appraisal plates. */}
+                    {/* THE VAULT v2 (rebuilt 2026-07-27) — albums, but only
+                        for pieces you own: numbered vaults of designated
+                        grails + the stats block. Public on every profile. */}
                     {onMore && effMoreL1 === 'vault' && (
                         <VaultPanel
                             address={user.address}
                             handle={displayHandle}
                             isOwnProfile={isOwnProfile}
                             holdings={holdings}
-                            ownedCount={ownedCount}
-                            ownerLogo={ownerLogo}
-                            sigilForged={!!user.sigil_forged_at}
                         />
                     )}
 

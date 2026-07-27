@@ -167,6 +167,12 @@ export interface UserSettings {
      *  still hold the old preset string ('off' | 'low' | … | 'pitch'). */
     dim?: number | string;
   };
+  /** THE VAULT v2 — numbered groups of pieces the owner has designated as
+   *  vaulted (Brendon, 2026-07-27: "albums but only for pieces you own").
+   *  Exactly the albums shape; owned-only is enforced at the add door.
+   *  PUBLIC by design — served per-profile by /api/vaults/[address] (the
+   *  route lifts ONLY this key out of the private envelope). */
+  vaults?: AlbumRecord[];
   /** Ambient Light PRESETS — the user's saved, named looks (the sticker
    *  Spreads pattern, ported: up to 3 slots, each a full options snapshot).
    *  Shape owned by lib/state/ambientPresets. (Brendon, 2026-07-27.) */

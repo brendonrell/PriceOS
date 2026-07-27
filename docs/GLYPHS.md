@@ -643,6 +643,21 @@ taste gets measured on the Fingerprint).
 > 14→13.5px the same day, Brendon's call) and the PriceSprite modal
 > KEYCHAINS action row. VS-15 + Courier per convention; standard #1 gate.
 
+## 12k. The Vault v2 — ⧈ (2026-07-27 build)
+
+| Use | Glyph | Codepoint |
+|---|---|---|
+| The Vault (vaulted-piece walls) | ⧈ | U+29C8 SQUARED SQUARE |
+
+> The vault mark for the 2026-07-27 rebuild (albums-but-owned-only + stats;
+> the sealed door is gone). **A box locked inside a box — a piece held in
+> the vault.** Screened by the sharpened §7 test: U+29C8 has no emoji
+> mapping (math operator family). Codepoint free repo-wide at pick time.
+> Distinct from the multi-select ▣/❐ (§3) and the Cart ▢. Wears: the vault
+> cover tiles, the open-vault title, the stats block PIECES tile, and the
+> docs. VS-15 + Courier per convention; standard #1 gate — proposed by
+> Claude, shipped subject to Brendon's veto (one line to swap).
+
 ## 13. THE WAR — Factions glyphs (2026-07-13 build, spec v3.1 §11)
 
 One vocabulary across the ceremony, the tape, pings, the Book, and the

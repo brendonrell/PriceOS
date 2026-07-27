@@ -26,7 +26,7 @@ Everything on a profile page is public to every visitor:
 - Your **Collected** holdings, **Portfolio**, and **trade record** — these mirror the chain, which already tells this story.
 - Your **Showcase** (all four engine modes) and your **Achievements** wall.
 - Your **sticker hero** — the arrangement you compose is precisely what visitors see. (Which sheets you own beyond what you display stays your business; the [Binder](/docs/stickers/the-binder-and-your-profile) is your own view.)
-- Your **[Vault](/docs/app/identity-and-profiles)** — one canonical, linkable home per wallet, closed-door verdict line included.
+- Your **[Vault](/docs/app/identity-and-profiles)** (⧈) — the numbered walls of owned pieces you designate as vaulted, stats block included.
 - Your **faction allegiance and oath history** — the flag you fly, your time under it, and any defection scar. Your forged **Sigil** trails your @name everywhere. See [Factions](/docs/factions).
 - **Takeover verdicts** — casting one banners both profiles for its 72 hours, and the outcome (COMPLETED / PARTIAL / WITHSTOOD) is inscribed on the record. WITHSTOOD is worn for 180 days.
 - **Albums** — your named sets display on your own profile today; serving them publicly to visitors is rolling out. Treat album names and contents as public-bound.

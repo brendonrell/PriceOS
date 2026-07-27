@@ -20,18 +20,24 @@ import { NextRequest, NextResponse } from 'next/server';
 // code change needed — the middleware picks them up.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const RATE_LIMIT = 100;
+// 300/min (was 100 — Brendon's 2026-07-27 bug report: a single big profile
+// page legitimately fires dozens of reads, and at 100 the page 429'd ITSELF —
+// galleries rendered "Rate limit exceeded" mid-browse. 300 clears real
+// browsing with headroom while still walling off bulk scraping.
+const RATE_LIMIT = 300;
 // Sensitive routes — auth, identity creation, and the free social/scoring
 // actions an attacker would script to brute-force or sybil-farm — get a much
 // tighter per-IP cap. Even on the in-memory fallback this raises the bar.
 const SENSITIVE_LIMIT = 15;
 // Sensitive for EVERY method — auth flows and the enumeration-shaped checks.
+// ⛔ Keep this list to routes with NO heavy legitimate GET traffic. Routes
+// whose reads ride normal browsing belong in SENSITIVE_WRITE_PREFIXES below —
+// anoint/streak/achievements lived here and their routine profile-page reads
+// drained the shared 15/min budget, so the FOLLOW button's POST bounced with
+// "rate limited" (Brendon's 2026-07-27 bug report).
 const SENSITIVE_PREFIXES = [
   '/api/auth',
   '/api/users/create',
-  '/api/anoint',
-  '/api/streak',
-  '/api/achievements/evaluate',
   '/api/handle/check',
   '/api/project-handle/check',
 ];
@@ -40,13 +46,18 @@ const SENSITIVE_PREFIXES = [
 // reads against the 15/min budget let one profile page 429 itself and every
 // button silently render "not following". Reads ride the normal bucket; the
 // scriptable POST/DELETE actions keep the tight cap. Also covers the outputs
-// self-population writes (now authed) so they can't be sprayed.
+// self-population writes (now authed) so they can't be sprayed, and the
+// anoint/streak/achievements actions (their reads are routine profile
+// traffic — see the note above).
 const SENSITIVE_WRITE_PREFIXES = [
   '/api/follows',
   '/api/project-follows',
   '/api/output-follows',
   '/api/outputs/color',
   '/api/outputs/traits',
+  '/api/anoint',
+  '/api/streak',
+  '/api/achievements/evaluate',
 ];
 const WINDOW_MS = 60_000;
 const WINDOW_S = 60;

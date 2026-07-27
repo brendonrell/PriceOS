@@ -14,14 +14,18 @@
  * writer trustworthy (same argument as the preview PNG pin route).
  *
  * Fidelity choices:
- *   - 192-column grid (≈22k glyphs on a square piece) — image-like at page
- *     width, honest ASCII up close.
+ *   - 256-column grid (≈39k glyphs on a square piece) — THE FORMAT CEILING
+ *     (the artifact validator bounds cols/rows at 256; the 2-hex cell layer
+ *     bounds the palette at 256). Raised from 192 on Brendon's 2026-07-27
+ *     order ("make it the max we can") — test-phase pieces are disposable,
+ *     so no re-pin sweep; old 192-wide pins simply stay until re-minted.
+ *     Ultra-tall pieces clamp cols down so rows never exceed the 256 bound.
  *   - 70-glyph luminance ramp (the classic dense ramp), gamma-lifted so
  *     mid-tones don't mush into darkness.
  *   - Cell grid matches Courier's real 0.6 width:height advance, so the
  *     painted view keeps the art's true proportions.
- *   - Colour layer quantized to a ≤256-colour palette (per-glyph tint can't
- *     express more anyway) — keeps a full artifact ≈75KB.
+ *   - Colour layer quantized to a ≤256-colour palette (the 2-hex cell
+ *     encoding's hard ceiling) — a full artifact lands ≈135KB.
  */
 
 /** Dark → bright. Index by luminance; denser ink = brighter pixel on dark bg. */
@@ -31,8 +35,12 @@ const RAMP =
 /** Courier glyph advance ≈ 0.6 × font-size — the grid honours it. */
 const CHAR_ASPECT = 0.6;
 
-/** Backup grid width, in characters. */
-export const ASCII_COLS = 192;
+/** Backup grid width, in characters — the format's ceiling (validator bound). */
+export const ASCII_COLS = 256;
+
+/** Row ceiling — must match the validator's bound so a stored artifact of any
+ *  aspect always validates. Tall pieces shrink cols to honour it. */
+const MAX_ROWS = 256;
 
 /** The stored artifact — a self-describing, copy/paste-able colour backup:
  *  raw text + a palette-indexed colour layer, stamped with what it backs up. */
@@ -65,7 +73,12 @@ function sampleCanvas(src: HTMLCanvasElement, cols: number): Sampled | null {
     const w = src.width;
     const h = src.height;
     if (!w || !h) return null;
-    const rows = Math.max(1, Math.round(cols * (h / w) * CHAR_ASPECT));
+    /* Ultra-tall pieces: shrink cols so rows stay inside the format's 256
+       bound — true aspect kept, the whole piece always fits the artifact. */
+    if (Math.round(cols * (h / w) * CHAR_ASPECT) > MAX_ROWS) {
+        cols = Math.max(8, Math.floor(MAX_ROWS / ((h / w) * CHAR_ASPECT)));
+    }
+    const rows = Math.min(MAX_ROWS, Math.max(1, Math.round(cols * (h / w) * CHAR_ASPECT)));
 
     const grid = document.createElement('canvas');
     grid.width = cols;

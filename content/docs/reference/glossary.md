@@ -144,7 +144,7 @@ Definitions for terms used throughout Price Discussion, alphabetically. The nome
 
 **The Watch** (⬬) — Per-page watchlists whose hits route into Pings. See [Collector Tools](/docs/app/collector-tools).
 
-**The Vault** — Every profile's public one-per-wallet consolidation: the near-black door, the Sigil seal, the verdict line, and appraisal plates over the held pieces. See [Identity & Profiles](/docs/app/identity-and-profiles).
+**The Vault** (⧈) — Numbered, public groups of owned pieces their collector has designated as vaulted — Albums, but only for what you hold — each with a stats block reading the wall's real money and rarity. See [Identity & Profiles](/docs/app/identity-and-profiles).
 
 **Wishlist** (✛) — A user's private buy-intent mark on an Output. Drives financial Pings — the opposite of a Star.
 

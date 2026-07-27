@@ -67,7 +67,9 @@ export default function ArtworkLive({
                 // feature page never drops out of the mode.
                 const live = document.createElement('canvas');
                 try {
-                    paintOutput(live, slug, id, 512, true);
+                    // 1024 matches the ASCII Backup panel's derive source so
+                    // both seams produce the same bytes (max-fidelity pass).
+                    paintOutput(live, slug, id, 1024, true);
                 } catch {
                     return;
                 }

@@ -55,15 +55,14 @@ Three ways of holding work you don't (yet) own, with deliberate privacy defaults
 
 ## The Vault
 
-Every profile carries **the Vault** (+ More › Vault) — one canonical home per
-wallet, public by design: drop a link to anyone's vault. A near-black door
-slides open like a MiniDisc shutter; the **seal** on it is the wallet's forged
-[Sigil](/docs/factions) in faction ink. Before it even opens, the
-**verdict line** — faction · pieces held · days under oath — makes the closed
-door a flex or an indictment. Inside, every held piece hangs with its
-**appraisal plate** (PD Rarity and edition rank); tap a plate to enter the
-piece. The Vault ships no new verbs — it is the wallet's existing record,
-consolidated and staged.
+Every profile carries **the Vault** (⧈, + More › Vault) — where a collector
+designates the pieces that matter most as **vaulted**, public by design: drop
+a link to anyone's vault. Vaults work exactly like Albums, but hold only
+pieces you own — make VAULT 01, VAULT 02, as many as you like, each a
+numbered wall of grails with a living mosaic cover. Under each vault's pieces
+sits its **stats block**, every number real: estimated value at floor, ETH
+spent acquiring, the net between them, the best-performing piece, average
+hold time, and the top-rarity piece on the wall. Tap any piece to enter it.
 
 ## Social
 

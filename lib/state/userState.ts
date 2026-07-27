@@ -154,6 +154,10 @@ export const STATE_CACHE_KEYS = {
     /** Ambient Light PRESETS (saved named looks — the Spreads pattern). Read +
      *  written by lib/state/ambientPresets; lives in the settings envelope. */
     ambientPresets: 'pd_ambient_presets',
+    /** THE VAULT v2 — numbered owned-piece groups (the albums shape). Read +
+     *  written by lib/pins/vaultStore; lives in the settings envelope and is
+     *  served publicly per profile by /api/vaults/[address]. */
+    vaults: 'pd_vaults',
     /** Grail Pins (GrailPin blobs). Read + written by grailStore; lives in the
      *  settings envelope. Account-backed 2026-07-06. */
     grails: 'pd_grail_pins',
@@ -471,6 +475,11 @@ export function hydrateFromRow(row: UserRow): void {
         // never wiped by an account that hasn't synced yet.
         if (Array.isArray(s.ambientPresets)) {
             localStorage.setItem(STATE_CACHE_KEYS.ambientPresets, JSON.stringify(s.ambientPresets));
+        }
+        // Vaults — same seed-only-when-carried bargain (vaultStore re-reads on
+        // the hydrate event, exactly like albums).
+        if (Array.isArray(s.vaults)) {
+            localStorage.setItem(STATE_CACHE_KEYS.vaults, JSON.stringify(s.vaults));
         }
         // Grail Pins / mutes / Spite Book — newly account-backed (2026-07-06).
         // Seed ONLY when the account carries the key (like sticker_state), so a

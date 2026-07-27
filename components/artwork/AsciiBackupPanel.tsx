@@ -38,7 +38,9 @@ async function collectArtifact(slug: string, id: number): Promise<AsciiArtifact 
     if (pinned) return pinned;
     const live = document.createElement('canvas');
     try {
-        paintOutput(live, slug, id, 512, true);
+        // 1024px source = 4 real pixels per 256-col cell (512 was only 2 at
+        // the max-fidelity grid — max-fidelity pass, 2026-07-27).
+        paintOutput(live, slug, id, 1024, true);
     } catch {
         return null; // unknown slug / engine miss — skip the piece
     }
@@ -138,7 +140,7 @@ export default function AsciiBackupPanel({ slug, id }: { slug: string; id: numbe
         // self-heal the missing pin — same philosophy as the PNG display seam.
         const deriveAndHeal = (heal: boolean) => {
             const live = document.createElement('canvas');
-            paintOutput(live, slug, id, 512, true);
+            paintOutput(live, slug, id, 1024, true);
             const a = buildAsciiArtifact(live, slug, id);
             if (!a) return;
             paint(a);
