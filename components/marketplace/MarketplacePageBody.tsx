@@ -26,10 +26,13 @@ import Hero from '../hero/Hero';
 import ArtworkCard from '../ArtworkCard';
 import { GhostCarousels } from '../home/HomeGhosts';
 import { GhostFeedRows } from '../GhostFeed';
+import { FeaturingRow } from '../home/HomePageBody';
 import { TraitsProvider } from '../../lib/state/TraitsContext';
 import { ProjectProvider, useProject } from '../../lib/state/ProjectContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useModal } from '../../lib/state/ModalContext';
+import { useAuth } from '../../lib/state/AuthContext';
+import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { getProject } from '../../lib/project/registry';
 import { formatEth } from '../../lib/format/eth';
 import type {
@@ -94,6 +97,41 @@ function ListedCarousel({ ids, floorEth }: { ids: number[]; floorEth: number }) 
 function MarketplacePageBodyInner({ initial = null }: { initial?: MarketplaceResponse | null }) {
     const { showToast } = useToast();
     const { open: openModal } = useModal();
+    const { siweAddress, handle: viewerHandle } = useAuth();
+    const { notifs } = usePdNotifs();
+
+    /* @brendon's follower count + mutual badge beside the byline — the home
+       hero's credit block, verbatim (PD is his art; the marketplace is the
+       same surface's market side). */
+    const [brendonSocial, setBrendonSocial] = useState<{ followers: number; mutual: boolean }>(
+        { followers: 0, mutual: false },
+    );
+    useEffect(() => {
+        let cancelled = false;
+        const load = async () => {
+            try {
+                const profRes = await fetch('/api/user/by-handle/brendon', { cache: 'no-store' });
+                const prof = profRes.ok ? await profRes.json() : null;
+                const followers = prof?.follower_count ?? 0;
+                /* A user is mutuals with themselves (Brendon, 2026-06-16). */
+                let mutual =
+                    (viewerHandle ?? '').toLowerCase().replace(/^@/, '') === 'brendon';
+                if (!mutual && siweAddress) {
+                    const fRes = await fetch(`/api/follows/${siweAddress.toLowerCase()}`, { cache: 'no-store' });
+                    const f = fRes.ok ? await fRes.json() : null;
+                    const lc = (a: unknown) => (Array.isArray(a) ? (a as string[]) : []).map((v) => String(v).toLowerCase().replace(/^@/, ''));
+                    const following = lc(f?.following_handles);
+                    const followerH = lc(f?.follower_handles);
+                    mutual = following.includes('brendon') && followerH.includes('brendon');
+                }
+                if (!cancelled) setBrendonSocial({ followers, mutual });
+            } catch { /* keep last good */ }
+        };
+        load();
+        const onCh = () => load();
+        window.addEventListener('pd:follows-changed', onCh);
+        return () => { cancelled = true; window.removeEventListener('pd:follows-changed', onCh); };
+    }, [siweAddress, viewerHandle]);
 
     const [feed, setFeed] = useState<MarketplaceResponse | null>(initial);
     useEffect(() => {
@@ -168,8 +206,32 @@ function MarketplacePageBodyInner({ initial = null }: { initial?: MarketplaceRes
     return (
         <>
             <Hero
-                ariaLabel="Marketplace"
-                titleRow={<h1 className="project-title">Marketplace</h1>}
+                ariaLabel="PD Marketplace"
+                titleRow={<h1 className="project-title">PD Marketplace</h1>}
+                identityRow={
+                    /* The home hero's credit line, verbatim. */
+                    <div className="hero-line project-custom home-id-row">
+                        <span className="by-text">By</span>{' '}
+                        <div className="artist-lockup">
+                            <span className="artist-name-wrap">
+                                <a href="/brendon">@brendon</a>
+                                <span className="artist-tag" aria-label="artist">
+                                    {'✺︎'}
+                                </span>
+                                {notifs.spell_cartel && brendonSocial.mutual && (
+                                    <span className="id-cartel" aria-label="cartel">{'⟁︎'}</span>
+                                )}
+                                {brendonSocial.mutual && (
+                                    <span className="follow-badge"><span className="ico-mutual" title="Mutual">⚭&#xFE0E;</span></span>
+                                )}
+                            </span>
+                            {brendonSocial.followers > 0 && (
+                                <span className="follower-count">{brendonSocial.followers >= 1000 ? `${(brendonSocial.followers / 1000).toFixed(1).replace(/\.0$/, '')}k` : brendonSocial.followers}</span>
+                            )}
+                        </div>
+                    </div>
+                }
+                socialRow={<FeaturingRow />}
                 statsRow={
                     <div className="hero-line stats-row">
                         <span className="stat-item">

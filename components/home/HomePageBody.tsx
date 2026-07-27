@@ -143,7 +143,7 @@ function OwnedNameCheck() {
    this one line, never the whole home surface. Living on the parent, the timer
    was re-rendering the entire page every 3.6s — stuttering the news banner and
    every carousel. Now it's a featherweight leaf (Brendon, 2026-07-05). */
-function FeaturingRow() {
+export function FeaturingRow() {
     const { openMenu, setView } = useDropdown();
     /* First paint deterministic (SSR/CSR agree); the mount re-roll + interval
        take over. Each name card flips in; the row height is locked in CSS so
