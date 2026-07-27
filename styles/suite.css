@@ -67,3 +67,95 @@
    box chrome as its sibling tabs, content padded like the sheet */
 .suite-wf .wf-compose { padding: 10px 10px 12px; }
 .suite-wf .wf-list { padding: 0 10px 10px; }
+
+/* ◊ PriceBooks — the real Portfolios panel (Budgets + Main/Shadow) as a
+   Suite app. Its dropdown back-arrow is meaningless here — hidden. */
+.suite-books > .settings-panel > .scroll-arrow:first-child { display: none; }
+
+/* ‰ fronts the Today tab — the PD logo mark wears Inter, always */
+.suite-tab-mille { font-family: var(--font-inter), Inter, sans-serif; font-weight: 800; }
+
+/* ── the Today dashboard ── */
+.suite-today { padding: 2px 2px 10px; color: var(--text-color); }
+
+/* the week strip — 7 tiles, today in PD's dotted ring */
+.suite-week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+    padding: 4px 2px 10px;
+}
+.suite-day {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    color: var(--text-color);
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    padding: 6px 0 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+}
+.suite-day.today { outline: 2px dotted var(--text-color); outline-offset: 2px; }
+.suite-day-dow { font-size: 12px; letter-spacing: 0.4px; }
+.suite-day.today .suite-day-dow { font-size: 12px; }
+.suite-day-num { font-size: 18px; line-height: 1; }
+.suite-day-count { font-size: 12px; line-height: 1; }
+.suite-day-count.has {
+    background: var(--stat-active-bg, var(--text-color));
+    color: var(--stat-active-text, var(--bg-color));
+    border-radius: 4px;
+    padding: 1px 4px;
+}
+
+.suite-td-head {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    padding: 10px 4px 6px;
+    border-bottom: 1px solid var(--text-color);
+    margin-bottom: 4px;
+}
+
+.suite-td-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 4px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+}
+.suite-td-row.done .suite-td-text { text-decoration: line-through; }
+.suite-td-text { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.suite-td-meta { flex: 0 0 auto; display: flex; gap: 6px; font-size: 12px; }
+.suite-td-eth { white-space: nowrap; }
+
+/* the pulse tiles — live numbers, each a door to its app */
+.suite-pulse {
+    display: flex;
+    gap: 6px;
+    padding: 12px 2px 0;
+    flex-wrap: wrap;
+}
+.suite-tile {
+    flex: 1 1 30%;
+    min-width: 96px;
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--text-color);
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    padding: 9px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+}
+.suite-tile-num { font-size: 16px; font-weight: bold; line-height: 1; }
+.suite-tile-lbl { font-size: 12px; font-weight: bold; letter-spacing: 0.5px; }

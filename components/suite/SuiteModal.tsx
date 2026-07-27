@@ -2,20 +2,24 @@
 
 /*
  * PriceOS Suite — the productivity super-app (Brendon, 2026-07-27): one
- * modal, little icons at the top, three apps under them —
+ * modal, little icons at the top, six apps under them —
  *
+ *   ‰ Today      — the landing dashboard (SuiteToday): Fantastical-style
+ *                  week strip, today's work, the live pulse tiles
  *   ▦ PriceCal   — the REAL connect-menu calendar (month grid + day column)
- *   ❍ PriceTask  — the REAL To-Dos box, expanded (☇ Workflows live in its
- *                  header, exactly as they do in the menu)
+ *   ❍ PriceTask  — the REAL To-Dos box, expanded (☇ Workflows ride its
+ *                  header too, exactly as in the menu)
+ *   ☇ PriceFlows — the workflows builder + armed list, inline
+ *   ◊ PriceBooks — the REAL Portfolios panel (Budgets + Main/Shadow)
  *   ⊟ PriceNotes — the REAL Notes box, expanded
  *
  * Nothing here is re-implemented (Rule #0): the tabs mount the same
  * components the connect menu runs; the chrome is the Friend-Inspector
- * PLUS panel verbatim.
+ * PLUS panel verbatim; the dashboard reads the same stores.
  *
  * THE DOOR (Brendon-confirmed 2026-07-27): long-press the TO-DOS header in
  * the connect menu — right where it says "TO-DOS". Out: × / Esc / backdrop.
- * Opens on PriceTask (the door is the To-Dos header).
+ * Opens on the Today dashboard.
  */
 
 import { useEffect, useState } from 'react';
@@ -26,18 +30,24 @@ import CalendarPanel from '../CalendarPanel';
 import { TodosBox } from '../dropdown/TodosBox';
 import { NotesBox } from '../dropdown/NotesBox';
 import { WorkflowsSheet } from '../dropdown/WorkflowsSheet';
+import { PortfolioView } from '../dropdown/PortfolioView';
+import SuiteToday, { type SuiteAppKey } from './SuiteToday';
 
 const VS15 = '︎';
 
 /* Glyphs are the canonical ones from docs/GLYPHS.md — ▦ Calendar · ❍ To-Do
-   · ☇ Workflows · ⊟ Note. Never swapped, never invented. */
+   · ☇ Workflows · ◊ the ETH mark (money = PriceBooks) · ⊟ Note — plus the
+   ‰ PD logo mark (Inter, per the logo law) fronting the Today dashboard.
+   Never swapped, never invented. */
 const APPS = [
+    { key: 'today', glyph: '‰', name: 'Today' },
     { key: 'cal', glyph: '▦', name: 'PriceCal' },
     { key: 'task', glyph: '❍', name: 'PriceTask' },
-    { key: 'flow', glyph: '☇', name: 'PriceFlow' },
+    { key: 'flow', glyph: '☇', name: 'PriceFlows' },
+    { key: 'books', glyph: '◊', name: 'PriceBooks' },
     { key: 'notes', glyph: '⊟', name: 'PriceNotes' },
 ] as const;
-type AppKey = (typeof APPS)[number]['key'];
+type AppKey = SuiteAppKey;
 
 export default function SuiteModal() {
     const { close } = useModal();
@@ -46,7 +56,7 @@ export default function SuiteModal() {
 
     useEffect(() => {
         if (!isOpen) return;
-        setApp('task'); // fresh open lands on PriceTask (the door's home)
+        setApp('today'); // fresh open lands on the Today dashboard
         lockBodyScroll();
         return () => unlockBodyScroll();
     }, [isOpen]);
@@ -96,15 +106,17 @@ export default function SuiteModal() {
                             className={`suite-tab${app === a.key ? ' on' : ''}`}
                             onClick={() => setApp(a.key)}
                         >
-                            <span className="suite-tab-ic">{`${a.glyph}${VS15}`}</span>
+                            <span className={`suite-tab-ic${a.glyph === '‰' ? ' suite-tab-mille' : ''}`}>{a.glyph === '‰' ? a.glyph : `${a.glyph}${VS15}`}</span>
                             {a.name}
                         </button>
                     ))}
                 </div>
                 <div className="followers-plus-body suite-body">
+                    {app === 'today' && <SuiteToday openApp={setApp} />}
                     {app === 'cal' && <div className="suite-cal"><CalendarPanel /></div>}
                     {app === 'task' && <TodosBox suite />}
                     {app === 'flow' && <WorkflowsSheet inline />}
+                    {app === 'books' && <div className="suite-books"><PortfolioView /></div>}
                     {app === 'notes' && <NotesBox suite />}
                 </div>
             </div>
