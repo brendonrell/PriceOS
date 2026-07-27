@@ -15,6 +15,7 @@ import {
     colorTemperature, orientationOf, BUCKET_HEX,
     paletteBand, contrastBand, warmthBand, symmetryBand, airBand, textureBand, gravityWord,
     valueKey, colourStory,
+    geometryBand, colorfulnessOf, colorfulnessBand, densityOf, densityBand, orderOf, orderBand,
 } from './derive';
 import { primaryTrait, traitRarity, fateRarity, colorRarity, overallRarity, pdRarityRank, popCount, type Freq } from './rarity';
 import { outputIsolation, nearestKin } from './genome';
@@ -64,6 +65,7 @@ export interface AttrInput {
         gravity?: string | null; symmetry?: number | null; air?: number | null;
         texture?: number | null;
         scene?: string | null; shape_count?: number | null; pattern?: string | null;
+        geometry?: number | null;
     } | null;
     /** The Output true name (project glyphs + id). */
     trueName: string;
@@ -168,6 +170,26 @@ export function buildOutputAttributes(input: AttrInput): AttrGroup[] {
     if (bucket && accent) {
         const story = colourStory(bucket, accent);
         if (story) form.push({ glyph: '✧', label: 'Colour Story', value: story, sub: `${bucket} · ${accent}` });
+    }
+    /* v4 (2026-07-27) — THE TASTE AXES, the Radar's data unlock (Brendon's
+       call: the Fingerprint is where taste gets measured). Four poles-pair
+       reads: Geometric↔Organic rides the new v4 pixel read; the other three
+       are transparent composites of the real scalars above. Gated per axis. */
+    const geometry = fingerprint?.geometry;
+    if (geometry != null) {
+        form.push({ glyph: '∠', label: 'Geometry', value: geometryBand(geometry), sub: `${pct(geometry)} geometric` });
+    }
+    if (sa != null && pc != null) {
+        const c = colorfulnessOf(sa, pc);
+        form.push({ glyph: '◧', label: 'Colourfulness', value: colorfulnessBand(c), sub: `${pct(c)} colorful` });
+    }
+    if (air != null && cx != null) {
+        const d = densityOf(air, cx);
+        form.push({ glyph: '▓', label: 'Density', value: densityBand(d), sub: `${pct(d)} dense` });
+    }
+    if (symmetry != null && texture != null) {
+        const o = orderOf(symmetry, texture, fingerprint?.pattern);
+        form.push({ glyph: '∷', label: 'Order', value: orderBand(o), sub: `${pct(o)} structured` });
     }
     /* Swatches — the piece's ACTUAL colours as tappable hex chips (sampled
        from its real render, lib/output/paletteChips). Tap copies the hex. */

@@ -12878,6 +12878,56 @@ body.is-pwa .fullscreen-back {
     }
 }
 
+/* ── THE DARKROOM ◉ — the art-inspection workspace (2026-07-27) ──────────
+   Wears .artwork-fullscreen for the whole proven stage (frame, safe areas,
+   footer hide); below is only its own chrome: the standard × (fixed so it
+   survives any scroll state), the bottom bar (real palette swatches + the
+   INVERT pill), and room for the bar under tall pieces. */
+.artwork-darkroom {
+    /* Keep the art clear of the bottom bar. */
+    padding-bottom: calc(max(4vmin, env(safe-area-inset-bottom)) + 56px);
+}
+.close-hint.dk-close {
+    position: fixed;
+    top: calc(max(20px, env(safe-area-inset-top)) + 30px);
+    right: max(30px, env(safe-area-inset-right));
+}
+.darkroom-bar {
+    position: fixed;
+    left: max(16px, env(safe-area-inset-left));
+    right: max(16px, env(safe-area-inset-right));
+    bottom: max(16px, calc(env(safe-area-inset-bottom) + 8px));
+    z-index: 110;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+/* The chip row reuses the character sheet's .attr-chips verbatim; only its
+   chips need the page bg behind them so hexes stay readable over the frame. */
+.darkroom-bar .attr-chip { background: var(--bg-color); }
+.darkroom-invert {
+    /* The house pill treatment (the STICKERS-button reference): solid bg
+       fill, full-strength text-colour border AND text, bold, 4px. */
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    padding: 6px 12px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+.darkroom-invert.is-on {
+    background: var(--stat-active-bg);
+    color: var(--stat-active-text);
+    border-color: var(--stat-active-bg);
+}
+
 /* Back Button Mode — the persistent navbar back arrow. Lives inside
    .user-menu-wrapper (which is position:relative), so it parks directly
    under the connect square, travels with the sticky navbar, and fades with

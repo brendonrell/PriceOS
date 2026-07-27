@@ -44,6 +44,7 @@ export interface OutputDetailResponse {
     scene?: string | null;
     shape_count?: number | null;
     pattern?: string | null;
+    geometry?: number | null;
   } | null;
   true_name: string | null;
   /** Attention lens — pledges of fealty routed THROUGH this Output (its
@@ -85,7 +86,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ id: stri
         .eq('token_id', tokenId)
         .order('timestamp', { ascending: true }),
       db.from('outputs')
-        .select('dominant_color, aspect, brightness, saturation, complexity, accent_color, accent_share, palette_count, contrast, warmth, gravity, symmetry, air, texture, scene, shape_count, pattern, true_name')
+        .select('dominant_color, aspect, brightness, saturation, complexity, accent_color, accent_share, palette_count, contrast, warmth, gravity, symmetry, air, texture, scene, shape_count, pattern, geometry, true_name')
         .eq('project_id', slug).eq('token_id', tokenId).maybeSingle(),
       // Attention lens — how many pledges route through this Output as conduit.
       db.from('anointments').select('*', { count: 'exact', head: true })
@@ -98,6 +99,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ id: stri
       contrast: number | null; warmth: number | null; gravity: string | null;
       symmetry: number | null; air: number | null; texture: number | null;
       scene: string | null; shape_count: number | null; pattern: string | null;
+      geometry: number | null;
       true_name: string | null;
     } | null;
 
@@ -173,6 +175,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ id: stri
             scene: meta.scene,
             shape_count: meta.shape_count,
             pattern: meta.pattern,
+            geometry: meta.geometry,
           }
         : null,
       true_name: meta?.true_name ?? null,

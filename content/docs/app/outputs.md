@@ -18,6 +18,20 @@ Grids and cards across the app draw each Output's stored PNG preview for speed; 
 
 The attributes panel lists the Output's traits with per-trait rarity across the Project, and the **Rarity Receipt** is the one-tap summary of how this piece sits in its edition. Trait stars let you mark the traits you hunt for; they animate when the piece in front of you carries one.
 
+## Highlight — the Fingerprint
+
+Every Output on PD carries a **Fingerprint**: the platform looks at the piece's *actually rendered pixels* — not its metadata, not its traits — and reads what is really there. Nothing about it is declared or hand-tagged; every reading is measured from the artwork itself, so two Fingerprints can be compared honestly across any two pieces on the platform, whoever made them.
+
+What the Fingerprint reads, all from the real render:
+
+- **What it literally looks like** — a plain-language sentence ("two blue squares and a yellow circle"), with the countable shapes and their arrangement.
+- **Colour** — the dominant and accent colours, palette size, temperature, and the piece's actual hexes as tappable swatches.
+- **Light** — brightness, saturation, contrast, tone, and the photographic value key.
+- **Composition** — where the visual weight sits, symmetry, negative space, texture, and orientation.
+- **The taste axes** — the piece's position on four poles-pairs: **Geometric ↔ Organic**, **Colorful ↔ Monochrome**, **Dense ↔ Sparse**, **Structured ↔ Chaotic**. Measured, not opined — the same axes for every piece on PD.
+
+Where each reading sits against the rest of the edition, the Fingerprint says so ("top 8%"). Because every piece gets the same objective look, the Fingerprint is what powers colour grouping in galleries, mood and light sorts, and the taste reads that compare pieces — and collections — by what the art actually is.
+
 ## The action row
 
 The Output's verbs, in canonical glyphs, one tap each:

@@ -32,6 +32,11 @@
  * dismiss; nothing persists. Only at 1× (pinch owns the zoomed state). By
  * Brendon's call the long-press takes the gesture everywhere, including the
  * modal image (which previously fell through to the iOS save-sheet callout).
+ *
+ * onLongPress (2026-07-27, the Darkroom door — Brendon's call): a surface can
+ * hand the press-and-hold to its own action instead of the loupe (the artwork
+ * feature page long-press opens the Darkroom). Same arming/cancel mechanics;
+ * hover + L keeps summoning the loupe on such surfaces.
  */
 
 import { useEffect, useRef, type RefObject } from 'react';
@@ -75,6 +80,7 @@ export default function DeepZoomLayer({
     id,
     disabled = false,
     wheelNeedsModifier = false,
+    onLongPress,
 }: {
     /** The positioned container that holds the art (listeners attach here). */
     containerRef: RefObject<HTMLElement | null>;
@@ -86,6 +92,9 @@ export default function DeepZoomLayer({
     disabled?: boolean;
     /** Page contexts that scroll: only ctrl/⌘-wheel (trackpad pinch) zooms. */
     wheelNeedsModifier?: boolean;
+    /** When set, press-and-hold fires THIS instead of summoning the loupe
+     *  (the Darkroom door on the feature page). Hover + L stays the loupe. */
+    onLongPress?: () => void;
 }) {
     const sharpRef = useRef<HTMLCanvasElement | null>(null);
     const readoutRef = useRef<HTMLDivElement | null>(null);
@@ -103,6 +112,8 @@ export default function DeepZoomLayer({
     const savedOverflow = useRef<string | null>(null);
     const disabledRef = useRef(disabled);
     disabledRef.current = disabled;
+    const onLongPressRef = useRef(onLongPress);
+    onLongPressRef.current = onLongPress;
     const artKeyRef = useRef(`${slug}:${id}`);
 
     useEffect(() => {
@@ -237,9 +248,27 @@ export default function DeepZoomLayer({
         let lastTouch = { x: 0, y: 0 };
         let hovering = false;
         let lastMouse = { x: 0, y: 0 };
+        /* True right after a surface-owned long-press fired (the Darkroom
+           door) — the lift + click tail get swallowed so the tap action
+           underneath never also fires. */
+        let pressActionFired = false;
 
         const cancelPress = () => {
             if (pressTimer != null) { window.clearTimeout(pressTimer); pressTimer = null; }
+        };
+
+        /* Press-and-hold lands here: the surface's own action when it set one
+           (the Darkroom door), the loupe otherwise. */
+        const firePress = (cx: number, cy: number, touch: boolean) => {
+            const action = onLongPressRef.current;
+            if (action) {
+                if (disabledRef.current || scaleRef.current > 1 || id == null) return;
+                pressActionFired = true;
+                lastGestureAt.current = Date.now();
+                action();
+                return;
+            }
+            loupeShow(cx, cy, touch);
         };
 
         /* The lens source — the whole piece re-rendered once at ~4× the
@@ -359,7 +388,7 @@ export default function DeepZoomLayer({
                         cancelPress();
                         pressTimer = window.setTimeout(() => {
                             pressTimer = null;
-                            loupeShow(lastTouch.x, lastTouch.y, true);
+                            firePress(lastTouch.x, lastTouch.y, true);
                         }, LONG_PRESS_MS);
                     }
                 }
@@ -448,6 +477,14 @@ export default function DeepZoomLayer({
 
         const onTouchEnd = (e: TouchEvent) => {
             cancelPress();
+            if (pressActionFired) {
+                /* The door fired on the hold — swallow the lift so the tap
+                   action underneath (open the modal) never also runs. */
+                pressActionFired = false;
+                e.stopPropagation();
+                e.preventDefault();
+                return;
+            }
             if (loupeOn) {
                 /* Lift = the lens goes away; swallow the tail so the tap
                    action underneath (open page / swipe nav) never fires. */
@@ -530,7 +567,7 @@ export default function DeepZoomLayer({
                         cancelPress();
                         pressTimer = window.setTimeout(() => {
                             pressTimer = null;
-                            loupeShow(lastMouse.x, lastMouse.y, false);
+                            firePress(lastMouse.x, lastMouse.y, false);
                         }, LONG_PRESS_MS);
                     }
                 }
@@ -560,6 +597,7 @@ export default function DeepZoomLayer({
         };
         const onMouseUp = () => {
             cancelPress();
+            if (pressActionFired) { pressActionFired = false; return; }
             if (loupeOn && !loupeIsTouch) { loupeHide(); return; }
             if (!mouseDrag) return;
             mouseDrag = null;

@@ -607,6 +607,25 @@ sky at mint) + the proven lunarGlyph discs.
 > The home sort row's ◷ clock also took the same 1.5px drop, scoped to that
 > row only (`.sort-btn-clock`) — every other ◷ surface is untouched.
 
+## 12i. Fingerprint taste axes — ∠ ◧ ▓ ∷ (2026-07-27 build)
+
+The four taste-axis tiles on the character sheet's Fingerprint wall
+(`lib/output/attributes.ts`) — the Radar's data unlock (Brendon's call:
+taste gets measured on the Fingerprint).
+
+| Axis | Glyph | Codepoint | Notes |
+|---|---|---|---|
+| Geometry (Geometric↔Organic) | ∠ | U+2220 ANGLE | math operator, no emoji mapping; globally new to the vocabulary |
+| Colourfulness (Colorful↔Monochrome) | ◧ | U+25E7 | half-black square = the two-tone read; appears elsewhere only inside character-art pools (tabstract/familiars), never as an icon — the ≡ precedent |
+| Density (Dense↔Sparse) | ▓ | U+2593 DARK SHADE | packed pixels; deliberate kin to ▒ Texture (medium shade). ASCII-art pools only elsewhere |
+| Order (Structured↔Chaotic) | ∷ | U+2237 PROPORTION | dots in rank; NOT ⁘ (U+2058, the GROUP toggle) — different codepoint, different meaning |
+
+> All four pass the sharpened §7 emoji test (no emoji mapping at all) and ship
+> with the trailing VS-15 `︎` per convention. Standard #1 gate applies.
+> The Darkroom ◉ (2026-07-27, `/art/{slug}/{id}/darkroom`) introduces NO new
+> glyph — its task-name ◉ already lives in the vocabulary (the multi-context
+> precedent, §7), and its chrome is the standard × + the house pill.
+
 ## 13. THE WAR — Factions glyphs (2026-07-13 build, spec v3.1 §11)
 
 One vocabulary across the ceremony, the tape, pings, the Book, and the
