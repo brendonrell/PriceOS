@@ -63,6 +63,7 @@
 
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { formatEth } from '../../lib/format/eth';
+import { useFiat } from '../../lib/state/FiatContext';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useValuePrompt } from '../../lib/state/ValuePromptContext';
@@ -129,6 +130,12 @@ export function PortfolioView() {
     const { setView } = useDropdown();
     const { showToast } = useToast();
     const { openValuePrompt } = useValuePrompt();
+    /* Fiat in portfolios (Brendon, 2026-07-27) — when the user has a fiat
+       currency picked (the $ picker in Wallet settings), the grand total and
+       each category total wear the site's standard ~fiat readout beside the
+       ETH figure. Off / untrusted rate → nothing renders, same as every
+       other fiat surface. */
+    const { ethToFiat } = useFiat();
 
     const [tab, setTab] = useState<PortfolioTab>('portfolio');
     /* $-button value mode (persisted). 'off' = hide values — equivalent to the
@@ -639,6 +646,9 @@ export function PortfolioView() {
                 }}
             >
                 EST. {pfHide(pfFmtEth(grandTotal))}
+                {!portfolioHidden && ethToFiat(grandTotal) && (
+                    <span className="pf-fiat"> {ethToFiat(grandTotal)}</span>
+                )}
             </div>
 
             <div className="portfolio-pills-row">
@@ -805,6 +815,9 @@ export function PortfolioView() {
                                     {showDollar && (
                                         <span className="pf-est" style={{ marginLeft: 'auto' }}>
                                             {pfHide(pfFmtEth(catEst))}
+                                            {!portfolioHidden && ethToFiat(catEst) && (
+                                                <span className="pf-fiat"> {ethToFiat(catEst)}</span>
+                                            )}
                                         </span>
                                     )}
                                 </div>

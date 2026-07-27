@@ -13,7 +13,11 @@
  *   - SWIPE UP on the bar (or tap) → the stone opens full-height with a
  *     flashing typing indicator and NO prompt text (Brendon's call: empty
  *     idle — pure black stone, silent until touched).
- *   - LONG-PRESS the open stage → collapses back to the thin bar.
+ *   - SWIPE DOWN on the pill → minimizes to the dot. ⛔ THE ONLY minimize
+ *     gesture (Brendon, 2026-07-27): the stone NEVER minimizes on its own —
+ *     no route-change park, no long-press collapse, no Escape. Only the
+ *     user's deliberate swipe down (or the typed "minimize" command, his
+ *     2026-07-21 order) parks it at the dot.
  *   - GO/FIND ride the real Global Search (/api/search — Rule #0, one
  *     door): live results, inline answers, pages, Enter = top hit.
  *     Presentation is the stone's own (StoneDeck, stage 4): TARS-voice
@@ -58,10 +62,6 @@ const STONE_GLYPH = `⌘${VS15}`;
 
 /** Upward travel (px) on the bar that reads as "swipe up" → open. */
 const SWIPE_OPEN_PX = 24;
-/** Press-and-hold time (ms) on the open stage that collapses the stone. */
-const LONG_PRESS_MS = 550;
-/** Finger drift (px) that cancels a long-press (it became a scroll). */
-const LONG_PRESS_DRIFT_PX = 8;
 
 /* Typed MINIMIZE (Brendon, 2026-07-21): "minimize" — or a natural variant —
    parks the stone at the dot, exactly like the swipe/long-press gesture. */
@@ -258,10 +258,11 @@ export default function CommandStone() {
                 /* 9px disc + the 14px invisible tap pad below it */
                 h = 23;
             }
-            /* The 8px breathing gap rides INSIDE the published value, so it
-               only exists while the stone does — at 0 the player sits exactly
-               where it always has, with nothing added. */
-            document.body.style.setProperty('--pd-stone-h', h > 0 ? `${Math.round(h) + 8}px` : '0px');
+            /* The 4px breathing gap (halved from 8 — Brendon, 2026-07-27:
+               nudge the player closer to the stone) rides INSIDE the published
+               value, so it only exists while the stone does — at 0 the player
+               sits exactly where it always has, with nothing added. */
+            document.body.style.setProperty('--pd-stone-h', h > 0 ? `${Math.round(h) + 4}px` : '0px');
         };
         publish();
         /* The vessel grows and shrinks as results come and go. */
@@ -551,23 +552,12 @@ export default function CommandStone() {
         }
     };
 
-    /* Route change → an open stone parks at the dot (it lives above realms,
-       so navigating minimizes it rather than destroying it; nothing bleeds
-       onto the next page). */
-    useEffect(() => {
-        setStage((st) => (st === 'open' ? 'dot' : st));
-        setValue('');
-    }, [pathname]);
-
-    /* Escape minimizes to the dot (desktop keyboard crowd). */
-    useEffect(() => {
-        if (!open) return;
-        const onKey = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') { inputRef.current?.blur(); setStage('dot'); }
-        };
-        window.addEventListener('keydown', onKey);
-        return () => window.removeEventListener('keydown', onKey);
-    }, [open]);
+    /* ⛔ Navigating does NOT minimize the stone (Brendon, 2026-07-27 — it was
+       parking at the dot on every route change and that auto-minimize was the
+       aggravation). It lives above realms: an open stone rides along open.
+       Escape-to-dot and the long-press collapse are gone for the same reason —
+       the ONLY minimize is the user's deliberate swipe down (or typing
+       "minimize"). GO through a result still fully folds it — GO means GO. */
 
     /* KEYBOARD-AWARE DECK HEIGHT — while the stone is open the soft keyboard
        shrinks the visible area; track the live visual viewport into --stone-vvh
@@ -911,13 +901,10 @@ export default function CommandStone() {
         };
     }, [siweAddress, needsSignup]);
 
-    /* Put-away gestures: swipe down / long-press the pill, OR a single tap on
-       the page background while open (the tap-away, added 2026-07-22) — all
-       park at the dot with the bubble kept for restore. */
     const vesselRef = useRef<HTMLDivElement | null>(null);
 
-    /* Swipe DOWN on the open pill → minimize to the dot (the current
-       put-away gesture, now parking at the stone's minimized form). */
+    /* Swipe DOWN on the open pill → minimize to the dot. The ONE put-away-to-
+       dot gesture (Brendon, 2026-07-27). */
     const pillTouchY = useRef<number | null>(null);
     const onPillTouchStart = (e: React.TouchEvent) => {
         pillTouchY.current = e.touches[0]?.clientY ?? null;
@@ -930,41 +917,6 @@ export default function CommandStone() {
             pillTouchY.current = null;
             inputRef.current?.blur();
             setStage('dot');
-        }
-    };
-
-    /* Long-press the open stage → collapse. Presses that start on live
-       elements (the input, result rows, buttons) never count — those
-       belong to the element. Drift past the threshold cancels (it was a
-       scroll); pointerup/cancel clears. */
-    const pressTimer = useRef<number | null>(null);
-    const pressStart = useRef<{ x: number; y: number } | null>(null);
-    const clearPress = () => {
-        if (pressTimer.current != null) {
-            window.clearTimeout(pressTimer.current);
-            pressTimer.current = null;
-        }
-        pressStart.current = null;
-    };
-    const onStagePointerDown = (e: React.PointerEvent) => {
-        const el = e.target as HTMLElement;
-        if (el.closest('input, [role="button"], button, a')) return;
-        pressStart.current = { x: e.clientX, y: e.clientY };
-        pressTimer.current = window.setTimeout(() => {
-            clearPress();
-            /* Long-press collapses the open stone to the dot (minimize). */
-            inputRef.current?.blur();
-            setStage('dot');
-        }, LONG_PRESS_MS);
-    };
-    const onStagePointerMove = (e: React.PointerEvent) => {
-        const s = pressStart.current;
-        if (!s) return;
-        if (
-            Math.abs(e.clientX - s.x) > LONG_PRESS_DRIFT_PX ||
-            Math.abs(e.clientY - s.y) > LONG_PRESS_DRIFT_PX
-        ) {
-            clearPress();
         }
     };
 
@@ -1002,10 +954,6 @@ export default function CommandStone() {
                 className={`stone-float${open ? ' stone-float--open' : ''}${open && hasTab ? ' stone-float--docked' : ''}`}
                 id="commandStonePanel"
                 aria-hidden={!open}
-                onPointerDown={onStagePointerDown}
-                onPointerMove={onStagePointerMove}
-                onPointerUp={clearPress}
-                onPointerCancel={clearPress}
             >
                     {hasTab && (
                     <div className="stone-deck stone-results">

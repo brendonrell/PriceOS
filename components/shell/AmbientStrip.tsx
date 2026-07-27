@@ -16,6 +16,15 @@ import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { pushSettings, USERSTATE_HYDRATED_EVENT } from '../../lib/state/userState';
 import {
+    useAmbientPresets,
+    saveAmbientPreset,
+    renameAmbientPreset,
+    deleteAmbientPreset,
+    MAX_AMBIENT_PRESETS,
+    AMBIENT_PRESET_NAME_MAX,
+    type AmbientPreset,
+} from '../../lib/state/ambientPresets';
+import {
     encodeAmbientCode,
     decodeAmbientCode,
     clampDim,
@@ -155,6 +164,11 @@ const SCENES: Scene[] = [
 const sameOpts = (a: Opts, b: Opts): boolean =>
     a.palette === b.palette && a.pattern === b.pattern && a.speed === b.speed && a.dim === b.dim;
 
+/** Slot marks for the Presets row — the same numbering the Spreads row and the
+ *  gallery's saved views use, so a saved thing looks like a saved thing
+ *  everywhere. */
+const PRESET_SLOT_GLYPHS = ['①', '②', '③'] as const;
+
 const pick = <T,>(arr: ReadonlyArray<T>): T => arr[Math.floor(Math.random() * arr.length)];
 
 export default function AmbientStrip() {
@@ -178,6 +192,26 @@ export default function AmbientStrip() {
     const currentCode = encodeAmbientCode(opts);
     const [codeValue, setCodeValue] = useState(currentCode);
     const [codeEditing, setCodeEditing] = useState(false);
+
+    /* PRESETS — saved, named looks (Brendon, 2026-07-27; the sticker Spreads
+       row, ported verbatim): SAVE + three numbered slots, tap to apply, ✎ to
+       rename in place, × to remove behind the app's own confirm card. A
+       preset snapshots the WHOLE options blob, all four pages of it. */
+    const presets = useAmbientPresets();
+    const [presetRenaming, setPresetRenaming] = useState<string | null>(null);
+    const [presetRenameText, setPresetRenameText] = useState('');
+    const [presetConfirmDelete, setPresetConfirmDelete] = useState<AmbientPreset | null>(null);
+    const commitPresetRename = () => {
+        const id = presetRenaming;
+        const next = presetRenameText.trim();
+        setPresetRenaming(null);
+        if (!id || !next) return;
+        if (renameAmbientPreset(id, next)) showToast('Preset: RENAMED');
+    };
+    const applyPreset = (p: AmbientPreset) => {
+        setOpts({ ...DEFAULTS, ...normalizeOpts(p.opts) });
+        showToast(`Preset: ${p.name.toUpperCase()}`);
+    };
     const codeCopyingRef = useRef(false);
     const codeInputRef = useRef<HTMLInputElement | null>(null);
     const sunTaps = useRef<{ n: number; t: number }>({ n: 0, t: 0 });
@@ -528,6 +562,70 @@ export default function AmbientStrip() {
                                     </Chip>
                                 ))}
                             </Row>
+                            <Row label="Presets">
+                                <button
+                                    type="button"
+                                    className="pill-preset pill-preset--save"
+                                    title="Save the light exactly as it looks now"
+                                    onClick={() => {
+                                        const { preset, replaced } = saveAmbientPreset(opts);
+                                        showToast(`Preset: ${replaced ? 'REPLACED' : 'SAVED'} · ${preset.name}`);
+                                    }}
+                                >
+                                    SAVE
+                                </button>
+                                {presets.map((p, i) => (presetRenaming === p.id ? (
+                                    <input
+                                        key={p.id}
+                                        autoFocus
+                                        className="value-prompt-input smgr-spread-input"
+                                        value={presetRenameText}
+                                        maxLength={AMBIENT_PRESET_NAME_MAX}
+                                        onChange={(e) => setPresetRenameText(e.target.value)}
+                                        onBlur={commitPresetRename}
+                                        onClick={(e) => e.stopPropagation()}
+                                        onKeyDown={(e) => {
+                                            e.stopPropagation();
+                                            if (e.key === 'Enter') { e.preventDefault(); commitPresetRename(); }
+                                            if (e.key === 'Escape') { e.preventDefault(); setPresetRenaming(null); }
+                                        }}
+                                    />
+                                ) : (
+                                    <button
+                                        key={p.id}
+                                        type="button"
+                                        className="pill-preset"
+                                        title={`Put “${p.name}” back on the light`}
+                                        onClick={() => applyPreset(p)}
+                                    >
+                                        <span className="pill-preset__index">{PRESET_SLOT_GLYPHS[i]}</span>
+                                        <span className="pill-preset__name">{p.name}</span>
+                                        <span
+                                            className="smgr-spread-edit"
+                                            role="button"
+                                            tabIndex={0}
+                                            title="Rename preset"
+                                            aria-label="Rename preset"
+                                            onClick={(e) => { e.stopPropagation(); setPresetRenameText(p.name); setPresetRenaming(p.id); }}
+                                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setPresetRenameText(p.name); setPresetRenaming(p.id); } }}
+                                        >{'✎︎'}</span>
+                                        <span
+                                            className="pill-preset__delete"
+                                            role="button"
+                                            tabIndex={0}
+                                            title="Remove preset"
+                                            aria-label="Remove preset"
+                                            onClick={(e) => { e.stopPropagation(); setPresetConfirmDelete(p); }}
+                                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setPresetConfirmDelete(p); } }}
+                                        >{'×︎'}</span>
+                                    </button>
+                                )))}
+                                {Array.from({ length: Math.max(0, MAX_AMBIENT_PRESETS - presets.length) }).map((_, i) => (
+                                    <span key={`empty-${i}`} className="pill-preset pill-preset--empty" title="Empty preset slot">
+                                        {PRESET_SLOT_GLYPHS[presets.length + i]}
+                                    </span>
+                                ))}
+                            </Row>
                             <Row label="Color">
                                 {PALETTES.map((p) => (
                                     <button
@@ -719,6 +817,31 @@ export default function AmbientStrip() {
                             Surprise
                         </button>
                     </div>
+                    {/* The app's own remove-confirm card — a Preset is a saved
+                        look; the light itself is untouched, so say that plainly
+                        (the Spreads card, verbatim). */}
+                    {presetConfirmDelete && (
+                        <div className="starred-confirm-overlay" role="dialog" aria-modal="true" onClick={() => setPresetConfirmDelete(null)}>
+                            <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
+                                <div className="ms-confirm-question">
+                                    Remove the preset “{presetConfirmDelete.name}”? Your light stays exactly as it is.
+                                </div>
+                                <div className="ms-confirm-btns">
+                                    <button className="ms-confirm-btn ms-confirm-btn--cancel" onClick={() => setPresetConfirmDelete(null)}>Cancel</button>
+                                    <button
+                                        className="ms-confirm-btn ms-confirm-btn--ok"
+                                        onClick={() => {
+                                            const name = presetConfirmDelete.name;
+                                            if (deleteAmbientPreset(presetConfirmDelete.id)) showToast(`${name.toUpperCase()}: REMOVED`);
+                                            setPresetConfirmDelete(null);
+                                        }}
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

@@ -3455,6 +3455,9 @@ body.echo-mode .artist-row:not([data-rel="mutual"]) { display: none; }
     border-bottom: 1px solid currentColor;
     padding-bottom: 2px;
 }
+/* The ~fiat readout beside portfolio ETH totals — the modal action-button's
+   shipped fiat treatment (.modal-action-btn-fiat), reused verbatim. */
+.pf-fiat { opacity: 0.8; }
 /* Artist row — 2nd level. */
 .pf-artist {
     display: flex; align-items: baseline;

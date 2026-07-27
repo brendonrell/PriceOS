@@ -151,6 +151,9 @@ export const STATE_CACHE_KEYS = {
     /** Ambient Light options blob. Read + written by AmbientStrip; lives in the
      *  settings envelope. */
     ambient: 'pd_ambient_opts',
+    /** Ambient Light PRESETS (saved named looks — the Spreads pattern). Read +
+     *  written by lib/state/ambientPresets; lives in the settings envelope. */
+    ambientPresets: 'pd_ambient_presets',
     /** Grail Pins (GrailPin blobs). Read + written by grailStore; lives in the
      *  settings envelope. Account-backed 2026-07-06. */
     grails: 'pd_grail_pins',
@@ -462,6 +465,12 @@ export function hydrateFromRow(row: UserRow): void {
         // hydrate event below so the bar restores across devices.
         if (s.ambient && typeof s.ambient === 'object' && !Array.isArray(s.ambient)) {
             localStorage.setItem(STATE_CACHE_KEYS.ambient, JSON.stringify(s.ambient));
+        }
+        // Ambient Light presets — seed ONLY when the account carries the key
+        // (same bargain as grails/mutes below), so a pre-sync device set is
+        // never wiped by an account that hasn't synced yet.
+        if (Array.isArray(s.ambientPresets)) {
+            localStorage.setItem(STATE_CACHE_KEYS.ambientPresets, JSON.stringify(s.ambientPresets));
         }
         // Grail Pins / mutes / Spite Book — newly account-backed (2026-07-06).
         // Seed ONLY when the account carries the key (like sticker_state), so a

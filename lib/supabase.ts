@@ -167,6 +167,15 @@ export interface UserSettings {
      *  still hold the old preset string ('off' | 'low' | … | 'pitch'). */
     dim?: number | string;
   };
+  /** Ambient Light PRESETS — the user's saved, named looks (the sticker
+   *  Spreads pattern, ported: up to 3 slots, each a full options snapshot).
+   *  Shape owned by lib/state/ambientPresets. (Brendon, 2026-07-27.) */
+  ambientPresets?: {
+    id: string;
+    name: string;
+    created_at: number;
+    opts: Record<string, unknown>;
+  }[];
   /** PWA conversion tracking (first-party). Stamped the first time a SIGNED-IN
    *  session runs as the installed app (standalone), then refreshed each app
    *  launch. `converted_at` = the conversion event; `last_used_at` = recency,
