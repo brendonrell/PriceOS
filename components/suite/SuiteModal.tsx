@@ -32,25 +32,31 @@ import { NotesBox } from '../dropdown/NotesBox';
 import { WorkflowsSheet } from '../dropdown/WorkflowsSheet';
 import { PortfolioView } from '../dropdown/PortfolioView';
 import SuiteToday, { type SuiteAppKey } from './SuiteToday';
+import { PerMilleMark } from '../shell/PerMilleMark';
 
 const VS15 = '︎';
 
 /* Glyphs are the canonical ones from docs/GLYPHS.md — ▦ Calendar · ❍ To-Do
-   · ☇ Workflows · ◊ the ETH mark (money = PriceBooks) · ⊟ Note — plus the
-   ‰ PD logo mark (Inter, per the logo law) fronting the Today dashboard.
+   · ☇ Workflows · ◊ the ETH mark (money = PriceBooks) · ƒ the Calc
+   (PriceCalc) · ⊟ Note — plus the real per-mille SVG mark (PerMilleMark,
+   never the text ‰ — Brendon's logo law) fronting the Today dashboard.
    Never swapped, never invented. */
 const APPS = [
-    { key: 'today', glyph: '‰', name: 'Today' },
+    { key: 'today', glyph: 'mille', name: 'Today' },
     { key: 'cal', glyph: '▦', name: 'PriceCal' },
     { key: 'task', glyph: '❍', name: 'PriceTask' },
     { key: 'flow', glyph: '☇', name: 'PriceFlows' },
     { key: 'books', glyph: '◊', name: 'PriceBooks' },
+    /* PriceCalc is a DOOR, not a pane — tapping it summons PROFIT PAL over
+       the Suite (the real Pal, ModalContext 'pal'/'profit'); closing it
+       lands you back here. */
+    { key: 'calc', glyph: 'ƒ', name: 'PriceCalc' },
     { key: 'notes', glyph: '⊟', name: 'PriceNotes' },
 ] as const;
 type AppKey = SuiteAppKey;
 
 export default function SuiteModal() {
-    const { close } = useModal();
+    const { close, open } = useModal();
     const { isOpen, isTopStacked } = useModalLayer('suite');
     const [app, setApp] = useState<AppKey>('task');
 
@@ -104,9 +110,11 @@ export default function SuiteModal() {
                             role="tab"
                             aria-selected={app === a.key}
                             className={`suite-tab${app === a.key ? ' on' : ''}`}
-                            onClick={() => setApp(a.key)}
+                            onClick={() => { if (a.key === 'calc') open('pal', 'profit'); else setApp(a.key as AppKey); }}
                         >
-                            <span className={`suite-tab-ic${a.glyph === '‰' ? ' suite-tab-mille' : ''}`}>{a.glyph === '‰' ? a.glyph : `${a.glyph}${VS15}`}</span>
+                            {a.glyph === 'mille'
+                                ? <PerMilleMark className="suite-tab-permille" />
+                                : <span className="suite-tab-ic">{`${a.glyph}${VS15}`}</span>}
                             {a.name}
                         </button>
                     ))}
