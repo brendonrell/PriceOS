@@ -79,16 +79,53 @@ export type GroupKey =
        Values resolve through lib/state/groupDimensions (shared by both
        galleries). */
     | 'listed' | 'fate' | 'temperature' | 'light' | 'mood' | 'orientation'
-    | 'moon' | 'zodiac' | 'weekday' | 'faction' | 'numerology';
+    | 'moon' | 'zodiac' | 'weekday' | 'faction' | 'numerology'
+    /* PROFILE TAGS — group pieces by their owner's leading tag (Brendon,
+       2026-07-26). A main, sitting straight after owner. */
+    | 'tag';
 
+/* ── THE MAINS (Brendon, 2026-07-26) ────────────────────────────────────────
+   The tap cycle was 17-19 stops deep and took forever to get anywhere. It is
+   now only the five Brendon named — artist · project · owner · colour · rarity
+   — each surface showing the ones that can apply (a project page has one artist
+   and one project; your own Collected grid has one owner).
+
+   NOTHING WAS DELETED. Every other dimension — the whole 2026-07-16 expansion,
+   plus the old hardcoded PAIRS (artist+project, owner+colour…) — is still here
+   and reachable: the pairs are now expressible as layers, and the deep cuts live
+   behind the group toggle's LONG-PRESS menu (GROUP_MENU_DIMS below). The tap is
+   the fast path; the hold is the full vocabulary. */
 export const PROJECT_GROUP_ORDER: GroupKey[] =
-    ['none', 'owner', 'color', 'ownerColor', 'listed', 'fate', 'rarity',
-        'temperature', 'light', 'mood', 'orientation',
-        'moon', 'zodiac', 'weekday', 'faction', 'numerology', 'lastSold'];
+    ['none', 'owner', 'tag', 'color', 'rarity'];
 export const COLLECTED_GROUP_ORDER: GroupKey[] =
-    ['none', 'artist', 'project', 'artistProject', 'color', 'artistColor', 'projectColor',
-        'listed', 'fate', 'rarity', 'temperature', 'light', 'mood', 'orientation',
-        'moon', 'zodiac', 'weekday', 'numerology', 'lastSold'];
+    ['none', 'artist', 'project', 'color', 'rarity'];
+
+/* Everything the LONG-PRESS menu offers for a layer, in menu order: the mains
+   first, then the deep cuts. 'lastSold' stays out — it has no data yet
+   (GROUP_SOON) and would offer an empty grouping. */
+export const GROUP_MENU_DIMS: GroupKey[] = [
+    'artist', 'project', 'owner', 'tag', 'color', 'rarity',
+    'listed', 'fate', 'temperature', 'light', 'mood', 'orientation',
+    'moon', 'zodiac', 'weekday', 'faction', 'numerology',
+];
+
+/** The dimensions a surface can actually resolve — the menu hides the rest
+ *  rather than offering a grouping that would come back empty. */
+export function groupDimsFor(surface: 'project' | 'collected' | 'all'): GroupKey[] {
+    /* The saved DEFAULT applies wherever you land, so it offers everything —
+       a surface that can't carry a dimension simply drops it at render
+       (usefulLayers), which is the same "just figure it out" rule. */
+    if (surface === 'all') return GROUP_MENU_DIMS.slice();
+    return GROUP_MENU_DIMS.filter((d) =>
+        surface === 'project'
+            /* one artist, one project — but every owner, and factions are the
+               project page's own thing. */
+            ? d !== 'artist' && d !== 'project'
+            /* your own wallet — one owner, so their tags don't cut anything
+               either, and no faction war to sort by. */
+            : d !== 'owner' && d !== 'tag' && d !== 'faction',
+    );
+}
 /* The settings DEFAULT SORT row's group pill cycles the full master order —
    every dimension, in the §comment order above (Brendon, 2026-07-12). A
    surface that doesn't carry the chosen dimension simply shows ungrouped. */
@@ -130,6 +167,9 @@ export const GROUP_GLYPH: Record<GroupKey, string> = {
     weekday: '▦︎',
     faction: '⚐︎',
     numerology: '#',
+    /* The profile-tag chip's own mark — the canonical social/user glyph
+       (docs/GLYPHS.md §12h), since a tag is who its owner is. */
+    tag: '☻︎',
 };
 
 /* Resting face of the standalone group toggle (grouping OFF) — the four-dot
@@ -149,7 +189,7 @@ export const GROUP_LABEL: Record<GroupKey, string> = {
     listed: 'LISTED', fate: 'FATE', temperature: 'TEMPERATURE',
     light: 'LIGHT', mood: 'MOOD', orientation: 'ORIENTATION',
     moon: 'MOON PHASE', zodiac: 'ZODIAC', weekday: 'BORN ON',
-    faction: 'FACTION', numerology: 'NUMEROLOGY',
+    faction: 'FACTION', numerology: 'NUMEROLOGY', tag: 'TAG',
 };
 
 /* Dimensions with no data yet — render as a single greyed "coming soon" group.
@@ -169,15 +209,26 @@ export const GROUP_PRIMARY_KEY: Record<GroupKey, GroupKey> = {
     listed: 'listed', fate: 'fate', temperature: 'temperature',
     light: 'light', mood: 'mood', orientation: 'orientation',
     moon: 'moon', zodiac: 'zodiac', weekday: 'weekday',
-    faction: 'faction', numerology: 'numerology',
+    faction: 'faction', numerology: 'numerology', tag: 'tag',
 };
 export const GROUP_SECONDARY_KEY: Partial<Record<GroupKey, GroupKey>> = {
     artistProject: 'project', artistColor: 'color', projectColor: 'color',
     ownerColor: 'color',
 };
-/** Glyph for a grouping header at the given level (1 = primary, 2 = sub). */
-export function groupHeaderGlyph(group: GroupKey, level: 1 | 2): string {
-    const key = level === 2 ? GROUP_SECONDARY_KEY[group] : GROUP_PRIMARY_KEY[group];
+/** Glyph for a grouping header at the given level.
+ *  Pass the LAYERS (SortContext.groupLayers) and the level is simply an index
+ *  into them — each layer is its own dimension now (Brendon, 2026-07-26).
+ *  A bare GroupKey still works: the legacy combos split via the PRIMARY/
+ *  SECONDARY maps above, which is what a saved pre-layers view resolves to. */
+export function groupHeaderGlyph(
+    group: GroupKey | readonly GroupKey[], level: 1 | 2 | 3,
+): string {
+    if (Array.isArray(group)) {
+        const key = (group as readonly GroupKey[])[level - 1];
+        return key ? GROUP_GLYPH[key] ?? '' : '';
+    }
+    const g = group as GroupKey;
+    const key = level === 2 ? GROUP_SECONDARY_KEY[g] : level === 1 ? GROUP_PRIMARY_KEY[g] : undefined;
     return key ? GROUP_GLYPH[key] : '';
 }
 
@@ -185,7 +236,7 @@ const ALL_GROUP_KEYS: GroupKey[] = [
     'none', 'artist', 'project', 'artistProject', 'artistColor', 'projectColor',
     'ownerColor', 'owner', 'color', 'lastSold', 'rarity',
     'listed', 'fate', 'temperature', 'light', 'mood', 'orientation',
-    'moon', 'zodiac', 'weekday', 'faction', 'numerology',
+    'moon', 'zodiac', 'weekday', 'faction', 'numerology', 'tag',
 ];
 function isGroupKey(v: unknown): v is GroupKey {
     return typeof v === 'string' && (ALL_GROUP_KEYS as string[]).includes(v);
@@ -293,6 +344,13 @@ interface SortContextValue {
         dimension it landed on so the caller can toast it. Never touches the
         saved default; pass `mem` to remember the pick for that page. */
     cycleGroup: (order: GroupKey[], mem?: { scope: 'project' | 'profile'; id: string }) => GroupKey;
+    /** Layer 2 + 3 of the grouping — 'none' when that layer is off. */
+    group2: GroupKey;
+    group3: GroupKey;
+    /** The active layers, holes removed: [] when grouping is off. */
+    groupLayers: GroupKey[];
+    /** Long-press menu — set one layer directly (layer 1 = the primary). */
+    setGroupLayer: (layer: 1 | 2 | 3, key: GroupKey) => void;
     /** The user's saved DEFAULT grouping (settings · DEFAULT SORT row). Boots
         the app and re-applies on every project entry, exactly like the default
         sort family (Brendon, 2026-07-12). */
@@ -315,6 +373,14 @@ export function SortProvider({ children }: { children: ReactNode }) {
     // Sim 8320 — feed entry point is feed-time-desc. Default kind = 'time'.
     const [feedKind, setFeedKind] = useState<FeedKind>('time');
     const [group, setGroupState] = useState<GroupKey>('none');
+    /* THE SECOND + THIRD LAYERS (Brendon, 2026-07-26). `group` stays the
+       primary — every saved default, share slug and per-project memory keeps
+       working untouched — and these two ride on top. 'none' = that layer is
+       off, so a plain single-dimension grouping is exactly what it always was.
+       Set from the group toggle's long-press menu; a tap of the toggle cycles
+       the primary and clears the sub-layers (a fresh cut, not a stale nest). */
+    const [group2, setGroup2State] = useState<GroupKey>('none');
+    const [group3, setGroup3State] = useState<GroupKey>('none');
     /* The saved DEFAULT grouping (settings · DEFAULT SORT row, Brendon
        2026-07-12). In-page group taps stay transient; only the settings pill
        writes this. It boots the view and re-applies on project entry. */
@@ -521,9 +587,30 @@ export function SortProvider({ children }: { children: ReactNode }) {
         const cur = order.includes(group) ? group : 'none';
         const next = order[(order.indexOf(cur) + 1) % order.length];
         setGroupState(next);
+        /* A tap is a FRESH cut — it never leaves a stale second/third layer
+           nested under a dimension the user didn't pick them for. */
+        setGroup2State('none');
+        setGroup3State('none');
         if (mem) rememberGroup(mem.scope, mem.id, next);
         return next;
     }, [group]);
+
+    /* Long-press menu — set one layer directly. Layer 1 doubles as the primary,
+       so it drives everything the tap cycle already drives. Clearing a layer
+       collapses the ones under it: a grouping can never have a hole in it
+       (layer 3 with no layer 2 is not a hierarchy). */
+    const setGroupLayer = useCallback((layer: 1 | 2 | 3, key: GroupKey) => {
+        setSlugActive(true);
+        if (layer === 1) {
+            setGroupState(key);
+            if (key === 'none') { setGroup2State('none'); setGroup3State('none'); }
+        } else if (layer === 2) {
+            setGroup2State(key);
+            if (key === 'none') setGroup3State('none');
+        } else {
+            setGroup3State(key);
+        }
+    }, []);
 
     /* Settings · DEFAULT SORT group pill — advance the saved default through
        the master order, persist it, and apply it to the live view (exactly how
@@ -538,9 +625,16 @@ export function SortProvider({ children }: { children: ReactNode }) {
         return next;
     }, [defaultGroup]);
 
+    /* The layers as one ordered list, holes removed — what the galleries read.
+       Empty = no grouping at all. */
+    const groupLayers = useMemo<GroupKey[]>(
+        () => [group, group2, group3].filter((g) => g && g !== 'none'),
+        [group, group2, group3],
+    );
+
     const value = useMemo<SortContextValue>(
-        () => ({ sort, dir, feedKind, setSort, cycleSort, applySort, resetToDefault, restoreGroupFor, group, cycleGroup, defaultGroup, cycleDefaultGroup }),
-        [sort, dir, feedKind, setSort, cycleSort, applySort, resetToDefault, restoreGroupFor, group, cycleGroup, defaultGroup, cycleDefaultGroup]
+        () => ({ sort, dir, feedKind, setSort, cycleSort, applySort, resetToDefault, restoreGroupFor, group, group2, group3, groupLayers, setGroupLayer, cycleGroup, defaultGroup, cycleDefaultGroup }),
+        [sort, dir, feedKind, setSort, cycleSort, applySort, resetToDefault, restoreGroupFor, group, group2, group3, groupLayers, setGroupLayer, cycleGroup, defaultGroup, cycleDefaultGroup]
     );
 
     return <SortContext.Provider value={value}>{children}</SortContext.Provider>;

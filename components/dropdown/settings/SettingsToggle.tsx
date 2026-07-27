@@ -15,8 +15,9 @@
  * Pass the props that fit; missing pieces just don't render.
  */
 
-import type { CSSProperties, ReactNode } from 'react';
+import { useRef, type CSSProperties, type ReactNode } from 'react';
 import { playSound } from '../../../lib/sound/engine';
+import { useLongPress } from '../../../lib/hooks/useLongPress';
 
 interface Props {
     /** DOM id — matches sim's `sn-` / `sb-` / `ss-` prefixed ids. */
@@ -27,6 +28,8 @@ interface Props {
     title?: string;
     /** Click handler. */
     onClick?: () => void;
+    /** Press-and-hold action — the app's standard hold gesture. Absent = none. */
+    onHold?: (anchor: { top: number; centerX: number }) => void;
     /** Optional icon glyph. */
     icon?: ReactNode;
     /** Optional inline-style overrides for the icon span (font-size etc.). */
@@ -71,6 +74,7 @@ export function SettingsToggle({
     active = false,
     title,
     onClick,
+    onHold,
     icon,
     iconStyle,
     iconClassName,
@@ -93,6 +97,13 @@ export function SettingsToggle({
        span sidesteps `.st-icon { margin-right: 4px; transform:
        translateY(1px) }` which trims the pill width and removes the
        1px nudge. Used by sn-nightmode (Silent Mode). */
+    /* HOLD — the same gesture the group toggle uses, so a settings pill that
+       has more behind it opens it the same way (Brendon, 2026-07-26). */
+    const btnRef = useRef<HTMLButtonElement>(null);
+    const hold = useLongPress(() => {
+        const r = btnRef.current?.getBoundingClientRect();
+        if (r) onHold?.({ top: r.top, centerX: r.left + r.width / 2 });
+    });
     const iconCls = iconBare
         ? undefined
         : 'st-icon' +
@@ -101,12 +112,14 @@ export function SettingsToggle({
 
     return (
         <button
+            ref={btnRef}
             type="button"
             id={id}
             className={cls}
             title={title}
             aria-pressed={active}
             disabled={disabled}
+            {...(onHold && !disabled ? hold : null)}
             onClick={(e) => {
                 e.stopPropagation();
                 if (!disabled) {

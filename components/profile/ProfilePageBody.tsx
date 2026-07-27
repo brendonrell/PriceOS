@@ -155,7 +155,7 @@ function ProfilePageBodyInner({
     const isSpited = useSpiteMatcher();
     const { notifs } = usePdNotifs();
     const isZen = notifs.zenMode;
-    const { sort, group, restoreGroupFor } = useSort();
+    const { sort, group, groupLayers, restoreGroupFor } = useSort();
 
     // Real user row — fetched server-side from the handle in the URL and
     // passed in, so the hero renders real values on first paint (no popin).
@@ -2121,28 +2121,32 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                                   const cards = blk.cards;
                                   const l1Collapsed = collapsedGroups.has(blk.l1Key);
                                   const l2Collapsed = blk.l2Key ? collapsedGroups.has(blk.l2Key) : false;
-                                  // Section folded → hide all cards (and any sub-header).
-                                  const cardsHidden = l1Collapsed || l2Collapsed;
+                                  const l3Collapsed = blk.l3Key ? collapsedGroups.has(blk.l3Key) : false;
+                                  // Any folded ancestor hides the cards (and every sub-header).
+                                  const cardsHidden = l1Collapsed || l2Collapsed || l3Collapsed;
                                   return (
                                       <Fragment key={blk.key}>
                                           {blk.heads.map((h, hi) => {
                                               const isL2 = h.level === 2;
-                                              // A folded level-1 also folds away its sub-headers.
-                                              if (isL2 && l1Collapsed) return null;
-                                              const ckey = isL2 ? blk.l2Key! : blk.l1Key;
-                                              const folded = isL2 ? l2Collapsed : l1Collapsed;
+                                              const isL3 = h.level === 3;
+                                              /* A folded ancestor folds away every header nested under
+                                                 it — two levels deep now (Brendon, 2026-07-26). */
+                                              if (h.level > 1 && l1Collapsed) return null;
+                                              if (isL3 && l2Collapsed) return null;
+                                              const ckey = isL3 ? blk.l3Key! : isL2 ? blk.l2Key! : blk.l1Key;
+                                              const folded = isL3 ? l3Collapsed : isL2 ? l2Collapsed : l1Collapsed;
                                               /* Cap the header to the columns its pieces occupy so the
                                                  trailing dimension glyph ends with the art, never at the
                                                  page edge (Brendon, 2026-07-12). */
                                               const nPieces = h.count ?? blk.group?.ids.length ?? blk.cards?.length ?? 0;
                                               const capW = !h.soon && galleryCols && nPieces > 0
-                                                  ? colsWidth(galleryCols, nPieces) + (isL2 ? 30 : 0)
+                                                  ? colsWidth(galleryCols, nPieces) + (isL2 ? 30 : 0) + (isL3 ? 60 : 0)
                                                   : undefined;
                                               return (
                                                   <div
                                                       key={hi}
                                                       style={capW ? { maxWidth: capW } : undefined}
-                                                      className={`gallery-group-header is-collapsible${isL2 ? ' level-2' : ''}${h.soon ? ' soon' : ''}${folded ? ' collapsed' : ''}`}
+                                                      className={`gallery-group-header is-collapsible${isL2 ? ' level-2' : ''}${isL3 ? ' level-3' : ''}${h.soon ? ' soon' : ''}${folded ? ' collapsed' : ''}`}
                                                       role="button"
                                                       tabIndex={0}
                                                       aria-expanded={!folded}
@@ -2163,8 +2167,8 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                                                       {!h.soon && h.count != null && h.count > 0
                                                           ? <span className="ggh-count">{h.count}</span>
                                                           : null}
-                                                      {!h.soon && groupHeaderGlyph(group, h.level)
-                                                          ? <span className="ggh-glyph" aria-hidden="true">{groupHeaderGlyph(group, h.level)}</span>
+                                                      {!h.soon && groupHeaderGlyph(groupLayers, h.level)
+                                                          ? <span className="ggh-glyph" aria-hidden="true">{groupHeaderGlyph(groupLayers, h.level)}</span>
                                                           : null}
                                                   </div>
                                               );

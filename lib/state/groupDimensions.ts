@@ -19,6 +19,7 @@
 
 import type { GroupKey } from './SortContext';
 import { resolveBucket, resolveFingerprint, resolveStoredTraits } from '../art/colorStore';
+import { COLOR_BUCKET_ORDER } from '../art/outputColor';
 import {
     brightnessBand, toneMood, colorTemperature, orientationOf,
     lunarPhase, birthWeekday,
@@ -46,6 +47,16 @@ export interface GroupItemCtx {
     mintMs?: number | null;
     /** The owner's faction (project page — factionStore), null = neutral. */
     faction?: string | null;
+    /** The piece's artist name (both surfaces hold it on their trait map). */
+    artist?: string | null;
+    /** The piece's project display name — passed in so this module stays free
+     *  of the registry. */
+    project?: string | null;
+    /** The holder's display name (project page: the owner column). */
+    owner?: string | null;
+    /** The holder's LEADING profile tag, already resolved by the caller (it
+     *  owns the tag lookup). null = they have none showing. */
+    tag?: string | null;
 }
 
 /* Honest tail buckets — always last in their dimension's order. */
@@ -99,6 +110,23 @@ export function groupSectionLabel(
     group: GroupKey, slug: string, id: number, ctx: GroupItemCtx,
 ): string {
     switch (group) {
+        /* ── The identity dimensions (Brendon, 2026-07-26) ────────────────
+           These used to be built by bespoke branches inside each gallery, which
+           is why only hardcoded PAIRS of them could exist. Resolving them here,
+           beside every other dimension, is what lets ANY dimension sit at ANY
+           of the three layers. */
+        case 'artist':
+            return ctx.artist || '—';
+        case 'project':
+            return ctx.project || slug;
+        case 'owner':
+            return ctx.owner || '—';
+        case 'tag':
+            /* Tags are OFF by default platform-wide, so most owners genuinely
+               have none — that is an honest bucket, not missing data. */
+            return ctx.tag || 'No Tag';
+        case 'color':
+            return resolveBucket(slug, id) ?? 'Other';
         case 'listed':
             return ctx.listed ? 'On the Market' : 'Held';
         case 'fate':
@@ -146,6 +174,8 @@ export function groupSectionLabel(
    A dimension with a natural axis gets its fixed order; the rest rank by
    section size (largest first). Tail buckets always close the cycle. */
 const FIXED_ORDER: Partial<Record<GroupKey, readonly string[]>> = {
+    /* Colour follows the palette's own wheel order, never section size. */
+    color: [...COLOR_BUCKET_ORDER, 'Other'],
     listed: ['On the Market', 'Held'],
     rarity: ['The Rarest', 'Top 1%', 'Top 5%', 'Top 10%', 'Top 25%', 'Top Half', 'The Field', 'Unranked'],
     temperature: ['Warm', 'Cool', 'Neutral', UNSAMPLED],
@@ -165,7 +195,7 @@ const FIXED_ORDER: Partial<Record<GroupKey, readonly string[]>> = {
 };
 
 /* Count-ranked dimensions (fate · faction) still pin their tail last. */
-const TAILS = new Set([UNSAMPLED, UNDATED, 'Neutral', 'Unranked', '—']);
+const TAILS = new Set([UNSAMPLED, UNDATED, 'Neutral', 'Unranked', 'Other', 'No Tag', '—']);
 
 /** Comparator for [label, count] section pairs under `group`. */
 export function groupLabelComparator(
@@ -184,4 +214,33 @@ export function groupLabelComparator(
         // fate / faction — biggest section first, name-stable within a size.
         return b[1] - a[1] || a[0].localeCompare(b[0]);
     };
+}
+
+
+/* ── "JUST FIGURE IT OUT" (Brendon, 2026-07-26) ─────────────────────────────
+   A grouping can be perfectly valid and still be USELESS for the window you are
+   looking at: sort a single project by Project, or a wallet holding one artist
+   by Artist, and every piece lands in one section — a title bar and nothing
+   gained. The same happens to a saved default arriving on a surface that has no
+   such data, or a deep cut whose values were never sampled.
+
+   So a layer that cannot actually cut the window is DROPPED rather than drawn.
+   The rule is deliberately plain: a layer earns its place if it produces more
+   than one section. Layers below a dropped one still apply — dropping is per
+   layer, not a bail-out — so "project, then colour" on a single project quietly
+   becomes "colour", which is what the user meant. */
+export function usefulLayers<T>(
+    items: readonly T[],
+    layers: readonly GroupKey[],
+    labelOf: (item: T, layer: GroupKey) => string,
+): GroupKey[] {
+    if (items.length < 2) return layers.slice(0, 1);
+    return layers.filter((layer) => {
+        const seen = new Set<string>();
+        for (const item of items) {
+            seen.add(labelOf(item, layer));
+            if (seen.size > 1) return true;
+        }
+        return false;
+    });
 }

@@ -5315,6 +5315,86 @@ body.bg-is-yellow .fiat-picker-bubble::after { border-top-color: var(--hothurt);
 body.bg-is-yellow .fiat-opt { color: #fff; border-color: rgba(255, 255, 255, 0.55); }
 body.bg-is-yellow .fiat-opt-on { background: #fff; color: var(--hothurt); border-color: #fff; }
 
+/* ── GROUP LAYERS bubble (Brendon, 2026-07-26) — the fiat picker's bubble with
+   three SLOTS in it, one per grouping layer. It inherits every fiat rule above
+   (fill, tail, chips, the yellow-colorway flip) so it can never drift from the
+   picker it is modelled on; these rules only make it a COLUMN.
+
+   ⛔ TALL, NEVER WIDE — it is a phone surface. The fiat bubble is one nowrap
+   row, which is right for four currency codes and wrong for a dozen dimension
+   names, so this overrides the row and the nowrap, caps its width well inside
+   the screen, and scrolls a long picker list INSIDE itself. ── */
+.group-layers-bubble {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    white-space: normal;
+    width: max-content;
+    max-width: min(78vw, 240px);
+    max-height: min(62vh, 420px);
+    overflow-y: auto;
+    padding: 8px;
+    -webkit-overflow-scrolling: touch;
+}
+.group-layers-bubble::-webkit-scrollbar { display: none; }
+
+.glb-title {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    opacity: 0.65;
+    padding: 1px 2px 3px;
+    background: none;
+    border: 0;
+    color: inherit;
+    text-align: left;
+}
+.glb-back { cursor: pointer; opacity: 0.8; }
+
+/* A SLOT — one layer's current setting; tapping it opens that layer's picker. */
+.glb-slot {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 6px 7px;
+    border-radius: 6px;
+    border: 1px solid rgba(0, 0, 0, 0.35);
+    background: transparent;
+    color: inherit;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
+    cursor: pointer;
+    text-align: left;
+    -webkit-tap-highlight-color: transparent;
+}
+.glb-slot:disabled { opacity: 0.4; cursor: default; }
+.glb-slot.is-set { background: rgba(0, 0, 0, 0.14); }
+/* The staircase, in miniature — layer 2 steps in once, layer 3 twice, the same
+   read the grid's own headers give. */
+.glb-step { flex: none; }
+.glb-num { flex: none; opacity: 0.6; }
+.glb-val { flex: 1 1 auto; display: inline-flex; align-items: center; gap: 5px; min-width: 0; }
+.glb-empty { opacity: 0.55; }
+.glb-caret { flex: none; opacity: 0.55; }
+.glb-glyph { font-family: 'Courier New', Courier, monospace; font-size: 12px; line-height: 1; }
+
+/* The picker list for one slot — one dimension per line, stacked. */
+.glb-list { display: flex; flex-direction: column; gap: 3px; }
+.glb-opt {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    text-align: left;
+}
+
+body.bg-is-yellow .glb-slot { border-color: rgba(255, 255, 255, 0.55); }
+body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.18); }
+
 /* Friend Inspector PriceSprite card — same body-portal + tail placement as the
    Fiat bubble above, but taller and theme-coloured: stacks the @name (→ profile),
    their PriceRank, and the circle stats (Brendon, 2026-07-11). */
@@ -7413,6 +7493,31 @@ body.lists-dragging { cursor: grabbing; }
     transform: translateY(5px);
 }
 .gallery-group-header.level-2 .ggh-label { font-size: 12px; }
+
+/* ── THE STAIRCASE (Brendon, 2026-07-26) — three layers, each stepping in from
+   the one above so the hierarchy reads at a glance. Level 3 takes the SAME step
+   again (30 → 60px) and the same connector line, one step further in, so the
+   three titles form an even flight rather than two arbitrary indents. Its label
+   steps down one more size, continuing 13 → 12 → 11. ── */
+.gallery-group-header.level-3 {
+    margin-top: 2px;
+    padding-left: 60px;
+    position: relative;
+}
+.gallery-group-header.level-3::before {
+    content: '';
+    position: absolute;
+    left: 38px;
+    top: 0.62em;
+    width: 16px;
+    border-top: 1px solid var(--text-color);
+    opacity: 0.45;
+}
+.gallery-group-header.level-3 .ggh-label { font-size: 11px; }
+/* The fold triangle shrinks with each step down, so a deep header never shouts
+   louder than the section that contains it. */
+.gallery-group-header.level-2 .ggh-arrow { font-size: 26px; transform: translateY(4px); }
+.gallery-group-header.level-3 .ggh-arrow { font-size: 21px; transform: translateY(3px); }
 .ggh-by {
     font-family: 'Courier New', Courier, monospace;
     font-size: 13px;

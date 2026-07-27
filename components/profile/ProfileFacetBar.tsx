@@ -46,6 +46,7 @@ import { getArtistStars, toggleArtistStar, subscribeArtistStars } from '../../li
 import { getProjectStars, toggleProjectStar, subscribeProjectStars } from '../../lib/pins/projectStarStore';
 import { L3Pill, GroupBtn } from '../project/traitsUIPills';
 import AlbumPickerCard from '../album/AlbumPickerCard';
+import GroupLayersBubble from '../lists/GroupLayersBubble';
 import { useMarketSheet } from '../../lib/state/MarketSheetContext';
 import { useCart } from '../../lib/state/CartContext';
 import {
@@ -145,7 +146,10 @@ export default function ProfileFacetBar({
         multiSelectActive,
         toggleMultiSelect,
     } = useTraits();
-    const { sort, dir, feedKind, cycleSort, applySort, group, cycleGroup } = useSort();
+    const { sort, dir, feedKind, cycleSort, applySort, group, groupLayers, setGroupLayer, cycleGroup } = useSort();
+    /* HOLD the group toggle → pick the three layers by hand (Brendon,
+       2026-07-26). The tap still cycles the mains. */
+    const [layersAnchor, setLayersAnchor] = useState<{ top: number; centerX: number } | null>(null);
     const { colorway, setColorway } = useColorway();
     const { showToast } = useToast();
 
@@ -382,7 +386,17 @@ export default function ProfileFacetBar({
                         glyph={GROUP_GLYPH[effGroup]}
                         on={effGroup !== 'none'}
                         onClick={cycleGroupWithToast}
+                        onHold={setLayersAnchor}
                     />
+                    {layersAnchor && (
+                        <GroupLayersBubble
+                            surface="collected"
+                            layers={groupLayers}
+                            anchor={layersAnchor}
+                            onPick={setGroupLayer}
+                            onClose={() => setLayersAnchor(null)}
+                        />
+                    )}
                     <span
                         className={`sort-btn${sort === 'id' ? ' active' : ''}`}
                         role="button"
