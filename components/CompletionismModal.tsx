@@ -13,6 +13,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useModal } from '../lib/state/ModalContext';
 import { SHEETS } from '../lib/stickers/catalog';
 import { getOwnedIds, ownsSheet, useOwnedStickerIds } from '../lib/stickers/owned';
 import { formatEth } from '../lib/format/eth';
@@ -153,6 +154,7 @@ export default function CompletionismModal({
     const [months, setMonths] = useState<MonthRow[] | null>(null);
     /* The ledger folds away by default — the resting modal stays minimal. */
     const [statsOpen, setStatsOpen] = useState(false);
+    const { open: openPal } = useModal();
     const ownedIds = useOwnedStickerIds();
 
     /* Two-stage mounted/active — CartPanel's open/close, verbatim. */
@@ -209,7 +211,27 @@ export default function CompletionismModal({
                                 <span className="cart-panel-title-count">
                                     ({months.filter((m) => m.complete).length}/{months.length})
                                 </span>
-                                <span className="cart-panel-title-glyph">{`⌂${VS15}`}</span>
+                                {/* The ⌂ is the Purchase Pal door (Brendon, 2026-07-27) —
+                                    opens the path builder preloaded with THE CLOSE (the
+                                    incomplete month nearest its finish line). */}
+                                <span
+                                    className="cart-panel-title-glyph cpl-house-door"
+                                    role="button"
+                                    tabIndex={0}
+                                    title="Purchase Pal"
+                                    onClick={() => {
+                                        const open = months
+                                            .filter((m) => !m.complete && m.total > 0)
+                                            .sort((a, b) => (a.total - a.collected) - (b.total - b.collected));
+                                        openPal('pal', open[0] ? `purchase:${open[0].key}` : 'purchase');
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            (e.currentTarget as HTMLElement).click();
+                                        }
+                                    }}
+                                >{`⌂${VS15}`}</span>
                             </>
                         )}
                         {months && months.length > 0 && (

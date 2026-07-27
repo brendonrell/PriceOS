@@ -57,7 +57,10 @@ export type ModalName =
        points instead of dead-ending, and a Profile Tag opens the room of people
        wearing it. Both are popups on top of where you are — never a nav away. */
     | 'ping'
-    | 'tag';
+    | 'tag'
+    /* PURCHASE PAL / PROFIT PAL (Brendon, 2026-07-27) — payload string picks
+       the side + optional goal: 'profit' | 'purchase' | 'purchase:<YYYY-MM>'. */
+    | 'pal';
 
 interface OpenModalState {
     name: ModalName;
