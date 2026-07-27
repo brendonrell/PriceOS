@@ -268,34 +268,30 @@ body.modal-open .fm-bar {
 .fm-mode-signal .fm-video iframe { width: 24px; height: 16px; }
 .fm-mode-signal .fm-rows { display: none; }
 
-/* THE USB (Brendon, 2026-07-27; re-done same day to actually match the
-   reference) — the Transcend MP330: a black gloss stick with the metal USB
-   plug OUT THE LEFT END, a small OLED sitting clearly INSIDE the body, and
-   the transport keys on ONE raised square pad on the right — play centre,
-   next on the right arm, keys top + bottom (the +/− arms). Deliberately
-   BLACK-BODIED — it's the device Brendon pictured (Composer-◎ precedent). */
+/* THE USB (Brendon, 2026-07-27; v3 same day) — the Transcend MP330
+   silhouette in PD PAINT: chunky rounded RECTANGLE (not a pill), tall, the
+   colorway's own domed gradient like every other face — NOT black (his
+   correction). Metal USB plug out the LEFT end under a tappable colorway
+   end cap; small screen fully INSIDE the body; ONE raised square pad on
+   the right — play centre, next right, keys top + bottom. */
 .fm-mode-usb {
-    /* no position override — the chassis stays the fixed bottom-band device;
-       fixed already anchors the absolute USB-plug pseudo below */
-    height: 56px;
+    height: 66px;
     width: 206px;
     max-width: 88vw;
     padding: 0 12px 0 14px;
+    /* the MP330 body is a chunky rounded RECTANGLE, not a pill */
+    border-radius: 14px;
     display: grid;
     grid-template-columns: minmax(0, 1fr) 20px 20px 20px;
     grid-template-rows: repeat(3, 1fr);
     column-gap: 2px;
     align-items: center;
     justify-items: center;
-    background: linear-gradient(180deg, #4b4b4b 0%, #161616 45%, #000 100%);
-    box-shadow:
-        0 6px 24px rgba(0, 0, 0, 0.55),
-        inset 0 1px 1px rgba(255, 255, 255, 0.35),
-        inset 0 -1px 1px rgba(0, 0, 0, 0.8);
-    color: #fff;
+    /* colorway chrome — the chassis keeps the .fm-bar domed gradient */
 }
-/* the metal USB plug, out the LEFT end (cap off, like the reference) —
-   brushed steel with the two connector slots */
+/* the metal USB plug, out the LEFT end (shown when the cap pops) —
+   brushed steel with the two connector slots; the one deliberately
+   non-colorway piece, it's the literal steel of the reference */
 .fm-mode-usb::before {
     content: '';
     position: absolute;
@@ -303,34 +299,33 @@ body.modal-open .fm-bar {
     top: 50%;
     transform: translateY(-50%);
     width: 25px;
-    height: 22px;
+    height: 24px;
     border: 1px solid #5c626c;
     border-right: none;
     border-radius: 3px 0 0 3px;
     background:
-        linear-gradient(#343941, #343941) 5px 5px / 9px 4px no-repeat,
-        linear-gradient(#343941, #343941) 5px 13px / 9px 4px no-repeat,
+        linear-gradient(#343941, #343941) 5px 6px / 9px 4px no-repeat,
+        linear-gradient(#343941, #343941) 5px 14px / 9px 4px no-repeat,
         linear-gradient(180deg, #dadde2 0%, #9aa0a8 55%, #7c828c 100%);
 }
-/* the OLED — small, and clearly INSIDE the body: 30px window in the 48px
-   stick, air on every side, its own bezel seam */
+/* the screen — small and fully INSIDE the tall body, the deck face's
+   inverted-panel treatment (full-strength tokens, Rule #2) */
 .fm-mode-usb .fm-screen {
     grid-column: 1;
     grid-row: 1 / 4;
     justify-self: stretch;
     align-self: center;
-    height: 32px;
+    height: 36px;
     margin-right: 8px;
-    background: #000;
-    color: #fff;
-    border: 1px solid #2c2c2c;
-    box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.18);
+    background: var(--text-color);
+    color: var(--bg-color);
+    border: 1px solid #000;
     align-items: center;
 }
-.fm-mode-usb .fm-video { width: 30px; height: 22px; border-right: 1px solid #fff; align-self: center; }
+.fm-mode-usb .fm-video { width: 30px; height: 22px; border-right: 1px solid var(--bg-color); align-self: center; }
 .fm-mode-usb .fm-video iframe { width: 30px; height: 22px; }
 .fm-mode-usb .fm-rows { width: 62px; flex: 0 0 62px; max-width: 62px; padding: 0 4px; }
-/* the EQ dances in the glass, like the MP330's readout */
+/* the EQ dances in the glass — readout-coloured on the inverted panel */
 .fm-mode-usb .fm-sigbars {
     display: flex;
     gap: 2px;
@@ -338,8 +333,8 @@ body.modal-open .fm-bar {
     height: 12px;
     padding: 0 4px 0 0;
 }
-/* ONE raised square pad carries all the keys (the reference's button
-   square): play CENTRE · next on the RIGHT arm · keys top + bottom. */
+.fm-mode-usb .fm-sb { background: var(--bg-color); box-shadow: none; }
+/* ONE raised square pad carries all the keys — solid site tokens */
 .fm-mode-usb::after {
     content: '';
     grid-column: 2 / 5;
@@ -347,17 +342,16 @@ body.modal-open .fm-bar {
     justify-self: stretch;
     align-self: center;
     width: 100%;
-    height: 48px;
-    background: linear-gradient(180deg, #303030 0%, #0b0b0b 100%);
-    border: 1px solid #414141;
+    height: 56px;
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
     border-radius: 10px;
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.18), inset 0 -1px 1px rgba(0, 0, 0, 0.7);
 }
 .fm-mode-usb .fm-btn {
     position: relative;
     z-index: 1;
     width: 18px;
-    height: 13px;
+    height: 15px;
     padding: 0;
     display: flex;
     align-items: center;
@@ -365,35 +359,34 @@ body.modal-open .fm-bar {
     font-size: 12px;
     line-height: 1;
     background: transparent;
-    color: #fff;
+    color: var(--text-color);
     border: none;
     border-radius: 4px;
 }
-.fm-mode-usb .fm-btn:hover { background: #fff; color: #000; }
-/* centre play key — the pad's raised square button, like the reference */
+.fm-mode-usb .fm-btn:hover { background: var(--text-color); color: var(--bg-color); }
+/* centre play — the pad's framed square key */
 .fm-mode-usb .fm-play {
     grid-column: 3;
     grid-row: 2;
     width: 22px;
-    height: 16px;
-    background: linear-gradient(180deg, #1f1f1f, #000);
-    border: 1px solid #565656;
+    height: 18px;
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
 }
 .fm-mode-usb .fm-modekey { grid-column: 3; grid-row: 1; align-self: end; }
 .fm-mode-usb .fm-close { grid-column: 3; grid-row: 3; align-self: start; }
 .fm-mode-usb .fm-btn:not(.fm-play):not(.fm-modekey):not(.fm-close) { grid-column: 4; grid-row: 2; }
 
-/* the USB CAP (Brendon, 2026-07-27) — the stick's black end cap, seated
-   over the plug. TAP pops it off (the plug shows); tap again seats it back.
-   The button itself never moves (the hit area stays over the end), only its
-   cap visual slides away — so the return tap has something to land on. */
+/* the USB CAP — the stick's end cap in the body's own colorway gradient.
+   TAP pops it off (the plug shows); tap again seats it back. The button
+   never moves (the return tap needs a target); only the cap visual slides. */
 .fm-usbcap {
     position: absolute;
     left: -28px;
     top: 50%;
     width: 32px;
-    height: 34px;
-    margin-top: -17px;
+    height: 44px;
+    margin-top: -22px;
     padding: 0;
     border: none;
     background: transparent;
@@ -404,12 +397,14 @@ body.modal-open .fm-bar {
     content: '';
     position: absolute;
     inset: 0;
-    border-radius: 17px 5px 5px 17px;
-    background: linear-gradient(180deg, #4b4b4b 0%, #161616 45%, #000 100%);
-    border: 1px solid #000;
-    box-shadow:
-        inset 0 1px 1px rgba(255, 255, 255, 0.35),
-        inset 0 -1px 1px rgba(0, 0, 0, 0.8);
+    border-radius: 10px 4px 4px 10px;
+    background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--bg-color) 72%, #ffffff) 0%,
+        var(--bg-color) 52%,
+        color-mix(in srgb, var(--bg-color) 82%, #000000) 100%
+    );
+    border: 1px solid var(--text-color);
     transition: transform 0.22s ease, opacity 0.18s ease;
 }
 .fm-usbcap--off::before {
