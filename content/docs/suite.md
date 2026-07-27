@@ -1,14 +1,14 @@
 ---
 title: "PriceOS Suite"
-description: "PD's productivity super-app: Today, PriceCal, PriceTask, PriceFlows, PriceBooks, PriceCalc, and PriceNotes in one place — your calendar, to-dos, workflows, and notes, expanded."
+description: "PD's productivity super-app: Today, PriceCal, PriceTask, PriceFlows, PriceBooks, PriceCalc, PricePhone, and PriceNotes in one place — your calendar, to-dos, workflows, and notes, expanded."
 category: "app"
-keywords: ["suite", "pricecal", "pricetask", "priceflows", "pricebooks", "pricenotes", "today", "dashboard", "budgets", "pricecalc", "profit pal", "calendar", "to-dos", "todos", "workflows", "notes", "productivity"]
+keywords: ["suite", "pricecal", "pricetask", "priceflows", "pricebooks", "pricenotes", "today", "dashboard", "budgets", "pricecalc", "profit pal", "pricephone", "contacts", "calendar", "to-dos", "todos", "workflows", "notes", "productivity"]
 last_updated: "2026-07-27"
 ---
 
 # PriceOS Suite
 
-The **PriceOS Suite** is PD's productivity super-app — the calendar, to-dos, workflows, and notes you already use in the connect menu, opened up into one full workspace. One app, seven faces, switched with the icons at the top.
+The **PriceOS Suite** is PD's productivity super-app — the calendar, to-dos, workflows, and notes you already use in the connect menu, opened up into one full workspace. One app, eight faces, switched with the icons at the top.
 
 **Opening it:** press and hold the **TO-DOS** header in the connect menu — right where it says "TO-DOS". Close with the × like any other panel.
 
@@ -45,6 +45,10 @@ The money desk: your **Budgets** (set one, activate it, and the whole app paints
 ## ƒ PriceCalc
 
 The money brains on call: tapping PriceCalc summons **Profit Pal** right over the Suite — your portfolio tiles (pieces · spent · at-floor · net), per-project exit paths priced on the Calc's real rate card, and the HOT read off the live tape. Close it and you're back in the Suite.
+
+## ⚯ PricePhone
+
+Your contacts. The people of your circle — mutuals first, then who you follow, then who follows you — pulled live from the same graph as the Friend Inspector. **CALL** someone and the line rings: you land on their collection to put an offer on one of their pieces. That's how you call on PD.
 
 ## ⊟ PriceNotes
 

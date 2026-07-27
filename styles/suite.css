@@ -166,3 +166,33 @@
 }
 .suite-tile-num { font-size: 16px; font-weight: bold; line-height: 1; }
 .suite-tile-lbl { font-size: 12px; font-weight: bold; letter-spacing: 0.5px; }
+
+/* ⚯ PricePhone — the contacts app: circle rows + the CALL key */
+.suite-ph-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+}
+.suite-ph-rel { flex: 0 0 auto; font-size: 14px; }
+.suite-ph-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.suite-ph-call {
+    flex: 0 0 auto;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    color: var(--text-color);
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+.suite-ph-call:hover {
+    background: var(--stat-active-bg, var(--text-color));
+    color: var(--stat-active-text, var(--bg-color));
+}

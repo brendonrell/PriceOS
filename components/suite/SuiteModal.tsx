@@ -32,6 +32,7 @@ import { NotesBox } from '../dropdown/NotesBox';
 import { WorkflowsSheet } from '../dropdown/WorkflowsSheet';
 import { PortfolioView } from '../dropdown/PortfolioView';
 import SuiteToday, { type SuiteAppKey } from './SuiteToday';
+import SuitePhone from './SuitePhone';
 import { PerMilleMark } from '../shell/PerMilleMark';
 
 const VS15 = '︎';
@@ -51,6 +52,8 @@ const APPS = [
        the Suite (the real Pal, ModalContext 'pal'/'profit'); closing it
        lands you back here. */
     { key: 'calc', glyph: 'ƒ', name: 'PriceCalc' },
+    /* ⚯ — the Friend Inspector's circle glyph fronts the contacts app. */
+    { key: 'phone', glyph: '⚯', name: 'PricePhone' },
     { key: 'notes', glyph: '⊟', name: 'PriceNotes' },
 ] as const;
 type AppKey = SuiteAppKey;
@@ -125,6 +128,7 @@ export default function SuiteModal() {
                     {app === 'task' && <TodosBox suite />}
                     {app === 'flow' && <WorkflowsSheet inline />}
                     {app === 'books' && <div className="suite-books"><PortfolioView /></div>}
+                    {app === 'phone' && <SuitePhone />}
                     {app === 'notes' && <NotesBox suite />}
                 </div>
             </div>
