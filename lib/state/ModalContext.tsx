@@ -60,7 +60,11 @@ export type ModalName =
     | 'tag'
     /* PURCHASE PAL / PROFIT PAL (Brendon, 2026-07-27) — payload string picks
        the side + optional goal: 'profit' | 'purchase' | 'purchase:<YYYY-MM>'. */
-    | 'pal';
+    | 'pal'
+    /* PriceOS SUITE (Brendon, 2026-07-27) — the productivity super-app:
+       PriceCal · PriceTask · PriceNotes in one modal. Door: long-press the
+       TO-DOS header in the connect menu. */
+    | 'suite';
 
 interface OpenModalState {
     name: ModalName;

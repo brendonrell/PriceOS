@@ -99,6 +99,7 @@ import SpiteBookModal from '../SpiteBookModal';
 import TarotSpreadModal from '../TarotSpreadModal';
 import GnomeWalletModal from '../GnomeWalletModal';
 import PalPanel from '../pal/PalPanel';
+import SuiteModal from '../suite/SuiteModal';
 import OfferShieldCast from '../OfferShieldCast';
 import PanopticonConfirmModal from '../PanopticonConfirmModal';
 import CartographyModal from '../CartographyModal';
@@ -506,6 +507,9 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="ProjectsProModal">
                 <ProjectsProModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="SuiteModal">
+                <SuiteModal />
             </ErrorBoundary>
             <ErrorBoundary name="PriceosModal">
                 <PriceosModal />

@@ -83,7 +83,9 @@ function readNotes(): SavedNote[] {
     }
 }
 
-export function NotesBox() {
+/* `suite` — the SAME box mounted inside the PriceOS Suite (2026-07-27):
+   always expanded, header no longer collapses. Nothing else changes. */
+export function NotesBox({ suite = false }: { suite?: boolean } = {}) {
     const { notifs, setAccordion } = usePdNotifs();
     const { openOutputNoteEditor } = useNotePrompt();
     const { showToast } = useToast();
@@ -118,10 +120,10 @@ export function NotesBox() {
 
     return (
         <AccordionBox
-            boxId="notesBox"
-            listId="notesList"
-            open={notifs.notes}
-            onHeaderClick={() => setAccordion('notes', !notifs.notes)}
+            boxId={suite ? 'suiteNotesBox' : 'notesBox'}
+            listId={suite ? 'suiteNotesList' : 'notesList'}
+            open={suite || notifs.notes}
+            onHeaderClick={() => { if (!suite) setAccordion('notes', !notifs.notes); }}
             header={
                 <>
                     NOTES

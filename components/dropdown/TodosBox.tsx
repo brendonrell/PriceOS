@@ -24,6 +24,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AccordionBox } from './AccordionBox';
+import { useLongPress } from '../../lib/hooks/useLongPress';
+import { useModal } from '../../lib/state/ModalContext';
 import { MentionLookup } from '../MentionLookup';
 import { renderMentions } from '../../lib/mentions/render';
 import { WorkflowsSheet } from './WorkflowsSheet';
@@ -62,9 +64,17 @@ function fmtEth(n: number): string {
     return formatEth(n);
 }
 
-export function TodosBox() {
+/* `suite` — the SAME box mounted inside the PriceOS Suite (2026-07-27):
+   always expanded, header no longer collapses, and the Suite door long-press
+   stays off (you're already inside). Zero behavioural changes otherwise. */
+export function TodosBox({ suite = false }: { suite?: boolean } = {}) {
     const { notifs, setAccordion } = usePdNotifs();
     const { showToast } = useToast();
+    const { open: openModal } = useModal();
+    /* THE SUITE DOOR (Brendon-confirmed 2026-07-27): long-press the TO-DOS
+       header — right where it says "TO-DOS" — to open the PriceOS Suite.
+       The app's one press-and-hold contract (useLongPress), nothing new. */
+    const suiteHold = useLongPress(() => { if (!suite) openModal('suite'); });
 
     const [todos, setTodos] = useState<TodoItem[]>([]);
     useEffect(() => {
@@ -139,7 +149,7 @@ export function TodosBox() {
 
     const openComposer = (e: React.MouseEvent) => {
         stop(e);
-        if (!notifs.todos) setAccordion('todos', true);
+        if (!suite && !notifs.todos) setAccordion('todos', true);
         setComposeOpen((v) => !v);
     };
 
@@ -243,16 +253,16 @@ export function TodosBox() {
 
     return (
         <AccordionBox
-            boxId="todosBox"
-            listId="todosList"
-            open={notifs.todos}
-            onHeaderClick={() => setAccordion('todos', !notifs.todos)}
+            boxId={suite ? 'suiteTodosBox' : 'todosBox'}
+            listId={suite ? 'suiteTodosList' : 'todosList'}
+            open={suite || notifs.todos}
+            onHeaderClick={() => { if (!suite) setAccordion('todos', !notifs.todos); }}
             header={
                 <span className="todos-header-row">
-                    <span>
+                    <span {...(suite ? {} : suiteHold)} title={suite ? undefined : 'Hold to open the PriceOS Suite'}>
                         TO-DOS <span className="notif-count">({openCount})</span>
                     </span>
-                    {notifs.todos && (
+                    {(suite || notifs.todos) && (
                         /* One right-side icon cluster — + then ☇ (swapped per
                            Brendon, 2026-07-10), instead of drifting to the
                            row's centre via the header's space-between. */
