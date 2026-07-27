@@ -139,6 +139,9 @@ export default function FmBar() {
     const [onAir, setOnAir] = useState<Station | null>(null);
     const [trackTitle, setTrackTitle] = useState('');
     const [pickerOpen, setPickerOpen] = useState(false);
+    /* USB face: the stick's end cap — tap pops it off, tap again seats it
+       (Brendon, 2026-07-27; reserved for a later use). */
+    const [usbCapOff, setUsbCapOff] = useState(false);
     /* A station that never reaches PLAYING — or errors repeatedly — is a
        dead link; the LCD says so instead of tuning forever (Brendon,
        2026-07-20: switching must be snappy and honest). */
@@ -531,6 +534,18 @@ export default function FmBar() {
                         </button>
                     ))}
                 </div>
+            )}
+            {/* USB face only: the end cap over the plug — tap off / tap on.
+                Rendered after nothing that matters: the video host slot below
+                never moves. */}
+            {display === 'usb' && (
+                <button
+                    type="button"
+                    className={`fm-usbcap${usbCapOff ? ' fm-usbcap--off' : ''}`}
+                    onClick={() => setUsbCapOff((v) => !v)}
+                    title="USB cap"
+                    aria-label="USB cap"
+                />
             )}
             {/* ── transport keys — LEFT side, like the deck of a Sony MD.
                 ▶/≫/TUNE are the deck's; ⎇ MODE and × ride EVERY face
