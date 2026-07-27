@@ -8,6 +8,66 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0000000000000. ✅ **2026-07-27 (LATEST) — SOUNDTRACKS FIXED · MINIPLAYER SAVED
+   SESSION + USB FACE · PRICEOS SUITE (8 apps) · STUDIO CHECKER v2. All on
+   `dev` (tip `11d596d`), tree clean, tsc + real build green every round,
+   every surface screenshot-verified at iPhone size on a mid-tone colorway.
+   Brendon-approved and pushed round by round.**
+
+   **Nothing is in flight. FIRST JOB NEXT SESSION: ClickUp sync** — this
+   chat shipped everything below but ClickUp was not updated (close/queue
+   per feature with one-line ship notes).
+
+   1. **Soundtracks bug — root-caused with data, fully repaired.** All 83
+      station links (49 registry + 34 DB) were health-checked against
+      YouTube. Two failure modes: OLAK/auto-generated official-album
+      playlists NEVER play in embedded players (33/34 DB rows — dead since
+      seeding), and fan bootleg playlists rot (17/49 registry fully wiped;
+      BoC was 18/18 deleted). Every dead link replaced with a same-album
+      playlist VERIFIED playable+embeddable; registry swapped in code, DB
+      swapped via gated SQL (0 broken remain). Audit tooling in scratchpad
+      `fm-audit/` (page-parse health check + oEmbed embed test). ⚠ Links
+      rot over time: a future dead station = one takedown, swap that link.
+   2. **Studio soundtrack checker v2** (`/api/studio/playlist`) — answers
+      "will this PLAY in the miniplayer": live-track count, first-track
+      embeddability, OLAK/RD hard block, reason strings in the field.
+   3. **miniplayer: account-backed saved session** (`fmSession` in the
+      settings envelope + `pd_fm_session` cache): saves station+entry+
+      seconds on pause / every 15s playing / on app-hide; reopening
+      restores the device PAUSED at that exact spot, cued so ▶ (the
+      iOS-required tap) resumes. × wipes the save (off stays off).
+      Cross-device via hydrate; a session closed elsewhere clears here.
+   4. **miniplayer: USB face** (4th, after Deck: deck·usb·signal·disc) —
+      Transcend MP330 in PD paint: 206×66 rounded-rect (14px corners),
+      colorway domed gradient (NOT black — his correction), inverted-panel
+      OLED fully inside the body, one raised square pad (play centre, ≫
+      right, ⎇ top, × bottom), steel USB plug out the left end under a
+      TAPPABLE colorway end cap (tap off / tap on — Brendon has later
+      plans for it). EQ bars answer (2026-07-27): real EQ data is
+      impossible (YouTube iframe is sealed); bars stay choreography.
+   5. **PriceOS SUITE — the productivity super-app.** ModalName `'suite'`,
+      FI-PLUS chrome, icon tabs. DOOR (Brendon-confirmed): LONG-PRESS the
+      TO-DOS header in the connect menu. Lands on ‰ Today. Eight apps:
+      ‰ Today (dashboard: Fantastical week strip w/ dotted-ring today +
+      per-day due counts · today's to-dos completable in place · UP NEXT ·
+      pulse tiles war-chest/armed/budget, each a door) · ▦ PriceCal (real
+      CalendarPanel) · ❍ PriceTask (TodosBox `suite` mode) · ☇ PriceFlows
+      (WorkflowsSheet `inline` mode) · ◊ PriceBooks (real PortfolioView,
+      back-arrow hidden) · ƒ PriceCalc (DOOR — opens Profit Pal over the
+      Suite) · ⚯ PricePhone (contacts off /api/follows: ⚭ mutuals → ⚯
+      following → ⚬ followers; CALL = toast + land on their collection to
+      offer on a piece) · ⊟ PriceNotes (NotesBox `suite` mode). All reuse —
+      zero re-implementations. Docs highlight page `/docs/suite` beside
+      Command Stone. ‰ on the Today tab is the PerMilleMark SVG (his law:
+      all per-mille LOGOS are the SVG — swept: trait pill/Vault/feed rows
+      already complied; Setup Codes stay text by the monospace exception).
+   6. **Names locked by Brendon:** PriceCal · PriceTask · PriceFlows
+      (plural, his call) · PriceBooks · PriceCalc · PricePhone (beat
+      PriceDex — DEX collides with crypto vocabulary) · PriceNotes.
+   7. **PricePhone next steps discussed, NOT built:** missed calls
+      (expired offers), sprite contact cards, auto-pick piece on CALL.
+
+
 000000000000. ✅ **2026-07-27 (LATEST) — THE DARKROOM ◉ + FINGERPRINT TASTE
    AXES (the Radar unlock) + FINGERPRINT DOCS PAGE. On `dev` (tip `e5d455f`),
    tree clean, tsc + real build green, 138 tests pass, geometry read proven
