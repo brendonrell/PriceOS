@@ -194,10 +194,23 @@ export interface UserSettings {
    *  so it stops resetting each session (Brendon, 2026-07-21). Was device-only
    *  localStorage `pd_sound_on`. Absent = never set (default OFF). */
   sound?: boolean;
-  /** miniplayer display face ('deck' | 'signal' | 'disc'; `signal` shows as "Tab").
-   *  Account-backed so the chosen face follows the viewer (Brendon, 2026-07-21).
-   *  Was device-only localStorage `pd_fm_display`. Absent = deck. */
+  /** miniplayer display face ('deck' | 'usb' | 'signal' | 'disc'; `signal` shows
+   *  as "Tab"). Account-backed so the chosen face follows the viewer (Brendon,
+   *  2026-07-21). Was device-only localStorage `pd_fm_display`. Absent = deck. */
   fmDisplay?: string;
+  /** miniplayer LIVE SESSION — the station on air plus the exact spot in it
+   *  (playlist entry + seconds), saved while playing and on every pause, so
+   *  closing the app and coming back restores the player right where it was
+   *  paused (Brendon, 2026-07-27). × (close) NULLS it — the off door must stay
+   *  off, a cleared session can never resurrect the device. Mirror
+   *  `pd_fm_session`. */
+  fmSession?: {
+    playlistId: string;
+    label: string;
+    slug: string | null;
+    index: number;
+    t: number;
+  } | null;
   /** COMMAND STONE stealth style — accent hex + forced stage. Account-backed so
    *  the recolour/stage survives across sessions + devices (Brendon,
    *  2026-07-21). Was device-only localStorage `pd_stone_style`. */

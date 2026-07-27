@@ -166,6 +166,9 @@ export const STATE_CACHE_KEYS = {
     /** PD miniplayer display face. Read + written by FmBar; lives in the
      *  settings envelope. Account-backed 2026-07-21. */
     fmDisplay: 'pd_fm_display',
+    /** PD miniplayer live session (station + entry + seconds). Read + written
+     *  by FmBar; settings envelope. Account-backed 2026-07-27. */
+    fmSession: 'pd_fm_session',
     /** Command Stone stealth style (accent + stage). Read + written by
      *  stoneStyle; lives in the settings envelope. Account-backed 2026-07-21. */
     stoneStyle: 'pd_stone_style',
@@ -491,6 +494,17 @@ export function hydrateFromRow(row: UserRow): void {
         if (typeof s.fmDisplay === 'string' && s.fmDisplay) {
             localStorage.setItem(STATE_CACHE_KEYS.fmDisplay, s.fmDisplay);
             window.dispatchEvent(new CustomEvent('pd:fm-display-changed', { detail: s.fmDisplay }));
+        }
+        // miniplayer live session — the account's paused spot wins over the
+        // device cache; an explicit null (closed elsewhere) clears it so the
+        // device can't resurrect a session its owner shut (the 2026-07-20
+        // stale-state lesson). FmBar re-reads on the event.
+        if (s.fmSession && typeof s.fmSession === 'object' && !Array.isArray(s.fmSession)
+            && typeof s.fmSession.playlistId === 'string' && s.fmSession.playlistId) {
+            localStorage.setItem(STATE_CACHE_KEYS.fmSession, JSON.stringify(s.fmSession));
+            window.dispatchEvent(new CustomEvent('pd:fm-session-changed'));
+        } else if (s.fmSession === null) {
+            localStorage.removeItem(STATE_CACHE_KEYS.fmSession);
         }
         if (s.stoneStyle && typeof s.stoneStyle === 'object' && !Array.isArray(s.stoneStyle)) {
             const st = s.stoneStyle;

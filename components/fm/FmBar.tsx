@@ -38,7 +38,7 @@ import { allProjects, projectTrueName } from '../../lib/project/registry';
 import { playlistWatchUrl } from '../../lib/project/soundtrack';
 import { getSoundtrackStarItems } from '../../lib/pins/soundtrackStarStore';
 import { registerFmDriver, publishFm, type FmStation } from '../../lib/fm/fmBus';
-import { pushSettings } from '../../lib/state/userState';
+import { pushSettings, pushSettingsDebounced } from '../../lib/state/userState';
 
 /* ── Minimal YT IFrame API surface (no @types dependency) ── */
 interface YTPlayer {
@@ -47,6 +47,10 @@ interface YTPlayer {
     nextVideo(): void;
     loadPlaylist(opts: { list: string; listType: 'playlist' }): void;
     loadVideoById(id: string): void;
+    cuePlaylist(opts: { list: string; listType: 'playlist'; index?: number; startSeconds?: number }): void;
+    cueVideoById(opts: { videoId: string; startSeconds?: number }): void;
+    getCurrentTime?(): number | undefined;
+    getPlaylistIndex?(): number | undefined;
     getVideoData?(): { title?: string } | undefined;
     destroy(): void;
 }
@@ -91,14 +95,42 @@ const stationWatchUrl = (id: string) =>
         ? playlistWatchUrl(id)
         : `https://www.youtube.com/watch?v=${encodeURIComponent(id)}`;
 
-/* The three faces, cycled in this order (Brendon, 2026-07-22 — Micro + Slab
-   retired). The internal `signal` key stays (it drives the .fm-mode-signal
-   equalizer face and every saved value); its user-facing name is now "Tab". */
-const FM_DISPLAYS = ['deck', 'signal', 'disc'] as const;
+/* The four faces, cycled in this order (Brendon, 2026-07-22 — Micro + Slab
+   retired; 2026-07-27 — USB added, right after Deck). The internal `signal`
+   key stays (it drives the .fm-mode-signal equalizer face and every saved
+   value); its user-facing name is now "Tab". */
+const FM_DISPLAYS = ['deck', 'usb', 'signal', 'disc'] as const;
 type FmDisplay = (typeof FM_DISPLAYS)[number];
 const FM_DISPLAY_NAMES: Record<FmDisplay, string> = {
-    deck: 'Deck', signal: 'Tab', disc: 'Disc',
+    deck: 'Deck', usb: 'USB', signal: 'Tab', disc: 'Disc',
 };
+
+/* The saved live session (station + entry + seconds) — mirror of the
+   account envelope's `fmSession` (Brendon, 2026-07-27: closing the app and
+   returning restores the player right where it was paused). */
+const FM_SESSION_KEY = 'pd_fm_session';
+interface FmSavedSession {
+    playlistId: string;
+    label: string;
+    slug: string | null;
+    index: number;
+    t: number;
+}
+function readSavedSession(): FmSavedSession | null {
+    try {
+        const raw = window.localStorage.getItem(FM_SESSION_KEY);
+        if (!raw) return null;
+        const s = JSON.parse(raw) as FmSavedSession;
+        if (!s || typeof s.playlistId !== 'string' || !s.playlistId) return null;
+        return {
+            playlistId: s.playlistId,
+            label: typeof s.label === 'string' ? s.label : s.playlistId,
+            slug: typeof s.slug === 'string' ? s.slug : null,
+            index: Number.isFinite(s.index) ? Math.max(0, Math.floor(s.index)) : 0,
+            t: Number.isFinite(s.t) ? Math.max(0, s.t) : 0,
+        };
+    } catch { return null; }
+}
 
 export default function FmBar() {
     const { showToast } = useToast();
@@ -151,6 +183,10 @@ export default function FmBar() {
     /* Dead-link armor: consecutive player errors + a tune watchdog. */
     const errCountRef = useRef(0);
     const watchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    /* A session being RESTORED (not freshly tuned): the boot effect cues the
+       saved spot paused instead of autoplaying — iOS only lets ▶ (a real tap)
+       start the sound anyway, and "right where I paused it" means paused. */
+    const resumeRef = useRef<{ index: number; t: number } | null>(null);
 
     /* Every registry soundtrack — the station picker's ALL ALBUMS shelf. */
     const rotation = useMemo<Station[]>(
@@ -184,6 +220,7 @@ export default function FmBar() {
     }, []);
 
     const start = useCallback((station: Station) => {
+        resumeRef.current = null; // a fresh tune plays now — never the saved spot
         wantRef.current = station;
         setOnAir(station);
         setTrackTitle('');
@@ -199,6 +236,39 @@ export default function FmBar() {
         }
     }, [armWatchdog]);
 
+    /* ── The saved session (Brendon, 2026-07-27): the device survives closing
+       the app. Save the exact spot on every pause + steadily while playing;
+       on return the chassis is back, PAUSED, cued right where it was — ▶ is
+       the (iOS-required) tap that resumes the sound. × wipes the save. ── */
+    const saveSession = useCallback((immediate: boolean) => {
+        const st = wantRef.current;
+        const p = playerRef.current;
+        if (!st || !p) return;
+        const session: FmSavedSession = {
+            playlistId: st.playlistId,
+            label: st.label,
+            slug: st.slug,
+            index: Math.max(0, p.getPlaylistIndex?.() ?? 0),
+            t: Math.max(0, p.getCurrentTime?.() ?? 0),
+        };
+        try { window.localStorage.setItem(FM_SESSION_KEY, JSON.stringify(session)); } catch { /* private mode */ }
+        if (immediate) pushSettings({ fmSession: session });
+        else pushSettingsDebounced({ fmSession: session });
+    }, []);
+
+    const restoreSession = useCallback(() => {
+        if (wantRef.current) return; // never fight a live session
+        const saved = readSavedSession();
+        if (!saved) return;
+        const station: Station = { playlistId: saved.playlistId, label: saved.label, slug: saved.slug };
+        resumeRef.current = { index: saved.index, t: saved.t };
+        wantRef.current = station;
+        setOnAir(station);
+        setTrackTitle('');
+        setStatus('paused');
+        setDeadLink(false);
+    }, []);
+
     /* Boot — after the chassis (and the host span) exists. */
     useEffect(() => {
         if (!onAir || playerRef.current || startingRef.current) return;
@@ -209,17 +279,28 @@ export default function FmBar() {
             const station = wantRef.current;
             if (!host || playerRef.current || !station) return;
             const asPlaylist = isPlaylistId(station.playlistId);
+            /* Restoring a saved session cues the exact saved spot, paused —
+               a fresh tune boots hot exactly as before. */
+            const resume = resumeRef.current;
             playerRef.current = new YT.Player(host, {
                 width: '46',
                 height: '30',
-                ...(asPlaylist ? {} : { videoId: station.playlistId }),
+                ...(asPlaylist || resume ? {} : { videoId: station.playlistId }),
                 playerVars: {
-                    ...(asPlaylist ? { listType: 'playlist', list: station.playlistId } : {}),
-                    autoplay: 1,
+                    ...(asPlaylist && !resume ? { listType: 'playlist', list: station.playlistId } : {}),
+                    autoplay: resume ? 0 : 1,
                     playsinline: 1,
                 },
                 events: {
-                    onReady: (e: { target: YTPlayer }) => e.target.playVideo(),
+                    onReady: (e: { target: YTPlayer }) => {
+                        const r = resumeRef.current;
+                        if (r) {
+                            if (asPlaylist) e.target.cuePlaylist({ list: station.playlistId, listType: 'playlist', index: r.index, startSeconds: r.t });
+                            else e.target.cueVideoById({ videoId: station.playlistId, startSeconds: r.t });
+                            return; // stays cued; ▶ (a real tap) starts the sound
+                        }
+                        e.target.playVideo();
+                    },
                     onStateChange: (e: { data: number; target: YTPlayer }) => {
                         /* Only trust the title on PLAYING — the freshly-started
                            video. Reading it on the old video's PAUSED/ENDED
@@ -229,13 +310,15 @@ export default function FmBar() {
                         if (e.data === YT.PlayerState.PLAYING) {
                             const title = e.target.getVideoData?.()?.title ?? '';
                             if (title) setTrackTitle(title);
+                            resumeRef.current = null; // sound is live — the cue spot is spent
                             setStatus('playing');
                             setDeadLink(false);
                             errCountRef.current = 0;
                             if (watchdogRef.current) { clearTimeout(watchdogRef.current); watchdogRef.current = null; }
+                            saveSession(false);
                         }
-                        else if (e.data === YT.PlayerState.PAUSED) setStatus('paused');
-                        else if (e.data === YT.PlayerState.ENDED) setStatus('paused');
+                        else if (e.data === YT.PlayerState.PAUSED) { setStatus('paused'); saveSession(true); }
+                        else if (e.data === YT.PlayerState.ENDED) { setStatus('paused'); saveSession(true); }
                     },
                     /* Dead-video armor: a broken/private/pulled video SKIPS
                        to the next track; three strikes in a row (or a bad
@@ -259,15 +342,47 @@ export default function FmBar() {
                 },
             });
         });
-    }, [onAir]);
+    }, [onAir, saveSession]);
+
+    /* Restore on arrival — the device comes back paused, right where it was
+       (Brendon, 2026-07-27). Mount covers the same-device reopen (the cache);
+       the hydrate event covers the account snapshot landing (cross-device),
+       which also CLEARS a session the owner closed elsewhere. */
+    useEffect(() => {
+        restoreSession();
+        const onHydrate = () => restoreSession();
+        window.addEventListener('pd:fm-session-changed', onHydrate);
+        return () => window.removeEventListener('pd:fm-session-changed', onHydrate);
+    }, [restoreSession]);
+
+    /* Steady save while the sound is live (every 15s, debounced upstream) +
+       a last save the moment the app is backgrounded/closed, so "where I
+       paused it" is where it actually was. */
+    useEffect(() => {
+        if (status !== 'playing') return;
+        const iv = setInterval(() => saveSession(false), 15000);
+        return () => clearInterval(iv);
+    }, [status, saveSession]);
+    useEffect(() => {
+        const onHide = () => { if (wantRef.current && playerRef.current) saveSession(true); };
+        window.addEventListener('pagehide', onHide);
+        const onVis = () => { if (document.visibilityState === 'hidden') onHide(); };
+        document.addEventListener('visibilitychange', onVis);
+        return () => {
+            window.removeEventListener('pagehide', onHide);
+            document.removeEventListener('visibilitychange', onVis);
+        };
+    }, [saveSession]);
 
     /* × — the whole device goes away: audio dead, chrome gone, nothing
-       left behind (Brendon, 2026-07-20 — supersedes THE DOT). */
+       left behind (Brendon, 2026-07-20 — supersedes THE DOT). The saved
+       session dies WITH it — off must stay off (the stale-state lesson). */
     const closePlayer = () => {
         playerRef.current?.destroy();
         playerRef.current = null;
         startingRef.current = false;
         wantRef.current = null;
+        resumeRef.current = null;
         if (watchdogRef.current) { clearTimeout(watchdogRef.current); watchdogRef.current = null; }
         errCountRef.current = 0;
         setDeadLink(false);
@@ -275,6 +390,8 @@ export default function FmBar() {
         setOnAir(null);
         setTrackTitle('');
         setPickerOpen(false);
+        try { window.localStorage.removeItem(FM_SESSION_KEY); } catch { /* fine */ }
+        pushSettings({ fmSession: null });
         showToast('miniplayer: CLOSED');
     };
 
@@ -429,7 +546,7 @@ export default function FmBar() {
             >
                 {status === 'playing' || status === 'loading' ? '‖' : '▶︎'}
             </button>
-            {isDeckFace && (
+            {(isDeckFace || display === 'usb') && (
                 <button type="button" className="fm-btn" onClick={onNextTap} title="Next track">
                     ≫
                 </button>
