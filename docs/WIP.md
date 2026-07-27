@@ -8,7 +8,40 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-00000000000. ✅ **2026-07-27 (LATEST) — PD MARKETPLACE + PURCHASE PAL /
+000000000000. ✅ **2026-07-27 (LATEST) — THE DARKROOM ◉ + FINGERPRINT TASTE
+   AXES (the Radar unlock) + FINGERPRINT DOCS PAGE. On `dev` (tip `e5d455f`),
+   tree clean, tsc + real build green, 138 tests pass, geometry read proven
+   on real pixels in headless Chromium. Brendon-approved + pushed.**
+
+   **Nothing is in flight.**
+
+   1. **The Darkroom ◉** — `/art/{slug}/{id}/darkroom`: full-res live render
+      on the fullscreen stage anatomy, Deep Zoom pixel inspection, real
+      palette swatches (tap-to-copy, the character sheet's sampler), INVERT
+      negative pill (default off). **Door (Brendon-confirmed): long-press the
+      art on the FEATURE page** (DeepZoomLayer gained `onLongPress` — on that
+      surface the Darkroom took the hold from the Lens, per his "Ignore
+      lens"; the Lens keeps all other surfaces AND works inside the
+      Darkroom). Out: standard ×.
+   2. **Fingerprint v4 — THE TASTE AXES** (Brendon's call: taste gets
+      measured on the Fingerprint; this IS the Radar's data unlock). Four
+      tiles on the Fingerprint wall: Geometric↔Organic (∠, NEW pixel read —
+      edge-direction coherence), Colourfulness ◧ / Density ▓ / Order ∷
+      (transparent composites of the real stored scalars). New `geometry` +
+      `geometry_band` columns on `outputs` (migration applied, additive);
+      full pipeline sample→store→APIs→tiles; live fallback for pre-v4 rows
+      (first-viewer-wins means old rows never re-capture — live IS their
+      path). Glyphs catalogued in GLYPHS.md §12i.
+   3. **The Fingerprint docs page** — its own feature section like Command
+      Stone (`/docs/fingerprint`, nav entry, Outputs page points to it).
+      Brendon corrected my first pass (a section inside Outputs) to a
+      standalone page — "highlight" means own feature section.
+   4. **The Radar ⊕ (86b9eu89c) is UNBLOCKED but stays queued** — its
+      per-wallet vectors can now average real per-piece axis values. Genome
+      is REAL + shipped (my stale-spec "mockup" claim was wrong; corrected).
+   5. ClickUp: Darkroom 86b9eu80j complete w/ ship note · Radar commented.
+
+00000000000. ✅ **2026-07-27 — PD MARKETPLACE + PURCHASE PAL /
    PROFIT PAL. On `dev` (tip `26c2e79`), tree clean, tsc + real build green,
    138 tests pass, deploy verified rendering. Brendon-approved, two rounds
    (build + his edit round).**
