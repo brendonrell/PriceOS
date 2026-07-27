@@ -299,7 +299,9 @@ function isNearBlackNeutral(bgHex: string): boolean {
 function resolveCustomBg(): string {
     if (typeof window === 'undefined') return DOT;
     const path = window.location.pathname || '/';
-    if (path === '/') return moodHexToday();
+    /* /marketplace is the home surface's market side — it wears the SAME
+       Mood Ring colour as home (Brendon, 2026-07-27). */
+    if (path === '/' || path === '/marketplace') return moodHexToday();
     if (path.startsWith('/art/')) {
         const slug = (path.split('/')[2] ?? '').toLowerCase();
         return projectColorway(slug) ?? DOT;
@@ -564,9 +566,12 @@ function paintForPath(saved: ColorwayKey, pathname: string | null): ColorwayKey 
         firstSeg !== 'art' &&
         firstSeg !== 'api' &&
         firstSeg !== 'docs' &&
+        firstSeg !== 'marketplace' &&
         !/^\d+$/.test(firstSeg) &&
         /^[@a-z0-9_-]+$/i.test(firstSeg);
-    const isHomePage = pathname === '/';
+    /* /marketplace paints exactly like home — the Mood Ring (Brendon,
+       2026-07-27); without the exclusion above it read as a profile page. */
+    const isHomePage = pathname === '/' || pathname === '/marketplace';
 
     if (isDocsPage && (saved === null || saved === 'custom')) {
         // Docs pages: the docs' own colour IS Dark Mode (Brendon, 2026-07-10)

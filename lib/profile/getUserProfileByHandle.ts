@@ -1,5 +1,6 @@
 import { getSupabaseAnon, getSupabaseService, PUBLIC_USER_COLUMNS, type UserRow } from '@/lib/supabase';
 import { getUserOwnedProjectsCount, getUserSpendEth } from './getUserHoldings';
+import { teamStyleIndex } from '@/lib/tags/catalog';
 
 /** Profile row plus follower/following counts — the shape both the
  *  /api/user/by-handle route and the server-rendered profile page use. */
@@ -14,10 +15,15 @@ export interface UserProfileData extends UserRow {
    *  display. Derived server-side from their own saved setting; a visitor sees
    *  the deactivated shell, while the owner still sees their real profile. */
   deactivated: boolean;
-  /** Tag ids the owner switched OFF — one array lifted from the private settings
-   *  envelope server-side so every visitor renders the same curated tag row
-   *  (Brendon, 2026-07-22). */
-  hidden_tags: string[];
+  /** Tag ids the owner switched ON — one array lifted from the private settings
+   *  envelope server-side so every visitor renders the same tag row. Tags are
+   *  OFF by default, so an empty array means a bare profile (Brendon,
+   *  2026-07-26). */
+  shown_tags: string[];
+  /** Which of the twelve WTBS-family chip treatments the owner cycled to —
+   *  lifted from the same private envelope so visitors see the owner's pick
+   *  (Brendon, 2026-07-26). */
+  team_tag_style: number;
 }
 
 // Handle shape mirrors lib/slug.ts: ASCII alphanumerics, underscore, hyphen.
@@ -107,7 +113,8 @@ export async function getUserProfileByHandle(
   // the service key server-side so the private settings envelope is never
   // exposed — only this one boolean leaves the server. Best-effort → false.
   let deactivated = false;
-  let hiddenTags: string[] = [];
+  let shownTags: string[] = [];
+  let teamTagStyle = 0;
   try {
     const svc = getSupabaseService();
     const { data: dRow } = await svc
@@ -115,9 +122,10 @@ export async function getUserProfileByHandle(
       .select('settings')
       .eq('handle', userHandle)
       .maybeSingle();
-    const s = (dRow as { settings?: { notifs?: Record<string, unknown>; hiddenTags?: unknown } } | null)?.settings;
+    const s = (dRow as { settings?: { notifs?: Record<string, unknown>; shownTags?: unknown; teamTagStyle?: unknown } } | null)?.settings;
     deactivated = !!(s?.notifs?.spell_invisible);
-    if (Array.isArray(s?.hiddenTags)) hiddenTags = s.hiddenTags.filter((x): x is string => typeof x === 'string');
+    if (Array.isArray(s?.shownTags)) shownTags = s.shownTags.filter((x): x is string => typeof x === 'string');
+    teamTagStyle = teamStyleIndex(s?.teamTagStyle);
   } catch { /* leave defaults */ }
 
   return {
@@ -127,6 +135,7 @@ export async function getUserProfileByHandle(
     owned_projects: ownedProjects,
     volume_spent_eth: volumeSpent,
     deactivated,
-    hidden_tags: hiddenTags,
+    shown_tags: shownTags,
+    team_tag_style: teamTagStyle,
   };
 }

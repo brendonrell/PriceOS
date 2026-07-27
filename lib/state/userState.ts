@@ -166,14 +166,21 @@ export const STATE_CACHE_KEYS = {
     /** PD miniplayer display face. Read + written by FmBar; lives in the
      *  settings envelope. Account-backed 2026-07-21. */
     fmDisplay: 'pd_fm_display',
+    /** PD miniplayer live session (station + entry + seconds). Read + written
+     *  by FmBar; settings envelope. Account-backed 2026-07-27. */
+    fmSession: 'pd_fm_session',
     /** Command Stone stealth style (accent + stage). Read + written by
      *  stoneStyle; lives in the settings envelope. Account-backed 2026-07-21. */
     stoneStyle: 'pd_stone_style',
     /** Command Stone last bubble line — restores the last speech bubble on
      *  reopen. Settings envelope. Account-backed 2026-07-22. */
     stoneLastLine: 'pd_stone_last_line',
-    /** Profile tags switched OFF by the owner. Settings envelope. 2026-07-22. */
-    hiddenTags: 'pd_hidden_tags',
+    /** Profile tags switched ON by the owner — tags are OFF by default
+     *  platform-wide. Settings envelope. 2026-07-26. */
+    shownTags: 'pd_shown_tags',
+    /** Which of the twelve WTBS-family chip treatments the owner cycled to.
+     *  Settings envelope. 2026-07-26. */
+    teamTagStyle: 'pd_team_tag_style',
 } as const;
 
 /** Fired after a server snapshot is written into the caches. Any context that
@@ -488,6 +495,17 @@ export function hydrateFromRow(row: UserRow): void {
             localStorage.setItem(STATE_CACHE_KEYS.fmDisplay, s.fmDisplay);
             window.dispatchEvent(new CustomEvent('pd:fm-display-changed', { detail: s.fmDisplay }));
         }
+        // miniplayer live session — the account's paused spot wins over the
+        // device cache; an explicit null (closed elsewhere) clears it so the
+        // device can't resurrect a session its owner shut (the 2026-07-20
+        // stale-state lesson). FmBar re-reads on the event.
+        if (s.fmSession && typeof s.fmSession === 'object' && !Array.isArray(s.fmSession)
+            && typeof s.fmSession.playlistId === 'string' && s.fmSession.playlistId) {
+            localStorage.setItem(STATE_CACHE_KEYS.fmSession, JSON.stringify(s.fmSession));
+            window.dispatchEvent(new CustomEvent('pd:fm-session-changed'));
+        } else if (s.fmSession === null) {
+            localStorage.removeItem(STATE_CACHE_KEYS.fmSession);
+        }
         if (s.stoneStyle && typeof s.stoneStyle === 'object' && !Array.isArray(s.stoneStyle)) {
             const st = s.stoneStyle;
             if (st.accent || st.stage) localStorage.setItem(STATE_CACHE_KEYS.stoneStyle, JSON.stringify(st));
@@ -500,9 +518,13 @@ export function hydrateFromRow(row: UserRow): void {
         } else if (s.stoneLastLine === null || s.stoneLastLine === '') {
             localStorage.removeItem(STATE_CACHE_KEYS.stoneLastLine);
         }
-        if (Array.isArray(s.hiddenTags)) {
-            localStorage.setItem(STATE_CACHE_KEYS.hiddenTags, JSON.stringify(s.hiddenTags));
-            window.dispatchEvent(new CustomEvent('pd:hidden-tags-changed', { detail: s.hiddenTags }));
+        if (Array.isArray(s.shownTags)) {
+            localStorage.setItem(STATE_CACHE_KEYS.shownTags, JSON.stringify(s.shownTags));
+            window.dispatchEvent(new CustomEvent('pd:shown-tags-changed', { detail: s.shownTags }));
+        }
+        if (typeof s.teamTagStyle === 'number' && Number.isFinite(s.teamTagStyle)) {
+            localStorage.setItem(STATE_CACHE_KEYS.teamTagStyle, JSON.stringify(s.teamTagStyle));
+            window.dispatchEvent(new CustomEvent('pd:team-tag-style-changed', { detail: s.teamTagStyle }));
         }
 
         // grid_presets → unified cache the presetStore reads (Gallery View

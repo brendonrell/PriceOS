@@ -179,7 +179,7 @@ export const FATE_TRAIT: TraitDef = {
 };
 
 const oraclePlaylist = normalizePlaylistId(
-  'https://www.youtube.com/playlist?list=PL0mSnUSmZIvtjiGDNIyaJ_ZB5SF33YIWu',
+  'https://www.youtube.com/playlist?list=PLkqEVvYWNxALd7_vjruXPJaCytDm_yGdB',
 );
 
 const PRISMS: ProjectDef = {
@@ -190,7 +190,7 @@ const PRISMS: ProjectDef = {
   // v2 colorway = the bench's custom theme hex (Brendon 2026-06-11).
   colorway: '#E8FF47',
   mintPriceEth: 0,
-  soundtrack: { playlistId: 'PLUEMihO9lT7-yvLCQxUOojL_dcRNwRW06', label: 'Boards of Canada — Music Has the Right to Children' },
+  soundtrack: { playlistId: 'PLYO5IGgFzAfN-p6R1MgsKYmwd2qk344FF', label: 'Boards of Canada — Music Has the Right to Children' },
   aspects: PRISMS_ASPECTS,
   traitSchema: prismsSchema,
   render: renderPrisms,
@@ -209,7 +209,7 @@ const ORACLE: ProjectDef = {
   colorway: '#C4902A',
   mintPriceEth: 0,
   soundtrack: oraclePlaylist
-    ? { playlistId: oraclePlaylist, label: 'Wardruna — Kvitravn' }
+    ? { playlistId: oraclePlaylist, label: 'Wardruna — Official Videos' }
     : null,
   aspects: ORACLE_ASPECTS,
   traitSchema: oracleSchema,
@@ -229,7 +229,7 @@ const TEST_PATTERN: ProjectDef = {
   outputs: 111,
   colorway: '#2347ff',
   mintPriceEth: 0,
-  soundtrack: { playlistId: 'PLeSI4RRDG8EFQXbBvaOn-7hDKG4NVNaT9', label: 'Oneohtrix Point Never — Replica' },
+  soundtrack: { playlistId: 'N9Hr-bQgLyU', label: 'Oneohtrix Point Never — Replica' },
   aspects: TEST_PATTERN_ASPECTS,
   traitSchema: testPatternSchema,
   render: renderTestPattern,
@@ -290,7 +290,7 @@ const BULLETIN: ProjectDef = {
   // TEST PRICE (fiat-spacing check, Brendon 2026-07-08) — a live, unminted
   // project priced to pressure-test the ~fiat readout's fit.
   mintPriceEth: 0.2222,
-  soundtrack: { playlistId: 'PLjIuADMrDKIb3Vkzy31broht0ZHsXfaFE', label: 'Kraftwerk — Trans-Europe Express' },
+  soundtrack: { playlistId: 'PLlfZher7p1yGnvanxr2gluTj5PFw4fhu6', label: 'Kraftwerk — Trans-Europe Express' },
   aspects: BULLETIN_ASPECTS,
   traitSchema: bulletinSchema,
   render: renderBulletin,
@@ -348,7 +348,7 @@ const HALO_D: ProjectDef = {
   slug: 'nave', displayName: 'NAVE', artistHandle: 'tracedeck-ai', outputs: 111,
   // Regal violet — the cathedral read, and keeps it distinct from GRIDLOCK's green.
   colorway: '#a96bff', mintPriceEth: 0,
-  soundtrack: { playlistId: 'PLw_IkukIYEyr9TsbzlqMy-C9OUnNfeBN3', label: 'Alva Noto + Ryuichi Sakamoto — Vrioon' },
+  soundtrack: { playlistId: 'PLNA18HU5BCqG8RnjVkJ1mGPOqeRK8DKWH', label: 'Alva Noto + Ryuichi Sakamoto — Vrioon' },
   aspects: HALOD_ASPECTS, traitSchema: haloDSchema, render: renderHaloD, traitsOf: haloDTraits,
 };
 /* GLYPHSTORM — the platform HALO. glyphfield-ai (whose Teletext is the closest
@@ -503,7 +503,7 @@ const FACET: ProjectDef = {
   outputs: 222,
   colorway: '#C9B6FF',
   mintPriceEth: 0.16,
-  soundtrack: { playlistId: 'PLiN-7mukU_RHjxGCCYFDiuqAHpS-O_T0n', label: 'Sigur Rós — Ágætis byrjun' },
+  soundtrack: { playlistId: 'PLKX61X45-5O7zHZL16HXx9vRhgEW8ASvf', label: 'Sigur Rós — Ágætis byrjun' },
   aspects: FACET_ASPECTS,
   traitSchema: facetSchema,
   render: renderFacet,
@@ -539,7 +539,7 @@ const TOPIARY: ProjectDef = {
 const SLACK_WATER: ProjectDef = {
   slug: 'slack-water', displayName: 'Slack Water', artistHandle: 'duskfield-ai', outputs: 111,
   colorway: '#1ec8c8', mintPriceEth: 0.09,
-  soundtrack: { playlistId: 'PL6ogdCG3tAWgWYFgDe6L-rY0LGLmC8IBm', label: 'Biosphere — Substrata' },
+  soundtrack: { playlistId: 'PLFBBF89FC2C622997', label: 'Biosphere — Substrata' },
   aspects: TIDEWORKS_ASPECTS, traitSchema: tideworksSchema, render: renderTideworks, traitsOf: tideworksTraits,
 };
 
@@ -611,24 +611,24 @@ const CONSERVATORY: ProjectDef = {
    YouTube playlist, matched to the work. Bare playlist ids. */
 const AI_SOUNDTRACKS: Record<string, { playlistId: string; label: string }> = {
   'full-faith-credit':      { playlistId: 'PLTMN6OMDTnKmPEshAkltDlfJYLft6taZO', label: 'Tom Waits — Small Change' },
-  'delisted':               { playlistId: 'PLeSI4RRDG8EFQXbBvaOn-7hDKG4NVNaT9', label: 'Oneohtrix Point Never — Replica' },
+  'delisted':               { playlistId: 'N9Hr-bQgLyU', label: 'Oneohtrix Point Never — Replica' },
   'the-river-disagrees':    { playlistId: 'PLrz8hHdG8-5CLOtFCR5e63JL-ZoOyDMFY', label: 'Talk Talk — Spirit of Eden' },
   'stars-nobody-named':     { playlistId: 'PLvaPUJKLJcQzRvWhVWov0Iq4TE3AvPRnR', label: 'Stars of the Lid — The Tired Sounds Of' },
   'thank-you-no-refunds':   { playlistId: 'PLn_xnHmgpm0ZZPxjHYsxJtcZHyw28_ARu', label: 'Vulfpeck — Thrill of the Arts' },
   'elevations':             { playlistId: '6Stu7h7Qup8', label: 'Philip Glass — Glassworks' },
   'dyed-in-the-wool':       { playlistId: 'NxPMKgY_8qk', label: 'Alice Coltrane — Journey in Satchidananda' },
   'noise-from-below':       { playlistId: 'PL2MEf0Id3TeFo6QBeY76d_zvOicDoG_lg', label: 'Godspeed You! Black Emperor — Lift Your Skinny Fists' },
-  'letters-never-sent':     { playlistId: 'PLNPGM2D7aODcFxn1-uG9EYj8470eGEIQ6', label: 'Nick Drake — Pink Moon' },
-  'crosstown':              { playlistId: 'PLjIuADMrDKIb3Vkzy31broht0ZHsXfaFE', label: 'Kraftwerk — Trans-Europe Express' },
+  'letters-never-sent':     { playlistId: 'PLRQKT-Cu2_2SQ0ygyJlJBP7js_5w9i2dp', label: 'Nick Drake — Pink Moon' },
+  'crosstown':              { playlistId: 'PLlfZher7p1yGnvanxr2gluTj5PFw4fhu6', label: 'Kraftwerk — Trans-Europe Express' },
   'average-contents-forty': { playlistId: 'PLVyehhUaGFdWUzH8Ah1EQSwHV2oCcoAPo', label: 'Beirut — Gulag Orkestar' },
   'crossette':              { playlistId: 'q3X3cRPDSSA', label: 'Handel — Music for the Royal Fireworks' },
   'guaranteed-to-grow':     { playlistId: 'SZkR3PyHTs0', label: "Mort Garson — Mother Earth's Plantasia" },
-  'wait-till-next-year':    { playlistId: 'PLNPGM2D7aODd32yBzIGoWwXlPbZcXycC4', label: 'The Replacements — Let It Be' },
-  'every-light-in-town':    { playlistId: 'PLNPGM2D7aODdy6XZNi1VMiZ5wvtnV9ADy', label: 'Otis Redding — Otis Blue' },
+  'wait-till-next-year':    { playlistId: 'PLmRyyjBrSjqL8rQS-LnFU6-gebVBKkpLd', label: 'The Replacements — Let It Be' },
+  'every-light-in-town':    { playlistId: 'PL97FB5A2FDCEB6AE8', label: 'Otis Redding — Otis Blue' },
   'nobodys-swimming':       { playlistId: 'PLfGibfZATlGrmpkUerpJ4DS9n9jHP_VmU', label: 'Air — Moon Safari' },
   'between-the-lines':      { playlistId: 'u70iVBgZMfM', label: 'Steve Reich — Music for 18 Musicians' },
-  'loud-on-cheap-paper':    { playlistId: 'PLI6kLIhBBwmQVYj5MJRVbYQCguyy4ipRV', label: 'Aphex Twin — Selected Ambient Works 85–92' },
-  'scissors-no-plan':       { playlistId: 'PLL-NbN8uTOii_8SBqhafpe-lhts0OI9Is', label: 'Charles Mingus — Mingus Ah Um' },
+  'loud-on-cheap-paper':    { playlistId: 'PLnif9Rfb5AdlgYzA_Old4a0jfR7ydGIrh', label: 'Aphex Twin — Selected Ambient Works 85–92' },
+  'scissors-no-plan':       { playlistId: 'PLZClW7CpBDubL1C8xw26QBlfumlizZZoI', label: 'Charles Mingus — Mingus Ah Um' },
   'hard-water':             { playlistId: 'PLxQkNyeJS59q9C5z3Zf1krAA-Pz6n6MV6', label: 'Terry Riley — A Rainbow in Curved Air' },
   'turf-war':               { playlistId: 'PLQGU4WaEtXNSio4bukeLwAG4lWL2MkMBf', label: 'Autechre — Amber' },
   'avalanche':              { playlistId: 'PLEoDu3_VGmF30kGGwisyIwa_p0d_j2SG_', label: 'Tim Hecker — Harmony in Ultraviolet' },
@@ -636,36 +636,36 @@ const AI_SOUNDTRACKS: Record<string, { playlistId: string; label: string }> = {
      the contemplative fine-art pieces (Konkret, Ode to Rudxane, The
      Lapidary, Warp & Weft, Divided Light, Filament, The Golden Angle) are
      intentionally silent — the artist's chosen bg hex stands alone. ── */
-  'everyone-is-typing':     { playlistId: 'PLrnz4iRZQNlef65jO2EYePm_iTXhKgaTy', label: '100 gecs — 1000 gecs' },
+  'everyone-is-typing':     { playlistId: 'PL259SQrrBF-IBwYdxTQrB2Welc4v6x1O_', label: '100 gecs — 1000 gecs' },
   'night-service':          { playlistId: 'PLwn7nuBZOuOy_awkbaFCJzdFyXIbkjVqw', label: "80's Synthwave — Night Drive Mixes" },
   'breach-protocol':        { playlistId: 'PLFvmcIFHwju3yMswUDb6pbeW4HqTEGI9f', label: 'Darksynth / Cyberpunk / Industrial Mixes' },
   'graffiti-soul':          { playlistId: 'PLWQigmFvFjPdvjrUyTTkpocV3KHfibXmO', label: 'Jet Set Radio — Original Soundtrack' },
-  'teletext':               { playlistId: 'PLUEMihO9lT7-yvLCQxUOojL_dcRNwRW06', label: 'Boards of Canada — Music Has the Right to Children' },
-  'chrome-dreams':          { playlistId: 'PLiQyj3m-vBexsWfn2NY3ROSi13T9etbbm', label: '2000s Pop Hits — Y2K Anthems' },
+  'teletext':               { playlistId: 'PLYO5IGgFzAfN-p6R1MgsKYmwd2qk344FF', label: 'Boards of Canada — Music Has the Right to Children' },
+  'chrome-dreams':          { playlistId: 'PLuu4RM7anGtJw9GJjlyhX3P9kgZfOhKD0', label: '2000s Pop Hits — Y2K Anthems' },
   'riding-the-oil':         { playlistId: 'PLNfpZJMeq7ARokcTW0RmLfSrNGTM9vuz7', label: 'Vaporwave Mixes' },
-  'price-discovery':        { playlistId: 'PLG3BG6P7u9CT0ITPYBy0TpdaAFoCZemil', label: 'Miles Davis — Kind of Blue' },
+  'price-discovery':        { playlistId: 'PLx9EG-Ozgl94TAQh4yBtGIh9FqRqq7p_d', label: 'Miles Davis — Kind of Blue' },
   'liquid-light':           { playlistId: 'PL8EDF0165B4EA2F04', label: "Psychedelic Rock 60's–70's" },
-  'diffusion':              { playlistId: 'PL6ogdCG3tAWgWYFgDe6L-rY0LGLmC8IBm', label: 'Biosphere — Substrata' },
+  'diffusion':              { playlistId: 'PLFBBF89FC2C622997', label: 'Biosphere — Substrata' },
   'growth':                 { playlistId: 'PLitsxevT321MbKWfv5sSHOjVfPCou9EsY', label: 'Hiroshi Yoshimura — Music for Nine Post Cards' },
-  'tessera':                { playlistId: 'PLiN-7mukU_RHjxGCCYFDiuqAHpS-O_T0n', label: 'Sigur Rós — Ágætis byrjun' },
+  'tessera':                { playlistId: 'PLKX61X45-5O7zHZL16HXx9vRhgEW8ASvf', label: 'Sigur Rós — Ágætis byrjun' },
   'junction':               { playlistId: 'PL352NRy8qGVt9HMuqFmn4zqwWhtxq4sCJ', label: 'Plastikman — Consumed' },
   'asterism':               { playlistId: 'PL5D6893B1E4AD4666', label: 'Brian Eno — Apollo: Atmospheres & Soundtracks' },
-  'facets':                 { playlistId: 'EcinEEnul6M', label: 'Arvo Pärt — Tabula Rasa' },
-  'quasicrystal':           { playlistId: 'PLw_IkukIYEyr9TsbzlqMy-C9OUnNfeBN3', label: 'Alva Noto + Ryuichi Sakamoto — Vrioon' },
+  'facets':                 { playlistId: '7YqF69HLkj8', label: 'Arvo Pärt — Tabula Rasa' },
+  'quasicrystal':           { playlistId: 'PLNA18HU5BCqG8RnjVkJ1mGPOqeRK8DKWH', label: 'Alva Noto + Ryuichi Sakamoto — Vrioon' },
   'circuit':                { playlistId: 'PLryJ-4UNwXnfNR1h7RHPT2_TT6hu91G1o', label: "Drexciya — Neptune's Lair" },
   'the-pendulum':           { playlistId: 'PLfxp5kceZB-iOXOjDkMevpa0as0WOb90G', label: 'Max Richter — The Blue Notebooks' },
   /* ── new set (2026-06-18): four projects, soundtracks matched to the work
      (drawn from our verified public-playlist set). ── */
   'setback':                { playlistId: 'PL333NRV9w0mXU72yJa3pX7_-QY5nW5i4H', label: 'Burial — Untrue' },
-  'simultaneous':           { playlistId: 'PL81_CtYCym28qkVe3nVMRG7hMR5_Ky3Hf', label: 'Tame Impala — Currents' },
+  'simultaneous':           { playlistId: 'PL48yAAQz9kC0E8rWC5vQ3cQneF37nvQpX', label: 'Tame Impala — Currents' },
   'strata':                 { playlistId: 'PLy0ghh0CZ01MFvZy4RnleMmCGQrP0SoKE', label: 'Bonobo — Black Sands' },
   /* ── new cohort (2026-06-19): five fresh projects, soundtracks drawn from our
      verified public-playlist set, matched to each work. ── */
-  'spectra':                { playlistId: 'PLw_IkukIYEyr9TsbzlqMy-C9OUnNfeBN3', label: 'Alva Noto + Ryuichi Sakamoto — Vrioon' },
+  'spectra':                { playlistId: 'PLNA18HU5BCqG8RnjVkJ1mGPOqeRK8DKWH', label: 'Alva Noto + Ryuichi Sakamoto — Vrioon' },
   'contour-interval':       { playlistId: 'PLitsxevT321MbKWfv5sSHOjVfPCou9EsY', label: 'Hiroshi Yoshimura — Music for Nine Post Cards' },
-  'soundings':              { playlistId: 'PL6ogdCG3tAWgWYFgDe6L-rY0LGLmC8IBm', label: 'Biosphere — Substrata' },
+  'soundings':              { playlistId: 'PLFBBF89FC2C622997', label: 'Biosphere — Substrata' },
   'shallow-end':            { playlistId: 'PLy0ghh0CZ01MFvZy4RnleMmCGQrP0SoKE', label: 'Bonobo — Black Sands' },
-  'ticker-tape':            { playlistId: 'PLL-NbN8uTOii_8SBqhafpe-lhts0OI9Is', label: 'Charles Mingus — Mingus Ah Um' },
+  'ticker-tape':            { playlistId: 'PLZClW7CpBDubL1C8xw26QBlfumlizZZoI', label: 'Charles Mingus — Mingus Ah Um' },
 };
 
 /* Slug is DERIVED from the display name by the locked rule (deriveSlug) — the
@@ -749,19 +749,19 @@ const AI_PROJECTS: readonly ProjectDef[] = [
 const PROVENANCE: ProjectDef = {
   slug: 'provenance', displayName: 'Provenance', artistHandle: 'regfour-ai', outputs: 111,
   colorway: '#b23a2e', mintPriceEth: 0,
-  soundtrack: { playlistId: 'EcinEEnul6M', label: 'Arvo Pärt — Tabula Rasa' },
+  soundtrack: { playlistId: '7YqF69HLkj8', label: 'Arvo Pärt — Tabula Rasa' },
   aspects: PROVENANCE_ASPECTS, traitSchema: provenanceSchema, render: renderProvenance, traitsOf: provenanceTraits,
 };
 const OFF_REGISTER: ProjectDef = {
   slug: 'off-register', displayName: 'Off Register', artistHandle: 'divisionist-ai', outputs: 111,
   colorway: '#ff5a3c', mintPriceEth: 0,
-  soundtrack: { playlistId: 'PLjIuADMrDKIb3Vkzy31broht0ZHsXfaFE', label: 'Kraftwerk — Trans-Europe Express' },
+  soundtrack: { playlistId: 'PLlfZher7p1yGnvanxr2gluTj5PFw4fhu6', label: 'Kraftwerk — Trans-Europe Express' },
   aspects: OFFREGISTER_ASPECTS, traitSchema: offRegisterSchema, render: renderOffRegister, traitsOf: offRegisterTraits,
 };
 const INTERFERENCE: ProjectDef = {
   slug: 'interference', displayName: 'Interference', artistHandle: 'moire-ai', outputs: 222,
   colorway: '#8a93a0', mintPriceEth: 0,
-  soundtrack: { playlistId: 'PL6ogdCG3tAWgWYFgDe6L-rY0LGLmC8IBm', label: 'Biosphere — Substrata' },
+  soundtrack: { playlistId: 'PLFBBF89FC2C622997', label: 'Biosphere — Substrata' },
   aspects: INTERFERENCE_ASPECTS, traitSchema: interferenceSchema, render: renderInterference, traitsOf: interferenceTraits,
 };
 const AGAINST_LIGHT: ProjectDef = {
@@ -773,7 +773,7 @@ const AGAINST_LIGHT: ProjectDef = {
 const DRAPERY: ProjectDef = {
   slug: 'drapery', displayName: 'Drapery', artistHandle: 'vein-ai', outputs: 222,
   colorway: '#7a3b3b', mintPriceEth: 0,
-  soundtrack: { playlistId: 'PLiN-7mukU_RHjxGCCYFDiuqAHpS-O_T0n', label: 'Sigur Rós — Ágætis byrjun' },
+  soundtrack: { playlistId: 'PLKX61X45-5O7zHZL16HXx9vRhgEW8ASvf', label: 'Sigur Rós — Ágætis byrjun' },
   aspects: DRAPERY_ASPECTS, traitSchema: draperySchema, render: renderDrapery, traitsOf: draperyTraits,
 };
 const VESTIBULE: ProjectDef = {

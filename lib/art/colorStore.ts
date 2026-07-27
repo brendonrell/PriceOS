@@ -42,6 +42,7 @@ export interface StoredFingerprint {
     scene: string | null;
     shapeCount: number | null;
     pattern: string | null;
+    geometry: number | null;
 }
 const fpCache = new Map<string, StoredFingerprint>();
 export function resolveFingerprint(slug: string, id: number): StoredFingerprint | null {
@@ -140,6 +141,7 @@ export function reportFingerprint(slug: string, id: number, fp: Fingerprint | nu
         scene: fp.scene,
         shapeCount: fp.shapeCount,
         pattern: fp.pattern,
+        geometry: fp.geometry,
     });
     try {
         fetch('/api/outputs/color', {
@@ -165,6 +167,7 @@ export function reportFingerprint(slug: string, id: number, fp: Fingerprint | nu
                 shapeCount: fp.shapeCount,
                 pattern: fp.pattern,
                 shapes: fp.shapes,
+                geometry: fp.geometry,
             }),
             keepalive: true,
         }).catch(() => { /* ignore */ });
@@ -203,6 +206,7 @@ async function loadColors(slugs: string[]): Promise<void> {
             warmth?: number | null; gravity?: string | null; symmetry?: number | null;
             air?: number | null; texture?: number | null;
             scene?: string | null; shapeCount?: number | null; pattern?: string | null;
+            geometry?: number | null;
             rarity?: string | null; artist?: string | null; project_name?: string | null;
             true_name?: string | null; price_day?: string | null;
             natal_sun?: string | null; natal_moon?: string | null; natal_rising?: string | null;
@@ -231,6 +235,7 @@ async function loadColors(slugs: string[]): Promise<void> {
                     scene: r.scene ?? null,
                     shapeCount: r.shapeCount ?? null,
                     pattern: r.pattern ?? null,
+                    geometry: r.geometry ?? null,
                 });
                 changed = true;
             }

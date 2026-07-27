@@ -12,6 +12,7 @@ import {
     GROUP_BTN_ICON,
 } from '../../lib/state/SortContext';
 import { formatEth } from '../../lib/format/eth';
+import { useLongPress } from '../../lib/hooks/useLongPress';
 
 /* ── Sub-components ─────────────────────────────────────────────────── */
 
@@ -418,20 +419,32 @@ export function GroupBtn({
     glyph,
     on,
     onClick,
+    onHold,
 }: {
     /** The live grouping's glyph ('' when grouping is off). */
     glyph: string;
     /** Whether a grouping is active (lights the button). */
     on: boolean;
     onClick: () => void;
+    /** HOLD → the three-layer menu (Brendon, 2026-07-26). Receives where the
+     *  button is so the bubble's tail can point back at it, exactly like the
+     *  fiat picker. Absent = no hold action on this surface. */
+    onHold?: (anchor: { top: number; centerX: number }) => void;
 }) {
+    const ref = React.useRef<HTMLDivElement>(null);
+    const hold = useLongPress(() => {
+        const r = ref.current?.getBoundingClientRect();
+        if (r) onHold?.({ top: r.top, centerX: r.left + r.width / 2 });
+    });
     return (
         <div
+            ref={ref}
             className={`sort-btn group-btn${on ? ' active' : ''}`}
             role="button"
             tabIndex={0}
-            title="Group by"
+            title={onHold ? 'Group by — hold for layers' : 'Group by'}
             onClick={onClick}
+            {...(onHold ? hold : null)}
             onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();

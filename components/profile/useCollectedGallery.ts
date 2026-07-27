@@ -12,32 +12,23 @@ import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { useTraits } from '../../lib/state/TraitsContext';
 import {
     useSort,
-    GROUP_SOON, GROUP_LABEL, COLLECTED_GROUP_ORDER,
+    GROUP_SOON, GROUP_LABEL,
 } from '../../lib/state/SortContext';
-import { EXTRA_GROUP_DIMS, groupSectionLabel, groupLabelComparator } from '../../lib/state/groupDimensions';
-import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
-import { resolveBucket, useStoredColors } from '../../lib/art/colorStore';
+import { groupSectionLabel, usefulLayers } from '../../lib/state/groupDimensions';
+import type { GroupKey } from '../../lib/state/SortContext';
+import { buildGroupBlocks, type GBlock } from '../../lib/state/groupBlocks';
+import { useStoredColors } from '../../lib/art/colorStore';
 import { getProject, outputTraits } from '../../lib/project/registry';
 import { facetValueOf, type EnrichedHolding } from './ProfileFacetBar';
 import type { Holding } from './profilePageShared';
 
-export type GBHead = { level: 1 | 2; label: string; by?: string | null; soon?: boolean;
-    /** Pieces under this header (level-1 totals its whole section) — the same
-        count the project-page group headers wear (parity, 2026-07-12). */
-    count?: number };
-export type GBlock = {
-    key: string;
-    /** Collapse key for the section (level-1) this block belongs to. */
-    l1Key: string;
-    /** Collapse key for this block's own level-2 sub-section, when it has one. */
-    l2Key?: string;
-    heads: GBHead[];
-    group?: { slug: string; ids: number[] };
-    cards?: { slug: string; id: number }[];
-};
+/* The block/header shapes moved to lib/state/groupBlocks when grouping went
+   N-layer (Brendon, 2026-07-26). Re-exported so every existing importer of
+   these types keeps working unchanged. */
+export type { GBHead, GBlock } from '../../lib/state/groupBlocks';
 
 export function useCollectedGallery(holdings: Holding[]) {
-    const { sort, dir, group } = useSort();
+    const { sort, dir, group, groupLayers } = useSort();
     const { activeFilters, searchQuery, priceMin, priceMax } = useTraits();
 
     /* Decouple the gallery grid from the trait pills (Brendon, 2026-06-18). The
@@ -191,11 +182,10 @@ export function useCollectedGallery(holdings: Holding[]) {
        Cards still render inside a ProjectProvider so the art paints with its own
        project's context. Returns null when grouping is off / not applicable. */
     const collectedGroups = useMemo<GBlock[] | null>(() => {
-        if (group === 'none' || sort === 'feed') return null;
-        if (!COLLECTED_GROUP_ORDER.includes(group)) return null;
+        if (!groupLayers.length || sort === 'feed') return null;
         const projName = (slug: string) => getProject(slug)?.displayName ?? slug;
 
-        // Last-sold + rarity: one greyed "coming soon" title, all pieces beneath.
+        // Last-sold: one greyed "coming soon" title, all pieces beneath.
         if (GROUP_SOON[group]) {
             return [{
                 key: 'soon',
@@ -205,147 +195,30 @@ export function useCollectedGallery(holdings: Holding[]) {
             }];
         }
 
-        /* The 2026-07-16 expansion dimensions — resolved through the shared
-           engine (lib/state/groupDimensions), exactly like the project page.
-           Cross-project like colour: each piece renders per-card in its own
-           provider; tail buckets (Unsampled/Undated) pin last. FACTION is
-           project-page-only (a wallet's own grid has one owner). */
-        if (EXTRA_GROUP_DIMS.has(group)) {
-            const buckets = new Map<string, { slug: string; id: number }[]>();
-            for (const h of shownCollected) {
-                const label = groupSectionLabel(group, h.slug, h.token_id, {
-                    listed: h.listed,
-                    fate: h.traits.Fate ?? null,
-                    sun: h.traits.Sun ?? null,
-                    mintMs: h.mintMs ?? null,
-                });
-                const arr = buckets.get(label) ?? [];
-                arr.push({ slug: h.slug, id: h.token_id });
-                buckets.set(label, arr);
-            }
-            const cmp = groupLabelComparator(group);
-            return [...buckets.entries()]
-                .sort((a, b) => cmp([a[0], a[1].length], [b[0], b[1].length]))
-                .map(([label, cards]) => ({ key: `x-${label}`, l1Key: `x-${label}`, heads: [{ level: 1 as const, label, count: cards.length }], cards }));
-        }
-
-        // Colour cuts across projects — bucket every piece, render each in its
-        // own provider so the art still paints with its project's context.
-        if (group === 'color') {
-            const buckets = new Map<string, { slug: string; id: number }[]>();
-            for (const h of shownCollected) {
-                const b = resolveBucket(h.slug, h.token_id) ?? 'Other';
-                const arr = buckets.get(b) ?? [];
-                arr.push({ slug: h.slug, id: h.token_id });
-                buckets.set(b, arr);
-            }
-            const order = [...(COLOR_BUCKET_ORDER as string[]), 'Other'];
-            return [...buckets.entries()]
-                .sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0]))
-                .map(([label, cards]) => ({ key: `c-${label}`, l1Key: `c-${label}`, heads: [{ level: 1 as const, label, count: cards.length }], cards }));
-        }
-
-        // artist+colour / project+colour — two-level: the identity (artist or
-        // project) titles the section, colour buckets sub-title within it.
-        // Colour mixes projects under an artist, so pieces render per-card (like
-        // the plain colour grouping), not per-project.
-        if (group === 'artistColor' || group === 'projectColor') {
-            type Hold = (typeof shownCollected)[number];
-            const colorOrder = [...(COLOR_BUCKET_ORDER as string[]), 'Other'];
-            const idOf = (h: Hold) =>
-                group === 'artistColor' ? (h.traits.Artist ?? '—') : h.slug;
-            const idLabel = (k: string) => (group === 'artistColor' ? k : projName(k));
-            const byId = new Map<string, Hold[]>();
-            const artistOf = new Map<string, string>();
-            for (const h of shownCollected) {
-                const k = idOf(h);
-                const arr = byId.get(k) ?? [];
-                arr.push(h);
-                byId.set(k, arr);
-                if (!artistOf.has(k)) artistOf.set(k, h.traits.Artist ?? '—');
-            }
-            const ids = [...byId.keys()].sort((a, b) => idLabel(a).localeCompare(idLabel(b)));
-            const blocks: GBlock[] = [];
-            for (const k of ids) {
-                const cbuckets = new Map<string, { slug: string; id: number }[]>();
-                for (const h of byId.get(k)!) {
-                    const b = resolveBucket(h.slug, h.token_id) ?? 'Other';
-                    const arr = cbuckets.get(b) ?? [];
-                    arr.push({ slug: h.slug, id: h.token_id });
-                    cbuckets.set(b, arr);
-                }
-                const ordered = [...cbuckets.entries()]
-                    .sort((a, b) => colorOrder.indexOf(a[0]) - colorOrder.indexOf(b[0]));
-                let first = true;
-                for (const [clabel, cards] of ordered) {
-                    const heads: GBHead[] = [];
-                    if (first) {
-                        heads.push(
-                            group === 'projectColor'
-                                ? { level: 1, label: idLabel(k), by: artistOf.get(k) ?? null, count: byId.get(k)!.length }
-                                : { level: 1, label: idLabel(k), count: byId.get(k)!.length },
-                        );
-                        first = false;
-                    }
-                    heads.push({ level: 2, label: clabel, count: cards.length });
-                    blocks.push({
-                        key: `${k}::${clabel}`,
-                        l1Key: `i:${k}`,
-                        l2Key: `s:${k}::${clabel}`,
-                        heads,
-                        cards,
-                    });
-                }
-            }
-            return blocks;
-        }
-
-        // artist / project / artist+project respect project boundaries (one
-        // provider per project), so group by slug then order/title by dimension.
-        const bySlug = new Map<string, number[]>();
-        const slugArtist = new Map<string, string>();
-        for (const h of shownCollected) {
-            const arr = bySlug.get(h.slug) ?? [];
-            arr.push(h.token_id);
-            bySlug.set(h.slug, arr);
-            if (!slugArtist.has(h.slug)) slugArtist.set(h.slug, h.traits.Artist ?? '—');
-        }
-        const slugs = [...bySlug.keys()];
-        if (group === 'project') {
-            slugs.sort((a, b) => projName(a).localeCompare(projName(b)));
-            return slugs.map((slug) => ({
-                key: slug,
-                l1Key: slug,
-                heads: [{ level: 1 as const, label: projName(slug), by: slugArtist.get(slug) ?? null, count: bySlug.get(slug)!.length }],
-                group: { slug, ids: bySlug.get(slug)! },
-            }));
-        }
-        // artist / artistProject — order by artist then project; artist titled once.
-        slugs.sort((a, b) =>
-            slugArtist.get(a)!.localeCompare(slugArtist.get(b)!) || projName(a).localeCompare(projName(b)));
-        // Level-1 artist totals span every project the artist has here.
-        const artistTotals = new Map<string, number>();
-        for (const [slug, ids] of bySlug) {
-            const a = slugArtist.get(slug)!;
-            artistTotals.set(a, (artistTotals.get(a) ?? 0) + ids.length);
-        }
-        let lastArtist: string | null = null;
-        const blocks: GBlock[] = [];
-        for (const slug of slugs) {
-            const artist = slugArtist.get(slug)!;
-            const heads: GBHead[] = [];
-            if (artist !== lastArtist) { heads.push({ level: 1, label: artist, count: artistTotals.get(artist) }); lastArtist = artist; }
-            if (group === 'artistProject') heads.push({ level: 2, label: projName(slug), count: bySlug.get(slug)!.length });
-            blocks.push({
-                key: slug,
-                l1Key: `a:${artist}`,
-                ...(group === 'artistProject' ? { l2Key: `p:${slug}` } : {}),
-                heads,
-                group: { slug, ids: bySlug.get(slug)! },
+        /* Every dimension — the identity ones and the deep cuts alike — now
+           resolves through the one shared engine, so the builder walks whatever
+           layers the user picked without caring what they are. This replaced
+           four hand-written PAIR branches (Brendon, 2026-07-26). */
+        const labelOf = (h: (typeof shownCollected)[number], layer: GroupKey) =>
+            groupSectionLabel(layer, h.slug, h.token_id, {
+                listed: h.listed,
+                fate: h.traits.Fate ?? null,
+                sun: h.traits.Sun ?? null,
+                mintMs: h.mintMs ?? null,
+                artist: h.traits.Artist ?? null,
+                project: projName(h.slug),
             });
-        }
-        return blocks;
-    }, [group, sort, shownCollected, colorsVer]);
+        /* Drop any layer that can't actually cut this window — a wallet holding
+           one artist grouped BY artist is a title bar and nothing else. */
+        const useful = usefulLayers(shownCollected, groupLayers, labelOf);
+        if (!useful.length) return null;
+        return buildGroupBlocks(shownCollected, useful, {
+            labelOf,
+            cardOf: (h) => ({ slug: h.slug, id: h.token_id }),
+            /* A project title still carries its artist underneath. */
+            byOf: (h, layer) => (layer === 'project' ? (h.traits.Artist ?? null) : null),
+        });
+    }, [group, groupLayers, sort, shownCollected, colorsVer]);
 
     /* Collapsible grouping headers — tap a header (or its arrow) to fold its
        pieces away; tap again to reopen. Folding a section (level-1) hides
@@ -358,7 +231,7 @@ export function useCollectedGallery(holdings: Holding[]) {
             if (next.has(key)) next.delete(key); else next.add(key);
             return next;
         });
-    useEffect(() => { setCollapsedGroups(new Set()); }, [group]);
+    useEffect(() => { setCollapsedGroups(new Set()); }, [groupLayers]);
 
     return {
         dActiveFilters, dSearchQuery, dPriceMin, dPriceMax,

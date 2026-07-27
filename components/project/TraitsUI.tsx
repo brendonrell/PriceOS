@@ -83,6 +83,7 @@ import { getSpriteFrame, subscribeSprite, type SpriteFrame } from '../../lib/eng
 import MsFloatBar from './MsFloatBar';
 import PresetRow from './PresetRow';
 import { BarPill, SubPill, L3Pill, IconBtn, SortBtn, GroupBtn } from './traitsUIPills';
+import GroupLayersBubble from '../lists/GroupLayersBubble';
 import {
     SORT_LABELS, computeNextSortKey, SORT_BAR_THEME_NAMES,
     FEED_TRAIT_PILLS, LAYERS, MINERALS, OMEN_TRAITS,
@@ -197,7 +198,10 @@ export default function TraitsUI({
        2026-06-24). Re-read alongside the trail (emit fires on the toggle too). */
     const [recording, setRecording] = React.useState(true);
     const { open: openModal } = useModal();
-    const { sort, dir, feedKind, cycleSort, setSort, applySort, group, cycleGroup } = useSort();
+    const { sort, dir, feedKind, cycleSort, setSort, applySort, group, groupLayers, setGroupLayer, cycleGroup } = useSort();
+    /* HOLD the group toggle → pick the three layers by hand (Brendon,
+       2026-07-26). The tap still cycles the mains. */
+    const [layersAnchor, setLayersAnchor] = React.useState<{ top: number; centerX: number } | null>(null);
     /* A group persisted on another surface (e.g. 'artist' from a profile) isn't a
        project-page dimension — show it as off here so the glyph matches reality. */
     const effGroup: GroupKey = PROJECT_GROUP_ORDER.includes(group) ? group : 'none';
@@ -1057,7 +1061,17 @@ export default function TraitsUI({
                         glyph={GROUP_GLYPH[effGroup]}
                         on={effGroup !== 'none'}
                         onClick={cycleGroupWithToast}
+                        onHold={setLayersAnchor}
                     />
+                    {layersAnchor && (
+                        <GroupLayersBubble
+                            surface="project"
+                            layers={groupLayers}
+                            anchor={layersAnchor}
+                            onPick={setGroupLayer}
+                            onClose={() => setLayersAnchor(null)}
+                        />
+                    )}
                     <SortBtn
                         label={'#ID'}
                         family="id"

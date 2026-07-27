@@ -18,6 +18,39 @@
    (notifications, the install pill) keep the signature red. */
 body.bg-is-red #todosBox { --hothurt: #FFE600; }
 
+/* ⛔ THE TO-DOS BOX IS NOT THE CONNECT MENU'S NAV LIST (Brendon, 2026-07-26).
+   To-Dos happens to live inside .user-dropdown, and `.user-dropdown a` styles
+   every link under it as a 30px flex ROW with padding, a left border and a
+   fixed font-size — correct for the menu's own nav links, wrong for everything
+   here. A to-do is prose: its links are an @name mid-sentence and the wrapper
+   around an output title. As a block box, a mention broke the line either side
+   of itself and rendered "explorer @veil-ai releases" as three stacked lines,
+   indented by that rule's padding.
+
+   So the surface is DECOUPLED rather than patched case by case: every link in
+   To-Dos is plain inline text, and the component classes below own their own
+   look. Only the menu rule's layout is undone — nothing here dictates colour or
+   weight beyond handing it back to the row. */
+#todosBox a {
+    display: inline;
+    align-items: initial;
+    height: auto;
+    padding: 0;
+    border-left: 0;
+    box-sizing: border-box;
+    font-size: inherit;
+    font-weight: inherit;
+    color: inherit;
+    text-decoration: none;
+    transition: none;
+}
+/* …and the mention keeps its underline, at a weight the reset can't outrank. */
+#todosBox a.todo-mention {
+    font-weight: bold;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
 /* Header row — label left, add "+" right. */
 .todos-header-row {
     display: flex;

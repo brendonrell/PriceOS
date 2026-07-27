@@ -34,6 +34,7 @@ import PriceDaySlot from '../priceday/PriceDaySlot';
 import { GhostFeedRows } from '../GhostFeed';
 import { GhostCarousels, GhostGallery } from './HomeGhosts';
 import NewsCarousel from './NewsCarousel';
+import SocialFeed from './SocialFeed';
 import HomeTitleCartography from './HomeTitleCartography';
 import RewindHome from './RewindHome';
 import { useRewindOptional } from '../../lib/state/RewindContext';
@@ -142,7 +143,7 @@ function OwnedNameCheck() {
    this one line, never the whole home surface. Living on the parent, the timer
    was re-rendering the entire page every 3.6s — stuttering the news banner and
    every carousel. Now it's a featherweight leaf (Brendon, 2026-07-05). */
-function FeaturingRow() {
+export function FeaturingRow() {
     const { openMenu, setView } = useDropdown();
     /* First paint deterministic (SSR/CSR agree); the mount re-roll + interval
        take over. Each name card flips in; the row height is locked in CSS so
@@ -429,19 +430,34 @@ function HomePageBodyInner({
        2026-06-17). Join The Chat always stays. */
     const actionRowRef = useRef<HTMLDivElement>(null);
     const [hideStickers, setHideStickers] = useState(false);
+    /* Docking the Rewind swaps this whole surface out, so the action row
+       unmounts and remounts as a NEW node. The observer has to follow it —
+       otherwise it keeps watching the detached one and the row that IS on
+       screen is never measured again (Brendon, 2026-07-26). */
+    const rewindDocked = rewind?.day != null;
     useEffect(() => {
         const row = actionRowRef.current;
         if (!row || typeof window === 'undefined') return;
         const measure = () => {
+            /* NEVER judge a row that isn't laid out (Brendon, 2026-07-26 — the
+               Sticker store vanishing after Rewind). Docking the Rewind swaps
+               the whole home surface for the as-of one, so this row detaches.
+               A detached/hidden node reports every rect as 0, which reads as
+               "Stickers starts below the chat button" — wrapped — and hid the
+               button for good. Bail instead and keep the last real answer. */
+            if (row.getBoundingClientRect().width === 0) return;
             row.classList.add('row-measuring');
             const chat = row.querySelector<HTMLElement>('.btn-mint');
             const stick = row.querySelector<HTMLElement>('.btn-soundtrack');
             let wrapped = false;
             if (chat && stick) {
+                const chatR = chat.getBoundingClientRect();
+                const stickR = stick.getBoundingClientRect();
+                if (chatR.height === 0 || stickR.height === 0) { row.classList.remove('row-measuring'); return; }
                 // The two buttons differ in height and are centre-aligned, so a
                 // top-vs-top test misreads the same line — Stickers is only
                 // wrapped if it starts at/after the chat button's BOTTOM edge.
-                wrapped = stick.getBoundingClientRect().top >= chat.getBoundingClientRect().bottom - 2;
+                wrapped = stickR.top >= chatR.bottom - 2;
             }
             row.classList.remove('row-measuring');
             setHideStickers(wrapped);
@@ -458,7 +474,7 @@ function HomePageBodyInner({
             window.removeEventListener('resize', measure);
             window.removeEventListener('orientationchange', measure);
         };
-    }, []);
+    }, [rewindDocked]);
 
     /* @brendon's real follower count + mutual badge beside the home byline —
        PD is his art, so the home credits him exactly like an artist on a project
@@ -590,7 +606,7 @@ function HomePageBodyInner({
         { key: 'date', dir: 'desc' },
     );
     /* Mark Now-Minting as seen so its carousels stay mounted once painted. */
-    useEffect(() => { if (activeTab === 'minting' && mintSort.key !== 'feed') setMintingSeen(true); }, [activeTab, mintSort.key]);
+    useEffect(() => { if (activeTab === 'minting' && mintSort.key !== 'feed' && mintSort.key !== 'social') setMintingSeen(true); }, [activeTab, mintSort.key]);
     const onMintSort = (key: HomeSortKey) =>
         setMintSort((prev) =>
             prev.key === key
@@ -1035,7 +1051,7 @@ function HomePageBodyInner({
                 painted canvases survive a tab switch — no repaint (Brendon,
                 2026-06-24). */}
             {mintingSeen && (
-                <section aria-label="Now Minting" style={activeTab === 'minting' && mintSort.key !== 'feed' ? undefined : { display: 'none' }}>
+                <section aria-label="Now Minting" style={activeTab === 'minting' && mintSort.key !== 'feed' && mintSort.key !== 'social' ? undefined : { display: 'none' }}>
                     {/* Loading OR no graduated projects yet → ghost carousels in
                         the exact shape of the live rows (Brendon, 2026-06-14 —
                         never a text null state). */}
@@ -1082,6 +1098,19 @@ function HomePageBodyInner({
                                 </div>
                             ))
                         )}
+                    </div>
+                </section>
+            )}
+
+            {/* SOCIAL ☻ sort on Now Minting → the social feed: what your
+                friends are doing in chronological order (top users when
+                logged out). Same feed-row family as the other home feeds;
+                the rows carry the market glyphs, full project names, and the
+                ⚭/⚯ relationship marks (Brendon, 2026-07-26). */}
+            {activeTab === 'minting' && mintSort.key === 'social' && (
+                <section className="home-uploads" aria-label="Social Feed">
+                    <div className="feed-list home-activity-feed home-social-feed">
+                        <SocialFeed dir={mintSort.dir} />
                     </div>
                 </section>
             )}

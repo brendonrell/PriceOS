@@ -1719,6 +1719,42 @@ body.ascii-id-mode .id-row-sprite     { display: none !important; }
 .note-ext-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; word-break: break-all; }
 /* @name mentions — saved to-dos + notes link straight to the profile. */
 .note-mention, .todo-mention { color: inherit; font-weight: bold; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+/* ⛔ THE NOTES BOX IS NOT THE CONNECT MENU'S NAV LIST (Brendon, 2026-07-26) —
+   the same decoupling the To-Dos box gets in styles/todos.css, for the same
+   reason. Notes happens to live inside .user-dropdown, and `.user-dropdown a`
+   styles every link under it as a 30px flex ROW with padding, a left border and
+   a fixed font-size. That is right for the menu's own nav links and wrong for a
+   note, which is PROSE: as a block box, any link breaks the line either side of
+   itself, so a note reads as stacked fragments instead of a sentence. It bites
+   @names AND the web links notes linkify on their own.
+
+   Every link in a note is plain inline text; .note-mention and .note-ext-link
+   below own their look. Only the menu rule's layout is undone. */
+#notesBox a {
+    display: inline;
+    align-items: initial;
+    height: auto;
+    padding: 0;
+    border-left: 0;
+    box-sizing: border-box;
+    font-size: inherit;
+    font-weight: inherit;
+    color: inherit;
+    text-decoration: none;
+    transition: none;
+}
+/* …and both note link flavours keep their underline, at a weight the reset
+   can't outrank. */
+#notesBox a.note-mention {
+    font-weight: bold;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+#notesBox a.note-ext-link {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    word-break: break-all;
+}
 
 /* ── Mention lookup popover (@name in To-Dos + Notes) ─────────────────────
    Square panel, full-strength site tokens; rows are the search's own
@@ -2544,6 +2580,23 @@ body.stargazing-mode .note-prompt-box {
 }
 body.stargazing-mode .user-dropdown a { color: #c5a8f0; }
 body.stargazing-mode .user-dropdown a:hover { background: rgba(197, 168, 240, 0.08); }
+
+/* The menu's bottom footer — the gas readout, the divider, and the
+   Log Out / Connect Wallet pills all colour off --bg-color because the
+   menu normally paints inverted. Stargazing flips the menu to dark glass,
+   so that strip disappears into it (Brendon, 2026-07-26). */
+body.stargazing-mode .user-dropdown .gas-widget,
+body.stargazing-mode .user-dropdown .gas-glyph,
+body.stargazing-mode .user-dropdown .dropdown-pill,
+body.stargazing-mode .user-dropdown .logout-icon {
+    color: #c5a8f0 !important;
+}
+body.stargazing-mode .user-dropdown .dropdown-pill {
+    border-color: rgba(197, 168, 240, 0.45) !important;
+}
+body.stargazing-mode .user-dropdown .dropdown-divider {
+    background: rgba(197, 168, 240, 0.25) !important;
+}
 
 /* Stargazing global-search legibility (Brendon 2026-06-10, completed
    2026-06-13). EVERY search part colours off --bg-color, which stargazing
@@ -4034,6 +4087,9 @@ body.pd-stone-open .ens-copy-toast {
 .pill.pill-l3.tag-pick.active {
     box-shadow: inset 0 0 0 2px var(--tag-text, var(--text-color));
 }
+/* The free-colour picker that closes the paint row — a normal paint pill that
+   happens to hold a hidden colour input (Brendon, 2026-07-26). */
+.pill.pill-l3.tag-pick-custom { position: relative; cursor: pointer; }
 .tag-pick-glyph {
     color: var(--tag-text, var(--text-color));
     font-family: 'Courier New', Courier, monospace;
@@ -4092,10 +4148,54 @@ body.pd-stone-open .ens-copy-toast {
     font-size: 11px;
     letter-spacing: 0.5px;
 }
-/* WTBS wears Inter (loaded with the app), never Courier (Brendon, 2026-07-22). */
-.profile-tag--wtbs .profile-tag-label {
+/* Deployer is the CEO chip with a different word — same Rubik lock
+   (Brendon, 2026-07-26). */
+.profile-tag--deployer .profile-tag-label {
+    font-family: var(--font-rubik-mono), 'Rubik Mono One', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+}
+
+/* WTBS wears Inter (loaded with the app), never Courier (Brendon, 2026-07-22).
+   Petey wears the same face — it is the same chip family (2026-07-26). */
+.profile-tag--wtbs .profile-tag-label,
+.profile-tag--petey .profile-tag-label {
     font-family: var(--font-inter), sans-serif;
     letter-spacing: 0.3px;
+}
+.profile-tag--petey .profile-tag-glyph { position: relative; top: 1px; }
+
+/* ── The WTBS-family treatments (Brendon, 2026-07-26) — twelve locked looks the
+   owner cycles by tapping their own chip. Two switches drive all twelve:
+
+   OUTLINED — hollow letterforms stroked in the tag colour, the WTBS headline
+   treatment. Heaviest weight available + a 0.9px stroke, so the letters read at
+   12px instead of turning into the hairline this file bans elsewhere.
+
+   EDGELESS — fill only, no pill border. The border box is KEPT as transparent
+   so an edgeless chip is exactly the same height as a bordered one and the row
+   never jumps as the cycle advances. ── */
+.profile-tag--outlined .profile-tag-label {
+    color: transparent;
+    -webkit-text-stroke: 0.9px var(--tag-stroke, var(--tag-text));
+    font-weight: 900;
+}
+.profile-tag--edgeless { border-color: transparent; }
+
+/* BitVerse (@cspok) — the wordmark is monospaced, and an ordinary tag label is
+   ALREADY Courier (it inherits the body face), so this chip gets NO font rule
+   of its own: it must sit identically to every other Courier chip on the row
+   (Brendon, 2026-07-26 — "cspok needs to be the same as the other ones that
+   use it"). Only its two colour runs ("bit" green · "Verse" dark) are painted,
+   inline from the catalog. Do not add a font-family or letter-spacing here —
+   that is exactly what made it sit high the first time. */
+
+/* @rudxane's upside-down face — the REAL word turned 180°, not substitute
+   flipped characters (Brendon, 2026-07-26). inline-block so the rotation has a
+   box to turn in; the pill still centres it, so the chip keeps its height. */
+.profile-tag-label--rot180 {
+    display: inline-block;
+    transform: rotate(180deg);
 }
 
 /* ── Profile tags on LIST surfaces (Brendon, 2026-07-24) — leaderboards,
@@ -5215,6 +5315,86 @@ body.bg-is-yellow .fiat-picker-bubble::after { border-top-color: var(--hothurt);
 body.bg-is-yellow .fiat-opt { color: #fff; border-color: rgba(255, 255, 255, 0.55); }
 body.bg-is-yellow .fiat-opt-on { background: #fff; color: var(--hothurt); border-color: #fff; }
 
+/* ── GROUP LAYERS bubble (Brendon, 2026-07-26) — the fiat picker's bubble with
+   three SLOTS in it, one per grouping layer. It inherits every fiat rule above
+   (fill, tail, chips, the yellow-colorway flip) so it can never drift from the
+   picker it is modelled on; these rules only make it a COLUMN.
+
+   ⛔ TALL, NEVER WIDE — it is a phone surface. The fiat bubble is one nowrap
+   row, which is right for four currency codes and wrong for a dozen dimension
+   names, so this overrides the row and the nowrap, caps its width well inside
+   the screen, and scrolls a long picker list INSIDE itself. ── */
+.group-layers-bubble {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    white-space: normal;
+    width: max-content;
+    max-width: min(78vw, 240px);
+    max-height: min(62vh, 420px);
+    overflow-y: auto;
+    padding: 8px;
+    -webkit-overflow-scrolling: touch;
+}
+.group-layers-bubble::-webkit-scrollbar { display: none; }
+
+.glb-title {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    opacity: 0.65;
+    padding: 1px 2px 3px;
+    background: none;
+    border: 0;
+    color: inherit;
+    text-align: left;
+}
+.glb-back { cursor: pointer; opacity: 0.8; }
+
+/* A SLOT — one layer's current setting; tapping it opens that layer's picker. */
+.glb-slot {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 6px 7px;
+    border-radius: 6px;
+    border: 1px solid rgba(0, 0, 0, 0.35);
+    background: transparent;
+    color: inherit;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
+    cursor: pointer;
+    text-align: left;
+    -webkit-tap-highlight-color: transparent;
+}
+.glb-slot:disabled { opacity: 0.4; cursor: default; }
+.glb-slot.is-set { background: rgba(0, 0, 0, 0.14); }
+/* The staircase, in miniature — layer 2 steps in once, layer 3 twice, the same
+   read the grid's own headers give. */
+.glb-step { flex: none; }
+.glb-num { flex: none; opacity: 0.6; }
+.glb-val { flex: 1 1 auto; display: inline-flex; align-items: center; gap: 5px; min-width: 0; }
+.glb-empty { opacity: 0.55; }
+.glb-caret { flex: none; opacity: 0.55; }
+.glb-glyph { font-family: 'Courier New', Courier, monospace; font-size: 12px; line-height: 1; }
+
+/* The picker list for one slot — one dimension per line, stacked. */
+.glb-list { display: flex; flex-direction: column; gap: 3px; }
+.glb-opt {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    text-align: left;
+}
+
+body.bg-is-yellow .glb-slot { border-color: rgba(255, 255, 255, 0.55); }
+body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.18); }
+
 /* Friend Inspector PriceSprite card — same body-portal + tail placement as the
    Fiat bubble above, but taller and theme-coloured: stacks the @name (→ profile),
    their PriceRank, and the circle stats (Brendon, 2026-07-11). */
@@ -5692,6 +5872,16 @@ body.bg-is-yellow .fiat-opt-on { background: #fff; color: var(--hothurt); border
    glyph sits 1px lower to centre on the row (Brendon, same day). */
 .sort-btn.group-btn { margin-right: 7px; }
 .sort-btn.group-btn .sort-lbl-recent { transform: translateY(1px); }
+/* The home sort row's ◷ clock — dropped 1.5px, then taken back UP 1px
+   (Brendon, 2026-07-26, second pass). Scoped to the home row only. */
+.sort-btn-clock .sort-lbl-recent { transform: translateY(0.5px); }
+/* The social ☻ — same 1px lift as the clock, and one size up from the ◷'s
+   base (the ◷'s own mobile step, +0.15em) so the face reads at full
+   strength (Brendon, 2026-07-26). */
+.sort-btn-social .sort-lbl-recent { transform: translateY(0.5px); font-size: 1.3em; }
+@media (max-width: 600px) {
+    .sort-btn-social .sort-lbl-recent { font-size: 1.45em; }
+}
 @media (max-width: 600px) { .sort-btn.group-btn { margin-right: 5px; } }
 
 /* ── ICON BUTTONS (burn / search) — sim 2317-2325 ── */
@@ -7303,6 +7493,31 @@ body.lists-dragging { cursor: grabbing; }
     transform: translateY(5px);
 }
 .gallery-group-header.level-2 .ggh-label { font-size: 12px; }
+
+/* ── THE STAIRCASE (Brendon, 2026-07-26) — three layers, each stepping in from
+   the one above so the hierarchy reads at a glance. Level 3 takes the SAME step
+   again (30 → 60px) and the same connector line, one step further in, so the
+   three titles form an even flight rather than two arbitrary indents. Its label
+   steps down one more size, continuing 13 → 12 → 11. ── */
+.gallery-group-header.level-3 {
+    margin-top: 2px;
+    padding-left: 60px;
+    position: relative;
+}
+.gallery-group-header.level-3::before {
+    content: '';
+    position: absolute;
+    left: 38px;
+    top: 0.62em;
+    width: 16px;
+    border-top: 1px solid var(--text-color);
+    opacity: 0.45;
+}
+.gallery-group-header.level-3 .ggh-label { font-size: 11px; }
+/* The fold triangle shrinks with each step down, so a deep header never shouts
+   louder than the section that contains it. */
+.gallery-group-header.level-2 .ggh-arrow { font-size: 26px; transform: translateY(4px); }
+.gallery-group-header.level-3 .ggh-arrow { font-size: 21px; transform: translateY(3px); }
 .ggh-by {
     font-family: 'Courier New', Courier, monospace;
     font-size: 13px;
@@ -8135,6 +8350,40 @@ body.feed-mode .arb-badge { display: none !important; }
 }
 @media (max-width: 600px) { .home-activity-feed .f-time { width: 80px; } }
 
+/* ── Social feed ☻ — the tightened middle (Brendon, 2026-07-26) ──────────
+   Cohesion over white space: the base home-feed columns were sized for long
+   milestone labels (PER MILLE CLUB) and left the sentence a third of an
+   iPhone. Here the date sheds its year, the type column narrows to the short
+   market words and carries the ◊ price beneath, and the sentence column takes
+   back every freed pixel — each column reads two lines tall, so a row scans
+   as one connected fact instead of islands. */
+.home-social-feed .f-time { width: 58px; }
+.home-social-feed .f-type { width: 72px; }
+@media (max-width: 600px) {
+    .home-social-feed .f-time { width: 52px; }
+    .home-social-feed .f-type { width: 62px; }
+}
+/* Media strips (streak/scene carousels, album strips, panoramas) hang
+   full-bleed under their summary row: negative margins cancel the feed's
+   page inset so the scroll runs edge to edge, while the carousel track's
+   own padding (the Now Minting track, reused verbatim) keeps the tiles
+   aligned with the page rhythm. */
+.home-social-feed .sf-media {
+    display: block;
+    margin: 2px -40px 18px;
+}
+@media (max-width: 600px) {
+    .home-social-feed .sf-media { margin: 2px -20px 16px; }
+}
+/* A wide piece shown in its entirety — full bleed, natural aspect, square
+   corners (surfaces are square). The art is the whole statement: no frame. */
+.home-social-feed .sf-pano-link { line-height: 0; }
+.home-social-feed .sf-pano {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
 /* Per-glyph milestone-icon nudges (base size from .f-icon-wrap = 20px; final
    pixel sign-off is a real device — iOS Courier). */
 .af-ic--airdrop { font-size: 17px; position: relative; top: -1px; }  /* ⍜ airdrop — three steps down, nudged up 3px */
@@ -8924,6 +9173,14 @@ a.f-highlight { color: inherit; }
            Brendon S5 "sensible gap" call — sim deviation; sim's mobile
            rule (sim 3248) collapses to 10px 20px shorthand. */
         padding: 10px 20px 100px 20px;
+    }
+    /* ZOOMED OUT — a live grouping doubles the grid to 4-up on mobile, so the
+       groups themselves are what you read instead of a long 2-up scroll
+       (Brendon, 2026-07-26). Ungrouped stays 2-up, untouched. The group
+       headers measure the live tracks, so their caps follow automatically. */
+    #gallery.is-grouped {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
     }
     .hero-group-2 { gap: 16px; }
     .traits-header-bar { flex-direction: column; }
@@ -12621,6 +12878,56 @@ body.is-pwa .fullscreen-back {
     }
 }
 
+/* ── THE DARKROOM ◉ — the art-inspection workspace (2026-07-27) ──────────
+   Wears .artwork-fullscreen for the whole proven stage (frame, safe areas,
+   footer hide); below is only its own chrome: the standard × (fixed so it
+   survives any scroll state), the bottom bar (real palette swatches + the
+   INVERT pill), and room for the bar under tall pieces. */
+.artwork-darkroom {
+    /* Keep the art clear of the bottom bar. */
+    padding-bottom: calc(max(4vmin, env(safe-area-inset-bottom)) + 56px);
+}
+.close-hint.dk-close {
+    position: fixed;
+    top: calc(max(20px, env(safe-area-inset-top)) + 30px);
+    right: max(30px, env(safe-area-inset-right));
+}
+.darkroom-bar {
+    position: fixed;
+    left: max(16px, env(safe-area-inset-left));
+    right: max(16px, env(safe-area-inset-right));
+    bottom: max(16px, calc(env(safe-area-inset-bottom) + 8px));
+    z-index: 110;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+/* The chip row reuses the character sheet's .attr-chips verbatim; only its
+   chips need the page bg behind them so hexes stay readable over the frame. */
+.darkroom-bar .attr-chip { background: var(--bg-color); }
+.darkroom-invert {
+    /* The house pill treatment (the STICKERS-button reference): solid bg
+       fill, full-strength text-colour border AND text, bold, 4px. */
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    padding: 6px 12px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+.darkroom-invert.is-on {
+    background: var(--stat-active-bg);
+    color: var(--stat-active-text);
+    border-color: var(--stat-active-bg);
+}
+
 /* Back Button Mode — the persistent navbar back arrow. Lives inside
    .user-menu-wrapper (which is position:relative), so it parks directly
    under the connect square, travels with the sticky navbar, and fades with
@@ -12660,8 +12967,8 @@ body.is-pwa .fullscreen-back {
     #sn-sticker .st-icon    { font-size: 19px !important; }
     #sn-ambient .st-icon    { font-size: 20px !important; }
     #sn-anon .st-icon       { font-size: 17px !important; }
-    /* Price Lens ◎ — two sizes up (17→19), mobile only (Brendon, 2026-07-21). */
-    #sn-pricelens .st-icon  { font-size: 19px !important; }
+    /* Price Lens ◎ — up again to 20 (Brendon, 2026-07-26). */
+    #sn-pricelens .st-icon  { font-size: 20px !important; }
     #sn-sentiment .st-icon  { font-size: 17px !important; }
     #sn-audience .st-icon   { font-size: 14px !important; }
     #sn-asciiId .st-icon    { font-size: 17px !important; }
@@ -12997,4 +13304,260 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
 .gas-tracker-footer { animation: gas-read-in 260ms ease-out; }
 @media (max-width: 600px) {
     .gas-tracker-pulse { margin: 10px 14px 26px; }
+}
+
+
+/* ============================================================
+   DEEP ZOOM (2026-07-26) — pinch/wheel into any big art surface
+   and the engine re-renders it sharp from the math. The layer
+   mounts inside the art's existing positioned container: a sharp
+   overlay canvas (same transform as the art, higher backing
+   resolution) + the zoom readout chip. At 1× nothing shows.
+   ============================================================ */
+.dz-sharp {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+.dz-readout {
+    display: none;
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    z-index: 4;
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    pointer-events: none;
+    user-select: none;
+}
+/* Fullscreen view host — a positioned, clippable box that fills the padded
+   frame; the art's own max-100% fit keeps working against it. */
+.dz-host {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+/* The artwork page's stage anchors the layer's overlay + readout. */
+.artwork-feature-stage { position: relative; }
+
+
+/* ============================================================
+   RARITY LABS (2026-07-26) — the Pop badge + the Pop Table.
+   Badge: full-strength chip line in the artwork modal's info
+   column. Table: per-axis census on the project +More Attributes
+   tab — value · count · share, rarest first.
+   ============================================================ */
+.modal-pop-line {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    align-items: center;
+}
+.modal-pop-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    color: var(--text-color);
+    background: var(--bg-color);
+    user-select: none;
+}
+.modal-pop-badge--top {
+    background: var(--text-color);
+    color: var(--bg-color);
+}
+
+.pop-table-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 4px 0 8px 0;
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--text-color);
+}
+.pop-table-axis-name {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding-bottom: 4px;
+}
+.pop-table-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 4px 0;
+    border-top: 1px dashed color-mix(in srgb, var(--text-color) 45%, transparent);
+}
+.pop-table-row:first-of-type { border-top: none; }
+.pop-table-val {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.pop-table-count { flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.pop-table-pct { flex-shrink: 0; font-variant-numeric: tabular-nums; width: 52px; text-align: right; }
+.pop-table-row.pop-one .pop-table-count,
+.pop-table-row.pop-one .pop-table-val { color: var(--text-color); }
+.pop-table-row.pop-one .pop-table-count::after {
+    content: ' · POP 1';
+    letter-spacing: 0.5px;
+}
+
+
+/* ============================================================
+   THE CONVICTION / CALL LEDGER (2026-07-26) — public, immutable
+   price calls that settle CROWNED or REKT. Project +More ›
+   Sentiment card (post + recent calls) and the profile Calls
+   panel share the row vocabulary.
+   ============================================================ */
+.call-card {
+    border: 1px solid var(--text-color);
+    border-radius: 0;
+    padding: 12px 14px;
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.call-card-label {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+.call-compose {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+.call-compose .pill.active { cursor: default; }
+.call-compose-input {
+    width: 92px;
+    background: transparent;
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 5px 8px;
+    -webkit-appearance: none;
+    appearance: none;
+}
+.call-compose-input::placeholder { color: var(--text-color); opacity: 0.55; }
+.call-post-btn {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border: none;
+    border-radius: 4px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    padding: 7px 14px;
+    cursor: pointer;
+}
+.call-post-btn:disabled { opacity: 0.5; cursor: default; }
+.call-fine-print {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+}
+.call-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 0;
+    border-top: 1px dashed color-mix(in srgb, var(--text-color) 45%, transparent);
+    font-size: 12px;
+    font-weight: bold;
+}
+.call-row-main {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.call-row-when { flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.call-verdict {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    padding: 1px 7px;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+.call-verdict.crowned,
+.call-verdict.rekt {
+    background: var(--text-color);
+    color: var(--bg-color);
+}
+.call-share-btn {
+    flex-shrink: 0;
+    background: none;
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 2px 7px;
+    cursor: pointer;
+}
+.call-record-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    padding: 3px 9px;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+
+/* THE LOUPE (2026-07-26) — the jeweler's lens: press-and-hold the art (or
+   hover + hold L on desktop) and the piece re-renders at 4× inside a circle
+   under your finger/cursor. Lives in the Deep Zoom layer; hidden at rest. */
+.dz-loupe {
+    display: none;
+    position: absolute;
+    z-index: 6;
+    border: 2px solid var(--text-color);
+    border-radius: 50%;
+    background: var(--bg-color);
+    box-shadow: 0 10px 34px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
 }

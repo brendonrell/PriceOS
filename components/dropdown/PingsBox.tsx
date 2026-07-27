@@ -15,6 +15,7 @@ import { Fragment, useEffect, useMemo, useRef, useState, type MouseEvent, type P
 import { AccordionBox } from './AccordionBox';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { usePings } from '../../lib/state/PingsContext';
+import { useModal } from '../../lib/state/ModalContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { renderPing, passesCategoryPrefs, pingHref, PRIORITY_RANK } from '../../lib/pings/render';
 import { isFinancial } from '../../lib/pings/tiers';
@@ -78,6 +79,7 @@ export function PingsBox({ projectPings = false }: { projectPings?: boolean } = 
     const { state: pingsState, markSeen, refresh } = usePings();
     const { siweAddress, handle } = useAuth();
     const { showToast } = useToast();
+    const { open: openModal } = useModal();
     const isSpited = useSpiteMatcher();
     const railRef = useRef<HTMLDivElement>(null);
     // "Money" filter — isolate financial-signal pings from social noise.
@@ -370,7 +372,20 @@ export function PingsBox({ projectPings = false }: { projectPings?: boolean } = 
                             {p.href ? (
                                 <a href={p.href} className={`${cls} notif-item--link`} data-ping-id={p.id} data-ping-read={p.read ? '1' : '0'} {...lp}>{body}</a>
                             ) : (
-                                <div className={cls} data-ping-id={p.id} data-ping-read={p.read ? '1' : '0'} {...lp}>{body}</div>
+                                /* No deep link (to-dos, achievements, streaks,
+                                   the system speaking) — the ping opens its own
+                                   popup instead of dead-ending (Brendon,
+                                   2026-07-27). A hold still owns the gesture. */
+                                <div
+                                    className={`${cls} notif-item--link`}
+                                    data-ping-id={p.id}
+                                    data-ping-read={p.read ? '1' : '0'}
+                                    role="button"
+                                    tabIndex={0}
+                                    {...lp}
+                                    onClick={(e) => { lp.onClick(e); if (!lpFired.current) openModal('ping', p.id); }}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal('ping', p.id); } }}
+                                >{body}</div>
                             )}
                         </Fragment>
                     );

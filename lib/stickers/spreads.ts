@@ -88,7 +88,9 @@ function read(): Spread[] {
 function write(list: Spread[]) {
     try { window.localStorage.setItem(KEY, JSON.stringify(list)); } catch { /* quota */ }
     window.dispatchEvent(new CustomEvent(EVT));
-    pushStickerState();
+    /* Forced past the manager's draft hold — a Spread has its own SAVE, so it
+       commits the moment you press it (Brendon, 2026-07-27). */
+    pushStickerState(true);
 }
 
 export function getSpreads(): Spread[] { return read(); }

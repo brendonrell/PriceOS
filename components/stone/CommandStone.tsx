@@ -39,7 +39,7 @@ import { matchCast, type CastTarget } from '../../lib/stone/cast';
 import { parseWidget } from '../../lib/stone/widgets';
 import { runStoneCommand, applyStoneStyle } from '../../lib/stone/stoneStyle';
 import { expandFollowUp, type StoneSubject } from '../../lib/stone/memory';
-import { readLastLine, writeLastLine } from '../../lib/stone/lastLine';
+import { writeLastLine } from '../../lib/stone/lastLine';
 import { readStage } from '../../lib/npc/awareness';
 import { readPieceInView } from '../../lib/npc/inview';
 import { deepThought } from '../../lib/stone/deepThought';
@@ -237,6 +237,42 @@ export default function CommandStone() {
     useEffect(() => {
         document.body.classList.toggle('pd-stone-open', stage === 'open');
         return () => { document.body.classList.remove('pd-stone-open'); };
+    }, [stage]);
+
+    /* THE BOTTOM BAND IS SHARED — each gets its own spot (Brendon, 2026-07-26).
+       The stone stays anchored where it is and publishes how much of the band
+       it occupies; the miniplayer reads this and sits ABOVE it. Nothing is
+       resized and nothing is hidden — they simply stack.
+
+       Measured off the live element rather than hardcoded, because the vessel's
+       height changes with what's in it (typing view, results, the widgets
+       deck). The DOT state reports its full touch pad, not the 9px disc — the
+       pad is what the player would actually collide with. */
+    useEffect(() => {
+        const publish = () => {
+            let h = 0;
+            if (stage === 'open') {
+                /* the vessel plus the 12px it is translated down by */
+                h = (vesselRef.current?.getBoundingClientRect().height ?? 0) + 12;
+            } else if (stage === 'dot') {
+                /* 9px disc + the 14px invisible tap pad below it */
+                h = 23;
+            }
+            /* The 8px breathing gap rides INSIDE the published value, so it
+               only exists while the stone does — at 0 the player sits exactly
+               where it always has, with nothing added. */
+            document.body.style.setProperty('--pd-stone-h', h > 0 ? `${Math.round(h) + 8}px` : '0px');
+        };
+        publish();
+        /* The vessel grows and shrinks as results come and go. */
+        const ro = vesselRef.current ? new ResizeObserver(publish) : null;
+        if (ro && vesselRef.current) ro.observe(vesselRef.current);
+        window.addEventListener('resize', publish);
+        return () => {
+            ro?.disconnect();
+            window.removeEventListener('resize', publish);
+            document.body.style.setProperty('--pd-stone-h', '0px');
+        };
     }, [stage]);
 
     /* The stealth console's persisted style (accent hex · forced stage)
@@ -725,8 +761,9 @@ export default function CommandStone() {
        inside the gesture handler so iOS raises the keyboard. ── */
     const openStone = () => {
         inputRef.current?.focus();
-        /* restore the last bubble when reopening an empty stone. */
-        setValue((v) => v || readLastLine());
+        /* The stone reopens with whatever is still in hand this session — it
+           never resurrects an old line from a previous visit (Brendon,
+           2026-07-26: it was loading with a stale character in the pill). */
         setStage('open');
     };
 
@@ -830,14 +867,11 @@ export default function CommandStone() {
                 taps = 0;
                 return;
             }
-            /* OPEN → a single tap on the page tucks the stone to the dot so the
-               bubble is out of the way and you can carry on (Brendon, 2026-07-22).
-               The typed line + its bubble are KEPT — tap the dot and the same
-               speech bubble comes right back. No triple-tap needed from open. */
+            /* OPEN → a tap on the page does NOTHING. Only the swipe down and
+               the long-press put the stone away (Brendon, 2026-07-26 — the
+               tap-away was never asked for). */
             if (stageRef.current === 'open') {
                 taps = 0;
-                inputRef.current?.blur();
-                setStage('dot');
                 return;
             }
             /* a fresh run if the taps drift apart in time or space */
@@ -856,13 +890,11 @@ export default function CommandStone() {
             taps = 0;
             if (stageRef.current === 'hidden') {
                 inputRef.current?.focus(); // synchronous in the gesture → iOS keyboard
-                /* restore the last bubble — the line that was up last time. */
-                setValue((v) => v || readLastLine());
+                /* Summons empty — no line carried over from a past visit. */
                 setStage('open');
                 showToastRef.current('', 1800, 250, null, ['Summoned:', 'COMMAND STONE']);
             } else {
-                // the dot → fully close. The remembered line stays saved, so a
-                // future summon still brings the last bubble back.
+                // the dot → fully close.
                 inputRef.current?.blur();
                 setStage('hidden');
                 setValue('');

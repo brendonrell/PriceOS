@@ -591,6 +591,41 @@ sky at mint) + the proven lunarGlyph discs.
 > escapes), text-default on iOS. VS-15 at render like every PD glyph.
 > Rides WATCH_HIT rows with reason `nemesis` (`lib/pings/interest.ts`).
 
+## 12h. The Social Feed ☻ (2026-07-26 build)
+
+| Use | Glyph | Codepoint | Notes |
+|---|---|---|---|
+| **SOCIAL — the overarching social/user icon** | ☻ | U+263B | ELEVATED 2026-07-26 (Brendon): the collector smiley is now THE social mark platform-wide — collector and user are the same concept, deliberately. Wears the home sort row's social-feed toggle (glyph only, no word; one size up from the ◷'s base + 1.5px drop) and the feed's SCENE block icon |
+| SCENE block (feed) | ☻ | U+263B | ≥3 different people hit one project the same day — the smiley marks the convergence. ("SCENE" is a Claude-named label, open to rename) |
+| ALBUM block (feed) | ◰ | U+25F0 | canon Album reuse (§3) |
+| Price rail (feed type column) | ◊ | U+25CA | canon ETH secondary mark reuse (§7) |
+
+> **⛔ EMOJI-DATA VERIFIED 2026-07-26 (the §7 sharpened test, run against
+> Unicode's live emoji data):** U+263B ☻ (FILLED smiley) has **NO emoji
+> mapping at all** — safe everywhere, any size. Its hollow twin **☺ U+263A
+> IS in emoji data and stays BANNED.** Never swap one for the other.
+> The home sort row's ◷ clock also took the same 1.5px drop, scoped to that
+> row only (`.sort-btn-clock`) — every other ◷ surface is untouched.
+
+## 12i. Fingerprint taste axes — ∠ ◧ ▓ ∷ (2026-07-27 build)
+
+The four taste-axis tiles on the character sheet's Fingerprint wall
+(`lib/output/attributes.ts`) — the Radar's data unlock (Brendon's call:
+taste gets measured on the Fingerprint).
+
+| Axis | Glyph | Codepoint | Notes |
+|---|---|---|---|
+| Geometry (Geometric↔Organic) | ∠ | U+2220 ANGLE | math operator, no emoji mapping; globally new to the vocabulary |
+| Colourfulness (Colorful↔Monochrome) | ◧ | U+25E7 | half-black square = the two-tone read; appears elsewhere only inside character-art pools (tabstract/familiars), never as an icon — the ≡ precedent |
+| Density (Dense↔Sparse) | ▓ | U+2593 DARK SHADE | packed pixels; deliberate kin to ▒ Texture (medium shade). ASCII-art pools only elsewhere |
+| Order (Structured↔Chaotic) | ∷ | U+2237 PROPORTION | dots in rank; NOT ⁘ (U+2058, the GROUP toggle) — different codepoint, different meaning |
+
+> All four pass the sharpened §7 emoji test (no emoji mapping at all) and ship
+> with the trailing VS-15 `︎` per convention. Standard #1 gate applies.
+> The Darkroom ◉ (2026-07-27, `/art/{slug}/{id}/darkroom`) introduces NO new
+> glyph — its task-name ◉ already lives in the vocabulary (the multi-context
+> precedent, §7), and its chrome is the standard × + the house pill.
+
 ## 13. THE WAR — Factions glyphs (2026-07-13 build, spec v3.1 §11)
 
 One vocabulary across the ceremony, the tape, pings, the Book, and the

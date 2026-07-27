@@ -10,10 +10,13 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useSort } from '../state/SortContext';
-import { eventToFeedEvent, type FeedEvent } from './feedRow';
+import { eventToFeedEvent, eventToProjectNamedFeedEvent, type FeedEvent } from './feedRow';
 import type { EventRow } from '../supabase';
 
-export function useLedgerFeed(feedActive: boolean, url: string) {
+/** `nameProject` — the profile feed spans every project, so its rows name the
+ *  project ("collected Prisms #7"); a project page already names it, so its
+ *  own feed keeps the bare "#7" (Brendon, 2026-07-26). */
+export function useLedgerFeed(feedActive: boolean, url: string, nameProject = false) {
     const { dir, feedKind } = useSort();
     const [feedRows, setFeedRows] = useState<FeedEvent[]>([]);
     useEffect(() => {
@@ -24,7 +27,7 @@ export function useLedgerFeed(feedActive: boolean, url: string) {
                 .then((r) => (r.ok ? r.json() : null))
                 .then((d: { events?: EventRow[] } | null) => {
                     if (!cancelled && Array.isArray(d?.events)) {
-                        setFeedRows(d!.events.map(eventToFeedEvent));
+                        setFeedRows(d!.events.map(nameProject ? eventToProjectNamedFeedEvent : eventToFeedEvent));
                     }
                 })
                 .catch(() => { /* keep last good rows */ });
@@ -33,7 +36,7 @@ export function useLedgerFeed(feedActive: boolean, url: string) {
         const onR = () => load();
         window.addEventListener('pd:project-refresh', onR);
         return () => { cancelled = true; window.removeEventListener('pd:project-refresh', onR); };
-    }, [feedActive, url]);
+    }, [feedActive, url, nameProject]);
     const sortedFeedEvents = useMemo(() => {
         const events = [...feedRows];
         const dirMult = dir === 'asc' ? 1 : -1;

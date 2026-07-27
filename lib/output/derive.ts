@@ -296,6 +296,66 @@ export function colourStory(dominant: string, accent: string): string {
     return 'Complementary';
 }
 
+/* ── Fingerprint v4 → the TASTE AXES (2026-07-27, Brendon's call) ────────────
+   The Radar's four taste axes, landed on the Fingerprint as its data unlock:
+   Geometric↔Organic · Colorful↔Monochrome · Dense↔Sparse · Structured↔Chaotic.
+   Same contract as v3: transparent composites of the REAL captured scalars —
+   no new guesses — except Geometric↔Organic, which rides the new v4 `geometry`
+   pixel read (lib/art/sampleColor). Every value is 0..1 toward the FIRST pole. */
+
+/** Geometric↔Organic — straight from the v4 edge-direction read. */
+export function geometryBand(v: number): string {
+    if (v < 0.2) return 'Organic';
+    if (v < 0.4) return 'Flowing';
+    if (v < 0.6) return 'Mixed';
+    if (v < 0.8) return 'Angular';
+    return 'Geometric';
+}
+
+/** Colorful↔Monochrome — saturation carries most of it; a wider palette
+ *  pushes toward colorful (a vivid one-colour piece is not "colorful"). */
+export function colorfulnessOf(saturation: number, paletteCount: number): number {
+    const sat = Math.min(1, saturation / 0.6);
+    const pal = Math.min(1, Math.max(0, (paletteCount - 1) / 3));
+    return Math.max(0, Math.min(1, 0.6 * sat + 0.4 * pal));
+}
+export function colorfulnessBand(v: number): string {
+    if (v < 0.2) return 'Monochrome';
+    if (v < 0.4) return 'Restrained';
+    if (v < 0.6) return 'Tempered';
+    if (v < 0.8) return 'Colorful';
+    return 'Riotous';
+}
+
+/** Dense↔Sparse — filled space (the inverse of air) weighted with how much
+ *  is actually happening in it (complexity). */
+export function densityOf(air: number, complexity: number): number {
+    return Math.max(0, Math.min(1, 0.65 * (1 - air) + 0.35 * complexity));
+}
+export function densityBand(v: number): string {
+    if (v < 0.2) return 'Sparse';
+    if (v < 0.4) return 'Roomy';
+    if (v < 0.6) return 'Balanced';
+    if (v < 0.8) return 'Dense';
+    return 'Teeming';
+}
+
+/** Structured↔Chaotic — symmetry + smoothness say order; a detected stripes/
+ *  field arrangement nudges structured, a scatter nudges chaotic. */
+export function orderOf(symmetry: number, texture: number, pattern?: string | null): number {
+    let v = 0.55 * symmetry + 0.45 * (1 - texture);
+    if (pattern === 'stripes' || pattern === 'field') v += 0.12;
+    else if (pattern === 'scatter') v -= 0.12;
+    return Math.max(0, Math.min(1, v));
+}
+export function orderBand(v: number): string {
+    if (v < 0.2) return 'Chaotic';
+    if (v < 0.4) return 'Unruly';
+    if (v < 0.6) return 'Poised';
+    if (v < 0.8) return 'Ordered';
+    return 'Structured';
+}
+
 /** Aspect bucket ('square' | 'wide' | 'tall') → orientation word. */
 export function orientationOf(aspect: string | null, ratio?: number | null): string {
     if (aspect === 'wide') return 'Landscape';

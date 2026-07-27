@@ -6,7 +6,8 @@
  * (ProjectTitleStar: 460ms hold, 10px drift cancel, context-menu
  * suppressed). The name is the platform's secret compass:
  *   • long-press  → Cartography ◫ (space — the living ecosystem map)
- *   • triple-tap  → The Rewind ◄ (time — docks the OS at yesterday)
+ *   • triple-tap  → The Rewind ◄ (time — docks the OS at yesterday, and the
+ *                    same three taps while docked return you to now)
  *
  * The gesture mechanics are copied verbatim from
  * components/project/ProjectTitleStar.tsx (Rule #0 — reuse, never reinvent).
@@ -55,8 +56,11 @@ export default function HomeTitleCartography() {
         tapTimes.current = taps;
         if (taps.length >= 3 && rewind) {
             tapTimes.current = [];
+            /* The gesture is a TOGGLE (Brendon, 2026-07-27): the same three taps
+               that opened The Rewind close it again, exactly like the bar's ✕. */
+            if (rewind.day != null) rewind.returnToNow();
             // Enter The Rewind at yesterday — the scrubber takes it from there.
-            rewind.engage(rewind.today - 1);
+            else rewind.engage(rewind.today - 1);
         }
     };
 

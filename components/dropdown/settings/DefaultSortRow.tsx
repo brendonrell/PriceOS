@@ -30,7 +30,8 @@
  * pd_settings_sort key persists family-only (matches sim's defaultSort).
  */
 
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
+import GroupLayersBubble from '../../lists/GroupLayersBubble';
 import {
     useSort, type SortKey,
     GROUP_GLYPH, GROUP_LABEL, GROUP_BTN_ICON,
@@ -55,7 +56,10 @@ const SORTS: Array<{ key: SortKey; title: string }> = [
 ];
 
 export function DefaultSortRow() {
-    const { sort, dir, feedKind, cycleSort, defaultGroup, cycleDefaultGroup } = useSort();
+    const { sort, dir, feedKind, cycleSort, defaultGroup, cycleDefaultGroup, groupLayers, setGroupLayer } = useSort();
+    /* HOLD the default-group pill → the same three-layer bubble the grid
+       toggles use (Brendon, 2026-07-26). */
+    const [layersAnchor, setLayersAnchor] = useState<{ top: number; centerX: number } | null>(null);
     const { showToast } = useToast();
 
     const groupOn = defaultGroup !== 'none';
@@ -122,7 +126,8 @@ export function DefaultSortRow() {
                 <SettingsToggle
                     id="ss-group"
                     active={groupOn}
-                    title="Default grouping — cycles every dimension"
+                    title="Default grouping — tap to cycle, hold for layers"
+                    onHold={setLayersAnchor}
                     icon={groupOn ? GROUP_GLYPH[defaultGroup] : GROUP_BTN_ICON}
                     iconStyle={{ fontFamily: "'Courier New', Courier, monospace", fontSize: '13px', marginRight: 0 }}
                     style={{ padding: '0 7px', minWidth: 0, width: 'auto' }}
@@ -131,6 +136,18 @@ export function DefaultSortRow() {
                         showToast('Default Group: ' + GROUP_LABEL[next]);
                     }}
                 />
+                {layersAnchor && (
+                    <GroupLayersBubble
+                        /* The DEFAULT applies to every surface, so this one
+                           offers the full vocabulary rather than a single
+                           gallery's subset (Brendon, 2026-07-26). */
+                        surface="all"
+                        layers={groupLayers}
+                        anchor={layersAnchor}
+                        onPick={setGroupLayer}
+                        onClose={() => setLayersAnchor(null)}
+                    />
+                )}
                 {SORTS.map((s) => (
                     <SettingsToggle
                         key={s.key}

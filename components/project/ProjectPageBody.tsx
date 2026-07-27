@@ -134,7 +134,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
     /* Hooks first (no conditional returns above) — covers the lint rule
        Brendon called out in earlier sessions. */
     const project = useProject();
-    const { sort, group, resetToDefault } = useSort();
+    const { sort, group, groupLayers, resetToDefault } = useSort();
     /* Entering a project resets the gallery sort to the user's default and the
        grouping to what the viewer last used ON THIS PROJECT (per-page memory,
        Brendon 2026-07-12) — an in-project grouping never carries into the next
@@ -664,6 +664,9 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                 aria-label="Gallery"
                 className={[
                     onShowcaseTab ? 'project-showcase-mode' : null,
+                    /* Grouped = zoomed out: 4-up on mobile so a grouping reads
+                       as groups, not as a long 2-up scroll (Brendon, 2026-07-26). */
+                    !onShowcaseTab && groupedSections != null ? 'is-grouped' : null,
                     /* Artist layouts (2026-07-20): masonry / mixed large-small
                        + the little titles — Showcase tab only. */
                     onShowcaseTab && project.showcaseLayout !== 'classic' ? `sc-${project.showcaseLayout}` : null,
@@ -696,8 +699,11 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                             let budget = galleryShown;
                             return groupedSections.flatMap((sec) => {
                             const isL2 = sec.level === 2;
-                            // A folded level-1 hides its sub-headers and their cards.
-                            if (isL2 && collapsedGroups.has(sec.l1Key)) return [];
+                            const isL3 = sec.level === 3;
+                            /* A folded ancestor hides everything nested under it —
+                               now two levels deep, not one (Brendon, 2026-07-26). */
+                            if (sec.level > 1 && collapsedGroups.has(sec.l1Key)) return [];
+                            if (isL3 && sec.l2Key && collapsedGroups.has(sec.l2Key)) return [];
                             const folded = collapsedGroups.has(sec.ckey);
                             /* Cap the header's width to the columns its pieces
                                occupy, so the trailing dimension glyph ends with
@@ -705,13 +711,13 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                                (Brendon, 2026-07-12). Soon-groups span the row. */
                             const nPieces = sec.ids.length > 0 ? sec.ids.length : sec.total;
                             const capW = !sec.soon && galleryCols && nPieces > 0
-                                ? colsWidth(galleryCols, nPieces) + (isL2 ? 30 : 0)
+                                ? colsWidth(galleryCols, nPieces) + (isL2 ? 30 : 0) + (isL3 ? 60 : 0)
                                 : undefined;
                             const header = (
                             <div
                                 key={`hdr-${sec.ckey}`}
                                 style={capW ? { maxWidth: capW } : undefined}
-                                className={`gallery-group-header is-collapsible${isL2 ? ' level-2' : ''}${sec.soon ? ' soon' : ''}${folded ? ' collapsed' : ''}`}
+                                className={`gallery-group-header is-collapsible${isL2 ? ' level-2' : ''}${isL3 ? ' level-3' : ''}${sec.soon ? ' soon' : ''}${folded ? ' collapsed' : ''}`}
                                 role="button"
                                 tabIndex={0}
                                 aria-expanded={!folded}
@@ -730,8 +736,8 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                                     : sec.total > 0
                                         ? <span className="ggh-count">{sec.total}</span>
                                         : null}
-                                {!sec.soon && groupHeaderGlyph(group, sec.level)
-                                    ? <span className="ggh-glyph" aria-hidden="true">{groupHeaderGlyph(group, sec.level)}</span>
+                                {!sec.soon && groupHeaderGlyph(groupLayers, sec.level)
+                                    ? <span className="ggh-glyph" aria-hidden="true">{groupHeaderGlyph(groupLayers, sec.level)}</span>
                                     : null}
                             </div>
                             );

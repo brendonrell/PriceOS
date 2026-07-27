@@ -34,6 +34,8 @@ import ProjectAnointPanel from './ProjectAnointPanel';
 import Hero from '../hero/Hero';
 import { formatEth } from '../../lib/format/eth';
 import { useAuth } from '../../lib/state/AuthContext';
+import CallLedgerCard from './CallLedgerCard';
+import PopTablePanel from './PopTablePanel';
 
 /* + More sub-nav (Brendon, 2026-06-13) — same trait-pill tab system as the
    profile's + More. The panel's stacked sections are grouped under pills so
@@ -448,6 +450,13 @@ export default function ProjectMorePanel({
 
             </>)}
             {moreL1 === 'sentiment' && (<>
+            {/* THE CALL LEDGER (2026-07-26) — public, immutable Conviction
+                calls on this project, settled CROWNED/REKT against the floor.
+                The opposite of the sealed Targets card above, on purpose. */}
+            <div className="more-section-header">THE CALL LEDGER</div>
+            <CallLedgerCard slug={project.slug} />
+            </>)}
+            {moreL1 === 'sentiment' && (<>
             {/* DISAGREEMENT SCORE — REAL (2026-07-13; was the sim 5323-5335
                 mock 62/38). The measured split of what holders are DOING:
                 pieces on the market (LIST) vs held tight (HODL). */}
@@ -512,6 +521,13 @@ export default function ProjectMorePanel({
                     />
                 )
             )}
+            {moreL1 === 'attributes' && (<>
+            {/* POP TABLE (Rarity Labs, 2026-07-26) — the project's full trait
+                census: every axis, every value, count + share, rarest first.
+                Same memoised math the badges read; provable from the seed. */}
+            <div className="more-section-header">POP TABLE</div>
+            <PopTablePanel slug={project.slug} />
+            </>)}
             {moreL1 === 'pricestory' && (<>
             {/* PRICE STORY — the collection's market biography, chapters
                 from the real ledger (same panel as the Output story). */}

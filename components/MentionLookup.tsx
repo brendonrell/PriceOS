@@ -16,7 +16,7 @@
  * Only collectors WITH a handle are offered — an @mention is a handle.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { SearchUserRow } from './dropdown/GlobalSearchBar';
 import type { SearchResponse, SearchUserResult } from '../app/api/search/route';
@@ -93,6 +93,42 @@ export function MentionLookup({
 
     const open = !!token && users.length > 0 && dismissedAt !== token.start;
 
+    /* WHERE THE LIST GOES (Brendon, 2026-07-26). It used to be pinned below the
+       field, which on an iPhone is exactly where the keyboard is — for the
+       To-Do composer that put the whole list behind it. Now it drops below only
+       when there is genuinely room, and flips ABOVE the field otherwise.
+
+       Measured, not guessed: the popover's real height off the DOM, against
+       visualViewport — the one thing that actually shrinks when the iOS
+       keyboard comes up (innerHeight does not). Runs in a layout effect so the
+       flip is resolved before the browser paints. */
+    const [place, setPlace] = useState<{ top: number } | null>(null);
+
+    useLayoutEffect(() => {
+        if (!open) { setPlace(null); return; }
+        const measure = () => {
+            const rect = anchorRef.current?.getBoundingClientRect();
+            const pop = popRef.current;
+            if (!rect || !pop) return;
+            const h = pop.getBoundingClientRect().height;
+            const vv = window.visualViewport;
+            const usableBottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
+            const below = rect.bottom + 6;
+            const flip = below + h > usableBottom - 8;
+            setPlace({ top: flip ? Math.max(8, rect.top - 6 - h) : below });
+        };
+        measure();
+        const vv = window.visualViewport;
+        vv?.addEventListener('resize', measure);
+        vv?.addEventListener('scroll', measure);
+        window.addEventListener('resize', measure);
+        return () => {
+            vv?.removeEventListener('resize', measure);
+            vv?.removeEventListener('scroll', measure);
+            window.removeEventListener('resize', measure);
+        };
+    }, [open, users.length, anchorRef]);
+
     // Outside tap dismisses (typing continues to drive the query).
     useEffect(() => {
         if (!open) return;
@@ -113,7 +149,17 @@ export function MentionLookup({
         <div
             ref={popRef}
             className="mention-pop"
-            style={{ top: rect.bottom + 6, left: rect.left, minWidth: Math.min(rect.width, window.innerWidth - rect.left - 12) }}
+            style={{
+                /* Placed by the layout effect above, which flips it over the
+                   field when the keyboard is in the way. Until that runs it
+                   sits below, as before. */
+                top: place?.top ?? rect.bottom + 6,
+                left: rect.left,
+                minWidth: Math.min(rect.width, window.innerWidth - rect.left - 12),
+                /* Hidden for the single frame before placement is resolved, so
+                   a list that is about to flip never paints in the wrong spot. */
+                visibility: place ? undefined : 'hidden',
+            }}
             role="listbox"
         >
             {users.map((u) => (

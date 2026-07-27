@@ -22,6 +22,13 @@
  * 48×48 pass finds the distinct connected regions of colour, classifies each
  * (circle / square / bar / shape), reads the arrangement (stripes / field /
  * scatter) and generates the human sentence via lib/art/scene.
+ *
+ * v4 — GEOMETRY (2026-07-27, the taste-axes unlock, Brendon): one new scalar,
+ * read in the same 24×24 pass. How straight-ruled vs free-flowing the piece's
+ * edges run: every luminance gradient votes for its direction, and geometry is
+ * how concentrated those votes are into a few dominant directions. Ruled lines,
+ * grids and hard blocks concentrate; organic curves spread. 1 = geometric,
+ * 0 = organic; null when the piece is too flat to have edges to read.
  */
 
 import { classifyRgb, type ColorBucket } from './outputColor';
@@ -57,6 +64,8 @@ export interface Fingerprint {
     shapeCount: number;           // countable regions found
     pattern: PatternKind;         // stripes / field / scatter / null
     scene: string | null;         // "two blue squares and a yellow circle"
+    /* ── v4 — geometry (the taste-axes unlock) ──────────────────────── */
+    geometry: number | null;      // 1 = ruled/geometric, 0 = organic; null = too flat to read
 }
 
 function aspectOf(w: number, h: number): AspectKind {
@@ -64,6 +73,74 @@ function aspectOf(w: number, h: number): AspectKind {
     if (r > 1.15) return 'wide';
     if (r < 0.87) return 'tall';
     return 'square';
+}
+
+/* ── v4 geometry — edge-direction coherence over a luminance grid ─────────
+   Central-difference gradients per interior cell (transparent cells skipped);
+   each real edge votes its direction (folded to 0..π) into 12 bins, weighted
+   by strength. geometry = how far the two dominant bins' share of all edge
+   energy sits above a uniform spread (2/12), rescaled so ~75% concentration
+   reads fully geometric. Deterministic; null when the piece has almost no
+   edges to read (a flat field has no geometry either way). */
+function geometryFromLum(lum: Float32Array, W: number, H: number): number | null {
+    const BINS = 12;
+    const bins = new Float64Array(BINS);
+    let total = 0;
+    for (let y = 1; y < H - 1; y++) {
+        for (let x = 1; x < W - 1; x++) {
+            const c = lum[y * W + x];
+            const l = lum[y * W + x - 1], r = lum[y * W + x + 1];
+            const u = lum[(y - 1) * W + x], d = lum[(y + 1) * W + x];
+            if (c < 0 || l < 0 || r < 0 || u < 0 || d < 0) continue;
+            const dx = r - l, dy = d - u;
+            const m = Math.hypot(dx, dy);
+            if (m < 12) continue; // flat — not an edge, no vote
+            /* The gradient is normal to the edge; folding to 0..π makes a line
+               and its reverse the same direction. */
+            let a = Math.atan2(dy, dx);
+            if (a < 0) a += Math.PI;
+            if (a >= Math.PI) a -= Math.PI;
+            bins[Math.min(BINS - 1, Math.floor((a / Math.PI) * BINS))] += m;
+            total += m;
+        }
+    }
+    /* Fewer than ~8 cells' worth of real edges → nothing to read. */
+    if (total < 8 * 12) return null;
+    let b1 = 0, b2 = 0;
+    for (let i = 0; i < BINS; i++) {
+        const v = bins[i];
+        if (v > b1) { b2 = b1; b1 = v; }
+        else if (v > b2) b2 = v;
+    }
+    const top2 = (b1 + b2) / total;
+    const uniform = 2 / BINS;
+    return Math.max(0, Math.min(1, (top2 - uniform) / (0.75 - uniform)));
+}
+
+/** Geometry alone, from any painted canvas — the live fallback for pieces
+ *  whose stored fingerprint predates the v4 read. Same 24×24 downsample and
+ *  the same formula as the full pass, so live and stored can never disagree. */
+export function sampleCanvasGeometry(canvas: HTMLCanvasElement): number | null {
+    try {
+        if (!canvas.width || !canvas.height) return null;
+        const W = 24, H = 24;
+        const off = document.createElement('canvas');
+        off.width = W;
+        off.height = H;
+        const octx = off.getContext('2d', { willReadFrequently: true });
+        if (!octx) return null;
+        octx.drawImage(canvas, 0, 0, W, H);
+        const { data } = octx.getImageData(0, 0, W, H);
+        const lum = new Float32Array(W * H).fill(-1);
+        for (let i = 0; i < W * H; i++) {
+            const p = i * 4;
+            if (data[p + 3] < 8) continue;
+            lum[i] = 0.299 * data[p] + 0.587 * data[p + 1] + 0.114 * data[p + 2];
+        }
+        return geometryFromLum(lum, W, H);
+    } catch {
+        return null;
+    }
 }
 
 /** Full fingerprint from one downsampled read of the painted canvas.
@@ -206,6 +283,7 @@ export function sampleCanvasFingerprint(canvas: HTMLCanvasElement): Fingerprint 
             shapeCount: shapes.length,
             pattern,
             scene,
+            geometry: geometryFromLum(lum, W, H),
         };
     } catch {
         return null;

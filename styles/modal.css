@@ -1923,6 +1923,42 @@ body.modal-open { overflow: hidden; touch-action: none; }
     text-align: left;
     padding: 4px 8px;
 }
+
+/* ── THE TAG ROOM + THE PING POPUP (Brendon, 2026-07-27) ───────────────────
+   Both ride the OWNERS anatomy verbatim; these are the only two differences.
+   The tag room carries five slice pills (four sorts + the Cabal narrow), which
+   need a second line at iPhone width. */
+#tagPeopleModal .collectors-sort-row { flex-wrap: wrap; }
+/* The ping, in full: the line as it reads in the list, the moment it landed in
+   YOUR time, and its door. Full-strength — this is the thing you opened. */
+.ping-modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 14px;
+    text-align: left;
+    font-family: 'Courier New', Courier, monospace;
+}
+.ping-modal-line {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 14px;
+    line-height: 1.45;
+}
+.ping-modal-when {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.08em;
+    border-top: 1px dashed var(--border-color);
+    padding-top: 10px;
+}
+.ping-modal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.ping-modal-actions .pill { text-decoration: none; }
 .collectors-holders .lb-pos { min-width: 2.5ch; }
 .modal-stats-bottom {
     margin-top: 15px;

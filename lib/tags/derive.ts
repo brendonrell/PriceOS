@@ -15,7 +15,8 @@
 
 import {
     type Tag, tagById, isPersonaId, GRANTED_IDS,
-    ID_TAG_STYLE, ID_RANGES, CEO_TAG, PRICEDAY_TAG_COLOR,
+    ID_TAG_STYLE, ID_RANGES, CEO_TAG, DEPLOYER_TAG, teamStyleTag,
+    bitverseTag, rudxaneTag, PRICEDAY_TAG_COLOR,
     PRICE_HOLD_TAG_BG, PRICE_HOLD_TAG_TEXT,
     PRICE_HOLD_TOP3_BG, PRICE_HOLD_TOP3_TEXT,
     PRICE_HOLD_TOP10_BG, PRICE_HOLD_TOP10_TEXT,
@@ -30,8 +31,31 @@ export const VETERAN_DAYS = 180;
  *  plus the pricediscussion.eth treasury (both are him). */
 const CEO_ADDRESSES: ReadonlySet<string> = new Set([
     '0x65c34afda745c12745db70ffa809311339279395', // @brendon
+]);
+
+/** The treasury wallet — wears DEPLOYER, not CEO (Brendon, 2026-07-26). Both
+ *  wallets are Brendon; the chip now says which hat the wallet is wearing. */
+const DEPLOYER_ADDRESSES: ReadonlySet<string> = new Set([
     '0x146034ec25c277f30f63933b151297689e15b9b8', // pricediscussion.eth
 ]);
+
+/* ── The handle-reserved TEAM tags (Brendon, 2026-07-26) ─────────────────────
+   Not grantable and not in the catalog's GRANTED set: a tag appears here or it
+   does not exist. An account that later renames itself to one of these handles
+   inherits the tag — that is deliberate, the handles are reserved platform-side
+   (lib/reserved-handles.ts). */
+
+/** WTBS — the two hosts of Waiting To Be Signed, nobody else. */
+const WTBS_HANDLES: ReadonlySet<string> = new Set(['trinity', 'willpop']);
+
+/** Petey — same treatment + palette as WTBS, one account. */
+const PETEY_HANDLES: ReadonlySet<string> = new Set(['petey']);
+
+/** BitVerse — @cspok. Courier wordmark, two-tone, no glyph. */
+const BITVERSE_HANDLES: ReadonlySet<string> = new Set(['cspok']);
+
+/** Rudxane — @rudxane. The label re-rolls every page load. */
+const RUDXANE_HANDLES: ReadonlySet<string> = new Set(['rudxane']);
 
 export interface DeriveInput {
     /** Personas the user picked (users.profile_tags). */
@@ -44,17 +68,31 @@ export interface DeriveInput {
     isArtist?: boolean;
     /** Account creation timestamp (drives Veteran + the PriceDay-join tag). */
     createdAt?: string | null;
-    /** The profile owner's wallet — gates the one-of-one CEO tag. */
+    /** The profile owner's wallet — gates the one-of-one CEO + Deployer tags. */
     address?: string | null;
+    /** The profile owner's @handle — gates the handle-reserved TEAM tags (WTBS,
+     *  Petey). Case-insensitive; absent = no handle-reserved tag. */
+    handle?: string | null;
+    /** Which of the 12 WTBS-family treatments the owner cycled to
+     *  (settings.teamTagStyle). Out-of-range/absent wraps to the first. */
+    teamTagStyle?: number | null;
+    /** This page load's roll for @rudxane's chip, whose label changes every
+     *  refresh (usually an Ode to Rudxane respelling, sometimes the plain
+     *  name). Absent = the plain name, which is also what the server renders
+     *  so hydration never mismatches. */
+    rudxaneRoll?: number | null;
     /** The owner's $PRICE holder rank (users.price_hold_rank) — drives the
      *  "$PRICE Top N · #r" earned tag; null/absent = unranked (no tag). */
     priceHoldRank?: number | null;
     /** The owner's $PRICE balance in whole tokens (users.price_held) — drives
      *  the 100K+ / 1M+ holding tags. */
     priceHeld?: number | string | null;
-    /** Tag ids the owner switched OFF — filtered from the shown set (every tag,
-     *  CEO included, can be hidden and tapped back on). Brendon, 2026-07-22. */
-    hiddenTags?: string[] | null;
+    /** Tag ids the owner switched ON. ⛔ TAGS ARE OFF BY DEFAULT (Brendon,
+     *  2026-07-26): an automatic tag stays dark until its owner finds the picker
+     *  and lights it. Personas are exempt — picking one already turns it on.
+     *  Pass `undefined` (the picker does) to get the FULL set back, so the
+     *  owner has something to switch on. */
+    shownTags?: string[] | null;
 }
 
 /** The PriceDay-of-join tag — everyone gets one; the PriceDay number of the day
@@ -169,8 +207,16 @@ export function deriveTags(input: DeriveInput): Tag[] {
         if (t && !seen.has(t.id)) { seen.add(t.id); out.push(t); }
     };
 
-    // CEO — Brendon's wallet only, one of one (never from granted_tags).
-    if (input.address && CEO_ADDRESSES.has(input.address.toLowerCase())) add(CEO_TAG);
+    /* TEAM (order 1–4) — the VIP class, always first. Every one of these is
+       pinned to a single wallet or handle and can never be chosen or granted. */
+    const addr = input.address?.toLowerCase() ?? null;
+    const hdl = input.handle?.toLowerCase().replace(/^@/, '') ?? null;
+    if (addr && CEO_ADDRESSES.has(addr)) add(CEO_TAG);
+    if (addr && DEPLOYER_ADDRESSES.has(addr)) add(DEPLOYER_TAG);
+    if (hdl && WTBS_HANDLES.has(hdl)) add(teamStyleTag('wtbs', 'WTBS', 3, input.teamTagStyle));
+    if (hdl && PETEY_HANDLES.has(hdl)) add(teamStyleTag('petey', 'Petey', 4, input.teamTagStyle));
+    if (hdl && BITVERSE_HANDLES.has(hdl)) add(bitverseTag(5, input.teamTagStyle));
+    if (hdl && RUDXANE_HANDLES.has(hdl)) add(rudxaneTag(6, input.rudxaneRoll));
 
     // Personas the user chose (validated against the catalog).
     for (const id of input.profileTags ?? []) {
@@ -191,8 +237,11 @@ export function deriveTags(input: DeriveInput): Tag[] {
     }
 
     const ordered = out.sort((a, b) => a.order - b.order);
-    // Hidden ones (the user switched them off) drop from the SHOWN set. Pass no
-    // hiddenTags (the picker) to get every tag back for the on/off toggles.
-    const hidden = new Set(input.hiddenTags ?? []);
-    return hidden.size ? ordered.filter((t) => !hidden.has(t.id)) : ordered;
+    /* OFF BY DEFAULT (Brendon, 2026-07-26). `undefined` = the picker asking for
+       everything; an ARRAY (even empty) = a real profile, where only the ids the
+       owner switched on survive. Personas pass through untouched — choosing one
+       is itself the act of switching it on. */
+    if (input.shownTags === undefined) return ordered;
+    const shown = new Set(input.shownTags ?? []);
+    return ordered.filter((t) => t.kind === 'persona' || shown.has(t.id));
 }

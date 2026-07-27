@@ -18,6 +18,8 @@ Grids and cards across the app draw each Output's stored PNG preview for speed; 
 
 The attributes panel lists the Output's traits with per-trait rarity across the Project, and the **Rarity Receipt** is the one-tap summary of how this piece sits in its edition. Trait stars let you mark the traits you hunt for; they animate when the piece in front of you carries one.
 
+Every Output also carries its **Fingerprint** — the platform's objective read of the artwork itself, measured from its actually rendered pixels. It has [its own page](/docs/fingerprint).
+
 ## The action row
 
 The Output's verbs, in canonical glyphs, one tap each:

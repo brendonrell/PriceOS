@@ -121,6 +121,9 @@ body.bench-dragging * {
     transition: transform 0.26s cubic-bezier(0.18, 0.9, 0.26, 1.04), box-shadow 0.2s ease, border-color 0.2s ease;
 }
 .bench-tab.active { transform: translateY(0); }
+/* Showcase MOVE MODE — the Bench still rises as the drop target, but only half
+   as far, so the grid you're rearranging stays in view (Brendon, 2026-07-26). */
+body.pd-showcase-move .bench-tab.active.collapsed { transform: translateY(50%); }
 /* While a drag is over it, the tab reads as the live drop target — SAME shape,
    SAME colour, just a crisp hard-edged ring (no blur) that's uniform all the way
    around instead of the lopsided top bar + soft glow (Brendon, 2026-06-16). */

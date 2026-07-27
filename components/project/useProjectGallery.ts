@@ -9,11 +9,14 @@
  * Split out of ProjectPageBody 2026-07-06 — pure move, no behavior change.
  */
 
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { useProject } from '../../lib/state/ProjectContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useSort, GROUP_SOON, GROUP_LABEL, PROJECT_GROUP_ORDER } from '../../lib/state/SortContext';
-import { EXTRA_GROUP_DIMS, groupSectionLabel, groupLabelComparator } from '../../lib/state/groupDimensions';
+import { groupSectionLabel, usefulLayers } from '../../lib/state/groupDimensions';
+import type { GroupKey } from '../../lib/state/SortContext';
+import { useUserTags } from '../../lib/hooks/useUserTags';
+import { buildGroupSections, type GSec } from '../../lib/state/groupBlocks';
 import { factionOf, useProjectFactions } from '../../lib/factions/factionStore';
 import { useTraits, type TraitCategory } from '../../lib/state/TraitsContext';
 import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
@@ -51,7 +54,9 @@ function eagerGalleryCount(): number {
 /* A grouping section row: a header (level-1 title, or level-2 sub-title in a
    combo) plus the pieces beneath it. `ckey` toggles this header's fold;
    `l1Key` is the section it belongs to (folding level-1 folds its level-2s). */
-export type GSec = { ckey: string; l1Key: string; level: 1 | 2; label: string; ids: number[]; total: number; soon: boolean };
+/* Moved to lib/state/groupBlocks when grouping went N-layer (Brendon,
+   2026-07-26). Re-exported so existing importers keep working unchanged. */
+export type { GSec } from '../../lib/state/groupBlocks';
 
 export function useProjectGallery({
     netSets,
@@ -63,7 +68,7 @@ export function useProjectGallery({
     const project = useProject();
     const def = getProject(project.slug);
     const { siweAddress } = useAuth();
-    const { sort, dir, group } = useSort();
+    const { sort, dir, group, groupLayers } = useSort();
     const { activeFilters, searchQuery, priceMin, priceMax, myNotesActive, activeCategory } = useTraits();
 
     /* Stored dominant colours for this project (re-renders grouping when they
@@ -72,6 +77,28 @@ export function useProjectGallery({
     /* Owner→faction map — fetched lazily, ONLY once the viewer actually lands
        on the FACTION grouping (cycling past it costs nothing). */
     const factionsVer = useProjectFactions(project.slug, group === 'faction');
+
+    /* PROFILE TAGS as a grouping (Brendon, 2026-07-26) — a piece groups by its
+       OWNER's leading tag, which is the one that opens their tag row (the list
+       is already ordered team → earned → chosen, so [0] is the strongest thing
+       they carry). Only fetched while the dimension is actually in play, and it
+       reuses the one shared tag lookup every list surface uses (Rule #0). */
+    const groupingByTag = groupLayers.includes('tag');
+    const ownerHandles = useMemo(() => {
+        if (!groupingByTag) return [] as string[];
+        const out = new Set<string>();
+        for (const [, meta] of project.outputs) {
+            const d = meta.ownerDisplay;
+            if (d && d.startsWith('@')) out.add(d.slice(1).toLowerCase());
+        }
+        return [...out];
+    }, [groupingByTag, project.outputs]);
+    const ownerTagSets = useUserTags(ownerHandles);
+    const ownerTagOf = useCallback((ownerDisplay: string | null) => {
+        if (!ownerDisplay || !ownerDisplay.startsWith('@')) return null;
+        const set = ownerTagSets[ownerDisplay.slice(1).toLowerCase()];
+        return set?.tags[0]?.label ?? null;
+    }, [ownerTagSets]);
 
     /* Decouple the gallery from the trait pills (Brendon, 2026-06-18). Pills read
        the live filter state and dim instantly; the heavy gallery predicate reads
@@ -310,89 +337,33 @@ export function useProjectGallery({
     const groupedSections = useMemo<GSec[] | null>(() => {
         /* Grouping rides its own toggle (Brendon, 2026-07-12) but still only
            shapes the GRID sorts — it never applies to FEED (chronological
-           activity) or fog (reveal). Project-page dimensions: owner · colour ·
-           owner+colour · last-sold · rarity. */
-        if (group === 'none' || (sort !== 'id' && sort !== 'price')) return null;
-        /* Ignore a group persisted on another surface (e.g. 'artist' from a
-           profile) — it isn't a project-page dimension. */
-        if (!PROJECT_GROUP_ORDER.includes(group)) return null;
-        /* Last-sold + rarity have no data yet — one greyed "coming soon" group,
-           the real art beneath it (Brendon: "mocked in and coming soon"). */
+           activity) or fog (reveal). */
+        if (!groupLayers.length || (sort !== 'id' && sort !== 'price')) return null;
+        /* Last-sold has no data yet — one greyed "coming soon" group, the real
+           art beneath it (Brendon: "mocked in and coming soon"). */
         if (GROUP_SOON[group]) {
             return [{ ckey: 'soon', l1Key: 'soon', level: 1, label: GROUP_LABEL[group], ids: visibleTokenIds, total: visibleTokenIds.length, soon: true }];
         }
 
-        /* The 2026-07-16 expansion dimensions — every value resolves through
-           the shared engine (lib/state/groupDimensions), so this one block
-           serves listed/fate/rarity/fingerprint/sky/faction/numerology alike.
-           Pieces the data can't place land in the honest tail bucket, which
-           the comparator pins last. */
-        if (EXTRA_GROUP_DIMS.has(group)) {
-            const map = new Map<string, number[]>();
-            for (const id of visibleTokenIds) {
-                const meta = project.outputs.get(id);
-                const label = groupSectionLabel(group, project.slug, id, {
-                    listed: meta?.price != null,
-                    fate: meta?.traits?.Fate ?? null,
-                    faction: group === 'faction' ? factionOf(project.slug, meta?.ownerFull) : null,
-                });
-                const arr = map.get(label);
-                if (arr) arr.push(id); else map.set(label, [id]);
-            }
-            const cmp = groupLabelComparator(group);
-            return [...map.entries()]
-                .sort((a, b) => cmp([a[0], a[1].length], [b[0], b[1].length]))
-                .map(([label, ids]) => ({ ckey: label, l1Key: label, level: 1 as const, label, ids, total: ids.length, soon: false }));
-        }
-        const colorOrder = [...(COLOR_BUCKET_ORDER as string[]), 'Other'];
-
-        // owner + colour — two-level: each holder titles a section, colour
-        // buckets sub-title within it.
-        if (group === 'ownerColor') {
-            const byOwner = new Map<string, number[]>();
-            for (const id of visibleTokenIds) {
-                const o = project.outputs.get(id)?.ownerDisplay ?? '—';
-                const arr = byOwner.get(o);
-                if (arr) arr.push(id); else byOwner.set(o, [id]);
-            }
-            const out: GSec[] = [];
-            for (const [owner, ids] of byOwner) {
-                const oKey = `o:${owner}`;
-                // Level-1 owner header has no direct cards (its colours do), but
-                // its count totals every piece beneath it (Brendon, 2026-06-20).
-                out.push({ ckey: oKey, l1Key: oKey, level: 1, label: owner, ids: [], total: ids.length, soon: false });
-                const byColor = new Map<string, number[]>();
-                for (const id of ids) {
-                    const c = resolveBucket(project.slug, id) ?? 'Other';
-                    const arr = byColor.get(c);
-                    if (arr) arr.push(id); else byColor.set(c, [id]);
-                }
-                const colors = [...byColor.entries()]
-                    .sort((a, b) => colorOrder.indexOf(a[0]) - colorOrder.indexOf(b[0]));
-                for (const [clabel, cids] of colors) {
-                    out.push({ ckey: `${oKey}|c:${clabel}`, l1Key: oKey, level: 2, label: clabel, ids: cids, total: cids.length, soon: false });
-                }
-            }
-            return out;
-        }
-
-        // single-level: owner OR colour
-        const map = new Map<string, number[]>();
-        for (const id of visibleTokenIds) {
-            const label =
-                group === 'color'
-                    ? (resolveBucket(project.slug, id) ?? 'Other')
-                    : (project.outputs.get(id)?.ownerDisplay ?? '—');
-            const arr = map.get(label);
-            if (arr) arr.push(id);
-            else map.set(label, [id]);
-        }
-        const sections: GSec[] = Array.from(map, ([label, ids]) => ({ ckey: label, l1Key: label, level: 1 as const, label, ids, total: ids.length, soon: false }));
-        if (group === 'color') {
-            sections.sort((a, b) => colorOrder.indexOf(a.label) - colorOrder.indexOf(b.label));
-        }
-        return sections;
-    }, [group, sort, visibleTokenIds, project, colorsVer, factionsVer]);
+        /* Every dimension resolves through the one shared engine, so this walks
+           whatever layers the user picked — it replaced the hand-written
+           owner+colour pair and the single-level owner/colour branch alike
+           (Brendon, 2026-07-26). */
+        const labelOf = (id: number, layer: GroupKey) =>
+            groupSectionLabel(layer, project.slug, id, {
+                listed: !!project.outputs.get(id)?.price,
+                fate: null,
+                faction: layer === 'faction' ? factionOf(project.slug, project.outputs.get(id)?.ownerFull) : null,
+                owner: project.outputs.get(id)?.ownerDisplay ?? '—',
+                tag: ownerTagOf(project.outputs.get(id)?.ownerDisplay ?? null),
+                project: project.title,
+            });
+        /* Drop any layer that can't actually cut this window — see usefulLayers.
+           Sorting one project BY project is a title bar and nothing else. */
+        const useful = usefulLayers(visibleTokenIds, groupLayers, labelOf);
+        if (!useful.length) return null;
+        return buildGroupSections(visibleTokenIds, useful, { idOf: (id) => id, labelOf });
+    }, [group, groupLayers, sort, visibleTokenIds, project, colorsVer, factionsVer, ownerTagOf]);
 
     /* Stable "first screenful" set, by lowest token id — membership does NOT
        change when sort/group reorders the grid, so a card's `eager` flag never

@@ -194,10 +194,23 @@ export interface UserSettings {
    *  so it stops resetting each session (Brendon, 2026-07-21). Was device-only
    *  localStorage `pd_sound_on`. Absent = never set (default OFF). */
   sound?: boolean;
-  /** miniplayer display face ('deck' | 'signal' | 'disc'; `signal` shows as "Tab").
-   *  Account-backed so the chosen face follows the viewer (Brendon, 2026-07-21).
-   *  Was device-only localStorage `pd_fm_display`. Absent = deck. */
+  /** miniplayer display face ('deck' | 'usb' | 'signal' | 'disc'; `signal` shows
+   *  as "Tab"). Account-backed so the chosen face follows the viewer (Brendon,
+   *  2026-07-21). Was device-only localStorage `pd_fm_display`. Absent = deck. */
   fmDisplay?: string;
+  /** miniplayer LIVE SESSION — the station on air plus the exact spot in it
+   *  (playlist entry + seconds), saved while playing and on every pause, so
+   *  closing the app and coming back restores the player right where it was
+   *  paused (Brendon, 2026-07-27). × (close) NULLS it — the off door must stay
+   *  off, a cleared session can never resurrect the device. Mirror
+   *  `pd_fm_session`. */
+  fmSession?: {
+    playlistId: string;
+    label: string;
+    slug: string | null;
+    index: number;
+    t: number;
+  } | null;
   /** COMMAND STONE stealth style — accent hex + forced stage. Account-backed so
    *  the recolour/stage survives across sessions + devices (Brendon,
    *  2026-07-21). Was device-only localStorage `pd_stone_style`. */
@@ -206,9 +219,15 @@ export interface UserSettings {
    *  so re-opening the stone brings the same speech bubble back (Brendon,
    *  2026-07-22). Account-backed; mirror localStorage `pd_stone_last_line`. */
   stoneLastLine?: string | null;
-  /** PROFILE TAGS the owner switched OFF (Brendon, 2026-07-22) — any tag, CEO
-   *  included, can be hidden and tapped back on. Mirror `pd_hidden_tags`. */
-  hiddenTags?: string[];
+  /** PROFILE TAGS the owner switched ON (Brendon, 2026-07-26). ⛔ Tags are OFF
+   *  by default platform-wide — an automatic tag stays dark until its owner
+   *  finds the picker and lights it. Mirror `pd_shown_tags`. Supersedes the
+   *  2026-07-22 opt-OUT `hiddenTags`, which had the opposite default. */
+  shownTags?: string[];
+  /** Which of the twelve WTBS-family chip treatments the owner cycled to
+   *  (lib/tags/catalog TEAM_TAG_STYLES) — the WTBS + Petey chips only
+   *  (Brendon, 2026-07-26). Mirror `pd_team_tag_style`. */
+  teamTagStyle?: number;
 }
 
 /** One private note in the settings envelope (lib/notes/notesSync owns it). */
