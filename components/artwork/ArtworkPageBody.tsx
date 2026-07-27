@@ -838,7 +838,7 @@ export default function ArtworkPageBody({
                                 className="stat-icon stat-icon-owners stat-icon-followers"
                                 {...iconToastProps('Followers')}
                             >
-                                {'⚬︎'}
+                                {'☻︎'}
                             </span>{' '}
                             <span className="stat-val stat-val-owners">
                                 {market?.followers ?? 0} {(market?.followers ?? 0) === 1 ? 'FOLLOWER' : 'FOLLOWERS'}
@@ -1346,7 +1346,7 @@ export default function ArtworkPageBody({
                                 statsRow={
                                     <div className="hero-line stats-row">
                                         <span className="stat-item stat-item-owners">
-                                            <span className="stat-icon stat-icon-owners stat-icon-followers" {...iconToastProps('Followers — wallets that follow this Output')}>{'⚬︎'}</span>{' '}
+                                            <span className="stat-icon stat-icon-owners stat-icon-followers" {...iconToastProps('Followers — wallets that follow this Output')}>{'☻︎'}</span>{' '}
                                             <span className="stat-val stat-val-owners">{outputFollowers} {outputFollowers === 1 ? 'FOLLOWER' : 'FOLLOWERS'}</span>
                                         </span>
                                     </div>

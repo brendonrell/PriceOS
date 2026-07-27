@@ -1530,7 +1530,9 @@ function ProfilePageBodyInner({
                             <span className="stat-val stat-val-vol" {...iconToastProps('Volume Spent')}>{formatEth(volumeSpent)}</span>
                         </span>
                         <span className="stat-item stat-item-owners">
-                            <span className="stat-icon stat-icon-owners stat-icon-followers" {...iconToastProps('Followers')}>{'\u26AC\uFE0E'}</span>{' '}
+                            {/* \u263B \u2014 THE social mark (GLYPHS \u00A712h) wears the followers
+                                stat now (Brendon, 2026-07-27; was the \u26AC circle). */}
+                            <span className="stat-icon stat-icon-owners stat-icon-followers" {...iconToastProps('Followers')}>{'\u263B\uFE0E'}</span>{' '}
                             <span
                                 className="stat-val stat-val-owners"
                                 role="button"

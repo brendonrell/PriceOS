@@ -4943,6 +4943,10 @@ body.persona-default .stats-row-2 { display: none !important; }
     letter-spacing: -1px;
     flex-shrink: 0;
     user-select: none;
+    /* Sits 2px high so the circled digit centres on the @name's x-height
+       (Brendon, 2026-07-27 — read off the FI screenshots). */
+    position: relative;
+    top: -2px;
 }
 
 .profile-link {
