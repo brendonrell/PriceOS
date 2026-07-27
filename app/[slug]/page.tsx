@@ -17,7 +17,7 @@ import {
   getHandleByAddress,
 } from '@/lib/profile/getUserProfileByHandle';
 import { getUserHoldingsCount, type getUserHoldings } from '@/lib/profile/getUserHoldings';
-import { getSupabaseAnon } from '@/lib/supabase';
+import { getSupabaseAnon, getSupabaseService } from '@/lib/supabase';
 import { getArtistStatus } from '@/lib/artists/allowlist';
 import ProfilePageBody from '@/components/profile/ProfilePageBody';
 import ArtworkPageBody from '@/components/artwork/ArtworkPageBody';
@@ -130,18 +130,46 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     return { title: 'Price Discussion' };
   }
   // ARTIST profiles unfurl with their art (Brendon, 2026-07-13 — the artist
-  // batch): sharing an artist's page is a gallery invite, so the embed leads
-  // with a piece from their first project, storage-probed like every other
-  // unfurl. Non-artist profiles keep the mark via the root defaults.
+  // batch): sharing an artist's page is a gallery invite. The embed leads with
+  // the artist's LATEST MINTED piece across all their projects (Brendon,
+  // 2026-07-27 — was pinned to first project #1); if that piece's preview
+  // isn't stored yet (fresh mint), it falls back to first project #1.
   const artistProjects = projectsByArtist(r.handle.replace(/^@/, ''));
   if (artistProjects.length > 0) {
-    const slug = artistProjects[0].slug;
+    let slug = artistProjects[0].slug;
+    let pick = 1;
+    try {
+      const db = getSupabaseService();
+      const { data: latest } = await db
+        .from('events')
+        .select('project_id, token_id')
+        .in('project_id', artistProjects.map((p) => p.slug))
+        .eq('type', 'MINT')
+        .not('token_id', 'is', null)
+        .order('timestamp', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const ev = latest as { project_id?: string; token_id?: string | number | null } | null;
+      if (ev?.project_id && ev.token_id != null && Number.isFinite(Number(ev.token_id))) {
+        slug = ev.project_id;
+        pick = Number(ev.token_id);
+      }
+    } catch { /* fall back to first project #1 */ }
     let hasArt = true;
     try {
       const bucket = getPreviewBucket();
-      if (bucket) hasArt = (await bucket.head(`${slug}/1.${ART_REV}.png`)) != null;
+      if (bucket) {
+        hasArt = (await bucket.head(`${slug}/${pick}.${ART_REV}.png`)) != null;
+        if (!hasArt && (slug !== artistProjects[0].slug || pick !== 1)) {
+          // Latest mint has no stored preview yet — the first-project cover
+          // is better than no art at all.
+          slug = artistProjects[0].slug;
+          pick = 1;
+          hasArt = (await bucket.head(`${slug}/${pick}.${ART_REV}.png`)) != null;
+        }
+      }
     } catch { /* keep the candidate */ }
-    const art = hasArt ? artImageUrl(slug, 1) : null;
+    const art = hasArt ? artImageUrl(slug, pick) : null;
     if (art) {
       const ogTitle = `@${r.handle.replace(/^@/, '')} — artist on Price Discussion`;
       const description = `Generative art by @${r.handle.replace(/^@/, '')} on Price Discussion — ${artistProjects.length} project${artistProjects.length === 1 ? '' : 's'} through the filter.`;
