@@ -8,11 +8,45 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-000000000. ✅ **2026-07-27 (LATEST) — BRENDON'S FEATURE/BUG LIST SHIPPED. All on
-   `dev` (tip `bbac639`), tree clean, tsc + real build green, 138 tests pass.
-   Fourteen items, each verified before claiming.**
+0000000000. ✅ **2026-07-27 (LATEST) — REWIND TOGGLE · STICKER SAVE SYSTEM ·
+   PING + TAG POPUPS. On `dev` (tip `9e566b4`), tree clean, tsc + real build
+   green, 138 tests pass. Three asks, all shipped.**
 
-   **Nothing is in flight. The list is closed.**
+   **Nothing is in flight.**
+
+   1. **The Rewind is a TOGGLE** — the same triple-tap on "Price Discussion"
+      that docks the OS at yesterday returns you to now while docked, exactly
+      like the bar's ✕.
+   2. **Stickers — a SAVE system.** Opening the manager starts a DRAFT: changes
+      paint on the hero immediately (you're editing the real profile) but
+      nothing reaches the account until SAVE + the app's own confirm card.
+      Closing without saving restores the snapshot byte-for-byte. Spreads keep
+      their own SAVE and force past the hold, so a discard can never delete
+      one. Also: **SPREADS moved to the third window** (Density/Align/Tilt take
+      the second) and the Layout preset "SPREAD" is now **SPACED** — the stored
+      id is untouched, so every Setup Code and existing profile still works.
+   3. **Stickers — the gestures.** A sticker no longer moves when you TOUCH it:
+      every grab is earned by the long-press, and touching a lifted one settles
+      it. And the **page scrolls** when you drag the sticker area — the canvas
+      is `pan-y` now, with the grab claiming the gesture (non-passive
+      touchmove) only once the long-press has fired, so hand-placing is
+      unchanged.
+   4. **Pings go somewhere.** A ping with no deep link (to-dos, achievements,
+      streaks, the system) opens a POPUP — the ping in full, the moment it
+      landed in the VIEWER's own time, and its door: a to-do opens the To-Dos.
+      Never a nav away; the list stays underneath.
+   5. **Profile tags open their room.** Tapping a tag anywhere it appears opens
+      the people wearing it, sliceable by SPENT · OWNED · JOINED · A–Z plus a
+      CABAL ⟁ narrow (you + your mutuals, computed client-side off your own
+      circle). New public route `/api/tags/members` — it runs the SAME
+      `lib/tags/derive` a profile does, `shownTags` included, so a tag its
+      owner hasn't switched on is never listed. Own-profile taps keep their
+      existing meaning (customization menu / WTBS cycle). Built on the OWNERS
+      modal anatomy verbatim.
+
+000000000. ✅ **2026-07-27 — BRENDON'S FEATURE/BUG LIST SHIPPED (the round
+   before). All on `dev` (tip `bbac639`). Fourteen items, each verified before
+   claiming.**
 
    1. **Grouped gallery goes 4-up on mobile** — when a grouping is the active
       sort, the project grid and Collected both double from 2-up. Ungrouped is
