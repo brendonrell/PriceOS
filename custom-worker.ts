@@ -6,8 +6,85 @@
 // gate as an external call — no secret configured ⇒ the sweep never runs).
 import { default as handler } from "./.open-next/worker.js";
 
+// ── EDGE-CACHED FIRST PAINT (Brendon, 2026-07-27 — "faster than Raster"). ──
+// Measured before this: home TTFB 2.6–3.9s — every visit paid a full server
+// render + DB round-trips before the first byte. Every PD page's HTML is
+// viewer-independent (auth + live data hydrate client-side; the one header
+// the layout reads is stamped by middleware from the URL), so page documents
+// are safe to serve from the Cloudflare edge cache for a short TTL. Visitors
+// get the page shell instantly; the client's own live fetches keep the data
+// fresh exactly as they already did.
+//
+// Scope guards:
+//   · GET page documents only — /api, /_next, /preview, and any dotted path
+//     (static files) pass straight through untouched.
+//   · Next's client-navigation data requests (RSC flight) carry their own
+//     headers and BYPASS the cache entirely, so in-app navigation is
+//     untouched — only full document loads are cached.
+//   · Only 200 text/html responses with no Set-Cookie are stored.
+// TTL 30s: worst case a cold visitor's shell is 30s stale, and the shell's
+// numbers are re-fetched live on mount anyway.
+const PAGE_CACHE_TTL_S = 30;
+
+function isCacheablePageRequest(request: Request): boolean {
+  if (request.method !== "GET") return false;
+  // Client-side navigation / prefetch flight requests — never cache-mix
+  // these with documents.
+  if (
+    request.headers.get("rsc") ||
+    request.headers.get("next-router-prefetch") ||
+    request.headers.get("next-router-state-tree") ||
+    request.headers.get("next-url")
+  ) {
+    return false;
+  }
+  const p = new URL(request.url).pathname;
+  if (p.startsWith("/api") || p.startsWith("/_next") || p.startsWith("/preview")) return false;
+  if (p.includes(".")) return false; // static assets keep their own caching
+  return true;
+}
+
+const cachedFetch = async (
+  request: Request,
+  env: unknown,
+  ctx: { waitUntil(p: Promise<unknown>): void }
+): Promise<Response> => {
+  const upstream = handler.fetch as (
+    r: Request,
+    e: unknown,
+    c: unknown
+  ) => Promise<Response>;
+  if (!isCacheablePageRequest(request)) return upstream(request, env, ctx);
+
+  const cache = (caches as unknown as { default: Cache }).default;
+  const key = new Request(new URL(request.url).toString(), { method: "GET" });
+  try {
+    const hit = await cache.match(key);
+    if (hit) return hit;
+  } catch {
+    /* cache unavailable — serve live */
+  }
+  const res = await upstream(request, env, ctx);
+  if (
+    res.status === 200 &&
+    (res.headers.get("content-type") ?? "").includes("text/html") &&
+    !res.headers.has("set-cookie")
+  ) {
+    try {
+      const copy = new Response(res.clone().body, res);
+      // s-maxage governs the edge copy only — browsers ignore it, so
+      // clients still revalidate every load and get the edge-fast answer.
+      copy.headers.set("cache-control", `public, s-maxage=${PAGE_CACHE_TTL_S}`);
+      ctx.waitUntil(cache.put(key, copy));
+    } catch {
+      /* body already consumed / cache write failed — the live response stands */
+    }
+  }
+  return res;
+};
+
 export default {
-  fetch: handler.fetch,
+  fetch: cachedFetch,
 
   async scheduled(
     controller: { cron?: string },
