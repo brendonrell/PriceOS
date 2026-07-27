@@ -34,7 +34,11 @@ type TriggerKind = 'upload' | 'price';
 
 const CLOSE_FADE_MS = 250;
 
-export function WorkflowsSheet({ onClose }: { onClose: () => void }) {
+/* `inline` — the SAME builder + armed list mounted as the PriceOS Suite's
+   ☇ app (2026-07-27): no backdrop, no slide-up, no portal — the content
+   renders in place. The ☇ key beside the To-Dos + keeps opening the sheet
+   form untouched. */
+export function WorkflowsSheet({ onClose, inline = false }: { onClose?: () => void; inline?: boolean }) {
     const { showToast } = useToast();
     const [workflows, setWorkflows] = useState<WorkflowRecord[]>([]);
     const [active, setActive] = useState(false);
@@ -62,7 +66,7 @@ export function WorkflowsSheet({ onClose }: { onClose: () => void }) {
         return () => cancelAnimationFrame(raf);
     }, []);
     const dismiss = () => {
-        if (closingRef.current) return;
+        if (closingRef.current || !onClose) return;
         closingRef.current = true;
         setActive(false);
         setTimeout(onClose, CLOSE_FADE_MS);
@@ -93,26 +97,8 @@ export function WorkflowsSheet({ onClose }: { onClose: () => void }) {
         ? artist.trim().length > 0
         : slug.trim().length > 0 && Number(tokenId) >= 1 && Number(price) > 0;
 
-    return createPortal(
-        <div
-            className={`value-prompt-wrap mounted${active ? ' active' : ''}`}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Workflows"
-            onClick={(e) => { if (e.target === e.currentTarget) dismiss(); }}
-        >
-            <div className="value-prompt-box wf-sheet">
-                <span
-                    className="value-prompt-close-x"
-                    onClick={dismiss}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); dismiss(); } }}
-                    title="Close"
-                >
-                    {'×︎'}
-                </span>
-                <div className="value-prompt-title">☇︎ Workflows <span className="notif-count">({armedCount})</span></div>
+    const content = (
+        <>
 
                 <div className="wf-compose">
                     <div className="wf-kind-row">
@@ -222,7 +208,43 @@ export function WorkflowsSheet({ onClose }: { onClose: () => void }) {
                             </span>
                         </div>
                     ))}
+            </div>
+        </>
+    );
+
+    if (inline) {
+        return (
+            <div className="user-dropdown notifications-box is-open suite-wf">
+                <div className="notif-header">
+                    <span>WORKFLOWS <span className="notif-count">({armedCount})</span></span>
                 </div>
+                <div className="dropdown-divider" />
+                {content}
+            </div>
+        );
+    }
+
+    return createPortal(
+        <div
+            className={`value-prompt-wrap mounted${active ? ' active' : ''}`}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Workflows"
+            onClick={(e) => { if (e.target === e.currentTarget) dismiss(); }}
+        >
+            <div className="value-prompt-box wf-sheet">
+                <span
+                    className="value-prompt-close-x"
+                    onClick={dismiss}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); dismiss(); } }}
+                    title="Close"
+                >
+                    {'×︎'}
+                </span>
+                <div className="value-prompt-title">☇︎ Workflows <span className="notif-count">({armedCount})</span></div>
+                {content}
             </div>
         </div>,
         document.body,
