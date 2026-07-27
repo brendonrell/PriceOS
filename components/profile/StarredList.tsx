@@ -587,9 +587,11 @@ export default function StarredList({
                     : `@${r.slug}`.toLowerCase().includes(q),
             );
         }
-        all.sort((a, b) => b.ts - a.ts);
+        /* ◷ direction (the timeline's one live control): asc = newest-first
+           (the default read), desc = oldest-first — day buckets follow. */
+        all.sort((a, b) => (sortDir === 'desc' ? a.ts - b.ts : b.ts - a.ts));
         return all;
-    }, [isHistory, outputRows, projectViewRows, query]);
+    }, [isHistory, outputRows, projectViewRows, query, sortDir]);
 
     /* Progressive reveal — same shape as the Collected grid (Brendon 2026-06-27).
        History can hold up to 500 rows, each a live OutputThumb; mount a first

@@ -840,7 +840,7 @@ function PersonRow({
                 >
                     <div className="fm-row-main">
                         <div className="fm-row-id">
-                            <CollectedPair handle={handle} onSpriteTap={(rect) => setSpriteAnchor(rect)} />
+                            <CollectedPair handle={handle} onSpriteTap={(rect) => setSpriteAnchor(rect)} showRank />
                             {spriteAnchor && (
                                 <FriendSpritePopover
                                     handle={handle}
@@ -938,6 +938,8 @@ function FriendDossier({
 }) {
     const [theirSlugs, setTheirSlugs] = useState<string[] | null>(null);
     const [theirScore, setTheirScore] = useState<number | null>(null);
+    /* Mini↔big toggle for the dossier tags (Brendon, 2026-07-27). */
+    const [tagsBig, setTagsBig] = useState(false);
 
     useEffect(() => {
         if (!friendAddr) { setTheirSlugs([]); return; }
@@ -975,7 +977,15 @@ function FriendDossier({
 
     return (
         <div className="fi-dossier" onClick={(e) => e.stopPropagation()}>
-            <UserTags set={tagSet} size="inline" />
+            {/* The FULL ASCII-ID leads the dossier — sprite · PriceRank badge ·
+                @name, the connect-menu identity verbatim — with the MINI tags
+                riding inline right after it (Brendon, 2026-07-27). Tap a mini
+                → the full-size row below; tap a full one → back to mini. */}
+            <div className="fi-dossier-id">
+                <CollectedPair handle={handle} showRank />
+                {!tagsBig && <UserTags set={tagSet} size="mini" onTagTap={() => setTagsBig(true)} />}
+            </div>
+            {tagsBig && <UserTags set={tagSet} size="inline" onTagTap={() => setTagsBig(false)} />}
             <div className="fi-dossier-head">
                 {tag && <span className="fm-tag">{REL_GLYPH[tag]}{VS15} {tag}</span>}
                 {faction && (

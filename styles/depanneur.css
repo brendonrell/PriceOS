@@ -1,0 +1,229 @@
+/* ══════════════════════════════════════════════════════════════════════
+   THE DEPANNEUR (components/keychains/*) — the keychain capsule machine.
+   Chrome = the FI-PLUS panel, reused verbatim; this file adds only the
+   machine, the reveal, the rack, and the worn mini charm. Full-strength
+   site tokens (Rule #2): solid fills, --text-color borders + lettering,
+   bold, 12px floor, 4px corners.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.dp-body {
+    padding: 6px 12px 16px;
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.dp-note {
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0;
+    padding: 4px 2px;
+}
+
+/* ── the machine ── */
+.dp-machine {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+}
+.dp-machine-cap {
+    font-size: 30px;
+    font-weight: bold;
+    line-height: 1;
+    flex-shrink: 0;
+}
+.dp-machine-cap.turning { animation: dp-turn 0.9s ease-in-out infinite; }
+@keyframes dp-turn {
+    0% { transform: rotate(0deg); }
+    50% { transform: rotate(180deg); }
+    100% { transform: rotate(360deg); }
+}
+.dp-machine-col { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.dp-machine-name { font-size: 13px; font-weight: bold; letter-spacing: 1px; }
+.dp-machine-line { font-size: 12px; font-weight: 600; }
+.dp-crank {
+    margin-left: auto;
+    flex-shrink: 0;
+    cursor: pointer;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    color: var(--text-color);
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    padding: 10px 12px;
+    white-space: nowrap;
+}
+.dp-crank:hover,
+.dp-crank.cranking {
+    background: var(--stat-active-bg, var(--text-color));
+    color: var(--stat-active-text, var(--bg-color));
+}
+.dp-crank.cranking { animation: dp-pulse 0.6s ease-in-out infinite alternate; }
+@keyframes dp-pulse { from { opacity: 1; } to { opacity: 0.72; } }
+
+/* ── the reveal / picked charm ── */
+.dp-reveal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0 2px;
+}
+.dp-charm-big { display: block; width: min(72vw, 300px); }
+.dp-charm-big svg { display: block; width: 100%; height: auto; }
+.dp-sheet { width: 100%; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.dp-sheet-name { font-size: 15px; font-weight: bold; letter-spacing: 2px; }
+.dp-traits {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 5px;
+}
+.dp-trait {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 4px 7px;
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+}
+.dp-trait-k { letter-spacing: 0.5px; }
+.dp-trait-v {
+    background: var(--stat-active-bg, var(--text-color));
+    color: var(--stat-active-text, var(--bg-color));
+    border-radius: 4px;
+    padding: 1px 5px;
+}
+.dp-charm-life { display: flex; gap: 12px; font-size: 12px; font-weight: bold; letter-spacing: 0.5px; }
+.dp-actions { display: flex; gap: 8px; }
+.dp-btn {
+    cursor: pointer;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    color: var(--text-color);
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    padding: 8px 12px;
+}
+.dp-btn:hover,
+.dp-btn.on {
+    background: var(--stat-active-bg, var(--text-color));
+    color: var(--stat-active-text, var(--bg-color));
+}
+.dp-christen { display: flex; gap: 6px; width: 100%; max-width: 340px; }
+.dp-christen-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: var(--text-color);
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    padding: 8px 10px;
+}
+.dp-christen-input::placeholder { color: var(--text-color); opacity: 0.75; }
+
+/* ── the rack ── */
+.dp-rack-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    padding: 4px 2px 6px;
+    border-bottom: 1px solid var(--text-color);
+}
+.dp-rack-count { font-size: 12px; }
+.dp-rack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.dp-rack-slot {
+    position: relative;
+    cursor: pointer;
+    width: 76px;
+    height: 76px;
+    padding: 2px;
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+/* Selected = PD's dotted ring (the state vocabulary — never an accent bar). */
+.dp-rack-slot.on { outline: 2px dotted var(--text-color); outline-offset: 2px; }
+.dp-charm-mini { display: block; width: 100%; }
+.dp-charm-mini svg { display: block; width: 100%; height: auto; }
+.dp-rack-worn {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    font-size: 9px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    background: var(--stat-active-bg, var(--text-color));
+    color: var(--stat-active-text, var(--bg-color));
+    border-radius: 3px;
+    padding: 1px 4px;
+}
+
+/* ── the full-charm popup (profile mini tap) ── */
+.dp-charm-pop-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1335;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.dp-charm-pop {
+    position: relative;
+    width: min(92vw, 420px);
+    max-height: 86dvh;
+    overflow-y: auto;
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    padding: 34px 16px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Courier New', Courier, monospace;
+}
+.dp-charm-pop .ambient-pop-close { position: absolute; top: 8px; right: 10px; }
+
+/* ── the worn mini charm at the end of the profile tags ── */
+.pd-charm-worn {
+    display: inline-flex;
+    align-items: center;
+    width: 26px;
+    height: 26px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.pd-charm-worn svg { display: block; width: 100%; height: auto; }

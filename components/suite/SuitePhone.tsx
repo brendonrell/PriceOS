@@ -1,7 +1,7 @@
 'use client';
 
 /*
- * SuitePhone — ⚯ PricePhone, the Suite's contacts app (Brendon, 2026-07-27;
+ * SuitePhone — ⚯ PriceCall, the Suite's contacts app (Brendon, 2026-07-27;
  * his naming call — "PriceDex" lost to what DEX means in crypto).
  *
  * Contacts = your REAL circle, straight off the same live graph the Friend
@@ -68,7 +68,7 @@ export default function SuitePhone() {
     /* CALL — the line rings and you land on their collection, where the
        offer gets placed on the piece you pick. */
     const call = (c: Contact) => {
-        showToast(`PricePhone: CALLING @${c.handle.toUpperCase()}`);
+        showToast(`PriceCall: CALLING @${c.handle.toUpperCase()}`);
         closeAll();
         router.push(`/${c.handle}`);
     };

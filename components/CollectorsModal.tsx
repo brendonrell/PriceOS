@@ -200,7 +200,7 @@ export default function CollectorsModal() {
                                     <div className="fm-row-main">
                                         <div className="fm-row-id">
                                             {r.handle ? (
-                                                <CollectedPair handle={r.handle} />
+                                                <CollectedPair handle={r.handle} showRank />
                                             ) : (
                                                 <span className="collected-pair"><span className="profile-link">{r.display}</span></span>
                                             )}

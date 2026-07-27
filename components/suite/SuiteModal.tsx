@@ -11,7 +11,8 @@
  *                  header too, exactly as in the menu)
  *   ☇ PriceFlows — the workflows builder + armed list, inline
  *   ◊ PriceBooks — the REAL Portfolios panel (Budgets + Main/Shadow)
- *   ⊟ PriceNotes — the REAL Notes box, expanded
+ *   ⊟ PriceWrite — the REAL Notes box, expanded (renamed from PriceNotes,
+ *                  Brendon 2026-07-27)
  *
  * Nothing here is re-implemented (Rule #0): the tabs mount the same
  * components the connect menu runs; the chrome is the Friend-Inspector
@@ -52,9 +53,11 @@ const APPS = [
        the Suite (the real Pal, ModalContext 'pal'/'profit'); closing it
        lands you back here. */
     { key: 'calc', glyph: 'ƒ', name: 'PriceCalc' },
-    /* ⚯ — the Friend Inspector's circle glyph fronts the contacts app. */
-    { key: 'phone', glyph: '⚯', name: 'PricePhone' },
-    { key: 'notes', glyph: '⊟', name: 'PriceNotes' },
+    /* ⚯ — the Friend Inspector's circle glyph fronts the contacts app.
+       Renamed PricePhone → PriceCall (Brendon, 2026-07-27). Key unchanged. */
+    { key: 'phone', glyph: '⚯', name: 'PriceCall' },
+    /* Renamed PriceNotes → PriceWrite (Brendon, 2026-07-27). Key unchanged. */
+    { key: 'notes', glyph: '⊟', name: 'PriceWrite' },
 ] as const;
 type AppKey = SuiteAppKey;
 
@@ -104,7 +107,8 @@ export default function SuiteModal() {
                         {`×${VS15}`}
                     </span>
                 </div>
-                {/* the little icons at the top — the app switcher */}
+                {/* the app switcher — small APP ICONS (Brendon, 2026-07-27):
+                    the glyph in a rounded square, the name below it. */}
                 <div className="suite-tabs" role="tablist" aria-label="Suite apps">
                     {APPS.map((a) => (
                         <button
@@ -115,10 +119,12 @@ export default function SuiteModal() {
                             className={`suite-tab${app === a.key ? ' on' : ''}`}
                             onClick={() => { if (a.key === 'calc') open('pal', 'profit'); else setApp(a.key as AppKey); }}
                         >
-                            {a.glyph === 'mille'
-                                ? <PerMilleMark className="suite-tab-permille" />
-                                : <span className="suite-tab-ic">{`${a.glyph}${VS15}`}</span>}
-                            {a.name}
+                            <span className="suite-tab-icbox" aria-hidden="true">
+                                {a.glyph === 'mille'
+                                    ? <PerMilleMark className="suite-tab-permille" />
+                                    : <span className="suite-tab-ic">{`${a.glyph}${VS15}`}</span>}
+                            </span>
+                            <span className="suite-tab-name">{a.name}</span>
                         </button>
                     ))}
                 </div>

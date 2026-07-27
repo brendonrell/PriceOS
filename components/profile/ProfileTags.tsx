@@ -11,12 +11,13 @@
  * colorway text colour so it's always legible on any repainted page).
  */
 
+import type { ReactNode } from 'react';
 import { type Tag, tagPaintHex, tagTextOn } from '../../lib/tags/catalog';
 import { styleName } from '../../lib/profile/nameFont';
 import { PriceMark } from '../brand/PriceMark';
 import { useModal } from '../../lib/state/ModalContext';
 
-export function ProfileTags({ tags, font, paint, onTagTap, className }: {
+export function ProfileTags({ tags, font, paint, onTagTap, className, trailing }: {
     tags: Tag[];
     /** Wrapper class — the hero's own row by default. The list surfaces
      *  (leaderboards, collectors, followers, dossier, owner line, search) pass
@@ -35,6 +36,9 @@ export function ProfileTags({ tags, font, paint, onTagTap, className }: {
      *  the owner of a WTBS-family chip can cycle THAT chip's treatment instead
      *  (Brendon, 2026-07-26). Absent = display-only. */
     onTagTap?: (t: Tag) => void;
+    /** Rides at the END of the pill row — the equipped keychain mini charm
+     *  (Brendon-confirmed placement, 2026-07-27). */
+    trailing?: ReactNode;
 }) {
     /* WITHOUT an owner handler, a tag opens ITS ROOM (Brendon, 2026-07-27):
        everyone wearing it, sliceable — a popup over wherever you are, never a
@@ -42,7 +46,7 @@ export function ProfileTags({ tags, font, paint, onTagTap, className }: {
        menu / the WTBS cycle), and that keeps priority. */
     const { open } = useModal();
     const tap = onTagTap ?? ((t: Tag) => open('tag', t.id));
-    if (!tags.length) return null;
+    if (!tags.length && !trailing) return null;
     const paintHex = tagPaintHex(paint);
     return (
         <div className={className ?? 'profile-tags'} aria-label="Tags">
@@ -90,6 +94,7 @@ export function ProfileTags({ tags, font, paint, onTagTap, className }: {
                 </span>
                 );
             })}
+            {trailing}
         </div>
     );
 }

@@ -13,6 +13,7 @@
 @import '../styles/zen.css';
 @import '../styles/market.css';
 @import '../styles/suite.css';
+@import '../styles/depanneur.css';
 @import '../styles/albums.css';
 @import '../styles/cartography.css';
 @import '../styles/marginalia.css';
@@ -4228,6 +4229,44 @@ body.pd-stone-open .ens-copy-toast {
 .user-tags--row::-webkit-scrollbar { display: none; }
 .user-tags--row .profile-tag { flex: 0 0 auto; height: 20px; padding: 0 7px; }
 .user-tags--row .profile-tag-glyph { font-size: 14px; }
+/* MINI tags (Brendon, 2026-07-27) — the half-scale pills that ride inline
+   right after an ASCII-ID. Tap one → the full-size row appears below (the
+   normal look); tap a full one → back to mini. */
+.user-tags--mini {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    gap: 4px;
+    vertical-align: middle;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.user-tags--mini::-webkit-scrollbar { display: none; }
+.user-tags--mini .profile-tag {
+    flex: 0 0 auto;
+    height: 15px;
+    padding: 0 5px;
+    gap: 3px;
+    font-size: 10px;
+    border-width: 1px;
+}
+.user-tags--mini .profile-tag-glyph { font-size: 11px; }
+.user-tags--mini .profile-tag-mark { height: 8px; width: auto; }
+/* THEMED (output page): the mini pills wear the PAGE's colorway tokens —
+   solid --bg-color fill, full-strength --text-color border + lettering —
+   instead of each tag's own colour. The per-pill inline paints lose. */
+.user-tags--themed .profile-tag {
+    background: var(--bg-color);
+    border-color: var(--text-color);
+    color: var(--text-color);
+}
+.user-tags--themed .profile-tag-glyph { color: var(--text-color); }
+.user-tags--themed .profile-tag-label,
+.user-tags--themed .profile-tag-label span { color: var(--text-color) !important; }
+.user-tags--themed .profile-tag--outlined .profile-tag-label {
+    color: transparent !important;
+    -webkit-text-stroke: 0.9px var(--text-color);
+}
 /* Search's collector row is a SINGLE line (sprite · @name · ✺ · tags · stats),
    so the tag strip has to be the part that gives — it shrinks and scrolls
    rather than shoving the stats readout off the right edge. */
@@ -4892,6 +4931,20 @@ body.persona-default .stats-row-2 { display: none !important; }
     line-height: 1;
     position: relative; /* anchor for the ::after underline */
 }
+/* FULL ASCII-ID (Brendon, 2026-07-27) — the connect-menu PriceRank badge at
+   chip scale, riding between sprite and @name inside a .collected-pair when
+   the surface asks for the full identity (showRank). Same glyph family +
+   negative tracking as the navbar's .ascii-pfp-badge, full-strength colour. */
+.collected-rank-badge {
+    font-family: 'Segoe UI Symbol', 'Noto Sans Symbols', Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1;
+    color: inherit;
+    letter-spacing: -1px;
+    flex-shrink: 0;
+    user-select: none;
+}
+
 .profile-link {
     cursor: pointer;
     color: inherit;
@@ -12036,77 +12089,159 @@ body.colorway-dark .ghost-feed-bar {
 }
 
 /* ── Profile Discord sub-tab ───────────────────────────────────────── */
-/* Redone 2026-07-20 (Brendon: professional + clean, match the other +More
-   sections — the ATTRIBUTES tab look). The section rides the character
-   sheet's own .attr-group / .attr-grid / .attr-tile anatomy verbatim; only
-   the bits below are Discord-specific. Blurple #5865F2 survives only as the
-   small Discord mark; online green #3BA55D carries linked/member state. */
-/* Desktop: keep the Discord panel from sprawling — cap it to the content
-   column so it stops where the Starred/Wishlist content stops (Brendon, 2026-06-22). */
+/* Rebuilt 2026-07-27 (Brendon: "Discord IS the product for PD — an amazing
+   page, styled properly in our UI"). PD chrome only: solid --bg-color fills,
+   FULL-strength --text-color borders + lettering, bold, 12px floor, 4px
+   corners (the corner law — no lozenges). Blurple #5865F2 survives only on
+   the Discord mark; the user's own Discord accent paints their pfp frame. */
 @media (min-width: 601px) {
-    .pd-discord { max-width: 560px; }
+    .pd-dc { max-width: 560px; }
 }
-.pd-discord .attr-tile-glyph .pd-discord-logo {
-    display: block;
-    color: #5865F2;
-    width: 20px;
-    height: 20px;
+.pd-dc {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--text-color);
 }
-.pd-discord-tile { color: inherit; text-decoration: none; }
-/* The tab's personality tile — the identity as ONE wide rectangle across the
-   grid (same tile anatomy, bigger presence). */
-.pd-discord-tile-wide { grid-column: 1 / -1; }
-.pd-discord-tile-wide .attr-tile-value { font-size: 14px; }
-.pd-discord-ok { color: #3BA55D; }
-.pd-discord-avatar {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
+.pd-dc-logo { flex-shrink: 0; color: #5865F2; }
+/* Section head — bold, full strength, ruled like the Suite's own heads. */
+.pd-dc-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    padding: 2px 2px 8px;
+    border-bottom: 1px solid var(--text-color);
+}
+/* The identity plate — who this wallet is on Discord, as ONE tappable card. */
+.pd-dc-plate {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    color: var(--text-color);
+    text-decoration: none;
+}
+.pd-dc-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 4px;
+    border: 2px solid var(--text-color);
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+.pd-dc-idcol {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+.pd-dc-handle {
+    font-size: 16px;
+    font-weight: bold;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.pd-dc-standing {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+.pd-dc-plate-arrow {
+    margin-left: auto;
+    font-size: 16px;
+    font-weight: bold;
     flex-shrink: 0;
 }
-/* The CTA pills under the grid, stacked + left-aligned. */
-.pd-discord-cta-col {
+/* The readout row — the stat pills, full-strength. */
+.pd-dc-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.pd-dc-stat {
+    flex: 1 1 30%;
+    min-width: 96px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 9px 8px;
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+}
+.pd-dc-stat-label {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+.pd-dc-stat-value {
+    font-size: 13px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.pd-dc-swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    border: 1px solid var(--text-color);
+    display: inline-block;
+}
+.pd-dc-pitch {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.5;
+    margin: 0;
+    padding: 2px 2px 0;
+}
+/* The doors — the home-STICKERS-button treatment: solid --bg-color fill,
+   --text-color border AND lettering, bold, 4px. */
+.pd-dc-doors {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
-    padding-top: 4px;
+    padding-top: 2px;
 }
-.pd-discord-join {
-    flex-shrink: 0;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: bold;
-    color: var(--text-color);
-    background: var(--bg-color);
-    border: 1px solid var(--text-color);
-    border-radius: 999px;
-    padding: 10px 18px;
-    transition: opacity 0.15s;
-}
-.pd-discord-join .pd-discord-logo { color: #5865F2; }
-.pd-discord-join:hover { opacity: 0.85; }
-.pd-discord-join.auth-gated { opacity: 0.4; cursor: not-allowed; }
-.pd-discord-unlink {
-    flex-shrink: 0;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: bold;
-    color: var(--text-color);
-    background: none;
-    border: 1px solid var(--text-color);
-    border-radius: 999px;
-    padding: 6px 12px;
-}
-.pd-discord-join {
+.pd-dc-btn {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     width: fit-content;
+    cursor: pointer;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    color: var(--text-color);
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    padding: 10px 16px;
     text-decoration: none;
 }
+.pd-dc-btn:hover {
+    background: var(--stat-active-bg, var(--text-color));
+    color: var(--stat-active-text, var(--bg-color));
+}
+.pd-dc-btn:hover .pd-dc-logo { color: currentColor; }
+.pd-dc-btn.auth-gated { cursor: not-allowed; }
+.pd-dc-btn-arrow { font-size: 14px; }
+.pd-dc-btn-unlink { padding: 7px 12px; font-size: 12px; }
+
+/* .pd-discord-tile-wide survives — the Counterparties Nemesis tile rides it. */
+.pd-discord-tile-wide { grid-column: 1 / -1; }
+.pd-discord-tile-wide .attr-tile-value { font-size: 14px; }
 
 /* ── Neighbourhood (artwork +More) · Counterparties + Targets (profile +More) ──
    All three ride the .attr-group anatomy + the .starred-row grammar; the rules
@@ -12190,9 +12325,6 @@ body.colorway-dark .ghost-feed-bar {
     font-weight: bold;
     letter-spacing: 0.5px;
 }
-.pd-discord-join-arrow { font-size: 14px; position: relative; top: -2px; }
-.pd-discord-logo { flex-shrink: 0; }
-
 /* ── Gen Curated caption — the set's name/synopsis ─────────────────────── */
 /* Same small, fully-visible card-meta type as the project name under each
    piece. Plainly readable (Brendon 2026-06-20). */
@@ -13090,6 +13222,14 @@ body.is-pwa .fullscreen-back {
     display: flex; flex-direction: column; gap: 15px;
 }
 .fi-dossier-head { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+/* The dossier's leading FULL ASCII-ID line — the chip at a headline size,
+   the MINI tags riding right after it. */
+.fi-dossier-id { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.info-line .user-tags--mini { max-width: 100%; margin-left: 6px; vertical-align: -3px; }
+.fi-dossier-id .collected-pair { font-size: 15px; padding: 3px 8px; }
+.fi-dossier-id .collected-sprite { font-size: 13px; }
+.fi-dossier-id .collected-rank-badge { font-size: 17px; }
+.fi-dossier-id .profile-link { font-family: 'Courier New', Courier, monospace; font-weight: bold; }
 .fi-dossier-head .fm-tag { opacity: 1; }
 .fi-follow { margin-left: auto; font-size: 11px; font-weight: bold; letter-spacing: 0.06em; }
 .fi-duel { grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 11px; }

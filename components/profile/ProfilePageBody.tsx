@@ -79,6 +79,7 @@ import CompletionismModal from '../CompletionismModal';
 import FollowButton from './FollowButton';
 import { HeroStickers } from '../stickers/HeroStickers';
 import { ProfileTags } from './ProfileTags';
+import EquippedCharm from '../keychains/EquippedCharm';
 import { useProfileTags } from '../../lib/hooks/useProfileTags';
 import { useNameFont } from '../../lib/hooks/useNameFont';
 import { useTagPaint } from '../../lib/hooks/useTagPaint';
@@ -886,8 +887,9 @@ function ProfilePageBodyInner({
        viewed since shows up. */
     useEffect(() => { if (onHistoryTab) readHistory(); }, [onHistoryTab, readHistory]);
     /* Active sort/group config for the current Starred filter (or Wishlist).
-       History reuses the Outputs sort set. */
-    const moreCfg = MORE_CFG[onWishlistTab ? 'wishlist' : onHistoryTab ? 'outputs' : moreMode] ?? MORE_CFG.all;
+       History has its own timeline config — ◷ only (the borrowed Outputs
+       set showed a GROUP + sorts the timeline never applied). */
+    const moreCfg = MORE_CFG[onWishlistTab ? 'wishlist' : onHistoryTab ? 'history' : moreMode] ?? MORE_CFG.all;
     /* Created carousels shown either inside the Artist-style showcase or as the
        +More sub-tab for traditional-Top-6 artists. */
     const moreCreatedActive = onMore && createdUnderMore && effMoreL1 === 'created';
@@ -1546,7 +1548,13 @@ function ProfilePageBodyInner({
                     </div>
                 }
             >
-                    <ProfileTags tags={displayTags} font={ownerNameFont} paint={ownerTagPaint} onTagTap={isOwnProfile ? (t) => (isTeamStyleTag(t.id) ? cycleTeamTagStyle() : toggleEgg()) : undefined} />
+                    <ProfileTags
+                        tags={displayTags}
+                        font={ownerNameFont}
+                        paint={ownerTagPaint}
+                        onTagTap={isOwnProfile ? (t) => (isTeamStyleTag(t.id) ? cycleTeamTagStyle() : toggleEgg()) : undefined}
+                        trailing={<EquippedCharm address={user.address} />}
+                    />
                     <HeroStickers
                         ownerHandle={user.handle ?? handle}
                         isOwn={isOwnProfile}
@@ -1860,6 +1868,17 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                         other profiles get the quiet note inside the panel. */}
                     {onMore && effMoreL1 === 'albums' && (
                         <AlbumsPanel own={isOwnProfile} />
+                    )}
+
+                    {/* Offers sub-tab — the wallet-level offers view isn't built
+                        yet; until it is, the tab wears the Albums-style empty
+                        prompt instead of a dead blank (Brendon, 2026-07-27). */}
+                    {onMore && effMoreL1 === 'offers' && (
+                        <section className="starred-list" aria-label="Offers">
+                            <p className="album-empty-note">
+                                No offers yet — offers {isOwnProfile ? 'you make' : `@${displayHandle} makes`} and receive{isOwnProfile ? '' : 's'} will live here. Make one from any artwork&rsquo;s ✦{'︎'} panel.
+                            </p>
+                        </section>
                     )}
 
                     {/* Info sub-tab content: followers / following / anchor + the

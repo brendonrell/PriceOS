@@ -591,7 +591,7 @@ export default function PriceSpriteModal() {
                         type="button"
                         onClick={(e) => {
                             e.stopPropagation();
-                            showToast('Keychains: COMING SOON');
+                            open('depanneur');
                         }}
                     >
                         <span className="ps-action-icon">{`⚷${VS15}`}</span>

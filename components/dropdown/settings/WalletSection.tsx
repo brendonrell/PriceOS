@@ -374,7 +374,7 @@ export function WalletSection() {
                     id="keychainWalletBtn"
                     onClick={(e) => {
                         e.stopPropagation();
-                        showToast('Keychains: COMING SOON');
+                        openModal('depanneur');
                     }}
                     title="keychains — the capsule machine"
                     role="button"
@@ -383,7 +383,7 @@ export function WalletSection() {
                         if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
                             e.stopPropagation();
-                            showToast('Keychains: COMING SOON');
+                            openModal('depanneur');
                         }
                     }}
                 >

@@ -100,6 +100,8 @@ import TarotSpreadModal from '../TarotSpreadModal';
 import GnomeWalletModal from '../GnomeWalletModal';
 import PalPanel from '../pal/PalPanel';
 import SuiteModal from '../suite/SuiteModal';
+import DepanneurModal from '../keychains/DepanneurModal';
+import KeychainCharmModal from '../keychains/KeychainCharmModal';
 import OfferShieldCast from '../OfferShieldCast';
 import PanopticonConfirmModal from '../PanopticonConfirmModal';
 import CartographyModal from '../CartographyModal';
@@ -510,6 +512,12 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="SuiteModal">
                 <SuiteModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="DepanneurModal">
+                <DepanneurModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="KeychainCharmModal">
+                <KeychainCharmModal />
             </ErrorBoundary>
             <ErrorBoundary name="PriceosModal">
                 <PriceosModal />

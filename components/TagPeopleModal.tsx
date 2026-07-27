@@ -186,7 +186,7 @@ export default function TagPeopleModal() {
                                     <span className="lb-pos">{i + 1}</span>
                                     <div className="fm-row-main">
                                         <div className="fm-row-id">
-                                            <CollectedPair handle={r.handle} />
+                                            <CollectedPair handle={r.handle} showRank />
                                             {mutuals.has(r.handle) && (
                                                 <span className="id-cartel" aria-label="cabal" title="Your cabal">{`⟁${VS15}`}</span>
                                             )}

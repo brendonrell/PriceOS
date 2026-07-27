@@ -62,9 +62,15 @@ export type ModalName =
        the side + optional goal: 'profit' | 'purchase' | 'purchase:<YYYY-MM>'. */
     | 'pal'
     /* PriceOS SUITE (Brendon, 2026-07-27) — the productivity super-app:
-       PriceCal · PriceTask · PriceNotes in one modal. Door: long-press the
+       PriceCal · PriceTask · PriceWrite in one modal. Door: long-press the
        TO-DOS header in the connect menu. */
-    | 'suite';
+    | 'suite'
+    /* PD KEYCHAINS (Brendon, 2026-07-27 — "simulate it for our testers"):
+       'depanneur' = the capsule-machine shop (both ⚷ doors), 'keychain' =
+       one charm big (payload `${address}` or `${address}:${id}` — the
+       profile mini-charm tap). */
+    | 'depanneur'
+    | 'keychain';
 
 interface OpenModalState {
     name: ModalName;

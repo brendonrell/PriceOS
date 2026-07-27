@@ -15,19 +15,27 @@
 import { useSpriteFace } from '../../lib/hooks/useSpriteFace';
 import SpriteFace from '../SpriteFace';
 import { useSpiteMatcher } from '../../lib/pins/spiteStore';
+import { useUserRank, rankBadgeGlyph } from '../../lib/hooks/useUserRank';
 
 export default function CollectedPair({
     handle,
     onSpriteTap,
+    showRank = false,
 }: {
     handle: string;
     /** When set, tapping ONLY the sprite face fires this with the face's on-screen
      *  rect (the @name link still navigates). Used by the Friend Inspector to pop
      *  a PriceRank card off a sprite (Brendon, 2026-07-11). */
     onSpriteTap?: (rect: DOMRect) => void;
+    /** FULL ASCII-ID mode (Brendon, 2026-07-27): the chip carries the person's
+     *  PriceRank badge between sprite and @name — the connect-menu identity,
+     *  verbatim, at chip scale. Rank derives from their live PriceScore
+     *  (cached per handle). */
+    showRank?: boolean;
 }) {
     const h = handle.toLowerCase().replace(/^@/, '');
     const face = useSpriteFace(h);
+    const rank = useUserRank(h, showRank);
     /* Spite Book — a spited handle renders redacted in every chip. */
     const isSpited = useSpiteMatcher();
     return (
@@ -46,6 +54,15 @@ export default function CollectedPair({
             ) : (
                 <SpriteFace className="collected-sprite" face={face} />
             ))}
+            {showRank && rank !== null && (
+                <span
+                    className="collected-rank-badge"
+                    aria-label={`PriceRank ${rank}`}
+                    title={`PriceRank ${rank}`}
+                >
+                    {rankBadgeGlyph(rank)}
+                </span>
+            )}
             <a className={`profile-link${isSpited(h) ? ' spited' : ''}`} href={`/${h}`}>
                 @{h}
             </a>

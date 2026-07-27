@@ -20,30 +20,45 @@
 import { ProfileTags } from '../profile/ProfileTags';
 import { useUserTags, type UserTagSet } from '../../lib/hooks/useUserTags';
 
-export function UserTags({ set, size = 'row' }: {
+export function UserTags({ set, size = 'row', themed = false, onTagTap }: {
     /** This person's resolved tags, from useUserTags. Absent = render nothing. */
     set: UserTagSet | undefined;
     /** 'row' = the list-row strip. 'inline' = the same pills at hero weight,
-     *  for the roomier surfaces (the dossier head, the artwork owner line). */
-    size?: 'row' | 'inline';
+     *  for the roomier surfaces (the dossier head, the artwork owner line).
+     *  'mini' = the half-scale pills that ride inline right after an
+     *  ASCII-ID (Brendon, 2026-07-27). */
+    size?: 'row' | 'inline' | 'mini';
+    /** Paint the pills in the PAGE's colorway tokens instead of each tag's
+     *  own colour — the output-page treatment for the mini row. */
+    themed?: boolean;
+    /** Override the pill tap (the mini↔big toggle). Absent = the default
+     *  open-the-tag's-room behaviour. */
+    onTagTap?: () => void;
 }) {
     if (!set?.tags.length) return null;
+    const cls = ['user-tags'];
+    if (size === 'row') cls.push('user-tags--row');
+    if (size === 'mini') cls.push('user-tags--mini');
+    if (themed) cls.push('user-tags--themed');
     return (
         <ProfileTags
-            className={`user-tags${size === 'row' ? ' user-tags--row' : ''}`}
+            className={cls.join(' ')}
             tags={set.tags}
             font={set.font}
             paint={set.paint}
+            onTagTap={onTagTap ? () => onTagTap() : undefined}
         />
     );
 }
 
 /** Convenience for a surface showing a SINGLE person (the owner line, the
  *  dossier) — does its own one-handle lookup off the shared cache. */
-export function UserTagsFor({ handle, size = 'inline' }: {
+export function UserTagsFor({ handle, size = 'inline', themed, onTagTap }: {
     handle: string | null | undefined;
-    size?: 'row' | 'inline';
+    size?: 'row' | 'inline' | 'mini';
+    themed?: boolean;
+    onTagTap?: () => void;
 }) {
     const tagSets = useUserTags(handle ? [handle] : []);
-    return <UserTags set={handle ? tagSets[handle.toLowerCase()] : undefined} size={size} />;
+    return <UserTags set={handle ? tagSets[handle.toLowerCase()] : undefined} size={size} themed={themed} onTagTap={onTagTap} />;
 }

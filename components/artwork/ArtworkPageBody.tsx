@@ -217,6 +217,10 @@ export default function ArtworkPageBody({
     /* Search beside the +More pills — filters the active searchable tab. */
     const [searchOpen, setSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    /* Holder tags mini↔big toggle (Brendon, 2026-07-27): the mini page-themed
+       pills ride inline after the Held-by ID; tapping one swaps to the
+       full-size row below; tapping a full one swaps back. */
+    const [ownerTagsBig, setOwnerTagsBig] = useState(false);
     const searchableTab = moreL1 === 'attributes' || moreL1 === 'offers';
     useEffect(() => { setSearchOpen(false); setSearchQuery(''); }, [moreL1]);
 
@@ -782,12 +786,25 @@ export default function ArtworkPageBody({
                                 </span>
                             )}
                         </span>
+                        {/* The holder's tags, MINI + page-themed, inline right
+                            after the ID (Brendon, 2026-07-27). Tap → the full
+                            row below; tap a full one → back to mini. */}
+                        {market?.owner_handle && !ownerTagsBig && (
+                            <UserTagsFor
+                                handle={market.owner_handle}
+                                size="mini"
+                                themed
+                                onTagTap={() => setOwnerTagsBig(true)}
+                            />
+                        )}
                     </div>
-                    {/* The holder's profile tags — who is holding this piece, at
-                        a glance (Brendon, 2026-07-24). */}
-                    {market?.owner_handle && (
+                    {market?.owner_handle && ownerTagsBig && (
                         <div className="hero-line info-line">
-                            <UserTagsFor handle={market.owner_handle} size="inline" />
+                            <UserTagsFor
+                                handle={market.owner_handle}
+                                size="inline"
+                                onTagTap={() => setOwnerTagsBig(false)}
+                            />
                         </div>
                     )}
 

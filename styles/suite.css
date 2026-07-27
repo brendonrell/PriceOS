@@ -6,45 +6,94 @@
    fills, --text-color borders + text, bold, 12px floor, 4px corners.
    ══════════════════════════════════════════════════════════════════════ */
 
-/* the little icons at the top — the app switcher */
+/* the app switcher — small APP ICONS (Brendon, 2026-07-27): the glyph in a
+   rounded square, the name in bold below it. The rounded icon square is
+   Brendon's named exception to the 4px corner law — it reads as an app
+   icon, not a pill. */
 .suite-tabs {
     display: flex;
-    gap: 6px;
-    padding: 10px 12px 8px;
+    gap: 2px 6px;
+    padding: 10px 10px 6px;
     flex-wrap: wrap;
+    justify-content: center;
 }
 
 .suite-tab {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
-    font-weight: bold;
-    letter-spacing: 0.5px;
     color: var(--text-color);
-    background: var(--bg-color);
-    border: 1px solid var(--text-color);
-    border-radius: 4px; /* PD pills are 4px — never lozenges */
-    padding: 7px 10px;
-    line-height: 1;
+    background: none;
+    border: none;
+    padding: 4px 2px 6px;
     cursor: pointer;
-    white-space: nowrap;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex: 0 0 auto;
+    width: 76px;
 }
 
-.suite-tab.on {
+.suite-tab-icbox {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    border-radius: 10px; /* the app-icon rounded square, his ask */
+    box-sizing: border-box;
+}
+
+.suite-tab.on .suite-tab-icbox {
     background: var(--stat-active-bg, var(--text-color));
     color: var(--stat-active-text, var(--bg-color));
     border-color: var(--stat-active-bg, var(--text-color));
 }
 
-.suite-tab-ic { margin-right: 5px; }
+.suite-tab-ic {
+    font-size: 19px;
+    line-height: 1;
+    font-weight: bold;
+}
+
+.suite-tab-name {
+    font-size: 10.5px;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+    line-height: 1;
+    white-space: nowrap;
+}
 
 /* the body hosts the REAL connect-menu boxes at full panel width */
 .suite-body {
     padding: 4px 10px 14px;
+    /* Capture the PAGE tokens before any inverted box re-maps them. */
+    --pd-page-bg: var(--bg-color);
+    --pd-page-text: var(--text-color);
+}
+
+/* ── ENTIRE SUITE IN THE TODAY-VIEW STYLE (Brendon, 2026-07-27: no filled
+   white/black sections). The reused connect-menu boxes are INVERTED panels —
+   they paint their fill with --text-color and their lettering with
+   --bg-color because they were built for the menu's backboard. Re-mapping
+   the two tokens inside those roots double-inverts them: fills land on the
+   page colour, lettering lands full-strength page text, every descendant
+   follows, and the components themselves stay untouched. */
+.suite-body .user-dropdown,
+.suite-body .notifications-box,
+.suite-body .calendar-panel,
+.suite-body .settings-panel {
+    --text-color: var(--pd-page-bg);
+    --bg-color: var(--pd-page-text);
 }
 
 .suite-body .notifications-box {
     width: 100%;
     max-width: none;
+    /* On the page colour the box needs its own edge — the Today tiles' rule. */
+    border: 1px solid var(--pd-page-text);
 }
 
 /* PriceCal — the connect-menu calendar, unlocked from the menu's height
