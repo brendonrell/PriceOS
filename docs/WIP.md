@@ -8,7 +8,62 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0000000000000. ✅ **2026-07-27 (LATEST) — SOUNDTRACKS FIXED · MINIPLAYER SAVED
+00000000000000. ✅ **2026-07-27 (LATEST) — PD KEYCHAINS: THE WHOLE SYSTEM
+   (Fable). Contracts on `pd-contracts` main (tip `4ef4c12`) · doors + user
+   docs on `dev` (tip `94ba316`) · both trees clean · contracts suite
+   372/372 · real build green · every art claim proven with renders FROM THE
+   CONTRACT. Brendon: "Might be your best session yet!"**
+
+   **Nothing is in flight. Spec: `docs/keychains-spec.md` (read it first).**
+
+   1. **The system:** ERC-721 one-of-one generative charms, art drawn
+      entirely by the contract (transparent bg, swing + blink CSS inside the
+      SVG). THE CHAIN IS THE STREAK (cord → GOLD 365d → CHROME 1000d) · THE
+      FINISH IS THE RANK (GLOSS t3 → GLITTER t5 → GOLD t7 → CHROME t9) ·
+      POLISH (EIP-712 attestation, factory settlement key, keeper pays gas)
+      · BONDED (transfer wipes shine, christened name survives) · CHRISTEN
+      (once ever, 2–12 chars A–Z 0–9 space). Money = sticker split verbatim
+      (5% platform live-read / 95% admin, in-tx push; 5% ERC-2981).
+      EOA-only crank, Project-mint entropy, open edition, price tunable.
+   2. **Contracts (merged to main on his PUSH):** `PDKeychains` (machine ·
+      polish · christen · bond) + `PDKeychainRenderer` + `PDKeychainShapes/
+      Faces` (EIP-170 split — three contracts, one artist; renderer
+      swappable until `lockRenderer()`). 23 tests. Deploy order in the spec.
+      Deploys are Brendon's (Remix), not started.
+   3. **Art locked through ~8 Brendon rounds:** 12 shapes (ALIEN 2% chase) ·
+      12 palettes · PLASTIC 70 / RUBBER 30 (miniplayer dome verbatim) ·
+      peace-sign canon (tight V, folded pair layered OVER the palm beside
+      the pointing fingers, thumb TOP layer, always inside) · fat-crescent
+      moon (both eyes on body) · per-shape glint homes (FLOWER on the face
+      disc, BOLT upper face). JS twin engine + preview harness in session
+      scratchpad `keychains/` (engine.mjs is byte-faithful on paths/values).
+   4. **Doors SHIPPED on dev (Brendon-named):** KEYCHAINS ⚷ button at the
+      bottom of the PriceSprite modal + ⚷ beside the gnome in wallet
+      settings (gnome glyph 14→13.5px, his call). Both toast
+      `Keychains: COMING SOON` until the shop surface exists.
+      **⚷ = Chiron** locked in GLYPHS.md §12j. **The shop is THE DEPANNEUR**
+      (his name — Montreal corner store; the capsule machine lives inside).
+   5. **User docs SHIPPED (deep):** own nav section — overview (all odds
+      tables, 13,063,680 combos) · the-depanneur (machine rules, fair roll,
+      money math) · the-living-charm (chain/finish ladders w/ rank names,
+      polish fine print, bond table, christening rules).
+   6. **Gene-pool gallery artifact** (Brendon has the link; 73 variations,
+      animated): republish from scratchpad `keychains/keychains-gallery.html`
+      in THIS session's conversation to keep the URL.
+   7. **QUEUED — the Depanneur surface build (next big one):** shop UI
+      (sim-ETH like the sticker store) · equipped mini charm at the END of
+      profile tags (default-off, tap → full charm) · POLISH button + app
+      signing endpoint (settlement key already app-side). ClickUp
+      `86bb46etv` (02·UI). Contracts task `86bb46epm` (01, In Progress —
+      awaiting Sepolia/mainnet deploy, Brendon's hands).
+   8. **PROPOSED, awaiting Brendon's word (do NOT build unbidden):**
+      YIN/YANG — two coin slots on the machine (one pre-crank choice
+      steering palette/face/accessory weights; shapes stay universal so the
+      ALIEN chase is equal). Designed in chat 2026-07-27; he never said go.
+      Also queued: the EYES upgrade art round (his ask — dizzy, lasers,
+      sunglasses, 3D glasses, lashes, teary, iris colors).
+
+0000000000000. ✅ **2026-07-27 — SOUNDTRACKS FIXED · MINIPLAYER SAVED
    SESSION + USB FACE · PRICEOS SUITE (8 apps) · STUDIO CHECKER v2. All on
    `dev` (tip `11d596d`), tree clean, tsc + real build green every round,
    every surface screenshot-verified at iPhone size on a mid-tone colorway.
