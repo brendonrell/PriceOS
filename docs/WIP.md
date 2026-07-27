@@ -8,11 +8,44 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0000000000. ✅ **2026-07-27 (LATEST) — REWIND TOGGLE · STICKER SAVE SYSTEM ·
-   PING + TAG POPUPS. On `dev` (tip `9e566b4`), tree clean, tsc + real build
-   green, 138 tests pass. Three asks, all shipped.**
+00000000000. ✅ **2026-07-27 (LATEST) — PD MARKETPLACE + PURCHASE PAL /
+   PROFIT PAL. On `dev` (tip `26c2e79`), tree clean, tsc + real build green,
+   138 tests pass, deploy verified rendering. Brendon-approved, two rounds
+   (build + his edit round).**
 
    **Nothing is in flight.**
+
+   1. **`/marketplace` — the PD Marketplace page.** Home surface verbatim
+      (same Hero chrome, `PD Marketplace` title, home's By @brendon credit +
+      Featuring rows, pill tabs), market center: **Listings** = per-project
+      carousels of live-listed pieces (cheapest floor first, floor + count in
+      each head); **Activity** = the market tape (LIST ✹ / SALE ✶ / OFFER ✦,
+      viewer-local stamps). Stats row: LISTED · VOL · OFFERS. Server-seeded
+      payload (`lib/marketplace/marketData` + `/api/marketplace`, one shared
+      shape), refresh on `pd:project-refresh` + visible poll. **Paints with
+      the Mood Ring, same daily colour as home** (ColorwayContext treats
+      `/marketplace` as a home surface — it was matching the profile-page
+      branch before).
+   2. **The Pal — `components/pal/PalPanel.tsx`, one app, two sides, Cart
+      slide-up shell, ModalContext name `'pal'`** (payload `'profit'` |
+      `'purchase'` | `'purchase:<YYYY-MM>'`). **PURCHASE PAL**: Completionism
+      month goal (steppers cycle months, default = THE CLOSE), knobs
+      CHEAPEST/BALANCED/RAREST + slider (price↔rarity over real listings,
+      `pdRarityRank`), one pick per missing release, ADD PATH TO CART lands
+      in the real Cart. **PROFIT PAL**: portfolio tiles (pieces · spent ·
+      at-floor · net), per-project EXIT ALL / TRIM paths on the Calc rate
+      card (5% royalty + gas), HOT read off the tape personalized to
+      holdings.
+   3. **Doors (Brendon-confirmed 2026-07-27):** `/marketplace` route only for
+      now (he'll place its real entrance later) · Profit Pal button on the
+      marketplace action row · Completionism's ⌂ opens Purchase Pal preloaded
+      with THE CLOSE. More Pal doors "all over the app" get added **as
+      Brendon names them** — never invent one.
+   4. ClickUp `86bb3wcu9` complete with ship notes. PR #34 was the record.
+
+0000000000. ✅ **2026-07-27 — REWIND TOGGLE · STICKER SAVE SYSTEM ·
+   PING + TAG POPUPS. On `dev` (tip `9e566b4`), tree clean, tsc + real build
+   green, 138 tests pass. Three asks, all shipped.**
 
    1. **The Rewind is a TOGGLE** — the same triple-tap on "Price Discussion"
       that docks the OS at yesterday returns you to now while docked, exactly
