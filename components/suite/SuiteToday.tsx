@@ -33,7 +33,7 @@ const VS15 = '︎';
 const DOW = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
-export type SuiteAppKey = 'today' | 'cal' | 'task' | 'flow' | 'books' | 'notes';
+export type SuiteAppKey = 'today' | 'cal' | 'task' | 'flow' | 'books' | 'calc' | 'phone' | 'notes';
 
 function dayKey(d: Date): string {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
