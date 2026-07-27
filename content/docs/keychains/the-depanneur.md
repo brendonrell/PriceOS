@@ -1,8 +1,8 @@
 ---
 title: "Keychains — The Depanneur"
-description: "The keychain shop: crank the capsule machine, get a random one-of-one charm. The odds, the provably fair roll, and where the money goes."
+description: "The keychain shop: crank the capsule machine, get a random one-of-one charm. The exact mechanics, the provably fair roll, the money math, and what you actually own."
 category: "keychains"
-keywords: ["depanneur", "capsule machine", "crank", "mint", "fair draw", "odds", "royalty"]
+keywords: ["depanneur", "capsule machine", "crank", "mint", "fair draw", "odds", "royalty", "money"]
 last_updated: "2026-07-27"
 ---
 
@@ -34,25 +34,39 @@ Every Montreal block has one: the corner store with the lotto terminal, the cool
 </g>
 </svg>
 
-## One coin, one turn
+## One coin, one turn — the exact mechanics
 
-There is no picking, no previewing, no minting page with a quantity stepper. You pay the machine's price (a sticker-sheet-class price, tunable the way sheet prices are) and crank. One crank, one charm, straight to your wallet, revealed on the spot. That restraint is deliberate: a capsule machine you can empty with one transaction isn't a capsule machine.
+There is no picking, no previewing, no quantity stepper. The rules of the machine, all enforced by the contract:
+
+- **One crank mints one charm.** You cannot batch cranks in a single transaction. A capsule machine you can empty in one pull isn't a capsule machine.
+- **The price is exact.** The machine takes precisely its posted price — overpay or underpay and the whole transaction refuses. The price sits in sticker-sheet territory and is tunable the same way sheet prices are, so it holds its dollar target as ETH drifts.
+- **The machine has a switch.** PD can pause sales; a pause never touches charms already out in the world.
+- **The charm is yours the instant the crank lands** — revealed on the spot, no waiting, no reveal phase, no separate claim.
 
 ## The fair roll
 
 Keychains use the same fairness engineering as Project mints and sticker-pack peels — the [fair-draw](/docs/fair-draw/overview) rules, applied to charms:
 
-- **The roll happens at crank, in your transaction**, seeded by fresh block data that does not exist yet when you sign and send. Nobody — not you, not PD, not a bot watching the mempool — can know the charm before the crank lands.
-- **Only people can crank.** The machine refuses contracts, which closes the classic casino exploit: a bot bundling crank-and-refund until it hits an ALIEN. One address, one honest turn at a time.
-- **The odds are public and locked.** The pull table on the [overview](/docs/keychains/overview#the-cast) isn't marketing copy — it's the literal weight table inside the contract, readable by anyone, the same for everyone, forever.
-- **The roll is frozen forever.** Your charm's genes are stamped at crank and never re-rolled. What the machine gives you is what exists.
+- **The roll happens at crank, inside your own transaction.** The dice are fresh chain data that does not exist yet at the moment you sign and send — mixed with your address and the charm's number. Nobody — not you, not PD, not a bot watching pending transactions — can know the charm before the crank lands.
+- **Only people can crank.** The machine refuses other contracts outright. This closes the classic casino exploit: a bot that wraps the crank, checks the result, and cancels the purchase unless it hit an ALIEN. One address, one honest turn at a time.
+- **The odds are public and locked.** Every weight table on the [overview](/docs/keychains/overview#every-trait-every-odds) is the contract's literal source — readable by anyone, identical for everyone, unchangeable forever.
+- **The roll is frozen forever.** Your charm's genes are stamped at crank and never re-rolled, re-weighted, or "rebalanced." What the machine gives you is what exists.
 
-## Where the money goes
+## The money, exactly
 
-The Depanneur runs on the sticker-shop's rails, exactly:
+The Depanneur runs on the sticker-shop's rails, to the letter:
 
-- **95% to the shop, 5% to the platform**, paid out inside the purchase transaction itself. The machine never holds a balance — there is nothing in it to hack, drain, or freeze.
-- **Secondary sales pay a 5% royalty**, split on the same standing terms as everything else on PD.
+- **95% to the shop, 5% to the platform**, paid out inside the purchase transaction itself. On a $22 crank that's $20.90 and $1.10, gone the moment you pay. The machine never holds a balance — there is nothing inside it to hack, drain, or freeze.
+- **Secondary sales pay a 5% royalty**, split on the same standing terms as everything else on PD — on a $100 resale, $5 flows back.
+- During the test phase the in-app Depanneur runs on sim-ETH like the sticker store; the contract is the mainnet machine.
+
+## What you actually own
+
+A Keychain is a token in your wallet, and more than most:
+
+- **The genes** — shape, palette, material, face, pose, accessory — are yours forever, stamped at crank.
+- **The art is served by the chain itself.** There is no image host, no metadata server, nothing that can rot or be taken down. Ask the contract for your charm tomorrow or in twenty years; it draws it fresh either time — swing, blink, and all.
+- **The living layer** — chain and finish — reflects whoever keeps it. That part isn't property; it's reputation. See [The Living Charm](/docs/keychains/the-living-charm).
 
 ## The one thing to know before you buy secondhand
 
