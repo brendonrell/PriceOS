@@ -99,6 +99,10 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
         ],
     },
     {
+        title: 'PriceOS Suite',
+        slugs: ['suite'],
+    },
+    {
         title: 'Command Stone',
         slugs: ['command-stone'],
     },

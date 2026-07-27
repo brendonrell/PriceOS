@@ -16,19 +16,25 @@ export function SoundtrackManager({ slug }: { slug: string }) {
     const { showToast } = useToast();
     const [value, setValue] = useState('');
     const [check, setCheck] = useState<'idle' | 'checking' | 'public' | 'bad'>('idle');
+    /* v2 (2026-07-27): the server now answers "will this PLAY in the
+       miniplayer" (live-video count + first-track embeddability), not just
+       "is it public" — with a reason when it won't. */
+    const [reason, setReason] = useState('');
     const [saving, setSaving] = useState(false);
 
     const playlistId = normalizePlaylistId(value);
     useEffect(() => {
-        if (!playlistId) { setCheck('idle'); return; }
+        if (!playlistId) { setCheck('idle'); setReason(''); return; }
         let cancel = false;
         setCheck('checking');
+        setReason('');
         const t = window.setTimeout(() => {
             fetch(`/api/studio/playlist?list=${encodeURIComponent(playlistId)}`)
                 .then((r) => (r.ok ? r.json() : null))
                 .then((d) => {
                     if (cancel) return;
                     setCheck(d?.public === true ? 'public' : d?.public === false ? 'bad' : 'idle');
+                    setReason(typeof d?.reason === 'string' ? d.reason : '');
                 })
                 .catch(() => { if (!cancel) setCheck('idle'); });
         }, 600);
@@ -85,8 +91,8 @@ export function SoundtrackManager({ slug }: { slug: string }) {
             {check !== 'idle' && (
                 <p className="pd-studio-note" role="status">
                     {check === 'checking' && 'Playlist: checking…'}
-                    {check === 'public' && 'Playlist: PUBLIC ✓'}
-                    {check === 'bad' && 'Playlist: NOT PUBLIC — make it public on YouTube'}
+                    {check === 'public' && 'Playlist: PLAYS ✓'}
+                    {check === 'bad' && `Playlist: WON'T PLAY${reason ? ` — ${reason}` : ''}`}
                 </p>
             )}
         </div>
