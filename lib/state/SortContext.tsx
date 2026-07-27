@@ -186,8 +186,10 @@ export const GROUP_LABEL: Record<GroupKey, string> = {
     ownerColor: 'OWNER + COLOR',
     owner: 'OWNER',
     color: 'COLOR', lastSold: 'LAST SOLD', rarity: 'RARITY',
-    listed: 'LISTED', fate: 'FATE', temperature: 'TEMPERATURE',
-    light: 'LIGHT', mood: 'MOOD', orientation: 'ORIENTATION',
+    /* TEMP / ORIENT rather than the full words (Brendon, 2026-07-27) — they were
+       the two long enough to widen the whole layer picker on their own. */
+    listed: 'LISTED', fate: 'FATE', temperature: 'TEMP',
+    light: 'LIGHT', mood: 'MOOD', orientation: 'ORIENT',
     moon: 'MOON PHASE', zodiac: 'ZODIAC', weekday: 'BORN ON',
     faction: 'FACTION', numerology: 'NUMEROLOGY', tag: 'TAG',
 };
