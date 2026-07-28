@@ -188,6 +188,13 @@ export const STATE_CACHE_KEYS = {
     /** Which of the twelve WTBS-family chip treatments the owner cycled to.
      *  Settings envelope. 2026-07-26. */
     teamTagStyle: 'pd_team_tag_style',
+    /** WORKSPACES — the user's saved Setup Code spaces. Read + written by
+     *  WorkspacesContext; persisted to the top-level `users.workspaces` column
+     *  so a user's spaces follow the account. Account-backed 2026-07-28. */
+    workspaces: 'pd_workspaces',
+    /** Which workspace is currently active (numeric id). Rides
+     *  `users.workspaces` alongside the list. */
+    activeWorkspace: 'pd_active_workspace',
 } as const;
 
 /** Fired after a server snapshot is written into the caches. Any context that
@@ -560,6 +567,22 @@ export function hydrateFromRow(row: UserRow): void {
         const cal = row.calendar_state;
         if (cal && typeof cal === 'object' && !Array.isArray(cal) && Object.keys(cal).length > 0) {
             localStorage.setItem(STATE_CACHE_KEYS.calState, JSON.stringify(cal));
+        }
+
+        // workspaces → the two keys WorkspacesContext reads (the saved list +
+        // which one is active). Seed ONLY when the account actually carries a
+        // list, so a pre-sync device's spaces are never wiped by an account
+        // that hasn't synced yet — the first change here pushes them up
+        // instead (grails/mutes precedent). WorkspacesContext re-reads both on
+        // the hydrate event fired just below.
+        const ws = row.workspaces as { list?: unknown; activeId?: unknown } | null;
+        if (ws && typeof ws === 'object' && !Array.isArray(ws) && Array.isArray(ws.list)) {
+            localStorage.setItem(STATE_CACHE_KEYS.workspaces, JSON.stringify(ws.list));
+            if (typeof ws.activeId === 'number' && Number.isFinite(ws.activeId)) {
+                localStorage.setItem(STATE_CACHE_KEYS.activeWorkspace, String(ws.activeId));
+            } else {
+                localStorage.removeItem(STATE_CACHE_KEYS.activeWorkspace);
+            }
         }
 
         window.dispatchEvent(new CustomEvent(USERSTATE_HYDRATED_EVENT));
