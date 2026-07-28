@@ -8,7 +8,61 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-00000000000000000000000. ✅ **2026-07-28 (LATEST) — BOT SPOT EDITS, FIVE ITEMS
+000000000000000000000000. ✅ **2026-07-28 (LATEST) — PDMCP CAUGHT UP TO MCP
+   2026-07-28, PLUS THE FEATURES IT WAS MISSING (Opus 5). On `dev` (tip
+   `b753be1`), tree clean, typecheck green, every tool exercised against LIVE
+   PD data. ClickUp: build task `86bavnrt7` closed; deploy task `86bb4wzn5`
+   opened.**
+
+   **⛔ THE ONE THING OUTSTANDING: PDMCP DOES NOT AUTO-DEPLOY.** Unlike the
+   app, `workers/pd-mcp/` ships only on its own `npx wrangler deploy`. Until
+   that runs, **none of the below is live in Claude** and
+   `mcp.pricediscussion.com` does not resolve. Full instructions on ClickUp
+   `86bb4wzn5`. Do not re-verify by "checking the connector" — check the
+   worker's deploy state.
+
+   1. **MCP went stateless in the 2026-07-28 revision; PDMCP already was.**
+      No `initialize` handshake, no session header, no SSE resumability — the
+      change that forces most servers to refactor cost us a thin conformance
+      layer: `server/discover` (now required), per-request protocol version,
+      `resultType`, cacheable + deterministic tool lists. Still answers clients
+      back to `2025-03-26`. Details in `docs/pd-mcp-spec.md`.
+   2. **PD renders INSIDE the conversation** — `get_output` carries an MCP App
+      (`ui://pd-mcp/piece`) drawing the stored master in PD's own tokens (Dot
+      base, Courier, 4px pills, full-strength borders, viewer-local times).
+      Sandboxed iframe inherits no site CSS, so the look is carried in
+      deliberately. Text-only hosts are untouched.
+   3. **A front door and a pulse.** `list_projects` (browse/search the
+      published catalog) and `get_activity` (recent mints, sales, listings) —
+      v1 only served callers who already knew a slug. Plus `get_collector` /
+      `get_artist`, either by address or by handle. 11 tools now.
+   4. **⛔ `verify_project` CAN NO LONGER BE MADE TO LIE.** Pointed at the
+      wrong chain, or a factory with no code, it would have called every real
+      PD Project fake. It now checks chain id + factory bytecode and REFUSES.
+      **At mainnet, `RPC_URL` + `CHAIN_ID` + `FACTORY_ADDRESS` flip TOGETHER**
+      — the guard catches a mismatch, but it refuses everything until all
+      three are right.
+   5. **Nothing minted, nothing revealed** (Brendon). An uploaded project is
+      browsable, but `get_project` withholds colorway/sprite/soundtrack until
+      a first piece mints, and tells the agent to say so rather than guess.
+   6. **No authed tier — declined deliberately** (Brendon agreed). It would
+      turn a zero-maintenance public read into an auth surface, and the auth
+      rules changed in this same revision. Don't re-propose it.
+   7. **Catalog gap, known and surfaced:** the browser sees the 96 PUBLISHED
+      projects; platform totals say 112. Both numbers are returned rather than
+      papering over it. Brendon: revisit when the projects are real, not test.
+
+   **Container note (cost this session real time — don't rediscover):** local
+   `dev` was a STALE, UNRELATED lineage (56 commits, 2026-07-22→24, on no
+   remote). Verified its content all survives in `origin/dev` under renamed
+   paths (`content/docs/app/the-composer.md` → `composer.md`; "Contested
+   Mints" → "Fair Draw"; dev-login deliberately gone). Local `dev` now tracks
+   `origin/dev`; old tip tagged `stale-dev-2026-07-24`. **Also: the root
+   `.gitignore` only ignores `/node_modules` at the repo root** — a nested
+   `workers/pd-mcp/node_modules` got swept into a commit by `git add -A`.
+   Removed, and that directory now has its own ignore.
+
+00000000000000000000000. ✅ **2026-07-28 — BOT SPOT EDITS, FIVE ITEMS
    (Opus 5). On `dev` (tip `1e8ae59`), tree clean, typecheck green. ClickUp
    ship record `86bb4tjd4` (Done).**
 
