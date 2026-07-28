@@ -65,6 +65,12 @@ when either fails. **At the mainnet cutover `RPC_URL` + `CHAIN_ID` +
 `FACTORY_ADDRESS` flip together** — this guard is what catches it if they
 don't.
 
+**Nothing minted, nothing revealed** (Brendon, 2026-07-28). An uploaded
+project is browsable — `list_projects` shows it exists — but `get_project`
+withholds colorway, PriceSprite and soundtrack until a first piece mints, and
+tells the agent to say it is awaiting its first mint rather than guess. Only
+what a visitor could already see.
+
 **No authed tier.** Deliberately declined (Brendon, 2026-07-28). A logged-in
 "my portfolio" tier turns a zero-maintenance public read into an auth surface,
 and the authorization rules changed in this same protocol revision. The public

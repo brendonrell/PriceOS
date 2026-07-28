@@ -572,9 +572,31 @@ async function getProject(env: Env, args: Json): Promise<Json> {
     const d = data as Json;
     const outputs = (d.outputs as Json[] | undefined) ?? [];
     const listed = outputs.filter((o) => o.list_price_eth != null);
+    const minted = Number(d.minted_count ?? outputs.length);
+
+    /* ⛔ NOTHING MINTED = NOTHING REVEALED (Brendon, 2026-07-28). An uploaded
+       project is browsable — it exists, you can see it is there — but until a
+       first piece mints, its look is unseen and this server does NOT hand it
+       out. No colorway, no PriceSprite, no soundtrack. Only what a visitor
+       could already see. */
+    if (minted === 0) {
+        const card = {
+            slug,
+            minted_count: 0,
+            listed_count: 0,
+            revealed: false,
+            page: `${env.PD_APP_ORIGIN}/art/${slug}`,
+        };
+        return toolText(
+            `${slug} is published on PD but nothing has minted yet, so none of it is revealed — no colorway, sprite or soundtrack to report. Say only that it exists and is awaiting its first mint; do not guess at how it looks.\n\n${JSON.stringify(card, null, 2)}`,
+            card,
+        );
+    }
+
     const card = {
         slug,
-        minted_count: d.minted_count ?? outputs.length,
+        minted_count: minted,
+        revealed: true,
         colorway: d.colorway ?? null,
         price_sprite: d.price_sprite ?? null,
         soundtrack: d.soundtrack ?? null,

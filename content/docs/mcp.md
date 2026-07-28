@@ -88,6 +88,11 @@ trusting any marketplace listing that says "PD."
 soundtrack, market stats, live listed count and floor, and the canonical
 page URL.
 
+**Nothing minted, nothing revealed.** A published Project with no mints yet is
+browsable — you can see that it exists — but PDMCP will not hand out its
+colorway, sprite or soundtrack until its first piece lands. Agents are told to
+say it's awaiting its first mint rather than guess at how it looks.
+
 ### `get_output` — one piece, completely
 
 **Ask it:** "Tell me about Kiki #22."
