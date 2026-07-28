@@ -176,7 +176,16 @@ A mood is one castable word that sets the whole room: colorway, ambient light, a
 | `midnight` | Dark mode plus the dim wash; whatever is playing keeps playing |
 | `golden` · `golden hour` | Sunset orange, ambient light, the DJ |
 | `ocean` | Open blue and the ambient wash; whatever is playing keeps playing |
-| `moods` | The whole set dealt as a card — tap a mood to wear it, tap again to lift it |
+| `moods` | The whole set dealt as a card — both decks, tap to wear, tap again to lift |
+
+**The market deck.** Collecting moods — same one-word grammar, but these set your market lens (sort + real app modes) instead of the room. One room mood and one market mood can be worn at once; your old sort comes back when the lens lifts.
+
+| Type | Get |
+|---|---|
+| `bullish` · `bull` | Degen on, everything priced — the ape posture |
+| `bearish` · `bear` | The Watch on — watching from the sidelines, hands in pockets |
+| `hunting` · `hunt` | The Arbitrage Map reads the spreads, everything priced — deals in sight |
+| `browsing` · `window shopping` | The feed sort — strolling the galleries, no agenda |
 
 ## The fun bench
 
@@ -184,6 +193,7 @@ The personality side. All of it runs on real data or a seeded roll — the Stone
 
 | Type | Get |
 |---|---|
+| `tell me a joke` · `joke` | Gen-art and collecting jokes from the Stone's own bank — never a repeat until it has told you every one, and it says so when the bank runs dry |
 | `roast me` | The dry verdict on your actual last 90 days. It keeps receipts |
 | `should i buy?` | The 8-ball: one committed answer per question per day, seeded — no re-rolls |
 | `fortune` · `my horoscope` | The daily reading, plus your real PriceDay number |

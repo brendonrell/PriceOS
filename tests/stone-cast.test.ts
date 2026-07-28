@@ -60,6 +60,18 @@ describe('matchCast — the moods (lib/stone/moods, cozy generalized)', () => {
         const set = new Set(MOODS.map((m) => m.colorway));
         expect(set.size).toBe(MOODS.length);
     });
+    it('casts the market deck by each of its words', () => {
+        for (const [word, key] of [
+            ['bullish', 'bullish'], ['bull', 'bullish'],
+            ['bearish', 'bearish'], ['bear', 'bearish'],
+            ['hunting', 'hunting'], ['hunt', 'hunting'],
+            ['browsing', 'browsing'], ['browse', 'browsing'], ['window shopping', 'browsing'],
+        ] as const) {
+            const hit = matchCast(word, WS);
+            expect(hit?.kind).toBe('marketMood');
+            if (hit?.kind === 'marketMood') expect(hit.mood.key).toBe(key);
+        }
+    });
 });
 
 describe('matchCast — workspaces', () => {

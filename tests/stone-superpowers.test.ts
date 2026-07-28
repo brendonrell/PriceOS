@@ -118,4 +118,18 @@ describe('the fun wave', () => {
         /* the singular words stay CASTS, never the widget */
         expect(parseWidget('moods extra words', NOW)).toBeNull();
     });
+    it('the joke summons by every phrase and the bank never repeats until dry', async () => {
+        expect(parseWidget('tell me a joke', NOW)?.kind).toBe('joke');
+        expect(parseWidget('tell a joke', NOW)?.kind).toBe('joke');
+        expect(parseWidget('joke', NOW)?.kind).toBe('joke');
+        const { JOKES, pickJoke } = await import('../lib/stone/voice');
+        const told = new Set<number>();
+        for (let n = 0; n < JOKES.length; n++) {
+            const p = pickJoke(told, `joke·${told.size}`);
+            expect(p.exhausted).toBe(false);
+            expect(told.has(p.i)).toBe(false);
+            told.add(p.i);
+        }
+        expect(pickJoke(told, 'joke·full').exhausted).toBe(true);
+    });
 });

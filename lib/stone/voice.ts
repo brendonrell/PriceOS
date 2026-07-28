@@ -281,11 +281,83 @@ const FUN_WIDGET: Record<string, Pool> = {
     ],
     moods: [
         ['The moods, dealt.', 'Pick a weather.'],
-        ['Four ways to wear the place.', 'One word each. Same word off.'],
+        ['The room and the market.', 'One word each. Same word off.'],
         ['Atmospheres, on hand.', null],
         ['Choose your evening.', 'I will set the room.'],
     ],
+    joke: [
+        ['A joke, then.', 'I keep a ledger of those too.'],
+        ['Comedy, from the stone.', 'Delivery is not my strong suit.'],
+        ['Very well. Humor.', null],
+        ['One joke, as requested.', 'No refunds.'],
+    ],
 };
+
+/* ── THE JOKE BANK (Brendon, 2026-07-28: "tell me a joke — not a repeat,
+   on-topic"). Gen art · collecting · NFTs · wallets, in the stone's dry
+   register. The widget keeps a told-ledger so nothing repeats until the
+   whole bank has been dealt; then the stone admits it and starts over. ── */
+
+export const JOKES: readonly string[] = [
+    'A collector walks into a bar. It was the floor. He bought it anyway.',
+    'Your seed phrase is somewhere safe. That is the joke.',
+    'What do you call a wallet with one ETH left? Diversified, apparently.',
+    'Generative art is easy. You only have to be good at every output you will never see.',
+    'He said "it’s going to zero." He said it from his fourth wallet.',
+    'Why do collectors love the floor? It is the only thing holding them up.',
+    'A right-clicker saves the image. A collector saves nothing. I have checked the ledgers.',
+    'What is the difference between a mint and a donation? A reveal.',
+    'Two traits walk into an edition. One is rare. The other one sells.',
+    'I asked a wallet how it was feeling. It said "drained." Classic wallet humor.',
+    'Why did the artist cap the edition at 256? Because 257 felt greedy.',
+    'Gas fees are just the chain’s way of asking if you are sure.',
+    'He bought the top. Then he bought the new top. A completionist.',
+    'What do you call art you cannot right-click? Sculpture.',
+    'A bear and a bull walk into a gallery. Neither of them looks at the art.',
+    'Why was the fresh wallet nervous? It knew exactly what it was for.',
+    'The rarest trait in any collection is patience.',
+    'My favorite generative artist is the hash function. Consistent output. No ego.',
+    'What did the collector say to the floor? "Hold me."',
+    'An NFT is forever. The website that shows it is until Tuesday.',
+    'Why do minters refresh the page? Faith, mostly.',
+    'He listed at 10x the floor. The listing is doing fine. It has a lovely view.',
+    'What is a sweep? Buying every mistake at once.',
+    'The seed decides everything at birth. Collectors call it fate. Artists call it Tuesday.',
+    'Why did the wallet cross the chain? The gas was cheaper on the other side.',
+    'A "long-term hold" is a listing that has not been priced yet.',
+    'What do you call a collector who never sells? Right, eventually.',
+    'The whale bought half the supply. The community called it conviction. The whale called it a Tuesday.',
+    'Why do we say "gm"? Because "good morning, please validate my portfolio" is too long.',
+    'His grail was minted, listed, sold, and re-listed before his transaction confirmed. He calls it "the one that got away." I call it block 19,441,207.',
+    'What is the floor price? A number everyone checks and nobody believes.',
+    'An open edition walks into a bar. The bar is still filling up.',
+    'Why did the algorithm blush? It saw its own palette.',
+    'Paper hands, diamond hands — the ledger only sees hands.',
+    'What do you call gas spent on a failed mint? Tuition.',
+    'He set an offer at half the floor. Bold. The floor set an offer on him.',
+    'A 1/1 is just an edition that knew when to stop.',
+    'Why was the metadata sad? Nobody ever reads it. I read it. Every night.',
+    'The best time to mint was at reveal. The second best time is never telling anyone you missed it.',
+    'What does a curator and a filter have in common? Nothing. Ours is a filter.',
+    'Why do wallets have no memory? Ask the one that signed that thing in 2022.',
+    'He staked, wrapped, bridged, and vaulted it. It is now safe from everyone, including him.',
+    'A trait floor is a regular floor with a thesis.',
+    'What did the artist say at sell-out? Nothing. Artists sleep through their own sell-outs. It is tradition.',
+    'The chain never forgets. That is either the feature or the joke, depending on your entries.',
+    'Why did the collector bring a ladder? Someone said the floor was rising.',
+    'Every wallet is a museum. Some are just the gift shop.',
+    'What is the difference between conviction and a bag? Time.',
+];
+
+/** Pick an untold joke, seeded (no flicker across re-renders). When the
+    whole bank has been dealt the pick wraps and `exhausted` says so —
+    the caller clears its ledger and the stone starts over, honestly. */
+export function pickJoke(told: ReadonlySet<number>, seed: string): { i: number; exhausted: boolean } {
+    const fresh: number[] = [];
+    for (let i = 0; i < JOKES.length; i++) if (!told.has(i)) fresh.push(i);
+    if (fresh.length === 0) return { i: hash(seed) % JOKES.length, exhausted: true };
+    return { i: fresh[hash(seed) % fresh.length]!, exhausted: false };
+}
 for (const k of Object.keys(FUN_WIDGET)) WIDGET[k] = FUN_WIDGET[k];
 
 /** LORE — the stone on itself. Answered by exact question, varied by seed. */

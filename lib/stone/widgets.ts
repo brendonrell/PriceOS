@@ -85,7 +85,9 @@ export type WidgetPlan =
     | { kind: 'floorgame' }
     /* ── the moods set (2026-07-28) ── */
     /* "moods" — the whole set dealt as a tappable hand (lib/stone/moods). */
-    | { kind: 'moods' };
+    | { kind: 'moods' }
+    /* "tell me a joke" — the told-ledger means never a repeat (2026-07-28). */
+    | { kind: 'joke' };
 
 function norm(s: string): string {
     return s.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -196,6 +198,10 @@ export function parseWidget(line: string, now: Date = new Date()): WidgetPlan | 
     }
     if (['dj', 'play me something', 'play something', 'play me a song', 'music', 'put something on'].includes(q)) {
         return { kind: 'dj' };
+    }
+    /* THE JOKE (2026-07-28) — never a repeat until the bank runs dry. */
+    if (['tell me a joke', 'tell a joke', 'joke', 'another joke', 'tell me another', 'make me laugh'].includes(q)) {
+        return { kind: 'joke' };
     }
     const LORE = new Set([
         'who are you', 'what are you', 'are you alive', 'are you real',

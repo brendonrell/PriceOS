@@ -89,6 +89,61 @@ export const MOODS: readonly MoodDef[] = [
     },
 ];
 
+/* ── MARKET MOODS (Brendon, 2026-07-28: "moods related to collecting:
+   bullish, bearish, browsing, hunting") — the same one-word grammar, but
+   these set your COLLECTING LENS instead of the room: sort + real app
+   toggles, all existing vocabulary (Rule #0). Orthogonal to the room
+   moods — one of each can be worn at once. ── */
+
+/** The pdNotifs flags a market mood may hold ON while worn. */
+export type MarketFlag = 'degen' | 'watch' | 'spell_arbitrage';
+
+export interface MarketMoodDef {
+    key: string;
+    words: readonly string[];
+    label: string;
+    recipe: string;
+    /** The lens's sort — null leaves the sort you had alone. */
+    sort: 'id' | 'price' | 'feed' | 'fog' | 'az' | null;
+    /** Flags held ON while worn; lifted on the way out. */
+    on: readonly MarketFlag[];
+}
+
+export const MARKET_MOODS: readonly MarketMoodDef[] = [
+    {
+        key: 'bullish',
+        words: ['bullish', 'bull'],
+        label: 'Bullish',
+        recipe: 'degen on · everything priced',
+        sort: 'price',
+        on: ['degen'],
+    },
+    {
+        key: 'bearish',
+        words: ['bearish', 'bear'],
+        label: 'Bearish',
+        recipe: 'the watch on · hands in pockets',
+        sort: null,
+        on: ['watch'],
+    },
+    {
+        key: 'hunting',
+        words: ['hunting', 'hunt'],
+        label: 'Hunting',
+        recipe: 'the spreads read · deals in sight',
+        sort: 'price',
+        on: ['spell_arbitrage'],
+    },
+    {
+        key: 'browsing',
+        words: ['browsing', 'browse', 'window shopping'],
+        label: 'Browsing',
+        recipe: 'the feed · no agenda',
+        sort: 'feed',
+        on: [],
+    },
+];
+
 function norm(s: string): string {
     return s.trim().toLowerCase().replace(/\s+/g, ' ');
 }
@@ -99,6 +154,14 @@ export function matchMood(line: string): MoodDef | null {
     const q = norm(line);
     if (!q) return null;
     for (const m of MOODS) if (m.words.includes(q)) return m;
+    return null;
+}
+
+/** Exact-word market-mood match — same discipline. */
+export function matchMarketMood(line: string): MarketMoodDef | null {
+    const q = norm(line);
+    if (!q) return null;
+    for (const m of MARKET_MOODS) if (m.words.includes(q)) return m;
     return null;
 }
 

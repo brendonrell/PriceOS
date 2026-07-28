@@ -22,6 +22,7 @@
  */
 
 import {
+    useCallback,
     useEffect,
     useMemo,
     useRef,
@@ -50,10 +51,10 @@ import { getTodos, subscribeTodos, datedTodosByDay, type TodoItem } from '../../
 import { buildWalletMark } from '../../lib/stone/mark';
 import { commitEtch } from '../../lib/stone/etch';
 import { formatMathValue, pdNumberNote } from '../../lib/stone/mathEval';
-import { working, loreAnswer, eightballVerdict, fortuneReading } from '../../lib/stone/voice';
+import { working, loreAnswer, eightballVerdict, fortuneReading, JOKES, pickJoke } from '../../lib/stone/voice';
 import { subscribeFm, getFm, fmPlay, fmToggle, fmNext } from '../../lib/fm/fmBus';
 import { formatStoneDate, formatDaysAway, todoPhrase, type StoneDate } from '../../lib/stone/dates';
-import { MOODS, type MoodDef } from '../../lib/stone/moods';
+import { MOODS, MARKET_MOODS, type MoodDef, type MarketMoodDef } from '../../lib/stone/moods';
 import type {
     OracleFirstMintResponse,
     OracleReleaseResponse,
@@ -2303,19 +2304,27 @@ function FloorGameWidget({ onAct }: { onAct: ActFn }) {
 /* ── THE MOODS — the whole set dealt as a hand, each row tappable. The
       worn one is marked; a tap flips it live and the deal stays on the
       table so you can wander the weathers (execution lives in the stone —
-      onCastMood is castMood + its toast). ── */
+      onCastMood is castMood + its toast). TWO DECKS in one card (Brendon,
+      2026-07-28): THE ROOM paints the place, THE MARKET sets your
+      collecting lens — one of each can be worn at once. ── */
 
-function MoodsWidget({ wornKey, onCast }: {
-    wornKey: string | null; onCast: (m: MoodDef) => void;
+function MoodsWidget({ wornKey, wornMarketKey, onCast, onCastMarket }: {
+    wornKey: string | null;
+    wornMarketKey: string | null;
+    onCast: (m: MoodDef) => void;
+    onCastMarket: (m: MarketMoodDef) => void;
 }) {
     const worn = MOODS.find((m) => m.key === wornKey) ?? null;
+    const wornMkt = MARKET_MOODS.find((m) => m.key === wornMarketKey) ?? null;
+    const subs = [worn?.label, wornMkt?.label].filter(Boolean).map((s) => s!.toUpperCase());
     return (
         <div className="stone-widget sw-card">
             <SwTitle
                 glyph={`☾${VS15}`}
                 label="THE MOODS"
-                sub={worn ? `WEARING ${worn.label.toUpperCase()}` : 'NONE WORN'}
+                sub={subs.length ? `WEARING ${subs.join(' + ')}` : 'NONE WORN'}
             />
+            <SwSay>THE ROOM</SwSay>
             {MOODS.map((m) => (
                 <div
                     key={m.key}
@@ -2333,14 +2342,74 @@ function MoodsWidget({ wornKey, onCast }: {
                     </span>
                 </div>
             ))}
-            <SwHint text="one word wears it · the same word lifts it" />
+            <SwSay>THE MARKET</SwSay>
+            {MARKET_MOODS.map((m) => (
+                <div
+                    key={m.key}
+                    className="sw-hit sw-tap"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => onCastMarket(m)}
+                >
+                    <span className="sw-hit-ic">{`☾${VS15}`}</span>
+                    <span className="sw-hit-body">
+                        <span className="sw-hit-main">
+                            {m.label.toUpperCase()}{m.key === wornMarketKey ? ' · ON' : ''}
+                        </span>
+                        <span className="sw-hit-sub">{m.recipe}</span>
+                    </span>
+                </div>
+            ))}
+            <SwHint text="one word wears it · the same word lifts it · one of each deck at once" />
+        </div>
+    );
+}
+
+/* ── THE JOKE — the stone keeps a told-ledger in the pocket, so a joke
+      never repeats until the whole bank has been dealt; then it says so
+      and honestly starts over. Footer deals ANOTHER ONE. ── */
+
+const JOKES_TOLD_KEY = 'pd_stone_jokes_told';
+
+function readJokesTold(): number[] {
+    try {
+        const a = JSON.parse(window.localStorage.getItem(JOKES_TOLD_KEY) ?? '[]') as unknown;
+        return Array.isArray(a) ? a.filter((n): n is number => typeof n === 'number') : [];
+    } catch { return []; }
+}
+function writeJokesTold(a: number[]) {
+    try { window.localStorage.setItem(JOKES_TOLD_KEY, JSON.stringify(a)); } catch { /* fine */ }
+}
+
+function JokeWidget({ onFooter }: { onFooter: FooterFn }) {
+    const [dealt, setDealt] = useState<{ i: number; exhausted: boolean; left: number } | null>(null);
+    const deal = useCallback(() => {
+        const prev = readJokesTold();
+        const p = pickJoke(new Set(prev), `joke·${prev.length}`);
+        const next = p.exhausted ? [p.i] : [...prev, p.i];
+        writeJokesTold(next);
+        setDealt({ ...p, left: JOKES.length - next.length });
+    }, []);
+    useEffect(() => { deal(); }, [deal]);
+    useFooterAct(onFooter, { label: 'ANOTHER ONE', run: deal });
+    if (!dealt) return null;
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle
+                glyph={`⌘${VS15}`}
+                label="THE JOKE"
+                sub={dealt.exhausted
+                    ? 'THE BANK RAN DRY — STARTING OVER'
+                    : `${dealt.left} STILL UNTOLD`}
+            />
+            <SwSay lead>{JOKES[dealt.i]}</SwSay>
         </div>
     );
 }
 
 /* ── the deck router — one summoned plan, one card ── */
 
-export function WidgetDeck({ plan, address, onGo, onAct, onFooter, onSeed, wornMoodKey = null, onCastMood }: {
+export function WidgetDeck({ plan, address, onGo, onAct, onFooter, onSeed, wornMoodKey = null, onCastMood, wornMarketMoodKey = null, onCastMarketMood }: {
     plan: WidgetPlan;
     address: string;
     onGo: GoFn;
@@ -2349,6 +2418,8 @@ export function WidgetDeck({ plan, address, onGo, onAct, onFooter, onSeed, wornM
     onSeed: (text: string) => void;
     wornMoodKey?: string | null;
     onCastMood?: (m: MoodDef) => void;
+    wornMarketMoodKey?: string | null;
+    onCastMarketMood?: (m: MarketMoodDef) => void;
 }) {
     switch (plan.kind) {
         case 'calendar': return <CalendarWidget />;
@@ -2379,7 +2450,15 @@ export function WidgetDeck({ plan, address, onGo, onAct, onFooter, onSeed, wornM
         case 'dj': return <DjWidget address={address} onAct={onAct} onFooter={onFooter} />;
         case 'lore': return <LoreWidget q={plan.q} />;
         case 'floorgame': return <FloorGameWidget onAct={onAct} />;
-        case 'moods': return <MoodsWidget wornKey={wornMoodKey} onCast={(m) => onCastMood?.(m)} />;
+        case 'moods': return (
+            <MoodsWidget
+                wornKey={wornMoodKey}
+                wornMarketKey={wornMarketMoodKey}
+                onCast={(m) => onCastMood?.(m)}
+                onCastMarket={(m) => onCastMarketMood?.(m)}
+            />
+        );
+        case 'joke': return <JokeWidget onFooter={onFooter} />;
     }
 }
 

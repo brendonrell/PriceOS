@@ -12,7 +12,7 @@
  */
 
 import { SPELLS, type SpellEntry } from '../data/spells';
-import { matchMood, type MoodDef } from './moods';
+import { matchMood, matchMarketMood, type MoodDef, type MarketMoodDef } from './moods';
 
 /** The hardcoded Spell Book pills (plain flags / sort modes, not spell_*). */
 export type CastModeKey =
@@ -32,6 +32,9 @@ export type CastTarget =
        same word off. The registry is lib/stone/moods; execution lives in
        the stone. Cozy (2026-07-28) generalized into the set. */
     | { kind: 'mood'; mood: MoodDef; label: string }
+    /* MARKET MOODS (2026-07-28) — the collecting lens: bullish · bearish ·
+       hunting · browsing. Same grammar, orthogonal to the room moods. */
+    | { kind: 'marketMood'; mood: MarketMoodDef; label: string }
     | { kind: 'workspace'; id: number; label: string };
 
 /** The hardcoded settings pills, name → mode key. Labels/icons match
@@ -75,6 +78,8 @@ export function matchCast(
        (no mood word collides with a spell or pill name). */
     const mood = matchMood(q);
     if (mood) return { kind: 'mood', mood, label: mood.label };
+    const market = matchMarketMood(q);
+    if (market) return { kind: 'marketMood', mood: market, label: market.label };
     for (const spell of SPELLS) {
         // NPC's SPELLS entry is superseded by the hardcoded pill (checked
         // above); Degen sits in its slot in the Book — same here.

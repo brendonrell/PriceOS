@@ -40,7 +40,7 @@ import { parseEtch, commitEtch, resolveProject } from '../../lib/stone/etch';
 import { subscribeFm, getFm, fmPlay, fmToggle, fmNext } from '../../lib/fm/fmBus';
 import { getProject } from '../../lib/project/registry';
 import { matchCast, type CastTarget } from '../../lib/stone/cast';
-import { MOODS, type MoodDef } from '../../lib/stone/moods';
+import { MOODS, MARKET_MOODS, type MoodDef, type MarketMoodDef } from '../../lib/stone/moods';
 import { parseWidget } from '../../lib/stone/widgets';
 import { runStoneCommand, applyStoneStyle } from '../../lib/stone/stoneStyle';
 import { expandFollowUp, type StoneSubject } from '../../lib/stone/memory';
@@ -362,6 +362,27 @@ export default function CommandStone() {
         else if (m.dj === 'hush' && fm.status === 'playing') fmToggle();
         return `${m.label}: ON`;
     };
+    /* MARKET MOODS (Brendon, 2026-07-28) — the collecting lens: sort +
+       real app toggles, orthogonal to the room moods (one of each at
+       once). The sort you had comes back when the lens lifts. */
+    const marketPrevSort = useRef<typeof sort | null>(null);
+    const isMarketMoodOn = (m: MarketMoodDef) =>
+        (m.sort == null || sort === m.sort) && m.on.every((f) => !!notifs[f]);
+    const wornMarketMood = MARKET_MOODS.find(isMarketMoodOn) ?? null;
+    const castMarketMood = (m: MarketMoodDef): string => {
+        if (isMarketMoodOn(m)) {
+            m.on.forEach((f) => { if (notifs[f]) toggle(f); });
+            if (m.sort != null) setSort(marketPrevSort.current ?? 'id');
+            return `${m.label}: OFF`;
+        }
+        /* Switching lenses lifts the worn one's flags first; the ORIGINAL
+           pre-lens sort is remembered for the eventual off. */
+        if (wornMarketMood) wornMarketMood.on.forEach((f) => { if (notifs[f]) toggle(f); });
+        else marketPrevSort.current = sort;
+        m.on.forEach((f) => { if (!notifs[f]) toggle(f); });
+        if (m.sort != null) setSort(m.sort);
+        return `${m.label}: ON`;
+    };
     const castHit = useMemo(
         () => (etchPlan ? null : matchCast(value, workspaces)),
         [value, workspaces, etchPlan]
@@ -424,6 +445,7 @@ export default function CommandStone() {
     const castActive = (hit: CastTarget): boolean => {
         if (hit.kind === 'spell') return !!notifs[hit.spell.flag];
         if (hit.kind === 'mood') return isMoodOn(hit.mood);
+        if (hit.kind === 'marketMood') return isMarketMoodOn(hit.mood);
         if (hit.kind === 'mode') {
             if (hit.key === 'fog') return sort === 'fog';
             const flags = {
@@ -452,6 +474,10 @@ export default function CommandStone() {
         }
         if (hit.kind === 'mood') {
             confirmAnd(castMood(hit.mood));
+            return;
+        }
+        if (hit.kind === 'marketMood') {
+            confirmAnd(castMarketMood(hit.mood));
             return;
         }
         if (hit.kind === 'spell') {
@@ -1030,6 +1056,8 @@ export default function CommandStone() {
                                 onSeed={onSeed}
                                 wornMoodKey={wornMood?.key ?? null}
                                 onCastMood={(m) => showToast(castMood(m))}
+                                wornMarketMoodKey={wornMarketMood?.key ?? null}
+                                onCastMarketMood={(m) => showToast(castMarketMood(m))}
                             />
                         )}
 
