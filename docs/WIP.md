@@ -8,25 +8,31 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-000000000000000000. ✅ **2026-07-28 (LATEST) — THE OVERNIGHT FIVE (Fable,
-   Brendon's "build and push as you go, without me"). ALL on `dev` (tip
-   `b017714`) + `pd-contracts` main (tip `8e164b5`), both trees clean,
-   tsc + 172 app tests + 378 contract tests + real build green, ClickUp
-   synced per ship. Brendon woke mid-session and redlined once (halo tilt
-   — flipped, pushed).**
+000000000000000000. ✅ **2026-07-28 (LATEST) — THE OVERNIGHT FIVE + THE
+   MORNING ROUND (Fable, Brendon's "build and push as you go, without
+   me"; wrapped on his "finish up and wrap"). ALL on `dev` (tip `bca9ecf`)
+   + `pd-contracts` main (tip `b3d5a3e`), both trees clean, tsc + 172 app
+   tests + 378 contract tests + real build green, ClickUp synced per ship.**
 
-   **Nothing is in flight.**
+   **Nothing is in flight. Morning-round decisions (Brendon, in chat):
+   test-phase charm re-rolls are fine (still build phase) · the nine
+   approved eye styles confirmed untouched (only the six new + iris are
+   new) · incognito proxy's two calls confirmed correct · YIN/YANG
+   sharpened to his read — YIN deals the GIRLS, YANG deals the BOYS ·
+   halo re-tilted · slots wear the I-Ching marks ⚋/⚊ (true taijitu ☯ is
+   emoji-mapped, banned; GLYPHS §12j) · moods grew GOLDEN HOUR + OCEAN
+   on his encore (six total).**
 
    1. **THE MOODS SET (Command Stone).** Cozy generalized into a data
       registry (`lib/stone/moods.ts`): one castable word = colorway +
       ambient light + the DJ; same word off; the ORIGINAL colorway comes
-      back even after switching moods; only one worn at a time. Set:
+      back even after switching moods; only one worn at a time. SIX moods:
       cozy (haze·ambient·DJ) · rave/hype (hothurt·ambient·DJ) ·
       monk/focus (light·all off·quiet) · midnight (dark·dim wash·music
-      stays). Bare `moods` deals the set as a tappable Stone card (worn
-      one marked, deal stays up). ☾ = THE MOODS, GLYPHS §12a. Abilities
-      doc re-tabled. ⚠ Names + monk's light wear + midnight keeping music
-      were my calls — swappable in one data line each.
+      stays) · golden/golden hour (orange·ambient·DJ) · ocean (blue·
+      ambient·music stays). Bare `moods` deals the set as a tappable
+      Stone card (worn one marked, deal stays up). ☾ = THE MOODS, GLYPHS
+      §12a. Abilities doc re-tabled.
    2. **ClickUp sync debt CLEARED** — retro ship records for the three
       unsynced sessions (86bb4j0qx Soundtracks/Suite · 86bb4j0r4
       Depanneur+audit batch · 86bb4j0w9 stone wow-pass+moods); keychain
@@ -47,15 +53,16 @@
       3D GLASSES LASHES TEARY) + iris colors on the five pupil styles
       (INK 65 · five colors 7 each, salt 14 appended). Halo re-tilted per
       Brendon's morning redline.
-   5. **KEYCHAINS — YIN/YANG COIN SLOTS.** `crank(coin)` on-chain (stored
-      forever, BadCoin guard, event carries it); coin steers palette /
-      eyes / accessory weight tables; **shapes universal — ALIEN chase
-      equal both slots.** Machine UI wears the two slots: NO default,
-      crank reads DROP A COIN until one is picked. Trait sheets + tokenURI
-      attributes carry Coin + Iris. Docs odds re-tabled by coin; the
-      machine holds **58,060,800** charms now. ⚠ Existing test-phase
-      charms re-roll their faces under the new tables (disposable per
-      Brendon's standing call; all were coin-0 defaulted).
+   5. **KEYCHAINS — YIN/YANG COIN SLOTS (Brendon's read: BOY OR GIRL).**
+      `crank(coin)` on-chain (stored forever, BadCoin guard, event
+      carries it); **⚋ YIN deals the GIRLS** (pinks/pastels, lashes,
+      hearts, teary, bows-led heads) · **⚊ YANG deals the BOYS**
+      (louds/darks, googly/starry/shades, crowns + antennas); **shapes
+      universal — ALIEN chase equal both slots.** Machine UI wears the
+      two slots: NO default, crank reads DROP A COIN until one is
+      picked. Trait sheets + tokenURI attributes carry Coin + Iris. Docs
+      odds re-tabled by coin; the machine holds **58,060,800** charms.
+      Test-phase re-rolls cleared by Brendon ("still build phase").
    6. **Still queued:** the MCP stone door (its own pass) · POLISH button
       + signing endpoint (chain phase, 86bb46etv) · Sepolia keychain
       deploy (Brendon's hands, 86bb46epm).
