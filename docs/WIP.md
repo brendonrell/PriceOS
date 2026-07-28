@@ -8,7 +8,49 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0000000000000000000. ✅ **2026-07-28 (LATEST) — THE LOYALTY + SIGIL TABS,
+00000000000000000000. ✅ **2026-07-28 (LATEST) — THE STONE KNOWS ITS WORLD
+   (Opus 5, continuing the stone's bonus rounds alongside the Loyalty/Sigil
+   session — rebased onto its work, never over it). On `dev` (tip
+   `5f0cf9e`), tree clean, tsc + 185 tests + real build green, ClickUp
+   commented on `86bb4j0w9`.**
+
+   **Nothing is in flight.** New module `lib/stone/world.ts` — the stone's
+   knowledge of the ecosystem outside our own walls. Every topic carries
+   several full answers, seeded, so it never recites.
+
+   1. **PD'S OWN IDENTITY, TOLD CORRECTLY (Brendon's order).** "what is
+      price discussion" / "what is pd" answers the **CHANNEL FIRST**
+      (#price-discussion in the fxhash Discord, 19 Nov 2021, 08:28
+      Montreal — our own genesis instant), then the community that took
+      it independent, then this platform. All three at once. **A test
+      enforces the channel-first ordering forever** so no future session
+      flattens it into "a platform".
+   2. **The medium's real history:** Art Blocks · fx(hash) (which gets to
+      say it produced PD) · Larva Labs · CryptoPunks · Autoglyphs (nodding
+      that our own on-chain keychains work in their shadow) · Meebits.
+   3. **The house takes (Brendon's calls):** VERSE → "never heard of
+      them", written so every variant undercuts itself — a test asserts
+      it can only read as a bit, never a knowledge gap. HEFT → "sounds
+      trad", four anecdotes. TENDER → the real history (ajberni ·
+      punevyr · July 2022 · the transparency page) with the jab aimed at
+      the MODEL, not the people: an expensive pass granting the right to
+      go buy more things. Brendon reviewed and approved the copy, then
+      asked for the jab to be sharpened — it was.
+   4. **⛔ THE @ LAW (new hard rule, CLAUDE.md §9):** an `@` in PD copy
+      ALWAYS means a PD username, so outside people are named plainly
+      (ajberni, punevyr, Snowfro). Enforced by a test forbidding `@`
+      anywhere in the stone's world knowledge.
+   5. **⚠ PARKED at Brendon's word — the coins pass.** "Skip the coins,
+      I'll connect other repos that will help." Research banked so it is
+      not redone: fxhash **Artcoins** are ERC-20s on Base launched via a
+      bonding curve and only graduate to a real pool paired against $FXH
+      (verified: exactly ONE has, so a live roster needs fxhash's own
+      source, not an aggregator — their public GraphQL is Tezos-only).
+      **TokenWorks** = FWA (fwa.fun) · Ten Thousand Tokens
+      (tenthousandtokens.net — $RWA `0xa64ac4ecc7302ba4dcf1f9cc8856ac5c2ed2c581`)
+      · PunkStrategy.
+
+0000000000000000000. ✅ **2026-07-28 — THE LOYALTY + SIGIL TABS,
    THEN THE WOW PASS (started on Fable, finished on Opus 5 after the Fable
    allowance ran out mid-edit — Brendon: "I ran out of Fable 5 credits and
    need you to finish the job"). ALL on `dev` (tip `2fbd306`), tree clean,
