@@ -14,6 +14,16 @@
     flex-direction: column;
     gap: 12px;
 }
+/* JUL 28: the machine scrolls. The FI-PLUS body it borrows is `overflow:
+   hidden` (that panel scrolls an inner list instead), which clipped the
+   Depanneur's machine + reveal + rack with no way to reach them. Two classes
+   on purpose — the shared rule lands later in the sheet. */
+.followers-plus-body.dp-body {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+}
 
 .dp-note {
     font-size: 13px;
@@ -250,8 +260,9 @@
 .pd-charm-worn {
     display: inline-flex;
     align-items: center;
-    width: 26px;
-    height: 26px;
+    /* JUL 28: 4× the original 26px — Brendon's call. */
+    width: 104px;
+    height: 104px;
     cursor: pointer;
     flex-shrink: 0;
 }

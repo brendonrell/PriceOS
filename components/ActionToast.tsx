@@ -39,14 +39,15 @@ function oneLineFits(text: string): boolean {
     return w <= budget;
 }
 
-/* The mini*player* wordmark — the ONLY toast token drawn with markup: the
-   "player" half renders italic (Brendon's word-lock, 2026-07-22). Matches the
-   lowercase wordmark exactly; every other toast string passes through plain. */
+/* The mini*player*™ wordmark — the ONLY toast token drawn with markup: the
+   "player" half renders italic and the ™ rides every mention (Brendon's
+   word-lock, 2026-07-22; ™ on every toast mention, 2026-07-28). TOASTS ONLY —
+   every other toast string passes through plain. */
 function withWordmark(text: string): ReactNode {
     if (!text.includes('miniplayer')) return text;
     return text.split(/(miniplayer)/).map((seg, i) =>
         seg === 'miniplayer'
-            ? <span key={i}>mini<span style={{ fontStyle: 'italic' }}>player</span></span>
+            ? <span key={i}>mini<span style={{ fontStyle: 'italic' }}>player</span>™</span>
             : seg,
     );
 }

@@ -37,7 +37,7 @@ Every charm is one of twelve body shapes, each a full character with a face, rub
 
 All rolled at crank, frozen forever. Weights are contract-public.
 
-**The two coin slots — ⚋ YIN and ⚊ YANG.** The machine takes your coin in one of two slots, and the slot you pick steers who drops: **YIN deals the girls** — the pinks and pastels, lashes, hearts, teary eyes, bows; **YANG deals the boys** — the louds and darks, googly and starry eyes, shades, crowns and antennas. Every option stays rollable on both coins — the slot bends the odds, it never closes a door. **Shapes are universal:** the ALIEN chase is exactly equal whichever slot your coin drops in.
+**The two coin slots — ⚋ YIN and ⚊ YANG.** The machine takes your coin in one of two slots, and the slot you pick steers who drops: **YIN deals the pinks and pastels** — lashes, hearts, teary eyes, bows; **YANG deals the louds and darks** — googly and starry eyes, shades, crowns and antennas. Every option stays rollable on both coins — the slot bends the odds, it never closes a door. **Shapes are universal:** the ALIEN chase is exactly equal whichever slot your coin drops in.
 
 **Eyes — 15 styles.** Odds by coin:
 

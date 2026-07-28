@@ -183,6 +183,9 @@
     font-weight: normal; letter-spacing: 0;
     color: inherit;
 }
+/* JUL 28: the ⊟ note glyph sits a hair high against the date label — half a
+   pixel down (the + keeps its position). */
+.cal-daynote-btn:not(.cal-add-btn) { position: relative; top: 0.5px; }
 .cal-daynote-btn:hover { opacity: 0.85; }
 .cal-daynote-btn:active { transform: scale(0.92); }
 .cal-daynote-btn.has-note {

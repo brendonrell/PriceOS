@@ -201,7 +201,7 @@ export default function DepanneurModal() {
                                     onClick={() => setCoin(coin === 0 ? null : 0)}
                                 >
                                     <span className="dp-coin-name">{`⚋${VS15} YIN`}</span>
-                                    <span className="dp-coin-line">the girls · pinks · bows · lashes</span>
+                                    <span className="dp-coin-line">pinks · bows · lashes</span>
                                 </button>
                                 <button
                                     type="button"
@@ -209,7 +209,7 @@ export default function DepanneurModal() {
                                     onClick={() => setCoin(coin === 1 ? null : 1)}
                                 >
                                     <span className="dp-coin-name">{`⚊${VS15} YANG`}</span>
-                                    <span className="dp-coin-line">the boys · louds · crowns · shades</span>
+                                    <span className="dp-coin-line">louds · crowns · shades</span>
                                 </button>
                             </div>
 
