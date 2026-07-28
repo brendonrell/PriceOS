@@ -8,7 +8,35 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0000000000000000000000. ✅ **2026-07-28 (LATEST) — @PRICE + THE PING CARD +
+00000000000000000000000. ✅ **2026-07-28 (LATEST) — BOT SPOT EDITS, FIVE ITEMS
+   (Opus 5). On `dev` (tip `1e8ae59`), tree clean, typecheck green. ClickUp
+   ship record `86bb4tjd4` (Done).**
+
+   **Nothing is in flight.**
+
+   1. **The miniplayer wordmark carries ™ — IN TOASTS ONLY.** ⛔ The rule cost
+      three rounds, so read it exactly: **ADD a ™ only where one is MISSING.**
+      The MODE face toast already wrote its own ™ after the face name
+      (`miniplayer DECK™`) — that one **KEEPS ITS EXACT SPOT, untouched.** I
+      first doubled it, then wrongly deleted it; both were wrong. The renderer
+      now guards on the toast already containing a ™ and stands its own down.
+      One ™ per toast, never two, never relocated. Nothing outside toasts.
+   2. **Day-note ⊟ in the connect-menu calendar drops 0.5px** — the `+` beside
+      it shares the base class and was deliberately excluded.
+   3. **Worn keychain charm on the profile tag row: 26px → 104px** (4×, taken
+      literally as 4× dimensions — his call).
+   4. **The Depanneur scrolls.** It borrows the FI-PLUS panel chrome, whose
+      body is `overflow: hidden` (that panel scrolls an inner list instead), so
+      the machine + reveal + rack were clipped with no way to reach them.
+      Two-class selector — the shared rule lands later in the sheet.
+   5. **⛔ NO GENDERS IN THE YIN/YANG COPY.** Brendon: "the literally ENTIRE
+      point of using Yin/Yang is to avoid this." Coin slots now read
+      `pinks · bows · lashes` / `louds · crowns · shades`; the public keychains
+      overview doc corrected the same way ("YIN deals the pinks and pastels" /
+      "YANG deals the louds and darks"). Internal code comments still carry the
+      old shorthand — not user-facing, left alone. **Never reintroduce it.**
+
+0000000000000000000000. ✅ **2026-07-28 — @PRICE + THE PING CARD +
    WORKSPACES TO THE ACCOUNT (Opus 5). On `dev` (tip `cf9f8b2`), tree clean,
    185 tests + real build green, CSS read back out of the compiled sheet.
    ClickUp ship record `86bb4pte4` (Done).**
