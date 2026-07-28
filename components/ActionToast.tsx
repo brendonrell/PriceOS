@@ -43,11 +43,11 @@ function oneLineFits(text: string): boolean {
    "player" half renders italic and the ™ rides every mention (Brendon's
    word-lock, 2026-07-22; ™ on every toast mention, 2026-07-28). TOASTS ONLY —
    every other toast string passes through plain. */
-function withWordmark(text: string): ReactNode {
+function withWordmark(text: string, hasOwnTm = false): ReactNode {
     if (!text.includes('miniplayer')) return text;
     return text.split(/(miniplayer)/).map((seg, i) =>
         seg === 'miniplayer'
-            ? <span key={i}>mini<span style={{ fontStyle: 'italic' }}>player</span>™</span>
+            ? <span key={i}>mini<span style={{ fontStyle: 'italic' }}>player</span>{hasOwnTm ? null : '™'}</span>
             : seg,
     );
 }
@@ -95,6 +95,10 @@ export default function ActionToast() {
         .filter(Boolean)
         .join(' ');
 
+    /* A toast that already writes its own ™ (the MODE face toast) keeps it
+       exactly where it is — the wordmark's ™ stands down so only one shows. */
+    const ownTm = state.msg.includes('™');
+
     const style: CSSProperties = { transitionDuration: `${state.fadeMs}ms` };
     if (tint) {
         style.background = tint;
@@ -130,11 +134,11 @@ export default function ActionToast() {
             )}
             {labelSplit ? (
                 <>
-                    <span className="toast-label">{withWordmark(labelSplit.label)}:</span>
-                    <span className="toast-action">{withWordmark(labelSplit.action)}</span>
+                    <span className="toast-label">{withWordmark(labelSplit.label, ownTm)}:</span>
+                    <span className="toast-action">{withWordmark(labelSplit.action, ownTm)}</span>
                 </>
             ) : (
-                withWordmark(state.msg)
+                withWordmark(state.msg, ownTm)
             )}
         </div>
     );
