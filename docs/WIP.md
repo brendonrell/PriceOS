@@ -8,7 +8,70 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-000000000000000000000000. ✅ **2026-07-28 (LATEST) — PDMCP CAUGHT UP TO MCP
+0000000000000000000000000. ✅ **2026-07-28 (LATEST) — MINIPLAYER DEAD-LINK KILLED ·
+   USB HARDWARE PASS · YOUR TRACKS · SLIDE-MODAL HITCH · SUITE/PRICECAL ·
+   AD CHANNEL (Opus 5). All on `dev` (tip `1099f77`), tree clean, typecheck
+   green, every change verified in the compiled CSS/JS. ClickUp `86bb518mu`.**
+
+   **Nothing is outstanding — this session is fully shipped and deployed.**
+   Below is what a fresh chat most needs to know.
+
+   1. **⛔ THE DEAD LINK WAS NEVER A DEAD LINK — do not "fix" this back.** The
+      watchdog flagged any station that hadn't reached PLAYING in 12s. On iOS
+      that is the NORMAL state: Safari blocks autoplay outside a real gesture,
+      so the player parks in CUED — loaded, waiting — and plays the instant ▶
+      is pressed ("it fixes itself eventually"). It now flags only a station
+      that never reports back AT ALL; ready/cued/buffering/playing/paused all
+      clear it, including on a retune of an already-ready player. CUED reads as
+      PAUSED, never endless TUNING. Real breakage still flags via the error
+      path, which is the thing that actually knows.
+      **⛔ SETTLED, BRENDON'S CALL — do NOT reopen:** we do NOT keep a player
+      alive up front to win autoplay ("that's retarded"), and a delayed
+      programmatic press does NOT clear Safari's gate — it is literally what
+      already ran. **The station opens ready and the user presses play.** Done.
+   2. **YOUR TRACKS — the viewer's own 22 YouTube playlists.** PRIVATE, in the
+      settings envelope beside `starred`, changeable any time
+      (`lib/fm/tracksStore`). Vetted by `/api/studio/playlist` — the exact
+      route the Studio runs on artist soundtracks, so a link PD would refuse
+      an artist is refused here. **UI is the SAME pop-out menu the screen
+      opens**, on its own shelf (his call — not a new panel).
+      **⛔ THE DOOR, Brendon-confirmed, is the ONLY way in:** tap the USB cap
+      to pop it, then **long-press OR triple-tap the tip**; a lone tap
+      re-seats the cap. Nothing else on PD mentions the feature.
+   3. **Slide modals stopped hitching** (Completionism · Profit Pal · Cart ·
+      Exchange · Market sheets). Two real flaws: the sheet flipped active in
+      the same commit that made it visible — a browser will not transition an
+      element that was `display:none` an instant ago, so it jumped instead of
+      sliding (now gets a clean frame first); and Completionism's open flag
+      lived at the top of `ProfilePageBody`, so opening it re-rendered the
+      whole profile incl. the collected grid's live art tiles (now its own
+      `CompletionismDoor`). **Any future modal: keep its open flag out of the
+      page component.**
+   4. **USB face hardware pass.** Moulded plastic for real — hard specular
+      streak under the top edge, shaded shoulders so it reads round, dark base
+      + bounce line, lit lip and undercut. Pad is a raised plate. Screen wears
+      a thick black bezel with soft corners and SHARES the deck's selector, so
+      the two faces can never drift. Pad cross: **⟳ SHUFFLE top · ⎇
+      face-changer left · ≫ right · × bottom · ▶ centre**; top and bottom sit
+      6px in to clear the pad's ring. USB is LAST in the face cycle.
+      ⚠ `docs/GLYPHS.md` still lacks ⟳ as the miniplayer shuffle key — add it
+      beside ≫ in the key table.
+   5. **Sticker channel is COMMERCIALS ONLY** — the daily episode is off the
+      air. 53 spots airing (was 13), 41 newly written; every eligible spot airs
+      each pass and the break is **re-dealt on every wrap**, so the order and
+      the lead spot change constantly (it used to shuffle once per mount and
+      replay forever — his complaint).
+   6. **PriceOS Suite** — every pane header wears its own app name (PriceTask ·
+      PriceFlows · PriceWrite · PriceBooks · PriceCal · PriceCalc · PriceCall ·
+      PriceCalm); the connect-menu boxes keep TO-DOS / NOTES. **PriceCal
+      stacks in the pane** (grid full width up top, day's events full width
+      below, one scroller) — and note the menu pins that panel to
+      `--pd-menu-height` with `overflow:hidden`, which is what was clipping it.
+   7. **Followers smiley** one size smaller everywhere it appears (profile hero
+      + output pages, phone and desktop). Project pages use the grid glyph, not
+      the smiley — untouched.
+
+000000000000000000000000. ✅ **2026-07-28 — PDMCP CAUGHT UP TO MCP
    2026-07-28, PLUS THE FEATURES IT WAS MISSING (Opus 5). On `dev` (tip
    `b753be1`), tree clean, typecheck green, every tool exercised against LIVE
    PD data. ClickUp: build task `86bavnrt7` closed; deploy task `86bb4wzn5`
