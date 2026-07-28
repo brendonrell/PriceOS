@@ -44,28 +44,30 @@ const VS15 = '︎';
    (PriceCalc) · ⊟ Note — plus the real per-mille SVG mark (PerMilleMark,
    never the text ‰ — Brendon's logo law) fronting the Today dashboard.
    Never swapped, never invented. */
-/* ‰ Today is NOT an app icon — it's the long bar above the grid (Brendon,
+/* ‰ Today is NOT an app icon — it's the long bar UNDER the grid (Brendon,
    2026-07-28: "almost like a space bar, normal pill style, 80% width of the
-   icon grid"). The eight apps below it fall into neat rows. */
+   icon grid"; moved below the icons the same day). */
 const TODAY = { key: 'today', glyph: 'mille', name: 'Today' } as const;
 
+/* Brendon's order, 2026-07-28: Task · Flows · Write · Books, then
+   Cal · Calc · Call · Calm. */
 const APPS = [
-    { key: 'cal', glyph: '▦', name: 'PriceCal' },
     { key: 'task', glyph: '❍', name: 'PriceTask' },
     { key: 'flow', glyph: '☇', name: 'PriceFlows' },
+    /* Renamed PriceNotes → PriceWrite (Brendon, 2026-07-27). Key unchanged. */
+    { key: 'notes', glyph: '⊟', name: 'PriceWrite' },
     { key: 'books', glyph: '◊', name: 'PriceBooks' },
+    { key: 'cal', glyph: '▦', name: 'PriceCal' },
     /* PriceCalc is a DOOR, not a pane — tapping it summons PROFIT PAL over
        the Suite (the real Pal, ModalContext 'pal'/'profit'); closing it
        lands you back here. */
     { key: 'calc', glyph: 'ƒ', name: 'PriceCalc' },
-    /* ⬟ — the Zen Garden's own stone fronts the calm room (Brendon's pick,
-       2026-07-28: PriceCal · PriceCalc · PriceCalm). */
-    { key: 'calm', glyph: '⬟', name: 'PriceCalm' },
     /* ⚯ — the Friend Inspector's circle glyph fronts the contacts app.
        Renamed PricePhone → PriceCall (Brendon, 2026-07-27). Key unchanged. */
     { key: 'phone', glyph: '⚯', name: 'PriceCall' },
-    /* Renamed PriceNotes → PriceWrite (Brendon, 2026-07-27). Key unchanged. */
-    { key: 'notes', glyph: '⊟', name: 'PriceWrite' },
+    /* ⬟ — the Zen Garden's own stone fronts the calm room (Brendon's pick,
+       2026-07-28: PriceCal · PriceCalc · PriceCalm). */
+    { key: 'calm', glyph: '⬟', name: 'PriceCalm' },
 ] as const;
 type AppKey = SuiteAppKey;
 
@@ -117,22 +119,10 @@ export default function SuiteModal() {
                         {`×${VS15}`}
                     </span>
                 </div>
-                {/* the app switcher — Today as the long bar, then the small
-                    APP ICONS (Brendon, 2026-07-27): the glyph in a rounded
-                    square, the name below it. */}
+                {/* the app switcher — the small APP ICONS (Brendon,
+                    2026-07-27): the glyph in a rounded square, the name below
+                    it — then Today as the long bar under them. */}
                 <div className="suite-switcher" role="tablist" aria-label="Suite apps">
-                <div className="suite-todaybar-row">
-                    <button
-                        type="button"
-                        role="tab"
-                        aria-selected={app === TODAY.key}
-                        className={`suite-todaybar${app === TODAY.key ? ' on' : ''}`}
-                        onClick={() => setApp(TODAY.key)}
-                    >
-                        <PerMilleMark className="suite-todaybar-permille" />
-                        <span className="suite-todaybar-name">{TODAY.name}</span>
-                    </button>
-                </div>
                 <div className="suite-tabs">
                     {APPS.map((a) => (
                         <button
@@ -149,6 +139,18 @@ export default function SuiteModal() {
                             <span className="suite-tab-name">{a.name}</span>
                         </button>
                     ))}
+                </div>
+                <div className="suite-todaybar-row">
+                    <button
+                        type="button"
+                        role="tab"
+                        aria-selected={app === TODAY.key}
+                        className={`suite-todaybar${app === TODAY.key ? ' on' : ''}`}
+                        onClick={() => setApp(TODAY.key)}
+                    >
+                        <PerMilleMark className="suite-todaybar-permille" />
+                        <span className="suite-todaybar-name">{TODAY.name}</span>
+                    </button>
                 </div>
                 </div>
                 <div className="followers-plus-body suite-body">
