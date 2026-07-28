@@ -13766,7 +13766,15 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     opacity: 1;
 }
 .price-acct .attr-group-count { font-size: 12px; opacity: 1; }
+/* Tile labels too — the shared 9px/half-opacity pair vanishes on a mid-tone
+   colorway, and these name the facts the page exists to state. */
+.price-acct .attr-tile-label { font-size: 12px; letter-spacing: 0.8px; opacity: 1; }
+.price-acct .attr-tile-value { font-size: 14px; }
+.price-acct .attr-tile { border-color: var(--text-color); border-radius: 4px; }
 .price-acct .nbhd-note { line-height: 1.5; }
+/* The allocation rows carry real numbers — full strength, not a subtitle. */
+.price-acct-rows .starred-row-sub { font-size: 12px; opacity: 1; }
+.price-acct-rows .starred-row-id { font-size: 14px; }
 /* The contract address — a full-strength tappable row, monospaced so the hex
    reads as the hex. Wraps rather than truncating: this is the number people
    check the page for. */
