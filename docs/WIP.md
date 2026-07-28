@@ -63,7 +63,16 @@
       picked. Trait sheets + tokenURI attributes carry Coin + Iris. Docs
       odds re-tabled by coin; the machine holds **58,060,800** charms.
       Test-phase re-rolls cleared by Brendon ("still build phase").
-   6. **Still queued:** the MCP stone door (its own pass) · POLISH button
+   6. **BONUS ROUND (Brendon's post-wrap ask, same day):** THE JOKE —
+      `tell me a joke` off a 48-joke bank (gen art/collecting/wallets,
+      stone register); told-ledger = never a repeat until the bank runs
+      dry, then it says so and starts over; footer deals ANOTHER ONE.
+      THE MARKET MOODS — second deck in the moods card: bullish (degen +
+      price sort) · bearish (the watch) · hunting (arbitrage map + price
+      sort) · browsing (feed sort). One room mood + one market lens at
+      once; prior sort restores on lift. All existing vocabulary, zero
+      new chrome. On `dev` (tip `22ea9aa`), 174 tests green.
+   7. **Still queued:** the MCP stone door (its own pass) · POLISH button
       + signing endpoint (chain phase, 86bb46etv) · Sepolia keychain
       deploy (Brendon's hands, 86bb46epm).
 
