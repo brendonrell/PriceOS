@@ -96,10 +96,10 @@ const stationWatchUrl = (id: string) =>
         : `https://www.youtube.com/watch?v=${encodeURIComponent(id)}`;
 
 /* The four faces, cycled in this order (Brendon, 2026-07-22 — Micro + Slab
-   retired; 2026-07-27 — USB added, right after Deck). The internal `signal`
-   key stays (it drives the .fm-mode-signal equalizer face and every saved
-   value); its user-facing name is now "Tab". */
-const FM_DISPLAYS = ['deck', 'usb', 'signal', 'disc'] as const;
+   retired; 2026-07-27 — USB added; 2026-07-28 — USB moved to LAST). The
+   internal `signal` key stays (it drives the .fm-mode-signal equalizer face
+   and every saved value); its user-facing name is now "Tab". */
+const FM_DISPLAYS = ['deck', 'signal', 'disc', 'usb'] as const;
 type FmDisplay = (typeof FM_DISPLAYS)[number];
 const FM_DISPLAY_NAMES: Record<FmDisplay, string> = {
     deck: 'Deck', usb: 'USB', signal: 'Tab', disc: 'Disc',

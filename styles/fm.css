@@ -308,8 +308,9 @@ body.modal-open .fm-bar {
         linear-gradient(#343941, #343941) 5px 14px / 9px 4px no-repeat,
         linear-gradient(180deg, #dadde2 0%, #9aa0a8 55%, #7c828c 100%);
 }
-/* the screen — small and fully INSIDE the tall body, the deck face's
-   inverted-panel treatment (full-strength tokens, Rule #2) */
+/* the screen — small and fully INSIDE the tall body. BLACK glass on every
+   colorway (Brendon, 2026-07-28), readout full-strength white on it so it
+   stays legible whatever the page paints (Rule #2). */
 .fm-mode-usb .fm-screen {
     grid-column: 1;
     grid-row: 1 / 4;
@@ -317,15 +318,15 @@ body.modal-open .fm-bar {
     align-self: center;
     height: 36px;
     margin-right: 8px;
-    background: var(--text-color);
-    color: var(--bg-color);
+    background: #000;
+    color: #fff;
     border: 1px solid #000;
     align-items: center;
 }
-.fm-mode-usb .fm-video { width: 30px; height: 22px; border-right: 1px solid var(--bg-color); align-self: center; }
+.fm-mode-usb .fm-video { width: 30px; height: 22px; border-right: 1px solid #fff; align-self: center; }
 .fm-mode-usb .fm-video iframe { width: 30px; height: 22px; }
 .fm-mode-usb .fm-rows { width: 62px; flex: 0 0 62px; max-width: 62px; padding: 0 4px; }
-/* the EQ dances in the glass — readout-coloured on the inverted panel */
+/* the EQ dances in the glass — readout-coloured on the black panel */
 .fm-mode-usb .fm-sigbars {
     display: flex;
     gap: 2px;
@@ -333,7 +334,7 @@ body.modal-open .fm-bar {
     height: 12px;
     padding: 0 4px 0 0;
 }
-.fm-mode-usb .fm-sb { background: var(--bg-color); box-shadow: none; }
+.fm-mode-usb .fm-sb { background: #fff; box-shadow: none; }
 /* ONE raised square pad carries all the keys — solid site tokens */
 .fm-mode-usb::after {
     content: '';
@@ -373,8 +374,10 @@ body.modal-open .fm-bar {
     background: var(--bg-color);
     border: 1px solid var(--text-color);
 }
-.fm-mode-usb .fm-modekey { grid-column: 3; grid-row: 1; align-self: end; }
-.fm-mode-usb .fm-close { grid-column: 3; grid-row: 3; align-self: start; }
+/* top + bottom keys sit 2px further in toward the pad's centre
+   (Brendon, 2026-07-28) — left/right keys unchanged */
+.fm-mode-usb .fm-modekey { grid-column: 3; grid-row: 1; align-self: end; transform: translateY(2px); }
+.fm-mode-usb .fm-close { grid-column: 3; grid-row: 3; align-self: start; transform: translateY(-2px); }
 .fm-mode-usb .fm-btn:not(.fm-play):not(.fm-modekey):not(.fm-close) { grid-column: 4; grid-row: 2; }
 
 /* the USB CAP — the stick's end cap in the body's own colorway gradient.
@@ -404,7 +407,6 @@ body.modal-open .fm-bar {
         var(--bg-color) 52%,
         color-mix(in srgb, var(--bg-color) 82%, #000000) 100%
     );
-    border: 1px solid var(--text-color);
     transition: transform 0.22s ease, opacity 0.18s ease;
 }
 .fm-usbcap--off::before {
