@@ -8,7 +8,65 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-000000000000000000. ✅ **2026-07-28 (LATEST) — THE OVERNIGHT FIVE + THE
+0000000000000000000. ✅ **2026-07-28 (LATEST) — THE LOYALTY + SIGIL TABS,
+   THEN THE WOW PASS (started on Fable, finished on Opus 5 after the Fable
+   allowance ran out mid-edit — Brendon: "I ran out of Fable 5 credits and
+   need you to finish the job"). ALL on `dev` (tip `2fbd306`), tree clean,
+   tsc + 183 tests + real build green, ClickUp synced (ship record
+   `86bb4m2ct`; Sigil feature task `86b9erfwp` commented).**
+
+   **Nothing is in flight.** Both tabs are public on every profile like
+   Counterparties, everything DERIVED from ledgers that already exist —
+   no new tables, no writes. Two new reads:
+   `/api/user/[address]/loyalty` and `/api/user/[address]/sigil`.
+
+   1. **LOYALTY (+More › Loyalty)** — THE LONG GAME (member since · user
+      number · streak · avg hold) · LONGEST HELD (tenure rows, podium
+      ❶❷❸) · ARTISTS YOU BACK (patronage via the registry's
+      `artistHandle`) · PURITY (kept vs let go · unlisted ·
+      tenure-vs-account-age → 0–100 + a verdict word, DIAMOND →
+      MERCENARY). Wow pass added **BORN HERE** (minted here and never
+      once let go — ✶ on the row, counted in Purity; a bought-back piece
+      does NOT qualify) and **CLEAN HANDS** (days since anything last
+      left; burns excluded).
+   2. **SIGIL (+More › Sigil)** — the mark large + read apart (form ·
+      core · edges · companion · **accents**, shown on the dotted circle
+      ◌), its core/form rarity against every forged mark, **STRUCK**
+      (forge date + forge ordinal in the section's count slot), **KIN**
+      (closest marks by shared parts), and the faction record — flag ·
+      **THE GROUND** (collections the flag leads/besieges, strongholds
+      first) · the Book · the old guard. War sections stay
+      **IYKYK-gated on the viewer flying a flag** (`useFaction` law).
+      `sigil_hidden` is respected everywhere: owner-only, and excluded
+      from every kin/roster read.
+   3. **⛔ THE SIGIL POOLS ARE UNTOUCHED — and now have a tripwire.** The
+      decomposition is a NEW `sigilAnatomy()` that replays `sigilFor`'s
+      exact draw sequence. `tests/sigil-anatomy.test.ts` runs 2000
+      addresses and fails if the recomposed mark ever stops being
+      byte-identical to the forged tattoo. **Never edit the pools** (they
+      re-roll every tattoo on the platform); if that test goes red,
+      someone did.
+   4. **COUNTERPARTIES wow pass** — relationship glyphs on the rows
+      (⚭ ⚯ ⚬, the §12 set), each tie's span (first → last deal), and two
+      record tiles (biggest single deal · oldest tie) read over the FULL
+      table so they stand past the 50-row cap.
+   5. **Two bugs caught in the render pass, fixed before the push:** the
+      loyalty route's query list had grown to seven while the
+      destructuring still named five — the active-listings count was
+      silently reading the mints query (a wrong "listed now" would have
+      shipped); and the new row lines overran the absolutely-positioned
+      Declare-Nemesis button and ellipsed mid-date (content box is 242px
+      — measured, not guessed; full dates moved to the row title).
+   6. **One deliberate call flagged for Brendon:** the follow-graph read
+      behind the new relationship glyphs is keyed on **@name, not
+      address** — every other follows read in the app does (the
+      Nomenclature Sweep) and pre-claim/indexer rows can carry a null
+      address pair. A counterparty with no @name shows no relationship
+      mark.
+   7. **Glyphs — canon only, nothing invented:** ❶❷❸ · ✶ · ◈ · ✺ · ☻ ·
+      ≍ · ◌ · the war set ⚐ ▞ ▟ ≣ ‡.
+
+000000000000000000. ✅ **2026-07-28 — THE OVERNIGHT FIVE + THE
    MORNING ROUND (Fable, Brendon's "build and push as you go, without
    me"; wrapped on his "finish up and wrap"). ALL on `dev` (tip `bca9ecf`)
    + `pd-contracts` main (tip `b3d5a3e`), both trees clean, tsc + 172 app
@@ -365,7 +423,7 @@
       (expired offers), sprite contact cards, auto-pick piece on CALL.
 
 
-000000000000. ✅ **2026-07-27 (LATEST) — THE DARKROOM ◉ + FINGERPRINT TASTE
+000000000000. ✅ **2026-07-27 — THE DARKROOM ◉ + FINGERPRINT TASTE
    AXES (the Radar unlock) + FINGERPRINT DOCS PAGE. On `dev` (tip `e5d455f`),
    tree clean, tsc + real build green, 138 tests pass, geometry read proven
    on real pixels in headless Chromium. Brendon-approved + pushed.**
