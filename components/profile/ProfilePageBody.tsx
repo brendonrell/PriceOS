@@ -122,6 +122,7 @@ import { useLedgerFeed } from '../../lib/feed/useLedgerFeed';
 import { useSpiteMatcher } from '../../lib/pins/spiteStore';
 import { useCollectedGallery } from './useCollectedGallery';
 import { useArtistShowcase } from './useArtistShowcase';
+import { isPlatformAccount } from '../../lib/platform/accounts';
 
 /* DEACTIVATE (Spell Book) — the understated "account deactivated" state a
    VISITOR sees on a deactivated profile. Deliberately plain (not corny — the
@@ -596,6 +597,8 @@ function ProfilePageBodyInner({
        the full Share button. Never on your own profile. */
     const canTakeover = useMemo(() => {
         if (isOwnProfile) return false;
+        /* A platform account is not a counterparty — never a takeover target. */
+        if (isPlatformAccount(user.address)) return false;
         const perProject = new Map<string, number>();
         for (const h of holdings) {
             const n = (perProject.get(h.slug) ?? 0) + 1;
@@ -1583,7 +1586,7 @@ function ProfilePageBodyInner({
                         )}
                         {/* THE EXCHANGE — head-to-head trade with this collector
                             (spec 86ba0apqr: profile-page surface). */}
-                        {isAuthed && !isOwnProfile && (
+                        {isAuthed && !isOwnProfile && !isPlatformAccount(user.address) && (
                             <button
                                 className="btn-soundtrack"
                                 title={`Trade with @${displayHandle}`}

@@ -24,6 +24,7 @@ import { verifySeaportFill } from '@/lib/market/verifyFill';
 import { DEFAULT_DURATION_SEC, MAX_DURATION_SEC } from '@/lib/market/chain';
 import type { SeaportOrderJson } from '@/lib/market/orderTypes';
 import { TRADE_MAX_ITEMS_PER_SIDE, type TradeItem, type TradeRow } from '@/lib/market/tradeTypes';
+import { isPlatformAccount } from '@/lib/platform/accounts';
 
 export const dynamic = 'force-dynamic';
 
@@ -190,6 +191,11 @@ async function buildProposal(
   const counterparty = String(body.counterparty ?? '').toLowerCase();
   if (!/^0x[a-f0-9]{40}$/.test(counterparty)) return { error: 'Bad counterparty' };
   if (counterparty === proposer) return { error: 'Cannot trade with yourself' };
+  /* A platform account (@price) is the token contract itself — it holds no
+     position and has nobody to accept. Refused here as well as in the UI so
+     it can't be reached by hand; anything sent to a token's own contract is
+     unrecoverable. */
+  if (isPlatformAccount(counterparty)) return { error: 'That account cannot trade' };
 
   let give: TradeItem[], get: TradeItem[], giveEth: number, getEth: number;
   try {

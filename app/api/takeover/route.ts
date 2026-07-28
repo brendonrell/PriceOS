@@ -23,6 +23,7 @@ import { withIdempotency } from '@/lib/api/idempotency';
 import { badRequest, serverError } from '@/lib/errors';
 import { getProject } from '@/lib/project/registry';
 import { createPing } from '@/lib/pings/createPing';
+import { isPlatformAccount } from '@/lib/platform/accounts';
 
 export const dynamic = 'force-dynamic';
 
@@ -135,6 +136,9 @@ export const POST = requireAuth(async (req, _ctx, address) => {
     const price = Number(body.priceEth);
     if (!/^0x[0-9a-f]{40}$/.test(target)) return badRequest('Bad target');
     if (target === address) return badRequest('Cannot take over yourself');
+    /* A platform account (@price) is the token contract itself — never a
+       counterparty. Refused at the route as well as in the UI. */
+    if (isPlatformAccount(target)) return badRequest('That account cannot be taken over');
     if (!getProject(slug)) return badRequest('Unknown project');
     if (!(price > 0)) return badRequest('Bad price');
 
