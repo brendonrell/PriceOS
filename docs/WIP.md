@@ -85,7 +85,17 @@
       awaiting his confirm.** Bare `gnomes`/`keychains`/`stickers` open
       the docs hand pre-queried; all four topics verified fully covered
       in the manual. Tip `3debd0c`, 176 tests green.
-   8. **Still queued:** the MCP stone door (its own pass) · POLISH button
+   8. **BONUS ROUND 3 — SPOTLIGHT + THE REAL COIN ROSTER.** Feature-name
+      searches in the stone deal APP TILES (Suite icbox classes verbatim,
+      fed by the ATLAS in `lib/docs/features.ts`; glyphless features wear
+      their catalog number; tap → `/docs/features?q=`, Atlas now reads
+      ?q=). Coins per Brendon's word: FXH = the real fxhash token on BASE
+      (0x5Fc2…2791, fdv≈$31k verified, official sites attached; Base
+      balances via mainnet.base.org) · TokenWorks family: PNKSTR
+      0xc506…3eDF (⚠ CANONICAL — two zero-volume fake-liquidity clones
+      exist at higher "liquidity"; never repin), APESTR 0x9EbF…4A03,
+      CHKSTR 0x2090…b0Dc. Tip `c552d19`, 177 tests green.
+   9. **Still queued:** the MCP stone door (its own pass) · POLISH button
       + signing endpoint (chain phase, 86bb46etv) · Sepolia keychain
       deploy (Brendon's hands, 86bb46epm).
 
