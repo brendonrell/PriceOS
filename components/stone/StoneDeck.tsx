@@ -56,6 +56,7 @@ import { subscribeFm, getFm, fmPlay, fmToggle, fmNext } from '../../lib/fm/fmBus
 import { formatStoneDate, formatDaysAway, todoPhrase, type StoneDate } from '../../lib/stone/dates';
 import { MOODS, MARKET_MOODS, type MoodDef, type MarketMoodDef } from '../../lib/stone/moods';
 import { TOKENS } from '../../lib/stone/tokens';
+import { searchAtlas } from '../../lib/docs/features';
 import { PerMilleMark } from '../shell/PerMilleMark';
 import type { StoneTokenResponse } from '../../app/api/stone/token/route';
 import type {
@@ -2706,6 +2707,11 @@ export function SearchDeck({ r, pageHits, onGo, query }: {
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
     useEffect(() => { setExpanded({}); }, [r, pageHits]);
 
+    /* SPOTLIGHT FOR PRICEOS (Brendon, 2026-07-28) — a feature-name search
+       surfaces the feature AS AN APP: the Suite's icon box + name, worn
+       verbatim. Tap opens the numbered directory filtered to it. */
+    const atlasHits = useMemo(() => searchAtlas(query), [query]);
+
     /* The top project renders as the rich hero (real art + live stats); the
        piece it paints is dropped from the OUTPUTS list so it never doubles. */
     const heroProject = r && r.projects.length > 0 ? r.projects[0] : null;
@@ -2722,6 +2728,29 @@ export function SearchDeck({ r, pageHits, onGo, query }: {
 
     return (
         <div className="stone-widget sw-card sw-card--results">
+            {/* THE APPS — matching features, presented as the Suite's app
+                tiles (the box law, verbatim classes). Not literally apps —
+                each opens the Feature Atlas filtered to itself. */}
+            {atlasHits.length > 0 && (
+                <div className="suite-tabs stone-atlas">
+                    {atlasHits.map((f) => (
+                        <button
+                            key={f.n}
+                            type="button"
+                            className="suite-tab"
+                            onClick={(e) => onGo(e, `/docs/features?q=${encodeURIComponent(f.name)}`)}
+                        >
+                            <span className="suite-tab-icbox">
+                                <span className="suite-tab-ic">
+                                    {f.glyph ? `${f.glyph}${VS15}` : String(f.n)}
+                                </span>
+                            </span>
+                            <span className="suite-tab-name">{f.name}</span>
+                        </button>
+                    ))}
+                </div>
+            )}
+
             {/* THE ANSWERS — the TARS voice: terse, confident, large. */}
             {r && r.answers.length > 0 && (
                 <div className="sw-answers">

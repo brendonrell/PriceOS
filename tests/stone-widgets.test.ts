@@ -159,3 +159,14 @@ describe('buildWalletMark — deterministic wallet ascii', () => {
         expect(m.hue).toBeLessThan(360);
     });
 });
+
+describe('searchAtlas — Spotlight for PriceOS (2026-07-28)', () => {
+    it('matches feature names, starts-with first, 3+ chars only', async () => {
+        const { searchAtlas } = await import('../lib/docs/features');
+        expect(searchAtlas('grid presets')[0]?.name).toBe('Grid presets');
+        expect(searchAtlas('stargazing')[0]?.name).toBe('Stargazing');
+        expect(searchAtlas('gr')).toHaveLength(0);
+        expect(searchAtlas('zzzznothing')).toHaveLength(0);
+        expect(searchAtlas('the').length).toBeLessThanOrEqual(6);
+    });
+});

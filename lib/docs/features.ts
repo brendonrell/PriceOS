@@ -126,7 +126,7 @@ export const ATLAS: AtlasFeature[] = [
     F(75, 'Fog', 'Project Page'),
     F(76, 'The Genome', 'Project Page', '≎'),
     F(77, 'Grid + sort', 'Project Page'),
-    F(78, 'Grid presets', 'Project Page'),
+    F(78, 'Grid presets', 'Project Page', '⏚'),
     F(79, 'Mint overlay — The Radar', 'Project Page', '⊕'),
     F(80, 'Network filters — Me · Following · Followers · Mutuals · Top Holders · New Wallets · PriceRank · Counterparties', 'Project Page'),
     F(81, 'Offers book (project-level)', 'Project Page'),
@@ -338,6 +338,26 @@ export const ATLAS: AtlasFeature[] = [
 
 export function atlasId(n: number): string {
     return '#' + String(n).padStart(4, '0');
+}
+
+/* SPOTLIGHT FOR PRICEOS (Brendon, 2026-07-28 — the Stone's original brief,
+   closed full-circle): searching a feature name in the Stone surfaces the
+   feature AS AN APP — the Suite's icon-in-a-rounded-square with the name
+   beneath. Not literally an app, just presented that way; the tile opens
+   the numbered directory filtered to it. This is the matcher: substring
+   on the name, starts-with ranked first, 3+ chars so mid-word typing
+   doesn't flicker tiles. */
+export function searchAtlas(query: string, limit = 6): AtlasFeature[] {
+    const q = query.trim().toLowerCase();
+    if (q.length < 3) return [];
+    const starts: AtlasFeature[] = [];
+    const contains: AtlasFeature[] = [];
+    for (const f of ATLAS) {
+        const name = f.name.toLowerCase();
+        if (name.startsWith(q)) starts.push(f);
+        else if (name.includes(q)) contains.push(f);
+    }
+    return [...starts, ...contains].slice(0, limit);
 }
 
 /* The Atlas as plain markdown — served at /docs/features.md and appended to

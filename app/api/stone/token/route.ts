@@ -36,7 +36,8 @@ export interface StoneTokenResponse {
 const ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
 const BALANCE_OF_SELECTOR = '0x70a08231';
 
-function rpcUrl(): string | null {
+function rpcUrl(chain: 'ethereum' | 'base'): string | null {
+    if (chain === 'base') return 'https://mainnet.base.org'; // official free public RPC
     const url = process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL;
     if (url) return url;
     const key = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
@@ -44,8 +45,8 @@ function rpcUrl(): string | null {
     return null;
 }
 
-async function rpc(method: string, params: unknown[]): Promise<string | null> {
-    const url = rpcUrl();
+async function rpc(chain: 'ethereum' | 'base', method: string, params: unknown[]): Promise<string | null> {
+    const url = rpcUrl(chain);
     if (!url) return null;
     try {
         const r = await fetch(url, {
@@ -64,10 +65,10 @@ async function rpc(method: string, params: unknown[]): Promise<string | null> {
 async function readBalance(token: (typeof TOKENS)[number], holder: string): Promise<number | null> {
     let hex: string | null;
     if (token.address == null) {
-        hex = await rpc('eth_getBalance', [holder, 'latest']);
+        hex = await rpc(token.chain, 'eth_getBalance', [holder, 'latest']);
     } else {
         const data = BALANCE_OF_SELECTOR + holder.slice(2).toLowerCase().padStart(64, '0');
-        hex = await rpc('eth_call', [{ to: token.address, data }, 'latest']);
+        hex = await rpc(token.chain, 'eth_call', [{ to: token.address, data }, 'latest']);
     }
     if (!hex || hex === '0x') return null;
     try {

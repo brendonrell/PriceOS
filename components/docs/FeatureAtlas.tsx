@@ -7,13 +7,21 @@
  * horizontally on phones and wrap on desktop.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ATLAS, ATLAS_SECTIONS, atlasId, type AtlasFeature } from '../../lib/docs/features';
 
 type SortKey = 'number' | 'name' | 'section';
 
 export function FeatureAtlas() {
     const [query, setQuery] = useState('');
+    /* The Stone's Spotlight tiles land here pre-filtered (?q=<feature>) —
+       read once after mount so server and first client render agree. */
+    useEffect(() => {
+        try {
+            const q = new URLSearchParams(window.location.search).get('q');
+            if (q) setQuery(q);
+        } catch { /* fine */ }
+    }, []);
     const [section, setSection] = useState<string | null>(null);
     const [sort, setSort] = useState<SortKey>('number');
 

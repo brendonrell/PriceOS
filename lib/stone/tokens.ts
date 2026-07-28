@@ -19,7 +19,7 @@ export interface TokenDef {
     words: readonly string[];
     name: string;
     /** DEXScreener chainId the price pair must sit on. */
-    chain: 'ethereum';
+    chain: 'ethereum' | 'base';
     /** ERC-20 address, or null for native ETH (priced via wrapped ETH). */
     address: `0x${string}` | null;
     decimals: number;
@@ -64,10 +64,51 @@ export const TOKENS: readonly TokenDef[] = [
         decimals: 18,
         logo: null,
     },
-    /* FXH · PNSKTR — named by Brendon, NOT pinned: no Ethereum pool exists
-       for either on the aggregator today (FXH trades only on Base at dust
-       liquidity; PNSKTR nowhere). One entry each once he confirms the
-       contract addresses. */
+    {
+        symbol: 'FXH',
+        words: ['$fxh', 'fxhash token'],
+        name: 'fxhash',
+        chain: 'base',
+        /* Brendon's call 2026-07-28: "show the dust on Base" — verified the
+           real one (official fxhash.xyz sites attached, ~$31k fdv). */
+        address: '0x5Fc2843838e65eb0B5d33654628F446d54602791',
+        decimals: 18,
+        logo: null,
+    },
+    /* ── the TokenWorks strategy family (Brendon, 2026-07-28) ── */
+    {
+        symbol: 'PNKSTR',
+        words: ['$pnkstr', 'punkstrategy'],
+        name: 'PunkStrategy',
+        chain: 'ethereum',
+        /* The CANONICAL PunkStrategy — oldest pool, ten venues, real 24h
+           volume, punkstrategy.fun attached. Two higher-"liquidity"
+           clones with ZERO volume exist; they are fakes — never repin. */
+        address: '0xc50673EDb3A7b94E8CAD8a7d4E0cD68864E33eDF',
+        decimals: 18,
+        logo: null,
+    },
+    {
+        symbol: 'APESTR',
+        words: ['$apestr', 'apestrategy'],
+        name: 'ApeStrategy',
+        chain: 'ethereum',
+        /* nftstrategy.fun (the TokenWorks umbrella) attached — verified. */
+        address: '0x9EbF91b8D6fF68aA05545301A3D0984EaEE54A03',
+        decimals: 18,
+        logo: null,
+    },
+    {
+        symbol: 'CHKSTR',
+        words: ['$chkstr', 'checkstrategy'],
+        name: 'CheckStrategy',
+        chain: 'ethereum',
+        address: '0x2090Dc81F42f6ddD8dEaCE0D3C3339017417b0Dc',
+        decimals: 18,
+        logo: null,
+    },
+    /* More family members are one entry each — pin by address only, and
+       check volume + official site first: the PNKSTR fake-clone lesson. */
 ];
 
 function norm(s: string): string {

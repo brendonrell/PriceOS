@@ -26,6 +26,8 @@ The real global search, inline. People, projects, pieces, traits, soundtracks, p
 
 The search power grammar works here too: `by:@artist`, `under:0.1`, `listed`, `sort:rarity`.
 
+And PriceOS itself is searchable: type any feature's name — `grid presets`, `stargazing`, `hostile takeover` — and it appears as an app: its icon in the rounded square with its name, straight out of the numbered Feature Atlas. Tap the tile to open its directory entry.
+
 ## Ask the ledger
 
 Plain questions, answered from the same ledger the whole platform runs on.
@@ -193,7 +195,7 @@ A mood is one castable word that sets the whole room: colorway, ambient light, a
 |---|---|
 | `$price` · `price token` | The $PRICE card: live price in fiat, trend, and how much the connected wallet holds. Reads $0.00 until the pool exists — honest by construction |
 | `$eth` · `eth price` | Ether — price, 1h/6h/24h trend, pool depth, your balance |
-| `$fwa` | Same card, any registered coin — the registry grows one line at a time |
+| `$fxh` · `$fwa` · `$pnkstr` · `$apestr` · `$chkstr` | Same card, any registered coin — the registry grows one line at a time |
 | `gnomes` · `keychains` · `stickers` | The manual, opened straight to that feature's own pages |
 
 ## The fun bench

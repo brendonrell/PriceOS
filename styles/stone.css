@@ -1047,3 +1047,14 @@ body.pd-stone-force-white .stone-float .stone-deck .sw-card:nth-of-type(3n + 2) 
    invisible — the signature-never-blends move). */
 body.theme-bright:not(.pd-stone-force-black) .stone-float .sw-spark-c,
 body.pd-stone-force-white .stone-float .sw-spark-c { color: var(--stone-blue); }
+
+/* SPOTLIGHT FOR PRICEOS (2026-07-28) — the Suite app tiles inside the
+   stone's results card. Tiles reuse the Suite classes verbatim; this
+   scope only lets long feature names wrap under the icon box (the Suite's
+   own names are short and stay nowrap there). */
+.stone-atlas { padding: 4px 0 2px; }
+.stone-atlas .suite-tab-name {
+    white-space: normal;
+    text-align: center;
+    line-height: 1.15;
+}
