@@ -156,13 +156,21 @@
 }
 
 /* PriceCal — the connect-menu calendar, unlocked from the menu's height
-   band so it breathes at panel size */
+   band so it breathes at panel size.
+   ⛔ The menu pins this panel to --pd-menu-height and CLIPS the overflow, so
+   the dropdown backboard can never change size on toggle. In the Suite that
+   lock is what cut the day and its events off below the grid — the panel
+   here takes its natural height and clips nothing. */
 .suite-cal .calendar-panel {
     position: static;
     display: block;
     width: 100%;
     min-height: 0;
+    height: auto;
     max-height: none;
+    overflow: visible;
+    margin-top: 0;
+    padding: 0;
 }
 
 /* ⛔ THE BOX IS THE APP (Brendon, 2026-07-28: "the box is the app outline,
