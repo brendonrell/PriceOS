@@ -1027,9 +1027,12 @@ redeployed** (needs Brendon's Cloudflare token — see the DEPLOY RECIPE below).
 - **Eyeball + edit the two new footer modals** (About PD · Support) on
   device — copy is v1, Brendon edits from there.
 - **Delete the chat branches** — all merged trash, work is on dev:
-  `claude/pd-polish-edits-wg8ao6` (this chat),
-  `claude/pings-system-redesign-r5kbew`, `claude/pd-about-modal-history-3wpdyo`:
-  https://github.com/brendonrell/PriceOS/branches
+  **`claude/baton-outstanding-items-7n1eca`** (the 2026-07-28 marathon —
+  exists on BOTH `PriceOS` and `pd-contracts`), plus the older
+  `claude/pd-polish-edits-wg8ao6`, `claude/pings-system-redesign-r5kbew`,
+  `claude/pd-about-modal-history-3wpdyo`:
+  https://github.com/brendonrell/PriceOS/branches ·
+  https://github.com/brendonrell/pd-contracts/branches
 - **Ticker copy review (2026-07-12)** — Brendon to eyeball the new store +
   marketplace crawl lines and send any wording edits (he said he'd review shortly).
 - Feature Atlas re-order · ASCII-Mode glyph ⠿ iPhone check · Lane Runner
@@ -1042,6 +1045,21 @@ redeployed** (needs Brendon's Cloudflare token — see the DEPLOY RECIPE below).
 1. ✅ Indexer sweep go-live + token-2 backfill — DONE 2026-07-11 (see SHIPPED).
 2. Phase C — app talks to Sepolia (`docs/sepolia-test-phase.md` §3–4).
 3. Mythic Audit Pass (`86b9v5wj4`) — the last gate.
+
+## 💡 IDEAS RAISED, NOT QUEUED (2026-07-28 — Brendon asked for "one or two
+tiers above" the stone; these are IDEAS, never a go-ahead)
+
+- **The armed stone** — a spoken budget as pre-authorization: "take 0.3 ETH,
+  get me into Teletext under 0.1", executed while he sleeps. The watching
+  layer (Sentinel to-dos) already exists server-side; the missing piece is
+  the authorization. Volume driver; safe to pilot in the sim-ETH phase.
+- **The prepared morning** — it finishes the work overnight and greets him
+  with it done ("the cart is already packed — say go"), instead of notifying.
+- **The stone in your pocket** — a deep link opening PD straight into the
+  stone with a question pre-typed, wired to the iPhone Action Button via a
+  Shortcut. Cheap; makes it feel OS-level. iOS-first by construction.
+- **Stone-to-stone** — your stone negotiates an offer with another keeper's
+  stone, both owners confirm the result.
 
 ## 📋 QUEUED (older, not started)
 
