@@ -201,3 +201,24 @@
 .sigil-forge .sf-toggle:active {
     transform: scale(0.97);
 }
+
+/* ── The profile Sigil tab (2026-07-28) — the mark read apart ──────────────
+   Sections ride the character sheet's attr tiles + the starred-row grammar;
+   these rules only size the marks into their wells. */
+.sig-mark-tile {
+    min-height: 86px;
+    justify-content: center;
+}
+.sig-mark-tile .sigil-mark-fill { font-size: 38px; }
+/* Kin / comrade / Book row wells — the 64px starred-row square. */
+.sig-kin-tile .sigil-mark-fill { font-size: 13px; letter-spacing: 0; color: var(--text-color); }
+.sig-flag-swatch {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+}
+/* Book lines are narrative — let them wrap instead of ellipsing away. */
+.sig-book-line { white-space: normal; line-height: 1.35; }

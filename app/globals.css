@@ -12318,6 +12318,23 @@ body.colorway-dark .ghost-feed-bar {
     letter-spacing: 0.5px;
 }
 .cp-nem-verdict.is-ahead { text-decoration: underline; }
+
+/* ── Loyalty tab — the long game (2026-07-28) ──────────────────────────────
+   Tiles + rows are all reuse (attr-grid / starred-row); only the purity
+   verdict plate and the in-row podium medal are new marks. */
+.loy-rows { margin-top: 2px; }
+.loy-medal {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    margin-left: 2px;
+}
+.loy-verdict-tile { gap: 6px; }
+.loy-verdict { font-size: 16px; letter-spacing: 1.5px; }
+.loy-verdict-line {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+}
 /* RENOUNCE is tappable — full strength, not the resting count wash. */
 .cp-nem-renounce { opacity: 1; cursor: pointer; }
 /* The plate's door row — HUD toggle + RENOUNCE side by side. */

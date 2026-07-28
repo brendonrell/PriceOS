@@ -95,3 +95,65 @@ export function sigilFor(address: string): string {
 
 /** Bone — the Sigil's resting ink for the unenlisted (matches the map's). */
 export const SIGIL_BONE = '#E9EDF4';
+
+/* ── Anatomy — the mark, read apart (2026-07-28, the profile Sigil tab) ────
+   Decomposes a wallet's Sigil into its named parts by replaying the EXACT
+   draw sequence sigilFor makes — same seed, same pool indices, same coin
+   flips — so `anatomy(a).mark === sigilFor(a)` for every address, forever.
+   Pools untouched (they are LOCKED, append-only); this is a read, not a
+   grammar change. Guarded by tests/sigil-anatomy.test.ts. */
+
+export const SIGIL_FORM_NAMES = [
+    'EDGED',
+    'EDGED · COMPANION',
+    'MIRRORED',
+    'TWIN CORES',
+] as const;
+
+export interface SigilAnatomy {
+    /** Composition form 0–3 (the four locked recipes). */
+    form: 0 | 1 | 2 | 3;
+    formName: (typeof SIGIL_FORM_NAMES)[number];
+    /** The primary core's base glyph, accents stripped. */
+    core: string;
+    /** The twin core's base glyph (TWIN CORES form only). */
+    core2: string | null;
+    /** The edge fence pair (EDGED forms only). */
+    edges: [string, string] | null;
+    /** The companion / flank mark (every form but bare EDGED). */
+    side: string | null;
+    /** Combining accents riding the primary core ('' = none drawn). */
+    above: string;
+    below: string;
+    /** The whole mark, recomposed — byte-identical to sigilFor(address). */
+    mark: string;
+}
+
+export function sigilAnatomy(address: string): SigilAnatomy {
+    const r = rng(fnv(`sigil:${address.toLowerCase()}`));
+    const coreBase = CORES[Math.floor(r() * CORES.length)]!;
+    const above = ABOVE[Math.floor(r() * ABOVE.length)]!;
+    const below = BELOW[Math.floor(r() * BELOW.length)]!;
+    const core = coreBase + above + below;
+    const form = Math.floor(r() * 4) as 0 | 1 | 2 | 3;
+    const base = { form, formName: SIGIL_FORM_NAMES[form], core: coreBase, above, below } as const;
+    if (form === 0) {
+        const [l, q] = EDGES[Math.floor(r() * EDGES.length)]!;
+        return { ...base, core2: null, edges: [l, q], side: null, mark: l + core + q };
+    }
+    if (form === 1) {
+        const [l, q] = EDGES[Math.floor(r() * EDGES.length)]!;
+        const s = SIDES[Math.floor(r() * SIDES.length)]!;
+        const mark = r() < 0.5 ? l + core + s + q : l + s + core + q;
+        return { ...base, core2: null, edges: [l, q], side: s, mark };
+    }
+    if (form === 2) {
+        const s = MIRROR_SIDES[Math.floor(r() * MIRROR_SIDES.length)]!;
+        return { ...base, core2: null, edges: null, side: s, mark: s + core + s };
+    }
+    const c2Base = CORES[Math.floor(r() * CORES.length)]!;
+    const c2 = c2Base + ABOVE[Math.floor(r() * ABOVE.length)]!;
+    const s = SIDES[Math.floor(r() * SIDES.length)]!;
+    const mark = r() < 0.4 ? core + s + c2 : core + s + s + c2;
+    return { ...base, core2: c2Base, edges: null, side: s, mark };
+}

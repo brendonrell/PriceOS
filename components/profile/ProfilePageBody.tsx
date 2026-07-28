@@ -72,6 +72,8 @@ import VaultPanel from './VaultPanel';
 import DiscordSection from './DiscordSection';
 import CounterpartiesPanel from './CounterpartiesPanel';
 import TargetsPanel from './TargetsPanel';
+import LoyaltyPanel from './LoyaltyPanel';
+import SigilPanel from './SigilPanel';
 import CallsPanel from './CallsPanel';
 import { MAX_PRICE_SCORE, TOTAL_COUNT } from '../../lib/achievements/catalog';
 import Hero from '../hero/Hero';
@@ -1982,6 +1984,28 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                     {onMore && effMoreL1 === 'calls' && (
                         <CallsPanel
                             address={user.address}
+                            isOwnProfile={isOwnProfile}
+                        />
+                    )}
+
+                    {/* Loyalty — the long game: tenure, patronage, streak,
+                        and the clean-hands purity read. Public like
+                        Counterparties; all derived, no writes. */}
+                    {onMore && effMoreL1 === 'loyalty' && (
+                        <LoyaltyPanel
+                            address={user.address}
+                            handle={displayHandle}
+                            isOwnProfile={isOwnProfile}
+                        />
+                    )}
+
+                    {/* Sigil — the forged mark read apart + its kin, and the
+                        faction record (war sections IYKYK-gated on the viewer
+                        flying a flag, per the useFaction law). */}
+                    {onMore && effMoreL1 === 'sigil' && (
+                        <SigilPanel
+                            address={user.address}
+                            handle={displayHandle}
                             isOwnProfile={isOwnProfile}
                         />
                     )}
