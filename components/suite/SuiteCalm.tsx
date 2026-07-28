@@ -13,6 +13,7 @@
 import { useEffect, useState } from 'react';
 import ZenGarden from '../profile/ZenGarden';
 import { useAuth } from '../../lib/state/AuthContext';
+import SuitePane from './SuitePane';
 
 export default function SuiteCalm() {
     const { siweAddress } = useAuth();
@@ -28,14 +29,17 @@ export default function SuiteCalm() {
         return () => { alive = false; };
     }, [siweAddress]);
 
-    if (!siweAddress) {
-        return <p className="suite-calm-note">Connect your wallet — the garden is raked from your own pieces.</p>;
-    }
     return (
-        <div className="suite-calm">
-            {count === null
-                ? <p className="suite-calm-note">Raking the sand…</p>
-                : <ZenGarden address={siweAddress} count={count} />}
-        </div>
+        <SuitePane id="Calm" title="ZEN GARDEN" count={count ?? undefined} className="suite-calm-pane">
+            {!siweAddress ? (
+                <p className="suite-calm-note">Connect your wallet — the garden is raked from your own pieces.</p>
+            ) : (
+                <div className="suite-calm">
+                    {count === null
+                        ? <p className="suite-calm-note">Raking the sand…</p>
+                        : <ZenGarden address={siweAddress} count={count} />}
+                </div>
+            )}
+        </SuitePane>
     );
 }

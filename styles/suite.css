@@ -128,16 +128,19 @@
    --bg-color because they were built for the menu's backboard. Re-mapping
    the two tokens inside those roots double-inverts them: fills land on the
    page colour, lettering lands full-strength page text, every descendant
-   follows, and the components themselves stay untouched. */
-.suite-body .user-dropdown,
-.suite-body .notifications-box,
-.suite-body .calendar-panel,
-.suite-body .settings-panel {
+   follows, and the components themselves stay untouched.
+   Every app is now wrapped in the pane box (Brendon, 2026-07-28), so the
+   re-map lands ONCE on the app's outermost root — direct children only.
+   A calendar or settings panel INSIDE a pane must not flip a second time. */
+.suite-body > .user-dropdown,
+.suite-body > .notifications-box,
+.suite-body > .calendar-panel,
+.suite-body > .settings-panel {
     --text-color: var(--pd-page-bg);
     --bg-color: var(--pd-page-text);
 }
 
-.suite-body .notifications-box {
+.suite-body > .notifications-box {
     width: 100%;
     max-width: none;
     /* On the page colour the box needs its own edge — the Today tiles' rule. */
@@ -167,7 +170,44 @@
 
 /* ◊ PriceBooks — the real Portfolios panel (Budgets + Main/Shadow) as a
    Suite app. Its dropdown back-arrow is meaningless here — hidden. */
-.suite-books > .settings-panel > .scroll-arrow:first-child { display: none; }
+.suite-books .settings-panel > .scroll-arrow:first-child { display: none; }
+
+/* ── ONE PRESENTATION FOR EVERY APP (Brendon, 2026-07-28: "the one that
+   nailed it was todos: header, action buttons in top right, box around it").
+   The pane IS the To-Dos box, so it needs no chrome of its own — these rules
+   only let the reused panels breathe at pane width. ── */
+
+/* The panels the panes host were built to fill the menu's fixed backboard;
+   inside a pane they size to their content. */
+.suite-pane .settings-panel {
+    position: static;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    width: 100%;
+}
+
+/* ▦ PriceCal — the month steppers ride the header's right-hand cluster, at
+   the label weight the rest of the header wears (Rule #2: no whisper text). */
+.suite-cal .cal-month-label {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    opacity: 1;
+}
+.suite-cal .todos-header-icons .cal-nav {
+    font-size: 12px;
+    opacity: 1;
+    padding: 2px 2px;
+}
+
+/* ƒ PriceCalc — the Pal inline. The Cart sheet's scroll band and the pane's
+   own scrolling would fight; the pane wins. */
+.suite-pal .cart-panel-totals { padding-left: 0; padding-right: 0; }
+.suite-pal .pal-tabs-row { padding: 6px 0 8px; }
+
+/* ⬟ PriceCalm — the garden centres in the pane. */
+.suite-calm-pane .notif-list { display: block; }
 
 /* ── the Today dashboard ── */
 .suite-today { padding: 2px 2px 10px; color: var(--text-color); }

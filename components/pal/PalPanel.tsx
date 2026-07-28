@@ -35,6 +35,7 @@ import { pdRarityRank } from '../../lib/output/rarity';
 import { formatEth } from '../../lib/format/eth';
 import { CALC_ROYALTY_PCT, CALC_GAS_ESTIMATE_ETH } from '../CalcSheet';
 import BenchArt from '../bench/BenchArt';
+import SuitePane from '../suite/SuitePane';
 import type { MarketplaceResponse } from '../../lib/marketplace/marketData';
 import type { UserHolding } from '../../lib/profile/getUserHoldings';
 
@@ -94,16 +95,24 @@ function netOf(price: number): number {
     return price - price * CALC_ROYALTY_PCT - CALC_GAS_ESTIMATE_ETH;
 }
 
-export default function PalPanel() {
-    const { isOpen } = useModalLayer('pal');
+/* `inline` — the SAME Pal mounted as the Suite's ƒ PriceCalc app (Brendon,
+   2026-07-28: "Profit pal is a modal; will need to be adapted to this").
+   No portal, no backdrop, no slide-up, no close × — it wears the Suite's
+   pane, the To-Dos box, like every other app. The house doors (Completionism
+   ⌂, the marketplace row) keep opening the modal form untouched. */
+export default function PalPanel({ inline = false }: { inline?: boolean } = {}) {
+    const { isOpen: layerOpen } = useModalLayer('pal');
     const { openModal, close } = useModal();
+    /* Inline it is always live — there is no layer to open. */
+    const isOpen = inline || layerOpen;
     const { siweAddress } = useAuth();
     const { showToast } = useToast();
     const { add: addToCart } = useCart();
 
     /* Payload → landing tab + optional preloaded goal month. */
-    const payload = isOpen && typeof openModal?.payload === 'string' ? openModal.payload : '';
-    const payloadTab: PalTab = payload.startsWith('profit') ? 'profit' : 'purchase';
+    const payload = !inline && isOpen && typeof openModal?.payload === 'string' ? openModal.payload : '';
+    /* The Suite's PriceCalc lands on PROFIT — the side Brendon named. */
+    const payloadTab: PalTab = inline || payload.startsWith('profit') ? 'profit' : 'purchase';
     const payloadMonth = payload.startsWith('purchase:') ? payload.slice('purchase:'.length) : null;
 
     const [tab, setTab] = useState<PalTab>('purchase');
@@ -169,11 +178,11 @@ export default function PalPanel() {
     }, [isOpen, siweAddress]);
 
     useEffect(() => {
-        if (!isOpen) return;
+        if (!isOpen || inline) return;
         const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
         window.addEventListener('keydown', handler);
         return () => window.removeEventListener('keydown', handler);
-    }, [isOpen, close]);
+    }, [isOpen, inline, close]);
 
     /* Live listings per project. */
     const listingsBySlug = useMemo(() => {
@@ -304,7 +313,7 @@ export default function PalPanel() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [market, portfolio]);
 
-    if (!mounted || typeof document === 'undefined') return null;
+    if (!inline && (!mounted || typeof document === 'undefined')) return null;
 
     const wrapClass = ['cart-panel-wrap', 'mk-sheet-wrap', mounted ? 'mounted' : '', active ? 'active' : '']
         .filter(Boolean).join(' ');
@@ -312,19 +321,8 @@ export default function PalPanel() {
     const loadingPurchase = siweAddress != null && (months == null || market == null);
     const loadingProfit = siweAddress != null && (holdings == null || market == null);
 
-    return createPortal(
-        <div className={wrapClass} onClick={(e) => { if (e.target === e.currentTarget) close(); }}>
-            <div className="cart-panel-box" onClick={(e) => e.stopPropagation()}>
-                <div className="cart-panel-header">
-                    <span className="cart-panel-title">
-                        {tab === 'purchase' ? 'PURCHASE PAL' : 'PROFIT PAL'}
-                    </span>
-                    <span className="cart-panel-close-x" role="button" tabIndex={0} onClick={close} title="Close">
-                        {`×${VS15}`}
-                    </span>
-                </div>
-
-                <div className="cart-items-list">
+    const body = (
+        <>
                     {/* The two sides — same pill markup as the home tabs. */}
                     <div className="profile-tabs-row pal-tabs-row">
                         {(['purchase', 'profit'] as const).map((t) => (
@@ -507,6 +505,36 @@ export default function PalPanel() {
                             <div className="cpl-foot">paths priced at live floors · 5% royalty + gas, the Calc&apos;s rate card</div>
                         </>
                     )}
+        </>
+    );
+
+    /* The Suite's PriceCalc — the Pal in the Suite's one presentation. */
+    if (inline) {
+        return (
+            <SuitePane
+                id="Pal"
+                title={tab === 'purchase' ? 'PURCHASE PAL' : 'PROFIT PAL'}
+                className="suite-pal"
+            >
+                {body}
+            </SuitePane>
+        );
+    }
+
+    return createPortal(
+        <div className={wrapClass} onClick={(e) => { if (e.target === e.currentTarget) close(); }}>
+            <div className="cart-panel-box" onClick={(e) => e.stopPropagation()}>
+                <div className="cart-panel-header">
+                    <span className="cart-panel-title">
+                        {tab === 'purchase' ? 'PURCHASE PAL' : 'PROFIT PAL'}
+                    </span>
+                    <span className="cart-panel-close-x" role="button" tabIndex={0} onClick={close} title="Close">
+                        {`×${VS15}`}
+                    </span>
+                </div>
+
+                <div className="cart-items-list">
+                    {body}
                 </div>
             </div>
         </div>,

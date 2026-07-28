@@ -29,6 +29,7 @@ import {
 } from '../../lib/workflows/store';
 import { formatEth } from '../../lib/format/eth';
 import { MentionLookup } from '../MentionLookup';
+import SuitePane from '../suite/SuitePane';
 
 type TriggerKind = 'upload' | 'price';
 
@@ -43,6 +44,11 @@ export function WorkflowsSheet({ onClose, inline = false }: { onClose?: () => vo
     const [workflows, setWorkflows] = useState<WorkflowRecord[]>([]);
     const [active, setActive] = useState(false);
     const closingRef = useRef(false);
+    /* The builder rides behind the header's "+" in the Suite, exactly as the
+       To-Dos composer does (Brendon, 2026-07-28 — one presentation for every
+       Suite app). The standalone sheet is unchanged: it opens on the builder,
+       because building is the only reason it exists. */
+    const [builderOpen, setBuilderOpen] = useState(!inline);
     const [kind, setKind] = useState<TriggerKind>('upload');
     const [artist, setArtist] = useState('');
     /* The @artist field takes a handle, so it gets the same inline @name lookup
@@ -99,6 +105,7 @@ export function WorkflowsSheet({ onClose, inline = false }: { onClose?: () => vo
        list, so ARM re-arms the edited version. Armed rows only — a FIRED row
        is a record of what happened, not something to change. */
     const editWorkflow = (w: WorkflowRecord) => {
+        setBuilderOpen(true);
         if (w.trigger.kind === 'upload') {
             setKind('upload');
             setArtist(w.trigger.artist);
@@ -120,7 +127,7 @@ export function WorkflowsSheet({ onClose, inline = false }: { onClose?: () => vo
     const content = (
         <>
 
-                <div className="wf-compose">
+                {builderOpen && <div className="wf-compose">
                     <div className="wf-kind-row">
                         <button type="button" className={`wf-kind${kind === 'upload' ? ' on' : ''}`} onClick={() => setKind('upload')}>NEXT UPLOAD</button>
                         <button type="button" className={`wf-kind${kind === 'price' ? ' on' : ''}`} onClick={() => setKind('price')}>PRICE HIT</button>
@@ -194,7 +201,7 @@ export function WorkflowsSheet({ onClose, inline = false }: { onClose?: () => vo
                     <button type="button" className="wf-arm" disabled={!canArm} onClick={arm}>
                         ARM
                     </button>
-                </div>
+                </div>}
 
                 <div className="wf-list">
                     {workflows.length === 0 && (
@@ -252,13 +259,31 @@ export function WorkflowsSheet({ onClose, inline = false }: { onClose?: () => vo
 
     if (inline) {
         return (
-            <div className="user-dropdown notifications-box is-open suite-wf">
-                <div className="notif-header">
-                    <span>WORKFLOWS <span className="notif-count">({armedCount})</span></span>
-                </div>
-                <div className="dropdown-divider" />
+            <SuitePane
+                id="Wf"
+                title="WORKFLOWS"
+                count={armedCount}
+                className="suite-wf"
+                actions={
+                    <span
+                        className={`todos-add-btn${builderOpen ? ' is-on' : ''}`}
+                        role="button"
+                        tabIndex={0}
+                        title="Build a workflow"
+                        onClick={() => setBuilderOpen((v) => !v)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                setBuilderOpen((v) => !v);
+                            }
+                        }}
+                    >
+                        +
+                    </span>
+                }
+            >
                 {content}
-            </div>
+            </SuitePane>
         );
     }
 

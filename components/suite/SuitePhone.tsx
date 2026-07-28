@@ -17,6 +17,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { useToast } from '../../lib/state/ToastContext';
+import SuitePane from './SuitePane';
 
 const VS15 = '︎';
 
@@ -76,11 +77,7 @@ export default function SuitePhone() {
     const count = contacts?.length ?? 0;
 
     return (
-        <div className="user-dropdown notifications-box is-open suite-phone">
-            <div className="notif-header">
-                <span>CONTACTS <span className="notif-count">({count})</span></span>
-            </div>
-            <div className="dropdown-divider" />
+        <SuitePane id="Phone" title="CONTACTS" count={count} className="suite-phone">
             {!siweAddress && (
                 <div className="todo-empty">Connect to see your circle.</div>
             )}
@@ -108,6 +105,6 @@ export default function SuitePhone() {
                     </div>
                 ));
             })}
-        </div>
+        </SuitePane>
     );
 }

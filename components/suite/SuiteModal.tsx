@@ -27,11 +27,12 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useModal, useModalLayer } from '../../lib/state/ModalContext';
 import { lockBodyScroll, unlockBodyScroll } from '../../lib/state/bodyScrollLock';
-import CalendarPanel from '../CalendarPanel';
 import { TodosBox } from '../dropdown/TodosBox';
 import { NotesBox } from '../dropdown/NotesBox';
 import { WorkflowsSheet } from '../dropdown/WorkflowsSheet';
-import { PortfolioView } from '../dropdown/PortfolioView';
+import PalPanel from '../pal/PalPanel';
+import SuiteCal from './SuiteCal';
+import SuiteBooks from './SuiteBooks';
 import SuiteToday, { type SuiteAppKey } from './SuiteToday';
 import SuitePhone from './SuitePhone';
 import SuiteCalm from './SuiteCalm';
@@ -58,9 +59,9 @@ const APPS = [
     { key: 'notes', glyph: '⊟', name: 'PriceWrite' },
     { key: 'books', glyph: '◊', name: 'PriceBooks' },
     { key: 'cal', glyph: '▦', name: 'PriceCal' },
-    /* PriceCalc is a DOOR, not a pane — tapping it summons PROFIT PAL over
-       the Suite (the real Pal, ModalContext 'pal'/'profit'); closing it
-       lands you back here. */
+    /* PriceCalc is the REAL Pal mounted inline (Brendon, 2026-07-28) — it
+       lands on PROFIT and wears the Suite's pane like every sibling. The
+       Completionism ⌂ and marketplace doors still open its modal form. */
     { key: 'calc', glyph: 'ƒ', name: 'PriceCalc' },
     /* ⚯ — the Friend Inspector's circle glyph fronts the contacts app.
        Renamed PricePhone → PriceCall (Brendon, 2026-07-27). Key unchanged. */
@@ -72,7 +73,7 @@ const APPS = [
 type AppKey = SuiteAppKey;
 
 export default function SuiteModal() {
-    const { close, open } = useModal();
+    const { close } = useModal();
     const { isOpen, isTopStacked } = useModalLayer('suite');
     const [app, setApp] = useState<AppKey>('task');
 
@@ -131,7 +132,7 @@ export default function SuiteModal() {
                             role="tab"
                             aria-selected={app === a.key}
                             className={`suite-tab${app === a.key ? ' on' : ''}`}
-                            onClick={() => { if (a.key === 'calc') open('pal', 'profit'); else setApp(a.key as AppKey); }}
+                            onClick={() => setApp(a.key as AppKey)}
                         >
                             <span className="suite-tab-icbox" aria-hidden="true">
                                 <span className="suite-tab-ic">{`${a.glyph}${VS15}`}</span>
@@ -155,10 +156,11 @@ export default function SuiteModal() {
                 </div>
                 <div className="followers-plus-body suite-body">
                     {app === 'today' && <SuiteToday openApp={setApp} />}
-                    {app === 'cal' && <div className="suite-cal"><CalendarPanel /></div>}
+                    {app === 'cal' && <SuiteCal />}
                     {app === 'task' && <TodosBox suite />}
                     {app === 'flow' && <WorkflowsSheet inline />}
-                    {app === 'books' && <div className="suite-books"><PortfolioView /></div>}
+                    {app === 'books' && <SuiteBooks />}
+                    {app === 'calc' && <PalPanel inline />}
                     {app === 'calm' && <SuiteCalm />}
                     {app === 'phone' && <SuitePhone />}
                     {app === 'notes' && <NotesBox suite />}
