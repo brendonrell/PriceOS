@@ -226,6 +226,12 @@ export interface UserSettings {
     index: number;
     t: number;
   } | null;
+  /** YOUR TRACKS — the viewer's OWN miniplayer stations: up to 22 public
+   *  YouTube playlists they added themselves (Brendon, 2026-07-28). PRIVATE,
+   *  same envelope + privacy as `starred` — never on a profile, never read by
+   *  anyone else, changeable any time. Keyed `${playlistId}|${label}`. The only
+   *  door is the USB face's plug, under the cap. */
+  fmTracks?: string[];
   /** COMMAND STONE stealth style — accent hex + forced stage. Account-backed so
    *  the recolour/stage survives across sessions + devices (Brendon,
    *  2026-07-21). Was device-only localStorage `pd_stone_style`. */

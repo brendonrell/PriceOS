@@ -176,6 +176,10 @@ export const STATE_CACHE_KEYS = {
     /** PD miniplayer live session (station + entry + seconds). Read + written
      *  by FmBar; settings envelope. Account-backed 2026-07-27. */
     fmSession: 'pd_fm_session',
+    /** YOUR TRACKS — the viewer's own miniplayer stations (up to 22 YouTube
+     *  playlists), keyed `${playlistId}|${label}`. Read + written by
+     *  lib/fm/tracksStore; settings envelope. Account-backed 2026-07-28. */
+    fmTracks: 'pd_fm_tracks',
     /** Command Stone stealth style (accent + stage). Read + written by
      *  stoneStyle; lives in the settings envelope. Account-backed 2026-07-21. */
     stoneStyle: 'pd_stone_style',
@@ -417,6 +421,10 @@ export function hydrateFromRow(row: UserRow): void {
         localStorage.setItem(
             STATE_CACHE_KEYS.soundtrackStars,
             JSON.stringify(Array.isArray(s.soundtrackStars) ? s.soundtrackStars : []),
+        );
+        localStorage.setItem(
+            STATE_CACHE_KEYS.fmTracks,
+            JSON.stringify(Array.isArray(s.fmTracks) ? s.fmTracks : []),
         );
         localStorage.setItem(
             STATE_CACHE_KEYS.projectStars,

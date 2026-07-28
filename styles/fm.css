@@ -294,7 +294,56 @@ body.modal-open .fm-bar {
     column-gap: 2px;
     align-items: center;
     justify-items: center;
-    /* colorway chrome — the chassis keeps the .fm-bar domed gradient */
+    /* ⛔ CONVINCING MOULDED PLASTIC — USB FACE ONLY (Brendon, 2026-07-28:
+       "the gradients don't look great on USB our reference is the Transcend...
+       others are fine don't touch them"). The shared chassis gradient is three
+       flat stops; real glossy ABS like the MP330 is not a fade, it is a hard
+       SPECULAR band near the top that falls off fast, a long mid body, a dark
+       shaded base, and a thin bounce-light lift at the very bottom edge where
+       the surface curves back into view. Layer two also darkens the left and
+       right shoulders, which is what makes the body read as ROUND rather than
+       as a flat rectangle wearing a gradient. */
+    background:
+        /* 1. the SPECULAR — a hard, bright streak sitting just under the top
+              edge and cut off sharply. This single stripe is what reads as
+              gloss; a soft fade reads as paper. */
+        linear-gradient(
+            180deg,
+            transparent 3%,
+            color-mix(in srgb, var(--bg-color) 30%, #ffffff) 4%,
+            color-mix(in srgb, var(--bg-color) 34%, #ffffff) 11%,
+            transparent 19%,
+            transparent 100%
+        ),
+        /* 2. the shoulders — the barrel turning away at each side, so the body
+              reads ROUND instead of a flat panel wearing a gradient */
+        linear-gradient(
+            90deg,
+            color-mix(in srgb, var(--bg-color) 58%, #000000) 0%,
+            color-mix(in srgb, var(--bg-color) 88%, #000000) 5%,
+            transparent 13%,
+            transparent 87%,
+            color-mix(in srgb, var(--bg-color) 86%, #000000) 95%,
+            color-mix(in srgb, var(--bg-color) 54%, #000000) 100%
+        ),
+        /* 3. the moulding — long body, deep shaded base, and the thin bounce
+              of light at the very bottom where the curve comes back to you */
+        linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--bg-color) 74%, #ffffff) 0%,
+            var(--bg-color) 38%,
+            color-mix(in srgb, var(--bg-color) 82%, #000000) 72%,
+            color-mix(in srgb, var(--bg-color) 46%, #000000) 93%,
+            color-mix(in srgb, var(--bg-color) 66%, #ffffff) 100%
+        );
+    /* the moulded EDGES — a lit top lip and a dark undercut, the two lines that
+       make a plastic shell look pressed rather than drawn */
+    box-shadow:
+        inset 0 1px 0 color-mix(in srgb, var(--bg-color) 34%, #ffffff),
+        inset 0 -1px 0 color-mix(in srgb, var(--bg-color) 44%, #000000),
+        inset 1px 0 0 color-mix(in srgb, var(--bg-color) 72%, #ffffff),
+        inset -1px 0 0 color-mix(in srgb, var(--bg-color) 60%, #000000),
+        0 6px 24px rgba(0, 0, 0, 0.45);
 }
 /* the metal USB plug, out the LEFT end (shown when the cap pops) —
    brushed steel with the two connector slots; the one deliberately
@@ -326,7 +375,14 @@ body.modal-open .fm-bar {
     height: 36px;
     margin-right: 8px;
     align-items: center;
+    /* The MP330's display is a black bezel with soft corners, not a hairline
+       box (Brendon, 2026-07-28: "a thick black border around it... and the
+       screen needs rounded corners"). USB only — the deck keeps its hairline. */
+    border: 3px solid #000;
+    border-radius: 6px;
 }
+/* the CRT veil follows the glass into the rounded corners */
+.fm-mode-usb .fm-screen::after { border-radius: inherit; }
 .fm-mode-usb .fm-video { width: 30px; height: 22px; border-right: 1px solid var(--bg-color); align-self: center; }
 .fm-mode-usb .fm-video iframe { width: 30px; height: 22px; }
 .fm-mode-usb .fm-rows { width: 62px; flex: 0 0 62px; max-width: 62px; padding: 0 4px; }
@@ -339,7 +395,8 @@ body.modal-open .fm-bar {
     padding: 0 4px 0 0;
 }
 .fm-mode-usb .fm-sb { background: var(--bg-color); box-shadow: none; }
-/* ONE raised square pad carries all the keys — solid site tokens */
+/* ONE raised square pad carries all the keys — a moulded plate, lit from
+   above like the body it sits in (Brendon's Transcend reference). */
 .fm-mode-usb::after {
     content: '';
     grid-column: 2 / 5;
@@ -348,9 +405,18 @@ body.modal-open .fm-bar {
     align-self: center;
     width: 100%;
     height: 56px;
-    background: var(--bg-color);
+    background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--bg-color) 62%, #ffffff) 0%,
+        color-mix(in srgb, var(--bg-color) 92%, #ffffff) 14%,
+        var(--bg-color) 48%,
+        color-mix(in srgb, var(--bg-color) 76%, #000000) 100%
+    );
     border: 1px solid var(--text-color);
     border-radius: 10px;
+    box-shadow:
+        inset 0 1px 0 color-mix(in srgb, var(--bg-color) 46%, #ffffff),
+        inset 0 -1px 0 color-mix(in srgb, var(--bg-color) 58%, #000000);
 }
 .fm-mode-usb .fm-btn {
     position: relative;
@@ -378,12 +444,18 @@ body.modal-open .fm-bar {
     background: var(--bg-color);
     border: 1px solid var(--text-color);
 }
-/* The face-changer and the × ride IN toward the pad's centre — 2px on the
-   first pass, 2px again on his second call (Brendon, 2026-07-28), so 4px in
-   from where they were authored. Left/right keys unchanged. */
-.fm-mode-usb .fm-modekey { grid-column: 3; grid-row: 1; align-self: end; transform: translateY(4px); }
-.fm-mode-usb .fm-close { grid-column: 3; grid-row: 3; align-self: start; transform: translateY(-4px); }
-.fm-mode-usb .fm-btn:not(.fm-play):not(.fm-modekey):not(.fm-close) { grid-column: 4; grid-row: 2; }
+/* The pad's cross (Brendon, 2026-07-28, after the swap): ⟳ SHUFFLE takes the
+   top arm, ⎇ the face-changer moves to the left arm, ≫ right, × bottom, ▶ in
+   the middle.
+   Top and bottom ride IN toward the centre — three passes of 2px, because his
+   screenshot showed the top key still breaking out over the pad's ring at 4px.
+   The side keys sit where they are. */
+.fm-mode-usb .fm-close { grid-column: 3; grid-row: 3; align-self: start; transform: translateY(-6px); }
+/* the pad's four arms around ▶: ⟳ top · × bottom · ⎇ left · ≫ right */
+.fm-mode-usb .fm-shuffle { grid-column: 3; grid-row: 1; align-self: end; transform: translateY(6px); }
+.fm-mode-usb .fm-shuffle.on { color: var(--stat-active-bg, var(--text-color)); font-weight: bold; }
+.fm-mode-usb .fm-modekey { grid-column: 2; grid-row: 2; }
+.fm-mode-usb .fm-btn:not(.fm-play):not(.fm-modekey):not(.fm-close):not(.fm-shuffle) { grid-column: 4; grid-row: 2; }
 
 /* the USB CAP — the stick's end cap in the body's own colorway gradient.
    TAP pops it off (the plug shows); tap again seats it back. The button

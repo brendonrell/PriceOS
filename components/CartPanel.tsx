@@ -187,9 +187,19 @@ export default function CartPanel() {
                 unmountTimer.current = null;
             }
             setMounted(true);
-            // Add .active next frame so CSS transitions on opacity/transform fire.
-            const raf = requestAnimationFrame(() => setActive(true));
-            return () => cancelAnimationFrame(raf);
+            /* ⛔ TWO frames, not one (Brendon, 2026-07-28: "it lags every time
+               it opens... there's obviously a build flaw"). The panel goes from
+               display:none to visible in the same commit that would flip it
+               active — and a browser will not TRANSITION an element that was
+               display:none a moment ago, so the sheet arrived in one abrupt
+               jump instead of sliding. One frame paints it mounted and
+               invisible; the SECOND frame starts the real transition from a
+               settled state. */
+            let raf2 = 0;
+            const raf1 = requestAnimationFrame(() => {
+                raf2 = requestAnimationFrame(() => setActive(true));
+            });
+            return () => { cancelAnimationFrame(raf1); if (raf2) cancelAnimationFrame(raf2); };
         }
         // Closing: drop .active immediately, schedule .mounted off after
         // animation. Sim uses 240ms — keep parity.

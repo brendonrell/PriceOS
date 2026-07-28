@@ -77,7 +77,7 @@ import SigilPanel from './SigilPanel';
 import CallsPanel from './CallsPanel';
 import { MAX_PRICE_SCORE, TOTAL_COUNT } from '../../lib/achievements/catalog';
 import Hero from '../hero/Hero';
-import CompletionismModal from '../CompletionismModal';
+import CompletionismDoor from './CompletionismDoor';
 import FollowButton from './FollowButton';
 import { HeroStickers } from '../stickers/HeroStickers';
 import { ProfileTags } from './ProfileTags';
@@ -176,7 +176,6 @@ function ProfilePageBodyInner({
     const isOwnProfile =
         !!siweAddress && siweAddress.toLowerCase() === user.address.toLowerCase();
     /* COMPLETIONISM modal (own profile only, off the ⬚ collected stat). */
-    const [completionismOpen, setCompletionismOpen] = useState(false);
     /* Seed the Profile Colorway hook with the server-known colour on your OWN
        profile so it paints the real colour on the first pass instead of flashing
        white then repainting (Brendon, 2026-06-18). Only on own profile — on
@@ -1509,25 +1508,16 @@ function ProfilePageBodyInner({
                                 2026-07-02, one of PD's first-envisaged
                                 features). Other profiles keep the plain stat. */}
                             {isOwnProfile ? (
-                                <span
-                                    className="stat-val"
-                                    role="button"
-                                    tabIndex={0}
-                                    title="Completionism"
-                                    onClick={() => setCompletionismOpen(true)}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setCompletionismOpen(true); } }}
-                                >
-                                    {Math.max(ownedCount, holdings.length)}
-                                </span>
+                                /* The door owns its own open flag (see
+                                   CompletionismDoor) — keeping it out of this
+                                   component is what stops the whole profile
+                                   re-rendering every time the sheet opens. */
+                                <CompletionismDoor
+                                    address={user.address}
+                                    count={Math.max(ownedCount, holdings.length)}
+                                />
                             ) : (
                                 <span className="stat-val" {...iconToastProps('Outputs Collected')}>{Math.max(ownedCount, holdings.length)}</span>
-                            )}
-                            {isOwnProfile && (
-                                <CompletionismModal
-                                    address={user.address}
-                                    open={completionismOpen}
-                                    onClose={() => setCompletionismOpen(false)}
-                                />
                             )}
                         </span>
                         <span className="stat-item stat-item-vol">

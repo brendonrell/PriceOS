@@ -35,7 +35,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useToast } from '../../lib/state/ToastContext';
 
 import { allProjects, projectTrueName } from '../../lib/project/registry';
-import { playlistWatchUrl } from '../../lib/project/soundtrack';
+import { playlistWatchUrl, normalizePlaylistId } from '../../lib/project/soundtrack';
+import {
+    getTracks, addTrack, removeTrack, subscribeTracks, MAX_TRACKS,
+    type FmTrack,
+} from '../../lib/fm/tracksStore';
+import { useLongPress } from '../../lib/hooks/useLongPress';
 import { getSoundtrackStarItems } from '../../lib/pins/soundtrackStarStore';
 import { registerFmDriver, publishFm, type FmStation } from '../../lib/fm/fmBus';
 import { pushSettings, pushSettingsDebounced } from '../../lib/state/userState';
@@ -45,6 +50,7 @@ interface YTPlayer {
     playVideo(): void;
     pauseVideo(): void;
     nextVideo(): void;
+    setShuffle(opts: { shufflePlaylist: boolean }): void;
     loadPlaylist(opts: { list: string; listType: 'playlist' }): void;
     loadVideoById(id: string): void;
     cuePlaylist(opts: { list: string; listType: 'playlist'; index?: number; startSeconds?: number }): void;
@@ -141,6 +147,16 @@ export default function FmBar() {
     const [onAir, setOnAir] = useState<Station | null>(null);
     const [trackTitle, setTrackTitle] = useState('');
     const [pickerOpen, setPickerOpen] = useState(false);
+    /* The picker has TWO shelves and is the ONE pop-out menu (Brendon,
+       2026-07-28: "the UI for the playlists needs to be the same menu that pops
+       out when you tap the screen"). Tapping the screen opens STATIONS; the USB
+       plug opens YOUR TRACKS. Same panel, same rows, same outside-tap close. */
+    const [pickerView, setPickerView] = useState<'stations' | 'tracks'>('stations');
+    const [tracks, setTracks] = useState<ReadonlyArray<FmTrack>>([]);
+    const [trackDraft, setTrackDraft] = useState('');
+    const [trackCheck, setTrackCheck] = useState<'idle' | 'checking' | 'ok' | 'bad'>('idle');
+    const [trackReason, setTrackReason] = useState('');
+    const [trackTitleFound, setTrackTitleFound] = useState('');
     /* USB face: the stick's end cap — tap pops it off, tap again seats it
        (Brendon, 2026-07-27; reserved for a later use). */
     const [usbCapOff, setUsbCapOff] = useState(false);
@@ -437,6 +453,18 @@ export default function FmBar() {
     };
 
     const onNextTap = () => playerRef.current?.nextVideo();
+    /* ⟳ SHUFFLE — the USB pad's left key, the fourth of the cluster (Brendon,
+       2026-07-28: "can we not add a 4th button too?" → "maybe shuffle
+       instead?"). The MP330's pad is a five-key cross; ours had top, centre,
+       right and bottom and an empty left. ⟳ is PD's own shuffle mark, the one
+       the home Shuffle tab already wears — never a new glyph. */
+    const [shuffleOn, setShuffleOn] = useState(false);
+    const onShuffleTap = () => {
+        const next = !shuffleOn;
+        setShuffleOn(next);
+        playerRef.current?.setShuffle?.({ shufflePlaylist: next });
+        showToast(`Shuffle: ${next ? 'ON' : 'OFF'}`);
+    };
 
     /* ── The bus: other surfaces (the Stone's miniplayer mini, the Mint
        Room) drive this one player + read its state. Playing from anywhere
@@ -507,6 +535,79 @@ export default function FmBar() {
     }, [pickerOpen]);
     const starredIds = new Set(starred.map((s) => s.playlistId));
 
+    /* YOUR TRACKS — live from the private store. */
+    useEffect(() => {
+        const read = () => setTracks(getTracks());
+        read();
+        return subscribeTracks(read);
+    }, []);
+
+    /* SAME CRITERIA AS THE ARTIST'S: the pasted link goes through the very
+       route the Studio soundtrack manager uses, so a link PD would refuse an
+       artist is refused here too. */
+    const draftId = normalizePlaylistId(trackDraft);
+    useEffect(() => {
+        if (!draftId) { setTrackCheck('idle'); setTrackReason(''); setTrackTitleFound(''); return; }
+        let cancel = false;
+        setTrackCheck('checking');
+        setTrackReason('');
+        const t = window.setTimeout(() => {
+            fetch(`/api/studio/playlist?list=${encodeURIComponent(draftId)}`)
+                .then((r) => (r.ok ? r.json() : null))
+                .then((d) => {
+                    if (cancel) return;
+                    setTrackCheck(d?.public === true ? 'ok' : d?.public === false ? 'bad' : 'idle');
+                    setTrackReason(typeof d?.reason === 'string' ? d.reason : '');
+                    setTrackTitleFound(typeof d?.title === 'string' ? d.title : '');
+                })
+                .catch(() => { if (!cancel) setTrackCheck('idle'); });
+        }, 600);
+        return () => { cancel = true; window.clearTimeout(t); };
+    }, [draftId]);
+
+    const saveTrack = () => {
+        if (!draftId || trackCheck === 'bad') return;
+        const res = addTrack(draftId, trackTitleFound || draftId);
+        if (res === 'full') { showToast(`Your Tracks: FULL (${MAX_TRACKS})`); return; }
+        if (res === 'duplicate') { showToast('Your Tracks: ALREADY IN'); return; }
+        setTrackDraft('');
+        setTrackCheck('idle');
+        setTrackTitleFound('');
+        showToast('Your Tracks: ADDED');
+    };
+
+    /* ── THE USB DOOR (Brendon, 2026-07-28) — the cap, then the tip.
+       Cap ON  · tap        → the cap pops off, the plug is exposed.
+       Cap OFF · tap        → the cap goes back on.
+       Cap OFF · hold / ×3  → YOUR TRACKS opens in the pop-out menu.
+       This is the ONLY way in; nothing else on PD mentions it. ── */
+    const tapsRef = useRef(0);
+    const tapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const openTracks = useCallback(() => {
+        if (tapTimerRef.current) { clearTimeout(tapTimerRef.current); tapTimerRef.current = null; }
+        tapsRef.current = 0;
+        setPickerView('tracks');
+        setPickerOpen(true);
+    }, []);
+
+    const capHold = useLongPress(() => { if (usbCapOff) openTracks(); });
+
+    const onCapTap = () => {
+        if (!usbCapOff) { setUsbCapOff(true); return; }
+        /* Cap is off: a lone tap seats it, three quick taps open the tracks.
+           The seat waits out the multi-tap window so the third tap can win. */
+        tapsRef.current += 1;
+        if (tapsRef.current >= 3) { openTracks(); return; }
+        if (tapTimerRef.current) clearTimeout(tapTimerRef.current);
+        tapTimerRef.current = setTimeout(() => {
+            tapTimerRef.current = null;
+            if (tapsRef.current < 3) setUsbCapOff(false);
+            tapsRef.current = 0;
+        }, 320);
+    };
+    useEffect(() => () => { if (tapTimerRef.current) clearTimeout(tapTimerRef.current); }, []);
+
     /* Close the picker on any outside tap. */
     useEffect(() => {
         if (!pickerOpen) return;
@@ -551,7 +652,60 @@ export default function FmBar() {
             className={`fm-bar fm-mode-${display} fm-live${status === 'playing' ? ' fm-playing' : ''}`}
             title="miniplayer — the platform's soundtracks. Tap the screen to pick a station."
         >
-            {pickerOpen && (
+            {pickerOpen && pickerView === 'tracks' && (
+                <div className="fm-picker fm-picker-tracks" role="listbox" aria-label="Your tracks">
+                    <div className="fm-picker-head">YOUR TRACKS · {tracks.length}/{MAX_TRACKS}</div>
+                    <div className="fm-track-add">
+                        <input
+                            className="fm-track-input"
+                            placeholder="youtube.com/playlist?list=…"
+                            inputMode="url"
+                            value={trackDraft}
+                            onChange={(e) => setTrackDraft(e.target.value)}
+                        />
+                        <button
+                            type="button"
+                            className="fm-track-save"
+                            disabled={!draftId || trackCheck === 'bad' || tracks.length >= MAX_TRACKS}
+                            onClick={saveTrack}
+                        >
+                            ADD
+                        </button>
+                    </div>
+                    {trackCheck !== 'idle' && (
+                        <div className="fm-track-note" role="status">
+                            {trackCheck === 'checking' && 'CHECKING…'}
+                            {trackCheck === 'ok' && `PLAYS ✓${trackTitleFound ? ` · ${trackTitleFound}` : ''}`}
+                            {trackCheck === 'bad' && `WON'T PLAY${trackReason ? ` — ${trackReason}` : ''}`}
+                        </div>
+                    )}
+                    {tracks.length === 0 && (
+                        <div className="fm-track-note">Nothing yet — paste a YouTube playlist above.</div>
+                    )}
+                    {tracks.map((t) => (
+                        <div key={t.playlistId} className="fm-picker-row fm-track-row">
+                            <button
+                                type="button"
+                                className="fm-track-play"
+                                onClick={() => pickStation({ playlistId: t.playlistId, label: t.label, slug: null })}
+                            >
+                                <span className="fm-picker-glyph">▶︎</span> {t.label}
+                            </button>
+                            <span
+                                className="fm-track-del"
+                                role="button"
+                                tabIndex={0}
+                                title="Remove"
+                                onClick={(e) => { e.stopPropagation(); removeTrack(t.playlistId); showToast('Your Tracks: REMOVED'); }}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); removeTrack(t.playlistId); showToast('Your Tracks: REMOVED'); } }}
+                            >
+                                ×
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            )}
+            {pickerOpen && pickerView === 'stations' && (
                 <div className="fm-picker" role="listbox" aria-label="Stations">
                     {starred.length > 0 && <div className="fm-picker-head">STARRED</div>}
                     {starred.map((st) => (
@@ -575,9 +729,10 @@ export default function FmBar() {
                 <button
                     type="button"
                     className={`fm-usbcap${usbCapOff ? ' fm-usbcap--off' : ''}`}
-                    onClick={() => setUsbCapOff((v) => !v)}
-                    title="USB cap"
-                    aria-label="USB cap"
+                    onClick={onCapTap}
+                    {...capHold}
+                    title={usbCapOff ? 'Tap to cap · hold for your tracks' : 'USB cap'}
+                    aria-label={usbCapOff ? 'USB plug — hold for your tracks' : 'USB cap'}
                 />
             )}
             {/* ── transport keys — LEFT side, like the deck of a Sony MD.
@@ -594,6 +749,16 @@ export default function FmBar() {
             >
                 {status === 'playing' || status === 'loading' ? '‖' : '▶︎'}
             </button>
+            {display === 'usb' && (
+                <button
+                    type="button"
+                    className={`fm-btn fm-shuffle${shuffleOn ? ' on' : ''}`}
+                    onClick={onShuffleTap}
+                    title={shuffleOn ? 'Shuffle on' : 'Shuffle off'}
+                >
+                    {'⟳︎'}
+                </button>
+            )}
             {(isDeckFace || display === 'usb') && (
                 <button type="button" className="fm-btn" onClick={onNextTap} title="Next track">
                     ≫
@@ -620,7 +785,7 @@ export default function FmBar() {
             <button
                 type="button"
                 className="fm-screen"
-                onClick={() => setPickerOpen((v) => !v)}
+                onClick={() => (setPickerView('stations'), setPickerOpen((v) => !v))}
                 title="Pick a station"
             >
                 {/* The video host stays mounted for the session — YT replaces
@@ -642,7 +807,7 @@ export default function FmBar() {
                         if (artOpensYouTube) {
                             window.open(stationWatchUrl(onAir.playlistId), '_blank', 'noopener,noreferrer');
                         } else {
-                            setPickerOpen((v) => !v);
+                            (setPickerView('stations'), setPickerOpen((v) => !v));
                         }
                     }}
                     onKeyDown={(e) => {
@@ -652,7 +817,7 @@ export default function FmBar() {
                             if (artOpensYouTube) {
                                 window.open(stationWatchUrl(onAir.playlistId), '_blank', 'noopener,noreferrer');
                             } else {
-                                setPickerOpen((v) => !v);
+                                (setPickerView('stations'), setPickerOpen((v) => !v));
                             }
                         }
                     }}
