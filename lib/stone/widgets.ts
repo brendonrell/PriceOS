@@ -30,6 +30,7 @@ import { parseStoneDate, type StoneDate } from './dates';
 import { TAGS, type Tag } from '../tags/catalog';
 import { MOODS_WORDS } from './moods';
 import { matchToken } from './tokens';
+import { matchWorld } from './world';
 
 export type WidgetPlan =
     | { kind: 'calendar' }
@@ -90,7 +91,10 @@ export type WidgetPlan =
     /* "tell me a joke" — the told-ledger means never a repeat (2026-07-28). */
     | { kind: 'joke' }
     /* "$price" · "$eth" — the rich coin card (lib/stone/tokens). */
-    | { kind: 'token'; symbol: string };
+    | { kind: 'token'; symbol: string }
+    /* "what is price discussion" · "art blocks" · "verse" — the ecosystem
+       knowledge + the house takes (lib/stone/world). */
+    | { kind: 'world'; topic: string };
 
 function norm(s: string): string {
     return s.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -165,6 +169,11 @@ export function parseWidget(line: string, now: Date = new Date()): WidgetPlan | 
     /* ── THE COIN CARD — "$price" · "$eth" · "$fwa" (2026-07-28). */
     const token = matchToken(q);
     if (token) return { kind: 'token', symbol: token.symbol };
+
+    /* ── THE WORLD — PD's own origin, the platforms that built the medium,
+       and the house takes. Exact phrases only (2026-07-28). */
+    const world = matchWorld(q);
+    if (world) return { kind: 'world', topic: world.key };
 
     /* ── THE MANUAL, by bare topic (2026-07-28: "the stone must know
        everything about gnomes and keychains and stickers") — the exact

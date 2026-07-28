@@ -57,6 +57,7 @@ import { formatStoneDate, formatDaysAway, todoPhrase, type StoneDate } from '../
 import { MOODS, MARKET_MOODS, type MoodDef, type MarketMoodDef } from '../../lib/stone/moods';
 import { TOKENS } from '../../lib/stone/tokens';
 import { searchAtlas } from '../../lib/docs/features';
+import { WORLD, worldAnswer } from '../../lib/stone/world';
 import { PerMilleMark } from '../shell/PerMilleMark';
 import type { StoneTokenResponse } from '../../app/api/stone/token/route';
 import type {
@@ -2460,6 +2461,25 @@ function TokenWidget({ symbol, address }: { symbol: string; address: string }) {
     );
 }
 
+/* ── THE WORLD — what the stone knows about the medium it lives in: PD's
+      own origin (the channel, then the platform), the places that built
+      generative art, and the house takes. Seeded per line so it holds
+      steady mid-read. ── */
+
+function WorldWidget({ topic, seed }: { topic: string; seed: string }) {
+    const entry = WORLD.find((e) => e.key === topic) ?? null;
+    if (!entry) return null;
+    const lines = worldAnswer(entry, seed);
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle glyph={`⌘${VS15}`} label={entry.label} sub={entry.sub} />
+            {lines.map((l, i) => (
+                <SwSay key={i} lead={i === 0}>{l}</SwSay>
+            ))}
+        </div>
+    );
+}
+
 /* ── THE JOKE — the stone keeps a told-ledger in the pocket, so a joke
       never repeats until the whole bank has been dealt; then it says so
       and honestly starts over. Footer deals ANOTHER ONE. ── */
@@ -2555,6 +2575,7 @@ export function WidgetDeck({ plan, address, onGo, onAct, onFooter, onSeed, wornM
         );
         case 'joke': return <JokeWidget onFooter={onFooter} />;
         case 'token': return <TokenWidget symbol={plan.symbol} address={address} />;
+        case 'world': return <WorldWidget topic={plan.topic} seed={plan.topic} />;
     }
 }
 

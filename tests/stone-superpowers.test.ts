@@ -145,3 +145,47 @@ describe('the fun wave', () => {
         expect(parseWidget('stickers', NOW)).toMatchObject({ kind: 'docs', query: 'stickers' });
     });
 });
+
+describe('the world — the stone knows its ecosystem (2026-07-28)', () => {
+    it('answers PD identity with the channel FIRST, then the platform', async () => {
+        const { WORLD, matchWorld, worldAnswer } = await import('../lib/stone/world');
+        for (const w of ['what is price discussion', 'what is pd', 'price discussion',
+            'what does price discussion mean to you']) {
+            expect(matchWorld(w)?.key).toBe('pd');
+        }
+        const pd = WORLD.find((e) => e.key === 'pd')!;
+        /* EVERY variant must lead with the channel and land on the platform —
+           Brendon's order: the origin first, the platform second. */
+        for (const ans of pd.answers) {
+            const whole = ans.join(' ').toLowerCase();
+            const first = ans[0]!.toLowerCase();
+            expect(first).toContain('channel');
+            expect(whole).toContain('fxhash');
+            expect(whole).toMatch(/platform|discord/);
+        }
+        expect(worldAnswer(pd, 'seed')).toBe(worldAnswer(pd, 'seed'));
+    });
+    it('summons the platform knowledge and the house takes', async () => {
+        const { matchWorld } = await import('../lib/stone/world');
+        expect(matchWorld('art blocks')?.key).toBe('artblocks');
+        expect(matchWorld('fxhash')?.key).toBe('fxhash');
+        expect(matchWorld('larva labs')?.key).toBe('larvalabs');
+        expect(matchWorld('cryptopunks')?.key).toBe('cryptopunks');
+        expect(matchWorld('autoglyphs')?.key).toBe('autoglyphs');
+        expect(matchWorld('meebits')?.key).toBe('meebits');
+        expect(matchWorld('verse')?.key).toBe('verse');
+        expect(matchWorld('heft')?.key).toBe('heft');
+        expect(matchWorld('something else entirely')).toBeNull();
+        expect(parseWidget('art blocks', NOW)).toMatchObject({ kind: 'world', topic: 'artblocks' });
+    });
+    it('the Verse bit never reads as a real knowledge gap', async () => {
+        const { WORLD } = await import('../lib/stone/world');
+        const verse = WORLD.find((e) => e.key === 'verse')!;
+        /* Every variant must undercut itself — the joke only works if the
+           stone insists it knows everything else. */
+        for (const ans of verse.answers) {
+            expect(ans.length).toBeGreaterThan(1);
+            expect(ans.join(' ').toLowerCase()).toMatch(/every|complete|never fail|everything|remarkable/);
+        }
+    });
+});

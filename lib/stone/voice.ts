@@ -285,6 +285,12 @@ const FUN_WIDGET: Record<string, Pool> = {
         ['Atmospheres, on hand.', null],
         ['Choose your evening.', 'I will set the room.'],
     ],
+    world: [
+        ['The record, opened.', 'I keep more than our own.'],
+        ['I know this one.', null],
+        ['History, on request.', 'Somebody has to remember it.'],
+        ['Ah.', 'Yes. I have that.'],
+    ],
     token: [
         ['The ticker, read.', 'Numbers move. I merely report.'],
         ['A coin, weighed.', null],

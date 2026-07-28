@@ -189,6 +189,20 @@ A mood is one castable word that sets the whole room: colorway, ambient light, a
 | `hunting` · `hunt` | The Arbitrage Map reads the spreads, everything priced — deals in sight |
 | `browsing` · `window shopping` | The feed sort — strolling the galleries, no agenda |
 
+## Ask it about the world
+
+The Stone is the platform's memory, and its memory doesn't stop at our own walls. It knows where PD came from and it knows the places that built this medium.
+
+| Type | Get |
+|---|---|
+| `what is price discussion` · `what is pd` | The whole answer: the channel in the fxhash Discord it began as, then the community that carried it out the door, then this platform. All three at once |
+| `art blocks` | Ethereum, 2020 — mint-and-reveal, the tiers, the blue chips |
+| `fxhash` | Tezos, November 2021 — the open one, and PD's own birthplace |
+| `larva labs` | Matt Hall and John Watkinson, and the three things they made |
+| `cryptopunks` · `autoglyphs` · `meebits` | Each one properly, with its dates and its point |
+
+Ask twice and you'll get it told a different way — the Stone doesn't recite.
+
 ## The coin cards
 
 | Type | Get |
