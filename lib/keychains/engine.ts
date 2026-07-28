@@ -413,7 +413,7 @@ function accessorySvg(kind: number, a: number[], accent: string): [string, strin
     const bx = a[0]!;
     const by = a[1]!;
     if (kind === 2) {
-        return [`<ellipse cx="${bx + 130}" cy="${by - 55}" rx="92" ry="26" fill="none" stroke="#F5D96B" stroke-width="14" transform="rotate(-12 ${bx + 130} ${by - 55})"/>`, ''];
+        return [`<ellipse cx="${bx + 130}" cy="${by - 55}" rx="92" ry="26" fill="none" stroke="#F5D96B" stroke-width="14" transform="rotate(12 ${bx + 130} ${by - 55})"/>`, ''];
     }
     if (kind === 1) {
         return [`<g transform="translate(${bx + 118} ${by + 6}) rotate(18)" fill="${accent}" stroke="${INK}" stroke-width="9" stroke-linejoin="round"><path d="M -12 0 L -74 -34 Q -88 -40 -86 -22 L -80 26 Q -78 42 -64 34 Z"/><path d="M 12 0 L 74 -34 Q 88 -40 86 -22 L 80 26 Q 78 42 64 34 Z"/><circle cx="0" cy="0" r="17"/></g>`, ''];
