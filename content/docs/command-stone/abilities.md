@@ -174,6 +174,8 @@ A mood is one castable word that sets the whole room: colorway, ambient light, a
 | `rave` · `hype` | Hot colour, ambient light, the DJ — loud on purpose |
 | `monk` · `focus` | Everything off, quiet: clean light page, no ambience, music stops |
 | `midnight` | Dark mode plus the dim wash; whatever is playing keeps playing |
+| `golden` · `golden hour` | Sunset orange, ambient light, the DJ |
+| `ocean` | Open blue and the ambient wash; whatever is playing keeps playing |
 | `moods` | The whole set dealt as a card — tap a mood to wear it, tap again to lift it |
 
 ## The fun bench

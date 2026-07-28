@@ -37,7 +37,7 @@ Every charm is one of twelve body shapes, each a full character with a face, rub
 
 All rolled at crank, frozen forever. Weights are contract-public.
 
-**The two coin slots — YIN and YANG.** The machine takes your coin in one of two slots, and the slot you pick steers the roll: **YIN** leans cool palettes, calm faces, and barer heads (halos and wings when a head does wear something); **YANG** leans hot palettes, loud faces, crowns and antennas. Every option stays rollable on both coins — the slot bends the odds, it never closes a door. **Shapes are universal:** the ALIEN chase is exactly equal whichever slot your coin drops in.
+**The two coin slots — ⚋ YIN and ⚊ YANG.** The machine takes your coin in one of two slots, and the slot you pick steers who drops: **YIN deals the girls** — the pinks and pastels, lashes, hearts, teary eyes, bows; **YANG deals the boys** — the louds and darks, googly and starry eyes, shades, crowns and antennas. Every option stays rollable on both coins — the slot bends the odds, it never closes a door. **Shapes are universal:** the ALIEN chase is exactly equal whichever slot your coin drops in.
 
 **Eyes — 15 styles.** Odds by coin:
 
@@ -47,9 +47,9 @@ All rolled at crank, frozen forever. Weights are contract-public.
 | SLEEPY | 14% | 1% | | 3D GLASSES | 4% | 5% |
 | WINK | 12% | 7% | | SUNGLASSES | 3% | 8% |
 | LASHES | 10% | 1% | | STARRY | 3% | 12% |
-| TEARY | 8% | 2% | | DIZZY | 2% | 8% |
-| GOOGLY | 8% | 22% | | X X | 2% | 4% |
-| HEARTS | 6% | 7% | | LASERS | 1% | 4% |
+| TEARY | 8% | 2% | | DIZZY | 2% | 9% |
+| HEARTS | 8% | 5% | | X X | 2% | 5% |
+| GOOGLY | 6% | 22% | | LASERS | 1% | 4% |
 | VISOR | 1% | 1% | | | | |
 
 **Iris colors.** The five pupil styles (GOOGLY · ROUND · WINK · LASHES · TEARY) can wear a colored iris: INK 65% · BLUE, GREEN, AMBER, VIOLET, RED 7% each.
@@ -60,13 +60,13 @@ All rolled at crank, frozen forever. Weights are contract-public.
 
 **Poses — 5:** PEACE 40% · WAVE 18% · HIPS 15% · CHILL 15% · CHEER 12%. The peace sign is house canon: two fingers up in a V, the folded pair resting on the palm, the thumb folded over them — always on the inside of the hand.
 
-**Accessories:** none ~52% · BOW ~13% · HALO ~11% · CROWN ~9% · ANTENNA ~9% · WINGS ~6%
+**Accessories** (per coin): YIN — none ~52% · BOW 20% · HALO 13% · WINGS 8% · ANTENNA 5% · CROWN 2%. YANG — none ~49% · CROWN 18% · ANTENNA 15% · WINGS 7% · HALO 7% · BOW 4%.
 
 **Materials:** hard PLASTIC 70% (the domed, light-caught cast with a specular glint) · hard RUBBER 30% (the same dome pressed flat and dull — no glint). The dome itself is the miniplayer's own lighting, ported exactly.
 
 **Feet & extras:** boots or sneakers 50/50 (sneakers in the accent color) · accent socks 35% · blush 60%.
 
-**Palettes — 12:** BUBBLEGUM · BLUEBERRY · ACID · SLIME · VAPOR · CREAMSICLE · MALLRAT · MIDNIGHT · CHERRY · GRAPE · SEAFOAM · STATIC. Each palette is a body color + an accent that dresses the sneakers, socks, bows, antenna bobbles, planet rings, and visor lights.
+**Palettes — 12** (coin-steered: YIN leans BUBBLEGUM · BLUEBERRY · VAPOR · MALLRAT · GRAPE · SEAFOAM at 12% each; YANG leans ACID · SLIME · CREAMSICLE · CHERRY at 13%, MIDNIGHT 12%, STATIC 9%; the rest ~4–5%): Each palette is a body color + an accent that dresses the sneakers, socks, bows, antenna bobbles, planet rings, and visor lights.
 
 Multiply it out and the machine holds **58,060,800 possible charms** — before the living layer (chain states × finishes) multiplies it again.
 

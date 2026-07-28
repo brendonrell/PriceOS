@@ -68,6 +68,25 @@ export const MOODS: readonly MoodDef[] = [
         ambient: true,
         dj: 'keep',
     },
+    /* Brendon's morning encore (2026-07-28): "add another mood or two". */
+    {
+        key: 'golden',
+        words: ['golden', 'golden hour'],
+        label: 'Golden Hour',
+        recipe: 'sunset orange · ambient light · the DJ',
+        colorway: 'orange',
+        ambient: true,
+        dj: 'play',
+    },
+    {
+        key: 'ocean',
+        words: ['ocean', 'ocean mood'],
+        label: 'Ocean Mood',
+        recipe: 'open blue · ambient light · music stays',
+        colorway: 'blue',
+        ambient: true,
+        dj: 'keep',
+    },
 ];
 
 function norm(s: string): string {

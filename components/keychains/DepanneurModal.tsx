@@ -200,16 +200,16 @@ export default function DepanneurModal() {
                                     className={`dp-coin-slot${coin === 0 ? ' on' : ''}`}
                                     onClick={() => setCoin(coin === 0 ? null : 0)}
                                 >
-                                    <span className="dp-coin-name">YIN</span>
-                                    <span className="dp-coin-line">cool · calm · quiet heads</span>
+                                    <span className="dp-coin-name">{`⚋${VS15} YIN`}</span>
+                                    <span className="dp-coin-line">the girls · pinks · bows · lashes</span>
                                 </button>
                                 <button
                                     type="button"
                                     className={`dp-coin-slot${coin === 1 ? ' on' : ''}`}
                                     onClick={() => setCoin(coin === 1 ? null : 1)}
                                 >
-                                    <span className="dp-coin-name">YANG</span>
-                                    <span className="dp-coin-line">hot · loud · crowned heads</span>
+                                    <span className="dp-coin-name">{`⚊${VS15} YANG`}</span>
+                                    <span className="dp-coin-line">the boys · louds · crowns · shades</span>
                                 </button>
                             </div>
 

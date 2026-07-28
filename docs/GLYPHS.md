@@ -641,6 +641,17 @@ taste gets measured on the Fingerprint).
 | Use | Glyph | Codepoint |
 |---|---|---|
 | Keychains (the capsule machine) | ⚷ | U+26B7 CHIRON |
+| YANG coin slot (Depanneur) | ⚊ | U+268A MONOGRAM FOR YANG |
+| YIN coin slot (Depanneur) | ⚋ | U+268B MONOGRAM FOR YIN |
+
+> **⚊/⚋ (2026-07-28, the coin-slots build.)** Brendon asked for a yin-yang
+> Depanneur mark; the true taijitu **☯ (U+262F) is emoji-mapped and BANNED**
+> by the sharpened §7 test. The I-Ching monograms ARE the literal yang/yin
+> lines, carry no emoji mapping, and mean exactly the thing. ⚊ already
+> ships as the Fates oracle's I-Ching line (`lib/output/attributes.ts`,
+> `lib/project/collectionAnalysis.ts`) — same symbol system, same literal
+> meaning; context disambiguates (the ◉ precedent). ⚋ was grepped free,
+> raw + escaped, at pick time.
 
 > Brendon's pick from a five-option screened round — astrology's **Chiron,
 > literally "the key," the wounded healer** (his call: "Chiron is the

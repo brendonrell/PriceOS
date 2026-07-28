@@ -42,6 +42,8 @@ describe('matchCast — the moods (lib/stone/moods, cozy generalized)', () => {
             ['rave', 'rave'], ['hype', 'rave'],
             ['monk', 'monk'], ['focus', 'monk'],
             ['midnight', 'midnight'], ['midnight mood', 'midnight'],
+            ['golden', 'golden'], ['golden hour', 'golden'],
+            ['ocean', 'ocean'], ['ocean mood', 'ocean'],
         ] as const) {
             const hit = matchCast(word, WS);
             expect(hit?.kind).toBe('mood');

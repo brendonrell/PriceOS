@@ -71,41 +71,42 @@ function d(seed: `0x${string}`, salt: number, mod: bigint): number {
     return Number(BigInt(keccak256(encodePacked(['bytes32', 'uint8'], [seed, salt]))) % mod);
 }
 
-/* YIN/YANG steering (contract verbatim, 2026-07-28) — the coin steers
-   palette / eyes / accessory weights; every option stays rollable on both
-   coins, and SHAPES ARE UNIVERSAL so the ALIEN chase is equal. */
+/* YIN/YANG steering (contract verbatim, 2026-07-28; sharpened same day to
+   Brendon's read: YIN deals the GIRLS, YANG deals the BOYS) — the coin
+   steers palette / eyes / accessory weights; every option stays rollable
+   on both coins, and SHAPES ARE UNIVERSAL so the ALIEN chase is equal. */
 function paletteFor(seed: `0x${string}`, coin: Coin): number {
     const x = d(seed, 2, 100n);
     if (coin === 0) {
-        // YIN — leans cool/quiet: BLUEBERRY VAPOR MIDNIGHT GRAPE SEAFOAM STATIC 12 each · SLIME 8 · the hot five 4 each
-        return x < 12 ? 1 : x < 24 ? 4 : x < 36 ? 7 : x < 48 ? 9 : x < 60 ? 10 : x < 72 ? 11 : x < 80 ? 3
-            : x < 84 ? 0 : x < 88 ? 2 : x < 92 ? 5 : x < 96 ? 6 : 8;
+        // YIN (girls) — the pinks + pastels: BUBBLEGUM BLUEBERRY VAPOR MALLRAT GRAPE SEAFOAM 12 each · the boy six ~5 each
+        return x < 12 ? 0 : x < 24 ? 1 : x < 36 ? 4 : x < 48 ? 6 : x < 60 ? 9 : x < 72 ? 10
+            : x < 77 ? 2 : x < 82 ? 3 : x < 87 ? 5 : x < 92 ? 8 : x < 96 ? 7 : 11;
     }
-    // YANG — leans hot/loud: BUBBLEGUM ACID CREAMSICLE CHERRY 13 each · MALLRAT 12 · SLIME 9 · the cool six ~4 each
-    return x < 13 ? 0 : x < 26 ? 2 : x < 39 ? 5 : x < 52 ? 8 : x < 64 ? 6 : x < 73 ? 3
-        : x < 78 ? 1 : x < 83 ? 4 : x < 88 ? 7 : x < 92 ? 9 : x < 96 ? 10 : 11;
+    // YANG (boys) — the louds + darks: ACID SLIME CREAMSICLE CHERRY 13 each · MIDNIGHT 12 · STATIC 9 · the girl six ~4-5 each
+    return x < 13 ? 2 : x < 26 ? 3 : x < 39 ? 5 : x < 52 ? 8 : x < 64 ? 7 : x < 73 ? 11
+        : x < 78 ? 0 : x < 83 ? 1 : x < 88 ? 4 : x < 92 ? 6 : x < 96 ? 9 : 10;
 }
 
 function eyesFor(seed: `0x${string}`, coin: Coin): number {
     const x = d(seed, 4, 100n);
     if (coin === 0) {
-        // YIN — calm faces first: ROUND22 SLEEPY14 WINK12 LASHES10 TEARY8 GOOGLY8 HEARTS6 SPIRAL4 3D4 SUNGLASSES3 STARRY3 DIZZY2 XX2 VISOR1 LASERS1
-        return x < 22 ? 1 : x < 36 ? 3 : x < 48 ? 2 : x < 58 ? 13 : x < 66 ? 14 : x < 74 ? 0 : x < 80 ? 5
+        // YIN (girls) — ROUND22 SLEEPY14 WINK12 LASHES10 TEARY8 HEARTS8 GOOGLY6 SPIRAL4 3D4 SUNGLASSES3 STARRY3 DIZZY2 XX2 VISOR1 LASERS1
+        return x < 22 ? 1 : x < 36 ? 3 : x < 48 ? 2 : x < 58 ? 13 : x < 66 ? 14 : x < 74 ? 5 : x < 80 ? 0
             : x < 84 ? 6 : x < 88 ? 12 : x < 91 ? 11 : x < 94 ? 4 : x < 96 ? 9 : x < 98 ? 7 : x < 99 ? 8 : 10;
     }
-    // YANG — loud faces first: GOOGLY22 STARRY12 ROUND12 DIZZY8 SUNGLASSES8 HEARTS7 WINK7 SPIRAL6 3D5 XX4 LASERS4 TEARY2 LASHES1 SLEEPY1 VISOR1
-    return x < 22 ? 0 : x < 34 ? 4 : x < 46 ? 1 : x < 54 ? 9 : x < 62 ? 11 : x < 69 ? 5 : x < 76 ? 2
-        : x < 82 ? 6 : x < 87 ? 12 : x < 91 ? 7 : x < 95 ? 10 : x < 97 ? 14 : x < 98 ? 13 : x < 99 ? 3 : 8;
+    // YANG (boys) — GOOGLY22 STARRY12 ROUND12 DIZZY9 SUNGLASSES8 WINK7 SPIRAL6 HEARTS5 3D5 XX5 LASERS4 TEARY2 LASHES1 SLEEPY1 VISOR1
+    return x < 22 ? 0 : x < 34 ? 4 : x < 46 ? 1 : x < 55 ? 9 : x < 63 ? 11 : x < 70 ? 2 : x < 76 ? 6
+        : x < 81 ? 5 : x < 86 ? 12 : x < 91 ? 7 : x < 95 ? 10 : x < 97 ? 14 : x < 98 ? 13 : x < 99 ? 3 : 8;
 }
 
 function accFor(seed: `0x${string}`, coin: Coin): number {
     const x = d(seed, 8, 170n);
     if (coin === 0) {
-        // YIN — barer, halo/wings lean: NONE96 HALO26 WINGS16 BOW14 ANTENNA10 CROWN8
-        return x < 96 ? 0 : x < 122 ? 2 : x < 138 ? 5 : x < 152 ? 1 : x < 162 ? 4 : 3;
+        // YIN (girls) — BOWS lead: NONE88 BOW34 HALO22 WINGS14 ANTENNA8 CROWN4
+        return x < 88 ? 0 : x < 122 ? 1 : x < 144 ? 2 : x < 158 ? 5 : x < 166 ? 4 : 3;
     }
-    // YANG — louder heads: NONE74 CROWN26 ANTENNA22 BOW22 WINGS14 HALO12
-    return x < 74 ? 0 : x < 100 ? 3 : x < 122 ? 4 : x < 144 ? 1 : x < 158 ? 5 : 2;
+    // YANG (boys) — crowned heads: NONE84 CROWN30 ANTENNA26 WINGS12 HALO12 BOW6
+    return x < 84 ? 0 : x < 114 ? 3 : x < 140 ? 4 : x < 152 ? 5 : x < 164 ? 2 : 1;
 }
 
 export function genes(seed: `0x${string}`, coin: Coin = 0): Genes {
