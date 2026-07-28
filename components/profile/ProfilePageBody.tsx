@@ -698,7 +698,7 @@ function ProfilePageBodyInner({
        namespaced under the same store with a ":more" id so a refresh lands back
        on the same sub-section (e.g. My History), not just the +More tab. */
     const moreMemId = `${user.handle ?? handle}:more`;
-    const MORE_KEYS: ReadonlySet<string> = new Set<ProfileMoreL1>(['created', 'starred', 'wishlists', 'albums', 'offers', 'vault', 'sigil', 'loyalty', 'counterparties', 'history', 'info', 'achievements', 'discord', 'anointed', 'targets', 'calls']);
+    const MORE_KEYS: ReadonlySet<string> = new Set<ProfileMoreL1>(['created', 'starred', 'wishlists', 'albums', 'offers', 'vault', 'sigil', 'loyalty', 'counterparties', 'history', 'achievements', 'discord', 'anointed', 'targets', 'calls']);
     const [moreL1, setMoreL1] = useState<ProfileMoreL1>(() => {
         // A pasted deep link's ?sub= wins here too (Share Any View).
         const shared = readViewParam('sub');
@@ -1691,7 +1691,6 @@ function ProfilePageBodyInner({
                                         { key: 'discord',   label: 'Discord',   active: effMoreL1 === 'discord',   onClick: () => setMoreL1('discord')   },
                                         { key: 'counterparties', label: 'Counterparties', active: effMoreL1 === 'counterparties', onClick: () => setMoreL1('counterparties') },
                                         { key: 'achievements', label: 'Achievements', active: effMoreL1 === 'achievements', onClick: () => setMoreL1('achievements') },
-                                        { key: 'info',      label: 'Info',      active: effMoreL1 === 'info',      onClick: () => setMoreL1('info')      },
                                         { key: 'targets',   label: 'Targets',   active: effMoreL1 === 'targets',   onClick: () => setMoreL1('targets')   },
                                         { key: 'calls',     label: 'Calls',     active: effMoreL1 === 'calls',     onClick: () => setMoreL1('calls')     },
                                         { key: 'anointed',  label: 'Anointed',  active: effMoreL1 === 'anointed',  onClick: () => setMoreL1('anointed')  },
@@ -1890,24 +1889,9 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                         Discord link. Previously wedged between the main tabs and the
                         sub-pill row; now it lives under the Info sub-tab so the pills
                         sit flush under the main tabs (Collected-tab pattern). */}
-                    {onMore && effMoreL1 === 'info' && (
-                        <div className="more-tab-stats">
-                            <div className="hero-line stats-row stats-row-2">
-                                <span className="stat-item">
-                                    <span className="stat-icon stat-icon-box" {...iconToastProps('Followers')}>◎&#xFE0E;</span>{' '}
-                                    <span className="stat-val">{counts.followers}</span>
-                                </span>
-                                <span className="stat-item">
-                                    <span className="stat-icon stat-icon-box" {...iconToastProps('Following')}>⊙&#xFE0E;</span>{' '}
-                                    <span className="stat-val">{counts.following}</span>
-                                </span>
-                                <span className="stat-item">
-                                    <span className="stat-icon stat-icon-box" {...iconToastProps('Anchor — coming soon')}>⚓&#xFE0E;</span>{' '}
-                                    <span className="stat-val stat-val-empty">—</span>
-                                </span>
-                            </div>
-                        </div>
-                    )}
+                    {/* The Info tab is GONE (Brendon, 2026-07-28: "let's kill
+                        info"). It carried only Followers / Following — both
+                        already in the profile hero — plus a dead Anchor dash. */}
 
                     {/* Discord sub-tab — PUBLIC, shows for everyone. Discord is the
                         centre of the PD world, so this is its home: the user's linked

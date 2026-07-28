@@ -5615,14 +5615,6 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.18); }
     align-items: center;
     justify-content: center;
 }
-/* ── PROFILE MORE TAB — stats moved from hero ───────────── */
-.more-tab-stats {
-    padding: 20px 40px 0 40px;
-}
-@media (max-width: 600px) {
-    .more-tab-stats { padding: 16px 20px 0 20px; }
-}
-
 /* ── PROFILE TABS — sim ~2218-2225 ───────────────────────── */
 .profile-tabs-row {
     display: flex;
