@@ -8,7 +8,68 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0000000000000000000000000. ✅ **2026-07-28 (LATEST) — MINIPLAYER DEAD-LINK KILLED ·
+00000000000000000000000000. ✅ **2026-07-28 (LATEST) — LISTS ROUND: PLAY A LIST
+   AS A PLAYLIST · NEW LIST FROM THE PANEL · ARRANGE THE LISTS · MOVED MARKS
+   (Opus 5). All on `dev` (tip `916a898`), tree clean, typecheck green, build
+   green, every rule verified in the compiled CSS. ClickUp `86bb51qug`.**
+
+   **Nothing is outstanding — this session is fully shipped and deployed.**
+
+   1. **▶ PLAYS A LIST THROUGH THE MINIPLAYER.** A list in MY LISTS carrying
+      soundtracks gets a ▶ on its header, in the ◊ total's spot. It sends those
+      soundtracks to the player in STORED order (the order the rows were
+      dragged into).
+      The player gained a **RUN**: first station on air, the rest waiting, each
+      rolling on **only when the one playing reaches the end of its own last
+      track** — a playlist is never cut short mid-way (it checks the playlist
+      index against its length; a single-video station is always "finished").
+      Hand-picking a station anywhere **abandons** the run (`start` wipes the
+      queue on purpose), and × clears it with the device. The run is NOT
+      persisted across an app close — the saved session restores the single
+      station, exactly as before.
+      **Scope note:** first built gated to all-soundtrack lists; Brendon
+      widened it to MIXED lists the same day. It does not lie about what it
+      plays — the key and the toast both carry the count when the list holds
+      other things too.
+
+   2. **NEW LIST lives on the panel head now.** Before this, the ONLY way to
+      make a list was ADD TO LIST on a starred row — the panel's own empty
+      state had to send you elsewhere to fix it. No glyph was invented: the
+      sort row above is word keys and the ADD TO LIST sheet's create row is the
+      words "New List" (Rule #0).
+
+   3. **ARRANGE — the lists themselves reorder** (rows inside have dragged
+      since 2026-07-25; the lists never could). Reuses the app's own hold-drag
+      **whole** — same ⠿ grip, same lift, same dotted drop ring.
+      **⛔ WHY IT'S A MODE AND NOT A BARE HOLD — do not "simplify" this away:**
+      the hold on a list name is already FOCUS, and one gesture cannot mean two
+      things. ARRANGE takes the hold while it's on and hands it straight back
+      when it's off. **Default off.** Focus wins over arrange (a focused list
+      hides the others, so there's nothing to arrange against).
+      **Order: A→Z stays the default forever.** The first drag switches to the
+      user's own order (which freezes what's on screen as the starting point,
+      so the drop lands where they aimed); the **A→Z** key — visible ONLY while
+      arranging, never resting chrome — puts it back. Nobody can strand
+      themselves in an order they can't undo.
+
+   4. **MOVED — a list can tell you something happened in it.** Each list
+      remembers what its pieces were asking the last time it was read; anything
+      whose ask changed (came up for sale, sold, repriced) wears PD's **dotted
+      ring** on the number that moved, and the header carries the count so a
+      **CLOSED** list still says so. Opening the list is what clears it, and
+      the marks deliberately **survive the read that clears them** (frozen on
+      open, released on close) or they'd vanish in the same frame.
+      **⛔ DEVICE-LOCAL BY DESIGN — not an oversight, don't "upgrade" it to the
+      account envelope.** "Since I last looked" is a fact about THIS device's
+      reading; syncing it would mean opening a list on the phone silently
+      clearing the marks on desktop. It's a reading mark, not portfolio truth.
+
+   5. **⛔ BULK ADD ALREADY EXISTS — do not build a second one.** It shipped
+      2026-07-25: multi-select on All Starred sends the whole selection into
+      the ADD TO LIST sheet, which already takes many items at once. It was on
+      this round's shortlist and was struck once the code was read.
+
+0000000000000000000000000. ✅ **2026-07-28 — MINIPLAYER DEAD-LINK KILLED ·
    USB HARDWARE PASS · YOUR TRACKS · SLIDE-MODAL HITCH · SUITE/PRICECAL ·
    AD CHANNEL (Opus 5). All on `dev` (tip `1099f77`), tree clean, typecheck
    green, every change verified in the compiled CSS/JS. ClickUp `86bb518mu`.**
