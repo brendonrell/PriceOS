@@ -24,7 +24,7 @@ import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
 import {
     CRANK_PRICE_ETH, charmSVG, charmTraits, isValidCharmName,
-    type CharmRecord,
+    type CharmRecord, type Coin,
 } from '../../lib/keychains/engine';
 import { useKeychainRack, bustRack } from '../../lib/keychains/rack';
 
@@ -34,8 +34,8 @@ function CharmArt({ charm, streak, rank, uid, className }: {
     charm: CharmRecord; streak: number; rank: number; uid: string; className?: string;
 }) {
     const svg = useMemo(
-        () => charmSVG(charm.seed, uid, streak, rank, charm.name),
-        [charm.seed, charm.name, uid, streak, rank],
+        () => charmSVG(charm.seed, uid, streak, rank, charm.name, charm.coin),
+        [charm.seed, charm.name, uid, streak, rank, charm.coin],
     );
     return <span className={className} dangerouslySetInnerHTML={{ __html: svg }} />;
 }
@@ -48,6 +48,10 @@ export default function DepanneurModal() {
     const rack = useKeychainRack(isOpen ? siweAddress : null);
 
     const [cranking, setCranking] = useState(false);
+    /* YIN/YANG (Brendon's two coin slots, 2026-07-28) — the pre-crank
+       choice. No slot holds a coin until the keeper drops one (no default),
+       and the crank won't turn without it. */
+    const [coin, setCoin] = useState<Coin | null>(null);
     const [fresh, setFresh] = useState<CharmRecord | null>(null);
     const [picked, setPicked] = useState<number | null>(null);
     const [nameDraft, setNameDraft] = useState('');
@@ -55,7 +59,7 @@ export default function DepanneurModal() {
 
     useEffect(() => {
         if (!isOpen) return;
-        setFresh(null); setPicked(null); setNameDraft('');
+        setFresh(null); setPicked(null); setNameDraft(''); setCoin(null);
         lockBodyScroll();
         return () => unlockBodyScroll();
     }, [isOpen]);
@@ -74,11 +78,15 @@ export default function DepanneurModal() {
         (picked != null ? charms.find((c) => c.id === picked) : null) ?? fresh;
 
     const crank = async () => {
-        if (!siweAddress || cranking) return;
+        if (!siweAddress || cranking || coin == null) return;
         setCranking(true);
         setFresh(null); setPicked(null); setNameDraft('');
         try {
-            const r = await fetch('/api/keychains/crank', { method: 'POST' });
+            const r = await fetch('/api/keychains/crank', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ coin }),
+            });
             const j = (await r.json().catch(() => null)) as { charm?: CharmRecord; error?: string } | null;
             if (!r.ok || !j?.charm) {
                 showToast(`Depanneur: ${j?.error ? j.error.toUpperCase() : 'CRANK FAILED'}`);
@@ -171,15 +179,37 @@ export default function DepanneurModal() {
                                 <span className={`dp-machine-cap${cranking ? ' turning' : ''}`}>{`⚷${VS15}`}</span>
                                 <div className="dp-machine-col">
                                     <span className="dp-machine-name">THE CAPSULE MACHINE</span>
-                                    <span className="dp-machine-line">One crank · one charm · one of 13,063,680</span>
+                                    <span className="dp-machine-line">One crank · one charm · one of 58,060,800</span>
                                 </div>
                                 <button
                                     type="button"
                                     className={`dp-crank${cranking ? ' cranking' : ''}`}
                                     onClick={() => { void crank(); }}
-                                    disabled={cranking}
+                                    disabled={cranking || coin == null}
                                 >
-                                    {cranking ? 'CRANKING…' : `CRANK · ${CRANK_PRICE_ETH.toFixed(3)} ETH`}
+                                    {cranking ? 'CRANKING…' : coin == null ? 'DROP A COIN' : `CRANK · ${CRANK_PRICE_ETH.toFixed(3)} ETH`}
+                                </button>
+                            </div>
+
+                            {/* THE TWO COIN SLOTS — which one you drop the
+                                coin in steers palette/face/accessory weights;
+                                shapes are universal (the ALIEN chase is equal). */}
+                            <div className="dp-coins">
+                                <button
+                                    type="button"
+                                    className={`dp-coin-slot${coin === 0 ? ' on' : ''}`}
+                                    onClick={() => setCoin(coin === 0 ? null : 0)}
+                                >
+                                    <span className="dp-coin-name">YIN</span>
+                                    <span className="dp-coin-line">cool · calm · quiet heads</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`dp-coin-slot${coin === 1 ? ' on' : ''}`}
+                                    onClick={() => setCoin(coin === 1 ? null : 1)}
+                                >
+                                    <span className="dp-coin-name">YANG</span>
+                                    <span className="dp-coin-line">hot · loud · crowned heads</span>
                                 </button>
                             </div>
 
@@ -196,7 +226,7 @@ export default function DepanneurModal() {
                                     <div className="dp-sheet">
                                         {shown.name && <div className="dp-sheet-name">{shown.name}</div>}
                                         <div className="dp-traits">
-                                            {charmTraits(shown.seed, streak, rank).map((t) => (
+                                            {charmTraits(shown.seed, streak, rank, shown.coin).map((t) => (
                                                 <span key={t.k} className="dp-trait">
                                                     <span className="dp-trait-k">{t.k.toUpperCase()}</span>
                                                     <span className="dp-trait-v">{t.v}</span>

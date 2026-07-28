@@ -57,33 +57,77 @@ export interface Genes {
     pose: number; // 0 PEACE 1 WAVE 2 CHEER 3 HIPS 4 CHILL
     acc: number; // 0 NONE 1 BOW 2 HALO 3 CROWN 4 ANTENNA 5 WINGS
     shoe: number; // 0 BOOT 1 SNEAKER
+    iris: number; // 0 INK · 1 BLUE 2 GREEN 3 AMBER 4 VIOLET 5 RED (pupil styles only)
     sock: boolean;
     blush: boolean;
     raiseLeft: boolean;
     restHip: boolean;
 }
 
+/** YIN/YANG — which slot the coin dropped in. 0 = YIN, 1 = YANG. */
+export type Coin = 0 | 1;
+
 function d(seed: `0x${string}`, salt: number, mod: bigint): number {
     return Number(BigInt(keccak256(encodePacked(['bytes32', 'uint8'], [seed, salt]))) % mod);
 }
 
-export function genes(seed: `0x${string}`): Genes {
-    let x = d(seed, 1, 100n); // HEART16 STAR12 FLOWER12 GHOST10 CLOVER10 BOLT8 TAG8 MOON7 GEM6 PLANET5 SPARK4 ALIEN2
+/* YIN/YANG steering (contract verbatim, 2026-07-28) — the coin steers
+   palette / eyes / accessory weights; every option stays rollable on both
+   coins, and SHAPES ARE UNIVERSAL so the ALIEN chase is equal. */
+function paletteFor(seed: `0x${string}`, coin: Coin): number {
+    const x = d(seed, 2, 100n);
+    if (coin === 0) {
+        // YIN — leans cool/quiet: BLUEBERRY VAPOR MIDNIGHT GRAPE SEAFOAM STATIC 12 each · SLIME 8 · the hot five 4 each
+        return x < 12 ? 1 : x < 24 ? 4 : x < 36 ? 7 : x < 48 ? 9 : x < 60 ? 10 : x < 72 ? 11 : x < 80 ? 3
+            : x < 84 ? 0 : x < 88 ? 2 : x < 92 ? 5 : x < 96 ? 6 : 8;
+    }
+    // YANG — leans hot/loud: BUBBLEGUM ACID CREAMSICLE CHERRY 13 each · MALLRAT 12 · SLIME 9 · the cool six ~4 each
+    return x < 13 ? 0 : x < 26 ? 2 : x < 39 ? 5 : x < 52 ? 8 : x < 64 ? 6 : x < 73 ? 3
+        : x < 78 ? 1 : x < 83 ? 4 : x < 88 ? 7 : x < 92 ? 9 : x < 96 ? 10 : 11;
+}
+
+function eyesFor(seed: `0x${string}`, coin: Coin): number {
+    const x = d(seed, 4, 100n);
+    if (coin === 0) {
+        // YIN — calm faces first: ROUND22 SLEEPY14 WINK12 LASHES10 TEARY8 GOOGLY8 HEARTS6 SPIRAL4 3D4 SUNGLASSES3 STARRY3 DIZZY2 XX2 VISOR1 LASERS1
+        return x < 22 ? 1 : x < 36 ? 3 : x < 48 ? 2 : x < 58 ? 13 : x < 66 ? 14 : x < 74 ? 0 : x < 80 ? 5
+            : x < 84 ? 6 : x < 88 ? 12 : x < 91 ? 11 : x < 94 ? 4 : x < 96 ? 9 : x < 98 ? 7 : x < 99 ? 8 : 10;
+    }
+    // YANG — loud faces first: GOOGLY22 STARRY12 ROUND12 DIZZY8 SUNGLASSES8 HEARTS7 WINK7 SPIRAL6 3D5 XX4 LASERS4 TEARY2 LASHES1 SLEEPY1 VISOR1
+    return x < 22 ? 0 : x < 34 ? 4 : x < 46 ? 1 : x < 54 ? 9 : x < 62 ? 11 : x < 69 ? 5 : x < 76 ? 2
+        : x < 82 ? 6 : x < 87 ? 12 : x < 91 ? 7 : x < 95 ? 10 : x < 97 ? 14 : x < 98 ? 13 : x < 99 ? 3 : 8;
+}
+
+function accFor(seed: `0x${string}`, coin: Coin): number {
+    const x = d(seed, 8, 170n);
+    if (coin === 0) {
+        // YIN — barer, halo/wings lean: NONE96 HALO26 WINGS16 BOW14 ANTENNA10 CROWN8
+        return x < 96 ? 0 : x < 122 ? 2 : x < 138 ? 5 : x < 152 ? 1 : x < 162 ? 4 : 3;
+    }
+    // YANG — louder heads: NONE74 CROWN26 ANTENNA22 BOW22 WINGS14 HALO12
+    return x < 74 ? 0 : x < 100 ? 3 : x < 122 ? 4 : x < 144 ? 1 : x < 158 ? 5 : 2;
+}
+
+export function genes(seed: `0x${string}`, coin: Coin = 0): Genes {
+    let x = d(seed, 1, 100n); // HEART16 STAR12 FLOWER12 GHOST10 CLOVER10 BOLT8 TAG8 MOON7 GEM6 PLANET5 SPARK4 ALIEN2 — UNIVERSAL, both coins
     const shape = x < 16 ? 0 : x < 28 ? 1 : x < 40 ? 2 : x < 50 ? 3 : x < 60 ? 4 : x < 68 ? 5 : x < 76 ? 6 : x < 83 ? 7 : x < 89 ? 8 : x < 94 ? 9 : x < 98 ? 10 : 11;
-    const palette = d(seed, 2, 12n);
+    const palette = paletteFor(seed, coin);
     const material = d(seed, 3, 100n) < 70 ? 0 : 1;
-    x = d(seed, 4, 100n); // GOOGLY28 ROUND24 WINK14 SLEEPY10 STARRY8 HEARTS6 SPIRAL5 XX3 VISOR2
-    const eyes = x < 28 ? 0 : x < 52 ? 1 : x < 66 ? 2 : x < 76 ? 3 : x < 84 ? 4 : x < 90 ? 5 : x < 95 ? 6 : x < 98 ? 7 : 8;
+    const eyes = eyesFor(seed, coin);
     x = d(seed, 5, 100n); // SMILE26 OPEN22 CAT13 O11 TONGUE11 FLAT8 FANG9
     const mouth = x < 26 ? 0 : x < 48 ? 1 : x < 61 ? 2 : x < 72 ? 3 : x < 83 ? 4 : x < 91 ? 5 : 6;
     x = d(seed, 6, 100n); // NONE66 RAISED20 BENT14
     const brows = x < 66 ? 0 : x < 86 ? 1 : 2;
     x = d(seed, 7, 100n); // PEACE40 WAVE18 CHEER12 HIPS15 CHILL15
     const pose = x < 40 ? 0 : x < 58 ? 1 : x < 70 ? 2 : x < 85 ? 3 : 4;
-    x = d(seed, 8, 170n); // NONE88 BOW22 HALO18 CROWN16 ANTENNA16 WINGS10
-    const acc = x < 88 ? 0 : x < 110 ? 1 : x < 128 ? 2 : x < 144 ? 3 : x < 160 ? 4 : 5;
+    const acc = accFor(seed, coin);
+    // IRIS COLORS (salt 14, appended so every pre-round axis is untouched):
+    // INK65 · BLUE7 GREEN7 AMBER7 VIOLET7 RED7 — worn only by pupil styles.
+    x = d(seed, 14, 100n);
+    let iris = x < 65 ? 0 : x < 72 ? 1 : x < 79 ? 2 : x < 86 ? 3 : x < 93 ? 4 : 5;
+    if (!(eyes === 0 || eyes === 1 || eyes === 2 || eyes === 13 || eyes === 14)) iris = 0;
     return {
-        shape, palette, material, eyes, mouth, brows, pose, acc,
+        shape, palette, material, eyes, mouth, brows, pose, acc, iris,
         shoe: d(seed, 9, 100n) < 50 ? 0 : 1,
         sock: d(seed, 10, 100n) < 35,
         blush: d(seed, 11, 100n) < 60,
@@ -198,21 +242,31 @@ function eyeWhite(x: number, pct: number): string {
     return `<ellipse cx="${x}" cy="0" rx="${Math.floor((54 * pct) / 100)}" ry="${Math.floor((62 * pct) / 100)}" fill="#FFFFFF" stroke="${INK}" stroke-width="10"/>`;
 }
 
-function eyesSvg(style: number, body: string, accent: string): string {
+/* IRIS COLORS (the eyes round, 2026-07-28) — contract verbatim. */
+const IRIS_HEX = ['#3B7BFF', '#2FA84F', '#E8A13C', '#8A5CF6', '#E0483E'] as const;
+
+function pupil(x: number, y: number, r: number, iris: number): string {
+    if (iris === 0) return `<circle cx="${x}" cy="${y}" r="${r}" fill="${INK}"/>`;
+    return `<circle cx="${x}" cy="${y}" r="${r}" fill="${IRIS_HEX[iris - 1]}"/>`
+        + `<circle cx="${x}" cy="${y}" r="${Math.floor((r * 55) / 100)}" fill="${INK}"/>`;
+}
+
+function eyesSvg(style: number, iris: number, body: string, accent: string): string {
     if (style === 0) {
         // GOOGLY — the signature: overlapping whites, one bigger, shared gaze
         return eyeWhite(-58, 100) + eyeWhite(64, 114)
-            + `<circle cx="-44" cy="10" r="25" fill="${INK}"/><circle cx="80" cy="10" r="28" fill="${INK}"/>`
+            + pupil(-44, 10, 25, iris) + pupil(80, 10, 28, iris)
             + '<circle cx="-36" cy="2" r="8" fill="#FFFFFF"/><circle cx="89" cy="2" r="9" fill="#FFFFFF"/>';
     }
     if (style === 1) {
         return eyeWhite(-62, 100) + eyeWhite(62, 100)
-            + `<circle cx="-56" cy="8" r="30" fill="${INK}"/><circle cx="68" cy="8" r="30" fill="${INK}"/>`
+            + pupil(-56, 8, 30, iris) + pupil(68, 8, 30, iris)
             + '<circle cx="-66" cy="-4" r="10" fill="#FFFFFF"/><circle cx="58" cy="-4" r="10" fill="#FFFFFF"/>';
     }
     if (style === 2) {
         return eyeWhite(-62, 100)
-            + `<circle cx="-56" cy="8" r="30" fill="${INK}"/><circle cx="-66" cy="-4" r="10" fill="#FFFFFF"/>`
+            + pupil(-56, 8, 30, iris)
+            + '<circle cx="-66" cy="-4" r="10" fill="#FFFFFF"/>'
             + `<path d="M 22 6 Q 62 34 102 6" fill="none" stroke="${INK}" stroke-width="13" stroke-linecap="round"/>`;
     }
     if (style === 3) {
@@ -239,8 +293,54 @@ function eyesSvg(style: number, body: string, accent: string): string {
     if (style === 7) {
         return `<g stroke="${INK}" stroke-width="16" stroke-linecap="round"><path d="M -92 -30 L -32 30 M -32 -30 L -92 30"/><path d="M 32 -30 L 92 30 M 92 -30 L 32 30"/></g>`;
     }
-    return `<rect x="-124" y="-34" width="248" height="68" rx="26" fill="${INK}"/>`
-        + `<rect x="-96" y="-12" width="52" height="24" rx="12" fill="${accent}"/><rect x="-28" y="-12" width="26" height="24" rx="12" fill="${accent}" opacity="0.55"/>`;
+    if (style === 8) {
+        return `<rect x="-124" y="-34" width="248" height="68" rx="26" fill="${INK}"/>`
+            + `<rect x="-96" y="-12" width="52" height="24" rx="12" fill="${accent}"/><rect x="-28" y="-12" width="26" height="24" rx="12" fill="${accent}" opacity="0.55"/>`;
+    }
+    // ─── the eyes round (Brendon's ask, built 2026-07-28) — contract verbatim ───
+    if (style === 9) {
+        // DIZZY — true swirls (SPIRAL keeps its concentric rings)
+        const swirl = 'd="M 0 0 m -22 0 a 22 22 0 1 1 44 0 a 17 17 0 1 1 -34 0 a 12 12 0 1 1 24 0 a 6 6 0 1 1 -12 0" fill="none" stroke-linecap="round"';
+        return eyeWhite(-62, 100) + eyeWhite(62, 100)
+            + `<g stroke="${INK}" stroke-width="9">`
+            + `<path transform="translate(-58 4)" ${swirl}/>`
+            + `<path transform="translate(66 4) scale(-1 1)" ${swirl}/></g>`;
+    }
+    if (style === 10) {
+        // LASERS — no whites: molten red orbs, hot cores, short flares
+        const orb = '<circle r="40" fill="#FF3B30" opacity="0.35"/><circle r="28" fill="#FF3B30"/><circle r="13" fill="#FFD9D6"/>';
+        const flare = '<g stroke="#FF3B30" stroke-width="8" stroke-linecap="round"><path d="M -34 -34 L -50 -50"/><path d="M 34 -34 L 50 -50"/><path d="M -34 34 L -50 50"/><path d="M 34 34 L 50 50"/></g>';
+        return `<g transform="translate(-58 2)">${orb}${flare}</g><g transform="translate(64 2)">${orb}${flare}</g>`;
+    }
+    if (style === 11) {
+        // SUNGLASSES — ink shades, gleam on each lens
+        return `<path d="M -140 -24 L -112 -12 M 140 -24 L 112 -12" stroke="${INK}" stroke-width="12" stroke-linecap="round"/>`
+            + `<path d="M -18 -12 Q 0 -26 18 -12" fill="none" stroke="${INK}" stroke-width="12"/>`
+            + `<rect x="-112" y="-38" width="94" height="76" rx="22" fill="${INK}"/><rect x="18" y="-38" width="94" height="76" rx="22" fill="${INK}"/>`
+            + '<path d="M -96 -20 L -66 12 M 34 -20 L 64 12" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round" opacity="0.45"/>';
+    }
+    if (style === 12) {
+        // 3D GLASSES — the movie pair: white frame, red left, cyan right
+        return `<path d="M -142 -26 L -116 -14 M 142 -26 L 116 -14" stroke="${INK}" stroke-width="12" stroke-linecap="round"/>`
+            + `<rect x="-20" y="-16" width="40" height="18" fill="#FFFFFF" stroke="${INK}" stroke-width="9"/>`
+            + `<rect x="-116" y="-40" width="100" height="80" rx="10" fill="#FFFFFF" stroke="${INK}" stroke-width="10"/><rect x="16" y="-40" width="100" height="80" rx="10" fill="#FFFFFF" stroke="${INK}" stroke-width="10"/>`
+            + '<rect x="-102" y="-26" width="72" height="52" rx="5" fill="#E0483E" opacity="0.85"/>'
+            + '<rect x="30" y="-26" width="72" height="52" rx="5" fill="#39C2E8" opacity="0.85"/>';
+    }
+    if (style === 13) {
+        // LASHES — round eyes that flutter; pupils wear the iris
+        const lash = `<g stroke="${INK}" stroke-width="9" stroke-linecap="round"><path d="M -100 -46 L -118 -64"/><path d="M -62 -60 L -66 -84"/><path d="M -26 -46 L -10 -64"/><path d="M 24 -46 L 8 -64"/><path d="M 62 -60 L 66 -84"/><path d="M 98 -46 L 116 -64"/></g>`;
+        return eyeWhite(-62, 100) + eyeWhite(62, 100)
+            + pupil(-56, 8, 28, iris) + pupil(68, 8, 28, iris)
+            + '<circle cx="-66" cy="-4" r="9" fill="#FFFFFF"/><circle cx="58" cy="-4" r="9" fill="#FFFFFF"/>' + lash;
+    }
+    // 14 TEARY — welling lower lids, one drop falling on the right
+    return eyeWhite(-62, 100) + eyeWhite(62, 100)
+        + pupil(-56, 2, 27, iris) + pupil(68, 2, 27, iris)
+        + '<circle cx="-66" cy="-8" r="9" fill="#FFFFFF"/><circle cx="58" cy="-8" r="9" fill="#FFFFFF"/>'
+        + '<path d="M -104 34 Q -62 50 -20 34" fill="none" stroke="#7FC9FF" stroke-width="10" stroke-linecap="round"/>'
+        + '<path d="M 20 34 Q 62 50 104 34" fill="none" stroke="#7FC9FF" stroke-width="10" stroke-linecap="round"/>'
+        + `<path d="M 64 58 C 56 76 56 86 64 91 C 72 86 72 76 64 58 Z" fill="#7FC9FF" stroke="${INK}" stroke-width="7"/>`;
 }
 
 function mouthSvg(m: number): string {
@@ -465,7 +565,7 @@ function faceSvg(g: Genes, s: ShapeD, body: string, accent: string): string {
         + (g.blush
             ? '<ellipse cx="-124" cy="52" rx="30" ry="19" fill="#F0879E" opacity="0.9"/><ellipse cx="124" cy="52" rx="30" ry="19" fill="#F0879E" opacity="0.9"/>'
             : '')
-        + `<g class="ey">${eyesSvg(g.eyes, body, accent)}</g>${mouthSvg(g.mouth)}${browsSvg(g.brows)}`
+        + `<g class="ey">${eyesSvg(g.eyes, g.iris, body, accent)}</g>${mouthSvg(g.mouth)}${browsSvg(g.brows)}`
         + '</g>';
 }
 
@@ -486,8 +586,8 @@ function armActions(g: Genes): [number, number] {
 /** Draw the full charm — the contract's tokenSVG, verbatim. `name` must be
  *  charset-guarded (A–Z, 0–9, space) by the caller. `uid` must be unique per
  *  charm ON THE PAGE (id suffixes prevent gradient/clip collisions). */
-export function charmSVG(seed: `0x${string}`, uid: string, streak: number, rank: number, name: string): string {
-    const g = genes(seed);
+export function charmSVG(seed: `0x${string}`, uid: string, streak: number, rank: number, name: string, coin: Coin = 0): string {
+    const g = genes(seed, coin);
     const s = SHAPE_D[g.shape]!;
     const bodyC = BODY_RGB[g.palette]!;
     const body = hex6(bodyC);
@@ -510,7 +610,9 @@ export function charmSVG(seed: `0x${string}`, uid: string, streak: number, rank:
 // ─── trait names ─────────────────────────────────────────────────────────
 
 export const SHAPE_NAMES = ['HEART', 'STAR', 'FLOWER', 'GHOST', 'CLOVER', 'BOLT', 'TAG', 'MOON', 'GEM', 'PLANET', 'SPARK', 'ALIEN'] as const;
-export const EYE_NAMES = ['GOOGLY', 'ROUND', 'WINK', 'SLEEPY', 'STARRY', 'HEARTS', 'SPIRAL', 'X X', 'VISOR'] as const;
+export const EYE_NAMES = ['GOOGLY', 'ROUND', 'WINK', 'SLEEPY', 'STARRY', 'HEARTS', 'SPIRAL', 'X X', 'VISOR', 'DIZZY', 'LASERS', 'SUNGLASSES', '3D GLASSES', 'LASHES', 'TEARY'] as const;
+export const IRIS_NAMES = ['INK', 'BLUE', 'GREEN', 'AMBER', 'VIOLET', 'RED'] as const;
+export const COIN_NAMES = ['YIN', 'YANG'] as const;
 export const MOUTH_NAMES = ['SMILE', 'OPEN', 'CAT', 'O', 'TONGUE', 'FLAT', 'FANG'] as const;
 export const FINISH_NAMES = ['MATTE', 'GLOSS', 'GLITTER', 'GOLD', 'CHROME'] as const;
 export const POSE_NAMES = ['PEACE', 'WAVE', 'CHEER', 'HIPS', 'CHILL'] as const;
@@ -518,13 +620,15 @@ export const ACC_NAMES = ['NONE', 'BOW', 'HALO', 'CROWN', 'ANTENNA', 'WINGS'] as
 export const BROW_NAMES = ['NONE', 'RAISED', 'BENT'] as const;
 
 /** The reveal-card trait sheet for a charm. */
-export function charmTraits(seed: `0x${string}`, streak: number, rank: number): { k: string; v: string }[] {
-    const g = genes(seed);
+export function charmTraits(seed: `0x${string}`, streak: number, rank: number, coin: Coin = 0): { k: string; v: string }[] {
+    const g = genes(seed, coin);
     return [
+        { k: 'Coin', v: COIN_NAMES[coin]! },
         { k: 'Shape', v: SHAPE_NAMES[g.shape]! },
         { k: 'Palette', v: PALETTE_NAMES[g.palette]! },
         { k: 'Material', v: g.material === 0 ? 'PLASTIC' : 'RUBBER' },
         { k: 'Eyes', v: EYE_NAMES[g.eyes]! },
+        { k: 'Iris', v: IRIS_NAMES[g.iris]! },
         { k: 'Mouth', v: MOUTH_NAMES[g.mouth]! },
         { k: 'Brows', v: BROW_NAMES[g.brows]! },
         { k: 'Pose', v: POSE_NAMES[g.pose]! },
@@ -557,6 +661,9 @@ export interface CharmRecord {
     name: string;
     /** Epoch-ms of the crank. */
     at: number;
+    /** YIN/YANG — which slot the coin dropped in (0 yin · 1 yang). Older
+     *  records (pre coin slots) default to 0 = YIN. */
+    coin: Coin;
 }
 
 export function sanitizeCharms(parsed: unknown): CharmRecord[] {
@@ -572,6 +679,7 @@ export function sanitizeCharms(parsed: unknown): CharmRecord[] {
             seed: r.seed as `0x${string}`,
             name: typeof r.name === 'string' ? r.name : '',
             at: typeof r.at === 'number' ? r.at : 0,
+            coin: r.coin === 1 ? 1 : 0,
         });
     }
     return out;

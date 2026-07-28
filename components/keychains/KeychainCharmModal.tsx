@@ -30,7 +30,7 @@ export default function KeychainCharmModal() {
     }, [rack, idPart]);
 
     const svg = useMemo(
-        () => (charm && rack ? charmSVG(charm.seed, `kc${charm.id}`, rack.streak, rack.rank, charm.name) : ''),
+        () => (charm && rack ? charmSVG(charm.seed, `kc${charm.id}`, rack.streak, rack.rank, charm.name, charm.coin) : ''),
         [charm, rack],
     );
 
@@ -75,7 +75,7 @@ export default function KeychainCharmModal() {
                                 <span>{FINISH_NAMES[finishForRank(rack.rank)]}</span>
                             </div>
                             <div className="dp-traits">
-                                {charmTraits(charm.seed, rack.streak, rack.rank).map((t) => (
+                                {charmTraits(charm.seed, rack.streak, rack.rank, charm.coin).map((t) => (
                                     <span key={t.k} className="dp-trait">
                                         <span className="dp-trait-k">{t.k.toUpperCase()}</span>
                                         <span className="dp-trait-v">{t.v}</span>

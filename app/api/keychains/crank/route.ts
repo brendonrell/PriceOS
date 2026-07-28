@@ -14,7 +14,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth/siwe';
 import { getSupabaseService } from '@/lib/supabase';
 import { badRequest, serverError } from '@/lib/errors';
-import { CRANK_PRICE_ETH, sanitizeCharms, type CharmRecord } from '@/lib/keychains/engine';
+import { CRANK_PRICE_ETH, sanitizeCharms, type CharmRecord, type Coin } from '@/lib/keychains/engine';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,8 +24,14 @@ function rollSeed(): `0x${string}` {
     return ('0x' + Array.from(b, (v) => v.toString(16).padStart(2, '0')).join('')) as `0x${string}`;
 }
 
-export const POST = requireAuth(async (_req: NextRequest, _ctx, address: string): Promise<NextResponse> => {
+export const POST = requireAuth(async (req: NextRequest, _ctx, address: string): Promise<NextResponse> => {
     try {
+        // YIN/YANG (2026-07-28) — which of the machine's two coin slots the
+        // coin dropped in. Required, like the contract's crank(coin).
+        const body = (await req.json().catch(() => null)) as { coin?: unknown } | null;
+        if (body?.coin !== 0 && body?.coin !== 1) return badRequest('Pick a coin slot (yin or yang)');
+        const coin: Coin = body.coin;
+
         const db = getSupabaseService();
 
         for (let attempt = 0; attempt < 2; ++attempt) {
@@ -57,6 +63,7 @@ export const POST = requireAuth(async (_req: NextRequest, _ctx, address: string)
                 seed: rollSeed(),
                 name: '',
                 at: Date.now(),
+                coin,
             };
 
             const { error: mergeErr } = await (db.rpc as (

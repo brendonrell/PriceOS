@@ -35,15 +35,24 @@ Every charm is one of twelve body shapes, each a full character with a face, rub
 
 ## Every trait, every odds
 
-All rolled at crank, frozen forever. Weights are contract-public:
+All rolled at crank, frozen forever. Weights are contract-public.
 
-**Eyes — 9 styles** (an upgrade round with more styles is on the roadmap):
+**The two coin slots — YIN and YANG.** The machine takes your coin in one of two slots, and the slot you pick steers the roll: **YIN** leans cool palettes, calm faces, and barer heads (halos and wings when a head does wear something); **YANG** leans hot palettes, loud faces, crowns and antennas. Every option stays rollable on both coins — the slot bends the odds, it never closes a door. **Shapes are universal:** the ALIEN chase is exactly equal whichever slot your coin drops in.
 
-| Style | Odds | | Style | Odds | | Style | Odds |
-|---|---|---|---|---|---|---|---|
-| GOOGLY | 28% | | SLEEPY | 10% | | SPIRAL | 5% |
-| ROUND | 24% | | STARRY | 8% | | X X | 3% |
-| WINK | 14% | | HEARTS | 6% | | VISOR | 2% |
+**Eyes — 15 styles.** Odds by coin:
+
+| Style | YIN | YANG | | Style | YIN | YANG |
+|---|---|---|---|---|---|---|
+| ROUND | 22% | 12% | | SPIRAL | 4% | 6% |
+| SLEEPY | 14% | 1% | | 3D GLASSES | 4% | 5% |
+| WINK | 12% | 7% | | SUNGLASSES | 3% | 8% |
+| LASHES | 10% | 1% | | STARRY | 3% | 12% |
+| TEARY | 8% | 2% | | DIZZY | 2% | 8% |
+| GOOGLY | 8% | 22% | | X X | 2% | 4% |
+| HEARTS | 6% | 7% | | LASERS | 1% | 4% |
+| VISOR | 1% | 1% | | | | |
+
+**Iris colors.** The five pupil styles (GOOGLY · ROUND · WINK · LASHES · TEARY) can wear a colored iris: INK 65% · BLUE, GREEN, AMBER, VIOLET, RED 7% each.
 
 **Mouths — 7:** SMILE 26% · OPEN 22% · CAT 13% · O 11% · TONGUE 11% · FANG 9% · FLAT 8%
 
@@ -59,7 +68,7 @@ All rolled at crank, frozen forever. Weights are contract-public:
 
 **Palettes — 12:** BUBBLEGUM · BLUEBERRY · ACID · SLIME · VAPOR · CREAMSICLE · MALLRAT · MIDNIGHT · CHERRY · GRAPE · SEAFOAM · STATIC. Each palette is a body color + an accent that dresses the sneakers, socks, bows, antenna bobbles, planet rings, and visor lights.
 
-Multiply it out and the machine holds **13,063,680 possible charms** — before the living layer (chain states × finishes) multiplies it again.
+Multiply it out and the machine holds **58,060,800 possible charms** — before the living layer (chain states × finishes) multiplies it again.
 
 ## Alive by construction
 

@@ -36,7 +36,7 @@ Every Montreal block has one: the corner store with the lotto terminal, the cool
 
 ## One coin, one turn — the exact mechanics
 
-There is no picking, no previewing, no quantity stepper. The rules of the machine, all enforced by the contract:
+There is no picking, no previewing, no quantity stepper — but there IS one choice: the machine has **two coin slots, YIN and YANG**, and the slot you drop your coin in steers the roll's palette, face, and accessory weights (the [overview](/docs/keychains/overview#every-trait-every-odds) tables show both columns). Shapes are universal — the ALIEN odds are identical on either slot. The rules of the machine, all enforced by the contract:
 
 - **One crank mints one charm.** You cannot batch cranks in a single transaction. A capsule machine you can empty in one pull isn't a capsule machine.
 - **The price is exact.** The machine takes precisely its posted price — overpay or underpay and the whole transaction refuses. The price sits in sticker-sheet territory and is tunable the same way sheet prices are, so it holds its dollar target as ETH drifts.
