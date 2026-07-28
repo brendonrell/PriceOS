@@ -325,14 +325,61 @@
    2026-07-28, "you broke zen garden"). The room hands it the pane's own ink
    instead, so it reads on every colourway, in the pane and on a profile
    alike. The garden's own breathing opacity is left exactly as it is. */
-.suite-calm-pane .notif-list { display: block; }
 .suite-calm-pane .zen-garden-field,
 .suite-calm-pane .zen-garden-caption,
 .suite-calm-pane .suite-calm-note { color: inherit; }
-/* The raked field is 46 columns of fixed-pitch sand — let it use the whole
-   box and shrink to it rather than being cropped by the pane. */
-.suite-calm .zen-garden { padding-left: 0; padding-right: 0; }
-.suite-calm .zen-garden-field { font-size: clamp(6px, 2.1vw, 11px); }
+
+/* The room is the whole box, so the garden sits in the MIDDLE of it — not
+   pinned to the top with a field of dead space underneath. */
+.suite-calm-pane .notif-list {
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    /* The sand runs edge to edge — the list's own gutters are what was
+       keeping the garden small (Brendon, 2026-07-28: "would love if it could
+       be bigger"). Width is the only limit; 46 columns is a fixed field, so
+       the box measures itself and the type is cut to fit it exactly. */
+    padding-left: 0;
+    padding-right: 0;
+    container-type: inline-size;
+}
+.suite-calm-pane .suite-calm {
+    flex: 1 1 auto;
+    align-items: center;
+    padding: 0;
+}
+.suite-calm-pane .zen-garden {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+/* 46 columns of fixed-pitch sand, sized to SPAN the panel instead of sitting
+   in it as a postage stamp — a full box deserves a full garden. */
+.suite-calm-pane .zen-garden-field {
+    display: block;
+    /* 46 columns × (0.6em advance + 0.04em tracking) = 29.44em of sand. One
+       hundredth of the box, times 100/29.44, is the exact size that spans it
+       — so the garden fills any panel edge to edge and never clips a column.
+       The vw clamp is the floor for anything that can't measure the box. */
+    letter-spacing: 0.04em;
+    font-size: clamp(9px, 2.7vw, 15px);
+    font-size: min(3.28cqw, 20px);
+    opacity: 1;
+}
+/* It still breathes — just between two strengths a person can see on a
+   mid-tone colourway, not between two washes (Rule #2). */
+.suite-calm-pane .zen-garden-field { animation-name: suite-zen-breathe; }
+@keyframes suite-zen-breathe {
+    0%, 100% { opacity: 0.9; }
+    50% { opacity: 1; }
+}
+.suite-calm-pane .zen-garden-caption {
+    font-size: 12px;
+    font-weight: bold;
+    opacity: 1;
+    margin-top: 16px;
+}
 
 /* ── THE PACKAGED VERSION (Brendon, 2026-07-28: "all the UIs adapted to a
    unified Suite polished version, likely different from their normal
