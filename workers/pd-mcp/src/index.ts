@@ -37,8 +37,24 @@ export interface Env {
 
 /* ── MCP plumbing ───────────────────────────────────────────────────────── */
 
-const PROTOCOL_VERSION = '2025-06-18';
-const SERVER_INFO = { name: 'pd-mcp', title: 'Price Discussion (PD)', version: '1.0.0' };
+/* MCP 2026-07-28 made the protocol stateless: no initialize handshake, no
+   session header, no SSE resumability. PDMCP was already built that way, so
+   this is a conformance layer, not a rewrite. We answer the new `server/
+   discover` RPC, carry `resultType` + serverInfo on every result, and tag the
+   list calls as cacheable — while still answering `initialize`/`ping` so
+   clients on older revisions keep working through the deprecation window. */
+const PROTOCOL_VERSION = '2026-07-28';
+const SUPPORTED_PROTOCOL_VERSIONS = ['2026-07-28', '2025-11-25', '2025-06-18', '2025-03-26'] as const;
+const SERVER_INFO = { name: 'pd-mcp', title: 'Price Discussion (PD)', version: '1.1.0' };
+
+/* Spec `_meta` keys (io.modelcontextprotocol/*). Requests now carry the
+   protocol version per-call instead of negotiating it once. */
+const META_PROTOCOL_VERSION = 'io.modelcontextprotocol/protocolVersion';
+const META_SERVER_INFO = 'io.modelcontextprotocol/serverInfo';
+
+/* Every answer is a public, cacheable read — the tool list never varies by
+   caller, so clients may hold it for an hour and shared caches may keep it. */
+const LIST_CACHE_TTL_MS = 3_600_000;
 
 const INSTRUCTIONS = `Price Discussion (PD) is a web3 art platform where generative Projects mint
 Outputs (individual pieces) on Ethereum. This server gives you live, public,
@@ -56,7 +72,10 @@ type Json = Record<string, unknown>;
 const CORS: Record<string, string> = {
     'access-control-allow-origin': '*',
     'access-control-allow-methods': 'GET, POST, OPTIONS',
-    'access-control-allow-headers': 'content-type, mcp-session-id, mcp-protocol-version',
+    // mcp-method/mcp-name are required on POST from 2026-07-28; mcp-session-id
+    // is dead in that revision but stays allowed so older clients still preflight.
+    'access-control-allow-headers':
+        'content-type, mcp-method, mcp-name, mcp-protocol-version, mcp-session-id',
 };
 
 function json(body: unknown, status = 200): Response {
@@ -66,8 +85,11 @@ function json(body: unknown, status = 200): Response {
     });
 }
 
-function rpcResult(id: unknown, result: unknown): Json {
-    return { jsonrpc: '2.0', id, result };
+/* Results carry `resultType` and identify the server, per 2026-07-28. Clients
+   on older revisions ignore both fields. */
+function rpcResult(id: unknown, result: Json): Json {
+    const meta = { ...((result._meta as Json) ?? {}), [META_SERVER_INFO]: SERVER_INFO };
+    return { jsonrpc: '2.0', id, result: { resultType: 'complete', ...result, _meta: meta } };
 }
 function rpcError(id: unknown, code: number, message: string): Json {
     return { jsonrpc: '2.0', id, error: { code, message } };
@@ -490,19 +512,49 @@ async function handleRpc(env: Env, msg: Json): Promise<Json | null> {
     // Notifications get no response.
     if (id === undefined || id === null) return null;
 
+    // 2026-07-28: the version rides every request instead of a handshake.
+    const version = ((msg._meta ?? {}) as Json)[META_PROTOCOL_VERSION];
+    if (typeof version === 'string' && !SUPPORTED_PROTOCOL_VERSIONS.includes(version as never)) {
+        return rpcError(
+            id,
+            -32022,
+            `Unsupported protocol version: ${version}. This server speaks ${SUPPORTED_PROTOCOL_VERSIONS.join(', ')}.`,
+        );
+    }
+
     switch (method) {
-        case 'initialize':
+        // Required from 2026-07-28: advertise identity, versions, capabilities
+        // without a handshake. Clients may call it before anything else.
+        case 'server/discover':
             return rpcResult(id, {
-                protocolVersion: PROTOCOL_VERSION,
+                protocolVersions: [...SUPPORTED_PROTOCOL_VERSIONS],
                 capabilities: { tools: {} },
                 serverInfo: SERVER_INFO,
                 instructions: INSTRUCTIONS,
             });
+        // Pre-2026-07-28 handshake — kept for clients on older revisions.
+        case 'initialize': {
+            // Echo the client's requested revision when we speak it, so older
+            // clients negotiate down instead of seeing an unexpected version.
+            const asked = params.protocolVersion;
+            return rpcResult(id, {
+                protocolVersion:
+                    typeof asked === 'string' && SUPPORTED_PROTOCOL_VERSIONS.includes(asked as never)
+                        ? asked
+                        : PROTOCOL_VERSION,
+                capabilities: { tools: {} },
+                serverInfo: SERVER_INFO,
+                instructions: INSTRUCTIONS,
+            });
+        }
         case 'ping':
             return rpcResult(id, {});
         case 'tools/list':
             return rpcResult(id, {
+                // Deterministic order — lets clients cache and keeps prompt-cache hits.
                 tools: TOOLS.map(({ name, title, description, inputSchema }) => ({ name, title, description, inputSchema })),
+                ttlMs: LIST_CACHE_TTL_MS,
+                cacheScope: 'public',
             });
         case 'tools/call': {
             const tool = TOOLS.find((t) => t.name === params.name);

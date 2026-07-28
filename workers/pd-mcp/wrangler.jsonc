@@ -14,6 +14,12 @@
     "name": "pd-mcp",
     "main": "src/index.ts",
     "compatibility_date": "2026-06-01",
+    // The public home (Brendon, 2026-07-28). Wrangler provisions the DNS
+    // record on the next deploy; needs the pricediscussion.com zone on this
+    // account. Until it resolves, the workers.dev URL stays the live endpoint.
+    "routes": [
+        { "pattern": "mcp.pricediscussion.com", "custom_domain": true }
+    ],
     "services": [
         { "binding": "PD_APP", "service": "pricediscussion" }
     ],

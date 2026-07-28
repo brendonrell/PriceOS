@@ -1,10 +1,16 @@
 # PDMCP — Price Discussion's public MCP server
 
-One zero-dependency Cloudflare Worker (`src/index.ts`) speaking MCP over
-streamable HTTP. Seven read-only tools: `verify_project`, `get_project`,
-`get_output`, `get_provenance`, `get_ascii`, `query_traits`, `search_docs`.
-Public story + agent manual: `/docs/mcp` (content/docs/mcp.md). Plan of
-record: `docs/pd-mcp-spec.md`.
+One zero-dependency Cloudflare Worker (`src/index.ts`) speaking **MCP
+2026-07-28** (the stateless revision) over streamable HTTP, still answering
+clients back to `2025-03-26`. Seven read-only tools: `verify_project`,
+`get_project`, `get_output`, `get_provenance`, `get_ascii`, `query_traits`,
+`search_docs`. Public story + agent manual: `/docs/mcp` (content/docs/mcp.md).
+Plan of record: `docs/pd-mcp-spec.md` (protocol section covers the 2026-07-28
+conformance).
+
+Home is `mcp.pricediscussion.com` — the route is wired; it provisions on the
+next `wrangler deploy` of this worker. Until that record resolves, the
+workers.dev URL is the live endpoint and the public docs point there.
 
 ## Deploy (one-time, ~3 minutes, from this directory)
 

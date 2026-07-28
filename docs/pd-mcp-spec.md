@@ -43,8 +43,36 @@ private, anything that costs money to serve. Adding an authed tier later
 - Chain reads (`verify_project`) go through the same **cached-route pattern as
   `/api/gas`**: one upstream RPC call per TTL window regardless of caller
   count, so agent traffic can never run up the Alchemy meter.
-- Suggested home: `mcp.pricediscussion.com` (a one-click subdomain route on the
-  existing zone), workers.dev URL until then.
+- Home: **`mcp.pricediscussion.com`** — DECIDED (Brendon, 2026-07-28). The
+  custom-domain route is in `wrangler.jsonc`; it provisions on the next deploy
+  of this worker. The workers.dev URL stays the live endpoint until the record
+  resolves, and the public docs keep pointing there until it does.
+
+## Protocol revision — MCP 2026-07-28
+
+PDMCP speaks **MCP 2026-07-28** and still answers clients on `2025-11-25`,
+`2025-06-18` and `2025-03-26` through the deprecation window.
+
+That revision made MCP stateless — no `initialize` handshake, no
+`Mcp-Session-Id`, no SSE resumability. PDMCP was built stateless from day one
+(every call self-contained, one POST in, one JSON answer out), so conforming
+was a thin layer, not a rewrite:
+
+- `server/discover` — now required; advertises supported versions, capabilities
+  and identity without a handshake.
+- Protocol version rides each request in `_meta`; an unknown one returns
+  `-32022` (`UnsupportedProtocolVersion`).
+- Every result carries `resultType: "complete"` and identifies the server in
+  `_meta`.
+- `tools/list` returns `ttlMs` + `cacheScope: "public"` (the list never varies
+  by caller) in a deterministic order, so clients cache instead of re-asking.
+- `Mcp-Method` / `Mcp-Name` accepted on POST; `Mcp-Session-Id` still allowed in
+  preflight so older clients aren't broken.
+- `initialize` and `ping` retained for older clients.
+
+Nothing deprecated in that revision touches us: PDMCP uses no Roots, Sampling
+or Logging, no HTTP+SSE transport, and has no auth — so the OAuth/DCR
+hardening is out of scope.
 
 ## Cost table
 
@@ -69,7 +97,8 @@ to a Claude session and run each tool live.
 
 ## Open calls for Brendon
 
-1. **Go / no-go** on building v1.
-2. Subdomain now (`mcp.pricediscussion.com`) or workers.dev until launch.
+1. ~~**Go / no-go** on building v1.~~ SHIPPED — PDMCP v1 is live.
+2. ~~Subdomain now (`mcp.pricediscussion.com`) or workers.dev until launch.~~
+   DECIDED 2026-07-28: `mcp.pricediscussion.com`, route wired.
 3. Whether `search_docs` should answer from `/llms-full.txt` verbatim only
    (safest — never hallucinate PD facts) — recommended yes.
