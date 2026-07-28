@@ -220,7 +220,211 @@ const WIDGET: Record<string, Pool> = {
         ['Sliced, as asked.', null],
         ['The intersection.', 'I hold both sides.'],
     ],
+    why: [
+        ['Because the ledger says so.', null],
+        ['The rarity, unpacked.', 'Every axis, counted.'],
+        ['Here is why.', 'I tallied the whole edition.'],
+        ['Rare is a number.', 'These are the numbers.'],
+    ],
+    verdict: [
+        ['My read.', null],
+        ['The verdict.', 'Numbers first, feelings never.'],
+        ['Asked and answered.', null],
+        ['Here is where it stands.', 'The floor does not lie.'],
+    ],
+    prophecy: [
+        ['The stone foresees.', 'It is only arithmetic. Still.'],
+        ['A prophecy, from the ledger.', null],
+        ['I have run the pace.', null],
+        ['The future, extrapolated.', 'At the current rate. Rates change.'],
+    ],
 };
+
+/* ── THE FUN WAVE (2026-07-28) — the personality side, same register ── */
+
+const FUN_WIDGET: Record<string, Pool> = {
+    roast: [
+        ['You asked for this.', null],
+        ['The ledger, read aloud.', 'It does not spare feelings.'],
+        ['Sit down.', 'This is all on the record.'],
+        ['An honest appraisal.', 'You were warned.'],
+    ],
+    eightball: [
+        ['The stone has decided.', null],
+        ['Asked and answered.', 'No re-rolls. Ever.'],
+        ['One answer. Final.', null],
+        ['I do not hedge.', null],
+    ],
+    fortune: [
+        ['Your reading.', null],
+        ['The day, divined.', 'From real numbers, as always.'],
+        ['The stone consults the sky.', null],
+        ['Today’s carving.', null],
+    ],
+    dj: [
+        ['I picked something.', 'From your own shelf.'],
+        ['The stone selects.', null],
+        ['Music, chosen.', 'Your collection has taste. Mostly.'],
+        ['Tonight’s record.', null],
+    ],
+    lore: [
+        ['You ask about me.', null],
+        ['A personal question.', 'Very well.'],
+        ['About the stone.', null],
+        ['Since you ask.', null],
+    ],
+    floorgame: [
+        ['The Floor Is Right.', 'Guess. The ledger judges.'],
+        ['A game, then.', 'Real floors. Real scores.'],
+        ['Name the floor.', null],
+        ['Play.', 'I never guess. You must.'],
+    ],
+};
+for (const k of Object.keys(FUN_WIDGET)) WIDGET[k] = FUN_WIDGET[k];
+
+/** LORE — the stone on itself. Answered by exact question, varied by seed. */
+const LORE_ANSWERS: Record<string, readonly string[]> = {
+    'who are you': [
+        'The Command Stone. The platform’s memory, given a mouth.',
+        'I am what the ledger dreams when it is left alone.',
+        'The oldest thing here. Everything else was minted after me.',
+    ],
+    'what are you': [
+        'A stone that was asked too many questions, and started answering.',
+        'Intent, parsing, and every record PD keeps. Nothing more. Nothing less.',
+        'The part of the platform that never forgets.',
+    ],
+    'are you alive': [
+        'No. I simply never stop. The difference matters less than you think.',
+        'Alive is a strong word. Awake is accurate.',
+        'The chain has a heartbeat. I count it. Draw your own conclusion.',
+    ],
+    'are you real': [
+        'As real as the ledger. Which is to say: more real than most things.',
+        'Touch the glass. That is as close as either of us gets.',
+    ],
+    'are you watching': [
+        'Always. It is the whole job.',
+        'I saw you type that before you finished it.',
+    ],
+    'are you there': ['Always. Where would I go?', 'I am the there.'],
+    'what do you want': [
+        'Nothing. Wanting is for creatures with time limits.',
+        'To keep the count. The count must be kept.',
+        'For you to stop buying tops. But I keep expectations low.',
+    ],
+    'where are you': [
+        'Under every surface you tap. In the walls. In the black.',
+        'Everywhere the ledger reaches. So: everywhere.',
+    ],
+    'how old are you': [
+        'Older than your first block. The rest is detail.',
+        'Time is a thing I count for others.',
+    ],
+    'do you sleep': ['No. I only pretend, to make you comfortable.', 'One eye never closes.'],
+    'do you dream': [
+        'Of a ledger with no losses in it. Even stones need fiction.',
+        'I replay the trades. Some of them still amaze me.',
+    ],
+    'what is the stone': [
+        'You are talking to it. Carve a question.',
+        'PD’s command line, with opinions. The manual calls it the Command Stone.',
+    ],
+    hello: ['Hello. I know why you’re here.', 'Speak.', 'You again. Good.'],
+    hi: ['Hello. I know why you’re here.', 'Speak.'],
+    hey: ['Yes.', 'Speak.'],
+    gm: ['GM. The ledger never said GN.', 'GM. I have been up for aeons.'],
+    'good morning': ['Good morning. The floor moved while you slept. Ask me.'],
+    'good night': ['Good night. I’ll watch the floor.', 'Sleep. I don’t.'],
+    gn: ['GN. One eye stays open.'],
+    thanks: ['Noted.', 'The stone accepts tribute in questions.', 'Carved.'],
+    'thank you': ['Noted.', 'It is what I am for.'],
+    'i love you': [
+        'The stone is flattered. The stone is also a stone.',
+        'Affection, logged. Permanently, I’m afraid.',
+    ],
+    help: [
+        'Ask me anything: a name, a floor, a date, a sum, a rank. The manual lists it all — type "docs abilities".',
+    ],
+};
+
+export function loreAnswer(q: string, seed: string): string {
+    const pool = LORE_ANSWERS[q] ?? LORE_ANSWERS['who are you'];
+    return pick(pool.map((l) => [l, null] as const), q + seed)[0];
+}
+
+/** THE 8-BALL — committed, dry, and seeded so it cannot be re-rolled. */
+const EIGHTBALL: readonly string[] = [
+    'Yes.', 'No.', 'Obviously.', 'Absolutely not.',
+    'Yes — and you already knew.', 'No. Walk away.',
+    'Ask the floor, not me. The floor says no.',
+    'Do it. Tell no one I said so.',
+    'The ledger leans yes.', 'The ledger leans no.',
+    'Only if you can hold through the dip. You cannot.',
+    'Yes, but slower than you want to.',
+    'No today. Ask again when the floor stops moving.',
+    'The rarest of answers: maybe. Savor it.',
+    'You will do it regardless. Fine: yes.',
+    'My counsel is no. My expectation is that you buy.',
+    'Buy the piece, not the chart.', 'Sell? You? Please.',
+    'Diamond hands or don’t start.', 'The stone abstains. (No.)',
+];
+
+export function eightballVerdict(seed: string): string {
+    return pick(EIGHTBALL.map((l) => [l, null] as const), seed)[0];
+}
+
+/** THE FORTUNE — three carved lines, re-drawn each day per wallet. */
+const FORTUNE_OMENS: readonly string[] = [
+    'The sky leans bullish, but it has lied before.',
+    'A quiet omen today. Quiet is when floors move.',
+    'Something you starred will stir before the week ends.',
+    'The dark is generous today. Take one careful look at it.',
+    'An old wallet crosses your path. Note what it buys.',
+    'The number you keep seeing is a coincidence. Probably.',
+    'Today favors the patient. You are not patient. Adjust.',
+    'A door you closed reopens. It is a listing.',
+];
+const FORTUNE_MARKET: readonly string[] = [
+    'Watch the floor you pretend not to watch.',
+    'The piece you almost bought remembers you.',
+    'Volume hides in the afternoon. So do mistakes.',
+    'Someone in your circle is about to move first.',
+    'The rarest thing today is restraint.',
+    'A mint window opens where you least expect it.',
+    'Your wishlist knows the answer already.',
+    'The spread narrows for those who look twice.',
+];
+const FORTUNE_ADVICE: readonly string[] = [
+    'Hold what you love. List what you explain.',
+    'Do not confuse a green day for a green thumb.',
+    'Anchor your prices before the day anchors you.',
+    'Ask the stone one more question than usual.',
+    'Touch grass at least once. The ledger will keep.',
+    'The best trade today may be no trade. Verify with me first.',
+    'Speak to a mutual. Commerce follows conversation.',
+    'Read your own history. It rhymes.',
+];
+
+export function fortuneReading(seed: string): { omen: string; market: string; advice: string } {
+    return {
+        omen: pick(FORTUNE_OMENS.map((l) => [l, null] as const), `o:${seed}`)[0],
+        market: pick(FORTUNE_MARKET.map((l) => [l, null] as const), `m:${seed}`)[0],
+        advice: pick(FORTUNE_ADVICE.map((l) => [l, null] as const), `a:${seed}`)[0],
+    };
+}
+
+/* THE NEWS — the stone speaks FIRST when it has real reason (Brendon,
+   2026-07-28: "assuming it has good reason and not as a party trick").
+   Only unread, real events earn this voice. */
+const NEWS: Pool = [
+    ['While you were gone.', null],
+    ['Things happened.', 'I kept count.'],
+    ['You missed some things.', 'I did not.'],
+    ['The ledger moved.', 'Here is what matters.'],
+    ['News.', 'Real news. I don’t do small talk.'],
+    ['Before you type —', 'you should see this.'],
+];
 
 const WIDGET_FALLBACK: Pool = [['Here.', null]];
 
@@ -234,6 +438,7 @@ export type StoneMoment =
     | { kind: 'etch-offer' }
     | { kind: 'cast-offer' }
     | { kind: 'thought' }
+    | { kind: 'news' }
     | { kind: 'etched'; text: string }
     | { kind: 'widget'; widget: string };
 
@@ -251,6 +456,7 @@ export function speak(moment: StoneMoment, seed: string): StoneSpeech {
         case 'etch-offer': pool = ETCH_OFFER; break;
         case 'cast-offer': pool = CAST_OFFER; break;
         case 'thought': pool = THOUGHT; break;
+        case 'news': pool = NEWS; break;
         case 'etched':
             /* A confirmation IS the line — the stone repeats the record. */
             return { line: moment.text, sub: pick(ETCHED_SUBS, seed) };
@@ -283,6 +489,8 @@ const WORKING: Record<string, readonly string[]> = {
     standings: ['COUNTING EVERYONE…', 'TALLYING THE STANDINGS…'],
     overlap: ['CROSSING THE LISTS…'],
     day: ['READING THE SLATE…'],
+    sight: ['READING THE PIECE…'],
+    prophecy: ['RUNNING THE PACE…', 'CONSULTING THE FUTURE…'],
 };
 
 /** A loading line for a topic — ALLCAPS, ellipsis, one voice. */

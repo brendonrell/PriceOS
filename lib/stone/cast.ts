@@ -22,7 +22,10 @@ export type CastModeKey =
     | 'npc'
     | 'stargazing'
     | 'echo'
-    | 'fog';
+    | 'fog'
+    /* COZY MOOD (Brendon, 2026-07-28) — ambient light + haze + the DJ,
+       one word on, same word off. Execution lives in the stone. */
+    | 'mood';
 
 export type CastTarget =
     | { kind: 'spell'; spell: SpellEntry; label: string; icon?: string }
@@ -40,6 +43,7 @@ const MODES: Array<{ names: string[]; key: CastModeKey; label: string; icon?: st
     { names: ['stargazing', 'stargazing mode'], key: 'stargazing', label: 'Stargazing', icon: '⍟︎' },
     { names: ['echo', 'echo chamber'], key: 'echo', label: 'Echo Chamber', icon: '≫︎' },
     { names: ['fog'], key: 'fog', label: 'Fog' },
+    { names: ['mood', 'cozy', 'cozy mood'], key: 'mood', label: 'Cozy Mood' },
 ];
 
 function norm(s: string): string {

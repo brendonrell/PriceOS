@@ -55,10 +55,33 @@ export type WidgetPlan =
     /* "teletext release date" → when the project first minted. */
     | { kind: 'release'; slug: string; title: string }
     /* "top 20 mutuals by volume spent" · "top 50 followers by wallet age" ·
-       "highest spenders on the platform top 15". */
-    | { kind: 'rank'; cohort: 'spenders' | 'mutuals' | 'followers'; by: 'spent' | 'age'; n: number }
-    /* "all carnivale owned by podcasters" → project holdings × a profile tag. */
-    | { kind: 'cohort'; slug: string; title: string; tag: string; tagLabel: string };
+       "highest spenders on the platform top 15" — `holding` composes it with
+       ownership: "top 5 spenders who hold teletext". */
+    | { kind: 'rank'; cohort: 'spenders' | 'mutuals' | 'followers'; by: 'spent' | 'age'; n: number; holding: { slug: string; title: string } | null }
+    /* "all carnivale owned by podcasters" → project holdings × a profile tag —
+       or × your mutuals ("carnivale owned by mutuals"). */
+    | { kind: 'cohort'; slug: string; title: string; source: 'tag' | 'mutuals'; tag: string; tagLabel: string }
+    /* ── the superpower pass (2026-07-28) ── */
+    /* "why is this rare" — the rarity breakdown of the piece on screen (the
+       vessel fills slug/id from SEEING; explicit "why is prisms 7 rare" too). */
+    | { kind: 'why'; slug: string | null; title: string | null; id: number | null }
+    /* "good price?" — the gap read on the project in sight or named. */
+    | { kind: 'verdict'; slug: string | null; title: string | null }
+    /* "when will teletext sell out" — sellout arithmetic spoken as prophecy. */
+    | { kind: 'prophecy'; slug: string; title: string }
+    /* ── the fun wave (2026-07-28, Brendon: "add them all") ── */
+    /* "roast me" — the dry verdict on your own real ledger. */
+    | { kind: 'roast' }
+    /* "should i buy?" — the committed 8-ball, seeded so it can't be re-rolled. */
+    | { kind: 'eightball'; topic: string | null }
+    /* "fortune" / "my horoscope" — the daily reading. */
+    | { kind: 'fortune' }
+    /* "play me something" — the DJ picks from your held soundtracks. */
+    | { kind: 'dj' }
+    /* "who are you" — the stone speaks about itself. */
+    | { kind: 'lore'; q: string }
+    /* "the floor is right" — guess the floor, the ledger scores you. */
+    | { kind: 'floorgame' };
 
 function norm(s: string): string {
     return s.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -150,35 +173,113 @@ export function parseWidget(line: string, now: Date = new Date()): WidgetPlan | 
         if (proj) return { kind: 'release', slug: proj.slug, title: proj.title };
     }
 
+    /* ── THE FUN WAVE — exact phrases, the summon discipline as ever. ── */
+    if (['roast me', 'roast my ledger', 'roast my wallet', 'roast'].includes(q)) {
+        return { kind: 'roast' };
+    }
+    const eightball =
+        /^should\s+i\s+(buy|sell|mint|hold|ape)(?:\s+(?:it|this|(.+?)))?\??$/.exec(q) ??
+        /^(?:8\s*ball|eightball)(?:\s+(.+?))?\??$/.exec(q);
+    if (eightball) {
+        const topic = (eightball[2] ?? eightball[1] ?? '').trim() || null;
+        return { kind: 'eightball', topic };
+    }
+    if (['fortune', 'my fortune', 'fortune me', 'horoscope', 'my horoscope', 'daily fortune', 'read my fortune'].includes(q)) {
+        return { kind: 'fortune' };
+    }
+    if (['dj', 'play me something', 'play something', 'play me a song', 'music', 'put something on'].includes(q)) {
+        return { kind: 'dj' };
+    }
+    const LORE = new Set([
+        'who are you', 'what are you', 'are you alive', 'are you real',
+        'are you watching', 'are you there', 'what do you want', 'where are you',
+        'how old are you', 'do you sleep', 'do you dream', 'what is the stone',
+        'hello', 'hi', 'hey', 'gm', 'good morning', 'good night', 'gn',
+        'thanks', 'thank you', 'i love you', 'help',
+    ]);
+    if (LORE.has(q)) return { kind: 'lore', q };
+    if (['the floor is right', 'floor is right', 'play the floor is right', 'price is right'].includes(q)) {
+        return { kind: 'floorgame' };
+    }
+
+    /* ── WHY RARE — "why is this rare" (the piece on screen; the vessel
+       fills it) · "why is prisms 7 rare" (explicit). */
+    const whyThis = /^(?:why\s+(?:is\s+)?(?:this\s+)?(?:so\s+)?rare|how\s+rare\s+is\s+this)\??$/.exec(q);
+    if (whyThis) return { kind: 'why', slug: null, title: null, id: null };
+    const whyPiece = /^(?:why\s+is|how\s+rare\s+is)\s+(.+?)\s*#?(\d{1,6})(?:\s+(?:so\s+)?rare)?\??$/.exec(q);
+    if (whyPiece) {
+        const proj = resolveProject(whyPiece[1]);
+        if (proj) return { kind: 'why', slug: proj.slug, title: proj.title, id: parseInt(whyPiece[2], 10) };
+    }
+
+    /* ── THE VERDICT — "good price?" on the thing in sight, or named. */
+    const verdictThis = /^(?:is\s+this\s+a\s+)?(?:good|fair)\s+price\??$/.exec(q);
+    if (verdictThis) return { kind: 'verdict', slug: null, title: null };
+    const verdictNamed = /^is\s+(.+?)\s+a\s+(?:good|fair)\s+price\??$/.exec(q);
+    if (verdictNamed) {
+        const proj = resolveProject(verdictNamed[1]);
+        if (proj) return { kind: 'verdict', slug: proj.slug, title: proj.title };
+    }
+
+    /* ── PROPHECY — "when will teletext sell out" · "teletext sellout" ·
+       "teletext pace". Sellout arithmetic on the real mint ledger. */
+    const prophecy =
+        /^when\s+(?:will|does)\s+(.+?)\s+sell\s*out\??$/.exec(q) ??
+        /^(.+?)\s+(?:sell\s*out|sellout|pace)\??$/.exec(q);
+    if (prophecy) {
+        const proj = resolveProject(prophecy[1]);
+        if (proj) return { kind: 'prophecy', slug: proj.slug, title: proj.title };
+    }
+
     /* ── RANK · SPENDERS — "highest spenders on the platform top 15" ·
-       "top 15 spenders" · "biggest spenders". Default top 10, cap 50. */
+       "top 15 spenders" · "top 5 spenders who hold teletext". Default
+       top 10, cap 50; "who hold <project>" composes with ownership. */
     const spenders =
-        /^(?:the\s+)?(?:top|highest|biggest)\s+(?:(\d{1,2})\s+)?spenders?(?:\s+on\s+the\s+platform)?(?:\s+top\s+(\d{1,2}))?\??$/.exec(q);
+        /^(?:the\s+)?(?:top|highest|biggest)\s+(?:(\d{1,2})\s+)?spenders?(?:\s+on\s+the\s+platform)?(?:\s+top\s+(\d{1,2}))?(?:\s+(?:who\s+)?(?:hold|holding|own|owning)\s+(.+?))?\??$/.exec(q);
     if (spenders) {
         const n = clampN(parseInt(spenders[1] ?? spenders[2] ?? '10', 10));
-        return { kind: 'rank', cohort: 'spenders', by: 'spent', n };
+        let holding: { slug: string; title: string } | null = null;
+        if (spenders[3]) {
+            const proj = resolveProject(spenders[3]);
+            if (!proj) return null; // unresolved holding → search, never guess
+            holding = proj;
+        }
+        return { kind: 'rank', cohort: 'spenders', by: 'spent', n, holding };
     }
 
     /* ── RANK · MUTUALS / FOLLOWERS — "top 20 mutuals by volume spent" ·
-       "top 50 followers by wallet age". Metric words must be known. */
+       "top 50 followers by wallet age" · "top 10 mutuals who hold prisms".
+       Metric words must be known. */
     const social =
-        /^(?:my\s+)?top\s+(?:(\d{1,2})\s+)?(mutuals?|followers?)(?:\s+by\s+(.+?))?\??$/.exec(q);
+        /^(?:my\s+)?top\s+(?:(\d{1,2})\s+)?(mutuals?|followers?)(?:\s+by\s+(.+?))??(?:\s+(?:who\s+)?(?:hold|holding|own|owning)\s+(.+?))?\??$/.exec(q);
     if (social) {
         const by = rankMetric(social[3]);
         if (by) {
             const cohort = social[2].startsWith('mutual') ? 'mutuals' : 'followers';
-            return { kind: 'rank', cohort, by, n: clampN(parseInt(social[1] ?? '10', 10)) };
+            let holding: { slug: string; title: string } | null = null;
+            let ok = true;
+            if (social[4]) {
+                const proj = resolveProject(social[4]);
+                if (proj) holding = proj;
+                else ok = false;
+            }
+            if (ok) return { kind: 'rank', cohort, by, n: clampN(parseInt(social[1] ?? '10', 10)), holding };
         }
     }
 
-    /* ── COHORT HOLDINGS — "all carnivale owned by podcasters". Both sides
-       must resolve (a real project × a real Profile Tag) or it's a search. */
-    const cohort = /^(?:all\s+)?(.+?)\s+(?:owned|held)\s+by\s+(?:the\s+)?(.+?)\??$/.exec(q);
+    /* ── COHORT HOLDINGS — "all carnivale owned by podcasters" (a Profile
+       Tag) or "carnivale owned by mutuals" (your circle). Both sides must
+       resolve or it's a search. */
+    const cohort = /^(?:all\s+)?(.+?)\s+(?:owned|held)\s+by\s+(?:the\s+)?(?:my\s+)?(.+?)\??$/.exec(q);
     if (cohort) {
         const proj = resolveProject(cohort[1]);
+        const who = norm(cohort[2]);
+        if (proj && (who === 'mutuals' || who === 'my mutuals' || who === 'the cabal')) {
+            return { kind: 'cohort', slug: proj.slug, title: proj.title, source: 'mutuals', tag: '', tagLabel: 'Mutuals' };
+        }
         const tag = resolveTag(cohort[2]);
         if (proj && tag) {
-            return { kind: 'cohort', slug: proj.slug, title: proj.title, tag: tag.id, tagLabel: tag.label };
+            return { kind: 'cohort', slug: proj.slug, title: proj.title, source: 'tag', tag: tag.id, tagLabel: tag.label };
         }
     }
 

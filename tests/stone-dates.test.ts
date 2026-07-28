@@ -79,19 +79,19 @@ describe('parseWidget — the abilities pass', () => {
     });
     it('summons the SPENDERS standings', () => {
         expect(parseWidget('highest spenders on the platform top 15', NOW))
-            .toEqual({ kind: 'rank', cohort: 'spenders', by: 'spent', n: 15 });
+            .toEqual({ kind: 'rank', cohort: 'spenders', by: 'spent', n: 15, holding: null });
         expect(parseWidget('top 15 spenders', NOW))
-            .toEqual({ kind: 'rank', cohort: 'spenders', by: 'spent', n: 15 });
+            .toEqual({ kind: 'rank', cohort: 'spenders', by: 'spent', n: 15, holding: null });
         expect(parseWidget('biggest spenders', NOW))
-            .toEqual({ kind: 'rank', cohort: 'spenders', by: 'spent', n: 10 });
+            .toEqual({ kind: 'rank', cohort: 'spenders', by: 'spent', n: 10, holding: null });
     });
     it('summons MUTUALS / FOLLOWERS standings with a named metric', () => {
         expect(parseWidget('top 20 mutuals by volume spent', NOW))
-            .toEqual({ kind: 'rank', cohort: 'mutuals', by: 'spent', n: 20 });
+            .toEqual({ kind: 'rank', cohort: 'mutuals', by: 'spent', n: 20, holding: null });
         expect(parseWidget('top 50 followers by wallet age', NOW))
-            .toEqual({ kind: 'rank', cohort: 'followers', by: 'age', n: 50 });
+            .toEqual({ kind: 'rank', cohort: 'followers', by: 'age', n: 50, holding: null });
         expect(parseWidget('top mutuals', NOW))
-            .toEqual({ kind: 'rank', cohort: 'mutuals', by: 'spent', n: 10 });
+            .toEqual({ kind: 'rank', cohort: 'mutuals', by: 'spent', n: 10, holding: null });
         /* an unknown metric never guesses */
         expect(parseWidget('top 10 mutuals by vibes', NOW)).toBeNull();
     });

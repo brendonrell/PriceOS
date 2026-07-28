@@ -34,7 +34,8 @@ import { readNoteFor, writeNoteFor } from '../notes/tokenNotes';
 import { scheduleNotesPush } from '../notes/notesSync';
 import { writeAnchor } from '../pins/anchorStore';
 import { toggleProjectStar } from '../pins/projectStarStore';
-import { toggleWishlist } from '../pins/wishlistStore';
+import { toggleWishlist, isWishlisted } from '../pins/wishlistStore';
+import { pdRarityRank } from '../output/rarity';
 
 const VS15 = '︎';
 
@@ -52,7 +53,12 @@ export type EtchPlan =
     | { kind: 'note'; slug: string; tokenId: number; text: string; chip: string }
     | { kind: 'anchor'; title: string; price: number; chip: string }
     | { kind: 'watch'; slug: string; title: string; chip: string }
-    | { kind: 'wishlist'; slug: string; tokenId: number; title: string; chip: string };
+    | { kind: 'wishlist'; slug: string; tokenId: number; title: string; chip: string }
+    /* ── the superpower pass (2026-07-28): bulk acts, one confirm ── */
+    /* "wishlist the 3 rarest teletext" — the rarity engine picks at commit. */
+    | { kind: 'wishlist-bulk'; slug: string; title: string; n: number; chip: string }
+    /* "anchor everything i hold at floor" — async commit (holdings + floors). */
+    | { kind: 'anchor-bulk'; chip: string };
 
 /** "Prisms" — the piece-naming sentence case the whole app speaks. */
 function sentenceCase(title: string): string {
@@ -89,6 +95,8 @@ const CHIP_GLYPH: Record<EtchPlan['kind'], string> = {
     anchor: `↧${VS15}`,
     watch: `⬚${VS15}`,
     wishlist: `✛${VS15}`,
+    'wishlist-bulk': `✛${VS15}`,
+    'anchor-bulk': `↧${VS15}`,
 };
 
 function chipFor(kind: EtchPlan['kind'], parts: string[]): string {
@@ -141,6 +149,104 @@ export function parseEtch(line: string): EtchPlan | null {
                 parsed.due ?? '',
                 parsed.priority ? `P${parsed.priority}` : '',
             ]),
+        };
+    }
+
+    // ── tell me when <project> drops under <price> — SAYING IT ARMS IT
+    //    (2026-07-28): compiles to a Sentinel-armed watch to-do (the same
+    //    ◊-target to-dos the Sentinel already watches server-side). ──
+    const sentinelM =
+        /^(?:tell|warn|alert)\s+me\s+when\s+(.+?)\s+(?:(?:drops?|falls?|goes|dips?|is)\s+)?(?:under|below|to|at|hits?)\s*(\d*\.?\d+)\s*(?:eth)?\s*$/i.exec(s);
+    if (sentinelM) {
+        const proj = resolveProject(sentinelM[1]);
+        const price = parseFloat(sentinelM[2]);
+        if (proj && price > 0 && isFinite(price)) {
+            return {
+                kind: 'todo-raw',
+                input: {
+                    text: `watch ${proj.title.toLowerCase()}`,
+                    due: null,
+                    priority: 0,
+                    priceEth: price,
+                    labels: [],
+                    recurrence: null,
+                },
+                chip: chipFor('todo-raw', [
+                    'SENTINEL',
+                    sentenceCase(proj.title),
+                    `◊${price}`,
+                ]),
+            };
+        }
+    }
+
+    // ── remind me … / ping me in 3 days about … — a dated to-do, said
+    //    naturally. "in N days/weeks/months" is read here; every other date
+    //    word rides the to-do parser's own grammar. ──
+    const remindM = /^(?:remind|ping)\s+me\s+(?:to\s+)?(.+)$/i.exec(s);
+    if (remindM) {
+        let rest = remindM[1].trim();
+        let due: string | null = null;
+        const inN = /\bin\s+(\d{1,3}|a|an|one)\s+(day|week|month)s?\b/i.exec(rest);
+        if (inN) {
+            const n = /^\d+$/.test(inN[1]) ? parseInt(inN[1], 10) : 1;
+            if (n >= 1 && n <= 366) {
+                const d = new Date();
+                d.setHours(0, 0, 0, 0);
+                if (inN[2].toLowerCase() === 'day') d.setDate(d.getDate() + n);
+                else if (inN[2].toLowerCase() === 'week') d.setDate(d.getDate() + n * 7);
+                else d.setMonth(d.getMonth() + n);
+                due = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                rest = rest.replace(inN[0], ' ').trim();
+            }
+        }
+        rest = rest.replace(/^about\s+/i, '').trim();
+        const parsed = parseTodo(rest || 'check in');
+        const finalDue = due ?? parsed.due;
+        const text = (parsed.text || 'check in').trim();
+        if (finalDue) {
+            return {
+                kind: 'todo-raw',
+                input: {
+                    text,
+                    due: finalDue,
+                    priority: parsed.priority,
+                    priceEth: parsed.priceEth,
+                    labels: parsed.labels,
+                    recurrence: parsed.recurrence,
+                },
+                chip: chipFor('todo-raw', ['REMIND', text, finalDue]),
+            };
+        }
+    }
+
+    // ── wishlist the <n> rarest <project> — BULK, one confirm; the rarity
+    //    engine picks the pieces at commit time. ──
+    const bulkWishM = /^wishlist\s+(?:the\s+)?(\d{1,2})\s+rarest\s+(.+?)\s*$/i.exec(s);
+    if (bulkWishM) {
+        const n = Math.max(1, Math.min(22, parseInt(bulkWishM[1], 10)));
+        const proj = resolveProject(bulkWishM[2]);
+        if (proj) {
+            return {
+                kind: 'wishlist-bulk',
+                slug: proj.slug,
+                title: proj.title,
+                n,
+                chip: chipFor('wishlist-bulk', [
+                    'WISHLIST',
+                    `${n} RAREST`,
+                    sentenceCase(proj.title),
+                ]),
+            };
+        }
+    }
+
+    // ── anchor everything i hold at floor — BULK anchors, one confirm;
+    //    holdings + live floors are read at commit (async). ──
+    if (/^anchor\s+(?:everything|all)(?:\s+(?:i\s+hold|my\s+projects|i\s+own))?\s+at\s+(?:the\s+)?floor\s*$/i.test(s)) {
+        return {
+            kind: 'anchor-bulk',
+            chip: chipFor('anchor-bulk', ['ANCHOR', 'EVERYTHING YOU HOLD', 'AT FLOOR']),
         };
     }
 
@@ -259,5 +365,61 @@ export function commitEtch(plan: EtchPlan): string {
                 ? 'Added to your Wishlist (Private)'
                 : 'Removed from your Wishlist';
         }
+        case 'wishlist-bulk': {
+            /* The rarity ladder picks the pieces (pdRarityRank, the Vault's
+               read); add-only — already-wishlisted pieces are left alone. */
+            const project = getProject(plan.slug);
+            const total = project?.outputs ?? 0;
+            if (!total) return 'Wishlist: NOTHING MINTABLE';
+            const ids = Array.from({ length: total }, (_, i) => i + 1)
+                .map((id) => ({ id, rank: pdRarityRank(plan.slug, id)?.rank ?? Number.MAX_SAFE_INTEGER }))
+                .sort((a, b) => a.rank - b.rank || a.id - b.id)
+                .slice(0, plan.n)
+                .map((x) => x.id);
+            let added = 0;
+            for (const id of ids) {
+                if (!isWishlisted(plan.slug, id)) {
+                    if (toggleWishlist(plan.slug, id) === 'added') added += 1;
+                }
+            }
+            return added > 0
+                ? `Wishlist: ADDED · ${added} RAREST ${plan.title.toUpperCase()}`
+                : 'Wishlist: ALREADY THERE';
+        }
+        case 'anchor-bulk':
+            /* Async by nature — the vessel routes this kind through
+               commitEtchBulk; reaching here is a wiring error, kept honest. */
+            return 'Anchor: USE THE CHIP';
+    }
+}
+
+/**
+ * The async bulk commits — "anchor everything I hold at floor" needs the
+ * wallet's holdings and each project's live floor. Same real stores, same
+ * one-confirm discipline; the caller awaits and toasts the result.
+ */
+export async function commitEtchBulk(plan: EtchPlan, address: string): Promise<string> {
+    if (plan.kind !== 'anchor-bulk') return commitEtch(plan);
+    try {
+        const r = await fetch(`/api/user/${address.toLowerCase()}/owned-projects`);
+        const d = r.ok ? await r.json() : null;
+        const slugs: string[] = (d?.slugs ?? []).slice(0, 12);
+        if (slugs.length === 0) return 'Anchor: NOTHING HELD YET';
+        let set = 0;
+        for (const slug of slugs) {
+            const proj = getProject(slug);
+            if (!proj) continue;
+            const sr = await fetch(`/api/search?q=${encodeURIComponent(proj.displayName)}`);
+            const sj = sr.ok ? await sr.json() : null;
+            const hit = (sj?.projects ?? []).find((p: { id: string }) => p.id === slug);
+            const floor = hit?.floor_eth;
+            if (typeof floor === 'number' && floor > 0) {
+                writeAnchor(proj.displayName, floor);
+                set += 1;
+            }
+        }
+        return set > 0 ? `Anchor: SET · ${set} PROJECT${set === 1 ? '' : 'S'} AT FLOOR` : 'Anchor: NO LIVE FLOORS';
+    } catch {
+        return 'Anchor: THE LEDGER ISN’T ANSWERING';
     }
 }

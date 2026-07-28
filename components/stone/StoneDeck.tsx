@@ -26,6 +26,7 @@ import {
     useMemo,
     useRef,
     useState,
+    useSyncExternalStore,
     type MouseEvent,
 } from 'react';
 import SpriteFace from '../SpriteFace';
@@ -39,7 +40,7 @@ import { parseQuery } from '../../lib/search/parse';
 import { loadIntel } from '../../lib/familiar/intel';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { usePings } from '../../lib/state/PingsContext';
-import { projectsByArtist, getProject } from '../../lib/project/registry';
+import { projectsByArtist, getProject, allProjects } from '../../lib/project/registry';
 import { pdRarityRank } from '../../lib/output/rarity';
 import { usePriceDay } from '../../lib/priceday/usePriceDay';
 import { formatPriceDate } from '../../lib/priceday/priceday';
@@ -49,7 +50,8 @@ import { getTodos, subscribeTodos, datedTodosByDay, type TodoItem } from '../../
 import { buildWalletMark } from '../../lib/stone/mark';
 import { commitEtch } from '../../lib/stone/etch';
 import { formatMathValue, pdNumberNote } from '../../lib/stone/mathEval';
-import { working } from '../../lib/stone/voice';
+import { working, loreAnswer, eightballVerdict, fortuneReading } from '../../lib/stone/voice';
+import { subscribeFm, getFm, fmPlay, fmToggle, fmNext } from '../../lib/fm/fmBus';
 import { formatStoneDate, formatDaysAway, todoPhrase, type StoneDate } from '../../lib/stone/dates';
 import type {
     OracleFirstMintResponse,
@@ -57,8 +59,20 @@ import type {
     OracleRankResponse,
     OracleRankRow,
     OracleHoldersResponse,
+    OraclePaceResponse,
+    OracleMutualsResponse,
 } from '../../app/api/stone/oracle/route';
 import type { TagMembersResponse } from '../../app/api/tags/members/route';
+import {
+    pdRarity,
+    primaryTrait,
+    traitRarity,
+    fateRarity,
+    colorRarity,
+    popCount,
+} from '../../lib/output/rarity';
+import { readOutputFate } from '../../lib/project/fate';
+import { outputColorBucket } from '../../lib/art/outputColor';
 import { convertValue, convertAll, formatUnit, formatResult, formatSource } from '../../lib/fx/convert';
 import { useFxRates } from '../../lib/fx/rates';
 import { useFiat, FIAT_OPTIONS } from '../../lib/state/FiatContext';
@@ -1491,20 +1505,21 @@ function RankWidget({ plan, address, onGo, onFooter }: {
     plan: Extract<WidgetPlan, { kind: 'rank' }>; address: string; onGo: GoFn; onFooter: FooterFn;
 }) {
     const [data, setData] = useState<OracleRankResponse | null | 'loading'>('loading');
-    const { cohort, by, n } = plan;
+    const { cohort, by, n, holding } = plan;
 
     useEffect(() => {
         let cancelled = false;
         setData('loading');
+        const hold = holding ? `&holding=${encodeURIComponent(holding.slug)}` : '';
         const url = cohort === 'spenders'
-            ? `/api/stone/oracle?kind=spenders&n=${n}`
-            : `/api/stone/oracle?kind=rank&cohort=${cohort}&me=${address.toLowerCase()}&by=${by}&n=${n}`;
+            ? `/api/stone/oracle?kind=spenders&n=${n}${hold}`
+            : `/api/stone/oracle?kind=rank&cohort=${cohort}&me=${address.toLowerCase()}&by=${by}&n=${n}${hold}`;
         fetch(url)
             .then((r) => (r.ok ? r.json() : null))
             .then((j) => { if (!cancelled) setData(j); })
             .catch(() => { if (!cancelled) setData(null); });
         return () => { cancelled = true; };
-    }, [cohort, by, n, address]);
+    }, [cohort, by, n, address, holding?.slug]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const rows = data !== 'loading' && data ? data.rows : [];
     const top = rows[0] ?? null;
@@ -1515,7 +1530,7 @@ function RankWidget({ plan, address, onGo, onFooter }: {
 
     const GLYPH = { spenders: `⟠${VS15}`, mutuals: `⚭${VS15}`, followers: `⚬${VS15}` } as const;
     const label = cohort.toUpperCase();
-    const sub = `TOP ${n} · BY ${by === 'spent' ? 'SPENT' : 'WALLET AGE'}`;
+    const sub = `TOP ${n} · BY ${by === 'spent' ? 'SPENT' : 'WALLET AGE'}${holding ? ` · HOLD ${holding.title.toUpperCase()}` : ''}`;
 
     if (data === 'loading') {
         return (
@@ -1526,9 +1541,13 @@ function RankWidget({ plan, address, onGo, onFooter }: {
         );
     }
     if (rows.length === 0) {
-        const empty = cohort === 'spenders'
-            ? 'NO SPEND ON THE LEDGER YET.'
-            : cohort === 'mutuals' ? 'NO MUTUALS YET.' : 'NO FOLLOWERS YET.';
+        const empty = holding
+            ? cohort === 'spenders'
+                ? `NO ${holding.title.toUpperCase()} HOLDER HAS SPENT YET.`
+                : `NONE OF YOUR ${cohort.toUpperCase()} HOLD ${holding.title.toUpperCase()}.`
+            : cohort === 'spenders'
+                ? 'NO SPEND ON THE LEDGER YET.'
+                : cohort === 'mutuals' ? 'NO MUTUALS YET.' : 'NO FOLLOWERS YET.';
         return (
             <div className="stone-widget sw-card">
                 <SwTitle glyph={GLYPH[cohort]} label={label} sub={sub} />
@@ -1553,13 +1572,13 @@ function RankWidget({ plan, address, onGo, onFooter }: {
 
 const COHORT_PREVIEW = 12;
 
-function CohortWidget({ plan, onGo, onFooter }: {
-    plan: Extract<WidgetPlan, { kind: 'cohort' }>; onGo: GoFn; onFooter: FooterFn;
+function CohortWidget({ plan, address, onGo, onFooter }: {
+    plan: Extract<WidgetPlan, { kind: 'cohort' }>; address: string; onGo: GoFn; onFooter: FooterFn;
 }) {
     const [holders, setHolders] = useState<OracleHoldersResponse | null | 'loading'>('loading');
-    const [members, setMembers] = useState<TagMembersResponse | null | 'loading'>('loading');
+    const [members, setMembers] = useState<Array<{ address: string; handle: string | null }> | null | 'loading'>('loading');
     const [expanded, setExpanded] = useState(false);
-    const { slug, title, tag, tagLabel } = plan;
+    const { slug, title, source, tag, tagLabel } = plan;
 
     useEffect(() => {
         let cancelled = false;
@@ -1570,12 +1589,19 @@ function CohortWidget({ plan, onGo, onFooter }: {
             .then((r) => (r.ok ? r.json() : null))
             .then((j) => { if (!cancelled) setHolders(j); })
             .catch(() => { if (!cancelled) setHolders(null); });
-        fetch(`/api/tags/members?tag=${encodeURIComponent(tag)}`)
+        /* The people side: a Profile Tag's roster — or your mutual circle. */
+        const peopleUrl = source === 'mutuals'
+            ? `/api/stone/oracle?kind=mutuals&me=${address.toLowerCase()}`
+            : `/api/tags/members?tag=${encodeURIComponent(tag)}`;
+        fetch(peopleUrl)
             .then((r) => (r.ok ? r.json() : null))
-            .then((j) => { if (!cancelled) setMembers(j); })
+            .then((j: OracleMutualsResponse | TagMembersResponse | null) => {
+                if (cancelled) return;
+                setMembers(j ? (j.rows as Array<{ address: string; handle: string | null }>) : null);
+            })
             .catch(() => { if (!cancelled) setMembers(null); });
         return () => { cancelled = true; };
-    }, [slug, tag]);
+    }, [slug, tag, source, address]);
 
     useFooterAct(onFooter, {
         label: `⬚${VS15} OPEN ${title.toUpperCase()}`,
@@ -1601,7 +1627,7 @@ function CohortWidget({ plan, onGo, onFooter }: {
         );
     }
 
-    const memberByAddr = new Map(members.rows.map((m) => [m.address.toLowerCase(), m]));
+    const memberByAddr = new Map(members.map((m) => [m.address.toLowerCase(), m]));
     const matched = holders.rows.filter((h) => memberByAddr.has(h.owner_address));
     if (matched.length === 0) {
         return (
@@ -1644,6 +1670,635 @@ function CohortWidget({ plan, onGo, onFooter }: {
     );
 }
 
+/* ── ❖ WHY RARE — the rarity breakdown of one piece: the same provable
+      axes the character sheet leads with (primary trait · Fate · colour ·
+      POP), each counted across the whole edition. All client-pure. ── */
+
+function WhyWidget({ slug, title, id, onGo, onFooter }: {
+    slug: string | null; title: string | null; id: number | null; onGo: GoFn; onFooter: FooterFn;
+}) {
+    const ready = !!slug && !!title && id != null;
+    useFooterAct(onFooter, ready ? {
+        label: `⬚${VS15} OPEN ${pieceName(title as string, id as number).toUpperCase()}`,
+        run: () => onGo(null, `/art/${slug}/${id}`),
+    } : null);
+
+    if (!ready) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`❖${VS15}`} label="WHY RARE" />
+                <SwSay>OPEN A PIECE, THEN ASK.</SwSay>
+            </div>
+        );
+    }
+    const s = slug as string;
+    const t = title as string;
+    const n = id as number;
+    const r = pdRarity(s, n);
+    const rank = pdRarityRank(s, n);
+    const pt = primaryTrait(s, n);
+    const tf = pt ? traitRarity(s, pt.name, pt.value) : null;
+    const fate = readOutputFate(s, n).fate;
+    const ff = fateRarity(s, fate);
+    const bucket = outputColorBucket(s, n);
+    const cf = bucket ? colorRarity(s, bucket) : null;
+    const pop = popCount(s, n);
+
+    if (!r || !rank) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`❖${VS15}`} label="WHY RARE" sub={pieceName(t, n).toUpperCase()} />
+                <SwSay>THIS EDITION KEEPS NO RARITY AXES.</SwSay>
+            </div>
+        );
+    }
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle glyph={`❖${VS15}`} label="WHY RARE" sub={pieceName(t, n).toUpperCase()} />
+            <SwThumb slug={s} id={n} size={64} />
+            <SwSay lead>{`RARITY ${r.score} · #${rank.rank} OF ${rank.total}`}</SwSay>
+            <div className="sw-rows">
+                {pt && tf && (
+                    <div className="sw-row-line">
+                        <span className="sw-row-l">{`${pt.name.toUpperCase()} · ${pt.value.toUpperCase()}`}</span>
+                        <span className="sw-row-r">{`${tf.count} OF ${tf.total}`}</span>
+                    </div>
+                )}
+                {ff && (
+                    <div className="sw-row-line">
+                        <span className="sw-row-l">{`FATE · ${fate.toUpperCase()}`}</span>
+                        <span className="sw-row-r">{`${ff.count} OF ${ff.total}`}</span>
+                    </div>
+                )}
+                {bucket && cf && (
+                    <div className="sw-row-line">
+                        <span className="sw-row-l">{`COLOUR · ${bucket.toUpperCase()}`}</span>
+                        <span className="sw-row-r">{`${cf.count} OF ${cf.total}`}</span>
+                    </div>
+                )}
+                {pop != null && (
+                    <div className="sw-row-line">
+                        <span className="sw-row-l">POP — ITS SMALLEST CLUB</span>
+                        <span className="sw-row-r">{String(pop)}</span>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+/* ── ◊ THE VERDICT — "good price?": the gap read on a project. Floor vs
+      all-time high vs the 30-day trend, verdict spoken plainly. ── */
+
+function VerdictWidget({ slug, title, onGo, onAct, onFooter }: {
+    slug: string | null; title: string | null; onGo: GoFn; onAct: ActFn; onFooter: FooterFn;
+}) {
+    const [proj, setProj] = useState<SearchProjectResult | null | 'loading'>('loading');
+    const [trend, setTrend] = useState<StoneTrendResponse | null>(null);
+
+    useEffect(() => {
+        if (!slug || !title) return;
+        let cancelled = false;
+        setProj('loading');
+        fetchSearch(title).then((r) => {
+            if (cancelled) return;
+            setProj(r?.projects.find((x) => x.id === slug) ?? r?.projects[0] ?? null);
+        });
+        fetch(`/api/stone/trend?slug=${encodeURIComponent(slug)}&days=30`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((j) => { if (!cancelled) setTrend(j); })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [slug, title]);
+
+    const ready = proj !== 'loading' && proj != null && proj.floor_eth != null;
+    useFooterAct(onFooter, ready ? {
+        label: `↧${VS15} ANCHOR · ${title} · ◊${formatEth((proj as SearchProjectResult).floor_eth as number)} — etch?`,
+        run: () => onAct(commitEtch({
+            kind: 'anchor',
+            title: title as string,
+            price: (proj as SearchProjectResult).floor_eth as number,
+            chip: '',
+        })),
+    } : null);
+
+    if (!slug || !title) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`◊${VS15}`} label="THE VERDICT" />
+                <SwSay>OPEN A PROJECT, THEN ASK.</SwSay>
+            </div>
+        );
+    }
+    if (proj === 'loading') {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`◊${VS15}`} label="THE VERDICT" sub={title.toUpperCase()} />
+                <SwSay>{working('ledger')}</SwSay>
+            </div>
+        );
+    }
+    if (!proj || proj.floor_eth == null) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`◊${VS15}`} label="THE VERDICT" sub={title.toUpperCase()} />
+                <SwSay>NO FLOOR YET. NO VERDICT.</SwSay>
+            </div>
+        );
+    }
+
+    const floor = proj.floor_eth;
+    const ath = proj.ath_eth;
+    const pctOfAth = ath && ath > 0 ? (floor / ath) * 100 : null;
+    const verdict =
+        pctOfAth == null ? 'NO HIGH TO MEASURE AGAINST YET.'
+        : pctOfAth < 40 ? `FAR BELOW ITS HIGH — ${Math.round(pctOfAth)}% OF ATH.`
+        : pctOfAth < 75 ? `ROOM BELOW THE HIGH — ${Math.round(pctOfAth)}% OF ATH.`
+        : pctOfAth < 100 ? `NEAR ITS HIGH — ${Math.round(pctOfAth)}% OF ATH.`
+        : 'AT ITS HIGH. THE TOP IS UNPROVEN GROUND.';
+    const vals = (trend?.series ?? []).filter((v): v is number => v != null);
+    const delta = vals.length >= 2 && vals[0] > 0
+        ? ((vals[vals.length - 1] - vals[0]) / vals[0]) * 100
+        : null;
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle glyph={`◊${VS15}`} label="THE VERDICT" sub={title.toUpperCase()} />
+            <SwSay lead>{verdict}</SwSay>
+            <div className="sw-stats">
+                <div className="sw-stat">
+                    <span className="sw-stat-v">{eth(floor)}</span>
+                    <span className="sw-stat-l">FLOOR</span>
+                </div>
+                <div className="sw-stat">
+                    <span className="sw-stat-v">{eth(ath)}</span>
+                    <span className="sw-stat-l">ATH</span>
+                </div>
+                <div className="sw-stat">
+                    <span className="sw-stat-v">
+                        {delta == null ? '—' : `${delta >= 0 ? '+' : '−'}${Math.abs(delta).toFixed(0)}%`}
+                    </span>
+                    <span className="sw-stat-l">30D SALES</span>
+                </div>
+            </div>
+            <div
+                className="sw-hit sw-tap"
+                role="button"
+                tabIndex={0}
+                onClick={(e) => onGo(e, `/art/${slug}`)}
+            >
+                <span className="sw-hit-ic">{`⬚${VS15}`}</span>
+                <span className="sw-hit-body">
+                    <span className="sw-hit-main">{title}</span>
+                    <span className="sw-hit-sub">{`⬚${VS15} ${proj.minted_count}/${proj.max_supply}`}</span>
+                </span>
+            </div>
+        </div>
+    );
+}
+
+/* ── ✶ PROPHECY — "when will it sell out": remaining supply over the
+      trailing-7-day mint rate. Pure arithmetic, spoken like an oracle. ── */
+
+function ProphecyWidget({ slug, title, onGo, onFooter }: {
+    slug: string; title: string; onGo: GoFn; onFooter: FooterFn;
+}) {
+    const [pace, setPace] = useState<OraclePaceResponse | null | 'loading'>('loading');
+    const [proj, setProj] = useState<SearchProjectResult | null>(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        setPace('loading');
+        fetch(`/api/stone/oracle?kind=pace&slug=${encodeURIComponent(slug)}`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((j) => { if (!cancelled) setPace(j); })
+            .catch(() => { if (!cancelled) setPace(null); });
+        fetchSearch(title).then((r) => {
+            if (cancelled) return;
+            setProj(r?.projects.find((x) => x.id === slug) ?? null);
+        });
+        return () => { cancelled = true; };
+    }, [slug, title]);
+
+    useFooterAct(onFooter, {
+        label: `⬚${VS15} OPEN ${title.toUpperCase()}`,
+        run: () => onGo(null, `/art/${slug}`),
+    });
+
+    if (pace === 'loading' || (pace && !proj)) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`✶${VS15}`} label="PROPHECY" sub={title.toUpperCase()} />
+                <SwSay>{working('prophecy')}</SwSay>
+            </div>
+        );
+    }
+    if (!pace || !proj) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`✶${VS15}`} label="PROPHECY" sub={title.toUpperCase()} />
+                <SwSay>THE LEDGER ISN&apos;T ANSWERING.</SwSay>
+            </div>
+        );
+    }
+
+    const remaining = Math.max(0, proj.max_supply - proj.minted_count);
+    const perDay = pace.last7 / 7;
+    const soldOut = remaining === 0;
+    const never = !soldOut && perDay <= 0;
+    const days = soldOut || never ? null : Math.max(1, Math.ceil(remaining / perDay));
+    const eta = days != null ? new Date(Date.now() + days * 86_400_000) : null;
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle glyph={`✶${VS15}`} label="PROPHECY" sub={title.toUpperCase()} />
+            <div className="sw-date-big">
+                {soldOut ? 'ALREADY GONE.' : never ? 'AT THIS PACE: NEVER.' : `≈ ${days} DAY${days === 1 ? '' : 'S'}`}
+            </div>
+            <div className="sw-rows">
+                <div className="sw-row-line">
+                    <span className="sw-row-l">{`⬚${VS15} MINTED`}</span>
+                    <span className="sw-row-r">{`${proj.minted_count}/${proj.max_supply}`}</span>
+                </div>
+                <div className="sw-row-line">
+                    <span className="sw-row-l">{`✶${VS15} PACE · 7 DAYS`}</span>
+                    <span className="sw-row-r">{`${pace.last7} MINT${pace.last7 === 1 ? '' : 'S'}`}</span>
+                </div>
+                {eta && (
+                    <div className="sw-row-line">
+                        <span className="sw-row-l">{`▦${VS15} SELLS OUT`}</span>
+                        <span className="sw-row-r">
+                            {`≈ ${eta.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }).toUpperCase()}`}
+                        </span>
+                    </div>
+                )}
+                {never && (
+                    <div className="sw-row-line">
+                        <span className="sw-row-l">NO MINTS IN 7 DAYS</span>
+                        <span className="sw-row-r">THE STONE WAITS</span>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+/* ── ⇡ THE NEWS — the stone speaks FIRST, with reason: unread pings laid
+      out the moment it opens (Brendon, 2026-07-28 — real news only, never
+      a party trick). The vessel decides WHEN; this only presents. ── */
+
+export interface NewsItem {
+    id: string;
+    icon: string;
+    handle: string;
+    action: string;
+    href: string | null;
+}
+
+export function NewsDeck({ items, onGo }: { items: NewsItem[]; onGo: GoFn }) {
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle glyph={`⇡${VS15}`} label="THE NEWS" sub={`${items.length} UNREAD`} />
+            {items.slice(0, 5).map((it) => (
+                <div
+                    key={it.id}
+                    className={`sw-hit${it.href ? ' sw-tap' : ''}`}
+                    role={it.href ? 'button' : undefined}
+                    tabIndex={it.href ? 0 : undefined}
+                    onClick={it.href ? (e) => onGo(e, it.href as string) : undefined}
+                >
+                    <span className="sw-hit-ic">{it.icon}</span>
+                    <span className="sw-hit-body">
+                        <span className="sw-hit-main">{it.handle || 'PD'}</span>
+                        <span className="sw-hit-sub">{it.action}</span>
+                    </span>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+/* ══ THE FUN WAVE (2026-07-28, Brendon: "add them all") ═══════════════ */
+
+/* ── ROAST — the dry verdict on your own real ledger (wrapped, 90 days).
+      Templates over real stats: brutal only where the numbers earn it. ── */
+
+function roastLines(d: StoneWrappedResponse): string[] {
+    const out: string[] = [];
+    const quiet = d.collected === 0 && d.sold === 0 && d.trades === 0;
+    if (quiet) {
+        out.push('NINETY DAYS. NOTHING. THE LEDGER FORGOT YOUR NAME.');
+        out.push('EVEN THE FLOOR MOVES MORE THAN YOU.');
+        out.push('COME BACK WHEN THERE IS SOMETHING TO ROAST.');
+        return out;
+    }
+    if (d.net_eth < 0) {
+        out.push(`NET ◊${Math.abs(d.net_eth)} OUT THE DOOR IN ${d.days} DAYS. BOLD STRATEGY.`);
+    } else if (d.net_eth > 0) {
+        out.push(`UP ◊${Math.abs(d.net_eth)} IN ${d.days} DAYS. EVEN A STONE IS MILDLY IMPRESSED.`);
+    } else {
+        out.push('PERFECTLY BREAK-EVEN. THE MOST FORGETTABLE OUTCOME THERE IS.');
+    }
+    if (d.sold > d.bought + d.minted) {
+        out.push(`${d.sold} OUT, ${d.bought + d.minted} IN. PAPER HANDS LEAVE FINGERPRINTS.`);
+    } else if (d.minted + d.bought > 0 && d.sold === 0) {
+        out.push(`${d.minted + d.bought} IN, ZERO OUT. DIAMOND HANDS — OR NO BIDS. I KNOW WHICH.`);
+    }
+    if (d.flip && d.flip.profit_eth < 0) {
+        out.push(`YOUR BIGGEST FLIP LOST ◊${Math.abs(d.flip.profit_eth)}. I KEPT THE RECEIPT.`);
+    } else if (d.flip && d.flip.profit_eth > 0) {
+        out.push(`ONE GOOD FLIP: +◊${d.flip.profit_eth}. FRAME IT. IT MAY BE THE LAST.`);
+    }
+    if (d.top_counterparty) {
+        const who = d.top_counterparty.handle ? `@${d.top_counterparty.handle}` : 'ONE WALLET';
+        out.push(`${who} TOOK ${d.top_counterparty.deals} DEALS OFF YOU. SEND THEM A CARD.`);
+    }
+    return out.slice(0, 4);
+}
+
+function RoastWidget({ address, onSeed }: { address: string; onSeed: (t: string) => void }) {
+    const [data, setData] = useState<StoneWrappedResponse | null | 'loading'>('loading');
+    useEffect(() => {
+        let cancelled = false;
+        setData('loading');
+        fetch(`/api/stone/wrapped?me=${encodeURIComponent(address.toLowerCase())}&days=90`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((j) => { if (!cancelled) setData(j); })
+            .catch(() => { if (!cancelled) setData(null); });
+        return () => { cancelled = true; };
+    }, [address]);
+
+    if (data === 'loading') {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle label="THE ROAST" sub="90 DAYS" />
+                <SwSay>{working('you')}</SwSay>
+            </div>
+        );
+    }
+    if (!data) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle label="THE ROAST" sub="90 DAYS" />
+                <SwSay>THE LEDGER ISN&apos;T ANSWERING. LUCKY YOU.</SwSay>
+            </div>
+        );
+    }
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle label="THE ROAST" sub={`YOUR ${data.days} DAYS`} />
+            {roastLines(data).map((l, i) => (
+                <SwSay key={i} lead={i === 0}>{l}</SwSay>
+            ))}
+            <SwSay onClick={() => onSeed('wrapped 90d')}>THE FULL NUMBERS — TAP.</SwSay>
+        </div>
+    );
+}
+
+/* ── THE 8-BALL — "should i buy?": one committed answer, seeded by wallet
+      + topic + the day, so asking again changes nothing. ── */
+
+function EightballWidget({ topic, address }: { topic: string | null; address: string }) {
+    const day = new Date();
+    const seed = `${address.toLowerCase()}·${topic ?? ''}·${day.getFullYear()}-${day.getMonth()}-${day.getDate()}`;
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle label="THE 8-BALL" sub={topic ? topic.toUpperCase() : undefined} />
+            <SwSay lead>{eightballVerdict(seed)}</SwSay>
+            <SwHint text="same question, same day, same answer. the stone commits." />
+        </div>
+    );
+}
+
+/* ── THE FORTUNE — the daily reading: three carved lines + your real
+      PriceDay number, re-drawn each day per wallet. ── */
+
+function FortuneWidget({ address }: { address: string }) {
+    const day = usePriceDay();
+    const now = new Date();
+    const seed = `${address.toLowerCase()}·${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+    const f = fortuneReading(seed);
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle glyph={`✶${VS15}`} label="THE FORTUNE" sub={formatPriceDate()} />
+            <SwSay lead>{f.omen}</SwSay>
+            <SwSay>{f.market}</SwSay>
+            <SwSay>{f.advice}</SwSay>
+            <div className="sw-rows">
+                <div className="sw-row-line">
+                    <span className="sw-row-l">{`✶${VS15} YOUR NUMBER TODAY`}</span>
+                    <span className="sw-row-r">{day.number}</span>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+/* ── THE DJ — "play me something": picks from the soundtracks of projects
+      you actually hold (any soundtracked project when you hold none), and
+      drops it into the one real miniplayer over the bus. ── */
+
+function DjWidget({ address, onAct, onFooter }: {
+    address: string; onAct: ActFn; onFooter: FooterFn;
+}) {
+    const [pool, setPool] = useState<string[] | null>(null);
+    const [held, setHeld] = useState(true);
+    const fm = useSyncExternalStore(subscribeFm, getFm, getFm);
+
+    useEffect(() => {
+        let cancelled = false;
+        fetch(`/api/user/${address.toLowerCase()}/owned-projects`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+                if (cancelled) return;
+                const mine = ((d?.slugs ?? []) as string[]).filter((s) => getProject(s)?.soundtrack);
+                if (mine.length > 0) {
+                    setPool(mine);
+                    setHeld(true);
+                } else {
+                    setPool(allProjects().filter((p) => p.soundtrack).map((p) => p.slug));
+                    setHeld(false);
+                }
+            })
+            .catch(() => {
+                if (!cancelled) {
+                    setPool(allProjects().filter((p) => p.soundtrack).map((p) => p.slug));
+                    setHeld(false);
+                }
+            });
+        return () => { cancelled = true; };
+    }, [address]);
+
+    const dayN = Math.floor(Date.now() / 86_400_000);
+    const pickSlug = pool && pool.length > 0 ? pool[dayN % pool.length] : null;
+    const pickSt = pickSlug ? getProject(pickSlug)?.soundtrack : null;
+
+    useFooterAct(onFooter, pickSlug && pickSt ? {
+        label: `▶${VS15} PLAY · ${pickSt.label}`,
+        run: () => {
+            fmPlay({ playlistId: pickSt.playlistId, label: pickSt.label, slug: pickSlug });
+            onAct('miniplayer: ON AIR');
+        },
+    } : null);
+
+    if (!pool) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`▶${VS15}`} label="THE DJ" />
+                <SwSay>READING YOUR SHELF…</SwSay>
+            </div>
+        );
+    }
+    if (!pickSlug || !pickSt) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`▶${VS15}`} label="THE DJ" />
+                <SwSay>NO SOUNDTRACKS ON THE SHELF YET.</SwSay>
+            </div>
+        );
+    }
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle glyph={`▶${VS15}`} label="THE DJ" sub={held ? 'FROM YOUR SHELF' : 'FROM THE CATALOG'} />
+            <SwSay lead>{pickSt.label}</SwSay>
+            <SwSay>{`FOR ${getProject(pickSlug)?.displayName.toUpperCase() ?? pickSlug.toUpperCase()}`}</SwSay>
+            {fm.status !== 'idle' && fm.station && (
+                <div className="stone-fm-transport">
+                    <button type="button" className="stone-fm-key" onClick={fmToggle}>
+                        {fm.status === 'playing' ? 'PAUSE' : `▶${VS15} PLAY`}
+                    </button>
+                    <button type="button" className="stone-fm-key" onClick={fmNext}>NEXT</button>
+                    <span className="stone-fm-now">{fm.trackTitle || fm.station.label}</span>
+                </div>
+            )}
+        </div>
+    );
+}
+
+/* ── LORE — the stone on itself. Never the same way twice (seeded by the
+      day, so its story shifts but never contradicts mid-conversation). ── */
+
+function LoreWidget({ q }: { q: string }) {
+    const day = new Date();
+    const seed = `${day.getFullYear()}-${day.getMonth()}-${day.getDate()}`;
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle glyph={`⌘${VS15}`} label="THE STONE" />
+            <SwSay lead>{loreAnswer(q, seed)}</SwSay>
+        </div>
+    );
+}
+
+/* ── THE FLOOR IS RIGHT — guess a real floor from three choices; the
+      ledger scores you; the streak survives in the pocket. ── */
+
+const FIG_STREAK_KEY = 'pd_stone_fig_streak';
+
+function figStreak(): number {
+    try { return Number(window.localStorage.getItem(FIG_STREAK_KEY)) || 0; } catch { return 0; }
+}
+function setFigStreak(n: number) {
+    try { window.localStorage.setItem(FIG_STREAK_KEY, String(n)); } catch { /* fine */ }
+}
+
+function FloorGameWidget({ onAct }: { onAct: ActFn }) {
+    const [round, setRound] = useState(0);
+    const [picked, setPicked] = useState<number | null>(null);
+    const [proj, setProj] = useState<SearchProjectResult | null | 'loading'>('loading');
+
+    /* Round N's project — walk the soundtracked/major catalog by round. */
+    const candidates = useMemo(
+        () => allProjects().map((p) => p.slug).sort(),
+        [],
+    );
+    const slug = candidates.length ? candidates[(figStreak() + round) % candidates.length] : null;
+
+    useEffect(() => {
+        if (!slug) return;
+        let cancelled = false;
+        setProj('loading');
+        setPicked(null);
+        const title = getProject(slug)?.displayName ?? slug;
+        fetchSearch(title).then((r) => {
+            if (cancelled) return;
+            setProj(r?.projects.find((x) => x.id === slug) ?? null);
+        });
+        return () => { cancelled = true; };
+    }, [slug, round]);
+
+    if (!slug || proj === 'loading') {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle label="THE FLOOR IS RIGHT" sub={`STREAK ${figStreak()}`} />
+                <SwSay>{working('floor')}</SwSay>
+            </div>
+        );
+    }
+    if (!proj || proj.floor_eth == null || proj.floor_eth <= 0) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle label="THE FLOOR IS RIGHT" sub={`STREAK ${figStreak()}`} />
+                <SwSay>NO LIVE FLOOR FOR THIS ROUND.</SwSay>
+                <div className="sw-gallery-bar">
+                    <button type="button" className="sw-key sw-key--word" onClick={() => setRound((r) => r + 1)}>NEXT</button>
+                </div>
+            </div>
+        );
+    }
+
+    const real = proj.floor_eth;
+    /* Deterministic decoys around the truth; order rotates by round. */
+    const opts = [real, Math.round(real * 0.55 * 1e4) / 1e4, Math.round(real * 1.7 * 1e4) / 1e4];
+    const rot = round % 3;
+    const shown = [opts[rot], opts[(rot + 1) % 3], opts[(rot + 2) % 3]];
+    const guess = (v: number) => {
+        if (picked != null) return;
+        setPicked(v);
+        if (v === real) {
+            const s = figStreak() + 1;
+            setFigStreak(s);
+            onAct(`The Floor Is Right: STREAK ${s}`);
+        } else {
+            setFigStreak(0);
+            onAct('The Floor Is Right: WRONG');
+        }
+    };
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle label="THE FLOOR IS RIGHT" sub={`STREAK ${figStreak()}`} />
+            <div className="sw-hit">
+                <SpriteFace className="sw-hit-sprite" face={projectSpriteFace(proj.id)} />
+                <span className="sw-hit-body">
+                    <span className="sw-hit-main">{proj.title}</span>
+                    <span className="sw-hit-sub">{`⬚${VS15} ${proj.minted_count}/${proj.max_supply} — NAME THE FLOOR`}</span>
+                </span>
+            </div>
+            <div className="sw-gallery-bar">
+                {shown.map((v) => (
+                    <button
+                        key={v}
+                        type="button"
+                        className={`sw-key sw-key--word${picked != null && v === real ? ' sw-key--right' : ''}`}
+                        onClick={() => guess(v)}
+                    >
+                        {`◊${v}`}
+                    </button>
+                ))}
+            </div>
+            {picked != null && (
+                <>
+                    <SwSay lead>
+                        {picked === real
+                            ? 'CORRECT. THE LEDGER NODS.'
+                            : `WRONG. THE FLOOR IS ◊${real}.`}
+                    </SwSay>
+                    <div className="sw-gallery-bar">
+                        <button type="button" className="sw-key sw-key--word" onClick={() => setRound((r) => r + 1)}>NEXT ROUND</button>
+                    </div>
+                </>
+            )}
+        </div>
+    );
+}
+
 /* ── the deck router — one summoned plan, one card ── */
 
 export function WidgetDeck({ plan, address, onGo, onAct, onFooter, onSeed }: {
@@ -1673,7 +2328,16 @@ export function WidgetDeck({ plan, address, onGo, onAct, onFooter, onSeed }: {
         case 'firstmint': return <FirstMintWidget mine={plan.mine} address={address} onGo={onGo} onFooter={onFooter} />;
         case 'release': return <ReleaseWidget slug={plan.slug} title={plan.title} onGo={onGo} onFooter={onFooter} />;
         case 'rank': return <RankWidget plan={plan} address={address} onGo={onGo} onFooter={onFooter} />;
-        case 'cohort': return <CohortWidget plan={plan} onGo={onGo} onFooter={onFooter} />;
+        case 'cohort': return <CohortWidget plan={plan} address={address} onGo={onGo} onFooter={onFooter} />;
+        case 'why': return <WhyWidget slug={plan.slug} title={plan.title} id={plan.id} onGo={onGo} onFooter={onFooter} />;
+        case 'verdict': return <VerdictWidget slug={plan.slug} title={plan.title} onGo={onGo} onAct={onAct} onFooter={onFooter} />;
+        case 'prophecy': return <ProphecyWidget slug={plan.slug} title={plan.title} onGo={onGo} onFooter={onFooter} />;
+        case 'roast': return <RoastWidget address={address} onSeed={onSeed} />;
+        case 'eightball': return <EightballWidget topic={plan.topic} address={address} />;
+        case 'fortune': return <FortuneWidget address={address} />;
+        case 'dj': return <DjWidget address={address} onAct={onAct} onFooter={onFooter} />;
+        case 'lore': return <LoreWidget q={plan.q} />;
+        case 'floorgame': return <FloorGameWidget onAct={onAct} />;
     }
 }
 

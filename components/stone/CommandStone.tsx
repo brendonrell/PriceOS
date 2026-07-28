@@ -48,7 +48,13 @@ import { readStage } from '../../lib/npc/awareness';
 import { readPieceInView } from '../../lib/npc/inview';
 import { deepThought } from '../../lib/stone/deepThought';
 import { speak, goodbye, type StoneMoment } from '../../lib/stone/voice';
-import { WidgetDeck, SearchDeck, type FooterAct } from './StoneDeck';
+import { commitEtchBulk } from '../../lib/stone/etch';
+import { recordSubject, latestSubject, readSubjectHistory, recallSubject } from '../../lib/stone/subjects';
+import { renderPing, pingHref } from '../../lib/pings/render';
+import { usePings } from '../../lib/state/PingsContext';
+import { useColorway } from '../../lib/state/ColorwayContext';
+import { allProjects } from '../../lib/project/registry';
+import { WidgetDeck, SearchDeck, NewsDeck, type FooterAct, type NewsItem } from './StoneDeck';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useSort } from '../../lib/state/SortContext';
 import { useModal } from '../../lib/state/ModalContext';
@@ -169,6 +175,7 @@ export default function CommandStone() {
             const n = (results.projects?.length ?? 0) + (results.users?.length ?? 0) + (results.answers?.length ?? 0);
             moment = { kind: n > 0 ? 'found' : 'nothing' };
         } else if (searchingNow && searching) moment = { kind: 'searching' };
+        else if (newsOn) moment = { kind: 'news' };
         else moment = { kind: 'listening' };
         return speak(moment, seed);
     };
@@ -204,6 +211,24 @@ export default function CommandStone() {
         inputRef.current?.focus();
     }, []);
 
+    /* THE NEWS (Brendon, 2026-07-28) — the stone speaks FIRST only with
+       real reason: unread pings. On summon, before you type, it leads with
+       what happened; the first keystroke stands it down for this visit.
+       The parked dot pulses only while it actually knows something. */
+    const { state: pings, markAllRead } = usePings();
+    const [newsSeen, setNewsSeen] = useState(false);
+    useEffect(() => { if (stage === 'open') setNewsSeen(false); }, [stage]);
+    const newsItems = useMemo<NewsItem[]>(
+        () => pings.items
+            .filter((p) => !p.read)
+            .slice(0, 5)
+            .map((p) => {
+                const rp = renderPing(p);
+                return { id: rp.id, icon: rp.icon, handle: rp.handle, action: rp.action, href: pingHref(p) };
+            }),
+        [pings.items],
+    );
+
     /* The triple-tap summon reads live stage + toast through refs so its one
        document listener never re-binds mid-gesture (a re-bind would zero the
        tap count between taps). */
@@ -234,17 +259,49 @@ export default function CommandStone() {
        floor" then a bare "ath" → the stone hears "prisms ath"; a bare
        "calc 0.5" or "gallery" or "30d" rides the same subject. The heard
        line drives widgets + search; ETCH and CAST stay on the raw line. */
-    const [subject, setSubject] = useState<StoneSubject | null>(null);
-    const line = useMemo(
-        () => expandFollowUp(value, subject) ?? value,
-        [value, subject]
-    );
+    /* LONG MEMORY (2026-07-28) — the subject survives sessions: boots from
+       the device history, and every resolved subject is recorded to it. */
+    const [subject, setSubject] = useState<StoneSubject | null>(() => latestSubject());
+    useEffect(() => { if (subject) recordSubject(subject); }, [subject]);
+    const line = useMemo(() => {
+        const expanded = expandFollowUp(value, subject);
+        if (expanded) return expanded;
+        /* RECALL — "that project from tuesday" resolves from the history
+           and the stone hears the remembered name. */
+        return recallSubject(value, readSubjectHistory()) ?? value;
+    }, [value, subject]);
 
     /* THE WIDGET DECK (stage 4) — a summon word calls its hand: calendar ·
        priceday · calc · dossier · gallery · matrix · ascii · docs · glance ·
        trend. ETCH and CAST outrank a summon (a workspace named "calendar"
-       stays castable). */
-    const widgetPlan = useMemo(() => parseWidget(line), [line]);
+       stays castable). SEEING fills the sight-questions ("why is this
+       rare" · "good price?") with the piece actually on screen. */
+    const widgetPlan = useMemo(() => {
+        const p = parseWidget(line);
+        if (!p) return null;
+        if (p.kind === 'why' && p.slug == null) {
+            const piece = readPieceInView();
+            if (piece) {
+                return {
+                    ...p,
+                    slug: piece.slug,
+                    title: getProject(piece.slug)?.displayName ?? piece.slug,
+                    id: piece.id,
+                };
+            }
+        }
+        if (p.kind === 'verdict' && p.slug == null) {
+            const piece = readPieceInView();
+            if (piece) {
+                return { ...p, slug: piece.slug, title: getProject(piece.slug)?.displayName ?? piece.slug };
+            }
+            if (subject?.kind === 'project') {
+                const proj = resolveProject(subject.name);
+                if (proj) return { ...p, slug: proj.slug, title: proj.title };
+            }
+        }
+        return p;
+    }, [line, subject]);
 
     /* CAST — an exact toggle/workspace name flips it. The "spells" are
        just settings with a fun name (Brendon): a cast is a plain toggle +
@@ -253,6 +310,32 @@ export default function CommandStone() {
     const { sort, setSort, cycleSort } = useSort();
     const { open: openModal } = useModal();
     const { workspaces, loadWorkspace } = useWorkspaces();
+    /* COZY MOOD (Brendon, 2026-07-28) — one word: ambient light on, the
+       haze rolls in, the DJ starts from your held soundtracks. The same
+       word lifts it all; the colorway you were wearing comes back. */
+    const { colorway, setColorway } = useColorway();
+    const moodPrevColorway = useRef<typeof colorway>(null);
+    const moodActive = notifs.ambientStrip && colorway === 'haze';
+    /* The DJ's pick — a held project's soundtrack, else any soundtracked
+       project; rotates with the day so it never gets stale. */
+    const djPlay = async () => {
+        let slugs: string[] = [];
+        try {
+            const r = await fetch(`/api/user/${siweAddress?.toLowerCase()}/owned-projects`);
+            const d = r.ok ? await r.json() : null;
+            slugs = (d?.slugs ?? []) as string[];
+        } catch { /* holdings unreadable → the full catalog below */ }
+        const withSt = (list: string[]) => list.filter((s) => getProject(s)?.soundtrack);
+        let pool = withSt(slugs);
+        if (pool.length === 0) pool = allProjects().filter((p) => p.soundtrack).map((p) => p.slug);
+        if (pool.length === 0) return false;
+        const day = Math.floor(Date.now() / 86_400_000);
+        const slug = pool[day % pool.length];
+        const st = getProject(slug)?.soundtrack;
+        if (!st) return false;
+        fmPlay({ playlistId: st.playlistId, label: st.label, slug });
+        return true;
+    };
     const castHit = useMemo(
         () => (etchPlan ? null : matchCast(value, workspaces)),
         [value, workspaces, etchPlan]
@@ -275,6 +358,16 @@ export default function CommandStone() {
         ) {
             setSubject({ kind: 'project', name: activeWidget.title });
         } else if (activeWidget.kind === 'trend') {
+            setSubject({ kind: 'project', name: activeWidget.title });
+        } else if (
+            (activeWidget.kind === 'release' || activeWidget.kind === 'prophecy' ||
+             activeWidget.kind === 'cohort') && activeWidget.title
+        ) {
+            setSubject({ kind: 'project', name: activeWidget.title });
+        } else if (
+            (activeWidget.kind === 'why' || activeWidget.kind === 'verdict') &&
+            activeWidget.title
+        ) {
             setSubject({ kind: 'project', name: activeWidget.title });
         }
     }, [activeWidget]);
@@ -306,6 +399,7 @@ export default function CommandStone() {
         if (hit.kind === 'spell') return !!notifs[hit.spell.flag];
         if (hit.kind === 'mode') {
             if (hit.key === 'fog') return sort === 'fog';
+            if (hit.key === 'mood') return moodActive;
             const flags = {
                 degen: notifs.degen, audience: notifs.audience,
                 redacted: notifs.redactedMode, thewatch: notifs.watch,
@@ -414,6 +508,21 @@ export default function CommandStone() {
                 const next = sort !== 'fog';
                 cycleSort('fog');
                 confirmAnd(`Fog: ${next ? 'ON' : 'OFF'}`);
+                return;
+            }
+            case 'mood': {
+                if (!moodActive) {
+                    moodPrevColorway.current = colorway;
+                    if (!notifs.ambientStrip) toggle('ambientStrip');
+                    setColorway('haze');
+                    void djPlay();
+                    confirmAnd('Cozy Mood: ON');
+                } else {
+                    if (notifs.ambientStrip) toggle('ambientStrip');
+                    setColorway(moodPrevColorway.current ?? null);
+                    if (fm.status === 'playing') fmToggle();
+                    confirmAnd('Cozy Mood: OFF');
+                }
                 return;
             }
         }
@@ -563,6 +672,19 @@ export default function CommandStone() {
        clear the line, keep the stone open for the next command. */
     const doEtch = () => {
         if (!etchPlan) return;
+        /* Bulk anchors read holdings + live floors — async, with the
+           forward-motion line while it works (§9). */
+        if (etchPlan.kind === 'anchor-bulk') {
+            if (!siweAddress) return;
+            setEtched('✓ READING YOUR HOLDINGS…');
+            setValue('');
+            inputRef.current?.focus();
+            void commitEtchBulk(etchPlan, siweAddress).then((toast) => {
+                showToast(toast);
+                setEtched(`✓ ${toast}`);
+            });
+            return;
+        }
         const toast = commitEtch(etchPlan);
         showToast(toast);
         setEtched(`✓ ${toast}`);
@@ -795,8 +917,11 @@ export default function CommandStone() {
        stone is just the pill + the flashing block (Brendon's idle). */
     const cmdCardOn =
         (etched && !searchingNow) || !!etchPlan || !!castHit || (searchingNow && searching && !r);
+    /* THE NEWS shows only on a quiet open — real unread, nothing typed,
+       not yet stood down this visit. */
+    const newsOn = open && !searchingNow && !etched && !newsSeen && newsItems.length > 0;
     const hasTab =
-        (searchingNow && (pageHits.length > 0 || !!r)) || cmdCardOn || !!activeWidget || !!thought;
+        (searchingNow && (pageHits.length > 0 || !!r)) || cmdCardOn || !!activeWidget || !!thought || newsOn;
 
     /* The footer's one act, by priority: a carving on offer > a cast on
        offer > the summoned hand's registered act > the anchor offer. */
@@ -827,7 +952,12 @@ export default function CommandStone() {
                             inputRef.current?.focus();
                         },
                     }
-                    : null;
+                    : newsOn
+                        ? {
+                            label: '✓ MARK ALL READ',
+                            run: () => { markAllRead(); setNewsSeen(true); },
+                        }
+                        : null;
 
     return (
         <>
@@ -836,7 +966,7 @@ export default function CommandStone() {
             {stage === 'dot' && (
                 <button
                     type="button"
-                    className="stone-dot"
+                    className={`stone-dot${pings.unreadCount > 0 ? ' stone-dot--news' : ''}`}
                     id="commandStoneDot"
                     aria-label="The Command Stone — minimized. Tap to open."
                     title="The Command Stone"
@@ -871,6 +1001,9 @@ export default function CommandStone() {
                         {/* THE MIDDLE — the widget sandwich; it scrolls,
                             the header and footer hold their ground. */}
                         <div className="stone-deck-scroll">
+                        {/* THE NEWS — the stone speaks first, with reason */}
+                        {newsOn && <NewsDeck items={newsItems} onGo={go} />}
+
                         {/* THE WIDGET DECK — a summoned hand owns the tab */}
                         {activeWidget && (
                             <WidgetDeck
@@ -1001,6 +1134,8 @@ export default function CommandStone() {
                                 onChange={(e) => {
                                     setValue(e.target.value);
                                     setEtched(null);
+                                    /* first keystroke stands the news down */
+                                    if (e.target.value) setNewsSeen(true);
                                 }}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter') {

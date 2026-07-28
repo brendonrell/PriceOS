@@ -667,6 +667,23 @@ body.pd-stone-force-white .stone-float .stone-deck .sw-card:nth-of-type(3n + 2) 
     font-variant-emoji: text;
 }
 
+/* ── the floor is right — the winning key lights like an active pill ── */
+.sw-key--right {
+    background: var(--stat-active-bg);
+    color: var(--stat-active-text);
+}
+
+/* ── the dot pulses ONLY carrying real news (meaning-carrying, like the
+      ON-AIR LED — never a resting-chrome fade) ── */
+@keyframes stone-dot-news {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.6); opacity: 0.7; }
+}
+.stone-dot--news { animation: stone-dot-news 2.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+    .stone-dot--news { animation: none; }
+}
+
 /* ── ☻/✺ dossier ── */
 .sw-id {
     display: flex;

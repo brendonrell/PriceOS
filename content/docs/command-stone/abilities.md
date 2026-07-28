@@ -1,8 +1,8 @@
 ---
 title: "Command Stone — Abilities"
-description: "The complete command reference for the Command Stone: every phrase it parses, every widget it summons, and every action it offers — search, ledger questions, math, currency, dates, rankings, holdings slices, etching, casting."
+description: "The complete command reference for the Command Stone: search, ledger questions, math, currency, dates, rankings, holdings slices, compound sentences, sentinel sentences, bulk acts, prophecy, the news, cozy mood, the fun bench, etching and casting."
 category: "app"
-keywords: ["command stone", "abilities", "commands", "reference", "grammar", "widgets", "math", "convert", "dates", "rankings", "first mint", "release date", "spenders", "mutuals", "followers"]
+keywords: ["command stone", "abilities", "commands", "reference", "grammar", "widgets", "math", "convert", "dates", "rankings", "first mint", "release date", "spenders", "mutuals", "followers", "roast", "fortune", "dj", "cozy mood", "prophecy"]
 last_updated: "2026-07-28"
 ---
 
@@ -93,14 +93,97 @@ Standings, computed live from the ledger. Ask for any depth up to 50; the podium
 
 Metrics: `by volume spent` (the default) and `by wallet age`. Every row taps through to the profile; the button opens №1.
 
-## Slice holdings by tag
+## Slice holdings by tag — or by your circle
 
-Cross a project's holders with a Profile Tag and see exactly where they overlap. Only tags their owners have switched on ever surface.
+Cross a project's holders with a Profile Tag, or with your own mutuals, and see exactly where they overlap. Only tags their owners have switched on ever surface.
 
 | Type | Get |
 |---|---|
 | `all carnivale owned by podcasters` | Every Carnivale piece in Podcaster hands, with its holder |
 | `teletext held by collectors` | The same slice, any project × any tag |
+| `carnivale owned by mutuals` | The pieces held inside your own circle |
+
+## Compound sentences
+
+The abilities compose. Ownership can filter any ranking:
+
+| Type | Get |
+|---|---|
+| `top 5 spenders who hold teletext` | The platform's biggest wallets, narrowed to Teletext holders |
+| `top 10 mutuals who hold carnivale` | Your circle, narrowed the same way |
+
+## Say it, and it's armed
+
+A sentence can set a real trap. Both compile to the same to-dos the Sentinel already watches server-side — nothing commits without your second touch.
+
+| Type | Get |
+|---|---|
+| `tell me when prisms drops under 0.2` | A Sentinel-armed watch with an ETH target |
+| `ping me in 3 days about the mint` | A dated reminder, said naturally |
+| `remind me to renew ens friday` | The same, on any date the to-do grammar knows |
+
+## Bulk acts
+
+One sentence, a preview, one confirm.
+
+| Type | Get |
+|---|---|
+| `wishlist the 3 rarest teletext` | The rarity engine picks the pieces; already-wishlisted ones are left alone |
+| `anchor everything i hold at floor` | Every project you hold gets an anchor at its live floor |
+
+## Ask the thing on your screen
+
+Summoned while a piece is in view, the Stone answers about *it* — no name needed.
+
+| Type | Get |
+|---|---|
+| `why is this rare` | The full rarity breakdown: score, rank, every counted axis, its POP |
+| `why is prisms 7 rare` | The same, asked explicitly |
+| `good price?` | The gap read: floor vs all-time high vs the 30-day trend, verdict included — and the button anchors it |
+
+## Prophecy
+
+The future, extrapolated from the real mint ledger. Arithmetic, spoken like an oracle.
+
+| Type | Get |
+|---|---|
+| `when will teletext sell out` | Remaining supply over the trailing-7-day pace: "≈ 9 DAYS" |
+| `teletext pace` | The same read, shorter |
+
+## The news — it speaks first
+
+When the Stone has real reason — unread pings — it leads with them the moment it opens, before you type. One keystroke stands it down; the button marks everything read. The parked corner dot pulses only while it actually knows something. No news, no theater.
+
+## The long memory
+
+The Stone's memory now survives sessions.
+
+| Type | Get |
+|---|---|
+| `last project` | The most recent project you asked about, back on stage |
+| `that project from tuesday` | Resolved from its history of your subjects |
+| `that collector from yesterday` | Works for people too |
+
+## Cozy Mood
+
+One word: the ambient light comes on, the haze rolls in, and the DJ starts playing from your held projects' soundtracks. The same word lifts it all and your colorway comes back.
+
+| Type | Get |
+|---|---|
+| `cozy mood` · `cozy` · `mood` | All three at once, on — or off |
+
+## The fun bench
+
+The personality side. All of it runs on real data or a seeded roll — the Stone never re-rolls an answer to please you.
+
+| Type | Get |
+|---|---|
+| `roast me` | The dry verdict on your actual last 90 days. It keeps receipts |
+| `should i buy?` | The 8-ball: one committed answer per question per day, seeded — no re-rolls |
+| `fortune` · `my horoscope` | The daily reading, plus your real PriceDay number |
+| `play me something` · `dj` | A soundtrack picked from your own shelf, into the miniplayer |
+| `the floor is right` | Guess a real floor from three choices; the ledger keeps your streak |
+| `who are you` · `are you alive` · `gm` | The Stone on itself. The mythology is the easter egg |
 
 ## Summon a widget by name
 

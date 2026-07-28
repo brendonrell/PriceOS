@@ -15,6 +15,12 @@ export const dynamic = 'force-dynamic';
  *   ?kind=spenders&n=15         — top spenders on the platform (mints + buys)
  *   ?kind=rank&cohort=mutuals|followers&me=0x…&by=spent|age&n=20
  *   ?kind=holders&slug=…        — who holds each piece of a project
+ *
+ * The superpower pass (2026-07-28):
+ *   &holding=<slug>             — composes spenders/rank with ownership
+ *                                 ("top 5 spenders who hold teletext")
+ *   ?kind=pace&slug=…           — sellout arithmetic: mint count + 7-day rate
+ *   ?kind=mutuals&me=0x…        — the viewer's full mutual list (for slices)
  */
 
 const ADDRESS_RE = /^0x[a-f0-9]{40}$/;
@@ -68,6 +74,19 @@ export interface OracleHoldersResponse {
   rows: OracleHolderRow[];
 }
 
+export interface OraclePaceResponse {
+  slug: string;
+  minted: number;
+  /** Unix seconds of the first mint, or null. */
+  first_ts: number | null;
+  /** Mints inside the trailing 7 days. */
+  last7: number;
+}
+
+export interface OracleMutualsResponse {
+  rows: Array<{ address: string; handle: string | null }>;
+}
+
 type DB = ReturnType<typeof getSupabaseAnon>;
 
 /** ETH paid out per wallet across mints + priced buys — the tag-members
@@ -99,6 +118,40 @@ async function handlesFor(db: DB, addresses: string[]): Promise<Map<string, stri
 async function handleOf(db: DB, address: string): Promise<string | null> {
   const { data } = await db.from('users').select('handle').eq('address', address).maybeSingle();
   return (data as { handle: string | null } | null)?.handle ?? null;
+}
+
+/** The wallets holding ≥1 piece of a project — the `holding=` composer. */
+async function holderSetOf(db: DB, slug: string): Promise<Set<string>> {
+  const res = await db.from('holders').select('owner_address').eq('project_id', slug);
+  if (res.error) throw new Error(res.error.message);
+  const out = new Set<string>();
+  for (const r of (res.data ?? []) as Array<{ owner_address: string | null }>) {
+    if (r.owner_address) out.add(r.owner_address.toLowerCase());
+  }
+  return out;
+}
+
+/** The viewer's mutual handles (follows both ways), resolved to users rows. */
+async function mutualUsers(db: DB, me: string): Promise<Array<{ address: string; handle: string | null; created_at: string | null }>> {
+  const myHandle = await handleOf(db, me);
+  if (!myHandle) return [];
+  const [followersRes, followingRes] = await Promise.all([
+    db.from('follows').select('follower_name').eq('following_name', myHandle).limit(1000),
+    db.from('follows').select('following_name').eq('follower_name', myHandle).limit(1000),
+  ]);
+  if (followersRes.error) throw new Error(followersRes.error.message);
+  if (followingRes.error) throw new Error(followingRes.error.message);
+  const following = new Set(
+    ((followingRes.data ?? []) as Array<{ following_name: string }>).map((r) => r.following_name),
+  );
+  const names = ((followersRes.data ?? []) as Array<{ follower_name: string }>)
+    .map((r) => r.follower_name)
+    .filter((h) => following.has(h));
+  if (names.length === 0) return [];
+  const usersRes = await db.from('users').select('address, handle, created_at').in('handle', names);
+  if (usersRes.error) throw new Error(usersRes.error.message);
+  return ((usersRes.data ?? []) as Array<{ address: string; handle: string | null; created_at: string | null }>)
+    .filter((u) => u.handle != null);
 }
 
 const round6 = (n: number) => Math.round(n * 1e6) / 1e6;
@@ -168,10 +221,18 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       } satisfies OracleReleaseResponse);
     }
 
-    /* ── spenders — the platform's biggest wallets, by ETH paid out ──── */
+    /* ── spenders — the platform's biggest wallets, by ETH paid out.
+       `holding=<slug>` narrows to wallets holding that project. ──────── */
     if (kind === 'spenders') {
+      const holdingSlug = (p.get('holding') ?? '').toLowerCase();
+      if (holdingSlug && !SLUG_RE.test(holdingSlug)) return badRequest('Invalid holding slug');
       const spent = await spentByAddress(db);
-      const top = Array.from(spent.entries())
+      let entries = Array.from(spent.entries());
+      if (holdingSlug) {
+        const holders = await holderSetOf(db, holdingSlug);
+        entries = entries.filter(([a]) => holders.has(a));
+      }
+      const top = entries
         .sort((a, b) => b[1] - a[1])
         .slice(0, n);
       const handles = await handlesFor(db, top.map(([a]) => a));
@@ -183,44 +244,48 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ cohort: 'spenders', by: 'spent', rows } satisfies OracleRankResponse);
     }
 
-    /* ── rank — the viewer's mutuals or followers, by spend or age ───── */
+    /* ── rank — the viewer's mutuals or followers, by spend or age.
+       `holding=<slug>` narrows to holders of that project. ───────────── */
     if (kind === 'rank') {
       const cohort = p.get('cohort');
       const by = p.get('by') === 'age' ? 'age' : 'spent';
       const me = (p.get('me') ?? '').toLowerCase();
+      const holdingSlug = (p.get('holding') ?? '').toLowerCase();
       if (cohort !== 'mutuals' && cohort !== 'followers') return badRequest('cohort must be mutuals|followers');
       if (!ADDRESS_RE.test(me)) return badRequest('Invalid `me` address');
+      if (holdingSlug && !SLUG_RE.test(holdingSlug)) return badRequest('Invalid holding slug');
 
-      const myHandle = await handleOf(db, me);
-      if (!myHandle) {
-        return NextResponse.json({ cohort, by, rows: [] } satisfies OracleRankResponse);
-      }
-      const [followersRes, followingRes] = await Promise.all([
-        db.from('follows').select('follower_name').eq('following_name', myHandle).limit(1000),
-        cohort === 'mutuals'
-          ? db.from('follows').select('following_name').eq('follower_name', myHandle).limit(1000)
-          : Promise.resolve({ data: [], error: null } as { data: unknown[]; error: null }),
-      ]);
-      if (followersRes.error) return serverError(followersRes.error.message);
-      const followerNames = ((followersRes.data ?? []) as Array<{ follower_name: string }>)
-        .map((r) => r.follower_name);
-      let names = followerNames;
+      let users: Array<{ address: string; handle: string | null; created_at: string | null }>;
       if (cohort === 'mutuals') {
-        const followingNames = new Set(
-          ((followingRes.data ?? []) as Array<{ following_name: string }>).map((r) => r.following_name),
-        );
-        names = followerNames.filter((h) => followingNames.has(h));
+        users = await mutualUsers(db, me);
+      } else {
+        const myHandle = await handleOf(db, me);
+        if (!myHandle) {
+          return NextResponse.json({ cohort, by, rows: [] } satisfies OracleRankResponse);
+        }
+        const followersRes = await db
+          .from('follows').select('follower_name').eq('following_name', myHandle).limit(1000);
+        if (followersRes.error) return serverError(followersRes.error.message);
+        const names = ((followersRes.data ?? []) as Array<{ follower_name: string }>)
+          .map((r) => r.follower_name);
+        if (names.length === 0) {
+          return NextResponse.json({ cohort, by, rows: [] } satisfies OracleRankResponse);
+        }
+        const usersRes = await db
+          .from('users')
+          .select('address, handle, created_at')
+          .in('handle', names);
+        if (usersRes.error) return serverError(usersRes.error.message);
+        users = ((usersRes.data ?? []) as Array<{ address: string; handle: string | null; created_at: string | null }>)
+          .filter((u) => u.handle != null);
       }
-      if (names.length === 0) {
+      if (holdingSlug) {
+        const holders = await holderSetOf(db, holdingSlug);
+        users = users.filter((u) => holders.has(u.address.toLowerCase()));
+      }
+      if (users.length === 0) {
         return NextResponse.json({ cohort, by, rows: [] } satisfies OracleRankResponse);
       }
-      const usersRes = await db
-        .from('users')
-        .select('address, handle, created_at')
-        .in('handle', names);
-      if (usersRes.error) return serverError(usersRes.error.message);
-      const users = ((usersRes.data ?? []) as Array<{ address: string; handle: string | null; created_at: string | null }>)
-        .filter((u) => u.handle != null);
 
       let rows: OracleRankRow[];
       if (by === 'age') {
@@ -259,6 +324,48 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         })
         .sort((a, b) => a.token_id - b.token_id);
       return NextResponse.json({ slug, rows } satisfies OracleHoldersResponse);
+    }
+
+    /* ── pace — sellout arithmetic: total mints + the trailing-7-day rate ── */
+    if (kind === 'pace') {
+      const slug = (p.get('slug') ?? '').toLowerCase();
+      if (!SLUG_RE.test(slug)) return badRequest('Invalid slug');
+      const weekAgo = Math.floor(Date.now() / 1000) - 7 * 86_400;
+      const [firstRes, countRes, recentRes] = await Promise.all([
+        db.from('events')
+          .select('timestamp')
+          .eq('type', 'MINT')
+          .eq('project_id', slug)
+          .order('timestamp', { ascending: true })
+          .limit(1),
+        db.from('events')
+          .select('timestamp', { count: 'exact', head: true })
+          .eq('type', 'MINT')
+          .eq('project_id', slug),
+        db.from('events')
+          .select('timestamp', { count: 'exact', head: true })
+          .eq('type', 'MINT')
+          .eq('project_id', slug)
+          .gte('timestamp', weekAgo),
+      ]);
+      if (firstRes.error) return serverError(firstRes.error.message);
+      const first = (firstRes.data ?? [])[0] as { timestamp: number } | undefined;
+      return NextResponse.json({
+        slug,
+        minted: countRes.count ?? 0,
+        first_ts: first?.timestamp ?? null,
+        last7: recentRes.count ?? 0,
+      } satisfies OraclePaceResponse);
+    }
+
+    /* ── mutuals — the viewer's full mutual list (powers the overlaps) ── */
+    if (kind === 'mutuals') {
+      const me = (p.get('me') ?? '').toLowerCase();
+      if (!ADDRESS_RE.test(me)) return badRequest('Invalid `me` address');
+      const users = await mutualUsers(db, me);
+      return NextResponse.json({
+        rows: users.map((u) => ({ address: u.address.toLowerCase(), handle: u.handle })),
+      } satisfies OracleMutualsResponse);
     }
 
     return badRequest('Unknown kind');
