@@ -8,24 +8,57 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-00000000000000000. ✅ **2026-07-28 (LATEST) — THE COMMAND STONE WOW PASS ×3
-   (Fable). ALL on `dev` (tip `0f34e46`), tree clean, tsc + 168 tests +
-   real build green, bubble anatomy screenshot-verified at iPhone size on
-   a mid-tone page. Brendon-approved and pushed wave by wave ("Push as
-   you go").**
+000000000000000000. ✅ **2026-07-28 (LATEST) — THE OVERNIGHT FIVE (Fable,
+   Brendon's "build and push as you go, without me"). ALL on `dev` (tip
+   `b017714`) + `pd-contracts` main (tip `8e164b5`), both trees clean,
+   tsc + 172 app tests + 378 contract tests + real build green, ClickUp
+   synced per ship. Brendon woke mid-session and redlined once (halo tilt
+   — flipped, pushed).**
 
-   **QUEUED FOR A FRESH CHAT — THE MOODS SET (Brendon greenlit as this
-   session hit its limit): "can we have more than one mood? cozy was just
-   an example."** Build a data-driven mood registry: each mood = one
-   castable word bundling colorway + ambient light + the DJ (the shipped
-   COZY MOOD pattern in `CommandStone.tsx` doCast 'mood' is the template
-   — generalize it). Bare `moods` should deal the set as a widget, each
-   tappable. Recon done: colorway keys available are custom · light ·
-   dark · orange · blue · red · hashsyn · haze · hothurt · attention
-   (`lib/state/ColorwayContext.tsx` COLORWAYS). Candidate set to present:
-   cozy (shipped) · rave/hype (hothurt + ambient + DJ) · focus/monk
-   (everything off, quiet) · midnight (dark + dim) — NAMES ARE OPEN,
-   confirm with Brendon before locking.
+   **Nothing is in flight.**
+
+   1. **THE MOODS SET (Command Stone).** Cozy generalized into a data
+      registry (`lib/stone/moods.ts`): one castable word = colorway +
+      ambient light + the DJ; same word off; the ORIGINAL colorway comes
+      back even after switching moods; only one worn at a time. Set:
+      cozy (haze·ambient·DJ) · rave/hype (hothurt·ambient·DJ) ·
+      monk/focus (light·all off·quiet) · midnight (dark·dim wash·music
+      stays). Bare `moods` deals the set as a tappable Stone card (worn
+      one marked, deal stays up). ☾ = THE MOODS, GLYPHS §12a. Abilities
+      doc re-tabled. ⚠ Names + monk's light wear + midnight keeping music
+      were my calls — swappable in one data line each.
+   2. **ClickUp sync debt CLEARED** — retro ship records for the three
+      unsynced sessions (86bb4j0qx Soundtracks/Suite · 86bb4j0r4
+      Depanneur+audit batch · 86bb4j0w9 stone wow-pass+moods); keychain
+      tasks corrected (contracts task's stale "awaiting merge" note,
+      86bb46etv now records the shipped Depanneur).
+   3. **INCOGNITO PROXY v1 IS REAL** (86bb4j26g). Pill input resolves
+      @handle · name.eth (the ens subgraph) · 0x; `useEffectiveAddress()`
+      is the one read; adopted: PriceBooks/Portfolios · project-gallery
+      My Network ("Me" + circle = the lens) · Friend Inspector default ·
+      Completionism. Session-only, read-only. **⚠ MY TWO CALLS, flagged
+      for Brendon's edit:** identity area stays YOU (lens in the bar, not
+      the mirror) · writes DISABLE while proxied (Completionism's ⌂ Pal
+      door toasts `Incognito: READ ONLY`). **Consciously out:**
+      Starred/Wishlist — no public read path exists; needs his privacy
+      call (brief updated in place, `docs/briefs/incognito-proxy.md`).
+   4. **KEYCHAINS — THE EYES ROUND** (contracts + engine, byte-identical
+      12/12 proven). 15 eye styles (new: DIZZY LASERS SUNGLASSES
+      3D GLASSES LASHES TEARY) + iris colors on the five pupil styles
+      (INK 65 · five colors 7 each, salt 14 appended). Halo re-tilted per
+      Brendon's morning redline.
+   5. **KEYCHAINS — YIN/YANG COIN SLOTS.** `crank(coin)` on-chain (stored
+      forever, BadCoin guard, event carries it); coin steers palette /
+      eyes / accessory weight tables; **shapes universal — ALIEN chase
+      equal both slots.** Machine UI wears the two slots: NO default,
+      crank reads DROP A COIN until one is picked. Trait sheets + tokenURI
+      attributes carry Coin + Iris. Docs odds re-tabled by coin; the
+      machine holds **58,060,800** charms now. ⚠ Existing test-phase
+      charms re-roll their faces under the new tables (disposable per
+      Brendon's standing call; all were coin-0 defaulted).
+   6. **Still queued:** the MCP stone door (its own pass) · POLISH button
+      + signing endpoint (chain phase, 86bb46etv) · Sepolia keychain
+      deploy (Brendon's hands, 86bb46epm).
 
    1. **Wave 1 — ABILITIES + THE BUBBLE.** Natural dates ("tomorrow" ·
       "next week tuesday" · "in 18 days" · "aug 30") · first ever mint
