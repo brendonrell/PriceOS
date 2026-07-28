@@ -34,7 +34,7 @@
  * Motion honours prefers-reduced-motion: the show still plays, it just cuts.
  */
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { adBreak, eligibleSpots, AD_BUMPER, AD_RETURN } from '../../lib/stickers/ads';
 import { LEADS, type Beat } from '../../lib/stickers/episodes';
 import {
@@ -103,12 +103,17 @@ function parseColor(scratch: CanvasRenderingContext2D, value: string, fallback: 
 }
 
 export default function StickerLcd({ mode }: { mode: 'store' | 'market' | 'binder' }) {
-    /* THE CAROUSEL — the whole break, nothing but the break. Every spot that
-       may air on this face gets its slot, shuffled fresh each time the panel is
-       built, so a long visit keeps turning up commercials it hasn't played yet
-       and two visits never run the same order. Built once per face, so a beat
-       change stays a pure index bump. */
-    const frames: Frame[] = useMemo(() => {
+    /* ⛔ THE ROTATION HAS TO ACTUALLY ROTATE (Brendon, 2026-07-28: "it played
+       the same ones every time... make sure the rotation is actually working
+       and it doesn't always just default to a certain one first").
+       The old build shuffled ONCE, when the panel mounted — so for as long as
+       the shop stayed open you got the same commercials in the same order,
+       forever, and the same one always led. Now the running order is rebuilt
+       and RE-SHUFFLED every time the carousel wraps, so each pass through the
+       break leads with a different spot and plays them in a different order.
+       Every eligible spot still gets a slot in every pass — nothing is sampled
+       out. */
+    const buildFrames = useCallback((): Frame[] => {
         const card = (face: string, line: string): Frame => ({ face, line, ms: CARD_MS, slate: true });
         const ads: Frame[] = adBreak(mode, eligibleSpots(mode).length).flatMap((spot) =>
             spot.lines.map((line, n) => ({
@@ -127,8 +132,12 @@ export default function StickerLcd({ mode }: { mode: 'store' | 'market' | 'binde
 
     const hostRef = useRef<HTMLDivElement | null>(null);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
-    const framesRef = useRef(frames);
-    framesRef.current = frames;
+    /* The running order lives ONLY in the ref — never re-derived on render, so
+       a reshuffle the loop just made can't be thrown away by the next repaint. */
+    const framesRef = useRef<Frame[]>([]);
+    const buildRef = useRef(buildFrames);
+    buildRef.current = buildFrames;
+    if (framesRef.current.length === 0) framesRef.current = buildFrames();
     /* Set by the loop, called when the face changes — the show for the shop is
        not the show for the marketplace, so it restarts at its own slate. */
     const restartRef = useRef<(() => void) | null>(null);
@@ -214,7 +223,16 @@ export default function StickerLcd({ mode }: { mode: 'store' | 'market' | 'binde
             if (page + 1 < pages.length) {
                 page += 1;
             } else {
-                beat = (beat + 1) % Math.max(1, framesRef.current.length);
+                const next = beat + 1;
+                if (next >= framesRef.current.length) {
+                    /* END OF THE PASS — deal the break again, in a NEW order, so
+                       the next time round leads with a different commercial
+                       (Brendon, 2026-07-28). */
+                    framesRef.current = buildRef.current();
+                    beat = 0;
+                } else {
+                    beat = next;
+                }
                 page = 0;
                 plan();
             }
@@ -403,7 +421,12 @@ export default function StickerLcd({ mode }: { mode: 'store' | 'market' | 'binde
         };
     }, []);
 
-    useEffect(() => { restartRef.current?.(); }, [frames]);
+    /* A face change is a different shop, so it gets its own freshly-dealt
+       break and restarts at the bumper. */
+    useEffect(() => {
+        framesRef.current = buildFrames();
+        restartRef.current?.();
+    }, [buildFrames]);
 
     return (
         <div className="ss-lcd" ref={hostRef} aria-hidden="true">

@@ -56,7 +56,9 @@ interface YTPlayer {
 }
 interface YTNamespace {
     Player: new (el: HTMLElement, opts: unknown) => YTPlayer;
-    PlayerState: { PLAYING: number; PAUSED: number; ENDED: number };
+    /* CUED (5) is the state iOS parks a blocked-autoplay station in — it means
+       LOADED AND WAITING, not broken (Brendon, 2026-07-28 dead-link fix). */
+    PlayerState: { PLAYING: number; PAUSED: number; ENDED: number; CUED: number };
 }
 declare global {
     interface Window {
@@ -209,11 +211,24 @@ export default function FmBar() {
     /* Begin (or retune) a session. The chassis renders off `onAir`, so a
        play from anywhere summons the device; the boot effect below creates
        the YT player once the video host is really in the DOM. */
+    const clearWatchdog = useCallback(() => {
+        if (watchdogRef.current) { clearTimeout(watchdogRef.current); watchdogRef.current = null; }
+    }, []);
+
+    /* ⛔ THE FALSE DEAD LINK (Brendon, 2026-07-28: "it says DEAD LINK every
+       single time even though it's not dead and it fixes itself eventually").
+       The watchdog used to flag any station that hadn't reached PLAYING inside
+       12s — but a station that has LOADED FINE and is merely waiting for a tap
+       is the normal case on iOS, where Safari refuses to start sound without a
+       real gesture and our tune happens well outside the gesture window. So the
+       player sat CUED, the watchdog cried dead, and the moment ▶ was pressed
+       (or a slow start finally landed) it played perfectly — "it fixes itself".
+       The watchdog now measures the ONLY thing that means dead: the station
+       never reported back AT ALL. Any signal from the player — ready, cued,
+       buffering, playing, paused — clears it. A genuinely broken link still
+       flags, through the error handler below, which is what actually knows. */
     const armWatchdog = useCallback(() => {
-        if (watchdogRef.current) clearTimeout(watchdogRef.current);
-        /* 12s of silence after a tune = the link is dead (private, deleted,
-           or unreachable playlist). Only a stuck TUNING flags — a user pause
-           never does. */
+        clearWatchdog();
         watchdogRef.current = setTimeout(() => {
             if (statusRef.current === 'loading') {
                 setDeadLink(true);
@@ -222,7 +237,7 @@ export default function FmBar() {
             }
         }, 12000);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [clearWatchdog]);
 
     const start = useCallback((station: Station) => {
         resumeRef.current = null; // a fresh tune plays now — never the saved spot
@@ -298,6 +313,9 @@ export default function FmBar() {
                 },
                 events: {
                     onReady: (e: { target: YTPlayer }) => {
+                        /* The station answered — it is not a dead link, whatever
+                           it does about autoplay from here. */
+                        clearWatchdog();
                         const r = resumeRef.current;
                         if (r) {
                             if (asPlaylist) e.target.cuePlaylist({ list: station.playlistId, listType: 'playlist', index: r.index, startSeconds: r.t });
@@ -307,6 +325,19 @@ export default function FmBar() {
                         e.target.playVideo();
                     },
                     onStateChange: (e: { data: number; target: YTPlayer }) => {
+                        /* ANY word from the player means the station is alive —
+                           kill the dead-link timer before anything else. A
+                           retune on a player that is ALREADY ready never fires
+                           onReady again, so this is the clear that covers
+                           switching stations. */
+                        clearWatchdog();
+                        /* CUED = loaded and sitting there, which is exactly what
+                           iOS gives us when it blocks autoplay. That is READY,
+                           not dying: say PAUSED and let ▶ do its job. */
+                        if (e.data === YT.PlayerState.CUED && statusRef.current === 'loading') {
+                            setStatus('paused');
+                            setDeadLink(false);
+                        }
                         /* Only trust the title on PLAYING — the freshly-started
                            video. Reading it on the old video's PAUSED/ENDED
                            events (which fire mid-switch) is what left the
@@ -347,7 +378,7 @@ export default function FmBar() {
                 },
             });
         });
-    }, [onAir, saveSession]);
+    }, [onAir, saveSession, clearWatchdog]);
 
     /* Restore on arrival — the device comes back paused, right where it was
        (Brendon, 2026-07-27). Mount covers the same-device reopen (the cache);
