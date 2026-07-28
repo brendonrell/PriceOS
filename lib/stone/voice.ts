@@ -285,6 +285,12 @@ const FUN_WIDGET: Record<string, Pool> = {
         ['Atmospheres, on hand.', null],
         ['Choose your evening.', 'I will set the room.'],
     ],
+    token: [
+        ['The ticker, read.', 'Numbers move. I merely report.'],
+        ['A coin, weighed.', null],
+        ['The rate, as it stands.', 'It will be different by the time you look away.'],
+        ['Priced.', 'The market has opinions. The ledger has facts.'],
+    ],
     joke: [
         ['A joke, then.', 'I keep a ledger of those too.'],
         ['Comedy, from the stone.', 'Delivery is not my strong suit.'],

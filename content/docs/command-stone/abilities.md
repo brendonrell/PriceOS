@@ -187,6 +187,15 @@ A mood is one castable word that sets the whole room: colorway, ambient light, a
 | `hunting` · `hunt` | The Arbitrage Map reads the spreads, everything priced — deals in sight |
 | `browsing` · `window shopping` | The feed sort — strolling the galleries, no agenda |
 
+## The coin cards
+
+| Type | Get |
+|---|---|
+| `$price` · `price token` | The $PRICE card: live price in fiat, trend, and how much the connected wallet holds. Reads $0.00 until the pool exists — honest by construction |
+| `$eth` · `eth price` | Ether — price, 1h/6h/24h trend, pool depth, your balance |
+| `$fwa` | Same card, any registered coin — the registry grows one line at a time |
+| `gnomes` · `keychains` · `stickers` | The manual, opened straight to that feature's own pages |
+
 ## The fun bench
 
 The personality side. All of it runs on real data or a seeded roll — the Stone never re-rolls an answer to please you.

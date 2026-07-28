@@ -132,4 +132,16 @@ describe('the fun wave', () => {
         }
         expect(pickJoke(told, 'joke·full').exhausted).toBe(true);
     });
+    it('coin cards summon by $symbol and extra words', () => {
+        expect(parseWidget('$price', NOW)).toMatchObject({ kind: 'token', symbol: 'PRICE' });
+        expect(parseWidget('price token', NOW)).toMatchObject({ kind: 'token', symbol: 'PRICE' });
+        expect(parseWidget('$eth', NOW)).toMatchObject({ kind: 'token', symbol: 'ETH' });
+        expect(parseWidget('$fwa', NOW)).toMatchObject({ kind: 'token', symbol: 'FWA' });
+        expect(parseWidget('$doge', NOW)).toBeNull(); // unregistered → search
+    });
+    it('bare feature topics open the manual pre-queried', () => {
+        expect(parseWidget('gnomes', NOW)).toMatchObject({ kind: 'docs', query: 'gnomes' });
+        expect(parseWidget('keychains', NOW)).toMatchObject({ kind: 'docs', query: 'keychains' });
+        expect(parseWidget('stickers', NOW)).toMatchObject({ kind: 'docs', query: 'stickers' });
+    });
 });

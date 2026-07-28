@@ -55,6 +55,9 @@ import { working, loreAnswer, eightballVerdict, fortuneReading, JOKES, pickJoke 
 import { subscribeFm, getFm, fmPlay, fmToggle, fmNext } from '../../lib/fm/fmBus';
 import { formatStoneDate, formatDaysAway, todoPhrase, type StoneDate } from '../../lib/stone/dates';
 import { MOODS, MARKET_MOODS, type MoodDef, type MarketMoodDef } from '../../lib/stone/moods';
+import { TOKENS } from '../../lib/stone/tokens';
+import { PerMilleMark } from '../shell/PerMilleMark';
+import type { StoneTokenResponse } from '../../app/api/stone/token/route';
 import type {
     OracleFirstMintResponse,
     OracleReleaseResponse,
@@ -2365,6 +2368,97 @@ function MoodsWidget({ wornKey, wornMarketKey, onCast, onCastMarket }: {
     );
 }
 
+/* ── THE COIN CARD — "$price" · "$eth" · "$fwa": live price with the fiat
+      beside it, the trend, the pool depth, the logo, and YOU HOLD for the
+      signed-in wallet. All through our own route at $0. $PRICE reads
+      $0.00 until the pool exists — honest by construction. ── */
+
+function fmtUsd(n: number): string {
+    if (n === 0) return '$0.00';
+    if (n >= 1) return `$${n.toLocaleString('en-US', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`;
+    return `$${n.toPrecision(4).replace(/0+$/, '').replace(/\.$/, '')}`;
+}
+function fmtAmount(n: number): string {
+    if (n >= 1000) return n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    if (n >= 1) return n.toLocaleString('en-US', { maximumFractionDigits: 2 });
+    return n.toPrecision(4).replace(/0+$/, '').replace(/\.$/, '');
+}
+function TrendChip({ label, v }: { label: string; v: number | null }) {
+    if (v == null) return null;
+    const up = v >= 0;
+    return (
+        <span className="sw-hit-sub">{`${label} ${up ? '+' : ''}${v.toFixed(1)}% ${up ? '↑' : '↓'}${VS15}`}</span>
+    );
+}
+
+function TokenWidget({ symbol, address }: { symbol: string; address: string }) {
+    const def = TOKENS.find((t) => t.symbol === symbol) ?? null;
+    const [card, setCard] = useState<StoneTokenResponse | null>(null);
+    const [failed, setFailed] = useState(false);
+    useEffect(() => {
+        if (!def) return;
+        let cancelled = false;
+        const holder = address ? `&holder=${address.toLowerCase()}` : '';
+        fetch(`/api/stone/token?symbol=${def.symbol}${holder}`, { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => { if (!cancelled) { if (d) setCard(d as StoneTokenResponse); else setFailed(true); } })
+            .catch(() => { if (!cancelled) setFailed(true); });
+        return () => { cancelled = true; };
+    }, [def, address]);
+    if (!def) return null;
+    const logo = def.logo === 'permille'
+        ? <PerMilleMark className="sw-title-glyph" style={{ width: 16, height: 16 }} />
+        : def.logo === 'eth'
+            ? `◊${VS15}`
+            : card?.imageUrl
+                ? <img src={card.imageUrl} alt="" width={16} height={16} style={{ borderRadius: 4 }} />
+                : `◊${VS15}`;
+    if (failed) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={typeof logo === 'string' ? logo : undefined} label={`$${def.symbol}`} sub={def.name.toUpperCase()} />
+                <SwSay>THE TICKER IS UNREACHABLE. THE LEDGER ENDURES.</SwSay>
+            </div>
+        );
+    }
+    if (!card) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={typeof logo === 'string' ? logo : undefined} label={`$${def.symbol}`} sub={def.name.toUpperCase()} />
+                <SwSay>{working('rate')}</SwSay>
+            </div>
+        );
+    }
+    return (
+        <div className="stone-widget sw-card">
+            <div className="sw-title">
+                <span className="sw-title-glyph">{typeof logo === 'string' ? logo : logo}</span>
+                <span className="sw-title-label">{`$${card.symbol}`}</span>
+                <span className="sw-title-sub">{card.name.toUpperCase()}</span>
+            </div>
+            <SwSay lead>{fmtUsd(card.priceUsd)}</SwSay>
+            {card.hasPool ? (
+                <div className="sw-hit">
+                    <span className="sw-hit-body">
+                        <TrendChip label="1H" v={card.change.h1} />
+                        <TrendChip label="6H" v={card.change.h6} />
+                        <TrendChip label="24H" v={card.change.h24} />
+                    </span>
+                </div>
+            ) : (
+                <SwSay>{card.note ?? 'NO POOL ON THE BOOKS.'}</SwSay>
+            )}
+            {card.hasPool && card.liquidityUsd != null && (
+                <SwSay>{`POOL ${fmtUsd(card.liquidityUsd)}${card.volume24Usd != null ? ` · 24H VOL ${fmtUsd(card.volume24Usd)}` : ''}`}</SwSay>
+            )}
+            {card.balance != null && card.balance > 0 && (
+                <SwSay>{`YOU HOLD ${fmtAmount(card.balance)} $${card.symbol}${card.balanceUsd != null ? ` · ${fmtUsd(card.balanceUsd)}` : ''}`}</SwSay>
+            )}
+            {card.balance === 0 && <SwHint text="none in the connected wallet" />}
+        </div>
+    );
+}
+
 /* ── THE JOKE — the stone keeps a told-ledger in the pocket, so a joke
       never repeats until the whole bank has been dealt; then it says so
       and honestly starts over. Footer deals ANOTHER ONE. ── */
@@ -2459,6 +2553,7 @@ export function WidgetDeck({ plan, address, onGo, onAct, onFooter, onSeed, wornM
             />
         );
         case 'joke': return <JokeWidget onFooter={onFooter} />;
+        case 'token': return <TokenWidget symbol={plan.symbol} address={address} />;
     }
 }
 

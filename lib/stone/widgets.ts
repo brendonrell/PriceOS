@@ -29,6 +29,7 @@ import { parseConvert, type ConvertPlan } from '../fx/convert';
 import { parseStoneDate, type StoneDate } from './dates';
 import { TAGS, type Tag } from '../tags/catalog';
 import { MOODS_WORDS } from './moods';
+import { matchToken } from './tokens';
 
 export type WidgetPlan =
     | { kind: 'calendar' }
@@ -87,7 +88,9 @@ export type WidgetPlan =
     /* "moods" — the whole set dealt as a tappable hand (lib/stone/moods). */
     | { kind: 'moods' }
     /* "tell me a joke" — the told-ledger means never a repeat (2026-07-28). */
-    | { kind: 'joke' };
+    | { kind: 'joke' }
+    /* "$price" · "$eth" — the rich coin card (lib/stone/tokens). */
+    | { kind: 'token'; symbol: string };
 
 function norm(s: string): string {
     return s.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -158,6 +161,18 @@ export function parseWidget(line: string, now: Date = new Date()): WidgetPlan | 
     /* Bare `moods` deals the set — the singular words CAST (checked first
        in the stone, so `mood` still flips cozy, never lands here). */
     if (MOODS_WORDS.has(q)) return { kind: 'moods' };
+
+    /* ── THE COIN CARD — "$price" · "$eth" · "$fwa" (2026-07-28). */
+    const token = matchToken(q);
+    if (token) return { kind: 'token', symbol: token.symbol };
+
+    /* ── THE MANUAL, by bare topic (2026-07-28: "the stone must know
+       everything about gnomes and keychains and stickers") — the exact
+       feature words open the docs hand pre-queried; anything longer
+       stays a search. */
+    if (['gnome', 'gnomes'].includes(q)) return { kind: 'docs', query: 'gnomes' };
+    if (['keychain', 'keychains'].includes(q)) return { kind: 'docs', query: 'keychains' };
+    if (['sticker', 'stickers'].includes(q)) return { kind: 'docs', query: 'stickers' };
 
     /* `wrapped 90d` / `recap 7d` — a chosen window. */
     const wrapped = /^(?:wrapped|recap)\s+(\d{1,3})d?$/.exec(q);
