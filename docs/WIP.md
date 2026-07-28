@@ -10,11 +10,11 @@
 
 000000000000000000000. ✅ **2026-07-28 (LATEST) — THE SPOT-EDIT ROUND
    (Opus 5, Brendon's twelve-item list: "quick in and out spot edit
-   session"). On `dev` (tip `66fc0f0`), tree clean, tsc + 185 tests + real
+   session"). On `dev` (tip `98e9905`), tree clean, tsc + 185 tests + real
    build green, every CSS claim read back out of the compiled stylesheet.
    ClickUp ship record `86bb4nbag` (02·UI, Done).**
 
-   **Nothing is in flight.** Twelve asks, ten shipped, two answered.
+   **Nothing is in flight.** Thirteen asks, twelve shipped, one answered.
 
    1. **EDIT ✎ on To-Dos + Workflows**, beside the row ×. A to-do gets the
       Lists panel's rename-in-place VERBATIM (Enter/blur commits, Esc backs
@@ -58,11 +58,15 @@
        Price Lens took ◎. ⌾ was my pick, flagged swappable.
    12. **Profile TRADE button is glyph only** (⇌).
 
-   **⚠ TWO ANSWERED, NOT BUILT — waiting on Brendon's word:**
-   - **Profile ▸ Info tab.** He leaned toward removing it; left in place. It
-     holds only Followers, Following and a dead "Anchor — coming soon" dash,
-     and the first two already render in the profile hero — removing it
-     loses nothing real. One word and it goes.
+   13. **THE PROFILE ▸ INFO TAB IS DEAD** (his word the same day: "Let's kill
+       info thanks!"). Pill, panel, the `ProfileMoreL1` member and its one
+       stylesheet block all gone; a stale saved `info` falls through the same
+       guard every other unknown tab value does, so nobody lands on a blank
+       surface. Nothing was lost — Followers/Following already sit in the
+       profile hero and the third stat was a dead "Anchor — coming soon" dash.
+       Tip `98e9905`.
+
+   **⚠ ONE ANSWERED, NOT BUILT — waiting on Brendon's word:**
    - **Factions vs Takeover.** My call: keep them separate. Factions is the
      colour war (allegiance · ground · the Book); Takeover is a money
      instrument (a premium blanket bid on a position). Factions as the
