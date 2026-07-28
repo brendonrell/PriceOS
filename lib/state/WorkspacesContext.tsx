@@ -20,6 +20,13 @@
  *   localStorage.pd_workspaces        → JSON [{id, name, code, isDefault}]
  *   localStorage.pd_active_workspace  → numeric id
  *
+ * ACCOUNT-BACKED (Brendon, 2026-07-28). The server row is the source of truth
+ * and the two keys above are the write-through cache, per the storage doctrine:
+ * every change pushes {list, activeId} to `users.workspaces`, and a sign-in
+ * snapshot overwrites the caches then re-runs hydrate off the hydrate event —
+ * so your spaces follow you to any device. Signed out it is device-only, as
+ * before; there is no account to write to.
+ *
  * State drift: per sim's note (line 7628 changelog), changing settings
  * after loading a workspace silently diverges live state from the
  * workspace's saved code. The Setup Code field tracks live; the workspace
@@ -57,6 +64,7 @@ import {
     notifsPatchFromDecodedState,
     type DecodedState,
 } from './SetupCode';
+import { pushState, USERSTATE_HYDRATED_EVENT } from './userState';
 import {
     SHIPPED_WORKSPACES,
     DEFAULT_LOAD_TOASTS,
@@ -143,8 +151,9 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
     const [workspaces, setWorkspaces] = useState<Workspace[]>(() => freshDefaults());
     const [activeId, setActiveId] = useState<number | null>(1);
 
-    // Hydrate once on mount. Sim 10147-10168.
-    useEffect(() => {
+    // Hydrate from the caches. Runs once on mount AND again whenever a server
+    // snapshot lands (sign-in on another device's set). Sim 10147-10168.
+    const hydrateFromCaches = useCallback(() => {
         let next: Workspace[];
         try {
             const saved = localStorage.getItem(STORAGE_KEY_LIST);
@@ -248,8 +257,15 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
         }
     }, []);
 
+    useEffect(() => {
+        hydrateFromCaches();
+        window.addEventListener(USERSTATE_HYDRATED_EVENT, hydrateFromCaches);
+        return () => window.removeEventListener(USERSTATE_HYDRATED_EVENT, hydrateFromCaches);
+    }, [hydrateFromCaches]);
+
     // Persist on change. Skipped on the very first render so the hydrate
-    // effect has a chance to read first.
+    // effect has a chance to read first. The account write-through no-ops
+    // until a server snapshot has landed for a signed-in address.
     const hydratedRef = useRef(false);
     useEffect(() => {
         if (!hydratedRef.current) { hydratedRef.current = true; return; }
@@ -263,6 +279,7 @@ export function WorkspacesProvider({ children }: { children: ReactNode }) {
         } catch {
             /* ignore */
         }
+        pushState({ workspaces: { list: workspaces, activeId } });
     }, [workspaces, activeId]);
 
     const currentCode = useMemo(

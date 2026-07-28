@@ -11,6 +11,11 @@
  *
  * A POPUP, not a nav (his words): the pings list stays exactly where it was
  * underneath, so reading one never costs you your place.
+ *
+ * It wears the DELETE-CONFIRM's shape (Brendon, 2026-07-28) — the same dimmed
+ * overlay and centered inverted card the platform already uses to confirm a
+ * delete, instead of a full-screen sheet. A ping is a small thing to read; it
+ * gets a small card.
  */
 
 import { useCallback, useMemo, type MouseEvent as ReactMouseEvent } from 'react';
@@ -70,55 +75,55 @@ export default function PingModal() {
         close();
     };
 
+    if (!isOpen) return null;
+
     return (
         <div
             id="pingModal"
-            className={`platform-modal${isOpen ? ' active' : ''}`}
+            className="starred-confirm-overlay ping-confirm-overlay"
             role="dialog"
             aria-modal="true"
             data-stack-top={isTopStacked || undefined}
             onClick={onBackdropClick}
         >
-            <div
-                className="close-hint"
-                role="button"
-                tabIndex={0}
-                onClick={close}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); close(); } }}
-                title="Close"
-            >
-                {'×'}{VS15}
-            </div>
-            <div className="modal-info" style={{ marginTop: 0, maxWidth: 320 }}>
-                <div className="modal-title" style={{ marginBottom: 0 }}>
-                    {r ? titleOf(r.kind, reminder) : 'PING'}
-                </div>
+            <div className="ms-confirm-card is-centered ping-card" onClick={(e) => e.stopPropagation()}>
+                <div className="ping-card-kind">{r ? titleOf(r.kind, reminder) : 'PING'}</div>
                 {r ? (
-                    <div className="ping-modal-body">
-                        <div className="ping-modal-line">
-                            <span className={`n-icon ping-ic ping-ic--${r.kind}`}>{r.icon}</span>
+                    <>
+                        <div className="ms-confirm-question ping-card-line">
+                            <span className={`ping-card-ic ping-ic ping-ic--${r.kind}`}>{r.icon}</span>
                             <span>
                                 {r.handle && <strong>{r.handle}</strong>}
                                 {r.handle ? ' ' : ''}
                                 {r.action}
                             </span>
                         </div>
-                        <div className="ping-modal-when">{when}</div>
-                        <div className="ping-modal-actions">
+                        <div className="ping-card-when">{when}</div>
+                        <div className="ms-confirm-btns ping-card-btns">
+                            <button type="button" className="ms-confirm-btn ms-confirm-btn--cancel" onClick={close}>
+                                Close
+                            </button>
                             {(reminder === 'todo' || reminder === 'sentinel') && (
-                                <button type="button" className="pill pill-l2 active" onClick={openTodos}>
+                                <button type="button" className="ms-confirm-btn ms-confirm-btn--ok" onClick={openTodos}>
                                     {`❍${VS15}`} OPEN TO-DOS
                                 </button>
                             )}
                             {item?.actor_name && (
-                                <a className="pill pill-l2" href={`/${item.actor_name}`} onClick={() => close()}>
+                                <a className="ms-confirm-btn ms-confirm-btn--ok" href={`/${item.actor_name}`} onClick={() => close()}>
                                     {`☻${VS15}`} @{item.actor_name}
                                 </a>
                             )}
                         </div>
-                    </div>
+                    </>
                 ) : (
-                    <div className="fm-empty">This ping has moved on.</div>
+                    <>
+                        <div className="ms-confirm-question">This ping has moved on.</div>
+                        <div className="ms-confirm-btns">
+                            <button type="button" className="ms-confirm-btn ms-confirm-btn--cancel" onClick={close}>
+                                Close
+                            </button>
+                        </div>
+                    </>
                 )}
             </div>
         </div>

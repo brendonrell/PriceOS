@@ -1943,36 +1943,60 @@ body.modal-open { overflow: hidden; touch-action: none; }
    The tag room carries five slice pills (four sorts + the Cabal narrow), which
    need a second line at iPhone width. */
 #tagPeopleModal .collectors-sort-row { flex-wrap: wrap; }
-/* The ping, in full: the line as it reads in the list, the moment it landed in
-   YOUR time, and its door. Full-strength — this is the thing you opened. */
-.ping-modal-body {
-    display: flex;
-    flex-direction: column;
+/* THE PING POPUP — the delete-confirm's card, one size up (Brendon,
+   2026-07-28: "a bit larger, doesn't have to be exactly the same"). The ping
+   in full: what it says, the moment it landed in YOUR time, and its door.
+   Full-strength on the inverted card — this is the thing you opened. */
+.ping-confirm-overlay { z-index: 1300; }
+.ms-confirm-card.is-centered.ping-card {
+    width: min(88vw, 300px);
+    padding: 14px 14px 12px;
     gap: 12px;
-    margin-top: 14px;
-    text-align: left;
-    font-family: 'Courier New', Courier, monospace;
 }
-.ping-modal-line {
+.ping-card-kind {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.18em;
+    text-align: center;
+    line-height: 1;
+}
+.ms-confirm-question.ping-card-line {
     display: flex;
     align-items: baseline;
+    justify-content: center;
     gap: 8px;
-    font-size: 14px;
+    font-size: 14.5px;
     line-height: 1.45;
+    letter-spacing: 0.2px;
+    padding: 0;
 }
-.ping-modal-when {
+.ping-card-ic {
+    font-size: 15px;
+    flex-shrink: 0;
+    font-family: 'Courier New', Courier, monospace;
+}
+.ping-card-when {
     font-size: 12px;
     font-weight: bold;
     letter-spacing: 0.08em;
-    border-top: 1px dashed var(--border-color);
+    text-align: center;
+    border-top: 1px dashed color-mix(in srgb, var(--bg-color) 45%, transparent);
     padding-top: 10px;
+    margin-top: -2px;
 }
-.ping-modal-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+.ping-card-btns { flex-wrap: wrap; }
+/* The door can be a link (a person's profile) — give the anchor the button's
+   own box so button and link read as one row. */
+.ping-card-btns .ms-confirm-btn {
+    height: 32px;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    text-decoration: none;
+    box-sizing: border-box;
 }
-.ping-modal-actions .pill { text-decoration: none; }
 .collectors-holders .lb-pos { min-width: 2.5ch; }
 .modal-stats-bottom {
     margin-top: 15px;
