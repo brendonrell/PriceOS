@@ -135,6 +135,10 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
         slugs: ['rarity-labs'],
     },
     {
+        title: 'The Marketplace',
+        slugs: ['marketplace'],
+    },
+    {
         title: 'PriceScore',
         slugs: ['pricescore'],
     },

@@ -216,6 +216,24 @@
 .suite-tile-num { font-size: 16px; font-weight: bold; line-height: 1; }
 .suite-tile-lbl { font-size: 12px; font-weight: bold; letter-spacing: 0.5px; }
 
+/* ⬟ PriceCalm — the calm room: the real Zen Garden with the room to
+   itself. The garden brings its own breathing animation; the room only
+   centres it and keeps the note full-strength. */
+.suite-calm {
+    display: flex;
+    justify-content: center;
+    padding: 18px 0 10px;
+}
+.suite-calm .zen-garden { margin: 0 auto; }
+.suite-calm-note {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0;
+    padding: 14px 4px;
+}
+
 /* ⚯ PricePhone — the contacts app: circle rows + the CALL key */
 .suite-ph-row {
     display: flex;

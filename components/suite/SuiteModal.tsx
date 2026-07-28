@@ -34,6 +34,7 @@ import { WorkflowsSheet } from '../dropdown/WorkflowsSheet';
 import { PortfolioView } from '../dropdown/PortfolioView';
 import SuiteToday, { type SuiteAppKey } from './SuiteToday';
 import SuitePhone from './SuitePhone';
+import SuiteCalm from './SuiteCalm';
 import { PerMilleMark } from '../shell/PerMilleMark';
 
 const VS15 = '︎';
@@ -53,6 +54,9 @@ const APPS = [
        the Suite (the real Pal, ModalContext 'pal'/'profit'); closing it
        lands you back here. */
     { key: 'calc', glyph: 'ƒ', name: 'PriceCalc' },
+    /* ⬟ — the Zen Garden's own stone fronts the calm room (Brendon's pick,
+       2026-07-28: PriceCal · PriceCalc · PriceCalm). */
+    { key: 'calm', glyph: '⬟', name: 'PriceCalm' },
     /* ⚯ — the Friend Inspector's circle glyph fronts the contacts app.
        Renamed PricePhone → PriceCall (Brendon, 2026-07-27). Key unchanged. */
     { key: 'phone', glyph: '⚯', name: 'PriceCall' },
@@ -94,6 +98,8 @@ export default function SuiteModal() {
             <div className="sticker-mgr-plus followers-plus suite-plus" onClick={(e) => e.stopPropagation()}>
                 <div className="smgr-plus-head">
                     <span className="ambient-pop-title-text">
+                        {/* ❏ — the Suite's mark (Brendon's pick, GLYPHS §12l). */}
+                        <span className="smgr-title-ic">{`❏${VS15}`}</span>{' '}
                         <span className="smgr-title-words">PriceOS SUITE</span>
                     </span>
                     <span
@@ -134,6 +140,7 @@ export default function SuiteModal() {
                     {app === 'task' && <TodosBox suite />}
                     {app === 'flow' && <WorkflowsSheet inline />}
                     {app === 'books' && <div className="suite-books"><PortfolioView /></div>}
+                    {app === 'calm' && <SuiteCalm />}
                     {app === 'phone' && <SuitePhone />}
                     {app === 'notes' && <NotesBox suite />}
                 </div>

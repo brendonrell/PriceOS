@@ -658,6 +658,33 @@ taste gets measured on the Fingerprint).
 > docs. VS-15 + Courier per convention; standard #1 gate — proposed by
 > Claude, shipped subject to Brendon's veto (one line to swap).
 
+## 12l. PriceOS Suite — ❏ (2026-07-27, Brendon's pick)
+
+| Use | Glyph | Codepoint |
+|---|---|---|
+| **PriceOS Suite — the productivity super-app** | ❏ | U+274F LOWER RIGHT DROP-SHADOWED WHITE SQUARE |
+
+> **Brendon's winner from the boxed-candidates round (2026-07-27) — "❏ is
+> our winner for PriceOS Suite!"** An app window with depth: the one box
+> holding the eight apps. Matches his same-day box law for the Suite (every
+> app icon sits in the rounded-square box). Screened: no emoji mapping;
+> codepoint was free repo-wide at pick time. Family note: ❐ (§3) stays the
+> multi-select unselected badge — different codepoint, different meaning,
+> both stay. Wears: the Suite modal title. VS-15 + Courier per convention.
+
+## 12m. Zen Garden / PriceCalm — ⬟ (2026-07-28, Brendon's direction)
+
+| Use | Glyph | Codepoint |
+|---|---|---|
+| **The Zen Garden — and ⬟ PriceCalm, the Suite's calm room** | ⬟ | U+2B1F BLACK PENTAGON |
+
+> Brendon's direction (2026-07-28): the Zen Garden's own mark fronts
+> PriceCalm. ⬟ is the garden's leading stone (ZenGarden's ROCK_GLYPHS) and
+> lives nowhere else in the app — the stone IS the garden. Geometric-shapes
+> family, no emoji mapping. Wears: the PriceCalm app icon. (The garden's
+> other characters stay internal: ⬣ the second stone, ≋ the raked sand —
+> ≋ also belongs to the colorway Haze family §7, never reuse it as a mark.)
+
 ## 13. THE WAR — Factions glyphs (2026-07-13 build, spec v3.1 §11)
 
 One vocabulary across the ceremony, the tape, pings, the Book, and the

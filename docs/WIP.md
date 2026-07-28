@@ -8,7 +8,75 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-000000000000000. ✅ **2026-07-27 (LATEST) — PRE-LAUNCH POLISH MEGA-BATCH
+0000000000000000. ✅ **2026-07-27 (LATEST) — THE DEPANNEUR LIVE (sim) + THE
+   BIG UI/AUDIT BATCH (Fable). All on `dev`, tree clean, tsc + real build
+   green, every UI claim screenshot-verified in the REAL running build at
+   iPhone size. Brendon-approved ("Then push!").**
+
+   **Nothing is in flight. QUEUED FOR A FRESH CHAT: the Incognito Proxy
+   build — spec at `docs/briefs/incognito-proxy.md` (it's a shell today;
+   the brief has the whole plan + the two Brendon questions to ask first).**
+
+   1. **THE DEPANNEUR ⚷ IS OPEN (test phase, sim-ETH).** Both ⚷ doors now
+      open the capsule machine: CRANK (0.010 sim-ETH, tunable const in
+      `lib/keychains/engine.ts`), charm lands in the settings envelope
+      (`keychains` key; `keychainEquipped` = worn pick), rack + christen
+      (once-ever, charset-guarded) + equip. **The art engine is a
+      BYTE-IDENTICAL TS port of PDKeychainRenderer** — proven against real
+      contract renders via a forge harness (6 seeds across all finishes/
+      chain tiers/names, byte-for-byte). Charms read LIVE streak/rank
+      (chain = streak, finish = rank — no polish needed off-chain; POLISH +
+      signing endpoint stay queued for the chain phase, ClickUp 86bb46etv).
+      Equipped mini charm rides the END of the profile tags (default-off),
+      tap → full-charm popup. API: `/api/keychains/*` (crank·christen·
+      equip·public rack read). The COMING SOON toasts are dead.
+   2. **Suite v2:** app-icon switcher (every glyph in the SAME rounded
+      square — his box law — name below, active = stat-active fill);
+      the reused boxes DOUBLE-INVERTED onto the page colour via a scoped
+      var re-map in `styles/suite.css` (no more filled white/black
+      sections); **PriceNotes → PriceWrite · PricePhone → PriceCall**
+      (keys unchanged); **❏ = the Suite glyph** (Brendon's pick, GLYPHS
+      §12l, worn in the title). **Calc verified NOT broken** — drove the
+      real build: ƒ opens Profit Pal over the Suite, lands on Profit,
+      closes back. If his device still misbehaves, get the symptom.
+   3. **FULL ASCII-ID in modals:** CollectedPair grew `showRank` (sprite ·
+      circled PriceRank · @name — `useUserRank` cached per handle) — worn
+      by FI dossier head + FI rows + Owners modal + tag rooms. Badge sits
+      2px high (his nudge). **☻ replaced the ⚬ circle on the FOLLOWERS
+      stat** (profile + output heroes; projects had no circle to swap).
+   4. **Mini profile tags:** `UserTags size="mini"` (+ `themed` = page
+      tokens) inline right after the ASCII-ID on artwork pages + FI
+      dossier; tap ↔ toggles the full-size row below. One renderer still
+      (ProfileTags, now with a `trailing` slot for the charm).
+   5. **Audit answers (Brendon's questions):** Incognito Proxy = NOT real
+      (spec'd, see above) · History sort row had dead GROUP/$PRICE/AZ —
+      pruned to ◷ with a WORKING direction flip (own MORE_CFG entry); all
+      other Starred/Wishlist sorts verified live · profile Offers tab was
+      a pill with NO body — albums-style empty prompt added (real offers
+      surface still unbuilt) · sticker/keychain pricing = hand-set ETH
+      constants, retunable, no oracle.
+   6. **Discord section rebuilt** (his order — was washed-out + lozenges):
+      full-strength PD chrome, 4px corners, identity plate w/ real pfp +
+      accent frame, LINKED/JOINED readouts, proper door buttons. Old CSS
+      replaced by `.pd-dc-*`; `.pd-discord-tile-wide` kept (Counterparties
+      rides it).
+   7. **Docs highlight sections added:** PriceScore (tier table) · Rarity
+      Labs · The Marketplace (his pick from the candidates round).
+   8. **⬟ PriceCalm SHIPPED** (his pick: "Calm room is our winner") — the
+      REAL Zen Garden as the Suite's 9th app, raked from the viewer's own
+      pieces; ⬟ = the garden's stone, now its catalogued mark (GLYPHS
+      §12m — first pick ⬣ rejected by Brendon, then ⛶ was wrong too: that's
+      Zen MODE. The garden's mark is the stone). Miniplayer untouched —
+      the room adds no sound wiring.
+   9. **Docs:** The Marketplace highlight section added (his pick) ·
+      **❏ = the PriceOS Suite glyph** (GLYPHS §12l, worn in the Suite
+      title) · **Incognito Proxy spec written for a fresh chat:**
+      `docs/briefs/incognito-proxy.md` (current shell state · the view-as
+      intent · surface scope · reuse plan · the two questions for Brendon).
+   10. ClickUp sync for this batch + the two prior sessions' flagged debt
+      still outstanding (Fable metering).
+
+000000000000000. ✅ **2026-07-27 — PRE-LAUNCH POLISH MEGA-BATCH
    (Fable). All on `dev` (tip `1a55a59`), tree clean, tsc + real build green,
    138 tests pass, every round Brendon-approved + pushed + auto-deployed.
    ClickUp record: `86bb4cu8d` (02·UI, complete).**
