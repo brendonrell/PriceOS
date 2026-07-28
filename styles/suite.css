@@ -55,9 +55,12 @@
 }
 
 .suite-todaybar-permille {
-    height: 13px;
+    /* 20% smaller and one pixel up inside the bar (Brendon, 2026-07-28). */
+    height: 10.4px;
     width: auto;
     flex: 0 0 auto;
+    position: relative;
+    top: -1px;
 }
 
 /* the eight app icons fall into NEAT ROWS — a fixed four-column grid, so the
