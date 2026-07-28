@@ -106,6 +106,170 @@ function toolErr(message: string): Json {
     return { content: [{ type: 'text', text: message }], isError: true };
 }
 
+/* ── MCP App: the piece view ────────────────────────────────────────────────
+ *
+ * The MCP Apps extension (io.modelcontextprotocol/ui) lets a tool answer with
+ * an interactive HTML view that the host renders inside the conversation, in a
+ * sandboxed iframe. get_output declares this resource, so a supporting host
+ * SHOWS the artwork instead of printing JSON about it. Hosts without the
+ * extension are untouched — they still get the same text + structuredContent.
+ *
+ * The view wears PD's own tokens (Dot base #111111/#e0e0e0, Courier New, 4px
+ * radius, full-strength borders — no washes, nothing under 12px) because the
+ * iframe is isolated and inherits none of the site's CSS. It talks to the host
+ * over postMessage JSON-RPC directly: zero dependencies, like the rest of this
+ * worker. Mint times render in the VIEWER's local zone, per the site rule.
+ */
+const PIECE_VIEW_URI = 'ui://pd-mcp/piece';
+const PIECE_VIEW_MIME = 'text/html;profile=mcp-app';
+
+const PIECE_VIEW_HTML = `<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PD — Output</title>
+<style>
+  :root { --bg-color: #111111; --text-color: #e0e0e0; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 12px;
+    background: var(--bg-color); color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace; font-size: 13px; line-height: 1.45;
+  }
+  #art {
+    display: block; width: 100%; height: auto; max-height: 62vh; object-fit: contain;
+    border: 2px solid var(--text-color); background: var(--bg-color); cursor: zoom-in;
+  }
+  #id { font-size: 15px; font-weight: bold; letter-spacing: 0.04em; margin: 10px 0 2px; }
+  #name { font-size: 13px; font-weight: bold; margin-bottom: 8px; }
+  .rows { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+  .rows th, .rows td { text-align: left; padding: 3px 0; font-size: 12px; vertical-align: top; }
+  .rows th { font-weight: bold; width: 8.5em; padding-right: 10px; white-space: nowrap; }
+  .pills { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
+  .pill {
+    font-size: 12px; font-weight: bold; padding: 3px 7px; border-radius: 4px;
+    border: 2px solid var(--text-color); background: var(--bg-color); color: var(--text-color);
+  }
+  .pill b { font-weight: bold; }
+  .pill--on { background: var(--text-color); color: var(--bg-color); }
+  button {
+    font-family: inherit; font-size: 12px; font-weight: bold; letter-spacing: 0.04em;
+    padding: 7px 12px; border-radius: 4px; cursor: pointer;
+    border: 2px solid var(--text-color); background: var(--bg-color); color: var(--text-color);
+  }
+  button:hover { background: var(--text-color); color: var(--bg-color); }
+  #wait { font-size: 12px; font-weight: bold; }
+  #wait::after { content: '.'; animation: dots 1.2s steps(4, end) infinite; }
+  @keyframes dots { 0% { content: '.'; } 33% { content: '..'; } 66% { content: '...'; } }
+</style>
+
+<div id="wait">Loading the piece</div>
+<div id="view" hidden>
+  <img id="art" alt="">
+  <div id="id"></div>
+  <div id="name"></div>
+  <table class="rows"><tbody id="facts"></tbody></table>
+  <div class="pills" id="traits"></div>
+  <button id="open" type="button">OPEN ON PD</button>
+</div>
+
+<script>
+(function () {
+  var seq = 0, full = false;
+  function send(method, params) {
+    parent.postMessage({ jsonrpc: '2.0', id: ++seq, method: method, params: params || {} }, '*');
+  }
+  function notify(method, params) {
+    parent.postMessage({ jsonrpc: '2.0', method: method, params: params || {} }, '*');
+  }
+
+  var el = function (id) { return document.getElementById(id); };
+  var page = null;
+
+  function row(label, value) {
+    if (value === null || value === undefined || value === '') return '';
+    var tr = document.createElement('tr');
+    var th = document.createElement('th');
+    var td = document.createElement('td');
+    th.textContent = label;
+    td.textContent = value;
+    tr.appendChild(th); tr.appendChild(td);
+    el('facts').appendChild(tr);
+    return '';
+  }
+
+  function shortAddr(a) {
+    if (typeof a !== 'string' || a.length < 12) return a;
+    return a.slice(0, 6) + '…' + a.slice(-4);
+  }
+
+  // Clock times render in the VIEWER's local zone — never pinned to UTC.
+  function localTime(iso) {
+    if (!iso) return null;
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return null;
+    return d.toLocaleString(undefined, {
+      year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+  }
+
+  function render(p) {
+    if (!p || typeof p !== 'object') return;
+    page = p.page || null;
+
+    if (p.image) { el('art').src = p.image; el('art').alt = p.id || 'PD Output'; }
+    else { el('art').remove(); }
+
+    el('id').textContent = String(p.id || '').toUpperCase();
+    if (p.true_name) el('name').textContent = '“' + p.true_name + '”';
+    else el('name').remove();
+
+    el('facts').textContent = '';
+    row('OWNER', shortAddr(p.owner));
+    if (p.minter && p.minter !== p.owner) row('MINTED BY', shortAddr(p.minter));
+    row('MINTED', localTime(p.minted_at));
+    if (p.list_price_eth !== null && p.list_price_eth !== undefined) row('LISTED', p.list_price_eth + ' ETH');
+    if (p.last_sale_eth !== null && p.last_sale_eth !== undefined) row('LAST SALE', p.last_sale_eth + ' ETH');
+
+    var traits = p.traits || {};
+    var host = el('traits');
+    host.textContent = '';
+    Object.keys(traits).forEach(function (k) {
+      var v = traits[k];
+      if (v === null || v === undefined || v === '') return;
+      var s = document.createElement('span');
+      s.className = 'pill';
+      s.textContent = k + ': ' + v;
+      host.appendChild(s);
+    });
+    if (!host.childNodes.length) host.remove();
+
+    if (!page) el('open').remove();
+    el('wait').hidden = true;
+    el('view').hidden = false;
+  }
+
+  el('open').addEventListener('click', function () {
+    if (page) send('ui/open-link', { url: page });
+  });
+  el('art').addEventListener('click', function () {
+    full = !full;
+    send('ui/request-display-mode', { mode: full ? 'fullscreen' : 'inline' });
+    el('art').style.cursor = full ? 'zoom-out' : 'zoom-in';
+  });
+
+  window.addEventListener('message', function (e) {
+    var m = e.data;
+    if (!m || m.jsonrpc !== '2.0') return;
+    if (m.method === 'ui/notifications/tool-result') {
+      render((m.params || {}).structuredContent);
+    }
+  });
+
+  send('ui/initialize', { appCapabilities: { availableDisplayModes: ['inline', 'fullscreen'] } });
+  notify('ui/notifications/initialized', {});
+})();
+</script>`;
+
 /* ── Cached fetch helpers (the /api/gas pattern: one upstream per window) ── */
 
 async function cached<T>(env: Env, key: string, ttlSeconds: number, load: () => Promise<T>): Promise<T> {
@@ -223,6 +387,9 @@ async function getOutput(env: Env, args: Json): Promise<Json> {
         traits: d.traits ?? {},
         visual_fingerprint: d.fingerprint ?? null,
         page: `${env.PD_APP_ORIGIN}/art/${slug}/${id}`,
+        // The stored master (ART_REV v2), same file the site itself draws.
+        // Feeds the MCP App view; harmless extra field for text hosts.
+        image: env.ART_IMAGE_BASE ? `${env.ART_IMAGE_BASE}/${slug}/${id}.v2.png` : null,
     };
     return toolText(JSON.stringify(out, null, 2), out);
 }
@@ -442,6 +609,10 @@ const TOOLS = [
             },
             required: ['slug', 'token_id'],
         },
+        // MCP Apps: hosts that support the UI extension render the piece itself
+        // (see PIECE_VIEW_URI) instead of printing the JSON. Text hosts are
+        // unaffected — they still get the same structured answer.
+        _meta: { ui: { resourceUri: PIECE_VIEW_URI } },
         run: getOutput,
     },
     {
@@ -528,7 +699,7 @@ async function handleRpc(env: Env, msg: Json): Promise<Json | null> {
         case 'server/discover':
             return rpcResult(id, {
                 protocolVersions: [...SUPPORTED_PROTOCOL_VERSIONS],
-                capabilities: { tools: {} },
+                capabilities: { tools: {}, resources: {} },
                 serverInfo: SERVER_INFO,
                 instructions: INSTRUCTIONS,
             });
@@ -542,7 +713,7 @@ async function handleRpc(env: Env, msg: Json): Promise<Json | null> {
                     typeof asked === 'string' && SUPPORTED_PROTOCOL_VERSIONS.includes(asked as never)
                         ? asked
                         : PROTOCOL_VERSION,
-                capabilities: { tools: {} },
+                capabilities: { tools: {}, resources: {} },
                 serverInfo: SERVER_INFO,
                 instructions: INSTRUCTIONS,
             });
@@ -552,10 +723,55 @@ async function handleRpc(env: Env, msg: Json): Promise<Json | null> {
         case 'tools/list':
             return rpcResult(id, {
                 // Deterministic order — lets clients cache and keeps prompt-cache hits.
-                tools: TOOLS.map(({ name, title, description, inputSchema }) => ({ name, title, description, inputSchema })),
+                tools: TOOLS.map((t) => ({
+                    name: t.name,
+                    title: t.title,
+                    description: t.description,
+                    inputSchema: t.inputSchema,
+                    ...('_meta' in t && t._meta ? { _meta: t._meta } : {}),
+                })),
                 ttlMs: LIST_CACHE_TTL_MS,
                 cacheScope: 'public',
             });
+        // MCP Apps: the piece view, served as a UI resource.
+        case 'resources/list':
+            return rpcResult(id, {
+                resources: [
+                    {
+                        uri: PIECE_VIEW_URI,
+                        name: 'pd_piece_view',
+                        description: 'Renders a PD Output — the artwork itself, its facts and its traits.',
+                        mimeType: PIECE_VIEW_MIME,
+                    },
+                ],
+                ttlMs: LIST_CACHE_TTL_MS,
+                cacheScope: 'public',
+            });
+        case 'resources/read': {
+            if (params.uri !== PIECE_VIEW_URI) {
+                return rpcError(id, -32602, `Unknown resource: ${String(params.uri)}`);
+            }
+            // The view draws the stored master straight from the art origin, so
+            // that origin has to be allowed by the sandbox's policy.
+            const artOrigin = env.ART_IMAGE_BASE ? new URL(env.ART_IMAGE_BASE).origin : null;
+            return rpcResult(id, {
+                contents: [
+                    {
+                        uri: PIECE_VIEW_URI,
+                        mimeType: PIECE_VIEW_MIME,
+                        text: PIECE_VIEW_HTML,
+                        _meta: {
+                            ui: {
+                                csp: { connectDomains: [], resourceDomains: artOrigin ? [artOrigin] : [] },
+                                prefersBorder: false,
+                            },
+                        },
+                    },
+                ],
+                ttlMs: LIST_CACHE_TTL_MS,
+                cacheScope: 'public',
+            });
+        }
         case 'tools/call': {
             const tool = TOOLS.find((t) => t.name === params.name);
             if (!tool) return rpcError(id, -32602, `Unknown tool: ${String(params.name)}`);
