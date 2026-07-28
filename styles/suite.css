@@ -269,6 +269,52 @@
     padding: 2px 2px;
 }
 
+/* ⛔ PRICECAL, ADAPTED TO THE PANE (Brendon, 2026-07-28: "the calendar needs
+   to be adapted to use the space with the grid up top and the events full
+   width below").
+   Out in the connect menu the calendar is split side-by-side — month grid on
+   the left, a 33%-wide day column on the right — because the dropdown
+   backboard is short and wide. That split is a BACKBOARD constraint, not the
+   app. In the Suite pane there is a full panel of room, so the app stacks:
+   the month grid takes the whole width up top, the selected day's events run
+   the whole width beneath it. Same markup, same component (Rule #0). */
+.suite-cal .cal-body {
+    flex-direction: column;
+    gap: 10px;
+}
+.suite-cal .cal-grid-wrap {
+    flex: 0 0 auto;
+    gap: 3px;
+}
+/* A full-width grid at the menu's 22px row height reads as a squashed band —
+   the cells take the height the new width earns them. */
+.suite-cal .cal-weekday-row { font-size: 11px; }
+.suite-cal .cal-day {
+    height: 34px;
+    font-size: 13px;
+    border-radius: 4px;
+}
+/* the day, full width beneath the grid — the left divider becomes the rule
+   that separates the two stacked halves */
+.suite-cal .cal-day-col {
+    flex: 0 0 auto;
+    padding: 0;
+    border-left: none;
+    border-top: 1px solid var(--pd-page-text);
+    padding-top: 8px;
+    gap: 6px;
+}
+.suite-cal .cal-day-col-header { font-size: 12px; opacity: 1; }
+/* ONE SCROLLER, FULL LENGTH — the Suite's law (see PriceBooks above). The
+   145px porthole is the menu's budget; here the day runs its natural length
+   and the app box scrolls it. */
+.suite-cal .cal-day-col-events {
+    max-height: none;
+    overflow: visible;
+    contain: none;
+    font-size: 13px;
+}
+
 /* ── ƒ PriceCalc — the Pal, ADAPTED (Brendon, 2026-07-28: "adapt those huge
    profit pal CTA buttons to more app appropriate buttons… adapting means
    adapting gracefully and intentionally, not shoehorning").

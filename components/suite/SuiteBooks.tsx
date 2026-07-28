@@ -12,7 +12,7 @@ import SuitePane from './SuitePane';
 
 export default function SuiteBooks() {
     return (
-        <SuitePane id="Books" title="PORTFOLIOS" className="suite-books">
+        <SuitePane id="Books" title="PRICEBOOKS" className="suite-books">
             <PortfolioView />
         </SuitePane>
     );

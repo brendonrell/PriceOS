@@ -261,7 +261,7 @@ export function WorkflowsSheet({ onClose, inline = false }: { onClose?: () => vo
         return (
             <SuitePane
                 id="Wf"
-                title="WORKFLOWS"
+                title="PRICEFLOWS"
                 count={armedCount}
                 className="suite-wf"
                 actions={

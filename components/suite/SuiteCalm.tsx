@@ -30,7 +30,7 @@ export default function SuiteCalm() {
     }, [siweAddress]);
 
     return (
-        <SuitePane id="Calm" title="ZEN GARDEN" count={count ?? undefined} className="suite-calm-pane">
+        <SuitePane id="Calm" title="PRICECALM" count={count ?? undefined} className="suite-calm-pane">
             {!siweAddress ? (
                 <p className="suite-calm-note">Connect your wallet — the garden is raked from your own pieces.</p>
             ) : (

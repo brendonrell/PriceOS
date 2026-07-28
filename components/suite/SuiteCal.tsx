@@ -42,7 +42,7 @@ export default function SuiteCal() {
     return (
         <SuitePane
             id="Cal"
-            title="CALENDAR"
+            title="PRICECAL"
             className="suite-cal"
             actions={
                 <>

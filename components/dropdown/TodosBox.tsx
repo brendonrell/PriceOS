@@ -278,7 +278,10 @@ export function TodosBox({ suite = false }: { suite?: boolean } = {}) {
             header={
                 <span className="todos-header-row">
                     <span {...(suite ? {} : suiteHold)} title={suite ? undefined : 'Hold to open the PriceOS Suite'}>
-                        TO-DOS <span className="notif-count">({openCount})</span>
+                        {/* In the Suite the header wears the app's own name
+                            (Brendon, 2026-07-28); the connect menu keeps
+                            TO-DOS. */}
+                        {suite ? 'PRICETASK' : 'TO-DOS'} <span className="notif-count">({openCount})</span>
                     </span>
                     {(suite || notifs.todos) && (
                         /* One right-side icon cluster — + then ☇ (swapped per

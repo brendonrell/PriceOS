@@ -521,7 +521,7 @@ export default function PalPanel({ inline = false }: { inline?: boolean } = {}) 
         return (
             <SuitePane
                 id="Pal"
-                title={tab === 'purchase' ? 'PURCHASE PAL' : 'PROFIT PAL'}
+                title="PRICECALC"
                 className="suite-pal"
             >
                 {body}

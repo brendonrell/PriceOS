@@ -136,7 +136,9 @@ export function NotesBox({ suite = false }: { suite?: boolean } = {}) {
             onHeaderClick={() => { if (!suite) setAccordion('notes', !notifs.notes); }}
             header={
                 <span {...(suite ? {} : suiteHold)} title={suite ? undefined : 'Hold to open the PriceOS Suite'}>
-                    NOTES
+                    {/* In the Suite the header wears the app's own name
+                        (Brendon, 2026-07-28); the connect menu keeps NOTES. */}
+                    {suite ? 'PRICEWRITE' : 'NOTES'}
                     <span className="notif-count">({visible.length})</span>
                 </span>
             }

@@ -77,7 +77,7 @@ export default function SuitePhone() {
     const count = contacts?.length ?? 0;
 
     return (
-        <SuitePane id="Phone" title="CONTACTS" count={count} className="suite-phone">
+        <SuitePane id="Phone" title="PRICECALL" count={count} className="suite-phone">
             {!siweAddress && (
                 <div className="todo-empty">Connect to see your circle.</div>
             )}
