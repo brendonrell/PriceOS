@@ -136,6 +136,11 @@ export default function LoyaltyPanel({
                                                     <span className="srl-handle">{title}</span>
                                                     <span className="srl-suffix">#{r.token_id}</span>
                                                     {i < 3 && <span className="loy-medal">{`${MEDALS[i]}${VS15}`}</span>}
+                                                    {/* Born here — minted by this wallet and never let
+                                                        go. The mint star, §1. */}
+                                                    {r.from_mint && (
+                                                        <span className="loy-born" title="Minted here — never let go">{`✶${VS15}`}</span>
+                                                    )}
                                                 </span>
                                                 <span className="starred-row-sub">
                                                     held <em>{fmtDays(r.held_days)}</em> · since {fmtDay(r.acquired_at)}
@@ -212,6 +217,18 @@ export default function LoyaltyPanel({
                                 <div className="attr-tile">
                                     <span className="attr-tile-label">Listed now</span>
                                     <span className="attr-tile-value">{data.purity.listed_now} OF {data.purity.kept}</span>
+                                </div>
+                                <div className="attr-tile">
+                                    <span className="attr-tile-label">Born here</span>
+                                    <span className="attr-tile-value">{`✶${VS15} ${data.purity.born_here} OF ${data.purity.kept}`}</span>
+                                </div>
+                                <div className="attr-tile">
+                                    <span className="attr-tile-label">Clean hands</span>
+                                    <span className="attr-tile-value">
+                                        {data.purity.clean_since == null
+                                            ? 'NOTHING EVER LEFT'
+                                            : fmtDays(Math.max(0, Math.floor((Date.now() - data.purity.clean_since * 1000) / 86400000)))}
+                                    </span>
                                 </div>
                             </div>
                         </section>

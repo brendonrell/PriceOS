@@ -41,6 +41,20 @@ function fmtDay(ts: number): string {
     return `${month} ${day} ’${String(d.getFullYear()).slice(-2)}`;
 }
 
+/* The span of a relationship — "MAY 22 → JUL 26". Years are deliberately
+   dropped here: this line shares its row with the absolutely-positioned
+   action button, and measured against the real row width anything longer
+   ellipses away. The full dates ride the row's title, and the tie's own year
+   is on the Oldest-tie tile above. */
+function fmtSpan(from: number, to: number): string {
+    const short = (ts: number) => {
+        const d = new Date(ts * 1000);
+        if (Number.isNaN(d.getTime())) return '—';
+        return `${d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()} ${d.toLocaleDateString('en-US', { day: '2-digit' })}`;
+    };
+    return `${short(from)} → ${short(to)}`;
+}
+
 export default function CounterpartiesPanel({
     address,
     handle,
@@ -195,6 +209,18 @@ export default function CounterpartiesPanel({
                                         <span className="attr-tile-label">Top</span>
                                         <span className="attr-tile-value">{nameOf(data.rows[0])}</span>
                                     </div>
+                                    {data.totals.biggest_deal && (
+                                        <div className="attr-tile">
+                                            <span className="attr-tile-label">Record deal</span>
+                                            <span className="attr-tile-value">{fmtEth(data.totals.biggest_deal.eth)} · {nameOf(data.totals.biggest_deal)}</span>
+                                        </div>
+                                    )}
+                                    {data.totals.oldest_tie && (
+                                        <div className="attr-tile">
+                                            <span className="attr-tile-label">Oldest tie</span>
+                                            <span className="attr-tile-value">{nameOf(data.totals.oldest_tie)} · {fmtDay(data.totals.oldest_tie.first_ts)}</span>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="starred-rows cp-rows">
                                     {data.rows.map((r, i) => (
@@ -212,13 +238,33 @@ export default function CounterpartiesPanel({
                                                 </span>
                                             </div>
                                             <div className="starred-row-meta">
-                                                <span className="starred-row-id">{nameOf(r)}</span>
+                                                <span className="starred-row-id">
+                                                    {nameOf(r)}
+                                                    {/* The §12 relationship glyph beside the name — the
+                                                        Starred/Wishlist artist-row treatment, verbatim. */}
+                                                    {r.rel && (
+                                                        <span
+                                                            className={`artist-social-ico ${r.rel === 'mutual' ? 'is-mutual-lg' : 'is-bump'}`}
+                                                            title={r.rel === 'mutual' ? 'Mutual' : r.rel === 'following' ? 'Following' : 'Follows you'}
+                                                        >
+                                                            {r.rel === 'mutual' ? `⚭${VS15}` : r.rel === 'following' ? `⚯${VS15}` : `⚬${VS15}`}
+                                                        </span>
+                                                    )}
+                                                </span>
                                                 <span className="starred-row-sub">
                                                     {r.deals} {r.deals === 1 ? 'deal' : 'deals'}
                                                     <em>{` · bought ${r.bought} · sold ${r.sold}`}{r.trades > 0 ? ` · ⇌${VS15} ${r.trades}` : ''}</em>
                                                 </span>
-                                                <span className="starred-row-sub">
-                                                    {r.volume_eth > 0 ? `${fmtEth(r.volume_eth)} · ` : ''}last {fmtDay(r.last_ts)}
+                                                <span
+                                                    className="starred-row-sub"
+                                                    title={r.first_ts > 0 && r.first_ts !== r.last_ts
+                                                        ? `First deal ${fmtDay(r.first_ts)} · last ${fmtDay(r.last_ts)}`
+                                                        : `Last deal ${fmtDay(r.last_ts)}`}
+                                                >
+                                                    {r.volume_eth > 0 ? `${fmtEth(r.volume_eth)} · ` : ''}
+                                                    {r.first_ts > 0 && r.first_ts !== r.last_ts
+                                                        ? fmtSpan(r.first_ts, r.last_ts)
+                                                        : `last ${fmtDay(r.last_ts)}`}
                                                 </span>
                                             </div>
                                             {isOwnProfile && (

@@ -12328,6 +12328,17 @@ body.colorway-dark .ghost-feed-bar {
     font-size: 13px;
     margin-left: 2px;
 }
+/* Born here — the mint star beside a piece that was minted by this wallet and
+   never let go. ✶ renders small + low at base (GLYPHS §5), so it takes the
+   established bump + raise. */
+.loy-born {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 15px;
+    line-height: 1;
+    margin-left: 3px;
+    transform: translateY(-1px);
+    display: inline-block;
+}
 .loy-verdict-tile { gap: 6px; }
 .loy-verdict { font-size: 16px; letter-spacing: 1.5px; }
 .loy-verdict-line {

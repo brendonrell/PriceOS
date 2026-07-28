@@ -23,6 +23,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import SigilArt from '../SigilArt';
+import { getProject } from '../../lib/project/registry';
 import { sigilAnatomy } from '../../lib/sigil/sigil';
 import { factionByKey, WAR_GLYPHS } from '../../lib/factions/factions';
 import { useFaction } from '../../lib/factions/useFaction';
@@ -48,6 +49,13 @@ function fmtDay(iso: string | null): string {
 function pct(share: number): string {
     const p = share * 100;
     return p >= 10 ? `${Math.round(p)}%` : `${Number(p.toPrecision(2))}%`;
+}
+
+/* 1st · 2nd · 3rd · 4th — the forge order reads as a place in line. */
+function ordinal(n: number): string {
+    const t = n % 100;
+    if (t >= 11 && t <= 13) return `${n}TH`;
+    return `${n}${['TH', 'ST', 'ND', 'RD'][n % 10] ?? 'TH'}`;
 }
 
 /* Book kinds wear the war vocabulary (GLYPHS.md §13); everything else the
@@ -114,7 +122,9 @@ export default function SigilPanel({
                         <section className="attr-group" aria-label="The mark">
                             <div className="attr-group-head">
                                 <span className="attr-group-name">The mark · forged, permanent</span>
-                                {isOwnProfile && data.hidden && <span className="attr-group-count">HIDDEN</span>}
+                                {isOwnProfile && data.hidden
+                                    ? <span className="attr-group-count">HIDDEN</span>
+                                    : data.forge_number != null && <span className="attr-group-count">{ordinal(data.forge_number)} EVER FORGED</span>}
                             </div>
                             <div className="attr-grid">
                                 <div className="attr-tile pd-discord-tile-wide sig-mark-tile">
@@ -138,6 +148,21 @@ export default function SigilPanel({
                                 <div className="attr-tile">
                                     <span className="attr-tile-label">Companion</span>
                                     <span className="attr-tile-value">{anatomy.side ?? 'NONE'}</span>
+                                </div>
+                                {/* Accents — the combining marks that ride the core.
+                                    Shown on the dotted circle ◌, the standard base for
+                                    displaying a combining mark on its own. */}
+                                <div className="attr-tile">
+                                    <span className="attr-tile-label">Accents</span>
+                                    <span className="attr-tile-value">
+                                        {anatomy.above || anatomy.below
+                                            ? `${anatomy.above ? `◌${anatomy.above}` : ''}${anatomy.above && anatomy.below ? ' · ' : ''}${anatomy.below ? `◌${anatomy.below}` : ''}`
+                                            : 'BARE'}
+                                    </span>
+                                </div>
+                                <div className="attr-tile">
+                                    <span className="attr-tile-label">Struck</span>
+                                    <span className="attr-tile-value">{fmtDay(data.forged_at)}</span>
                                 </div>
                             </div>
                         </section>
@@ -220,6 +245,44 @@ export default function SigilPanel({
                                     </div>
                                 </div>
                             </section>
+
+                            {/* THE GROUND — where the flag actually flies. */}
+                            {data.faction.ground.length > 0 && (
+                                <section className="attr-group" aria-label="The ground">
+                                    <div className="attr-group-head">
+                                        <span className="attr-group-name">{`${WAR_GLYPHS.corner} The ground · where the flag flies`}</span>
+                                        <span className="attr-group-count">{data.faction.ground.length}</span>
+                                    </div>
+                                    <div className="starred-rows loy-rows">
+                                        {data.faction.ground.map((g) => {
+                                            const title = getProject(g.slug)?.displayName ?? g.slug.toUpperCase();
+                                            return (
+                                                <div
+                                                    key={`${g.slug}:${g.role}`}
+                                                    className="starred-row"
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    onClick={() => router.push(`/art/${g.slug}`)}
+                                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.push(`/art/${g.slug}`); } }}
+                                                >
+                                                    <div className="trait-row-tile sig-kin-tile">
+                                                        <span className="artist-row-tile-glyph">
+                                                            {g.role === 'BESIEGING' ? WAR_GLYPHS.siege : g.status === 'STRONGHOLD' ? WAR_GLYPHS.banner : WAR_GLYPHS.corner}
+                                                        </span>
+                                                    </div>
+                                                    <div className="starred-row-meta">
+                                                        <span className="starred-row-id">{title}</span>
+                                                        <span className="starred-row-sub">
+                                                            <em>{g.role === 'BESIEGING' ? 'BESIEGING' : g.status}</em>
+                                                            {g.since ? ` · since ${fmtDay(g.since)}` : ''}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </section>
+                            )}
 
                             {/* THE BOOK — what the comrades have been doing. */}
                             <section className="attr-group" aria-label="Faction activity">

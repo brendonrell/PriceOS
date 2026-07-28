@@ -58,12 +58,19 @@ export interface SigilFactionBlock {
   book: { kind: string; line: string; ts: string; project: string | null }[];
   /** Longest-sworn first — the old guard. */
   comrades: SigilComradeRow[];
+  /** Where the flag actually flies — every collection this faction leads or
+   *  is pressing, with the ground's own state. */
+  ground: { slug: string; status: string; role: 'LEADS' | 'BESIEGING'; since: string | null }[];
 }
 
 export interface SigilTabResponse {
   address: string;
   forged: boolean;
   hidden: boolean;
+  /** ISO — the day the hammer fell. Null while unforged. */
+  forged_at: string | null;
+  /** Forge order among every forged mark: 1 = the first ever struck. */
+  forge_number: number | null;
   /** Forged, visible marks on the platform (the kinship population). */
   forged_total: number;
   /** Share of that population wearing this mark's core / form (incl. self). */
@@ -114,7 +121,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
         .eq('address', address)
         .maybeSingle(),
       db.from('users')
-        .select('address, handle, sigil_hidden')
+        .select('address, handle, sigil_hidden, sigil_forged_at')
         .not('sigil_forged_at', 'is', null)
         .limit(1000),
       db.from('faction_oaths')
@@ -127,9 +134,27 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
     const forged = me?.sigil_forged_at != null;
     const hidden = me?.sigil_hidden === true;
 
+    const allForged = (forgedRes.data ?? []) as {
+      address: string; handle: string | null; sigil_hidden: boolean; sigil_forged_at: string | null;
+    }[];
+
+    // Forge order — the Nth mark ever struck. Hidden marks still hold their
+    // place in the line (they were forged); hiding is a render choice, not an
+    // erasure, and a bare ordinal reveals nothing about who they are.
+    let forgeNumber: number | null = null;
+    if (forged && me?.sigil_forged_at) {
+      const mineAt = Date.parse(me.sigil_forged_at);
+      let earlier = 0;
+      for (const u of allForged) {
+        if (u.address.toLowerCase() === address) continue;
+        const at = u.sigil_forged_at ? Date.parse(u.sigil_forged_at) : NaN;
+        if (Number.isFinite(at) && at < mineAt) earlier += 1;
+      }
+      forgeNumber = earlier + 1;
+    }
+
     // ── Kinship — the marks closest to this one ─────────────────────────────
-    const visible = ((forgedRes.data ?? []) as { address: string; handle: string | null; sigil_hidden: boolean }[])
-      .filter((u) => !u.sigil_hidden);
+    const visible = allForged.filter((u) => !u.sigil_hidden);
     const forgedTotal = visible.length;
 
     let coreShare: number | null = null;
@@ -168,7 +193,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
           .select('*', { count: 'exact', head: true })
           .eq('faction', key),
         db.from('war_state')
-          .select('project_id, status, leader_faction, siege_faction'),
+          .select('project_id, status, leader_faction, siege_faction, leader_since, siege_since'),
         db.from('book_of_conquests')
           .select('kind, line, ts, project_id, faction, rival')
           .or(`faction.eq.${key},rival.eq.${key}`)
@@ -186,13 +211,37 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
       ]);
 
       let held = 0, strongholds = 0, sieges = 0;
-      for (const w of ((warRes.data ?? []) as { status: string | null; leader_faction: string | null; siege_faction: string | null }[])) {
+      const ground: SigilFactionBlock['ground'] = [];
+      for (const w of ((warRes.data ?? []) as {
+        project_id: string; status: string | null;
+        leader_faction: string | null; siege_faction: string | null;
+        leader_since: string | null; siege_since: string | null;
+      }[])) {
         if (w.leader_faction === key) {
           held += 1;
           if (w.status === 'STRONGHOLD') strongholds += 1;
+          ground.push({
+            slug: String(w.project_id),
+            status: String(w.status ?? 'OPEN'),
+            role: 'LEADS',
+            since: w.leader_since ?? null,
+          });
         }
-        if (w.siege_faction === key) sieges += 1;
+        if (w.siege_faction === key) {
+          sieges += 1;
+          ground.push({
+            slug: String(w.project_id),
+            status: String(w.status ?? 'OPEN'),
+            role: 'BESIEGING',
+            since: w.siege_since ?? null,
+          });
+        }
       }
+      // Strongholds first, then the rest of the held ground, then the sieges
+      // being pressed — the flag's own hierarchy, strongest first.
+      const groundRank = (g: { status: string; role: string }) =>
+        g.role === 'BESIEGING' ? 2 : g.status === 'STRONGHOLD' ? 0 : 1;
+      ground.sort((a, b) => groundRank(a) - groundRank(b) || a.slug.localeCompare(b.slug));
 
       const comradeRows = (comradesRes.data ?? []) as { address: string; sworn_at: string }[];
       const comrades: SigilComradeRow[] = comradeRows.map((c) => ({
@@ -227,6 +276,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
         book: ((bookRes.data ?? []) as { kind: string; line: string; ts: string; project_id: string | null }[])
           .map((b) => ({ kind: b.kind, line: b.line, ts: b.ts, project: b.project_id ?? null })),
         comrades,
+        ground,
       };
     }
 
@@ -236,6 +286,8 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
       address,
       forged,
       hidden,
+      forged_at: me?.sigil_forged_at ?? null,
+      forge_number: forgeNumber,
       forged_total: forgedTotal,
       core_share: coreShare,
       form_share: formShare,

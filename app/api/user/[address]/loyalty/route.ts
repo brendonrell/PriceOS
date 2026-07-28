@@ -27,6 +27,8 @@ export interface LoyaltyTenureRow {
   /** ISO — when the current tenure started (holders.acquired_at). */
   acquired_at: string;
   held_days: number;
+  /** Born here: minted by this wallet and never once let go. */
+  from_mint: boolean;
 }
 
 export interface LoyaltyArtistRow {
@@ -51,6 +53,11 @@ export interface LoyaltyPurity {
   kept: number;
   /** Held pieces sitting on an active listing right now. */
   listed_now: number;
+  /** Unix seconds of the LAST departure — clean hands since then.
+   *  Null = nothing has ever left this wallet. */
+  clean_since: number | null;
+  /** Held pieces minted here and never once let go — born-here count. */
+  born_here: number;
 }
 
 export interface LoyaltyResponse {
@@ -88,7 +95,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
     const db = getSupabaseService();
     const now = Date.now();
 
-    const [userRes, heldRes, arrivedRes, leftRes, listedRes] = await Promise.all([
+    const [userRes, heldRes, arrivedRes, leftRes, mintedRes, outboundRes, listedRes] = await Promise.all([
       db.from('users')
         .select('created_at, user_number, price_streak, streak_best')
         .eq('address', address)
@@ -109,6 +116,19 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
         .eq('type', 'XFER')
         .eq('from_address', address)
         .neq('to_address', ZERO),
+      // Mints INTO this wallet — the born-here read (keys, not a count).
+      db.from('events')
+        .select('project_id, token_id')
+        .eq('type', 'MINT')
+        .eq('to_address', address)
+        .limit(1000),
+      // Outbound legs with timestamps — which keys ever left + when the last
+      // departure happened (the clean-since read).
+      db.from('events')
+        .select('project_id, token_id, timestamp, to_address')
+        .eq('type', 'XFER')
+        .eq('from_address', address)
+        .limit(1000),
       db.from('listings')
         .select('*', { count: 'exact', head: true })
         .eq('seller_address', address)
@@ -129,6 +149,27 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
       acquired_at: string | null;
     }[];
 
+    // ── Born here — minted by this wallet and never once let go ─────────────
+    // A key that ever appears on an outbound leg has left at least once, so it
+    // is no longer a birth bond even if it was bought back later.
+    const mintedKeys = new Set(
+      ((mintedRes.data ?? []) as { project_id: string; token_id: string | number }[])
+        .map((m) => `${m.project_id}:${Number(m.token_id)}`),
+    );
+    const everLeftKeys = new Set<string>();
+    let lastDeparture: number | null = null;
+    for (const e of (outboundRes.data ?? []) as {
+      project_id: string; token_id: string | number; timestamp: number; to_address: string | null;
+    }[]) {
+      everLeftKeys.add(`${e.project_id}:${Number(e.token_id)}`);
+      // Burns aren't departures — a piece sent to the zero address left the
+      // world, not this wallet's keeping.
+      if ((e.to_address ?? '').toLowerCase() === ZERO) continue;
+      const ts = Number(e.timestamp);
+      if (Number.isFinite(ts) && (lastDeparture === null || ts > lastDeparture)) lastDeparture = ts;
+    }
+    const bornHere = (key: string) => mintedKeys.has(key) && !everLeftKeys.has(key);
+
     // ── Tenure — the pieces that stayed, oldest bond first ──────────────────
     const dated = held
       .filter((h) => h.acquired_at != null)
@@ -146,6 +187,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
       token_id: h.token_id,
       acquired_at: h.acquired_at,
       held_days: Math.max(0, Math.floor((now - h.at) / 86400_000)),
+      from_mint: bornHere(`${h.slug}:${h.token_id}`),
     }));
 
     const avgHoldDays = dated.length > 0
@@ -192,7 +234,20 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
       const avgHoldMs = dated.length > 0 ? dated.reduce((s, h) => s + (now - h.at), 0) / dated.length : 0;
       const tenure = accountAge ? Math.min(1, avgHoldMs / accountAge) : hands;
       const score = Math.round(50 * hands + 25 * unlisted + 25 * tenure);
-      purity = { score, verdict: verdictFor(score), arrived, let_go: letGo, kept, listed_now: listedNow };
+      const bornHereCount = held.reduce(
+        (n, h) => n + (bornHere(`${h.project_id}:${Number(h.token_id)}`) ? 1 : 0),
+        0,
+      );
+      purity = {
+        score,
+        verdict: verdictFor(score),
+        arrived,
+        let_go: letGo,
+        kept,
+        listed_now: listedNow,
+        clean_since: lastDeparture,
+        born_here: bornHereCount,
+      };
     }
 
     const response: LoyaltyResponse = {

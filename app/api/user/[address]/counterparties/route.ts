@@ -33,6 +33,12 @@ export interface CounterpartyRow {
   volume_eth: number;
   /** Unix seconds of the most recent deal. */
   last_ts: number;
+  /** Unix seconds of the FIRST deal — how far back the tie goes. */
+  first_ts: number;
+  /** The largest single priced leg between the two, in ETH. */
+  biggest_eth: number;
+  /** The profile wallet's follow relationship with this counterparty. */
+  rel: 'mutual' | 'following' | 'follower' | null;
 }
 
 export interface NemesisRead {
@@ -45,7 +51,15 @@ export interface NemesisRead {
 export interface CounterpartiesResponse {
   address: string;
   rows: CounterpartyRow[];
-  totals: { counterparties: number; deals: number; volume_eth: number };
+  totals: {
+    counterparties: number;
+    deals: number;
+    volume_eth: number;
+    /** The record single deal across every counterparty (null = never priced). */
+    biggest_deal: { address: string; handle: string | null; eth: number } | null;
+    /** The longest-standing tie — the counterparty first dealt with. */
+    oldest_tie: { address: string; handle: string | null; first_ts: number } | null;
+  };
   nemesis: NemesisRead | null;
 }
 
@@ -85,7 +99,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
         .order('timestamp', { ascending: false })
         .limit(1000),
       db.from('users')
-        .select('nemesis_address')
+        .select('nemesis_address, handle')
         .eq('address', address)
         .maybeSingle(),
     ]);
@@ -101,27 +115,52 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
       const other = from === address ? to : from;
       if (!other || other === ZERO || other === address) continue;
       const row = agg.get(other) ?? {
-        address: other, handle: null, deals: 0, bought: 0, sold: 0, trades: 0, volume_eth: 0, last_ts: 0,
+        address: other, handle: null, deals: 0, bought: 0, sold: 0, trades: 0, volume_eth: 0, last_ts: 0, first_ts: 0, biggest_eth: 0, rel: null,
       };
       row.deals += 1;
       if (to === address) row.bought += 1; else row.sold += 1;
       if (e.sale_direction === 'TRADE') row.trades += 1;
-      if (e.price_eth != null) row.volume_eth += Number(e.price_eth);
+      if (e.price_eth != null) {
+        const p = Number(e.price_eth);
+        row.volume_eth += p;
+        if (p > row.biggest_eth) row.biggest_eth = p;
+      }
       if (Number(e.timestamp) > row.last_ts) row.last_ts = Number(e.timestamp);
+      if (row.first_ts === 0 || Number(e.timestamp) < row.first_ts) row.first_ts = Number(e.timestamp);
       agg.set(other, row);
     }
 
     const rows = Array.from(agg.values())
       .sort((a, b) => (b.deals - a.deals) || (b.volume_eth - a.volume_eth) || (b.last_ts - a.last_ts))
       .slice(0, MAX_ROWS);
-    for (const r of rows) r.volume_eth = Number(r.volume_eth.toPrecision(4));
+    for (const r of rows) {
+      r.volume_eth = Number(r.volume_eth.toPrecision(4));
+      r.biggest_eth = Number(r.biggest_eth.toPrecision(4));
+    }
+
+    // The record deal + the oldest tie — read over the FULL table, not the
+    // sliced rows, so the records stand even past the row cap.
+    let biggestDeal: CounterpartiesResponse['totals']['biggest_deal'] = null;
+    let oldestTie: CounterpartiesResponse['totals']['oldest_tie'] = null;
+    for (const r of agg.values()) {
+      if (r.biggest_eth > 0 && (!biggestDeal || r.biggest_eth > biggestDeal.eth)) {
+        biggestDeal = { address: r.address, handle: null, eth: Number(r.biggest_eth.toPrecision(4)) };
+      }
+      if (r.first_ts > 0 && (!oldestTie || r.first_ts < oldestTie.first_ts)) {
+        oldestTie = { address: r.address, handle: null, first_ts: r.first_ts };
+      }
+    }
+
 
     // The declared rival — resolve + price both sides.
     const nemAddr = ((meRes.data as { nemesis_address?: string | null } | null)?.nemesis_address ?? '').toLowerCase();
     let nemesis: NemesisRead | null = null;
 
-    // One users query resolves the counterparty handles AND the nemesis'.
+    // One users query resolves the counterparty handles, the record-holders',
+    // AND the nemesis'.
     const wantHandles = new Set(rows.map((r) => r.address));
+    if (biggestDeal) wantHandles.add(biggestDeal.address);
+    if (oldestTie) wantHandles.add(oldestTie.address);
     if (nemAddr) wantHandles.add(nemAddr);
     if (wantHandles.size > 0) {
       const { data: users } = await db
@@ -133,6 +172,37 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
         handleBy.set(u.address.toLowerCase(), u.handle);
       }
       for (const r of rows) r.handle = handleBy.get(r.address) ?? null;
+      if (biggestDeal) biggestDeal.handle = handleBy.get(biggestDeal.address) ?? null;
+      if (oldestTie) oldestTie.handle = handleBy.get(oldestTie.address) ?? null;
+
+      // The profile wallet's follow graph over the listed counterparties — the
+      // §12 relationship glyphs ride the rows (⚭ mutual · ⚯ following · ⚬
+      // follower), the same marks the Starred/Wishlist name rows wear.
+      // Keyed on @name, not address: every other follows read in the app does
+      // (the Nomenclature Sweep), and pre-claim/indexer rows can carry a null
+      // address pair. A counterparty with no @name simply has no edge.
+      const myHandle = (meRes.data as { handle?: string | null } | null)?.handle ?? null;
+      const namesWanted = rows.map((r) => r.handle).filter((h): h is string => !!h);
+      if (myHandle && namesWanted.length > 0) {
+        const [outRes, inRes] = await Promise.all([
+          db.from('follows')
+            .select('following_name')
+            .eq('follower_name', myHandle)
+            .in('following_name', namesWanted),
+          db.from('follows')
+            .select('follower_name')
+            .eq('following_name', myHandle)
+            .in('follower_name', namesWanted),
+        ]);
+        const iFollow = new Set(((outRes.data ?? []) as { following_name: string }[]).map((f) => f.following_name));
+        const followsMe = new Set(((inRes.data ?? []) as { follower_name: string }[]).map((f) => f.follower_name));
+        for (const r of rows) {
+          if (!r.handle) continue;
+          const out = iFollow.has(r.handle);
+          const inn = followsMe.has(r.handle);
+          r.rel = out && inn ? 'mutual' : out ? 'following' : inn ? 'follower' : null;
+        }
+      }
 
       if (nemAddr && ADDRESS_RE.test(nemAddr)) {
         const { data: projRows } = await db
@@ -156,6 +226,8 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
       counterparties: agg.size,
       deals: Array.from(agg.values()).reduce((n, r) => n + r.deals, 0),
       volume_eth: Number(Array.from(agg.values()).reduce((n, r) => n + r.volume_eth, 0).toPrecision(4)),
+      biggest_deal: biggestDeal,
+      oldest_tie: oldestTie,
     };
 
     return NextResponse.json({ address, rows, totals, nemesis } satisfies CounterpartiesResponse);
