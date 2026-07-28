@@ -72,7 +72,20 @@
       sort) · browsing (feed sort). One room mood + one market lens at
       once; prior sort restores on lift. All existing vocabulary, zero
       new chrome. On `dev` (tip `22ea9aa`), 174 tests green.
-   7. **Still queued:** the MCP stone door (its own pass) · POLISH button
+   7. **BONUS ROUND 2 — THE COIN CARDS + THE MANUAL.** `$price` / `$eth`
+      / `$fwa` deal a rich card (live fiat price · 1h/6h/24h trend · pool
+      depth · logo — ‰ for $PRICE, ◊ for ETH · YOU HOLD from the
+      connected wallet) via `/api/stone/token` (free aggregator by PINNED
+      address only + the /api/price mainnet RPC pattern; 30s cache).
+      $PRICE reads $0.00 honestly (aggregator verified: no pairs) with
+      its "no pool yet" note; ETH verified live. Registry
+      `lib/stone/tokens.ts` = one line per coin. **⚠ FXH + PNSKTR
+      unpinned — no Ethereum pool exists for either; need Brendon's
+      addresses. FWA pinned to the only Ethereum FWA pool (~$880k liq),
+      awaiting his confirm.** Bare `gnomes`/`keychains`/`stickers` open
+      the docs hand pre-queried; all four topics verified fully covered
+      in the manual. Tip `3debd0c`, 176 tests green.
+   8. **Still queued:** the MCP stone door (its own pass) · POLISH button
       + signing endpoint (chain phase, 86bb46etv) · Sepolia keychain
       deploy (Brendon's hands, 86bb46epm).
 
