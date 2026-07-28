@@ -8,7 +8,51 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-000000000000000000000. ✅ **2026-07-28 (LATEST) — THE SPOT-EDIT ROUND
+0000000000000000000000. ✅ **2026-07-28 (LATEST) — @PRICE + THE PING CARD +
+   WORKSPACES TO THE ACCOUNT (Opus 5). On `dev` (tip `cf9f8b2`), tree clean,
+   185 tests + real build green, CSS read back out of the compiled sheet.
+   ClickUp ship record `86bb4pte4` (Done).**
+
+   **Nothing is in flight.** Two builds, one new surface, two open discussions.
+
+   1. **Ping detail popup wears the DELETE-CONFIRM's shape** — dimmed overlay
+      + centred inverted card, replacing the full-screen sheet, one size up
+      (14.5px line). Brendon's words: "doesn't have to be exactly the same
+      but I don't like the fullscreen current version." **The confirm modal
+      he means is the DELETE confirm** (`.starred-confirm-overlay` +
+      `.ms-confirm-card.is-centered`) — NOT the Panopticon consent card; I
+      guessed Panopticon first and was corrected.
+   2. **Workspaces are ACCOUNT-BACKED.** The column + merge RPC already
+      existed and the client never called them. Closes the cheapest item in
+      `docs/STORAGE-AUDIT.md` §1. Seeds caches only when the account carries
+      a list, so a pre-sync device set is never wiped.
+   3. **⛔ @PRICE EXISTS — AND ITS IDENTITY IS THE TOKEN CONTRACT ITSELF**
+      (`0x173a…4638`), not a wallet we hold. **A contract has no private key,
+      so the page is UNCLAIMABLE BY CONSTRUCTION** — that is the whole design,
+      don't "improve" it into a flag. **The row is LIVE in Supabase** (handle
+      `price`, sprite **Mystic** — Brendon picked it off rendered previews of
+      all four; `price_sprite_resolved` is frozen so the face never changes).
+      - **Not a counterparty.** Exchange ⇌ + Takeover hidden AND refused
+        server-side. Tokens sent to their own contract are unrecoverable →
+        hard refusal, never a warning. New surfaces that target a person must
+        ask `isPlatformAccount()` — one gate, inherited.
+      - **Social stays on, OUR direction only** — users follow + ping it; the
+        account has no inbox or feed of its own.
+      - **Page content is lifted VERBATIM from `content/docs/price-token/*`**
+        and must stay that way — the point is that page and docs cannot drift.
+        Nothing on that panel is invented. The ClickUp $PRICE pages are the
+        older DRAFTS that became those docs; use the repo copy.
+      - **Open:** the Distribution section is written in the tense of a PLAN
+        (TGE hasn't happened) — needs a past-tense pass after distribution
+        (ClickUp `86bb4ptk9`). Panel currently sits in the Showcase slot;
+        Brendon may want it as its own tab. He said he'll correct copy himself.
+   4. **Discussed, NOT built — do not start these without his word:**
+      **Group sorts rework** and **Languages as a gen-art trait** (ClickUp
+      `86bb4ptqb`, both with the exact open question recorded). A pool linked
+      to $PRICE activity is "only if one arises" — **Brendon will not LP**,
+      and the docs already state PD operates no market and seeds no liquidity.
+
+000000000000000000000. ✅ **2026-07-28 — THE SPOT-EDIT ROUND
    (Opus 5, Brendon's twelve-item list: "quick in and out spot edit
    session"). On `dev` (tip `98e9905`), tree clean, tsc + 185 tests + real
    build green, every CSS claim read back out of the compiled stylesheet.
