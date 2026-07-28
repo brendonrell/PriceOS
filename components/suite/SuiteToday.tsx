@@ -28,6 +28,10 @@ import { getBudgets, subscribeBudgets, type BudgetsState } from '../../lib/engin
 import { formatEth } from '../../lib/format/eth';
 import { renderMentions } from '../../lib/mentions/render';
 import { useToast } from '../../lib/state/ToastContext';
+import { usePings } from '../../lib/state/PingsContext';
+import { usePdNotifs } from '../../lib/state/PdNotifsContext';
+import { useModal } from '../../lib/state/ModalContext';
+import { renderPing, passesCategoryPrefs, pingHref, type RenderKind } from '../../lib/pings/render';
 
 const VS15 = '︎';
 const DOW = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -37,6 +41,40 @@ export type SuiteAppKey = 'today' | 'cal' | 'task' | 'flow' | 'books' | 'calc' |
 
 function dayKey(d: Date): string {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/* ── PINGS ON TODAY, AND NOWHERE ELSE IN THE SUITE (Brendon, 2026-07-28).
+   The inbox is the dashboard's news, not its own app — so it lives here with
+   a filter row across the ping types. The buckets are the ping kinds
+   themselves, grouped the way a person reads them; the rows, icons and
+   category prefs are the real Pings box's (Rule #0), never a second inbox. */
+type PingFilter = 'all' | 'market' | 'social' | 'wins' | 'reminders';
+
+const PING_FILTERS: { key: PingFilter; label: string }[] = [
+    { key: 'all', label: 'ALL' },
+    { key: 'market', label: 'MARKET' },
+    { key: 'social', label: 'SOCIAL' },
+    { key: 'wins', label: 'ACHIEVEMENTS' },
+    { key: 'reminders', label: 'REMINDERS' },
+];
+
+const MARKET_KINDS = new Set<RenderKind>([
+    'MINT', 'SALE', 'LIST', 'OFFER', 'OFFER_ACCEPTED', 'COUNTER',
+    'XFER', 'WISHLIST_HIT', 'TRADE', 'TRADE_ACCEPTED', 'TRADE_DECLINED',
+]);
+const SOCIAL_KINDS = new Set<RenderKind>([
+    'FOLLOW', 'PROJECT_FOLLOW', 'OUTPUT_FOLLOW', 'WATCH_HIT',
+]);
+const WIN_KINDS = new Set<RenderKind>(['ACHIEVEMENT', 'STREAK']);
+
+function inFilter(kind: RenderKind, f: PingFilter): boolean {
+    switch (f) {
+        case 'all': return true;
+        case 'market': return MARKET_KINDS.has(kind);
+        case 'social': return SOCIAL_KINDS.has(kind);
+        case 'wins': return WIN_KINDS.has(kind);
+        case 'reminders': return kind === 'PING';
+    }
 }
 
 export default function SuiteToday({ openApp }: { openApp: (app: SuiteAppKey) => void }) {
@@ -61,6 +99,30 @@ export default function SuiteToday({ openApp }: { openApp: (app: SuiteAppKey) =>
         setBudgets(getBudgets());
         return subscribeBudgets(setBudgets);
     }, []);
+
+    /* The real inbox, read through the user's own category prefs — the same
+       list the Pings box shows, filtered by the row of type chips. */
+    const { state: pingsState, refresh: refreshPings } = usePings();
+    const { notifs } = usePdNotifs();
+    const { open: openModal } = useModal();
+    const [pingFilter, setPingFilter] = useState<PingFilter>('all');
+
+    useEffect(() => { refreshPings(); }, [refreshPings]);
+
+    const allowedPings = useMemo(
+        () => pingsState.items.filter((p) => passesCategoryPrefs(p, notifs.pings)),
+        [pingsState.items, notifs.pings],
+    );
+    const pings = useMemo(
+        () => allowedPings
+            .filter((p) => inFilter(p.kind, pingFilter))
+            .map((p) => ({ ...renderPing(p), href: pingHref(p) }))
+            /* Unread first, then the app's own newest-first order. */
+            .sort((a, b) => (a.read ? 1 : 0) - (b.read ? 1 : 0))
+            .slice(0, 12),
+        [allowedPings, pingFilter],
+    );
+    const pingUnread = allowedPings.filter((p) => !p.read).length;
 
     const byDay = useMemo(() => datedTodosByDay(todos), [todos]);
 
@@ -156,6 +218,53 @@ export default function SuiteToday({ openApp }: { openApp: (app: SuiteAppKey) =>
                     <div className="suite-td-head">UP NEXT</div>
                     {upNext.map(row)}
                 </>
+            )}
+
+            {/* ── PINGS — the inbox, only here (Brendon, 2026-07-28) ── */}
+            <div className="suite-td-head">
+                PINGS {pingUnread > 0 && <span className="notif-count">({pingUnread})</span>}
+            </div>
+            <div className="suite-ping-filters" role="group" aria-label="Ping types">
+                {PING_FILTERS.map((f) => (
+                    <button
+                        key={f.key}
+                        type="button"
+                        className={`suite-ping-chip${pingFilter === f.key ? ' on' : ''}`}
+                        aria-pressed={pingFilter === f.key}
+                        onClick={() => setPingFilter(f.key)}
+                    >
+                        {f.label}
+                    </button>
+                ))}
+            </div>
+            {pings.length === 0 ? (
+                <div className="todo-empty">Nothing here yet.</div>
+            ) : (
+                pings.map((p) => {
+                    const body = (
+                        <>
+                            <span className={`n-icon ping-ic ping-ic--${p.kind}`}>{p.icon}</span>
+                            <span>
+                                {p.handle && <strong>{p.handle}</strong>}
+                                {p.handle ? ' ' : ''}
+                                {p.action}
+                            </span>
+                        </>
+                    );
+                    const cls = `notif-item suite-ping-row${p.read ? ' read' : ''}${p.priority === 'high' ? ' notif-item--high' : ''}${p.priority === 'low' ? ' notif-item--low' : ''}`;
+                    return p.href ? (
+                        <a key={p.id} href={p.href} className={`${cls} notif-item--link`}>{body}</a>
+                    ) : (
+                        <div
+                            key={p.id}
+                            className={`${cls} notif-item--link`}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => openModal('ping', p.id)}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal('ping', p.id); } }}
+                        >{body}</div>
+                    );
+                })
             )}
 
             {/* ── the pulse — live numbers, each tile a door to its app ── */}

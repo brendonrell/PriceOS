@@ -10,6 +10,11 @@
    rounded square, the name in bold below it. The rounded icon square is
    Brendon's named exception to the 4px corner law — it reads as an app
    icon, not a pill. */
+/* The panel title reads "PriceOS Suite", not shouted (Brendon, 2026-07-28).
+   The PLUS panel's head uppercases everything by default — the Suite's own
+   title opts out. */
+.suite-plus .smgr-plus-head .suite-title-words { text-transform: none; }
+
 /* ‰ TODAY — the long bar UNDER the grid (Brendon, 2026-07-28: "almost like a
    space bar, normal pill style, 80% width of the icon grid"). Base .pill
    anatomy verbatim — 4px corners, 1px --text-color border, --bg-color fill,
@@ -208,6 +213,99 @@
 
 /* ⬟ PriceCalm — the garden centres in the pane. */
 .suite-calm-pane .notif-list { display: block; }
+
+/* ── THE PACKAGED VERSION (Brendon, 2026-07-28: "all the UIs adapted to a
+   unified Suite polished version, likely different from their normal
+   UI-adapted version out in the field — these are the packaged versions of
+   those experiences").
+
+   The field components were drawn for the connect menu's cramped backboard:
+   whisper-sized chrome, hairline affordances, low-alpha washes. The Suite is
+   a full panel, so the packaged versions wear PD's real floor — 12px minimum,
+   labels bold, full-strength edges (Rule #2). Every rule here is scoped to
+   the Suite body, so nothing changes out in the field. ── */
+
+/* Headers, counts and empty states — one voice across every pane. */
+.suite-body .notif-header {
+    font-size: 12px;
+    opacity: 1;
+    padding: 8px 10px;
+}
+.suite-body .notif-count { font-size: 12px; font-weight: bold; }
+.suite-body .todo-empty,
+.suite-body .pings-empty {
+    font-size: 12px;
+    opacity: 1;
+    padding: 10px;
+}
+
+/* Header action buttons read as buttons, not hairlines. */
+.suite-body .todos-header-icons { gap: 10px; }
+.suite-body .todos-add-btn {
+    font-size: 18px;
+    width: 20px;
+    height: 20px;
+    opacity: 1;
+}
+
+/* The scroll arrows top and bottom of every pane, at a size a thumb finds. */
+.suite-body .scroll-arrow {
+    font-size: 14px;
+    opacity: 1;
+    padding: 4px 10px;
+}
+
+/* Chips and filter rows — no 10px whisper text anywhere in the Suite. */
+.suite-body .todo-filter-chip,
+.suite-body .todo-chip,
+.suite-body .wf-kind,
+.suite-body .pill {
+    font-size: 12px;
+}
+
+/* Rows breathe at panel width. */
+.suite-body .notif-item { font-size: 12.5px; padding: 8px 10px; }
+
+/* ── the Today dashboard's pings — the inbox, only here ── */
+.suite-ping-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 4px 2px 8px;
+}
+.suite-ping-chip {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+    line-height: 1;
+    padding: 6px 9px;
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.12s ease;
+}
+.suite-ping-chip:active { transform: scale(0.96); }
+.suite-ping-chip.on {
+    background: var(--stat-active-bg, var(--text-color));
+    color: var(--stat-active-text, var(--bg-color));
+    border-color: var(--stat-active-bg, var(--text-color));
+}
+
+.suite-today .suite-ping-row {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    padding: 8px 2px;
+    font-size: 12.5px;
+    color: var(--text-color);
+    text-decoration: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--text-color) 25%, transparent);
+}
+.suite-today .suite-ping-row.read { opacity: 0.55; }
+.suite-today .suite-ping-row .n-icon { flex: 0 0 auto; }
 
 /* ── the Today dashboard ── */
 .suite-today { padding: 2px 2px 10px; color: var(--text-color); }

@@ -34,6 +34,8 @@
 
 import { useEffect, useState } from 'react';
 import { AccordionBox } from './AccordionBox';
+import { useLongPress } from '../../lib/hooks/useLongPress';
+import { useModal } from '../../lib/state/ModalContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useNotePrompt } from '../../lib/state/NotePromptContext';
 import { useToast } from '../../lib/state/ToastContext';
@@ -89,6 +91,12 @@ export function NotesBox({ suite = false }: { suite?: boolean } = {}) {
     const { notifs, setAccordion } = usePdNotifs();
     const { openOutputNoteEditor } = useNotePrompt();
     const { showToast } = useToast();
+    const { open: openModal } = useModal();
+
+    /* THE SECOND DOOR (Brendon, 2026-07-28): hold the NOTES title in the
+       connect menu to open the PriceOS Suite — the same gesture, the same
+       hook, the same contract as holding TO-DOS. */
+    const suiteHold = useLongPress(() => { if (!suite) openModal('suite'); });
 
     const [notes, setNotes] = useState<SavedNote[]>([]);
     useEffect(() => {
@@ -125,10 +133,10 @@ export function NotesBox({ suite = false }: { suite?: boolean } = {}) {
             open={suite || notifs.notes}
             onHeaderClick={() => { if (!suite) setAccordion('notes', !notifs.notes); }}
             header={
-                <>
+                <span {...(suite ? {} : suiteHold)} title={suite ? undefined : 'Hold to open the PriceOS Suite'}>
                     NOTES
                     <span className="notif-count">({visible.length})</span>
-                </>
+                </span>
             }
         >
             {visible.map((n) => {

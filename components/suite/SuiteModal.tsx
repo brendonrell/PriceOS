@@ -18,9 +18,9 @@
  * components the connect menu runs; the chrome is the Friend-Inspector
  * PLUS panel verbatim; the dashboard reads the same stores.
  *
- * THE DOOR (Brendon-confirmed 2026-07-27): long-press the TO-DOS header in
- * the connect menu — right where it says "TO-DOS". Out: × / Esc / backdrop.
- * Opens on the Today dashboard.
+ * THE DOORS (Brendon-confirmed 2026-07-27, second door added 2026-07-28):
+ * long-press the TO-DOS header in the connect menu, or the NOTES header
+ * beside it. Out: × / Esc / backdrop. Opens on the Today dashboard.
  */
 
 import { useEffect, useState } from 'react';
@@ -107,7 +107,7 @@ export default function SuiteModal() {
                     <span className="ambient-pop-title-text">
                         {/* ❏ — the Suite's mark (Brendon's pick, GLYPHS §12l). */}
                         <span className="smgr-title-ic">{`❏${VS15}`}</span>{' '}
-                        <span className="smgr-title-words">PriceOS SUITE</span>
+                        <span className="smgr-title-words suite-title-words">PriceOS Suite</span>
                     </span>
                     <span
                         className="ambient-pop-close"
