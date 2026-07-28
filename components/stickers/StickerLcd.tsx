@@ -24,17 +24,19 @@
  * lines PAGES, with the classic blinking marker. The old single clipped row
  * could silently eat half a sentence; this cannot.
  *
- * What runs, in order, forever: the slate ("EP.142/365 · THE CRATE"), today's
- * 22-second episode (viewer-local, loops yearly), the sign-off, then the shop's
- * own segments for whichever face you're on. The show is PURE FICTION; the ads
- * are the only place that sells, and they never sell the return.
+ * ── COMMERCIALS ONLY (Brendon, 2026-07-28: "remove the episodes, commercials
+ * only and we want LOTS of them") ─ the daily episode is off the air. What runs
+ * now is the ad break and nothing else: the bumper, then EVERY spot eligible
+ * for the face you're on — shuffled fresh on each visit so the order is never
+ * the same twice — then the hand-back, forever. The one rule of the copy still
+ * holds: the spots sell the chase, never the return.
  *
  * Motion honours prefers-reduced-motion: the show still plays, it just cuts.
  */
 
 import { useEffect, useMemo, useRef } from 'react';
-import { adBreak, AD_BUMPER, AD_RETURN } from '../../lib/stickers/ads';
-import { todaysEpisode, LEADS, type Beat } from '../../lib/stickers/episodes';
+import { adBreak, eligibleSpots, AD_BUMPER, AD_RETURN } from '../../lib/stickers/ads';
+import { LEADS, type Beat } from '../../lib/stickers/episodes';
 import {
     GLYPH_H, GLYPH_W, GLYPH_ADVANCE, SPRITE_SIZE, SPRITES,
     glyphFor, spriteForFace, wrapLines, paginate,
@@ -44,8 +46,6 @@ import {
 const CARD_MS = 2400;
 /** How long one line of an ad holds. */
 const AD_MS = 3200;
-/** Spots per break. Three is a break; four is an ordeal. */
-const SPOTS_PER_BREAK = 3;
 /** No page is ever on screen for less than this, however short its beat. */
 const MIN_PAGE_MS = 1400;
 /** How long a transition runs. Short — it's punctuation, not the show. */
@@ -103,13 +103,14 @@ function parseColor(scratch: CanvasRenderingContext2D, value: string, fallback: 
 }
 
 export default function StickerLcd({ mode }: { mode: 'store' | 'market' | 'binder' }) {
-    /* THE DAY'S CAROUSEL. The episode is one segment of it, not the whole
-       thing — 22 seconds on its own would loop far too tightly (Brendon,
-       2026-07-24). Built once per face so a beat change is a pure index bump. */
+    /* THE CAROUSEL — the whole break, nothing but the break. Every spot that
+       may air on this face gets its slot, shuffled fresh each time the panel is
+       built, so a long visit keeps turning up commercials it hasn't played yet
+       and two visits never run the same order. Built once per face, so a beat
+       change stays a pure index bump. */
     const frames: Frame[] = useMemo(() => {
-        const ep = todaysEpisode();
-        const card = (face: string, line: string): Frame => ({ face, line, ms: CARD_MS, slate: true, title: ep.title });
-        const ads: Frame[] = adBreak(mode, SPOTS_PER_BREAK).flatMap((spot) =>
+        const card = (face: string, line: string): Frame => ({ face, line, ms: CARD_MS, slate: true });
+        const ads: Frame[] = adBreak(mode, eligibleSpots(mode).length).flatMap((spot) =>
             spot.lines.map((line, n) => ({
                 face: n === 0 ? '◈︎' : '·',
                 line,
@@ -118,8 +119,6 @@ export default function StickerLcd({ mode }: { mode: 'store' | 'market' | 'binde
             })),
         );
         return [
-            card('▶︎', `EP.${ep.day}/365 · ${ep.title}`),
-            ...ep.beats,
             card('▪︎', AD_BUMPER),
             ...ads,
             card('▪︎', AD_RETURN),
