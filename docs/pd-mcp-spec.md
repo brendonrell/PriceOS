@@ -48,6 +48,28 @@ private, anything that costs money to serve. Adding an authed tier later
   of this worker. The workers.dev URL stays the live endpoint until the record
   resolves, and the public docs keep pointing there until it does.
 
+## Shipped beyond v1 (2026-07-28)
+
+**The way in.** v1 assumed the caller already knew a slug or a token id, which
+served only people who already knew PD. Added: `list_projects` (browse/search
+the published catalog + platform totals), `get_activity` (recent mints,
+transfers, sales, open listings — PD's pulse), `get_collector` and
+`get_artist` (both accept a `0x…` address *or* a PD handle).
+
+**The trust guard.** `verify_project` is the one tool people lean on to tell a
+real PD contract from a fake. Pointed at the wrong chain — or at a factory
+address with no code — it would have answered a confident "NOT a PD Project"
+for every genuine Project. It now checks the RPC's actual chain id against
+`CHAIN_ID` and confirms the factory has bytecode, and **refuses to answer**
+when either fails. **At the mainnet cutover `RPC_URL` + `CHAIN_ID` +
+`FACTORY_ADDRESS` flip together** — this guard is what catches it if they
+don't.
+
+**No authed tier.** Deliberately declined (Brendon, 2026-07-28). A logged-in
+"my portfolio" tier turns a zero-maintenance public read into an auth surface,
+and the authorization rules changed in this same protocol revision. The public
+server does the strategic work; it stays free of that.
+
 ## Protocol revision — MCP 2026-07-28
 
 PDMCP speaks **MCP 2026-07-28** and still answers clients on `2025-11-25`,

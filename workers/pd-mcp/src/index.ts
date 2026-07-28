@@ -30,6 +30,9 @@ export interface Env {
     PD_DOCS_ORIGIN: string;
     ART_IMAGE_BASE: string;
     RPC_URL: string;
+    /** Decimal chain id RPC_URL/FACTORY_ADDRESS belong to. Flips with them at
+     *  the mainnet cutover; chainGuard() refuses to answer if they disagree. */
+    CHAIN_ID: string;
     FACTORY_ADDRESS: string;
     SUPABASE_URL: string;
     SUPABASE_ANON_KEY: string;
@@ -58,14 +61,27 @@ const LIST_CACHE_TTL_MS = 3_600_000;
 
 const INSTRUCTIONS = `Price Discussion (PD) is a web3 art platform where generative Projects mint
 Outputs (individual pieces) on Ethereum. This server gives you live, public,
-read-only PD data. Start with get_project or search_docs. Token ids are
-1-based. All prices are ETH. verify_project answers whether a contract
-address is a genuine PD Project (deployed through the PDFactory).
-get_ascii returns a piece's permanent ASCII backup — render it in a code
-block to SHOW the artwork inline. query_traits crosses the catalog's stored
-trait + visual-fingerprint vocabulary with sales and listings, so questions
-like "does landscape or portrait sell better?" are one call. Docs answers
-quote pricediscussion.com/docs verbatim with source URLs.`;
+read-only PD data.
+
+START HERE when you don't already know a project: list_projects browses and
+searches the whole catalog, and get_activity answers "what's happening on PD
+right now" (recent mints, sales, what's listed). get_collector and get_artist
+take a 0x address OR a PD handle.
+
+Token ids are 1-based. All prices are ETH. Timestamps are UTC — show them in
+the reader's own timezone.
+
+SHOWING A PIECE: get_output carries an interactive view, so a host that
+supports MCP Apps renders the artwork itself — prefer it, and don't describe
+a piece in prose when you can show it. get_ascii is the FALLBACK for hosts
+that can't render the view: print that text in a monospace code block.
+
+verify_project answers whether a contract is a genuine PD Project (deployed
+through the PDFactory); if this server is misconfigured it refuses rather than
+risk calling a real Project fake. query_traits crosses the stored trait +
+visual-fingerprint vocabulary with sales and listings, so "does landscape or
+portrait sell better?" is one call. search_docs quotes pricediscussion.com/docs
+verbatim with source URLs — never paraphrase PD mechanics from memory.`;
 
 type Json = Record<string, unknown>;
 
@@ -316,12 +332,49 @@ function requireTokenId(args: Json): number {
     return id;
 }
 
+async function rpc(env: Env, method: string, params: unknown[]): Promise<string> {
+    const r = await fetch(env.RPC_URL, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+    });
+    if (!r.ok) throw new Error(`RPC answered ${r.status}`);
+    const body = (await r.json()) as { result?: string; error?: { message?: string } };
+    if (body.error) throw new Error(body.error.message ?? 'RPC error');
+    return body.result ?? '0x';
+}
+
+/* ⛔ The trust guard. verify_project is the one tool people rely on to tell a
+   genuine PD contract from a fake, so it must NEVER answer a confident "NO"
+   just because this server is misconfigured. Pointed at the wrong chain, or at
+   a factory address with no contract behind it, every real Project would come
+   back "NOT PD" — a lie with our name on it. So we check first and REFUSE
+   rather than answer. At the mainnet cutover, CHAIN_ID / RPC_URL /
+   FACTORY_ADDRESS all flip together; this is what catches it if they don't. */
+async function chainGuard(env: Env): Promise<string | null> {
+    return await cached(env, `chainguard:${env.CHAIN_ID}:${env.FACTORY_ADDRESS}`, 300, async () => {
+        const expected = Number(env.CHAIN_ID);
+        if (!Number.isInteger(expected) || expected < 1) return 'CHAIN_ID is not configured on this server.';
+        const actual = Number(BigInt(await rpc(env, 'eth_chainId', [])));
+        if (actual !== expected) {
+            return `This server is configured for chain ${expected} but its RPC is on chain ${actual}. Refusing to answer rather than risk calling a real PD Project fake.`;
+        }
+        const code = await rpc(env, 'eth_getCode', [env.FACTORY_ADDRESS, 'latest']);
+        if (!code || code === '0x') {
+            return `No contract found at the configured PD Factory (${env.FACTORY_ADDRESS}) on chain ${expected}. Refusing to answer — every result would be a false "not PD".`;
+        }
+        return null;
+    });
+}
+
 /* verify_project — PDFactory.isProject(address), cached. The selector is
    keccak256("isProject(address)")[0:4] for the factory's public mapping. */
 async function verifyProject(env: Env, args: Json): Promise<Json> {
     const address = String(args.address ?? '').trim();
     if (!ADDR_RE.test(address)) return toolErr('address must be a 0x… contract address (40 hex chars)');
-    const result = await cached(env, `verify:${address.toLowerCase()}`, 600, async () => {
+    const misconfigured = await chainGuard(env);
+    if (misconfigured) return toolErr(`Cannot verify right now — ${misconfigured}`);
+    const result = await cached(env, `verify:${env.CHAIN_ID}:${address.toLowerCase()}`, 600, async () => {
         const data = '0x05c81408' + address.slice(2).toLowerCase().padStart(64, '0');
         const r = await fetch(env.RPC_URL, {
             method: 'POST',
@@ -342,6 +395,173 @@ async function verifyProject(env: Env, args: Json): Promise<Json> {
             ? `YES — ${address} was deployed through the PD Factory (${env.FACTORY_ADDRESS}). It is a genuine PD Project contract.`
             : `NO — ${address} is NOT a PD Project. It was not deployed through the PD Factory (${env.FACTORY_ADDRESS}).`,
         { address, isProject: yes, factory: env.FACTORY_ADDRESS },
+    );
+}
+
+/* ── The front door ─────────────────────────────────────────────────────────
+ * Every other tool assumes you already know a slug or a token id. This is the
+ * way in for an agent that has never heard of PD: browse or search the whole
+ * catalog, see what is actually minting. Without it the server only serves
+ * people who already know us. */
+async function listProjects(env: Env, args: Json): Promise<Json> {
+    const query = String(args.query ?? '').toLowerCase().trim();
+    const sort = String(args.sort ?? 'recent');
+    const limit = Math.min(Math.max(Number(args.limit) || 25, 1), 100);
+
+    const home = (await cached(env, 'home', 60, () => appJson(env, '/api/home'))) as Json;
+    const stats = (home.stats ?? {}) as Json;
+    const all = ((home.uploads as Json[] | undefined) ?? []).map((u) => ({
+        slug: String(u.slug),
+        title: String(u.title ?? u.slug),
+        project_no: u.project_no ?? null,
+        minted: Number(u.minted_count ?? 0),
+        max_supply: Number(u.max_supply ?? 0),
+        published_at: u.uploaded_at ? new Date(Number(u.uploaded_at)).toISOString() : null,
+    }));
+
+    const matched = query
+        ? all.filter((p) => p.slug.includes(query) || p.title.toLowerCase().includes(query))
+        : all;
+
+    const sorted = [...matched];
+    if (sort === 'minted') sorted.sort((a, b) => b.minted - a.minted);
+    else if (sort === 'available') sorted.sort((a, b) => b.max_supply - b.minted - (a.max_supply - a.minted));
+    // 'recent' keeps the API's own order — newest published first.
+
+    const projects = sorted.slice(0, limit).map((p) => ({ ...p, remaining: Math.max(0, p.max_supply - p.minted) }));
+    const out = {
+        platform: {
+            projects: stats.projects ?? null,
+            minted: stats.minted ?? null,
+            volume_eth: stats.volume_eth ?? null,
+        },
+        matched: matched.length,
+        showing: projects.length,
+        projects,
+    };
+    const head = query
+        ? `${matched.length} PD project(s) matching "${query}"`
+        : `PD catalog — ${stats.projects ?? all.length} projects, ${stats.minted ?? '?'} pieces minted`;
+    return toolText(`${head}\n\n${JSON.stringify(out, null, 2)}`, out);
+}
+
+/* ── The pulse ──────────────────────────────────────────────────────────────
+ * PD's thesis is that the activity IS the product, so "what is happening right
+ * now" has to be answerable in one call: mints and transfers from the feed,
+ * listings and market moves from the marketplace. */
+async function getActivity(env: Env, args: Json): Promise<Json> {
+    const limit = Math.min(Math.max(Number(args.limit) || 20, 1), 50);
+
+    const [feed, market] = await Promise.all([
+        cached(env, 'feed', 60, () => appJson(env, '/api/feed')) as Promise<Json>,
+        cached(env, 'marketplace', 60, () => appJson(env, '/api/marketplace')) as Promise<Json>,
+    ]);
+
+    const events = ((feed.events as Json[] | undefined) ?? []).slice(0, limit).map((e) => ({
+        type: e.type,
+        piece: e.token_id ?? null,
+        project: e.project_id ?? null,
+        from: e.from_handle ?? e.from_address ?? null,
+        to: e.to_handle ?? e.to_address ?? null,
+        price_eth: e.price_eth ?? null,
+        // Instants stay true UTC — the reader renders them in its own zone.
+        at: e.timestamp ?? null,
+    }));
+
+    const mStats = (market.stats ?? {}) as Json;
+    const listings = ((market.listings as Json[] | undefined) ?? []).slice(0, limit).map((l) => ({
+        piece: `${l.slug} #${l.token_id}`,
+        price_eth: l.price_eth ?? null,
+    }));
+
+    const out = {
+        recent_events: events,
+        listings_open: listings,
+        market: {
+            listed: mStats.listed ?? null,
+            offers: mStats.offers ?? null,
+            volume_eth: mStats.volume_eth ?? null,
+        },
+    };
+    return toolText(
+        `PD activity — ${events.length} recent event(s), ${listings.length} open listing(s).\n\n${JSON.stringify(out, null, 2)}`,
+        out,
+    );
+}
+
+/* Accepts a 0x address, a @handle, or a bare handle — agents are handed all
+   three by users and shouldn't have to care which. */
+async function resolveAddress(env: Env, who: string): Promise<string> {
+    const raw = who.trim().replace(/^@/, '');
+    if (ADDR_RE.test(raw)) return raw.toLowerCase();
+    if (!/^[a-zA-Z0-9_-]{1,40}$/.test(raw)) throw new Error('give a 0x… address or a PD handle');
+    const u = (await cached(env, `handle:${raw.toLowerCase()}`, 300, () =>
+        appJson(env, `/api/user/by-handle/${encodeURIComponent(raw.toLowerCase())}`),
+    )) as Json;
+    const addr = String(u.address ?? '');
+    if (!ADDR_RE.test(addr)) throw new Error(`no PD account found for "${who}"`);
+    return addr.toLowerCase();
+}
+
+/* get_collector — what an address or handle actually holds, grouped by project. */
+async function getCollector(env: Env, args: Json): Promise<Json> {
+    const who = String(args.who ?? '').trim();
+    if (!who) return toolErr('who must be a 0x… address or a PD handle, e.g. "brendon"');
+    const address = await resolveAddress(env, who);
+
+    const [held, profile] = await Promise.all([
+        cached(env, `holdings:${address}`, 60, () => appJson(env, `/api/user/${address}/outputs`)) as Promise<Json>,
+        cached(env, `user:${address}`, 300, () => appJson(env, `/api/user/${address}`)) as Promise<Json>,
+    ]);
+
+    const holdings = (held.holdings as Json[] | undefined) ?? [];
+    const byProject = new Map<string, { project: string; count: number; token_ids: number[]; listed: number }>();
+    for (const h of holdings) {
+        const slug = String(h.slug);
+        const row = byProject.get(slug) ?? { project: slug, count: 0, token_ids: [], listed: 0 };
+        row.count += 1;
+        if (row.token_ids.length < 20) row.token_ids.push(Number(h.token_id));
+        if (h.list_price_eth !== null && h.list_price_eth !== undefined) row.listed += 1;
+        byProject.set(slug, row);
+    }
+    const collection = [...byProject.values()].sort((a, b) => b.count - a.count);
+
+    const out = {
+        address,
+        handle: profile.handle ?? null,
+        ens_name: profile.ens_name ?? null,
+        pieces_held: Number(held.total ?? holdings.length),
+        projects_held: collection.length,
+        collection,
+    };
+    return toolText(
+        `${out.handle ? '@' + out.handle : address} holds ${out.pieces_held} piece(s) across ${out.projects_held} project(s).\n\n${JSON.stringify(out, null, 2)}`,
+        out,
+    );
+}
+
+/* get_artist — who made what, and whether they can publish right now. */
+async function getArtist(env: Env, args: Json): Promise<Json> {
+    const who = String(args.who ?? '').trim();
+    if (!who) return toolErr('who must be a 0x… address or a PD handle, e.g. "brendon"');
+    const address = await resolveAddress(env, who);
+    const a = (await cached(env, `artist:${address}`, 300, () => appJson(env, `/api/artist/${address}`))) as Json;
+
+    const out = {
+        address,
+        handle: a.handle ?? null,
+        ens_name: a.ens_name ?? null,
+        projects: a.projects ?? [],
+        total_volume_eth: a.total_volume_eth ?? '0',
+        // PD's publishing gate: artists rest between releases.
+        in_cooldown: Boolean(a.cooldown_active),
+        cooldown_days_remaining: a.cooldown_days_remaining ?? 0,
+    };
+    const label = out.handle ? '@' + out.handle : address;
+    const n = Array.isArray(out.projects) ? out.projects.length : 0;
+    return toolText(
+        `${label} — ${n} PD project(s), ${out.total_volume_eth} ETH volume${out.in_cooldown ? `, in cooldown for ${out.cooldown_days_remaining} more day(s)` : ''}.\n\n${JSON.stringify(out, null, 2)}`,
+        out,
     );
 }
 
@@ -572,6 +792,56 @@ async function searchDocs(env: Env, args: Json): Promise<Json> {
 /* ── Tool registry ──────────────────────────────────────────────────────── */
 
 const TOOLS = [
+    {
+        name: 'list_projects',
+        title: 'Browse the PD catalog',
+        description:
+            'THE WAY IN — start here when you do not already know a project slug. Browses or searches every PUBLISHED PD project (title, slug, minted count, how many remain), plus platform totals. The totals count the full registry, so "projects" can exceed the published list. Use it for "what is on PD", "what is minting now", "does PD have anything like X".',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                query: { type: 'string', description: 'Optional text match on project name or slug' },
+                sort: { type: 'string', enum: ['recent', 'minted', 'available'], description: 'recent (default), minted, or available' },
+                limit: { type: 'integer', description: 'How many to return (default 25, max 100)' },
+            },
+        },
+        run: listProjects,
+    },
+    {
+        name: 'get_activity',
+        title: 'What is happening on PD right now',
+        description:
+            'Live platform pulse: the most recent mints, transfers and sales, plus what is currently listed and the market totals. Use for "what is happening on PD", "what just sold", "what is for sale".',
+        inputSchema: {
+            type: 'object',
+            properties: { limit: { type: 'integer', description: 'How many recent events (default 20, max 50)' } },
+        },
+        run: getActivity,
+    },
+    {
+        name: 'get_collector',
+        title: 'What a collector holds',
+        description:
+            'Everything an address or PD handle currently holds, grouped by project, with how many of those are listed. Accepts "0x…", "@brendon" or "brendon".',
+        inputSchema: {
+            type: 'object',
+            properties: { who: { type: 'string', description: 'A 0x… address or a PD handle' } },
+            required: ['who'],
+        },
+        run: getCollector,
+    },
+    {
+        name: 'get_artist',
+        title: 'An artist and their projects',
+        description:
+            'An artist on PD: their projects, volume, and whether they are in the between-releases cooldown. Accepts a 0x… address or a PD handle.',
+        inputSchema: {
+            type: 'object',
+            properties: { who: { type: 'string', description: 'A 0x… address or a PD handle' } },
+            required: ['who'],
+        },
+        run: getArtist,
+    },
     {
         name: 'verify_project',
         title: 'Verify a PD Project contract',

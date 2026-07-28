@@ -2,9 +2,12 @@
 
 One zero-dependency Cloudflare Worker (`src/index.ts`) speaking **MCP
 2026-07-28** (the stateless revision) over streamable HTTP, still answering
-clients back to `2025-03-26`. Seven read-only tools: `verify_project`,
-`get_project`, `get_output`, `get_provenance`, `get_ascii`, `query_traits`,
-`search_docs`. Public story + agent manual: `/docs/mcp` (content/docs/mcp.md).
+clients back to `2025-03-26`. Eleven read-only tools — the way in
+(`list_projects`, `get_activity`, `get_collector`, `get_artist`) and the
+detail (`verify_project`, `get_project`, `get_output`, `get_provenance`,
+`get_ascii`, `query_traits`, `search_docs`). `get_output` also carries an MCP
+App that renders the piece itself in the conversation.
+Public story + agent manual: `/docs/mcp` (content/docs/mcp.md).
 Plan of record: `docs/pd-mcp-spec.md` (protocol section covers the 2026-07-28
 conformance).
 
@@ -35,8 +38,12 @@ deploy time; it fail-softs with a clear message until then.
 
 - Caching: KV, one upstream call per TTL window per key (the /api/gas
   pattern). Chain reads can never run up an RPC meter.
-- The RPC default is a keyless public Sepolia endpoint — swap RPC_URL and
-  FACTORY_ADDRESS at mainnet cutover.
+- ⛔ **MAINNET CUTOVER — RPC_URL, CHAIN_ID and FACTORY_ADDRESS flip together.**
+  The default is a keyless public Sepolia endpoint. `chainGuard()` checks the
+  RPC's actual chain id against CHAIN_ID and confirms the factory has code
+  before `verify_project` answers anything; on a mismatch it REFUSES instead
+  of returning "not a PD Project". Without that guard a botched cutover would
+  have PD's own tool calling every genuine Project fake.
 - Claude connectors directory path: needs the custom domain
   (mcp.pricediscussion.com), an OAuth stub, privacy policy + support
   contact — usable day-one as a custom connector while that runs.

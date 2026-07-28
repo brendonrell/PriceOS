@@ -38,6 +38,38 @@ and these docs.
 
 ## The tools
 
+### `list_projects` — the way in
+
+**Ask it:** "What's on PD?" · "What's minting right now?" · "Does PD have
+anything about light?"
+**Arguments:** `query` (optional text match), `sort` (`recent`, `minted`,
+`available`), `limit`.
+**Answers:** the published catalog — title, slug, how many are minted and how
+many remain — plus platform totals. **Start here** when you don't already know
+a project slug; every other tool wants one.
+
+### `get_activity` — what's happening right now
+
+**Ask it:** "What just happened on PD?" · "What's for sale?"
+**Arguments:** `limit` (optional).
+**Answers:** the most recent mints, transfers and sales, what's currently
+listed, and the market totals. On PD the conversation around the work *is* the
+product — this is the pulse of it, as it happens.
+
+### `get_collector` — what someone holds
+
+**Ask it:** "What does @brendon collect?"
+**Arguments:** `who` — a `0x…` address, `@handle`, or bare handle.
+**Answers:** every piece held, grouped by project, with how many are listed,
+plus the account's handle and ENS name.
+
+### `get_artist` — who made what
+
+**Ask it:** "What has this artist released?"
+**Arguments:** `who` — a `0x…` address, `@handle`, or bare handle.
+**Answers:** their projects, total volume, and whether they're inside the
+between-releases cooldown.
+
 ### `verify_project` — authenticity in one call
 
 **Ask it:** "Is `0xABC…` a real PD Project?"
@@ -68,6 +100,13 @@ stored **visual fingerprint**: orientation, brightness, saturation, palette
 size, contrast, warmth, symmetry, texture, scene and pattern read from the
 artwork's actual pixels.
 
+**It also SHOWS the piece.** `get_output` carries an interactive view (an
+[MCP App](https://modelcontextprotocol.io/docs/extensions/apps)), so in a host
+that supports the UI extension the artwork itself renders inside the
+conversation — in PD's own type and colours, with its traits, and a tap
+through to the piece's page. Hosts without the extension get exactly the same
+structured answer as before.
+
 ### `get_provenance` — the piece's life
 
 **Ask it:** "Walk me through this piece's history."
@@ -77,15 +116,19 @@ timestamps, parties, and ETH prices. Priced transfers are sales. This is
 the off-chain mirror of the ERC-721 event log, so an agent can cross-check
 it against the chain any time.
 
-### `get_ascii` — SHOW the artwork, inline
+### `get_ascii` — the artwork as pure text
 
-**Ask it:** "Show me Kiki #22."
+**Ask it:** "Show me Kiki #22" — in a client that can't render the piece view.
 **Arguments:** `slug`, `token_id`.
 **Answers:** the piece's permanent [ASCII backup artifact](/docs/app/outputs)
 — real, renderable art derived deterministically from the same generative
-engine. Put it in a monospace code block and the artwork appears inline in
-the conversation — no image pipeline, no viewer, pure text. This is the
-fastest way for an agent to *show* PD art anywhere text renders.
+engine. Put it in a monospace code block and the artwork appears inline — no
+image pipeline, no viewer, pure text.
+
+This is the **fallback**. In a host that supports MCP Apps, `get_output`
+already renders the piece itself (see above) and you should prefer that;
+`get_ascii` is how PD art still shows up anywhere text renders, which is
+everywhere.
 
 ### `query_traits` — traits × the market
 

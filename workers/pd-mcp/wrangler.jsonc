@@ -30,7 +30,11 @@
         "PD_APP_ORIGIN": "https://pricediscussion.pricediscussion.workers.dev",
         "PD_DOCS_ORIGIN": "https://pricediscussion.pricediscussion.workers.dev",
         "ART_IMAGE_BASE": "https://pricediscussion.pricediscussion.workers.dev/preview",
+        // ⛔ MAINNET CUTOVER: these three flip TOGETHER (chain 1 + a mainnet
+        // RPC + the mainnet factory). If they ever disagree, verify_project
+        // refuses to answer instead of calling real PD Projects fake.
         "RPC_URL": "https://ethereum-sepolia-rpc.publicnode.com",
+        "CHAIN_ID": "11155111",
         "FACTORY_ADDRESS": "0xbebf82fe12f2d85780ca4835796885208f7d0367",
         "SUPABASE_URL": "https://zspxpfwlwikdxwavffjn.supabase.co",
         "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcHhwZndsd2lrZHh3YXZmZmpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1Njc0MTcsImV4cCI6MjA5MTE0MzQxN30.CrVgxVlr1KRIBDq1zD4bVCpNNUdiWfyQ6HJ28fY-Xi4"
