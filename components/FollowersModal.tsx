@@ -40,6 +40,7 @@ import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'r
 import { createPortal } from 'react-dom';
 import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { useAuth } from '../lib/state/AuthContext';
+import { useEffectiveAddress } from '../lib/incognito/useEffectiveAddress';
 import { useToast } from '../lib/state/ToastContext';
 import { lockBodyScroll, unlockBodyScroll } from '../lib/state/bodyScrollLock';
 import CollectedPair from './hero/CollectedPair';
@@ -179,10 +180,12 @@ export default function FollowersModal() {
 
     /* Whose circle we're showing. Opened from a profile, the inspector reflects
        THAT user's followers (Brendon, 2026-07-11 view-as); with no target it
-       falls back to the signed-in user's own circle. The duel's YOU side always
+       falls back to the signed-in user's own circle — or, INCOGNITO PROXY
+       (2026-07-28), the worn lens's circle. The duel's YOU side always
        stays the signed-in viewer (mySlugs / myScore below). */
+    const { address: effectiveAddress } = useEffectiveAddress();
     const targetAddrLc = (
-        ((openModal?.name === 'followers' ? openModal?.slug : null) || siweAddress || '')
+        ((openModal?.name === 'followers' ? openModal?.slug : null) || effectiveAddress || '')
     ).toLowerCase() || null;
 
     const [tab, setTabState] = useState<FollowersTab>('followers');

@@ -11,7 +11,7 @@
 
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { useProject } from '../../lib/state/ProjectContext';
-import { useAuth } from '../../lib/state/AuthContext';
+import { useEffectiveAddress } from '../../lib/incognito/useEffectiveAddress';
 import { useSort, GROUP_SOON, GROUP_LABEL, PROJECT_GROUP_ORDER } from '../../lib/state/SortContext';
 import { groupSectionLabel, usefulLayers } from '../../lib/state/groupDimensions';
 import type { GroupKey } from '../../lib/state/SortContext';
@@ -67,7 +67,7 @@ export function useProjectGallery({
 }) {
     const project = useProject();
     const def = getProject(project.slug);
-    const { siweAddress } = useAuth();
+    const { address: effectiveAddress } = useEffectiveAddress();
     const { sort, dir, group, groupLayers } = useSort();
     const { activeFilters, searchQuery, priceMin, priceMax, myNotesActive, activeCategory } = useTraits();
 
@@ -233,7 +233,8 @@ export function useProjectGallery({
                     // keyed) both resolve.
                     const ownerAddr = (meta.ownerFull || '').toLowerCase();
                     const ownerHandle = meta.ownerDisplay.replace(/^@/, '').toLowerCase();
-                    const me = siweAddress ? siweAddress.toLowerCase() : null;
+                    /* INCOGNITO PROXY (2026-07-28) — "Me" = the worn lens. */
+                    const me = effectiveAddress ? effectiveAddress.toLowerCase() : null;
                     const inSet = (s2: Set<string>) => s2.has(ownerAddr) || s2.has(ownerHandle);
                     let netMatch = false;
                     if (set.has('Me') && me && ownerAddr === me) netMatch = true;
@@ -328,7 +329,7 @@ export function useProjectGallery({
         // 'fog' = ascending id (already in order from construction)
 
         return filtered;
-    }, [project, sort, dir, dActiveFilters, dSearchQuery, dPriceMin, dPriceMax, dMyNotesActive, notesVersion, dActiveCategory, breadcrumbAll, siweAddress, netSets, topHolders]);
+    }, [project, sort, dir, dActiveFilters, dSearchQuery, dPriceMin, dPriceMax, dMyNotesActive, notesVersion, dActiveCategory, breadcrumbAll, effectiveAddress, netSets, topHolders]);
 
     /* Group-by sections (Brendon, 2026-06-13). When GROUP is on, partition the
        already-sorted/filtered gallery into colour or owner buckets, preserving

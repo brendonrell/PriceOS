@@ -26,11 +26,17 @@
 
 type IncognitoState = {
     active: boolean;
+    /* THE PROXY IDENTITY (2026-07-28, the brief's build) — the wallet the
+       lens looks through. Read-only, session-only: adopted surfaces read
+       it via useEffectiveAddress; no write ever fires as the proxy. */
+    proxyAddress: string | null;
+    /** What the pill shows — `@handle`, the ENS name, or 0x… shortened. */
+    proxyLabel: string | null;
 };
 
 type Listener = (state: IncognitoState) => void;
 
-let state: IncognitoState = { active: false };
+let state: IncognitoState = { active: false, proxyAddress: null, proxyLabel: null };
 const listeners = new Set<Listener>();
 
 function notify() {
@@ -41,8 +47,25 @@ export function isIncognitoActive(): boolean {
     return state.active;
 }
 
+export function getIncognito(): IncognitoState {
+    return state;
+}
+
+/** Set (or clear) the resolved proxy identity while the mode is on. */
+export function setIncognitoProxy(address: string | null, label: string | null): void {
+    state = {
+        ...state,
+        proxyAddress: address ? address.toLowerCase() : null,
+        proxyLabel: address ? label : null,
+    };
+    notify();
+}
+
 export function toggleIncognito(): boolean {
-    state = { active: !state.active };
+    /* Leaving the mode drops the disguise — reopening starts clean. */
+    state = state.active
+        ? { active: false, proxyAddress: null, proxyLabel: null }
+        : { ...state, active: true };
     notify();
     return state.active;
 }

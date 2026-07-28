@@ -87,7 +87,9 @@ import {
     isIncognitoActive,
     subscribeIncognito,
     toggleIncognito,
+    setIncognitoProxy,
 } from '../../lib/incognito/incognitoEngine';
+import { resolveProxyInput } from '../../lib/incognito/resolve';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { shortAddress } from '../../lib/project/projectAddress';
@@ -219,10 +221,13 @@ export function TopBarRow() {
     };
 
     // Autofocus the ENS input on incognito activation (sim 12519-12522).
+    // A fresh activation starts clean — the engine dropped any old proxy
+    // on close, so the field must not carry a stale name either.
     const ensInputRef = useRef<HTMLInputElement | null>(null);
     const prevIncognitoRef = useRef<boolean>(false);
     useEffect(() => {
         if (incognitoActive && !prevIncognitoRef.current) {
+            if (ensInputRef.current) ensInputRef.current.value = '';
             const t = setTimeout(() => {
                 ensInputRef.current?.focus();
             }, 100);
@@ -231,6 +236,22 @@ export function TopBarRow() {
         }
         prevIncognitoRef.current = incognitoActive;
     }, [incognitoActive]);
+
+    /* THE LENS RESOLVES (2026-07-28, the brief's build) — Enter takes the
+       typed line (@handle · name.eth · 0x…) to an address; while worn, the
+       adopted surfaces read through useEffectiveAddress. Read-only always. */
+    const resolveProxy = async (raw: string) => {
+        const id = await resolveProxyInput(raw);
+        if (!isIncognitoActive()) return; // closed while resolving — drop it
+        if (!id) {
+            setIncognitoProxy(null, null);
+            showToast('Incognito: NOT FOUND');
+            return;
+        }
+        setIncognitoProxy(id.address, id.label);
+        if (ensInputRef.current) ensInputRef.current.value = id.label;
+        showToast(`Incognito: ${id.label.toUpperCase()}`);
+    };
 
     const hasTopBarCalendar = !!notifs.topBarCalendar;
     const hasHammer = !!notifs.spell_hammer;
@@ -370,7 +391,10 @@ export function TopBarRow() {
                                 enterKeyHint="done"
                                 aria-label="Incognito wallet address"
                                 onKeyDown={(e) => {
-                                    if (e.key === 'Enter') e.currentTarget.blur();
+                                    if (e.key === 'Enter') {
+                                        void resolveProxy(e.currentTarget.value);
+                                        e.currentTarget.blur();
+                                    }
                                 }}
                             />
                             <span

@@ -1,8 +1,19 @@
 # INCOGNITO PROXY ⚇ — build brief (queued 2026-07-27, Brendon's order)
 
-> For a fresh chat. Status today: **the feature is a shell.** The audit
-> (2026-07-27, Fable) confirmed nothing behind the chrome — this brief is the
-> spec to make it real. Read `PriceOS/CLAUDE.md` first; the ship gates apply.
+> **BUILT 2026-07-28 (v1, overnight session — Brendon's "build and push as
+> you go" pre-approval).** Engine grew the proxy identity, the pill input
+> resolves (@handle · name.eth · 0x…), `useEffectiveAddress()` is the one
+> read, adopted: PriceBooks/Portfolios · project-gallery My Network ("Me",
+> Following/Followers/Mutuals = the lens's circle) · Friend Inspector
+> default target · Completionism. **The two open questions were answered
+> with the conservative calls, flagged for Brendon's morning edit:**
+> (1) identity area stays YOU — the lens is in the bar, not the mirror
+> (the brief's own lean); (2) writes DISABLE while proxied on adopted
+> surfaces (Completionism's ⌂ Pal door toasts `Incognito: READ ONLY`) —
+> nothing ever acts as the proxy OR silently as you from a proxied view.
+> **Consciously out (v1):** Starred/Wishlist (§Scope 3) — their stars live
+> in the private settings envelope with NO public read path; lifting them
+> would need a new API and a privacy call. Brendon's word before building.
 
 ## What exists now (verified against the code, 2026-07-27)
 

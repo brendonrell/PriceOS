@@ -88,7 +88,7 @@ import {
     setShadowMode as storeSetShadowMode,
     type ShadowPosition,
 } from '../../lib/pins/shadowStore';
-import { useAuth } from '../../lib/state/AuthContext';
+import { useEffectiveAddress } from '../../lib/incognito/useEffectiveAddress';
 import {
     addBudget as engineAddBudget,
     deleteBudget as engineDeleteBudget,
@@ -161,11 +161,14 @@ export function PortfolioView() {
        mock (Brendon, 2026-06-25). Works for any logged-in user (their own
        wallet). Holdings via the same outputs route the profile grid uses; ENS
        name off the user row. Shadow tab has no real dataset → empty. */
-    const { siweAddress } = useAuth();
+    /* INCOGNITO PROXY (2026-07-28) — the book reads through the lens when
+       one is worn: their holdings, their book. Read-only by construction.
+       (Sans lens this IS the session address — same value as before.) */
+    const { address: effectiveAddress } = useEffectiveAddress();
     const [holdings, setHoldings] = useState<PortfolioHolding[]>([]);
     const [ensName, setEnsName] = useState<string | null>(null);
     useEffect(() => {
-        const addr = siweAddress?.toLowerCase();
+        const addr = effectiveAddress?.toLowerCase();
         if (!addr) { setHoldings([]); setEnsName(null); return; }
         let cancelled = false;
         fetch(`/api/user/${addr}/outputs`, { cache: 'no-store' })
@@ -180,7 +183,7 @@ export function PortfolioView() {
             .then((d) => { if (!cancelled) setEnsName(d?.ens_name ?? null); })
             .catch(() => {});
         return () => { cancelled = true; };
-    }, [siweAddress]);
+    }, [effectiveAddress]);
     /* SHADOW — the paper book (Brendon, 2026-07-25). Same assembler, same
        shape, so every control below reads it identically. */
     const [shadowPositions, setShadowPositions] = useState<readonly ShadowPosition[]>(

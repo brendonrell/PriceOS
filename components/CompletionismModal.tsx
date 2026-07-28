@@ -14,6 +14,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useModal } from '../lib/state/ModalContext';
+import { useToast } from '../lib/state/ToastContext';
+import { useEffectiveAddress } from '../lib/incognito/useEffectiveAddress';
 import { SHEETS } from '../lib/stickers/catalog';
 import { getOwnedIds, ownsSheet, useOwnedStickerIds } from '../lib/stickers/owned';
 import { formatEth } from '../lib/format/eth';
@@ -155,6 +157,12 @@ export default function CompletionismModal({
     /* The ledger folds away by default — the resting modal stays minimal. */
     const [statsOpen, setStatsOpen] = useState(false);
     const { open: openPal } = useModal();
+    /* INCOGNITO PROXY (2026-07-28) — worn lens = their months. The ⌂ Pal
+       door stays shut while proxied (the Pal builds YOUR cart — a lens
+       never writes); tap toasts READ ONLY instead. */
+    const { address: effectiveAddress, proxied } = useEffectiveAddress();
+    const dataAddress = proxied && effectiveAddress ? effectiveAddress : address;
+    const { showToast } = useToast();
     const ownedIds = useOwnedStickerIds();
 
     /* Two-stage mounted/active — CartPanel's open/close, verbatim. */
@@ -176,14 +184,14 @@ export default function CompletionismModal({
     }, [open]);
 
     useEffect(() => {
-        if (!open || !address) return;
+        if (!open || !dataAddress) return;
         let cancelled = false;
-        fetch(`/api/completionism?address=${encodeURIComponent(address)}`, { cache: 'no-store' })
+        fetch(`/api/completionism?address=${encodeURIComponent(dataAddress)}`, { cache: 'no-store' })
             .then((r) => (r.ok ? r.json() : null))
             .then((d) => { if (!cancelled && d) setMonths((d.months as MonthRow[]) ?? []); })
             .catch(() => { if (!cancelled) setMonths([]); });
         return () => { cancelled = true; };
-    }, [open, address]);
+    }, [open, dataAddress]);
 
     useEffect(() => {
         if (!open) return;
@@ -220,6 +228,7 @@ export default function CompletionismModal({
                                     tabIndex={0}
                                     title="Purchase Pal"
                                     onClick={() => {
+                                        if (proxied) { showToast('Incognito: READ ONLY'); return; }
                                         const open = months
                                             .filter((m) => !m.complete && m.total > 0)
                                             .sort((a, b) => (a.total - a.collected) - (b.total - b.collected));

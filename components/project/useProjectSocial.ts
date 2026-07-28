@@ -11,12 +11,18 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useProject } from '../../lib/state/ProjectContext';
 import { useAuth } from '../../lib/state/AuthContext';
+import { useEffectiveAddress } from '../../lib/incognito/useEffectiveAddress';
 import { getProject } from '../../lib/project/registry';
 
 export function useProjectSocial() {
     const project = useProject();
     const def = getProject(project.slug);
     const { siweAddress, handle: viewerHandle } = useAuth();
+    /* INCOGNITO PROXY (2026-07-28) — the My Network filter data reads
+       through the lens when worn ("Me" = the proxy, their circle). The
+       artist identity row below stays keyed to the REAL viewer: the
+       mutual badge is about YOUR relationship, not the disguise's. */
+    const { address: effectiveAddress } = useEffectiveAddress();
 
     /* My Network — REAL filter data (Brendon 2026-06-11). The viewer's
        follow graph (handles + addresses, lowercased) feeds Mutuals /
@@ -26,9 +32,9 @@ export function useProjectSocial() {
         { followers: new Set(), following: new Set() },
     );
     useEffect(() => {
-        if (!siweAddress) { setNetSets({ followers: new Set(), following: new Set() }); return; }
+        if (!effectiveAddress) { setNetSets({ followers: new Set(), following: new Set() }); return; }
         let cancelled = false;
-        fetch('/api/follows/' + siweAddress.toLowerCase(), { cache: 'no-store' })
+        fetch('/api/follows/' + effectiveAddress.toLowerCase(), { cache: 'no-store' })
             .then((r) => (r.ok ? r.json() : null))
             .then((d) => {
                 if (cancelled || !d) return;
@@ -39,7 +45,7 @@ export function useProjectSocial() {
             })
             .catch(() => {});
         return () => { cancelled = true; };
-    }, [siweAddress]);
+    }, [effectiveAddress]);
 
     /* The ARTIST's real social tags for the identity row (Brendon 2026-06-15 —
        was hardcoded "⚭ 2.2k"). Follower count from the artist's profile; the
