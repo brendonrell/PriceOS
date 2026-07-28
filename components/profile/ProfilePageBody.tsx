@@ -123,6 +123,7 @@ import { useSpiteMatcher } from '../../lib/pins/spiteStore';
 import { useCollectedGallery } from './useCollectedGallery';
 import { useArtistShowcase } from './useArtistShowcase';
 import { isPlatformAccount } from '../../lib/platform/accounts';
+import PriceAccountPanel from './PriceAccountPanel';
 
 /* DEACTIVATE (Spell Book) — the understated "account deactivated" state a
    VISITOR sees on a deactivated profile. Deliberately plain (not corny — the
@@ -902,7 +903,11 @@ function ProfilePageBodyInner({
         (artistShowcaseCreated && mintSort.key !== 'feed') || moreCreatedActive;
     /* #gallery shows for Collected and for the Top 6 grid; the Created view
        replaces it with project carousels below. */
-    const galleryVisible = ((onShowcase && !artistShowcaseCreated) || onCollected) && !feedActive;
+    /* A platform account (@price) holds nothing and created nothing, so its
+       Showcase slot carries the token's own information panel instead of an
+       empty grid. Collected still behaves normally — it is simply empty. */
+    const isPlatform = isPlatformAccount(user.address);
+    const galleryVisible = ((onShowcase && !artistShowcaseCreated && !isPlatform) || onCollected) && !feedActive;
 
     /* Showcase move mode only lives on YOUR OWN Static showcase grid. Leaving
        the tab, switching showcase style, or landing on the Created view all
@@ -2064,6 +2069,9 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                 order is preserved exactly regardless of which project each pick is
                 from (the provider is a context-only node, no DOM, so every card
                 still lands in the single #gallery grid). */}
+            {/* @price — the official $PRICE page, in the Showcase's place. */}
+            {onShowcase && isPlatform && !feedActive && <PriceAccountPanel />}
+
             <section
                 id="gallery"
                 aria-label="Gallery"

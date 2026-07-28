@@ -13744,3 +13744,54 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     box-shadow: 0 10px 34px rgba(0, 0, 0, 0.4);
     pointer-events: none;
 }
+
+/* ── @PRICE — the official $PRICE panel (Brendon, 2026-07-28) ───────────────
+   Rides the shared attr-group / attr-grid / nbhd-note anatomy so it inherits
+   the house look with no new chrome. The overrides below are SCOPED to this
+   panel only — they lift the shared heads to full strength and 12px, per the
+   legibility rule for a new surface, without touching the classes every other
+   panel shares. */
+.price-acct {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 4px 0 18px;
+    font-family: 'Courier New', Courier, monospace;
+}
+/* Section heads: readable on any colorway, not a 10px whisper. */
+.price-acct .attr-group-head { padding-top: 16px; }
+.price-acct .attr-group-name {
+    font-size: 12px;
+    letter-spacing: 1.2px;
+    opacity: 1;
+}
+.price-acct .attr-group-count { font-size: 12px; opacity: 1; }
+.price-acct .nbhd-note { line-height: 1.5; }
+/* The contract address — a full-strength tappable row, monospaced so the hex
+   reads as the hex. Wraps rather than truncating: this is the number people
+   check the page for. */
+.price-acct-addr {
+    display: block;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1.5;
+    letter-spacing: 0.5px;
+    word-break: break-all;
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    padding: 10px 12px;
+    text-decoration: none;
+}
+.price-acct-rows { margin-top: 2px; }
+/* The allocation's share sits at the row's end, full strength + bold. */
+.price-acct-share {
+    margin-left: auto;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+.price-acct-list { display: flex; flex-direction: column; }
+.price-acct-list .nbhd-note { padding-bottom: 6px; }
+.price-acct-links { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 2px; }
+.price-acct-links .pill { text-decoration: none; }
