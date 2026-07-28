@@ -10,12 +10,59 @@
    rounded square, the name in bold below it. The rounded icon square is
    Brendon's named exception to the 4px corner law — it reads as an app
    icon, not a pill. */
-.suite-tabs {
+/* ‰ TODAY — the long bar above the grid (Brendon, 2026-07-28: "almost like a
+   space bar, normal pill style, 80% width of the icon grid"). Base .pill
+   anatomy verbatim — 4px corners, 1px --text-color border, --bg-color fill,
+   12px bold; selected = the ink fill. */
+.suite-todaybar-row {
     display: flex;
-    gap: 2px 6px;
-    padding: 10px 10px 6px;
-    flex-wrap: wrap;
     justify-content: center;
+    padding: 10px 10px 0;
+}
+
+.suite-todaybar {
+    width: 80%;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 12px;
+    box-sizing: border-box;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.12s ease;
+}
+
+.suite-todaybar:active { transform: scale(0.98); }
+
+.suite-todaybar.on {
+    background: var(--stat-active-bg, var(--text-color));
+    color: var(--stat-active-text, var(--bg-color));
+    border-color: var(--stat-active-bg, var(--text-color));
+}
+
+.suite-todaybar-permille {
+    height: 13px;
+    width: auto;
+    flex: 0 0 auto;
+}
+
+/* the eight app icons fall into NEAT ROWS — a fixed four-column grid, so the
+   rows are even at every panel width instead of wrapping ragged. */
+.suite-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px 6px;
+    padding: 8px 10px 6px;
+    justify-items: center;
 }
 
 .suite-tab {
@@ -29,8 +76,9 @@
     flex-direction: column;
     align-items: center;
     gap: 4px;
-    flex: 0 0 auto;
-    width: 76px;
+    width: 100%;
+    max-width: 76px;
+    min-width: 0;
 }
 
 .suite-tab-icbox {
@@ -120,16 +168,6 @@
 /* ◊ PriceBooks — the real Portfolios panel (Budgets + Main/Shadow) as a
    Suite app. Its dropdown back-arrow is meaningless here — hidden. */
 .suite-books > .settings-panel > .scroll-arrow:first-child { display: none; }
-
-/* the Today tab wears the REAL per-mille — the SVG mark, never the text
-   character (Brendon, 2026-07-27) */
-.suite-tab-permille {
-    height: 11px;
-    width: auto;
-    display: inline-block;
-    vertical-align: -1px;
-    margin-right: 5px;
-}
 
 /* ── the Today dashboard ── */
 .suite-today { padding: 2px 2px 10px; color: var(--text-color); }

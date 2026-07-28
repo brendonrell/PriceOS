@@ -44,8 +44,12 @@ const VS15 = '︎';
    (PriceCalc) · ⊟ Note — plus the real per-mille SVG mark (PerMilleMark,
    never the text ‰ — Brendon's logo law) fronting the Today dashboard.
    Never swapped, never invented. */
+/* ‰ Today is NOT an app icon — it's the long bar above the grid (Brendon,
+   2026-07-28: "almost like a space bar, normal pill style, 80% width of the
+   icon grid"). The eight apps below it fall into neat rows. */
+const TODAY = { key: 'today', glyph: 'mille', name: 'Today' } as const;
+
 const APPS = [
-    { key: 'today', glyph: 'mille', name: 'Today' },
     { key: 'cal', glyph: '▦', name: 'PriceCal' },
     { key: 'task', glyph: '❍', name: 'PriceTask' },
     { key: 'flow', glyph: '☇', name: 'PriceFlows' },
@@ -113,9 +117,23 @@ export default function SuiteModal() {
                         {`×${VS15}`}
                     </span>
                 </div>
-                {/* the app switcher — small APP ICONS (Brendon, 2026-07-27):
-                    the glyph in a rounded square, the name below it. */}
-                <div className="suite-tabs" role="tablist" aria-label="Suite apps">
+                {/* the app switcher — Today as the long bar, then the small
+                    APP ICONS (Brendon, 2026-07-27): the glyph in a rounded
+                    square, the name below it. */}
+                <div className="suite-switcher" role="tablist" aria-label="Suite apps">
+                <div className="suite-todaybar-row">
+                    <button
+                        type="button"
+                        role="tab"
+                        aria-selected={app === TODAY.key}
+                        className={`suite-todaybar${app === TODAY.key ? ' on' : ''}`}
+                        onClick={() => setApp(TODAY.key)}
+                    >
+                        <PerMilleMark className="suite-todaybar-permille" />
+                        <span className="suite-todaybar-name">{TODAY.name}</span>
+                    </button>
+                </div>
+                <div className="suite-tabs">
                     {APPS.map((a) => (
                         <button
                             key={a.key}
@@ -126,13 +144,12 @@ export default function SuiteModal() {
                             onClick={() => { if (a.key === 'calc') open('pal', 'profit'); else setApp(a.key as AppKey); }}
                         >
                             <span className="suite-tab-icbox" aria-hidden="true">
-                                {a.glyph === 'mille'
-                                    ? <PerMilleMark className="suite-tab-permille" />
-                                    : <span className="suite-tab-ic">{`${a.glyph}${VS15}`}</span>}
+                                <span className="suite-tab-ic">{`${a.glyph}${VS15}`}</span>
                             </span>
                             <span className="suite-tab-name">{a.name}</span>
                         </button>
                     ))}
+                </div>
                 </div>
                 <div className="followers-plus-body suite-body">
                     {app === 'today' && <SuiteToday openApp={setApp} />}
