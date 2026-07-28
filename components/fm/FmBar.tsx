@@ -172,9 +172,10 @@ export default function FmBar() {
         setDisplay(next);
         try { window.localStorage.setItem('pd_fm_display', next); } catch { /* fine */ }
         pushSettings({ fmDisplay: next }); // account-backed
-        /* the ™ is a toast-only flourish (Brendon, 2026-07-22 — "for fun"); the
-           wordmark renders lowercase with the "player" half italic. */
-        showToast(`miniplayer ${FM_DISPLAY_NAMES[next]}™`);
+        /* the ™ is a toast-only flourish (Brendon, 2026-07-22 — "for fun"); it
+           rides the wordmark itself now, so never a second one on the face name
+           (Brendon, 2026-07-28 — "only one tm not two"). */
+        showToast(`miniplayer ${FM_DISPLAY_NAMES[next]}`);
     };
 
     const playerRef = useRef<YTPlayer | null>(null);
