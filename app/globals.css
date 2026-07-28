@@ -4874,8 +4874,9 @@ body.persona-default .stats-row-2 { display: none !important; }
 }
 
 /* Profile followers stat uses the ⚬ glyph, which renders much smaller than
-   the box/ETH icons at the shared 13px. Bump to optically match them. */
-.stat-icon-followers { font-size: 22px; }
+   the box/ETH icons at the shared 13px. Bump to optically match them.
+   (Brendon, 2026-07-28 — one size smaller, every surface it appears on.) */
+.stat-icon-followers { font-size: 20px; }
 
 /* "Collected by" line — sim ~2074-2133 */
 .info-rubik {
@@ -9279,7 +9280,7 @@ a.f-highlight { color: inherit; }
        only (Brendon 2026-06-15). Two-class selector beats the generic
        .stat-icon-owners rule above for the followers stat specifically. */
     .stat-icon-owners.stat-icon-followers {
-        font-size: 26px;
+        font-size: 24px;
         position: relative;
         top: -4px;
     }
@@ -9340,7 +9341,7 @@ a.f-highlight { color: inherit; }
     }
     .stat-icon-owners { font-size: 14px; text-shadow: none; }
     /* Followers icon a touch larger + nudged up, desktop only (Brendon 2026-06-16). */
-    .stat-icon-followers { font-size: 25px; transform: translateY(-2px); }
+    .stat-icon-followers { font-size: 23px; transform: translateY(-2px); }
     .stat-icon-eth { font-size: 16px; position: relative; top: 1px; }
     .meta-owner { font-size: 13px; opacity: 0.7; }
     .info-rubik .ico-mutual,
