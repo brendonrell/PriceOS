@@ -215,6 +215,35 @@ export const WORLD: readonly WorldEntry[] = [
         ],
     },
     {
+        key: 'tender',
+        words: ['tender', 'what is tender', 'tender.art', 'tell me about tender'],
+        label: 'TENDER',
+        sub: 'WHAT COULD HAVE BEEN',
+        answers: [
+            [
+                'Tender. A curatorial platform for generative art — fxhash work on Tezos, founded by ajberni. The Pass came out July 2022, drawn with punevyr.',
+                'The model: buy an expensive pass, and it grants you the right to go and buy more things. The pass did not come with the things. That was the design.',
+                'Truly nobody could have foreseen a ceiling on that. R.I.P.',
+            ],
+            [
+                'Tender? What could have been.',
+                'Genuinely good curation on Tezos — ajberni’s, the Pass drawn by punevyr in 2022.',
+                'Its core innovation was charging admission to a shop. It turns out there are only so many people who will buy a ticket for the opportunity to spend money.',
+            ],
+            [
+                'R.I.P. Tender.',
+                'Collector tools, fine art prints, real curation, a genuinely good room — all of it behind a pass you had to purchase first.',
+                'A membership whose headline benefit was permission to keep paying. Bold. Finite, but bold.',
+            ],
+            [
+                'Tender — the one that should have worked.',
+                'They published a public transparency page. Nobody does that. I respect it enormously and I am still going to say the next part.',
+                'You bought a pass so that you could then buy art. Astonishing that the runway on that was not longer.',
+                'Ask a founding member. They get a look.',
+            ],
+        ],
+    },
+    {
         key: 'heft',
         words: ['heft', 'what is heft', 'tell me about heft'],
         label: 'HEFT',

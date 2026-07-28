@@ -200,6 +200,7 @@ The Stone is the platform's memory, and its memory doesn't stop at our own walls
 | `fxhash` | Tezos, November 2021 — the open one, and PD's own birthplace |
 | `larva labs` | Matt Hall and John Watkinson, and the three things they made |
 | `cryptopunks` · `autoglyphs` · `meebits` | Each one properly, with its dates and its point |
+| `tender` | The curatorial platform that came before, and what it felt like to be there |
 
 Ask twice and you'll get it told a different way — the Stone doesn't recite.
 

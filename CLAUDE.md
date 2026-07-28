@@ -817,6 +817,14 @@ explicit chat confirmation.
   `--text-color` borders, and bold. Reuse those (Rule #0) — never invent a
   motif for a state PD already has a mark for.
 
+- **⛔ AN `@` ALWAYS MEANS A PD USERNAME. NEVER PUT ONE ON AN OUTSIDE NAME
+  (Brendon, 2026-07-28 — "don't be careless").** In PD copy, `@name` is a
+  handle on THIS platform and taps through to that profile. So an external
+  person — an artist, a founder, a platform's team — is named **plainly**:
+  `ajberni`, `punevyr`, `Snowfro`. Writing `@ajberni` claims a PD account
+  that may not exist and makes a real link a lie. Applies to every surface,
+  every doc, every stone answer. (Enforced for the stone's world knowledge
+  by a test: no `@` may appear in `lib/stone/world.ts` content at all.)
 - **Toast casing — THE THING THAT CHANGED gets the ALLCAPS (Brendon,
   2026-06-12, hard rule).** The label/category stays normal case; the new
   state screams. `Tab: SHUFFLE`, `Wishlist: ADDED · 3`, `Soundtracks: NONE

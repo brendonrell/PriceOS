@@ -189,3 +189,24 @@ describe('the world — the stone knows its ecosystem (2026-07-28)', () => {
         }
     });
 });
+
+describe('the @ law — an @ in the stone ALWAYS means a PD username', () => {
+    it('never puts an @ on an outside name (Brendon, 2026-07-28)', async () => {
+        const { WORLD } = await import('../lib/stone/world');
+        /* world.ts is entirely about people and places OUTSIDE PD, so no
+           @ belongs anywhere in it — ajberni, punevyr, Snowfro and the
+           rest are named plainly. */
+        for (const e of WORLD) {
+            for (const ans of e.answers) {
+                expect(ans.join(' ')).not.toContain('@');
+            }
+        }
+    });
+    it('tells Tender straight: the history, then the sentiment', async () => {
+        const { WORLD, matchWorld } = await import('../lib/stone/world');
+        expect(matchWorld('tender')?.key).toBe('tender');
+        const t = WORLD.find((e) => e.key === 'tender')!;
+        expect(t.answers.some((a) => a.join(' ').includes('ajberni'))).toBe(true);
+        expect(t.answers.some((a) => /R\.I\.P\.|could have been|should have worked/.test(a.join(' ')))).toBe(true);
+    });
+});
