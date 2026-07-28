@@ -6884,6 +6884,106 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     -webkit-tap-highlight-color: transparent;
 }
 .lists-head-play:active { opacity: 0.65; }
+/* On a MIXED list the key carries how many soundtracks it will actually play,
+   so it never claims to be playing the artworks beside them. */
+.lists-head-play-n {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    margin-left: 1px;
+}
+/* MOVED — how many pieces in this list have a different ask than when it was
+   last read. PD's own state mark, the dotted ring (§9 banned motifs: never an
+   edge bar, never a lozenge, never a new glyph). Full strength (Rule #2). */
+.lists-head-moved {
+    flex: 0 0 auto;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1;
+    color: var(--text-color);
+    white-space: nowrap;
+    padding: 2px 4px;
+    margin: -2px 0;
+    outline: 2px dotted var(--text-color);
+    outline-offset: -2px;
+    border-radius: 4px;
+}
+/* The same mark on the row that moved — on the NUMBER, because the number is
+   the thing that changed. */
+.lists-row-rarity.is-moved {
+    outline: 2px dotted var(--text-color);
+    outline-offset: 1px;
+    border-radius: 4px;
+}
+/* ── The panel head: NEW LIST · ARRANGE · A→Z ──
+   Word keys, matching the sort row directly above the panel (Rule #0 — that
+   row is words, and PD has no ＋ glyph to invent one from). Full-strength
+   tokens, 12px floor, 4px radius — the trait-pill law (§9). */
+.lists-panel-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 2px 8px;
+}
+.lists-panel-key {
+    flex: 0 0 auto;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    color: var(--text-color);
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    padding: 5px 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+}
+.lists-panel-key:active { opacity: 0.65; }
+/* ARRANGE while it's on — the selected state every PD pill wears. */
+.lists-panel-key.is-on {
+    background: var(--stat-active-bg, var(--text-color));
+    color: var(--stat-active-text, var(--bg-color));
+    border-color: var(--stat-active-bg, var(--text-color));
+}
+.lists-panel-head .lists-head-input { flex: 1 1 auto; min-width: 0; }
+/* A header in ARRANGE mode drags exactly like a row inside a list: the same
+   ⠿ grip, the same lift, and the same dotted ring on the one it would land on
+   (Rule #0 — the row drag is already built and proven, so it's reused whole
+   rather than restyled). */
+.lists-head[data-reorder] {
+    position: relative;
+    padding-left: 18px;
+    cursor: grab;
+}
+.lists-head[data-reorder]::before {
+    content: '⠿';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--text-color);
+    pointer-events: none;
+}
+.lists-head.lists-row-lifted {
+    position: relative;
+    z-index: 3;
+    opacity: 0.9;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+    background: var(--bg-color);
+    cursor: grabbing;
+}
+.lists-head.lists-row-armed {
+    outline: 2px dotted var(--text-color);
+    outline-offset: -2px;
+    border-radius: 4px;
+}
 /* A FOCUSED list (long-pressed) has the panel to itself. It wears PD's own
    state mark — the dotted ring the profile-logo carousel uses for its active
    tile — never an edge bar or a lozenge (§9 banned motifs). */

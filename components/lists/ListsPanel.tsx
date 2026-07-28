@@ -46,8 +46,10 @@ import { fmPlayQueue, type FmStation } from '../../lib/fm/fmBus';
 import OutputThumb from '../profile/OutputThumb';
 import {
     getLists, subscribeLists, removeFromList, parseListKey, moveInList,
-    renameList, deleteList, LIST_NAME_MAX, type ListMemberRef,
+    renameList, deleteList, createList, moveList, setListOrder,
+    LIST_NAME_MAX, type ListMemberRef,
 } from '../../lib/pins/listStore';
+import { hasMoved, markSeen } from '../../lib/pins/listSeenStore';
 import type { ListRecord } from '../../lib/supabase';
 
 const VS15 = '︎';
@@ -101,10 +103,12 @@ function RemoveX({ onRemove }: { onRemove: () => void }) {
 /* ── One SHORT row: thumb · project #id · the one line that matters ──
    `full` is the FOCUSED reading of a list (long-pressed): the same row at the
    Starred rows' own size, with the artist line the short row drops. */
-function ListRow({ item, owned, full, priceMode, dragProps, onRemove }: {
+function ListRow({ item, owned, moved, full, priceMode, dragProps, onRemove }: {
     item: Extract<ListMemberRef, { kind: 'output' }>;
     /** The viewer holds this piece — marked with the same ✓ the picker uses. */
     owned: boolean;
+    /** Its ask has moved since this list was last read — see listSeenStore. */
+    moved: boolean;
     full: boolean;
     /** The panel's ◊ money mode — OFF puts rarity back on every row. */
     priceMode: ListPriceMode;
@@ -160,15 +164,25 @@ function ListRow({ item, owned, full, priceMode, dragProps, onRemove }: {
                 </span>
                 <span className="starred-row-sub lists-row-info">
                     <span className="lists-row-artist">{artist ?? ' '}</span>
+                    {/* MOVED — this piece's ask isn't what it was when you last
+                        read this list (it came up for sale, sold, or changed
+                        price). It wears PD's own state mark, the dotted ring
+                        (§9 — never an edge bar, never a new glyph), on the
+                        number that actually moved. */}
                     {money != null ? (
                         <span
-                            className="lists-row-rarity lists-row-ask"
-                            title={priceMode === 'primary' ? `Minted at ${money}` : `Asking ${money}`}
+                            className={`lists-row-rarity lists-row-ask${moved ? ' is-moved' : ''}`}
+                            title={moved
+                                ? `Moved since you last looked — asking ${money}`
+                                : priceMode === 'primary' ? `Minted at ${money}` : `Asking ${money}`}
                         >
                             {money}
                         </span>
                     ) : rarity != null ? (
-                        <span className="lists-row-rarity" title={`PD Rarity ${rarity}`}>
+                        <span
+                            className={`lists-row-rarity${moved ? ' is-moved' : ''}`}
+                            title={moved ? `Moved since you last looked` : `PD Rarity ${rarity}`}
+                        >
                             {`❖${VS15}`}{rarity}
                         </span>
                     ) : null}
@@ -219,9 +233,11 @@ function TileRow({
 }
 
 /* One member of any kind — routed to the row that draws it. */
-function MemberRow({ member: m, viewerAddress, full, priceMode, dragProps, onRemove }: {
+function MemberRow({ member: m, viewerAddress, moved, full, priceMode, dragProps, onRemove }: {
     member: ListMemberRef;
     viewerAddress?: string | null;
+    /** Its ask has moved since this list was last read. Outputs only. */
+    moved: boolean;
     /** Focused reading — rows at the Starred rows' own size. */
     full: boolean;
     priceMode: ListPriceMode;
@@ -231,7 +247,7 @@ function MemberRow({ member: m, viewerAddress, full, priceMode, dragProps, onRem
     const router = useRouter();
 
     if (m.kind === 'output') {
-        return <ListRow item={m} owned={isHeldBy(m.slug, m.id, viewerAddress)} full={full} priceMode={priceMode} dragProps={dragProps} onRemove={onRemove} />;
+        return <ListRow item={m} owned={isHeldBy(m.slug, m.id, viewerAddress)} moved={moved} full={full} priceMode={priceMode} dragProps={dragProps} onRemove={onRemove} />;
     }
 
     if (m.kind === 'project') {
@@ -328,7 +344,7 @@ function MemberRow({ member: m, viewerAddress, full, priceMode, dragProps, onRem
 }
 
 /* ── One collapsible list ── */
-function ListSection({ list, viewerAddress, priceMode, pricesVer, focused, onToggleFocus, onCycleTotal, onToast, onAskDelete }: {
+function ListSection({ list, viewerAddress, priceMode, pricesVer, focused, arranging, headDragProps, onToggleFocus, onCycleTotal, onToast, onAskDelete }: {
     list: ListRecord;
     viewerAddress?: string | null;
     /** Which money the ◊ shows — or OFF. See ListsPanel. */
@@ -337,6 +353,10 @@ function ListSection({ list, viewerAddress, priceMode, pricesVer, focused, onTog
     pricesVer: number;
     /** This list has the panel to itself, its rows at full Starred size. */
     focused: boolean;
+    /** The panel is in ARRANGE mode — headers drag, focus-hold stands down. */
+    arranging: boolean;
+    /** Hold-to-drag wiring for this list's own header, in arrange mode. */
+    headDragProps: Record<string, unknown>;
     onToggleFocus: () => void;
     onCycleTotal: () => void;
     onToast: (m: string) => void;
@@ -405,24 +425,68 @@ function ListSection({ list, viewerAddress, priceMode, pricesVer, focused, onTog
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [items, viewerAddress, priceMode, pricesVer]);
 
-    /* ▶ PLAY THE LIST (Brendon, 2026-07-28) — a list holding NOTHING BUT
-       soundtracks is already a playlist, so it gets a play key and the whole
-       list goes to the miniplayer in stored order (which is the order you
-       dragged them into). Anything else in the list and there's no key: a run
-       that silently skipped the artworks would be lying about what it played.
-       It sits where the ◊ total does — an all-soundtrack list owns no
-       artworks, so that spot is free and nothing moves. */
-    const stations = useMemo<FmStation[]>(() => {
-        const songs = items.filter(
-            (i): i is Extract<ListMemberRef, { kind: 'soundtrack' }> => i.kind === 'soundtrack',
+    /* ▶ PLAY THE LIST (Brendon, 2026-07-28) — the soundtracks in this list,
+       played straight through the miniplayer in stored order (the order you
+       dragged them into).
+       WIDENED the same day, on Brendon's word: a MIXED list gets the key too,
+       and plays the soundtracks it holds. The original rule was that a run
+       skipping the artworks would lie about what it played — so it doesn't
+       lie: the key says how many it will play, and so does the toast. On an
+       all-soundtrack list the ◊ total isn't there (no artworks to total), so
+       ▶ simply takes that free spot and nothing moves. */
+    const stations = useMemo<FmStation[]>(
+        () => items
+            .filter((i): i is Extract<ListMemberRef, { kind: 'soundtrack' }> => i.kind === 'soundtrack')
+            .map((s) => ({
+                playlistId: s.playlistId,
+                label: getProject(s.slug)?.soundtrack?.label ?? s.playlistId,
+                slug: s.slug,
+            })),
+        [items],
+    );
+
+    /* MOVED — which artworks in here have a different ask than the last time
+       this list was read, and how many. The number rides the header so a
+       CLOSED list can still tell you something happened; the rows show which.
+       Reading the list is what clears it (see the open effect below). */
+    const movedKeys = useMemo(() => {
+        const out = new Set<string>();
+        for (const it of items) {
+            if (it.kind !== 'output') continue;
+            if (hasMoved(it.key, priceOf(it.slug, it.id))) out.add(it.key);
+        }
+        return out;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [items, pricesVer]);
+
+    /* Opening the list IS reading it, so the baseline moves — but the marks
+       must SURVIVE the read that clears them, or they'd vanish in the same
+       frame the user opened the list to see them. So the moved set is frozen
+       on open and held until the list is closed again; the stored baseline
+       updates immediately underneath it, which is what makes the NEXT open
+       honest. */
+    const [heldMoved, setHeldMoved] = useState<ReadonlySet<string> | null>(null);
+    useEffect(() => {
+        if (!open) { setHeldMoved(null); return; }
+        if (pricesVer === 0) return; // no prices in yet — nothing true to record
+        setHeldMoved((cur) => cur ?? new Set(movedKeys));
+        markSeen(
+            items
+                .filter((i): i is Extract<ListMemberRef, { kind: 'output' }> => i.kind === 'output')
+                .map((i) => ({ key: i.key, ask: priceOf(i.slug, i.id) })),
         );
-        if (songs.length === 0 || songs.length !== items.length) return [];
-        return songs.map((s) => ({
-            playlistId: s.playlistId,
-            label: getProject(s.slug)?.soundtrack?.label ?? s.playlistId,
-            slug: s.slug,
-        }));
-    }, [items]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [open, pricesVer, items]);
+
+    const shownMoved = open ? (heldMoved ?? movedKeys) : movedKeys;
+
+    /* The toast names the COUNT, not just the state, because on a mixed list
+       the number is the honest part — it's what separates "played your list"
+       from "played the six soundtracks in your list". */
+    const playRun = () => {
+        fmPlayQueue(stations);
+        onToast(`${list.name}: PLAYING ${stations.length}`);
+    };
 
     return (
         <div className={`lists-section${open ? ' is-open' : ''}${focused ? ' is-focused' : ''}`}>
@@ -443,7 +507,11 @@ function ListSection({ list, viewerAddress, priceMode, pricesVer, focused, onTog
                     if (editing) return;
                     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen((v) => !v); }
                 }}
-                {...(editing ? {} : lp.handlers)}
+                /* ARRANGE owns the hold while it's on: the header becomes a
+                   drag handle and the focus long-press stands down, so one
+                   gesture never means two things (Brendon, 2026-07-28). */
+                {...(arranging ? headDragProps : editing ? {} : lp.handlers)}
+                {...(arranging ? { [ROW_KEY_ATTR]: list.id, 'data-reorder': '' } : {})}
             >
                 <span className="lists-head-caret" aria-hidden="true">{open ? `▾${VS15}` : `▸${VS15}`}</span>
                 {/* ≡ is the Lists mark across PD — it leads every list's name
@@ -469,6 +537,20 @@ function ListSection({ list, viewerAddress, priceMode, pricesVer, focused, onTog
                     <span className="lists-head-name">{list.name}</span>
                 )}
                 <span className="lists-head-count">{items.length}</span>
+                {/* MOVED — how many pieces in here have a different ask than
+                    when you last read this list. Wears PD's dotted ring, the
+                    state mark the profile carousel and the drop target already
+                    use (§9), so a closed list can still say "something happened
+                    in here" without a new glyph or a new colour. */}
+                {shownMoved.size > 0 && (
+                    <span
+                        className="lists-head-moved"
+                        title={`${shownMoved.size} moved since you last looked`}
+                        aria-label={`${shownMoved.size} moved since you last looked`}
+                    >
+                        {shownMoved.size}
+                    </span>
+                )}
                 {/* How many of this list's artworks you already hold. */}
                 {ownable > 0 && (
                     <span className="lists-head-owned" title={`You own ${owned} of ${ownable}`}>
@@ -493,29 +575,31 @@ function ListSection({ list, viewerAddress, priceMode, pricesVer, focused, onTog
                         {`◊${VS15}`}{priceMode !== 'off' && total > 0 ? total.toFixed(total >= 100 ? 0 : 2) : ''}
                     </span>
                 )}
-                {/* ▶ — plays this list straight through in the miniplayer.
-                    Only on a list of nothing but soundtracks. */}
+                {/* ▶ — plays this list's soundtracks straight through in the
+                    miniplayer. On a MIXED list the key carries the number it
+                    will play, so it never pretends to be playing the artworks
+                    beside them (Brendon, 2026-07-28). */}
                 {stations.length > 0 && (
                     <span
                         className="lists-head-play"
                         role="button"
                         tabIndex={0}
-                        title={`Play this list — ${stations.length} soundtrack${stations.length === 1 ? '' : 's'}`}
-                        aria-label="Play this list in the miniplayer"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            fmPlayQueue(stations);
-                            onToast(`${list.name}: PLAYING`);
-                        }}
+                        title={`Play ${stations.length} soundtrack${stations.length === 1 ? '' : 's'} from this list`}
+                        aria-label={`Play ${stations.length} soundtracks from this list in the miniplayer`}
+                        onClick={(e) => { e.stopPropagation(); playRun(); }}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                fmPlayQueue(stations);
-                                onToast(`${list.name}: PLAYING`);
+                                playRun();
                             }
                         }}
-                    >{`▶${VS15}`}</span>
+                    >
+                        {`▶${VS15}`}
+                        {stations.length < items.length && (
+                            <span className="lists-head-play-n">{stations.length}</span>
+                        )}
+                    </span>
                 )}
                 {/* Rename — the budget pills' pencil, same glyph. */}
                 <span
@@ -552,6 +636,7 @@ function ListSection({ list, viewerAddress, priceMode, pricesVer, focused, onTog
                                 <MemberRow
                                     member={it}
                                     viewerAddress={viewerAddress}
+                                    moved={shownMoved.has(it.key)}
                                     full={focused}
                                     priceMode={priceMode}
                                     /* Reorder is GATED BEHIND THE PENCIL
@@ -680,17 +765,151 @@ export default function ListsPanel({ onToast, dir = 'asc', viewerAddress }: {
         </div>
     ) : null;
 
+    /* ── NEW LIST, from the panel itself (Brendon, 2026-07-28) ──
+       Until now the ONLY way to make a list was ADD TO LIST on a starred row —
+       the panel's own empty state had to send you somewhere else to fix it.
+       The head names one and creates it empty. No glyph invented: the sort row
+       beside it is word keys, and the ADD TO LIST sheet's own create row is the
+       words "New List" (Rule #0 — copy what's there). */
+    const [naming, setNaming] = useState(false);
+    const [newName, setNewName] = useState('');
+    const newRef = useRef<HTMLInputElement>(null);
+    useEffect(() => { if (naming) newRef.current?.focus(); }, [naming]);
+    const commitNew = () => {
+        const record = createList(newName);
+        setNaming(false);
+        setNewName('');
+        if (record) onToast(`${record.name}: CREATED`);
+    };
+
+    /* ── ARRANGE (Brendon, 2026-07-28) — the lists themselves reorder ──
+       The rows INSIDE a list have dragged since 2026-07-25; the lists never
+       could, so the one you open daily sat wherever its name landed. The
+       gesture is the app's own hold-drag, reused whole.
+       Why a MODE and not just a hold: the hold on a list's name is already
+       FOCUS. One gesture cannot mean two things, so ARRANGE takes the hold for
+       as long as it's on and hands it straight back when it's off — a
+       confirmed way in and a confirmed way out, default off (Rule #-0.4).
+       Order itself: A→Z stays the default forever. The first drag switches the
+       panel to YOUR order, and the A→Z key — which only appears while
+       arranging — puts it back. Nobody can get stranded in an order they
+       can't undo. */
+    const [arranging, setArranging] = useState(false);
+    const [orderMode, setOrderMode] = useLocalStorage<'az' | 'mine'>('pd_lists_order', 'az');
+
     /* ALPHABETICAL (Brendon) — by name, case-insensitively, so "aurora" and
        "Aurora" sort where a reader expects rather than by byte value. Tapping
-       ≡ LISTS again flips it, exactly like the sorts beside it. */
+       ≡ LISTS again flips it, exactly like the sorts beside it. Once the user
+       has arranged, their own order takes over and the flip still reverses it. */
     const ordered = useMemo(() => {
-        const sorted = [...lists].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+        const sorted = orderMode === 'mine'
+            ? [...lists]
+            : [...lists].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
         const byDir = dir === 'desc' ? sorted.reverse() : sorted;
         /* A focused list has the panel to itself — the others stand down until
            the same long-press releases it. */
         const only = byDir.find((l) => l.id === focusedId);
         return only ? [only] : byDir;
-    }, [lists, dir, focusedId]);
+    }, [lists, dir, focusedId, orderMode]);
+
+    /* Dragging one list onto another. The first drag freezes what's on screen
+       as the starting order — otherwise the panel would snap from the A→Z the
+       user was reading to a creation order they've never seen, and the drop
+       would land somewhere they didn't aim. */
+    const { rowHandlers: headHandlers } = useListRowDrag((fromId, ontoId) => {
+        if (orderMode !== 'mine') {
+            setListOrder(ordered.map((l) => l.id));
+            setOrderMode('mine');
+        }
+        if (moveList(fromId, ontoId)) onToast('Lists: REORDERED');
+    });
+
+    const toggleArrange = () => {
+        setArranging((v) => {
+            const next = !v;
+            onToast(`Arrange: ${next ? 'ON' : 'OFF'}`);
+            return next;
+        });
+    };
+    const backToAZ = () => {
+        setOrderMode('az');
+        onToast('Lists: A→Z');
+    };
+
+    /* Arranging is about the whole panel, so a focused list (which hides every
+       other list) has nothing to arrange against. Focus wins; arrange stands
+       down rather than pretending. */
+    useEffect(() => { if (focusedId) setArranging(false); }, [focusedId]);
+
+    const panelHead = (
+        <div className="lists-panel-head">
+            {naming ? (
+                <>
+                    <input
+                        ref={newRef}
+                        className="value-prompt-input lists-head-input"
+                        value={newName}
+                        maxLength={LIST_NAME_MAX}
+                        placeholder="Name this list"
+                        onChange={(e) => setNewName(e.target.value)}
+                        onBlur={commitNew}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') { e.preventDefault(); commitNew(); }
+                            if (e.key === 'Escape') { e.preventDefault(); setNaming(false); setNewName(''); }
+                        }}
+                    />
+                    <span
+                        className="lists-panel-key"
+                        role="button"
+                        tabIndex={0}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={commitNew}
+                    >
+                        CREATE
+                    </span>
+                </>
+            ) : (
+                <>
+                    <span
+                        className="lists-panel-key"
+                        role="button"
+                        tabIndex={0}
+                        title="Make a new list"
+                        onClick={() => setNaming(true)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setNaming(true); } }}
+                    >
+                        NEW LIST
+                    </span>
+                    {lists.length > 1 && !focusedId && (
+                        <span
+                            className={`lists-panel-key${arranging ? ' is-on' : ''}`}
+                            role="button"
+                            tabIndex={0}
+                            title="Hold and drag a list to move it"
+                            onClick={toggleArrange}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleArrange(); } }}
+                        >
+                            ARRANGE
+                        </span>
+                    )}
+                    {/* The way back out of your own order — only while
+                        arranging, so it's never resting chrome. */}
+                    {arranging && orderMode === 'mine' && (
+                        <span
+                            className="lists-panel-key"
+                            role="button"
+                            tabIndex={0}
+                            title="Back to alphabetical"
+                            onClick={backToAZ}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); backToAZ(); } }}
+                        >
+                            A→Z
+                        </span>
+                    )}
+                </>
+            )}
+        </div>
+    );
 
     /* A list deleted while focused would strand the panel showing nothing. */
     useEffect(() => {
@@ -700,8 +919,11 @@ export default function ListsPanel({ onToast, dir = 'asc', viewerAddress }: {
     if (ordered.length === 0) {
         return (
             <section className="starred-list lists-panel" aria-label="My Lists">
+                {panelHead}
+                {/* The empty state no longer has to send anyone elsewhere — the
+                    way to fix it is the key directly above this line. */}
                 <div className="lists-empty">
-                    No lists yet — use ADD TO LIST on any starred piece to make your first.
+                    No lists yet — NEW LIST above, or ADD TO LIST on any starred piece.
                 </div>
             </section>
         );
@@ -709,6 +931,7 @@ export default function ListsPanel({ onToast, dir = 'asc', viewerAddress }: {
 
     return (
         <section className="starred-list lists-panel" aria-label="My Lists">
+            {panelHead}
             {ordered.map((l) => (
                 <ListSection
                     /* pricesVer in the key would remount and collapse open
@@ -719,6 +942,8 @@ export default function ListsPanel({ onToast, dir = 'asc', viewerAddress }: {
                     priceMode={priceMode}
                     pricesVer={pricesVer}
                     focused={focusedId === l.id}
+                    arranging={arranging}
+                    headDragProps={headHandlers(l.id)}
                     onToggleFocus={() => toggleFocus(l.id, l.name)}
                     onCycleTotal={cycleTotal}
                     onToast={onToast}

@@ -202,6 +202,38 @@ export function moveInList(listId: string, key: string, ontoKey: string): boolea
     return true;
 }
 
+/**
+ * Move a whole LIST so it lands where another currently sits (Brendon,
+ * 2026-07-28 — drag the lists themselves, not just the rows inside). Lists are
+ * stored in an order and the panel can read that order instead of A→Z, so this
+ * IS the order the user sees once they've arranged. Same contract as
+ * moveInList: no-ops on unknown/identical ids, reports whether anything moved.
+ */
+export function moveList(listId: string, ontoId: string): boolean {
+    if (listId === ontoId) return false;
+    const lists = snapshot(store.get());
+    const from = lists.findIndex((l) => l.id === listId);
+    const onto = lists.findIndex((l) => l.id === ontoId);
+    if (from < 0 || onto < 0) return false;
+    const [moved] = lists.splice(from, 1);
+    lists.splice(onto, 0, moved);
+    store.set(lists);
+    return true;
+}
+
+/**
+ * Rewrite the stored order to match the ids given (any list the caller didn't
+ * name keeps its place at the end). This is how "arrange" starts from what the
+ * user is currently looking at — the A→Z they've been reading becomes the
+ * baseline they drag against, instead of the creation order they've never seen.
+ */
+export function setListOrder(ids: ReadonlyArray<string>): void {
+    const lists = snapshot(store.get());
+    const rank = new Map(ids.map((id, i) => [id, i]));
+    lists.sort((a, b) => (rank.get(a.id) ?? Infinity) - (rank.get(b.id) ?? Infinity));
+    store.set(lists);
+}
+
 /** Drop members from a list. Returns how many were removed, or null if unknown. */
 export function removeFromList(
     listId: string,
