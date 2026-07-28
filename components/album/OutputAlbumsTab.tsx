@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react';
 import AlbumPickerCard from './AlbumPickerCard';
 import { AlbumCoverArt, useAlbumsWorth } from './AlbumsPanel';
 import { useToast } from '../../lib/state/ToastContext';
+import { useAuth } from '../../lib/state/AuthContext';
 import {
     albumsContaining,
     removeFromAlbum,
@@ -23,6 +24,14 @@ const VS15 = '︎';
 
 export default function OutputAlbumsTab({ slug, id }: { slug: string; id: number }) {
     const { showToast } = useToast();
+    /* Every album on this tab is the VIEWER's own, so the maker's handle is
+       the signed-in handle — shown on each tile (Brendon, 2026-07-28). */
+    const { handle, siweAddress } = useAuth();
+    const owner = handle
+        ? `@${handle.toUpperCase()}`
+        : siweAddress
+          ? `${siweAddress.slice(0, 6)}…${siweAddress.slice(-4)}`
+          : null;
     const [containing, setContaining] = useState(() => albumsContaining(slug, id));
     const [pickerOpen, setPickerOpen] = useState(false);
     const worthOf = useAlbumsWorth(containing.map((c) => c.album));
@@ -42,7 +51,7 @@ export default function OutputAlbumsTab({ slug, id }: { slug: string; id: number
                             className="album-tile output-album-tile"
                             style={{ animationDelay: `${Math.min(number - 1, 8) * 55}ms` }}
                         >
-                            <AlbumCoverArt album={album} number={number} listedEth={worthOf(album)} />
+                            <AlbumCoverArt album={album} number={number} listedEth={worthOf(album)} owner={owner} />
                             <span
                                 className="chip-x output-album-tile-x"
                                 role="button"

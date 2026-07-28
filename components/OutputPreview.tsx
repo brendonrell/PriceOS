@@ -139,7 +139,6 @@ import { recordOutputView } from '../lib/output/views';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import AsciiArtImage from './AsciiArtImage';
 import DeepZoomLayer from './art/DeepZoomLayer';
-import { popCount, noneHigher } from '../lib/output/rarity';
 import { publishPieceInView, clearPieceInView } from '../lib/npc/inview';
 import { sampleCanvasFingerprint } from '../lib/art/sampleColor';
 import { useNotePrompt } from '../lib/state/NotePromptContext';
@@ -1366,22 +1365,9 @@ export default function OutputPreview() {
                                 #{id}
                             </span>
                         </div>
-                        {/* RARITY LABS (2026-07-26) — the Pop badge: ❖ POP n =
-                            the census count of this piece's rarest single
-                            trait; rank #1 across the edition set additionally
-                            wears the inverted NONE HIGHER chip. Same memoised
-                            census the character sheet reads — no fetch. */}
-                        {(() => {
-                            const pop = popCount(slug, id);
-                            if (pop == null) return null;
-                            const top = noneHigher(slug, id);
-                            return (
-                                <div className="modal-pop-line" title="Pop — how many editions share this piece's rarest trait">
-                                    <span className="modal-pop-badge">{`❖${VS15} POP ${pop}`}</span>
-                                    {top && <span className="modal-pop-badge modal-pop-badge--top">NONE HIGHER</span>}
-                                </div>
-                            );
-                        })()}
+                        {/* The Pop badge (Rarity Labs, 2026-07-26) was never
+                            approved for this modal — pulled 2026-07-28 on
+                            Brendon's order. The artwork modal does not change. */}
                         <div className="modal-pill-row" id="mPillRow">
                             <span
                                 className={`modal-pill modal-pill--star${starred ? ' active' : ''}`}

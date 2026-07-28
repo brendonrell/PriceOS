@@ -141,8 +141,12 @@ function AlbumShow({ album, number, onClose }: { album: AlbumRecord; number: num
       one cell crossfades to a piece not currently showing, on a per-album
       stagger so the wall never blinks in unison. A chosen single cover
       stays perfectly still (it was chosen). ── */
-export function AlbumCoverArt({ album, number, listedEth }: {
-    album: AlbumRecord; number: number; listedEth: number;
+/* `owner` — the @handle of whoever made the album, shown ahead of its number
+   (Brendon, 2026-07-28: "@brendon Album #2"). Passed only where the album's
+   maker isn't already obvious from the surface (the Output page's Albums
+   tab); the profile shelf, which IS that person's page, leaves it off. */
+export function AlbumCoverArt({ album, number, listedEth, owner }: {
+    album: AlbumRecord; number: number; listedEth: number; owner?: string | null;
 }) {
     const coverKey = album.cover && album.keys.includes(album.cover) ? album.cover : null;
     const [cells, setCells] = useState<string[]>(() => (coverKey ? [coverKey] : album.keys.slice(0, 4)));
@@ -182,7 +186,10 @@ export function AlbumCoverArt({ album, number, listedEth }: {
                 {!coverKey && cells.length === 0 && <span className="album-tile-empty">◰{VS15}</span>}
             </span>
             <span className="album-tile-label">
-                <span className="album-tile-name">ALBUM {pad2(number)}</span>
+                <span className="album-tile-name">
+                    {owner && <span className="album-tile-owner">{owner}</span>}
+                    ALBUM {pad2(number)}
+                </span>
                 <span className="album-tile-count">
                     {listedEth > 0 && <span className="album-tile-worth"><span className="eth-mark">◊</span>{fmtEth(listedEth)} · </span>}
                     {album.keys.length}

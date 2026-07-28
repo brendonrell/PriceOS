@@ -400,6 +400,48 @@ body.bg-is-red #todosBox { --hothurt: #FFE600; }
     .todo-del { opacity: 0.45; }
 }
 
+/* EDIT ✎ — the pencil beside the row's × (Brendon, 2026-07-28). Same slot
+   anatomy and reveal as the × so the pair reads as one cluster; the pencil
+   is the Lists panel's rename glyph, unchanged. */
+.todo-edit {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    line-height: 1;
+    width: 18px;
+    flex: 0 0 18px;
+    text-align: center;
+    margin-top: 1px;
+    opacity: 0;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+@media (hover: hover) {
+    .todo-row:hover .todo-edit { opacity: 0.5; }
+    .todo-edit:hover { opacity: 1 !important; }
+}
+@media (hover: none) {
+    .todo-edit { opacity: 0.45; }
+}
+/* Editing in place — the input takes the title's slot, nothing shifts.
+   Full-strength on the panel's own foreground (Rule #2), >= 16px so iOS
+   never zooms the page on focus (the Lists rename lesson). */
+.todo-edit-input {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--text-color);
+    border-radius: 0;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--text-color);
+    caret-color: var(--text-color);
+}
+.todo-edit-input:focus { outline: none; }
+
 /* Clear-completed sweep — appears under the sunk done rows. Full-strength
    text (Rule #2), sized like the filter chips. */
 .todo-clear-row {

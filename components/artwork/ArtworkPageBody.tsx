@@ -1417,7 +1417,7 @@ export default function ArtworkPageBody({
 
                 {/* Every other section — titled dotted box, same as the Project
                     page's not-yet-filled sections. Content lands later. */}
-                {moreL1 !== 'stats' && moreL1 !== 'attributes' && moreL1 !== 'replay' && moreL1 !== 'social' && moreL1 !== 'pricestory' && moreL1 !== 'offers' && moreL1 !== 'asciibackup' && moreL1 !== 'tribunal' && (
+                {moreL1 !== 'stats' && moreL1 !== 'attributes' && moreL1 !== 'replay' && moreL1 !== 'social' && moreL1 !== 'pricestory' && moreL1 !== 'offers' && moreL1 !== 'asciibackup' && moreL1 !== 'tribunal' && moreL1 !== 'neighbourhood' && (
                     <>
                         <div className="more-section-header">
                             {(MORE_PILLS.find((p) => p.key === moreL1)?.label ?? '').toUpperCase()}

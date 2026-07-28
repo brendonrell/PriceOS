@@ -205,7 +205,7 @@ export const ATLAS: AtlasFeature[] = [
     F(148, 'Anointment + Egregore', 'Platform Systems'),
     F(149, 'Calendar system', 'Platform Systems'),
     F(150, 'Discord link + membership badge', 'Platform Systems'),
-    F(151, 'Fingerprint', 'Platform Systems'),
+    F(151, 'Fingerprint', 'Platform Systems', '⌾'),
     F(152, 'Leaderboard', 'Platform Systems'),
     F(153, 'Mood Ring / Epoch', 'Platform Systems'),
     F(154, 'Odin & Brendon', 'Platform Systems'),
@@ -246,7 +246,7 @@ export const ATLAS: AtlasFeature[] = [
     F(187, 'The Whisper', 'King Mode', undefined, 'CANDIDATE'),
     // ── WOW Tier — stretch / showstopper ──
     F(188, 'The Bequeath', 'WOW Tier'),
-    F(189, 'The Dispatch', 'WOW Tier'),
+    F(189, 'The Dispatch', 'WOW Tier', '❡'),
     F(190, 'The Dossier', 'WOW Tier'),
     F(191, 'Takeover', 'WOW Tier'),
     F(192, 'The Kindred', 'WOW Tier'),

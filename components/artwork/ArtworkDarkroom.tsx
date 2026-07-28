@@ -46,6 +46,37 @@ export default function ArtworkDarkroom({ slug, id }: { slug: string; id: number
 
     return (
         <div className="artwork-fullscreen artwork-darkroom">
+            {/* PERMANENT BACK (Brendon, 2026-07-28) — the same always-on arrow
+                the artwork surfaces already carry, in the same spot, with the
+                same real-history-first behaviour and the piece's own page as
+                the cold-link fallback. Not a setting: always there. */}
+            <a
+                className="fullscreen-back"
+                href={`/art/${slug}/${id}`}
+                title="Back"
+                aria-label="Back"
+                /* Opt out of the shell's in-app click router (capture phase runs
+                   before this onClick and would push the href forward again). */
+                data-native-nav=""
+                onClick={(e) => {
+                    if (window.history.length > 1) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const from = window.location.href;
+                        window.history.back();
+                        /* history.length > 1 can still mean "nothing BEHIND us".
+                           If back() moved nothing, land on the artwork page so
+                           the arrow is never a dead button. */
+                        window.setTimeout(() => {
+                            if (window.location.href === from) {
+                                window.location.assign(`/art/${slug}/${id}`);
+                            }
+                        }, 400);
+                    }
+                }}
+            >
+                {'⇠⇠︎'}
+            </a>
             <div
                 className="close-hint dk-close"
                 role="button"

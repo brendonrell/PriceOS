@@ -78,9 +78,10 @@ function autoNewsItems(feed: HomeResponse | null): NewsItem[] {
 /* Curated first, then the auto moments. */
 /* The Dispatch pill — the standing front-page pointer to the morning paper.
    Leads the rail every day (Brendon greenlit The Dispatch 2026-07-12);
-   ▤ = the printed-page glyph (new vocabulary entry, see GLYPHS.md). */
+   ❡ = the press mark (GLYPHS.md §12). It replaced the old printed-page square
+   ▤ on 2026-07-28 — Brendon: too close to the Calendar's ▦ to tell apart. */
 const DISPATCH_PILL: NewsItem = {
-    glyph: '▤︎',
+    glyph: '❡︎',
     tag: 'THE DISPATCH',
     title: 'Yesterday, on the record',
     meta: 'Prints daily',

@@ -1,12 +1,12 @@
 ---
-title: "The Fingerprint"
+title: "The Fingerprint ⌾"
 description: "PD's objective read of every artwork: what the piece literally looks like, measured from its actually rendered pixels — colour, light, composition, countable shapes, and the four taste axes."
 category: "app"
 keywords: ["fingerprint", "taste axes", "geometric", "organic", "colorful", "monochrome", "dense", "sparse", "structured", "chaotic", "palette", "swatches", "reads as"]
 last_updated: "2026-07-27"
 ---
 
-# The Fingerprint
+# The Fingerprint ⌾
 
 Every Output on PD carries a **Fingerprint**: the platform's objective read of the artwork itself. It doesn't come from metadata, trait lists, or anyone's opinion — the platform looks at the piece's *actually rendered pixels* and measures what is really there. Nothing is declared and nothing is hand-tagged, so any two Fingerprints on the platform can be compared honestly, whoever made the work.
 

@@ -99,16 +99,15 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
         ],
     },
     {
+        /* To-Dos & Workflows folded in here 2026-07-28 (Brendon) — they're
+           Suite apps, so they read as a sub-entry under it, not their own
+           top-level section. The page's URL is unchanged. */
         title: 'PriceOS Suite',
-        slugs: ['suite'],
+        slugs: ['suite', 'todos-and-workflows'],
     },
     {
         title: 'Command Stone',
         slugs: ['command-stone', 'command-stone/abilities'],
-    },
-    {
-        title: 'To-Dos & Workflows',
-        slugs: ['todos-and-workflows'],
     },
     {
         title: 'Cartography',

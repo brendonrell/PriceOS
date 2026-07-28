@@ -93,6 +93,26 @@ export function WorkflowsSheet({ onClose, inline = false }: { onClose?: () => vo
         setArtist(''); setSlug(''); setTokenId(''); setPrice(''); setQty('1');
     };
 
+    /* EDIT ✎ — beside the row's × (Brendon, 2026-07-28). A workflow is BUILT,
+       never written, so editing one means loading it back into the builder:
+       the pencil fills every field from the record and takes it off the armed
+       list, so ARM re-arms the edited version. Armed rows only — a FIRED row
+       is a record of what happened, not something to change. */
+    const editWorkflow = (w: WorkflowRecord) => {
+        if (w.trigger.kind === 'upload') {
+            setKind('upload');
+            setArtist(w.trigger.artist);
+            setQty(String(w.actions.qty ?? 1));
+        } else {
+            setKind('price');
+            setSlug(w.trigger.slug);
+            setTokenId(w.trigger.tokenId != null ? String(w.trigger.tokenId) : '');
+            setPrice(String(w.trigger.priceEth));
+        }
+        removeWorkflow(w.id);
+        showToast('Workflow: EDITING');
+    };
+
     const canArm = kind === 'upload'
         ? artist.trim().length > 0
         : slug.trim().length > 0 && Number(tokenId) >= 1 && Number(price) > 0;
@@ -190,6 +210,24 @@ export function WorkflowsSheet({ onClose, inline = false }: { onClose?: () => vo
                                         : <span className="wf-fired">FIRED</span>
                                 )}
                             </span>
+                            {w.firedAt == null && (
+                                <span
+                                    className="todo-edit"
+                                    role="button"
+                                    tabIndex={0}
+                                    title="Edit workflow"
+                                    aria-label="Edit workflow"
+                                    onClick={() => editWorkflow(w)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            editWorkflow(w);
+                                        }
+                                    }}
+                                >
+                                    {'✎︎'}
+                                </span>
+                            )}
                             <span
                                 className="todo-del"
                                 role="button"

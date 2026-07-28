@@ -122,8 +122,12 @@ export function UserMenuButtons() {
        square, on every page. The artwork full-screen view already carries its
        own always-on back arrow in the same spot, so suppress this one there to
        avoid showing two. */
+    /* The Darkroom joined the list 2026-07-28 — it now carries the same
+       always-on arrow, so the nav one would be a second, duplicate back. */
     const isFullscreenRoute =
-        !!pathname && pathname.startsWith('/art/') && pathname.endsWith('/full');
+        !!pathname &&
+        pathname.startsWith('/art/') &&
+        (pathname.endsWith('/full') || pathname.endsWith('/darkroom'));
     const showBackButton = notifs.backButton && !isFullscreenRoute;
     const { items, openPanel: openCartPanel } = useCart();
     const { siweAddress, handle, priceRank, isAuthenticating, sigilForged, sigilHidden } = useAuth();

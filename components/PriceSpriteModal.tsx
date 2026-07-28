@@ -392,6 +392,22 @@ export default function PriceSpriteModal() {
                     </span>
                 </div>
 
+                {/* ⚷ Keychains — the capsule machine door. Moved directly under
+                    PRICESTREAK and restyled OUTLINED (Brendon, 2026-07-28). */}
+                <div className="ps-action-row ps-reveal ps-d4">
+                    <button
+                        className="ps-action-btn ps-action-btn--outline"
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            open('depanneur');
+                        }}
+                    >
+                        <span className="ps-action-icon">{`⚷${VS15}`}</span>
+                        {'KEYCHAINS'}
+                    </button>
+                </div>
+
                 {/* ACHIEVEMENTS — Xbox-style rail off the REAL catalog, browsed
                     one CATEGORY at a time (pill row picks the section; a flat
                     strip of 1,000 tiles is unusable). Tiles show unlocked/
@@ -582,22 +598,6 @@ export default function PriceSpriteModal() {
                     </button>
                 </div>
 
-                {/* ⚷ Keychains — the capsule machine door (Brendon, 2026-07-27:
-                    "for now the door can be a button at the bottom of the
-                    PriceSprite modal"). Toast until the machine surface ships. */}
-                <div className="ps-action-row ps-reveal ps-d7">
-                    <button
-                        className="ps-action-btn"
-                        type="button"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            open('depanneur');
-                        }}
-                    >
-                        <span className="ps-action-icon">{`⚷${VS15}`}</span>
-                        {'KEYCHAINS'}
-                    </button>
-                </div>
             </div>
         </div>
     );

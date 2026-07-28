@@ -76,6 +76,14 @@
     letter-spacing: 0.06em;
 }
 .album-tile-count { font-weight: 600; }
+/* The maker's @handle ahead of the album number (Brendon, 2026-07-28) — its
+   own line so a long handle never squeezes "ALBUM 02" onto a second row.
+   Full-strength ink, bold (Rule #2). */
+.album-tile-owner {
+    display: block;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+}
 
 /* ── One album ── */
 .album-head {

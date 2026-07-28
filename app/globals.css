@@ -12483,7 +12483,8 @@ body.colorway-dark .ghost-feed-bar {
     display: flex;
     flex-wrap: wrap;
     gap: 14px 28px;
-    padding: 6px 4px 18px 4px;
+    /* Nudged down off the pill row above (Brendon, 2026-07-28) — was 6px. */
+    padding: 20px 4px 18px 4px;
     border-bottom: 1px solid var(--text-color);
     border-color: color-mix(in srgb, var(--text-color) 22%, transparent);
     margin-bottom: 18px;
@@ -13060,6 +13061,19 @@ body.is-pwa .fullscreen-back {
     position: fixed;
     top: calc(max(20px, env(safe-area-inset-top)) + 30px);
     right: max(30px, env(safe-area-inset-right));
+}
+/* The Darkroom's permanent back arrow (Brendon, 2026-07-28) — the artwork
+   surfaces' own ⇠⇠, parked directly UNDER the × in the same corner so the two
+   exits stack instead of colliding (the fullscreen view has no × to clear).
+   Three classes on purpose: the shared arrow carries mobile and `body.is-pwa`
+   top overrides, and this has to outrank both so the two never stack. */
+.artwork-fullscreen.artwork-darkroom .fullscreen-back {
+    position: fixed;
+    top: calc(max(20px, env(safe-area-inset-top)) + 66px);
+    right: max(30px, env(safe-area-inset-right));
+}
+body.is-pwa .artwork-fullscreen.artwork-darkroom .fullscreen-back {
+    top: calc(max(30px, calc(env(safe-area-inset-top) + 16px)) + 66px);
 }
 .darkroom-bar {
     position: fixed;

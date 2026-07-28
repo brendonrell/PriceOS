@@ -40,6 +40,7 @@ import {
     addOutputTodo,
     toggleTodo,
     removeTodo,
+    updateTodo,
     clearDoneTodos,
     sortTodos,
     warChest,
@@ -99,6 +100,21 @@ export function TodosBox({ suite = false }: { suite?: boolean } = {}) {
     // Deleting a to-do asks first — the same confirm card every destructive /
     // financial action uses (Brendon, 2026-07-05).
     const [confirm, setConfirm] = useState<{ question: string; onConfirm: () => void } | null>(null);
+
+    /* EDIT ✎ — beside the row's × (Brendon, 2026-07-28). The Lists panel's
+       rename-in-place, verbatim: the pencil swaps the title for an input,
+       Enter/blur commits, Esc backs out. Same glyph, same mechanics. */
+    const [editId, setEditId] = useState<string | null>(null);
+    const [editText, setEditText] = useState('');
+    const editRef = useRef<HTMLInputElement>(null);
+    useEffect(() => { if (editId) editRef.current?.focus(); }, [editId]);
+    const commitEdit = (t: TodoItem) => {
+        const next = editText.trim();
+        setEditId(null);
+        if (!next || next === t.text) return;
+        updateTodo(t.id, { text: next });
+        showToast('To-Do: EDITED');
+    };
 
     // Label filter.
     const [activeLabel, setActiveLabel] = useState<string | null>(null);
@@ -500,7 +516,22 @@ export function TodosBox({ suite = false }: { suite?: boolean } = {}) {
                         </span>
 
                         <span className="todo-main">
-                            {href ? (
+                            {editId === t.id ? (
+                                <input
+                                    ref={editRef}
+                                    className="todo-edit-input"
+                                    type="text"
+                                    value={editText}
+                                    maxLength={200}
+                                    onClick={stop}
+                                    onChange={(e) => setEditText(e.target.value)}
+                                    onBlur={() => commitEdit(t)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') { e.preventDefault(); commitEdit(t); }
+                                        else if (e.key === 'Escape') { e.preventDefault(); setEditId(null); }
+                                    }}
+                                />
+                            ) : href ? (
                                 <a className="todo-link" href={href} onClick={stop}>
                                     {title}
                                 </a>
@@ -527,6 +558,25 @@ export function TodosBox({ suite = false }: { suite?: boolean } = {}) {
                                     ))}
                                 </span>
                             ) : null}
+                        </span>
+
+                        <span
+                            className="todo-edit"
+                            role="button"
+                            tabIndex={0}
+                            title="Edit to-do"
+                            aria-label="Edit to-do"
+                            onClick={(e) => { stop(e); setEditText(t.text); setEditId(t.id); }}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setEditText(t.text);
+                                    setEditId(t.id);
+                                }
+                            }}
+                        >
+                            {'✎︎'}
                         </span>
 
                         <span

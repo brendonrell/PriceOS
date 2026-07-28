@@ -19,7 +19,7 @@ The platform's front door, wearing the daily Mood Ring colour:
 - **The activity feed** — mints, sales, and **Project milestones** as they happen: a Project graduating into Now Minting (⟢⟢), a First Blood (†), a Century Club (Ⅽ), an Ascension (▲) at sell-out. The feed is where the platform celebrates in public.
 - **Ownership marks** — the grid quietly checks (✓) what you already own as you browse.
 - **The name itself** — "Price Discussion" is the platform's compass: **long-press** it to open [Cartography ◫](/docs/cartography), **triple-tap** it to enter [The Rewind ◄](/docs/rewind).
-- **The Dispatch pill** — the news rail leads with the ▤ pointer to [the morning paper](/docs/dispatch).
+- **The Dispatch pill** — the news rail leads with the ❡ pointer to [the morning paper](/docs/dispatch).
 - **The STICKERS button** (⊞) — the action row's door to [the Sticker Exchange](/docs/stickers/overview): store, marketplace, and binder in one slide-up sheet.
 
 ## Global search

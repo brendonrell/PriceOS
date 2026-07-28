@@ -42,7 +42,7 @@ Definitions for terms used throughout Price Discussion, alphabetically. The nome
 
 ## D–M
 
-**The Dispatch** (▤) — PD's morning paper: printed daily at 9AM from the real ledger, archived forever at permanent URLs. See [The Dispatch](/docs/dispatch).
+**The Dispatch** (❡) — PD's morning paper: printed daily at 9AM from the real ledger, archived forever at permanent URLs. See [The Dispatch](/docs/dispatch).
 
 **EIP-2981** — Ethereum's royalty-signalling standard. Every PD Project answers it with a 5% royalty to its own splitter. See [Royalties](/docs/for-artists/royalties).
 

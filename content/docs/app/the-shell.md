@@ -23,7 +23,7 @@ Navigation, global search, your PriceSprite, and the connect surface. It fades w
 Deliberately under-used real estate, currently three rows:
 
 - **System row** — the PriceOS version (tap for the changelog), connection status, live gas in gwei, and the current Ethereum block number.
-- **Easter-egg row** — [the Dispatch](/docs/dispatch) (▤), the **Mood Ring** (⌬), today's platform-wide generative colour, and **Today's Stars** (☉ ☽ ↑), the natal sky over Montreal at today's UTC midnight; every Output minted today is born under it.
+- **Easter-egg row** — [the Dispatch](/docs/dispatch) (❡), the **Mood Ring** (⌬), today's platform-wide generative colour, and **Today's Stars** (☉ ☽ ↑), the natal sky over Montreal at today's UTC midnight; every Output minted today is born under it.
 - **Links row** — About, Discord, these Docs, Support, Studio.
 
 ## The installable app

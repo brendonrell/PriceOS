@@ -16,7 +16,8 @@
    Tile row reuses the Pal's .cpl-tiles anatomy (market.css); the lines under
    it carry the narrative stats. Bold, 12px+, full-strength — no washes. */
 .vault-stats {
-    margin: 12px 20px 16px;
+    /* Pushed off the art above it (Brendon, 2026-07-28) — was 12px. */
+    margin: 30px 20px 16px;
     display: flex;
     flex-direction: column;
     gap: 10px;

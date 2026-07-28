@@ -23,6 +23,11 @@ function NavList({ nav, onNavigate }: { nav: NavSection[]; onNavigate?: () => vo
     const pathname = usePathname();
     return (
         <nav className="pd-docs-nav" aria-label="Documentation">
+            {/* Colorway picker leads the index (Brendon, 2026-07-28) — it was
+                parked at the bottom, past every section. */}
+            <div className="pd-docs-nav-colorway">
+                <ColorwayPicker />
+            </div>
             {nav.map((section) => (
                 <div key={section.title} className="pd-docs-nav-section">
                     <div className="pd-docs-nav-title">{section.title}</div>
@@ -46,9 +51,6 @@ function NavList({ nav, onNavigate }: { nav: NavSection[]; onNavigate?: () => vo
                     </ul>
                 </div>
             ))}
-            <div className="pd-docs-nav-colorway">
-                <ColorwayPicker />
-            </div>
         </nav>
     );
 }
@@ -67,7 +69,8 @@ export function DocsChrome({ nav }: { nav: NavSection[] }) {
                     {/* Search leads the row — glyph-only (Brendon, 2026-07-20:
                         first item after the title, no word). */}
                     <DocsSearch open={searchOpen} onToggle={(v) => { setSearchOpen(v); if (v) setOpen(false); }} />
-                    <a href="/" className="pd-docs-applink">{'⇠︎'} APP</a>
+                    {/* Word only — the back glyph came off 2026-07-28 (Brendon). */}
+                    <a href="/" className="pd-docs-applink">APP</a>
                     <button
                         type="button"
                         className={`pd-docs-index-btn${open ? ' open' : ''}`}

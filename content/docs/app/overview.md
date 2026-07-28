@@ -26,7 +26,7 @@ PriceOS is the software layer of Price Discussion — the app collectors and art
 - **[The Factions](/docs/factions)** — the colour war: allegiance, the Sigil, the Marginalia, sieges and the Book of Conquests.
 - **[Cartography ◫](/docs/cartography)** — the living map of the whole platform: territories, inhabitants, and market events in real time.
 - **[The Rewind ◄](/docs/rewind)** — the whole-OS time scrubber: browse PD as it stood on any past PriceDay.
-- **[The Dispatch ▤](/docs/dispatch)** — the morning paper: yesterday on the record, printed daily, archived forever.
+- **[The Dispatch ❡](/docs/dispatch)** — the morning paper: yesterday on the record, printed daily, archived forever.
 - **[Settings & Display](/docs/app/settings-and-display)** — MY PD: colorways, display modes, and per-surface controls.
 
 ## Design language, briefly

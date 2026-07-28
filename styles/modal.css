@@ -1505,6 +1505,20 @@ body.modal-open { overflow: hidden; touch-action: none; }
     transition: opacity 0.2s;
 }
 .ps-action-btn:hover { opacity: 0.85; }
+/* OUTLINED variant (Brendon, 2026-07-28) — the ⚷ Keychains door under
+   PRICESTREAK. Full-strength --text-color border AND text on the page's own
+   fill, the house chrome treatment; 4px corners like every PD control. */
+.ps-action-btn--outline {
+    background: transparent;
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    margin: 4px 0 18px;
+}
+.ps-action-btn--outline:hover {
+    opacity: 1;
+    background: var(--text-color);
+    color: var(--bg-color);
+}
 .ps-action-icon {
     font-size: 14px; line-height: 1;
     /* Center the glyph against the label instead of letting it ride its

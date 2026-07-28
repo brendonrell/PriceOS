@@ -1,12 +1,12 @@
 ---
-title: "The Dispatch ▤"
+title: "The Dispatch ❡"
 description: "PD's morning paper: printed once every day at 9AM, covering the prior day from the real ledger. Permanent, citable URLs — an edition reads the same forever."
 category: "app"
 keywords: ["dispatch", "morning paper", "daily", "news", "archive"]
 last_updated: "2026-07-12"
 ---
 
-# The Dispatch ▤
+# The Dispatch ❡
 
 Every morning at 9AM (Montreal time), PD prints its own paper: one page covering the prior day, assembled from the real ledger. Coffee first, then yesterday on the record.
 
@@ -14,7 +14,7 @@ Every morning at 9AM (Montreal time), PD prints its own paper: one page covering
 
 - **`/dispatch`** — this morning's edition.
 - **`/dispatch/2026-07-12`** — the permanent archive, one URL per publication date. Editions are printed once and never edited: a link cited today reads identically in five years.
-- Entries live on the home page's news rail (the ▤ pill) and in the footer.
+- Entries live on the home page's news rail (the ❡ pill) and in the footer.
 
 ## The sections
 

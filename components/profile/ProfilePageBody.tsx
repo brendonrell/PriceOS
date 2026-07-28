@@ -1589,7 +1589,8 @@ function ProfilePageBodyInner({
                                 title={`Trade with @${displayHandle}`}
                                 onClick={() => openExchange(user.address, user.handle ?? displayHandle)}
                             >
-                                {'⇌︎'} TRADE
+                                {/* Glyph only (Brendon, 2026-07-28) — the word came off. */}
+                                {'⇌︎'}
                             </button>
                         )}
                         <button

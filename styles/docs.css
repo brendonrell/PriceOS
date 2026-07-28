@@ -131,10 +131,12 @@
     font-weight: 700;
 }
 
+/* Leads the index now (Brendon, 2026-07-28) — the rule that parked it at the
+   bottom flipped: the divider sits UNDER it, not over it. */
 .pd-docs-nav-colorway {
-    margin-top: 8px;
-    padding-top: 10px;
-    border-top: 1px solid var(--border-color);
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
 }
 
 /* ── Mobile INDEX drop-down ── */
@@ -185,6 +187,13 @@
         padding-right: max(12px, env(safe-area-inset-right));
     }
 }
+
+/* Glyph-only search key — the ⌕ (Brendon, 2026-07-20; sized up three steps
+   2026-07-28: "make sure it actually gets bigger"). This rule used to live
+   INSIDE the ≥1024px block, so on an iPhone the ⌕ silently fell back to the
+   11px button size and never grew. It lives at the top level now, with the
+   double class so it wins over the mobile override above regardless of order. */
+.pd-docs-index-btn.pd-docs-search-btn { font-size: 21px; line-height: 1; }
 
 /* ── Desktop rail ── */
 .pd-docs-sidebar { display: none; }
@@ -708,8 +717,6 @@
     /* SEARCH stays in the desktop top bar (INDEX hides — the rail has it);
        the panel reuses the mobile drop-down chrome, narrowed to a column. */
     .pd-docs-index-btn.pd-docs-search-btn { display: inline-block; }
-/* Glyph-only search key (Brendon, 2026-07-20) — the ⌕ reads at 18px. */
-.pd-docs-search-btn { font-size: 18px; line-height: 1; }
     .pd-docs-mobile-nav.pd-docs-search-panel {
         display: block;
         left: auto;
