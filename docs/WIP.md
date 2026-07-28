@@ -8,7 +8,67 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-00000000000000000000. ✅ **2026-07-28 (LATEST) — THE STONE KNOWS ITS WORLD
+000000000000000000000. ✅ **2026-07-28 (LATEST) — THE SPOT-EDIT ROUND
+   (Opus 5, Brendon's twelve-item list: "quick in and out spot edit
+   session"). On `dev` (tip `66fc0f0`), tree clean, tsc + 185 tests + real
+   build green, every CSS claim read back out of the compiled stylesheet.
+   ClickUp ship record `86bb4nbag` (02·UI, Done).**
+
+   **Nothing is in flight.** Twelve asks, ten shipped, two answered.
+
+   1. **EDIT ✎ on To-Dos + Workflows**, beside the row ×. A to-do gets the
+      Lists panel's rename-in-place VERBATIM (Enter/blur commits, Esc backs
+      out). A workflow is BUILT, not written — so its ✎ loads the record
+      back into the builder and ARM re-arms the edited version. **Armed
+      rows only**; a FIRED row is a record of what happened.
+   2. **PriceSprite:** ⚷ KEYCHAINS moved directly under PRICESTREAK and went
+      OUTLINED (transparent fill · full-strength `--text-color` border + text).
+   3. **⛔ THE FEED-ORDER BUG, ROOT-CAUSED — read this before touching feed
+      sorting.** A mass collect writes every piece at the SAME instant, so a
+      pure timestamp sort left those rows in the ledger read's own order
+      (highest id first) and printed each project's batch BACKWARDS. Ties now
+      break by token number **ASCENDING inside the project, in either sort
+      direction** (`lib/feed/useLedgerFeed.ts` — one hook, so profile AND
+      project feeds both). Brendon: "#1 was minted first, not last."
+   4. **The ❖ POP / NONE HIGHER chip is GONE from the artwork modal** —
+      never approved. **The artwork modal is not allowed to change.**
+   5. **Output ▸ Albums tiles name the maker** (@HANDLE over the number).
+      Opt-in prop on AlbumCoverArt — the profile Albums shelf is untouched.
+   6. **The Darkroom has a permanent ⇠⇠ back** — the artwork surfaces' own
+      arrow, same history-first behaviour + cold-link fallback, parked UNDER
+      the × so the two exits never collide (its rule carries three classes on
+      purpose: the shared arrow has mobile and `body.is-pwa` top overrides
+      that had to be outranked). Nav Back-Button-Mode suppresses on
+      `/darkroom` now, like it already did on `/full`.
+   7. **Neighbourhood's stray title + empty box** — the tab was missing from
+      the not-yet-built fallback's exclusion list, so it drew the real panel
+      AND the placeholder.
+   8. **Achievements** summary stats nudged down off the pills (6→20px).
+   9. **Vault** stats pushed off the art above them (12→30px).
+   10. **User docs:** APP button lost its back glyph · **⌕ up three steps AND
+       it now actually applies** — its size rule had been written INSIDE the
+       ≥1024px media query, so on iPhone the glyph silently fell back to the
+       11px button size and no amount of bumping it moved anything ·
+       **To-Dos & Workflows folded in under PriceOS Suite** (URL unchanged) ·
+       colorway picker LEADS the index instead of trailing it.
+   11. **Glyphs (GLYPHS.md updated):** the Dispatch moved **▤ → ❡** (Brendon:
+       ▤ read as the Calendar's ▦) — **▤ is the Palette attribute's alone
+       now, never re-use it for the Dispatch**. The Fingerprint took **⌾**,
+       the concentric-ring mark the glossary already recorded as freed when
+       Price Lens took ◎. ⌾ was my pick, flagged swappable.
+   12. **Profile TRADE button is glyph only** (⇌).
+
+   **⚠ TWO ANSWERED, NOT BUILT — waiting on Brendon's word:**
+   - **Profile ▸ Info tab.** He leaned toward removing it; left in place. It
+     holds only Followers, Following and a dead "Anchor — coming soon" dash,
+     and the first two already render in the profile hero — removing it
+     loses nothing real. One word and it goes.
+   - **Factions vs Takeover.** My call: keep them separate. Factions is the
+     colour war (allegiance · ground · the Book); Takeover is a money
+     instrument (a premium blanket bid on a position). Factions as the
+     umbrella works in the DOCS nav, not in the app.
+
+00000000000000000000. ✅ **2026-07-28 — THE STONE KNOWS ITS WORLD
    (Opus 5, continuing the stone's bonus rounds alongside the Loyalty/Sigil
    session — rebased onto its work, never over it). On `dev` (tip
    `5f0cf9e`), tree clean, tsc + 185 tests + real build green, ClickUp
