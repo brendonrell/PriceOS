@@ -8,7 +8,59 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0000000000000000. ✅ **2026-07-27 (LATEST) — THE DEPANNEUR LIVE (sim) + THE
+00000000000000000. ✅ **2026-07-28 (LATEST) — THE COMMAND STONE WOW PASS ×3
+   (Fable). ALL on `dev` (tip `0f34e46`), tree clean, tsc + 168 tests +
+   real build green, bubble anatomy screenshot-verified at iPhone size on
+   a mid-tone page. Brendon-approved and pushed wave by wave ("Push as
+   you go").**
+
+   **QUEUED FOR A FRESH CHAT — THE MOODS SET (Brendon greenlit as this
+   session hit its limit): "can we have more than one mood? cozy was just
+   an example."** Build a data-driven mood registry: each mood = one
+   castable word bundling colorway + ambient light + the DJ (the shipped
+   COZY MOOD pattern in `CommandStone.tsx` doCast 'mood' is the template
+   — generalize it). Bare `moods` should deal the set as a widget, each
+   tappable. Recon done: colorway keys available are custom · light ·
+   dark · orange · blue · red · hashsyn · haze · hothurt · attention
+   (`lib/state/ColorwayContext.tsx` COLORWAYS). Candidate set to present:
+   cozy (shipped) · rave/hype (hothurt + ambient + DJ) · focus/monk
+   (everything off, quiet) · midnight (dark + dim) — NAMES ARE OPEN,
+   confirm with Brendon before locking.
+
+   1. **Wave 1 — ABILITIES + THE BUBBLE.** Natural dates ("tomorrow" ·
+      "next week tuesday" · "in 18 days" · "aug 30") · first ever mint
+      (platform + yours) · release dates · live standings (top spenders /
+      mutuals / followers, by spent or wallet age, podium ❶❷❸) · holdings
+      × Profile Tag slices. ONE new data door `/api/stone/oracle` (anon,
+      tags/members pattern). THE VOICE unified: `lib/stone/voice.ts` owns
+      every line (pooled, seeded per query; goodbyes moved there whole).
+      THE BUBBLE standardized: two dialogue rows as header · widget
+      sandwich scrolls in the middle · ONE action button as footer
+      (etch > cast > widget act > anchor offer — per-card chips folded in).
+   2. **Wave 2 — SUPERPOWERS.** Compound sentences (rank × ownership,
+      cohort × mutuals) · saying-it-arms-it ("tell me when X under Y" →
+      Sentinel ◊-target to-do; "ping me in 3 days") · bulk acts
+      ("wishlist the 3 rarest X", "anchor everything I hold at floor") ·
+      sight questions ("why is this rare" · "good price?") · prophecy
+      ("when will X sell out", oracle kind=pace) · THE NEWS (stone speaks
+      FIRST only on real unread pings, Brendon's refinement; parked dot
+      pulses only with news) · LONG MEMORY (`lib/stone/subjects.ts`,
+      "that project from tuesday").
+   3. **Wave 3 — THE FUN BENCH (Brendon: "add them all").** roast me ·
+      the 8-ball (seeded, no re-rolls) · daily fortune · the DJ (held
+      soundtracks → the one miniplayer) · lore ("who are you"/"gm") ·
+      The Floor Is Right (real floors, streak) · **COZY MOOD cast**
+      (mood/cozy/cozy mood: ambientStrip + haze colorway + DJ; off
+      restores the prior colorway).
+   4. **Docs:** Command Stone highlight section is now TWO pages — the
+      overview + the full Abilities reference (every phrase, tabled).
+      GLYPHS.md: new cards reuse canon only (noted §12a).
+   5. **Still queued from the vision list:** the MCP stone door
+      (`workers/pd-mcp` ask-the-stone tool — deploys separately, held
+      for its own pass) · ClickUp sync for this session's three waves
+      (Fable metering, the standing debt pattern).
+
+0000000000000000. ✅ **2026-07-27 — THE DEPANNEUR LIVE (sim) + THE
    BIG UI/AUDIT BATCH (Fable). All on `dev`, tree clean, tsc + real build
    green, every UI claim screenshot-verified in the REAL running build at
    iPhone size. Brendon-approved ("Then push!").**
