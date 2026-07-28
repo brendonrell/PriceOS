@@ -421,13 +421,21 @@ export default function PalPanel({ inline = false }: { inline?: boolean } = {}) 
                                                 <span className="cart-panel-subtotal-val">{formatEth(pathTotal)} ETH</span>
                                             </div>
                                         </div>
+                                        {/* In the Suite the total sits on the
+                                            line directly above, so the button
+                                            says what it DOES and stops there —
+                                            an app action, not a checkout slab
+                                            (Brendon, 2026-07-28). The sheet
+                                            keeps its full-width call. */}
                                         <button
                                             type="button"
                                             className="cart-panel-buy-all"
                                             onClick={addPathToCart}
                                             disabled={buyable.length === 0}
                                         >
-                                            {`ADD  PATH  TO  CART  ·  ${formatEth(pathTotal)} ETH`}
+                                            {inline
+                                                ? 'ADD PATH TO CART'
+                                                : `ADD  PATH  TO  CART  ·  ${formatEth(pathTotal)} ETH`}
                                         </button>
                                     </>
                                 )}

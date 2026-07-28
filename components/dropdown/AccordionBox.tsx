@@ -73,6 +73,13 @@ interface Props {
      * `dir * 60`, line 6760).
      */
     scrollStep?: number;
+    /**
+     * Drop the ⇡ / ⇣ arrow rows. They exist because the connect menu's
+     * accordions are short portholes on a backboard that can't be flicked;
+     * a Suite pane is a full panel the thumb scrolls directly, so the arrows
+     * are menu furniture there (Brendon, 2026-07-28).
+     */
+    noArrows?: boolean;
 }
 
 export function AccordionBox({
@@ -86,6 +93,7 @@ export function AccordionBox({
     className,
     headerClassName,
     scrollStep = 80,
+    noArrows = false,
 }: Props) {
     const listRef = useRef<HTMLDivElement>(null);
 
@@ -135,29 +143,33 @@ export function AccordionBox({
                 className="accordion-box-body"
                 style={isVisible ? undefined : hiddenStyle}
             >
-                <div
-                    className="scroll-arrow"
-                    onClick={() => scrollList(-1)}
-                    role="button"
-                    tabIndex={0}
-                    title="Scroll Up"
-                    aria-label="Scroll up"
-                >
-                    ⇡{'\uFE0E'}
-                </div>
+                {!noArrows && (
+                    <div
+                        className="scroll-arrow"
+                        onClick={() => scrollList(-1)}
+                        role="button"
+                        tabIndex={0}
+                        title="Scroll Up"
+                        aria-label="Scroll up"
+                    >
+                        ⇡{'\uFE0E'}
+                    </div>
+                )}
                 <div className="notif-list" id={listId} ref={listRef}>
                     {children}
                 </div>
-                <div
-                    className="scroll-arrow"
-                    onClick={() => scrollList(1)}
-                    role="button"
-                    tabIndex={0}
-                    title="Scroll Down"
-                    aria-label="Scroll down"
-                >
-                    ⇣{'\uFE0E'}
-                </div>
+                {!noArrows && (
+                    <div
+                        className="scroll-arrow"
+                        onClick={() => scrollList(1)}
+                        role="button"
+                        tabIndex={0}
+                        title="Scroll Down"
+                        aria-label="Scroll down"
+                    >
+                        ⇣{'\uFE0E'}
+                    </div>
+                )}
             </div>
         </div>
     );

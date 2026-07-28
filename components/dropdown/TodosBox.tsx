@@ -272,6 +272,8 @@ export function TodosBox({ suite = false }: { suite?: boolean } = {}) {
             boxId={suite ? 'suiteTodosBox' : 'todosBox'}
             listId={suite ? 'suiteTodosList' : 'todosList'}
             open={suite || notifs.todos}
+            /* The Suite pane scrolls with the thumb — no ⇡ / ⇣ rows there. */
+            noArrows={suite}
             onHeaderClick={() => { if (!suite) setAccordion('todos', !notifs.todos); }}
             header={
                 <span className="todos-header-row">

@@ -45,6 +45,8 @@ export default function SuitePane({
             open
             /* A Suite pane never collapses — the app switcher is the door. */
             onHeaderClick={() => {}}
+            /* No ⇡ / ⇣ rows: a full panel is scrolled with the thumb. */
+            noArrows
             className={`suite-pane${className ? ` ${className}` : ''}`}
             header={
                 <span className="todos-header-row">

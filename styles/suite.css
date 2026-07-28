@@ -230,6 +230,29 @@
     max-height: none;
     min-height: 0;
     width: 100%;
+    /* No inner scroller — the pane's list is the one and only scroll surface. */
+    overflow: visible;
+}
+
+/* ⛔ ONE SCROLLER, FULL LENGTH (Brendon, 2026-07-28: "remove the window
+   scroll for portfolios, show the entire length and make the whole thing
+   scroll inside the app box").
+   Out in the menu the portfolio tree is a 202px porthole with its own
+   scroller, because the backboard has no room. In the Suite that window is
+   GONE: the tree renders at its full natural length and the app box scrolls
+   it — one scroller, never two nested. */
+.suite-books .portfolio-list-container {
+    max-height: none;
+    min-height: 0;
+    overflow: visible;
+    flex: 0 0 auto;
+}
+
+/* The filter row sat sticky against the porthole's bottom edge; with the
+   window gone it simply ends the list. */
+.suite-books .portfolio-filter-sticky {
+    position: static;
+    bottom: auto;
 }
 
 /* ▦ PriceCal — the month steppers ride the header's right-hand cluster, at
@@ -246,13 +269,70 @@
     padding: 2px 2px;
 }
 
-/* ƒ PriceCalc — the Pal inline. The Cart sheet's scroll band and the pane's
-   own scrolling would fight; the pane wins. */
+/* ── ƒ PriceCalc — the Pal, ADAPTED (Brendon, 2026-07-28: "adapt those huge
+   profit pal CTA buttons to more app appropriate buttons… adapting means
+   adapting gracefully and intentionally, not shoehorning").
+
+   Out in the field the Pal is a slide-up CHECKOUT sheet, and its call to
+   action is a full-bleed 14px Rubik slab — right for a sheet you came to in
+   order to spend. In the Suite it is an APP you're browsing, so the action
+   becomes the site's ordinary button: the pill anatomy every other control
+   here wears, sized to its words and sat at the end of its own row. Nothing
+   is removed — the path, the total and the tap are all still there; the
+   button just stops shouting. The sheet is untouched. ── */
 .suite-pal .cart-panel-totals { padding-left: 0; padding-right: 0; }
 .suite-pal .pal-tabs-row { padding: 6px 0 8px; }
 
-/* ⬟ PriceCalm — the garden centres in the pane. */
+.suite-pal .cart-panel-buy-all {
+    display: block;
+    width: fit-content;
+    margin: 10px 0 6px auto;
+    padding: 0 16px;
+    height: 32px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.6px;
+    border-radius: 4px;
+    /* The pane letters with --bg-color, so THAT is the ink here: a filled
+       primary reads as ink-on-page, matching every active pill in the Suite. */
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--bg-color);
+}
+.suite-pal .cart-panel-buy-all:disabled { opacity: 0.4; }
+
+/* The Pal's own controls were drawn for the sheet's ink; in the pane the two
+   tokens are swapped, which flipped every resting button into a solid block.
+   Resting = page fill + ink border; chosen = the ink fill. Same vocabulary as
+   the rest of the Suite. */
+.suite-pal .pal-knob-btn,
+.suite-pal .pal-step {
+    background: transparent;
+    color: var(--bg-color);
+    border-color: var(--bg-color);
+}
+.suite-pal .pal-knob-btn.on {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border-color: var(--bg-color);
+}
+.suite-pal .pal-slider { accent-color: var(--bg-color); }
+
+/* ⬟ PriceCalm — the garden centres in the pane.
+   ⛔ The garden paints its sand with --text-color, which is the panel's FILL
+   colour inside a pane: putting it in a box made it vanish (Brendon,
+   2026-07-28, "you broke zen garden"). The room hands it the pane's own ink
+   instead, so it reads on every colourway, in the pane and on a profile
+   alike. The garden's own breathing opacity is left exactly as it is. */
 .suite-calm-pane .notif-list { display: block; }
+.suite-calm-pane .zen-garden-field,
+.suite-calm-pane .zen-garden-caption,
+.suite-calm-pane .suite-calm-note { color: inherit; }
+/* The raked field is 46 columns of fixed-pitch sand — let it use the whole
+   box and shrink to it rather than being cropped by the pane. */
+.suite-calm .zen-garden { padding-left: 0; padding-right: 0; }
+.suite-calm .zen-garden-field { font-size: clamp(6px, 2.1vw, 11px); }
 
 /* ── THE PACKAGED VERSION (Brendon, 2026-07-28: "all the UIs adapted to a
    unified Suite polished version, likely different from their normal

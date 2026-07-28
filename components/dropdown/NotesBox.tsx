@@ -131,6 +131,8 @@ export function NotesBox({ suite = false }: { suite?: boolean } = {}) {
             boxId={suite ? 'suiteNotesBox' : 'notesBox'}
             listId={suite ? 'suiteNotesList' : 'notesList'}
             open={suite || notifs.notes}
+            /* The Suite pane scrolls with the thumb — no ⇡ / ⇣ rows there. */
+            noArrows={suite}
             onHeaderClick={() => { if (!suite) setAccordion('notes', !notifs.notes); }}
             header={
                 <span {...(suite ? {} : suiteHold)} title={suite ? undefined : 'Hold to open the PriceOS Suite'}>
