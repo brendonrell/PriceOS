@@ -432,13 +432,19 @@ body.bg-is-red #todosBox { --hothurt: #FFE600; }
     padding: 0;
     background: transparent;
     border: none;
-    border-bottom: 1px solid var(--text-color);
+    /* The row's OWN ink, inherited — never a named token. These boxes are
+       inverted panels (they letter with --bg-color), and inside the Suite the
+       pair is re-mapped again, so a hardcoded --text-color painted the input
+       in the panel's FILL colour: the text was there, invisible, reading as a
+       blank space on edit (Brendon, 2026-07-28). Inheriting is right in the
+       menu, in the Suite, and on every colourway. */
+    border-bottom: 1px solid currentColor;
     border-radius: 0;
     font-family: 'Courier New', Courier, monospace;
     font-size: 16px;
     font-weight: bold;
-    color: var(--text-color);
-    caret-color: var(--text-color);
+    color: inherit;
+    caret-color: currentColor;
 }
 .todo-edit-input:focus { outline: none; }
 

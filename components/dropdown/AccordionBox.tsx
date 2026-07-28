@@ -132,6 +132,7 @@ export function AccordionBox({
             />
             <div
                 id={bodyId}
+                className="accordion-box-body"
                 style={isVisible ? undefined : hiddenStyle}
             >
                 <div

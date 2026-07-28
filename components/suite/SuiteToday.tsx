@@ -13,11 +13,12 @@
  * tapping a tile opens its app.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
     getTodos,
     subscribeTodos,
     toggleTodo,
+    updateTodo,
     sortTodos,
     warChest,
     datedTodosByDay,
@@ -162,6 +163,23 @@ export default function SuiteToday({ openApp }: { openApp: (app: SuiteAppKey) =>
         showToast(r === 'recurred' ? 'To-Do: RESCHEDULED' : r === 'reopened' ? 'To-Do: REOPENED' : 'To-Do: DONE');
     };
 
+    /* EDIT ✎ IN PLACE, right here on Today (Brendon, 2026-07-28) — the To-Dos
+       box's own pencil, verbatim: it swaps the line for an input holding the
+       EXISTING text, Enter/blur commits, Esc backs out. Editing, never a fresh
+       blank line. */
+    const [editId, setEditId] = useState<string | null>(null);
+    const [editText, setEditText] = useState('');
+    const editRef = useRef<HTMLInputElement>(null);
+    useEffect(() => { if (editId) editRef.current?.focus(); }, [editId]);
+    const startEdit = (t: TodoItem) => { setEditText(t.text); setEditId(t.id); };
+    const commitEdit = (t: TodoItem) => {
+        const next = editText.trim();
+        setEditId(null);
+        if (!next || next === t.text) return;
+        updateTodo(t.id, { text: next });
+        showToast('To-Do: EDITED');
+    };
+
     const row = (t: TodoItem) => (
         <div key={t.id} className={`suite-td-row${t.done ? ' done' : ''}`}>
             <span
@@ -174,10 +192,37 @@ export default function SuiteToday({ openApp }: { openApp: (app: SuiteAppKey) =>
             >
                 {t.done ? `✓${VS15}` : `❍${VS15}`}
             </span>
-            <span className="suite-td-text">{t.kind === 'output' ? t.text : renderMentions(t.text)}</span>
+            {editId === t.id ? (
+                <input
+                    ref={editRef}
+                    className="todo-edit-input suite-td-text"
+                    type="text"
+                    value={editText}
+                    maxLength={200}
+                    onChange={(e) => setEditText(e.target.value)}
+                    onBlur={() => commitEdit(t)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') { e.preventDefault(); commitEdit(t); }
+                        else if (e.key === 'Escape') { e.preventDefault(); setEditId(null); }
+                    }}
+                />
+            ) : (
+                <span className="suite-td-text">{t.kind === 'output' ? t.text : renderMentions(t.text)}</span>
+            )}
             <span className="suite-td-meta">
                 {t.dueTime ? t.dueTime : t.due && t.due !== todayK ? t.due.slice(5).replace('-', '/') : ''}
                 {t.priceEth ? <span className="suite-td-eth"><span className="eth-mark">◊</span>{formatEth(t.priceEth)}</span> : null}
+            </span>
+            <span
+                className="todo-edit"
+                role="button"
+                tabIndex={0}
+                title="Edit to-do"
+                aria-label="Edit to-do"
+                onClick={() => startEdit(t)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); startEdit(t); } }}
+            >
+                {`✎${VS15}`}
             </span>
         </div>
     );
@@ -197,7 +242,10 @@ export default function SuiteToday({ openApp }: { openApp: (app: SuiteAppKey) =>
                         <span className="suite-day-dow">{d.isToday ? 'TODAY' : d.dow}</span>
                         <span className="suite-day-num">{d.num}</span>
                         <span className={`suite-day-count${d.open > 0 ? ' has' : ''}`}>
-                            {d.open > 0 ? `❍${VS15}${d.open}` : '·'}
+                            {/* A drawn dot, not the middot glyph — the character
+                                was a hairline nobody could see (Brendon,
+                                2026-07-28). */}
+                            {d.open > 0 ? `❍${VS15}${d.open}` : <span className="suite-day-dot" aria-hidden="true" />}
                         </span>
                     </button>
                 ))}
