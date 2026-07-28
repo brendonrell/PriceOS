@@ -28,6 +28,7 @@ import { evalMath } from './mathEval';
 import { parseConvert, type ConvertPlan } from '../fx/convert';
 import { parseStoneDate, type StoneDate } from './dates';
 import { TAGS, type Tag } from '../tags/catalog';
+import { MOODS_WORDS } from './moods';
 
 export type WidgetPlan =
     | { kind: 'calendar' }
@@ -81,7 +82,10 @@ export type WidgetPlan =
     /* "who are you" — the stone speaks about itself. */
     | { kind: 'lore'; q: string }
     /* "the floor is right" — guess the floor, the ledger scores you. */
-    | { kind: 'floorgame' };
+    | { kind: 'floorgame' }
+    /* ── the moods set (2026-07-28) ── */
+    /* "moods" — the whole set dealt as a tappable hand (lib/stone/moods). */
+    | { kind: 'moods' };
 
 function norm(s: string): string {
     return s.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -149,6 +153,9 @@ export function parseWidget(line: string, now: Date = new Date()): WidgetPlan | 
     if (GLANCE_WORDS.has(q)) return { kind: 'glance' };
     if (OMNI_WORDS.has(q)) return { kind: 'omni' };
     if (WRAPPED_WORDS.has(q)) return { kind: 'wrapped', days: 30 };
+    /* Bare `moods` deals the set — the singular words CAST (checked first
+       in the stone, so `mood` still flips cozy, never lands here). */
+    if (MOODS_WORDS.has(q)) return { kind: 'moods' };
 
     /* `wrapped 90d` / `recap 7d` — a chosen window. */
     const wrapped = /^(?:wrapped|recap)\s+(\d{1,3})d?$/.exec(q);

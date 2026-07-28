@@ -53,6 +53,7 @@ import { formatMathValue, pdNumberNote } from '../../lib/stone/mathEval';
 import { working, loreAnswer, eightballVerdict, fortuneReading } from '../../lib/stone/voice';
 import { subscribeFm, getFm, fmPlay, fmToggle, fmNext } from '../../lib/fm/fmBus';
 import { formatStoneDate, formatDaysAway, todoPhrase, type StoneDate } from '../../lib/stone/dates';
+import { MOODS, type MoodDef } from '../../lib/stone/moods';
 import type {
     OracleFirstMintResponse,
     OracleReleaseResponse,
@@ -2299,15 +2300,55 @@ function FloorGameWidget({ onAct }: { onAct: ActFn }) {
     );
 }
 
+/* ── THE MOODS — the whole set dealt as a hand, each row tappable. The
+      worn one is marked; a tap flips it live and the deal stays on the
+      table so you can wander the weathers (execution lives in the stone —
+      onCastMood is castMood + its toast). ── */
+
+function MoodsWidget({ wornKey, onCast }: {
+    wornKey: string | null; onCast: (m: MoodDef) => void;
+}) {
+    const worn = MOODS.find((m) => m.key === wornKey) ?? null;
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle
+                glyph={`☾${VS15}`}
+                label="THE MOODS"
+                sub={worn ? `WEARING ${worn.label.toUpperCase()}` : 'NONE WORN'}
+            />
+            {MOODS.map((m) => (
+                <div
+                    key={m.key}
+                    className="sw-hit sw-tap"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => onCast(m)}
+                >
+                    <span className="sw-hit-ic">{`☾${VS15}`}</span>
+                    <span className="sw-hit-body">
+                        <span className="sw-hit-main">
+                            {m.label.toUpperCase()}{m.key === wornKey ? ' · ON' : ''}
+                        </span>
+                        <span className="sw-hit-sub">{m.recipe}</span>
+                    </span>
+                </div>
+            ))}
+            <SwHint text="one word wears it · the same word lifts it" />
+        </div>
+    );
+}
+
 /* ── the deck router — one summoned plan, one card ── */
 
-export function WidgetDeck({ plan, address, onGo, onAct, onFooter, onSeed }: {
+export function WidgetDeck({ plan, address, onGo, onAct, onFooter, onSeed, wornMoodKey = null, onCastMood }: {
     plan: WidgetPlan;
     address: string;
     onGo: GoFn;
     onAct: ActFn;
     onFooter: FooterFn;
     onSeed: (text: string) => void;
+    wornMoodKey?: string | null;
+    onCastMood?: (m: MoodDef) => void;
 }) {
     switch (plan.kind) {
         case 'calendar': return <CalendarWidget />;
@@ -2338,6 +2379,7 @@ export function WidgetDeck({ plan, address, onGo, onAct, onFooter, onSeed }: {
         case 'dj': return <DjWidget address={address} onAct={onAct} onFooter={onFooter} />;
         case 'lore': return <LoreWidget q={plan.q} />;
         case 'floorgame': return <FloorGameWidget onAct={onAct} />;
+        case 'moods': return <MoodsWidget wornKey={wornMoodKey} onCast={(m) => onCastMood?.(m)} />;
     }
 }
 

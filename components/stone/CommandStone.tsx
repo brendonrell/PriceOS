@@ -40,6 +40,7 @@ import { parseEtch, commitEtch, resolveProject } from '../../lib/stone/etch';
 import { subscribeFm, getFm, fmPlay, fmToggle, fmNext } from '../../lib/fm/fmBus';
 import { getProject } from '../../lib/project/registry';
 import { matchCast, type CastTarget } from '../../lib/stone/cast';
+import { MOODS, type MoodDef } from '../../lib/stone/moods';
 import { parseWidget } from '../../lib/stone/widgets';
 import { runStoneCommand, applyStoneStyle } from '../../lib/stone/stoneStyle';
 import { expandFollowUp, type StoneSubject } from '../../lib/stone/memory';
@@ -310,12 +311,17 @@ export default function CommandStone() {
     const { sort, setSort, cycleSort } = useSort();
     const { open: openModal } = useModal();
     const { workspaces, loadWorkspace } = useWorkspaces();
-    /* COZY MOOD (Brendon, 2026-07-28) — one word: ambient light on, the
-       haze rolls in, the DJ starts from your held soundtracks. The same
-       word lifts it all; the colorway you were wearing comes back. */
+    /* THE MOODS (Brendon, 2026-07-28) — one castable word bundles colorway
+       + ambient light + the DJ (cozy generalized into the registry,
+       lib/stone/moods). The same word lifts it; the colorway you were
+       wearing BEFORE any mood comes back — switching moods mid-wear keeps
+       the original. A mood is worn when the page matches its recipe, so
+       only one can be on at a time (each wears its own colorway). */
     const { colorway, setColorway } = useColorway();
     const moodPrevColorway = useRef<typeof colorway>(null);
-    const moodActive = notifs.ambientStrip && colorway === 'haze';
+    const isMoodOn = (m: MoodDef) =>
+        colorway === m.colorway && notifs.ambientStrip === m.ambient;
+    const wornMood = MOODS.find(isMoodOn) ?? null;
     /* The DJ's pick — a held project's soundtrack, else any soundtracked
        project; rotates with the day so it never gets stale. */
     const djPlay = async () => {
@@ -335,6 +341,26 @@ export default function CommandStone() {
         if (!st) return false;
         fmPlay({ playlistId: st.playlistId, label: st.label, slug });
         return true;
+    };
+    /* Wear / lift a mood — the cozy execution, data-driven. Returns the
+       toast line (casing law: the thing that changed screams). */
+    const castMood = (m: MoodDef): string => {
+        if (isMoodOn(m)) {
+            if (notifs.ambientStrip) toggle('ambientStrip');
+            setColorway(moodPrevColorway.current ?? null);
+            /* A mood that started the DJ hushes them on the way out; a
+               mood that left the music alone keeps leaving it alone. */
+            if (m.dj === 'play' && fm.status === 'playing') fmToggle();
+            return `${m.label}: OFF`;
+        }
+        /* Entering from bare walls remembers the wear; switching moods
+           keeps the ORIGINAL pre-mood colorway for the eventual off. */
+        if (!wornMood) moodPrevColorway.current = colorway;
+        if (notifs.ambientStrip !== m.ambient) toggle('ambientStrip');
+        setColorway(m.colorway);
+        if (m.dj === 'play') void djPlay();
+        else if (m.dj === 'hush' && fm.status === 'playing') fmToggle();
+        return `${m.label}: ON`;
     };
     const castHit = useMemo(
         () => (etchPlan ? null : matchCast(value, workspaces)),
@@ -397,9 +423,9 @@ export default function CommandStone() {
     }, [open, pathname]);
     const castActive = (hit: CastTarget): boolean => {
         if (hit.kind === 'spell') return !!notifs[hit.spell.flag];
+        if (hit.kind === 'mood') return isMoodOn(hit.mood);
         if (hit.kind === 'mode') {
             if (hit.key === 'fog') return sort === 'fog';
-            if (hit.key === 'mood') return moodActive;
             const flags = {
                 degen: notifs.degen, audience: notifs.audience,
                 redacted: notifs.redactedMode, thewatch: notifs.watch,
@@ -422,6 +448,10 @@ export default function CommandStone() {
             setEtched(`✓ Workspace: ${hit.label.toUpperCase()}`);
             setValue('');
             inputRef.current?.focus();
+            return;
+        }
+        if (hit.kind === 'mood') {
+            confirmAnd(castMood(hit.mood));
             return;
         }
         if (hit.kind === 'spell') {
@@ -508,21 +538,6 @@ export default function CommandStone() {
                 const next = sort !== 'fog';
                 cycleSort('fog');
                 confirmAnd(`Fog: ${next ? 'ON' : 'OFF'}`);
-                return;
-            }
-            case 'mood': {
-                if (!moodActive) {
-                    moodPrevColorway.current = colorway;
-                    if (!notifs.ambientStrip) toggle('ambientStrip');
-                    setColorway('haze');
-                    void djPlay();
-                    confirmAnd('Cozy Mood: ON');
-                } else {
-                    if (notifs.ambientStrip) toggle('ambientStrip');
-                    setColorway(moodPrevColorway.current ?? null);
-                    if (fm.status === 'playing') fmToggle();
-                    confirmAnd('Cozy Mood: OFF');
-                }
                 return;
             }
         }
@@ -1013,6 +1028,8 @@ export default function CommandStone() {
                                 onAct={(t) => showToast(t)}
                                 onFooter={onFooter}
                                 onSeed={onSeed}
+                                wornMoodKey={wornMood?.key ?? null}
+                                onCastMood={(m) => showToast(castMood(m))}
                             />
                         )}
 

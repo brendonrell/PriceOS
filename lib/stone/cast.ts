@@ -12,6 +12,7 @@
  */
 
 import { SPELLS, type SpellEntry } from '../data/spells';
+import { matchMood, type MoodDef } from './moods';
 
 /** The hardcoded Spell Book pills (plain flags / sort modes, not spell_*). */
 export type CastModeKey =
@@ -22,14 +23,15 @@ export type CastModeKey =
     | 'npc'
     | 'stargazing'
     | 'echo'
-    | 'fog'
-    /* COZY MOOD (Brendon, 2026-07-28) — ambient light + haze + the DJ,
-       one word on, same word off. Execution lives in the stone. */
-    | 'mood';
+    | 'fog';
 
 export type CastTarget =
     | { kind: 'spell'; spell: SpellEntry; label: string; icon?: string }
     | { kind: 'mode'; key: CastModeKey; label: string; icon?: string }
+    /* THE MOODS (Brendon, 2026-07-28) — castable atmospheres, one word on,
+       same word off. The registry is lib/stone/moods; execution lives in
+       the stone. Cozy (2026-07-28) generalized into the set. */
+    | { kind: 'mood'; mood: MoodDef; label: string }
     | { kind: 'workspace'; id: number; label: string };
 
 /** The hardcoded settings pills, name → mode key. Labels/icons match
@@ -43,7 +45,6 @@ const MODES: Array<{ names: string[]; key: CastModeKey; label: string; icon?: st
     { names: ['stargazing', 'stargazing mode'], key: 'stargazing', label: 'Stargazing', icon: '⍟︎' },
     { names: ['echo', 'echo chamber'], key: 'echo', label: 'Echo Chamber', icon: '≫︎' },
     { names: ['fog'], key: 'fog', label: 'Fog' },
-    { names: ['mood', 'cozy', 'cozy mood'], key: 'mood', label: 'Cozy Mood' },
 ];
 
 function norm(s: string): string {
@@ -70,6 +71,10 @@ export function matchCast(
             return { kind: 'mode', key: m.key, label: m.label, icon: m.icon };
         }
     }
+    /* The moods sit where cozy sat — after the pills, before the spells
+       (no mood word collides with a spell or pill name). */
+    const mood = matchMood(q);
+    if (mood) return { kind: 'mood', mood, label: mood.label };
     for (const spell of SPELLS) {
         // NPC's SPELLS entry is superseded by the hardcoded pill (checked
         // above); Degen sits in its slot in the Book — same here.

@@ -105,9 +105,17 @@ describe('the fun wave', () => {
         expect(eightballVerdict('a·b·c')).toBe(eightballVerdict('a·b·c'));
         expect(loreAnswer('who are you', 'd1')).toBe(loreAnswer('who are you', 'd1'));
     });
-    it('cozy mood is castable by all its names', () => {
+    it('cozy mood is castable by all its names (now via the moods registry)', () => {
         for (const w of ['mood', 'cozy', 'cozy mood']) {
-            expect(matchCast(w, [])).toMatchObject({ kind: 'mode', key: 'mood' });
+            const hit = matchCast(w, []);
+            expect(hit?.kind).toBe('mood');
+            if (hit?.kind === 'mood') expect(hit.mood.key).toBe('cozy');
         }
+    });
+    it('bare `moods` deals the set as a widget', () => {
+        expect(parseWidget('moods', NOW)?.kind).toBe('moods');
+        expect(parseWidget('the moods', NOW)?.kind).toBe('moods');
+        /* the singular words stay CASTS, never the widget */
+        expect(parseWidget('moods extra words', NOW)).toBeNull();
     });
 });

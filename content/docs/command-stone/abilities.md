@@ -164,13 +164,17 @@ The Stone's memory now survives sessions.
 | `that project from tuesday` | Resolved from its history of your subjects |
 | `that collector from yesterday` | Works for people too |
 
-## Cozy Mood
+## The Moods
 
-One word: the ambient light comes on, the haze rolls in, and the DJ starts playing from your held projects' soundtracks. The same word lifts it all and your colorway comes back.
+A mood is one castable word that sets the whole room: colorway, ambient light, and the DJ in a single cast. The same word lifts it and the colorway you were wearing comes back — switch moods mid-wear and the Stone still remembers your original. Only one mood is worn at a time.
 
 | Type | Get |
 |---|---|
-| `cozy mood` · `cozy` · `mood` | All three at once, on — or off |
+| `cozy` · `cozy mood` · `mood` | The haze rolls in, the ambient light comes on, the DJ plays from your shelf |
+| `rave` · `hype` | Hot colour, ambient light, the DJ — loud on purpose |
+| `monk` · `focus` | Everything off, quiet: clean light page, no ambience, music stops |
+| `midnight` | Dark mode plus the dim wash; whatever is playing keeps playing |
+| `moods` | The whole set dealt as a card — tap a mood to wear it, tap again to lift it |
 
 ## The fun bench
 

@@ -1,0 +1,87 @@
+/*
+ * THE MOODS — the Command Stone's castable atmospheres (Brendon, 2026-07-28:
+ * "can we have more than one mood? cozy was just an example").
+ *
+ * A mood is ONE castable word bundling colorway + ambient light + the DJ —
+ * the shipped COZY MOOD pattern, generalized into data. The same word lifts
+ * it and the colorway you were wearing comes back. Bare `moods` deals the
+ * whole set as a tappable widget.
+ *
+ * Pure data + matching only (testable) — execution lives in the stone,
+ * exactly like CAST: it is just settings with a fun name.
+ */
+
+import type { ColorwayKey } from '../state/ColorwayContext';
+
+export interface MoodDef {
+    key: string;
+    /** Castable words, exact (CAST's own discipline — no prefix guessing). */
+    words: readonly string[];
+    label: string;
+    /** The one-line recipe the dealt widget shows under the name. */
+    recipe: string;
+    /** The colorway the mood wears — each mood's is distinct, so the worn
+        mood is detectable and only one can be on at a time. */
+    colorway: NonNullable<ColorwayKey>;
+    /** Ambient light strip on with the mood? */
+    ambient: boolean;
+    /** The DJ: 'play' starts them (and off hushes them) · 'hush' stops
+        whatever is playing · 'keep' leaves the music alone. */
+    dj: 'play' | 'hush' | 'keep';
+}
+
+export const MOODS: readonly MoodDef[] = [
+    {
+        key: 'cozy',
+        /* 'mood' + 'cozy mood' stay cozy's — the shipped words (2026-07-28). */
+        words: ['cozy', 'cozy mood', 'mood'],
+        label: 'Cozy Mood',
+        recipe: 'the haze · ambient light · the DJ',
+        colorway: 'haze',
+        ambient: true,
+        dj: 'play',
+    },
+    {
+        key: 'rave',
+        words: ['rave', 'rave mood', 'hype'],
+        label: 'Rave Mood',
+        recipe: 'hot hurt · ambient light · the DJ',
+        colorway: 'hothurt',
+        ambient: true,
+        dj: 'play',
+    },
+    {
+        key: 'monk',
+        words: ['monk', 'monk mood', 'focus'],
+        label: 'Monk Mood',
+        recipe: 'clean light · everything off · quiet',
+        colorway: 'light',
+        ambient: false,
+        dj: 'hush',
+    },
+    {
+        key: 'midnight',
+        words: ['midnight', 'midnight mood'],
+        label: 'Midnight Mood',
+        recipe: 'dark mode · the dim wash · music stays',
+        colorway: 'dark',
+        ambient: true,
+        dj: 'keep',
+    },
+];
+
+function norm(s: string): string {
+    return s.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+/** Exact-word mood match — anything inexact falls through (a miscast is
+    worse than a search result). */
+export function matchMood(line: string): MoodDef | null {
+    const q = norm(line);
+    if (!q) return null;
+    for (const m of MOODS) if (m.words.includes(q)) return m;
+    return null;
+}
+
+/** The words that deal the whole set as a widget. */
+export const MOODS_WORDS = new Set(['moods', 'the moods', 'mood set']);

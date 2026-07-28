@@ -501,6 +501,10 @@ Wishlist rows (and the held-by / collected-by chips):
 > ⚭ MUTUALS · ⚬ FOLLOWERS (the social trio, §12) · ⌂ THE OVERLAP
 > (owner/holder, §4) · podium ranks ❶❷❸ then plain numerals (§7).
 
+| Concept | Glyph | Codepoint | Notes |
+|---|---|---|---|
+| **THE MOODS** (Stone card + rows) | ☾ | U+263E | 2026-07-28, the moods-set build — night/ambience for the castable atmospheres (`lib/stone/moods`, `MoodsWidget`). On the §7 sharpened safe list (no emoji mapping) and grepped free, raw + escaped, before claim. NOT ☽ (U+263D — sentiment Neutral tier + sprite wand, taken) |
+
 ## 12b. Celestial Tracker — the birth-sky trio (2026-07-17 redesign)
 
 The Celestial Tracker spell renders each Output's astrological **big three**

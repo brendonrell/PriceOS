@@ -35,6 +35,31 @@ describe('matchCast — spells + modes', () => {
     });
 });
 
+describe('matchCast — the moods (lib/stone/moods, cozy generalized)', () => {
+    it('casts every mood by each of its words', () => {
+        for (const [word, key] of [
+            ['cozy', 'cozy'], ['cozy mood', 'cozy'], ['mood', 'cozy'],
+            ['rave', 'rave'], ['hype', 'rave'],
+            ['monk', 'monk'], ['focus', 'monk'],
+            ['midnight', 'midnight'], ['midnight mood', 'midnight'],
+        ] as const) {
+            const hit = matchCast(word, WS);
+            expect(hit?.kind).toBe('mood');
+            if (hit?.kind === 'mood') expect(hit.mood.key).toBe(key);
+        }
+    });
+    it('accepts the cast prefix and stays exact-word', () => {
+        expect(matchCast('cast rave', WS)?.kind).toBe('mood');
+        expect(matchCast('rav', WS)).toBeNull();
+        expect(matchCast('midnight snack', WS)).toBeNull();
+    });
+    it('each mood wears a distinct colorway (only one worn at a time)', async () => {
+        const { MOODS } = await import('../lib/stone/moods');
+        const set = new Set(MOODS.map((m) => m.colorway));
+        expect(set.size).toBe(MOODS.length);
+    });
+});
+
 describe('matchCast — workspaces', () => {
     it('matches a workspace by exact name', () => {
         const hit = matchCast('appraiser', WS);

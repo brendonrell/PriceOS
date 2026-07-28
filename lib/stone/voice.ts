@@ -279,6 +279,12 @@ const FUN_WIDGET: Record<string, Pool> = {
         ['Name the floor.', null],
         ['Play.', 'I never guess. You must.'],
     ],
+    moods: [
+        ['The moods, dealt.', 'Pick a weather.'],
+        ['Four ways to wear the place.', 'One word each. Same word off.'],
+        ['Atmospheres, on hand.', null],
+        ['Choose your evening.', 'I will set the room.'],
+    ],
 };
 for (const k of Object.keys(FUN_WIDGET)) WIDGET[k] = FUN_WIDGET[k];
 
