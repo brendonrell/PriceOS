@@ -42,6 +42,7 @@ import { useStarredPrices, priceOf, isHeldBy } from '../../lib/pins/starredPrice
 import { getTxStarItems } from '../../lib/pins/txStarStore';
 import { txStarToFeedEvent, FeedActorLine } from '../../lib/feed/feedRow';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
+import { fmPlayQueue, type FmStation } from '../../lib/fm/fmBus';
 import OutputThumb from '../profile/OutputThumb';
 import {
     getLists, subscribeLists, removeFromList, parseListKey, moveInList,
@@ -404,6 +405,25 @@ function ListSection({ list, viewerAddress, priceMode, pricesVer, focused, onTog
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [items, viewerAddress, priceMode, pricesVer]);
 
+    /* ▶ PLAY THE LIST (Brendon, 2026-07-28) — a list holding NOTHING BUT
+       soundtracks is already a playlist, so it gets a play key and the whole
+       list goes to the miniplayer in stored order (which is the order you
+       dragged them into). Anything else in the list and there's no key: a run
+       that silently skipped the artworks would be lying about what it played.
+       It sits where the ◊ total does — an all-soundtrack list owns no
+       artworks, so that spot is free and nothing moves. */
+    const stations = useMemo<FmStation[]>(() => {
+        const songs = items.filter(
+            (i): i is Extract<ListMemberRef, { kind: 'soundtrack' }> => i.kind === 'soundtrack',
+        );
+        if (songs.length === 0 || songs.length !== items.length) return [];
+        return songs.map((s) => ({
+            playlistId: s.playlistId,
+            label: getProject(s.slug)?.soundtrack?.label ?? s.playlistId,
+            slug: s.slug,
+        }));
+    }, [items]);
+
     return (
         <div className={`lists-section${open ? ' is-open' : ''}${focused ? ' is-focused' : ''}`}>
             <div
@@ -472,6 +492,30 @@ function ListSection({ list, viewerAddress, priceMode, pricesVer, focused, onTog
                     >
                         {`◊${VS15}`}{priceMode !== 'off' && total > 0 ? total.toFixed(total >= 100 ? 0 : 2) : ''}
                     </span>
+                )}
+                {/* ▶ — plays this list straight through in the miniplayer.
+                    Only on a list of nothing but soundtracks. */}
+                {stations.length > 0 && (
+                    <span
+                        className="lists-head-play"
+                        role="button"
+                        tabIndex={0}
+                        title={`Play this list — ${stations.length} soundtrack${stations.length === 1 ? '' : 's'}`}
+                        aria-label="Play this list in the miniplayer"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            fmPlayQueue(stations);
+                            onToast(`${list.name}: PLAYING`);
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                fmPlayQueue(stations);
+                                onToast(`${list.name}: PLAYING`);
+                            }
+                        }}
+                    >{`▶${VS15}`}</span>
                 )}
                 {/* Rename — the budget pills' pencil, same glyph. */}
                 <span

@@ -6867,6 +6867,23 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
    not decoration), just without a number beside it. It's the only way back to
    the prices, so it can never dim into nothing. */
 .lists-head-total.is-off { letter-spacing: 0; }
+/* ▶ PLAY THE LIST — only on a list of nothing but soundtracks, riding the ◊'s
+   spot (that list owns no artworks, so the total isn't there to fight). Full
+   strength, sized like the header's other keys (Rule #2 — it's a control). */
+.lists-head-play {
+    flex: 0 0 auto;
+    line-height: 1;
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--text-color);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 4px;
+    margin: -3px 0;
+    -webkit-tap-highlight-color: transparent;
+}
+.lists-head-play:active { opacity: 0.65; }
 /* A FOCUSED list (long-pressed) has the panel to itself. It wears PD's own
    state mark — the dotted ring the profile-logo carousel uses for its active
    tile — never an edge bar or a lozenge (§9 banned motifs). */

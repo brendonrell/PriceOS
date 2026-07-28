@@ -57,6 +57,7 @@ interface YTPlayer {
     cueVideoById(opts: { videoId: string; startSeconds?: number }): void;
     getCurrentTime?(): number | undefined;
     getPlaylistIndex?(): number | undefined;
+    getPlaylist?(): string[] | undefined;
     getVideoData?(): { title?: string } | undefined;
     destroy(): void;
 }
@@ -255,7 +256,15 @@ export default function FmBar() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [clearWatchdog]);
 
+    /* ── THE RUN (Brendon, 2026-07-28) — a saved List of nothing but
+       soundtracks, played straight through as one playlist. `queueRef` holds
+       what's still WAITING; each station rolls on when the one on air reaches
+       the end of its own last track. Tuning anywhere else clears it (see
+       `start`), because choosing a station by hand means abandoning the run. ── */
+    const queueRef = useRef<Station[]>([]);
+
     const start = useCallback((station: Station) => {
+        queueRef.current = []; // a hand-picked station abandons any run
         resumeRef.current = null; // a fresh tune plays now — never the saved spot
         wantRef.current = station;
         setOnAir(station);
@@ -271,6 +280,23 @@ export default function FmBar() {
                 playerRef.current.loadVideoById(station.playlistId);
         }
     }, [armWatchdog]);
+
+    /* Put a run on air: the first station now, the rest waiting. The queue is
+       set AFTER the tune because `start` deliberately wipes it. */
+    const startRun = useCallback((stations: ReadonlyArray<Station>) => {
+        if (stations.length === 0) return;
+        start(stations[0]);
+        queueRef.current = stations.slice(1);
+    }, [start]);
+
+    /* The station on air has nothing left of its own: the last track of its
+       playlist just ended, or it's a single-video station. Only then does the
+       run roll on — a playlist mid-way through must never be cut short. */
+    const stationFinished = useCallback((p: YTPlayer) => {
+        const list = p.getPlaylist?.();
+        if (!list || list.length === 0) return true;
+        return (p.getPlaylistIndex?.() ?? 0) >= list.length - 1;
+    }, []);
 
     /* ── The saved session (Brendon, 2026-07-27): the device survives closing
        the app. Save the exact spot on every pause + steadily while playing;
@@ -370,7 +396,21 @@ export default function FmBar() {
                             saveSession(false);
                         }
                         else if (e.data === YT.PlayerState.PAUSED) { setStatus('paused'); saveSession(true); }
-                        else if (e.data === YT.PlayerState.ENDED) { setStatus('paused'); saveSession(true); }
+                        else if (e.data === YT.PlayerState.ENDED) {
+                            /* A run rolls on here and ONLY here: the station on
+                               air has genuinely reached its end and something
+                               is still waiting. Everything else parks, exactly
+                               as it always has. */
+                            const waiting = queueRef.current;
+                            if (waiting.length > 0 && stationFinished(e.target)) {
+                                const [next, ...rest] = waiting;
+                                start(next);
+                                queueRef.current = rest;
+                                return;
+                            }
+                            setStatus('paused');
+                            saveSession(true);
+                        }
                     },
                     /* Dead-video armor: a broken/private/pulled video SKIPS
                        to the next track; three strikes in a row (or a bad
@@ -394,7 +434,7 @@ export default function FmBar() {
                 },
             });
         });
-    }, [onAir, saveSession, clearWatchdog]);
+    }, [onAir, saveSession, clearWatchdog, start, stationFinished]);
 
     /* Restore on arrival — the device comes back paused, right where it was
        (Brendon, 2026-07-27). Mount covers the same-device reopen (the cache);
@@ -435,6 +475,7 @@ export default function FmBar() {
         startingRef.current = false;
         wantRef.current = null;
         resumeRef.current = null;
+        queueRef.current = []; // the run dies with the device — off stays off
         if (watchdogRef.current) { clearTimeout(watchdogRef.current); watchdogRef.current = null; }
         errCountRef.current = 0;
         setDeadLink(false);
@@ -474,12 +515,13 @@ export default function FmBar() {
     useEffect(() => { statusRef.current = status; });
     useEffect(() => registerFmDriver({
         play: (st) => start(st),
+        playQueue: (sts) => startRun(sts),
         toggle: () => {
             if (statusRef.current === 'playing') playerRef.current?.pauseVideo();
             else playerRef.current?.playVideo();
         },
         next: () => playerRef.current?.nextVideo(),
-    }), [start]);
+    }), [start, startRun]);
     useEffect(() => {
         publishFm({ status, station: onAir, trackTitle });
     }, [status, onAir, trackTitle]);

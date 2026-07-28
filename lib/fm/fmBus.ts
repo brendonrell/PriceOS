@@ -28,6 +28,7 @@ export interface FmSnapshot {
 
 interface FmDriver {
     play(st: FmStation): void;
+    playQueue(sts: ReadonlyArray<FmStation>): void;
     toggle(): void;
     next(): void;
 }
@@ -61,6 +62,18 @@ export function subscribeFm(cb: () => void): () => void {
 
 export function fmPlay(st: FmStation): void {
     driver?.play(st);
+}
+
+/**
+ * Play a RUN of stations back to back — a saved List of soundtracks played as
+ * one playlist (Brendon, 2026-07-28). The first station goes on air now; the
+ * rest wait their turn and roll on as each finishes. Tuning anywhere else
+ * (the picker, a soundtrack card) abandons the run, which is the point: the
+ * user just chose something else.
+ */
+export function fmPlayQueue(sts: ReadonlyArray<FmStation>): void {
+    if (sts.length === 0) return;
+    driver?.playQueue(sts);
 }
 
 export function fmToggle(): void {
