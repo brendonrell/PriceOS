@@ -495,6 +495,12 @@ Wishlist rows (and the held-by / collected-by chips):
 > ⍢ Wallet ASCII (the ASCII-ID mark, §11) · MATRIX and DOCS deliberately
 > glyph-less (no canon fit — omission over a forced icon, §7).
 
+> **The abilities-pass cards (2026-07-28) reuse canon only — nothing new:**
+> ▦ THE DAY (calendar concept) · ✶ FIRST MINT (the mint star, §1) ·
+> ◷ RELEASE (the Recent/date clock, §12) · ⟠ SPENDERS (volume, §7) ·
+> ⚭ MUTUALS · ⚬ FOLLOWERS (the social trio, §12) · ⌂ THE OVERLAP
+> (owner/holder, §4) · podium ranks ❶❷❸ then plain numerals (§7).
+
 ## 12b. Celestial Tracker — the birth-sky trio (2026-07-17 redesign)
 
 The Celestial Tracker spell renders each Output's astrological **big three**

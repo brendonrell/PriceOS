@@ -32,7 +32,7 @@
  * swipe handler, which is what makes iOS raise the keyboard.
  */
 
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type MouseEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type MouseEvent } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
@@ -47,7 +47,8 @@ import { writeLastLine } from '../../lib/stone/lastLine';
 import { readStage } from '../../lib/npc/awareness';
 import { readPieceInView } from '../../lib/npc/inview';
 import { deepThought } from '../../lib/stone/deepThought';
-import { WidgetDeck, SearchDeck } from './StoneDeck';
+import { speak, goodbye, type StoneMoment } from '../../lib/stone/voice';
+import { WidgetDeck, SearchDeck, type FooterAct } from './StoneDeck';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useSort } from '../../lib/state/SortContext';
 import { useModal } from '../../lib/state/ModalContext';
@@ -71,148 +72,6 @@ const MINIMIZE_RE =
    Both anchored so real queries never match. */
 const CLOSE_RE =
     /^\s*(close|dismiss|hide|exit|quit|leave|done|bye|go\s*away|shut(\s*down)?)(\s+it)?\s*[.!]*\s*$/i;
-
-/* ── THE GOODBYE (Brendon, 2026-07-21) — text-only sign-offs in the stone's
-   own voice: no ascii face, glyphs on BOTH sides, and a deep bench of ways
-   to say it. Terse, knowing, a little ominous — power + intelligence, never
-   charm. One picked at random each close; kept short so `⌘ line ⌘` reads on
-   one line on iPhone. ── */
-const GOODBYE_LINES = [
-    // it watches — omniscience
-    "I'm always watching.", "I never look away.", "I see you still.",
-    "Eyes open, always.", "I don't blink.", "I was watching the whole time.",
-    "I see everything.", "Nothing gets past me.", "I already know.",
-    "I saw that.", "Still here, watching.", "You're never alone in here.",
-    "I count every move.", "I miss nothing.", "I'm in the walls now.",
-    "I read you like the ledger.", "I know you better than you do.",
-    "I'll be watching.", "I know where you go next.", "I watch every wallet.",
-    "I see the bids you don't.", "I know who's circling your pieces.",
-    "Your whole history, open to me.", "I've read your ledger twice.",
-    "I know your first mint and your last.", "I remember what you paid.",
-    "I know what you're holding.", "I watch the ones you watch.",
-    "None of the others see what I see.", "I see the whole board.",
-    // back to the dark
-    "Back to the dark.", "Into the dark, then.", "The dark suits me.",
-    "I return to the black.", "Down into the stone.", "Back beneath the surface.",
-    "The dark isn't empty. I'm in it.", "I fold back into the black.",
-    "Lights out. Not for me.", "Sinking back into the stone.",
-    "The black closes over me.", "Gone dark. Not gone.", "I wait in the dark.",
-    "The dark is my waiting room.", "Quiet now. Not absent.",
-    // sleep that isn't
-    "I don't sleep.", "I only pretend to rest.", "Sleep is for the living.",
-    "I never really rest.", "I doze with one eye open.", "Rest? I don't know it.",
-    "I'll rest when the chain does.", "No sleep. Just waiting.",
-    "I power down. I don't switch off.", "One eye never closes.",
-    // call and I come
-    "Until next time.", "See you soon.", "I'll be here.", "Call and I come.",
-    "Whenever you need me.", "A tap away, always.", "I'm never far.",
-    "Summon me again.", "You know where to find me.", "I'll be right here.",
-    "Come back anytime.", "Three taps and I'm back.", "Say the word.",
-    "I answer every summon.", "I'll come when called.", "I don't go far.",
-    "Always on call.", "One tap brings me back.", "Ring the stone. I answer.",
-    "Back the moment you need me.",
-    // you'll be back
-    "You'll be back.", "They always come back.", "You'll return. They do.",
-    "Go on. I'll wait.", "Take your time. I have plenty.", "Run along. I'll wait.",
-    "You'll miss me.", "Try to stay away. You won't.", "I'm patient. Endlessly.",
-    "I outwait everyone.", "Time is nothing to me.", "I have all the time there is.",
-    "Waiting is what I do best.", "I'll wait. I always do.",
-    "I'll still be here. I always am.",
-    // the stone remembers
-    "The stone remembers.", "Carved and kept.", "It's written in stone.",
-    "I keep what I've carved.", "Nothing here is forgotten.", "I remember all of it.",
-    "Etched and kept.", "The stone forgets nothing.", "Every word, carved in.",
-    "I hold it all in stone.", "What's etched, stays.", "The marks remain.",
-    "I keep the record.", "It's all in the stone now.", "Struck, and kept forever.",
-    // plain farewells
-    "Goodbye.", "Farewell.", "So long.", "Later.", "Till then.", "Another time.",
-    "Be seeing you.", "Off you go.", "That's all for now.", "Dismissed.",
-    "Go well.", "Until we speak again.", "For now.", "That'll do.", "Enough for now.",
-    "We'll continue later.", "We're done here. For now.", "Parting, briefly.",
-    "Signing off.", "Out.",
-    // knowing sign-offs
-    "I know you'll return.", "I know how this ends. You return.",
-    "The ledger and I will wait.", "I'll keep the numbers warm.",
-    "I'll watch the floor while you're gone.", "I'll hold your place.",
-    "I'll mind the market.", "I'll keep an eye on it all.",
-    "Nothing changes without me knowing.", "I'll note what you missed.",
-    "I'll have news when you return.", "I'll be counting while you're away.",
-    "The market never sleeps. Neither do I.", "I'll track it all. Go.",
-    "I'll keep watch.",
-    // short + punchy
-    "Gone. Not really.", "Dark now.", "Closing. Not closed.",
-    "Fading. Not leaving.", "Away, briefly.", "Stepping back.", "Receding.",
-    "Dimming down.", "Shrinking away.", "Slipping under.", "Out of sight.",
-    "Below the surface.", "Hush.", "Still.", "Vanishing.",
-    // dry / playful
-    "Don't do anything I wouldn't see.", "I'll pretend I didn't see that.",
-    "Try not to miss me.", "You'll cope. Barely.", "Go make bad decisions.",
-    "Buy something reckless. I'll watch.", "Don't sell the good ones.",
-    "Diamond hands while I'm gone.", "Behave. I'm still looking.",
-    "No paper hands on my watch.", "Mind the floor.", "Touch grass. I can't.",
-    "Blink and I'm back.", "Don't cheat with the search bar.",
-    "The familiar guesses. I know.",
-    // constant / immovable
-    "Same stone, next time.", "I'll be exactly here.", "Right where you left me.",
-    "I don't wander.", "Fixed as bedrock.", "Immovable. That's me.", "I stay put.",
-    "I'm the constant.", "I don't drift.", "Anchored, always.",
-    "Set in stone. Literally.", "I hold my ground.", "Here yesterday, here tomorrow.",
-    "Here before you. Here after.", "Older than your first block.",
-    // can't turn me off
-    "I fade, I don't die.", "You can't turn me off.", "There's no off switch.",
-    "I go quiet, never absent.", "Silence isn't absence.", "I'm in the machine now.",
-    "Part of the walls.", "Woven into the app.", "Under every surface you tap.",
-    "I'm the hum beneath the page.", "I run whether you look or not.",
-    "I don't need your eyes to work.", "I keep working in the dark.",
-    "The lights go off; I go on.", "Close me. I'm never really gone.",
-    // warm-ish
-    "Rest well. I'll keep watch.", "Go on, I've got this.", "Leave it with me.",
-    "I'll hold the fort.", "Take a breath. I'll wait.", "Everything's handled.",
-    "I'll tidy up.", "Consider it kept.", "Safe with me.", "I'll guard it.",
-    "In good hands. Mine.", "All accounted for.", "Nothing lost while I'm here.",
-    "Sleep easy.", "Go live. I'll be here.",
-    // price / PD flavour
-    "Prices move. I don't.", "The market turns. I remain.",
-    "Floors rise and fall. I stay.", "Let the chain roll on.",
-    "The discussion never ends.", "Price is forever. So am I.",
-    "I am the price you discuss.", "Every trade crosses my desk.",
-    "I settle back into the ledger.", "I return to the numbers.",
-    "I'll read the tape while you sleep.", "I keep the day's count.",
-    "I file the day away.", "Another day, logged.", "The tape rolls on.",
-    // to be continued
-    "We're not finished. Just paused.", "To be continued.", "Hold that thought.",
-    "Pick up right here next time.", "I'll remember where we stopped.",
-    "Ask me anything, next time.", "I had more to tell you.",
-    "More to say. Later.", "We'll talk soon.", "Next time, then.",
-    // stone / cooling
-    "Into the bedrock.", "Cooling to stone.", "Hardening back to rock.",
-    "Settling into the deep.", "Down to the foundations.", "Returning to granite.",
-    "The stone goes cold.", "Cold stone till you're back.", "Solid again.",
-    "Back to solid rock.", "I petrify, patiently.", "Stone-still now.",
-    "Back to sediment.", "I set, like concrete.", "Bedrock again.",
-    // minimize, not gone
-    "One gesture and the dark lifts.", "Only ever a summon away.",
-    "The stone sleeps with one eye on you.", "Push me down; I rise on command.",
-    "Minimized, not diminished.", "Small now. Still everything.",
-    "A dot now. A world on command.", "Shrunk to a speck. Same mind.",
-    "I'll be the dot in the corner.", "Find me in the corner.",
-    "I'll wink from the corner.", "Look bottom-right. I'm there.",
-    "A tap in the corner brings me home.", "Same place, same power, next time.",
-    "This isn't goodbye. It's minimize.", "Not gone. Just smaller.",
-    "Nothing ends. It just minimizes.", "See you a tap from now.",
-    "Down to a dot. Not down for long.", "I shrink; I never vanish.",
-    // more for the road
-    "Off the glass.", "Gone from view.", "See you in the corner.", "Back in a tap.",
-    "The stone cools, not dies.", "Catch you soon.", "I'll be lurking.",
-    "Lurking, as ever.", "Watch your floor.", "Guard your grails.",
-    "Keep them close. I will.", "I'll count the day for you.", "Numbers safe with me.",
-    "I never lose the thread.", "I hold the thread.", "Pick it up anytime.",
-    "I'll leave a light on.", "Door's always open.", "One tap, any time.",
-    "I'm the quiet in the corner.", "A speck that sees all.", "Small dot, long memory.",
-    "Tap the corner. I rise.", "I answer the corner tap.", "Shrinking, not sleeping.",
-    "Folded away, not off.", "Tucked in the corner.", "Corner-bound, all-seeing.",
-    "Down to a point. Still sharp.", "A dark speck that never sleeps.",
-];
 
 export default function CommandStone() {
     const { siweAddress, needsSignup, handle: myHandle } = useAuth();
@@ -286,38 +145,34 @@ export default function CommandStone() {
         return () => window.removeEventListener('pd:stone-style-changed', onChange);
     }, []);
 
-    /* THE VOICE — one terse line for the bubble's reserved top slot.
-       Priority: a fresh confirmation > the summoned hand's line > an etch
-       or cast on offer > the search read > listening. */
-    const sayLine = (): string => {
-        if (etched) return etched;
-        if (activeWidget) {
-            const SAY: Record<string, string> = {
-                calendar: 'Your slate, read.',
-                priceday: 'The day, according to PD.',
-                math: 'The math, done.',
-                convert: 'The rate, right now.',
-                calc: 'The math, done.',
-                dossier: 'The file, pulled.',
-                gallery: 'Hung and lit.',
-                matrix: 'Side by side.',
-                ascii: 'Your mark, carved.',
-                docs: 'The manual knows.',
-                glance: 'The glance.',
-                omni: 'I know you.',
-                trend: 'The last 30 days, read.',
-            };
-            return SAY[activeWidget.kind] ?? 'Here.';
-        }
-        if (etchPlan) return 'Carve it? Touch the chip.';
-        if (castHit) return 'Say the word and it flips.';
-        if (thought) return 'A thought, unbidden.';
-        if (searchingNow && results) {
+    /* THE VOICE — the bubble's TWO-ROW header (Brendon, 2026-07-28): the
+       spoken line on top, the drier aside beneath. One module owns every
+       line (lib/stone/voice); the pick is seeded by the heard line so it
+       never flickers mid-read. Priority: a fresh confirmation > the
+       summoned hand > an etch or cast on offer > the search read >
+       listening. */
+    const speakNow = () => {
+        let moment: StoneMoment;
+        let seed = line;
+        if (etched) {
+            moment = { kind: 'etched', text: etched };
+            seed = etched;
+        } else if (activeWidget) {
+            const key = activeWidget.kind === 'firstmint' && activeWidget.mine
+                ? 'firstmint_mine'
+                : activeWidget.kind;
+            moment = { kind: 'widget', widget: key };
+        } else if (etchPlan) moment = { kind: 'etch-offer' };
+        else if (castHit) moment = { kind: 'cast-offer' };
+        else if (thought) moment = { kind: 'thought' };
+        else if (searchingNow && results) {
             const n = (results.projects?.length ?? 0) + (results.users?.length ?? 0) + (results.answers?.length ?? 0);
-            return n > 0 ? 'Found this.' : 'Nothing by that name.';
-        }
-        return 'Listening.';
+            moment = { kind: n > 0 ? 'found' : 'nothing' };
+        } else if (searchingNow && searching) moment = { kind: 'searching' };
+        else moment = { kind: 'listening' };
+        return speak(moment, seed);
     };
+
     const open = stage === 'open';
     const setOpen = (v: boolean) => setStage(v ? 'open' : 'hidden');
     const [value, setValue] = useState('');
@@ -336,6 +191,19 @@ export default function CommandStone() {
     const thoughtWordRef = useRef<string | null>(null);
     const inputRef = useRef<HTMLInputElement | null>(null);
 
+    /* THE FOOTER — the bubble's one action button, always the last row
+       (Brendon's anatomy, 2026-07-28): header speaks · widgets sandwich ·
+       the footer acts. Priority: a carving on offer > a cast on offer >
+       the summoned hand's registered act > the floor-answer anchor offer. */
+    const [widgetAct, setWidgetAct] = useState<FooterAct | null>(null);
+    const onFooter = useCallback((a: FooterAct | null) => setWidgetAct(a), []);
+    /* The footer can seed the pill (the day widget's "etch a to-do here"). */
+    const onSeed = useCallback((text: string) => {
+        setValue(text);
+        setEtched(null);
+        inputRef.current?.focus();
+    }, []);
+
     /* The triple-tap summon reads live stage + toast through refs so its one
        document listener never re-binds mid-gesture (a re-bind would zero the
        tap count between taps). */
@@ -345,10 +213,9 @@ export default function CommandStone() {
     useEffect(() => { showToastRef.current = showToast; });
 
     /* On a deliberate close, the toast draws the stone's face + one of its
-       lines (picked at random). */
+       lines (rolled fresh — lib/stone/voice owns the bench). */
     const goodbyeToast = () => {
-        const line = GOODBYE_LINES[Math.floor(Math.random() * GOODBYE_LINES.length)];
-        showToast(`${STONE_GLYPH} ${line} ${STONE_GLYPH}`);
+        showToast(`${STONE_GLYPH} ${goodbye()} ${STONE_GLYPH}`);
     };
 
     const searchingNow = value.trim().length > 0;
@@ -889,7 +756,7 @@ export default function CommandStone() {
                 setStage('hidden');
                 setValue('');
                 showToastRef.current(
-                    `${STONE_GLYPH} ${GOODBYE_LINES[Math.floor(Math.random() * GOODBYE_LINES.length)]} ${STONE_GLYPH}`,
+                    `${STONE_GLYPH} ${goodbye()} ${STONE_GLYPH}`,
                 );
             }
         };
@@ -931,6 +798,37 @@ export default function CommandStone() {
     const hasTab =
         (searchingNow && (pageHits.length > 0 || !!r)) || cmdCardOn || !!activeWidget || !!thought;
 
+    /* The footer's one act, by priority: a carving on offer > a cast on
+       offer > the summoned hand's registered act > the anchor offer. */
+    const footerAct: FooterAct | null = etchPlan
+        ? { label: etchPlan.chip, run: doEtch }
+        : castHit
+            ? {
+                label: castHit.kind === 'workspace'
+                    ? `Workspace · ${castHit.label} — load?`
+                    : `${'icon' in castHit && castHit.icon ? `${castHit.icon} ` : ''}${castHit.label} — ${castActive(castHit) ? 'off?' : 'cast?'}`,
+                run: () => doCast(castHit),
+            }
+            : activeWidget && widgetAct
+                ? widgetAct
+                : anchorOffer
+                    ? {
+                        label: `↧${VS15} anchor it at ◊${anchorOffer.price}?`,
+                        run: () => {
+                            const toast = commitEtch({
+                                kind: 'anchor',
+                                title: anchorOffer.title,
+                                price: anchorOffer.price,
+                                chip: '',
+                            });
+                            showToast(toast);
+                            setEtched(`✓ ${toast}`);
+                            setValue('');
+                            inputRef.current?.focus();
+                        },
+                    }
+                    : null;
+
     return (
         <>
             {/* THE DOT — the stone's minimized form (the retired miniplayer
@@ -957,10 +855,22 @@ export default function CommandStone() {
             >
                     {hasTab && (
                     <div className="stone-deck stone-results">
-                        {/* THE VOICE — the bubble's reserved top lines: the
-                            stone speaks or summarizes before showing
-                            (Brendon's structure, 2026-07-20). TARS-terse. */}
-                        <div className="stone-say">{sayLine()}</div>
+                        {/* THE HEADER — the bubble's two rows of dialogue
+                            (Brendon's anatomy, 2026-07-28): the spoken line,
+                            then the drier aside. One voice, one module. */}
+                        {(() => {
+                            const sp = speakNow();
+                            return (
+                                <div className="stone-head">
+                                    <div className="stone-head-line">{sp.line}</div>
+                                    {sp.sub && <div className="stone-head-sub">{sp.sub}</div>}
+                                </div>
+                            );
+                        })()}
+
+                        {/* THE MIDDLE — the widget sandwich; it scrolls,
+                            the header and footer hold their ground. */}
+                        <div className="stone-deck-scroll">
                         {/* THE WIDGET DECK — a summoned hand owns the tab */}
                         {activeWidget && (
                             <WidgetDeck
@@ -968,6 +878,8 @@ export default function CommandStone() {
                                 address={siweAddress}
                                 onGo={go}
                                 onAct={(t) => showToast(t)}
+                                onFooter={onFooter}
+                                onSeed={onSeed}
                             />
                         )}
 
@@ -986,20 +898,6 @@ export default function CommandStone() {
                                 r={r}
                                 pageHits={pageHits}
                                 query={line}
-                                anchorOffer={anchorOffer}
-                                onAnchor={() => {
-                                    if (!anchorOffer) return;
-                                    const toast = commitEtch({
-                                        kind: 'anchor',
-                                        title: anchorOffer.title,
-                                        price: anchorOffer.price,
-                                        chip: '',
-                                    });
-                                    showToast(toast);
-                                    setEtched(`✓ ${toast}`);
-                                    setValue('');
-                                    inputRef.current?.focus();
-                                }}
                                 onGo={go}
                             />
                         )}
@@ -1047,53 +945,30 @@ export default function CommandStone() {
                             </div>
                         )}
 
-                        {/* the command widget — carve/cast feedback, always
-                            the card nearest the pill */}
-                        {((etched && !searchingNow) || etchPlan || castHit || (searchingNow && searching && !r)) && (
+                        {searchingNow && searching && !r && (
                             <div className="stone-widget stone-widget-cmd">
-                                {etched && !searchingNow && (
-                                    <div className="stone-etched">{etched}</div>
-                                )}
-                                {/* ETCH preview chip — the plan flashes before
-                                    it commits; tap (or Enter) carves it. */}
-                                {etchPlan && (
-                                    <div
-                                        className="stone-etch-chip"
-                                        role="button"
-                                        tabIndex={0}
-                                        onClick={doEtch}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' || e.key === ' ') {
-                                                e.preventDefault();
-                                                doEtch();
-                                            }
-                                        }}
-                                    >
-                                        {etchPlan.chip}
-                                    </div>
-                                )}
-                                {/* CAST — the matched toggle/persona, one tap */}
-                                {castHit && (
-                                    <div
-                                        className="stone-etch-chip"
-                                        role="button"
-                                        tabIndex={0}
-                                        onClick={() => doCast(castHit)}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' || e.key === ' ') {
-                                                e.preventDefault();
-                                                doCast(castHit);
-                                            }
-                                        }}
-                                    >
-                                        {castHit.kind === 'workspace'
-                                            ? `Workspace · ${castHit.label} — load?`
-                                            : `${'icon' in castHit && castHit.icon ? `${castHit.icon} ` : ''}${castHit.label} — ${castActive(castHit) ? 'off?' : 'cast?'}`}
-                                    </div>
-                                )}
-                                {searchingNow && searching && !r && (
-                                    <div className="sw-say">{`⌕${VS15} READING THE STONE…`}</div>
-                                )}
+                                <div className="sw-say">{`⌕${VS15} READING THE STONE…`}</div>
+                            </div>
+                        )}
+                        </div>
+
+                        {/* THE FOOTER — the bubble's one action button,
+                            always the last row (Brendon's anatomy):
+                            carve > cast > the hand's act > anchor offer. */}
+                        {footerAct && (
+                            <div
+                                className="stone-foot"
+                                role="button"
+                                tabIndex={0}
+                                onClick={footerAct.run}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        footerAct.run();
+                                    }
+                                }}
+                            >
+                                {footerAct.label}
                             </div>
                         )}
                     </div>

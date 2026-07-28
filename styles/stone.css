@@ -87,20 +87,72 @@ body.pd-stone-force-white .stone-float {
     z-index: 1;
 }
 
-/* THE VOICE — the bubble's reserved top two lines: the stone speaks or
-   summarizes before any widget shows (Brendon's structure, 2026-07-20). */
-.stone-say {
+/* THE HEADER — the bubble's TWO ROWS of dialogue (Brendon's anatomy,
+   2026-07-28): the spoken line on top, the drier aside beneath. Fixed at
+   the bubble's top — the widget sandwich scrolls under it. */
+.stone-head {
     flex: none;
     padding: 8px 8px 6px;
+    border-bottom: 1px solid var(--stone-hairline);
+}
+.stone-head-line {
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 0.4px;
+    line-height: 1.3;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-variant-emoji: text;
+}
+.stone-head-sub {
+    padding-top: 2px;
     font-size: 12px;
     font-weight: bold;
     letter-spacing: 0.4px;
-    line-height: 1.35;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+    line-height: 1.3;
+    color: var(--text-color);
+    white-space: nowrap;
     overflow: hidden;
+    text-overflow: ellipsis;
 }
+
+/* THE MIDDLE — the widget sandwich. The one part of the bubble that
+   scrolls; header and footer hold their ground. */
+.stone-deck-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+/* THE FOOTER — the bubble's ONE action button, always the last row: the
+   etch chip's own treatment (square, full-strength border, bold), grown
+   to the bubble's width. */
+.stone-foot {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 6px 2px 0;
+    padding: 11px 12px;
+    background: var(--stone-bg);
+    border: 1px solid var(--text-color);
+    color: var(--text-color);
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-align: center;
+    cursor: pointer;
+    font-variant-emoji: text;
+    transition: transform 0.12s ease;
+}
+.stone-foot:active { transform: scale(0.98); }
 
 /* The console's accent (`stone #hex`, set as --stone-accent on the root) —
    the caret, the ⌘, the ON-AIR LED. Falls back to the stage ink, so an
@@ -256,21 +308,21 @@ body.pd-stone-force-white .stone-dot { background: var(--stone-accent, #f4f4f4);
        top of the screen while the keyboard is up (Brendon, 2026-07-21 — the
        deck was cut off mid-type). --stone-vvh is set by CommandStone from
        visualViewport.height only while the stone is open; the fallback keeps
-       the old cap when it's absent. The deck scrolls internally past this. */
+       the old cap when it's absent. The MIDDLE (.stone-deck-scroll) scrolls
+       internally past this — header + footer hold their ground (the
+       2026-07-28 bubble anatomy). */
     max-height: min(52vh, 440px, calc(var(--stone-vvh, 100dvh) - 110px));
     min-height: 0;
     background: var(--stone-bg-deep);
     /* THE SPEECH BUBBLE (Brendon 2026-07-20): no outline, fully rounded,
        FLOATING above the typing bar with Petey's tail below (the ::before
-       on .stone-float--docked — the deck itself scrolls, so the tail can't
+       on .stone-float--docked — the middle scrolls, so the tail can't
        live here or it would clip). The stone is an AI character talking. */
     border: none;
     border-radius: 14px;
     margin-bottom: 12px; /* floats clear of the bar — no more tuck */
     padding: 6px 8px 12px;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
+    overflow: hidden; /* the middle scrolls, the bubble itself never does */
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
     transform-origin: bottom center;
     animation: stone-tab-rise 0.24s cubic-bezier(0.18, 0.9, 0.26, 1.04);
@@ -588,6 +640,31 @@ body.pd-stone-force-white .stone-float .stone-deck .sw-card:nth-of-type(3n + 2) 
     line-height: 1;
     letter-spacing: 1px;
     color: var(--text-color);
+}
+
+/* ── ▦ the day / ◷ release — the big date readout (the abilities pass) ── */
+.sw-date-big {
+    padding: 0 4px 6px;
+    font-size: 28px;
+    font-weight: bold;
+    line-height: 1.1;
+    letter-spacing: 1px;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    animation: sw-pop 0.24s cubic-bezier(0.18, 0.9, 0.26, 1.04);
+}
+
+/* ── the standings — rank column (podium ❶❷❸ per the glossary) ── */
+.sw-rank-n {
+    flex: none;
+    min-width: 24px;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    color: var(--text-color);
+    font-variant-emoji: text;
 }
 
 /* ── ☻/✺ dossier ── */

@@ -104,7 +104,7 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
     },
     {
         title: 'Command Stone',
-        slugs: ['command-stone'],
+        slugs: ['command-stone', 'command-stone/abilities'],
     },
     {
         title: 'To-Dos & Workflows',

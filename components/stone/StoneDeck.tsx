@@ -49,6 +49,16 @@ import { getTodos, subscribeTodos, datedTodosByDay, type TodoItem } from '../../
 import { buildWalletMark } from '../../lib/stone/mark';
 import { commitEtch } from '../../lib/stone/etch';
 import { formatMathValue, pdNumberNote } from '../../lib/stone/mathEval';
+import { working } from '../../lib/stone/voice';
+import { formatStoneDate, formatDaysAway, todoPhrase, type StoneDate } from '../../lib/stone/dates';
+import type {
+    OracleFirstMintResponse,
+    OracleReleaseResponse,
+    OracleRankResponse,
+    OracleRankRow,
+    OracleHoldersResponse,
+} from '../../app/api/stone/oracle/route';
+import type { TagMembersResponse } from '../../app/api/tags/members/route';
 import { convertValue, convertAll, formatUnit, formatResult, formatSource } from '../../lib/fx/convert';
 import { useFxRates } from '../../lib/fx/rates';
 import { useFiat, FIAT_OPTIONS } from '../../lib/state/FiatContext';
@@ -147,23 +157,32 @@ function SwHint({ text }: { text: string }) {
 
 type ActFn = (toast: string) => void;
 
-/** Answer AND act (stage 5) — every card offers its one obvious lever,
-    the anchor-offer treatment: the etch chip, one tap, undo-free
-    because it never fires without the tap. */
-function ActChip({ label, onAct }: { label: string; onAct: () => void }) {
-    return (
-        <div
-            className="stone-etch-chip sw-act"
-            role="button"
-            tabIndex={0}
-            onClick={onAct}
-            onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onAct(); }
-            }}
-        >
-            {label}
-        </div>
-    );
+/** THE FOOTER ACT (the bubble-anatomy pass, Brendon 2026-07-28) — every
+    response's one obvious lever is the bubble's FOOTER button, always in
+    the same place. A widget registers its act; the vessel renders it as
+    the bubble's last row. Null = no act, no footer. */
+export interface FooterAct {
+    label: string;
+    run: () => void;
+}
+export type FooterFn = (act: FooterAct | null) => void;
+/* (The old per-card ActChip is gone — the footer IS the act now.) */
+
+/** Register a card's footer act with the vessel for as long as the card
+    is mounted (clears itself on unmount / when the act changes). */
+function useFooterAct(onFooter: FooterFn, act: FooterAct | null) {
+    const label = act?.label ?? null;
+    const runRef = useRef(act?.run);
+    runRef.current = act?.run;
+    useEffect(() => {
+        if (label == null) {
+            onFooter(null);
+            return;
+        }
+        onFooter({ label, run: () => runRef.current?.() });
+        return () => onFooter(null);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [label, onFooter]);
 }
 
 /** A glanceable art thumb at stone scale — ArtThumb's exact ascii/degen
@@ -368,7 +387,9 @@ function PriceDayWidget() {
 /* ── ƒ CALC — the P&L ladder vs the live floor (the CalcSheet's exact
       rate card: 5% royalty + the gas figure) ── */
 
-function CalcWidget({ plan, onAct }: { plan: Extract<WidgetPlan, { kind: 'calc' }>; onAct: ActFn }) {
+function CalcWidget({ plan, onAct, onFooter }: {
+    plan: Extract<WidgetPlan, { kind: 'calc' }>; onAct: ActFn; onFooter: FooterFn;
+}) {
     const [floor, setFloor] = useState<number | null | 'loading'>('loading');
     const { slug, title } = plan;
 
@@ -384,6 +405,18 @@ function CalcWidget({ plan, onAct }: { plan: Extract<WidgetPlan, { kind: 'calc' 
         return () => { cancelled = true; };
     }, [slug, title]);
 
+    const ready = !!slug && !!title && floor !== 'loading' && floor != null;
+    const buy = ready ? (plan.price ?? (floor as number)) : 0;
+    /* answer AND act — the footer carves the buy as a Sentinel-armed to-do */
+    useFooterAct(onFooter, ready ? {
+        label: `❍${VS15} BUY · ${title} · ◊${formatEth(buy)} — etch?`,
+        run: () => onAct(commitEtch({
+            kind: 'todo-raw',
+            input: { text: `buy ${title}`, priceEth: buy },
+            chip: '',
+        })),
+    } : null);
+
     if (!slug || !title) {
         return (
             <div className="stone-widget sw-card">
@@ -396,7 +429,7 @@ function CalcWidget({ plan, onAct }: { plan: Extract<WidgetPlan, { kind: 'calc' 
         return (
             <div className="stone-widget sw-card">
                 <SwTitle glyph={`ƒ${VS15}`} label="CALC" sub={title.toUpperCase()} />
-                <SwSay>READING THE FLOOR…</SwSay>
+                <SwSay>{working('floor')}</SwSay>
             </div>
         );
     }
@@ -409,7 +442,6 @@ function CalcWidget({ plan, onAct }: { plan: Extract<WidgetPlan, { kind: 'calc' 
         );
     }
 
-    const buy = plan.price ?? floor;
     const royalty = floor * CALC_ROYALTY_PCT;
     const takehome = floor - royalty - CALC_GAS_ESTIMATE_ETH;
     const net = takehome - buy;
@@ -428,15 +460,6 @@ function CalcWidget({ plan, onAct }: { plan: Extract<WidgetPlan, { kind: 'calc' 
                 <div className="sw-row-line"><span className="sw-row-l">− GAS</span><span className="sw-row-r">{eth(CALC_GAS_ESTIMATE_ETH)}</span></div>
                 <div className="sw-row-line"><span className="sw-row-l">TAKEHOME</span><span className="sw-row-r">{eth(takehome)}</span></div>
             </div>
-            {/* answer AND act — carve the buy as a Sentinel-armed to-do */}
-            <ActChip
-                label={`❍${VS15} BUY · ${title} · ◊${formatEth(buy)} — etch?`}
-                onAct={() => onAct(commitEtch({
-                    kind: 'todo-raw',
-                    input: { text: `buy ${title}`, priceEth: buy },
-                    chip: '',
-                }))}
-            />
         </div>
     );
 }
@@ -589,8 +612,8 @@ function DossierWidget({ name, me, onGo, onAct }: { name: string; me: string; on
 
 /* ── ⬚ MINI GALLERY — ‹ › through a project's pieces, art at card scale ── */
 
-function GalleryWidget({ slug, title, onGo, onAct }: {
-    slug: string | null; title: string | null; onGo: GoFn; onAct: ActFn;
+function GalleryWidget({ slug, title, onGo, onAct, onFooter }: {
+    slug: string | null; title: string | null; onGo: GoFn; onAct: ActFn; onFooter: FooterFn;
 }) {
     const [id, setId] = useState(1);
     const [minted, setMinted] = useState<number | null>(null);
@@ -628,6 +651,15 @@ function GalleryWidget({ slug, title, onGo, onAct }: {
         if (!cv) return;
         try { paintOutput(cv, slug, id, 640); } catch { /* unknown slug */ }
     }, [slug, id, minted]);
+
+    /* answer AND act — the footer wishlists the piece on the stage */
+    const galleryReady = !!slug && !!title && !(minted != null && minted <= 0);
+    useFooterAct(onFooter, galleryReady ? {
+        label: `✛${VS15} WISHLIST · ${pieceName(title as string, id)} — etch?`,
+        run: () => onAct(commitEtch({
+            kind: 'wishlist', slug: slug as string, tokenId: id, title: title as string, chip: '',
+        })),
+    } : null);
 
     if (!slug || !title) {
         return (
@@ -684,11 +716,6 @@ function GalleryWidget({ slug, title, onGo, onAct }: {
                 )}
                 <button type="button" className="sw-key" onClick={() => step(1)} aria-label="Next piece">›</button>
             </div>
-            {/* answer AND act — wishlist the piece on the stage */}
-            <ActChip
-                label={`✛${VS15} WISHLIST · ${pieceName(title, id)} — etch?`}
-                onAct={() => onAct(commitEtch({ kind: 'wishlist', slug, tokenId: id, title, chip: '' }))}
-            />
         </div>
     );
 }
@@ -697,7 +724,7 @@ function GalleryWidget({ slug, title, onGo, onAct }: {
 
 interface MatrixCol { title: string; proj: SearchProjectResult | null }
 
-function MatrixWidget({ names, onAct }: { names: string[]; onAct: ActFn }) {
+function MatrixWidget({ names, onAct, onFooter }: { names: string[]; onAct: ActFn; onFooter: FooterFn }) {
     const [cols, setCols] = useState<MatrixCol[] | 'loading'>('loading');
 
     useEffect(() => {
@@ -715,6 +742,23 @@ function MatrixWidget({ names, onAct }: { names: string[]; onAct: ActFn }) {
         return () => { cancelled = true; };
     }, [names.join('|')]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    /* answer AND act — the footer anchors the cheapest floor on the table */
+    const cheapest = cols !== 'loading'
+        ? cols
+            .map((c) => c.proj)
+            .filter((p): p is SearchProjectResult => !!p && p.floor_eth != null)
+            .sort((a, b) => (a.floor_eth as number) - (b.floor_eth as number))[0] ?? null
+        : null;
+    useFooterAct(onFooter, cheapest ? {
+        label: `↧${VS15} ANCHOR · ${cheapest.title} · ◊${formatEth(cheapest.floor_eth as number)} — etch?`,
+        run: () => onAct(commitEtch({
+            kind: 'anchor',
+            title: cheapest.title,
+            price: cheapest.floor_eth as number,
+            chip: '',
+        })),
+    } : null);
+
     if (names.length < 2) {
         return (
             <div className="stone-widget sw-card">
@@ -727,7 +771,7 @@ function MatrixWidget({ names, onAct }: { names: string[]; onAct: ActFn }) {
         return (
             <div className="stone-widget sw-card">
                 <SwTitle label="MATRIX" />
-                <SwSay>ASSEMBLING THE TABLE…</SwSay>
+                <SwSay>{working('table')}</SwSay>
             </div>
         );
     }
@@ -752,24 +796,6 @@ function MatrixWidget({ names, onAct }: { names: string[]; onAct: ActFn }) {
                     <MatrixRow key={row.label} label={row.label} cols={cols} pick={row.pick} />
                 ))}
             </div>
-            {/* answer AND act — anchor the cheapest floor on the table */}
-            {(() => {
-                const cheapest = cols
-                    .map((c) => c.proj)
-                    .filter((p): p is SearchProjectResult => !!p && p.floor_eth != null)
-                    .sort((a, b) => (a.floor_eth as number) - (b.floor_eth as number))[0];
-                return cheapest ? (
-                    <ActChip
-                        label={`↧${VS15} ANCHOR · ${cheapest.title} · ◊${formatEth(cheapest.floor_eth as number)} — etch?`}
-                        onAct={() => onAct(commitEtch({
-                            kind: 'anchor',
-                            title: cheapest.title,
-                            price: cheapest.floor_eth as number,
-                            chip: '',
-                        }))}
-                    />
-                ) : null;
-            })()}
         </div>
     );
 }
@@ -826,7 +852,7 @@ function DocsWidget({ query, onGo }: { query: string; onGo: GoFn }) {
         return (
             <div className="stone-widget sw-card">
                 <SwTitle label="DOCS" sub={query.toUpperCase()} />
-                <SwSay>OPENING THE BOOKS…</SwSay>
+                <SwSay>{working('books')}</SwSay>
             </div>
         );
     }
@@ -897,7 +923,7 @@ function TrendWidget({ plan }: { plan: Extract<WidgetPlan, { kind: 'trend' }> })
         return (
             <div className="stone-widget sw-card">
                 <SwTitle label="TREND" sub={`${title.toUpperCase()} · ${days}D`} />
-                <SwSay>READING THE LEDGER…</SwSay>
+                <SwSay>{working('ledger')}</SwSay>
             </div>
         );
     }
@@ -963,7 +989,7 @@ function WrappedWidget({ plan, address }: { plan: Extract<WidgetPlan, { kind: 'w
         return (
             <div className="stone-widget sw-card">
                 <SwTitle label="WRAPPED" sub={`${days}D`} />
-                <SwSay>READING YOUR LEDGER…</SwSay>
+                <SwSay>{working('you')}</SwSay>
             </div>
         );
     }
@@ -1123,7 +1149,7 @@ function OmniWidget({ address }: { address: string }) {
         return (
             <div className="stone-widget sw-card">
                 <SwTitle glyph={`⚝${VS15}`} label="OMNISCIENCE" />
-                <SwSay>READING EVERYTHING ABOUT YOU…</SwSay>
+                <SwSay>{working('everything')}</SwSay>
             </div>
         );
     }
@@ -1179,7 +1205,7 @@ function ConvertWidget({ plan }: { plan: Extract<WidgetPlan, { kind: 'convert' }
         return (
             <div className="stone-widget sw-card">
                 <SwTitle glyph={`⇄${VS15}`} label="CONVERT" sub={formatSource(conv.amount, conv.from)} />
-                <SwSay>READING THE RATE…</SwSay>
+                <SwSay>{working('rate')}</SwSay>
             </div>
         );
     }
@@ -1220,29 +1246,434 @@ function ConvertWidget({ plan }: { plan: Extract<WidgetPlan, { kind: 'convert' }
     );
 }
 
+/* ── ▦ THE DAY — a natural-language date, resolved and read (the abilities
+      pass): "tomorrow" · "next week tuesday" · "in 18 days" · "aug 30".
+      That day's slate rides along (the calendar's own reads); the footer
+      seeds an etch aimed at the day. ── */
+
+function DateWidget({ date, onSeed, onFooter }: {
+    date: StoneDate; onSeed: (text: string) => void; onFooter: FooterFn;
+}) {
+    const [items, setItems] = useState<CalApiItem[] | null>(null);
+    const [todos, setTodos] = useState<TodoItem[]>([]);
+    const key = dateKey(date.y, date.m, date.d);
+
+    useEffect(() => {
+        let cancelled = false;
+        fetch(`/api/calendar?year=${date.y}&month=${date.m + 1}`, { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+                if (cancelled) return;
+                setItems((((d?.days ?? {}) as Record<string, CalApiItem[]>)[key]) ?? []);
+            })
+            .catch(() => { if (!cancelled) setItems([]); });
+        const read = () => setTodos(datedTodosByDay(getTodos())[key] ?? []);
+        read();
+        const unsub = subscribeTodos(read);
+        return () => { cancelled = true; unsub(); };
+    }, [date.y, date.m, date.d, key]);
+
+    /* the footer seeds the etch grammar aimed at this exact day */
+    useFooterAct(onFooter, {
+        label: `❍${VS15} ETCH A TO-DO · ${formatStoneDate(date)}`,
+        run: () => onSeed(`todo: ${todoPhrase(date)} `),
+    });
+
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle glyph={`▦${VS15}`} label="THE DAY" sub={formatDaysAway(date.daysAway)} />
+            <div className="sw-date-big">{formatStoneDate(date)}</div>
+            <div className="sw-cal-list">
+                {items != null && items.length === 0 && todos.length === 0 && (
+                    <SwSay>NOTHING SCHEDULED. THE DAY IS OPEN.</SwSay>
+                )}
+                {todos.map((t, i) => (
+                    <div key={`t${i}`} className="sw-cal-item">
+                        <span className="sw-cal-ic">{`❍${VS15}`}</span>
+                        <span className="sw-cal-text">{t.text}</span>
+                    </div>
+                ))}
+                {(items ?? []).map((ev, i) => (
+                    <div key={`e${i}`} className="sw-cal-item">
+                        <span className="sw-cal-time">{ev.time || 'ALL DAY'}</span>
+                        <span className="sw-cal-text">{ev.title}</span>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+/* ── ✶ FIRST MINT — the genesis: the platform's first mint ever, or the
+      signed-in wallet's own ("my first ever mint"). Real ledger events;
+      the piece painted big; times viewer-local. ── */
+
+function FirstMintWidget({ mine, address, onGo, onFooter }: {
+    mine: boolean; address: string; onGo: GoFn; onFooter: FooterFn;
+}) {
+    const [data, setData] = useState<OracleFirstMintResponse | null | 'loading'>('loading');
+
+    useEffect(() => {
+        let cancelled = false;
+        setData('loading');
+        const me = mine ? `&me=${address.toLowerCase()}` : '';
+        fetch(`/api/stone/oracle?kind=first-mint${me}`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((j) => { if (!cancelled) setData(j); })
+            .catch(() => { if (!cancelled) setData(null); });
+        return () => { cancelled = true; };
+    }, [mine, address]);
+
+    const mint = data !== 'loading' && data ? data.mint : null;
+    const title = mint ? (getProject(mint.project_id)?.displayName ?? mint.project_id) : null;
+    useFooterAct(onFooter, mint && mint.token_id != null && title ? {
+        label: `⬚${VS15} OPEN ${pieceName(title, mint.token_id).toUpperCase()}`,
+        run: () => onGo(null, `/art/${mint.project_id}/${mint.token_id}`),
+    } : null);
+
+    const label = mine ? 'YOUR FIRST MINT' : 'FIRST MINT';
+    if (data === 'loading') {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`✶${VS15}`} label={label} />
+                <SwSay>{working('genesis')}</SwSay>
+            </div>
+        );
+    }
+    if (!mint || !title) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`✶${VS15}`} label={label} />
+                <SwSay>{mine ? 'NO MINTS YET. THE STONE WAITS.' : 'NOTHING MINTED YET. EVER.'}</SwSay>
+            </div>
+        );
+    }
+    const at = new Date(mint.timestamp * 1000);
+    const who = mint.handle ? `@${mint.handle}` : shortAddress(mint.to_address);
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle glyph={`✶${VS15}`} label={label} sub={title.toUpperCase()} />
+            {mint.token_id != null && (
+                <StoneArt slug={mint.project_id} id={mint.token_id} onOpen={() => onGo(null, `/art/${mint.project_id}/${mint.token_id}`)} />
+            )}
+            <SwSay lead>{mint.token_id != null ? pieceName(title, mint.token_id) : title}</SwSay>
+            <div className="sw-rows">
+                <div className="sw-row-line">
+                    <span className="sw-row-l">{`▦${VS15} WHEN`}</span>
+                    <span className="sw-row-r">
+                        {`${at.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()} · ${at.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`}
+                    </span>
+                </div>
+                <div
+                    className="sw-row-line sw-tap"
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => onGo(e, `/${mint.handle ?? mint.to_address}`)}
+                >
+                    <span className="sw-row-l">{`☻${VS15} MINTED BY`}</span>
+                    <span className="sw-row-r">{who}</span>
+                </div>
+                {mint.price_eth != null && mint.price_eth > 0 && (
+                    <div className="sw-row-line">
+                        <span className="sw-row-l">{`◊${VS15} PRICE`}</span>
+                        <span className="sw-row-r">{eth(mint.price_eth)}</span>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+/* ── ◷ RELEASE — when a project arrived: its first mint on the ledger,
+      viewer-local, plus everything minted since. ── */
+
+function ReleaseWidget({ slug, title, onGo, onFooter }: {
+    slug: string; title: string; onGo: GoFn; onFooter: FooterFn;
+}) {
+    const [data, setData] = useState<OracleReleaseResponse | null | 'loading'>('loading');
+
+    useEffect(() => {
+        let cancelled = false;
+        setData('loading');
+        fetch(`/api/stone/oracle?kind=release&slug=${encodeURIComponent(slug)}`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((j) => { if (!cancelled) setData(j); })
+            .catch(() => { if (!cancelled) setData(null); });
+        return () => { cancelled = true; };
+    }, [slug]);
+
+    useFooterAct(onFooter, {
+        label: `⬚${VS15} OPEN ${title.toUpperCase()}`,
+        run: () => onGo(null, `/art/${slug}`),
+    });
+
+    if (data === 'loading') {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`◷${VS15}`} label="RELEASE" sub={title.toUpperCase()} />
+                <SwSay>{working('ledger')}</SwSay>
+            </div>
+        );
+    }
+    if (!data || data.first_ts == null) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`◷${VS15}`} label="RELEASE" sub={title.toUpperCase()} />
+                <SwSay>{`${title.toUpperCase()} HAS NOT MINTED YET.`}</SwSay>
+            </div>
+        );
+    }
+    const at = new Date(data.first_ts * 1000);
+    const daysAgo = Math.max(0, Math.floor((Date.now() - at.getTime()) / 86_400_000));
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle glyph={`◷${VS15}`} label="RELEASE" sub={title.toUpperCase()} />
+            <div className="sw-date-big">
+                {at.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}
+            </div>
+            <div className="sw-rows">
+                <div className="sw-row-line">
+                    <span className="sw-row-l">{`✶${VS15} FIRST MINT`}</span>
+                    <span className="sw-row-r">{at.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+                <div className="sw-row-line">
+                    <span className="sw-row-l">{`◷${VS15} AGE`}</span>
+                    <span className="sw-row-r">{daysAgo === 0 ? 'TODAY' : `${daysAgo} DAY${daysAgo === 1 ? '' : 'S'} AGO`}</span>
+                </div>
+                <div className="sw-row-line">
+                    <span className="sw-row-l">{`⬚${VS15} MINTED SINCE`}</span>
+                    <span className="sw-row-r">{String(data.minted)}</span>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+/* ── ⟠/⚭/⚬ THE STANDINGS — ranked people: "highest spenders on the
+      platform top 15" · "top 20 mutuals by volume spent" · "top 50
+      followers by wallet age". Podium medals ❶❷❸ per the glossary;
+      every row taps through to the profile. ── */
+
+const PODIUM = ['❶', '❷', '❸'] as const;
+
+function RankRow({ row, i, by, onGo }: {
+    row: OracleRankRow; i: number; by: 'spent' | 'age'; onGo: GoFn;
+}) {
+    const face = useSpriteFace(row.handle ?? '');
+    const name = row.handle ? `@${row.handle}` : shortAddress(row.address);
+    let value = '—';
+    if (by === 'spent') {
+        value = `⟠${VS15} ${(row.spent_eth ?? 0).toFixed(2)}`;
+    } else if (row.created_at) {
+        const days = Math.max(0, Math.floor((Date.now() - new Date(row.created_at).getTime()) / 86_400_000));
+        value = `◷${VS15} ${days}D`;
+    }
+    return (
+        <div
+            className="sw-hit sw-tap"
+            role="button"
+            tabIndex={0}
+            onClick={(e) => onGo(e, `/${row.handle ?? row.address}`)}
+        >
+            <span className="sw-rank-n">{i < 3 ? `${PODIUM[i]}${VS15}` : String(i + 1)}</span>
+            {face && <SpriteFace className="sw-hit-sprite" face={face} />}
+            <span className="sw-hit-body">
+                <span className="sw-hit-main">{name}</span>
+            </span>
+            <span className="sw-hit-figures">
+                <span className="sw-fig">{value}</span>
+            </span>
+        </div>
+    );
+}
+
+function RankWidget({ plan, address, onGo, onFooter }: {
+    plan: Extract<WidgetPlan, { kind: 'rank' }>; address: string; onGo: GoFn; onFooter: FooterFn;
+}) {
+    const [data, setData] = useState<OracleRankResponse | null | 'loading'>('loading');
+    const { cohort, by, n } = plan;
+
+    useEffect(() => {
+        let cancelled = false;
+        setData('loading');
+        const url = cohort === 'spenders'
+            ? `/api/stone/oracle?kind=spenders&n=${n}`
+            : `/api/stone/oracle?kind=rank&cohort=${cohort}&me=${address.toLowerCase()}&by=${by}&n=${n}`;
+        fetch(url)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((j) => { if (!cancelled) setData(j); })
+            .catch(() => { if (!cancelled) setData(null); });
+        return () => { cancelled = true; };
+    }, [cohort, by, n, address]);
+
+    const rows = data !== 'loading' && data ? data.rows : [];
+    const top = rows[0] ?? null;
+    useFooterAct(onFooter, top ? {
+        label: `☻${VS15} OPEN ❶ ${top.handle ? `@${top.handle}` : shortAddress(top.address)}`,
+        run: () => onGo(null, `/${top.handle ?? top.address}`),
+    } : null);
+
+    const GLYPH = { spenders: `⟠${VS15}`, mutuals: `⚭${VS15}`, followers: `⚬${VS15}` } as const;
+    const label = cohort.toUpperCase();
+    const sub = `TOP ${n} · BY ${by === 'spent' ? 'SPENT' : 'WALLET AGE'}`;
+
+    if (data === 'loading') {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={GLYPH[cohort]} label={label} sub={sub} />
+                <SwSay>{working('standings')}</SwSay>
+            </div>
+        );
+    }
+    if (rows.length === 0) {
+        const empty = cohort === 'spenders'
+            ? 'NO SPEND ON THE LEDGER YET.'
+            : cohort === 'mutuals' ? 'NO MUTUALS YET.' : 'NO FOLLOWERS YET.';
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={GLYPH[cohort]} label={label} sub={sub} />
+                <SwSay>{empty}</SwSay>
+            </div>
+        );
+    }
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle glyph={GLYPH[cohort]} label={label} sub={sub} />
+            {rows.map((row, i) => (
+                <RankRow key={row.address} row={row} i={i} by={by} onGo={onGo} />
+            ))}
+        </div>
+    );
+}
+
+/* ── ⌂ THE OVERLAP — a project's holdings sliced by a Profile Tag:
+      "all carnivale owned by podcasters". Two real reads crossed: the
+      holders ledger × the tag-members roster (shownTags respected — a
+      tag its owner keeps dark never surfaces here either). ── */
+
+const COHORT_PREVIEW = 12;
+
+function CohortWidget({ plan, onGo, onFooter }: {
+    plan: Extract<WidgetPlan, { kind: 'cohort' }>; onGo: GoFn; onFooter: FooterFn;
+}) {
+    const [holders, setHolders] = useState<OracleHoldersResponse | null | 'loading'>('loading');
+    const [members, setMembers] = useState<TagMembersResponse | null | 'loading'>('loading');
+    const [expanded, setExpanded] = useState(false);
+    const { slug, title, tag, tagLabel } = plan;
+
+    useEffect(() => {
+        let cancelled = false;
+        setHolders('loading');
+        setMembers('loading');
+        setExpanded(false);
+        fetch(`/api/stone/oracle?kind=holders&slug=${encodeURIComponent(slug)}`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((j) => { if (!cancelled) setHolders(j); })
+            .catch(() => { if (!cancelled) setHolders(null); });
+        fetch(`/api/tags/members?tag=${encodeURIComponent(tag)}`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((j) => { if (!cancelled) setMembers(j); })
+            .catch(() => { if (!cancelled) setMembers(null); });
+        return () => { cancelled = true; };
+    }, [slug, tag]);
+
+    useFooterAct(onFooter, {
+        label: `⬚${VS15} OPEN ${title.toUpperCase()}`,
+        run: () => onGo(null, `/art/${slug}`),
+    });
+
+    const label = 'THE OVERLAP';
+    const sub = `${title.toUpperCase()} × ${tagLabel.toUpperCase()}`;
+    if (holders === 'loading' || members === 'loading') {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`⌂${VS15}`} label={label} sub={sub} />
+                <SwSay>{working('overlap')}</SwSay>
+            </div>
+        );
+    }
+    if (!holders || !members) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`⌂${VS15}`} label={label} sub={sub} />
+                <SwSay>THE LEDGER ISN&apos;T ANSWERING.</SwSay>
+            </div>
+        );
+    }
+
+    const memberByAddr = new Map(members.rows.map((m) => [m.address.toLowerCase(), m]));
+    const matched = holders.rows.filter((h) => memberByAddr.has(h.owner_address));
+    if (matched.length === 0) {
+        return (
+            <div className="stone-widget sw-card">
+                <SwTitle glyph={`⌂${VS15}`} label={label} sub={sub} />
+                <SwSay>{`NO ${title.toUpperCase()} IN ${tagLabel.toUpperCase()} HANDS.`}</SwSay>
+            </div>
+        );
+    }
+    const owners = new Set(matched.map((h) => h.owner_address)).size;
+    const shown = expanded ? matched : matched.slice(0, COHORT_PREVIEW);
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle glyph={`⌂${VS15}`} label={label} sub={sub} />
+            <SwSay lead>
+                {`${matched.length} PIECE${matched.length === 1 ? '' : 'S'} · ${owners} ${tagLabel.toUpperCase()}${owners === 1 ? '' : 'S'}`}
+            </SwSay>
+            {shown.map((h) => {
+                const m = memberByAddr.get(h.owner_address);
+                return (
+                    <div
+                        key={`${h.token_id}`}
+                        className="sw-hit sw-tap"
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => onGo(e, `/art/${slug}/${h.token_id}`)}
+                    >
+                        <SwThumb slug={slug} id={h.token_id} size={48} />
+                        <span className="sw-hit-body">
+                            <span className="sw-hit-main">{pieceName(title, h.token_id)}</span>
+                            <span className="sw-hit-sub">{`⌂${VS15} ${m?.handle ? `@${m.handle}` : shortAddress(h.owner_address)}`}</span>
+                        </span>
+                    </div>
+                );
+            })}
+            {!expanded && matched.length > COHORT_PREVIEW && (
+                <MoreRow n={matched.length - COHORT_PREVIEW} onClick={() => setExpanded(true)} />
+            )}
+        </div>
+    );
+}
+
 /* ── the deck router — one summoned plan, one card ── */
 
-export function WidgetDeck({ plan, address, onGo, onAct }: {
+export function WidgetDeck({ plan, address, onGo, onAct, onFooter, onSeed }: {
     plan: WidgetPlan;
     address: string;
     onGo: GoFn;
     onAct: ActFn;
+    onFooter: FooterFn;
+    onSeed: (text: string) => void;
 }) {
     switch (plan.kind) {
         case 'calendar': return <CalendarWidget />;
         case 'priceday': return <PriceDayWidget />;
         case 'math': return <MathWidget plan={plan} />;
         case 'convert': return <ConvertWidget plan={plan} />;
-        case 'calc': return <CalcWidget plan={plan} onAct={onAct} />;
+        case 'calc': return <CalcWidget plan={plan} onAct={onAct} onFooter={onFooter} />;
         case 'dossier': return <DossierWidget name={plan.name} me={address} onGo={onGo} onAct={onAct} />;
-        case 'gallery': return <GalleryWidget slug={plan.slug} title={plan.title} onGo={onGo} onAct={onAct} />;
-        case 'matrix': return <MatrixWidget names={plan.names} onAct={onAct} />;
+        case 'gallery': return <GalleryWidget slug={plan.slug} title={plan.title} onGo={onGo} onAct={onAct} onFooter={onFooter} />;
+        case 'matrix': return <MatrixWidget names={plan.names} onAct={onAct} onFooter={onFooter} />;
         case 'ascii': return <AsciiWidget address={address} />;
         case 'docs': return <DocsWidget query={plan.query} onGo={onGo} />;
         case 'glance': return <GlanceWidget address={address} />;
         case 'omni': return <OmniWidget address={address} />;
         case 'trend': return <TrendWidget plan={plan} />;
         case 'wrapped': return <WrappedWidget plan={plan} address={address} />;
+        case 'date': return <DateWidget date={plan.date} onSeed={onSeed} onFooter={onFooter} />;
+        case 'firstmint': return <FirstMintWidget mine={plan.mine} address={address} onGo={onGo} onFooter={onFooter} />;
+        case 'release': return <ReleaseWidget slug={plan.slug} title={plan.title} onGo={onGo} onFooter={onFooter} />;
+        case 'rank': return <RankWidget plan={plan} address={address} onGo={onGo} onFooter={onFooter} />;
+        case 'cohort': return <CohortWidget plan={plan} onGo={onGo} onFooter={onFooter} />;
     }
 }
 
@@ -1386,11 +1817,9 @@ function ProjectHero({ p, focusId, onGo }: {
     );
 }
 
-export function SearchDeck({ r, pageHits, anchorOffer, onAnchor, onGo, query }: {
+export function SearchDeck({ r, pageHits, onGo, query }: {
     r: SearchResponse | null;
     pageHits: Array<{ label: string; to: string }>;
-    anchorOffer: { title: string; price: number } | null;
-    onAnchor: () => void;
     onGo: GoFn;
     query: string;
 }) {
@@ -1425,11 +1854,6 @@ export function SearchDeck({ r, pageHits, anchorOffer, onAnchor, onGo, query }: 
                             {ans.text}
                         </SwSay>
                     ))}
-                    {anchorOffer && (
-                        <div className="stone-etch-chip stone-offer-chip" role="button" tabIndex={0} onClick={onAnchor}>
-                            {`↧${VS15} anchor it at ◊${anchorOffer.price}?`}
-                        </div>
-                    )}
                 </div>
             )}
 
