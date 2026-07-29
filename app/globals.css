@@ -13427,6 +13427,12 @@ body.is-pwa .artwork-fullscreen.artwork-darkroom .fullscreen-back {
 }
 .owner-line .collected-pair { vertical-align: middle; }
 .owner-line .user-tags--mini { display: contents; }
+/* The pills' border box sits flush to the row's left edge, while "HELD BY"
+   starts with the Rubik face's own left side bearing — so a wrapped tag line
+   read ~2px further left than the rest of the row. Shift the pills over by
+   that bearing so every line stacks on one true left edge. Offset only —
+   the gaps between pills are untouched (Brendon, 2026-07-29). */
+.owner-line .user-tags--mini .profile-tag { position: relative; left: 2px; }
 .fi-dossier-id .collected-pair { font-size: 15px; padding: 3px 8px; }
 .fi-dossier-id .collected-sprite { font-size: 13px; }
 .fi-dossier-id .collected-rank-badge { font-size: 18px; }
