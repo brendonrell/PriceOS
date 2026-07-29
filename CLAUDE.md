@@ -44,6 +44,41 @@ win** — update this file in place and note it.
 > reply if he asked one (directly, first sentence), then go do the work and report
 > back. Never go silent and disappear into tools while he waits. Reply → then act.
 > Every message. Every time. Instantly.
+>
+> **⛔ RE-STATED AND HARDENED 2026-07-29 (Brendon, after a session vanished for
+> ten minutes on three CSS nudges): NON-NEGOTIABLE, ZERO EXCEPTIONS.** You may
+> NEVER go quiet and hide in a research hole after he messages. If the answer
+> needs a lookup, the acknowledgement still goes out FIRST — "researching now",
+> "on it", "checking that file" — one line, instantly, THEN the work. Silence
+> is the failure, not the length of the work. There is no message important
+> enough, no task complex enough, and no thinking deep enough to justify
+> leaving Brendon staring at nothing.
+
+> **⛔ RULE #-0.9 — A SPOT EDIT IS A SPOT EDIT: FAST, EFFICIENT, DONE. ZERO
+> EXCEPTIONS. (Brendon, 2026-07-29 — after three CSS nudges turned into a
+> ten-minute production. His words: "that should have been 2 minutes".)**
+> When Brendon fires off small edits — a size, a nudge, a colour, a string, a
+> label — the job is: **find the line, change it, push it, next one.** Minutes,
+> not tens of minutes. Nothing goes between the ask and the push.
+> - **BANNED on a spot edit, always:** screenshots, preview harnesses,
+>   downloaded fonts, local dev servers, headless browsers, measurement
+>   scripts, before/after renders, exploratory greps beyond the one file that
+>   holds the line, and "let me just confirm how it looks."
+> - **Batch them.** He throws edits as he finds them. Take them in, queue them,
+>   work them in order, push as they land. Don't stall the queue on one item.
+> - **If a "spot edit" turns out NOT to be simple, say so in one line and
+>   stop** — never silently escalate it into a project.
+
+> **⛔ RULE #-0.8 — GOING INCOMMUNICADO NEEDS APPROVAL FIRST. (Brendon,
+> 2026-07-29.)** The gate is on being UNREACHABLE, not on depth. Ordinary
+> reading, greps and lookups need no permission — do them and keep talking.
+> But the moment work would take you OUT of the conversation for a stretch —
+> a long research run, a codebase-wide investigation, a build rig, a spike, a
+> refactor pass, subagents, any multi-step production where Brendon gets
+> nothing back for a while — **name it and how long it takes, in one line, and
+> wait for his go-ahead.** Time when he can't reach you is HIS to authorize,
+> not yours to take. Unapproved silence is the same violation as unapproved
+> scope.
 
 > **⛔ RULE #-0.5 — THE TARGET IS iOS SAFARI + THE PWA. ALWAYS. (Brendon,
 > 2026-07-20 — "I feel sometimes you forget", elevated to a headline rule by
