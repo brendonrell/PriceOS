@@ -4294,6 +4294,8 @@ body.pd-stone-open .ens-copy-toast {
 .profile-tag--now-selling .profile-tag-glyph {
     display: inline-block;
     animation: tag-active-spin 6s linear infinite;
+    /* Two steps up from the 16px base (Brendon, 2026-07-29). */
+    font-size: 20px;
 }
 @keyframes tag-active-spin {
     from { transform: rotate(0deg); }
