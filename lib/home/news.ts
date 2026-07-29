@@ -75,6 +75,18 @@ const titleOf = (slug: string, fallback = slug) => getProject(slug)?.displayName
    Studio dashboard and the Created tab, where the motion costs nothing. */
 const fmtWindow = (opensAt: number) => formatWindowRemaining(opensAt - Date.now(), true);
 
+/* "34 days ago" / "6 hours ago" / "just now" — how long something has been
+   sitting. Used where the AGE is the point (an offer you left out there),
+   not the clock time. */
+function fmtAgo(ms: number): string {
+    const s = Math.max(0, Math.floor((Date.now() - ms) / 1000));
+    const unit = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'} ago`;
+    if (s < 60) return 'just now';
+    if (s < 3600) return unit(Math.floor(s / 60), 'minute');
+    if (s < 86400) return unit(Math.floor(s / 3600), 'hour');
+    return unit(Math.floor(s / 86400), 'day');
+}
+
 /* "Today · 15:42" / "Yesterday · 15:42" / "JUN 11 · 15:42" — the moment stamp
    shown under the project name on each auto pill. Relative wording for the last
    two days, then the compact date. VIEWER-LOCAL, like every displayed clock
@@ -488,6 +500,79 @@ function youItems(you: HomeYouResponse | null | undefined): NewsItem[] {
                 : `${titleOf(w.slug)} #${w.token_id}`,
             meta: fmtNewsWhen(w.ts),
             href: `/art/${w.slug}/${w.token_id}`,
+        });
+    }
+    /* OFFERS — what's on your pieces, and the one you left out there. ⇌ is
+       the Exchange/trade mark the Open To Trades tag wears. */
+    if (you.offers_in) {
+        const o = you.offers_in;
+        out.push({
+            glyph: vs('⇌'), tag: 'OFFERS ON YOUR PIECES',
+            title: `${o.count} live ${o.count === 1 ? 'offer' : 'offers'}`,
+            meta: o.top_eth > 0 ? `Top ${eth(o.top_eth)}` : fmtNewsWhen(o.ts),
+        });
+    }
+    if (you.offer_out) {
+        const o = you.offer_out;
+        out.push({
+            glyph: vs('⇌'), tag: 'YOUR OFFER IS STILL OUT',
+            title: o.token_id
+                ? `${titleOf(o.slug)} #${o.token_id}`
+                : `${titleOf(o.slug)} · collection`,
+            meta: `Sent ${fmtAgo(o.ts)}`,
+            href: o.token_id ? `/art/${o.slug}/${o.token_id}` : `/art/${o.slug}`,
+        });
+    }
+    /* A LIVE TAKEOVER — a clock either way. ⚑ is the raid flag (GLYPHS §12). */
+    if (you.takeover) {
+        const t = you.takeover;
+        out.push({
+            glyph: vs('⚑'), tag: t.role === 'target' ? 'A TAKEOVER IS ON YOU' : 'YOUR TAKEOVER IS LIVE',
+            title: `${titleOf(t.slug)} · ${t.tokens} ${t.tokens === 1 ? 'piece' : 'pieces'}`,
+            meta: `${fmtWindow(t.expires_at)} left`,
+            href: `/art/${t.slug}`,
+        });
+    }
+    /* YOUR NEMESIS — the rival you declared. ☍ is the Nemesis mark (§12g). */
+    if (you.nemesis?.handle) {
+        out.push({
+            glyph: vs('☍'), tag: 'YOUR NEMESIS',
+            title: `@${you.nemesis.handle}`,
+            meta: 'Declared rival',
+            href: `/${you.nemesis.handle}`,
+        });
+    }
+    /* TOP COUNTERPARTY — who you actually deal with. */
+    if (you.counterparty?.handle) {
+        const c = you.counterparty;
+        out.push({
+            glyph: vs('≍'), tag: 'YOU DEAL WITH THEM MOST',
+            title: `@${c.handle}`,
+            meta: `${c.deals} ${c.deals === 1 ? 'deal' : 'deals'} between you`,
+            href: `/${c.handle}`,
+        });
+    }
+    /* YOUR OATH — the faction you swore to. ⚐ is the war banner, hollow —
+       never ⚑, which is the takeover's money flag. */
+    if (you.faction) {
+        out.push({
+            glyph: vs('⚐'), tag: 'SWORN TO',
+            title: you.faction.name,
+            meta: you.faction.defections > 0
+                ? `${you.faction.defections} ${you.faction.defections === 1 ? 'defection' : 'defections'}`
+                : 'Loyal since your oath',
+        });
+    }
+    /* MUTUALS OPEN TO TRADES — people who follow you back and want a swap. */
+    if (you.traders) {
+        const t = you.traders;
+        out.push({
+            glyph: vs('⇌'), tag: 'OPEN TO TRADES',
+            title: t.count === 1
+                ? `@${t.handle} wants a swap`
+                : `${t.count} mutuals are open`,
+            meta: t.count === 1 ? 'One of your mutuals' : 'Bring them a swap',
+            href: t.count === 1 ? `/${t.handle}` : undefined,
         });
     }
     return out;
