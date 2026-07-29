@@ -27,7 +27,7 @@
  */
 
 import type { NewsItem } from '../../components/home/NewsCarousel';
-import type { HomeResponse, HomeMintingRow, HomeUploadRow } from './homeData';
+import { MINTING_NOW_THRESHOLD, type HomeResponse, type HomeMintingRow, type HomeUploadRow } from './homeData';
 import type { HomeYouResponse } from '../../app/api/home/you/route';
 import { getProject, projectsByArtist } from '../project/registry';
 import { FEED_LIFECYCLE, milestoneByKey } from './milestones';
@@ -57,6 +57,9 @@ const AUTO_LIMIT = 24;
 /* Per-family caps on the standing pills — the rail loops, so a long tail of
    near-identical progress bars just makes the cycle slower. */
 const PROGRESS_LIMIT = 5;
+/* How close to the Now Minting threshold a project has to be before the rail
+   calls it out. */
+const GRADUATION_WATCH = 5;
 
 const vs = (g: string) => `${g}︎`;
 
@@ -287,6 +290,23 @@ function standingItems(feed: HomeResponse): NewsItem[] {
         });
     }
 
+    /* ABOUT TO GRADUATE — the uploads a handful of mints away from Now
+       Minting. The most actionable line on the page: it's the only window
+       where someone can still be early (Brendon, 2026-07-29). */
+    const climbing = (feed.uploads ?? [])
+        .map((u) => ({ u, away: MINTING_NOW_THRESHOLD - u.minted_count }))
+        .filter((c) => c.away > 0 && c.away <= GRADUATION_WATCH)
+        .sort((a, b) => a.away - b.away)
+        .slice(0, PROGRESS_LIMIT);
+    for (const c of climbing) {
+        out.push({
+            glyph: vs('⟢'), cls: 'af-ic--grad', tag: 'ALMOST MINTING',
+            title: titleOf(c.u.slug, c.u.title),
+            meta: `${c.away} ${c.away === 1 ? 'mint' : 'mints'} away`,
+            href: `/art/${c.u.slug}`,
+        });
+    }
+
     /* PLATFORM ROUND NUMBERS — the two hero stats, each announced when it
        crosses a mark and staying up (with the live figure) until the next. */
     const minted = feed.stats?.minted ?? 0;
@@ -408,10 +428,66 @@ function youItems(you: HomeYouResponse | null | undefined): NewsItem[] {
         });
     }
     if (you.artist_window) {
+        /* Louder inside the last day — the countdown stops being trivia and
+           starts being a thing to act on (Brendon, 2026-07-29). */
+        const soon = you.artist_window.opens_at - Date.now() <= 86_400_000;
         out.push({
-            glyph: vs('✺'), tag: 'YOUR NEXT WINDOW',
+            glyph: vs('✺'), tag: soon ? 'YOUR WINDOW OPENS TODAY' : 'YOUR NEXT WINDOW',
             title: fmtWindow(you.artist_window.opens_at),
             meta: 'Until you can upload again', href: '/studio',
+        });
+    }
+    /* WAITING ON YOU — what you left in the Cart / on the Bench. ▢ is the
+       Cart's own mark (GLYPHS §5); the Bench has no glyph of its own in the
+       glossary, so it wears the same box rather than inventing one. */
+    if (you.pending?.cart) {
+        const n = you.pending.cart;
+        out.push({
+            glyph: vs('▢'), tag: 'IN YOUR CART',
+            title: `${n} ${n === 1 ? 'piece' : 'pieces'} waiting`,
+            meta: 'You left them there',
+        });
+    }
+    if (you.pending?.bench) {
+        const n = you.pending.bench;
+        out.push({
+            glyph: vs('▢'), tag: 'ON YOUR BENCH',
+            title: `${n} ${n === 1 ? 'piece' : 'pieces'} parked`,
+            meta: 'Still on the bench',
+        });
+    }
+    /* AN ARTIST YOU FOLLOW UPLOADED — the highest-value card on the rail for
+       someone coming back. ✧ is the lifecycle upload mark. */
+    if (you.follow_upload) {
+        const u = you.follow_upload;
+        out.push({
+            glyph: vs('✧'), tag: `@${u.handle} UPLOADED`,
+            title: titleOf(u.slug, u.title),
+            meta: fmtNewsWhen(u.ts),
+            href: `/art/${u.slug}`,
+        });
+    }
+    /* THEIR NEXT WINDOW — when the artist you follow can upload again. Same
+       ✺ artist mark the Starred/Wishlist rows wear. */
+    if (you.follow_window) {
+        out.push({
+            glyph: vs('✺'), tag: 'THEY UPLOAD AGAIN IN',
+            title: fmtWindow(you.follow_window.opens_at),
+            meta: `@${you.follow_window.handle}`,
+            href: `/${you.follow_window.handle}`,
+        });
+    }
+    /* YOUR WISHLIST MOVED — a piece you wanted changed hands. ✛ is the
+       Wishlist glyph (GLYPHS §5 — never a heart). */
+    if (you.wishlist_moved) {
+        const w = you.wishlist_moved;
+        out.push({
+            glyph: vs('✛'), tag: 'YOUR WISHLIST MOVED',
+            title: w.count > 1
+                ? `${w.count} pieces changed hands`
+                : `${titleOf(w.slug)} #${w.token_id}`,
+            meta: fmtNewsWhen(w.ts),
+            href: `/art/${w.slug}/${w.token_id}`,
         });
     }
     return out;

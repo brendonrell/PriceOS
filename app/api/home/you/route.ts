@@ -42,9 +42,30 @@ export interface HomeYouResponse {
   rarest: { slug: string; token_id: number; rank: number; total: number } | null;
   /** Your next upload window, when you're an artist inside the cooldown. */
   artist_window: { opens_at: number; days: number } | null;
+  /** Pieces sitting in your Cart / on your Bench, waiting on you. */
+  pending: { cart: number; bench: number };
+  /** The newest project from an artist you follow, if it's still fresh. */
+  follow_upload: { handle: string; slug: string; title: string; ts: number } | null;
+  /** The soonest upload window among the artists you follow. */
+  follow_window: { handle: string; opens_at: number } | null;
+  /** Wishlisted pieces that changed hands recently. */
+  wishlist_moved: { count: number; slug: string; token_id: string; ts: number } | null;
 }
 
-const EMPTY: HomeYouResponse = { kin: null, rarest: null, artist_window: null };
+const EMPTY: HomeYouResponse = {
+  kin: null, rarest: null, artist_window: null,
+  pending: { cart: 0, bench: 0 }, follow_upload: null, follow_window: null, wishlist_moved: null,
+};
+
+/* How fresh a followed artist's upload, or a wishlist move, still counts as
+   news. Older than this and it's history, not a moment — same seven-day line
+   the rail's first-resale pill draws. */
+const FRESH_MS = 7 * 24 * 60 * 60 * 1000;
+
+/* Ceilings on the viewer-scoped scans. Launch-scale wallets sit far under
+   them; they exist so one enormous wishlist can't stall the rail. */
+const WISHLIST_SCAN_LIMIT = 500;
+const FOLLOW_SCAN_LIMIT = 500;
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const address = (req.nextUrl.searchParams.get('address') ?? '').toLowerCase();
@@ -118,7 +139,96 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       ? { opens_at: opensAt, days: Math.ceil((opensAt - now) / 86_400_000) }
       : null;
 
-    return NextResponse.json({ kin, rarest, artist_window: artistWindow } satisfies HomeYouResponse);
+    /* ── WAITING ON YOU ── what you left in the Cart / on the Bench. */
+    const [cartRes, benchRes] = await Promise.all([
+      db.from('cart_items').select('token_id', { count: 'exact', head: true }).eq('user_address', address),
+      db.from('bench_items').select('token_id', { count: 'exact', head: true }).eq('user_address', address),
+    ]);
+    const pending = { cart: cartRes.count ?? 0, bench: benchRes.count ?? 0 };
+
+    /* ── THE ARTISTS YOU FOLLOW ── their newest project, and whichever of
+       them can upload again soonest. Follows are stored by @handle, so this
+       walks handle → address → projects. */
+    let followUpload: HomeYouResponse['follow_upload'] = null;
+    let followWindow: HomeYouResponse['follow_window'] = null;
+    const meRes = await db.from('users').select('handle').eq('address', address).maybeSingle();
+    const myHandle = (meRes.data as { handle: string | null } | null)?.handle ?? null;
+    if (myHandle) {
+      const folRes = await db
+        .from('follows').select('following_name')
+        .eq('follower_name', myHandle)
+        .limit(FOLLOW_SCAN_LIMIT);
+      const handles = (folRes.data ?? [])
+        .map((r) => (r as { following_name: string }).following_name)
+        .filter(Boolean);
+      if (handles.length > 0) {
+        const uRes = await db.from('users').select('address, handle').in('handle', handles);
+        const handleByAddr = new Map<string, string>();
+        for (const u of (uRes.data ?? []) as { address: string; handle: string | null }[]) {
+          if (u.handle) handleByAddr.set(u.address.toLowerCase(), u.handle);
+        }
+        const addrs = [...handleByAddr.keys()];
+        if (addrs.length > 0) {
+          const pRes = await db
+            .from('projects').select('id, title, artist_address, uploaded_at, cooldown_until')
+            .in('artist_address', addrs);
+          const rows = (pRes.data ?? []) as {
+            id: string; title: string; artist_address: string | null;
+            uploaded_at: string | null; cooldown_until: string | null;
+          }[];
+          const fresh = Date.now() - FRESH_MS;
+          for (const p of rows) {
+            const owner = (p.artist_address ?? '').toLowerCase();
+            const handle = handleByAddr.get(owner);
+            if (!handle) continue;
+            const up = p.uploaded_at ? Date.parse(p.uploaded_at) : NaN;
+            if (Number.isFinite(up) && up >= fresh && (!followUpload || up > followUpload.ts)) {
+              followUpload = { handle, slug: p.id, title: p.title, ts: up };
+            }
+            const cd = p.cooldown_until ? Date.parse(p.cooldown_until) : NaN;
+            if (Number.isFinite(cd) && cd > Date.now()
+              && (!followWindow || cd < followWindow.opens_at)) {
+              followWindow = { handle, opens_at: cd };
+            }
+          }
+        }
+      }
+    }
+
+    /* ── YOUR WISHLIST MOVED ── a piece you wishlisted changed hands. */
+    let wishlistMoved: HomeYouResponse['wishlist_moved'] = null;
+    const wRes = await db
+      .from('wishlist').select('project_id, token_id')
+      .eq('user_address', address)
+      .limit(WISHLIST_SCAN_LIMIT);
+    const wanted = (wRes.data ?? []) as { project_id: string; token_id: string }[];
+    if (wanted.length > 0) {
+      const sinceSec = Math.floor((Date.now() - FRESH_MS) / 1000);
+      const eRes = await db
+        .from('events').select('project_id, token_id, timestamp')
+        .in('project_id', [...new Set(wanted.map((w) => w.project_id))])
+        .gte('timestamp', sinceSec);
+      const key = (s: string, t: string) => `${s}:${t}`;
+      const want = new Set(wanted.map((w) => key(w.project_id, w.token_id)));
+      let count = 0;
+      let newest: { slug: string; token_id: string; ts: number } | null = null;
+      const seen = new Set<string>();
+      for (const e of (eRes.data ?? []) as { project_id: string; token_id: string | null; timestamp: number }[]) {
+        if (!e.token_id) continue;
+        const k = key(e.project_id, e.token_id);
+        if (!want.has(k)) continue;
+        if (!seen.has(k)) { seen.add(k); count += 1; }
+        const ts = e.timestamp * 1000;
+        if (!newest || ts > newest.ts) newest = { slug: e.project_id, token_id: e.token_id, ts };
+      }
+      if (newest) wishlistMoved = { count, ...newest };
+    }
+
+    return NextResponse.json({
+      kin, rarest, artist_window: artistWindow,
+      pending, follow_upload: followUpload, follow_window: followWindow,
+      wishlist_moved: wishlistMoved,
+    } satisfies HomeYouResponse);
   } catch (e) {
     // The rail is decoration — never fail the home page over it.
     void e;
