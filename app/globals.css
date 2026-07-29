@@ -4231,16 +4231,16 @@ body.pd-stone-open .ens-copy-toast {
     transform: rotate(180deg);
 }
 
-/* PROJECT tags read THICKER than the rest of the row (Brendon, 2026-07-29).
-   The weight alone can't do it — a label wearing a Unicode @name face (fraktur,
-   script) is drawn from fixed characters that ignore it — so the letterforms
-   are thickened directly, which works on every face. */
+/* PROJECT tag LETTERING reads thicker than the rest of the row (Brendon,
+   2026-07-29). The weight alone can't do it — a label wearing a Unicode @name
+   face (fraktur, script) is drawn from fixed characters that ignore it — so the
+   letterforms are thickened directly, which works on every face. The pill
+   itself is untouched. */
 .profile-tag--proj .profile-tag-label,
 .profile-tag--proj .profile-tag-label span {
     font-weight: 900;
     -webkit-text-stroke: 0.45px currentColor;
 }
-.profile-tag--proj { border-width: 2px; }
 
 /* ── Profile tags on LIST surfaces (Brendon, 2026-07-24) — leaderboards,
    collectors, followers, the Friend Inspector dossier, the artwork owner line,
