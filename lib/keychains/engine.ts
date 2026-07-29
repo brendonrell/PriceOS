@@ -587,7 +587,7 @@ function armActions(g: Genes): [number, number] {
 /** Draw the full charm — the contract's tokenSVG, verbatim. `name` must be
  *  charset-guarded (A–Z, 0–9, space) by the caller. `uid` must be unique per
  *  charm ON THE PAGE (id suffixes prevent gradient/clip collisions). */
-export function charmSVG(seed: `0x${string}`, uid: string, streak: number, rank: number, name: string, coin: Coin = 0): string {
+export function charmSVG(seed: `0x${string}`, uid: string, streak: number, rank: number, name: string, coin: Coin = 0, noChain = false): string {
     const g = genes(seed, coin);
     const s = SHAPE_D[g.shape]!;
     const bodyC = BODY_RGB[g.palette]!;
@@ -597,10 +597,16 @@ export function charmSVG(seed: `0x${string}`, uid: string, streak: number, rank:
     const [accFront, accBack] = accessorySvg(g.acc, [s.bailX, s.bailY, s.aLx, s.aLy, s.aRx, s.aRy], accent);
     const [actL, actR] = armActions(g);
 
-    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000">'
+    /* noChain — the charm WORN on a profile shows no chain (Brendon,
+       2026-07-29). The view tightens to whatever is still drawn so the charm
+       fills its box instead of hanging under an empty gap; everything else
+       (the name tag included) is untouched. Default false keeps the contract's
+       tokenSVG verbatim everywhere else. */
+    const top = noChain ? (name.length ? 60 : s.bailY - 30) : 0;
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 ${top} 1000 ${1000 - top}">`
         + '<style>.sw{transform-box:fill-box;transform-origin:50% -6%;animation:sw 3.4s ease-in-out infinite alternate}@keyframes sw{from{transform:rotate(-3deg)}to{transform:rotate(3deg)}}.ey{transform-box:fill-box;transform-origin:center;animation:bl 4.6s infinite}@keyframes bl{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(0.12)}}.gl{animation:tw 2.3s ease-in-out infinite alternate}@keyframes tw{from{opacity:0.5}to{opacity:0.95}}</style>'
         + `<defs><clipPath id="c${uid}">${clipEl(g.shape)}</clipPath>${finishGradient(finish, bodyC, g.material, uid)}</defs>`
-        + chainSvg(s, streak) + nameTag(name)
+        + (noChain ? '' : chainSvg(s, streak)) + nameTag(name)
         + `<g class="sw">${accBack}${bodySvg(g.shape, `url(#f${uid})`, accent)}`
         + finishOverlay(finish, seed, uid)
         + ((g.material === 1 && finish < 3) ? '' : shine(g.shape, uid))

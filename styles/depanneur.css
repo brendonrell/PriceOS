@@ -260,9 +260,10 @@
 .pd-charm-worn {
     display: inline-flex;
     align-items: center;
-    /* JUL 28: 4× the original 26px — Brendon's call. */
-    width: 104px;
-    height: 104px;
+    /* JUL 28: 4× the original 26px — Brendon's call. JUL 29: two thirds of
+       that. */
+    width: 69px;
+    height: 69px;
     cursor: pointer;
     flex-shrink: 0;
 }

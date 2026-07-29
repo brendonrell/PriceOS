@@ -4118,6 +4118,10 @@ body.pd-stone-open .ens-copy-toast {
 .profile-tags {
     display: flex;
     flex-wrap: wrap;
+    /* The worn keychain rides at the end of this row and is taller than the
+       pills — everything centres on one line rather than hanging off the top
+       (Brendon, 2026-07-29). */
+    align-items: center;
     gap: 6px;
     /* 16px above AND below (Brendon, 2026-07-20): match the hero rhythm —
        the same gap the tabs row keeps above the facet row. Above = group-1's

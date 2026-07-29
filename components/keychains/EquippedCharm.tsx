@@ -20,7 +20,7 @@ export default function EquippedCharm({ address }: { address: string }) {
         : null;
 
     const svg = useMemo(
-        () => (charm && rack ? charmSVG(charm.seed, `eq${charm.id}`, rack.streak, rack.rank, charm.name, charm.coin) : ''),
+        () => (charm && rack ? charmSVG(charm.seed, `eq${charm.id}`, rack.streak, rack.rank, charm.name, charm.coin, true) : ''),
         [charm, rack],
     );
 
