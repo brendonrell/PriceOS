@@ -12,6 +12,7 @@
    approved sheet was drawn in. Done by re-pointing the site tokens inside
    the panel, so every pill and border keeps its proven treatment. */
 .dp-plus {
+    position: relative;
     --dp-ink: #1C1C24;
     --dp-panel: #26262E;
     --dp-line: #3A3A46;
@@ -22,6 +23,39 @@
     --stat-active-text: #1C1C24;
     background: #1C1C24;
     color: #F2F2F4;
+}
+
+/* ── the Depanneur's own pull-to-refresh ──
+   The app's PWA pull is blocked inside modals, so the panel runs the same
+   gesture against its own scroller: the SAME pill, the same tint band, the
+   same release-to-refresh law — it just refreshes the rack (Brendon,
+   2026-07-29). */
+.dp-ptr-band {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 84px;
+    opacity: 0;
+    z-index: 6;
+    pointer-events: none;
+    border-radius: 4px 4px 0 0;
+    background: linear-gradient(to bottom, rgba(242, 242, 244, 0.30) 0%, transparent 100%);
+    transition: opacity 0.3s ease;
+}
+.dp-plus .dp-ptr-pill {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -46px);
+    z-index: 7;
+}
+/* Working, not frozen (§9) — the pill keeps visibly moving until the rack
+   has actually landed. */
+.dp-plus .dp-ptr-pill.refreshing { animation: dp-ptr-breathe 0.7s ease-in-out infinite alternate; }
+@keyframes dp-ptr-breathe {
+    from { opacity: 1; }
+    to { opacity: 0.4; }
 }
 
 /* ── the masthead (the sheet's own, verbatim) ── */

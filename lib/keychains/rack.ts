@@ -52,6 +52,15 @@ export function bustRack(address: string): void {
     void fetchRack(a);
 }
 
+/** The same drop + refetch, awaitable — the Depanneur's pull-to-refresh holds
+ *  its pill until the rack has actually landed. */
+export function refreshRack(address: string): Promise<Rack | null> {
+    const a = address.toLowerCase();
+    cache.delete(a);
+    pending.delete(a);
+    return fetchRack(a);
+}
+
 export function useKeychainRack(address: string | null | undefined): Rack | null {
     const a = (address ?? '').toLowerCase();
     const [, force] = useState(0);

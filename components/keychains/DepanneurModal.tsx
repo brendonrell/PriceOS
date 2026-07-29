@@ -20,7 +20,7 @@
  * the ⚷ key in wallet settings. Out: × / Esc / backdrop.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useModal, useModalLayer } from '../../lib/state/ModalContext';
 import { lockBodyScroll, unlockBodyScroll } from '../../lib/state/bodyScrollLock';
@@ -30,7 +30,7 @@ import {
     CRANK_PRICE_ETH, charmSVG, charmTraits, genes, isValidCharmName, luckFor, SHAPE_NAMES,
     type CharmRecord, type Coin,
 } from '../../lib/keychains/engine';
-import { useKeychainRack, bustRack } from '../../lib/keychains/rack';
+import { useKeychainRack, bustRack, refreshRack } from '../../lib/keychains/rack';
 import { requestMotion } from '../../lib/keychains/sway';
 
 const VS15 = '︎';
@@ -78,6 +78,145 @@ export default function DepanneurModal() {
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
     }, [isOpen, close]);
+
+    /* ── THE DEPANNEUR'S OWN PULL-TO-REFRESH (Brendon, 2026-07-29) ──────────
+       The app's PWA pull is deliberately blocked inside modals, so this is the
+       same gesture rebuilt against the panel's own scroller: the SAME pill,
+       the same tint band, the same release-to-refresh law (it commits on
+       release, never mid-pull) — but it refreshes the rack instead of
+       reloading the app. Listeners stay passive: the inner scroller's own
+       rubber-band is the visible pull. */
+    const bodyRef = useRef<HTMLDivElement | null>(null);
+    const pillRef = useRef<HTMLDivElement | null>(null);
+    const bandRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        const el = bodyRef.current;
+        if (!isOpen || !el || !siweAddress) return;
+
+        const THRESHOLD = 130;  // px of raw pull at release that refreshes
+        const TOP_EPS = 2;
+
+        let startY = 0;
+        let active = false;
+        let pulling = false;
+        let refreshing = false;
+        let lastRaw = 0;
+        let pendingRaw = 0;
+        let raf = 0;
+        let launched = false;
+
+        const reset = () => {
+            active = false; pulling = false; lastRaw = 0; pendingRaw = 0; launched = false;
+            if (raf) { cancelAnimationFrame(raf); raf = 0; }
+        };
+
+        const snapBack = () => {
+            const band = bandRef.current;
+            const pill = pillRef.current;
+            if (band) { band.style.transition = 'opacity 0.3s ease'; band.style.opacity = '0'; }
+            if (pill) {
+                pill.style.transition = 'transform 0.25s ease, opacity 0.25s ease';
+                pill.style.transform = 'translate(-50%, -46px)';
+                pill.style.opacity = '0';
+                pill.classList.remove('armed', 'refreshing');
+            }
+        };
+
+        const paint = () => {
+            raf = 0;
+            if (refreshing || !active || !pulling) return;
+            const raw = pendingRaw;
+            const armed = raw >= THRESHOLD;
+            const band = bandRef.current;
+            const pill = pillRef.current;
+            if (band) {
+                band.style.transition = 'none';
+                band.style.opacity = armed ? '1' : String(Math.min(raw / THRESHOLD, 1) * 0.7);
+            }
+            if (pill) {
+                // The pill doesn't track the finger — it eases to its resting
+                // spot once and only its colour changes at the threshold.
+                if (!launched) {
+                    launched = true;
+                    pill.style.transition = 'transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease';
+                    pill.style.opacity = '1';
+                    pill.style.transform = 'translate(-50%, 40px)';
+                }
+                pill.classList.toggle('armed', armed);
+            }
+        };
+
+        const commit = async () => {
+            if (refreshing) return;
+            refreshing = true;
+            reset();
+            try { navigator.vibrate?.(12); } catch { /* unsupported (iOS) */ }
+            const band = bandRef.current;
+            const pill = pillRef.current;
+            if (band) { band.style.transition = 'opacity 0.15s ease'; band.style.opacity = '1'; }
+            if (pill) {
+                pill.style.transition = 'transform 0.25s ease, opacity 0.2s ease';
+                pill.style.opacity = '1';
+                pill.style.transform = 'translate(-50%, 40px)';
+                pill.classList.add('armed', 'refreshing');
+            }
+            // Never a blink — the pill is visibly working for a beat even when
+            // the rack comes back instantly.
+            await Promise.all([
+                refreshRack(siweAddress),
+                new Promise((res) => setTimeout(res, 480)),
+            ]);
+            snapBack();
+            refreshing = false;
+        };
+
+        const onStart = (e: TouchEvent) => {
+            if (refreshing) return;
+            reset();
+            if (e.touches.length !== 1) return;
+            if (el.scrollTop > TOP_EPS) return;   // started mid-scroll
+            startY = e.touches[0]!.clientY;
+            active = true;
+        };
+
+        const onMove = (e: TouchEvent) => {
+            if (refreshing || !active) return;
+            if (e.touches.length !== 1) { reset(); snapBack(); return; }
+            const raw = e.touches[0]!.clientY - startY;
+            lastRaw = raw;
+            if (raw <= 0) {
+                pulling = false;
+                if (raf) { cancelAnimationFrame(raf); raf = 0; }
+                snapBack();
+                return;
+            }
+            pulling = true;
+            pendingRaw = raw;
+            if (!raf) raf = requestAnimationFrame(paint);
+        };
+
+        const onEnd = () => {
+            if (refreshing || !active) return;
+            const go = pulling && lastRaw >= THRESHOLD;
+            reset();
+            if (go) void commit(); else snapBack();
+        };
+
+        const onCancel = () => { if (!refreshing) { reset(); snapBack(); } };
+
+        el.addEventListener('touchstart', onStart, { passive: true });
+        el.addEventListener('touchmove', onMove, { passive: true });
+        el.addEventListener('touchend', onEnd, { passive: true });
+        el.addEventListener('touchcancel', onCancel, { passive: true });
+        return () => {
+            el.removeEventListener('touchstart', onStart);
+            el.removeEventListener('touchmove', onMove);
+            el.removeEventListener('touchend', onEnd);
+            el.removeEventListener('touchcancel', onCancel);
+            if (raf) cancelAnimationFrame(raf);
+        };
+    }, [isOpen, siweAddress]);
 
     const streak = rack?.streak ?? 0;
     /* What the streak is buying at the machine right now — the same tier the
@@ -168,6 +307,9 @@ export default function DepanneurModal() {
             onClick={close}
         >
             <div className="sticker-mgr-plus followers-plus dp-plus" onClick={(e) => e.stopPropagation()}>
+                {/* The pull's own chrome — the app's pill, scoped to the panel. */}
+                <div className="dp-ptr-band" ref={bandRef} aria-hidden="true" />
+                <div className="ptr-pill dp-ptr-pill" ref={pillRef} aria-hidden="true" />
                 <div className="smgr-plus-head">
                     <span className="ambient-pop-title-text">
                         <span className="smgr-title-ic">{`⚷${VS15}`}</span>{' '}
@@ -184,7 +326,7 @@ export default function DepanneurModal() {
                         {`×${VS15}`}
                     </span>
                 </div>
-                <div className="followers-plus-body dp-body">
+                <div className="followers-plus-body dp-body" ref={bodyRef}>
                     {!siweAddress ? (
                         <p className="dp-note">Connect your wallet to crank the machine.</p>
                     ) : (
