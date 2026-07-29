@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSupabaseAnon, getSupabaseService, type UserRow } from '@/lib/supabase';
 import { serverError } from '@/lib/errors';
 import { teamStyleIndex } from '@/lib/tags/catalog';
+import { projectsByArtist, projectColorway } from '@/lib/project/registry';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,6 +39,10 @@ export interface TagFacts {
   shownTags: string[];
   /** Tag ids the owner switched OFF — darks a default-on tag (project tags). */
   tagsOff: string[];
+  /** The Projects this person MADE — one project tag each, in that Project's
+   *  own live colour. Resolved here because the registry belongs on the server
+   *  side of this wall, not in every surface that shows a person. */
+  projects: Array<{ slug: string; name: string; color: string }>;
   /** The owner's @name font — tag labels wear it on their profile, so they wear
    *  it here too; identity reads the same everywhere. */
   nameFont: string | null;
@@ -136,6 +141,11 @@ export async function GET(req: Request): Promise<NextResponse> {
         priceHeld: u.price_held == null ? null : Number(u.price_held),
         shownTags: shownByHandle.get(h) ?? [],
         tagsOff: offByHandle.get(h) ?? [],
+        projects: projectsByArtist(h).map((p) => ({
+          slug: p.slug,
+          name: p.displayName,
+          color: projectColorway(p.slug) ?? p.colorway,
+        })),
         nameFont: u.name_font ?? null,
         tagPaint: u.tag_paint ?? null,
         handle: h,

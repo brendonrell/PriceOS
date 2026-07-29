@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSupabaseAnon, getSupabaseService, type UserRow } from '@/lib/supabase';
 import { badRequest, serverError } from '@/lib/errors';
 import { teamStyleIndex } from '@/lib/tags/catalog';
+import { projectsByArtist, projectColorway } from '@/lib/project/registry';
 import { deriveTags } from '@/lib/tags/derive';
 
 export const dynamic = 'force-dynamic';
@@ -133,6 +134,13 @@ export async function GET(req: Request): Promise<NextResponse> {
         priceHeld: u.price_held ?? null,
         shownTags: shownByAddr.get(addr) ?? [],
         tagsOff: offByAddr.get(addr) ?? [],
+        projects: u.handle
+          ? projectsByArtist(u.handle).map((p) => ({
+              slug: p.slug,
+              name: p.displayName,
+              color: projectColorway(p.slug) ?? p.colorway,
+            }))
+          : [],
       });
       const hit = tags.find((t) => t.id === tag);
       if (!hit) continue;

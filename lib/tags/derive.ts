@@ -23,7 +23,6 @@ import {
     PRICE_HELD_1M_BG, PRICE_HELD_1M_TEXT, PRICE_HELD_100K_BG, PRICE_HELD_100K_TEXT,
 } from './catalog';
 import { priceDayNumber } from '../priceday/priceday';
-import { projectsByArtist, projectColorway } from '../project/registry';
 
 /** Provisional Veteran cut (Brendon to confirm the real tenure). */
 export const VETERAN_DAYS = 180;
@@ -88,6 +87,12 @@ export interface DeriveInput {
     /** The owner's $PRICE balance in whole tokens (users.price_held) — drives
      *  the 100K+ / 1M+ holding tags. */
     priceHeld?: number | string | null;
+    /** The Projects this person MADE — one chip each, in that Project's own
+     *  colour. Handed IN as facts (the registry is never imported here: this
+     *  module is pulled into every surface that lists people, and reaching for
+     *  the project registry would drag the whole art-engine graph along with
+     *  it). Absent = no project tags. */
+    projects?: ReadonlyArray<{ slug: string; name: string; color: string }> | null;
     /** Tag ids the owner switched OFF — the opt-out list, and the ONLY thing
      *  that can dark a default-on tag (the PROJECT tags, Brendon 2026-07-29).
      *  Separate from `shownTags` on purpose: absence from the shown list means
@@ -122,13 +127,11 @@ function priceDayJoinTag(createdAt: string | null | undefined): Tag | null {
    artist of a Project has its tag — nobody else can earn, pick or be granted
    one. They are the platform's only DEFAULT-ON tags: an artist's work is the
    one thing that should not need discovering in a picker. */
-function projectTagsFor(handle: string | null | undefined): Tag[] {
-    const h = handle?.toLowerCase().replace(/^@/, '') ?? '';
-    if (!h) return [];
-    return projectsByArtist(h).map((p, i) => ({
+function projectTagsFor(projects: DeriveInput['projects']): Tag[] {
+    return (projects ?? []).map((p, i) => ({
         id: `project-${p.slug}`,
-        label: p.displayName,
-        color: projectColorway(p.slug) ?? p.colorway,
+        label: p.name,
+        color: p.color,
         kind: 'earned' as const,
         /* After PriceDay #N (21), before the rest of Earned. */
         order: 22 + i / 100,
@@ -255,7 +258,7 @@ export function deriveTags(input: DeriveInput): Tag[] {
     add(priceDayJoinTag(input.createdAt));     // PriceDay #N (join day)
     add(priceHoldTag(input.priceHoldRank));    // $PRICE Top N · #r (holder rank)
     add(priceHeldTag(input.priceHeld));        // $PRICE 100K+ / 1M+ (amount held)
-    for (const t of projectTagsFor(input.handle)) add(t);  // one per Project made
+    for (const t of projectTagsFor(input.projects)) add(t);  // one per Project made
     if (input.isArtist) add(tagById('artist'));
     if (input.createdAt && daysSince(input.createdAt) >= VETERAN_DAYS) add(tagById('veteran'));
 

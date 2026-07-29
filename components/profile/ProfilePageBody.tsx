@@ -92,7 +92,7 @@ import { useTagsOff } from '../../lib/hooks/useTagsOff';
 import { deriveTags } from '../../lib/tags/derive';
 import { PERSONA_TAGS, tagTextOn, TAG_PAINTS, isTeamStyleTag } from '../../lib/tags/catalog';
 import { NAME_FONTS, styleName } from '../../lib/profile/nameFont';
-import { getProject, allProjects, projectsByArtist, artistSignatureColor } from '../../lib/project/registry';
+import { getProject, allProjects, projectsByArtist, projectColorway, artistSignatureColor } from '../../lib/project/registry';
 import HomeProjectFacetBar from '../home/HomeProjectFacetBar';
 import GhostCard from '../project/GhostCard';
 import ZenGarden from './ZenGarden';
@@ -299,6 +299,13 @@ function ProfilePageBodyInner({
         rudxaneRoll,
         priceHoldRank: user.price_hold_rank,
         priceHeld: user.price_held,
+        /* The Projects this person made — one chip each, in that Project's own
+           live colour (Brendon, 2026-07-29). */
+        projects: projectsByArtist(user.handle ?? handle).map((p) => ({
+            slug: p.slug,
+            name: p.displayName,
+            color: projectColorway(p.slug) ?? p.colorway,
+        })),
     }), [isOwnProfile, myTags, user.profile_tags, user.granted_tags, user.user_number, artistStatus, user.created_at, user.address, user.handle, handle, ownerTeamTagStyle, rudxaneRoll, user.price_hold_rank, user.price_held]);
     /* Shown on the hero: full derived set minus the hidden ones (Manual → Earned
        → Chosen order via each tag's `order`). */
