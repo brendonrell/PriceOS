@@ -66,6 +66,7 @@ export const RESERVED_T2 = [
     'formula',
     'formulas',
     'tabstract',
+    'lanerunner',
 ] as const;
 
 /** T3 — Functional routes (current and future). */
