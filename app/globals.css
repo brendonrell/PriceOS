@@ -13823,18 +13823,13 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     font-family: 'Courier New', Courier, monospace;
     color: var(--text-color);
 }
-/* The plain-English opener + the column names — a reader should never have to
-   guess what a number means (Brendon, 2026-07-29). */
+/* One short blurb so the grading language lands for anyone new to it
+   (Brendon, 2026-07-29). */
 .pop-table-intro {
     margin: 0 0 2px;
     font-size: 12px;
     line-height: 1.45;
     color: var(--text-color);
-}
-.pop-table-row.pop-table-head {
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    border-top: none;
 }
 .pop-table-axis-name {
     font-size: 12px;

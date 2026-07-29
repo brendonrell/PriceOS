@@ -9,9 +9,9 @@
  * badges and the character sheet read — no fetch, no rarity API, identical for
  * every viewer.
  *
- * The copy is written for someone who has never heard the word "census": say
- * how many pieces have a thing, say what share that is, and say plainly that
- * fewer means rarer.
+ * The card-grading language stays (POP 1 is the collectibles convention
+ * Brendon wants); one short blurb carries the meaning for anyone who hasn't
+ * met it before.
  */
 
 import { useMemo } from 'react';
@@ -24,7 +24,7 @@ export default function PopTablePanel({ slug }: { slug: string }) {
         return (
             <div className="pop-table-wrap">
                 <div className="pop-table-row">
-                    <span className="pop-table-val">NOTHING MINTED YET — THIS FILLS IN WITH THE FIRST PIECE</span>
+                    <span className="pop-table-val">THE CENSUS APPEARS WITH THE FIRST MINT</span>
                 </div>
             </div>
         );
@@ -33,19 +33,13 @@ export default function PopTablePanel({ slug }: { slug: string }) {
     return (
         <div className="pop-table-wrap">
             <p className="pop-table-intro">
-                Every look this project can make, and how many pieces got it.
-                The fewer pieces share a look, the rarer that look is. A look
-                only one piece has is marked POP 1.
+                Card-grading maths: how many pieces share each look, and what
+                share of the edition that is. POP 1 = nothing else has it.
             </p>
             {axes.map((axis) => (
                 <div key={axis.name}>
                     <div className="pop-table-axis-name">
-                        {axis.name} · {axis.values.length} to go around
-                    </div>
-                    <div className="pop-table-row pop-table-head">
-                        <span className="pop-table-val">Look</span>
-                        <span className="pop-table-count">Pieces</span>
-                        <span className="pop-table-pct">Share</span>
+                        {axis.name} · {axis.values.length} value{axis.values.length === 1 ? '' : 's'}
                     </div>
                     {axis.values.map((v) => (
                         <div key={v.value} className={`pop-table-row${v.count === 1 ? ' pop-one' : ''}`}>
