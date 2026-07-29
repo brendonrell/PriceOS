@@ -4246,14 +4246,23 @@ body.pd-stone-open .ens-copy-toast {
    alive on the pill (Brendon, 2026-07-29). Slow enough to notice without
    pulling focus; still for anyone who asked for less motion. */
 .profile-tag--now-buying .profile-tag-glyph,
-.profile-tag--now-selling .profile-tag-glyph,
-.profile-tag--open-to-trades .profile-tag-glyph {
+.profile-tag--now-selling .profile-tag-glyph {
     display: inline-block;
     animation: tag-active-spin 6s linear infinite;
 }
 @keyframes tag-active-spin {
     from { transform: rotate(0deg); }
     to   { transform: rotate(360deg); }
+}
+/* Open To Trades wears the Exchange's ⇌ and SHUTTLES — a short rock left and
+   right, the motion of something changing hands (Brendon, 2026-07-29). */
+.profile-tag--open-to-trades .profile-tag-glyph {
+    display: inline-block;
+    animation: tag-active-shuttle 1.8s ease-in-out infinite;
+}
+@keyframes tag-active-shuttle {
+    0%, 100% { transform: translateX(-1.5px); }
+    50%      { transform: translateX(1.5px); }
 }
 @media (prefers-reduced-motion: reduce) {
     .profile-tag--now-buying .profile-tag-glyph,
