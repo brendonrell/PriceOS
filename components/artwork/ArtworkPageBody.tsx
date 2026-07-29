@@ -774,18 +774,22 @@ export default function ArtworkPageBody({
                         modal. Falls back to an address-only chip when the holder
                         has no handle (no fake sprite). */}
                     <div className="hero-line info-line owner-line">
-                        <span className="info-rubik">
-                            Held by{' '}
-                            {market?.owner_handle ? (
-                                <AsciiId handle={market.owner_handle} />
-                            ) : (
-                                <span className="collected-pair">
-                                    {ownerHref
-                                        ? <a className="profile-link" href={ownerHref}>{heldBy}</a>
-                                        : <span className="profile-link">{heldBy}</span>}
-                                </span>
-                            )}
-                        </span>
+                        {/* Label, rectangle and tags are ALL direct children of
+                            this one row so the row's own centring lines every
+                            one of them up on the same middle (Brendon,
+                            2026-07-29). The label used to wrap the rectangle,
+                            which made the tags centre against a text box
+                            instead of against the rectangle itself. */}
+                        <span className="info-rubik">Held by</span>
+                        {market?.owner_handle ? (
+                            <AsciiId handle={market.owner_handle} />
+                        ) : (
+                            <span className="collected-pair">
+                                {ownerHref
+                                    ? <a className="profile-link" href={ownerHref}>{heldBy}</a>
+                                    : <span className="profile-link">{heldBy}</span>}
+                            </span>
+                        )}
                         {/* The holder's tags, MINI + page-themed — their own row
                             treatment (never part of the ASCII-ID), riding in the
                             same spot right after the rectangle. They join THIS
