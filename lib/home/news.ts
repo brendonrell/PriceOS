@@ -34,10 +34,22 @@ import { FEED_LIFECYCLE, milestoneByKey } from './milestones';
 import { gasRead } from '../gas/read';
 import { formatWindowRemaining } from '../artists/window';
 
-/* Curated feature pills — Brendon's editorial line. Empty until the admin
-   studio populates it; each entry is a NewsItem ({ glyph?, tag?, title?, meta?,
-   href?, kind?, name? }). The rail already renders whatever lands here. */
+/* Curated feature pills baked into the code — Brendon's editorial line before
+   there was a screen for it. Kept as a slot; the live editorial cards now come
+   off the God Mode store and arrive in the home payload (curatedItems below). */
 export const CURATED_NEWS: NewsItem[] = [];
+
+/* Brendon's Cards — the editorial pills he writes in God Mode. They ride the
+   rail exactly like the auto pills; a card with a link taps through. */
+function curatedItems(feed: HomeResponse | null): NewsItem[] {
+    return (feed?.curated ?? []).map((c) => ({
+        glyph: c.glyph ? vs(c.glyph) : undefined,
+        tag: c.tag,
+        title: c.title,
+        meta: c.meta ?? undefined,
+        href: c.href ?? undefined,
+    }));
+}
 
 /* Cap on auto pills so the rail stays a highlight reel, not the firehose.
    Raised 12 → 24 (Brendon, 2026-07-29 — "there should be more"). */
@@ -599,7 +611,7 @@ export function buildNewsItems(feed: HomeResponse | null, day: DayPills = {}): N
     /* Base order (what an unshuffled rail reads as): the day's standing pills,
        then the viewer's own, then whatever the platform is doing, then the
        newest faces, then the live market, and the quiet features last. */
-    rest.push(...CURATED_NEWS, ...youItems(day.you));
+    rest.push(...CURATED_NEWS, ...curatedItems(feed), ...youItems(day.you));
     if (feed) rest.push(...standingItems(feed), ...momentItems(feed), ...faceItems(feed));
     rest.push(...marketItems(day.market), ...(day.doors ? featurePills(day.doors) : []));
     if (day.seed != null) {

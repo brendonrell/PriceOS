@@ -8,7 +8,7 @@
  * Platform-wide analytics joins as the dashboard data lands.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { isAddress } from 'viem';
 import {
     STUDIO_ACCESS_SEED,
@@ -17,6 +17,150 @@ import {
     removeAccessWallet,
 } from '../../lib/studio/access';
 import { loadPackages } from '../../lib/studio/stickerPackages';
+
+/* ── BRENDON'S CARDS ──────────────────────────────────────────────────────
+   The editorial slot on the home news rail, controlled from here. A card is
+   four lines of copy and an optional link; live ones ride the rail with
+   everything else, parked ones stay here until switched on. */
+interface RailCard {
+    id: number;
+    glyph: string | null;
+    tag: string;
+    title: string;
+    meta: string | null;
+    href: string | null;
+    active: boolean;
+    position: number;
+}
+
+const BLANK = { glyph: '', tag: '', title: '', meta: '', href: '', position: '0' };
+
+function BrendonsCards() {
+    const [cards, setCards] = useState<RailCard[]>([]);
+    const [form, setForm] = useState({ ...BLANK });
+    const [editing, setEditing] = useState<number | null>(null);
+    const [busy, setBusy] = useState(false);
+    const [err, setErr] = useState<string | null>(null);
+
+    const load = () => {
+        fetch('/api/admin/news', { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => { if (d?.cards) setCards(d.cards as RailCard[]); })
+            .catch(() => { /* the list simply stays as it was */ });
+    };
+    useEffect(load, []);
+
+    const save = () => {
+        if (!form.tag.trim() || !form.title.trim()) {
+            setErr('A top line and a headline are required');
+            return;
+        }
+        setErr(null);
+        setBusy(true);
+        fetch('/api/admin/news', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...form, id: editing ?? undefined, position: Number(form.position) || 0 }),
+        })
+            .then((r) => (r.ok ? r.json() : Promise.reject(new Error('Save failed'))))
+            .then(() => { setForm({ ...BLANK }); setEditing(null); load(); })
+            .catch(() => setErr('Save failed'))
+            .finally(() => setBusy(false));
+    };
+
+    const toggle = (c: RailCard) => {
+        fetch('/api/admin/news', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...c, active: !c.active }),
+        }).then(load).catch(() => setErr('Save failed'));
+    };
+
+    const remove = (id: number) => {
+        fetch(`/api/admin/news?id=${id}`, { method: 'DELETE' })
+            .then(load)
+            .catch(() => setErr('Delete failed'));
+    };
+
+    const edit = (c: RailCard) => {
+        setEditing(c.id);
+        setForm({
+            glyph: c.glyph ?? '', tag: c.tag, title: c.title,
+            meta: c.meta ?? '', href: c.href ?? '', position: String(c.position),
+        });
+    };
+
+    const field = (k: keyof typeof BLANK, placeholder: string) => (
+        <input
+            className="pd-studio-input"
+            placeholder={placeholder}
+            value={form[k]}
+            onChange={(e) => setForm({ ...form, [k]: e.target.value })}
+        />
+    );
+
+    return (
+        <>
+            <label className="pd-studio-label">Brendon&apos;s Cards — the home rail</label>
+            {cards.length === 0 ? (
+                <p className="pd-studio-note">No cards yet.</p>
+            ) : (
+                cards.map((c) => (
+                    <div key={c.id} className="pd-studio-row">
+                        <span className="pd-studio-row-name">
+                            {c.glyph ? `${c.glyph} ` : ''}{c.tag} · {c.title}
+                        </span>
+                        <span className="pd-studio-row-stat">
+                            <button type="button" className="pd-studio-chip" onClick={() => toggle(c)}>
+                                {c.active ? 'LIVE' : 'PARKED'}
+                            </button>
+                            <button type="button" className="pd-studio-chip" onClick={() => edit(c)}>EDIT</button>
+                            <button type="button" className="pd-studio-chip" onClick={() => remove(c.id)}>REMOVE</button>
+                        </span>
+                    </div>
+                ))
+            )}
+
+            <div className="pd-studio-fieldrow" style={{ marginTop: 10 }}>
+                {field('tag', 'Top line — e.g. ANNOUNCEMENT')}
+                {field('glyph', 'Glyph')}
+            </div>
+            <div className="pd-studio-fieldrow" style={{ marginTop: 6 }}>
+                {field('title', 'Headline — the part the eye lands on')}
+            </div>
+            <div className="pd-studio-fieldrow" style={{ marginTop: 6 }}>
+                {field('meta', 'Detail line')}
+                {field('position', 'Order')}
+            </div>
+            <div className="pd-studio-fieldrow" style={{ marginTop: 6 }}>
+                {field('href', 'Link — where tapping it goes (optional)')}
+                <button
+                    type="button"
+                    className="pd-studio-btn"
+                    style={{ marginTop: 0, width: 'auto' }}
+                    disabled={busy}
+                    onClick={save}
+                >
+                    {editing ? 'SAVE' : 'ADD'}
+                </button>
+            </div>
+            {editing && (
+                <button
+                    type="button"
+                    className="pd-studio-chip"
+                    style={{ marginTop: 6 }}
+                    onClick={() => { setEditing(null); setForm({ ...BLANK }); }}
+                >
+                    CANCEL EDIT
+                </button>
+            )}
+            {err && <div className="pd-studio-err">{err}</div>}
+            <p className="pd-studio-note" style={{ marginTop: 10 }}>
+                Live cards show to everyone on the home rail within a minute.
+            </p>
+        </>
+    );
+}
 
 export function GodMode() {
     const [list, setList] = useState<string[]>(() => loadAccessList());
@@ -76,6 +220,8 @@ export function GodMode() {
             <p className="pd-studio-note" style={{ marginTop: 10 }}>
                 Additions live on this device until the server store lands.
             </p>
+
+            <BrendonsCards />
 
             <label className="pd-studio-label">Sticker Packages — platform-wide</label>
             {packages.length === 0 ? (

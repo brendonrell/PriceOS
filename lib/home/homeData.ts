@@ -108,6 +108,17 @@ export interface HomeResponse {
   /** Extra signals for the home news rail. Optional so an older cached
       payload (or a partial failure) simply renders the rail without them. */
   news?: HomeNewsSignals;
+  /** Brendon's own cards, live ones only, in the order he set them. */
+  curated?: HomeCuratedCard[];
+}
+
+/** One editorial pill, straight from the God Mode store. */
+export interface HomeCuratedCard {
+  glyph: string | null;
+  tag: string;
+  title: string;
+  meta: string | null;
+  href: string | null;
 }
 
 /* How far back a "first resale" still counts as news. Older than this and the
@@ -128,6 +139,26 @@ const TAG_SCAN_LIMIT = 5000;
 /* The news-rail signals that genuinely need a database read. Never throws:
    the rail is decoration, so a failure here quietly renders the rail without
    these pills rather than taking the home page down with it. */
+/* Brendon's editorial cards. Same posture as the signals above — the rail is
+   decoration, so a read failure just means no curated pills, never a broken
+   home page. */
+async function buildCuratedCards(
+  db: ReturnType<typeof getSupabaseService>,
+): Promise<HomeCuratedCard[]> {
+  try {
+    const r = await db
+      .from('home_news_cards')
+      .select('glyph, tag, title, meta, href')
+      .eq('active', true)
+      .order('position', { ascending: true })
+      .order('id', { ascending: true });
+    if (r.error) return [];
+    return (r.data ?? []) as HomeCuratedCard[];
+  } catch {
+    return [];
+  }
+}
+
 async function buildNewsSignals(
   db: ReturnType<typeof getSupabaseService>,
 ): Promise<HomeNewsSignals> {
@@ -221,7 +252,7 @@ async function buildNewsSignals(
  *  whether that's a 500 (the API route) or a null seed (the page). */
 export async function buildHomeResponse(): Promise<HomeResponse> {
   const db = getSupabaseService();
-  const [projRes, mintsRes, pricedRes, news] = await Promise.all([
+  const [projRes, mintsRes, pricedRes, news, curated] = await Promise.all([
     db.from('projects').select('id, title, minted_count, max_supply, project_no, uploaded_at, cooldown_until, graduated_at, sold_out_at, milestones'),
     db
       .from('events')
@@ -230,6 +261,7 @@ export async function buildHomeResponse(): Promise<HomeResponse> {
       .order('timestamp', { ascending: true }),
     db.from('events').select('price_eth').not('price_eth', 'is', null),
     buildNewsSignals(db),
+    buildCuratedCards(db),
   ]);
   if (projRes.error) throw new Error(projRes.error.message);
   if (mintsRes.error) throw new Error(mintsRes.error.message);
@@ -341,5 +373,6 @@ export async function buildHomeResponse(): Promise<HomeResponse> {
     uploads,
     minting_now: minting,
     news,
+    curated,
   };
 }
