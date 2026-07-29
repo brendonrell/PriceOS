@@ -773,11 +773,11 @@ export default function ArtworkPageBody({
                         @name) for the current owner, same chip as the Followers
                         modal. Falls back to an address-only chip when the holder
                         has no handle (no fake sprite). */}
-                    <div className="hero-line info-line">
+                    <div className="hero-line info-line owner-line">
                         <span className="info-rubik">
                             Held by{' '}
                             {market?.owner_handle ? (
-                                <CollectedPair handle={market.owner_handle} />
+                                <CollectedPair handle={market.owner_handle} showSigil showScore />
                             ) : (
                                 <span className="collected-pair">
                                     {ownerHref
@@ -785,18 +785,21 @@ export default function ArtworkPageBody({
                                         : <span className="profile-link">{heldBy}</span>}
                                 </span>
                             )}
+                            {/* The holder's tags, MINI + page-themed, in the SAME
+                                text flow as the ID so they start right after the
+                                rectangle and wrap onto the next line like words —
+                                never widening the page in portrait (Brendon,
+                                2026-07-27; wrap fixed 2026-07-29). Tap → the full
+                                row below; tap a full one → back to mini. */}
+                            {market?.owner_handle && !ownerTagsBig && (
+                                <UserTagsFor
+                                    handle={market.owner_handle}
+                                    size="mini"
+                                    themed
+                                    onTagTap={() => setOwnerTagsBig(true)}
+                                />
+                            )}
                         </span>
-                        {/* The holder's tags, MINI + page-themed, inline right
-                            after the ID (Brendon, 2026-07-27). Tap → the full
-                            row below; tap a full one → back to mini. */}
-                        {market?.owner_handle && !ownerTagsBig && (
-                            <UserTagsFor
-                                handle={market.owner_handle}
-                                size="mini"
-                                themed
-                                onTagTap={() => setOwnerTagsBig(true)}
-                            />
-                        )}
                     </div>
                     {market?.owner_handle && ownerTagsBig && (
                         <div className="hero-line info-line">

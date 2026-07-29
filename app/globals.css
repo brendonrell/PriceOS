@@ -3977,6 +3977,15 @@ body.pd-stone-open .ens-copy-toast {
     margin-bottom: 24px;
     max-width: 900px;
     align-self: flex-start;
+    /* DEFINITE WIDTH, not shrink-to-fit (Brendon, 2026-07-29). Without this the
+       column sized itself to its WIDEST child, so one long unbreakable row (the
+       holder's tag strip) stretched the whole hero — dragging the title off the
+       right edge in portrait, where the document is clipped rather than
+       scrollable. A real width also gives every child's `max-width: 100%`
+       something to resolve against, so rows wrap at the viewport instead. */
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 /* ── HERO ROW BANDS (shared shell — components/hero/Hero.tsx) ──────
@@ -4948,6 +4957,36 @@ body.persona-default .stats-row-2 { display: none !important; }
        (Brendon, 2026-07-27 — read off the FI screenshots). */
     position: relative;
     top: -2px;
+}
+
+/* THE SIGIL inside the rectangle (Brendon, 2026-07-29) — the forged mark trails
+   the @name exactly as it trails the name on the connect pill, in the page's own
+   ink at full strength so it reads on any colorway. */
+.collected-pair .collected-sigil {
+    font-size: 12px;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-left: 1px;
+}
+/* THE PRICESCORE closing the rectangle (Brendon, 2026-07-29) — the ◍ mark in
+   Courier, the number in Rubik with tabular figures, matching the leaderboard's
+   locked treatment. Full-strength, never faded. */
+.collected-score {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-weight: 400;
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    color: inherit;
+}
+.collected-score-ic {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    line-height: 1;
 }
 
 .profile-link {
@@ -13382,6 +13421,28 @@ body.is-pwa .artwork-fullscreen.artwork-darkroom .fullscreen-back {
    the MINI tags riding right after it. */
 .fi-dossier-id { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .info-line .user-tags--mini { max-width: 100%; margin-left: 6px; vertical-align: -3px; }
+/* ── THE OWNER LINE (output page) — "HELD BY [ID Rectangle] [tags…]" ────────
+   One continuous run of text, not a flex row: the mini tags sit in the SAME
+   flow as the ID, so they start right after the rectangle and wrap onto the
+   next line like words when they run out of room (Brendon, 2026-07-29). The
+   strip used to be a single nowrap line that scrolled sideways — in portrait
+   that widened the whole hero and pushed the title off screen. It wraps now;
+   nothing scrolls. ── */
+.owner-line { display: block; }
+.owner-line .user-tags--mini {
+    display: inline;
+    flex-wrap: wrap;
+    overflow: visible;
+    margin-left: 0;
+    max-width: none;
+    vertical-align: baseline;
+}
+.owner-line .user-tags--mini .profile-tag {
+    /* The gap becomes per-pill margin, since inline flow owns the wrapping.
+       The bottom margin is the row gap for a holder whose tags run long. */
+    margin: 0 0 3px 4px;
+    vertical-align: middle;
+}
 .fi-dossier-id .collected-pair { font-size: 15px; padding: 3px 8px; }
 .fi-dossier-id .collected-sprite { font-size: 13px; }
 .fi-dossier-id .collected-rank-badge { font-size: 17px; }

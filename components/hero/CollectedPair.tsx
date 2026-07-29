@@ -14,13 +14,17 @@
 
 import { useSpriteFace } from '../../lib/hooks/useSpriteFace';
 import SpriteFace from '../SpriteFace';
+import SigilArt from '../SigilArt';
 import { useSpiteMatcher } from '../../lib/pins/spiteStore';
-import { useUserRank, rankBadgeGlyph } from '../../lib/hooks/useUserRank';
+import { useUserIdentity, rankBadgeGlyph } from '../../lib/hooks/useUserRank';
+import { ACHIEVEMENTS_ICON } from '../../lib/achievements/icon';
 
 export default function CollectedPair({
     handle,
     onSpriteTap,
     showRank = false,
+    showSigil = false,
+    showScore = false,
 }: {
     handle: string;
     /** When set, tapping ONLY the sprite face fires this with the face's on-screen
@@ -32,10 +36,18 @@ export default function CollectedPair({
      *  verbatim, at chip scale. Rank derives from their live PriceScore
      *  (cached per handle). */
     showRank?: boolean;
+    /** THE SIGIL rides after the @name, exactly as it trails the name on the
+     *  connect pill. Absent when the person hasn't forged one or has switched
+     *  it off. (Brendon, 2026-07-29 — the output page's owner rectangle.) */
+    showSigil?: boolean;
+    /** The person's live PriceScore, ◍ + the number, closing the rectangle.
+     *  (Brendon, 2026-07-29.) */
+    showScore?: boolean;
 }) {
     const h = handle.toLowerCase().replace(/^@/, '');
     const face = useSpriteFace(h);
-    const rank = useUserRank(h, showRank);
+    const id = useUserIdentity(h, showRank || showSigil || showScore);
+    const rank = showRank ? id.rank : null;
     /* Spite Book — a spited handle renders redacted in every chip. */
     const isSpited = useSpiteMatcher();
     return (
@@ -66,6 +78,20 @@ export default function CollectedPair({
             <a className={`profile-link${isSpited(h) ? ' spited' : ''}`} href={`/${h}`}>
                 @{h}
             </a>
+            {showSigil && id.sigilVisible && id.address && (
+                <SigilArt
+                    address={id.address}
+                    hex="currentColor"
+                    className="collected-sigil"
+                    title="Sigil"
+                />
+            )}
+            {showScore && id.score !== null && (
+                <span className="collected-score" title="PriceScore">
+                    <span className="collected-score-ic">{ACHIEVEMENTS_ICON}</span>
+                    {id.score.toLocaleString('en-US')}
+                </span>
+            )}
         </span>
     );
 }
