@@ -377,14 +377,21 @@ body.modal-open .fm-bar {
     align-items: center;
     /* The MP330's display is a black bezel with soft corners, not a hairline
        box (Brendon, 2026-07-28: "a thick black border around it... and the
-       screen needs rounded corners"). USB only — the deck keeps its hairline. */
+       screen needs rounded corners"). USB only — the deck keeps its hairline.
+       The LEFT edge is the FAT one he asked for twice — the reference's bezel
+       is deepest on the end the artwork sits against. */
     border: 3px solid #000;
+    border-left-width: 9px;
     border-radius: 6px;
 }
 /* the CRT veil follows the glass into the rounded corners */
 .fm-mode-usb .fm-screen::after { border-radius: inherit; }
-.fm-mode-usb .fm-video { width: 30px; height: 22px; border-right: 1px solid var(--bg-color); align-self: center; }
-.fm-mode-usb .fm-video iframe { width: 30px; height: 22px; }
+/* The artwork sits SMALLER inside the glass, with the fat black bezel down the
+   LEFT side (Brendon, 2026-07-28: "make the artwork a bit smaller within the
+   screen, the border I want big is on the left side") — the reference's display
+   has real black around its content, not a picture pressed to the edge. */
+.fm-mode-usb .fm-video { width: 24px; height: 18px; border-right: 1px solid var(--bg-color); align-self: center; margin-left: 5px; }
+.fm-mode-usb .fm-video iframe { width: 24px; height: 18px; }
 .fm-mode-usb .fm-rows { width: 62px; flex: 0 0 62px; max-width: 62px; padding: 0 4px; }
 /* the EQ dances in the glass — readout-coloured on the inverted panel */
 .fm-mode-usb .fm-sigbars {
@@ -473,17 +480,46 @@ body.modal-open .fm-bar {
     cursor: pointer;
     z-index: 2;
 }
+/* The cap is the SAME piece of moulded plastic as the body (Brendon,
+   2026-07-28: "make the usb cap get the visual upgrade") — the identical
+   specular streak, shoulders, shaded base and bounce line, so the two read as
+   one shell that happens to come apart. */
 .fm-usbcap::before {
     content: '';
     position: absolute;
     inset: 0;
     border-radius: 10px 4px 4px 10px;
-    background: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--bg-color) 72%, #ffffff) 0%,
-        var(--bg-color) 52%,
-        color-mix(in srgb, var(--bg-color) 82%, #000000) 100%
-    );
+    background:
+        linear-gradient(
+            180deg,
+            transparent 3%,
+            color-mix(in srgb, var(--bg-color) 30%, #ffffff) 4%,
+            color-mix(in srgb, var(--bg-color) 34%, #ffffff) 11%,
+            transparent 19%,
+            transparent 100%
+        ),
+        linear-gradient(
+            90deg,
+            color-mix(in srgb, var(--bg-color) 58%, #000000) 0%,
+            color-mix(in srgb, var(--bg-color) 88%, #000000) 7%,
+            transparent 18%,
+            transparent 84%,
+            color-mix(in srgb, var(--bg-color) 84%, #000000) 96%,
+            color-mix(in srgb, var(--bg-color) 52%, #000000) 100%
+        ),
+        linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--bg-color) 74%, #ffffff) 0%,
+            var(--bg-color) 38%,
+            color-mix(in srgb, var(--bg-color) 82%, #000000) 72%,
+            color-mix(in srgb, var(--bg-color) 46%, #000000) 93%,
+            color-mix(in srgb, var(--bg-color) 66%, #ffffff) 100%
+        );
+    box-shadow:
+        inset 0 1px 0 color-mix(in srgb, var(--bg-color) 34%, #ffffff),
+        inset 0 -1px 0 color-mix(in srgb, var(--bg-color) 44%, #000000),
+        inset 1px 0 0 color-mix(in srgb, var(--bg-color) 72%, #ffffff),
+        inset -1px 0 0 color-mix(in srgb, var(--bg-color) 60%, #000000);
     transition: transform 0.22s ease, opacity 0.18s ease;
 }
 .fm-usbcap--off::before {
