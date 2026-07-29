@@ -9607,6 +9607,14 @@ body.anon-mode #artistsPanel .artist-rel-icon { display: none !important; }
 body.anon-mode #artistsPanel .pill-artist-filter[data-rel="mutual"],
 body.anon-mode #artistsPanel .pill-artist-filter[data-rel="following"],
 body.anon-mode #artistsPanel .pill-artist-filter[data-rel="followers"] { display: none !important; }
+/* Profile TAGS are identity too, so Anon Mode hides them everywhere they
+   appear (Brendon, 2026-07-29): the profile hero, and every list surface that
+   carries the row — leaderboards, collectors, followers, the dossier, search,
+   the output owner line. Every pill on the platform comes from the one
+   renderer, so both its homes are covered here. On the hero only the PILLS
+   go — the row's trailing keychain charm is not a tag and stays. */
+body.anon-mode .user-tags { display: none !important; }
+body.anon-mode .profile-tags .profile-tag { display: none !important; }
 
 /* sim 3881-3883 — Art placeholder. CSS gradient backstop + hover
    overlay border reset on the gallery cards' .canvas-wrapper. */
