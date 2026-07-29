@@ -7,10 +7,11 @@
  * charm popup (never a nav).
  */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useModal } from '../../lib/state/ModalContext';
 import { charmSVG } from '../../lib/keychains/engine';
 import { useKeychainRack } from '../../lib/keychains/rack';
+import { startSway, resumeMotion } from '../../lib/keychains/sway';
 
 export default function EquippedCharm({ address }: { address: string }) {
     const { open } = useModal();
@@ -26,6 +27,13 @@ export default function EquippedCharm({ address }: { address: string }) {
         () => (charm && rack ? charmSVG(charm.seed, `eq${charm.id}`, rack.streak, rack.rank, '', charm.coin) : ''),
         [charm, rack],
     );
+
+    /* It hangs: the shared pendulum runs while a charm is on screen. */
+    useEffect(() => {
+        if (!charm) return;
+        resumeMotion();
+        return startSway();
+    }, [charm]);
 
     if (!charm) return null;
     return (

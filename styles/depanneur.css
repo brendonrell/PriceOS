@@ -281,7 +281,39 @@
     position: absolute;
     left: 50%;
     bottom: calc(50% - 26px);
-    transform: translateX(-50%);
+    /* IT HANGS — the whole thing swings from the RING at the top of the chain
+       (50% across, 10.8% down the art), driven by the shared pendulum in
+       lib/keychains/sway.ts. The charm's own gentle rock rides on top of it. */
+    transform: translateX(-50%) rotate(var(--charm-sway, 0deg));
+    transform-origin: 50% 10.8%;
     width: 76px;
     height: auto;
 }
+@media (prefers-reduced-motion: reduce) {
+    .pd-charm-worn svg { transform: translateX(-50%); }
+}
+
+/* THE MOTION DOOR — inside the charm popup, the one deliberate place the
+   tilt permission is asked for and turned back off (Brendon, 2026-07-29).
+   Full-strength site tokens, like every other pill. */
+.dp-motion-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 24px;
+    padding: 0 10px;
+    border-radius: 4px;
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
+    color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.dp-motion-btn.on {
+    background: var(--text-color);
+    color: var(--bg-color);
+}
+.dp-motion-btn.dead { cursor: default; }

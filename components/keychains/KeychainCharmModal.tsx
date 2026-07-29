@@ -6,11 +6,13 @@
  * A popup over wherever you are — never a nav (the ping/tag-popup law).
  */
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useModal, useModalLayer } from '../../lib/state/ModalContext';
 import { charmSVG, charmTraits, chainTier, FINISH_NAMES, finishForRank } from '../../lib/keychains/engine';
 import { useKeychainRack } from '../../lib/keychains/rack';
+import { useAuth } from '../../lib/state/AuthContext';
+import { motionState, motionSupported, onMotionChange, requestMotion, stopMotion } from '../../lib/keychains/sway';
 
 const VS15 = '︎';
 
@@ -40,6 +42,14 @@ export default function KeychainCharmModal() {
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
     }, [isOpen, close]);
+
+    /* THE MOTION DOOR — only on YOUR OWN charm (Brendon, 2026-07-29). The tilt
+       permission is asked for here and turned back off here; everywhere else
+       the charm hangs off scrolling alone. */
+    const { siweAddress } = useAuth();
+    const mine = !!siweAddress && !!address && siweAddress.toLowerCase() === address.toLowerCase();
+    const [motion, setMotion] = useState(motionState());
+    useEffect(() => onMotionChange(() => setMotion(motionState())), []);
 
     if (!isOpen || typeof document === 'undefined') return null;
 
@@ -82,6 +92,28 @@ export default function KeychainCharmModal() {
                                     </span>
                                 ))}
                             </div>
+                            {mine && motionSupported() && (
+                                <span
+                                    className={`dp-motion-btn${motion === 'granted' ? ' on' : ''}${motion === 'denied' ? ' dead' : ''}`}
+                                    role="button"
+                                    tabIndex={motion === 'denied' ? -1 : 0}
+                                    title={motion === 'denied'
+                                        ? 'Your phone refused motion access — turn it back on in Safari settings'
+                                        : 'Sway with how you hold the phone'}
+                                    onClick={() => {
+                                        if (motion === 'denied') return;
+                                        if (motion === 'granted') stopMotion(); else void requestMotion();
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key !== 'Enter' && e.key !== ' ') return;
+                                        e.preventDefault();
+                                        if (motion === 'denied') return;
+                                        if (motion === 'granted') stopMotion(); else void requestMotion();
+                                    }}
+                                >
+                                    {`⌁${VS15} TILT: ${motion === 'granted' ? 'ON' : motion === 'denied' ? 'BLOCKED' : 'OFF'}`}
+                                </span>
+                            )}
                         </div>
                     </>
                 )}
