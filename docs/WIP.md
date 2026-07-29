@@ -8,7 +8,57 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-29 (LATEST) — PROFILE SPOT-EDITS · THE HANGING KEYCHAIN ·
+0. ✅ **2026-07-29 (LATEST) — THE MARQUEE ROUND (Opus 5). All on `dev`
+   (tip `c0f13d4`), tree clean.**
+
+   **Nothing is outstanding.**
+
+   **⛔ THE LOOP BUG — the rail never actually looped.** The scroll animation
+   translated by -50% of the RAIL'S OWN WIDTH, but an absolutely-positioned
+   flex row collapses to its container's width, so it slid half a screen and
+   snapped back mid-pill ("break and cut and restart"). Fix: the rail is sized
+   to its content (`width: max-content`), so -50% is one true run. **If any
+   other rail on the site ever "cuts and restarts", this is the first thing to
+   check** — the Tape rail and `.fi-wire-rail` share the same keyframes.
+
+   **SHIPPED THIS SESSION — all on the home news rail**
+   - Title of the PriceDay card is **WELCOME TO** (over "PriceDay #55").
+   - Seamless loop (above) · **per-visit shuffle** (content-keyed hash, so a
+     late-arriving pill slots in without re-dealing the rail and cutting the
+     glide) · caps raised 12 → 24 and 3 → 5.
+   - **THE GREETING CARD** — GOOD MORNING / AFTERNOON / EVENING / NIGHT off the
+     viewer's own clock (5 / 12 / 17 / 22). **1 visit in 10 it drops to
+     lowercase `gm` / `gn`** — morning and night only, there's no shorthand for
+     the others. Stat under it: new projects in the last 24h → **2 visits in 10
+     it counts "since your last visit"** instead (visit is stamped every time;
+     only shows when something actually landed). Falls back to minting-now,
+     then total pieces.
+   - **SEVEN HELPFUL CARDS**: almost-minting (within 5 of the threshold) ·
+     cart · bench · a followed artist's upload · a followed artist's next
+     window · wishlist moved · your own window shouting OPENS TODAY inside 24h.
+   - **SEVEN RELATIONSHIP CARDS**: offers on your pieces · your oldest open
+     offer ("Sent 34 days ago") · live takeover either side · your nemesis ·
+     top counterparty · faction oath · mutuals wearing Open To Trades.
+   - **THE POTPOURRI FIX** (his words: *"a personalized potpourri of
+     interesting stuff instead of a parade of endless projects graduating"*).
+     Moments are dealt in ROUNDS — one per family before any family repeats,
+     max 3 per family. And **your own cards are pulled out of the shuffle into
+     their own pile and woven back in every 3rd slot**, so the rail reads as
+     yours.
+   - **BRENDON'S CARDS — God Mode (PD Studio) now has editorial control.**
+     Top line · headline · detail · glyph · link · order, with LIVE/PARKED,
+     EDIT, REMOVE. New `home_news_cards` table (applied to the live project);
+     public read of LIVE rows only, writes service-role behind a SIWE +
+     owner-wallet check. **This is the "admin studio" the old CURATED_NEWS
+     comment promised — it exists now.**
+
+   **⛔ HE HATES A PARADE.** Any surface that lists platform events will drift
+   into one loud family. Deal by family, cap the family, weave the personal in.
+
+<details>
+<summary>Earlier the same day — PROFILE SPOT-EDITS · KEYCHAIN · FORMULA</summary>
+
+0. ✅ **2026-07-29 — PROFILE SPOT-EDITS · THE HANGING KEYCHAIN ·
    FORMULA (Opus 5). All on `dev` (tip `7d5c46c`), tree clean.**
 
    **Nothing is outstanding.**
@@ -69,6 +119,8 @@
    Then wrap, thanks!"* and it was read as "wrap INSTEAD". **"Then" means
    AFTER.** He had to say so twice. When an instruction chains two jobs, do
    both, in his order.
+
+</details>
 
 <details>
 <summary>Earlier the same day — HOME NEWS RAIL ROUND</summary>
