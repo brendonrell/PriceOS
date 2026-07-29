@@ -4953,16 +4953,16 @@ body.persona-default .stats-row-2 { display: none !important; }
    negative tracking as the navbar's .ascii-pfp-badge, full-strength colour. */
 .collected-rank-badge {
     font-family: 'Segoe UI Symbol', 'Noto Sans Symbols', Arial, sans-serif;
-    font-size: 14px;
+    font-size: 15px;
     line-height: 1;
     color: inherit;
     letter-spacing: -1px;
     flex-shrink: 0;
     user-select: none;
-    /* Sits 2px high so the circled digit centres on the @name's x-height
-       (Brendon, 2026-07-27 — read off the FI screenshots). */
+    /* One size up and 2px lower than the last pass, on every ASCII-ID
+       (Brendon, 2026-07-29). */
     position: relative;
-    top: -2px;
+    top: 0;
 }
 
 /* THE SIGIL inside the rectangle (Brendon, 2026-07-29) — the forged mark trails
@@ -13419,16 +13419,16 @@ body.is-pwa .artwork-fullscreen.artwork-darkroom .fullscreen-back {
    and pushed the title off screen. It wraps now; nothing scrolls. ── */
 .owner-line {
     row-gap: 5px;
-    /* The pills share the rectangle's bottom edge, so the whole row reads as
-       one level line instead of the tags floating 2px high (Brendon,
-       2026-07-29). Centring can't do it: "HELD BY" carries ascent above the
-       rectangle, which pulls the row's centre up past it. */
-    align-items: flex-end;
+    /* "HELD BY" is the base and everything else in the row centres on it —
+       the rectangle and the pills are vertically aligned, not sitting on a
+       shared bottom line (Brendon, 2026-07-29). */
+    align-items: center;
 }
+.owner-line .collected-pair { vertical-align: middle; }
 .owner-line .user-tags--mini { display: contents; }
 .fi-dossier-id .collected-pair { font-size: 15px; padding: 3px 8px; }
 .fi-dossier-id .collected-sprite { font-size: 13px; }
-.fi-dossier-id .collected-rank-badge { font-size: 17px; }
+.fi-dossier-id .collected-rank-badge { font-size: 18px; }
 .fi-dossier-id .profile-link { font-family: 'Courier New', Courier, monospace; font-weight: bold; }
 .fi-dossier-head .fm-tag { opacity: 1; }
 .fi-follow { margin-left: auto; font-size: 11px; font-weight: bold; letter-spacing: 0.06em; }
