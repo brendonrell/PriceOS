@@ -4101,9 +4101,24 @@ body.pd-stone-open .ens-copy-toast {
 .pill.pill-l3.tag-pick.active {
     box-shadow: inset 0 0 0 2px var(--tag-text, var(--text-color));
 }
-/* The free-colour picker that closes the paint row — a normal paint pill that
-   happens to hold a hidden colour input (Brendon, 2026-07-26). */
-.pill.pill-l3.tag-pick-custom { position: relative; cursor: pointer; }
+/* The free-colour picker that closes the paint row — a pill that happens to
+   hold a hidden colour input (Brendon, 2026-07-26). It wears NO colour of its
+   own: an empty pill in a DOTTED edge, full-strength in the page's own ink
+   (Brendon, 2026-07-29). It is the one control here that isn't a colour, so it
+   shouldn't wear one. */
+.pill.pill-l3.tag-pick-custom {
+    position: relative;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-color);
+    border: 1px dotted var(--text-color);
+}
+.pill.pill-l3.tag-pick-custom .stat-name,
+.pill.pill-l3.tag-pick-custom .tag-pick-glyph { color: var(--text-color); }
+/* Picked reads as on with the ring in the page's ink, not the paint's. */
+.pill.pill-l3.tag-pick-custom.active {
+    box-shadow: inset 0 0 0 2px var(--text-color);
+}
 .tag-pick-glyph {
     color: var(--tag-text, var(--text-color));
     font-family: 'Courier New', Courier, monospace;
