@@ -2056,7 +2056,7 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                             facets={ARTIST_SHOWCASE_FACETS}
                             compact={showcaseView === 'regular'}
                             leadPills={[
-                                { key: 'created', label: 'Created', active: showcaseView === 'created', onClick: () => setShowcaseView('created') },
+                                { key: 'created', label: 'Created', count: enrichedArtistProjects.length, active: showcaseView === 'created', onClick: () => setShowcaseView('created') },
                                 { key: 'regular', label: 'Top 6', active: showcaseView === 'regular', onClick: () => setShowcaseView('regular') },
                             ]}
                         />

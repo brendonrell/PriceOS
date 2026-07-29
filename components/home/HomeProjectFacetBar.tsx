@@ -116,6 +116,9 @@ export interface FacetLeadPill {
     label: string;
     active: boolean;
     onClick: () => void;
+    /** A number worn after the label, the same way the facet pills wear theirs
+     *  (Brendon, 2026-07-29). Absent = label only. */
+    count?: number;
 }
 
 export default function HomeProjectFacetBar({
@@ -273,6 +276,7 @@ export default function HomeProjectFacetBar({
                                 title={p.label}
                             >
                                 <span className="stat-name">{p.label}</span>
+                                {p.count != null && <span className="stat-count">{p.count}</span>}
                             </div>
                         ))}
                         {!compact && liveFacets.map((facet) => {
