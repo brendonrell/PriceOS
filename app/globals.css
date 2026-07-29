@@ -14145,3 +14145,48 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
 .price-acct-list .nbhd-note { padding-bottom: 6px; }
 .price-acct-links { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 2px; }
 .price-acct-links .pill { text-decoration: none; }
+
+/* ── FORMULA — row 4 of the profile personalization carousels (Brendon,
+   2026-07-29). The owner's own generative Unicode art, worn as a tag. The
+   pills wear the site's full-strength tokens; the ARTWORK pill wears Dot +
+   Matrix so the glyphs are the only thing with a colour opinion. ── */
+.profile-formula-picker { margin-top: 10px; }
+/* A shelf item is one artwork + its pencil, kept together on the scroll. */
+.fx-shelf-item { display: inline-flex; align-items: center; gap: 4px; flex: 0 0 auto; }
+/* The artwork itself — glyph-sized, never squeezed by the label metrics. */
+.pill.pill-l3.fx-pill .stat-name {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 15px;
+    letter-spacing: 1px;
+    line-height: 1;
+}
+/* The live piece while editing: not a button, so no pointer, but it keeps the
+   pill's shape so the row reads as one thing. */
+.pill.pill-l3.fx-live {
+    background: #111111;
+    color: #E0E0E0;
+    border: 1px solid #E0E0E0;
+    cursor: default;
+}
+/* NEW · the pencil · every parameter button — the proven chrome treatment:
+   solid page fill, full-strength ink for the border AND the label, bold. */
+.pill.pill-l3.fx-new,
+.pill.pill-l3.fx-pencil,
+.pill.pill-l3.fx-opt {
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
+    color: var(--text-color);
+    font-weight: bold;
+    cursor: pointer;
+}
+.pill.pill-l3.fx-opt.active {
+    background: var(--stat-active-bg, var(--text-color));
+    color: var(--stat-active-text, var(--bg-color));
+    border-color: var(--stat-active-bg, var(--text-color));
+}
+.pill.pill-l3.fx-pencil { padding: 0 8px; }
+.pill.pill-l3.fx-pencil .stat-name {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    line-height: 1;
+}

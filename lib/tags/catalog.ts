@@ -369,6 +369,12 @@ export const PRICE_HELD_1M_TEXT = '#111111';  // Dot black
 export const PRICE_HELD_100K_BG = '#111111';  // Dot black
 export const PRICE_HELD_100K_TEXT = '#FFE600';// Attention yellow (--dot)
 
+/** FORMULA tags (Brendon, 2026-07-29) — the owner's own generative Unicode
+ *  art. Dot fill, Matrix lettering: the brand's two neutrals, so the ARTWORK is
+ *  the only thing with a colour opinion on the pill. */
+export const FORMULA_TAG_BG = '#111111';    // Dot
+export const FORMULA_TAG_TEXT = '#E0E0E0';  // Matrix
+
 export const TAGS: Tag[] = [...PERSONAS, ...EARNED, ...GRANTED];
 
 const BY_ID = new Map<string, Tag>(TAGS.map((t) => [t.id, t]));

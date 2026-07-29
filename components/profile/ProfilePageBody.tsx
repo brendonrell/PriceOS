@@ -85,6 +85,11 @@ import EquippedCharm from '../keychains/EquippedCharm';
 import { useProfileTags } from '../../lib/hooks/useProfileTags';
 import { useNameFont } from '../../lib/hooks/useNameFont';
 import { useTagPaint } from '../../lib/hooks/useTagPaint';
+import { useFormulas, useFormulaRoll } from '../../lib/hooks/useFormulas';
+import {
+    FORMULA_SETS, FORMULA_LENGTHS, FORMULA_WEAVES, MAX_FORMULAS,
+    drawFormula, formulaBlurb, newFormula, type Formula,
+} from '../../lib/tags/formula';
 import { useTeamTagStyle } from '../../lib/hooks/useTeamTagStyle';
 import { useRudxaneRoll } from '../../lib/hooks/useRudxaneRoll';
 import AsciiId from '../hero/AsciiId';
@@ -267,6 +272,13 @@ function ProfilePageBodyInner({
     const ownerNameFont = isOwnProfile ? myNameFont : user.name_font;
     const { paint: myTagPaint, setPaint: setMyTagPaint } = useTagPaint(isOwnProfile ? user.tag_paint : undefined);
     const ownerTagPaint = isOwnProfile ? myTagPaint : user.tag_paint;
+    /* FORMULA — the owner's own generative Unicode art (Brendon, 2026-07-29).
+       The shelf is theirs; the roll redraws every load for every visitor. */
+    const { formulas: myFormulas, save: saveFormulas } = useFormulas(isOwnProfile ? user.formulas : undefined);
+    const ownerFormulas = isOwnProfile ? myFormulas : user.formulas;
+    const formulaRoll = useFormulaRoll();
+    /* Which Formula the row is editing (its index), or null when just browsing. */
+    const [editingFormula, setEditingFormula] = useState<number | null>(null);
     /* Tags the owner switched OFF — hidden from the shown row (every viewer),
        but still listed in the owner's picker to tap back on (Brendon,
        2026-07-22). */
@@ -299,6 +311,8 @@ function ProfilePageBodyInner({
         handle: user.handle ?? handle,
         teamTagStyle: ownerTeamTagStyle,
         rudxaneRoll,
+        formulas: ownerFormulas,
+        formulaRoll,
         priceHoldRank: user.price_hold_rank,
         priceHeld: user.price_held,
         /* The Projects this person made — one chip each, in that Project's own
@@ -308,7 +322,7 @@ function ProfilePageBodyInner({
             name: p.displayName,
             color: projectColorway(p.slug) ?? p.colorway,
         })),
-    }), [isOwnProfile, myTags, user.profile_tags, user.granted_tags, user.user_number, artistStatus, user.created_at, user.address, user.handle, handle, ownerTeamTagStyle, rudxaneRoll, user.price_hold_rank, user.price_held]);
+    }), [isOwnProfile, myTags, user.profile_tags, user.granted_tags, user.user_number, artistStatus, user.created_at, user.address, user.handle, handle, ownerTeamTagStyle, rudxaneRoll, ownerFormulas, formulaRoll, user.price_hold_rank, user.price_held]);
     /* Shown on the hero: full derived set minus the hidden ones (Manual → Earned
        → Chosen order via each tag's `order`). */
     const displayTags = useMemo(
@@ -1253,6 +1267,133 @@ function ProfilePageBodyInner({
                                     </div>
                                 );
                             })}
+                        </div>
+                        {/* Row 4 — FORMULA (Brendon, 2026-07-29): your own
+                            generative Unicode art, worn as a tag. Numbered by
+                            shelf position like Albums, never named. The row has
+                            two faces: browsing your shelf, and editing one —
+                            every parameter is a button IN the row, not a modal.
+                            Empty by default: nothing exists until you make one. */}
+                        <div className="profile-egg-row cust-scroll profile-formula-picker">
+                            {editingFormula === null ? (
+                                <>
+                                    {/* NEW — the only way in. Hidden at the cap. */}
+                                    {myFormulas.length < MAX_FORMULAS && (
+                                        <div
+                                            className="pill pill-l3 fx-new"
+                                            role="button"
+                                            tabIndex={0}
+                                            onClick={() => {
+                                                const next = [...myFormulas, newFormula()];
+                                                saveFormulas(next);
+                                                setEditingFormula(next.length - 1);
+                                                showToast(`Formula #${next.length}: CREATED`);
+                                            }}
+                                            onKeyDown={(e) => {
+                                                if (e.key !== 'Enter' && e.key !== ' ') return;
+                                                e.preventDefault();
+                                                const next = [...myFormulas, newFormula()];
+                                                saveFormulas(next);
+                                                setEditingFormula(next.length - 1);
+                                                showToast(`Formula #${next.length}: CREATED`);
+                                            }}
+                                            title="Make a Formula — your own generative art, worn as a tag"
+                                        >
+                                            <span className="stat-name">{'+ FORMULA'}</span>
+                                        </div>
+                                    )}
+                                    {myFormulas.map((f, i) => (
+                                        <div key={i} className="fx-shelf-item">
+                                            {/* The pill IS the artwork, drawn live. Tap = wear/unwear. */}
+                                            <div
+                                                className={`pill pill-l3 tag-pick fx-pill${f.on ? ' active' : ''}`}
+                                                style={{ ['--tag' as string]: '#111111', ['--tag-text' as string]: '#E0E0E0' }}
+                                                role="button"
+                                                tabIndex={0}
+                                                onClick={() => {
+                                                    const next = myFormulas.map((x, j) => (j === i ? { ...x, on: !x.on } : x));
+                                                    saveFormulas(next);
+                                                    showToast(`Formula #${i + 1}: ${f.on ? 'OFF' : 'WORN'}`);
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    if (e.key !== 'Enter' && e.key !== ' ') return;
+                                                    e.preventDefault();
+                                                    saveFormulas(myFormulas.map((x, j) => (j === i ? { ...x, on: !x.on } : x)));
+                                                }}
+                                                title={`Formula #${i + 1} — ${formulaBlurb(f)}`}
+                                            >
+                                                <span className="stat-name">{drawFormula(f, formulaRoll ?? 0)}</span>
+                                            </div>
+                                            {/* The pencil — edit this saved one. */}
+                                            <div
+                                                className="pill pill-l3 fx-pencil"
+                                                role="button"
+                                                tabIndex={0}
+                                                onClick={() => setEditingFormula(i)}
+                                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setEditingFormula(i); } }}
+                                                title={`Edit Formula #${i + 1}`}
+                                                aria-label={`Edit Formula #${i + 1}`}
+                                            >
+                                                <span className="stat-name">{'✎︎'}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </>
+                            ) : (() => {
+                                const i = editingFormula;
+                                const f = myFormulas[i];
+                                if (!f) { setEditingFormula(null); return null; }
+                                const patch = (next: Partial<Formula>) =>
+                                    saveFormulas(myFormulas.map((x, j) => (j === i ? { ...x, ...next } : x)));
+                                const btn = (key: string, label: string, on: boolean, hit: () => void, title: string) => (
+                                    <div
+                                        key={key}
+                                        className={`pill pill-l3 fx-opt${on ? ' active' : ''}`}
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={hit}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); hit(); } }}
+                                        title={title}
+                                    >
+                                        <span className="stat-name">{label}</span>
+                                    </div>
+                                );
+                                return (
+                                    <>
+                                        {/* The live piece, pinned at the head of the row so every
+                                            button press is visible in the work itself. */}
+                                        <div
+                                            className="pill pill-l3 fx-pill fx-live"
+                                            style={{ ['--tag' as string]: '#111111', ['--tag-text' as string]: '#E0E0E0' }}
+                                            title={`Formula #${i + 1} — ${formulaBlurb(f)}`}
+                                        >
+                                            <span className="stat-name">{drawFormula(f, formulaRoll ?? 0)}</span>
+                                        </div>
+                                        {btn('done', '✓︎ DONE', false, () => setEditingFormula(null), 'Back to your shelf')}
+                                        {/* SETS — the main dial. Never empty: the last one can't be dropped. */}
+                                        {FORMULA_SETS.map((set, si) => btn(
+                                            `s${si}`,
+                                            `${set.glyphs.slice(0, 3).join('')} ${set.name}`,
+                                            f.sets.includes(si),
+                                            () => {
+                                                const has = f.sets.includes(si);
+                                                if (has && f.sets.length === 1) return;
+                                                patch({ sets: has ? f.sets.filter((x) => x !== si) : [...f.sets, si].sort((a, b) => a - b) });
+                                            },
+                                            `${set.name} — ${set.glyphs.join(' ')}`,
+                                        ))}
+                                        {FORMULA_LENGTHS.map((n) => btn(`l${n}`, String(n), f.len === n, () => patch({ len: n }), `${n} glyphs long`))}
+                                        {FORMULA_WEAVES.map((w, wi) => btn(`w${wi}`, w, f.weave === wi, () => patch({ weave: wi }), `Weave: ${w}`))}
+                                        {btn('sp', 'Spaced', f.spaced, () => patch({ spaced: !f.spaced }), 'Hair space between glyphs')}
+                                        {/* DELETE — the way out. Renumbers the shelf, like Albums. */}
+                                        {btn('del', '× DELETE', false, () => {
+                                            saveFormulas(myFormulas.filter((_, j) => j !== i));
+                                            setEditingFormula(null);
+                                            showToast(`Formula #${i + 1}: DELETED`);
+                                        }, `Delete Formula #${i + 1}`)}
+                                    </>
+                                );
+                            })()}
                         </div>
                         </>
                     )}

@@ -21,8 +21,10 @@ import {
     PRICE_HOLD_TOP3_BG, PRICE_HOLD_TOP3_TEXT,
     PRICE_HOLD_TOP10_BG, PRICE_HOLD_TOP10_TEXT,
     PRICE_HELD_1M_BG, PRICE_HELD_1M_TEXT, PRICE_HELD_100K_BG, PRICE_HELD_100K_TEXT,
+    FORMULA_TAG_BG, FORMULA_TAG_TEXT,
 } from './catalog';
 import { priceDayNumber } from '../priceday/priceday';
+import { cleanFormulas, drawFormula, formulaBlurb } from './formula';
 
 /** Provisional Veteran cut (Brendon to confirm the real tenure). */
 export const VETERAN_DAYS = 180;
@@ -93,6 +95,15 @@ export interface DeriveInput {
      *  the project registry would drag the whole art-engine graph along with
      *  it). Absent = no project tags. */
     projects?: ReadonlyArray<{ slug: string; name: string; color: string }> | null;
+    /** The owner's FORMULA shelf (users.formulas) — their own generative
+     *  Unicode art, one tag per Formula they are wearing. Position IS the
+     *  number: Formula #1 … #22, like Albums. */
+    formulas?: unknown[] | null;
+    /** This page load's roll for the Formula tags, whose glyphs REDRAW every
+     *  refresh (Brendon, 2026-07-29). Absent = roll 0, which is also what the
+     *  server renders, so hydration never mismatches. Same contract as
+     *  `rudxaneRoll` above. */
+    formulaRoll?: number | null;
     /** Tag ids the owner switched OFF — the opt-out list, and the ONLY thing
      *  that can dark a default-on tag (the PROJECT tags, Brendon 2026-07-29).
      *  Separate from `shownTags` on purpose: absence from the shown list means
@@ -264,6 +275,26 @@ export function deriveTags(input: DeriveInput): Tag[] {
     for (const t of projectTagsFor(input.projects)) add(t);  // one per Project made
     if (input.isArtist) add(tagById('artist'));
     if (input.createdAt && daysSince(input.createdAt) >= VETERAN_DAYS) add(tagById('veteran'));
+
+    /* FORMULA — the owner's own generative art, one tag per worn Formula
+       (Brendon, 2026-07-29). The glyphs REDRAW each load off `formulaRoll`.
+       Numbered by shelf position, exactly like Albums; the number is the
+       title for humans (title attribute) while the label IS the artwork. */
+    const shelf = cleanFormulas(input.formulas);
+    shelf.forEach((f, i) => {
+        if (!f.on) return;
+        add({
+            id: `formula-${i + 1}`,
+            label: drawFormula(f, input.formulaRoll ?? 0),
+            blurb: `Formula #${i + 1} — ${formulaBlurb(f)}`,
+            color: FORMULA_TAG_BG,
+            textColor: FORMULA_TAG_TEXT,
+            kind: 'earned',
+            order: 28 + i / 100,
+            lockStyle: true,
+            defaultOn: true,
+        });
+    });
 
     // Granted — admin-assigned ids (validated).
     for (const id of input.grantedTags ?? []) {

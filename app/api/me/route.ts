@@ -37,6 +37,7 @@ import { isValidProfileLogo, isSigilLogo } from '@/lib/profile/profileLogos';
 import { isPersonaId } from '@/lib/tags/catalog';
 import { isValidNameFont } from '@/lib/profile/nameFont';
 import { isValidTagPaint } from '@/lib/tags/catalog';
+import { cleanFormulas, MAX_FORMULAS } from '@/lib/tags/formula';
 import { recordOath } from '@/lib/factions/oath';
 import { badRequest, notFound, serverError } from '@/lib/errors';
 
@@ -166,6 +167,20 @@ function sanitisePatch(
             patch.tag_paint = v;
         } else {
             return { ok: false, reason: 'tag_paint must be a known paint id or null' };
+        }
+    }
+
+    /* FORMULAS — the whole shelf lands in one write, because a Formula's
+       NUMBER is its position (Brendon, 2026-07-29). Every entry is rebuilt
+       from scratch server-side, so nothing a client invents survives. */
+    if ('formulas' in body) {
+        const v = body.formulas;
+        if (v === null) {
+            patch.formulas = [];
+        } else if (Array.isArray(v) && v.length <= MAX_FORMULAS) {
+            patch.formulas = cleanFormulas(v);
+        } else {
+            return { ok: false, reason: `formulas must be an array of at most ${MAX_FORMULAS} entries, or null` };
         }
     }
 
