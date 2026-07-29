@@ -62,6 +62,10 @@ export const RESERVED_T2 = [
     'porsche',
     'odin',
     'thor',
+    // PD's two generative-glyph features (Brendon, 2026-07-29)
+    'formula',
+    'formulas',
+    'tabstract',
 ] as const;
 
 /** T3 — Functional routes (current and future). */
