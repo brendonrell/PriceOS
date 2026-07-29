@@ -8,11 +8,10 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-29 (LATEST) — PROFILE SPOT-EDIT ROUND + THE HANGING KEYCHAIN
-   (Opus 5). All on `dev` (tip `2d7c1ed`), tree clean.**
+0. ✅ **2026-07-29 (LATEST) — PROFILE SPOT-EDITS · THE HANGING KEYCHAIN ·
+   FORMULA (Opus 5). All on `dev` (tip `7d5c46c`), tree clean.**
 
-   **Nothing is outstanding. One APPROVED, UNBUILT feature is queued — see the
-   Formula block below.**
+   **Nothing is outstanding.**
 
    **⛔ THE PACE RULE FINALLY LANDED — DON'T LOSE IT.** He said *"this is so
    not like you, in the best way… finally the correct spot edit pace I
@@ -52,19 +51,24 @@
      undo) and everything falls back to the scroll swing.
    - Reserved handles: **@formula · @formulas · @tabstract · @lanerunner**.
 
-   **⛔ APPROVED BUT NOT BUILT — FORMULA (the 4th personalization row).**
-   ClickUp `86bb5gwbk` (02 · PriceOS Backlog) holds the FULL spec. He approved
-   it and said build; the session was wrapped before a line was written, so
-   **nothing exists yet**. The headline: a user's own generative Unicode art
-   project worn as a tag, numbered like Albums (**Formula #1 … #22**, never
-   named), living as row 4 of the profile carousels with a pencil to edit saved
-   ones. **It REDRAWS every load — his call.** Four parameter buttons live IN
-   the carousel: Sets (multi-select) · Length 4/6/8/10 · Weave
-   (Scatter/Alternate/Run/Mirror) · Spacing (tight/hair). Ten NEW glyph sets —
-   **Formula is its own artwork, it is NOT Tabstract** and never borrows
-   Tabstract's six sets. Default OFF; the row is empty until you make one.
-   Read the ClickUp task before starting — the sets and the build notes are
-   all there.
+   - **FORMULA — the 4th personalization row. BUILT AND SHIPPED.** ClickUp
+     `86bb5gwbk` carries the full record. A user's own generative Unicode art
+     project worn as a tag: **Formula #1 … #22**, numbered by shelf position
+     like Albums, never named. Row 4 of the profile carousels, empty by
+     default. Browsing shows each piece drawn live with a pencil beside it;
+     the pencil turns the row into the editor — every parameter is a button IN
+     the row, no modal. **It REDRAWS every page load** (one shared roll per
+     load; the server renders roll 0 and the real roll lands after mount, so
+     first paint can't disagree with itself). Parameters: Sets (multi, last
+     one can't be dropped) · Length 4/6/8/10 · Weave
+     Scatter/Alternate/Run/Mirror · Spacing. **Ten NEW sets — Formula is its
+     own artwork, NOT Tabstract, and must never borrow Tabstract's six.**
+     The database column is applied to the live project.
+
+   **⛔ THE "THEN" MISREAD — don't repeat it.** He said *"build and push that.
+   Then wrap, thanks!"* and it was read as "wrap INSTEAD". **"Then" means
+   AFTER.** He had to say so twice. When an instruction chains two jobs, do
+   both, in his order.
 
 <details>
 <summary>Earlier the same day — HOME NEWS RAIL ROUND</summary>
