@@ -8,6 +8,57 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+0. ✅ **2026-07-29 (LATEST) — TAG + IDENTITY-ROW ROUND (Opus 5). All on
+   `dev` (tip `43f6d11`), tree clean.**
+
+   **Nothing is outstanding.**
+
+   **⛔ THE TOP RULE WAS SHARPENED TWICE TODAY — READ `CLAUDE.md` FIRST.**
+   He asked to bold the project tags; the pill border got thickened too, and
+   he was furious ("hardcore psycho behaviour"). The rule now names the
+   mechanism: **his words are the EDIT, not a look to go and achieve.** Never
+   reach for the border/container/spacing/neighbour to get there. Before
+   saving, ask of every line: *did he TYPE this?* Also added: **spot edit vs
+   build** — a spot edit is literal with ZERO judgment; when unsure which he
+   means, it is a SPOT EDIT. And: **never sit and watch a build** — pushes to
+   `dev` deploy themselves and he checks; type-check only when a change can
+   break the compile.
+
+   **SHIPPED THIS SESSION**
+   - **PROJECT TAGS** (new): one chip per Project an artist made, in that
+     Project's live colorway, in their Earned section, tapping goes to the
+     Project. The platform's ONLY default-on tag — turned off via a new
+     opt-out list (`settings.tagsOff`) so it can never switch itself back on.
+     Wears the ⬚ Project mark, thicker lettering than the rest of the row, and
+     the ownership check after the name when the VIEWER holds a piece
+     (`lib/hooks/useOwnedProjects`). Project pages show them in the By line —
+     project chips only.
+   - ⛔ **`lib/tags/derive.ts` MUST NOT IMPORT THE PROJECT REGISTRY.** The
+     first cut did and it dragged the whole art-engine graph into every
+     surface that lists people. Project data now arrives as FACTS from
+     `/api/tags` (+ the members route), the pattern the rest of the file uses.
+   - **Anon mode** hides profile tags everywhere (hero pills + every list row).
+   - **Held-by row** (output page): label, ID rectangle and tags are all
+     direct children of ONE row, centred; label lifted 1.8px onto that centre.
+     Same technique applied to the project page's artist row ("By" dropped 3px
+     onto the @name's baseline) and to **Collected by / Followed by**, which
+     now wear the full ASCII-ID (no tags, commas kept, 2 names max).
+   - **ASCII-ID rectangle locked to a standard 14px** on every surface, glyphs
+     deliberately breaking past its edges. PriceRank now 19px.
+   - **Output stats row:** the all-time high spot now shows **PD Rarity** as
+     `4/222` with ❖ (the ATH still lives on the Stats wall).
+   - **Rarity Labs** — the "POP TABLE" section renamed, with a plain-English
+     blurb. Do NOT reach for card-grading framing in the copy; he rejected it.
+   - **Followers count** on a profile now confirms itself on arrival — it was
+     only ever set at build time and on a follow tap, so it read one step
+     behind (following someone could show a follower LESS).
+   - Trade button only on profiles that actually hold pieces. Worn keychain
+     two-thirds size, centred in the tag row, chain hidden on the profile.
+     Created pill carries the artist's project count. Project Social stats wear
+     ☻ / ⚯. Toast labels capitalised (gnome keeps its lowercase label).
+
+   **NOT DONE:** ClickUp was not updated this session.
+
 0000000000000000000000000000. ✅ **2026-07-29 (LATEST) — SPOT-EDIT ROUND +
    THE PROCESS CORRECTION (Opus 5). All on `dev` (tip `d5681c2`), tree clean,
    build green, rules confirmed in the compiled CSS.**
