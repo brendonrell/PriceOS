@@ -8,7 +8,71 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-29 (LATEST) — THE MARQUEE ROUND (Opus 5). All on `dev`
+0. ✅ **2026-07-29 (LATEST) — THE KEYCHAIN RARITY REBUILD + THE DEPANNEUR'S
+   OWN WORLD (Opus 5). All on `dev` (tip `67b29a7`), tree clean.**
+
+   **Nothing is outstanding.**
+
+   **⛔ CONTRACT PARITY IS BROKEN ON PURPOSE — read this before touching
+   keychains.** Brendon killed the old rarity system (*"they all come out gold
+   it's boring"*) and explicitly freed the art from the contract: *"we're pre
+   launch bot the artist was just Fable lol."* `lib/keychains/engine.ts` is no
+   longer a byte-faithful port — **it is now the reference implementation** and
+   `pd-contracts` has to be brought UP to it before any deploy. The full port
+   spec is commented on ClickUp `86bb46epm`; the app-side record is on
+   `86bb46etv`. Do NOT "restore parity" by reverting the app.
+
+   **⛔ THE ART BELONGS TO THE CHARM, NOT THE KEEPER.** The bug: finish read
+   the keeper's RANK and the chain read their STREAK, both live — so every
+   charm in a rack came out the same gold on the same thread, and nothing you
+   pulled could look different from anything else you owned. Now:
+   - Colour / finish / chain metal all roll **per charm off its own seed** on a
+     common→rare ladder. Gold and chrome are genuine rare pulls.
+   - **Streak and rank buy LUCK instead** — an odds tilt (0–3) banked into the
+     charm at the crank and kept forever; max streak roughly doubles the rare
+     end. They never repaint a charm afterwards.
+   - Every charm gets the approved six-link chain off the split ring as its
+     floor. The streak-gated cord tier is deleted.
+   - Old charms re-roll their look (they were all wearing rank-gold). Expected.
+
+   **THE WORN KEYCHAIN HANGS FROM THE TAG ROW.** Ring pinned to the end of the
+   row, charm hanging off the chain's last link, over what's below. **It is a
+   CHAIN, NOT A BAR** — each link is its own body on its own segment (verlet,
+   ring pinned, links length-constrained, charm swinging off the end), driven
+   by real device gravity; scroll shoves it, shake rattles it. **If it ever
+   twitches again, the first thing to check is the tilt smoothing** — the raw
+   orientation stream is jittery and feeding it in unfiltered is what made it
+   "jump all over the place". Renders 20% larger than the first cut.
+
+   **TILT IS ALWAYS ON.** The iOS motion permission ask rides the **first
+   EQUIP** — the one tap iOS will let us ask on. The on/off pill is gone.
+
+   **THE DEPANNEUR IS ITS OWN WORLD** — pinned dark at any colorway (Brendon's
+   explicit call, so it is NOT a Rule-#2 washout), wearing Fable's approved
+   sheet: masthead (KEYCHAINS**!**, pink mark), the pink count box with the
+   streak on a bar inside it filling toward the next odds tier, THE CAST
+   header + sub line verbatim, tiles captioned with name-or-shape. Coin slots
+   and crank read as real buttons; the crank is dead until a coin is in.
+   Instructions point at the right step first (PICK YIN OR YANG · DROP A COIN
+   · SEE WHAT FALLS OUT). It has **its own pull-to-refresh** — the app's PWA
+   pull deliberately bails inside modals, so this is the same pill and feel
+   rebuilt on the panel's scroller, refreshing the rack rather than the app.
+
+   **TWO SMALLER SHIPS**
+   - **The rarity ❖ came back on the Output stats row.** When that stat became
+     PD Rarity it moved off Courier onto Arial, and iOS carries no U+2756
+     there — the glyph vanished silently. **Every ❖ on the site must sit in
+     Courier.**
+   - **FRIEND INSPECTOR LITE** (`components/FriendInspectorLite.tsx`) — the
+     follower count on an Output opens a plain list of who follows that piece:
+     same chrome, same ASCII-ID rows, no tabs/duel/stat columns. **The parent
+     project leads the list** — an Output is always followed by its project
+     (parental support), which is why the count is never 0; without that row
+     the list reads one short of the number that opened it.
+
+---
+
+0. ✅ **2026-07-29 — THE MARQUEE ROUND (Opus 5). All on `dev`
    (tip `c0f13d4`), tree clean.**
 
    **Nothing is outstanding.**
