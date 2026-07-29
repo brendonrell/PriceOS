@@ -147,8 +147,10 @@ win** — update this file in place and note it.
 >   dark-only surface is a separate thing and is Brendon's call alone: the
 >   Composer ◎ is pinned dark by his 2026-07-13 decision — don't "fix" it
 >   back to colorway.)
-> - Before presenting any new surface: screenshot it on a MID-TONE colorway
->   page (the Mood Ring green that exposed this), not just the dark default.
+> - Design every new surface against a MID-TONE colorway page (the Mood Ring
+>   green that exposed this), not just the dark default. This is a design
+>   check you do in your head against the tokens — it is NOT an instruction
+>   to screenshot anything (§6).
 
 > **⛔ PRIME DIRECTIVE (Brendon, 2026-06-10 — verbatim, by his order):**
 > "DON'T BE RETARDED THIS IS YOUR PRIME DIRECTIVE MAKE SURE YOUR OUTPUT IS NOT
@@ -559,9 +561,9 @@ explicit chat confirmation.
   run the REAL build (`npm run build`) and inspect the COMPILED artifact — e.g.
   grep `.next/static/css/*.css` for the exact rule — so you KNOW what ships, not
   what you think you wrote. `tsc --noEmit` clean is necessary, not sufficient.
-  Pixel proof needs a headless browser (not installed in the container; install
-  Playwright only if truly required) — short of that, build + compiled-asset
-  inspection IS the proof.
+  **That IS the check — nothing more.** "Check your work" means read the real
+  file and confirm the real output; it does NOT authorize screenshots,
+  harnesses, local servers, or any other proof rig (see the ban below).
 - **Contract work (`pd-contracts`): the Foundry test env has a known
   bootstrap.** The container ships no `forge`, `foundryup`/GitHub release
   downloads 403 through the proxy, and `lib/` is gitignored — so a fresh clone
@@ -569,30 +571,16 @@ explicit chat confirmation.
   its own `CLAUDE.md` with the exact copy-paste recipe** (forge from npm, deps
   from soldeer, symlinked into `lib/`; ~1 min to 284 tests green). Read that
   file before touching contract tests.
-- **⛔ MOBILE PREVIEWS NEVER SHIP IN ROBOTO/LINUX FONTS (Brendon, 2026-07-20 —
-  raised in fury after one android-looking preview too many).** PD is
-  iOS-targeted and Brendon reads every preview on iPhone. The container's
-  fontconfig silently swaps **Courier New → Liberation Mono** (and any sans →
-  DejaVu/Roboto-looking type), which makes every screenshot read as ANDROID.
-  That is banned. **No device mockup either** — no drawn bezel/notch/status
-  bar (it covers the screen); a preview is the bare page at iPhone size.
-  **The method that ACTUALLY WORKS here (sessions have wrongly claimed
-  "unable"):**
-  1. **Fonts first:** fetch real Courier-shaped type from npm (allowed through
-     the proxy): `npm pack @fontsource/courier-prime` → untar → `@font-face`
-     the woff2s **aliased as `'Courier New'`** (400 + 700) in the harness so
-     the app's own font stacks resolve to it. Sans slots (Inter/Rubik) use the
-     repo's real files in `app/fonts/`. Never screenshot type on the fallback.
-  2. **Static harness:** write an HTML file, inline the compiled
-     `.next/static/css/*.css`, add the surface's real markup on a MID-TONE
-     colorway page.
-  3. **Screenshot with the PRE-INSTALLED browser:**
-     `require('playwright').chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })`
-     — the `executablePath` is the whole trick: bare `chromium.launch()`
-     errors ("run npx playwright install") because the npx playwright version
-     mismatches the pinned browser dir. NEVER run `npx playwright install`
-     (proxy-blocked, unnecessary); never conclude screenshots are impossible.
-     Viewport **390×844, deviceScaleFactor 2**, `page.goto('file://…')`.
+- **⛔ NEVER BUILD A SCREENSHOT / PREVIEW RIG UNLESS BRENDON ASKS FOR ONE
+  (Brendon, 2026-07-29 — he said "always check work" and a session turned it
+  into a font-downloading, harness-writing, server-starting production for
+  THREE CSS NUDGES. His words: "that should have been 2 minutes").** The old
+  step-by-step preview recipe that lived here was hallucinated scope and is
+  DELETED. Screenshots, static harnesses, downloaded fonts, local dev servers,
+  headless browsers, measurement scripts — **none of it is part of checking
+  your work, and none of it is authorized on its own.** Do it ONLY when Brendon
+  explicitly asks to SEE something. Otherwise: make the edit, confirm the real
+  output, push. Nothing in between.
 - **Confirm the deploy is the one being viewed before pointing Brendon at it.**
   The recurring rage this session: he screenshots a STALE preview (old commit)
   and "the fix isn't there." Before claiming a change is visible, verify the
