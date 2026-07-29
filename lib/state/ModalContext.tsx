@@ -70,7 +70,11 @@ export type ModalName =
        one charm big (payload `${address}` or `${address}:${id}` — the
        profile mini-charm tap). */
     | 'depanneur'
-    | 'keychain';
+    | 'keychain'
+    /* FRIEND INSPECTOR LITE (Brendon, 2026-07-29) — who follows one Output.
+       Payload is the global output ref, `{slug}-{tokenId}`. Door: the
+       follower count on the Output hero. */
+    | 'followersLite';
 
 interface OpenModalState {
     name: ModalName;

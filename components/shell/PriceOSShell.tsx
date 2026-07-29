@@ -102,6 +102,7 @@ import PalPanel from '../pal/PalPanel';
 import SuiteModal from '../suite/SuiteModal';
 import DepanneurModal from '../keychains/DepanneurModal';
 import KeychainCharmModal from '../keychains/KeychainCharmModal';
+import FriendInspectorLite from '../FriendInspectorLite';
 import OfferShieldCast from '../OfferShieldCast';
 import PanopticonConfirmModal from '../PanopticonConfirmModal';
 import CartographyModal from '../CartographyModal';
@@ -515,6 +516,9 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="DepanneurModal">
                 <DepanneurModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="FriendInspectorLite">
+                <FriendInspectorLite />
             </ErrorBoundary>
             <ErrorBoundary name="KeychainCharmModal">
                 <KeychainCharmModal />

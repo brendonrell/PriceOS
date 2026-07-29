@@ -850,7 +850,22 @@ export default function ArtworkPageBody({
                                 {rarityRank ? `${rarityRank.rank}/${rarityRank.total}` : '\u2014'}
                             </span>
                         </span>
-                        <span className="stat-item stat-item-owners">
+                        {/* The count opens FRIEND INSPECTOR LITE — who actually
+                            follows this piece (Brendon, 2026-07-29). */}
+                        <span
+                            className="stat-item stat-item-owners"
+                            role="button"
+                            tabIndex={0}
+                            style={{ cursor: 'pointer' }}
+                            title="Who follows this Output"
+                            onClick={() => openModal('followersLite', outputRef)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    openModal('followersLite', outputRef);
+                                }
+                            }}
+                        >
                             <span
                                 className="stat-icon stat-icon-owners stat-icon-followers"
                                 {...iconToastProps('Followers')}

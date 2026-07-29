@@ -43,6 +43,10 @@ export interface OutputFollowersResponse {
   token_id: string;
   /** Lower-cased wallet addresses that explicitly follow this output. */
   followers: string[];
+  /** @names matching `followers` — Friend Inspector Lite renders ASCII-IDs,
+   *  which are keyed by handle. Same row source, additive (the follows API's
+   *  own follower_handles convention). Addresses with no handle are dropped. */
+  follower_handles: string[];
   /** followers.length + 1 (the parent project always follows its own output). */
   count: number;
 }
@@ -140,10 +144,26 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         .eq('project_id', parsed.slug)
         .eq('token_id', parsed.tokenId);
       if (countErr) return serverError(countErr.message);
+      // One users read turns the addresses into the @names the ASCII-ID needs.
+      let followerHandles: string[] = [];
+      if (followers.length) {
+        const { data: rows } = await supabase
+          .from('users')
+          .select('address, handle')
+          .in('address', followers);
+        const byAddr = new Map(
+          ((rows ?? []) as Array<{ address: string; handle: string | null }>)
+            .map((r) => [r.address.toLowerCase(), r.handle]),
+        );
+        followerHandles = followers
+          .map((a) => byAddr.get(a))
+          .filter((h): h is string => typeof h === 'string' && h.length > 0);
+      }
       const response: OutputFollowersResponse = {
         project_id: parsed.slug,
         token_id: parsed.tokenId,
         followers,
+        follower_handles: followerHandles,
         count: (exactCount ?? followers.length) + 1, // + the parent project (parental support)
       };
       return NextResponse.json(response);

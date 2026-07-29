@@ -13639,6 +13639,12 @@ body.is-pwa .artwork-fullscreen.artwork-darkroom .fullscreen-back {
 .fi-group-head .attr-group-count { opacity: 1; }
 .fi-beads { display: flex; flex-wrap: wrap; gap: 10px 8px; }
 .fi-none { font: 600 11px 'Courier New', Courier, monospace; }
+/* Friend Inspector Lite's loading / empty line — full-strength, 13px. */
+.fil-note {
+    font: bold 13px 'Courier New', Courier, monospace;
+    color: var(--text-color);
+    padding: 8px 2px;
+}
 .fi-beads-more { font: 600 11px 'Courier New', Courier, monospace; align-self: center; }
 
 /* Faction — the wearer's blank speech bubble, worn beside the name and as
