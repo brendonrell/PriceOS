@@ -8,7 +8,68 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-29 (LATEST) — HOME NEWS RAIL ROUND (Opus 5). All on `dev`
+0. ✅ **2026-07-29 (LATEST) — PROFILE SPOT-EDIT ROUND + THE HANGING KEYCHAIN
+   (Opus 5). All on `dev` (tip `2d7c1ed`), tree clean.**
+
+   **Nothing is outstanding. One APPROVED, UNBUILT feature is queued — see the
+   Formula block below.**
+
+   **⛔ THE PACE RULE FINALLY LANDED — DON'T LOSE IT.** He said *"this is so
+   not like you, in the best way… finally the correct spot edit pace I
+   wanted."* What produced it: he says **"spot edit"** → find the line, change
+   it, commit, next. No screenshots, no harnesses, no exploratory greps, no
+   build-watching. Rules #-0.9 and #-2 are the whole job on those turns.
+
+   **⛔ NEW RULE #-0.85 — THE MOMENT YOU ASK FOR A PUSH, YOU STOP. DEAD.** His
+   approval cannot reach you while you are still acting; he fires "push!"
+   instantly and then watches you putz around for minutes. The push ask is the
+   LAST thing in the turn. Also: a background check hands the turn back after
+   you finish — **do not fill that space by re-sending your report.** He caught
+   it twice and it made him angry both times. End quietly.
+
+   **SHIPPED THIS SESSION**
+   - Tag paint row: Dot → **All Dot**, Matrix → **All Matrix**, All Blue →
+     **All @brendon blue**. (An "All Original" pill was built and then REMOVED
+     at his word — deselecting the active paint is already the method.)
+   - **Now Buying** wears the buy mark **✦** (was ✸, shared with Now Selling).
+     Its spin: 21px, 0.5px up, 3s — twice the old speed. **Now Selling was NOT
+     touched** and still wears ✸ at 20px/6s.
+   - The Exchange **⇌** in the wallet row: 24 → 20px.
+   - **THE WORN KEYCHAIN.** 10% bigger (69 → 76). It now **floats** — it holds
+     a pill-height slot in the tag row so the row never grows, and the art
+     expands out of that spot over its neighbours. The **chain is back**,
+     pinned by the charm's FOOT so the character stays put and the chain grows
+     UP out of the row. The **name-tag banner is OFF** on the worn charm (it
+     was eating half the box and was unreadable) — the name is still on the tap
+     and in the popup.
+   - **THE KEYCHAIN HANGS FOR REAL.** A shared pendulum drives every charm on
+     the page: scroll velocity shoves it, gravity and drag settle it, it sleeps
+     when nothing moves, and it is fully still under reduced-motion.
+     **Tilt is opt-in and its door is the owner's own charm** — the charm popup
+     carries a **TILT: OFF/ON/BLOCKED** pill, shown only on your own charm.
+     iOS grants motion per-SITE off a deliberate tap, so one tap makes every
+     charm on every profile tilt; a refusal is permanent (Safari settings to
+     undo) and everything falls back to the scroll swing.
+   - Reserved handles: **@formula · @formulas · @tabstract · @lanerunner**.
+
+   **⛔ APPROVED BUT NOT BUILT — FORMULA (the 4th personalization row).**
+   ClickUp `86bb5gwbk` (02 · PriceOS Backlog) holds the FULL spec. He approved
+   it and said build; the session was wrapped before a line was written, so
+   **nothing exists yet**. The headline: a user's own generative Unicode art
+   project worn as a tag, numbered like Albums (**Formula #1 … #22**, never
+   named), living as row 4 of the profile carousels with a pencil to edit saved
+   ones. **It REDRAWS every load — his call.** Four parameter buttons live IN
+   the carousel: Sets (multi-select) · Length 4/6/8/10 · Weave
+   (Scatter/Alternate/Run/Mirror) · Spacing (tight/hair). Ten NEW glyph sets —
+   **Formula is its own artwork, it is NOT Tabstract** and never borrows
+   Tabstract's six sets. Default OFF; the row is empty until you make one.
+   Read the ClickUp task before starting — the sets and the build notes are
+   all there.
+
+<details>
+<summary>Earlier the same day — HOME NEWS RAIL ROUND</summary>
+
+0. ✅ **2026-07-29 — HOME NEWS RAIL ROUND (Opus 5). All on `dev`
    (tip `4b373a0`), tree clean.**
 
    **Nothing is outstanding.**
@@ -61,6 +122,8 @@
    home load/poll, and the rail turns the gas feed on for every home visitor
    (globally cached at 12s, so coincident polls collapse). Fine at launch
    scale — revisit if home traffic gets real.
+
+</details>
 
 ---
 
