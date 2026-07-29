@@ -131,6 +131,9 @@ function projectTagsFor(projects: DeriveInput['projects']): Tag[] {
     return (projects ?? []).map((p, i) => ({
         id: `project-${p.slug}`,
         label: p.name,
+        /* ⬚ — PD's Project mark (docs/GLYPHS.md), the same dotted square the
+           stats row and the project ping wear (Brendon, 2026-07-29). */
+        glyph: '\u2B1A\uFE0E',
         color: p.color,
         kind: 'earned' as const,
         /* After PriceDay #N (21), before the rest of Earned. */
