@@ -39,6 +39,7 @@ import { useValuePrompt } from '../../lib/state/ValuePromptContext';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
 import { TraitsProvider } from '../../lib/state/TraitsContext';
 import { getProject } from '../../lib/project/registry';
+import { pdRarityRank } from '../../lib/output/rarity';
 import AsciiId from '../hero/AsciiId';
 import { UserTagsFor } from '../tags/UserTags';
 import Hero from '../hero/Hero';
@@ -554,6 +555,14 @@ export default function ArtworkPageBody({
         return max;
     }, [feedRows]);
 
+    /* PD RARITY — where this piece sits across its whole edition set: the same
+       read the Vault and the stone give ("#3 of 105"), memoised per project.
+       This spot used to carry the all-time high (Brendon, 2026-07-29). */
+    const rarityRank = useMemo(
+        () => (typeof numberPart === 'number' ? pdRarityRank(slug, numberPart) : null),
+        [slug, numberPart],
+    );
+
     /* THE MARKET wall (Stats sub-tab) — every market number the ledger holds
        for this piece, as attribute tiles. Canonical glyphs only (✶ sales,
        ✹ listings, ✦ offers, ⟠ volume, ↨ floor). */
@@ -834,11 +843,11 @@ export default function ArtworkPageBody({
                         </span>
                         <span className="stat-item stat-item-vol">
                             <span
-                                className="stat-icon-eth"
-                                {...iconToastProps('All-Time High')}
-                            >⟠&#xFE0E;</span>{' '}
+                                className="stat-icon stat-icon-rarity"
+                                {...iconToastProps('PD Rarity \u2014 where this piece ranks in its edition')}
+                            >{'\u2756\uFE0E'}</span>{' '}
                             <span className="stat-val stat-val-vol">
-                                {athEth > 0 ? `${formatEth(athEth)} ATH` : '—'}
+                                {rarityRank ? `#${rarityRank.rank}/${rarityRank.total}` : '\u2014'}
                             </span>
                         </span>
                         <span className="stat-item stat-item-owners">
