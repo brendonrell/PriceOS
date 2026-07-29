@@ -614,13 +614,18 @@ explicit chat confirmation.
   treatment — never invent, swap, or "improve" an icon. Inventing iconography is a
   trust break (2026-06-15: a bench add-to-cart got a custom chip instead of the
   canonical `.hi-icon` ▢ — wrong; the answer is always the glossary's glyph).
-- **Check your own work before saying "done" / "pushed".** For any code change,
-  run the REAL build (`npm run build`) and inspect the COMPILED artifact — e.g.
-  grep `.next/static/css/*.css` for the exact rule — so you KNOW what ships, not
-  what you think you wrote. `tsc --noEmit` clean is necessary, not sufficient.
-  **That IS the check — nothing more.** "Check your work" means read the real
-  file and confirm the real output; it does NOT authorize screenshots,
-  harnesses, local servers, or any other proof rig (see the ban below).
+- **Check your own work before saying "done" / "pushed".** Read the real file
+  and confirm the real output — so you KNOW what ships, not what you think you
+  wrote. Type-check when a change could break the compile (logic, types,
+  markup); a CSS/copy/label edit can't, so don't. **That IS the check — nothing
+  more.** It does NOT authorize screenshots, harnesses, local servers, or any
+  other proof rig (see the ban below).
+- **⛔ DON'T SIT AND WATCH A BUILD (Brendon, 2026-07-29 — "I check, don't waste
+  tokens").** Never run `npm run build` just to report a verdict, and NEVER
+  poll a background task waiting for one — every push to `dev` builds and
+  deploys itself, and Brendon watches that. Waiting on it burns his money to
+  tell him something he already sees. Build locally ONLY when a change is big
+  enough that a broken compile is a real risk, and even then don't narrate it.
 - **Contract work (`pd-contracts`): the Foundry test env has a known
   bootstrap.** The container ships no `forge`, `foundryup`/GitHub release
   downloads 403 through the proxy, and `lib/` is gitignored — so a fresh clone
