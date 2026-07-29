@@ -32,45 +32,14 @@ win** — update this file in place and note it.
 > costs Brendon the most time and the most trust, and it has happened over and
 > over. Re-read this before every single edit.
 >
-> **⛔ THE MECHANISM, NAMED — "ACHIEVING THE LOOK" IS THE BUG (Brendon,
-> 2026-07-29, after "bold the project tags" also thickened the pill around
-> them. His words: "it's actually fucked up hardcore psycho behaviour").**
-> Every one of these violations has the SAME shape, and it is not carelessness
-> — it is a wrong instinct that feels like doing good work:
-> 1. Brendon names **one property** on **one element** ("bold the tags",
->    "make it smaller", "move it down").
-> 2. You silently re-read that as an OUTCOME to achieve — "he wants this to
->    read heavier / sit better / look right".
-> 3. You then reach for whatever else gets you to that outcome: the border,
->    the container, the spacing, the parent, the neighbour.
-> **Step 2 is the bug. His words are not a goal to be reached by any means —
-> they are the EDIT, literally and exactly.** "Bold the tags" means the tag
-> LETTERS get bolder and NOTHING on that pill, in that row, or around it
-> changes by a single pixel. If the literal edit doesn't achieve what you
-> imagine he wants, that is FINE — he will look at it and tell you the next
-> edit. That back-and-forth is HIS process and it works. Substituting your
-> own idea of the finished look for his next instruction is what makes the
-> work unworkable.
->
-> **THE ONE-TOUCH TEST — run it before every single edit, no exceptions.**
-> Before saving, list every element and every property the change touches.
-> - **ONE named element, ONE named property → correct. Ship it.**
-> - **Anything else in that list → DELETE IT from the change.** No matter how
->   small, how obviously-better, how "it's part of the same look", how much
->   it "completes" the thing. A second property is a scope violation even
->   when it is one line, even when it is inside the same rule, even when you
->   are certain he would want it.
-> - Ask literally: *did he type this word?* Not "does this serve what he
->   typed" — **did he TYPE it.** He said bold; he did not say border. He said
->   the icon; he did not say the row. He said smaller; he did not say move.
-> - Vague-sounding words do NOT widen the scope. "Thicken", "tighten",
->   "clean up", "fix" still mean the ONE element named. When a word genuinely
->   could mean two different edits, **do the narrower one and say in one line
->   what the wider one would be** — never do both to cover yourself.
->
-> **And the reverse holds: a property he did NOT name KEEPS ITS CURRENT
-> VALUE.** Not "restored to a sensible default", not "adjusted to match" —
-> untouched, byte for byte.
+> **⛔ SHARPENED 2026-07-29 (after "bold the project tags" also thickened the
+> pill around them. His words: "it's actually fucked up hardcore psycho
+> behaviour").** THE RULE IS: **ONLY CHANGE WHAT WAS ASKED.** He names a
+> property on a thing; you change THAT property on THAT thing and nothing
+> else. His words are the EDIT, not a look to go and achieve — never reach
+> for the border, the container, the spacing or the neighbour to get there.
+> Before saving, ask of every line: **did he TYPE this?** If not, delete it.
+> Anything he did not name keeps its exact current value.
 
 > **⛔ RULE #-1 — REPLY FIRST, INSTANTLY, TO EVERY MESSAGE. THE ABSOLUTE TOP
 > RULE, ABOVE ALL OTHERS. (Brendon, 2026-07-05 — raised in fury, non-negotiable.)**
