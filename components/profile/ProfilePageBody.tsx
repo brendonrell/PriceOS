@@ -417,6 +417,12 @@ function ProfilePageBodyInner({
                 .then((d) => { if (!cancelled && d) setCounts({ followers: d.follower_count ?? 0, following: d.following_count ?? 0 }); })
                 .catch(() => {});
         const h = () => load();
+        /* Confirm the count ON ARRIVAL too (Brendon, 2026-07-29). Without this
+           the number is only ever set when the page is BUILT and when a follow
+           is tapped, so a page held in memory or restored by the app shows a
+           stale number and every tap moves it one step on from a wrong start —
+           which is how following someone could read as a follower LESS. */
+        load();
         window.addEventListener('pd:follows-changed', h);
         return () => { cancelled = true; window.removeEventListener('pd:follows-changed', h); };
     }, [user.address]);
