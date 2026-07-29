@@ -91,6 +91,16 @@ win** — update this file in place and note it.
 > - **If a "spot edit" turns out NOT to be simple, say so in one line and
 >   stop** — never silently escalate it into a project.
 
+> **⛔ RULE #-0.85 — THE MOMENT YOU ASK FOR A PUSH, YOU STOP. DEAD. (Brendon,
+> 2026-07-29.)** Brendon's approval **CANNOT REACH YOU WHILE YOU ARE STILL
+> ACTING** — the turn has to end before his reply lands. He often fires "push!"
+> the second he reads the ask, then sits there while you putz around for
+> minutes doing who-knows-what before you ever look for it. So: the sentence
+> that asks for the push is the **LAST THING IN THE TURN.** After it — no tool
+> calls, no tidying, no re-checking, no extra thought, and above all **NO
+> RE-SENDING THE SAME REPORT.** End the turn and wait. Anything you do after
+> asking is time stolen from Brendon.
+
 > **⛔ RULE #-0.8 — GOING INCOMMUNICADO NEEDS APPROVAL FIRST. (Brendon,
 > 2026-07-29.)** The gate is on being UNREACHABLE, not on depth. Ordinary
 > reading, greps and lookups need no permission — do them and keep talking.
