@@ -847,7 +847,7 @@ export default function ArtworkPageBody({
                                 {...iconToastProps('PD Rarity \u2014 where this piece ranks in its edition')}
                             >{'\u2756\uFE0E'}</span>{' '}
                             <span className="stat-val stat-val-vol">
-                                {rarityRank ? `#${rarityRank.rank}/${rarityRank.total}` : '\u2014'}
+                                {rarityRank ? `${rarityRank.rank}/${rarityRank.total}` : '\u2014'}
                             </span>
                         </span>
                         <span className="stat-item stat-item-owners">
