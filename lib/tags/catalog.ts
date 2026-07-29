@@ -103,12 +103,12 @@ const PERSONAS: Tag[] = [
     { id: 'shitposter', label: 'Shitposter', color: '#F59E0B', kind: 'persona', order: 64, blurb: 'You know the one.' },
     { id: 'lurker',     label: 'Lurker',     color: '#6D28D9', kind: 'persona', order: 65, blurb: 'Watching. Always watching.' },
     /* ── THE OPEN-FOR-BUSINESS THREE (Brendon, 2026-07-29) ──────────────────
-       Say what you're up for right now. All three wear the OFFER star ✦ and it
-       turns slowly on the pill, so an active state reads as alive at a glance
-       rather than as one more flat chip. */
-    { id: 'now-buying',     label: 'Now Buying',     glyph: '✦' + VS15, color: '#22C55E', kind: 'persona', order: 66, blurb: 'Wallet open, send offers.' },
-    { id: 'now-selling',    label: 'Now Selling',    glyph: '✦' + VS15, color: '#F43F5E', kind: 'persona', order: 67, blurb: 'Pieces on the block.' },
-    { id: 'open-to-trades', label: 'Open To Trades', glyph: '✦' + VS15, color: '#06B6D4', kind: 'persona', order: 68, blurb: 'Bring a swap.' },
+       Say what you're up for right now. All three wear the TRANSFER star ✸
+       (Brendon's pick) and it turns slowly on the pill, so an active state
+       reads as alive at a glance rather than as one more flat chip. */
+    { id: 'now-buying',     label: 'Now Buying',     glyph: '✸' + VS15, color: '#22C55E', kind: 'persona', order: 66, blurb: 'Wallet open, send offers.' },
+    { id: 'now-selling',    label: 'Now Selling',    glyph: '✸' + VS15, color: '#F43F5E', kind: 'persona', order: 67, blurb: 'Pieces on the block.' },
+    { id: 'open-to-trades', label: 'Open To Trades', glyph: '✸' + VS15, color: '#06B6D4', kind: 'persona', order: 68, blurb: 'Bring a swap.' },
 ];
 
 /* ── EARNED — auto from real account data (never chosen) ─────────────────────
