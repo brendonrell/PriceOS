@@ -13484,6 +13484,11 @@ body.is-pwa .artwork-fullscreen.artwork-darkroom .fullscreen-back {
 .owner-line.info-line ~ .stats-row,
 /* Project pages get the same air under their artist row (Brendon, 2026-07-29). */
 .project-custom.owner-line ~ .stats-row { margin-top: 3px; }
+/* "By" reads as one phrase with the @name beside it, but its box is shorter
+   than the name's (which carries headroom for tall Unicode faces), so centring
+   the boxes left its letters sitting 3px ABOVE the name's baseline. Dropped
+   onto that baseline — measured off the row (Brendon, 2026-07-29). */
+.project-custom.owner-line .by-text { position: relative; top: 3px; }
 /* HELD BY is all-caps, so its text box carries empty descender room under
    the letters — centring the BOX left the letters sitting 1.8px below the
    rectangle and the pills (measured off the row). This lifts the letters
