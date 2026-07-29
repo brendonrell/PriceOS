@@ -4606,9 +4606,12 @@ body.pd-stone-open .ens-copy-toast {
 }
 
 /* ── COLLECTED BY row ─────────────────────────────────────── */
+/* The COLLECTED BY / FOLLOWED BY rows are built like the output page's held-by
+   row (Brendon, 2026-07-29): label and full ASCII-IDs as siblings, everything
+   on one shared centre rather than a baseline. */
 .collected-by-row {
     flex-wrap: wrap;
-    align-items: baseline;
+    align-items: center;
     row-gap: 2px;
     column-gap: 4px;
     line-height: 1;
@@ -13484,6 +13487,11 @@ body.is-pwa .artwork-fullscreen.artwork-darkroom .fullscreen-back {
 .owner-line.info-line ~ .stats-row,
 /* Project pages get the same air under their artist row (Brendon, 2026-07-29). */
 .project-custom.owner-line ~ .stats-row { margin-top: 3px; }
+/* Same lift as the held-by label: the all-caps label's box carries empty
+   descender room, so centring the box left its letters high of the rectangles
+   beside it (Brendon, 2026-07-29). */
+.collected-by-row .cbr-label { transform: translateY(-1.8px); }
+
 /* "By" reads as one phrase with the @name beside it, but its box is shorter
    than the name's (which carries headroom for tall Unicode faces), so centring
    the boxes left its letters sitting 3px ABOVE the name's baseline. Dropped

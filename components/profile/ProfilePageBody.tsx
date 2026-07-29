@@ -87,6 +87,7 @@ import { useNameFont } from '../../lib/hooks/useNameFont';
 import { useTagPaint } from '../../lib/hooks/useTagPaint';
 import { useTeamTagStyle } from '../../lib/hooks/useTeamTagStyle';
 import { useRudxaneRoll } from '../../lib/hooks/useRudxaneRoll';
+import AsciiId from '../hero/AsciiId';
 import { useShownTags } from '../../lib/hooks/useShownTags';
 import { useTagsOff } from '../../lib/hooks/useTagsOff';
 import { deriveTags } from '../../lib/tags/derive';
@@ -1497,14 +1498,14 @@ function ProfilePageBodyInner({
                 }
                 socialRow={
                     mutuals.length > 0 ? (
+                    /* Built exactly like the output page's held-by row
+                       (Brendon, 2026-07-29): the label and each full ASCII-ID
+                       are direct children of this one row, all on its shared
+                       centre. No tags here — the rectangle only. Two names,
+                       leaving room for the "& N others" tail. */
                     <div className="hero-line collected-by-row info-line">
-                        <span className="cbr-label">Followed by</span>{' '}
-                        {mutuals.map((m, i) => (
-                            <span key={m}>
-                                {i > 0 && ', '}
-                                <a className={`cbr-name${isSpited(m) ? ' spited' : ''}`} href={`/${m}`}>@{m}</a>
-                            </span>
-                        ))}
+                        <span className="cbr-label">Followed by</span>
+                        {mutuals.map((m) => <AsciiId key={m} handle={m} />)}
                         {mutualOthers > 0 && (
                             <>
                                 {' '}

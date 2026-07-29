@@ -69,6 +69,7 @@ import AudienceIndicator from './AudienceIndicator';
 import { useCart } from '../../lib/state/CartContext';
 import { getProject } from '../../lib/project/registry';
 import { UserTagsFor } from '../tags/UserTags';
+import AsciiId from '../hero/AsciiId';
 import SoundtrackStarButton from './SoundtrackStarButton';
 import ProjectTitleStar from './ProjectTitleStar';
 import { usePriceDay } from '../../lib/priceday/usePriceDay';
@@ -416,20 +417,15 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                        when signed out or following none of this project's
                        collectors. */
                     project.stats.collected_by_following.length > 0 ? (
-                        /* Plain @name links (Brendon 2026-06-13: reverted the
-                           sprite+name rectangle chips; the ASCII-ID is not
-                           used here). */
+                        /* Built exactly like the output page's held-by row
+                           (Brendon, 2026-07-29): the label and each full
+                           ASCII-ID are direct children of this one row, all on
+                           its shared centre. No tags — the rectangle only. */
                         <div className="hero-line collected-by-row info-line">
-                            <span className="cbr-label">Collected by</span>{' '}
-                            {project.stats.collected_by_following.slice(0, 2).map((name, i) => {
-                                const h = name.toLowerCase().replace(/^@/, '');
-                                return (
-                                    <span key={name}>
-                                        {i > 0 ? ', ' : ''}
-                                        <a className={`profile-link${isSpited(h) ? ' spited' : ''}`} href={`/${h}`}>@{h}</a>
-                                    </span>
-                                );
-                            })}
+                            <span className="cbr-label">Collected by</span>
+                            {project.stats.collected_by_following.slice(0, 2).map((name) => (
+                                <AsciiId key={name} handle={name.toLowerCase().replace(/^@/, '')} />
+                            ))}
                             {project.stats.collected_by_following.length > 2 && (
                                 <span className="cbr-others" onClick={() => open('collectors')}>
                                     {' '}&amp; {project.stats.collected_by_following.length - 2} more you follow
