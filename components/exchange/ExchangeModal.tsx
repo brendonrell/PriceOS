@@ -368,7 +368,7 @@ function ComposeFace({
 /* ── Open trades — the window IS the inbox (Brendon, 2026-07-20:
    "an open-trades inbox view"). Composing shows every trade you have in
    flight — either direction — one tap from its own seat. ── */
-function OpenTradesStrip({ me }: { me: string }) {
+function OpenTradesStrip({ me, standalone }: { me: string; standalone?: boolean }) {
     const { openTrade } = useExchange();
     const [trades, setTrades] = useState<TradeRow[] | null>(null);
     useEffect(() => {
@@ -378,7 +378,13 @@ function OpenTradesStrip({ me }: { me: string }) {
             .catch(() => { if (alive) setTrades([]); });
         return () => { alive = false; };
     }, []);
-    if (!trades || trades.length === 0) return null;
+    if (!trades || trades.length === 0) {
+        /* Under a compose form it keeps quiet when empty; as the window's own
+           face it has to say something. */
+        return standalone
+            ? <div className="cart-empty-state">No trades in flight. Open one from a collector&apos;s profile or a piece they hold.</div>
+            : null;
+    }
     const now = Math.floor(Date.now() / 1000);
     const left = (end: number | null) => {
         if (end == null) return '';
@@ -641,6 +647,16 @@ export default function ExchangeModal() {
                         prefill={counterState.prefill}
                         onClose={closeExchange}
                     />
+                ) : render.view === 'inbox' ? (
+                    <>
+                        <div className="cart-panel-header">
+                            <span className="cart-panel-title">{`⇌${VS15} THE EXCHANGE`}</span>
+                            <span className="cart-panel-close-x" role="button" tabIndex={0} onClick={closeExchange} title="Close">{`×${VS15}`}</span>
+                        </div>
+                        <div className="cart-items-list">
+                            <OpenTradesStrip me={me} standalone />
+                        </div>
+                    </>
                 ) : render.view === 'compose' ? (
                     <ComposeFace
                         key={`compose-${render.counterparty}`}

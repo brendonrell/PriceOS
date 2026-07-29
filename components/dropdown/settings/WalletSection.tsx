@@ -76,6 +76,7 @@ import {
     subscribeRpc,
     toggleRpcPing as engineToggleRpcPing,
 } from '../../../lib/rpc/rpcEngine';
+import { useExchange } from '../../../lib/state/ExchangeContext';
 import { usePdNotifs } from '../../../lib/state/PdNotifsContext';
 import { useToast } from '../../../lib/state/ToastContext';
 import { useAuth } from '../../../lib/state/AuthContext';
@@ -205,6 +206,9 @@ export function WalletSection() {
     const ensPills: string[] = activeEns && rawPills.includes(activeEns)
         ? [activeEns, ...sortedRest]
         : [...rawPills].sort((a, b) => a.localeCompare(b));
+
+    /* The ⇌ door in this row opens YOUR open trades (Brendon, 2026-07-29). */
+    const { openInbox } = useExchange();
 
     // Build 33 — engine state mirrors.
     const [rpcActive, setRpcActive] = useState(false);
@@ -402,6 +406,29 @@ export function WalletSection() {
                     tabIndex={isAuthed ? 0 : -1}
                 >
                     ⚇{'\uFE0E'}
+                </span>
+                {/* ⇌ THE EXCHANGE — after incognito, before the RPC ping
+                    (Brendon, 2026-07-29). */}
+                <span
+                    className="rpc-ping-btn exchange-wallet-btn"
+                    id="exchangeWalletBtn"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        if (!isAuthed) return;
+                        openInbox();
+                    }}
+                    title="The Exchange — your open trades"
+                    role="button"
+                    tabIndex={isAuthed ? 0 : -1}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (isAuthed) openInbox();
+                        }
+                    }}
+                >
+                    {'\u21CC'}{'\uFE0E'}
                 </span>
                 <span
                     className={`rpc-ping-btn${rpcActive ? ' rpc-active' : ''}`}

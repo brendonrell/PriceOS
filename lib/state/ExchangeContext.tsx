@@ -9,6 +9,10 @@
  *   openExchange — compose a new proposal against a counterparty (optionally
  *                  seeded with one of their pieces — the artwork-page entry).
  *   openTrade    — view one existing trade (ping deep-link / ?trade= URL).
+ *   openInbox    — YOUR open trades, with nobody in mind: the wallet row's ⇌
+ *                  door (Brendon, 2026-07-29). Every other way in needs a
+ *                  counterparty picked first, so a missed ping had no way back
+ *                  to a pending trade.
  *
  * The ?trade=<id> URL param (a ping's href — the share-any-view precedent)
  * opens that trade on boot, then strips itself from the URL.
@@ -20,12 +24,14 @@ import type { TradeItem } from '../market/tradeTypes';
 export type ExchangeState =
     | { view: 'compose'; counterparty: string; counterpartyHandle: string | null; seed?: TradeItem }
     | { view: 'trade'; tradeId: string }
+    | { view: 'inbox' }
     | null;
 
 interface ExchangeContextValue {
     state: ExchangeState;
     openExchange: (counterparty: string, counterpartyHandle: string | null, seed?: TradeItem) => void;
     openTrade: (tradeId: string) => void;
+    openInbox: () => void;
     closeExchange: () => void;
 }
 
@@ -40,6 +46,7 @@ export function ExchangeProvider({ children }: { children: ReactNode }) {
     const openTrade = useCallback((tradeId: string) => {
         setState({ view: 'trade', tradeId });
     }, []);
+    const openInbox = useCallback(() => setState({ view: 'inbox' }), []);
     const closeExchange = useCallback(() => setState(null), []);
 
     /* Ping deep-link: /?trade=<id> opens that trade, then cleans the URL. */
@@ -54,8 +61,8 @@ export function ExchangeProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const value = useMemo(
-        () => ({ state, openExchange, openTrade, closeExchange }),
-        [state, openExchange, openTrade, closeExchange],
+        () => ({ state, openExchange, openTrade, openInbox, closeExchange }),
+        [state, openExchange, openTrade, openInbox, closeExchange],
     );
     return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
