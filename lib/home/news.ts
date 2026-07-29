@@ -457,28 +457,52 @@ export function dispatchPrintsMeta(): string {
    mount like every other clock-derived pill. */
 export function greetingOfDay(now = new Date()): string {
     const h = now.getHours();
-    if (h < 5) return 'GOOD NIGHT';
-    if (h < 12) return 'GOOD MORNING';
+    /* One visit in ten drops the shout for the shorthand — gm / gn, lowercase
+       (Brendon, 2026-07-29 — "for fun"). Only morning and night have one; the
+       afternoon and evening greetings always read in full. */
+    const casual = Math.random() < 0.1;
+    if (h < 5) return casual ? 'gn' : 'GOOD NIGHT';
+    if (h < 12) return casual ? 'gm' : 'GOOD MORNING';
     if (h < 17) return 'GOOD AFTERNOON';
     if (h < 22) return 'GOOD EVENING';
-    return 'GOOD NIGHT';
+    return casual ? 'gn' : 'GOOD NIGHT';
 }
 
 function greetingItem(greeting: string, feed: HomeResponse | null): NewsItem {
+    /* ◷ is PD's established clock mark (GLYPHS §12) — the greeting is a
+       time-of-day pill, so it wears the time glyph. */
+    const glyph = vs('◷');
+
+    /* The default stat: what landed TODAY. The day is the Montreal one — the
+       platform-wide PriceDay window, like project birthdays — not the
+       viewer's, so everyone counts the same uploads. */
+    const [ty, tm, td] = montrealYmd(Date.now());
+    const uploadedToday = [...(feed?.uploads ?? []), ...(feed?.minting_now ?? [])]
+        .filter((r) => {
+            if (!r.uploaded_at) return false;
+            const [y, m, d] = montrealYmd(r.uploaded_at);
+            return y === ty && m === tm && d === td;
+        }).length;
+    if (uploadedToday > 0) {
+        return {
+            glyph, tag: greeting,
+            title: `${uploadedToday} new ${uploadedToday === 1 ? 'project' : 'projects'} today`,
+            meta: 'Uploaded to PD',
+        };
+    }
+
     const live = (feed?.minting_now ?? []).filter(
         (m) => m.sold_out_at == null && m.max_supply > 0 && m.minted_count < m.max_supply,
     ).length;
-    /* ◷ is PD's established clock mark (GLYPHS §12) — the greeting is a
-       time-of-day pill, so it wears the time glyph. */
     if (live > 0) {
         return {
-            glyph: vs('◷'), tag: greeting,
+            glyph, tag: greeting,
             title: `${live} ${live === 1 ? 'project is' : 'projects are'} minting`,
             meta: 'Right now on PD',
         };
     }
     return {
-        glyph: vs('◷'), tag: greeting,
+        glyph, tag: greeting,
         title: `${(feed?.stats?.minted ?? 0).toLocaleString()} pieces minted`,
         meta: 'On PD so far',
     };
