@@ -13434,25 +13434,7 @@ body.is-pwa .artwork-fullscreen.artwork-darkroom .fullscreen-back {
     align-items: center;
 }
 .owner-line .collected-pair { vertical-align: middle; }
-/* "HELD BY" + the rectangle live inside one text box, and the rectangle hangs
-   below the text's baseline — so that box is taller than what it shows, its
-   centre sits low, and the tags centring on it dropped to a shared BOTTOM
-   line. Centring the label and the rectangle inside their own box makes the
-   box hug them, so the tags land on the SAME centre line as the rest of the
-   row (Brendon, 2026-07-29). The gap replaces the space character the flex
-   box eats; it still wraps on a narrow screen. */
-.owner-line .info-rubik {
-    display: inline-flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 6px;
-}
 .owner-line .user-tags--mini { display: contents; }
-/* The pills are taller than the label, and they were hanging off the row's
-   BOTTOM edge — measured 1.5px high of the centre the label and the rectangle
-   share. Dropped onto that centre line (Brendon, 2026-07-29). Offset only —
-   nothing in the row's spacing moves. */
-.owner-line .user-tags--mini .profile-tag { position: relative; top: 1.5px; }
 .fi-dossier-id .collected-pair { font-size: 15px; padding: 3px 8px; }
 .fi-dossier-id .collected-sprite { font-size: 13px; }
 .fi-dossier-id .collected-rank-badge { font-size: 18px; }
