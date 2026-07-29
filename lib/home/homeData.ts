@@ -12,6 +12,9 @@
  */
 
 import { getSupabaseService } from '@/lib/supabase';
+import { priceDayNumber } from '@/lib/priceday/priceday';
+import { dayWindow } from '@/lib/priceday/almanac.server';
+import { tagById } from '@/lib/tags/catalog';
 
 /* Mints a project needs before it graduates from the New Uploads list into
    the Now Minting carousels (Brendon, 2026-06-11; raised 12→18 2026-06-18).
@@ -60,6 +63,36 @@ export interface HomeMintingRow {
   milestones: Record<string, number>;
 }
 
+/** One priced secondary sale (a transfer that moved money). */
+export interface HomeSaleRow {
+  slug: string;
+  token_id: string;
+  price_eth: number;
+  /** Unix ms. */
+  ts: number;
+}
+
+/* The extra live signals the home NEWS RAIL needs and the carousels don't
+   (Brendon, 2026-07-29 — "the marquee shows mostly graduating, let's show
+   more"). Everything derivable from the payload above (mint progress,
+   platform round numbers, milestones, birthdays, new-artist) is computed
+   client-side in lib/home/news.ts and is NOT duplicated here — this block
+   carries ONLY what needs a database read: sales + accounts. Two capped
+   queries; null/empty when there's nothing yet. */
+export interface HomeNewsSignals {
+  /** Biggest priced secondary inside TODAY's PriceDay window. */
+  top_sale: HomeSaleRow | null;
+  /** The most recent project to get its FIRST-EVER resale. */
+  first_resale: HomeSaleRow | null;
+  /** #1 on the PriceScore leaderboard. */
+  top_collector: { handle: string; score: number } | null;
+  /** Newest named accounts, newest first. */
+  new_faces: { handle: string; ts: number }[];
+  /** A platform head-count for ONE profile tag, rotating daily — "N people
+      wear Collector". Null until anyone wears a tag. */
+  tag_stat: { id: string; label: string; count: number } | null;
+}
+
 export interface HomeResponse {
   stats: {
     projects: number;
@@ -72,13 +105,123 @@ export interface HomeResponse {
   uploads: HomeUploadRow[];
   /** Projects at ≥ threshold mints, in the order they reached it. */
   minting_now: HomeMintingRow[];
+  /** Extra signals for the home news rail. Optional so an older cached
+      payload (or a partial failure) simply renders the rail without them. */
+  news?: HomeNewsSignals;
+}
+
+/* How far back a "first resale" still counts as news. Older than this and the
+   pill is history, not a moment — it drops off the rail. */
+const FIRST_RESALE_FRESH_MS = 7 * 24 * 60 * 60 * 1000;
+
+/* Ceiling on the priced-transfer scan behind the sale pills. Launch-scale
+   volumes sit far under it; if it's ever hit, the oldest resales fall out of
+   the "first resale" detection first (the top-sale-today pill is unaffected —
+   today's rows are always inside the newest slice). */
+const SALE_SCAN_LIMIT = 2000;
+
+/* Ceiling on the account scan behind the tag head-count. Past this the figure
+   would under-report, so raise it (or move to a SQL tally) before the user
+   base gets there. */
+const TAG_SCAN_LIMIT = 5000;
+
+/* The news-rail signals that genuinely need a database read. Never throws:
+   the rail is decoration, so a failure here quietly renders the rail without
+   these pills rather than taking the home page down with it. */
+async function buildNewsSignals(
+  db: ReturnType<typeof getSupabaseService>,
+): Promise<HomeNewsSignals> {
+  const empty: HomeNewsSignals = {
+    top_sale: null, first_resale: null, top_collector: null, new_faces: [], tag_stat: null,
+  };
+  try {
+    const day = priceDayNumber();
+    const { startSec, endSec } = dayWindow(day);
+    const [saleRes, topRes, newRes, tagRes] = await Promise.all([
+      // A priced XFER is a secondary sale (the almanac's own definition).
+      db.from('events').select('project_id, token_id, price_eth, timestamp')
+        .eq('type', 'XFER').not('price_eth', 'is', null)
+        .order('timestamp', { ascending: false }).limit(SALE_SCAN_LIMIT),
+      db.from('users').select('handle, price_score')
+        .not('handle', 'is', null).gt('price_score', 0)
+        .order('price_score', { ascending: false })
+        .order('created_at', { ascending: true }).limit(1),
+      db.from('users').select('handle, created_at')
+        .not('handle', 'is', null)
+        .order('created_at', { ascending: false }).limit(3),
+      db.from('users').select('profile_tags, granted_tags').limit(TAG_SCAN_LIMIT),
+    ]);
+
+    const rows = (saleRes.data ?? []) as {
+      project_id: string; token_id: string; price_eth: number | string; timestamp: number;
+    }[];
+
+    // Today's biggest, and each project's earliest — one pass over the scan.
+    let topSale: HomeSaleRow | null = null;
+    const firstByProject = new Map<string, HomeSaleRow>();
+    for (const r of rows) {
+      const sale: HomeSaleRow = {
+        slug: r.project_id,
+        token_id: r.token_id,
+        price_eth: Number(r.price_eth),
+        ts: r.timestamp * 1000,
+      };
+      if (!Number.isFinite(sale.price_eth)) continue;
+      if (r.timestamp >= startSec && r.timestamp < endSec) {
+        if (!topSale || sale.price_eth > topSale.price_eth) topSale = sale;
+      }
+      const prev = firstByProject.get(sale.slug);
+      // Scan runs newest-first, so a later row is always the earlier sale.
+      if (!prev || sale.ts < prev.ts) firstByProject.set(sale.slug, sale);
+    }
+
+    // The freshest debut resale across all projects, while it's still news.
+    let firstResale: HomeSaleRow | null = null;
+    const cutoff = Date.now() - FIRST_RESALE_FRESH_MS;
+    for (const s of firstByProject.values()) {
+      if (s.ts < cutoff) continue;
+      if (!firstResale || s.ts > firstResale.ts) firstResale = s;
+    }
+
+    const top = ((topRes.data ?? []) as { handle: string | null; price_score: number | null }[])[0];
+    const faces = ((newRes.data ?? []) as { handle: string | null; created_at: string | null }[])
+      .filter((u) => !!u.handle)
+      .map((u) => ({ handle: u.handle as string, ts: new Date(u.created_at ?? 0).getTime() }))
+      .filter((u) => Number.isFinite(u.ts));
+
+    /* Head-count every worn tag, then show ONE — indexed by PriceDay so the
+       rail turns over a different stat each day instead of always naming the
+       biggest crowd. Self-applied personas and admin-granted tags both count;
+       derived tags aren't stored, so they're not countable here. */
+    const tally = new Map<string, number>();
+    for (const u of (tagRes.data ?? []) as { profile_tags: string[] | null; granted_tags: string[] | null }[]) {
+      for (const id of new Set([...(u.profile_tags ?? []), ...(u.granted_tags ?? [])])) {
+        tally.set(id, (tally.get(id) ?? 0) + 1);
+      }
+    }
+    const worn = [...tally.entries()]
+      .map(([id, count]) => ({ id, label: tagById(id)?.label ?? null, count }))
+      .filter((t): t is { id: string; label: string; count: number } => !!t.label)
+      .sort((a, b) => b.count - a.count || a.id.localeCompare(b.id));
+    const tagStat = worn.length > 0 ? worn[(day - 1) % worn.length] : null;
+
+    return {
+      top_sale: topSale,
+      first_resale: firstResale,
+      top_collector: top?.handle ? { handle: top.handle, score: top.price_score ?? 0 } : null,
+      new_faces: faces,
+      tag_stat: tagStat,
+    };
+  } catch {
+    return empty;
+  }
 }
 
 /** Compute the live home payload. Throws on DB error — callers decide
  *  whether that's a 500 (the API route) or a null seed (the page). */
 export async function buildHomeResponse(): Promise<HomeResponse> {
   const db = getSupabaseService();
-  const [projRes, mintsRes, pricedRes] = await Promise.all([
+  const [projRes, mintsRes, pricedRes, news] = await Promise.all([
     db.from('projects').select('id, title, minted_count, max_supply, project_no, uploaded_at, cooldown_until, graduated_at, sold_out_at, milestones'),
     db
       .from('events')
@@ -86,6 +229,7 @@ export async function buildHomeResponse(): Promise<HomeResponse> {
       .eq('type', 'MINT')
       .order('timestamp', { ascending: true }),
     db.from('events').select('price_eth').not('price_eth', 'is', null),
+    buildNewsSignals(db),
   ]);
   if (projRes.error) throw new Error(projRes.error.message);
   if (mintsRes.error) throw new Error(mintsRes.error.message);
@@ -196,5 +340,6 @@ export async function buildHomeResponse(): Promise<HomeResponse> {
     },
     uploads,
     minting_now: minting,
+    news,
   };
 }

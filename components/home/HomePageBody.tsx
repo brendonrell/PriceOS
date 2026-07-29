@@ -38,7 +38,12 @@ import SocialFeed from './SocialFeed';
 import HomeTitleCartography from './HomeTitleCartography';
 import RewindHome from './RewindHome';
 import { useRewindOptional } from '../../lib/state/RewindContext';
-import { buildNewsItems, dispatchPrintsMeta } from '../../lib/home/news';
+import { buildNewsItems, dispatchPrintsMeta, type DayPills } from '../../lib/home/news';
+import { priceDayNumber, formatPriceDate } from '../../lib/priceday/priceday';
+import { moodOfDay } from '../../lib/mood/mood';
+import { PerMilleMark } from '../shell/PerMilleMark';
+import { useGasData } from '../../lib/hooks/useGasData';
+import type { HomeYouResponse } from '../../app/api/home/you/route';
 import { TraitsProvider, useTraits } from '../../lib/state/TraitsContext';
 import { ProjectProvider, useProject } from '../../lib/state/ProjectContext';
 import { useAuth } from '../../lib/state/AuthContext';
@@ -512,15 +517,57 @@ function HomePageBodyInner({
         return () => { cancelled = true; window.removeEventListener('pd:follows-changed', onCh); };
     }, [siweAddress, viewerHandle]);
 
-    /* The Dispatch pill's print time, localized to the viewer's own zone. Left
-       undefined for the server paint + first client paint (both show the plain
-       'Prints daily', so no hydration mismatch), then filled in after mount. */
-    const [dispatchMeta, setDispatchMeta] = useState<string | undefined>(undefined);
-    useEffect(() => { setDispatchMeta(dispatchPrintsMeta()); }, []);
+    /* The news rail's day-derived pills — the Dispatch's local print time, plus
+       today's PriceDay and Mood Ring. All three depend on the current date, so
+       they're left out of the server paint AND the first client paint (which
+       therefore agree — no hydration mismatch) and slot in after mount. */
+    const [dayPills, setDayPills] = useState<DayPills>({});
+    useEffect(() => {
+        const mood = moodOfDay();
+        setDayPills({
+            dispatchMeta: dispatchPrintsMeta(),
+            priceDay: { n: priceDayNumber(), date: formatPriceDate() },
+            mood: { name: mood.name, hex: mood.hex },
+        });
+    }, []);
+
+    /* Live ETH + gas for the rail's market pills, off the shared gas feed (one
+       cached fetch per window no matter how many people are watching). */
+    const gas = useGasData(true);
+
+    /* The rail's YOUR-OWN pills — kin, rarest piece, next upload window. Only
+       fetched for a signed-in wallet; signed out, the rail simply has three
+       fewer pills. */
+    const [youSignals, setYouSignals] = useState<HomeYouResponse | null>(null);
+    useEffect(() => {
+        const addr = siweAddress?.toLowerCase();
+        if (!addr) { setYouSignals(null); return; }
+        let cancelled = false;
+        fetch(`/api/home/you?address=${addr}`, { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d: HomeYouResponse | null) => { if (!cancelled && d) setYouSignals(d); })
+            .catch(() => { /* rail is decoration — no pills is a fine outcome */ });
+        return () => { cancelled = true; };
+    }, [siweAddress]);
+
 
     /* The live home payload (stats + uploads + minting now). Server-seeded,
        re-pulled on every Realtime push / refresh nudge, poll fallback. */
     const [feed, setFeed] = useState<HomeResponse | null>(initialFeed);
+
+    /* Everything the news rail shows, in one place. Memoised so the rail's
+       scroll animation only re-binds when the CONTENT actually changes — the
+       page re-renders on a timer for the featuring row. */
+    const newsItems = useMemo(() => buildNewsItems(feed, {
+        ...dayPills,
+        market: gas.data ? { ethUsd: gas.data.ethUsd, gwei: gas.data.standardGwei } : undefined,
+        you: youSignals,
+        doors: {
+            openKeychains: () => openModal('depanneur'),
+            openStickers: () => openModal('stickers'),
+        },
+    }), [feed, dayPills, gas.data, youSignals, openModal]);
+
     useEffect(() => {
         let cancelled = false;
         const load = () => {
@@ -971,7 +1018,7 @@ function HomePageBodyInner({
                     the Tape engine, sitting directly above the action row. Auto
                     pills = live Uploaded / Graduated / Sold-Out moments; the
                     curated slot (empty for now) fills from the future studio. */}
-                <NewsCarousel items={buildNewsItems(feed, dispatchMeta)} />
+                <NewsCarousel items={newsItems} />
 
                 {/* Action row — same chrome as the project page's mint +
                     soundtrack pair. Primary = Join The Chat (Discord);
@@ -1082,7 +1129,14 @@ function HomePageBodyInner({
                             feedView.map((ev) => (
                                 <div className="feed-row" key={`${ev.label}-${ev.slug}-${ev.ts}`}>
                                     <div className="feed-line" />
-                                    <div className={`f-icon-wrap af-ic${ev.cls ? ` ${ev.cls}` : ''}`}>{ev.glyph}&#xFE0E;</div>
+                                    {/* Per Mille wears the REAL logo mark (SVG), never the ‰
+                                        character — Brendon's logo law, same swap the output
+                                        timeline makes. */}
+                                    <div className={`f-icon-wrap af-ic${ev.cls ? ` ${ev.cls}` : ''}`}>{ev.cls === 'af-ic--mille' ? (
+                                        <PerMilleMark className="af-mille-svg" />
+                                    ) : (
+                                        <>{ev.glyph}&#xFE0E;</>
+                                    )}</div>
                                     <div className="f-time">
                                         <span>{fmtUploadDate(ev.ts)}</span>
                                         <span>{fmtUploadTime(ev.ts)}</span>

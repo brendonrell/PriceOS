@@ -28,6 +28,7 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 const NEWS_BANNER_SPEED = { desktop: 45, mobile: 28 } as const;
 
 import SpriteFace from '../SpriteFace';
+import { PerMilleMark } from '../shell/PerMilleMark';
 import { getSpriteFrame, subscribeSprite, type SpriteFrame } from '../../lib/engines/priceSpriteEngine';
 
 export interface NewsItem {
@@ -36,6 +37,9 @@ export interface NewsItem {
     kind?: 'text' | 'sprite';
     /** Small lead glyph (VS-15 vocabulary). */
     glyph?: string;
+    /** Optional per-glyph class for size/nudge treatments — carries the
+        milestone icon classes through from lib/home/milestones. */
+    cls?: string;
     /** Short category/tag shown above or beside the headline (ALLCAPS reads best). */
     tag?: string;
     /** The headline — the part the eye lands on (text pills). */
@@ -46,6 +50,9 @@ export interface NewsItem {
     name?: string;
     /** Optional link — the whole pill navigates here when tapped. */
     href?: string;
+    /** Optional action — for pills that open a modal instead of navigating
+        (the Stickers store, the Dépanneur). Ignored when href is set. */
+    onClick?: () => void;
 }
 
 /* Placeholder feature pills — stand-ins to nail the look; replaced by the
@@ -85,7 +92,13 @@ function NewsPill({ item }: { item: NewsItem }) {
     if (item.kind === 'sprite') return <SpriteNewsPill item={item} />;
     const inner = (
         <>
-            {item.glyph && <span className="news-pill-glyph" aria-hidden="true">{item.glyph}</span>}
+            {item.glyph && (
+                <span className={`news-pill-glyph${item.cls ? ` ${item.cls}` : ''}`} aria-hidden="true">
+                    {/* Per Mille wears the REAL logo mark (SVG), never the ‰
+                        character — Brendon's logo law. */}
+                    {item.cls === 'af-ic--mille' ? <PerMilleMark className="news-pill-mille-svg" /> : item.glyph}
+                </span>
+            )}
             <span className="news-pill-body">
                 {item.tag && <span className="news-pill-tag">{item.tag}</span>}
                 {item.title && <span className="news-pill-title">{item.title}</span>}
@@ -98,6 +111,22 @@ function NewsPill({ item }: { item: NewsItem }) {
             <a className="pill news-pill" href={item.href}>
                 {inner}
             </a>
+        );
+    }
+    if (item.onClick) {
+        const act = item.onClick;
+        return (
+            <span
+                className="pill news-pill news-pill--action"
+                role="button"
+                tabIndex={0}
+                onClick={act}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); }
+                }}
+            >
+                {inner}
+            </span>
         );
     }
     return <span className="pill news-pill">{inner}</span>;

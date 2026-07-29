@@ -111,6 +111,7 @@ import {
     type ProfileTab, type ProfileMoreL1, type Holding,
 } from './profilePageShared';
 import ArtistProjectCarousel from './ArtistProjectCarousel';
+import UploadWindowCountdown from '../artist/UploadWindowCountdown';
 import JoinDayPopover from './JoinDayPopover';
 import { useProfileEggs } from './useProfileEggs';
 import { useStarredPins } from './useStarredPins';
@@ -2296,6 +2297,10 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                             <ArtistProjectCarousel eager={i === 0} />
                         </ProjectProvider>
                     ))}
+                    {/* The live clock to this artist's next upload window, at
+                        the very bottom of Created (Brendon, 2026-07-29). Shows
+                        only while the cooldown is running. */}
+                    <UploadWindowCountdown address={user.address} />
                 </section>
             )}
 

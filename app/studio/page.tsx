@@ -15,6 +15,7 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../../lib/state/AuthContext';
+import UploadWindowCountdown from '../../components/artist/UploadWindowCountdown';
 import { hasStudioAccess } from '../../lib/studio/access';
 import { StickerStudio } from '../../components/studio/StickerStudio';
 import { SubtraitEditor } from '../../components/studio/SubtraitEditor';
@@ -697,6 +698,9 @@ export default function StudioPage() {
                    sales, volume, followers, 14-day mint pace, last moments. ── */}
             <div className="pd-studio-section" id="analytics">
                 <div className="pd-studio-section-title">Dashboard — analytics</div>
+                {/* The live clock to the next upload window — renders only
+                    while the cooldown is running (Brendon, 2026-07-29). */}
+                <UploadWindowCountdown address={address} />
                 <StudioAnalytics handle={handle ?? null} god={god} />
             </div>
 

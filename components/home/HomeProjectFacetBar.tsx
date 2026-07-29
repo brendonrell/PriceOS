@@ -276,7 +276,7 @@ export default function HomeProjectFacetBar({
                                 title={p.label}
                             >
                                 <span className="stat-name">{p.label}</span>
-                                {p.count != null && <span className="stat-count">{p.count}</span>}
+                                {p.count != null && <span className="badge">{p.count}</span>}
                             </div>
                         ))}
                         {!compact && liveFacets.map((facet) => {
