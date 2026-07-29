@@ -451,6 +451,39 @@ export function dispatchPrintsMeta(): string {
     return `Prints daily · ${local}`;
 }
 
+/* ── THE GREETING ─────────────────────────────────────────────────────────
+   Says hello in the viewer's OWN hour (Brendon, 2026-07-29), and carries a
+   live platform stat under it so the card earns its place. Computed after
+   mount like every other clock-derived pill. */
+export function greetingOfDay(now = new Date()): string {
+    const h = now.getHours();
+    if (h < 5) return 'GOOD NIGHT';
+    if (h < 12) return 'GOOD MORNING';
+    if (h < 17) return 'GOOD AFTERNOON';
+    if (h < 22) return 'GOOD EVENING';
+    return 'GOOD NIGHT';
+}
+
+function greetingItem(greeting: string, feed: HomeResponse | null): NewsItem {
+    const live = (feed?.minting_now ?? []).filter(
+        (m) => m.sold_out_at == null && m.max_supply > 0 && m.minted_count < m.max_supply,
+    ).length;
+    /* ◷ is PD's established clock mark (GLYPHS §12) — the greeting is a
+       time-of-day pill, so it wears the time glyph. */
+    if (live > 0) {
+        return {
+            glyph: vs('◷'), tag: greeting,
+            title: `${live} ${live === 1 ? 'project is' : 'projects are'} minting`,
+            meta: 'Right now on PD',
+        };
+    }
+    return {
+        glyph: vs('◷'), tag: greeting,
+        title: `${(feed?.stats?.minted ?? 0).toLocaleString()} pieces minted`,
+        meta: 'On PD so far',
+    };
+}
+
 /* The day pills. Both are date-derived, so — exactly like the Dispatch's local
    print time — they're computed after mount and passed in; the server paint and
    the first client paint agree on a rail without them, then they slot in. */
@@ -467,6 +500,8 @@ export interface DayPills {
     /** The doors the quiet-feature pills open. Omitted → those pills sit out
         rather than shipping as dead chrome. */
     doors?: FeatureDoors;
+    /** The viewer's own time-of-day hello, from greetingOfDay(). */
+    greeting?: string;
     /** Per-visit shuffle seed. Set after mount (like the day pills), so the
         server paint and the first client paint agree on the plain order and
         every visit gets its own running order. Omitted → no shuffle. */
@@ -498,6 +533,7 @@ export function buildNewsItems(feed: HomeResponse | null, day: DayPills = {}): N
     /* The Dispatch leads the rail every day — it sits out of the shuffle. */
     const lead: NewsItem = day.dispatchMeta ? { ...DISPATCH_PILL, meta: day.dispatchMeta } : DISPATCH_PILL;
     const rest: NewsItem[] = [];
+    if (day.greeting) rest.push(greetingItem(day.greeting, feed));
     if (day.priceDay) {
         rest.push({
             glyph: vs('✶'), tag: 'WELCOME TO',

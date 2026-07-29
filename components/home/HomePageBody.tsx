@@ -38,7 +38,7 @@ import SocialFeed from './SocialFeed';
 import HomeTitleCartography from './HomeTitleCartography';
 import RewindHome from './RewindHome';
 import { useRewindOptional } from '../../lib/state/RewindContext';
-import { buildNewsItems, dispatchPrintsMeta, type DayPills } from '../../lib/home/news';
+import { buildNewsItems, dispatchPrintsMeta, greetingOfDay, type DayPills } from '../../lib/home/news';
 import { priceDayNumber, formatPriceDate } from '../../lib/priceday/priceday';
 import { moodOfDay } from '../../lib/mood/mood';
 import { PerMilleMark } from '../shell/PerMilleMark';
@@ -528,6 +528,7 @@ function HomePageBodyInner({
             dispatchMeta: dispatchPrintsMeta(),
             priceDay: { n: priceDayNumber(), date: formatPriceDate() },
             mood: { name: mood.name, hex: mood.hex },
+            greeting: greetingOfDay(),
             seed: Math.floor(Math.random() * 1e9),
         });
     }, []);
