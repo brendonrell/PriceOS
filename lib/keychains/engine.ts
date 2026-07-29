@@ -71,20 +71,64 @@ function d(seed: `0x${string}`, salt: number, mod: bigint): number {
     return Number(BigInt(keccak256(encodePacked(['bytes32', 'uint8'], [seed, salt]))) % mod);
 }
 
-/* YIN/YANG steering (contract verbatim, 2026-07-28; sharpened same day to
-   Brendon's read: YIN deals the GIRLS, YANG deals the BOYS) — the coin
-   steers palette / eyes / accessory weights; every option stays rollable
-   on both coins, and SHAPES ARE UNIVERSAL so the ALIEN chase is equal. */
-function paletteFor(seed: `0x${string}`, coin: Coin): number {
-    const x = d(seed, 2, 100n);
-    if (coin === 0) {
-        // YIN (girls) — the pinks + pastels: BUBBLEGUM BLUEBERRY VAPOR MALLRAT GRAPE SEAFOAM 12 each · the boy six ~5 each
-        return x < 12 ? 0 : x < 24 ? 1 : x < 36 ? 4 : x < 48 ? 6 : x < 60 ? 9 : x < 72 ? 10
-            : x < 77 ? 2 : x < 82 ? 3 : x < 87 ? 5 : x < 92 ? 8 : x < 96 ? 7 : 11;
+/* ── THE RARITY LADDER (Brendon, 2026-07-29) ──────────────────────────────
+   THE ART BELONGS TO THE CHARM, NOT THE KEEPER. Colour, finish and chain
+   metal used to be repainted live off the keeper's rank/streak, so an entire
+   rack came out one colour (Brendon: "they all come out gold, it's boring").
+   They now roll PER CHARM off its own seed on a common→rare ladder, and the
+   keeper's streak/rank buy LUCK instead — a tilt on those odds, banked into
+   the charm at the crank and kept forever. */
+
+/** The keeper's odds tier at the moment of the crank. */
+export type Luck = 0 | 1 | 2 | 3;
+
+/** Streak + rank buy better odds — the best of the two, never a repaint. */
+export function luckFor(streak: number, rank: number): Luck {
+    const s = streak >= 100 ? 3 : streak >= 30 ? 2 : streak >= 7 ? 1 : 0;
+    const r = rank >= 9 ? 3 : rank >= 6 ? 2 : rank >= 3 ? 1 : 0;
+    return (s > r ? s : r) as Luck;
+}
+
+/* COMMON · UNCOMMON · RARE · ULTRA cuts per luck tier, out of 1000.
+   luck 0 → 60/25/11.5/3.5   ·   luck 3 → 39/34/17/10 */
+const TIER_CUTS: number[][] = [
+    [600, 850, 965],
+    [540, 815, 950],
+    [470, 775, 930],
+    [390, 730, 900],
+];
+
+function tierRoll(seed: `0x${string}`, salt: number, luck: Luck): number {
+    const x = d(seed, salt, 1000n);
+    const c = TIER_CUTS[luck] ?? TIER_CUTS[0]!;
+    return x < c[0]! ? 0 : x < c[1]! ? 1 : x < c[2]! ? 2 : 3;
+}
+
+/** Pick one of a tier's members off a 100-weight table. */
+function weighted(seed: `0x${string}`, salt: number, pool: number[], w: number[]): number {
+    const x = d(seed, salt, 100n);
+    let run = 0;
+    for (let i = 0; i < pool.length; ++i) {
+        run += w[i] ?? 0;
+        if (x < run) return pool[i]!;
     }
-    // YANG (boys) — the louds + darks: ACID SLIME CREAMSICLE CHERRY 13 each · MIDNIGHT 12 · STATIC 9 · the girl six ~4-5 each
-    return x < 13 ? 2 : x < 26 ? 3 : x < 39 ? 5 : x < 52 ? 8 : x < 64 ? 7 : x < 73 ? 11
-        : x < 78 ? 0 : x < 83 ? 1 : x < 88 ? 4 : x < 92 ? 6 : x < 96 ? 9 : 10;
+    return pool[pool.length - 1]!;
+}
+
+/* THE COLOUR TIERS — every colour stays rollable on both coins (the YIN/YANG
+   law); the coin only steers WHICH member of the rolled tier lands. */
+const PAL_TIERS: number[][] = [
+    [0, 1, 6, 5],   // COMMON  — BUBBLEGUM BLUEBERRY MALLRAT CREAMSICLE
+    [4, 9, 8, 10],  // UNCOMMON — VAPOR GRAPE CHERRY SEAFOAM
+    [3, 7],         // RARE    — SLIME MIDNIGHT
+    [2, 11],        // ULTRA   — ACID STATIC
+];
+const PAL_YIN: number[][] = [[28, 20, 34, 18], [34, 18, 22, 26], [42, 58], [72, 28]];
+const PAL_YANG: number[][] = [[24, 30, 14, 32], [18, 32, 32, 18], [62, 38], [34, 66]];
+
+function paletteFor(seed: `0x${string}`, coin: Coin, luck: Luck): number {
+    const t = tierRoll(seed, 20, luck);
+    return weighted(seed, 21, PAL_TIERS[t]!, (coin === 0 ? PAL_YIN : PAL_YANG)[t]!);
 }
 
 function eyesFor(seed: `0x${string}`, coin: Coin): number {
@@ -109,10 +153,10 @@ function accFor(seed: `0x${string}`, coin: Coin): number {
     return x < 84 ? 0 : x < 114 ? 3 : x < 140 ? 4 : x < 152 ? 5 : x < 164 ? 2 : 1;
 }
 
-export function genes(seed: `0x${string}`, coin: Coin = 0): Genes {
+export function genes(seed: `0x${string}`, coin: Coin = 0, luck: Luck = 0): Genes {
     let x = d(seed, 1, 100n); // HEART16 STAR12 FLOWER12 GHOST10 CLOVER10 BOLT8 TAG8 MOON7 GEM6 PLANET5 SPARK4 ALIEN2 — UNIVERSAL, both coins
     const shape = x < 16 ? 0 : x < 28 ? 1 : x < 40 ? 2 : x < 50 ? 3 : x < 60 ? 4 : x < 68 ? 5 : x < 76 ? 6 : x < 83 ? 7 : x < 89 ? 8 : x < 94 ? 9 : x < 98 ? 10 : 11;
-    const palette = paletteFor(seed, coin);
+    const palette = paletteFor(seed, coin, luck);
     const material = d(seed, 3, 100n) < 70 ? 0 : 1;
     const eyes = eyesFor(seed, coin);
     x = d(seed, 5, 100n); // SMILE26 OPEN22 CAT13 O11 TONGUE11 FLAT8 FANG9
@@ -467,20 +511,70 @@ function legs(s: ShapeD, g: Genes, body: string, accent: string): string {
 
 // ─── the chain (streak) ──────────────────────────────────────────────────
 
-export function chainTier(days: number): { links: number; metal: number; label: string } {
-    // metal: 0 steel · 1 gold · 2 chrome · 3 cord
-    if (days >= 1000) return { links: 12, metal: 2, label: 'CHROME · 1000+' };
-    if (days >= 365) return { links: 12, metal: 1, label: 'GOLD · 365+' };
-    if (days >= 100) return { links: 10, metal: 0, label: 'HEAVY · 100+' };
-    if (days >= 60) return { links: 8, metal: 0, label: 'FORGED · 60+' };
-    if (days >= 30) return { links: 6, metal: 0, label: 'LINKED · 30+' };
-    if (days >= 7) return { links: 4, metal: 0, label: 'STARTED · 7+' };
-    return { links: 0, metal: 3, label: 'CORD' };
+/* THE CHAIN — six real links off the split ring, exactly the art Brendon
+   approved (2026-07-29), given to every charm as its floor. The metal is the
+   charm's own rare roll; nothing about the chain reads off the keeper any
+   more, so the thin cord that used to mark a short streak is gone. */
+export function charmChain(seed: `0x${string}`, luck: Luck = 0): { links: number; metal: number; label: string } {
+    const t = tierRoll(seed, 24, luck);
+    if (t === 3) return { links: 6, metal: 1, label: 'GOLD' };
+    if (t === 2) return { links: 6, metal: 2, label: 'CHROME' };
+    return { links: 6, metal: 0, label: 'STEEL' };
 }
 
-function chainSvg(s: ShapeD, days: number): string {
-    const { links, metal: metalKind } = chainTier(days);
-    const metal = metalKind === 1 ? '#F5D96B' : metalKind === 2 ? '#EFF4FA' : '#C6CDD8';
+/** The charm's own finish — MATTE common, CHROME the chase. */
+export function charmFinish(seed: `0x${string}`, luck: Luck = 0): number {
+    const t = tierRoll(seed, 22, luck);
+    if (t === 3) return d(seed, 23, 100n) < 60 ? 3 : 4; // GOLD · CHROME
+    return t; // 0 MATTE · 1 GLOSS · 2 GLITTER
+}
+
+export function chainMetalHex(metalKind: number): string {
+    return metalKind === 1 ? '#F5D96B' : metalKind === 2 ? '#EFF4FA' : '#C6CDD8';
+}
+
+/** Where the charm's chain hooks on — the bail, in art units. */
+export function charmBailY(seed: `0x${string}`, coin: Coin = 0, luck: Luck = 0): number {
+    return SHAPE_D[genes(seed, coin, luck).shape]!.bailY;
+}
+
+/** The chain's link geometry, shared by the drawn art and the hanging solver
+ *  so a swinging chain is the SAME chain, link for link. */
+export function chainGeom(bailY: number, links: number): {
+    top: number; step: number; rx: number; ry: number; off: number;
+} {
+    const top = 162;
+    const span = bailY - top + 8;
+    const step = Math.trunc(span / links);
+    let ry = Math.trunc((step * 72) / 100);
+    if (ry > 34) ry = 34;
+    let rx = Math.trunc((ry * 66) / 100);
+    if (rx < 12) rx = 12;
+    if (rx > 24) rx = 24;
+    return { top, step, rx, ry, off: Math.trunc((ry * 7) / 10) };
+}
+
+/** One link of the chain drawn at the ORIGIN, long axis down — the same two
+ *  shapes the static chain alternates, so the hanging version matches. */
+export function chainLinkSvg(i: number, rx: number, ry: number, metal: string): string {
+    if (i % 2 === 0) {
+        return `<ellipse cx="0" cy="0" rx="${rx}" ry="${ry}" fill="none" stroke="${INK}" stroke-width="22"/>`
+            + `<ellipse cx="0" cy="0" rx="${rx}" ry="${ry}" fill="none" stroke="${metal}" stroke-width="10"/>`;
+    }
+    const w = Math.trunc((rx * 84) / 100);
+    const h = Math.trunc((ry * 144) / 100);
+    return `<rect x="${-Math.trunc(w / 2)}" y="${-Math.trunc(h / 2)}" width="${w}" height="${h}" rx="${Math.trunc((rx * 42) / 100)}" fill="${metal}" stroke="${INK}" stroke-width="9"/>`;
+}
+
+/** The split ring at the top of every chain, drawn at the ORIGIN. */
+export function chainRingSvg(metal: string): string {
+    return `<circle cx="0" cy="0" r="54" fill="none" stroke="${INK}" stroke-width="34"/>`
+        + `<circle cx="0" cy="0" r="54" fill="none" stroke="${metal}" stroke-width="16"/>`;
+}
+
+function chainSvg(s: ShapeD, chain: { links: number; metal: number }): string {
+    const { links, metal: metalKind } = chain;
+    const metal = chainMetalHex(metalKind);
     let out = `<circle cx="500" cy="108" r="54" fill="none" stroke="${INK}" stroke-width="34"/>`
         + `<circle cx="500" cy="108" r="54" fill="none" stroke="${metal}" stroke-width="16"/>`;
     const top = 162;
@@ -509,14 +603,6 @@ function chainSvg(s: ShapeD, days: number): string {
 
 // ─── finishes (rank) ─────────────────────────────────────────────────────
 
-export function finishForRank(rank: number): number {
-    // 0 MATTE · 1 GLOSS · 2 GLITTER · 3 GOLD · 4 CHROME
-    if (rank >= 9) return 4;
-    if (rank >= 7) return 3;
-    if (rank >= 5) return 2;
-    if (rank >= 3) return 1;
-    return 0;
-}
 
 function finishGradient(finish: number, body: number, material: number, uid: string): string {
     if (finish === 3) {
@@ -587,13 +673,13 @@ function armActions(g: Genes): [number, number] {
 /** Draw the full charm — the contract's tokenSVG, verbatim. `name` must be
  *  charset-guarded (A–Z, 0–9, space) by the caller. `uid` must be unique per
  *  charm ON THE PAGE (id suffixes prevent gradient/clip collisions). */
-export function charmSVG(seed: `0x${string}`, uid: string, streak: number, rank: number, name: string, coin: Coin = 0, noChain = false): string {
-    const g = genes(seed, coin);
+export function charmSVG(seed: `0x${string}`, uid: string, luck: Luck, name: string, coin: Coin = 0, noChain = false): string {
+    const g = genes(seed, coin, luck);
     const s = SHAPE_D[g.shape]!;
     const bodyC = BODY_RGB[g.palette]!;
     const body = hex6(bodyC);
     const accent = hex6(ACC_RGB[g.palette]!);
-    const finish = finishForRank(rank);
+    const finish = charmFinish(seed, luck);
     const [accFront, accBack] = accessorySvg(g.acc, [s.bailX, s.bailY, s.aLx, s.aLy, s.aRx, s.aRy], accent);
     const [actL, actR] = armActions(g);
 
@@ -606,7 +692,7 @@ export function charmSVG(seed: `0x${string}`, uid: string, streak: number, rank:
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 ${top} 1000 ${1000 - top}">`
         + '<style>.sw{transform-box:fill-box;transform-origin:50% -6%;animation:sw 3.4s ease-in-out infinite alternate}@keyframes sw{from{transform:rotate(-3deg)}to{transform:rotate(3deg)}}.ey{transform-box:fill-box;transform-origin:center;animation:bl 4.6s infinite}@keyframes bl{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(0.12)}}.gl{animation:tw 2.3s ease-in-out infinite alternate}@keyframes tw{from{opacity:0.5}to{opacity:0.95}}</style>'
         + `<defs><clipPath id="c${uid}">${clipEl(g.shape)}</clipPath>${finishGradient(finish, bodyC, g.material, uid)}</defs>`
-        + (noChain ? '' : chainSvg(s, streak)) + nameTag(name)
+        + (noChain ? '' : chainSvg(s, charmChain(seed, luck))) + nameTag(name)
         + `<g class="sw">${accBack}${bodySvg(g.shape, `url(#f${uid})`, accent)}`
         + finishOverlay(finish, seed, uid)
         + ((g.material === 1 && finish < 3) ? '' : shine(g.shape, uid))
@@ -627,8 +713,8 @@ export const ACC_NAMES = ['NONE', 'BOW', 'HALO', 'CROWN', 'ANTENNA', 'WINGS'] as
 export const BROW_NAMES = ['NONE', 'RAISED', 'BENT'] as const;
 
 /** The reveal-card trait sheet for a charm. */
-export function charmTraits(seed: `0x${string}`, streak: number, rank: number, coin: Coin = 0): { k: string; v: string }[] {
-    const g = genes(seed, coin);
+export function charmTraits(seed: `0x${string}`, luck: Luck, coin: Coin = 0): { k: string; v: string }[] {
+    const g = genes(seed, coin, luck);
     return [
         { k: 'Coin', v: COIN_NAMES[coin]! },
         { k: 'Shape', v: SHAPE_NAMES[g.shape]! },
@@ -641,8 +727,8 @@ export function charmTraits(seed: `0x${string}`, streak: number, rank: number, c
         { k: 'Pose', v: POSE_NAMES[g.pose]! },
         { k: 'Accessory', v: ACC_NAMES[g.acc]! },
         { k: 'Shoes', v: SHAPE_D[g.shape]!.noLegs ? 'NONE' : g.shoe === 0 ? 'BOOTS' : 'SNEAKERS' },
-        { k: 'Finish', v: FINISH_NAMES[finishForRank(rank)]! },
-        { k: 'Chain', v: chainTier(streak).label },
+        { k: 'Finish', v: FINISH_NAMES[charmFinish(seed, luck)]! },
+        { k: 'Chain', v: charmChain(seed, luck).label },
     ];
 }
 
@@ -671,6 +757,10 @@ export interface CharmRecord {
     /** YIN/YANG — which slot the coin dropped in (0 yin · 1 yang). Older
      *  records (pre coin slots) default to 0 = YIN. */
     coin: Coin;
+    /** The keeper's odds tier AT THE CRANK, banked into the charm forever —
+     *  a long streak buys better rare chances, it never repaints the art
+     *  afterwards (Brendon, 2026-07-29). Older records default to 0. */
+    luck: Luck;
 }
 
 export function sanitizeCharms(parsed: unknown): CharmRecord[] {
@@ -687,6 +777,7 @@ export function sanitizeCharms(parsed: unknown): CharmRecord[] {
             name: typeof r.name === 'string' ? r.name : '',
             at: typeof r.at === 'number' ? r.at : 0,
             coin: r.coin === 1 ? 1 : 0,
+            luck: r.luck === 1 || r.luck === 2 || r.luck === 3 ? r.luck : 0,
         });
     }
     return out;

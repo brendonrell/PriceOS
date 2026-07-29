@@ -8,8 +8,12 @@
  * sim-ETH: CRANK debits the price server-side, a crypto-random seed rolls
  * the genes through the CONTRACT's own art (lib/keychains/engine — the
  * byte-faithful twin of PDKeychainRenderer), and the charm lands in the
- * account. THE CHAIN IS THE STREAK · THE FINISH IS THE RANK — both read
- * live, so every charm on the rack wears the keeper's current life.
+ * account. EVERY CHARM OWNS ITS OWN LOOK — colour, finish and chain metal all
+ * roll per charm on a common→rare ladder; the keeper's streak/rank only buy
+ * better odds at the crank (Brendon, 2026-07-29).
+ *
+ * ITS OWN WORLD (Brendon, 2026-07-29): the Depanneur is pinned dark at any
+ * colorway — the charms are painted art and need one steady room to read in.
  *
  * Chrome = the FI-PLUS panel (SuiteModal's shell, reused verbatim).
  * Doors (Brendon-named): the KEYCHAINS ⚷ button in the PriceSprite modal +
@@ -27,15 +31,16 @@ import {
     type CharmRecord, type Coin,
 } from '../../lib/keychains/engine';
 import { useKeychainRack, bustRack } from '../../lib/keychains/rack';
+import { requestMotion } from '../../lib/keychains/sway';
 
 const VS15 = '︎';
 
-function CharmArt({ charm, streak, rank, uid, className }: {
-    charm: CharmRecord; streak: number; rank: number; uid: string; className?: string;
+function CharmArt({ charm, uid, className }: {
+    charm: CharmRecord; uid: string; className?: string;
 }) {
     const svg = useMemo(
-        () => charmSVG(charm.seed, uid, streak, rank, charm.name, charm.coin),
-        [charm.seed, charm.name, uid, streak, rank, charm.coin],
+        () => charmSVG(charm.seed, uid, charm.luck, charm.name, charm.coin),
+        [charm.seed, charm.name, uid, charm.luck, charm.coin],
     );
     return <span className={className} dangerouslySetInnerHTML={{ __html: svg }} />;
 }
@@ -71,8 +76,6 @@ export default function DepanneurModal() {
         return () => window.removeEventListener('keydown', onKey);
     }, [isOpen, close]);
 
-    const streak = rack?.streak ?? 0;
-    const rank = rack?.rank ?? 0;
     const charms = rack?.charms ?? [];
     const shown: CharmRecord | null =
         (picked != null ? charms.find((c) => c.id === picked) : null) ?? fresh;
@@ -127,6 +130,11 @@ export default function DepanneurModal() {
 
     const equip = async (id: number | null) => {
         if (!siweAddress || busy) return;
+        /* THE TILT ASK RIDES THE EQUIP (Brendon, 2026-07-29) — the hang is
+           always on, and this tap is the one deliberate moment iOS will let
+           us ask for motion. Fire it before the await so it stays inside the
+           gesture; a refusal just leaves the chain swinging on scroll. */
+        if (id != null) void requestMotion();
         setBusy(true);
         try {
             const r = await fetch('/api/keychains/equip', {
@@ -216,17 +224,11 @@ export default function DepanneurModal() {
                             {/* THE REVEAL / the picked charm */}
                             {shown && (
                                 <div className="dp-reveal">
-                                    <CharmArt
-                                        charm={shown}
-                                        streak={streak}
-                                        rank={rank}
-                                        uid={`dp${shown.id}`}
-                                        className="dp-charm-big"
-                                    />
+                                    <CharmArt charm={shown} uid={`dp${shown.id}`} className="dp-charm-big" />
                                     <div className="dp-sheet">
                                         {shown.name && <div className="dp-sheet-name">{shown.name}</div>}
                                         <div className="dp-traits">
-                                            {charmTraits(shown.seed, streak, rank, shown.coin).map((t) => (
+                                            {charmTraits(shown.seed, shown.luck, shown.coin).map((t) => (
                                                 <span key={t.k} className="dp-trait">
                                                     <span className="dp-trait-k">{t.k.toUpperCase()}</span>
                                                     <span className="dp-trait-v">{t.v}</span>
@@ -278,7 +280,7 @@ export default function DepanneurModal() {
                                             onClick={() => { setPicked(c.id); setNameDraft(''); }}
                                             title={c.name || `Charm #${c.id}`}
                                         >
-                                            <CharmArt charm={c} streak={streak} rank={rank} uid={`rk${c.id}`} className="dp-charm-mini" />
+                                            <CharmArt charm={c} uid={`rk${c.id}`} className="dp-charm-mini" />
                                             {rack?.equipped === c.id && <span className="dp-rack-worn">WORN</span>}
                                         </button>
                                     ))}

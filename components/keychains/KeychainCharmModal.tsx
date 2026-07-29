@@ -6,13 +6,11 @@
  * A popup over wherever you are — never a nav (the ping/tag-popup law).
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useModal, useModalLayer } from '../../lib/state/ModalContext';
-import { charmSVG, charmTraits, chainTier, FINISH_NAMES, finishForRank } from '../../lib/keychains/engine';
+import { charmSVG, charmTraits, charmChain, charmFinish, FINISH_NAMES } from '../../lib/keychains/engine';
 import { useKeychainRack } from '../../lib/keychains/rack';
-import { useAuth } from '../../lib/state/AuthContext';
-import { motionState, motionSupported, onMotionChange, requestMotion, stopMotion } from '../../lib/keychains/sway';
 
 const VS15 = '︎';
 
@@ -32,8 +30,8 @@ export default function KeychainCharmModal() {
     }, [rack, idPart]);
 
     const svg = useMemo(
-        () => (charm && rack ? charmSVG(charm.seed, `kc${charm.id}`, rack.streak, rack.rank, charm.name, charm.coin) : ''),
-        [charm, rack],
+        () => (charm ? charmSVG(charm.seed, `kc${charm.id}`, charm.luck, charm.name, charm.coin) : ''),
+        [charm],
     );
 
     useEffect(() => {
@@ -42,14 +40,6 @@ export default function KeychainCharmModal() {
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
     }, [isOpen, close]);
-
-    /* THE MOTION DOOR — only on YOUR OWN charm (Brendon, 2026-07-29). The tilt
-       permission is asked for here and turned back off here; everywhere else
-       the charm hangs off scrolling alone. */
-    const { siweAddress } = useAuth();
-    const mine = !!siweAddress && !!address && siweAddress.toLowerCase() === address.toLowerCase();
-    const [motion, setMotion] = useState(motionState());
-    useEffect(() => onMotionChange(() => setMotion(motionState())), []);
 
     if (!isOpen || typeof document === 'undefined') return null;
 
@@ -81,39 +71,17 @@ export default function KeychainCharmModal() {
                         <div className="dp-sheet">
                             {charm.name && <div className="dp-sheet-name">{charm.name}</div>}
                             <div className="dp-charm-life">
-                                <span>{`⚷${VS15}`} {chainTier(rack.streak).label}</span>
-                                <span>{FINISH_NAMES[finishForRank(rack.rank)]}</span>
+                                <span>{`⚷${VS15}`} {charmChain(charm.seed, charm.luck).label}</span>
+                                <span>{FINISH_NAMES[charmFinish(charm.seed, charm.luck)]}</span>
                             </div>
                             <div className="dp-traits">
-                                {charmTraits(charm.seed, rack.streak, rack.rank, charm.coin).map((t) => (
+                                {charmTraits(charm.seed, charm.luck, charm.coin).map((t) => (
                                     <span key={t.k} className="dp-trait">
                                         <span className="dp-trait-k">{t.k.toUpperCase()}</span>
                                         <span className="dp-trait-v">{t.v}</span>
                                     </span>
                                 ))}
                             </div>
-                            {mine && motionSupported() && (
-                                <span
-                                    className={`dp-motion-btn${motion === 'granted' ? ' on' : ''}${motion === 'denied' ? ' dead' : ''}`}
-                                    role="button"
-                                    tabIndex={motion === 'denied' ? -1 : 0}
-                                    title={motion === 'denied'
-                                        ? 'Your phone refused motion access — turn it back on in Safari settings'
-                                        : 'Sway with how you hold the phone'}
-                                    onClick={() => {
-                                        if (motion === 'denied') return;
-                                        if (motion === 'granted') stopMotion(); else void requestMotion();
-                                    }}
-                                    onKeyDown={(e) => {
-                                        if (e.key !== 'Enter' && e.key !== ' ') return;
-                                        e.preventDefault();
-                                        if (motion === 'denied') return;
-                                        if (motion === 'granted') stopMotion(); else void requestMotion();
-                                    }}
-                                >
-                                    {`⌁${VS15} TILT: ${motion === 'granted' ? 'ON' : motion === 'denied' ? 'BLOCKED' : 'OFF'}`}
-                                </span>
-                            )}
                         </div>
                     </>
                 )}

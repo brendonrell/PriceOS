@@ -14,7 +14,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth/siwe';
 import { getSupabaseService } from '@/lib/supabase';
 import { badRequest, serverError } from '@/lib/errors';
-import { CRANK_PRICE_ETH, sanitizeCharms, type CharmRecord, type Coin } from '@/lib/keychains/engine';
+import { CRANK_PRICE_ETH, luckFor, sanitizeCharms, type CharmRecord, type Coin } from '@/lib/keychains/engine';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,7 +37,7 @@ export const POST = requireAuth(async (req: NextRequest, _ctx, address: string):
         for (let attempt = 0; attempt < 2; ++attempt) {
             const { data: row, error } = await db
                 .from('users')
-                .select('sim_eth_balance, keychains:settings->keychains')
+                .select('sim_eth_balance, price_streak, price_rank, keychains:settings->keychains')
                 .eq('address', address)
                 .maybeSingle();
             if (error) return serverError(error.message);
@@ -58,12 +58,16 @@ export const POST = requireAuth(async (req: NextRequest, _ctx, address: string):
             if (!paid || paid.length === 0) continue; // balance moved — retry
 
             const charms = sanitizeCharms((row as { keychains?: unknown }).keychains);
+            // LUCK — the keeper's streak/rank buy better odds on this pull and
+            // are banked into the charm; they never repaint it later.
+            const life = row as { price_streak?: number; price_rank?: number };
             const charm: CharmRecord = {
                 id: charms.reduce((m, c) => Math.max(m, c.id), 0) + 1,
                 seed: rollSeed(),
                 name: '',
                 at: Date.now(),
                 coin,
+                luck: luckFor(Number(life.price_streak) || 0, Number(life.price_rank) || 0),
             };
 
             const { error: mergeErr } = await (db.rpc as (

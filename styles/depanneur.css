@@ -6,6 +6,20 @@
    bold, 12px floor, 4px corners.
    ══════════════════════════════════════════════════════════════════════ */
 
+/* THE DEPANNEUR IS ITS OWN ROOM — pinned dark at any colorway (Brendon,
+   2026-07-29: "the Depanneur can be its own world"). The charms are painted
+   art; they need one steady room to read in, and it is the same room the
+   approved sheet was drawn in. Done by re-pointing the site tokens inside
+   the panel, so every pill and border keeps its proven treatment. */
+.dp-plus {
+    --bg-color: #1C1C24;
+    --text-color: #F2F2F4;
+    --stat-active-bg: #ED7FA4;
+    --stat-active-text: #1C1C24;
+    background: #1C1C24;
+    color: #F2F2F4;
+}
+
 .dp-body {
     padding: 6px 12px 16px;
     font-family: 'Courier New', Courier, monospace;
@@ -192,19 +206,25 @@
     border-bottom: 1px solid var(--text-color);
 }
 .dp-rack-count { font-size: 12px; }
+/* THE RACK AT THE SHEET'S ZOOM (Brendon, 2026-07-29) — the artifact's own
+   grid: two up on a phone, three on anything wider, each charm drawn at the
+   full width of its cell so the ring, the chain and the face all read. */
 .dp-rack {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+@media (min-width: 560px) {
+    .dp-rack { grid-template-columns: repeat(3, 1fr); }
 }
 .dp-rack-slot {
     position: relative;
     cursor: pointer;
-    width: 76px;
-    height: 76px;
-    padding: 2px;
-    background: var(--bg-color);
-    border: 1px solid var(--text-color);
+    width: auto;
+    height: auto;
+    padding: 6px;
+    background: #26262E;
+    border: 1px solid #3A3A46;
     border-radius: 4px;
     display: flex;
     align-items: center;
@@ -256,64 +276,30 @@
 }
 .dp-charm-pop .ambient-pop-close { position: absolute; top: 8px; right: 10px; }
 
-/* ── the worn mini charm at the end of the profile tags ── */
+/* ── the worn keychain, hung off the END of the profile tag row ──
+   THE ROW HOLDS THE RING, THE CHARM HANGS FROM THE CHAIN (Brendon,
+   2026-07-29). The slot itself is only as big as the split ring and keeps a
+   pill-height footprint, so the row never grows; everything below the ring —
+   chain and charm — overflows downward and rides over what's underneath. */
 .pd-charm-worn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    /* JUL 28: 4× the original 26px — Brendon's call. JUL 29: two thirds of
-       that, then +10%. */
-    width: 76px;
-    /* IT FLOATS (Brendon, 2026-07-29): the charm keeps a pill-height slot in
-       the row so it never makes the row tall — the art itself grows out of
-       that spot and rides OVER whatever is above and below it. */
+    width: 12px;
     height: 24px;
     z-index: 5;
     cursor: pointer;
     flex-shrink: 0;
 }
-/* The art is pinned by its FOOT, not its middle: the character stays exactly
-   where it sits in the row and the chain grows UP out of it, over the row
-   above (Brendon, 2026-07-29). */
-.pd-charm-worn svg {
+/* 76px of art width; the ring's centre (art 500,108) lands dead on the slot,
+   which is why the offsets are half the width across and 108/1000ths down. */
+.pd-charm-hang {
     display: block;
     position: absolute;
-    left: 50%;
-    bottom: calc(50% - 26px);
-    /* IT HANGS — the whole thing swings from the RING at the top of the chain
-       (50% across, 10.8% down the art), driven by the shared pendulum in
-       lib/keychains/sway.ts. The charm's own gentle rock rides on top of it. */
-    transform: translateX(-50%) rotate(var(--charm-sway, 0deg));
-    transform-origin: 50% 10.8%;
+    left: calc(50% - 38px);
+    top: calc(50% - 8.2px);
     width: 76px;
-    height: auto;
+    height: 76px;
+    overflow: visible;
 }
-@media (prefers-reduced-motion: reduce) {
-    .pd-charm-worn svg { transform: translateX(-50%); }
-}
-
-/* THE MOTION DOOR — inside the charm popup, the one deliberate place the
-   tilt permission is asked for and turned back off (Brendon, 2026-07-29).
-   Full-strength site tokens, like every other pill. */
-.dp-motion-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    height: 24px;
-    padding: 0 10px;
-    border-radius: 4px;
-    background: var(--bg-color);
-    border: 1px solid var(--text-color);
-    color: var(--text-color);
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
-    font-weight: bold;
-    cursor: pointer;
-    white-space: nowrap;
-}
-.dp-motion-btn.on {
-    background: var(--text-color);
-    color: var(--bg-color);
-}
-.dp-motion-btn.dead { cursor: default; }
