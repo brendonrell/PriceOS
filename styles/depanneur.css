@@ -444,14 +444,15 @@
     cursor: pointer;
     flex-shrink: 0;
 }
-/* 76px of art width; the ring's centre (art 500,108) lands dead on the slot,
-   which is why the offsets are half the width across and 108/1000ths down. */
+/* 91px of art width (JUL 29: +20% on the original 76px — Brendon's call); the
+   ring's centre (art 500,108) lands dead on the slot, which is why the offsets
+   are half the width across and 108/1000ths down. */
 .pd-charm-hang {
     display: block;
     position: absolute;
-    left: calc(50% - 38px);
-    top: calc(50% - 8.2px);
-    width: 76px;
-    height: 76px;
+    left: calc(50% - 45.6px);
+    top: calc(50% - 9.85px);
+    width: 91px;
+    height: 91px;
     overflow: visible;
 }

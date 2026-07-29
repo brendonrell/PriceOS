@@ -62,9 +62,9 @@ function onScroll() {
     lastY = y;
     // The page accelerating under the charm throws it the other way, the way
     // a thing on a chain lags behind the hand carrying it.
-    if (d > 60) d = 60;
-    if (d < -60) d = -60;
-    kickY -= d * 0.30;
+    if (d > 40) d = 40;
+    if (d < -40) d = -40;
+    kickY -= d * 0.13;
     wake();
 }
 
@@ -75,16 +75,15 @@ function onTilt(e: DeviceOrientationEvent) {
     const b = ((typeof e.beta === 'number' ? e.beta : 90) * Math.PI) / 180;
     const g = ((typeof e.gamma === 'number' ? e.gamma : 0) * Math.PI) / 180;
     const x = Math.cos(b) * Math.sin(g);
-    const y = Math.sin(b);
-    const m = Math.hypot(x, y);
-    if (m < 0.22) {
-        // Laid flat: almost all the gravity is going into the screen, so
-        // there's no honest in-plane direction. Hang it gently down.
-        gx = x; gy = 0.22;
-        wake();
-        return;
-    }
-    gx = x; gy = y;
+    let y = Math.sin(b);
+    // Laid flat: almost all the gravity is going into the screen, so there's
+    // no honest in-plane direction. Hang it gently down instead.
+    if (Math.hypot(x, y) < 0.22) y = 0.22;
+    /* EASED, NOT SNAPPED (Brendon, 2026-07-29) — the orientation sensor
+       reports a jittery stream, and feeding it straight in made the chain
+       twitch. Down moves toward the new reading instead of jumping to it. */
+    gx += (x - gx) * 0.12;
+    gy += (y - gy) * 0.12;
     wake();
 }
 
@@ -94,10 +93,10 @@ function onShake(e: DeviceMotionEvent) {
     const ax = typeof a.x === 'number' ? a.x : 0;
     const ay = typeof a.y === 'number' ? a.y : 0;
     // Gravity is already excluded here — this is the shake alone.
-    let kx = -ax * 0.55;
-    let ky = ay * 0.55;
-    if (kx > 4) kx = 4; if (kx < -4) kx = -4;
-    if (ky > 4) ky = 4; if (ky < -4) ky = -4;
+    let kx = -ax * 0.20;
+    let ky = ay * 0.20;
+    if (kx > 1.6) kx = 1.6; if (kx < -1.6) kx = -1.6;
+    if (ky > 1.6) ky = 1.6; if (ky < -1.6) ky = -1.6;
     kickX += kx;
     kickY += ky;
     if (kx > 0.05 || kx < -0.05 || ky > 0.05 || ky < -0.05) wake();

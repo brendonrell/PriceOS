@@ -24,9 +24,13 @@ import { useKeychainRack } from '../../lib/keychains/rack';
 import { gravity, onWake, reducedMotion, resumeMotion, startSway, takeKick } from '../../lib/keychains/sway';
 
 /* Solver constants, in the art's own 1000-wide units. */
+/* CALMED DOWN (Brendon, 2026-07-29 — "jumping all over the place"). The chain
+   still swings and settles, it just isn't flung by every scroll tick and every
+   sensor twitch: the shove is a third of what it was and the links shed speed
+   noticeably faster. */
 const GRAV = 0.62;   // pull toward wherever down is
-const DRAG = 0.972;  // links keep most of their speed — a chain rings, it doesn't wade
-const KICK = 11;     // one screen pixel of shove ≈ this many art units
+const DRAG = 0.938;  // links shed speed — a chain rings, it doesn't rattle
+const KICK = 3.6;    // one screen pixel of shove ≈ this many art units
 const RELAX = 7;     // constraint passes per frame — more = stiffer links
 const SLEEP = 0.6;   // total per-frame travel under this for a while = settled
 
