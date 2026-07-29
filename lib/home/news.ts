@@ -60,6 +60,11 @@ const PROGRESS_LIMIT = 5;
 /* How close to the Now Minting threshold a project has to be before the rail
    calls it out. */
 const GRADUATION_WATCH = 5;
+/* The most cards any ONE kind of moment can take. Graduations are the loud
+   family — this is what stops them owning the whole rail. */
+const FAMILY_LIMIT = 3;
+/* One of YOUR OWN cards every this-many slots on the rail. */
+const YOURS_EVERY = 3;
 
 const vs = (g: string) => `${g}︎`;
 
@@ -258,9 +263,28 @@ function momentItems(feed: HomeResponse): NewsItem[] {
         });
     }
 
-    return moments
-        .sort((a, b) => b.ts - a.ts)
-        .slice(0, AUTO_LIMIT)
+    /* A POTPOURRI, NOT A PARADE (Brendon, 2026-07-29). Newest-first alone
+       means one busy day of graduations fills every slot and the rail reads as
+       the same card over and over. So the stream is dealt out in ROUNDS: one
+       card from each family, then a second from each, and so on — every family
+       present before any family repeats, recency deciding the order inside a
+       family and which family leads. A family also can't take more than its
+       share of the rail. */
+    const byFamily = new Map<string, Moment[]>();
+    for (const m of moments.sort((a, b) => b.ts - a.ts)) {
+        const fam = byFamily.get(m.tag) ?? [];
+        fam.push(m);
+        byFamily.set(m.tag, fam);
+    }
+    const families = [...byFamily.values()];
+    const dealt: Moment[] = [];
+    for (let round = 0; round < FAMILY_LIMIT && dealt.length < AUTO_LIMIT; round += 1) {
+        for (const fam of families) {
+            if (dealt.length >= AUTO_LIMIT) break;
+            if (fam[round]) dealt.push(fam[round]);
+        }
+    }
+    return dealt
         .map((m) => ({ glyph: vs(m.glyph), cls: m.cls, tag: m.tag, title: m.title, meta: m.meta, href: m.href }));
 }
 
@@ -770,13 +794,32 @@ export function buildNewsItems(feed: HomeResponse | null, day: DayPills = {}): N
         });
     }
     /* Base order (what an unshuffled rail reads as): the day's standing pills,
-       then the viewer's own, then whatever the platform is doing, then the
-       newest faces, then the live market, and the quiet features last. */
-    rest.push(...CURATED_NEWS, ...curatedItems(feed), ...youItems(day.you));
+       then whatever the platform is doing, then the newest faces, then the
+       live market, and the quiet features last. */
+    rest.push(...CURATED_NEWS, ...curatedItems(feed));
     if (feed) rest.push(...standingItems(feed), ...momentItems(feed), ...faceItems(feed));
     rest.push(...marketItems(day.market), ...(day.doors ? featurePills(day.doors) : []));
+
+    /* YOUR OWN cards are kept in their own pile and dealt back in every third
+       slot, so the rail reads as YOURS rather than as the platform's — a
+       personalized potpourri, not a parade (Brendon, 2026-07-29). Signed out
+       there's no pile and the rail is simply the platform's. */
+    const mine = youItems(day.you);
     if (day.seed != null) {
-        rest.sort((a, b) => shuffleKey(day.seed as number, a) - shuffleKey(day.seed as number, b));
+        const key = (i: NewsItem) => shuffleKey(day.seed as number, i);
+        rest.sort((a, b) => key(a) - key(b));
+        mine.sort((a, b) => key(a) - key(b));
     }
-    return [lead, ...rest];
+    const woven: NewsItem[] = [];
+    let m = 0;
+    for (const item of rest) {
+        woven.push(item);
+        if (m < mine.length && woven.length % YOURS_EVERY === 0) {
+            woven.push(mine[m]);
+            m += 1;
+        }
+    }
+    // Anything left over (a short rail, a long pile) rides the tail.
+    woven.push(...mine.slice(m));
+    return [lead, ...woven];
 }
