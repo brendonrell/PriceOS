@@ -39,11 +39,12 @@ import { formatWindowRemaining } from '../artists/window';
    href?, kind?, name? }). The rail already renders whatever lands here. */
 export const CURATED_NEWS: NewsItem[] = [];
 
-/* Cap on auto pills so the rail stays a highlight reel, not the firehose. */
-const AUTO_LIMIT = 12;
+/* Cap on auto pills so the rail stays a highlight reel, not the firehose.
+   Raised 12 → 24 (Brendon, 2026-07-29 — "there should be more"). */
+const AUTO_LIMIT = 24;
 /* Per-family caps on the standing pills — the rail loops, so a long tail of
    near-identical progress bars just makes the cycle slower. */
-const PROGRESS_LIMIT = 3;
+const PROGRESS_LIMIT = 5;
 
 const vs = (g: string) => `${g}︎`;
 
@@ -466,6 +467,10 @@ export interface DayPills {
     /** The doors the quiet-feature pills open. Omitted → those pills sit out
         rather than shipping as dead chrome. */
     doors?: FeatureDoors;
+    /** Per-visit shuffle seed. Set after mount (like the day pills), so the
+        server paint and the first client paint agree on the plain order and
+        every visit gets its own running order. Omitted → no shuffle. */
+    seed?: number;
 }
 
 /** How the feature pills reach the surfaces that live behind modals. */
@@ -474,35 +479,45 @@ export interface FeatureDoors {
     openStickers: () => void;
 }
 
+/* The rail's running order is shuffled per visit (Brendon, 2026-07-29 — "they
+   should be more randomized"). The sort key is a hash of the seed AND the
+   pill's own identity — CONTENT-keyed, not index-keyed — so a pill that lands
+   late (gas, your own signals, the feed) slots into its own place instead of
+   re-dealing the whole rail and cutting the glide. */
+function shuffleKey(seed: number, item: NewsItem): number {
+    const s = `${seed}|${item.kind ?? 'text'}|${item.tag ?? ''}|${item.title ?? ''}|${item.name ?? ''}`;
+    let h = 2166136261;
+    for (let i = 0; i < s.length; i += 1) {
+        h ^= s.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+}
+
 export function buildNewsItems(feed: HomeResponse | null, day: DayPills = {}): NewsItem[] {
-    const head: NewsItem[] = [
-        day.dispatchMeta ? { ...DISPATCH_PILL, meta: day.dispatchMeta } : DISPATCH_PILL,
-    ];
+    /* The Dispatch leads the rail every day — it sits out of the shuffle. */
+    const lead: NewsItem = day.dispatchMeta ? { ...DISPATCH_PILL, meta: day.dispatchMeta } : DISPATCH_PILL;
+    const rest: NewsItem[] = [];
     if (day.priceDay) {
-        head.push({
+        rest.push({
             glyph: vs('✶'), tag: 'WELCOME TO',
             title: `PriceDay #${day.priceDay.n}`, meta: day.priceDay.date,
         });
     }
     if (day.mood) {
-        head.push({
+        rest.push({
             glyph: vs('◉'), tag: 'MOOD RING',
             title: day.mood.name, meta: day.mood.hex,
         });
     }
-    /* Order: the day's standing pills, then the viewer's own, then the live
-       market, then whatever the platform is doing, then the newest faces, and
-       the quiet features last — they're evergreen, so they never crowd out
-       something that actually just happened. */
-    const tail = [...marketItems(day.market), ...(day.doors ? featurePills(day.doors) : [])];
-    if (!feed) return [...head, ...CURATED_NEWS, ...youItems(day.you), ...tail];
-    return [
-        ...head,
-        ...CURATED_NEWS,
-        ...youItems(day.you),
-        ...standingItems(feed),
-        ...momentItems(feed),
-        ...faceItems(feed),
-        ...tail,
-    ];
+    /* Base order (what an unshuffled rail reads as): the day's standing pills,
+       then the viewer's own, then whatever the platform is doing, then the
+       newest faces, then the live market, and the quiet features last. */
+    rest.push(...CURATED_NEWS, ...youItems(day.you));
+    if (feed) rest.push(...standingItems(feed), ...momentItems(feed), ...faceItems(feed));
+    rest.push(...marketItems(day.market), ...(day.doors ? featurePills(day.doors) : []));
+    if (day.seed != null) {
+        rest.sort((a, b) => shuffleKey(day.seed as number, a) - shuffleKey(day.seed as number, b));
+    }
+    return [lead, ...rest];
 }

@@ -2093,6 +2093,12 @@ body.tape-framed .tape-rail {
     left: 0; top: 0;
     display: flex; align-items: stretch;
     height: 100%;
+    /* The rail must be as wide as its CONTENT: it's absolutely positioned, so
+       without this its width collapses to the wrap's (the viewport), and the
+       animation's -50% then resolves against THAT — the rail travels half a
+       screen and snaps back mid-pill instead of looping the doubled run
+       (Brendon, 2026-07-29 — "the cards break and cut and restart"). */
+    width: max-content;
     white-space: nowrap;
     will-change: transform;
     transform: translate3d(0, 0, 0);

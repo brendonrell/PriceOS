@@ -528,6 +528,7 @@ function HomePageBodyInner({
             dispatchMeta: dispatchPrintsMeta(),
             priceDay: { n: priceDayNumber(), date: formatPriceDate() },
             mood: { name: mood.name, hex: mood.hex },
+            seed: Math.floor(Math.random() * 1e9),
         });
     }, []);
 
