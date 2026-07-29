@@ -4290,6 +4290,8 @@ body.pd-stone-open .ens-copy-toast {
     border-width: 1px;
 }
 .user-tags--mini .profile-tag-glyph { font-size: 11px; }
+/* The mini pill's contents ride 0.4px lower inside it (Brendon, 2026-07-29). */
+.user-tags--mini .profile-tag > * { position: relative; top: 0.4px; }
 .user-tags--mini .profile-tag-mark { height: 8px; width: auto; }
 /* THEMED (output page): the mini pills wear the PAGE's colorway tokens —
    solid --bg-color fill, full-strength --text-color border + lettering —
