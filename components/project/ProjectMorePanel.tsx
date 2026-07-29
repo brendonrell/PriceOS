@@ -525,10 +525,11 @@ export default function ProjectMorePanel({
                 )
             )}
             {moreL1 === 'attributes' && (<>
-            {/* POP TABLE (Rarity Labs, 2026-07-26) — the project's full trait
-                census: every axis, every value, count + share, rarest first.
-                Same memoised math the badges read; provable from the seed. */}
-            <div className="more-section-header">POP TABLE</div>
+            {/* RARITY LABS (2026-07-26; named properly 2026-07-29) — the
+                project's full trait census: every axis, every value, count +
+                share, rarest first. Same memoised math the badges read;
+                provable from the seed. */}
+            <div className="more-section-header">RARITY LABS</div>
             <PopTablePanel slug={project.slug} />
             </>)}
             {moreL1 === 'pricestory' && (<>
