@@ -39,7 +39,7 @@ import { useValuePrompt } from '../../lib/state/ValuePromptContext';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
 import { TraitsProvider } from '../../lib/state/TraitsContext';
 import { getProject } from '../../lib/project/registry';
-import CollectedPair from '../hero/CollectedPair';
+import AsciiId from '../hero/AsciiId';
 import { UserTagsFor } from '../tags/UserTags';
 import Hero from '../hero/Hero';
 import TraitsUI from '../project/TraitsUI';
@@ -777,7 +777,7 @@ export default function ArtworkPageBody({
                         <span className="info-rubik">
                             Held by{' '}
                             {market?.owner_handle ? (
-                                <CollectedPair handle={market.owner_handle} showRank showSigil />
+                                <AsciiId handle={market.owner_handle} />
                             ) : (
                                 <span className="collected-pair">
                                     {ownerHref

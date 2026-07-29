@@ -48,7 +48,7 @@
  *      ARTWORKS — inside .global-search-results:
  *        - section headers reuse .settings-header (PortfolioView/ArtistsView
  *          pattern), rows stay .global-result-item;
- *        - collector rows reuse CollectedPair (sprite+@name) + the Followers
+ *        - collector rows reuse the ASCII-ID (AsciiId) + the Followers
  *          Manager's compact stats chips (.fm-stat: ⬚ collected · ⟠ spent ·
  *          ⚬ followers), sized down one step in the results context;
  *        - artwork rows carry the piece's Reads-As / fingerprint words, so a

@@ -6,7 +6,7 @@
  * Opened by tapping the PriceRank medallion in the PriceSprite modal.
  * Rides the Followers Manager COMPACT shell verbatim (sticker-mgr-backdrop +
  * ambient-pop) and its fm-row row treatment, so a leaderboard row reads
- * exactly like a circle row: PriceSprite + @name (CollectedPair), with the
+ * exactly like a circle row: the ASCII-ID (AsciiId), with the
  * position on the left and the PriceScore on the right. Your own row is
  * highlighted. Stats columns come later (Brendon: "maybe we eventually show
  * stats too") — this ships position · sprite · @name · score, nothing extra.
@@ -21,7 +21,7 @@ import { createPortal } from 'react-dom';
 import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { useAuth } from '../lib/state/AuthContext';
 import { lockBodyScroll, unlockBodyScroll } from '../lib/state/bodyScrollLock';
-import CollectedPair from './hero/CollectedPair';
+import AsciiId from './hero/AsciiId';
 import { UserTags } from './tags/UserTags';
 import { useUserTags } from '../lib/hooks/useUserTags';
 import type { LeaderboardRow } from '../app/api/leaderboard/route';
@@ -100,7 +100,7 @@ export default function LeaderboardModal() {
                                     <span className="lb-pos">{i < 3 ? MEDALS[i] : i + 1}</span>
                                     <div className="fm-row-main">
                                         <div className="fm-row-id">
-                                            <CollectedPair handle={r.handle} />
+                                            <AsciiId handle={r.handle} />
                                         </div>
                                         <UserTags set={tagSets[r.handle.toLowerCase()]} size="row" />
                                         <div className="fm-row-stats">

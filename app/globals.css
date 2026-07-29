@@ -4922,6 +4922,11 @@ body.persona-default .stats-row-2 { display: none !important; }
     display: inline-block;
     line-height: 1;
 }
+/* ═══ THE ASCII-ID RECTANGLE — PD's one identity unit (LOCKED, Brendon
+   2026-07-29). Anatomy, in this order and no other, on EVERY surface that
+   shows a person: PriceSprite · PriceRank · @name · Sigil. Profile tags are
+   NOT part of it — they are their own thing riding in the same spot, just
+   outside the rectangle. Component: components/hero/AsciiId.tsx. ═══ */
 /* Sprite+name chip — FULL sim port (sim 2104-2133; the first pass stripped
    the rectangle to a transparent no-op — restored verbatim 2026-06-12).
    The tint mixes the LIVE --bg-color/--text-color vars, so it re-tints on

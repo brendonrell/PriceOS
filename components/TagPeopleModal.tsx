@@ -21,7 +21,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as R
 import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { useAuth } from '../lib/state/AuthContext';
 import { priceDayNumber } from '../lib/priceday/priceday';
-import CollectedPair from './hero/CollectedPair';
+import AsciiId from './hero/AsciiId';
 import { UserTags } from './tags/UserTags';
 import { useUserTags } from '../lib/hooks/useUserTags';
 import type { TagMembersResponse, TagMemberRow } from '../app/api/tags/members/route';
@@ -186,7 +186,7 @@ export default function TagPeopleModal() {
                                     <span className="lb-pos">{i + 1}</span>
                                     <div className="fm-row-main">
                                         <div className="fm-row-id">
-                                            <CollectedPair handle={r.handle} showRank />
+                                            <AsciiId handle={r.handle} />
                                             {mutuals.has(r.handle) && (
                                                 <span className="id-cartel" aria-label="cabal" title="Your cabal">{`⟁${VS15}`}</span>
                                             )}

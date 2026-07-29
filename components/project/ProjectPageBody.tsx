@@ -407,8 +407,8 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                        collectors. */
                     project.stats.collected_by_following.length > 0 ? (
                         /* Plain @name links (Brendon 2026-06-13: reverted the
-                           sprite+name rectangle chips; CollectedPair kept but
-                           unused). */
+                           sprite+name rectangle chips; the ASCII-ID is not
+                           used here). */
                         <div className="hero-line collected-by-row info-line">
                             <span className="cbr-label">Collected by</span>{' '}
                             {project.stats.collected_by_following.slice(0, 2).map((name, i) => {

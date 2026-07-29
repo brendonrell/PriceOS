@@ -12,7 +12,7 @@
  *
  * The interior:
  *   THE LEDGER — one dense row per friend in both altitudes: ★ ·
- *     sprite+@name chip (CollectedPair, the app's identity unit) · ✺ ·
+ *     the ASCII-ID (AsciiId — sprite · rank · @name · Sigil) · ✺ ·
  *     relationship glyph · the three stats in FIXED ALIGNED COLUMNS
  *     (⬚ collected · ⟠ spent · ⚬ followers) so the list reads like a
  *     terminal ledger.
@@ -43,7 +43,7 @@ import { useAuth } from '../lib/state/AuthContext';
 import { useEffectiveAddress } from '../lib/incognito/useEffectiveAddress';
 import { useToast } from '../lib/state/ToastContext';
 import { lockBodyScroll, unlockBodyScroll } from '../lib/state/bodyScrollLock';
-import CollectedPair from './hero/CollectedPair';
+import AsciiId from './hero/AsciiId';
 import { UserTags } from './tags/UserTags';
 import { useUserTags, type UserTagSet } from '../lib/hooks/useUserTags';
 import { useSpiteMatcher } from '../lib/pins/spiteStore';
@@ -843,7 +843,7 @@ function PersonRow({
                 >
                     <div className="fm-row-main">
                         <div className="fm-row-id">
-                            <CollectedPair handle={handle} onSpriteTap={(rect) => setSpriteAnchor(rect)} showRank />
+                            <AsciiId handle={handle} onSpriteTap={(rect) => setSpriteAnchor(rect)} />
                             {spriteAnchor && (
                                 <FriendSpritePopover
                                     handle={handle}
@@ -985,7 +985,7 @@ function FriendDossier({
                 riding inline right after it (Brendon, 2026-07-27). Tap a mini
                 → the full-size row below; tap a full one → back to mini. */}
             <div className="fi-dossier-id">
-                <CollectedPair handle={handle} showRank />
+                <AsciiId handle={handle} />
                 {!tagsBig && <UserTags set={tagSet} size="mini" onTagTap={() => setTagsBig(true)} />}
             </div>
             {tagsBig && <UserTags set={tagSet} size="inline" onTagTap={() => setTagsBig(false)} />}

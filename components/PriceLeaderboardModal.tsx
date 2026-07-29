@@ -24,7 +24,7 @@ import { createPortal } from 'react-dom';
 import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { useAuth } from '../lib/state/AuthContext';
 import { lockBodyScroll, unlockBodyScroll } from '../lib/state/bodyScrollLock';
-import CollectedPair from './hero/CollectedPair';
+import AsciiId from './hero/AsciiId';
 import { UserTags } from './tags/UserTags';
 import { useUserTags } from '../lib/hooks/useUserTags';
 import type { PriceHolderRow } from '../app/api/leaderboard/price/route';
@@ -122,7 +122,7 @@ export default function PriceLeaderboardModal() {
                   <span className="lb-pos">{i < 3 ? MEDALS[i] : i + 1}</span>
                   <div className="fm-row-main">
                     <div className="fm-row-id">
-                      <CollectedPair handle={r.handle} />
+                      <AsciiId handle={r.handle} />
                     </div>
                     <UserTags set={tagSets[r.handle.toLowerCase()]} size="row" />
                     <div className="fm-row-stats">

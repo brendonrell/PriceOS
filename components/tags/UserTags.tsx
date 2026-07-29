@@ -5,6 +5,13 @@
  * 2026-07-24: approved for the leaderboards, collectors, followers, the Friend
  * Inspector dossier, the artwork owner line and search).
  *
+ * ⛔ TAGS ARE NOT PART OF THE ASCII-ID (Brendon, 2026-07-29 — said twice, so
+ * it's written down). The ASCII-ID is the rectangle and only the rectangle:
+ * PriceSprite · PriceRank · @name · Sigil (components/hero/AsciiId.tsx). Tags
+ * are their OWN thing that happens to ride in the same SPOT — immediately
+ * after the rectangle, outside it. Never draw a tag inside the rectangle, and
+ * never fold tags into the ASCII-ID component.
+ *
  * It is deliberately thin. The pill itself is drawn by ProfileTags — the SAME
  * renderer the profile hero uses — so a tag looks identical everywhere and there
  * is exactly one place its markup lives. All this adds is the row treatment a

@@ -24,7 +24,7 @@ import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { useAuth } from '../lib/state/AuthContext';
 import { useProject } from '../lib/state/ProjectContext';
 import { getProject } from '../lib/project/registry';
-import CollectedPair from './hero/CollectedPair';
+import AsciiId from './hero/AsciiId';
 import { UserTags } from './tags/UserTags';
 import { useUserTags } from '../lib/hooks/useUserTags';
 
@@ -200,7 +200,7 @@ export default function CollectorsModal() {
                                     <div className="fm-row-main">
                                         <div className="fm-row-id">
                                             {r.handle ? (
-                                                <CollectedPair handle={r.handle} showRank />
+                                                <AsciiId handle={r.handle} />
                                             ) : (
                                                 <span className="collected-pair"><span className="profile-link">{r.display}</span></span>
                                             )}
