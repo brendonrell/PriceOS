@@ -341,7 +341,7 @@ export default function DepanneurModal() {
                             {/* THE MASTHEAD — the approved sheet's own, verbatim
                                 treatment (Brendon, 2026-07-29). */}
                             <div className="dp-mast">
-                                <h2 className="dp-mast-title">KEYCHAINS<span className="dp-mast-dot">.</span></h2>
+                                <h2 className="dp-mast-title">KEYCHAINS<span className="dp-mast-dot">!</span></h2>
                                 <p className="dp-mast-sub">PICK YIN OR YANG · DROP A COIN · SEE WHAT FALLS OUT</p>
                             </div>
 
