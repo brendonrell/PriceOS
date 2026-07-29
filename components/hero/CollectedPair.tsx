@@ -17,14 +17,12 @@ import SpriteFace from '../SpriteFace';
 import SigilArt from '../SigilArt';
 import { useSpiteMatcher } from '../../lib/pins/spiteStore';
 import { useUserIdentity, rankBadgeGlyph } from '../../lib/hooks/useUserRank';
-import { ACHIEVEMENTS_ICON } from '../../lib/achievements/icon';
 
 export default function CollectedPair({
     handle,
     onSpriteTap,
     showRank = false,
     showSigil = false,
-    showScore = false,
 }: {
     handle: string;
     /** When set, tapping ONLY the sprite face fires this with the face's on-screen
@@ -40,13 +38,10 @@ export default function CollectedPair({
      *  connect pill. Absent when the person hasn't forged one or has switched
      *  it off. (Brendon, 2026-07-29 — the output page's owner rectangle.) */
     showSigil?: boolean;
-    /** The person's live PriceScore, ◍ + the number, closing the rectangle.
-     *  (Brendon, 2026-07-29.) */
-    showScore?: boolean;
 }) {
     const h = handle.toLowerCase().replace(/^@/, '');
     const face = useSpriteFace(h);
-    const id = useUserIdentity(h, showRank || showSigil || showScore);
+    const id = useUserIdentity(h, showRank || showSigil);
     const rank = showRank ? id.rank : null;
     /* Spite Book — a spited handle renders redacted in every chip. */
     const isSpited = useSpiteMatcher();
@@ -85,12 +80,6 @@ export default function CollectedPair({
                     className="collected-sigil"
                     title="Sigil"
                 />
-            )}
-            {showScore && id.score !== null && (
-                <span className="collected-score" title="PriceScore">
-                    <span className="collected-score-ic">{ACHIEVEMENTS_ICON}</span>
-                    {id.score.toLocaleString('en-US')}
-                </span>
             )}
         </span>
     );

@@ -4885,7 +4885,7 @@ body.persona-default .stats-row-2 { display: none !important; }
 /* Profile followers stat uses the ⚬ glyph, which renders much smaller than
    the box/ETH icons at the shared 13px. Bump to optically match them.
    (Brendon, 2026-07-28 — one size smaller, every surface it appears on.) */
-.stat-icon-followers { font-size: 20px; }
+.stat-icon-followers { font-size: 19px; transform: translateY(2px); }
 
 /* "Collected by" line — sim ~2074-2133 */
 .info-rubik {
@@ -4968,27 +4968,6 @@ body.persona-default .stats-row-2 { display: none !important; }
     flex-shrink: 0;
     margin-left: 1px;
 }
-/* THE PRICESCORE closing the rectangle (Brendon, 2026-07-29) — the ◍ mark in
-   Courier, the number in Rubik with tabular figures, matching the leaderboard's
-   locked treatment. Full-strength, never faded. */
-.collected-score {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    flex-shrink: 0;
-    font-family: var(--font-rubik-mono), sans-serif;
-    font-weight: 400;
-    font-size: 10px;
-    font-variant-numeric: tabular-nums;
-    line-height: 1;
-    color: inherit;
-}
-.collected-score-ic {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
-    line-height: 1;
-}
-
 .profile-link {
     cursor: pointer;
     color: inherit;
@@ -9436,9 +9415,10 @@ a.f-highlight { color: inherit; }
        only (Brendon 2026-06-15). Two-class selector beats the generic
        .stat-icon-owners rule above for the followers stat specifically. */
     .stat-icon-owners.stat-icon-followers {
-        font-size: 24px;
+        /* One size smaller, sitting 2px lower (Brendon, 2026-07-29). */
+        font-size: 23px;
         position: relative;
-        top: -4px;
+        top: -2px;
     }
     .stat-icon-box { font-size: 14px; position: relative; top: -1px; }
     .search-input::placeholder { font-size: 12px; }
@@ -9496,8 +9476,9 @@ a.f-highlight { color: inherit; }
             -0.25px 0.25px 0 currentColor;
     }
     .stat-icon-owners { font-size: 14px; text-shadow: none; }
-    /* Followers icon a touch larger + nudged up, desktop only (Brendon 2026-06-16). */
-    .stat-icon-followers { font-size: 23px; transform: translateY(-2px); }
+    /* Followers icon a touch larger + nudged up, desktop only (Brendon 2026-06-16).
+       One size smaller and 2px lower again (Brendon, 2026-07-29). */
+    .stat-icon-followers { font-size: 22px; transform: translateY(0); }
     .stat-icon-eth { font-size: 16px; position: relative; top: 1px; }
     .meta-owner { font-size: 13px; opacity: 0.7; }
     .info-rubik .ico-mutual,

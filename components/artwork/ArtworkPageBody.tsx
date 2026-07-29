@@ -777,7 +777,7 @@ export default function ArtworkPageBody({
                         <span className="info-rubik">
                             Held by{' '}
                             {market?.owner_handle ? (
-                                <CollectedPair handle={market.owner_handle} showSigil showScore />
+                                <CollectedPair handle={market.owner_handle} showRank showSigil />
                             ) : (
                                 <span className="collected-pair">
                                     {ownerHref
