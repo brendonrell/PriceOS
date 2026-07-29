@@ -40,6 +40,19 @@ win** — update this file in place and note it.
 > for the border, the container, the spacing or the neighbour to get there.
 > Before saving, ask of every line: **did he TYPE this?** If not, delete it.
 > Anything he did not name keeps its exact current value.
+>
+> **⛔ KNOW WHICH MODE YOU ARE IN — a BUILD and a SPOT EDIT are not the same
+> job (Brendon, 2026-07-29).** He usually says which, and "spot edit" is his
+> word for it.
+> - **SPOT EDIT — precise, literal, ZERO judgment.** A size, a nudge, a
+>   colour, a weight, a string. Change the exact property he named on the
+>   exact element he named. Nothing adjacent, ever, for any reason.
+> - **BUILD — judgment expected, inside the brief.** A feature has parts he
+>   did not spell out and you are paid to work them out. That licence covers
+>   ONLY what the brief needs; it never extends to restyling or "improving"
+>   things standing beside it.
+> Treating a spot edit like a build is the failure this rule exists to stop.
+> When unsure which he means, it is a SPOT EDIT.
 
 > **⛔ RULE #-1 — REPLY FIRST, INSTANTLY, TO EVERY MESSAGE. THE ABSOLUTE TOP
 > RULE, ABOVE ALL OTHERS. (Brendon, 2026-07-05 — raised in fury, non-negotiable.)**
