@@ -4766,6 +4766,14 @@ body.pd-stone-open .ens-copy-toast {
     font-family: 'Courier New', Courier, monospace;
     font-size: 14px;
 }
+/* ❖ VANISHED IN ARIAL (Brendon, 2026-07-29). When this stat became PD Rarity
+   it picked up .stat-icon's Arial, and iOS has no U+2756 there — the glyph
+   dropped out silently. Every ❖ that renders on the site sits in Courier;
+   this is the same treatment its own row-mate already uses. */
+.stat-icon-rarity {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+}
 
 /* Profile Logo carousel — long-press your own @name shoves it open INLINE
    under the title (like the colour egg), pushing the hero down. Reuses the home
