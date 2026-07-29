@@ -196,7 +196,7 @@ export default function FmBar() {
            it KEEPS this spot, on the face name (Brendon, 2026-07-28). The
            wordmark's own ™ stands down whenever a toast already carries one —
            one ™ per toast, never two. */
-        showToast(`miniplayer ${FM_DISPLAY_NAMES[next]}™`);
+        showToast(`Miniplayer ${FM_DISPLAY_NAMES[next]}™`);
     };
 
     const playerRef = useRef<YTPlayer | null>(null);
@@ -486,7 +486,7 @@ export default function FmBar() {
         setPickerOpen(false);
         try { window.localStorage.removeItem(FM_SESSION_KEY); } catch { /* fine */ }
         pushSettings({ fmSession: null });
-        showToast('miniplayer: CLOSED');
+        showToast('Miniplayer: CLOSED');
     };
 
     const onPlayTap = () => {

@@ -33,7 +33,7 @@ export default function ProjectFollowButton({
   const [busy, setBusy] = useState(false);
 
   const me = siweAddress?.toLowerCase() ?? null;
-  const label = projectHandle ? `@${projectHandle}` : 'project';
+  const label = projectHandle ? `@${projectHandle}` : 'Project';
 
   useEffect(() => {
     if (!me) { setFollowing(false); return; }

@@ -2142,7 +2142,7 @@ function DjWidget({ address, onAct, onFooter }: {
         label: `▶${VS15} PLAY · ${pickSt.label}`,
         run: () => {
             fmPlay({ playlistId: pickSt.playlistId, label: pickSt.label, slug: pickSlug });
-            onAct('miniplayer: ON AIR');
+            onAct('Miniplayer: ON AIR');
         },
     } : null);
 

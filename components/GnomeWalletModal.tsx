@@ -400,12 +400,12 @@ export default function GnomeWalletModal() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ project_id: projectId, ask_eth: ask }),
             });
-            if (!r.ok) { showToast('Gnome: SIGN TROUBLE'); return false; }
-            showToast(ask == null ? 'Gnome: SIGN DOWN' : `Gnome: SIGN HUNG · ◊${fmtAsk(ask)}`);
+            if (!r.ok) { showToast('gnome: SIGN TROUBLE'); return false; }
+            showToast(ask == null ? 'gnome: SIGN DOWN' : `gnome: SIGN HUNG · ◊${fmtAsk(ask)}`);
             loadMine();
             return true;
         } catch {
-            showToast('Gnome: SIGN TROUBLE');
+            showToast('gnome: SIGN TROUBLE');
             return false;
         }
     };

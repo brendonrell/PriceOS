@@ -350,7 +350,7 @@ export function TopBarRow() {
                                         openOutputModal('output', pin.id, pin.slug);
                                     } else if (pin.kind === 'soundtrack' && pin.playlistId) {
                                         fmPlay({ playlistId: pin.playlistId, label: getProject(pin.slug)?.soundtrack?.label ?? pin.title ?? pin.slug, slug: pin.slug });
-                                        showToast('miniplayer: ON AIR');
+                                        showToast('Miniplayer: ON AIR');
                                     } else if (pin.kind === 'artist') {
                                         // In-app route to the canonical bare handle (strip any
                                         // leading @, which would 301-redirect through a blank hop).

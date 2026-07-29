@@ -297,11 +297,14 @@ export default function ProjectMorePanel({
                 statsRow={
                     <div className="hero-line stats-row">
                         <span className="stat-item stat-item-owners">
-                            <span className="stat-icon stat-icon-owners" {...iconToastProps('Followers — wallets that follow this Project')}>⌗&#xFE0E;</span>{' '}
+                            {/* ☻ — the social mark every followers stat wears
+                                (Brendon, 2026-07-29). */}
+                            <span className="stat-icon stat-icon-owners stat-icon-followers" {...iconToastProps('Followers — wallets that follow this Project')}>{'\u263B\uFE0E'}</span>{' '}
                             <span className="stat-val stat-val-owners">{followCounts.followers} {followCounts.followers === 1 ? 'FOLLOWER' : 'FOLLOWERS'}</span>
                         </span>
                         <span className="stat-item">
-                            <span className="stat-icon stat-icon-box" {...iconToastProps('Following — accounts this Project follows')}>⊡&#xFE0E;</span>{' '}
+                            {/* ⚯ — PD's Following mark (GLYPHS). */}
+                            <span className="stat-icon" {...iconToastProps('Following — accounts this Project follows')}>{'\u26AF\uFE0E'}</span>{' '}
                             <span className="stat-val">{followCounts.following} FOLLOWING</span>
                         </span>
                     </div>
