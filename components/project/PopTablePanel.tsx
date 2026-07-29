@@ -9,9 +9,8 @@
  * badges and the character sheet read — no fetch, no rarity API, identical for
  * every viewer.
  *
- * The card-grading language stays (POP 1 is the collectibles convention
- * Brendon wants); one short blurb carries the meaning for anyone who hasn't
- * met it before.
+ * The blurb is written for someone who has never met any of this: say how many
+ * pieces have a thing, and say plainly that fewer means rarer.
  */
 
 import { useMemo } from 'react';
@@ -33,8 +32,9 @@ export default function PopTablePanel({ slug }: { slug: string }) {
     return (
         <div className="pop-table-wrap">
             <p className="pop-table-intro">
-                Card-grading maths: how many pieces share each look, and what
-                share of the edition that is. POP 1 = nothing else has it.
+                Every look this project can make, and how many pieces got it.
+                The fewer pieces share a look, the rarer that look is. A look
+                only one piece has is marked POP 1.
             </p>
             {axes.map((axis) => (
                 <div key={axis.name}>
