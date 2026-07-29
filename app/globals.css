@@ -4952,9 +4952,11 @@ body.persona-default .stats-row-2 { display: none !important; }
     line-height: 1;
     /* STANDARD HEIGHT (Brendon, 2026-07-29) — the rectangle is one fixed box
        on every surface, not a box that grows with whatever glyph is tallest
-       inside it. Contents centre within it. The dossier's deliberately larger
-       ID keeps its own scale below. */
-    height: 22px;
+       inside it. Contents centre within it, and tall glyphs are MEANT to
+       break past the top and bottom edges — that overspill is the look
+       (Brendon, 2026-07-29). The dossier's deliberately larger ID keeps its
+       own scale below. */
+    height: 14px;
     box-sizing: border-box;
     position: relative; /* anchor for the ::after underline */
 }
@@ -4964,13 +4966,13 @@ body.persona-default .stats-row-2 { display: none !important; }
    negative tracking as the navbar's .ascii-pfp-badge, full-strength colour. */
 .collected-rank-badge {
     font-family: 'Segoe UI Symbol', 'Noto Sans Symbols', Arial, sans-serif;
-    font-size: 21px;
+    font-size: 20px;
     line-height: 1;
     color: inherit;
     letter-spacing: -1px;
     flex-shrink: 0;
     user-select: none;
-    /* Six sizes up and 0.5px lower than the last pass, on every ASCII-ID
+    /* Five sizes up and 0.5px lower than the last pass, on every ASCII-ID
        (Brendon, 2026-07-29). */
     position: relative;
     top: 0.5px;
