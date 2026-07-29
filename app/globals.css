@@ -13473,6 +13473,11 @@ body.is-pwa .artwork-fullscreen.artwork-darkroom .fullscreen-back {
 }
 .owner-line .collected-pair { vertical-align: middle; }
 .owner-line .user-tags--mini { display: contents; }
+/* The PROJECT page's artist row, same treatment: the pills sat 1.5px above the
+   centre the @name, its glyphs and the follower count share (measured off the
+   row), so they come down onto it. Offset only — spacing untouched
+   (Brendon, 2026-07-29). */
+.project-custom.owner-line .user-tags--mini .profile-tag { position: relative; top: 1.5px; }
 /* The tags made the held-by row taller, which left the stats readout sitting
    too close under it — 3px more air, output pages only (Brendon,
    2026-07-29). */
