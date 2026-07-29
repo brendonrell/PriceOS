@@ -16,6 +16,7 @@ import { type Tag, tagPaintHex, tagTextOn } from '../../lib/tags/catalog';
 import { styleName } from '../../lib/profile/nameFont';
 import { PriceMark } from '../brand/PriceMark';
 import { useModal } from '../../lib/state/ModalContext';
+import { useOwnedProjects } from '../../lib/hooks/useOwnedProjects';
 
 export function ProfileTags({ tags, font, paint, onTagTap, className, trailing }: {
     tags: Tag[];
@@ -45,6 +46,9 @@ export function ProfileTags({ tags, font, paint, onTagTap, className, trailing }
        nav. On your OWN profile the tap is already spoken for (the customization
        menu / the WTBS cycle), and that keeps priority. */
     const { open } = useModal();
+    /* Projects the VIEWER holds a piece of — a project tag for one of them
+       wears the ownership check after the name (Brendon, 2026-07-29). */
+    const ownedProjects = useOwnedProjects();
     /* A PROJECT tag goes TO that Project (Brendon, 2026-07-29) — it stands for a
        piece of work, so the tap is a visit, not a room. Every other tag opens
        its room as before. An owner handler (the customization menu on your own
@@ -97,6 +101,11 @@ export function ProfileTags({ tags, font, paint, onTagTap, className, trailing }
                                 <span key={i} style={{ color: p.color }}>{p.text}</span>
                             ))
                             : (t.lockStyle || t.font) ? t.label : styleName(t.label, font)}
+                        {t.project && ownedProjects.has(t.project) && (
+                            <span className="badge-owned" title="You own a piece of this" aria-label="Owned by you">
+                                <span className="css-check" />
+                            </span>
+                        )}
                     </span>
                 </span>
                 );

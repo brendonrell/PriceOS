@@ -8032,7 +8032,10 @@ body.colorway-dark .ghost-card .ghost-wrapper {
    name's own font (em units) so it reads a size smaller and sits inline beside
    the project name on the Now Minting + New Gen Art surfaces (Brendon,
    2026-07-05). */
-.home-name-owned {
+/* The same em-scaled check rides a PROJECT TAG whose project the viewer holds
+   a piece of (Brendon, 2026-07-29) — after the name, inside the pill. */
+.home-name-owned,
+.profile-tag .badge-owned {
     width: 0.85em;
     height: 0.85em;
     margin-left: 0.2em;
