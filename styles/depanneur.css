@@ -77,19 +77,51 @@
 }
 .dp-mast-dot { color: var(--dp-pink); }
 
-/* THE STREAK BAR — the sheet's pink count box, carrying what the keeper's
-   streak is actually buying them at the machine (Brendon, 2026-07-29). */
-.dp-streak {
-    font-size: 13px;
-    font-weight: bold;
-    letter-spacing: 0.5px;
-    color: var(--text-color);
+/* THE COUNT BOX — the sheet's pink stat box, with the keeper's streak on a
+   bar underneath it inside the same box (Brendon, 2026-07-29). */
+.dp-count {
     border: 2px solid var(--dp-pink);
     border-radius: 4px;
     padding: 8px 10px;
     font-variant-numeric: tabular-nums;
 }
-.dp-streak b { color: var(--dp-pink); }
+.dp-count-line {
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    color: var(--text-color);
+}
+.dp-count-line b { color: var(--dp-pink); }
+.dp-streak-bar {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--dp-line);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.dp-streak-track {
+    height: 8px;
+    border-radius: 4px;
+    background: var(--dp-line);
+    overflow: hidden;
+}
+.dp-streak-fill {
+    height: 100%;
+    background: var(--dp-pink);
+    border-radius: 4px;
+    transition: width 0.4s ease;
+}
+.dp-streak-read {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.4px;
+    color: var(--text-color);
+}
+.dp-streak-read b { color: var(--dp-pink); }
 
 .dp-body {
     padding: 6px 12px 16px;
@@ -134,6 +166,9 @@
     gap: 8px;
     margin-top: 8px;
 }
+/* THEY READ AS BUTTONS (Brendon, 2026-07-29) — a real 2px edge, a lifted
+   face and a press that actually moves, so the two slots and the crank look
+   like things you push, not labels. */
 .dp-coin-slot {
     flex: 1;
     display: flex;
@@ -143,10 +178,16 @@
     cursor: pointer;
     font-family: 'Courier New', Courier, monospace;
     color: var(--text-color);
-    background: var(--bg-color);
-    border: 1px solid var(--text-color);
+    background: var(--dp-panel);
+    border: 2px solid var(--text-color);
     border-radius: 4px;
     padding: 10px 12px;
+    box-shadow: 0 3px 0 var(--text-color);
+    transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.dp-coin-slot:active {
+    transform: translateY(3px);
+    box-shadow: 0 0 0 var(--text-color);
 }
 .dp-coin-name { font-size: 13px; font-weight: bold; letter-spacing: 1.5px; }
 .dp-coin-line { font-size: 12px; font-weight: 600; }
@@ -154,6 +195,9 @@
     background: var(--stat-active-bg, var(--text-color));
     color: var(--stat-active-text, var(--bg-color));
     border-color: var(--stat-active-bg, var(--text-color));
+    /* Held: the coin is IN — the button sits pressed. */
+    transform: translateY(3px);
+    box-shadow: 0 0 0 var(--stat-active-bg, var(--text-color));
 }
 
 .dp-machine-cap {
@@ -180,11 +224,17 @@
     font-weight: bold;
     letter-spacing: 0.5px;
     color: var(--text-color);
-    background: var(--bg-color);
-    border: 1px solid var(--text-color);
+    background: var(--dp-panel);
+    border: 2px solid var(--text-color);
     border-radius: 4px;
     padding: 10px 12px;
     white-space: nowrap;
+    box-shadow: 0 3px 0 var(--text-color);
+    transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.dp-crank:not(:disabled):active {
+    transform: translateY(3px);
+    box-shadow: 0 0 0 var(--text-color);
 }
 .dp-crank:hover,
 .dp-crank.cranking {
@@ -197,6 +247,7 @@
     color: #6E6E7A;
     border-color: #3A3A46;
     background: #24242C;
+    box-shadow: 0 3px 0 #3A3A46;
     cursor: default;
 }
 .dp-crank:disabled:not(.cranking):hover {

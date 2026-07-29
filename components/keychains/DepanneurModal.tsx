@@ -222,6 +222,13 @@ export default function DepanneurModal() {
     /* What the streak is buying at the machine right now — the same tier the
        crank will bank into the charm. */
     const luck = luckFor(streak, rack?.rank ?? 0);
+    /* The bar fills toward the next odds tier (7 · 30 · 100 days); at the top
+       tier it simply sits full. */
+    const tierStart = streak >= 100 ? 100 : streak >= 30 ? 30 : streak >= 7 ? 7 : 0;
+    const nextAt = streak >= 100 ? null : streak >= 30 ? 100 : streak >= 7 ? 30 : 7;
+    const streakPct = nextAt == null
+        ? 100
+        : Math.max(4, Math.min(100, ((streak - tierStart) / (nextAt - tierStart)) * 100));
     const charms = rack?.charms ?? [];
     const shown: CharmRecord | null =
         (picked != null ? charms.find((c) => c.id === picked) : null) ?? fresh;
@@ -334,15 +341,26 @@ export default function DepanneurModal() {
                             {/* THE MASTHEAD — the approved sheet's own, verbatim
                                 treatment (Brendon, 2026-07-29). */}
                             <div className="dp-mast">
-                                <p className="dp-mast-sub">{`PD · THE DEPANNEUR ⚷${VS15}`}</p>
                                 <h2 className="dp-mast-title">KEYCHAINS<span className="dp-mast-dot">.</span></h2>
-                                <p className="dp-mast-sub">DROP A COIN · TURN THE CRANK · SEE WHAT FALLS OUT</p>
+                                <p className="dp-mast-sub">PICK YIN OR YANG · DROP A COIN · SEE WHAT FALLS OUT</p>
                             </div>
 
-                            {/* THE STREAK BAR — what your streak is buying you at
-                                the machine, in the sheet's pink box. */}
-                            <div className="dp-streak">
-                                <b>{streak}</b>{streak === 1 ? ' DAY STREAK' : ' DAY STREAK'} — <b>{LUCK_LABEL[luck]}</b> ODDS ON YOUR NEXT PULL
+                            {/* THE COUNT BOX — the sheet's own stat, with the
+                                keeper's streak riding a bar underneath it
+                                (Brendon, 2026-07-29). */}
+                            <div className="dp-count">
+                                <div className="dp-count-line">
+                                    <b>58,060,800</b> POSSIBLE CHARMS — BEFORE THE LIVING LAYER
+                                </div>
+                                <div className="dp-streak-bar">
+                                    <div className="dp-streak-track">
+                                        <div className="dp-streak-fill" style={{ width: `${streakPct}%` }} />
+                                    </div>
+                                    <div className="dp-streak-read">
+                                        <span><b>{streak}</b> DAY STREAK</span>
+                                        <span><b>{LUCK_LABEL[luck]}</b> ODDS{nextAt != null ? ` · ${nextAt - streak} TO NEXT` : ''}</span>
+                                    </div>
+                                </div>
                             </div>
 
                             {/* THE MACHINE */}
@@ -358,7 +376,7 @@ export default function DepanneurModal() {
                                     onClick={() => { void crank(); }}
                                     disabled={cranking || coin == null}
                                 >
-                                    {cranking ? 'CRANKING…' : coin == null ? 'DROP A COIN' : `CRANK · ${CRANK_PRICE_ETH.toFixed(3)} ETH`}
+                                    {cranking ? 'CRANKING…' : coin == null ? 'PICK YIN OR YANG' : `CRANK · ${CRANK_PRICE_ETH.toFixed(3)} ETH`}
                                 </button>
                             </div>
 
