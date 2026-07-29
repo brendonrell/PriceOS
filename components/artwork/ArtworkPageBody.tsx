@@ -785,21 +785,22 @@ export default function ArtworkPageBody({
                                         : <span className="profile-link">{heldBy}</span>}
                                 </span>
                             )}
-                            {/* The holder's tags, MINI + page-themed, in the SAME
-                                text flow as the ID so they start right after the
-                                rectangle and wrap onto the next line like words —
-                                never widening the page in portrait (Brendon,
-                                2026-07-27; wrap fixed 2026-07-29). Tap → the full
-                                row below; tap a full one → back to mini. */}
-                            {market?.owner_handle && !ownerTagsBig && (
-                                <UserTagsFor
-                                    handle={market.owner_handle}
-                                    size="mini"
-                                    themed
-                                    onTagTap={() => setOwnerTagsBig(true)}
-                                />
-                            )}
                         </span>
+                        {/* The holder's tags, MINI + page-themed — their own row
+                            treatment (never part of the ASCII-ID), riding in the
+                            same spot right after the rectangle. They join THIS
+                            row's wrap, so a wrapped line sits flush left exactly
+                            like the profile's tag row (Brendon, 2026-07-27; flush
+                            fixed 2026-07-29). Tap → the full row below; tap a
+                            full one → back to mini. */}
+                        {market?.owner_handle && !ownerTagsBig && (
+                            <UserTagsFor
+                                handle={market.owner_handle}
+                                size="mini"
+                                themed
+                                onTagTap={() => setOwnerTagsBig(true)}
+                            />
+                        )}
                     </div>
                     {market?.owner_handle && ownerTagsBig && (
                         <div className="hero-line info-line">

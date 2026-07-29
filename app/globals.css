@@ -4885,7 +4885,7 @@ body.persona-default .stats-row-2 { display: none !important; }
 /* Profile followers stat uses the ⚬ glyph, which renders much smaller than
    the box/ETH icons at the shared 13px. Bump to optically match them.
    (Brendon, 2026-07-28 — one size smaller, every surface it appears on.) */
-.stat-icon-followers { font-size: 19px; transform: translateY(2px); }
+.stat-icon-followers { font-size: 19px; transform: translateY(1.5px); }
 
 /* "Collected by" line — sim ~2074-2133 */
 .info-rubik {
@@ -9420,10 +9420,12 @@ a.f-highlight { color: inherit; }
        only (Brendon 2026-06-15). Two-class selector beats the generic
        .stat-icon-owners rule above for the followers stat specifically. */
     .stat-icon-owners.stat-icon-followers {
-        /* One size smaller, sitting 2px lower (Brendon, 2026-07-29). */
+        /* One size smaller, and DOWN — the old -4px lift is nearly gone, so
+           the face sits on the row instead of riding above it, then back up a
+           half pixel to land it (Brendon, 2026-07-29). */
         font-size: 23px;
         position: relative;
-        top: -2px;
+        top: -0.5px;
     }
     .stat-icon-box { font-size: 14px; position: relative; top: -1px; }
     .search-input::placeholder { font-size: 12px; }
@@ -9483,7 +9485,7 @@ a.f-highlight { color: inherit; }
     .stat-icon-owners { font-size: 14px; text-shadow: none; }
     /* Followers icon a touch larger + nudged up, desktop only (Brendon 2026-06-16).
        One size smaller and 2px lower again (Brendon, 2026-07-29). */
-    .stat-icon-followers { font-size: 22px; transform: translateY(0); }
+    .stat-icon-followers { font-size: 22px; transform: translateY(-0.5px); }
     .stat-icon-eth { font-size: 16px; position: relative; top: 1px; }
     .meta-owner { font-size: 13px; opacity: 0.7; }
     .info-rubik .ico-mutual,
@@ -13407,28 +13409,23 @@ body.is-pwa .artwork-fullscreen.artwork-darkroom .fullscreen-back {
    the MINI tags riding right after it. */
 .fi-dossier-id { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .info-line .user-tags--mini { max-width: 100%; margin-left: 6px; vertical-align: -3px; }
-/* ── THE OWNER LINE (output page) — "HELD BY [ID Rectangle] [tags…]" ────────
-   One continuous run of text, not a flex row: the mini tags sit in the SAME
-   flow as the ID, so they start right after the rectangle and wrap onto the
-   next line like words when they run out of room (Brendon, 2026-07-29). The
-   strip used to be a single nowrap line that scrolled sideways — in portrait
-   that widened the whole hero and pushed the title off screen. It wraps now;
-   nothing scrolls. ── */
-.owner-line { display: block; }
-.owner-line .user-tags--mini {
-    display: inline;
-    flex-wrap: wrap;
-    overflow: visible;
-    margin-left: 0;
-    max-width: none;
-    vertical-align: baseline;
+/* ── THE OWNER LINE (output page) — "HELD BY [ASCII-ID] [tags…]" ───────────
+   ONE wrapping row, the profile tag row's treatment exactly: the mini pills
+   are dissolved into this row (display: contents) so they are siblings of the
+   ID, not a block sitting inside it. Result — they start right after the
+   rectangle, and every wrapped line sits FLUSH LEFT with even gaps, with no
+   pill margins to indent it (Brendon, 2026-07-29). The strip used to be one
+   nowrap line that scrolled sideways, which in portrait widened the whole hero
+   and pushed the title off screen. It wraps now; nothing scrolls. ── */
+.owner-line {
+    row-gap: 5px;
+    /* The pills share the rectangle's bottom edge, so the whole row reads as
+       one level line instead of the tags floating 2px high (Brendon,
+       2026-07-29). Centring can't do it: "HELD BY" carries ascent above the
+       rectangle, which pulls the row's centre up past it. */
+    align-items: flex-end;
 }
-.owner-line .user-tags--mini .profile-tag {
-    /* The gap becomes per-pill margin, since inline flow owns the wrapping.
-       The bottom margin is the row gap for a holder whose tags run long. */
-    margin: 0 0 3px 4px;
-    vertical-align: middle;
-}
+.owner-line .user-tags--mini { display: contents; }
 .fi-dossier-id .collected-pair { font-size: 15px; padding: 3px 8px; }
 .fi-dossier-id .collected-sprite { font-size: 13px; }
 .fi-dossier-id .collected-rank-badge { font-size: 17px; }
