@@ -260,11 +260,25 @@
 .pd-charm-worn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
+    position: relative;
     /* JUL 28: 4× the original 26px — Brendon's call. JUL 29: two thirds of
-       that. */
-    width: 69px;
-    height: 69px;
+       that, then +10%. */
+    width: 76px;
+    /* IT FLOATS (Brendon, 2026-07-29): the charm keeps a pill-height slot in
+       the row so it never makes the row tall — the art itself grows out of
+       that spot and rides OVER whatever is above and below it. */
+    height: 24px;
+    z-index: 5;
     cursor: pointer;
     flex-shrink: 0;
 }
-.pd-charm-worn svg { display: block; width: 100%; height: auto; }
+.pd-charm-worn svg {
+    display: block;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 76px;
+    height: auto;
+}

@@ -20,7 +20,10 @@ export default function EquippedCharm({ address }: { address: string }) {
         : null;
 
     const svg = useMemo(
-        () => (charm && rack ? charmSVG(charm.seed, `eq${charm.id}`, rack.streak, rack.rank, charm.name, charm.coin, true) : ''),
+        /* No chain AND no name tag on the worn charm — the view tightens to the
+           character itself so it fills its box at this size instead of giving
+           half of it to a banner nobody can read (Brendon, 2026-07-29). */
+        () => (charm && rack ? charmSVG(charm.seed, `eq${charm.id}`, rack.streak, rack.rank, '', charm.coin, true) : ''),
         [charm, rack],
     );
 
