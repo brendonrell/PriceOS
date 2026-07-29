@@ -412,11 +412,11 @@ export const ID_RANGES: ReadonlyArray<{ id: string; label: string; max: number }
 export const TAG_PAINTS: ReadonlyArray<{ id: string; label: string; hex: string }> = [
     /* The two brand neutrals, named for what they are (Brendon, 2026-07-26):
        Dot and Matrix, at the brand token values — not raw black/white. */
-    { id: 'black',     label: 'Dot',           hex: '#111111' },
-    { id: 'white',     label: 'Matrix',        hex: '#E0E0E0' },
-    { id: 'hothurt',   label: 'All Hothurt',   hex: '#FF0055' },
-    { id: 'attention', label: 'All Attention', hex: '#FFE600' },
-    { id: 'blue',      label: 'All Blue',      hex: '#0109FF' },
+    { id: 'black',     label: 'All Dot',            hex: '#111111' },
+    { id: 'white',     label: 'All Matrix',         hex: '#E0E0E0' },
+    { id: 'hothurt',   label: 'All Hothurt',        hex: '#FF0055' },
+    { id: 'attention', label: 'All Attention',      hex: '#FFE600' },
+    { id: 'blue',      label: 'All @brendon blue',  hex: '#0109FF' },
 ];
 
 const PAINT_BY_ID = new Map(TAG_PAINTS.map((p) => [p.id, p]));
