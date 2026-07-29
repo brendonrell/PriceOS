@@ -41,6 +41,7 @@ import {
     type FmTrack,
 } from '../../lib/fm/tracksStore';
 import { useLongPress } from '../../lib/hooks/useLongPress';
+import FmLcd from './FmLcd';
 import { getSoundtrackStarItems } from '../../lib/pins/soundtrackStarStore';
 import { registerFmDriver, publishFm, type FmStation } from '../../lib/fm/fmBus';
 import { pushSettings, pushSettingsDebounced } from '../../lib/state/userState';
@@ -635,16 +636,19 @@ export default function FmBar() {
 
     const capHold = useLongPress(() => { if (usbCapOff) openTracks(); });
 
+    /* ⛔ THE CAP TOGGLES INSTANTLY (Brendon, 2026-07-28: "it flashes for a second
+       goes away then comes back normal. Needs to just work normal on/off").
+       The seat used to WAIT OUT the triple-tap window before re-capping, and
+       that third-of-a-second hold is exactly the stutter he saw. On/off is now
+       immediate, every tap; the triple-tap still counts in the background and
+       opens the tracks on the third, leaving the cap off. */
     const onCapTap = () => {
-        if (!usbCapOff) { setUsbCapOff(true); return; }
-        /* Cap is off: a lone tap seats it, three quick taps open the tracks.
-           The seat waits out the multi-tap window so the third tap can win. */
+        setUsbCapOff((v) => !v);
         tapsRef.current += 1;
-        if (tapsRef.current >= 3) { openTracks(); return; }
+        if (tapsRef.current >= 3) { setUsbCapOff(true); openTracks(); return; }
         if (tapTimerRef.current) clearTimeout(tapTimerRef.current);
         tapTimerRef.current = setTimeout(() => {
             tapTimerRef.current = null;
-            if (tapsRef.current < 3) setUsbCapOff(false);
             tapsRef.current = 0;
         }, 320);
     };
@@ -867,11 +871,22 @@ export default function FmBar() {
                     <span ref={videoHostRef} />
                     <span className="fm-video-tap" aria-hidden="true" />
                 </span>
-                <span className="fm-rows">
-                    <span className="fm-lcd-row fm-lcd-track"><span className="fm-lcd-inner">{rowTrack}</span></span>
-                    <span className="fm-lcd-row"><span className="fm-lcd-inner">{rowStation}</span></span>
-                    <span className="fm-lcd-row"><span className="fm-lcd-inner">{rowStatus}</span></span>
-                </span>
+                {/* The USB face draws a REAL dot-matrix LCD instead of styled
+                    text — the shop's own pixel font, black glass, lit segments
+                    (Brendon, 2026-07-28). Every other face keeps its rows. */}
+                {display === 'usb' ? (
+                    <FmLcd
+                        rows={[rowTrack, rowStation, rowStatus]}
+                        playing={status === 'playing'}
+                        getElapsed={() => playerRef.current?.getCurrentTime?.() ?? 0}
+                    />
+                ) : (
+                    <span className="fm-rows">
+                        <span className="fm-lcd-row fm-lcd-track"><span className="fm-lcd-inner">{rowTrack}</span></span>
+                        <span className="fm-lcd-row"><span className="fm-lcd-inner">{rowStation}</span></span>
+                        <span className="fm-lcd-row"><span className="fm-lcd-inner">{rowStatus}</span></span>
+                    </span>
+                )}
                 {/* TAB's equalizer — present in every face, shown by its mode
                     class only. */}
                 <span className="fm-sigbars" aria-hidden="true">

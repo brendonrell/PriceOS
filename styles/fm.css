@@ -115,15 +115,13 @@ body.modal-open .fm-bar {
    everything"). Sharing the selector IS the reuse — the two faces can never
    drift apart again. The USB block below sizes and places its screen; the
    TREATMENT lives here and here only. */
-.fm-mode-deck .fm-screen,
-.fm-mode-usb .fm-screen {
+.fm-mode-deck .fm-screen {
     position: relative;
     background: var(--text-color);
     color: var(--bg-color);
     border: 1px solid #000;
 }
-.fm-mode-deck .fm-screen::after,
-.fm-mode-usb .fm-screen::after {
+.fm-mode-deck .fm-screen::after {
     content: '';
     position: absolute;
     inset: 0;
@@ -390,9 +388,25 @@ body.modal-open .fm-bar {
     border: 3px solid #000;
     border-left-width: 9px;
     border-radius: 6px;
+    /* ⛔ ALWAYS BLACK GLASS (Brendon, 2026-07-28) — the USB screen does not wear
+       the colorway; FmLcd paints the lit matrix onto it. */
+    background: #05070a;
+    color: #e2f6d6;
+    overflow: hidden;
 }
-/* the CRT veil follows the glass into the rounded corners */
-.fm-mode-usb .fm-screen::after { border-radius: inherit; }
+/* the dot-matrix panel fills whatever glass is left beside the artwork */
+.fm-lcd {
+    flex: 1 1 auto;
+    min-width: 0;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    overflow: hidden;
+    background: #05070a;
+}
+.fm-lcd-canvas { display: block; image-rendering: pixelated; }
+
 /* The artwork sits SMALLER inside the glass, with the fat black bezel down the
    LEFT side (Brendon, 2026-07-28: "make the artwork a bit smaller within the
    screen, the border I want big is on the left side") — the reference's display
@@ -466,7 +480,8 @@ body.modal-open .fm-bar {
    ▶ centre. Each one simply sits in its cell — no align-self, no transforms. */
 .fm-mode-usb .fm-close { grid-column: 3; grid-row: 3; }
 /* the pad's four arms around ▶: ⟳ top · × bottom · ⎇ left · ≫ right */
-.fm-mode-usb .fm-shuffle { grid-column: 3; grid-row: 1; }
+/* the ⟳ reads small at the key size — two sizes up (Brendon, 2026-07-28) */
+.fm-mode-usb .fm-shuffle { grid-column: 3; grid-row: 1; font-size: 15px; }
 /* SHUFFLE ON wears PD's active pair — fill AND text together. Colouring only
    the glyph painted it the same dark as the pressed fill and it vanished
    (Brendon, 2026-07-28: "the glyph goes away"). */
@@ -655,3 +670,116 @@ body.modal-open .fm-bar {
 .fm-picker-glyph { margin-right: 2px; }
 
 .fm-picker-proj { font-weight: bold; }
+
+
+/* ══ YOUR TRACKS — the picker's second shelf (Brendon, 2026-07-28) ══════════
+   ⛔ PD's own chrome, not browser defaults: 4px corners (the trait-pill law —
+   never lozenges), full-strength --text-color borders and text, 12px floor,
+   real spacing. The field gets its OWN ROW and a proper 44px target, because a
+   paste box you can barely hit is anti-human ("why is the field so small give
+   it its own row and make it tall and easy to use"). ══════════════════════ */
+.fm-picker-tracks { padding: 8px; }
+
+.fm-track-add {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 4px 12px;
+}
+
+.fm-track-input {
+    width: 100%;
+    height: 44px;
+    box-sizing: border-box;
+    padding: 0 12px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--text-color);
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+}
+.fm-track-input::placeholder {
+    color: var(--text-color);
+    opacity: 0.75;
+    font-weight: normal;
+}
+.fm-track-input:focus {
+    outline: 2px dotted var(--text-color);
+    outline-offset: -4px;
+}
+
+.fm-track-save {
+    width: 100%;
+    height: 40px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: var(--text-color);
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    cursor: pointer;
+}
+.fm-track-save:disabled { opacity: 0.45; cursor: default; }
+.fm-track-save:not(:disabled):active {
+    background: var(--stat-active-bg, var(--text-color));
+    color: var(--stat-active-text, var(--bg-color));
+}
+
+.fm-track-note {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1.45;
+    color: var(--text-color);
+    padding: 2px 4px 10px;
+}
+
+/* a saved station: the row plays it, the × drops it */
+.fm-track-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0;
+    border-left: none;
+}
+.fm-track-play {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: left;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--text-color);
+    background: transparent;
+    border: none;
+    padding: 11px 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.fm-track-del {
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    cursor: pointer;
+}
+.fm-track-del:active {
+    background: var(--stat-active-bg, var(--text-color));
+    color: var(--stat-active-text, var(--bg-color));
+}
