@@ -66,7 +66,7 @@ export function ProfileTags({ tags, font, paint, onTagTap, className, trailing }
                 return (
                 <span
                     key={t.id}
-                    className={`profile-tag profile-tag--${t.id}${t.stroke ? ' profile-tag--outlined' : ''}${t.noBorder ? ' profile-tag--edgeless' : ''}`}
+                    className={`profile-tag profile-tag--${t.id}${t.project ? ' profile-tag--proj' : ''}${t.stroke ? ' profile-tag--outlined' : ''}${t.noBorder ? ' profile-tag--edgeless' : ''}`}
                     style={{
                         ['--tag' as string]: hex,
                         ['--tag-text' as string]: textHex,
