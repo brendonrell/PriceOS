@@ -1229,36 +1229,6 @@ function ProfilePageBodyInner({
                                     </label>
                                 );
                             })()}
-                            {/* ALL ORIGINAL — the paint row's last stop
-                                (Brendon, 2026-07-29): every tag back in its
-                                OWN colour. A Matrix pill whose lettering is a
-                                different colour per character, which is the
-                                thing it does, drawn. */}
-                            {(() => {
-                                const on = !myTagPaint;
-                                const pick = () => {
-                                    setMyTagPaint(null);
-                                    showToast('Tags: ALL ORIGINAL');
-                                };
-                                const INKS = ['#FF0055', '#0109FF', '#16A34A', '#C026D3', '#EA580C', '#111111', '#0891B2', '#DB2777', '#7C3AED', '#B45309', '#1D4ED8'];
-                                return (
-                                    <div
-                                        className={`pill pill-l3 tag-pick${on ? ' active' : ''}`}
-                                        style={{ ['--tag' as string]: '#E0E0E0', ['--tag-text' as string]: '#111111' }}
-                                        role="button"
-                                        tabIndex={0}
-                                        onClick={pick}
-                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } }}
-                                        title="Every tag in its own colour"
-                                    >
-                                        <span className="stat-name">
-                                            {'All Original'.split('').map((ch, i) => (
-                                                <span key={i} style={{ color: INKS[i % INKS.length] }}>{ch}</span>
-                                            ))}
-                                        </span>
-                                    </div>
-                                );
-                            })()}
                         </div>
                         {/* Row 3 — FONT: restyle the @name. Each pill previews
                             itself; the "@" always stays plain. */}
