@@ -4954,13 +4954,13 @@ body.persona-default .stats-row-2 { display: none !important; }
    negative tracking as the navbar's .ascii-pfp-badge, full-strength colour. */
 .collected-rank-badge {
     font-family: 'Segoe UI Symbol', 'Noto Sans Symbols', Arial, sans-serif;
-    font-size: 18px;
+    font-size: 21px;
     line-height: 1;
     color: inherit;
     letter-spacing: -1px;
     flex-shrink: 0;
     user-select: none;
-    /* Three sizes up and 0.5px lower than the last pass, on every ASCII-ID
+    /* Six sizes up and 0.5px lower than the last pass, on every ASCII-ID
        (Brendon, 2026-07-29). */
     position: relative;
     top: 0.5px;
@@ -13435,6 +13435,12 @@ body.is-pwa .artwork-fullscreen.artwork-darkroom .fullscreen-back {
 }
 .owner-line .collected-pair { vertical-align: middle; }
 .owner-line .user-tags--mini { display: contents; }
+/* HELD BY is all-caps, so its text box carries empty descender room under
+   the letters — centring the BOX left the letters sitting 1.8px below the
+   rectangle and the pills (measured off the row). This lifts the letters
+   onto that shared centre; the box, the spacing and the wrap are untouched
+   (Brendon, 2026-07-29). */
+.owner-line .info-rubik { transform: translateY(-1.8px); }
 .fi-dossier-id .collected-pair { font-size: 15px; padding: 3px 8px; }
 .fi-dossier-id .collected-sprite { font-size: 13px; }
 .fi-dossier-id .collected-rank-badge { font-size: 18px; }
