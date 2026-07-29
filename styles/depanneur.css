@@ -273,12 +273,15 @@
     cursor: pointer;
     flex-shrink: 0;
 }
+/* The art is pinned by its FOOT, not its middle: the character stays exactly
+   where it sits in the row and the chain grows UP out of it, over the row
+   above (Brendon, 2026-07-29). */
 .pd-charm-worn svg {
     display: block;
     position: absolute;
     left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
+    bottom: calc(50% - 26px);
+    transform: translateX(-50%);
     width: 76px;
     height: auto;
 }
