@@ -4242,6 +4242,25 @@ body.pd-stone-open .ens-copy-toast {
     -webkit-text-stroke: 0.45px currentColor;
 }
 
+/* THE OPEN-FOR-BUSINESS THREE — their ✦ turns slowly, so "right now" reads as
+   alive on the pill (Brendon, 2026-07-29). Slow enough to notice without
+   pulling focus; still for anyone who asked for less motion. */
+.profile-tag--now-buying .profile-tag-glyph,
+.profile-tag--now-selling .profile-tag-glyph,
+.profile-tag--open-to-trades .profile-tag-glyph {
+    display: inline-block;
+    animation: tag-active-spin 6s linear infinite;
+}
+@keyframes tag-active-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .profile-tag--now-buying .profile-tag-glyph,
+    .profile-tag--now-selling .profile-tag-glyph,
+    .profile-tag--open-to-trades .profile-tag-glyph { animation: none; }
+}
+
 /* ── Profile tags on LIST surfaces (Brendon, 2026-07-24) — leaderboards,
    collectors, followers, the Friend Inspector dossier, the artwork owner line,
    search. The PILL is the hero's own `.profile-tag` (one renderer, one look);
