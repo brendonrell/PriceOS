@@ -8,7 +8,67 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-00000000000000000000000000. ✅ **2026-07-28 (LATEST) — LISTS ROUND: PLAY A LIST
+000000000000000000000000000. ✅ **2026-07-29 (LATEST) — THE ASCII-ID LOCKED ·
+   OUTPUT OWNER ROW WRAP + FLUSH · SMILEY SIZING (Opus 5). All on `dev` (tip
+   `c8fa959`), tree clean, typecheck green, build green, every rule verified in
+   the compiled CSS and screenshotted at iPhone size in BOTH orientations.
+   ClickUp `86bb53809`.**
+
+   **Nothing is outstanding — this session is fully shipped and deployed.**
+
+   1. **⛔ THE ASCII-ID IS LOCKED — read this before touching any surface that
+      shows a person.** PD's identity unit has ONE name and ONE anatomy, fixed
+      in `components/hero/AsciiId.tsx` (the former `CollectedPair`):
+
+      **PriceSprite › PriceRank › @name › Sigil**
+
+      That is the connect-menu identity, verbatim, inside the tinted rectangle.
+      Nothing is optional and nothing is reordered per surface. A part is
+      absent ONLY when the person genuinely has none — unloaded/unknown sprite,
+      unranked account, unforged or owner-hidden Sigil. There are no
+      per-surface flags any more; the old `showRank` / `showSigil` props are
+      gone on purpose.
+      Now rendered identically on: both leaderboards, Collectors, Tag rooms,
+      Followers, the **Friend Inspector**, and the output page's owner line.
+      (Before this, the leaderboards had no rank badge and nothing but the
+      owner line carried a Sigil.)
+      Rank + Sigil + address come off ONE cached per-handle profile read
+      (`useUserIdentity`, sharing the cache `useUserRank` already had).
+
+   2. **⛔ PROFILE TAGS ARE **NOT** PART OF THE ASCII-ID.** Brendon said it
+      twice, so it is written into `components/tags/UserTags.tsx` AND
+      `app/globals.css`. Tags are their OWN thing riding in the same **spot** —
+      immediately after the rectangle, **outside** it. Never draw a tag inside
+      the rectangle; never fold tags into the ASCII-ID component.
+
+   3. **OUTPUT PAGE OWNER ROW — the portrait bug, fixed.** The hero column was
+      sizing itself to its WIDEST child, so the holder's tag strip (one nowrap,
+      side-scrolling line) stretched the whole hero and dragged the title off
+      the right edge in portrait, where the document is clipped rather than
+      scrollable. Landscape only looked fine because the content happened to
+      fit. The column now takes a definite width, so nothing can widen the page
+      and every child's `max-width: 100%` has something to resolve against.
+      The mini pills are dissolved into the owner row (`display: contents`),
+      making them siblings of the ASCII-ID rather than a block parked inside
+      it: they start right after the rectangle, and every wrapped line sits
+      FLUSH LEFT with even gaps — the profile tag row's treatment exactly.
+      Pills share the rectangle's BOTTOM edge (`align-items: flex-end`) so the
+      row reads as one level line; centring can't do it, because "HELD BY"
+      carries ascent above the rectangle and pulls the row's centre up past it.
+      Tap-to-expand is untouched — the mini strip still swaps for the full-size
+      row and back.
+
+   4. **FOLLOWERS SMILEY (☻), stats row.** One size smaller and nudged down,
+      then back up a half pixel on Brendon's call. Applied to all three rules
+      that govern it (base · phone · desktop) so the surfaces stay consistent.
+
+   **Corrections made mid-session — don't re-introduce either:** the rectangle
+   first shipped with the **PriceScore**; Brendon corrected it to **PriceRank**
+   and the score readout was removed. The first wrap attempt used inline text
+   flow with a per-pill LEFT margin, which indented every wrapped line — the
+   gap must never hang on the left.
+
+00000000000000000000000000. ✅ **2026-07-28 — LISTS ROUND: PLAY A LIST
    AS A PLAYLIST · NEW LIST FROM THE PANEL · ARRANGE THE LISTS · MOVED MARKS
    (Opus 5). All on `dev` (tip `916a898`), tree clean, typecheck green, build
    green, every rule verified in the compiled CSS. ClickUp `86bb51qug`.**
