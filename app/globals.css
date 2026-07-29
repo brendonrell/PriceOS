@@ -13448,6 +13448,11 @@ body.is-pwa .artwork-fullscreen.artwork-darkroom .fullscreen-back {
     gap: 6px;
 }
 .owner-line .user-tags--mini { display: contents; }
+/* The pills are taller than the label, and they were hanging off the row's
+   BOTTOM edge — measured 1.5px high of the centre the label and the rectangle
+   share. Dropped onto that centre line (Brendon, 2026-07-29). Offset only —
+   nothing in the row's spacing moves. */
+.owner-line .user-tags--mini .profile-tag { position: relative; top: 1.5px; }
 .fi-dossier-id .collected-pair { font-size: 15px; padding: 3px 8px; }
 .fi-dossier-id .collected-sprite { font-size: 13px; }
 .fi-dossier-id .collected-rank-badge { font-size: 18px; }
