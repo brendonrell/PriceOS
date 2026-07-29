@@ -27,13 +27,16 @@ import { lockBodyScroll, unlockBodyScroll } from '../../lib/state/bodyScrollLock
 import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
 import {
-    CRANK_PRICE_ETH, charmSVG, charmTraits, isValidCharmName,
+    CRANK_PRICE_ETH, charmSVG, charmTraits, genes, isValidCharmName, luckFor, SHAPE_NAMES,
     type CharmRecord, type Coin,
 } from '../../lib/keychains/engine';
 import { useKeychainRack, bustRack } from '../../lib/keychains/rack';
 import { requestMotion } from '../../lib/keychains/sway';
 
 const VS15 = '︎';
+
+/** What a streak buys at the machine — the odds tier, in plain words. */
+const LUCK_LABEL = ['BASE', 'BETTER', 'STRONG', 'BEST'] as const;
 
 function CharmArt({ charm, uid, className }: {
     charm: CharmRecord; uid: string; className?: string;
@@ -76,6 +79,10 @@ export default function DepanneurModal() {
         return () => window.removeEventListener('keydown', onKey);
     }, [isOpen, close]);
 
+    const streak = rack?.streak ?? 0;
+    /* What the streak is buying at the machine right now — the same tier the
+       crank will bank into the charm. */
+    const luck = luckFor(streak, rack?.rank ?? 0);
     const charms = rack?.charms ?? [];
     const shown: CharmRecord | null =
         (picked != null ? charms.find((c) => c.id === picked) : null) ?? fresh;
@@ -182,6 +189,20 @@ export default function DepanneurModal() {
                         <p className="dp-note">Connect your wallet to crank the machine.</p>
                     ) : (
                         <>
+                            {/* THE MASTHEAD — the approved sheet's own, verbatim
+                                treatment (Brendon, 2026-07-29). */}
+                            <div className="dp-mast">
+                                <p className="dp-mast-sub">{`PD · THE DEPANNEUR ⚷${VS15}`}</p>
+                                <h2 className="dp-mast-title">KEYCHAINS<span className="dp-mast-dot">.</span></h2>
+                                <p className="dp-mast-sub">DROP A COIN · TURN THE CRANK · SEE WHAT FALLS OUT</p>
+                            </div>
+
+                            {/* THE STREAK BAR — what your streak is buying you at
+                                the machine, in the sheet's pink box. */}
+                            <div className="dp-streak">
+                                <b>{streak}</b>{streak === 1 ? ' DAY STREAK' : ' DAY STREAK'} — <b>{LUCK_LABEL[luck]}</b> ODDS ON YOUR NEXT PULL
+                            </div>
+
                             {/* THE MACHINE */}
                             <div className="dp-machine">
                                 <span className={`dp-machine-cap${cranking ? ' turning' : ''}`}>{`⚷${VS15}`}</span>
@@ -263,11 +284,12 @@ export default function DepanneurModal() {
                                 </div>
                             )}
 
-                            {/* MY CHARMS */}
-                            <div className="dp-rack-head">
-                                <span>MY CHARMS</span>
-                                <span className="dp-rack-count">{charms.length}</span>
-                            </div>
+                            {/* MY CHARMS — the sheet's own section header, and
+                                every tile captioned the way THE CAST is. */}
+                            <header className="dp-sh">
+                                <h3>THE CAST</h3>
+                                <p>12 shapes · rarest pull: ALIEN, 1 in 50</p>
+                            </header>
                             {charms.length === 0 ? (
                                 <p className="dp-note">Nothing on the rack yet — crank the machine.</p>
                             ) : (
@@ -281,6 +303,9 @@ export default function DepanneurModal() {
                                             title={c.name || `Charm #${c.id}`}
                                         >
                                             <CharmArt charm={c} uid={`rk${c.id}`} className="dp-charm-mini" />
+                                            <span className="dp-rack-cap">
+                                                {c.name || SHAPE_NAMES[genes(c.seed, c.coin, c.luck).shape]}
+                                            </span>
                                             {rack?.equipped === c.id && <span className="dp-rack-worn">WORN</span>}
                                         </button>
                                     ))}

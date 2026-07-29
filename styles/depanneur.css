@@ -12,6 +12,10 @@
    approved sheet was drawn in. Done by re-pointing the site tokens inside
    the panel, so every pill and border keeps its proven treatment. */
 .dp-plus {
+    --dp-ink: #1C1C24;
+    --dp-panel: #26262E;
+    --dp-line: #3A3A46;
+    --dp-pink: #ED7FA4;
     --bg-color: #1C1C24;
     --text-color: #F2F2F4;
     --stat-active-bg: #ED7FA4;
@@ -19,6 +23,39 @@
     background: #1C1C24;
     color: #F2F2F4;
 }
+
+/* ── the masthead (the sheet's own, verbatim) ── */
+.dp-mast { padding: 2px 0 2px; }
+.dp-mast-sub {
+    color: var(--dp-line);
+    color: #C6CDD8;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin: 0;
+}
+.dp-mast-title {
+    font-size: clamp(28px, 9vw, 44px);
+    line-height: 1.05;
+    letter-spacing: -1px;
+    margin: 8px 0 6px;
+    color: var(--text-color);
+}
+.dp-mast-dot { color: var(--dp-pink); }
+
+/* THE STREAK BAR — the sheet's pink count box, carrying what the keeper's
+   streak is actually buying them at the machine (Brendon, 2026-07-29). */
+.dp-streak {
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    color: var(--text-color);
+    border: 2px solid var(--dp-pink);
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-variant-numeric: tabular-nums;
+}
+.dp-streak b { color: var(--dp-pink); }
 
 .dp-body {
     padding: 6px 12px 16px;
@@ -120,6 +157,18 @@
     background: var(--stat-active-bg, var(--text-color));
     color: var(--stat-active-text, var(--bg-color));
 }
+/* NO COIN, NO CRANK (Brendon, 2026-07-29) — the button reads dead until a
+   slot is holding a coin, so the machine can't look broken. */
+.dp-crank:disabled:not(.cranking) {
+    color: #6E6E7A;
+    border-color: #3A3A46;
+    background: #24242C;
+    cursor: default;
+}
+.dp-crank:disabled:not(.cranking):hover {
+    background: #24242C;
+    color: #6E6E7A;
+}
 .dp-crank.cranking { animation: dp-pulse 0.6s ease-in-out infinite alternate; }
 @keyframes dp-pulse { from { opacity: 1; } to { opacity: 0.72; } }
 
@@ -195,17 +244,23 @@
 .dp-christen-input::placeholder { color: var(--text-color); opacity: 0.75; }
 
 /* ── the rack ── */
-.dp-rack-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 13px;
+/* The sheet's section header, verbatim (Brendon, 2026-07-29). */
+.dp-sh { margin-top: 14px; }
+.dp-sh h3 {
+    font-size: 17px;
+    letter-spacing: 2px;
+    margin: 0 0 2px;
+    border-bottom: 2px solid var(--dp-line);
+    padding-bottom: 8px;
     font-weight: bold;
-    letter-spacing: 1px;
-    padding: 4px 2px 6px;
-    border-bottom: 1px solid var(--text-color);
 }
-.dp-rack-count { font-size: 12px; }
+.dp-sh p {
+    color: #C6CDD8;
+    font-size: 12.5px;
+    font-weight: bold;
+    margin: 8px 0 12px;
+    letter-spacing: 0.4px;
+}
 /* THE RACK AT THE SHEET'S ZOOM (Brendon, 2026-07-29) — the artifact's own
    grid: two up on a phone, three on anything wider, each charm drawn at the
    full width of its cell so the ring, the chain and the face all read. */
@@ -222,22 +277,34 @@
     cursor: pointer;
     width: auto;
     height: auto;
-    padding: 6px;
-    background: #26262E;
-    border: 1px solid #3A3A46;
+    padding: 6px 6px 2px;
+    background: var(--dp-panel);
+    border: 1px solid var(--dp-line);
     border-radius: 4px;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
 }
 /* Selected = PD's dotted ring (the state vocabulary — never an accent bar). */
 .dp-rack-slot.on { outline: 2px dotted var(--text-color); outline-offset: 2px; }
 .dp-charm-mini { display: block; width: 100%; }
 .dp-charm-mini svg { display: block; width: 100%; height: auto; }
+/* The sheet's caption — the charm's christened name, or its shape until it
+   has one (Brendon, 2026-07-29: "I even love how it says star underneath"). */
+.dp-rack-cap {
+    font-size: 11.5px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: var(--text-color);
+    text-align: center;
+    padding: 4px 2px 7px;
+    text-transform: uppercase;
+}
 .dp-rack-worn {
     position: absolute;
-    bottom: 2px;
-    right: 2px;
+    top: 4px;
+    right: 4px;
     font-size: 9px;
     font-weight: bold;
     letter-spacing: 0.5px;
