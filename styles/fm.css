@@ -290,8 +290,15 @@ body.modal-open .fm-bar {
     border-radius: 14px;
     display: grid;
     grid-template-columns: minmax(0, 1fr) 20px 20px 20px;
-    grid-template-rows: repeat(3, 1fr);
-    column-gap: 2px;
+    /* ⛔ THE PAD IS A REAL GRID, NOT NUDGED GLYPHS (Brendon, 2026-07-28: "the
+       problem is the ALIGNMENT not the nudging" / "they all need the same size
+       square"). Three 16px rows with a 2px gutter = 52px, centred inside the
+       56px pad, so every key lands on the grid with an even 2px all round and
+       nothing is shoved into place afterwards. */
+    grid-template-rows: 16px 20px 16px;
+    row-gap: 2px;
+    align-content: center;
+    column-gap: 0;
     align-items: center;
     justify-items: center;
     /* ⛔ CONVINCING MOULDED PLASTIC — USB FACE ONLY (Brendon, 2026-07-28:
@@ -411,7 +418,7 @@ body.modal-open .fm-bar {
     justify-self: stretch;
     align-self: center;
     width: 100%;
-    height: 56px;
+    height: 60px;
     background: linear-gradient(
         180deg,
         color-mix(in srgb, var(--bg-color) 62%, #ffffff) 0%,
@@ -425,42 +432,49 @@ body.modal-open .fm-bar {
         inset 0 1px 0 color-mix(in srgb, var(--bg-color) 46%, #ffffff),
         inset 0 -1px 0 color-mix(in srgb, var(--bg-color) 58%, #000000);
 }
+/* THE FOUR ARMS ARE ONE SIZE OF SQUARE (Brendon, 2026-07-28: "they all need
+   the same size square... all FOUR"). ⟳ ⎇ ≫ × are identical 16px keys; ▶ keeps
+   the centre and is the larger key, as on the reference's pad. Each sits in its
+   own cell — no align-self, no transforms, so the cross is even by construction
+   with a 2px gutter everywhere. */
 .fm-mode-usb .fm-btn {
     position: relative;
     z-index: 1;
-    width: 18px;
-    height: 15px;
+    width: 16px;
+    height: 16px;
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 11px;
     line-height: 1;
-    background: transparent;
     color: var(--text-color);
-    border: none;
-    border-radius: 4px;
-}
-.fm-mode-usb .fm-btn:hover { background: var(--text-color); color: var(--bg-color); }
-/* centre play — the pad's framed square key */
-.fm-mode-usb .fm-play {
-    grid-column: 3;
-    grid-row: 2;
-    width: 22px;
-    height: 18px;
     background: var(--bg-color);
     border: 1px solid var(--text-color);
+    border-radius: 4px;
 }
-/* The pad's cross (Brendon, 2026-07-28, after the swap): ⟳ SHUFFLE takes the
-   top arm, ⎇ the face-changer moves to the left arm, ≫ right, × bottom, ▶ in
-   the middle.
-   Top and bottom ride IN toward the centre — three passes of 2px, because his
-   screenshot showed the top key still breaking out over the pad's ring at 4px.
-   The side keys sit where they are. */
-.fm-mode-usb .fm-close { grid-column: 3; grid-row: 3; align-self: start; transform: translateY(-6px); }
+/* ⛔ HOVER ONLY WHERE HOVER EXISTS. On iOS the last-tapped key KEEPS :hover, so
+   whichever one you touched sat filled while its siblings looked bare — that is
+   the "forward looks perfect, the changer doesn't" mismatch. Touch gets a real
+   pressed state instead, which releases. */
+@media (hover: hover) {
+    .fm-mode-usb .fm-btn:hover { background: var(--text-color); color: var(--bg-color); }
+}
+.fm-mode-usb .fm-btn:active { background: var(--text-color); color: var(--bg-color); }
+.fm-mode-usb .fm-play { grid-column: 3; grid-row: 2; width: 20px; height: 20px; font-size: 12px; }
+/* The pad's cross: ⟳ SHUFFLE top · ⎇ face-changer left · ≫ right · × bottom ·
+   ▶ centre. Each one simply sits in its cell — no align-self, no transforms. */
+.fm-mode-usb .fm-close { grid-column: 3; grid-row: 3; }
 /* the pad's four arms around ▶: ⟳ top · × bottom · ⎇ left · ≫ right */
-.fm-mode-usb .fm-shuffle { grid-column: 3; grid-row: 1; align-self: end; transform: translateY(6px); }
-.fm-mode-usb .fm-shuffle.on { color: var(--stat-active-bg, var(--text-color)); font-weight: bold; }
+.fm-mode-usb .fm-shuffle { grid-column: 3; grid-row: 1; }
+/* SHUFFLE ON wears PD's active pair — fill AND text together. Colouring only
+   the glyph painted it the same dark as the pressed fill and it vanished
+   (Brendon, 2026-07-28: "the glyph goes away"). */
+.fm-mode-usb .fm-shuffle.on {
+    background: var(--stat-active-bg, var(--text-color));
+    color: var(--stat-active-text, var(--bg-color));
+    border-color: var(--stat-active-bg, var(--text-color));
+}
 .fm-mode-usb .fm-modekey { grid-column: 2; grid-row: 2; }
 .fm-mode-usb .fm-btn:not(.fm-play):not(.fm-modekey):not(.fm-close):not(.fm-shuffle) { grid-column: 4; grid-row: 2; }
 
