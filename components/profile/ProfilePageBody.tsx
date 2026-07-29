@@ -1505,7 +1505,12 @@ function ProfilePageBodyInner({
                        leaving room for the "& N others" tail. */
                     <div className="hero-line collected-by-row info-line">
                         <span className="cbr-label">Followed by</span>
-                        {mutuals.map((m) => <AsciiId key={m} handle={m} />)}
+                        {mutuals.map((m, i) => (
+                            <span key={m} className="cbr-id">
+                                {i > 0 && <span className="cbr-sep">,</span>}
+                                <AsciiId handle={m} />
+                            </span>
+                        ))}
                         {mutualOthers > 0 && (
                             <>
                                 {' '}

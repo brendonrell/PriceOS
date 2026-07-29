@@ -423,8 +423,11 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                            its shared centre. No tags — the rectangle only. */
                         <div className="hero-line collected-by-row info-line">
                             <span className="cbr-label">Collected by</span>
-                            {project.stats.collected_by_following.slice(0, 2).map((name) => (
-                                <AsciiId key={name} handle={name.toLowerCase().replace(/^@/, '')} />
+                            {project.stats.collected_by_following.slice(0, 2).map((name, i) => (
+                                <span key={name} className="cbr-id">
+                                    {i > 0 && <span className="cbr-sep">,</span>}
+                                    <AsciiId handle={name.toLowerCase().replace(/^@/, '')} />
+                                </span>
                             ))}
                             {project.stats.collected_by_following.length > 2 && (
                                 <span className="cbr-others" onClick={() => open('collectors')}>

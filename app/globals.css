@@ -13491,6 +13491,10 @@ body.is-pwa .artwork-fullscreen.artwork-darkroom .fullscreen-back {
    descender room, so centring the box left its letters high of the rectangles
    beside it (Brendon, 2026-07-29). */
 .collected-by-row .cbr-label { transform: translateY(-1.8px); }
+/* The names stay a comma-separated LIST — the comma rides with the ID it
+   follows so the row still wraps cleanly (Brendon, 2026-07-29). */
+.collected-by-row .cbr-id { display: inline-flex; align-items: center; }
+.collected-by-row .cbr-sep { margin-right: 4px; }
 
 /* "By" reads as one phrase with the @name beside it, but its box is shorter
    than the name's (which carries headroom for tall Unicode faces), so centring
