@@ -480,7 +480,7 @@ export function buildNewsItems(feed: HomeResponse | null, day: DayPills = {}): N
     ];
     if (day.priceDay) {
         head.push({
-            glyph: vs('✶'), tag: 'PRICEDAY',
+            glyph: vs('✶'), tag: 'WELCOME TO',
             title: `PriceDay #${day.priceDay.n}`, meta: day.priceDay.date,
         });
     }
