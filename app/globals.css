@@ -13450,7 +13450,7 @@ body.is-pwa .artwork-fullscreen.artwork-darkroom .fullscreen-back {
 /* The tags made the held-by row taller, which left the stats readout sitting
    too close under it — 3px more air, output pages only (Brendon,
    2026-07-29). */
-.owner-line ~ .stats-row { margin-top: 3px; }
+.owner-line.info-line ~ .stats-row { margin-top: 3px; }
 /* HELD BY is all-caps, so its text box carries empty descender room under
    the letters — centring the BOX left the letters sitting 1.8px below the
    rectangle and the pills (measured off the row). This lifts the letters

@@ -88,6 +88,7 @@ import { useTagPaint } from '../../lib/hooks/useTagPaint';
 import { useTeamTagStyle } from '../../lib/hooks/useTeamTagStyle';
 import { useRudxaneRoll } from '../../lib/hooks/useRudxaneRoll';
 import { useShownTags } from '../../lib/hooks/useShownTags';
+import { useTagsOff } from '../../lib/hooks/useTagsOff';
 import { deriveTags } from '../../lib/tags/derive';
 import { PERSONA_TAGS, tagTextOn, TAG_PAINTS, isTeamStyleTag } from '../../lib/tags/catalog';
 import { NAME_FONTS, styleName } from '../../lib/profile/nameFont';
@@ -271,6 +272,10 @@ function ProfilePageBodyInner({
        tags its owner went and switched ON in the picker. */
     const { shown: myShown, toggleShown } = useShownTags(isOwnProfile ? user.shown_tags : undefined);
     const ownerShown = isOwnProfile ? myShown : (user.shown_tags ?? []);
+    /* The opt-OUT list — the only thing that darks a DEFAULT-ON tag (the project
+       tags an artist wears for their own work, Brendon 2026-07-29). */
+    const { off: myTagsOff, toggleOff } = useTagsOff(isOwnProfile ? user.tags_off : undefined);
+    const ownerTagsOff = isOwnProfile ? myTagsOff : (user.tags_off ?? []);
     /* The WTBS-family chip treatment (WTBS / Petey) — the owner cycles it by
        tapping their own chip; visitors see the owner's pick (Brendon, 2026-07-26). */
     const { style: myTeamTagStyle, cycleStyle: cycleTeamTagStyle } = useTeamTagStyle(
@@ -298,8 +303,8 @@ function ProfilePageBodyInner({
     /* Shown on the hero: full derived set minus the hidden ones (Manual → Earned
        → Chosen order via each tag's `order`). */
     const displayTags = useMemo(
-        () => deriveTags({ ...tagInput, shownTags: ownerShown }),
-        [tagInput, ownerShown],
+        () => deriveTags({ ...tagInput, shownTags: ownerShown, tagsOff: ownerTagsOff }),
+        [tagInput, ownerShown, ownerTagsOff],
     );
     /* The owner's picker lists EVERY tag they have (unfiltered) so hidden ones
        can be tapped back on. Personas come from the full catalog separately. */
@@ -1104,9 +1109,13 @@ function ProfilePageBodyInner({
                             the all-tags paints at the end. No section headers. */}
                         <div className="profile-egg-row cust-scroll profile-tags-picker">
                             {myAutoTags.map((t) => {
-                                const on = myShown.includes(t.id);
+                                /* A default-on tag (a project tag) is worn until
+                                   it is switched OFF, so its pill reads from the
+                                   opt-out list and writes back to it. */
+                                const on = t.defaultOn ? !myTagsOff.includes(t.id) : myShown.includes(t.id);
                                 const flip = () => {
-                                    toggleShown(t.id);
+                                    if (t.defaultOn) toggleOff(t.id);
+                                    else toggleShown(t.id);
                                     showToast(`Tag: ${on ? 'HIDDEN' : 'SHOWN'} · ${t.label.toUpperCase()}`);
                                 };
                                 return (

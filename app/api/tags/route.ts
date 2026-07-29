@@ -36,6 +36,8 @@ export interface TagFacts {
   priceHoldRank: number | null;
   priceHeld: number | null;
   shownTags: string[];
+  /** Tag ids the owner switched OFF — darks a default-on tag (project tags). */
+  tagsOff: string[];
   /** The owner's @name font — tag labels wear it on their profile, so they wear
    *  it here too; identity reads the same everywhere. */
   nameFont: string | null;
@@ -105,13 +107,15 @@ export async function GET(req: Request): Promise<NextResponse> {
     /* Shown tags + the WTBS-family style pick — private envelope, service key,
        one read, and only those two values ever leave the server. */
     const shownByHandle = new Map<string, string[]>();
+    const offByHandle = new Map<string, string[]>();
     const styleByHandle = new Map<string, number>();
     try {
       const svc = getSupabaseService();
       const s = await svc.from('users').select('handle, settings').in('handle', handles);
-      for (const r of (s.data ?? []) as Array<{ handle: string | null; settings?: { shownTags?: unknown; teamTagStyle?: unknown } | null }>) {
+      for (const r of (s.data ?? []) as Array<{ handle: string | null; settings?: { shownTags?: unknown; tagsOff?: unknown; teamTagStyle?: unknown } | null }>) {
         if (!r.handle) continue;
         shownByHandle.set(r.handle.toLowerCase(), strList(r.settings?.shownTags));
+        offByHandle.set(r.handle.toLowerCase(), strList(r.settings?.tagsOff));
         styleByHandle.set(r.handle.toLowerCase(), teamStyleIndex(r.settings?.teamTagStyle));
       }
     } catch { /* leave empty — nobody's tags show, which is the default anyway */ }
@@ -131,6 +135,7 @@ export async function GET(req: Request): Promise<NextResponse> {
         priceHoldRank: u.price_hold_rank ?? null,
         priceHeld: u.price_held == null ? null : Number(u.price_held),
         shownTags: shownByHandle.get(h) ?? [],
+        tagsOff: offByHandle.get(h) ?? [],
         nameFont: u.name_font ?? null,
         tagPaint: u.tag_paint ?? null,
         handle: h,

@@ -245,6 +245,13 @@ export interface UserSettings {
    *  finds the picker and lights it. Mirror `pd_shown_tags`. Supersedes the
    *  2026-07-22 opt-OUT `hiddenTags`, which had the opposite default. */
   shownTags?: string[];
+  /** PROFILE TAGS the owner switched OFF (Brendon, 2026-07-29) — the opt-OUT
+   *  list, and the only thing that darks a DEFAULT-ON tag (the project tags an
+   *  artist wears for their own work). It is deliberately separate from
+   *  `shownTags`: absence from the shown list means "not switched on yet", so a
+   *  default-on tag needs its own record of being dismissed or it would come
+   *  straight back. Mirror `pd_tags_off`. */
+  tagsOff?: string[];
   /** Which of the twelve WTBS-family chip treatments the owner cycled to
    *  (lib/tags/catalog TEAM_TAG_STYLES) — the WTBS + Petey chips only
    *  (Brendon, 2026-07-26). Mirror `pd_team_tag_style`. */

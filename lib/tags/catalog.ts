@@ -69,6 +69,16 @@ export interface Tag {
     /** Turn the label 180° — @rudxane's upside-down face (Brendon, 2026-07-26).
      *  A real rotation of the real word, not substitute flipped characters. */
     rotate?: boolean;
+    /** ON THE MOMENT IT IS EARNED, rather than dark until its owner finds the
+     *  picker (Brendon, 2026-07-29 — the PROJECT tags). It is still an ordinary
+     *  tag: one tap in the picker turns it off, and that off-switch is
+     *  remembered (settings.tagsOff), so a default-on tag never switches itself
+     *  back on. Everything without this stays off by default. */
+    defaultOn?: boolean;
+    /** PROJECT tag only — the slug of the Project this chip stands for. Set,
+     *  the chip navigates to that Project instead of opening the tag's room,
+     *  and surfaces that show ONLY project tags filter on it. */
+    project?: string;
 }
 
 /* ── PERSONAS — the pick-your-owns (self-applied) ────────────────────────────

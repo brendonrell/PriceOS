@@ -45,7 +45,14 @@ export function ProfileTags({ tags, font, paint, onTagTap, className, trailing }
        nav. On your OWN profile the tap is already spoken for (the customization
        menu / the WTBS cycle), and that keeps priority. */
     const { open } = useModal();
-    const tap = onTagTap ?? ((t: Tag) => open('tag', t.id));
+    /* A PROJECT tag goes TO that Project (Brendon, 2026-07-29) — it stands for a
+       piece of work, so the tap is a visit, not a room. Every other tag opens
+       its room as before. An owner handler (the customization menu on your own
+       profile) still wins over both. */
+    const tap = onTagTap ?? ((t: Tag) => {
+        if (t.project) { window.location.href = `/art/${t.project}`; return; }
+        open('tag', t.id);
+    });
     if (!tags.length && !trailing) return null;
     const paintHex = tagPaintHex(paint);
     return (

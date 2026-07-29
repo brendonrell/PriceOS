@@ -118,6 +118,7 @@ export function useUserTags(handles: readonly (string | null | undefined)[]): Re
                 priceHoldRank: f.priceHoldRank,
                 priceHeld: f.priceHeld,
                 shownTags: f.shownTags,
+                tagsOff: f.tagsOff,
                 handle: f.handle,
                 teamTagStyle: f.teamTagStyle,
                 rudxaneRoll,

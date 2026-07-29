@@ -20,6 +20,8 @@ export interface UserProfileData extends UserRow {
    *  OFF by default, so an empty array means a bare profile (Brendon,
    *  2026-07-26). */
   shown_tags: string[];
+  /** Tag ids the owner switched OFF (darks a default-on project tag). */
+  tags_off: string[];
   /** Which of the twelve WTBS-family chip treatments the owner cycled to —
    *  lifted from the same private envelope so visitors see the owner's pick
    *  (Brendon, 2026-07-26). */
@@ -114,6 +116,7 @@ export async function getUserProfileByHandle(
   // exposed — only this one boolean leaves the server. Best-effort → false.
   let deactivated = false;
   let shownTags: string[] = [];
+  let tagsOff: string[] = [];
   let teamTagStyle = 0;
   try {
     const svc = getSupabaseService();
@@ -122,9 +125,10 @@ export async function getUserProfileByHandle(
       .select('settings')
       .eq('handle', userHandle)
       .maybeSingle();
-    const s = (dRow as { settings?: { notifs?: Record<string, unknown>; shownTags?: unknown; teamTagStyle?: unknown } } | null)?.settings;
+    const s = (dRow as { settings?: { notifs?: Record<string, unknown>; shownTags?: unknown; tagsOff?: unknown; teamTagStyle?: unknown } } | null)?.settings;
     deactivated = !!(s?.notifs?.spell_invisible);
     if (Array.isArray(s?.shownTags)) shownTags = s.shownTags.filter((x): x is string => typeof x === 'string');
+    if (Array.isArray(s?.tagsOff)) tagsOff = s.tagsOff.filter((x): x is string => typeof x === 'string');
     teamTagStyle = teamStyleIndex(s?.teamTagStyle);
   } catch { /* leave defaults */ }
 
@@ -136,6 +140,7 @@ export async function getUserProfileByHandle(
     volume_spent_eth: volumeSpent,
     deactivated,
     shown_tags: shownTags,
+    tags_off: tagsOff,
     team_tag_style: teamTagStyle,
   };
 }

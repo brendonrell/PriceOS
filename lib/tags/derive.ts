@@ -23,6 +23,7 @@ import {
     PRICE_HELD_1M_BG, PRICE_HELD_1M_TEXT, PRICE_HELD_100K_BG, PRICE_HELD_100K_TEXT,
 } from './catalog';
 import { priceDayNumber } from '../priceday/priceday';
+import { projectsByArtist, projectColorway } from '../project/registry';
 
 /** Provisional Veteran cut (Brendon to confirm the real tenure). */
 export const VETERAN_DAYS = 180;
@@ -87,6 +88,11 @@ export interface DeriveInput {
     /** The owner's $PRICE balance in whole tokens (users.price_held) — drives
      *  the 100K+ / 1M+ holding tags. */
     priceHeld?: number | string | null;
+    /** Tag ids the owner switched OFF — the opt-out list, and the ONLY thing
+     *  that can dark a default-on tag (the PROJECT tags, Brendon 2026-07-29).
+     *  Separate from `shownTags` on purpose: absence from the shown list means
+     *  "not switched on yet", which must never be read as "turned off". */
+    tagsOff?: string[] | null;
     /** Tag ids the owner switched ON. ⛔ TAGS ARE OFF BY DEFAULT (Brendon,
      *  2026-07-26): an automatic tag stays dark until its owner finds the picker
      *  and lights it. Personas are exempt — picking one already turns it on.
@@ -108,6 +114,27 @@ function priceDayJoinTag(createdAt: string | null | undefined): Tag | null {
         kind: 'earned',
         order: 21,
     };
+}
+
+/* ── PROJECT TAGS (Brendon, 2026-07-29) ─────────────────────────────────────
+   One chip per Project the artist made, worn in their Earned section, painted
+   in that Project's own colorway, and tapping it goes to the Project. ONLY the
+   artist of a Project has its tag — nobody else can earn, pick or be granted
+   one. They are the platform's only DEFAULT-ON tags: an artist's work is the
+   one thing that should not need discovering in a picker. */
+function projectTagsFor(handle: string | null | undefined): Tag[] {
+    const h = handle?.toLowerCase().replace(/^@/, '') ?? '';
+    if (!h) return [];
+    return projectsByArtist(h).map((p, i) => ({
+        id: `project-${p.slug}`,
+        label: p.displayName,
+        color: projectColorway(p.slug) ?? p.colorway,
+        kind: 'earned' as const,
+        /* After PriceDay #N (21), before the rest of Earned. */
+        order: 22 + i / 100,
+        defaultOn: true,
+        project: p.slug,
+    }));
 }
 
 /** The single id tag a platform number earns, or null (no number / past 1000). */
@@ -228,6 +255,7 @@ export function deriveTags(input: DeriveInput): Tag[] {
     add(priceDayJoinTag(input.createdAt));     // PriceDay #N (join day)
     add(priceHoldTag(input.priceHoldRank));    // $PRICE Top N · #r (holder rank)
     add(priceHeldTag(input.priceHeld));        // $PRICE 100K+ / 1M+ (amount held)
+    for (const t of projectTagsFor(input.handle)) add(t);  // one per Project made
     if (input.isArtist) add(tagById('artist'));
     if (input.createdAt && daysSince(input.createdAt) >= VETERAN_DAYS) add(tagById('veteran'));
 
@@ -243,5 +271,11 @@ export function deriveTags(input: DeriveInput): Tag[] {
        is itself the act of switching it on. */
     if (input.shownTags === undefined) return ordered;
     const shown = new Set(input.shownTags ?? []);
-    return ordered.filter((t) => t.kind === 'persona' || shown.has(t.id));
+    const off = new Set(input.tagsOff ?? []);
+    return ordered.filter((t) => {
+        if (t.kind === 'persona') return true;
+        /* Default-on (the project tags): worn until its owner turns it off. */
+        if (t.defaultOn) return !off.has(t.id);
+        return shown.has(t.id);
+    });
 }

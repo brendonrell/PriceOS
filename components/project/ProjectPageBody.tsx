@@ -68,6 +68,7 @@ import { readViewParam, setViewParam } from '../../lib/state/viewLink';
 import AudienceIndicator from './AudienceIndicator';
 import { useCart } from '../../lib/state/CartContext';
 import { getProject } from '../../lib/project/registry';
+import { UserTagsFor } from '../tags/UserTags';
 import SoundtrackStarButton from './SoundtrackStarButton';
 import ProjectTitleStar from './ProjectTitleStar';
 import { usePriceDay } from '../../lib/priceday/usePriceDay';
@@ -385,7 +386,13 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                     </h1>
                 }
                 identityRow={
-                    <div className="hero-line project-custom">
+                    /* The by-line wears the artist's PROJECT tags, exactly the way
+                       an Output's held-by row wears the owner's — same mini pills
+                       in this page's colorway, riding right after the name. ONLY
+                       the project chips show here (Brendon, 2026-07-29); the rest
+                       of their identity belongs on their profile, not on a piece
+                       of their work. */
+                    <div className="hero-line project-custom owner-line">
                         <span className="by-text">By</span>{' '}
                         <div className="artist-lockup">
                             <span className="artist-name-wrap">
@@ -399,6 +406,9 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                                 <span className="follower-count">{artistSocial.followers >= 1000 ? `${(artistSocial.followers / 1000).toFixed(1).replace(/\.0$/, '')}k` : artistSocial.followers}</span>
                             )}
                         </div>
+                        {def?.artistHandle && (
+                            <UserTagsFor handle={def.artistHandle} size="mini" themed only="project" />
+                        )}
                     </div>
                 }
                 socialRow={

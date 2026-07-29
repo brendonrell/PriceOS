@@ -189,6 +189,9 @@ export const STATE_CACHE_KEYS = {
     /** Profile tags switched ON by the owner — tags are OFF by default
      *  platform-wide. Settings envelope. 2026-07-26. */
     shownTags: 'pd_shown_tags',
+    /** Profile tags switched OFF by the owner — the opt-out that darks a
+     *  default-on project tag. Settings envelope. 2026-07-29. */
+    tagsOff: 'pd_tags_off',
     /** Which of the twelve WTBS-family chip treatments the owner cycled to.
      *  Settings envelope. 2026-07-26. */
     teamTagStyle: 'pd_team_tag_style',
@@ -554,6 +557,10 @@ export function hydrateFromRow(row: UserRow): void {
         if (Array.isArray(s.shownTags)) {
             localStorage.setItem(STATE_CACHE_KEYS.shownTags, JSON.stringify(s.shownTags));
             window.dispatchEvent(new CustomEvent('pd:shown-tags-changed', { detail: s.shownTags }));
+        }
+        if (Array.isArray(s.tagsOff)) {
+            localStorage.setItem(STATE_CACHE_KEYS.tagsOff, JSON.stringify(s.tagsOff));
+            window.dispatchEvent(new CustomEvent('pd:tags-off-changed', { detail: s.tagsOff }));
         }
         if (typeof s.teamTagStyle === 'number' && Number.isFinite(s.teamTagStyle)) {
             localStorage.setItem(STATE_CACHE_KEYS.teamTagStyle, JSON.stringify(s.teamTagStyle));

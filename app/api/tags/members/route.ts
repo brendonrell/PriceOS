@@ -81,13 +81,15 @@ export async function GET(req: Request): Promise<NextResponse> {
     /* Which tags each owner has switched ON — private envelope, service key,
        and only that one array is ever read from it. */
     const shownByAddr = new Map<string, string[]>();
+    const offByAddr = new Map<string, string[]>();
     const styleByAddr = new Map<string, number>();
     try {
       const svc = getSupabaseService();
       const s = await svc.from('users').select('address, settings').in('address', addresses);
-      for (const r of (s.data ?? []) as Array<{ address: string; settings?: { shownTags?: unknown; teamTagStyle?: unknown } | null }>) {
+      for (const r of (s.data ?? []) as Array<{ address: string; settings?: { shownTags?: unknown; tagsOff?: unknown; teamTagStyle?: unknown } | null }>) {
         const a = r.address.toLowerCase();
         shownByAddr.set(a, strList(r.settings?.shownTags));
+        offByAddr.set(a, strList(r.settings?.tagsOff));
         styleByAddr.set(a, teamStyleIndex(r.settings?.teamTagStyle));
       }
     } catch { /* leave empty — nobody's automatic tags show, the default anyway */ }
@@ -130,6 +132,7 @@ export async function GET(req: Request): Promise<NextResponse> {
         priceHoldRank: u.price_hold_rank ?? null,
         priceHeld: u.price_held ?? null,
         shownTags: shownByAddr.get(addr) ?? [],
+        tagsOff: offByAddr.get(addr) ?? [],
       });
       const hit = tags.find((t) => t.id === tag);
       if (!hit) continue;

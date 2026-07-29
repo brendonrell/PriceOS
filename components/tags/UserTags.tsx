@@ -27,7 +27,7 @@
 import { ProfileTags } from '../profile/ProfileTags';
 import { useUserTags, type UserTagSet } from '../../lib/hooks/useUserTags';
 
-export function UserTags({ set, size = 'row', themed = false, onTagTap }: {
+export function UserTags({ set, size = 'row', themed = false, only, onTagTap }: {
     /** This person's resolved tags, from useUserTags. Absent = render nothing. */
     set: UserTagSet | undefined;
     /** 'row' = the list-row strip. 'inline' = the same pills at hero weight,
@@ -38,11 +38,17 @@ export function UserTags({ set, size = 'row', themed = false, onTagTap }: {
     /** Paint the pills in the PAGE's colorway tokens instead of each tag's
      *  own colour — the output-page treatment for the mini row. */
     themed?: boolean;
+    /** Narrow the row to ONE family. 'project' = only the chips standing for
+     *  Projects this person made — what a Project page's by-line wears
+     *  (Brendon, 2026-07-29). Absent = every tag they have on, as everywhere
+     *  else. */
+    only?: 'project';
     /** Override the pill tap (the mini↔big toggle). Absent = the default
      *  open-the-tag's-room behaviour. */
     onTagTap?: () => void;
 }) {
-    if (!set?.tags.length) return null;
+    const tags = only === 'project' ? (set?.tags ?? []).filter((t) => t.project) : set?.tags;
+    if (!tags?.length) return null;
     const cls = ['user-tags'];
     if (size === 'row') cls.push('user-tags--row');
     if (size === 'mini') cls.push('user-tags--mini');
@@ -50,9 +56,9 @@ export function UserTags({ set, size = 'row', themed = false, onTagTap }: {
     return (
         <ProfileTags
             className={cls.join(' ')}
-            tags={set.tags}
-            font={set.font}
-            paint={set.paint}
+            tags={tags}
+            font={set?.font}
+            paint={set?.paint}
             onTagTap={onTagTap ? () => onTagTap() : undefined}
         />
     );
@@ -60,12 +66,13 @@ export function UserTags({ set, size = 'row', themed = false, onTagTap }: {
 
 /** Convenience for a surface showing a SINGLE person (the owner line, the
  *  dossier) — does its own one-handle lookup off the shared cache. */
-export function UserTagsFor({ handle, size = 'inline', themed, onTagTap }: {
+export function UserTagsFor({ handle, size = 'inline', themed, only, onTagTap }: {
     handle: string | null | undefined;
     size?: 'row' | 'inline' | 'mini';
     themed?: boolean;
+    only?: 'project';
     onTagTap?: () => void;
 }) {
     const tagSets = useUserTags(handle ? [handle] : []);
-    return <UserTags set={handle ? tagSets[handle.toLowerCase()] : undefined} size={size} themed={themed} onTagTap={onTagTap} />;
+    return <UserTags set={handle ? tagSets[handle.toLowerCase()] : undefined} size={size} themed={themed} only={only} onTagTap={onTagTap} />;
 }
