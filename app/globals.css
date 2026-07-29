@@ -4954,16 +4954,16 @@ body.persona-default .stats-row-2 { display: none !important; }
    negative tracking as the navbar's .ascii-pfp-badge, full-strength colour. */
 .collected-rank-badge {
     font-family: 'Segoe UI Symbol', 'Noto Sans Symbols', Arial, sans-serif;
-    font-size: 15px;
+    font-size: 18px;
     line-height: 1;
     color: inherit;
     letter-spacing: -1px;
     flex-shrink: 0;
     user-select: none;
-    /* One size up and 2px lower than the last pass, on every ASCII-ID
+    /* Three sizes up and 0.5px lower than the last pass, on every ASCII-ID
        (Brendon, 2026-07-29). */
     position: relative;
-    top: 0;
+    top: 0.5px;
 }
 
 /* THE SIGIL inside the rectangle (Brendon, 2026-07-29) — the forged mark trails
