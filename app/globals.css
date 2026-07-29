@@ -4946,6 +4946,12 @@ body.persona-default .stats-row-2 { display: none !important; }
     background: color-mix(in srgb, var(--bg-color) 88%, var(--text-color) 12%);
     margin: 0 1px;
     line-height: 1;
+    /* STANDARD HEIGHT (Brendon, 2026-07-29) — the rectangle is one fixed box
+       on every surface, not a box that grows with whatever glyph is tallest
+       inside it. Contents centre within it. The dossier's deliberately larger
+       ID keeps its own scale below. */
+    height: 22px;
+    box-sizing: border-box;
     position: relative; /* anchor for the ::after underline */
 }
 /* FULL ASCII-ID (Brendon, 2026-07-27) — the connect-menu PriceRank badge at
@@ -13441,7 +13447,7 @@ body.is-pwa .artwork-fullscreen.artwork-darkroom .fullscreen-back {
    onto that shared centre; the box, the spacing and the wrap are untouched
    (Brendon, 2026-07-29). */
 .owner-line .info-rubik { transform: translateY(-1.8px); }
-.fi-dossier-id .collected-pair { font-size: 15px; padding: 3px 8px; }
+.fi-dossier-id .collected-pair { font-size: 15px; padding: 3px 8px; height: auto; }
 .fi-dossier-id .collected-sprite { font-size: 13px; }
 .fi-dossier-id .collected-rank-badge { font-size: 18px; }
 .fi-dossier-id .profile-link { font-family: 'Courier New', Courier, monospace; font-weight: bold; }
