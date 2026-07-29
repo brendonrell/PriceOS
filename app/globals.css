@@ -13426,6 +13426,19 @@ body.is-pwa .artwork-fullscreen.artwork-darkroom .fullscreen-back {
     align-items: center;
 }
 .owner-line .collected-pair { vertical-align: middle; }
+/* "HELD BY" + the rectangle live inside one text box, and the rectangle hangs
+   below the text's baseline — so that box is taller than what it shows, its
+   centre sits low, and the tags centring on it dropped to a shared BOTTOM
+   line. Centring the label and the rectangle inside their own box makes the
+   box hug them, so the tags land on the SAME centre line as the rest of the
+   row (Brendon, 2026-07-29). The gap replaces the space character the flex
+   box eats; it still wraps on a narrow screen. */
+.owner-line .info-rubik {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
 .owner-line .user-tags--mini { display: contents; }
 .fi-dossier-id .collected-pair { font-size: 15px; padding: 3px 8px; }
 .fi-dossier-id .collected-sprite { font-size: 13px; }
