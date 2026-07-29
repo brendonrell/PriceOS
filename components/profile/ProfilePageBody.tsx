@@ -1609,7 +1609,9 @@ function ProfilePageBodyInner({
                         )}
                         {/* THE EXCHANGE — head-to-head trade with this collector
                             (spec 86ba0apqr: profile-page surface). */}
-                        {isAuthed && !isOwnProfile && !isPlatformAccount(user.address) && (
+                        {/* Only when they actually hold something to trade
+                            (Brendon, 2026-07-29). */}
+                        {isAuthed && !isOwnProfile && !isPlatformAccount(user.address) && ownedCount > 0 && (
                             <button
                                 className="btn-soundtrack"
                                 title={`Trade with @${displayHandle}`}
