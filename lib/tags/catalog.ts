@@ -107,7 +107,7 @@ const PERSONAS: Tag[] = [
        star ✸ (Brendon's pick), turning slowly on the pill; Open To Trades
        wears the Exchange's own ⇌ and rocks side to side, so each active state
        reads as alive at a glance rather than as one more flat chip. */
-    { id: 'now-buying',     label: 'Now Buying',     glyph: '✸' + VS15, color: '#22C55E', kind: 'persona', order: 66, blurb: 'Wallet open, send offers.' },
+    { id: 'now-buying',     label: 'Now Buying',     glyph: '✦' + VS15, color: '#22C55E', kind: 'persona', order: 66, blurb: 'Wallet open, send offers.' },
     { id: 'now-selling',    label: 'Now Selling',    glyph: '✸' + VS15, color: '#F43F5E', kind: 'persona', order: 67, blurb: 'Pieces on the block.' },
     { id: 'open-to-trades', label: 'Open To Trades', glyph: '⇌' + VS15, color: '#06B6D4', kind: 'persona', order: 68, blurb: 'Bring a swap.' },
 ];
