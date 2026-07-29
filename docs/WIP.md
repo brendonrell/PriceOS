@@ -57,7 +57,24 @@
      Created pill carries the artist's project count. Project Social stats wear
      ☻ / ⚯. Toast labels capitalised (gnome keeps its lowercase label).
 
-   **NOT DONE:** ClickUp was not updated this session.
+   **AFTER THE FIRST WRAP — same session, second round (tip `c2356a3`):**
+   - **The Exchange has a door**: ⇌ in the wallet icon row, after incognito and
+     before the RPC ping, opening straight onto YOUR open trades. The list
+     already existed inside the trade window but only appeared once a
+     counterparty was picked, so a missed ping had no way back.
+   - **Three new pick-your-own tags** at the end of the persona row: Now
+     Buying, Now Selling (both wearing the ✸ transfer star, turning once every
+     six seconds) and Open To Trades (the Exchange's ⇌, rocking side to side).
+     Both motions stop under reduced-motion.
+
+   **⛔ THE LESSON THAT COST THE MOST TIME TODAY:** he asked for an ICON; the
+   Exchange had nothing to open, and instead of one line naming that, a whole
+   new window got built. He was furious — not at the window (he approved it
+   after), but at not being told first. **An unknown that changes WHAT gets
+   built is one line to him and no code until he answers.**
+
+   **ClickUp:** updated — the round is logged in 02 · Done (`86bb5c2g8`), and
+   the Exchange door started life as a Backlog item (`86bb5c2nm`).
 
 0000000000000000000000000000. ✅ **2026-07-29 (LATEST) — SPOT-EDIT ROUND +
    THE PROCESS CORRECTION (Opus 5). All on `dev` (tip `d5681c2`), tree clean,
