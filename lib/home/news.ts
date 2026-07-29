@@ -468,27 +468,49 @@ export function greetingOfDay(now = new Date()): string {
     return casual ? 'gn' : 'GOOD NIGHT';
 }
 
-function greetingItem(greeting: string, feed: HomeResponse | null): NewsItem {
+/* This viewer's PREVIOUS visit to home (Unix ms), then stamps this one. Call it
+   on every visit so the mark stays fresh; the caller decides whether to use the
+   value. Null the first time here, or when storage is unavailable. */
+const LAST_VISIT_KEY = 'pd_home_last_visit';
+export function lastVisitStamp(): number | null {
+    try {
+        const raw = window.localStorage.getItem(LAST_VISIT_KEY);
+        window.localStorage.setItem(LAST_VISIT_KEY, String(Date.now()));
+        const n = raw ? Number(raw) : NaN;
+        return Number.isFinite(n) && n > 0 ? n : null;
+    } catch {
+        return null;
+    }
+}
+
+function greetingItem(
+    greeting: string,
+    feed: HomeResponse | null,
+    sinceVisit: number | null,
+): NewsItem {
     /* ◷ is PD's established clock mark (GLYPHS §12) — the greeting is a
        time-of-day pill, so it wears the time glyph. */
     const glyph = vs('◷');
 
-    /* The default stat: what landed TODAY. The day is the Montreal one — the
-       platform-wide PriceDay window, like project birthdays — not the
-       viewer's, so everyone counts the same uploads. */
-    const [ty, tm, td] = montrealYmd(Date.now());
-    const uploadedToday = [...(feed?.uploads ?? []), ...(feed?.minting_now ?? [])]
-        .filter((r) => {
-            if (!r.uploaded_at) return false;
-            const [y, m, d] = montrealYmd(r.uploaded_at);
-            return y === ty && m === tm && d === td;
-        }).length;
-    if (uploadedToday > 0) {
-        return {
-            glyph, tag: greeting,
-            title: `${uploadedToday} new ${uploadedToday === 1 ? 'project' : 'projects'} today`,
-            meta: 'Uploaded to PD',
-        };
+    /* The default stat: projects uploaded in the last 24 hours — and two visits
+       in ten, the same count measured from when YOU were last here instead
+       (Brendon, 2026-07-29). The "since you left" window only shows when
+       there's a stored previous visit and something actually landed in it;
+       otherwise the rolling day stands. */
+    const uploadedSince = (from: number) =>
+        [...(feed?.uploads ?? []), ...(feed?.minting_now ?? [])]
+            .filter((r) => r.uploaded_at != null && r.uploaded_at >= from).length;
+    const noun = (n: number) => `${n} new ${n === 1 ? 'project' : 'projects'}`;
+
+    if (sinceVisit != null) {
+        const n = uploadedSince(sinceVisit);
+        if (n > 0) {
+            return { glyph, tag: greeting, title: noun(n), meta: 'Since your last visit' };
+        }
+    }
+    const last24 = uploadedSince(Date.now() - 86_400_000);
+    if (last24 > 0) {
+        return { glyph, tag: greeting, title: noun(last24), meta: 'Uploaded in 24 hours' };
     }
 
     const live = (feed?.minting_now ?? []).filter(
@@ -526,6 +548,10 @@ export interface DayPills {
     doors?: FeatureDoors;
     /** The viewer's own time-of-day hello, from greetingOfDay(). */
     greeting?: string;
+    /** When this viewer was last here (Unix ms), from lastVisitStamp(). Set on
+        the 2-in-10 visits that measure the greeting's count from then instead
+        of the rolling 24 hours; omitted the rest of the time. */
+    sinceVisit?: number | null;
     /** Per-visit shuffle seed. Set after mount (like the day pills), so the
         server paint and the first client paint agree on the plain order and
         every visit gets its own running order. Omitted → no shuffle. */
@@ -557,7 +583,7 @@ export function buildNewsItems(feed: HomeResponse | null, day: DayPills = {}): N
     /* The Dispatch leads the rail every day — it sits out of the shuffle. */
     const lead: NewsItem = day.dispatchMeta ? { ...DISPATCH_PILL, meta: day.dispatchMeta } : DISPATCH_PILL;
     const rest: NewsItem[] = [];
-    if (day.greeting) rest.push(greetingItem(day.greeting, feed));
+    if (day.greeting) rest.push(greetingItem(day.greeting, feed, day.sinceVisit ?? null));
     if (day.priceDay) {
         rest.push({
             glyph: vs('✶'), tag: 'WELCOME TO',

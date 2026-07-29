@@ -38,7 +38,7 @@ import SocialFeed from './SocialFeed';
 import HomeTitleCartography from './HomeTitleCartography';
 import RewindHome from './RewindHome';
 import { useRewindOptional } from '../../lib/state/RewindContext';
-import { buildNewsItems, dispatchPrintsMeta, greetingOfDay, type DayPills } from '../../lib/home/news';
+import { buildNewsItems, dispatchPrintsMeta, greetingOfDay, lastVisitStamp, type DayPills } from '../../lib/home/news';
 import { priceDayNumber, formatPriceDate } from '../../lib/priceday/priceday';
 import { moodOfDay } from '../../lib/mood/mood';
 import { PerMilleMark } from '../shell/PerMilleMark';
@@ -529,6 +529,9 @@ function HomePageBodyInner({
             priceDay: { n: priceDayNumber(), date: formatPriceDate() },
             mood: { name: mood.name, hex: mood.hex },
             greeting: greetingOfDay(),
+            /* Always stamp the visit; two visits in ten actually USE the
+               previous mark, and the greeting counts from then instead. */
+            sinceVisit: (() => { const prev = lastVisitStamp(); return Math.random() < 0.2 ? prev : null; })(),
             seed: Math.floor(Math.random() * 1e9),
         });
     }, []);
