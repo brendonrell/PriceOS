@@ -4884,8 +4884,9 @@ body.persona-default .stats-row-2 { display: none !important; }
 
 /* Profile followers stat uses the ⚬ glyph, which renders much smaller than
    the box/ETH icons at the shared 13px. Bump to optically match them.
-   (Brendon, 2026-07-28 — one size smaller, every surface it appears on.) */
-.stat-icon-followers { font-size: 19px; transform: translateY(1.5px); }
+   (Brendon, 2026-07-28 — one size smaller, every surface it appears on;
+   2026-07-29 — one size smaller again and lifted 3px.) */
+.stat-icon-followers { font-size: 18px; transform: translateY(-1.5px); }
 
 /* "Collected by" line — sim ~2074-2133 */
 .info-rubik {
@@ -9420,12 +9421,11 @@ a.f-highlight { color: inherit; }
        only (Brendon 2026-06-15). Two-class selector beats the generic
        .stat-icon-owners rule above for the followers stat specifically. */
     .stat-icon-owners.stat-icon-followers {
-        /* One size smaller, and DOWN — the old -4px lift is nearly gone, so
-           the face sits on the row instead of riding above it, then back up a
-           half pixel to land it (Brendon, 2026-07-29). */
-        font-size: 23px;
+        /* One size smaller again, and lifted 3px off the row
+           (Brendon, 2026-07-29). */
+        font-size: 22px;
         position: relative;
-        top: -0.5px;
+        top: -3.5px;
     }
     .stat-icon-box { font-size: 14px; position: relative; top: -1px; }
     .search-input::placeholder { font-size: 12px; }
@@ -9484,8 +9484,8 @@ a.f-highlight { color: inherit; }
     }
     .stat-icon-owners { font-size: 14px; text-shadow: none; }
     /* Followers icon a touch larger + nudged up, desktop only (Brendon 2026-06-16).
-       One size smaller and 2px lower again (Brendon, 2026-07-29). */
-    .stat-icon-followers { font-size: 22px; transform: translateY(-0.5px); }
+       One size smaller again and lifted 3px (Brendon, 2026-07-29). */
+    .stat-icon-followers { font-size: 21px; transform: translateY(-3.5px); }
     .stat-icon-eth { font-size: 16px; position: relative; top: 1px; }
     .meta-owner { font-size: 13px; opacity: 0.7; }
     .info-rubik .ico-mutual,
