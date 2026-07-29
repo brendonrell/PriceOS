@@ -10340,6 +10340,8 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
    ~2× its row-mates. Bring it into the row's visual band (Brendon, 2026-07-22). */
 .rpc-ping-btn.gnome-wallet-btn { font-size: 13.5px; }
 .rpc-ping-btn.keychain-wallet-btn { font-size: 14px; }
+/* The Exchange ⇌ two steps down from the row base (Brendon, 2026-07-29). */
+.rpc-ping-btn.exchange-wallet-btn { font-size: 20px; }
 .rpc-ping-btn.rpc-active { opacity: 1; text-decoration: underline; text-underline-offset: 3px; }
 .rpc-ping-btn:hover { opacity: 1; }
 /* Wallet row: active icons (incognito / rpc / fiat $) lose the underline — the
