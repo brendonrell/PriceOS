@@ -16,14 +16,19 @@ page that tells you where to send it.
 
 **All artist relations are handled on Twitter/X, by direct message in XChat.**
 That is deliberate, and it is the only channel: no submission form, no inbox to
-apply through, no queue to sit in. You message the Price Discussion account on
-X and you are talking to the platform — the same person who runs the filter,
-not a support desk in front of it.
+apply through, no queue to sit in.
+
+Send it to **[brendonrell](https://x.com/brendonrell)** — the founder's own
+account, not the platform account. That is the desk artist relations run from,
+so a DM there reaches the person who runs the filter directly, with nothing in
+between. The platform account,
+[pricediscussion](https://x.com/pricediscussion), is where PD speaks publicly;
+it is not the way in.
 
 The practical consequences worth knowing:
 
 - **Anything else is slower, not faster.** A reply in a comment thread, a post
-  tagging the account, or a message through another platform's chat can be
+  tagging either account, or a message through another platform's chat can be
   missed. The DM is the channel that gets read.
 - **It is a conversation, not an application.** Questions are welcome before
   anything formal — what PD is, whether your work fits, how the economics work,
