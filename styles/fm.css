@@ -573,47 +573,6 @@ body.modal-open .fm-bar {
     .fm-usbcap::before { transition: none; }
 }
 
-/* ══ THE HEADPHONE CABLE — USB FACE ONLY (Brendon, 2026-07-30, to his
-   screenshot) ══════════════════════════════════════════════════════════════
-   A white iPhone-style lead leaving the stick's right end, hanging with real
-   slack, then running down toward the phone's own jack at the bottom centre —
-   so the little player reads as WIRED to the device you're holding. It is
-   scenery: pointer-events off end to end, so it can never eat a tap or fight
-   an iOS edge gesture. The tail runs off the bottom of the screen on purpose;
-   the jack it plugs into is the physical one below the glass. */
-/* ⛔ THE CABLE IS THE BOTTOM LAYER (Brendon, 2026-07-30) — it runs BEHIND the
-   stick, so the lead disappears under the shell exactly like a real one plugged
-   in at the back. That is why it is fixed to the band instead of parented to the
-   chassis: a child can never paint under its own parent's plastic. It mirrors the
-   chassis anchor line for line, so it rides the Command Stone and ducks for a
-   modal with the player instead of drifting off on its own. */
-.fm-usbcable {
-    position: fixed;
-    left: 50%;
-    margin-left: -30px; /* the box starts 30px left of the chassis centre */
-    bottom: calc(14px + env(safe-area-inset-bottom, 0px) + var(--pd-stone-h, 0px));
-    margin-bottom: -67px; /* hangs from the chassis' mid-height (33) downward */
-    width: 180px;
-    height: 100px;
-    overflow: visible;
-    pointer-events: none;
-    z-index: 8989; /* one under the chassis — behind the shell, over the page */
-    transition: opacity 0.18s ease, transform 0.22s ease, bottom 0.22s ease;
-}
-body.modal-open .fm-usbcable { transform: translateY(160%); opacity: 0; }
-/* ⛔ NO OUTLINE ON THE LEAD (Brendon, 2026-07-30: "remove the outline and try to
-   use gradients to make 3d"). There is no dark contour anywhere — the roundness
-   is three gradient strokes of the same curve: a grey shaded barrel, a lit core
-   over it, and a fine specular along the top, each one dimming as the cable runs
-   away from the player. That IS the tube. */
-.fm-usbcable path { fill: none; stroke-linecap: round; }
-.fm-usbcable .fm-cable-barrel { stroke: url(#fmCableBarrel); stroke-width: 5.6; }
-.fm-usbcable .fm-cable-core { stroke: url(#fmCableCore); stroke-width: 3.2; }
-.fm-usbcable .fm-cable-lit { stroke: url(#fmCableLit); stroke-width: 1.1; }
-/* the plug body at the shell (Brendon, 2026-07-30) — filled, no contour, same
-   rule as the lead: the shape is made of light, never of an outline */
-.fm-usbcable .fm-cable-jack { fill: url(#fmCableJack); stroke: none; }
-
 /* the pulse bars — rendered in every face, shown only on TAB */
 .fm-sigbars { display: none; }
 .fm-mode-signal .fm-sigbars { display: flex; gap: 2px; align-items: flex-end; height: 14px; padding: 0 5px; }

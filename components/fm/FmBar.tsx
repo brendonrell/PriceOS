@@ -118,14 +118,6 @@ const FM_DISPLAY_NAMES: Record<FmDisplay, string> = {
 /* The saved live session (station + entry + seconds) — mirror of the
    account envelope's `fmSession` (Brendon, 2026-07-27: closing the app and
    returning restores the player right where it was paused). */
-/* THE HEADPHONE CABLE (Brendon, 2026-07-30, drawn to his screenshot) — one
-   curve, stroked three times (shadow · white core · sheen) so the lead reads as
-   round white rubber. It leaves the stick's right end low on the body, hangs
-   with real slack under it, then heads down-left toward the phone's own jack at
-   the bottom centre. Every bend is a smooth cubic — a cable never has corners. */
-const FM_CABLE_D =
-    'M 116 20 C 146 17, 177 28, 170 48 C 162 66, 120 68, 80 62 C 52 58, 30 70, 15 100';
-
 const FM_SESSION_KEY = 'pd_fm_session';
 interface FmSavedSession {
     playlistId: string;
@@ -702,58 +694,6 @@ export default function FmBar() {
 
     return (
         <>
-        {/* USB face only: the headphone lead (Brendon, 2026-07-30) — out of the
-            stick's right end, hanging with slack, then down toward the phone's
-            own jack at the bottom centre. It sits OUTSIDE the chassis so it can
-            paint BEHIND the shell (his call: bottom layer), and it is scenery
-            only — aria-hidden, pointer-events off, so it never takes a tap. */}
-        {display === 'usb' && (
-            <svg className="fm-usbcable" viewBox="0 0 180 100" aria-hidden="true" focusable="false">
-                <defs>
-                    {/* the tube, built from light instead of a contour: the barrel
-                        turning away, the lit core, the specular — each dimming as
-                        the lead runs away from the player */}
-                    <linearGradient id="fmCableBarrel" x1="0" y1="0" x2="0.35" y2="1">
-                        <stop offset="0%" stopColor="#d9dcde" />
-                        <stop offset="55%" stopColor="#b6babd" />
-                        <stop offset="100%" stopColor="#93989c" />
-                    </linearGradient>
-                    <linearGradient id="fmCableCore" x1="0" y1="0" x2="0.35" y2="1">
-                        <stop offset="0%" stopColor="#ffffff" />
-                        <stop offset="60%" stopColor="#f0f2f2" />
-                        <stop offset="100%" stopColor="#d6d9da" />
-                    </linearGradient>
-                    <linearGradient id="fmCableLit" x1="0" y1="0" x2="0.35" y2="1">
-                        <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
-                        <stop offset="70%" stopColor="#ffffff" stopOpacity="0.55" />
-                        <stop offset="100%" stopColor="#ffffff" stopOpacity="0.25" />
-                    </linearGradient>
-                    {/* the plug body — same white rubber as the lead, lit from the
-                        same side, so it reads as one moulded piece */}
-                    <linearGradient id="fmCableJack" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#ffffff" />
-                        <stop offset="45%" stopColor="#eef0f0" />
-                        <stop offset="100%" stopColor="#9ea3a7" />
-                    </linearGradient>
-                </defs>
-                <path className="fm-cable-barrel" d={FM_CABLE_D} />
-                <path className="fm-cable-core" d={FM_CABLE_D} />
-                <path className="fm-cable-lit" d={FM_CABLE_D} transform="translate(0,-0.85)" />
-                {/* THE PLUG (Brendon, 2026-07-30) — the little jack body where the
-                    lead meets the shell. Its inboard end runs under the plastic, so
-                    what you see is the part standing proud of the case, tilted with
-                    the cable's own run. */}
-                <rect
-                    className="fm-cable-jack"
-                    x="124"
-                    y="14.1"
-                    width="24"
-                    height="9.6"
-                    rx="3"
-                    transform="rotate(-6 124 18.9)"
-                />
-            </svg>
-        )}
         <div
             ref={barRef}
             className={`fm-bar fm-mode-${display} fm-live${status === 'playing' ? ' fm-playing' : ''}`}
