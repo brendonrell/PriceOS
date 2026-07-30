@@ -264,7 +264,7 @@ body.modal-open .fm-bar {
 /* TAB (internal key `signal`) — proof of life: a thumbnail window + pulse bars */
 .fm-mode-signal { height: 28px; padding: 0 6px; }
 .fm-mode-signal .fm-screen { height: 18px; border: none; background: transparent; align-items: center; }
-.fm-mode-signal .fm-video { width: 24px; height: 16px; border: 1px solid var(--text-color); }
+.fm-mode-signal .fm-video { width: 24px; height: 16px; border: 1px solid #000000; }
 .fm-mode-signal .fm-video iframe { width: 24px; height: 16px; }
 .fm-mode-signal .fm-rows { display: none; }
 
