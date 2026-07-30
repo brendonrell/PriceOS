@@ -53,6 +53,7 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
         title: 'For Artists',
         slugs: [
             'for-artists/how-pd-works',
+            'for-artists/get-in-touch',
             'for-artists/submit-a-project',
             'for-artists/the-mint-flow',
             'for-artists/royalties',

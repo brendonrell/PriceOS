@@ -10,6 +10,8 @@ last_updated: "2026-07-10"
 
 PD is filtered, not curated: every Project starts as a submission, and deployment is gated by an on-chain artist whitelist — but the gate is a quality floor, not a taste-making program. This page covers what to send, how decisions happen, and the path from acceptance to a deployed contract.
 
+Submissions arrive through the same door every artist relation does: a direct message on X. See [Get in Touch](/docs/for-artists/get-in-touch).
+
 ## What to submit
 
 The initial submission is a brief that lets the filter understand the work — not a finished project ready to deploy. A strong brief includes:
