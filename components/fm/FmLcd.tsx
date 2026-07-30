@@ -29,7 +29,7 @@
  */
 
 import { useEffect, useRef } from 'react';
-import { GLYPH_H, GLYPH_ADVANCE, glyphFor, wrapLines } from '../../lib/stickers/pixels';
+import { GLYPH_H, GLYPH_W, GLYPH_ADVANCE, glyphFor } from '../../lib/stickers/pixels';
 
 /** ⛔ THE PANEL IS SIZED TO THE PLAYER, NOT TO THE SHOP (Brendon, 2026-07-30:
  *  "make the lcd screen actually sized to the player and not the sticker store,
@@ -106,19 +106,46 @@ export default function FmLcd({
             scene![y * W + x] = 1;
         };
 
-        const drawBitmap = (bmp: readonly string[], ox: number, oy: number) => {
+        /* Glyphs are clipped to the text window, not to the canvas — the crawl
+           below slides letters in and out and neither end may bleed over the
+           meter or the bezel. */
+        const drawBitmap = (bmp: readonly string[], ox: number, oy: number, clipL: number, clipR: number) => {
             for (let r = 0; r < bmp.length; r++) {
                 const row = bmp[r]!;
                 for (let c = 0; c < row.length; c++) {
-                    if (row[c] === '#') px(ox + c, oy + r);
+                    const x = ox + c;
+                    if (x < clipL || x > clipR) continue;
+                    if (row[c] === '#') px(x, oy + r);
                 }
             }
         };
 
-        const drawText = (text: string, ox: number, oy: number, limit: number) => {
-            for (let i = 0; i < text.length && i < limit; i++) {
-                drawBitmap(glyphFor(text[i]!), ox + i * GLYPH_ADVANCE, oy);
+        const drawText = (text: string, ox: number, oy: number, clipL: number, clipR: number) => {
+            for (let i = 0; i < text.length; i++) {
+                const gx = ox + i * GLYPH_ADVANCE;
+                if (gx > clipR) break;
+                if (gx + GLYPH_W < clipL) continue;
+                drawBitmap(glyphFor(text[i]!), gx, oy, clipL, clipR);
             }
+        };
+
+        /* ── THE CRAWL (Brendon, 2026-07-30) — the same old-MP3 grammar the deck
+           rows already use, drawn in the matrix instead of in CSS: a line that
+           FITS sits perfectly still; one too long holds at the start, crawls
+           sideways to reveal its tail, holds there, then slides back. The glass
+           is only a few characters wide, so without this a title is a stub. It
+           runs off the wall clock, not the player's, so a paused station still
+           shows you what it is parked on. */
+        const crawlOffset = (widthPx: number, span: number, now: number) => {
+            const overflow = widthPx - span;
+            if (overflow <= 1 || reduced) return 0;
+            const shift = overflow + 3;
+            const dur = Math.max(7, shift / 11 + 4); // seconds, one direction
+            const u = ((now / 1000) % (dur * 2)) / dur;
+            const p = u <= 1 ? u : 2 - u; // out, then back
+            /* the holds at each end live here, exactly as the CSS keyframes */
+            const e = Math.min(1, Math.max(0, (p - 0.16) / 0.68));
+            return -Math.round(e * shift);
         };
 
         /* The meter, right-aligned in the glass. Heights ride the player's real
@@ -154,17 +181,18 @@ export default function FmLcd({
             const meterX = drawMeter(elapsed);
 
             /* Three lines stacked with a one-pixel leading, clipped to the
-               glass — the readout never spills, exactly like the shop's. */
-            const textW = meterX - 3;
-            const cols = Math.max(4, Math.floor(textW / GLYPH_ADVANCE));
+               glass — the readout never spills, exactly like the shop's. Each
+               line crawls on its own timing when it is too long to fit. */
+            const textL = 2;
+            const textR = meterX - 3;
+            const span = textR - textL;
             const lineH = GLYPH_H + 1;
             const block = 3 * lineH - 1;
+            const now = performance.now();
             let y = Math.max(1, Math.round((H - block) / 2));
             for (const line of rowsRef.current) {
-                /* A line too long simply takes its first screenful — the rows
-                   above already ticker their own text in the DOM. */
-                const first = wrapLines(line, cols)[0] ?? '';
-                drawText(first, 2, y, cols);
+                const widthPx = Math.max(0, line.length * GLYPH_ADVANCE - 1);
+                drawText(line, textL + crawlOffset(widthPx, span, now), y, textL, textR);
                 y += lineH;
             }
 
