@@ -180,6 +180,9 @@ body.modal-open .fm-bar {
    constant-size device; long titles scroll INSIDE this box (the ticker
    below) instead of stretching it. */
 .fm-mode-deck .fm-rows { width: 150px; flex: 0 0 150px; max-width: 150px; }
+/* no divider line beside the artwork on the DECK (Brendon, 2026-07-30) — the
+   line goes, the gap it held stays exactly as it was */
+.fm-mode-deck .fm-video { border-right-color: transparent; }
 /* the deck's dot-matrix glass takes the readout's exact footprint, so bringing
    the matrix to the deck (Brendon, 2026-07-30) changes the STYLE only — the
    device stays the same size it has always been */
