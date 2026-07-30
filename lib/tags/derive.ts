@@ -136,8 +136,10 @@ function priceDayJoinTag(createdAt: string | null | undefined): Tag | null {
    One chip per Project the artist made, worn in their Earned section, painted
    in that Project's own colorway, and tapping it goes to the Project. ONLY the
    artist of a Project has its tag — nobody else can earn, pick or be granted
-   one. They are the platform's only DEFAULT-ON tags: an artist's work is the
-   one thing that should not need discovering in a picker. */
+   one.
+   ⛔ OFF BY DEFAULT, like every other tag (Brendon, 2026-07-30). They used to
+   be the one default-on exception; now nothing wears itself without its owner
+   lighting it in the picker. Otherwise unchanged. */
 function projectTagsFor(projects: DeriveInput['projects']): Tag[] {
     return (projects ?? []).map((p, i) => ({
         id: `project-${p.slug}`,
@@ -149,7 +151,6 @@ function projectTagsFor(projects: DeriveInput['projects']): Tag[] {
         kind: 'earned' as const,
         /* After PriceDay #N (21), before the rest of Earned. */
         order: 22 + i / 100,
-        defaultOn: true,
         project: p.slug,
     }));
 }

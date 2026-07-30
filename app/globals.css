@@ -2215,6 +2215,20 @@ body.theme-bright .news-pill-name {
     color: var(--text-color);
     font-family: 'Courier New', Courier, monospace;
 }
+/* At the bottom of the showcase the clock is BARE — no box — and sits on the
+   page's own side buffer, in line with the carousel titles above it
+   (Brendon, 2026-07-30). The Studio copy keeps its frame. */
+section[aria-label="Created projects"] > .upload-window {
+    background: transparent;
+    border: none;
+    padding: 10px 40px;
+}
+@media (max-width: 600px) {
+    section[aria-label="Created projects"] > .upload-window {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+}
 .upload-window-label {
     font-size: 12px;
     font-weight: bold;
