@@ -131,6 +131,7 @@ import { useCollectedGallery } from './useCollectedGallery';
 import { useArtistShowcase } from './useArtistShowcase';
 import { isPlatformAccount } from '../../lib/platform/accounts';
 import PriceAccountPanel from './PriceAccountPanel';
+import { useGridSettle } from '../../lib/hooks/useGridSettle';
 
 /* DEACTIVATE (Spell Book) — the understated "account deactivated" state a
    VISITOR sees on a deactivated profile. Deliberately plain (not corny — the
@@ -885,6 +886,8 @@ function ProfilePageBodyInner({
     if (onCollected) visitedCollected.current = true;
 
     const feedActive = onCollected && sort === 'feed';
+    /* A re-sort or re-group lands with one short ease (Brendon, 2026-07-30). */
+    useGridSettle(`${sort}|${groupLayers.join('>')}`, onCollected && !feedActive);
     const sortedFeedEvents = useLedgerFeed(feedActive, `/api/feed?address=${user.address.toLowerCase()}&limit=100`, true);
 
     const {

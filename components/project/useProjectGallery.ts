@@ -104,6 +104,18 @@ export function useProjectGallery({
        the live filter state and dim instantly; the heavy gallery predicate reads
        a DEFERRED copy, so a pill tap never waits on the grid to recompute — the
        grid updates on its own frame. */
+    /* ⛔ THE CONTROL PAINTS FIRST (Brendon, 2026-07-30). A sort or group tap used
+       to rebuild the whole grid before ANYTHING repainted, so the pill you just
+       hit didn't light up until the work was done — which is what made the row
+       feel like it lagged. The heavy memos below read a DEFERRED copy, exactly
+       like the trait pills already do, so the control answers the tap on the
+       spot and the grid follows a frame later. Nothing about what is drawn
+       changes — only when. */
+    const dSort = useDeferredValue(sort);
+    const dDir = useDeferredValue(dir);
+    const dGroup = useDeferredValue(group);
+    const dGroupLayers = useDeferredValue(groupLayers);
+
     const dActiveFilters = useDeferredValue(activeFilters);
     const dSearchQuery = useDeferredValue(searchQuery);
     const dPriceMin = useDeferredValue(priceMin);
@@ -129,7 +141,9 @@ export function useProjectGallery({
             if (next.has(key)) next.delete(key); else next.add(key);
             return next;
         });
-    useEffect(() => { setCollapsedGroups(new Set()); }, [group]);
+    /* One render per change: writing a fresh empty set even when nothing was
+       folded forced a SECOND pass over the whole grid on every group tap. */
+    useEffect(() => { setCollapsedGroups((prev) => (prev.size ? new Set() : prev)); }, [group]);
 
     /* Breadcrumbs — REAL "recently visited" (Brendon, 2026-06-12; replaces
        the Build 22 random-sample placeholder). The dot marks the viewer's
@@ -311,8 +325,8 @@ export function useProjectGallery({
         // descending-id (its own sort lives in the feed renderer). Sort
         // toast direction was correct (the dir state was tracked) — only
         // the gallery comparator missed the dir multiplier.
-        const dirMult = dir === 'asc' ? 1 : -1;
-        if (sort === 'price') {
+        const dirMult = dDir === 'asc' ? 1 : -1;
+        if (dSort === 'price') {
             filtered.sort((a, b) => {
                 const ma = project.outputs.get(a);
                 const mb = project.outputs.get(b);
@@ -321,15 +335,15 @@ export function useProjectGallery({
                 if (na !== nb) return (na - nb) * dirMult;
                 return (a - b) * dirMult;
             });
-        } else if (sort === 'id') {
+        } else if (dSort === 'id') {
             filtered.sort((a, b) => (a - b) * dirMult);
-        } else if (sort === 'feed') {
+        } else if (dSort === 'feed') {
             filtered.sort((a, b) => b - a);
         }
         // 'fog' = ascending id (already in order from construction)
 
         return filtered;
-    }, [project, sort, dir, dActiveFilters, dSearchQuery, dPriceMin, dPriceMax, dMyNotesActive, notesVersion, dActiveCategory, breadcrumbAll, effectiveAddress, netSets, topHolders]);
+    }, [project, dSort, dDir, dActiveFilters, dSearchQuery, dPriceMin, dPriceMax, dMyNotesActive, notesVersion, dActiveCategory, breadcrumbAll, effectiveAddress, netSets, topHolders]);
 
     /* Group-by sections (Brendon, 2026-06-13). When GROUP is on, partition the
        already-sorted/filtered gallery into colour or owner buckets, preserving
@@ -339,11 +353,11 @@ export function useProjectGallery({
         /* Grouping rides its own toggle (Brendon, 2026-07-12) but still only
            shapes the GRID sorts — it never applies to FEED (chronological
            activity) or fog (reveal). */
-        if (!groupLayers.length || (sort !== 'id' && sort !== 'price')) return null;
+        if (!dGroupLayers.length || (dSort !== 'id' && dSort !== 'price')) return null;
         /* Last-sold has no data yet — one greyed "coming soon" group, the real
            art beneath it (Brendon: "mocked in and coming soon"). */
-        if (GROUP_SOON[group]) {
-            return [{ ckey: 'soon', l1Key: 'soon', level: 1, label: GROUP_LABEL[group], ids: visibleTokenIds, total: visibleTokenIds.length, soon: true }];
+        if (GROUP_SOON[dGroup]) {
+            return [{ ckey: 'soon', l1Key: 'soon', level: 1, label: GROUP_LABEL[dGroup], ids: visibleTokenIds, total: visibleTokenIds.length, soon: true }];
         }
 
         /* Every dimension resolves through the one shared engine, so this walks
@@ -361,10 +375,10 @@ export function useProjectGallery({
             });
         /* Drop any layer that can't actually cut this window — see usefulLayers.
            Sorting one project BY project is a title bar and nothing else. */
-        const useful = usefulLayers(visibleTokenIds, groupLayers, labelOf);
+        const useful = usefulLayers(visibleTokenIds, dGroupLayers, labelOf);
         if (!useful.length) return null;
         return buildGroupSections(visibleTokenIds, useful, { idOf: (id) => id, labelOf });
-    }, [group, groupLayers, sort, visibleTokenIds, project, colorsVer, factionsVer, ownerTagOf]);
+    }, [dGroup, dGroupLayers, dSort, visibleTokenIds, project, colorsVer, factionsVer, ownerTagOf]);
 
     /* Stable "first screenful" set, by lowest token id — membership does NOT
        change when sort/group reorders the grid, so a card's `eager` flag never

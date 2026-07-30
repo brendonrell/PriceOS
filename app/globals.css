@@ -7989,6 +7989,20 @@ body.lists-dragging { cursor: grabbing; }
     opacity: 1;
     color: var(--text-color);
 }
+/* ── THE SETTLE (Brendon, 2026-07-30) — a re-sort or re-group lands with one
+   short ease instead of a hard jump, so the change reads as the grid coming to
+   rest. Deliberately ONE animation on the grid, not one per card: a hundred
+   simultaneous card animations is exactly the jank this pass exists to remove.
+   Transform + opacity only, so it can never move layout. ── */
+@keyframes pdGridSettle {
+    from { opacity: 0.55; transform: translateY(5px); }
+    to   { opacity: 1; transform: none; }
+}
+#gallery.is-settling { animation: pdGridSettle 180ms ease-out; }
+@media (prefers-reduced-motion: reduce) {
+    #gallery.is-settling { animation: none; }
+}
+
 .output-card {
     display: flex;
     flex-direction: column;

@@ -35,6 +35,14 @@ export function useCollectedGallery(holdings: Holding[]) {
        pills read the live filter state and paint their dim/active instantly;
        the heavy grid filter/sort reads a DEFERRED copy, so a pill tap no longer
        waits on the grid to recompute — the grid catches up on its own frame. */
+    /* ⛔ THE CONTROL PAINTS FIRST (Brendon, 2026-07-30) — same deal for the
+       sort and group taps as for the pills: they light up on the spot and the
+       grid rebuilds a frame later. Only the timing changes. */
+    const dSort = useDeferredValue(sort);
+    const dDir = useDeferredValue(dir);
+    const dGroup = useDeferredValue(group);
+    const dGroupLayers = useDeferredValue(groupLayers);
+
     const dActiveFilters = useDeferredValue(activeFilters);
     const dSearchQuery = useDeferredValue(searchQuery);
     const dPriceMin = useDeferredValue(priceMin);
@@ -89,16 +97,16 @@ export function useCollectedGallery(holdings: Holding[]) {
             return true;
         });
 
-        const dirMult = dir === 'asc' ? 1 : -1;
+        const dirMult = dDir === 'asc' ? 1 : -1;
         const byId = (a: EnrichedHolding, b: EnrichedHolding) =>
             a.slug === b.slug ? (a.token_id - b.token_id) * dirMult : a.slug.localeCompare(b.slug);
-        if (sort === 'price') {
+        if (dSort === 'price') {
             filtered.sort((a, b) => {
                 const na = a.list_price_eth ? parseFloat(a.list_price_eth) : Infinity;
                 const nb = b.list_price_eth ? parseFloat(b.list_price_eth) : Infinity;
                 return na !== nb ? (na - nb) * dirMult : byId(a, b);
             });
-        } else if (sort === 'az') {
+        } else if (dSort === 'az') {
             // A–Z by project name, then token id within each project.
             filtered.sort((a, b) => {
                 const an = getProject(a.slug)?.displayName ?? a.slug;
@@ -110,7 +118,7 @@ export function useCollectedGallery(holdings: Holding[]) {
             filtered.sort(byId);
         }
         return filtered;
-    }, [enriched, sort, dir, dActiveFilters, dSearchQuery, dPriceMin, dPriceMax]);
+    }, [enriched, dSort, dDir, dActiveFilters, dSearchQuery, dPriceMin, dPriceMax]);
 
     /* Progressive gallery reveal (Brendon, 2026-06-18; windowed 2026-06-24).
        Mount a first screenful so the page is instant, then grow the window ONLY
@@ -182,15 +190,15 @@ export function useCollectedGallery(holdings: Holding[]) {
        Cards still render inside a ProjectProvider so the art paints with its own
        project's context. Returns null when grouping is off / not applicable. */
     const collectedGroups = useMemo<GBlock[] | null>(() => {
-        if (!groupLayers.length || sort === 'feed') return null;
+        if (!dGroupLayers.length || dSort === 'feed') return null;
         const projName = (slug: string) => getProject(slug)?.displayName ?? slug;
 
         // Last-sold: one greyed "coming soon" title, all pieces beneath.
-        if (GROUP_SOON[group]) {
+        if (GROUP_SOON[dGroup]) {
             return [{
                 key: 'soon',
                 l1Key: 'soon',
-                heads: [{ level: 1, label: GROUP_LABEL[group], soon: true }],
+                heads: [{ level: 1, label: GROUP_LABEL[dGroup], soon: true }],
                 cards: shownCollected.map((h) => ({ slug: h.slug, id: h.token_id })),
             }];
         }
@@ -210,7 +218,7 @@ export function useCollectedGallery(holdings: Holding[]) {
             });
         /* Drop any layer that can't actually cut this window — a wallet holding
            one artist grouped BY artist is a title bar and nothing else. */
-        const useful = usefulLayers(shownCollected, groupLayers, labelOf);
+        const useful = usefulLayers(shownCollected, dGroupLayers, labelOf);
         if (!useful.length) return null;
         return buildGroupBlocks(shownCollected, useful, {
             labelOf,
@@ -218,7 +226,7 @@ export function useCollectedGallery(holdings: Holding[]) {
             /* A project title still carries its artist underneath. */
             byOf: (h, layer) => (layer === 'project' ? (h.traits.Artist ?? null) : null),
         });
-    }, [group, groupLayers, sort, shownCollected, colorsVer]);
+    }, [dGroup, dGroupLayers, dSort, shownCollected, colorsVer]);
 
     /* Collapsible grouping headers — tap a header (or its arrow) to fold its
        pieces away; tap again to reopen. Folding a section (level-1) hides
@@ -231,7 +239,8 @@ export function useCollectedGallery(holdings: Holding[]) {
             if (next.has(key)) next.delete(key); else next.add(key);
             return next;
         });
-    useEffect(() => { setCollapsedGroups(new Set()); }, [groupLayers]);
+    /* One render per change — see the project gallery's note. */
+    useEffect(() => { setCollapsedGroups((prev) => (prev.size ? new Set() : prev)); }, [groupLayers]);
 
     return {
         dActiveFilters, dSearchQuery, dPriceMin, dPriceMax,

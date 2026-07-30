@@ -63,6 +63,7 @@
 
 import { useEffect, useState, type KeyboardEvent } from 'react';
 import { useProject, ProjectProvider } from '../../lib/state/ProjectContext';
+import { useGridSettle } from '../../lib/hooks/useGridSettle';
 import { getRememberedTab, rememberTab } from '../../lib/state/tabMemoryStore';
 import { readViewParam, setViewParam } from '../../lib/state/viewLink';
 import AudienceIndicator from './AudienceIndicator';
@@ -269,6 +270,8 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
     const showcaseLeadId = [...projectShowcasePicks][0] ?? null;
     const feedActive = onArtworksTab && sort === 'feed';
     const galleryVisible = (onShowcaseTab || onArtworksTab) && !feedActive;
+    /* A re-sort or re-group lands with one short ease (Brendon, 2026-07-30). */
+    useGridSettle(`${sort}|${groupLayers.join('>')}`, galleryVisible);
     const feedVisible = onArtworksTab && feedActive;
     /* Live grid column metrics — lets each grouping header cap its width to
        the columns its pieces occupy (glyph ends with the art, 2026-07-12). */
