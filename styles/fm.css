@@ -275,6 +275,12 @@ body.modal-open .fm-bar {
    end cap; small screen fully INSIDE the body; ONE raised square pad on
    the right — play centre, next right, keys top + bottom. */
 .fm-mode-usb {
+    /* ⛔ THE STICK IS CENTRED WITH THE CAP ON (Brendon, 2026-07-30). The
+       chassis is the BODY only, so centring it left the cap — which hangs 22px
+       off the left end — pushing the whole device visually left of the screen's
+       middle. Half that overhang comes back as an offset, so the assembly the
+       eye actually sees (cap + body) sits dead centre. */
+    --fm-tx: calc(-50% + 11px);
     height: 66px;
     width: 206px;
     max-width: 88vw;
