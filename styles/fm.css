@@ -518,7 +518,7 @@ body.modal-open .fm-bar {
    The ▶ is untouched. */
 .fm-mode-usb .fm-pause-glyph {
     display: inline-block;
-    transform: translate(1px, 1px);
+    transform: translate(-0.5px, 1px);
 }
 @media (hover: hover) {
     .fm-mode-usb .fm-btn:hover { opacity: 0.62; }
