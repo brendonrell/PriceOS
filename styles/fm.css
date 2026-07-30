@@ -483,13 +483,14 @@ body.modal-open .fm-bar {
     height: 21px;
     background: var(--bg-color);
     border: 1px solid var(--text-color);
+    transform: translateX(2px);
 }
 /* The pad's cross: ⟳ SHUFFLE top · ⎇ face-changer left · ≫ right · × bottom ·
    ▶ centre. Top and bottom ride IN toward the centre so neither breaks out over
    the pad's ring. */
-.fm-mode-usb .fm-close { grid-column: 3; grid-row: 3; align-self: start; justify-self: center; transform: translateY(-3px); }
+.fm-mode-usb .fm-close { grid-column: 3; grid-row: 3; align-self: start; justify-self: center; transform: translate(2px, -5px); }
 /* the pad's four arms around ▶: ⟳ top · × bottom · ⎇ left · ≫ right */
-.fm-mode-usb .fm-shuffle { grid-column: 3; grid-row: 1; align-self: end; justify-self: center; font-size: 14px; transform: translateY(4px); }
+.fm-mode-usb .fm-shuffle { grid-column: 3; grid-row: 1; align-self: end; justify-self: center; font-size: 14px; transform: translate(2px, 6px); }
 /* SHUFFLE ON wears PD's active pair — fill AND text together. Colouring only
    the glyph painted it the same dark as the pressed fill and it vanished
    (Brendon, 2026-07-28: "the glyph goes away"). */
