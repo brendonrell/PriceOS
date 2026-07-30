@@ -60,6 +60,12 @@ function onScroll() {
     const y = window.scrollY;
     let d = y - lastY;
     lastY = y;
+    /* ⛔ TILT WINS — with orientation live the scroll shove is OFF (Brendon,
+       2026-07-30: "the scroll bouncing… gets glitchy when scrolling up"). iOS
+       fires scroll far faster than a frame and each one threw the chain, which
+       fought the sensor's own reading of down and read as a stutter on the way
+       back up. `lastY` still tracks, so turning tilt off resumes cleanly. */
+    if (motion === 'granted') return;
     // The page accelerating under the charm throws it the other way, the way
     // a thing on a chain lags behind the hand carrying it.
     if (d > 40) d = 40;
