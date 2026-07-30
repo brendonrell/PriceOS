@@ -34,7 +34,7 @@ import { useEffect, useMemo, useState, type MouseEvent as ReactMouseEvent } from
 import { useTraits } from '../../lib/state/TraitsContext';
 import {
     useSort,
-    COLLECTED_GROUP_ORDER, GROUP_GLYPH, GROUP_LABEL, type GroupKey,
+    COLLECTED_GROUP_ORDER, GROUP_GLYPH, GROUP_LABEL, groupDimsFor, type GroupKey,
 } from '../../lib/state/SortContext';
 import { useColorway, type ColorwayKey } from '../../lib/state/ColorwayContext';
 import { useToast } from '../../lib/state/ToastContext';
@@ -47,6 +47,7 @@ import { getProjectStars, toggleProjectStar, subscribeProjectStars } from '../..
 import { L3Pill, GroupBtn } from '../project/traitsUIPills';
 import AlbumPickerCard from '../album/AlbumPickerCard';
 import GroupLayersBubble from '../lists/GroupLayersBubble';
+import { dimsThatCut, groupSectionLabel } from '../../lib/state/groupDimensions';
 import { useMarketSheet } from '../../lib/state/MarketSheetContext';
 import { useCart } from '../../lib/state/CartContext';
 import {
@@ -194,6 +195,23 @@ export default function ProfileFacetBar({
        artist+project → colour → artist+colour → project+colour → last-sold →
        rarity. */
     const effGroup: GroupKey = COLLECTED_GROUP_ORDER.includes(group) ? group : 'none';
+
+    /* Which dimensions can actually cut THIS collection — worked out only while
+       the layer menu is open, off the same label engine the grid groups by, so
+       the menu can grey out a dimension that would produce one big bucket
+       (Brendon, 2026-07-30). */
+    const usableDims = useMemo(() => {
+        if (!layersAnchor) return undefined;
+        return dimsThatCut(holdings, groupDimsFor('collected'), (h, layer) =>
+            groupSectionLabel(layer, h.slug, h.token_id, {
+                listed: h.listed,
+                fate: h.traits.Fate ?? null,
+                sun: h.traits.Sun ?? null,
+                mintMs: h.mintMs ?? null,
+                artist: h.traits.Artist ?? null,
+                project: h.traits.Project ?? null,
+            }));
+    }, [layersAnchor, holdings]);
     const gridSortWithToast = (family: 'id' | 'price' | 'az') => {
         const nextDir = sort === family ? (dir === 'asc' ? 'desc' : 'asc') : 'asc';
         const lbl = family === 'id' ? '#ID' : family === 'price' ? '$PRICE' : 'AZ';
@@ -395,6 +413,7 @@ export default function ProfileFacetBar({
                         <GroupLayersBubble
                             surface="collected"
                             layers={groupLayers}
+                            usable={usableDims}
                             anchor={layersAnchor}
                             onPick={setGroupLayer}
                             onClose={() => setLayersAnchor(null)}

@@ -42,6 +42,7 @@ export default function GroupLayersBubble({
     surface,
     layers,
     anchor,
+    usable,
     onPick,
     onClose,
 }: {
@@ -52,6 +53,10 @@ export default function GroupLayersBubble({
     layers: readonly GroupKey[];
     /** Where the control is, measured when the hold fired. */
     anchor: GroupLayersAnchor;
+    /** Which dimensions can actually cut what is on screen. A dimension not in
+     *  here would land every piece in one bucket, so it greys out instead of
+     *  being offered (Brendon, 2026-07-30). Absent = offer everything. */
+    usable?: ReadonlySet<GroupKey>;
     /** Set one layer. `none` clears it (and everything under it). */
     onPick: (layer: 1 | 2 | 3, key: GroupKey) => void;
     onClose: () => void;
@@ -170,17 +175,25 @@ export default function GroupLayersBubble({
                         {dims
                             /* A dimension can only sit at one layer. */
                             .filter((d) => current(picking) === d || !layers.includes(d))
-                            .map((d) => (
-                                <button
-                                    key={d}
-                                    type="button"
-                                    className={`fiat-opt glb-opt${current(picking) === d ? ' fiat-opt-on' : ''}`}
-                                    onClick={(e) => { e.stopPropagation(); onPick(picking, d); setPicking(null); }}
-                                >
-                                    {GROUP_GLYPH[d] && <span className="glb-glyph" aria-hidden="true">{GROUP_GLYPH[d]}</span>}
-                                    {GROUP_LABEL[d]}
-                                </button>
-                            ))}
+                            .map((d) => {
+                                /* Greyed = it would put everything in one
+                                   bucket here. The one already set stays
+                                   pickable so it can be read and changed. */
+                                const dead = !!usable && current(picking) !== d && !usable.has(d);
+                                return (
+                                    <button
+                                        key={d}
+                                        type="button"
+                                        className={`fiat-opt glb-opt${current(picking) === d ? ' fiat-opt-on' : ''}`}
+                                        disabled={dead}
+                                        title={dead ? `${GROUP_LABEL[d]} — nothing to split here` : GROUP_LABEL[d]}
+                                        onClick={(e) => { e.stopPropagation(); onPick(picking, d); setPicking(null); }}
+                                    >
+                                        {GROUP_GLYPH[d] && <span className="glb-glyph" aria-hidden="true">{GROUP_GLYPH[d]}</span>}
+                                        {GROUP_LABEL[d]}
+                                    </button>
+                                );
+                            })}
                     </div>
                 </>
             )}

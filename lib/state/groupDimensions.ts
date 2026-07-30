@@ -229,6 +229,28 @@ export function groupLabelComparator(
    than one section. Layers below a dropped one still apply — dropping is per
    layer, not a bail-out — so "project, then colour" on a single project quietly
    becomes "colour", which is what the user meant. */
+/** Which of `dims` would actually CUT this window — a dimension that lands
+ *  every piece in one bucket is a title bar and nothing else, so the picker
+ *  greys it out instead of offering it (Brendon, 2026-07-30). Same rule the
+ *  builder already uses to drop a dead layer, applied one dimension at a time
+ *  so the menu can say so BEFORE it is picked. */
+export function dimsThatCut<T>(
+    items: readonly T[],
+    dims: readonly GroupKey[],
+    labelOf: (item: T, layer: GroupKey) => string,
+): Set<GroupKey> {
+    const out = new Set<GroupKey>();
+    if (items.length < 2) return out;
+    for (const dim of dims) {
+        const seen = new Set<string>();
+        for (const item of items) {
+            seen.add(labelOf(item, dim));
+            if (seen.size > 1) { out.add(dim); break; }
+        }
+    }
+    return out;
+}
+
 export function usefulLayers<T>(
     items: readonly T[],
     layers: readonly GroupKey[],

@@ -5678,6 +5678,15 @@ body.bg-is-yellow .fiat-opt-on { background: #fff; color: var(--hothurt); border
     width: 100%;
     text-align: left;
 }
+/* A dimension that would land every piece in one bucket here — offered but
+   dead, so you can see it exists and see that it has nothing to cut
+   (Brendon, 2026-07-30). The one dim treatment in the file that IS meaning:
+   a disabled control, exactly what Rule #2 carves out. */
+.glb-opt:disabled {
+    opacity: 0.4;
+    cursor: default;
+    text-decoration: line-through;
+}
 
 body.bg-is-yellow .glb-slot { border-color: rgba(255, 255, 255, 0.55); }
 body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.18); }

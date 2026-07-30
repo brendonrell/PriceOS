@@ -60,8 +60,11 @@ import { useTraits, type TraitCategory, type FeedCategory } from '../../lib/stat
 import {
     useSort,
     type SortKey, type SortDir, type FeedKind, type GroupKey,
-    PROJECT_GROUP_ORDER, GROUP_GLYPH, GROUP_LABEL,
+    PROJECT_GROUP_ORDER, GROUP_GLYPH, GROUP_LABEL, groupDimsFor,
 } from '../../lib/state/SortContext';
+import { dimsThatCut, groupSectionLabel } from '../../lib/state/groupDimensions';
+import { factionOf } from '../../lib/factions/factionStore';
+import { useUserTags } from '../../lib/hooks/useUserTags';
 import { useColorway, type ColorwayKey } from '../../lib/state/ColorwayContext';
 import { usePersona } from '../../lib/state/PersonaContext';
 import { useCart } from '../../lib/state/CartContext';
@@ -202,9 +205,44 @@ export default function TraitsUI({
     /* HOLD the group toggle → pick the three layers by hand (Brendon,
        2026-07-26). The tap still cycles the mains. */
     const [layersAnchor, setLayersAnchor] = React.useState<{ top: number; centerX: number } | null>(null);
+    const projectCtx = useProject();
     /* A group persisted on another surface (e.g. 'artist' from a profile) isn't a
        project-page dimension — show it as off here so the glyph matches reality. */
     const effGroup: GroupKey = PROJECT_GROUP_ORDER.includes(group) ? group : 'none';
+
+    /* Which dimensions can actually cut THIS project — read only while the
+       layer menu is open, off the same label engine the grid groups by, so a
+       dimension that would land every piece in one bucket greys out instead of
+       being offered (Brendon, 2026-07-30). Owner tags come from the one shared
+       lookup, and only while the menu is up. */
+    const ownerHandles = React.useMemo(() => {
+        if (!layersAnchor) return [] as string[];
+        const out = new Set<string>();
+        for (const [, meta] of projectCtx.outputs) {
+            const d = meta.ownerDisplay;
+            if (d && d.startsWith('@')) out.add(d.slice(1).toLowerCase());
+        }
+        return [...out];
+    }, [layersAnchor, projectCtx.outputs]);
+    const ownerTagSets = useUserTags(ownerHandles);
+    const usableDims = React.useMemo(() => {
+        if (!layersAnchor) return undefined;
+        const ids = [...projectCtx.outputs.keys()];
+        return dimsThatCut(ids, groupDimsFor('project'), (id, layer) => {
+            const meta = projectCtx.outputs.get(id);
+            const owner = meta?.ownerDisplay ?? '—';
+            return groupSectionLabel(layer, projectCtx.slug, id, {
+                listed: !!meta?.price,
+                fate: meta?.traits?.Fate ?? null,
+                faction: layer === 'faction' ? factionOf(projectCtx.slug, meta?.ownerFull) : null,
+                owner,
+                tag: owner.startsWith('@')
+                    ? ownerTagSets[owner.slice(1).toLowerCase()]?.tags[0]?.label ?? null
+                    : null,
+                project: projectCtx.title,
+            });
+        });
+    }, [layersAnchor, projectCtx, ownerTagSets]);
     const { colorway, setColorway } = useColorway();
     const { persona } = usePersona();
 
@@ -1070,6 +1108,7 @@ export default function TraitsUI({
                         <GroupLayersBubble
                             surface="project"
                             layers={groupLayers}
+                            usable={usableDims}
                             anchor={layersAnchor}
                             onPick={setGroupLayer}
                             onClose={() => setLayersAnchor(null)}
