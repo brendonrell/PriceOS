@@ -596,9 +596,12 @@ body.modal-open .fm-usbcable { transform: translateY(160%); opacity: 0; }
    over it, and a fine specular along the top, each one dimming as the cable runs
    away from the player. That IS the tube. */
 .fm-usbcable path { fill: none; stroke-linecap: round; }
-.fm-usbcable .fm-cable-barrel { stroke: url(#fmCableBarrel); stroke-width: 4.6; }
-.fm-usbcable .fm-cable-core { stroke: url(#fmCableCore); stroke-width: 2.6; }
-.fm-usbcable .fm-cable-lit { stroke: url(#fmCableLit); stroke-width: 0.9; }
+.fm-usbcable .fm-cable-barrel { stroke: url(#fmCableBarrel); stroke-width: 5.6; }
+.fm-usbcable .fm-cable-core { stroke: url(#fmCableCore); stroke-width: 3.2; }
+.fm-usbcable .fm-cable-lit { stroke: url(#fmCableLit); stroke-width: 1.1; }
+/* the plug body at the shell (Brendon, 2026-07-30) — filled, no contour, same
+   rule as the lead: the shape is made of light, never of an outline */
+.fm-usbcable .fm-cable-jack { fill: url(#fmCableJack); stroke: none; }
 
 /* the pulse bars — rendered in every face, shown only on TAB */
 .fm-sigbars { display: none; }

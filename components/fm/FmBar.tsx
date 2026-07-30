@@ -728,10 +728,30 @@ export default function FmBar() {
                         <stop offset="70%" stopColor="#ffffff" stopOpacity="0.55" />
                         <stop offset="100%" stopColor="#ffffff" stopOpacity="0.25" />
                     </linearGradient>
+                    {/* the plug body — same white rubber as the lead, lit from the
+                        same side, so it reads as one moulded piece */}
+                    <linearGradient id="fmCableJack" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#ffffff" />
+                        <stop offset="45%" stopColor="#eef0f0" />
+                        <stop offset="100%" stopColor="#9ea3a7" />
+                    </linearGradient>
                 </defs>
                 <path className="fm-cable-barrel" d={FM_CABLE_D} />
                 <path className="fm-cable-core" d={FM_CABLE_D} />
                 <path className="fm-cable-lit" d={FM_CABLE_D} transform="translate(0,-0.85)" />
+                {/* THE PLUG (Brendon, 2026-07-30) — the little jack body where the
+                    lead meets the shell. Its inboard end runs under the plastic, so
+                    what you see is the part standing proud of the case, tilted with
+                    the cable's own run. */}
+                <rect
+                    className="fm-cable-jack"
+                    x="126"
+                    y="15.1"
+                    width="18"
+                    height="7.4"
+                    rx="2.4"
+                    transform="rotate(-6 126 18.8)"
+                />
             </svg>
         )}
         <div
