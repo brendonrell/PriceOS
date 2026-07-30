@@ -8,8 +8,43 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-30 (LATEST) — MINIPLAYER BEHAVIOUR + HOME RAIL + PAGE-LOAD
-   ROUND, all on `dev` (tip `4b732d9`), tree clean. Nothing outstanding.**
+0. ✅ **2026-07-30 (LATEST) — SPOT-EDIT ROUND: STICKER STORE · FOOTER · DOCS ·
+   DEPANNEUR · THE WORN KEYCHAIN'S COST, all on `dev` (tip `7e03bb5`), tree
+   clean. Nothing outstanding.**
+
+   - **Sticker store** — the bottom crawl's type went 12px → 14px.
+   - **Footer** — the gwei readout now opens the Gas Tracker (`open('gasTracker')`).
+   - **Docs** — the ⌕ key is box-locked (24px tall · 30px wide; 23/27 under
+     480px) with the glyph centred, so it matches its neighbours and the
+     ⌕ ↔ × swap can't resize or shift it. Its display is `inline-flex` in
+     both the base and the ≥1024px rule.
+   - **Depanneur — a second tap on the SAME keychain closes its detail**
+     (clears the pick, and the just-cranked charm too, or it fell straight
+     back into view).
+   - **⛔ "TALLER" MEANT THE SHADOW, NOT THE HEIGHT (Brendon, 2026-07-30).**
+     The yin/yang slots keep their 15px padding; the block under them went
+     3px → 8px, and the press + held states travel that same 8px. A first
+     attempt padded them to 26px — wrong, reverted.
+   - **⛔ NEVER PRINT A WORD FOR THE ODDS (Brendon, 2026-07-30: "IF YOU WRITE
+     STRONG PEOPLE WILL THINK STRONG").** The streak box printed `STRONG ODDS`
+     beside a 1-DAY STREAK, which reads as nonsense — the tier is the BETTER
+     of streak and rank, and his rank was buying it. It now states the real
+     numbers off the same cuts the roll uses (`oddsFor()` in the engine):
+     `RARE 15.5% · ULTRA 7%`. The word list is gone; don't bring it back.
+
+   **⛔ THE WORN KEYCHAIN WAS LAGGING THE APP — THE MOTION WAS NEVER THE
+   PROBLEM (Brendon, 2026-07-30: "I know your solution will be to change the
+   hanging or remove it… Not allowed. I want what we have but fixed").**
+   The physics, constants and look are UNTOUCHED. Two real causes:
+   1. The chain hangs OUTSIDE its own box (`overflow: visible`), so every
+      swing frame invalidated the hero AND the profile tab panel underneath
+      and repainted them at 60fps — that was the tab-change lag. `.pd-charm-hang`
+      is now promoted (`will-change: transform` + `translateZ(0)`), so a swing
+      repaints only itself.
+   2. It solved forever, off screen and backgrounded. An IntersectionObserver
+      (80px margin) + `visibilitychange` park the loop; on return it drinks and
+      discards the missed kicks so it can't fling. Waking is gated the same way.
+   **Never "fix" this by slowing, simplifying or removing the swing.**
 
    **⛔ THE SOUNDTRACK BUTTON PRESSES ▶ ITSELF — DO NOT UNDO THIS (Brendon,
    2026-07-30, in fury: "it never fucking loads it just stays stuck on TUNING…
