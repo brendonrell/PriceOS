@@ -350,7 +350,7 @@ export default function DepanneurModal() {
                                 (Brendon, 2026-07-29). */}
                             <div className="dp-count">
                                 <div className="dp-count-line">
-                                    <b>58,060,800</b> POSSIBLE CHARMS — BEFORE THE LIVING LAYER
+                                    <b>58,060,800</b> POSSIBLE CHARMS — WHAT&apos;S YOUR FAVOURITE <i>COMBINAISON</i>?
                                 </div>
                                 <div className="dp-streak-bar">
                                     <div className="dp-streak-track">
