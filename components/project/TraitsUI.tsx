@@ -1058,8 +1058,11 @@ export default function TraitsUI({
                         icon-only, no arrow; cycles the grouping dimension
                         independently of the sorts. */}
                     <GroupBtn
-                        glyph={GROUP_GLYPH[effGroup]}
-                        on={effGroup !== 'none'}
+                        /* The face is the TOP layer's glyph; a + says there are
+                           more layers under it (Brendon, 2026-07-30). */
+                        glyph={groupLayers.length ? GROUP_GLYPH[groupLayers[0]!] : GROUP_GLYPH[effGroup]}
+                        on={groupLayers.length > 0 || effGroup !== 'none'}
+                        more={groupLayers.length > 1}
                         onClick={cycleGroupWithToast}
                         onHold={setLayersAnchor}
                     />

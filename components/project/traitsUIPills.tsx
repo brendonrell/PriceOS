@@ -418,6 +418,7 @@ export function SortBtn({
 export function GroupBtn({
     glyph,
     on,
+    more = false,
     onClick,
     onHold,
 }: {
@@ -425,6 +426,9 @@ export function GroupBtn({
     glyph: string;
     /** Whether a grouping is active (lights the button). */
     on: boolean;
+    /** More than one layer is running — the button wears the TOP layer's glyph
+     *  and a + beside it for the rest (Brendon, 2026-07-30). */
+    more?: boolean;
     onClick: () => void;
     /** HOLD → the three-layer menu (Brendon, 2026-07-26). Receives where the
      *  button is so the bubble's tail can point back at it, exactly like the
@@ -453,6 +457,7 @@ export function GroupBtn({
             }}
         >
             <span className="sort-lbl sort-lbl-recent">{on ? glyph : GROUP_BTN_ICON}</span>
+            {on && more && <span className="group-btn-more" aria-hidden="true">+</span>}
         </div>
     );
 }

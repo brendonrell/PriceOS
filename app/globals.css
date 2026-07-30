@@ -6162,6 +6162,16 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.18); }
     -webkit-touch-callout: none;
 }
 .sort-btn.group-btn .sort-lbl-recent { transform: translateY(1px); }
+/* The + beside the group glyph — "and more layers under this one" (Brendon,
+   2026-07-30). Full strength, bold, riding just off the glyph's shoulder. */
+.group-btn-more {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.85em;
+    font-weight: bold;
+    line-height: 1;
+    margin-left: 1px;
+    transform: translateY(-2px);
+}
 /* The home sort row's ◷ clock — dropped 1.5px, then taken back UP 1px
    (Brendon, 2026-07-26, second pass). Scoped to the home row only. */
 .sort-btn-clock .sort-lbl-recent { transform: translateY(0.5px); }
