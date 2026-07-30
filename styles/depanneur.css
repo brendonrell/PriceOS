@@ -459,7 +459,15 @@
 }
 /* 91px of art width (JUL 29: +20% on the original 76px — Brendon's call); the
    ring's centre (art 500,108) lands dead on the slot, which is why the offsets
-   are half the width across and 108/1000ths down. */
+   are half the width across and 108/1000ths down.
+
+   ⛔ REBUILT 2026-07-30 (Brendon: "at like 10fps… REMOVE PRIOR FIXES and start
+   fresh"). Every piece of the hanging chain is now its OWN element carrying an
+   already-rasterized picture, moved by a transform and nothing else — so the
+   browser re-composites textures it already holds instead of re-drawing the
+   whole vector every frame, which is what the single-SVG version forced. The
+   old layer-promotion + SVG-group-transform patches are gone; they were
+   treating the symptom. */
 .pd-charm-hang {
     display: block;
     position: absolute;
@@ -467,24 +475,31 @@
     top: calc(50% - 9.85px);
     width: 91px;
     height: 91px;
+    /* the chain hangs out of this box, over whatever is below */
     overflow: visible;
-    /* ⛔ ITS OWN LAYER (Brendon, 2026-07-30 — "causing the app to lag…
-       especially when changing tabs"). The chain hangs OUTSIDE this box, so
-       every swing frame was invalidating the hero and the tab panel it hangs
-       over and repainting them at 60fps. Promoted, the swing repaints only
-       itself and the page underneath is left alone. The motion is untouched. */
-    will-change: transform;
-    transform: translateZ(0);
 }
-/* The links and the charm are moved by a CSS transform every frame instead of
-   the SVG transform attribute — paint-only work instead of an SVG relayout per
-   link per frame. The box + origin here make it land exactly where the
-   attribute put it. Scoped to OUR groups on purpose: the charm art's own
-   sway uses a fill-box origin and must not be touched. */
-.pd-charm-hang .pd-charm-part {
-    transform-box: view-box;
-    transform-origin: 0 0;
+/* Every moving piece: pinned to the box's origin, centred on itself, and its
+   picture pre-drawn. A frame writes one transform per piece — no layout, no
+   re-raster. */
+.pd-charm-ring,
+.pd-charm-link,
+.pd-charm-body {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: block;
 }
+.pd-charm-ring,
+.pd-charm-link {
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+}
+.pd-charm-link { will-change: transform; }
+/* The charm keeps its LIVE art — its sway, blink and twinkle still run. On its
+   own layer those repaint one charm-sized texture instead of the whole piece. */
+.pd-charm-body { will-change: transform; }
+.pd-charm-body svg { display: block; width: 100%; height: 100%; }
+
 /* Parked = off screen or the app in the background. The chain stops solving
    and the charm's own sway/blink/twinkle stop with it; both resume untouched
    the moment it's back on screen. */

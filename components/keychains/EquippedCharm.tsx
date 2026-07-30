@@ -13,6 +13,23 @@
  * charm swinging off the last one. Tilt the phone and gravity moves, so it
  * hangs toward true down and whips and jangles on the way there; scroll the
  * page and the whole chain lags behind. Reduced motion: it hangs dead still.
+ *
+ * ⛔ HOW IT IS DRAWN — REBUILT 2026-07-30 (Brendon: "my keychain is at like
+ * 10fps"). Every earlier speed-up was a patch on the wrong architecture and
+ * each one made it worse, so they are gone. The cause was never the solver —
+ * it is a dozen points of arithmetic. It was that the ring, the links and the
+ * charm all lived inside ONE <svg>, and moving a group inside an SVG makes the
+ * browser re-rasterize that whole vector — clip path, gradient, glitter, face,
+ * arms and all — sixty times a second. Promoting the SVG to its own layer did
+ * nothing, because the layer's contents were dirty every single frame.
+ *
+ * The rebuild: each link and the charm is now its OWN element, already
+ * rasterized, moved by nothing but a transform. The browser reuses the texture
+ * it already has and only re-composites — no vector is re-drawn while the
+ * chain swings. The charm keeps its own sway/blink/twinkle, and those now
+ * repaint one small charm-sized layer instead of the whole assembly.
+ *
+ * Nothing about the hang, the weight, the whip or the settle changed.
  */
 
 import { useEffect, useMemo, useRef } from 'react';
@@ -34,6 +51,16 @@ const KICK = 3.6;    // one screen pixel of shove ≈ this many art units
 const RELAX = 7;     // constraint passes per frame — more = stiffer links
 const SLEEP = 0.6;   // total per-frame travel under this for a while = settled
 
+/* The hanging piece is drawn 91px wide out of the art's 1000 units. */
+const BOX = 91;
+const S = BOX / 1000;
+
+/** One rasterized piece: a standalone SVG data URI sized to its own art. */
+function dataUri(body: string, half: number): string {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${-half} ${-half} ${half * 2} ${half * 2}">${body}</svg>`;
+    return `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`;
+}
+
 export default function EquippedCharm({ address }: { address: string }) {
     const { open } = useModal();
     const rack = useKeychainRack(address);
@@ -42,7 +69,7 @@ export default function EquippedCharm({ address }: { address: string }) {
         : null;
 
     /* The whole hanging piece, resolved once per charm: the ring, the link
-       shapes, and the charm art itself (drawn with no chain of its own — the
+       textures, and the charm art itself (drawn with no chain of its own — the
        chain here is the live one). */
     const art = useMemo(() => {
         if (!charm) return null;
@@ -51,22 +78,32 @@ export default function EquippedCharm({ address }: { address: string }) {
         const metal = chainMetalHex(chain.metal);
         const bailY = charmBailY(charm.seed, charm.coin, luck);
         const geom = chainGeom(bailY, chain.links);
-        const body = charmSVG(charm.seed, `eq${charm.id}`, luck, '', charm.coin, true);
+        /* Half-extent of a link's own box, with room for its heaviest stroke. */
+        const linkHalf = Math.max(geom.rx, geom.ry, Math.trunc((geom.ry * 144) / 200)) + 14;
         return {
             links: chain.links,
             geom,
             bailY,
-            ring: chainRingSvg(metal),
-            linkArt: Array.from({ length: chain.links }, (_, i) => chainLinkSvg(i, geom.rx, geom.ry, metal)),
-            /* The charm rides as a nested frame pinned by its BAIL: the art is
-               cropped to 30 units above the bail, so the bail sits at this
-               group's own origin and the charm swings from it. */
-            charmFrame: body.replace('<svg ', `<svg x="-500" y="-30" width="1000" height="${1000 - (bailY - 30)}" `),
+            /* The ring never moves — it is nailed to the row. */
+            ring: dataUri(chainRingSvg(metal), 72),
+            ringPx: 72 * 2 * S,
+            linkHalf,
+            linkPx: linkHalf * 2 * S,
+            linkArt: Array.from({ length: chain.links }, (_, i) =>
+                dataUri(chainLinkSvg(i, geom.rx, geom.ry, metal), linkHalf)),
+            /* The charm stays LIVE markup, not a texture: its sway, blink and
+               twinkle have to keep running. Cropped to 30 units above the bail
+               so the bail sits at a known spot in its own box. */
+            charmSvg: charmSVG(charm.seed, `eq${charm.id}`, luck, '', charm.coin, true),
+            charmW: BOX,
+            charmH: (1000 - (bailY - 30)) * S,
+            /* Where the bail sits inside that box — the point it swings from. */
+            bailPx: 30 * S,
         };
     }, [charm]);
 
-    const linkRefs = useRef<(SVGGElement | null)[]>([]);
-    const charmRef = useRef<SVGGElement | null>(null);
+    const linkRefs = useRef<(HTMLSpanElement | null)[]>([]);
+    const charmRef = useRef<HTMLSpanElement | null>(null);
     const hostRef = useRef<HTMLSpanElement | null>(null);
 
     useEffect(() => {
@@ -95,6 +132,8 @@ export default function EquippedCharm({ address }: { address: string }) {
             oy[i] = py[i];
         }
 
+        /* The only per-frame writes: one transform per piece. Nothing here
+           changes geometry, size or layout, so no vector is ever re-drawn. */
         const draw = () => {
             for (let i = 0; i < N; ++i) {
                 const dx = px[i + 1]! - px[i]!;
@@ -104,28 +143,23 @@ export default function EquippedCharm({ address }: { address: string }) {
                 const uy = dy / dist;
                 // Rotate the link's own down-axis onto the segment.
                 const ang = (Math.atan2(-ux, uy) * 180) / Math.PI;
-                const cx = px[i]! + ux * art.geom.off;
-                const cy = py[i]! + uy * art.geom.off;
-                /* CSS transform, NOT the transform attribute (Brendon,
-                   2026-07-30). An attribute write dirties the SVG's layout
-                   every frame for every link; a style transform is paint-only,
-                   so the same motion costs a fraction of the work. The class
-                   pins the box + origin so it lands identically. */
+                const cx = (px[i]! + ux * art.geom.off) * S;
+                const cy = (py[i]! + uy * art.geom.off) * S;
                 const el = linkRefs.current[i];
                 if (el) {
                     el.style.transform =
-                        `translate(${cx.toFixed(2)}px, ${cy.toFixed(2)}px) rotate(${ang.toFixed(2)}deg)`;
+                        `translate3d(${cx.toFixed(2)}px, ${cy.toFixed(2)}px, 0) rotate(${ang.toFixed(2)}deg)`;
                 }
             }
-            const bx = px[N]!;
-            const by = py[N]!;
-            const cdx = px[N + 1]! - bx;
-            const cdy = py[N + 1]! - by;
+            const bx = px[N]! * S;
+            const by = py[N]! * S;
+            const cdx = px[N + 1]! - px[N]!;
+            const cdy = py[N + 1]! - py[N]!;
             const cd = Math.hypot(cdx, cdy) || 1e-6;
             const cang = (Math.atan2(-cdx / cd, cdy / cd) * 180) / Math.PI;
             if (charmRef.current) {
                 charmRef.current.style.transform =
-                    `translate(${bx.toFixed(2)}px, ${by.toFixed(2)}px) rotate(${cang.toFixed(2)}deg)`;
+                    `translate3d(${bx.toFixed(2)}px, ${by.toFixed(2)}px, 0) rotate(${cang.toFixed(2)}deg)`;
             }
         };
 
@@ -137,12 +171,9 @@ export default function EquippedCharm({ address }: { address: string }) {
 
         let raf = 0;
         let calm = 0;
-        /* ⛔ IT ONLY SOLVES WHEN IT IS ON SCREEN (Brendon, 2026-07-30). The
-           chain used to keep swinging and repainting while scrolled far away
-           or while the app sat in the background, so every scroll and every
-           tab tap paid for motion nobody could see. Off screen it parks; the
-           moment it comes back it drops the shoves it missed and carries on
-           exactly as before. Nothing about the hang or the bob changes. */
+        /* It only solves while it is on screen — swinging something nobody can
+           see is pure waste. Coming back it drops the shoves it missed and
+           carries on; the hang and the bob are untouched. */
         let onScreen = true;
 
         const step = () => {
@@ -206,11 +237,6 @@ export default function EquippedCharm({ address }: { address: string }) {
                 const vis = entries[entries.length - 1]?.isIntersecting ?? true;
                 if (vis === onScreen) return;
                 onScreen = vis;
-                /* The CHARM'S OWN ANIMATIONS park too (Brendon, 2026-07-30 —
-                   "still causing the app to lag"). The art carries three
-                   always-on loops (the body sway, the blink, the twinkle);
-                   they kept the whole piece repainting at 60fps forever even
-                   with the chain asleep, on every page the charm sits on. */
                 hostRef.current?.classList.toggle('is-parked', !vis);
                 if (vis) { takeKick(); kick(); }
                 else if (raf) { cancelAnimationFrame(raf); raf = 0; }
@@ -246,19 +272,47 @@ export default function EquippedCharm({ address }: { address: string }) {
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); open('keychain', `${address.toLowerCase()}:${charm.id}`); }}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); open('keychain', `${address.toLowerCase()}:${charm.id}`); } }}
         >
-            <svg className="pd-charm-hang" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
-                {/* The ring is the anchor — it is nailed to the end of the row. */}
-                <g transform="translate(500 108)" dangerouslySetInnerHTML={{ __html: art.ring }} />
-                {art.linkArt.map((d, i) => (
-                    <g
+            <span className="pd-charm-hang">
+                {/* The ring is the anchor — it is nailed to the end of the row
+                    and never moves, so it is drawn once and left alone. */}
+                <span
+                    className="pd-charm-ring"
+                    style={{
+                        width: art.ringPx,
+                        height: art.ringPx,
+                        marginLeft: -art.ringPx / 2,
+                        marginTop: -art.ringPx / 2,
+                        backgroundImage: art.ring,
+                        transform: `translate3d(${(500 * S).toFixed(2)}px, ${(108 * S).toFixed(2)}px, 0)`,
+                    }}
+                />
+                {art.linkArt.map((uri, i) => (
+                    <span
                         key={i}
-                        className="pd-charm-part"
+                        className="pd-charm-link"
                         ref={(el) => { linkRefs.current[i] = el; }}
-                        dangerouslySetInnerHTML={{ __html: d }}
+                        style={{
+                            width: art.linkPx,
+                            height: art.linkPx,
+                            marginLeft: -art.linkPx / 2,
+                            marginTop: -art.linkPx / 2,
+                            backgroundImage: uri,
+                        }}
                     />
                 ))}
-                <g className="pd-charm-part" ref={charmRef} dangerouslySetInnerHTML={{ __html: art.charmFrame }} />
-            </svg>
+                <span
+                    className="pd-charm-body"
+                    ref={charmRef}
+                    style={{
+                        width: art.charmW,
+                        height: art.charmH,
+                        marginLeft: -art.charmW / 2,
+                        marginTop: -art.bailPx,
+                        transformOrigin: `${art.charmW / 2}px ${art.bailPx}px`,
+                    }}
+                    dangerouslySetInnerHTML={{ __html: art.charmSvg }}
+                />
+            </span>
         </span>
     );
 }
