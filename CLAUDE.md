@@ -30,6 +30,25 @@ win** — update this file in place and note it.
 > BODY needed to reach the cap; two attempts later a session had lit the cap
 > instead, after he had explicitly ruled the cap correct.
 
+> **⛔ RULE #-2.5 — "REVERT" MEANS PUT IT BACK EXACTLY THE WAY IT WAS. NOT
+> "REMAKE IT TO A SIMILAR SPEC." (Brendon, 2026-07-30, raised in fury.)**
+> When Brendon says **revert**, the deliverable is the EXACT prior state of the
+> thing — the same bytes that were there before the change landed. **GO AND GET
+> IT OUT OF THE HISTORY.** Find the commit that introduced the change, read the
+> file as it stood BEFORE it, and restore that. Do not hand-write your own
+> undo, do not "remove the rule and leave a comment explaining why", do not
+> rebuild something that behaves about the same. Any of those is a NEW change
+> wearing the word revert, and it is the lazy work this rule exists to stop.
+> - **Revert the named thing ONLY.** If the original commit also carried other
+>   work he did not ask you to undo, that work STAYS. Restore the hunks that
+>   belong to the thing he named, byte-for-byte, and nothing else.
+> - **No souvenirs.** A reverted line leaves NOTHING behind — no comment, no
+>   marker, no renamed leftover. The file reads as though the change never
+>   happened.
+> The failure that birthed this rule: told to revert a grouped gallery back
+> from 4-across, a session deleted the rule by hand and left a paragraph of
+> commentary in its place instead of restoring the file as it was.
+
 > **⛔ RULE #-2 — ONLY CHANGE WHAT WAS ASKED. NOTHING ELSE. THE TOP RULE,
 > ABOVE EVERY OTHER RULE IN THIS FILE. (Brendon, 2026-07-25 — raised in fury.
 > His words: "STOP BULLDOZING OVER ME I'M SMARTER THAN YOU AND I'M IN CHARGE.
