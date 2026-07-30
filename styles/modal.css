@@ -986,7 +986,21 @@ body.modal-open { overflow: hidden; touch-action: none; }
     background: rgba(0,0,0,0.55); opacity: 0;
     pointer-events: none; transition: opacity 0.22s ease;
 }
-.cart-panel-wrap.mounted { display: flex; }
+/* ⛔ THE FIRST OPEN MUST NOT HITCH (Brendon, 2026-07-30: every panel of this
+   style lags on its FIRST open only). A panel that has never been shown has no
+   compositor layer, so the browser was building one WHILE the slide ran — that
+   first-time raster is the stutter, and it never repeats because the layer stays
+   warm. Claiming the layer at MOUNT (one frame before the transition starts,
+   which is what the double-rAF buys) makes the first slide a pure composite like
+   every later one. */
+.cart-panel-wrap.mounted {
+    display: flex;
+    will-change: opacity;
+}
+.cart-panel-wrap.mounted .cart-panel-box {
+    will-change: transform;
+    backface-visibility: hidden;
+}
 .cart-panel-wrap.mounted.active { opacity: 1; pointer-events: auto; }
 .cart-panel-box {
     background: var(--bg-color);
