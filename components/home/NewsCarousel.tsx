@@ -30,6 +30,7 @@ const NEWS_BANNER_SPEED = { desktop: 45, mobile: 28 } as const;
 import SpriteFace from '../SpriteFace';
 import { PerMilleMark } from '../shell/PerMilleMark';
 import { getSpriteFrame, subscribeSprite, type SpriteFrame } from '../../lib/engines/priceSpriteEngine';
+import { useSpriteFace } from '../../lib/hooks/useSpriteFace';
 
 export interface NewsItem {
     /** 'text' (default) = glyph + tag + title + meta; 'sprite' = a live animated
@@ -67,18 +68,30 @@ const PLACEHOLDER_ITEMS: NewsItem[] = [
     { glyph: '⟠︎', tag: 'VOLUME', title: 'Platform crossed a new high', meta: '100 ETH' },
 ];
 
-/* Sprite pill — the live PriceSprite (same engine + face renderer the menu
-   uses), animated, beside the user's @name. */
+/* Sprite pill — the PriceSprite of the ACCOUNT NAMED ON THE PILL, beside its
+   @name.
+
+   ⛔ IT IS THEIR SPRITE, NEVER THE VIEWER'S (Brendon, 2026-07-30: a pill for
+   @price was drawing @brendon's little guy). The animation engine is a single
+   global wired to whoever is signed in, so reading a frame off it puts the
+   viewer's own sprite on every face pill regardless of the name beside it. The
+   named account's own face comes from the same lookup every other cross-user
+   sprite on PD uses (the profile ID row, the collected chips) — Rule #0. The
+   engine still drives the pill when no name is attached. */
 function SpriteNewsPill({ item }: { item: NewsItem }) {
     const [frame, setFrame] = useState<SpriteFrame>(() => getSpriteFrame());
     useEffect(() => {
         setFrame(getSpriteFrame());
         return subscribeSprite(() => setFrame(getSpriteFrame()));
     }, []);
+    const theirFace = useSpriteFace(item.name ?? '');
+    /* Nothing of the viewer's ever stands in for a named account — the slot
+       stays empty for the beat before their face lands. */
+    const face = item.name ? theirFace : frame.face;
     const inner = (
         <>
             <span className="news-pill-sprite" aria-hidden="true">
-                <SpriteFace face={frame.face} />
+                {face && <SpriteFace face={face} />}
             </span>
             {item.name && <span className="news-pill-name">@{item.name}</span>}
         </>
