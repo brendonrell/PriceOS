@@ -483,10 +483,15 @@ body.modal-open .fm-bar {
    whichever one you touched sat filled while its siblings looked bare — that is
    the "forward looks perfect, the changer doesn't" mismatch. Touch gets a real
    pressed state instead, which releases. */
+/* ⛔ NO FILLED PILL BEHIND A RING KEY (Brendon, 2026-07-30: "the pills we put
+   around each aren't working"). A key on the moulded pad is a bare glyph, so a
+   solid block appearing behind it reads as a sticker landing on the plastic,
+   not as a press. The press is carried by the GLYPH itself: it stays bold and
+   dips slightly — enough to see clearly, never faint (Rule #2). */
 @media (hover: hover) {
-    .fm-mode-usb .fm-btn:hover { background: var(--text-color); color: var(--bg-color); }
+    .fm-mode-usb .fm-btn:hover { opacity: 0.62; }
 }
-.fm-mode-usb .fm-btn:active { background: var(--text-color); color: var(--bg-color); }
+.fm-mode-usb .fm-btn:active { opacity: 0.62; }
 /* centre play — the pad's framed square key */
 .fm-mode-usb .fm-play {
     grid-column: 3;
