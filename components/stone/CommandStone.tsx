@@ -768,7 +768,7 @@ export default function CommandStone() {
             const st = getProject(r.soundtracks[0].project_id)?.soundtrack;
             if (st) {
                 fmPlay({ playlistId: st.playlistId, label: st.label, slug: r.soundtracks[0].project_id });
-                showToast('Miniplayer: ON AIR');
+                showToast('miniplayer: ON AIR');
             } else {
                 go(null, `/art/${r.soundtracks[0].project_id}`);
             }
@@ -1101,7 +1101,7 @@ export default function CommandStone() {
                                             const st = getProject(s.project_id)?.soundtrack;
                                             if (!st) { go(null, `/art/${s.project_id}`); return; }
                                             fmPlay({ playlistId: st.playlistId, label: st.label, slug: s.project_id });
-                                            showToast('Miniplayer: ON AIR');
+                                            showToast('miniplayer: ON AIR');
                                         }}
                                     >
                                         <span className="sw-hit-ic">{`▶${VS15}`}</span>

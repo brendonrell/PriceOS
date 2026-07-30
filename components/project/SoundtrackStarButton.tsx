@@ -79,7 +79,7 @@ export default function SoundtrackStarButton({
                 e.preventDefault();
                 if (longFired.current) { longFired.current = false; return; }
                 fmPlay({ playlistId, label, slug });
-                showToast('Miniplayer: ON AIR');
+                showToast('miniplayer: ON AIR');
             }}
             className={`btn-soundtrack${starred ? ' soundtrack-starred' : ''}`}
             title={label}
