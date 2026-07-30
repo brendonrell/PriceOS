@@ -261,10 +261,10 @@ export default function ProjectsProModal() {
     const liveOf = useCallback((slug: string) => live?.[slug.toLowerCase()] ?? null, [live]);
 
     /* ── THE CREATORS' COLOURS (Brendon, 2026-07-30) ──────────────────────
-       A Project inherits its maker's identity, so every row wears the ARTIST's
-       faction and profile tags — and both are filters. Two batched reads, no
-       new endpoints: the artist roster for handle→wallet, then the same
-       circle-stats call the Inspector uses for the faction bubble. */
+       A Project inherits its maker's identity, so the creator's profile tags
+       ride each row and BOTH tags and factions are offered as filters. Two
+       batched reads, no new endpoints: the artist roster for handle→wallet,
+       then the same circle-stats call the Inspector uses for the bubble. */
     const artists = useMemo(
         () => [...new Set(projects.map((p) => p.artistHandle.toLowerCase()))],
         [projects],
@@ -531,7 +531,6 @@ export default function ProjectsProModal() {
                         lastMove={lastMove?.[p.slug.toLowerCase()] ?? null}
                         onOpen={() => go(p.slug)}
                         me={siweAddress ?? null}
-                        faction={factionFor(p.artistHandle)}
                         tagSet={artistTags[p.artistHandle.toLowerCase()]}
                     />
                 ))}
@@ -600,15 +599,16 @@ export default function ProjectsProModal() {
    (not the star, not the title link) unfolds the dossier. ── */
 function ProjectProRow({
     slug, name, artist, outputs, priceEth, live, held, starred, onStar,
-    inspected, onInspect, lensLine, lastMove, onOpen, me, faction, tagSet,
+    inspected, onInspect, lensLine, lastMove, onOpen, me, tagSet,
 }: {
     slug: string; name: string; artist: string; outputs: number; priceEth: number;
     live: LiveRow | null; held: boolean; starred: boolean; onStar: (slug: string) => void;
     inspected: boolean; onInspect: () => void; lensLine: string | null;
     lastMove: LastMove | null; onOpen: () => void; me: string | null;
-    /** The CREATOR's faction bubble and profile tags — a Project wears its
-     *  maker's colours (Brendon, 2026-07-30). */
-    faction: Sticker | null; tagSet: UserTagSet | undefined;
+    /** The creator's profile tags. ⛔ FACTIONS ARE A FILTER ONLY — they are
+     *  NOT drawn on a row (Brendon, 2026-07-30: "not everyone will give two
+     *  fucks about factions, it's an option to filter"). */
+    tagSet: UserTagSet | undefined;
 }) {
     const face = projectSpriteFace(slug);
     const minted = live?.minted ?? 0;
@@ -646,11 +646,6 @@ function ProjectProRow({
                                 <span className="ppn-tail">{name.slice(-6)}</span>
                             </a>
                             <span className="projects-pro-artist" title="Creator">@{artist}</span>
-                            {faction && (
-                                <span className="pp-row-faction" title={faction.name.replace('Bubble — ', '')}>
-                                    <StickerArt sticker={faction} size={12} />
-                                </span>
-                            )}
                         </span>
                         <span className="fm-row-stats">
                             <span className="fm-stat" title="Minted">

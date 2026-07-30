@@ -5611,7 +5611,9 @@ body.bg-is-yellow .fiat-opt-on { background: #fff; color: var(--hothurt); border
     white-space: normal;
     width: max-content;
     max-width: min(78vw, 240px);
-    max-height: min(62vh, 420px);
+    /* A THIRD of the screen, and it scrolls inside (Brendon, 2026-07-30) —
+       the full dimension list ran nearly the whole phone before. */
+    max-height: 33vh;
     overflow-y: auto;
     padding: 8px;
     -webkit-overflow-scrolling: touch;
@@ -9566,14 +9568,12 @@ a.f-highlight { color: inherit; }
            rule (sim 3248) collapses to 10px 20px shorthand. */
         padding: 10px 20px 100px 20px;
     }
-    /* ZOOMED OUT — a live grouping doubles the grid to 4-up on mobile, so the
-       groups themselves are what you read instead of a long 2-up scroll
-       (Brendon, 2026-07-26). Ungrouped stays 2-up, untouched. The group
-       headers measure the live tracks, so their caps follow automatically. */
-    #gallery.is-grouped {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 8px;
-    }
+    /* ⛔ A GROUPED GRID IS TWO ACROSS, exactly like an ungrouped one (Brendon,
+       2026-07-30). It briefly went 4-up "zoomed out" on 2026-07-26; at that
+       width the cards are thumbnails and the section headers — which cap
+       themselves to the columns their pieces occupy — had nothing left to sit
+       on, so the whole grouped surface read as broken. Grouping changes the
+       ORDER, never the grid. */
     .hero-group-2 { gap: 16px; }
     .traits-header-bar { flex-direction: column; }
     .sort-bar {
