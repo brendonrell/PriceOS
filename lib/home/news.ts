@@ -336,7 +336,7 @@ function standingItems(feed: HomeResponse): NewsItem[] {
         .slice(0, PROGRESS_LIMIT);
     for (const c of climbing) {
         out.push({
-            glyph: vs('⟢'), cls: 'af-ic--grad', tag: 'ALMOST MINTING',
+            glyph: vs('⟢'), cls: 'af-ic--grad', tag: 'ALMOST GRADUATED',
             title: titleOf(c.u.slug, c.u.title),
             meta: `${c.away} ${c.away === 1 ? 'mint' : 'mints'} away`,
             href: `/art/${c.u.slug}`,
@@ -397,7 +397,7 @@ function standingItems(feed: HomeResponse): NewsItem[] {
 function featurePills(doors: FeatureDoors): NewsItem[] {
     return [
         {
-            glyph: vs('⚷'), tag: 'KEYCHAINS',
+            glyph: vs('⚷'), tag: 'KEYCHAINS!',
             title: 'The capsule machine', meta: 'Crank one', onClick: doors.openKeychains,
         },
         {
