@@ -18,9 +18,15 @@ export async function GET(req: NextRequest) {
   if (!address || !address.startsWith('0x')) return badRequest('Bad address');
   try {
     const db = getSupabaseService();
-    const [projRes, holdRes] = await Promise.all([
+    const [projRes, holdRes, stickRes] = await Promise.all([
       db.from('projects').select('id, title, uploaded_at, cooldown_until').limit(2000),
       db.from('holders').select('project_id').ilike('owner_address', address),
+      // Sheets you've actually still got. Selling, gifting or listing a sheet
+      // decrements this row, so it is the only source that knows a sheet LEFT
+      // (the device's own list only ever grows). A sheet with no row here was
+      // never claimed on the server — the client keeps its local answer for
+      // those rather than wrongly marking them gone.
+      db.from('sticker_holdings').select('sheet_id, qty').ilike('owner_address', address),
     ]);
     if (projRes.error) return serverError(projRes.error.message);
     if (holdRes.error) return serverError(holdRes.error.message);
@@ -60,10 +66,16 @@ export async function GET(req: NextRequest) {
         return { ...b, collected, total: b.projects.length, complete: collected === b.projects.length && b.projects.length > 0 };
       });
 
+    const sheet_qty: Record<string, number> = {};
+    for (const r of ((stickRes.error ? [] : stickRes.data) ?? []) as { sheet_id: string; qty: number }[]) {
+      sheet_qty[r.sheet_id] = Number(r.qty) || 0;
+    }
+
     return NextResponse.json({
       address,
       months,
       months_complete: months.filter((m) => m.complete).length,
+      sheet_qty,
     });
   } catch (err) {
     return serverError(err instanceof Error ? err.message : 'Unknown error');

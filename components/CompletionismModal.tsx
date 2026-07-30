@@ -156,6 +156,13 @@ export default function CompletionismModal({
     onClose: () => void;
 }) {
     const [months, setMonths] = useState<MonthRow[] | null>(null);
+    /* ⛔ COMPLETIONISM HAS TO KNOW WHEN YOU SELL (Brendon, 2026-07-30). The
+       device's own sticker list only ever grows — buying adds, nothing ever
+       removes — so a sold, gifted or listed sheet stayed ticked forever. The
+       server's holdings row is the only thing that knows a sheet LEFT, so it
+       wins wherever it has an answer; sheets it has never heard of (claimed
+       before the market existed) keep the device's answer. */
+    const [sheetQty, setSheetQty] = useState<Record<string, number> | null>(null);
     /* The ledger folds away by default — the resting modal stays minimal. */
     const [statsOpen, setStatsOpen] = useState(false);
     const { open: openPal } = useModal();
@@ -209,7 +216,11 @@ export default function CompletionismModal({
         let cancelled = false;
         fetch(`/api/completionism?address=${encodeURIComponent(dataAddress)}`, { cache: 'no-store' })
             .then((r) => (r.ok ? r.json() : null))
-            .then((d) => { if (!cancelled && d) setMonths((d.months as MonthRow[]) ?? []); })
+            .then((d) => {
+                if (cancelled || !d) return;
+                setMonths((d.months as MonthRow[]) ?? []);
+                setSheetQty((d.sheet_qty as Record<string, number>) ?? {});
+            })
             .catch(() => { if (!cancelled) setMonths([]); });
         return () => { cancelled = true; };
     }, [open, dataAddress]);
@@ -224,7 +235,13 @@ export default function CompletionismModal({
     if (!mounted || typeof document === 'undefined') return null;
 
     const owned = getOwnedIds();
-    const sheetsOwned = SHEETS.filter((s) => ownsSheet(s.id, ownedIds.length ? ownedIds : owned)).length;
+    /* The server's word on a sheet beats the device's whenever it has one. */
+    const holdsSheet = (id: (typeof SHEETS)[number]['id']): boolean => {
+        const q = sheetQty?.[id];
+        if (typeof q === 'number') return q > 0;
+        return ownsSheet(id, ownedIds.length ? ownedIds : owned);
+    };
+    const sheetsOwned = SHEETS.filter((s) => holdsSheet(s.id)).length;
 
     const wrapClass = ['cart-panel-wrap', 'mk-sheet-wrap', mounted ? 'mounted' : '', active ? 'active' : '']
         .filter(Boolean).join(' ');
@@ -330,7 +347,7 @@ export default function CompletionismModal({
                         </div>
                         <div className="cpl-grid">
                             {SHEETS.map((s) => {
-                                const got = ownsSheet(s.id, ownedIds.length ? ownedIds : owned);
+                                const got = holdsSheet(s.id);
                                 return (
                                     <span key={s.id} className={`cpl-item${got ? ' is-got' : ''}`} title={s.name}>
                                         <span className="cpl-check">{got ? `✓${VS15}` : `❐${VS15}`}</span>
