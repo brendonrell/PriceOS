@@ -2454,6 +2454,32 @@ section[aria-label="Created projects"] > .upload-window {
 .projects-pro-name .ppn-tail { white-space: nowrap; flex: 0 0 auto; }
 .projects-pro-leader { flex: 1 1 auto; border-bottom: 2px dotted currentColor; opacity: 0.22; margin: 0 8px; }
 .projects-pro-artist { flex: 0 0 auto; font-size: 12px; opacity: 0.7; white-space: nowrap; }
+/* The project title links to the art from inside a row that is itself a
+   tap target — it must read as the row's own text, not as a blue link. */
+.fi-projrow a.projects-pro-name { color: inherit; text-decoration: none; }
+.fi-projrow a.projects-pro-name:hover { text-decoration: underline; }
+
+/* Projects Pro's dossier — the mint-progress read (Brendon, 2026-07-30).
+   Full-strength: real border, solid fill, bold 12px numbers. */
+.pp-progress {
+    display: flex; align-items: center; gap: 8px;
+    margin: 10px 0 4px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px; font-weight: bold; letter-spacing: 0.5px;
+    color: var(--text-color);
+}
+.pp-progress-label { flex: 0 0 auto; }
+.pp-progress-track {
+    flex: 1 1 auto; height: 11px;
+    border: 1px solid var(--text-color);
+    display: block; overflow: hidden;
+}
+.pp-progress-fill { display: block; height: 100%; background: var(--text-color); }
+.pp-progress-num { flex: 0 0 auto; }
+/* A date is longer than a count — it rides one step down so the tile's value
+   line never wraps out of its box. */
+.pp-tile-date { font-size: 13px; letter-spacing: 0.4px; }
+
 .followers-pop .fm-tabs,
 .followers-plus .fm-tabs { display: flex; flex-wrap: wrap; gap: 6px; flex: 0 0 auto; }
 .fm-sort { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; flex: 0 0 auto; }
@@ -13698,42 +13724,111 @@ body.is-pwa .artwork-fullscreen.artwork-darkroom .fullscreen-back {
     font-weight: 800; opacity: 1;
 }
 
-/* The Wire — rows ride the news banner's compositor rail (same LOCKED
-   speed; odd rows run the other way). Edge fade matches the home strip. */
-.fi-wire {
-    flex: 1 1 auto; min-height: 0;
-    display: flex; flex-direction: column; justify-content: center; gap: 8px;
-}
-.fi-wire-row {
-    position: relative; height: 32px; overflow: hidden;
-    -webkit-mask-image: linear-gradient(to right, transparent 0, black 24px, black calc(100% - 24px), transparent 100%);
-    mask-image: linear-gradient(to right, transparent 0, black 24px, black calc(100% - 24px), transparent 100%);
-}
-.fi-wire-rail {
-    position: absolute; left: 0; top: 0; height: 100%;
-    display: flex; align-items: center; white-space: nowrap;
-    will-change: transform; transform: translate3d(0, 0, 0);
-}
-.fi-wire-rail.anim { animation: news-rail-scroll var(--news-loop-s, 60s) linear infinite; }
-.fi-wire-rail.rev { animation-direction: reverse; }
-@media (prefers-reduced-motion: reduce) {
-    .fi-wire-rail.anim { animation: none; }
-}
-.fi-wire-pill {
-    flex-shrink: 0; display: inline-flex; align-items: baseline; gap: 6px;
-    margin-right: 10px; padding: 5px 13px;
-    border-radius: 999px;
-    background: var(--stat-bg);
-    border: 1px solid var(--border-color);
-    font: bold 12.5px 'Courier New', Courier, monospace; letter-spacing: 0.04em;
+/* ── THE THREE MODES (rebuilt 2026-07-30) — OVERLAP · ROSTER · 30 DAYS.
+   Full-strength site tokens throughout: 12px+, bold labels, real borders,
+   no washes and no half-opacity chrome (Rule #2). Square corners; state is
+   carried by PD's own dotted ring, never an edge bar. ── */
+.fi-pv-note {
+    flex: 1 1 auto; display: flex; align-items: center;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px; font-weight: bold; letter-spacing: 0.4px;
     color: var(--text-color);
 }
-.fi-wire-glyph { font-size: 13px; }
 
-/* The Constellation — the circle as a canvas starfield; inherits the
-   colorway via currentColor. touch-action off so pinch/drag drive the MAP,
-   not the page (the sky is a real zoomable map — Brendon, 2026-07-16). */
-.fi-map { flex: 1 1 auto; min-height: 0; width: 100%; color: var(--text-color); cursor: pointer; touch-action: none; }
+/* THE OVERLAP — your holdings against your circle's. */
+.fi-overlap {
+    flex: 1 1 auto; min-height: 0; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 5px;
+    padding-right: 2px;
+}
+.fi-ov-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 3px 5px;
+    border: 1px solid transparent;
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--text-color);
+    cursor: default;
+}
+.fi-ov-row.live { cursor: pointer; }
+.fi-ov-row.live:hover { border-color: var(--text-color); }
+.fi-ov-name {
+    flex: 0 0 auto; max-width: 34%;
+    font-size: 12px; font-weight: bold; letter-spacing: 0.4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.fi-ov-bar {
+    flex: 1 1 auto; height: 9px;
+    border: 1px solid var(--text-color);
+    display: block; overflow: hidden;
+}
+.fi-ov-fill { display: block; height: 100%; background: var(--text-color); }
+.fi-ov-count {
+    flex: 0 0 auto; min-width: 42px; text-align: right;
+    font-size: 12px; font-weight: bold; letter-spacing: 0.4px;
+}
+.fi-ov-of { font-weight: 400; }
+
+/* THE ROSTER — the circle as faces. A MUTUAL wears the dotted ring; the
+   inspected one wears it solid-filled. */
+.fi-roster {
+    flex: 1 1 auto; min-height: 0; overflow-y: auto;
+    display: flex; flex-wrap: wrap; align-content: flex-start; gap: 6px;
+}
+.fi-rost-cell {
+    display: inline-flex; flex-direction: column; align-items: center; gap: 1px;
+    padding: 4px 6px;
+    border: 1px solid transparent;
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--text-color);
+    cursor: pointer;
+}
+.fi-rost-cell.mutual { outline: 2px dotted var(--text-color); outline-offset: -2px; }
+.fi-rost-cell.on { background: var(--stat-active-bg); color: var(--stat-active-text); }
+.fi-rost-cell:hover { border-color: var(--text-color); }
+.fi-rost-me { cursor: default; }
+.fi-rost-name {
+    max-width: 74px;
+    font-size: 12px; font-weight: bold; letter-spacing: 0.3px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* THE 30 DAYS — the circle's month as a day grid, today at the end. */
+.fi-days { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
+.fi-days-head, .fi-days-foot {
+    display: flex; align-items: baseline; justify-content: space-between;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px; font-weight: bold; letter-spacing: 0.5px;
+    color: var(--text-color);
+}
+.fi-days-grid {
+    flex: 1 1 auto; min-height: 0;
+    display: grid; grid-template-columns: repeat(15, 1fr); gap: 4px;
+}
+.fi-day {
+    border: 1px solid var(--text-color);
+    min-height: 18px;
+    cursor: default;
+}
+.fi-day.live { cursor: pointer; }
+.fi-day.live:hover { outline: 2px dotted var(--text-color); outline-offset: 1px; }
+
+/* The focus the strip hands down — what the ledger is narrowed to. */
+.fm-focus {
+    display: flex; align-items: center; gap: 8px;
+    margin: 0 0 8px;
+    padding: 5px 8px;
+    border: 1px solid var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--text-color);
+}
+.fm-focus-what {
+    flex: 1 1 auto; min-width: 0;
+    font-size: 12px; font-weight: bold; letter-spacing: 0.5px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.fm-focus-ic { font-size: 12px; }
+.fm-focus-n { font-size: 12px; font-weight: bold; }
+.fm-focus-clear { font-size: 12px; font-weight: bold; }
 
 /* PLUS mode invites the Digital Familiar IN FRONT of the panel (Brendon,
    2026-07-06): lift its layer above the jumbo backdrop (z 1330) while the

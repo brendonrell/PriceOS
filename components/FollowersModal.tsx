@@ -58,7 +58,7 @@ import { DISCORD_URL } from '../lib/config/discord';
 import { PROFILE_LOGOS_BY_ID } from '../lib/profile/profileLogos';
 import type { Sticker } from '../lib/stickers/catalog';
 import { StickerArt } from './stickers/StickerArt';
-import FriendInspectorPreview, { type PreviewPerson } from './FriendInspectorPreview';
+import FriendInspectorPreview, { type PreviewPerson, type PreviewFocus } from './FriendInspectorPreview';
 import FriendSpritePopover from './FriendSpritePopover';
 
 const VS15 = '︎';
@@ -205,6 +205,9 @@ export default function FollowersModal() {
     }, [showToast]);
     /* The dossier — one friend open at a time; resets on tab/open change. */
     const [inspected, setInspected] = useState<string | null>(null);
+    /* The preview strip's FOCUS — a project's holders or a day's movers,
+       narrowing the ledger until its chip is cleared (Brendon, 2026-07-30). */
+    const [focus, setFocus] = useState<PreviewFocus | null>(null);
     const [mySlugs, setMySlugs] = useState<string[] | null>(null);
     const [myScore, setMyScore] = useState<number | null>(null);
     const [graph, setGraph] = useState<Graph>(EMPTY_GRAPH);
@@ -217,6 +220,7 @@ export default function FollowersModal() {
     const setTab = useCallback((t: FollowersTab) => {
         setTabState(t);
         setInspected(null);
+        setFocus(null);
     }, []);
 
     /* Stars — the SAME DB-backed sets the Artists list + project pages use, so a
@@ -241,6 +245,7 @@ export default function FollowersModal() {
         setTabState(isTab(payload) ? payload : 'followers');
         setSort('default');
         setInspected(null);
+        setFocus(null);
     }, [isOpen, openModal]);
 
     /* Your own holdings — fetched once per open; every dossier intersects
@@ -533,8 +538,10 @@ export default function FollowersModal() {
        CARTEL tab defaults to most-shared-first; Factions filters to faction
        wearers, grouped by faction color). */
     const peopleRows = useMemo(() => {
-        if (tab === 'projects') return [];
-        let all = tab === 'cartel' ? cartelHandles : graph[tab];
+        if (tab === 'projects' && !focus) return [];
+        let all = tab === 'projects'
+            ? [...new Set([...graph.mutuals, ...graph.followers, ...graph.following])]
+            : tab === 'cartel' ? cartelHandles : graph[tab];
         if (sort === 'faction') all = all.filter((h) => factionOf(statOf(h)?.profileLogo) !== null);
         const alpha = (a: string, b: string) => lc(a).localeCompare(lc(b));
         const v = (h: string, key: 'followers' | 'collected' | 'spentEth') => statOf(h)?.[key] ?? 0;
@@ -565,8 +572,17 @@ export default function FollowersModal() {
             rest = [...rest].sort((a, b) =>
                 (lastMoveBy[lc(b)]?.ts ?? 0) - (lastMoveBy[lc(a)]?.ts ?? 0) || alpha(a, b));
         }
-        return [...pinned, ...rest];
-    }, [tab, graph, sort, statOf, starredPeople, cartelHandles, sharedBy, lens, dramaOf, lastMoveBy]);
+        const ordered = [...pinned, ...rest];
+        /* A FOCUS from the preview strip (a project's holders, a day's movers)
+           narrows the ledger to exactly those people, keeping this tab's order
+           (Brendon, 2026-07-30). Cleared by its own chip above the list. */
+        if (!focus) return ordered;
+        const only = new Set(focus.handles.map(lc));
+        const kept = ordered.filter((h) => only.has(lc(h)));
+        /* Focused people who aren't in this tab still belong in the answer. */
+        const extra = focus.handles.filter((h) => !ordered.some((o) => lc(o) === lc(h)));
+        return [...kept, ...extra];
+    }, [tab, graph, sort, statOf, starredPeople, cartelHandles, sharedBy, lens, dramaOf, lastMoveBy, focus]);
 
     /* Profile tags for everyone in the ledger — resolved ONCE here and handed
        down, so a hundred rows are one read, not a hundred. The dossier reads
@@ -585,13 +601,15 @@ export default function FollowersModal() {
        tab beneath the people who follow you (Brendon, 2026-07-14). */
     const followerProjects = useMemo(() => projectRows.filter((p) => p.held), [projectRows]);
 
-    const isEmpty = tab === 'projects'
+    const isEmpty = focus
+        ? peopleRows.length === 0
+        : tab === 'projects'
         ? projectRows.length === 0
         : tab === 'followers'
             ? peopleRows.length === 0 && followerProjects.length === 0
             : peopleRows.length === 0;
 
-    /* The whole circle, deduped, for the preview strip (Wire + Constellation). */
+    /* The whole circle, deduped, for the preview strip. */
     const previewPeople = useMemo<PreviewPerson[]>(() => {
         const mutualSet = new Set(graph.mutuals.map(lc));
         const seen = new Set<string>();
@@ -659,6 +677,19 @@ export default function FollowersModal() {
                 </div>
             )}
 
+            {/* The preview strip's focus, and the way back out of it. */}
+            {focus && (
+                <div className="fm-focus">
+                    <span className="fm-focus-what">
+                        <span className="fm-focus-ic">{focus.glyph}{VS15}</span> {focus.label.toUpperCase()}
+                    </span>
+                    <span className="fm-focus-n">{focus.handles.length}</span>
+                    <button type="button" className="ambient-chip fm-focus-clear" onClick={() => setFocus(null)} title="Show the whole list again">
+                        CLEAR
+                    </button>
+                </div>
+            )}
+
             <div className="fm-list">
                 {loading && isEmpty ? (
                     <div className="fm-empty fm-loading">Loading…</div>
@@ -666,7 +697,7 @@ export default function FollowersModal() {
                     <div className="fm-empty">
                         {!siweAddress ? 'Sign in to see your circle.' : EMPTY_LINE[tab]}
                     </div>
-                ) : tab === 'projects' ? (
+                ) : tab === 'projects' && !focus ? (
                     projectRows.map((proj) => (
                         <ProjectRow
                             key={proj.project_id}
@@ -702,7 +733,7 @@ export default function FollowersModal() {
                         ))}
                         {/* Projects that follow you (you hold a piece) fold in below
                             the people who follow you (Brendon, 2026-07-14). */}
-                        {tab === 'followers' && followerProjects.map((proj) => (
+                        {tab === 'followers' && !focus && followerProjects.map((proj) => (
                             <ProjectRow
                                 key={`fp:${proj.project_id}`}
                                 proj={proj}
@@ -753,10 +784,13 @@ export default function FollowersModal() {
                                 const t: FollowersTab = graph.mutuals.some((x) => lc(x) === h) ? 'mutuals'
                                     : graph.followers.some((x) => lc(x) === h) ? 'followers' : 'following';
                                 setTabState(t);
+                                setFocus(null);
                                 setInspected(h);
                             }}
                             myStat={siweAddress ? statByAddr[siweAddress.toLowerCase()] : undefined}
                             myHandle={myHandle ? lc(myHandle) : null}
+                            mySlugs={mySlugs}
+                            onFocus={(f) => { setFocus(f); setInspected(null); }}
                         />
                     </div>
                     <div className="followers-plus-body">
