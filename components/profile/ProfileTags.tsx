@@ -12,6 +12,7 @@
  */
 
 import type { ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 import { type Tag, tagPaintHex, tagTextOn } from '../../lib/tags/catalog';
 import { styleName } from '../../lib/profile/nameFont';
 import { PriceMark } from '../brand/PriceMark';
@@ -46,6 +47,9 @@ export function ProfileTags({ tags, font, paint, onTagTap, className, trailing }
        nav. On your OWN profile the tap is already spoken for (the customization
        menu / the WTBS cycle), and that keeps priority. */
     const { open } = useModal();
+    /* The visit is an IN-APP swap, not a page load (Brendon, 2026-07-30 — this
+       tap was one of the two left doing the full boot screen). */
+    const router = useRouter();
     /* Projects the VIEWER holds a piece of — a project tag for one of them
        wears the ownership check after the name (Brendon, 2026-07-29). */
     const ownedProjects = useOwnedProjects();
@@ -54,7 +58,7 @@ export function ProfileTags({ tags, font, paint, onTagTap, className, trailing }
        its room as before. An owner handler (the customization menu on your own
        profile) still wins over both. */
     const tap = onTagTap ?? ((t: Tag) => {
-        if (t.project) { window.location.href = `/art/${t.project}`; return; }
+        if (t.project) { router.push(`/art/${t.project}`); return; }
         open('tag', t.id);
     });
     if (!tags.length && !trailing) return null;

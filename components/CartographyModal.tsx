@@ -33,6 +33,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { useAuth } from '../lib/state/AuthContext';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
@@ -1639,6 +1640,10 @@ class CartoEngine {
 
 export default function CartographyModal() {
     const { openModal, close } = useModal();
+    /* Opening a place from the map is an IN-APP swap: the map closes, then the
+       project slides in (Brendon, 2026-07-30). It used to hard-load the whole
+       document, which meant the boot screen every single time. */
+    const router = useRouter();
     const { isOpen, isTopStacked } = useModalLayer('cartography');
     const { siweAddress } = useAuth();
     const faction = useFaction();
@@ -1681,7 +1686,7 @@ export default function CartographyModal() {
                 onLevel: (lv, name) => setLevel({ level: lv, name }),
                 onWallet: setWallet,
                 onSelect: setPlace,
-                onOpen: (slug) => { window.location.href = `/art/${slug}`; },
+                onOpen: (slug) => { close(); router.push(`/art/${slug}`); },
                 /* Playback ticks arrive per frame — quantised to the slider's
                    1000 steps so React re-renders only when the handle moves. */
                 onTimeCursor: (f) => setTmFrac(Math.round(f * 1000) / 1000),
