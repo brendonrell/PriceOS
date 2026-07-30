@@ -75,7 +75,6 @@ import { usePriceDay } from '../../lib/priceday/usePriceDay';
 import { GhostFeedRows } from '../GhostFeed';
 import FeedEventRow from '../feed/FeedEventRow';
 import { useSort, groupHeaderGlyph } from '../../lib/state/SortContext';
-import { useGalleryCols, colsWidth } from '../../lib/hooks/useGalleryCols';
 import { useToast } from '../../lib/state/ToastContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { TraitsProvider } from '../../lib/state/TraitsContext';
@@ -273,7 +272,6 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
     const feedVisible = onArtworksTab && feedActive;
     /* Live grid column metrics — lets each grouping header cap its width to
        the columns its pieces occupy (glyph ends with the art, 2026-07-12). */
-    const galleryCols = useGalleryCols(galleryVisible && groupedSections != null);
     /* Pre-mint, the trait filter bar would expose the project's feature names
        (Palette / Flow / Grain …) — a spoiler before a single Output exists.
        Hide the whole traits/sort/search bar until something is minted; the
@@ -705,18 +703,14 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                             if (sec.level > 1 && collapsedGroups.has(sec.l1Key)) return [];
                             if (isL3 && sec.l2Key && collapsedGroups.has(sec.l2Key)) return [];
                             const folded = collapsedGroups.has(sec.ckey);
-                            /* Cap the header's width to the columns its pieces
-                               occupy, so the trailing dimension glyph ends with
-                               the group's art — never off at the page edge
-                               (Brendon, 2026-07-12). Soon-groups span the row. */
-                            const nPieces = sec.ids.length > 0 ? sec.ids.length : sec.total;
-                            const capW = !sec.soon && galleryCols && nPieces > 0
-                                ? colsWidth(galleryCols, nPieces) + (isL2 ? 60 : 0) + (isL3 ? 120 : 0)
-                                : undefined;
+                            /* ⛔ A HEADER SPANS THE ROW (Brendon, 2026-07-30 —
+                               "make it exactly the artifact"). It used to cap
+                               itself to the columns its pieces occupy, which
+                               left a one-piece group's title stopping mid-row
+                               with its glyph stranded in the middle. */
                             const header = (
                             <div
                                 key={`hdr-${sec.ckey}`}
-                                style={capW ? { maxWidth: capW } : undefined}
                                 className={`gallery-group-header is-collapsible${isL2 ? ' level-2' : ''}${isL3 ? ' level-3' : ''}${sec.soon ? ' soon' : ''}${folded ? ' collapsed' : ''}`}
                                 role="button"
                                 tabIndex={0}

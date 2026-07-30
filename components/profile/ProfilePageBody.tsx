@@ -123,7 +123,6 @@ import { useStarredPins } from './useStarredPins';
 import { useMoreControls, MORE_CFG, MORE_SORT_LABEL, MORE_GROUP_GLYPH, type MoreMode } from './useMoreControls';
 import ListsPanel from '../lists/ListsPanel';
 import { GroupBtn } from '../project/traitsUIPills';
-import { useGalleryCols, colsWidth } from '../../lib/hooks/useGalleryCols';
 import { usePriceDayPopover } from '../../lib/hooks/usePriceDayPopover';
 import { useProfileAchievements } from './useProfileAchievements';
 import { useLedgerFeed } from '../../lib/feed/useLedgerFeed';
@@ -958,7 +957,6 @@ function ProfilePageBodyInner({
     }, [scMoveEligible, scMoveMode]);
     /* Live grid column metrics — lets each grouping header cap its width to
        the columns its pieces occupy (glyph ends with the art, 2026-07-12). */
-    const galleryCols = useGalleryCols(galleryVisible && onCollected && collectedGroups != null);
 
     /* Mouse drag-to-scroll for the carousels on this page — the artist-project
        Created carousels AND the Profile Logo picker (same handler as the home
@@ -2332,17 +2330,12 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                                               if (isL3 && l2Collapsed) return null;
                                               const ckey = isL3 ? blk.l3Key! : isL2 ? blk.l2Key! : blk.l1Key;
                                               const folded = isL3 ? l3Collapsed : isL2 ? l2Collapsed : l1Collapsed;
-                                              /* Cap the header to the columns its pieces occupy so the
-                                                 trailing dimension glyph ends with the art, never at the
-                                                 page edge (Brendon, 2026-07-12). */
-                                              const nPieces = h.count ?? blk.group?.ids.length ?? blk.cards?.length ?? 0;
-                                              const capW = !h.soon && galleryCols && nPieces > 0
-                                                  ? colsWidth(galleryCols, nPieces) + (isL2 ? 60 : 0) + (isL3 ? 120 : 0)
-                                                  : undefined;
+                                              /* ⛔ A HEADER SPANS THE ROW (Brendon, 2026-07-30 —
+                                                 "make it exactly the artifact"). The old cap stopped a
+                                                 small group's title mid-row with its glyph stranded. */
                                               return (
                                                   <div
                                                       key={hi}
-                                                      style={capW ? { maxWidth: capW } : undefined}
                                                       className={`gallery-group-header is-collapsible${isL2 ? ' level-2' : ''}${isL3 ? ' level-3' : ''}${h.soon ? ' soon' : ''}${folded ? ' collapsed' : ''}`}
                                                       role="button"
                                                       tabIndex={0}
