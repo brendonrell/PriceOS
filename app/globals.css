@@ -5656,8 +5656,13 @@ body.bg-is-yellow .fiat-opt-on { background: #fff; color: var(--hothurt); border
 .glb-slot:disabled { opacity: 0.4; cursor: default; }
 .glb-slot.is-set { background: rgba(0, 0, 0, 0.14); }
 /* The staircase, in miniature — layer 2 steps in once, layer 3 twice, the same
-   read the grid's own headers give. */
-.glb-step { flex: none; }
+   read the grid's own headers give. ⛔ The step is on the PILL ITSELF now
+   (Brendon, 2026-07-30) — a lower pill BEGINS where the number above it sits,
+   so the three slots visibly cascade instead of being three identical bars
+   with their contents nudged. */
+.glb-slot.glb-l2 { margin-left: 10px; width: calc(100% - 10px); }
+.glb-slot.glb-l3 { margin-left: 20px; width: calc(100% - 20px); }
+.glb-step { display: none; }
 .glb-num { flex: none; opacity: 0.6; }
 .glb-val { flex: 1 1 auto; display: inline-flex; align-items: center; gap: 5px; min-width: 0; }
 .glb-empty { opacity: 0.55; }
@@ -6144,7 +6149,18 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.18); }
 /* The GROUP toggle stands apart from the sorts it modifies — extra breathing
    room after it, on top of the row's uniform gap (Brendon, 2026-07-12). Its
    glyph sits 1px lower to centre on the row (Brendon, same day). */
-.sort-btn.group-btn { margin-right: 7px; }
+/* ⛔ THE GROUP CONTROL IS A LONG-PRESS TARGET, so it needs room (Brendon,
+   2026-07-30: "I keep hitting buttons beside it"). The glyph alone was the
+   whole hit area; it now carries real padding on every side and takes that
+   space in the row, which both grows the target and pushes its neighbours
+   clear. touch-action keeps the hold from turning into iOS text selection. */
+.sort-btn.group-btn {
+    margin-right: 7px;
+    padding: 10px 12px;
+    margin-left: -6px;
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+}
 .sort-btn.group-btn .sort-lbl-recent { transform: translateY(1px); }
 /* The home sort row's ◷ clock — dropped 1.5px, then taken back UP 1px
    (Brendon, 2026-07-26, second pass). Scoped to the home row only. */

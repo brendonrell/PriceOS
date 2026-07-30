@@ -127,14 +127,11 @@ export default function GroupLayersBubble({
                             <button
                                 key={layer}
                                 type="button"
-                                className={`glb-slot${key ? ' is-set' : ''}`}
+                                className={`glb-slot${layer > 1 ? ` glb-l${layer}` : ''}${key ? ' is-set' : ''}`}
                                 disabled={!open}
                                 onClick={(e) => { e.stopPropagation(); setPicking(layer); }}
                                 title={open ? `Layer ${layer}` : `Set layer ${layer - 1} first`}
                             >
-                                {/* The staircase in miniature — a slot steps in
-                                    exactly as its headers will in the grid. */}
-                                <span className="glb-step" style={{ width: (layer - 1) * 10 }} aria-hidden="true" />
                                 <span className="glb-num">{layer}</span>
                                 <span className="glb-val">
                                     {key ? (
