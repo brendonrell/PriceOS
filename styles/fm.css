@@ -578,15 +578,10 @@ body.modal-open .fm-bar {
         inset 0 -1px 0 color-mix(in srgb, var(--bg-color) 44%, #000000),
         inset 1px 0 0 color-mix(in srgb, var(--bg-color) 72%, #ffffff),
         inset -1px 0 0 color-mix(in srgb, var(--bg-color) 60%, #000000);
-    transition: transform 0.22s ease, opacity 0.18s ease;
 }
-.fm-usbcap--off::before {
-    transform: translateX(-16px) rotate(-8deg);
-    opacity: 0;
-}
-@media (prefers-reduced-motion: reduce) {
-    .fm-usbcap::before { transition: none; }
-}
+/* ⛔ THE CAP JUST APPEARS AND DISAPPEARS (Brendon, 2026-07-30) — no slide, no
+   tilt, no fade. The old motion is what made the tap read as a glitch. */
+.fm-usbcap--off::before { display: none; }
 
 /* the pulse bars — rendered in every face, shown only on TAB */
 .fm-sigbars { display: none; }
