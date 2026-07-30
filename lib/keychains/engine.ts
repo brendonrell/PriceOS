@@ -712,10 +712,40 @@ export const POSE_NAMES = ['PEACE', 'WAVE', 'CHEER', 'HIPS', 'CHILL'] as const;
 export const ACC_NAMES = ['NONE', 'BOW', 'HALO', 'CROWN', 'ANTENNA', 'WINGS'] as const;
 export const BROW_NAMES = ['NONE', 'RAISED', 'BENT'] as const;
 
+/* ── THE ELEMENTS (Brendon, 2026-07-30) ───────────────────────────────────
+   THE TOP-LEVEL ATTRIBUTE — the main thing that organizes the charms. Every
+   shape belongs to exactly one of six elements, two shapes each, and each
+   element owns a colour. It is a CLASSIFICATION of the existing shapes, not
+   a new roll: no salt, no change to the gene roll, and the art is untouched.
+   An element's rarity is simply its two shapes' weights added up —
+   AIR 24 · WATER 22 · SPACE 19 · FIRE 12 · TIME 12 · MINERALS 11. */
+
+export const ELEMENT_NAMES = ['AIR', 'SPACE', 'FIRE', 'MINERALS', 'WATER', 'TIME'] as const;
+
+/** Each element's colour (Brendon's assignment). Drawn from the charm
+ *  palette's own hexes so they sit in the same colour world as the art. */
+export const ELEMENT_HEX = ['#FF8A3D', '#45B8E8', '#E84A5E', '#3BC69F', '#F2D75C', '#8A4FD1'] as const;
+
+/** shape index → element index. HEART·BOLT air · STAR·MOON space ·
+ *  TAG·SPARK fire · GEM·PLANET minerals · FLOWER·CLOVER water ·
+ *  GHOST·ALIEN time. */
+const SHAPE_ELEMENT = [0, 1, 4, 5, 4, 0, 2, 1, 3, 3, 2, 5] as const;
+
+/** The element a charm belongs to, off its shape. */
+export function elementFor(shape: number): number {
+    return SHAPE_ELEMENT[shape] ?? 0;
+}
+
+/** The element a charm belongs to, off its seed. */
+export function charmElement(seed: `0x${string}`, coin: Coin = 0, luck: Luck = 0): number {
+    return elementFor(genes(seed, coin, luck).shape);
+}
+
 /** The reveal-card trait sheet for a charm. */
 export function charmTraits(seed: `0x${string}`, luck: Luck, coin: Coin = 0): { k: string; v: string }[] {
     const g = genes(seed, coin, luck);
     return [
+        { k: 'Element', v: ELEMENT_NAMES[elementFor(g.shape)]! },
         { k: 'Coin', v: COIN_NAMES[coin]! },
         { k: 'Shape', v: SHAPE_NAMES[g.shape]! },
         { k: 'Palette', v: PALETTE_NAMES[g.palette]! },
