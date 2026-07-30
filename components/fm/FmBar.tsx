@@ -471,7 +471,15 @@ export default function FmBar() {
        left behind (Brendon, 2026-07-20 — supersedes THE DOT). The saved
        session dies WITH it — off must stay off (the stale-state lesson). */
     const closePlayer = () => {
-        playerRef.current?.destroy();
+        /* ⛔ YOUTUBE'S OWN TEARDOWN THROWS when the station is still booting —
+           its internals aren't wired until the iframe reports ready, so a × on
+           a station that is still tuning raises out of this handler, and an
+           uncaught throw here takes the whole page to the error screen
+           (Brendon, 2026-07-30: "closing the player seems to crash it").
+           Tear it down defensively, then sweep any iframe it left behind so the
+           device — and the sound — really does go. */
+        try { playerRef.current?.destroy(); } catch { /* still booting — swept below */ }
+        barRef.current?.querySelectorAll('iframe').forEach((f) => f.remove());
         playerRef.current = null;
         startingRef.current = false;
         wantRef.current = null;
