@@ -880,6 +880,17 @@ explicit chat confirmation.
 
 ## 9. UX standards (Brendon's product pet peeves → rules)
 
+- **⛔ PRICESPRITES STAY THEIR DESIGNATED SIZE — ALWAYS (Brendon, 2026-07-30).**
+  A PriceSprite is drawn at the site's sprite size (the profile ID row's
+  13.6px; the smaller chip variants where those already exist) and **NEVER
+  scaled up to fill a surface.** Blown up they do not look right — the face is
+  a fixed little composition, not a graphic that rewards size. So: a new
+  surface REUSES an existing sprite size (Rule #0), and **enlarging one
+  requires Brendon explicitly asking for it, on that surface, in words.**
+  "It looked small in the space" is not a reason — the space adapts to the
+  sprite, never the sprite to the space. (The failure: the home news rail's
+  face pill shipped at nearly double size.)
+
 - **⛔ BANNED AI-SLOP MOTIFS — the shapes Claude reaches for that are NOT PD
   (Brendon, 2026-07-24, hard rule).** These are house-style tells every model
   drifts into. They are banned on every PD surface, forever:

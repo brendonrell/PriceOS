@@ -2176,7 +2176,10 @@ body.theme-bright .news-pill-name {
    the row's widths vary. */
 .news-pill--sprite { gap: 8px; }
 .news-pill-sprite {
-    font-size: 26px;
+    /* ⛔ THE SPRITE WEARS ITS DESIGNATED SIZE (Brendon, 2026-07-30) — the ID
+       row's 13.6px, same as every other PriceSprite on the site. It shipped
+       here at 26px and blown up is exactly how a sprite stops looking right. */
+    font-size: 13.6px;
     line-height: 1;
     flex-shrink: 0;
     display: inline-flex;
