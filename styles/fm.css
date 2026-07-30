@@ -720,6 +720,14 @@ body.modal-open .fm-bar {
     padding: 6px;
 }
 
+/* ⛔ ON THE USB FACE THE POP-OUTS CENTRE ON THE SCREEN, not on the stick
+   (Brendon, 2026-07-30). The USB chassis is deliberately offset 11px right so
+   the cap+body assembly reads centred (--fm-tx above), and a panel centred on
+   the chassis inherited that shove — it hung off-centre and ran past the right
+   edge. Taking the same 11px back puts both shelves (STATIONS and YOUR TRACKS)
+   dead centre on the screen. */
+.fm-mode-usb .fm-picker { left: calc(50% - 11px); }
+
 .fm-picker-head {
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px;
