@@ -27,7 +27,7 @@ import { lockBodyScroll, unlockBodyScroll } from '../../lib/state/bodyScrollLock
 import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
 import {
-    CRANK_PRICE_ETH, charmSVG, charmTraits, genes, isValidCharmName, luckFor, SHAPE_NAMES,
+    CRANK_PRICE_ETH, charmSVG, charmTraits, genes, isValidCharmName, luckFor, oddsFor, SHAPE_NAMES,
     type CharmRecord, type Coin,
 } from '../../lib/keychains/engine';
 import { useKeychainRack, bustRack, refreshRack } from '../../lib/keychains/rack';
@@ -35,8 +35,6 @@ import { requestMotion } from '../../lib/keychains/sway';
 
 const VS15 = '︎';
 
-/** What a streak buys at the machine — the odds tier, in plain words. */
-const LUCK_LABEL = ['BASE', 'BETTER', 'STRONG', 'BEST'] as const;
 
 function CharmArt({ charm, uid, className }: {
     charm: CharmRecord; uid: string; className?: string;
@@ -222,6 +220,7 @@ export default function DepanneurModal() {
     /* What the streak is buying at the machine right now — the same tier the
        crank will bank into the charm. */
     const luck = luckFor(streak, rack?.rank ?? 0);
+    const odds = oddsFor(luck);
     /* The bar fills toward the next odds tier (7 · 30 · 100 days); at the top
        tier it simply sits full. */
     const tierStart = streak >= 100 ? 100 : streak >= 30 ? 30 : streak >= 7 ? 7 : 0;
@@ -357,7 +356,9 @@ export default function DepanneurModal() {
                                     </div>
                                     <div className="dp-streak-read">
                                         <span><b>{streak}</b> DAY STREAK</span>
-                                        <span><b>{LUCK_LABEL[luck]}</b> ODDS{nextAt != null ? ` · ${nextAt - streak} TO NEXT` : ''}</span>
+                                        {/* THE REAL NUMBERS, not a word (Brendon, 2026-07-30):
+                                            "IF YOU WRITE STRONG PEOPLE WILL THINK STRONG". */}
+                                        <span>RARE <b>{odds.rare}%</b> · ULTRA <b>{odds.ultra}%</b>{nextAt != null ? ` · ${nextAt - streak} TO NEXT` : ''}</span>
                                     </div>
                                 </div>
                             </div>

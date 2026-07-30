@@ -98,6 +98,14 @@ const TIER_CUTS: number[][] = [
     [390, 730, 900],
 ];
 
+/** The live chance of a RARE / an ULTRA at this odds tier, in percent —
+ *  read straight off the same cuts the roll uses, so the readout can state
+ *  the real numbers instead of a word (Brendon, 2026-07-30). */
+export function oddsFor(luck: Luck): { rare: number; ultra: number } {
+    const c = TIER_CUTS[luck] ?? TIER_CUTS[0]!;
+    return { rare: (c[2]! - c[1]!) / 10, ultra: (1000 - c[2]!) / 10 };
+}
+
 function tierRoll(seed: `0x${string}`, salt: number, luck: Luck): number {
     const x = d(seed, salt, 1000n);
     const c = TIER_CUTS[luck] ?? TIER_CUTS[0]!;

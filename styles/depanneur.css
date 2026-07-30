@@ -189,12 +189,15 @@
     background: var(--dp-panel);
     border: 2px solid var(--text-color);
     border-radius: 4px;
-    padding: 26px 12px;
-    box-shadow: 0 3px 0 var(--text-color);
+    padding: 15px 12px;
+    /* TALLER = A DEEPER SHADOW, NOT MORE HEIGHT (Brendon, 2026-07-30) — the
+       block under the face grows so the button stands taller off the panel;
+       the press and the held state still travel exactly that depth. */
+    box-shadow: 0 8px 0 var(--text-color);
     transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
 .dp-coin-slot:active {
-    transform: translateY(3px);
+    transform: translateY(8px);
     box-shadow: 0 0 0 var(--text-color);
 }
 .dp-coin-name { font-size: 13px; font-weight: bold; letter-spacing: 1.5px; }
@@ -206,7 +209,7 @@
     /* Held: the coin is IN — the face drops onto its own floor (same 3px the
        lift occupied, so nothing shifts) and takes a shaded lip along the top
        edge, so a selected slot reads sunken, not just recoloured. */
-    transform: translateY(3px);
+    transform: translateY(8px);
     box-shadow: inset 0 4px 0 #C4678B;
 }
 
