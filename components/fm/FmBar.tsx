@@ -914,8 +914,10 @@ export default function FmBar() {
                 </span>
                 {/* The USB face draws a REAL dot-matrix LCD instead of styled
                     text — the shop's own pixel font, black glass, lit segments
-                    (Brendon, 2026-07-28). Every other face keeps its rows. */}
-                {display === 'usb' ? (
+                    (Brendon, 2026-07-28). The DECK reads on the same glass
+                    (Brendon, 2026-07-30) — same deck in every other respect,
+                    only the readout style changes. TAB and DISC keep rows. */}
+                {display === 'usb' || isDeckFace ? (
                     <FmLcd
                         rows={[rowTrack, rowStation, rowStatus]}
                         playing={status === 'playing'}

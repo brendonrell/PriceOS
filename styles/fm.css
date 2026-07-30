@@ -192,6 +192,10 @@ body.modal-open .fm-bar {
    constant-size device; long titles scroll INSIDE this box (the ticker
    below) instead of stretching it. */
 .fm-mode-deck .fm-rows { width: 150px; flex: 0 0 150px; max-width: 150px; }
+/* the deck's dot-matrix glass takes the readout's exact footprint, so bringing
+   the matrix to the deck (Brendon, 2026-07-30) changes the STYLE only — the
+   device stays the same size it has always been */
+.fm-mode-deck .fm-lcd { width: 150px; flex: 0 0 150px; max-width: 150px; }
 
 .fm-lcd-row {
     display: block;
