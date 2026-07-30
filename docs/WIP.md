@@ -8,8 +8,62 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-30 (LATEST) — MINIPLAYER POLISH ROUND, all on `dev` (tip
-   `210f862`), tree clean. Nothing outstanding.**
+0. ✅ **2026-07-30 (LATEST) — MINIPLAYER BEHAVIOUR + HOME RAIL + PAGE-LOAD
+   ROUND, all on `dev` (tip `4b732d9`), tree clean. Nothing outstanding.**
+
+   **⛔ THE SOUNDTRACK BUTTON PRESSES ▶ ITSELF — DO NOT UNDO THIS (Brendon,
+   2026-07-30, in fury: "it never fucking loads it just stays stuck on TUNING…
+   WE CONTROL THE FUCKING BUTTON").** Tuning used to hand the player ONE start
+   request; if it didn't take, nothing asked again and the readout sat on
+   TUNING until he pressed ▶ by hand. `FmBar` now holds a `wantPlay` intent and
+   re-fires the same `playVideo()` the ▶ key makes, every 400ms, until the
+   sound is genuinely PLAYING — cleared instantly by a pause, a close, or
+   success, so it can never fight the user. After ~4s it parks on PAUSED rather
+   than lying about TUNING. **Never "simplify" this back to a single call.**
+
+   **Closing the player no longer takes the page down.** YouTube's own teardown
+   throws when the iframe hasn't reported ready; the throw hit the app error
+   screen. Teardown is guarded and any leftover iframe is swept.
+
+   **⛔ NO FILLED PILL ON A USB RING KEY, IN ANY STATE (Brendon, 2026-07-30,
+   twice — the second time with a screenshot).** Bare glyph at rest; a press
+   dips the glyph (opacity .62), never a block behind it. **The trap that bit
+   us:** the shared `.fm-btn:hover` fill is NOT face-scoped and sits LATER in
+   the file, and on iOS the last-tapped key keeps `:hover` forever — so the
+   fill kept reappearing behind whichever key was touched last, and the
+   `(hover: hover)` block never applies on a phone. It is now killed
+   unconditionally for every ring key except ▶ (which owns its frame).
+   **SHUFFLE: ON is full-strength + bold, OFF sits back at .62** — the active
+   state is never the dimmer one.
+
+   **USB geometry this round.** Play glyph moved inside its frame (the FRAME
+   never moves — nudges are done with its padding, not a transform); play frame
+   8px wider, 4px each side, growing from its centre. Changer, forward, shuffle
+   and × each nudged sub-pixel. **The stick now centres on CAP + BODY**, not
+   the body alone — the cap hangs 22px off the left end, so the chassis carries
+   an 11px offset. TUNING breathes (1.4s, full↔half, never dark, stands down
+   under reduced motion) — the LCD canvas supports a `flashRow`.
+
+   **Home news rail.** One continuous marquee anchored to the WALL CLOCK — it
+   used to resume from wherever the last mount left it, so every fresh load
+   replayed the first few pills and the tail was unreachable. Face pills now
+   draw the NAMED account's sprite (they were drawing the viewer's own, because
+   the sprite engine is a single global for whoever is signed in) — still, not
+   animated; Brendon parked animating everyone's for now. Sprite size back to
+   the site's 13.6px, and **a new §9 rule: PriceSprites never get scaled up
+   without him asking.** Copy: KEYCHAINS!, and ALMOST MINTING → ALMOST
+   GRADUATED.
+
+   **The random full-page loading screen is FIXED.** React re-injects the boot
+   overlay on a client-side page change; the only thing keeping it inert is a
+   stamp on `<html>` — and that stamp was set ONLY inside the fade's finish
+   callback. Any boot where the callback never ran (loader already gone, or the
+   app backgrounded across the fade) left the session unstamped and the next
+   in-app change painted a full Loading screen. The stamp is now guaranteed.
+   The last two hard-loading taps — a project tag on a profile, and opening a
+   place from Cartography — route in-app (the map closes first).
+
+1. ✅ **2026-07-30 — MINIPLAYER POLISH ROUND (earlier).**
 
    **USB face.** Black screen's left edge moved in 10px. Play key bigger, the
    pad ring around it smaller. Changer glyph down one size. Shuffle up two
@@ -37,7 +91,7 @@
    **Error screen.** The crash/reload screen's two lines were dimmed to 60–70%;
    the dimming is off and both are a size larger.
 
-1. ✅ **2026-07-30 — THE CONTRACTS CAUGHT UP: rarity ported, ELEMENTS
+2. ✅ **2026-07-30 — THE CONTRACTS CAUGHT UP: rarity ported, ELEMENTS
    added, and a DEPLOY BLOCKER fixed (Opus 5). App on `dev` (tip `ccb3cae`),
    contracts on `pd-contracts` main (tip `3259851`). Both trees clean.**
 
