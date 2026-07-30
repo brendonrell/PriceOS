@@ -377,6 +377,9 @@ body.modal-open .fm-bar {
     justify-self: stretch;
     align-self: center;
     height: 36px;
+    /* the glass starts 10px further in from the shell's left edge — the body
+       has the room, so nothing else moves (Brendon, 2026-07-30) */
+    margin-left: 10px;
     margin-right: 8px;
     align-items: center;
     /* The MP330's display is a black bezel with soft corners, not a hairline
