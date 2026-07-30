@@ -745,12 +745,12 @@ export default function FmBar() {
                     the cable's own run. */}
                 <rect
                     className="fm-cable-jack"
-                    x="126"
-                    y="15.1"
-                    width="18"
-                    height="7.4"
-                    rx="2.4"
-                    transform="rotate(-6 126 18.8)"
+                    x="124"
+                    y="14.1"
+                    width="24"
+                    height="9.6"
+                    rx="3"
+                    transform="rotate(-6 124 18.9)"
                 />
             </svg>
         )}
