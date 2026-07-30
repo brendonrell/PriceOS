@@ -7957,6 +7957,8 @@ body.lists-dragging { cursor: grabbing; }
 .ggh-count {
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px;
+    /* BOLD, as in the approved model (Brendon, 2026-07-30). */
+    font-weight: bold;
     /* Full strength — group titles are NEVER dimmed (Brendon, 2026-06-16). */
     opacity: 1;
     color: var(--text-color);
@@ -7965,8 +7967,6 @@ body.lists-dragging { cursor: grabbing; }
    grouping, pushed to the END of the header row (Brendon, 2026-06-20). */
 .ggh-glyph {
     margin-left: auto;
-    /* Two sizes up (Brendon, 2026-07-12) — the header rows carry it now that
-       they end with the group's art instead of the page edge. */
     font-size: 18px;
     line-height: 1;
     color: var(--text-color);
