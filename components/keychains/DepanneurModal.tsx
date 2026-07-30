@@ -458,7 +458,18 @@ export default function DepanneurModal() {
                                             key={c.id}
                                             type="button"
                                             className={`dp-rack-slot${shown?.id === c.id ? ' on' : ''}`}
-                                            onClick={() => { setPicked(c.id); setNameDraft(''); }}
+                                            /* Tap opens the charm; tapping the SAME one again puts it
+                                               away (Brendon, 2026-07-30). The just-cranked charm is
+                                               cleared too, or it would fall straight back into view. */
+                                            onClick={() => {
+                                                if (shown?.id === c.id) {
+                                                    setPicked(null);
+                                                    if (fresh?.id === c.id) setFresh(null);
+                                                } else {
+                                                    setPicked(c.id);
+                                                }
+                                                setNameDraft('');
+                                            }}
                                             title={c.name || `Charm #${c.id}`}
                                         >
                                             <CharmArt charm={c} uid={`rk${c.id}`} className="dp-charm-mini" />
