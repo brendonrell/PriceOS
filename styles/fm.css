@@ -357,7 +357,7 @@ body.modal-open .fm-bar {
         /* the same cast shadow thrown 24px further LEFT so the dark band under
            the shell runs all the way out past the cap instead of stopping at the
            body's own left edge (Brendon, 2026-07-30) */
-        -24px 6px 24px rgba(0, 0, 0, 0.45);
+        -36px 6px 24px rgba(0, 0, 0, 0.45);
 }
 /* the metal USB plug, out the LEFT end (shown when the cap pops) —
    brushed steel with the two connector slots; the one deliberately
