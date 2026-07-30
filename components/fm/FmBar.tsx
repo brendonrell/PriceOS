@@ -868,7 +868,7 @@ export default function FmBar() {
             >
                 {status === 'playing' || status === 'loading'
                     ? <span className="fm-pause-glyph">‖</span>
-                    : '▶︎'}
+                    : <span className="fm-play-glyph">▶︎</span>}
             </button>
             {display === 'usb' && (
                 <button
