@@ -7925,9 +7925,9 @@ body.lists-dragging { cursor: grabbing; }
    hierarchy reads at a glance. The step DOUBLED to 60px (Brendon, 2026-07-30,
    off the working model): level 2 sits at 60, level 3 at 120, an even flight
    with far more daylight between the levels. Labels step 13 → 12 → 11 and the
-   third goes italic. The art steps with its section (.gc-d1 / .gc-d2) — a
-   nested piece sitting back at the page edge is what made a third level look
-   like it belonged to nothing. ── */
+   third goes italic. ⛔ THE ART IS NEVER INDENTED (Brendon, 2026-07-30) — the
+   staircase is the TITLES' alone. Stepping the cards in narrowed the columns
+   and wrecked the grid; the pieces always sit full-size on the page margin. ── */
 .gallery-group-header.level-3 {
     margin-top: 2px;
     padding-left: 120px;
@@ -7988,10 +7988,6 @@ body.lists-dragging { cursor: grabbing; }
     gap: 8px;
     align-self: start;
 }
-/* A grouped piece steps in with the title that owns it, matching the
-   staircase above (Brendon, 2026-07-30). */
-.output-card.gc-d1 { margin-left: 60px; }
-.output-card.gc-d2 { margin-left: 120px; }
 .output-card.hidden { display: none !important; }
 .output-card.search-hidden { display: none !important; }
 /* ProjectShowcase tab (sim ~2352-2356, renamed to project-showcase-* naming).

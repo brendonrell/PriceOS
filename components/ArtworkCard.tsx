@@ -144,10 +144,6 @@ import { useAuth } from '../lib/state/AuthContext';
 
 interface ArtworkCardProps {
     id: number;
-    /** How deep the grouping section holding this piece sits: 0 = level one,
-     *  1 = level two, 2 = level three. The card steps in with its title so a
-     *  nested piece never sits back at the page edge (Brendon, 2026-07-30). */
-    groupDepth?: 0 | 1 | 2;
     /* ProjectShowcase tab (sim ~13113-13130). Page picks 6 random ids per
        session as the project showcase and passes this flag down; the card
        wears `.project-showcase-pick` so #gallery.project-showcase-mode CSS
@@ -214,7 +210,6 @@ const MOCK_FLOOR_ETH = 0.042;
 
 function ArtworkCard({
     id,
-    groupDepth = 0,
     projectShowcasePick = false,
     showcaseLead = false,
     isBreadcrumb = false,
@@ -865,7 +860,6 @@ function ArtworkCard({
     const isSelected = isOutputSelected(slug, id);
     const articleClass =
         'output-card' +
-        (groupDepth === 1 ? ' gc-d1' : groupDepth === 2 ? ' gc-d2' : '') +
         (muted ? ' muted' : '') +
         /* ProjectShowcase tab (sim ~13128-13130). CSS on
            #gallery.project-showcase-mode hides all cards except those

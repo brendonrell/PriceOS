@@ -749,7 +749,6 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                                     <ArtworkCard
                                         key={id}
                                         id={id}
-                                        groupDepth={(sec.level - 1) as 0 | 1 | 2}
                                         projectShowcasePick={projectShowcasePicks.has(id)}
                                         showcaseLead={onShowcaseTab && id === showcaseLeadId}
                                         isBreadcrumb={breadcrumbSample.has(id)}
