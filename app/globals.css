@@ -6149,17 +6149,24 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.18); }
 /* The GROUP toggle stands apart from the sorts it modifies — extra breathing
    room after it, on top of the row's uniform gap (Brendon, 2026-07-12). Its
    glyph sits 1px lower to centre on the row (Brendon, same day). */
-/* ⛔ THE GROUP CONTROL IS A LONG-PRESS TARGET, so it needs room (Brendon,
-   2026-07-30: "I keep hitting buttons beside it"). The glyph alone was the
-   whole hit area; it now carries real padding on every side and takes that
-   space in the row, which both grows the target and pushes its neighbours
-   clear. touch-action keeps the hold from turning into iOS text selection. */
+/* ⛔ THE GROUP CONTROL IS A LONG-PRESS TARGET, so it needs a bigger REACH —
+   and NOTHING ELSE MOVES (Brendon, 2026-07-30: "THE SAME UI JUST BIGGER HIT
+   AREA"). A first pass padded the button and pushed the row around; that was
+   the lazy way and is reverted. The target is an invisible pad hung off the
+   button, which takes no space at all, so the row is pixel-for-pixel what it
+   was. It sits UNDER its neighbours in paint order on purpose: it grows into
+   the empty space above, below and around the glyph, and never steals a tap
+   from the button beside it. */
 .sort-btn.group-btn {
     margin-right: 7px;
-    padding: 10px 12px;
-    margin-left: -6px;
+    position: relative;
     touch-action: manipulation;
     -webkit-touch-callout: none;
+}
+.sort-btn.group-btn::after {
+    content: '';
+    position: absolute;
+    inset: -14px -16px;
 }
 .sort-btn.group-btn .sort-lbl-recent { transform: translateY(1px); }
 /* The + beside the group glyph — "and more layers under this one" (Brendon,
