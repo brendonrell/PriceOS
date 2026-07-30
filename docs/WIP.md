@@ -8,7 +8,85 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-30 (LATEST) — SPOT-EDIT ROUND: STICKER STORE · FOOTER · DOCS ·
+0. ✅ **2026-07-30 (LATEST) — GROUPING REBUILT TO THE APPROVED MODEL ·
+   PROJECTS PRO IS THE INSPECTOR FOR PROJECTS · THE FRIEND INSPECTOR STRIP ·
+   FIRST-OPEN LAG KILLED ON EVERY SLIDING PANEL. All on `dev` (tip
+   `af8cdefe`), tree clean. Nothing outstanding.**
+
+   **GROUPING — the artifact IS the spec.** Brendon approved a working model
+   (an artifact) and said "add italics then push that". It was shipped in
+   pieces first and he was right to call it: **when he approves a model, match
+   it line for line, not halfway.** Where it landed:
+   - Staircase step DOUBLED — level 2 at 60px, level 3 at 120px.
+   - The connector runs from the PAGE EDGE in to each title (52px / 112px),
+     not a stub beside it.
+   - Level 3 labels are ITALIC. Labels step 13 → 12 → 11.
+   - Fold triangle 32/26/21 and the dimension glyph both FULL STRENGTH; the
+     count is BOLD.
+   - **⛔ HEADERS SPAN THE ROW.** The old cap-to-its-pieces'-columns rule is
+     gone — it stranded a small group's glyph mid-row.
+   - **⛔ THE ART IS NEVER INDENTED.** The staircase is the TITLES' alone.
+     Indenting cards narrowed the columns and wrecked the grid.
+   - **⛔ 4-ACROSS IS DEAD** — reverted to the exact pre-change state (see the
+     new REVERT rule in CLAUDE.md). A grouped grid is TWO across, like an
+     ungrouped one.
+   - The layer menu: a third of the screen tall, slots CASCADE (each pill
+     begins where the number above it sits), and **any dimension with nothing
+     to split on this surface greys out** — computed live per surface.
+   - The group control wears the TOP layer's glyph with a **+** when more
+     layers sit under it, and its long-press target is an invisible pad that
+     takes NO space (a first pass padded the button — vetoed).
+
+   **SPEED (sorting/grouping).** The control now paints the instant you tap it
+   (the grid rebuild is deferred a frame, the same trick the trait pills have
+   always used); one rebuild per tap instead of two; dead grid-measuring
+   removed; and the new arrangement lands with ONE short settle on the grid —
+   deliberately not one animation per card.
+
+   **⛔ FIRST-OPEN LAG WAS ALWAYS THE CONTENT, NOT THE SLIDE (Brendon,
+   2026-07-30: "you've been chasing the animation").** Sliding panels started
+   their reads on OPEN, so the first open sat on the network, showed a loading
+   line, then re-laid itself out. Fixed with ONE shared warm cache
+   (`lib/net/warmCache.ts`): the read happens while the page is idle, the panel
+   seeds from it synchronously, and each open re-reads in the BACKGROUND behind
+   the cached copy so nothing goes stale. Wired into Completionism, the
+   Purchase Pal (market + months + holdings) and the Exchange picker. The Cart
+   fetches nothing; offer sheets are per-piece so there is nothing to warm.
+
+   **PROJECTS PRO — now the Friend Inspector, for Projects.** Tabs with counts
+   (ALL · HELD · STARRED · MINTING), sort (A–Z · newest · size · minted), three
+   lenses, star-to-pin, tap-to-unfold dossier (mint progress, outputs, price,
+   uploaded, cartel), and a preview strip (project roster / 30 days).
+   **⛔ FACTIONS ARE A FILTER ONLY** — never drawn on a row (Brendon: "not
+   everyone will give two fucks about factions"). Creator profile tags DO ride
+   the rows, and both factions and tags are offered as filters.
+
+   **FRIEND INSPECTOR STRIP — rebuilt.** The scrolling WIRE and the starfield
+   MAP are gone ("I hate our friend inspector preview"). Three live reads on
+   the same floating-chip nav: OVERLAP (your holdings vs your circle's — tap a
+   project to narrow the ledger to its holders), ROSTER (the circle as faces,
+   mutuals ringed), 30 DAYS (activity by day — tap a day to narrow the ledger).
+
+   **WORN KEYCHAIN — the draw path was rebuilt (Brendon: "at like 10fps…
+   REMOVE PRIOR FIXES and start fresh").** The cause was one SVG holding the
+   ring, links and charm: moving a group inside it re-rasterizes the whole
+   vector every frame. Now each link and the charm is its OWN pre-drawn layer
+   moved by a transform only. Also: **with tilt granted the scroll shove is
+   OFF** — the two drives were fighting and that was the scroll-up stutter.
+
+   **PROJECT TAGS ARE OFF BY DEFAULT** platform-wide now (they were the one
+   default-on exception). Otherwise unchanged — one tap in the picker wears one.
+
+   **MINIPLAYER — the toast wordmark law.** Toasts must write the LOWERCASE
+   `miniplayer`; that is what the italic + ™ treatment matches. A session
+   capitalised all ten and silently killed both. Also: USB pop-outs centre on
+   the SCREEN (the stick is offset 11px so cap+body read centred), and the
+   changer/play/forward glyphs each dropped 0.5px (pause untouched — settled).
+
+   **SHOWCASE COUNTDOWN** lost its box and sits on the page's normal side
+   buffer; the Studio copy keeps its frame.
+
+1. ✅ **2026-07-30 — SPOT-EDIT ROUND: STICKER STORE · FOOTER · DOCS ·
    DEPANNEUR · THE WORN KEYCHAIN'S COST, all on `dev` (tip `7e03bb5`), tree
    clean. Nothing outstanding.**
 
