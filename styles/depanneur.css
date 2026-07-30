@@ -468,4 +468,11 @@
     width: 91px;
     height: 91px;
     overflow: visible;
+    /* ⛔ ITS OWN LAYER (Brendon, 2026-07-30 — "causing the app to lag…
+       especially when changing tabs"). The chain hangs OUTSIDE this box, so
+       every swing frame was invalidating the hero and the tab panel it hangs
+       over and repainting them at 60fps. Promoted, the swing repaints only
+       itself and the page underneath is left alone. The motion is untouched. */
+    will-change: transform;
+    transform: translateZ(0);
 }

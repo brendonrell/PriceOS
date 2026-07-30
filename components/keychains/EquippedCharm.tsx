@@ -67,6 +67,7 @@ export default function EquippedCharm({ address }: { address: string }) {
 
     const linkRefs = useRef<(SVGGElement | null)[]>([]);
     const charmRef = useRef<SVGGElement | null>(null);
+    const hostRef = useRef<HTMLSpanElement | null>(null);
 
     useEffect(() => {
         if (!art) return;
@@ -130,8 +131,16 @@ export default function EquippedCharm({ address }: { address: string }) {
 
         let raf = 0;
         let calm = 0;
+        /* ⛔ IT ONLY SOLVES WHEN IT IS ON SCREEN (Brendon, 2026-07-30). The
+           chain used to keep swinging and repainting while scrolled far away
+           or while the app sat in the background, so every scroll and every
+           tab tap paid for motion nobody could see. Off screen it parks; the
+           moment it comes back it drops the shoves it missed and carries on
+           exactly as before. Nothing about the hang or the bob changes. */
+        let onScreen = true;
 
         const step = () => {
+            if (!onScreen || document.hidden) { raf = 0; return; }
             const g = gravity();
             const k = takeKick();
             const gxa = g.x * GRAV;
@@ -179,13 +188,34 @@ export default function EquippedCharm({ address }: { address: string }) {
             raf = requestAnimationFrame(step);
         };
 
-        const kick = () => { calm = 0; if (!raf) raf = requestAnimationFrame(step); };
+        const kick = () => {
+            if (!onScreen || document.hidden) return;
+            calm = 0;
+            if (!raf) raf = requestAnimationFrame(step);
+        };
         const stopWake = onWake(kick);
+
+        const io = typeof IntersectionObserver !== 'undefined' && hostRef.current
+            ? new IntersectionObserver((entries) => {
+                const vis = entries[entries.length - 1]?.isIntersecting ?? true;
+                if (vis === onScreen) return;
+                onScreen = vis;
+                if (vis) { takeKick(); kick(); }
+                else if (raf) { cancelAnimationFrame(raf); raf = 0; }
+            }, { rootMargin: '80px' })
+            : null;
+        io?.observe(hostRef.current!);
+
+        const onVis = () => { if (!document.hidden) { takeKick(); kick(); } };
+        document.addEventListener('visibilitychange', onVis);
+
         kick();
 
         return () => {
             stopWake();
             stopSway();
+            io?.disconnect();
+            document.removeEventListener('visibilitychange', onVis);
             if (raf) cancelAnimationFrame(raf);
         };
     }, [art]);
@@ -193,6 +223,7 @@ export default function EquippedCharm({ address }: { address: string }) {
     if (!charm || !art) return null;
     return (
         <span
+            ref={hostRef}
             className="pd-charm-worn"
             role="button"
             tabIndex={0}
