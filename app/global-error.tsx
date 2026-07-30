@@ -37,10 +37,10 @@ export default function GlobalError({
                     fontFamily: "'Courier New', Courier, monospace",
                 }}
             >
-                <div style={{ fontSize: 13, letterSpacing: '0.12em', opacity: 0.7 }}>
+                <div style={{ fontSize: 15, fontWeight: 'bold', letterSpacing: '0.12em' }}>
                     PRICE DISCUSSION
                 </div>
-                <div style={{ fontSize: 12, maxWidth: 320, lineHeight: 1.5, opacity: 0.6 }}>
+                <div style={{ fontSize: 14, maxWidth: 320, lineHeight: 1.5 }}>
                     The app hit an unexpected snag and needs to reload.
                 </div>
                 <button
