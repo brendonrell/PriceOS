@@ -479,11 +479,15 @@ body.modal-open .fm-bar {
 .fm-mode-usb .fm-play {
     grid-column: 3;
     grid-row: 2;
-    width: 26px;
+    /* 7px narrower and centred in the pad ring; the ▶ itself does NOT move —
+       the padding holds the glyph on the exact spot it already sits
+       (Brendon, 2026-07-30) */
+    box-sizing: border-box;
+    width: 19px;
     height: 21px;
+    padding-left: 4px;
     background: var(--bg-color);
     border: 1px solid var(--text-color);
-    transform: translateX(2px);
 }
 /* The pad's cross: ⟳ SHUFFLE top · ⎇ face-changer left · ≫ right · × bottom ·
    ▶ centre. Top and bottom ride IN toward the centre so neither breaks out over
