@@ -264,6 +264,44 @@ export default function FmBar() {
        `start`), because choosing a station by hand means abandoning the run. ── */
     const queueRef = useRef<Station[]>([]);
 
+    /* ══ THE SOUNDTRACK BUTTON PRESSES ▶ FOR YOU ══════════════════════════════
+       ⛔ (Brendon, 2026-07-30, in fury: "it never fucking loads it just stays
+       stuck on TUNING... MAKE THE PLAY BUTTON PRESS WHEN THE USER HITS THE
+       GODDAMN SOUNDTRACK BUTTON. WE CONTROL THE FUCKING BUTTON.")
+
+       Tapping a soundtrack used to hand the player ONE start request. If that
+       first request didn't take, nothing ever asked again — the readout sat on
+       TUNING until Brendon pressed ▶ himself, which always worked. So we press
+       it for him: the same call the ▶ key makes, fired the moment the station
+       reports in and repeated every 400ms until the sound is genuinely running.
+       `wantPlay` is the intent — set by tuning, cleared the instant the sound
+       plays, the user pauses, or the device closes — so this can never fight a
+       deliberate pause or press on after a close. */
+    const wantPlayRef = useRef(false);
+    const pressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const stopPressing = useCallback(() => {
+        if (pressTimerRef.current) { clearInterval(pressTimerRef.current); pressTimerRef.current = null; }
+    }, []);
+    const pressPlay = useCallback((p: YTPlayer) => {
+        stopPressing();
+        if (!wantPlayRef.current) return;
+        let tries = 0;
+        const press = () => {
+            if (!wantPlayRef.current || statusRef.current === 'playing') { stopPressing(); return; }
+            if (tries++ >= 10) {
+                /* Four seconds of asking and it still won't run — stop lying
+                   about TUNING and park on PAUSED so ▶ reads true. */
+                stopPressing();
+                if (statusRef.current === 'loading') setStatus('paused');
+                return;
+            }
+            try { p.playVideo(); } catch { /* not wired up yet — the next tick asks again */ }
+        };
+        press();
+        pressTimerRef.current = setInterval(press, 400);
+    }, [stopPressing]);
+    useEffect(() => () => stopPressing(), [stopPressing]);
+
     const start = useCallback((station: Station) => {
         queueRef.current = []; // a hand-picked station abandons any run
         resumeRef.current = null; // a fresh tune plays now — never the saved spot
@@ -273,14 +311,17 @@ export default function FmBar() {
         setStatus('loading');
         setDeadLink(false);
         errCountRef.current = 0;
+        /* the tap on the soundtrack IS the press on ▶ */
+        wantPlayRef.current = true;
         armWatchdog();
         if (playerRef.current) {
             if (isPlaylistId(station.playlistId))
                 playerRef.current.loadPlaylist({ list: station.playlistId, listType: 'playlist' });
             else
                 playerRef.current.loadVideoById(station.playlistId);
+            pressPlay(playerRef.current);
         }
-    }, [armWatchdog]);
+    }, [armWatchdog, pressPlay]);
 
     /* Put a run on air: the first station now, the rest waiting. The queue is
        set AFTER the tune because `start` deliberately wipes it. */
@@ -325,6 +366,7 @@ export default function FmBar() {
         if (!saved) return;
         const station: Station = { playlistId: saved.playlistId, label: saved.label, slug: saved.slug };
         resumeRef.current = { index: saved.index, t: saved.t };
+        wantPlayRef.current = false; // a restored session comes back PAUSED, by design
         wantRef.current = station;
         setOnAir(station);
         setTrackTitle('');
@@ -365,7 +407,7 @@ export default function FmBar() {
                             else e.target.cueVideoById({ videoId: station.playlistId, startSeconds: r.t });
                             return; // stays cued; ▶ (a real tap) starts the sound
                         }
-                        e.target.playVideo();
+                        pressPlay(e.target);
                     },
                     onStateChange: (e: { data: number; target: YTPlayer }) => {
                         /* ANY word from the player means the station is alive —
@@ -378,8 +420,13 @@ export default function FmBar() {
                            iOS gives us when it blocks autoplay. That is READY,
                            not dying: say PAUSED and let ▶ do its job. */
                         if (e.data === YT.PlayerState.CUED && statusRef.current === 'loading') {
-                            setStatus('paused');
                             setDeadLink(false);
+                            /* CUED after a tune means the station is loaded and
+                               waiting to be told to go — so tell it, exactly as
+                               the ▶ key would. Only a station nobody asked to
+                               play parks here. */
+                            if (wantPlayRef.current) pressPlay(e.target);
+                            else setStatus('paused');
                         }
                         /* Only trust the title on PLAYING — the freshly-started
                            video. Reading it on the old video's PAUSED/ENDED
@@ -390,13 +437,21 @@ export default function FmBar() {
                             const title = e.target.getVideoData?.()?.title ?? '';
                             if (title) setTrackTitle(title);
                             resumeRef.current = null; // sound is live — the cue spot is spent
+                            wantPlayRef.current = false; // it's running; stop pressing ▶
+                            stopPressing();
                             setStatus('playing');
                             setDeadLink(false);
                             errCountRef.current = 0;
                             if (watchdogRef.current) { clearTimeout(watchdogRef.current); watchdogRef.current = null; }
                             saveSession(false);
                         }
-                        else if (e.data === YT.PlayerState.PAUSED) { setStatus('paused'); saveSession(true); }
+                        else if (e.data === YT.PlayerState.PAUSED) {
+                            /* A pause is the user's word — never press over it. */
+                            wantPlayRef.current = false;
+                            stopPressing();
+                            setStatus('paused');
+                            saveSession(true);
+                        }
                         else if (e.data === YT.PlayerState.ENDED) {
                             /* A run rolls on here and ONLY here: the station on
                                air has genuinely reached its end and something
@@ -478,6 +533,8 @@ export default function FmBar() {
            (Brendon, 2026-07-30: "closing the player seems to crash it").
            Tear it down defensively, then sweep any iframe it left behind so the
            device — and the sound — really does go. */
+        wantPlayRef.current = false;
+        stopPressing();
         try { playerRef.current?.destroy(); } catch { /* still booting — swept below */ }
         barRef.current?.querySelectorAll('iframe').forEach((f) => f.remove());
         playerRef.current = null;
@@ -498,8 +555,15 @@ export default function FmBar() {
     };
 
     const onPlayTap = () => {
-        if (status === 'playing') { playerRef.current?.pauseVideo(); return; }
-        playerRef.current?.playVideo();
+        if (status === 'playing') {
+            wantPlayRef.current = false;
+            stopPressing();
+            playerRef.current?.pauseVideo();
+            return;
+        }
+        /* A real ▶ is the strongest possible intent — hold it until it runs. */
+        wantPlayRef.current = true;
+        if (playerRef.current) pressPlay(playerRef.current);
     };
 
     const onNextTap = () => playerRef.current?.nextVideo();
