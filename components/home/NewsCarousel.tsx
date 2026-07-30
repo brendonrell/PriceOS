@@ -147,11 +147,6 @@ function NewsPill({ item }: { item: NewsItem }) {
 
 export default function NewsCarousel({ items = PLACEHOLDER_ITEMS }: { items?: NewsItem[] }) {
     const railRef = useRef<HTMLDivElement | null>(null);
-    /* The rail's scroll phase (px into the loop), carried across animation
-       re-binds so a re-measure / content change resumes the glide in place
-       instead of snapping back to the start (Brendon, 2026-07-06 — the
-       "stutter while loading" was every restart jumping to px 0). */
-    const phaseRef = useRef(0);
 
     // Content signature — the animation re-binds ONLY when the actual content
     // changes, not on parent re-renders (the featuring row re-rolls on a timer
@@ -178,29 +173,30 @@ export default function NewsCarousel({ items = PLACEHOLDER_ITEMS }: { items?: Ne
         if (!rail) return;
         let cancelled = false;
         let lastHalf = 0;
-        /* Current translate offset in px (0..half) read off the live
-           animation — lets a restart resume exactly where the rail was. */
-        const readPhase = (): number | null => {
-            const tr = getComputedStyle(rail).transform;
-            if (!tr || tr === 'none') return null;
-            const m = tr.match(/^matrix\((.+)\)$/);
-            if (!m) return null;
-            const tx = parseFloat(m[1].split(',')[4]);
-            return Number.isFinite(tx) ? -tx : null;
-        };
         const apply = () => {
             if (cancelled || !rail.isConnected) return;
             const half = rail.scrollWidth / 2;
             if (!half || Math.abs(half - lastHalf) < 1) return;
-            const phase = readPhase() ?? phaseRef.current;
             lastHalf = half;
             const mobile = window.matchMedia('(max-width: 600px)').matches;
             const speed = mobile ? NEWS_BANNER_SPEED.mobile : NEWS_BANNER_SPEED.desktop;
-            /* Resume the loop at the same px offset: negative delay =
-               -(phase ÷ speed), phase wrapped into [0, half). */
-            const wrapped = ((phase % half) + half) % half;
-            rail.style.setProperty('--news-loop-s', `${(half / speed).toFixed(2)}s`);
-            rail.style.setProperty('--news-loop-delay', `${(-wrapped / speed).toFixed(2)}s`);
+            /* ⛔ THE RAIL IS ANCHORED TO THE WALL CLOCK, NOT TO THIS VISIT
+               (Brendon, 2026-07-30: "it restarts every refresh or return which
+               means I only ever see the first few"). The loop used to begin
+               wherever the last mount left off — which, on a fresh load, is the
+               very start, so every arrival replayed the same opening pills and
+               the tail of the rail was effectively unreachable.
+
+               The phase is now a pure function of the time of day: the loop is
+               treated as always having been running, and the negative delay
+               drops us in at the point the world is already at. A refresh, a
+               return from another page, and a second device all land on the
+               same spot — one marquee, running continuously, that nobody
+               restarts. */
+            const dur = half / speed;
+            const phase = (Date.now() / 1000) % dur;
+            rail.style.setProperty('--news-loop-s', `${dur.toFixed(2)}s`);
+            rail.style.setProperty('--news-loop-delay', `${(-phase).toFixed(2)}s`);
             /* Re-bind so the new duration + delay take effect from the
                preserved phase (a running CSS animation ignores var changes
                mid-flight in Safari). */
@@ -216,9 +212,6 @@ export default function NewsCarousel({ items = PLACEHOLDER_ITEMS }: { items?: Ne
         window.addEventListener('resize', apply);
         return () => {
             cancelled = true;
-            /* Carry the phase into the next bind (content changed → the
-               effect re-runs) so the glide never visibly resets. */
-            phaseRef.current = readPhase() ?? phaseRef.current;
             window.removeEventListener('resize', apply);
             rail.classList.remove('news-rail-anim');
         };
