@@ -513,7 +513,7 @@ body.modal-open .fm-bar {
     color: var(--stat-active-text, var(--bg-color));
     border-color: var(--stat-active-bg, var(--text-color));
 }
-.fm-mode-usb .fm-modekey { grid-column: 2; grid-row: 2; font-size: 9px; transform: translateX(3px); }
+.fm-mode-usb .fm-modekey { grid-column: 2; grid-row: 2; font-size: 9px; transform: translateX(2px); }
 .fm-mode-usb .fm-btn:not(.fm-play):not(.fm-modekey):not(.fm-close):not(.fm-shuffle) { grid-column: 4; grid-row: 2; }
 
 /* the USB CAP — the stick's end cap in the body's own colorway gradient.
