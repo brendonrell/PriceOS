@@ -492,13 +492,15 @@ body.modal-open .fm-bar {
     width: 19px;
     height: 21px;
     padding-left: 4px;
+    font-size: 14px;
+    transform: translateX(-3px);
     background: var(--bg-color);
     border: 1px solid var(--text-color);
 }
 /* The pad's cross: ⟳ SHUFFLE top · ⎇ face-changer left · ≫ right · × bottom ·
    ▶ centre. Top and bottom ride IN toward the centre so neither breaks out over
    the pad's ring. */
-.fm-mode-usb .fm-close { grid-column: 3; grid-row: 3; align-self: start; justify-self: center; transform: translate(2px, -5px); }
+.fm-mode-usb .fm-close { grid-column: 3; grid-row: 3; align-self: start; justify-self: center; transform: translate(0px, -5px); }
 /* the pad's four arms around ▶: ⟳ top · × bottom · ⎇ left · ≫ right */
 .fm-mode-usb .fm-shuffle { grid-column: 3; grid-row: 1; align-self: end; justify-self: center; font-size: 14px; transform: translate(2px, 6px); }
 /* SHUFFLE ON wears PD's active pair — fill AND text together. Colouring only
@@ -509,7 +511,7 @@ body.modal-open .fm-bar {
     color: var(--stat-active-text, var(--bg-color));
     border-color: var(--stat-active-bg, var(--text-color));
 }
-.fm-mode-usb .fm-modekey { grid-column: 2; grid-row: 2; font-size: 9px; }
+.fm-mode-usb .fm-modekey { grid-column: 2; grid-row: 2; font-size: 9px; transform: translateX(3px); }
 .fm-mode-usb .fm-btn:not(.fm-play):not(.fm-modekey):not(.fm-close):not(.fm-shuffle) { grid-column: 4; grid-row: 2; }
 
 /* the USB CAP — the stick's end cap in the body's own colorway gradient.
