@@ -21,6 +21,7 @@ import { getOwnedIds, ownsSheet, useOwnedStickerIds } from '../lib/stickers/owne
 import { genes, SHAPE_NAMES } from '../lib/keychains/engine';
 import { useKeychainRack } from '../lib/keychains/rack';
 import { formatEth } from '../lib/format/eth';
+import { onCompletionism, readCompletionism, warmCompletionism } from '../lib/completionism/cache';
 
 const VS15 = '︎';
 const UNMOUNT_DELAY_MS = 240;
@@ -155,6 +156,10 @@ export default function CompletionismModal({
     open: boolean;
     onClose: () => void;
 }) {
+    /* Seeded from the cache the door warmed while the profile sat idle, so an
+       open paints its real content in the SAME frame instead of showing
+       "Reading the calendar…" and re-laying out when the read lands (Brendon,
+       2026-07-30 — the first-open hitch was the content, not the slide). */
     const [months, setMonths] = useState<MonthRow[] | null>(null);
     /* ⛔ COMPLETIONISM HAS TO KNOW WHEN YOU SELL (Brendon, 2026-07-30). The
        device's own sticker list only ever grows — buying adds, nothing ever
@@ -175,7 +180,7 @@ export default function CompletionismModal({
     const ownedIds = useOwnedStickerIds();
     /* KEYCHAIN COMPLETIONISM — the twelve charm shapes. A shape counts once
        you hold any charm that rolled it (Brendon, 2026-07-30). */
-    const rack = useKeychainRack(open ? dataAddress : null);
+    const rack = useKeychainRack(dataAddress);
     const shapesHeld = useMemo(() => {
         const s = new Set<number>();
         for (const c of rack?.charms ?? []) s.add(genes(c.seed, c.coin, c.luck).shape);
@@ -211,19 +216,25 @@ export default function CompletionismModal({
         };
     }, [open]);
 
+    /* Read from the shared cache — already warm in the normal case, fetched
+       here only if the panel is somehow reached before the warm-up ran. */
     useEffect(() => {
-        if (!open || !dataAddress) return;
+        if (!dataAddress) return;
         let cancelled = false;
-        fetch(`/api/completionism?address=${encodeURIComponent(dataAddress)}`, { cache: 'no-store' })
-            .then((r) => (r.ok ? r.json() : null))
-            .then((d) => {
-                if (cancelled || !d) return;
-                setMonths((d.months as MonthRow[]) ?? []);
-                setSheetQty((d.sheet_qty as Record<string, number>) ?? {});
-            })
-            .catch(() => { if (!cancelled) setMonths([]); });
-        return () => { cancelled = true; };
-    }, [open, dataAddress]);
+        const take = (d: { months: MonthRow[]; sheetQty: Record<string, number> } | null) => {
+            if (cancelled || !d) return;
+            setMonths(d.months);
+            setSheetQty(d.sheetQty);
+        };
+        take(readCompletionism(dataAddress) as { months: MonthRow[]; sheetQty: Record<string, number> } | null);
+        const stop = onCompletionism(() => {
+            take(readCompletionism(dataAddress) as { months: MonthRow[]; sheetQty: Record<string, number> } | null);
+        });
+        warmCompletionism(dataAddress).then((d) => {
+            if (!d && !cancelled) setMonths([]);
+        });
+        return () => { cancelled = true; stop(); };
+    }, [dataAddress]);
 
     useEffect(() => {
         if (!open) return;

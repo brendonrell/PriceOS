@@ -17,8 +17,9 @@
  * only the door.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import CompletionismModal from '../CompletionismModal';
+import { warmCompletionismIdle } from '../../lib/completionism/cache';
 
 export default function CompletionismDoor({
     address,
@@ -28,6 +29,13 @@ export default function CompletionismDoor({
     count: number;
 }) {
     const [open, setOpen] = useState(false);
+
+    /* ⛔ THE CONTENT IS READY BEFORE THE TAP (Brendon, 2026-07-30: "it's clearly
+       the content loading the first time"). The sheet's payload is fetched while
+       the profile sits idle, so opening paints finished content instead of
+       waiting on the network and then re-laying itself out. Once per wallet per
+       session, and it never competes with the page's own load. */
+    useEffect(() => { warmCompletionismIdle(address); }, [address]);
 
     return (
         <>
