@@ -306,8 +306,10 @@ body.modal-open .fm-bar {
               in layer 3 the left shoulder painted over it and the shine died
               short of the seam. */
         linear-gradient(
-            color-mix(in srgb, var(--bg-color) 66%, #ffffff),
-            color-mix(in srgb, var(--bg-color) 66%, #ffffff)
+            90deg,
+            color-mix(in srgb, var(--bg-color) 66%, #ffffff) 0%,
+            color-mix(in srgb, var(--bg-color) 66%, #ffffff) 13%,
+            transparent 20%
         ) bottom left / 100% 1px no-repeat,
         /* 1. the SPECULAR — a hard, bright streak sitting just under the top
               edge and cut off sharply. This single stripe is what reads as
