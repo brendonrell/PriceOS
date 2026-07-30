@@ -29,6 +29,9 @@
    the wordmark carries it and reads a step bigger. Scoped to this panel: the
    sticker/followers heads keep their own 11px + glyph. */
 .dp-plus .smgr-plus-head { font-size: 14px; }
+/* The shared wordmark carries a -3px lift that existed only to sit level with
+   the 21px glyph. No glyph here any more, so it sits on its own baseline. */
+.dp-plus .smgr-title-words { top: 0; }
 
 /* ── the Depanneur's own pull-to-refresh ──
    The app's PWA pull is blocked inside modals, so the panel runs the same
