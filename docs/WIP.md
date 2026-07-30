@@ -8,7 +8,36 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-30 (LATEST) — THE CONTRACTS CAUGHT UP: rarity ported, ELEMENTS
+0. ✅ **2026-07-30 (LATEST) — MINIPLAYER POLISH ROUND, all on `dev` (tip
+   `210f862`), tree clean. Nothing outstanding.**
+
+   **USB face.** Black screen's left edge moved in 10px. Play key bigger, the
+   pad ring around it smaller. Changer glyph down one size. Shuffle up two
+   sizes. Shuffle / play / × shifted 2px right; shuffle and × pulled 2px in
+   toward play. The body's own cast shadow now throws 24px further LEFT so the
+   dark band under the shell runs past the cap.
+
+   **⛔ THE CAP IS FINISHED — DO NOT TOUCH IT (Brendon, 2026-07-30, twice, the
+   second time in fury).** The bottom-edge problem lives on the BODY and is
+   fixed on the BODY. Two sessions-worth of attempts lit the cap instead after
+   he had explicitly ruled the cap correct. See the new **RULE #-3** at the top
+   of `CLAUDE.md`: when Brendon names the piece, that IS the diagnosis; a failed
+   attempt does not reopen it.
+
+   **Dot-matrix readout.** The top line now runs the full width of the glass
+   because the meter bars are too short to reach it; lines two and three still
+   stop short of them. The DECK face now reads on the same dot-matrix glass —
+   same size, same artwork window, same keys — and its old CRT scanline veil is
+   gone (it fought the pixel grid).
+
+   **The headphone lead is DELETED.** Built, iterated (thicker tube, a plug body
+   at the shell), then Brendon killed the whole idea. Markup and styles are
+   fully removed — do not resurrect it.
+
+   **Error screen.** The crash/reload screen's two lines were dimmed to 60–70%;
+   the dimming is off and both are a size larger.
+
+1. ✅ **2026-07-30 — THE CONTRACTS CAUGHT UP: rarity ported, ELEMENTS
    added, and a DEPLOY BLOCKER fixed (Opus 5). App on `dev` (tip `ccb3cae`),
    contracts on `pd-contracts` main (tip `3259851`). Both trees clean.**
 
