@@ -148,22 +148,41 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
         overlayCloseRef.current();
     }, [pathname]);
 
+    /* ⛔ THE BOOT OVERLAY'S DISMISSAL MUST BE GUARANTEED (Brendon, 2026-07-30:
+       "sometimes pages do our instant change smoothly and sometimes they do the
+       entire loading screen and it seems random").
+
+       That randomness was this: React 19 re-injects the loader markup on a
+       client-side page change (the layout's #pd-loader notes), and the ONLY
+       thing that keeps a re-injected copy invisible is the stamp on <html>. The
+       stamp used to be set in exactly one place — inside the fade's finish
+       callback — so any boot where that callback never ran left the session
+       unstamped, and the next in-app page change painted a full "Loading"
+       screen over a page that had already arrived. Two ordinary things skipped
+       it: the loader node not being there when the shell mounted (the effect
+       returned early and stamped nothing), and the fade never finishing because
+       the tab or the PWA was backgrounded across those few hundred ms.
+
+       Now the stamp is guaranteed: no loader → stamp at once, and a backstop
+       well past the fade stamps regardless of what the animation did. The fade
+       itself is untouched. */
     useEffect(() => {
         if (typeof window === 'undefined') return;
+        const done = () => {
+            document.getElementById('pd-loader')?.remove();
+            document.documentElement.setAttribute('data-pd-loader-done', '');
+        };
         const loader = document.getElementById('pd-loader');
-        if (!loader) return;
-        setTimeout(() => {
+        if (!loader) { done(); return; }
+        const fade = setTimeout(() => {
             loader.animate(
                 [{ opacity: 1 }, { opacity: 0 }],
                 { duration: 350, easing: 'ease-out', fill: 'forwards' }
-            ).onfinish = () => {
-                loader.remove();
-                /* Boot is over — stamp the dismissal so a React re-injection
-                   of the loader markup (see the layout's #pd-loader notes)
-                   stays invisible and inert for the rest of the session. */
-                document.documentElement.setAttribute('data-pd-loader-done', '');
-            };
+            ).onfinish = done;
         }, 600);
+        /* Boot is unambiguously over by here (600ms hold + 350ms fade). */
+        const backstop = setTimeout(done, 2000);
+        return () => { clearTimeout(fade); clearTimeout(backstop); };
     }, []);
 
     /* Build 28 — D18: PWA detection → body.is-pwa. Mirrors sim 5633-5635
