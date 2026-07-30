@@ -543,6 +543,8 @@ body.modal-open .fm-bar {
     font-size: 14px;
     background: var(--bg-color);
     border: 1px solid var(--text-color);
+    /* the whole key rides 0.3px down on the pad (Brendon, 2026-07-30) */
+    transform: translateY(0.3px);
 }
 /* The pad's cross: ⟳ SHUFFLE top · ⎇ face-changer left · ≫ right · × bottom ·
    ▶ centre. Top and bottom ride IN toward the centre so neither breaks out over
