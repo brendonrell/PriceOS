@@ -563,8 +563,8 @@ body.modal-open .fm-bar {
     font-weight: bold;
     opacity: 1;
 }
-.fm-mode-usb .fm-modekey { grid-column: 2; grid-row: 2; font-size: 9px; transform: translate(1.6px, 0.3px); }
-.fm-mode-usb .fm-btn:not(.fm-play):not(.fm-modekey):not(.fm-close):not(.fm-shuffle) { grid-column: 4; grid-row: 2; transform: translateY(2px); }
+.fm-mode-usb .fm-modekey { grid-column: 2; grid-row: 2; font-size: 9px; transform: translate(1.6px, -1.2px); }
+.fm-mode-usb .fm-btn:not(.fm-play):not(.fm-modekey):not(.fm-close):not(.fm-shuffle) { grid-column: 4; grid-row: 2; transform: translateY(0.5px); }
 
 /* the USB CAP — the stick's end cap in the body's own colorway gradient.
    TAP pops it off (the plug shows); tap again seats it back. The button
