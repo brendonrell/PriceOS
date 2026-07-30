@@ -8,7 +8,92 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-29 (LATEST) — THE KEYCHAIN RARITY REBUILD + THE DEPANNEUR'S
+0. ✅ **2026-07-30 (LATEST) — THE CONTRACTS CAUGHT UP: rarity ported, ELEMENTS
+   added, and a DEPLOY BLOCKER fixed (Opus 5). App on `dev` (tip `ccb3cae`),
+   contracts on `pd-contracts` main (tip `3259851`). Both trees clean.**
+
+   **Nothing is outstanding.**
+
+   **⛔ CONTRACT PARITY IS RESTORED — the note below about it being broken on
+   purpose is now HISTORY, do not act on it.** `lib/keychains/engine.ts` is
+   still **the reference implementation** (the app led the rarity rebuild and
+   the contract was brought UP to it) — never "restore parity" by reverting the
+   app. The contract now matches it byte-for-byte: proven across 64 renders,
+   8 seeds × both coins × all four luck tiers, SVG and attribute sheet.
+
+   **THE RARITY REBUILD IS ON THE CHAIN.** Colour / finish / chain metal roll
+   per charm off its own seed; palette is tiered (tier first, then the coin
+   weights pick the member, so every colour stays rollable on both coins);
+   `finishForRank` and the whole `chainTier` streak ladder are deleted.
+   **LUCK** (0–3) is derived onchain at the crank from an app attestation and
+   frozen into the token forever — it only widens the rare end, and **polish
+   and transfers can never repaint a charm** (tested both directions). Luck
+   lives on the TOKEN, not the renderer, because the renderer is swappable and
+   a minted charm's luck must not move under it.
+
+   **⚠️ TWO WIRING CHANGES THE APP/DEPLOY MUST HONOUR:**
+   - `crank(coin, streak, rank, deadline, sig)` — **the app must sign the crank
+     attestation or luck stays 0.** An empty sig cranks at floor odds by
+     design, so the machine keeps turning if the signer is down.
+   - Renderer constructor is now `(shapes, faces, traits)`. **Deploy order:
+     Shapes → Faces → Traits → Renderer → PDKeychains.**
+
+   **ELEMENTS — the new TOP-LEVEL attribute (Brendon, 2026-07-30).** Six
+   elements, two shapes each, each with a colour; **leads** the trait sheet.
+   AIR (heart·bolt) orange · SPACE (star·moon) blue · FIRE (tag·spark) red ·
+   MINERALS (gem·planet) green · WATER (flower·clover) yellow · TIME
+   (ghost·alien) purple. It is a **classification of the existing shapes, not
+   a new roll** — no salt, no change to the gene roll, the art untouched, so
+   rarity falls out of the shape weights already in place: **AIR 24 · WATER 22
+   · SPACE 19 · FIRE 12 · TIME 12 · MINERALS 11** (minerals rarest). Colours
+   are defined onchain (`PDKeychainTraits.elementHex`) and in the app
+   (`ELEMENT_HEX`) but **deliberately not drawn in any UI yet — placement is
+   Brendon's call, do not invent one.**
+
+   **⛔ A GREEN TEST SUITE IS NOT EVIDENCE A CONTRACT CAN DEPLOY. Learned the
+   hard way 2026-07-30.** `PDKeychainRenderer` had been **over the EIP-170
+   limit (24,576 B) since the 2026-07-28 eyes/yin-yang round** — it could not
+   have been deployed at all, and it sat that way for two days because that
+   round measured tests but never bytecode. `forge test` does not enforce the
+   limit. **Always `forge build --sizes` after touching a renderer.** Fixed by
+   the pattern already in place: new **`PDKeychainTraits`** part store #3 holds
+   every trait NAME table, the element colours and the attributes JSON; the
+   renderer resolves genes and hands indices over. Renderer 26,762 → **20,588
+   (+3,988 headroom)**, output byte-identical after the move. 396 tests green.
+
+   **⛔ NEXT BLOCKER, ALREADY QUEUED — `PDFactory` is 29,891 B, over the same
+   limit by 5,315.** Pre-existing, untouched, and it will block a factory
+   deploy. ClickUp `86bb5nt0f` (high) with the recommended fix + the companion
+   guard: **wire `forge build --sizes` into the build so this cannot regress
+   silently.** Brendon has not yet ruled on the guard.
+
+   **DEPANNEUR SPOT EDITS this round:** count line now reads "WHAT'S YOUR
+   FAVOURITE *COMBINAISON*?" (italic, not bold — `<b>` renders pink there and
+   would read as another stat) · YIN/YANG slots 5px taller each side and now
+   sit **visibly sunken when selected** (face drops onto its floor, shaded lip
+   along the top edge — no layout shift, and it holds while pressed) · the ⚷
+   came off the panel title, which is now 14px and on its own baseline. All
+   three title/slot rules are **scoped to `.dp-plus`** so the stickers and
+   followers heads keep their own treatment.
+
+   **⛔ THIS CONTAINER'S GIT HISTORY IS TRUNCATED — "N commits not on dev" can
+   be an ARTEFACT, not lost work (learned 2026-07-30).** Local `dev` looked
+   like it held 50 stranded commits with no common ancestor; it was really just
+   a stale pointer on a 26 July commit, and every one of those commits' changes
+   was already in `dev`. **Confirm against file CONTENTS before acting on a
+   commit-count difference.** Fixed by repointing the ref; zero drift now.
+
+   **BRENDON ACTIONS:** `PriceOS` still has **71 stale `claude/*` branches**
+   (`pd-contracts` is clean — just `main`). Some read like real features, and a
+   merge check from this container is not trustworthy for old branches (see the
+   truncation note above) — **offer the proper contents-based sweep before he
+   bulk-deletes.** He has not yet ruled on the contracts-`dev`-branch question
+   either: recommendation was **no** (a dev branch buys nothing without an
+   environment behind it; tag what gets deployed instead + add the size gate).
+
+---
+
+1. ✅ **2026-07-29 — THE KEYCHAIN RARITY REBUILD + THE DEPANNEUR'S
    OWN WORLD (Opus 5). All on `dev` (tip `67b29a7`), tree clean.**
 
    **Nothing is outstanding.**
