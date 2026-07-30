@@ -4772,7 +4772,8 @@ body.pd-stone-open .ens-copy-toast {
    this is the same treatment its own row-mate already uses. */
 .stat-icon-rarity {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 14px;
+    /* three sizes up (Brendon, 2026-07-30) */
+    font-size: 17px;
 }
 
 /* Profile Logo carousel — long-press your own @name shoves it open INLINE
