@@ -398,7 +398,10 @@ body.modal-open .fm-bar {
        The LEFT edge is the FAT one he asked for twice — the reference's bezel
        is deepest on the end the artwork sits against. */
     border: 3px solid #000;
-    border-left-width: 9px;
+    /* the left inset gives up 7px (Brendon, 2026-07-30) — the artwork and the
+       readout both slide 7px left and the text area keeps that width; the
+       screen's own box does not move */
+    border-left-width: 2px;
     border-radius: 6px;
     /* ⛔ ALWAYS BLACK GLASS (Brendon, 2026-07-28) — the USB screen does not wear
        the colorway; FmLcd paints the lit matrix onto it. */
@@ -506,7 +509,7 @@ body.modal-open .fm-bar {
     color: var(--stat-active-text, var(--bg-color));
     border-color: var(--stat-active-bg, var(--text-color));
 }
-.fm-mode-usb .fm-modekey { grid-column: 2; grid-row: 2; font-size: 11px; }
+.fm-mode-usb .fm-modekey { grid-column: 2; grid-row: 2; font-size: 9px; }
 .fm-mode-usb .fm-btn:not(.fm-play):not(.fm-modekey):not(.fm-close):not(.fm-shuffle) { grid-column: 4; grid-row: 2; }
 
 /* the USB CAP — the stick's end cap in the body's own colorway gradient.

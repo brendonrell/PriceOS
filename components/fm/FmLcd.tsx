@@ -52,6 +52,7 @@ export default function FmLcd({
     rows,
     playing,
     getElapsed,
+    bars = BARS,
 }: {
     /** The three readout lines, top to bottom. */
     rows: [string, string, string];
@@ -59,6 +60,9 @@ export default function FmLcd({
     playing: boolean;
     /** The player's own clock, in seconds. Drives the meter. */
     getElapsed: () => number;
+    /** How many bars the meter draws. The deck's glass is wider, so it carries
+        twice the USB's count (Brendon, 2026-07-30). */
+    bars?: number;
 }) {
     const hostRef = useRef<HTMLDivElement | null>(null);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -68,6 +72,8 @@ export default function FmLcd({
     playingRef.current = playing;
     const elapsedRef = useRef(getElapsed);
     elapsedRef.current = getElapsed;
+    const barsRef = useRef(bars);
+    barsRef.current = bars;
 
     useEffect(() => {
         const host = hostRef.current;
@@ -152,11 +158,12 @@ export default function FmLcd({
            position; a still clock is a still meter. */
         const drawMeter = (elapsed: number) => {
             const bw = 2, gap = 1;
-            const totalW = BARS * bw + (BARS - 1) * gap;
+            const n = Math.max(1, barsRef.current);
+            const totalW = n * bw + (n - 1) * gap;
             const x0 = W - totalW - 1;
             const maxH = Math.min(11, H - 2);
             const base = H - 2;
-            for (let b = 0; b < BARS; b++) {
+            for (let b = 0; b < n; b++) {
                 /* Each bar reads the clock at its own rate, so they dance
                    against each other instead of pumping in lockstep. */
                 const t = elapsed * (1.7 + b * 0.43) + b * 1.9;

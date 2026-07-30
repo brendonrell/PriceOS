@@ -879,6 +879,7 @@ export default function FmBar() {
                     only the readout style changes. TAB and DISC keep rows. */}
                 {display === 'usb' || isDeckFace ? (
                     <FmLcd
+                        bars={isDeckFace ? 10 : 5}
                         rows={[rowTrack, rowStation, rowStatus]}
                         playing={status === 'playing'}
                         getElapsed={() => playerRef.current?.getCurrentTime?.() ?? 0}
