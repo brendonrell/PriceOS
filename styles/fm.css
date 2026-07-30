@@ -300,6 +300,15 @@ body.modal-open .fm-bar {
        right shoulders, which is what makes the body read as ROUND rather than
        as a flat rectangle wearing a gradient. */
     background:
+        /* 0. the BOTTOM EDGE — the bounce line, lifted above the shoulder wash
+              so it runs the whole width of the body and meets the cap's own
+              line (Brendon, 2026-07-30: the bottom must read as ONE edge). Down
+              in layer 3 the left shoulder painted over it and the shine died
+              short of the seam. */
+        linear-gradient(
+            color-mix(in srgb, var(--bg-color) 66%, #ffffff),
+            color-mix(in srgb, var(--bg-color) 66%, #ffffff)
+        ) bottom left / 100% 1px no-repeat,
         /* 1. the SPECULAR — a hard, bright streak sitting just under the top
               edge and cut off sharply. This single stripe is what reads as
               gloss; a soft fade reads as paper. */
@@ -551,10 +560,7 @@ body.modal-open .fm-bar {
         inset 0 1px 0 color-mix(in srgb, var(--bg-color) 34%, #ffffff),
         inset 0 -1px 0 color-mix(in srgb, var(--bg-color) 44%, #000000),
         inset 1px 0 0 color-mix(in srgb, var(--bg-color) 72%, #ffffff),
-        inset -1px 0 0 color-mix(in srgb, var(--bg-color) 60%, #000000),
-        /* the same cast shadow the body throws, so the bottom edge runs
-           unbroken from the cap through to the far end (Brendon, 2026-07-30) */
-        0 6px 24px rgba(0, 0, 0, 0.45);
+        inset -1px 0 0 color-mix(in srgb, var(--bg-color) 60%, #000000);
     transition: transform 0.22s ease, opacity 0.18s ease;
 }
 .fm-usbcap--off::before {
