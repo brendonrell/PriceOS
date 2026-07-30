@@ -227,6 +227,19 @@ body.modal-open .fm-bar {
     .fm-lcd-row--scroll .fm-lcd-inner { animation: none; }
 }
 
+/* TUNING breathes so the eye catches that the device is working on it
+   (Brendon, 2026-07-30). A slow 1.4s swell between full and half strength —
+   it never goes dark and never strobes, so it stays clear of any
+   photosensitivity risk, and it stands down under reduced motion. */
+.fm-lcd-row--tuning { animation: fm-lcd-tune 1.4s ease-in-out infinite; }
+@keyframes fm-lcd-tune {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.5; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .fm-lcd-row--tuning { animation: none; }
+}
+
 /* ═══ THE FIVE FACES (Brendon, 2026-07-20 — "ship them all") ═══
    One markup, CSS per face. The video window exists in EVERY face — YT
    requires the playing video visible, and hiding the iframe kills audio.
@@ -520,9 +533,11 @@ body.modal-open .fm-bar {
    the glyph painted it the same dark as the pressed fill and it vanished
    (Brendon, 2026-07-28: "the glyph goes away"). */
 .fm-mode-usb .fm-shuffle.on {
-    background: var(--stat-active-bg, var(--text-color));
-    color: var(--stat-active-text, var(--bg-color));
-    border-color: var(--stat-active-bg, var(--text-color));
+    background: transparent;
+    color: var(--text-color);
+    border-color: transparent;
+    font-weight: bold;
+    opacity: 0.62;
 }
 .fm-mode-usb .fm-modekey { grid-column: 2; grid-row: 2; font-size: 9px; transform: translateX(2px); }
 .fm-mode-usb .fm-btn:not(.fm-play):not(.fm-modekey):not(.fm-close):not(.fm-shuffle) { grid-column: 4; grid-row: 2; transform: translateY(2px); }

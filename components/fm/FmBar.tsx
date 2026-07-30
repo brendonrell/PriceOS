@@ -953,6 +953,9 @@ export default function FmBar() {
                     <FmLcd
                         bars={isDeckFace ? 10 : 5}
                         rows={[rowTrack, rowStation, rowStatus]}
+                        /* TUNING pulses so it's obvious the device is working
+                           on it (Brendon, 2026-07-30). Only while tuning. */
+                        flashRow={status === 'loading' && !deadLink ? 2 : null}
                         playing={status === 'playing'}
                         getElapsed={() => playerRef.current?.getCurrentTime?.() ?? 0}
                     />
@@ -960,7 +963,7 @@ export default function FmBar() {
                     <span className="fm-rows">
                         <span className="fm-lcd-row fm-lcd-track"><span className="fm-lcd-inner">{rowTrack}</span></span>
                         <span className="fm-lcd-row"><span className="fm-lcd-inner">{rowStation}</span></span>
-                        <span className="fm-lcd-row"><span className="fm-lcd-inner">{rowStatus}</span></span>
+                        <span className={`fm-lcd-row${status === 'loading' && !deadLink ? ' fm-lcd-row--tuning' : ''}`}><span className="fm-lcd-inner">{rowStatus}</span></span>
                     </span>
                 )}
                 {/* TAB's equalizer — present in every face, shown by its mode

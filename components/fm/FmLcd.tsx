@@ -53,6 +53,7 @@ export default function FmLcd({
     playing,
     getElapsed,
     bars = BARS,
+    flashRow = null,
 }: {
     /** The three readout lines, top to bottom. */
     rows: [string, string, string];
@@ -60,6 +61,12 @@ export default function FmLcd({
     playing: boolean;
     /** The player's own clock, in seconds. Drives the meter. */
     getElapsed: () => number;
+    /** Index of a row that PULSES so the eye catches it — TUNING, today
+        (Brendon, 2026-07-30). It is a slow breath between full and half lit,
+        never a blink to black and never a strobe: ~0.7 cycles a second, far
+        under any photosensitivity threshold, and it stands down entirely for a
+        reader who asked for reduced motion. */
+    flashRow?: number | null;
     /** How many bars the meter draws. The deck's glass is wider, so it carries
         twice the USB's count (Brendon, 2026-07-30). */
     bars?: number;
@@ -74,6 +81,8 @@ export default function FmLcd({
     elapsedRef.current = getElapsed;
     const barsRef = useRef(bars);
     barsRef.current = bars;
+    const flashRef = useRef(flashRow);
+    flashRef.current = flashRow;
 
     useEffect(() => {
         const host = hostRef.current;
@@ -107,31 +116,33 @@ export default function FmLcd({
             scene = new Uint8Array(W * H);
         };
 
-        const px = (x: number, y: number) => {
+        /* 1 = lit · 2 = the pulsing row's own brightness, resolved once per
+           frame at paint time. */
+        const px = (x: number, y: number, v: 1 | 2 = 1) => {
             if (x < 0 || y < 0 || x >= W || y >= H) return;
-            scene![y * W + x] = 1;
+            scene![y * W + x] = v;
         };
 
         /* Glyphs are clipped to the text window, not to the canvas — the crawl
            below slides letters in and out and neither end may bleed over the
            meter or the bezel. */
-        const drawBitmap = (bmp: readonly string[], ox: number, oy: number, clipL: number, clipR: number) => {
+        const drawBitmap = (bmp: readonly string[], ox: number, oy: number, clipL: number, clipR: number, v: 1 | 2 = 1) => {
             for (let r = 0; r < bmp.length; r++) {
                 const row = bmp[r]!;
                 for (let c = 0; c < row.length; c++) {
                     const x = ox + c;
                     if (x < clipL || x > clipR) continue;
-                    if (row[c] === '#') px(x, oy + r);
+                    if (row[c] === '#') px(x, oy + r, v);
                 }
             }
         };
 
-        const drawText = (text: string, ox: number, oy: number, clipL: number, clipR: number) => {
+        const drawText = (text: string, ox: number, oy: number, clipL: number, clipR: number, v: 1 | 2 = 1) => {
             for (let i = 0; i < text.length; i++) {
                 const gx = ox + i * GLYPH_ADVANCE;
                 if (gx > clipR) break;
                 if (gx + GLYPH_W < clipL) continue;
-                drawBitmap(glyphFor(text[i]!), gx, oy, clipL, clipR);
+                drawBitmap(glyphFor(text[i]!), gx, oy, clipL, clipR, v);
             }
         };
 
@@ -197,16 +208,25 @@ export default function FmLcd({
             const block = 3 * lineH - 1;
             const now = performance.now();
             let y = Math.max(1, Math.round((H - block) / 2));
+            let ri = -1;
             for (const line of rowsRef.current) {
+                ri += 1;
+                const pulses = !reduced && flashRef.current === ri;
                 /* A line that clears the meter's tallest bar runs the FULL width
                    of the glass (Brendon, 2026-07-30) — only the lines the bars
                    can actually reach give up the right end. */
                 const clears = y + GLYPH_H - 1 < meter.top;
                 const textR = clears ? W - 2 : meter.x0 - 3;
                 const widthPx = Math.max(0, line.length * GLYPH_ADVANCE - 1);
-                drawText(line, textL + crawlOffset(widthPx, textR - textL, now), y, textL, textR);
+                drawText(line, textL + crawlOffset(widthPx, textR - textL, now), y, textL, textR, pulses ? 2 : 1);
                 y += lineH;
             }
+
+            /* The pulsing row's brightness for THIS frame — a 1.4s breath that
+               never dims past half, so it reads as a live readout rather than
+               anything flashing. */
+            const beat = (Math.sin((now / 1400) * Math.PI * 2) * 0.5 + 0.5);
+            const lit = 0.5 + beat * 0.5;
 
             /* ── paint ── */
             ctx.fillStyle = GLASS;
@@ -214,9 +234,11 @@ export default function FmLcd({
             /* the cell, minus a hair of gap — the dark grid between segments is
                what makes a matrix read as a matrix */
             const cell = Math.max(1, S - 0.35 * dpr);
+            const PULSE = `rgba(226, 246, 214, ${lit.toFixed(3)})`;
             for (let yy = 0; yy < H; yy++) {
                 for (let xx = 0; xx < W; xx++) {
-                    ctx.fillStyle = scene[yy * W + xx] ? ON : OFF;
+                    const s = scene[yy * W + xx];
+                    ctx.fillStyle = s === 1 ? ON : s === 2 ? PULSE : OFF;
                     ctx.fillRect(xx * S, yy * S, cell, cell);
                 }
             }
