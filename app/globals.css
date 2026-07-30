@@ -7851,15 +7851,18 @@ body.lists-dragging { cursor: grabbing; }
    title (~10px) and keeps ~22px from the previous sub-group's cards. */
 .gallery-group-header.level-2 {
     margin-top: 2px;
-    padding-left: 30px;
+    padding-left: 60px;
     position: relative;
 }
+/* The connector runs from the PAGE EDGE in to the title (Brendon, 2026-07-30)
+   — a short stub beside a nested title left it floating; a full line ties it
+   back to the margin its parent sits on. */
 .gallery-group-header.level-2::before {
     content: '';
     position: absolute;
-    left: 8px;
+    left: 0;
     top: 0.62em;
-    width: 16px;
+    width: 52px;
     border-top: 1px solid var(--text-color);
     opacity: 0.45;
 }
@@ -7885,26 +7888,30 @@ body.lists-dragging { cursor: grabbing; }
 }
 .gallery-group-header.level-2 .ggh-label { font-size: 12px; }
 
-/* ── THE STAIRCASE (Brendon, 2026-07-26) — three layers, each stepping in from
-   the one above so the hierarchy reads at a glance. Level 3 takes the SAME step
-   again (30 → 60px) and the same connector line, one step further in, so the
-   three titles form an even flight rather than two arbitrary indents. Its label
-   steps down one more size, continuing 13 → 12 → 11. ── */
+/* ── THE STAIRCASE — three layers, each stepping in from the one above so the
+   hierarchy reads at a glance. The step DOUBLED to 60px (Brendon, 2026-07-30,
+   off the working model): level 2 sits at 60, level 3 at 120, an even flight
+   with far more daylight between the levels. Labels step 13 → 12 → 11 and the
+   third goes italic. The art steps with its section (.gc-d1 / .gc-d2) — a
+   nested piece sitting back at the page edge is what made a third level look
+   like it belonged to nothing. ── */
 .gallery-group-header.level-3 {
     margin-top: 2px;
-    padding-left: 60px;
+    padding-left: 120px;
     position: relative;
 }
 .gallery-group-header.level-3::before {
     content: '';
     position: absolute;
-    left: 38px;
+    left: 0;
     top: 0.62em;
-    width: 16px;
+    width: 112px;
     border-top: 1px solid var(--text-color);
     opacity: 0.45;
 }
-.gallery-group-header.level-3 .ggh-label { font-size: 11px; }
+/* The third level is ITALIC (Brendon, 2026-07-30) — the deepest cut reads as
+   an aside of the section above it, not another peer title. */
+.gallery-group-header.level-3 .ggh-label { font-size: 11px; font-style: italic; }
 /* The fold triangle shrinks with each step down, so a deep header never shouts
    louder than the section that contains it. */
 .gallery-group-header.level-2 .ggh-arrow { font-size: 26px; transform: translateY(4px); }
@@ -7948,6 +7955,10 @@ body.lists-dragging { cursor: grabbing; }
     gap: 8px;
     align-self: start;
 }
+/* A grouped piece steps in with the title that owns it, matching the
+   staircase above (Brendon, 2026-07-30). */
+.output-card.gc-d1 { margin-left: 60px; }
+.output-card.gc-d2 { margin-left: 120px; }
 .output-card.hidden { display: none !important; }
 .output-card.search-hidden { display: none !important; }
 /* ProjectShowcase tab (sim ~2352-2356, renamed to project-showcase-* naming).

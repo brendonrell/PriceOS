@@ -2321,6 +2321,8 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                                   const l3Collapsed = blk.l3Key ? collapsedGroups.has(blk.l3Key) : false;
                                   // Any folded ancestor hides the cards (and every sub-header).
                                   const cardsHidden = l1Collapsed || l2Collapsed || l3Collapsed;
+                                  /* The pieces step in with the deepest title above them. */
+                                  const cardDepth = (blk.l3Key ? 2 : blk.l2Key ? 1 : 0) as 0 | 1 | 2;
                                   return (
                                       <Fragment key={blk.key}>
                                           {blk.heads.map((h, hi) => {
@@ -2337,7 +2339,7 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                                                  page edge (Brendon, 2026-07-12). */
                                               const nPieces = h.count ?? blk.group?.ids.length ?? blk.cards?.length ?? 0;
                                               const capW = !h.soon && galleryCols && nPieces > 0
-                                                  ? colsWidth(galleryCols, nPieces) + (isL2 ? 30 : 0) + (isL3 ? 60 : 0)
+                                                  ? colsWidth(galleryCols, nPieces) + (isL2 ? 60 : 0) + (isL3 ? 120 : 0)
                                                   : undefined;
                                               return (
                                                   <div
@@ -2376,13 +2378,13 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                                               ? (
                                                   <ProjectProvider slug={g.slug}>
                                                       {g.ids.map((id) => (
-                                                          <ArtworkCard key={`${g.slug}-${id}`} id={id} hideOwnedBadge showProjectName />
+                                                          <ArtworkCard key={`${g.slug}-${id}`} id={id} groupDepth={cardDepth} hideOwnedBadge showProjectName />
                                                       ))}
                                                   </ProjectProvider>
                                               )
                                               : cards?.map((c) => (
                                                   <ProjectProvider key={`${c.slug}-${c.id}`} slug={c.slug}>
-                                                      <ArtworkCard id={c.id} hideOwnedBadge showProjectName />
+                                                      <ArtworkCard id={c.id} groupDepth={cardDepth} hideOwnedBadge showProjectName />
                                                   </ProjectProvider>
                                               ))}
                                       </Fragment>

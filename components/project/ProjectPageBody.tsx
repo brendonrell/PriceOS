@@ -711,7 +711,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                                (Brendon, 2026-07-12). Soon-groups span the row. */
                             const nPieces = sec.ids.length > 0 ? sec.ids.length : sec.total;
                             const capW = !sec.soon && galleryCols && nPieces > 0
-                                ? colsWidth(galleryCols, nPieces) + (isL2 ? 30 : 0) + (isL3 ? 60 : 0)
+                                ? colsWidth(galleryCols, nPieces) + (isL2 ? 60 : 0) + (isL3 ? 120 : 0)
                                 : undefined;
                             const header = (
                             <div
@@ -749,6 +749,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                                     <ArtworkCard
                                         key={id}
                                         id={id}
+                                        groupDepth={(sec.level - 1) as 0 | 1 | 2}
                                         projectShowcasePick={projectShowcasePicks.has(id)}
                                         showcaseLead={onShowcaseTab && id === showcaseLeadId}
                                         isBreadcrumb={breadcrumbSample.has(id)}
