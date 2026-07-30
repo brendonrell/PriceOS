@@ -476,3 +476,19 @@
     will-change: transform;
     transform: translateZ(0);
 }
+/* The links and the charm are moved by a CSS transform every frame instead of
+   the SVG transform attribute — paint-only work instead of an SVG relayout per
+   link per frame. The box + origin here make it land exactly where the
+   attribute put it. Scoped to OUR groups on purpose: the charm art's own
+   sway uses a fill-box origin and must not be touched. */
+.pd-charm-hang .pd-charm-part {
+    transform-box: view-box;
+    transform-origin: 0 0;
+}
+/* Parked = off screen or the app in the background. The chain stops solving
+   and the charm's own sway/blink/twinkle stop with it; both resume untouched
+   the moment it's back on screen. */
+.pd-charm-worn.is-parked .pd-charm-hang,
+.pd-charm-worn.is-parked .pd-charm-hang * {
+    animation-play-state: paused !important;
+}

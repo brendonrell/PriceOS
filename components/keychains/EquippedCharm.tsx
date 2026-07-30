@@ -106,10 +106,16 @@ export default function EquippedCharm({ address }: { address: string }) {
                 const ang = (Math.atan2(-ux, uy) * 180) / Math.PI;
                 const cx = px[i]! + ux * art.geom.off;
                 const cy = py[i]! + uy * art.geom.off;
-                linkRefs.current[i]?.setAttribute(
-                    'transform',
-                    `translate(${cx.toFixed(2)} ${cy.toFixed(2)}) rotate(${ang.toFixed(2)})`,
-                );
+                /* CSS transform, NOT the transform attribute (Brendon,
+                   2026-07-30). An attribute write dirties the SVG's layout
+                   every frame for every link; a style transform is paint-only,
+                   so the same motion costs a fraction of the work. The class
+                   pins the box + origin so it lands identically. */
+                const el = linkRefs.current[i];
+                if (el) {
+                    el.style.transform =
+                        `translate(${cx.toFixed(2)}px, ${cy.toFixed(2)}px) rotate(${ang.toFixed(2)}deg)`;
+                }
             }
             const bx = px[N]!;
             const by = py[N]!;
@@ -117,10 +123,10 @@ export default function EquippedCharm({ address }: { address: string }) {
             const cdy = py[N + 1]! - by;
             const cd = Math.hypot(cdx, cdy) || 1e-6;
             const cang = (Math.atan2(-cdx / cd, cdy / cd) * 180) / Math.PI;
-            charmRef.current?.setAttribute(
-                'transform',
-                `translate(${bx.toFixed(2)} ${by.toFixed(2)}) rotate(${cang.toFixed(2)})`,
-            );
+            if (charmRef.current) {
+                charmRef.current.style.transform =
+                    `translate(${bx.toFixed(2)}px, ${by.toFixed(2)}px) rotate(${cang.toFixed(2)}deg)`;
+            }
         };
 
         /* Reduced motion: hang it straight and leave it alone. */
@@ -200,13 +206,22 @@ export default function EquippedCharm({ address }: { address: string }) {
                 const vis = entries[entries.length - 1]?.isIntersecting ?? true;
                 if (vis === onScreen) return;
                 onScreen = vis;
+                /* The CHARM'S OWN ANIMATIONS park too (Brendon, 2026-07-30 —
+                   "still causing the app to lag"). The art carries three
+                   always-on loops (the body sway, the blink, the twinkle);
+                   they kept the whole piece repainting at 60fps forever even
+                   with the chain asleep, on every page the charm sits on. */
+                hostRef.current?.classList.toggle('is-parked', !vis);
                 if (vis) { takeKick(); kick(); }
                 else if (raf) { cancelAnimationFrame(raf); raf = 0; }
             }, { rootMargin: '80px' })
             : null;
         io?.observe(hostRef.current!);
 
-        const onVis = () => { if (!document.hidden) { takeKick(); kick(); } };
+        const onVis = () => {
+            hostRef.current?.classList.toggle('is-parked', document.hidden || !onScreen);
+            if (!document.hidden) { takeKick(); kick(); }
+        };
         document.addEventListener('visibilitychange', onVis);
 
         kick();
@@ -237,11 +252,12 @@ export default function EquippedCharm({ address }: { address: string }) {
                 {art.linkArt.map((d, i) => (
                     <g
                         key={i}
+                        className="pd-charm-part"
                         ref={(el) => { linkRefs.current[i] = el; }}
                         dangerouslySetInnerHTML={{ __html: d }}
                     />
                 ))}
-                <g ref={charmRef} dangerouslySetInnerHTML={{ __html: art.charmFrame }} />
+                <g className="pd-charm-part" ref={charmRef} dangerouslySetInnerHTML={{ __html: art.charmFrame }} />
             </svg>
         </span>
     );
