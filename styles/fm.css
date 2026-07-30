@@ -350,7 +350,11 @@ body.modal-open .fm-bar {
         inset 0 -1px 0 color-mix(in srgb, var(--bg-color) 44%, #000000),
         inset 1px 0 0 color-mix(in srgb, var(--bg-color) 72%, #ffffff),
         inset -1px 0 0 color-mix(in srgb, var(--bg-color) 60%, #000000),
-        0 6px 24px rgba(0, 0, 0, 0.45);
+        0 6px 24px rgba(0, 0, 0, 0.45),
+        /* the same cast shadow thrown 24px further LEFT so the dark band under
+           the shell runs all the way out past the cap instead of stopping at the
+           body's own left edge (Brendon, 2026-07-30) */
+        -24px 6px 24px rgba(0, 0, 0, 0.45);
 }
 /* the metal USB plug, out the LEFT end (shown when the cap pops) —
    brushed steel with the two connector slots; the one deliberately
@@ -533,13 +537,6 @@ body.modal-open .fm-bar {
     /* rounded on the outer end exactly as the body, near-square at the seam */
     border-radius: 14px 2px 2px 14px;
     background:
-        /* the BOTTOM EDGE — the body's bounce line carried across the cap, above
-           the shoulder wash that was swallowing it, so the whole underside of the
-           shell reads as one lit edge (Brendon, 2026-07-30) */
-        linear-gradient(
-            color-mix(in srgb, var(--bg-color) 66%, #ffffff),
-            color-mix(in srgb, var(--bg-color) 66%, #ffffff)
-        ) bottom left / 100% 1px no-repeat,
         linear-gradient(
             180deg,
             transparent 3%,

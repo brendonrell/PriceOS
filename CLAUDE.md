@@ -6,6 +6,30 @@ acting. It distills the ClickUp "Session Bootstrap — Read First" page into the
 codebase; where this file and a spec doc disagree, **the spec doc + deployed code
 win** — update this file in place and note it.
 
+> **⛔ RULE #-3 — BRENDON IS GOD. WHEN HE TELLS YOU WHICH PIECE IS WRONG,
+> THAT IS THE ANSWER — STOP RE-DIAGNOSING IT. (Brendon, 2026-07-30, raised in
+> fury. His words: "THE CAP IS FINE YOU FUCKING IDIOT WE SPECIFICALLY WENT
+> OVER THIS... FROM NOW ON LISTEN TO ME I AM GOD".)** He looks at the real app
+> on the real device; you look at code and guess. **HE IS ALWAYS THE
+> AUTHORITY ON WHAT HE IS SEEING.** When he names the piece, the direction,
+> or the cause — that IS the diagnosis. You implement it. You do not go and
+> "work out" that actually some other element is the true culprit and change
+> that one instead.
+> - **Once he settles which piece is in scope, it is SETTLED FOREVER in that
+>   thread.** "The cap was correct, the body needed changing" means the cap is
+>   NEVER touched again for that problem — not on the next attempt, not if your
+>   own reasoning says the cap is where the fix belongs. Touching it again is
+>   the violation.
+> - **His fix instruction is literal.** "Extend the shadow leftward" means take
+>   THAT shadow, on THAT element, and make it reach further left. Not a new
+>   element, not a different layer, not a rebuild of the effect.
+> - **A failed attempt does NOT reopen the diagnosis.** If your change did
+>   nothing, you got the mechanism wrong — the target he named is still the
+>   target. Try again on the SAME element.
+> The failure that birthed this rule: he said the bottom edge shadow on the
+> BODY needed to reach the cap; two attempts later a session had lit the cap
+> instead, after he had explicitly ruled the cap correct.
+
 > **⛔ RULE #-2 — ONLY CHANGE WHAT WAS ASKED. NOTHING ELSE. THE TOP RULE,
 > ABOVE EVERY OTHER RULE IN THIS FILE. (Brendon, 2026-07-25 — raised in fury.
 > His words: "STOP BULLDOZING OVER ME I'M SMARTER THAN YOU AND I'M IN CHARGE.
