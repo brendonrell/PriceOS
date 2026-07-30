@@ -18,6 +18,8 @@ import { useToast } from '../lib/state/ToastContext';
 import { useEffectiveAddress } from '../lib/incognito/useEffectiveAddress';
 import { SHEETS } from '../lib/stickers/catalog';
 import { getOwnedIds, ownsSheet, useOwnedStickerIds } from '../lib/stickers/owned';
+import { genes, SHAPE_NAMES } from '../lib/keychains/engine';
+import { useKeychainRack } from '../lib/keychains/rack';
 import { formatEth } from '../lib/format/eth';
 
 const VS15 = '︎';
@@ -164,6 +166,14 @@ export default function CompletionismModal({
     const dataAddress = proxied && effectiveAddress ? effectiveAddress : address;
     const { showToast } = useToast();
     const ownedIds = useOwnedStickerIds();
+    /* KEYCHAIN COMPLETIONISM — the twelve charm shapes. A shape counts once
+       you hold any charm that rolled it (Brendon, 2026-07-30). */
+    const rack = useKeychainRack(open ? dataAddress : null);
+    const shapesHeld = useMemo(() => {
+        const s = new Set<number>();
+        for (const c of rack?.charms ?? []) s.add(genes(c.seed, c.coin, c.luck).shape);
+        return s;
+    }, [rack]);
 
     /* Two-stage mounted/active — CartPanel's open/close, verbatim. */
     const [mounted, setMounted] = useState(false);
@@ -330,6 +340,31 @@ export default function CompletionismModal({
                             })}
                         </div>
                         <div className="cpl-foot">full sheet detail → My Sticker Binder, in the store</div>
+                    </div>
+
+                    {/* KEYCHAIN COMPLETIONISM — the twelve shapes, same checks.
+                        The rack itself lives in the Depanneur. */}
+                    <div className="cpl-month">
+                        <div className="cpl-month-head">
+                            <span className="cpl-month-name">KEYCHAIN COMPLETIONISM</span>
+                            <span className={`cpl-month-tally${shapesHeld.size === SHAPE_NAMES.length ? ' is-complete' : ''}`}>
+                                {shapesHeld.size === SHAPE_NAMES.length
+                                    ? `COMPLETE ✓${VS15}`
+                                    : `${shapesHeld.size}/${SHAPE_NAMES.length}`}
+                            </span>
+                        </div>
+                        <div className="cpl-grid">
+                            {SHAPE_NAMES.map((name, i) => {
+                                const got = shapesHeld.has(i);
+                                return (
+                                    <span key={name} className={`cpl-item${got ? ' is-got' : ''}`} title={name}>
+                                        <span className="cpl-check">{got ? `✓${VS15}` : `❐${VS15}`}</span>
+                                        <span className="cpl-title">{name}</span>
+                                    </span>
+                                );
+                            })}
+                        </div>
+                        <div className="cpl-foot">crank for the ones you&apos;re missing → The Depanneur</div>
                     </div>
                 </div>
             </div>
