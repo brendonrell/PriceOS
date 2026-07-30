@@ -518,7 +518,7 @@ body.modal-open .fm-bar {
     padding-left: 4px;
     /* the ▶ itself rides 3px LEFT inside the frame — the frame does NOT move
        (Brendon, 2026-07-30: "you moved the play button instead of glyph") */
-    padding-right: 6px;
+    padding-right: 2px;
     font-size: 14px;
     background: var(--bg-color);
     border: 1px solid var(--text-color);
