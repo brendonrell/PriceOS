@@ -2459,6 +2459,14 @@ section[aria-label="Created projects"] > .upload-window {
 .fi-projrow a.projects-pro-name { color: inherit; text-decoration: none; }
 .fi-projrow a.projects-pro-name:hover { text-decoration: underline; }
 
+/* Projects Pro's creator filters — faction bubbles and profile tags, worn as
+   chips (Brendon, 2026-07-30). Full-strength borders, never a wash; a lit tag
+   chip fills with its own tag colour, the same paint the pill wears. */
+.pp-filters { row-gap: 6px; }
+.pp-faction-chip { display: inline-flex; align-items: center; gap: 5px; }
+.pp-tag-chip { font-weight: bold; letter-spacing: 0.4px; }
+.pp-row-faction { display: inline-flex; align-items: center; flex: 0 0 auto; }
+
 /* Projects Pro's dossier — the mint-progress read (Brendon, 2026-07-30).
    Full-strength: real border, solid fill, bold 12px numbers. */
 .pp-progress {

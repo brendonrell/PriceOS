@@ -35,6 +35,12 @@ import { lockBodyScroll, unlockBodyScroll } from '../lib/state/bodyScrollLock';
 import { allProjects } from '../lib/project/registry';
 import { projectSpriteFace } from '../lib/project/projectSprite';
 import { getProjectStars, toggleProjectStar, subscribeProjectStars } from '../lib/pins/projectStarStore';
+import { useUserTags, type UserTagSet } from '../lib/hooks/useUserTags';
+import { UserTags } from './tags/UserTags';
+import { PROFILE_LOGOS_BY_ID } from '../lib/profile/profileLogos';
+import { StickerArt } from './stickers/StickerArt';
+import type { Sticker } from '../lib/stickers/catalog';
+import type { CircleStat } from '../app/api/social/circle-stats/route';
 import SpriteFace from './SpriteFace';
 
 const VS15 = '︎';
@@ -82,6 +88,16 @@ interface LastMove { verb: string; piece: string; ts: number; glyph: string }
 
 const MOVE_GLYPH: Record<string, string> = { MINT: '✶', SALE: '✶', LIST: '✹', XFER: '✸' };
 const MOVE_VERB: Record<string, string> = { MINT: 'minted', SALE: 'sold', LIST: 'listed', XFER: 'moved' };
+
+/* A faction IS a blank-bubble profile logo — the same read the Friend
+   Inspector does, off the one shared logo table. */
+function factionOf(profileLogo: string | null | undefined): Sticker | null {
+    if (!profileLogo || !profileLogo.startsWith('plogo-blank-')) return null;
+    return PROFILE_LOGOS_BY_ID.get(profileLogo) ?? null;
+}
+
+/** What the catalog is narrowed to — one pick at a time, tap again to clear. */
+interface ProFilter { kind: 'faction' | 'tag'; id: string; label: string }
 
 /** Viewer-relative age — clock times are always viewer-local (§9). */
 function fmtAgo(ts: number): string {
@@ -244,21 +260,113 @@ export default function ProjectsProModal() {
     const projects = useMemo(() => [...allProjects()], []);
     const liveOf = useCallback((slug: string) => live?.[slug.toLowerCase()] ?? null, [live]);
 
+    /* ── THE CREATORS' COLOURS (Brendon, 2026-07-30) ──────────────────────
+       A Project inherits its maker's identity, so every row wears the ARTIST's
+       faction and profile tags — and both are filters. Two batched reads, no
+       new endpoints: the artist roster for handle→wallet, then the same
+       circle-stats call the Inspector uses for the faction bubble. */
+    const artists = useMemo(
+        () => [...new Set(projects.map((p) => p.artistHandle.toLowerCase()))],
+        [projects],
+    );
+    const artistTags = useUserTags(isOpen ? artists : []);
+    const [artistStat, setArtistStat] = useState<Record<string, CircleStat>>({});
+    useEffect(() => {
+        if (!isOpen) return;
+        let alive = true;
+        (async () => {
+            try {
+                const roster = await fetch('/api/artists', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null));
+                const rows: Array<{ handle: string | null; address: string }> = roster?.artists ?? [];
+                const want = new Set(artists);
+                const byHandle: Record<string, string> = {};
+                for (const r of rows) {
+                    const h = r.handle?.toLowerCase();
+                    if (h && want.has(h)) byHandle[h] = r.address.toLowerCase();
+                }
+                const addrs = [...new Set(Object.values(byHandle))];
+                if (addrs.length === 0 || !alive) return;
+                const s = await fetch(`/api/social/circle-stats?addresses=${addrs.join(',')}`, { cache: 'no-store' })
+                    .then((r) => (r.ok ? r.json() : null));
+                const byAddr: Record<string, CircleStat> = s?.stats ?? {};
+                if (!alive) return;
+                const out: Record<string, CircleStat> = {};
+                for (const [h, a] of Object.entries(byHandle)) {
+                    const stat = byAddr[a];
+                    if (stat) out[h] = stat;
+                }
+                setArtistStat(out);
+            } catch { /* rows simply carry no faction */ }
+        })();
+        return () => { alive = false; };
+    }, [isOpen, artists]);
+
+    const factionFor = useCallback(
+        (artist: string) => factionOf(artistStat[artist.toLowerCase()]?.profileLogo),
+        [artistStat],
+    );
+
+    /* One filter at a time — a faction or a profile tag. */
+    const [filter, setFilter] = useState<ProFilter | null>(null);
+    useEffect(() => { if (!isOpen) setFilter(null); }, [isOpen]);
+    const flip = useCallback((f: ProFilter) => {
+        setFilter((cur) => (cur && cur.kind === f.kind && cur.id === f.id ? null : f));
+        setInspected(null);
+    }, []);
+
+    /* Only the factions and tags actually WORN by a creator in the catalog get
+       a chip — an empty filter is noise. */
+    const factionChips = useMemo(() => {
+        const out = new Map<string, Sticker>();
+        for (const p of projects) {
+            const f = factionFor(p.artistHandle);
+            if (f) out.set(f.id, f);
+        }
+        return [...out.values()].sort((a, b) => a.name.localeCompare(b.name));
+    }, [projects, factionFor]);
+
+    const tagChips = useMemo(() => {
+        const out = new Map<string, { id: string; label: string; color: string; textColor?: string }>();
+        for (const p of projects) {
+            for (const t of artistTags[p.artistHandle.toLowerCase()]?.tags ?? []) {
+                if (!out.has(t.id)) out.set(t.id, { id: t.id, label: t.label, color: t.color, textColor: t.textColor });
+            }
+        }
+        return [...out.values()].sort((a, b) => a.label.localeCompare(b.label));
+    }, [projects, artistTags]);
+
+    /* The counts follow the active faction / tag pick, so a tab never promises
+       rows the filter has already taken away. */
+    const counted = useMemo(() => projects.filter((p) => {
+        if (!filter) return true;
+        if (filter.kind === 'faction') return factionFor(p.artistHandle)?.id === filter.id;
+        return (artistTags[p.artistHandle.toLowerCase()]?.tags ?? []).some((t) => t.id === filter.id);
+    }), [projects, filter, factionFor, artistTags]);
+
     const counts = useMemo(() => ({
-        all: projects.length,
-        held: projects.filter((p) => mine.has(p.slug.toLowerCase())).length,
-        starred: projects.filter((p) => starred.has(p.slug.toLowerCase())).length,
-        minting: projects.filter((p) => {
+        all: counted.length,
+        held: counted.filter((p) => mine.has(p.slug.toLowerCase())).length,
+        starred: counted.filter((p) => starred.has(p.slug.toLowerCase())).length,
+        minting: counted.filter((p) => {
             const l = liveOf(p.slug);
             return !!l && l.minted > 0 && l.minted < (l.supply || p.outputs);
         }).length,
-    }), [projects, mine, starred, liveOf]);
+    }), [counted, mine, starred, liveOf]);
 
     /* The ordered rows for the active tab. Starred pin to the top
        (alphabetised); the rest follow the chosen sort. */
     const rows = useMemo(() => {
         const inTab = projects.filter((p) => {
             const s = p.slug.toLowerCase();
+            /* A faction / tag pick narrows every tab — it reads off the
+               project's CREATOR. */
+            if (filter) {
+                if (filter.kind === 'faction') {
+                    if (factionFor(p.artistHandle)?.id !== filter.id) return false;
+                } else if (!(artistTags[p.artistHandle.toLowerCase()]?.tags ?? []).some((t) => t.id === filter.id)) {
+                    return false;
+                }
+            }
             if (tab === 'held') return mine.has(s);
             if (tab === 'starred') return starred.has(s);
             if (tab === 'minting') {
@@ -292,7 +400,7 @@ export default function ProjectsProModal() {
                 (lastMove[b.slug.toLowerCase()]?.ts ?? 0) - (lastMove[a.slug.toLowerCase()]?.ts ?? 0) || alpha(a, b));
         }
         return [...pinned, ...rest];
-    }, [projects, tab, sort, lens, mine, starred, liveOf, lastMove]);
+    }, [projects, tab, sort, lens, mine, starred, liveOf, lastMove, filter, factionFor, artistTags]);
 
     const lensLineOf = useCallback((slug: string): string | null => {
         const s = slug.toLowerCase();
@@ -362,6 +470,46 @@ export default function ProjectsProModal() {
                 ))}
             </div>
 
+            {/* THE CREATORS' COLOURS — every faction and profile tag worn by a
+                creator in the catalog, as filters. One pick at a time; tapping
+                the lit one clears it. */}
+            {(factionChips.length > 0 || tagChips.length > 0) && (
+                <div className="fm-sort pp-filters" role="group" aria-label="Filter by faction or tag">
+                    {factionChips.length > 0 && <span className="fm-sort-label">FACTION</span>}
+                    {factionChips.map((f) => {
+                        const on = filter?.kind === 'faction' && filter.id === f.id;
+                        const label = f.name.replace('Bubble — ', '').toUpperCase();
+                        return (
+                            <button
+                                key={f.id}
+                                type="button"
+                                className={`ambient-chip fm-sort-chip pp-faction-chip${on ? ' on' : ''}`}
+                                onClick={() => flip({ kind: 'faction', id: f.id, label })}
+                                title={label}
+                            >
+                                <StickerArt sticker={f} size={12} /> {label}
+                            </button>
+                        );
+                    })}
+                    {tagChips.length > 0 && <span className="fm-sort-label fm-lens-label">TAG</span>}
+                    {tagChips.map((t) => {
+                        const on = filter?.kind === 'tag' && filter.id === t.id;
+                        return (
+                            <button
+                                key={t.id}
+                                type="button"
+                                className={`ambient-chip fm-sort-chip pp-tag-chip${on ? ' on' : ''}`}
+                                style={on ? { background: t.color, borderColor: t.color, color: t.textColor ?? undefined } : { borderColor: t.color }}
+                                onClick={() => flip({ kind: 'tag', id: t.id, label: t.label })}
+                                title={t.label}
+                            >
+                                {t.label.toUpperCase()}
+                            </button>
+                        );
+                    })}
+                </div>
+            )}
+
             <div className="fm-list">
                 {rows.length === 0 ? (
                     <div className="fm-empty">{EMPTY_LINE[tab]}</div>
@@ -383,6 +531,8 @@ export default function ProjectsProModal() {
                         lastMove={lastMove?.[p.slug.toLowerCase()] ?? null}
                         onOpen={() => go(p.slug)}
                         me={siweAddress ?? null}
+                        faction={factionFor(p.artistHandle)}
+                        tagSet={artistTags[p.artistHandle.toLowerCase()]}
                     />
                 ))}
             </div>
@@ -450,12 +600,15 @@ export default function ProjectsProModal() {
    (not the star, not the title link) unfolds the dossier. ── */
 function ProjectProRow({
     slug, name, artist, outputs, priceEth, live, held, starred, onStar,
-    inspected, onInspect, lensLine, lastMove, onOpen, me,
+    inspected, onInspect, lensLine, lastMove, onOpen, me, faction, tagSet,
 }: {
     slug: string; name: string; artist: string; outputs: number; priceEth: number;
     live: LiveRow | null; held: boolean; starred: boolean; onStar: (slug: string) => void;
     inspected: boolean; onInspect: () => void; lensLine: string | null;
     lastMove: LastMove | null; onOpen: () => void; me: string | null;
+    /** The CREATOR's faction bubble and profile tags — a Project wears its
+     *  maker's colours (Brendon, 2026-07-30). */
+    faction: Sticker | null; tagSet: UserTagSet | undefined;
 }) {
     const face = projectSpriteFace(slug);
     const minted = live?.minted ?? 0;
@@ -493,6 +646,11 @@ function ProjectProRow({
                                 <span className="ppn-tail">{name.slice(-6)}</span>
                             </a>
                             <span className="projects-pro-artist" title="Creator">@{artist}</span>
+                            {faction && (
+                                <span className="pp-row-faction" title={faction.name.replace('Bubble — ', '')}>
+                                    <StickerArt sticker={faction} size={12} />
+                                </span>
+                            )}
                         </span>
                         <span className="fm-row-stats">
                             <span className="fm-stat" title="Minted">
@@ -513,6 +671,9 @@ function ProjectProRow({
                     </span>
                 </span>
             </div>
+            {/* The creator's profile tags ride under the row, exactly as they do
+                on a person's row elsewhere. */}
+            {tagSet && <UserTags set={tagSet} size="mini" />}
             {lensLine && <div className="fi-lens-line">{lensLine}</div>}
             {inspected && (
                 <ProjectDossier
