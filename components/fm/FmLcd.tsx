@@ -168,7 +168,9 @@ export default function FmLcd({
                     for (let x = 0; x < bw; x++) px(x0 + b * (bw + gap) + x, base - y);
                 }
             }
-            return x0;
+            /* the highest a bar can EVER reach — any text line sitting entirely
+               above this never has to make room for the meter */
+            return { x0, top: base - maxH };
         };
 
         let raf = 0;
@@ -178,21 +180,24 @@ export default function FmLcd({
             scene.fill(0);
 
             const elapsed = (() => { try { return elapsedRef.current() || 0; } catch { return 0; } })();
-            const meterX = drawMeter(elapsed);
+            const meter = drawMeter(elapsed);
 
             /* Three lines stacked with a one-pixel leading, clipped to the
                glass — the readout never spills, exactly like the shop's. Each
                line crawls on its own timing when it is too long to fit. */
             const textL = 2;
-            const textR = meterX - 3;
-            const span = textR - textL;
             const lineH = GLYPH_H + 1;
             const block = 3 * lineH - 1;
             const now = performance.now();
             let y = Math.max(1, Math.round((H - block) / 2));
             for (const line of rowsRef.current) {
+                /* A line that clears the meter's tallest bar runs the FULL width
+                   of the glass (Brendon, 2026-07-30) — only the lines the bars
+                   can actually reach give up the right end. */
+                const clears = y + GLYPH_H - 1 < meter.top;
+                const textR = clears ? W - 2 : meter.x0 - 3;
                 const widthPx = Math.max(0, line.length * GLYPH_ADVANCE - 1);
-                drawText(line, textL + crawlOffset(widthPx, span, now), y, textL, textR);
+                drawText(line, textL + crawlOffset(widthPx, textR - textL, now), y, textL, textR);
                 y += lineH;
             }
 
