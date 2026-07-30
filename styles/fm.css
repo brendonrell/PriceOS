@@ -514,6 +514,12 @@ body.modal-open .fm-bar {
     border-color: transparent;
 }
 .fm-mode-usb .fm-play:hover { background: var(--bg-color); color: var(--text-color); }
+/* The ‖ sits 1px down and 1px right on the USB face (Brendon, 2026-07-30).
+   The ▶ is untouched. */
+.fm-mode-usb .fm-pause-glyph {
+    display: inline-block;
+    transform: translate(1px, 1px);
+}
 @media (hover: hover) {
     .fm-mode-usb .fm-btn:hover { opacity: 0.62; }
 }

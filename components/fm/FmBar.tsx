@@ -866,7 +866,9 @@ export default function FmBar() {
                 onClick={onPlayTap}
                 title={status === 'playing' ? 'Pause' : 'Play'}
             >
-                {status === 'playing' || status === 'loading' ? '‖' : '▶︎'}
+                {status === 'playing' || status === 'loading'
+                    ? <span className="fm-pause-glyph">‖</span>
+                    : '▶︎'}
             </button>
             {display === 'usb' && (
                 <button
