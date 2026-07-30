@@ -53,7 +53,7 @@ export function Footer() {
                     <span className="priceos-sep">·</span>
                     <span className="priceos-status" id="footerStatus">Connected</span>
                     <span className="priceos-sep">·</span>
-                    <span className="priceos-gwei" id="footerGwei">{gweiText}</span>
+                    <span className="priceos-gwei" id="footerGwei" title="Gas Tracker" style={{ cursor: 'pointer' }} onClick={() => open('gasTracker')}>{gweiText}</span>
                     <span className="priceos-sep">·</span>
                     <span className="priceos-block" id="footerBlock">{blockText}</span>
                 </div>

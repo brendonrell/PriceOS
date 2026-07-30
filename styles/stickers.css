@@ -260,7 +260,7 @@
     /* Given its height back (Brendon, 2026-07-24 — "bottom one needs to be a
        bit taller"): more room above and below, and the same line-height +
        size-adjust pin as the crawl so this strip can't shear either. */
-    font-size: 12px;
+    font-size: 14px;
     line-height: 1.5;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;

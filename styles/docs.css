@@ -193,7 +193,25 @@
    INSIDE the ≥1024px block, so on an iPhone the ⌕ silently fell back to the
    11px button size and never grew. It lives at the top level now, with the
    double class so it wins over the mobile override above regardless of order. */
-.pd-docs-index-btn.pd-docs-search-btn { font-size: 21px; line-height: 1; }
+.pd-docs-index-btn.pd-docs-search-btn {
+    font-size: 21px;
+    line-height: 1;
+    /* The box is pinned to the neighbouring buttons' height and to a fixed
+       width, with the glyph centred inside — so the ⌕ ↔ × swap draws a
+       different mark without ever resizing or shifting the button. */
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+    width: 30px;
+    padding: 0;
+}
+/* Phone widths: the neighbours shrink to 11px type, so the key matches that
+   box instead. Sits after the base rule so it actually wins. */
+@media (max-width: 480px) {
+    .pd-docs-index-btn.pd-docs-search-btn { height: 23px; width: 27px; }
+}
 
 /* ── Desktop rail ── */
 .pd-docs-sidebar { display: none; }
@@ -716,7 +734,7 @@
 @media (min-width: 1024px) {
     /* SEARCH stays in the desktop top bar (INDEX hides — the rail has it);
        the panel reuses the mobile drop-down chrome, narrowed to a column. */
-    .pd-docs-index-btn.pd-docs-search-btn { display: inline-block; }
+    .pd-docs-index-btn.pd-docs-search-btn { display: inline-flex; }
     .pd-docs-mobile-nav.pd-docs-search-panel {
         display: block;
         left: auto;
