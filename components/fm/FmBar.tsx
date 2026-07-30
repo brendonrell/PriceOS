@@ -118,6 +118,14 @@ const FM_DISPLAY_NAMES: Record<FmDisplay, string> = {
 /* The saved live session (station + entry + seconds) — mirror of the
    account envelope's `fmSession` (Brendon, 2026-07-27: closing the app and
    returning restores the player right where it was paused). */
+/* THE HEADPHONE CABLE (Brendon, 2026-07-30, drawn to his screenshot) — one
+   curve, stroked three times (shadow · white core · sheen) so the lead reads as
+   round white rubber. It leaves the stick's right end low on the body, hangs
+   with real slack under it, then heads down-left toward the phone's own jack at
+   the bottom centre. Every bend is a smooth cubic — a cable never has corners. */
+const FM_CABLE_D =
+    'M 133 20 C 160 16, 178 30, 170 48 C 162 66, 120 68, 80 62 C 52 58, 30 70, 15 100';
+
 const FM_SESSION_KEY = 'pd_fm_session';
 interface FmSavedSession {
     playlistId: string;
@@ -780,6 +788,17 @@ export default function FmBar() {
                     title={usbCapOff ? 'Tap to cap · hold for your tracks' : 'USB cap'}
                     aria-label={usbCapOff ? 'USB plug — hold for your tracks' : 'USB cap'}
                 />
+            )}
+            {/* USB face only: the headphone lead (Brendon, 2026-07-30) — out of
+                the stick's right end, hanging with slack, then down toward the
+                phone's own jack at the bottom centre. Scenery only: aria-hidden
+                and pointer-events off, so it never takes a tap. */}
+            {display === 'usb' && (
+                <svg className="fm-usbcable" viewBox="0 0 180 100" aria-hidden="true" focusable="false">
+                    <path className="fm-cable-shade" d={FM_CABLE_D} />
+                    <path className="fm-cable-core" d={FM_CABLE_D} />
+                    <path className="fm-cable-lit" d={FM_CABLE_D} transform="translate(0,-0.9)" />
+                </svg>
             )}
             {/* ── transport keys — LEFT side, like the deck of a Sony MD.
                 ▶/≫/TUNE are the deck's; ⎇ MODE and × ride EVERY face

@@ -31,8 +31,15 @@
 import { useEffect, useRef } from 'react';
 import { GLYPH_H, GLYPH_ADVANCE, glyphFor, wrapLines } from '../../lib/stickers/pixels';
 
-/** CSS pixels per screen pixel — two, exactly as the shop's panel. */
-const PX = 2;
+/** ⛔ THE PANEL IS SIZED TO THE PLAYER, NOT TO THE SHOP (Brendon, 2026-07-30:
+ *  "make the lcd screen actually sized to the player and not the sticker store,
+ *  that was lazy work"). The shop's panel is a big surface and draws two CSS
+ *  pixels per screen pixel; lifting that number onto a 30px-tall glass left room
+ *  for THREE characters and two-and-a-bit rows — the readout was clipped from the
+ *  day it shipped. One CSS pixel per screen pixel is this screen's own scale: the
+ *  full three rows fit with the meter, and the matrix is still the shop's exact
+ *  bitmap font, blitted the same way (Rule #0). */
+const PX = 1;
 /** Lit segment. */
 const ON = 'rgba(226, 246, 214, 1)';
 /** The unlit matrix, faint but present — the ghost grid of a real LCD. */
@@ -75,14 +82,20 @@ export default function FmLcd({
         /* 1 = lit, 0 = dark. One byte per screen pixel, like the shop's. */
         let scene: Uint8Array | null = null;
 
+        /* A one-CSS-pixel cell would be soft on a phone if the buffer were sized
+           in CSS pixels, so the CELL SIZE and the BUFFER RESOLUTION are separate:
+           cells stay this screen's size, the buffer is drawn at the device's. */
+        const dpr = Math.min(3, Math.max(1, window.devicePixelRatio || 1));
+        const S = PX * dpr; // device pixels per screen pixel
+
         const resize = () => {
             const r = host.getBoundingClientRect();
             const nw = Math.max(24, Math.floor(r.width / PX));
             const nh = Math.max(10, Math.floor(r.height / PX));
             if (nw === W && nh === H) return;
             W = nw; H = nh;
-            canvas.width = W * PX;
-            canvas.height = H * PX;
+            canvas.width = Math.round(W * S);
+            canvas.height = Math.round(H * S);
             canvas.style.width = `${W * PX}px`;
             canvas.style.height = `${H * PX}px`;
             scene = new Uint8Array(W * H);
@@ -157,11 +170,14 @@ export default function FmLcd({
 
             /* ── paint ── */
             ctx.fillStyle = GLASS;
-            ctx.fillRect(0, 0, W * PX, H * PX);
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            /* the cell, minus a hair of gap — the dark grid between segments is
+               what makes a matrix read as a matrix */
+            const cell = Math.max(1, S - 0.35 * dpr);
             for (let yy = 0; yy < H; yy++) {
                 for (let xx = 0; xx < W; xx++) {
                     ctx.fillStyle = scene[yy * W + xx] ? ON : OFF;
-                    ctx.fillRect(xx * PX, yy * PX, PX - 0.35, PX - 0.35);
+                    ctx.fillRect(xx * S, yy * S, cell, cell);
                 }
             }
         };

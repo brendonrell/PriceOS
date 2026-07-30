@@ -288,15 +288,14 @@ body.modal-open .fm-bar {
     border-radius: 14px;
     display: grid;
     grid-template-columns: minmax(0, 1fr) 20px 20px 20px;
-    /* ⛔ THE PAD IS A REAL GRID, NOT NUDGED GLYPHS (Brendon, 2026-07-28: "the
-       problem is the ALIGNMENT not the nudging" / "they all need the same size
-       square"). Three 16px rows with a 2px gutter = 52px, centred inside the
-       56px pad, so every key lands on the grid with an even 2px all round and
-       nothing is shoved into place afterwards. */
-    grid-template-rows: 16px 20px 16px;
-    row-gap: 2px;
-    align-content: center;
-    column-gap: 0;
+    /* ⛔ THE ORIGINAL CONTROLS RING IS THE RING (Brendon, 2026-07-30: "we had a
+       wonderful controls ring and at the last minute when I asked to make the
+       buttons the same size you redid the whole fucking thing... revert back to
+       what we had before"). This is that ring, restored verbatim — three even
+       rows, a 2px column gutter, bare glyph keys with the framed centre, and the
+       top/bottom arms riding IN toward the middle. Never rebuild it again. */
+    grid-template-rows: repeat(3, 1fr);
+    column-gap: 2px;
     align-items: center;
     justify-items: center;
     /* ⛔ CONVINCING MOULDED PLASTIC — USB FACE ONLY (Brendon, 2026-07-28:
@@ -411,18 +410,12 @@ body.modal-open .fm-bar {
    LEFT side (Brendon, 2026-07-28: "make the artwork a bit smaller within the
    screen, the border I want big is on the left side") — the reference's display
    has real black around its content, not a picture pressed to the edge. */
-.fm-mode-usb .fm-video { width: 24px; height: 18px; border-right: 1px solid var(--bg-color); align-self: center; margin-left: 5px; }
-.fm-mode-usb .fm-video iframe { width: 24px; height: 18px; }
+.fm-mode-usb .fm-video { width: 30px; height: 22px; border-right: 1px solid var(--bg-color); align-self: center; margin-left: 5px; }
+.fm-mode-usb .fm-video iframe { width: 30px; height: 22px; }
 .fm-mode-usb .fm-rows { width: 62px; flex: 0 0 62px; max-width: 62px; padding: 0 4px; }
-/* the EQ dances in the glass — readout-coloured on the inverted panel */
-.fm-mode-usb .fm-sigbars {
-    display: flex;
-    gap: 2px;
-    align-items: flex-end;
-    height: 12px;
-    padding: 0 4px 0 0;
-}
-.fm-mode-usb .fm-sb { background: var(--bg-color); box-shadow: none; }
+/* ⛔ NO FAKE EQ ON THE USB FACE (Brendon, 2026-07-30). The glass has a REAL
+   meter, drawn in the dot matrix by FmLcd off the player's own clock — the old
+   CSS bars sat beside it lying about the same thing. TAB keeps its bars. */
 /* ONE raised square pad carries all the keys — a moulded plate, lit from
    above like the body it sits in (Brendon's Transcend reference). */
 .fm-mode-usb::after {
@@ -432,7 +425,7 @@ body.modal-open .fm-bar {
     justify-self: stretch;
     align-self: center;
     width: 100%;
-    height: 60px;
+    height: 56px;
     background: linear-gradient(
         180deg,
         color-mix(in srgb, var(--bg-color) 62%, #ffffff) 0%,
@@ -446,25 +439,22 @@ body.modal-open .fm-bar {
         inset 0 1px 0 color-mix(in srgb, var(--bg-color) 46%, #ffffff),
         inset 0 -1px 0 color-mix(in srgb, var(--bg-color) 58%, #000000);
 }
-/* THE FOUR ARMS ARE ONE SIZE OF SQUARE (Brendon, 2026-07-28: "they all need
-   the same size square... all FOUR"). ⟳ ⎇ ≫ × are identical 16px keys; ▶ keeps
-   the centre and is the larger key, as on the reference's pad. Each sits in its
-   own cell — no align-self, no transforms, so the cross is even by construction
-   with a 2px gutter everywhere. */
+/* the ring's keys — bare glyphs on the moulded pad, the framed square in the
+   centre (the restored ring, Brendon 2026-07-30) */
 .fm-mode-usb .fm-btn {
     position: relative;
     z-index: 1;
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 15px;
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1;
+    background: transparent;
     color: var(--text-color);
-    background: var(--bg-color);
-    border: 1px solid var(--text-color);
+    border: none;
     border-radius: 4px;
 }
 /* ⛔ HOVER ONLY WHERE HOVER EXISTS. On iOS the last-tapped key KEEPS :hover, so
@@ -475,13 +465,21 @@ body.modal-open .fm-bar {
     .fm-mode-usb .fm-btn:hover { background: var(--text-color); color: var(--bg-color); }
 }
 .fm-mode-usb .fm-btn:active { background: var(--text-color); color: var(--bg-color); }
-.fm-mode-usb .fm-play { grid-column: 3; grid-row: 2; width: 20px; height: 20px; font-size: 12px; }
+/* centre play — the pad's framed square key */
+.fm-mode-usb .fm-play {
+    grid-column: 3;
+    grid-row: 2;
+    width: 22px;
+    height: 18px;
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
+}
 /* The pad's cross: ⟳ SHUFFLE top · ⎇ face-changer left · ≫ right · × bottom ·
-   ▶ centre. Each one simply sits in its cell — no align-self, no transforms. */
-.fm-mode-usb .fm-close { grid-column: 3; grid-row: 3; }
+   ▶ centre. Top and bottom ride IN toward the centre so neither breaks out over
+   the pad's ring. */
+.fm-mode-usb .fm-close { grid-column: 3; grid-row: 3; align-self: start; transform: translateY(-6px); }
 /* the pad's four arms around ▶: ⟳ top · × bottom · ⎇ left · ≫ right */
-/* the ⟳ reads small at the key size — two sizes up (Brendon, 2026-07-28) */
-.fm-mode-usb .fm-shuffle { grid-column: 3; grid-row: 1; font-size: 15px; }
+.fm-mode-usb .fm-shuffle { grid-column: 3; grid-row: 1; align-self: end; transform: translateY(6px); }
 /* SHUFFLE ON wears PD's active pair — fill AND text together. Colouring only
    the glyph painted it the same dark as the pressed fill and it vanished
    (Brendon, 2026-07-28: "the glyph goes away"). */
@@ -501,11 +499,15 @@ body.modal-open .fm-bar {
    body"). On the MP330 the cap is not a little tab on the end — it is the
    same extrusion, full height, flush to the shell, with only a seam to say
    where one stops and the other starts. */
+/* ⛔ THE CAP COVERS THE END COMPLETELY (Brendon, 2026-07-30: "move cap rightward
+   so it covers the end entirely, can see the usb knob right now"). The steel
+   plug runs to 2px INSIDE the shell, so a cap that stopped at the seam left a
+   sliver of knob showing; it now sits 4px over the body's left edge. */
 .fm-usbcap {
     position: absolute;
-    left: -34px;
+    left: -32px;
     top: 0;
-    width: 34px;
+    width: 36px;
     height: 100%;
     padding: 0;
     border: none;
@@ -563,6 +565,31 @@ body.modal-open .fm-bar {
 @media (prefers-reduced-motion: reduce) {
     .fm-usbcap::before { transition: none; }
 }
+
+/* ══ THE HEADPHONE CABLE — USB FACE ONLY (Brendon, 2026-07-30, to his
+   screenshot) ══════════════════════════════════════════════════════════════
+   A white iPhone-style lead leaving the stick's right end, hanging with real
+   slack, then running down toward the phone's own jack at the bottom centre —
+   so the little player reads as WIRED to the device you're holding. It is
+   scenery: pointer-events off end to end, so it can never eat a tap or fight
+   an iOS edge gesture. The tail runs off the bottom of the screen on purpose;
+   the jack it plugs into is the physical one below the glass. */
+.fm-usbcable {
+    position: absolute;
+    left: calc(50% - 30px);
+    top: 50%;
+    width: 180px;
+    height: 100px;
+    overflow: visible;
+    pointer-events: none;
+    z-index: 0;
+}
+.fm-usbcable path { fill: none; stroke-linecap: round; }
+/* the cable's own shadow, so it sits IN the scene instead of on top of it */
+.fm-usbcable .fm-cable-shade { stroke: rgba(0, 0, 0, 0.32); stroke-width: 5; }
+.fm-usbcable .fm-cable-core { stroke: #f6f7f7; stroke-width: 3; }
+/* the sheen down the top of the lead — what makes white rubber read as round */
+.fm-usbcable .fm-cable-lit { stroke: rgba(255, 255, 255, 0.85); stroke-width: 1; }
 
 /* the pulse bars — rendered in every face, shown only on TAB */
 .fm-sigbars { display: none; }
