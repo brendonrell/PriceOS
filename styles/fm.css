@@ -551,7 +551,10 @@ body.modal-open .fm-bar {
         inset 0 1px 0 color-mix(in srgb, var(--bg-color) 34%, #ffffff),
         inset 0 -1px 0 color-mix(in srgb, var(--bg-color) 44%, #000000),
         inset 1px 0 0 color-mix(in srgb, var(--bg-color) 72%, #ffffff),
-        inset -1px 0 0 color-mix(in srgb, var(--bg-color) 60%, #000000);
+        inset -1px 0 0 color-mix(in srgb, var(--bg-color) 60%, #000000),
+        /* the same cast shadow the body throws, so the bottom edge runs
+           unbroken from the cap through to the far end (Brendon, 2026-07-30) */
+        0 6px 24px rgba(0, 0, 0, 0.45);
     transition: transform 0.22s ease, opacity 0.18s ease;
 }
 .fm-usbcap--off::before {
