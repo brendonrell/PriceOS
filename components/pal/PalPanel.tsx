@@ -37,6 +37,9 @@ import { CALC_ROYALTY_PCT, CALC_GAS_ESTIMATE_ETH } from '../CalcSheet';
 import BenchArt from '../bench/BenchArt';
 import SuitePane from '../suite/SuitePane';
 import type { MarketplaceResponse } from '../../lib/marketplace/marketData';
+import { onMarketSnapshot, readMarketSnapshot, refreshMarketSnapshot, warmMarketSnapshot, warmMarketSnapshotIdle } from '../../lib/marketplace/snapshotCache';
+import { onHoldings, readHoldings, refreshHoldings, warmHoldings, warmHoldingsIdle } from '../../lib/holdings/cache';
+import { onCompletionism, readCompletionism, refreshCompletionism, warmCompletionism, warmCompletionismIdle } from '../../lib/completionism/cache';
 import type { UserHolding } from '../../lib/profile/getUserHoldings';
 
 const VS15 = '︎';
@@ -157,36 +160,50 @@ export default function PalPanel({ inline = false }: { inline?: boolean } = {}) 
 
     /* The market snapshot + the viewer's Completionism months + holdings —
        fetched on open, shared by both sides. */
-    const [market, setMarket] = useState<MarketplaceResponse | null>(null);
+    /* ⛔ THE PANEL OPENS ON CONTENT IT ALREADY HAS (Brendon, 2026-07-30). All
+       three reads used to start on OPEN, so the first open sat on the network
+       and then re-laid the whole panel out — the same first-open hitch the
+       Completionism sheet had. They are warmed while the page is idle and seeded
+       straight out of the shared caches here. */
+    const [market, setMarket] = useState<MarketplaceResponse | null>(() => readMarketSnapshot());
     const [months, setMonths] = useState<MonthRow[] | null>(null);
     const [holdings, setHoldings] = useState<{ rows: UserHolding[]; total: number; spent: number } | null>(null);
+
+    useEffect(() => {
+        warmMarketSnapshotIdle();
+        warmCompletionismIdle(siweAddress);
+        warmHoldingsIdle(siweAddress);
+    }, [siweAddress]);
+
+    /* Each open re-reads in the background behind the cached copy. */
     useEffect(() => {
         if (!isOpen) return;
-        let cancelled = false;
-        fetch('/api/marketplace', { cache: 'no-store' })
-            .then((r) => (r.ok ? r.json() : null))
-            .then((d) => { if (!cancelled && d) setMarket(d as MarketplaceResponse); })
-            .catch(() => { if (!cancelled) setMarket(null); });
-        if (siweAddress) {
-            const addr = siweAddress.toLowerCase();
-            fetch(`/api/completionism?address=${encodeURIComponent(addr)}`, { cache: 'no-store' })
-                .then((r) => (r.ok ? r.json() : null))
-                .then((d) => { if (!cancelled && d) setMonths((d.months as MonthRow[]) ?? []); })
-                .catch(() => { if (!cancelled) setMonths([]); });
-            fetch(`/api/user/${addr}/outputs`, { cache: 'no-store' })
-                .then((r) => (r.ok ? r.json() : null))
-                .then((d) => {
-                    if (cancelled || !d) return;
-                    setHoldings({
-                        rows: (d.holdings as UserHolding[]) ?? [],
-                        total: Number(d.total) || 0,
-                        spent: Number(d.volume_spent_eth) || 0,
-                    });
-                })
-                .catch(() => { if (!cancelled) setHoldings(null); });
-        }
-        return () => { cancelled = true; };
+        refreshMarketSnapshot();
+        refreshCompletionism(siweAddress);
+        refreshHoldings(siweAddress);
     }, [isOpen, siweAddress]);
+
+    useEffect(() => {
+        let cancelled = false;
+        const take = () => {
+            if (cancelled) return;
+            const m = readMarketSnapshot();
+            if (m) setMarket(m);
+            if (!siweAddress) return;
+            const c = readCompletionism(siweAddress);
+            if (c) setMonths(c.months as MonthRow[]);
+            const h = readHoldings(siweAddress);
+            if (h) setHoldings({ rows: h.rows as UserHolding[], total: h.total, spent: h.spent });
+        };
+        take();
+        const stops = [onMarketSnapshot(take), onCompletionism(take), onHoldings(take)];
+        void warmMarketSnapshot().then((d) => { if (!d && !cancelled) setMarket(null); });
+        if (siweAddress) {
+            void warmCompletionism(siweAddress).then((d) => { if (!d && !cancelled) setMonths([]); });
+            void warmHoldings(siweAddress).then((d) => { if (!d && !cancelled) setHoldings(null); });
+        }
+        return () => { cancelled = true; stops.forEach((s) => s()); };
+    }, [siweAddress]);
 
     useEffect(() => {
         if (!isOpen || inline) return;

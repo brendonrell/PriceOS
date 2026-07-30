@@ -32,6 +32,7 @@ import {
 } from '../../lib/market/tradeClient';
 import { TRADE_MAX_ITEMS_PER_SIDE, type TradeItem, type TradeRow } from '../../lib/market/tradeTypes';
 import BenchArt from '../bench/BenchArt';
+import { onHoldings, readHoldings, refreshHoldings, warmHoldings, warmHoldingsIdle } from '../../lib/holdings/cache';
 
 const VS15 = '︎';
 const UNMOUNT_DELAY_MS = 240;
@@ -153,14 +154,23 @@ function PickerFace({
     onDone: () => void;
     onClose: () => void;
 }) {
-    const [holdings, setHoldings] = useState<Holding[] | null>(null);
+    /* Seeded from the shared warm cache, so the picker opens on its pieces
+       instead of a loading line (Brendon, 2026-07-30). */
+    const [holdings, setHoldings] = useState<Holding[] | null>(
+        () => (readHoldings(address)?.rows as Holding[] | undefined) ?? null,
+    );
     useEffect(() => {
         let cancelled = false;
-        fetch(`/api/user/${address}/outputs`, { cache: 'no-store' })
-            .then((r) => (r.ok ? r.json() : null))
-            .then((d) => { if (!cancelled) setHoldings(((d?.holdings ?? []) as Holding[])); })
-            .catch(() => { if (!cancelled) setHoldings([]); });
-        return () => { cancelled = true; };
+        const take = () => {
+            const h = readHoldings(address);
+            if (!cancelled && h) setHoldings(h.rows as Holding[]);
+        };
+        take();
+        const stop = onHoldings(take);
+        void warmHoldings(address).then((d) => { if (!d && !cancelled) setHoldings([]); });
+        // Behind the cached copy, so a trade made this session is never stale.
+        refreshHoldings(address);
+        return () => { cancelled = true; stop(); };
     }, [address]);
 
     const chosenKeys = useMemo(() => new Set(chosen.map((c) => `${c.project_id}:${c.token_id}`)), [chosen]);
@@ -578,6 +588,9 @@ export default function ExchangeModal() {
     const { state, closeExchange } = useExchange();
     const { siweAddress } = useAuth();
     const open = state != null;
+    /* The picker's pieces are read while the page is idle, so the sheet opens
+       on finished content (Brendon, 2026-07-30). */
+    useEffect(() => { warmHoldingsIdle(siweAddress); }, [siweAddress]);
     const { mounted, active } = useTwoStage(open);
 
     /* COUNTER flips the trade face into a prefilled compose (roles reversed). */

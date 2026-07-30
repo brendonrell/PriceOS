@@ -21,7 +21,7 @@ import { getOwnedIds, ownsSheet, useOwnedStickerIds } from '../lib/stickers/owne
 import { genes, SHAPE_NAMES } from '../lib/keychains/engine';
 import { useKeychainRack } from '../lib/keychains/rack';
 import { formatEth } from '../lib/format/eth';
-import { onCompletionism, readCompletionism, warmCompletionism } from '../lib/completionism/cache';
+import { onCompletionism, readCompletionism, refreshCompletionism, warmCompletionism } from '../lib/completionism/cache';
 
 const VS15 = '︎';
 const UNMOUNT_DELAY_MS = 240;
@@ -235,6 +235,11 @@ export default function CompletionismModal({
         });
         return () => { cancelled = true; stop(); };
     }, [dataAddress]);
+
+    /* Every open re-reads in the BACKGROUND while the cached copy stays on
+       screen, so a piece bought this session is never stale and the open still
+       costs nothing (Brendon, 2026-07-30). */
+    useEffect(() => { if (open) refreshCompletionism(dataAddress); }, [open, dataAddress]);
 
     useEffect(() => {
         if (!open) return;
