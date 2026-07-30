@@ -533,6 +533,13 @@ body.modal-open .fm-bar {
     /* rounded on the outer end exactly as the body, near-square at the seam */
     border-radius: 14px 2px 2px 14px;
     background:
+        /* the BOTTOM EDGE — the body's bounce line carried across the cap, above
+           the shoulder wash that was swallowing it, so the whole underside of the
+           shell reads as one lit edge (Brendon, 2026-07-30) */
+        linear-gradient(
+            color-mix(in srgb, var(--bg-color) 66%, #ffffff),
+            color-mix(in srgb, var(--bg-color) 66%, #ffffff)
+        ) bottom left / 100% 1px no-repeat,
         linear-gradient(
             180deg,
             transparent 3%,
