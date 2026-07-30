@@ -319,7 +319,6 @@ export default function DepanneurModal() {
                 <div className="ptr-pill dp-ptr-pill" ref={pillRef} aria-hidden="true" />
                 <div className="smgr-plus-head">
                     <span className="ambient-pop-title-text">
-                        <span className="smgr-title-ic">{`⚷${VS15}`}</span>{' '}
                         <span className="smgr-title-words">THE DEPANNEUR</span>
                     </span>
                     <span

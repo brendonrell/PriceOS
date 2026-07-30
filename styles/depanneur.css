@@ -25,6 +25,11 @@
     color: #F2F2F4;
 }
 
+/* THE TITLE STANDS ALONE (Brendon, 2026-07-30) — the ⚷ came off the head, so
+   the wordmark carries it and reads a step bigger. Scoped to this panel: the
+   sticker/followers heads keep their own 11px + glyph. */
+.dp-plus .smgr-plus-head { font-size: 14px; }
+
 /* ── the Depanneur's own pull-to-refresh ──
    The app's PWA pull is blocked inside modals, so the panel runs the same
    gesture against its own scroller: the SAME pill, the same tint band, the
@@ -181,7 +186,7 @@
     background: var(--dp-panel);
     border: 2px solid var(--text-color);
     border-radius: 4px;
-    padding: 10px 12px;
+    padding: 15px 12px;
     box-shadow: 0 3px 0 var(--text-color);
     transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
@@ -195,9 +200,11 @@
     background: var(--stat-active-bg, var(--text-color));
     color: var(--stat-active-text, var(--bg-color));
     border-color: var(--stat-active-bg, var(--text-color));
-    /* Held: the coin is IN — the button sits pressed. */
+    /* Held: the coin is IN — the face drops onto its own floor (same 3px the
+       lift occupied, so nothing shifts) and takes a shaded lip along the top
+       edge, so a selected slot reads sunken, not just recoloured. */
     transform: translateY(3px);
-    box-shadow: 0 0 0 var(--stat-active-bg, var(--text-color));
+    box-shadow: inset 0 4px 0 #C4678B;
 }
 
 .dp-machine-cap {
