@@ -505,7 +505,8 @@ body.modal-open .fm-bar {
    sliver of knob showing; it now sits 4px over the body's left edge. */
 .fm-usbcap {
     position: absolute;
-    left: -32px;
+    /* nudged 10px further right (Brendon, 2026-07-30) */
+    left: -22px;
     top: 0;
     width: 36px;
     height: 100%;
@@ -574,22 +575,35 @@ body.modal-open .fm-bar {
    scenery: pointer-events off end to end, so it can never eat a tap or fight
    an iOS edge gesture. The tail runs off the bottom of the screen on purpose;
    the jack it plugs into is the physical one below the glass. */
+/* ⛔ THE CABLE IS THE BOTTOM LAYER (Brendon, 2026-07-30) — it runs BEHIND the
+   stick, so the lead disappears under the shell exactly like a real one plugged
+   in at the back. That is why it is fixed to the band instead of parented to the
+   chassis: a child can never paint under its own parent's plastic. It mirrors the
+   chassis anchor line for line, so it rides the Command Stone and ducks for a
+   modal with the player instead of drifting off on its own. */
 .fm-usbcable {
-    position: absolute;
-    left: calc(50% - 30px);
-    top: 50%;
+    position: fixed;
+    left: 50%;
+    margin-left: -30px; /* the box starts 30px left of the chassis centre */
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px) + var(--pd-stone-h, 0px));
+    margin-bottom: -67px; /* hangs from the chassis' mid-height (33) downward */
     width: 180px;
     height: 100px;
     overflow: visible;
     pointer-events: none;
-    z-index: 0;
+    z-index: 8989; /* one under the chassis — behind the shell, over the page */
+    transition: opacity 0.18s ease, transform 0.22s ease, bottom 0.22s ease;
 }
+body.modal-open .fm-usbcable { transform: translateY(160%); opacity: 0; }
+/* ⛔ NO OUTLINE ON THE LEAD (Brendon, 2026-07-30: "remove the outline and try to
+   use gradients to make 3d"). There is no dark contour anywhere — the roundness
+   is three gradient strokes of the same curve: a grey shaded barrel, a lit core
+   over it, and a fine specular along the top, each one dimming as the cable runs
+   away from the player. That IS the tube. */
 .fm-usbcable path { fill: none; stroke-linecap: round; }
-/* the cable's own shadow, so it sits IN the scene instead of on top of it */
-.fm-usbcable .fm-cable-shade { stroke: rgba(0, 0, 0, 0.32); stroke-width: 5; }
-.fm-usbcable .fm-cable-core { stroke: #f6f7f7; stroke-width: 3; }
-/* the sheen down the top of the lead — what makes white rubber read as round */
-.fm-usbcable .fm-cable-lit { stroke: rgba(255, 255, 255, 0.85); stroke-width: 1; }
+.fm-usbcable .fm-cable-barrel { stroke: url(#fmCableBarrel); stroke-width: 4.6; }
+.fm-usbcable .fm-cable-core { stroke: url(#fmCableCore); stroke-width: 2.6; }
+.fm-usbcable .fm-cable-lit { stroke: url(#fmCableLit); stroke-width: 0.9; }
 
 /* the pulse bars — rendered in every face, shown only on TAB */
 .fm-sigbars { display: none; }

@@ -124,7 +124,7 @@ const FM_DISPLAY_NAMES: Record<FmDisplay, string> = {
    with real slack under it, then heads down-left toward the phone's own jack at
    the bottom centre. Every bend is a smooth cubic — a cable never has corners. */
 const FM_CABLE_D =
-    'M 133 20 C 160 16, 178 30, 170 48 C 162 66, 120 68, 80 62 C 52 58, 30 70, 15 100';
+    'M 116 20 C 146 17, 177 28, 170 48 C 162 66, 120 68, 80 62 C 52 58, 30 70, 15 100';
 
 const FM_SESSION_KEY = 'pd_fm_session';
 interface FmSavedSession {
@@ -701,6 +701,39 @@ export default function FmBar() {
         status === 'paused' ? '‖ PAUSED' : '… TUNING';
 
     return (
+        <>
+        {/* USB face only: the headphone lead (Brendon, 2026-07-30) — out of the
+            stick's right end, hanging with slack, then down toward the phone's
+            own jack at the bottom centre. It sits OUTSIDE the chassis so it can
+            paint BEHIND the shell (his call: bottom layer), and it is scenery
+            only — aria-hidden, pointer-events off, so it never takes a tap. */}
+        {display === 'usb' && (
+            <svg className="fm-usbcable" viewBox="0 0 180 100" aria-hidden="true" focusable="false">
+                <defs>
+                    {/* the tube, built from light instead of a contour: the barrel
+                        turning away, the lit core, the specular — each dimming as
+                        the lead runs away from the player */}
+                    <linearGradient id="fmCableBarrel" x1="0" y1="0" x2="0.35" y2="1">
+                        <stop offset="0%" stopColor="#d9dcde" />
+                        <stop offset="55%" stopColor="#b6babd" />
+                        <stop offset="100%" stopColor="#93989c" />
+                    </linearGradient>
+                    <linearGradient id="fmCableCore" x1="0" y1="0" x2="0.35" y2="1">
+                        <stop offset="0%" stopColor="#ffffff" />
+                        <stop offset="60%" stopColor="#f0f2f2" />
+                        <stop offset="100%" stopColor="#d6d9da" />
+                    </linearGradient>
+                    <linearGradient id="fmCableLit" x1="0" y1="0" x2="0.35" y2="1">
+                        <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
+                        <stop offset="70%" stopColor="#ffffff" stopOpacity="0.55" />
+                        <stop offset="100%" stopColor="#ffffff" stopOpacity="0.25" />
+                    </linearGradient>
+                </defs>
+                <path className="fm-cable-barrel" d={FM_CABLE_D} />
+                <path className="fm-cable-core" d={FM_CABLE_D} />
+                <path className="fm-cable-lit" d={FM_CABLE_D} transform="translate(0,-0.85)" />
+            </svg>
+        )}
         <div
             ref={barRef}
             className={`fm-bar fm-mode-${display} fm-live${status === 'playing' ? ' fm-playing' : ''}`}
@@ -788,17 +821,6 @@ export default function FmBar() {
                     title={usbCapOff ? 'Tap to cap · hold for your tracks' : 'USB cap'}
                     aria-label={usbCapOff ? 'USB plug — hold for your tracks' : 'USB cap'}
                 />
-            )}
-            {/* USB face only: the headphone lead (Brendon, 2026-07-30) — out of
-                the stick's right end, hanging with slack, then down toward the
-                phone's own jack at the bottom centre. Scenery only: aria-hidden
-                and pointer-events off, so it never takes a tap. */}
-            {display === 'usb' && (
-                <svg className="fm-usbcable" viewBox="0 0 180 100" aria-hidden="true" focusable="false">
-                    <path className="fm-cable-shade" d={FM_CABLE_D} />
-                    <path className="fm-cable-core" d={FM_CABLE_D} />
-                    <path className="fm-cable-lit" d={FM_CABLE_D} transform="translate(0,-0.9)" />
-                </svg>
             )}
             {/* ── transport keys — LEFT side, like the deck of a Sony MD.
                 ▶/≫/TUNE are the deck's; ⎇ MODE and × ride EVERY face
@@ -913,5 +935,6 @@ export default function FmBar() {
                 </span>
             </button>
         </div>
+        </>
     );
 }
