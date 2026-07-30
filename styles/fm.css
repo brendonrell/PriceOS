@@ -501,6 +501,19 @@ body.modal-open .fm-bar {
    solid block appearing behind it reads as a sticker landing on the plastic,
    not as a press. The press is carried by the GLYPH itself: it stays bold and
    dips slightly — enough to see clearly, never faint (Rule #2). */
+/* ⛔ THE FILL HAS TO BE KILLED OUTSIDE THE HOVER QUERY (Brendon, 2026-07-30 —
+   the screenshot showing ⟳ still wearing a pill when OFF). The shared key rule
+   further down paints a filled hover state and is NOT scoped to a face, so on
+   iOS — where the last-tapped key keeps :hover forever and the (hover: hover)
+   block below never even applies — that shared fill was what kept appearing
+   behind whichever key was touched last. Killed here, unconditionally, for
+   every ring key except ▶, which owns its frame. */
+.fm-mode-usb .fm-btn:not(.fm-play):hover {
+    background: transparent;
+    color: var(--text-color);
+    border-color: transparent;
+}
+.fm-mode-usb .fm-play:hover { background: var(--bg-color); color: var(--text-color); }
 @media (hover: hover) {
     .fm-mode-usb .fm-btn:hover { opacity: 0.62; }
 }
@@ -513,7 +526,9 @@ body.modal-open .fm-bar {
        the padding holds the glyph on the exact spot it already sits
        (Brendon, 2026-07-30) */
     box-sizing: border-box;
-    width: 19px;
+    /* 8px wider, 4px out each side — it grows from its centre so the ▶ inside
+       does not move (Brendon, 2026-07-30) */
+    width: 27px;
     height: 21px;
     padding-left: 4px;
     /* the ▶ itself rides 3px LEFT inside the frame — the frame does NOT move
@@ -529,15 +544,18 @@ body.modal-open .fm-bar {
 .fm-mode-usb .fm-close { grid-column: 3; grid-row: 3; align-self: start; justify-self: center; transform: translate(0.5px, -5px); }
 /* the pad's four arms around ▶: ⟳ top · × bottom · ⎇ left · ≫ right */
 .fm-mode-usb .fm-shuffle { grid-column: 3; grid-row: 1; align-self: end; justify-self: center; font-size: 14px; transform: translate(1.5px, 6px); }
-/* SHUFFLE ON wears PD's active pair — fill AND text together. Colouring only
-   the glyph painted it the same dark as the pressed fill and it vanished
-   (Brendon, 2026-07-28: "the glyph goes away"). */
-.fm-mode-usb .fm-shuffle.on {
+/* ⛔ SHUFFLE ON IS THE STRONG ONE (Brendon, 2026-07-30 — it had this backwards,
+   dimming the key at the very moment it was doing something). No fill either
+   way: ON is full-strength and bold, OFF sits slightly back. The state reads
+   off the glyph's own weight, exactly like the rest of the ring. */
+.fm-mode-usb .fm-shuffle { opacity: 0.62; }
+.fm-mode-usb .fm-shuffle.on,
+.fm-mode-usb .fm-shuffle.on:hover {
     background: transparent;
     color: var(--text-color);
     border-color: transparent;
     font-weight: bold;
-    opacity: 0.62;
+    opacity: 1;
 }
 .fm-mode-usb .fm-modekey { grid-column: 2; grid-row: 2; font-size: 9px; transform: translate(2px, 0.3px); }
 .fm-mode-usb .fm-btn:not(.fm-play):not(.fm-modekey):not(.fm-close):not(.fm-shuffle) { grid-column: 4; grid-row: 2; transform: translateY(2px); }
