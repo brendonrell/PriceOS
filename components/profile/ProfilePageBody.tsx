@@ -902,7 +902,7 @@ function ProfilePageBodyInner({
 
     // ── Zen mode: Albums-only in + More sub-nav ───────────────────────
     useEffect(() => {
-        if (isZen && moreL1 !== 'albums') setMoreL1('albums');
+        if (isZen && isOwnProfile && moreL1 !== 'albums') setMoreL1('albums');
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isZen]);
 
@@ -916,8 +916,8 @@ function ProfilePageBodyInner({
         if (v === 'created' && !createdUnderMore) v = 'albums';
         // Visitors never see private Starred/Wishlists — fall to Created (when
         // this artist surfaces it) else Albums.
-        if (!isOwnProfile && (v === 'starred' || v === 'wishlists' || v === 'history')) {
-            v = createdUnderMore ? 'created' : 'albums';
+        if (!isOwnProfile && (v === 'starred' || v === 'wishlists' || v === 'history' || v === 'albums')) {
+            v = createdUnderMore ? 'created' : 'offers';
         }
         return v;
     })();
@@ -1838,7 +1838,11 @@ function ProfilePageBodyInner({
                             visible={true}
                             hideSortBar
                             profilePills={
-                                (isZen
+                                /* Zen's single Albums tab is a view of YOUR OWN
+                                   shelf — on someone else's profile there is
+                                   nothing behind it, so visitors get the ordinary
+                                   row instead (Brendon, 2026-07-31). */
+                                (isZen && isOwnProfile
                                     ? [{ key: 'albums', label: <><span className="pill-tab-ico is-album">{'◰︎'}</span> Albums</>, active: effMoreL1 === 'albums', onClick: () => setMoreL1('albums') }]
                                     : [
                                         /* Created leads the row for traditional-Top-6
@@ -1847,14 +1851,20 @@ function ProfilePageBodyInner({
                                             ? [{ key: 'created', label: 'Created', active: effMoreL1 === 'created', onClick: () => setMoreL1('created') }]
                                             : []),
                                         /* Starred + Wishlists are private — the
-                                           pills exist on YOUR OWN profile only. */
+                                           pills exist on YOUR OWN profile only.
+                                           ⛔ Albums joined them 2026-07-31
+                                           (Brendon): an album is private, so on
+                                           someone else's profile the tab only ever
+                                           opened onto a locked-door note. A tab
+                                           that can never show anything is not a
+                                           tab — it's hidden. */
                                         ...(isOwnProfile
                                             ? [
                                                 { key: 'starred',   label: <><span className="pill-tab-ico is-star">{'★︎'}</span> Starred</>,   active: effMoreL1 === 'starred',   onClick: () => setMoreL1('starred')   },
                                                 { key: 'wishlists', label: <><span className="pill-tab-ico">{'✛︎'}</span> Wishlist</>, active: effMoreL1 === 'wishlists', onClick: () => setMoreL1('wishlists') },
+                                                { key: 'albums',    label: <><span className="pill-tab-ico is-album">{'◰︎'}</span> Albums</>,    active: effMoreL1 === 'albums',    onClick: () => setMoreL1('albums')    },
                                             ]
                                             : []),
-                                        { key: 'albums',    label: <><span className="pill-tab-ico is-album">{'◰︎'}</span> Albums</>,    active: effMoreL1 === 'albums',    onClick: () => setMoreL1('albums')    },
                                         { key: 'offers',    label: 'Offers',    active: effMoreL1 === 'offers',    onClick: () => setMoreL1('offers')    },
                                         { key: 'vault',     label: 'Vault',     active: effMoreL1 === 'vault',     onClick: () => setMoreL1('vault')     },
                                         { key: 'sigil',     label: 'Sigil',     active: effMoreL1 === 'sigil',     onClick: () => setMoreL1('sigil')     },

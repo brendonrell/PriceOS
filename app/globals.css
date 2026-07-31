@@ -12115,6 +12115,10 @@ body.colorway-dark .ghost-feed-bar {
    Its larger glyph carries more right side-bearing, so trim the margin to keep
    the icon→word gap matching the other tabs (Brendon 2026-06-20). */
 .pill-tab-ico.is-star { font-size: 1.5em; margin-right: 1px; }
+/* Genome runs one size up, Gnome one size down (Brendon, 2026-07-31) — the
+   same step the other per-pill icon overrides here use. */
+.pill-tab-ico.is-genome { font-size: 1.47em; }
+.pill-tab-ico.is-gnome { font-size: 1.17em; }
 /* On mobile the three +More tab icons settle down 1px inside their pills
    (Brendon 2026-06-20). */
 @media (max-width: 600px) {
@@ -12126,6 +12130,8 @@ body.colorway-dark .ghost-feed-bar {
     .pill-tab-ico { font-size: 1.08em; top: 0; }
     .pill-tab-ico.is-star { font-size: 1.12em; }
     .pill-tab-ico.is-album { font-size: 1.2em; }
+    .pill-tab-ico.is-genome { font-size: 1.2em; }
+    .pill-tab-ico.is-gnome { font-size: 0.96em; }
 }
 
 /* ── Starred: Outputs / Traits filter pills + per-row CTAs ───────────────── */
