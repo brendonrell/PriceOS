@@ -591,11 +591,11 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                                 { key: 'offers', label: 'Offers', active: moreL1 === 'offers', onClick: () => setMoreL1('offers') },
                                 { key: 'pricestory', label: 'Price Story', active: moreL1 === 'pricestory', onClick: () => setMoreL1('pricestory') },
                                 { key: 'stats', label: 'Stats', active: moreL1 === 'stats', onClick: () => setMoreL1('stats') },
-                                { key: 'replay', label: 'Replay', active: moreL1 === 'replay', onClick: () => setMoreL1('replay') },
+                                { key: 'albums', label: <><span className="pill-tab-ico is-album">{'◰︎'}</span> Albums</>, active: moreL1 === 'albums', onClick: () => setMoreL1('albums') },
                                 { key: 'social', label: 'Social', active: moreL1 === 'social', onClick: () => setMoreL1('social') },
                                 { key: 'anoint', label: 'Anointed', active: moreL1 === 'anoint', onClick: () => setMoreL1('anoint') },
                                 { key: 'sentiment', label: 'Sentiment', active: moreL1 === 'sentiment', onClick: () => setMoreL1('sentiment') },
-                                { key: 'albums', label: <><span className="pill-tab-ico is-album">{'◰︎'}</span> Albums</>, active: moreL1 === 'albums', onClick: () => setMoreL1('albums') },
+                                { key: 'replay', label: 'Replay', active: moreL1 === 'replay', onClick: () => setMoreL1('replay') },
                                 { key: 'genome', label: 'Genome', active: moreL1 === 'genome', onClick: () => setMoreL1('genome') },
                                 { key: 'gnome', label: 'Gnome', active: moreL1 === 'gnome', onClick: () => setMoreL1('gnome') },
                             ]}
