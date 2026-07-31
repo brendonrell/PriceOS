@@ -61,7 +61,7 @@
    chosen — it plays every blip and every theme. Rebuild it rather than
    guessing if the set is ever revisited.
 
-1. ✅ **2026-07-30 (LATEST) — GROUPING REBUILT TO THE APPROVED MODEL ·
+1. ✅ **2026-07-30 — GROUPING REBUILT TO THE APPROVED MODEL ·
    PROJECTS PRO IS THE INSPECTOR FOR PROJECTS · THE FRIEND INSPECTOR STRIP ·
    FIRST-OPEN LAG KILLED ON EVERY SLIDING PANEL. All on `dev` (tip
    `af8cdefe`), tree clean. Nothing outstanding.**
