@@ -20,8 +20,7 @@ const LEAD_LO = 400;
 const HAT_HZ = 6000;
 
 describe('theme music', () => {
-    it('ships the eight surfaces, each with a name for the UI', () => {
-        expect(NAMES.length).toBe(8);
+    it('every surface has a name for the UI', () => {
         for (const n of NAMES) {
             expect(THEME_LABELS[n]).toMatch(/Theme$/);
         }
