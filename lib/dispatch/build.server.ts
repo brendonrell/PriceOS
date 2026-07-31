@@ -31,6 +31,7 @@ import { buildPriceDayAlmanac, dayWindow } from '@/lib/priceday/almanac.server';
 import { formatPriceDate, PRICEDAY_EPOCH } from '@/lib/priceday/priceday';
 import { getProject } from '@/lib/project/registry';
 import { POOLS, VoiceMemory, fnv, fill, plural, eth, ordinal, daypart } from './voice';
+import { HIDDEN_PROJECTS_NOT_IN } from '../platform/hiddenProjects';
 
 const DAY_MS = 86_400_000;
 
@@ -132,29 +133,36 @@ export async function buildDispatch(db: SupabaseClient, day: number): Promise<Di
   // the archive (rotation memory + streaks/records/on-this-day), horizon.
   const [gradRes, soldRes, userRes, evRes, coolRes, nearRes, archRes, lifeMintRes, lifeSaleRes] = await Promise.all([
     db.from('projects').select('id, title')
+    .not('id', 'in', HIDDEN_PROJECTS_NOT_IN)
       .gte('graduated_at', new Date(startSec * 1000).toISOString())
       .lt('graduated_at', new Date(endSec * 1000).toISOString()),
     db.from('projects').select('id, title')
+    .not('id', 'in', HIDDEN_PROJECTS_NOT_IN)
       .gte('sold_out_at', new Date(startSec * 1000).toISOString())
       .lt('sold_out_at', new Date(endSec * 1000).toISOString()),
     db.from('users').select('address', { count: 'exact', head: true })
       .gte('created_at', new Date(startSec * 1000).toISOString())
       .lt('created_at', new Date(endSec * 1000).toISOString()),
     db.from('events').select('project_id, type, from_address, to_address, price_eth, timestamp')
+    .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
       .gte('timestamp', startSec).lt('timestamp', endSec).limit(3000),
     db.from('projects').select('id, title, cooldown_until, artist_address')
+    .not('id', 'in', HIDDEN_PROJECTS_NOT_IN)
       .gt('cooldown_until', new Date(endSec * 1000).toISOString())
       .lt('cooldown_until', new Date((endSec + 7 * 86400) * 1000).toISOString())
       .limit(6),
     db.from('projects').select('id, title, minted_count, max_supply')
+    .not('id', 'in', HIDDEN_PROJECTS_NOT_IN)
       .gt('minted_count', 0)
       .is('sold_out_at', null)
       .limit(200),
     db.from('dispatches').select('day, body')
       .lt('day', day).order('day', { ascending: false }).limit(120),
     db.from('events').select('project_id', { count: 'exact', head: true })
+    .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
       .eq('type', 'MINT').lt('timestamp', endSec),
     db.from('events').select('project_id', { count: 'exact', head: true })
+    .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
       .eq('type', 'XFER').not('price_eth', 'is', null).lt('timestamp', endSec),
   ]);
 

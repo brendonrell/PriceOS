@@ -15,6 +15,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { getProject } from '@/lib/project/registry';
 import { walkPick, fill, plural, eth, ordinal } from '@/lib/dispatch/voice';
 import { PRICEDAY_EPOCH } from './priceday';
+import { HIDDEN_PROJECTS_NOT_IN } from '../platform/hiddenProjects';
 
 const DAY_MS = 86_400_000;
 
@@ -212,17 +213,22 @@ export async function buildPriceDayAlmanac(db: SupabaseClient, n: number): Promi
 
   const [mintRes, saleRes, listRes, offerRes, projRes] = await Promise.all([
     db.from('events').select('project_id, token_id, to_address, timestamp')
+    .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
       .eq('type', 'MINT').gte('timestamp', startSec).lt('timestamp', endSec)
       .order('timestamp', { ascending: true }).limit(500),
     db.from('events').select('project_id, token_id, price_eth, to_address')
+    .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
       .eq('type', 'XFER').not('price_eth', 'is', null)
       .gte('timestamp', startSec).lt('timestamp', endSec)
       .order('price_eth', { ascending: false }).limit(200),
     db.from('events').select('project_id', { count: 'exact', head: true })
+    .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
       .eq('type', 'LIST').gte('timestamp', startSec).lt('timestamp', endSec),
     db.from('events').select('project_id', { count: 'exact', head: true })
+    .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
       .eq('type', 'OFFER').gte('timestamp', startSec).lt('timestamp', endSec),
     db.from('projects').select('id, title, artist_address, uploaded_at')
+    .not('id', 'in', HIDDEN_PROJECTS_NOT_IN)
       .gte('uploaded_at', new Date(startMs).toISOString())
       .lt('uploaded_at', new Date(endMs).toISOString())
       .limit(50),

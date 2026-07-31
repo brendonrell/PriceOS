@@ -8,6 +8,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { getSupabaseService, type EventRow, type EventType } from '@/lib/supabase';
 import { attachHandles } from '@/lib/feed/handles';
 import { serverError } from '@/lib/errors';
+import { HIDDEN_PROJECTS_NOT_IN } from '@/lib/platform/hiddenProjects';
 
 export const revalidate = 5; // Feed events: 5s
 
@@ -83,6 +84,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     let q = db
       .from('events')
       .select('id, type, project_id, token_id, from_address, to_address, price_eth, sale_direction, timestamp')
+      .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
       .order('timestamp', { ascending: false })
       .limit(200);
     if (projectFilter) q = q.eq('project_id', projectFilter);

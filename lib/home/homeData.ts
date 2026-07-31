@@ -15,6 +15,7 @@ import { getSupabaseService } from '@/lib/supabase';
 import { priceDayNumber } from '@/lib/priceday/priceday';
 import { dayWindow } from '@/lib/priceday/almanac.server';
 import { tagById } from '@/lib/tags/catalog';
+import { HIDDEN_PROJECTS_NOT_IN, isHiddenProject } from '../platform/hiddenProjects';
 
 /* Mints a project needs before it graduates from the New Uploads list into
    the Now Minting carousels (Brendon, 2026-06-11; raised 12→18 2026-06-18).
@@ -172,6 +173,7 @@ async function buildNewsSignals(
       // A priced XFER is a secondary sale (the almanac's own definition).
       db.from('events').select('project_id, token_id, price_eth, timestamp')
         .eq('type', 'XFER').not('price_eth', 'is', null)
+        .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
         .order('timestamp', { ascending: false }).limit(SALE_SCAN_LIMIT),
       db.from('users').select('handle, price_score')
         .not('handle', 'is', null).gt('price_score', 0)
@@ -253,13 +255,16 @@ async function buildNewsSignals(
 export async function buildHomeResponse(): Promise<HomeResponse> {
   const db = getSupabaseService();
   const [projRes, mintsRes, pricedRes, news, curated] = await Promise.all([
-    db.from('projects').select('id, title, minted_count, max_supply, project_no, uploaded_at, cooldown_until, graduated_at, sold_out_at, milestones'),
+    db.from('projects').select('id, title, minted_count, max_supply, project_no, uploaded_at, cooldown_until, graduated_at, sold_out_at, milestones')
+      .not('id', 'in', HIDDEN_PROJECTS_NOT_IN),
     db
       .from('events')
       .select('project_id, timestamp')
       .eq('type', 'MINT')
+      .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
       .order('timestamp', { ascending: true }),
-    db.from('events').select('price_eth').not('price_eth', 'is', null),
+    db.from('events').select('price_eth').not('price_eth', 'is', null)
+      .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN),
     buildNewsSignals(db),
     buildCuratedCards(db),
   ]);

@@ -9,6 +9,7 @@
 // on the wallet address — same access semantics as the route.
 
 import { getSupabaseService } from '@/lib/supabase';
+import { HIDDEN_PROJECTS_NOT_IN } from '../platform/hiddenProjects';
 
 const ADDRESS_RE = /^0x[a-f0-9]{40}$/;
 
@@ -41,7 +42,9 @@ export async function getUserHoldingsCount(rawAddress: string): Promise<number> 
   const { count, error } = await supabase
     .from('holders')
     .select('*', { count: 'exact', head: true })
-    .eq('owner_address', address);
+    .eq('owner_address', address)
+    // Hidden projects are not part of anyone's collection (see hiddenProjects).
+    .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN);
   if (error) return 0;
   return count ?? 0;
 }
@@ -68,7 +71,8 @@ export async function getUserSpendEth(rawAddress: string): Promise<number> {
     .from('events')
     .select('price_eth')
     .eq('to_address', address)
-    .not('price_eth', 'is', null);
+    .not('price_eth', 'is', null)
+    .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN);
   if (error) return 0;
   let sum = 0;
   for (const r of (data ?? []) as { price_eth: string | number | null }[]) {
@@ -97,6 +101,7 @@ export async function getUserOwnedSlugs(rawAddress: string): Promise<string[] | 
       .from('holders')
       .select('project_id')
       .eq('owner_address', address)
+      .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
       .range(from, from + PAGE - 1);
     if (error) throw new Error(error.message);
     const rows = (data ?? []) as { project_id: string }[];
@@ -113,7 +118,8 @@ export async function getUserOwnedProjectsCount(rawAddress: string): Promise<num
   const { data, error } = await supabase
     .from('holders')
     .select('project_id')
-    .eq('owner_address', address);
+    .eq('owner_address', address)
+    .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN);
   if (error) return 0;
   const set = new Set((data ?? []).map((r: { project_id: string }) => r.project_id));
   return set.size;
@@ -129,7 +135,8 @@ export async function getUserHoldings(
   const { data, error } = await supabase
     .from('holders')
     .select('project_id, token_id')
-    .eq('owner_address', address);
+    .eq('owner_address', address)
+    .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN);
 
   if (error) throw new Error(error.message);
 

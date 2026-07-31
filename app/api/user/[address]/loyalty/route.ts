@@ -13,6 +13,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { getSupabaseService } from '@/lib/supabase';
 import { badRequest, serverError } from '@/lib/errors';
 import { getProject } from '@/lib/project/registry';
+import { HIDDEN_PROJECTS_NOT_IN } from '@/lib/platform/hiddenProjects';
 
 export const dynamic = 'force-dynamic';
 
@@ -102,23 +103,27 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
         .maybeSingle(),
       db.from('holders')
         .select('project_id, token_id, acquired_at')
+    .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
         .eq('owner_address', address)
         .limit(1000),
       // Arrivals: mints to this wallet + pieces bought/traded/received in.
       // (LIST/OFFER rows carry to_address null, so they never count here.)
       db.from('events')
         .select('*', { count: 'exact', head: true })
+    .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
         .in('type', ['MINT', 'XFER'])
         .eq('to_address', address),
       // Departures: pieces sold, traded, or transferred away (burns excluded).
       db.from('events')
         .select('*', { count: 'exact', head: true })
+    .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
         .eq('type', 'XFER')
         .eq('from_address', address)
         .neq('to_address', ZERO),
       // Mints INTO this wallet — the born-here read (keys, not a count).
       db.from('events')
         .select('project_id, token_id')
+    .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
         .eq('type', 'MINT')
         .eq('to_address', address)
         .limit(1000),
@@ -126,6 +131,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
       // departure happened (the clean-since read).
       db.from('events')
         .select('project_id, token_id, timestamp, to_address')
+    .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
         .eq('type', 'XFER')
         .eq('from_address', address)
         .limit(1000),

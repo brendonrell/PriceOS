@@ -21,6 +21,7 @@ import { getSupabaseService } from '@/lib/supabase';
 import { badRequest } from '@/lib/errors';
 import { getUserHoldings, getUserOwnedSlugs } from '@/lib/profile/getUserHoldings';
 import { pdRarityRank } from '@/lib/output/rarity';
+import { HIDDEN_PROJECTS_NOT_IN } from '@/lib/platform/hiddenProjects';
 
 export const dynamic = 'force-dynamic';
 
@@ -95,7 +96,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const [mySlugs, myHoldings, coolRes] = await Promise.all([
       getUserOwnedSlugs(address).catch(() => null),
       getUserHoldings(address).catch(() => null),
-      db.from('projects').select('cooldown_until').eq('artist_address', address),
+      db.from('projects').select('cooldown_until')
+    .not('id', 'in', HIDDEN_PROJECTS_NOT_IN).eq('artist_address', address),
     ]);
 
     /* ── KIN ── the wallet sharing the most projects with you. */
@@ -104,6 +106,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       const { data } = await db
         .from('holders')
         .select('owner_address, project_id')
+    .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
         .in('project_id', mySlugs)
         .limit(KIN_SCAN_LIMIT);
       const sharedBy = new Map<string, Set<string>>();
@@ -211,6 +214,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         if (addrs.length > 0) {
           const pRes = await db
             .from('projects').select('id, title, artist_address, uploaded_at, cooldown_until')
+    .not('id', 'in', HIDDEN_PROJECTS_NOT_IN)
             .in('artist_address', addrs);
           const rows = (pRes.data ?? []) as {
             id: string; title: string; artist_address: string | null;
@@ -246,6 +250,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       const sinceSec = Math.floor((Date.now() - FRESH_MS) / 1000);
       const eRes = await db
         .from('events').select('project_id, token_id, timestamp')
+    .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
         .in('project_id', [...new Set(wanted.map((w) => w.project_id))])
         .gte('timestamp', sinceSec);
       const key = (s: string, t: string) => `${s}:${t}`;
@@ -324,6 +329,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     let counterparty: HomeYouResponse['counterparty'] = null;
     const dealRes = await db
       .from('events').select('from_address, to_address, timestamp')
+    .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
       .eq('type', 'XFER')
       .or(`from_address.eq.${address},to_address.eq.${address}`)
       .order('timestamp', { ascending: false }).limit(DEALS_SCAN_LIMIT);

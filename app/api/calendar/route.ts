@@ -14,6 +14,7 @@ import { requireAuth, verifySiweSession } from '@/lib/auth/siwe';
 import { badRequest, serverError } from '@/lib/errors';
 import { getProject } from '@/lib/project/registry';
 import { montrealMidnightUtcMs } from '@/lib/priceday/almanac.server';
+import { HIDDEN_PROJECTS_NOT_IN } from '@/lib/platform/hiddenProjects';
 
 export const dynamic = 'force-dynamic';
 
@@ -78,11 +79,14 @@ export async function GET(req: NextRequest) {
         .like('date_key', `${monthPrefix}%`)
         .order('created_at', { ascending: true })
         .limit(300),
-      db.from('projects').select('id, title, uploaded_at, graduated_at, sold_out_at').limit(2000),
+      db.from('projects').select('id, title, uploaded_at, graduated_at, sold_out_at')
+    .not('id', 'in', HIDDEN_PROJECTS_NOT_IN).limit(2000),
       db.from('events').select('timestamp')
+    .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
         .eq('type', 'MINT').gte('timestamp', startSec).lt('timestamp', endSec)
         .limit(5000),
       db.from('events').select('price_eth, timestamp')
+    .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
         .eq('type', 'XFER').not('price_eth', 'is', null)
         .gte('timestamp', startSec).lt('timestamp', endSec)
         .limit(2000),

@@ -13,6 +13,7 @@ import {
   projectTrueName,
   outputTrueName,
 } from '@/lib/project/registry';
+import { HIDDEN_PROJECTS_NOT_IN } from '@/lib/platform/hiddenProjects';
 
 export const dynamic = 'force-dynamic';
 
@@ -297,19 +298,19 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       'id, title, handle, artist_address, minted_count, max_supply, floor_price_eth, volume_eth, all_time_high_eth';
 
     const projectNameQ = wantText
-      ? supabase.from('projects').select(PROJECT_COLS)
+      ? supabase.from('projects').select(PROJECT_COLS).not('id', 'in', HIDDEN_PROJECTS_NOT_IN)
           .or(`title.ilike.${pattern},handle.ilike.${pattern},id.ilike.${pattern}`)
           .limit(16)
       : null;
 
     const projectDeepQ = wantText && textQ.length >= 3
-      ? supabase.from('projects').select(PROJECT_COLS)
+      ? supabase.from('projects').select(PROJECT_COLS).not('id', 'in', HIDDEN_PROJECTS_NOT_IN)
           .ilike('description', `%${textQ.replace(/[%_\\]/g, '\\$&')}%`)
           .limit(6)
       : null;
 
     const projectSlugQ = extraSlugs.size > 0
-      ? supabase.from('projects').select(PROJECT_COLS)
+      ? supabase.from('projects').select(PROJECT_COLS).not('id', 'in', HIDDEN_PROJECTS_NOT_IN)
           .in('id', Array.from(extraSlugs))
           .limit(16)
       : null;
@@ -341,12 +342,12 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     let tokenQ = null;
     if (trueNameOutput) {
-      tokenQ = supabase.from('outputs').select(OUTPUT_COLS)
+      tokenQ = supabase.from('outputs').select(OUTPUT_COLS).not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
         .eq('project_id', trueNameOutput.slug)
         .eq('token_id', trueNameOutput.tokenId)
         .limit(1);
     } else if (parsed.tokenId) {
-      let b = supabase.from('outputs').select(OUTPUT_COLS).eq('token_id', parsed.tokenId);
+      let b = supabase.from('outputs').select(OUTPUT_COLS).not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN).eq('token_id', parsed.tokenId);
       if (artworkScope) b = b.in('project_id', artworkScope);
       tokenQ = b.limit(ARTWORK_LIMIT);
     }
@@ -359,7 +360,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     if (parsed.pattern) sceneTerms.push(parsed.pattern);
     let sceneQ = null;
     if (parsed.shapes.length > 0 || parsed.pattern || parsed.counts.length > 0) {
-      let b = supabase.from('outputs').select(OUTPUT_COLS);
+      let b = supabase.from('outputs').select(OUTPUT_COLS).not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN);
       for (const t of sceneTerms) b = b.ilike('scene', `%${t.replace(/[%_\\]/g, '\\$&')}%`);
       if (artworkScope) b = b.in('project_id', artworkScope);
       sceneQ = b.limit(ARTWORK_LIMIT);
@@ -370,7 +371,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       parsed.colors.length > 0 || Object.keys(parsed.bands).length > 0 ||
       (artworkScope !== null && (parsed.sort === 'rarity' || parsed.sort === 'recent'));
     if (wantFacets) {
-      let b = supabase.from('outputs').select(OUTPUT_COLS);
+      let b = supabase.from('outputs').select(OUTPUT_COLS).not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN);
       if (parsed.colors.length > 0) {
         const list = parsed.colors.join(',');
         b = b.or(`dominant_color.in.(${list}),accent_color.in.(${list})`);
@@ -403,6 +404,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     if (market === 'sold') {
       let b = supabase.from('events')
         .select('project_id, token_id, price_eth, timestamp')
+        .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
         .eq('type', 'SALE');
       if (parsed.priceMax != null) b = b.lte('price_eth', parsed.priceMax);
       if (parsed.priceMin != null) b = b.gte('price_eth', parsed.priceMin);
@@ -426,6 +428,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const holderQ = parsed.holder?.startsWith('0x')
       ? supabase.from('holders')
           .select('project_id, token_id')
+          .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
           .ilike('owner_address', `${parsed.holder.replace(/[%_\\]/g, '\\$&')}%`)
           .limit(ARTWORK_LIMIT)
       : null;
@@ -492,7 +495,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       }
       if (fuzzed.length > 0) {
         const { data, error } = await supabase
-          .from('projects').select(PROJECT_COLS).in('id', fuzzed);
+          .from('projects').select(PROJECT_COLS).in('id', fuzzed)
+          .not('id', 'in', HIDDEN_PROJECTS_NOT_IN);
         if (error) return serverError(error.message);
         for (const row of (data ?? []) as ProjectRowLite[]) {
           addProject(row, 30, 'close match');
@@ -565,6 +569,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       if (holderUser) {
         const { data, error } = await supabase
           .from('holders').select('project_id, token_id')
+          .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
           .eq('owner_address', holderUser.address.toLowerCase())
           .limit(ARTWORK_LIMIT);
         if (error) return serverError(error.message);

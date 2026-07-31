@@ -5,6 +5,7 @@
 // refresh path). Same two-caller shape as lib/home/homeData.
 
 import { getSupabaseService } from '@/lib/supabase';
+import { HIDDEN_PROJECTS_NOT_IN } from '../platform/hiddenProjects';
 
 export interface MarketplaceListing {
   slug: string;
@@ -45,6 +46,7 @@ export async function buildMarketplaceResponse(): Promise<MarketplaceResponse> {
       .from('listings')
       .select('project_id, token_id, price_eth')
       .eq('active', true)
+      .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
       .or(`end_time.is.null,end_time.gt.${now}`)
       .order('price_eth', { ascending: true })
       .limit(2000),
@@ -52,6 +54,7 @@ export async function buildMarketplaceResponse(): Promise<MarketplaceResponse> {
       .from('events')
       .select('project_id, token_id, type, price_eth, timestamp')
       .in('type', ['LIST', 'SALE', 'OFFER'])
+      .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
       .order('timestamp', { ascending: false })
       .limit(TAPE_SIZE),
     db
@@ -59,7 +62,8 @@ export async function buildMarketplaceResponse(): Promise<MarketplaceResponse> {
       .select('*', { count: 'exact', head: true })
       .eq('status', 'open')
       .or(`end_time.is.null,end_time.gt.${now}`),
-    db.from('events').select('price_eth').not('price_eth', 'is', null),
+    db.from('events').select('price_eth').not('price_eth', 'is', null)
+      .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN),
   ]);
   if (listRes.error) throw new Error(listRes.error.message);
   if (evRes.error) throw new Error(evRes.error.message);

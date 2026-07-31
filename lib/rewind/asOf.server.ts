@@ -17,6 +17,7 @@ import { dayWindow } from '@/lib/priceday/almanac.server';
 import { priceDayNumber, formatPriceDate, PRICEDAY_EPOCH } from '@/lib/priceday/priceday';
 import { getProject } from '@/lib/project/registry';
 import { MINTING_NOW_THRESHOLD } from '@/lib/home/homeData';
+import { HIDDEN_PROJECTS_NOT_IN } from '../platform/hiddenProjects';
 
 const DAY_MS = 86_400_000;
 
@@ -87,6 +88,7 @@ async function eventsThrough(db: SupabaseClient, endSec: number): Promise<Ledger
   const { data, error } = await db
     .from('events')
     .select('type, project_id, token_id, from_address, to_address, price_eth, timestamp')
+    .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
     .lt('timestamp', endSec)
     .order('timestamp', { ascending: true })
     .limit(20000);
@@ -104,7 +106,8 @@ export async function buildRewindStates(
 
   const [events, projRes] = await Promise.all([
     eventsThrough(db, endSec),
-    db.from('projects').select('id, title, max_supply, uploaded_at, cooldown_until'),
+    db.from('projects').select('id, title, max_supply, uploaded_at, cooldown_until')
+    .not('id', 'in', HIDDEN_PROJECTS_NOT_IN),
   ]);
   if (projRes.error) throw new Error(projRes.error.message);
   const projRows = (projRes.data ?? []) as {
@@ -189,6 +192,7 @@ export async function buildRewindHome(db: SupabaseClient, day: number): Promise<
   const { data: dayEv } = await db
     .from('events')
     .select('type, project_id, token_id, price_eth')
+    .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
     .gte('timestamp', startSec)
     .lt('timestamp', endSec)
     .limit(2000);
@@ -205,6 +209,7 @@ export async function buildRewindHome(db: SupabaseClient, day: number): Promise<
   const { count: dayUploads } = await db
     .from('projects')
     .select('id', { count: 'exact', head: true })
+    .not('id', 'in', HIDDEN_PROJECTS_NOT_IN)
     .gte('uploaded_at', new Date(startSec * 1000).toISOString())
     .lt('uploaded_at', new Date(endSec * 1000).toISOString());
 

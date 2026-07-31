@@ -11,6 +11,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getSupabaseService } from '@/lib/supabase';
 import { badRequest, serverError } from '@/lib/errors';
+import { HIDDEN_PROJECTS_NOT_IN } from '@/lib/platform/hiddenProjects';
 
 export const dynamic = 'force-dynamic';
 
@@ -72,6 +73,7 @@ async function floorRead(db: Db, address: string, floors: Map<string, number>): 
   const { data } = await db
     .from('holders')
     .select('project_id')
+    .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
     .eq('owner_address', address)
     .limit(1000);
   let held = 0;
@@ -94,6 +96,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
     const [evRes, meRes] = await Promise.all([
       db.from('events')
         .select('type, sale_direction, from_address, to_address, price_eth, timestamp')
+    .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
         .eq('type', 'XFER')
         .or(`from_address.eq.${address},to_address.eq.${address}`)
         .order('timestamp', { ascending: false })
@@ -208,6 +211,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
         const { data: projRows } = await db
           .from('projects')
           .select('id, floor_price_eth')
+    .not('id', 'in', HIDDEN_PROJECTS_NOT_IN)
           .limit(1000);
         const floors = new Map<string, number>();
         for (const p of (projRows ?? []) as { id: string; floor_price_eth: number | string | null }[]) {

@@ -7,6 +7,7 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseService } from '@/lib/supabase';
 import { serverError } from '@/lib/errors';
+import { HIDDEN_PROJECTS_NOT_IN } from '@/lib/platform/hiddenProjects';
 
 export const revalidate = 60; // Platform stats: 60s
 
@@ -27,9 +28,12 @@ export async function GET(): Promise<NextResponse> {
   try {
     const db = getSupabaseService();
     const [projRes, holdersRes, eventsRes] = await Promise.all([
-      db.from('projects').select('artist_address, minted_count, cooldown_until'),
-      db.from('holders').select('owner_address'),
-      db.from('events').select('type, price_eth'),
+      db.from('projects').select('artist_address, minted_count, cooldown_until')
+        .not('id', 'in', HIDDEN_PROJECTS_NOT_IN),
+      db.from('holders').select('owner_address')
+        .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN),
+      db.from('events').select('type, price_eth')
+        .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN),
     ]);
 
     if (projRes.error) return serverError(projRes.error.message);
