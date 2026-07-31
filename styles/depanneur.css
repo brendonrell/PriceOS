@@ -130,6 +130,8 @@
     color: var(--text-color);
 }
 .dp-streak-read b { color: var(--dp-pink); }
+/* The days-to-next countdown sits on its own line under the odds. */
+.dp-streak-next { display: block; }
 
 .dp-body {
     padding: 6px 12px 16px;

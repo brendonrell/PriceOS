@@ -214,7 +214,7 @@ export default function ProjectMorePanel({
 
     /* STATS tiles — the project's price stats + ATH/holders rendered through the
        SAME AttrWall tile grid as the Output stats wall (Brendon, 2026-07-18).
-       Canonical glyphs: ⊡ listed · ↨ floor · ⚓ anchor · ✶ ATH · ⌂ holders. */
+       Canonical glyphs: ⊡ listed · ↨ floor · ↧ anchor · ✶ ATH · ⌂ holders. */
     const statsGroups = useMemo<AttrGroup[]>(() => {
         const pctListed =
             marketRead != null && project.totalOutputs > 0
@@ -227,7 +227,7 @@ export default function ProjectMorePanel({
         const priceTiles: AttrTile[] = [
             { glyph: '⊡', label: 'Listed', value: pctListed },
             { glyph: '↨', label: 'Floor', value: lowestFloor !== null ? `${formatEth(lowestFloor)} ETH` : '—' },
-            { glyph: '⚓', label: 'Anchor', value: anchorEth != null ? `${formatEth(anchorEth)} ETH` : 'TAP TO SET', tapKey: 'anchor' },
+            { glyph: '↧', label: 'Anchor', value: anchorEth != null ? `${formatEth(anchorEth)} ETH` : 'TAP TO SET', tapKey: 'anchor' },
         ];
         const holderTiles: AttrTile[] = [
             { glyph: '✶', label: 'All-Time High', value: marketRead?.ath_eth != null ? `${formatEth(Number(marketRead.ath_eth))} ETH` : '—', sub: athSub },

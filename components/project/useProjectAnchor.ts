@@ -17,7 +17,7 @@ export function useProjectAnchor(visibleTokenIds: number[], onArtworksTab: boole
     /* D17 anchor — local mirror of pd_anchors[project.title]. Hydrated
        from localStorage on mount, kept in sync via the 'pd:anchors-changed'
        window event below. Drives both the .stat-val text rendering for the
-       ⚓ stat-item AND the price-trigger delta stamping in the gallery. */
+       ↧ stat-item AND the price-trigger delta stamping in the gallery. */
     const [anchorEth, setAnchorEth] = useState<number | null>(null);
 
     /* ── D17 anchor hydration + cross-surface sync ──
@@ -29,7 +29,7 @@ export function useProjectAnchor(visibleTokenIds: number[], onArtworksTab: boole
              stale class from a prior session is possible if storage was
              cleared externally).
          2. Mirrors pd_anchors[project.title] into local anchorEth
-            state, which drives the ⚓ .stat-val text rendering AND the
+            state, which drives the ↧ .stat-val text rendering AND the
             delta-stamping useEffect that runs after visibleTokenIds. */
     useEffect(() => {
         const sync = () => {
@@ -67,7 +67,7 @@ export function useProjectAnchor(visibleTokenIds: number[], onArtworksTab: boole
        from text content (format "0.014 ETH" — see ProjectContext token
        seeder) and stamp data-anchor-delta as the fully-formatted delta
        string ("(+18%)" / "(-3%)" / "0"). The CSS ::before appends this
-       value verbatim after the ⚓ glyph. When anchor is null OR the price
+       value verbatim after the ↧ glyph. When anchor is null OR the price
        can't be parsed, the attr is removed so CSS body.anchor-active rules
        don't render a stale delta.
 

@@ -365,7 +365,14 @@ export default function DepanneurModal() {
                                         <span><b>{streak}</b> DAY STREAK</span>
                                         {/* THE REAL NUMBERS, not a word (Brendon, 2026-07-30):
                                             "IF YOU WRITE STRONG PEOPLE WILL THINK STRONG". */}
-                                        <span>RARE <b>{odds.rare}%</b> · ULTRA <b>{odds.ultra}%</b>{nextAt != null ? ` · ${nextAt - streak} TO NEXT` : ''}</span>
+                                        <span>
+                                            RARE <b>{odds.rare}%</b> · ULTRA <b>{odds.ultra}%</b>
+                                            {/* The countdown drops to its own line under
+                                                the odds (Brendon, 2026-07-31). */}
+                                            {nextAt != null && (
+                                                <span className="dp-streak-next">{nextAt - streak} DAYS TO NEXT</span>
+                                            )}
+                                        </span>
                                     </div>
                                 </div>
                             </div>

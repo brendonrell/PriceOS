@@ -477,7 +477,7 @@ Wishlist rows (and the held-by / collected-by chips):
 | Concept | Glyph | Codepoint | Notes |
 |---|---|---|---|
 | The Command Stone | ⌘ | U+2318 | Brendon's approval 2026-07-19 — the command sign. The bar, the panel header. Device-verify per the #1 gate |
-| Anchor (Stone chips) | ↧ | U+21A7 | down-arrow to bar — "pinned to the line." Chosen 2026-07-19 because **⚓ is emoji-default on iOS and banned** (Brendon); the AttrWall tiles still wear ⚓ only via the 2026-07-18 forced-text fix (`font-variant-emoji`, iOS 17.4+). Arrow family (⇡ ↗ ⤤ precedent). NOT ⟟ (Grail Pin), NOT ⏚ (Grid Presets — see below). Device-verify per the #1 gate |
+| Anchor (Stone chips · stat tiles · gallery delta stamp) | ↧ | U+21A7 | down-arrow to bar — "pinned to the line." Chosen 2026-07-19 because **⚓ is emoji-default on iOS and banned** (Brendon); the AttrWall tiles still wear ⚓ only via the 2026-07-18 forced-text fix (`font-variant-emoji`, iOS 17.4+). Arrow family (⇡ ↗ ⤤ precedent). NOT ⟟ (Grail Pin), NOT ⏚ (Grid Presets — see below). **2026-07-31: promoted to THE anchor mark everywhere** — the ⚓ that still rode the AttrWall stat tiles and the gallery anchor-delta stamp behind the forced-text fix is retired, so one glyph means anchor across the app |
 | **Grid Presets** | ⏚ | U+23DA | ⚠ CATALOGUED LATE (2026-07-19): this has SHIPPED on the Collected/project/home facet bars (grid-preset slots popup) since the presets build but was never entered here — a Stone-session anchor pick collided with it and Brendon caught it. The glossary is only trustworthy if EVERY shipped glyph lands here: **grep the codebase, not just this file, before claiming a glyph is free** |
 
 > The Stone's other chips reuse canon exactly: ❍ To-Do · ⊟ Note · ⬚ Watch
