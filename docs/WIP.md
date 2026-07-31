@@ -8,7 +8,60 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-30 (LATEST) — GROUPING REBUILT TO THE APPROVED MODEL ·
+0. ✅ **2026-07-31 (LATEST) — THE SOUND LAYER GREW UP: three new blips, two
+   sound swaps, an iOS wake-up fix, and THEME MUSIC — eight original pieces,
+   one per surface, behind a long-press. All on `dev` (tip `b78983d`), tree
+   clean, build green, 12 tests passing. Nothing outstanding.**
+
+   **BLIPS.** Everything now plays at **3/4 volume**. Three new sounds chosen
+   from an audition page and wired: **nudge** (any ping that isn't a sale,
+   accept or achievement — no ping is silent now), **clunk** (a mint that
+   failed — that was previously indistinguishable from nothing happening),
+   **tuck** (added to your wishlist, fired from the store so every button
+   gets it). A bulk add is capped to ONE blip, not one per item.
+
+   **TWO SWAPS (Brendon's call, in order):** mint ⇄ accept, then mint ⇄
+   achievement. Net result — mint = the five-note ascending run, achievement
+   = the blooming four-note resolve, accept = two warm bells. The swaps move
+   the RECIPE BODIES, never the call sites, so each name still means its
+   event.
+
+   **iOS: sound survives app switching.** iOS suspends audio when you leave
+   and does NOT restore it on return — the layer stayed dead until you
+   toggled it off and on. Now it wakes on returning to the tab, on the next
+   touch, and on pageshow.
+
+   **⛔ THEME MUSIC — the decisions that cost the most rounds. Do not undo:**
+   - **The door (confirmed BEFORE the build, per Rule #-0.4): LONG-PRESS the
+     ⚟ sound key to summon, LONG-PRESS again to dismiss.** Default OFF. A
+     plain tap still toggles the blips, untouched. Holding also turns the
+     sound layer on, since a theme can't be heard without it.
+   - **Eight pieces, named as Brendon specified:** Homepage AM/PM, Output
+     Page, Profile, Artist AM/PM, Busy Mint, Sold Out. AM/PM splits at noon
+     on the VIEWER's clock (§9).
+   - **⛔ THE OUTPUT PAGE THEME HAS NO TUNE.** Rejected twice for being
+     distracting, then once for being sleepy. The answer: a melody is what
+     the ear locks onto and follows — leave it out and you get energy without
+     pulling attention off the art. **A test enforces this.**
+   - **⛔ THE BUSY MINT THEME IS NOTHING BUT THE TICK, IN EVERY SECTION.**
+     Four song-shaped attempts were rejected ("more annoying than
+     energizing"). A mint is twenty seconds of tension, not a song. Its
+     middle section once brought in a pad + arpeggio and Brendon called it
+     immediately. **A test enforces this too.**
+   - **⛔ HOMEPAGE PM (arcade) KEEPS ITS CLIPPED BACKING** (`tight: true`).
+     He heard the ringing version and chose the clicky one. Never "improve".
+   - **Ducking:** the theme fades to silence when the miniplayer starts and
+     returns when it stops. The artist's soundtrack always wins.
+   - **It STREAMS** — built two bars ahead of the playhead, so a minute-long
+     piece starts as fast as an eight-second one and never stalls the page.
+     Rendering a whole theme up front would freeze a phone for seconds.
+   - Themes are SILENT on every surface not listed above, on purpose.
+
+   **The audition page** (a published artifact) is where all of this was
+   chosen — it plays every blip and every theme. Rebuild it rather than
+   guessing if the set is ever revisited.
+
+1. ✅ **2026-07-30 (LATEST) — GROUPING REBUILT TO THE APPROVED MODEL ·
    PROJECTS PRO IS THE INSPECTOR FOR PROJECTS · THE FRIEND INSPECTOR STRIP ·
    FIRST-OPEN LAG KILLED ON EVERY SLIDING PANEL. All on `dev` (tip
    `af8cdefe`), tree clean. Nothing outstanding.**
