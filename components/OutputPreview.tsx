@@ -82,7 +82,6 @@ import {
     useMemo,
     useRef,
     useState,
-    type CSSProperties,
     type MouseEvent as ReactMouseEvent,
     type TouchEvent as ReactTouchEvent,
     type ReactNode,
@@ -100,6 +99,7 @@ import { getProject, artImageUrl, artThumbUrl, ART_IMAGE_BASE } from '../lib/pro
 import { useOutputMeta } from '../lib/hooks/useOutputMeta';
 import { formatEth } from '../lib/format/eth';
 import { useFiat } from '../lib/state/FiatContext';
+import TailBubble, { anchorFromEvent, type BubbleAnchor } from './shared/TailBubble';
 
 import { hashSynLockToElement } from '../lib/engines/hashSynEngine';
 import { outputPaletteHex } from '../lib/art/outputColor';
@@ -244,98 +244,6 @@ function fmtTodoDue(due: string): string {
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(due);
     if (!m) return due;
     return `${TODO_MONTHS[Number(m[2]) - 1] ?? ''} ${Number(m[3])}`;
-}
-
-/* Anchor for a tail-bubble — the trigger pill's viewport top + horizontal
-   centre, captured at open. */
-type BubbleAnchor = { top: number; cx: number };
-function anchorFromEvent(e: ReactMouseEvent): BubbleAnchor {
-    const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    return { top: r.top, cx: r.left + r.width / 2 };
-}
-
-/* TailBubble — an inline speech-bubble card that floats above its trigger with
-   a little tail, reusing the fiat-picker / 3D-pingtoast placement verbatim: a
-   body portal, clamped on-screen, tail (--p3d-tail-dx) aimed back at the pill,
-   dismiss on outside tap / scroll / resize. No screen-dimming backdrop. */
-function TailBubble({
-    anchor,
-    className,
-    onDismiss,
-    children,
-    dismissOnScroll = true,
-}: {
-    anchor: BubbleAnchor;
-    className: string;
-    onDismiss: () => void;
-    children: ReactNode;
-    /* The To-Do bubble carries native date/time inputs — an iOS scroll-into-view
-       must NOT dismiss it, so it opts out. */
-    dismissOnScroll?: boolean;
-}) {
-    const ref = useRef<HTMLDivElement>(null);
-    const [layout, setLayout] = useState<{ centerX: number; tailDx: number } | null>(null);
-
-    /* Clamp on-screen once measured, then aim the tail back at the trigger. */
-    useEffect(() => {
-        const el = ref.current;
-        if (!el) return;
-        const half = el.offsetWidth / 2;
-        const margin = 8;
-        const vw = window.innerWidth;
-        const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
-        const centerX = clamp(anchor.cx, margin + half, vw - margin - half);
-        const tailDx = clamp(anchor.cx - centerX, -(half - 12), half - 12);
-        setLayout({ centerX, tailDx });
-    }, [anchor]);
-
-    /* An outside tap closes the bubble ONLY — we swallow the trailing click so
-       it never falls through to the artwork (or any pill) underneath (Brendon,
-       2026-07-23). Same click-swallow the hold-drag engine uses. */
-    useEffect(() => {
-        const onDown = (e: PointerEvent) => {
-            if (ref.current?.contains(e.target as Node)) return;
-            const swallow = (ce: Event) => {
-                ce.stopPropagation();
-                ce.preventDefault();
-                window.removeEventListener('click', swallow, true);
-            };
-            window.addEventListener('click', swallow, true);
-            window.setTimeout(() => window.removeEventListener('click', swallow, true), 500);
-            onDismiss();
-        };
-        const dismiss = () => onDismiss();
-        document.addEventListener('pointerdown', onDown, true);
-        if (dismissOnScroll) window.addEventListener('scroll', dismiss, true);
-        window.addEventListener('resize', dismiss);
-        return () => {
-            document.removeEventListener('pointerdown', onDown, true);
-            if (dismissOnScroll) window.removeEventListener('scroll', dismiss, true);
-            window.removeEventListener('resize', dismiss);
-        };
-    }, [onDismiss, dismissOnScroll]);
-
-    if (typeof document === 'undefined') return null;
-    return createPortal(
-        <div
-            ref={ref}
-            className={`tail-bubble ${className}`}
-            role="dialog"
-            aria-modal="true"
-            style={{
-                position: 'fixed',
-                top: anchor.top,
-                left: layout?.centerX ?? anchor.cx,
-                transform: 'translate(-50%, calc(-100% - 10px))',
-                visibility: layout ? 'visible' : 'hidden',
-                zIndex: 100000,
-                ['--p3d-tail-dx' as string]: `${layout?.tailDx ?? 0}px`,
-            } as CSSProperties}
-        >
-            {children}
-        </div>,
-        document.body,
-    );
 }
 
 export default function OutputPreview() {

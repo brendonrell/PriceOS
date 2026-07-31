@@ -32,13 +32,20 @@
  * Nothing about the hang, the weight, the whip or the settle changed.
  */
 
-import { useEffect, useMemo, useRef } from 'react';
-import { useModal } from '../../lib/state/ModalContext';
 import {
-    chainGeom, chainLinkSvg, chainMetalHex, chainRingSvg, charmBailY, charmChain, charmSVG,
+    useCallback, useEffect, useMemo, useRef, useState,
+    type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent,
+} from 'react';
+import { useModal } from '../../lib/state/ModalContext';
+import { useAuth } from '../../lib/state/AuthContext';
+import { useToast } from '../../lib/state/ToastContext';
+import TailBubble, { anchorFromEvent, type BubbleAnchor } from '../shared/TailBubble';
+import {
+    chainGeom, chainLinkSvg, chainMetalHex, chainRingSvg, charmBailY, charmChain, charmCropTop,
+    charmSVG, type CharmRecord,
 } from '../../lib/keychains/engine';
-import { useKeychainRack } from '../../lib/keychains/rack';
-import { gravity, onWake, reducedMotion, resumeMotion, startSway, takeKick } from '../../lib/keychains/sway';
+import { useKeychainRack, bustRack } from '../../lib/keychains/rack';
+import { gravity, onWake, reducedMotion, requestMotion, resumeMotion, startSway, takeKick } from '../../lib/keychains/sway';
 
 /* Solver constants, in the art's own 1000-wide units. */
 /* CALMED DOWN (Brendon, 2026-07-29 — "jumping all over the place"). The chain
@@ -61,12 +68,58 @@ function dataUri(body: string, half: number): string {
     return `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`;
 }
 
+/* One charm in the switcher — drawn exactly as the Depanneur's own rack draws
+   it, chain and all, so a charm looks the same wherever you meet it. */
+function CharmTile({ charm }: { charm: CharmRecord }) {
+    const svg = useMemo(
+        () => charmSVG(charm.seed, `sw${charm.id}`, charm.luck, charm.name, charm.coin),
+        [charm.seed, charm.name, charm.id, charm.luck, charm.coin],
+    );
+    return <span className="dp-charm-mini" dangerouslySetInnerHTML={{ __html: svg }} />;
+}
+
 export default function EquippedCharm({ address }: { address: string }) {
     const { open } = useModal();
+    const { siweAddress } = useAuth();
+    const { showToast } = useToast();
     const rack = useKeychainRack(address);
     const charm = rack?.equipped != null
         ? rack.charms.find((c) => c.id === rack.equipped) ?? null
         : null;
+
+    /* YOUR OWN KEYCHAIN IS A SWITCHER, NOT A TRAIT SHEET (Brendon, 2026-07-31).
+       Tapping someone else's keychain still opens the charm in full — on theirs
+       the traits ARE the point. On your own, the tap is for changing which one
+       you're wearing, so it opens the same bubble the showcase's "Replace?"
+       card uses, scrolling through your rack. */
+    const isMine = !!siweAddress && siweAddress.toLowerCase() === address.toLowerCase();
+    const [swapAnchor, setSwapAnchor] = useState<BubbleAnchor | null>(null);
+    const [busy, setBusy] = useState(false);
+    const dismissSwap = useCallback(() => setSwapAnchor(null), []);
+
+    const equip = async (id: number) => {
+        if (!siweAddress || busy) return;
+        /* The tilt ask rides the equip (Brendon, 2026-07-29) — fired inside the
+           gesture, exactly as the Depanneur's own equip does. */
+        void requestMotion();
+        setBusy(true);
+        try {
+            const r = await fetch('/api/keychains/equip', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ id }),
+            });
+            if (r.ok) {
+                bustRack(siweAddress);
+                showToast('Charm: EQUIPPED');
+            } else {
+                showToast('Charm: FAILED');
+            }
+        } finally {
+            setBusy(false);
+            setSwapAnchor(null);
+        }
+    };
 
     /* The whole hanging piece, resolved once per charm: the ring, the link
        textures, and the charm art itself (drawn with no chain of its own — the
@@ -77,6 +130,11 @@ export default function EquippedCharm({ address }: { address: string }) {
         const chain = charmChain(charm.seed, luck);
         const metal = chainMetalHex(chain.metal);
         const bailY = charmBailY(charm.seed, charm.coin, luck);
+        /* Where the charm's own view starts — normally just above the bail, but
+           opened up when the pose reaches higher (a raised hand). The box is
+           sized off THIS, never a fixed guess, so nothing the charm draws can
+           fall outside it. */
+        const crop = charmCropTop(charm.seed, charm.coin, luck);
         const geom = chainGeom(bailY, chain.links);
         /* Half-extent of a link's own box, with room for its heaviest stroke. */
         const linkHalf = Math.max(geom.rx, geom.ry, Math.trunc((geom.ry * 144) / 200)) + 14;
@@ -92,13 +150,12 @@ export default function EquippedCharm({ address }: { address: string }) {
             linkArt: Array.from({ length: chain.links }, (_, i) =>
                 dataUri(chainLinkSvg(i, geom.rx, geom.ry, metal), linkHalf)),
             /* The charm stays LIVE markup, not a texture: its sway, blink and
-               twinkle have to keep running. Cropped to 30 units above the bail
-               so the bail sits at a known spot in its own box. */
+               twinkle have to keep running. */
             charmSvg: charmSVG(charm.seed, `eq${charm.id}`, luck, '', charm.coin, true),
             charmW: BOX,
-            charmH: (1000 - (bailY - 30)) * S,
+            charmH: (1000 - crop) * S,
             /* Where the bail sits inside that box — the point it swings from. */
-            bailPx: 30 * S,
+            bailPx: (bailY - crop) * S,
         };
     }, [charm]);
 
@@ -262,16 +319,49 @@ export default function EquippedCharm({ address }: { address: string }) {
     }, [art]);
 
     if (!charm || !art) return null;
+
+    const tap = (e: ReactMouseEvent<HTMLElement> | ReactKeyboardEvent<HTMLElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (isMine) setSwapAnchor(anchorFromEvent(e));
+        else open('keychain', `${address.toLowerCase()}:${charm.id}`);
+    };
+
     return (
         <span
             ref={hostRef}
             className="pd-charm-worn"
             role="button"
             tabIndex={0}
-            title={charm.name || 'Keychain'}
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); open('keychain', `${address.toLowerCase()}:${charm.id}`); }}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); open('keychain', `${address.toLowerCase()}:${charm.id}`); } }}
+            title={isMine ? 'Swap keychain' : charm.name || 'Keychain'}
+            onClick={tap}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') tap(e); }}
         >
+            {swapAnchor && rack && (
+                <TailBubble anchor={swapAnchor} className="showcase-swap-card charm-swap-card" onDismiss={dismissSwap}>
+                    <div className="ms-confirm-question">Wear which one?</div>
+                    <div className="showcase-swap-grid charm-swap-grid">
+                        {rack.charms.map((c) => (
+                            <button
+                                key={c.id}
+                                type="button"
+                                className="showcase-swap-cell charm-swap-cell"
+                                disabled={busy}
+                                title={c.name || `Charm #${c.id}`}
+                                onClick={(ev) => {
+                                    ev.preventDefault();
+                                    ev.stopPropagation();
+                                    if (c.id === rack.equipped) { setSwapAnchor(null); return; }
+                                    void equip(c.id);
+                                }}
+                            >
+                                <CharmTile charm={c} />
+                                {c.id === rack.equipped && <span className="dp-rack-worn">WORN</span>}
+                            </button>
+                        ))}
+                    </div>
+                </TailBubble>
+            )}
             <span className="pd-charm-hang">
                 {/* The ring is the anchor — it is nailed to the end of the row
                     and never moves, so it is drawn once and left alone. */}

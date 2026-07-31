@@ -457,25 +457,32 @@ function shoeSvg(kind: number, accent: string): string {
 }
 
 function wing(ax: number, ay: number, flip: boolean): string {
-    return `<g transform="translate(${ax} ${ay - 85}) scale(${flip ? '-1' : '1'} 1)" fill="#FFFFFF" stroke="${INK}" stroke-width="11" stroke-linejoin="round"><path d="M 0 30 Q 60 -60 150 -74 Q 210 -82 208 -60 Q 190 -48 168 -44 Q 205 -46 216 -34 Q 224 -22 196 -12 Q 172 -6 152 -8 Q 186 0 190 14 Q 192 30 158 34 Q 80 42 0 30 Z"/></g>`;
+    return `<g transform="translate(${ax} ${ay - 35}) scale(${flip ? '-1' : '1'} 1)" fill="#FFFFFF" stroke="${INK}" stroke-width="11" stroke-linejoin="round"><path d="M 0 30 Q 60 -60 150 -74 Q 210 -82 208 -60 Q 190 -48 168 -44 Q 205 -46 216 -34 Q 224 -22 196 -12 Q 172 -6 152 -8 Q 186 0 190 14 Q 192 30 158 34 Q 80 42 0 30 Z"/></g>`;
 }
 
+/* ⛔ ACCESSORIES RIDE CLOSE TO THE BODY (Brendon, 2026-07-31 — his crown was
+   cut in half on his profile keychain). A worn charm is cropped just above its
+   bail, and every accessory used to float well over that line, so the profile
+   sliced the top off each one. They now sit tucked against the charm instead of
+   hovering above it — they read as WORN, and there is nothing left up there to
+   cut. Each one's highest point stays inside the bail's 30-unit headroom with
+   room to spare for the sway. */
 /** a = [bailX, bailY, aLx, aLy, aRx, aRy]; returns [front, back]. */
 function accessorySvg(kind: number, a: number[], accent: string): [string, string] {
     if (kind === 0) return ['', ''];
     const bx = a[0]!;
     const by = a[1]!;
     if (kind === 2) {
-        return [`<ellipse cx="${bx + 130}" cy="${by - 55}" rx="92" ry="26" fill="none" stroke="#F5D96B" stroke-width="14" transform="rotate(12 ${bx + 130} ${by - 55})"/>`, ''];
+        return [`<ellipse cx="${bx + 130}" cy="${by + 25}" rx="92" ry="26" fill="none" stroke="#F5D96B" stroke-width="14" transform="rotate(12 ${bx + 130} ${by + 25})"/>`, ''];
     }
     if (kind === 1) {
-        return [`<g transform="translate(${bx + 118} ${by + 6}) rotate(18)" fill="${accent}" stroke="${INK}" stroke-width="9" stroke-linejoin="round"><path d="M -12 0 L -74 -34 Q -88 -40 -86 -22 L -80 26 Q -78 42 -64 34 Z"/><path d="M 12 0 L 74 -34 Q 88 -40 86 -22 L 80 26 Q 78 42 64 34 Z"/><circle cx="0" cy="0" r="17"/></g>`, ''];
+        return [`<g transform="translate(${bx + 118} ${by + 58}) rotate(18)" fill="${accent}" stroke="${INK}" stroke-width="9" stroke-linejoin="round"><path d="M -12 0 L -74 -34 Q -88 -40 -86 -22 L -80 26 Q -78 42 -64 34 Z"/><path d="M 12 0 L 74 -34 Q 88 -40 86 -22 L 80 26 Q 78 42 64 34 Z"/><circle cx="0" cy="0" r="17"/></g>`, ''];
     }
     if (kind === 3) {
-        return [`<g transform="translate(${bx + 128} ${by - 20}) rotate(14)" fill="#F5D96B" stroke="${INK}" stroke-width="9" stroke-linejoin="round"><path d="M -62 24 L -70 -34 L -34 -6 L 0 -44 L 34 -6 L 70 -34 L 62 24 Z"/><circle cx="0" cy="-52" r="8"/></g>`, ''];
+        return [`<g transform="translate(${bx + 128} ${by + 45}) rotate(14)" fill="#F5D96B" stroke="${INK}" stroke-width="9" stroke-linejoin="round"><path d="M -62 24 L -70 -34 L -34 -6 L 0 -44 L 34 -6 L 70 -34 L 62 24 Z"/><circle cx="0" cy="-52" r="8"/></g>`, ''];
     }
     if (kind === 4) {
-        return [`<g stroke="${INK}"><path d="M ${bx + 105} ${by + 10} Q ${bx + 130} ${by - 60} ${bx + 160} ${by - 78}" fill="none" stroke-width="11" stroke-linecap="round"/><circle cx="${bx + 168}" cy="${by - 86}" r="22" fill="${accent}" stroke-width="9"/></g>`, ''];
+        return [`<g stroke="${INK}"><path d="M ${bx + 105} ${by + 105} Q ${bx + 130} ${by + 35} ${bx + 160} ${by + 17}" fill="none" stroke-width="11" stroke-linecap="round"/><circle cx="${bx + 168}" cy="${by + 9}" r="22" fill="${accent}" stroke-width="9"/></g>`, ''];
     }
     return ['', wing(a[4]! - 14, a[5]!, false) + wing(a[2]! + 14, a[3]!, true)];
 }
@@ -544,6 +551,38 @@ export function chainMetalHex(metalKind: number): string {
 /** Where the charm's chain hooks on — the bail, in art units. */
 export function charmBailY(seed: `0x${string}`, coin: Coin = 0, luck: Luck = 0): number {
     return SHAPE_D[genes(seed, coin, luck).shape]!.bailY;
+}
+
+/* ⛔ THE VIEW HAS TO HOLD WHAT THE POSE DRAWS (Brendon, 2026-07-31 — the audit
+   that came with the cut-off crown). A worn charm crops to just above its bail,
+   which is correct right up until the charm throws a hand in the air: a raised
+   glove reaches ~320 units above its shoulder, far higher than the bail, and on
+   HEART · CLOVER · TAG · GEM · PLANET · BOLT the crop was slicing the hand clean
+   off. The crop now opens as far as the pose actually reaches.
+
+   NOTHING SHRINKS: the art is drawn at a fixed 1000-units-to-91px, so a taller
+   view reveals more of the charm at exactly the same size — it never scales it
+   down to fit. */
+/** How far a raised glove reaches above the hand's own anchor point. */
+const GLOVE_REACH = 96;
+
+function cropTop(g: Genes, s: ShapeD, name: string): number {
+    if (name.length) return 60;
+    const [actL, actR] = armActions(g);
+    let top = s.bailY - 30;
+    const raised: [number, number][] = [[actL, s.aLy], [actR, s.aRy]];
+    for (const [act, ay] of raised) {
+        if (act === 0) top = Math.min(top, ay - 228 - GLOVE_REACH);
+        else if (act === 1) top = Math.min(top, ay - 212 - GLOVE_REACH);
+    }
+    return Math.max(0, top);
+}
+
+/** The top of a WORN charm's view, in art units — what the profile keychain
+ *  sizes its box against so the charm's bail lands on the chain's last link. */
+export function charmCropTop(seed: `0x${string}`, coin: Coin = 0, luck: Luck = 0): number {
+    const g = genes(seed, coin, luck);
+    return cropTop(g, SHAPE_D[g.shape]!, '');
 }
 
 /** The chain's link geometry, shared by the drawn art and the hanging solver
@@ -696,7 +735,7 @@ export function charmSVG(seed: `0x${string}`, uid: string, luck: Luck, name: str
        fills its box instead of hanging under an empty gap; everything else
        (the name tag included) is untouched. Default false keeps the contract's
        tokenSVG verbatim everywhere else. */
-    const top = noChain ? (name.length ? 60 : s.bailY - 30) : 0;
+    const top = noChain ? cropTop(g, s, name) : 0;
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 ${top} 1000 ${1000 - top}">`
         + '<style>.sw{transform-box:fill-box;transform-origin:50% -6%;animation:sw 3.4s ease-in-out infinite alternate}@keyframes sw{from{transform:rotate(-3deg)}to{transform:rotate(3deg)}}.ey{transform-box:fill-box;transform-origin:center;animation:bl 4.6s infinite}@keyframes bl{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(0.12)}}.gl{animation:tw 2.3s ease-in-out infinite alternate}@keyframes tw{from{opacity:0.5}to{opacity:0.95}}</style>'
         + `<defs><clipPath id="c${uid}">${clipEl(g.shape)}</clipPath>${finishGradient(finish, bodyC, g.material, uid)}</defs>`

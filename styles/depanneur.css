@@ -417,6 +417,33 @@
     padding: 1px 4px;
 }
 
+/* ── the worn keychain's quick switcher (Brendon, 2026-07-31) ──
+   Tapping YOUR OWN keychain swaps which charm you wear. It is the showcase's
+   "Showcase full. Replace?" bubble verbatim — same card, same 2-across grid,
+   same tap-a-square-to-pick — with the grid scrolling so a full rack fits
+   instead of overflowing the bubble. */
+.charm-swap-grid {
+    max-height: 46vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+}
+.charm-swap-cell {
+    position: relative;
+    line-height: 1;
+}
+.charm-swap-cell .dp-charm-mini { display: block; width: 100%; }
+.charm-swap-cell svg { display: block; width: 100%; height: auto; }
+/* Mid-swap the squares stop taking taps, but they stay FULL STRENGTH — a
+   washed-out grid is unreadable, and this one is only busy for a blink. */
+.charm-swap-cell[disabled] { cursor: default; }
+/* The card is painted in the text colour, so the WORN marker wears the pair
+   the other way round to stay legible on it. */
+.charm-swap-cell .dp-rack-worn {
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+
 /* ── the full-charm popup (profile mini tap) ── */
 .dp-charm-pop-backdrop {
     position: fixed;
