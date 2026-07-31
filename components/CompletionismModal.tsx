@@ -18,7 +18,7 @@ import { useToast } from '../lib/state/ToastContext';
 import { useEffectiveAddress } from '../lib/incognito/useEffectiveAddress';
 import { SHEETS } from '../lib/stickers/catalog';
 import { getOwnedIds, ownsSheet, useOwnedStickerIds } from '../lib/stickers/owned';
-import { genes, SHAPE_NAMES } from '../lib/keychains/engine';
+import { COIN_NAMES, genes, SHAPE_NAMES } from '../lib/keychains/engine';
 import { useKeychainRack } from '../lib/keychains/rack';
 import { formatEth } from '../lib/format/eth';
 import { onCompletionism, readCompletionism, refreshCompletionism, warmCompletionism } from '../lib/completionism/cache';
@@ -178,14 +178,17 @@ export default function CompletionismModal({
     const dataAddress = proxied && effectiveAddress ? effectiveAddress : address;
     const { showToast } = useToast();
     const ownedIds = useOwnedStickerIds();
-    /* KEYCHAIN COMPLETIONISM — the twelve charm shapes. A shape counts once
-       you hold any charm that rolled it (Brendon, 2026-07-30). */
+    /* KEYCHAIN COMPLETIONISM — the twelve charm shapes, each in both coins
+       (Brendon, 2026-07-31): every shape has a YIN and a YANG slot, so the
+       set is 24. A slot counts once you hold a charm that rolled that shape
+       on that coin (the shape alone was the 2026-07-30 version). */
     const rack = useKeychainRack(dataAddress);
     const shapesHeld = useMemo(() => {
-        const s = new Set<number>();
-        for (const c of rack?.charms ?? []) s.add(genes(c.seed, c.coin, c.luck).shape);
+        const s = new Set<string>();
+        for (const c of rack?.charms ?? []) s.add(`${genes(c.seed, c.coin, c.luck).shape}:${c.coin ?? 0}`);
         return s;
     }, [rack]);
+    const KEYCHAIN_SLOTS = SHAPE_NAMES.length * COIN_NAMES.length;
 
     /* Two-stage mounted/active — CartPanel's open/close, verbatim. */
     const [mounted, setMounted] = useState(false);
@@ -375,27 +378,33 @@ export default function CompletionismModal({
                         <div className="cpl-foot">full sheet detail → My Sticker Binder, in the store</div>
                     </div>
 
-                    {/* KEYCHAIN COMPLETIONISM — the twelve shapes, same checks.
-                        The rack itself lives in the Depanneur. */}
+                    {/* KEYCHAIN COMPLETIONISM — the twelve shapes in both coins
+                        (24 slots), same checks. The rack lives in the Depanneur. */}
                     <div className="cpl-month">
                         <div className="cpl-month-head">
                             <span className="cpl-month-name">KEYCHAIN COMPLETIONISM</span>
-                            <span className={`cpl-month-tally${shapesHeld.size === SHAPE_NAMES.length ? ' is-complete' : ''}`}>
-                                {shapesHeld.size === SHAPE_NAMES.length
+                            <span className={`cpl-month-tally${shapesHeld.size === KEYCHAIN_SLOTS ? ' is-complete' : ''}`}>
+                                {shapesHeld.size === KEYCHAIN_SLOTS
                                     ? `COMPLETE ✓${VS15}`
-                                    : `${shapesHeld.size}/${SHAPE_NAMES.length}`}
+                                    : `${shapesHeld.size}/${KEYCHAIN_SLOTS}`}
                             </span>
                         </div>
                         <div className="cpl-grid">
-                            {SHAPE_NAMES.map((name, i) => {
-                                const got = shapesHeld.has(i);
-                                return (
-                                    <span key={name} className={`cpl-item${got ? ' is-got' : ''}`} title={name}>
-                                        <span className="cpl-check">{got ? `✓${VS15}` : `❐${VS15}`}</span>
-                                        <span className="cpl-title">{name}</span>
-                                    </span>
-                                );
-                            })}
+                            {SHAPE_NAMES.flatMap((name, i) =>
+                                COIN_NAMES.map((coinName, coin) => {
+                                    const got = shapesHeld.has(`${i}:${coin}`);
+                                    return (
+                                        <span
+                                            key={`${name}-${coinName}`}
+                                            className={`cpl-item${got ? ' is-got' : ''}`}
+                                            title={`${name} · ${coinName}`}
+                                        >
+                                            <span className="cpl-check">{got ? `✓${VS15}` : `❐${VS15}`}</span>
+                                            <span className="cpl-title">{`${coin === 0 ? '⚋' : '⚊'}${VS15} ${name}`}</span>
+                                        </span>
+                                    );
+                                }),
+                            )}
                         </div>
                         <div className="cpl-foot">crank for the ones you&apos;re missing → The Depanneur</div>
                     </div>
