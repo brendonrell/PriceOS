@@ -8,7 +8,7 @@
  *
  * Trait offers (Brendon, 2026-07-02 — the community's #1 feature): when the
  * caller passes `offerTraits` + `onTraitOffer`, every tile whose label/value
- * is a real offerable trait wears the ✦ Trait Offer chip (the same ✦ the
+ * is a real offerable trait wears the ✶ Trait Offer chip (the same ✶ the
  * Starred trait rows use). The Output panel passes them; the Project panel
  * doesn't — its wall stays untouched.
  */
@@ -143,7 +143,7 @@ export default function AttrWall({
                                         aria-label={`Make a trait offer on ${t.label}: ${t.value}`}
                                         onClick={() => onTraitOffer!(t.label, t.value as string)}
                                     >
-                                        {`✦${VS15}`}
+                                        {`✶${VS15}`}
                                     </button>
                                 )}
                                 <span className="attr-tile-glyph">{t.glyph}{VS15}</span>

@@ -2,9 +2,9 @@
 // market biography, chapters from the real ledger. Same shape and voice as
 // the per-Output story so both render through one panel.
 //
-// Chapters: GENESIS ✧ (upload) · FIRST BLOOD ✶ (first mint) · GRADUATION ⟢
-// (18th mint — entered Now Minting) · THE CROWD ✶ (mint progress / sellout ▲)
-// · FIRST TRADE ✶ (first secondary sale) · THE PEAK ✶ (ATH) · THE QUIET ◷ ·
+// Chapters: GENESIS ✧ (upload) · FIRST BLOOD ✦ (first mint) · GRADUATION ⟢
+// (18th mint — entered Now Minting) · THE CROWD ✦ (mint progress / sellout ▲)
+// · FIRST TRADE ✦ (first secondary sale) · THE PEAK ✦ (ATH) · THE QUIET ◷ ·
 // TODAY ⌂ (floor, holders, open book). Milestone glyphs are the canonical
 // home-feed set (docs/GLYPHS.md §8); market glyphs the §1 set.
 
@@ -132,24 +132,24 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ slug: st
       });
     }
 
-    // FIRST TRADE ✶ — the first secondary sale.
+    // FIRST TRADE ✦ — the first secondary sale.
     if (sales.length > 0) {
       const first = sales[0];
       const price = Number(first.price_eth);
       const mult = project.mintPriceEth > 0 ? price / project.mintPriceEth : null;
       chapters.push({
-        key: 'firsttrade', glyph: `✶${VS15}`, title: 'FIRST TRADE', ts: first.timestamp,
+        key: 'firsttrade', glyph: `✦${VS15}`, title: 'FIRST TRADE', ts: first.timestamp,
         line: `The secondary market opened — #${first.token_id} for ${fmtEth(price)}${mult != null && mult >= 1.2 ? `, ${mult.toFixed(1)}× mint` : ''}.`,
         sub: null,
       });
     }
 
-    // THE PEAK ✶ — the collection ATH.
+    // THE PEAK ✦ — the collection ATH.
     if (sales.length > 1) {
       const peak = sales.reduce((a, b) => (Number(b.price_eth) > Number(a.price_eth) ? b : a));
       if (peak !== sales[0]) {
         chapters.push({
-          key: 'peak', glyph: `✶${VS15}`, title: 'THE PEAK', ts: peak.timestamp,
+          key: 'peak', glyph: `✦${VS15}`, title: 'THE PEAK', ts: peak.timestamp,
           line: `${pick(seed, 4, ['The record', 'The high-water mark', 'Its finest hour'])} — #${peak.token_id} at ${fmtEth(Number(peak.price_eth))}.`,
           sub: `${sales.length} sales · ${fmtEth(volume)} traded`,
         });

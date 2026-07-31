@@ -32,8 +32,8 @@ The moment you filter to a single kind, each row gets its own button back:
 |---|---|
 | Outputs | ✛ Wishlist |
 | Soundtracks | ▶ Play |
-| Traits | ✦ Trait Offer |
-| Projects | ✦ Project Offer |
+| Traits | ✶ Trait Offer |
+| Projects | ✶ Project Offer |
 | Artists · Collectors | ⚯ Follow |
 
 So All Starred is where you file, and a filter is where you act.

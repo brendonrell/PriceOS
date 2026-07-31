@@ -18,7 +18,7 @@ Long-press your @name on your own profile and the customization rows open: your 
 
 ## Profile tags
 
-Identity chips on your hero, above the stickers. Some you **pick** (Collector, Trader, Analyst, Degen ⚔, Podcaster ⚲, and more — toggle them in the tags row of the customization menu), some are **earned** from the record (Artist ✺, Minter ✶, Veteran), some are **granted** (OG ⌖), and one is **yours by number**: every account carries its platform number — *User #1* through *#22* stand alone, then First 100 / 500 / 1000. Tag labels wear your chosen name font, and the paint chips at the end of the tags row can dress every tag in one colour — all black, all white, or a brand primary — with the lettering flipped to match.
+Identity chips on your hero, above the stickers. Some you **pick** (Collector, Trader, Analyst, Degen ⚔, Podcaster ⚲, and more — toggle them in the tags row of the customization menu), some are **earned** from the record (Artist ✺, Minter ✦, Veteran), some are **granted** (OG ⌖), and one is **yours by number**: every account carries its platform number — *User #1* through *#22* stand alone, then First 100 / 500 / 1000. Tag labels wear your chosen name font, and the paint chips at the end of the tags row can dress every tag in one colour — all black, all white, or a brand primary — with the lettering flipped to match.
 
 ## Your platform number
 

@@ -170,7 +170,7 @@ export function TapeBox() {
             {items.length === 0 ? (
                 Array.from({ length: 6 }, (_, i) => (
                     <div className="notif-item ghost-feed-row" key={`g-${i}`} aria-hidden="true">
-                        <span className="n-icon">{['✶', '✹', '✦', '✸', '✶', '✹'][i % 6]}&#xFE0E;</span>{' '}
+                        <span className="n-icon">{['✦', '✹', '✶', '✸', '✦', '✹'][i % 6]}&#xFE0E;</span>{' '}
                         <span className="ghost-feed-bar ghost-feed-bar-content" />
                     </div>
                 ))

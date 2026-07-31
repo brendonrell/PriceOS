@@ -5,7 +5,7 @@
  * (Output page and Project page). Attributes-box presentation (dotted
  * more-box-card), the same row grammar as the OffersPanel sheet. Browsing
  * lives here; ACTING (accept / decline / counter / cancel) lives in the
- * offers panel the ✦ pill opens — one place for money buttons.
+ * offers panel the ✶ pill opens — one place for money buttons.
  */
 
 import { useEffect, useState } from 'react';
@@ -78,7 +78,7 @@ export default function OffersInline({ slug, id, query }: { slug: string; id?: n
                             <>
                                 <div className="cart-item-meta">
                                     <div className="cart-item-name">
-                                        {`✦${VS15}`} {o.bidder_handle ? `@${o.bidder_handle}` : shortAddr(o.bidder_address)}
+                                        {`✶${VS15}`} {o.bidder_handle ? `@${o.bidder_handle}` : shortAddr(o.bidder_address)}
                                         <span className="mk-scope-tag">{target}</span>
                                         {o.takeover_id && <span className="mk-takeover-tag">{`⚑${VS15}`} TAKEOVER</span>}
                                     </div>

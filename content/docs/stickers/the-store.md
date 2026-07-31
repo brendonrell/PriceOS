@@ -47,7 +47,7 @@ Sheets are print runs. A sheet can carry a hard cap and **sell out** — once th
 | --- | --- | --- |
 | **GENESIS** | MYTHIC | The PD logo across 28 colours — led by the Classic (Hothurt red, attention yellow) — plus the $PRICE wordmark in both canonical variants. The founding sheet. |
 | **PETEY** | UNCOMMON | The same logo rotated 90° counter-clockwise, which is what turns it into Petey the mascot. 24 colours, Classic first. |
-| **ICONS** | COMMON | The platform's glyph vocabulary as stickers — ✶ Mint, ✹ List, ✦ Offer, ★ Star, ✛ Wishlist, ❖ Rarity, ❂ PriceRank, and 21 more. Wear the interface. |
+| **ICONS** | COMMON | The platform's glyph vocabulary as stickers — ✦ Mint, ✹ List, ✶ Offer, ★ Star, ✛ Wishlist, ❖ Rarity, ❂ PriceRank, and 21 more. Wear the interface. |
 | **FAMILIARS** | RARE | The whole Digital Familiar bestiary, every tier, as face stickers. |
 | **ANIMATED FAMILIARS** | MYTHIC | The bestiary again — alive. Each sticker cycles its species' idle animation. |
 | **PROJECTS** | MYTHIC | Every Project's sprite face, each in its signature colour. |

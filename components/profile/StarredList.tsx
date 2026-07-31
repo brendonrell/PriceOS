@@ -949,7 +949,7 @@ export default function StarredList({
                                         onClick={() => openCriteriaOfferSheet({ kind: 'trait', slug: r.slug, category: r.category, value: r.value })}
                                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCriteriaOfferSheet({ kind: 'trait', slug: r.slug, category: r.category, value: r.value }); } }}
                                     >
-                                        <span className="trait-offer-glyph">✦︎</span> Trait Offer
+                                        <span className="trait-offer-glyph">✶︎</span> Trait Offer
                                     </span>
                                     )}
                                     <span
@@ -1155,7 +1155,7 @@ export default function StarredList({
                                         onClick={(e) => { e.stopPropagation(); openCriteriaOfferSheet({ kind: 'collection', slug: r.slug }); }}
                                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); openCriteriaOfferSheet({ kind: 'collection', slug: r.slug }); } }}
                                     >
-                                        <span className="trait-offer-glyph">✦︎</span> Project<br />Offer
+                                        <span className="trait-offer-glyph">✶︎</span> Project<br />Offer
                                     </span>
                                     )}
                                     <span
@@ -1538,7 +1538,7 @@ function StarredOutputRow({
                         onClick={(e) => { e.stopPropagation(); onOffer?.(); }}
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onOffer?.(); } }}
                     >
-                        <span className="trait-offer-glyph">✦︎</span> Offer
+                        <span className="trait-offer-glyph">✶︎</span> Offer
                     </span>
                 ) : (
                     <span
@@ -1662,7 +1662,7 @@ function StarredProjectHistoryRow({
                     onClick={(e) => { e.stopPropagation(); onOffer(); }}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onOffer(); } }}
                 >
-                    <span className="trait-offer-glyph">✦︎</span> Project<br />Offer
+                    <span className="trait-offer-glyph">✶︎</span> Project<br />Offer
                 </span>
                 <span
                     className="starred-row-unstar"

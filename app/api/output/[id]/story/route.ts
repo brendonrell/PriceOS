@@ -5,8 +5,8 @@
 //
 // Chapters (each only when its ingredient exists — a fresh mint still gets
 // Birth + Today, never an empty page):
-//   BIRTH ✶ · FIRST LIGHT ✹ (first listing) · THE COURTSHIP ✦ (offers and
-//   their fates) · FIRST BLOOD ✶ (first sale) · THE PEAK ✶ (best sale) ·
+//   BIRTH ✦ · FIRST LIGHT ✹ (first listing) · THE COURTSHIP ✶ (offers and
+//   their fates) · FIRST BLOOD ✦ (first sale) · THE PEAK ✦ (best sale) ·
 //   THE QUIET ◷ (dormancy) · TODAY ⌂ (who holds it, where it stands).
 // Glyphs are the canonical market set (docs/GLYPHS.md) — never invented.
 //
@@ -157,7 +157,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ id: stri
 
     const chapters: Chapter[] = [];
 
-    // ── BIRTH ✶ ──────────────────────────────────────────────────────────
+    // ── BIRTH ✦ ──────────────────────────────────────────────────────────
     if (mintTs != null) {
       const minter = await handleFor(mint?.to_address ?? null);
       const pd = priceDayNumber(new Date(mintTs * 1000));
@@ -167,7 +167,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ id: stri
         `Entered the world under ${minter}`,
       ]);
       chapters.push({
-        key: 'birth', glyph: `✶${VS15}`, title: 'BIRTH', ts: mintTs,
+        key: 'birth', glyph: `✦${VS15}`, title: 'BIRTH', ts: mintTs,
         line: `${born}${mintPrice != null && mintPrice > 0 ? ` for ${fmtEth(mintPrice)}` : mintPrice === 0 ? ' as a free claim' : ''}.`,
         sub: `PriceDay #${pd}`,
       });
@@ -190,7 +190,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ id: stri
       });
     }
 
-    // ── THE COURTSHIP ✦ — every suitor and their fate ────────────────────
+    // ── THE COURTSHIP ✶ — every suitor and their fate ────────────────────
     if (offers.length > 0) {
       const open = offers.filter((o) => o.status === 'open' && (o.end_time == null || o.end_time > now));
       const accepted = offers.filter((o) => o.status === 'accepted');
@@ -206,14 +206,14 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ id: stri
       if (accepted.length > 0) bits.push('one finally taken');
       const suitorWord = pick(seed, 3, ['suitor', 'bidder', 'admirer']);
       chapters.push({
-        key: 'courtship', glyph: `✦${VS15}`, title: 'THE COURTSHIP',
+        key: 'courtship', glyph: `✶${VS15}`, title: 'THE COURTSHIP',
         ts: Math.floor(Date.parse(offers[offers.length - 1].created_at) / 1000) || now,
         line: `${offers.length === 1 ? `One ${suitorWord} came` : `${offers.length} offers from ${bidders} ${suitorWord}${bidders === 1 ? '' : 's'}`}, the best at ${fmtEth(best)}${bits.length ? ` — ${bits.join(', ')}` : ''}.`,
         sub: open.length > 0 ? `${open.length} still standing` : null,
       });
     }
 
-    // ── FIRST BLOOD ✶ — the first secondary sale ─────────────────────────
+    // ── FIRST BLOOD ✦ — the first secondary sale ─────────────────────────
     if (sales.length > 0) {
       const first = sales[0];
       const price = Number(first.price_eth);
@@ -223,20 +223,20 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ id: stri
         ? pick(seed, 4, ['taken on an offer', 'won by a patient bid'])
         : pick(seed, 4, ['bought off the ask', 'claimed at the listed price']);
       chapters.push({
-        key: 'firstblood', glyph: `✶${VS15}`, title: 'FIRST SALE', ts: first.timestamp,
+        key: 'firstblood', glyph: `✦${VS15}`, title: 'FIRST SALE', ts: first.timestamp,
         line: `First changed hands for ${fmtEth(price)} — ${how} by ${buyer}${mult != null && mult >= 1.2 ? `, ${mult.toFixed(1)}× its mint` : ''}.`,
         sub: mintTs != null ? `${daysBetween(mintTs, first.timestamp)} days after birth` : null,
       });
     }
 
-    // ── THE PEAK ✶ — the best price it ever fetched (when it isn't the first) ─
+    // ── THE PEAK ✦ — the best price it ever fetched (when it isn't the first) ─
     if (sales.length > 1) {
       const peak = sales.reduce((a, b) => (Number(b.price_eth) > Number(a.price_eth) ? b : a));
       if (peak !== sales[0]) {
         const price = Number(peak.price_eth);
         const holder = await handleFor(peak.to_address);
         chapters.push({
-          key: 'peak', glyph: `✶${VS15}`, title: 'THE PEAK', ts: peak.timestamp,
+          key: 'peak', glyph: `✦${VS15}`, title: 'THE PEAK', ts: peak.timestamp,
           line: `${pick(seed, 5, ['Its finest hour', 'The high-water mark', 'The record'])} — ${fmtEth(price)}, to ${holder}. ${sales.length} sales in all.`,
           sub: null,
         });

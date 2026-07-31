@@ -42,9 +42,9 @@ surface (pings, tape, feeds).
 
 | Concept | Glyph | Codepoint | Where it's canonical |
 |---|---|---|---|
-| Collected / mint | ✶ | U+2736 | `#sn-mints` pill |
+| Collected / mint | ✦ | U+2726 | `#sn-mints` pill. **SWAPPED with Offer 2026-07-31 (Brendon)** — the four-pointed star is the collect mark now; ✶ moved to Offer |
 | Listed | ✹ | U+2739 | `#sn-lists` pill |
-| Offer | ✦ | U+2726 | `#sn-offers` pill |
+| Offer | ✶ | U+2736 | `#sn-offers` pill. **SWAPPED with Collected 2026-07-31 (Brendon)** |
 | Transfer / xfer | ✸ | U+2738 | `#sn-xfers` pill |
 | Mutual / follow (social) | ⚭ | U+26AD | `#sn-mutualsOnly` pill |
 | Pingtoasts toggle | ⇡ | U+21E1 | `#sn-pingToasts` pill |
@@ -59,11 +59,11 @@ glyph that concept wears elsewhere in the app (the panopticon principle).
 
 | Ping kind | Glyph | Codepoint | Notes |
 |---|---|---|---|
-| `MINT` (collected) | ✶ | U+2736 | matches MINTS pill |
-| `SALE` (your piece sold) | ✶ | U+2736 | collected family |
+| `MINT` (collected) | ✦ | U+2726 | matches MINTS pill |
+| `SALE` (your piece sold) | ✦ | U+2726 | collected family |
 | `LIST` (broadcast listing) | ✹ | U+2739 | matches LISTS pill |
-| `OFFER` | ✦ | U+2726 | matches OFFERS pill |
-| `OFFER_ACCEPTED` | ✦ | U+2726 | offer resolved |
+| `OFFER` | ✶ | U+2736 | matches OFFERS pill |
+| `OFFER_ACCEPTED` | ✶ | U+2736 | offer resolved |
 | `XFER` (transfer) | ✸ | U+2738 | matches XFERS pill |
 | `FOLLOW` | ⚭ | U+26AD | mutual / social |
 | `PROJECT_FOLLOW` | ⚭ | U+26AD | mutual / social |
@@ -243,12 +243,16 @@ settings pills, and the Pings panel mirrors it via `.ping-ic--<KIND>`):
 
 - **⚭ (U+26AD, mutual/follow)** — renders **small**; bump up (pill → 20px; Pings
   panel → 17px).
-- **✶ (U+2736, collected/mint)** — renders **small + low**; bump up + raise
+- **✶ (U+2736, now Offer — was collected/mint until the 2026-07-31 swap)** — renders **small + low**; bump up + raise
   (pill → 18–20px, `translateY(-1/-2px)`; Pings panel → 16px, `translateY(-1px)`).
 - The heavy four/eight-point stars **✸ / ✹** read large/dark — leave at base or
   pull down a step if matched against the lighter ✦ / ✛.
 - **✛ (U+271B, wishlist)** is tall + thin — vertical-align sensitive.
 - The rest (✦, ◈, ◉, ❖, etc.) sit clean at default.
+- ⛔ The nudges above follow the GLYPH, not the concept. The 2026-07-31
+  collect/offer swap moved the two marks between concepts and deliberately
+  left every hand-tuned size/offset exactly where Brendon set it — re-tuning
+  is his call, by eye, not a session's to guess at.
 
 > Verification note: exact glyph metrics are **font-dependent**. PD targets
 > Courier; the per-glyph nudges above were tuned against real devices (iOS

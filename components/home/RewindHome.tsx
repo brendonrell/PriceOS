@@ -101,7 +101,7 @@ export default function RewindHome() {
             <span className="rw-daylog-line">{logBits.join(' · ')}</span>
             {log.top_sale && (
               <a className="rw-daylog-top" href={`/art/${log.top_sale.slug}/${log.top_sale.id}`}>
-                {'✶︎'} DAY&apos;S TOP: {(getProject(log.top_sale.slug)?.displayName ?? log.top_sale.slug).toUpperCase()} #{log.top_sale.id} · ◊{log.top_sale.eth}
+                {'✦︎'} DAY&apos;S TOP: {(getProject(log.top_sale.slug)?.displayName ?? log.top_sale.slug).toUpperCase()} #{log.top_sale.id} · ◊{log.top_sale.eth}
               </a>
             )}
           </>

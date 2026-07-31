@@ -130,7 +130,7 @@ export async function GET(req: NextRequest) {
     }
     for (const [k, count] of Object.entries(mintsByKey)) {
       if (count >= BUSY_MINTS && k < todayKey) {
-        push(k, { scope: 'auto', title: `✶${VS15} Busy minting — ${count} pieces claimed` });
+        push(k, { scope: 'auto', title: `✦${VS15} Busy minting — ${count} pieces claimed` });
       }
     }
 

@@ -464,11 +464,10 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                                 }
                             }}
                         >
-                            {/* ☻ = the collector/social mark (GLYPHS §12h — collector
-                                and user are the same concept). Was ⌗, which is the
-                                PROJECTS glyph and never meant people (Brendon,
-                                2026-07-31). */}
-                            <span className="stat-icon stat-icon-owners" {...iconToastProps('Collectors')}>☻&#xFE0E;</span>{' '}
+                            {/* ✦ = the COLLECT mark (GLYPHS §1, as of the 2026-07-31
+                                collect/offer swap). Was ⌗, the PROJECTS glyph, which
+                                never meant people (Brendon, 2026-07-31). */}
+                            <span className="stat-icon stat-icon-owners" {...iconToastProps('Collectors')}>✦&#xFE0E;</span>{' '}
                             <span className="stat-val stat-val-owners">{project.stats.collectors} {project.stats.collectors === 1 ? 'PRSN' : 'PPL'}</span>
                         </span>
                         <AudienceIndicator slug={project.slug} />

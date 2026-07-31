@@ -2051,7 +2051,7 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                     {onMore && effMoreL1 === 'offers' && (
                         <section className="starred-list" aria-label="Offers">
                             <p className="album-empty-note">
-                                No offers yet — offers {isOwnProfile ? 'you make' : `@${displayHandle} makes`} and receive{isOwnProfile ? '' : 's'} will live here. Make one from any artwork&rsquo;s ✦{'︎'} panel.
+                                No offers yet — offers {isOwnProfile ? 'you make' : `@${displayHandle} makes`} and receive{isOwnProfile ? '' : 's'} will live here. Make one from any artwork&rsquo;s ✶{'︎'} panel.
                             </p>
                         </section>
                     )}

@@ -612,10 +612,10 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       addArtwork(row, 85, `✹${VS15} ${fmtEth(row.price_eth)} ETH`);
     }
     for (const row of (soldRes?.data ?? []) as Array<{ project_id: string; token_id: string; price_eth: string }>) {
-      addArtwork(row, 84, `✶${VS15} sold ${fmtEth(row.price_eth)} ETH`);
+      addArtwork(row, 84, `✦${VS15} sold ${fmtEth(row.price_eth)} ETH`);
     }
     for (const row of (offersRes?.data ?? []) as Array<{ project_id: string; token_id: string; price_eth: string }>) {
-      addArtwork(row, 83, `✦${VS15} offer ${fmtEth(row.price_eth)} ETH`);
+      addArtwork(row, 83, `✶${VS15} offer ${fmtEth(row.price_eth)} ETH`);
     }
     for (const row of holderPairs) {
       addArtwork(row, 82, `⌂${VS15} @${parsed.holder}`);
@@ -677,7 +677,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
             });
           }
           for (const m of alm.minted.slice(0, 2)) {
-            if (m.href) answers.push({ text: `✶${VS15} minted — ${m.label} · ${m.value}`, href: m.href ?? null });
+            if (m.href) answers.push({ text: `✦${VS15} minted — ${m.label} · ${m.value}`, href: m.href ?? null });
           }
           for (const u of alm.uploaded.slice(0, 2)) {
             if (u.href) answers.push({ text: `✧${VS15} arrived — ${u.label} · ${u.value}`, href: u.href ?? null });

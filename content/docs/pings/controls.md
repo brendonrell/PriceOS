@@ -38,9 +38,9 @@ Nine pills, each an honest filter. **A pill turned off silences that category EV
 
 | Pill | Glyph | What it lets through |
 | --- | --- | --- |
-| MINTS | ✶ | Collecting activity — mints and sales in your orbit |
+| MINTS | ✦ | Collecting activity — mints and sales in your orbit |
 | LISTS | ✹ | Listings, plus wishlist hits |
-| OFFERS | ✦ | The offer family — made, accepted, countered |
+| OFFERS | ✶ | The offer family — made, accepted, countered |
 | XFERS | ✸ | Transfers |
 | Mutuals | ⚭ | Relevant activity from your mutuals — the people you follow who follow you back. Your inner circle's mints, buys, listings, and sales. |
 | Artists | ✺ | Your **starred artists** acting: they list, they sell, they drop. Star an artist from the Artists list or their profile title (long-press). |

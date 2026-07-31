@@ -12,7 +12,7 @@ The shell is everything that persists while pages change underneath it. PriceOS 
 
 ## The Tape
 
-The persistent live ticker running through the app chrome: mints, sales, listings, offers, and transfers as they happen, each wearing its canonical glyph (✶ collected, ✹ listed, ✦ offer, ✸ transfer) and its actor's @name. The Tape is the platform's pulse — the discussion, scrolling by.
+The persistent live ticker running through the app chrome: mints, sales, listings, offers, and transfers as they happen, each wearing its canonical glyph (✦ collected, ✹ listed, ✶ offer, ✸ transfer) and its actor's @name. The Tape is the platform's pulse — the discussion, scrolling by.
 
 ## The navbar
 

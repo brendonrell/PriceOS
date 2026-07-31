@@ -18,9 +18,9 @@ This section is the complete manual: this page covers what fires and how the inb
 
 | Ping | Glyph | Fires when |
 | --- | --- | --- |
-| Offer | ✦ | Someone offers on your piece (rapid offers roll up into one) |
-| Offer accepted / countered | ✦ | Your offer resolves, either direction |
-| Sold | ✶ | Your listed piece sells |
+| Offer | ✶ | Someone offers on your piece (rapid offers roll up into one) |
+| Offer accepted / countered | ✶ | Your offer resolves, either direction |
+| Sold | ✦ | Your listed piece sells |
 | Transfer / gift | ✸ | A piece or sticker sheet moves to or from you |
 | Wishlist hit | ✛ | A piece on your wishlist gets listed or sells |
 | Follow | ⚭ | Someone follows you or your project |
@@ -41,7 +41,7 @@ This section is the complete manual: this page covers what fires and how the inb
 | Traits | ⨝ | A piece carrying a trait you starred gets listed or sold |
 | Rarity | ❖ | A top-10-rarest piece moves in a project you hold pieces in |
 
-**Your orbit** — the follow feed: activity by people and projects you follow (collected ✶, listed ✹, offers ✦, transfers ✸) interleaves into the same inbox, newest first. It's ambience, and it's treated that way: it never buzzes your phone.
+**Your orbit** — the follow feed: activity by people and projects you follow (collected ✦, listed ✹, offers ✶, transfers ✸) interleaves into the same inbox, newest first. It's ambience, and it's treated that way: it never buzzes your phone.
 
 ## The inbox
 

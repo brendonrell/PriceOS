@@ -61,7 +61,7 @@ export function FeedActorLine({ fe }: { fe: FeedEvent }) {
 }
 
 export const FEED_ICON: Record<FeedEvent['type'], string> = {
-    MINT: '✶', LIST: '✹', SALE: '✦', XFER: '✸',
+    MINT: '✦', LIST: '✹', SALE: '✦', XFER: '✸',
 };
 
 function feedShortAddr(a: string | null): string {
@@ -136,7 +136,7 @@ function buildFeedEvent(e: EventRow, withProject: boolean, dropPrice: boolean): 
     else verb = <>transferred {tok}</>;
     return {
         id: e.id,
-        icon: e.trade ? '⇌' : (FEED_ICON[type] ?? '✶'),
+        icon: e.trade ? '⇌' : (FEED_ICON[type] ?? '✦'),
         trade: e.trade === true || undefined,
         // On-chain events carry a UTC timestamp (one base); show the time in the
         // VIEWER's local zone, like every app — no fixed Montreal clock.

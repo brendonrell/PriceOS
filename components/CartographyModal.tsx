@@ -410,7 +410,7 @@ class CartoEngine {
         if (ev.t === 'MINT') {
             const p = this.shorePoint(t, seed);
             this.ripples.push({ x: p.x, y: p.y, t0: now, hue: this.colAccent, big: true });
-            if (ev.e > 0) this.flashes.push({ x: p.x, y: p.y, t0: now, text: `✶ ◊${fmtEth(ev.e)}`, hue: this.colAccent });
+            if (ev.e > 0) this.flashes.push({ x: p.x, y: p.y, t0: now, text: `✦ ◊${fmtEth(ev.e)}`, hue: this.colAccent });
         } else if ((ev.t === 'XFER' || ev.t === 'SALE') && ev.e > 0) {
             const a = this.shorePoint(t, `${seed}:f`);
             const b = this.shorePoint(t, `${seed}:t`);
@@ -930,7 +930,7 @@ class CartoEngine {
                     ? this.inhabitantWorld(t, t.byAddr.get(ev.to)!, now)
                     : this.shorePoint(t, seed);
                 this.ripples.push({ x: p.x, y: p.y, t0: now, hue: this.colAccent, big: true });
-                if (ev.e > 0) this.flashes.push({ x: p.x, y: p.y, t0: now, text: `✶ ◊${fmtEth(ev.e)}`, hue: this.colAccent });
+                if (ev.e > 0) this.flashes.push({ x: p.x, y: p.y, t0: now, text: `✦ ◊${fmtEth(ev.e)}`, hue: this.colAccent });
             }
         } else if ((ev.t === 'XFER' || ev.t === 'SALE') && ev.e > 0) {
             /* A sale sails: comet from seller's seat to the buyer's. */
@@ -1519,7 +1519,7 @@ class CartoEngine {
             if (p >= 1) {
                 done.push(c);
                 this.ripples.push({ x: c.x1, y: c.y1, t0: now, hue: c.hue, big: true });
-                this.flashes.push({ x: c.x1, y: c.y1, t0: now, text: `✶ ◊${fmtEth(c.price)}`, hue: this.colAccent });
+                this.flashes.push({ x: c.x1, y: c.y1, t0: now, text: `✦ ◊${fmtEth(c.price)}`, hue: this.colAccent });
             }
         }
         this.comets = this.comets.filter((c) => !done.includes(c));
@@ -2068,7 +2068,7 @@ export default function CartographyModal() {
                             title="Toggle mints"
                             onClick={() => setLegend((l) => ({ ...l, mint: !l.mint }))}
                             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setLegend((l) => ({ ...l, mint: !l.mint })); } }}
-                        >{'✶︎'} COLLECTED</span>
+                        >{'✦︎'} COLLECTED</span>
                         <span
                             className={`carto-leg${legend.list ? '' : ' is-off'}`}
                             role="button"

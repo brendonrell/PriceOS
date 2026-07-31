@@ -630,7 +630,7 @@ function GrailPill({ pin, redacted, onOpen, onUnpin }: GrailPillProps) {
     } else if (pin.kind === 'tx') {
         // Transaction pin — the event glyph + the token it concerns.
         displayTitle = redacted ? redactedTitle : projectTitle;
-        leadGlyph = pin.tx ? `${FEED_ICON[pin.tx.type] ?? '✶'}︎` : null;
+        leadGlyph = pin.tx ? `${FEED_ICON[pin.tx.type] ?? '✦'}︎` : null;
         const lid = txLocalId(pin.tx);
         idText = lid ? `#${lid}` : null;
         titleAttr = `${projectTitle} · ${pin.tx?.type ?? 'TX'}${lid ? ` #${lid}` : ''}`;

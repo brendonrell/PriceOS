@@ -16,7 +16,7 @@ Every project with live listings gets a carousel, cheapest first, with the floor
 
 ## Activity — the tape
 
-The market tape: every LIST ✹, SALE ✶, and OFFER ✦ as it happens, stamped in your own timezone. The stats row above it keeps the running totals — pieces listed, volume, open offers.
+The market tape: every LIST ✹, SALE ✦, and OFFER ✶ as it happens, stamped in your own timezone. The stats row above it keeps the running totals — pieces listed, volume, open offers.
 
 ## Purchase Pal
 

@@ -264,7 +264,7 @@ export default function StickerMarket() {
                             </div>
                             <div className="cart-item-price skm-prices">
                                 <span className="pill pill-l2 skm-price-pill">{sum?.floor != null ? `${formatEth(sum.floor)}` : '—'}</span>
-                                <span className="skm-sub">{sum?.best_offer != null ? `✦${VS15}${formatEth(sum.best_offer)}` : `✦${VS15}—`}</span>
+                                <span className="skm-sub">{sum?.best_offer != null ? `✶${VS15}${formatEth(sum.best_offer)}` : `✶${VS15}—`}</span>
                             </div>
                         </div>
                     );
@@ -367,7 +367,7 @@ export default function StickerMarket() {
             )}
 
             {/* Bids */}
-            <div className="skm-side-label">{`✦${VS15} WANTED`}</div>
+            <div className="skm-side-label">{`✶${VS15} WANTED`}</div>
             {book == null ? null : book.offers.length === 0 ? (
                 <div className="mk-story-loading">No open offers.</div>
             ) : (
@@ -455,7 +455,7 @@ export default function StickerMarket() {
                     </div>
                 )}
                 <div className="skm-compose">
-                    <span className="skm-compose-label">{`✦${VS15} OFFER`}</span>
+                    <span className="skm-compose-label">{`✶${VS15} OFFER`}</span>
                     <QtyStep qty={offerQty} max={22} setQty={setOfferQty} />
                     <span className="mk-price-wrap">
                         <input className="mk-price-input" type="text" inputMode="decimal" placeholder="0.000"

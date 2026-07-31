@@ -139,7 +139,7 @@ export default function LoyaltyPanel({
                                                     {/* Born here — minted by this wallet and never let
                                                         go. The mint star, §1. */}
                                                     {r.from_mint && (
-                                                        <span className="loy-born" title="Minted here — never let go">{`✶${VS15}`}</span>
+                                                        <span className="loy-born" title="Minted here — never let go">{`✦${VS15}`}</span>
                                                     )}
                                                 </span>
                                                 <span className="starred-row-sub">
@@ -220,7 +220,7 @@ export default function LoyaltyPanel({
                                 </div>
                                 <div className="attr-tile">
                                     <span className="attr-tile-label">Born here</span>
-                                    <span className="attr-tile-value">{`✶${VS15} ${data.purity.born_here} OF ${data.purity.kept}`}</span>
+                                    <span className="attr-tile-value">{`✦${VS15} ${data.purity.born_here} OF ${data.purity.kept}`}</span>
                                 </div>
                                 <div className="attr-tile">
                                     <span className="attr-tile-label">Clean hands</span>

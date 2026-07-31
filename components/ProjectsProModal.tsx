@@ -54,7 +54,7 @@ const TABS: { key: ProTab; label: string; icon: string }[] = [
     { key: 'all', label: 'ALL', icon: '⬚' },
     { key: 'held', label: 'HELD', icon: '◨' },
     { key: 'starred', label: 'STARRED', icon: '★' },
-    { key: 'minting', label: 'MINTING', icon: '✶' },
+    { key: 'minting', label: 'MINTING', icon: '✦' },
 ];
 
 const SORTS: { key: ProSort; label: string }[] = [
@@ -86,7 +86,7 @@ interface LiveRow { minted: number; supply: number; uploadedAt: number | null }
 /** The project's last on-ledger move (PULSE's raw material). */
 interface LastMove { verb: string; piece: string; ts: number; glyph: string }
 
-const MOVE_GLYPH: Record<string, string> = { MINT: '✶', SALE: '✶', LIST: '✹', XFER: '✸' };
+const MOVE_GLYPH: Record<string, string> = { MINT: '✦', SALE: '✦', LIST: '✹', XFER: '✸' };
 const MOVE_VERB: Record<string, string> = { MINT: 'minted', SALE: 'sold', LIST: 'listed', XFER: 'moved' };
 
 /* A faction IS a blank-bubble profile logo — the same read the Friend

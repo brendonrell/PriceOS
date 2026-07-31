@@ -127,7 +127,7 @@ export default function MintRoomModal({
                 {/* the ROOM WINDOW — rounder square, themed to the project */}
                 <div className="mr-window">
                     <div className="mr-head">
-                        <span className="mr-title">{`✶${VS15} MINT ROOM`}</span>
+                        <span className="mr-title">{`✦${VS15} MINT ROOM`}</span>
                         <span className="mr-live">LIVE</span>
                         <button type="button" className="mr-close" onClick={onClose} aria-label="Leave the room">×</button>
                     </div>

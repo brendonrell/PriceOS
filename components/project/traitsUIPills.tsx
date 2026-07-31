@@ -285,7 +285,7 @@ export function L3Pill({
                     {count >= 0 && <span className="stat-count">{count}</span>}
                     {bidEth && (
                         <span className="pill-bid-chip" title={`Best trait offer · ${formatEth(Number(bidEth))} ETH`}>
-                            {'✦︎'}{formatEth(Number(bidEth))}
+                            {'✶︎'}{formatEth(Number(bidEth))}
                         </span>
                     )}
                 </>

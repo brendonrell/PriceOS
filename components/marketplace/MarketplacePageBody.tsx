@@ -49,11 +49,11 @@ const EAGER_TILES = 4;
 
 type MarketTab = 'listings' | 'activity';
 
-/* Canonical market glyphs (docs/GLYPHS.md §1) — LIST ✹ · SALE ✶ · OFFER ✦. */
+/* Canonical market glyphs (docs/GLYPHS.md §1) — LIST ✹ · SALE ✦ · OFFER ✶. */
 const EVENT_GLYPH: Record<MarketplaceEvent['type'], string> = {
     LIST: '✹',
-    SALE: '✶',
-    OFFER: '✦',
+    SALE: '✦',
+    OFFER: '✶',
 };
 const EVENT_LABEL: Record<MarketplaceEvent['type'], string> = {
     LIST: 'LISTED',
@@ -243,7 +243,7 @@ function MarketplacePageBodyInner({ initial = null }: { initial?: MarketplaceRes
                             <span className="stat-val stat-val-vol">{stats ? Math.round(stats.volume_eth) : '—'} VOL</span>
                         </span>
                         <span className="stat-item">
-                            <span className="stat-icon">{`✦${VS15}`}</span>{' '}
+                            <span className="stat-icon">{`✶${VS15}`}</span>{' '}
                             <span className="stat-val">{stats ? stats.offers : '—'} OFFERS</span>
                         </span>
                     </div>

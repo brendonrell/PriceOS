@@ -85,7 +85,7 @@ const LENS_KEY = 'pd_fi_lens';
 /* The last on-ledger move a circle member made (SLEUTH's raw material). */
 interface LastMove { verb: string; project: string; piece: string; ts: number; glyph: string }
 
-const MOVE_GLYPH: Record<string, string> = { MINT: '✶', SALE: '✶', LIST: '✹', XFER: '✸' };
+const MOVE_GLYPH: Record<string, string> = { MINT: '✦', SALE: '✦', LIST: '✹', XFER: '✸' };
 
 /** Viewer-relative age — "2h ago" (clock times are always viewer-local, §9). */
 function fmtAgo(ts: number): string {
@@ -341,7 +341,7 @@ export default function FollowersModal() {
                             if (!handle) return;
                             const k = lc(handle);
                             if (map[k]) return; // events arrive newest-first
-                            map[k] = { verb, project: e.project_id, piece, ts, glyph: MOVE_GLYPH[e.type] ?? '✶' };
+                            map[k] = { verb, project: e.project_id, piece, ts, glyph: MOVE_GLYPH[e.type] ?? '✦' };
                         };
                         if (e.type === 'MINT') note(e.to_handle, 'collected');
                         else if (e.type === 'SALE') { note(e.from_handle, 'sold'); note(e.to_handle, 'bought'); }

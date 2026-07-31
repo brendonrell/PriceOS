@@ -233,11 +233,11 @@ export function buildOutputAttributes(input: AttrInput): AttrGroup[] {
             sub: `${Math.round(lunarIllumination(mintMs) * 100)}% lit`,
         });
         /* Mint order + speed — "3rd mint · 2 min after launch" — from the
-           edition's REAL mint clock (✶ is the canonical mint glyph). */
+           edition's REAL mint clock (✦ is the canonical mint glyph). */
         const mo = edition ? mintOrderOf(edition, id) : null;
         if (mo) {
             alm.push({
-                glyph: '✶', label: 'Mint Order', value: `${ordinal(mo.order)} mint`,
+                glyph: '✦', label: 'Mint Order', value: `${ordinal(mo.order)} mint`,
                 sub: mo.order === 1 ? 'opened the mint' : `${humanizeDelta(mo.sinceLaunchMs)} after launch`,
                 rare: mo.order === 1,
             });

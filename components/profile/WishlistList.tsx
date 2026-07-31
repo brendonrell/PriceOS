@@ -438,7 +438,7 @@ function WishlistRow({
                         onClick={(e) => { e.stopPropagation(); openOfferSheet([{ slug, id }]); }}
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); openOfferSheet([{ slug, id }]); } }}
                     >
-                        <span className="trait-offer-glyph">✦︎</span> Make<br />Offer
+                        <span className="trait-offer-glyph">✶︎</span> Make<br />Offer
                     </span>
                 )}
                 {listed && !owned && (

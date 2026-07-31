@@ -103,7 +103,7 @@
     border-color: var(--text-color);
 }
 
-/* The artwork-page offers pill (beside the CTA) — ✦ count opener. */
+/* The artwork-page offers pill (beside the CTA) — ✶ count opener. */
 .mk-offers-pill {
     display: inline-flex; align-items: center; gap: 5px;
     background: none;
@@ -517,7 +517,7 @@ a.notif-item--link:hover { opacity: 0.85; }
    treatment: solid page fill · full-strength border + bold text), replacing
    the retired dashed toy-tag (Brendon, 2026-07-16 — "use our pills"). Sized
    down to sit inside the locked 60px market rows; one shared min width so
-   the pills read as an aligned column. The ✦ best-offer line rides under. */
+   the pills read as an aligned column. The ✶ best-offer line rides under. */
 .skm-wrap .cart-item-price { font-family: 'Courier New', Courier, monospace; }
 /* Two-class selector on purpose: the base .pill sizing lives in globals.css,
    which loads AFTER this file — the market sizing has to outrank it. */

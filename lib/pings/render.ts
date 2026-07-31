@@ -96,12 +96,12 @@ const ICONS: Record<RenderKind, string> = {
   OUTPUT_FOLLOW:  '⚭︎', // ⚭ (same social glyph as project/user follows)
   ACHIEVEMENT:    ACHIEVEMENTS_ICON, // ◍ the canonical achievements icon (the unlock's own glyph is used when present)
   STREAK:         '◈︎', // ◈ streak (achievement category glyph)
-  MINT:           '✶︎', // ✶ collected (matches MINTS pill)
+  MINT:           '✦︎', // ✦ collected (matches MINTS pill)
   LIST:           '✹︎', // ✹ listed (matches LISTS pill)
-  SALE:           '✶︎', // ✶ collected
-  OFFER:          '✦︎', // ✦ offered (matches OFFERS pill)
-  OFFER_ACCEPTED: '✦︎', // ✦ offer resolved
-  COUNTER:        '✦︎', // ✦ countered (offer family)
+  SALE:           '✦︎', // ✦ collected
+  OFFER:          '✶︎', // ✶ offered (matches OFFERS pill)
+  OFFER_ACCEPTED: '✶︎', // ✶ offer resolved
+  COUNTER:        '✶︎', // ✶ countered (offer family)
   TRADE:          '⇌︎', // ⇌ the Exchange (⇄ is Arbitrage Map's — GLYPHS.md)
   TRADE_ACCEPTED: '⇌︎', // ⇌ trade resolved
   TRADE_DECLINED: '⇌︎', // ⇌ trade resolved

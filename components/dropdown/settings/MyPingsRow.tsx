@@ -192,7 +192,7 @@ export function MyPingsRow() {
                     title="Mint Pings"
                     active={notifs.pings.mints}
                     onClick={() => togglePingCat('mints')}
-                    icon={'✶\uFE0E'}
+                    icon={'✦\uFE0E'}
                     label="MINTS"
                 />
                 <SettingsToggle
@@ -208,7 +208,7 @@ export function MyPingsRow() {
                     title="Offer Pings"
                     active={notifs.pings.offers}
                     onClick={() => togglePingCat('offers')}
-                    icon={'✦\uFE0E'}
+                    icon={'✶\uFE0E'}
                     label="OFFERS"
                 />
                 <SettingsToggle

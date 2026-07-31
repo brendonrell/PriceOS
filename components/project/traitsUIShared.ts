@@ -135,8 +135,8 @@ export const L2_DICT: Record<
 
     /* Feed-mode-only L1 cats (sim 7390-7395 GodModeDict). */
     Event: {
-        'Sales':  ['✶ Mints', '✹ Lists'],
-        'Offers': ['✦ Item Offers', '✦ Coll. Offers'],
+        'Sales':  ['✦ Mints', '✹ Lists'],
+        'Offers': ['✶ Item Offers', '✶ Coll. Offers'],
         'Other':  ['✸ Xfers'],
     },
     Market: {

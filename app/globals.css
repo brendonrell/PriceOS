@@ -647,12 +647,14 @@ body.bg-is-red .pingtoast-3d-confirm::after { border-top-color: var(--attention)
 }
 
 /* Per-glyph Ping icon nudges — mirrors the hand-tuned values PD already ships
-   on the MY PINGS settings pills, where ⚭ (mutual) and ✶ (collected) render
-   small/low at base. Everything else sits clean at the .n-icon default. */
+   on the MY PINGS settings pills, where ⚭ (mutual) and the collected mark
+   render small/low at base. Everything else sits clean at the .n-icon default.
+   The sizes are Brendon's hand-tuned values and stood unchanged through the
+   2026-07-31 collect/offer glyph swap. */
 .ping-ic--FOLLOW,
 .ping-ic--PROJECT_FOLLOW { font-size: 17px; }       /* ⚭ runs small */
 .ping-ic--MINT,
-.ping-ic--SALE { font-size: 16px; transform: translateY(-1px); } /* ✶ small + low */
+.ping-ic--SALE { font-size: 16px; transform: translateY(-1px); } /* collected: small + low */
 
 /* Seen (read) pings fade back to read as "handled" — half-opacity, no strike.
    Strikethrough is reserved for completed to-dos (crossed off = "done"). */
@@ -4355,7 +4357,7 @@ body.pd-stone-open .ens-copy-toast {
     -webkit-text-stroke: 0.45px currentColor;
 }
 
-/* THE OPEN-FOR-BUSINESS THREE — their ✦ turns slowly, so "right now" reads as
+/* THE OPEN-FOR-BUSINESS THREE — their ✶ turns slowly, so "right now" reads as
    alive on the pill (Brendon, 2026-07-29). Slow enough to notice without
    pulling focus; still for anyone who asked for less motion. */
 .profile-tag--now-buying .profile-tag-glyph,
@@ -4365,7 +4367,7 @@ body.pd-stone-open .ens-copy-toast {
     /* Two steps up from the 16px base (Brendon, 2026-07-29). */
     font-size: 20px;
 }
-/* Now Buying's ✦ alone: half a step bigger, half a pixel higher, and turning
+/* Now Buying's ✶ alone: half a step bigger, half a pixel higher, and turning
    at twice the speed (Brendon, 2026-07-29). */
 .profile-tag--now-buying .profile-tag-glyph {
     font-size: 21px;
@@ -4445,7 +4447,7 @@ body.pd-stone-open .ens-copy-toast {
    then nudged a further 0.4px down the same day). */
 .user-tags--mini .profile-tag > * { position: relative; top: 0.8px; }
 .user-tags--mini .profile-tag-mark { height: 8px; width: auto; }
-/* Output page, mini pills: Now Buying's ✦ alone rides 2px higher (Brendon,
+/* Output page, mini pills: Now Buying's ✶ alone rides 2px higher (Brendon,
    2026-07-31). The glyph only — the label keeps the mini row's 0.8px. */
 .user-tags--mini.user-tags--themed .profile-tag--now-buying .profile-tag-glyph {
     top: -1.2px;
@@ -12085,7 +12087,7 @@ body.colorway-dark .ghost-feed-bar {
     font-size: 12px;
     text-transform: uppercase;
 }
-/* Wishlist unlisted CTA — the Trait-Offer button, text stacked ("✦ Make" /
+/* Wishlist unlisted CTA — the Trait-Offer button, text stacked ("✶ Make" /
    "Offer") to save horizontal space (Brendon 2026-06-19). */
 .wishlist-offer-cta {
     white-space: normal;
@@ -12205,7 +12207,7 @@ body.colorway-dark .ghost-feed-bar {
     border-color: var(--accent);
     color: #fff;
 }
-/* The ✦ in the Trait Offer CTA reads small next to the text — bump it 70%
+/* The ✶ in the Trait Offer CTA reads small next to the text — bump it 70%
    (Brendon 2026-06-19). */
 .trait-offer-glyph {
     font-size: 1.7em;
@@ -12764,8 +12766,8 @@ body.colorway-dark .ghost-feed-bar {
     margin-left: 2px;
 }
 /* Born here — the mint star beside a piece that was minted by this wallet and
-   never let go. ✶ renders small + low at base (GLYPHS §5), so it takes the
-   established bump + raise. */
+   never let go. Sized + raised by hand; the values stood through the
+   2026-07-31 collect/offer glyph swap and are Brendon's to re-tune. */
 .loy-born {
     font-family: 'Courier New', Courier, monospace;
     font-size: 15px;

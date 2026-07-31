@@ -594,7 +594,7 @@ function OffersPanel({
         <>
             <div className="cart-panel-header">
                 <span className="cart-panel-title">
-                    {`✦${VS15} OFFERS`}
+                    {`✶${VS15} OFFERS`}
                     <span className="cart-panel-title-count">({offers.length})</span>
                     {(bestBid != null || ask != null) && (
                         <span className="mk-spread">
@@ -776,7 +776,7 @@ function TraitPickerFace({
         <>
             <div className="cart-panel-header">
                 <span className="cart-panel-title">
-                    {`✦${VS15} TRAIT OFFER`}
+                    {`✶${VS15} TRAIT OFFER`}
                 </span>
                 <span
                     className="cart-panel-close-x"
@@ -810,7 +810,7 @@ function TraitPickerFace({
                                 <div className="cart-item-name">{category}</div>
                                 <div className="cart-item-artist">{value}</div>
                             </div>
-                            <div className="cart-item-price">{`✦${VS15}`}</div>
+                            <div className="cart-item-price">{`✶${VS15}`}</div>
                         </div>
                     ))
                 )}

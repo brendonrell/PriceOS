@@ -319,7 +319,7 @@ function standingItems(feed: HomeResponse): NewsItem[] {
             : p.remaining <= 10 ? `LAST ${p.remaining}`
                 : 'HALFWAY';
         out.push({
-            glyph: vs('✶'), tag,
+            glyph: vs('✦'), tag,
             title: titleOf(p.m.slug, p.m.title),
             meta: `${p.m.minted_count} / ${p.m.max_supply}`,
             href: `/art/${p.m.slug}`,

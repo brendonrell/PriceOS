@@ -165,7 +165,7 @@ const PETEY: Sticker[] = [
 
 /* ── Icon sheet — our canonical glyph vocabulary (docs/GLYPHS.md) ─────────── */
 const ICON_GLYPHS: { g: string; name: string }[] = [
-    { g: '✶', name: 'Mint' },       { g: '✹', name: 'List' },       { g: '✦', name: 'Offer' },
+    { g: '✦', name: 'Mint' },       { g: '✹', name: 'List' },       { g: '✶', name: 'Offer' },
     { g: '✸', name: 'Transfer' },   { g: '⚭', name: 'Mutual' },     { g: '⇡', name: 'Pingtoasts' },
     { g: '⏾', name: 'Silent' },     { g: '★', name: 'Star' },       { g: '✛', name: 'Wishlist' },
     { g: '◰', name: 'Album' },      { g: '⊟', name: 'Note' },       { g: '❍', name: 'To-Do' },

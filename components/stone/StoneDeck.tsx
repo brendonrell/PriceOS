@@ -1040,7 +1040,7 @@ function WrappedWidget({ plan, address }: { plan: Extract<WidgetPlan, { kind: 'w
             )}
             <div className="sw-rows">
                 {data.minted > 0 && (
-                    <div className="sw-row-line"><span className="sw-row-l">{`✶${VS15} MINTED`}</span><span className="sw-row-r">{data.minted}</span></div>
+                    <div className="sw-row-line"><span className="sw-row-l">{`✦${VS15} MINTED`}</span><span className="sw-row-r">{data.minted}</span></div>
                 )}
                 {data.bought > 0 && (
                     <div className="sw-row-line"><span className="sw-row-l">{`✸${VS15} BOUGHT`}</span><span className="sw-row-r">{`${data.bought} · ${eth(data.spent_eth)}`}</span></div>
@@ -1325,7 +1325,7 @@ function DateWidget({ date, onSeed, onFooter }: {
     );
 }
 
-/* ── ✶ FIRST MINT — the genesis: the platform's first mint ever, or the
+/* ── ✦ FIRST MINT — the genesis: the platform's first mint ever, or the
       signed-in wallet's own ("my first ever mint"). Real ledger events;
       the piece painted big; times viewer-local. ── */
 
@@ -1356,7 +1356,7 @@ function FirstMintWidget({ mine, address, onGo, onFooter }: {
     if (data === 'loading') {
         return (
             <div className="stone-widget sw-card">
-                <SwTitle glyph={`✶${VS15}`} label={label} />
+                <SwTitle glyph={`✦${VS15}`} label={label} />
                 <SwSay>{working('genesis')}</SwSay>
             </div>
         );
@@ -1364,7 +1364,7 @@ function FirstMintWidget({ mine, address, onGo, onFooter }: {
     if (!mint || !title) {
         return (
             <div className="stone-widget sw-card">
-                <SwTitle glyph={`✶${VS15}`} label={label} />
+                <SwTitle glyph={`✦${VS15}`} label={label} />
                 <SwSay>{mine ? 'NO MINTS YET. THE STONE WAITS.' : 'NOTHING MINTED YET. EVER.'}</SwSay>
             </div>
         );
@@ -1373,7 +1373,7 @@ function FirstMintWidget({ mine, address, onGo, onFooter }: {
     const who = mint.handle ? `@${mint.handle}` : shortAddress(mint.to_address);
     return (
         <div className="stone-widget sw-card">
-            <SwTitle glyph={`✶${VS15}`} label={label} sub={title.toUpperCase()} />
+            <SwTitle glyph={`✦${VS15}`} label={label} sub={title.toUpperCase()} />
             {mint.token_id != null && (
                 <StoneArt slug={mint.project_id} id={mint.token_id} onOpen={() => onGo(null, `/art/${mint.project_id}/${mint.token_id}`)} />
             )}
@@ -1454,7 +1454,7 @@ function ReleaseWidget({ slug, title, onGo, onFooter }: {
             </div>
             <div className="sw-rows">
                 <div className="sw-row-line">
-                    <span className="sw-row-l">{`✶${VS15} FIRST MINT`}</span>
+                    <span className="sw-row-l">{`✦${VS15} FIRST MINT`}</span>
                     <span className="sw-row-r">{at.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
                 <div className="sw-row-line">

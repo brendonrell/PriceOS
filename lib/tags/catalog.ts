@@ -19,9 +19,9 @@
  *
  * Glyphs: assigned ONLY where an existing PD glyph EXACTLY matches the concept
  * AND carries no more-prominent clashing meaning (docs/GLYPHS.md — collector ☻,
- * writer ⊟ [Note = writing], minter ✶, artist ✺, og ⌖). Everything else ships
+ * writer ⊟ [Note = writing], minter ✦, artist ✺, og ⌖). Everything else ships
  * colour + label and NO glyph — omitting beats a clash (Trader dropped ⊟ = the
- * Note glyph; Curator dropped ✦ = the Offer glyph; the # tags carry the number
+ * Note glyph; Curator dropped ✶ = the Offer glyph; the # tags carry the number
  * in the label, so no # glyph). Colours are first-pass flair, tunable here.
  */
 
@@ -107,7 +107,7 @@ const PERSONAS: Tag[] = [
        star ✸ (Brendon's pick), turning slowly on the pill; Open To Trades
        wears the Exchange's own ⇌ and rocks side to side, so each active state
        reads as alive at a glance rather than as one more flat chip. */
-    { id: 'now-buying',     label: 'Now Buying',     glyph: '✦' + VS15, color: '#22C55E', kind: 'persona', order: 66, blurb: 'Wallet open, send offers.' },
+    { id: 'now-buying',     label: 'Now Buying',     glyph: '✶' + VS15, color: '#22C55E', kind: 'persona', order: 66, blurb: 'Wallet open, send offers.' },
     { id: 'now-selling',    label: 'Now Selling',    glyph: '✸' + VS15, color: '#F43F5E', kind: 'persona', order: 67, blurb: 'Pieces on the block.' },
     { id: 'open-to-trades', label: 'Open To Trades', glyph: '⇌' + VS15, color: '#06B6D4', kind: 'persona', order: 68, blurb: 'Bring a swap.' },
 ];
@@ -121,7 +121,7 @@ const EARNED: Tag[] = [
     { id: 'artist',       label: 'Artist',        glyph: '✺' + VS15, color: '#C026D3', kind: 'earned', order: 30 },
     { id: 'whale',        label: 'Whale',         color: '#1D4ED8', kind: 'earned', order: 31 },
     { id: 'diamondhands', label: 'Diamond Hands', color: '#06B6D4', kind: 'earned', order: 32 },
-    { id: 'minter',       label: 'Minter',        glyph: '✶' + VS15, color: '#15803D', kind: 'earned', order: 33 },
+    { id: 'minter',       label: 'Minter',        glyph: '✦' + VS15, color: '#15803D', kind: 'earned', order: 33 },
     { id: 'veteran',      label: 'Veteran',       color: '#B45309', kind: 'earned', order: 34 },
 ];
 

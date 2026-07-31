@@ -564,15 +564,15 @@ export default function ArtworkPageBody({
     );
 
     /* THE MARKET wall (Stats sub-tab) — every market number the ledger holds
-       for this piece, as attribute tiles. Canonical glyphs only (✶ sales,
-       ✹ listings, ✦ offers, ⟠ volume, ↨ floor). */
+       for this piece, as attribute tiles. Canonical glyphs only (✦ sales,
+       ✹ listings, ✶ offers, ⟠ volume, ↨ floor). */
     const marketAttrGroup = useMemo(() => {
         const VS = '\uFE0E';
         const tiles: { glyph: string; label: string; value: string; sub?: string }[] = [];
         const salesRows = feedRows.filter((fe) => fe.type === 'SALE');
         tiles.push({ glyph: `↨${VS}`, label: 'Floor', value: market?.floor ? `${formatEth(Number(market.floor))} ETH` : '—' });
-        tiles.push({ glyph: `✶${VS}`, label: 'Last Sale', value: market?.last_sale ? `${formatEth(Number(market.last_sale))} ETH` : '—' });
-        tiles.push({ glyph: `✶${VS}`, label: 'All-Time High', value: athEth > 0 ? `${formatEth(athEth)} ETH` : '—' });
+        tiles.push({ glyph: `✦${VS}`, label: 'Last Sale', value: market?.last_sale ? `${formatEth(Number(market.last_sale))} ETH` : '—' });
+        tiles.push({ glyph: `✦${VS}`, label: 'All-Time High', value: athEth > 0 ? `${formatEth(athEth)} ETH` : '—' });
         tiles.push({ glyph: `⟠${VS}`, label: 'Total Volume', value: market?.volume_eth ? `${formatEth(Number(market.volume_eth))} ETH` : '—' });
         tiles.push({
             glyph: `✹${VS}`, label: 'Ask',
@@ -580,12 +580,12 @@ export default function ArtworkPageBody({
             ...(market?.listing?.end_time ? { sub: `ends ${fmtEndsIn(market.listing.end_time)}` } : {}),
         });
         const best = (market?.offers?.length ?? 0) > 0 ? (market!.offers as unknown as { price_eth: string }[])[0] : null;
-        tiles.push({ glyph: `✦${VS}`, label: 'Best Offer', value: best ? `${formatEth(Number(best.price_eth))} ETH` : '—' });
-        tiles.push({ glyph: `✦${VS}`, label: 'Open Offers', value: String(market?.offers?.length ?? 0) });
-        tiles.push({ glyph: `✶${VS}`, label: 'Sales', value: String(salesRows.length) });
+        tiles.push({ glyph: `✶${VS}`, label: 'Best Offer', value: best ? `${formatEth(Number(best.price_eth))} ETH` : '—' });
+        tiles.push({ glyph: `✶${VS}`, label: 'Open Offers', value: String(market?.offers?.length ?? 0) });
+        tiles.push({ glyph: `✦${VS}`, label: 'Sales', value: String(salesRows.length) });
         if (market?.listing && best) {
             const spread = Number(market.listing.price_eth) - Number(best.price_eth);
-            tiles.push({ glyph: `✦${VS}`, label: 'The Spread', value: `${formatEth(spread)} ETH`, sub: 'ask − best bid' });
+            tiles.push({ glyph: `✶${VS}`, label: 'The Spread', value: `${formatEth(spread)} ETH`, sub: 'ask − best bid' });
         }
         return { key: 'market', label: 'Market', tiles };
          
@@ -903,7 +903,7 @@ export default function ArtworkPageBody({
                                 onClick={() => openOffersPanel(slug, numberPart)}
                                 title="Open offers"
                             >
-                                {'✦︎'} {market!.offers.length} {market!.offers.length === 1 ? 'OFFER' : 'OFFERS'}
+                                {'✶︎'} {market!.offers.length} {market!.offers.length === 1 ? 'OFFER' : 'OFFERS'}
                             </button>
                         )}
                         {/* THE EXCHANGE — trade head-to-head with this piece's
@@ -1404,7 +1404,7 @@ export default function ArtworkPageBody({
                 )}
 
                 {/* OFFERS — the piece's open book (read-only browse; acting
-                    happens in the ✦ offers panel). */}
+                    happens in the ✶ offers panel). */}
                 {moreL1 === 'offers' && (
                     <>
                         <div className="more-section-header">OFFERS</div>

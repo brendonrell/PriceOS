@@ -8,9 +8,9 @@
 
 import { Fragment } from 'react';
 
-/* The same event glyphs the real feed uses (✶ mint · ✹ list · ✦ sale ·
+/* The same event glyphs the real feed uses (✦ mint · ✹ list · ✶ sale ·
    ✸ xfer), cycled so the placeholder reads as a mix of real activity. */
-const GHOST_FEED_ICONS = ['✶', '✹', '✦', '✸', '✶', '✹'];
+const GHOST_FEED_ICONS = ['✦', '✹', '✶', '✸', '✦', '✹'];
 
 export function GhostFeedRows({ count = 6 }: { count?: number }) {
     return (

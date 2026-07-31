@@ -12,7 +12,7 @@ Sheets trade. The Marketplace is the sticker economy's secondary market — a re
 
 ## The summary — every sheet at a glance
 
-The Marketplace opens on one row per sheet: the sheet's three-sticker fan, its name, and its live market line — copies **listed**, open **bids**, lifetime **sold**, open **swaps**, and the **% still sealed** (how much of everything ever sold remains unpeeled — the scarcity readout the [peel](/docs/stickers/the-store) feeds). The price pill on the right is the sheet's **floor**; under it, the best open offer (✦).
+The Marketplace opens on one row per sheet: the sheet's three-sticker fan, its name, and its live market line — copies **listed**, open **bids**, lifetime **sold**, open **swaps**, and the **% still sealed** (how much of everything ever sold remains unpeeled — the scarcity readout the [peel](/docs/stickers/the-store) feeds). The price pill on the right is the sheet's **floor**; under it, the best open offer (✶).
 
 Two personal touches ride the summary when they apply: sheets on your want-list wear **✛ WANTED**, and when you hold doubles of a sheet other collectors want, the row tells you plainly — *"✛ 3 collectors need your doubles."* The market comes to you.
 
@@ -21,7 +21,7 @@ Two personal touches ride the summary when they apply: sheets on your want-list 
 Tap a row and the sheet's book opens: your position (*you hold 2 (doubles) · last 0.011 · 74% sealed*), then the orders in three ledgers:
 
 - **✹ FOR SALE** — asks, cheapest first, each with quantity and expiry. **BUY** opens the confirm card; multi-copy listings carry a quantity stepper, and **partial fills are native** — buy one out of a five-copy listing and the listing stays live for the remaining four. Your own asks show **CANCEL** instead.
-- **✦ WANTED** — bids, highest first. If you hold the sheet, **SELL** fills a bid on the spot (quantity stepper again, partial fills again). Your own bids can be cancelled.
+- **✶ WANTED** — bids, highest first. If you hold the sheet, **SELL** fills a bid on the spot (quantity stepper again, partial fills again). Your own bids can be cancelled.
 - **✸ SWAPS** — sticker-for-sticker: *"gives ×1 PETEY for ×1 GENESIS."* If you hold what the proposer wants, **SWAP** completes it in one tap. No money moves.
 
 ## Composing your own orders
@@ -29,7 +29,7 @@ Tap a row and the sheet's book opens: your position (*you hold 2 (doubles) · la
 The **⊞ COMPOSE** section is the order desk, and it only shows you verbs you can actually perform:
 
 - **✹ SELL** — quantity (capped at what you hold) × price each → **LIST**. Listing **escrows** the copies: they leave your balance immediately and return only if you cancel, so the book never shows phantom supply.
-- **✦ OFFER** — quantity × price each → a standing bid on the sheet.
+- **✶ OFFER** — quantity × price each → a standing bid on the sheet.
 - **✸ SWAP** — propose *give × N of this sheet* for *want × N of that sheet*. Your give side is escrowed at propose, same rule as listing.
 - **✸ GIFT** — send copies to any **@name** (or address), with an optional note up to 140 characters. The recipient gets a wrapped [Ping](/docs/pings/overview) with your note riding it. Free, no fee.
 

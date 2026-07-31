@@ -93,7 +93,7 @@ export default function AttributesPanel({ query, ...props }: AttrInput & { query
 
     /* Trait offers, straight off the character sheet (Brendon, 2026-07-02):
        every tile that IS a real offerable trait (the server-computable
-       outputTraits vocabulary — props.traits) wears the ✦ chip. */
+       outputTraits vocabulary — props.traits) wears the ✶ chip. */
     return (
         <>
             <AttrWall

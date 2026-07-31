@@ -17,8 +17,8 @@
  * Presentation rides the +More box language (more-section-header / more-box-
  * card, reused verbatim) so the exhibits sit identically to Attributes / Price
  * Story; the weighty docket header up top is the one bespoke surface. Glyphs
- * are the canonical market vocabulary (docs/GLYPHS.md): ✶ mint/sale · ✹ listed
- * · ✦ offer · ✸ transfer · ⌂ owner · ⚖ the tribunal mark · ∅ off the record.
+ * are the canonical market vocabulary (docs/GLYPHS.md): ✦ mint/sale · ✹ listed
+ * · ✶ offer · ✸ transfer · ⌂ owner · ⚖ the tribunal mark · ∅ off the record.
  */
 
 import type { ReactNode } from 'react';
@@ -366,14 +366,14 @@ export default function TribunalPanel({ slug, id, projectName, feedRows, market,
                                         : null;
                                     if (fe.type === 'MINT') {
                                         return (
-                                            <Entry key={fe.id} glyph={`✶${VS}`} title="MINTED" date={fmtDate(fe.timestamp)} last={last}>
+                                            <Entry key={fe.id} glyph={`✦${VS}`} title="MINTED" date={fmtDate(fe.timestamp)} last={last}>
                                                 Struck to {to}{fe.price > 0 ? <> for <Price eth={fe.price} /></> : null}.{ten}
                                             </Entry>
                                         );
                                     }
                                     if (fe.type === 'SALE') {
                                         return (
-                                            <Entry key={fe.id} glyph={`✶${VS}`} title="SOLD" date={fmtDate(fe.timestamp)} last={last}>
+                                            <Entry key={fe.id} glyph={`✦${VS}`} title="SOLD" date={fmtDate(fe.timestamp)} last={last}>
                                                 Passed from {from} to {to} for <Price eth={fe.price} />.{flipLine}{ten}
                                             </Entry>
                                         );
@@ -393,7 +393,7 @@ export default function TribunalPanel({ slug, id, projectName, feedRows, market,
                     </Exhibit>
 
                     {/* EXHIBIT B — THE MONEY */}
-                    <Exhibit label="EXHIBIT B · THE MONEY" glyph={`✶${VS}`}>
+                    <Exhibit label="EXHIBIT B · THE MONEY" glyph={`✦${VS}`}>
                         {moneyRows.length === 0 ? (
                             <div className="tribunal-empty">Not a wei has changed hands — held since mint.</div>
                         ) : (
@@ -404,7 +404,7 @@ export default function TribunalPanel({ slug, id, projectName, feedRows, market,
                                     return (
                                         <Entry
                                             key={fe.id}
-                                            glyph={`✶${VS}`}
+                                            glyph={`✦${VS}`}
                                             title={fe.type === 'MINT' ? 'PRIMARY' : 'SECONDARY'}
                                             date={fmtDate(fe.timestamp)}
                                             last={last}
@@ -455,7 +455,7 @@ export default function TribunalPanel({ slug, id, projectName, feedRows, market,
                     </Exhibit>
 
                     {/* EXHIBIT D — STANDING OFFERS */}
-                    <Exhibit label="EXHIBIT D · STANDING OFFERS" glyph={`✦${VS}`}>
+                    <Exhibit label="EXHIBIT D · STANDING OFFERS" glyph={`✶${VS}`}>
                         {offers.length === 0 ? (
                             <div className="tribunal-empty">No offers on the table.</div>
                         ) : (
@@ -468,7 +468,7 @@ export default function TribunalPanel({ slug, id, projectName, feedRows, market,
                                 return (
                                     <Entry
                                         key={o.id}
-                                        glyph={`✦${VS}`}
+                                        glyph={`✶${VS}`}
                                         title="OFFER"
                                         date={expiresIn(o.end_time)}
                                         last={i === offers.length - 1}
