@@ -75,6 +75,7 @@ import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import AmbientStrip from './AmbientStrip';
 import PreviewHealer from './PreviewHealer';
+import ThemeMusic from './ThemeMusic';
 import { ErrorBoundary } from './ErrorBoundary';
 import ActionToast from '../ActionToast';
 import TodoReminders from '../todos/TodoReminders';
@@ -487,6 +488,9 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="PreviewHealer">
                 <PreviewHealer />
+            </ErrorBoundary>
+            <ErrorBoundary name="ThemeMusic">
+                <ThemeMusic />
             </ErrorBoundary>
             </>
             )}

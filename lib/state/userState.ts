@@ -170,6 +170,9 @@ export const STATE_CACHE_KEYS = {
     /** Sound layer on/off (the ⚟ key). Read + written by soundStore; lives in
      *  the settings envelope. Account-backed 2026-07-21. */
     sound: 'pd_sound_on',
+    /** Theme music on/off (long-press the ⚟ key). Read + written by
+     *  themeStore; lives in the settings envelope. */
+    themeMusic: 'pd_theme_on',
     /** PD miniplayer display face. Read + written by FmBar; lives in the
      *  settings envelope. Account-backed 2026-07-21. */
     fmDisplay: 'pd_fm_display',
@@ -526,6 +529,11 @@ export function hydrateFromRow(row: UserRow): void {
             if (s.sound) localStorage.setItem(STATE_CACHE_KEYS.sound, '1');
             else localStorage.removeItem(STATE_CACHE_KEYS.sound);
             window.dispatchEvent(new CustomEvent('pd:sound-changed', { detail: { on: s.sound } }));
+        }
+        if (typeof s.themeMusic === 'boolean') {
+            if (s.themeMusic) localStorage.setItem(STATE_CACHE_KEYS.themeMusic, '1');
+            else localStorage.removeItem(STATE_CACHE_KEYS.themeMusic);
+            window.dispatchEvent(new CustomEvent('pd:theme-changed', { detail: { on: s.themeMusic } }));
         }
         if (typeof s.fmDisplay === 'string' && s.fmDisplay) {
             localStorage.setItem(STATE_CACHE_KEYS.fmDisplay, s.fmDisplay);

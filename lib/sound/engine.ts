@@ -55,6 +55,12 @@ function bufferFor(name: SoundName, ac: AudioContext): AudioBuffer {
     return b;
 }
 
+/** The one shared context. Theme music plays through this too — iOS gives a
+ *  page a limited number of them, and two would need unlocking separately. */
+export function getAudioContext(): AudioContext | null {
+    return getCtx();
+}
+
 /** Call from a user gesture (the sound key tap) so iOS unlocks audio. */
 export function unlockSound(): void {
     const ac = getCtx();

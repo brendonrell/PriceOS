@@ -45,7 +45,9 @@ import { useToast } from '../../../lib/state/ToastContext';
 import { useValuePrompt } from '../../../lib/state/ValuePromptContext';
 import { useAuth } from '../../../lib/state/AuthContext';
 import { readSoundOn, writeSoundOn } from '../../../lib/sound/soundStore';
+import { readThemeOn, writeThemeOn } from '../../../lib/sound/themeStore';
 import { playSound, unlockSound } from '../../../lib/sound/engine';
+import { useLongPress } from '../../../lib/hooks/useLongPress';
 
 interface PopoverState {
     wsId: number;
@@ -84,6 +86,23 @@ export function WorkspaceSwitcher() {
         window.addEventListener('pd:sound-changed', onChange);
         return () => window.removeEventListener('pd:sound-changed', onChange);
     }, []);
+
+    // THEME MUSIC lives on the same key, behind a HOLD (Brendon, 2026-07-31):
+    // hold to summon it, hold again to dismiss it. Default OFF, like the blips.
+    const [themeOn, setThemeOn] = useState(false);
+    useEffect(() => {
+        setThemeOn(readThemeOn());
+        const onChange = () => setThemeOn(readThemeOn());
+        window.addEventListener('pd:theme-changed', onChange);
+        return () => window.removeEventListener('pd:theme-changed', onChange);
+    }, []);
+    const soundHold = useLongPress(() => {
+        const next = !readThemeOn();
+        unlockSound();          // the hold IS the gesture that unlocks iOS audio
+        if (next) writeSoundOn(true); // themes need the sound layer on to be heard
+        writeThemeOn(next);
+        showToast(next ? 'Theme music: ON' : 'Theme music: OFF');
+    });
 
     // Outside-click dismissal — 100ms grace via justOpenedRef.
     useEffect(() => {
@@ -223,13 +242,17 @@ export function WorkspaceSwitcher() {
                 {/* Sound layer toggle — the row's FINAL key (Brendon's
                     placement lock, 2026-07-20). The tap is the user
                     gesture that unlocks iOS audio; flipping ON ticks so
-                    the switch proves itself audibly. */}
+                    the switch proves itself audibly.
+                    HOLD the same key for theme music (Brendon, 2026-07-31) —
+                    hold on, hold again off. The hold swallows its own click,
+                    so a hold never also flips the blips. */}
                 <button
                     type="button"
                     className={`ws-sound${soundOn ? ' on' : ''}`}
                     aria-label="Sound"
                     aria-pressed={soundOn}
-                    title="Sound"
+                    title={themeOn ? 'Sound · theme music on (hold to turn off)' : 'Sound (hold for theme music)'}
+                    {...soundHold}
                     onClick={(e) => {
                         e.stopPropagation();
                         const next = !soundOn;

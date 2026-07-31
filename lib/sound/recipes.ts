@@ -174,8 +174,13 @@ export const SOUND_RECIPES: Record<SoundName, SoundRecipe> = {
 /**
  * Render a recipe to raw samples — the same math the WAV approval rounds
  * used. Exported so the engine (and tests) share one renderer.
+ *
+ * Two doors: `renderRecipe` levels the result to a fixed peak, which is what
+ * a one-shot blip wants. `renderRaw` leaves the level alone, which is what
+ * theme music needs — it is rendered a block at a time, and levelling each
+ * block on its own would make the loudness lurch between them.
  */
-export function renderRecipe(recipe: SoundRecipe, sampleRate: number): Float32Array {
+export function renderRaw(recipe: SoundRecipe, sampleRate: number): Float32Array {
     const n = Math.ceil(recipe.dur * sampleRate);
     const buf = new Float32Array(n);
     for (const v of recipe.voices) {
@@ -200,11 +205,16 @@ export function renderRecipe(recipe: SoundRecipe, sampleRate: number): Float32Ar
             buf[start + i] += v.gain * s * a * Math.exp(-tail * (t / v.dur));
         }
     }
+    return buf;
+}
+
+export function renderRecipe(recipe: SoundRecipe, sampleRate: number): Float32Array {
+    const buf = renderRaw(recipe, sampleRate);
     let peak = 0;
-    for (let i = 0; i < n; i++) peak = Math.max(peak, Math.abs(buf[i]));
+    for (let i = 0; i < buf.length; i++) peak = Math.max(peak, Math.abs(buf[i]));
     if (peak > 0) {
         const norm = 0.707 / peak;
-        for (let i = 0; i < n; i++) buf[i] *= norm;
+        for (let i = 0; i < buf.length; i++) buf[i] *= norm;
     }
     return buf;
 }

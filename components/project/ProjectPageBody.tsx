@@ -101,6 +101,7 @@ import ProjectMorePanel, { type ProjectMoreL1 } from './ProjectMorePanel';
 import MintRoomModal from './MintRoomModal';
 import RewindProjectView from './RewindProjectView';
 import { useRewindOptional } from '../../lib/state/RewindContext';
+import { setMintState } from '../shell/ThemeMusic';
 
 type ProjectTab = 'project-showcase' | 'artworks' | 'albums';
 
@@ -169,6 +170,13 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
     const soundtrack = project.soundtrack;
     const soldOut = project.maxSupply > 0 && project.totalOutputs >= project.maxSupply;
     const remaining = Math.max(0, project.maxSupply - project.totalOutputs);
+    /* Tell the theme music which face this project is wearing — the busy-mint
+       theme while there's still supply, the sold-out one once it's gone
+       (Brendon, 2026-07-31). No-op when theme music is off. */
+    useEffect(() => {
+        setMintState(soldOut ? 'soldout' : 'minting');
+        return () => setMintState(null);
+    }, [soldOut]);
     /* Brendon 2026-05-11 — stats grid: icon fires a toast describing the
        stat ("Outputs Minted / Total Supply", etc.); value is inert
        except for PPL (opens collectors modal) and Anchor (opens

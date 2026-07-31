@@ -209,6 +209,11 @@ export interface UserSettings {
    *  so it stops resetting each session (Brendon, 2026-07-21). Was device-only
    *  localStorage `pd_sound_on`. Absent = never set (default OFF). */
   sound?: boolean;
+  /** THEME MUSIC on/off — the per-surface background themes, summoned by a
+   *  LONG-PRESS on the same ⚟ key and dismissed by another long-press
+   *  (Brendon, 2026-07-31). Account-backed like `sound`, mirror
+   *  localStorage `pd_theme_on`. Absent = never set (default OFF). */
+  themeMusic?: boolean;
   /** miniplayer display face ('deck' | 'usb' | 'signal' | 'disc'; `signal` shows
    *  as "Tab"). Account-backed so the chosen face follows the viewer (Brendon,
    *  2026-07-21). Was device-only localStorage `pd_fm_display`. Absent = deck. */

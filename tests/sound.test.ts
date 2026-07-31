@@ -49,11 +49,15 @@ describe('sound recipes', () => {
         for (const name of NAMES) {
             const buf = renderRecipe(SOUND_RECIPES[name], 44100);
             expect(buf.length).toBe(Math.ceil(SOUND_RECIPES[name].dur * 44100));
+            /* Scan in plain code — an expect() per sample is millions of
+               assertions and pushes this past the timeout. */
             let peak = 0;
+            let bad = 0;
             for (const s of buf) {
-                expect(Number.isFinite(s)).toBe(true);
-                peak = Math.max(peak, Math.abs(s));
+                if (!Number.isFinite(s)) bad += 1;
+                else peak = Math.max(peak, Math.abs(s));
             }
+            expect(bad).toBe(0);
             expect(peak).toBeGreaterThan(0.7);
             expect(peak).toBeLessThanOrEqual(0.708);
         }
