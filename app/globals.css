@@ -5082,7 +5082,8 @@ body.persona-default .stats-row-2 { display: none !important; }
 /* Mobile: the ⌗ glyph's intrinsic metrics ride low in the hero stats row
    beside its label (Brendon screenshot, 2026-06-12) — optical nudge up. */
 @media (max-width: 600px) {
-    .stats-row .stat-icon-owners { position: relative; top: -2.5px; }
+    /* Down 2px (Brendon, 2026-07-31). */
+    .stats-row .stat-icon-owners { position: relative; top: -0.5px; }
 }
 
 /* Profile followers stat uses the ⚬ glyph, which renders much smaller than
@@ -9772,8 +9773,10 @@ a.f-highlight { color: inherit; }
             0.25px -0.25px 0 currentColor,
             -0.25px 0.25px 0 currentColor;
     }
-    /* Two sizes smaller (Brendon, 2026-07-31). */
+    /* Two sizes smaller, then down 2px (Brendon, 2026-07-31). The nudge
+       skips the followers face — it carries its own lift. */
     .stat-icon-owners { font-size: 11px; text-shadow: none; }
+    .stats-row .stat-icon-owners:not(.stat-icon-followers) { position: relative; top: 2px; }
     /* Followers icon a touch larger + nudged up, desktop only (Brendon 2026-06-16).
        One size smaller again and nudged back down 1px (Brendon, 2026-07-29). */
     .stat-icon-followers { font-size: 19px; transform: translateY(-2.2px); }
