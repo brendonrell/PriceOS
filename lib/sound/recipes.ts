@@ -4,17 +4,17 @@
  * Pure data, no Web Audio here: each sound is a list of synth voices the
  * engine renders sample-by-sample. Everything is generated — no audio
  * files ship, ever. The set Brendon approved from the WAV rounds:
- *   chime   — mint success (four-note rising resolve + glitter)
- *   sparkle — achievement unlock (v1: five-note ascending run)
+ *   chime   — mint success (five-note ascending run)
+ *   sparkle — achievement unlock (four-note rising resolve + glitter)
  *   tick    — settings toggle flip (v1: dry 25ms click)
  *   coin    — your piece sold (v2: two bright metallic taps + glitter)
  *   seal    — offer/trade accepted (two rising bells)
  *   nudge   — any other ping landing (two soft taps)
  *   clunk   — a mint that failed (two low metal taps)
  *   tuck    — added to your wishlist (one soft rounded rise)
- * The mint and the accept traded sounds 2026-07-31 (Brendon) — the bloom
- * belongs to the mint. nudge/clunk/tuck were chosen the same day from the
- * audition page.
+ * Two swaps on 2026-07-31 (Brendon): the mint traded with the accept, then
+ * with the achievement — so the bloom ended up on the achievement.
+ * nudge/clunk/tuck were chosen the same day from the audition page.
  * The v2 chime/sparkle/tick variants and boink/ping-pop were REJECTED —
  * do not resurrect them.
  */
@@ -95,20 +95,9 @@ function glitter(
 }
 
 export const SOUND_RECIPES: Record<SoundName, SoundRecipe> = {
-    // chime — the mint: a rising four-note resolve that blooms into glitter.
-    // (Swapped with seal 2026-07-31 — the bloom belongs to the mint.)
+    // chime — the mint: five-note ascending pentatonic run, soft wobble.
+    // (Swapped with sparkle 2026-07-31.)
     chime: {
-        dur: 1.25,
-        voices: [
-            { at: 0.00, dur: 0.40, f0: 523.25, partials: BELL, gain: 0.8, shimmer: true, tail: 6 },
-            { at: 0.10, dur: 0.45, f0: 659.26, partials: BELL, gain: 0.85, shimmer: true, tail: 6 },
-            { at: 0.20, dur: 0.60, f0: 783.99, partials: BELL, gain: 0.9, shimmer: true, tail: 5 },
-            { at: 0.30, dur: 0.85, f0: 1046.50, partials: GLASS, gain: 1.0, shimmer: true, tail: 4 },
-            ...glitter(13, 0.40, 0.45, 8, 0.22),
-        ],
-    },
-    // v1 win sparkle — five-note ascending pentatonic run, soft wobble.
-    sparkle: {
         dur: 0.85,
         voices: [
             { at: 0.00, dur: 0.30, f0: 880.00, partials: SINE, gain: 0.7, wobble: 6, tail: 8 },
@@ -116,6 +105,18 @@ export const SOUND_RECIPES: Record<SoundName, SoundRecipe> = {
             { at: 0.12, dur: 0.32, f0: 1318.51, partials: SINE, gain: 0.75, wobble: 6, tail: 8 },
             { at: 0.18, dur: 0.36, f0: 1760.00, partials: SINE, gain: 0.8, wobble: 6, tail: 7 },
             { at: 0.24, dur: 0.50, f0: 2217.46, partials: BELL, gain: 0.9, wobble: 6, tail: 6 },
+        ],
+    },
+    // sparkle — the achievement: a rising four-note resolve that blooms into
+    // glitter. (Swapped with chime 2026-07-31.)
+    sparkle: {
+        dur: 1.25,
+        voices: [
+            { at: 0.00, dur: 0.40, f0: 523.25, partials: BELL, gain: 0.8, shimmer: true, tail: 6 },
+            { at: 0.10, dur: 0.45, f0: 659.26, partials: BELL, gain: 0.85, shimmer: true, tail: 6 },
+            { at: 0.20, dur: 0.60, f0: 783.99, partials: BELL, gain: 0.9, shimmer: true, tail: 5 },
+            { at: 0.30, dur: 0.85, f0: 1046.50, partials: GLASS, gain: 1.0, shimmer: true, tail: 4 },
+            ...glitter(13, 0.40, 0.45, 8, 0.22),
         ],
     },
     // v1 toggle tick — one dry 25ms click with a bright transient.

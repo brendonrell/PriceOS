@@ -38,10 +38,10 @@ describe('sound recipes', () => {
         }
     });
 
-    it('the tick stays a short dry click; the chime is the longest bloom', () => {
+    it('the tick stays a short dry click; the sparkle is the longest bloom', () => {
         expect(SOUND_RECIPES.tick.dur).toBeLessThanOrEqual(0.1);
         for (const name of NAMES) {
-            expect(SOUND_RECIPES[name].dur).toBeLessThanOrEqual(SOUND_RECIPES.chime.dur);
+            expect(SOUND_RECIPES[name].dur).toBeLessThanOrEqual(SOUND_RECIPES.sparkle.dur);
         }
     });
 
