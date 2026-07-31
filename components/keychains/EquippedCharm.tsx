@@ -46,6 +46,7 @@ import {
     charmPalette, charmSVG, type CharmRecord,
 } from '../../lib/keychains/engine';
 import { useKeychainRack, bustRack } from '../../lib/keychains/rack';
+import { useParkOffscreen } from '../../lib/keychains/park';
 import { computeOwnedFor, getColourLock, applyColourLock, clearColourLock } from '../../lib/stickers/owned';
 import { hueFamilyForHex, swatchOfSticker } from '../stickers/StickerManagerModal';
 import { gravity, onWake, reducedMotion, requestMotion, resumeMotion, startSway, takeKick } from '../../lib/keychains/sway';
@@ -77,7 +78,7 @@ function dataUri(body: string, half: number): string {
    it, chain and all, so a charm looks the same wherever you meet it. */
 function CharmTile({ charm }: { charm: CharmRecord }) {
     const svg = useMemo(
-        () => charmSVG(charm.seed, `sw${charm.id}`, charm.luck, charm.name, charm.coin),
+        () => charmSVG(charm.seed, `sw${charm.id}`, charm.luck, charm.name, charm.coin, false, true),
         [charm.seed, charm.name, charm.id, charm.luck, charm.coin],
     );
     return <span className="dp-charm-mini" dangerouslySetInnerHTML={{ __html: svg }} />;
@@ -261,7 +262,7 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
                 dataUri(chainLinkSvg(i, geom.rx, geom.ry, metal), linkHalf)),
             /* The charm stays LIVE markup, not a texture: its sway, blink and
                twinkle have to keep running. */
-            charmSvg: charmSVG(charm.seed, `eq${charm.id}`, luck, '', charm.coin, true),
+            charmSvg: charmSVG(charm.seed, `eq${charm.id}`, luck, '', charm.coin, true, true),
             charmW: BOX,
             charmH: (1000 - crop) * S,
             /* Where the bail sits inside that box — the point it swings from. */
@@ -275,6 +276,11 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
     const linkRefs = useRef<(HTMLSpanElement | null)[][]>([]);
     const charmRefs = useRef<(HTMLSpanElement | null)[]>([]);
     const hostRef = useRef<HTMLSpanElement | null>(null);
+    /* The switcher draws the whole rack — only the visible tiles stay alive.
+       The count goes to nought while the bubble is shut, so the tiles are
+       picked up fresh each time it opens. */
+    const swapGridRef = useRef<HTMLDivElement | null>(null);
+    useParkOffscreen(swapGridRef, swapAnchor ? (rack?.charms.length ?? 0) : 0);
 
     useEffect(() => {
         if (!arts.length) return;
@@ -475,7 +481,7 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
             {swapAnchor && rack && (
                 <TailBubble anchor={swapAnchor} className="showcase-swap-card charm-swap-card" onDismiss={dismissSwap}>
                     <div className="ms-confirm-question">Wear which one?</div>
-                    <div className="showcase-swap-grid charm-swap-grid">
+                    <div className="showcase-swap-grid charm-swap-grid" ref={swapGridRef}>
                         {rack.charms.map((c) => (
                             <button
                                 key={c.id}

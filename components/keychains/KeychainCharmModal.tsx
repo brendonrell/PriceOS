@@ -31,7 +31,7 @@ export default function KeychainCharmModal() {
     }, [rack, idPart]);
 
     const svg = useMemo(
-        () => (charm ? charmSVG(charm.seed, `kc${charm.id}`, charm.luck, charm.name, charm.coin) : ''),
+        () => (charm ? charmSVG(charm.seed, `kc${charm.id}`, charm.luck, charm.name, charm.coin, false, true) : ''),
         [charm],
     );
 

@@ -32,6 +32,7 @@ import {
 } from '../../lib/keychains/engine';
 import { useKeychainRack, bustRack, refreshRack } from '../../lib/keychains/rack';
 import { requestMotion } from '../../lib/keychains/sway';
+import { useParkOffscreen } from '../../lib/keychains/park';
 import { playSound } from '../../lib/sound/engine';
 
 const VS15 = '︎';
@@ -41,7 +42,7 @@ function CharmArt({ charm, uid, className }: {
     charm: CharmRecord; uid: string; className?: string;
 }) {
     const svg = useMemo(
-        () => charmSVG(charm.seed, uid, charm.luck, charm.name, charm.coin),
+        () => charmSVG(charm.seed, uid, charm.luck, charm.name, charm.coin, false, true),
         [charm.seed, charm.name, uid, charm.luck, charm.coin],
     );
     return <span className={className} dangerouslySetInnerHTML={{ __html: svg }} />;
@@ -88,6 +89,7 @@ export default function DepanneurModal() {
     const bodyRef = useRef<HTMLDivElement | null>(null);
     const pillRef = useRef<HTMLDivElement | null>(null);
     const bandRef = useRef<HTMLDivElement | null>(null);
+    const rackRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
         const el = bodyRef.current;
@@ -236,6 +238,8 @@ export default function DepanneurModal() {
     const top = rack?.top ?? [];
     const shown: CharmRecord | null =
         (picked != null ? charms.find((c) => c.id === picked) : null) ?? fresh;
+    /* The rack's charms stay alive — but only the ones you can actually see. */
+    useParkOffscreen(rackRef, charms.length);
 
     /* Put the open charm away — same clearing the rack tile's second tap does. */
     const closeReveal = () => {
@@ -514,7 +518,7 @@ export default function DepanneurModal() {
                             {charms.length === 0 ? (
                                 <p className="dp-note">Nothing on the rack yet — crank the machine.</p>
                             ) : (
-                                <div className="dp-rack">
+                                <div className="dp-rack" ref={rackRef}>
                                     {charms.map((c) => (
                                         <button
                                             key={c.id}

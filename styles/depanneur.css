@@ -573,3 +573,40 @@
 .pd-charm-worn.is-parked .pd-charm-hang * {
     animation-play-state: paused !important;
 }
+
+/* ── THE CHARM'S OWN LIFE, DECLARED ONCE (Brendon, 2026-07-31) ──────────────
+   Sway, blink and twinkle used to be restated inside every single charm, so a
+   rack of thirty shipped thirty identical copies of these rules. They live
+   here now instead — same timings, same motion, nothing about the animation
+   changed. Scoped to the charm hosts so the two-letter class names can never
+   reach anything else. The contract's own art still carries its copy inline. */
+.dp-charm-mini .sw,
+.dp-charm-big .sw,
+.pd-charm-body .sw {
+    transform-box: fill-box;
+    transform-origin: 50% -6%;
+    animation: sw 3.4s ease-in-out infinite alternate;
+}
+.dp-charm-mini .ey,
+.dp-charm-big .ey,
+.pd-charm-body .ey {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: bl 4.6s infinite;
+}
+.dp-charm-mini .gl,
+.dp-charm-big .gl,
+.pd-charm-body .gl {
+    animation: tw 2.3s ease-in-out infinite alternate;
+}
+@keyframes sw { from { transform: rotate(-3deg); } to { transform: rotate(3deg); } }
+@keyframes bl { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.12); } }
+@keyframes tw { from { opacity: 0.5; } to { opacity: 0.95; } }
+
+/* Parked = scrolled out of view. A charm nobody can see doesn't need to be
+   alive; it picks up exactly where it left off the moment it's back. The same
+   law the worn charm on a profile already runs by. */
+.dp-rack-slot.is-parked .dp-charm-mini *,
+.charm-swap-cell.is-parked .dp-charm-mini * {
+    animation-play-state: paused !important;
+}

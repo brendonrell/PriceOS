@@ -727,7 +727,7 @@ function armActions(g: Genes): [number, number] {
 /** Draw the full charm — the contract's tokenSVG, verbatim. `name` must be
  *  charset-guarded (A–Z, 0–9, space) by the caller. `uid` must be unique per
  *  charm ON THE PAGE (id suffixes prevent gradient/clip collisions). */
-export function charmSVG(seed: `0x${string}`, uid: string, luck: Luck, name: string, coin: Coin = 0, noChain = false): string {
+export function charmSVG(seed: `0x${string}`, uid: string, luck: Luck, name: string, coin: Coin = 0, noChain = false, noStyle = false): string {
     const g = genes(seed, coin, luck);
     const s = SHAPE_D[g.shape]!;
     const bodyC = BODY_RGB[g.palette]!;
@@ -742,9 +742,15 @@ export function charmSVG(seed: `0x${string}`, uid: string, luck: Luck, name: str
        fills its box instead of hanging under an empty gap; everything else
        (the name tag included) is untouched. Default false keeps the contract's
        tokenSVG verbatim everywhere else. */
+    /* noStyle — the sway/blink/twinkle rules ride along with the app's own
+       stylesheet instead of being restated inside every single charm (Brendon,
+       2026-07-31). A rack of thirty was shipping thirty identical copies of
+       them, all global. The animations themselves are untouched — they run
+       exactly as before, just declared once. Default false keeps the contract's
+       tokenSVG self-contained and verbatim. */
     const top = noChain ? cropTop(g, s, name) : 0;
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 ${top} 1000 ${1000 - top}">`
-        + '<style>.sw{transform-box:fill-box;transform-origin:50% -6%;animation:sw 3.4s ease-in-out infinite alternate}@keyframes sw{from{transform:rotate(-3deg)}to{transform:rotate(3deg)}}.ey{transform-box:fill-box;transform-origin:center;animation:bl 4.6s infinite}@keyframes bl{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(0.12)}}.gl{animation:tw 2.3s ease-in-out infinite alternate}@keyframes tw{from{opacity:0.5}to{opacity:0.95}}</style>'
+        + (noStyle ? '' : '<style>.sw{transform-box:fill-box;transform-origin:50% -6%;animation:sw 3.4s ease-in-out infinite alternate}@keyframes sw{from{transform:rotate(-3deg)}to{transform:rotate(3deg)}}.ey{transform-box:fill-box;transform-origin:center;animation:bl 4.6s infinite}@keyframes bl{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(0.12)}}.gl{animation:tw 2.3s ease-in-out infinite alternate}@keyframes tw{from{opacity:0.5}to{opacity:0.95}}</style>')
         + `<defs><clipPath id="c${uid}">${clipEl(g.shape)}</clipPath>${finishGradient(finish, bodyC, g.material, uid)}</defs>`
         + (noChain ? '' : chainSvg(s, charmChain(seed, luck))) + nameTag(name)
         + `<g class="sw">${accBack}${bodySvg(g.shape, `url(#f${uid})`, accent)}`
