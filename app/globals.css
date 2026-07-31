@@ -5078,6 +5078,11 @@ body.persona-default .stats-row-2 { display: none !important; }
    2026-07-29 — one size smaller again and lifted 3px, then one size
    smaller again and nudged back down 1px.) */
 .stat-icon-followers { font-size: 16px; transform: translateY(-0.2px); }
+/* The ☻ carries far more empty space inside its own advance than the ⬚ and
+   the ⟠ do, and it is set larger, so the gap to its value read wider than the
+   other two stats (Brendon, 2026-07-31). Trim that side bearing back so all
+   three gaps match. */
+.stats-row .stat-icon-followers { margin-right: -3px; }
 
 /* "Collected by" line — sim ~2074-2133 */
 .info-rubik {
