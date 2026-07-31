@@ -453,9 +453,10 @@
     gap: 7px;
     width: 100%;
     margin: 0;
-    padding: 2px 8px 1px;
+    padding: 4px 8px;
     background: none;
     border: none;
+    border-radius: 4px;
     color: var(--bg-color);
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px;
@@ -465,6 +466,13 @@
     -webkit-tap-highlight-color: transparent;
 }
 .charm-swap-door:active { opacity: 0.7; }
+/* Lit = the colour lock is on, and this same button is the way back out. The
+   card is painted in the text colour, so lit fills it the other way round —
+   solid, full strength, never a faded hint. */
+.charm-swap-door.on {
+    background: var(--bg-color);
+    color: var(--text-color);
+}
 
 /* ── the full-charm popup (profile mini tap) ── */
 .dp-charm-pop-backdrop {

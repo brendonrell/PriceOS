@@ -1726,7 +1726,7 @@ function ProfilePageBodyInner({
                         font={ownerNameFont}
                         paint={ownerTagPaint}
                         onTagTap={isOwnProfile ? (t) => (isTeamStyleTag(t.id) ? cycleTeamTagStyle() : toggleEgg()) : undefined}
-                        trailing={<EquippedCharm address={user.address} />}
+                        trailing={<EquippedCharm address={user.address} handle={user.handle ?? handle} />}
                     />
                     <HeroStickers
                         ownerHandle={user.handle ?? handle}

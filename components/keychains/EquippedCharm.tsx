@@ -36,15 +36,18 @@ import {
     useCallback, useEffect, useMemo, useRef, useState,
     type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent,
 } from 'react';
+import { createPortal } from 'react-dom';
 import { useModal } from '../../lib/state/ModalContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
 import TailBubble, { anchorFromEvent, type BubbleAnchor } from '../shared/TailBubble';
 import {
     chainGeom, chainLinkSvg, chainMetalHex, chainRingSvg, charmBailY, charmChain, charmCropTop,
-    charmSVG, type CharmRecord,
+    charmPalette, charmSVG, type CharmRecord,
 } from '../../lib/keychains/engine';
 import { useKeychainRack, bustRack } from '../../lib/keychains/rack';
+import { computeOwnedFor, getColourLock, applyColourLock, clearColourLock } from '../../lib/stickers/owned';
+import { hueFamilyForHex, swatchOfSticker } from '../stickers/StickerManagerModal';
 import { gravity, onWake, reducedMotion, requestMotion, resumeMotion, startSway, takeKick } from '../../lib/keychains/sway';
 
 const VS15 = '︎';
@@ -80,7 +83,7 @@ function CharmTile({ charm }: { charm: CharmRecord }) {
     return <span className="dp-charm-mini" dangerouslySetInnerHTML={{ __html: svg }} />;
 }
 
-export default function EquippedCharm({ address }: { address: string }) {
+export default function EquippedCharm({ address, handle }: { address: string; handle?: string }) {
     const { open } = useModal();
     const { siweAddress } = useAuth();
     const { showToast } = useToast();
@@ -121,6 +124,44 @@ export default function EquippedCharm({ address }: { address: string }) {
             setBusy(false);
             setSwapAnchor(null);
         }
+    };
+
+    /* ── MATCH MY STICKERS (Brendon, 2026-07-31) ───────────────────────────
+       The one-tap colour, run off the keychain you're wearing instead of the
+       profile colorway. It narrows your profile to the stickers you ALREADY
+       OWN in the charm's hue family — nothing is repainted or bought, because
+       a sticker's colour IS its identity. The same button turns it back off.
+       Whole family (the light + dark pair), Brendon's call. */
+    const [lockLabel, setLockLabel] = useState<string | null>(null);
+    const [confirmMatch, setConfirmMatch] = useState(false);
+    useEffect(() => {
+        if (!isMine || !swapAnchor) return;
+        setLockLabel(getColourLock()?.label ?? null);
+    }, [isMine, swapAnchor]);
+
+    const matchable = useMemo(() => {
+        if (!isMine || !charm) return null;
+        const paint = charmPalette(charm.seed, charm.coin, charm.luck);
+        const fam = hueFamilyForHex(paint.hex);
+        const owned = computeOwnedFor(handle ?? null);
+        const keep = owned.filter((s) => fam.hexes.includes(swatchOfSticker(s)));
+        return keep.length ? { fam, paint, keepIds: keep.map((s) => s.id), ownedIds: owned.map((s) => s.id) } : null;
+    }, [isMine, charm, handle]);
+
+    const runMatch = () => {
+        if (!matchable) return;
+        applyColourLock(matchable.fam.hexes.length ? `fam:${matchable.fam.hexes.join(',')}` : '', matchable.fam.label, matchable.keepIds, matchable.ownedIds);
+        setLockLabel(matchable.fam.label);
+        setConfirmMatch(false);
+        setSwapAnchor(null);
+        showToast(`Profile: ${matchable.fam.label}`);
+    };
+
+    const undoMatch = () => {
+        clearColourLock();
+        setLockLabel(null);
+        setSwapAnchor(null);
+        showToast('Stickers: ALL BACK');
     };
 
     /* The whole hanging piece, resolved once per charm: the ring, the link
@@ -362,6 +403,26 @@ export default function EquippedCharm({ address }: { address: string }) {
                             </button>
                         ))}
                     </div>
+                    {/* Match my stickers to this charm — shown only when you
+                        actually own stickers in its family, so it is never dead
+                        chrome. Lit while the lock is on; the same tap undoes. */}
+                    {matchable && (
+                        <button
+                            type="button"
+                            className={`charm-swap-door${lockLabel ? ' on' : ''}`}
+                            onClick={(ev) => {
+                                ev.preventDefault();
+                                ev.stopPropagation();
+                                if (lockLabel) { undoMatch(); return; }
+                                /* The bubble steps aside for the confirm — one
+                                   card on screen, not a card over a card. */
+                                setSwapAnchor(null);
+                                setConfirmMatch(true);
+                            }}
+                        >
+                            {`⊞${VS15}`} {lockLabel ? 'STICKERS BACK' : 'MATCH MY STICKERS'}
+                        </button>
+                    )}
                     {/* The way through to the machine — a quiet footer line under
                         the rack, outside the scroll so it is always reachable. */}
                     <button
@@ -377,6 +438,25 @@ export default function EquippedCharm({ address }: { address: string }) {
                         {`⚷${VS15}`} THE DEPANNEUR
                     </button>
                 </TailBubble>
+            )}
+            {/* The confirm — the site's own centred card, same as unlisting. */}
+            {confirmMatch && matchable && typeof document !== 'undefined' && createPortal(
+                <div
+                    className="starred-confirm-overlay"
+                    role="dialog"
+                    aria-modal="true"
+                    style={{ zIndex: 100001 }}
+                    onClick={() => setConfirmMatch(false)}
+                >
+                    <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
+                        <div className="ms-confirm-question">Match your stickers to {matchable.paint.name}?</div>
+                        <div className="ms-confirm-btns">
+                            <button type="button" className="ms-confirm-btn ms-confirm-btn--cancel" onClick={() => setConfirmMatch(false)}>Cancel</button>
+                            <button type="button" className="ms-confirm-btn ms-confirm-btn--ok" onClick={runMatch}>Match</button>
+                        </div>
+                    </div>
+                </div>,
+                document.body,
             )}
             <span className="pd-charm-hang">
                 {/* The ring is the anchor — it is nailed to the end of the row

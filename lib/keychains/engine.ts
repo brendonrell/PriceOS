@@ -553,6 +553,13 @@ export function charmBailY(seed: `0x${string}`, coin: Coin = 0, luck: Luck = 0):
     return SHAPE_D[genes(seed, coin, luck).shape]!.bailY;
 }
 
+/** The charm's body colour and the name of its palette — what the profile's
+ *  one-tap sticker match reads off the keychain you're wearing. */
+export function charmPalette(seed: `0x${string}`, coin: Coin = 0, luck: Luck = 0): { hex: string; name: string } {
+    const p = genes(seed, coin, luck).palette;
+    return { hex: hex6(BODY_RGB[p]!), name: PALETTE_NAMES[p]! };
+}
+
 /* ⛔ THE VIEW HAS TO HOLD WHAT THE POSE DRAWS (Brendon, 2026-07-31 — the audit
    that came with the cut-off crown). A worn charm crops to just above its bail,
    which is correct right up until the charm throws a hand in the air: a raised

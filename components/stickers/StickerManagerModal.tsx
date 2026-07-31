@@ -140,6 +140,22 @@ function swatchForHex(hex: string): string {
     return nearestSwatchFromRGB(hexRGB(hex), hexHS(hex).s < 0.12);
 }
 
+/** The whole hue FAMILY a freeform colour belongs to — its light + dark pair,
+ *  plus the family's name. Exactly what long-pressing a swatch selects, so the
+ *  keychain's one-tap match narrows on the SAME set the menu would (Rule #0). */
+export function hueFamilyForHex(hex: string): { hexes: string[]; label: string } {
+    const sw = swatchForHex(hex);
+    const at = HUE_SWATCHES.findIndex((s) => s.hex === sw);
+    const start = at < 0 ? 0 : at - (at % 2);
+    const hexes = [HUE_SWATCHES[start]?.hex, HUE_SWATCHES[start + 1]?.hex].filter(Boolean) as string[];
+    return { hexes, label: HUE_FAMILY_NAMES[Math.floor(start / 2)] ?? 'COLOUR' };
+}
+
+/** Which family a given sticker sits in — the same read the grid's filter uses. */
+export function swatchOfSticker(s: Sticker): string {
+    return stickerSwatch(s);
+}
+
 /* Text preset filters — multi-swatch groups shown inline after the circles.
    CMYK maps to PD's palette per Brendon: cyan = light blue, magenta = dark
    (deep) pink, yellow = either yellow, black = either black. PRIMARY is the
