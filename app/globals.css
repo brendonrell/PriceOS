@@ -6198,7 +6198,16 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.18); }
     position: absolute;
     inset: -14px -16px;
 }
-.sort-btn.group-btn .sort-lbl-recent { transform: translateY(1px); }
+/* Every grouping mark paints from the SAME centre. The slot is a fixed box
+   with the glyph centred inside it, so cycling the grouping swaps one icon
+   for the next in place instead of sliding sideways (Brendon, 2026-07-31 —
+   the four dots sat left of the rest and jumped on the transition). A
+   two-glyph combo is wider than the box and simply grows it, still centred. */
+.sort-btn.group-btn .sort-lbl-recent {
+    transform: translateY(1px);
+    min-width: 1.4em;
+    justify-content: center;
+}
 /* The + beside the group glyph — "and more layers under this one" (Brendon,
    2026-07-30). Full strength, bold, riding just off the glyph's shoulder. */
 .group-btn-more {
