@@ -156,9 +156,64 @@ function NewsCarousel({ items = PLACEHOLDER_ITEMS }: { items?: NewsItem[] }) {
     // Content signature — the animation re-binds ONLY when the actual content
     // changes, not on parent re-renders (the featuring row re-rolls on a timer
     // and hands us a fresh `items` array each time).
-    const sig = items
+    const signature = (list: NewsItem[]) => list
         .map((i) => (i.kind === 'sprite' ? `@${i.name ?? ''}` : `${i.tag ?? ''}|${i.title ?? ''}`))
         .join('~');
+    const incoming = signature(items);
+
+    /* ⛔ THE RAIL LOADS OFF SCREEN AND IS NEVER SEEN RE-BUILDING (Brendon,
+       2026-07-31 — "the marquee reloads twice, it keeps reloading after the
+       page loads"). Its content arrives in waves — the day's pills after
+       mount, the live market, your own signals, the feed — and every wave
+       re-dealt the rail in front of him, which reads as the banner reloading
+       over and over.
+
+       So the rail holds ONE settled set of pills:
+         · Before it is shown, waves land freely — it is invisible, already
+           gliding, and nobody sees it fill up.
+         · Once the content goes quiet it is revealed, mid-glide, complete.
+         · Every later wave WAITS off screen and is taken on at the loop's
+           wrap — the one moment the rail is back at its start — so nothing
+           ever changes under the eye. */
+    const SETTLE_MS = 600;   // quiet time that means "the content has landed"
+    const SETTLE_CAP_MS = 2500; // never hold the rail back longer than this
+    const [shown, setShown] = useState<NewsItem[]>(items);
+    const [ready, setReady] = useState(false);
+    const readyRef = useRef(false);
+    const pendingRef = useRef<NewsItem[] | null>(null);
+    const sig = signature(shown);
+
+    // Fill-up phase: take every wave immediately, and reveal once quiet.
+    useEffect(() => {
+        if (readyRef.current) { pendingRef.current = items; return; }
+        setShown(items);
+        const t = setTimeout(() => { readyRef.current = true; setReady(true); }, SETTLE_MS);
+        return () => clearTimeout(t);
+    }, [incoming]);
+
+    // Hard cap — a rail whose content never fully settles still gets shown.
+    useEffect(() => {
+        const t = setTimeout(() => { readyRef.current = true; setReady(true); }, SETTLE_CAP_MS);
+        return () => clearTimeout(t);
+    }, []);
+
+    /* Adopt whatever is waiting at the loop's wrap. With motion turned off
+       there is no wrap to wait for, so changes are taken as they come. */
+    useEffect(() => {
+        if (!ready) return;
+        const rail = railRef.current;
+        if (!rail) return;
+        const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const adopt = () => {
+            const next = pendingRef.current;
+            if (!next) return;
+            pendingRef.current = null;
+            if (signature(next) !== signature(shown)) setShown(next);
+        };
+        if (still) { adopt(); return; }
+        rail.addEventListener('animationiteration', adopt);
+        return () => rail.removeEventListener('animationiteration', adopt);
+    }, [ready, sig]);
 
     /* Scroll = a pure CSS animation, NOT the shared JS tape loop (Brendon,
        2026-07-06 — "constantly stutters, address it once and for all"). The
@@ -261,15 +316,18 @@ function NewsCarousel({ items = PLACEHOLDER_ITEMS }: { items?: NewsItem[] }) {
 
     }, [sig]);
 
-    if (items.length === 0) return null;
+    if (shown.length === 0) return null;
 
     return (
-        <div className="news-wrap" aria-label="Featured news">
+        <div
+            className={`news-wrap${ready ? '' : ' news-wrap--holding'}`}
+            aria-label="Featured news"
+        >
             <div className="news-rail" ref={railRef}>
                 {/* Doubled run so the engine's modulo-halfWidth translate loops
                     seamlessly (same structure as the Tape rail). */}
                 {(['a', 'b'] as const).map((run) =>
-                    items.map((item, i) => (
+                    shown.map((item, i) => (
                         <Fragment key={`${run}-${i}`}>
                             <NewsPill item={item} />
                         </Fragment>

@@ -2088,6 +2088,11 @@ body.tape-framed .tape-rail {
     -webkit-mask-image: linear-gradient(to right, transparent 0, black 24px, black calc(100% - 24px), transparent 100%);
     mask-image: linear-gradient(to right, transparent 0, black 24px, black calc(100% - 24px), transparent 100%);
 }
+/* The rail fills up and starts gliding OUT OF SIGHT, then is revealed once
+   its content has settled — so the banner is never watched re-building
+   (Brendon, 2026-07-31). Hidden, not un-laid-out: the loop still measures
+   itself against the real box while it waits. */
+.news-wrap--holding { visibility: hidden; }
 .news-rail {
     position: absolute;
     left: 0; top: 0;
