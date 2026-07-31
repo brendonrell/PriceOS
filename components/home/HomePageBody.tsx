@@ -1023,7 +1023,7 @@ function HomePageBodyInner({
                             <span className="stat-val stat-val-vol">{stats ? Math.round(Number(stats.volume_eth) || 0) : '—'} VOL</span>
                         </span>
                         <span className="stat-item stat-item-owners">
-                            <span className="stat-icon stat-icon-owners">⌗&#xFE0E;</span>{' '}
+                            <span className="stat-icon stat-icon-owners">✦&#xFE0E;</span>{' '}
                             <span className="stat-val stat-val-owners">{stats ? stats.minted : '—'} NFT<span style={{ fontSize: '0.72em' }}>s</span></span>
                         </span>
                     </div>

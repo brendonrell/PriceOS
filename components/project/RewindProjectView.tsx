@@ -68,7 +68,7 @@ export default function RewindProjectView({ slug }: { slug: string }) {
           <span className="stat-val">{data.minted}/{data.supply || '?'} MINTED</span>
         </span>
         <span className="stat-item">
-          <span className="stat-icon stat-icon-owners">⌗&#xFE0E;</span>{' '}
+          <span className="stat-icon stat-icon-owners">✦&#xFE0E;</span>{' '}
           <span className="stat-val">{data.holders} PPL</span>
         </span>
         <span className="stat-item stat-item-vol">

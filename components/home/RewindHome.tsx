@@ -90,7 +90,7 @@ export default function RewindHome() {
           <span className="stat-val stat-val-vol">{Math.round(Number(data.stats.volume_eth) || 0)} VOL</span>
         </span>
         <span className="stat-item stat-item-owners">
-          <span className="stat-icon stat-icon-owners">⌗&#xFE0E;</span>{' '}
+          <span className="stat-icon stat-icon-owners">✦&#xFE0E;</span>{' '}
           <span className="stat-val stat-val-owners">{data.stats.minted} NFT<span style={{ fontSize: '0.72em' }}>s</span></span>
         </span>
       </div>
