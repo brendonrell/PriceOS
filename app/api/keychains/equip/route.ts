@@ -12,7 +12,7 @@ import { requireAuth } from '@/lib/auth/siwe';
 import { getSupabaseService } from '@/lib/supabase';
 import { badRequest, serverError } from '@/lib/errors';
 import { sanitizeCharms } from '@/lib/keychains/engine';
-import { idList, TOP_SLOTS } from '../[address]/route';
+import { idList, TOP_SLOTS } from '@/lib/keychains/engine';
 
 export const dynamic = 'force-dynamic';
 

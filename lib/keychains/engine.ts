@@ -866,3 +866,19 @@ export function sanitizeCharms(parsed: unknown): CharmRecord[] {
     }
     return out;
 }
+
+/** How many charms may hang at once. */
+export const TOP_SLOTS = 3;
+
+/** Legacy-safe read: a bare number, an array, or nothing → a clean id list. */
+export function idList(raw: unknown, cap = 64): number[] {
+    const out: number[] = [];
+    const push = (v: unknown) => {
+        if (typeof v !== 'number' || !Number.isFinite(v)) return;
+        const n = Math.trunc(v);
+        if (n > 0 && !out.includes(n)) out.push(n);
+    };
+    if (Array.isArray(raw)) raw.forEach(push);
+    else push(raw);
+    return out.slice(0, cap);
+}

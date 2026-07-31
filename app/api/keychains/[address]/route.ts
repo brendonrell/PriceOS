@@ -13,14 +13,11 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { badRequest, serverError, notFound } from '@/lib/errors';
 import { getSupabaseService } from '@/lib/supabase';
-import { sanitizeCharms, type CharmRecord } from '@/lib/keychains/engine';
+import { sanitizeCharms, idList, TOP_SLOTS, type CharmRecord } from '@/lib/keychains/engine';
 
 export const dynamic = 'force-dynamic';
 
 const ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
-
-/** How many charms may hang at once. */
-export const TOP_SLOTS = 3;
 
 export interface KeychainsResponse {
     address: string;
@@ -33,19 +30,6 @@ export interface KeychainsResponse {
     shuffle: boolean;
     streak: number;
     rank: number;
-}
-
-/** Legacy-safe read: a bare number, an array, or nothing → a clean id list. */
-export function idList(raw: unknown, cap = 64): number[] {
-    const out: number[] = [];
-    const push = (v: unknown) => {
-        if (typeof v !== 'number' || !Number.isFinite(v)) return;
-        const n = Math.trunc(v);
-        if (n > 0 && !out.includes(n)) out.push(n);
-    };
-    if (Array.isArray(raw)) raw.forEach(push);
-    else push(raw);
-    return out.slice(0, cap);
 }
 
 export async function GET(
