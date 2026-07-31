@@ -8923,10 +8923,9 @@ a.f-highlight { color: inherit; }
 /* ── + MORE PANEL — sim ~3597-3868 ───────────────────────── */
 .more-section-header {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: bold;
     letter-spacing: 1px;
-    opacity: 0.6;
     padding: 8px 40px 4px 40px;
     color: var(--text-color);
     user-select: none;
