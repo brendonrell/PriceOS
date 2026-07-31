@@ -464,7 +464,11 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                                 }
                             }}
                         >
-                            <span className="stat-icon stat-icon-owners" {...iconToastProps('Collectors')}>⌗&#xFE0E;</span>{' '}
+                            {/* ☻ = the collector/social mark (GLYPHS §12h — collector
+                                and user are the same concept). Was ⌗, which is the
+                                PROJECTS glyph and never meant people (Brendon,
+                                2026-07-31). */}
+                            <span className="stat-icon stat-icon-owners" {...iconToastProps('Collectors')}>☻&#xFE0E;</span>{' '}
                             <span className="stat-val stat-val-owners">{project.stats.collectors} {project.stats.collectors === 1 ? 'PRSN' : 'PPL'}</span>
                         </span>
                         <AudienceIndicator slug={project.slug} />
@@ -595,7 +599,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                                 { key: 'social', label: 'Social', active: moreL1 === 'social', onClick: () => setMoreL1('social') },
                                 { key: 'anoint', label: 'Anointed', active: moreL1 === 'anoint', onClick: () => setMoreL1('anoint') },
                                 { key: 'sentiment', label: 'Sentiment', active: moreL1 === 'sentiment', onClick: () => setMoreL1('sentiment') },
-                                { key: 'replay', label: 'Replay', active: moreL1 === 'replay', onClick: () => setMoreL1('replay') },
+                                { key: 'replay', label: <><span className="pill-tab-ico">{'\u29D6\uFE0E'}</span> Replay</>, active: moreL1 === 'replay', onClick: () => setMoreL1('replay') },
                                 { key: 'genome', label: <><span className="pill-tab-ico">{'\u224E\uFE0E'}</span> Genome</>, active: moreL1 === 'genome', onClick: () => setMoreL1('genome') },
                                 { key: 'gnome', label: <><span className="pill-tab-ico">{'\u2359\uFE0E'}</span> Gnome</>, active: moreL1 === 'gnome', onClick: () => setMoreL1('gnome') },
                             ]}

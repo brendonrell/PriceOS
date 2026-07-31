@@ -489,6 +489,7 @@ Wishlist rows (and the held-by / collected-by chips):
 | **Sentiment Weather** (MY PD pill) | ⛆ | U+26C6 | Brendon's pick, 2026-07-25 — chosen from the feature's own weather set and the only member of it that survives the emoji test. Replaces ◒, which stays Gravity's (`lib/output/attributes.ts`) |
 | **PriceDay** (Output Almanac row) | ✶ | U+2736 | 2026-07-25 — was ☀, a glyph this file already banned. ✶ is PriceDay's established mark (the search-answer precedent, §12) |
 | **The Calc** | ƒ | U+0192 | ⚠ CATALOGUED LATE (2026-07-20): shipped on the artwork modal's calc tab (`OutputPreview`) since the Calc build but never entered here — found during the Stone stage-4 pass (the Grid-Presets lesson again: grep the codebase, not just this file). Now also titles the Stone's CALC widget |
+| **Replay** (project +More pill) | ⧖ | U+29D6 | Brendon asked for one, 2026-07-31. WHITE HOURGLASS — Replay is the project's clock wound back, and the outline form matches the pill row's family (◰ Albums · ⍙ Gnome · ≎ Genome). NOT ⟳ (that is PD's SHUFFLE mark, home tab + FM bar + stickers), NOT ↻ (to-do recurrence), NOT ⧗ (the black twin reads as the same mark at pill size). Grep note: ⧖ also appears in one line of `lib/docs/features.ts` naming the Epoch Shifter ability — prose in a shipped-features list, not a UI icon, so the codepoint was free |
 
 > **Stage 4 widget titles (2026-07-20) reuse canon only — nothing new:**
 > ▦ Calendar · ✶ PriceDay (the search-answer precedent) · ƒ Calc ·
