@@ -15,7 +15,7 @@ import { useKeychainRack } from '../../lib/keychains/rack';
 const VS15 = '︎';
 
 export default function KeychainCharmModal() {
-    const { close, openModal } = useModal();
+    const { close, open, openModal } = useModal();
     const { isOpen, isTop, isTopStacked } = useModalLayer('keychain');
 
     const payload = isTop && typeof openModal?.payload === 'string' ? openModal.payload : '';
@@ -81,6 +81,18 @@ export default function KeychainCharmModal() {
                                         <span className="dp-trait-v">{t.v}</span>
                                     </span>
                                 ))}
+                            </div>
+                            {/* The way out to the machine — the same button the
+                                Dépanneur wears on its own reveal, and the same
+                                door the sprite modal opens. */}
+                            <div className="dp-actions">
+                                <button
+                                    type="button"
+                                    className="dp-btn"
+                                    onClick={(e) => { e.stopPropagation(); open('depanneur'); }}
+                                >
+                                    {`⚷${VS15}`} THE DEPANNEUR
+                                </button>
                             </div>
                         </div>
                     </>

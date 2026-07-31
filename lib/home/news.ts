@@ -427,7 +427,7 @@ function marketItems(market?: { ethUsd: number; gwei: number }): NewsItem[] {
     if (market.ethUsd > 0) {
         out.push({
             glyph: vs('⟠'), tag: 'ETH',
-            title: `$${Math.round(market.ethUsd).toLocaleString()}`, meta: 'Live',
+            title: `$${Math.round(market.ethUsd).toLocaleString()} USD`, meta: 'Live',
         });
     }
     if (market.gwei > 0) {
