@@ -232,6 +232,13 @@ export default function DepanneurModal() {
     const shown: CharmRecord | null =
         (picked != null ? charms.find((c) => c.id === picked) : null) ?? fresh;
 
+    /* Put the open charm away — same clearing the rack tile's second tap does. */
+    const closeReveal = () => {
+        setPicked(null);
+        setFresh(null);
+        setNameDraft('');
+    };
+
     const crank = async () => {
         if (!siweAddress || cranking || coin == null) return;
         setCranking(true);
@@ -405,6 +412,20 @@ export default function DepanneurModal() {
                             {/* THE REVEAL / the picked charm */}
                             {shown && (
                                 <div className="dp-reveal">
+                                    {/* The charm view's own way out (Brendon,
+                                        2026-07-31) — the canonical ×, top right
+                                        of the area, puts the charm away without
+                                        closing the Depanneur. */}
+                                    <span
+                                        className="ambient-pop-close dp-reveal-x"
+                                        role="button"
+                                        tabIndex={0}
+                                        title="Close"
+                                        onClick={closeReveal}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); closeReveal(); } }}
+                                    >
+                                        {`×${VS15}`}
+                                    </span>
                                     <CharmArt charm={shown} uid={`dp${shown.id}`} className="dp-charm-big" />
                                     <div className="dp-sheet">
                                         {shown.name && <div className="dp-sheet-name">{shown.name}</div>}

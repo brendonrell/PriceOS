@@ -196,10 +196,42 @@ export async function requestMotion(): Promise<MotionState> {
     return motion;
 }
 
+/* ⛔ TILT HAS TO SURVIVE A RELOAD (Brendon, 2026-07-31: "I turned it on last
+   night… this morning it doesn't work unless I unequip and re-equip"). iOS
+   REMEMBERS the grant but still refuses to hand the sensor back when the
+   re-arm is asked for cold — the ask has to sit inside a real tap, which is
+   why re-equipping fixed it every time. So when the cold re-arm is refused we
+   don't give up: we wait for the page's next genuine tap and re-arm off that,
+   silently (an already-granted site shows no sheet), and keep waiting until it
+   takes. Scroll-only motion holds the chain up in the meantime. */
+let retryArmed = false;
+let retryInFlight = false;
+
+function retryOnTap() {
+    if (retryArmed || typeof window === 'undefined') return;
+    retryArmed = true;
+    const go = () => {
+        if (motion === 'granted') { stop(); return; }
+        if (retryInFlight) return;
+        retryInFlight = true;
+        void requestMotion()
+            .then((m) => { retryInFlight = false; if (m === 'granted') stop(); })
+            .catch(() => { retryInFlight = false; });
+    };
+    const stop = () => {
+        retryArmed = false;
+        window.removeEventListener('touchend', go, true);
+        window.removeEventListener('click', go, true);
+    };
+    window.addEventListener('touchend', go, true);
+    window.addEventListener('click', go, true);
+}
+
 /**
  * Re-arm a previously granted permission on a fresh page load. iOS resolves an
- * already-granted site without showing anything, so this needs no tap — and if
- * it does balk, the chain simply hangs on scroll alone.
+ * already-granted site without showing anything when the ask lands inside a
+ * tap; asked cold it can refuse outright, so a refusal falls through to the
+ * next-tap re-arm above rather than dropping tilt for the whole visit.
  */
 export function resumeMotion(): void {
     if (typeof window === 'undefined' || motion === 'granted') return;
@@ -209,11 +241,17 @@ export function resumeMotion(): void {
     const dm = (typeof DeviceMotionEvent !== 'undefined'
         ? (DeviceMotionEvent as unknown as PermAPI)
         : null);
-    const ask = typeof dm?.requestPermission === 'function'
-        ? dm.requestPermission()
-        : typeof (window.DeviceOrientationEvent as unknown as PermAPI).requestPermission === 'function'
-            ? (window.DeviceOrientationEvent as unknown as PermAPI).requestPermission!()
-            : null;
+    let ask: Promise<'granted' | 'denied'> | null = null;
+    try {
+        ask = typeof dm?.requestPermission === 'function'
+            ? dm.requestPermission()
+            : typeof (window.DeviceOrientationEvent as unknown as PermAPI).requestPermission === 'function'
+                ? (window.DeviceOrientationEvent as unknown as PermAPI).requestPermission!()
+                : null;
+    } catch {
+        retryOnTap();
+        return;
+    }
     if (!ask) {
         motion = 'granted';
         attach();
@@ -221,9 +259,15 @@ export function resumeMotion(): void {
         return;
     }
     ask.then((r) => {
-        if (r !== 'granted') return;
+        if (r !== 'granted') {
+            /* A cold 'denied' here is iOS refusing the gesture-less ask, not
+               the user refusing — the real refusal only ever comes from the
+               sheet, which rides EQUIP. Wait for a tap and ask again. */
+            retryOnTap();
+            return;
+        }
         motion = 'granted';
         attach();
         emit();
-    }).catch(() => { /* stay on scroll */ });
+    }).catch(() => { retryOnTap(); });
 }
