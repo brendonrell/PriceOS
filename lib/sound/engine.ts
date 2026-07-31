@@ -39,6 +39,7 @@ function getCtx(): AudioContext | null {
             ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
         if (!Ctor) return null;
         ctx = new Ctor();
+        armWake();
     }
     return ctx;
 }
@@ -58,6 +59,26 @@ function bufferFor(name: SoundName, ac: AudioContext): AudioBuffer {
 export function unlockSound(): void {
     const ac = getCtx();
     if (ac && ac.state === 'suspended') void ac.resume().catch(() => {});
+}
+
+/* iOS suspends the audio the moment you leave for another app, and coming
+   back does NOT restore it — so the layer stayed dead until you toggled it
+   off and on again (Brendon, 2026-07-31). Two wake-ups, both cheap no-ops
+   once the context is already running: when the tab becomes visible again,
+   and on the next touch after that in case iOS refused the first attempt
+   outside a gesture. */
+let woken = false;
+function armWake(): void {
+    if (woken || typeof document === 'undefined') return;
+    woken = true;
+    const wake = () => {
+        if (ctx && ctx.state === 'suspended') void ctx.resume().catch(() => {});
+    };
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') wake();
+    });
+    document.addEventListener('pointerdown', wake, { capture: true, passive: true });
+    window.addEventListener('pageshow', wake);
 }
 
 /** Play one of the blips. Silent no-op when the layer is off. */
