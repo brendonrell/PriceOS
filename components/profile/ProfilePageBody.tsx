@@ -1855,7 +1855,15 @@ function ProfilePageBodyInner({
                                            to this artist's next upload window. Only
                                            while the window is shut (Brendon, 2026-07-31). */
                                         ...(onCooldown
-                                            ? [{ key: 'cooldown', label: 'Cooldown', active: effMoreL1 === 'cooldown', onClick: () => setMoreL1('cooldown') }]
+                                            ? [{
+                                                key: 'cooldown',
+                                                /* The glyph reads the artist's real status — the
+                                                   SAME pair the Artists dropdown flies for it:
+                                                   ⏻ shut, ⏼ open (Brendon, 2026-07-31). */
+                                                label: <><span className="pill-tab-ico">{artistStatus === 'cooldown' ? '⏻︎' : '⏼︎'}</span> Cooldown</>,
+                                                active: effMoreL1 === 'cooldown',
+                                                onClick: () => setMoreL1('cooldown'),
+                                            }]
                                             : []),
                                         /* Created leads the row for traditional-Top-6
                                            artists — their works are always reachable. */
