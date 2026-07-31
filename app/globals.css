@@ -4434,6 +4434,11 @@ body.pd-stone-open .ens-copy-toast {
    then nudged a further 0.4px down the same day). */
 .user-tags--mini .profile-tag > * { position: relative; top: 0.8px; }
 .user-tags--mini .profile-tag-mark { height: 8px; width: auto; }
+/* Output page, mini pills: Now Buying's ✦ alone rides 2px higher (Brendon,
+   2026-07-31). The glyph only — the label keeps the mini row's 0.8px. */
+.user-tags--mini.user-tags--themed .profile-tag--now-buying .profile-tag-glyph {
+    top: -1.2px;
+}
 /* THEMED (output page): the mini pills wear the PAGE's colorway tokens —
    solid --bg-color fill, full-strength --text-color border + lettering —
    instead of each tag's own colour. The per-pill inline paints lose. */

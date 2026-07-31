@@ -20,6 +20,11 @@ import { readSoundOn } from './soundStore';
 let ctx: AudioContext | null = null;
 const buffers = new Map<SoundName, AudioBuffer>();
 
+/* Master playback level — every blip plays at three-quarters of the rendered
+   loudness (Brendon, 2026-07-31). The recipes still render at their locked
+   peak; only the output is turned down. */
+const MASTER_GAIN = 0.75;
+
 function getCtx(): AudioContext | null {
     if (typeof window === 'undefined') return null;
     if (!ctx) {
@@ -60,7 +65,10 @@ export function playSound(name: SoundName): void {
     try {
         const src = ac.createBufferSource();
         src.buffer = bufferFor(name, ac);
-        src.connect(ac.destination);
+        const g = ac.createGain();
+        g.gain.value = MASTER_GAIN;
+        src.connect(g);
+        g.connect(ac.destination);
         src.start();
     } catch { /* never let a blip break the app */ }
 }
