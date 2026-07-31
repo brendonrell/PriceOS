@@ -47,6 +47,8 @@ import {
 import { useKeychainRack, bustRack } from '../../lib/keychains/rack';
 import { gravity, onWake, reducedMotion, requestMotion, resumeMotion, startSway, takeKick } from '../../lib/keychains/sway';
 
+const VS15 = '︎';
+
 /* Solver constants, in the art's own 1000-wide units. */
 /* CALMED DOWN (Brendon, 2026-07-29 — "jumping all over the place"). The chain
    still swings and settles, it just isn't flung by every scroll tick and every
@@ -360,6 +362,20 @@ export default function EquippedCharm({ address }: { address: string }) {
                             </button>
                         ))}
                     </div>
+                    {/* The way through to the machine — a quiet footer line under
+                        the rack, outside the scroll so it is always reachable. */}
+                    <button
+                        type="button"
+                        className="charm-swap-door"
+                        onClick={(ev) => {
+                            ev.preventDefault();
+                            ev.stopPropagation();
+                            setSwapAnchor(null);
+                            open('depanneur');
+                        }}
+                    >
+                        {`⚷${VS15}`} THE DEPANNEUR
+                    </button>
                 </TailBubble>
             )}
             <span className="pd-charm-hang">

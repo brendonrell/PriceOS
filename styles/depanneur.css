@@ -443,6 +443,28 @@
     background: var(--bg-color);
     color: var(--text-color);
 }
+/* The door through to the machine (Brendon, 2026-07-31). A quiet footer line
+   rather than another button competing with the rack — full-strength in the
+   card's own inverted pair, never a faded whisper. */
+.charm-swap-door {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    width: 100%;
+    margin: 0;
+    padding: 2px 8px 1px;
+    background: none;
+    border: none;
+    color: var(--bg-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+.charm-swap-door:active { opacity: 0.7; }
 
 /* ── the full-charm popup (profile mini tap) ── */
 .dp-charm-pop-backdrop {
