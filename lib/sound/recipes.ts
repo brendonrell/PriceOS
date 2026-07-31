@@ -4,11 +4,13 @@
  * Pure data, no Web Audio here: each sound is a list of synth voices the
  * engine renders sample-by-sample. Everything is generated — no audio
  * files ship, ever. The set Brendon approved from the WAV rounds:
- *   chime   — mint success (v1: two rising bells)
+ *   chime   — mint success (four-note rising resolve + glitter)
  *   sparkle — achievement unlock (v1: five-note ascending run)
  *   tick    — settings toggle flip (v1: dry 25ms click)
  *   coin    — your piece sold (v2: two bright metallic taps + glitter)
- *   seal    — offer/trade accepted (v2: four-note rising resolve + glitter)
+ *   seal    — offer/trade accepted (two rising bells)
+ * The mint and the accept traded sounds 2026-07-31 (Brendon) — the bloom
+ * belongs to the mint.
  * The v2 chime/sparkle/tick variants and boink/ping-pop were REJECTED —
  * do not resurrect them.
  */
@@ -86,12 +88,16 @@ function glitter(
 }
 
 export const SOUND_RECIPES: Record<SoundName, SoundRecipe> = {
-    // v1 mint chime — E5 then B5, warm bells, nothing else.
+    // chime — the mint: a rising four-note resolve that blooms into glitter.
+    // (Swapped with seal 2026-07-31 — the bloom belongs to the mint.)
     chime: {
-        dur: 0.75,
+        dur: 1.25,
         voices: [
-            { at: 0.00, dur: 0.45, f0: 659.26, partials: BELL, gain: 0.9, tail: 7 },
-            { at: 0.09, dur: 0.55, f0: 987.77, partials: BELL, gain: 1.0, tail: 6 },
+            { at: 0.00, dur: 0.40, f0: 523.25, partials: BELL, gain: 0.8, shimmer: true, tail: 6 },
+            { at: 0.10, dur: 0.45, f0: 659.26, partials: BELL, gain: 0.85, shimmer: true, tail: 6 },
+            { at: 0.20, dur: 0.60, f0: 783.99, partials: BELL, gain: 0.9, shimmer: true, tail: 5 },
+            { at: 0.30, dur: 0.85, f0: 1046.50, partials: GLASS, gain: 1.0, shimmer: true, tail: 4 },
+            ...glitter(13, 0.40, 0.45, 8, 0.22),
         ],
     },
     // v1 win sparkle — five-note ascending pentatonic run, soft wobble.
@@ -122,15 +128,13 @@ export const SOUND_RECIPES: Record<SoundName, SoundRecipe> = {
             ...glitter(5, 0.18, 0.25, 5, 0.2),
         ],
     },
-    // seal — deal done: a rising four-note resolve that blooms into glitter.
+    // seal — deal done: E5 then B5, warm bells, nothing else.
+    // (Swapped with chime 2026-07-31.)
     seal: {
-        dur: 1.25,
+        dur: 0.75,
         voices: [
-            { at: 0.00, dur: 0.40, f0: 523.25, partials: BELL, gain: 0.8, shimmer: true, tail: 6 },
-            { at: 0.10, dur: 0.45, f0: 659.26, partials: BELL, gain: 0.85, shimmer: true, tail: 6 },
-            { at: 0.20, dur: 0.60, f0: 783.99, partials: BELL, gain: 0.9, shimmer: true, tail: 5 },
-            { at: 0.30, dur: 0.85, f0: 1046.50, partials: GLASS, gain: 1.0, shimmer: true, tail: 4 },
-            ...glitter(13, 0.40, 0.45, 8, 0.22),
+            { at: 0.00, dur: 0.45, f0: 659.26, partials: BELL, gain: 0.9, tail: 7 },
+            { at: 0.09, dur: 0.55, f0: 987.77, partials: BELL, gain: 1.0, tail: 6 },
         ],
     },
 };
