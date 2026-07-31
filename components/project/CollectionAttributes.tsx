@@ -22,6 +22,12 @@ import { sampleCanvasFingerprint } from '../../lib/art/sampleColor';
 import { paintOutput } from '../../lib/state/ProjectContext';
 import { ART_IMAGE_BASE } from '../../lib/project/registry';
 
+/* How many un-fingerprinted pieces one visit to a project's Attributes hands to
+   the sampler. Far past the 22 the portrait needs (reading a stored picture is
+   cheap), but bounded, so a huge collection converges over a few visits instead
+   of queueing thousands of loads at once (Brendon, 2026-07-31). */
+const BACKFILL_PER_VISIT = 300;
+
 export default function CollectionAttributes({
     slug,
     mintedCount,
@@ -40,19 +46,51 @@ export default function CollectionAttributes({
     const storedVer = useStoredColors([slug]);
     const [tick, bump] = useReducer((x: number) => x + 1, 0);
 
-    /* Render the first 22 off-screen, one per frame, sampling each — so a fresh
-       graduate has a full portrait without waiting for someone to scroll. */
+    /* Fill the pieces that have no fingerprint yet, so a graduate has a full
+       portrait without waiting for someone to scroll.
+
+       ⛔ In stored-image mode this used to bail out entirely — the canvas holds
+       a picture rather than a fresh engine paint, and the old code read it the
+       instant it asked for it, before the picture had arrived, so it sampled
+       blank. It now hands the pieces to the app-wide sampler, which waits for
+       the picture and reads THAT (Brendon, 2026-07-31). The live-engine path
+       below is untouched.
+
+       Images are cheap enough to sweep far more than the 22 the portrait needs,
+       so this doubles as the real backfill — bounded per visit so a huge
+       collection trickles rather than stampedes, and picking up where it left
+       off next visit. */
     useEffect(() => {
-        // In stored-image mode the canvas holds a picture, not a fresh engine
-        // paint, so pixel sampling would read blank — skip the backfill entirely.
-        if (ART_IMAGE_BASE) return;
         let cancelled = false;
-        const target = Math.min(COLLECTION_FORCE_SAMPLE, mintedCount);
+        const target = Math.min(ART_IMAGE_BASE ? BACKFILL_PER_VISIT : COLLECTION_FORCE_SAMPLE, mintedCount);
         const todo: number[] = [];
         for (let id = 1; id <= target; id++) {
             if (resolveFingerprint(slug, id) == null && needsColorSample(slug, id)) todo.push(id);
         }
         if (!todo.length) return;
+
+        if (ART_IMAGE_BASE) {
+            /* Announce them as seen — the sampler loads each stored picture and
+               reads it, on its own throttle. */
+            for (const id of todo) {
+                if (cancelled) break;
+                try {
+                    window.dispatchEvent(new CustomEvent('pd:art-seen', { detail: { slug, tokenId: id } }));
+                } catch { /* CustomEvent unsupported — fills on a later view */ }
+            }
+            /* Refine the Form/Palette as each read lands, so the section fills
+               in rather than popping. */
+            const onFilled = (e: Event) => {
+                const d = (e as CustomEvent<{ slug: string }>).detail;
+                if (d?.slug === slug) bump();
+            };
+            window.addEventListener('pd:fingerprint-filled', onFilled as EventListener);
+            return () => {
+                cancelled = true;
+                window.removeEventListener('pd:fingerprint-filled', onFilled as EventListener);
+            };
+        }
+
         const canvas = document.createElement('canvas');
         let i = 0;
         const step = () => {

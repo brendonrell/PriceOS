@@ -1434,6 +1434,21 @@ function announceArtDrawn(canvas: HTMLCanvasElement, slug: string, tokenId: numb
   } catch { /* CustomEvent unsupported — spinner surfaces just skip */ }
 }
 
+/* A piece has been SEEN — its stored art really landed on a canvas somewhere
+   (Brendon, 2026-07-31). The visual fingerprint used to be read only where the
+   engine painted live, which since images-everywhere means the Output feature
+   page and nowhere else; every other surface skipped it. The stored picture is
+   the same pixels, so it can be read just as well — this is the signal that
+   says one is available, and FingerprintSampler does the reading. Announced
+   only on a REAL draw, never the missing-preview path (a cleared canvas would
+   sample as blank). */
+function announceArtSeen(slug: string, tokenId: number): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.dispatchEvent(new CustomEvent('pd:art-seen', { detail: { slug, tokenId } }));
+  } catch { /* CustomEvent unsupported — the piece fills on a later view */ }
+}
+
 export function renderArtwork(
   canvas: HTMLCanvasElement,
   slug: string,
@@ -1463,6 +1478,7 @@ export function renderArtwork(
         ctx.drawImage(hit, 0, 0);
         const wrap = typeof canvas.closest === 'function' ? canvas.closest('.canvas-wrapper') : null;
         if (wrap instanceof HTMLElement) wrap.style.aspectRatio = String(hit.naturalWidth / hit.naturalHeight);
+        announceArtSeen(slug, tokenId);
         return { aspect: hit.naturalWidth / hit.naturalHeight, traits, pending: false };
       }
     }
@@ -1491,6 +1507,7 @@ export function renderArtwork(
       ctx.drawImage(img, 0, 0);
       applyAspect(img.naturalWidth, img.naturalHeight);
       announceArtDrawn(canvas, slug, tokenId);
+      announceArtSeen(slug, tokenId);
     };
     img.onerror = () => {
       if (artDrawKey.get(canvas) !== drawKey) return; // canvas moved to another token

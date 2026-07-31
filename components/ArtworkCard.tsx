@@ -311,6 +311,14 @@ function ArtworkCard({
         setImgLoaded(true);
         /* Same per-paint side effects the canvas render closure ran. */
         reportTraits(slug, id);
+        /* The piece has been SEEN — its picture is on screen, so its visual
+           fingerprint can be read off it (Brendon, 2026-07-31). Cards are plain
+           <img> tiles in stored-image mode, so this is where every grid, home,
+           profile, bench and search surface reports in; the app-wide sampler
+           does the reading, on its own throttle. */
+        try {
+            window.dispatchEvent(new CustomEvent('pd:art-seen', { detail: { slug, tokenId: id } }));
+        } catch { /* CustomEvent unsupported — fills on a later view */ }
         hashSynNotifyCanvasPaint();
     };
 
