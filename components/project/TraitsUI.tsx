@@ -79,6 +79,7 @@ import { isStarred, toggleStar } from '../../lib/pins/starStore';
 import { isWishlisted, toggleWishlist } from '../../lib/pins/wishlistStore';
 import { toggleTraitStar, traitStarKey, subscribeTraitStarred } from '../../lib/pins/traitStarStore';
 import { getRecentGlobal, subscribeBreadcrumbs, isRecordingEnabled } from '../../lib/pins/breadcrumbStore';
+import { fetchHotOutputs } from '../../lib/output/views';
 import { useModal } from '../../lib/state/ModalContext';
 import AlbumPickerCard from '../album/AlbumPickerCard';
 import SpriteFace from '../SpriteFace';
@@ -493,6 +494,20 @@ export default function TraitsUI({
     const l2SubLabels: readonly string[] = Object.keys(l2BucketMap);
     const l2Visible = l2SubLabels.length > 0;
 
+    /* What's Hot — this project's most-looked-at pieces this week, hottest
+       first (Brendon, 2026-07-31). The public face of the same view pillar the
+       private History reads: it counts PEOPLE, weighted by how recently they
+       were there, so a piece three people went to see out-ranks one somebody
+       kept refreshing. Fetched only while the view is actually open. */
+    const hotSubFilter = activeL1 === 'Breadcrumb' && activeSubFilter === "What's Hot";
+    const [hotOutputs, setHotOutputs] = React.useState<{ id: number }[]>([]);
+    React.useEffect(() => {
+        if (!hotSubFilter || !projectSlug) return;
+        let cancelled = false;
+        void fetchHotOutputs(projectSlug).then((r) => { if (!cancelled) setHotOutputs(r); });
+        return () => { cancelled = true; };
+    }, [hotSubFilter, projectSlug]);
+
     /* L3 leaf pool. For sub-bucketed L1s, slice by activeSubFilter:
        'All' → concat all buckets (sim 8641-8642), specific → just that
        bucket's leaves (sim 8643-8645). For flat L1s (Layer/Mineral/Fate),
@@ -500,10 +515,13 @@ export default function TraitsUI({
     const l3Pool: readonly string[] = (() => {
         if (activeL1 === null) return [];
         /* Recent (Breadcrumb) — either/or. 'My Breadcrumbs' (default) = the 5
-           most-recent global visits, freshest first, encoded `slug:id`. "What's
-           Hot" = empty for now (wires into the view counter later). */
+           most-recent global visits, freshest first, encoded `slug:id`.
+           "What's Hot" = this project's hottest pieces, same encoding so the
+           crumb pill renders them unchanged. */
         if (activeL1 === 'Breadcrumb') {
-            if (activeSubFilter === "What's Hot") return [];
+            if (activeSubFilter === "What's Hot") {
+                return hotOutputs.map((h) => `${projectSlug}:${h.id}`);
+            }
             /* Recording off — keep 5 numbered crumbs but mask each destination
                (Brendon, 2026-06-24). '???' is the masked sentinel. */
             if (!recording) return ['???', '???', '???', '???', '???'];

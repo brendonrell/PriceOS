@@ -46,6 +46,21 @@ export function recordProjectView(slug: string): void {
     recordOutputView(slug, PROJECT_VIEW_ID);
 }
 
+/** One hot piece — its token id and how many people it drew this week. */
+export interface HotOutput { id: number; viewers: number }
+
+/** What's Hot in a project — the hottest Outputs, hottest first (max 5). The
+ *  public face of the same pillar History reads privately. */
+export async function fetchHotOutputs(slug: string): Promise<HotOutput[]> {
+    try {
+        const r = await fetch(`/api/hot?slug=${encodeURIComponent(slug)}`);
+        if (!r.ok) return [];
+        return (await r.json()) as HotOutput[];
+    } catch {
+        return [];
+    }
+}
+
 export async function fetchMyHistory(): Promise<HistoryEntry[]> {
     try {
         const r = await fetch('/api/history');
