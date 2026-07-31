@@ -11799,6 +11799,14 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     border: 8px solid transparent;
     border-top-color: var(--tail-color);
 }
+/* Flipped under its trigger (no room above) — the tail moves to the top edge
+   and points back UP at it (Brendon, 2026-07-31). */
+.tail-bubble.is-below::after {
+    top: auto;
+    bottom: calc(100% - 1px);
+    border-top-color: transparent;
+    border-bottom-color: var(--tail-color);
+}
 
 /* Create-To-Do bubble — Attention yellow, flipping to Hothurt red on the
    yellow colorway (same bg-sense as the fiat bubble) so it always reads

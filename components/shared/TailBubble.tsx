@@ -17,11 +17,11 @@ import { createPortal } from 'react-dom';
 /* Anchor for a tail-bubble — the trigger pill's viewport top + horizontal
    centre, captured at open. Taken off whatever element carries the handler, so
    a keyboard activation places the bubble exactly like a tap does. */
-export type BubbleAnchor = { top: number; cx: number };
+export type BubbleAnchor = { top: number; bottom: number; cx: number };
 
 export function anchorFromEvent(e: { currentTarget: EventTarget | null }): BubbleAnchor {
     const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    return { top: r.top, cx: r.left + r.width / 2 };
+    return { top: r.top, bottom: r.bottom, cx: r.left + r.width / 2 };
 }
 
 export default function TailBubble({
@@ -40,19 +40,28 @@ export default function TailBubble({
     dismissOnScroll?: boolean;
 }) {
     const ref = useRef<HTMLDivElement>(null);
-    const [layout, setLayout] = useState<{ centerX: number; tailDx: number } | null>(null);
+    const [layout, setLayout] = useState<{ centerX: number; tailDx: number; below: boolean } | null>(null);
 
-    /* Clamp on-screen once measured, then aim the tail back at the trigger. */
+    /* Clamp on-screen once measured, then aim the tail back at the trigger.
+       A card too tall to clear the top of the screen flips UNDER the trigger
+       instead of running off it, tail pointing back up (Brendon, 2026-07-31).
+       Only when it genuinely doesn't fit above — nothing that fits today moves. */
     useEffect(() => {
         const el = ref.current;
         if (!el) return;
         const half = el.offsetWidth / 2;
         const margin = 8;
+        const gap = 10;
         const vw = window.innerWidth;
+        const vh = window.innerHeight;
         const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
         const centerX = clamp(anchor.cx, margin + half, vw - margin - half);
         const tailDx = clamp(anchor.cx - centerX, -(half - 12), half - 12);
-        setLayout({ centerX, tailDx });
+        const h = el.offsetHeight;
+        const fitsAbove = anchor.top - gap - h >= margin;
+        const fitsBelow = anchor.bottom + gap + h <= vh - margin;
+        const below = !fitsAbove && (fitsBelow || (vh - anchor.bottom) > anchor.top);
+        setLayout({ centerX, tailDx, below });
     }, [anchor]);
 
     /* An outside tap closes the bubble ONLY — we swallow the trailing click so
@@ -85,14 +94,14 @@ export default function TailBubble({
     return createPortal(
         <div
             ref={ref}
-            className={`tail-bubble ${className}`}
+            className={`tail-bubble${layout?.below ? ' is-below' : ''} ${className}`}
             role="dialog"
             aria-modal="true"
             style={{
                 position: 'fixed',
-                top: anchor.top,
+                top: layout?.below ? anchor.bottom : anchor.top,
                 left: layout?.centerX ?? anchor.cx,
-                transform: 'translate(-50%, calc(-100% - 10px))',
+                transform: layout?.below ? 'translate(-50%, 10px)' : 'translate(-50%, calc(-100% - 10px))',
                 visibility: layout ? 'visible' : 'hidden',
                 zIndex: 100000,
                 ['--p3d-tail-dx' as string]: `${layout?.tailDx ?? 0}px`,
