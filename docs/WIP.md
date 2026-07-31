@@ -8,7 +8,81 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-0. ✅ **2026-07-31 (LATEST) — THE SOUND LAYER GREW UP: three new blips, two
+0. ✅ **2026-07-31 (LATEST) — ALBUMS TAB GREW A PROMPT · KEYCHAIN
+   COMPLETIONISM DOUBLED TO 24 · THE DEPANNEUR MAKES NOISE AND HAS A SHOP
+   TUNE · THREE NEW THEMES · ANCHOR IS NEPTUNE ♆ · THE GREEK Ξ IS GONE ·
+   GROUPING NEVER DROPS YOUR PICK AGAIN. All on `dev` (tip `fb501f8`), tree
+   clean, type-check clean, sound tests green. Nothing outstanding.**
+
+   **PROJECT ▸ +MORE ▸ ALBUMS — it now asks for the action.** The tab shows
+   your holdings from that collection — or the first four minted pieces if you
+   hold none — as a tap-to-pick grid with ＋ ADD TO ALBUM, which opens the
+   canonical add-to-album sheet (Rule #0). The empty shelf still says so, but
+   no longer dead-ends. The Albums pill wears the profile's ◰ mark; Genome
+   wears ≎ and Gnome wears ⍙. Pill order: Stats moved ahead of Replay, then
+   Albums and Replay traded places (Albums sits after Price Story ▸ Stats).
+
+   **KEYCHAIN COMPLETIONISM IS 24, NOT 12** — every shape now has a YIN slot
+   and a YANG slot, marked with the Depanneur's own ⚋ / ⚊ coins. You need both
+   coins of a shape to clear it.
+
+   **THE DEPANNEUR.** Four new machine sounds, all synthesized like every
+   other blip: **slot** (the coin), **crank** (the ratchet, the longest sound
+   in the set by design — the test allows it), **capsule** (the tumble into
+   the tray), **pop** (it cracks open). A failed crank gets the clunk. The
+   charm view has its own canonical × top-right that puts the charm away
+   without closing the machine.
+
+   **⛔ THE DEPANNEUR THEME IS THE OOT SHOP TUNE (Brendon, 2026-07-31: "those
+   Zelda Ocarina of Time themes when you'd go into a shop").** Warm, swung,
+   lilting, major sevenths over a walking bass. **The first pass was a bouncy
+   clicky arcade jingle and it was WRONG — never take it back that way.**
+   Two more themes shipped with it: **Sticker Store** (bright walking shop
+   floor) and **Gnome Wallet** (slow minor waltz, the set's only 3/4 piece).
+   All three are OVERLAY themes — they belong to a modal, take over from the
+   page's theme while open, and hand it back on close.
+
+   **SOUND SETTINGS WERE ALREADY ON THE ACCOUNT** — both flags save and
+   hydrate. What did not survive was the AUDIO: it armed lazily at the first
+   blip, which lands too late while iOS is still locked, so a fresh load
+   stayed silent until you re-toggled. It now arms with the app and the
+   session's first tap unlocks it. **Same shape of fix for KEYCHAIN TILT:**
+   iOS remembers the grant but refuses a cold re-arm on load, which is why
+   re-equipping "fixed" it every time. A refused cold re-arm now waits for the
+   next real tap and re-arms off that, silently, until it takes.
+
+   **⛔ ANCHOR IS ♆ NEPTUNE (Brendon's pick).** It replaced the interim ↧ on
+   every anchor surface — stat tiles, Stone etch chips, the gallery delta
+   stamp. ⚓ stays banned (emoji-default on iOS). Glossary updated.
+
+   **⛔ THE GREEK Ξ IS BANNED AS AN ETH MARK (Brendon, raised in anger — it
+   shipped without his say and reads as nothing).** Every ETH readout wears
+   PD's own ◊: the watch pill, cartography flashes + place lines, the day's
+   rewind, project ATH, the card's last-sale ghost, takeover banners, saved
+   price presets, the familiar's lines. One Ξ remains ON PURPOSE, painted
+   inside a generative art engine's own scene — changing it would change what
+   that artwork renders.
+
+   **⛔ THE GRID NEVER DROPS A GROUPING YOU PICKED (Brendon, 2026-07-31).**
+   Owner and Tag "didn't work": both live projects sit in ONE wallet, so those
+   dimensions produced one bucket, and the grid was quietly discarding any
+   layer that couldn't split the window — the cycle landed on them and nothing
+   happened. That judgement now lives in ONE place only: the long-press yellow
+   menu, which greys a dead dimension out with "nothing to split here" BEFORE
+   you pick it. Both galleries draw exactly the layers you set. (A first pass
+   only exempted owner + tag — half a fix, and rightly rejected.)
+
+   **Also:** Exchange text is full strength throughout (empty state, item
+   lines, price unit, placeholders, close ×) per Rule #2; the Depanneur streak
+   line reads "N DAYS TO NEXT" on its own line under the odds; the followers
+   ☻ on the profile stats row had its dead side-space trimmed so its gap
+   matches the ⬚ and ◊ stats.
+
+   **NOT DONE THIS SESSION:** ClickUp — its connector was disconnected for the
+   whole session, so nothing was closed or queued there. Next session should
+   reconcile the above into ClickUp.
+
+1. ✅ **2026-07-31 — THE SOUND LAYER GREW UP: three new blips, two
    sound swaps, an iOS wake-up fix, and THEME MUSIC — eight original pieces,
    one per surface, behind a long-press. All on `dev` (tip `b78983d`), tree
    clean, build green, 12 tests passing. Nothing outstanding.**
@@ -61,7 +135,7 @@
    chosen — it plays every blip and every theme. Rebuild it rather than
    guessing if the set is ever revisited.
 
-1. ✅ **2026-07-30 — GROUPING REBUILT TO THE APPROVED MODEL ·
+2. ✅ **2026-07-30 — GROUPING REBUILT TO THE APPROVED MODEL ·
    PROJECTS PRO IS THE INSPECTOR FOR PROJECTS · THE FRIEND INSPECTOR STRIP ·
    FIRST-OPEN LAG KILLED ON EVERY SLIDING PANEL. All on `dev` (tip
    `af8cdefe`), tree clean. Nothing outstanding.**
