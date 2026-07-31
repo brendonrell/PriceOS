@@ -230,6 +230,10 @@ export default function DepanneurModal() {
         ? 100
         : Math.max(4, Math.min(100, ((streak - tierStart) / (nextAt - tierStart)) * 100));
     const charms = rack?.charms ?? [];
+    /* WEAR AS MANY AS YOU LIKE, THREE OF THEM HANG (Brendon, 2026-07-31):
+       `worn` is everything equipped, `top` is the three on the profile. */
+    const worn = rack?.equipped ?? [];
+    const top = rack?.top ?? [];
     const shown: CharmRecord | null =
         (picked != null ? charms.find((c) => c.id === picked) : null) ?? fresh;
 
@@ -296,7 +300,7 @@ export default function DepanneurModal() {
         } finally { setBusy(false); }
     };
 
-    const equip = async (id: number | null) => {
+    const equip = async (id: number | null, list?: 'top') => {
         if (!siweAddress || busy) return;
         /* THE TILT ASK RIDES THE EQUIP (Brendon, 2026-07-29) — the hang is
            always on, and this tap is the one deliberate moment iOS will let
@@ -308,11 +312,13 @@ export default function DepanneurModal() {
             const r = await fetch('/api/keychains/equip', {
                 method: 'POST',
                 headers: { 'content-type': 'application/json' },
-                body: JSON.stringify({ id }),
+                body: JSON.stringify(list ? { id, list } : { id }),
             });
             if (r.ok) {
                 bustRack(siweAddress);
-                showToast(id == null ? 'Charm: UNEQUIPPED' : 'Charm: EQUIPPED');
+                if (id == null) showToast('Charm: UNEQUIPPED');
+                else if (list === 'top') showToast(top.includes(id) ? 'Top 3: REMOVED' : 'Top 3: ADDED');
+                else showToast(worn.includes(id) ? 'Charm: UNEQUIPPED' : 'Charm: EQUIPPED');
             }
         } finally { setBusy(false); }
     };
@@ -451,10 +457,23 @@ export default function DepanneurModal() {
                                             christening are the actions; the traits are the
                                             read. Actions first, traits after. */}
                                         <div className="dp-actions">
-                                            {rack?.equipped === shown.id ? (
-                                                <button type="button" className="dp-btn on" onClick={() => { void equip(null); }} disabled={busy}>UNEQUIP</button>
+                                            {worn.includes(shown.id) ? (
+                                                <button type="button" className="dp-btn on" onClick={() => { void equip(shown.id); }} disabled={busy}>UNEQUIP</button>
                                             ) : (
                                                 <button type="button" className="dp-btn" onClick={() => { void equip(shown.id); }} disabled={busy}>EQUIP ON PROFILE</button>
+                                            )}
+                                            {/* WHICH THREE HANG — you can wear as many as you like,
+                                                but the profile row wears three. A fourth pick pushes
+                                                the oldest one out (Brendon, 2026-07-31). */}
+                                            {worn.includes(shown.id) && (
+                                                <button
+                                                    type="button"
+                                                    className={`dp-btn${top.includes(shown.id) ? ' on' : ''}`}
+                                                    onClick={() => { void equip(shown.id, 'top'); }}
+                                                    disabled={busy}
+                                                >
+                                                    {top.includes(shown.id) ? 'IN TOP 3' : 'ADD TO TOP 3'}
+                                                </button>
                                             )}
                                         </div>
                                         {!shown.name && (
@@ -519,7 +538,9 @@ export default function DepanneurModal() {
                                             <span className="dp-rack-cap">
                                                 {c.name || SHAPE_NAMES[genes(c.seed, c.coin, c.luck).shape]}
                                             </span>
-                                            {rack?.equipped === c.id && <span className="dp-rack-worn">WORN</span>}
+                                            {top.includes(c.id)
+                                                ? <span className="dp-rack-worn">TOP 3</span>
+                                                : worn.includes(c.id) && <span className="dp-rack-worn">WORN</span>}
                                         </button>
                                     ))}
                                 </div>

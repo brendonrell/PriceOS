@@ -14,9 +14,24 @@ import type { CharmRecord } from './engine';
 export interface Rack {
     address: string;
     charms: CharmRecord[];
-    equipped: number | null;
+    /** The worn pool — every charm the owner has equipped. */
+    equipped: number[];
+    /** The ones that hang, in hang order (max three). */
+    top: number[];
+    /** Draw the hanging three fresh from the pool on every page load. */
+    shuffle: boolean;
     streak: number;
     rank: number;
+}
+
+/** Belt and braces for a cached response written before three-at-once. */
+function normalizeRack(j: Rack | null): Rack | null {
+    if (!j) return null;
+    const equipped = Array.isArray(j.equipped)
+        ? j.equipped
+        : typeof j.equipped === 'number' ? [j.equipped] : [];
+    const top = Array.isArray(j.top) ? j.top.slice(0, 3) : equipped.slice(0, 3);
+    return { ...j, equipped, top, shuffle: j.shuffle === true };
 }
 
 const cache = new Map<string, Rack | null>();
@@ -29,7 +44,8 @@ function fetchRack(address: string): Promise<Rack | null> {
     if (!p) {
         p = fetch(`/api/keychains/${a}`, { cache: 'no-store' })
             .then((r) => (r.ok ? r.json() : null))
-            .then((j: Rack | null) => {
+            .then((raw: Rack | null) => {
+                const j = normalizeRack(raw);
                 cache.set(a, j);
                 pending.delete(a);
                 listeners.forEach((cb) => cb());

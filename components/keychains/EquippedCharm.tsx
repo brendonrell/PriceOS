@@ -83,14 +83,54 @@ function CharmTile({ charm }: { charm: CharmRecord }) {
     return <span className="dp-charm-mini" dangerouslySetInnerHTML={{ __html: svg }} />;
 }
 
+/* How far apart the split rings sit, and how many hang at once. */
+const SPREAD = 13;
+const SLOTS = 3;
+
 export default function EquippedCharm({ address, handle }: { address: string; handle?: string }) {
     const { open } = useModal();
     const { siweAddress } = useAuth();
     const { showToast } = useToast();
     const rack = useKeychainRack(address);
-    const charm = rack?.equipped != null
-        ? rack.charms.find((c) => c.id === rack.equipped) ?? null
-        : null;
+
+    /* ⛔ THREE HANG OFF ONE ORIGIN (Brendon, 2026-07-31). The chosen top three
+       hang — or, with SHUFFLE on, three drawn at random from everything they
+       are wearing, redrawn on every page load. Each one keeps its own chain,
+       so they sit at their own heights off the same anchor. */
+    const poolKey = (rack?.equipped ?? []).join(',');
+    const topKey = (rack?.top ?? []).join(',');
+    const hangIds = useMemo(() => {
+        if (!rack) return [] as number[];
+        if (!rack.shuffle) return rack.top.slice(0, SLOTS);
+        const pool = [...rack.equipped];
+        const out: number[] = [];
+        while (out.length < SLOTS && pool.length > 0) {
+            out.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]!);
+        }
+        return out;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [rack?.address, rack?.shuffle, poolKey, topKey]);
+
+    const charms = useMemo(
+        () => hangIds
+            .map((id) => rack?.charms.find((c) => c.id === id) ?? null)
+            .filter((c): c is CharmRecord => c != null),
+        [hangIds, rack],
+    );
+    /* WHO IS IN FRONT — settled once per page load and left alone. Swapping
+       the order while they swing made them flash at rest and pass THROUGH
+       each other; a fixed random stack reads as a real bunch (Brendon,
+       2026-07-31). */
+    const levels = useMemo(() => {
+        const order = charms.map((_, i) => i);
+        for (let i = order.length - 1; i > 0; --i) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [order[i], order[j]] = [order[j]!, order[i]!];
+        }
+        return order;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [charms.map((c) => c.id).join(',')]);
+    const charm = charms[0] ?? null;
 
     /* YOUR OWN KEYCHAIN IS A SWITCHER, NOT A TRAIT SHEET (Brendon, 2026-07-31).
        Tapping someone else's keychain still opens the charm in full — on theirs
@@ -102,23 +142,51 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
     const [busy, setBusy] = useState(false);
     const dismissSwap = useCallback(() => setSwapAnchor(null), []);
 
+    /* The switcher picks WHICH ONES HANG — tapping one takes a hanging slot,
+       tapping a hanging one puts it away, and a fourth pick pushes the oldest
+       out (Brendon, 2026-07-31). */
     const equip = async (id: number) => {
         if (!siweAddress || busy) return;
         /* The tilt ask rides the equip (Brendon, 2026-07-29) — fired inside the
            gesture, exactly as the Depanneur's own equip does. */
         void requestMotion();
+        const wasOn = (rack?.top ?? []).includes(id);
         setBusy(true);
         try {
             const r = await fetch('/api/keychains/equip', {
                 method: 'POST',
                 headers: { 'content-type': 'application/json' },
-                body: JSON.stringify({ id }),
+                body: JSON.stringify({ id, list: 'top' }),
             });
             if (r.ok) {
                 bustRack(siweAddress);
-                showToast('Charm: EQUIPPED');
+                showToast(wasOn ? 'Charm: PUT AWAY' : 'Charm: EQUIPPED');
             } else {
                 showToast('Charm: FAILED');
+            }
+        } finally {
+            setBusy(false);
+            setSwapAnchor(null);
+        }
+    };
+
+    /* SHUFFLE — draw the hanging three fresh out of everything you're wearing
+       on every page load, instead of the three you picked. */
+    const toggleShuffle = async () => {
+        if (!siweAddress || busy) return;
+        const next = !(rack?.shuffle ?? false);
+        setBusy(true);
+        try {
+            const r = await fetch('/api/keychains/equip', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ shuffle: next }),
+            });
+            if (r.ok) {
+                bustRack(siweAddress);
+                showToast(`Shuffle: ${next ? 'ON' : 'OFF'}`);
+            } else {
+                showToast('Shuffle: FAILED');
             }
         } finally {
             setBusy(false);
@@ -166,9 +234,8 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
 
     /* The whole hanging piece, resolved once per charm: the ring, the link
        textures, and the charm art itself (drawn with no chain of its own — the
-       chain here is the live one). */
-    const art = useMemo(() => {
-        if (!charm) return null;
+       chain here is the live one). One of these per charm on the row. */
+    const arts = useMemo(() => charms.map((charm) => {
         const luck = charm.luck;
         const chain = charmChain(charm.seed, luck);
         const metal = chainMetalHex(chain.metal);
@@ -199,67 +266,79 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
             charmH: (1000 - crop) * S,
             /* Where the bail sits inside that box — the point it swings from. */
             bailPx: (bailY - crop) * S,
+            id: charm.id,
+            name: charm.name,
         };
-    }, [charm]);
+    }), [charms]);
 
-    const linkRefs = useRef<(HTMLSpanElement | null)[]>([]);
-    const charmRef = useRef<HTMLSpanElement | null>(null);
+    /* One set of pieces per hanging charm. */
+    const linkRefs = useRef<(HTMLSpanElement | null)[][]>([]);
+    const charmRefs = useRef<(HTMLSpanElement | null)[]>([]);
     const hostRef = useRef<HTMLSpanElement | null>(null);
 
     useEffect(() => {
-        if (!art) return;
+        if (!arts.length) return;
         resumeMotion();
         const stopSway = startSway();
 
-        const N = art.links;
-        const L = art.geom.step;
-        /* The charm's own weight hangs below its bail — the chain swings it,
-           and it swings on the chain. */
-        const comLen = Math.max(140, (940 - art.bailY) * 0.45);
-        const len: number[] = [];
-        for (let i = 0; i < N; ++i) len.push(L);
-        len.push(comLen);
+        /* One solved chain per hanging charm — same maths as a single one,
+           run side by side off the same gravity. */
+        const rigs = arts.map((art, r) => {
+            const N = art.links;
+            const L = art.geom.step;
+            /* The charm's own weight hangs below its bail — the chain swings
+               it, and it swings on the chain. */
+            const comLen = Math.max(140, (940 - art.bailY) * 0.45);
+            const len: number[] = [];
+            for (let i = 0; i < N; ++i) len.push(L);
+            len.push(comLen);
 
-        const n = N + 2;               // 0 = the ring (pinned) … N+1 = the charm's weight
-        const px = new Float64Array(n);
-        const py = new Float64Array(n);
-        const ox = new Float64Array(n);
-        const oy = new Float64Array(n);
-        for (let i = 0; i < n; ++i) {
-            px[i] = 500;
-            py[i] = art.geom.top + (i <= N ? L * i : L * N + comLen);
-            ox[i] = px[i];
-            oy[i] = py[i];
-        }
+            const n = N + 2;           // 0 = the ring (pinned) … N+1 = the charm's weight
+            const px = new Float64Array(n);
+            const py = new Float64Array(n);
+            const ox = new Float64Array(n);
+            const oy = new Float64Array(n);
+            for (let i = 0; i < n; ++i) {
+                px[i] = 500;
+                py[i] = art.geom.top + (i <= N ? L * i : L * N + comLen);
+                ox[i] = px[i];
+                oy[i] = py[i];
+            }
+            return { art, r, N, n, len, px, py, ox, oy };
+        });
 
         /* The only per-frame writes: one transform per piece. Nothing here
            changes geometry, size or layout, so no vector is ever re-drawn. */
         const draw = () => {
-            for (let i = 0; i < N; ++i) {
-                const dx = px[i + 1]! - px[i]!;
-                const dy = py[i + 1]! - py[i]!;
-                const dist = Math.hypot(dx, dy) || 1e-6;
-                const ux = dx / dist;
-                const uy = dy / dist;
-                // Rotate the link's own down-axis onto the segment.
-                const ang = (Math.atan2(-ux, uy) * 180) / Math.PI;
-                const cx = (px[i]! + ux * art.geom.off) * S;
-                const cy = (py[i]! + uy * art.geom.off) * S;
-                const el = linkRefs.current[i];
-                if (el) {
-                    el.style.transform =
-                        `translate3d(${cx.toFixed(2)}px, ${cy.toFixed(2)}px, 0) rotate(${ang.toFixed(2)}deg)`;
+            for (const rig of rigs) {
+                const { art, r, N, px, py } = rig;
+                for (let i = 0; i < N; ++i) {
+                    const dx = px[i + 1]! - px[i]!;
+                    const dy = py[i + 1]! - py[i]!;
+                    const dist = Math.hypot(dx, dy) || 1e-6;
+                    const ux = dx / dist;
+                    const uy = dy / dist;
+                    // Rotate the link's own down-axis onto the segment.
+                    const ang = (Math.atan2(-ux, uy) * 180) / Math.PI;
+                    const cx = (px[i]! + ux * art.geom.off) * S;
+                    const cy = (py[i]! + uy * art.geom.off) * S;
+                    const el = linkRefs.current[r]?.[i];
+                    if (el) {
+                        el.style.transform =
+                            `translate3d(${cx.toFixed(2)}px, ${cy.toFixed(2)}px, 0) rotate(${ang.toFixed(2)}deg)`;
+                    }
                 }
-            }
-            const bx = px[N]! * S;
-            const by = py[N]! * S;
-            const cdx = px[N + 1]! - px[N]!;
-            const cdy = py[N + 1]! - py[N]!;
-            const cd = Math.hypot(cdx, cdy) || 1e-6;
-            const cang = (Math.atan2(-cdx / cd, cdy / cd) * 180) / Math.PI;
-            if (charmRef.current) {
-                charmRef.current.style.transform =
-                    `translate3d(${bx.toFixed(2)}px, ${by.toFixed(2)}px, 0) rotate(${cang.toFixed(2)}deg)`;
+                const bx = px[N]! * S;
+                const by = py[N]! * S;
+                const cdx = px[N + 1]! - px[N]!;
+                const cdy = py[N + 1]! - py[N]!;
+                const cd = Math.hypot(cdx, cdy) || 1e-6;
+                const cang = (Math.atan2(-cdx / cd, cdy / cd) * 180) / Math.PI;
+                const body = charmRefs.current[r];
+                if (body) {
+                    body.style.transform =
+                        `translate3d(${bx.toFixed(2)}px, ${by.toFixed(2)}px, 0) rotate(${cang.toFixed(2)}deg)`;
+                }
             }
         };
 
@@ -286,37 +365,40 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
             const kya = k.y * KICK;
 
             let travel = 0;
-            for (let i = 1; i < n; ++i) {
-                const vx = (px[i]! - ox[i]!) * DRAG;
-                const vy = (py[i]! - oy[i]!) * DRAG;
-                ox[i] = px[i]!;
-                oy[i] = py[i]!;
-                px[i]! += vx + gxa + kxa;
-                py[i]! += vy + gya + kya;
-            }
+            for (const rig of rigs) {
+                const { n, len, px, py, ox, oy } = rig;
+                for (let i = 1; i < n; ++i) {
+                    const vx = (px[i]! - ox[i]!) * DRAG;
+                    const vy = (py[i]! - oy[i]!) * DRAG;
+                    ox[i] = px[i]!;
+                    oy[i] = py[i]!;
+                    px[i]! += vx + gxa + kxa;
+                    py[i]! += vy + gya + kya;
+                }
 
-            // The links hold their length to each other; the ring never moves.
-            for (let pass = 0; pass < RELAX; ++pass) {
-                for (let i = 0; i < n - 1; ++i) {
-                    const dx = px[i + 1]! - px[i]!;
-                    const dy = py[i + 1]! - py[i]!;
-                    const dist = Math.hypot(dx, dy) || 1e-6;
-                    const pull = (dist - len[i]!) / dist;
-                    const mx = dx * pull;
-                    const my = dy * pull;
-                    if (i === 0) {
-                        px[1]! -= mx;
-                        py[1]! -= my;
-                    } else {
-                        px[i]! += mx * 0.5;
-                        py[i]! += my * 0.5;
-                        px[i + 1]! -= mx * 0.5;
-                        py[i + 1]! -= my * 0.5;
+                // The links hold their length to each other; the ring never moves.
+                for (let pass = 0; pass < RELAX; ++pass) {
+                    for (let i = 0; i < n - 1; ++i) {
+                        const dx = px[i + 1]! - px[i]!;
+                        const dy = py[i + 1]! - py[i]!;
+                        const dist = Math.hypot(dx, dy) || 1e-6;
+                        const pull = (dist - len[i]!) / dist;
+                        const mx = dx * pull;
+                        const my = dy * pull;
+                        if (i === 0) {
+                            px[1]! -= mx;
+                            py[1]! -= my;
+                        } else {
+                            px[i]! += mx * 0.5;
+                            py[i]! += my * 0.5;
+                            px[i + 1]! -= mx * 0.5;
+                            py[i + 1]! -= my * 0.5;
+                        }
                     }
                 }
-            }
 
-            for (let i = 1; i < n; ++i) travel += Math.abs(px[i]! - ox[i]!) + Math.abs(py[i]! - oy[i]!);
+                for (let i = 1; i < n; ++i) travel += Math.abs(px[i]! - ox[i]!) + Math.abs(py[i]! - oy[i]!);
+            }
             draw();
 
             // Settled and nothing shoving it — park until something moves.
@@ -359,16 +441,23 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
             document.removeEventListener('visibilitychange', onVis);
             if (raf) cancelAnimationFrame(raf);
         };
-    }, [art]);
+    }, [arts]);
 
-    if (!charm || !art) return null;
+    if (!charm || !arts.length) return null;
 
-    const tap = (e: ReactMouseEvent<HTMLElement> | ReactKeyboardEvent<HTMLElement>) => {
+    /* Tapping one of them: your own row opens the switcher, anyone else's
+       opens the charm you actually tapped. */
+    const tapCharm = (
+        e: ReactMouseEvent<HTMLElement> | ReactKeyboardEvent<HTMLElement>,
+        id: number,
+    ) => {
         e.preventDefault();
         e.stopPropagation();
         if (isMine) setSwapAnchor(anchorFromEvent(e));
-        else open('keychain', `${address.toLowerCase()}:${charm.id}`);
+        else open('keychain', `${address.toLowerCase()}:${id}`);
     };
+    const tap = (e: ReactMouseEvent<HTMLElement> | ReactKeyboardEvent<HTMLElement>) =>
+        tapCharm(e, charm.id);
 
     return (
         <span
@@ -376,6 +465,9 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
             className="pd-charm-worn"
             role="button"
             tabIndex={0}
+            /* The slot widens with the bunch so the tag row still spaces
+               itself properly; the chains still overflow downward. */
+            style={{ width: 12 + (arts.length - 1) * SPREAD }}
             title={isMine ? 'Swap keychain' : charm.name || 'Keychain'}
             onClick={tap}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') tap(e); }}
@@ -394,15 +486,28 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
                                 onClick={(ev) => {
                                     ev.preventDefault();
                                     ev.stopPropagation();
-                                    if (c.id === rack.equipped) { setSwapAnchor(null); return; }
                                     void equip(c.id);
                                 }}
                             >
                                 <CharmTile charm={c} />
-                                {c.id === rack.equipped && <span className="dp-rack-worn">WORN</span>}
+                                {rack.top.includes(c.id) && <span className="dp-rack-worn">WORN</span>}
                             </button>
                         ))}
                     </div>
+                    {/* SHUFFLE — the three that hang are drawn fresh out of
+                        everything you're wearing on every page load, so the
+                        row is a different bunch each visit. */}
+                    <button
+                        type="button"
+                        className={`charm-swap-door${rack.shuffle ? ' on' : ''}`}
+                        onClick={(ev) => {
+                            ev.preventDefault();
+                            ev.stopPropagation();
+                            void toggleShuffle();
+                        }}
+                    >
+                        {`⟳${VS15}`} {rack.shuffle ? 'SHUFFLE ON' : 'SHUFFLE MY KEYCHAINS'}
+                    </button>
                     {/* Match my stickers to this charm — shown only when you
                         actually own stickers in its family, so it is never dead
                         chrome. Lit while the lock is on; the same tap undoes. */}
@@ -458,47 +563,65 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
                 </div>,
                 document.body,
             )}
-            <span className="pd-charm-hang">
-                {/* The ring is the anchor — it is nailed to the end of the row
-                    and never moves, so it is drawn once and left alone. */}
+            {arts.map((art, r) => (
                 <span
-                    className="pd-charm-ring"
+                    key={art.id}
+                    className="pd-charm-hang"
+                    /* All the rings sit within a few pixels of each other — one
+                       origin, a small bunch — and who is in front was drawn
+                       once when the page loaded. */
                     style={{
-                        width: art.ringPx,
-                        height: art.ringPx,
-                        marginLeft: -art.ringPx / 2,
-                        marginTop: -art.ringPx / 2,
-                        backgroundImage: art.ring,
-                        transform: `translate3d(${(500 * S).toFixed(2)}px, ${(108 * S).toFixed(2)}px, 0)`,
+                        marginLeft: (r - (arts.length - 1) / 2) * SPREAD,
+                        zIndex: 5 + (levels[r] ?? r),
                     }}
-                />
-                {art.linkArt.map((uri, i) => (
+                >
+                    {/* The ring is the anchor — it is nailed to the end of the row
+                        and never moves, so it is drawn once and left alone. */}
                     <span
-                        key={i}
-                        className="pd-charm-link"
-                        ref={(el) => { linkRefs.current[i] = el; }}
+                        className="pd-charm-ring"
                         style={{
-                            width: art.linkPx,
-                            height: art.linkPx,
-                            marginLeft: -art.linkPx / 2,
-                            marginTop: -art.linkPx / 2,
-                            backgroundImage: uri,
+                            width: art.ringPx,
+                            height: art.ringPx,
+                            marginLeft: -art.ringPx / 2,
+                            marginTop: -art.ringPx / 2,
+                            backgroundImage: art.ring,
+                            transform: `translate3d(${(500 * S).toFixed(2)}px, ${(108 * S).toFixed(2)}px, 0)`,
                         }}
                     />
-                ))}
-                <span
-                    className="pd-charm-body"
-                    ref={charmRef}
-                    style={{
-                        width: art.charmW,
-                        height: art.charmH,
-                        marginLeft: -art.charmW / 2,
-                        marginTop: -art.bailPx,
-                        transformOrigin: `${art.charmW / 2}px ${art.bailPx}px`,
-                    }}
-                    dangerouslySetInnerHTML={{ __html: art.charmSvg }}
-                />
-            </span>
+                    {art.linkArt.map((uri, i) => (
+                        <span
+                            key={i}
+                            className="pd-charm-link"
+                            ref={(el) => {
+                                (linkRefs.current[r] ||= [])[i] = el;
+                            }}
+                            style={{
+                                width: art.linkPx,
+                                height: art.linkPx,
+                                marginLeft: -art.linkPx / 2,
+                                marginTop: -art.linkPx / 2,
+                                backgroundImage: uri,
+                            }}
+                        />
+                    ))}
+                    <span
+                        className="pd-charm-body"
+                        ref={(el) => { charmRefs.current[r] = el; }}
+                        role="button"
+                        tabIndex={-1}
+                        title={isMine ? 'Swap keychain' : art.name || 'Keychain'}
+                        onClick={(e) => tapCharm(e, art.id)}
+                        style={{
+                            width: art.charmW,
+                            height: art.charmH,
+                            marginLeft: -art.charmW / 2,
+                            marginTop: -art.bailPx,
+                            transformOrigin: `${art.charmW / 2}px ${art.bailPx}px`,
+                        }}
+                        dangerouslySetInnerHTML={{ __html: art.charmSvg }}
+                    />
+                </span>
+            ))}
         </span>
     );
 }

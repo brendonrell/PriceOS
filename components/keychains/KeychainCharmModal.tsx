@@ -24,7 +24,8 @@ export default function KeychainCharmModal() {
 
     const charm = useMemo(() => {
         if (!rack) return null;
-        const id = idPart ? Number(idPart) : rack.equipped;
+        /* No id in the payload — the first one they have hanging. */
+        const id = idPart ? Number(idPart) : rack.top[0] ?? null;
         if (id == null) return null;
         return rack.charms.find((c) => c.id === id) ?? null;
     }, [rack, idPart]);
