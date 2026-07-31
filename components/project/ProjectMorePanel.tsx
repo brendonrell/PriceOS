@@ -36,6 +36,7 @@ import { formatEth } from '../../lib/format/eth';
 import { useAuth } from '../../lib/state/AuthContext';
 import CallLedgerCard from './CallLedgerCard';
 import PopTablePanel from './PopTablePanel';
+import { fmPlay } from '../../lib/fm/fmBus';
 
 /* + More sub-nav (Brendon, 2026-06-13) — same trait-pill tab system as the
    profile's + More. The panel's stacked sections are grouped under pills so
@@ -74,9 +75,19 @@ export default function ProjectMorePanel({
     const { open } = useModal();
     const { openAnchorPrompt } = useValuePrompt();
 
-    /* Attribute tile taps — the Golf Score tile opens the Clubhouse leaderboard. */
+    /* Attribute tile taps — the Golf Score tile opens the Clubhouse leaderboard;
+       the Soundtrack tile is the same door as the page's SOUNDTRACK button, so
+       it makes the same call (Rule #0). */
     const onAttrTileTap = (k: string) => {
         if (k === 'golf') open('golf-leaderboard', undefined, project.slug);
+        if (k === 'soundtrack' && project.soundtrack) {
+            fmPlay({
+                playlistId: project.soundtrack.playlistId,
+                label: project.soundtrack.label,
+                slug: project.slug,
+            });
+            showToast('miniplayer: ON AIR');
+        }
     };
 
     /* The project's PriceSprite face — composed deterministically from the slug
