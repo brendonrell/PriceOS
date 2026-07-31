@@ -22,6 +22,11 @@ import { useTraits, type TraitCategory } from '../../lib/state/TraitsContext';
 import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
 import { resolveBucket, useStoredColors } from '../../lib/art/colorStore';
 import { getProject } from '../../lib/project/registry';
+
+/* The dimensions that keep their section even when every piece falls in it —
+   owner and tag can genuinely cut a project's gallery; today's projects are
+   just held by one wallet (Brendon, 2026-07-31). */
+const KEEP_SINGLE: GroupKey[] = ['owner', 'tag'];
 import { readNoteFor } from '../../lib/notes/tokenNotes';
 import { getRecentIdsForProject, subscribeBreadcrumbs } from '../../lib/pins/breadcrumbStore';
 
@@ -345,6 +350,8 @@ export function useProjectGallery({
         return filtered;
     }, [project, dSort, dDir, dActiveFilters, dSearchQuery, dPriceMin, dPriceMax, dMyNotesActive, notesVersion, dActiveCategory, breadcrumbAll, effectiveAddress, netSets, topHolders]);
 
+    /* Owner and tag stay in play even when the whole project sits in one
+       wallet — see usefulLayers (Brendon, 2026-07-31). */
     /* Group-by sections (Brendon, 2026-06-13). When GROUP is on, partition the
        already-sorted/filtered gallery into colour or owner buckets, preserving
        the sort order inside each. Colour is palette-derived (free, no canvas);
@@ -375,7 +382,7 @@ export function useProjectGallery({
             });
         /* Drop any layer that can't actually cut this window — see usefulLayers.
            Sorting one project BY project is a title bar and nothing else. */
-        const useful = usefulLayers(visibleTokenIds, dGroupLayers, labelOf);
+        const useful = usefulLayers(visibleTokenIds, dGroupLayers, labelOf, KEEP_SINGLE);
         if (!useful.length) return null;
         return buildGroupSections(visibleTokenIds, useful, { idOf: (id) => id, labelOf });
     }, [dGroup, dGroupLayers, dSort, visibleTokenIds, project, colorsVer, factionsVer, ownerTagOf]);

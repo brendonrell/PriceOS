@@ -255,9 +255,19 @@ export function usefulLayers<T>(
     items: readonly T[],
     layers: readonly GroupKey[],
     labelOf: (item: T, layer: GroupKey) => string,
+    /* ⛔ DIMENSIONS THAT MUST STILL APPLY WHEN THEY HAPPEN TO HAVE ONE VALUE
+       (Brendon, 2026-07-31: "owner and tag groups don't work in our group
+       cycle"). Dropping a layer is right when it CANNOT cut the window — one
+       project grouped by project is a title bar and nothing else. But owner
+       and tag can absolutely cut it; today's projects just happen to be held
+       by a single wallet, so the cycle landed on them and NOTHING happened,
+       which reads as broken. Named here, a dimension keeps its section even
+       when every piece lands in it. */
+    keepSingle?: readonly GroupKey[],
 ): GroupKey[] {
     if (items.length < 2) return layers.slice(0, 1);
     return layers.filter((layer) => {
+        if (keepSingle?.includes(layer)) return true;
         const seen = new Set<string>();
         for (const item of items) {
             seen.add(labelOf(item, layer));
