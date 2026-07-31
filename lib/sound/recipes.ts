@@ -9,8 +9,12 @@
  *   tick    — settings toggle flip (v1: dry 25ms click)
  *   coin    — your piece sold (v2: two bright metallic taps + glitter)
  *   seal    — offer/trade accepted (two rising bells)
+ *   nudge   — any other ping landing (two soft taps)
+ *   clunk   — a mint that failed (two low metal taps)
+ *   tuck    — added to your wishlist (one soft rounded rise)
  * The mint and the accept traded sounds 2026-07-31 (Brendon) — the bloom
- * belongs to the mint.
+ * belongs to the mint. nudge/clunk/tuck were chosen the same day from the
+ * audition page.
  * The v2 chime/sparkle/tick variants and boink/ping-pop were REJECTED —
  * do not resurrect them.
  */
@@ -45,13 +49,16 @@ export interface SoundRecipe {
     voices: SoundVoice[];
 }
 
-export type SoundName = 'chime' | 'sparkle' | 'tick' | 'coin' | 'seal';
+export type SoundName =
+    | 'chime' | 'sparkle' | 'tick' | 'coin' | 'seal'
+    | 'nudge' | 'clunk' | 'tuck';
 
 const BELL: [number, number][] = [[1, 1], [2, 0.35], [4, 0.12]];
 const METAL: [number, number][] = [[1, 1], [2.76, 0.4], [5.4, 0.15]];
 const METAL_HI: [number, number][] = [[1, 1], [2.76, 0.35], [5.4, 0.12]];
 const GLASS: [number, number][] = [[1, 1], [3, 0.2], [5.4, 0.08]];
 const SINE: [number, number][] = [[1, 1]];
+const RUBBER: [number, number][] = [[1, 1], [2, 0.22], [3, 0.08]];
 
 /* Deterministic PRNG for the glitter clouds — same seeds as the approved
    WAV renders, so what ships is byte-for-byte what Brendon heard. */
@@ -135,6 +142,30 @@ export const SOUND_RECIPES: Record<SoundName, SoundRecipe> = {
         voices: [
             { at: 0.00, dur: 0.45, f0: 659.26, partials: BELL, gain: 0.9, tail: 7 },
             { at: 0.09, dur: 0.55, f0: 987.77, partials: BELL, gain: 1.0, tail: 6 },
+        ],
+    },
+    // nudge — a ping lands: two soft taps, close together (Brendon, 2026-07-31).
+    // The most-heard blip on the site, so it stays small and never bright.
+    nudge: {
+        dur: 0.24,
+        voices: [
+            { at: 0.000, dur: 0.10, f0: 1046.50, partials: SINE, gain: 0.75, attack: 0.003, tail: 9 },
+            { at: 0.065, dur: 0.16, f0: 1318.51, partials: SINE, gain: 0.90, attack: 0.003, tail: 8 },
+        ],
+    },
+    // clunk — it didn't go through: two low metal taps, the second lower.
+    clunk: {
+        dur: 0.30,
+        voices: [
+            { at: 0.00, dur: 0.13, f0: 420, partials: METAL, gain: 1.0, attack: 0.001, tail: 8 },
+            { at: 0.09, dur: 0.19, f0: 300, partials: METAL, gain: 0.8, attack: 0.001, tail: 7 },
+        ],
+    },
+    // tuck — onto your wishlist: one soft rounded rise, pocketing it.
+    tuck: {
+        dur: 0.15,
+        voices: [
+            { at: 0, dur: 0.11, f0: 520, f1: 880, glide: 38, partials: RUBBER, gain: 1.0, attack: 0.002, tail: 8 },
         ],
     },
 };

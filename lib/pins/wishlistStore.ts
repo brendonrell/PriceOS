@@ -10,6 +10,7 @@
  * Persistence protocol lives in createPinStore (2026-07-06 factory).
  */
 
+import { playSound } from '../sound/engine';
 import { pushSettings, STATE_CACHE_KEYS } from '../state/userState';
 import { createPinStore, decodeStringSet } from './createPinStore';
 
@@ -55,6 +56,7 @@ export function toggleWishlist(slug: string, id: number): ToggleWishlistResult {
     }
     next.add(k);
     store.set(next);
+    playSound('tuck'); // sound layer — onto your wishlist (no-op when off)
     return 'added';
 }
 

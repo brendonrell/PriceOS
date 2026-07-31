@@ -10,10 +10,12 @@
 import { describe, expect, it } from 'vitest';
 import { renderRecipe, SOUND_RECIPES } from '../lib/sound/recipes';
 
-const NAMES = ['chime', 'sparkle', 'tick', 'coin', 'seal'] as const;
+const NAMES = [
+    'chime', 'sparkle', 'tick', 'coin', 'seal', 'nudge', 'clunk', 'tuck',
+] as const;
 
 describe('sound recipes', () => {
-    it('ships exactly the five locked sounds', () => {
+    it('ships exactly the locked sounds', () => {
         expect(Object.keys(SOUND_RECIPES).sort()).toEqual([...NAMES].sort());
     });
 

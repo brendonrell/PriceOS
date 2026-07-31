@@ -237,11 +237,13 @@ export function PingsProvider({ children }: { children: ReactNode }) {
         }
         // Sound layer (no-op when off) — one blip per toast, picked by the
         // weightiest fresh kind: seal (deal done) > coin (your sale) >
-        // sparkle (achievement). Other kinds stay silent.
+        // sparkle (achievement). Everything else gets the nudge, so a ping
+        // landing is never silent (Brendon, 2026-07-31).
         const kinds = new Set(fresh.map((p) => p.kind));
         if (kinds.has('OFFER_ACCEPTED') || kinds.has('TRADE_ACCEPTED')) playSound('seal');
         else if (kinds.has('SALE')) playSound('coin');
         else if (kinds.has('ACHIEVEMENT')) playSound('sparkle');
+        else playSound('nudge');
       }
       items.forEach((p) => seenIds.current.add(p.id));
       primed.current = true;

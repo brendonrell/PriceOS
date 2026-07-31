@@ -145,6 +145,7 @@ export default function MintButton({
     await minShow;
     setPct(100);
     if (!ok) {
+      playSound('clunk'); // sound layer — the mint didn't go through
       showToast(j?.error ? String(j.error) : 'Mint: FAILED');
       setPhase('idle');
       setPct(0);

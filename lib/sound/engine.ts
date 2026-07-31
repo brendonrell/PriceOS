@@ -25,6 +25,13 @@ const buffers = new Map<SoundName, AudioBuffer>();
    peak; only the output is turned down. */
 const MASTER_GAIN = 0.75;
 
+/* A bulk action (wishlisting a whole page from the Composer, the stone
+   etching a plan) calls its handler once per item — without this, the same
+   blip machine-guns. One sound can't retrigger inside this window; different
+   sounds are unaffected. */
+const RETRIGGER_MS = 70;
+const lastPlayed = new Map<SoundName, number>();
+
 function getCtx(): AudioContext | null {
     if (typeof window === 'undefined') return null;
     if (!ctx) {
@@ -53,11 +60,14 @@ export function unlockSound(): void {
     if (ac && ac.state === 'suspended') void ac.resume().catch(() => {});
 }
 
-/** Play one of the five blips. Silent no-op when the layer is off. */
+/** Play one of the blips. Silent no-op when the layer is off. */
 export function playSound(name: SoundName): void {
     if (!readSoundOn()) return;
     const ac = getCtx();
     if (!ac) return;
+    const now = ac.currentTime * 1000;
+    if (now - (lastPlayed.get(name) ?? -Infinity) < RETRIGGER_MS) return;
+    lastPlayed.set(name, now);
     if (ac.state === 'suspended') {
         void ac.resume().catch(() => {});
         if (ac.state === 'suspended') return; // locked — skip, never queue
