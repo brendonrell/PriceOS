@@ -18,7 +18,7 @@
  * nailed in the UI before the real content sources are wired.
  */
 
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, memo, useEffect, useRef, useState } from 'react';
 
 /* ⛔ LOCKED — the news banner's scroll speed, approved by Brendon 2026-07-06
    ("I love the speed"). Desktop 45 px/sec · mobile 28 px/sec. Recovery
@@ -145,8 +145,13 @@ function NewsPill({ item }: { item: NewsItem }) {
     return <span className="pill news-pill">{inner}</span>;
 }
 
-export default function NewsCarousel({ items = PLACEHOLDER_ITEMS }: { items?: NewsItem[] }) {
+function NewsCarousel({ items = PLACEHOLDER_ITEMS }: { items?: NewsItem[] }) {
     const railRef = useRef<HTMLDivElement | null>(null);
+    /* The measured loop distance and the rail's travelled offset survive across
+       re-measures, so a content change that doesn't move the rail leaves the
+       animation completely alone (see the effect below). */
+    const lastHalfRef = useRef(0);
+    const travelledRef = useRef<number | null>(null);
 
     // Content signature — the animation re-binds ONLY when the actual content
     // changes, not on parent re-renders (the featuring row re-rolls on a timer
@@ -172,14 +177,40 @@ export default function NewsCarousel({ items = PLACEHOLDER_ITEMS }: { items?: Ne
         const rail = railRef.current;
         if (!rail) return;
         let cancelled = false;
-        let lastHalf = 0;
+
+        /* How far the rail has travelled RIGHT NOW, in pixels, read straight
+           off the running animation. This is what keeps a re-measure invisible:
+           the loop resumes from the exact position the eye is looking at
+           instead of being re-thrown somewhere else. */
+        const readTravelled = (): number | null => {
+            if (!rail.classList.contains('news-rail-anim')) return null;
+            const m = getComputedStyle(rail).transform;
+            if (!m || m === 'none') return null;
+            const nums = m.slice(m.indexOf('(') + 1, -1).split(',').map(Number);
+            const tx = nums.length === 16 ? nums[12] : nums[4];
+            return Number.isFinite(tx) ? -tx : null;
+        };
+
         const apply = () => {
             if (cancelled || !rail.isConnected) return;
-            const half = rail.scrollWidth / 2;
-            if (!half || Math.abs(half - lastHalf) < 1) return;
-            lastHalf = half;
+            /* Measured off the real box, not scrollWidth: the rail is
+               max-content wide, so its own width is exactly the doubled run
+               including every pill's trailing gap — and half of that is the
+               exact seam. scrollWidth rounds and drops the last margin, which
+               is what left the loop landing a hair off and clipping a card. */
+            const half = rail.getBoundingClientRect().width / 2;
+            if (!half) return;
+            const settled = Math.abs(half - lastHalfRef.current) < 1;
+            /* Nothing moved AND the animation is still running → leave it
+               completely alone. Live pills re-render constantly (prices, your
+               signals, new faces); re-binding on each one is what made the
+               marquee stutter and jump. */
+            if (settled && rail.classList.contains('news-rail-anim')) return;
+
             const mobile = window.matchMedia('(max-width: 600px)').matches;
             const speed = mobile ? NEWS_BANNER_SPEED.mobile : NEWS_BANNER_SPEED.desktop;
+            const dur = half / speed;
+
             /* ⛔ THE RAIL IS ANCHORED TO THE WALL CLOCK, NOT TO THIS VISIT
                (Brendon, 2026-07-30: "it restarts every refresh or return which
                means I only ever see the first few"). The loop used to begin
@@ -187,17 +218,27 @@ export default function NewsCarousel({ items = PLACEHOLDER_ITEMS }: { items?: Ne
                very start, so every arrival replayed the same opening pills and
                the tail of the rail was effectively unreachable.
 
-               The phase is now a pure function of the time of day: the loop is
+               The phase is a pure function of the time of day: the loop is
                treated as always having been running, and the negative delay
                drops us in at the point the world is already at. A refresh, a
                return from another page, and a second device all land on the
                same spot — one marquee, running continuously, that nobody
-               restarts. */
-            const dur = half / speed;
-            const phase = (Date.now() / 1000) % dur;
+               restarts.
+
+               That anchor is for ARRIVING. Once the rail is moving, a
+               re-measure resumes from where it actually is — re-anchoring a
+               live marquee to the clock is a teleport, and that is exactly the
+               jumping Brendon sees. */
+            const travelled = readTravelled() ?? travelledRef.current;
+            const phase = travelled === null
+                ? (Date.now() / 1000) % dur
+                : (((travelled % half) + half) % half) / speed;
+
+            lastHalfRef.current = half;
+            rail.style.setProperty('--news-loop-x', `${(-half).toFixed(2)}px`);
             rail.style.setProperty('--news-loop-s', `${dur.toFixed(2)}s`);
             rail.style.setProperty('--news-loop-delay', `${(-phase).toFixed(2)}s`);
-            /* Re-bind so the new duration + delay take effect from the
+            /* Re-bind so the new distance + delay take effect from the
                preserved phase (a running CSS animation ignores var changes
                mid-flight in Safari). */
             rail.classList.remove('news-rail-anim');
@@ -213,9 +254,11 @@ export default function NewsCarousel({ items = PLACEHOLDER_ITEMS }: { items?: Ne
         return () => {
             cancelled = true;
             window.removeEventListener('resize', apply);
+            // Hand the live position to the next run so it picks up mid-stride.
+            travelledRef.current = readTravelled();
             rail.classList.remove('news-rail-anim');
         };
-         
+
     }, [sig]);
 
     if (items.length === 0) return null;
@@ -236,3 +279,10 @@ export default function NewsCarousel({ items = PLACEHOLDER_ITEMS }: { items?: Ne
         </div>
     );
 }
+
+/* The home page re-renders on a timer (the featuring row re-rolls). Without
+   this the whole rail — every pill, every sprite, every mark — is reconciled
+   on each of those ticks for no reason, and that main-thread churn is felt as
+   stutter in the scroll. The rail now re-renders only when its content
+   actually changes. */
+export default memo(NewsCarousel);

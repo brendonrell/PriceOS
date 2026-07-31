@@ -2114,9 +2114,15 @@ body.tape-framed .tape-rail {
        content loads in around it (Brendon, 2026-07-06 — steady, always). */
     animation-delay: var(--news-loop-delay, 0s);
 }
+/* ⛔ THE LOOP TRAVELS A FIXED PIXEL DISTANCE, NEVER -50% (Brendon, 2026-07-31
+   — "it keeps getting cut off or jumping around"). A percentage transform
+   resolves against the rail's CURRENT width, so the instant a live pill
+   re-renders a pixel wider the animation's endpoint moves and the rail
+   teleports mid-loop. The distance is measured once and pinned in pixels, so
+   content changing underneath the marquee can never yank it. */
 @keyframes news-rail-scroll {
     from { transform: translate3d(0, 0, 0); }
-    to   { transform: translate3d(-50%, 0, 0); }
+    to   { transform: translate3d(var(--news-loop-x, -50%), 0, 0); }
 }
 @media (prefers-reduced-motion: reduce) {
     .news-rail.news-rail-anim { animation: none; }
