@@ -160,7 +160,7 @@ function factsFromFeed(events: FeedEvent[], addr: string): string[] {
     }
     if (listed.length > 0) {
         const l = listed[0];
-        if (l.price_eth) out.push(`${pieceLabel(l.project_id, l.token_id)} IS LISTED AT ${l.price_eth}Ξ. STILL WAITING ON A TAKER.`);
+        if (l.price_eth) out.push(`${pieceLabel(l.project_id, l.token_id)} IS LISTED AT ${l.price_eth}◊. STILL WAITING ON A TAKER.`);
     }
 
     /* Deep reads — the numbers only something that watched EVERYTHING would
@@ -172,13 +172,13 @@ function factsFromFeed(events: FeedEvent[], addr: string): string[] {
         .filter((n) => Number.isFinite(n) && n > 0);
     const totalSpent = spentOn.reduce((a, b) => a + b, 0);
     if (totalSpent > 0) {
-        out.push(`${eth(totalSpent)}Ξ SPENT HERE, ALL TOLD. I KEPT THE RECEIPTS.`);
+        out.push(`${eth(totalSpent)}◊ SPENT HERE, ALL TOLD. I KEPT THE RECEIPTS.`);
     }
     const earned = sold
         .map((e) => (e.price_eth != null ? Number(e.price_eth) : 0))
         .filter((n) => Number.isFinite(n) && n > 0)
         .reduce((a, b) => a + b, 0);
-    if (earned > 0) out.push(`${eth(earned)}Ξ CAME BACK TO YOU IN SALES. SO FAR.`);
+    if (earned > 0) out.push(`${eth(earned)}◊ CAME BACK TO YOU IN SALES. SO FAR.`);
 
     // Biggest single purchase — the day their conviction peaked.
     let biggest: FeedEvent | null = null;
@@ -187,7 +187,7 @@ function factsFromFeed(events: FeedEvent[], addr: string): string[] {
         if (Number.isFinite(p) && p > 0 && (!biggest || p > Number(biggest.price_eth))) biggest = e;
     }
     if (biggest && Number(biggest.price_eth) > 0) {
-        out.push(`YOUR BOLDEST BUY: ${pieceLabel(biggest.project_id, biggest.token_id)} AT ${biggest.price_eth}Ξ. I HELD MY BREATH.`);
+        out.push(`YOUR BOLDEST BUY: ${pieceLabel(biggest.project_id, biggest.token_id)} AT ${biggest.price_eth}◊. I HELD MY BREATH.`);
     }
 
     // Never sold — the quiet flex.

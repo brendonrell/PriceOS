@@ -83,20 +83,20 @@ export function resolveProject(name: string): { slug: string; title: string } | 
 }
 
 /** The etch mark each plan kind wears — the concept's own canonical glyph.
-    Anchor = ↧ (U+21A7, down-arrow to bar — pinned to the line): ⚓ is
+    Anchor = ♆ (U+2646, NEPTUNE — the trident, Brendon's pick 2026-07-31): ⚓ is
     emoji-default on iOS and banned (Brendon, 2026-07-19), and the first
     swap ⏚ turned out to be the Grid Presets button (in code, uncatalogued
-    — now in GLYPHS.md §12a). ↧ is grep-verified unused, arrow family
-    (⇡ / ↗ / ⤤ precedent, all iOS-proven text). */
+    — now in GLYPHS.md §12a). ♆ is grep-verified unused: nautical, one
+    distinct mark, and text-presentation on iOS. */
 const CHIP_GLYPH: Record<EtchPlan['kind'], string> = {
     'todo-output': `❍${VS15}`,
     'todo-raw': `❍${VS15}`,
     note: `⊟${VS15}`,
-    anchor: `↧${VS15}`,
+    anchor: `♆${VS15}`,
     watch: `⬚${VS15}`,
     wishlist: `✛${VS15}`,
     'wishlist-bulk': `✛${VS15}`,
-    'anchor-bulk': `↧${VS15}`,
+    'anchor-bulk': `♆${VS15}`,
 };
 
 function chipFor(kind: EtchPlan['kind'], parts: string[]): string {

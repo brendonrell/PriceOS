@@ -76,7 +76,7 @@ export default function RewindHome() {
   if (log.uploads > 0) logBits.push(`${log.uploads} UPLOAD${log.uploads === 1 ? '' : 'S'}`);
   if (log.mints > 0) logBits.push(`${log.mints} MINT${log.mints === 1 ? '' : 'S'}`);
   if (log.sales > 0) logBits.push(`${log.sales} SALE${log.sales === 1 ? '' : 'S'}`);
-  if (log.volume_eth > 0) logBits.push(`Ξ${log.volume_eth} MOVED`);
+  if (log.volume_eth > 0) logBits.push(`◊${log.volume_eth} MOVED`);
 
   return (
     <div className="rw-body">
@@ -101,7 +101,7 @@ export default function RewindHome() {
             <span className="rw-daylog-line">{logBits.join(' · ')}</span>
             {log.top_sale && (
               <a className="rw-daylog-top" href={`/art/${log.top_sale.slug}/${log.top_sale.id}`}>
-                {'✶︎'} DAY&apos;S TOP: {(getProject(log.top_sale.slug)?.displayName ?? log.top_sale.slug).toUpperCase()} #{log.top_sale.id} · Ξ{log.top_sale.eth}
+                {'✶︎'} DAY&apos;S TOP: {(getProject(log.top_sale.slug)?.displayName ?? log.top_sale.slug).toUpperCase()} #{log.top_sale.id} · ◊{log.top_sale.eth}
               </a>
             )}
           </>

@@ -600,7 +600,7 @@ export default function ArtworkPageBody({
         const tiles: AttrTile[] = [
             { glyph: '⊡', label: 'Holding', value: owned ? 'OWNED' : '—' },
             { glyph: '∿', label: 'Sentiment', value: sentiment?.label ?? '—', tapKey: 'sentiment' },
-            { glyph: '↧', label: 'Anchor', value: outputAnchor != null ? `${formatEth(outputAnchor)} ETH` : 'TAP TO SET', tapKey: 'anchor' },
+            { glyph: '♆', label: 'Anchor', value: outputAnchor != null ? `${formatEth(outputAnchor)} ETH` : 'TAP TO SET', tapKey: 'anchor' },
         ];
         return { key: 'stats', label: 'Stats', tiles };
     }, [owned, sentiment, outputAnchor]);

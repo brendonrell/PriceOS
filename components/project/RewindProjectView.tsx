@@ -77,7 +77,7 @@ export default function RewindProjectView({ slug }: { slug: string }) {
         </span>
         {data.ath_eth > 0 && (
           <span className="stat-item">
-            <span className="stat-val">ATH Ξ{data.ath_eth}</span>
+            <span className="stat-val">ATH ◊{data.ath_eth}</span>
           </span>
         )}
       </div>

@@ -23,7 +23,7 @@
  *     logged-out save never tries to write an account and never clobbers it).
  *
  * Auto-naming: savePreset derives a human-readable label from the snapshot —
- * e.g. "#ID ↑ · Layer:Crust" or "$PRICE ↓ · 0.1–0.5Ξ". Pass `name` to override.
+ * e.g. "#ID ↑ · Layer:Crust" or "$PRICE ↓ · 0.1–0.5◊". Pass `name` to override.
  *
  * "Currently loaded" tracking: loadedIndex (-1 = none / drifted) is in-memory
  * only. The caller resets it via setLoadedIndex() when view state drifts.
@@ -91,7 +91,7 @@ function deriveName(state: PresetViewState): string {
         return `${base} · "${state.searchQuery.trim().slice(0, 12)}"`;
     if (state.priceMin || state.priceMax) {
         const range = [state.priceMin || '0', state.priceMax || '∞'].join('–');
-        return `${base} · ${range}Ξ`;
+        return `${base} · ${range}◊`;
     }
     if (state.myNotesActive) return `${base} · Notes`;
     return base;

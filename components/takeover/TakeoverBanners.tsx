@@ -46,7 +46,7 @@ export default function TakeoverBanners({ address }: { address: string }) {
         let label: string;
         let cls = '';
         if (t.status === 'active') {
-          label = `${casting ? 'TAKEOVER' : 'UNDER TAKEOVER'} · ${pair} · ${t.token_count} ${title} · Ξ${t.price_eth} each · ${hoursLeft(t.expires_at)}h`;
+          label = `${casting ? 'TAKEOVER' : 'UNDER TAKEOVER'} · ${pair} · ${t.token_count} ${title} · ◊${t.price_eth} each · ${hoursLeft(t.expires_at)}h`;
           cls = ' is-active';
         } else if (t.status === 'completed') {
           label = `${casting ? 'TAKEOVER COMPLETED' : 'YIELDED TAKEOVER'} · ${pair} · ${t.token_count} ${title}`;

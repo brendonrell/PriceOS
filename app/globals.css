@@ -8531,16 +8531,16 @@ body.budget-active #gallery .output-card:not(.in-budget):not(.hidden):not(.searc
 /* ── ANCHOR DELTA — sim 4045-4072 ──
    When the user has set a personal reference price for any project,
    every .meta-owner.price-trigger inside #gallery gets a data-anchor-delta
-   attribute. CSS appends "↧<delta>" via ::before so anchor changes never
+   attribute. CSS appends "♆<delta>" via ::before so anchor changes never
    churn the DOM — the page-level useEffect just stamps the attr.
 
    Format note: sim's data-anchor-delta value carries the full formatted
    delta INCLUDING parens + percent sign (e.g. "(+18%)", "(-3%)", "0").
-   CSS appends it verbatim after the anchor glyph. \21A7\FE0E = ↧ (the
+   CSS appends it verbatim after the anchor glyph. \2646\FE0E = ♆ (the
    anchor mark, 2026-07-31) with its VS15 text-presentation selector. Courier so the secondary delta is
    visually distinguishable from the Rubik Mono One primary price. */
 body.anchor-active #gallery:not(.project-showcase-mode) .meta-owner.price-trigger[data-anchor-delta]::before {
-    content: '\21A7\FE0E' attr(data-anchor-delta) '  ';
+    content: '\2646\FE0E' attr(data-anchor-delta) '  ';
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px;
     font-weight: normal;
@@ -8552,7 +8552,7 @@ body.anchor-active #gallery:not(.project-showcase-mode) .meta-owner.price-trigge
         display: none;
     }
     body.anchor-active #gallery:not(.project-showcase-mode) .meta-owner.price-trigger[data-anchor-delta]::after {
-        content: '\21A7\FE0E' attr(data-anchor-delta);
+        content: '\2646\FE0E' attr(data-anchor-delta);
         font-family: 'Courier New', Courier, monospace;
         font-size: 11px;
         font-weight: normal;

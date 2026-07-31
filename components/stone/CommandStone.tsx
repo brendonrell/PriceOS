@@ -979,7 +979,7 @@ export default function CommandStone() {
                 ? widgetAct
                 : anchorOffer
                     ? {
-                        label: `↧${VS15} anchor it at ◊${anchorOffer.price}?`,
+                        label: `♆${VS15} anchor it at ◊${anchorOffer.price}?`,
                         run: () => {
                             const toast = commitEtch({
                                 kind: 'anchor',

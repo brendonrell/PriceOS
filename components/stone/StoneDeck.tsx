@@ -771,7 +771,7 @@ function MatrixWidget({ names, onAct, onFooter }: { names: string[]; onAct: ActF
             .sort((a, b) => (a.floor_eth as number) - (b.floor_eth as number))[0] ?? null
         : null;
     useFooterAct(onFooter, cheapest ? {
-        label: `↧${VS15} ANCHOR · ${cheapest.title} · ◊${formatEth(cheapest.floor_eth as number)} — etch?`,
+        label: `♆${VS15} ANCHOR · ${cheapest.title} · ◊${formatEth(cheapest.floor_eth as number)} — etch?`,
         run: () => onAct(commitEtch({
             kind: 'anchor',
             title: cheapest.title,
@@ -1780,7 +1780,7 @@ function VerdictWidget({ slug, title, onGo, onAct, onFooter }: {
 
     const ready = proj !== 'loading' && proj != null && proj.floor_eth != null;
     useFooterAct(onFooter, ready ? {
-        label: `↧${VS15} ANCHOR · ${title} · ◊${formatEth((proj as SearchProjectResult).floor_eth as number)} — etch?`,
+        label: `♆${VS15} ANCHOR · ${title} · ◊${formatEth((proj as SearchProjectResult).floor_eth as number)} — etch?`,
         run: () => onAct(commitEtch({
             kind: 'anchor',
             title: title as string,

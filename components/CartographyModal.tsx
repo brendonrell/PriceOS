@@ -410,7 +410,7 @@ class CartoEngine {
         if (ev.t === 'MINT') {
             const p = this.shorePoint(t, seed);
             this.ripples.push({ x: p.x, y: p.y, t0: now, hue: this.colAccent, big: true });
-            if (ev.e > 0) this.flashes.push({ x: p.x, y: p.y, t0: now, text: `✶ Ξ${fmtEth(ev.e)}`, hue: this.colAccent });
+            if (ev.e > 0) this.flashes.push({ x: p.x, y: p.y, t0: now, text: `✶ ◊${fmtEth(ev.e)}`, hue: this.colAccent });
         } else if ((ev.t === 'XFER' || ev.t === 'SALE') && ev.e > 0) {
             const a = this.shorePoint(t, `${seed}:f`);
             const b = this.shorePoint(t, `${seed}:t`);
@@ -930,7 +930,7 @@ class CartoEngine {
                     ? this.inhabitantWorld(t, t.byAddr.get(ev.to)!, now)
                     : this.shorePoint(t, seed);
                 this.ripples.push({ x: p.x, y: p.y, t0: now, hue: this.colAccent, big: true });
-                if (ev.e > 0) this.flashes.push({ x: p.x, y: p.y, t0: now, text: `✶ Ξ${fmtEth(ev.e)}`, hue: this.colAccent });
+                if (ev.e > 0) this.flashes.push({ x: p.x, y: p.y, t0: now, text: `✶ ◊${fmtEth(ev.e)}`, hue: this.colAccent });
             }
         } else if ((ev.t === 'XFER' || ev.t === 'SALE') && ev.e > 0) {
             /* A sale sails: comet from seller's seat to the buyer's. */
@@ -1357,7 +1357,7 @@ class CartoEngine {
             this.haloText(ctx, t.title, s.x, ly, this.colText);
             if (detailed) {
                 ctx.font = `700 10px 'Courier New', Courier, monospace`;
-                const line = `${t.minted}/${t.supply || '?'} · ${t.inhabitants.filter((i) => i.n > 0).length} PPL${t.volume > 0 ? ` · Ξ${t.volume < 10 ? t.volume.toFixed(2) : Math.round(t.volume)}` : ''}`;
+                const line = `${t.minted}/${t.supply || '?'} · ${t.inhabitants.filter((i) => i.n > 0).length} PPL${t.volume > 0 ? ` · ◊${t.volume < 10 ? t.volume.toFixed(2) : Math.round(t.volume)}` : ''}`;
                 const lw = ctx.measureText(line).width;
                 if (claim(s.x, ly + size + 2, lw, 10)) {
                     this.haloText(ctx, line, s.x, ly + size + 2, this.colText);
@@ -1519,7 +1519,7 @@ class CartoEngine {
             if (p >= 1) {
                 done.push(c);
                 this.ripples.push({ x: c.x1, y: c.y1, t0: now, hue: c.hue, big: true });
-                this.flashes.push({ x: c.x1, y: c.y1, t0: now, text: `✶ Ξ${fmtEth(c.price)}`, hue: this.colAccent });
+                this.flashes.push({ x: c.x1, y: c.y1, t0: now, text: `✶ ◊${fmtEth(c.price)}`, hue: this.colAccent });
             }
         }
         this.comets = this.comets.filter((c) => !done.includes(c));
@@ -2037,7 +2037,7 @@ export default function CartographyModal() {
                             </div>
                             <div className="cp-stats">
                                 {place.minted}/{place.supply || '?'} MINTED · {place.ppl} PPL
-                                {place.volume > 0 ? ` · Ξ${place.volume < 10 ? place.volume.toFixed(2) : Math.round(place.volume)}` : ''}
+                                {place.volume > 0 ? ` · ◊${place.volume < 10 ? place.volume.toFixed(2) : Math.round(place.volume)}` : ''}
                             </div>
                             {faction && warOn && place.war && (
                                 <div className="cp-war" style={{ color: place.war.leaderHex }}>

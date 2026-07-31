@@ -42,7 +42,7 @@
  *     this session (parent passes isBreadcrumb). Half-on/half-off the
  *     artwork's rounded corner — it's a "recently visited" UI marker, not
  *     part of the art.
- *   - Price Memory ghost (sim 8085-8089). Faded "LAST · {ethVal} Ξ" readout
+ *   - Price Memory ghost (sim 8085-8089). Faded "LAST · {ethVal} ◊" readout
  *     in the bottom-left of .canvas-wrapper. Always rendered; visible only
  *     when body.pm-active is set (CSS gate). Per-id deterministic seed
  *     mirrors sim verbatim so the readout is stable across reloads.
@@ -1291,7 +1291,7 @@ function ArtworkCard({
                         rendered; CSS gates visibility on body.pm-active.
                         Per-id deterministic seed — stable across reloads. */}
                     <span className="price-memory-ghost">
-                        LAST · {lastSaleEth} Ξ
+                        LAST · {lastSaleEth} ◊
                     </span>
                 </div>
                 {showProjectName ? (
