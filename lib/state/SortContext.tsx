@@ -113,8 +113,8 @@ export const GROUP_MENU_DIMS: GroupKey[] = [
  *  rather than offering a grouping that would come back empty. */
 export function groupDimsFor(surface: 'project' | 'collected' | 'all'): GroupKey[] {
     /* The saved DEFAULT applies wherever you land, so it offers everything —
-       a surface that can't carry a dimension simply drops it at render
-       (usefulLayers), which is the same "just figure it out" rule. */
+       a surface that can't carry a dimension just shows one section — the
+       menu is where a dead dimension gets greyed out, never the grid. */
     if (surface === 'all') return GROUP_MENU_DIMS.slice();
     return GROUP_MENU_DIMS.filter((d) =>
         surface === 'project'

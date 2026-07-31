@@ -13,7 +13,7 @@ import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } f
 import { useProject } from '../../lib/state/ProjectContext';
 import { useEffectiveAddress } from '../../lib/incognito/useEffectiveAddress';
 import { useSort, GROUP_SOON, GROUP_LABEL, PROJECT_GROUP_ORDER } from '../../lib/state/SortContext';
-import { groupSectionLabel, usefulLayers } from '../../lib/state/groupDimensions';
+import { groupSectionLabel } from '../../lib/state/groupDimensions';
 import type { GroupKey } from '../../lib/state/SortContext';
 import { useUserTags } from '../../lib/hooks/useUserTags';
 import { buildGroupSections, type GSec } from '../../lib/state/groupBlocks';
@@ -22,11 +22,6 @@ import { useTraits, type TraitCategory } from '../../lib/state/TraitsContext';
 import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
 import { resolveBucket, useStoredColors } from '../../lib/art/colorStore';
 import { getProject } from '../../lib/project/registry';
-
-/* The dimensions that keep their section even when every piece falls in it —
-   owner and tag can genuinely cut a project's gallery; today's projects are
-   just held by one wallet (Brendon, 2026-07-31). */
-const KEEP_SINGLE: GroupKey[] = ['owner', 'tag'];
 import { readNoteFor } from '../../lib/notes/tokenNotes';
 import { getRecentIdsForProject, subscribeBreadcrumbs } from '../../lib/pins/breadcrumbStore';
 
@@ -350,8 +345,6 @@ export function useProjectGallery({
         return filtered;
     }, [project, dSort, dDir, dActiveFilters, dSearchQuery, dPriceMin, dPriceMax, dMyNotesActive, notesVersion, dActiveCategory, breadcrumbAll, effectiveAddress, netSets, topHolders]);
 
-    /* Owner and tag stay in play even when the whole project sits in one
-       wallet — see usefulLayers (Brendon, 2026-07-31). */
     /* Group-by sections (Brendon, 2026-06-13). When GROUP is on, partition the
        already-sorted/filtered gallery into colour or owner buckets, preserving
        the sort order inside each. Colour is palette-derived (free, no canvas);
@@ -380,11 +373,13 @@ export function useProjectGallery({
                 tag: ownerTagOf(project.outputs.get(id)?.ownerDisplay ?? null),
                 project: project.title,
             });
-        /* Drop any layer that can't actually cut this window — see usefulLayers.
-           Sorting one project BY project is a title bar and nothing else. */
-        const useful = usefulLayers(visibleTokenIds, dGroupLayers, labelOf, KEEP_SINGLE);
-        if (!useful.length) return null;
-        return buildGroupSections(visibleTokenIds, useful, { idOf: (id) => id, labelOf });
+        /* ⛔ THE GRID NEVER DROPS A GROUPING YOU PICKED (Brendon, 2026-07-31).
+           Deciding a dimension is "useless" and quietly ignoring it is what
+           made Owner and Tag look broken. The ONLY place that judgement
+           belongs is the long-press menu, which greys out a dimension that
+           wouldn't cut this window BEFORE you pick it. Whatever layers are
+           set, get drawn. */
+        return buildGroupSections(visibleTokenIds, dGroupLayers, { idOf: (id) => id, labelOf });
     }, [dGroup, dGroupLayers, dSort, visibleTokenIds, project, colorsVer, factionsVer, ownerTagOf]);
 
     /* Stable "first screenful" set, by lowest token id — membership does NOT

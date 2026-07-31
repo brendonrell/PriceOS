@@ -221,14 +221,14 @@ export function groupLabelComparator(
    A grouping can be perfectly valid and still be USELESS for the window you are
    looking at: sort a single project by Project, or a wallet holding one artist
    by Artist, and every piece lands in one section — a title bar and nothing
-   gained. The same happens to a saved default arriving on a surface that has no
-   such data, or a deep cut whose values were never sampled.
+   gained.
 
-   So a layer that cannot actually cut the window is DROPPED rather than drawn.
-   The rule is deliberately plain: a layer earns its place if it produces more
-   than one section. Layers below a dropped one still apply — dropping is per
-   layer, not a bail-out — so "project, then colour" on a single project quietly
-   becomes "colour", which is what the user meant. */
+   ⛔ THE ONLY PLACE THAT JUDGEMENT LIVES IS THE LONG-PRESS MENU (Brendon,
+   2026-07-31). It greys out a dimension that wouldn't cut this window so you
+   see it BEFORE you pick it. The GRID never second-guesses a grouping that is
+   set — whatever layers you chose are the layers that get drawn. The old
+   silent drop is what made Owner and Tag read as broken: the cycle landed on
+   them and nothing happened. */
 /** Which of `dims` would actually CUT this window — a dimension that lands
  *  every piece in one bucket is a title bar and nothing else, so the picker
  *  greys it out instead of offering it (Brendon, 2026-07-30). Same rule the
@@ -251,28 +251,3 @@ export function dimsThatCut<T>(
     return out;
 }
 
-export function usefulLayers<T>(
-    items: readonly T[],
-    layers: readonly GroupKey[],
-    labelOf: (item: T, layer: GroupKey) => string,
-    /* ⛔ DIMENSIONS THAT MUST STILL APPLY WHEN THEY HAPPEN TO HAVE ONE VALUE
-       (Brendon, 2026-07-31: "owner and tag groups don't work in our group
-       cycle"). Dropping a layer is right when it CANNOT cut the window — one
-       project grouped by project is a title bar and nothing else. But owner
-       and tag can absolutely cut it; today's projects just happen to be held
-       by a single wallet, so the cycle landed on them and NOTHING happened,
-       which reads as broken. Named here, a dimension keeps its section even
-       when every piece lands in it. */
-    keepSingle?: readonly GroupKey[],
-): GroupKey[] {
-    if (items.length < 2) return layers.slice(0, 1);
-    return layers.filter((layer) => {
-        if (keepSingle?.includes(layer)) return true;
-        const seen = new Set<string>();
-        for (const item of items) {
-            seen.add(labelOf(item, layer));
-            if (seen.size > 1) return true;
-        }
-        return false;
-    });
-}

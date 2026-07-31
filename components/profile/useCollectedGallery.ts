@@ -14,7 +14,7 @@ import {
     useSort,
     GROUP_SOON, GROUP_LABEL,
 } from '../../lib/state/SortContext';
-import { groupSectionLabel, usefulLayers } from '../../lib/state/groupDimensions';
+import { groupSectionLabel } from '../../lib/state/groupDimensions';
 import type { GroupKey } from '../../lib/state/SortContext';
 import { buildGroupBlocks, type GBlock } from '../../lib/state/groupBlocks';
 import { useStoredColors } from '../../lib/art/colorStore';
@@ -216,11 +216,10 @@ export function useCollectedGallery(holdings: Holding[]) {
                 artist: h.traits.Artist ?? null,
                 project: projName(h.slug),
             });
-        /* Drop any layer that can't actually cut this window — a wallet holding
-           one artist grouped BY artist is a title bar and nothing else. */
-        const useful = usefulLayers(shownCollected, dGroupLayers, labelOf);
-        if (!useful.length) return null;
-        return buildGroupBlocks(shownCollected, useful, {
+        /* ⛔ THE GRID NEVER DROPS A GROUPING YOU PICKED (Brendon, 2026-07-31)
+           — the long-press menu is the only place a dimension gets judged, and
+           it greys the dead ones out before you pick them. */
+        return buildGroupBlocks(shownCollected, dGroupLayers, {
             labelOf,
             cardOf: (h) => ({ slug: h.slug, id: h.token_id }),
             /* A project title still carries its artist underneath. */
