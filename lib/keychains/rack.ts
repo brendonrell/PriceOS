@@ -61,10 +61,14 @@ function fetchRack(address: string): Promise<Rack | null> {
     return p;
 }
 
-/** Drop + refetch a wallet's rack (after crank/christen/equip). */
+/** Refetch a wallet's rack (after crank/christen/equip).
+ *  ⛔ The rack on screen STAYS UP while the fresh one lands (Brendon,
+ *  2026-07-31). Dropping the cache first made every mounted surface render an
+ *  empty rack for the length of the round-trip — the open charm vanished and
+ *  came back, which read as the whole Depanneur reloading on every tap. */
 export function bustRack(address: string): void {
     const a = address.toLowerCase();
-    cache.delete(a);
+    pending.delete(a);
     void fetchRack(a);
 }
 

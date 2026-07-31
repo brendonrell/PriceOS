@@ -38,8 +38,10 @@ export const POST = requireAuth(async (req: NextRequest, _ctx, address: string):
         const r = (row ?? {}) as { keychains?: unknown; equipped?: unknown; top?: unknown };
         const owned = new Set(sanitizeCharms(r.keychains).map((c) => c.id));
         let pool = idList(r.equipped).filter((n) => owned.has(n));
+        /* Same law as the read: only a NEVER-CHOSEN top falls back to the
+           first three of the pool. An emptied one is the owner's choice. */
         let top = idList(r.top, TOP_SLOTS).filter((n) => pool.includes(n));
-        if (!top.length) top = pool.slice(0, TOP_SLOTS);
+        if (!Array.isArray(r.top)) top = pool.slice(0, TOP_SLOTS);
 
         if (id === null) {
             pool = [];

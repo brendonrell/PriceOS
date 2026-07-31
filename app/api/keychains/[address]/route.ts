@@ -59,9 +59,13 @@ export async function GET(
         const equipped = idList(r.equipped).filter((id) => owned.has(id));
         /* No top chosen yet (or a lone charm from before three-at-once) — the
            first three of the pool hang, so a wearer never lands on an empty
-           row after this ships. */
+           row after this ships. ⛔ NEVER-CHOSEN is not the same as EMPTIED
+           (Brendon, 2026-07-31): once the owner has picked, an empty list is
+           their choice and stands, or taking the last one out of the top just
+           puts it straight back. */
+        const chosen = Array.isArray(r.top);
         const stored = idList(r.top, TOP_SLOTS).filter((id) => equipped.includes(id));
-        const top = (stored.length ? stored : equipped.slice(0, TOP_SLOTS)).slice(0, TOP_SLOTS);
+        const top = (chosen ? stored : equipped.slice(0, TOP_SLOTS)).slice(0, TOP_SLOTS);
 
         const body: KeychainsResponse = {
             address,
