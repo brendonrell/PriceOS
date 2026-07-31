@@ -14,7 +14,8 @@ import { useCart } from '../../lib/state/CartContext';
 import { useNotePrompt } from '../../lib/state/NotePromptContext';
 import { getProject } from '../../lib/project/registry';
 import { getGrails, subscribeGrails, togglePin as storeTogglePin, type GrailPin } from '../../lib/pins/grailStore';
-import { addOutputTodo } from '../../lib/todos/todoStore';
+import TodoVerbBubble from '../shared/TodoVerbBubble';
+import { anchorFromEvent, type BubbleAnchor } from '../shared/TailBubble';
 import { getStarredKeys, subscribeStarred, toggleStar as storeToggleStar } from '../../lib/pins/starStore';
 import { getWishlistKeys, subscribeWishlist, toggleWishlist as storeToggleWishlist } from '../../lib/pins/wishlistStore';
 import { readNoteFor } from '../../lib/notes/tokenNotes';
@@ -42,6 +43,12 @@ export default function OutputActionRow({
     /* Does this Output already have a saved note? Same store + signal the gallery
        card reads, so the action-row button lights up when a note exists.
        Project-exact key first, legacy bare-id fallback (per-project split). */
+    /* The To-Do card, anchored on the ❍ that opened it — the SAME card the
+       artwork modal runs, so the page offers all four verbs instead of a
+       hardcoded BUY. That is why an owner gets it now: LIST and SEND are
+       exactly what you want on your own piece (Brendon, 2026-07-31). */
+    const [todoAnchor, setTodoAnchor] = useState<BubbleAnchor | null>(null);
+
     const [noteText, setNoteText] = useState('');
     useEffect(() => {
         const read = () => setNoteText(readNoteFor(slug, id));
@@ -140,14 +147,10 @@ export default function OutputActionRow({
             <Btn glyph={'⊟︎'} title={hasNote ? 'Edit Note' : 'Add Note'} active={hasNote} extra="output-act-note" onClick={(e) => { stop(e); openOutputNoteEditor(id, undefined, slug); }} />
             <Btn
                 glyph={'❍︎'}
-                title={owned ? 'You own this — a BUY to-do would be pointless' : 'Make To-Do'}
+                title="Make To-Do"
                 extra="output-act-todo"
-                dead={owned}
-                onClick={(e) => {
-                    stop(e);
-                    const r = addOutputTodo(slug, id, 'BUY');
-                    showToast(r === 'exists' ? `To-Do: ALREADY ADDED` : `To-Do: ADDED`);
-                }}
+                active={!!todoAnchor}
+                onClick={(e) => { stop(e); setTodoAnchor(anchorFromEvent(e)); }}
             />
             <Btn glyph={'⟟︎'} title="Grail Pin" active={pinned} extra="output-act-grail" onClick={onGrail} />
             <button type="button" className="pill-colorway output-share-btn" title="Share" onClick={onShare}>Share</button>
@@ -169,6 +172,16 @@ export default function OutputActionRow({
             >
                 {'⌕︎'}
             </div>
+
+            {todoAnchor && (
+                <TodoVerbBubble
+                    anchor={todoAnchor}
+                    slug={slug}
+                    id={id}
+                    title={projectTitle}
+                    onDismiss={() => setTodoAnchor(null)}
+                />
+            )}
 
             {/* ADD TO LIST — opened by holding the star, closed by the × or the
                 backdrop (Rule #-0.4). Same sheet the Starred rows open. */}

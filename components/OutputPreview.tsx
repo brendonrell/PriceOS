@@ -100,6 +100,7 @@ import { useOutputMeta } from '../lib/hooks/useOutputMeta';
 import { formatEth } from '../lib/format/eth';
 import { useFiat } from '../lib/state/FiatContext';
 import TailBubble, { anchorFromEvent, type BubbleAnchor } from './shared/TailBubble';
+import TodoVerbBubble from './shared/TodoVerbBubble';
 
 import { hashSynLockToElement } from '../lib/engines/hashSynEngine';
 import { outputPaletteHex } from '../lib/art/outputColor';
@@ -119,7 +120,7 @@ import {
     type ShadowPosition,
 } from '../lib/pins/shadowStore';
 import { getStarredKeys, toggleStar as storeToggleStar, subscribeStarred } from '../lib/pins/starStore';
-import { addOutputTodo, getTodos, subscribeTodos, type TodoVerb, type TodoPriority } from '../lib/todos/todoStore';
+import { getTodos, subscribeTodos } from '../lib/todos/todoStore';
 import { getWishlistKeys, toggleWishlist as storeToggleWishlist, subscribeWishlist } from '../lib/pins/wishlistStore';
 import { albumsContaining, subscribeAlbums } from '../lib/pins/albumStore';
 import AlbumPickerCard from './album/AlbumPickerCard';
@@ -237,15 +238,6 @@ function buildMockOffers(outputId: number): MockOffer[] {
     });
 }
 
-/* Short due-date label for the To-Do composer chip — "2026-07-10" → "Jul 10"
-   (the same shape TodosBox uses). */
-const TODO_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-function fmtTodoDue(due: string): string {
-    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(due);
-    if (!m) return due;
-    return `${TODO_MONTHS[Number(m[2]) - 1] ?? ''} ${Number(m[3])}`;
-}
-
 export default function OutputPreview() {
     const { openModal, currentModalId, currentModalSlug, outputSequence, setCurrentModalId, setCurrentModalOutput, close, closeAll } = useModal();
     const { showToast } = useToast();
@@ -271,9 +263,6 @@ export default function OutputPreview() {
        of the app guessing (Brendon, 2026-07-23). Null = closed. The composer's
        date / time / priority selectors ride the bottom of it. */
     const [todoAnchor, setTodoAnchor] = useState<BubbleAnchor | null>(null);
-    const [todoDue, setTodoDue] = useState('');
-    const [todoDueTime, setTodoDueTime] = useState('');
-    const [todoPriority, setTodoPriority] = useState<TodoPriority>(0);
     /* The output modal is global, so its Project is whatever was passed to
        open('output', id, slug) — falling back to the active route Project. */
     const proj = useProject();
@@ -847,21 +836,7 @@ export default function OutputPreview() {
        starts the date / time / priority selectors fresh. */
     const handleTodo = (e: ReactMouseEvent) => {
         if (id == null) return;
-        setTodoDue('');
-        setTodoDueTime('');
-        setTodoPriority(0);
         setTodoAnchor(anchorFromEvent(e));
-    };
-    const cycleTodoPriority = () => setTodoPriority((p) => (((p + 1) % 4) as TodoPriority));
-    const addTodoVerb = (verb: TodoVerb) => {
-        if (id == null) return;
-        const r = addOutputTodo(slug, id, verb, {
-            due: todoDue || null,
-            dueTime: todoDue ? (todoDueTime || null) : null,
-            priority: todoPriority,
-        });
-        setTodoAnchor(null);
-        showToast(r === 'exists' ? 'To-Do: ALREADY ADDED' : 'To-Do: ADDED');
     };
 
     /* Shared main-button click — identical in portrait + landscape modals.
@@ -1603,59 +1578,13 @@ export default function OutputPreview() {
         {/* Create-To-Do bubble — a colored tail-bubble anchored on the tapped
             pill; pick a verb (Brendon, 2026-07-23). */}
         {todoAnchor && id != null && (
-            <TailBubble anchor={todoAnchor} className="todo-verb-card" onDismiss={() => setTodoAnchor(null)} dismissOnScroll={false}>
-                <div className="ms-confirm-question">
-                    Create <u>To-Do</u> for{' '}
-                    <em className="todo-verb-piece">{title.charAt(0) + title.slice(1).toLowerCase()} #{id}</em>
-                </div>
-                {/* Date / time / priority — the composer's own selectors (reused
-                    verbatim from TodosBox), sitting up top; the picked verb is
-                    filed with them (Brendon, 2026-07-23). */}
-                <div className="todo-compose-row">
-                    <span className={`todo-chip todo-chip-due${todoDue ? ' set' : ''}`}>
-                        <label className="todo-chip-seg" title="Due date">
-                            <span className="todo-chip-lbl">{todoDue ? fmtTodoDue(todoDue) : 'due'}</span>
-                            <input
-                                className="todo-chip-native"
-                                type="date"
-                                value={todoDue}
-                                onChange={(e) => setTodoDue(e.target.value)}
-                            />
-                        </label>
-                        <span className="todo-chip-ico todo-chip-clock">◷</span>
-                        <label className="todo-chip-seg" title="Reminder time">
-                            <span className="todo-chip-lbl">{todoDueTime || 'time'}</span>
-                            <input
-                                className="todo-chip-native"
-                                type="time"
-                                value={todoDueTime}
-                                onChange={(e) => setTodoDueTime(e.target.value)}
-                            />
-                        </label>
-                    </span>
-                    <button
-                        type="button"
-                        className={`todo-chip todo-chip-pri${todoPriority > 0 ? ` on p${todoPriority}` : ''}`}
-                        title="Priority"
-                        onClick={cycleTodoPriority}
-                    >
-                        <span className="todo-chip-ico">!</span>
-                        <span className="todo-chip-lbl">P{todoPriority === 0 ? 1 : todoPriority}</span>
-                    </button>
-                </div>
-                <div className="todo-verb-btns">
-                    {(['BUY', 'OFFER', 'LIST', 'SEND'] as TodoVerb[]).map((v) => (
-                        <button
-                            key={v}
-                            type="button"
-                            className="todo-verb-btn"
-                            onClick={() => addTodoVerb(v)}
-                        >
-                            {v}
-                        </button>
-                    ))}
-                </div>
-            </TailBubble>
+            <TodoVerbBubble
+                anchor={todoAnchor}
+                slug={slug}
+                id={id}
+                title={title}
+                onDismiss={() => setTodoAnchor(null)}
+            />
         )}
         {/* Showcase-full swap bubble — "Replace?" over the 6 picks as bare
             History squares, 2×3 in showcase order (Brendon, 2026-07-23). */}
