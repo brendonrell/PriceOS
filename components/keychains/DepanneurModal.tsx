@@ -445,14 +445,11 @@ export default function DepanneurModal() {
                                     <CharmArt charm={shown} uid={`dp${shown.id}`} className="dp-charm-big" />
                                     <div className="dp-sheet">
                                         {shown.name && <div className="dp-sheet-name">{shown.name}</div>}
-                                        <div className="dp-traits">
-                                            {charmTraits(shown.seed, shown.luck, shown.coin).map((t) => (
-                                                <span key={t.k} className="dp-trait">
-                                                    <span className="dp-trait-k">{t.k.toUpperCase()}</span>
-                                                    <span className="dp-trait-v">{t.v}</span>
-                                                </span>
-                                            ))}
-                                        </div>
+                                        {/* ⛔ THE TWO THINGS YOU CAME TO DO SIT UNDER THE CHARM,
+                                            NOT UNDER THE TRAIT WALL (Brendon, 2026-07-31 — "they
+                                            hide at the bottom for no reason"). Equipping and
+                                            christening are the actions; the traits are the
+                                            read. Actions first, traits after. */}
                                         <div className="dp-actions">
                                             {rack?.equipped === shown.id ? (
                                                 <button type="button" className="dp-btn on" onClick={() => { void equip(null); }} disabled={busy}>UNEQUIP</button>
@@ -477,6 +474,14 @@ export default function DepanneurModal() {
                                                 <button type="button" className="dp-btn" onClick={() => { void christen(); }} disabled={busy || !nameDraft.trim()}>NAME IT</button>
                                             </div>
                                         )}
+                                        <div className="dp-traits">
+                                            {charmTraits(shown.seed, shown.luck, shown.coin).map((t) => (
+                                                <span key={t.k} className="dp-trait">
+                                                    <span className="dp-trait-k">{t.k.toUpperCase()}</span>
+                                                    <span className="dp-trait-v">{t.v}</span>
+                                                </span>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                             )}

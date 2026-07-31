@@ -417,17 +417,32 @@ function featurePills(doors: FeatureDoors): NewsItem[] {
     ];
 }
 
+/** The live market feed, plus the viewer's own currency when fiat mode is on. */
+export interface MarketPill {
+    ethUsd: number;
+    gwei: number;
+    /** Set only while fiat mode is on AND the rates are trusted. */
+    local?: { value: number; symbol: string; code: string };
+}
+
 /* ── LIVE MARKET ──────────────────────────────────────────────────────────
    ETH and gas, straight off the gas tracker's feed. Gas carries THE READ —
    the one-word verdict, so the answer is readable at a glance without doing
    the arithmetic (Brendon, 2026-07-29). */
-function marketItems(market?: { ethUsd: number; gwei: number }): NewsItem[] {
+function marketItems(market?: MarketPill): NewsItem[] {
     if (!market) return [];
     const out: NewsItem[] = [];
     if (market.ethUsd > 0) {
+        /* Fiat mode on → the price is quoted in the currency the viewer picked,
+           named on the pill. Off → dollars, named the same way (Brendon,
+           2026-07-31 — a bare $ never said which dollars). */
+        const local = market.local;
         out.push({
             glyph: vs('⟠'), tag: 'ETH',
-            title: `$${Math.round(market.ethUsd).toLocaleString()} USD`, meta: 'Live',
+            title: local
+                ? `${local.symbol}${Math.round(local.value).toLocaleString()} ${local.code}`
+                : `$${Math.round(market.ethUsd).toLocaleString()} USD`,
+            meta: 'Live',
         });
     }
     if (market.gwei > 0) {
@@ -737,7 +752,7 @@ export interface DayPills {
     /** Today's Mood Ring: { name, hex } from lib/mood. */
     mood?: { name: string; hex: string };
     /** Live ETH/USD + gas, from the gas tracker's own feed. */
-    market?: { ethUsd: number; gwei: number };
+    market?: MarketPill;
     /** The viewer's own signals — absent when signed out. */
     you?: HomeYouResponse | null;
     /** The doors the quiet-feature pills open. Omitted → those pills sit out

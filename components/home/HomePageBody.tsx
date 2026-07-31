@@ -49,6 +49,7 @@ import { ProjectProvider, useProject } from '../../lib/state/ProjectContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useModal } from '../../lib/state/ModalContext';
+import { useFiat, fiatSymbol } from '../../lib/state/FiatContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { getSupabaseBrowser } from '../../lib/supabase';
@@ -539,6 +540,7 @@ function HomePageBodyInner({
     /* Live ETH + gas for the rail's market pills, off the shared gas feed (one
        cached fetch per window no matter how many people are watching). */
     const gas = useGasData(true);
+    const { currency, ethToFiatValue } = useFiat();
 
     /* The rail's YOUR-OWN pills — kin, rarest piece, next upload window. Only
        fetched for a signed-in wallet; signed out, the rail simply has three
@@ -560,18 +562,26 @@ function HomePageBodyInner({
        re-pulled on every Realtime push / refresh nudge, poll fallback. */
     const [feed, setFeed] = useState<HomeResponse | null>(initialFeed);
 
+    /* The ETH pill quotes the viewer's own currency while fiat mode is on —
+       one ETH priced in whatever they picked (Brendon, 2026-07-31). Off, or
+       before the rates are trusted, it stays in dollars. */
+    const ethLocal = useMemo(() => {
+        const v = ethToFiatValue(1);
+        return currency && v != null ? { value: v, symbol: fiatSymbol(currency), code: currency } : undefined;
+    }, [currency, ethToFiatValue]);
+
     /* Everything the news rail shows, in one place. Memoised so the rail's
        scroll animation only re-binds when the CONTENT actually changes — the
        page re-renders on a timer for the featuring row. */
     const newsItems = useMemo(() => buildNewsItems(feed, {
         ...dayPills,
-        market: gas.data ? { ethUsd: gas.data.ethUsd, gwei: gas.data.standardGwei } : undefined,
+        market: gas.data ? { ethUsd: gas.data.ethUsd, gwei: gas.data.standardGwei, local: ethLocal } : undefined,
         you: youSignals,
         doors: {
             openKeychains: () => openModal('depanneur'),
             openStickers: () => openModal('stickers'),
         },
-    }), [feed, dayPills, gas.data, youSignals, openModal]);
+    }), [feed, dayPills, gas.data, ethLocal, youSignals, openModal]);
 
     useEffect(() => {
         let cancelled = false;
