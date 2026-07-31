@@ -652,7 +652,7 @@
    **ClickUp:** updated — the round is logged in 02 · Done (`86bb5c2g8`), and
    the Exchange door started life as a Backlog item (`86bb5c2nm`).
 
-0000000000000000000000000000. ✅ **2026-07-29 (LATEST) — SPOT-EDIT ROUND +
+1. ✅ **2026-07-29 — SPOT-EDIT ROUND +
    THE PROCESS CORRECTION (Opus 5). All on `dev` (tip `d5681c2`), tree clean,
    build green, rules confirmed in the compiled CSS.**
 
