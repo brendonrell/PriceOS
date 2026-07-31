@@ -735,7 +735,7 @@ function ProfilePageBodyInner({
        namespaced under the same store with a ":more" id so a refresh lands back
        on the same sub-section (e.g. My History), not just the +More tab. */
     const moreMemId = `${user.handle ?? handle}:more`;
-    const MORE_KEYS: ReadonlySet<string> = new Set<ProfileMoreL1>(['created', 'starred', 'wishlists', 'albums', 'offers', 'vault', 'sigil', 'loyalty', 'counterparties', 'history', 'achievements', 'discord', 'anointed', 'targets', 'calls']);
+    const MORE_KEYS: ReadonlySet<string> = new Set<ProfileMoreL1>(['cooldown', 'created', 'starred', 'wishlists', 'albums', 'offers', 'vault', 'sigil', 'loyalty', 'counterparties', 'history', 'achievements', 'discord', 'anointed', 'targets', 'calls']);
     const [moreL1, setMoreL1] = useState<ProfileMoreL1>(() => {
         // A pasted deep link's ?sub= wins here too (Share Any View).
         const shared = readViewParam('sub');
@@ -910,8 +910,14 @@ function ProfilePageBodyInner({
        sections do not exist at all: no pills, no content, no notes
        (Brendon 2026-06-10). moreL1 can hold a stale private key after
        navigating own profile → other profile, so clamp it for visitors. */
+    /* Cooldown is an ARTIST-ONLY tab and only exists while the window is
+       actually shut — the status read is server-side, so a profile with no
+       running cooldown never gets the pill (Brendon, 2026-07-31). */
+    const onCooldown = artistStatus === 'cooldown';
     const effMoreL1: ProfileMoreL1 = (() => {
         let v = moreL1;
+        // Cooldown vanishes the moment the window opens (or off an artist).
+        if (v === 'cooldown' && !onCooldown) v = 'starred';
         // 'created' only exists for traditional-Top-6 artists with projects.
         if (v === 'created' && !createdUnderMore) v = 'albums';
         // Visitors never see private Starred/Wishlists — fall to Created (when
@@ -1845,6 +1851,12 @@ function ProfilePageBodyInner({
                                 (isZen && isOwnProfile
                                     ? [{ key: 'albums', label: <><span className="pill-tab-ico is-album">{'◰︎'}</span> Albums</>, active: effMoreL1 === 'albums', onClick: () => setMoreL1('albums') }]
                                     : [
+                                        /* Cooldown leads the whole row — the live clock
+                                           to this artist's next upload window. Only
+                                           while the window is shut (Brendon, 2026-07-31). */
+                                        ...(onCooldown
+                                            ? [{ key: 'cooldown', label: 'Cooldown', active: effMoreL1 === 'cooldown', onClick: () => setMoreL1('cooldown') }]
+                                            : []),
                                         /* Created leads the row for traditional-Top-6
                                            artists — their works are always reachable. */
                                         ...(createdUnderMore
@@ -2046,6 +2058,15 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                                 ) : undefined
                             }
                         />
+                    )}
+
+                    {/* Cooldown — the live clock to this artist's next upload
+                        window. Moved here from the bottom of the Created
+                        showcase (Brendon, 2026-07-31). */}
+                    {onMore && effMoreL1 === 'cooldown' && (
+                        <div className="ach-section" aria-label="Cooldown">
+                            <UploadWindowCountdown address={user.address} />
+                        </div>
                     )}
 
                     {/* Albums — the covers grid → album drill-in (iOS-Photos
@@ -2441,10 +2462,6 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                             <ArtistProjectCarousel eager={i === 0} />
                         </ProjectProvider>
                     ))}
-                    {/* The live clock to this artist's next upload window, at
-                        the very bottom of Created (Brendon, 2026-07-29). Shows
-                        only while the cooldown is running. */}
-                    <UploadWindowCountdown address={user.address} />
                 </section>
             )}
 
