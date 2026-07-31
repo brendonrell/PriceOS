@@ -176,9 +176,20 @@
     color: var(--text-color);
     border: 1px solid var(--text-color);
 }
+/* ⛔ THE ACTION LABEL IS READ AT FULL STRENGTH (Brendon, 2026-07-31). It was
+   inheriting the panel's Courier at normal weight, which reads thin and faint
+   against the button's dark fill — the washed-out-chrome failure Rule #2
+   exists to stop. Sized and weighted like every other PD control. */
+.anoint-place-btn,
+.anoint-withdraw-btn {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+/* Unavailable still READS — dimmer than live, never a ghost. */
 .anoint-place-btn:disabled,
 .anoint-withdraw-btn:disabled {
-    opacity: 0.4;
+    opacity: 0.75;
     cursor: not-allowed;
 }
 
