@@ -8,6 +8,65 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
+⛔ **2026-07-31 (LATEST) — THE DEPLOY IS SERVING STALE CODE. START HERE.**
+Everything below is committed and pushed to `dev` (tip `c8b845c`), tree clean,
+type-check clean — but the Cloudflare Worker is serving a bundle OLDER than
+the last several pushes. Verified two independent ways against the live
+preview: the project hero's collector stat still renders the OLD glyph, and
+the live stylesheet still carries the OLD Price Story rules (10px, half
+opacity). `origin/dev` has both changes. An empty commit was pushed to kick a
+rebuild and the live page did not change within the session.
+**First action next session: check the Workers build history for `pricediscussion`
+(dash or the Cloudflare connector) for a FAILED build and fix it — do NOT
+re-edit the code, the code is correct.** Brendon is (rightly) furious about
+this; it cost the end of the session. Do not tell him it's his cache.
+
+0. ✅ **2026-07-31 — SHIPPED THIS SESSION (all on `dev`, all unverified on
+   device because of the stale deploy above).**
+
+   **⛔ THE COLLECT AND OFFER GLYPHS ARE SWAPPED (Brendon, 2026-07-31).**
+   Collect / mint / sale now wears **✦** (U+2726); offers wear **✶** (U+2736).
+   Swept across every market surface, both directions, plus the public docs
+   and `docs/GLYPHS.md`. Studio was deliberately left alone by his order.
+   Non-market uses of either star stayed put: PriceDay, the Curation
+   achievement, sigils, familiars, sprites, art-engine glyph pools. **Every
+   hand-tuned per-glyph size/nudge was left exactly where Brendon set it** —
+   those follow the glyph, and re-tuning them is his call by eye.
+
+   **GLYPHS — Replay is ⏴ (U+23F4), Rewind's ⋘ (U+22D8) is BANKED.** An
+   interim ⧖ hourglass shipped first and rendered as NOTHING on iOS —
+   hourglasses are off the table. The triple chevron is reserved in the
+   glossary for the day Rewind and is deliberately NOT wired to any control.
+   The collector stat's old ⌗ was the PROJECTS glyph and never meant people.
+
+   **WHAT'S HOT IS BUILT** (Recent ▸ What's Hot, project gallery). Ranks the
+   collection's pieces by how many PEOPLE opened them in the last week,
+   recency-weighted, with a viewer's own repeat opens capped so one person
+   refreshing can't out-rank a piece three people visited. Falls back to
+   most-recently-seen so it is never blank. Reuses the crumb pill unchanged.
+   Nothing private leaves the view pillar — no names, no counts, no stamps.
+
+   **THE TEST COLLECTION IS HIDDEN.** `pd-test-alpha` was showing as real
+   product (it put 2 pieces on the platform account's collected count). One
+   hide-list now drives it, applied at collected counts/grids, spend,
+   owned-projects, home + your own signals, tape/feed, marketplace, search,
+   platform stats, Dispatch, Rewind, almanac, calendar, loyalty,
+   counterparties. Nothing deleted — the rig still works.
+
+   **THE HOME MARQUEE STOPPED RELOADING.** It fills up hidden, reveals once
+   its content settles, and adopts later changes only at the loop's wrap, so
+   it is never seen re-building.
+
+   **LEGIBILITY (Rule #2) —** the Group By bubble, the Anointment action
+   button, and the whole Price Story spine came off half-opacity/sub-12px.
+   The +More section headings came off half opacity with them.
+
+   **SMALLER:** group toggle icon centred in a fixed slot; Genome icon one
+   size up, Gnome three sizes down; Albums is own-profile-only (albums are
+   private, so on a visitor's view it only ever showed a locked-door note);
+   the Soundtrack attribute tile opens the miniplayer like the button does.
+
+
 0. ✅ **2026-07-31 (LATEST) — ALBUMS TAB GREW A PROMPT · KEYCHAIN
    COMPLETIONISM DOUBLED TO 24 · THE DEPANNEUR MAKES NOISE AND HAS A SHOP
    TUNE · THREE NEW THEMES · ANCHOR IS NEPTUNE ♆ · THE GREEK Ξ IS GONE ·
