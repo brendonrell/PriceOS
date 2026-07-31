@@ -1,5 +1,5 @@
 /*
- * PD theme music — the eight locked pieces (Brendon, 2026-07-31).
+ * PD theme music — the locked pieces (Brendon, 2026-07-31).
  *
  * Pure data, exactly like the blip recipes: a theme is parts laid over a bar
  * grid, rendered by the same voice math. No audio files ship, ever.
@@ -20,6 +20,11 @@
  *   Busy Mint    — bare ticking the whole way through; ⛔ NEVER add a pad or
  *                  an arpeggio to its middle, that was tried and rejected
  *   Sold Out     — calm and resolved
+ *   Depanneur    — bouncy toy-machine jingle, clicky backing
+ *   Sticker Store— bright walking shop floor
+ *   Gnome Wallet — slow minor waltz under the hill (the only 3/4 piece)
+ * The last three are OVERLAY themes: they belong to a modal, not a route, and
+ * take over from whatever the page underneath was playing while it is open.
  */
 
 import type { SoundVoice } from './recipes';
@@ -240,7 +245,8 @@ const REST4 = ['-:4', '-:4', '-:4', '-:4'];
 
 export type ThemeName =
     | 'homeAm' | 'homePm' | 'output' | 'profile'
-    | 'artistAm' | 'artistPm' | 'busyMint' | 'soldOut';
+    | 'artistAm' | 'artistPm' | 'busyMint' | 'soldOut'
+    | 'depanneur' | 'stickerStore' | 'gnomeWallet';
 
 /** What each piece is called in the UI. */
 export const THEME_LABELS: Record<ThemeName, string> = {
@@ -252,6 +258,9 @@ export const THEME_LABELS: Record<ThemeName, string> = {
     artistPm: 'Artist PM Theme',
     busyMint: 'Busy Mint Theme',
     soldOut: 'Sold Out Theme',
+    depanneur: 'Depanneur Theme',
+    stickerStore: 'Sticker Store Theme',
+    gnomeWallet: 'Gnome Wallet Theme',
 };
 
 export const THEMES: Record<ThemeName, ThemeRecipe> = {
@@ -442,6 +451,108 @@ export const THEMES: Record<ThemeName, ThemeRecipe> = {
             B: {
                 chords: [F_, C_, Dm, G_],
                 melody: ['A4:2 C5:2', 'E5:2 G4:2', 'D5:2 F5:2', 'B4:2 D5:2'],
+            },
+        },
+    }),
+
+    /* Depanneur — the corner-shop toy machine: a bouncy little jingle with a
+       clicky backing, the sound of standing in front of a capsule machine
+       deciding to spend one more coin (Brendon, 2026-07-31). */
+    depanneur: compose({
+        bpm: 124, form: ['A', 'A', 'B', 'A', 'B', 'A'],
+        tight: true,
+        pad: 0.14, pulse: { div: 2, gain: 0.70 }, arp: { div: 4, gain: 0.26 },
+        hat: { gain: 0.16 }, thud: { on: [0, 2], gain: 0.80 },
+        lead: { partials: BELL, gain: 0.58, wobble: 5, tail: 3.2 },
+        sections: {
+            A: {
+                chords: [C_, Am, Dm, G_],
+                melody: [
+                    'G4:.5 C5:.5 E5:1 D5:.5 C5:.5 G4:1',
+                    'A4:.5 C5:.5 E5:1 C5:1.5 -:.5',
+                    'F4:.5 A4:.5 D5:1 F5:1 D5:1',
+                    'D5:.5 B4:.5 G4:1 B4:1 D5:1',
+                ],
+            },
+            B: {
+                chords: [F_, G_, C_, Am],
+                parts: { arp: { div: 4, gain: 0.32 } },
+                melody: [
+                    'C5:.5 F5:.5 A5:1 F5:1 C5:1',
+                    'D5:.5 G5:.5 B5:1 G5:1 D5:1',
+                    'E5:.5 G5:.5 C6:1.5 G5:1 -:.5',
+                    'A5:.5 E5:.5 C5:1 A4:2',
+                ],
+            },
+        },
+    }),
+
+    /* Sticker Store — the shop floor: bright, walking, cheerful, the sound of
+       flipping through sheets you might buy. */
+    stickerStore: compose({
+        bpm: 116, swing: 0.12, form: ['A', 'A', 'B', 'A', 'B', 'A'],
+        pad: 0.16, bass: { gain: 0.62 }, arp: { div: 4, gain: 0.20, partials: SOFT, soft: true },
+        hat: { gain: 0.14 }, thud: { on: [0, 2], gain: 0.62 },
+        lead: { partials: SINE, gain: 0.56, wobble: 4, tail: 3.0 },
+        sections: {
+            A: {
+                chords: [C_, Am7, Dm7, G_],
+                bass: [
+                    'C2:1 E2:1 G2:1 E2:1',
+                    'A1:1 C2:1 E2:1 C2:1',
+                    'D2:1 F2:1 A2:1 F2:1',
+                    'G1:1 B1:1 D2:1 G2:1',
+                ],
+                melody: [
+                    'E5:.5 G5:.5 C6:1 B5:1 G5:1',
+                    'A5:.5 G5:.5 E5:1.5 C5:1 -:.5',
+                    'F5:.5 A5:.5 D6:1 C6:1 A5:1',
+                    'B5:.5 G5:.5 D5:1.5 G5:1 -:.5',
+                ],
+            },
+            B: {
+                chords: [Fmaj7, Em7, Dm7, G_],
+                bass: [
+                    'F1:1 A1:1 C2:1 A1:1',
+                    'E2:1 G2:1 B2:1 G2:1',
+                    'D2:1 A2:1 C3:1 A2:1',
+                    'G1:1 D2:1 G2:1 B2:1',
+                ],
+                melody: [
+                    'A5:1 C6:1 F5:2',
+                    'G5:1 B5:1 E5:2',
+                    'F5:.5 A5:.5 C6:1 A5:2',
+                    'D5:.5 G5:.5 B5:1 D6:2',
+                ],
+            },
+        },
+    }),
+
+    /* Gnome Wallet — under the hill: a slow minor waltz, earthy and a little
+       secretive. Three beats to the bar, which nothing else in the set has. */
+    gnomeWallet: compose({
+        bpm: 96, beats: 3, form: ['A', 'A', 'B', 'A', 'B', 'A'],
+        pad: 0.26, arp: { div: 2, gain: 0.16, partials: SOFT, soft: true },
+        thud: { on: [0], gain: 0.55 },
+        lead: { partials: GLASS, gain: 0.58, wobble: 3, shimmer: true, tail: 2.2, attack: 0.02 },
+        sections: {
+            A: {
+                chords: [Am, Dm, Em7, Am],
+                melody: [
+                    'A4:1 C5:1 E5:1',
+                    'D5:1.5 A4:.5 F4:1',
+                    'E5:1 B4:1 G4:1',
+                    'A4:2 E4:1',
+                ],
+            },
+            B: {
+                chords: [F_, C_, Dm, E_],
+                melody: [
+                    'F5:1 C5:1 A4:1',
+                    'E5:1.5 G4:.5 C5:1',
+                    'D5:1 F5:1 A5:1',
+                    'G#4:1 B4:1 E5:1',
+                ],
             },
         },
     }),

@@ -12,6 +12,11 @@
  *   nudge   — any other ping landing (two soft taps)
  *   clunk   — a mint that failed (two low metal taps)
  *   tuck    — added to your wishlist (one soft rounded rise)
+ * THE MACHINE — the Depanneur's own, added 2026-07-31:
+ *   slot    — a coin going into the slot (clink, then it settles)
+ *   crank   — the handle turning (a ratchet of clicks, slowing as it goes)
+ *   capsule — the capsule tumbling down the chute into the tray
+ *   pop     — the capsule cracking open on the charm
  * Two swaps on 2026-07-31 (Brendon): the mint traded with the accept, then
  * with the achievement — so the bloom ended up on the achievement.
  * nudge/clunk/tuck were chosen the same day from the audition page.
@@ -51,7 +56,9 @@ export interface SoundRecipe {
 
 export type SoundName =
     | 'chime' | 'sparkle' | 'tick' | 'coin' | 'seal'
-    | 'nudge' | 'clunk' | 'tuck';
+    | 'nudge' | 'clunk' | 'tuck'
+    /* THE MACHINE — the Depanneur's own four (Brendon, 2026-07-31). */
+    | 'slot' | 'crank' | 'capsule' | 'pop';
 
 const BELL: [number, number][] = [[1, 1], [2, 0.35], [4, 0.12]];
 const METAL: [number, number][] = [[1, 1], [2.76, 0.4], [5.4, 0.15]];
@@ -167,6 +174,52 @@ export const SOUND_RECIPES: Record<SoundName, SoundRecipe> = {
         dur: 0.15,
         voices: [
             { at: 0, dur: 0.11, f0: 520, f1: 880, glide: 38, partials: RUBBER, gain: 1.0, attack: 0.002, tail: 8 },
+        ],
+    },
+    /* slot — the coin goes in: a bright clink, a smaller one under it as it
+       drops past the mechanism, and the settle. */
+    slot: {
+        dur: 0.42,
+        voices: [
+            { at: 0.00, dur: 0.16, f0: 2489.02, partials: METAL_HI, gain: 1.0, attack: 0.001, tail: 8 },
+            { at: 0.03, dur: 0.10, f0: 3320, partials: METAL, gain: 0.45, attack: 0.001, tail: 11 },
+            { at: 0.14, dur: 0.14, f0: 1661, partials: METAL, gain: 0.55, attack: 0.001, tail: 9 },
+            { at: 0.26, dur: 0.14, f0: 990, partials: METAL, gain: 0.40, attack: 0.001, tail: 10 },
+        ],
+    },
+    // crank — the handle: nine ratchet clicks, dropping in pitch and easing
+    // apart as the mechanism comes round, the way a real one drags.
+    crank: {
+        dur: 0.92,
+        voices: [
+            { at: 0.000, dur: 0.030, f0: 1560, partials: METAL, gain: 0.9, attack: 0.001, tail: 13 },
+            { at: 0.075, dur: 0.030, f0: 1500, partials: METAL, gain: 0.9, attack: 0.001, tail: 13 },
+            { at: 0.152, dur: 0.030, f0: 1440, partials: METAL, gain: 0.9, attack: 0.001, tail: 13 },
+            { at: 0.232, dur: 0.030, f0: 1385, partials: METAL, gain: 0.85, attack: 0.001, tail: 13 },
+            { at: 0.318, dur: 0.030, f0: 1330, partials: METAL, gain: 0.85, attack: 0.001, tail: 13 },
+            { at: 0.412, dur: 0.030, f0: 1275, partials: METAL, gain: 0.8, attack: 0.001, tail: 13 },
+            { at: 0.516, dur: 0.032, f0: 1220, partials: METAL, gain: 0.8, attack: 0.001, tail: 12 },
+            { at: 0.634, dur: 0.032, f0: 1165, partials: METAL, gain: 0.75, attack: 0.001, tail: 12 },
+            { at: 0.770, dur: 0.055, f0: 1100, partials: METAL, gain: 0.7, attack: 0.001, tail: 9 },
+        ],
+    },
+    // capsule — it drops: a hollow knock down the chute, then the tray.
+    capsule: {
+        dur: 0.66,
+        voices: [
+            { at: 0.00, dur: 0.14, f0: 300, f1: 190, glide: 30, partials: RUBBER, gain: 0.9, attack: 0.002, tail: 9 },
+            { at: 0.13, dur: 0.12, f0: 250, f1: 160, glide: 30, partials: RUBBER, gain: 0.7, attack: 0.002, tail: 10 },
+            { at: 0.25, dur: 0.22, f0: 175, f1: 110, glide: 26, partials: RUBBER, gain: 1.0, attack: 0.002, tail: 7 },
+            { at: 0.30, dur: 0.18, f0: 640, partials: METAL, gain: 0.30, attack: 0.001, tail: 9 },
+        ],
+    },
+    // pop — the capsule cracks: a dry snap that opens into a little sparkle.
+    pop: {
+        dur: 0.55,
+        voices: [
+            { at: 0.00, dur: 0.030, f0: 2200, partials: GLASS, gain: 1.0, attack: 0.0008, tail: 12 },
+            { at: 0.02, dur: 0.070, f0: 1450, partials: RUBBER, gain: 0.55, attack: 0.001, tail: 10 },
+            ...glitter(21, 0.06, 0.22, 5, 0.20),
         ],
     },
 };

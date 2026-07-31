@@ -12,6 +12,8 @@ import { renderRecipe, SOUND_RECIPES } from '../lib/sound/recipes';
 
 const NAMES = [
     'chime', 'sparkle', 'tick', 'coin', 'seal', 'nudge', 'clunk', 'tuck',
+    /* The Depanneur's machine sounds (2026-07-31). */
+    'slot', 'crank', 'capsule', 'pop',
 ] as const;
 
 describe('sound recipes', () => {
@@ -38,11 +40,15 @@ describe('sound recipes', () => {
         }
     });
 
-    it('the tick stays a short dry click; the sparkle is the longest bloom', () => {
+    it('the tick stays a short dry click; nothing outruns the crank', () => {
         expect(SOUND_RECIPES.tick.dur).toBeLessThanOrEqual(0.1);
+        /* The crank is the longest by design — it is a mechanism turning, not
+           a blip. Every other sound stays under the sparkle's bloom. */
         for (const name of NAMES) {
+            if (name === 'crank') continue;
             expect(SOUND_RECIPES[name].dur).toBeLessThanOrEqual(SOUND_RECIPES.sparkle.dur);
         }
+        expect(SOUND_RECIPES.crank.dur).toBeLessThanOrEqual(1.0);
     });
 
     it('renders real normalized audio — finite samples, peak at -3dB', () => {

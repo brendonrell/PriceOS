@@ -14,6 +14,11 @@
  * Anywhere not listed is SILENT on purpose — a theme is for the surfaces
  * Brendon named, not for every screen in the app.
  *
+ * OVERLAY THEMES (Brendon, 2026-07-31): three surfaces are modals, not routes
+ * — the Depanneur, the Sticker Store and the Gnome Wallet. While one of them
+ * is open its own theme takes over from whatever the page underneath was
+ * playing, and closing it hands the page's theme straight back.
+ *
  * AM/PM splits on the viewer's own clock at noon, like every other displayed
  * time in PD (§9 — clock times are viewer-local, always).
  *
@@ -24,7 +29,9 @@
 
 import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
-import { getAudioContext } from '../../lib/sound/engine';
+import { useModal } from '../../lib/state/ModalContext';
+import type { ModalName } from '../../lib/state/ModalContext';
+import { armSound, getAudioContext } from '../../lib/sound/engine';
 import { readSoundOn } from '../../lib/sound/soundStore';
 import { readThemeOn } from '../../lib/sound/themeStore';
 import { startTheme, stopTheme, duckTheme } from '../../lib/sound/themePlayer';
@@ -48,6 +55,13 @@ export function setMintState(next: MintState): void {
         window.dispatchEvent(new Event('pd:mint-state-changed'));
     }
 }
+
+/** The modals that carry a theme of their own. */
+const OVERLAY_THEMES: Partial<Record<ModalName, ThemeName>> = {
+    depanneur: 'depanneur',
+    stickers: 'stickerStore',
+    gnomewallet: 'gnomeWallet',
+};
 
 function themeFor(pathname: string): ThemeName | null {
     if (pathname === '/') return isMorning() ? 'homeAm' : 'homePm';
@@ -77,6 +91,8 @@ function themeFor(pathname: string): ThemeName | null {
 
 export default function ThemeMusic() {
     const pathname = usePathname();
+    const { openModal } = useModal();
+    const overlay = openModal ? (OVERLAY_THEMES[openModal.name] ?? null) : null;
     const want = useRef<ThemeName | null>(null);
 
     useEffect(() => {
@@ -85,7 +101,7 @@ export default function ThemeMusic() {
         const apply = () => {
             if (cancelled) return;
             const on = readSoundOn() && readThemeOn();
-            const next = on ? themeFor(pathname || '/') : null;
+            const next = on ? (overlay ?? themeFor(pathname || '/')) : null;
             want.current = next;
             if (!next) { stopTheme(); return; }
             const ac = getAudioContext();
@@ -130,10 +146,15 @@ export default function ThemeMusic() {
                carries across pages must not fade out and back in each time.
                startTheme() no-ops when the same piece is already playing. */
         };
-    }, [pathname]);
+    }, [pathname, overlay]);
 
-    /* Mount-only: the one place that truly stops the music. */
-    useEffect(() => stopTheme, []);
+    /* Mount-only: arm the audio for the session (so a layer that is already
+       switched on wakes with the app instead of after a re-toggle), and the
+       one place that truly stops the music. */
+    useEffect(() => {
+        armSound();
+        return stopTheme;
+    }, []);
 
     return null;
 }

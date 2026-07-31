@@ -32,6 +32,7 @@ import {
 } from '../../lib/keychains/engine';
 import { useKeychainRack, bustRack, refreshRack } from '../../lib/keychains/rack';
 import { requestMotion } from '../../lib/keychains/sway';
+import { playSound } from '../../lib/sound/engine';
 
 const VS15 = '︎';
 
@@ -243,6 +244,11 @@ export default function DepanneurModal() {
         if (!siweAddress || cranking || coin == null) return;
         setCranking(true);
         setFresh(null); setPicked(null); setNameDraft('');
+        /* THE MACHINE MAKES ITS OWN NOISE (Brendon, 2026-07-31): the coin
+           drops in, the handle ratchets round, the capsule tumbles into the
+           tray, and it cracks open on the charm. */
+        playSound('slot');
+        setTimeout(() => playSound('crank'), 320);
         try {
             const r = await fetch('/api/keychains/crank', {
                 method: 'POST',
@@ -251,11 +257,14 @@ export default function DepanneurModal() {
             });
             const j = (await r.json().catch(() => null)) as { charm?: CharmRecord; error?: string } | null;
             if (!r.ok || !j?.charm) {
+                playSound('clunk');
                 showToast(`Depanneur: ${j?.error ? j.error.toUpperCase() : 'CRANK FAILED'}`);
                 return;
             }
             // Let the machine turn — the capsule tumbles, then the reveal.
+            playSound('capsule');
             await new Promise((res) => setTimeout(res, 900));
+            playSound('pop');
             setFresh(j.charm);
             bustRack(siweAddress);
             showToast('Keychains: NEW CHARM');
@@ -401,7 +410,7 @@ export default function DepanneurModal() {
                                 <button
                                     type="button"
                                     className={`dp-coin-slot${coin === 0 ? ' on' : ''}`}
-                                    onClick={() => setCoin(coin === 0 ? null : 0)}
+                                    onClick={() => { playSound('slot'); setCoin(coin === 0 ? null : 0); }}
                                 >
                                     <span className="dp-coin-name">{`⚋${VS15} YIN`}</span>
                                     <span className="dp-coin-line">pinks · bows · lashes</span>
@@ -409,7 +418,7 @@ export default function DepanneurModal() {
                                 <button
                                     type="button"
                                     className={`dp-coin-slot${coin === 1 ? ' on' : ''}`}
-                                    onClick={() => setCoin(coin === 1 ? null : 1)}
+                                    onClick={() => { playSound('slot'); setCoin(coin === 1 ? null : 1); }}
                                 >
                                     <span className="dp-coin-name">{`⚊${VS15} YANG`}</span>
                                     <span className="dp-coin-line">louds · crowns · shades</span>

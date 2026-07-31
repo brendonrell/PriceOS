@@ -87,6 +87,28 @@ function armWake(): void {
     window.addEventListener('pageshow', wake);
 }
 
+/**
+ * ⛔ THE LAYER HAS TO BE ALIVE WHEN YOU COME BACK (Brendon, 2026-07-31: the
+ * settings survive, but the sound didn't until you toggled it off and on).
+ * The flag lives on the account and hydrates on load, so the audio has to be
+ * armed the moment the app knows the layer is on — not lazily at the first
+ * blip, which lands too late and is thrown away while iOS is still locked.
+ * Called once from the shell: it builds the context (which arms the wake-ups
+ * above, so the session's first tap unlocks it) and re-arms whenever the flag
+ * flips or the account snapshot lands.
+ */
+let armedFlag = false;
+export function armSound(): void {
+    if (typeof window === 'undefined') return;
+    if (!armedFlag) {
+        armedFlag = true;
+        window.addEventListener('pd:sound-changed', () => armSound());
+    }
+    if (!readSoundOn()) return;
+    const ac = getCtx();
+    if (ac && ac.state === 'suspended') void ac.resume().catch(() => {});
+}
+
 /** Play one of the blips. Silent no-op when the layer is off. */
 export function playSound(name: SoundName): void {
     if (!readSoundOn()) return;
