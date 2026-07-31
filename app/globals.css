@@ -9702,7 +9702,8 @@ a.f-highlight { color: inherit; }
     }
     .artist-lockup .artist-tag { font-size: 25px; }
     .stat-icon-owners {
-        font-size: 23px;
+        /* Two sizes smaller (Brendon, 2026-07-31). */
+        font-size: 17px;
         position: relative;
         top: 0;
     }
@@ -9771,7 +9772,8 @@ a.f-highlight { color: inherit; }
             0.25px -0.25px 0 currentColor,
             -0.25px 0.25px 0 currentColor;
     }
-    .stat-icon-owners { font-size: 14px; text-shadow: none; }
+    /* Two sizes smaller (Brendon, 2026-07-31). */
+    .stat-icon-owners { font-size: 11px; text-shadow: none; }
     /* Followers icon a touch larger + nudged up, desktop only (Brendon 2026-06-16).
        One size smaller again and nudged back down 1px (Brendon, 2026-07-29). */
     .stat-icon-followers { font-size: 19px; transform: translateY(-2.2px); }
