@@ -13723,6 +13723,13 @@ body.is-pwa .artwork-fullscreen.artwork-darkroom .fullscreen-back {
    follows so the row still wraps cleanly (Brendon, 2026-07-29). */
 .collected-by-row .cbr-id { display: inline-flex; align-items: center; }
 .collected-by-row .cbr-sep { margin-right: 4px; }
+/* The 2026-07-29 rebuild above (shared row switched from baseline to centre,
+   label lifted 1.8px) was for the profile/output rows that carry ASCII-ID
+   rectangles. The home Featuring row has no rectangles in it, so those two
+   changes just knocked its label off the names' baseline. Restored to exactly
+   what that row carried before (Brendon, 2026-07-31). */
+.home-feat-row { align-items: baseline; }
+.home-feat-row .cbr-label { transform: none; }
 
 /* "By" reads as one phrase with the @name beside it, but its box is shorter
    than the name's (which carries headroom for tall Unicode faces), so centring
