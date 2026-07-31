@@ -152,3 +152,26 @@
 .exch-open-row:hover { background: var(--stat-bg, transparent); }
 .exch-open-glyph { flex: 0 0 auto; }
 .exch-open-lbl { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ⛔ EVERY WORD IN THE EXCHANGE READS AT FULL STRENGTH (Brendon, 2026-07-31 —
+   Rule #2: no washed-out chrome). The window borrows the cart's and the
+   market's list pieces, several of which ship dimmed — the empty state, the
+   item sub-lines, the price unit, the floor chip, the close ×. Inside the
+   Exchange none of them are faded. The wrap keeps its own mount fade, and a
+   DISABLED control keeps its dimming, because that fade carries meaning. */
+.exch-wrap .cart-empty-state,
+.exch-wrap .cart-panel-title,
+.exch-wrap .cart-panel-close-x,
+.exch-wrap .cart-item-name,
+.exch-wrap .cart-item-meta,
+.exch-wrap .cart-item-artist,
+.exch-wrap .cart-item-price,
+.exch-wrap .mk-price-unit,
+.exch-wrap .mk-price-input,
+.exch-wrap .mk-floor-chip,
+.exch-wrap .mk-duration-row,
+.exch-wrap .ms-confirm-question,
+.exch-wrap .ms-confirm-card {
+    opacity: 1;
+}
+.exch-wrap input::placeholder { opacity: 1; }

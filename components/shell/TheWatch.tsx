@@ -34,7 +34,9 @@ interface Metric {
 }
 
 const METRICS: Metric[] = [
-  { key: 'total_volume_eth', label: 'VOLUME', fmt: (v) => `Ξ ${v}` },
+  /* ETH wears PD's own ◊, like every other price on the site — never the
+     Greek Xi (Brendon, 2026-07-31). */
+  { key: 'total_volume_eth', label: 'VOLUME', fmt: (v) => `◊︎ ${v}` },
   { key: 'total_minted', label: 'MINTED', fmt: (v) => `${v}` },
   { key: 'total_holders', label: 'HOLDERS', fmt: (v) => `${v}` },
   { key: 'total_projects', label: 'PROJECTS', fmt: (v) => `${v}` },

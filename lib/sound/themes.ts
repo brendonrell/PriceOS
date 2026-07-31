@@ -20,7 +20,7 @@
  *   Busy Mint    — bare ticking the whole way through; ⛔ NEVER add a pad or
  *                  an arpeggio to its middle, that was tried and rejected
  *   Sold Out     — calm and resolved
- *   Depanneur    — bouncy toy-machine jingle, clicky backing
+ *   Depanneur    — the shop tune: warm, swung, lilting (the OoT shop feel)
  *   Sticker Store— bright walking shop floor
  *   Gnome Wallet — slow minor waltz under the hill (the only 3/4 piece)
  * The last three are OVERLAY themes: they belong to a modal, not a route, and
@@ -455,33 +455,47 @@ export const THEMES: Record<ThemeName, ThemeRecipe> = {
         },
     }),
 
-    /* Depanneur — the corner-shop toy machine: a bouncy little jingle with a
-       clicky backing, the sound of standing in front of a capsule machine
-       deciding to spend one more coin (Brendon, 2026-07-31). */
+    /* Depanneur — the SHOP TUNE (Brendon, 2026-07-31: "those Zelda Ocarina of
+       Time themes when you'd go into a shop"). Warm, slow-ish, swung and
+       lilting, major sevenths, a walking bass under a soft little melody with
+       plenty of air in it. ⛔ NOT the arcade treatment — the first pass was a
+       bouncy clicky jingle and that is not the feel. Nothing `tight` here. */
     depanneur: compose({
-        bpm: 124, form: ['A', 'A', 'B', 'A', 'B', 'A'],
-        tight: true,
-        pad: 0.14, pulse: { div: 2, gain: 0.70 }, arp: { div: 4, gain: 0.26 },
-        hat: { gain: 0.16 }, thud: { on: [0, 2], gain: 0.80 },
-        lead: { partials: BELL, gain: 0.58, wobble: 5, tail: 3.2 },
+        bpm: 92, swing: 0.22, form: ['A', 'A', 'B', 'A', 'B', 'A'],
+        pad: 0.20, bass: { gain: 0.58 },
+        arp: { div: 2, gain: 0.17, partials: SOFT, soft: true },
+        hat: { gain: 0.09 }, thud: { on: [0, 2], gain: 0.42 },
+        lead: { partials: RUBBER, gain: 0.62, wobble: 4, tail: 3.0, attack: 0.012 },
         sections: {
             A: {
-                chords: [C_, Am, Dm, G_],
+                chords: [Fmaj7, Em7, Dm7, G_],
+                bass: [
+                    'F1:1.5 A1:.5 C2:1 A1:1',
+                    'E2:1.5 G1:.5 B1:1 G1:1',
+                    'D2:1.5 F2:.5 A2:1 F2:1',
+                    'G1:1.5 B1:.5 D2:1 F2:1',
+                ],
                 melody: [
-                    'G4:.5 C5:.5 E5:1 D5:.5 C5:.5 G4:1',
-                    'A4:.5 C5:.5 E5:1 C5:1.5 -:.5',
-                    'F4:.5 A4:.5 D5:1 F5:1 D5:1',
-                    'D5:.5 B4:.5 G4:1 B4:1 D5:1',
+                    'A4:1 C5:.5 F5:1.5 E5:1',
+                    'G4:1 B4:.5 E5:1.5 D5:1',
+                    'F4:1 A4:.5 D5:1.5 C5:1',
+                    'B4:.5 D5:.5 G5:1 F5:1 D5:1',
                 ],
             },
             B: {
-                chords: [F_, G_, C_, Am],
-                parts: { arp: { div: 4, gain: 0.32 } },
+                chords: [C_, Am7, Dm7, G_],
+                parts: { hat: { gain: 0.12 } },
                 melody: [
-                    'C5:.5 F5:.5 A5:1 F5:1 C5:1',
-                    'D5:.5 G5:.5 B5:1 G5:1 D5:1',
-                    'E5:.5 G5:.5 C6:1.5 G5:1 -:.5',
-                    'A5:.5 E5:.5 C5:1 A4:2',
+                    'E5:1 G5:1 C6:1.5 -:.5',
+                    'A5:1 E5:.5 C5:1.5 A4:1',
+                    'D5:1 F5:.5 A5:1.5 G5:1',
+                    'F5:.5 D5:.5 B4:1 G4:2',
+                ],
+                bass: [
+                    'C2:1.5 E2:.5 G2:1 E2:1',
+                    'A1:1.5 C2:.5 E2:1 C2:1',
+                    'D2:1.5 A1:.5 F2:1 A2:1',
+                    'G1:1.5 D2:.5 F2:1 B1:1',
                 ],
             },
         },
