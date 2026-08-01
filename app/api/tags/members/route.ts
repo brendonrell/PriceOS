@@ -99,13 +99,49 @@ export async function GET(req: Request): Promise<NextResponse> {
        aggregated in memory rather than per-user round trips. */
     const owned = new Map<string, number>();
     const spent = new Map<string, number>();
-    const [holdersRes, eventsRes] = await Promise.all([
-      supabase.from('holders').select('owner_address'),
+    /* The holder rows carry their project too, so the same scan that counts
+       what people own also answers which MONTHS they cleared — the
+       Completionism chips have to derive here or their own room reads empty. */
+    const [holdersRes, eventsRes, projRes] = await Promise.all([
+      supabase.from('holders').select('owner_address, project_id'),
       supabase.from('events').select('type, to_address, price_eth'),
+      supabase.from('projects').select('id, uploaded_at, cooldown_until').limit(2000),
     ]);
-    for (const h of ((holdersRes.data ?? []) as Array<{ owner_address: string | null }>)) {
+    /* project → its upload month, and how many projects that month holds.
+       uploaded_at is canonical; older rows fall back to cooldown − 60d, the
+       same moment /api/completionism and the feeds use. */
+    const monthOf = new Map<string, string>();
+    const monthTotals = new Map<string, number>();
+    for (const p of ((projRes.data ?? []) as Array<{ id: string; uploaded_at: string | null; cooldown_until: string | null }>)) {
+      let ms = p.uploaded_at ? Date.parse(p.uploaded_at) : NaN;
+      if (!Number.isFinite(ms) && p.cooldown_until) ms = Date.parse(p.cooldown_until) - 60 * 86400 * 1000;
+      if (!Number.isFinite(ms)) continue;
+      const d = new Date(ms);
+      const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+      monthOf.set(p.id, key);
+      monthTotals.set(key, (monthTotals.get(key) ?? 0) + 1);
+    }
+    const heldByAddr = new Map<string, Map<string, Set<string>>>();
+    for (const h of ((holdersRes.data ?? []) as Array<{ owner_address: string | null; project_id: string | null }>)) {
       const a = (h.owner_address ?? '').toLowerCase();
-      if (a) owned.set(a, (owned.get(a) ?? 0) + 1);
+      if (!a) continue;
+      owned.set(a, (owned.get(a) ?? 0) + 1);
+      const key = h.project_id ? monthOf.get(h.project_id) : undefined;
+      if (!key || !h.project_id) continue;
+      const months = heldByAddr.get(a) ?? new Map<string, Set<string>>();
+      const set = months.get(key) ?? new Set<string>();
+      set.add(h.project_id);
+      months.set(key, set);
+      heldByAddr.set(a, months);
+    }
+    const clearedByAddr = new Map<string, string[]>();
+    for (const [a, months] of heldByAddr) {
+      const cleared: string[] = [];
+      for (const [key, held] of months) {
+        const total = monthTotals.get(key) ?? 0;
+        if (total > 0 && held.size >= total) cleared.push(key);
+      }
+      if (cleared.length) clearedByAddr.set(a, cleared);
     }
     for (const e of ((eventsRes.data ?? []) as Array<{ type: string; to_address: string | null; price_eth: string | null }>)) {
       if (e.type !== 'MINT' && e.type !== 'SALE') continue;
@@ -134,6 +170,7 @@ export async function GET(req: Request): Promise<NextResponse> {
         priceHeld: u.price_held ?? null,
         shownTags: shownByAddr.get(addr) ?? [],
         tagsOff: offByAddr.get(addr) ?? [],
+        clearedMonths: clearedByAddr.get(addr) ?? [],
         projects: u.handle
           ? projectsByArtist(u.handle).map((p) => ({
               slug: p.slug,

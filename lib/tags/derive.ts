@@ -104,6 +104,11 @@ export interface DeriveInput {
      *  server renders, so hydration never mismatches. Same contract as
      *  `rudxaneRoll` above. */
     formulaRoll?: number | null;
+    /** Months this person CLEARED, as `YYYY-MM` keys — one "SEP '26 100%" chip
+     *  each. Handed in as facts like `projects`: working out which months are
+     *  complete needs the project table and the holder rows, and neither may be
+     *  reached from this module. Absent = no completionism chips. */
+    clearedMonths?: string[] | null;
     /** Tag ids the owner switched OFF — the opt-out list, and the ONLY thing
      *  that can dark a default-on tag (the PROJECT tags, Brendon 2026-07-29).
      *  Separate from `shownTags` on purpose: absence from the shown list means
@@ -238,6 +243,46 @@ export function priceHeldTag(held: number | string | null | undefined): Tag | nu
     return null;
 }
 
+/* ── COMPLETIONISM — one chip per month you cleared (Brendon: a tag per month
+   collected, "SEP '26 100%"). A month is CLEARED when you hold at least one
+   output of every project uploaded in it — the same cut the Completionism
+   sheet itself uses, handed in here as facts so this module never reaches for
+   the project registry (that ban is why every tag fact arrives pre-resolved).
+   Colour: the PriceDay purple, because Completionism is built on PriceDay's
+   own calendar spine — the two are the same clock. ── */
+const MONTH_ABBR = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+    'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
+/** '2026-09' → "SEP '26 100%". Returns null for anything malformed. */
+export function completionismLabel(key: string): string | null {
+    const m = /^(\d{4})-(\d{2})$/.exec(key);
+    if (!m) return null;
+    const month = Number(m[2]);
+    if (month < 1 || month > 12) return null;
+    return `${MONTH_ABBR[month - 1]} '${m[1]!.slice(2)} 100%`;
+}
+
+/** One earned chip per cleared month, newest first. */
+function completionismTags(keys: readonly string[] | null | undefined): Tag[] {
+    if (!keys?.length) return [];
+    const seen = new Set<string>();
+    const out: Tag[] = [];
+    for (const key of [...keys].sort().reverse()) {
+        const label = completionismLabel(key);
+        if (!label || seen.has(key)) continue;
+        seen.add(key);
+        out.push({
+            id: `completionism-${key}`,
+            label,
+            color: PRICEDAY_TAG_COLOR,
+            kind: 'earned',
+            order: 24 + out.length / 100,
+            blurb: 'Collected every release of that month.',
+        });
+    }
+    return out;
+}
+
 function daysSince(iso: string): number {
     const then = new Date(iso).getTime();
     if (Number.isNaN(then)) return 0;
@@ -274,6 +319,7 @@ export function deriveTags(input: DeriveInput): Tag[] {
     add(priceHoldTag(input.priceHoldRank));    // $PRICE Top N · #r (holder rank)
     add(priceHeldTag(input.priceHeld));        // $PRICE 100K+ / 1M+ (amount held)
     for (const t of projectTagsFor(input.projects)) add(t);  // one per Project made
+    for (const t of completionismTags(input.clearedMonths)) add(t);  // one per month cleared
     if (input.isArtist) add(tagById('artist'));
     if (input.createdAt && daysSince(input.createdAt) >= VETERAN_DAYS) add(tagById('veteran'));
 

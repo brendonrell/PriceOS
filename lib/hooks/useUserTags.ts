@@ -120,6 +120,7 @@ export function useUserTags(handles: readonly (string | null | undefined)[]): Re
                 shownTags: f.shownTags,
                 tagsOff: f.tagsOff,
                 projects: f.projects,
+                clearedMonths: f.clearedMonths,
                 handle: f.handle,
                 teamTagStyle: f.teamTagStyle,
                 rudxaneRoll,

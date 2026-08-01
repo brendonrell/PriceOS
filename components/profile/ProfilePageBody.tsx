@@ -92,6 +92,7 @@ import {
 } from '../../lib/tags/formula';
 import { useTeamTagStyle } from '../../lib/hooks/useTeamTagStyle';
 import { useRudxaneRoll } from '../../lib/hooks/useRudxaneRoll';
+import { useClearedMonths } from '../../lib/hooks/useClearedMonths';
 import AsciiId from '../hero/AsciiId';
 import { useShownTags } from '../../lib/hooks/useShownTags';
 import { useTagsOff } from '../../lib/hooks/useTagsOff';
@@ -301,6 +302,9 @@ function ProfilePageBodyInner({
     /* The @name letters, restyled in the owner's chosen Unicode font ("@" and the
        underlying handle stay plain; this is display only). */
     const styledHandle = styleName(displayHandle, ownerNameFont ?? null);
+    /* Completionism chips — the months this wallet cleared. Read out of the
+       sheet the profile already warms, so a chip costs no extra request. */
+    const clearedMonths = useClearedMonths(user.address);
     const tagInput = useMemo(() => ({
         profileTags: isOwnProfile ? myTags : (user.profile_tags ?? []),
         grantedTags: user.granted_tags ?? [],
@@ -322,7 +326,8 @@ function ProfilePageBodyInner({
             name: p.displayName,
             color: projectColorway(p.slug) ?? p.colorway,
         })),
-    }), [isOwnProfile, myTags, user.profile_tags, user.granted_tags, user.user_number, artistStatus, user.created_at, user.address, user.handle, handle, ownerTeamTagStyle, rudxaneRoll, ownerFormulas, formulaRoll, user.price_hold_rank, user.price_held]);
+        clearedMonths,
+    }), [clearedMonths, isOwnProfile, myTags, user.profile_tags, user.granted_tags, user.user_number, artistStatus, user.created_at, user.address, user.handle, handle, ownerTeamTagStyle, rudxaneRoll, ownerFormulas, formulaRoll, user.price_hold_rank, user.price_held]);
     /* Shown on the hero: full derived set minus the hidden ones (Manual → Earned
        → Chosen order via each tag's `order`). */
     const displayTags = useMemo(

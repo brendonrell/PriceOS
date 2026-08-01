@@ -48,6 +48,10 @@ export interface TagFacts {
   nameFont: string | null;
   /** The owner's all-tags paint (one colour across their whole row), or null. */
   tagPaint: string | null;
+  /** Months this person CLEARED (`YYYY-MM`) — one "SEP '26 100%" chip each.
+   *  Resolved here for the same reason `projects` is: it needs the project
+   *  table and the holder rows, which belong on this side of the wall. */
+  clearedMonths: string[];
   /** The owner's @handle — gates the handle-reserved TEAM tags (WTBS, Petey). */
   handle: string | null;
   /** Which of the twelve WTBS-family treatments the owner cycled to. */
@@ -109,6 +113,58 @@ export async function GET(req: Request): Promise<NextResponse> {
       } catch { /* no allowlist read → nobody gets the Artist tag, never a 500 */ }
     }
 
+    /* COMPLETIONISM — which months has each of these people cleared? A month
+       is cleared when they hold at least one output of EVERY project uploaded
+       in it, the same cut /api/completionism uses. Two reads for the whole
+       batch: the project months (identical for everyone, bucketed once) and
+       the holder rows for these addresses. Wrapped like the allowlist read —
+       a failure costs the chips, never the response. */
+    const clearedByAddr = new Map<string, string[]>();
+    if (addresses.length) {
+      try {
+        const svc = getSupabaseService();
+        const [projRes, holdRes] = await Promise.all([
+          svc.from('projects').select('id, uploaded_at, cooldown_until').limit(2000),
+          svc.from('holders').select('owner_address, project_id').in('owner_address', addresses),
+        ]);
+        /* project id → the month it was uploaded in. uploaded_at is canonical;
+           older rows fall back to the same cooldown−60d moment the feeds use. */
+        const monthOf = new Map<string, string>();
+        const monthTotals = new Map<string, number>();
+        for (const p of (projRes.data ?? []) as Array<{ id: string; uploaded_at: string | null; cooldown_until: string | null }>) {
+          let ms = p.uploaded_at ? Date.parse(p.uploaded_at) : NaN;
+          if (!Number.isFinite(ms) && p.cooldown_until) {
+            ms = Date.parse(p.cooldown_until) - 60 * 86400 * 1000;
+          }
+          if (!Number.isFinite(ms)) continue;
+          const d = new Date(ms);
+          const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+          monthOf.set(p.id, key);
+          monthTotals.set(key, (monthTotals.get(key) ?? 0) + 1);
+        }
+        /* address → month → the distinct projects of that month they hold. */
+        const heldByAddr = new Map<string, Map<string, Set<string>>>();
+        for (const h of (holdRes.data ?? []) as Array<{ owner_address: string; project_id: string }>) {
+          const key = monthOf.get(h.project_id);
+          if (!key) continue;
+          const a = h.owner_address.toLowerCase();
+          const months = heldByAddr.get(a) ?? new Map<string, Set<string>>();
+          const set = months.get(key) ?? new Set<string>();
+          set.add(h.project_id);
+          months.set(key, set);
+          heldByAddr.set(a, months);
+        }
+        for (const [a, months] of heldByAddr) {
+          const cleared: string[] = [];
+          for (const [key, held] of months) {
+            const total = monthTotals.get(key) ?? 0;
+            if (total > 0 && held.size >= total) cleared.push(key);
+          }
+          if (cleared.length) clearedByAddr.set(a, cleared);
+        }
+      } catch { /* no completionism read → no month chips, never a 500 */ }
+    }
+
     /* Shown tags + the WTBS-family style pick — private envelope, service key,
        one read, and only those two values ever leave the server. */
     const shownByHandle = new Map<string, string[]>();
@@ -146,6 +202,7 @@ export async function GET(req: Request): Promise<NextResponse> {
           name: p.displayName,
           color: projectColorway(p.slug) ?? p.colorway,
         })),
+        clearedMonths: (addr && clearedByAddr.get(addr)) || [],
         nameFont: u.name_font ?? null,
         tagPaint: u.tag_paint ?? null,
         handle: h,
