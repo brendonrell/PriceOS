@@ -74,7 +74,10 @@ export type ModalName =
     /* FRIEND INSPECTOR LITE (Brendon, 2026-07-29) — who follows one Output.
        Payload is the global output ref, `{slug}-{tokenId}`. Door: the
        follower count on the Output hero. */
-    | 'followersLite';
+    | 'followersLite'
+    /* COLORPEDIA (Brendon, 2026-08-01) — the book about one colour. Payload is
+       the hex to open on. Door: the Colorway tile on a Project's Attributes. */
+    | 'colorpedia';
 
 interface OpenModalState {
     name: ModalName;

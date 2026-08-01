@@ -1,0 +1,294 @@
+/* ============================================================================
+   COLORPEDIA ◉ — the little book about one colour.
+
+   Chrome wears the FULL-STRENGTH site tokens (--text-color borders and text on
+   a --bg-color fill), never a grey or a low-alpha wash: every PD page is
+   repainted an arbitrary colorway hue and a wash vanishes on a mid-tone page.
+   Nothing under 12px, labels bold, 4px-radius controls on square surfaces —
+   the trait-pill treatment (CLAUDE.md Rule #2 + the banned-motifs rule).
+
+   Shell is inherited verbatim from the Friend Inspector / Clubhouse family
+   (.sticker-mgr-backdrop + .ambient-pop + .followers-pop); only the inside of
+   the card lives here.
+   ============================================================================ */
+
+/* The card is taller than a leaderboard — this one is meant to be read. */
+.cped-pop { height: min(640px, calc(100dvh - 96px)); }
+
+/* ---- The search — colour names, hex, RGB, CMYK, HSL --------------------- */
+.cped-search {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    background: var(--bg-color);
+    padding: 0 8px;
+    height: 34px;
+}
+.cped-search-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 0.4px;
+    /* 16px on iOS stops Safari zooming the page on focus; the visual size is
+       held by the transform-free font-size below 600px override. */
+}
+.cped-search-input::placeholder {
+    color: var(--text-color);
+    opacity: 0.75;
+    font-weight: bold;
+    letter-spacing: 0.4px;
+}
+.cped-search-clear {
+    flex: 0 0 auto;
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 1;
+    padding: 2px 4px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+/* iOS zooms any field under 16px on focus. Keep the field at 16px on phones —
+   the card is wide enough to carry it. */
+@media (max-width: 600px) {
+    .cped-search-input { font-size: 16px; }
+    .cped-search-input::placeholder { font-size: 13px; }
+}
+
+/* ---- The body is the ONE scroll area; the card never runs off screen ---- */
+.cped-body { gap: 10px; }
+.cped-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-right: 2px;
+}
+
+/* ---- The colour itself -------------------------------------------------- */
+.cped-hero {
+    flex: 0 0 auto;
+    height: 108px;
+    width: 100%;
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    padding: 8px 10px;
+    cursor: pointer;
+    font-family: 'Courier New', Courier, monospace;
+    -webkit-tap-highlight-color: transparent;
+}
+/* The hex is written ON the colour in whichever ink actually reads against it
+   (computed contrast, never a fixed white). */
+.cped-hero-hex {
+    font-size: 17px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: inherit;
+}
+.cped-name {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 17px;
+    font-weight: bold;
+    letter-spacing: 0.6px;
+    color: var(--text-color);
+    margin-top: 2px;
+}
+/* The honesty line — says whether this hex IS the named colour or merely
+   landed nearest to it. Full strength: it is load-bearing, not a whisper. */
+.cped-name-sub {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.6px;
+    color: var(--text-color);
+}
+
+.cped-section {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1.2px;
+    color: var(--text-color);
+    border-bottom: 1px solid var(--text-color);
+    padding-bottom: 4px;
+    margin-top: 8px;
+}
+
+/* ---- Formats — every one tappable to copy ------------------------------- */
+.cped-formats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+}
+.cped-format {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-family: 'Courier New', Courier, monospace;
+    cursor: pointer;
+    text-align: left;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s, color 0.15s;
+}
+.cped-format:hover { background: var(--text-color); color: var(--bg-color); }
+.cped-format-label { font-size: 12px; font-weight: bold; letter-spacing: 1px; }
+.cped-format-value { font-size: 13px; font-weight: bold; letter-spacing: 0.3px; }
+/* LAB / LCH carry the longest strings — they take the full row. */
+.cped-format:nth-child(6),
+.cped-format:nth-child(7) { grid-column: span 1; }
+
+/* The one place a smaller line is right: a standing note about the numbers
+   above it, not chrome you act on. Still full-strength colour, still bold. */
+.cped-fineprint {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1.35;
+    color: var(--text-color);
+    opacity: 0.85;
+}
+
+/* ---- The read — one line per derived fact ------------------------------- */
+.cped-reads { display: flex; flex-direction: column; }
+.cped-read {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--text-color);
+    padding: 3px 0;
+}
+.cped-read-label { flex: 0 0 auto; }
+.cped-read-leader { flex: 1 1 auto; border-bottom: 2px dotted currentColor; opacity: 0.4; }
+.cped-read-value { flex: 0 0 auto; }
+
+/* ---- History ------------------------------------------------------------ */
+.cped-note {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-color);
+    margin: 0;
+}
+
+/* ---- Harmonies — computed on the wheel, every swatch walkable ----------- */
+.cped-chord { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+.cped-chord-label {
+    flex: 0 0 84px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.6px;
+    color: var(--text-color);
+}
+.cped-chord-strip { flex: 1 1 auto; display: flex; gap: 4px; }
+.cped-chord-swatch {
+    flex: 1 1 0;
+    height: 26px;
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    padding: 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+/* The colour you are already reading, marked with PD's own state mark — the
+   dotted ring (never a left-edge accent bar). */
+.cped-chord-swatch.is-base { outline: 2px dotted var(--text-color); outline-offset: 1px; }
+
+/* ---- Result / neighbour rows ------------------------------------------- */
+.cped-results {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    display: flex;
+    flex-direction: column;
+}
+.cped-result {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    padding: 7px 4px;
+    cursor: pointer;
+    text-align: left;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s;
+}
+.cped-result:hover { background: rgba(127, 127, 127, 0.14); }
+.cped-result-name { flex: 0 1 auto; font-size: 13px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cped-result-leader { flex: 1 1 auto; border-bottom: 2px dotted currentColor; opacity: 0.4; margin: 0 4px; }
+.cped-result-hex { flex: 0 0 auto; font-size: 12px; font-weight: bold; letter-spacing: 0.4px; }
+.cped-chip-swatch {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    display: block;
+}
+
+/* The "we read your typing as this colour" bar — a real, tappable answer to a
+   hex / RGB / CMYK / HSL query, sitting above the name matches. */
+.cped-read-back {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    padding: 7px 8px;
+    font-family: 'Courier New', Courier, monospace;
+    cursor: pointer;
+    text-align: left;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s, color 0.15s;
+}
+.cped-read-back:hover { background: var(--text-color); color: var(--bg-color); }
+.cped-read-back-text { font-size: 12px; font-weight: bold; letter-spacing: 0.6px; }
+
+.cped-empty {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--text-color);
+    padding: 12px 4px;
+}

@@ -80,6 +80,7 @@ export default function ProjectMorePanel({
        it makes the same call (Rule #0). */
     const onAttrTileTap = (k: string) => {
         if (k === 'golf') open('golf-leaderboard', undefined, project.slug);
+        if (k.startsWith('colorpedia:')) open('colorpedia', k.slice('colorpedia:'.length));
         if (k === 'soundtrack' && project.soundtrack) {
             fmPlay({
                 playlistId: project.soundtrack.playlistId,

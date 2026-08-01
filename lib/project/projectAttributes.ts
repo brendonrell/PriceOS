@@ -66,7 +66,9 @@ export function buildProjectAttributes(
         { glyph: '⬚', label: 'Supply', value: `${project.outputs}` },
     ];
     if (project.mintPriceEth != null) identity.push({ glyph: '◊', label: 'Mint Price', value: `${project.mintPriceEth} ETH` });
-    if (project.colorway) identity.push({ glyph: '◉', label: 'Colorway', value: project.colorway.toUpperCase(), swatch: project.colorway });
+    /* Tapping the tile opens the Colorpedia on this exact colour — its name,
+       every format, and its history (Brendon, 2026-08-01). */
+    if (project.colorway) identity.push({ glyph: '◉', label: 'Colorway', value: project.colorway.toUpperCase(), swatch: project.colorway, tapKey: `colorpedia:${project.colorway}` });
     /* Tapping the tile opens the soundtrack exactly like the page's SOUNDTRACK
        button does — the miniplayer (Brendon, 2026-07-31). */
     if (project.soundtrack) identity.push({ glyph: '♫', label: 'Soundtrack', value: project.soundtrack.label, tapKey: 'soundtrack' });
