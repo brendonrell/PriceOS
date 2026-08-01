@@ -3,7 +3,7 @@ title: "The App — Projects & Minting"
 description: "The Project page: minting from the UI, live presence, traits and the Genome, grid sorts and grouping, project milestones, True Names, and per-Project colour."
 category: "app"
 keywords: ["project page", "minting", "genome", "milestones", "true name", "gnome"]
-last_updated: "2026-07-20"
+last_updated: "2026-08-01"
 ---
 
 # The App — Projects & Minting
@@ -38,13 +38,23 @@ The Project's Outputs, in a grid built for long sessions:
 
 ## Project identity
 
-- **The artist's colour** — each Project paints the app in its own colorway while you're on it.
+- **The artist's colour** — each Project paints the app in its own colorway while you're on it. The ◉ Colorway tile on Attributes opens [Colorpedia](/docs/colorpedia): that colour's name, every format, its history, and its harmonies.
 - **The True Name** — every Project receives a permanent, unique 4-letter name in uppercase Glagolitic (Kiki's is `ⰅⰕⰭⰧ`), the platform's golem-mythos signature, shown in the Project's social panel.
 - **Milestones** — lifecycle events the whole platform celebrates in the home feed: Uploaded ✧, Graduated ⟢⟢, First Blood †, Lucky 22 ♧, Century Club Ⅽ, Halo ⬭ (777), Per Mille ‰ (1,000), Archetype ✻, Hi-Def ⬢, and Ascension ▲ at sell-out.
 
 ## The Gnome — the Project's keeper
 
 Every Project has exactly one **Gnome**, living in the +More panel: a small generative creature, deterministic from the Project itself — its name, temperament, hat, beard, keepsake, and hoard are the Project's alone, forever, though its outfit re-dresses in your live colorway. Tap it and it greets you (it knows whether you're a stranger, a holder, or a favoured friend); its mood tracks the Project's market. Hold a piece for a week unbroken and unlisted and the keeper turns **appraiser**, arguing your piece's case from true facts only — rarity isolation, strike date, door price, tenure. The Gnome never lies and never re-rolls.
+
+## The Replay ⟳ — the Project's time machine
+
+The +More panel's **Replay** tab plays a Project's whole market history back as one synchronized animation: floor price, holders, listings and sales moving together from the first mint to today. Scrub anywhere on the timeline, run it at **1x / 5x / 22x**, or pause to lock a static reading — how the Project looked, priced and was held at that exact moment. At 1x the full biography runs in about thirty seconds, and it always lands precisely on today's real numbers.
+
+## Golf Score ◴ and the Clubhouse ⛳
+
+Generative art is written as code, and on PD that code's **size** is a stat like any other. A Project's **Golf Score** is the byte size of its generation engine — and, as in golf, **the low score wins**. It sits on the Project's Attributes with the Project's rank among every ranked engine on the platform.
+
+Tap the tile and the **Clubhouse** opens: every Project's engine ranked smallest-first. The leader on that board is the **artist**, not the Project — the ⛳ flag marks whoever wrote the tightest engine on PD, with medals for second and third. The measurement is taken from the engine's own shipped source, so it is the same number for everyone and can't be claimed, only earned.
 
 ## Social
 

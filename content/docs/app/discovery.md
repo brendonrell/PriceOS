@@ -3,7 +3,7 @@ title: "The App — Discovery"
 description: "Finding work on PriceOS: the home page and its carousels, the live feed and milestones, global search, artist surfaces, and PriceRank."
 category: "app"
 keywords: ["discovery", "search", "home", "feed", "pricerank", "stickers", "lane runner"]
-last_updated: "2026-07-20"
+last_updated: "2026-08-01"
 ---
 
 # The App — Discovery
@@ -21,6 +21,16 @@ The platform's front door, wearing the daily Mood Ring colour:
 - **The name itself** — "Price Discussion" is the platform's compass: **long-press** it to open [Cartography ◫](/docs/cartography), **triple-tap** it to enter [The Rewind ◄](/docs/rewind).
 - **The Dispatch pill** — the news rail leads with the ❡ pointer to [the morning paper](/docs/dispatch).
 - **The STICKERS button** (⊞) — the action row's door to [the Sticker Exchange](/docs/stickers/overview): store, marketplace, and binder in one slide-up sheet.
+
+## Projects Pro ⬚
+
+The home page's project count is a door: tap the **⬚ n PRO** figure in the stats row and the whole catalog opens as an instrument, not a list — the same one the Friend Inspector points at your circle, pointed at the work instead.
+
+- **Tabs** — ALL · HELD (you own a piece) · STARRED · MINTING, each carrying its live count.
+- **Sort** — A–Z · NEWEST · SIZE · MINTED.
+- **Lenses** — LEDGER (the plain read), MINE (your position in each Project), PULSE (the Project's last move and how long ago). A lens annotates and re-orders; it never hides a Project from you.
+- **The dossier** — tap any row and it unfolds: mint progress, outputs, price, upload day, and the ⟁ cartel read of how many of your mutuals hold it.
+- **PROJECTS PRO+** — the expanded view adds a preview strip: ROSTER (every Project as its sprite, the ones you hold ringed) and 30 DAYS (what moved, by day).
 
 ## Global search
 

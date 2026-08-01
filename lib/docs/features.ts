@@ -334,6 +334,11 @@ export const ATLAS: AtlasFeature[] = [
     F(259, 'The Sticker Channel', 'Platform Systems'),
     F(260, 'The Exchange', 'Platform Systems', '⇌'),
     F(261, 'The Rewind', 'Platform Systems', '◄'),
+    /* Append-only from here (2026-08-01) — the Atlas takes the next number,
+       numbers are never reused or reassigned. */
+    F(262, 'Colorpedia', 'OS Tools', '◉'),
+    F(263, 'Golf Score · The Clubhouse', 'Project Page', '⛳'),
+    F(264, 'Projects Pro', 'Home / Discovery', '⬚'),
 ];
 
 export function atlasId(n: number): string {

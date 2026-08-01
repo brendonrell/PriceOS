@@ -131,6 +131,10 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
         slugs: ['fingerprint'],
     },
     {
+        title: 'Colorpedia',
+        slugs: ['colorpedia'],
+    },
+    {
         title: 'Rarity Labs',
         slugs: ['rarity-labs'],
     },

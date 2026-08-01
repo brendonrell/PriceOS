@@ -3,7 +3,7 @@ title: "The App — Outputs"
 description: "The individual artwork surface: live on-chain rendering, fullscreen, attributes and rarity receipts, the action row, the ASCII backup, and Output-level follows."
 category: "app"
 keywords: ["output", "artwork", "live render", "rarity", "ascii backup", "grouping", "tribunal"]
-last_updated: "2026-07-20"
+last_updated: "2026-08-01"
 ---
 
 # The App — Outputs
@@ -13,6 +13,12 @@ An Output is one minted piece — the unit of collecting on PD. Its page is wher
 ## The live render
 
 Grids and cards across the app draw each Output's stored PNG preview for speed; the Output page renders the real thing — the artist's script, running with this token's on-chain hash, exactly as `tokenURI` defines it. Fullscreen mode hands the whole viewport to the work.
+
+## The Darkroom ◉
+
+**Long-press the artwork** on its page and the Darkroom opens: an inspection workspace where the art is the interface and the chrome all but disappears. It renders the piece live at full resolution — never a stored image — with pixel-level zoom, so you can go right into the grain of the work.
+
+Alongside it, the piece's **real palette** as tappable swatches, sampled from the render itself rather than declared by anyone, and an optional **INVERT** mode that flips the whole piece to its negative — the printer's trick for seeing composition and value without the colour arguing. INVERT is off until you tap it. The × returns you to where you came from.
 
 ## Attributes & rarity
 
