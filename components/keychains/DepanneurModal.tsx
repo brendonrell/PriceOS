@@ -398,7 +398,7 @@ export default function DepanneurModal() {
 
                             {/* THE MACHINE */}
                             <div className="dp-machine">
-                                <span className={`dp-machine-cap${cranking ? ' turning' : ''}`}>{`⚷${VS15}`}</span>
+                                <span className={`dp-machine-cap${cranking ? ' turning' : ''}`}>{`☯${VS15}`}</span>
                                 <div className="dp-machine-col">
                                     <span className="dp-machine-name">THE CAPSULE MACHINE</span>
                                     <span className="dp-machine-line">One crank · one charm · one of 58,060,800</span>

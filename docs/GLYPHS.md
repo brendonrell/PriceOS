@@ -647,13 +647,21 @@ taste gets measured on the Fingerprint).
 
 | Use | Glyph | Codepoint |
 |---|---|---|
-| Keychains (the capsule machine) | ⚷ | U+26B7 CHIRON |
+| Keychains (the capsule machine) | ☯ | U+262F YIN YANG |
 | YANG coin slot (Depanneur) | ⚊ | U+268A MONOGRAM FOR YANG |
 | YIN coin slot (Depanneur) | ⚋ | U+268B MONOGRAM FOR YIN |
 
+> **⛔ THE ☯ BAN WAS WRONG — CORRECTED 2026-08-01 (Brendon, who read it on
+> the real device: "it looks great on iPhone").** U+262F is TEXT-default in
+> Unicode — it only turns into an emoji if you hand it the emoji selector,
+> which PD never does. It has been shipping bare on the Fates tiles the whole
+> time and renders as clean line art on iOS. It is now the **Depanneur's own
+> mark**, replacing Chiron ⚷ on the machine cap, the settings door and both
+> THE DEPANNEUR buttons, by Brendon's call. ⚷ stays on the charm's chain line.
+> The note below is kept for the record of why the coin slots are what they are.
+>
 > **⚊/⚋ (2026-07-28, the coin-slots build.)** Brendon asked for a yin-yang
-> Depanneur mark; the true taijitu **☯ (U+262F) is emoji-mapped and BANNED**
-> by the sharpened §7 test. The I-Ching monograms ARE the literal yang/yin
+> Depanneur mark; the taijitu ☯ was believed emoji-mapped at the time. The I-Ching monograms ARE the literal yang/yin
 > lines, carry no emoji mapping, and mean exactly the thing. ⚊ already
 > ships as the Fates oracle's I-Ching line (`lib/output/attributes.ts`,
 > `lib/project/collectionAnalysis.ts`) — same symbol system, same literal

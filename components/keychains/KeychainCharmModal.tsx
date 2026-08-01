@@ -92,7 +92,7 @@ export default function KeychainCharmModal() {
                                     className="dp-btn"
                                     onClick={(e) => { e.stopPropagation(); open('depanneur'); }}
                                 >
-                                    {`⚷${VS15}`} THE DEPANNEUR
+                                    {`☯${VS15}`} THE DEPANNEUR
                                 </button>
                             </div>
                         </div>

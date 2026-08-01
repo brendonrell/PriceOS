@@ -551,7 +551,7 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
                             open('depanneur');
                         }}
                     >
-                        {`⚷${VS15}`} THE DEPANNEUR
+                        {`☯${VS15}`} THE DEPANNEUR
                     </button>
                 </TailBubble>
             )}
