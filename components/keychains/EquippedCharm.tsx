@@ -333,15 +333,24 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
             const py = new Float64Array(n);
             const ox = new Float64Array(n);
             const oy = new Float64Array(n);
+            /* Its own down: true down, tipped by however far it splays out. */
+            const th = (art.lean * Math.PI) / 180;
+            const cos = Math.cos(th);
+            const sin = Math.sin(th);
+            /* ⛔ IT LOADS IN ITS LEAN — IT DOES NOT DRIFT INTO IT (Brendon,
+               2026-08-01: "they all hang down, then slowly drift into their
+               lean position… not quite realistic lol"). The chain used to be
+               seeded straight down and the solver walked it over to the lean
+               across a second of frames, in full view. Seeded ALONG its own
+               down instead, it is already at rest on the very first paint. */
             for (let i = 0; i < n; ++i) {
-                px[i] = 500;
-                py[i] = art.geom.top + (i <= N ? L * i : L * N + comLen);
+                const dist = i <= N ? L * i : L * N + comLen;
+                px[i] = 500 + sin * dist;
+                py[i] = art.geom.top + cos * dist;
                 ox[i] = px[i];
                 oy[i] = py[i];
             }
-            /* Its own down: true down, tipped by however far it splays out. */
-            const th = (art.lean * Math.PI) / 180;
-            return { art, r, N, n, len, px, py, ox, oy, cos: Math.cos(th), sin: Math.sin(th) };
+            return { art, r, N, n, len, px, py, ox, oy, cos, sin };
         });
 
         /* The only per-frame writes: one transform per piece. Nothing here
@@ -485,6 +494,9 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
         };
         document.addEventListener('visibilitychange', onVis);
 
+        /* Paint the rest pose NOW, in this commit — the chain is already hanging
+           in its lean, so there is nothing to animate into. */
+        draw();
         kick();
 
         return () => {
