@@ -887,13 +887,13 @@ export default function CommandStone() {
                 taps = 0;
                 return;
             }
-            /* OPEN → a tap on the page does NOTHING. Only the swipe down and
-               the long-press put the stone away (Brendon, 2026-07-26 — the
-               tap-away was never asked for). */
-            if (stageRef.current === 'open') {
-                taps = 0;
-                return;
-            }
+            /* The gesture is symmetrical: THREE taps on the background toggle
+               the stone either way — hidden → open, open or dot → closed
+               (Brendon, 2026-08-01: "triple tap to close was removed? No idea
+               why, please fix it"). A single or double tap on the page still
+               does nothing at all, which is the only thing the 2026-07-26
+               tap-away guard was ever meant to stop — it zeroed the count on
+               every tap while open, which took the third one with it. */
             /* a fresh run if the taps drift apart in time or space */
             if (
                 e.timeStamp - lastT > 500 ||

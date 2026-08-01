@@ -31,6 +31,7 @@ import { TAGS, type Tag } from '../tags/catalog';
 import { MOODS_WORDS } from './moods';
 import { matchToken } from './tokens';
 import { matchWorld } from './world';
+import { resolveColorWord } from '../color/colorpedia';
 
 export type WidgetPlan =
     | { kind: 'calendar' }
@@ -48,6 +49,11 @@ export type WidgetPlan =
     | { kind: 'trend'; slug: string; title: string; days: number }
     /* the familiar's Omniscience, ported to the stone — the read on YOU. */
     | { kind: 'omni' }
+    /* THE COLOUR (2026-08-01) — the Colorpedia in the stone's hand: the name,
+       every format, the history, the projects wearing it and the real minted
+       pieces that read as it. `typed` is what the line asked for, so the card
+       can say when it understood a name rather than a number. */
+    | { kind: 'color'; hex: string; typed: string }
     /* PD WRAPPED (2026-07-20) — your own recap; cadence-agnostic (days). */
     | { kind: 'wrapped'; days: number }
     /* ── the abilities pass (2026-07-28) ── */
@@ -165,6 +171,30 @@ export function parseWidget(line: string, now: Date = new Date()): WidgetPlan | 
     /* Bare `moods` deals the set — the singular words CAST (checked first
        in the stone, so `mood` still flips cozy, never lands here). */
     if (MOODS_WORDS.has(q)) return { kind: 'moods' };
+
+    /* ── THE COLOUR (2026-08-01) — the Colorpedia, in the stone's hand.
+       Summoned the exact way everything else is: `color <x>` / `colour <x>` /
+       `colorpedia <x>` names it outright, and a bare hex or a tagged format
+       (`rgb(…)`, `cmyk(…)`, `hsl(…)`) is unambiguous enough to stand alone.
+       A bare colour WORD is left to search — "red" is as likely to be a
+       project or a person as a request for the swatch. The stone's own
+       `stonecolor:` recolour is a CAST and runs before this, so painting the
+       vessel and reading a colour never collide. */
+    const colorAsk = /^(?:colou?r|colou?rpedia)\s*:?\s+(.+)$/.exec(q);
+    if (colorAsk) {
+        const hex = resolveColorWord(colorAsk[1]);
+        if (hex) return { kind: 'color', hex, typed: colorAsk[1].trim() };
+    }
+    /* A bare hex needs the # OR a digit in it — plenty of ordinary English
+       words are six valid hex characters ("decade", "facade", "beaded"), and
+       those must stay searches, not swatches. */
+    const bareHex = /^#[0-9a-f]{3}$/.test(q)
+        || /^#[0-9a-f]{6}$/.test(q)
+        || (/^[0-9a-f]{6}$/.test(q) && /\d/.test(q));
+    if (bareHex || /^(?:rgb|cmyk|hsl)\b/.test(q)) {
+        const hex = resolveColorWord(q);
+        if (hex) return { kind: 'color', hex, typed: q };
+    }
 
     /* ── THE COIN CARD — "$price" · "$eth" · "$fwa" (2026-07-28). */
     const token = matchToken(q);

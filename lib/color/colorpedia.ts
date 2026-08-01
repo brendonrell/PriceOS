@@ -177,6 +177,25 @@ export function searchColors(raw: string, limit = 40): { parsed: ParsedQuery; hi
     return { parsed, hits: scored.slice(0, limit).map((s) => s.hit) };
 }
 
+/** Resolve anything a person might TYPE for a colour to a hex — a format
+ *  (`#e8ff47`, `rgb(…)`, `cmyk(…)`, `hsl(…)`) or a name from the vocabulary.
+ *  A name resolves on an exact hit first, then a unique prefix, so `cinnabar`
+ *  lands but a vague word stays unresolved and falls through to search. */
+export function resolveColorWord(input: string): string | null {
+    const parsed = parseQuery(input);
+    if (parsed.hex) return parsed.hex;
+    const q = input.trim().toLowerCase();
+    if (!q) return null;
+    const exact = INDEX.find((c) => c.name.toLowerCase() === q || c.alt?.some((a) => a.toLowerCase() === q));
+    if (exact) return exact.hex;
+    const starts = INDEX.filter((c) => c.name.toLowerCase().startsWith(q));
+    if (starts.length === 1) return starts[0].hex;
+    /* A word every one of the matches shares as its opening — "cadmium",
+       "phthalo" — answers with the first, rather than refusing to answer. */
+    if (starts.length > 1 && q.length >= 4) return starts[0].hex;
+    return null;
+}
+
 /* ── The full read for one colour ─────────────────────────────────────── */
 
 export interface ColorReading {

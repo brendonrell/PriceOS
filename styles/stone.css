@@ -1058,3 +1058,23 @@ body.pd-stone-force-white .stone-float .sw-spark-c { color: var(--stone-blue); }
     text-align: center;
     line-height: 1.15;
 }
+
+/* ── ◉ THE COLOUR card (Brendon, 2026-08-01) — the Colorpedia in the stone's
+   hand. The colour itself is the only thing on the card that isn't the stone's
+   own ink, so it gets a full-width band to be judged against, outlined in the
+   stone's line so a near-black or near-white swatch still has an edge. ── */
+.sw-color-bar {
+    height: 44px;
+    width: 100%;
+    border: 1px solid var(--stone-line);
+    border-radius: 4px;
+}
+/* The chip on a project row — the same square 4px tab as every PD swatch. */
+.sw-color-chip {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    border: 1px solid var(--stone-line);
+    border-radius: 4px;
+    display: block;
+}

@@ -79,7 +79,12 @@ import {
     popCount,
 } from '../../lib/output/rarity';
 import { readOutputFate } from '../../lib/project/fate';
-import { outputColorBucket } from '../../lib/art/outputColor';
+import { outputColorBucket, classifyRgb } from '../../lib/art/outputColor';
+import {
+    hexToRgb, rgbToLab, rgbToCmyk, rgbToHsl, deltaE2000, hueFamily,
+    valueWord, chromaWord, temperatureWord, formatRgb, formatCmyk, formatHsl,
+} from '../../lib/color/convert';
+import { readColor, matchWord } from '../../lib/color/colorpedia';
 import { convertValue, convertAll, formatUnit, formatResult, formatSource } from '../../lib/fx/convert';
 import { useFxRates } from '../../lib/fx/rates';
 import { useFiat, FIAT_OPTIONS } from '../../lib/state/FiatContext';
@@ -2461,6 +2466,144 @@ function TokenWidget({ symbol, address }: { symbol: string; address: string }) {
     );
 }
 
+/* ── ◉ THE COLOUR — the Colorpedia in the stone's hand (Brendon,
+      2026-08-01). Three layers, in the order he asked for them:
+
+        · the NUMBERS, computed exactly from the colour itself — hex, RGB,
+          CMYK, HSL — true for any colour, no lookup involved;
+        · the NAME and the HISTORY, read out of the fixed baked vocabulary,
+          with the card saying plainly when it snapped to a neighbour rather
+          than hitting the colour on the nose;
+        · WHO WEARS IT — the projects whose colorway lands on this colour,
+          and the real minted pieces across every project that read as it.
+
+      The pieces come from the stored dominant-colour read the galleries
+      already group by (Rule #0 — the same door, /api/outputs/colors), so
+      the list is the real ledger, never a guess. ── */
+
+interface StoneColorRow { slug: string; id: number; bucket: string }
+
+function ColorWidget({ hex, typed, onGo }: { hex: string; typed: string; onGo: GoFn }) {
+    const reading = useMemo(() => readColor(hex), [hex]);
+    const rgb = useMemo(() => hexToRgb(hex), [hex]);
+    const bucket = useMemo(() => classifyRgb(rgb.r, rgb.g, rgb.b), [rgb]);
+
+    /* Projects painted this colour. Registry-only — exact, free, no fetch.
+       A colorway within ΔE 10 is the same colour to the eye. */
+    const wearers = useMemo(() => {
+        const lab = rgbToLab(rgb);
+        return allProjects()
+            .filter((p) => !!p.colorway)
+            .map((p) => ({ p, d: deltaE2000(lab, rgbToLab(hexToRgb(p.colorway as string))) }))
+            .filter((x) => x.d < 10)
+            .sort((a, b) => a.d - b.d)
+            .slice(0, 4);
+    }, [rgb]);
+
+    /* Minted pieces across EVERY project whose stored dominant colour reads
+       as this one's family. */
+    const [pieces, setPieces] = useState<StoneColorRow[] | null | 'loading'>('loading');
+    useEffect(() => {
+        let cancelled = false;
+        const slugs = allProjects().map((p) => p.slug).join(',');
+        fetch(`/api/outputs/colors?slugs=${encodeURIComponent(slugs)}`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((rows: StoneColorRow[] | null) => {
+                if (cancelled) return;
+                setPieces(rows ?? null);
+            })
+            .catch(() => { if (!cancelled) setPieces(null); });
+        return () => { cancelled = true; };
+    }, []);
+
+    const inColour = useMemo(() => {
+        if (!pieces || pieces === 'loading') return null;
+        return pieces.filter((r) => r.bucket === bucket);
+    }, [pieces, bucket]);
+
+    const match = reading?.match ?? null;
+    const name = match ? match.color.name : hueFamily(hex);
+    /* Say when the typed word resolved to something else, so a name the book
+       does not carry never silently becomes a different colour. */
+    const askedName = typed.trim().toLowerCase();
+    const swapped = askedName && match && !askedName.includes(match.color.name.toLowerCase())
+        && !/^[#0-9a-f]/.test(askedName) && !/^(rgb|cmyk|hsl)/.test(askedName);
+
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle glyph={`◉${VS15}`} label="COLOUR" sub={name.toUpperCase()} />
+            <div className="sw-color-bar" style={{ background: hex }} />
+            <SwSay lead>{hex}</SwSay>
+            {match && (
+                <SwHint text={match.exact
+                    ? `${match.color.origin.toLowerCase()} · an exact name for this colour`
+                    : `nearest named colour · ${matchWord(match.delta)} · ΔE ${match.delta.toFixed(1)}`} />
+            )}
+            {swapped && <SwHint text={`read "${typed.trim()}" as ${name.toLowerCase()}`} />}
+
+            <SwSay>{`RGB ${formatRgb(rgb)}`}</SwSay>
+            <SwSay>{`CMYK ${formatCmyk(rgbToCmyk(rgb))}`}</SwSay>
+            <SwSay>{`HSL ${formatHsl(rgbToHsl(rgb))}`}</SwSay>
+            <SwHint text={`${hueFamily(hex).toLowerCase()} · ${valueWord(hex).toLowerCase()} · ${chromaWord(hex).toLowerCase()} · ${temperatureWord(hex).toLowerCase()}`} />
+
+            {match?.color.note && (
+                <SwSay>
+                    {match.exact ? match.color.note : `${match.color.name.toUpperCase()} — ${match.color.note}`}
+                </SwSay>
+            )}
+
+            {wearers.length > 0 && (
+                <>
+                    <SwHint text={wearers.length === 1 ? 'a project wears it' : 'projects wearing it'} />
+                    {wearers.map(({ p }) => (
+                        <div
+                            key={p.slug}
+                            className="sw-hit sw-tap"
+                            role="button"
+                            tabIndex={0}
+                            onClick={(e) => onGo(e, `/art/${p.slug}`)}
+                        >
+                            <span className="sw-color-chip" style={{ background: p.colorway as string }} />
+                            <span className="sw-hit-body">
+                                <span className="sw-hit-main">{p.displayName}</span>
+                                <span className="sw-hit-sub">{`✺${VS15} @${p.artistHandle} · ${(p.colorway as string).toUpperCase()}`}</span>
+                            </span>
+                        </div>
+                    ))}
+                </>
+            )}
+
+            {pieces === 'loading' && <SwHint text="reading the ledger for pieces in this colour…" />}
+            {inColour && inColour.length > 0 && (
+                <>
+                    <SwHint text={`${inColour.length} minted ${inColour.length === 1 ? 'piece reads' : 'pieces read'} ${bucket.toLowerCase()}`} />
+                    {inColour.slice(0, 4).map((r) => {
+                        const proj = getProject(r.slug);
+                        return (
+                            <div
+                                key={`${r.slug}-${r.id}`}
+                                className="sw-hit sw-tap"
+                                role="button"
+                                tabIndex={0}
+                                onClick={(e) => onGo(e, `/art/${r.slug}/${r.id}`)}
+                            >
+                                <span className="sw-hit-ic">{`⬚${VS15}`}</span>
+                                <span className="sw-hit-body">
+                                    <span className="sw-hit-main">{pieceName(proj?.displayName ?? r.slug, r.id)}</span>
+                                    <span className="sw-hit-sub">{`◉${VS15} ${r.bucket.toUpperCase()}`}</span>
+                                </span>
+                            </div>
+                        );
+                    })}
+                </>
+            )}
+            {inColour && inColour.length === 0 && (
+                <SwHint text={`nothing minted reads ${bucket.toLowerCase()} yet`} />
+            )}
+        </div>
+    );
+}
+
 /* ── THE WORLD — what the stone knows about the medium it lives in: PD's
       own origin (the channel, then the platform), the places that built
       generative art, and the house takes. Seeded per line so it holds
@@ -2576,6 +2719,7 @@ export function WidgetDeck({ plan, address, onGo, onAct, onFooter, onSeed, wornM
         case 'joke': return <JokeWidget onFooter={onFooter} />;
         case 'token': return <TokenWidget symbol={plan.symbol} address={address} />;
         case 'world': return <WorldWidget topic={plan.topic} seed={plan.topic} />;
+        case 'color': return <ColorWidget hex={plan.hex} typed={plan.typed} onGo={onGo} />;
     }
 }
 
