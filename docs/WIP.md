@@ -261,16 +261,14 @@ touches one of these, read it there first.**
   how much history per colour.
 - **The contract size guard** — wire the byte-size check into the build so a
   renderer can never go over the limit silently again.
-- **71 stale `claude/*` branches on `PriceOS`** (`pd-contracts` is clean). This
-  container cannot delete branches — he clears them at
-  https://github.com/brendonrell/PriceOS/branches. A merge check from here is not
-  trustworthy for old branches; offer the contents-based sweep before he bulk
-  deletes.
-- **The two footer modals** (About PD · Support) — copy is v1, he edits from
-  there.
-- **Ticker copy review** — the store + marketplace crawl lines.
-- Feature Atlas re-order · ASCII-Mode glyph ⠿ · docs.pricediscussion.com wiring
-  — all previously ClickUp'd.
+- Feature Atlas re-order · docs.pricediscussion.com wiring — both previously
+  ClickUp'd.
+
+> **⛔ NEVER QUEUE BRENDON EYEBALL WORK, AND NEVER MENTION BRANCHES (Brendon,
+> 2026-08-01).** His eyes are always on the app — "review this copy", "eyeball
+> this modal", "check this glyph on device" are NOT items and never go on a
+> list. If something is wrong he says so. Stale `claude/*` branches are harness
+> litter, not his homework: never list them, never ask him to delete them.
 
 ---
 

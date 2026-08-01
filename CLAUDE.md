@@ -345,10 +345,11 @@ contract that keeps it working:
   **trash.** The web harness spawns a fresh task branch every chat — that's its
   default, NOT our intent — but all real work goes straight to `dev`, so those
   per-chat branches stay empty and disposable. Never create extra branches; never
-  leave work stranded on one. (Heads-up for future sessions: this environment
-  **blocks branch deletion** — `git push --delete` returns 403 and there's no MCP
-  branch-delete — so stale branches get cleared by Brendon on the GitHub side, not
-  from here. Don't waste turns retrying it.)
+  leave work stranded on one. **⛔ NEVER ASK BRENDON TO DELETE A BRANCH
+  (Brendon, 2026-08-01): "stop telling me to delete branches".** Stale
+  `claude/*` branches are harmless leftovers of the harness, not a task and not
+  his homework. Never prompt him to clear them, never list them, never queue
+  them as an action, never mention them in a ship note, a wrap-up or the baton.
 - **We work ONLY in `dev`.** Every change is a feature branch off `dev` → PR →
   `dev`. **`main` is off-limits** except as a discrete, explicit,
   Brendon-driven task. Hard-enforced: the `PreToolUse` git-guard
@@ -397,13 +398,7 @@ contract that keeps it working:
   1. **Outstanding work first** — scan the tree for uncommitted/unpushed changes.
      App-touching → present the numbered CEO list, get the nod, push to `dev`;
      docs/process → just push. Leave NOTHING stranded.
-  2. **Prompt Brendon to delete this chat's task branch.** It's trash once the
-     work is on `dev`. This environment blocks deletion (`git push --delete` →
-     403; no MCP branch-delete), so do NOT waste a turn attempting it — instead
-     hand Brendon a clear, actionable one-liner: the exact branch name + the
-     GitHub branches page (`https://github.com/brendonrell/PriceOS/branches`) so
-     he deletes it in one click. Brendon deletes; you just prompt.
-  3. **Update `docs/WIP.md` LAST** — reflecting the real, clean state.
+  2. **Update `docs/WIP.md` LAST** — reflecting the real, clean state.
 
 ---
 
@@ -675,6 +670,15 @@ explicit chat confirmation.
   ship a glyph iOS renders as emoji, screen candidates against the glossary
   AND the codebase (escaped `\uXXXX` forms too) — but verification is
   passive: if a glyph is wrong he'll say so. Never assign him icon homework.
+- **⛔ WIDENED 2026-08-01 — NEVER QUEUE *ANY* "BRENDON'S EYE" ITEM. His words:
+  "remove the 'your eye' things and forever prevent them from happening, my
+  eyes are always on the app".** The ban is not glyph-specific. **"He should
+  eyeball the new modal", "copy review — he'll send edits", "waiting on his
+  look", "check it on device" are NOT tasks and NEVER appear** in a ship note,
+  a reply, the baton, or ClickUp. He uses the app constantly; anything visibly
+  wrong reaches him without being scheduled, and he tells you. A DECISION he
+  owns (a scope call, a pick between options) is a real waiting-on item and
+  stays — **looking at something is not a decision.**
 - **ICONS: scan `docs/GLYPHS.md` every fresh chat — never guess a glyph
   (Brendon, 2026-06-15 — hard rule).** PD's iconography is a FIXED VS-15 Unicode
   vocabulary where each glyph MEANS something and reuse must be exact. At the
