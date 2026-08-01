@@ -75,9 +75,18 @@ function onTilt(e: DeviceOrientationEvent) {
     /* EASED, NOT SNAPPED (Brendon, 2026-07-29) — the orientation sensor
        reports a jittery stream, and feeding it straight in made the chain
        twitch. Down moves toward the new reading instead of jumping to it. */
-    gx += (x - gx) * 0.12;
-    gy += (y - gy) * 0.12;
-    wake();
+    const nx = gx + (x - gx) * 0.12;
+    const ny = gy + (y - gy) * 0.12;
+    /* ⛔ A STILL PHONE MUST LET THE CHAIN PARK (Brendon, 2026-08-01: "lag is
+       now worse"). iOS streams orientation ~60×/s whether or not the phone has
+       moved, and every reading used to wake the solver — so from the moment
+       tilt was granted the chain re-solved every single frame for the life of
+       the page, behind everything else. Sensor jitter is not motion: down only
+       wakes it when the reading actually moves it. */
+    const moved = Math.abs(nx - gx) + Math.abs(ny - gy);
+    gx = nx;
+    gy = ny;
+    if (moved > 0.002) wake();
 }
 
 function onShake(e: DeviceMotionEvent) {
@@ -190,17 +199,28 @@ export async function requestMotion(): Promise<MotionState> {
    takes. Scroll-only motion holds the chain up in the meantime. */
 let retryArmed = false;
 let retryInFlight = false;
+/* ⛔ IT DOES NOT ASK ON EVERY TAP FOREVER (Brendon, 2026-08-01, after the
+   motion sheet appeared on the connect menu). The re-arm still rides a real
+   tap — but a handful of refusals means this visit isn't getting the sensor
+   back, and carrying on puts a permission ask behind every button on the site. */
+const RETRY_LIMIT = 3;
+let retriesLeft = RETRY_LIMIT;
 
 function retryOnTap() {
-    if (retryArmed || typeof window === 'undefined') return;
+    if (retryArmed || retriesLeft <= 0 || typeof window === 'undefined') return;
     retryArmed = true;
     const go = () => {
         if (motion === 'granted') { stop(); return; }
         if (retryInFlight) return;
+        if (retriesLeft <= 0) { stop(); return; }
+        retriesLeft -= 1;
         retryInFlight = true;
         void requestMotion()
-            .then((m) => { retryInFlight = false; if (m === 'granted') stop(); })
-            .catch(() => { retryInFlight = false; });
+            .then((m) => {
+                retryInFlight = false;
+                if (m === 'granted' || retriesLeft <= 0) stop();
+            })
+            .catch(() => { retryInFlight = false; if (retriesLeft <= 0) stop(); });
     };
     const stop = () => {
         retryArmed = false;
