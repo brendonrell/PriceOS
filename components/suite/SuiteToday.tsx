@@ -251,6 +251,35 @@ export default function SuiteToday({ openApp }: { openApp: (app: SuiteAppKey) =>
                 ))}
             </div>
 
+            {/* ── the pulse — live numbers, each tile a door to its app. Sits
+                 right after the week, not stranded at the foot of the sheet
+                 (Brendon, 2026-08-01). ── */}
+            <div className="suite-pulse">
+                {chest.count > 0 && (
+                    <button type="button" className="suite-tile" onClick={() => openApp('task')}>
+                        <span className="suite-tile-num"><span className="eth-mark">◊</span>{formatEth(chest.total)}</span>
+                        <span className="suite-tile-lbl">EARMARKED · {chest.count}</span>
+                    </button>
+                )}
+                <button type="button" className="suite-tile" onClick={() => openApp('flow')}>
+                    <span className="suite-tile-num">{`☇${VS15}`}{armed}</span>
+                    <span className="suite-tile-lbl">ARMED</span>
+                </button>
+                <button type="button" className="suite-tile" onClick={() => openApp('books')}>
+                    {activeBudget ? (
+                        <>
+                            <span className="suite-tile-num"><span className="eth-mark">◊</span>{formatEth(activeBudget.eth)}</span>
+                            <span className="suite-tile-lbl">{activeBudget.name.toUpperCase()}</span>
+                        </>
+                    ) : (
+                        <>
+                            <span className="suite-tile-num"><span className="eth-mark">◊</span>—</span>
+                            <span className="suite-tile-lbl">NO BUDGET</span>
+                        </>
+                    )}
+                </button>
+            </div>
+
             {/* ── today's work ── */}
             <div className="suite-td-head">
                 TODAY <span className="notif-count">({todayList.filter((t) => !t.done).length})</span>
@@ -315,32 +344,6 @@ export default function SuiteToday({ openApp }: { openApp: (app: SuiteAppKey) =>
                 })
             )}
 
-            {/* ── the pulse — live numbers, each tile a door to its app ── */}
-            <div className="suite-pulse">
-                {chest.count > 0 && (
-                    <button type="button" className="suite-tile" onClick={() => openApp('task')}>
-                        <span className="suite-tile-num"><span className="eth-mark">◊</span>{formatEth(chest.total)}</span>
-                        <span className="suite-tile-lbl">EARMARKED · {chest.count}</span>
-                    </button>
-                )}
-                <button type="button" className="suite-tile" onClick={() => openApp('flow')}>
-                    <span className="suite-tile-num">{`☇${VS15}`}{armed}</span>
-                    <span className="suite-tile-lbl">ARMED</span>
-                </button>
-                <button type="button" className="suite-tile" onClick={() => openApp('books')}>
-                    {activeBudget ? (
-                        <>
-                            <span className="suite-tile-num"><span className="eth-mark">◊</span>{formatEth(activeBudget.eth)}</span>
-                            <span className="suite-tile-lbl">{activeBudget.name.toUpperCase()}</span>
-                        </>
-                    ) : (
-                        <>
-                            <span className="suite-tile-num"><span className="eth-mark">◊</span>—</span>
-                            <span className="suite-tile-lbl">NO BUDGET</span>
-                        </>
-                    )}
-                </button>
-            </div>
         </div>
     );
 }
