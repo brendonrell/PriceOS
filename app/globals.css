@@ -2243,6 +2243,24 @@ section[aria-label="Created projects"] > .upload-window {
         padding-right: 20px;
     }
 }
+/* The profile's Cooldown tab — the ordinary +More furniture: a row of square
+   tiles (the Vault's own .cpl-tiles anatomy) over the bordered line block
+   (Brendon, 2026-08-01). Four squares stay on ONE line at phone width. */
+.cd-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 4px 20px 8px;
+    font-family: 'Courier New', Courier, monospace;
+}
+.cd-tiles { grid-template-columns: repeat(4, 1fr); }
+.cd-panel .cpl-tile { align-items: center; border-color: var(--text-color); }
+.cd-panel .cpl-tile-value { font-size: 20px; }
+@media (max-width: 600px) {
+    .cd-panel { margin-left: 20px; margin-right: 20px; }
+    .cd-panel .cpl-tile-label { font-size: 12px; letter-spacing: 0.2px; }
+}
+
 .upload-window-label {
     font-size: 12px;
     font-weight: bold;

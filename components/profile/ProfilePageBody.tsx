@@ -2079,7 +2079,7 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                         showcase (Brendon, 2026-07-31). */}
                     {onMore && effMoreL1 === 'cooldown' && (
                         <div className="ach-section" aria-label="Cooldown">
-                            <UploadWindowCountdown address={user.address} />
+                            <UploadWindowCountdown address={user.address} tiles />
                         </div>
                     )}
 
