@@ -16,7 +16,7 @@
 import {
     type Tag, tagById, isPersonaId, GRANTED_IDS,
     ID_TAG_STYLE, ID_RANGES, CEO_TAG, DEPLOYER_TAG, teamStyleTag,
-    bitverseTag, rudxaneTag, PRICEDAY_TAG_COLOR,
+    bitverseTag, rudxaneTag, PRICEDAY_TAG_COLOR, COMPLETIONISM_TAG_COLOR,
     PRICE_HOLD_TAG_BG, PRICE_HOLD_TAG_TEXT,
     PRICE_HOLD_TOP3_BG, PRICE_HOLD_TOP3_TEXT,
     PRICE_HOLD_TOP10_BG, PRICE_HOLD_TOP10_TEXT,
@@ -248,8 +248,7 @@ export function priceHeldTag(held: number | string | null | undefined): Tag | nu
    output of every project uploaded in it — the same cut the Completionism
    sheet itself uses, handed in here as facts so this module never reaches for
    the project registry (that ban is why every tag fact arrives pre-resolved).
-   Colour: the PriceDay purple, because Completionism is built on PriceDay's
-   own calendar spine — the two are the same clock. ── */
+   Colour: @brendon blue (his pick, 2026-08-01). ── */
 const MONTH_ABBR = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
     'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
@@ -274,7 +273,7 @@ function completionismTags(keys: readonly string[] | null | undefined): Tag[] {
         out.push({
             id: `completionism-${key}`,
             label,
-            color: PRICEDAY_TAG_COLOR,
+            color: COMPLETIONISM_TAG_COLOR,
             kind: 'earned',
             order: 24 + out.length / 100,
             blurb: 'Collected every release of that month.',

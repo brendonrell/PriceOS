@@ -245,6 +245,9 @@ export const RUDXANE_SAYINGS: ReadonlyArray<string> = [
 ];
 
 /** Light purple tones (Brendon, 2026-07-26). */
+/** COMPLETIONISM — @brendon blue, his pick (2026-08-01). */
+export const COMPLETIONISM_TAG_COLOR = '#0109FF';
+
 export const RUDXANE_BG = '#C9B6F0';    // light lilac field
 export const RUDXANE_INK = '#3B2A5C';   // deep violet lettering
 
