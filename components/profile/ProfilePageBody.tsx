@@ -2451,7 +2451,12 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                     {sortedFeedEvents.length === 0 ? (
                         <GhostFeedRows />
                     ) : sortedFeedEvents.map((e) => (
-                        <FeedEventRow key={e.id} fe={e} />
+                        <FeedEventRow
+                            key={e.id}
+                            fe={e}
+                            dateStamp={fmtFeedDate(e.timestamp)}
+                            typeSub={e.price > 0 ? `${formatEth(e.price)} ETH` : undefined}
+                        />
                     ))}
                 </div>
             </section>
@@ -2483,10 +2488,15 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                             <div className="feed-row" key={`${ev.label}-${ev.slug}-${ev.ts}`}>
                                 <div className="feed-line" />
                                 <div className={`f-icon-wrap af-ic${ev.cls ? ` ${ev.cls}` : ''}`}>{ev.glyph}&#xFE0E;</div>
-                                <div className="f-time">{fmtFeedDate(ev.ts)}</div>
+                                {/* Date over time in the time column, the label
+                                    alone beside it — the home feed's columns
+                                    verbatim (Brendon, 2026-08-01). */}
+                                <div className="f-time">
+                                    <span>{fmtFeedDate(ev.ts)}</span>
+                                    <span>{fmtFeedTime(ev.ts)}</span>
+                                </div>
                                 <div className="f-type af-type">
                                     <span>{ev.label}</span>
-                                    <span>{fmtFeedTime(ev.ts)}</span>
                                 </div>
                                 <div className="f-content">
                                     <a className="f-highlight upload-title" href={`/art/${ev.slug}`}>{ev.title}</a>

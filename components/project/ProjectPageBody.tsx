@@ -75,6 +75,7 @@ import ProjectTitleStar from './ProjectTitleStar';
 import { usePriceDay } from '../../lib/priceday/usePriceDay';
 import { GhostFeedRows } from '../GhostFeed';
 import FeedEventRow from '../feed/FeedEventRow';
+import { fmtFeedDate } from '../profile/profilePageShared';
 import { useSort, groupHeaderGlyph } from '../../lib/state/SortContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useModal } from '../../lib/state/ModalContext';
@@ -94,7 +95,7 @@ import { useProjectSocial } from './useProjectSocial';
 import { useProjectGallery } from './useProjectGallery';
 import { useProjectFloor } from './useProjectMarket';
 import { useFiat } from '../../lib/state/FiatContext';
-import { formatEthAmount } from '../../lib/format/eth';
+import { formatEth, formatEthAmount } from '../../lib/format/eth';
 import { useProjectAnchor } from './useProjectAnchor';
 import { useBudgetStepLine } from './useBudgetStepLine';
 import ProjectMorePanel, { type ProjectMoreL1 } from './ProjectMorePanel';
@@ -821,7 +822,12 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                     {sortedFeedEvents.length === 0 ? (
                         <GhostFeedRows />
                     ) : sortedFeedEvents.map((e) => (
-                        <FeedEventRow key={e.id} fe={e} />
+                        <FeedEventRow
+                            key={e.id}
+                            fe={e}
+                            dateStamp={fmtFeedDate(e.timestamp)}
+                            typeSub={e.price > 0 ? `${formatEth(e.price)} ETH` : undefined}
+                        />
                     ))}
                 </div>
             </section>

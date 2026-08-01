@@ -10,7 +10,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useSort } from '../state/SortContext';
-import { eventToFeedEvent, eventToProjectNamedFeedEvent, type FeedEvent } from './feedRow';
+import { eventToNamedFeedEvent, eventToRailedFeedEvent, type FeedEvent } from './feedRow';
 import type { EventRow } from '../supabase';
 
 /* A mass collect writes every piece at the SAME instant, so a pure timestamp
@@ -46,7 +46,7 @@ export function useLedgerFeed(feedActive: boolean, url: string, nameProject = fa
                 .then((r) => (r.ok ? r.json() : null))
                 .then((d: { events?: EventRow[] } | null) => {
                     if (!cancelled && Array.isArray(d?.events)) {
-                        setFeedRows(d!.events.map(nameProject ? eventToProjectNamedFeedEvent : eventToFeedEvent));
+                        setFeedRows(d!.events.map(nameProject ? eventToNamedFeedEvent : eventToRailedFeedEvent));
                     }
                 })
                 .catch(() => { /* keep last good rows */ });

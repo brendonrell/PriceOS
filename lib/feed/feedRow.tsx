@@ -91,6 +91,13 @@ export function eventToFeedEvent(e: EventRow): FeedEvent {
     return buildFeedEvent(e, false, false);
 }
 
+/** Project-page mapping — bare #id, price OFF the sentence. The project feed
+ *  now runs the home feed's columns, so the ◊ rail in the type column carries
+ *  the price and the sentence stays short (Brendon, 2026-08-01). */
+export function eventToRailedFeedEvent(e: EventRow): FeedEvent {
+    return buildFeedEvent(e, false, true);
+}
+
 /** Cross-project mapping — the token link names the project ("Prisms #12"),
  *  for feeds that span every project (the social feed ☻), where a bare #id
  *  is ambiguous. The price leaves the sentence too — the social feed carries
