@@ -8,7 +8,84 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-⛔ **2026-07-31 (LATEST) — THE DEPLOY IS SERVING STALE CODE. START HERE.**
+⛔ **2026-08-01 (LATEST) — OPEN ITEMS, IN BRENDON'S OWN WORDS.**
+
+1. **THE 3-KEYCHAIN HANG IS UNCONFIRMED.** He approved a design on 2026-07-31
+   where the MIDDLE one hangs lower. **It was never built** — the three-at-once
+   commit gave each charm its own chain length, so heights came out random.
+   This session built the literal reading: with a full three the middle drops
+   16px; a pair stays level. **He said he'd settle the real spec in the other
+   chat — do NOT re-guess it here.** Nothing else about the hang moved.
+2. **PROFILE LAG — NOT CLOSED.** Three real re-render traps were fixed this
+   session (below) and he says the lag is STILL there. **His diagnosis: the
+   keychains, and he has it even with none equipped (RULE #-3 — that IS the
+   target, do not re-diagnose to something else).** What was read end-to-end
+   and found: with none equipped the worn-charm component renders nothing and
+   its rack read is a single light query. What WAS fixed: the chain solver no
+   longer re-solves on every scroll event. **Not yet examined: the ~30
+   permanently GPU-promoted layers (`will-change: transform` on every link +
+   charm body) that a worn bunch leaves over the whole page.** Start there.
+   ⛔ This container CANNOT reproduce his device: local dev has no Supabase /
+   Alchemy keys (every data route 500s), and headless Chromium cannot reach
+   the live preview (the agent proxy resets its CONNECT). Screenshot/measure
+   harnesses are a dead end here — he abandoned one mid-session. Don't rebuild it.
+3. **COLORPEDIA — DISCUSSION ONLY, NOT APPROVED.** His idea: a little modal of
+   info for a given colour (hex, CMYK, name, history). Position given: the maths
+   formats are free and exact; the name + history should be LLM-generated ONCE
+   over a fixed vocabulary of a few thousand named colours and baked in, then
+   any colour snaps to its nearest neighbour — instant, offline, no live
+   hallucination. **No code written. Do not start it without his word.**
+4. **Golf Score reads as confusing** — he asked why a 29-minted project shows
+   "#2 of 111". Answer: it's the engine-size ranking across all 111 registry
+   projects, nothing to do with that project's mints. He was told; **no copy
+   was changed** (he didn't ask). If it keeps confusing him, that's a copy call.
+
+✅ **2026-08-01 — SHIPPED THIS SESSION** (all on `dev`, tip `71248a7`, tree
+clean, type-check clean):
+- **Popovers stay open while you scroll them.** A capture-phase scroll listener
+  dismissed on ANY scroll including one INSIDE the bubble. Fixed on the grouping
+  bubble, the keychain switcher, the friend sprite card, the fiat picker.
+- **Three re-render traps killed.** Gallery cards subscribed to the WHOLE
+  settings object (any connect-menu touch re-ran every card), to the live toast
+  (every toast redrew the grid) and to the live modal stack (opening a modal or
+  paging it redrew the grid behind). Cards now take narrow, identity-stable
+  handles. Same for the profile thumbs, stickers, bench art and profile rows.
+- **Slack Water's project page was a 500, not a 404.** Its Stacks trait was a
+  raw NUMBER while every other trait value in PD is text (its own schema
+  declares `"7"`..`"12"`); the Pop Table sorts values as strings and threw. All
+  68 project pages were swept against the live preview — it was the only one.
+- **Feeds match the home feed.** Artist lifecycle, profile activity and project
+  activity feeds: date over time in the left column, event word with the ETH
+  amount under it in the middle. Price left the sentence on the two that now
+  carry it in the column. **The social feed's ◊ rail was deliberately left
+  alone** (he flagged it as maybe special and hasn't seen it live yet).
+- **Grouping bubble:** layers 2 and 3 wear the trait value pills' ↳, outside the
+  pill in the staircase step.
+- **Keychain switcher:** WORN label had inherited a line box its own height so
+  the letters were sliced; fixed, plus the card can no longer hang off the top
+  or bottom of the screen (that clamp is on the shared bubble, so every card
+  using it benefits).
+- **Now Minting scales.** Under 40 rows nothing changes — every carousel still
+  mounts up front. Past that they arrive as you scroll, because each row is its
+  own live project read and hundreds meant hundreds of simultaneous reads.
+- **ORIENT joins the grouping cycle third-last** (rarity stays last), and ONLY
+  where the art can be shaped differently — read off the registry's aspect list,
+  so a single-aspect project never offers a dead tap.
+- **The Depanneur wears ☯.** The glossary's ban on the taijitu was WRONG — it is
+  text-default in Unicode and only becomes an emoji with the emoji selector,
+  which PD never uses; it has been shipping bare on the Fates tiles all along.
+  Glossary corrected. Chiron ⚷ stays on the charm's chain line.
+
+**Still on the platform, NOT stale:** Slack Water is live with 0 minted. **31 of
+68 projects have zero mints across 24 artists**, so their artist pages all show
+the empty ghost rail. Brendon was told; **whether to drop zero-mint projects
+from artist Created rails is HIS open call — nothing was changed.**
+
+---
+
+⛔ **2026-07-31 — THE DEPLOY WAS SERVING STALE CODE (looks resolved).**
+Pushes this session reached the live preview — Slack Water's 500 was reproduced
+and confirmed live, so `dev` is building again. Kept below for the record.
 Everything below is committed and pushed to `dev` (tip `c8b845c`), tree clean,
 type-check clean — but the Cloudflare Worker is serving a bundle OLDER than
 the last several pushes. Verified two independent ways against the live
