@@ -265,19 +265,58 @@ export function HomeProjectCarousel({ eager = false, owned = false }: { eager?: 
    (the rest paint on horizontal scroll). Brendon, 2026-06-24. */
 const HOME_EAGER_TILES = 4;
 
+/* ⛔ NOW MINTING HAS TO CARRY HUNDREDS OF ROWS (Brendon, 2026-08-01).
+   Every row mounted at once (Brendon, 2026-07-06 — the whole app is solid once
+   loaded, nothing pops in on scroll). That holds at today's size and it stays
+   the behaviour: under the cap, every row still mounts up front, exactly as it
+   does now. Past it, rows arrive as you scroll toward them — because each row
+   is not just tiles, it is its own live project read, so a few hundred of them
+   meant a few hundred simultaneous reads before the first one painted.
+   The window only ever grows, so nothing already on screen is unmounted. */
+const ROWS_FULL_MOUNT_MAX = 40;
+const ROWS_FIRST = 12;
+const ROWS_STEP = 12;
+
 function MintingCarousels({ items, ownedSlugs }: { items: EnrichedProject[]; ownedSlugs: Set<string> }) {
-    /* ALL carousel rows mount at once (Brendon, 2026-07-06 — the whole app is
-       solid once loaded, nothing pops in on scroll). The old 4-at-a-time
-       scroll reveal existed for the live-canvas era; tiles are native <img>
-       now, so the browser lazy-loads the pictures itself and mounting every
-       row is cheap. */
+    const fullMount = items.length <= ROWS_FULL_MOUNT_MAX;
+    const [shown, setShown] = useState(ROWS_FIRST);
+    const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+    /* A fresh set of projects (a filter, a re-sort) starts the window over. */
+    const key = items.length;
+    useEffect(() => { setShown(ROWS_FIRST); }, [key]);
+
+    useEffect(() => {
+        if (fullMount || shown >= items.length) return;
+        const el = sentinelRef.current;
+        if (!el) return;
+        if (typeof IntersectionObserver === 'undefined') { setShown(items.length); return; }
+        const io = new IntersectionObserver(
+            (entries) => {
+                if (entries.some((e) => e.isIntersecting)) {
+                    setShown((c) => Math.min(c + ROWS_STEP, items.length));
+                }
+            },
+            /* Well ahead of the edge, so the next rows are already painted by
+               the time they arrive — nothing pops in under the scroll. */
+            { rootMargin: '1600px 0px' },
+        );
+        io.observe(el);
+        return () => io.disconnect();
+    }, [fullMount, shown, items.length]);
+
+    const rows = fullMount ? items : items.slice(0, shown);
+
     return (
         <>
-            {items.map((m, i) => (
+            {rows.map((m, i) => (
                 <ProjectProvider key={m.slug} slug={m.slug} initialTotal={m.minted}>
                     <HomeProjectCarousel eager={i === 0} owned={ownedSlugs.has(m.slug)} />
                 </ProjectProvider>
             ))}
+            {!fullMount && shown < items.length && (
+                <div ref={sentinelRef} style={{ height: 1 }} aria-hidden="true" />
+            )}
         </>
     );
 }

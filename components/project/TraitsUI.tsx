@@ -60,7 +60,7 @@ import { useTraits, type TraitCategory, type FeedCategory } from '../../lib/stat
 import {
     useSort,
     type SortKey, type SortDir, type FeedKind, type GroupKey,
-    PROJECT_GROUP_ORDER, GROUP_GLYPH, GROUP_LABEL, groupDimsFor,
+    PROJECT_GROUP_ORDER, groupOrderFor, GROUP_GLYPH, GROUP_LABEL, groupDimsFor,
 } from '../../lib/state/SortContext';
 import { dimsThatCut, groupSectionLabel } from '../../lib/state/groupDimensions';
 import { factionOf } from '../../lib/factions/factionStore';
@@ -73,7 +73,7 @@ import { getActiveBudgetEth } from '../../lib/engines/budgetEngine';
 import { useAuth } from '../../lib/state/AuthContext';
 import { outputFate, FATE_VALUES } from '../../lib/project/fate';
 import { useProject } from '../../lib/state/ProjectContext';
-import { fullTraitSchema, outputTraits } from '../../lib/project/registry';
+import { fullTraitSchema, getProject, outputTraits } from '../../lib/project/registry';
 import { getGrails, subscribeGrails, MAX_GRAIL_PINS, type GrailPin } from '../../lib/pins/grailStore';
 import { isStarred, toggleStar } from '../../lib/pins/starStore';
 import { isWishlisted, toggleWishlist } from '../../lib/pins/wishlistStore';
@@ -209,7 +209,13 @@ export default function TraitsUI({
     const projectCtx = useProject();
     /* A group persisted on another surface (e.g. 'artist' from a profile) isn't a
        project-page dimension — show it as off here so the glyph matches reality. */
-    const effGroup: GroupKey = PROJECT_GROUP_ORDER.includes(group) ? group : 'none';
+    /* ORIENT is only on the cycle when this project's engine can actually draw
+       more than one shape (Brendon, 2026-08-01). */
+    const groupOrder = React.useMemo(
+        () => groupOrderFor(PROJECT_GROUP_ORDER, (getProject(projectCtx.slug)?.aspects?.length ?? 1) > 1),
+        [projectCtx.slug],
+    );
+    const effGroup: GroupKey = groupOrder.includes(group) ? group : 'none';
 
     /* Which dimensions can actually cut THIS project — read only while the
        layer menu is open, off the same label engine the grid groups by, so a
@@ -400,7 +406,7 @@ export default function TraitsUI({
        remembered PER PROJECT (like tabs), so the viewer finds this project
        grouped as they left it (Brendon, 2026-07-12). */
     const cycleGroupWithToast = () => {
-        const next = cycleGroup(PROJECT_GROUP_ORDER, { scope: 'project', id: projectSlug });
+        const next = cycleGroup(groupOrder, { scope: 'project', id: projectSlug });
         // Toast-casing rule: the category stays normal case, the STATE screams.
         showToast('Group: ' + GROUP_LABEL[next]);
     };

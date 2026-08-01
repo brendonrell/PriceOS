@@ -96,9 +96,19 @@ export type GroupKey =
    behind the group toggle's LONG-PRESS menu (GROUP_MENU_DIMS below). The tap is
    the fast path; the hold is the full vocabulary. */
 export const PROJECT_GROUP_ORDER: GroupKey[] =
-    ['none', 'owner', 'tag', 'color', 'rarity'];
+    ['none', 'owner', 'tag', 'orientation', 'color', 'rarity'];
 export const COLLECTED_GROUP_ORDER: GroupKey[] =
-    ['none', 'artist', 'project', 'color', 'rarity'];
+    ['none', 'artist', 'project', 'orientation', 'color', 'rarity'];
+
+/* ⛔ ORIENT ONLY WHERE THE ART CAN ACTUALLY BE SHAPED DIFFERENTLY (Brendon,
+   2026-08-01). A project that draws at one aspect can only ever produce one
+   orientation, so offering the grouping there is a dead tap. The registry says
+   which shapes a project's engine can reach, so this is settled from the
+   project itself — no sampling, no guessing. It sits THIRD-LAST; rarity is
+   always last. */
+export function groupOrderFor(order: GroupKey[], multiAspect: boolean): GroupKey[] {
+    return multiAspect ? order : order.filter((d) => d !== 'orientation');
+}
 
 /* Everything the LONG-PRESS menu offers for a layer, in menu order: the mains
    first, then the deep cuts. 'lastSold' stays out — it has no data yet

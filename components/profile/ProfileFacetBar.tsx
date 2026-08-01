@@ -34,7 +34,7 @@ import { useEffect, useMemo, useState, type MouseEvent as ReactMouseEvent } from
 import { useTraits } from '../../lib/state/TraitsContext';
 import {
     useSort,
-    COLLECTED_GROUP_ORDER, GROUP_GLYPH, GROUP_LABEL, groupDimsFor, type GroupKey,
+    COLLECTED_GROUP_ORDER, groupOrderFor, GROUP_GLYPH, GROUP_LABEL, groupDimsFor, type GroupKey,
 } from '../../lib/state/SortContext';
 import { useColorway, type ColorwayKey } from '../../lib/state/ColorwayContext';
 import { useToast } from '../../lib/state/ToastContext';
@@ -44,6 +44,7 @@ import { isWishlisted, toggleWishlist } from '../../lib/pins/wishlistStore';
 import { addOutputTodo } from '../../lib/todos/todoStore';
 import { getArtistStars, toggleArtistStar, subscribeArtistStars } from '../../lib/pins/artistStarStore';
 import { getProjectStars, toggleProjectStar, subscribeProjectStars } from '../../lib/pins/projectStarStore';
+import { getProject } from '../../lib/project/registry';
 import { L3Pill, GroupBtn } from '../project/traitsUIPills';
 import AlbumPickerCard from '../album/AlbumPickerCard';
 import GroupLayersBubble from '../lists/GroupLayersBubble';
@@ -194,7 +195,17 @@ export default function ProfileFacetBar({
        row (GroupBtn), cycling the Collected order: none → artist → project →
        artist+project → colour → artist+colour → project+colour → last-sold →
        rarity. */
-    const effGroup: GroupKey = COLLECTED_GROUP_ORDER.includes(group) ? group : 'none';
+    /* ORIENT joins the cycle only when something they hold comes from a
+       project whose engine can draw more than one shape (Brendon, 2026-08-01).
+       A wallet full of single-aspect projects never sees a dead tap. */
+    const groupOrder = useMemo(
+        () => groupOrderFor(
+            COLLECTED_GROUP_ORDER,
+            holdings.some((h) => (getProject(h.slug)?.aspects?.length ?? 1) > 1),
+        ),
+        [holdings],
+    );
+    const effGroup: GroupKey = groupOrder.includes(group) ? group : 'none';
 
     /* Which dimensions can actually cut THIS collection — worked out only while
        the layer menu is open, off the same label engine the grid groups by, so
@@ -221,7 +232,7 @@ export default function ProfileFacetBar({
     /* The pick is remembered for THIS profile's Collected grid (like tabs), so
        the viewer finds it grouped as they left it (Brendon, 2026-07-12). */
     const cycleGroupWithToast = () => {
-        const next = cycleGroup(COLLECTED_GROUP_ORDER, { scope: 'profile', id: profileAddress });
+        const next = cycleGroup(groupOrder, { scope: 'profile', id: profileAddress });
         // Toast-casing rule: the category stays normal case, the STATE screams.
         showToast('Group: ' + GROUP_LABEL[next]);
     };
