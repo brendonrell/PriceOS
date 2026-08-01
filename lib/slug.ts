@@ -27,6 +27,7 @@
  */
 
 import { isReservedHandle, RESERVED_HANDLE_OWNERS } from './reserved-handles';
+import { platformAccountByHandle } from './platform/accounts';
 
 export type Resolved =
   | { kind: 'output'; globalId: number }
@@ -109,7 +110,16 @@ function parseSlug(slug: string): Parsed {
   // designated owner may claim (RESERVED_HANDLE_OWNERS, e.g. @pricediscussion,
   // the treasury). Those are real, claimed profiles; the row lookup 404s on its
   // own if the handle isn't actually claimed (Brendon, 2026-07-23).
-  if (isReservedHandle(handle) && !(handle in RESERVED_HANDLE_OWNERS)) {
+  // ⛔ A PLATFORM ACCOUNT IS A REAL PAGE (Brendon, 2026-08-01) — @price sits on
+  // the reserved list AND has a live profile, so the gate was 404ing the very
+  // page the site links to from the carousel. The platform-accounts list is the
+  // one source of truth for these, so it is asked here rather than the handle
+  // being copied into a second list that can drift.
+  if (
+    isReservedHandle(handle)
+    && !(handle in RESERVED_HANDLE_OWNERS)
+    && !platformAccountByHandle(handle)
+  ) {
     return { kind: 'invalid' };
   }
 
