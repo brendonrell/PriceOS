@@ -5688,8 +5688,13 @@ body.bg-is-yellow .fiat-opt-on { background: #fff; color: var(--hothurt); border
    (Brendon, 2026-07-30) — a lower pill BEGINS where the number above it sits,
    so the three slots visibly cascade instead of being three identical bars
    with their contents nudged. */
-.glb-slot.glb-l2 { margin-left: 10px; width: calc(100% - 10px); }
-.glb-slot.glb-l3 { margin-left: 20px; width: calc(100% - 20px); }
+.glb-row { display: flex; align-items: center; gap: 5px; width: 100%; }
+.glb-row.glb-l2 { margin-left: 10px; width: calc(100% - 10px); }
+.glb-row.glb-l3 { margin-left: 20px; width: calc(100% - 20px); }
+.glb-row .glb-slot { width: auto; flex: 1 1 auto; min-width: 0; }
+/* The down-and-over the trait value pills wear, marking a layer as hanging off
+   the one above it (Brendon, 2026-08-01). Outside the pill, in the step. */
+.glb-arrow { flex: none; font-size: 12px; line-height: 1; }
 .glb-step { display: none; }
 .glb-num { flex: none; }
 .glb-val { flex: 1 1 auto; display: inline-flex; align-items: center; gap: 5px; min-width: 0; }

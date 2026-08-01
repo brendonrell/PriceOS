@@ -133,11 +133,10 @@ export default function GroupLayersBubble({
                     {([1, 2, 3] as const).map((layer) => {
                         const key = current(layer);
                         const open = reachable(layer);
-                        return (
+                        const slot = (
                             <button
-                                key={layer}
                                 type="button"
-                                className={`glb-slot${layer > 1 ? ` glb-l${layer}` : ''}${key ? ' is-set' : ''}`}
+                                className={`glb-slot${key ? ' is-set' : ''}`}
                                 disabled={!open}
                                 onClick={(e) => { e.stopPropagation(); setPicking(layer); }}
                                 title={open ? `Layer ${layer}` : `Set layer ${layer - 1} first`}
@@ -155,6 +154,17 @@ export default function GroupLayersBubble({
                                 </span>
                                 <span className="glb-caret" aria-hidden="true">{'▸︎'}</span>
                             </button>
+                        );
+                        /* Layers 2 and 3 hang off the layer above them, marked with
+                           the same down-and-over ↳ the trait value pills wear
+                           (Brendon, 2026-08-01). It sits OUTSIDE the pill, in the
+                           staircase step, so the pill starts just after it. */
+                        if (layer === 1) return <div key={layer} className="glb-row">{slot}</div>;
+                        return (
+                            <div key={layer} className={`glb-row glb-l${layer}`}>
+                                <span className="glb-arrow" aria-hidden="true">↳</span>
+                                {slot}
+                            </div>
                         );
                     })}
                 </>
