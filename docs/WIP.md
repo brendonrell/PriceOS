@@ -59,6 +59,11 @@
       the chain settles, parks or unmounts. **The swing keeps the hint; the
       motion is untouched (NO AMPUTATION).**
 
+   3. **The scroll drive on the worn keychain — REMOVED LATER THE SAME DAY**
+      (see the latest round below). Every scroll shoved the chain and woke the
+      solver; throttling it to one shove per frame was not enough, so the
+      drive is gone. Scrolling no longer touches the charms at all.
+
    *Also fixed the same day:* the identical loose rule on the hero sticker
    canvas.
 
@@ -102,7 +107,62 @@
      deliberate, don't loosen it. The separate `stonecolor:` recolour cast is
      untouched.
 
-✅ **2026-08-01 (LATE) — SHIPPED THIS SESSION** (all on `dev`, tip `2fa7138`,
+✅ **2026-08-01 (LATEST SESSION) — SPOT-EDIT ROUND, ALL SHIPPED** (on `dev`,
+tip `4c269c7`, tree clean, type-check clean, 192 tests green. ClickUp
+`86bb7299e`, Done in 02 · PriceOS (UI)):
+- **The Genome is legible.** Every mark on the map — points, rare rings, kin
+  lines, holdings rings, the live pulse, the frame — was drawn at
+  near-invisible alpha and vanished on a mid-tone colorway. Full-strength and
+  larger now; readout, ISOLATE/MINE, legend and axes to 12px full-strength
+  (Rule #2).
+- **OWNERS modal rebuilt** ("ugly… terrible and lazy"): holder tags are the
+  **output page's mini page-themed pills** and they **WRAP**; count + unique
+  moved from a bottom footnote to a **top stat line**; the sheet **fills the
+  screen** (head pinned top, list down to the home indicator) instead of a
+  340px column in dead space. ⛔ The sideways-scrolling tag strip is what
+  dragged the row off-screen and hid the @name and the piece count — never
+  put a list row's tags back on a nowrap scroller.
+- ⛔ **THE SCROLL DRIVE IS REMOVED FROM THE WORN KEYCHAIN — HIS DIAGNOSIS,
+  RULE #-3.** Scrolling shoved the chain and woke the solver, so a long
+  profile kept the charms recomputing the whole way down; throttling it to one
+  shove per frame (earlier the same day) was NOT enough. **The hang, the lean
+  and the jangle are untouched** — gravity and a real shake still drive them.
+  Do not reintroduce a scroll kick.
+- **Charms load already hanging in their lean.** They were seeded straight
+  down and the solver walked them over across a second of visible frames. Each
+  chain is now seeded along its OWN down and the rest pose paints in the mount
+  commit. (This is the load state of the locked hang in item 0 — it did not
+  change the shape.)
+- ⛔ **THE RESERVED-NAME LIST GATES SIGNUP ONLY, NEVER ROUTING** (Brendon,
+  verbatim: *"the point is solely to restrict who can use it as an @name"* —
+  @max is held for his friend Max). The URL resolver was checking it too, so a
+  name that HAS been claimed 404'd — that is what killed **@price**, a live
+  page the carousel links to. The check is gone from routing; the claim side
+  (the handle validators + account-create) is untouched, and an unclaimed name
+  still 404s on its own via the profile lookup. *A first pass special-cased
+  platform accounts in the resolver — that was working around the bug, and it
+  was removed.*
+- **PD has its own 404.** A dead address used to show Next's stock white page
+  with no exit but browser chrome. Ours renders inside the app shell, wears the
+  page colorway, and carries a BACK button. The full-app crash screen gained
+  BACK beside RELOAD; the routed-page crash screen already had one.
+- **Suite / Today:** the live-number tiles (ARMED · budget · earmarked) sit
+  **directly under the week strip**, not stranded below the whole ping list.
+
+⛔ **THE DISPATCH EMAIL HAS NEVER SENT AND CANNOT — ONE MISSING SETTING.
+BRENDON SAID LEAVE IT (2026-08-01), so it is NOT queued work; this is here so
+no session re-investigates it.** The worker has **no Resend key**, so the
+signup field turns everyone away and the list is empty — 0 contacts, 0
+broadcasts ever created, which is why the 1st, 11th and 22nd were all silent
+(the press run quits on "is anyone reading?"). **The code is not the problem:**
+the field, the segment, the press run and the verified sending domain all
+check out. The fix is a secret named exactly `RESEND_API_KEY` on the
+`pricediscussion` Worker — not a Pages project, not a preview environment. Two
+keys exist in Resend from July but were never pasted in. Brendon thought he had
+added it; the live app proves otherwise (a junk address to the signup returns
+"not wired up yet" instead of the invalid-email refusal).
+
+✅ **2026-08-01 (LATE) — SHIPPED EARLIER THE SAME DAY** (`dev` tip `2fa7138`,
 tree clean, type-check clean, full suite green):
 - **Colorpedia** (item 3 above) and **the stone's colour hand.**
 - **Triple-tap to close the stone — restored.** A guard added 2026-07-26 to
@@ -175,6 +235,9 @@ touches one of these, read it there first.**
 - This container's git history is truncated; confirm against file CONTENTS
   before acting on a commit-count difference.
 - `lib/tags/derive.ts` must not import the project registry.
+- The reserved-name list gates SIGNUP ONLY — never routing. A claimed name is
+  an ordinary page; an unclaimed one 404s on its own via the profile lookup.
+- Scrolling never drives the worn keychain. Gravity and a shake do.
 - Cloudflare error 1042 = a Worker fetching another workers.dev host on the same
   account — use service bindings.
 
