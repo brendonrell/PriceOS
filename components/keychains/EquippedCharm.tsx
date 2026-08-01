@@ -87,11 +87,20 @@ function CharmTile({ charm }: { charm: CharmRecord }) {
 /* How far apart the split rings sit, and how many hang at once. */
 const SPREAD = 13;
 const SLOTS = 3;
-/* ⛔ THE MIDDLE ONE HANGS LOWER (Brendon, approved 2026-07-31, built
-   2026-08-01). With all three at the same height the bunch read as a flat row
-   of three; dropping the middle one is what makes it read as a real bunch on
-   one ring. Only ever with a full three — a pair stays level. */
-const MID_DROP = 16;
+/* ⛔ THREE CHAINS OFF ONE SPOT, EACH A DIFFERENT LENGTH (Brendon, 2026-08-01 —
+   the shape agreed from the start). Every charm's chain is the same six links,
+   so three hung side by side land at exactly the same height and read as a flat
+   row. The RINGS all stay on the tag row; what differs is how far each chain
+   RUNS, so the charms sit at three depths — the middle one lowest.
+   ⛔ Never move a rig down as a whole: that drops its ring off the row. */
+const CHAIN_RUN = [6, 12, 9];
+/* A PAIR LEANS APART (Brendon, 2026-08-01). Two hanging straight down just sit
+   beside each other; the short one tips OUT so the pair opens up, the way the
+   outer ones do in a full three. Degrees off true down — it rides gravity, so
+   it still swings and still hangs toward down on a tilt. */
+const PAIR_LEAN = [0, 11];
+/* A pair hangs long on the left, short on the right. */
+const PAIR_RUN = [12, 6];
 
 export default function EquippedCharm({ address, handle }: { address: string; handle?: string }) {
     const { open } = useModal();
@@ -241,9 +250,15 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
     /* The whole hanging piece, resolved once per charm: the ring, the link
        textures, and the charm art itself (drawn with no chain of its own — the
        chain here is the live one). One of these per charm on the row. */
-    const arts = useMemo(() => charms.map((charm) => {
+    const arts = useMemo(() => charms.map((charm, slot) => {
         const luck = charm.luck;
-        const chain = charmChain(charm.seed, luck);
+        const base = charmChain(charm.seed, luck);
+        /* How far THIS one runs. One on its own keeps the chain it has always
+           had; a bunch gets its own length per position. */
+        const run = charms.length === 2 ? PAIR_RUN : charms.length > 2 ? CHAIN_RUN : null;
+        const links = run?.[slot] ?? base.links;
+        const lean = charms.length === 2 ? (PAIR_LEAN[slot] ?? 0) : 0;
+        const chain = { ...base, links };
         const metal = chainMetalHex(chain.metal);
         const bailY = charmBailY(charm.seed, charm.coin, luck);
         /* Where the charm's own view starts — normally just above the bail, but
@@ -251,7 +266,10 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
            sized off THIS, never a fixed guess, so nothing the charm draws can
            fall outside it. */
         const crop = charmCropTop(charm.seed, charm.coin, luck);
-        const geom = chainGeom(bailY, chain.links);
+        /* The link SPACING comes off the charm's own six — the extra links just
+           carry the chain further down. Sizing it off the new count would only
+           make smaller links over the same drop. */
+        const geom = chainGeom(bailY, base.links);
         /* Half-extent of a link's own box, with room for its heaviest stroke. */
         const linkHalf = Math.max(geom.rx, geom.ry, Math.trunc((geom.ry * 144) / 200)) + 14;
         return {
@@ -272,6 +290,8 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
             charmH: (1000 - crop) * S,
             /* Where the bail sits inside that box — the point it swings from. */
             bailPx: (bailY - crop) * S,
+            /* Degrees off true down — how far this one splays out of the bunch. */
+            lean,
             id: charm.id,
             name: charm.name,
         };
@@ -315,7 +335,9 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
                 ox[i] = px[i];
                 oy[i] = py[i];
             }
-            return { art, r, N, n, len, px, py, ox, oy };
+            /* Its own down: true down, tipped by however far it splays out. */
+            const th = (art.lean * Math.PI) / 180;
+            return { art, r, N, n, len, px, py, ox, oy, cos: Math.cos(th), sin: Math.sin(th) };
         });
 
         /* The only per-frame writes: one transform per piece. Nothing here
@@ -370,14 +392,18 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
             if (!onScreen || document.hidden) { raf = 0; return; }
             const g = gravity();
             const k = takeKick();
-            const gxa = g.x * GRAV;
-            const gya = g.y * GRAV;
+            const gx0 = g.x * GRAV;
+            const gy0 = g.y * GRAV;
             const kxa = k.x * KICK;
             const kya = k.y * KICK;
 
             let travel = 0;
             for (const rig of rigs) {
-                const { n, len, px, py, ox, oy } = rig;
+                const { n, len, px, py, ox, oy, cos, sin } = rig;
+                /* Down for THIS one — the splay rides gravity, so a leaning
+                   charm still swings and still finds true down on a tilt. */
+                const gxa = gx0 * cos + gy0 * sin;
+                const gya = gy0 * cos - gx0 * sin;
                 for (let i = 1; i < n; ++i) {
                     const vx = (px[i]! - ox[i]!) * DRAG;
                     const vy = (py[i]! - oy[i]!) * DRAG;
@@ -584,8 +610,6 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
                     style={{
                         marginLeft: (r - (arts.length - 1) / 2) * SPREAD,
                         zIndex: 5 + (levels[r] ?? r),
-                        /* The one in the middle of a full three drops. */
-                        marginTop: arts.length === 3 && r === 1 ? MID_DROP : undefined,
                     }}
                 >
                     {/* The ring is the anchor — it is nailed to the end of the row
