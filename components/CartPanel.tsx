@@ -274,9 +274,9 @@ export default function CartPanel() {
                 for (const it of result.bought) remove(it.slug, it.id);
                 if (result.failed.length === 0 && result.bought.length > 0) {
                     closePanel();
-                    showToast(`Sweep complete \u00B7 ${result.bought.length} token${result.bought.length === 1 ? '' : 's'} acquired`);
+                    showToast(`\u2726\uFE0E Sweep complete \u00B7 ${result.bought.length} token${result.bought.length === 1 ? '' : 's'} acquired \u2726\uFE0E`);
                 } else if (result.bought.length > 0) {
-                    showToast(`Sweep: ${result.bought.length} BOUGHT \u00B7 ${result.failed.length} failed`);
+                    showToast(`\u2726\uFE0E Sweep: ${result.bought.length} BOUGHT \u00B7 ${result.failed.length} failed \u2726\uFE0E`);
                 } else {
                     showToast(result.failed[0]?.error ?? 'Sweep: FAILED');
                 }

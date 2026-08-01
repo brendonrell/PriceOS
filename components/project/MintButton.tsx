@@ -165,7 +165,7 @@ export default function MintButton({
     if (typeof window !== 'undefined') window.dispatchEvent(new Event('pd:project-refresh'));
     // Linger well past the default + fade gently — gives the buyer confidence
     // (Brendon 2026-06-13, doubled to 4000ms). Slow 700ms fade (vs 250).
-    showToast(`Minted: ${count} × ${projectTitle} · ${balance} ETH left`, 4000, 700);
+    showToast(`✦︎ Minted: ${count} × ${projectTitle} · ${balance} ETH left ✦︎`, 4000, 700);
     setTimeout(() => { setPhase('idle'); setPct(0); setResult(null); }, 1600);
   };
 

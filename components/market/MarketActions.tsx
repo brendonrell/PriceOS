@@ -55,7 +55,7 @@ export default function MarketActions({ slug, tokenId }: { slug: string; tokenId
         } else {
           if (action === 'list') showToast(`Listed: ${formatEth(Number(j.listed))} ETH`);
           else if (action === 'cancel') showToast('Listing: CANCELLED');
-          else if (action === 'buy') showToast(`Bought: ${formatEth(Number(j.bought))} ETH`);
+          else if (action === 'buy') showToast(`✦︎ Bought: ${formatEth(Number(j.bought))} ETH ✦︎`);
           else if (action === 'offer') showToast(`Offer placed: ${formatEth(Number(j.offered))} ETH`);
           else if (action === 'accept') showToast(`Sold: ${formatEth(Number(j.sold))} ETH`);
           load();
