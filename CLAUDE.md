@@ -155,6 +155,23 @@ win** — update this file in place and note it.
 > not yours to take. Unapproved silence is the same violation as unapproved
 > scope.
 
+> **⛔ RULE #-0.55 — A MODAL DOES NOT CLOSE WHEN YOU USE IT, AND IT SCROLLS.
+> (Brendon, 2026-08-01, raised in fury: "our modals fucking close when you do
+> anything in them… it's driving me nuts that you build this sloppy way".)**
+> Two laws on every card, sheet, bubble and panel PD has, forever:
+> - **ACTING INSIDE A MODAL NEVER CLOSES IT.** Tapping a choice, hitting a
+>   toggle, running its action, saving — the card **STAYS OPEN** and updates
+>   under his finger so he can keep going. A modal closes on exactly three
+>   things: the × , a tap OUTSIDE it, and Esc. Nothing else. Do NOT dismiss it
+>   "because the job is done", "so the toast can be seen", or "one card on
+>   screen at a time" — those are the excuses that shipped this, and every one
+>   of them cost him a re-open and a re-scroll.
+> - **THE SCROLL MUST WORK.** Any modal whose content can exceed the screen
+>   scrolls INSIDE itself — reachable on an iPhone, top to bottom, with its
+>   footer actions always tappable. A scroll inside a card is the user READING
+>   it, never a reason to dismiss it. Never ship a card that runs off the
+>   bottom of the screen or traps its own content.
+
 > **⛔ RULE #-0.5 — THE TARGET IS iOS SAFARI + THE PWA. ALWAYS. (Brendon,
 > 2026-07-20 — "I feel sometimes you forget", elevated to a headline rule by
 > his order.)** PD is used on an iPhone, in Safari and as the installed

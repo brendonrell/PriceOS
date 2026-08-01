@@ -180,8 +180,10 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
                 showToast('Charm: FAILED');
             }
         } finally {
+            /* ⛔ THE SWITCHER STAYS OPEN (Brendon, 2026-08-01). Acting inside a
+               card is not a reason to shut it — you pick, it updates under your
+               finger, you keep picking. */
             setBusy(false);
-            setSwapAnchor(null);
         }
     };
 
@@ -205,7 +207,6 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
             }
         } finally {
             setBusy(false);
-            setSwapAnchor(null);
         }
     };
 
@@ -236,14 +237,12 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
         applyColourLock(matchable.fam.hexes.length ? `fam:${matchable.fam.hexes.join(',')}` : '', matchable.fam.label, matchable.keepIds, matchable.ownedIds);
         setLockLabel(matchable.fam.label);
         setConfirmMatch(false);
-        setSwapAnchor(null);
         showToast(`Profile: ${matchable.fam.label}`);
     };
 
     const undoMatch = () => {
         clearColourLock();
         setLockLabel(null);
-        setSwapAnchor(null);
         showToast('Stickers: ALL BACK');
     };
 
@@ -556,9 +555,6 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
                                 ev.preventDefault();
                                 ev.stopPropagation();
                                 if (lockLabel) { undoMatch(); return; }
-                                /* The bubble steps aside for the confirm — one
-                                   card on screen, not a card over a card. */
-                                setSwapAnchor(null);
                                 setConfirmMatch(true);
                             }}
                         >
@@ -573,7 +569,6 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
                         onClick={(ev) => {
                             ev.preventDefault();
                             ev.stopPropagation();
-                            setSwapAnchor(null);
                             open('depanneur');
                         }}
                     >
