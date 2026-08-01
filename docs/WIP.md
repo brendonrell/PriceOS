@@ -42,51 +42,42 @@
    every pick, shuffle and match; that is fixed. Read the rule in `CLAUDE.md`
    before building any card, sheet, bubble or panel.
 
-2. **PROFILE LAG — NOT CLOSED. THE #1 OPEN BUG.**
-   **⛔ HIS DIAGNOSIS IS THE DIAGNOSIS (RULE #-3): IT IS THE KEYCHAINS, AND HE
-   HAS IT EVEN WITH NONE EQUIPPED.** His words: "we clearly have majorly fucked
-   up how we draw them on the profile". He noticed it started when keychains
-   landed. **DO NOT re-diagnose this to something else. The keychains are the
-   target until he says otherwise.**
+2. **PROFILE LAG — TWO REAL CAUSES FOUND AND SHIPPED 2026-08-01. UNCONFIRMED
+   ON HIS DEVICE.**
+   **⛔ HIS DIAGNOSIS WAS RIGHT ALL ALONG (RULE #-3): IT WAS THE KEYCHAINS, AND
+   THE COST WAS PAID WITH NONE EQUIPPED.** Both fixes explain that exactly:
 
-   *Fixed this session (all shipped, none of it closed the bug):*
-   - Gallery cards no longer redraw on connect-menu taps, on every toast, or on
-     opening/paging a modal (three separate context traps — see SHIPPED below).
-   - The chain solver no longer re-solves on every scroll event. iOS fires
-     scroll far faster than it paints and each one restarted the solve, so
-     scrolling a long profile kept three chains solving flat out the whole way
-     down. Now summed and drunk once a frame; same total push.
+   1. **The park rules ended in a universal selector, in a stylesheet loaded on
+      EVERY page.** A selector ending in `*` is matched right-to-left, so the
+      browser tested every element on the page and then walked its ancestors
+      looking for a charm that usually wasn't there — on every style recalc, on
+      every page, whether or not anyone wore a keychain. **That is why
+      unequipping never helped.** Now names the three animated classes.
+   2. **`will-change` was permanent** on every link and charm body — ~30 live
+      compositor layers over a collection-sized grid, held while the chain hung
+      dead still. The solver now adds the hint when it starts and drops it when
+      the chain settles, parks or unmounts. **The swing keeps the hint; the
+      motion is untouched (NO AMPUTATION).**
 
-   *Read end-to-end and ruled out for the none-equipped case (record it so the
-   next session doesn't re-read it):* with nothing equipped the worn-charm
-   component's early return fires and it renders NOTHING; its rack read is one
-   light query against a module-level cache (one fetch per wallet per session);
-   the scroll/tilt listeners and the solver all sit behind that same early
-   return. On paper there is nothing left. **He still has the lag, so something
-   here is wrong — believe him, not the reading.**
+   *Also fixed the same day:* the identical loose rule on the hero sticker
+   canvas.
 
-   *Next place to look, in order:*
-   1. **~30 permanently GPU-promoted layers.** Every chain link and every charm
-      body carries `will-change: transform` forever (`styles/depanneur.css`).
-      Three charms ≈ 30 always-live compositor layers sitting over a
-      collection-sized grid — real memory + compositing cost on an iPhone, and
-      it taxes everything else on the page, not just the charm. **It is there to
-      stop the chain re-rasterizing (the 2026-07-30 rebuild) — do NOT just
-      delete it (NO AMPUTATION). Make it work: promote only while the chain is
-      actually moving, drop the hint when it parks.**
-   2. **The universal descendant selector** `.pd-charm-worn.is-parked
-      .pd-charm-hang *` — a style recalc over every node under the charm.
-   3. **The never-removed capture-phase `touchend`/`click` listeners** in the
-      tilt re-arm (`lib/keychains/sway.ts`, `retryOnTap`). If iOS refuses the
-      cold re-arm, EVERY tap site-wide fires an async permission call until it
-      takes. Gated behind the same early return today — verify that on device.
-   4. Only then widen past keychains.
+   *Still standing if he says the lag persists:* the never-removed
+   capture-phase `touchend`/`click` listeners in the tilt re-arm
+   (`lib/keychains/sway.ts`, `retryOnTap`) — if iOS refuses the cold re-arm,
+   every tap site-wide fires an async permission call until it takes. It sits
+   behind the same early return today. Only then widen past keychains.
+
+   ⛔ **NEVER WRITE A `*`-KEYED SELECTOR IN A GLOBAL STYLESHEET.** Two shipped
+   in this codebase and both taxed every page in the app. `body.bench-dragging *`
+   and `.npc-cast *` are the two left — deliberately untouched (not the named
+   bug), but they are the same shape.
 
    ⛔ **THIS CONTAINER CANNOT REPRODUCE HIS DEVICE — DO NOT BURN THE SESSION
    TRYING.** Local dev has no Supabase / Alchemy keys so every data route 500s
    and the app never clears its loading screen; headless Chromium cannot reach
    the live preview (the agent proxy resets its CONNECT). A screenshot/measure
-   harness was attempted this session and Brendon killed it: *"it's beyond you
+   harness was attempted 2026-08-01 and Brendon killed it: *"it's beyond you
    abandon the screenshot move on now."* **Do not rebuild one.** Reason from the
    code, ship the fix, let him look.
 
@@ -238,25 +229,30 @@ code.**
   plus the companion guard (wire the size check into the build). **Brendon has
   not ruled on the guard.** *(Not re-measured this session — the contracts repo
   isn't in this container. The number is from the 2026-07-30 build.)*
-- **ClickUp is behind.** Its connector was down for the 2026-07-31 sessions and
-  is down again now, so nothing has been closed or queued there. Reconcile it
-  the next time the connector is up.
-- **Five things still don't follow the account** (verified — each keeps its own
-  device-local store and never reaches the settings envelope): **Composer
-  programs · budgets · anchors · fiat currency · the portfolio view state**
-  (price mode, group mode, hidden rows).
-  **⛔ STRUCK — these DO sync and the old note claiming otherwise was stale:**
-  workspaces (account-backed 2026-07-28), grid presets, the saved default
-  grouping, the hero sticker prefs, and day / token / artist notes.
-  `docs/STORAGE-AUDIT.md` predates those fixes — trust the code, not the audit.
+- **ClickUp is PART-reconciled.** The 2026-08-01 round is logged
+  (`86bb71fzm`, Done in 02 · PriceOS (UI)). **The 2026-07-31 rounds were never
+  logged** — their connector was down at the time — so the sound layer, themes,
+  the Albums prompt, the glyph swaps, What's Hot and the test-collection hide
+  are all missing from the board. Backfill from `docs/WIP-ARCHIVE.md`.
+- ✅ **NOTHING IS DEVICE-ONLY ANY MORE (2026-08-01).** The last five — Composer
+  programs · budgets · anchors · fiat currency · the Portfolio view state — now
+  ride the settings envelope like everything else. **⛔ `docs/STORAGE-AUDIT.md`
+  IS STALE and was already wrong before this: it still lists workspaces, grid
+  presets, the saved grouping, sticker prefs and notes as stranded, and all of
+  those synced weeks ago. Trust the code, never that doc.**
+  **The house rule (Brendon, 2026-08-01): "almost no device stuff unless it
+  somehow makes sense — db everything is one of our signatures."** Anything new
+  that a user sets goes on the account by default.
 - **The Composer's group toggle is NOT on layers** — verified: it cycles one
   dimension inside its saved query. Deliberate. Same for the Starred / Wishlist /
   History toggle, which groups saved lists on a different vocabulary.
-- **Achievements tags: PARKED** by Brendon. **Completionism as a TAG** (one per
-  month collected, "SEP '26 100%") is still not built — verified: the
-  completionism sheet exists and is warm-cached, but no tag derives from it.
-- **BitVerse cycle count (5) + the Rudxane lilac (#C9B6F0)** — verified still in
-  place, still my picks, Brendon hasn't ruled on either.
+- ✅ **COMPLETIONISM + PRICERANK TAGS ARE BUILT (2026-08-01).** Completionism =
+  one chip per month cleared, `SEP '26 100%`, **@brendon blue (his pick)**.
+  PriceRank = **ONE** chip, the tier held right now, Regular → Apex; it replaces
+  itself as you climb, tiers 1–2 get nothing, and the colour is **one ramp, not
+  ten hues** (`RANK_TIER_COLORS` — slate → Hothurt at Legend → Attention at
+  Apex). Both off by default like every tag; both rooms work off the generic
+  members route.
 - **Test prices (registry)** — verified still live: bulletin `0.2222`, reliquary
   `22.222`. REMOVE before mainnet.
 - **ASCII 1/3-down line** — faint artifact line, cause not isolated. Not
