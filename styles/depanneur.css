@@ -423,11 +423,11 @@
    same tap-a-square-to-pick — with the grid scrolling so a full rack fits
    instead of overflowing the bubble. */
 .charm-swap-grid {
-    /* THREE ROWS TALL, then it scrolls (Brendon, 2026-07-31) — a fixed rack
-       height so the whole card always clears the screen. The squares are the
-       card's width less its padding and the 8px column gap, halved; three of
-       those plus the two row gaps is the cap. */
-    max-height: calc((min(78vw, 240px) - 28px) * 1.5 + 16px);
+    /* TWO ROWS TALL, then it scrolls (Brendon, 2026-08-01 — was three, and the
+       card ran off the bottom of the screen). The squares are the card's width
+       less its padding and the 8px column gap, halved; two of those plus the
+       one row gap is the cap. */
+    max-height: calc((min(78vw, 240px) - 28px) + 8px);
     overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
