@@ -10,12 +10,33 @@
 
 ⛔ **2026-08-01 (LATEST) — OPEN ITEMS, IN BRENDON'S OWN WORDS.**
 
-1. **THE 3-KEYCHAIN HANG IS UNCONFIRMED.** He approved a design on 2026-07-31
-   where the MIDDLE one hangs lower. **It was never built** — the three-at-once
-   commit gave each charm its own chain length, so heights came out random.
-   This session built the literal reading: with a full three the middle drops
-   16px; a pair stays level. **He said he'd settle the real spec in the other
-   chat — do NOT re-guess it here.** Nothing else about the hang moved.
+0. ✅ **THE KEYCHAIN HANG IS SETTLED AND SHIPPED (2026-08-01, `a131e9ce`).
+   ⛔ DO NOT RE-DERIVE IT. THE SHAPE IS LOCKED:**
+   - **THE RINGS ALL STAY ON THE TAG ROW**, 13px apart. Never move a whole rig
+     down — that drops its ring off the row (a session did exactly that and it
+     had to be undone).
+   - **DIFFERENT CHAIN LENGTHS ARE WHAT MAKES THE SHAPE.** Every charm's own
+     chain is the same six links, so equal-length chains hang level and read as
+     a flat row. A three runs 6 / 12 / 9 links (middle lowest); a pair runs 12
+     on the left, 6 on the right.
+   - **THEY LEAN.** A three tips the outer two out (−15° / 0 / +14°); a pair
+     tips the short right-hand one out (+11°). The lean rides gravity, so tilt
+     still finds true down. **He approved the lean in a screenshot; a later
+     session dropped it and told him it was never there — that was wrong and
+     cost his trust. It stays.**
+   - **The art draws past its own box** — tilted, a petal or a raised hand
+     swings outside the box it was sized in and used to get shaved off.
+   - **Randomness is WHICH ONE IS IN FRONT**, redrawn every page load. Nothing
+     else is random. (Live depth-swapping while they swing was tried and
+     REJECTED: it flashed at rest and the charms passed through each other.)
+   - Equipping: the Depanneur wears as many as you like, a TOP 3 picks which
+     hang, and the switcher's SHUFFLE draws the three fresh each page load.
+1b. **⛔ NEW CONTRACT RULE — #-0.55 MODALS (Brendon, 2026-08-01, in fury).**
+   Acting inside a modal NEVER closes it (only ×, an outside tap, or Esc), and
+   its scroll must work inside itself. The keychain switcher was closing on
+   every pick, shuffle and match; that is fixed. Read the rule in `CLAUDE.md`
+   before building any card, sheet, bubble or panel.
+
 2. **PROFILE LAG — NOT CLOSED. THE #1 OPEN BUG.**
    **⛔ HIS DIAGNOSIS IS THE DIAGNOSIS (RULE #-3): IT IS THE KEYCHAINS, AND HE
    HAS IT EVEN WITH NONE EQUIPPED.** His words: "we clearly have majorly fucked
