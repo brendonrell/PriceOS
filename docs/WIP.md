@@ -102,11 +102,6 @@
      deliberate, don't loosen it. The separate `stonecolor:` recolour cast is
      untouched.
 
-4. **Golf Score reads as confusing** — he asked why a 29-minted project shows
-   "#2 of 111". Answer: it's the engine-size ranking across all 111 registry
-   projects, nothing to do with that project's mints. He was told; **no copy
-   was changed** (he didn't ask). If it keeps confusing him, that's a copy call.
-
 ✅ **2026-08-01 (LATE) — SHIPPED THIS SESSION** (all on `dev`, tip `2fa7138`,
 tree clean, type-check clean, full suite green):
 - **Colorpedia** (item 3 above) and **the stone's colour hand.**
