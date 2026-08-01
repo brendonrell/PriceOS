@@ -141,9 +141,14 @@ const OUT_SORTS: { key: OutSortKey; title: string; lbl: () => string }[] = [
     { key: 'feed',  title: 'Activity Feed', lbl: () => 'FEED' },
 ];
 
-/* "MMM DD" (e.g. MAY 13), or "MMM ?" when the day is undecided — same base
-   format as the homepage feed's upload date. */
+/* "MMM DD" (e.g. MAY 13), or "???" when the date is undecided — same base
+   format as the homepage feed's upload date.
+   ⛔ AN UNDECIDED DATE NAMES NO MONTH (Brendon, 2026-08-01). The PriceOS 1.0
+   release and the $PRICE airdrop rows carried a placeholder month, which read
+   as a date we had committed to. They now read ??? — matching the ??:?? their
+   time already showed. The stored timestamps still order the rows. */
 function fmtFeedDate(iso: string, tbdDay?: boolean): string {
+    if (tbdDay) return '???';
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return '—';
     // Viewer-local — on-chain events show in the user's own time, so the date
@@ -151,7 +156,6 @@ function fmtFeedDate(iso: string, tbdDay?: boolean): string {
     // time disagree for anyone off UTC).
     const month = d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
     const yy = String(d.getFullYear()).slice(-2);
-    if (tbdDay) return `${month} ? ’${yy}`;
     const day = d.toLocaleDateString('en-US', { day: '2-digit' });
     return `${month} ${day} ’${yy}`;
 }
