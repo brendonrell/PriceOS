@@ -163,7 +163,11 @@ const ENGINE = (function () {
 
   function traits(seed) {
     const p = params(K.rng(seed), seed);
-    return { Layout: p.layout.name, Palette: p.pal.name, Hour: p.hour, Tide: p.tide, Stacks: p.units };
+    /* Stacks is a COUNT, but a trait value is text everywhere else in PD — the
+       schema below already declares it as "7".."12". Emitting the bare number
+       took the whole project page down: the Pop Table sorts trait values as
+       strings and a number has no localeCompare (Brendon, 2026-08-01). */
+    return { Layout: p.layout.name, Palette: p.pal.name, Hour: p.hour, Tide: p.tide, Stacks: String(p.units) };
   }
 
   // ── A single refinery "unit" silhouette built at base x, ground y, with a
