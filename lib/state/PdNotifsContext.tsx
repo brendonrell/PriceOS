@@ -332,6 +332,26 @@ interface PdNotifsContextValue {
 
 const PdNotifsContext = createContext<PdNotifsContextValue | null>(null);
 
+/* ⛔ THE GALLERY DOESN'T REDRAW WHEN THE CONNECT MENU MOVES (Brendon,
+   2026-08-01). Every gallery card subscribed to the WHOLE notifs object, so
+   any menu touch — opening the Todos accordion, flipping a pill, anything
+   that writes a single unrelated key — invalidated the context and re-ran
+   every card on the page. On a profile with the Collected tab open that is a
+   full collection's worth of cards per tap, which is exactly the lag.
+   Cards read this NARROW slice instead: only the flags that actually change
+   what a card paints. It changes identity only when one of them changes, so
+   the rest of the menu leaves the grid alone. */
+export interface ArtNotifs {
+    asciiArt: boolean;
+    degen: boolean;
+    spell_celestial: boolean;
+    spell_hammer: boolean;
+    spell_arbitrage: boolean;
+    spell_aura: boolean;
+}
+
+const ArtNotifsContext = createContext<ArtNotifs | null>(null);
+
 export function PdNotifsProvider({ children }: { children: ReactNode }) {
     const [notifs, setNotifsState] = useState<PdNotifs>(DEFAULTS);
 
@@ -480,7 +500,40 @@ export function PdNotifsProvider({ children }: { children: ReactNode }) {
         [notifs, setNotifs, update, toggle, setAccordion]
     );
 
-    return <PdNotifsContext.Provider value={value}>{children}</PdNotifsContext.Provider>;
+    /* The six card-visible flags, re-identified only when one of them moves. */
+    const artNotifs = useMemo<ArtNotifs>(
+        () => ({
+            asciiArt: notifs.asciiArt,
+            degen: notifs.degen,
+            spell_celestial: notifs.spell_celestial,
+            spell_hammer: notifs.spell_hammer,
+            spell_arbitrage: notifs.spell_arbitrage,
+            spell_aura: notifs.spell_aura,
+        }),
+        [
+            notifs.asciiArt,
+            notifs.degen,
+            notifs.spell_celestial,
+            notifs.spell_hammer,
+            notifs.spell_arbitrage,
+            notifs.spell_aura,
+        ]
+    );
+
+    return (
+        <PdNotifsContext.Provider value={value}>
+            <ArtNotifsContext.Provider value={artNotifs}>{children}</ArtNotifsContext.Provider>
+        </PdNotifsContext.Provider>
+    );
+}
+
+/** The gallery card's narrow read of pdNotifs — see ArtNotifs above. */
+export function useArtNotifs(): ArtNotifs {
+    const ctx = useContext(ArtNotifsContext);
+    if (!ctx) {
+        throw new Error('useArtNotifs must be used inside <PdNotifsProvider>');
+    }
+    return ctx;
 }
 
 export function usePdNotifs(): PdNotifsContextValue {

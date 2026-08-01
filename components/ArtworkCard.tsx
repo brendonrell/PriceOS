@@ -130,7 +130,7 @@ import { addOutputTodo } from '../lib/todos/todoStore';
 import { useCart } from '../lib/state/CartContext';
 import { useBench } from '../lib/state/BenchContext';
 import { useHoldDrag } from '../lib/hooks/useHoldDrag';
-import { usePdNotifs } from '../lib/state/PdNotifsContext';
+import { useArtNotifs } from '../lib/state/PdNotifsContext';
 import AsciiArtImage from './AsciiArtImage';
 import { useNotePrompt } from '../lib/state/NotePromptContext';
 import { readNoteFor } from '../lib/notes/tokenNotes';
@@ -222,7 +222,7 @@ function ArtworkCard({
     const { open } = useModal();
     const { showToast } = useToast();
     const { title: projectTitle, slug, outputs } = useProject();
-    const { notifs } = usePdNotifs();
+    const notifs = useArtNotifs();
     const { openOutputNoteEditor } = useNotePrompt();
     const meta = useOutputMeta(id);
     const canvasRef = useRef<HTMLCanvasElement>(null);
