@@ -326,8 +326,9 @@ function ProfilePageBodyInner({
             name: p.displayName,
             color: projectColorway(p.slug) ?? p.colorway,
         })),
+        priceScore: user.price_score,
         clearedMonths,
-    }), [clearedMonths, isOwnProfile, myTags, user.profile_tags, user.granted_tags, user.user_number, artistStatus, user.created_at, user.address, user.handle, handle, ownerTeamTagStyle, rudxaneRoll, ownerFormulas, formulaRoll, user.price_hold_rank, user.price_held]);
+    }), [user.price_score, clearedMonths, isOwnProfile, myTags, user.profile_tags, user.granted_tags, user.user_number, artistStatus, user.created_at, user.address, user.handle, handle, ownerTeamTagStyle, rudxaneRoll, ownerFormulas, formulaRoll, user.price_hold_rank, user.price_held]);
     /* Shown on the hero: full derived set minus the hidden ones (Manual → Earned
        → Chosen order via each tag's `order`). */
     const displayTags = useMemo(

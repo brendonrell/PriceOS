@@ -17,6 +17,7 @@ import {
     type Tag, tagById, isPersonaId, GRANTED_IDS,
     ID_TAG_STYLE, ID_RANGES, CEO_TAG, DEPLOYER_TAG, teamStyleTag,
     bitverseTag, rudxaneTag, PRICEDAY_TAG_COLOR, COMPLETIONISM_TAG_COLOR,
+    RANK_TIER_COLORS,
     PRICE_HOLD_TAG_BG, PRICE_HOLD_TAG_TEXT,
     PRICE_HOLD_TOP3_BG, PRICE_HOLD_TOP3_TEXT,
     PRICE_HOLD_TOP10_BG, PRICE_HOLD_TOP10_TEXT,
@@ -24,6 +25,7 @@ import {
     FORMULA_TAG_BG, FORMULA_TAG_TEXT,
 } from './catalog';
 import { priceDayNumber } from '../priceday/priceday';
+import { tierFor } from '../achievements/tiers';
 import { cleanFormulas, drawFormula, formulaBlurb } from './formula';
 
 /** Provisional Veteran cut (Brendon to confirm the real tenure). */
@@ -104,6 +106,9 @@ export interface DeriveInput {
      *  server renders, so hydration never mismatches. Same contract as
      *  `rudxaneRoll` above. */
     formulaRoll?: number | null;
+    /** The owner's PriceScore (users.price_score) — drives the single
+     *  PriceRank tier chip. Below the Regular threshold there is no chip. */
+    priceScore?: number | null;
     /** Months this person CLEARED, as `YYYY-MM` keys — one "SEP '26 100%" chip
      *  each. Handed in as facts like `projects`: working out which months are
      *  complete needs the project table and the holder rows, and neither may be
@@ -243,6 +248,31 @@ export function priceHeldTag(held: number | string | null | undefined): Tag | nu
     return null;
 }
 
+/* ── PRICERANK — the tier you hold RIGHT NOW (Brendon, 2026-08-01) ──────────
+   ONE chip, never a shelf: the tier replaces itself as you climb, so nobody
+   keeps a rank they fell out of and a row can't fill up with old trophies.
+   Tiers 1–2 get nothing — everyone reaches Initiate, so a chip for it says
+   nothing about anybody. The titles and thresholds are read from the rank
+   ladder itself (lib/achievements/tiers), never restated here. ── */
+const RANK_TAG_FLOOR = 3;
+
+export function rankTag(score: number | null | undefined): Tag | null {
+    const n = Number(score);
+    if (!Number.isFinite(n) || n <= 0) return null;
+    const t = tierFor(n);
+    if (!t || t.tier < RANK_TAG_FLOOR) return null;
+    const color = RANK_TIER_COLORS[t.tier];
+    if (!color) return null;
+    return {
+        id: 'pricerank',
+        label: t.title,
+        color,
+        kind: 'earned',
+        order: 20.5,
+        blurb: `PriceRank ${t.tier} — ${t.title}.`,
+    };
+}
+
 /* ── COMPLETIONISM — one chip per month you cleared (Brendon: a tag per month
    collected, "SEP '26 100%"). A month is CLEARED when you hold at least one
    output of every project uploaded in it — the same cut the Completionism
@@ -314,6 +344,7 @@ export function deriveTags(input: DeriveInput): Tag[] {
 
     // Earned — only what we can derive honestly today.
     add(idTagFor(input.userNumber));           // User #N (opens Earned)
+    add(rankTag(input.priceScore));            // PriceRank — the tier held now
     add(priceDayJoinTag(input.createdAt));     // PriceDay #N (join day)
     add(priceHoldTag(input.priceHoldRank));    // $PRICE Top N · #r (holder rank)
     add(priceHeldTag(input.priceHeld));        // $PRICE 100K+ / 1M+ (amount held)

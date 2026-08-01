@@ -48,6 +48,8 @@ export interface TagFacts {
   nameFont: string | null;
   /** The owner's all-tags paint (one colour across their whole row), or null. */
   tagPaint: string | null;
+  /** The owner's PriceScore — drives the single PriceRank tier chip. */
+  priceScore: number | null;
   /** Months this person CLEARED (`YYYY-MM`) — one "SEP '26 100%" chip each.
    *  Resolved here for the same reason `projects` is: it needs the project
    *  table and the holder rows, which belong on this side of the wall. */
@@ -89,7 +91,7 @@ export async function GET(req: Request): Promise<NextResponse> {
     const res = await supabase
       .from('users')
       .select(
-        'address, handle, profile_tags, granted_tags, user_number, price_held, price_hold_rank, name_font, tag_paint, created_at',
+        'address, handle, profile_tags, granted_tags, user_number, price_held, price_hold_rank, price_score, name_font, tag_paint, created_at',
       )
       .in('handle', handles);
     if (res.error) return serverError(res.error.message);
@@ -202,6 +204,7 @@ export async function GET(req: Request): Promise<NextResponse> {
           name: p.displayName,
           color: projectColorway(p.slug) ?? p.colorway,
         })),
+        priceScore: u.price_score ?? null,
         clearedMonths: (addr && clearedByAddr.get(addr)) || [],
         nameFont: u.name_font ?? null,
         tagPaint: u.tag_paint ?? null,

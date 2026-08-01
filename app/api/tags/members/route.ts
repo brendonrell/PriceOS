@@ -60,7 +60,7 @@ export async function GET(req: Request): Promise<NextResponse> {
     const supabase = getSupabaseAnon();
     const usersRes = await supabase
       .from('users')
-      .select('address, handle, profile_tags, granted_tags, user_number, price_held, price_hold_rank, created_at')
+      .select('address, handle, profile_tags, granted_tags, user_number, price_held, price_hold_rank, price_score, created_at')
       .not('handle', 'is', null)
       .order('created_at', { ascending: true })
       .limit(USER_CAP);
@@ -170,6 +170,7 @@ export async function GET(req: Request): Promise<NextResponse> {
         priceHeld: u.price_held ?? null,
         shownTags: shownByAddr.get(addr) ?? [],
         tagsOff: offByAddr.get(addr) ?? [],
+        priceScore: u.price_score ?? null,
         clearedMonths: clearedByAddr.get(addr) ?? [],
         projects: u.handle
           ? projectsByArtist(u.handle).map((p) => ({

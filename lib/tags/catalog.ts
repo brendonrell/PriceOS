@@ -248,6 +248,23 @@ export const RUDXANE_SAYINGS: ReadonlyArray<string> = [
 /** COMPLETIONISM — @brendon blue, his pick (2026-08-01). */
 export const COMPLETIONISM_TAG_COLOR = '#0109FF';
 
+/* ── PRICERANK — one chip, the tier you hold right now (Brendon, 2026-08-01).
+   ⛔ ONE RAMP, NOT TEN HUES. The rank is a ladder, so the chip reads as one:
+   quiet and cool at the bottom, hot at the top, finishing on the brand's two
+   loudest tokens so Apex looks like something. Retuning is this table alone.
+   Tiers 1–2 are deliberately absent — everyone reaches Initiate, and a badge
+   everybody wears says nothing. The chip starts at Regular. ── */
+export const RANK_TIER_COLORS: Readonly<Record<number, string>> = {
+    3: '#64748B',   // Regular      — slate, the quiet end
+    4: '#0E7490',   // Established  — deep teal
+    5: '#1D4ED8',   // Notable      — blue
+    6: '#7C3AED',   // Respected    — violet
+    7: '#DB2777',   // Authority    — magenta
+    8: '#EA580C',   // Luminary     — orange
+    9: '#FF0055',   // Legend       — Hothurt
+    10: '#FFE600',  // Apex         — Attention, the loudest thing PD owns
+};
+
 export const RUDXANE_BG = '#C9B6F0';    // light lilac field
 export const RUDXANE_INK = '#3B2A5C';   // deep violet lettering
 
