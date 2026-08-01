@@ -142,10 +142,7 @@ export default function CollectorsModal() {
                 {'×'}
                 {VS15}
             </div>
-            <div
-                className="modal-info"
-                style={{ marginTop: 0, maxWidth: 340 }}
-            >
+            <div className="modal-info collectors-info">
                 <div className="modal-title" style={{ marginBottom: 0 }}>
                     OWNERS
                 </div>

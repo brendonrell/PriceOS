@@ -1930,6 +1930,24 @@ body.modal-open { overflow: hidden; touch-action: none; }
    prevents iOS Safari rubber-banding from bleeding into the
    modal backdrop. modal-stats-bottom is the dashed-rule footer
    line under the list (e.g. "UNIQUE COLLECTORS: 68%"). */
+/* ⛔ OWNERS FILLS THE SCREEN (Brendon, 2026-08-01 — "I want the owners modal to
+   use the full screen, I don't know why it has all that dead space").
+   The head (title · count · sorts) sits at the TOP and the list takes every
+   remaining pixel down to the home indicator. No 340px column floating in the
+   middle of an empty page. */
+#collectorsModal { justify-content: flex-start; padding-top: calc(30px + env(safe-area-inset-top)); }
+#collectorsModal .collectors-info {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-width: 560px;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+}
+#collectorsModal .collectors-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    width: 100%;
+}
 .collectors-list {
     max-height: 250px;
     overflow-y: auto;
