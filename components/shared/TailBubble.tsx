@@ -79,7 +79,12 @@ export default function TailBubble({
             window.setTimeout(() => window.removeEventListener('click', swallow, true), 500);
             onDismiss();
         };
-        const dismiss = () => onDismiss();
+        /* A scroll INSIDE the bubble is the user reading it, not leaving it —
+           only a scroll of the page behind dismisses (Brendon, 2026-08-01). */
+        const dismiss = (e?: Event) => {
+            if (e && e.target instanceof Node && ref.current?.contains(e.target)) return;
+            onDismiss();
+        };
         document.addEventListener('pointerdown', onDown, true);
         if (dismissOnScroll) window.addEventListener('scroll', dismiss, true);
         window.addEventListener('resize', dismiss);

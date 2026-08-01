@@ -52,7 +52,12 @@ export function FiatCurrencyPicker({ gated }: { gated: boolean }) {
             if (cellRef.current?.contains(e.target as Node)) return;
             setOpen(false);
         };
-        const dismiss = () => setOpen(false);
+        /* A scroll INSIDE the bubble is the user reading it, not leaving it —
+           only a scroll of the page behind dismisses (Brendon, 2026-08-01). */
+        const dismiss = (e?: Event) => {
+            if (e && e.target instanceof Node && bubbleRef.current?.contains(e.target)) return;
+            setOpen(false);
+        };
         document.addEventListener('pointerdown', onPointerDown, true);
         window.addEventListener('scroll', dismiss, true);
         window.addEventListener('resize', dismiss);

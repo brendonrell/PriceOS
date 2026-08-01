@@ -73,7 +73,12 @@ export default function GroupLayersBubble({
             if (bubbleRef.current?.contains(e.target as Node)) return;
             onClose();
         };
-        const dismiss = () => onClose();
+        /* A scroll INSIDE the bubble is the user reading it, not leaving it —
+           only a scroll of the page behind dismisses (Brendon, 2026-08-01). */
+        const dismiss = (e?: Event) => {
+            if (e && e.target instanceof Node && bubbleRef.current?.contains(e.target)) return;
+            onClose();
+        };
         const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
         document.addEventListener('pointerdown', onPointerDown, true);
         window.addEventListener('scroll', dismiss, true);
