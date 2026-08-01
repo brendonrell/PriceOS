@@ -16,25 +16,84 @@
    This session built the literal reading: with a full three the middle drops
    16px; a pair stays level. **He said he'd settle the real spec in the other
    chat — do NOT re-guess it here.** Nothing else about the hang moved.
-2. **PROFILE LAG — NOT CLOSED.** Three real re-render traps were fixed this
-   session (below) and he says the lag is STILL there. **His diagnosis: the
-   keychains, and he has it even with none equipped (RULE #-3 — that IS the
-   target, do not re-diagnose to something else).** What was read end-to-end
-   and found: with none equipped the worn-charm component renders nothing and
-   its rack read is a single light query. What WAS fixed: the chain solver no
-   longer re-solves on every scroll event. **Not yet examined: the ~30
-   permanently GPU-promoted layers (`will-change: transform` on every link +
-   charm body) that a worn bunch leaves over the whole page.** Start there.
-   ⛔ This container CANNOT reproduce his device: local dev has no Supabase /
-   Alchemy keys (every data route 500s), and headless Chromium cannot reach
-   the live preview (the agent proxy resets its CONNECT). Screenshot/measure
-   harnesses are a dead end here — he abandoned one mid-session. Don't rebuild it.
-3. **COLORPEDIA — DISCUSSION ONLY, NOT APPROVED.** His idea: a little modal of
-   info for a given colour (hex, CMYK, name, history). Position given: the maths
-   formats are free and exact; the name + history should be LLM-generated ONCE
-   over a fixed vocabulary of a few thousand named colours and baked in, then
-   any colour snaps to its nearest neighbour — instant, offline, no live
-   hallucination. **No code written. Do not start it without his word.**
+2. **PROFILE LAG — NOT CLOSED. THE #1 OPEN BUG.**
+   **⛔ HIS DIAGNOSIS IS THE DIAGNOSIS (RULE #-3): IT IS THE KEYCHAINS, AND HE
+   HAS IT EVEN WITH NONE EQUIPPED.** His words: "we clearly have majorly fucked
+   up how we draw them on the profile". He noticed it started when keychains
+   landed. **DO NOT re-diagnose this to something else. The keychains are the
+   target until he says otherwise.**
+
+   *Fixed this session (all shipped, none of it closed the bug):*
+   - Gallery cards no longer redraw on connect-menu taps, on every toast, or on
+     opening/paging a modal (three separate context traps — see SHIPPED below).
+   - The chain solver no longer re-solves on every scroll event. iOS fires
+     scroll far faster than it paints and each one restarted the solve, so
+     scrolling a long profile kept three chains solving flat out the whole way
+     down. Now summed and drunk once a frame; same total push.
+
+   *Read end-to-end and ruled out for the none-equipped case (record it so the
+   next session doesn't re-read it):* with nothing equipped the worn-charm
+   component's early return fires and it renders NOTHING; its rack read is one
+   light query against a module-level cache (one fetch per wallet per session);
+   the scroll/tilt listeners and the solver all sit behind that same early
+   return. On paper there is nothing left. **He still has the lag, so something
+   here is wrong — believe him, not the reading.**
+
+   *Next place to look, in order:*
+   1. **~30 permanently GPU-promoted layers.** Every chain link and every charm
+      body carries `will-change: transform` forever (`styles/depanneur.css`).
+      Three charms ≈ 30 always-live compositor layers sitting over a
+      collection-sized grid — real memory + compositing cost on an iPhone, and
+      it taxes everything else on the page, not just the charm. **It is there to
+      stop the chain re-rasterizing (the 2026-07-30 rebuild) — do NOT just
+      delete it (NO AMPUTATION). Make it work: promote only while the chain is
+      actually moving, drop the hint when it parks.**
+   2. **The universal descendant selector** `.pd-charm-worn.is-parked
+      .pd-charm-hang *` — a style recalc over every node under the charm.
+   3. **The never-removed capture-phase `touchend`/`click` listeners** in the
+      tilt re-arm (`lib/keychains/sway.ts`, `retryOnTap`). If iOS refuses the
+      cold re-arm, EVERY tap site-wide fires an async permission call until it
+      takes. Gated behind the same early return today — verify that on device.
+   4. Only then widen past keychains.
+
+   ⛔ **THIS CONTAINER CANNOT REPRODUCE HIS DEVICE — DO NOT BURN THE SESSION
+   TRYING.** Local dev has no Supabase / Alchemy keys so every data route 500s
+   and the app never clears its loading screen; headless Chromium cannot reach
+   the live preview (the agent proxy resets its CONNECT). A screenshot/measure
+   harness was attempted this session and Brendon killed it: *"it's beyond you
+   abandon the screenshot move on now."* **Do not rebuild one.** Reason from the
+   code, ship the fix, let him look.
+
+3. **COLORPEDIA — SPEC'D, NOT APPROVED, NOT STARTED.** ⛔ **He asked to talk it
+   through, not to build it. Do NOT write code without his explicit go.**
+
+   *His ask:* a little modal about a given colour — hex, CMYK, the name, maybe
+   some history. Needs to cover A LOT of colours. He flagged it as "a perfect
+   LLM task".
+
+   *The position given to him, and the reason:*
+   - **The maths is free and exact — never LLM it.** hex · RGB · HSL · CMYK ·
+     LAB are pure conversions from the colour itself. They compute in the app,
+     for ANY colour, with no data and no lookup. An LLM must never be asked for
+     a number it could get wrong.
+   - **The name + history is the LLM part, and it is generated ONCE, offline,
+     ahead of time — never live in front of a user.** Build a fixed vocabulary
+     of a few thousand named colours, generate each one's copy in a batch job,
+     bake the result into the app as data.
+   - **Any colour then snaps to its nearest neighbour in that vocabulary.** So
+     an arbitrary hex off a piece of art still lands on a real named colour with
+     real copy. Instant, works offline, and cannot hallucinate at runtime because
+     nothing is generated at runtime.
+   - **The honest limit:** a snapped colour's history is the NEIGHBOUR's history,
+     not that exact hex's. The modal has to be honest about which named colour it
+     matched to — never imply the exact hex has its own story.
+
+   *Open questions FOR BRENDON — do not answer these yourself:*
+   - Where does it open from? (⛔ RULE #-0.4 — the door in AND the door out are
+     confirmed with him BEFORE any build. He has not named either.)
+   - Which vocabulary? PD already owns colour buckets + the stored dominant
+     colours; a public named-colour set is the other option.
+   - How much history per colour — a line, or a paragraph?
 4. **Golf Score reads as confusing** — he asked why a 29-minted project shows
    "#2 of 111". Answer: it's the engine-size ranking across all 111 registry
    projects, nothing to do with that project's mints. He was told; **no copy
@@ -76,10 +135,13 @@ clean, type-check clean):
   which PD never uses; it has been shipping bare on the Fates tiles all along.
   Glossary corrected. Chiron ⚷ stays on the charm's chain line.
 
-**Still on the platform, NOT stale:** Slack Water is live with 0 minted. **31 of
-68 projects have zero mints across 24 artists**, so their artist pages all show
-the empty ghost rail. Brendon was told; **whether to drop zero-mint projects
-from artist Created rails is HIS open call — nothing was changed.**
+⛔ **ZERO-MINT PROJECTS STAY ON ARTIST PAGES — SETTLED (Brendon, 2026-08-01:
+"Zero mint projects stay").** Slack Water is live with 0 minted, and **31 of 68
+projects have zero mints across 24 artists**, so those artist pages show the
+empty ghost rail BY DESIGN — the ghosts are his own 2026-07-03 call (no phantom
+art off unminted ids). **This is CLOSED. Do not re-propose hiding them, and do
+not treat an empty rail as a bug.** A project with nothing minted is still a
+live mint door, and it belongs on its artist's page.
 
 ---
 
