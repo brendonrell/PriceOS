@@ -385,6 +385,17 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
             return () => { stopSway(); };
         }
 
+        /* ⛔ THE LAYER HINT RIDES THE SWING (Brendon, 2026-08-01 — the profile
+           lag). Every link and charm used to be promoted to its own compositor
+           layer for the whole life of the page; thirty of those sat over the
+           gallery grid doing nothing while the chain hung dead still. The hint
+           is what keeps the swing from re-rasterizing, so it goes ON the instant
+           the solver starts and comes OFF only once the chain has settled or
+           left the screen. Never remove it outright — the swing needs it. */
+        const setSwinging = (on: boolean) => {
+            hostRef.current?.classList.toggle('is-swinging', on);
+        };
+
         let raf = 0;
         let calm = 0;
         /* It only solves while it is on screen — swinging something nobody can
@@ -444,14 +455,14 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
 
             // Settled and nothing shoving it — park until something moves.
             calm = travel < SLEEP ? calm + 1 : 0;
-            if (calm > 24) { raf = 0; return; }
+            if (calm > 24) { raf = 0; setSwinging(false); return; }
             raf = requestAnimationFrame(step);
         };
 
         const kick = () => {
             if (!onScreen || document.hidden) return;
             calm = 0;
-            if (!raf) raf = requestAnimationFrame(step);
+            if (!raf) { setSwinging(true); raf = requestAnimationFrame(step); }
         };
         const stopWake = onWake(kick);
 
@@ -462,7 +473,7 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
                 onScreen = vis;
                 hostRef.current?.classList.toggle('is-parked', !vis);
                 if (vis) { takeKick(); kick(); }
-                else if (raf) { cancelAnimationFrame(raf); raf = 0; }
+                else if (raf) { cancelAnimationFrame(raf); raf = 0; setSwinging(false); }
             }, { rootMargin: '80px' })
             : null;
         io?.observe(hostRef.current!);
@@ -470,6 +481,7 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
         const onVis = () => {
             hostRef.current?.classList.toggle('is-parked', document.hidden || !onScreen);
             if (!document.hidden) { takeKick(); kick(); }
+            else if (raf) { cancelAnimationFrame(raf); raf = 0; setSwinging(false); }
         };
         document.addEventListener('visibilitychange', onVis);
 
@@ -481,6 +493,7 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
             io?.disconnect();
             document.removeEventListener('visibilitychange', onVis);
             if (raf) cancelAnimationFrame(raf);
+            setSwinging(false);
         };
     }, [arts]);
 

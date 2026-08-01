@@ -573,10 +573,18 @@
     background-repeat: no-repeat;
     background-size: 100% 100%;
 }
-.pd-charm-link { will-change: transform; }
+/* ⛔ PROMOTED ONLY WHILE IT IS ACTUALLY MOVING (Brendon, 2026-08-01 — the
+   profile lag). The hint is what stops the chain re-rasterizing mid-swing, so
+   it STAYS for every frame the solver is running — but it used to sit on all
+   thirty-odd pieces forever, which held thirty live compositor layers over a
+   collection-sized grid for as long as the profile was open, whether or not
+   anything was swinging. The solver adds `is-swinging` when it starts and drops
+   it when the chain settles or leaves the screen. Never delete the hint —
+   the swing needs it. */
+.pd-charm-worn.is-swinging .pd-charm-link,
 /* The charm keeps its LIVE art — its sway, blink and twinkle still run. On its
    own layer those repaint one charm-sized texture instead of the whole piece. */
-.pd-charm-body { will-change: transform; }
+.pd-charm-worn.is-swinging .pd-charm-body { will-change: transform; }
 /* The art draws PAST its own box (Brendon, 2026-08-01 — "why is the petal cut
    off"). The box is sized to the charm hanging straight; tilted, a petal or a
    raised hand swings outside it and the box's edge was shaving it off. */
@@ -584,9 +592,20 @@
 
 /* Parked = off screen or the app in the background. The chain stops solving
    and the charm's own sway/blink/twinkle stop with it; both resume untouched
-   the moment it's back on screen. */
+   the moment it's back on screen.
+
+   ⛔ NAMED CLASSES, NEVER `*` (Brendon, 2026-08-01 — the profile lag he had
+   WITH NOTHING EQUIPPED). This file is loaded on every page, and a selector
+   ending in `*` is matched from the right: the browser tested EVERY element on
+   the page — a whole collection grid — and then walked its ancestors looking
+   for a charm that wasn't there. Paid on every style recalc, by every page,
+   whether or not anyone wears a keychain. The three animated classes below are
+   the only descendants that were ever paused, so naming them is the same
+   behaviour at a fraction of the matching cost. Never widen these back to `*`. */
 .pd-charm-worn.is-parked .pd-charm-hang,
-.pd-charm-worn.is-parked .pd-charm-hang * {
+.pd-charm-worn.is-parked .pd-charm-hang .sw,
+.pd-charm-worn.is-parked .pd-charm-hang .ey,
+.pd-charm-worn.is-parked .pd-charm-hang .gl {
     animation-play-state: paused !important;
 }
 
@@ -622,7 +641,12 @@
 /* Parked = scrolled out of view. A charm nobody can see doesn't need to be
    alive; it picks up exactly where it left off the moment it's back. The same
    law the worn charm on a profile already runs by. */
-.dp-rack-slot.is-parked .dp-charm-mini *,
-.charm-swap-cell.is-parked .dp-charm-mini * {
+/* ⛔ Named classes, never `*` — same reason as the worn charm above. */
+.dp-rack-slot.is-parked .dp-charm-mini .sw,
+.dp-rack-slot.is-parked .dp-charm-mini .ey,
+.dp-rack-slot.is-parked .dp-charm-mini .gl,
+.charm-swap-cell.is-parked .dp-charm-mini .sw,
+.charm-swap-cell.is-parked .dp-charm-mini .ey,
+.charm-swap-cell.is-parked .dp-charm-mini .gl {
     animation-play-state: paused !important;
 }
