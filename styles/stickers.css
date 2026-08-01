@@ -814,10 +814,18 @@ body.sticker-mode .hero-stickers { display: none; }
    pan-y, NOT none (Brendon, 2026-07-27): a finger dragged down the sticker
    area scrolls the page like it does everywhere else. A grab only takes the
    gesture once the long-press has fired — HeroStickers blocks the scroll for
-   that one drag, so hand-placing still works exactly as it did. */
+   that one drag, so hand-placing still works exactly as it did.
+
+   ⛔ NAMED, NEVER `*` (Brendon, 2026-08-01 — the same page-wide cost that was
+   lagging the profile). This stylesheet is global and a selector ending in `*`
+   is matched from the right, so every element on every page was tested and then
+   walked for a sticker ancestor it did not have. It is not needed here: the
+   selection and callout suppressions INHERIT down into the sticker artwork, and
+   a touch is governed by its ancestors' pan-y anyway. The artwork root is still
+   named outright so the SVG keeps its own copy. */
 .hero-stickers-canvas,
 .hero-stickers-canvas .hero-sticker,
-.hero-stickers-canvas .hero-sticker * {
+.hero-stickers-canvas .hero-sticker svg {
     touch-action: pan-y;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
