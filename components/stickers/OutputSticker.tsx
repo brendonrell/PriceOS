@@ -11,7 +11,7 @@
 import { memo, useEffect, useRef } from 'react';
 import { paintOutput } from '../../lib/state/ProjectContext';
 import { paintAsciiStandin } from '../../lib/art/asciiStandin';
-import { usePdNotifs } from '../../lib/state/PdNotifsContext';
+import { useArtNotifs } from '../../lib/state/PdNotifsContext';
 
 const PAINT_RES = 168;
 
@@ -25,7 +25,7 @@ function OutputStickerImpl({
     diecut?: boolean;
 }) {
     const ref = useRef<HTMLCanvasElement>(null);
-    const { notifs } = usePdNotifs();
+    const notifs = useArtNotifs();
     const ascii = notifs.asciiArt;
     useEffect(() => {
         const c = ref.current;

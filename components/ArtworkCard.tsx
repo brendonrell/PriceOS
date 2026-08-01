@@ -77,8 +77,8 @@
  */
 
 import { memo, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { useModal } from '../lib/state/ModalContext';
-import { useToast } from '../lib/state/ToastContext';
+import { useModalActions } from '../lib/state/ModalContext';
+import { useToastSend } from '../lib/state/ToastContext';
 import { useProject, paintOutput } from '../lib/state/ProjectContext';
 import { getProject } from '../lib/project/registry';
 import { sampleCanvasFingerprint } from '../lib/art/sampleColor';
@@ -219,8 +219,8 @@ function ArtworkCard({
     renderSize = 400,
     showcaseMove,
 }: ArtworkCardProps) {
-    const { open } = useModal();
-    const { showToast } = useToast();
+    const { open } = useModalActions();
+    const showToast = useToastSend();
     const { title: projectTitle, slug, outputs } = useProject();
     const notifs = useArtNotifs();
     const { openOutputNoteEditor } = useNotePrompt();

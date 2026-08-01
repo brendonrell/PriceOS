@@ -10,7 +10,7 @@
 import { useEffect, useRef } from 'react';
 import { paintOutput } from '../../lib/state/ProjectContext';
 import { paintAsciiStandin } from '../../lib/art/asciiStandin';
-import { usePdNotifs } from '../../lib/state/PdNotifsContext';
+import { useArtNotifs } from '../../lib/state/PdNotifsContext';
 
 export default function OutputThumb({
     slug,
@@ -27,7 +27,7 @@ export default function OutputThumb({
     crop?: boolean;
 }) {
     const ref = useRef<HTMLCanvasElement>(null);
-    const { notifs } = usePdNotifs();
+    const notifs = useArtNotifs();
     const ascii = notifs.asciiArt;
     const degen = notifs.degen;
     useEffect(() => {

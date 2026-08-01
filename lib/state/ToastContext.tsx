@@ -77,6 +77,13 @@ interface ToastContextValue {
 
 const ToastCtx = createContext<ToastContextValue | null>(null);
 
+/* ⛔ SHOWING A TOAST MUST NOT REDRAW THE GALLERY (Brendon, 2026-08-01).
+   The full value carries the live toast snapshot, so every toast — and every
+   toast fading out again — re-ran every component holding this context. The
+   gallery cards only ever SEND toasts; they never read one. They take this
+   send-only handle instead, which never changes identity. */
+const ToastSendCtx = createContext<ToastContextValue['showToast'] | null>(null);
+
 const SHOW_MS = 1800;
 const FADE_MS = 250;
 
@@ -156,7 +163,20 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         [showToast, state]
     );
 
-    return <ToastCtx.Provider value={value}>{children}</ToastCtx.Provider>;
+    return (
+        <ToastCtx.Provider value={value}>
+            <ToastSendCtx.Provider value={showToast}>{children}</ToastSendCtx.Provider>
+        </ToastCtx.Provider>
+    );
+}
+
+/** Send-only toast handle — see ToastSendCtx above. Stable for the app's life. */
+export function useToastSend(): ToastContextValue['showToast'] {
+    const ctx = useContext(ToastSendCtx);
+    if (!ctx) {
+        throw new Error('useToastSend must be used inside <ToastProvider>');
+    }
+    return ctx;
 }
 
 export function useToast(): ToastContextValue {

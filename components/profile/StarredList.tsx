@@ -20,7 +20,7 @@
 import { useEffect, useMemo, useState, useRef, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
 import { useModal } from '../../lib/state/ModalContext';
-import { useToast } from '../../lib/state/ToastContext';
+import { useToast, useToastSend } from '../../lib/state/ToastContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useMarketSheet } from '../../lib/state/MarketSheetContext';
 import { useNotePrompt } from '../../lib/state/NotePromptContext';
@@ -1426,7 +1426,7 @@ function StarredOutputRow({
 }) {
     const meta = useOutputMeta(id);
     const listed = meta?.price != null;
-    const { showToast } = useToast();
+    const showToast = useToastSend();
     const { siweAddress } = useAuth();
     const { openOutputNoteEditor } = useNotePrompt();
 
@@ -1613,7 +1613,7 @@ function StarredProjectHistoryRow({
     grailPinned: boolean;
     onGrail: () => void;
 }) {
-    const { showToast } = useToast();
+    const showToast = useToastSend();
     const [starred, setStarred] = useState(false);
     useEffect(() => {
         setStarred(isProjectStarred(slug));
@@ -1720,7 +1720,7 @@ function StarredArtistRow({
 }) {
     /* Spite Book — a spited user renders redacted in Starred rows. */
     const isSpited = useSpiteMatcher();
-    const { showToast } = useToast();
+    const showToast = useToastSend();
     const router = useRouter();
     const { count, rel, address } = useArtistSocial(handle, viewerAddress);
     const projectCount = useMemo(() => projectsByArtist(handle).length, [handle]);

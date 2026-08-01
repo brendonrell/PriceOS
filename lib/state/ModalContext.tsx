@@ -141,6 +141,22 @@ interface ModalContextValue {
 
 const ModalContext = createContext<ModalContextValue | null>(null);
 
+/* ⛔ OPENING A MODAL MUST NOT REDRAW THE GALLERY BEHIND IT (Brendon,
+   2026-08-01). The full value carries the live stack + which piece the output
+   modal is showing, so opening a modal — and every prev/next tap inside it —
+   re-ran every component holding this context. A gallery card only ever OPENS
+   modals; it never reads the stack. Cards take these actions instead: they
+   never change identity, so the grid behind stays untouched. */
+export interface ModalActions {
+    open: ModalContextValue['open'];
+    close: ModalContextValue['close'];
+    closeAll: ModalContextValue['closeAll'];
+    setCurrentModalId: ModalContextValue['setCurrentModalId'];
+    setCurrentModalOutput: ModalContextValue['setCurrentModalOutput'];
+}
+
+const ModalActionsContext = createContext<ModalActions | null>(null);
+
 export function ModalProvider({ children }: { children: ReactNode }) {
     /* The modal STACK (Brendon, 2026-07-20 — the PriceRank leaderboard was
        killing the PriceSprite modal under it). open() pushes, close() pops:
@@ -285,7 +301,26 @@ export function ModalProvider({ children }: { children: ReactNode }) {
         [openModal, stack, currentModalId, currentModalSlug, outputSequence, open, close, closeAll, setCurrentModalOutput]
     );
 
-    return <ModalContext.Provider value={value}>{children}</ModalContext.Provider>;
+    /* Actions only — every one is a stable callback, so this never changes. */
+    const actions = useMemo<ModalActions>(
+        () => ({ open, close, closeAll, setCurrentModalId, setCurrentModalOutput }),
+        [open, close, closeAll, setCurrentModalOutput]
+    );
+
+    return (
+        <ModalContext.Provider value={value}>
+            <ModalActionsContext.Provider value={actions}>{children}</ModalActionsContext.Provider>
+        </ModalContext.Provider>
+    );
+}
+
+/** Open/close handles without the live modal state — see ModalActions above. */
+export function useModalActions(): ModalActions {
+    const ctx = useContext(ModalActionsContext);
+    if (!ctx) {
+        throw new Error('useModalActions must be used inside <ModalProvider>');
+    }
+    return ctx;
 }
 
 export function useModal(): ModalContextValue {
