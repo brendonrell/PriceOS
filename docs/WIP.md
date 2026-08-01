@@ -81,76 +81,43 @@
    abandon the screenshot move on now."* **Do not rebuild one.** Reason from the
    code, ship the fix, let him look.
 
-3. **COLORPEDIA — SPEC'D, NOT APPROVED, NOT STARTED.** ⛔ **He asked to talk it
-   through, not to build it. Do NOT write code without his explicit go.**
+3. ✅ **COLORPEDIA IS BUILT AND SHIPPED (2026-08-01, `292396f` + `d7c29fb`).
+   ⛔ DO NOT RE-DERIVE THE ARCHITECTURE — it is exactly the one that was
+   spec'd, and it is settled:**
+   - **The maths is COMPUTED, never looked up and never LLM'd.** hex · RGB ·
+     HSL · HSV · CMYK · LAB · LCH · luminance · contrast, exact for any colour.
+   - **The names and history are FIXED DATA baked into the app** — 549 named
+     colours, 149 with real history. Nothing is generated at runtime, so
+     nothing can be hallucinated in front of a user. Adding colours means
+     adding entries; it never means calling a model.
+   - **Any colour snaps to its nearest neighbour by CIEDE2000, and the card
+     SAYS SO** — the name plus the distance, and when the match isn't exact the
+     history is labelled as the NEIGHBOUR's. Never let that honesty be dropped.
+   - **The doors (Rule #-0.4) are his:** in = the ◉ Colorway tile on a
+     Project's Attributes; out = ×, an outside tap, or Esc. Nothing done inside
+     it closes it, and it scrolls in place (Rule #-0.55).
+   - **The stone hand** is `color <x>` / `colour <x>` / a bare hex / a tagged
+     format. A bare colour word stays a SEARCH, and six-letter English words
+     that are valid hex (decade, facade, beaded) stay searches — that guard is
+     deliberate, don't loosen it. The separate `stonecolor:` recolour cast is
+     untouched.
 
-   *His ask:* a little modal about a given colour — hex, CMYK, the name, maybe
-   some history. Needs to cover A LOT of colours. He flagged it as "a perfect
-   LLM task".
-
-   *The position given to him, and the reason:*
-   - **The maths is free and exact — never LLM it.** hex · RGB · HSL · CMYK ·
-     LAB are pure conversions from the colour itself. They compute in the app,
-     for ANY colour, with no data and no lookup. An LLM must never be asked for
-     a number it could get wrong.
-   - **The name + history is the LLM part, and it is generated ONCE, offline,
-     ahead of time — never live in front of a user.** Build a fixed vocabulary
-     of a few thousand named colours, generate each one's copy in a batch job,
-     bake the result into the app as data.
-   - **Any colour then snaps to its nearest neighbour in that vocabulary.** So
-     an arbitrary hex off a piece of art still lands on a real named colour with
-     real copy. Instant, works offline, and cannot hallucinate at runtime because
-     nothing is generated at runtime.
-   - **The honest limit:** a snapped colour's history is the NEIGHBOUR's history,
-     not that exact hex's. The modal has to be honest about which named colour it
-     matched to — never imply the exact hex has its own story.
-
-   *Open questions FOR BRENDON — do not answer these yourself:*
-   - Where does it open from? (⛔ RULE #-0.4 — the door in AND the door out are
-     confirmed with him BEFORE any build. He has not named either.)
-   - Which vocabulary? PD already owns colour buckets + the stored dominant
-     colours; a public named-colour set is the other option.
-   - How much history per colour — a line, or a paragraph?
 4. **Golf Score reads as confusing** — he asked why a 29-minted project shows
    "#2 of 111". Answer: it's the engine-size ranking across all 111 registry
    projects, nothing to do with that project's mints. He was told; **no copy
    was changed** (he didn't ask). If it keeps confusing him, that's a copy call.
 
-✅ **2026-08-01 — SHIPPED THIS SESSION** (all on `dev`, tip `71248a7`, tree
-clean, type-check clean):
-- **Popovers stay open while you scroll them.** A capture-phase scroll listener
-  dismissed on ANY scroll including one INSIDE the bubble. Fixed on the grouping
-  bubble, the keychain switcher, the friend sprite card, the fiat picker.
-- **Three re-render traps killed.** Gallery cards subscribed to the WHOLE
-  settings object (any connect-menu touch re-ran every card), to the live toast
-  (every toast redrew the grid) and to the live modal stack (opening a modal or
-  paging it redrew the grid behind). Cards now take narrow, identity-stable
-  handles. Same for the profile thumbs, stickers, bench art and profile rows.
-- **Slack Water's project page was a 500, not a 404.** Its Stacks trait was a
-  raw NUMBER while every other trait value in PD is text (its own schema
-  declares `"7"`..`"12"`); the Pop Table sorts values as strings and threw. All
-  68 project pages were swept against the live preview — it was the only one.
-- **Feeds match the home feed.** Artist lifecycle, profile activity and project
-  activity feeds: date over time in the left column, event word with the ETH
-  amount under it in the middle. Price left the sentence on the two that now
-  carry it in the column. **The social feed's ◊ rail was deliberately left
-  alone** (he flagged it as maybe special and hasn't seen it live yet).
-- **Grouping bubble:** layers 2 and 3 wear the trait value pills' ↳, outside the
-  pill in the staircase step.
-- **Keychain switcher:** WORN label had inherited a line box its own height so
-  the letters were sliced; fixed, plus the card can no longer hang off the top
-  or bottom of the screen (that clamp is on the shared bubble, so every card
-  using it benefits).
-- **Now Minting scales.** Under 40 rows nothing changes — every carousel still
-  mounts up front. Past that they arrive as you scroll, because each row is its
-  own live project read and hundreds meant hundreds of simultaneous reads.
-- **ORIENT joins the grouping cycle third-last** (rarity stays last), and ONLY
-  where the art can be shaped differently — read off the registry's aspect list,
-  so a single-aspect project never offers a dead tap.
-- **The Depanneur wears ☯.** The glossary's ban on the taijitu was WRONG — it is
-  text-default in Unicode and only becomes an emoji with the emoji selector,
-  which PD never uses; it has been shipping bare on the Fates tiles all along.
-  Glossary corrected. Chiron ⚷ stays on the charm's chain line.
+✅ **2026-08-01 (LATE) — SHIPPED THIS SESSION** (all on `dev`, tip `2fa7138`,
+tree clean, type-check clean, full suite green):
+- **Colorpedia** (item 3 above) and **the stone's colour hand.**
+- **Triple-tap to close the stone — restored.** A guard added 2026-07-26 to
+  stop a single background tap dismissing it zeroed the tap count on EVERY tap
+  while open, which took the third tap with it. It counts while open now; one
+  or two taps still do nothing. Swipe-down and long-press are untouched.
+- **Docs catch-up.** Five shipped features had ZERO coverage in the user
+  manual and now have it: Colorpedia (new page), the Darkroom, the Replay,
+  Golf Score · the Clubhouse, Projects Pro. The stone's ability reference
+  gained the colour hand. Atlas took #0262–#0264.
 
 ⛔ **ZERO-MINT PROJECTS STAY ON ARTIST PAGES — SETTLED (Brendon, 2026-08-01:
 "Zero mint projects stay").** Slack Water is live with 0 minted, and **31 of 68
@@ -264,8 +231,6 @@ code.**
 
 ## 🧭 WAITING ON BRENDON
 
-- **The Colorpedia questions** (item 3 above) — the door in/out, the vocabulary,
-  how much history per colour.
 - **The contract size guard** — wire the byte-size check into the build so a
   renderer can never go over the limit silently again.
 - Feature Atlas re-order · docs.pricediscussion.com wiring — both previously

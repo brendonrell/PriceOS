@@ -8,6 +8,66 @@
 
 ---
 
+⛔ **2026-08-01 (LATE) — COLORPEDIA · THE STONE'S COLOUR HAND · TRIPLE-TAP
+CLOSE · DOCS CATCH-UP.** All on `dev`, tip `2fa7138`, tree clean, type-check
+clean, full suite green (192 tests).
+
+- **COLORPEDIA ◉ (Atlas #0262)** — built to the spec that had been sitting in
+  the baton, on his explicit go. Door in: the ◉ Colorway tile on a Project's
+  Attributes. Door out: ×, outside tap, Esc, and nothing else.
+- **THE STONE LEARNS COLOUR** — `color <x>` / `colour <x>` / bare hex / tagged
+  `rgb(…)` `cmyk(…)` `hsl(…)`. The card adds what the modal can't: which
+  Projects wear the colour, and the real minted pieces across every Project
+  that read as it.
+- **TRIPLE-TAP CLOSE — RESTORED (bug).** A guard added 2026-07-26 to stop a
+  single background tap dismissing the stone zeroed the tap count on EVERY tap
+  while open, which took the third tap with it. The count runs while open now,
+  so three taps toggle either way; one or two still do nothing. The swipe-down
+  and long-press put-aways are untouched.
+- **DOCS CATCH-UP** — audited every recent feature against the user manual.
+  Five had zero coverage and now have it: Colorpedia (new page), the Darkroom,
+  the Replay, Golf Score · the Clubhouse, Projects Pro. The stone's ability
+  reference gained the colour hand. Atlas took #0262–#0264 (append-only).
+  Everything else recent was already covered.
+
+✅ **2026-08-01 — SHIPPED THIS SESSION** (all on `dev`, tip `71248a7`, tree
+clean, type-check clean):
+- **Popovers stay open while you scroll them.** A capture-phase scroll listener
+  dismissed on ANY scroll including one INSIDE the bubble. Fixed on the grouping
+  bubble, the keychain switcher, the friend sprite card, the fiat picker.
+- **Three re-render traps killed.** Gallery cards subscribed to the WHOLE
+  settings object (any connect-menu touch re-ran every card), to the live toast
+  (every toast redrew the grid) and to the live modal stack (opening a modal or
+  paging it redrew the grid behind). Cards now take narrow, identity-stable
+  handles. Same for the profile thumbs, stickers, bench art and profile rows.
+- **Slack Water's project page was a 500, not a 404.** Its Stacks trait was a
+  raw NUMBER while every other trait value in PD is text (its own schema
+  declares `"7"`..`"12"`); the Pop Table sorts values as strings and threw. All
+  68 project pages were swept against the live preview — it was the only one.
+- **Feeds match the home feed.** Artist lifecycle, profile activity and project
+  activity feeds: date over time in the left column, event word with the ETH
+  amount under it in the middle. Price left the sentence on the two that now
+  carry it in the column. **The social feed's ◊ rail was deliberately left
+  alone** (he flagged it as maybe special and hasn't seen it live yet).
+- **Grouping bubble:** layers 2 and 3 wear the trait value pills' ↳, outside the
+  pill in the staircase step.
+- **Keychain switcher:** WORN label had inherited a line box its own height so
+  the letters were sliced; fixed, plus the card can no longer hang off the top
+  or bottom of the screen (that clamp is on the shared bubble, so every card
+  using it benefits).
+- **Now Minting scales.** Under 40 rows nothing changes — every carousel still
+  mounts up front. Past that they arrive as you scroll, because each row is its
+  own live project read and hundreds meant hundreds of simultaneous reads.
+- **ORIENT joins the grouping cycle third-last** (rarity stays last), and ONLY
+  where the art can be shaped differently — read off the registry's aspect list,
+  so a single-aspect project never offers a dead tap.
+- **The Depanneur wears ☯.** The glossary's ban on the taijitu was WRONG — it is
+  text-default in Unicode and only becomes an emoji with the emoji selector,
+  which PD never uses; it has been shipping bare on the Fates tiles all along.
+  Glossary corrected. Chiron ⚷ stays on the charm's chain line.
+
+---
+
 ⛔ **2026-07-31 — THE DEPLOY WAS SERVING STALE CODE (looks resolved).**
 Pushes this session reached the live preview — Slack Water's 500 was reproduced
 and confirmed live, so `dev` is building again. Kept below for the record.
