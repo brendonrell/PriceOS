@@ -62,7 +62,11 @@
  *     React render that could move cards around.
  */
 
-const STORAGE_KEY = 'pd_budgets';
+import { pushSettings, STATE_CACHE_KEYS, USERSTATE_HYDRATED_EVENT } from '../state/userState';
+
+/* Budgets follow the ACCOUNT (Brendon, 2026-08-01) — localStorage stays as the
+   instant read, the settings envelope (`budgets`) is the source of truth. */
+const STORAGE_KEY = STATE_CACHE_KEYS.budgets;
 
 export interface BudgetEntry {
     name: string;
@@ -130,6 +134,19 @@ function persist(): void {
     } catch {
         /* quota / private mode — ignore */
     }
+    // Account write-through — no-op until an authed snapshot has hydrated.
+    pushSettings({ budgets: { list: state.list.slice(), activeIdx: state.activeIdx } });
+}
+
+/* The account's snapshot landed — re-read the cache userState just wrote and
+   tell every subscriber, so an open Portfolio shows the account's budgets
+   without a reload. */
+if (typeof window !== 'undefined') {
+    window.addEventListener(USERSTATE_HYDRATED_EVENT, () => {
+        hydrated = false;
+        hydrate();
+        emit();
+    });
 }
 
 function emit(): void {

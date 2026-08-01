@@ -25,8 +25,12 @@ import {
     type ReactNode,
 } from 'react';
 import type { FiatCode, FxResponse } from '../fx/types';
+import { pushSettings, STATE_CACHE_KEYS, USERSTATE_HYDRATED_EVENT } from './userState';
 
-const STORAGE_KEY = 'pd_fiat_currency';
+/* The chosen currency follows the ACCOUNT (Brendon, 2026-08-01) — localStorage
+   stays as the synchronous first-paint read, the settings envelope (`fiat`) is
+   the source of truth. */
+const STORAGE_KEY = STATE_CACHE_KEYS.fiat;
 const POLL_MS = 5 * 60_000; // rates move slowly; a display price doesn't need tighter
 
 /* Symbol + fractional digits + the number LOCALE per currency, so each reads the
@@ -127,6 +131,17 @@ export function FiatProvider({ children }: { children: ReactNode }) {
         } catch {
             /* ignore */
         }
+        // Account write-through — no-op until an authed snapshot has hydrated.
+        pushSettings({ fiat: next });
+    }, []);
+
+    /* The account's snapshot landed (a sign-in on any device) — userState has
+       just written the account's currency into the cache, so adopt it live
+       instead of waiting for a reload. */
+    useEffect(() => {
+        const onHydrated = () => setCurrencyState(readStoredCurrency());
+        window.addEventListener(USERSTATE_HYDRATED_EVENT, onHydrated);
+        return () => window.removeEventListener(USERSTATE_HYDRATED_EVENT, onHydrated);
     }, []);
 
     // Poll /api/fx only while a currency is selected + the tab is visible.

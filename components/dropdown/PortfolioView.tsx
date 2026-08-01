@@ -68,7 +68,7 @@ import { useDropdown } from '../../lib/state/DropdownContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useValuePrompt } from '../../lib/state/ValuePromptContext';
 import type { ValuePromptField } from '../../lib/state/ValuePromptContext';
-import { useLocalStorage } from '../../lib/hooks/useLocalStorage';
+import { usePortfolioView } from '../../lib/state/portfolioViewStore';
 import {
     type PortfolioTab,
     type PortfolioCategory,
@@ -141,8 +141,8 @@ export function PortfolioView() {
     /* $-button value mode (persisted). 'off' = hide values — equivalent to the
        old $-toggle's off state, so every existing `showDollar` gate is driven
        off this one derived flag. */
-    const [priceMode, setPriceMode] = useLocalStorage<PortfolioValueMode>(
-        'pd_portfolio_price_mode',
+    const [priceMode, setPriceMode] = usePortfolioView<PortfolioValueMode>(
+        'priceMode',
         'floor'
     );
     const showDollar = priceMode !== 'off';
@@ -152,8 +152,8 @@ export function PortfolioView() {
        view); the project square (⬚) = a flat A–Z list of projects. Exactly
        one is active. Glyphs are the canonical gallery grouping glyphs (GLYPHS
        §4). */
-    const [groupMode, setGroupMode] = useLocalStorage<'artist' | 'project'>(
-        'pd_portfolio_group_mode',
+    const [groupMode, setGroupMode] = usePortfolioView<'artist' | 'project'>(
+        'groupMode',
         'artist'
     );
 
@@ -232,8 +232,8 @@ export function PortfolioView() {
     const budgetPillsRow2 = budgets.list.slice(budgetSplitIndex);
     const [search, setSearch] = useState('');
     const [activeCats, setActiveCats] = useState<Set<CategoryFilter>>(new Set());
-    const [portfolioHidden, setPortfolioHidden] = useLocalStorage<boolean>(
-        'pd_portfolio_hidden',
+    const [portfolioHidden, setPortfolioHidden] = usePortfolioView<boolean>(
+        'hidden',
         false
     );
 

@@ -9,14 +9,16 @@
  * module-level store + localStorage persistence + subscribe for live
  * React reads.
  *
- * v1 storage is LOCAL ONLY (`pd_composer_programs`). The server-side
- * Programs table (wallet, name, query_json, created_at — per the ClickUp
- * spec) is the flagged fast-follow: it needs a prod Supabase migration,
- * which is a §4 approval gate. When it lands, this store grows the same
- * write-through + USERSTATE_HYDRATED_EVENT dance presetStore has.
+ * ACCOUNT-BACKED 2026-08-01 (Brendon: "almost no device stuff… db everything
+ * is one of our signatures"). Programs ride the account settings envelope
+ * (`composerPrograms`) with localStorage as the instant read — the same
+ * write-through + USERSTATE_HYDRATED_EVENT dance every other saved list uses.
+ * No new table was needed: the envelope already carries the user's saved
+ * shapes, so this went in without a migration.
  */
 
 import type { ComposerQuery } from './query';
+import { pushSettings, STATE_CACHE_KEYS, USERSTATE_HYDRATED_EVENT } from '../state/userState';
 
 export interface ComposerProgram {
     name: string;
@@ -24,7 +26,7 @@ export interface ComposerProgram {
     created_at: string;
 }
 
-const CACHE_KEY = 'pd_composer_programs';
+const CACHE_KEY = STATE_CACHE_KEYS.composerPrograms;
 /* Soft safety cap — not a product limit (Brendon set no cap for v1). */
 const MAX_PROGRAMS = 50;
 
@@ -62,6 +64,18 @@ function persist(): void {
     try {
         window.localStorage.setItem(CACHE_KEY, JSON.stringify(programs));
     } catch { /* quota / private mode */ }
+    // Account write-through — no-op until an authed snapshot has hydrated.
+    pushSettings({ composerPrograms: programs as unknown as Array<Record<string, unknown>> });
+}
+
+/* The account's snapshot landed — re-read the cache userState just wrote so an
+   open Composer shows the account's programs without a reload. */
+if (typeof window !== 'undefined') {
+    window.addEventListener(USERSTATE_HYDRATED_EVENT, () => {
+        hydrated = false;
+        hydrateOnce();
+        emit();
+    });
 }
 
 function emit(): void {

@@ -10,9 +10,16 @@
  * through byte-identical mechanics: storage write, body.anchor-active
  * toggle, and the 'pd:anchors-changed' event every consumer re-stamps on.
  * Behaviour is unchanged — this is the same code with a front door.
+ *
+ * Persistence: localStorage (the instant read) + the account settings envelope
+ * (`anchors`) so a viewer's anchors follow them across devices (Brendon,
+ * 2026-08-01). The signed-in account is the source of truth; a device that has
+ * never synced keeps what it has until its first write.
  */
 
-const ANCHORS_KEY = 'pd_anchors';
+import { pushSettings, STATE_CACHE_KEYS, USERSTATE_HYDRATED_EVENT } from '../state/userState';
+
+const ANCHORS_KEY = STATE_CACHE_KEYS.anchors;
 
 /** The whole anchors map, straight from storage. Empty object on failure. */
 export function readAnchors(): Record<string, number> {
@@ -52,6 +59,8 @@ export function writeAnchor(key: string, value: number | null): void {
             window.localStorage.setItem(ANCHORS_KEY, JSON.stringify(next));
         }
     } catch { /* swallow */ }
+    // Account write-through — no-op until an authed snapshot has hydrated.
+    pushSettings({ anchors: next });
     if (typeof document !== 'undefined') {
         const hasAny = Object.values(next).some(
             (v) => typeof v === 'number' && isFinite(v) && v > 0
@@ -65,4 +74,23 @@ export function writeAnchor(key: string, value: number | null): void {
             })
         );
     }
+}
+
+/* The account's snapshot landed (a sign-in on any device) — userState has just
+   written the account's anchors into the cache. Re-stamp the body flag and fire
+   the same change event every consumer already listens for, so a live page picks
+   them up without a reload. */
+if (typeof window !== 'undefined') {
+    window.addEventListener(USERSTATE_HYDRATED_EVENT, () => {
+        const all = readAnchors();
+        if (typeof document !== 'undefined') {
+            const hasAny = Object.values(all).some(
+                (v) => typeof v === 'number' && isFinite(v) && v > 0
+            );
+            document.body.classList.toggle('anchor-active', hasAny);
+        }
+        window.dispatchEvent(
+            new CustomEvent('pd:anchors-changed', { detail: { key: null, value: null } })
+        );
+    });
 }

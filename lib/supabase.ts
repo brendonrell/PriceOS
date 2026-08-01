@@ -136,6 +136,33 @@ export interface UserSettings {
     /** profile address → GroupKey (that profile's Collected grid). */
     profile?: Record<string, string>;
   };
+  /* ── THE LAST FIVE DEVICE-ONLY THINGS (Brendon, 2026-08-01: "almost no
+     device stuff… db everything is one of our signatures"). Everything below
+     rides this envelope on the grails/mutes bargain: the account seeds a
+     device only when it actually carries the key, so a pre-sync device set is
+     never wiped, and the first change here pushes it up. ── */
+  /** The chosen fiat display currency (a FiatCode), or null when the picker is
+   *  off. Was localStorage `pd_fiat_currency` (device-only). */
+  fiat?: string | null;
+  /** Personal anchor prices, keyed by project TITLE — the same map the anchor
+   *  prompt and the Stone's ETCH both write. Was `pd_anchors` (device-only). */
+  anchors?: Record<string, number>;
+  /** Spend budgets + which one is armed. Was `pd_budgets` (device-only). */
+  budgets?: {
+    list: Array<{ name: string; eth: number }>;
+    activeIdx: number;
+  };
+  /** Composer PROGRAMS — the user's saved queries, newest last, capped by the
+   *  store. Was `pd_composer_programs` (device-only). */
+  composerPrograms?: Array<Record<string, unknown>>;
+  /** The Portfolio's own view state: the $ value mode, the artist/project
+   *  grouping, and whether the book is hidden. Was three separate device-only
+   *  keys. */
+  portfolioView?: {
+    priceMode?: string;
+    groupMode?: string;
+    hidden?: boolean;
+  };
   /** The user's chosen Digital Familiar species name (one of the live
    *  BitDaemons). Account-backed so the companion choice follows the viewer
    *  across devices; re-pickable any time from the Familiar modal (Brendon,

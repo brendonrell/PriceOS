@@ -205,6 +205,23 @@ export const STATE_CACHE_KEYS = {
     /** Which workspace is currently active (numeric id). Rides
      *  `users.workspaces` alongside the list. */
     activeWorkspace: 'pd_active_workspace',
+    /* ── THE LAST FIVE, ACCOUNT-BACKED 2026-08-01 (Brendon: "almost no device
+       stuff… db everything is one of our signatures"). All five ride the
+       settings envelope on the grails/mutes bargain. ── */
+    /** Chosen fiat display currency. Settings envelope (`fiat`). */
+    fiat: 'pd_fiat_currency',
+    /** Personal anchor prices, keyed by project title. Envelope (`anchors`). */
+    anchors: 'pd_anchors',
+    /** Spend budgets + the armed one. Envelope (`budgets`). */
+    budgets: 'pd_budgets',
+    /** Composer saved programs. Envelope (`composerPrograms`). */
+    composerPrograms: 'pd_composer_programs',
+    /** Portfolio view state — the three keys below ride ONE envelope entry
+     *  (`portfolioView`), but keep their own local caches so the existing
+     *  reads are untouched. */
+    portfolioPriceMode: 'pd_portfolio_price_mode',
+    portfolioGroupMode: 'pd_portfolio_group_mode',
+    portfolioHidden: 'pd_portfolio_hidden',
 } as const;
 
 /** Fired after a server snapshot is written into the caches. Any context that
@@ -514,6 +531,41 @@ export function hydrateFromRow(row: UserRow): void {
         }
         if (Array.isArray(s.spite)) {
             localStorage.setItem(STATE_CACHE_KEYS.spite, JSON.stringify(s.spite));
+        }
+
+        /* ── THE LAST FIVE (Brendon, 2026-08-01) — fiat · anchors · budgets ·
+           Composer programs · the Portfolio's view state. Same seed-only-when-
+           carried bargain as grails/mutes: an account that has never synced one
+           of these leaves the device's own copy alone, and the first change on
+           the device pushes it up. Each subsystem re-reads its cache on the
+           hydrate event below, so a live surface updates without a reload. ── */
+        if (typeof s.fiat === 'string' || s.fiat === null) {
+            if (s.fiat) localStorage.setItem(STATE_CACHE_KEYS.fiat, s.fiat);
+            else localStorage.removeItem(STATE_CACHE_KEYS.fiat);
+        }
+        if (s.anchors && typeof s.anchors === 'object' && !Array.isArray(s.anchors)) {
+            localStorage.setItem(STATE_CACHE_KEYS.anchors, JSON.stringify(s.anchors));
+        }
+        if (s.budgets && typeof s.budgets === 'object' && Array.isArray(s.budgets.list)) {
+            localStorage.setItem(STATE_CACHE_KEYS.budgets, JSON.stringify(s.budgets));
+        }
+        if (Array.isArray(s.composerPrograms)) {
+            localStorage.setItem(
+                STATE_CACHE_KEYS.composerPrograms,
+                JSON.stringify(s.composerPrograms),
+            );
+        }
+        if (s.portfolioView && typeof s.portfolioView === 'object') {
+            const pv = s.portfolioView;
+            if (typeof pv.priceMode === 'string') {
+                localStorage.setItem(STATE_CACHE_KEYS.portfolioPriceMode, JSON.stringify(pv.priceMode));
+            }
+            if (typeof pv.groupMode === 'string') {
+                localStorage.setItem(STATE_CACHE_KEYS.portfolioGroupMode, JSON.stringify(pv.groupMode));
+            }
+            if (typeof pv.hidden === 'boolean') {
+                localStorage.setItem(STATE_CACHE_KEYS.portfolioHidden, JSON.stringify(pv.hidden));
+            }
         }
         // Notes — link-aware records (output / artist / day / free) → the three
         // local note caches. Seeds only when the account carries the key (same
