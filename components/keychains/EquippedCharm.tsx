@@ -562,7 +562,7 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
                                 setConfirmMatch(true);
                             }}
                         >
-                            {`⊞${VS15}`} {lockLabel ? 'STICKERS BACK' : 'MATCH MY STICKERS'}
+                            {`⊞${VS15}`} {lockLabel ? 'UNMATCH STICKERS' : 'MATCH MY STICKERS'}
                         </button>
                     )}
                     {/* The way through to the machine — a quiet footer line under
