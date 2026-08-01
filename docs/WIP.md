@@ -229,29 +229,40 @@ touches one of these, read it there first.**
 
 ## ⚠️ OPEN — named, not done
 
+**Audited against the real code 2026-08-01 — every line below was checked, and
+the stale claims were struck. Do not re-add a struck item without re-reading the
+code.**
+
 - **`PDFactory` is 29,891 B, over the 24,576 B limit by 5,315** — pre-existing,
   and it will block a factory deploy. ClickUp `86bb5nt0f` (high) carries the fix
   plus the companion guard (wire the size check into the build). **Brendon has
-  not ruled on the guard.**
-- **ClickUp is behind.** Its connector was down for the 2026-07-31 sessions, so
-  nothing from those rounds was closed or queued there. Reconcile it.
-- **Workspaces are device-only and shouldn't be.** The column exists AND the
-  merge function already writes it — the client just never calls it. Wiring, not
-  schema. Also stranded: Composer programs, grid presets, budgets, anchors, day +
-  token notes, the nine hero sticker prefs, the saved default grouping, fiat
-  currency, portfolio view state. Full list in `docs/STORAGE-AUDIT.md`.
-- **Two group toggles are NOT on layers** — deliberate: the Composer's (its
-  grouping lives inside its saved query) and the Starred / Wishlist / History one
-  (different vocabulary entirely).
-- **Achievements tags: PARKED** by Brendon. **Completionism** is specced as a tag
-  per month collected ("SEP '26 100%") — not built.
-- **BitVerse cycle count + the Rudxane lilac (#C9B6F0)** were my picks; Brendon
-  hasn't ruled on them against a live colorway.
-- **Test prices (registry)** — bulletin `0.2222`, reliquary `22.222` — REMOVE
-  before mainnet.
-- **ASCII 1/3-down line** — faint artifact line, cause not isolated.
-- **⛔ The Bench needed NO work** — database-backed since 2026-06-15. Don't
-  re-open it.
+  not ruled on the guard.** *(Not re-measured this session — the contracts repo
+  isn't in this container. The number is from the 2026-07-30 build.)*
+- **ClickUp is behind.** Its connector was down for the 2026-07-31 sessions and
+  is down again now, so nothing has been closed or queued there. Reconcile it
+  the next time the connector is up.
+- **Five things still don't follow the account** (verified — each keeps its own
+  device-local store and never reaches the settings envelope): **Composer
+  programs · budgets · anchors · fiat currency · the portfolio view state**
+  (price mode, group mode, hidden rows).
+  **⛔ STRUCK — these DO sync and the old note claiming otherwise was stale:**
+  workspaces (account-backed 2026-07-28), grid presets, the saved default
+  grouping, the hero sticker prefs, and day / token / artist notes.
+  `docs/STORAGE-AUDIT.md` predates those fixes — trust the code, not the audit.
+- **The Composer's group toggle is NOT on layers** — verified: it cycles one
+  dimension inside its saved query. Deliberate. Same for the Starred / Wishlist /
+  History toggle, which groups saved lists on a different vocabulary.
+- **Achievements tags: PARKED** by Brendon. **Completionism as a TAG** (one per
+  month collected, "SEP '26 100%") is still not built — verified: the
+  completionism sheet exists and is warm-cached, but no tag derives from it.
+- **BitVerse cycle count (5) + the Rudxane lilac (#C9B6F0)** — verified still in
+  place, still my picks, Brendon hasn't ruled on either.
+- **Test prices (registry)** — verified still live: bulletin `0.2222`, reliquary
+  `22.222`. REMOVE before mainnet.
+- **ASCII 1/3-down line** — faint artifact line, cause not isolated. Not
+  re-checked this session (it's a visual, not a code claim).
+- **⛔ The Bench needed NO work** — verified: its own owner-scoped endpoint,
+  database-backed since 2026-06-15. Don't re-open it.
 
 ---
 
