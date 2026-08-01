@@ -45,7 +45,7 @@ import type { UserHolding } from '../../lib/profile/getUserHoldings';
 const VS15 = '︎';
 const UNMOUNT_DELAY_MS = 240;
 
-type PalTab = 'purchase' | 'profit';
+type PalTab = 'calc' | 'purchase' | 'profit';
 
 interface MonthRow {
     key: string;
@@ -96,6 +96,11 @@ function pickForProject(
 /** Net proceeds of selling one piece at `price` — the Calc's own ladder. */
 function netOf(price: number): number {
     return price - price * CALC_ROYALTY_PCT - CALC_GAS_ESTIMATE_ETH;
+}
+
+/** The Calc's own 4-decimal readout — em-dash when there's nothing to show. */
+function fmtEth(n: number): string {
+    return Number.isFinite(n) ? `${formatEth(n)} ETH` : '—';
 }
 
 /* `inline` — the SAME Pal mounted as the Suite's ƒ PriceCalc app (Brendon,
@@ -280,6 +285,16 @@ export default function PalPanel({ inline = false }: { inline?: boolean } = {}) 
         showToast(`Purchase Pal: PATH IN CART · ${buyable.length}`);
     };
 
+    /* ── THE CALC (ƒ) ── the app's namesake, the Suite's first side.
+       Same rate card and same ladder as the field's Calc sheet (Rule #0) —
+       what a sale at any price actually leaves in your pocket. */
+    const [sale, setSale] = useState('');
+    const saleNum = sale.trim() === '' ? NaN : Number(sale);
+    const saleOk = Number.isFinite(saleNum) && saleNum >= 0;
+    const calcRoyalty = saleOk ? saleNum * CALC_ROYALTY_PCT : NaN;
+    const calcGas = saleOk ? CALC_GAS_ESTIMATE_ETH : NaN;
+    const calcNet = saleOk ? netOf(saleNum) : NaN;
+
     /* ── PROFIT PAL ── */
 
     /* Per-project portfolio read — held count, floor, at-floor value, and the
@@ -351,24 +366,75 @@ export default function PalPanel({ inline = false }: { inline?: boolean } = {}) 
 
     const body = (
         <>
-                    {/* The two sides — same pill markup as the home tabs. */}
+                    {/* The sides — the profile/home tab row, verbatim. In the
+                        Suite the ƒ Calc leads the row (Brendon, 2026-08-01);
+                        the field sheet keeps its two sides. */}
                     <div className="profile-tabs-row pal-tabs-row">
-                        {(['purchase', 'profit'] as const).map((t) => (
+                        {((inline ? ['calc', 'purchase', 'profit'] : ['purchase', 'profit']) as PalTab[]).map((t) => (
                             <div
                                 key={t}
-                                className={`pill pill-l1${tab === t ? ' active' : ''}`}
+                                className={`pill pill-l1${t === 'calc' ? ' pal-tab-calc' : ''}${tab === t ? ' active' : ''}`}
                                 role="button"
                                 tabIndex={0}
-                                title={t === 'purchase' ? 'Purchase Pal' : 'Profit Pal'}
+                                title={t === 'calc' ? 'The Calc' : t === 'purchase' ? 'Purchase Pal' : 'Profit Pal'}
                                 onClick={() => { setTab(t); showToast(`Pal: ${t.toUpperCase()}`); }}
                                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setTab(t); } }}
                             >
-                                <span className="stat-name">{t === 'purchase' ? 'Purchase' : 'Profit'}</span>
+                                <span className="stat-name">
+                                    {t === 'calc' ? `ƒ${VS15}` : t === 'purchase' ? 'Purchase Pal' : 'Profit Pal'}
+                                </span>
                             </div>
                         ))}
                     </div>
 
-                    {!siweAddress ? (
+                    {tab === 'calc' ? (
+                        /* The Calc — the field sheet's own field, ladder and
+                           rate card, wearing the pane instead of a sheet. */
+                        <div className="pal-calc">
+                            <div className="calc-sheet-field">
+                                <div className="calc-sheet-field-label">Sale price</div>
+                                <div className="calc-sheet-input-row">
+                                    <input
+                                        className="calc-sheet-input"
+                                        type="text"
+                                        inputMode="decimal"
+                                        autoComplete="off"
+                                        autoCapitalize="off"
+                                        autoCorrect="off"
+                                        spellCheck={false}
+                                        placeholder="0.000"
+                                        aria-label="Sale price in ETH"
+                                        value={sale}
+                                        onChange={(e) => setSale(e.target.value)}
+                                    />
+                                    <span className="calc-sheet-input-suffix">ETH</span>
+                                </div>
+                            </div>
+
+                            <div className="calc-sheet-divider" />
+                            <div className="calc-sheet-section-label">What a sale leaves you</div>
+
+                            <div className="calc-sheet-line">
+                                <span className="calc-sheet-line-label">Sale price</span>
+                                <span className="calc-sheet-line-val">{fmtEth(saleNum)}</span>
+                            </div>
+                            <div className="calc-sheet-line calc-sheet-line-deduct">
+                                <span className="calc-sheet-line-label">{'− Royalty (5%)'}</span>
+                                <span className="calc-sheet-line-val">{fmtEth(calcRoyalty)}</span>
+                            </div>
+                            <div className="calc-sheet-line calc-sheet-line-deduct">
+                                <span className="calc-sheet-line-label">{'− Gas estimate'}</span>
+                                <span className="calc-sheet-line-val">{fmtEth(calcGas)}</span>
+                            </div>
+                            <div className="calc-sheet-divider calc-sheet-divider-thin" />
+                            <div className="calc-sheet-line calc-sheet-line-result">
+                                <span className="calc-sheet-line-label">You keep</span>
+                                <span className="calc-sheet-line-val">{fmtEth(calcNet)}</span>
+                            </div>
+
+                            <div className="cpl-foot">5% royalty + gas — the Calc&apos;s rate card, the same one the Pals price with</div>
+                        </div>
+                    ) : !siweAddress ? (
                         <div className="cart-empty-state">
                             Connect your wallet to build a path.
                         </div>
@@ -474,6 +540,7 @@ export default function PalPanel({ inline = false }: { inline?: boolean } = {}) 
                     ) : (
                         <>
                             {/* The portfolio tiles — the Ledger's tile chrome. */}
+                            <div className="cpl-close-head pal-sec">YOUR PORTFOLIO</div>
                             <div className="cpl-tiles">
                                 <div className="cpl-tile">
                                     <span className="cpl-tile-label">{`⬚${VS15}`} PIECES</span>
@@ -516,7 +583,9 @@ export default function PalPanel({ inline = false }: { inline?: boolean } = {}) 
                                     Nothing collected yet — profit paths start with a first piece.
                                 </div>
                             ) : (
-                                portfolio.map((r) => (
+                                <>
+                                <div className="cpl-close-head pal-sec">WHAT AN EXIT NETS YOU</div>
+                                {portfolio.map((r) => (
                                     <div className="pal-hold" key={r.slug}>
                                         <div className="pal-hold-head">
                                             <a className="pal-hold-name" href={`/art/${r.slug}`}>{r.title}</a>
@@ -536,7 +605,8 @@ export default function PalPanel({ inline = false }: { inline?: boolean } = {}) 
                                             </div>
                                         )}
                                     </div>
-                                ))
+                                ))}
+                                </>
                             )}
                             <div className="cpl-foot">paths priced at live floors · 5% royalty + gas, the Calc&apos;s rate card</div>
                         </>

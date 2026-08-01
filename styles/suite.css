@@ -335,7 +335,94 @@
    is removed — the path, the total and the tap are all still there; the
    button just stops shouting. The sheet is untouched. ── */
 .suite-pal .cart-panel-totals { padding-left: 0; padding-right: 0; }
-.suite-pal .pal-tabs-row { padding: 6px 0 8px; }
+.suite-pal .pal-tabs-row { padding: 6px 0 10px; }
+
+/* ⛔ THE PANE SWAPS THE TWO TOKENS, SO EVERY RULE, BORDER AND TILE EDGE THE
+   Pal DRAWS WITH --text-color LANDS ON THE PANE'S OWN FILL AND VANISHES
+   (Brendon, 2026-08-01: "totally impossible to figure out what's even going
+   on in that tab"). Same failure the zen garden had. Inside a pane the INK is
+   --bg-color — so the header rule, the tile edges, the row separators and the
+   footnote are all drawn in it, at full strength (Rule #2). */
+
+/* The header's divider — the line the pane's own header was missing. */
+.suite-pal > .dropdown-divider {
+    height: 1px;
+    background: var(--bg-color);
+    margin: 0;
+}
+
+/* The side tabs ARE the profile/home tab row — resting is page fill + ink
+   edge, chosen is the ink fill. (The l1 tokens are absolute colours mixed for
+   the page, so inside the flipped pane they read as two identical slabs.) */
+.suite-pal .pal-tabs-row .pill-l1 {
+    background-color: transparent;
+    background-image: none;
+    color: var(--bg-color);
+    border-color: var(--bg-color);
+}
+.suite-pal .pal-tabs-row .pill-l1.active {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    border-color: var(--bg-color);
+}
+/* The ƒ tab is icon-only — the site's icon-pill treatment. */
+.suite-pal .pal-tab-calc { padding: 0 13px; }
+.suite-pal .pal-tab-calc .stat-name {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px;
+    line-height: 1;
+}
+
+/* Section heads — each block of the app says what it is. */
+.suite-pal .pal-sec {
+    padding: 4px 0 6px;
+    letter-spacing: 1.2px;
+}
+
+/* Portfolio tiles get their edges back. */
+.suite-pal .cpl-tile { border-color: var(--bg-color); }
+.suite-pal .cpl-tiles { margin-bottom: 4px; }
+
+/* THE HOT READ reads as its own block, not as loose lines under the tiles. */
+.suite-pal .pal-hot {
+    border: 1px solid var(--bg-color);
+    border-radius: 4px;
+    padding: 9px 10px;
+    margin: 12px 0;
+}
+
+/* One rule between projects. */
+.suite-pal .pal-hold { border-top-color: var(--bg-color); }
+
+/* The rate-card footnote is a line people read, not a whisper (Rule #2). */
+.suite-pal .cpl-foot {
+    font-size: 12px;
+    font-weight: bold;
+    opacity: 1;
+    padding: 12px 0 2px;
+}
+
+/* ƒ THE CALC — the field sheet's own field and ladder, packaged for the pane:
+   full-strength labels, an ink underline on the field, no whisper washes. */
+.suite-pal .pal-calc { padding: 2px 0 4px; }
+.suite-pal .calc-sheet-field-label,
+.suite-pal .calc-sheet-section-label,
+.suite-pal .calc-sheet-input-suffix,
+.suite-pal .calc-sheet-line-result .calc-sheet-line-label {
+    font-size: 12px;
+    opacity: 1;
+}
+.suite-pal .calc-sheet-line { font-size: 13px; }
+.suite-pal .calc-sheet-line-label,
+.suite-pal .calc-sheet-line-val,
+.suite-pal .calc-sheet-line-deduct .calc-sheet-line-label,
+.suite-pal .calc-sheet-line-deduct .calc-sheet-line-val { opacity: 1; }
+.suite-pal .calc-sheet-line-result .calc-sheet-line-val { font-size: 18px; }
+.suite-pal .calc-sheet-input-row { border-bottom-color: var(--bg-color); }
+.suite-pal .calc-sheet-input-row:focus-within { border-bottom-color: var(--bg-color); }
+.suite-pal .calc-sheet-input::placeholder { opacity: 0.6; font-style: normal; }
+.suite-pal .calc-sheet-divider { border-top-color: var(--bg-color); }
+.suite-pal .calc-sheet-divider-thin { border-top-color: var(--bg-color); }
 
 .suite-pal .cart-panel-buy-all {
     display: block;
