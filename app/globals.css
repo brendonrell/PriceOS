@@ -9323,10 +9323,10 @@ a.f-highlight { color: inherit; }
 }
 .gr-head { display: flex; flex-direction: column; gap: 2px; }
 .gr-state {
-    font-size: 10px;
+    font-size: 12px;
     font-weight: bold;
     letter-spacing: 1px;
-    opacity: 0.55;
+    opacity: 1;
 }
 .gr-title { font-size: 14px; font-weight: bold; letter-spacing: 0.5px; }
 .gr-metrics {
@@ -9334,9 +9334,10 @@ a.f-highlight { color: inherit; }
     flex-wrap: wrap;
     align-items: baseline;
     gap: 4px 14px;
-    font-size: 11px;
+    font-size: 12px;
+    font-weight: bold;
     letter-spacing: 0.5px;
-    opacity: 0.85;
+    opacity: 1;
 }
 .gr-metric b {
     font-size: 13px;
@@ -9401,11 +9402,11 @@ a.f-highlight { color: inherit; }
     font-size: 11px;
     font-weight: bold;
     letter-spacing: 0.5px;
-    opacity: 0.55;
+    opacity: 1;
     cursor: pointer;
     transition: opacity 0.2s, background 0.2s, color 0.2s;
 }
-.gc-lens:hover { opacity: 0.85; }
+.gc-lens:hover { opacity: 1; }
 .gc-lens-on {
     opacity: 1;
     background: var(--text-color);
@@ -9415,22 +9416,23 @@ a.f-highlight { color: inherit; }
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    font-size: 10px;
+    font-size: 12px;
+    font-weight: bold;
     letter-spacing: 0.5px;
-    opacity: 0.6;
+    opacity: 1;
 }
 .gc-dot {
     display: inline-block;
-    width: 7px;
-    height: 7px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
 }
 .gc-dot-rare { background: var(--text-color); }
-.gc-dot-common { background: var(--text-color); opacity: 0.3; margin-left: 7px; }
+.gc-dot-common { background: var(--text-color); opacity: 1; margin-left: 7px; }
 .gc-axes {
     margin-left: auto;
-    opacity: 0.6;
-    font-size: 10px;
+    opacity: 1;
+    font-size: 12px;
     letter-spacing: 0.5px;
     white-space: nowrap;
     overflow: hidden;

@@ -1951,6 +1951,42 @@ body.modal-open { overflow: hidden; touch-action: none; }
     text-align: left;
     padding: 4px 8px;
 }
+/* OWNERS top stat line (Brendon, 2026-08-01) — the count + the spread sit
+   under the title where they're read first. Full-strength, no dashed rule. */
+.collectors-stats-top {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin: 6px 0 0;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+.collectors-stats-top .cst-stat b {
+    font-size: 14px;
+    margin-right: 4px;
+    font-variant-numeric: tabular-nums;
+}
+/* A holder's tags WRAP here rather than scrolling sideways (Brendon,
+   2026-08-01) — the owners list is a reading surface, not a dense strip, so a
+   tag-heavy holder gets a second line instead of a hidden one. They're the
+   OUTPUT-page mini pills, page-themed. Nothing may push the row wider than the
+   modal: that overflow is what cut the @name off. */
+.collectors-list { overflow-x: hidden; }
+.collectors-holders .user-tags--mini {
+    display: flex;
+    flex-wrap: wrap;
+    overflow: visible;
+    row-gap: 4px;
+}
+/* Rows breathe a little less now the tags are mini — the list reads as one
+   clean column. */
+.collectors-holders .fm-row { padding: 9px 4px; }
+.collectors-holders .fm-row-main { gap: 5px; }
+/* The list's own scroll arrows read at full strength (Rule #2) and centre over
+   the column instead of hanging off its left edge. */
+#collectorsModal .scroll-arrow { opacity: 1; text-align: center; padding: 2px 10px; }
 
 /* ── THE TAG ROOM + THE PING POPUP (Brendon, 2026-07-27) ───────────────────
    Both ride the OWNERS anatomy verbatim; these are the only two differences.

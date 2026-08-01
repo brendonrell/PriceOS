@@ -149,6 +149,13 @@ export default function CollectorsModal() {
                 <div className="modal-title" style={{ marginBottom: 0 }}>
                     OWNERS
                 </div>
+                {/* The count + spread ride at the TOP, under the title — the
+                    headline numbers of the list you're about to read, not a
+                    footnote below it (Brendon, 2026-08-01). */}
+                <div className="collectors-stats-top">
+                    <span className="cst-stat"><b>{holders.length}</b> {holders.length === 1 ? 'OWNER' : 'OWNERS'}</span>
+                    <span className="cst-stat"><b>{uniquePct}%</b> UNIQUE</span>
+                </div>
                 <div className="collectors-sort-row" role="tablist" aria-label="Sort owners">
                     {SORTS.map((s) => (
                         <button
@@ -209,7 +216,7 @@ export default function CollectorsModal() {
                                             )}
                                         </div>
                                         {r.handle && (
-                                            <UserTags set={tagSets[r.handle.toLowerCase()]} size="row" />
+                                            <UserTags set={tagSets[r.handle.toLowerCase()]} size="mini" themed />
                                         )}
                                         <div className="fm-row-stats">
                                             <span className="fm-stat" title="Pieces owned">
@@ -244,9 +251,6 @@ export default function CollectorsModal() {
                 >
                     {'⇣'}
                     {VS15}
-                </div>
-                <div className="modal-stats-bottom">
-                    {holders.length} {holders.length === 1 ? 'OWNER' : 'OWNERS'} · UNIQUE: {uniquePct}%
                 </div>
             </div>
         </div>

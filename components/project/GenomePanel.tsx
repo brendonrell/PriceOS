@@ -124,7 +124,7 @@ export default function GenomePanel() {
 
         // Faint frame — the bounded parameter space.
         ctx.strokeStyle = ink;
-        ctx.globalAlpha = 0.12;
+        ctx.globalAlpha = 0.4;
         ctx.lineWidth = 1;
         ctx.strokeRect(pad, pad, plotW, plotH);
         ctx.globalAlpha = 1;
@@ -147,25 +147,25 @@ export default function GenomePanel() {
             const rare = p.isolation >= RARE;
             const owned = ownedIds.has(p.id);
             const dim = (isolate && !rare) || (mineActive && !owned);
-            const r = (rare ? 3.2 : 2) * appear;
+            const r = (rare ? 4.2 : 3) * appear;
 
             ctx.beginPath();
             ctx.arc(px, py, r, 0, Math.PI * 2);
             if (rare) {
                 ctx.fillStyle = accent;
-                ctx.globalAlpha = appear * (dim ? 0.4 : 1);
+                ctx.globalAlpha = appear * (dim ? 0.45 : 1);
             } else {
                 ctx.fillStyle = ink;
-                ctx.globalAlpha = appear * (dim ? 0.07 : (isolate ? 0.5 : 0.32));
+                ctx.globalAlpha = appear * (dim ? 0.3 : 0.9);
             }
             ctx.fill();
 
             if (rare && !dim) {
                 ctx.beginPath();
-                ctx.arc(px, py, r + 3, 0, Math.PI * 2);
+                ctx.arc(px, py, r + 3.5, 0, Math.PI * 2);
                 ctx.strokeStyle = accent;
-                ctx.globalAlpha = appear * 0.35;
-                ctx.lineWidth = 1;
+                ctx.globalAlpha = appear * 0.8;
+                ctx.lineWidth = 1.5;
                 ctx.stroke();
             }
             ctx.globalAlpha = 1;
@@ -184,8 +184,8 @@ export default function GenomePanel() {
                 ctx.beginPath();
                 ctx.arc(pt.px, pt.py, rr, 0, Math.PI * 2);
                 ctx.strokeStyle = accent;
-                ctx.globalAlpha = (1 - phase) * 0.45;
-                ctx.lineWidth = 1;
+                ctx.globalAlpha = (1 - phase) * 0.9;
+                ctx.lineWidth = 1.5;
                 ctx.stroke();
             }
             ctx.globalAlpha = 1;
@@ -202,16 +202,16 @@ export default function GenomePanel() {
                 ctx.beginPath();
                 mine.forEach((m, i) => (i === 0 ? ctx.moveTo(m.px, m.py) : ctx.lineTo(m.px, m.py)));
                 ctx.strokeStyle = accent;
-                ctx.globalAlpha = 0.3;
-                ctx.lineWidth = 1;
+                ctx.globalAlpha = 0.75;
+                ctx.lineWidth = 1.5;
                 ctx.stroke();
             }
             for (const m of mine) {
                 ctx.beginPath();
-                ctx.arc(m.px, m.py, 4.5, 0, Math.PI * 2);
+                ctx.arc(m.px, m.py, 5.5, 0, Math.PI * 2);
                 ctx.strokeStyle = accent;
-                ctx.globalAlpha = 0.9;
-                ctx.lineWidth = 1.5;
+                ctx.globalAlpha = 1;
+                ctx.lineWidth = 2;
                 ctx.stroke();
             }
             ctx.globalAlpha = 1;
@@ -228,13 +228,13 @@ export default function GenomePanel() {
                     ctx.moveTo(from.px, from.py);
                     ctx.lineTo(to.px, to.py);
                     ctx.strokeStyle = accent;
-                    ctx.globalAlpha = 0.4;
-                    ctx.lineWidth = 1;
+                    ctx.globalAlpha = 0.85;
+                    ctx.lineWidth = 1.5;
                     ctx.stroke();
                     ctx.beginPath();
-                    ctx.arc(to.px, to.py, 4, 0, Math.PI * 2);
+                    ctx.arc(to.px, to.py, 4.5, 0, Math.PI * 2);
                     ctx.fillStyle = accent;
-                    ctx.globalAlpha = 0.9;
+                    ctx.globalAlpha = 1;
                     ctx.fill();
                 }
                 ctx.globalAlpha = 1;
@@ -247,11 +247,11 @@ export default function GenomePanel() {
             if (hit) {
                 ctx.strokeStyle = accent;
                 ctx.globalAlpha = 1;
-                ctx.lineWidth = 1.5;
+                ctx.lineWidth = 2;
                 ctx.beginPath();
-                ctx.arc(hit.px, hit.py, 6.5, 0, Math.PI * 2);
+                ctx.arc(hit.px, hit.py, 7, 0, Math.PI * 2);
                 ctx.stroke();
-                ctx.globalAlpha = 0.5;
+                ctx.globalAlpha = 0.85;
                 ctx.beginPath();
                 ctx.moveTo(hit.px - 10, hit.py); ctx.lineTo(hit.px + 10, hit.py);
                 ctx.moveTo(hit.px, hit.py - 10); ctx.lineTo(hit.px, hit.py + 10);
