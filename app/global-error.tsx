@@ -43,24 +43,44 @@ export default function GlobalError({
                 <div style={{ fontSize: 14, maxWidth: 320, lineHeight: 1.5 }}>
                     The app hit an unexpected snag and needs to reload.
                 </div>
-                <button
-                    type="button"
-                    onClick={() => reset()}
-                    style={{
-                        fontFamily: "'Courier New', Courier, monospace",
-                        fontSize: 12,
-                        fontWeight: 'bold',
-                        letterSpacing: '0.1em',
-                        padding: '10px 18px',
-                        borderRadius: 4,
-                        cursor: 'pointer',
-                        border: 'none',
-                        background: '#e0e0e0',
-                        color: '#111',
-                    }}
-                >
-                    RELOAD
-                </button>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
+                    <button
+                        type="button"
+                        onClick={() => reset()}
+                        style={{
+                            fontFamily: "'Courier New', Courier, monospace",
+                            fontSize: 12,
+                            fontWeight: 'bold',
+                            letterSpacing: '0.1em',
+                            padding: '10px 18px',
+                            borderRadius: 4,
+                            cursor: 'pointer',
+                            border: 'none',
+                            background: '#e0e0e0',
+                            color: '#111',
+                        }}
+                    >
+                        RELOAD
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => window.history.back()}
+                        style={{
+                            fontFamily: "'Courier New', Courier, monospace",
+                            fontSize: 12,
+                            fontWeight: 'bold',
+                            letterSpacing: '0.1em',
+                            padding: '10px 18px',
+                            borderRadius: 4,
+                            cursor: 'pointer',
+                            background: 'transparent',
+                            border: '1px solid #e0e0e0',
+                            color: '#e0e0e0',
+                        }}
+                    >
+                        BACK
+                    </button>
+                </div>
             </body>
         </html>
     );
