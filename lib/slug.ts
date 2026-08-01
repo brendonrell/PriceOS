@@ -26,8 +26,6 @@
  *      page 2kyd6gx6-3274 (Platform Nomenclature SoT).
  */
 
-import { isReservedHandle, RESERVED_HANDLE_OWNERS } from './reserved-handles';
-import { platformAccountByHandle } from './platform/accounts';
 
 export type Resolved =
   | { kind: 'output'; globalId: number }
@@ -106,22 +104,14 @@ function parseSlug(slug: string): Parsed {
     return { kind: 'invalid' };
   }
 
-  // Reserved (T1/T2/T3) handles never resolve — EXCEPT a brand handle a
-  // designated owner may claim (RESERVED_HANDLE_OWNERS, e.g. @pricediscussion,
-  // the treasury). Those are real, claimed profiles; the row lookup 404s on its
-  // own if the handle isn't actually claimed (Brendon, 2026-07-23).
-  // ⛔ A PLATFORM ACCOUNT IS A REAL PAGE (Brendon, 2026-08-01) — @price sits on
-  // the reserved list AND has a live profile, so the gate was 404ing the very
-  // page the site links to from the carousel. The platform-accounts list is the
-  // one source of truth for these, so it is asked here rather than the handle
-  // being copied into a second list that can drift.
-  if (
-    isReservedHandle(handle)
-    && !(handle in RESERVED_HANDLE_OWNERS)
-    && !platformAccountByHandle(handle)
-  ) {
-    return { kind: 'invalid' };
-  }
+  /* ⛔ THE RESERVED LIST DOES NOT GATE ROUTING (Brendon, 2026-08-01, verbatim:
+     "the point is solely to restrict who can use it as an @name"). It is a
+     CLAIM rule — it decides who may take a name at signup (@max is held for
+     his friend Max) — and it is enforced there, in the handle validators and
+     the account-create route. A name that HAS been claimed is an ordinary
+     profile and its page must load like any other. Checking it here 404'd
+     @price, a real live page the site links to from the carousel. An
+     unclaimed name needs no gate: the profile lookup 404s on its own. */
 
   const isProject = PROJECT_SLUGS.has(handle);
   return { kind: 'handle', handle, wasAtPrefixed, isProject };
@@ -130,8 +120,9 @@ function parseSlug(slug: string): Parsed {
 /**
  * Resolve a [slug] path segment. Strips a leading `@` and applies
  * the @-prefix 301 rule (always forward to the canonical entity URL).
- * Lowercases the handle. Rejects reserved handles, malformed handles,
- * leading-zero numerics, and non-positive integers.
+ * Lowercases the handle. Rejects malformed handles, leading-zero
+ * numerics, and non-positive integers. Reserved names are NOT rejected
+ * here — that list governs who may CLAIM a name, not which pages load.
  */
 export function resolveSlug(slug: string): Resolved {
   const p = parseSlug(slug);
