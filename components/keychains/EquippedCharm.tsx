@@ -99,6 +99,9 @@ const CHAIN_RUN = [6, 12, 9];
    outer ones do in a full three. Degrees off true down — it rides gravity, so
    it still swings and still hangs toward down on a tilt. */
 const PAIR_LEAN = [0, 11];
+/* A THREE LEANS THE SAME WAY (Brendon, 2026-08-01) — the outer two tip out,
+   the long middle one hangs straight down between them. */
+const CHAIN_LEAN = [-15, 0, 14];
 /* A pair hangs long on the left, short on the right. */
 const PAIR_RUN = [12, 6];
 
@@ -256,7 +259,9 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
            had; a bunch gets its own length per position. */
         const run = charms.length === 2 ? PAIR_RUN : charms.length > 2 ? CHAIN_RUN : null;
         const links = run?.[slot] ?? base.links;
-        const lean = charms.length === 2 ? (PAIR_LEAN[slot] ?? 0) : 0;
+        const lean = charms.length === 2 ? (PAIR_LEAN[slot] ?? 0)
+            : charms.length > 2 ? (CHAIN_LEAN[slot] ?? 0)
+            : 0;
         const chain = { ...base, links };
         const metal = chainMetalHex(chain.metal);
         const bailY = charmBailY(charm.seed, charm.coin, luck);
