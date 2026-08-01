@@ -40,7 +40,7 @@ export default function TailBubble({
     dismissOnScroll?: boolean;
 }) {
     const ref = useRef<HTMLDivElement>(null);
-    const [layout, setLayout] = useState<{ centerX: number; tailDx: number; below: boolean } | null>(null);
+    const [layout, setLayout] = useState<{ centerX: number; tailDx: number; below: boolean; shiftY: number } | null>(null);
 
     /* Clamp on-screen once measured, then aim the tail back at the trigger.
        A card too tall to clear the top of the screen flips UNDER the trigger
@@ -61,7 +61,17 @@ export default function TailBubble({
         const fitsAbove = anchor.top - gap - h >= margin;
         const fitsBelow = anchor.bottom + gap + h <= vh - margin;
         const below = !fitsAbove && (fitsBelow || (vh - anchor.bottom) > anchor.top);
-        setLayout({ centerX, tailDx, below });
+        /* ⛔ NOTHING RUNS OFF THE SCREEN (Brendon, 2026-08-01). Flipping under
+           the trigger covers a card that won't fit above; a card that fits
+           NEITHER way still hung off an edge. Whichever side it lands on, the
+           box is nudged back inside the margins — top edge wins when the card
+           is taller than the screen, so its head is always readable. */
+        const boxTop = below ? anchor.bottom + gap : anchor.top - gap - h;
+        const maxTop = Math.max(margin, vh - margin - h);
+        const shiftY = boxTop < margin ? margin - boxTop
+            : boxTop > maxTop ? maxTop - boxTop
+            : 0;
+        setLayout({ centerX, tailDx, below, shiftY });
     }, [anchor]);
 
     /* An outside tap closes the bubble ONLY — we swallow the trailing click so
@@ -106,7 +116,9 @@ export default function TailBubble({
                 position: 'fixed',
                 top: layout?.below ? anchor.bottom : anchor.top,
                 left: layout?.centerX ?? anchor.cx,
-                transform: layout?.below ? 'translate(-50%, 10px)' : 'translate(-50%, calc(-100% - 10px))',
+                transform: layout?.below
+                    ? `translate(-50%, ${10 + (layout?.shiftY ?? 0)}px)`
+                    : `translate(-50%, calc(-100% - ${10 - (layout?.shiftY ?? 0)}px))`,
                 visibility: layout ? 'visible' : 'hidden',
                 zIndex: 100000,
                 ['--p3d-tail-dx' as string]: `${layout?.tailDx ?? 0}px`,

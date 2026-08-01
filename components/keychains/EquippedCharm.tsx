@@ -87,6 +87,11 @@ function CharmTile({ charm }: { charm: CharmRecord }) {
 /* How far apart the split rings sit, and how many hang at once. */
 const SPREAD = 13;
 const SLOTS = 3;
+/* ⛔ THE MIDDLE ONE HANGS LOWER (Brendon, approved 2026-07-31, built
+   2026-08-01). With all three at the same height the bunch read as a flat row
+   of three; dropping the middle one is what makes it read as a real bunch on
+   one ring. Only ever with a full three — a pair stays level. */
+const MID_DROP = 16;
 
 export default function EquippedCharm({ address, handle }: { address: string; handle?: string }) {
     const { open } = useModal();
@@ -579,6 +584,8 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
                     style={{
                         marginLeft: (r - (arts.length - 1) / 2) * SPREAD,
                         zIndex: 5 + (levels[r] ?? r),
+                        /* The one in the middle of a full three drops. */
+                        marginTop: arts.length === 3 && r === 1 ? MID_DROP : undefined,
                     }}
                 >
                     {/* The ring is the anchor — it is nailed to the end of the row

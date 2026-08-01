@@ -431,6 +431,9 @@
     overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
+    /* Room inside the scroll box for the WORN marker on the top row, so the
+       box's own edge can't shave it (Brendon, 2026-08-01). */
+    padding-top: 3px;
 }
 .charm-swap-cell {
     position: relative;
@@ -446,6 +449,16 @@
 .charm-swap-cell .dp-rack-worn {
     background: var(--bg-color);
     color: var(--text-color);
+    /* ⛔ THE LABEL READS IN FULL (Brendon, 2026-08-01). It inherited the cell's
+       line-height of 1, so a 9px word sat in a 9px box and lost the top and
+       bottom of its own letters; sitting flush in the corner of a scrolling
+       grid, the first row's marker also met the scroll box's own edge. Its own
+       line box, a hair more room, and pulled in off the corner. */
+    line-height: 1.5;
+    padding: 1px 5px;
+    top: 3px;
+    right: 3px;
+    white-space: nowrap;
 }
 /* The door through to the machine (Brendon, 2026-07-31). A quiet footer line
    rather than another button competing with the rack — full-strength in the
