@@ -577,7 +577,10 @@
 /* The charm keeps its LIVE art — its sway, blink and twinkle still run. On its
    own layer those repaint one charm-sized texture instead of the whole piece. */
 .pd-charm-body { will-change: transform; }
-.pd-charm-body svg { display: block; width: 100%; height: 100%; }
+/* The art draws PAST its own box (Brendon, 2026-08-01 — "why is the petal cut
+   off"). The box is sized to the charm hanging straight; tilted, a petal or a
+   raised hand swings outside it and the box's edge was shaving it off. */
+.pd-charm-body svg { display: block; width: 100%; height: 100%; overflow: visible; }
 
 /* Parked = off screen or the app in the background. The chain stops solving
    and the charm's own sway/blink/twinkle stop with it; both resume untouched
