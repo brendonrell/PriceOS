@@ -234,14 +234,24 @@ export const GROUP_SECONDARY_KEY: Partial<Record<GroupKey, GroupKey>> = {
  *  SECONDARY maps above, which is what a saved pre-layers view resolves to. */
 export function groupHeaderGlyph(
     group: GroupKey | readonly GroupKey[], level: 1 | 2 | 3,
+    /** The header's own label — HELD takes its own mark (see below). */
+    label?: string,
 ): string {
+    let key: GroupKey | undefined;
     if (Array.isArray(group)) {
-        const key = (group as readonly GroupKey[])[level - 1];
-        return key ? GROUP_GLYPH[key] ?? '' : '';
+        key = (group as readonly GroupKey[])[level - 1];
+    } else {
+        const g = group as GroupKey;
+        key = level === 2 ? GROUP_SECONDARY_KEY[g] : level === 1 ? GROUP_PRIMARY_KEY[g] : undefined;
     }
-    const g = group as GroupKey;
-    const key = level === 2 ? GROUP_SECONDARY_KEY[g] : level === 1 ? GROUP_PRIMARY_KEY[g] : undefined;
-    return key ? GROUP_GLYPH[key] : '';
+    /* ⛔ HELD WEARS THE COLLECT MARK (Brendon, 2026-08-02: "this one looks too
+       much like the artist glyph"). The Listed layer marked BOTH its buckets
+       with the Listed star ✹, and against the artist's ✺ — the same eight-armed
+       silhouette, one notch apart — a HELD row read as an artist row. ON THE
+       MARKET keeps ✹, which is what it means; HELD takes ✦, the canonical
+       collect mark, which is what it means. No new glyph invented. */
+    if (key === 'listed' && label && label.trim().toLowerCase() === 'held') return '✦︎';
+    return key ? GROUP_GLYPH[key] ?? '' : '';
 }
 
 const ALL_GROUP_KEYS: GroupKey[] = [

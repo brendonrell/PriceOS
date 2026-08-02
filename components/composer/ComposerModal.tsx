@@ -942,8 +942,8 @@ export default function ComposerModal() {
                                           {!h.soon && h.count != null && h.count > 0
                                               ? <span className="ggh-count">{h.count}</span>
                                               : null}
-                                          {!h.soon && groupHeaderGlyph(query.group, h.level)
-                                              ? <span className="ggh-glyph" aria-hidden="true">{groupHeaderGlyph(query.group, h.level)}</span>
+                                          {!h.soon && groupHeaderGlyph(query.group, h.level, h.label)
+                                              ? <span className="ggh-glyph" aria-hidden="true">{groupHeaderGlyph(query.group, h.level, h.label)}</span>
                                               : null}
                                       </div>
                                   );

@@ -745,8 +745,8 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                                     : sec.total > 0
                                         ? <span className="ggh-count">{sec.total}</span>
                                         : null}
-                                {!sec.soon && groupHeaderGlyph(groupLayers, sec.level)
-                                    ? <span className="ggh-glyph" aria-hidden="true">{groupHeaderGlyph(groupLayers, sec.level)}</span>
+                                {!sec.soon && groupHeaderGlyph(groupLayers, sec.level, sec.label)
+                                    ? <span className="ggh-glyph" aria-hidden="true">{groupHeaderGlyph(groupLayers, sec.level, sec.label)}</span>
                                     : null}
                             </div>
                             );

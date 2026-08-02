@@ -2412,8 +2412,8 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                                                       {!h.soon && h.count != null && h.count > 0
                                                           ? <span className="ggh-count">{h.count}</span>
                                                           : null}
-                                                      {!h.soon && groupHeaderGlyph(groupLayers, h.level)
-                                                          ? <span className="ggh-glyph" aria-hidden="true">{groupHeaderGlyph(groupLayers, h.level)}</span>
+                                                      {!h.soon && groupHeaderGlyph(groupLayers, h.level, h.label)
+                                                          ? <span className="ggh-glyph" aria-hidden="true">{groupHeaderGlyph(groupLayers, h.level, h.label)}</span>
                                                           : null}
                                                   </div>
                                               );

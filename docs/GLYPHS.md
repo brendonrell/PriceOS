@@ -208,7 +208,8 @@ in the cycle") — every face reuses an existing meaning or a plain character
 
 | Group | Glyph | Codepoint | Source |
 |---|---|---|---|
-| Listed | ✹ | U+2739 | the canonical Listed star (§1) |
+| Listed | ✹ | U+2739 | the canonical Listed star (§1) — the ON THE MARKET bucket only |
+| Listed · HELD bucket | ✦ | U+2726 | the collect mark (§1). ⛔ HELD does NOT wear ✹ (Brendon, 2026-08-02): against the artist's ✺ the two read as the same mark, so a held row looked like an artist row. ON THE MARKET keeps ✹ |
 | Fate | ䷲ | U+4DF2 | the Fate facet-bar L1 pill glyph (already shipped) |
 | Temperature (warm/cool) | ° | U+00B0 | plain char (`$` precedent) |
 | Light (brightness bands) | ◑ | U+25D1 | the lunarGlyph disc family (shipped in Celestial); NOT ◐ — that stays Shadow's |
