@@ -14,6 +14,7 @@
 import { Fragment, useEffect, useMemo, useRef, useState, type MouseEvent, type PointerEvent } from 'react';
 import { AccordionBox } from './AccordionBox';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
+import { useDropdown } from '../../lib/state/DropdownContext';
 import { usePings } from '../../lib/state/PingsContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { useAuth } from '../../lib/state/AuthContext';
@@ -76,6 +77,7 @@ function RailItem({ item }: { item: TapeFeedItem }) {
 
 export function PingsBox({ projectPings = false }: { projectPings?: boolean } = {}) {
     const { notifs, setAccordion } = usePdNotifs();
+    const { menuOpen } = useDropdown();
     const { state: pingsState, markSeen, refresh } = usePings();
     const { siweAddress, handle } = useAuth();
     const { showToast } = useToast();
@@ -227,6 +229,22 @@ export function PingsBox({ projectPings = false }: { projectPings?: boolean } = 
     );
     const unreadShown = rendered.filter((r) => !r.read).length;
 
+    /* ⛔ THE WHOLE INBOX IS NOT BUILT ON EVERY PAGE (Brendon, 2026-08-01: "could
+       it be all my pings"). The menu's stack is only hidden, never unmounted —
+       so up to a hundred ping rows sat live in the page on EVERY screen, and
+       opening the menu had to raise all of them at once. The list starts at a
+       screenful; the rest fill in once the menu is open and the slide has
+       finished, so the open is cheap and nothing is lost — scrolling still
+       reaches every ping, and the rows stay put across close → reopen. */
+    const FIRST_PAGE = 25;
+    const [cap, setCap] = useState(FIRST_PAGE);
+    useEffect(() => {
+        if (!menuOpen || cap >= rendered.length) return;
+        const t = window.setTimeout(() => setCap(Number.MAX_SAFE_INTEGER), 450);
+        return () => window.clearTimeout(t);
+    }, [menuOpen, cap, rendered.length]);
+    const shown = useMemo(() => rendered.slice(0, cap), [rendered, cap]);
+
     /* ── Read-by-scroll ──────────────────────────────────────────────────
        The contract: a ping is SEEN only when the user has actually scrolled
        the pings list and the row has passed through view. Opening the menu
@@ -237,7 +255,7 @@ export function PingsBox({ projectPings = false }: { projectPings?: boolean } = 
        requires a fresh scroll gesture. */
     const seenQueue = useRef<Set<string>>(new Set());
     const committed = useRef<Set<string>>(new Set());
-    const renderedIdsKey = rendered.map((r) => r.id + (r.read ? '' : '*')).join(',');
+    const renderedIdsKey = shown.map((r) => r.id + (r.read ? '' : '*')).join(',');
     useEffect(() => {
         if (!pingsActive || !siweAddress) return;
         const list = document.getElementById('notifList');
@@ -338,12 +356,12 @@ export function PingsBox({ projectPings = false }: { projectPings?: boolean } = 
                 </div>
             }
         >
-            {rendered.length === 0 ? (
+            {shown.length === 0 ? (
                 <div className="pings-empty">
                     {siweAddress ? 'No pings yet' : 'Connect to see your pings'}
                 </div>
             ) : (
-                rendered.map((p, i) => {
+                shown.map((p, i) => {
                     const cls = `notif-item${p.read ? ' read' : ''}${p.priority === 'high' ? ' notif-item--high' : ''}${p.priority === 'low' ? ' notif-item--low' : ''}`;
                     const body = (
                         <>
@@ -358,7 +376,7 @@ export function PingsBox({ projectPings = false }: { projectPings?: boolean } = 
                     /* The SEEN divider — the hairline between the fresh stack
                        and struck-through history (only when both exist). */
                     const divider =
-                        i > 0 && p.read && !rendered[i - 1].read ? (
+                        i > 0 && p.read && !shown[i - 1].read ? (
                             <div className="pings-seen-divider" aria-hidden="true">SEEN</div>
                         ) : null;
                     const lp = longPress(p.src);
