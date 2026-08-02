@@ -1992,6 +1992,52 @@ body.modal-open { overflow: hidden; touch-action: none; }
    OUTPUT-page mini pills, page-themed. Nothing may push the row wider than the
    modal: that overflow is what cut the @name off. */
 .collectors-list { overflow-x: hidden; }
+
+/* ── The 2026-08-02 rebuild: relationship marks, the row unfold, follow doors ── */
+/* ⚭ / ⚯ / ⚬ beside a name — full-strength, Courier, same weight as the row. */
+.fm-rel-mark {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+/* The unfold under an owner row — their pieces as a swipeable strip. */
+.own-expand { padding: 4px 0 10px; }
+.own-expand .own-strip {
+    padding: 4px 0 8px;
+    scroll-padding-left: 0;
+    gap: 8px;
+    cursor: default;
+}
+.own-expand .own-strip .output-card { width: min(26vw, 96px); }
+.own-expand-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+}
+.own-expand-more { letter-spacing: 0.5px; }
+.own-follow { flex-shrink: 0; }
+/* The row-end follow door in a tag room — the pill grammar at mini size:
+   4px corners, full-strength border + text, bold (never faint). */
+.own-follow-mini {
+    margin-left: auto;
+    flex-shrink: 0;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.4px;
+    padding: 2px 7px;
+    border: 1.5px solid currentColor;
+    border-radius: 4px;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+}
+.own-follow-mini:disabled { cursor: wait; }
 .collectors-holders .user-tags--mini {
     display: flex;
     flex-wrap: wrap;

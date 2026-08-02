@@ -1,25 +1,34 @@
 'use client';
 
 /*
- * TagPeopleModal — tap a Profile Tag, meet the room (Brendon, 2026-07-27).
+ * TagPeopleModal — tap a Profile Tag, meet the room (Brendon, 2026-07-27;
+ * rebuilt 2026-08-02: "start from scratch and make them actually good and
+ * useful").
  *
  * A tag stops being decoration the moment you can pull on it: tapping one
- * anywhere it appears opens THIS popup — the people wearing it, and the numbers
- * to slice them by. It is a POPUP over wherever you already are, never a nav
- * away, so you come straight back to what you were reading.
+ * anywhere it appears opens THIS popup — the people wearing it, what the room
+ * is worth, and the doors to act on it. A POPUP over wherever you already
+ * are, never a nav away.
  *
- * Built on the OWNERS modal's anatomy verbatim (Rule #0 — reuse, never
- * reinvent): the platform-modal shell, the same sort pills, the same two-half
- * user rows with sprite + @name + tags + stats.
+ * What it answers now:
+ *   · THE ROOM'S WEIGHT — people · ◊ spent · ⬚ owned, summed over exactly
+ *     what you're looking at (the CABAL narrow narrows the sums too), as the
+ *     headline over the list.
+ *   · WHO THEY ARE TO YOU — ⟁ marks your cabal (the shipped mark, kept), and
+ *     the identity layer's ⚯ / ⚬ mark one-way follows either direction.
+ *   · A DOOR ON EVERY ROW — FOLLOW/UNFOLLOW right on the row, the same
+ *     /api/follows contract every other follow control uses. The modal stays
+ *     open and the row updates under your finger (Rule #-0.55).
  *
- * Slices: SPENT (ETH paid on mints + buys) · OWNED (pieces held) · JOINED (the
- * PriceDay they arrived) · A–Z, plus the CABAL ⟁ narrow — you + your mutuals —
- * which is worked out from YOUR circle here on the client, never on the server.
+ * Rows keep the STANDARD two-half user row (Brendon's 2026-07-20 lock).
+ * Slices: SPENT · OWNED · JOINED (PriceDay) · A–Z, plus the CABAL ⟁ narrow —
+ * you + your mutuals — worked out from YOUR circle on the client.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { useAuth } from '../lib/state/AuthContext';
+import { useToast } from '../lib/state/ToastContext';
 import { priceDayNumber } from '../lib/priceday/priceday';
 import AsciiId from './hero/AsciiId';
 import { UserTags } from './tags/UserTags';
@@ -40,12 +49,15 @@ const SORTS: { key: TagSort; label: string }[] = [
 export default function TagPeopleModal() {
     const { stack, close } = useModal();
     const { siweAddress, handle: myHandle } = useAuth();
+    const { showToast } = useToast();
     const listRef = useRef<HTMLDivElement>(null);
     const [sort, setSort] = useState<TagSort>('spent');
     const [cabalOnly, setCabalOnly] = useState(false);
     const [rows, setRows] = useState<TagMemberRow[] | null>(null);
     const [label, setLabel] = useState<string | null>(null);
-    const [mutuals, setMutuals] = useState<Set<string>>(new Set());
+    const [followers, setFollowers] = useState<Set<string>>(new Set());
+    const [following, setFollowing] = useState<Set<string>>(new Set());
+    const [followBusy, setFollowBusy] = useState<string | null>(null);
 
     const { isOpen, isTopStacked } = useModalLayer('tag');
     /* The tag id rides the modal payload — read off the STACK entry, so it
@@ -78,21 +90,32 @@ export default function TagPeopleModal() {
         return () => { dead = true; };
     }, [isOpen, tagId]);
 
-    /* YOUR cabal — the people you and they follow each other. Read once per
-       open; without a signed-in wallet the narrow simply isn't offered. */
+    /* YOUR graph — powers the ⟁ cabal narrow, the ⚯/⚬ marks and the follow
+       doors. Read on open; re-read on any follow change so the doors stay
+       honest while the card is up. */
     useEffect(() => {
         if (!isOpen || !siweAddress) return;
         let dead = false;
-        fetch(`/api/follows/${siweAddress}`)
-            .then((r) => (r.ok ? r.json() : null))
-            .then((j: { follower_handles?: string[]; following_handles?: string[] } | null) => {
-                if (dead || !j) return;
-                const followers = new Set((j.follower_handles ?? []).map((h) => h.toLowerCase()));
-                setMutuals(new Set((j.following_handles ?? []).map((h) => h.toLowerCase()).filter((h) => followers.has(h))));
-            })
-            .catch(() => { /* no circle read → the narrow just finds nobody */ });
-        return () => { dead = true; };
+        const read = () => {
+            fetch(`/api/follows/${siweAddress.toLowerCase()}`, { cache: 'no-store' })
+                .then((r) => (r.ok ? r.json() : null))
+                .then((j: { follower_handles?: string[]; following_handles?: string[] } | null) => {
+                    if (dead || !j) return;
+                    setFollowers(new Set((j.follower_handles ?? []).map((h) => h.toLowerCase())));
+                    setFollowing(new Set((j.following_handles ?? []).map((h) => h.toLowerCase())));
+                })
+                .catch(() => { /* no circle read → marks stay off, list still works */ });
+        };
+        read();
+        window.addEventListener('pd:follows-changed', read);
+        return () => { dead = true; window.removeEventListener('pd:follows-changed', read); };
     }, [isOpen, siweAddress]);
+
+    const mutuals = useMemo(() => {
+        const out = new Set<string>();
+        following.forEach((h) => { if (followers.has(h)) out.add(h); });
+        return out;
+    }, [followers, following]);
 
     const shown = useMemo<TagMemberRow[]>(() => {
         const all = rows ?? [];
@@ -108,6 +131,41 @@ export default function TagPeopleModal() {
         else out.sort((a, b) => b.spentEth - a.spentEth || b.owned - a.owned || az(a, b));
         return out;
     }, [rows, sort, cabalOnly, mutuals, myHandle]);
+
+    /* The room's weight — summed over exactly what's on screen, so the CABAL
+       narrow reads as YOUR room's numbers. */
+    const roomSpent = useMemo(() => shown.reduce((s, r) => s + (r.spentEth > 0 ? r.spentEth : 0), 0), [shown]);
+    const roomOwned = useMemo(() => shown.reduce((s, r) => s + r.owned, 0), [shown]);
+
+    /* Follow / unfollow straight off the row — the same /api/follows contract
+       every other follow control uses; the row updates in place. */
+    const toggleFollow = useCallback(async (r: TagMemberRow) => {
+        if (!siweAddress) { showToast('Wallet: CONNECT TO FOLLOW'); return; }
+        const isFollowing = following.has(r.handle);
+        setFollowBusy(r.handle);
+        try {
+            if (isFollowing) {
+                const res = await fetch(`/api/follows?target=${r.address}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showToast(`@${r.handle}: UNFOLLOWED`);
+                    window.dispatchEvent(new Event('pd:follows-changed'));
+                } else showToast('Unfollow: FAILED');
+            } else {
+                const res = await fetch('/api/follows', {
+                    method: 'POST',
+                    headers: { 'content-type': 'application/json' },
+                    body: JSON.stringify({ target: r.address }),
+                });
+                if (res.status === 201 || res.status === 200) {
+                    showToast(`@${r.handle}: FOLLOWED`);
+                    window.dispatchEvent(new Event('pd:follows-changed'));
+                } else if (res.status === 204) showToast(`@${r.handle}: NO @NAME YET`);
+                else showToast('Follow: FAILED');
+            }
+        } finally {
+            setFollowBusy(null);
+        }
+    }, [siweAddress, following, showToast]);
 
     const tagSets = useUserTags(shown.map((r) => r.handle));
     const me = myHandle?.toLowerCase() ?? null;
@@ -134,6 +192,13 @@ export default function TagPeopleModal() {
             <div className="modal-info" style={{ marginTop: 0, maxWidth: 340 }}>
                 <div className="modal-title" style={{ marginBottom: 0 }}>
                     {(label ?? tagId).toUpperCase()}
+                </div>
+                {/* The room's weight leads — who's here and what they carry,
+                    narrowed with the list when CABAL is on. */}
+                <div className="collectors-stats-top">
+                    <span className="cst-stat"><b>{shown.length}</b> {shown.length === 1 ? 'PERSON' : 'PEOPLE'}</span>
+                    <span className="cst-stat" title="ETH spent on mints + buys, all together"><b>◊{parseFloat(roomSpent.toFixed(2))}</b> SPENT</span>
+                    <span className="cst-stat" title="Pieces held, all together"><b>{roomOwned}</b> OWNED</span>
                 </div>
                 <div className="collectors-sort-row" role="tablist" aria-label="Sort people">
                     {SORTS.map((s) => (
@@ -181,14 +246,33 @@ export default function TagPeopleModal() {
                         {shown.map((r, i) => {
                             const isMe = me !== null && r.handle === me;
                             const day = r.createdAt ? priceDayNumber(new Date(r.createdAt)) : null;
+                            const inCabal = mutuals.has(r.handle);
+                            const oneWay = !inCabal && (following.has(r.handle) || followers.has(r.handle));
+                            const isF = following.has(r.handle);
                             return (
                                 <div key={r.address} className={`fm-row lb-row${isMe ? ' lb-me' : ''}`}>
                                     <span className="lb-pos">{i + 1}</span>
                                     <div className="fm-row-main">
                                         <div className="fm-row-id">
                                             <AsciiId handle={r.handle} />
-                                            {mutuals.has(r.handle) && (
+                                            {inCabal && (
                                                 <span className="id-cartel" aria-label="cabal" title="Your cabal">{`⟁${VS15}`}</span>
+                                            )}
+                                            {oneWay && (
+                                                <span className="fm-rel-mark" title={isF ? 'Following' : 'Follows you'}>
+                                                    {isF ? '⚯' : '⚬'}{VS15}
+                                                </span>
+                                            )}
+                                            {siweAddress && !isMe && (
+                                                <button
+                                                    type="button"
+                                                    className="own-follow-mini"
+                                                    disabled={followBusy === r.handle}
+                                                    title={isF ? 'Unfollow' : 'Follow'}
+                                                    onClick={() => void toggleFollow(r)}
+                                                >
+                                                    {isF ? 'UNFOLLOW' : `⚯${VS15} FOLLOW`}
+                                                </button>
                                             )}
                                         </div>
                                         <UserTags set={tagSets[r.handle]} size="row" />
@@ -222,10 +306,6 @@ export default function TagPeopleModal() {
                     title="Scroll Down"
                 >
                     {'⇣'}{VS15}
-                </div>
-                <div className="modal-stats-bottom">
-                    {shown.length} {shown.length === 1 ? 'PERSON' : 'PEOPLE'}
-                    {cabalOnly ? ' · CABAL' : ''}
                 </div>
             </div>
         </div>
