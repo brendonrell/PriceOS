@@ -77,11 +77,7 @@ export type ModalName =
     | 'followersLite'
     /* COLORPEDIA (Brendon, 2026-08-01) — the book about one colour. Payload is
        the hex to open on. Door: the Colorway tile on a Project's Attributes. */
-    | 'colorpedia'
-    /* NEW USERS ☻ (Brendon, 2026-08-02) — the live feed of the last 200
-       signups as full ASCII-ID rectangles. Door: long-press the ☻ social
-       pill in the home sort row. */
-    | 'newUsers';
+    | 'colorpedia';
 
 interface OpenModalState {
     name: ModalName;

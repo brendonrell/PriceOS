@@ -26,6 +26,7 @@ import { requireAuth } from '@/lib/auth/siwe';
 import { badRequest, serverError } from '@/lib/errors';
 import { getProject } from '@/lib/project/registry';
 import { resolveCall, claimMet, CALL_WINDOWS, type CallClaim, type CallStatus } from '@/lib/calls/resolve';
+import { liveFloor } from '@/lib/market/floors';
 
 export const dynamic = 'force-dynamic';
 
@@ -71,15 +72,13 @@ export interface CallsResponse {
 }
 
 async function floorOf(slug: string): Promise<number | null> {
-    const db = getSupabaseService();
-    const { data } = await db
-        .from('projects')
-        .select('floor_price_eth')
-        .eq('id', slug)
-        .maybeSingle();
-    const f = (data as { floor_price_eth?: string | number | null } | null)?.floor_price_eth;
-    const n = f != null ? Number(f) : 0;
-    return n > 0 ? n : null;
+    /* The LIVE floor — lowest active listing (data audit 2026-08-02: the
+       stored projects.floor_price_eth has no writer and reads null). */
+    try {
+        return await liveFloor(getSupabaseService(), slug);
+    } catch {
+        return null;
+    }
 }
 
 /** Settle any of these open calls that resolveCall says are done. Guarded on

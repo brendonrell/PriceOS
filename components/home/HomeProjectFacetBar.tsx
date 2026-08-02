@@ -43,7 +43,6 @@ import { getProjectStars, toggleProjectStar, subscribeProjectStars } from '../..
 import { L3Pill } from '../project/traitsUIPills';
 import { moodOfDay } from '../../lib/mood/mood';
 import { useLongPress } from '../../lib/hooks/useLongPress';
-import { useModalActions } from '../../lib/state/ModalContext';
 
 /** One minting project, enriched with its computed birth-traits + mint price. */
 export interface EnrichedProject {
@@ -66,8 +65,10 @@ export interface EnrichedProject {
    'feed' swaps the carousels for the activity feed (new-art events for now;
    more event kinds later — Brendon 2026-06-15). 'az' sorts by project name.
    'social' ☻ swaps them for the social feed — your graph's market activity
-   (top users when logged out), Brendon 2026-07-26. */
-export type HomeSortKey = 'date' | 'price' | 'feed' | 'az' | 'social';
+   (top users when logged out), Brendon 2026-07-26. 'newusers' swaps them for
+   the NEW USERS signup feed — long-press on the same ☻ pill (Brendon,
+   2026-08-02). */
+export type HomeSortKey = 'date' | 'price' | 'feed' | 'az' | 'social' | 'newusers';
 export type HomeSortDir = 'asc' | 'desc';
 
 /* Facet order = birth-order; Fate is pinned LAST as the hexagram pill (Brendon,
@@ -258,11 +259,11 @@ export default function HomeProjectFacetBar({
     const arrow = (key: HomeSortKey) =>
         sortKey === key ? (sortDir === 'asc' ? '↑︎' : '↓︎') : '';
 
-    /* NEW USERS ☻ (Brendon, 2026-08-02) — long-press the social pill opens the
-       signup feed; a plain tap still switches to the social sort. The house
+    /* NEW USERS ☻ (Brendon, 2026-08-02) — long-press the social pill swaps
+       the section to the NEW USERS signup feed (a FEED, exactly like the
+       social swap); a plain tap still switches to the social sort. The house
        hold gesture (useLongPress) swallows its own trailing click. */
-    const { open: openPdModal } = useModalActions();
-    const newUsersHold = useLongPress(() => openPdModal('newUsers'));
+    const newUsersHold = useLongPress(() => onSort('newusers'));
 
     if (projects.length === 0 && !leadPills) return null;
 
@@ -470,7 +471,7 @@ export default function HomeProjectFacetBar({
                         <span className="sort-arrow">{arrow('feed')}</span>
                     </span>
                     <span
-                        className={`sort-btn sort-btn-social${sortKey === 'social' ? ' active' : ''}`}
+                        className={`sort-btn sort-btn-social${sortKey === 'social' || sortKey === 'newusers' ? ' active' : ''}`}
                         role="button"
                         tabIndex={0}
                         title="Social Feed"
@@ -483,7 +484,7 @@ export default function HomeProjectFacetBar({
                             has no room; same Courier icon treatment as the ◷
                             date sort. Works exactly like FEED, social focus. */}
                         <span className="sort-lbl sort-lbl-recent">☻&#xFE0E;</span>
-                        <span className="sort-arrow">{arrow('social')}</span>
+                        <span className="sort-arrow">{arrow('social') || arrow('newusers')}</span>
                     </span>
                 </div>
                 )}
