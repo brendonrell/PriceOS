@@ -558,11 +558,18 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
     const perRow = Math.ceil(picked.length / rows);
     const rowChunks = Array.from({ length: rows }, (_, r) => picked.slice(r * perRow, (r + 1) * perRow));
 
-    /* The linear modes, each with its own personality (they read too alike —
-       Brendon, 2026-07-10): ROW/SPREAD stay the tidy baselines (alternating
-       tilt, uniform size); SCATTER is the loose, playful one — free rotation,
-       vertical drift, mixed sizes; FILL packs wall-to-wall with just a whisper
-       of drift. Every sticker stays fully readable in all four. */
+    /* ⛔ A ROW, PLACED BY HAND — NOT BY A COMPUTER (Brendon, 2026-08-02: "if
+       they are in a row it can look boring but I want that sometimes, BUT what
+       we need is like 'jitter' — I want the row but artfully placed, not a
+       strict row that just looks like a computer placed them").
+       The old row was dead straight with a strictly alternating tilt, which is
+       exactly what a machine produces. The jitter here is COMPOSED, not noise:
+       every sticker's lift rides one slow wave running along the row, so
+       neighbours relate to each other the way a hand places them — a little
+       high, a little low, nothing landing where a ruler would put it. Rotation
+       and size ride the same wave a quarter-turn out of phase, so the row
+       breathes instead of jittering. Seeded, so Shuffle re-rolls it and a
+       reload brings the same one back. */
     return wrap(
         <div className={`hero-stickers-rows arr-${arrange} ${alignClass}`} style={areaStyle}>
             {rowChunks.map((chunk, ri) => (
@@ -572,7 +579,22 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
                         let rot = baseTilt === 0 ? 0 : ((i + ri) % 2 === 0 ? -baseTilt : baseTilt);
                         let jy = 0;
                         let sc = 1;
-                        if (arrange === 'scatter') {
+                        if (arrange === 'row' || arrange === 'spread') {
+                            /* The wave: one slow rise and fall along the row,
+                               offset per row so two rows never echo. Amplitude
+                               is small — this is a ROW that breathes, never a
+                               scatter. The pinch of noise on top keeps it off
+                               a perfect sine. */
+                            const phase = i * 0.9 + ri * 2.1;
+                            const wave = Math.sin(phase);
+                            jy = Math.round(wave * 7 + (v1 - 0.5) * 5);
+                            /* Tilt keeps its alternating base but leans with
+                               the wave, so a lifted sticker tips the way a
+                               hand would have tipped it. */
+                            rot = (baseTilt === 0 ? 2.5 : baseTilt) * (Math.cos(phase) * 0.85 + (v2 - 0.5) * 0.5);
+                            /* A whisker of size variation reads as depth. */
+                            sc = 0.97 + (wave * 0.5 + 0.5) * 0.06 + (v3 - 0.5) * 0.02;
+                        } else if (arrange === 'scatter') {
                             rot = (v1 * 2 - 1) * (baseTilt === 0 ? 4 : baseTilt * 1.7);
                             jy = Math.round((v2 - 0.5) * 22);
                             sc = 0.88 + v3 * 0.3;
@@ -581,12 +603,22 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
                             jy = Math.round((v2 - 0.5) * 8);
                             sc = 0.94 + v3 * 0.14;
                         }
+                        /* Uneven gaps finish the hand-placed read — a person
+                           never leaves identical space twice. Tiny, and only
+                           on the two tidy modes. */
+                        const gap = (arrange === 'row' || arrange === 'spread')
+                            ? Math.round((jrnd() - 0.5) * 7)
+                            : 0;
                         return (
                             <span
                                 key={s.id}
                                 data-sid={s.id}
                                 className="hero-sticker"
-                                style={{ transform: `translateY(${jy}px) rotate(${rot + flipOf(s.id)}deg)${sc !== 1 ? ` scale(${sc.toFixed(3)})` : ''}` }}
+                                style={{
+                                    marginLeft: gap > 0 ? gap : undefined,
+                                    marginRight: gap < 0 ? -gap : undefined,
+                                    transform: `translateY(${jy}px) rotate(${rot + flipOf(s.id)}deg)${sc !== 1 ? ` scale(${sc.toFixed(3)})` : ''}`,
+                                }}
                                 title={s.name}
                                 {...ownDown(s)}
                             >

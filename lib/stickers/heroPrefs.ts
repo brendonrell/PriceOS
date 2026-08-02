@@ -23,19 +23,37 @@ export const ALIGNS: { id: Align; label: string }[] = [
     { id: 'right', label: 'RIGHT' },
 ];
 
+/* ⛔ THREE MODES, AND ONLY ONE OF THEM IS WILD (Brendon, 2026-08-02: "I dislike
+   our sticker layouts, they never look cohesive, our modes suck… we can have
+   one wild one but right now they almost all read that way").
+   There were seven, but only two ideas: SPACED and ROW were one thing at two
+   gaps, and SCATTER / FILL / COLLAGE / SLAPPED were all random placement with
+   different caps and overlap flags — which is why none of them had an identity
+   and every one read as mess. Now each mode is a different GESTURE:
+     ROW      — a row, placed by hand: one slow wave of lift, lean and gap
+                running along it (see HeroStickers).
+     PILE     — laid down in one direction, a constant step and a rotation ramp.
+     SLAPPED  — the wild one, and the ONLY one.
+   ⛔ The retired ids are NOT deleted: Setup Codes encode the arrangement by its
+   position in ARRANGE_IDS, and saved Spreads store the id, so removing one
+   would silently rewrite every code and look ever saved. They live on in the
+   type and normalise to the nearest survivor on read. */
 export const ARRANGES: { id: Arrange; label: string }[] = [
-    /* Labelled SPACED, not "SPREAD" — SPREADS are the saved arrangements on
-       their own page, and two things called the same word in one menu is a
-       trap (Brendon, 2026-07-27). The stored id stays `spread` so every saved
-       Setup Code and every existing profile keeps working. */
-    { id: 'spread', label: 'SPACED' },
     { id: 'row', label: 'ROW' },
-    { id: 'stack', label: 'STACK' },
-    { id: 'scatter', label: 'SCATTER' },
-    { id: 'fill', label: 'FILL' },
-    { id: 'collage', label: 'COLLAGE' },
+    { id: 'stack', label: 'PILE' },
     { id: 'slapped', label: 'SLAPPED' },
 ];
+
+/** A retired arrangement → the surviving mode closest to what it did. */
+export function normalizeArrange(a: Arrange): Arrange {
+    switch (a) {
+        case 'spread': return 'row';       // the same row at a wider gap
+        case 'fill':   return 'row';       // a packed row
+        case 'scatter': return 'slapped';  // the loose one
+        case 'collage': return 'stack';    // composed, mixed sizes → the pile
+        default: return a;
+    }
+}
 export const ROW_OPTS: { id: Rows; label: string }[] = [
     { id: 1, label: '1' },
     { id: 2, label: '2' },
@@ -113,7 +131,7 @@ export function getDensity(): number {
 }
 
 /* Non-reactive reads — for the manager, which holds its own local copy. */
-export function getArrange(): Arrange { return read(K_ARRANGE, 'spread') as Arrange; }
+export function getArrange(): Arrange { return normalizeArrange(read(K_ARRANGE, 'row') as Arrange); }
 export function getTilt(): Tilt { return read(K_TILT, 'soft') as Tilt; }
 export function getExpand(): boolean { return read(K_EXPAND, '0') === '1'; }
 export function getRows(): Rows { const v = read(K_ROWS, '1'); return v === '3' ? 3 : v === '2' ? 2 : 1; }
@@ -123,10 +141,10 @@ export function getFlip(): boolean { return read(K_FLIP, '0') === '1'; }
 export interface HeroPrefs { arrange: Arrange; tilt: Tilt; seed: number; expand: boolean; rows: Rows; align: Align; flip: boolean; density: number; border: Border; }
 
 export function useHeroPrefs(): HeroPrefs {
-    const [v, setV] = useState<HeroPrefs>({ arrange: 'spread', tilt: 'soft', seed: 1, expand: false, rows: 1, align: 'left', flip: false, density: 0, border: 'off' });
+    const [v, setV] = useState<HeroPrefs>({ arrange: 'row', tilt: 'soft', seed: 1, expand: false, rows: 1, align: 'left', flip: false, density: 0, border: 'off' });
     useEffect(() => {
         const sync = () => setV({
-            arrange: read(K_ARRANGE, 'spread') as Arrange,
+            arrange: normalizeArrange(read(K_ARRANGE, 'row') as Arrange),
             tilt: read(K_TILT, 'soft') as Tilt,
             seed: Number(read(K_SEED, '1')) || 1,
             expand: read(K_EXPAND, '0') === '1',
@@ -299,26 +317,57 @@ export function buildPile(hues: number[], seed: number, density = 0, widths: num
     const cnt = Math.round(DENSITY_COUNTS[Math.max(0, Math.min(DENSITY_COUNTS.length - 1, density))]! * AREA_ROWS_CAP[rowsPref]!);
     const n = Math.max(1, Math.min(hues.length, cnt));
     const rnd = rngFrom(seed + 131);
-    // Rows sets the canvas height; Density packs the same canvas tighter.
     const aspect = areaAspect(rowsPref, density);
-    // Colour balance: order by hue, then R2 low-discrepancy placement so
-    // consecutive hues land far apart — no colour clumps.
+
+    /* ⛔ A PILE IS LAID DOWN, NOT SCATTERED (Brendon, 2026-08-02: the modes
+       "almost all read that way" — random). It used to drop stickers on a
+       low-discrepancy sequence, which is a clever way of being random and
+       looked it. A real pile has a DIRECTION: each sticker lands a constant
+       step along from the last, turned a constant few degrees further, so the
+       stack reads as one gesture — someone working across the space, laying
+       them down. The step is what makes it composed; the small wobble on top
+       is what stops it looking machined.
+       Colour balance is kept: the set is still ordered by hue before it is
+       laid, so consecutive hues never land on top of each other. */
     const order = [...Array(n).keys()].sort((a, b) => hues[a]! - hues[b]!);
-    const g = 1.32471795724474602596;   // plastic number → R2 sequence
-    const a1 = 1 / g, a2 = 1 / (g * g);
-    const offX = rnd(), offY = rnd();
+
+    /* The gesture: a shallow diagonal across the area, wrapping into a second
+       and third pass as the pile deepens. Direction and start are seeded, so
+       Shuffle lays a fresh one. */
+    const passes = n <= 6 ? 1 : n <= 12 ? 2 : 3;
+    const perPass = Math.ceil(n / passes);
+    const downhill = rnd() < 0.5 ? 1 : -1;
+    const rotStep = (1.6 + rnd() * 1.4) * (rnd() < 0.5 ? 1 : -1);
+    const rot0 = (rnd() - 0.5) * 10;
+
     const pts: RelaxPt[] = [];
     for (let k = 0; k < n; k++) {
-        const x = 0.07 + ((offX + a1 * (k + 1)) % 1) * 0.86 + (rnd() - 0.5) * 0.04;
-        const y = 0.16 + ((offY + a2 * (k + 1)) % 1) * 0.68 + (rnd() - 0.5) * 0.07;
-        pts.push({ x, y, s: 0.88 + rnd() * 0.24, w: widths[order[k]!] || DEFAULT_WIDE });
+        const pass = Math.floor(k / perPass);
+        const at = (k % perPass) / Math.max(1, perPass - 1);      // 0→1 along the pass
+        const lane = passes === 1 ? 0.5 : 0.26 + (pass / Math.max(1, passes - 1)) * 0.48;
+        /* Constant step along, constant drift down — the gesture. */
+        const x = 0.10 + at * 0.80 + (rnd() - 0.5) * 0.035;
+        const y = lane + downhill * (at - 0.5) * 0.16 + (rnd() - 0.5) * 0.04;
+        /* Sizes step gently down the pass, so the first ones read as laid
+           first and the last as pressed on top. */
+        const s0 = 1.14 - at * 0.2 + (rnd() - 0.5) * 0.08;
+        pts.push({ x, y, s: s0, w: widths[order[k]!] || DEFAULT_WIDE });
     }
     relax(pts, aspect, 0.62, 36, rnd);
+
     const items: PilePiece[] = new Array(n);
     for (let k = 0; k < n; k++) {
         const idx = order[k]!;
         const p = pts[k]!;
-        items[idx] = { x: p.x * 100, y: p.y * 100, rot: (rnd() - 0.5) * 32, scale: p.s, z: k };
+        /* The rotation RAMP — each one turned a little further than the last,
+           which is what makes a stack read as a stack. */
+        items[idx] = {
+            x: p.x * 100,
+            y: p.y * 100,
+            rot: rot0 + k * rotStep + (rnd() - 0.5) * 3,
+            scale: p.s,
+            z: k,
+        };
     }
     return { aspect, items };
 }

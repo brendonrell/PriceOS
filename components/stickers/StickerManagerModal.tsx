@@ -42,7 +42,7 @@ import {
 import {
     getArrange, getTilt, getExpand, getRows, getAlign, getFlip, getDensity, getBorder, getSeed,
     setArrange, setTilt, setExpand, setRows, setAlign, setFlip, setDensity, setBorder, setSeed, shuffleSeed,
-    ARRANGES, TILTS, ROW_OPTS, ALIGNS, DENSITIES, BORDERS, stickerHue,
+    ARRANGES, TILTS, ROW_OPTS, ALIGNS, DENSITIES, BORDERS, stickerHue, normalizeArrange,
     type Arrange, type Tilt, type Rows, type Align, type Border,
 } from '../../lib/stickers/heroPrefs';
 import { clearPlacements } from '../../lib/stickers/placements';
@@ -491,7 +491,7 @@ export function StickerManagerModal({
         // -native egg, no chip for it anywhere.
         const word = trimmed.toUpperCase().replace(/[^A-Z]/g, '');
         if (word.includes('SPILL')) {
-            applyLook({ arrange: 'collage', rows: 2, align: 'left', tilt: 'jaunty', expand: false, flip: true, density, border });
+            applyLook({ arrange: 'slapped', rows: 2, align: 'left', tilt: 'jaunty', expand: false, flip: true, density, border });
             shuffleSeed();
             setSeedV(getSeed());
             setCodeEditing(false);
@@ -501,7 +501,7 @@ export function StickerManagerModal({
         const parsed = decodeStickerCode(trimmed);
         setCodeEditing(false);
         if (!parsed.ok || !parsed.look) { setCodeValue(currentCode); showToast('Sticker Code: INVALID'); return; }
-        applyLook(parsed.look);
+        applyLook({ ...parsed.look, arrange: normalizeArrange(parsed.look.arrange) });
         showToast('Stickers: APPLIED');
     };
     const copyCode = (e: React.MouseEvent | React.KeyboardEvent) => {
@@ -514,7 +514,7 @@ export function StickerManagerModal({
     };
     const surprise = () => {
         const r = <T,>(arr: ReadonlyArray<T>): T => arr[Math.floor(Math.random() * arr.length)]!;
-        applyLook({ arrange: r(ARRANGE_IDS), rows: r(ROW_IDS), align: r(ALIGN_IDS), tilt: r(TILT_IDS), expand: false, flip: Math.random() < 0.4, density, border });
+        applyLook({ arrange: r(ARRANGES.map((a) => a.id)), rows: r(ROW_IDS), align: r(ALIGN_IDS), tilt: r(TILT_IDS), expand: false, flip: Math.random() < 0.4, density, border });
         shuffleSeed();
         setSeedV(getSeed());
         showToast('Stickers: SURPRISE');
