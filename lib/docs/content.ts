@@ -209,6 +209,7 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
             'contracts/pd-project',
             'contracts/payment-splitter',
             'contracts/pd-stickers',
+            'contracts/pd-keychains',
             'contracts/library-registry',
         ],
     },

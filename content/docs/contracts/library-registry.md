@@ -1,9 +1,9 @@
 ---
 title: "Contracts — PDLibraryRegistry"
-description: "The append-only on-chain store for blessed JavaScript libraries (p5.js, three.js, the gzip inflater) that PD Projects bind and render from — frozen forever once finalized."
+description: "The append-only on-chain store for blessed JavaScript libraries (p5.js, three.js, regl, d3, the gzip inflater) that PD Projects bind and render from — frozen forever once finalized."
 category: "contracts"
-keywords: ["PDLibraryRegistry", "libraries", "p5.js", "SSTORE2", "append-only"]
-last_updated: "2026-07-10"
+keywords: ["PDLibraryRegistry", "libraries", "p5.js", "three.js", "regl", "d3", "SSTORE2", "append-only", "Language"]
+last_updated: "2026-08-02"
 ---
 
 # Contracts — PDLibraryRegistry
@@ -25,6 +25,21 @@ Library text is stored as the **base64 of its gzipped source** — artwork pages
 ## How Projects use it
 
 A Project binds at most one library, fixed at `createProject` time; the factory enforces that only **finalized** entries can be bound. At render time, `tokenURI` inlines the registry's inflater, the library blob, and a bootstrap that decodes and injects the library as synchronous script text before the artist's first line runs. See [PDProject](/docs/contracts/pd-project).
+
+The binding is also where every Output's **Language** attribute comes from: the entry's exact "name version" (`p5.js 1.11.3`) is copied into the Project at deployment and rides its metadata forever — the artist's tool, versioned and stored on Ethereum, not a label anyone typed. Vanilla Projects read `JavaScript`.
+
+## The supported languages
+
+PD launches with a settled shelf of blessed libraries — each written to the registry as its own frozen entry:
+
+| Library | For |
+| --- | --- |
+| **p5.js** | The lingua franca of creative coding |
+| **three.js** | 3D and WebGL scenes |
+| **regl** | Functional, shader-first WebGL |
+| **d3** | Data-driven and generative structure |
+
+Vanilla **JavaScript** is always available and needs no registry entry at all. The vocabulary extends itself the day a new library is blessed — a new entry, finalized and frozen, with no list anywhere to maintain.
 
 ```solidity
 function isFinalized(uint256 libraryId) external view returns (bool);

@@ -1,9 +1,9 @@
 ---
 title: "Contracts — PDProject"
-description: "The per-Project ERC-721: fully on-chain generative art via SSTORE2 and data-URI tokenURI, push-pattern payouts in every mint, per-token hashes, and EIP-2981."
+description: "The per-Project ERC-721: fully on-chain generative art via SSTORE2 and data-URI tokenURI, push-pattern payouts in every mint, per-token hashes, marketplace attributes, the entry window, and EIP-2981."
 category: "contracts"
-keywords: ["PDProject", "ERC-721", "tokenURI", "on-chain art", "mint"]
-last_updated: "2026-07-10"
+keywords: ["PDProject", "ERC-721", "tokenURI", "on-chain art", "mint", "entry window", "attributes"]
+last_updated: "2026-08-02"
 ---
 
 # Contracts — PDProject
@@ -20,6 +20,10 @@ The artist's generative script is stored across up to 32 SSTORE2 data contracts 
 
 `getScript()`, `scriptChunk(i)`, and `scriptPointers(i)` expose the raw script for anyone who wants to read or re-render the work without touching `tokenURI` at all.
 
+### Marketplace attributes
+
+Every Output's metadata carries six attributes, all sourced from chain state: **Token Hash** (the generative seed), **Token Number**, **Artist** (the immutable artist address), **Language** — the exact tool the piece is made with, copied from the [registry](/docs/contracts/library-registry) as "name version" (`p5.js 1.11.3`) at deployment and frozen; `JavaScript` for vanilla Projects — **Colorway** (the Project's signature colour, six hex characters, present only when the Project declared one), and **Edition Size**.
+
 ## The mint
 
 ```solidity
@@ -34,6 +38,14 @@ Each mint transaction, atomically:
 4. Emits `Minted(minter, tokenId, tokenHash)` per token.
 
 The artist share is computed as basis points (9,500 / 10,000) with the platform taking the exact complement, so no rounding dust is ever stranded.
+
+## The entry window
+
+A Project may deploy with an optional **contested-drop entry window** (up to 4 hours, fixed at creation). While the window runs, on-chain minting is closed and entries are collected as pre-signed transactions treated as **simultaneous** — arrival order inside the window buys nothing, which is the anti-snipe point. If demand fits supply, the platform's settlement key closes the window and every entry lands as a normal mint. If oversubscribed, a published draw's winners mint first (their seats credited on-chain, the draw's commitment anchored in the close event); leftovers then open first-come. Tokens minted during settlement are transfer-sealed for a bounded window (72 hours at most) while the off-chain sweep adjudicates — the seal is write-once and can never be extended.
+
+The load-bearing guarantee is **fail-open**: if the settlement key never shows up — server dead, key lost — minting opens by itself at the immutable deadline. No key, outage, or platform failure can ever permanently halt a mint; a window can only delay one, by at most its own length. The settlement key's whole power is drop choreography — it can never touch funds, supply, pricing, or anything past the deadline, and winners pay the exact same price through the exact same push-splits as any minter. Projects deployed without a window skip every line of this machinery.
+
+`dropPhase()` answers where a drop stands: `0` window open · `1` settling · `2` normal minting.
 
 ## Royalties
 

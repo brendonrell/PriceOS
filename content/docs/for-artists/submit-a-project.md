@@ -43,7 +43,7 @@ input to the filter, never automatic admission.
 
 1. **Whitelisting.** The factory admin whitelists your wallet on-chain (`PDFactory.whitelistArtist`). Deployment is impossible without it.
 2. **Script preparation.** Your generative script is prepared for on-chain storage — it reads the token hash PD's contract assigns each Output and must render deterministically from it. If the work uses a library (p5.js, three.js, …), it binds one of the on-chain [blessed libraries](/docs/contracts/library-registry).
-3. **You deploy.** You call `createProject` on the factory from your own wallet, with your name, symbol, supply, mint price, library choice, and script. The transaction deploys your Project contract and its royalty splitter atomically. See [The Mint Flow](/docs/for-artists/the-mint-flow).
+3. **You deploy.** You call `createProject` on the factory from your own wallet, with your name, symbol, supply, mint price, language choice (vanilla JavaScript, p5.js, three.js, regl, or d3), colorway, and script. The transaction deploys your Project contract and its royalty splitter atomically. See [The Mint Flow](/docs/for-artists/the-mint-flow).
 4. **The Project page goes live.** PriceOS picks the new Project up from the factory's `ProjectCreated` event.
 
 The factory enforces a **60-day cooldown** between an artist's Projects, counted from deployment.

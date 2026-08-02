@@ -2,8 +2,8 @@
 title: "For Artists — The Mint Flow"
 description: "What happens on-chain when a Project deploys and mints: the createProject call, on-chain script storage, per-token hashes, and the push-pattern payout in every mint."
 category: "for-artists"
-keywords: ["mint", "deploy", "createProject", "on-chain", "token hash"]
-last_updated: "2026-07-17"
+keywords: ["mint", "deploy", "createProject", "on-chain", "token hash", "colorway", "entry window"]
+last_updated: "2026-08-02"
 ---
 
 # For Artists — The Mint Flow
@@ -22,9 +22,12 @@ function createProject(
     uint256 mintPrice,      // in wei, fixed forever
     uint256 libraryId,      // a blessed on-chain library, or none
     bytes[] calldata scriptChunks,  // your generative script, stored on-chain
-    string calldata description
+    string calldata description,
+    string calldata colorway        // your signature colour (six hex chars), or empty
 ) external returns (address project);
 ```
+
+A second overload adds a trailing `uint256 windowSeconds` for a [contested-drop entry window](/docs/contracts/pd-project#the-entry-window); the plain signature deploys the classic open mint.
 
 The factory checks that your wallet is whitelisted, the supply is within bounds, and your 60-day cooldown has elapsed, then atomically deploys:
 
@@ -74,7 +77,7 @@ Each Output's `image` field starts as an on-chain placeholder and is upgraded ex
 
 ## What the contract does not do
 
-- **No allowlists, auctions, or mint windows on-chain.** The contract is an open, fixed-price mint. PD's filter deliberately favors the clean default: open mint, fixed price, fixed supply.
+- **No allowlists and no auctions.** The contract is an open, fixed-price mint. PD's filter deliberately favors the clean default: open mint, fixed price, fixed supply. The one optional mechanism is the [entry window](/docs/contracts/pd-project#the-entry-window) for contested drops — entries inside it count as simultaneous, oversubscription settles by a verifiable draw at the same fixed price, and the window **fails open** at an immutable deadline, so nothing can ever permanently hold a mint shut.
 - **No admin mint, no artist mint privilege.** You mint your own Output the same way collectors do.
 - **No pausing and no upgrades.** Once live, the mint runs to sell-out on its own terms.
 
