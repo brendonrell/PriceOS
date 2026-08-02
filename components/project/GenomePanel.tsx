@@ -201,9 +201,11 @@ export default function GenomePanel() {
             if (mineActive && mine.length > 1) {
                 ctx.beginPath();
                 mine.forEach((m, i) => (i === 0 ? ctx.moveTo(m.px, m.py) : ctx.lineTo(m.px, m.py)));
-                ctx.strokeStyle = accent;
-                ctx.globalAlpha = 0.75;
-                ctx.lineWidth = 1.5;
+                /* Ink, full strength — a colorway-coloured line vanishes on a
+                   page painted that same colorway (Brendon, 2026-08-02). */
+                ctx.strokeStyle = ink;
+                ctx.globalAlpha = 1;
+                ctx.lineWidth = 2;
                 ctx.stroke();
             }
             for (const m of mine) {
@@ -227,9 +229,11 @@ export default function GenomePanel() {
                     ctx.beginPath();
                     ctx.moveTo(from.px, from.py);
                     ctx.lineTo(to.px, to.py);
-                    ctx.strokeStyle = accent;
-                    ctx.globalAlpha = 0.85;
-                    ctx.lineWidth = 1.5;
+                    /* Ink, full strength — same reason as the constellation
+                       line above: accent on its own colorway is invisible. */
+                    ctx.strokeStyle = ink;
+                    ctx.globalAlpha = 1;
+                    ctx.lineWidth = 2;
                     ctx.stroke();
                     ctx.beginPath();
                     ctx.arc(to.px, to.py, 4.5, 0, Math.PI * 2);
