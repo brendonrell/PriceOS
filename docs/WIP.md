@@ -35,18 +35,47 @@ ClickUp `86bb77te6` has the full round. The locks:
   source of truth for WHICH coins) live in `lib/stone/tokens.ts` tagged
   `family: 'artcoin'`; typing `artcoins` deals the family as a tappable hand.
 
-**BUILT, AWAITING BRENDON'S PUSH WORD (on the task branch, not on `dev`):
-LIVE FLOORS.** ⛔ `projects.floor_price_eth` has NO writer (nulled by the
-2026-07-03 reset; only the Output market route worked around it). New
-`lib/market/floors.ts` (lowest active unexpired listing) now feeds conviction
-calls (create + resolve, incl. the cron), portfolio targets, counterparty
-valuations, search results + the floor answer, and the stone trend footer.
-Type-check + 192 tests green. **On his word: merge the task branch → `dev`,
-push.**
+✅ **SAME DAY, SECOND ROUND — ALL SHIPPED AND SESSION WRAPPED** (PriceOS
+`dev` tip `1d7cd9f`, tree clean, type-check + 192 tests green; pd-contracts
+`main` tip `9f5047b`, 401 forge tests green. ClickUp `86bb787qr`):
 
-**QUEUED:** more TokenWorks strategy coins — needs Brendon's names, then
-verified pins (the PNKSTR fake-clone lesson). · Coding-language-as-trait +
-group-by-language: discussion had, awaiting his "spec it".
+- **LIVE FLOORS SHIPPED.** ⛔ `projects.floor_price_eth` has NO writer
+  (nulled by the 2026-07-03 reset) — every floor reader now goes through
+  `lib/market/floors.ts` (lowest active unexpired listing): conviction calls
+  (create + resolve + cron), portfolio targets, counterparty valuations,
+  search, stone trend. **Never read the stored column again.**
+- **NEW USERS ☻ IS A FEED, NOT A CARD (his correction).** Long-press the
+  home ☻ pill swaps the section exactly like FEED/SOCIAL — feed-row grammar,
+  full ASCII-ID rectangles, minute-fresh, screenful-windowed. The popup card
+  is deleted; the door and close are the section swap itself.
+- **`artcoins` in the stone** deals the whole 54-coin family as a tappable
+  hand (tap → that coin's live card).
+- **LANGUAGE TRAIT SHIPPED ("Let's do it!!!") — Fate's exact pattern,
+  settled:** platform trait pill (after Rising) · facet in every birth-order
+  row · LANGUAGE shelf leading the group hold-menu (⛔ hidden on a single
+  project's own page — one project = one language, the ORIENT dead-tap law)
+  · `language:p5` search grammar. Value = the project's declared language
+  (`ProjectDef.language`), Studio-era = the on-chain library binding; house
+  engines read JavaScript. Group glyph = `{` (plain-char family; his to
+  swap). Spec = `docs/languages-trait-spec.md`.
+- ⛔ **LAUNCH LIBRARY ROSTER SETTLED (Brendon): p5.js · three.js · regl ·
+  d3.** Audio (tone.js) and WebGPU deliberately held back. Blessing each is
+  HIS one-time on-chain write at launch (~0.2–0.5 ETH total at quiet gas).
+- **pd-contracts: MARKETPLACE ATTRIBUTES SHIPPED to `main`.** tokenURI now
+  emits **Language** (registry "name version", copied FROZEN at construction
+  — the inflaterId never-read-live discipline; "JavaScript" for vanilla),
+  **Colorway** (NEW createProject param, both overloads — empty or exactly
+  six BARE hex chars, no '#'/'%' — factory `_assertColorway` guard; unset
+  omits the attribute), **Edition Size**. Five new tests; the differential
+  fuzz reference mirrors the shape. **Rides Brendon's next Sepolia deploy;
+  the PD-Docs contract pages' createProject signature is stale until that
+  docs refresh.**
+
+**WAITING ON BRENDON (his on-chain actions, his pace):** next Sepolia
+rehearsal deploy carries the new attributes; library blessings at launch.
+**QUEUED:** more TokenWorks strategy coins — needs his names, then verified
+pins (the PNKSTR fake-clone lesson). · Studio create-flow passes colorway at
+the cutover.
 
 ⛔ **2026-08-01 — OPEN ITEMS, IN BRENDON'S OWN WORDS.**
 
