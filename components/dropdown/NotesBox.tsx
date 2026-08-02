@@ -32,11 +32,15 @@
  * to localStorage `pd_notes_deleted` so the deletion survives reload.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+
+/* How many rows the hidden menu carries before it is opened. */
+const NOTES_FIRST_PAGE = 25;
 import { AccordionBox } from './AccordionBox';
 import { useLongPress } from '../../lib/hooks/useLongPress';
 import { useModal } from '../../lib/state/ModalContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
+import { useDropdown } from '../../lib/state/DropdownContext';
 import { useNotePrompt } from '../../lib/state/NotePromptContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { getProject } from '../../lib/project/registry';
@@ -88,6 +92,7 @@ function readNotes(): SavedNote[] {
 /* `suite` — the SAME box mounted inside the PriceOS Suite (2026-07-27):
    always expanded, header no longer collapses. Nothing else changes. */
 export function NotesBox({ suite = false }: { suite?: boolean } = {}) {
+    const { menuOpen } = useDropdown();
     const { notifs, setAccordion } = usePdNotifs();
     const { openOutputNoteEditor } = useNotePrompt();
     const { showToast } = useToast();
@@ -124,7 +129,17 @@ export function NotesBox({ suite = false }: { suite?: boolean } = {}) {
         showToast(`Note ${note.label}: DELETED`);
     };
 
-    const visible = notes;
+    /* ⛔ Same law as the pings and the to-dos (Brendon, 2026-08-01): the hidden
+       menu carries a screenful, and the rest arrive once it is open. The Suite
+       pane is its own app view and is never capped. */
+    const [cap, setCap] = useState(NOTES_FIRST_PAGE);
+    useEffect(() => {
+        if (suite) { setCap(Number.MAX_SAFE_INTEGER); return; }
+        if (!menuOpen || cap >= notes.length) return;
+        const t = window.setTimeout(() => setCap(Number.MAX_SAFE_INTEGER), 450);
+        return () => window.clearTimeout(t);
+    }, [suite, menuOpen, cap, notes.length]);
+    const visible = useMemo(() => notes.slice(0, cap), [notes, cap]);
 
     return (
         <AccordionBox
@@ -139,7 +154,7 @@ export function NotesBox({ suite = false }: { suite?: boolean } = {}) {
                     {/* In the Suite the header wears the app's own name
                         (Brendon, 2026-07-28); the connect menu keeps NOTES. */}
                     {suite ? 'PRICEWRITE' : 'NOTES'}
-                    <span className="notif-count">({visible.length})</span>
+                    <span className="notif-count">({notes.length})</span>
                 </span>
             }
         >

@@ -30,9 +30,13 @@ import { MentionLookup } from '../MentionLookup';
 import { renderMentions } from '../../lib/mentions/render';
 import { WorkflowsSheet } from './WorkflowsSheet';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
+import { useDropdown } from '../../lib/state/DropdownContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { priceOf, useStarredPrices } from '../../lib/pins/starredPriceStore';
 import { parseTodo } from '../../lib/todos/parse';
+
+/* How many rows the hidden menu carries before it is opened. */
+const FIRST_PAGE = 25;
 import {
     getTodos,
     subscribeTodos,
@@ -69,6 +73,7 @@ function fmtEth(n: number): string {
    always expanded, header no longer collapses, and the Suite door long-press
    stays off (you're already inside). Zero behavioural changes otherwise. */
 export function TodosBox({ suite = false }: { suite?: boolean } = {}) {
+    const { menuOpen } = useDropdown();
     const { notifs, setAccordion } = usePdNotifs();
     const { showToast } = useToast();
     const { open: openModal } = useModal();
@@ -159,7 +164,21 @@ export function TodosBox({ suite = false }: { suite?: boolean } = {}) {
         const base = sortTodos(todos);
         return [...base].sort((a, b) => (isReady(b) ? 1 : 0) - (isReady(a) ? 1 : 0));
     }, [todos, isReady]);
-    const shown = activeLabel ? ordered.filter((t) => (t.labels ?? []).includes(activeLabel)) : ordered;
+    const matching = activeLabel ? ordered.filter((t) => (t.labels ?? []).includes(activeLabel)) : ordered;
+    /* ⛔ THE LIST IS BUILT WHEN IT IS LOOKED AT (Brendon, 2026-08-01). The menu's
+       stack is hidden, never unmounted, so a long list sat live in the page on
+       every screen and the menu had to raise all of it behind the slide. A
+       screenful goes up first; the rest fill in once the menu is open and the
+       slide has finished. The Suite pane is its own app view and is never
+       capped. */
+    const [cap, setCap] = useState(FIRST_PAGE);
+    useEffect(() => {
+        if (suite) { setCap(Number.MAX_SAFE_INTEGER); return; }
+        if (!menuOpen || cap >= matching.length) return;
+        const t = window.setTimeout(() => setCap(Number.MAX_SAFE_INTEGER), 450);
+        return () => window.clearTimeout(t);
+    }, [suite, menuOpen, cap, matching.length]);
+    const shown = useMemo(() => matching.slice(0, cap), [matching, cap]);
 
     const stop = (e: React.MouseEvent | React.KeyboardEvent) => e.stopPropagation();
 
