@@ -94,6 +94,7 @@ import {
     registerCanvas,
     unregisterCanvas,
 } from '../lib/virtualization/canvasVirtualizer';
+import { watchTile } from '../lib/virtualization/tilePresence';
 import { hashSynNotifyCanvasPaint } from '../lib/engines/hashSynEngine';
 import {
     getGrails,
@@ -332,6 +333,25 @@ function ArtworkCard({
             setImgRetries(0);
         };
     }, [slug, id]);
+
+    /* ⛔ THE PINNING IS BOUNDED BY THE SCREEN (Brendon, 2026-08-02: "we see like
+       6 on screen at a time what the FUCK happened to the lazy loading we had").
+       A loaded tile is pinned eager + sync-decode so it can't flash blank on
+       scroll-back — right for the tiles you can reach, but it used to apply to
+       every tile ever scrolled past, so a big collection held hundreds of
+       decoded pictures at once and got heavier the more its owner collected.
+       The tile stays in the page either way; only far tiles hand the decoded
+       copy back, and they take it again a full viewport before they can be
+       seen — the same bound, and the same lookahead, the canvas gallery has
+       always had (Rule #0). */
+    const [nearScreen, setNearScreen] = useState(false);
+    useEffect(() => {
+        if (!imgSrc) return;
+        return watchTile(wrapperRef.current, setNearScreen);
+    }, [imgSrc]);
+    /* Pinned = flash-free (eager + main-thread decode), exactly as before.
+       Off the band a tile falls back to the browser's own lazy handling. */
+    const pinned = eager || (imgLoaded && nearScreen);
 
     /* Provisional shape for the img tile before its load event corrects it. */
     useEffect(() => {
@@ -1022,8 +1042,8 @@ function ArtworkCard({
                                redraw a blank frame on scroll-back (Brendon
                                2026-07-07 — the carousel flash). Pre-load it stays
                                lazy so the first paint is cheap. */
-                            loading={eager || imgLoaded ? 'eager' : 'lazy'}
-                            decoding={imgLoaded ? 'sync' : 'async'}
+                            loading={pinned ? 'eager' : 'lazy'}
+                            decoding={pinned ? 'sync' : 'async'}
                             draggable={false}
                             onLoad={handleImgLoad}
                             onError={handleImgError}

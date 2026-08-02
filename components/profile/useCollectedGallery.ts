@@ -128,18 +128,21 @@ export function useCollectedGallery(holdings: Holding[]) {
        in the DOM and scrolled like glue. Now the mounted set tracks how far
        you've actually scrolled, so a giant collection browses as smoothly as a
        small one. revealCount only grows, so re-filtering renders instantly. */
-    /* Solid-once-loaded (Brendon, 2026-07-06): a normal collection mounts
-       WHOLE — nothing pops in on scroll (cards are native <img> tiles; the
-       browser lazy-loads the pictures). The scroll window only kicks in past
-       FULL_MOUNT_MAX, where a 10k–20k wallet's DOM would scroll like glue. */
-    const FULL_MOUNT_MAX = 1000;
+    /* ⛔ THE WINDOW ALWAYS APPLIES (Brendon, 2026-08-02, in fury: "I used to
+       have over 1k pieces without issue why the fuck is it loading them all").
+       The 2026-07-06 solid-once-loaded pass exempted anything UNDER 1000 from
+       the window and mounted it whole — so a collection got SLOWER as it got
+       smaller, and a 749-piece wallet built every tile, its hover row and its
+       badges into one page. That is what made the connect menu crawl on the
+       Collected tab. Above 1000 it windowed, which is why a bigger collection
+       felt fine. One road for every size now: a first screenful, then grow as
+       the viewer scrolls. revealCount only grows, so re-filtering is instant. */
     const REVEAL_FIRST = 24;
     const REVEAL_STEP = 48;
     const [revealCount, setRevealCount] = useState(REVEAL_FIRST);
     const collectedSentinelRef = useRef<HTMLDivElement | null>(null);
-    const fullMount = visibleCollected.length <= FULL_MOUNT_MAX;
     useEffect(() => {
-        if (fullMount || revealCount >= visibleCollected.length) return;
+        if (revealCount >= visibleCollected.length) return;
         const el = collectedSentinelRef.current;
         if (!el) return;
         if (typeof IntersectionObserver === 'undefined') { setRevealCount(visibleCollected.length); return; }
@@ -153,13 +156,13 @@ export function useCollectedGallery(holdings: Holding[]) {
         );
         io.observe(el);
         return () => io.disconnect();
-    }, [fullMount, revealCount, visibleCollected.length]);
+    }, [revealCount, visibleCollected.length]);
     const shownCollected = useMemo(
         () =>
-            fullMount || revealCount >= visibleCollected.length
+            revealCount >= visibleCollected.length
                 ? visibleCollected
                 : visibleCollected.slice(0, revealCount),
-        [visibleCollected, revealCount, fullMount],
+        [visibleCollected, revealCount],
     );
 
     /* Group the filtered/sorted holdings by Project for rendering. Each group
