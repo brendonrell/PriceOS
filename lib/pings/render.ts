@@ -230,7 +230,11 @@ export function renderPing(row: FeedItem): RenderedPing {
     case 'ACHIEVEMENT': {
       handle = '';
       const name = typeof row.data?.name === 'string' ? (row.data.name as string) : 'an achievement';
-      action = `Unlocked: ${name}`;
+      /* A burst rolls into one row, led by the biggest (see pingAchievements). */
+      const count = typeof row.data?.count === 'number' ? (row.data.count as number) : 1;
+      action = count > 1
+        ? `Unlocked: ${name} · +${count - 1} more`
+        : `Unlocked: ${name}`;
       break;
     }
     case 'STREAK': {
