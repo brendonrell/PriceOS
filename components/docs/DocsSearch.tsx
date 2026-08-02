@@ -18,7 +18,7 @@ export type Hit = {
     entry: SearchEntry;
     score: number;
     /* Best matching heading (deep anchor), when the match is heading-tier. */
-    heading: { id: string; text: string } | null;
+    heading: SearchEntry['headings'][number] | null;
     /* Body snippet around the first term hit, split for <mark> rendering. */
     snippet: { pre: string; hit: string; post: string } | null;
 };
