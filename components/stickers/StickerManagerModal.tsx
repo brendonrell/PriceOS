@@ -461,7 +461,11 @@ export function StickerManagerModal({
     const reshuffle = () => { clearPlacements(); shuffleSeed(); setSeedV(getSeed()); };
     const pickArrange = (a: Arrange) => { clearPlacements(); setArr(a); setArrange(a); };
     const pickTilt = (t: Tilt) => { clearPlacements(); setTl(t); setTilt(t); };
-    const pickExpand = (b: boolean) => { clearPlacements(); setExp(b); setExpand(b); };
+    /* ⛔ ALWAYS FIT (Brendon, 2026-08-02: "making the profile wide fucks up so
+       much of the UI it's dumb. ALWAYS FIT"). The WIDE chips are gone and the
+       setter is pinned off, so a saved look, a Setup Code or SURPRISE can never
+       hand it back. */
+    const pickExpand = (_b: boolean) => { clearPlacements(); setExp(false); setExpand(false); };
     const pickRows = (r: Rows) => { clearPlacements(); setRw(r); setRows(r); };
     const pickAlign = (a: Align) => { clearPlacements(); setAl(a); setAlign(a); };
     const pickFlip = (b: boolean) => { clearPlacements(); setFl(b); setFlip(b); };
@@ -487,7 +491,7 @@ export function StickerManagerModal({
         // -native egg, no chip for it anywhere.
         const word = trimmed.toUpperCase().replace(/[^A-Z]/g, '');
         if (word.includes('SPILL')) {
-            applyLook({ arrange: 'collage', rows: 2, align: 'left', tilt: 'jaunty', expand: true, flip: true, density, border });
+            applyLook({ arrange: 'collage', rows: 2, align: 'left', tilt: 'jaunty', expand: false, flip: true, density, border });
             shuffleSeed();
             setSeedV(getSeed());
             setCodeEditing(false);
@@ -510,7 +514,7 @@ export function StickerManagerModal({
     };
     const surprise = () => {
         const r = <T,>(arr: ReadonlyArray<T>): T => arr[Math.floor(Math.random() * arr.length)]!;
-        applyLook({ arrange: r(ARRANGE_IDS), rows: r(ROW_IDS), align: r(ALIGN_IDS), tilt: r(TILT_IDS), expand: Math.random() < 0.5, flip: Math.random() < 0.4, density, border });
+        applyLook({ arrange: r(ARRANGE_IDS), rows: r(ROW_IDS), align: r(ALIGN_IDS), tilt: r(TILT_IDS), expand: false, flip: Math.random() < 0.4, density, border });
         shuffleSeed();
         setSeedV(getSeed());
         showToast('Stickers: SURPRISE');
@@ -953,10 +957,6 @@ export function StickerManagerModal({
                         <Row label="Tilt">
                             {TILTS.map((tl) => (<Chip key={tl.id} on={tilt === tl.id} onClick={() => pickTilt(tl.id)}>{tl.label}</Chip>))}
                         </Row>
-                        <Row label="Width">
-                            <Chip on={!expand} onClick={() => pickExpand(false)}>FIT</Chip>
-                            <Chip on={expand} onClick={() => pickExpand(true)}>WIDE</Chip>
-                        </Row>
                         <Row label="Flip">
                             <Chip on={!flip} onClick={() => pickFlip(false)}>OFF</Chip>
                             <Chip on={flip} onClick={() => pickFlip(true)}>UPSIDE-DOWN</Chip>
@@ -1065,10 +1065,6 @@ export function StickerManagerModal({
 
                     {/* Page 4 */}
                     <div className="ambient-pop-page">
-                        <Row label="Width">
-                            <Chip on={!expand} onClick={() => pickExpand(false)}>FIT</Chip>
-                            <Chip on={expand} onClick={() => pickExpand(true)}>WIDE</Chip>
-                        </Row>
                         <Row label="Flip">
                             <Chip on={!flip} onClick={() => pickFlip(false)}>OFF</Chip>
                             <Chip on={flip} onClick={() => pickFlip(true)}>UPSIDE-DOWN</Chip>

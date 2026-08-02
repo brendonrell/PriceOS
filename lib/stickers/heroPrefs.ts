@@ -187,8 +187,24 @@ const DEFAULT_WIDE = 1.7;
    the box is ~370px wide, so half-height ≈ 25·s·aspect/370 of the box height —
    the margins MUST scale with the box shape or tall boxes under-protect. */
 function clampPt(p: RelaxPt, aspect: number) {
-    const my = Math.min(0.4, 0.068 * p.s * aspect);              // half-height, box-height units
-    const mx = Math.min(0.47, 0.068 * p.s * (p.w || DEFAULT_WIDE)); // half-width, x-norm units
+    /* ⛔ NOTHING HANGS OFF THE LID (Brendon, 2026-08-02, in fury: "MAKE THE
+       STICKERS FIT IN THE GODDAMN STICKER SPACE PROPERLY. MOST PEOPLE USE
+       PORTRAIT IPHONE").
+       The margins used to be CAPPED at 0.4 / 0.47 — so a sticker whose own
+       half-extent was bigger than the cap (a long @name chip, or anything at a
+       big scale on a narrow portrait box) got clamped to a margin SMALLER than
+       itself and its ends sat outside the area. A margin can never exceed half
+       the box, so the honest fix is the other way round: when a sticker cannot
+       fit at its rolled scale, the STICKER comes down until it does. It is
+       always fully inside afterwards, at every screen width. */
+    let my = 0.068 * p.s * aspect;
+    let mx = 0.068 * p.s * (p.w || DEFAULT_WIDE);
+    const worst = Math.max(my, mx);
+    if (worst > 0.48) {
+        p.s *= 0.48 / worst;
+        my = 0.068 * p.s * aspect;
+        mx = 0.068 * p.s * (p.w || DEFAULT_WIDE);
+    }
     p.x = Math.min(1 - mx, Math.max(mx, p.x));
     p.y = Math.min(1 - my, Math.max(my, p.y));
 }
