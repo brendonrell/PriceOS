@@ -2243,3 +2243,47 @@ redeployed** (needs Brendon's Cloudflare token — see the DEPLOY RECIPE below).
   resolve PD names without auth.
 - fx feed ops: manual run = GET the worker URL with `Bearer RUN_SECRET`
   (secret on the Worker). KV state keys: `cursor`, `posted`, `prices`.
+
+## ✅ SHIPPED 2026-08-01 — spot-edit round (Genome · Owners · keychain scroll · routing · 404)
+
+✅ **2026-08-01 (LATEST SESSION) — SPOT-EDIT ROUND, ALL SHIPPED** (on `dev`,
+tip `4c269c7`, tree clean, type-check clean, 192 tests green. ClickUp
+`86bb7299e`, Done in 02 · PriceOS (UI)):
+- **The Genome is legible.** Every mark on the map — points, rare rings, kin
+  lines, holdings rings, the live pulse, the frame — was drawn at
+  near-invisible alpha and vanished on a mid-tone colorway. Full-strength and
+  larger now; readout, ISOLATE/MINE, legend and axes to 12px full-strength
+  (Rule #2).
+- **OWNERS modal rebuilt** ("ugly… terrible and lazy"): holder tags are the
+  **output page's mini page-themed pills** and they **WRAP**; count + unique
+  moved from a bottom footnote to a **top stat line**; the sheet **fills the
+  screen** (head pinned top, list down to the home indicator) instead of a
+  340px column in dead space. ⛔ The sideways-scrolling tag strip is what
+  dragged the row off-screen and hid the @name and the piece count — never
+  put a list row's tags back on a nowrap scroller.
+- ⛔ **THE SCROLL DRIVE IS REMOVED FROM THE WORN KEYCHAIN — HIS DIAGNOSIS,
+  RULE #-3.** Scrolling shoved the chain and woke the solver, so a long
+  profile kept the charms recomputing the whole way down; throttling it to one
+  shove per frame (earlier the same day) was NOT enough. **The hang, the lean
+  and the jangle are untouched** — gravity and a real shake still drive them.
+  Do not reintroduce a scroll kick.
+- **Charms load already hanging in their lean.** They were seeded straight
+  down and the solver walked them over across a second of visible frames. Each
+  chain is now seeded along its OWN down and the rest pose paints in the mount
+  commit. (This is the load state of the locked hang in item 0 — it did not
+  change the shape.)
+- ⛔ **THE RESERVED-NAME LIST GATES SIGNUP ONLY, NEVER ROUTING** (Brendon,
+  verbatim: *"the point is solely to restrict who can use it as an @name"* —
+  @max is held for his friend Max). The URL resolver was checking it too, so a
+  name that HAS been claimed 404'd — that is what killed **@price**, a live
+  page the carousel links to. The check is gone from routing; the claim side
+  (the handle validators + account-create) is untouched, and an unclaimed name
+  still 404s on its own via the profile lookup. *A first pass special-cased
+  platform accounts in the resolver — that was working around the bug, and it
+  was removed.*
+- **PD has its own 404.** A dead address used to show Next's stock white page
+  with no exit but browser chrome. Ours renders inside the app shell, wears the
+  page colorway, and carries a BACK button. The full-app crash screen gained
+  BACK beside RELOAD; the routed-page crash screen already had one.
+- **Suite / Today:** the live-number tiles (ARMED · budget · earmarked) sit
+  **directly under the week strip**, not stranded below the whole ping list.
