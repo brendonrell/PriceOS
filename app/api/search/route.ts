@@ -402,10 +402,15 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         .limit(ARTWORK_LIMIT);
     }
     if (market === 'sold') {
+      /* A sale in the ledger is an XFER carrying a price — 'SALE' is a derived
+         label, never a stored type (the old filter matched zero rows, so the
+         SOLD lane was always empty). Barter trades store price null, so the
+         price filter excludes them. Fixed 2026-08-02 (data audit). */
       let b = supabase.from('events')
         .select('project_id, token_id, price_eth, timestamp')
         .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
-        .eq('type', 'SALE');
+        .eq('type', 'XFER')
+        .not('price_eth', 'is', null);
       if (parsed.priceMax != null) b = b.lte('price_eth', parsed.priceMax);
       if (parsed.priceMin != null) b = b.gte('price_eth', parsed.priceMin);
       if (artworkScope) b = b.in('project_id', artworkScope);

@@ -48,9 +48,14 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const db = getSupabaseAnon();
     const sinceSec = Math.floor(Date.now() / 1000) - days * 86_400;
     const [salesRes, projRes] = await Promise.all([
+      /* A sale is an XFER carrying a price — 'SALE' is a derived label, never
+         a stored type (the old filter matched zero rows, so the trend always
+         read as zero sales). Barter trades store price null, so the price
+         filter excludes them. Fixed 2026-08-02 (data audit). */
       db.from('events')
         .select('price_eth, timestamp')
-        .eq('type', 'SALE')
+        .eq('type', 'XFER')
+        .not('price_eth', 'is', null)
         .eq('project_id', slug)
         .gte('timestamp', sinceSec)
         .order('timestamp', { ascending: true })

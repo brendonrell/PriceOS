@@ -42,6 +42,8 @@ import { getArtistStars, toggleArtistStar, subscribeArtistStars } from '../../li
 import { getProjectStars, toggleProjectStar, subscribeProjectStars } from '../../lib/pins/projectStarStore';
 import { L3Pill } from '../project/traitsUIPills';
 import { moodOfDay } from '../../lib/mood/mood';
+import { useLongPress } from '../../lib/hooks/useLongPress';
+import { useModalActions } from '../../lib/state/ModalContext';
 
 /** One minting project, enriched with its computed birth-traits + mint price. */
 export interface EnrichedProject {
@@ -256,6 +258,12 @@ export default function HomeProjectFacetBar({
     const arrow = (key: HomeSortKey) =>
         sortKey === key ? (sortDir === 'asc' ? '↑︎' : '↓︎') : '';
 
+    /* NEW USERS ☻ (Brendon, 2026-08-02) — long-press the social pill opens the
+       signup feed; a plain tap still switches to the social sort. The house
+       hold gesture (useLongPress) swallows its own trailing click. */
+    const { open: openPdModal } = useModalActions();
+    const newUsersHold = useLongPress(() => openPdModal('newUsers'));
+
     if (projects.length === 0 && !leadPills) return null;
 
     return (
@@ -468,6 +476,7 @@ export default function HomeProjectFacetBar({
                         title="Social Feed"
                         onClick={() => onSort('social')}
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSort('social'); } }}
+                        {...newUsersHold}
                     >
                         {/* ☻ — the collector/user smiley as the social mark
                             (Brendon, 2026-07-26). Glyph only, no word — the row

@@ -8,45 +8,31 @@
  * for a seamless loop (consumers double their rail content at
  * populate time — see Ticker.tsx and TapeBox.tsx).
  *
- * Sim has two near-identical rAF loops with a shared speed source
- * (window._pdTapeSpeed). We collapse them into a single engine with
- * subscribers — each registered rail tracks its own offset, lastTs,
- * and halfWidth, but they all run on one rAF cadence and share
- * speed().
+ * ⛔ REBUILT 2026-08-02 (battery pass, Brendon): the per-frame rAF drive
+ * is gone. The top tape rides EVERY page, so the old loop woke the main
+ * thread 60–120×/sec for the whole session writing transforms. The scroll
+ * is now a pure compositor CSS animation (`pd-tape-scroll` keyframes in
+ * globals.css) — the SAME px/sec, the same seamless modulo-halfWidth loop,
+ * zero JS wakeups while it runs. Each rail carries its distance in
+ * `--tape-half` and its duration from the shared speed; a ResizeObserver
+ * per rail re-measures when the rail's size changes (window resize, the
+ * dropdown revealing a hidden rail, content landing async) — event-driven,
+ * no polling.
  *
  * Speed: DESKTOP_PX_PER_SEC=45, MOBILE_PX_PER_SEC=28 (sim 13271-13272).
  * Mobile threshold: window.innerWidth <= 600 (sim 13278).
  *
  * prefers-reduced-motion: sim's menu loop respects it (sim 6059-6060);
  * the top loop doesn't. We respect it for both — same UX intent across
- * surfaces. When reduce-motion is on, no rAF fires; rails stay static
- * at translate3d(0,0,0).
+ * surfaces. When reduce-motion is on, no animation is applied; rails stay
+ * static at translate3d(0,0,0).
  *
- * Resize: re-zero halfWidth for every subscriber (debounced 150ms,
- * matching sim 13386-13389). Each tick re-measures lazily when
- * halfWidth is 0 (sim 13329-13330 + 6048-6049) so a hidden rail
- * (display:none, dropdown closed, etc.) catches up to the right
- * width once it becomes visible.
- *
- * Cleanup: when the last subscriber unsubscribes, the rAF stops and
- * the rail's transform is reset to identity so an idle rail isn't
- * frozen mid-scroll.
+ * Cleanup: unsubscribe clears the rail's animation + var so an idle rail
+ * isn't frozen mid-scroll.
  */
 
 const DESKTOP_PX_PER_SEC = 45;
 const MOBILE_PX_PER_SEC = 28;
-
-interface Sub {
-    rail: HTMLElement;
-    offset: number;
-    halfWidth: number;
-    lastTs: number;
-}
-
-const subs = new Set<Sub>();
-let rafId: number | null = null;
-let resizeAttached = false;
-let resizeT: ReturnType<typeof setTimeout> | null = null;
 
 function isMobile(): boolean {
     return typeof window !== 'undefined' && window.innerWidth <= 600;
@@ -66,58 +52,19 @@ function prefersReducedMotion(): boolean {
     );
 }
 
-function tick(ts: number): void {
-    const pxPerSec = getTapeSpeed();
-    for (const s of subs) {
-        if (!s.rail.isConnected) continue;
-        if (!s.halfWidth) {
-            s.halfWidth = s.rail.scrollWidth / 2;
-            if (!s.halfWidth) {
-                // Rail not yet measurable (display:none / 0-width).
-                // Skip transform write; retry next tick.
-                continue;
-            }
-        }
-        const dt = s.lastTs ? (ts - s.lastTs) / 1000 : 0;
-        s.lastTs = ts;
-        s.offset += pxPerSec * dt;
-        if (s.halfWidth > 0 && s.offset >= s.halfWidth) {
-            s.offset -= s.halfWidth;
-        }
-        s.rail.style.transform = `translate3d(${-s.offset}px, 0, 0)`;
+/** Measure the rail and (re)apply the compositor animation. A rail that
+ *  isn't measurable yet (display:none / 0-width) gets no animation; its
+ *  ResizeObserver re-fires this the moment it gains real size. */
+function applyScroll(rail: HTMLElement, lastHalf: { w: number }): void {
+    const half = rail.scrollWidth / 2;
+    if (half === lastHalf.w) return;
+    lastHalf.w = half;
+    if (!half) {
+        rail.style.animation = 'none';
+        return;
     }
-    rafId = requestAnimationFrame(tick);
-}
-
-function ensureLoop(): void {
-    if (rafId != null) return;
-    if (typeof window === 'undefined') return;
-    if (prefersReducedMotion()) return;
-    rafId = requestAnimationFrame(tick);
-}
-
-function stopLoop(): void {
-    if (rafId != null) {
-        cancelAnimationFrame(rafId);
-        rafId = null;
-    }
-}
-
-function ensureResizeListener(): void {
-    if (resizeAttached || typeof window === 'undefined') return;
-    resizeAttached = true;
-    window.addEventListener(
-        'resize',
-        () => {
-            if (resizeT) clearTimeout(resizeT);
-            resizeT = setTimeout(() => {
-                for (const s of subs) {
-                    s.halfWidth = 0;
-                }
-            }, 150);
-        },
-        { passive: true },
-    );
+    rail.style.setProperty('--tape-half', `${half}px`);
+    rail.style.animation = `pd-tape-scroll ${half / getTapeSpeed()}s linear infinite`;
 }
 
 /**
@@ -125,26 +72,28 @@ function ensureResizeListener(): void {
  * have its content populated and doubled (so scrollWidth / 2 = one
  * full stream length).
  *
- * Returns an unsubscribe handler. When the last subscriber leaves,
- * the rAF loop stops and the rail transform is reset.
+ * Returns an unsubscribe handler that stops the scroll and resets the rail.
  */
 export function subscribeTapeRail(rail: HTMLElement): () => void {
     if (typeof window === 'undefined') return () => undefined;
+    if (prefersReducedMotion()) return () => undefined;
 
-    ensureResizeListener();
+    /* The engine used to write inline transforms — clear any leftover so the
+       keyframe owns the movement. */
+    rail.style.transform = '';
 
-    const sub: Sub = {
-        rail,
-        offset: 0,
-        halfWidth: 0,
-        lastTs: 0,
-    };
-    subs.add(sub);
-    ensureLoop();
+    const lastHalf = { w: -1 };
+    applyScroll(rail, lastHalf);
+
+    /* Size changes (window resize, hidden→shown, async content) re-measure.
+       The observer only fires on real change — nothing ticks in between. */
+    const ro = new ResizeObserver(() => applyScroll(rail, lastHalf));
+    ro.observe(rail);
 
     return () => {
-        subs.delete(sub);
+        ro.disconnect();
+        rail.style.animation = 'none';
+        rail.style.removeProperty('--tape-half');
         rail.style.transform = 'translate3d(0, 0, 0)';
-        if (subs.size === 0) stopLoop();
     };
 }

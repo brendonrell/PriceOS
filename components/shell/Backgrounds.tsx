@@ -174,14 +174,20 @@ export function Backgrounds() {
            here, gated by the start/stop pair below so it can never
            run unless the body class explicitly invites it. The
            Familiar engine is independent of this loop — its frame
-           cadence comes from setInterval inside familiarEngine.ts. */
+           cadence comes from setInterval inside familiarEngine.ts.
+           ⛔ Battery (2026-08-02): while the body is EMPTY, start()
+           schedules NOTHING — an empty rAF loop still wakes the CPU
+           60–120×/sec for the whole stargazing session. When real draw
+           work lands in tick, restore the requestAnimationFrame lines
+           here and in start(). */
         const tick = () => {
-            rafIdRef.current = requestAnimationFrame(tick);
+            rafIdRef.current = null;
         };
+        void tick;
 
         const start = () => {
             if (rafIdRef.current !== null) return;
-            rafIdRef.current = requestAnimationFrame(tick);
+            /* no draw work yet — nothing to schedule */
         };
 
         const stop = () => {

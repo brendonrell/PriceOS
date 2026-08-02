@@ -2024,6 +2024,15 @@ body.zen-mode .priceos-footer { display: none !important; }
     transform: translate3d(0, 0, 0);
 }
 
+/* The tape's scroll — a pure compositor animation (battery pass, 2026-08-02).
+   The engine (lib/engines/tapeEngine.ts) sets --tape-half to one stream length
+   and the duration from the shared px/sec; the doubled rail content makes the
+   wrap seamless. No JS runs while it scrolls. */
+@keyframes pd-tape-scroll {
+    from { transform: translate3d(0, 0, 0); }
+    to { transform: translate3d(calc(-1 * var(--tape-half, 0px)), 0, 0); }
+}
+
 .tape-item { flex-shrink: 0; }
 .tape-item.bold { font-weight: 700; }
 /* Null-state placeholder — quieter than real activity, but still legible. */

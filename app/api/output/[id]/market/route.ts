@@ -104,7 +104,10 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
         .eq('project_id', slug).eq('status', 'open')
         .or(`token_id.eq.${tokenId},scope.in.(collection,trait)`)
         .or(liveOr(now)),
-      db.from('events').select('price_eth, timestamp').eq('project_id', slug).eq('token_id', tokenId).eq('type', 'XFER').order('timestamp', { ascending: false }).limit(1).maybeSingle(),
+      // Last SALE = newest priced XFER. Without the price filter a later
+      // barter trade (price null) blanked the piece's real last sale
+      // (fixed 2026-08-02, data audit).
+      db.from('events').select('price_eth, timestamp').eq('project_id', slug).eq('token_id', tokenId).eq('type', 'XFER').not('price_eth', 'is', null).order('timestamp', { ascending: false }).limit(1).maybeSingle(),
       db.from('projects').select('floor_price_eth, contract_address, royalty_receiver').eq('id', slug).maybeSingle(),
       // All-time ETH that changed hands for THIS piece — primary (MINT) +
       // secondary (XFER) sales, mirroring the project-level Total Volume.
