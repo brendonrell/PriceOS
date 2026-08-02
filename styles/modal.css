@@ -2028,6 +2028,11 @@ body.modal-open { overflow: hidden; touch-action: none; }
     text-align: center;
     line-height: 1;
 }
+/* When the top row is a person's PriceSprite, the kind title rides along
+   hidden — ASCII-ID mode hides every face site-wide, and the title stands
+   back in so the row is never blank. */
+.ping-card-kind .ping-card-kind-ascii { display: none; }
+body.ascii-id-mode .ping-card-kind .ping-card-kind-ascii { display: inline; }
 .ms-confirm-question.ping-card-line {
     display: flex;
     align-items: baseline;

@@ -18,14 +18,32 @@
  * gets a small card.
  */
 
-import { useCallback, useMemo, type MouseEvent as ReactMouseEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { usePings } from '../lib/state/PingsContext';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import { useDropdown } from '../lib/state/DropdownContext';
+import { useToast } from '../lib/state/ToastContext';
 import { renderPing } from '../lib/pings/render';
+import { useSpriteFace } from '../lib/hooks/useSpriteFace';
+import SpriteFace from './SpriteFace';
+import { getTodos, subscribeTodos, toggleTodo, type TodoItem } from '../lib/todos/todoStore';
 
 const VS15 = '︎';
+
+/* The card's top row when a PERSON is involved — their PriceSprite (Brendon,
+   2026-08-02), at the ID-row's designated size. The kind title stands in while
+   the face loads, and under ASCII-ID mode (which hides every face site-wide). */
+function ActorTopRow({ handle, title }: { handle: string; title: string }) {
+    const face = useSpriteFace(handle);
+    if (!face) return <>{title}</>;
+    return (
+        <>
+            <SpriteFace className="id-row-sprite" face={face} />
+            <span className="ping-card-kind-ascii">{title}</span>
+        </>
+    );
+}
 
 /** The ping's own name for itself — the popup's title. */
 function titleOf(kind: string, reminder: string | null): string {
@@ -59,8 +77,37 @@ export default function PingModal() {
         [close],
     );
 
+    const { showToast } = useToast();
+
     const r = item ? renderPing(item) : null;
     const reminder = typeof item?.data?.reminder === 'string' ? (item.data.reminder as string) : null;
+
+    /* ── Complete the to-do RIGHT HERE (Brendon, 2026-08-02: the modal only
+       sent you to the To-Dos menu). The reminder ping carries the to-do's
+       text; match it against the real store — open first, then done, so the
+       button is a live toggle. The card STAYS OPEN and updates under your
+       finger (Rule #-0.55); the To-Dos door stays beside it. */
+    const isTodoPing = reminder === 'todo' || reminder === 'sentinel';
+    const pingText = typeof item?.data?.text === 'string' ? (item.data.text as string).trim() : '';
+    const [todoMatch, setTodoMatch] = useState<TodoItem | null>(null);
+    useEffect(() => {
+        if (!isOpen || !isTodoPing || !pingText) { setTodoMatch(null); return; }
+        const read = () => {
+            const all = getTodos();
+            setTodoMatch(
+                all.find((t) => !t.done && t.text.trim() === pingText)
+                ?? all.find((t) => t.done && t.text.trim() === pingText)
+                ?? null,
+            );
+        };
+        read();
+        return subscribeTodos(read);
+    }, [isOpen, isTodoPing, pingText]);
+    const onToggleTodo = () => {
+        if (!todoMatch) return;
+        const res = toggleTodo(todoMatch.id);
+        showToast(res === 'recurred' ? 'To-Do: RESCHEDULED' : res === 'reopened' ? 'To-Do: REOPENED' : 'To-Do: DONE');
+    };
     /* CLOCK TIMES ARE VIEWER-LOCAL, always — date and time from the same
        instant, in the reader's own zone. */
     const when = item
@@ -87,7 +134,13 @@ export default function PingModal() {
             onClick={onBackdropClick}
         >
             <div className="ms-confirm-card is-centered ping-card" onClick={(e) => e.stopPropagation()}>
-                <div className="ping-card-kind">{r ? titleOf(r.kind, reminder) : 'PING'}</div>
+                <div className="ping-card-kind">
+                    {item?.actor_name ? (
+                        <ActorTopRow handle={item.actor_name} title={r ? titleOf(r.kind, reminder) : 'PING'} />
+                    ) : (
+                        r ? titleOf(r.kind, reminder) : 'PING'
+                    )}
+                </div>
                 {r ? (
                     <>
                         <div className="ms-confirm-question ping-card-line">
@@ -103,7 +156,12 @@ export default function PingModal() {
                             <button type="button" className="ms-confirm-btn ms-confirm-btn--cancel" onClick={close}>
                                 Close
                             </button>
-                            {(reminder === 'todo' || reminder === 'sentinel') && (
+                            {isTodoPing && todoMatch && (
+                                <button type="button" className="ms-confirm-btn ms-confirm-btn--ok" onClick={onToggleTodo}>
+                                    {todoMatch.done ? `✓${VS15} DONE` : `❍${VS15} MARK DONE`}
+                                </button>
+                            )}
+                            {isTodoPing && (
                                 <button type="button" className="ms-confirm-btn ms-confirm-btn--ok" onClick={openTodos}>
                                     {`❍${VS15}`} OPEN TO-DOS
                                 </button>
