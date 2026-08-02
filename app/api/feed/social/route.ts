@@ -267,9 +267,58 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   if (viewer !== null && !ADDRESS_RE.test(viewer)) {
     return badRequest('Invalid `?viewer=` address');
   }
+  /* Scoped lenses (Brendon, 2026-08-02 — "the social version of the feed" on
+     profiles and project galleries): `?actor=` narrows to ONE wallet's story
+     (a profile / artist page), `?project=` to one project's outputs activity.
+     The relationship badges still read against the viewer's own graph. */
+  const actor = url.searchParams.get('actor')?.toLowerCase() ?? null;
+  const projectScope = url.searchParams.get('project') ?? null;
+  if (actor !== null && !ADDRESS_RE.test(actor)) {
+    return badRequest('Invalid `?actor=` address');
+  }
+  if (projectScope !== null && !/^[a-z0-9-]{1,64}$/.test(projectScope)) {
+    return badRequest('Invalid `?project=` slug');
+  }
 
   try {
     const db = getSupabaseService();
+
+    if (actor || projectScope) {
+      /* Best-effort graph read — badges only; a scoped lens never fails
+         because the viewer's graph can't be read. */
+      const graph = viewer ? await graphAddresses(db, viewer).catch(() => null) : null;
+      const relationOf = (a: string): SocialRelation =>
+        graph ? (graph.mutual.has(a) ? 'mutual' : graph.follow.has(a) ? 'follow' : null) : null;
+
+      let rows: EventRow[];
+      let albums: SocialAlbumRow[] = [];
+      if (actor) {
+        [rows, albums] = await Promise.all([
+          eventsFor(db, [actor]),
+          albumsFor(db, [actor], relationOf),
+        ]);
+      } else {
+        const { data, error } = await db
+          .from('events')
+          .select(EVENT_SELECT)
+          .eq('project_id', projectScope!)
+          .order('timestamp', { ascending: false })
+          .limit(WINDOW);
+        if (error) throw new Error(error.message);
+        rows = ((data ?? []) as DbEvent[])
+          .map(toEventRow)
+          .filter((e): e is EventRow => e !== null);
+      }
+      const page: SocialEventRow[] = rows.slice(0, limit).map((e) => {
+        const a = actorAddr(e);
+        return { ...e, relation: a ? relationOf(a) : null };
+      });
+      await attachHandles(db, page);
+      return NextResponse.json(
+        { events: page, albums, mode: graph ? 'graph' : 'top' } satisfies SocialFeedResponse,
+      );
+    }
+
     const graph = viewer ? await graphAddresses(db, viewer) : null;
 
     if (graph) {

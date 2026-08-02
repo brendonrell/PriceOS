@@ -140,6 +140,10 @@ interface TraitsUIProps {
        value pills (↳ value) occupy. Profile +More uses it for the Starred
        sub-category pills (All Starred / Collectors / …). */
     profileValueRow?: ReactNode;
+    /* ☻ — the social lens pill (Brendon, 2026-08-02): rides the sort row
+       after FEED; the page owns the state and the scoped feed it swaps in.
+       Tapping any real sort hands the grid back. */
+    socialPill?: { active: boolean; onToggle: () => void };
 }
 
 export default function TraitsUI({
@@ -149,6 +153,7 @@ export default function TraitsUI({
     profilePillsTrailing,
     profileSortControls,
     profileValueRow,
+    socialPill,
 }: TraitsUIProps) {
     const {
         activeCategory,
@@ -1153,30 +1158,46 @@ export default function TraitsUI({
                     <SortBtn
                         label={'#ID'}
                         family="id"
-                        active={sort === 'id'}
+                        active={sort === 'id' && !socialPill?.active}
                         dir={dir}
                         feedKind={feedKind}
                         rank={rank}
-                        onClick={() => gridSortWithToast('id')}
+                        onClick={() => { if (socialPill?.active) socialPill.onToggle(); gridSortWithToast('id'); }}
                     />
                     <SortBtn
                         label={'$PRICE'}
                         family="price"
-                        active={sort === 'price'}
+                        active={sort === 'price' && !socialPill?.active}
                         dir={dir}
                         feedKind={feedKind}
                         rank={rank}
-                        onClick={() => gridSortWithToast('price')}
+                        onClick={() => { if (socialPill?.active) socialPill.onToggle(); gridSortWithToast('price'); }}
                     />
                     <SortBtn
                         label="FEED"
                         family="feed"
-                        active={sort === 'feed'}
+                        active={sort === 'feed' && !socialPill?.active}
                         dir={dir}
                         feedKind={feedKind}
                         rank={rank}
-                        onClick={() => cycleSortWithToast('feed')}
+                        onClick={() => { if (socialPill?.active) socialPill.onToggle(); cycleSortWithToast('feed'); }}
                     />
+                    {/* ☻ — the social lens (Brendon, 2026-08-02): the home ☻
+                        pill's exact markup (Rule #0); the page swaps in the
+                        scoped social feed while it's lit. */}
+                    {socialPill && (
+                        <span
+                            className={`sort-btn sort-btn-social${socialPill.active ? ' active' : ''}`}
+                            role="button"
+                            tabIndex={0}
+                            title="Social — this project's story"
+                            onClick={socialPill.onToggle}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); socialPill.onToggle(); } }}
+                        >
+                            <span className="sort-lbl sort-lbl-recent">☻&#xFE0E;</span>
+                            <span className="sort-arrow">{socialPill.active ? '↓︎' : ''}</span>
+                        </span>
+                    )}
                     {/* D007 (sim 8438) — search-btn lives in the sort row
                         ONLY for Regular persona on non-feed (when
                         `.traits-ui` is hidden by D006 above and there are

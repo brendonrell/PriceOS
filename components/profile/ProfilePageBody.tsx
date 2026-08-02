@@ -101,6 +101,7 @@ import { PERSONA_TAGS, tagTextOn, TAG_PAINTS, isTeamStyleTag } from '../../lib/t
 import { NAME_FONTS, styleName } from '../../lib/profile/nameFont';
 import { getProject, allProjects, projectsByArtist, projectColorway, artistSignatureColor } from '../../lib/project/registry';
 import HomeProjectFacetBar from '../home/HomeProjectFacetBar';
+import SocialFeed from '../home/SocialFeed';
 import GhostCard from '../project/GhostCard';
 import ZenGarden from './ZenGarden';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
@@ -892,6 +893,14 @@ function ProfilePageBodyInner({
     if (onCollected) visitedCollected.current = true;
 
     const feedActive = onCollected && sort === 'feed';
+    /* ☻ SOCIAL — the sort row's smiley made real (Brendon, 2026-08-02): this
+       wallet's story as the home social feed, in its own styling. Page-local
+       state (never persisted into the sort), toggled off by any real sort. */
+    const [socialActive, setSocialActive] = useState(false);
+    const toggleSocial = useCallback(() => {
+        showToast(!socialActive ? 'Feed: SOCIAL' : 'Feed: OFF');
+        setSocialActive(!socialActive);
+    }, [socialActive, showToast]);
     /* A re-sort or re-group lands with one short ease (Brendon, 2026-07-30). */
     useGridSettle(`${sort}|${groupLayers.join('>')}`, onCollected && !feedActive);
     const sortedFeedEvents = useLedgerFeed(feedActive, `/api/feed?address=${user.address.toLowerCase()}&limit=100`, true);
@@ -959,7 +968,7 @@ function ProfilePageBodyInner({
        Showcase slot carries the token's own information panel instead of an
        empty grid. Collected still behaves normally — it is simply empty. */
     const isPlatform = isPlatformAccount(user.address);
-    const galleryVisible = ((onShowcase && !artistShowcaseCreated && !isPlatform) || onCollected) && !feedActive;
+    const galleryVisible = ((onShowcase && !artistShowcaseCreated && !isPlatform) || onCollected) && !feedActive && !(onCollected && socialActive);
 
     /* Showcase move mode only lives on YOUR OWN Static showcase grid. Leaving
        the tab, switching showcase style, or landing on the Created view all
@@ -2246,7 +2255,7 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                         Distinct from the project page's per-Project trait pills — a
                         collection spans independent projects, so it filters on the
                         platform facets every Output carries. */}
-                    {onCollected && <ProfileFacetBar holdings={enriched} isOwnProfile={isOwnProfile} profileAddress={user.address} />}
+                    {onCollected && <ProfileFacetBar holdings={enriched} isOwnProfile={isOwnProfile} profileAddress={user.address} socialActive={socialActive} onToggleSocial={toggleSocial} />}
 
                     {/* Artist-style Showcase — the home Now-Minting control surface
                         over this artist's own projects. Created · Top 6 lead the
@@ -2461,7 +2470,7 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
             <section
                 id="activity-feed"
                 aria-label="Activity Feed"
-                style={{ display: feedActive ? 'block' : 'none' }}
+                style={{ display: feedActive && !socialActive ? 'block' : 'none' }}
             >
                 <div className="feed-list" id="feedList">
                     {sortedFeedEvents.length === 0 ? (
@@ -2476,6 +2485,17 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                     ))}
                 </div>
             </section>
+
+            {/* ☻ SOCIAL — this wallet's story as the home social feed (streaks,
+                scenes, shelved albums, panoramas), the home wrapper verbatim
+                (Rule #0). The social lens for a person or an artist. */}
+            {onCollected && socialActive && (
+                <section className="home-uploads" aria-label="Social Feed">
+                    <div className="feed-list home-activity-feed home-social-feed">
+                        <SocialFeed dir="desc" actor={user.address.toLowerCase()} />
+                    </div>
+                </section>
+            )}
 
             {/* Artist-style Showcase · Created — the Now-Minting carousels of this
                 artist's own projects, filtered + sorted by the showcase facet bar.

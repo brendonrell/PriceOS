@@ -61,7 +61,7 @@
  * naming for sim-diff legibility.
  */
 
-import { useEffect, useState, type KeyboardEvent } from 'react';
+import { useCallback, useEffect, useState, type KeyboardEvent } from 'react';
 import { useProject, ProjectProvider } from '../../lib/state/ProjectContext';
 import { useGridSettle } from '../../lib/hooks/useGridSettle';
 import { getRememberedTab, rememberTab } from '../../lib/state/tabMemoryStore';
@@ -75,6 +75,7 @@ import ProjectTitleStar from './ProjectTitleStar';
 import { usePriceDay } from '../../lib/priceday/usePriceDay';
 import { GhostFeedRows } from '../GhostFeed';
 import FeedEventRow from '../feed/FeedEventRow';
+import SocialFeed from '../home/SocialFeed';
 import { fmtFeedDate } from '../profile/profilePageShared';
 import { useSort, groupHeaderGlyph } from '../../lib/state/SortContext';
 import { useToast } from '../../lib/state/ToastContext';
@@ -278,10 +279,19 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
     /* MIXED layout's lead — the set's first pick (insertion order). */
     const showcaseLeadId = [...projectShowcasePicks][0] ?? null;
     const feedActive = onArtworksTab && sort === 'feed';
-    const galleryVisible = (onShowcaseTab || onArtworksTab) && !feedActive;
+    /* ☻ SOCIAL — the sort row's smiley made real (Brendon, 2026-08-02): this
+       project's outputs activity as the home social feed. Page-local state
+       (never persisted into the sort); any real sort tap hands the grid back. */
+    const [socialActive, setSocialActive] = useState(false);
+    const toggleSocial = useCallback(() => {
+        showToast(!socialActive ? 'Feed: SOCIAL' : 'Feed: OFF');
+        setSocialActive(!socialActive);
+    }, [socialActive, showToast]);
+    const socialVisible = onArtworksTab && socialActive;
+    const galleryVisible = (onShowcaseTab || onArtworksTab) && !feedActive && !socialVisible;
     /* A re-sort or re-group lands with one short ease (Brendon, 2026-07-30). */
     useGridSettle(`${sort}|${groupLayers.join('>')}`, galleryVisible);
-    const feedVisible = onArtworksTab && feedActive;
+    const feedVisible = onArtworksTab && feedActive && !socialActive;
     /* Live grid column metrics — lets each grouping header cap its width to
        the columns its pieces occupy (glyph ends with the art, 2026-07-12). */
     /* Pre-mint, the trait filter bar would expose the project's feature names
@@ -581,7 +591,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                         sibling blocks share TraitsContext. Visibility
                         gating mirrors sim's switchCollectionTab — only
                         the Artworks tab shows trait/sort surfaces. */}
-                    <TraitsUI visible={traitsAndSortVisible} />
+                    <TraitsUI visible={traitsAndSortVisible} socialPill={{ active: socialActive, onToggle: toggleSocial }} />
 
                     {/* + More sub-nav trait pills — same surface as the
                         profile's + More. Groups the panel's sections. */}
@@ -831,6 +841,17 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                     ))}
                 </div>
             </section>
+
+            {/* ☻ SOCIAL — this project's outputs activity as the home social
+                feed (streaks, scenes, panoramas), the home wrapper verbatim
+                (Rule #0). The social lens for a project's outputs. */}
+            {socialVisible && (
+                <section className="home-uploads" aria-label="Social Feed">
+                    <div className="feed-list home-activity-feed home-social-feed">
+                        <SocialFeed dir="desc" project={project.slug} />
+                    </div>
+                </section>
+            )}
 
             {/* + More panel — Social / Stats / Attributes / Replay / Albums /
                 Genome / Gnome / Sentiment / Price Story / Offers. Section blocks +

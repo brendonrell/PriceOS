@@ -275,7 +275,13 @@ function projLink(slug: string): React.ReactNode {
     return <a className="f-highlight" href={`/art/${slug}`} onClick={(e) => e.stopPropagation()}>{title}</a>;
 }
 
-export default function SocialFeed({ dir }: { dir: 'asc' | 'desc' }) {
+export default function SocialFeed({ dir, actor, project }: {
+    dir: 'asc' | 'desc';
+    /** Scope the feed to one wallet's story (a profile / artist lens). */
+    actor?: string;
+    /** Scope the feed to one project's outputs activity. */
+    project?: string;
+}) {
     const { siweAddress } = useAuth();
     const [data, setData] = useState<SocialFeedResponse | null>(null);
 
@@ -283,7 +289,12 @@ export default function SocialFeed({ dir }: { dir: 'asc' | 'desc' }) {
         let cancelled = false;
         const load = () => {
             const addr = siweAddress?.toLowerCase();
-            fetch(`/api/feed/social${addr ? `?viewer=${addr}` : ''}`, { cache: 'no-store' })
+            const qs = new URLSearchParams();
+            if (addr) qs.set('viewer', addr);
+            if (actor) qs.set('actor', actor.toLowerCase());
+            if (project) qs.set('project', project);
+            const q = qs.toString();
+            fetch(`/api/feed/social${q ? `?${q}` : ''}`, { cache: 'no-store' })
                 .then((r) => (r.ok ? r.json() : null))
                 .then((d: SocialFeedResponse | null) => {
                     if (!cancelled && d) setData(d);
@@ -300,7 +311,7 @@ export default function SocialFeed({ dir }: { dir: 'asc' | 'desc' }) {
             cancelled = true;
             window.removeEventListener('pd:project-refresh', onRefresh);
         };
-    }, [siweAddress]);
+    }, [siweAddress, actor, project]);
 
     /* Loading OR nothing yet → ghost rows, never a text null state. */
     if (!data || (data.events.length === 0 && data.albums.length === 0)) return <GhostFeedRows />;

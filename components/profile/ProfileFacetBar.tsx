@@ -118,11 +118,17 @@ export default function ProfileFacetBar({
     holdings,
     isOwnProfile,
     profileAddress,
+    socialActive = false,
+    onToggleSocial,
 }: {
     holdings: EnrichedHolding[];
     isOwnProfile: boolean;
     /** The viewed profile's address — keys this Collected grid's grouping memory. */
     profileAddress: string;
+    /** The ☻ social lens — this wallet's story as the home social feed
+        (Brendon, 2026-08-02). Tapping another sort hands the grid back. */
+    socialActive?: boolean;
+    onToggleSocial?: () => void;
 }) {
     const {
         activeCategory,
@@ -223,6 +229,8 @@ export default function ProfileFacetBar({
             }));
     }, [layersAnchor, holdings]);
     const gridSortWithToast = (family: 'id' | 'price' | 'az') => {
+        /* Picking a real sort hands the grid back from the ☻ social lens. */
+        if (socialActive) onToggleSocial?.();
         const nextDir = sort === family ? (dir === 'asc' ? 'desc' : 'asc') : 'asc';
         const lbl = family === 'id' ? '#ID' : family === 'price' ? '$PRICE' : 'AZ';
         cycleSort(family);
@@ -463,16 +471,33 @@ export default function ProfileFacetBar({
                         <span className="sort-arrow">{sort === 'az' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
                     </span>
                     <span
-                        className={`sort-btn${sort === 'feed' ? ' active' : ''}`}
+                        className={`sort-btn${sort === 'feed' && !socialActive ? ' active' : ''}`}
                         role="button"
                         tabIndex={0}
                         title="Activity Feed"
-                        onClick={() => cycleSort('feed')}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleSort('feed'); } }}
+                        onClick={() => { if (socialActive) onToggleSocial?.(); cycleSort('feed'); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (socialActive) onToggleSocial?.(); cycleSort('feed'); } }}
                     >
                         <span className="sort-lbl">FEED</span>
-                        <span className="sort-arrow">{sort === 'feed' ? `${feedKind === 'price' ? '$' : ''}${dir === 'asc' ? '↑︎' : '↓︎'}` : ''}</span>
+                        <span className="sort-arrow">{sort === 'feed' && !socialActive ? `${feedKind === 'price' ? '$' : ''}${dir === 'asc' ? '↑︎' : '↓︎'}` : ''}</span>
                     </span>
+                    {/* ☻ — the social lens (Brendon, 2026-08-02): this wallet's
+                        story as the home social feed — streaks, scenes, shelved
+                        albums, panoramas — in the feed's own styling. The home
+                        ☻ pill's exact markup (Rule #0). */}
+                    {onToggleSocial && (
+                        <span
+                            className={`sort-btn sort-btn-social${socialActive ? ' active' : ''}`}
+                            role="button"
+                            tabIndex={0}
+                            title="Social — this wallet's story"
+                            onClick={onToggleSocial}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggleSocial(); } }}
+                        >
+                            <span className="sort-lbl sort-lbl-recent">☻&#xFE0E;</span>
+                            <span className="sort-arrow">{socialActive ? '↓︎' : ''}</span>
+                        </span>
+                    )}
                 </div>
             </div>
 
