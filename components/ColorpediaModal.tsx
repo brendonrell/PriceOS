@@ -22,7 +22,7 @@
  * (sticker-mgr-backdrop + ambient-pop + followers-pop) so it reads as family.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { lockBodyScroll, unlockBodyScroll } from '../lib/state/bodyScrollLock';
@@ -37,6 +37,28 @@ import { readColor, searchColors, neighbours, matchWord } from '../lib/color/col
 
 const VS15 = '︎';
 const FALLBACK = '#808080';
+
+/* ⛔ THE BOOK OPENS ON PURE WHITE OR PURE BLACK — the OPPOSITE of the page
+   (Brendon, 2026-08-02: "if it's dark mode use white, and vice versa"). Every
+   other panel wears the colorway, but this one is a book ABOUT colour: a
+   swatch judged against a tinted ground is judged wrong, and a neutral that
+   contrasts the page also stops the card melting into it. Read off the live
+   page tokens rather than any one setting, so it always agrees with whatever
+   the page is actually painted. */
+function pageIsDark(): boolean {
+    if (typeof window === 'undefined') return true;
+    const raw = getComputedStyle(document.documentElement)
+        .getPropertyValue('--bg-color').trim().replace('#', '');
+    const hex = raw.length === 3
+        ? raw.split('').map((c) => c + c).join('')
+        : raw.slice(0, 6);
+    if (hex.length !== 6) return true;
+    const r = parseInt(hex.slice(0, 2), 16) || 0;
+    const g = parseInt(hex.slice(2, 4), 16) || 0;
+    const b = parseInt(hex.slice(4, 6), 16) || 0;
+    // The same YIQ test the colorways pick their ink with.
+    return (r * 299 + g * 587 + b * 114) / 1000 < 128;
+}
 
 export default function ColorpediaModal() {
     const { stack, close } = useModal();
@@ -53,6 +75,9 @@ export default function ColorpediaModal() {
     }, [stack]);
     const [hex, setHex] = useState<string>(FALLBACK);
     const [query, setQuery] = useState('');
+    /* Decided each time it opens, so a colorway change between visits lands. */
+    const [dark, setDark] = useState(true);
+    useEffect(() => { if (isOpen) setDark(pageIsDark()); }, [isOpen]);
 
     /* Re-seed on each open (and whenever the door hands over a new colour). */
     useEffect(() => {
@@ -125,6 +150,9 @@ export default function ColorpediaModal() {
 
     const match = reading?.match ?? null;
 
+    const paper = dark ? '#FFFFFF' : '#000000';
+    const paperInk = dark ? '#000000' : '#FFFFFF';
+
     return createPortal(
         <div
             className="sticker-mgr-backdrop followers-backdrop cped-backdrop"
@@ -134,7 +162,21 @@ export default function ColorpediaModal() {
             aria-label="Colorpedia"
             onClick={close}
         >
-            <div className="ambient-pop followers-pop cped-pop" role="dialog" aria-label="Colorpedia" onClick={(e) => e.stopPropagation()}>
+            <div
+                className="ambient-pop followers-pop cped-pop"
+                role="dialog"
+                aria-label="Colorpedia"
+                onClick={(e) => e.stopPropagation()}
+                /* Re-point the two site tokens inside the card — the
+                   Depanneur's own way of being its own room — so every
+                   border, pill and rule in here follows without a rewrite. */
+                style={{
+                    background: paper,
+                    color: paperInk,
+                    ['--bg-color' as string]: paper,
+                    ['--text-color' as string]: paperInk,
+                } as CSSProperties}
+            >
                 <span
                     className="ambient-pop-close"
                     role="button"
@@ -160,7 +202,7 @@ export default function ColorpediaModal() {
                         type="text"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Search by: name · hex · RGB · CMYK · HSL"
+                        placeholder="Search by: name, hex, RGB, CMYK, HSL"
                         aria-label="Search colours by name, hex, RGB, CMYK or HSL"
                         autoComplete="off"
                         autoCorrect="off"
