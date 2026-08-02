@@ -357,9 +357,10 @@ export default function ProjectMorePanel({
 
             </>)}
             {moreL1 === 'albums' && (<>
-            {/* ALBUMS — real (2026-07-20): YOUR albums holding pieces of this
-                project, wearing the covers-wall 4-art mosaics. Replaced the
-                sim 5230-5244 named-mock cards with their empty cells. */}
+            {/* ALBUMS — real (2026-07-20): EVERY album holding pieces of this
+                project, each naming its maker (public albums, 2026-08-02),
+                wearing the covers-wall 4-art mosaics. Replaced the sim
+                5230-5244 named-mock cards with their empty cells. */}
             <div className="more-section-header">ALBUMS</div>
             <ProjectAlbumsTab slug={project.slug} />
 

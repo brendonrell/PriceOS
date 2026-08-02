@@ -907,8 +907,9 @@ function ProfilePageBodyInner({
     });
 
     // ── Zen mode: Albums-only in + More sub-nav ───────────────────────
+    // Albums are public (2026-08-02), so a visitor lands here too.
     useEffect(() => {
-        if (isZen && isOwnProfile && moreL1 !== 'albums') setMoreL1('albums');
+        if (isZen && moreL1 !== 'albums') setMoreL1('albums');
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isZen]);
 
@@ -929,8 +930,10 @@ function ProfilePageBodyInner({
         // Visitors never see private Starred/Wishlists — fall to Created (when
         // this artist surfaces it) else Albums.
         /* Offers joined the private set 2026-08-01 — a visitor landing on a
-           stale 'offers' key would open a tab that has no pill any more. */
-        if (!isOwnProfile && (v === 'starred' || v === 'wishlists' || v === 'history' || v === 'albums' || v === 'offers')) {
+           stale 'offers' key would open a tab that has no pill any more.
+           ⛔ ALBUMS LEFT THE PRIVATE SET 2026-08-02 (Brendon): albums are
+           public, so a visitor's 'albums' key opens the keeper's real shelf. */
+        if (!isOwnProfile && (v === 'starred' || v === 'wishlists' || v === 'history' || v === 'offers')) {
             v = createdUnderMore ? 'created' : 'vault';
         }
         return v;
@@ -1852,11 +1855,10 @@ function ProfilePageBodyInner({
                             visible={true}
                             hideSortBar
                             profilePills={
-                                /* Zen's single Albums tab is a view of YOUR OWN
-                                   shelf — on someone else's profile there is
-                                   nothing behind it, so visitors get the ordinary
-                                   row instead (Brendon, 2026-07-31). */
-                                (isZen && isOwnProfile
+                                /* Zen's single Albums tab. Albums are public
+                                   (Brendon, 2026-08-02), so a visitor gets the
+                                   keeper's shelf behind it — read-only. */
+                                (isZen
                                     ? [{ key: 'albums', label: <><span className="pill-tab-ico is-album">{'◰︎'}</span> Albums</>, active: effMoreL1 === 'albums', onClick: () => setMoreL1('albums') }]
                                     : [
                                         /* Cooldown leads the whole row — the live clock
@@ -1878,19 +1880,19 @@ function ProfilePageBodyInner({
                                         ...(createdUnderMore
                                             ? [{ key: 'created', label: 'Created', active: effMoreL1 === 'created', onClick: () => setMoreL1('created') }]
                                             : []),
+                                        /* ⛔ ALBUMS ARE PUBLIC (Brendon,
+                                           2026-08-02) — the pill stands on
+                                           EVERY profile, and a visitor reads
+                                           the keeper's shelf. It was own-only
+                                           from 2026-07-31 purely because an
+                                           album was private then. */
+                                        { key: 'albums', label: <><span className="pill-tab-ico is-album">{'◰︎'}</span> Albums</>, active: effMoreL1 === 'albums', onClick: () => setMoreL1('albums') },
                                         /* Starred + Wishlists are private — the
-                                           pills exist on YOUR OWN profile only.
-                                           ⛔ Albums joined them 2026-07-31
-                                           (Brendon): an album is private, so on
-                                           someone else's profile the tab only ever
-                                           opened onto a locked-door note. A tab
-                                           that can never show anything is not a
-                                           tab — it's hidden. */
+                                           pills exist on YOUR OWN profile only. */
                                         ...(isOwnProfile
                                             ? [
                                                 { key: 'starred',   label: <><span className="pill-tab-ico is-star">{'★︎'}</span> Starred</>,   active: effMoreL1 === 'starred',   onClick: () => setMoreL1('starred')   },
                                                 { key: 'wishlists', label: <><span className="pill-tab-ico">{'✛︎'}</span> Wishlist</>, active: effMoreL1 === 'wishlists', onClick: () => setMoreL1('wishlists') },
-                                                { key: 'albums',    label: <><span className="pill-tab-ico is-album">{'◰︎'}</span> Albums</>,    active: effMoreL1 === 'albums',    onClick: () => setMoreL1('albums')    },
                                                 /* ⛔ OFFERS IS OWN-PROFILE ONLY (Brendon, 2026-08-01). The
                                                    wallet-level offers view isn't built, so on someone else's
                                                    profile the tab could only ever say "no offers yet" — a dead
