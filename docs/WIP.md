@@ -108,8 +108,9 @@
      untouched.
 
 ✅ **2026-08-02 (LATEST SESSION) — THE REAL LAG CAUSE · STICKERS · KEYCHAINS
-SWITCH · GROUPING PERSISTENCE · RARITY SORT** (on `dev`, tip `bebab31`, tree
-clean, type-check clean, 192 tests green. ClickUp `86bb734jz`):
+SWITCH · GROUPING PERSISTENCE · RARITY SORT · STICKER MODES** (on `dev`, tip
+`180fe78`, tree clean, type-check clean, 192 tests green. ClickUp `86bb734jz`
++ `86bb735t6`):
 
 - ⛔ **THE LAG WAS THE PICTURE READER, AND HE NARROWED IT HIMSELF (Rule #-3).**
   *"On my profile the lag completely goes away when I'm on the showcase tab or
@@ -178,16 +179,30 @@ clean, type-check clean, 192 tests green. ClickUp `86bb734jz`):
   that cannot fit comes down; an option that only works on a wide screen does
   not ship).
 
-⛔ **HIS CALL, NOTHING BUILT — the sticker MODES.** *"In general I dislike our
-sticker layouts, they never look cohesive, our modes suck frankly."* The read
-given: seven modes but only two ideas — Row/Spaced are one thing at different
-gaps, and Scatter/Fill/Collage/Slapped are all random placement with different
-caps and overlap flags, so none has an identity. Cohesion comes from alignment
-and repetition; those four place at random and shove apart until nothing
-collides, which is avoidance, not composition. **Proposed (awaiting his go):
-three composed modes — a real baseline ROW, a PILE with a constant step and
-rotation ramp, and SLAPPED on a jittered GRID.** Grid-with-jitter reads
-deliberate where pure random never can.
+- ⛔ **STICKER MODES REBUILT — THREE GESTURES, ONE OF THEM WILD (his call, then
+  his spec).** *"Our modes suck frankly… we can have one wild one but right now
+  they almost all read that way"*, then: *"I want the row but artfully placed,
+  not a strict row that just looks like a computer placed them."*
+  There were seven modes but only TWO ideas — SPACED/ROW were one thing at two
+  gaps, and SCATTER/FILL/COLLAGE/SLAPPED were all random placement with
+  different caps and overlap flags. Cohesion comes from alignment and
+  repetition; those four placed at random and shoved apart until nothing
+  collided, which is avoidance, not composition. Each mode is now its own
+  GESTURE:
+    - **ROW** — one slow WAVE of lift runs along the row so neighbours relate
+      the way a hand places them; lean and a whisker of size ride the same wave
+      a quarter-turn out of phase; the gaps are uneven. Still a row, it just
+      breathes. Seeded — Shuffle re-rolls, a reload repeats it.
+    - **PILE** (was STACK) — a constant step along and a constant few degrees
+      further round each time, so it reads as ONE gesture. Hue ordering kept, so
+      consecutive colours never land on each other.
+    - **SLAPPED** — the wild one, and the ONLY one.
+  ⛔ **THE RETIRED IDS ARE NOT DELETED.** Setup Codes encode the arrangement by
+  its POSITION in `ARRANGE_IDS` and Spreads store the id — removing one would
+  silently rewrite every code and look ever saved. They stay in the type and
+  normalise on read (`normalizeArrange`): spread/fill → ROW, scatter → SLAPPED,
+  collage → PILE. SURPRISE rolls only the live three; the SPILL egg rides the
+  wild one.
 
 ⛔ **THE DISPATCH EMAIL HAS NEVER SENT AND CANNOT — ONE MISSING SETTING.
 BRENDON SAID LEAVE IT (2026-08-01), so it is NOT queued work; this is here so
