@@ -207,6 +207,12 @@
     width: 30px;
     padding: 0;
 }
+/* The ⌕ itself (not the × it swaps to): one size smaller, 2px lower
+   (Brendon, 2026-08-02). The box stays pinned. */
+.pd-docs-index-btn.pd-docs-search-btn:not(.open) {
+    font-size: 20px;
+    padding-top: 2px;
+}
 /* Phone widths: the neighbours shrink to 11px type, so the key matches that
    box instead. Sits after the base rule so it actually wins. */
 @media (max-width: 480px) {
