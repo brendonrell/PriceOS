@@ -55,7 +55,7 @@ import { working, loreAnswer, eightballVerdict, fortuneReading, JOKES, pickJoke 
 import { subscribeFm, getFm, fmPlay, fmToggle, fmNext } from '../../lib/fm/fmBus';
 import { formatStoneDate, formatDaysAway, todoPhrase, type StoneDate } from '../../lib/stone/dates';
 import { MOODS, MARKET_MOODS, type MoodDef, type MarketMoodDef } from '../../lib/stone/moods';
-import { TOKENS } from '../../lib/stone/tokens';
+import { TOKENS, ARTCOINS } from '../../lib/stone/tokens';
 import { searchAtlas } from '../../lib/docs/features';
 import { WORLD, worldAnswer } from '../../lib/stone/world';
 import { PerMilleMark } from '../shell/PerMilleMark';
@@ -2466,6 +2466,39 @@ function TokenWidget({ symbol, address }: { symbol: string; address: string }) {
     );
 }
 
+/* ── THE ARTCOINS — the whole fxhash artcoin family as one tappable hand
+      (Brendon, 2026-08-02: "typing 'artcoins' shows the full list").
+      The list is the registry's artcoin family — the fx-artcoin-feed
+      master sheet's tracked coins, in its order. A tap seeds `$symbol`,
+      which deals that coin's own live card (the moods-hand grammar). ── */
+
+function ArtcoinsWidget({ onSeed }: { onSeed: (text: string) => void }) {
+    return (
+        <div className="stone-widget sw-card">
+            <SwTitle
+                glyph={`◊${VS15}`}
+                label="THE ARTCOINS"
+                sub={`${ARTCOINS.length} TRACKED · BASE`}
+            />
+            {ARTCOINS.map((t) => (
+                <div
+                    key={t.address ?? t.symbol}
+                    className="sw-hit sw-tap"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => onSeed(`$${t.symbol.toLowerCase()}`)}
+                >
+                    <span className="sw-hit-ic">{`◊${VS15}`}</span>
+                    <span className="sw-hit-body">
+                        <span className="sw-hit-main">{`$${t.symbol.toUpperCase()}`}</span>
+                    </span>
+                </div>
+            ))}
+            <SwHint text="tap a coin for its live card · $symbol summons it by name" />
+        </div>
+    );
+}
+
 /* ── ◉ THE COLOUR — the Colorpedia in the stone's hand (Brendon,
       2026-08-01). Three layers, in the order he asked for them:
 
@@ -2718,6 +2751,7 @@ export function WidgetDeck({ plan, address, onGo, onAct, onFooter, onSeed, wornM
         );
         case 'joke': return <JokeWidget onFooter={onFooter} />;
         case 'token': return <TokenWidget symbol={plan.symbol} address={address} />;
+        case 'artcoins': return <ArtcoinsWidget onSeed={onSeed} />;
         case 'world': return <WorldWidget topic={plan.topic} seed={plan.topic} />;
         case 'color': return <ColorWidget hex={plan.hex} typed={plan.typed} onGo={onGo} />;
     }

@@ -98,6 +98,9 @@ export type WidgetPlan =
     | { kind: 'joke' }
     /* "$price" · "$eth" — the rich coin card (lib/stone/tokens). */
     | { kind: 'token'; symbol: string }
+    /* "artcoins" — the whole fxhash artcoin family dealt as one tappable
+       hand (Brendon, 2026-08-02); a tap seeds that coin's own card. */
+    | { kind: 'artcoins' }
     /* "what is price discussion" · "art blocks" · "verse" — the ecosystem
        knowledge + the house takes (lib/stone/world). */
     | { kind: 'world'; topic: string };
@@ -171,6 +174,9 @@ export function parseWidget(line: string, now: Date = new Date()): WidgetPlan | 
     /* Bare `moods` deals the set — the singular words CAST (checked first
        in the stone, so `mood` still flips cozy, never lands here). */
     if (MOODS_WORDS.has(q)) return { kind: 'moods' };
+    /* Bare `artcoins` deals the whole family (2026-08-02). Checked before
+       the single-coin match — no artcoin's summon word collides. */
+    if (['artcoins', 'artcoin', 'art coins', 'the artcoins'].includes(q)) return { kind: 'artcoins' };
 
     /* ── THE COLOUR (2026-08-01) — the Colorpedia, in the stone's hand.
        Summoned the exact way everything else is: `color <x>` / `colour <x>` /
