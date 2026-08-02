@@ -2091,10 +2091,11 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                     )}
 
                     {/* Albums — the covers grid → album drill-in (iOS-Photos
-                        simple, power under SELECT/▶). Numbered only, PRIVATE:
-                        other profiles get the quiet note inside the panel. */}
+                        simple, power under SELECT/▶). Numbered only, and PUBLIC
+                        (Brendon, 2026-08-02): a visitor reads the keeper's shelf
+                        and can watch the show; only the keeper can edit it. */}
                     {onMore && effMoreL1 === 'albums' && (
-                        <AlbumsPanel own={isOwnProfile} />
+                        <AlbumsPanel own={isOwnProfile} address={user.address} />
                     )}
 
                     {/* Offers sub-tab — the wallet-level offers view isn't built

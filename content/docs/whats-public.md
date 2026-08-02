@@ -29,7 +29,7 @@ Everything on a profile page is public to every visitor:
 - Your **[Vault](/docs/app/identity-and-profiles)** (⧈) — the numbered walls of owned pieces you designate as vaulted, stats block included.
 - Your **faction allegiance and oath history** — the flag you fly, your time under it, and any defection scar. Your forged **Sigil** trails your @name everywhere. See [Factions](/docs/factions).
 - **Takeover verdicts** — casting one banners both profiles for its 72 hours, and the outcome (COMPLETED / PARTIAL / WITHSTOOD) is inscribed on the record. WITHSTOOD is worn for 180 days.
-- **Albums** — your named sets display on your own profile today; serving them publicly to visitors is rolling out. Treat album names and contents as public-bound.
+- **Albums** — public shelves. Anyone can see an album and who made it: your profile, the artwork's Albums tab, and every Project page whose work you've shelved, where the tile carries your @name over the album number. Albums are numbered, never named — the art is the only thing they say. See [Albums](/docs/albums).
 
 ## Social and market
 

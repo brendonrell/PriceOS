@@ -39,4 +39,4 @@ There is no personal-information layer to leak: **a wallet is the entire account
 
 ## The line, in one sentence
 
-**Public is what you do and display; private is what you save, set, and intend.** When a feature moves something across that line — the way Albums are rolling from own-profile display to public shelves — the docs and the surface both say so before it moves.
+**Public is what you do and display; private is what you save, set, and intend.** When a feature moves something across that line — the way [Albums](/docs/albums) moved from own-profile display to public shelves — the docs and the surface both say so.

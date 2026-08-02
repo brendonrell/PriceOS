@@ -49,7 +49,7 @@ Three ways of holding work you don't (yet) own, with deliberate privacy defaults
 | --- | --- | --- | --- |
 | Starred | ★ | Private | A frequent, silent bookmark |
 | Wishlist | ✛ | Private | Buy intent — drives financial Pings |
-| Albums | ◰ | Displayed on your profile; public shelves rolling out | Curated named sets within a Project, with living mosaic covers |
+| Albums | ◰ | Public — anyone sees the album and its maker | Numbered, never-named shelves you curate, with living mosaic covers. See [Albums](/docs/albums) |
 
 **Grail Pins** (⟟) elevate the few pieces that matter most, pinned to the top of your rows.
 

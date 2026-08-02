@@ -237,10 +237,10 @@ export function useAlbumsWorth(albums: ReadonlyArray<AlbumRecord>): (a: AlbumRec
     }, [priceVersion]);
 }
 
-export default function AlbumsPanel({ own }: { own: boolean }) {
+export default function AlbumsPanel({ own, address }: { own: boolean; address?: string | null }) {
     const { showToast } = useToast();
     const { open: openModal } = useModal();
-    const [albums, setAlbums] = useState<ReadonlyArray<AlbumRecord>>(() => getAlbums());
+    const [albums, setAlbums] = useState<ReadonlyArray<AlbumRecord>>(() => (own ? getAlbums() : []));
     const [openId, setOpenId] = useState<string | null>(null);
     const [selecting, setSelecting] = useState(false);
     const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -249,9 +249,23 @@ export default function AlbumsPanel({ own }: { own: boolean }) {
     const [confirm, setConfirm] = useState<{ question: string; ok: string; onConfirm: () => void } | null>(null);
 
     useEffect(() => {
+        if (!own) return;
         setAlbums(getAlbums());
         return subscribeAlbums((next) => setAlbums(next));
-    }, []);
+    }, [own]);
+
+    /* A VISITOR reads the keeper's shelf off the public route (Brendon,
+       2026-08-02 — albums are public). Only the `albums` key leaves the
+       owner's envelope; everything else in it stays private. */
+    useEffect(() => {
+        if (own || !address) return;
+        let cancelled = false;
+        fetch(`/api/user/${address.toLowerCase()}/albums`, { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => { if (!cancelled && Array.isArray(d?.albums)) setAlbums(d.albums as AlbumRecord[]); })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [own, address]);
 
     const openAlbum = albums.find((a) => a.id === openId) ?? null;
     const openNumber = openAlbum ? albums.findIndex((a) => a.id === openAlbum.id) + 1 : 0;
@@ -294,16 +308,14 @@ export default function AlbumsPanel({ own }: { own: boolean }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [members, priceVersion]);
 
-    if (!own) {
-        return <p className="info-rubik album-private-note">Albums are private — only their keeper sees inside.</p>;
-    }
-
     /* ── Covers grid ─────────────────────────────────────────────────────── */
     if (!openAlbum) {
         return (
             <div className="albums-wrap">
                 {albums.length === 0 && (
-                    <p className="album-empty-note">No albums yet — start your first.</p>
+                    <p className="album-empty-note">
+                        {own ? 'No albums yet — start your first.' : 'No albums on this shelf yet.'}
+                    </p>
                 )}
                 {/* .albums-covers, NOT .albums-grid — that name belongs to the
                     project page's legacy albums tab and drags its padding in
@@ -312,18 +324,20 @@ export default function AlbumsPanel({ own }: { own: boolean }) {
                     {albums.map((a, i) => (
                         <AlbumCoverTile key={a.id} album={a} number={i + 1} listedEth={albumWorth(a)} onOpen={() => setOpenId(a.id)} />
                     ))}
-                    <button
-                        type="button"
-                        className="album-tile album-tile-new"
-                        onClick={() => {
-                            const rec = createAlbum();
-                            showToast(`Album #${albums.length + 1}: CREATED`);
-                            setOpenId(rec.id);
-                        }}
-                    >
-                        <span className="album-tile-art album-tile-plus">＋</span>
-                        <span className="album-tile-label"><span className="album-tile-name">NEW ALBUM</span></span>
-                    </button>
+                    {own && (
+                        <button
+                            type="button"
+                            className="album-tile album-tile-new"
+                            onClick={() => {
+                                const rec = createAlbum();
+                                showToast(`Album #${albums.length + 1}: CREATED`);
+                                setOpenId(rec.id);
+                            }}
+                        >
+                            <span className="album-tile-art album-tile-plus">＋</span>
+                            <span className="album-tile-label"><span className="album-tile-name">NEW ALBUM</span></span>
+                        </button>
+                    )}
                 </div>
             </div>
         );
@@ -387,13 +401,15 @@ export default function AlbumsPanel({ own }: { own: boolean }) {
                             ▶{VS15}
                         </button>
                     )}
-                    <button
-                        type="button"
-                        className={`album-head-btn album-select-btn${selecting ? ' on' : ''}`}
-                        onClick={() => { setSelecting((v) => !v); setSelected(new Set()); }}
-                    >
-                        {selecting ? 'DONE' : 'SELECT'}
-                    </button>
+                    {own && (
+                        <button
+                            type="button"
+                            className={`album-head-btn album-select-btn${selecting ? ' on' : ''}`}
+                            onClick={() => { setSelecting((v) => !v); setSelected(new Set()); }}
+                        >
+                            {selecting ? 'DONE' : 'SELECT'}
+                        </button>
+                    )}
                 </span>
             </div>
 
@@ -404,7 +420,9 @@ export default function AlbumsPanel({ own }: { own: boolean }) {
             )}
 
             {members.length === 0 && (
-                <p className="album-empty-note">Empty — add pieces from any artwork&rsquo;s ◰{VS15} or a multi-select bar.</p>
+                <p className="album-empty-note">
+                    {own ? <>Empty — add pieces from any artwork&rsquo;s ◰{VS15} or a multi-select bar.</> : 'Empty.'}
+                </p>
             )}
 
             <div className="album-pieces">

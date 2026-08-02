@@ -12,7 +12,7 @@ Definitions for terms used throughout Price Discussion, alphabetically. The nome
 
 ## A–C
 
-**Album** — A user-curated, named grouping of Outputs within a Project, with living mosaic covers. Displays on the owner's profile; public shelves are rolling out. See [Identity & Profiles](/docs/app/identity-and-profiles).
+**Album** — A user-curated, ordered shelf of Outputs, with living mosaic covers. Numbered, never named. Public: anyone can see an album and who made it. See [Albums](/docs/albums).
 
 **Anointment** — The community's recognition mechanism for elevating specific works into higher visibility.
 

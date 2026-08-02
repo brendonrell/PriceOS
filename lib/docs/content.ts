@@ -123,6 +123,10 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
         slugs: ['composer'],
     },
     {
+        title: 'Albums',
+        slugs: ['albums'],
+    },
+    {
         title: 'Lists',
         slugs: ['lists'],
     },
