@@ -197,38 +197,56 @@ export async function requestMotion(): Promise<MotionState> {
    don't give up: we wait for the page's next genuine tap and re-arm off that,
    silently (an already-granted site shows no sheet), and keep waiting until it
    takes. Scroll-only motion holds the chain up in the meantime. */
+/* ⛔ THE ASK RIDES A TAP ON THE KEYCHAIN — NOTHING ELSE, EVER (Brendon,
+   2026-08-01: the iOS motion sheet fired when he opened the CONNECT MENU).
+   The re-arm used to listen on the whole window, so the first thing he touched
+   after a load carried the permission ask, whatever it was. It listens on the
+   worn keychain itself now: touch your charms and tilt comes back, exactly as
+   the first EQUIP asks. No other control on the site can raise that sheet. */
+let retryWanted = false;
 let retryArmed = false;
 let retryInFlight = false;
-/* ⛔ IT DOES NOT ASK ON EVERY TAP FOREVER (Brendon, 2026-08-01, after the
-   motion sheet appeared on the connect menu). The re-arm still rides a real
-   tap — but a handful of refusals means this visit isn't getting the sensor
-   back, and carrying on puts a permission ask behind every button on the site. */
-const RETRY_LIMIT = 3;
-let retriesLeft = RETRY_LIMIT;
+let armTarget: HTMLElement | null = null;
+
+function askAgain() {
+    if (motion === 'granted') { disarm(); return; }
+    if (retryInFlight) return;
+    retryInFlight = true;
+    void requestMotion()
+        .then((m) => {
+            retryInFlight = false;
+            if (m === 'granted') { retryWanted = false; disarm(); }
+        })
+        .catch(() => { retryInFlight = false; });
+}
+
+function arm() {
+    if (retryArmed || !retryWanted || !armTarget) return;
+    retryArmed = true;
+    armTarget.addEventListener('touchend', askAgain, true);
+    armTarget.addEventListener('click', askAgain, true);
+}
+
+function disarm() {
+    if (armTarget && retryArmed) {
+        armTarget.removeEventListener('touchend', askAgain, true);
+        armTarget.removeEventListener('click', askAgain, true);
+    }
+    retryArmed = false;
+}
 
 function retryOnTap() {
-    if (retryArmed || retriesLeft <= 0 || typeof window === 'undefined') return;
-    retryArmed = true;
-    const go = () => {
-        if (motion === 'granted') { stop(); return; }
-        if (retryInFlight) return;
-        if (retriesLeft <= 0) { stop(); return; }
-        retriesLeft -= 1;
-        retryInFlight = true;
-        void requestMotion()
-            .then((m) => {
-                retryInFlight = false;
-                if (m === 'granted' || retriesLeft <= 0) stop();
-            })
-            .catch(() => { retryInFlight = false; if (retriesLeft <= 0) stop(); });
-    };
-    const stop = () => {
-        retryArmed = false;
-        window.removeEventListener('touchend', go, true);
-        window.removeEventListener('click', go, true);
-    };
-    window.addEventListener('touchend', go, true);
-    window.addEventListener('click', go, true);
+    if (typeof window === 'undefined') return;
+    retryWanted = true;
+    arm();
+}
+
+/** The worn keychain hands itself over as the ONLY thing that can re-ask. */
+export function setMotionArmTarget(el: HTMLElement | null): void {
+    if (armTarget === el) return;
+    disarm();
+    armTarget = el;
+    arm();
 }
 
 /**

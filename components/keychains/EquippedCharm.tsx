@@ -38,6 +38,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { useModal } from '../../lib/state/ModalContext';
+import { useDropdown } from '../../lib/state/DropdownContext';
 import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
 import TailBubble, { anchorFromEvent, type BubbleAnchor } from '../shared/TailBubble';
@@ -49,7 +50,7 @@ import { useKeychainRack, bustRack } from '../../lib/keychains/rack';
 import { useParkOffscreen } from '../../lib/keychains/park';
 import { computeOwnedFor, getColourLock, applyColourLock, clearColourLock } from '../../lib/stickers/owned';
 import { hueFamilyForHex, swatchOfSticker } from '../stickers/StickerManagerModal';
-import { gravity, onWake, reducedMotion, requestMotion, resumeMotion, startSway, takeKick } from '../../lib/keychains/sway';
+import { gravity, onWake, reducedMotion, requestMotion, resumeMotion, setMotionArmTarget, startSway, takeKick } from '../../lib/keychains/sway';
 
 const VS15 = '︎';
 
@@ -305,6 +306,16 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
     const linkRefs = useRef<(HTMLSpanElement | null)[][]>([]);
     const charmRefs = useRef<(HTMLSpanElement | null)[]>([]);
     const hostRef = useRef<HTMLSpanElement | null>(null);
+    /* Is the connect menu over the top of it? (Modals are read off the body.) */
+    const { menuOpen } = useDropdown();
+    const menuRef = useRef(false);
+    const coverRef = useRef<((on: boolean) => void) | null>(null);
+    useEffect(() => {
+        menuRef.current = menuOpen;
+        coverRef.current?.(
+            menuOpen || (typeof document !== 'undefined' && document.body.classList.contains('modal-open')),
+        );
+    }, [menuOpen]);
     /* The switcher draws the whole rack — only the visible tiles stay alive.
        The count goes to nought while the bubble is shut, so the tiles are
        picked up fresh each time it opens. */
@@ -313,6 +324,8 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
 
     useEffect(() => {
         if (!arts.length) return;
+        /* The only thing on the site allowed to raise the iOS motion sheet. */
+        setMotionArmTarget(hostRef.current);
         resumeMotion();
         const stopSway = startSway();
 
@@ -411,9 +424,16 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
            see is pure waste. Coming back it drops the shoves it missed and
            carries on; the hang and the bob are untouched. */
         let onScreen = true;
+        /* ⛔ AND NOT WHILE SOMETHING IS OVER THE TOP OF IT (Brendon, 2026-08-01:
+           the connect menu is laggy since the charms landed). The menu and every
+           modal open ON TOP of the profile — the chain is still "on screen" as
+           far as the viewport is concerned, so it kept solving, and its art kept
+           animating, underneath the thing he was actually using. Covered is the
+           same as parked: it stops dead and picks up where it left off. */
+        let covered = false;
 
         const step = () => {
-            if (!onScreen || document.hidden) { raf = 0; return; }
+            if (!onScreen || covered || document.hidden) { raf = 0; return; }
             const g = gravity();
             const k = takeKick();
             const gx0 = g.x * GRAV;
@@ -469,18 +489,41 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
         };
 
         const kick = () => {
-            if (!onScreen || document.hidden) return;
+            if (!onScreen || covered || document.hidden) return;
             calm = 0;
             if (!raf) { setSwinging(true); raf = requestAnimationFrame(step); }
         };
         const stopWake = onWake(kick);
+
+        /* Covered by the menu or by a modal — the same treatment as offscreen. */
+        const setCovered = (on: boolean) => {
+            if (on === covered) return;
+            covered = on;
+            hostRef.current?.classList.toggle('is-parked', on || !onScreen);
+            if (on) {
+                if (raf) { cancelAnimationFrame(raf); raf = 0; }
+                setSwinging(false);
+            } else {
+                takeKick();
+                kick();
+            }
+        };
+        coverRef.current = setCovered;
+        const readCover = () => setCovered(
+            menuRef.current || document.body.classList.contains('modal-open'),
+        );
+        readCover();
+        const obs = typeof MutationObserver !== 'undefined'
+            ? new MutationObserver(readCover)
+            : null;
+        obs?.observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
         const io = typeof IntersectionObserver !== 'undefined' && hostRef.current
             ? new IntersectionObserver((entries) => {
                 const vis = entries[entries.length - 1]?.isIntersecting ?? true;
                 if (vis === onScreen) return;
                 onScreen = vis;
-                hostRef.current?.classList.toggle('is-parked', !vis);
+                hostRef.current?.classList.toggle('is-parked', !vis || covered);
                 if (vis) { takeKick(); kick(); }
                 else if (raf) { cancelAnimationFrame(raf); raf = 0; setSwinging(false); }
             }, { rootMargin: '80px' })
@@ -488,7 +531,7 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
         io?.observe(hostRef.current!);
 
         const onVis = () => {
-            hostRef.current?.classList.toggle('is-parked', document.hidden || !onScreen);
+            hostRef.current?.classList.toggle('is-parked', document.hidden || !onScreen || covered);
             if (!document.hidden) { takeKick(); kick(); }
             else if (raf) { cancelAnimationFrame(raf); raf = 0; setSwinging(false); }
         };
@@ -502,8 +545,11 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
         return () => {
             stopWake();
             stopSway();
+            setMotionArmTarget(null);
             io?.disconnect();
             document.removeEventListener('visibilitychange', onVis);
+            obs?.disconnect();
+            coverRef.current = null;
             if (raf) cancelAnimationFrame(raf);
             setSwinging(false);
         };
