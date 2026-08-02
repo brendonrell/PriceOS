@@ -4,6 +4,7 @@ import { buildPriceDayAlmanac } from '@/lib/priceday/almanac.server';
 import { priceDayNumber } from '@/lib/priceday/priceday';
 import { badRequest, serverError } from '@/lib/errors';
 import { parseQuery, sceneWordForBucket } from '@/lib/search/parse';
+import { liveFloors } from '@/lib/market/floors';
 import { getCircleStats } from '@/lib/social/circleStats';
 import {
   getProject,
@@ -514,6 +515,17 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       .slice(0, PROJECT_LIMIT)
       .map(({ score: _s, vol: _v, ...rest }) => rest);
 
+    /* LIVE floors for the charted projects — lowest active listing (data
+       audit 2026-08-02: the stored projects.floor_price_eth has no writer
+       and reads null, so results carried a dead floor). */
+    let projFloors = new Map<string, number>();
+    if (projects.length > 0) {
+      try {
+        projFloors = await liveFloors(supabase, projects.map((p) => p.id));
+      } catch { /* floorless beats stale — rows read "—" */ }
+      for (const p of projects) p.floor_eth = projFloors.get(p.id) ?? null;
+    }
+
     /* ── Users: rank, fuzzy fallback, enrich with the stats row ───────── */
 
     type UserRowLite = { address: string; ens_name: string | null; handle: string | null };
@@ -708,7 +720,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     if (topProjRow) {
       const title = projects[0].title;
       if (termSet.has('floor')) {
-        answers.push({ text: `${title} floor — ⟠${VS15} ${fmtEth(topProjRow.floor_price_eth)}`, href: `/art/${topProjRow.id}` });
+        answers.push({ text: `${title} floor — ⟠${VS15} ${fmtEth(projFloors.get(topProjRow.id) ?? null)}`, href: `/art/${topProjRow.id}` });
       }
       if (termSet.has('volume')) {
         answers.push({ text: `${title} volume — ⟠${VS15} ${fmtEth(topProjRow.volume_eth)}`, href: `/art/${topProjRow.id}` });

@@ -9,6 +9,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAnon } from '@/lib/supabase';
 import { badRequest, serverError } from '@/lib/errors';
 import { getProject } from '@/lib/project/registry';
+import { liveFloor } from '@/lib/market/floors';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,7 +48,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
     const db = getSupabaseAnon();
     const sinceSec = Math.floor(Date.now() / 1000) - days * 86_400;
-    const [salesRes, projRes] = await Promise.all([
+    const [salesRes, floorLive] = await Promise.all([
       /* A sale is an XFER carrying a price — 'SALE' is a derived label, never
          a stored type (the old filter matched zero rows, so the trend always
          read as zero sales). Barter trades store price null, so the price
@@ -60,7 +61,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         .gte('timestamp', sinceSec)
         .order('timestamp', { ascending: true })
         .limit(2000),
-      db.from('projects').select('floor_price_eth').eq('id', slug).maybeSingle(),
+      /* The LIVE floor — lowest active listing (data audit 2026-08-02: the
+         stored projects.floor_price_eth has no writer and reads null). */
+      liveFloor(db, slug).catch(() => null),
     ]);
     if (salesRes.error) return serverError(salesRes.error.message);
 
@@ -84,13 +87,12 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       series.push(vals && vals.length ? Math.round(median(vals) * 10000) / 10000 : null);
     }
 
-    const floorNum = Number((projRes.data as { floor_price_eth?: string | null } | null)?.floor_price_eth);
     const body: StoneTrendResponse = {
       slug,
       days,
       series,
       sales,
-      floor_eth: Number.isFinite(floorNum) && floorNum > 0 ? floorNum : null,
+      floor_eth: floorLive,
     };
     return NextResponse.json(body, { headers: { 'cache-control': 'public, max-age=120' } });
   } catch (err) {

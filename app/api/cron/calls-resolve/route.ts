@@ -14,6 +14,7 @@ import { NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { getSupabaseService } from '@/lib/supabase';
 import { resolveCall, type CallClaim } from '@/lib/calls/resolve';
+import { liveFloors } from '@/lib/market/floors';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,14 +71,13 @@ export async function GET(req: Request): Promise<NextResponse> {
             return NextResponse.json({ ok: true, open: 0, settled: 0 });
         }
 
-        // One floor read per involved project.
+        // One LIVE floor read for every involved project — lowest active
+        // listing (data audit 2026-08-02: the stored projects.floor_price_eth
+        // has no writer and reads null).
         const slugs = [...new Set(open.map((r) => r.project_id))];
-        const fr = await db.from('projects').select('id, floor_price_eth').in('id', slugs);
+        const live = await liveFloors(db, slugs);
         const floors = new Map<string, number | null>();
-        for (const p of (fr.data ?? []) as { id: string; floor_price_eth: string | number | null }[]) {
-            const n = p.floor_price_eth != null ? Number(p.floor_price_eth) : 0;
-            floors.set(p.id, n > 0 ? n : null);
-        }
+        for (const s of slugs) floors.set(s, live.get(s) ?? null);
 
         let settled = 0;
         for (const r of open) {

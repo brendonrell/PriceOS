@@ -12,6 +12,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { getSupabaseService } from '@/lib/supabase';
 import { getSession } from '@/lib/auth/siwe';
 import { badRequest, serverError } from '@/lib/errors';
+import { liveFloors } from '@/lib/market/floors';
 
 export const dynamic = 'force-dynamic';
 
@@ -78,18 +79,15 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
       .limit(500);
     const calls = (data ?? []) as { project_id: string; window_key: string; floor_eth: number | string }[];
 
-    // Floors for the revealed rows' projects, one query.
+    // LIVE floors for the revealed rows' projects, one query — lowest active
+    // listing (data audit 2026-08-02: the stored projects.floor_price_eth has
+    // no writer and reads null).
     const revealedSlugs = Array.from(new Set(calls.filter((c) => c.window_key < cur).map((c) => c.project_id)));
-    const floors = new Map<string, number>();
+    let floors = new Map<string, number>();
     if (revealedSlugs.length > 0) {
-      const { data: projRows } = await db
-        .from('projects')
-        .select('id, floor_price_eth')
-        .in('id', revealedSlugs);
-      for (const p of (projRows ?? []) as { id: string; floor_price_eth: number | string | null }[]) {
-        const f = p.floor_price_eth != null ? Number(p.floor_price_eth) : 0;
-        if (f > 0) floors.set(p.id, f);
-      }
+      try {
+        floors = await liveFloors(db, revealedSlugs);
+      } catch { /* unfloored rows render the same as no-listing rows */ }
     }
 
     const rows: TargetRow[] = calls.map((c) => {

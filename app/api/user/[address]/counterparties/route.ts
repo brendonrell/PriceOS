@@ -12,6 +12,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { getSupabaseService } from '@/lib/supabase';
 import { badRequest, serverError } from '@/lib/errors';
 import { HIDDEN_PROJECTS_NOT_IN } from '@/lib/platform/hiddenProjects';
+import { liveFloors } from '@/lib/market/floors';
 
 export const dynamic = 'force-dynamic';
 
@@ -67,8 +68,9 @@ export interface CounterpartiesResponse {
 type Db = ReturnType<typeof getSupabaseService>;
 
 /** A wallet's held-pieces count + floor-priced value (Σ pieces × project floor).
- *  Floors come from projects.floor_price_eth; unfloored projects count pieces
- *  but add nothing — an honest under-read, never an invented number. */
+ *  Floors are LIVE — lowest active listing per project (data audit
+ *  2026-08-02); unfloored projects count pieces but add nothing — an honest
+ *  under-read, never an invented number. */
 async function floorRead(db: Db, address: string, floors: Map<string, number>): Promise<{ held: number; floor_value_eth: number }> {
   const { data } = await db
     .from('holders')
@@ -208,16 +210,10 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
       }
 
       if (nemAddr && ADDRESS_RE.test(nemAddr)) {
-        const { data: projRows } = await db
-          .from('projects')
-          .select('id, floor_price_eth')
-    .not('id', 'in', HIDDEN_PROJECTS_NOT_IN)
-          .limit(1000);
-        const floors = new Map<string, number>();
-        for (const p of (projRows ?? []) as { id: string; floor_price_eth: number | string | null }[]) {
-          const f = p.floor_price_eth != null ? Number(p.floor_price_eth) : 0;
-          if (f > 0) floors.set(p.id, f);
-        }
+        let floors = new Map<string, number>();
+        try {
+          floors = await liveFloors(db);
+        } catch { /* unfloored valuation stays the honest under-read */ }
         const [mine, theirs] = await Promise.all([
           floorRead(db, address, floors),
           floorRead(db, nemAddr, floors),
