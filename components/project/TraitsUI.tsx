@@ -1134,7 +1134,7 @@ export default function TraitsUI({
                             layers={groupLayers}
                             usable={usableDims}
                             anchor={layersAnchor}
-                            onPick={setGroupLayer}
+                            onPick={(layer, key) => setGroupLayer(layer, key, { scope: 'project', id: projectSlug })}
                             onClose={() => setLayersAnchor(null)}
                         />
                     )}

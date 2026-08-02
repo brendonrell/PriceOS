@@ -48,7 +48,7 @@ import {
     useState,
     type ReactNode,
 } from 'react';
-import { getRememberedGroup, rememberGroup } from './groupMemoryStore';
+import { getRememberedGroup, getRememberedLayers, rememberGroup, rememberLayers } from './groupMemoryStore';
 
 export type SortKey = 'id' | 'price' | 'feed' | 'fog' | 'az';
 export type SortDir = 'asc' | 'desc';
@@ -372,7 +372,7 @@ interface SortContextValue {
     /** The active layers, holes removed: [] when grouping is off. */
     groupLayers: GroupKey[];
     /** Long-press menu — set one layer directly (layer 1 = the primary). */
-    setGroupLayer: (layer: 1 | 2 | 3, key: GroupKey) => void;
+    setGroupLayer: (layer: 1 | 2 | 3, key: GroupKey, mem?: { scope: 'project' | 'profile'; id: string }) => void;
     /** The user's saved DEFAULT grouping (settings · DEFAULT SORT row). Boots
         the app and re-applies on every project entry, exactly like the default
         sort family (Brendon, 2026-07-12). */
@@ -583,8 +583,11 @@ export function SortProvider({ children }: { children: ReactNode }) {
             // id / price / fog — asc (dir is inert for fog).
             setDir('asc');
         }
-        const remembered = projectSlug ? getRememberedGroup('project', projectSlug) : undefined;
-        setGroupState(isGroupKey(remembered) ? remembered : defaultGroup);
+        /* Project entry restores every layer it left with, not just the first. */
+        const layers = (projectSlug ? getRememberedLayers('project', projectSlug) : []).filter(isGroupKey);
+        setGroupState(layers[0] ?? defaultGroup);
+        setGroup2State(layers[1] ?? 'none');
+        setGroup3State(layers[2] ?? 'none');
         // Fresh Project = the no-slug default.
         setSlugActive(false);
         clearUrlSlug();
@@ -593,8 +596,20 @@ export function SortProvider({ children }: { children: ReactNode }) {
     /* Restore the remembered grouping for a surface (Collected grid keyed by
        profile address; project grids go through resetToDefault above). */
     const restoreGroupFor = useCallback((scope: 'project' | 'profile', id: string) => {
-        const remembered = getRememberedGroup(scope, id);
-        setGroupState(isGroupKey(remembered) ? remembered : defaultGroup);
+        /* ⛔ THE WHOLE STACK COMES BACK, NOT JUST THE FIRST LAYER (Brendon,
+           2026-08-02). Layers 2 and 3 were never saved and never restored, so a
+           two- or three-deep grouping collapsed to one the moment you navigated
+           away and came back. */
+        const layers = getRememberedLayers(scope, id).filter(isGroupKey);
+        if (layers.length === 0) {
+            setGroupState(defaultGroup);
+            setGroup2State('none');
+            setGroup3State('none');
+            return;
+        }
+        setGroupState(layers[0] ?? defaultGroup);
+        setGroup2State(layers[1] ?? 'none');
+        setGroup3State(layers[2] ?? 'none');
     }, [defaultGroup]);
 
     /* The standalone group toggle's tap — advances the dimension through this
@@ -621,18 +636,26 @@ export function SortProvider({ children }: { children: ReactNode }) {
        so it drives everything the tap cycle already drives. Clearing a layer
        collapses the ones under it: a grouping can never have a hole in it
        (layer 3 with no layer 2 is not a hierarchy). */
-    const setGroupLayer = useCallback((layer: 1 | 2 | 3, key: GroupKey) => {
+    const setGroupLayer = useCallback((
+        layer: 1 | 2 | 3, key: GroupKey,
+        /* The surface this pick belongs to. Given, the whole stack is saved to
+           the account so the page comes back exactly as it was left. */
+        mem?: { scope: 'project' | 'profile'; id: string },
+    ) => {
         setSlugActive(true);
+        let next: [GroupKey, GroupKey, GroupKey];
         if (layer === 1) {
-            setGroupState(key);
-            if (key === 'none') { setGroup2State('none'); setGroup3State('none'); }
+            next = key === 'none' ? ['none', 'none', 'none'] : [key, group2, group3];
         } else if (layer === 2) {
-            setGroup2State(key);
-            if (key === 'none') setGroup3State('none');
+            next = key === 'none' ? [group, 'none', 'none'] : [group, key, group3];
         } else {
-            setGroup3State(key);
+            next = [group, group2, key];
         }
-    }, []);
+        setGroupState(next[0]);
+        setGroup2State(next[1]);
+        setGroup3State(next[2]);
+        if (mem) rememberLayers(mem.scope, mem.id, next);
+    }, [group, group2, group3]);
 
     /* Settings · DEFAULT SORT group pill — advance the saved default through
        the master order, persist it, and apply it to the live view (exactly how

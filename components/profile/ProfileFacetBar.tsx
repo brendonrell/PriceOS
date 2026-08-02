@@ -426,7 +426,7 @@ export default function ProfileFacetBar({
                             layers={groupLayers}
                             usable={usableDims}
                             anchor={layersAnchor}
-                            onPick={setGroupLayer}
+                            onPick={(layer, key) => setGroupLayer(layer, key, { scope: 'profile', id: profileAddress })}
                             onClose={() => setLayersAnchor(null)}
                         />
                     )}

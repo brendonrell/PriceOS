@@ -12,6 +12,14 @@
  *
  * Scopes: 'project' (keyed by slug) for the project gallery; 'profile'
  * (keyed by profile address) for that profile's Collected grid.
+ *
+ * ⛔ ALL THREE LAYERS ARE REMEMBERED, NOT JUST THE FIRST (Brendon, 2026-08-02:
+ * "we need the group settings to be db including our L2 and L3 ones, it needs
+ * to stay as is when I nav away and then return"). Only the primary was ever
+ * saved, so a two- or three-deep grouping collapsed back to one the moment you
+ * left the page. The stored value is the layers joined with '>' — a plain
+ * string either way, so every value written before this reads back as its own
+ * single layer and nothing needs migrating.
  */
 
 import type { UserSettings } from '@/lib/supabase';
@@ -41,6 +49,19 @@ function read(): GroupMemory {
 export function getRememberedGroup(scope: GroupScope, id: string | null | undefined): string | undefined {
     if (!id) return undefined;
     return read()[scope]?.[id.toLowerCase()];
+}
+
+/** The remembered grouping as its LAYERS — [] when nothing is saved. */
+export function getRememberedLayers(scope: GroupScope, id: string | null | undefined): string[] {
+    const raw = getRememberedGroup(scope, id);
+    if (!raw) return [];
+    return raw.split('>').map((k) => k.trim()).filter((k) => k && k !== 'none');
+}
+
+/** Persist every active layer for this surface, in order. */
+export function rememberLayers(scope: GroupScope, id: string | null | undefined, layers: readonly string[]): void {
+    const live = layers.filter((k) => k && k !== 'none');
+    rememberGroup(scope, id, live.length ? live.join('>') : 'none');
 }
 
 /** Persist the viewer's grouping for this surface — instant local write +
