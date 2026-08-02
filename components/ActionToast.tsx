@@ -73,15 +73,26 @@ export default function ActionToast() {
 
     /* The wrap rule — split a `Label: action` toast onto two rows ONLY when its
        single line would overrun the pill. Skipped for art / face / tint. */
+    /* ⛔ A TOAST MAY CARRY A HINT ROW (Brendon, 2026-08-02: the Group toast says
+       what it landed on, and the row under it says there is more behind a
+       long-press). Anything after a newline is that second row — full-strength
+       and 12px like the rest of the toast, never whisper text (Rule #2). */
+    const [headline, hint] = useMemo(() => {
+        const nl = state.msg.indexOf('\n');
+        return nl < 0
+            ? [state.msg, null as string | null]
+            : [state.msg.slice(0, nl), state.msg.slice(nl + 1)];
+    }, [state.msg]);
+
     const labelSplit = useMemo(() => {
         if (showArt || showFace || tint) return null;
-        const i = state.msg.indexOf(': ');
-        if (i <= 0 || i >= state.msg.length - 2) return null;
-        const label = state.msg.slice(0, i);
-        const action = state.msg.slice(i + 2);
+        const i = headline.indexOf(': ');
+        if (i <= 0 || i >= headline.length - 2) return null;
+        const label = headline.slice(0, i);
+        const action = headline.slice(i + 2);
         if (oneLineFits(`${label}: ${action}`)) return null;
         return { label, action };
-    }, [state.msg, showArt, showFace, tint]);
+    }, [headline, showArt, showFace, tint]);
 
     const cls = [
         'ens-copy-toast',
@@ -91,13 +102,14 @@ export default function ActionToast() {
         showFace ? 'with-face' : '',
         tint ? 'with-tint' : '',
         labelSplit ? 'stacked' : '',
+        hint ? 'with-hint' : '',
     ]
         .filter(Boolean)
         .join(' ');
 
     /* A toast that already writes its own ™ (the MODE face toast) keeps it
        exactly where it is — the wordmark's ™ stands down so only one shows. */
-    const ownTm = state.msg.includes('™');
+    const ownTm = headline.includes('™');
 
     const style: CSSProperties = { transitionDuration: `${state.fadeMs}ms` };
     if (tint) {
@@ -138,8 +150,9 @@ export default function ActionToast() {
                     <span className="toast-action">{withWordmark(labelSplit.action, ownTm)}</span>
                 </>
             ) : (
-                withWordmark(state.msg, ownTm)
+                withWordmark(headline, ownTm)
             )}
+            {hint && <span className="toast-hint">{hint}</span>}
         </div>
     );
 }

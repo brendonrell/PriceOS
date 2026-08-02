@@ -188,6 +188,13 @@ export const GROUP_GLYPH: Record<GroupKey, string> = {
    GROUP_GLYPH instead. */
 export const GROUP_BTN_ICON = '⁘︎';
 
+/* ⛔ THE GROUP TOAST SAYS THERE IS MORE BEHIND A LONG-PRESS (Brendon,
+   2026-08-02: "on row below that text put (longpress for more) with little
+   icons on each side (the 4 dots)"). The four dots are the group button's own
+   mark — reused, never a new glyph. Appended to the toast message; the toast
+   renders everything after the newline as its hint row. */
+export const GROUP_TOAST_HINT = `\n${GROUP_BTN_ICON} (longpress for more) ${GROUP_BTN_ICON}`;
+
 /* ALLCAPS state for the toast (Brendon's toast-casing rule). */
 export const GROUP_LABEL: Record<GroupKey, string> = {
     none: 'OFF', artist: 'ARTIST', project: 'PROJECT',

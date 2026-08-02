@@ -3830,6 +3830,26 @@ body.pd-stone-open .ens-copy-toast {
 }
 .ens-copy-toast.stacked .toast-label { white-space: nowrap; }
 .ens-copy-toast.stacked .toast-action { white-space: normal; overflow-wrap: anywhere; }
+/* ⛔ THE HINT ROW — the line under a toast's headline (Brendon, 2026-08-02:
+   the Group toast gets "(longpress for more)" flanked by the group's own four
+   dots). Same weight and size as the toast itself, never whisper text
+   (Rule #2); the toast stacks so the row sits under, not beside. */
+.ens-copy-toast.mounted.with-hint {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    max-width: min(86vw, 330px);
+    white-space: normal;
+}
+.toast-hint {
+    display: block;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.4px;
+    opacity: 1;
+    white-space: nowrap;
+}
 .toast-art-row {
     display: flex;
     align-items: center;

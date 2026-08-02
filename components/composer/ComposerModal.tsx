@@ -30,8 +30,7 @@ import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
 import {
     GROUP_GLYPH, GROUP_BTN_ICON, GROUP_LABEL, groupHeaderGlyph,
-    type GroupKey, type SortDir,
-} from '../../lib/state/SortContext';
+    type GroupKey, type SortDir, GROUP_TOAST_HINT } from '../../lib/state/SortContext';
 import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
 import { resolveBucket } from '../../lib/art/colorStore';
 import { getProject } from '../../lib/project/registry';
@@ -481,7 +480,7 @@ export default function ComposerModal() {
         setQuery((q) => {
             const i = COMPOSER_GROUP_ORDER.indexOf(q.group);
             const next = COMPOSER_GROUP_ORDER[(i + 1) % COMPOSER_GROUP_ORDER.length];
-            showToast(`Group: ${GROUP_LABEL[next]}`);
+            showToast(`Group: ${GROUP_LABEL[next]}${GROUP_TOAST_HINT}`);
             return { ...q, group: next };
         });
     const tapSort = (key: ComposerSortKey) =>

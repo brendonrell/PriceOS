@@ -34,8 +34,7 @@ import { useEffect, useMemo, useState, type MouseEvent as ReactMouseEvent } from
 import { useTraits } from '../../lib/state/TraitsContext';
 import {
     useSort,
-    COLLECTED_GROUP_ORDER, groupOrderFor, GROUP_GLYPH, GROUP_LABEL, groupDimsFor, type GroupKey,
-} from '../../lib/state/SortContext';
+    COLLECTED_GROUP_ORDER, groupOrderFor, GROUP_GLYPH, GROUP_LABEL, groupDimsFor, type GroupKey, GROUP_TOAST_HINT } from '../../lib/state/SortContext';
 import { useColorway, type ColorwayKey } from '../../lib/state/ColorwayContext';
 import { useToast } from '../../lib/state/ToastContext';
 import type { OutputTraits } from '../../lib/project/types';
@@ -234,7 +233,7 @@ export default function ProfileFacetBar({
     const cycleGroupWithToast = () => {
         const next = cycleGroup(groupOrder, { scope: 'profile', id: profileAddress });
         // Toast-casing rule: the category stays normal case, the STATE screams.
-        showToast('Group: ' + GROUP_LABEL[next]);
+        showToast('Group: ' + GROUP_LABEL[next] + GROUP_TOAST_HINT);
     };
 
     /* Facet → present value pool, drawn from the owned Outputs. Only facets

@@ -60,8 +60,7 @@ import { useTraits, type TraitCategory, type FeedCategory } from '../../lib/stat
 import {
     useSort,
     type SortKey, type SortDir, type FeedKind, type GroupKey,
-    PROJECT_GROUP_ORDER, groupOrderFor, GROUP_GLYPH, GROUP_LABEL, groupDimsFor,
-} from '../../lib/state/SortContext';
+    PROJECT_GROUP_ORDER, groupOrderFor, GROUP_GLYPH, GROUP_LABEL, groupDimsFor, GROUP_TOAST_HINT } from '../../lib/state/SortContext';
 import { dimsThatCut, groupSectionLabel } from '../../lib/state/groupDimensions';
 import { factionOf } from '../../lib/factions/factionStore';
 import { useUserTags } from '../../lib/hooks/useUserTags';
@@ -408,7 +407,7 @@ export default function TraitsUI({
     const cycleGroupWithToast = () => {
         const next = cycleGroup(groupOrder, { scope: 'project', id: projectSlug });
         // Toast-casing rule: the category stays normal case, the STATE screams.
-        showToast('Group: ' + GROUP_LABEL[next]);
+        showToast('Group: ' + GROUP_LABEL[next] + GROUP_TOAST_HINT);
     };
 
     /* Wraps setColorway with a toast (mirrors ColorwayPicker.tsx). */
