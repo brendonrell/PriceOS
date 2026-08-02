@@ -383,22 +383,21 @@ export default function GenomePanel() {
                     {selected != null && posById.current.has(selected) && (() => {
                         /* PEEK — the selected point's tiny thumbnail + id,
                            anchored beside the point, clamped inside the plot.
-                           Tapping IT opens the artwork modal. */
+                           READ-ONLY: nothing on the map opens a piece any more
+                           (Brendon, 2026-08-02 — tapping around the map kept
+                           firing the modal). Opening lives on the OPEN key down
+                           in the controls row. */
                         const pt = posById.current.get(selected)!;
                         const x = Math.min(Math.max(pt.px, 40), Math.max(40, dims.w - 40));
                         const above = pt.py > 78;
                         return (
-                            <button
-                                type="button"
+                            <div
                                 className={`genome-peek${above ? '' : ' below'}`}
                                 style={{ left: x, top: pt.py }}
-                                onPointerDown={(e) => e.stopPropagation()}
-                                onClick={() => open('output', selected, project.slug)}
-                                title={`Open #${selected}`}
                             >
                                 <OutputThumb slug={project.slug} id={selected} size={44} />
                                 <span className="genome-peek-id">#{selected}</span>
-                            </button>
+                            </div>
                         );
                     })()}
                 </div>
@@ -420,6 +419,17 @@ export default function GenomePanel() {
                             aria-pressed={showMine}
                         >
                             MINE
+                        </button>
+                    )}
+                    {/* OPEN — the only door to the artwork modal from here. */}
+                    {selected != null && (
+                        <button
+                            type="button"
+                            className="gc-lens"
+                            onClick={() => open('output', selected, project.slug)}
+                            title={`Open #${selected}`}
+                        >
+                            OPEN #{selected}
                         </button>
                     )}
                     <span className="gc-legend"><i className="gc-dot gc-dot-rare" style={accent ? { background: accent } : undefined} /> rare<i className="gc-dot gc-dot-common" /> common</span>

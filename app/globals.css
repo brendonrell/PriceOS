@@ -9400,8 +9400,9 @@ a.f-highlight { color: inherit; }
     user-select: none;
 }
 .genome-canvas { display: block; color: var(--text-color); }
-/* PEEK — the tap chip: tiny thumbnail + id anchored beside the selected point;
-   tapping IT opens the artwork modal (the map tap only selects). */
+/* PEEK — the tap chip: tiny thumbnail + id anchored beside the selected point.
+   Read-only, and transparent to pointers, so tapping around the map never
+   opens a piece — the OPEN key in the controls row does that. */
 .genome-peek {
     position: absolute;
     transform: translate(-50%, -100%) translateY(-12px);
@@ -9413,7 +9414,7 @@ a.f-highlight { color: inherit; }
     background: var(--bg-color);
     border: 1px solid var(--text-color);
     border-radius: 8px;
-    cursor: pointer;
+    pointer-events: none;
     z-index: 2;
 }
 .genome-peek.below { transform: translate(-50%, 0) translateY(14px); }
@@ -9427,6 +9428,7 @@ a.f-highlight { color: inherit; }
 .genome-controls {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 12px;
     margin-top: 10px;
 }
@@ -9467,18 +9469,14 @@ a.f-highlight { color: inherit; }
 }
 .gc-dot-rare { background: var(--text-color); }
 .gc-dot-common { background: var(--text-color); opacity: 1; margin-left: 7px; }
+/* The axes list sits on its OWN line under the controls and reads in full —
+   it used to share the row and ellipsis away to "Palet…" (Brendon, 2026-08-02). */
 .gc-axes {
-    margin-left: auto;
+    flex-basis: 100%;
     opacity: 1;
     font-size: 12px;
     letter-spacing: 0.5px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 45%;
-}
-@media (max-width: 600px) {
-    .gc-axes { max-width: 38%; }
+    line-height: 1.45;
 }
 .genome-empty {
     display: flex;
