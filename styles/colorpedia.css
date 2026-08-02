@@ -41,10 +41,18 @@
     /* 16px on iOS stops Safari zooming the page on focus; the visual size is
        held by the transform-free font-size below 600px override. */
 }
+/* ⛔ IT HAS TO READ AS A SEARCH FIELD (Brendon, 2026-08-02: "the search field
+   is totally confusing… use the fucking word search"). Bold ALLCAPS formats
+   with no verb read as a heading — a label sitting there, not somewhere to
+   type. The placeholder now says what it is and what it takes, and it wears
+   the one treatment that means "not your text yet": dim and italic. This is
+   the deliberate exception to Rule #2's no-faint-text law — placeholder text
+   MUST read as placeholder, and the value typed over it is full strength. */
 .cped-search-input::placeholder {
     color: var(--text-color);
-    opacity: 0.75;
-    font-weight: bold;
+    opacity: 0.55;
+    font-style: italic;
+    font-weight: normal;
     letter-spacing: 0.4px;
 }
 .cped-search-clear {

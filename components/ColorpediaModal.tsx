@@ -160,7 +160,7 @@ export default function ColorpediaModal() {
                         type="text"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        placeholder="NAME · HEX · RGB · CMYK · HSL"
+                        placeholder="Search by: name · hex · RGB · CMYK · HSL"
                         aria-label="Search colours by name, hex, RGB, CMYK or HSL"
                         autoComplete="off"
                         autoCorrect="off"
