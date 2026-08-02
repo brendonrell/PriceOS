@@ -42,7 +42,12 @@
    every pick, shuffle and match; that is fixed. Read the rule in `CLAUDE.md`
    before building any card, sheet, bubble or panel.
 
-2. **PROFILE LAG — TWO REAL CAUSES FOUND AND SHIPPED 2026-08-01. UNCONFIRMED
+2. ✅ **THE COLLECTED-TAB / CONNECT-MENU LAG IS SETTLED AND SHIPPED
+   (2026-08-02, `5f3a3c6`). ⛔ DO NOT RE-DIAGNOSE IT — the answer is in the
+   latest round below: the gallery had lost its bound, twice over.** The
+   keychain work below was real cost and stays; it was never this symptom.
+
+   **PROFILE LAG — TWO REAL CAUSES FOUND AND SHIPPED 2026-08-01. UNCONFIRMED
    ON HIS DEVICE.**
    **⛔ HIS DIAGNOSIS WAS RIGHT ALL ALONG (RULE #-3): IT WAS THE KEYCHAINS, AND
    THE COST WAS PAID WITH NONE EQUIPPED.** Both fixes explain that exactly:
@@ -107,11 +112,49 @@
      deliberate, don't loosen it. The separate `stonecolor:` recolour cast is
      untouched.
 
-✅ **2026-08-02 (LATEST SESSION) — THE REAL LAG CAUSE · STICKERS · KEYCHAINS
+✅ **2026-08-02 (LATEST SESSION) — THE COLLECTED GALLERY IS BOUNDED BY THE
+SCREEN AGAIN** (on `dev`, tip `5f3a3c6`, tree clean, type-check clean):
+
+- ⛔ **THE ANSWER, AND IT IS SETTLED: THE GALLERY HAD LOST ITS BOUND, TWICE.**
+  A gallery's cost must be set by the SCREEN, never by how much someone holds.
+  Two changes had quietly removed that, and together they made collecting a
+  punishment. **Brendon found both directions himself (Rule #-3):** *"I used to
+  have over 1k pieces without issue why the fuck is it loading them all"* and
+  *"we see like 6 on screen at a time what the FUCK happened to the lazy
+  loading we had".*
+  1. **The mounted window was skipped entirely UNDER 1000 pieces** (the
+     2026-07-06 solid-once-loaded pass), so a collection got **SLOWER as it got
+     smaller** — 749 tiles with their hover rows and badges all built in one
+     go, while 1000+ windowed and flew. **The window now applies at every
+     size**: a first screenful, then grow as the viewer scrolls.
+  2. **A tile that had loaded once was pinned to eager loading + a main-thread
+     decode FOREVER** (2026-07-07, to kill the carousel flash). Right for tiles
+     you can reach — but it applied to every tile ever scrolled past, so
+     hundreds of decoded pictures stayed held. **The pinning now follows the
+     screen**: near tiles keep the flash-free treatment UNCHANGED, far ones
+     hand the decoded copy back and take it again a full viewport before they
+     can be seen. Same observer shape and lookahead the canvas gallery already
+     had (Rule #0) — the tile never leaves the page, so nothing reflows and
+     nothing pops. **NO AMPUTATION: the no-flash behaviour is intact.**
+  ⛔ **The lesson to carry: when tiles went from live renders to pictures, the
+  canvas virtualizer's LRU bound was never carried across.** Any new tile
+  surface must be bounded by the viewport before it ships.
+- **Ruled out with evidence, do not re-chase:** every one of the 749 pieces he
+  holds has its picture pinned in storage (swept all of them) — nothing
+  live-renders, nothing self-heals in the background, no recent project or mint
+  is involved, and no tile is oversized. The picture reader is NOT the cause
+  (his words, and the round below is corrected).
+
+✅ **2026-08-02 (EARLIER) — THE REAL LAG CAUSE · STICKERS · KEYCHAINS
 SWITCH · GROUPING PERSISTENCE · RARITY SORT · STICKER MODES** (on `dev`, tip
 `180fe78`, tree clean, type-check clean, 192 tests green. ClickUp `86bb734jz`
 + `86bb735t6`):
 
+- ⚠️ **SUPERSEDED 2026-08-02 (later the same day) — THE PICTURE READER WAS NOT
+  THE CAUSE.** Brendon: *"that wasn't the thing, this problem was just as bad
+  before that change."* The double-download below was real and the fix stands,
+  but it did not explain the lag. **The cause is in the round below — read that
+  one.** Do not re-chase the reader.
 - ⛔ **THE LAG WAS THE PICTURE READER, AND HE NARROWED IT HIMSELF (Rule #-3).**
   *"On my profile the lag completely goes away when I'm on the showcase tab or
   +more… it's the collected tab (and now the homepage)"* — the two surfaces
