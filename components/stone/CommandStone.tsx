@@ -818,7 +818,10 @@ export default function CommandStone() {
         const CHROME =
             'a,button,input,textarea,select,[role="button"],[role="link"],[role="tab"],' +
             '[contenteditable],label,summary,[tabindex],' +
-            '#commandStonePanel,.stone-dot,.fm-bar,.fm-picker,.user-menu-wrapper';
+            '#commandStonePanel,.stone-dot,.fm-bar,.fm-picker,.user-menu-wrapper,' +
+            /* The sort row — the WHOLE row is exempt, gaps included (Brendon,
+               2026-08-02: rapid sort taps were summoning the stone). */
+            '.sort-bar';
         /* Content + media + overlays that are NOT background even though some
            are plain divs: art/thumbs/icons, cards/tiles/pills, the mint pill and
            its chooser, portalled confirm overlays, sheets, toasts. */
