@@ -65,6 +65,10 @@ export interface ParsedQuery {
   sort: 'rarity' | 'price' | 'recent' | 'followers' | null;
   /** `followers:>10` — minimum follower count for collector results. */
   followersMin: number | null;
+  /** `language:p5` / `lang:three` — restrict to projects made in a coding
+      language (the Language platform trait, matched on its normalised
+      prefix so versions still hit). */
+  language: string | null;
 }
 
 /* ── Vocabulary maps (query word → stored value(s)) ─────────────────────── */
@@ -198,6 +202,7 @@ export function parseQuery(raw: string): ParsedQuery {
     pattern: null, bands: {}, visual: false, terms: [],
     byArtist: null, project: null, holder: null, market: null,
     priceMax: null, priceMin: null, sort: null, followersMin: null,
+    language: null,
   };
 
   // True Name glyphs pass through as-is (they never tokenize as [a-z0-9]).
@@ -239,6 +244,7 @@ export function parseQuery(raw: string): ParsedQuery {
         case 'by': case 'artist': out.byArtist = val; break;
         case 'project': case 'in': out.project = val; break;
         case 'holder': case 'owner': out.holder = val; break;
+        case 'language': case 'lang': out.language = val; break;
         case 'color': case 'colour': {
           const c = COLOR_WORDS[val];
           if (c) c.forEach((b) => colorSet.add(b));

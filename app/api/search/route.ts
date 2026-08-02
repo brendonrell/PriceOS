@@ -9,6 +9,7 @@ import { getCircleStats } from '@/lib/social/circleStats';
 import {
   getProject,
   allProjects,
+  projectLanguage,
   projectsByArtist,
   findProjectByTrueName,
   projectTrueName,
@@ -231,6 +232,18 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       extraSlugs.add(parsed.project);
       if (!slugMatchReason.has(parsed.project)) slugMatchReason.set(parsed.project, 'project');
     }
+    /* `language:p5` — the Language platform trait, registry-side. Normalised
+       prefix match so `p5` hits "p5.js 1.9" and `three` hits "three.js r160". */
+    const normLang = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const languageSlugs: string[] = parsed.language
+      ? allProjects()
+          .filter((p) => normLang(projectLanguage(p.slug)).startsWith(normLang(parsed.language as string)))
+          .map((p) => p.slug)
+      : [];
+    for (const s of languageSlugs) {
+      extraSlugs.add(s);
+      if (!slugMatchReason.has(s)) slugMatchReason.set(s, projectLanguage(s));
+    }
 
     /* Soundtrack matches are registry-side — the DB column stores the playlist
        ID; the human words ("Boards of Canada") live on the registry label. */
@@ -276,9 +289,16 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const artistSlugs = parsed.byArtist
       ? projectsByArtist(parsed.byArtist).map((p) => p.slug)
       : [];
-    const artworkScope = slugHints.length > 0 ? slugHints
+    let artworkScope = slugHints.length > 0 ? slugHints
       : artistSlugs.length > 0 ? artistSlugs
       : null;
+    /* A language filter composes with the scope: intersect when one exists,
+       stand alone otherwise. */
+    if (languageSlugs.length > 0) {
+      artworkScope = artworkScope
+        ? artworkScope.filter((s) => languageSlugs.includes(s))
+        : languageSlugs;
+    }
 
     /* Price bounds without a market word imply "for sale". */
     const market =
@@ -288,7 +308,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     const hasOperators =
       !!market || !!parsed.holder || !!parsed.byArtist || !!parsed.project ||
-      parsed.sort !== null || parsed.followersMin !== null;
+      !!parsed.language || parsed.sort !== null || parsed.followersMin !== null;
     const wantText =
       (parsed.terms.length > 0 || parsed.handle !== null ||
         (!parsed.visual && !hasOperators && !parsed.tokenId && !parsed.address &&

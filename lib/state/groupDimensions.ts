@@ -25,6 +25,7 @@ import {
     lunarPhase, birthWeekday,
 } from '../output/derive';
 import { pdRarityRank } from '../output/rarity';
+import { projectLanguage } from '../project/registry';
 
 /* The single-level EXPANSION dimensions (2026-07-16). The classic identity
    dims (artist/project/owner/colour + combos) keep their bespoke section
@@ -33,6 +34,7 @@ import { pdRarityRank } from '../output/rarity';
 export const EXTRA_GROUP_DIMS: ReadonlySet<GroupKey> = new Set<GroupKey>([
     'listed', 'fate', 'rarity', 'temperature', 'light', 'mood',
     'orientation', 'moon', 'zodiac', 'weekday', 'faction', 'numerology',
+    'language',
 ]);
 
 /** Per-item context the calling gallery already knows (its own item shape). */
@@ -165,6 +167,10 @@ export function groupSectionLabel(
             return ctx.faction || 'Neutral';
         case 'numerology':
             return numerologyOf(id);
+        case 'language':
+            /* The coding-language trait — pure registry read, so every piece
+               resolves (no tail bucket needed; unset = the house default). */
+            return projectLanguage(slug);
         default:
             return '—';
     }

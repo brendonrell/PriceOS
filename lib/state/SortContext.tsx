@@ -88,6 +88,10 @@ export type GroupKey =
        galleries). */
     | 'listed' | 'fate' | 'temperature' | 'light' | 'mood' | 'orientation'
     | 'moon' | 'zodiac' | 'weekday' | 'faction' | 'numerology'
+    /* LANGUAGE — the coding-language platform trait as a shelf (Brendon,
+       2026-08-02; docs/languages-trait-spec.md). Resolves from the project
+       registry, so it needs no per-piece data at all. */
+    | 'language'
     /* PROFILE TAGS — group pieces by their owner's leading tag (Brendon,
        2026-07-26). A main, sitting straight after owner. */
     | 'tag';
@@ -123,6 +127,9 @@ export function groupOrderFor(order: GroupKey[], multiAspect: boolean): GroupKey
    (GROUP_SOON) and would offer an empty grouping. */
 export const GROUP_MENU_DIMS: GroupKey[] = [
     'artist', 'project', 'owner', 'tag', 'color', 'rarity',
+    /* Language leads the deep cuts — identity-adjacent, the p5/three/vanilla
+       shelf (Brendon, 2026-08-02). */
+    'language',
     'listed', 'fate', 'temperature', 'light', 'mood', 'orientation',
     'moon', 'zodiac', 'weekday', 'faction', 'numerology',
 ];
@@ -136,9 +143,10 @@ export function groupDimsFor(surface: 'project' | 'collected' | 'all'): GroupKey
     if (surface === 'all') return GROUP_MENU_DIMS.slice();
     return GROUP_MENU_DIMS.filter((d) =>
         surface === 'project'
-            /* one artist, one project — but every owner, and factions are the
-               project page's own thing. */
-            ? d !== 'artist' && d !== 'project'
+            /* one artist, one project — and so one language: a single project
+               can only ever fill one language shelf (the ORIENT dead-tap
+               lesson, 2026-08-01). */
+            ? d !== 'artist' && d !== 'project' && d !== 'language'
             /* your own wallet — one owner, so their tags don't cut anything
                either, and no faction war to sort by. */
             : d !== 'owner' && d !== 'tag' && d !== 'faction',
@@ -149,7 +157,7 @@ export function groupDimsFor(surface: 'project' | 'collected' | 'all'): GroupKey
    surface that doesn't carry the chosen dimension simply shows ungrouped. */
 export const DEFAULT_GROUP_ORDER: GroupKey[] =
     ['none', 'artist', 'project', 'artistProject', 'owner', 'color', 'artistColor', 'projectColor', 'ownerColor',
-        'listed', 'fate', 'rarity', 'temperature', 'light', 'mood', 'orientation',
+        'listed', 'fate', 'rarity', 'language', 'temperature', 'light', 'mood', 'orientation',
         'moon', 'zodiac', 'weekday', 'faction', 'numerology', 'lastSold'];
 
 /* Single-character glyph per dimension (docs/GLYPHS.md). 'none' shows NO glyph
@@ -188,6 +196,8 @@ export const GROUP_GLYPH: Record<GroupKey, string> = {
     /* The profile-tag chip's own mark — the canonical social/user glyph
        (docs/GLYPHS.md §12h), since a tag is who its owner is. */
     tag: '☻︎',
+    /* Language — the code brace, plain-char family ($ ° ~ # precedent). */
+    language: '{',
 };
 
 /* Resting face of the standalone group toggle (grouping OFF) — the four-dot
@@ -217,6 +227,7 @@ export const GROUP_LABEL: Record<GroupKey, string> = {
     light: 'LIGHT', mood: 'MOOD', orientation: 'ORIENT',
     moon: 'MOON PHASE', zodiac: 'ZODIAC', weekday: 'BORN ON',
     faction: 'FACTION', numerology: 'NUMEROLOGY', tag: 'TAG',
+    language: 'LANGUAGE',
 };
 
 /* Dimensions with no data yet — render as a single greyed "coming soon" group.
@@ -237,6 +248,7 @@ export const GROUP_PRIMARY_KEY: Record<GroupKey, GroupKey> = {
     light: 'light', mood: 'mood', orientation: 'orientation',
     moon: 'moon', zodiac: 'zodiac', weekday: 'weekday',
     faction: 'faction', numerology: 'numerology', tag: 'tag',
+    language: 'language',
 };
 export const GROUP_SECONDARY_KEY: Partial<Record<GroupKey, GroupKey>> = {
     artistProject: 'project', artistColor: 'color', projectColor: 'color',

@@ -1,6 +1,9 @@
 # Spec · LANGUAGE — the coding-language platform trait (+ group/sort by it)
 
-**Status: SPEC'D TO BRENDON'S CALLS (2026-08-02) — awaiting his "build".**
+**Status: BUILT 2026-08-02 ("Let's do it!!!") — this file is now the record.**
+Launch library roster settled the same day: **p5.js · three.js · regl · d3**
+(vanilla JavaScript always; audio/WebGPU deliberately held back). Blessing
+each is Brendon's one-time on-chain write at launch.
 From Brendon: *"Group sorts rework · Languages as a gen-art trait"* →
 *"coding languages only"* → **"mirror Fate"** (settled: it is a platform
 trait AND a group shelf, Fate's exact pattern) → *"I want the right list —

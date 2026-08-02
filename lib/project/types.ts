@@ -115,6 +115,12 @@ export interface ProjectDef {
       by the empty-state ghost grid to sample placeholder shapes that match the
       real Outputs' proportions — no art is rendered. */
   aspects: readonly number[];
+  /** LANGUAGE — the coding-language platform trait (Brendon, 2026-08-02;
+      docs/languages-trait-spec.md). DECLARED data only, never detected.
+      Studio-era projects derive it from their on-chain library binding
+      (`p5.js 1.9`, `three.js r160`); house engines default to 'JavaScript'
+      when unset. */
+  language?: string;
   /** Paints an Output's Artwork, returns aspect + artist traits. */
   render: EngineFn;
   /** Derives an Output's artist traits without painting. */

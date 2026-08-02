@@ -164,8 +164,18 @@ export const PLATFORM_TRAIT = {
   sun: 'Sun',
   moon: 'Moon',
   rising: 'Rising',
+  /* LANGUAGE (Brendon, 2026-08-02) — the coding-language trait, Fate's
+     exact pattern: pill + facet + group shelf. Declared data only
+     (docs/languages-trait-spec.md). */
+  language: 'Language',
   fate: 'Fate',
 } as const;
+
+/** A project's Language trait value — its declared coding language
+ *  (Studio projects: the on-chain library binding), 'JavaScript' unset. */
+export function projectLanguage(slug: string): string {
+  return getProject(slug)?.language ?? 'JavaScript';
+}
 
 /* Platform mint fee (the on-chain ~$2 Arweave storage fee, PDProject.sol).
    Simulated across the board but $0 for now — flip this when fees turn on. */
@@ -1582,6 +1592,7 @@ export function outputTraits(
     out[PLATFORM_TRAIT.moon] = chart.moon;
     out[PLATFORM_TRAIT.rising] = chart.rising;
   }
+  if (project) out[PLATFORM_TRAIT.language] = projectLanguage(slug);
   out[PLATFORM_TRAIT.fate] = outputFate(slug, tokenId);
   return out;
 }
@@ -1628,6 +1639,7 @@ export function projectTraits(
     out[PLATFORM_TRAIT.moon] = chart.moon;
     out[PLATFORM_TRAIT.rising] = chart.rising;
   }
+  if (project) out[PLATFORM_TRAIT.language] = projectLanguage(slug);
   out[PLATFORM_TRAIT.fate] = projectFate(slug);
   // Status = the milestone tier the project's mint count has reached
   // (Graduated → Lucky 22 → … → Hi-Def); sold-out is not a status.

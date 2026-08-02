@@ -75,7 +75,7 @@ export interface EnrichedHolding {
 /* Facet order = birth-order. 'Status' is the live market facet (derived from
    listing presence), not a stored trait. */
 export const PROFILE_FACETS = [
-    'Artist', 'Project', 'PriceDay', 'Sun', 'Moon', 'Rising', 'Status', 'Fate',
+    'Artist', 'Project', 'PriceDay', 'Sun', 'Moon', 'Rising', 'Language', 'Status', 'Fate',
 ] as const;
 
 /* Fate's L1 pill wears the I Ching hexagram glyph (matching the project page's

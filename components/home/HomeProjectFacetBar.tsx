@@ -74,7 +74,7 @@ export type HomeSortDir = 'asc' | 'desc';
 /* Facet order = birth-order; Fate is pinned LAST as the hexagram pill (Brendon,
    2026-06-15), matching the project page. */
 export const HOME_FACETS = [
-    'Artist', 'Project', 'PriceDay', 'Sun', 'Moon', 'Rising', 'Status', 'Fate',
+    'Artist', 'Project', 'PriceDay', 'Sun', 'Moon', 'Rising', 'Language', 'Status', 'Fate',
 ] as const;
 
 /* Fate's L1 pill wears the I Ching hexagram glyph (same as the project page's
