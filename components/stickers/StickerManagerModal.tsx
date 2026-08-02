@@ -403,9 +403,32 @@ export function StickerManagerModal({
         measure();
         window.addEventListener('resize', measure);
         window.addEventListener('orientationchange', measure);
+        /* ⛔ IT FOLLOWS THE STICKERS DOWN (Brendon, 2026-08-01: "sticker manager
+           covers the stickers, I thought we set this up to not do that"). The
+           spot was measured ONCE, on open — then the first thing you do in the
+           menu is change the look, the hero grows (1 row → 3), and the card is
+           left sitting on top of the rows it is supposed to sit under. It
+           re-measures whenever the sticker area actually changes size, so it
+           stays below them through every change you make. */
+        const el = document.querySelector('.hero-stickers');
+        const ro = el && typeof ResizeObserver !== 'undefined'
+            ? new ResizeObserver(() => measure())
+            : null;
+        if (el && ro) ro.observe(el);
+        /* Every look change fires this — it also covers the hero being replaced
+           outright, which the observer alone would lose track of. */
+        let raf = 0;
+        const onChanged = () => {
+            cancelAnimationFrame(raf);
+            raf = requestAnimationFrame(() => requestAnimationFrame(measure));
+        };
+        window.addEventListener('pd:stickers-changed', onChanged);
         return () => {
             window.removeEventListener('resize', measure);
             window.removeEventListener('orientationchange', measure);
+            window.removeEventListener('pd:stickers-changed', onChanged);
+            cancelAnimationFrame(raf);
+            ro?.disconnect();
         };
     }, [open]);
 

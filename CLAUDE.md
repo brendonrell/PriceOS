@@ -144,6 +144,23 @@ win** — update this file in place and note it.
 > RE-SENDING THE SAME REPORT.** End the turn and wait. Anything you do after
 > asking is time stolen from Brendon.
 
+> **⛔ RULE #-0.82 — NEVER STOP WITH WORK OUTSTANDING. FINISH THE QUEUE.
+> (Brendon, 2026-08-01, raised in fury: "WHY DID YOU FUCKING STOP… DONT
+> FUCKING STOP EVER WHEN YOU HAVE OUTSTANDING TASKS".)** A task he gave you
+> is OPEN until it is BUILT AND PUSHED. When he interrupts with something new,
+> that new thing goes to the FRONT of the queue — it does **NOT** delete what
+> was already on it. You do the new thing, then you go straight back and
+> **FINISH THE REST WITHOUT BEING ASKED AGAIN.**
+> - **Reporting a diagnosis is not finishing.** "I found the cause" with no fix
+>   pushed is an OPEN task. Naming a bug in a reply and moving on is the exact
+>   failure this rule exists to stop.
+> - **A summary line listing what's still broken is NOT a handoff — it is a
+>   confession that you stopped.** If you can list it, you can build it. Build
+>   it, then tell him it's done.
+> - **The turn ends when the queue is empty**, or when the only thing left
+>   genuinely needs his decision — and then you say WHICH decision, in one line.
+> Never make Brendon re-ask for work he already gave you.
+
 > **⛔ RULE #-0.8 — GOING INCOMMUNICADO NEEDS APPROVAL FIRST. (Brendon,
 > 2026-07-29.)** The gate is on being UNREACHABLE, not on depth. Ordinary
 > reading, greps and lookups need no permission — do them and keep talking.

@@ -450,6 +450,13 @@ export interface UserRow {
     offIds: string[];
     placements?: Record<string, { x: number; y: number; z: number; r?: number; sc?: number }>;
     placementAspect?: number;
+    /** ⛔ THE LOOK — arrangement, rows, align, tilt, flip, density, border and
+     *  the generative roll. It lived ONLY on the device until 2026-08-01, so
+     *  Safari clearing its storage took a decorated profile back to the
+     *  one-row default with nothing to restore it from (Brendon: "my stickers
+     *  don't stay… it lasts for days and then gone"). It rides the account
+     *  blob now, exactly like the placements beside it. */
+    look?: Record<string, string>;
     /** Up to 3 named saved arrangements (lib/stickers/spreads). */
     spreads?: unknown[];
     /** The one-tap colour lock + the active-state it was applied over. */
@@ -542,6 +549,7 @@ export interface UserStatePatch {
     offIds: string[];
     placements?: Record<string, { x: number; y: number; z: number; r?: number; sc?: number }>;
     placementAspect?: number;
+    look?: Record<string, string>;
     spreads?: unknown[];
     colourLock?: Record<string, unknown>;
   };

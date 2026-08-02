@@ -358,6 +358,21 @@ export function hydrateFromRow(row: UserRow): void {
             if (typeof ss.placementAspect === 'number' && ss.placementAspect > 0) {
                 localStorage.setItem(STATE_CACHE_KEYS.stickerPlaceAspect, String(ss.placementAspect));
             }
+            /* ⛔ THE LOOK comes back with everything else (Brendon, 2026-08-01).
+               Arrangement / rows / align / tilt / flip / density / border and
+               the generative roll used to live only on the device, so a cleared
+               browser store took a decorated hero to the one-row default and
+               nothing here could put it back. Seeded only when the account
+               actually holds a value, so a device that has one is never wiped
+               by an account that doesn't. */
+            const look = ss.look;
+            if (look && typeof look === 'object' && !Array.isArray(look)) {
+                for (const [k, v] of Object.entries(look as Record<string, unknown>)) {
+                    if (k.startsWith('pd_sticker_') && typeof v === 'string') {
+                        localStorage.setItem(k, v);
+                    }
+                }
+            }
             // Saved Spreads + the colour lock — same seed-only-when-present rule,
             // so a signed-out device that already has them never gets wiped.
             if (Array.isArray(ss.spreads)) {

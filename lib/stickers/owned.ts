@@ -70,6 +70,36 @@ function readJson<T>(key: string, fallback: T): T {
 let pushHeld = false;
 export function holdStickerPush(hold: boolean) { pushHeld = hold; }
 
+/* ⛔ THE LOOK GOES TO THE ACCOUNT (Brendon, 2026-08-01: "my stickers don't
+   stay… it reverts to one row without me having touched it… how is this not
+   settled as db?? It lasts for days and then gone").
+   It wasn't settled as db — the arrangement, rows, align, tilt, flip, density,
+   border and the generative roll were the ONLY part of a decorated profile
+   that never left the device. Ownership and the hand-placed spots were always
+   synced, so when Safari cleared its storage those came back and the LOOK did
+   not: the hero fell to its one-row default with nothing to restore it from.
+   That is the "lasts for days and then gone". These keys ride the account blob
+   now, written by the same writer as everything else.
+   Read raw here, like the placement blobs above, so the writer keeps no
+   dependency on the pref store that calls it. */
+const LOOK_KEYS = [
+    'pd_sticker_arrange', 'pd_sticker_tilt', 'pd_sticker_seed', 'pd_sticker_expand',
+    'pd_sticker_rows', 'pd_sticker_align', 'pd_sticker_flip', 'pd_sticker_density',
+    'pd_sticker_border',
+] as const;
+
+function readLook(): Record<string, string> {
+    const out: Record<string, string> = {};
+    if (typeof window === 'undefined') return out;
+    for (const k of LOOK_KEYS) {
+        try {
+            const v = window.localStorage.getItem(k);
+            if (v != null) out[k] = v;
+        } catch { /* private mode */ }
+    }
+    return out;
+}
+
 export function pushStickerState(force = false) {
     /* SPREADS force their way through: a Spread has its OWN save button, so
        saving one is an explicit act that lands immediately — and a discarded
@@ -83,6 +113,7 @@ export function pushStickerState(force = false) {
             offIds: readArr(OFF_IDS_KEY),
             placements: readJson(PLACEMENTS_KEY, {} as Record<string, { x: number; y: number; z: number; r?: number; sc?: number }>),
             ...(Number.isFinite(aspectRaw) && aspectRaw > 0 ? { placementAspect: aspectRaw } : {}),
+            look: readLook(),
             spreads: readJson(SPREADS_KEY, [] as unknown[]),
             colourLock: readJson(LOCK_KEY, null as Record<string, unknown> | null) ?? undefined,
         },

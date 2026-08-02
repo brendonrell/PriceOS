@@ -8,6 +8,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { Sticker } from './catalog';
+import { pushStickerState } from './owned';
 
 export type Arrange = 'row' | 'spread' | 'scatter' | 'fill' | 'stack' | 'collage' | 'slapped';
 export type Tilt = 'flat' | 'soft' | 'jaunty';
@@ -82,6 +83,12 @@ function read(key: string, fallback: string): string {
 }
 function write(key: string, val: string) {
     try { window.localStorage.setItem(key, val); } catch { /* ignore */ }
+    /* ⛔ AND IT GOES TO THE ACCOUNT (Brendon, 2026-08-01). Changing the look
+       used to touch the device and nothing else — the one part of a decorated
+       profile with no copy anywhere else. Same writer as ownership and the
+       hand-placed spots, so it obeys the manager's draft gate: nothing is
+       published until SAVE, and a discarded look never lands. */
+    pushStickerState();
     window.dispatchEvent(new CustomEvent(EVT));
 }
 
