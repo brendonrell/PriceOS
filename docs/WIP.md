@@ -13,7 +13,60 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-✅ **2026-08-02 (LATEST) — SHIPPED TO `dev` (tip `e4c4778`, auto-deployed):
+⛔ **2026-08-02 (LATEST) — BRENDON'S PASTED QUEUE: SIX OF EIGHT SHIPPED, TWO
+OPEN — THE FRESH SESSION STARTS ON THE TWO.** All shipped work is on `dev`
+(tip `439731a`), type-check clean, pushed as it landed (his standing go:
+"push as you go for clear items don't wait for my push"). ClickUp `86bb78f8y`
+has the round; `86bb78fbt` carries the remainder.
+
+**THE TWO OPEN ITEMS (his words, front of the queue):**
+1. **"keychains have been reworked and smart contract rewritten/updated,
+   please review it all!"** — a REVIEW (findings first). pd-contracts `main`
+   tip `9f5047b` + `components/keychains` / `lib/keychains`.
+2. **"PDMCP wow pass!! MCP got upgraded and is now stateless does that change
+   our build? We want state of the art. Opus did an initial pass
+   post-upgrade."**
+**The full brief — repos, locks, bootstrap, and the EIP-170 size check that
+comes first — is `docs/briefs/keychain-review-and-pdmcp.md`. Read it before
+anything else.**
+
+**SHIPPED FROM THE QUEUE 2026-08-02 (second session):**
+- **Stone** — the whole sort row (gaps included) is exempt from the
+  triple-tap summon, every surface.
+- **Ping popup** — a person's ping wears their **PriceSprite as the card's
+  top row** (ID-row size; the kind title stands in under ASCII-ID and while
+  the face loads) · a to-do reminder carries a live **MARK DONE** toggle that
+  completes the real to-do in place (card stays open, recurring reschedules,
+  the OPEN TO-DOS door stays).
+- **Docs How lines** — 66 `**How:**` one-liners across pages + headings; the
+  docs search leads with the item's How line in bold (the answer 90% of
+  searches came for), body snippet as fallback. ⛔ Never invent a gesture —
+  items whose door isn't on record carry no How line. (Also: collector-tools
+  wore the banned ⚓ — now ♆ per the 2026-07-31 lock.)
+- **Docs diagrams — 23 annotated UI schematics** (the customer-success
+  pass): house SVG style (Courier · currentColor · square boxes · 4px
+  controls · theme-aware), numbered callouts + a tap legend under each,
+  hand-editable in the markdown. MY PD is the flagship.
+- **The sort-row smileys are REAL** — ☻ rides the profile Collected sort row
+  and every project gallery: tap = the home social feed's exact styling and
+  blocks (streaks · scenes · albums · panoramas) scoped to that wallet's
+  story / that project's outputs activity. `/api/feed/social` grew `?actor=`
+  and `?project=` lenses; relationship badges still read the viewer's graph.
+  ⛔ Page-local state only — nothing persists into saved sorts, Setup Codes
+  or grid presets. Any real sort tap hands the grid back.
+- **OWNERS + TAG-ROOM MODALS REBUILT** ("horrible; start from scratch"):
+  OWNERS leads with the room's shape (owners · % unique · **TOP-3 %** whale
+  read), rows wear ⚭/⚯/⚬ relationship marks and **unfold in place** into the
+  owner's art strip + stake % + a FOLLOW/UNFOLLOW door; tag rooms lead with
+  the room's weight (people · ◊ spent · ⬚ owned — CABAL narrows the sums
+  too) and carry per-row follow doors. ⛔ The locked two-half user-row
+  anatomy, the modal shell, and the shipped sorts all stayed.
+- **Spot edit** — the docs ⌕ one size smaller, 2px lower (the ⌕ only, not
+  the × it swaps to).
+- **ClickUp reconciled** — the missing 2026-07-31 rounds are backfilled
+  (`86bb7890t` · `86bb7891h` · `86bb78977`).
+
+✅ **2026-08-02 (EARLIER) — SHIPPED TO `dev` (tip `e4c4778`, auto-deployed):
 NEW USERS ☻ feed · battery pass · data-audit fixes · artcoins in the stone.**
 ClickUp `86bb77te6` has the full round. The locks:
 
@@ -416,11 +469,9 @@ code.**
   plus the companion guard (wire the size check into the build). **Brendon has
   not ruled on the guard.** *(Not re-measured this session — the contracts repo
   isn't in this container. The number is from the 2026-07-30 build.)*
-- **ClickUp is PART-reconciled.** The 2026-08-01 round is logged
-  (`86bb71fzm`, Done in 02 · PriceOS (UI)). **The 2026-07-31 rounds were never
-  logged** — their connector was down at the time — so the sound layer, themes,
-  the Albums prompt, the glyph swaps, What's Hot and the test-collection hide
-  are all missing from the board. Backfill from `docs/WIP-ARCHIVE.md`.
+- ✅ **ClickUp is reconciled (2026-08-02).** The 2026-07-31 rounds are
+  backfilled (`86bb7890t` · `86bb7891h` · `86bb78977`) and the 2026-08-02
+  queue round is logged (`86bb78f8y`).
 - ✅ **NOTHING IS DEVICE-ONLY ANY MORE (2026-08-01).** The last five — Composer
   programs · budgets · anchors · fiat currency · the Portfolio view state — now
   ride the settings envelope like everything else. **⛔ `docs/STORAGE-AUDIT.md`
