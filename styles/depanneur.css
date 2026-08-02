@@ -650,3 +650,41 @@
 .charm-swap-cell.is-parked .dp-charm-mini .gl {
     animation-play-state: paused !important;
 }
+
+/* ⛔ THE ONE SWITCH — keychains on/off for the profile, above THE CAST
+   (Brendon, 2026-08-02). The room's own button anatomy verbatim (.dp-btn), so
+   it reads as part of the machine; the note beside it says what the state
+   actually means. Full-strength, 12px, 4px corners (Rule #2). */
+.dp-wear-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+}
+.dp-wear-btn {
+    cursor: pointer;
+    flex: 0 0 auto;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    color: var(--text-color);
+    background: var(--bg-color);
+    border: 1px solid var(--text-color);
+    border-radius: 4px;
+    padding: 8px 12px;
+}
+.dp-wear-btn.on {
+    background: var(--stat-active-bg, var(--text-color));
+    color: var(--stat-active-text, var(--bg-color));
+}
+.dp-wear-btn:disabled { opacity: 0.6; }
+.dp-wear-note {
+    flex: 1 1 160px;
+    min-width: 0;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    color: #C6CDD8;
+}

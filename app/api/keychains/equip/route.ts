@@ -19,12 +19,15 @@ export const dynamic = 'force-dynamic';
 export const POST = requireAuth(async (req: NextRequest, _ctx, address: string): Promise<NextResponse> => {
     try {
         const body = (await req.json().catch(() => null)) as
-            { id?: unknown; list?: unknown; shuffle?: unknown } | null;
+            { id?: unknown; list?: unknown; shuffle?: unknown; hidden?: unknown } | null;
         const hasId = body != null && 'id' in body;
         const id = !hasId ? undefined : body?.id == null ? null : typeof body.id === 'number' ? body.id : NaN;
         if (typeof id === 'number' && Number.isNaN(id)) return badRequest('id must be a charm id or null');
         const wantsShuffle = typeof body?.shuffle === 'boolean' ? body.shuffle : null;
-        if (id === undefined && wantsShuffle === null) return badRequest('Nothing to change');
+        /* THE ONE SWITCH — charms off the profile, rack untouched (Brendon,
+           2026-08-02: "instead of making me unequip them one by one"). */
+        const wantsHidden = typeof body?.hidden === 'boolean' ? body.hidden : null;
+        if (id === undefined && wantsShuffle === null && wantsHidden === null) return badRequest('Nothing to change');
         const list = body?.list === 'top' ? 'top' : 'pool';
 
         const db = getSupabaseService();
@@ -71,6 +74,7 @@ export const POST = requireAuth(async (req: NextRequest, _ctx, address: string):
 
         const patch: Record<string, unknown> = { keychainEquipped: pool, keychainTop: top };
         if (wantsShuffle !== null) patch.keychainShuffle = wantsShuffle;
+        if (wantsHidden !== null) patch.keychainHidden = wantsHidden;
 
         const { error: mergeErr } = await (db.rpc as (
             fn: string,
@@ -81,7 +85,7 @@ export const POST = requireAuth(async (req: NextRequest, _ctx, address: string):
         );
         if (mergeErr) return serverError(mergeErr.message);
 
-        return NextResponse.json({ ok: true, equipped: pool, top, shuffle: wantsShuffle });
+        return NextResponse.json({ ok: true, equipped: pool, top, shuffle: wantsShuffle, hidden: wantsHidden });
     } catch (err) {
         return serverError(err instanceof Error ? err.message : 'Unknown error');
     }

@@ -584,6 +584,11 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
         };
     }, [arts]);
 
+    /* ⛔ THE ONE SWITCH (Brendon, 2026-08-02: "instead of making me unequip them
+       one by one we need a single on/off keychains toggle"). Off means off the
+       profile — the rack, the worn pool and the chosen three are all left
+       exactly as they are, waiting. */
+    if (rack?.hidden) return null;
     if (!charm || !arts.length) return null;
 
     /* Tapping one of them: your own row opens the switcher, anyone else's
@@ -674,6 +679,13 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
                         onClick={(ev) => {
                             ev.preventDefault();
                             ev.stopPropagation();
+                            /* ⛔ LEAVING FOR ANOTHER ROOM IS THE ONE TIME A CARD
+                               SHOULD CLOSE (Brendon, 2026-08-02). Rule #-0.55
+                               keeps a card open while you USE it; this door is
+                               not using it, it is going somewhere else, and
+                               leaving the switcher stacked behind the Depanneur
+                               is just something to dismiss on the way back. */
+                            dismissSwap();
                             open('depanneur');
                         }}
                     >

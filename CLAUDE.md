@@ -202,6 +202,23 @@ win** — update this file in place and note it.
 > collide with Safari or system chrome on an iPhone? A feature that works on
 > desktop but fights iOS is WRONG by definition. Previews render at iPhone
 > size in real fonts (§6) because that is the real app.
+>
+> **⛔ SHARPENED 2026-08-02 — THE CANVAS IS A PORTRAIT iPHONE, AND NOTHING MAY
+> FALL OFF IT. (Brendon, in fury: "so many options put stickers offscreen FUCK
+> OFF WITH THIS I DON'T KNOW WHY YOU KEEP DOING THIS… MOST PEOPLE USE PORTRAIT
+> IPHONE, DESIGN FOR GODDAMN IPHONE".)** Every layout, every generative
+> arrangement, every card and every option must land **fully inside its box at
+> portrait-iPhone width** — the narrowest real case, and the one nearly every
+> user is on. Design to THAT first and let wider screens be the easy case,
+> never the reverse.
+> - **A layout that can put content off the edge is BROKEN, not "expressive".**
+>   Anything placed generatively is clamped to its own true footprint, and when
+>   a piece cannot fit at its rolled size, **the piece comes down** — you never
+>   let it hang off, and you never clamp it to a margin smaller than itself.
+> - **An option that only works in landscape or on a wide screen doesn't ship.**
+>   That is what WIDE was, and it was deleted.
+> - Check every new surface at portrait-iPhone width in your head before you
+>   write it, the same way you check the colorway (Rule #2).
 
 > **⛔ RULE #-0.4 — EVERY FEATURE SHIPS WITH A DOOR, AND THE DOOR IS
 > CONFIRMED BEFORE THE BUILD STARTS. (Brendon, 2026-07-20; SHARPENED the

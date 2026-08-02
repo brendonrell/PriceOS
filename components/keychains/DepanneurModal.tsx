@@ -219,6 +219,27 @@ export default function DepanneurModal() {
         };
     }, [isOpen, siweAddress]);
 
+    /* The one switch — profile on/off, rack untouched. */
+    const setHidden = async (next: boolean) => {
+        if (!siweAddress || busy) return;
+        setBusy(true);
+        try {
+            const r = await fetch('/api/keychains/equip', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ hidden: next }),
+            });
+            if (r.ok) {
+                bustRack(siweAddress);
+                showToast(`Keychains: ${next ? 'OFF' : 'ON'}`);
+            } else {
+                showToast('Keychains: FAILED');
+            }
+        } finally {
+            setBusy(false);
+        }
+    };
+
     const streak = rack?.streak ?? 0;
     /* What the streak is buying at the machine right now — the same tier the
        crank will bank into the charm. */
@@ -511,6 +532,29 @@ export default function DepanneurModal() {
 
                             {/* MY CHARMS — the sheet's own section header, and
                                 every tile captioned the way THE CAST is. */}
+                            {/* ⛔ THE ONE SWITCH (Brendon, 2026-08-02: "instead of
+                                making me unequip them one by one we need a single
+                                on/off keychains toggle for your profile so you can
+                                leave it as is but turn on/off when needed").
+                                It hides the worn keychain on the profile and
+                                touches NOTHING else — the rack, the worn pool and
+                                the chosen three all stay exactly as they are. */}
+                            <div className="dp-wear-row">
+                                <button
+                                    type="button"
+                                    className={`dp-wear-btn${rack?.hidden ? '' : ' on'}`}
+                                    disabled={busy}
+                                    onClick={() => { void setHidden(!(rack?.hidden ?? false)); }}
+                                >
+                                    {rack?.hidden ? 'KEYCHAINS OFF' : 'KEYCHAINS ON'}
+                                </button>
+                                <span className="dp-wear-note">
+                                    {rack?.hidden
+                                        ? 'nothing hangs on your profile — your rack is untouched'
+                                        : 'your chosen charms hang on your profile'}
+                                </span>
+                            </div>
+
                             <header className="dp-sh">
                                 <h3>THE CAST</h3>
                                 <p>12 shapes · rarest pull: ALIEN, 1 in 50</p>

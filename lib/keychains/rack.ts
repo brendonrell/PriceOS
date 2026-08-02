@@ -20,6 +20,8 @@ export interface Rack {
     top: number[];
     /** Draw the hanging three fresh from the pool on every page load. */
     shuffle: boolean;
+    /** Charms off the profile entirely — the rack is left exactly as it is. */
+    hidden: boolean;
     streak: number;
     rank: number;
 }
@@ -31,7 +33,7 @@ function normalizeRack(j: Rack | null): Rack | null {
         ? j.equipped
         : typeof j.equipped === 'number' ? [j.equipped] : [];
     const top = Array.isArray(j.top) ? j.top.slice(0, 3) : equipped.slice(0, 3);
-    return { ...j, equipped, top, shuffle: j.shuffle === true };
+    return { ...j, equipped, top, shuffle: j.shuffle === true, hidden: j.hidden === true };
 }
 
 const cache = new Map<string, Rack | null>();

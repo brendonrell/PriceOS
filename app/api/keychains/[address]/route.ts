@@ -28,6 +28,9 @@ export interface KeychainsResponse {
     top: number[];
     /** Draw the hanging three at random from the pool on every page load. */
     shuffle: boolean;
+    /** The one switch: the keeper's charms are off the profile entirely, with
+     *  the whole rack left exactly as it is (Brendon, 2026-08-02). */
+    hidden: boolean;
     streak: number;
     rank: number;
 }
@@ -44,7 +47,7 @@ export async function GET(
         const db = getSupabaseService();
         const { data: row, error } = await db
             .from('users')
-            .select('price_streak, price_rank, keychains:settings->keychains, equipped:settings->keychainEquipped, top:settings->keychainTop, shuffle:settings->keychainShuffle')
+            .select('price_streak, price_rank, keychains:settings->keychains, equipped:settings->keychainEquipped, top:settings->keychainTop, shuffle:settings->keychainShuffle, hidden:settings->keychainHidden')
             .eq('address', address)
             .maybeSingle();
         if (error) return serverError(error.message);
@@ -52,7 +55,7 @@ export async function GET(
 
         const r = row as {
             price_streak: number; price_rank: number;
-            keychains?: unknown; equipped?: unknown; top?: unknown; shuffle?: unknown;
+            keychains?: unknown; equipped?: unknown; top?: unknown; shuffle?: unknown; hidden?: unknown;
         };
         const charms = sanitizeCharms(r.keychains);
         const owned = new Set(charms.map((c) => c.id));
@@ -73,6 +76,7 @@ export async function GET(
             equipped,
             top,
             shuffle: r.shuffle === true,
+            hidden: r.hidden === true,
             streak: Number(r.price_streak) || 0,
             rank: Number(r.price_rank) || 0,
         };
