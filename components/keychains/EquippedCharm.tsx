@@ -118,9 +118,17 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
        so they sit at their own heights off the same anchor. */
     const poolKey = (rack?.equipped ?? []).join(',');
     const topKey = (rack?.top ?? []).join(',');
+    /* ⛔ THE ONE YOU PICK IS THE ONE THAT HANGS (Brendon, 2026-08-01: "just make
+       the fucking one I select replace another one, the one I select should
+       show"). With SHUFFLE on, the hanging three were drawn at random out of
+       everything worn — so choosing a charm changed the pool and the row often
+       showed something else entirely. The random draw is still what you get on
+       a fresh load; the moment you pick one by hand it stops overriding you and
+       the row shows exactly what you chose. */
+    const [pickedId, setPickedId] = useState<number | null>(null);
     const hangIds = useMemo(() => {
         if (!rack) return [] as number[];
-        if (!rack.shuffle) return rack.top.slice(0, SLOTS);
+        if (!rack.shuffle || pickedId != null) return rack.top.slice(0, SLOTS);
         const pool = [...rack.equipped];
         const out: number[] = [];
         while (out.length < SLOTS && pool.length > 0) {
@@ -128,7 +136,7 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
         }
         return out;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [rack?.address, rack?.shuffle, poolKey, topKey]);
+    }, [rack?.address, rack?.shuffle, poolKey, topKey, pickedId]);
 
     const charms = useMemo(
         () => hangIds
@@ -146,9 +154,19 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
             const j = Math.floor(Math.random() * (i + 1));
             [order[i], order[j]] = [order[j]!, order[i]!];
         }
+        /* The one just chosen comes to the FRONT of the bunch — picking a charm
+           and watching it land behind the other two reads as nothing happening
+           (Brendon, 2026-08-01). The load-time stack stays random. */
+        const mine = charms.findIndex((c) => c.id === pickedId);
+        if (mine >= 0) {
+            const top = Math.max(...order);
+            const holder = order.indexOf(top);
+            order[holder] = order[mine]!;
+            order[mine] = top;
+        }
         return order;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [charms.map((c) => c.id).join(',')]);
+    }, [charms.map((c) => c.id).join(','), pickedId]);
     const charm = charms[0] ?? null;
 
     /* YOUR OWN KEYCHAIN IS A SWITCHER, NOT A TRAIT SHEET (Brendon, 2026-07-31).
@@ -170,6 +188,9 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
            gesture, exactly as the Depanneur's own equip does. */
         void requestMotion();
         const wasOn = (rack?.top ?? []).includes(id);
+        /* Putting one ON is a choice the row must honour immediately; taking one
+           off just leaves the rest as they are. */
+        if (!wasOn) setPickedId(id);
         setBusy(true);
         try {
             const r = await fetch('/api/keychains/equip', {
