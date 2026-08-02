@@ -391,7 +391,7 @@ export function WalletSection() {
                         }
                     }}
                 >
-                    {'☯'}{'︎'}
+                    {'⚷'}{'︎'}
                 </span>
                 <span
                     className={`rpc-ping-btn incognito-btn${incognitoActive ? ' rpc-active' : ''}`}
