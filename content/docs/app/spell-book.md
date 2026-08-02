@@ -12,6 +12,22 @@ The Spell Book is where PriceOS keeps its lenses: pill-toggleable modifiers that
 
 **How:** Triple-tap the MY PD header in settings; triple-tap the SPELL BOOK header to flip back.
 
+<svg viewBox="0 0 720 150" role="img" aria-labelledby="spellbook-door-title" style="width:100%;height:auto;display:block;margin:14px 0">
+<title id="spellbook-door-title">The Spell Book door: triple-tap the MY PD header in settings and the panel flips to the Spell Book; triple-tap the SPELL BOOK header to flip back. No menu item, no button.</title>
+<g font-family="'Courier New', Courier, monospace" font-size="13" font-weight="bold">
+<rect x="30" y="40" width="250" height="70" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="155" y="68" fill="currentColor" text-anchor="middle" font-size="13">MY PD</text>
+<text x="155" y="92" fill="currentColor" text-anchor="middle" font-size="12" font-weight="normal">the settings panel</text>
+<path d="M280 75 H 400" stroke="currentColor" stroke-width="1.5" fill="none"/>
+<path d="M400 70 L 412 75 L 400 80 Z" fill="currentColor"/>
+<text x="346" y="60" fill="currentColor" text-anchor="middle" font-size="12">tap ×3</text>
+<text x="346" y="128" fill="currentColor" text-anchor="middle" font-size="12" font-weight="normal">(and ×3 flips back)</text>
+<rect x="412" y="40" width="250" height="70" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="537" y="68" fill="currentColor" text-anchor="middle" font-size="13">SPELL BOOK</text>
+<text x="537" y="92" fill="currentColor" text-anchor="middle" font-size="12" font-weight="normal">23 pills of lenses</text>
+</g>
+</svg>
+
 ## Opening it
 
 **Triple-tap the MY PD header in settings.** The settings panel flips to the Spell Book; triple-tap the SPELL BOOK header to flip back. That's the whole trick — no menu item, no button. Casting or dispelling any spell announces itself in a toast, and a few carry incantations: *☽ Reading the Birth Skies ☽*, *⑃ Rumor Has It… ⑃*, *∾ The Net Is Cast ∾*.

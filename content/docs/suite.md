@@ -12,6 +12,36 @@ The **PriceOS Suite** is PD's productivity super-app — the calendar, to-dos, w
 
 **How:** Press and hold the TO-DOS header in the connect menu.
 
+<svg viewBox="0 0 720 150" role="img" aria-labelledby="suite-anatomy-title" style="width:100%;height:auto;display:block;margin:14px 0">
+<title id="suite-anatomy-title">The PriceOS Suite, annotated: the app switcher row of eight faces along the top — Today, PriceCal, PriceTask, Workflows, Notes and the rest — with the workspace below showing whichever app is active.</title>
+<g font-family="'Courier New', Courier, monospace" font-size="13" font-weight="bold">
+<rect x="10" y="10" width="700" height="130" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="34" y="46" fill="currentColor" text-anchor="middle" font-size="15">①&#xFE0E;</text>
+<rect x="56" y="26" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="77" y="44" fill="currentColor" text-anchor="middle" font-size="13">‰</text>
+<rect x="108" y="26" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="129" y="44" fill="currentColor" text-anchor="middle" font-size="13">▦&#xFE0E;</text>
+<rect x="160" y="26" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="181" y="44" fill="currentColor" text-anchor="middle" font-size="13">❍&#xFE0E;</text>
+<rect x="212" y="26" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="233" y="44" fill="currentColor" text-anchor="middle" font-size="13">☇&#xFE0E;</text>
+<rect x="264" y="26" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="285" y="44" fill="currentColor" text-anchor="middle" font-size="13">⊟&#xFE0E;</text>
+<rect x="316" y="26" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="337" y="44" fill="currentColor" text-anchor="middle" font-size="13">◊</text>
+<rect x="368" y="26" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="389" y="44" fill="currentColor" text-anchor="middle" font-size="13">⌬&#xFE0E;</text>
+<rect x="420" y="26" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="441" y="44" fill="currentColor" text-anchor="middle" font-size="13">⚝&#xFE0E;</text>
+<text x="34" y="100" fill="currentColor" text-anchor="middle" font-size="15">②&#xFE0E;</text>
+<rect x="56" y="80" width="600" height="44" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="356" y="106" fill="currentColor" text-anchor="middle" font-size="12" font-weight="normal">the active app, full width</text>
+</g>
+</svg>
+
+- **①&#xFE0E; The faces** — ‰ Today · ▦ PriceCal · ❍ PriceTask · ☇ Workflows and the rest, switched with one tap.
+- **②&#xFE0E; The workspace** — every tile on Today is a door into its app.
+
 **Opening it:** press and hold the **TO-DOS** header in the connect menu — right where it says "TO-DOS". Close with the × like any other panel.
 
 ## ‰ Today

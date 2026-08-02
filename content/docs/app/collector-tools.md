@@ -10,6 +10,33 @@ last_updated: "2026-07-20"
 
 The sandbox layer: tools that live above every page and turn browsing into working. All of them are free, most of them are a swipe away, and none of them touch the chain until you do.
 
+<svg viewBox="0 0 720 300" role="img" aria-labelledby="connect-menu-anatomy-title" style="width:100%;height:auto;display:block;margin:14px 0">
+<title id="connect-menu-anatomy-title">The connect menu, annotated: the PINGS inbox accordion at the top, the NOTES and TO-DOS panels below it (press and hold the TO-DOS header for the PriceOS Suite), and the settings surface MY PD underneath.</title>
+<g font-family="'Courier New', Courier, monospace" font-size="13" font-weight="bold">
+<rect x="10" y="10" width="700" height="280" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<rect x="24" y="24" width="672" height="56" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="44" y="48" fill="currentColor" text-anchor="middle" font-size="15">①&#xFE0E;</text>
+<text x="66" y="48" fill="currentColor" text-anchor="start" font-size="13">PINGS (3)</text>
+<text x="66" y="68" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">✦&#xFE0E; @keeper collected prisms #4 · 2:14 PM</text>
+<rect x="24" y="90" width="672" height="40" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="44" y="114" fill="currentColor" text-anchor="middle" font-size="15">②&#xFE0E;</text>
+<text x="66" y="114" fill="currentColor" text-anchor="start" font-size="13">NOTES</text>
+<rect x="24" y="140" width="672" height="56" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="44" y="164" fill="currentColor" text-anchor="middle" font-size="15">③&#xFE0E;</text>
+<text x="66" y="164" fill="currentColor" text-anchor="start" font-size="13">TO-DOS (2)  ·  +  ☇&#xFE0E;</text>
+<text x="66" y="184" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">❍&#xFE0E; buy prisms 22 under .4 — READY</text>
+<rect x="24" y="206" width="672" height="40" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="44" y="230" fill="currentColor" text-anchor="middle" font-size="15">④&#xFE0E;</text>
+<text x="66" y="230" fill="currentColor" text-anchor="start" font-size="13">MY PD</text>
+<text x="66" y="268" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">hold the TO-DOS header → the PriceOS Suite opens full-screen</text>
+</g>
+</svg>
+
+- **①&#xFE0E; PINGS** — the inbox. Scrolling the list is what marks pings read; long-press a row to quiet its source.
+- **②&#xFE0E; NOTES** — your private marginalia, owner-only forever.
+- **③&#xFE0E; TO-DOS** — + composes (it parses plain language), ☇ opens Workflows; **press and hold the header** and the whole [PriceOS Suite](/docs/suite) opens.
+- **④&#xFE0E; MY PD** — the settings surface; its own map is on [Settings & Display](/docs/app/settings-and-display).
+
 ## To-Dos ❍
 
 **How:** Open the connect menu's To-Dos panel — + composes a to-do, ☇ opens Workflows.

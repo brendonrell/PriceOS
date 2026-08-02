@@ -15,6 +15,42 @@ carry no fee and no royalty — ever.**
 
 **How:** Tap the ⇌ TRADE pill on any collector's profile, or on a piece's page to start from that piece.
 
+<svg viewBox="0 0 720 280" role="img" aria-labelledby="exchange-anatomy-title" style="width:100%;height:auto;display:block;margin:14px 0">
+<title id="exchange-anatomy-title">The Exchange trade window, annotated: the YOU OFFER panel on top and YOU ASK below, the optional one-sided ETH sweetener, the duration pills, and the single confirm line before sending.</title>
+<g font-family="'Courier New', Courier, monospace" font-size="13" font-weight="bold">
+<rect x="10" y="10" width="700" height="260" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="30" y="40" fill="currentColor" text-anchor="start" font-size="13">⇌&#xFE0E; THE EXCHANGE</text>
+<text x="30" y="84" fill="currentColor" text-anchor="middle" font-size="15">①&#xFE0E;</text>
+<rect x="52" y="64" width="280" height="70" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="192" y="88" fill="currentColor" text-anchor="middle" font-size="13">YOU OFFER</text>
+<text x="192" y="110" fill="currentColor" text-anchor="middle" font-size="12" font-weight="normal">[art] [art] [+]</text>
+<text x="30" y="176" fill="currentColor" text-anchor="middle" font-size="15">②&#xFE0E;</text>
+<rect x="52" y="156" width="280" height="70" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="192" y="180" fill="currentColor" text-anchor="middle" font-size="13">YOU ASK</text>
+<text x="192" y="202" fill="currentColor" text-anchor="middle" font-size="12" font-weight="normal">[art] [+]</text>
+<text x="380" y="84" fill="currentColor" text-anchor="middle" font-size="15">③&#xFE0E;</text>
+<rect x="402" y="64" width="160" height="28" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="482" y="83" fill="currentColor" text-anchor="middle" font-size="12">+ ◊ sweetener</text>
+<text x="380" y="140" fill="currentColor" text-anchor="middle" font-size="15">④&#xFE0E;</text>
+<rect x="402" y="120" width="60" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="432" y="138" fill="currentColor" text-anchor="middle" font-size="12">24H</text>
+<rect x="470" y="120" width="60" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="500" y="138" fill="currentColor" text-anchor="middle" font-size="12">3D</text>
+<rect x="538" y="120" width="60" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="568" y="138" fill="currentColor" text-anchor="middle" font-size="12">7D</text>
+<text x="380" y="196" fill="currentColor" text-anchor="middle" font-size="15">⑤&#xFE0E;</text>
+<rect x="402" y="176" width="220" height="30" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="512" y="196" fill="currentColor" text-anchor="middle" font-size="13">PROPOSE TRADE</text>
+<text x="52" y="250" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">"Are you sure you want to make this trade?" — the one honest confirm</text>
+</g>
+</svg>
+
+- **①&#xFE0E; YOU OFFER** — your side, real art in the slots; the counterparty sees the mirror.
+- **②&#xFE0E; YOU ASK** — their side.
+- **③&#xFE0E; The sweetener** — one side (never both) can add ◊ ETH to balance the deal.
+- **④&#xFE0E; Duration** — how long the offer stands.
+- **⑤&#xFE0E; PROPOSE** — they get a ⇌ ping that opens the trade directly. No fee, no royalty, ever.
+
 ## The window
 
 Two square panels: **YOU OFFER** on top, **YOU ASK** below (the counterparty

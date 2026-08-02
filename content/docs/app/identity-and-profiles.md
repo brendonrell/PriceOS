@@ -10,6 +10,58 @@ last_updated: "2026-07-20"
 
 PD's identity layer sits on top of your wallet: the address signs, the identity is yours to shape. Everything here is claimed at first sign-in and editable after.
 
+<svg viewBox="0 0 720 320" role="img" aria-labelledby="profile-anatomy-title" style="width:100%;height:auto;display:block;margin:14px 0">
+<title id="profile-anatomy-title">A profile page, annotated: the hero with stickers and profile tags, the @name (long-press yours for colour, tags and name font), the ID row with the PriceSprite and stats, the tab rail from Showcase through Achievements, and the sort row on the Collected grid.</title>
+<g font-family="'Courier New', Courier, monospace" font-size="13" font-weight="bold">
+<rect x="10" y="10" width="700" height="300" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="30" y="44" fill="currentColor" text-anchor="middle" font-size="15">①&#xFE0E;</text>
+<text x="52" y="44" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">[stickers live up here]</text>
+<rect x="300" y="26" width="100" height="24" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="350" y="43" fill="currentColor" text-anchor="middle" font-size="11">Collector</text>
+<rect x="410" y="26" width="80" height="24" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="450" y="43" fill="currentColor" text-anchor="middle" font-size="11">OG ⌖&#xFE0E;</text>
+<rect x="500" y="26" width="90" height="24" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="545" y="43" fill="currentColor" text-anchor="middle" font-size="11">User #22</text>
+<text x="30" y="92" fill="currentColor" text-anchor="middle" font-size="15">②&#xFE0E;</text>
+<text x="52" y="92" fill="currentColor" text-anchor="start" font-size="16">@keeper</text>
+<text x="160" y="92" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">← long-press yours: colour · tags · font</text>
+<text x="30" y="128" fill="currentColor" text-anchor="middle" font-size="15">③&#xFE0E;</text>
+<text x="52" y="128" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">[·_·] 0x1460…B9B8 · ☻&#xFE0E; 48 · ⬚&#xFE0E; 12 · ◊ 4.2</text>
+<text x="30" y="176" fill="currentColor" text-anchor="middle" font-size="15">④&#xFE0E;</text>
+<rect x="52" y="156" width="88" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="96" y="174" fill="currentColor" text-anchor="middle" font-size="12">Showcase</text>
+<rect x="150" y="156" width="88" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="194" y="174" fill="currentColor" text-anchor="middle" font-size="12">Stickers</text>
+<rect x="248" y="156" width="97" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="296.5" y="174" fill="currentColor" text-anchor="middle" font-size="12">Collected</text>
+<rect x="355" y="156" width="97" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="403.5" y="174" fill="currentColor" text-anchor="middle" font-size="12">Portfolio</text>
+<rect x="462" y="156" width="70" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="497" y="174" fill="currentColor" text-anchor="middle" font-size="12">+ More</text>
+<text x="30" y="232" fill="currentColor" text-anchor="middle" font-size="15">⑤&#xFE0E;</text>
+<rect x="52" y="212" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="73" y="230" fill="currentColor" text-anchor="middle" font-size="13">⁘&#xFE0E;</text>
+<rect x="104" y="212" width="56" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="132" y="230" fill="currentColor" text-anchor="middle" font-size="13">#ID</text>
+<rect x="170" y="212" width="72" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="206" y="230" fill="currentColor" text-anchor="middle" font-size="13">$PRICE</text>
+<rect x="252" y="212" width="62" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="283" y="230" fill="currentColor" text-anchor="middle" font-size="13">FEED</text>
+<rect x="52" y="250" width="64" height="44" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<rect x="128" y="250" width="64" height="44" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<rect x="204" y="250" width="64" height="44" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<rect x="280" y="250" width="64" height="44" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<rect x="356" y="250" width="64" height="44" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<rect x="432" y="250" width="64" height="44" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+</g>
+</svg>
+
+- **①&#xFE0E; The hero** — wears the owner's sticker arrangement and their profile tags.
+- **②&#xFE0E; The @name** — long-press your own to open the customization rows: profile colour, [Profile Tags](/docs/app/identity-and-profiles#profile-tags), and the name font.
+- **③&#xFE0E; The ID row** — the PriceSprite (tap yours to open it, long-press to recolour), the address, and the stats; tap ☻ for followers.
+- **④&#xFE0E; The tabs** — Showcase · Stickers · Collected · Completionism · Portfolio · Trade record · Achievements · + More (Vault, Counterparties, Targets…).
+- **⑤&#xFE0E; The sort row** — same grammar as every gallery: pills cycle, ⁘ groups.
+
 ## The @name
 
 **How:** Long-press your @name on your own profile to open the customization rows — profile colour, tags, and name font.

@@ -10,6 +10,47 @@ last_updated: "2026-08-01"
 
 Discovery on PD is built around one conviction: the market's activity, read well, is the best curator there is — PD itself deliberately isn't one (filtered, not curated). The surfaces below all turn live platform activity into ways of finding work.
 
+<svg viewBox="0 0 720 300" role="img" aria-labelledby="home-anatomy-title" style="width:100%;height:auto;display:block;margin:14px 0">
+<title id="home-anatomy-title">The home page, annotated: the platform name (long-press for Cartography, triple-tap for the Rewind), the stats row with the Projects Pro door, the sort row whose smiley pill holds the social feed and the New Users feed, Now Minting, and the activity feed with milestones.</title>
+<g font-family="'Courier New', Courier, monospace" font-size="13" font-weight="bold">
+<rect x="10" y="10" width="700" height="280" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="30" y="44" fill="currentColor" text-anchor="middle" font-size="15">①&#xFE0E;</text>
+<text x="52" y="44" fill="currentColor" text-anchor="start" font-size="15">PRICE DISCUSSION</text>
+<text x="280" y="44" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">hold → map · ×3 → time</text>
+<text x="30" y="88" fill="currentColor" text-anchor="middle" font-size="15">②&#xFE0E;</text>
+<text x="52" y="88" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">⬚&#xFE0E; 68 PRO · ☻&#xFE0E; 220 · ◊ 148</text>
+<text x="290" y="88" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">← tap ⬚ n PRO: the catalog as an instrument</text>
+<text x="30" y="136" fill="currentColor" text-anchor="middle" font-size="15">③&#xFE0E;</text>
+<rect x="52" y="116" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="73" y="134" fill="currentColor" text-anchor="middle" font-size="13">⁘&#xFE0E;</text>
+<rect x="104" y="116" width="52" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="130" y="134" fill="currentColor" text-anchor="middle" font-size="13">◷&#xFE0E;</text>
+<rect x="166" y="116" width="72" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="202" y="134" fill="currentColor" text-anchor="middle" font-size="13">$PRICE</text>
+<rect x="248" y="116" width="56" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="276" y="134" fill="currentColor" text-anchor="middle" font-size="13">AZ</text>
+<rect x="314" y="116" width="62" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="345" y="134" fill="currentColor" text-anchor="middle" font-size="13">FEED</text>
+<rect x="386" y="116" width="52" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="412" y="134" fill="currentColor" text-anchor="middle" font-size="13">☻&#xFE0E;</text>
+<text x="452" y="136" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">← tap: social feed · hold: NEW USERS</text>
+<text x="30" y="192" fill="currentColor" text-anchor="middle" font-size="15">④&#xFE0E;</text>
+<rect x="52" y="162" width="78" height="56" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<rect x="142" y="162" width="78" height="56" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<rect x="232" y="162" width="78" height="56" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<rect x="322" y="162" width="78" height="56" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="430" y="192" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">NOW MINTING</text>
+<text x="30" y="252" fill="currentColor" text-anchor="middle" font-size="15">⑤&#xFE0E;</text>
+<text x="52" y="252" fill="currentColor" text-anchor="start" font-size="11" font-weight="normal">✦&#xFE0E; @a collected prisms #9 · † FIRST BLOOD on slack water · ▲ ASCENSION</text>
+</g>
+</svg>
+
+- **①&#xFE0E; The name** — the compass: **long-press** for [Cartography ◫](/docs/cartography), **triple-tap** for [The Rewind ◄](/docs/rewind).
+- **②&#xFE0E; The stats row** — tap the ⬚ n PRO figure and [Projects Pro](/docs/app/discovery#projects-pro-) opens.
+- **③&#xFE0E; The sort row** — the ☻ pill is the social door: **tap** for your graph's activity feed, **long-press** for the NEW USERS signup feed.
+- **④&#xFE0E; Now Minting** — the carousel of open Projects with live supply.
+- **⑤&#xFE0E; The feed** — mints, sales, and Project milestones as they happen.
+
 ## The home page
 
 The platform's front door, wearing the daily Mood Ring colour:

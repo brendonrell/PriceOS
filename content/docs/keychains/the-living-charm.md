@@ -12,6 +12,33 @@ A Keychain out of the capsule is a finished character — but a blank life. Ever
 
 **How:** Wear it from the Depanneur ⚷; POLISH there syncs your streak and rank onto the charm.
 
+<svg viewBox="0 0 720 240" role="img" aria-labelledby="charm-anatomy-title" style="width:100%;height:auto;display:block;margin:14px 0">
+<title id="charm-anatomy-title">A Keychain, annotated: the ring on the tag row, the chain whose links are your PriceStreak, the charm body whose finish is your PriceRank, and the polish ritual that syncs both onto the chain.</title>
+<g font-family="'Courier New', Courier, monospace" font-size="13" font-weight="bold">
+<text x="200" y="36" fill="currentColor" text-anchor="middle" font-size="13">⊂ ring ⊃</text>
+<text x="260" y="36" fill="currentColor" text-anchor="middle" font-size="15">①&#xFE0E;</text>
+<text x="200" y="64" fill="currentColor" text-anchor="middle" font-size="13">|</text>
+<text x="200" y="86" fill="currentColor" text-anchor="middle" font-size="13">o</text>
+<text x="200" y="108" fill="currentColor" text-anchor="middle" font-size="13">o</text>
+<text x="260" y="96" fill="currentColor" text-anchor="middle" font-size="15">②&#xFE0E;</text>
+<text x="200" y="130" fill="currentColor" text-anchor="middle" font-size="13">o</text>
+<rect x="160" y="146" width="80" height="70" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="200" y="176" fill="currentColor" text-anchor="middle" font-size="14">[·_·]</text>
+<text x="200" y="198" fill="currentColor" text-anchor="middle" font-size="11" font-weight="normal">gloss</text>
+<text x="260" y="186" fill="currentColor" text-anchor="middle" font-size="15">③&#xFE0E;</text>
+<rect x="380" y="60" width="300" height="130" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="530" y="90" fill="currentColor" text-anchor="middle" font-size="13">POLISH</text>
+<text x="530" y="116" fill="currentColor" text-anchor="middle" font-size="12" font-weight="normal">streak + rank, sealed</text>
+<text x="530" y="138" fill="currentColor" text-anchor="middle" font-size="12" font-weight="normal">and written onchain</text>
+<text x="530" y="172" fill="currentColor" text-anchor="middle" font-size="15">④&#xFE0E;</text>
+</g>
+</svg>
+
+- **①&#xFE0E; The ring** — every worn charm hangs from the profile's tag row.
+- **②&#xFE0E; The chain is your PriceStreak** — bare cord fresh, links at a week, gold at a year, chrome at 1,000 days.
+- **③&#xFE0E; The finish is your PriceRank** — matte through gloss, glitter, gold, liquid chrome.
+- **④&#xFE0E; POLISH** — the sync ritual at the Depanneur: your live streak and rank, attested and written onto the charm.
+
 ## The chain is your streak
 
 Your charm hangs from the ring by whatever your PriceStreak has earned. The full ladder:

@@ -12,6 +12,39 @@ Every Project on PD carries a **colorway** — the one colour it paints the app 
 
 **How:** Tap the ◉ Colorway tile on a Project's Attributes to open the book on that colour.
 
+<svg viewBox="0 0 720 230" role="img" aria-labelledby="colorpedia-anatomy-title" style="width:100%;height:auto;display:block;margin:14px 0">
+<title id="colorpedia-anatomy-title">The Colorpedia card, annotated: the colour swatch and its name with the honest nearest-neighbour distance, the computed formats you can tap to copy, the read in words, the history when the colour has one, and the tappable harmonies that re-read the card without closing it.</title>
+<g font-family="'Courier New', Courier, monospace" font-size="13" font-weight="bold">
+<rect x="10" y="10" width="700" height="210" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="34" y="44" fill="currentColor" text-anchor="middle" font-size="15">①&#xFE0E;</text>
+<rect x="56" y="28" width="90" height="60" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="160" y="52" fill="currentColor" text-anchor="start" font-size="13">TYRIAN PURPLE</text>
+<text x="160" y="74" fill="currentColor" text-anchor="start" font-size="11" font-weight="normal">nearest named · ΔE 3.1</text>
+<text x="34" y="124" fill="currentColor" text-anchor="middle" font-size="15">②&#xFE0E;</text>
+<rect x="56" y="104" width="92" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="102" y="122" fill="currentColor" text-anchor="middle" font-size="12">HEX</text>
+<rect x="158" y="104" width="92" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="204" y="122" fill="currentColor" text-anchor="middle" font-size="12">RGB</text>
+<rect x="260" y="104" width="92" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="306" y="122" fill="currentColor" text-anchor="middle" font-size="12">HSL</text>
+<rect x="362" y="104" width="92" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="408" y="122" fill="currentColor" text-anchor="middle" font-size="12">CMYK</text>
+<rect x="464" y="104" width="92" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="510" y="122" fill="currentColor" text-anchor="middle" font-size="12">LAB</text>
+<rect x="566" y="104" width="92" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="612" y="122" fill="currentColor" text-anchor="middle" font-size="12">LCH</text>
+<text x="34" y="164" fill="currentColor" text-anchor="middle" font-size="15">③&#xFE0E;</text>
+<text x="56" y="164" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">the read: family · lightness · warmth · contrast vs black and white</text>
+<text x="34" y="196" fill="currentColor" text-anchor="middle" font-size="15">④&#xFE0E;</text>
+<text x="56" y="196" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">harmonies: complement · triad · analogous · split · shades — all tappable</text>
+</g>
+</svg>
+
+- **①&#xFE0E; The name** — from the fixed dictionary, with the honest distance when the match isn't exact.
+- **②&#xFE0E; The formats** — computed exactly; tap any one to copy it.
+- **③&#xFE0E; The read** — the same maths, in words.
+- **④&#xFE0E; The harmonies** — tap a swatch and the whole card re-reads for that colour without closing.
+
 ## What it tells you
 
 **The numbers are computed, exactly, from the colour itself.** No lookup is involved, so they hold for any colour at all — a Project's colorway, or a hex pulled off a piece of art:

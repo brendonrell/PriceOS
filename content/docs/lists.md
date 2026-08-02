@@ -18,6 +18,33 @@ They are **private**. That is precisely why you get to name them: nobody else ev
 
 **How:** On your own profile's Starred view, tap ADD TO LIST on any row to file it; tap the LISTS pill in the sort row to read your Lists back.
 
+<svg viewBox="0 0 720 170" role="img" aria-labelledby="list-header-anatomy-title" style="width:100%;height:auto;display:block;margin:14px 0">
+<title id="list-header-anatomy-title">A List header, annotated: the name with the pencil rename, the count, the owned tally, the ETH worth that cycles SECONDARY, PRIMARY and OFF, and the delete control that removes only the grouping.</title>
+<g font-family="'Courier New', Courier, monospace" font-size="13" font-weight="bold">
+<rect x="10" y="10" width="700" height="150" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="30" y="48" fill="currentColor" text-anchor="middle" font-size="15">①&#xFE0E;</text>
+<text x="52" y="48" fill="currentColor" text-anchor="start" font-size="13">GRAIL RUN ✎&#xFE0E;</text>
+<text x="230" y="48" fill="currentColor" text-anchor="middle" font-size="15">②&#xFE0E;</text>
+<text x="252" y="48" fill="currentColor" text-anchor="start" font-size="13">8</text>
+<text x="300" y="48" fill="currentColor" text-anchor="middle" font-size="15">③&#xFE0E;</text>
+<text x="322" y="48" fill="currentColor" text-anchor="start" font-size="13">✓&#xFE0E; 3/8</text>
+<text x="420" y="48" fill="currentColor" text-anchor="middle" font-size="15">④&#xFE0E;</text>
+<rect x="442" y="28" width="90" height="28" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="487" y="47" fill="currentColor" text-anchor="middle" font-size="13">◊ 2.41</text>
+<text x="580" y="48" fill="currentColor" text-anchor="middle" font-size="15">⑤&#xFE0E;</text>
+<text x="602" y="48" fill="currentColor" text-anchor="start" font-size="13">✕&#xFE0E;</text>
+<text x="52" y="92" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">rows: [art] the thing · @artist · ◊ ask / mint / ❖&#xFE0E; rarity</text>
+<text x="52" y="120" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">hold the name → the List takes the panel to itself (dotted ring)</text>
+<text x="52" y="142" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">tap ✎ → drag rows by their ⠿ grips to reorder</text>
+</g>
+</svg>
+
+- **①&#xFE0E; The name + ✎** — the pencil renames in place; the name is yours alone (Lists are private).
+- **②&#xFE0E; The count** — how many things it holds, of any type.
+- **③&#xFE0E; ✓ owned** — how many of its artworks you already own.
+- **④&#xFE0E; ◊ worth** — tap to cycle SECONDARY (asking now) → PRIMARY (minted for) → OFF (rarity instead); every List moves at once.
+- **⑤&#xFE0E; ✕** — deletes the grouping only; every piece stays starred.
+
 ## A List holds anything you've starred
 
 Not just artwork. A List can mix **Outputs, Projects, Traits, Artists, Collectors, Soundtracks and Transactions** in one place — because the thing you're tracking is rarely one type. A run at a project is the project, three of its traits, the artist, and the six pieces you're actually watching. That's one List.

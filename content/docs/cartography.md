@@ -12,6 +12,29 @@ PD drawn as a world. Every Project is a territory with its own generated coastli
 
 **How:** Long-press the "Price Discussion" name on the home page.
 
+<svg viewBox="0 0 720 200" role="img" aria-labelledby="cartography-legend-title" style="width:100%;height:auto;display:block;margin:14px 0">
+<title id="cartography-legend-title">Reading the map: a territory is a Project sized by minted supply, dots are collectors sized by held pieces, the artist marks the capital, and live events ripple, sail and beacon across it.</title>
+<g font-family="'Courier New', Courier, monospace" font-size="13" font-weight="bold">
+<path d="M56 120 Q 110 40 210 66 Q 300 86 280 140 Q 240 180 140 168 Q 60 156 56 120 Z" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="90" y="60" fill="currentColor" text-anchor="middle" font-size="15">①&#xFE0E;</text>
+<circle cx="150" cy="110" r="6" fill="currentColor"/>
+<circle cx="190" cy="130" r="4" fill="currentColor"/>
+<circle cx="220" cy="100" r="3" fill="currentColor"/>
+<text x="150" y="90" fill="currentColor" text-anchor="middle" font-size="15">②&#xFE0E;</text>
+<text x="168" y="146" fill="currentColor" text-anchor="start" font-size="14">✺&#xFE0E;</text>
+<text x="200" y="160" fill="currentColor" text-anchor="middle" font-size="15">③&#xFE0E;</text>
+<text x="360" y="60" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">gold ripple = a mint, and the land grows</text>
+<text x="360" y="90" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">a comet = a sale, price in tow</text>
+<text x="360" y="120" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">a beacon = a listing on the shore</text>
+<text x="360" y="160" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">neighbourhoods are real taste — territories</text>
+<text x="360" y="180" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">sharing collectors drift together</text>
+</g>
+</svg>
+
+- **①&#xFE0E; A territory** — one Project; area grows with minted supply, the coastline never changes shape, the colour is its colorway.
+- **②&#xFE0E; The inhabitants** — one dot per wallet, sized by pieces held there.
+- **③&#xFE0E; ✺ The capital** — the artist's seat.
+
 ## Opening it
 
 **Long-press the "Price Discussion" name on the home page.** The name is the platform's compass: hold it and the map unfolds full-screen. (Its sibling gesture, the triple-tap, opens [The Rewind](/docs/rewind).)

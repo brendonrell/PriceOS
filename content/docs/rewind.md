@@ -12,6 +12,28 @@ Every platform shows you now. PD can also show you *then* — the entire app, do
 
 **How:** Triple-tap the "Price Discussion" name on the home page.
 
+<svg viewBox="0 0 720 160" role="img" aria-labelledby="rewind-anatomy-title" style="width:100%;height:auto;display:block;margin:14px 0">
+<title id="rewind-anatomy-title">The Rewind banner, annotated: the PriceDay number and date (tap the date for the picker), the scrubber running Day 1 to today with step controls, and the X that returns you to now.</title>
+<g font-family="'Courier New', Courier, monospace" font-size="13" font-weight="bold">
+<rect x="10" y="10" width="700" height="140" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="34" y="48" fill="currentColor" text-anchor="middle" font-size="15">①&#xFE0E;</text>
+<text x="56" y="48" fill="currentColor" text-anchor="start" font-size="13">PRICEDAY 148 · JUL 12 2026</text>
+<text x="34" y="100" fill="currentColor" text-anchor="middle" font-size="15">②&#xFE0E;</text>
+<text x="56" y="100" fill="currentColor" text-anchor="start" font-size="15">‹</text>
+<path d="M90 95 H 620" stroke="currentColor" stroke-width="2" fill="none"/>
+<circle cx="480" cy="95" r="7" fill="currentColor"/>
+<text x="648" y="100" fill="currentColor" text-anchor="start" font-size="15">›</text>
+<text x="34" y="138" fill="currentColor" text-anchor="middle" font-size="15">③&#xFE0E;</text>
+<text x="56" y="138" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">drag the dot, or step day by day</text>
+<text x="660" y="48" fill="currentColor" text-anchor="middle" font-size="15">④&#xFE0E;</text>
+<text x="684" y="48" fill="currentColor" text-anchor="start" font-size="14">✕&#xFE0E;</text>
+</g>
+</svg>
+
+- **①&#xFE0E; The day** — tap the date and the PriceDay picker opens; days outside Day 1 → today are greyed.
+- **②&#xFE0E;③&#xFE0E; The scrubber** — the whole platform docks at whatever day the dot lands on.
+- **④&#xFE0E; ✕** — back to now.
+
 ## Opening it
 
 **Triple-tap the "Price Discussion" name on the home page.** PD docks at yesterday and a full-strength banner frames the app: the PriceDay number, the date, a scrubber, and the **✕** that returns you to now. (The name's sibling gesture, the long-press, opens [Cartography](/docs/cartography) — hold for space, tap thrice for time.)

@@ -32,6 +32,41 @@ Every Output also carries its **Fingerprint** — the platform's objective read 
 
 The Output's verbs, in canonical glyphs, one tap each:
 
+<svg viewBox="0 0 720 120" role="img" aria-labelledby="output-action-row-title" style="width:100%;height:auto;display:block;margin:14px 0">
+<title id="output-action-row-title">The Output action row, annotated: star, wishlist, album, note, to-do, grail pin, and cart — one tap each, in canonical glyphs.</title>
+<g font-family="'Courier New', Courier, monospace" font-size="13" font-weight="bold">
+<rect x="30" y="30" width="66" height="40" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="63" y="55" fill="currentColor" text-anchor="middle">★&#xFE0E;</text>
+<rect x="116" y="30" width="66" height="40" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="149" y="55" fill="currentColor" text-anchor="middle">✛&#xFE0E;</text>
+<rect x="202" y="30" width="66" height="40" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="235" y="55" fill="currentColor" text-anchor="middle">◰&#xFE0E;</text>
+<rect x="288" y="30" width="66" height="40" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="321" y="55" fill="currentColor" text-anchor="middle">⊟&#xFE0E;</text>
+<rect x="374" y="30" width="66" height="40" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="407" y="55" fill="currentColor" text-anchor="middle">❍&#xFE0E;</text>
+<rect x="460" y="30" width="66" height="40" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="493" y="55" fill="currentColor" text-anchor="middle">⟟&#xFE0E;</text>
+<rect x="546" y="30" width="66" height="40" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="579" y="55" fill="currentColor" text-anchor="middle">▢&#xFE0E;</text>
+<text x="63" y="100" fill="currentColor" text-anchor="middle" font-size="15">①&#xFE0E;</text>
+<text x="149" y="100" fill="currentColor" text-anchor="middle" font-size="15">②&#xFE0E;</text>
+<text x="235" y="100" fill="currentColor" text-anchor="middle" font-size="15">③&#xFE0E;</text>
+<text x="321" y="100" fill="currentColor" text-anchor="middle" font-size="15">④&#xFE0E;</text>
+<text x="407" y="100" fill="currentColor" text-anchor="middle" font-size="15">⑤&#xFE0E;</text>
+<text x="493" y="100" fill="currentColor" text-anchor="middle" font-size="15">⑥&#xFE0E;</text>
+<text x="579" y="100" fill="currentColor" text-anchor="middle" font-size="15">⑦&#xFE0E;</text>
+</g>
+</svg>
+
+- **①&#xFE0E; ★ Star** — the silent bookmark; never generates a notification.
+- **②&#xFE0E; ✛ Wishlist** — declared buy intent; drives financial [Pings](/docs/pings/overview).
+- **③&#xFE0E; ◰ Album** — opens the Add-to-Album sheet ([Albums](/docs/albums)).
+- **④&#xFE0E; ⊟ Note** — a private annotation, owner-only forever.
+- **⑤&#xFE0E; ❍ To-Do** — writes a BUY to-do pointed at this exact piece.
+- **⑥&#xFE0E; ⟟ Grail Pin** — pins the piece to the top of your rows.
+- **⑦&#xFE0E; ▢ Cart** — stages the piece with the session's other candidates.
+
 | Action | Glyph |
 | --- | --- |
 | Star (bookmark, silent) | ★ / ☆ |

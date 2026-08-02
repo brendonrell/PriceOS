@@ -12,6 +12,38 @@ Everything about pings is under your control, and all of it lives in one place: 
 
 **How:** Open Settings — the MY PINGS row holds every switch.
 
+<svg viewBox="0 0 720 200" role="img" aria-labelledby="mypings-anatomy-title" style="width:100%;height:auto;display:block;margin:14px 0">
+<title id="mypings-anatomy-title">The MY PINGS bank in Settings, annotated: the Pingtoasts reach pill, the Silent Mode and Quiet Hours pill, and the per-category pills that decide what reaches you.</title>
+<g font-family="'Courier New', Courier, monospace" font-size="13" font-weight="bold">
+<rect x="10" y="10" width="700" height="180" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="30" y="42" fill="currentColor" text-anchor="start" font-size="13">MY PINGS</text>
+<text x="30" y="92" fill="currentColor" text-anchor="middle" font-size="15">①&#xFE0E;</text>
+<rect x="52" y="72" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="73" y="90" fill="currentColor" text-anchor="middle" font-size="13">⇡&#xFE0E;</text>
+<text x="106" y="92" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">Pingtoasts — how far pings reach (four modes)</text>
+<text x="30" y="136" fill="currentColor" text-anchor="middle" font-size="15">②&#xFE0E;</text>
+<rect x="52" y="116" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="73" y="134" fill="currentColor" text-anchor="middle" font-size="13">⏾&#xFE0E;</text>
+<text x="106" y="136" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">Silent Mode — OFF → ON → QUIET HOURS</text>
+<text x="30" y="180" fill="currentColor" text-anchor="middle" font-size="15">③&#xFE0E;</text>
+<rect x="52" y="160" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="73" y="178" fill="currentColor" text-anchor="middle" font-size="13">◍&#xFE0E;</text>
+<rect x="104" y="160" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="125" y="178" fill="currentColor" text-anchor="middle" font-size="13">✦&#xFE0E;</text>
+<rect x="156" y="160" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="177" y="178" fill="currentColor" text-anchor="middle" font-size="13">⊙&#xFE0E;</text>
+<rect x="208" y="160" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="229" y="178" fill="currentColor" text-anchor="middle" font-size="13">✶&#xFE0E;</text>
+<rect x="260" y="160" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="281" y="178" fill="currentColor" text-anchor="middle" font-size="13">◈&#xFE0E;</text>
+<text x="322" y="180" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">per-category switches</text>
+</g>
+</svg>
+
+- **①&#xFE0E; ⇡ Pingtoasts** — tap to cycle the four reach modes, from inbox-only up to native lock-screen push.
+- **②&#xFE0E; ⏾ Silent Mode** — the third state is Quiet Hours: native push sleeps inside your nightly window; in-app pings keep landing.
+- **③&#xFE0E; The category pills** — each family of pings has its own switch; the table below walks every one.
+
 ## The Pingtoasts pill ⇡ — how far pings reach
 
 Tap the ⇡ pill to cycle through four modes:

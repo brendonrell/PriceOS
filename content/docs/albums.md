@@ -16,6 +16,32 @@ order you chose, meant to be looked at.
 
 **How:** Tap ◰ on any artwork to open the Add-to-Album sheet; your albums live on your profile.
 
+<svg viewBox="0 0 720 200" role="img" aria-labelledby="album-tile-anatomy-title" style="width:100%;height:auto;display:block;margin:14px 0">
+<title id="album-tile-anatomy-title">An album tile, annotated: the living 2-by-2 mosaic cover that quietly swaps cells, the album number that is its whole identity, the count, the live worth of its listed pieces, and the maker attribution it wears away from home.</title>
+<g font-family="'Courier New', Courier, monospace" font-size="13" font-weight="bold">
+<rect x="10" y="10" width="320" height="180" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="34" y="40" fill="currentColor" text-anchor="middle" font-size="15">①&#xFE0E;</text>
+<rect x="60" y="30" width="80" height="60" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<rect x="150" y="30" width="80" height="60" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<rect x="60" y="100" width="80" height="60" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<rect x="150" y="100" width="80" height="60" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="370" y="52" fill="currentColor" text-anchor="middle" font-size="15">②&#xFE0E;</text>
+<text x="392" y="52" fill="currentColor" text-anchor="start" font-size="13">ALBUM 03</text>
+<text x="370" y="92" fill="currentColor" text-anchor="middle" font-size="15">③&#xFE0E;</text>
+<text x="392" y="92" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">12 PIECES</text>
+<text x="370" y="132" fill="currentColor" text-anchor="middle" font-size="15">④&#xFE0E;</text>
+<text x="392" y="132" fill="currentColor" text-anchor="start" font-size="13">◊ 1.8</text>
+<text x="370" y="172" fill="currentColor" text-anchor="middle" font-size="15">⑤&#xFE0E;</text>
+<text x="392" y="172" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">@collector</text>
+</g>
+</svg>
+
+- **①&#xFE0E; The living mosaic** — the first four pieces, swapping one cell at a time; pick a COVER and it goes single-piece, full bleed.
+- **②&#xFE0E; The number** — the album's whole identity; albums are never named.
+- **③&#xFE0E; The count** — what it holds.
+- **④&#xFE0E; ◊ worth** — the live sum of what its listed members are asking.
+- **⑤&#xFE0E; The maker** — away from your profile, every tile carries your @name; curation is always attributable.
+
 ## Numbered, never named
 
 An album has no title. It is **ALBUM 01**, **ALBUM 02**, in the order you made

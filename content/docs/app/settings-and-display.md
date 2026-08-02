@@ -12,6 +12,115 @@ MY PD is the settings surface — but on PriceOS, display is a first-class featu
 
 **How:** Open the connect menu — MY PD is the settings surface inside.
 
+<svg viewBox="0 0 720 396" role="img" aria-labelledby="mypd-anatomy-title" style="width:100%;height:auto;display:block;margin:14px 0">
+<title id="mypd-anatomy-title">The MY PD panel, annotated: the header (triple-tap opens the Spell Book), the colorway picker row, the two display-mode pill rows, the Setup Code field, the MY PINGS row, the DEFAULT SORT row, and the workspace dots row ending in the sound key.</title>
+<g font-family="'Courier New', Courier, monospace" font-size="13" font-weight="bold">
+<rect x="10" y="10" width="700" height="376" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="30" y="42" fill="currentColor" text-anchor="start" font-size="13">MY PD</text>
+<text x="90" y="42" fill="currentColor" text-anchor="middle" font-size="15">①&#xFE0E;</text>
+<text x="690" y="42" fill="currentColor" text-anchor="end" font-size="12" font-weight="normal">the panel header — triple-tap it</text>
+<text x="30" y="84" fill="currentColor" text-anchor="start" font-size="12">COLORWAY</text>
+<text x="140" y="84" fill="currentColor" text-anchor="middle" font-size="15">②&#xFE0E;</text>
+<rect x="170" y="64" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="191" y="82" fill="currentColor" text-anchor="middle">◩&#xFE0E;</text>
+<rect x="222" y="64" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="243" y="82" fill="currentColor" text-anchor="middle">◻&#xFE0E;</text>
+<rect x="274" y="64" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="295" y="82" fill="currentColor" text-anchor="middle">◼&#xFE0E;</text>
+<rect x="326" y="64" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="347" y="82" fill="currentColor" text-anchor="middle">▨&#xFE0E;</text>
+<rect x="378" y="64" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="399" y="82" fill="currentColor" text-anchor="middle">⁂&#xFE0E;</text>
+<rect x="430" y="64" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="451" y="82" fill="currentColor" text-anchor="middle">B</text>
+<rect x="482" y="64" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="503" y="82" fill="currentColor" text-anchor="middle">R</text>
+<text x="30" y="140" fill="currentColor" text-anchor="start" font-size="12">DISPLAY</text>
+<text x="140" y="140" fill="currentColor" text-anchor="middle" font-size="15">③&#xFE0E;</text>
+<rect x="170" y="120" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="191" y="138" fill="currentColor" text-anchor="middle">PL</text>
+<rect x="222" y="120" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="243" y="138" fill="currentColor" text-anchor="middle">PD</text>
+<rect x="274" y="120" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="295" y="138" fill="currentColor" text-anchor="middle">‰</text>
+<rect x="326" y="120" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="347" y="138" fill="currentColor" text-anchor="middle">○&#xFE0E;</text>
+<rect x="378" y="120" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="399" y="138" fill="currentColor" text-anchor="middle">⛶&#xFE0E;</text>
+<rect x="430" y="120" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="451" y="138" fill="currentColor" text-anchor="middle">⊞&#xFE0E;</text>
+<rect x="482" y="120" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="503" y="138" fill="currentColor" text-anchor="middle">☼&#xFE0E;</text>
+<text x="140" y="188" fill="currentColor" text-anchor="middle" font-size="15">④&#xFE0E;</text>
+<rect x="170" y="168" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="191" y="186" fill="currentColor" text-anchor="middle">z</text>
+<rect x="222" y="168" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="243" y="186" fill="currentColor" text-anchor="middle">◎&#xFE0E;</text>
+<rect x="274" y="168" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="295" y="186" fill="currentColor" text-anchor="middle">⛆&#xFE0E;</text>
+<rect x="326" y="168" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="347" y="186" fill="currentColor" text-anchor="middle">⟁&#xFE0E;</text>
+<rect x="378" y="168" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="399" y="186" fill="currentColor" text-anchor="middle">⍢&#xFE0E;</text>
+<rect x="430" y="168" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="451" y="186" fill="currentColor" text-anchor="middle">⇠&#xFE0E;</text>
+<rect x="482" y="168" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="503" y="186" fill="currentColor" text-anchor="middle">⏥&#xFE0E;</text>
+<rect x="534" y="168" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="555" y="186" fill="currentColor" text-anchor="middle">⍖&#xFE0E;</text>
+<text x="30" y="244" fill="currentColor" text-anchor="start" font-size="12">SETUP CODE</text>
+<text x="140" y="244" fill="currentColor" text-anchor="middle" font-size="15">⑤&#xFE0E;</text>
+<rect x="170" y="224" width="380" height="30" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="185" y="244" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">PD22-KIKI-…</text>
+<rect x="560" y="226" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="581" y="244" fill="currentColor" text-anchor="middle">⧉&#xFE0E;</text>
+<text x="30" y="300" fill="currentColor" text-anchor="start" font-size="12">MY PINGS</text>
+<text x="140" y="300" fill="currentColor" text-anchor="middle" font-size="15">⑥&#xFE0E;</text>
+<rect x="170" y="280" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="191" y="298" fill="currentColor" text-anchor="middle">⇡&#xFE0E;</text>
+<rect x="222" y="280" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="243" y="298" fill="currentColor" text-anchor="middle">⏾&#xFE0E;</text>
+<rect x="274" y="280" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="295" y="298" fill="currentColor" text-anchor="middle">◍&#xFE0E;</text>
+<rect x="326" y="280" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="347" y="298" fill="currentColor" text-anchor="middle">✦&#xFE0E;</text>
+<rect x="378" y="280" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="399" y="298" fill="currentColor" text-anchor="middle">⊙&#xFE0E;</text>
+<text x="30" y="356" fill="currentColor" text-anchor="start" font-size="12">DEFAULT SORT</text>
+<text x="140" y="356" fill="currentColor" text-anchor="middle" font-size="15">⑦&#xFE0E;</text>
+<rect x="170" y="336" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="191" y="354" fill="currentColor" text-anchor="middle">◷&#xFE0E;</text>
+<rect x="222" y="336" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="243" y="354" fill="currentColor" text-anchor="middle">$</text>
+<rect x="274" y="336" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="295" y="354" fill="currentColor" text-anchor="middle">AZ</text>
+<rect x="326" y="336" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="347" y="354" fill="currentColor" text-anchor="middle">⁘&#xFE0E;</text>
+<text x="420" y="356" fill="currentColor" text-anchor="middle" font-size="15">⑧&#xFE0E;</text>
+<rect x="450" y="336" width="34" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="467" y="354" fill="currentColor" text-anchor="middle">●</text>
+<rect x="494" y="336" width="34" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="511" y="354" fill="currentColor" text-anchor="middle">●</text>
+<rect x="538" y="336" width="34" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="555" y="354" fill="currentColor" text-anchor="middle">●</text>
+<rect x="582" y="336" width="34" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="599" y="354" fill="currentColor" text-anchor="middle">⚟&#xFE0E;</text>
+</g>
+</svg>
+
+What each numbered part does, tap by tap:
+
+- **①&#xFE0E; The MY PD header** — triple-tap it and the panel flips to [the Spell Book](/docs/app/spell-book); triple-tap the SPELL BOOK header to flip back.
+- **②&#xFE0E; The colorway picker** — one tap paints the whole app: ◩ Custom (per-page colours) · ◻ Light · ◼ Dark · ▨ Orange · ⁂ Hash Synesthesia · B Blueberry · R Cherry. Haze Mode hides behind this row for those who find it.
+- **③&#xFE0E; Display row one — the big switches** — PL Pure Light · PD Pure Dark · ‰ Price Logo · ○ Anon · ⛶ Zen · ⊞ Sticker Mode · ☼ Ambient Strip. Each pill toasts its new state as it flips.
+- **④&#xFE0E; Display row two — the instruments** — z Zero Context · ◎ Price Lens · ⛆ Sentiment Weather · ⟁ Cartel · ⍢ ASCII-ID · ⇠ Back Button · ⏥ Menu Tape · ⍖ Auto-Scroll.
+- **⑤&#xFE0E; Setup Code** — your whole configuration as one shareable string; ⧉ copies it, pasting one and pressing Enter wears it.
+- **⑥&#xFE0E; MY PINGS** — the notification bank, pill by pill; ⇡ cycles how far pings reach, ⏾ cycles Silent Mode → Quiet Hours. The full walk-through is [Pings — Controls](/docs/pings/controls).
+- **⑦&#xFE0E; DEFAULT SORT** — the sort and grouping (⁘) the app boots with and re-applies on every project entry.
+- **⑧&#xFE0E; The workspace dots** — your saved Workspaces, one tap each; the ⚟ key at the end is the sound layer, off by default.
+
+*(Schematic — rows are abbreviated; the real panel carries every pill.)*
+
 ## Colorways
 
 The colorway picker paints the entire app through one variable system:

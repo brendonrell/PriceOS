@@ -12,6 +12,33 @@ The Store is the primary market: every sheet PD has published, on one shelf. It 
 
 **How:** Tap ⊞ STICKERS on the home action row — the Store is the Exchange's default face.
 
+<svg viewBox="0 0 720 210" role="img" aria-labelledby="sheet-card-anatomy-title" style="width:100%;height:auto;display:block;margin:14px 0">
+<title id="sheet-card-anatomy-title">A sheet card in the Store, annotated: the three-sticker fan preview, the name and rarity tag, the sticker count, the price, and the BUY control; the peel happens after purchase.</title>
+<g font-family="'Courier New', Courier, monospace" font-size="13" font-weight="bold">
+<rect x="10" y="10" width="700" height="190" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="34" y="44" fill="currentColor" text-anchor="middle" font-size="15">①&#xFE0E;</text>
+<rect x="56" y="30" width="70" height="90" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<rect x="76" y="44" width="70" height="90" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<rect x="96" y="58" width="70" height="90" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="230" y="52" fill="currentColor" text-anchor="middle" font-size="15">②&#xFE0E;</text>
+<text x="252" y="52" fill="currentColor" text-anchor="start" font-size="13">GNOME PACK · RARE</text>
+<text x="230" y="92" fill="currentColor" text-anchor="middle" font-size="15">③&#xFE0E;</text>
+<text x="252" y="92" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">12 STICKERS</text>
+<text x="230" y="132" fill="currentColor" text-anchor="middle" font-size="15">④&#xFE0E;</text>
+<text x="252" y="132" fill="currentColor" text-anchor="start" font-size="14">◊ 0.01</text>
+<text x="230" y="176" fill="currentColor" text-anchor="middle" font-size="15">⑤&#xFE0E;</text>
+<rect x="252" y="156" width="110" height="30" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="307" y="176" fill="currentColor" text-anchor="middle" font-size="13">BUY</text>
+<text x="400" y="176" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">then: PEEL — the reveal is the fun part</text>
+</g>
+</svg>
+
+- **①&#xFE0E; The fan** — three real stickers spaced across the sheet's range; an honest preview, not a highlight reel.
+- **②&#xFE0E; Name + rarity** — COMMON, UNCOMMON, RARE, or MYTHIC.
+- **③&#xFE0E; The count** — how many stickers the sheet delivers.
+- **④&#xFE0E; The price** — sheets are deliberately cheap; this economy is the playground.
+- **⑤&#xFE0E; BUY, then peel** — a sealed sheet is a real token; peel it to reveal, or trade it sealed.
+
 ## Reading a sheet card
 
 Each card fans three real stickers from the sheet — spaced across its range, so the fan is an honest preview, not a highlight reel — plus:

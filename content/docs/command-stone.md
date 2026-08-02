@@ -12,6 +12,31 @@ The fastest path to anything in PD is not a menu. Signed in, **triple-tap the ba
 
 **How:** Signed in, triple-tap the background of any page.
 
+<svg viewBox="0 0 720 300" role="img" aria-labelledby="stone-anatomy-title" style="width:100%;height:auto;display:block;margin:14px 0">
+<title id="stone-anatomy-title">The Command Stone bubble, annotated: the two dialogue rows on top, the widget cards in the middle carrying the actual answer, the one action button at the bottom, and the input field where everything is typed.</title>
+<g font-family="'Courier New', Courier, monospace" font-size="13" font-weight="bold">
+<rect x="60" y="10" width="600" height="280" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="84" y="44" fill="currentColor" text-anchor="middle" font-size="15">①&#xFE0E;</text>
+<text x="110" y="44" fill="currentColor" text-anchor="start" font-size="13">"The floor is 0.24."</text>
+<text x="110" y="66" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">"It was less yesterday. Draw your own conclusions."</text>
+<text x="84" y="112" fill="currentColor" text-anchor="middle" font-size="15">②&#xFE0E;</text>
+<rect x="110" y="92" width="500" height="70" fill="none" stroke="currentColor" stroke-width="1.5"/>
+<text x="360" y="120" fill="currentColor" text-anchor="middle" font-size="14">KIKI · FLOOR ◊ 0.24</text>
+<text x="360" y="144" fill="currentColor" text-anchor="middle" font-size="12" font-weight="normal">▁▂▄▆█ 7-day</text>
+<text x="84" y="204" fill="currentColor" text-anchor="middle" font-size="15">③&#xFE0E;</text>
+<rect x="110" y="184" width="500" height="32" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="360" y="205" fill="currentColor" text-anchor="middle" font-size="13">♆&#xFE0E; ANCHOR THE FLOOR</text>
+<text x="84" y="254" fill="currentColor" text-anchor="middle" font-size="15">④&#xFE0E;</text>
+<rect x="110" y="236" width="500" height="32" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="126" y="257" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">ask · find · compute · etch…</text>
+</g>
+</svg>
+
+- **①&#xFE0E; The dialogue** — the Stone speaks first: a terse line, then a drier aside.
+- **②&#xFE0E; The widgets** — glanceable cards with the real data; long answers scroll here.
+- **③&#xFE0E; The action** — every answer that can be acted on offers its one obvious next move.
+- **④&#xFE0E; The input** — one field, no modes; the full phrasebook is [Abilities](/docs/command-stone/abilities).
+
 Every other character on the platform has a personality. The Stone has **power and intelligence**. It reads what you meant, answers from the same ledger the rest of the platform runs on, and acts on the answer — all in one field.
 
 ## How it speaks

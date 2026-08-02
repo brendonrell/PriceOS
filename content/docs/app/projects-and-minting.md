@@ -12,6 +12,57 @@ Every Project on PD gets a page that is part gallery, part market floor, part ob
 
 **How:** Tap any project tile anywhere — Project pages live at /art/{slug}.
 
+<svg viewBox="0 0 720 330" role="img" aria-labelledby="project-anatomy-title" style="width:100%;height:auto;display:block;margin:14px 0">
+<title id="project-anatomy-title">A Project page, annotated: the hero with the artist and the stats row (tap the owners count for the OWNERS list), the mint button with its live progress bar (long-press for the Mint Room), the sort row with the grouping toggle, the gallery grid, and the + More tab rail with Social, Stats, Replay, Albums, Genome, Gnome and the rest.</title>
+<g font-family="'Courier New', Courier, monospace" font-size="13" font-weight="bold">
+<rect x="10" y="10" width="700" height="310" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="30" y="42" fill="currentColor" text-anchor="middle" font-size="15">①&#xFE0E;</text>
+<text x="52" y="42" fill="currentColor" text-anchor="start" font-size="13">KIKI · ✺&#xFE0E; brendonrell</text>
+<text x="52" y="64" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">⬚&#xFE0E; 105/2222 minted · ◊ 22.2 vol · ⌂&#xFE0E; 48 owners</text>
+<text x="30" y="106" fill="currentColor" text-anchor="middle" font-size="15">②&#xFE0E;</text>
+<rect x="52" y="86" width="220" height="32" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="162" y="107" fill="currentColor" text-anchor="middle" font-size="13">MINT · ◊ 0.05</text>
+<text x="290" y="106" fill="currentColor" text-anchor="start" font-size="12" font-weight="normal">long-press → the Mint Room</text>
+<text x="30" y="152" fill="currentColor" text-anchor="middle" font-size="15">③&#xFE0E;</text>
+<rect x="52" y="132" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="73" y="150" fill="currentColor" text-anchor="middle" font-size="13">⁘&#xFE0E;</text>
+<rect x="104" y="132" width="56" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="132" y="150" fill="currentColor" text-anchor="middle" font-size="13">#ID</text>
+<rect x="170" y="132" width="72" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="206" y="150" fill="currentColor" text-anchor="middle" font-size="13">$PRICE</text>
+<rect x="252" y="132" width="62" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="283" y="150" fill="currentColor" text-anchor="middle" font-size="13">FEED</text>
+<text x="30" y="204" fill="currentColor" text-anchor="middle" font-size="15">④&#xFE0E;</text>
+<rect x="52" y="178" width="64" height="64" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<rect x="128" y="178" width="64" height="64" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<rect x="204" y="178" width="64" height="64" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<rect x="280" y="178" width="64" height="64" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<rect x="356" y="178" width="64" height="64" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<rect x="432" y="178" width="64" height="64" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="30" y="282" fill="currentColor" text-anchor="middle" font-size="15">⑤&#xFE0E;</text>
+<rect x="52" y="262" width="74" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="89" y="280" fill="currentColor" text-anchor="middle" font-size="12">Social</text>
+<rect x="136" y="262" width="64" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="168" y="280" fill="currentColor" text-anchor="middle" font-size="12">Stats</text>
+<rect x="210" y="262" width="74" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="247" y="280" fill="currentColor" text-anchor="middle" font-size="12">Replay</text>
+<rect x="294" y="262" width="74" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="331" y="280" fill="currentColor" text-anchor="middle" font-size="12">Albums</text>
+<rect x="378" y="262" width="74" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="415" y="280" fill="currentColor" text-anchor="middle" font-size="12">Genome</text>
+<rect x="462" y="262" width="64" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="494" y="280" fill="currentColor" text-anchor="middle" font-size="12">Gnome</text>
+<rect x="536" y="262" width="24" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="548" y="280" fill="currentColor" text-anchor="middle" font-size="12">+</text>
+</g>
+</svg>
+
+- **①&#xFE0E; The hero** — the Project in its artist's own colour; tap the ⌂ owners count and the ranked OWNERS list opens.
+- **②&#xFE0E; The mint button** — live progress fills inside the control; **long-press it** and the Mint Room blooms: crowd count, shared supply bar, reaction sparks, the soundtrack.
+- **③&#xFE0E; The sort row** — each pill cycles its directions; the ⁘ toggle folds the grid into groups (long-press it for the full dimension menu).
+- **④&#xFE0E; The grid** — every Output; hover rows carry the action glyphs.
+- **⑤&#xFE0E; + More** — Social · Stats · [Replay ⟳](/docs/app/projects-and-minting#the-replay--the-projects-time-machine) · Albums · Genome · [Gnome](/docs/gnomes/overview) · Sentiment · Attributes · Price Story · Offers · Anoint.
+
 The stats row reads minted / volume / owners at a glance — tap the owners count and the **OWNERS** list opens: every holder ranked by pieces held, sortable (pieces · listed · A–Z), medals on the top three, your own row highlighted. The **Artist Showcase** tab is arranged by the artist themself — their chosen pieces, in their chosen layout (classic, masonry, or mixed with a lead piece), optionally titled, with a placard when the set is Gen Curated.
 
 ## Minting from the UI

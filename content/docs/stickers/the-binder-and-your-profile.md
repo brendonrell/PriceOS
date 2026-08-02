@@ -12,6 +12,32 @@ Peeled stickers do two jobs: they fill your Binder, and they decorate your profi
 
 **How:** In the Sticker Exchange, tap MY BINDER on the crawl line.
 
+<svg viewBox="0 0 720 210" role="img" aria-labelledby="binder-anatomy-title" style="width:100%;height:auto;display:block;margin:14px 0">
+<title id="binder-anatomy-title">A Binder page, annotated: held stickers printed full strength in their slots, missing ones as dimmed named outlines, the page tally with its progress bar, and the COMPLETE stamp a finished page earns.</title>
+<g font-family="'Courier New', Courier, monospace" font-size="13" font-weight="bold">
+<rect x="10" y="10" width="700" height="190" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="34" y="44" fill="currentColor" text-anchor="middle" font-size="15">①&#xFE0E;</text>
+<rect x="56" y="30" width="72" height="72" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<rect x="140" y="30" width="72" height="72" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<rect x="224" y="30" width="72" height="72" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<rect x="308" y="30" width="72" height="72" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="34" y="140" fill="currentColor" text-anchor="middle" font-size="15">②&#xFE0E;</text>
+<rect x="56" y="116" width="72" height="72" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 4"/>
+<rect x="140" y="116" width="72" height="72" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="230" y="156" fill="currentColor" text-anchor="start" font-size="11" font-weight="normal">← named gaps: your shopping list</text>
+<text x="500" y="44" fill="currentColor" text-anchor="middle" font-size="15">③&#xFE0E;</text>
+<text x="524" y="44" fill="currentColor" text-anchor="start" font-size="12">6/8 · ▓▓▓▓▓▓░░</text>
+<text x="500" y="84" fill="currentColor" text-anchor="middle" font-size="15">④&#xFE0E;</text>
+<text x="524" y="84" fill="currentColor" text-anchor="start" font-size="13">COMPLETE ✓&#xFE0E;</text>
+<text x="524" y="104" fill="currentColor" text-anchor="start" font-size="11" font-weight="normal">(when the page fills)</text>
+</g>
+</svg>
+
+- **①&#xFE0E; Held stickers** — print full-strength in their slots.
+- **②&#xFE0E; The gaps** — dimmed outlines, each named; **✛ WANT THIS** turns a gap into a standing signal the Marketplace matches.
+- **③&#xFE0E; The tally** — every page carries its count and bar; the Binder totals the whole collection up top.
+- **④&#xFE0E; The stamp** — a finished page says so.
+
 ## The Binder
 
 **MY BINDER** (the cap on the Sticker Exchange's crawl line) is the completionist view: every sheet is a binder page of slots. Stickers you hold print full-strength in their slots; stickers you're missing sit as dimmed outlines, each one a named gap. Every page carries its tally and a progress bar; a finished page stamps **COMPLETE ✓**; the top of the Binder totals the whole collection.
