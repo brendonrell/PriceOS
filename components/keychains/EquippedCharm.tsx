@@ -196,7 +196,15 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
             const r = await fetch('/api/keychains/equip', {
                 method: 'POST',
                 headers: { 'content-type': 'application/json' },
-                body: JSON.stringify({ id, list: 'top' }),
+                /* ⛔ CHOOSING ONE BY HAND TURNS SHUFFLE OFF (Brendon,
+                   2026-08-01: "just make the fucking one I select replace
+                   another one, the one I select should show"). Picking a charm
+                   and asking for a random draw are opposite instructions, and
+                   shuffle was quietly winning: it ignores the chosen three and
+                   re-draws from the whole worn pool on every load, so the charm
+                   you tapped could vanish on the next page. The pick is the
+                   instruction — it wins, and it sticks. */
+                body: JSON.stringify(wasOn ? { id, list: 'top' } : { id, list: 'top', shuffle: false }),
             });
             if (r.ok) {
                 bustRack(siweAddress);
