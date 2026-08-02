@@ -85,7 +85,10 @@ Three repos move together:
    no hardware wallet for a solo founder (failure vectors > attack vectors).
 2. Deploy `PDFactory` via Remix. Constructor args: throwaway-admin,
    throwaway-platformWallet, base-URI placeholder.
-3. Verify `PDFactory` on Sepolia Etherscan.
+3. Verify `PDFactory` on Sepolia Etherscan. *(2026-08-02: the factory now
+   spawns its `PDProjectDeployer` satellite in its own constructor — same
+   one-transaction deploy; read the satellite's address off
+   `factory.projectDeployer()` and verify it on Etherscan too.)*
 4. Whitelist a test artist address.
 5. `createCollection()` → confirms `PDProject` + `PaymentSplitter` both deploy
    correctly under the factory.

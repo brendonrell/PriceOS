@@ -13,22 +13,57 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-⛔ **2026-08-02 (LATEST) — BRENDON'S PASTED QUEUE: SIX OF EIGHT SHIPPED, TWO
-OPEN — THE FRESH SESSION STARTS ON THE TWO.** All shipped work is on `dev`
-(tip `439731a`), type-check clean, pushed as it landed (his standing go:
-"push as you go for clear items don't wait for my push"). ClickUp `86bb78f8y`
-has the round; `86bb78fbt` carries the remainder.
+⛔ **2026-08-02 (LATEST) — ONE ITEM LEFT ON THE QUEUE: THE PDMCP WOW PASS.**
+His words: **"PDMCP wow pass!! MCP got upgraded and is now stateless does
+that change our build? We want state of the art. Opus did an initial pass
+post-upgrade."** Brief: `docs/briefs/keychain-review-and-pdmcp.md` §2 —
+read the current MCP spec (modelcontextprotocol.io), diff `workers/pd-mcp/`
+against it, propose findings + a build list for his go. ClickUp `86bb78fbt`.
 
-**THE TWO OPEN ITEMS (his words, front of the queue):**
-1. **"keychains have been reworked and smart contract rewritten/updated,
-   please review it all!"** — a REVIEW (findings first). pd-contracts `main`
-   tip `9f5047b` + `components/keychains` / `lib/keychains`.
-2. **"PDMCP wow pass!! MCP got upgraded and is now stateless does that change
-   our build? We want state of the art. Opus did an initial pass
-   post-upgrade."**
-**The full brief — repos, locks, bootstrap, and the EIP-170 size check that
-comes first — is `docs/briefs/keychain-review-and-pdmcp.md`. Read it before
-anything else.**
+✅ **2026-08-02 — THE FULL PRE-MAINNET CONTRACT PASS IS DONE** (his ask:
+"review ALL smart contract things… final pass before mainnet"). pd-contracts
+`main` tip `9f2c5c5`, 403 forge tests green, **CI run #1 green on GitHub**.
+PriceOS `dev` carries the docs round. ClickUp: `86bb5nt0f` CLOSED,
+`86bb78fbt` commented. The locks:
+
+- **KEYCHAIN REVIEW (item 1 of the queue) — CLOSED.** Verdict: contracts
+  deploy-safe (all four under EIP-170), security pass clean (forge-proof
+  keeper-bound attestations · replay-proof polish · art provably never
+  repaints · charset-guarded names · no ETH rests). ONE real bug, fixed on
+  his go (`4d6d8d1`): **the 2026-07-31 accessory tuck had only landed in the
+  app** — the chain still drew crowns/halos/bows/antennae/wings floating
+  high. Ported verbatim from the app engine (the parity reference), pinned
+  with a placement test so it cannot drift back.
+- ⛔ **THE PDFactory SIZE BLOCKER IS FIXED — the ClickUp task was NOT stale**
+  (it had grown: 32,023 B, over by 7,447). The cause was structural: the
+  factory embedded PDProject's ~20KB creation bytecode by running the `new`
+  itself — a part-store split of factory logic could never have fixed it.
+  **The fix (`9f2c5c5`): `PDProjectDeployer`**, a zero-governance satellite
+  the factory spawns in its own constructor and is alone allowed to call.
+  Factory now **12,035 B (12.5KB headroom)**; same one-transaction Remix
+  deploy; behaviour byte-identical (suite green). ⛔ Never move the `new`
+  back into the factory.
+- **THE SIZE GATE EXISTS AND IS GREEN:** `script/check-sizes.sh` + a GitHub
+  Actions workflow (gate + full suite on every push; deps cloned per
+  foundry.lock pins). pd-contracts CLAUDE.md now names the gate part of the
+  build ritual. A green suite alone is still NOT deployability.
+- **Rest of the family reviewed clean** — Factory · Project ·
+  PaymentSplitter · LibraryRegistry · Stickers · StickerSplitter: money
+  paths, fail-open window, seal bounds, JSON/UTF-8 + URL guards, splitter
+  accounting all verified against source, no defects. Integration: the
+  indexer rides standard Transfer + Seaport events (immune to every shipped
+  round); studio constants refresh at the next Sepolia deploy as planned.
+- **PUBLIC DOCS ARE CURRENT (his ask #3):** real createProject signature
+  (colorway + windowed overload) · entry window documented (fail-open) ·
+  marketplace attributes · **the language shelf: p5.js · three.js · regl ·
+  d3, vanilla always** · NEW Contracts—PDKeychains page (in the docs nav) ·
+  storage-fee governance corrected (the ADMIN tunes the dial; the writer key
+  pins previews — the old page had it wrong) · verification status tells the
+  truth (403 tests, CI gate, Sepolia stack one revision behind until the
+  next rehearsal).
+- **The next Sepolia rehearsal now carries:** marketplace attributes + the
+  factory split (verify `factory.projectDeployer()` on Etherscan too — the
+  runbook §A.3 says so) + the keychain accessory fix.
 
 **SHIPPED FROM THE QUEUE 2026-08-02 (second session):**
 - **Stone** — the whole sort row (gaps included) is exempt from the
@@ -464,11 +499,9 @@ touches one of these, read it there first.**
 the stale claims were struck. Do not re-add a struck item without re-reading the
 code.**
 
-- **`PDFactory` is 29,891 B, over the 24,576 B limit by 5,315** — pre-existing,
-  and it will block a factory deploy. ClickUp `86bb5nt0f` (high) carries the fix
-  plus the companion guard (wire the size check into the build). **Brendon has
-  not ruled on the guard.** *(Not re-measured this session — the contracts repo
-  isn't in this container. The number is from the 2026-07-30 build.)*
+- ✅ **The `PDFactory` size blocker is FIXED (2026-08-02)** — 12,035 B with
+  12.5KB headroom via the deployment-arm split, and the size gate runs in CI
+  on every push. ClickUp `86bb5nt0f` closed. (Full record in the round above.)
 - ✅ **ClickUp is reconciled (2026-08-02).** The 2026-07-31 rounds are
   backfilled (`86bb7890t` · `86bb7891h` · `86bb78977`) and the 2026-08-02
   queue round is logged (`86bb78f8y`).
@@ -502,8 +535,10 @@ code.**
 
 ## 🧭 WAITING ON BRENDON
 
-- **The contract size guard** — wire the byte-size check into the build so a
-  renderer can never go over the limit silently again.
+- **The next Sepolia rehearsal deploy** — carries marketplace attributes, the
+  factory split (also verify `factory.projectDeployer()` on Etherscan), and
+  the keychain accessory fix. Library blessings (p5.js · three.js · regl ·
+  d3) at launch.
 - Feature Atlas re-order · docs.pricediscussion.com wiring — both previously
   ClickUp'd.
 
