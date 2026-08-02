@@ -36,6 +36,8 @@ The whole app is painted through one variable system. Defaults are per-page — 
 
 ## The Command Stone ⌘
 
+**How:** Triple-tap the background of any page.
+
 Triple-tap the background of any page and PD's command line rises — find
 anything, ask the ledger a question, etch a to-do, cast a spell by name, or
 summon a widget. It has [its own page](/docs/command-stone).

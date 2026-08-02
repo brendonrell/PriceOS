@@ -10,6 +10,8 @@ last_updated: "2026-07-20"
 
 The gnome world's market hall — **the mushroom market**, the only venue in existence where a gnome can change hands. It's the second wing of the [gnomewallet](/docs/gnomes/the-gnomewallet), past the signpost.
 
+**How:** Enter the gnomewallet ⍙ and walk past the signpost to the market hall.
+
 ## Hanging a sign
 
 A keeper lists a gnome by hanging a **FOR SALE** sign on its door: name your ask in ETH and the sign goes up; take it down any time. Hanging a sign moves no money and breaks nothing — the gnome stays in your burrow, still yours, still speaking to you, just wearing a plank that says what it would take.

@@ -10,6 +10,8 @@ last_updated: "2026-07-25"
 
 Every platform shows you now. PD can also show you *then* — the entire app, docked at any day of its own history, reconstructed from the permanent ledger.
 
+**How:** Triple-tap the "Price Discussion" name on the home page.
+
 ## Opening it
 
 **Triple-tap the "Price Discussion" name on the home page.** PD docks at yesterday and a full-strength banner frames the app: the PriceDay number, the date, a scrubber, and the **✕** that returns you to now. (The name's sibling gesture, the long-press, opens [Cartography](/docs/cartography) — hold for space, tap thrice for time.)

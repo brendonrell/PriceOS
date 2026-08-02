@@ -24,6 +24,8 @@ The platform's front door, wearing the daily Mood Ring colour:
 
 ## Projects Pro ⬚
 
+**How:** Tap the ⬚ n PRO figure in the home stats row.
+
 The home page's project count is a door: tap the **⬚ n PRO** figure in the stats row and the whole catalog opens as an instrument, not a list — the same one the Friend Inspector points at your circle, pointed at the work instead.
 
 - **Tabs** — ALL · HELD (you own a piece) · STARRED · MINTING, each carrying its live count.
@@ -34,6 +36,8 @@ The home page's project count is a door: tap the **⬚ n PRO** figure in the sta
 
 ## Global search
 
+**How:** Tap the search field in the navbar.
+
 One field in the navbar, the whole platform behind it: Projects, Outputs, artists, collectors, @names. Search is the fastest path anywhere.
 
 Search’s special first row launches **[Composer ⊚](/docs/composer)** — when the question is bigger than a name, compose it from rules and watch the catalog answer live.
@@ -43,6 +47,8 @@ Search’s special first row launches **[Composer ⊚](/docs/composer)** — whe
 The artists view lists the whitelisted roster; each artist's page carries their released Projects and their identity (✺). Following an artist routes their releases and milestones into your Pings.
 
 ## PriceRank ❂
+
+**How:** Tap the PriceRank medallion in your PriceSprite card to open the Top 100.
 
 The standing system, as a surface: the platform-wide ranking fed by achievements and activity, with network filters for slicing the leaderboard to the people you care about. Tap the PriceRank medallion in your PriceSprite card and the **Top 100 leaderboard** opens — the platform's collectors ranked by PriceScore, medals on the podium, your own row highlighted so you always know where you stand. Leaderboards elsewhere in the app (including sillier ones) share its machinery — up to and including **Lane Runner**, the platform's hidden arcade cabinet, which keeps its own board. (Typing its name into Global Search is one way in.)
 

@@ -10,6 +10,8 @@ last_updated: "2026-07-20"
 
 PD drawn as a world. Every Project is a territory with its own generated coastline, every collector an inhabitant living on the land they hold, and every market action a visible event — the whole platform, alive on one map.
 
+**How:** Long-press the "Price Discussion" name on the home page.
+
 ## Opening it
 
 **Long-press the "Price Discussion" name on the home page.** The name is the platform's compass: hold it and the map unfolds full-screen. (Its sibling gesture, the triple-tap, opens [The Rewind](/docs/rewind).)

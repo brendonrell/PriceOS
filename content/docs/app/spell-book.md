@@ -10,6 +10,8 @@ last_updated: "2026-07-17"
 
 The Spell Book is where PriceOS keeps its lenses: pill-toggleable modifiers that change how you *see* the platform rather than what's on it. Spells stack, persist across sessions, and follow your account. Half the fun is discovering what a combination does to a page you thought you knew — this page removes the guesswork about what each pill does, while leaving the platform's genuine mysteries mysterious (they're mysteries on purpose).
 
+**How:** Triple-tap the MY PD header in settings; triple-tap the SPELL BOOK header to flip back.
+
 ## Opening it
 
 **Triple-tap the MY PD header in settings.** The settings panel flips to the Spell Book; triple-tap the SPELL BOOK header to flip back. That's the whole trick — no menu item, no button. Casting or dispelling any spell announces itself in a toast, and a few carry incantations: *☽ Reading the Birth Skies ☽*, *⑃ Rumor Has It… ⑃*, *∾ The Net Is Cast ∾*.

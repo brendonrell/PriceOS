@@ -10,6 +10,8 @@ last_updated: "2026-08-01"
 
 Every Project on PD carries a **colorway** — the one colour it paints the app in. Colorpedia is what sits behind it: tap the ◉ Colorway tile on a Project's Attributes and the whole book on that colour opens.
 
+**How:** Tap the ◉ Colorway tile on a Project's Attributes to open the book on that colour.
+
 ## What it tells you
 
 **The numbers are computed, exactly, from the colour itself.** No lookup is involved, so they hold for any colour at all — a Project's colorway, or a hex pulled off a piece of art:

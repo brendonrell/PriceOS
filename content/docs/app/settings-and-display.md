@@ -10,6 +10,8 @@ last_updated: "2026-07-25"
 
 MY PD is the settings surface — but on PriceOS, display is a first-class feature, not a preferences afterthought. The interface is an instrument; this is where you tune it. And the panel's title is itself a control: **triple-tap the MY PD header to open [the Spell Book](/docs/app/spell-book)**.
 
+**How:** Open the connect menu — MY PD is the settings surface inside.
+
 ## Colorways
 
 The colorway picker paints the entire app through one variable system:

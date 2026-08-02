@@ -10,6 +10,8 @@ last_updated: "2026-07-19"
 
 Gnomes are free. Nobody buys one from PD; nobody mints one on purpose. A gnome is **won by minting the project's art** — and nobody knows exactly when.
 
+**How:** Mint the project's art — a gnome is won at a hidden hour, never bought.
+
 ## The shut hill
 
 Before its hour, a project's GNOME tab shows only a closed hillside: a dark mine mouth, two lamplit eyes blinking in the dark, and a line — *something lives down here*. Nothing about the keeper leaks: not its name, not its temperament, not its look. The hill is shut.

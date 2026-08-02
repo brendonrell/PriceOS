@@ -157,11 +157,19 @@ export function DocsSearch({ open, onToggle }: { open: boolean; onToggle: (v: bo
                                         {hit.entry.title}
                                         {hit.heading && <span className="pd-docs-search-hit-heading"> § {hit.heading.text}</span>}
                                     </span>
-                                    {hit.snippet && (
-                                        <span className="pd-docs-search-hit-snippet">
-                                            {hit.snippet.pre}<mark>{hit.snippet.hit}</mark>{hit.snippet.post}
-                                        </span>
-                                    )}
+                                    {/* The How line leads when the item has one — the
+                                        one-line answer ("Long-press your @name…") is
+                                        what the search was for 90% of the time; the
+                                        body snippet is the fallback. */}
+                                    {(() => {
+                                        const how = hit.heading ? hit.heading.howto : hit.entry.howto;
+                                        if (how) return <span className="pd-docs-search-hit-snippet pd-docs-search-hit-howto">{how}</span>;
+                                        return hit.snippet ? (
+                                            <span className="pd-docs-search-hit-snippet">
+                                                {hit.snippet.pre}<mark>{hit.snippet.hit}</mark>{hit.snippet.post}
+                                            </span>
+                                        ) : null;
+                                    })()}
                                 </button>
                             </li>
                         ))}

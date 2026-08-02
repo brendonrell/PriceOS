@@ -16,6 +16,8 @@ Grids and cards across the app draw each Output's stored PNG preview for speed; 
 
 ## The Darkroom ◉
 
+**How:** Long-press the artwork on its page.
+
 **Long-press the artwork** on its page and the Darkroom opens: an inspection workspace where the art is the interface and the chrome all but disappears. It renders the piece live at full resolution — never a stored image — with pixel-level zoom, so you can go right into the grain of the work.
 
 Alongside it, the piece's **real palette** as tappable swatches, sampled from the render itself rather than declared by anyone, and an optional **INVERT** mode that flips the whole piece to its negative — the printer's trick for seeing composition and value without the colour arguing. INVERT is off until you tap it. The × returns you to where you came from.

@@ -10,6 +10,8 @@ last_updated: "2026-07-17"
 
 A takeover is one collector making a public, premium, simultaneous offer on **every piece** of another collector's position in a single project. The street gets to watch.
 
+**How:** On a collector's profile, tap the ⚑ TAKEOVER action — it appears when they hold 3+ pieces of one project.
+
 ## Casting one
 
 On any collector's profile, the **⚑ TAKEOVER** action opens the cast sheet:

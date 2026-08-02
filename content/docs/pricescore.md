@@ -10,6 +10,8 @@ last_updated: "2026-07-27"
 
 Every wallet on PD carries a **PriceScore**: the sum of the points from every achievement it has unlocked. There are 1,000 achievements in the catalog, from first-day unlockables to multi-year monuments, and each one carries a fixed point value. Your score is simply what you've actually done, added up.
 
+**How:** See it on your profile's Achievements wall and in your PriceSprite modal.
+
 You'll see it on your profile's Achievements wall, in your PriceSprite modal, on the leaderboards, and folded into your identity anywhere the app introduces you.
 
 ## PriceRank — the tier your score buys

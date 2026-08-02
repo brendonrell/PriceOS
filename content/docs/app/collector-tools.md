@@ -12,6 +12,8 @@ The sandbox layer: tools that live above every page and turn browsing into worki
 
 ## To-Dos ❍
 
+**How:** Open the connect menu's To-Dos panel — + composes a to-do, ☇ opens Workflows.
+
 The collector's task list, PD-flavored: items can carry **ETH targets and budgets** (◊), building a war-chest meter toward a goal. Completed items flip ❍ → ✓, strike through, and sink. Reminders surface as toasts; the **Workflows** ☇ system automates recurring sequences on top.
 
 **The Sentinel watches even when you don't.** A BUY to-do with a ◊ target — and any armed price or upload Workflow — is evaluated **server-side every minute** against live listings and fresh uploads. The moment a trigger crosses, you get a real Ping and a native lock-screen push, app open or closed. Each trigger fires exactly once; retarget it and it re-arms. In the app, a hit target also flips its row to **READY** and floats it to the top.
@@ -26,6 +28,8 @@ A staging area for pieces you're circling. The Cart holds intent — assembling 
 
 ## The Bench
 
+**How:** Drag a piece onto it — the Bench docks at the bottom and holds the set.
+
 The comparison tray: **drag pieces onto it** to hold them side by side while you keep browsing. The Bench is deliberately drag-only — it docks at the bottom of the screen and holds its set until you clear it.
 
 ## The Calc
@@ -36,11 +40,13 @@ A pricing scratchpad in a sheet — quick math on editions, targets, and splits 
 
 The platform's temporal surface: what minted when, what's minting, and your own marks on the timeline.
 
-## The Anchor ⚓
+## The Anchor ♆
 
 Your own reference price, per collection: set the number a Project's prices should be read against, and surfaces that price against it. An anchor is a private opinion the interface respects.
 
 ## Portfolio
+
+**How:** Open your profile's Portfolio tab.
 
 The full holdings view: everything the wallet owns with the market layer on — and **The Shadow** (◐), its paper-trading twin, for the positions you didn't take.
 
@@ -54,9 +60,13 @@ One field, the whole platform: Projects, Outputs, artists, collectors, @names.
 
 ## Workspaces
 
+**How:** Switch personas from settings — one tap swaps the whole arrangement.
+
 Whole tool arrangements — every mode, spell, and setting — saved as one-tap personas (Curator, Scout, Trader, Oracle, Socialite, Insider, Degen, DJ…) and switchable from settings. They ride Setup Codes, so a workspace is also shareable. See [Settings & Display](/docs/app/settings-and-display).
 
 ## The PD miniplayer ♫
+
+**How:** Play any soundtrack — the miniplayer appears on the bottom band while music plays.
 
 Play any soundtrack — a project page's SOUNDTRACK button, a piece's ♫ key,
 your Starred Soundtracks, a pinned soundtrack in the top bar — and the PD
@@ -74,6 +84,8 @@ never interrupts the audio.
   seconds instead of spinning; broken tracks skip themselves.
 
 ## PD Wrapped
+
+**How:** Summon `wrapped` in the Command Stone.
 
 Your collecting story, on demand: summon `wrapped` (or `recap`, or
 `wrapped 90d` for a custom window) in the Command Stone and PD plays back

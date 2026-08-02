@@ -13,6 +13,8 @@ Every serious collector eventually has a question the search box can't hold:
 Composer is where that question gets built — visually, rule by rule — and
 answered live against the whole catalog.
 
+**How:** Open Global Search — the Composer is the special first row.
+
 ## Where it lives
 
 Open **Global Search** — the Composer is the special first row. It runs on a

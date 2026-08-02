@@ -16,6 +16,8 @@ But the shape and face are only half the object. **A Keychain is alive.** It bel
 - **The finish is your PriceRank.** The base toy is matte plastic or rubber; rank recasts it in gloss, glitter, gold, and finally liquid chrome.
 - **Polish is the ritual** that syncs the two — see [The Living Charm](/docs/keychains/the-living-charm).
 - **It bonds to its keeper.** Sell or send a Keychain and its shine wipes: the new keeper starts from bare cord. A maxed charm cannot be bought — only lived.
+
+**How:** Open the Depanneur — the KEYCHAINS ⚷ button at the bottom of your PriceSprite card, or the ⚷ key in the wallet settings row — and crank the machine.
 - **You can christen it** — one name, ever, engraved on a little tag on the ring.
 
 This section is the complete manual: this overview (the cast and every trait table), [The Depanneur](/docs/keychains/the-depanneur) (the machine, the fair roll, the money math), and [The Living Charm](/docs/keychains/the-living-charm) (polish, the bond, christening, wearing it).

@@ -10,6 +10,8 @@ last_updated: "2026-07-12"
 
 Every morning at 9AM (Montreal time), PD prints its own paper: one page covering the prior day, assembled from the real ledger. Coffee first, then yesterday on the record.
 
+**How:** Read this morning's edition at /dispatch, or from the ❡ pill on the home news rail.
+
 ## Where to read it
 
 - **`/dispatch`** — this morning's edition.

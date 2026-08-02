@@ -10,6 +10,8 @@ last_updated: "2026-07-27"
 
 Every Montreal block has one: the corner store with the lotto terminal, the cooler hum, and the capsule machine by the door. PD's is called the **Depanneur ⚷**, and its capsule machine sells exactly one thing: Keychains.
 
+**How:** Tap KEYCHAINS ⚷ at the bottom of your PriceSprite card, or the ⚷ key in the wallet settings row.
+
 <svg viewBox="0 0 720 130" role="img" aria-labelledby="kc-crank-title" style="width:100%;height:auto;display:block;margin:0 0 14px">
 <title id="kc-crank-title">Crank lifecycle: pay at the machine, the roll happens in the same transaction, a one-of-one charm lands in your wallet, then polish it and wear it.</title>
 <g font-family="'Courier New', Courier, monospace" font-size="13" font-weight="bold">

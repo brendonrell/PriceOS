@@ -10,6 +10,8 @@ last_updated: "2026-07-27"
 
 The **PriceOS Suite** is PD's productivity super-app — the calendar, to-dos, workflows, and notes you already use in the connect menu, opened up into one full workspace. One app, eight faces, switched with the icons at the top.
 
+**How:** Press and hold the TO-DOS header in the connect menu.
+
 **Opening it:** press and hold the **TO-DOS** header in the connect menu — right where it says "TO-DOS". Close with the × like any other panel.
 
 ## ‰ Today

@@ -10,6 +10,8 @@ last_updated: "2026-07-27"
 
 Every Output on PD carries a **Fingerprint**: the platform's objective read of the artwork itself. It doesn't come from metadata, trait lists, or anyone's opinion — the platform looks at the piece's *actually rendered pixels* and measures what is really there. Nothing is declared and nothing is hand-tagged, so any two Fingerprints on the platform can be compared honestly, whoever made the work.
 
+**How:** Open an Artwork ▸ + More ▸ Attributes — the Fingerprint is its own wall of readings.
+
 You'll find it on the Output's character sheet (Artwork ▸ + More ▸ Attributes), as its own wall of readings.
 
 ## Reads As

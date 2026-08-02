@@ -14,6 +14,8 @@ Most task lists forget about you the moment you close them. PD's don't. A to-do 
 
 Both live in the connect menu, in the **To-Dos** panel: the **+** opens the composer, the **☇** beside it opens Workflows.
 
+**How:** Open the connect menu's To-Dos panel — + composes a to-do, ☇ opens Workflows.
+
 ## To-Dos ❍
 
 ### Write it the way you'd say it

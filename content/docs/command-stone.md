@@ -10,6 +10,8 @@ last_updated: "2026-07-28"
 
 The fastest path to anything in PD is not a menu. Signed in, **triple-tap the background of any page** — anywhere in the app, docs included — and the Command Stone rises: the platform's command line, in a speech bubble, open and ready to type.
 
+**How:** Signed in, triple-tap the background of any page.
+
 Every other character on the platform has a personality. The Stone has **power and intelligence**. It reads what you meant, answers from the same ledger the rest of the platform runs on, and acts on the answer — all in one field.
 
 ## How it speaks

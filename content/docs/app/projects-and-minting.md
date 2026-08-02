@@ -10,9 +10,13 @@ last_updated: "2026-08-01"
 
 Every Project on PD gets a page that is part gallery, part market floor, part observatory. It lives at `/art/{slug}`, wears the artist's own colour, and carries every tool the platform has for reading one body of work.
 
+**How:** Tap any project tile anywhere — Project pages live at /art/{slug}.
+
 The stats row reads minted / volume / owners at a glance — tap the owners count and the **OWNERS** list opens: every holder ranked by pieces held, sortable (pieces · listed · A–Z), medals on the top three, your own row highlighted. The **Artist Showcase** tab is arranged by the artist themself — their chosen pieces, in their chosen layout (classic, masonry, or mixed with a lead piece), optionally titled, with a placard when the set is Gen Curated.
 
 ## Minting from the UI
+
+**How:** Tap the mint button on a minting Project's page; long-press it for the Mint Room.
 
 While a Project is minting, its page carries the mint button. The button itself shows live progress — from tap, through wallet confirmation, to the chain's answer — as a filling bar inside the control, so a mint never feels frozen. The wallet sheet shows the exact total (mint price plus the flat storage fee per Output); the contract accepts exact payment only. What happens on-chain is documented in [The Mint Flow](/docs/for-artists/the-mint-flow).
 
@@ -44,13 +48,19 @@ The Project's Outputs, in a grid built for long sessions:
 
 ## The Gnome — the Project's keeper
 
+**How:** Open a Project ▸ + More — the Gnome lives there; tap it and it greets you.
+
 Every Project has exactly one **Gnome**, living in the +More panel: a small generative creature, deterministic from the Project itself — its name, temperament, hat, beard, keepsake, and hoard are the Project's alone, forever, though its outfit re-dresses in your live colorway. Tap it and it greets you (it knows whether you're a stranger, a holder, or a favoured friend); its mood tracks the Project's market. Hold a piece for a week unbroken and unlisted and the keeper turns **appraiser**, arguing your piece's case from true facts only — rarity isolation, strike date, door price, tenure. The Gnome never lies and never re-rolls.
 
 ## The Replay ⟳ — the Project's time machine
 
+**How:** Open a Project ▸ + More ▸ Replay.
+
 The +More panel's **Replay** tab plays a Project's whole market history back as one synchronized animation: floor price, holders, listings and sales moving together from the first mint to today. Scrub anywhere on the timeline, run it at **1x / 5x / 22x**, or pause to lock a static reading — how the Project looked, priced and was held at that exact moment. At 1x the full biography runs in about thirty seconds, and it always lands precisely on today's real numbers.
 
 ## Golf Score ◴ and the Clubhouse ⛳
+
+**How:** Tap the Golf Score tile on a Project's Attributes to open the Clubhouse.
 
 Generative art is written as code, and on PD that code's **size** is a stat like any other. A Project's **Golf Score** is the byte size of its generation engine — and, as in golf, **the low score wins**. It sits on the Project's Attributes with the Project's rank among every ranked engine on the platform.
 

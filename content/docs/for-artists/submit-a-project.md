@@ -12,6 +12,8 @@ PD is filtered, not curated: every Project starts as a submission, and deploymen
 
 Submissions arrive through the same door every artist relation does: a direct message on X to [brendonrell](https://x.com/brendonrell). See [Get in Touch](/docs/for-artists/get-in-touch).
 
+**How:** DM your brief to [brendonrell](https://x.com/brendonrell) on X.
+
 ## What to submit
 
 The initial submission is a brief that lets the filter understand the work — not a finished project ready to deploy. A strong brief includes:

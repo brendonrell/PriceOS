@@ -10,6 +10,8 @@ last_updated: "2026-07-12"
 
 Everything about pings is under your control, and all of it lives in one place: the **MY PINGS** row in Settings. This page walks the whole bank, pill by pill.
 
+**How:** Open Settings — the MY PINGS row holds every switch.
+
 ## The Pingtoasts pill ⇡ — how far pings reach
 
 Tap the ⇡ pill to cycle through four modes:

@@ -10,6 +10,8 @@ last_updated: "2026-07-27"
 
 PD runs its own book — every listing, sale, and offer on the platform settles here, with 95% of primary sales going to the artist and a 5% royalty on secondary trades. `/marketplace` is the floor itself.
 
+**How:** Open /marketplace — the whole book lives there.
+
 ## Listings
 
 Every project with live listings gets a carousel, cheapest first, with the floor and listing count in its head. What you see is the whole book — there is no off-platform inventory to cross-check.

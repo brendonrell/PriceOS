@@ -12,6 +12,8 @@ Pings are PD's notification primitive — the platform tapping you on the should
 
 This section is the complete manual: this page covers what fires and how the inbox works; [Controls](/docs/pings/controls) covers every switch you own; [Artist Push](/docs/pings/artist-push) covers the artists' once-a-month channel to their holders.
 
+**How:** Open the connect menu — PINGS is the inbox at the top.
+
 ## What earns a ping
 
 **Directed at you** — always in your inbox:

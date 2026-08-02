@@ -12,23 +12,33 @@ PD's identity layer sits on top of your wallet: the address signs, the identity 
 
 ## The @name
 
+**How:** Long-press your @name on your own profile to open the customization rows — profile colour, tags, and name font.
+
 Your handle across the platform — on the Tape, in Pings, on everything you touch. The @ is part of the noun. Underneath it your address (and ENS, where set) remains readable; the @name is how the community knows you.
 
 Long-press your @name on your own profile and the customization rows open: your **profile colour**, your **tags**, and your **name font** — twenty-two Unicode styles (bold, script, fraktur, small caps, upside-down…) that restyle your displayed name for every viewer. The @ stays plain and the real handle underneath never changes.
 
 ## Profile tags
 
+**How:** Long-press your @name on your profile to open Profile Tags.
+
 Identity chips on your hero, above the stickers. Some you **pick** (Collector, Trader, Analyst, Degen ⚔, Podcaster ⚲, and more — toggle them in the tags row of the customization menu), some are **earned** from the record (Artist ✺, Minter ✦, Veteran), some are **granted** (OG ⌖), and one is **yours by number**: every account carries its platform number — *User #1* through *#22* stand alone, then First 100 / 500 / 1000. Tag labels wear your chosen name font, and the paint chips at the end of the tags row can dress every tag in one colour — all black, all white, or a brand primary — with the lettering flipped to match.
 
 ## Your platform number
+
+**How:** Long-press the join date on any profile to flip it to the platform number.
 
 Accounts are numbered in join order, forever. Long-press the join date on any profile to flip it to the platform number; tap to open the joining PriceDay.
 
 ## The PriceSprite
 
+**How:** Tap your sprite in your profile's ID row to open it; long-press it to recolour.
+
 Your character face, chosen at signup from archetypes and customizable after — a typographic sprite, not an avatar image, in keeping with the platform's glyph-first design. It appears in the navbar, on your profile, and beside your @name in identity surfaces.
 
 ## The profile page
+
+**How:** Tap any @name anywhere in the app to open that profile.
 
 Lives at `/{handle}`, painted in the owner's chosen colour. Its tabs and surfaces:
 
@@ -43,6 +53,8 @@ Lives at `/{handle}`, painted in the owner's chosen colour. Its tabs and surface
 
 ## Stars, Wishlist, Albums
 
+**How:** Tap ★ to star or ✛ to wishlist any Output; ◰ on an artwork opens the Add-to-Album sheet.
+
 Three ways of holding work you don't (yet) own, with deliberate privacy defaults:
 
 | Surface | Glyph | Privacy | What it means |
@@ -54,6 +66,8 @@ Three ways of holding work you don't (yet) own, with deliberate privacy defaults
 **Grail Pins** (⟟) elevate the few pieces that matter most, pinned to the top of your rows.
 
 ## The Vault
+
+**How:** Open a profile ▸ + More › Vault ⧈.
 
 Every profile carries **the Vault** (⧈, + More › Vault) — where a collector
 designates the pieces that matter most as **vaulted**, public by design: drop
@@ -70,17 +84,25 @@ Follows are asymmetric and read at a glance beside any @name: mutual ⚭, follow
 
 ### The Friend Inspector
 
+**How:** Open your profile's Followers modal — the Friend Inspector lives inside, behind its view toggle.
+
 The Followers modal carries the **Friend Inspector** — your circle, instrumented. Two views behind a toggle: **the Wire**, your circle's live story as counter-scrolling ticker rows (their mints, sales, and listings, riding the news rail's exact mechanics), and **the Constellation**, the circle as a navigable starfield — you at the center, friends pulled closer by shared holdings, cartel threads drawn between you, pinch-zoomable like a real map. Three **lenses** re-read the same people: LEDGER (the plain record), DRAMA (a live three-stat duel of every friend against you, tightest races first), and SLEUTH (each friend's last on-ledger move, freshest first). Lenses annotate and re-order; they never hide anyone.
 
 ### Counterparties & The Nemesis
+
+**How:** Open a profile's Counterparties tab — DECLARE NEMESIS is inside.
 
 The profile's **Counterparties** tab reads the wallet's trading history as a who-with list: everyone this collector has actually dealt with, ranked by deals then volume, medals ❶❷❸ on the top three. From there, **DECLARE NEMESIS** — one declared rival per account. A declared nemesis shows as a public head-to-head plate: both sides' held counts and floor-priced positions with a live AHEAD / BEHIND read.
 
 ### Targets ⬚
 
+**How:** Open a profile's Targets tab.
+
 The profile's **Targets** tab is the wallet's public record of price calls. A call inside its open window shows **SEALED** (with its reveal date) to everyone but its author; once the window closes it becomes permanent public record, scored against today's floor — per-call gap and the running average miss.
 
 ### The Identity Plate
+
+**How:** Tap your sprite in your profile's ID row, then hit the share button.
 
 The PriceSprite modal's share button composes your **Identity Plate** — a share card with your live sprite as the hero, your @handle, and your PriceRank, score, streak, and achievements on your own colorway accent — handed straight to the native share sheet. It's one of the house share documents, alongside the Rarity Receipt and the trade receipts.
 

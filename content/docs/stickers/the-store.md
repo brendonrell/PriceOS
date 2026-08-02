@@ -10,6 +10,8 @@ last_updated: "2026-07-17"
 
 The Store is the primary market: every sheet PD has published, on one shelf. It opens as the Sticker Exchange's default face — a stacked grid of sheet cards you scroll (the ↑/↓ control in the header switches to a compact sideways rail), with a live crawl of store news above it and your running stats in the header: sheets available, stickers owned, and ◊ total spent.
 
+**How:** Tap ⊞ STICKERS on the home action row — the Store is the Exchange's default face.
+
 ## Reading a sheet card
 
 Each card fans three real stickers from the sheet — spaced across its range, so the fan is an honest preview, not a highlight reel — plus:

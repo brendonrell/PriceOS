@@ -16,6 +16,8 @@ They are **private**. That is precisely why you get to name them: nobody else ev
 
 **≡** is the Lists mark across PD.
 
+**How:** On your own profile's Starred view, tap ADD TO LIST on any row to file it; tap the LISTS pill in the sort row to read your Lists back.
+
 ## A List holds anything you've starred
 
 Not just artwork. A List can mix **Outputs, Projects, Traits, Artists, Collectors, Soundtracks and Transactions** in one place — because the thing you're tracking is rarely one type. A run at a project is the project, three of its traits, the artist, and the six pieces you're actually watching. That's one List.

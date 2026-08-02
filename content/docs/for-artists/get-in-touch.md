@@ -12,6 +12,8 @@ If you make generative work and you're curious about PD — whether you want to
 be considered, or you just want to ask a question before deciding — this is the
 page that tells you where to send it.
 
+**How:** DM [brendonrell](https://x.com/brendonrell) on X — the only channel, no form.
+
 ## Every artist relation runs through X
 
 **All artist relations are handled on Twitter/X, by direct message in XChat.**

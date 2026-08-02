@@ -13,6 +13,8 @@ trading window: your pieces against theirs, straight across, with an
 optional ETH sweetener on one side. Barter moves no sale price, so **trades
 carry no fee and no royalty — ever.**
 
+**How:** Tap the ⇌ TRADE pill on any collector's profile, or on a piece's page to start from that piece.
+
 ## The window
 
 Two square panels: **YOU OFFER** on top, **YOU ASK** below (the counterparty

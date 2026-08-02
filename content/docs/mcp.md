@@ -22,6 +22,8 @@ your manual.
 
 ## Connecting
 
+**How:** Point any MCP client at https://pd-mcp.pricediscussion.workers.dev and call tools/list.
+
 - **Endpoint:** `https://pd-mcp.pricediscussion.workers.dev` (streamable
   HTTP — POST JSON-RPC 2.0 to the root; a `mcp.pricediscussion.com` home is
   planned).

@@ -16,6 +16,8 @@ works exactly the same without it, forever. But if you've ever picked a plain
 colour bubble as your profile logo and been told, quietly, that you just chose
 a side — this page is the whole truth.
 
+**How:** Pick a blank colour bubble as your Profile Logo — that raises your flag.
+
 ## Enlisting — the colour is the faction
 
 Every profile can fly a **Profile Logo** — the speech-bubble mark in the

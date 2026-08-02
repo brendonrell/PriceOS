@@ -725,6 +725,10 @@
     margin-top: 2px;
 }
 
+/* The How line — the item's one-line answer leads the hit, bold so the eye
+   lands on the action itself. */
+.pd-docs-search-hit-snippet.pd-docs-search-hit-howto { font-weight: bold; }
+
 .pd-docs-search-hit-snippet mark {
     background: var(--text-color);
     color: var(--bg-color);

@@ -16,6 +16,8 @@ is broadcasting.
 runs on a green dot-matrix panel above the shelf, it plays whether or not anyone
 is watching, and what it plays today is not what it played yesterday.
 
+**How:** Open the Sticker Exchange — the Channel is the screen under the top menu.
+
 Tapping the panel still does what the strip always did — it crosses between the
 Store and the Marketplace. The channel is what happens while you are deciding.
 

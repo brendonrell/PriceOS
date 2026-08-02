@@ -12,6 +12,8 @@ Price Discussion runs two economies. The first is the art — Projects, Outputs,
 
 This section is the complete manual, in four pages: this overview, [The Store](/docs/stickers/the-store) (buying sheets), [The Marketplace](/docs/stickers/the-marketplace) (trading them), and [The Binder & Your Profile](/docs/stickers/the-binder-and-your-profile) (completing the collection and wearing it). The protocol layer has its own reference: [PDStickers](/docs/contracts/pd-stickers).
 
+**How:** Tap the STICKERS button ⊞ on the home action row.
+
 ## Where stickers live
 
 The **STICKERS** button (⊞) on the home action row opens the **Sticker Exchange** — a slide-up sheet with three faces:

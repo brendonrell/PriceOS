@@ -12,6 +12,8 @@ Everything the Stone understands, in one place. Type any of these into the bubbl
 
 No syntax is required — these are the phrases at their most explicit, and the Stone accepts natural variations of each. When a line doesn't match anything below, it's a search, and search is never a dead end.
 
+**How:** Triple-tap any page background to raise the Stone, then type any of these.
+
 ## Find anything
 
 The real global search, inline. People, projects, pieces, traits, soundtracks, pages.

@@ -10,6 +10,8 @@ last_updated: "2026-07-17"
 
 Peeled stickers do two jobs: they fill your Binder, and they decorate your profile. This page covers both — the completionist ledger and the display case.
 
+**How:** In the Sticker Exchange, tap MY BINDER on the crawl line.
+
 ## The Binder
 
 **MY BINDER** (the cap on the Sticker Exchange's crawl line) is the completionist view: every sheet is a binder page of slots. Stickers you hold print full-strength in their slots; stickers you're missing sit as dimmed outlines, each one a named gap. Every page carries its tally and a progress bar; a finished page stamps **COMPLETE ✓**; the top of the Binder totals the whole collection.

@@ -10,6 +10,8 @@ last_updated: "2026-07-27"
 
 A Keychain out of the capsule is a finished character — but a blank life. Everything that happens next is written by you.
 
+**How:** Wear it from the Depanneur ⚷; POLISH there syncs your streak and rank onto the charm.
+
 ## The chain is your streak
 
 Your charm hangs from the ring by whatever your PriceStreak has earned. The full ladder:

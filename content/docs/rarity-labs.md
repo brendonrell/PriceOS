@@ -10,6 +10,8 @@ last_updated: "2026-07-27"
 
 Rarity on PD is **computed, not claimed**. Every project's census — artist traits, Fate, colour — is derived deterministically from the same seeds every viewer's browser holds, so every number below is identical for everyone, needs no rarity API, and can be re-derived by anyone at any time.
 
+**How:** Open any Output's character sheet — ❖ PD Rarity leads it; the full Pop Table is on the project's + More.
+
 ## PD Rarity — the headline
 
 Every Output's character sheet leads with **❖ PD Rarity**: provable art-rarity (trait / Fate / colour) folded with genome isolation into one 0–100 read. Underneath it, the piece's standing across the whole minted edition:

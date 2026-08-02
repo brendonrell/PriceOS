@@ -14,6 +14,8 @@ order you chose, meant to be looked at.
 
 **◰** is the Albums mark across PD.
 
+**How:** Tap ◰ on any artwork to open the Add-to-Album sheet; your albums live on your profile.
+
 ## Numbered, never named
 
 An album has no title. It is **ALBUM 01**, **ALBUM 02**, in the order you made

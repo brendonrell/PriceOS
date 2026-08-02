@@ -10,6 +10,8 @@ last_updated: "2026-07-10"
 
 Your wallet is your identity on PD — there is no separate account, no email, no password. This page covers connecting, signing in, and the identity layer the app builds on top of your address.
 
+**How:** Tap Connect in the app, pick your wallet, and sign the SIWE message — that's the whole sign-in.
+
 ## Which wallet
 
 Any Ethereum wallet that supports standard browser injection (EIP-1193) or WalletConnect works: MetaMask, Rainbow, Coinbase Wallet, smart-contract wallets, hardware setups behind them — collector's choice. PD is wallet-neutral and recommends none over another.

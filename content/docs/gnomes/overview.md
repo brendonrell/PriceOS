@@ -10,6 +10,8 @@ last_updated: "2026-07-19"
 
 Every project on Price Discussion has exactly one **gnome**: its guardian, cast at the project's birth in the old Paracelsian sense — the earth elemental that keeps the treasure. Projects are gems; the gnome keeps them. It lives in the project's **GNOME** tab (beside the Genome — the pun is the point), where it breathes, blinks, watches the market, keeps a dated journal, and speaks when tapped.
 
+**How:** Open a project's GNOME tab and tap the keeper.
+
 Gnomes are also collectible — and this is the part to read twice:
 
 ## A real-fake NFT collection

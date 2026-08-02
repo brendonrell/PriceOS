@@ -10,6 +10,8 @@ last_updated: "2026-07-19"
 
 The GNOME tab is the gnome's home. The **gnomewallet** is yours — an entire world in a modal, and deliberately not the platform's world: carved timber, plank walls, a shingle sign swinging on ropes, hobbit doors with brass knobs, a lantern over everything, spores in the lamplight, and a mushroom ring along the floor. Stepping in is meant to feel like the mushroom worked.
 
+**How:** After your first gnome wakes, tap the ⍙ pill in Settings → the Wallet row.
+
 One convention rules the whole place: **the gnome world is a lowercase world.** gnomewallet, the mushroom market, your `.gnome` name, the motto — *"gnome matter what"* — all of it, always.
 
 ## Getting in

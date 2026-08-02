@@ -10,6 +10,8 @@ last_updated: "2026-07-17"
 
 Sheets trade. The Marketplace is the sticker economy's secondary market — a real order book per sheet, living inside the Sticker Exchange (tap the crawl line, or the MARKETPLACE cap, from [the Store](/docs/stickers/the-store)). It is deliberately a full market in miniature: asks and bids with quantities and partial fills, escrowed listings, sticker-for-sticker swaps, gifting, and a want-list that does matchmaking for you.
 
+**How:** In the Sticker Exchange, tap the crawl line or the MARKETPLACE cap.
+
 ## The summary — every sheet at a glance
 
 The Marketplace opens on one row per sheet: the sheet's three-sticker fan, its name, and its live market line — copies **listed**, open **bids**, lifetime **sold**, open **swaps**, and the **% still sealed** (how much of everything ever sold remains unpeeled — the scarcity readout the [peel](/docs/stickers/the-store) feeds). The price pill on the right is the sheet's **floor**; under it, the best open offer (✶).

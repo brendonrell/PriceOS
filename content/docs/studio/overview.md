@@ -19,6 +19,8 @@ surface. It is the same app underneath — the same shell, the same menus, the
 same colorways, the same feel — pointed at your work instead of everyone
 else's.
 
+**How:** Open studio.pricediscussion.com and sign in with your artist wallet.
+
 ## Built for a phone, completely
 
 PD Studio is mobile-first the way the rest of PD is mobile-first: not a
