@@ -22,6 +22,7 @@ import { useTraits, type TraitCategory } from '../../lib/state/TraitsContext';
 import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
 import { resolveBucket, useStoredColors } from '../../lib/art/colorStore';
 import { getProject } from '../../lib/project/registry';
+import { pdRarityRank } from '../../lib/output/rarity';
 import { readNoteFor } from '../../lib/notes/tokenNotes';
 import { getRecentIdsForProject, subscribeBreadcrumbs } from '../../lib/pins/breadcrumbStore';
 
@@ -68,7 +69,7 @@ export function useProjectGallery({
     const project = useProject();
     const def = getProject(project.slug);
     const { address: effectiveAddress } = useEffectiveAddress();
-    const { sort, dir, group, groupLayers } = useSort();
+    const { sort, dir, rank, group, groupLayers } = useSort();
     const { activeFilters, searchQuery, priceMin, priceMax, myNotesActive, activeCategory } = useTraits();
 
     /* Stored dominant colours for this project (re-renders grouping when they
@@ -113,6 +114,7 @@ export function useProjectGallery({
        changes — only when. */
     const dSort = useDeferredValue(sort);
     const dDir = useDeferredValue(dir);
+    const dRank = useDeferredValue(rank);
     const dGroup = useDeferredValue(group);
     const dGroupLayers = useDeferredValue(groupLayers);
 
@@ -326,7 +328,22 @@ export function useProjectGallery({
         // toast direction was correct (the dir state was tracked) — only
         // the gallery comparator missed the dir multiplier.
         const dirMult = dDir === 'asc' ? 1 : -1;
-        if (dSort === 'price') {
+        /* ⛔ RARITY IS AN ORDER INSIDE #ID AND $PRICE (Brendon, 2026-08-02) —
+           the same rank the Vault and the Pal read, so a piece's place here
+           agrees with its place everywhere else. Unranked pieces sit last
+           whichever way the arrow points, so they never displace real ranks. */
+        if (dRank === 'rarity' && (dSort === 'id' || dSort === 'price')) {
+            filtered.sort((a, b) => {
+                const ra = pdRarityRank(project.slug, a)?.rank ?? Number.MAX_SAFE_INTEGER;
+                const rb = pdRarityRank(project.slug, b)?.rank ?? Number.MAX_SAFE_INTEGER;
+                if (ra !== rb) {
+                    if (ra === Number.MAX_SAFE_INTEGER) return 1;
+                    if (rb === Number.MAX_SAFE_INTEGER) return -1;
+                    return (ra - rb) * dirMult;
+                }
+                return a - b;
+            });
+        } else if (dSort === 'price') {
             filtered.sort((a, b) => {
                 const ma = project.outputs.get(a);
                 const mb = project.outputs.get(b);
@@ -343,7 +360,7 @@ export function useProjectGallery({
         // 'fog' = ascending id (already in order from construction)
 
         return filtered;
-    }, [project, dSort, dDir, dActiveFilters, dSearchQuery, dPriceMin, dPriceMax, dMyNotesActive, notesVersion, dActiveCategory, breadcrumbAll, effectiveAddress, netSets, topHolders]);
+    }, [project, dSort, dDir, dRank, dActiveFilters, dSearchQuery, dPriceMin, dPriceMax, dMyNotesActive, notesVersion, dActiveCategory, breadcrumbAll, effectiveAddress, netSets, topHolders]);
 
     /* Group-by sections (Brendon, 2026-06-13). When GROUP is on, partition the
        already-sorted/filtered gallery into colour or owner buckets, preserving

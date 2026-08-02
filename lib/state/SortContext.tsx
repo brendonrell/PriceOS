@@ -53,6 +53,14 @@ import { getRememberedGroup, getRememberedLayers, rememberGroup, rememberLayers 
 export type SortKey = 'id' | 'price' | 'feed' | 'fog' | 'az';
 export type SortDir = 'asc' | 'desc';
 export type FeedKind = 'time' | 'price';
+/* ⛔ RARITY RIDES INSIDE #ID AND $PRICE (Brendon, 2026-08-02: "both ID and
+   PRICE get a rarity cycle option, so 4 total. We use the same visual as with
+   FEED with the little dollar sign… except we'll use the rarity glyph").
+   FEED already carries a second ORDER inside one pill and marks it with a
+   small $; rarity is that same idea on the two grid sorts, marked with ❖. So
+   each of those pills cycles four steps — its own two directions, then
+   rarity's two — and the row gains a whole sort without gaining a button. */
+export type SortRank = 'natural' | 'rarity';
 /* Group-by dimension for the gallery (Brendon, 2026-06-16; redesigned
    2026-07-12). Grouping is its OWN icon-only toggle at the start of the sort
    row — one tap advances the dimension, independent of which sort is active
@@ -349,6 +357,8 @@ interface SortContextValue {
     sort: SortKey;
     dir: SortDir;
     feedKind: FeedKind;
+    /** Which ORDER #ID / $PRICE are running — their own, or by rarity. */
+    rank: SortRank;
     /** Set sort family and reset dir/feedKind to family's default. */
     setSort: (s: SortKey) => void;
     /** Sim-faithful click handler — cycles direction within the family. */
@@ -401,6 +411,7 @@ export function SortProvider({ children }: { children: ReactNode }) {
     const [dir, setDir] = useState<SortDir>('asc');
     // Sim 8320 — feed entry point is feed-time-desc. Default kind = 'time'.
     const [feedKind, setFeedKind] = useState<FeedKind>('time');
+    const [rank, setRank] = useState<SortRank>('natural');
     const [group, setGroupState] = useState<GroupKey>('none');
     /* THE SECOND + THIRD LAYERS (Brendon, 2026-07-26). `group` stays the
        primary — every saved default, share slug and per-project memory keeps
@@ -496,6 +507,7 @@ export function SortProvider({ children }: { children: ReactNode }) {
        already that family, else enter at `${type}-asc`. */
     const cycleSort = useCallback((target: SortKey) => {
         setSlugActive(true);
+        if (target !== 'id' && target !== 'price') setRank('natural');
         if (target === 'feed') {
             if (sort === 'feed') {
                 // 4-step cycle within feed: matches FEED_SORTS order.
@@ -534,6 +546,23 @@ export function SortProvider({ children }: { children: ReactNode }) {
         }
         // id / price / az
         if (sort === target) {
+            /* #ID and $PRICE cycle FOUR steps, exactly as FEED does: the
+               family's own two directions, then rarity's two, then wrap
+               (Brendon, 2026-08-02). AZ keeps its plain flip. */
+            if (target === 'id' || target === 'price') {
+                if (rank === 'natural' && dir === 'asc') {
+                    setDir('desc');
+                } else if (rank === 'natural') {
+                    setRank('rarity');
+                    setDir('asc');
+                } else if (dir === 'asc') {
+                    setDir('desc');
+                } else {
+                    setRank('natural');
+                    setDir('asc');
+                }
+                return;
+            }
             // Already this family — flip direction (sim 8327).
             setDir(dir === 'asc' ? 'desc' : 'asc');
         } else {
@@ -541,16 +570,18 @@ export function SortProvider({ children }: { children: ReactNode }) {
             // a Default Sort option (Brendon, 2026-07-12) — a project page
             // booting into a saved 'az' maps it to #ID in resetToDefault.
             setSortState(target);
+            setRank('natural');
             setDir('asc');
             persistFamily(target);
         }
-    }, [sort, dir, feedKind]);
+    }, [sort, dir, feedKind, rank]);
 
-    const applySort = useCallback((s: SortKey, d: SortDir, fk: FeedKind, g?: GroupKey) => {
+    const applySort = useCallback((s: SortKey, d: SortDir, fk: FeedKind, g?: GroupKey, rk: SortRank = 'natural') => {
         setSlugActive(true);
         setSortState(s);
         setDir(d);
         setFeedKind(fk);
+        setRank(rk);
         if (g !== undefined) setGroupState(g);
     }, []);
 
@@ -685,8 +716,8 @@ export function SortProvider({ children }: { children: ReactNode }) {
     );
 
     const value = useMemo<SortContextValue>(
-        () => ({ sort, dir, feedKind, setSort, cycleSort, applySort, resetToDefault, restoreGroupFor, group, group2, group3, groupLayers, setGroupLayer, cycleGroup, defaultGroup, cycleDefaultGroup }),
-        [sort, dir, feedKind, setSort, cycleSort, applySort, resetToDefault, restoreGroupFor, group, group2, group3, groupLayers, setGroupLayer, cycleGroup, defaultGroup, cycleDefaultGroup]
+        () => ({ sort, dir, feedKind, rank, setSort, cycleSort, applySort, resetToDefault, restoreGroupFor, group, group2, group3, groupLayers, setGroupLayer, cycleGroup, defaultGroup, cycleDefaultGroup }),
+        [sort, dir, feedKind, rank, setSort, cycleSort, applySort, resetToDefault, restoreGroupFor, group, group2, group3, groupLayers, setGroupLayer, cycleGroup, defaultGroup, cycleDefaultGroup]
     );
 
     return <SortContext.Provider value={value}>{children}</SortContext.Provider>;

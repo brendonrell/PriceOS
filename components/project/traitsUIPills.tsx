@@ -8,7 +8,7 @@ import { PerMilleMark } from '../shell/PerMilleMark';
 import SpriteFace from '../SpriteFace';
 import { NET_VALUE_ICON } from './traitsUIShared';
 import {
-    type SortKey, type SortDir, type FeedKind,
+    type SortKey, type SortDir, type FeedKind, type SortRank,
     GROUP_BTN_ICON,
 } from '../../lib/state/SortContext';
 import { formatEth } from '../../lib/format/eth';
@@ -338,6 +338,8 @@ interface SortBtnProps {
     active: boolean;
     dir: SortDir;
     feedKind: FeedKind;
+    /** #ID / $PRICE running by rarity — marked like FEED's $, with ❖. */
+    rank?: SortRank;
     onClick: () => void;
 }
 
@@ -356,6 +358,7 @@ export function SortBtn({
     active,
     dir,
     feedKind,
+    rank = 'natural',
     onClick,
 }: SortBtnProps) {
     let arrowGlyph = '';
@@ -363,6 +366,25 @@ export function SortBtn({
     if (active) {
         if (family === 'id' || family === 'price') {
             arrowGlyph = dir === 'asc' ? '↑\uFE0E' : '↓\uFE0E';
+            /* ⛔ RARITY WEARS THE SAME MARK FEED'S PRICE ORDER DOES (Brendon,
+               2026-08-02) — the small glyph in front of the arrow, ❖ instead of
+               $. Identical anatomy, so the row reads as one idea. */
+            if (rank === 'rarity') {
+                dollarSpan = (
+                    <span
+                        className="feed-sort-dollar rarity-sort-mark"
+                        style={{
+                            fontFamily: "'Courier New', Courier, monospace",
+                            fontSize: '13px',
+                            marginRight: '2px',
+                            position: 'relative',
+                            top: '-3px',
+                        }}
+                    >
+                        {'❖\uFE0E'}
+                    </span>
+                );
+            }
         } else if (family === 'feed') {
             arrowGlyph = dir === 'asc' ? '↑\uFE0E' : '↓\uFE0E';
             if (feedKind === 'price') {
@@ -378,6 +400,10 @@ export function SortBtn({
                                 "'Courier New', Courier, monospace",
                             fontSize: '13px',
                             marginRight: '2px',
+                            /* Sat low against the label — up 3px (Brendon,
+                               2026-08-02). */
+                            position: 'relative',
+                            top: '-3px',
                         }}
                     >
                         $

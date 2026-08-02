@@ -201,7 +201,7 @@ export default function TraitsUI({
        2026-06-24). Re-read alongside the trail (emit fires on the toggle too). */
     const [recording, setRecording] = React.useState(true);
     const { open: openModal } = useModal();
-    const { sort, dir, feedKind, cycleSort, setSort, applySort, group, groupLayers, setGroupLayer, cycleGroup } = useSort();
+    const { sort, dir, feedKind, rank, cycleSort, setSort, applySort, group, groupLayers, setGroupLayer, cycleGroup } = useSort();
     /* HOLD the group toggle → pick the three layers by hand (Brendon,
        2026-07-26). The tap still cycles the mains. */
     const [layersAnchor, setLayersAnchor] = React.useState<{ top: number; centerX: number } | null>(null);
@@ -394,8 +394,21 @@ export default function TraitsUI({
        direction flips again — grouping moved to its own toggle at the start of
        the row (GroupBtn). Toast calls out the state it lands on (ALLCAPS). */
     const gridSortWithToast = (family: SortKey) => {
-        const nextDir = sort === family ? (dir === 'asc' ? 'desc' : 'asc') : 'asc';
-        const lbl = family === 'id' ? '#ID' : family === 'price' ? '$PRICE' : family.toUpperCase();
+        /* The four-step cycle (Brendon, 2026-08-02): the family's own two
+           directions, then rarity's two. The toast names where it lands. */
+        let nextRank: 'natural' | 'rarity' = 'natural';
+        let nextDir: 'asc' | 'desc' = 'asc';
+        if (sort === family && (family === 'id' || family === 'price')) {
+            if (rank === 'natural' && dir === 'asc') { nextRank = 'natural'; nextDir = 'desc'; }
+            else if (rank === 'natural') { nextRank = 'rarity'; nextDir = 'asc'; }
+            else if (dir === 'asc') { nextRank = 'rarity'; nextDir = 'desc'; }
+            else { nextRank = 'natural'; nextDir = 'asc'; }
+        } else if (sort === family) {
+            nextDir = dir === 'asc' ? 'desc' : 'asc';
+        }
+        const lbl = nextRank === 'rarity'
+            ? 'RARITY'
+            : family === 'id' ? '#ID' : family === 'price' ? '$PRICE' : family.toUpperCase();
         cycleSort(family);
         showToast('SORT: ' + lbl + ' ' + (nextDir === 'asc' ? '↑' : '↓'));
     };
@@ -1143,6 +1156,7 @@ export default function TraitsUI({
                         active={sort === 'id'}
                         dir={dir}
                         feedKind={feedKind}
+                        rank={rank}
                         onClick={() => gridSortWithToast('id')}
                     />
                     <SortBtn
@@ -1151,6 +1165,7 @@ export default function TraitsUI({
                         active={sort === 'price'}
                         dir={dir}
                         feedKind={feedKind}
+                        rank={rank}
                         onClick={() => gridSortWithToast('price')}
                     />
                     <SortBtn
@@ -1159,6 +1174,7 @@ export default function TraitsUI({
                         active={sort === 'feed'}
                         dir={dir}
                         feedKind={feedKind}
+                        rank={rank}
                         onClick={() => cycleSortWithToast('feed')}
                     />
                     {/* D007 (sim 8438) — search-btn lives in the sort row
