@@ -35,6 +35,7 @@ import { GhostFeedRows } from '../GhostFeed';
 import { GhostCarousels, GhostGallery } from './HomeGhosts';
 import NewsCarousel from './NewsCarousel';
 import SocialFeed from './SocialFeed';
+import NewUsersFeed from './NewUsersFeed';
 import HomeTitleCartography from './HomeTitleCartography';
 import RewindHome from './RewindHome';
 import { useRewindOptional } from '../../lib/state/RewindContext';
@@ -707,7 +708,7 @@ function HomePageBodyInner({
         { key: 'date', dir: 'desc' },
     );
     /* Mark Now-Minting as seen so its carousels stay mounted once painted. */
-    useEffect(() => { if (activeTab === 'minting' && mintSort.key !== 'feed' && mintSort.key !== 'social') setMintingSeen(true); }, [activeTab, mintSort.key]);
+    useEffect(() => { if (activeTab === 'minting' && mintSort.key !== 'feed' && mintSort.key !== 'social' && mintSort.key !== 'newusers') setMintingSeen(true); }, [activeTab, mintSort.key]);
     const onMintSort = (key: HomeSortKey) =>
         setMintSort((prev) =>
             prev.key === key
@@ -1152,7 +1153,7 @@ function HomePageBodyInner({
                 painted canvases survive a tab switch — no repaint (Brendon,
                 2026-06-24). */}
             {mintingSeen && (
-                <section aria-label="Now Minting" style={activeTab === 'minting' && mintSort.key !== 'feed' && mintSort.key !== 'social' ? undefined : { display: 'none' }}>
+                <section aria-label="Now Minting" style={activeTab === 'minting' && mintSort.key !== 'feed' && mintSort.key !== 'social' && mintSort.key !== 'newusers' ? undefined : { display: 'none' }}>
                     {/* Loading OR no graduated projects yet → ghost carousels in
                         the exact shape of the live rows (Brendon, 2026-06-14 —
                         never a text null state). */}
@@ -1219,6 +1220,18 @@ function HomePageBodyInner({
                 <section className="home-uploads" aria-label="Social Feed">
                     <div className="feed-list home-activity-feed home-social-feed">
                         <SocialFeed dir={mintSort.dir} />
+                    </div>
+                </section>
+            )}
+
+            {/* NEW USERS ☻ — long-press on the same ☻ pill → the signup feed:
+                the last 200 @names as full ASCII-ID rectangles, newest first,
+                minute-fresh (Brendon, 2026-08-02). Same feed-row family as the
+                other home feeds. */}
+            {activeTab === 'minting' && mintSort.key === 'newusers' && (
+                <section className="home-uploads" aria-label="New Users">
+                    <div className="feed-list home-activity-feed">
+                        <NewUsersFeed dir={mintSort.dir} />
                     </div>
                 </section>
             )}
