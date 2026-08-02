@@ -29,12 +29,6 @@ import { needsColorSample, reportFingerprint, resolveFingerprint } from '../../l
 
 interface SeenDetail { slug: string; tokenId: number }
 
-/* How many pieces one visit reads. A 700-piece collection used to queue every
-   piece it scrolled past and keep reading for the whole session; the backfill
-   road is already bounded per visit and picks up where it left off, so this
-   road is too (Brendon, 2026-08-01). */
-const PER_VISIT_READS = 40;
-
 /* The read downsamples to 48×48 at its deepest, so a 256px copy is already far
    more than it can use — and the small tile is the one a grid has loaded
    anyway, so it is normally free from the browser's own cache. */
@@ -97,7 +91,6 @@ export default function FingerprintSampler() {
         const attempted = new Set<string>();
         const queue: SeenDetail[] = [];
         let draining = false;
-        let readsLeft = PER_VISIT_READS;
 
         /* Wait for a genuinely quiet moment. Scrolling a collection is a
            continuous stream of work, and a decode plus a pixel read landing in
@@ -114,11 +107,10 @@ export default function FingerprintSampler() {
         const drain = async () => {
             if (draining) return;
             draining = true;
-            while (queue.length && readsLeft > 0) {
+            while (queue.length) {
                 await idle();
                 if (document.hidden) break;
                 const { slug, tokenId } = queue.shift()!;
-                readsLeft -= 1;
                 try { await sampleStored(slug, tokenId); } catch { /* best-effort */ }
                 // Breathe between reads so filling never competes with painting.
                 await new Promise((r) => setTimeout(r, 250));
@@ -129,7 +121,6 @@ export default function FingerprintSampler() {
         const onSeen = (e: Event) => {
             const d = (e as CustomEvent<SeenDetail>).detail;
             if (!d || !d.slug || !Number.isInteger(d.tokenId)) return;
-            if (readsLeft <= 0) return;
             const key = `${d.slug}/${d.tokenId}`;
             if (attempted.has(key)) return;
             /* Already carries a full fingerprint (or a colour reported this

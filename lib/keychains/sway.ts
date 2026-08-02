@@ -44,6 +44,7 @@ let gy = 1;
 let kickX = 0;
 let kickY = 0;
 
+let lastY = 0;
 let mounted = 0;
 
 function emit() { for (const cb of listeners) cb(); }
@@ -55,11 +56,35 @@ export function reducedMotion(): boolean {
 
 /* ── the drives ─────────────────────────────────────────────────────────── */
 
-/* ⛔ SCROLL NO LONGER MOVES THE CHAIN (Brendon, 2026-08-01) — the scroll drive
-   is REMOVED. Every scroll shoved the chain and woke the solver, so scrolling a
-   long profile kept the worn charms recomputing the whole way down and the page
-   lagged. Throttling it to a frame wasn't enough. The chain still hangs, leans
-   and jangles: gravity and a real shake drive it. */
+/* ⛔ ONE SHOVE PER FRAME, NOT ONE PER EVENT (Brendon, 2026-08-01). iOS fires
+   scroll far faster than it paints, and every single one used to do this work
+   AND wake the solver — so scrolling a long profile kept three chains solving
+   flat out the whole way down, on top of whatever the page itself was doing.
+   The shoves are summed and drunk once a frame instead. The chain feels the
+   same total push; it just isn't recomputed between paints. */
+let scrollRaf = 0;
+function onScrollRaw() {
+    if (scrollRaf) return;
+    scrollRaf = requestAnimationFrame(() => { scrollRaf = 0; onScroll(); });
+}
+
+function onScroll() {
+    const y = window.scrollY;
+    let d = y - lastY;
+    lastY = y;
+    /* ⛔ TILT WINS — with orientation live the scroll shove is OFF (Brendon,
+       2026-07-30: "the scroll bouncing… gets glitchy when scrolling up"). iOS
+       fires scroll far faster than a frame and each one threw the chain, which
+       fought the sensor's own reading of down and read as a stutter on the way
+       back up. `lastY` still tracks, so turning tilt off resumes cleanly. */
+    if (motion === 'granted') return;
+    // The page accelerating under the charm throws it the other way, the way
+    // a thing on a chain lags behind the hand carrying it.
+    if (d > 40) d = 40;
+    if (d < -40) d = -40;
+    kickY -= d * 0.13;
+    wake();
+}
 
 function onTilt(e: DeviceOrientationEvent) {
     /* Gravity in the device's own frame, straight off the orientation angles:
@@ -125,6 +150,8 @@ export function startSway(): () => void {
     if (typeof window === 'undefined') return () => {};
     mounted += 1;
     if (mounted === 1) {
+        lastY = window.scrollY;
+        window.addEventListener('scroll', onScrollRaw, { passive: true });
         if (motion === 'granted') {
             window.addEventListener('deviceorientation', onTilt);
             window.addEventListener('devicemotion', onShake);
@@ -133,6 +160,8 @@ export function startSway(): () => void {
     return () => {
         mounted -= 1;
         if (mounted > 0) return;
+        window.removeEventListener('scroll', onScrollRaw);
+        if (scrollRaf) { cancelAnimationFrame(scrollRaf); scrollRaf = 0; }
         window.removeEventListener('deviceorientation', onTilt);
         window.removeEventListener('devicemotion', onShake);
     };

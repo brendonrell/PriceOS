@@ -79,10 +79,11 @@ const POLL_MS = 30_000;
 // newest-first, so requesting N gives exactly that window). 100 ≈ the live
 // window Instagram/X keep — scrollable, with older history aging out per the
 // retention tiers rather than living in the panel forever.
-// ⛔ Halved to 50 (Brendon, 2026-08-01: "maybe we should have a smaller limit
-// for how many pings we show"). A hundred was more inbox than anyone scrolls,
-// and every one of them was being held and re-rendered behind the menu.
-const PING_WINDOW = 50;
+// ⛔ BACK TO 100 (Brendon, 2026-08-02). It was halved while hunting the menu
+// lag; the lag was the picture reader, not the inbox, so the full window is
+// back. The menu only builds a screenful of rows until it is opened, so a
+// hundred costs nothing to hold.
+const PING_WINDOW = 100;
 
 /* Re-enabled 2026-07-08 (Brendon) post-Cloudflare migration. Safe because:
    (a) polls ONLY while signed in AND the tab is visible (the tick bails on
