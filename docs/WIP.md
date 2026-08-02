@@ -13,7 +13,42 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-⛔ **2026-08-01 (LATEST) — OPEN ITEMS, IN BRENDON'S OWN WORDS.**
+✅ **2026-08-02 (LATEST) — SHIPPED TO `dev` (tip `e4c4778`, auto-deployed):
+NEW USERS ☻ feed · battery pass · data-audit fixes · artcoins in the stone.**
+ClickUp `86bb77te6` has the full round. The locks:
+
+- **NEW USERS ☻** — long-press the ☻ social pill in the home sort row → the
+  last 200 signups as full ASCII-ID rows (the one identity unit), viewer-local
+  stamps, minute-fresh while open, rows mounted in screenfuls (the
+  viewport-bound law). Rides the Followers-Manager compact shell verbatim.
+- **Battery** — the tape scroll is now a pure compositor CSS animation
+  (`pd-tape-scroll` + `--tape-half`; the engine's rAF drive is GONE — do not
+  reintroduce a per-frame JS tape). Stargazing's placeholder frame loop no
+  longer schedules; restore its rAF lines only when real draw work lands.
+- **Data audit** — ⛔ **a sale in `events` is `type='XFER'` + non-null
+  `price_eth`** ('SALE' is a derived label, never stored; trades are
+  `sale_direction='TRADE'`, price null). The SOLD search lane, the stone
+  trend, and the last-sale read were fixed for this — never filter events on
+  `type='SALE'` again.
+- **Artcoins in the stone** — all 54 tracked coins from the
+  PD_FEEDS_fx-artcoin-feed Pools sheet (Brendon's Drive; the sheet IS the
+  source of truth for WHICH coins) live in `lib/stone/tokens.ts` tagged
+  `family: 'artcoin'`; typing `artcoins` deals the family as a tappable hand.
+
+**BUILT, AWAITING BRENDON'S PUSH WORD (on the task branch, not on `dev`):
+LIVE FLOORS.** ⛔ `projects.floor_price_eth` has NO writer (nulled by the
+2026-07-03 reset; only the Output market route worked around it). New
+`lib/market/floors.ts` (lowest active unexpired listing) now feeds conviction
+calls (create + resolve, incl. the cron), portfolio targets, counterparty
+valuations, search results + the floor answer, and the stone trend footer.
+Type-check + 192 tests green. **On his word: merge the task branch → `dev`,
+push.**
+
+**QUEUED:** more TokenWorks strategy coins — needs Brendon's names, then
+verified pins (the PNKSTR fake-clone lesson). · Coding-language-as-trait +
+group-by-language: discussion had, awaiting his "spec it".
+
+⛔ **2026-08-01 — OPEN ITEMS, IN BRENDON'S OWN WORDS.**
 
 0. ✅ **THE KEYCHAIN HANG IS SETTLED AND SHIPPED (2026-08-01, `a131e9ce`).
    ⛔ DO NOT RE-DERIVE IT. THE SHAPE IS LOCKED:**
