@@ -19,7 +19,13 @@
  *
  * Persistence: localStorage `pd_albums`, account write-through via the
  * settings envelope (pushSettings) — albums follow the viewer across
- * devices exactly like stars/wishlist. PRIVATE until album sharing ships.
+ * devices exactly like stars/wishlist.
+ *
+ * PUBLIC (Brendon, 2026-08-02): albums are a public shelf — anyone can see an
+ * album and who made it. The project page's Albums tab reads every album
+ * holding that project via /api/project/[slug]/albums; the social feed reads
+ * the graph's shelves. Nothing else in the settings envelope changed — Starred,
+ * Wishlist, Lists and History stay private.
  */
 
 import type { AlbumRecord } from '../supabase';
