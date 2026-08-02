@@ -742,6 +742,14 @@ export default function StarredList({
         });
     };
 
+    /* Tapping a starred soundtrack ROW opens it, the same as the row's own ▶
+       Play key — the station goes on air in the miniplayer (Brendon,
+       2026-08-02: these rows need to act). */
+    const playSoundtrack = (s: SoundtrackStar) => {
+        fmPlay({ playlistId: s.playlistId, label: getProject(s.slug)?.soundtrack?.label ?? s.title, slug: s.slug });
+        showToast('miniplayer: ON AIR');
+    };
+
     const handleSoundtrackUnstar = (e: React.MouseEvent, s: SoundtrackStar) => {
         e.stopPropagation();
         askRemove('Remove this soundtrack from your Starred list?', () => {
@@ -1043,10 +1051,10 @@ export default function StarredList({
                             <div
                                 key={selKey}
                                 className={`starred-row trait-row has-actions-abs${multiActive ? ' is-selectable' : ''}${multiActive && selected.has(selKey) ? ' is-selected' : ''}`}
-                                role={multiActive ? 'button' : undefined}
-                                tabIndex={multiActive ? 0 : undefined}
-                                onClick={multiActive ? () => toggleSel(selKey) : undefined}
-                                onKeyDown={multiActive ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSel(selKey); } } : undefined}
+                                role="button"
+                                tabIndex={0}
+                                onClick={multiActive ? () => toggleSel(selKey) : () => playSoundtrack(r)}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); multiActive ? toggleSel(selKey) : playSoundtrack(r); } }}
                             >
                                 <div className="trait-row-tile artist-tile">
                                     <span className="artist-row-tile-glyph soundtrack-tile-glyph" style={{ color: projectColorway(r.slug) ?? undefined }}>▶&#xFE0E;</span>
@@ -1077,8 +1085,8 @@ export default function StarredList({
                                         tabIndex={0}
                                         title="Play in the PD miniplayer"
                                         aria-label="Play"
-                                        onClick={() => { fmPlay({ playlistId: r.playlistId, label: getProject(r.slug)?.soundtrack?.label ?? r.title, slug: r.slug }); showToast('miniplayer: ON AIR'); }}
-                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fmPlay({ playlistId: r.playlistId, label: getProject(r.slug)?.soundtrack?.label ?? r.title, slug: r.slug }); showToast('miniplayer: ON AIR'); } }}
+                                        onClick={(e) => { e.stopPropagation(); playSoundtrack(r); }}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); playSoundtrack(r); } }}
                                     >
                                         ▶︎ Play
                                     </span>
