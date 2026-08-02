@@ -107,84 +107,87 @@
      deliberate, don't loosen it. The separate `stonecolor:` recolour cast is
      untouched.
 
-✅ **2026-08-01 (LATEST SESSION) — MENU LAG · PINGS CADENCE · KEYCHAINS ·
-STICKERS PERSISTENCE** (on `dev`, tip `8118607`, tree clean, type-check clean,
-192 tests green. ClickUp `86bb72zy8` Done, `86bb72zza` open questions):
+✅ **2026-08-02 (LATEST SESSION) — THE REAL LAG CAUSE · STICKERS · KEYCHAINS
+SWITCH · GROUPING PERSISTENCE · RARITY SORT** (on `dev`, tip `bebab31`, tree
+clean, type-check clean, 192 tests green. ClickUp `86bb734jz`):
 
-- ⛔ **THE MENU LAG WAS THE HIDDEN LISTS — his own hunch, Rule #-3.** The
-  dropdown stack is **hidden, never unmounted**, so up to a hundred ping rows
-  plus the whole to-do and notes lists were built and held **on every page in
-  the app**, and opening the menu raised all of it behind a 300ms slide. Each
-  list now builds **25 rows** until the menu is open, then fills in the rest.
-  **Ping window halved, 100 → 50.** The Suite panes are their own app views and
-  are never capped; the Notes header still counts every note.
-- **Two charm costs behind the same lag.** (1) iOS streams orientation ~60×/s
-  whether or not the phone moved and **every reading woke the solver** — so
-  from the moment tilt was granted the chain re-solved every frame for the life
-  of the page. Sensor jitter is no longer motion. (2) The chain kept solving,
-  and its art kept animating, **underneath the menu and every modal** — the
-  viewport check said "on screen" because they open on TOP of the page.
-  **Covered now parks exactly like offscreen** and resumes where it left off.
-- ⛔ **THE iOS MOTION SHEET CAN ONLY EVER COME FROM THE KEYCHAIN NOW.** The
-  tilt re-arm listened on the whole window, so the first thing he touched after
-  a load carried the permission ask — it fired on the **connect menu**. It
-  listens on the worn keychain itself. *(This closes the "still standing"
-  suspect noted under the profile-lag item above.)*
-- ⛔ **ACHIEVEMENTS CADENCE — ONE PING PER EVALUATION, AND CHEAP RUNGS ARE
-  SILENT.** Every unlock fired its own ping and unlocks arrive in bursts (one
-  mint trips a count rung, a spend rung and a projects rung at once; seven
-  catalog conditions award two trophies apiece). A burst now rolls into ONE
-  ping led by the biggest, and the row says how many came with it. **Under 50
-  points does not ping on its own** — it still unlocks, still scores, still
-  lands on the wall. That was the day-one flood.
-- ⛔ **A HAND-PICKED CHARM BEATS SHUFFLE, AND IT STICKS (Rule #-3 — he said
-  shuffle was off; the stored flag said ON, and that gap was the bug).** With
-  shuffle on, `top` is ignored entirely and three are re-drawn at random from
-  the whole worn pool **on every page load**, so a charm he picked could simply
-  not appear — and vanished again on the next page when it did. **Picking now
-  turns shuffle off** (choosing what hangs and asking for a random draw are
-  opposite instructions) and the picked one comes to the **front** of the
-  bunch. Load-time front-randomness (locked, item 0) is untouched. Button reads
-  **SHUFFLE ACTIVATED**.
-- ⛔ **THE STICKER LOOK IS IN THE DATABASE NOW — it never was.** Arrangement /
-  rows / align / tilt / flip / density / border / roll was the **only** part of
-  a decorated profile that never left the device. Ownership and the hand-placed
-  spots were always synced, so when the browser cleared its store those came
-  back and **the look had nothing to restore from** — the hero fell to its
-  one-row default. His words: *"it lasts for days and then gone… how is this
-  not settled as db??"* It rides the account blob now, written by the same
-  writer as everything else (so the manager's draft gate still holds it until
-  SAVE) and seeded on hydrate **only when the account holds a value**, so a
-  device is never wiped by an account that has none.
-- **The sticker manager follows the hero down.** The card was measured once, on
-  open — then the first thing you do is change the look, the hero grows 1 row →
-  3, and the card sits on top of the rows it is meant to sit under. It
+- ⛔ **THE LAG WAS THE PICTURE READER, AND HE NARROWED IT HIMSELF (Rule #-3).**
+  *"On my profile the lag completely goes away when I'm on the showcase tab or
+  +more… it's the collected tab (and now the homepage)"* — the two surfaces
+  made of card TILES. The fingerprint reader (shipped 2026-07-31) asked for
+  each tile's picture **again with a cross-origin flag**, and that makes the
+  browser treat it as a DIFFERENT cache entry from the tile's own `<img>` — so
+  every read pulled the whole picture down the wire a SECOND time, then decoded
+  it and read its pixels, four a second, for the whole session. The flag is now
+  set only when the pictures really are on another host; reads wait for an idle
+  moment and stop while the tab is hidden. **He was also right that it was
+  recent — everything else we chased was real cost but not the cause.**
+- ⛔ **RESTORED, BECAUSE THEY WEREN'T THE CAUSE (his ask):** the keychain
+  **SCROLL DRIVE is back byte-for-byte** (the throttled one-shove-per-frame
+  version; tilt still wins while orientation is live — *the earlier "do not
+  reintroduce a scroll kick" note is SUPERSEDED by this*), and the **inbox
+  window is back to 100 pings.** Kept because they cost him nothing: the menu
+  builds a screenful of rows until opened, and the chain parks when the phone
+  is still or something covers it.
+- ⛔ **ACHIEVEMENTS DE-DUPED, STILL EXACTLY 1,000.** Seven conditions each
+  awarded TWO trophies; three names were used twice. **The curated core row
+  keeps the condition every time** (those ids are what real users have already
+  unlocked); the ladder rung moves to a free step in its own family carrying
+  its **exact points**, so no total and no Mjölnir wall moved. Verifier green.
+  ⛔ Free thresholds are scarce — `depth.ts` GENERATES its rungs, so a literal
+  grep will not show them; use the verifier to find collisions.
+- **Offers is own-profile only** — on someone else's it could only ever say
+  "no offers yet".
+- ⛔ **STICKERS: ALWAYS FIT, AND NOTHING HANGS OFF THE LID.** WIDE is deleted
+  (*"making the profile wide fucks up so much of the UI"*) and pinned off so no
+  saved look, Setup Code or SURPRISE can hand it back. The off-screen cause:
+  the safety margins were **CAPPED**, so a sticker whose own footprint exceeded
+  the cap got clamped to a margin SMALLER than itself. Now a piece that cannot
+  fit at its rolled scale **comes down until it does**. The manager card also
   re-measures whenever the sticker area changes size.
-- **PriceCalc (Suite) rebuilt to be readable.** The pane swaps its two colour
-  tokens, so every edge the Pal drew with `--text-color` landed on the pane's
-  own FILL and vanished — the header divider, the portfolio tile boxes, the row
-  separators, the footnote. All redrawn in the pane's ink at full strength
-  (same failure class as the zen garden). The side tabs are the **normal
-  profile tab row**, led by a third tab: **ƒ The Calc** — the field sheet's own
-  field, ladder and rate card, packaged for the pane. Profit side gained
-  section heads.
-- **Profile Cooldown tab wears the site's own furniture** — four square tiles
-  over the bordered line block (the Vault's anatomy), not a bespoke wide bar.
-  The Studio and showcase clocks keep the bar.
-- **Wallet settings keeps its key.** The Depanneur's yin yang had leaked out of
-  the Depanneur onto the settings door; reverted.
-- ⛔ **NEW CONTRACT RULE — #-0.82: NEVER STOP WITH WORK OUTSTANDING.** A new ask
-  goes to the FRONT of the queue; it does not delete the rest of it. Reporting
-  a diagnosis is not finishing, and a summary listing what is still broken is a
-  confession that you stopped. Read it in `CLAUDE.md`.
+- ⛔ **THE STICKER LOOK IS IN THE DB (it never was).** Arrangement / rows /
+  align / tilt / flip / density / border / roll was the ONLY part of a
+  decorated profile that never left the device — *"it lasts for days and then
+  gone"* was the browser clearing its storage with nothing to restore from.
+- ⛔ **KEYCHAINS: ONE SWITCH, AND A PICK BEATS SHUFFLE.** A single KEYCHAINS
+  ON/OFF above THE CAST takes the charms off the profile with the rack, the
+  pool and the chosen three untouched. **Picking a charm by hand now turns
+  shuffle off and sticks** — shuffle was stored ON while he believed it was
+  off, and with it on the chosen three are ignored and re-drawn at random every
+  page load, which is why his picks didn't show. The Depanneur door closes the
+  switcher (leaving for another room is the ONE exception to Rule #-0.55).
+- ⛔ **GROUPING IS ON THE ACCOUNT — ALL THREE LAYERS.** L2/L3 lived in page
+  state only and the long-press menu saved nothing at all, so a deep grouping
+  collapsed the moment he navigated away. Stored as the layers joined with `>`,
+  so every value written before this still reads.
+- **RARITY SORTING (his design).** #ID and $PRICE each cycle FOUR steps — their
+  own two directions, then rarity's two — marked with ❖ exactly where FEED's
+  price order shows its $. No new button in the row. FEED's $ up 3px.
+  *Assumption stated to him and not yet contradicted: both pills reach the SAME
+  rarity order.*
+- **HELD wears the collect mark ✦** — it shared the listed star with ON THE
+  MARKET, and against the artist's ✺ a held row read as an artist row.
+- **Colorpedia** — the search says "Search by: name, hex, RGB, CMYK, HSL", dim
+  + italic (placeholder is the deliberate exception to Rule #2); the card opens
+  on **pure white when the page is dark, pure black when it's light**.
+- **Group toast** carries a second row: ⁘ (longpress for more) ⁘.
+- ⛔ **TWO NEW CONTRACT RULES —** #-0.82 **never stop with work outstanding** (a
+  new ask goes to the FRONT of the queue, it does not delete the rest; a
+  summary of what is still broken is a confession that you stopped), and the
+  **portrait-iPhone canvas law** under #-0.5 (nothing may fall off it; a piece
+  that cannot fit comes down; an option that only works on a wide screen does
+  not ship).
 
-⛔ **OPEN — HIS CALL, NOTHING BUILT (ClickUp `86bb72zza`):** (1) the **+More row
-for visitors** — privacy is already handled, the problem is 12 undifferentiated
-pills in no order; **Offers** is a dead stub on someone else's profile and
-**Counterparties** maps who they trade with (the real decision). (2) **7
-duplicate triggers** in the achievements catalog (same condition, two trophies,
-always unlock as a pair) and 3 duplicate names — the roll-up hides the noise,
-but merging any pair means backfilling the 1,000 count.
+⛔ **HIS CALL, NOTHING BUILT — the sticker MODES.** *"In general I dislike our
+sticker layouts, they never look cohesive, our modes suck frankly."* The read
+given: seven modes but only two ideas — Row/Spaced are one thing at different
+gaps, and Scatter/Fill/Collage/Slapped are all random placement with different
+caps and overlap flags, so none has an identity. Cohesion comes from alignment
+and repetition; those four place at random and shove apart until nothing
+collides, which is avoidance, not composition. **Proposed (awaiting his go):
+three composed modes — a real baseline ROW, a PILE with a constant step and
+rotation ramp, and SLAPPED on a jittered GRID.** Grid-with-jitter reads
+deliberate where pure random never can.
 
 ⛔ **THE DISPATCH EMAIL HAS NEVER SENT AND CANNOT — ONE MISSING SETTING.
 BRENDON SAID LEAVE IT (2026-08-01), so it is NOT queued work; this is here so
