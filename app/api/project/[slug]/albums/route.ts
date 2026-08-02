@@ -34,8 +34,14 @@ export interface ProjectAlbumsResponse {
 const USER_CAP = 500;
 const ALBUM_CAP = 60;
 
-/** Members of an album that belong to this project (keys are `${slug}:${id}`). */
-function holdsProject(keys: string[], slug: string): boolean {
+/** Members of an album that belong to this project (keys are `${slug}:${id}`).
+ *  With `token` set, the test narrows to that ONE piece — which is how the
+ *  artwork page's Albums tab asks "who has shelved this piece?". */
+function holdsProject(keys: string[], slug: string, token: string | null): boolean {
+  if (token !== null) {
+    const exact = `${slug}:${token}`;
+    return keys.some((k) => k.toLowerCase() === exact);
+  }
   const p = `${slug}:`;
   return keys.some((k) => k.toLowerCase().startsWith(p));
 }
@@ -58,12 +64,16 @@ function sanitizeAlbum(a: unknown): AlbumRecord | null {
 }
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   props: { params: Promise<{ slug: string }> },
 ): Promise<NextResponse> {
   const params = await props.params;
   if (!params.slug) return badRequest('Missing project slug');
   const slug = params.slug.toLowerCase();
+  /* ?token=<id> narrows to the albums holding that ONE piece. */
+  const rawToken = new URL(req.url).searchParams.get('token');
+  if (rawToken !== null && !/^\d+$/.test(rawToken)) return badRequest('Invalid `?token=`');
+  const token = rawToken;
 
   try {
     const db = getSupabaseService();
@@ -84,7 +94,7 @@ export async function GET(
       if (!u.handle || !Array.isArray(u.albums)) continue;
       (u.albums as unknown[]).forEach((raw, i) => {
         const album = sanitizeAlbum(raw);
-        if (!album || !holdsProject(album.keys, slug)) return;
+        if (!album || !holdsProject(album.keys, slug, token)) return;
         rows.push({
           owner_handle: u.handle!,
           owner_address: u.address.toLowerCase(),
