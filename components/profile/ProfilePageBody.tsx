@@ -928,8 +928,10 @@ function ProfilePageBodyInner({
         if (v === 'created' && !createdUnderMore) v = 'albums';
         // Visitors never see private Starred/Wishlists — fall to Created (when
         // this artist surfaces it) else Albums.
-        if (!isOwnProfile && (v === 'starred' || v === 'wishlists' || v === 'history' || v === 'albums')) {
-            v = createdUnderMore ? 'created' : 'offers';
+        /* Offers joined the private set 2026-08-01 — a visitor landing on a
+           stale 'offers' key would open a tab that has no pill any more. */
+        if (!isOwnProfile && (v === 'starred' || v === 'wishlists' || v === 'history' || v === 'albums' || v === 'offers')) {
+            v = createdUnderMore ? 'created' : 'vault';
         }
         return v;
     })();
@@ -1889,9 +1891,14 @@ function ProfilePageBodyInner({
                                                 { key: 'starred',   label: <><span className="pill-tab-ico is-star">{'★︎'}</span> Starred</>,   active: effMoreL1 === 'starred',   onClick: () => setMoreL1('starred')   },
                                                 { key: 'wishlists', label: <><span className="pill-tab-ico">{'✛︎'}</span> Wishlist</>, active: effMoreL1 === 'wishlists', onClick: () => setMoreL1('wishlists') },
                                                 { key: 'albums',    label: <><span className="pill-tab-ico is-album">{'◰︎'}</span> Albums</>,    active: effMoreL1 === 'albums',    onClick: () => setMoreL1('albums')    },
+                                                /* ⛔ OFFERS IS OWN-PROFILE ONLY (Brendon, 2026-08-01). The
+                                                   wallet-level offers view isn't built, so on someone else's
+                                                   profile the tab could only ever say "no offers yet" — a dead
+                                                   tab on a person you came to scout. It comes back for
+                                                   everyone the day the view ships. */
+                                                { key: 'offers',    label: 'Offers',    active: effMoreL1 === 'offers',    onClick: () => setMoreL1('offers')    },
                                             ]
                                             : []),
-                                        { key: 'offers',    label: 'Offers',    active: effMoreL1 === 'offers',    onClick: () => setMoreL1('offers')    },
                                         { key: 'vault',     label: 'Vault',     active: effMoreL1 === 'vault',     onClick: () => setMoreL1('vault')     },
                                         { key: 'sigil',     label: 'Sigil',     active: effMoreL1 === 'sigil',     onClick: () => setMoreL1('sigil')     },
                                         { key: 'loyalty',   label: 'Loyalty',   active: effMoreL1 === 'loyalty',   onClick: () => setMoreL1('loyalty')   },

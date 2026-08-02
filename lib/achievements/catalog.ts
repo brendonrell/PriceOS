@@ -234,7 +234,7 @@ const CORE_ACHIEVEMENTS: readonly Achievement[] = [
   { id: 'token_888', name: 'Infinite Abundance', blurb: 'Own token #888 — flow and fortune.', points: 88, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==888' },
   { id: 'token_1111', name: 'Make a Wish', blurb: 'Own token #1111 — the portal is open.', points: 111, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==1111' },
   // Personal + numerology.
-  { id: 'token_22', name: 'Lucky 22', blurb: 'Own token #22.', points: 22, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==22' },
+  { id: 'lore_22', name: 'Lucky 22', blurb: 'Mint 22 pieces — the number PD counts from.', points: 22, category: 'lore', secret: true, trigger: 'mint.count>=22' },
   { id: 'token_85', name: "Class of '85", blurb: 'Own token #85. A very good year.', points: 85, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==85' },
   // Retargeted 2026-07-02: #18 is below the contract floor (#22) — doubled up.
   { id: 'token_18', name: 'Master Number', blurb: 'Own token #1818.', points: 18, category: 'lore', secret: true, trigger: 'holdings.tokenNumber==1818' },

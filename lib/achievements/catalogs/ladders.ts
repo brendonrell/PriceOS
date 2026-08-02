@@ -58,15 +58,15 @@ export const LADDER_ACHIEVEMENTS: readonly Achievement[] = [
   { id: 'l_prim_eth_010', name: 'First Stake', blurb: '0.1 ETH in total primary spend.', points: 65, category: 'primary', trigger: 'primary.totalEth>=0.1' },
   { id: 'l_prim_eth_050', name: 'Conviction', blurb: '0.5 ETH in total primary spend.', points: 170, category: 'primary', trigger: 'primary.totalEth>=0.5' },
   { id: 'l_prim_eth_2', name: 'Heavy Hand', blurb: '2 ETH in total primary spend.', points: 320, category: 'primary', trigger: 'primary.totalEth>=2' },
-  { id: 'l_prim_eth_5', name: 'Benefactor', blurb: '5 ETH in total primary spend.', points: 480, category: 'primary', trigger: 'primary.totalEth>=5' },
+  { id: 'l_prim_eth_11', name: 'Benefactor', blurb: '11 ETH in total primary spend.', points: 480, category: 'primary', trigger: 'primary.totalEth>=11' },
   { id: 'l_prim_eth_10', name: 'Maecenas', blurb: '10 ETH in total primary spend. A patron of the whole platform.', points: 700, category: 'primary', trigger: 'primary.totalEth>=10' },
   { id: 'l_prim_eth_25', name: 'House Built On Price', blurb: '25 ETH in lifetime primary spend. Few will ever stand here.', points: 900, category: 'primary', trigger: 'primary.totalEth>=25' },
 
   // ─────────────────────────────────────────────────────────────────────
   //  TRADING · secondary volume (ETH)
   // ─────────────────────────────────────────────────────────────────────
-  { id: 'l_sec_eth_050', name: 'Warmed Up', blurb: '0.5 ETH in secondary volume.', points: 55, category: 'trading', trigger: 'secondary.totalEth>=0.5' },
-  { id: 'l_sec_eth_2', name: 'Liquid', blurb: '2 ETH in secondary volume.', points: 130, category: 'trading', trigger: 'secondary.totalEth>=2' },
+  { id: 'l_sec_eth_075', name: 'Warmed Up', blurb: '0.75 ETH in secondary volume.', points: 55, category: 'trading', trigger: 'secondary.totalEth>=0.75' },
+  { id: 'l_sec_eth_2p5', name: 'Liquid', blurb: '2.5 ETH in secondary volume.', points: 130, category: 'trading', trigger: 'secondary.totalEth>=2.5' },
   { id: 'l_sec_eth_5', name: 'Market Maker', blurb: '5 ETH in secondary volume.', points: 230, category: 'trading', trigger: 'secondary.totalEth>=5' },
   { id: 'l_sec_eth_10', name: 'Order Flow', blurb: '10 ETH in secondary volume.', points: 360, category: 'trading', trigger: 'secondary.totalEth>=10' },
   { id: 'l_sec_eth_25', name: 'Deep Book', blurb: '25 ETH in secondary volume.', points: 540, category: 'trading', trigger: 'secondary.totalEth>=25' },
@@ -140,9 +140,9 @@ export const LADDER_ACHIEVEMENTS: readonly Achievement[] = [
   // ─────────────────────────────────────────────────────────────────────
   //  SOCIAL · followers
   // ─────────────────────────────────────────────────────────────────────
-  { id: 'l_foll_50', name: 'Signal', blurb: 'Reach 50 followers.', points: 120, category: 'social', trigger: 'followers.count>=50' },
-  { id: 'l_foll_100', name: 'Audience', blurb: 'Reach 100 followers.', points: 220, category: 'social', trigger: 'followers.count>=100' },
-  { id: 'l_foll_250', name: 'Following', blurb: 'Reach 250 followers.', points: 340, category: 'social', trigger: 'followers.count>=250' },
+  { id: 'l_foll_35', name: 'Signal', blurb: 'Reach 35 followers.', points: 120, category: 'social', trigger: 'followers.count>=35' },
+  { id: 'l_foll_90', name: 'Audience', blurb: 'Reach 90 followers.', points: 220, category: 'social', trigger: 'followers.count>=90' },
+  { id: 'l_foll_250', name: 'Crowd', blurb: 'Reach 250 followers.', points: 340, category: 'social', trigger: 'followers.count>=250' },
   { id: 'l_foll_500', name: 'Tastemaker', blurb: 'Reach 500 followers.', points: 480, category: 'social', trigger: 'followers.count>=500' },
   { id: 'l_foll_1000', name: 'Household Name', blurb: 'Reach 1,000 followers.', points: 660, category: 'social', trigger: 'followers.count>=1000' },
   { id: 'l_foll_5000', name: 'Movement', blurb: 'Reach 5,000 followers. You are a current, not a ripple.', points: 880, category: 'social', trigger: 'followers.count>=5000' },
@@ -193,7 +193,7 @@ export const LADDER_ACHIEVEMENTS: readonly Achievement[] = [
   { id: 'l_held_50', name: 'A Gallery', blurb: 'Hold 50 pieces.', points: 110, category: 'curation', trigger: 'holdings.total>=50' },
   { id: 'l_held_100', name: 'A Collection', blurb: 'Hold 100 pieces.', points: 220, category: 'curation', trigger: 'holdings.total>=100' },
   { id: 'l_held_500', name: 'An Estate', blurb: 'Hold 500 pieces.', points: 480, category: 'curation', trigger: 'holdings.total>=500' },
-  { id: 'l_held_1000', name: 'A Museum', blurb: 'Hold 1,000 pieces. A lifetime of collecting in one wallet.', points: 760, category: 'curation', trigger: 'holdings.total>=1000' },
+  { id: 'l_held_1100', name: 'A Museum', blurb: 'Hold 1,100 pieces. A lifetime of collecting in one wallet.', points: 760, category: 'curation', trigger: 'holdings.total>=1100' },
 
   // ─────────────────────────────────────────────────────────────────────
   //  CURATION · max from one project (depth of conviction)
@@ -207,7 +207,7 @@ export const LADDER_ACHIEVEMENTS: readonly Achievement[] = [
   // ─────────────────────────────────────────────────────────────────────
   { id: 'l_album_5', name: 'Shelving', blurb: 'Create 5 albums.', points: 35, category: 'curation', trigger: 'albums.count>=5' },
   { id: 'l_album_10', name: 'Librarian', blurb: 'Create 10 albums.', points: 80, category: 'curation', trigger: 'albums.count>=10' },
-  { id: 'l_album_25', name: 'Archivist', blurb: 'Create 25 albums.', points: 180, category: 'curation', trigger: 'albums.count>=25' },
+  { id: 'l_album_25', name: 'Cataloguer', blurb: 'Create 25 albums.', points: 180, category: 'curation', trigger: 'albums.count>=25' },
   { id: 'l_album_big_25', name: 'Magnum Opus', blurb: 'Fill an album with 25 pieces.', points: 70, category: 'curation', trigger: 'albums.maxItems>=25' },
   { id: 'l_album_big_50', name: 'Definitive Edition', blurb: 'Fill an album with 50 pieces.', points: 150, category: 'curation', trigger: 'albums.maxItems>=50' },
 
@@ -256,7 +256,7 @@ export const LADDER_ACHIEVEMENTS: readonly Achievement[] = [
   // ─────────────────────────────────────────────────────────────────────
   //  RANK · leaderboard & season ladders
   // ─────────────────────────────────────────────────────────────────────
-  { id: 'l_lb_1000', name: 'On the Board', blurb: 'Enter the top 1,000 on the leaderboard.', points: 60, category: 'rank', trigger: 'leaderboard.bestRank<=1000' },
+  { id: 'l_lb_1000', name: 'On the Ladder', blurb: 'Enter the top 1,000 on the leaderboard.', points: 60, category: 'rank', trigger: 'leaderboard.bestRank<=1000' },
   { id: 'l_lb_500', name: 'Rising', blurb: 'Enter the top 500 on the leaderboard.', points: 110, category: 'rank', trigger: 'leaderboard.bestRank<=500' },
   { id: 'l_lb_50', name: 'Top Fifty', blurb: 'Enter the top 50 on the leaderboard.', points: 220, category: 'rank', trigger: 'leaderboard.bestRank<=50' },
   { id: 'l_lb_10', name: 'Top Ten', blurb: 'Enter the top 10 on the leaderboard.', points: 400, category: 'rank', trigger: 'leaderboard.bestRank<=10' },
