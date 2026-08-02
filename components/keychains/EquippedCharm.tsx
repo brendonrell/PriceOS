@@ -647,7 +647,7 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
                             void toggleShuffle();
                         }}
                     >
-                        {`⟳${VS15}`} {rack.shuffle ? 'SHUFFLE ON' : 'SHUFFLE MY KEYCHAINS'}
+                        {`⟳${VS15}`} {rack.shuffle ? 'SHUFFLE ACTIVATED' : 'SHUFFLE MY KEYCHAINS'}
                     </button>
                     {/* Match my stickers to this charm — shown only when you
                         actually own stickers in its family, so it is never dead
