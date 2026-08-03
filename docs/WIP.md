@@ -18,7 +18,31 @@ one infra action: **the pd-mcp Worker deploy** (ClickUp `86bb4wzn5` — a
 session with Cloudflare access runs `wrangler deploy` from `workers/pd-mcp/`;
 that same deploy provisions mcp.pricediscussion.com).
 
-✅ **2026-08-03 (LATEST) — THE SIX-ITEM ROUND SHIPPED** (on `dev`, tip
+✅ **2026-08-03 (LATEST) — NPC CAST WOW PASS 3 SHIPPED** (on `dev`, tip
+`a6a149d`, tree clean, type-check clean; his "Push!!" in chat; ClickUp
+`86b9fcp11` commented). The anti-formulaic round for the spell-book cast:
+
+- **Cold opens are a context-gated BANK now** — hour, visit count, deep-link
+  landing, obsession, {name} all gate which greeting plays; several are
+  walk-in mid-conversation scenes, the first beat's timing varies, and the
+  used-ledger keeps logins from replaying last night's opening. ⛔ The old
+  three-fixed-scenes opening is GONE — never reintroduce a hard-wired
+  greeting sequence.
+- **Celestia prophecy engine:** once a session she names a quality ("a red
+  one is on its way"); when a real matching piece lands on screen she
+  collects by name, sometimes with a witness react. Dies silently on a miss.
+- **Running-gag follow-ups:** scenes seed delayed one-liner callbacks
+  (the chili gets finished, the open bet stays open) — sessions read as one
+  episode.
+- **Conversational timing:** the pause before a reply scales with its
+  length — short retorts snap back.
+- **Sight upgrade:** the v4 geometric↔organic read joins sight lines +
+  duet topics, plus double-fact combo reads; four new comedy scenes.
+- **Bubbles smaller** (13px, tighter, narrower cap — sizing math + styles
+  kept in sync) and **every resident has an EXIT motion** matching their
+  entrance signature (leaving phase; reduced-motion falls back to fade).
+
+✅ **2026-08-03 — THE SIX-ITEM ROUND SHIPPED** (on `dev`, tip
 `a5bb21b`, tree clean, type-check clean, 213 vitest green, achievements
 verifier green; his approval in chat, then "Let's wrap"). ClickUp
 `86bb7dpw7`. The locks:
