@@ -23,6 +23,36 @@ Nothing new. You fly to the mint button like always:
 3. **If the drop isn't oversubscribed, you just mint.** Instantly, exactly like any other mint. Most drops never look any different.
 4. **If more collectors tapped than pieces exist, the drop flips CONTESTED — live, in front of the room** — and a fair draw settles it within moments. Win, and your piece is already yours: paid and delivered from that one tap, no action needed. Miss, and your money never moved — there is nothing to refund, nothing to unwind.
 
+<svg viewBox="0 0 720 300" role="img" aria-labelledby="fd-two-endings-title" style="width:100%;height:auto;display:block;margin:14px 0">
+<title id="fd-two-endings-title">One tap, two endings: every mint press lands in the opening window together; a quiet close mints instantly, a contested close is settled by the draw in seconds.</title>
+<g font-family="'Courier New', Courier, monospace" font-size="13" font-weight="bold">
+<rect x="280" y="14" width="160" height="40" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="360" y="39" fill="currentColor" text-anchor="middle">MINT</text>
+<text x="255" y="39" fill="currentColor" text-anchor="middle" font-size="15">①&#xFE0E;</text>
+<line x1="360" y1="54" x2="360" y2="86" stroke="currentColor" stroke-width="1.5"/>
+<rect x="60" y="88" width="600" height="44" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="360" y="115" fill="currentColor" text-anchor="middle">THE WINDOW — the opening minute · every tap simultaneous</text>
+<text x="38" y="115" fill="currentColor" text-anchor="middle" font-size="15">②&#xFE0E;</text>
+<line x1="190" y1="132" x2="190" y2="184" stroke="currentColor" stroke-width="1.5"/>
+<line x1="530" y1="132" x2="530" y2="184" stroke="currentColor" stroke-width="1.5"/>
+<rect x="40" y="186" width="300" height="90" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="190" y="213" fill="currentColor" text-anchor="middle">QUIET</text>
+<text x="190" y="236" fill="currentColor" text-anchor="middle" font-size="12" font-weight="normal">supply covers everyone</text>
+<text x="190" y="256" fill="currentColor" text-anchor="middle" font-size="12" font-weight="normal">orders execute instantly</text>
+<text x="18" y="213" fill="currentColor" text-anchor="middle" font-size="15">③&#xFE0E;</text>
+<rect x="380" y="186" width="300" height="90" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="530" y="213" fill="currentColor" text-anchor="middle">CONTESTED</text>
+<text x="530" y="236" fill="currentColor" text-anchor="middle" font-size="12" font-weight="normal">more taps than pieces</text>
+<text x="530" y="256" fill="currentColor" text-anchor="middle" font-size="12" font-weight="normal">draw in seconds → brief seal → reveal</text>
+<text x="702" y="213" fill="currentColor" text-anchor="middle" font-size="15">④&#xFE0E;</text>
+</g>
+</svg>
+
+- **①&#xFE0E; One tap, confirmed once** — your entire job, contested or not.
+- **②&#xFE0E; The window** — everyone in the opening moment counts the same; being milliseconds faster buys nothing.
+- **③&#xFE0E; Quiet** — most drops: instant, indistinguishable from any mint you've ever done.
+- **④&#xFE0E; Contested** — the draw settles it in seconds; lose and your money never moved.
+
 ## What PD never does
 
 - **No auctions.** No bidding mechanics, nothing that turns a surprise drop into a spreadsheet exercise.

@@ -26,12 +26,47 @@ Within a band, the draw is a pure coin flip — equal odds, no further weighting
 
 This ladder can afford to be public because gaming it is indistinguishable from being a real collector. The only way to climb is to buy and hold art — which pays artists, which is the platform working exactly as intended. The band boundaries themselves aren't published; the policy is.
 
+<svg viewBox="0 0 720 322" role="img" aria-labelledby="fd-bands-title" style="width:100%;height:auto;display:block;margin:14px 0">
+<title id="fd-bands-title">The public ladder: held collection, lifetime spend and tenure set your standing before the drop; standing sorts entrants into bands; the whole of Band 0 draws before Band 1; inside a band every entrant has exactly equal odds.</title>
+<g font-family="'Courier New', Courier, monospace" font-size="13" font-weight="bold">
+<rect x="10" y="14" width="300" height="188" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="160" y="42" fill="currentColor" text-anchor="middle">YOUR STANDING</text>
+<text x="160" y="62" fill="currentColor" text-anchor="middle" font-size="12" font-weight="normal">set before the drop — never in it</text>
+<text x="38" y="100" fill="currentColor" text-anchor="middle" font-size="15">①&#xFE0E;</text>
+<text x="56" y="100" fill="currentColor" text-anchor="start">held PD collection</text>
+<text x="38" y="136" fill="currentColor" text-anchor="middle" font-size="15">②&#xFE0E;</text>
+<text x="56" y="136" fill="currentColor" text-anchor="start">lifetime spent ◊</text>
+<text x="38" y="172" fill="currentColor" text-anchor="middle" font-size="15">③&#xFE0E;</text>
+<text x="56" y="172" fill="currentColor" text-anchor="start">tenure · wallet age</text>
+<text x="355" y="112" fill="currentColor" text-anchor="middle" font-size="20">→</text>
+<rect x="400" y="14" width="310" height="230" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="555" y="40" fill="currentColor" text-anchor="middle" font-size="12" font-weight="normal">the draw fills seats top-down</text>
+<rect x="416" y="52" width="278" height="42" fill="var(--stat-bg)" stroke="currentColor" stroke-width="2.5"/>
+<text x="555" y="78" fill="currentColor" text-anchor="middle">BAND 0 — draws first</text>
+<rect x="416" y="104" width="278" height="42" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="555" y="130" fill="currentColor" text-anchor="middle">BAND 1 — then, whole</text>
+<rect x="416" y="156" width="278" height="42" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="555" y="182" fill="currentColor" text-anchor="middle">BAND 2 — then…</text>
+<text x="555" y="226" fill="currentColor" text-anchor="middle" font-size="12" font-weight="normal">the cuts between bands: not published</text>
+<text x="416" y="40" fill="currentColor" text-anchor="middle" font-size="15">④&#xFE0E;</text>
+<rect x="10" y="262" width="700" height="46" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="360" y="290" fill="currentColor" text-anchor="middle">inside a band: a pure coin flip — exactly equal odds</text>
+<text x="30" y="290" fill="currentColor" text-anchor="middle" font-size="15">⑤&#xFE0E;</text>
+</g>
+</svg>
+
+- **①&#xFE0E; Held collection** — pieces you collected *and still hold*; the first rung, and sold pieces stop counting.
+- **②&#xFE0E; Lifetime spent** — real support of real artists, under your permanent @name.
+- **③&#xFE0E; Tenure** — time on PD and a lived-in wallet add weight.
+- **④&#xFE0E; Bands, in order** — every entrant in Band 0 is drawn before anyone in Band 1, whole band before the next.
+- **⑤&#xFE0E; Equal odds inside a band** — no further weighting of any kind: no streaks, no activity scores, nothing hidden. The transcript proves it.
+
 ## What happens to bots
 
 The detection side is deliberately undocumented — describing the tripwires is a gift to the people they catch. What is policy, and permanent:
 
 - **Void, silently.** Entries identified as scripted, or as one operator wearing many wallets, are simply dead. They can press the button; the button doesn't care.
-- **Seats go back to humans.** Voided seats are re-drawn to real collectors during the sealed window, before the reveal — a bot network that "wins" seats holds them for hours at most, and never gets to sell them.
+- **Seats go back to humans.** Voided seats are re-drawn to real collectors during the sealed window, before the reveal — a bot network that "wins" seats holds them for minutes at most, and never gets to sell them.
 - **Infrastructure burns.** PD's memory is permanent, and so are @names. Wallets, funding trails, and hardware tied to a voided network stay tainted forever. Every attempt costs the operator the expensive part of their setup — the aged wallets and clean identities that took months or money to build — and buys them nothing.
 
 ## Why the race stays fun
