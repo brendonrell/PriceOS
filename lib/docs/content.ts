@@ -56,6 +56,7 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
             'for-artists/get-in-touch',
             'for-artists/submit-a-project',
             'for-artists/the-mint-flow',
+            'for-artists/what-are-subtraits',
             'for-artists/royalties',
         ],
     },
