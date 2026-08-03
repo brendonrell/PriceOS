@@ -219,30 +219,25 @@ export function MyPingsRow() {
                     icon={'✸\uFE0E'}
                     label="XFERS"
                 />
-                {/* The five taste categories wear their WORDS like the four
-                    market pills above them (Brendon, 2026-08-03: "have this
-                    be a great section that works just as the user expects")
-                    — a bare glyph told nobody what signal they were buying.
-                    Each pill's promise, honestly kept by the delivery gate
-                    (passesCategoryPrefs), and every one rolls up per piece —
-                    signal, never a stack of duplicates. */}
                 <SettingsToggle
                     id="sn-mutualsOnly"
-                    title="Mutuals Pings — your mutuals' market moves"
+                    title="Mutuals Pings — relevant activity from your mutuals"
                     active={notifs.pings.mutuals}
                     onClick={() => togglePingCat('mutuals')}
                     icon={'⚭\uFE0E'}
+                    iconBare
                     iconStyle={{ fontSize: '14.5px', lineHeight: '1', transform: 'translateY(-1px)' }}
-                    label="MUTUALS"
+                    style={{ padding: '0 6px', minWidth: 0, width: 'auto' }}
                 />
                 <SettingsToggle
                     id="sn-artists"
-                    title="Artists Pings — a starred artist mints, lists, or sells"
+                    title="Artists Pings — a starred artist lists, sells, or drops"
                     active={notifs.pings.artists}
                     onClick={() => togglePingCat('artists')}
                     icon={'✺︎'}
+                    iconBare
                     iconStyle={{ fontSize: '15px', lineHeight: '1', transform: 'translateY(0px)' }}
-                    label="ARTISTS"
+                    style={{ padding: '0 6px', minWidth: 0, width: 'auto' }}
                 />
                 <SettingsToggle
                     id="sn-projects"
@@ -250,8 +245,9 @@ export function MyPingsRow() {
                     active={notifs.pings.projects}
                     onClick={() => togglePingCat('projects')}
                     icon={'⬚︎'}
+                    iconBare
                     iconStyle={{ fontSize: '14.5px', lineHeight: '1', transform: 'translateY(-1px)' }}
-                    label="PROJECTS"
+                    style={{ padding: '0 6px', minWidth: 0, width: 'auto' }}
                 />
                 <SettingsToggle
                     id="sn-traits"
@@ -259,8 +255,9 @@ export function MyPingsRow() {
                     active={notifs.pings.traits}
                     onClick={() => togglePingCat('traits')}
                     icon={'⨝︎'}
+                    iconBare
                     iconStyle={{ fontSize: '14px', lineHeight: '1', transform: 'translateY(1px)' }}
-                    label="TRAITS"
+                    style={{ padding: '0 6px', minWidth: 0, width: 'auto' }}
                 />
                 <SettingsToggle
                     id="sn-rarity"
@@ -268,8 +265,9 @@ export function MyPingsRow() {
                     active={notifs.pings.rarity}
                     onClick={() => togglePingCat('rarity')}
                     icon={'❖︎'}
+                    iconBare
                     iconStyle={{ fontSize: '15px', lineHeight: '1' }}
-                    label="RARITY"
+                    style={{ padding: '0 6px', minWidth: 0, width: 'auto' }}
                 />
                 {/* Silent Mode cycles OFF → ON → QUIET HOURS → OFF (Brendon,
                     2026-07-20 — the Pingtoasts-cycle grammar). Landing on
