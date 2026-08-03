@@ -35,7 +35,7 @@ import {
 import {
     getArrange, getTilt, getExpand, getRows, getAlign, getFlip, getDensity, getBorder, getSeed,
     setArrange, setTilt, setExpand, setRows, setAlign, setFlip, setDensity, setBorder, setSeed,
-    ARRANGES, normalizeArrange,
+    ARRANGES,
 } from './heroPrefs';
 import type { StickerLook } from './setupCode';
 
@@ -158,8 +158,7 @@ export function deleteSpread(id: string): boolean {
  */
 export function applySpread(s: Spread) {
     const l = s.look;
-    /* A Spread saved under a retired mode lands on its survivor. */
-    setArrange(normalizeArrange(l.arrange)); setRows(l.rows); setAlign(l.align); setTilt(l.tilt);
+    setArrange(l.arrange); setRows(l.rows); setAlign(l.align); setTilt(l.tilt);
     setExpand(l.expand); setFlip(l.flip); setDensity(l.density); setBorder(l.border);
     if (l.seed !== undefined) setSeed(l.seed);
     const ids = Object.keys(s.placements);
