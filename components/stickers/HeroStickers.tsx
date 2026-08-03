@@ -558,11 +558,18 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
     const perRow = Math.ceil(picked.length / rows);
     const rowChunks = Array.from({ length: rows }, (_, r) => picked.slice(r * perRow, (r + 1) * perRow));
 
-    /* The linear modes, each with its own personality (they read too alike —
-       Brendon, 2026-07-10): ROW/SPREAD stay the tidy baselines (alternating
-       tilt, uniform size); SCATTER is the loose, playful one — free rotation,
-       vertical drift, mixed sizes; FILL packs wall-to-wall with just a whisper
-       of drift. Every sticker stays fully readable in all four. */
+    /* The flex modes, ONE idea each — they read too alike (Brendon, 2026-08-03:
+       three modes looked exactly the same):
+         SPACED  — the tidy one. Even edge-to-edge, dead level, uniform size,
+                   whisper of alternating tilt. The only mode a ruler approves.
+         ROW     — the same line placed by a HAND: snug, every sticker a touch
+                   off the baseline with its own small lean, no two gaps alike.
+         SCATTER — the airy toss: big vertical drift, free rotation, properly
+                   mixed sizes, uneven spacing — floating, none touching.
+         FILL    — the stamp strip: dense, dead level, near-uniform and a size
+                   down, papering the band wall-to-wall.
+       All seeded (Shuffle re-rolls, a reload repeats), every sticker fully
+       readable, nothing off the box at portrait-iPhone width. */
     return wrap(
         <div className={`hero-stickers-rows arr-${arrange} ${alignClass}`} style={areaStyle}>
             {rowChunks.map((chunk, ri) => (
@@ -572,21 +579,33 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, previ
                         let rot = baseTilt === 0 ? 0 : ((i + ri) % 2 === 0 ? -baseTilt : baseTilt);
                         let jy = 0;
                         let sc = 1;
-                        if (arrange === 'scatter') {
-                            rot = (v1 * 2 - 1) * (baseTilt === 0 ? 4 : baseTilt * 1.7);
-                            jy = Math.round((v2 - 0.5) * 22);
-                            sc = 0.88 + v3 * 0.3;
+                        let gap = 0;
+                        if (arrange === 'row') {
+                            jy = Math.round((v1 - 0.5) * 9);
+                            rot = (baseTilt === 0 ? 3 : baseTilt * 1.1) * (v2 * 2 - 1);
+                            sc = 0.97 + v3 * 0.06;
+                            gap = Math.round((jrnd() - 0.5) * 8);
+                        } else if (arrange === 'scatter') {
+                            rot = (v1 * 2 - 1) * (baseTilt === 0 ? 8 : baseTilt * 2.4);
+                            jy = Math.round((v2 - 0.5) * 30);
+                            sc = 0.8 + v3 * 0.38;
+                            gap = Math.round((jrnd() - 0.5) * 14);
                         } else if (arrange === 'fill') {
-                            rot = (v1 * 2 - 1) * baseTilt * 0.8;
-                            jy = Math.round((v2 - 0.5) * 8);
-                            sc = 0.94 + v3 * 0.14;
+                            rot = (v1 * 2 - 1) * baseTilt * 0.4;
+                            sc = 0.88 + v3 * 0.07;
                         }
                         return (
                             <span
                                 key={s.id}
                                 data-sid={s.id}
                                 className="hero-sticker"
-                                style={{ transform: `translateY(${jy}px) rotate(${rot + flipOf(s.id)}deg)${sc !== 1 ? ` scale(${sc.toFixed(3)})` : ''}` }}
+                                style={{
+                                    /* Uneven gaps — additive only (before or after,
+                                       never negative space), so nothing overlaps. */
+                                    marginLeft: gap > 0 ? gap : undefined,
+                                    marginRight: gap < 0 ? -gap : undefined,
+                                    transform: `translateY(${jy}px) rotate(${rot + flipOf(s.id)}deg)${sc !== 1 ? ` scale(${sc.toFixed(3)})` : ''}`,
+                                }}
                                 title={s.name}
                                 {...ownDown(s)}
                             >

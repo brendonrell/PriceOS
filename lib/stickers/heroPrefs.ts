@@ -249,7 +249,10 @@ export function buildCollage(n: number, seed: number, widths: number[] = [], row
         const x = 0.08 + ((offX + a1 * (k + 1)) % 1) * 0.84 + (rnd() - 0.5) * 0.04;
         const y = 0.18 + ((offY + a2 * (k + 1)) % 1) * 0.64 + (rnd() - 0.5) * 0.06;
         // Anchors first in R2 order → naturally far apart; satellites in between.
-        const s = k < nA ? 1.28 + rnd() * 0.24 : 0.68 + rnd() * 0.3;
+        // The size gulf IS the mode: anchors clearly big, satellites clearly
+        // small, nothing in the middle ground where the hierarchy blurs into
+        // the same-size modes (Brendon, 2026-08-03 — the modes read alike).
+        const s = k < nA ? 1.5 + rnd() * 0.3 : 0.58 + rnd() * 0.24;
         pts.push({ x, y, s, w: widths[k] || DEFAULT_WIDE });
     }
     relax(pts, aspect, 0.5, 30, rnd);
@@ -261,14 +264,16 @@ export function buildCollage(n: number, seed: number, widths: number[] = [], row
     return { cols: Math.round(aspect * 10), rows: 10, items };
 }
 
-/* ── STACK = a PILE — a stickered-laptop / skateboard look ─────────────────────
-   Stickers slapped on over time: piled, overlapping, all over the area, NOT a
-   fan. Placement is generative + colour-balanced (on brand): each sticker's
-   dominant hue is read, the set is ordered by hue, then dropped onto an R2
-   low-discrepancy sequence — which fills the area evenly and organically (no
-   grid). Because consecutive hues land far apart, every colour is spread across
-   the pile instead of clumping → compositional colour balance. Shuffle re-rolls
-   the phase + jitter for a fresh composition. */
+/* ── STACK = a MOUND — the heap in the middle of the desk ─────────────────────
+   Its one idea, and what tells it apart from every other overlapping mode
+   (Brendon, 2026-08-03 — the modes read alike): stickers HEAP. Densest at the
+   centre, thinning toward the ends, same-size throughout — a pile someone kept
+   dropping stickers onto in one spot. Placement walks a seeded sunflower
+   spiral out from the centre, so the mound grows centre-first and organically;
+   colour balance is kept — the set is ordered by hue and the spiral's golden
+   angle lands consecutive hues far apart, so no colour clumps. Shuffle
+   re-rolls the spiral. (COLLAGE is the mixed-size one; SLAPPED is the wild,
+   corner-to-corner one — this one is the even-tempered heap.) */
 export interface PilePiece { x: number; y: number; rot: number; scale: number; z: number; }
 
 /** A sticker's dominant hue (0–360); achromatic / unknown art falls back to a
@@ -301,24 +306,30 @@ export function buildPile(hues: number[], seed: number, density = 0, widths: num
     const rnd = rngFrom(seed + 131);
     // Rows sets the canvas height; Density packs the same canvas tighter.
     const aspect = areaAspect(rowsPref, density);
-    // Colour balance: order by hue, then R2 low-discrepancy placement so
-    // consecutive hues land far apart — no colour clumps.
+    // Colour balance: order by hue before the spiral lays them down.
     const order = [...Array(n).keys()].sort((a, b) => hues[a]! - hues[b]!);
-    const g = 1.32471795724474602596;   // plastic number → R2 sequence
-    const a1 = 1 / g, a2 = 1 / (g * g);
-    const offX = rnd(), offY = rnd();
+    // Sunflower spiral, centre-out: sqrt growth keeps the middle densest, the
+    // golden angle spreads consecutive drops (and hues) around the heap.
+    const GA = Math.PI * (3 - Math.sqrt(5));
+    const phase = rnd() * Math.PI * 2;
     const pts: RelaxPt[] = [];
     for (let k = 0; k < n; k++) {
-        const x = 0.07 + ((offX + a1 * (k + 1)) % 1) * 0.86 + (rnd() - 0.5) * 0.04;
-        const y = 0.16 + ((offY + a2 * (k + 1)) % 1) * 0.68 + (rnd() - 0.5) * 0.07;
-        pts.push({ x, y, s: 0.88 + rnd() * 0.24, w: widths[order[k]!] || DEFAULT_WIDE });
+        const rad = Math.sqrt((k + 0.55) / n);
+        const ang = phase + k * GA;
+        const x = 0.5 + Math.cos(ang) * rad * 0.43 + (rnd() - 0.5) * 0.05;
+        const y = 0.5 + Math.sin(ang) * rad * 0.36 + (rnd() - 0.5) * 0.05;
+        // Same-size is the mound's identity — only a whisper of variation.
+        pts.push({ x, y, s: 0.92 + rnd() * 0.16, w: widths[order[k]!] || DEFAULT_WIDE });
     }
-    relax(pts, aspect, 0.62, 36, rnd);
+    // A tighter minimum than the other area modes: the heap is ALLOWED to clump
+    // (that's the point) — the relax pass only keeps overlap at a kiss.
+    relax(pts, aspect, 0.52, 30, rnd);
     const items: PilePiece[] = new Array(n);
     for (let k = 0; k < n; k++) {
         const idx = order[k]!;
         const p = pts[k]!;
-        items[idx] = { x: p.x * 100, y: p.y * 100, rot: (rnd() - 0.5) * 32, scale: p.s, z: k };
+        // Centre lands last → the heap peaks in the middle, like a real one.
+        items[idx] = { x: p.x * 100, y: p.y * 100, rot: (rnd() - 0.5) * 30, scale: p.s, z: n - k };
     }
     return { aspect, items };
 }
