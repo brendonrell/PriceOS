@@ -13,19 +13,47 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-⛔ **2026-08-03 (LATEST) — TWO ITEMS, IN THIS ORDER: (1) THE FAIR-DRAW
-SETTLEMENT SERVICE, (2) THE PDMCP WOW PASS.**
+⛔ **2026-08-03 (LATEST) — ONE ITEM: THE PDMCP WOW PASS** — brief §2 of
+`docs/briefs/keychain-review-and-pdmcp.md`. ClickUp `86bb78fbt`.
 
-1. **FAIR DRAW — build the off-chain half. Brendon (2026-08-03, going to
-   bed): "take this the rest of the way… This is a VERY important thing —
-   lack of fair draw was one of the reasons fxhash had to shut down
-   artcoins which led to them shutting down in general."** The brief is
-   **`docs/briefs/fair-draw-settlement.md`** — read it first; it says what
-   is DONE (the chain half + the draw engine) and what to build (entries ·
-   banding · close/draw choreography · cascade · the public transcript
-   page · Sepolia rehearsal). ⛔ The draw engine (`lib/drops/draw.ts`, 9
-   tests) is the finished fairness core — never reimplement or fork it.
-2. **PDMCP wow pass** — brief §2 of `docs/briefs/keychain-review-and-pdmcp.md`.
+✅ **2026-08-03 (SECOND SESSION) — FAIR DRAW IS COMPLETE MINUS THE CHAIN
+CEREMONY (Brendon: "a completed feature minus actual chain stuff").** On
+`dev` (tip `75e5cfb`), tree clean, type-check clean, **213 vitest green**.
+ClickUp `86bb7cz4a`. The locks:
+
+- ⛔ **THE TIMING IS SETTLED (his calls, in fury at my 24h/1h proposals —
+  the feature is FAST):** window = **the opening minute (~60s)** · draw =
+  seconds · **seal = seconds typically, 15-MINUTE HARD CAP** (only a
+  thousands-deep battle nears it) · contested = CONGESTION ONLY (more taps
+  than pieces inside one window; buys minutes apart are never contested).
+  The docs' stale "a few hours" seal copy was corrected. **Never propose
+  hour/day-scale waits on any part of this feature again.**
+- ⛔ **THE BAND CUTS ARE SETTLED (his approval): RELATIVE, PER DROP —
+  top 20% of the room = band 0, next 40% = band 1, rest = band 2.**
+  Ladder = held → spend → tenure, snapshotted at window OPEN; ties break
+  on the wallet (neutral); boundaries unpublished by nature. There was no
+  real collector data to cut from (3 test wallets) — relative cuts
+  self-calibrate forever; don't revisit.
+- **Built:** drops + drop_entries tables (live DB + repo migration; held
+  signed orders are SERVICE-ONLY — a held order is a broadcastable tx,
+  never expose it; arrival order structurally never leaks) · entry route
+  (one per wallet per drop) · banding (`lib/drops/banding.ts`) · the
+  close sweep (every-minute cron: quiet → broadcast all; contested →
+  snapshot → bands → beacon → draw → seats → winners → finish; cascade
+  walks the drawn permutation, `voidEntry` for bot tear-ups inside the
+  seal) · the public transcript page `/drops/[address]` with the verifier
+  running the REAL engine in the reader's browser against the on-chain
+  anchor · fair-draw docs DIAGRAMS (his ask — bands ladder, two endings,
+  settlement timeline + fail-open rail, cascade strip).
+- ⛔ House gotcha, learned the hard way: new tables do NOT go into the
+  curated Database Tables type — the typed query path collapses to never
+  (why `calls`/`listings` never joined it). Local row interfaces + cast
+  reads + `as never` writes = the working idiom everywhere.
+- **Remaining = chain steps, HIS actions:** settlement key ceremony
+  (propose + accept on the factory, Remix), then the Sepolia rehearsal —
+  which also carries the mint-button sign-and-enter wiring (needs Phase C
+  app↔chain; today's mint is the chainless sim, so there is nothing real
+  to sign yet).
 
 ✅ **2026-08-03 — FAIR-DRAW ROUND ONE SHIPPED** (on `dev`, tree clean,
 type-check clean, **201 vitest green**): the **draw engine** — the
@@ -561,10 +589,15 @@ code.**
 
 ## 🧭 WAITING ON BRENDON
 
+- **The settlement key ceremony** — create the key, propose + accept its
+  address on the factory (Remix). The service ships dark behind the
+  fail-open until then, by design.
 - **The next Sepolia rehearsal deploy** — carries marketplace attributes, the
-  factory split (also verify `factory.projectDeployer()` on Etherscan), and
-  the keychain accessory fix. Library blessings (p5.js · three.js · regl ·
-  d3) at launch.
+  factory split (also verify `factory.projectDeployer()` on Etherscan), the
+  keychain accessory fix, and now the **Fair Draw end-to-end rehearsal**
+  (quiet close + a forced contested close; the transcript page verifying
+  green is the gate). Library blessings (p5.js · three.js · regl · d3) at
+  launch.
 - Feature Atlas re-order · docs.pricediscussion.com wiring — both previously
   ClickUp'd.
 
