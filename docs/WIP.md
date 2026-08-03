@@ -18,7 +18,38 @@ one infra action: **the pd-mcp Worker deploy** (ClickUp `86bb4wzn5` — a
 session with Cloudflare access runs `wrangler deploy` from `workers/pd-mcp/`;
 that same deploy provisions mcp.pricediscussion.com).
 
-✅ **2026-08-03 (LATEST) — NPC CAST WOW PASS 3 SHIPPED** (on `dev`, tip
+✅ **2026-08-03 (LATEST) — DEPLOYER PAGE: SEPOLIA + MAINNET + THE FULL
+KEYCHAIN STACK · DOCS "WHAT ARE SUBTRAITS?"** (on `dev`, tip `c9dfeef`, tree
+clean, type-check clean; his "Push!!" in chat; ClickUp `86b9v5w77` commented).
+His ask: contracts finalized → get them all on Sepolia, deployer page ready
+for mainnet, keychains included. The locks:
+
+- **/deploy runs BOTH networks** behind a top toggle — Sepolia leads by
+  default (the rehearsal is next), mainnet is always an explicit tap, and
+  each network keeps its own saved progress (separate stores, so the
+  rehearsal can never collide with the real run; the old mainnet store key
+  is kept verbatim).
+- **The plan is 10 taps in wired order:** registry → factory → wire →
+  stickers → keychain shapes → faces → traits → renderer → keychains →
+  machine ON. ⛔ The crank machine deploys OFF by contract design — step 10
+  is the deliberate public-open switch, never fold it into the keychains
+  deploy. Keychain params card: royalty receiver (defaults to connected
+  wallet, editable) + crank price defaulting to the app's canonical
+  **0.01 ETH** (`CRANK_PRICE_ETH`).
+- **`lib/deploy/artifacts.json` re-exported from the finalized pd-contracts
+  build** (tip `702d9f2`): it was stale — pre-split factory, no keychains.
+  Now carries all 8 top-level contracts byte-for-byte (factory deployer-arm
+  split, marketplace attributes, keychain accessory fix). Verified this
+  session: size gate green (all under EIP-170), **403 forge tests green**.
+  Gas plan re-measured from the same build — full stack ≈ 28.9M gas; the
+  factory line includes spawning its deployer arm.
+- **Docs: For Artists → "What are Subtraits?"** — the Trait → Subtrait →
+  Value model, schema-not-token-data (regroup after mint-out without touching
+  the chain), complete-by-construction, what collectors see, door to the
+  Studio's Traits & Subtraits panel. Spelling matched to the app's
+  established "Subtraits" (he typed "sub-traits"; not contradicted).
+
+✅ **2026-08-03 (EARLIER) — NPC CAST WOW PASS 3 SHIPPED** (on `dev`, tip
 `a6a149d`, tree clean, type-check clean; his "Push!!" in chat; ClickUp
 `86b9fcp11` commented). The anti-formulaic round for the spell-book cast:
 
@@ -689,12 +720,13 @@ code.**
 - **The settlement key ceremony** — create the key, propose + accept its
   address on the factory (Remix). The service ships dark behind the
   fail-open until then, by design.
-- **The next Sepolia rehearsal deploy** — carries marketplace attributes, the
-  factory split (also verify `factory.projectDeployer()` on Etherscan), the
-  keychain accessory fix, and now the **Fair Draw end-to-end rehearsal**
-  (quiet close + a forced contested close; the transcript page verifying
-  green is the gate). Library blessings (p5.js · three.js · regl · d3) at
-  launch.
+- **The next Sepolia rehearsal deploy — now runs from the /deploy page**
+  (2026-08-03: both networks, all 10 steps, keychains included; Sepolia is
+  the default tab). Carries marketplace attributes, the factory split (also
+  verify `factory.projectDeployer()` on Etherscan), the keychain accessory
+  fix, and the **Fair Draw end-to-end rehearsal** (quiet close + a forced
+  contested close; the transcript page verifying green is the gate). Library
+  blessings (p5.js · three.js · regl · d3) at launch.
 - Feature Atlas re-order · docs.pricediscussion.com wiring — both previously
   ClickUp'd.
 
