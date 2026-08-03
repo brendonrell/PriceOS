@@ -18,7 +18,33 @@ one infra action: **the pd-mcp Worker deploy** (ClickUp `86bb4wzn5` — a
 session with Cloudflare access runs `wrangler deploy` from `workers/pd-mcp/`;
 that same deploy provisions mcp.pricediscussion.com).
 
-✅ **2026-08-03 (LATEST) — DEPLOYER PAGE: SEPOLIA + MAINNET + THE FULL
+✅ **2026-08-03 (LATEST) — STICKER MODES: REVERT + EVERY MODE ONE IDEA**
+(on `dev`, tip `bd42a38`, tree clean, type-check clean; his "Push" in chat;
+ClickUp `86bb735t6` commented). His ask: revert the 2026-08-02 three-gesture
+rebuild (it made things worse), then make the modes actually look good with
+no modes reading the same. What landed, two commits:
+
+- **Revert `180fe78` byte-for-byte** (`2d5cc62`) — all four files restored
+  exactly from history; the seven arrangements are back, no saved look or
+  Setup Code touched.
+- **Seven modes kept, each given ONE identity** (`bd42a38`): SPACED — tidy,
+  even, level (unchanged; the baseline). ROW — hand-laid line: snug, seeded
+  baseline drift + small lean, uneven gaps. SCATTER — airy toss: big drift,
+  free rotation, mixed sizes, extra air. FILL — dense level stamp strip, a
+  size down, wall-to-wall. STACK — a centre-weighted MOUND (seeded sunflower
+  spiral, same-size, peaks centre; hue balance kept). COLLAGE — hierarchy
+  sharpened: anchors clearly big, satellites clearly small. SLAPPED — the
+  wild packed lid, untouched. ⛔ Mode ids, Setup Codes, Spreads, manager
+  controls: all unchanged. Uneven gaps are additive-only spacing (nothing
+  overlaps in the flex modes); every area mode still runs the shared
+  relax + clamp pass, so nothing hangs off the box at portrait-iPhone width.
+
+Aside settled in chat (zero build impact): the Cloudflare $10.47 invoice =
+$5 plan + build-minutes overage from July's shipping pace — real usage, not
+a double charge. At a heavy pace the bill runs ~$10–12/mo, quiet months $5.
+Offer open: batch approved work into fewer pushes to trim it, on his word.
+
+✅ **2026-08-03 (EARLIER) — DEPLOYER PAGE: SEPOLIA + MAINNET + THE FULL
 KEYCHAIN STACK · DOCS "WHAT ARE SUBTRAITS?"** (on `dev`, tip `c9dfeef`, tree
 clean, type-check clean; his "Push!!" in chat; ClickUp `86b9v5w77` commented).
 His ask: contracts finalized → get them all on Sepolia, deployer page ready
