@@ -86,17 +86,29 @@ That revision made MCP stateless — no `initialize` handshake, no
 (every call self-contained, one POST in, one JSON answer out), so conforming
 was a thin layer, not a rewrite:
 
-- `server/discover` — now required; advertises supported versions, capabilities
-  and identity without a handshake.
-- Protocol version rides each request in `_meta`; an unknown one returns
-  `-32022` (`UnsupportedProtocolVersion`).
+- `server/discover` — now required; advertises `supportedVersions` (the spec's
+  field name — an earlier round shipped a wrong one, fixed 2026-08-03),
+  capabilities including the MCP Apps extension
+  (`capabilities.extensions['io.modelcontextprotocol/ui']`), identity WITH the
+  app's own home-screen icon inlined, instructions, and its own
+  `ttlMs`/`cacheScope` caching hints.
+- Protocol version + client capabilities ride each request in `params._meta`
+  (that placement is the spec's, and where the server reads them). The server
+  is dual-era: a request declaring a modern version gets full 2026-07-28
+  strictness — missing required `_meta` fields → `-32602` + HTTP 400; unknown
+  version → `-32022` carrying `data.supported`/`data.requested` + 400; the
+  mirrored `MCP-Protocol-Version`/`Mcp-Method`/`Mcp-Name` headers required and
+  validated against the body (Base64 sentinel decoded) → `-32020`
+  (`HeaderMismatch`) + 400 on any miss; unknown method → `-32601` + 404.
+  Legacy-revision requests keep their lenient flat-200 behaviour.
 - Every result carries `resultType: "complete"` and identifies the server in
-  `_meta`.
-- `tools/list` returns `ttlMs` + `cacheScope: "public"` (the list never varies
-  by caller) in a deterministic order, so clients cache instead of re-asking.
-- `Mcp-Method` / `Mcp-Name` accepted on POST; `Mcp-Session-Id` still allowed in
-  preflight so older clients aren't broken.
-- `initialize` and `ping` retained for older clients.
+  `_meta` (lean — the icon never rides per-result).
+- `tools/list` / `resources/list` / `resources/read` return `ttlMs` +
+  `cacheScope: "public"` (nothing varies by caller) in a deterministic order,
+  so clients cache instead of re-asking.
+- `Mcp-Session-Id` still allowed in preflight so older clients aren't broken.
+- `initialize` and `ping` retained for older clients; a modern request asking
+  for them gets method-not-found, as the revision demands.
 
 Nothing deprecated in that revision touches us: PDMCP uses no Roots, Sampling
 or Logging, no HTTP+SSE transport, and has no auth — so the OAuth/DCR

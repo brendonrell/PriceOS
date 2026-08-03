@@ -2,7 +2,10 @@
 
 One zero-dependency Cloudflare Worker (`src/index.ts`) speaking **MCP
 2026-07-28** (the stateless revision) over streamable HTTP, still answering
-clients back to `2025-03-26`. Eleven read-only tools — the way in
+clients back to `2025-03-26`. Dual-era: requests declaring 2026-07-28 get the
+revision's full strictness (required `params._meta` fields, mirrored-header
+validation, `supportedVersions` discovery with the PD icon inlined, 400/404
+error statuses); older handshake clients keep their lenient behaviour. Eleven read-only tools — the way in
 (`list_projects`, `get_activity`, `get_collector`, `get_artist`) and the
 detail (`verify_project`, `get_project`, `get_output`, `get_provenance`,
 `get_ascii`, `query_traits`, `search_docs`). `get_output` also carries an MCP

@@ -42,17 +42,44 @@ export interface Env {
 
 /* MCP 2026-07-28 made the protocol stateless: no initialize handshake, no
    session header, no SSE resumability. PDMCP was already built that way, so
-   this is a conformance layer, not a rewrite. We answer the new `server/
-   discover` RPC, carry `resultType` + serverInfo on every result, and tag the
-   list calls as cacheable — while still answering `initialize`/`ping` so
-   clients on older revisions keep working through the deprecation window. */
+   this is a conformance layer, not a rewrite. The server is dual-era: a
+   request that declares a modern version (in its params._meta or the
+   MCP-Protocol-Version header) gets the strictness the revision demands —
+   required _meta fields, mirrored-header validation, 400/404 statuses —
+   while requests on the older handshake revisions keep their lenient
+   behaviour (`initialize`/`ping`) through the deprecation window. */
 const PROTOCOL_VERSION = '2026-07-28';
 const SUPPORTED_PROTOCOL_VERSIONS = ['2026-07-28', '2025-11-25', '2025-06-18', '2025-03-26'] as const;
-const SERVER_INFO = { name: 'pd-mcp', title: 'Price Discussion (PD)', version: '1.1.0' };
+/* Revisions that carry per-request metadata instead of a handshake. A request
+   declaring one of these (or any version we don't know) is served modern. */
+const MODERN_PROTOCOL_VERSIONS = ['2026-07-28'] as const;
+const SERVER_INFO = { name: 'pd-mcp', title: 'Price Discussion (PD)', version: '1.2.0' };
+
+/* The installed app's own home-screen icon (public/icon-192px.png), inlined
+   as a data URI so clients and directories can show PD's mark without a
+   cross-origin fetch. Rides ONLY discover/initialize — never the per-result
+   _meta serverInfo, which travels on every reply and stays lean. */
+const SERVER_ICON = {
+    src: 'data:image/png;base64,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',
+    mimeType: 'image/png',
+    sizes: ['192x192'],
+};
+const SERVER_INFO_WITH_ICON = { ...SERVER_INFO, icons: [SERVER_ICON] };
+
+/* One capability set for both eras. The MCP Apps extension is declared here
+   (extension negotiation rides capabilities.extensions) so hosts learn the
+   piece view exists from discovery instead of tripping over it. */
+const SERVER_CAPABILITIES = {
+    tools: {},
+    resources: {},
+    extensions: { 'io.modelcontextprotocol/ui': {} },
+};
 
 /* Spec `_meta` keys (io.modelcontextprotocol/*). Requests now carry the
-   protocol version per-call instead of negotiating it once. */
+   protocol version per-call instead of negotiating it once. On a request the
+   _meta lives INSIDE params, per the spec's JSON-RPC shape. */
 const META_PROTOCOL_VERSION = 'io.modelcontextprotocol/protocolVersion';
+const META_CLIENT_CAPABILITIES = 'io.modelcontextprotocol/clientCapabilities';
 const META_SERVER_INFO = 'io.modelcontextprotocol/serverInfo';
 
 /* Every answer is a public, cacheable read — the tool list never varies by
@@ -107,8 +134,8 @@ function rpcResult(id: unknown, result: Json): Json {
     const meta = { ...((result._meta as Json) ?? {}), [META_SERVER_INFO]: SERVER_INFO };
     return { jsonrpc: '2.0', id, result: { resultType: 'complete', ...result, _meta: meta } };
 }
-function rpcError(id: unknown, code: number, message: string): Json {
-    return { jsonrpc: '2.0', id, error: { code, message } };
+function rpcError(id: unknown, code: number, message: string, data?: Json): Json {
+    return { jsonrpc: '2.0', id, error: { code, message, ...(data ? { data } : {}) } };
 }
 
 /* Tool results: MCP content blocks. */
@@ -968,21 +995,103 @@ const TOOLS = [
 
 /* ── HTTP entry ─────────────────────────────────────────────────────────── */
 
-async function handleRpc(env: Env, msg: Json): Promise<Json | null> {
+/* A request's _meta lives inside params, per the spec's JSON-RPC shape. */
+function requestMeta(msg: Json): Json {
+    const params = (msg.params ?? {}) as Json;
+    return (params._meta ?? {}) as Json;
+}
+
+/* Mcp-Name values outside plain ASCII arrive Base64-wrapped in the spec's
+   sentinel form (=?base64?…?=); decode before comparing to the body. */
+function decodeHeaderValue(v: string): string {
+    const m = v.match(/^=\?base64\?(.+)\?=$/);
+    if (!m) return v;
+    try {
+        return new TextDecoder().decode(Uint8Array.from(atob(m[1]), (c) => c.charCodeAt(0)));
+    } catch {
+        return v;
+    }
+}
+
+/* The validation 2026-07-28 demands of a modern request: a supported version,
+   the required _meta fields, and the mirrored headers present and matching
+   the body (intermediaries route on the headers, so a desync is rejected
+   rather than trusted). Returns the JSON-RPC error to answer with, or null
+   when the request is clean. Only called for requests declaring a modern
+   (or unknown) version — legacy revisions stay lenient. */
+function validateModern(msg: Json, headers: Headers): Json | null {
+    const id = (msg as { id?: unknown }).id;
+    const meta = requestMeta(msg);
+    const bodyVersion = meta[META_PROTOCOL_VERSION];
+
+    if (typeof bodyVersion === 'string' && !SUPPORTED_PROTOCOL_VERSIONS.includes(bodyVersion as never)) {
+        return rpcError(id, -32022, `Unsupported protocol version: ${bodyVersion}.`, {
+            supported: [...SUPPORTED_PROTOCOL_VERSIONS],
+            requested: bodyVersion,
+        });
+    }
+    if (typeof bodyVersion !== 'string' || meta[META_CLIENT_CAPABILITIES] === undefined) {
+        return rpcError(
+            id,
+            -32602,
+            `Malformed request: params._meta must carry ${META_PROTOCOL_VERSION} and ${META_CLIENT_CAPABILITIES} on every request.`,
+        );
+    }
+    const headerVersion = headers.get('mcp-protocol-version');
+    if (!headerVersion) return rpcError(id, -32020, 'Missing required MCP-Protocol-Version header.');
+    if (headerVersion !== bodyVersion) {
+        return rpcError(
+            id,
+            -32020,
+            `Header mismatch: MCP-Protocol-Version '${headerVersion}' does not match body value '${bodyVersion}'.`,
+        );
+    }
+    const method = String((msg as { method?: unknown }).method ?? '');
+    const headerMethod = headers.get('mcp-method');
+    if (!headerMethod) return rpcError(id, -32020, 'Missing required Mcp-Method header.');
+    if (headerMethod !== method) {
+        return rpcError(id, -32020, `Header mismatch: Mcp-Method '${headerMethod}' does not match body method '${method}'.`);
+    }
+    const params = (msg.params ?? {}) as Json;
+    const named =
+        method === 'tools/call' ? String(params.name ?? '')
+        : method === 'resources/read' ? String(params.uri ?? '')
+        : null;
+    if (named !== null) {
+        const headerName = headers.get('mcp-name');
+        if (!headerName) return rpcError(id, -32020, 'Missing required Mcp-Name header.');
+        if (decodeHeaderValue(headerName) !== named) {
+            return rpcError(id, -32020, `Header mismatch: Mcp-Name '${headerName}' does not match body value '${named}'.`);
+        }
+    }
+    return null;
+}
+
+/* Modern errors ride the HTTP statuses the revision fixes — clients key their
+   era detection and retries off them. Legacy revisions keep the flat 200
+   they were written against. */
+function statusFor(answer: Json, modern: boolean): number {
+    if (!modern) return 200;
+    const code = (answer.error as { code?: number } | undefined)?.code;
+    if (code === -32601) return 404;
+    if (code === -32020 || code === -32021 || code === -32022 || code === -32602) return 400;
+    return 200;
+}
+
+async function handleRpc(env: Env, msg: Json, modern: boolean): Promise<Json | null> {
     const { id, method } = msg as { id?: unknown; method?: string };
     const params = (msg.params ?? {}) as Json;
 
     // Notifications get no response.
     if (id === undefined || id === null) return null;
 
-    // 2026-07-28: the version rides every request instead of a handshake.
-    const version = ((msg._meta ?? {}) as Json)[META_PROTOCOL_VERSION];
+    // Backstop for paths that skip validateModern (legacy batches).
+    const version = requestMeta(msg)[META_PROTOCOL_VERSION];
     if (typeof version === 'string' && !SUPPORTED_PROTOCOL_VERSIONS.includes(version as never)) {
-        return rpcError(
-            id,
-            -32022,
-            `Unsupported protocol version: ${version}. This server speaks ${SUPPORTED_PROTOCOL_VERSIONS.join(', ')}.`,
-        );
+        return rpcError(id, -32022, `Unsupported protocol version: ${version}.`, {
+            supported: [...SUPPORTED_PROTOCOL_VERSIONS],
+            requested: version,
+        });
     }
 
     switch (method) {
@@ -990,13 +1099,18 @@ async function handleRpc(env: Env, msg: Json): Promise<Json | null> {
         // without a handshake. Clients may call it before anything else.
         case 'server/discover':
             return rpcResult(id, {
-                protocolVersions: [...SUPPORTED_PROTOCOL_VERSIONS],
-                capabilities: { tools: {}, resources: {} },
-                serverInfo: SERVER_INFO,
+                supportedVersions: [...SUPPORTED_PROTOCOL_VERSIONS],
+                capabilities: SERVER_CAPABILITIES,
+                serverInfo: SERVER_INFO_WITH_ICON,
                 instructions: INSTRUCTIONS,
+                ttlMs: LIST_CACHE_TTL_MS,
+                cacheScope: 'public',
             });
-        // Pre-2026-07-28 handshake — kept for clients on older revisions.
+        // Pre-2026-07-28 handshake — kept for clients on older revisions. In
+        // the modern revision it does not exist, so a modern request asking
+        // for it falls through to method-not-found.
         case 'initialize': {
+            if (modern) break;
             // Echo the client's requested revision when we speak it, so older
             // clients negotiate down instead of seeing an unexpected version.
             const asked = params.protocolVersion;
@@ -1005,12 +1119,14 @@ async function handleRpc(env: Env, msg: Json): Promise<Json | null> {
                     typeof asked === 'string' && SUPPORTED_PROTOCOL_VERSIONS.includes(asked as never)
                         ? asked
                         : PROTOCOL_VERSION,
-                capabilities: { tools: {}, resources: {} },
-                serverInfo: SERVER_INFO,
+                capabilities: SERVER_CAPABILITIES,
+                serverInfo: SERVER_INFO_WITH_ICON,
                 instructions: INSTRUCTIONS,
             });
         }
+        // Removed in 2026-07-28; answered for older revisions only.
         case 'ping':
+            if (modern) break;
             return rpcResult(id, {});
         case 'tools/list':
             return rpcResult(id, {
@@ -1074,9 +1190,8 @@ async function handleRpc(env: Env, msg: Json): Promise<Json | null> {
                 return rpcResult(id, toolErr(`${tool.name} failed: ${e instanceof Error ? e.message : 'unknown error'}`));
             }
         }
-        default:
-            return rpcError(id, -32601, `Method not found: ${String(method)}`);
     }
+    return rpcError(id, -32601, `Method not found: ${String(method)}`);
 }
 
 export default {
@@ -1102,11 +1217,31 @@ export default {
             return json(rpcError(null, -32700, 'Parse error'), 400);
         }
 
+        // Batch arrays exist only in 2025-03-26 — always legacy, always lenient.
         if (Array.isArray(body)) {
-            const answers = (await Promise.all(body.map((m) => handleRpc(env, m as Json)))).filter(Boolean);
+            const answers = (await Promise.all(body.map((m) => handleRpc(env, m as Json, false)))).filter(Boolean);
             return answers.length ? json(answers) : new Response(null, { status: 202, headers: CORS });
         }
-        const answer = await handleRpc(env, body as Json);
-        return answer ? json(answer) : new Response(null, { status: 202, headers: CORS });
+
+        /* Era detection: only modern revisions put the protocol version inside
+           params._meta, so its presence (any value) means modern — as does a
+           modern MCP-Protocol-Version header. Legacy handshake clients send
+           neither and keep their lenient behaviour. */
+        const msg = body as Json;
+        const bodyVersion = requestMeta(msg)[META_PROTOCOL_VERSION];
+        const headerVersion = request.headers.get('mcp-protocol-version') ?? '';
+        const modern =
+            typeof bodyVersion === 'string' || MODERN_PROTOCOL_VERSIONS.includes(headerVersion as never);
+
+        const msgId = (msg as { id?: unknown }).id;
+        const isNotification = msgId === undefined || msgId === null;
+        if (modern && !isNotification) {
+            // Header requirements for notification POSTs are undefined in the
+            // revision, so only requests go through the strict gate.
+            const invalid = validateModern(msg, request.headers);
+            if (invalid) return json(invalid, 400);
+        }
+        const answer = await handleRpc(env, msg, modern);
+        return answer ? json(answer, statusFor(answer, modern)) : new Response(null, { status: 202, headers: CORS });
     },
 };
