@@ -13,8 +13,38 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-⛔ **2026-08-03 (LATEST) — ONE ITEM: THE PDMCP WOW PASS** — brief §2 of
-`docs/briefs/keychain-review-and-pdmcp.md`. ClickUp `86bb78fbt`.
+**No open build item.** The remaining work is WAITING ON BRENDON (below) plus
+one infra action: **the pd-mcp Worker deploy** (ClickUp `86bb4wzn5` — a
+session with Cloudflare access runs `wrangler deploy` from `workers/pd-mcp/`;
+that same deploy provisions mcp.pricediscussion.com).
+
+✅ **2026-08-03 (LATEST) — THE PDMCP WOW PASS SHIPPED** (on `dev`, tip
+`414fe4c`, tree clean, worker type-check clean; his go: "Would like all of
+this"). ClickUp `86bb78fbt` CLOSED — this also closes the last item of
+`docs/briefs/keychain-review-and-pdmcp.md`. The locks:
+
+- **The 2026-07-28 MCP revision is REAL and was verified against the
+  published spec directly** (base, versioning, streamable HTTP, discovery,
+  caching, Apps extension, changelog) — never trust a prior pass's claims
+  about it without that read. The stateless upgrade did NOT change our
+  architecture (built stateless day one); it changed the conformance skin.
+- **Fixed this round:** `server/discover` now answers `supportedVersions`
+  (the old `protocolVersions` field never existed in any spec revision — a
+  strict client read "supports nothing") + required caching hints on the
+  discovery reply · `-32022` refusals carry `data.supported`/`data.requested`
+  · modern-era HTTP statuses (400 malformed/version/header, 404 unknown
+  method) · the mirrored `MCP-Protocol-Version`/`Mcp-Method`/`Mcp-Name`
+  headers validated presence+match (Base64 sentinel decoded) for requests
+  declaring 2026-07-28 · version read from `params._meta` where the spec puts
+  it · MCP Apps advertised in `capabilities.extensions` · the installed app's
+  own 192px icon inlined on discover/initialize identity (per-result identity
+  stays lean — never put the icon there, it rides EVERY reply).
+- **Dual-era is the shape:** legacy handshake clients (2025-03-26 →
+  2025-11-25) keep lenient flat-200 behaviour, `initialize`/`ping` answer for
+  them only; modern requests get full strictness. Batch arrays = always
+  legacy.
+- **Rides the pd-mcp `wrangler deploy`** — pushing PriceOS `dev` does NOT
+  deploy this worker; it is its own Worker (`86bb4wzn5` is the deploy task).
 
 ✅ **2026-08-03 (SECOND SESSION) — FAIR DRAW IS COMPLETE MINUS THE CHAIN
 CEREMONY (Brendon: "a completed feature minus actual chain stuff").** On
