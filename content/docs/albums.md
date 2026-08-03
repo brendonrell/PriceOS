@@ -70,9 +70,8 @@ What that means in practice:
 - An artwork's own **Albums** tab shows the albums it sits in.
 - Shelving an album surfaces it to your followers in the social feed.
 
-The rest of your saving layer is unchanged and still private: Starred, the
-Wishlist, Lists, and History are yours alone. See
-[What's Private](/docs/whats-private).
+The rest of your saving layer is private: Starred, the Wishlist, Lists, and
+History are yours alone. See [What's Private](/docs/whats-private).
 
 ## The cover
 
