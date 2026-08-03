@@ -734,6 +734,43 @@ export type GameScoreDbRow = {
   updated_at: string;
 };
 
+// ── Fair Draw (the settlement service's ledger — docs/briefs/fair-draw-settlement.md).
+// Deliberately NOT in the curated Database Tables below: the typed query
+// path collapses on new tables in this setup (same reason `calls` and
+// `listings` ride the untyped overload). These interfaces are the cast
+// targets, exactly the CallRow pattern. ──
+
+export interface DropRow {
+  id: number;
+  project_id: string;
+  project_address: string;
+  window_open: string;
+  window_close: string;
+  supply: number;
+  status: 'WINDOW' | 'QUIET_CLOSED' | 'CONTESTED' | 'SETTLED';
+  seal_seconds: number | null;
+  beacon_block: number | null;
+  beacon_hash: string | null;
+  commitment: string | null;
+  /** The full published draw transcript (lib/drops/draw.ts DrawTranscript). */
+  transcript: Record<string, unknown> | null;
+  created_at: string;
+}
+
+/** One held signed mint order per wallet per drop. The signed_order column
+ *  is a broadcastable transaction — service-role only, never client-read. */
+export interface DropEntryRow {
+  id: number;
+  drop_id: number;
+  wallet: string;
+  signed_order: string;
+  seats: number;
+  band: number | null;
+  status: 'HELD' | 'EXECUTED' | 'TORN_UP' | 'VOIDED';
+  tx_hash: string | null;
+  created_at: string;
+}
+
 export type Database = {
   public: {
     Tables: {

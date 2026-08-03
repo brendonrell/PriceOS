@@ -1,6 +1,6 @@
 /*
  * lib/supabase.generated.ts — GENERATED snapshot of the LIVE database schema
- * (Supabase type generator, snapshotted 2026-07-13 — hardening item 11b).
+ * (Supabase type generator, snapshotted 2026-08-03 — fair-draw drops round).
  *
  * PURPOSE: drift detection + coverage. The hand-written types in
  * lib/supabase.ts are the curated, documented layer the app imports; THIS
@@ -187,6 +187,27 @@ export type Database = {
         }
         Relationships: []
       }
+      artist_vouches: {
+        Row: {
+          created_at: string
+          note: string | null
+          vouched: string
+          voucher_wallet: string
+        }
+        Insert: {
+          created_at?: string
+          note?: string | null
+          vouched: string
+          voucher_wallet: string
+        }
+        Update: {
+          created_at?: string
+          note?: string | null
+          vouched?: string
+          voucher_wallet?: string
+        }
+        Relationships: []
+      }
       bench_items: {
         Row: {
           added_at: string
@@ -293,6 +314,7 @@ export type Database = {
           date_key: string
           id: string
           owner_address: string | null
+          remind: string
           scope: string
           time_label: string | null
           title: string
@@ -302,6 +324,7 @@ export type Database = {
           date_key: string
           id?: string
           owner_address?: string | null
+          remind?: string
           scope?: string
           time_label?: string | null
           title: string
@@ -311,9 +334,52 @@ export type Database = {
           date_key?: string
           id?: string
           owner_address?: string | null
+          remind?: string
           scope?: string
           time_label?: string | null
           title?: string
+        }
+        Relationships: []
+      }
+      calls: {
+        Row: {
+          claim_type: string
+          created_at: string
+          floor_at_call: number | null
+          floor_at_resolve: number | null
+          id: number
+          project_id: string
+          resolved_at: string | null
+          status: string
+          target_eth: number
+          user_address: string
+          window_end: string
+        }
+        Insert: {
+          claim_type: string
+          created_at?: string
+          floor_at_call?: number | null
+          floor_at_resolve?: number | null
+          id?: never
+          project_id: string
+          resolved_at?: string | null
+          status?: string
+          target_eth: number
+          user_address: string
+          window_end: string
+        }
+        Update: {
+          claim_type?: string
+          created_at?: string
+          floor_at_call?: number | null
+          floor_at_resolve?: number | null
+          id?: never
+          project_id?: string
+          resolved_at?: string | null
+          status?: string
+          target_eth?: number
+          user_address?: string
+          window_end?: string
         }
         Relationships: []
       }
@@ -364,6 +430,98 @@ export type Database = {
           cal_date?: string
           created_at?: string
           day?: number
+        }
+        Relationships: []
+      }
+      drop_entries: {
+        Row: {
+          band: number | null
+          created_at: string
+          drop_id: number
+          id: number
+          seats: number
+          signed_order: string
+          status: string
+          tx_hash: string | null
+          wallet: string
+        }
+        Insert: {
+          band?: number | null
+          created_at?: string
+          drop_id: number
+          id?: never
+          seats?: number
+          signed_order: string
+          status?: string
+          tx_hash?: string | null
+          wallet: string
+        }
+        Update: {
+          band?: number | null
+          created_at?: string
+          drop_id?: number
+          id?: never
+          seats?: number
+          signed_order?: string
+          status?: string
+          tx_hash?: string | null
+          wallet?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drop_entries_drop_id_fkey"
+            columns: ["drop_id"]
+            isOneToOne: false
+            referencedRelation: "drops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      drops: {
+        Row: {
+          beacon_block: number | null
+          beacon_hash: string | null
+          commitment: string | null
+          created_at: string
+          id: number
+          project_address: string
+          project_id: string
+          seal_seconds: number | null
+          status: string
+          supply: number
+          transcript: Json | null
+          window_close: string
+          window_open: string
+        }
+        Insert: {
+          beacon_block?: number | null
+          beacon_hash?: string | null
+          commitment?: string | null
+          created_at?: string
+          id?: never
+          project_address: string
+          project_id: string
+          seal_seconds?: number | null
+          status?: string
+          supply: number
+          transcript?: Json | null
+          window_close: string
+          window_open: string
+        }
+        Update: {
+          beacon_block?: number | null
+          beacon_hash?: string | null
+          commitment?: string | null
+          created_at?: string
+          id?: never
+          project_address?: string
+          project_id?: string
+          seal_seconds?: number | null
+          status?: string
+          supply?: number
+          transcript?: Json | null
+          window_close?: string
+          window_open?: string
         }
         Relationships: []
       }
@@ -499,6 +657,72 @@ export type Database = {
         }
         Relationships: []
       }
+      gnome_deals: {
+        Row: {
+          ask_eth: number
+          buyer_address: string
+          created_at: string
+          id: string
+          project_id: string
+          seller_address: string
+          settled_at: string | null
+          status: string
+          tx_hash: string | null
+        }
+        Insert: {
+          ask_eth: number
+          buyer_address: string
+          created_at?: string
+          id?: string
+          project_id: string
+          seller_address: string
+          settled_at?: string | null
+          status?: string
+          tx_hash?: string | null
+        }
+        Update: {
+          ask_eth?: number
+          buyer_address?: string
+          created_at?: string
+          id?: string
+          project_id?: string
+          seller_address?: string
+          settled_at?: string | null
+          status?: string
+          tx_hash?: string | null
+        }
+        Relationships: []
+      }
+      gnomes: {
+        Row: {
+          ask_eth: number | null
+          awakened_at: string
+          listed_at: string | null
+          owner_address: string
+          project_id: string
+          rarity: string
+          token_id: number
+        }
+        Insert: {
+          ask_eth?: number | null
+          awakened_at?: string
+          listed_at?: string | null
+          owner_address: string
+          project_id: string
+          rarity: string
+          token_id: number
+        }
+        Update: {
+          ask_eth?: number | null
+          awakened_at?: string
+          listed_at?: string | null
+          owner_address?: string
+          project_id?: string
+          rarity?: string
+          token_id?: number
+        }
+        Relationships: []
+      }
       grail_pins: {
         Row: {
           created_at: string
@@ -549,6 +773,45 @@ export type Database = {
           owner_address?: string
           project_id?: string
           token_id?: string
+        }
+        Relationships: []
+      }
+      home_news_cards: {
+        Row: {
+          active: boolean
+          created_at: string
+          glyph: string | null
+          href: string | null
+          id: number
+          meta: string | null
+          position: number
+          tag: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          glyph?: string | null
+          href?: string | null
+          id?: number
+          meta?: string | null
+          position?: number
+          tag: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          glyph?: string | null
+          href?: string | null
+          id?: number
+          meta?: string | null
+          position?: number
+          tag?: string
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -918,6 +1181,8 @@ export type Database = {
           fate_stable: boolean | null
           fate_transformed: string | null
           fate_upper: string | null
+          geometry: number | null
+          geometry_band: string | null
           gravity: string | null
           lunar_illumination: number | null
           lunar_phase: string | null
@@ -993,6 +1258,8 @@ export type Database = {
           fate_stable?: boolean | null
           fate_transformed?: string | null
           fate_upper?: string | null
+          geometry?: number | null
+          geometry_band?: string | null
           gravity?: string | null
           lunar_illumination?: number | null
           lunar_phase?: string | null
@@ -1068,6 +1335,8 @@ export type Database = {
           fate_stable?: boolean | null
           fate_transformed?: string | null
           fate_upper?: string | null
+          geometry?: number | null
+          geometry_band?: string | null
           gravity?: string | null
           lunar_illumination?: number | null
           lunar_phase?: string | null
@@ -1297,6 +1566,33 @@ export type Database = {
           },
         ]
       }
+      price_predictions: {
+        Row: {
+          created_at: string
+          floor_eth: number
+          project_id: string
+          updated_at: string
+          wallet: string
+          window_key: string
+        }
+        Insert: {
+          created_at?: string
+          floor_eth: number
+          project_id: string
+          updated_at?: string
+          wallet: string
+          window_key: string
+        }
+        Update: {
+          created_at?: string
+          floor_eth?: number
+          project_id?: string
+          updated_at?: string
+          wallet?: string
+          window_key?: string
+        }
+        Relationships: []
+      }
       project_follows: {
         Row: {
           created_at: string
@@ -1352,7 +1648,10 @@ export type Database = {
           price_sprite: string | null
           project_no: number | null
           royalty_receiver: string | null
+          showcase_caption: string | null
           showcase_ids: Json
+          showcase_layout: string | null
+          showcase_titles: boolean
           sold_out_at: string | null
           soundtrack: string | null
           title: string
@@ -1378,7 +1677,10 @@ export type Database = {
           price_sprite?: string | null
           project_no?: number | null
           royalty_receiver?: string | null
+          showcase_caption?: string | null
           showcase_ids?: Json
+          showcase_layout?: string | null
+          showcase_titles?: boolean
           sold_out_at?: string | null
           soundtrack?: string | null
           title: string
@@ -1404,7 +1706,10 @@ export type Database = {
           price_sprite?: string | null
           project_no?: number | null
           royalty_receiver?: string | null
+          showcase_caption?: string | null
           showcase_ids?: Json
+          showcase_layout?: string | null
+          showcase_titles?: boolean
           sold_out_at?: string | null
           soundtrack?: string | null
           title?: string
@@ -1536,6 +1841,24 @@ export type Database = {
         }
         Relationships: []
       }
+      sentinel_fires: {
+        Row: {
+          fire_key: string
+          fired_at: string
+          wallet: string
+        }
+        Insert: {
+          fire_key: string
+          fired_at?: string
+          wallet: string
+        }
+        Update: {
+          fire_key?: string
+          fired_at?: string
+          wallet?: string
+        }
+        Relationships: []
+      }
       social_snapshots: {
         Row: {
           address: string
@@ -1625,6 +1948,27 @@ export type Database = {
           to_address?: string | null
           tx_hash?: string | null
           type?: string
+        }
+        Relationships: []
+      }
+      sticker_fee_config: {
+        Row: {
+          creator_address: string
+          id: number
+          platform_address: string
+          updated_at: string
+        }
+        Insert: {
+          creator_address: string
+          id: number
+          platform_address: string
+          updated_at?: string
+        }
+        Update: {
+          creator_address?: string
+          id?: number
+          platform_address?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1748,6 +2092,30 @@ export type Database = {
           source?: string
           status?: string
           tx_hash?: string | null
+        }
+        Relationships: []
+      }
+      sticker_sheet_collabs: {
+        Row: {
+          added_by: string
+          collab_address: string
+          collab_handle: string | null
+          created_at: string
+          sheet_id: string
+        }
+        Insert: {
+          added_by: string
+          collab_address: string
+          collab_handle?: string | null
+          created_at?: string
+          sheet_id: string
+        }
+        Update: {
+          added_by?: string
+          collab_address?: string
+          collab_handle?: string | null
+          created_at?: string
+          sheet_id?: string
         }
         Relationships: []
       }
@@ -1914,6 +2282,71 @@ export type Database = {
           },
         ]
       }
+      trades: {
+        Row: {
+          counter_of: string | null
+          counterparty_address: string
+          created_at: string
+          decided_at: string | null
+          end_time: number | null
+          get: Json
+          get_eth: number
+          give: Json
+          give_eth: number
+          id: string
+          order_hash: string | null
+          order_json: Json | null
+          proposer_address: string
+          source: string
+          status: string
+          tx_hash: string | null
+        }
+        Insert: {
+          counter_of?: string | null
+          counterparty_address: string
+          created_at?: string
+          decided_at?: string | null
+          end_time?: number | null
+          get?: Json
+          get_eth?: number
+          give?: Json
+          give_eth?: number
+          id?: string
+          order_hash?: string | null
+          order_json?: Json | null
+          proposer_address: string
+          source?: string
+          status?: string
+          tx_hash?: string | null
+        }
+        Update: {
+          counter_of?: string | null
+          counterparty_address?: string
+          created_at?: string
+          decided_at?: string | null
+          end_time?: number | null
+          get?: Json
+          get_eth?: number
+          give?: Json
+          give_eth?: number
+          id?: string
+          order_hash?: string | null
+          order_json?: Json | null
+          proposer_address?: string
+          source?: string
+          status?: string
+          tx_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trades_counter_of_fkey"
+            columns: ["counter_of"]
+            isOneToOne: false
+            referencedRelation: "trades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_achievements: {
         Row: {
           achievement_id: string
@@ -1953,8 +2386,12 @@ export type Database = {
           discord_username: string | null
           ens_name: string | null
           familiar_config: Json | null
+          formulas: Json
+          granted_tags: Json
           grid_presets: Json
           handle: string | null
+          name_font: string | null
+          nemesis_address: string | null
           price_held: number
           price_hold_rank: number | null
           price_rank: number
@@ -1965,16 +2402,20 @@ export type Database = {
           profile_hex: string | null
           profile_logo: string | null
           profile_sprite_hex: string | null
+          profile_tags: Json
           settings: Json
           setup_codes: Json
           showcase: Json
           showcase_style: string
           sigil_forged_at: string | null
+          sigil_hidden: boolean
           signature_hex: string | null
           sim_eth_balance: number
           sticker_state: Json | null
           streak_best: number
           streak_last_active: string | null
+          tag_paint: string | null
+          user_number: number | null
           workspaces: Json
         }
         Insert: {
@@ -1989,8 +2430,12 @@ export type Database = {
           discord_username?: string | null
           ens_name?: string | null
           familiar_config?: Json | null
+          formulas?: Json
+          granted_tags?: Json
           grid_presets?: Json
           handle?: string | null
+          name_font?: string | null
+          nemesis_address?: string | null
           price_held?: number
           price_hold_rank?: number | null
           price_rank?: number
@@ -2001,16 +2446,20 @@ export type Database = {
           profile_hex?: string | null
           profile_logo?: string | null
           profile_sprite_hex?: string | null
+          profile_tags?: Json
           settings?: Json
           setup_codes?: Json
           showcase?: Json
           showcase_style?: string
           sigil_forged_at?: string | null
+          sigil_hidden?: boolean
           signature_hex?: string | null
           sim_eth_balance?: number
           sticker_state?: Json | null
           streak_best?: number
           streak_last_active?: string | null
+          tag_paint?: string | null
+          user_number?: number | null
           workspaces?: Json
         }
         Update: {
@@ -2025,8 +2474,12 @@ export type Database = {
           discord_username?: string | null
           ens_name?: string | null
           familiar_config?: Json | null
+          formulas?: Json
+          granted_tags?: Json
           grid_presets?: Json
           handle?: string | null
+          name_font?: string | null
+          nemesis_address?: string | null
           price_held?: number
           price_hold_rank?: number | null
           price_rank?: number
@@ -2037,16 +2490,20 @@ export type Database = {
           profile_hex?: string | null
           profile_logo?: string | null
           profile_sprite_hex?: string | null
+          profile_tags?: Json
           settings?: Json
           setup_codes?: Json
           showcase?: Json
           showcase_style?: string
           sigil_forged_at?: string | null
+          sigil_hidden?: boolean
           signature_hex?: string | null
           sim_eth_balance?: number
           sticker_state?: Json | null
           streak_best?: number
           streak_last_active?: string | null
+          tag_paint?: string | null
+          user_number?: number | null
           workspaces?: Json
         }
         Relationships: []
@@ -2261,6 +2718,10 @@ export type Database = {
         Args: { p_buyer: string; p_slug: string; p_token: string }
         Returns: Json
       }
+      app_execute_trade: {
+        Args: { p_acceptor: string; p_trade_id: string }
+        Returns: Json
+      }
       app_merge_user_state: {
         Args: { p_address: string; p_patch: Json }
         Returns: {
@@ -2275,8 +2736,12 @@ export type Database = {
           discord_username: string | null
           ens_name: string | null
           familiar_config: Json | null
+          formulas: Json
+          granted_tags: Json
           grid_presets: Json
           handle: string | null
+          name_font: string | null
+          nemesis_address: string | null
           price_held: number
           price_hold_rank: number | null
           price_rank: number
@@ -2287,16 +2752,20 @@ export type Database = {
           profile_hex: string | null
           profile_logo: string | null
           profile_sprite_hex: string | null
+          profile_tags: Json
           settings: Json
           setup_codes: Json
           showcase: Json
           showcase_style: string
           sigil_forged_at: string | null
+          sigil_hidden: boolean
           signature_hex: string | null
           sim_eth_balance: number
           sticker_state: Json | null
           streak_best: number
           streak_last_active: string | null
+          tag_paint: string | null
+          user_number: number | null
           workspaces: Json
         }[]
         SetofOptions: {
@@ -2358,6 +2827,13 @@ export type Database = {
       record_output_view: {
         Args: { p_project: string; p_token: number; p_viewer: string }
         Returns: undefined
+      }
+      sticker_fee_recipients: {
+        Args: { p_sheet: string }
+        Returns: {
+          creator_address: string
+          platform_address: string
+        }[]
       }
       upsert_holder: {
         Args: {
@@ -2503,4 +2979,3 @@ export const Constants = {
     },
   },
 } as const
-

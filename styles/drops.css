@@ -1,0 +1,126 @@
+/*
+ * drops.css — the Fair Draw public transcript page (/drops/[project]).
+ *
+ * House chrome only: full-strength tokens on whatever the page paints
+ * (Rule #2 — designed against a mid-tone colorway, no greys, no washes),
+ * 4px controls, Courier, bold labels, 12px floor. Portrait-iPhone first:
+ * one column, the drawn-order list scrolls the page, long hashes wrap.
+ */
+
+.ddt-page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 24px 16px 64px;
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--text-color);
+}
+
+.ddt-h1 {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0 0 10px;
+}
+
+.ddt-sub {
+    font-size: 13px;
+    margin: 0 0 18px;
+    line-height: 1.5;
+}
+
+.ddt-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    font-size: 13px;
+    border: 1.5px solid var(--text-color);
+    border-radius: 4px;
+    background: var(--stat-bg);
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.ddt-commit {
+    font-size: 13px;
+    border: 1.5px solid var(--text-color);
+    border-radius: 4px;
+    background: var(--stat-bg);
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.ddt-commit code,
+.ddt-order code {
+    display: block;
+    word-break: break-all;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.ddt-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 14px 0;
+}
+
+.ddt-btn {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--text-color);
+    background: var(--bg-color);
+    border: 1.5px solid var(--text-color);
+    border-radius: 4px;
+    padding: 10px 14px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.ddt-btn:disabled {
+    cursor: default;
+}
+
+.ddt-note {
+    font-size: 13px;
+    margin: 10px 0;
+}
+
+/* Continuous-motion law: the wait visibly breathes until the verdict. */
+.ddt-pulse {
+    animation: ddt-pulse 900ms ease-in-out infinite alternate;
+}
+
+@keyframes ddt-pulse {
+    from { opacity: 1; }
+    to { opacity: 0.55; }
+}
+
+.ddt-verdict {
+    font-size: 13px;
+    font-weight: bold;
+    border: 1.5px solid var(--text-color);
+    border-radius: 4px;
+    background: var(--stat-bg);
+    padding: 12px;
+    display: grid;
+    gap: 6px;
+}
+
+.ddt-verdict-line {
+    margin-top: 4px;
+    font-size: 14px;
+}
+
+.ddt-h2 {
+    font-size: 14px;
+    font-weight: bold;
+    margin: 22px 0 4px;
+}
+
+.ddt-order {
+    margin: 10px 0 0;
+    padding-left: 26px;
+    display: grid;
+    gap: 8px;
+    font-size: 12px;
+}
