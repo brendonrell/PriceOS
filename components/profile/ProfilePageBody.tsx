@@ -43,6 +43,7 @@ import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { shareLink } from '../../lib/pwa/share';
 import { useSort, groupHeaderGlyph } from '../../lib/state/SortContext';
 import { GhostFeedRows } from '../GhostFeed';
+import SocialFeed from '../home/SocialFeed';
 import FeedEventRow from '../feed/FeedEventRow';
 import ArtworkCard from '../ArtworkCard';
 import { subscribeBreadcrumbs, isRecordingEnabled, setRecordingEnabled } from '../../lib/pins/breadcrumbStore';
@@ -101,7 +102,6 @@ import { PERSONA_TAGS, tagTextOn, TAG_PAINTS, isTeamStyleTag } from '../../lib/t
 import { NAME_FONTS, styleName } from '../../lib/profile/nameFont';
 import { getProject, allProjects, projectsByArtist, projectColorway, artistSignatureColor } from '../../lib/project/registry';
 import HomeProjectFacetBar from '../home/HomeProjectFacetBar';
-import SocialFeed from '../home/SocialFeed';
 import GhostCard from '../project/GhostCard';
 import ZenGarden from './ZenGarden';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
@@ -893,14 +893,6 @@ function ProfilePageBodyInner({
     if (onCollected) visitedCollected.current = true;
 
     const feedActive = onCollected && sort === 'feed';
-    /* ☻ SOCIAL — the sort row's smiley made real (Brendon, 2026-08-02): this
-       wallet's story as the home social feed, in its own styling. Page-local
-       state (never persisted into the sort), toggled off by any real sort. */
-    const [socialActive, setSocialActive] = useState(false);
-    const toggleSocial = useCallback(() => {
-        showToast(!socialActive ? 'Feed: SOCIAL' : 'Feed: OFF');
-        setSocialActive(!socialActive);
-    }, [socialActive, showToast]);
     /* A re-sort or re-group lands with one short ease (Brendon, 2026-07-30). */
     useGridSettle(`${sort}|${groupLayers.join('>')}`, onCollected && !feedActive);
     const sortedFeedEvents = useLedgerFeed(feedActive, `/api/feed?address=${user.address.toLowerCase()}&limit=100`, true);
@@ -968,7 +960,7 @@ function ProfilePageBodyInner({
        Showcase slot carries the token's own information panel instead of an
        empty grid. Collected still behaves normally — it is simply empty. */
     const isPlatform = isPlatformAccount(user.address);
-    const galleryVisible = ((onShowcase && !artistShowcaseCreated && !isPlatform) || onCollected) && !feedActive && !(onCollected && socialActive);
+    const galleryVisible = ((onShowcase && !artistShowcaseCreated && !isPlatform) || onCollected) && !feedActive;
 
     /* Showcase move mode only lives on YOUR OWN Static showcase grid. Leaving
        the tab, switching showcase style, or landing on the Created view all
@@ -1766,27 +1758,34 @@ function ProfilePageBodyInner({
                             open the cast sheet on this collector. Shown ONLY when a
                             takeover could actually be cast (3+ pieces of one
                             project); the sheet + API enforce the premium rules.
-                            Below that floor the full Share button stands alone. */}
+                            GLYPH ONLY beside Share (Brendon, 2026-08-03) — the ⚑
+                            raid flag alone; a toast names it as it opens. */}
                         {canTakeover && (
                             <button
                                 className="btn-soundtrack tko-cast-entry"
                                 title={`Cast a Takeover on @${displayHandle}`}
-                                onClick={() => openModal('takeover', user.handle ?? displayHandle, user.address)}
+                                onClick={() => {
+                                    showToast(`⚑︎ TAKEOVER — cast on @${displayHandle}`);
+                                    openModal('takeover', user.handle ?? displayHandle, user.address);
+                                }}
                             >
-                                {'⚑︎'} TAKEOVER
+                                {'⚑︎'}
                             </button>
                         )}
                         {/* THE EXCHANGE — head-to-head trade with this collector
                             (spec 86ba0apqr: profile-page surface). */}
                         {/* Only when they actually hold something to trade
-                            (Brendon, 2026-07-29). */}
+                            (Brendon, 2026-07-29). Glyph only; a toast names it
+                            as it opens (Brendon, 2026-08-03). */}
                         {isAuthed && !isOwnProfile && !isPlatformAccount(user.address) && ownedCount > 0 && (
                             <button
                                 className="btn-soundtrack"
                                 title={`Trade with @${displayHandle}`}
-                                onClick={() => openExchange(user.address, user.handle ?? displayHandle)}
+                                onClick={() => {
+                                    showToast(`⇌︎ THE EXCHANGE — trade with @${displayHandle}`);
+                                    openExchange(user.address, user.handle ?? displayHandle);
+                                }}
                             >
-                                {/* Glyph only (Brendon, 2026-07-28) — the word came off. */}
                                 {'⇌︎'}
                             </button>
                         )}
@@ -1810,11 +1809,11 @@ function ProfilePageBodyInner({
                                 (Brendon, 2026-06-15; the ↗ share-glyph trial was
                                 reverted 2026-07-15 — ↗ stays catalogued in
                                 GLYPHS.md but the buttons wear the play icon).
-                                Full pill with the SHARE label when it stands alone;
-                                icon-only when the Takeover pill sits beside it so the
-                                row can't overflow. */}
+                                SHARE keeps its full pill ALWAYS (Brendon,
+                                2026-08-03) — the other two are glyph-only, so
+                                the row fits with the word on. */}
                             <span className="btn-icon-play">▶&#xFE0E;</span>
-                            {!canTakeover && <>{' '}<span>SHARE</span></>}
+                            {' '}<span>SHARE</span>
                         </button>
                     </div>
 
@@ -2255,7 +2254,7 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                         Distinct from the project page's per-Project trait pills — a
                         collection spans independent projects, so it filters on the
                         platform facets every Output carries. */}
-                    {onCollected && <ProfileFacetBar holdings={enriched} isOwnProfile={isOwnProfile} profileAddress={user.address} socialActive={socialActive} onToggleSocial={toggleSocial} />}
+                    {onCollected && <ProfileFacetBar holdings={enriched} isOwnProfile={isOwnProfile} profileAddress={user.address} />}
 
                     {/* Artist-style Showcase — the home Now-Minting control surface
                         over this artist's own projects. Created · Top 6 lead the
@@ -2470,7 +2469,7 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
             <section
                 id="activity-feed"
                 aria-label="Activity Feed"
-                style={{ display: feedActive && !socialActive ? 'block' : 'none' }}
+                style={{ display: feedActive ? 'block' : 'none' }}
             >
                 <div className="feed-list" id="feedList">
                     {sortedFeedEvents.length === 0 ? (
@@ -2486,21 +2485,11 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                 </div>
             </section>
 
-            {/* ☻ SOCIAL — this wallet's story as the home social feed (streaks,
-                scenes, shelved albums, panoramas), the home wrapper verbatim
-                (Rule #0). The social lens for a person or an artist. */}
-            {onCollected && socialActive && (
-                <section className="home-uploads" aria-label="Social Feed">
-                    <div className="feed-list home-activity-feed home-social-feed">
-                        <SocialFeed dir="desc" actor={user.address.toLowerCase()} />
-                    </div>
-                </section>
-            )}
-
             {/* Artist-style Showcase · Created — the Now-Minting carousels of this
                 artist's own projects, filtered + sorted by the showcase facet bar.
-                FEED sort swaps them for the lifecycle activity feed. */}
-            {artistShowcaseCreated && mintSort.key !== 'feed' && (
+                FEED sort swaps them for the lifecycle activity feed; the ☻ sort
+                swaps them for the social feed across the artist's work. */}
+            {artistShowcaseCreated && mintSort.key !== 'feed' && mintSort.key !== 'social' && (
                 <section aria-label="Created projects">
                     {visibleArtistProjects.length === 0 ? (
                         <div className="home-empty-note">
@@ -2539,6 +2528,23 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                                 </div>
                             </div>
                         ))}
+                    </div>
+                </section>
+            )}
+
+            {/* Artist-style Showcase · Created · ☻ SOCIAL — the social feed
+                scoped to the artist's own projects: streaks, scenes and
+                collects across their whole body of work, in the home social
+                feed's exact styling (Rule #0). This is the ONLY profile
+                surface the ☻ lens lives on (Brendon, 2026-08-03 — the
+                wallet-story lens on Collected was undone the same day). */}
+            {artistShowcaseCreated && mintSort.key === 'social' && (
+                <section className="home-uploads" aria-label="Social Feed">
+                    <div className="feed-list home-activity-feed home-social-feed">
+                        <SocialFeed
+                            dir={mintSort.dir}
+                            project={artistProjects.map((p) => p.slug).join(',')}
+                        />
                     </div>
                 </section>
             )}

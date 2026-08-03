@@ -132,11 +132,14 @@ export const GET = requireAuth(async (req, _ctx, address) => {
     if (error) return serverError(error.message);
     const directed = (data ?? []) as PingRow[];
 
+    // Achievements never light the badge (Brendon, 2026-08-03: "no badge") —
+    // the rolled row still rides `items` and waits in the inbox.
     const { count: directedUnread, error: countErr } = await db
       .from('pings')
       .select('*', { count: 'exact', head: true })
       .eq('recipient_address', address)
-      .eq('read', false);
+      .eq('read', false)
+      .neq('kind', 'ACHIEVEMENT');
     if (countErr) return serverError(countErr.message);
 
     // ── Broadcast firehose (read-time, no stored rows) ──

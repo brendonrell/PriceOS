@@ -28,11 +28,14 @@ export const GET = requireAuth(async (_req, _ctx, address) => {
     await checkSweepHeartbeat();
 
     const db = getSupabaseService();
+    // Achievements never light the badge (Brendon, 2026-08-03: "no badge") —
+    // the rolled row waits quietly in the inbox.
     const { count, error } = await db
       .from('pings')
       .select('*', { count: 'exact', head: true })
       .eq('recipient_address', address)
-      .eq('read', false);
+      .eq('read', false)
+      .neq('kind', 'ACHIEVEMENT');
     if (error) return serverError(error.message);
 
     const response: PingsCountResponse = { unread: count ?? 0 };

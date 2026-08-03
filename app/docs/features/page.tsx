@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { FeatureAtlas } from '../../../components/docs/FeatureAtlas';
 import { MarkdownView } from '../../../components/docs/MarkdownView';
-import { ATLAS, atlasId } from '../../../lib/docs/features';
+import { ATLAS, ATLAS_MAX_N, atlasId } from '../../../lib/docs/features';
 
 /*
  * /docs/features — the PriceOS Feature Atlas catalog. A static segment, so
@@ -15,7 +15,7 @@ export const dynamic = 'force-static';
 export const metadata: Metadata = {
     title: 'The Feature Atlas',
     description:
-        `The canonical numbered catalog of every named PriceOS feature — ${ATLAS.length} entries from ${atlasId(1)} to ${atlasId(ATLAS.length)}, sortable and filterable by section.`,
+        `The canonical numbered catalog of every named PriceOS feature — ${ATLAS.length} entries from ${atlasId(1)} to ${atlasId(ATLAS_MAX_N)}, sortable and filterable by section.`,
 };
 
 export default function FeatureAtlasPage() {
@@ -30,7 +30,7 @@ export default function FeatureAtlasPage() {
                 <h1>The Feature Atlas</h1>
                 <p>
                     Every named feature on PriceOS, in one continuous catalog. Each feature carries a
-                    permanent number — {atlasId(1)} through {atlasId(ATLAS.length)} today, with room for a
+                    permanent number — {atlasId(1)} through {atlasId(ATLAS_MAX_N)} today, with room for a
                     thousand — assigned once and never reused, the way token IDs work. The name is the
                     stable key; the number is the collectible.
                 </p>

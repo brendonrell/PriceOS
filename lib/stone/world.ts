@@ -25,6 +25,9 @@ export interface WorldEntry {
     sub: string;
     /** Answer variants; each is one full answer, line by line. */
     answers: readonly (readonly string[])[];
+    /** Brand show-off: the stone flashes its accent this colour for a beat
+     *  while it answers, then goes back (Brendon, 2026-08-03 — Hothurt). */
+    flashHex?: string;
 }
 
 export const WORLD: readonly WorldEntry[] = [
@@ -61,6 +64,108 @@ export const WORLD: readonly WorldEntry[] = [
                 'Three answers, all true. A channel in the fxhash Discord. A community that outgrew it. A platform built to hold them both.',
                 'The channel opened 19 November 2021. I have the exact minute, if you want it.',
                 'Everything you can tap here grew out of people talking about price.',
+            ],
+        ],
+    },
+
+    /* ── THE BRAND — Hothurt, Attention, the logo, Petey (Brendon,
+         2026-08-03: "it should know all about PD and our brand and be able
+         to both show it and show off with it"). The colour entries FLASH
+         the stone's accent that colour while they answer — the stone wears
+         the answer. Petey is BRAND, not a feature: the mascot lives on the
+         brand side, never in the feature catalog. ── */
+    {
+        key: 'hothurt',
+        words: [
+            'hothurt', 'what is hothurt', 'hothurt red', 'the hothurt',
+            'what colour is hothurt', 'what color is hothurt',
+        ],
+        label: 'HOTHURT',
+        sub: '#FF0055 · THE SIGNATURE',
+        flashHex: '#ff0055',
+        answers: [
+            [
+                'Hothurt. #FF0055 — the signature red. Every colorway on this platform keeps it; repaint the whole app and Hothurt stays.',
+                'It is the colour of the logo, the colour of attention being paid, the colour I am wearing right now.',
+                'Yes, that flash was me. I contain the brand. Occasionally I am the brand.',
+            ],
+            [
+                'The house red. #FF0055 — too hot to be pink, too pink to be red, which is the point.',
+                'Its partner is Attention, the yellow — together they are the Classic, the founding pairing on the logo and the first sticker sheet.',
+                'I put it on for you just now. It suits me.',
+            ],
+            [
+                'Hothurt is #FF0055 and it is not negotiable. Colorways come and go; the signature survives every one of them.',
+                'Name a surface here that matters and the red is on it or one tap away from it.',
+                'Ask me about Attention if you want the other half of the Classic.',
+            ],
+        ],
+    },
+    {
+        key: 'attention',
+        words: [
+            'attention', 'attention yellow', 'what is attention',
+            'what colour is attention', 'what color is attention',
+        ],
+        label: 'ATTENTION',
+        sub: '#FFE600 · THE YELLOW',
+        flashHex: '#ffe600',
+        answers: [
+            [
+                'Attention. #FFE600 — the house yellow, the colour of a thing you are supposed to look at.',
+                'It rides with Hothurt: red bubble, yellow per-mille — the Classic, the founding face of the brand.',
+                'I flashed it for you. Consider your attention paid.',
+            ],
+            [
+                'The yellow. #FFE600. It exists to be seen, which is the entire job description.',
+                'On the logo it is the mark inside the Hothurt red. On the platform it is the highlight that will not be ignored.',
+            ],
+        ],
+    },
+    {
+        key: 'pdlogo',
+        words: [
+            'the logo', 'pd logo', 'the pd logo', 'what is the logo',
+            'per mille', 'the per mille', 'what is the per mille', '‰',
+        ],
+        label: 'THE ‰',
+        sub: 'PER MILLE · THE MARK',
+        flashHex: '#ff0055',
+        answers: [
+            [
+                'The logo is ‰ — the per-mille sign. Percent, but a thousand deep.',
+                'A community arguing about price needed a mark for precision beyond the percent. This is that mark.',
+                'It wears Inter, bold, full strength. In the Classic it sits Attention-yellow on a Hothurt-red field.',
+            ],
+            [
+                '‰. Per mille — parts per thousand. The percent sign with one more circle of commitment.',
+                'It is the navbar, the stickers, the seal on everything official here.',
+                'Turn it a quarter-turn counter-clockwise and something else appears. Ask me about Petey.',
+            ],
+        ],
+    },
+    {
+        key: 'petey',
+        words: [
+            'petey', 'who is petey', 'what is petey', 'petey the mascot',
+            'find petey', 'where is petey',
+        ],
+        label: 'PETEY',
+        sub: 'THE MASCOT',
+        answers: [
+            [
+                'Petey. The mascot.',
+                'Take the ‰ logo and turn it 90 degrees counter-clockwise — the mark becomes a little face, and the little face is Petey.',
+                'He is brand, not app: no button, no settings, no feature number. He lives on the stickers and wherever else he feels like turning up.',
+            ],
+            [
+                'Petey is what happens when the logo lies down. The per-mille, rotated a quarter-turn counter-clockwise, is a face — and the face has a name.',
+                'He has his own sticker sheet in 24 colours, Classic first, and a holographic finish when he is feeling expensive.',
+                'He is not a feature. Do not look for him in a menu. He finds you.',
+            ],
+            [
+                'The mascot. Born the day someone rotated the logo and saw a face looking back.',
+                'Officially: brand side. Unofficially: everywhere. There is an achievement for finding him, and I will not tell you where he is.',
             ],
         ],
     },

@@ -24,7 +24,9 @@ import { usePings } from '../lib/state/PingsContext';
 import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import { useDropdown } from '../lib/state/DropdownContext';
 import { useToast } from '../lib/state/ToastContext';
+import { useAuth } from '../lib/state/AuthContext';
 import { renderPing } from '../lib/pings/render';
+import { ACHIEVEMENTS_ICON } from '../lib/achievements/icon';
 import { useSpriteFace } from '../lib/hooks/useSpriteFace';
 import SpriteFace from './SpriteFace';
 import { getTodos, subscribeTodos, toggleTodo, type TodoItem } from '../lib/todos/todoStore';
@@ -55,17 +57,21 @@ function titleOf(kind: string, reminder: string | null): string {
         if (reminder === 'pingart') return 'PINGART';
         return 'PING';
     }
-    if (kind === 'ACHIEVEMENT') return 'ACHIEVEMENT';
+    if (kind === 'ACHIEVEMENT') return 'ACHIEVEMENTS';
     if (kind === 'STREAK') return 'STREAK';
     if (kind === 'FOLLOW' || kind === 'PROJECT_FOLLOW' || kind === 'OUTPUT_FOLLOW') return 'FOLLOW';
     return kind.replace(/_/g, ' ');
 }
+
+/** One unlock as the rolled achievements ping carries it (pingAchievements). */
+interface ListedUnlock { id: string; name: string; points: number; icon?: string }
 
 export default function PingModal() {
     const { stack, close } = useModal();
     const { state } = usePings();
     const { setAccordion } = usePdNotifs();
     const { openMenu } = useDropdown();
+    const { handle: myHandle } = useAuth();
     const { isOpen, isTopStacked } = useModalLayer('ping');
 
     const entry = [...stack].reverse().find((m) => m.name === 'ping');
@@ -122,6 +128,17 @@ export default function PingModal() {
         close();
     };
 
+    /* ── The rolled achievements ping (Brendon, 2026-08-03) — the card lists
+       the batch; tapping any entry (or the door) lands on the achievements
+       tab of YOUR profile. Achievements pings are self-pings, so the door is
+       always the viewer's own profile. */
+    const isAchPing = item?.kind === 'ACHIEVEMENT';
+    const achUnlocks: ListedUnlock[] =
+        isAchPing && Array.isArray(item?.data?.unlocks)
+            ? (item.data.unlocks as ListedUnlock[]).filter((u) => u && typeof u.name === 'string')
+            : [];
+    const achHref = myHandle ? `/${myHandle}?tab=more&sub=achievements` : null;
+
     if (!isOpen) return null;
 
     return (
@@ -151,6 +168,27 @@ export default function PingModal() {
                                 {r.action}
                             </span>
                         </div>
+                        {isAchPing && achUnlocks.length > 0 && (
+                            /* The batch, one row per unlock — scrolls inside
+                               itself when it outgrows the card (Rule #-0.55). */
+                            <div className="ping-ach-list">
+                                {achUnlocks.map((u) =>
+                                    achHref ? (
+                                        <a key={u.id} className="ping-ach-row" href={achHref} onClick={() => close()}>
+                                            <span className="ping-ach-ic">{u.icon || ACHIEVEMENTS_ICON}</span>
+                                            <span className="ping-ach-name">{u.name}</span>
+                                            <span className="ping-ach-pts">+{u.points}</span>
+                                        </a>
+                                    ) : (
+                                        <div key={u.id} className="ping-ach-row">
+                                            <span className="ping-ach-ic">{u.icon || ACHIEVEMENTS_ICON}</span>
+                                            <span className="ping-ach-name">{u.name}</span>
+                                            <span className="ping-ach-pts">+{u.points}</span>
+                                        </div>
+                                    ),
+                                )}
+                            </div>
+                        )}
                         <div className="ping-card-when">{when}</div>
                         <div className="ms-confirm-btns ping-card-btns">
                             <button type="button" className="ms-confirm-btn ms-confirm-btn--cancel" onClick={close}>
@@ -165,6 +203,11 @@ export default function PingModal() {
                                 <button type="button" className="ms-confirm-btn ms-confirm-btn--ok" onClick={openTodos}>
                                     {`❍${VS15}`} OPEN TO-DOS
                                 </button>
+                            )}
+                            {isAchPing && achHref && (
+                                <a className="ms-confirm-btn ms-confirm-btn--ok" href={achHref} onClick={() => close()}>
+                                    {ACHIEVEMENTS_ICON} ACHIEVEMENTS
+                                </a>
                             )}
                             {item?.actor_name && (
                                 <a className="ms-confirm-btn ms-confirm-btn--ok" href={`/${item.actor_name}`} onClick={() => close()}>

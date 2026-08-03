@@ -76,6 +76,33 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
             'for-collectors/the-secondary-market',
         ],
     },
+    /* ── 2026-08-03 re-jig (Brendon): $PRICE Token follows For Collectors ·
+       Smart Contracts sits right before Fair Draw · then The App → The
+       Marketplace → PriceScore → Feature Atlas (spliced in getNav) → the
+       highlighted feature sections A→Z ("The" ignored for sorting) → Build
+       on PD → Reference. "The" stays only where it actually reads right:
+       The App, The Marketplace, The Gnomes. ── */
+    {
+        title: '$PRICE Token',
+        slugs: [
+            'price-token/overview',
+            'price-token/tokenomics',
+            'price-token/no-platform-utility',
+            'price-token/contract',
+        ],
+    },
+    {
+        title: 'Smart Contracts',
+        slugs: [
+            'contracts/overview',
+            'contracts/pd-factory',
+            'contracts/pd-project',
+            'contracts/payment-splitter',
+            'contracts/pd-stickers',
+            'contracts/pd-keychains',
+            'contracts/library-registry',
+        ],
+    },
     {
         title: 'Fair Draw',
         slugs: [
@@ -100,49 +127,6 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
         ],
     },
     {
-        /* To-Dos & Workflows folded in here 2026-07-28 (Brendon) — they're
-           Suite apps, so they read as a sub-entry under it, not their own
-           top-level section. The page's URL is unchanged. */
-        title: 'PriceOS Suite',
-        slugs: ['suite', 'todos-and-workflows'],
-    },
-    {
-        title: 'Command Stone',
-        slugs: ['command-stone', 'command-stone/abilities'],
-    },
-    {
-        title: 'Cartography',
-        slugs: ['cartography'],
-    },
-    {
-        title: 'The Rewind',
-        slugs: ['rewind'],
-    },
-    {
-        title: 'Composer',
-        slugs: ['composer'],
-    },
-    {
-        title: 'Albums',
-        slugs: ['albums'],
-    },
-    {
-        title: 'Lists',
-        slugs: ['lists'],
-    },
-    {
-        title: 'The Fingerprint',
-        slugs: ['fingerprint'],
-    },
-    {
-        title: 'Colorpedia',
-        slugs: ['colorpedia'],
-    },
-    {
-        title: 'Rarity Labs',
-        slugs: ['rarity-labs'],
-    },
-    {
         title: 'The Marketplace',
         slugs: ['marketplace'],
     },
@@ -151,24 +135,80 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
         slugs: ['pricescore'],
     },
     {
-        title: 'The Dispatch',
+        title: 'Albums',
+        slugs: ['albums'],
+    },
+    {
+        title: 'Cartography',
+        slugs: ['cartography'],
+    },
+    {
+        title: 'Colorpedia',
+        slugs: ['colorpedia'],
+    },
+    {
+        title: 'Command Stone',
+        slugs: ['command-stone', 'command-stone/abilities'],
+    },
+    {
+        title: 'Composer',
+        slugs: ['composer'],
+    },
+    {
+        title: 'Dispatch',
         slugs: ['dispatch'],
     },
     {
-        title: 'The Exchange',
+        title: 'Exchange',
         slugs: ['exchange'],
-    },
-    {
-        title: 'Takeover',
-        slugs: ['takeover'],
     },
     {
         title: 'Factions',
         slugs: ['factions'],
     },
     {
+        title: 'Fingerprint',
+        slugs: ['fingerprint'],
+    },
+    {
+        title: 'The Gnomes',
+        slugs: [
+            'gnomes/overview',
+            'gnomes/the-awakening',
+            'gnomes/the-mushroom-market',
+            'gnomes/the-gnomewallet',
+        ],
+    },
+    {
+        title: 'Keychains',
+        slugs: [
+            'keychains/overview',
+            'keychains/the-depanneur',
+            'keychains/the-living-charm',
+        ],
+    },
+    {
+        title: 'Lists',
+        slugs: ['lists'],
+    },
+    {
         title: 'Pings',
         slugs: ['pings/overview', 'pings/controls', 'pings/artist-push'],
+    },
+    {
+        /* To-Dos & Workflows folded in here 2026-07-28 (Brendon) — they're
+           Suite apps, so they read as a sub-entry under it, not their own
+           top-level section. The page's URL is unchanged. */
+        title: 'PriceOS Suite',
+        slugs: ['suite', 'todos-and-workflows'],
+    },
+    {
+        title: 'Rarity Labs',
+        slugs: ['rarity-labs'],
+    },
+    {
+        title: 'Rewind',
+        slugs: ['rewind'],
     },
     {
         title: 'Stickers',
@@ -181,46 +221,12 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
         ],
     },
     {
-        title: 'Keychains',
-        slugs: [
-            'keychains/overview',
-            'keychains/the-depanneur',
-            'keychains/the-living-charm',
-        ],
-    },
-    {
-        title: 'The Gnomes',
-        slugs: [
-            'gnomes/overview',
-            'gnomes/the-awakening',
-            'gnomes/the-mushroom-market',
-            'gnomes/the-gnomewallet',
-        ],
+        title: 'Takeover',
+        slugs: ['takeover'],
     },
     {
         title: 'Build on PD',
         slugs: ['building-on-pd', 'mcp'],
-    },
-    {
-        title: 'Smart Contracts',
-        slugs: [
-            'contracts/overview',
-            'contracts/pd-factory',
-            'contracts/pd-project',
-            'contracts/payment-splitter',
-            'contracts/pd-stickers',
-            'contracts/pd-keychains',
-            'contracts/library-registry',
-        ],
-    },
-    {
-        title: '$PRICE Token',
-        slugs: [
-            'price-token/overview',
-            'price-token/tokenomics',
-            'price-token/no-platform-utility',
-            'price-token/contract',
-        ],
     },
     {
         title: 'Reference',
@@ -329,7 +335,8 @@ export function getDoc(slug: string): DocPage | null {
 /* Sidebar sections with per-page labels (the frontmatter title, with any
    long "Section — Detail" form trimmed to the detail for compact nav).
    The Feature Atlas (/docs/features) is a registry-driven catalog page, not
-   a markdown file — its nav entry is spliced in after The App. */
+   a markdown file — its nav entry is spliced in after PriceScore (the
+   2026-08-03 re-jig: App → Marketplace → PriceScore → Feature Atlas). */
 export function getNav(): NavSection[] {
     const docs = getAllDocs();
     const sections = NAV_MANIFEST.map((section) => ({
@@ -340,8 +347,8 @@ export function getNav(): NavSection[] {
             return { slug, label: t.includes(' — ') ? t.split(' — ')[1] : t };
         }),
     }));
-    const appIdx = sections.findIndex((s) => s.title === 'The App');
-    sections.splice(appIdx + 1, 0, {
+    const scoreIdx = sections.findIndex((s) => s.title === 'PriceScore');
+    sections.splice(scoreIdx + 1, 0, {
         title: 'Feature Atlas',
         items: [{ slug: 'features', label: 'The Atlas — every feature, numbered' }],
     });

@@ -268,22 +268,25 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     return badRequest('Invalid `?viewer=` address');
   }
   /* Scoped lenses (Brendon, 2026-08-02 — "the social version of the feed" on
-     profiles and project galleries): `?actor=` narrows to ONE wallet's story
-     (a profile / artist page), `?project=` to one project's outputs activity.
-     The relationship badges still read against the viewer's own graph. */
+     project galleries; 2026-08-03 — the artist showcase): `?actor=` narrows to
+     ONE wallet's story, `?project=` to one project's outputs activity — or a
+     comma list of slugs (the artist showcase: activity across ALL of that
+     artist's projects). The relationship badges still read against the
+     viewer's own graph. */
   const actor = url.searchParams.get('actor')?.toLowerCase() ?? null;
-  const projectScope = url.searchParams.get('project') ?? null;
+  const projectParam = url.searchParams.get('project') ?? null;
+  const projectSlugs = projectParam ? projectParam.split(',').filter(Boolean).slice(0, 50) : null;
   if (actor !== null && !ADDRESS_RE.test(actor)) {
     return badRequest('Invalid `?actor=` address');
   }
-  if (projectScope !== null && !/^[a-z0-9-]{1,64}$/.test(projectScope)) {
+  if (projectSlugs !== null && (projectSlugs.length === 0 || projectSlugs.some((s) => !/^[a-z0-9-]{1,64}$/.test(s)))) {
     return badRequest('Invalid `?project=` slug');
   }
 
   try {
     const db = getSupabaseService();
 
-    if (actor || projectScope) {
+    if (actor || projectSlugs) {
       /* Best-effort graph read — badges only; a scoped lens never fails
          because the viewer's graph can't be read. */
       const graph = viewer ? await graphAddresses(db, viewer).catch(() => null) : null;
@@ -301,7 +304,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         const { data, error } = await db
           .from('events')
           .select(EVENT_SELECT)
-          .eq('project_id', projectScope!)
+          .in('project_id', projectSlugs!)
           .order('timestamp', { ascending: false })
           .limit(WINDOW);
         if (error) throw new Error(error.message);

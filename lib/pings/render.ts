@@ -229,12 +229,10 @@ export function renderPing(row: FeedItem): RenderedPing {
       break;
     case 'ACHIEVEMENT': {
       handle = '';
-      const name = typeof row.data?.name === 'string' ? (row.data.name as string) : 'an achievement';
-      /* A burst rolls into one row, led by the biggest (see pingAchievements). */
+      /* One rolled row, names nothing (Brendon, 2026-08-03: "solely '4 new
+         achievements'") — the ping card lists the batch. */
       const count = typeof row.data?.count === 'number' ? (row.data.count as number) : 1;
-      action = count > 1
-        ? `Unlocked: ${name} · +${count - 1} more`
-        : `Unlocked: ${name}`;
+      action = count === 1 ? '1 new achievement' : `${count} new achievements`;
       break;
     }
     case 'STREAK': {
@@ -341,11 +339,9 @@ export function renderPing(row: FeedItem): RenderedPing {
       action = '';
   }
 
-  // Achievements carry their own catalog glyph — use it when present.
-  let ownIcon =
-    row.kind === 'ACHIEVEMENT' && typeof row.data?.icon === 'string' && row.data.icon
-      ? (row.data.icon as string)
-      : null;
+  // The rolled achievements row always wears the canonical ◍ (2026-08-03 —
+  // it names no single unlock, so no unlock's own glyph leads it).
+  let ownIcon: string | null = null;
   // Interest pings wear their reason's glyph; reminder/Artist-Push pings theirs.
   if (row.kind === 'WATCH_HIT' && typeof row.data?.watch === 'string') {
     ownIcon = WATCH_ICONS[row.data.watch as string] ?? null;

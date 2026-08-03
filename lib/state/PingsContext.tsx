@@ -229,8 +229,10 @@ export function PingsProvider({ children }: { children: ReactNode }) {
       // on resumes the firehose of everything that landed while you focused.
       const n = prefsRef.current;
       const toastsOn = showsRegularToasts(n.pingToasts) && !n.nightmode;
+      // Achievements never toast (Brendon, 2026-08-03: in-app only, solely the
+      // rolled "N new achievements" inbox row).
       const fresh = items.filter(
-        (p) => !p.read && !seenIds.current.has(p.id) && passesCategoryPrefs(p, n.pings)
+        (p) => !p.read && p.kind !== 'ACHIEVEMENT' && !seenIds.current.has(p.id) && passesCategoryPrefs(p, n.pings)
       );
       if (primed.current && toastsOn && fresh.length > 0) {
         if (fresh.length === 1) {

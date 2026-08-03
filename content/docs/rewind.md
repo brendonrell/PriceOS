@@ -1,12 +1,12 @@
 ---
-title: "The Rewind ◄"
+title: "Rewind ◄"
 description: "The whole-OS time scrubber: triple-tap the Price Discussion name and browse PD exactly as it stood on any past PriceDay — read-only, day by day, with the way back always one tap away."
 category: "app"
 keywords: ["rewind", "time", "history", "priceday", "scrubber", "triple tap"]
 last_updated: "2026-07-25"
 ---
 
-# The Rewind ◄
+# Rewind ◄
 
 Every platform shows you now. PD can also show you *then* — the entire app, docked at any day of its own history, reconstructed from the permanent ledger.
 

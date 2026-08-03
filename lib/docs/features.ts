@@ -227,7 +227,8 @@ export const ATLAS: AtlasFeature[] = [
     F(169, 'Logo library', 'Curation, Identity & Chrome'),
     F(170, 'Notes', 'Curation, Identity & Chrome'),
     F(171, 'Per-project deep-link views', 'Curation, Identity & Chrome'),
-    F(172, 'Petey', 'Curation, Identity & Chrome'),
+    /* #0172 RETIRED 2026-08-03 (Brendon): Petey is the MASCOT — brand side,
+       not app side — and was never a feature. The number is never reused. */
     F(173, 'Starred presets', 'Curation, Identity & Chrome'),
     F(174, 'Starred soundtracks / Starred projects', 'Curation, Identity & Chrome'),
     F(175, 'Tabstract', 'Curation, Identity & Chrome'),
@@ -345,6 +346,11 @@ export function atlasId(n: number): string {
     return '#' + String(n).padStart(4, '0');
 }
 
+/* The highest catalog number ever assigned. NOT ATLAS.length — a retired
+   number (#0172, Petey) leaves a permanent hole, so the top of the range and
+   the entry count are different facts. */
+export const ATLAS_MAX_N: number = ATLAS.reduce((m, f) => Math.max(m, f.n), 0);
+
 /* SPOTLIGHT FOR PRICEOS (Brendon, 2026-07-28 — the Stone's original brief,
    closed full-circle): searching a feature name in the Stone surfaces the
    feature AS AN APP — the Suite's icon-in-a-rounded-square with the name
@@ -371,7 +377,7 @@ export function atlasAsMarkdown(): string {
     const lines: string[] = [
         '# PriceOS Feature Atlas',
         '',
-        `${ATLAS.length} named PriceOS features, one continuous catalog (${atlasId(1)} → ${atlasId(ATLAS.length)}), grouped by where each lives. The number is the feature's permanent catalog ID; the name is the stable key.`,
+        `${ATLAS.length} named PriceOS features, one continuous catalog (${atlasId(1)} → ${atlasId(ATLAS_MAX_N)}), grouped by where each lives. The number is the feature's permanent catalog ID; the name is the stable key.`,
         '',
     ];
     let current = '';

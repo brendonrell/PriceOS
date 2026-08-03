@@ -2,7 +2,9 @@
 
 /*
  * PriceRankSync — headless. Keeps a signed-in user's PriceScore / PriceRank /
- * PriceStreak + achievement unlocks live, and pops a toast on every new unlock.
+ * PriceStreak + achievement unlocks live. Unlocks surface ONLY as the rolled
+ * "N new achievements" row in the Pings inbox (Brendon, 2026-08-03) — this
+ * sync never toasts them.
  *
  * Two triggers:
  *   • ON LOAD — re-evaluate once (surfaces any unlocks earned since last visit).
@@ -21,8 +23,6 @@
 
 import { useEffect, useRef } from 'react';
 import { useAuth } from '../../lib/state/AuthContext';
-import { useToast } from '../../lib/state/ToastContext';
-import type { Achievement } from '../../lib/achievements/catalog';
 
 // Real, deliberate actions — never a bare page open.
 const QUALIFYING_EVENTS = [
@@ -50,29 +50,18 @@ function todayLocal(): string {
 
 export default function PriceRankSync() {
   const { siweAddress } = useAuth();
-  const { showToast } = useToast();
   const evaluating = useRef(false);
 
   useEffect(() => {
     if (!siweAddress) return;
     let alive = true;
 
+    /* ⛔ UNLOCKS NO LONGER TOAST (Brendon, 2026-08-03: "Opposite of special…
+       No push no badge just in app"). The whole in-app delivery is the ONE
+       rolled "N new achievements" row in the Pings inbox — this sync only
+       nudges the score/rank surfaces to re-read. */
     const pop = (list: unknown) => {
       if (!Array.isArray(list) || list.length === 0) return;
-      const all = list as Achievement[];
-      if (all.length <= 3) {
-        all.forEach((a, i) => {
-          // Toast convention: the NEW thing in ALLCAPS. Stagger multiple unlocks.
-          setTimeout(() => { if (alive) showToast(`Achievement: ${a.name.toUpperCase()}`); }, i * 1500);
-        });
-      } else {
-        // A big batch machine-gunning toasts kills the moment (Brendon,
-        // 2026-07-02). Pop the single biggest unlock by name, then fold the
-        // rest into ONE summary — every pop stays an event.
-        const top = all.reduce((m, a) => (a.points > m.points ? a : m), all[0]);
-        showToast(`Achievement: ${top.name.toUpperCase()}`);
-        setTimeout(() => { if (alive) showToast(`Achievements: ${all.length - 1} MORE UNLOCKED`); }, 1500);
-      }
       window.dispatchEvent(new Event('pd:pricerank-changed'));
     };
 
@@ -137,7 +126,7 @@ export default function PriceRankSync() {
       timers.forEach((t) => clearTimeout(t));
       QUALIFYING_EVENTS.forEach((e) => window.removeEventListener(e, handler));
     };
-  }, [siweAddress, showToast]);
+  }, [siweAddress]);
 
   return null;
 }

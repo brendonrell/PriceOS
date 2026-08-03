@@ -1,12 +1,12 @@
 ---
-title: "The Exchange ⇌"
+title: "Exchange ⇌"
 description: "Head-to-head trading: offer your pieces against another collector's, sweeten one side with ETH, and settle a swap in one atomic move — no fees, ever."
 category: "for-collectors"
 keywords: ["trade", "exchange", "swap", "barter", "head-to-head", "counter"]
 last_updated: "2026-07-20"
 ---
 
-# The Exchange ⇌
+# Exchange ⇌
 
 Some deals aren't a sale — they're a swap. The Exchange is PD's head-to-head
 trading window: your pieces against theirs, straight across, with an

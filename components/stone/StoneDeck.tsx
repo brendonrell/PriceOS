@@ -58,6 +58,7 @@ import { MOODS, MARKET_MOODS, type MoodDef, type MarketMoodDef } from '../../lib
 import { TOKENS, ARTCOINS } from '../../lib/stone/tokens';
 import { searchAtlas } from '../../lib/docs/features';
 import { WORLD, worldAnswer } from '../../lib/stone/world';
+import { applyStoneStyle } from '../../lib/stone/stoneStyle';
 import { PerMilleMark } from '../shell/PerMilleMark';
 import type { StoneTokenResponse } from '../../app/api/stone/token/route';
 import type {
@@ -2644,6 +2645,17 @@ function ColorWidget({ hex, typed, onGo }: { hex: string; typed: string; onGo: G
 
 function WorldWidget({ topic, seed }: { topic: string; seed: string }) {
     const entry = WORLD.find((e) => e.key === topic) ?? null;
+    /* Brand show-off (Brendon, 2026-08-03): a colour entry flashes the
+       stone's accent that colour while it answers, then hands back to
+       whatever the keeper had set — applyStoneStyle repaints the stored
+       style, so a custom accent survives the flash untouched. */
+    const flash = entry?.flashHex ?? null;
+    useEffect(() => {
+        if (!flash || typeof document === 'undefined') return;
+        document.documentElement.style.setProperty('--stone-accent', flash);
+        const t = window.setTimeout(() => applyStoneStyle(), 1400);
+        return () => { window.clearTimeout(t); applyStoneStyle(); };
+    }, [flash]);
     if (!entry) return null;
     const lines = worldAnswer(entry, seed);
     return (

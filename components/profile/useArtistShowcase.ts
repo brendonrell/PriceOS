@@ -195,12 +195,16 @@ export function useArtistShowcase({
 
     /* Showcase sort — LOCAL (off the global SortContext), same model as home. */
     const [mintSort, setMintSort] = useState<{ key: HomeSortKey; dir: HomeSortDir }>({ key: 'date', dir: 'desc' });
-    const onMintSort = (key: HomeSortKey) =>
+    const onMintSort = (raw: HomeSortKey) => {
+        /* NEW USERS is a home-only feed — on the showcase the ☻ long-press
+           lands on the social lens, never a dead state. */
+        const key = raw === 'newusers' ? 'social' : raw;
         setMintSort((prev) =>
             prev.key === key
                 ? { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' }
                 : { key, dir: key === 'price' || key === 'az' ? 'asc' : 'desc' },
         );
+    };
     const applyMintSort = (key: HomeSortKey, dir: HomeSortDir) => setMintSort({ key, dir });
 
     /* Filter + sort the artist's projects by the showcase facets / search /

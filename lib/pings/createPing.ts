@@ -126,7 +126,10 @@ export async function createPing(input: CreatePingInput): Promise<string | null>
     // VAPID keys are configured, so this is inert for everyone else. Awaited (not
     // fire-and-forget) so it survives a serverless teardown; the fast path is a
     // single indexed lookup when the recipient has no devices.
+    // ⛔ ACHIEVEMENTS NEVER PUSH (Brendon, 2026-08-03: "No push no badge just
+    // in app") — the rolled inbox row is the whole delivery.
     const fireNative = (id: string) =>
+      input.kind === 'ACHIEVEMENT' ? Promise.resolve() :
       sendNativePing(recipient, {
         id,
         kind: input.kind,
