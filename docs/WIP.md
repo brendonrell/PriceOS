@@ -18,6 +18,49 @@ one infra action: **the pd-mcp Worker deploy** (ClickUp `86bb4wzn5` — a
 session with Cloudflare access runs `wrangler deploy` from `workers/pd-mcp/`;
 that same deploy provisions mcp.pricediscussion.com).
 
+✅ **2026-08-03 (LATEST) — THE SIX-ITEM ROUND SHIPPED** (on `dev`, tip
+`a5bb21b`, tree clean, type-check clean, 213 vitest green, achievements
+verifier green; his approval in chat, then "Let's wrap"). ClickUp
+`86bb7dpw7`. The locks:
+
+- ⛔ **ACHIEVEMENT DELIVERY IS SETTLED (his spec, verbatim): no push, no
+  badge, NO UNLOCK TOASTS — ever again.** The ONE surface is a rolled Pings
+  row ("N new achievements") that keeps counting while unread; its ping card
+  lists the batch and doors to the profile achievements tab. Both unread-count
+  endpoints exclude the kind. Never restore per-unlock toasts (PriceRankSync
+  deliberately only nudges the score surfaces now).
+- **Depth-ladder de-spam stretch:** the action-count families' early rungs
+  moved out past the key milestones. Per family the rung COUNT and POINTS
+  sequence are unchanged — catalog still exactly 1,000, Mjölnir wall
+  re-proven. ⛔ Don't re-densify the early rungs; run the verifier after any
+  catalog edit as ever.
+- ⛔ **THE MY PINGS PILLS ARE SETTLED, UNTOUCHED.** A label pass on the five
+  taste pills shipped in the batch and Brendon vetoed it ("I didn't want the
+  ping pills changed") — reverted byte-for-byte. Do not re-propose labels
+  there. The machinery is verified honest: all nine toggles gate the panel,
+  the toasts AND native push; interest pings roll up per piece.
+- ⛔ **THE SOCIAL FEED DOES NOT BELONG ON USER PROFILES.** The 2026-08-02
+  profile ☻ lens was REVERTED byte-for-byte. It lives on the ARTIST SHOWCASE
+  only — the showcase sort row's ☻ swaps the Created carousels for the social
+  feed scoped to that artist's own projects (`?project=` accepts a comma list
+  now). The project-gallery lens stayed. On the showcase the ☻ long-press
+  lands on the social lens (NEW USERS is home-only).
+- **The stone knows the brand:** HOTHURT / ATTENTION / the ‰ logo / PETEY
+  world entries; the colour entries FLASH the stone's accent while answering,
+  then hand back via the stored style. ⛔ **Petey is BRAND, not app — Atlas
+  #0172 is RETIRED, never reused**; the Atlas pages read the true top number
+  (`ATLAS_MAX_N`), not the entry count.
+- **Docs index order is HIS exact spec** ($PRICE Token after For Collectors ·
+  Smart Contracts before Fair Draw · App → Marketplace → PriceScore → Feature
+  Atlas → highlighted sections A→Z). ⛔ "The" survives ONLY on The App, The
+  Marketplace, The Gnomes — Rewind/Fingerprint/Dispatch/Exchange dropped it
+  in the nav AND their page titles. Don't reintroduce it.
+- **Profile action row:** SHARE wears its full pill ALWAYS; Takeover ⚑ and
+  the Exchange ⇌ are glyph-only beside it with a clear self-naming toast on
+  tap. Visibility rules (takeover floor, exchange conditions) unchanged.
+- **Albums docs read fully public everywhere, plainly** — no was-private
+  history narration anywhere (his explicit instruction).
+
 ✅ **2026-08-03 (LATEST) — THE PDMCP WOW PASS SHIPPED** (on `dev`, tip
 `414fe4c`, tree clean, worker type-check clean; his go: "Would like all of
 this"). ClickUp `86bb78fbt` CLOSED — this also closes the last item of
