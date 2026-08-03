@@ -13,7 +13,33 @@
 
 ## 🧭 NEXT UP — fresh session starts HERE
 
-⛔ **2026-08-02 (LATEST) — ONE ITEM LEFT ON THE QUEUE: THE PDMCP WOW PASS.**
+⛔ **2026-08-03 (LATEST) — TWO ITEMS, IN THIS ORDER: (1) THE FAIR-DRAW
+SETTLEMENT SERVICE, (2) THE PDMCP WOW PASS.**
+
+1. **FAIR DRAW — build the off-chain half. Brendon (2026-08-03, going to
+   bed): "take this the rest of the way… This is a VERY important thing —
+   lack of fair draw was one of the reasons fxhash had to shut down
+   artcoins which led to them shutting down in general."** The brief is
+   **`docs/briefs/fair-draw-settlement.md`** — read it first; it says what
+   is DONE (the chain half + the draw engine) and what to build (entries ·
+   banding · close/draw choreography · cascade · the public transcript
+   page · Sepolia rehearsal). ⛔ The draw engine (`lib/drops/draw.ts`, 9
+   tests) is the finished fairness core — never reimplement or fork it.
+2. **PDMCP wow pass** — brief §2 of `docs/briefs/keychain-review-and-pdmcp.md`.
+
+✅ **2026-08-03 — FAIR-DRAW ROUND ONE SHIPPED** (on `dev`, tree clean,
+type-check clean, **201 vitest green**): the **draw engine** — the
+provably-fair core. Bands (0 first, whole-band strict) → unbiased seeded
+shuffle (keccak counter-mode + rejection sampling — equal odds are EXACT) →
+one full permutation: head wins, tail IS the cascade (no second draw, no
+discretion). Seed = keccak(entriesRoot ‖ beacon blockhash mined AFTER
+entries close) — nobody, PD included, can pick or predict it. Commitment =
+keccak over the canonical transcript (what `closeWindowContested` anchors
+as `drawCommit`); `verifyDraw` lets any stranger replay the draw and check
+both the commitment and the on-chain seats. Also verified: the three
+public fair-draw docs pages read accurate against the contract, line for
+line. Two stale background monitors from the 08-02 session were killed
+(his screenshot ask — nothing was still needed).
 His words: **"PDMCP wow pass!! MCP got upgraded and is now stateless does
 that change our build? We want state of the art. Opus did an initial pass
 post-upgrade."** Brief: `docs/briefs/keychain-review-and-pdmcp.md` §2 —
