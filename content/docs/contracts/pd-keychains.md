@@ -8,7 +8,7 @@ last_updated: "2026-08-02"
 
 # Contracts — PDKeychains
 
-The [Depanneur's capsule machine](/docs/keychains) on-chain: an ERC-721 where every Keychain is a one-of-one generative charm, drawn entirely at read time by a renderer contract — no stored images, no external anything. In the app's test phase the machine runs on sim-ETH; this contract is the same machine for real ETH, and deploys with the platform's launch wave.
+The [Depanneur's capsule machine](/docs/keychains/overview) on-chain: an ERC-721 where every Keychain is a one-of-one generative charm, drawn entirely at read time by a renderer contract — no stored images, no external anything. In the app's test phase the machine runs on sim-ETH; this contract is the same machine for real ETH, and deploys with the platform's launch wave.
 
 ## The crank
 
@@ -39,6 +39,6 @@ The renderer address is swappable by the shop admin during an art-bugfix window,
 
 ## Further reading
 
-- [Keychains in the app](/docs/keychains) — the Depanneur, wearing, the hang
+- [Keychains in the app](/docs/keychains/overview) — the Depanneur, wearing, the hang
 - [PDFactory](/docs/contracts/pd-factory) — the settlement key the attestations ride
 - [Contracts Overview](/docs/contracts/overview)
