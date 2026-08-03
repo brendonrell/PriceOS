@@ -42,6 +42,8 @@ export interface Sight {
     texture: string | null;      // Smooth / Even / Textured / Grainy
     tone: string | null;         // Brooding / Sombre / Moody / Electric / Serene / Airy / Bold / Hushed / Balanced
     orientation: string | null;  // Landscape / Portrait / Square
+    /* v4 — the geometry read: ruled lines vs grown curves. */
+    geometry: string | null;     // Organic / Flowing / Mixed / Angular / Geometric
     rarity: number | null;       // 0–100
     /* v3 — the quantitative read: the countable things a human notices. */
     scene: string | null;        // "two blue squares and a yellow circle"
@@ -96,6 +98,10 @@ export const SIGHT: Record<string, SightLine[]> = {
         { when: (v) => v.contrast === 'Soft', text: "Soft contrast. Polite. I didn't say good." },
         { when: (v) => v.gravity === 'Centered', text: 'Dead centre. The safest seat in the house.' },
         { when: (v) => v.texture === 'Smooth', text: 'Smooth as a screen. Machine-finished. It suits it.' },
+        { when: (v) => v.geometry === 'Geometric', text: 'All straight lines. Discipline. You barely see it anymore.' },
+        { when: (v) => v.geometry === 'Organic', text: 'Not a ruled line in it. Grown, not drawn. Harder to fake.' },
+        { when: (v) => v.palette === 'Monochrome' && v.complexity === 'Minimal', text: 'One colour, almost nothing on it. The expensive kind of nothing.' },
+        { when: (v) => v.brightness === 'Dark' && v.symmetry === 'Mirrored', text: 'Dark and mirrored. Twice the restraint. Fine, I looked twice.' },
     ],
     mick: [
         { when: (v) => v.bucket === 'Hothurt', text: 'Hothurt. I log those separately.' },
@@ -121,6 +127,10 @@ export const SIGHT: Record<string, SightLine[]> = {
         { when: (v) => v.air === 'Packed', text: 'Not an inch spare in it. Filed under dense.' },
         { when: (v) => v.tone === 'Airy', text: 'Airy one. Spring inventory, usually.' },
         { when: (v) => v.saturation === 'Soft', text: 'Soft colour. Soft colour ages best. The records agree.' },
+        { when: (v) => v.geometry === 'Geometric' || v.geometry === 'Angular', text: 'Ruler work. Proper ruler work. The old guild would nod.' },
+        { when: (v) => v.geometry === 'Organic', text: 'No straight edges. Filed under freehand. Small file, that one.' },
+        { when: (v) => v.brightness === 'Dark' && v.symmetry === 'Mirrored', text: 'Dark AND mirrored. We get maybe three of those a season. Logged.' },
+        { when: (v) => v.orientation === 'Landscape' && v.air === 'Vast', text: 'Wide and mostly air. The panorama shelf. Thin shelf.' },
     ],
     mimi: [
         { when: (v) => v.bucket === 'Hothurt', text: 'Hothurt. That colour clears the book fast.' },
@@ -144,6 +154,9 @@ export const SIGHT: Record<string, SightLine[]> = {
         { when: (v) => v.orientation === 'Landscape', text: 'Wide one. Wide fits over sofas. Sofa money is real money.' },
         { when: (v) => v.brightness === 'Mid', text: 'Mid-bright. Nobody fights over mid. Good entry.' },
         { when: (v) => v.contrast === 'Measured', text: 'Measured contrast. Reasonable. Reasonable is where deals live.' },
+        { when: (v) => v.geometry === 'Geometric', text: 'Clean geometry. Architects buy those. Architects have money.' },
+        { when: (v) => v.geometry === 'Organic', text: 'All curves. Curves take longer to price. Longer is fine. I wait.' },
+        { when: (v) => (v.rarity ?? 0) >= 80 && v.bucket != null, text: 'A rare {color} one. Two reasons to overpay in a single frame.' },
     ],
     steven: [
         { when: (v) => v.bucket === 'Red', text: "That's a lot of red." },
@@ -170,6 +183,9 @@ export const SIGHT: Record<string, SightLine[]> = {
         { when: (v) => v.contrast === 'Soft', text: "Gentle one. Wouldn't wake you up." },
         { when: (v) => v.texture === 'Even', text: 'Flat and tidy. Like new carpet.' },
         { when: (v) => v.air === 'Packed', text: 'Full right to the edges. Value, kind of.' },
+        { when: (v) => v.geometry === 'Geometric', text: 'Very straight lines. Satisfying. Like new siding.' },
+        { when: (v) => v.geometry === 'Organic', text: 'Wiggly one. Nature-ish. The dog would like it.' },
+        { when: (v) => v.bucket === 'Blue' && v.hasSquare, text: 'A blue one with a square in it. This is my exact thing. This one.' },
     ],
     eddie: [
         { when: (v) => v.bucket === 'Hothurt', text: 'Hothurt again. That colour shows up before drama. Every time.' },
@@ -192,6 +208,9 @@ export const SIGHT: Record<string, SightLine[]> = {
         { when: (v) => v.texture === 'Smooth', text: 'Too clean. Cleaned, more like.' },
         { when: (v) => v.rarity != null && v.rarity >= 40 && v.rarity < 70, text: 'Mid rarity. The perfect place to hide.' },
         { when: (v) => v.shapeCount === 4, text: "Four shapes. Four. Look up what four means. I'll wait." },
+        { when: (v) => v.geometry === 'Geometric', text: "Grid discipline. That's a plan, not a picture. Whose plan." },
+        { when: (v) => v.geometry === 'Organic', text: 'Grown lines. Grown WHERE though. Nobody asks where.' },
+        { when: (v) => (v.rarity ?? 0) >= 80 && v.brightness === 'Dark', text: 'Rare AND dark. The exact profile of a piece somebody hides things in.' },
     ],
     carl: [
         { when: (v) => v.brightness === 'Luminous', text: 'Bright now. They fade.' },
@@ -215,6 +234,9 @@ export const SIGHT: Record<string, SightLine[]> = {
         { when: (v) => v.air === 'Packed', text: "Packed full. It'll thin out. Everything thins out." },
         { when: (v) => v.contrast === 'Crisp', text: 'Crisp edges. Time rounds them.' },
         { when: (v) => v.saturation === 'Rich', text: 'Rich colour. Enjoy the peak.' },
+        { when: (v) => v.geometry === 'Geometric', text: 'All right angles. Rigid things snap first.' },
+        { when: (v) => v.geometry === 'Organic', text: 'Soft edges everywhere. Nothing to hold onto when it drops.' },
+        { when: (v) => v.warmth === 'Cold' && v.brightness === 'Dark', text: 'Cold and dark. At least it matches the outlook.' },
     ],
     romy: [
         { when: (v) => v.bucket != null && v.bucket !== 'Black' && v.bucket !== 'White' && v.bucket !== 'Grey', text: 'That {color} is doing all the work, and it can carry it.' },
@@ -238,6 +260,9 @@ export const SIGHT: Record<string, SightLine[]> = {
         { when: (v) => v.brightness === 'Dim', text: 'Dim little thing. Lamp-light. Cosy.' },
         { when: (v) => v.texture === 'Even', text: 'Even all over. Someone kept a steady hand.' },
         { when: (v) => v.tone === 'Moody', text: "Moody one. Somebody's whole autumn is in there." },
+        { when: (v) => v.geometry === 'Organic', text: 'It curls like something alive. I love the alive ones.' },
+        { when: (v) => v.geometry === 'Geometric', text: 'Very tidy lines. Somebody sharpened their pencil and meant it.' },
+        { when: (v) => v.warmth === 'Warm' && v.texture === 'Textured', text: 'Warm with tooth to it. Like a wall you want to touch.' },
     ],
     celestia: [
         { when: (v) => v.bucket === 'Black', text: 'All that black. A door, not a wall.' },
@@ -261,6 +286,9 @@ export const SIGHT: Record<string, SightLine[]> = {
         { when: (v) => v.air === 'Packed', text: 'No empty space. Nowhere for anything to hide. Deliberate.' },
         { when: (v) => v.warmth === 'Split', text: 'Half warm, half cold. A threshold piece. Doors get minted too.' },
         { when: (v) => v.rarity != null && v.rarity >= 40 && v.rarity < 70, text: 'Mid-table rarity. Nobody watches the middle. The middle knows.' },
+        { when: (v) => v.geometry === 'Organic', text: 'It grew this way. Nobody drew it. It GREW.' },
+        { when: (v) => v.geometry === 'Geometric', text: 'Ruled lines. Summoning circles need straight edges too.' },
+        { when: (v) => v.hasCircle && v.brightness === 'Dark', text: 'A circle in the dark. That is a door with the porch light off.' },
     ],
 };
 
@@ -273,7 +301,7 @@ export interface ExchangeBeat {
 
 export interface Exchange {
     id: string;
-    kind: 'couch' | 'drift' | 'seen' | 'idle' | 'night' | 'open' | 'flip' | 'sight';
+    kind: 'couch' | 'drift' | 'seen' | 'idle' | 'night' | 'flip' | 'sight';
     beats: ExchangeBeat[];
     /** Extra gate beyond the kind's own gating (director-side). */
     needsPiece?: boolean;
@@ -525,27 +553,6 @@ export const EXCHANGES: Exchange[] = [
         ],
     },
 
-    /* — cold opens — */
-    {
-        id: 'x-newface', kind: 'open', beats: [
-            { who: 'eddie', text: 'New face. Nobody stare.' },
-            { who: 'steven', text: 'I waved. Was that wrong?' },
-            { who: 'rocco', text: 'Yes.' },
-        ],
-    },
-    {
-        id: 'x-back-file', kind: 'open', beats: [
-            { who: 'mick', text: "They're back. The file grows." },
-            { who: 'carl', text: "They always come back. That's the trap." },
-        ],
-    },
-    {
-        id: 'x-back-obsession', kind: 'open', beats: [
-            { who: 'eddie', text: 'Back again. Bet they check on {obsession} first.' },
-            { who: 'mimi', text: 'No bet.' },
-        ],
-    },
-
     /* — theme flips (they see your lights) — */
     {
         id: 'x-wentdark', kind: 'flip', beats: [
@@ -658,13 +665,6 @@ export const EXCHANGES: Exchange[] = [
             { who: 'celestia', text: 'The log gets honest.' },
         ],
     },
-    {
-        id: 'x-round2', kind: 'open', beats: [
-            { who: 'rocco', text: 'Back again. The taste tour continues.' },
-            { who: 'mimi', text: 'Second visits spend.' },
-        ],
-    },
-
     /* — 2026-07-16 upgrade round: more room in the room — */
     {
         id: 'x-menus', kind: 'couch', beats: [
@@ -692,6 +692,36 @@ export const EXCHANGES: Exchange[] = [
             { who: 'romy', text: 'Nothing happening is also something happening. Slower.' },
             { who: 'carl', text: 'That is not how anything works.' },
             { who: 'romy', text: 'And yet the day passes.' },
+        ],
+    },
+
+    /* — 2026-08-03 wow pass 3: the room gets funnier — */
+    {
+        id: 'x-carl-green', kind: 'couch', beats: [
+            { who: 'carl', text: 'My portfolio was green this morning.' },
+            { who: 'steven', text: "That's great." },
+            { who: 'carl', text: 'It was. Past tense by lunch.' },
+        ],
+    },
+    {
+        id: 'x-logbday', kind: 'drift', beats: [
+            { who: 'mick', text: "It's the log's birthday this week." },
+            { who: 'steven', text: 'Happy birthday to the log.' },
+            { who: 'rocco', text: 'Do not encourage him.' },
+        ],
+    },
+    {
+        id: 'x-suspects', kind: 'couch', beats: [
+            { who: 'eddie', text: "I'm not saying I keep a list of suspects. I'm saying the list has suspects on it." },
+            { who: 'carl', text: 'Suspects of what.' },
+            { who: 'eddie', text: 'Exactly.' },
+        ],
+    },
+    {
+        id: 'x-reframe', kind: 'drift', beats: [
+            { who: 'romy', text: 'I re-framed everything in my corner. Same art. It is new now.' },
+            { who: 'rocco', text: 'Frames are furniture.' },
+            { who: 'romy', text: 'Happy furniture.' },
         ],
     },
 ];
@@ -1168,6 +1198,11 @@ export const DUET_OPENERS: DuetOpener[] = [
     { who: 'steven', topic: 'watching', text: 'They have been on this page a while. It is a good page.' },
     { who: 'mimi', topic: 'taste', text: 'Their taste got expensive lately. I track these things.' },
     /* — 2026-07-16 upgrade round — */
+    /* — 2026-08-03 wow pass 3: the geometry read joins the conversation — */
+    { who: 'mick', topic: 'ruled', when: (v) => v?.geometry === 'Geometric' || v?.geometry === 'Angular', text: 'Ruler work. Proper ruler work.' },
+    { who: 'rocco', topic: 'ruled', when: (v) => v?.geometry === 'Geometric', text: 'All straight lines. Discipline.' },
+    { who: 'romy', topic: 'grown', when: (v) => v?.geometry === 'Organic' || v?.geometry === 'Flowing', text: 'It grew this way, I think. Nobody drew that.' },
+    { who: 'celestia', topic: 'grown', when: (v) => v?.geometry === 'Organic', text: 'Grown, not drawn. The honest kind.' },
     { who: 'eddie', topic: 'smalltalk', text: 'Somebody forged a Sigil this week. Not saying who. It was tasteful.' },
     { who: 'mick', topic: 'watching', text: 'They use the tools now. Composer, the map. The file says: settled in.' },
     { who: 'romy', topic: 'smalltalk', text: 'The morning paper had a nice line in it today. I read it twice.' },
@@ -1235,6 +1270,15 @@ export const DUET_REPLIES: DuetReply[] = [
     { who: 'eddie', topics: ['watching'], text: 'I noticed it too. Before anyone. For the record.' },
     { who: 'mick', topics: ['taste'], text: 'The record supports it.' },
     { who: 'mimi', topics: ['taste'], text: 'Expensive taste keeps this room lit.' },
+    /* — 2026-08-03 wow pass 3 — */
+    { who: 'steven', topics: ['ruled'], text: 'Like good siding.' },
+    { who: 'carl', topics: ['ruled'], text: 'Rigid snaps first.' },
+    { who: 'mimi', topics: ['ruled'], text: 'Architects pay for that.' },
+    { who: 'celestia', topics: ['ruled'], text: 'Enough straight lines and a circle hides in there. Look.' },
+    { who: 'rocco', topics: ['grown'], text: 'Undisciplined. Occasionally right.' },
+    { who: 'steven', topics: ['grown'], text: 'Wiggly. In a good way.' },
+    { who: 'eddie', topics: ['grown'], text: 'Grown WHERE though.' },
+    { who: 'mick', topics: ['grown'], text: 'Freehand. Small file. Growing.' },
     /* — 2026-07-16 upgrade round — */
     { who: 'carl', topics: ['smalltalk'], text: 'If it\'s good news, wait.' },
     { who: 'romy', topics: ['smalltalk'], text: 'That\'s nice. I mean it, whatever it was.' },
@@ -1402,6 +1446,264 @@ export const MUTE_REACTS: Exchange[] = [
             { who: 'mimi', text: 'Fewer voices. More margin for the rest of us.' },
         ],
     },
+];
+
+/* ── COLD OPENS — the first sign of life, rebuilt (2026-08-03 wow pass 3).
+   The old opening was three fixed scenes, so every load played the same
+   sequence — the exact "formulaic" tell. Now it is a BANK, gated on the real
+   arrival: the hour, the visit count, where they landed (a deep link into an
+   artwork reads differently than the lobby), the obsession, the name — and
+   several are WALK-INS: the room was clearly mid-conversation before the
+   viewer arrived, because real rooms are. Fresh-first via the used-ledger,
+   so consecutive logins don't replay last night's opening. ─────────────── */
+
+export interface OpenCtx {
+    hour: number;
+    sessionNumber: number;
+    isReturning: boolean;
+    hasObsession: boolean;
+    stageKind: string;
+    hasName: boolean;
+}
+
+export interface ColdOpen {
+    id: string;
+    beats: ExchangeBeat[];
+    when?: (c: OpenCtx) => boolean;
+}
+
+const NEWBIE = (c: OpenCtx) => c.sessionNumber <= 1;
+const REGULAR = (c: OpenCtx) => c.sessionNumber > 1;
+
+export const COLD_OPENS: ColdOpen[] = [
+    /* — first-ever visit — */
+    {
+        id: 'x-newface', when: NEWBIE, beats: [
+            { who: 'eddie', text: 'New face. Nobody stare.' },
+            { who: 'steven', text: 'I waved. Was that wrong?' },
+            { who: 'rocco', text: 'Yes.' },
+        ],
+    },
+    {
+        id: 'o-new-normal', when: NEWBIE, beats: [
+            { who: 'romy', text: 'Someone new. Everyone be normal.' },
+            { who: 'carl', text: 'This is normal.' },
+            { who: 'romy', text: 'Tragically.' },
+        ],
+    },
+    {
+        id: 'o-new-guess', when: NEWBIE, beats: [
+            { who: 'mimi', text: 'Fresh viewer. First to guess what they buy wins.' },
+            { who: 'mick', text: 'No bets in the log.' },
+            { who: 'mimi', text: 'Side log.' },
+        ],
+    },
+    /* — returning: the file, the couch, the walk-ins — */
+    {
+        id: 'x-back-file', when: REGULAR, beats: [
+            { who: 'mick', text: "They're back. The file grows." },
+            { who: 'carl', text: "They always come back. That's the trap." },
+        ],
+    },
+    {
+        id: 'x-round2', when: REGULAR, beats: [
+            { who: 'rocco', text: 'Back again. The taste tour continues.' },
+            { who: 'mimi', text: 'Second visits spend.' },
+        ],
+    },
+    {
+        id: 'o-visitn', when: (c) => c.sessionNumber >= 4, beats: [
+            { who: 'mick', text: 'Visit {n}. The file grows agreeably.' },
+            { who: 'carl', text: 'You number the visits.' },
+            { who: 'mick', text: 'The visits number themselves. I transcribe.' },
+        ],
+    },
+    {
+        id: 'o-walkin-catalogue', when: REGULAR, beats: [
+            { who: 'mick', text: '…and that is the LAST time I lend out a catalogue.' },
+            { who: 'rocco', text: 'You tell this story weekly.' },
+            { who: 'mick', text: "—They're here. Later." },
+        ],
+    },
+    {
+        id: 'o-walkin-wallet', when: REGULAR, beats: [
+            { who: 'eddie', text: '…same wallet, three nights running, and NOBODY—' },
+            { who: 'carl', text: "They're here." },
+            { who: 'eddie', text: "We'll circle back." },
+        ],
+    },
+    {
+        id: 'o-walkin-gate', when: REGULAR, beats: [
+            { who: 'steven', text: "…anyway. Gate's fixed." },
+            { who: 'rocco', text: 'Gripping.' },
+            { who: 'steven', text: "Oh, they're on." },
+        ],
+    },
+    {
+        id: 'o-knew', when: REGULAR, beats: [
+            { who: 'celestia', text: 'They were about to arrive. I said so.' },
+            { who: 'romy', text: 'You said it after the door opened.' },
+            { who: 'celestia', text: 'Time is not a line.' },
+        ],
+    },
+    {
+        id: 'o-couch-fluffed', when: REGULAR, beats: [
+            { who: 'romy', text: 'They came back. I fluffed the couch.' },
+            { who: 'carl', text: 'It is a website couch.' },
+            { who: 'romy', text: "It's fluffed." },
+        ],
+    },
+    {
+        id: 'o-places', when: (c) => REGULAR(c) && c.hasName, beats: [
+            { who: 'eddie', text: '{name} is here. Places, everyone.' },
+            { who: 'rocco', text: 'This is not a theatre.' },
+            { who: 'eddie', text: 'Places.' },
+        ],
+    },
+    /* — the obsession callback — */
+    {
+        id: 'x-back-obsession', when: (c) => REGULAR(c) && c.hasObsession, beats: [
+            { who: 'eddie', text: 'Back again. Bet they check on {obsession} first.' },
+            { who: 'mimi', text: 'No bet.' },
+        ],
+    },
+    {
+        id: 'o-obsess-clock', when: (c) => REGULAR(c) && c.hasObsession, beats: [
+            { who: 'mimi', text: 'Back. {obsession} inside two minutes. Watch.' },
+            { who: 'carl', text: 'No takers.' },
+        ],
+    },
+    /* — they deep-linked straight into a piece — */
+    {
+        id: 'o-straight-to', when: (c) => REGULAR(c) && c.stageKind === 'artwork', beats: [
+            { who: 'eddie', text: 'No browsing. Straight to {piece}. A person with a PURPOSE.' },
+            { who: 'mimi', text: 'Purpose pays asking.' },
+        ],
+    },
+    {
+        id: 'o-no-lobby', when: (c) => c.stageKind === 'artwork', beats: [
+            { who: 'rocco', text: 'Walked straight in to {piece}. No tour.' },
+            { who: 'mick', text: 'Regulars skip the lobby. Noted.' },
+        ],
+    },
+    /* — the clock colours the arrival — */
+    {
+        id: 'o-late-arrival', when: (c) => REGULAR(c) && (c.hour >= 23 || c.hour < 5), beats: [
+            { who: 'carl', text: 'This hour again.' },
+            { who: 'mick', text: 'Filed with the other insomnia sessions.' },
+            { who: 'celestia', text: 'The thin hours. Best viewing.' },
+        ],
+    },
+    {
+        id: 'o-early-arrival', when: (c) => REGULAR(c) && c.hour >= 5 && c.hour < 9, beats: [
+            { who: 'steven', text: "They're on before coffee." },
+            { who: 'mick', text: 'The early sessions are the deliberate ones.' },
+        ],
+    },
+];
+
+/* ── FOLLOW-UPS — the running-gag engine (2026-08-03 wow pass 3).
+   When one of these scenes plays, the director queues a delayed one-liner
+   that lands minutes later — the room REMEMBERS its own bits. This is what
+   turns a bank of scenes into an episode: the chili gets finished, the open
+   bet stays open, the wave gets a status report. ───────────────────────── */
+
+export const FOLLOWUPS: Record<string, { who: string; text: string }[]> = {
+    'x-chili': [
+        { who: 'steven', text: "Chili update. It's done. Nobody asked. It's done." },
+    ],
+    'x-plant': [
+        { who: 'steven', text: 'Found the plant. Watered it. We are even.' },
+        { who: 'romy', text: 'I watered the plant. It perked up. Things do.' },
+    ],
+    'x-thermostat': [
+        { who: 'carl', text: 'Still cold in here, for the record.' },
+    ],
+    'x-corner': [
+        { who: 'steven', text: 'The corner is still mine, in case anyone was circling it.' },
+    ],
+    'x-redbet': [
+        { who: 'mick', text: 'The red bet remains open. The log dislikes an open item.' },
+    ],
+    'x-nickname': [
+        { who: 'eddie', text: 'The Curator thing is catching on. I heard Romy say it.' },
+        { who: 'rocco', text: 'I am not calling them the Curator.' },
+    ],
+    'x-hearus': [
+        { who: 'romy', text: 'Following up on the wave: no response. Continuing to wave.' },
+    ],
+    'x-spill-mute': [
+        { who: 'carl', text: 'Still not muted. Day is young.' },
+    ],
+    'x-newface': [
+        { who: 'steven', text: 'I think the wave landed, by the way.' },
+    ],
+    'o-walkin-catalogue': [
+        { who: 'mick', text: 'The catalogue came back, for anyone following. Coffee ring on the June page.' },
+    ],
+    'o-walkin-wallet': [
+        { who: 'eddie', text: 'Circling back: the wallet thing. Still happening. That is all I will say with them here.' },
+    ],
+    'x-switchflip': [
+        { who: 'steven', text: 'I found the purple switch again. Not touching it. Just found it.' },
+    ],
+    'x-fatecheck': [
+        { who: 'celestia', text: "Update: the room's fate is still fine. I don't trust it either." },
+    ],
+    'x-goodpart': [
+        { who: 'eddie', text: 'Still the before-part. Any minute.' },
+    ],
+    'x-yesterday': [
+        { who: 'romy', text: "I keep thinking about yesterday's episode. Nine looks. That is love." },
+    ],
+    'x-logbday': [
+        { who: 'mick', text: 'The log enjoyed its birthday, whatever Rocco says.' },
+    ],
+    'ax-mint-toast': [
+        { who: 'steven', text: 'The soup is gone. The toast stands.' },
+    ],
+};
+
+/* ── PROPHECIES — Celestia calls a piece before it exists on screen
+   (2026-08-03 wow pass 3). Early in a session she names a quality; the
+   director watches every real sight after that, and when a piece matching
+   the call lands in front of the viewer, she collects — by NAME, about the
+   actual piece. Common-enough qualities keep the base rate honest; if the
+   session never produces one, the call dies silently, like most fortunes. */
+
+export interface Prophecy {
+    key: string;
+    /** How Celestia says it ("a red one", "a mirrored one"). */
+    word: string;
+    test: (v: Sight) => boolean;
+}
+
+export const PROPHECIES: Prophecy[] = [
+    { key: 'red', word: 'a red one', test: (v) => v.bucket === 'Red' || v.accent === 'Red' },
+    { key: 'blue', word: 'a blue one', test: (v) => v.bucket === 'Blue' || v.accent === 'Blue' },
+    { key: 'black', word: 'a black one', test: (v) => v.bucket === 'Black' },
+    { key: 'mirrored', word: 'a mirrored one', test: (v) => v.symmetry === 'Mirrored' },
+    { key: 'dark', word: 'a dark one', test: (v) => v.brightness === 'Dark' || v.brightness === 'Dim' },
+    { key: 'warm', word: 'a warm one', test: (v) => v.warmth === 'Warm' || v.warmth === 'Molten' },
+    { key: 'circle', word: 'one with a circle in it', test: (v) => v.hasCircle },
+    { key: 'ruled', word: 'one drawn with a ruler', test: (v) => v.geometry === 'Geometric' || v.geometry === 'Angular' },
+];
+
+export const PROPHECY_ARM: string[] = [
+    '{thing} is on its way to them. Today, I think.',
+    'The cards mentioned {thing} this morning. Watch for it.',
+    'Somewhere in their path today: {thing}. I can wait.',
+];
+export const PROPHECY_HIT: string[] = [
+    'There it is. {piece}. I said {thing} was coming. I SAID it.',
+    '{piece}. {thing}, as mentioned. The cards accept your apology.',
+    'And there is {thing}. {piece}. Right on schedule. Mine, not yours.',
+];
+export const PROPHECY_WITNESS: { who: string; text: string }[] = [
+    { who: 'steven', text: 'Okay, that one was weird.' },
+    { who: 'eddie', text: 'She CALLED it. Somebody check her sources.' },
+    { who: 'carl', text: 'Lucky. …Probably lucky.' },
+    { who: 'mick', text: 'Checked against the record. She did say it.' },
 ];
 
 export const XOVER_SCENES: Exchange[] = [

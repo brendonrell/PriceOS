@@ -30,8 +30,9 @@ import {
     IDLE, PACING, NIGHT, MORNING, DIRECT, FOURTHWALL, colorWord,
     ACTION_LINES, ACTION_EXCHANGES, BUYBET_ARM, BUYBET_HIT, BUYBET_MISS,
     DUET_OPENERS, DUET_REPLIES, ADOPTION_SCENES, LOYAL, XOVER_SCENES, MUTE_REACTS,
-    SPELL_NOTICE,
-    type Sight, type Exchange,
+    SPELL_NOTICE, COLD_OPENS, FOLLOWUPS,
+    PROPHECIES, PROPHECY_ARM, PROPHECY_HIT, PROPHECY_WITNESS,
+    type Sight, type Exchange, type OpenCtx, type Prophecy,
 } from './scenarios';
 import {
     sessionFacts, nextEvent, fireOnce, fireOncePersist, markUsed, isUsed,
@@ -42,7 +43,7 @@ import { consumeAction, type NpcAction } from './actions';
 import {
     brightnessBand, saturationBand, complexityBand, toneMood,
     contrastBand, warmthBand, symmetryBand, airBand, textureBand, orientationOf,
-    fateDetail,
+    geometryBand, fateDetail,
 } from '../output/derive';
 import { primaryTrait, traitRarity, fateRarity, colorRarity, overallRarity } from '../output/rarity';
 
@@ -79,6 +80,15 @@ export interface PlayBeat {
 const last: Record<string, number> = {};
 let lastPolarity: 'dark' | 'light' | null = null;
 let lastSurface: SurfaceKind | null = null;
+/** Sometimes the cold open deliberately WAITS a beat — the viewer walks into a
+ *  room already mid-show instead of being greeted at the door every time. */
+let coldDeferred = false;
+let coldOpened = false;
+/** Celestia's live call, if one is out (see PROPHECIES). */
+let prophecy: Prophecy | null = null;
+let prophecyArmedAt = 0;
+/** Queued running-gag callbacks (see FOLLOWUPS). */
+const followupQueue: { dueAt: number; who: string; text: string }[] = [];
 
 function cooled(key: string, ms: number): boolean {
     return Date.now() - (last[key] ?? 0) >= ms;
@@ -88,7 +98,16 @@ function stamp(key: string): void {
 }
 
 const rand = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
-const beatGap = () => 2800 + Math.round(Math.random() * 1400);
+
+/** Conversational timing (2026-08-03): the pause BEFORE a beat scales with the
+ *  length of what's coming — a two-word retort lands fast, a long take needs a
+ *  breath first. One fixed metronome gap was a big part of the "formulaic"
+ *  read; real rooms answer at the speed of the answer. */
+function gapFor(text: string): number {
+    const think = 900 + text.length * 42;
+    const clamped = Math.min(4600, Math.max(1500, think));
+    return Math.round(clamped * (0.85 + Math.random() * 0.3));
+}
 
 /* ── the cast's read of the piece (band words, matching the sheet) ──── */
 
@@ -124,6 +143,7 @@ function buildSight(p: PieceInView): Sight {
         texture: fp ? textureBand(fp.texture) : null,
         tone: fp ? toneMood(fp.brightness, fp.saturation) : null,
         orientation: fp ? orientationOf(fp.aspect) || null : null,
+        geometry: fp?.geometry != null ? geometryBand(fp.geometry) : null,
         rarity,
         scene: fp?.scene ?? null,
         shapeCount: fp?.shapeCount ?? 0,
@@ -203,9 +223,16 @@ function single(who: string, text: string, f: FillCtx): PlayBeat[] {
     return [{ who, text: fill(text, f), gapMs: 0 }];
 }
 
-function playExchange(x: Exchange, f: FillCtx): PlayBeat[] {
+function playExchange(x: Exchange | { id: string; beats: { who: string; text: string }[] }, f: FillCtx): PlayBeat[] {
     markUsed(`x:${x.id}`);
-    return x.beats.map((b, i) => ({ who: b.who, text: fill(b.text, f), gapMs: i === 0 ? 0 : beatGap() }));
+    // A scene with follow-up material seeds the running-gag queue: a one-liner
+    // that calls back to this bit lands a few minutes from now.
+    const fu = FOLLOWUPS[x.id];
+    if (fu?.length && followupQueue.length < 4) {
+        const pick = rand(fu);
+        followupQueue.push({ dueAt: Date.now() + 110000 + Math.random() * 140000, who: pick.who, text: pick.text });
+    }
+    return x.beats.map((b, i) => ({ who: b.who, text: fill(b.text, f), gapMs: i === 0 ? 0 : gapFor(b.text) }));
 }
 
 /** Pick a line from a per-character pool for any idle character. */
@@ -311,6 +338,37 @@ export function directorTick(ctx: DirectorCtx): PlayBeat[] | null {
         }
     }
 
+    /* 1.5 — Celestia's call (2026-08-03). Payoff first: a piece matching her
+       standing prophecy just landed in front of the viewer — she collects,
+       about the ACTUAL piece, by name. The delay guard keeps it feeling like
+       fate instead of an echo. */
+    if (prophecy && sight && Date.now() - prophecyArmedAt > 45000
+        && prophecy.test(sight) && !ctx.activeIds.has('celestia')) {
+        const word = prophecy.word;
+        prophecy = null;
+        const beats = single('celestia', rand(PROPHECY_HIT).replace(/\{thing\}/g, word), f);
+        const witnesses = PROPHECY_WITNESS.filter((w) => !ctx.activeIds.has(w.who));
+        if (witnesses.length && Math.random() < 0.6) {
+            const w = rand(witnesses);
+            beats.push({ who: w.who, text: w.text, gapMs: gapFor(w.text) });
+        }
+        return beats;
+    }
+    /* Arming — once a session, a little way in, she names a quality out loud.
+       If the session never produces a match, the call dies silently. */
+    if (!prophecy && facts.minutesIn >= 1 && Math.random() < 0.25
+        && !ctx.activeIds.has('celestia') && fireOnce('prophecy')) {
+        const unfired = PROPHECIES.filter((p) => (!sight || !p.test(sight)) && !isUsed(`proph:${p.key}`));
+        const pool = unfired.length ? unfired : PROPHECIES.filter((p) => !sight || !p.test(sight));
+        const p = pool.length ? rand(pool) : null;
+        if (p) {
+            prophecy = p;
+            prophecyArmedAt = Date.now();
+            markUsed(`proph:${p.key}`);
+            return single('celestia', rand(PROPHECY_ARM).replace(/\{thing\}/g, p.word), f);
+        }
+    }
+
     /* 2 — a queued moment: streak, revisit, or an adoption. */
     const ev = nextEvent();
     if (ev?.adoption) {
@@ -353,20 +411,37 @@ export function directorTick(ctx: DirectorCtx): PlayBeat[] | null {
     }
     lastPolarity = ctx.polarity;
 
-    /* 4 — the cold open. */
-    if (fireOnce('coldopen')) {
-        if (facts.sessionNumber <= 1) {
-            const x = EXCHANGES.find((e) => e.id === 'x-newface');
-            if (x) return playExchange(x, f);
-        } else if (facts.isReturning) {
-            if (facts.lastObsession && Math.random() < 0.6) {
-                const x = EXCHANGES.find((e) => e.id === 'x-back-obsession');
-                if (x) return playExchange(x, f);
+    /* 4 — the cold open, rebuilt (2026-08-03): a gated BANK instead of three
+       fixed scenes — the arrival's hour, visit count, landing page, obsession
+       and name all shape which greeting plays, and the used-ledger keeps
+       consecutive logins from replaying last night's. Sometimes it defers a
+       tick on purpose, so the viewer walks in on a room already mid-show
+       instead of being met at the door every single time. */
+    if (!coldOpened) {
+        if (!coldDeferred && Math.random() < 0.3) {
+            coldDeferred = true; // let one ordinary moment play first
+        } else {
+            coldOpened = true;
+            if (facts.sessionNumber <= 1 || facts.isReturning) {
+                const oc: OpenCtx = {
+                    hour: ctx.hour,
+                    sessionNumber: facts.sessionNumber,
+                    isReturning: facts.isReturning,
+                    hasObsession: !!facts.lastObsession,
+                    stageKind: ctx.stage.kind,
+                    hasName: !!ctx.name,
+                };
+                const pool = COLD_OPENS.filter((o) =>
+                    (!o.when || o.when(oc))
+                    && !o.beats.some((b) => ctx.activeIds.has(b.who))
+                    && !o.beats.some((b) => b.text.includes('{name}') && !ctx.name)
+                    && !o.beats.some((b) => b.text.includes('{obsession}') && !facts.lastObsession)
+                    && !o.beats.some((b) => b.text.includes('{piece}') && !ctx.piece));
+                const open = freshest(pool, (o) => `x:${o.id}`);
+                if (open) return playExchange(open, { ...f, n: facts.sessionNumber });
             }
-            const x = EXCHANGES.find((e) => e.id === 'x-back-file');
-            if (x) return playExchange(x, f);
+            // mid-gap return (same session resumed) — fall through to the roll
         }
-        // mid-gap return (same session resumed) — fall through to the roll
     }
 
     /* 5 — boredom / pacing. */
@@ -383,6 +458,15 @@ export function directorTick(ctx: DirectorCtx): PlayBeat[] | null {
         stamp('pacing');
         const beats = fromPool(PACING, ctx, f);
         if (beats) return beats;
+    }
+
+    /* 5.5 — a running-gag callback comes due: the room remembers its own bits
+       (the chili gets finished, the open bet stays open — see FOLLOWUPS). */
+    while (followupQueue.length && Date.now() - followupQueue[0].dueAt > 600000) followupQueue.shift();
+    const fuIdx = followupQueue.findIndex((q) => q.dueAt <= Date.now() && !ctx.activeIds.has(q.who));
+    if (fuIdx >= 0) {
+        const q = followupQueue.splice(fuIdx, 1)[0];
+        return [{ who: q.who, text: fill(q.text, f), gapMs: 0 }];
     }
 
     /* Night / morning colour — an occasional seasoning, not a category. */
@@ -533,7 +617,7 @@ function duetBeat(ctx: DirectorCtx, sight: Sight | null, f: FillCtx): PlayBeat[]
     markUsed(`duet-r:${lineKey(reply.who, reply.text)}`);
     return [
         { who: opener.who, text: fill(opener.text, f), gapMs: 0 },
-        { who: reply.who, text: fill(reply.text, f), gapMs: beatGap() },
+        { who: reply.who, text: fill(reply.text, f), gapMs: gapFor(reply.text) },
     ];
 }
 

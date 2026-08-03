@@ -93,6 +93,11 @@ export function NpcCast() {
     nameRef.current = viewerName;
 
     const [active, setActive] = useState<Record<string, boolean>>({});
+    /* Exit phase — after the hold, the bubble plays its per-character EXIT
+       motion (the reverse signature) before clearing, so who's leaving reads
+       from the corner of your eye the same way who's arriving does. */
+    const [leaving, setLeaving] = useState<Record<string, boolean>>({});
+    const leaveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
     const [lineFor, setLineFor] = useState<Record<string, string>>({});
     /* Small per-speak offset around each resident's home so the bubble doesn't
        land in the exact same spot every time. */
@@ -186,6 +191,8 @@ export function NpcCast() {
             mutedRef.current = new Set([...mutedRef.current, id]);
             activeRef.current = { ...activeRef.current, [id]: false };
             setActive((p) => ({ ...p, [id]: false }));
+            if (leaveTimers.current[id]) { clearTimeout(leaveTimers.current[id]); delete leaveTimers.current[id]; }
+            setLeaving((p) => ({ ...p, [id]: false }));
             if (timers[id]) { clearTimeout(timers[id]); delete timers[id]; }
             const name = CAST.find((c) => c.id === id)?.name ?? id;
             showToast(`${name}: MUTED`);
@@ -233,6 +240,8 @@ export function NpcCast() {
 
         const show = (id: string, line: string) => {
             if (mutedRef.current.has(id)) return; // the muted stay muted, mid-scene too
+            if (leaveTimers.current[id]) { clearTimeout(leaveTimers.current[id]); delete leaveTimers.current[id]; }
+            setLeaving((p) => ({ ...p, [id]: false }));
             setLineFor((lf) => ({ ...lf, [id]: line }));
             setJitter((jt) => ({
                 ...jt,
@@ -245,6 +254,13 @@ export function NpcCast() {
                 activeRef.current = { ...activeRef.current, [id]: false };
                 setActive((p) => ({ ...p, [id]: false }));
                 delete timers[id];
+                // Hand off to the exit animation, then clear the phase.
+                setLeaving((p) => ({ ...p, [id]: true }));
+                if (leaveTimers.current[id]) clearTimeout(leaveTimers.current[id]);
+                leaveTimers.current[id] = setTimeout(() => {
+                    setLeaving((p) => ({ ...p, [id]: false }));
+                    delete leaveTimers.current[id];
+                }, 1200);
             }, BUBBLE_HOLD_MS);
         };
 
@@ -362,7 +378,10 @@ export function NpcCast() {
         });
 
         setPolarity(readPolarity());
-        scheduleTick(3000); // first sign of life (the director cold-opens)
+        /* First sign of life — VARIED (2026-08-03): a fixed 3s meant every load
+           opened on the same beat of the same clock. Now the room takes its
+           own time waking up. */
+        scheduleTick(2600 + Math.random() * 4200);
 
         return () => {
             clearTimeout(tickTimer);
@@ -371,6 +390,8 @@ export function NpcCast() {
             cancelPress();
             beatTimers.forEach(clearTimeout);
             Object.values(timers).forEach(clearTimeout);
+            Object.values(leaveTimers.current).forEach(clearTimeout);
+            leaveTimers.current = {};
             hideTimers.current = {};
             activeRef.current = {};
             window.removeEventListener('pointerdown', onPointerDown);
@@ -404,14 +425,16 @@ export function NpcCast() {
         // box yields a rect per line.
         const inner = (m?.firstElementChild as HTMLSpanElement | null) ?? null;
         if (!m || !inner || typeof window === 'undefined') return;
-        const cap = Math.min(152, window.innerWidth * 0.52);
-        const padX = 22; // must match .npc-bubble horizontal padding (11px * 2)
-        m.style.fontSize = '15px';
+        const cap = Math.min(138, window.innerWidth * 0.48);
+        const padX = 18; // must match .npc-bubble horizontal padding (9px * 2)
+        m.style.fontSize = '13px';
         for (const c of CAST) {
             const el = bubbleRefs.current[c.id];
             if (!el) continue;
             const text = lineFor[c.id];
-            if (!active[c.id] || !text) {
+            // A leaving bubble keeps its measured width so the exit motion
+            // plays on the same box the viewer was just reading.
+            if ((!active[c.id] && !leaving[c.id]) || !text) {
                 el.style.width = '';
                 continue;
             }
@@ -430,7 +453,7 @@ export function NpcCast() {
             }
             el.style.width = `${lo + padX}px`;
         }
-    }, [active, lineFor]);
+    }, [active, leaving, lineFor]);
 
     if (!on) return null;
 
@@ -455,7 +478,7 @@ export function NpcCast() {
                 return (
                 <div
                     key={c.id}
-                    className={`npc-resident ${wall}${active[c.id] ? ' active' : ''}`}
+                    className={`npc-resident ${wall}${active[c.id] ? ' active' : ''}${leaving[c.id] ? ' leaving' : ''}`}
                     style={rStyle}
                 >
                     <span className="npc-name">{c.name}</span>
