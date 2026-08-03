@@ -118,6 +118,23 @@ win** — update this file in place and note it.
 > is the failure, not the length of the work. There is no message important
 > enough, no task complex enough, and no thinking deep enough to justify
 > leaving Brendon staring at nothing.
+>
+> **⛔ HARDENED AGAIN 2026-08-03 (Brendon, in fury, after a session went dark
+> mid-investigation and then surfaced with an unexplained conclusion + a push:
+> "ALWAYS FUCKING EXPLAIN YOURSELF AND ALWAYS ANSWER ME WHEN I HAVE QUESTIONS
+> AND ALWAYS ALWAYS RESPOND BEFORE WORKING".)** Three laws, permanent:
+> - **RESPOND BEFORE WORKING, EVERY SINGLE MESSAGE** — so he KNOWS the message
+>   landed. No exception for urgency, for a hot bug, for a broken deploy, for
+>   anything. During a LONG dig, keep talking: a one-line status between steps
+>   ("the live app is stale — finding where the deploy broke") beats any
+>   amount of silent progress.
+> - **ALWAYS ANSWER HIS QUESTION, LITERALLY AND FIRST.** A question in his
+>   message gets its answer in the first sentence of the reply — before status,
+>   before findings, before anything.
+> - **ALWAYS EXPLAIN YOURSELF.** Never surface a conclusion without the story
+>   that led to it, in plain English, in order: what you saw → what it means →
+>   what you did / are about to do. A correct answer delivered incoherently
+>   reads as broken and costs the same trust as being wrong.
 
 > **⛔ RULE #-0.9 — A SPOT EDIT IS A SPOT EDIT: FAST, EFFICIENT, DONE. ZERO
 > EXCEPTIONS. (Brendon, 2026-07-29 — after three CSS nudges turned into a
@@ -406,6 +423,11 @@ contract that keeps it working:
   **docs/process only** — `CLAUDE.md`, `docs/`, `docs/WIP.md`, `.claude/` hooks
   & settings — are pre-approved: just push and note it. Committing locally never
   needs approval; the gate is the app-touching push.
+  **⛔ NEVER FAST-AND-LOOSE WITH A PUSH (Brendon, 2026-08-03, in fury).**
+  Pre-approved does NOT mean unannounced. EVERY push — docs included — is SAID
+  OUT LOUD in the reply BEFORE it happens: what's going out and why, in plain
+  English, so Brendon is never surprised by something landing on `dev`. A push
+  he learns about after the fact is the violation, whatever the file type.
 - **Clean up the mess FIRST, then update `docs/WIP.md` LAST (Brendon, hard rule).**
   Before writing the baton: resolve the working tree (commit/strip/verify clean —
   `git status` clean, no stale-index leftovers on `dev`), so the WIP describes the
