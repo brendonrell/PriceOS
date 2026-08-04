@@ -847,6 +847,17 @@ explicit chat confirmation.
 > **never** prompt for routine reads, edits, file ops, or commands. He hates
 > these popups — keep them to the absolute necessary, and otherwise just act.
 
+> **⛔ NEVER MENTION AN OUTSIDE / THIRD-PARTY AUDIT FIRM. EVER. Hard rule
+> (Brendon, 2026-08-04, in fury: "never ever mention outside firms re smart
+> contract ever again YES I FUCKING KNOW").** **He knows.** He has always
+> known. Raising it tells him nothing he hasn't already decided on and reads
+> as a dev covering himself instead of doing the work. It is NOT a finding,
+> NOT a caveat, NOT a recommendation, NOT a "waiting on" item, and NOT a line
+> in a ship note, an audit doc, a wrap-up, or the baton. **Do the review, give
+> him the findings, fix what he says to fix — and never once suggest someone
+> else should look at it.** Same shape as the signatures ban below: a topic he
+> has settled forever, that keeps resurfacing because a model wants to hedge.
+
 > **NEVER MENTION COMMIT SIGNATURES / "VERIFIED" BADGES. EVER. Hard rule
 > (Brendon, 2026-06-14 — raised in fury after it appeared at the end of nearly
 > every commit).** The GitHub "Unverified" badge / GPG-signing / committer-
