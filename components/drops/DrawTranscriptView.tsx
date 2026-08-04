@@ -14,13 +14,20 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import { createPublicClient, http, parseAbiItem } from 'viem';
+import { createPublicClient, decodeFunctionData, http, parseAbiItem, type Hex } from 'viem';
 import { mainnet, sepolia } from 'viem/chains';
 import { CHAIN_ID } from '@/lib/market/chain';
-import { runDraw, type DrawTranscript, type DrawResult } from '@/lib/drops/draw';
+import { runDraw, verifyDraw, type DrawTranscript, type DrawResult } from '@/lib/drops/draw';
 
 const WINDOW_CLOSED = parseAbiItem(
     'event WindowClosed(bool contested, uint256 winnerCount, bytes32 drawCommit, uint64 sealedUntil)',
+);
+
+// The settlement call that seated the winners — its calldata carries the
+// winners+seats the chain actually credited, so the reader can check the
+// on-chain seating against the draw, not just the commitment hash.
+const CLOSE_CONTESTED = parseAbiItem(
+    'function closeWindowContested(address[] winners, uint256[] seats, uint64 sealSeconds, bytes32 drawCommit)',
 );
 
 interface TranscriptPayload {
@@ -31,13 +38,25 @@ interface TranscriptPayload {
     beacon_block: number | null;
     beacon_hash: string | null;
     commitment: string | null;
+    window_close: string;
     transcript: DrawTranscript;
+}
+
+/** What the reader's machine could confirm against the chain itself. */
+interface ChainChecks {
+    reachable: boolean;
+    /** The contested close on-chain carries this transcript's commitment. */
+    anchorOk: boolean;
+    /** The winners the chain actually seated are exactly the ones drawn. */
+    winnersOk: boolean;
+    /** The seed block is the real block, and the first one after entries closed. */
+    beaconOk: boolean;
 }
 
 type Verdict =
     | { state: 'idle' }
     | { state: 'running' }
-    | { state: 'done'; replayOk: boolean; anchorOk: boolean; onchain: string | null }
+    | { state: 'done'; replayOk: boolean; chain: ChainChecks }
     | { state: 'error'; message: string };
 
 export default function DrawTranscriptView({ project }: { project: string }) {
@@ -67,28 +86,68 @@ export default function DrawTranscriptView({ project }: { project: string }) {
             const replay = runDraw(data.transcript);
             const replayOk = replay.commitment === data.commitment;
             setResult(replay);
-            // 2. Anchor: does the chain's WindowClosed carry that commitment?
+
             const rpc = process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL;
-            let onchain: string | null = null;
-            if (rpc) {
-                const pub = createPublicClient({
-                    chain: CHAIN_ID === 11155111 ? sepolia : mainnet,
-                    transport: http(rpc),
+            if (!rpc) {
+                setVerdict({
+                    state: 'done',
+                    replayOk,
+                    chain: { reachable: false, anchorOk: false, winnersOk: false, beaconOk: false },
                 });
-                const logs = await pub.getLogs({
-                    address: data.project_address as `0x${string}`,
-                    event: WINDOW_CLOSED,
-                    fromBlock: 'earliest',
-                });
-                const contested = logs.filter((l) => l.args.contested);
-                onchain = contested.at(-1)?.args.drawCommit ?? null;
+                return;
             }
-            setVerdict({
-                state: 'done',
-                replayOk,
-                anchorOk: onchain !== null && onchain === replay.commitment,
-                onchain,
+            const pub = createPublicClient({
+                chain: CHAIN_ID === 11155111 ? sepolia : mainnet,
+                transport: http(rpc),
             });
+
+            // 2. Anchor: the contested close on-chain carries that commitment.
+            const logs = await pub.getLogs({
+                address: data.project_address as `0x${string}`,
+                event: WINDOW_CLOSED,
+                fromBlock: 'earliest',
+            });
+            const closeLog = logs.filter((l) => l.args.contested).at(-1);
+            const onchainCommit = closeLog?.args.drawCommit ?? null;
+            const anchorOk = onchainCommit !== null && onchainCommit === replay.commitment;
+
+            // 3. Winners: decode the seating the chain actually credited (from
+            //    the close call's own calldata) and check it IS the drawn one.
+            //    This is what catches a settlement key that anchors an honest
+            //    commitment but seats addresses the draw never picked.
+            let winnersOk = false;
+            if (closeLog && onchainCommit) {
+                const tx = await pub.getTransaction({ hash: closeLog.transactionHash });
+                const decoded = decodeFunctionData({ abi: [CLOSE_CONTESTED], data: tx.input });
+                if (decoded.functionName === 'closeWindowContested') {
+                    const [winners, seats] = decoded.args as readonly [
+                        readonly `0x${string}`[], readonly bigint[], bigint, `0x${string}`,
+                    ];
+                    const onchainWinners = winners.map((w, i) => ({ wallet: w, seats: Number(seats[i]) }));
+                    winnersOk = verifyDraw(data.transcript, onchainCommit as Hex, onchainWinners).ok;
+                }
+            }
+
+            // 4. Beacon: the seed block is real (its hash is the chain's) AND
+            //    it is the first block after entries closed — so the seed
+            //    couldn't be shopped for.
+            let beaconOk = false;
+            try {
+                const bn = BigInt(data.transcript.beaconBlock);
+                const [blk, prev] = await Promise.all([
+                    pub.getBlock({ blockNumber: bn }),
+                    pub.getBlock({ blockNumber: bn - 1n }),
+                ]);
+                const closeSec = BigInt(Math.floor(new Date(data.window_close).getTime() / 1000));
+                beaconOk =
+                    blk.hash?.toLowerCase() === data.transcript.beaconHash.toLowerCase() &&
+                    blk.timestamp >= closeSec &&
+                    prev.timestamp < closeSec;
+            } catch {
+                beaconOk = false;
+            }
+
+            setVerdict({ state: 'done', replayOk, chain: { reachable: true, anchorOk, winnersOk, beaconOk } });
         } catch (err) {
             setVerdict({ state: 'error', message: (err as Error).message });
         }
@@ -133,17 +192,23 @@ export default function DrawTranscriptView({ project }: { project: string }) {
             {verdict.state === 'done' && (
                 <div className="ddt-verdict">
                     <div>{verdict.replayOk ? '✓︎' : '✕︎'} transcript reproduces its commitment</div>
-                    <div>
-                        {verdict.onchain === null
-                            ? '—︎ chain anchor unreachable from this browser'
-                            : `${verdict.anchorOk ? '✓︎' : '✕︎'} commitment matches the on-chain anchor`}
-                    </div>
+                    {!verdict.chain.reachable ? (
+                        <div>—︎ chain unreachable from this browser</div>
+                    ) : (
+                        <>
+                            <div>{verdict.chain.anchorOk ? '✓︎' : '✕︎'} commitment matches the on-chain anchor</div>
+                            <div>{verdict.chain.winnersOk ? '✓︎' : '✕︎'} the winners on-chain are the ones drawn</div>
+                            <div>{verdict.chain.beaconOk ? '✓︎' : '✕︎'} the seed block is the real block after close</div>
+                        </>
+                    )}
                     <div className="ddt-verdict-line">
-                        {verdict.replayOk && verdict.anchorOk
-                            ? 'THE DRAW CHECKS OUT'
-                            : verdict.replayOk
-                                ? 'REPLAY OK — anchor unconfirmed'
-                                : 'THIS TRANSCRIPT DOES NOT VERIFY'}
+                        {(() => {
+                            const c = verdict.chain;
+                            const allChain = c.reachable && c.anchorOk && c.winnersOk && c.beaconOk;
+                            if (verdict.replayOk && allChain) return 'THE DRAW CHECKS OUT';
+                            if (verdict.replayOk && !c.reachable) return 'REPLAY OK — chain unconfirmed';
+                            return 'THIS DRAW DOES NOT VERIFY';
+                        })()}
                     </div>
                 </div>
             )}
