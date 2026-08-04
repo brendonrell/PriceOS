@@ -1,11 +1,17 @@
 /*
  * /api/drops/[project]/enter — entry collection during the window.
  *
- * POST: the mint tap's held order. Body { signedOrder, seats? }. The order
- * is a COMPLETE pre-signed mint transaction the app holds — "a signed
- * instruction, never funds". One order per wallet per drop, enforced by the
- * table's unique key; a second tap is a 409, not a replacement (nothing
- * about the moment is gameable, including re-entering).
+ * POST: the mint tap's held order. Body { signedOrder }. The order is a
+ * COMPLETE pre-signed mint transaction the app holds — "a signed instruction,
+ * never funds". One order per wallet per drop, enforced by the table's unique
+ * key; a second tap is a 409, not a replacement (nothing about the moment is
+ * gameable, including re-entering).
+ *
+ * SEATS ARE DERIVED, NEVER DECLARED. The seat count sets the wallet's draw
+ * weight and becomes its on-chain mint allowance, so it is read out of the
+ * signed order itself (lib/drops/order.ts) — which must be this chain's, aimed
+ * at this project, signed by this session's wallet, and calling mint(quantity).
+ * Any `seats` in the body is ignored.
  *
  * Entries are SIMULTANEOUS: the response carries nothing positional — no
  * entry number, no count, no queue place — and arrival time is never
@@ -17,6 +23,7 @@ import { NextResponse } from 'next/server';
 import { getSupabaseService } from '@/lib/supabase';
 import { requireAuth } from '@/lib/auth/siwe';
 import { badRequest, notFound, serverError } from '@/lib/errors';
+import { OrderRejected, verifyOrder } from '@/lib/drops/order';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,12 +39,21 @@ export const POST = requireAuth<{ project: string }>(async (req, ctx, address) =
         return badRequest('body must be JSON');
     }
     const signedOrder = body.signedOrder ?? '';
-    const seats = body.seats ?? 1;
     if (!ORDER_RE.test(signedOrder) || signedOrder.length > MAX_ORDER_BYTES * 2 + 2) {
         return badRequest('signedOrder must be a 0x transaction');
     }
-    if (!Number.isInteger(seats) || seats < 1 || seats > 10) {
-        return badRequest('seats must be 1–10');
+
+    // The order's own testimony decides the seats — see the header note.
+    let seats: number;
+    try {
+        ({ seats } = await verifyOrder({
+            signedOrder: signedOrder as `0x${string}`,
+            project,
+            wallet: address,
+        }));
+    } catch (err) {
+        if (err instanceof OrderRejected) return badRequest(err.message);
+        return serverError(err instanceof Error ? err.message : 'could not read the order');
     }
 
     const db = getSupabaseService();
