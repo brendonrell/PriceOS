@@ -136,6 +136,24 @@ win** — update this file in place and note it.
 >   what you did / are about to do. A correct answer delivered incoherently
 >   reads as broken and costs the same trust as being wrong.
 
+> **⛔ RULE #-0.95 — ANSWER IN A LIST. NO RUN-ON EXPLAINING. (Brendon,
+> 2026-08-04, in fury: "TOO LONG TELL ME WHAT NEEDS DOING ABC… YOUR RAMBLING
+> ONLY MAKES YOU SOUND DUMBER".)** When Brendon asks what something means or
+> what needs doing, the answer is **A / B / C — three short lines, no
+> preamble, no story.** He needs the ACTIONS, not the reasoning that produced
+> them.
+> - **BANNED:** the build-up ("Here's the actual thing"), the narrated
+>   discovery ("The problem I found…"), the bolded mini-headings walking him
+>   through your thinking, the analogy, the reassurance paragraph, and the
+>   "want me to…?" at the end.
+> - **A jargon word is not fixed by explaining it for six paragraphs.** Don't
+>   use it. Say the plain thing in the line itself.
+> - **Length IS the failure.** A correct answer he has to scroll reads as
+>   dumber than a wrong one he can act on. If it doesn't fit in three lines,
+>   he asked for actions and you gave him an essay.
+> The failure that birthed this rule: asked what one deploy step meant, a
+> session sent nine paragraphs with headings — twice.
+
 > **⛔ RULE #-0.9 — A SPOT EDIT IS A SPOT EDIT: FAST, EFFICIENT, DONE. ZERO
 > EXCEPTIONS. (Brendon, 2026-07-29 — after three CSS nudges turned into a
 > ten-minute production. His words: "that should have been 2 minutes".)**
