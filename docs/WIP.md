@@ -29,7 +29,36 @@ alongside `SETTLEMENT_KEY`, then propose from admin + accept from that wallet.
 Also new: rotating the platform or storage-fee wallet now needs **≥1 wei sent
 from the accepting wallet** (bounced back same transaction).
 
-✅ **2026-08-04 (LATEST) — FULL-STACK SECURITY REVIEW + SIX FIXES**
+✅ **2026-08-05 (LATEST) — THE FINAL DOCS POLISH** (on `dev`, tip `7109382`,
+tree clean; his ask: "the ultimate final docs pass… don't spare tokens", push
+pre-approved in the same message; ClickUp `86bb8w1d2`). App declared feature
+complete by Brendon — polish only from here. All 78 docs pages read in full,
+every claim checked against the shipped app + finalized contracts:
+
+- **Spot edit:** the docs header ⌕ one size smaller (20 → 19px, that icon
+  only — second notch after 2026-08-02).
+- **Contracts pages carry the 2026-08-04 security round:** the factory's
+  FIFTH key (dedicated `attestationKey` for keychain luck/polish — docs no
+  longer say settlement key anywhere), receive-proof wallet rotation, the
+  15-minute crank-attestation ceiling, keychain dust rescue, FIXED-sheet
+  restock/mode freeze while sealed copies are out, 403 → **417 tests**.
+- **Glyph truth pass** (each verified in the shipped pills first): Replay ⏴
+  (docs + Atlas wore the shuffle ⟳) · Atlas: Grail Pin ⟟, Hammer ⟙ (+2 docs
+  pages said ᚦ — appears nowhere in the app), Stargazing ⍟, Arbitrage ⇄,
+  Tarot ▯▯▯ · Rank category ❂ (achievements page + GLYPHS.md's own stale
+  table cell) · Depanneur ☯ with doors keeping ⚷.
+- **Behaviour truth:** achievements = quiet rolled row, no toast/push (the
+  dead "sparkle on unlock" sound claim removed); keychain hang = worn pool →
+  top three → SHUFFLE (was "equip one"); profile row's glyph-only ⚑ + ⇌
+  documented; persona tags colour-only; WIDE stated as gone/always-fit;
+  Suite page gains **PriceCalm** + the real nine faces; Trade pings row +
+  the stone's `artcoins` hand added; terms no longer file stickers as
+  forever-off-chain; glossary alphabetized. Edited pages stamped
+  2026-08-05; the docs link-checker verified green before push.
+- Left alone on purpose: the MCP page documents the repo's server (the live
+  worker runs the older 7-tool build until `86bb4wzn5`'s wrangler deploy).
+
+✅ **2026-08-04 — FULL-STACK SECURITY REVIEW + SIX FIXES**
 (contracts on `claude/smart-contract-security-review-pbbpmb` tip `3030852`;
 app on `dev` tip `a0adbcb`; both trees clean, 417 contract tests green, size
 gate green, app type-check clean; his "Build and push them" in chat). Global
