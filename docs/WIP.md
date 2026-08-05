@@ -29,7 +29,34 @@ alongside `SETTLEMENT_KEY`, then propose from admin + accept from that wallet.
 Also new: rotating the platform or storage-fee wallet now needs **≥1 wei sent
 from the accepting wallet** (bounced back same transaction).
 
-✅ **2026-08-05 (LATEST) — THE FINAL DOCS POLISH** (on `dev`, tip `7109382`,
+✅ **2026-08-05 (LATEST, SECOND ROUND) — ⓘ DOCS DOORS · LANGUAGE PILL ·
+THE DOCS WOW PASS** (on `dev`, tip `c666a40`, tree clean, type-check clean;
+his ask + push pre-approved in one message; ClickUp `86bb8wauw`):
+
+- **ⓘ docs door (his pick, U+24D8 — screened, catalogued in GLYPHS §12n):**
+  opens the surface's own manual page from inside the **Depanneur, the
+  Exchange trade window, and the Sticker Exchange header — THOSE THREE ONLY,
+  for now.** Adding it anywhere else is his call per surface. Each door
+  dresses to match the × beside it.
+- **Language facet pill: glyph-only `{` (the grouping brace), moved to sit
+  RIGHT BEFORE the Fate pill** in all three facet orders (home Now Minting ·
+  profile Collected · artist showcase). Fate stays pinned last.
+- **The wow pass, all five ideas, his "add ALL":** NEW *When Something Looks
+  Wrong* (13 panics pre-answered, Reference) · NEW *Your First Hour*
+  (collector checklist + artist edition, Start Here) · NEW *What's New*
+  (newest-first highlights, Start Here) · "What your wallet will show you"
+  boxes on minting / secondary / the drop tap · the ⓘ doors above. Nav wired
+  without touching the settled section order; the docs link-checker now
+  knows /docs/features is real.
+- ⛔ **FYI flagged to Brendon, deliberately untouched:** the in-app
+  changelog modal (footer version tap) still serves an April prototype
+  snapshot (v1.0.44–46) — What's New was hand-written from the real ship
+  record instead of wiring to that stale data. Making the changelog real is
+  its own task, on his word.
+- **House ritual note: a session that ships user-facing features appends a
+  line to `content/docs/whats-new.md` in the same breath as ClickUp/WIP.**
+
+✅ **2026-08-05 (EARLIER) — THE FINAL DOCS POLISH** (on `dev`, tip `7109382`,
 tree clean; his ask: "the ultimate final docs pass… don't spare tokens", push
 pre-approved in the same message; ClickUp `86bb8w1d2`). App declared feature
 complete by Brendon — polish only from here. All 78 docs pages read in full,
