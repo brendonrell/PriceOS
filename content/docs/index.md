@@ -3,7 +3,7 @@ title: "Price Discussion Documentation"
 description: "Reference and onboarding for Price Discussion — the generative art platform where the community discussing prices is the product. The app, the smart contracts, and the $PRICE token."
 category: "introduction"
 keywords: ["price discussion", "priceos", "generative art", "ethereum", "documentation"]
-last_updated: "2026-07-17"
+last_updated: "2026-08-05"
 ---
 
 # Price Discussion Documentation
@@ -60,5 +60,8 @@ The PriceOS app and the contract suite are complete and running against Ethereum
 
 ## Further reading
 
-- [Glossary](/docs/reference/glossary) — definitions for Project, Output, Artwork, Token, @name, and the platform's distinctive vocabulary.
 - [Quickstart](/docs/quickstart) — five paths into PD, each under a minute of reading.
+- [Your First Hour](/docs/first-hour) — the checklist that turns a fresh wallet into a set-up PD life.
+- [What's New](/docs/whats-new) — the recent additions, newest first.
+- [When Something Looks Wrong](/docs/troubleshooting) — the predictable panics, pre-answered.
+- [Glossary](/docs/reference/glossary) — definitions for Project, Output, Artwork, Token, @name, and the platform's distinctive vocabulary.

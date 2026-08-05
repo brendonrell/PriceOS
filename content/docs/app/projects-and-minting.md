@@ -69,7 +69,9 @@ The stats row reads minted / volume / owners at a glance — tap the owners coun
 
 **How:** Tap the mint button on a minting Project's page; long-press it for the Mint Room.
 
-While a Project is minting, its page carries the mint button. The button itself shows live progress — from tap, through wallet confirmation, to the chain's answer — as a filling bar inside the control, so a mint never feels frozen. The wallet sheet shows the exact total (mint price plus the flat storage fee per Output); the contract accepts exact payment only. What happens on-chain is documented in [The Mint Flow](/docs/for-artists/the-mint-flow).
+While a Project is minting, its page carries the mint button. The button itself shows live progress — from tap, through wallet confirmation, to the chain's answer — as a filling bar inside the control, so a mint never feels frozen. What happens on-chain is documented in [The Mint Flow](/docs/for-artists/the-mint-flow).
+
+> **What your wallet will show you.** The sheet's total is exactly **mint price × quantity, plus the small flat storage fee per Output** (it funds the preview infrastructure) — and your wallet adds its own **network fee (gas)** line on top, which goes to Ethereum, not to PD. The contract accepts exact payment only: there is no tip, no hidden amount, and no overpayment path — if the total doesn't match, the whole mint refuses rather than taking a wei too much. The moment it confirms, the artist has already been paid their 95% inside your own transaction.
 
 **The Mint Room** — long-press the mint button and it blooms into the project's own listening room: the live crowd count, the shared supply bar, reaction sparks from everyone in the room, and the project soundtrack — with the real mint button at the center. Minting as an event, not a form.
 

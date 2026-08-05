@@ -3,7 +3,7 @@ title: "Fair Draw — Overview"
 description: "When more collectors want a drop than there are pieces, PD settles it with a human-speed race and a provably fair draw — no gas wars, no auctions, no allowlists, one tap."
 category: "fair-draw"
 keywords: ["fair draw", "contested mint", "drop", "mint window", "sniping", "bots", "the draw", "fair mint", "gas war"]
-last_updated: "2026-07-25"
+last_updated: "2026-08-05"
 ---
 
 # Fair Draw — Overview
@@ -52,6 +52,8 @@ Nothing new. You fly to the mint button like always:
 - **②&#xFE0E; The window** — everyone in the opening moment counts the same; being milliseconds faster buys nothing.
 - **③&#xFE0E; Quiet** — most drops: instant, indistinguishable from any mint you've ever done.
 - **④&#xFE0E; Contested** — the draw settles it in seconds; lose and your money never moved.
+
+> **What your wallet will show you.** One signature request, at the moment you tap: the exact piece and the exact payment — mint price plus the flat storage fee — authorized once. That signed order is all PD ever holds; **your money stays in your wallet** unless you win, in which case the order executes exactly as signed. Lose, and the order is torn up — nothing ever left, so there is nothing to refund.
 
 ## What PD never does
 

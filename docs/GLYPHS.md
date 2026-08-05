@@ -722,6 +722,21 @@ taste gets measured on the Fingerprint).
 > other characters stay internal: ⬣ the second stone, ≋ the raked sand —
 > ≋ also belongs to the colorway Haze family §7, never reuse it as a mark.)
 
+## 12n. The docs door — ⓘ (2026-08-05, Brendon's pick)
+
+| Use | Glyph | Codepoint |
+|---|---|---|
+| Docs door (in-app → the manual) | ⓘ | U+24D8 CIRCLED LATIN SMALL LETTER I |
+
+> Brendon's call ("the little i inside the circle glyph for our docs door"):
+> the in-app door to a surface's own docs page. Wears: the Depanneur, the
+> Exchange trade window, and the Sticker Exchange header — **those three
+> only, for now**; adding it anywhere else is his call per surface. Screened
+> by the sharpened §7 test: U+24D8 has no emoji mapping (the information
+> source ℹ U+2139 IS emoji-mapped and stays BANNED — never swap one for the
+> other). Grepped free repo-wide, raw + escaped, at pick time. VS-15 +
+> Courier per convention; each door styles itself to match the × beside it.
+
 ## 13. THE WAR — Factions glyphs (2026-07-13 build, spec v3.1 §11)
 
 One vocabulary across the ceremony, the tape, pings, the Book, and the

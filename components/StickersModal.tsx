@@ -317,6 +317,16 @@ export default function StickersModal() {
                                 <span className="ss-stat"><b>{ownedIds.length}</b> OWNED</span>
                                 <span className="ss-stat ss-bal"><b>{`◊${VS15}`}</b> {spent.toFixed(3)}</span>
                             </div>
+                            {/* ⓘ docs door — the sticker manual (Brendon, 2026-08-05). */}
+                            <a
+                                className="ss-docs-door"
+                                href="/docs/stickers/overview"
+                                data-native-nav=""
+                                title="Docs"
+                                aria-label="Open the Stickers docs"
+                            >
+                                {`ⓘ${VS15}`}
+                            </a>
                             <div
                                 className="ss-close"
                                 role="button"

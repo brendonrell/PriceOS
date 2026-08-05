@@ -43,7 +43,7 @@ const CONTENT_ROOT = path.join(process.cwd(), 'content', 'docs');
 const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
     {
         title: 'Start Here',
-        slugs: ['', 'quickstart'],
+        slugs: ['', 'quickstart', 'first-hour', 'whats-new'],
     },
     {
         title: 'Public & Private',
@@ -231,7 +231,7 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
     },
     {
         title: 'Reference',
-        slugs: ['reference/glossary', 'privacy-and-terms'],
+        slugs: ['troubleshooting', 'reference/glossary', 'privacy-and-terms'],
     },
 ];
 
@@ -315,6 +315,9 @@ export function getAllDocs(): DocPage[] {
        stayed green. A dead link inside our own docs now fails the build.
        Anchors (#…) and the markdown-parity .md twins are legitimate. */
     const known = new Set(manifestSlugs);
+    /* The Feature Atlas is a registry-driven page (spliced into the nav, no
+       .md on disk) but a perfectly real link target. */
+    known.add('features');
     const dead: string[] = [];
     for (const page of cache) {
         for (const [, href] of page.body.matchAll(/\]\((\/docs[^)\s]*)\)/g)) {

@@ -74,12 +74,15 @@ export type HomeSortDir = 'asc' | 'desc';
 /* Facet order = birth-order; Fate is pinned LAST as the hexagram pill (Brendon,
    2026-06-15), matching the project page. */
 export const HOME_FACETS = [
-    'Artist', 'Project', 'PriceDay', 'Sun', 'Moon', 'Rising', 'Language', 'Status', 'Fate',
+    'Artist', 'Project', 'PriceDay', 'Sun', 'Moon', 'Rising', 'Status', 'Language', 'Fate',
 ] as const;
 
 /* Fate's L1 pill wears the I Ching hexagram glyph (same as the project page's
    pill-fate-icon), not the word. */
 const FATE_GLYPH = '䷲︎';
+/* Language's L1 pill wears the code brace, glyph-only right before Fate
+   (Brendon, 2026-08-05) — the same { the grouping dimension uses. */
+const LANGUAGE_GLYPH = '{';
 
 /** A project's value for a facet — single source both the value pools and the
  *  predicate in HomePageBody read, so they can't diverge. */
@@ -310,7 +313,7 @@ export default function HomeProjectFacetBar({
                                     }}
                                     title={facet}
                                 >
-                                    <span className="stat-name">{isFate ? FATE_GLYPH : facet}</span>
+                                    <span className="stat-name">{isFate ? FATE_GLYPH : facet === 'Language' ? LANGUAGE_GLYPH : facet}</span>
                                     {count > 0 && <span className="badge">{count}</span>}
                                 </div>
                             );

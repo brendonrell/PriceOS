@@ -41,7 +41,7 @@ export interface ArtistProjStat {
 
 /* Artist showcase facets = the home set minus Artist + Project (redundant for a
    single artist); Created · Top 6 lead the row in their place. */
-export const ARTIST_SHOWCASE_FACETS = ['PriceDay', 'Sun', 'Moon', 'Rising', 'Language', 'Status', 'Fate'] as const;
+export const ARTIST_SHOWCASE_FACETS = ['PriceDay', 'Sun', 'Moon', 'Rising', 'Status', 'Language', 'Fate'] as const;
 
 /* A home activity-feed item for the artist showcase Created feed. */
 export interface ArtistFeedItem { slug: string; title: string; label: string; glyph: string; cls?: string; ts: number; seq: number }

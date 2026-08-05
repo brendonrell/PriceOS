@@ -688,3 +688,7 @@
     font-weight: bold;
     color: #C6CDD8;
 }
+
+/* ⓘ docs door — sits left of the ×, one size under it (Brendon, 2026-08-05).
+   Inherits the ambient-pop-close treatment; only position + size differ. */
+.dp-plus .dp-docs-door { right: 46px; top: 9px; font-size: 19px; text-decoration: none; }

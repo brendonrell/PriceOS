@@ -75,12 +75,15 @@ export interface EnrichedHolding {
 /* Facet order = birth-order. 'Status' is the live market facet (derived from
    listing presence), not a stored trait. */
 export const PROFILE_FACETS = [
-    'Artist', 'Project', 'PriceDay', 'Sun', 'Moon', 'Rising', 'Language', 'Status', 'Fate',
+    'Artist', 'Project', 'PriceDay', 'Sun', 'Moon', 'Rising', 'Status', 'Language', 'Fate',
 ] as const;
 
 /* Fate's L1 pill wears the I Ching hexagram glyph (matching the project page's
    pill-fate-icon), not the word. Pinned LAST (Brendon, 2026-06-15). */
 const FATE_GLYPH = '䷲︎';
+/* Language's L1 pill wears the code brace, glyph-only right before Fate
+   (Brendon, 2026-08-05) — the same { the grouping dimension uses. */
+const LANGUAGE_GLYPH = '{';
 
 /** An Output's value for a given facet — the single source both the bar (value
  *  pools) and the gallery predicate read, so they can never diverge. */
@@ -295,7 +298,7 @@ export default function ProfileFacetBar({
                                     }}
                                     title={facet}
                                 >
-                                    <span className="stat-name">{isFate ? FATE_GLYPH : facet}</span>
+                                    <span className="stat-name">{isFate ? FATE_GLYPH : facet === 'Language' ? LANGUAGE_GLYPH : facet}</span>
                                     {count > 0 && <span className="badge">{count}</span>}
                                 </div>
                             );

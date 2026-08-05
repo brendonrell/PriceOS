@@ -3,7 +3,7 @@ title: "For Collectors — The Secondary Market"
 description: "How PD Outputs trade after mint: PD's own market and offer book, Takeovers, third-party venues, the 5% EIP-2981 royalty, and how to verify authenticity before buying."
 category: "for-collectors"
 keywords: ["secondary market", "trading", "offers", "listings", "takeover", "royalties", "verification", "isProject"]
-last_updated: "2026-07-17"
+last_updated: "2026-08-05"
 ---
 
 # For Collectors — The Secondary Market
@@ -62,6 +62,8 @@ Full provenance — the original minter and the complete custody chain — is re
 ## What you pay
 
 The listing price, the venue's gas, and any venue-specific fee. The royalty comes out of the seller's proceeds, not on top of your price.
+
+> **What your wallet will show you.** Buying: the listing price, plus your wallet's own network-fee (gas) line — nothing else; the 5% royalty is carried by the seller's side, never added to yours. Selling: accepting an offer or filling a listing nets you the price **minus the 5%** (3% to the artist, 2% to the platform), and the split settles in the same transaction — there is no invoice later. Trades on [the Exchange](/docs/exchange) are the exception that costs nothing: barter moves no sale price, so no fee and no royalty, ever.
 
 ## Further reading
 

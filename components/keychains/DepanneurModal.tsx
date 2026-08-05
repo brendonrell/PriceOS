@@ -367,6 +367,18 @@ export default function DepanneurModal() {
                     <span className="ambient-pop-title-text">
                         <span className="smgr-title-words">THE DEPANNEUR</span>
                     </span>
+                    {/* ⓘ docs door — the Depanneur's own page in the manual
+                        (Brendon, 2026-08-05). Leaving for another room is the
+                        one legal way out of a modal besides × / Esc / backdrop. */}
+                    <a
+                        className="ambient-pop-close dp-docs-door"
+                        href="/docs/keychains/the-depanneur"
+                        data-native-nav=""
+                        title="Docs"
+                        aria-label="Open the Depanneur docs"
+                    >
+                        {`ⓘ${VS15}`}
+                    </a>
                     <span
                         className="ambient-pop-close"
                         role="button"

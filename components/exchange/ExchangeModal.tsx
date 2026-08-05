@@ -299,6 +299,8 @@ function ComposeFace({
         <>
             <div className="cart-panel-header">
                 <span className="cart-panel-title">{`⇌${VS15} THE EXCHANGE`}</span>
+                {/* ⓘ docs door — the Exchange's page in the manual (Brendon, 2026-08-05). */}
+                <a className="exch-docs-door" href="/docs/exchange" data-native-nav="" title="Docs" aria-label="Open the Exchange docs">{`ⓘ${VS15}`}</a>
                 <span className="cart-panel-close-x" role="button" tabIndex={0} onClick={onClose} title="Close">{`×${VS15}`}</span>
             </div>
             <div className="cart-items-list exch-body">

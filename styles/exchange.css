@@ -175,3 +175,20 @@
     opacity: 1;
 }
 .exch-wrap input::placeholder { opacity: 1; }
+
+/* ⓘ docs door — rides the trade window's header between the title and the ×
+   (Brendon, 2026-08-05). Auto margin lands it beside the close. */
+.exch-wrap .exch-docs-door {
+    margin-left: auto;
+    margin-right: 12px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 15px;
+    font-weight: bold;
+    line-height: 1;
+    color: var(--text-color);
+    text-decoration: none;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+    -webkit-tap-highlight-color: transparent;
+}
+.exch-wrap .exch-docs-door:hover { opacity: 1; }
