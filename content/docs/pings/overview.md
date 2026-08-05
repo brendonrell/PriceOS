@@ -3,7 +3,7 @@ title: "Pings — Overview"
 description: "PD's notification system in full: what earns a ping, the inbox and its read-by-scroll model, every glyph, and how pings reach your screen, your toasts, and your phone."
 category: "pings"
 keywords: ["pings", "notifications", "inbox", "unread", "push", "glyphs"]
-last_updated: "2026-07-17"
+last_updated: "2026-08-05"
 ---
 
 # Pings — Overview
@@ -24,9 +24,10 @@ This section is the complete manual: this page covers what fires and how the inb
 | Offer accepted / countered | ✶ | Your offer resolves, either direction |
 | Sold | ✦ | Your listed piece sells |
 | Transfer / gift | ✸ | A piece or sticker sheet moves to or from you |
+| Trade | ⇌ | Someone proposes a head-to-head [Exchange](/docs/exchange) trade, or yours resolves |
 | Wishlist hit | ✛ | A piece on your wishlist gets listed or sells |
 | Follow | ⚭ | Someone follows you or your project |
-| Achievement | ◍ | You unlock an achievement |
+| Achievement | ◍ | You unlock achievements — rolled into one row that keeps counting until you open it |
 | Streak | ◈ | A streak milestone lands |
 | Reminder | ❍ / ▦ | A to-do you dated comes due, or a calendar item's day arrives |
 | The Sentinel | ❍ | A BUY target you set gets hit — the live ask crosses under your ◊ price, even with the app closed |

@@ -3,7 +3,7 @@ title: "The App — The Spell Book"
 description: "Every spell documented: how to open the Spell Book (triple-tap MY PD), how spells stack, and what each of the 23 pills actually does — from Celestial Tracker to Tribunal to the ???? button."
 category: "app"
 keywords: ["spell book", "spells", "view modifiers", "panopticon", "tarot", "tribunal", "gossip", "sybil net"]
-last_updated: "2026-07-17"
+last_updated: "2026-08-05"
 ---
 
 # The App — The Spell Book
@@ -61,7 +61,7 @@ Spells are per-user and presentational — nothing here changes your data or any
 - **Offer Shield ⍲** — incoming offers under **half the collection floor** are silently kept out of your Pings. Casting it raises a visible ward. It fails open: if the floor can't be read, nothing is ever swallowed.
 - **Echo Chamber ≫** — mutuals only: pings and the artist roster filter to the people you follow who follow you back. The toast says what it means: `MUTUALS ONLY`.
 - **Deactivate ⊖** — the public ragequit, both halves. Visitors to your profile see an understated *account deactivated* shell — while you keep using PD normally, with a quiet cue that the veil is up. You also stop broadcasting to the Panopticon and Audience counts: one-way glass, you still see the room.
-- **The Hammer ᚦ** — the mute. Its badge counts what you've silenced. Always the last pill, by convention.
+- **The Hammer ⟙** — the mute. Its badge counts what you've silenced. Always the last pill, by convention.
 
 ## The cast
 

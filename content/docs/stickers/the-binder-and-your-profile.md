@@ -3,7 +3,7 @@ title: "Stickers — The Binder & Your Profile"
 description: "Completing the collection and wearing it: the Binder's got/need pages, the profile sticker hero, the Sticker Manager's layout controls, hand-placed compositions, and Sticker Setup Codes."
 category: "stickers"
 keywords: ["binder", "sticker manager", "profile stickers", "layout", "setup code", "completion"]
-last_updated: "2026-07-17"
+last_updated: "2026-08-05"
 ---
 
 # Stickers — The Binder & Your Profile
@@ -54,7 +54,7 @@ The Manager is a compact popup pinned directly below your stickers, so you watch
 
 - **Layout** — the arrangement family, plus ⟳ **Shuffle** for a fresh roll of the current one. **Rows** chunks any layout into 1–3 rows.
 - **Density · Align · Tilt** — how tightly stickers pile, which edge they gather to, and how jaunty they sit.
-- **Width · Flip · Border** — fit the content or stretch wide; the upside-down option; and the kiss-cut edge treatment (border changes are the one control that never re-rolls your arrangement).
+- **Flip · Border** — the upside-down option, and the kiss-cut edge treatment (border changes are the one control that never re-rolls your arrangement). Every arrangement always fits the screen — nothing ever hangs off the edge.
 - **Sheets & Stickers** — the on/off layer. Whole sheets toggle with one pill; individual stickers toggle in the grid. Three rules keep it sane: your **first sheet turns itself on**, every **later purchase arrives off** (a new buy never clutters an arranged profile), and **at least one owned sheet always stays on**.
 
 The sticker grid carries a **colour filter** for big collections: tap a swatch for one colour, long-press it for the whole hue family, or use the preset filters — **Match** (stickers that suit your current profile colorway), RGB, CMYK, and the painter's primaries.

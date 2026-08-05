@@ -208,9 +208,10 @@
     padding: 0;
 }
 /* The ⌕ itself (not the × it swaps to): one size smaller, 2px lower
-   (Brendon, 2026-08-02). The box stays pinned. */
+   (Brendon, 2026-08-02); one size smaller again (Brendon, 2026-08-05).
+   The box stays pinned. */
 .pd-docs-index-btn.pd-docs-search-btn:not(.open) {
-    font-size: 20px;
+    font-size: 19px;
     padding-top: 2px;
 }
 /* Phone widths: the neighbours shrink to 11px type, so the key matches that

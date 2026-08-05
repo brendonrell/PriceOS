@@ -3,7 +3,7 @@ title: "The App — Identity & Profiles"
 description: "The identity layer: @names, PriceSprites, profile pages and their owner's colour, Showcase modes, and the Collected / Starred / Wishlist / Albums system."
 category: "app"
 keywords: ["identity", "@name", "pricesprite", "profile", "showcase", "albums", "completionism", "friend inspector"]
-last_updated: "2026-07-20"
+last_updated: "2026-08-05"
 ---
 
 # The App — Identity & Profiles
@@ -74,7 +74,7 @@ Long-press your @name on your own profile and the customization rows open: your 
 
 **How:** Long-press your @name on your profile to open Profile Tags.
 
-Identity chips on your hero, above the stickers. Some you **pick** (Collector, Trader, Analyst, Degen ⚔, Podcaster ⚲, and more — toggle them in the tags row of the customization menu), some are **earned** from the record (Artist ✺, Minter ✦, Veteran), some are **granted** (OG ⌖), and one is **yours by number**: every account carries its platform number — *User #1* through *#22* stand alone, then First 100 / 500 / 1000. Tag labels wear your chosen name font, and the paint chips at the end of the tags row can dress every tag in one colour — all black, all white, or a brand primary — with the lettering flipped to match.
+Identity chips on your hero, above the stickers. Some you **pick** (Collector ☻, Trader, Analyst, Degen, Podcaster, and more — toggle them in the tags row of the customization menu), some are **earned** from the record (Artist ✺, Minter ✦, Veteran), some are **granted** (OG ⌖), and one is **yours by number**: every account carries its platform number — *User #1* through *#22* stand alone, then First 100 / 500 / 1000. Tag labels wear your chosen name font, and the paint chips at the end of the tags row can dress every tag in one colour — all black, all white, or a brand primary — with the lettering flipped to match.
 
 ## Your platform number
 
@@ -101,7 +101,7 @@ Lives at `/{handle}`, painted in the owner's chosen colour. Its tabs and surface
 - **Portfolio** — the holdings view with the market layer on.
 - **Trade record** — the wallet's PD market history.
 - **Achievements** — the unlock grid. See [Achievements](/docs/app/achievements).
-- **Share ▶ / Takeover ⚑** — the share button hands the profile to the native share sheet; when the profile holds 3+ pieces of one Project, the [Takeover](/docs/takeover) action appears beside it.
+- **Share ▶ · Takeover ⚑ · Exchange ⇌** — the share button hands the profile to the native share sheet. Two glyph-only actions can join it: when the profile holds 3+ pieces of one Project, the [Takeover](/docs/takeover) flag ⚑ appears; and on another collector's profile (signed in, with anything in their collection), ⇌ opens [the Exchange](/docs/exchange) — a head-to-head trade with them. Each names itself in a toast as it opens.
 
 ## Stars, Wishlist, Albums
 

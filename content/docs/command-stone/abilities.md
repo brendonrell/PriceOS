@@ -3,7 +3,7 @@ title: "Command Stone — Abilities"
 description: "The complete command reference for the Command Stone: search, ledger questions, math, currency, dates, rankings, holdings slices, compound sentences, sentinel sentences, bulk acts, prophecy, the news, cozy mood, the fun bench, etching and casting."
 category: "app"
 keywords: ["command stone", "abilities", "commands", "reference", "grammar", "widgets", "math", "convert", "dates", "rankings", "first mint", "release date", "spenders", "mutuals", "followers", "roast", "fortune", "dj", "cozy mood", "prophecy"]
-last_updated: "2026-08-01"
+last_updated: "2026-08-05"
 ---
 
 # Command Stone — Abilities
@@ -213,6 +213,7 @@ Ask twice and you'll get it told a different way — the Stone doesn't recite.
 | `$price` · `price token` | The $PRICE card: live price in fiat, trend, and how much the connected wallet holds. Reads $0.00 until the pool exists — honest by construction |
 | `$eth` · `eth price` | Ether — price, 1h/6h/24h trend, pool depth, your balance |
 | `$fxh` · `$fwa` · `$pnkstr` · `$apestr` · `$chkstr` | Same card, any registered coin — the registry grows one line at a time |
+| `artcoins` | The whole artcoin family dealt as one tappable hand — tap any coin for its live card |
 | `gnomes` · `keychains` · `stickers` | The manual, opened straight to that feature's own pages |
 
 ## Read a colour

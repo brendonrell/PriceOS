@@ -1,19 +1,19 @@
 ---
 title: "PriceOS Suite"
-description: "PD's productivity super-app: Today, PriceCal, PriceTask, PriceFlows, PriceBooks, PriceCalc, PriceCall, and PriceWrite in one place — your calendar, to-dos, workflows, and notes, expanded."
+description: "PD's productivity super-app: Today, PriceCal, PriceTask, PriceFlows, PriceBooks, PriceCalc, PriceCall, PriceWrite, and PriceCalm in one place — your calendar, to-dos, workflows, and notes, expanded."
 category: "app"
-keywords: ["suite", "pricecal", "pricetask", "priceflows", "pricebooks", "pricenotes", "today", "dashboard", "budgets", "pricecalc", "profit pal", "pricephone", "contacts", "calendar", "to-dos", "todos", "workflows", "notes", "productivity"]
-last_updated: "2026-07-27"
+keywords: ["suite", "pricecal", "pricetask", "priceflows", "pricebooks", "pricenotes", "pricecalm", "today", "dashboard", "budgets", "pricecalc", "profit pal", "pricephone", "contacts", "calendar", "to-dos", "todos", "workflows", "notes", "productivity"]
+last_updated: "2026-08-05"
 ---
 
 # PriceOS Suite
 
-The **PriceOS Suite** is PD's productivity super-app — the calendar, to-dos, workflows, and notes you already use in the connect menu, opened up into one full workspace. One app, eight faces, switched with the icons at the top.
+The **PriceOS Suite** is PD's productivity super-app — the calendar, to-dos, workflows, and notes you already use in the connect menu, opened up into one full workspace. One app, nine faces — the Today dashboard plus eight apps — switched with the icons at the top.
 
 **How:** Press and hold the TO-DOS header in the connect menu.
 
 <svg viewBox="0 0 720 150" role="img" aria-labelledby="suite-anatomy-title" style="width:100%;height:auto;display:block;margin:14px 0">
-<title id="suite-anatomy-title">The PriceOS Suite, annotated: the app switcher row of eight faces along the top — Today, PriceCal, PriceTask, Workflows, Notes and the rest — with the workspace below showing whichever app is active.</title>
+<title id="suite-anatomy-title">The PriceOS Suite, annotated: the app switcher row along the top — Today, PriceCal, PriceTask, Workflows, Notes and the rest — with the workspace below showing whichever app is active.</title>
 <g font-family="'Courier New', Courier, monospace" font-size="13" font-weight="bold">
 <rect x="10" y="10" width="700" height="130" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
 <text x="34" y="46" fill="currentColor" text-anchor="middle" font-size="15">①&#xFE0E;</text>
@@ -30,9 +30,11 @@ The **PriceOS Suite** is PD's productivity super-app — the calendar, to-dos, w
 <rect x="316" y="26" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
 <text x="337" y="44" fill="currentColor" text-anchor="middle" font-size="13">◊</text>
 <rect x="368" y="26" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
-<text x="389" y="44" fill="currentColor" text-anchor="middle" font-size="13">⌬&#xFE0E;</text>
+<text x="389" y="44" fill="currentColor" text-anchor="middle" font-size="13">ƒ</text>
 <rect x="420" y="26" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
-<text x="441" y="44" fill="currentColor" text-anchor="middle" font-size="13">⚝&#xFE0E;</text>
+<text x="441" y="44" fill="currentColor" text-anchor="middle" font-size="13">⚯&#xFE0E;</text>
+<rect x="472" y="26" width="42" height="26" rx="4" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
+<text x="493" y="44" fill="currentColor" text-anchor="middle" font-size="13">⬟&#xFE0E;</text>
 <text x="34" y="100" fill="currentColor" text-anchor="middle" font-size="15">②&#xFE0E;</text>
 <rect x="56" y="80" width="600" height="44" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 4"/>
 <text x="356" y="106" fill="currentColor" text-anchor="middle" font-size="12" font-weight="normal">the active app, full width</text>
@@ -85,5 +87,9 @@ Your contacts. The people of your circle — mutuals first, then who you follow,
 ## ⊟ PriceWrite
 
 Every note you've written, in one list — the notes you attach to pieces, artists, and calendar days. Tap any note to read or edit it in place.
+
+## ⬟ PriceCalm
+
+The calm room. The Zen Garden with a room of its own: a raked sand garden grown from your **actual portfolio** — your pieces are the stones. Whatever the miniplayer is playing keeps playing; the room adds nothing and asks nothing. No numbers, no tasks — the one app in the Suite whose job is rest.
 
 Everything in the Suite is the same data as everywhere else in PD — a to-do added here is the same to-do in the connect menu, on the calendar, and in your reminders. It all follows your account across devices.

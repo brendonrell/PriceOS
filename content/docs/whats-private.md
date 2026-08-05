@@ -3,7 +3,7 @@ title: "What's Private on PD"
 description: "What stays yours alone on PD: notes, stars, wishlists, working state, settings, sealed price calls, drafts — and the fact that a wallet is the entire account."
 category: "public-private"
 keywords: ["private", "privacy", "notes", "wishlist", "settings", "visibility"]
-last_updated: "2026-07-17"
+last_updated: "2026-08-05"
 ---
 
 # What's Private on PD
@@ -27,7 +27,7 @@ The tools you think with are yours alone, always:
 
 ## Your preferences
 
-Display settings, colorway, workspaces, every display mode and spell, ping controls, and your muted list (the Hammer ᚦ) — all yours alone. Settings follow your account, not your browser, but they follow it privately.
+Display settings, colorway, workspaces, every display mode and spell, ping controls, and your muted list (the Hammer ⟙) — all yours alone. Settings follow your account, not your browser, but they follow it privately.
 
 ## Studio, until you publish
 

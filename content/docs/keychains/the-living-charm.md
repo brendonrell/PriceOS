@@ -3,14 +3,14 @@ title: "Keychains — The Living Charm"
 description: "Polish, the streak chain, the rank finish, the keeper bond, christening, and wearing your charm — the complete rulebook for a Keychain's life."
 category: "keychains"
 keywords: ["polish", "streak", "chain", "PriceRank", "finish", "christen", "bond", "equip", "attestation"]
-last_updated: "2026-07-27"
+last_updated: "2026-08-05"
 ---
 
 # The Living Charm
 
 A Keychain out of the capsule is a finished character — but a blank life. Everything that happens next is written by you.
 
-**How:** Wear it from the Depanneur ⚷; POLISH there syncs your streak and rank onto the charm.
+**How:** Wear it from the Depanneur ☯; POLISH there syncs your streak and rank onto the charm.
 
 <svg viewBox="0 0 720 240" role="img" aria-labelledby="charm-anatomy-title" style="width:100%;height:auto;display:block;margin:14px 0">
 <title id="charm-anatomy-title">A Keychain, annotated: the ring on the tag row, the chain whose links are your PriceStreak, the charm body whose finish is your PriceRank, and the polish ritual that syncs both onto the chain.</title>
@@ -73,7 +73,7 @@ Rank comes only from un-fakeable onchain truth — free actions can't climb it �
 
 Your streak and rank live on PD; your charm lives onchain. **POLISH** joins them:
 
-1. You ask to polish. The app writes a sealed attestation of your current PriceStreak and PriceRank — signed by PD's own settlement key, addressed to your wallet and your specific charm, numbered, and short-lived.
+1. You ask to polish. The app writes a sealed attestation of your current PriceStreak and PriceRank — signed by PD's own attestation key, addressed to your wallet and your specific charm, numbered, and short-lived.
 2. You submit it with a tap and pay the gas — pennies. PD pays nothing, ever, no matter how many people polish.
 3. The charm re-draws itself with the new chain and finish, and records the moment.
 
@@ -107,7 +107,7 @@ Choose like it's forever, because it is.
 
 ## Wearing it
 
-Equip one of your Keychains and it appears as a **mini charm at the end of your profile tags** — the only place on PD your streak and rank exist as an object other people can see. Nothing is worn by default; the flex is a choice. Tap anyone's worn charm to see the full keychain, chain and all.
+Wear as many of your Keychains as you like — your chosen **top three** hang as mini charms at the end of your profile tags, or SHUFFLE draws the hanging three fresh from your worn pool on every visit. It's the only place on PD your streak and rank exist as an object other people can see. Nothing is worn by default; the flex is a choice. Tap anyone's worn charm to see the full keychain, chain and all.
 
 ## Built to outlive everything
 

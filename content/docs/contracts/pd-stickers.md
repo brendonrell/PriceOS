@@ -3,7 +3,7 @@ title: "Contracts — PDStickers"
 description: "The sticker shop on-chain: ERC-1155 with fully on-chain SVG art, the sealed-sheet token model, FIXED and PACK peel modes, in-transaction payout splits, and StickerSplitter royalty vaults."
 category: "contracts"
 keywords: ["PDStickers", "ERC-1155", "sealed sheet", "peel", "StickerSplitter", "royalties"]
-last_updated: "2026-07-17"
+last_updated: "2026-08-05"
 ---
 
 # Contracts — PDStickers
@@ -72,7 +72,7 @@ Burns `count` sealed sheets, then mints the stickers inside, one batch. What arr
 
 ## Governance and lifecycle
 
-Sheets are admin-published: `createSheet` (an inactive shell with its sealed-wrapper SVG and locked collab terms) → `addSticker` × N (a sticker's home sheet is permanent) → optional `setSheetPull` → `setSheetActive(true)`. A live sheet's pool never changes — restocking means deactivating, appending, reactivating. `setSheetPrice` retunes a sheet at any time (the ~$22 target outlives ETH drift) and applies only to the next purchase. The admin is transferable by the same two-step propose/accept the factory uses; collab vaults re-route their admin side instantly, since they read `admin()` live. There is no `receive()` — `withdraw()` exists only to sweep force-sent dust.
+Sheets are admin-published: `createSheet` (an inactive shell with its sealed-wrapper SVG and locked collab terms) → `addSticker` × N (a sticker's home sheet is permanent) → optional `setSheetPull` → `setSheetActive(true)`. A live sheet's pool never changes — restocking means deactivating, appending, reactivating — and a sealed copy always settles on exactly the terms it was sold under: while any sealed copies are outstanding, a FIXED sheet's pool cannot grow (its supply was reserved at purchase, so a new sticker would have nothing reserved for it) and no sheet's FIXED/PACK mode can be switched. PACK sheets restock freely — they draw at peel and check supply there. `setSheetPrice` retunes a sheet at any time (the ~$22 target outlives ETH drift) and applies only to the next purchase. The admin is transferable by the same two-step propose/accept the factory uses; collab vaults re-route their admin side instantly, since they read `admin()` live. There is no `receive()` — `withdraw()` exists only to sweep force-sent dust.
 
 ## Reads worth knowing
 
@@ -87,7 +87,7 @@ Sheets are admin-published: `createSheet` (an inactive shell with its sealed-wra
 
 ## Status
 
-PDStickers and StickerSplitter are part of the audited contract suite — deployed to Sepolia, exercised end-to-end (purchase splits verified to the wei, peel, royalty vault withdrawals, collab sheets, and a real marketplace ERC-1155 sale against the sealed sheet), and covered by the repository's Foundry tests. Mainnet deployment rides the platform's launch.
+PDStickers and StickerSplitter are part of the security-reviewed contract suite — deployed to Sepolia, exercised end-to-end (purchase splits verified to the wei, peel, royalty vault withdrawals, collab sheets, and a real marketplace ERC-1155 sale against the sealed sheet), and covered by the repository's Foundry tests. Mainnet deployment rides the platform's launch.
 
 ## Further reading
 

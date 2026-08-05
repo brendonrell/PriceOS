@@ -3,7 +3,7 @@ title: "The App — Projects & Minting"
 description: "The Project page: minting from the UI, live presence, traits and the Genome, grid sorts and grouping, project milestones, True Names, and per-Project colour."
 category: "app"
 keywords: ["project page", "minting", "genome", "milestones", "true name", "gnome"]
-last_updated: "2026-08-01"
+last_updated: "2026-08-05"
 ---
 
 # The App — Projects & Minting
@@ -61,7 +61,7 @@ Every Project on PD gets a page that is part gallery, part market floor, part ob
 - **②&#xFE0E; The mint button** — live progress fills inside the control; **long-press it** and the Mint Room blooms: crowd count, shared supply bar, reaction sparks, the soundtrack.
 - **③&#xFE0E; The sort row** — each pill cycles its directions; the ⁘ toggle folds the grid into groups (long-press it for the full dimension menu).
 - **④&#xFE0E; The grid** — every Output; hover rows carry the action glyphs.
-- **⑤&#xFE0E; + More** — Social · Stats · [Replay ⟳](/docs/app/projects-and-minting#the-replay--the-projects-time-machine) · Albums · Genome · [Gnome](/docs/gnomes/overview) · Sentiment · Attributes · Price Story · Offers · Anoint.
+- **⑤&#xFE0E; + More** — Social · Stats · [Replay ⏴](/docs/app/projects-and-minting#the-replay--the-projects-time-machine) · Albums · Genome · [Gnome](/docs/gnomes/overview) · Sentiment · Attributes · Price Story · Offers · Anoint.
 
 The stats row reads minted / volume / owners at a glance — tap the owners count and the **OWNERS** list opens: every holder ranked by pieces held, sortable (pieces · listed · A–Z), medals on the top three, your own row highlighted. The **Artist Showcase** tab is arranged by the artist themself — their chosen pieces, in their chosen layout (classic, masonry, or mixed with a lead piece), optionally titled, with a placard when the set is Gen Curated.
 
@@ -103,7 +103,7 @@ The Project's Outputs, in a grid built for long sessions:
 
 Every Project has exactly one **Gnome**, living in the +More panel: a small generative creature, deterministic from the Project itself — its name, temperament, hat, beard, keepsake, and hoard are the Project's alone, forever, though its outfit re-dresses in your live colorway. Tap it and it greets you (it knows whether you're a stranger, a holder, or a favoured friend); its mood tracks the Project's market. Hold a piece for a week unbroken and unlisted and the keeper turns **appraiser**, arguing your piece's case from true facts only — rarity isolation, strike date, door price, tenure. The Gnome never lies and never re-rolls.
 
-## The Replay ⟳ — the Project's time machine
+## The Replay ⏴ — the Project's time machine
 
 **How:** Open a Project ▸ + More ▸ Replay.
 

@@ -3,7 +3,7 @@ title: "Smart Contracts — Overview"
 description: "The PD protocol layer: one factory, one immutable ERC-721 per Project, per-Project royalty splitters, the on-chain library registry, the ERC-1155 sticker shop, and the keychain capsule machine. Architecture and guarantees."
 category: "contracts"
 keywords: ["contracts", "architecture", "PDFactory", "PDProject", "PDStickers", "PDKeychains", "immutable"]
-last_updated: "2026-08-02"
+last_updated: "2026-08-05"
 ---
 
 # Smart Contracts — Overview
@@ -79,12 +79,12 @@ The PD protocol is a small family of contracts with one temperament: immutable l
 - **Projects are immutable.** No admin, no pause, no upgrade path, no withdraw function, no balance. A Project's terms at deployment are its terms forever.
 - **The art is on Ethereum.** Scripts live in SSTORE2 data contracts; `tokenURI` returns a self-contained data URI whose HTML document renders the artwork from the token's on-chain hash. No server, no IPFS, no platform dependency.
 - **Money never rests in contracts.** Primary proceeds push to artist and platform inside the mint transaction; secondary royalties rest only in the Project's own splitter until anyone triggers a withdrawal to the fixed recipients.
-- **Governance is minimal and visible.** The factory's admin whitelists artists and rotates platform wallets through two-step transfers; the storage fee moves only within an immutable corridor. Nothing an admin holds can touch a deployed Project.
+- **Governance is minimal and visible.** The factory's admin whitelists artists and rotates platform wallets through two-step transfers — and the two wallets that receive pushed ether must prove they can receive it before going live; the storage fee moves only within an immutable corridor. Nothing an admin holds can touch a deployed Project.
 - **Nothing can permanently halt a mint.** The one time-boxed mechanism in the protocol — the contested-drop entry window — fails open at an immutable deadline: if the platform's settlement server never shows up, minting opens by itself. There is no oracle and no external price dependency anywhere.
 
 ## Verification status
 
-The suite is complete and under test — **403 Foundry tests** in the repository, including differential fuzzing of the assembly paths against memory-safe references — with continuous integration running the full suite plus an EIP-170 deploy-size gate on every push, so an undeployable contract fails the build rather than surfacing at launch. An earlier revision of the stack is deployed to the Sepolia test network and was exercised end to end there, including a full live run of the money paths (mints, royalties, sticker purchases and peels, marketplace sales) verified to the wei, with the core art contracts source-verified on Etherscan; the next Sepolia rehearsal carries the newest rounds (marketplace attributes, the entry window, keychains). Mainnet deployment is the platform's launch event; mainnet addresses are published in these docs when they exist. The [$PRICE token](/docs/price-token/contract) — a separate, standalone contract — is already live on mainnet.
+The suite is complete and under test — **417 Foundry tests** in the repository, including differential fuzzing of the assembly paths against memory-safe references — with continuous integration running the full suite plus an EIP-170 deploy-size gate on every push, so an undeployable contract fails the build rather than surfacing at launch. An earlier revision of the stack is deployed to the Sepolia test network and was exercised end to end there, including a full live run of the money paths (mints, royalties, sticker purchases and peels, marketplace sales) verified to the wei, with the core art contracts source-verified on Etherscan; the next Sepolia rehearsal carries the newest rounds (marketplace attributes, the entry window, keychains, and the latest security-hardening pass). Mainnet deployment is the platform's launch event; mainnet addresses are published in these docs when they exist. The [$PRICE token](/docs/price-token/contract) — a separate, standalone contract — is already live on mainnet.
 
 ## Further reading
 

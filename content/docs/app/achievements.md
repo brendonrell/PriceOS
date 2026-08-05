@@ -3,12 +3,12 @@ title: "The App — Achievements"
 description: "The unlock system: thirteen categories from minting to myth, how unlocks surface, and how achievements feed PriceRank."
 category: "app"
 keywords: ["achievements", "unlocks", "categories", "pricerank"]
-last_updated: "2026-07-10"
+last_updated: "2026-08-05"
 ---
 
 # The App — Achievements
 
-Achievements are PD's memory of what you've done — an unlock grid spanning everything from your first mint to things the platform will never tell you how to trigger. Unlocks land as Pings (◍), take a cell on your profile's grid, and feed your PriceRank.
+Achievements are PD's memory of what you've done — an unlock grid spanning everything from your first mint to things the platform will never tell you how to trigger. Unlocks collect quietly into a single rolled row in your [Pings](/docs/pings/overview) inbox, take a cell on your profile's grid, and feed your PriceRank.
 
 ## The categories
 
@@ -22,7 +22,7 @@ Achievements are PD's memory of what you've done — an unlock grid spanning eve
 | Identity | ◉ | Building out who you are here |
 | Anointing | ✢ | The recognition system |
 | Streak | ◈ | Showing up |
-| Rank | ❖ | Standing milestones |
+| Rank | ❂ | Standing milestones |
 | Artist | ✺ | For the whitelisted |
 | OG | ⌖ | Longevity |
 | Lore | ⁂ | Easter eggs — finding what's hidden |
@@ -30,7 +30,7 @@ Achievements are PD's memory of what you've done — an unlock grid spanning eve
 
 ## How unlocks work
 
-Most achievements evaluate automatically as you act — mint, trade, follow, maintain a streak — and land in the moment, as a ping and a grid cell. The lore and myth categories are different animals: they reward discovery, and their conditions are part of the content. The **Myth** section (the Odin arc) is the longest arc on the platform; it is documented nowhere, including here, on purpose.
+Most achievements evaluate automatically as you act — mint, trade, follow, maintain a streak. Delivery is deliberately quiet: no toast interrupts what you're doing and nothing pushes to your phone. New unlocks gather into one rolled Pings row ("n new achievements") that keeps counting until you open it; its card lists the batch and doors straight to your grid. The lore and myth categories are different animals: they reward discovery, and their conditions are part of the content. The **Myth** section (the Odin arc) is the longest arc on the platform; it is documented nowhere, including here, on purpose.
 
 ## Achievements and PriceRank
 

@@ -3,7 +3,7 @@ title: "Privacy & Terms"
 description: "PD's privacy policy and terms of use in plain language: a wallet is the entire account, what the platform stores and why, what's on-chain forever, and the terms you accept by using it."
 category: "reference"
 keywords: ["privacy", "privacy policy", "terms", "terms of service", "data", "wallet", "tracking"]
-last_updated: "2026-07-20"
+last_updated: "2026-08-05"
 ---
 
 # Privacy & Terms
@@ -74,9 +74,11 @@ By using Price Discussion you accept the following:
   whitelist gates entry; it does not editorialize the catalog or endorse any
   Project as an investment.
 - **Platform-ledger items live in the platform ledger.** Some PD things —
-  [gnomes](/docs/gnomes/overview), stickers, achievements — exist in PD's own
-  books rather than on-chain, and say so plainly where they live. They are
-  real inside PD and nowhere else.
+  [gnomes](/docs/gnomes/overview) and achievements — exist in PD's own books
+  rather than on-chain, and say so plainly where they live. They are real
+  inside PD and nowhere else. (Stickers settle in the platform ledger during
+  the test phase and move to [their on-chain contract](/docs/contracts/pd-stickers)
+  at launch.)
 - **Don't abuse the platform.** Impersonation, exploiting bugs, and attacking
   the service or its users can cost a wallet its off-chain privileges
   (handles, pings, the social layer). What's on-chain stays yours regardless —

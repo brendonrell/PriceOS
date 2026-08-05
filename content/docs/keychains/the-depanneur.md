@@ -3,12 +3,12 @@ title: "Keychains — The Depanneur"
 description: "The keychain shop: crank the capsule machine, get a random one-of-one charm. The exact mechanics, the provably fair roll, the money math, and what you actually own."
 category: "keychains"
 keywords: ["depanneur", "capsule machine", "crank", "mint", "fair draw", "odds", "royalty", "money"]
-last_updated: "2026-07-27"
+last_updated: "2026-08-05"
 ---
 
 # The Depanneur
 
-Every Montreal block has one: the corner store with the lotto terminal, the cooler hum, and the capsule machine by the door. PD's is called the **Depanneur ⚷**, and its capsule machine sells exactly one thing: Keychains.
+Every Montreal block has one: the corner store with the lotto terminal, the cooler hum, and the capsule machine by the door. PD's is called the **Depanneur ☯**, and its capsule machine sells exactly one thing: Keychains.
 
 **How:** Tap KEYCHAINS ⚷ at the bottom of your PriceSprite card, or the ⚷ key in the wallet settings row.
 

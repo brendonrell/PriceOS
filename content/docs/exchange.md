@@ -3,7 +3,7 @@ title: "Exchange ⇌"
 description: "Head-to-head trading: offer your pieces against another collector's, sweeten one side with ETH, and settle a swap in one atomic move — no fees, ever."
 category: "for-collectors"
 keywords: ["trade", "exchange", "swap", "barter", "head-to-head", "counter"]
-last_updated: "2026-07-20"
+last_updated: "2026-08-05"
 ---
 
 # Exchange ⇌
@@ -13,7 +13,7 @@ trading window: your pieces against theirs, straight across, with an
 optional ETH sweetener on one side. Barter moves no sale price, so **trades
 carry no fee and no royalty — ever.**
 
-**How:** Tap the ⇌ TRADE pill on any collector's profile, or on a piece's page to start from that piece.
+**How:** Tap ⇌ on any collector's profile, or the ⇌ TRADE pill on a piece's page to start from that piece.
 
 <svg viewBox="0 0 720 280" role="img" aria-labelledby="exchange-anatomy-title" style="width:100%;height:auto;display:block;margin:14px 0">
 <title id="exchange-anatomy-title">The Exchange trade window, annotated: the YOU OFFER panel on top and YOU ASK below, the optional one-sided ETH sweetener, the duration pills, and the single confirm line before sending.</title>
@@ -77,8 +77,8 @@ before acceptance.
 
 ## The doors
 
-- The **⇌ TRADE** pill on any collector's profile — opens a blank window
-  aimed at them.
+- The **⇌** glyph in any collector's profile action row — it names itself in
+  a toast and opens a blank window aimed at them.
 - The **⇌ TRADE** pill on a piece's page — opens the window with that piece
   already on the ASK side.
 - Trade pings (proposed · accepted · declined) deep-link back into the

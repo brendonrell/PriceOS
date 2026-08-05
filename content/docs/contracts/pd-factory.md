@@ -3,7 +3,7 @@ title: "Contracts — PDFactory"
 description: "The single deployed factory behind every PD Project: createProject, the artist whitelist, the 60-day cooldown, supply bounds, platform wallets, and the storage-fee corridor."
 category: "contracts"
 keywords: ["PDFactory", "createProject", "whitelist", "cooldown", "isProject", "colorway", "entry window"]
-last_updated: "2026-08-02"
+last_updated: "2026-08-05"
 ---
 
 # Contracts — PDFactory
@@ -57,13 +57,15 @@ mapping(address => uint256)   public lastProjectTimestamp;
 
 ## Governance surface
 
-The admin can whitelist artists (`whitelistArtist` / `removeArtist`) and rotate the four operational keys — `platformWallet`, `storageFeeWallet`, `storageFeeWriter` (the key that pins each Output's write-once Arweave preview), and `settlementKey` (the key that choreographs contested-drop windows) — each through a propose/accept two-step, so a rotation cannot brick payouts with a typo. Deployed Projects read these live, which is why a rotation applies platform-wide with no per-Project action.
+The admin can whitelist artists (`whitelistArtist` / `removeArtist`) and rotate the five operational keys — `platformWallet`, `storageFeeWallet`, `storageFeeWriter` (the key that pins each Output's write-once Arweave preview), `settlementKey` (the key that choreographs contested-drop windows), and `attestationKey` (the key that signs [keychain](/docs/contracts/pd-keychains) luck and polish attestations — deliberately a separate key from settlement, so no single secret holds both jobs) — each through a propose/accept two-step, so a rotation cannot brick payouts with a typo.
+
+The two destinations that actually receive pushed ether — `platformWallet` and `storageFeeWallet` — accept with a small payment the factory bounces straight back through the exact push path a mint uses. A destination that cannot take ether (a contract with no way to receive) can therefore never become the live wallet and halt sales; the acceptance itself is the proof of receipt. Deployed Projects read these keys live, which is why a rotation applies platform-wide with no per-Project action.
 
 The **storage fee** (`storageFeeWei`) — the flat per-token fee each mint routes to the storage wallet — is tuned by the admin, but only within `[storageFeeFloor, storageFeeCeiling]`, an immutable corridor fixed in the constructor. No key, ever, can set it outside that corridor; it is the ceiling on that power, forever.
 
 ## Events
 
-`ProjectCreated`, `ArtistWhitelisted`, `ArtistRemoved`, `AdminTransferStarted/Transferred`, `PlatformWalletProposed/Updated`, `StorageFeeWalletProposed/Updated`, `StorageFeeWriterProposed/Updated`, `SettlementKeyProposed/Updated`, `StorageFeeUpdated`.
+`ProjectCreated`, `ArtistWhitelisted`, `ArtistRemoved`, `AdminTransferStarted/Transferred`, `PlatformWalletProposed/Updated`, `StorageFeeWalletProposed/Updated`, `StorageFeeWriterProposed/Updated`, `SettlementKeyProposed/Updated`, `AttestationKeyProposed/Updated`, `StorageFeeUpdated`.
 
 ## Further reading
 

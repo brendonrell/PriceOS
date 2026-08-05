@@ -3,7 +3,7 @@ title: "Contracts — PDKeychains"
 description: "The capsule machine's ERC-721: one-of-one living charms drawn entirely on-chain, luck-tilted rarity rolls, the polish attestation, the keeper bond, and the christened name."
 category: "contracts"
 keywords: ["PDKeychains", "keychains", "charms", "capsule machine", "ERC-721", "on-chain art", "luck", "polish"]
-last_updated: "2026-08-02"
+last_updated: "2026-08-05"
 ---
 
 # Contracts — PDKeychains
@@ -19,7 +19,7 @@ function crank(uint8 coin, uint32 streak, uint8 rank, uint256 deadline, bytes ca
 
 Insert coin, crank, a random charm drops — one per crank, that's the ritual. The two **coin slots** (`0` YIN · `1` YANG) steer palette, face, and accessory weights; shapes are universal, so the rarest chase is equal on either slot. The charm's seed rolls from fresh block data plus the minter and token id, unknowable at send, and cranking is EOA-only so the roll can't be bundled and reverted away. Payment is exact and pushed out inside the transaction — platform 5% (wallet read live from [the factory](/docs/contracts/pd-factory)), remainder to the shop — so no ETH ever rests here.
 
-**THE ART BELONGS TO THE CHARM, NOT THE KEEPER.** Colour, finish, and chain metal all roll per charm off its own seed on a common→rare ladder — gold and chrome are genuine rare pulls. What the keeper's PD life buys is **LUCK**: `sig` is the app's attestation (the factory's settlement key) of the cranker's live PriceStreak and PriceRank; the machine derives an odds tier (0–3) from it on-chain and freezes it into the charm forever. Luck only widens the rare end of the rolls — it never repaints a charm afterwards. An empty `sig` cranks unattested at luck 0, the floor odds, so the machine keeps turning even if the signer is down — and that can't be gamed, because the floor is the worst tier there is.
+**THE ART BELONGS TO THE CHARM, NOT THE KEEPER.** Colour, finish, and chain metal all roll per charm off its own seed on a common→rare ladder — gold and chrome are genuine rare pulls. What the keeper's PD life buys is **LUCK**: `sig` is the app's attestation of the cranker's live PriceStreak and PriceRank, signed by the factory's dedicated **attestation key** (its own key, deliberately not the settlement key — two unrelated jobs never share one secret); the machine derives an odds tier (0–3) from it on-chain and freezes it into the charm forever. The attestation's deadline may sit at most **fifteen minutes** out — it carries no nonce by design, so its short life is what stops one signature becoming a permanent luck pass. Luck only widens the rare end of the rolls — it never repaints a charm afterwards. An empty `sig` cranks unattested at luck 0, the floor odds, so the machine keeps turning even if the signer is down — and that can't be gamed, because the floor is the worst tier there is.
 
 ## The living layer
 
@@ -35,10 +35,10 @@ The renderer address is swappable by the shop admin during an art-bugfix window,
 
 ## Royalties and admin
 
-5% secondary royalty (ERC-2981) to the shared royalty vault. Admin holds price and on/off dials plus the renderer window, transfers two-step, and can never touch a minted charm's seed, luck, name, or traits.
+5% secondary royalty (ERC-2981) to the shared royalty vault. Admin holds price and on/off dials plus the renderer window, transfers two-step, and can never touch a minted charm's seed, luck, name, or traits. A dust-rescue sweep exists for ether force-sent to the contract — cranks push everything out in-flight and there is no other way for ETH to land here, so the sweep can only ever recover dust, never touch the machine's money.
 
 ## Further reading
 
 - [Keychains in the app](/docs/keychains/overview) — the Depanneur, wearing, the hang
-- [PDFactory](/docs/contracts/pd-factory) — the settlement key the attestations ride
+- [PDFactory](/docs/contracts/pd-factory) — the attestation key the attestations ride
 - [Contracts Overview](/docs/contracts/overview)

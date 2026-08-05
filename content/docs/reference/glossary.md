@@ -3,7 +3,7 @@ title: "Glossary"
 description: "Plain-English definitions for Price Discussion's vocabulary: Project, Output, Artwork, Token, @name, the sticker economy, the war, and the platform's locked nomenclature."
 category: "reference"
 keywords: ["glossary", "definitions", "vocabulary", "nomenclature"]
-last_updated: "2026-07-17"
+last_updated: "2026-08-05"
 ---
 
 # Glossary
@@ -142,9 +142,9 @@ Definitions for terms used throughout Price Discussion, alphabetically. The nome
 
 **True Name** — A Project's permanent, unique 4-letter name in uppercase Glagolitic (for example Kiki's, `ⰅⰕⰭⰧ`). See [Projects & Minting](/docs/app/projects-and-minting).
 
-**The Watch** (⬬) — Per-page watchlists whose hits route into Pings. See [Collector Tools](/docs/app/collector-tools).
-
 **The Vault** (⧈) — Numbered, public groups of owned pieces their collector has designated as vaulted — Albums, but only for what you hold — each with a stats block reading the wall's real money and rarity. See [Identity & Profiles](/docs/app/identity-and-profiles).
+
+**The Watch** (⬬) — Per-page watchlists whose hits route into Pings. See [Collector Tools](/docs/app/collector-tools).
 
 **Wishlist** (✛) — A user's private buy-intent mark on an Output. Drives financial Pings — the opposite of a Star.
 

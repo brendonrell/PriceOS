@@ -150,7 +150,7 @@ of its own. Rendered at 22px (`.ach-cell-glyph`).
 |---|---|---|---|---|---|---|
 | primary (minting) | ◍ | U+25CD | | curation | ✦ | U+2726 |
 | trading | ⊟ | U+229F | | identity | ◉ | U+25C9 |
-| social | ⊙ | U+2299 | | rank | ❖ | U+2756 |
+| social | ⊙ | U+2299 | | rank | ❂ | U+2742 |
 | projects | ⌗ | U+2317 | | artist | ✺ | U+273A |
 | anointing | ✢ | U+2722 | | lore (easter eggs) | ⁂ | U+2042 |
 | streak | ◈ | U+25C8 | | og (longevity) | ⌖ | U+2316 |
