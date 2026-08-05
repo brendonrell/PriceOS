@@ -29,7 +29,23 @@ alongside `SETTLEMENT_KEY`, then propose from admin + accept from that wallet.
 Also new: rotating the platform or storage-fee wallet now needs **≥1 wei sent
 from the accepting wallet** (bounced back same transaction).
 
-✅ **2026-08-05 (LATEST, SECOND ROUND) — ⓘ DOCS DOORS · LANGUAGE PILL ·
+✅ **2026-08-05 (THIRD ROUND) — CLICKUP AUDIT, MOSTLY LANDED** (his ask: make
+ClickUp match the current app). **21 updates in:** 14 stale tasks closed with
+one-line whys (keychains app + contracts · Albums public · the old
+deploy-scripts / contract-spec / build-plan tasks · early security-list items
+covered by the 08-02/08-04 reviews · the Safari-crash task fixed by the 08-02
+gallery bounding · follow graph shipped · Budgets name resolved · ClickUp tags
+done) + 7 shipped-round record cards marked complete. **⛔ ClickUp's API daily
+limit then cut the session off; the remainder is queued and scheduled to
+auto-finish 2026-08-06 when the limit resets** (this session self-resumes):
+6 more record cards to mark complete · 3 items removed as contradicting
+settled calls · 2 renames (Gnome World live checks; the mainnet ceremony's
+stale framing) · Kiki-folder priorities → low (set aside) · catch-up comments
+on `86bb72zza` + `86b9v5w77` (what the rehearsal now carries, incl. the
+attestation-key setup) · the missing 2026-08-04 security-round record card.
+**Do not redo the first 21 — pick up from the queue in the scheduled message.**
+
+✅ **2026-08-05 (SECOND ROUND) — ⓘ DOCS DOORS · LANGUAGE PILL ·
 THE DOCS WOW PASS** (on `dev`, tip `c666a40`, tree clean, type-check clean;
 his ask + push pre-approved in one message; ClickUp `86bb8wauw`):
 
