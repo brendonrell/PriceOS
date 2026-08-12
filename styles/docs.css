@@ -255,6 +255,13 @@
     font-size: 16px;
     line-height: 1.65;
     overflow-wrap: break-word;
+    /* Pin against iOS text-inflation: rotating to landscape and back must NOT
+       resize the portrait text. The global html/body pin (globals.css)
+       doesn't hold inside this reading column, same reason .gas-tracker-info
+       and .info-rubik each carry their own (Brendon, 2026-07-14) — the docs
+       article never got the same treatment (2026-08-11 fix). */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
 }
 
 .pd-docs-article h1 {
