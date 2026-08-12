@@ -728,13 +728,24 @@ function ArtworkCard({
        and traits… 'what about the art??' is not what this mode is about").
        The tile becomes the shared DegenSlab data slab — see DegenSlab.tsx. */
 
+    /* Seed the local colour/fingerprint cache for every visible piece,
+       independent of any display feature — needsColorSample()/
+       resolveFingerprint() (read by FingerprintSampler, below, and by
+       reportTraits) need to know what's ALREADY stored, or every card looks
+       unsampled on every fresh page load and the sampler re-POSTs pieces that
+       were fully sampled sessions ago (server no-ops the write, but the
+       wasted read + POST still burns the rate-limit budget every time).
+       ⛔ Was gated on the AURA toggle (2026-07-16 wow pass) — aura is a
+       cosmetic bonus feature with zero business needing this fetch to be
+       conditional on it (2026-08-11 fix). */
+    const colorsVer = useStoredColors([slug]);
+
     /* AURA wow pass (2026-07-16): the halo is the piece's OWN light — its
        dominant colour + accent from the sampled fingerprint, and the glow's
        strength scales with real edition-set rarity (the rare ones radiate).
        Until the colours hydrate the CSS falls back to the original 6-hue
        field. colorsVer re-memos when the stored colours land. */
     const auraOn = !!notifs.spell_aura;
-    const colorsVer = useStoredColors(auraOn ? [slug] : []);
     const auraVars = useMemo(() => {
         if (!auraOn) return null;
         const bucket = resolveBucket(slug, id);
