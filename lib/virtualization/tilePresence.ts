@@ -26,9 +26,16 @@
  * tile can be seen again.
  */
 
-/* The same one-viewport lookahead the canvas virtualizer uses, so a tile is
-   pinned and decoded well before it can be scrolled into view. */
-const ROOT_MARGIN = '400px 0px';
+/* One viewport-lookahead vertically (scroll-into-view), plus a couple of
+   tiles' worth horizontally (2026-08-12) — carousels clip their own
+   off-screen tiles via horizontal scroll, and this is the ONLY signal that
+   gates whether a tile's <img src> gets set at all (see ArtworkCard's
+   `shouldLoad`). It used to be vertical-only, so carousels leaned on a
+   second, separate per-track observer to preload sideways — two mechanisms
+   that only ever touched the `loading` HINT, never the actual fetch, which
+   is exactly how "lazy loading" kept quietly not-actually-lazy-ing. One
+   observer, one real gate, both directions. */
+const ROOT_MARGIN = '400px 300px';
 
 type Entry = { el: Element; onChange: (near: boolean) => void; near: boolean };
 
