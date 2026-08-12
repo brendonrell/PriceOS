@@ -55,7 +55,6 @@ import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { getSupabaseBrowser } from '../../lib/supabase';
 import { allProjects, getProject, projectTraits } from '../../lib/project/registry';
-import { forceRenderKeys } from '../../lib/virtualization/canvasVirtualizer';
 import HomeFacetBar, { type HomeSort } from './HomeFacetBar';
 import HomeProjectFacetBar, {
     projectFacetValueOf,
@@ -195,42 +194,13 @@ export function HomeProjectCarousel({ eager = false, owned = false }: { eager?: 
         (_, i) => project.totalOutputs - i,
     ).filter((id) => id >= 1);
 
-    /* Carousel preload — paint tiles two over BEFORE they reach the visible
-       edge. The global canvas observer is rooted on the viewport, but a carousel
-       clips its own off-screen tiles, so that observer can't reach them until
-       they're already at the edge (the pop-in). This per-track observer is
-       rooted on the scroller itself with a ~2-tile horizontal margin, so each
-       tile paints while it's still two over and offscreen (Brendon, 2026-06-25 —
-       "count two tiles outside the viewport"). */
-    const trackRef = useRef<HTMLDivElement>(null);
-    useEffect(() => {
-        const track = trackRef.current;
-        if (!track || typeof IntersectionObserver === 'undefined') return;
-        const io = new IntersectionObserver(
-            (entries) => {
-                for (const e of entries) {
-                    if (!e.isIntersecting) continue;
-                    const el = e.target as HTMLElement;
-                    const key = el.dataset.vkey;
-                    if (key) forceRenderKeys(new Set([key]));
-                    /* Preload the stored IMAGE two tiles before it's on screen —
-                       a horizontal carousel clips its tiles, so native lazy-load
-                       only fires them at the edge (the pop-in). Flipping the tile
-                       to eager here starts the fetch while it's still offscreen,
-                       so completed art is ready when the user scrolls to it
-                       (Brendon 2026-07-07). */
-                    const img = el.querySelector('img.output-canvas') as HTMLImageElement | null;
-                    if (img && img.loading === 'lazy') img.loading = 'eager';
-                }
-            },
-            // ~2 carousel tiles (≈120px + 14px gap each) past each edge.
-            { root: track, rootMargin: '0px 300px' },
-        );
-        track
-            .querySelectorAll<HTMLElement>('[data-vkey]')
-            .forEach((el) => io.observe(el));
-        return () => io.disconnect();
-    }, [project.totalOutputs]);
+    /* Carousel preload used to need its own per-track observer here — the
+       shared viewport observer (tilePresence / canvasVirtualizer) was
+       vertical-only, so a carousel's horizontally-clipped tiles couldn't be
+       reached until they hit the visible edge. Removed (2026-08-12): both of
+       those observers now carry the same horizontal lookahead, so a tile two
+       over from the edge is already "near" through the ONE shared mechanism
+       — nothing carousel-specific left to duplicate. */
 
     return (
         <section
@@ -248,7 +218,7 @@ export function HomeProjectCarousel({ eager = false, owned = false }: { eager?: 
                     </span>
                 )}
             </div>
-            <div className="home-carousel-track" ref={trackRef}>
+            <div className="home-carousel-track">
                 {ids.map((id, idx) => (
                     /* Carousel tiles cap at ~120px — paint a small canvas, not the
                        full 400px grid res, so a page of carousels stays snappy.
@@ -268,13 +238,18 @@ const HOME_EAGER_TILES = 4;
 
 /* ⛔ NOW MINTING HAS TO CARRY HUNDREDS OF ROWS (Brendon, 2026-08-01).
    Every row mounted at once (Brendon, 2026-07-06 — the whole app is solid once
-   loaded, nothing pops in on scroll). That holds at today's size and it stays
-   the behaviour: under the cap, every row still mounts up front, exactly as it
-   does now. Past it, rows arrive as you scroll toward them — because each row
-   is not just tiles, it is its own live project read, so a few hundred of them
-   meant a few hundred simultaneous reads before the first one painted.
-   The window only ever grows, so nothing already on screen is unmounted. */
-const ROWS_FULL_MOUNT_MAX = 40;
+   loaded, nothing pops in on scroll). That held at the catalog's original size,
+   but it silently became "mount literally every carousel on every homepage
+   load" — 2026-08-12: with the catalog comfortably under the old cap, EVERY
+   "now minting" row (not just the couple above the fold) was mounting on
+   every load, each pulling in its own 18-tile <img> set. Harmless-looking at
+   first paint since the browser defers the actual fetch, but the whole oversized
+   tree re-renders synchronously on every /api/home refresh (see the
+   visibilitychange handler below) — which is what turned "the user only sees
+   two carousels" into a full-page freeze on tab refocus. Lowered the cap so
+   real catalogs always progressively mount via the sentinel below; only a
+   handful of rows are ever actually in the tree at once now. */
+const ROWS_FULL_MOUNT_MAX = 3;
 const ROWS_FIRST = 12;
 const ROWS_STEP = 12;
 
