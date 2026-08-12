@@ -53,12 +53,19 @@ const SENSITIVE_WRITE_PREFIXES = [
   '/api/follows',
   '/api/project-follows',
   '/api/output-follows',
-  '/api/outputs/color',
   '/api/outputs/traits',
   '/api/anoint',
   '/api/streak',
   '/api/achievements/evaluate',
 ];
+// /api/outputs/color deliberately NOT in the sensitive bucket (2026-08-11):
+// the FingerprintSampler fires one authenticated POST per unsampled piece as
+// the homepage/gallery is browsed — normal passive traffic, not a scriptable
+// action. It shared the 15/min sensitive bucket with /api/follows, so a
+// browsing session alone could exhaust the budget before a Follow click ever
+// happened, 429ing the follow (same failure class as the 2026-07-27 bug
+// above — self-population reads/writes riding normal browsing belong in the
+// 300/min normal bucket, not the 15/min scriptable-action bucket).
 const WINDOW_MS = 60_000;
 const WINDOW_S = 60;
 
