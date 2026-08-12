@@ -349,9 +349,28 @@ function ArtworkCard({
         if (!imgSrc) return;
         return watchTile(wrapperRef.current, setNearScreen);
     }, [imgSrc]);
-    /* Pinned = flash-free (eager + main-thread decode), exactly as before.
-       Off the band a tile falls back to the browser's own lazy handling. */
-    const pinned = eager || (imgLoaded && nearScreen);
+    /* Pinned = flash-free (eager + main-thread decode) — but ONLY while we're
+       actually showing the real thumb (stage 0). Past stage 0 the tile has
+       fallen back to a full-res master (thumb missing/not generated yet —
+       exactly the freshest home-carousel outputs), and forcing eager+sync
+       decode on THAT is what froze the whole page: a handful of "tiny
+       thumbnails" turning into several synchronous multi-MB decodes on the
+       main thread (2026-08-12 — "loading the library of congress" / homepage
+       freeze + connect menu unresponsive). Once escalated, the tile behaves
+       like a normal lazy/async image instead — slower to appear, but it can
+       never block the thread. */
+    const pinned = stage === 0 && (eager || (imgLoaded && nearScreen));
+
+    /* The actual load gate (2026-08-12). Previously `src` was set the moment
+       a tile mounted, and "lazy" meant nothing more than the `loading` HINT
+       below — the browser's own heuristic decided the real fetch timing,
+       which is how a homepage with dozens of carousels mounted (each 18
+       tiles) ended up requesting far more than the couple of rows actually
+       on screen. This is the hard boundary: no src at all until the tile is
+       within a viewport vertically or a couple of tiles horizontally
+       (tilePresence's rootMargin) — "in view or just outside it," enforced,
+       not hinted. */
+    const shouldLoad = eager || nearScreen;
 
     /* Provisional shape for the img tile before its load event corrects it. */
     useEffect(() => {
@@ -1046,13 +1065,16 @@ function ArtworkCard({
                         <img
                             ref={imgRef}
                             className={`output-canvas${imgLoaded ? ' visible' : ''}`}
-                            src={imgSrc}
+                            src={shouldLoad ? imgSrc : undefined}
                             alt={`${projectTitle} #${id} — artwork`}
                             /* Once a tile has loaded, pin it eager + sync-decode
                                so iOS can't drop its decoded copy off-screen and
                                redraw a blank frame on scroll-back (Brendon
                                2026-07-07 — the carousel flash). Pre-load it stays
-                               lazy so the first paint is cheap. */
+                               lazy so the first paint is cheap. These attributes
+                               are now just a hint on TOP of the real shouldLoad
+                               gate above, not the only thing standing between a
+                               tile and the network. */
                             loading={pinned ? 'eager' : 'lazy'}
                             decoding={pinned ? 'sync' : 'async'}
                             draggable={false}
