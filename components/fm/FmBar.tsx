@@ -75,20 +75,39 @@ declare global {
     }
 }
 
-/* Load the IFrame API once, promise-cached across the app's lifetime. */
+/* Load the IFrame API once, promise-cached across the app's lifetime.
+   ⛔ BUG (fixed 2026-08-12): this had no failure path at all — if the
+   injected <script> ever failed to load (one bad network moment, a
+   transient block, anything), the promise just hung forever with no
+   onerror and no timeout. Because it's cached at module scope, that one
+   failure poisoned EVERY station for the rest of the session — not a
+   per-playlist dead link, but a single stuck promise silently breaking
+   all playback at once. Now a failed/stalled load clears the cache so
+   the next play attempt gets a real retry instead of reusing a dead
+   promise. */
 let ytReady: Promise<YTNamespace> | null = null;
 function loadYT(): Promise<YTNamespace> {
     if (ytReady) return ytReady;
-    ytReady = new Promise((resolve) => {
+    ytReady = new Promise((resolve, reject) => {
         if (window.YT?.Player) { resolve(window.YT); return; }
         const prev = window.onYouTubeIframeAPIReady;
+        const timeout = setTimeout(() => reject(new Error('YT iframe_api load timed out')), 10000);
         window.onYouTubeIframeAPIReady = () => {
             prev?.();
+            clearTimeout(timeout);
             if (window.YT) resolve(window.YT);
+            else reject(new Error('YT iframe_api ready fired but window.YT missing'));
         };
         const s = document.createElement('script');
         s.src = 'https://www.youtube.com/iframe_api';
+        s.onerror = () => {
+            clearTimeout(timeout);
+            reject(new Error('YT iframe_api script failed to load'));
+        };
         document.head.appendChild(s);
+    }).catch((err) => {
+        ytReady = null; // don't cache the failure — next play attempt gets a fresh try
+        throw err;
     });
     return ytReady;
 }
@@ -489,6 +508,20 @@ export default function FmBar() {
                     },
                 },
             });
+        }).catch((err) => {
+            /* Without this, a rejected loadYT() left startingRef.current
+               stuck true forever (it only reset inside .then()) — the guard
+               on this effect's first line would then refuse to ever try
+               booting the player again, for ANY station, for the rest of
+               the mount. One failed script load silently killed playback
+               permanently. Now: reset the guard so the next play attempt
+               gets a real retry, and tell the listener instead of leaving
+               them staring at a stuck "loading" state. */
+            startingRef.current = false;
+            setDeadLink(true);
+            setStatus('paused');
+            showToast('Station: DEAD LINK');
+            console.error('[fm] YT iframe API failed to load:', err);
         });
     }, [onAir, saveSession, clearWatchdog, start, stationFinished]);
 
