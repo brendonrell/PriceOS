@@ -27,9 +27,11 @@
  *   for a fresh render.
  *
  * Pattern preserved from sim:
- *   - rootMargin '400px 0px' — start prefetching ~one viewport before
- *     the card actually enters view, so canvases finish painting before
- *     the user sees them.
+ *   - rootMargin '400px 300px' — start prefetching ~one viewport before the
+ *     card enters view vertically, and a couple of tiles' worth before it
+ *     scrolls into view horizontally in a carousel (2026-08-12 — this used to
+ *     be vertical-only, so carousels leaned on a second, separate per-track
+ *     observer for the horizontal case; folded in here instead, one system).
  *   - requestIdleCallback drainer with batch size 4 — keeps frame budget
  *     during scroll. Falls back to setTimeout(16ms) on browsers without
  *     requestIdleCallback (Safari < 17 throughout the cohort).
@@ -67,7 +69,7 @@ const FRAME_BUDGET_MS = 8;
    so a heavy-engine page mounts without a multi-second freeze instead of
    blocking on N synchronous sandpile solves. */
 const EAGER_SYNC_BUDGET_MS = 24;
-const ROOT_MARGIN = '400px 0px';
+const ROOT_MARGIN = '400px 300px';
 
 type RegisteredCard = {
     /* Globally-unique key (project slug + token id). Token ids are NOT
