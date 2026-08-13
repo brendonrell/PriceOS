@@ -88,7 +88,7 @@ export default function OutputFollowButton({
       onClick={toggle}
       disabled={busy}
     >
-      <span className="mint-lbl">{busy ? '…' : following ? 'FOLLOWING' : 'FOLLOW'}</span>
+      <span className="mint-lbl">{busy ? '…' : following ? 'FOLLOWED' : 'FOLLOW'}</span>
     </button>
   );
 }
