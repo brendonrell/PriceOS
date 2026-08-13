@@ -457,12 +457,17 @@ export function applyBgHex(bgHex: string, key: ColorwayKey) {
         mintText = '#111111';
         mintBorder = MATRIX;
         pillL1Bg = '#111111';
-        pillL1Text = MATRIX;
-        pillL1Border = MATRIX;
-        pillL1BgImg =
-            'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(224,224,224,0.15) 2px, rgba(224,224,224,0.15) 4px)';
-        pillL1ActiveBgImg =
-            'repeating-linear-gradient(45deg, transparent, transparent 1px, rgba(224,224,224,0.55) 1px, rgba(224,224,224,0.55) 2px)';
+        /* @price Custom keeps Attention Yellow for the inactive-pill ink/hatch
+           too, instead of the usual MATRIX white this dark treatment paints
+           everywhere else (Brendon, 2026-08-13). */
+        pillL1Text = isPlatformCustom ? text : MATRIX;
+        pillL1Border = isPlatformCustom ? text : MATRIX;
+        pillL1BgImg = isPlatformCustom
+            ? 'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,230,0,0.15) 2px, rgba(255,230,0,0.15) 4px)'
+            : 'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(224,224,224,0.15) 2px, rgba(224,224,224,0.15) 4px)';
+        pillL1ActiveBgImg = isPlatformCustom
+            ? 'repeating-linear-gradient(45deg, transparent, transparent 1px, rgba(255,230,0,0.55) 1px, rgba(255,230,0,0.55) 2px)'
+            : 'repeating-linear-gradient(45deg, transparent, transparent 1px, rgba(224,224,224,0.55) 1px, rgba(224,224,224,0.55) 2px)';
     }
 
     root.style.setProperty('--modal-bg', modalBg);
