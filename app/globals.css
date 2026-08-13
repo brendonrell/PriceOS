@@ -14447,9 +14447,13 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
 }
 /* Section heads: readable on any colorway, not a 10px whisper. */
 .price-acct .attr-group-head { padding-top: 16px; }
+/* Section titles wear the same Rubik treatment as New Uploads' header on
+   home (.home-section-title) — same size too, not just the same face
+   (Brendon, 2026-08-13). */
 .price-acct .attr-group-name {
-    font-size: 12px;
-    letter-spacing: 1.2px;
+    font-family: var(--font-rubik-mono), monospace;
+    font-size: 13px;
+    letter-spacing: 0.04em;
     opacity: 1;
 }
 .price-acct .attr-group-count { font-size: 12px; opacity: 1; }
