@@ -24,7 +24,11 @@ export function formatMemberSince(iso: string): string {
 }
 
 export type ProfileTab = 'showcase' | 'collected' | 'more';
-export type ProfileMoreL1 = 'cooldown' | 'created' | 'starred' | 'wishlists' | 'albums' | 'offers' | 'vault' | 'sigil' | 'loyalty' | 'counterparties' | 'history' | 'achievements' | 'discord' | 'anointed' | 'targets' | 'calls';
+/* price-overview / price-tokenomics / price-contract / price-utility —
+   @price's +More sub-nav ONLY (isPlatform), replacing the normal per-user
+   row (Vault/Sigil/etc. mean nothing for a platform account) with the four
+   $PRICE doc pages' content instead (Brendon, 2026-08-13). */
+export type ProfileMoreL1 = 'cooldown' | 'created' | 'starred' | 'wishlists' | 'albums' | 'offers' | 'vault' | 'sigil' | 'loyalty' | 'counterparties' | 'history' | 'achievements' | 'discord' | 'anointed' | 'targets' | 'calls' | 'price-overview' | 'price-tokenomics' | 'price-contract' | 'price-utility';
 /* Artist Showcase (Artist style): 'created' = the now-minting view of the
    projects this artist made; 'regular' = their curated Top 6 grid. */
 export type ShowcaseView = 'created' | 'regular';

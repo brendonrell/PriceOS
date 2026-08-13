@@ -126,16 +126,6 @@ export default function PriceAccountPanel() {
                     <div key={line} className="nbhd-note">{line}</div>
                 ))}
             </div>
-
-            <div className="attr-group-head">
-                <span className="attr-group-name">Read more</span>
-            </div>
-            <div className="price-acct-links">
-                <a className="pill pill-l2" href="/docs/price-token/overview">OVERVIEW</a>
-                <a className="pill pill-l2" href="/docs/price-token/tokenomics">TOKENOMICS</a>
-                <a className="pill pill-l2" href="/docs/price-token/contract">CONTRACT</a>
-                <a className="pill pill-l2" href="/docs/price-token/no-platform-utility">NO UTILITY</a>
-            </div>
         </div>
     );
 }
