@@ -1821,7 +1821,7 @@ function StarredArtistRow({
                     onClick={toggleFollow}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleFollow(e as unknown as React.MouseEvent); } }}
                 >
-                    {followBusy ? '⚯︎ …' : following ? '⚯︎ Following' : '⚯︎ Follow'}
+                    {followBusy ? '⚯︎ …' : following ? '⚯︎ Followed' : '⚯︎ Follow'}
                 </span>
                 )}
                 <span
