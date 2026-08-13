@@ -134,6 +134,7 @@ import { useArtistShowcase } from './useArtistShowcase';
 import { isPlatformAccount } from '../../lib/platform/accounts';
 import PriceAccountPanel from './PriceAccountPanel';
 import PriceHoldersBoard from './PriceHoldersBoard';
+import { PriceOverviewPanel, PriceTokenomicsPanel, PriceContractPanel, PriceUtilityPanel } from './PriceDocsPanel';
 import { useGridSettle } from '../../lib/hooks/useGridSettle';
 
 /* DEACTIVATE (Spell Book) — the understated "account deactivated" state a
@@ -176,6 +177,10 @@ function ProfilePageBodyInner({
     // Real user row — fetched server-side from the handle in the URL and
     // passed in, so the hero renders real values on first paint (no popin).
     const user = initialUser;
+    /* Computed early — the +More sub-nav's isPlatform branch (price docs)
+       needs this before effMoreL1 resolves, same reason isZen sits up here
+       too (Brendon, 2026-08-13). */
+    const isPlatform = isPlatformAccount(user.address);
 
     /* Profile Colorway — paint this profile in ITS OWNER's colour. The page
        owner's `profile_hex` is the "Custom" colour for this page, shown to any
@@ -743,13 +748,14 @@ function ProfilePageBodyInner({
        namespaced under the same store with a ":more" id so a refresh lands back
        on the same sub-section (e.g. My History), not just the +More tab. */
     const moreMemId = `${user.handle ?? handle}:more`;
-    const MORE_KEYS: ReadonlySet<string> = new Set<ProfileMoreL1>(['cooldown', 'created', 'starred', 'wishlists', 'albums', 'offers', 'vault', 'sigil', 'loyalty', 'counterparties', 'history', 'achievements', 'discord', 'anointed', 'targets', 'calls']);
+    const MORE_KEYS: ReadonlySet<string> = new Set<ProfileMoreL1>(['cooldown', 'created', 'starred', 'wishlists', 'albums', 'offers', 'vault', 'sigil', 'loyalty', 'counterparties', 'history', 'achievements', 'discord', 'anointed', 'targets', 'calls', 'price-overview', 'price-tokenomics', 'price-contract', 'price-utility']);
     const [moreL1, setMoreL1] = useState<ProfileMoreL1>(() => {
         // A pasted deep link's ?sub= wins here too (Share Any View).
         const shared = readViewParam('sub');
         if (shared && MORE_KEYS.has(shared)) return shared as ProfileMoreL1;
         const remembered = getRememberedTab('profile', moreMemId);
-        return remembered && MORE_KEYS.has(remembered) ? (remembered as ProfileMoreL1) : 'starred';
+        if (remembered && MORE_KEYS.has(remembered)) return remembered as ProfileMoreL1;
+        return isPlatform ? 'price-overview' : 'starred';
     });
     useEffect(() => { rememberTab('profile', moreMemId, moreL1); }, [moreL1, moreMemId]);
 
@@ -915,6 +921,14 @@ function ProfilePageBodyInner({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isZen]);
 
+    // ── @price: price docs-only in + More sub-nav ──────────────────────
+    // A stale non-price key (remembered from browsing a normal profile
+    // right before this one) would open a pill row @price doesn't show.
+    useEffect(() => {
+        if (isPlatform && !moreL1.startsWith('price-')) setMoreL1('price-overview');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isPlatform]);
+
     /* Starred + Wishlists are PRIVATE — on someone else's profile the
        sections do not exist at all: no pills, no content, no notes
        (Brendon 2026-06-10). moreL1 can hold a stale private key after
@@ -936,6 +950,12 @@ function ProfilePageBodyInner({
            ⛔ ALBUMS LEFT THE PRIVATE SET 2026-08-02 (Brendon): albums are
            public, so a visitor's 'albums' key opens the keeper's real shelf. */
         if (!isOwnProfile && (v === 'starred' || v === 'wishlists' || v === 'history' || v === 'offers')) {
+            v = createdUnderMore ? 'created' : 'vault';
+        }
+        // A price-* key only exists on @price — leaving it for a normal
+        // profile (the useEffect above only fires on isPlatform's own
+        // change, not on every navigation) falls back the same way.
+        if (!isPlatform && v.startsWith('price-')) {
             v = createdUnderMore ? 'created' : 'vault';
         }
         return v;
@@ -963,7 +983,6 @@ function ProfilePageBodyInner({
        Holders board instead of an empty owned-NFT grid (Brendon, 2026-08-13
        — was "still behaves normally — it is simply empty" until Holders
        shipped). */
-    const isPlatform = isPlatformAccount(user.address);
     const galleryVisible = (((onShowcase && !artistShowcaseCreated) || onCollected) && !isPlatform) && !feedActive;
 
     /* Showcase move mode only lives on YOUR OWN Static showcase grid. Leaving
@@ -1834,7 +1853,7 @@ function ProfilePageBodyInner({
                             onClick={() => setActiveTabPersisted('showcase')}
                             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTabPersisted('showcase'); } }}
                         >
-                            <span className="stat-name">Showcase</span>
+                            <span className="stat-name">{isPlatform ? 'Token' : 'Showcase'}</span>
                         </div>
                         <div
                             className={`pill pill-l1${onCollected ? ' active' : ''}`}
@@ -1867,10 +1886,22 @@ function ProfilePageBodyInner({
                             visible={true}
                             hideSortBar
                             profilePills={
+                                /* @price: the four $PRICE doc pages replace the whole
+                                   row — Vault/Sigil/Loyalty/etc. are per-user systems
+                                   that mean nothing for a platform account, same
+                                   reasoning as Zen's Albums-only row (Brendon,
+                                   2026-08-13). */
+                                (isPlatform
+                                    ? [
+                                        { key: 'price-overview',   label: 'Overview',       active: effMoreL1 === 'price-overview',   onClick: () => setMoreL1('price-overview')   },
+                                        { key: 'price-tokenomics', label: 'Tokenomics',     active: effMoreL1 === 'price-tokenomics', onClick: () => setMoreL1('price-tokenomics') },
+                                        { key: 'price-contract',   label: 'Contract',       active: effMoreL1 === 'price-contract',   onClick: () => setMoreL1('price-contract')   },
+                                        { key: 'price-utility',    label: 'No Utility',     active: effMoreL1 === 'price-utility',    onClick: () => setMoreL1('price-utility')    },
+                                    ]
                                 /* Zen's single Albums tab. Albums are public
                                    (Brendon, 2026-08-02), so a visitor gets the
                                    keeper's shelf behind it — read-only. */
-                                (isZen
+                                : isZen
                                     ? [{ key: 'albums', label: <><span className="pill-tab-ico is-album">{'◰︎'}</span> Albums</>, active: effMoreL1 === 'albums', onClick: () => setMoreL1('albums') }]
                                     : [
                                         /* Cooldown leads the whole row — the live clock
@@ -2252,6 +2283,13 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                             holdings={holdings}
                         />
                     )}
+
+                    {/* @price's +More sub-nav — the four $PRICE doc pages, in place of
+                        the per-user systems above (Brendon, 2026-08-13). */}
+                    {onMore && effMoreL1 === 'price-overview' && <PriceOverviewPanel />}
+                    {onMore && effMoreL1 === 'price-tokenomics' && <PriceTokenomicsPanel />}
+                    {onMore && effMoreL1 === 'price-contract' && <PriceContractPanel />}
+                    {onMore && effMoreL1 === 'price-utility' && <PriceUtilityPanel />}
 
                     {/* Collected tab: platform-facet filter over the wallet's real
                         holdings (Artist · Project · PriceDay · Natal · Fate · Status).
