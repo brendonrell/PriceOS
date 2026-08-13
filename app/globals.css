@@ -14437,8 +14437,13 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     display: flex;
     flex-direction: column;
     gap: 4px;
-    padding: 4px 0 18px;
+    padding: 4px 40px 18px;
     font-family: 'Courier New', Courier, monospace;
+}
+/* Match #gallery's mobile horizontal buffer (20px vs desktop's 40px) so the
+   panel doesn't run edge-to-edge on small screens (Brendon, 2026-08-13). */
+@media (max-width: 600px) {
+    .price-acct { padding: 4px 20px 18px; }
 }
 /* Section heads: readable on any colorway, not a 10px whisper. */
 .price-acct .attr-group-head { padding-top: 16px; }
