@@ -41,6 +41,7 @@ import {
 import { usePathname } from 'next/navigation';
 import { getProject, projectColorway } from '../project/registry';
 import { moodHexToday } from '../mood/mood';
+import { platformAccountByHandle } from '../platform/accounts';
 import { disableHashSyn, enableHashSyn } from '../engines/hashSynEngine';
 import {
     enableHazeVariation,
@@ -308,6 +309,11 @@ function resolveCustomBg(): string {
     }
     const firstSeg = (path.match(/^\/([^/]+)/)?.[1] ?? '').toLowerCase();
     if (firstSeg === 'docs') return COLORWAYS.dark; // docs' own colour = Dark Mode
+    /* Platform accounts (@price) don't carry a profile_hex like a person
+       does — Custom is hardcoded to Dot Black for them regardless of
+       whatever's in the DB (Brendon, 2026-08-13). See the paired override
+       in applyBgHex for the Attention Yellow text that goes with it. */
+    if (platformAccountByHandle(firstSeg)) return DOT;
     const isProfile =
         firstSeg.length > 0 &&
         firstSeg !== 'art' &&
@@ -348,7 +354,14 @@ export function applyBgHex(bgHex: string, key: ColorwayKey) {
     // polarity throughout animation (no black↔white flicker as the bg
     // sweeps mid-luminance hues). Read it here; fall back to normal YIQ.
     const lockedText = key === 'haze' ? (root.dataset.hazeText ?? null) : null;
-    const text = lockedText ?? resolveTextColor(bg);
+    /* Platform accounts (@price) pair Dot Black with Attention Yellow
+       instead of the usual YIQ white, Custom only — see resolveCustomBg
+       for the paired bg lock (Brendon, 2026-08-13). */
+    const isPlatformCustom =
+        key === 'custom' &&
+        typeof window !== 'undefined' &&
+        platformAccountByHandle((window.location.pathname || '/').match(/^\/([^/]+)/)?.[1] ?? '') !== null;
+    const text = lockedText ?? (isPlatformCustom ? COLORWAYS.attention : resolveTextColor(bg));
 
     /* RGB triplet for modal-bg rgba string (sim 6816). */
     const hex = bg.replace('#', '');
