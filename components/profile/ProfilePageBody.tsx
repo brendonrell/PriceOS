@@ -1839,7 +1839,7 @@ function ProfilePageBodyInner({
                             onClick={() => setActiveTabPersisted('collected')}
                             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTabPersisted('collected'); } }}
                         >
-                            <span className="stat-name">Collected</span>
+                            <span className="stat-name">{isPlatform ? 'Holders' : 'Collected'}</span>
                         </div>
                         <div
                             className={`pill pill-l1${onMore ? ' active' : ''}`}
