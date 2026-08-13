@@ -88,7 +88,7 @@ declare global {
 let ytReady: Promise<YTNamespace> | null = null;
 function loadYT(): Promise<YTNamespace> {
     if (ytReady) return ytReady;
-    ytReady = new Promise((resolve, reject) => {
+    ytReady = new Promise<YTNamespace>((resolve, reject) => {
         if (window.YT?.Player) { resolve(window.YT); return; }
         const prev = window.onYouTubeIframeAPIReady;
         const timeout = setTimeout(() => reject(new Error('YT iframe_api load timed out')), 10000);
