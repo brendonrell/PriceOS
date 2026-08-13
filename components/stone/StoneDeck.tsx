@@ -546,7 +546,7 @@ function FollowKey({ me, target, handle, onAct }: {
 
     return (
         <button type="button" className="sw-key sw-key--word" onClick={toggle} disabled={busy}>
-            {busy ? '…' : following ? 'FOLLOWING' : 'FOLLOW'}
+            {busy ? '…' : following ? 'FOLLOWED' : 'FOLLOW'}
         </button>
     );
 }
