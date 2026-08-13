@@ -133,6 +133,7 @@ import { useCollectedGallery } from './useCollectedGallery';
 import { useArtistShowcase } from './useArtistShowcase';
 import { isPlatformAccount } from '../../lib/platform/accounts';
 import PriceAccountPanel from './PriceAccountPanel';
+import PriceHoldersBoard from './PriceHoldersBoard';
 import { useGridSettle } from '../../lib/hooks/useGridSettle';
 
 /* DEACTIVATE (Spell Book) — the understated "account deactivated" state a
@@ -958,9 +959,12 @@ function ProfilePageBodyInner({
        replaces it with project carousels below. */
     /* A platform account (@price) holds nothing and created nothing, so its
        Showcase slot carries the token's own information panel instead of an
-       empty grid. Collected still behaves normally — it is simply empty. */
+       empty grid, and its Holders (Collected) slot carries the $PRICE Top
+       Holders board instead of an empty owned-NFT grid (Brendon, 2026-08-13
+       — was "still behaves normally — it is simply empty" until Holders
+       shipped). */
     const isPlatform = isPlatformAccount(user.address);
-    const galleryVisible = ((onShowcase && !artistShowcaseCreated && !isPlatform) || onCollected) && !feedActive;
+    const galleryVisible = (((onShowcase && !artistShowcaseCreated) || onCollected) && !isPlatform) && !feedActive;
 
     /* Showcase move mode only lives on YOUR OWN Static showcase grid. Leaving
        the tab, switching showcase style, or landing on the Created view all
@@ -2254,7 +2258,7 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                         Distinct from the project page's per-Project trait pills — a
                         collection spans independent projects, so it filters on the
                         platform facets every Output carries. */}
-                    {onCollected && <ProfileFacetBar holdings={enriched} isOwnProfile={isOwnProfile} profileAddress={user.address} />}
+                    {onCollected && !isPlatform && <ProfileFacetBar holdings={enriched} isOwnProfile={isOwnProfile} profileAddress={user.address} />}
 
                     {/* Artist-style Showcase — the home Now-Minting control surface
                         over this artist's own projects. Created · Top 6 lead the
@@ -2297,6 +2301,19 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                 still lands in the single #gallery grid). */}
             {/* @price — the official $PRICE page, in the Showcase's place. */}
             {onShowcase && isPlatform && !feedActive && <PriceAccountPanel />}
+
+            {/* @price — Holders tab carries the $PRICE Top Holders board
+                (same list as the modal, see PriceHoldersBoard) in place of
+                the owned-NFT grid a platform account will never fill
+                (Brendon, 2026-08-13). */}
+            {onCollected && isPlatform && !feedActive && (
+                <div className="price-acct">
+                    <div className="attr-group-head">
+                        <span className="attr-group-name">Top holders</span>
+                    </div>
+                    <PriceHoldersBoard />
+                </div>
+            )}
 
             <section
                 id="gallery"
