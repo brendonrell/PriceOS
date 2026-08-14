@@ -613,7 +613,12 @@ function paintForPath(saved: ColorwayKey, pathname: string | null): ColorwayKey 
         // colorway sees the owner's pick; any explicit colorway (dark/light/
         // orange/haze/…) still wins via the fall-through below. Falls back to
         // the Custom default when the owner hasn't chosen a colour.
-        applyBgHex(getProfileBg(), 'custom');
+        // Routes through resolveCustomBg (not getProfileBg directly) so a
+        // platform account's Dot Black lock applies here too — this branch
+        // used to call getProfileBg() straight, bypassing that lock on every
+        // navigation into @price and repainting it light a beat after the
+        // correct color had already landed (Brendon, 2026-08-13).
+        applyBgHex(resolveCustomBg(), 'custom');
         return saved;
     }
     if (isHomePage && (saved === null || saved === 'custom')) {
