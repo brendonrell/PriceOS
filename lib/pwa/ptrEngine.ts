@@ -92,14 +92,25 @@ export function mountPtr(): void {
        Must NOT require the inner scroller to be scrolled down: a list sitting at
        its TOP would otherwise fall through and pulling it would refresh the app
        (the artists / portfolio scroll-refresh bug, Brendon 2026-06-25). Pulling
-       inside such a list belongs to the list, never to page refresh. */
+       inside such a list belongs to the list, never to page refresh.
+       Checks BOTH axes — horizontal rails (overflow-x) own their own touches
+       too, at any scroll position, same as vertical (the horizontal-scroll
+       end-of-rail PTR bug, Brendon 2026-08-14). */
     const startedInInnerScroller = (target: EventTarget | null): boolean => {
         let node = target as HTMLElement | null;
         while (node && node !== document.body) {
-            const oy = getComputedStyle(node).overflowY;
+            const cs = getComputedStyle(node);
+            const oy = cs.overflowY;
+            const ox = cs.overflowX;
             if (
                 (oy === 'auto' || oy === 'scroll') &&
                 node.scrollHeight > node.clientHeight + TOP_EPSILON
+            ) {
+                return true;
+            }
+            if (
+                (ox === 'auto' || ox === 'scroll') &&
+                node.scrollWidth > node.clientWidth + TOP_EPSILON
             ) {
                 return true;
             }
