@@ -5980,18 +5980,6 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.32); }
     text-transform: none;
     letter-spacing: 0.02em;
 }
-/* +More's sub-nav row (Vault/Sigil/Starred/etc., and @price's Overview/
-   Tokenomics/Contract/No Utility) sits directly under the row above — same
-   Rubik Mono treatment so the two rows read as one system, not two
-   different fonts stacked on each other (Brendon, 2026-08-13; TraitsUI
-   tags this container .is-profile-pills only in profile mode, so this
-   doesn't touch the normal Artist/Project/etc. trait-filter pills). */
-.stats-container.is-profile-pills .pill-l1 {
-    font-family: var(--font-rubik-mono), sans-serif;
-    font-weight: normal;
-    font-size: 11px;
-    letter-spacing: 0.02em;
-}
 /* Home Shuffle tab — non-essential: hidden (never wrapped) when the three tabs
    can't share one line; JS measures the fit and toggles .hide-shuffle, and uses
    .tabs-measuring (force one line + Shuffle shown) for an accurate test so it
@@ -14464,22 +14452,7 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     gap: 4px;
     padding: 4px 40px 18px;
     font-family: 'Courier New', Courier, monospace;
-    /* The four @price doc panels run much longer than this panel's own
-       original content — long unbroken text can push a block past its
-       column and trip mobile Safari's text-autosize inflation on that
-       block specifically, which is what made the +More sub-tabs read huge
-       and overflow the screen while this shorter panel stayed fine
-       (Brendon, 2026-08-13). Belt-and-suspenders: force wrapping and
-       re-assert the site's normal (no-inflation) text sizing locally, so
-       this panel can't drift from Token's rendering no matter how long a
-       paragraph gets. */
-    max-width: 100%;
-    overflow-wrap: break-word;
-    word-break: break-word;
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
 }
-.price-acct * { max-width: 100%; }
 
 /* Match #gallery's mobile horizontal buffer (20px vs desktop's 40px) so the
    panel doesn't run edge-to-edge on small screens (Brendon, 2026-08-13). */
@@ -14503,7 +14476,10 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
 .price-acct .attr-tile-label { font-size: 12px; letter-spacing: 0.8px; opacity: 1; }
 .price-acct .attr-tile-value { font-size: 14px; }
 .price-acct .attr-tile { border-color: var(--text-color); border-radius: 4px; }
-.price-acct .nbhd-note { line-height: 1.5; }
+/* Content text matches the stat-tile VALUE size (14px, not the 12px base) —
+   same rule for the $PRICE tab and every +More doc panel, since both share
+   this wrapper (Brendon, 2026-08-14). */
+.price-acct .nbhd-note { line-height: 1.5; font-size: 14px; }
 /* The allocation rows carry real numbers — full strength, not a subtitle. */
 .price-acct-rows .starred-row-sub { font-size: 12px; opacity: 1; }
 .price-acct-rows .starred-row-id { font-size: 14px; }
