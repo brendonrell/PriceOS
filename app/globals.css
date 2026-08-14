@@ -9884,6 +9884,19 @@ a.f-highlight { color: inherit; }
     .ico-followers { font-size: 22px; }
 }
 
+/* iPad/tablet landscape: the ✦ collected stat (home + project stats rows)
+   reads too small at the desktop 11px/top:2px sizing. Two sizes larger,
+   nudged up 2px. Scoped to touch + landscape + min-height so phone
+   landscape (max-height:500px, handled above) is untouched (Brendon,
+   2026-08-14). */
+@media (pointer: coarse) and (orientation: landscape) and (min-height: 501px) {
+    .stats-row .stat-icon-owners:not(.stat-icon-followers) {
+        font-size: 14px;
+        position: relative;
+        top: 0;
+    }
+}
+
 
 
 /* ============================================================
