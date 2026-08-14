@@ -1853,7 +1853,7 @@ function ProfilePageBodyInner({
                             onClick={() => setActiveTabPersisted('showcase')}
                             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTabPersisted('showcase'); } }}
                         >
-                            <span className="stat-name">{isPlatform ? 'Token' : 'Showcase'}</span>
+                            <span className="stat-name">{isPlatform ? '$PRICE' : 'Showcase'}</span>
                         </div>
                         <div
                             className={`pill pill-l1${onCollected ? ' active' : ''}`}

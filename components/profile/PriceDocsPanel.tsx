@@ -164,7 +164,7 @@ export function PriceTokenomicsPanel() {
 
             <Group name="Total supply">
                 <div className="nbhd-note">
-                    100,000,000 tokens (\u00d7 10^18 base units), minted once at deployment. After
+                    100,000,000 tokens (× 10^18 base units), minted once at deployment. After
                     that mint: no <code>mint</code> function exists for further minting, no admin
                     role holds mint authority (no admin role exists at all), and no{' '}
                     <code>burn</code> function exists either — supply is permanently 100,000,000;
