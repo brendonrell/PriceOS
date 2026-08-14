@@ -612,7 +612,7 @@ export default function TraitsUI({
                 into traitsHiddenStyle (sim 8470). */}
             <div className="traits-ui" style={traitsHiddenStyle}>
                 <div className="traits-header-bar">
-                    <div className="stats-container" id="traitCategories">
+                    <div className={`stats-container${inProfileMode ? ' is-profile-pills' : ''}`} id="traitCategories">
                         {/* Profile Page v0 — when profilePills is provided,
                             the entire project-mode L1 cluster (feed-mode
                             + non-feed pill rows + sort-icons wrapper) is
