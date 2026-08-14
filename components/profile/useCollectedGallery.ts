@@ -8,7 +8,7 @@
  * Split out of ProfilePageBody 2026-07-06 — pure move, no behavior change.
  */
 
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { useTraits } from '../../lib/state/TraitsContext';
 import {
     useSort,
@@ -140,23 +140,47 @@ export function useCollectedGallery(holdings: Holding[]) {
     const REVEAL_FIRST = 24;
     const REVEAL_STEP = 48;
     const [revealCount, setRevealCount] = useState(REVEAL_FIRST);
-    const collectedSentinelRef = useRef<HTMLDivElement | null>(null);
-    useEffect(() => {
-        if (revealCount >= visibleCollected.length) return;
-        const el = collectedSentinelRef.current;
+    /* Always the current total, readable from inside a stable callback that
+       never itself changes identity — see collectedSentinelRef below. */
+    const revealTargetRef = useRef(visibleCollected.length);
+    revealTargetRef.current = visibleCollected.length;
+    const sentinelObserverRef = useRef<IntersectionObserver | null>(null);
+    /* CALLBACK ref, not useRef+useEffect (Brendon, 2026-08-14 — "cuts off at
+       24 unless I hit sort a million times"). The old pattern read
+       collectedSentinelRef.current inside a useEffect keyed on
+       [revealCount, visibleCollected.length] — correct only as long as the
+       sentinel DOM node itself never gets swapped for a new one without
+       either of those changing. It does: a sort/group tap can remount the
+       grid's JSX branch while the filtered count stays the same length, so
+       React attaches a brand-new sentinel node the effect never learns
+       about — the old IntersectionObserver keeps watching the DETACHED
+       node, which can never intersect anything again, and reveals stall at
+       whatever REVEAL_FIRST/REVEAL_STEP last landed on. The occasional
+       "sort a million times" reveal wasn't the fix working — it was each
+       click's incidental re-render occasionally recreating the effect and
+       catching one fresh intersection check, one step, before going stale
+       again. A callback ref fires exactly on attach/detach of the ACTUAL
+       node, so the observer is always watching the one that's really
+       mounted, however many times it gets swapped underneath it. */
+    const collectedSentinelRef = useCallback((el: HTMLDivElement | null) => {
+        sentinelObserverRef.current?.disconnect();
+        sentinelObserverRef.current = null;
         if (!el) return;
-        if (typeof IntersectionObserver === 'undefined') { setRevealCount(visibleCollected.length); return; }
+        if (typeof IntersectionObserver === 'undefined') {
+            setRevealCount(revealTargetRef.current);
+            return;
+        }
         const io = new IntersectionObserver(
             (entries) => {
                 if (entries.some((e) => e.isIntersecting)) {
-                    setRevealCount((c) => Math.min(c + REVEAL_STEP, visibleCollected.length));
+                    setRevealCount((c) => Math.min(c + REVEAL_STEP, revealTargetRef.current));
                 }
             },
             { rootMargin: '1200px 0px' },
         );
         io.observe(el);
-        return () => io.disconnect();
-    }, [revealCount, visibleCollected.length]);
+        sentinelObserverRef.current = io;
+    }, []);
     const shownCollected = useMemo(
         () =>
             revealCount >= visibleCollected.length
