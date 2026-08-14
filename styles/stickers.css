@@ -1521,16 +1521,3 @@ body.theme-bright .ui-knockout { background: #fff; color: #111; }
 .pill.smgr-sheet-pill { border: 1px dashed currentColor; opacity: 0.65; }
 .pill.smgr-sheet-pill.active { opacity: 1; border-color: transparent; }
 
-/* ⓘ docs door — beside the Exchange header's ×, a size under it
-   (Brendon, 2026-08-05). Same treatment as .ss-close, smaller. */
-.ss-docs-door {
-    font-size: 20px;
-    font-weight: bold;
-    line-height: 1;
-    color: var(--text-color);
-    text-decoration: none;
-    cursor: pointer;
-    padding: 2px 0 2px 2px;
-    transition: opacity 0.15s ease;
-}
-.ss-docs-door:hover { opacity: 0.65; }
