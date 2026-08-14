@@ -35,6 +35,7 @@ const inter = Inter({
 import { PdNotifsProvider } from '../lib/state/PdNotifsContext';
 import { FiatProvider } from '../lib/state/FiatContext';
 import { ColorwayProvider } from '../lib/state/ColorwayContext';
+import { PLATFORM_ACCOUNTS } from '../lib/platform/accounts';
 import { ModalProvider } from '../lib/state/ModalContext';
 import { DropdownProvider } from '../lib/state/DropdownContext';
 import { SortProvider } from '../lib/state/SortContext';
@@ -134,6 +135,16 @@ const PREHYDRATION_SCRIPT = `
             firstSeg !== 'docs' &&
             !/^\d+$/.test(firstSeg) &&
             /^[@a-z0-9_-]+$/i.test(firstSeg);
+        // Platform accounts (@price) — mirrors lib/platform/accounts.ts'
+        // platformAccountByHandle, interpolated at render so this never
+        // drifts from the real list (Brendon, 2026-08-13). Locks Custom to
+        // Dot Black + Attention Yellow here too, so the FIRST paint (before
+        // React even mounts) is already right — this is what was flashing
+        // the profile-default light gray on every @price load until
+        // ColorwayContext's own useEffect caught up and fixed it a beat
+        // later.
+        var PLATFORM_HANDLES = ${JSON.stringify(PLATFORM_ACCOUNTS.map((a) => a.handle.toLowerCase()))};
+        var isPlatformPage = PLATFORM_HANDLES.indexOf(firstSeg) !== -1;
 
         var savedTheme = null;
         try { savedTheme = localStorage.getItem('pd_settings_colorway'); } catch (e) { /* ignore */ }
@@ -147,10 +158,15 @@ const PREHYDRATION_SCRIPT = `
         // via the normal flow below, same as every page.
         if (isDocsPage && (colorway === null || colorway === 'custom')) colorway = 'dark';
         if (colorway === null && isProjectPage) colorway = 'custom';
+        // Platform accounts (@price) treat Custom as their own default too,
+        // same as home/project pages — an un-themed REGULAR profile reads
+        // blank on purpose, but @price isn't a person's profile, it's the
+        // platform's own page (Brendon, 2026-08-13).
+        if (colorway === null && isPlatformPage) colorway = 'custom';
         // Non-project, non-profile pages (home, etc.) also default to
         // custom color so the site never cold-starts with Dot defaults.
         if (colorway === null && !isProfilePage) colorway = 'custom';
-        var profileBoot = (colorway === null && isProfilePage);
+        var profileBoot = (colorway === null && isProfilePage && !isPlatformPage);
 
         var COLORWAYS = {
             // Custom has no baked-in hue — it's derived per page (home → Mood
@@ -212,6 +228,18 @@ const PREHYDRATION_SCRIPT = `
                 pillL1Bg = '#111111'; pillL1Text = '#e0e0e0'; pillL1Border = '#e0e0e0';
                 pillL1BgImg = 'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(224,224,224,0.15) 2px, rgba(224,224,224,0.15) 4px)';
                 pillL1ActiveBgImg = 'repeating-linear-gradient(45deg, transparent, transparent 1px, rgba(224,224,224,0.55) 1px, rgba(224,224,224,0.55) 2px)';
+            } else if (isPlatformPage && text === '#FFE600') {
+                // @price Custom: same dark-treatment pill shape as key==='dark'
+                // above, but Attention Yellow ink/hatch instead of MATRIX
+                // white — mirrors applyBgHex's isPlatformCustom branch. Without
+                // this the prehydration script's pill fell through to the
+                // default (non-dark) branch below, which flips it to a
+                // yellow-bg/black-text pill until React repaints it correctly a
+                // beat later (Brendon, 2026-08-13).
+                mintBg = '#e0e0e0'; mintText = '#111111'; mintBorder = '#e0e0e0';
+                pillL1Bg = '#111111'; pillL1Text = '#FFE600'; pillL1Border = '#FFE600';
+                pillL1BgImg = 'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,230,0,0.15) 2px, rgba(255,230,0,0.15) 4px)';
+                pillL1ActiveBgImg = 'repeating-linear-gradient(45deg, transparent, transparent 1px, rgba(255,230,0,0.55) 1px, rgba(255,230,0,0.55) 2px)';
             }
 
             root.style.setProperty('--mint-bg', mintBg);
@@ -267,7 +295,16 @@ const PREHYDRATION_SCRIPT = `
             // pd_custom_color so the page paints the picked color
             // instead of the static COLORWAYS.custom fallback.
             if (colorway === 'custom') {
-                if (isHomePage) {
+                if (isPlatformPage) {
+                    // @price's Custom is hardcoded Dot Black regardless of
+                    // the visitor's own saved pd_custom_color pick — mirrors
+                    // resolveCustomBg's platformAccountByHandle check on the
+                    // React side, so this first paint already matches what
+                    // ColorwayContext repaints a beat later instead of
+                    // flashing a different color first (Brendon,
+                    // 2026-08-13).
+                    bg = '#111111';
+                } else if (isHomePage) {
                     // Home's custom colour = the MOOD RING (Brendon,
                     // 2026-06-12): a new generative colour every PriceDay.
                     // This MUST mirror lib/mood/mood.ts draw-for-draw —
@@ -334,6 +371,10 @@ const PREHYDRATION_SCRIPT = `
             var b = parseInt(hex.substr(4, 2), 16) || 0;
             var yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
             var text = yiq >= 128 ? '#111111' : '#e0e0e0';
+            // @price's Custom pairs Dot Black with Attention Yellow, not the
+            // usual computed white — mirrors applyBgHex's isPlatformCustom
+            // check (Brendon, 2026-08-13).
+            if (isPlatformPage && colorway === 'custom') text = '#FFE600';
 
             paintVars(bg, text, colorway);
 
