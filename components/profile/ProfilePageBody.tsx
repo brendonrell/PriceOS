@@ -391,10 +391,16 @@ function ProfilePageBodyInner({
     }, [isOwnProfile]);
     const showcaseStyleVal = isOwnProfile ? liveShowcaseStyle : user.showcase_style;
 
-    // Identity row: chosen ENS if set, else the truncated wallet address.
-    const viaLabel = ensName
-        ? ensName
-        : `${user.address.slice(0, 6)}…${user.address.slice(-4)}`;
+    // Identity row: @price wears the token contract, labelled and in the
+    // SAME plain address style as any wallet (Brendon, 2026-08-14) — never
+    // the ENS-styled branch, even though the account's ens_name field holds
+    // "Price Discussion" for display elsewhere. Everyone else: chosen ENS if
+    // set, else the truncated wallet address.
+    const viaLabel = isPlatform
+        ? `${user.address.slice(0, 6)}…${user.address.slice(-4)}`
+        : ensName
+            ? ensName
+            : `${user.address.slice(0, 6)}…${user.address.slice(-4)}`;
     /* Live follower/following counts — fully seeded from the server row
        (both counts ship with the page since the 2026-06-10 perf batch; the
        old seed left `following` at 0 until a mount fetch landed), refreshed
@@ -657,8 +663,10 @@ function ProfilePageBodyInner({
 
     // Identity-row copy: copies the chosen ENS if set, else the FULL wallet
     // address (row shows truncated, copy gives the whole thing — same as the
-    // settings wallet copy). Inline checkmark swap for 1.5s.
-    const copyValue = ensName ?? user.address;
+    // settings wallet copy). @price always copies the contract address, never
+    // its display-only "Price Discussion" ens_name (Brendon, 2026-08-14).
+    // Inline checkmark swap for 1.5s.
+    const copyValue = isPlatform ? user.address : (ensName ?? user.address);
     const [idCopied, setIdCopied] = useState(false);
     const idCopyTimer = useRef<number | null>(null);
     const handleCopyIdentity = async () => {
@@ -1571,13 +1579,18 @@ function ProfilePageBodyInner({
                                     target="_blank"
                                     rel="noopener noreferrer"
                                 >
-                                    {ensName ? (
+                                    {ensName && !isPlatform ? (
                                         // The chosen Unicode font also styles the ENS
                                         // (Brendon, 2026-07-21) — same treatment as the
                                         // @name. The wallet-address fallback stays plain.
                                         styleName(viaLabel, ownerNameFont ?? null)
                                     ) : (
                                         <>
+                                            {/* @price: the token contract, same plain
+                                                address style as any wallet, just labelled
+                                                (Brendon, 2026-08-14 — was showing the
+                                                ens_name "Price Discussion" instead). */}
+                                            {isPlatform && <span className="id-row-contract-label">Contract: </span>}
                                             0<span className="addr-x">x</span>
                                             {viaLabel.slice(2)}
                                         </>
@@ -1607,7 +1620,7 @@ function ProfilePageBodyInner({
                                     className="icon-copy id-copy"
                                     role="button"
                                     tabIndex={0}
-                                    title={`Copy ${ensName ? 'ENS' : 'wallet address'}`}
+                                    title={`Copy ${isPlatform ? 'contract address' : ensName ? 'ENS' : 'wallet address'}`}
                                     onClick={(e) => { e.preventDefault(); handleCopyIdentity(); }}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' || e.key === ' ') {
