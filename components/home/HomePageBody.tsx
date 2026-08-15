@@ -55,6 +55,7 @@ import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useDropdown } from '../../lib/state/DropdownContext';
 import { getSupabaseBrowser } from '../../lib/supabase';
 import { allProjects, getProject, projectTraits } from '../../lib/project/registry';
+import { formatEth } from '../../lib/format/eth';
 import HomeFacetBar, { type HomeSort } from './HomeFacetBar';
 import HomeProjectFacetBar, {
     projectFacetValueOf,
@@ -1238,7 +1239,9 @@ function HomePageBodyInner({
                                         <span>{fmtUploadTime(u.uploaded_at)}</span>
                                     </div>
                                     <div className="f-type af-type">
-                                        <span>UPLOADED</span>
+                                        {def && def.mintPriceEth > 0 && (
+                                            <span className="af-price">{formatEth(def.mintPriceEth)} ETH</span>
+                                        )}
                                     </div>
                                     <div className="f-content">
                                         {/* Check lives INSIDE the name so it flows with the last
