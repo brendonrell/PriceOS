@@ -11,6 +11,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import PriceDayDateLink from '../priceday/PriceDayDateLink';
 
 interface Chapter {
     key: string;
@@ -69,7 +70,14 @@ export default function PriceStoryPanel({ slug, id }: { slug: string; id?: numbe
                                 <div className="mk-story-body">
                                     <div className="mk-story-head">
                                         <span className="mk-story-title">{c.title}</span>
-                                        <span className="mk-story-date">{fmtDate(c.ts)}</span>
+                                        {/* Underlined date acts as a PriceDay link — same popover
+                                            behavior as the profile page's date stamp (Brendon, 2026-08-15). */}
+                                        <PriceDayDateLink
+                                            date={new Date(c.ts * 1000)}
+                                            label={fmtDate(c.ts)}
+                                            className="mk-story-date project-date"
+                                            wrapClassName="mk-story-date-wrap"
+                                        />
                                     </div>
                                     <p className="mk-story-text">{c.line}</p>
                                     {c.sub && <span className="mk-story-sub">{c.sub}</span>}
