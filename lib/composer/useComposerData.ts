@@ -22,6 +22,8 @@ interface OutputDTO {
     owner: string;
     owner_handle: string | null;
     list_price_eth: string | null;
+    /** Mint moment, unix seconds — feeds outputTraits' birth facets. */
+    mint_ts?: number | null;
 }
 
 interface ProjectOutputsResponse {
@@ -78,7 +80,7 @@ export function useComposerData(active: boolean): ComposerData {
                         list_price_eth: price,
                         ownerAddr: (o?.owner ?? '').toLowerCase(),
                         ownerHandle: o?.owner_handle ?? null,
-                        traits: outputTraits(slug, id),
+                        traits: outputTraits(slug, id, o?.mint_ts != null ? o.mint_ts * 1000 : undefined),
                     });
                 }
             }
