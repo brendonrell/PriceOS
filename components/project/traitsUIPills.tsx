@@ -453,7 +453,9 @@ export function GroupBtn({
     /** Whether a grouping is active (lights the button). */
     on: boolean;
     /** More than one layer is running — the button wears the TOP layer's glyph
-     *  and a + beside it for the rest (Brendon, 2026-07-30). */
+     *  and the ↳ (down-and-over, same mark as the layers menu itself) beside
+     *  it for the rest (Brendon, 2026-07-30; repositioned + swapped from '+'
+     *  to ↳, 2026-08-14). */
     more?: boolean;
     onClick: () => void;
     /** HOLD → the three-layer menu (Brendon, 2026-07-26). Receives where the
@@ -482,8 +484,30 @@ export function GroupBtn({
                 }
             }}
         >
+            {/* ⛔ SAME METHOD AS THE ❖ RARITY MARK / $ FEED MARK (Brendon,
+                2026-08-14: "nowhere near that spot, re-do it properly") — an
+                inline-styled span glued directly against the character it
+                marks, not a separately-classed sibling that can drift. Mirrors
+                traitsUIPills SortBtn's dollarSpan exactly: Courier, 13px,
+                2px right margin, nudged up 3px. Swapped '+' for ↳, the same
+                down-and-over glyph the layers menu itself wears
+                (GroupLayersBubble's .glb-arrow). */}
+            {on && more && (
+                <span
+                    className="group-btn-more"
+                    aria-hidden="true"
+                    style={{
+                        fontFamily: "'Courier New', Courier, monospace",
+                        fontSize: '13px',
+                        marginRight: '2px',
+                        position: 'relative',
+                        top: '-3px',
+                    }}
+                >
+                    {'\u21B3\uFE0E'}
+                </span>
+            )}
             <span className="sort-lbl sort-lbl-recent">{on ? glyph : GROUP_BTN_ICON}</span>
-            {on && more && <span className="group-btn-more" aria-hidden="true">+</span>}
         </div>
     );
 }

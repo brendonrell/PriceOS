@@ -425,7 +425,8 @@ export default function TraitsUI({
     const cycleGroupWithToast = () => {
         const next = cycleGroup(groupOrder, { scope: 'project', id: projectSlug });
         // Toast-casing rule: the category stays normal case, the STATE screams.
-        showToast('Group: ' + GROUP_LABEL[next] + GROUP_TOAST_HINT);
+        // Hint only rides the toast that turns grouping OFF (Brendon, 2026-08-14).
+        showToast('Group: ' + GROUP_LABEL[next] + (next === 'none' ? GROUP_TOAST_HINT : ''));
     };
 
     /* Wraps setColorway with a toast (mirrors ColorwayPicker.tsx). */
