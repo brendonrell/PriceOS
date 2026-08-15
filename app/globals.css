@@ -5251,6 +5251,21 @@ body.persona-default .stats-row-2 { display: none !important; }
     height: 14px;
     box-sizing: border-box;
     position: relative; /* anchor for the ::after underline */
+    /* ⛔ VISITED-LINK PURPLE, KILLED AT THE SOURCE (Brendon, 2026-08-15:
+       "notice the purple link on rudxane's profile"). The rectangle itself
+       IS an <a> (AsciiId), and nothing ever set ITS OWN color — only the
+       inner .profile-link span did, via color:inherit, which just inherits
+       the anchor's own UA-default link colour. Any profile you'd visited
+       before rendered purple; one you hadn't rendered blue — both wrong.
+       Setting it here, on :link and :visited alike, is what actually stops
+       the browser default from ever showing. */
+    color: inherit;
+    text-decoration: none;
+}
+.collected-pair:link,
+.collected-pair:visited {
+    color: inherit;
+    text-decoration: none;
 }
 /* FULL ASCII-ID (Brendon, 2026-07-27) — the connect-menu PriceRank badge at
    chip scale, riding between sprite and @name inside a .collected-pair when
