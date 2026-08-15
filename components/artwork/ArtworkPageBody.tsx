@@ -912,19 +912,26 @@ export default function ArtworkPageBody({
                         )}
                         {/* THE EXCHANGE — trade head-to-head with this piece's
                             holder, window pre-seeded with the piece
-                            (spec 86ba0apqr: output-page surface). */}
+                            (spec 86ba0apqr: output-page surface). GLYPH ONLY,
+                            same btn-soundtrack pill the profile page's own
+                            Exchange entry uses — not a bespoke pill (Brendon,
+                            2026-08-15: undo the rounded "TRADE" pill, copy
+                            the profile-page button verbatim). */}
                         {!owned && market?.viewer && market?.owner && (
                             <button
                                 type="button"
-                                className="mk-offers-pill"
-                                onClick={() => openExchange(
-                                    market.owner as string,
-                                    market.owner_handle,
-                                    { project_id: slug, token_id: String(numberPart) },
-                                )}
+                                className="btn-soundtrack"
                                 title={`Trade with ${heldBy}`}
+                                onClick={() => {
+                                    showToast(`⇌︎ THE EXCHANGE — trade with ${heldBy}`);
+                                    openExchange(
+                                        market.owner as string,
+                                        market.owner_handle,
+                                        { project_id: slug, token_id: String(numberPart) },
+                                    );
+                                }}
                             >
-                                {'⇌︎'} TRADE
+                                {'⇌︎'}
                             </button>
                         )}
                         {/* Owner of a live listing: edit price in place (the sheet
