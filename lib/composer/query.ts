@@ -19,8 +19,14 @@
 import type { OutputTraits } from '../project/types';
 import { GROUP_LABEL, type SortDir, type GroupKey } from '../state/SortContext';
 import { pdRarityRank } from '../output/rarity';
-import { resolveBucket } from '../art/colorStore';
+import { resolveBucket, resolveFingerprint, type StoredFingerprint } from '../art/colorStore';
 import { getProject } from '../project/registry';
+import {
+    brightnessBand, saturationBand, complexityBand, toneMood, paletteBand,
+    contrastBand, warmthBand, symmetryBand, airBand, textureBand, gravityWord,
+    geometryBand, colorfulnessOf, colorfulnessBand, densityOf, densityBand,
+    orderOf, orderBand, orientationOf,
+} from '../output/derive';
 
 /* ── the dataset row ─────────────────────────────────────────────────── */
 
@@ -40,7 +46,7 @@ export interface ComposerRow {
 
 /* ── rules ───────────────────────────────────────────────────────────── */
 
-export type FacetField = 'Artist' | 'Project' | 'Fate';
+export type FacetField = 'Artist' | 'Project' | 'Fate' | 'Sun' | 'Moon' | 'Rising' | 'PriceDay' | 'Language';
 
 export type OwnerClass =
     | 'me' | 'notMe' | 'handle'
@@ -50,6 +56,90 @@ export type OwnerClass =
        the Friend Inspector's shared-holdings read). */
     | 'mutuals' | 'following' | 'followers' | 'topHolders' | 'cartel';
 
+/* ── Fingerprint band axes — every band a piece's sampled pixels can carry
+   (lib/output/attributes.ts' "Fingerprint" wall), each with the fixed word
+   vocabulary its band function returns. This is what lets Composer promise
+   "all moody, purple outputs" — Tone=Moody is one of these, Purple is the
+   existing Colour rule. Accent reuses the Colour bucket vocabulary (it's the
+   same classifier, just the second-place colour). Scene is free text from
+   the AI read (no fixed vocab), so it's left out of the picker. */
+export type FingerprintAxis =
+    | 'tone' | 'temperature' | 'brightness' | 'saturation' | 'contrast'
+    | 'complexity' | 'texture' | 'air' | 'gravity' | 'symmetry' | 'orientation'
+    | 'geometry' | 'colorfulness' | 'density' | 'order' | 'palette' | 'accent';
+
+export const FINGERPRINT_AXIS_LABEL: Record<FingerprintAxis, string> = {
+    tone: 'Tone', temperature: 'Temperature', brightness: 'Brightness',
+    saturation: 'Saturation', contrast: 'Contrast', complexity: 'Complexity',
+    texture: 'Texture', air: 'Air', gravity: 'Gravity', symmetry: 'Symmetry',
+    orientation: 'Orientation', geometry: 'Geometry', colorfulness: 'Colourfulness',
+    density: 'Density', order: 'Order', palette: 'Palette', accent: 'Accent',
+};
+
+/* Glyphs mirror the Character Sheet's Fingerprint wall (attributes.ts) 1:1,
+   so the same axis always wears the same mark everywhere in the app. */
+export const FINGERPRINT_AXIS_GLYPH: Record<FingerprintAxis, string> = {
+    tone: '◕︎', temperature: '✦︎', brightness: '◐︎', saturation: '❖︎',
+    contrast: '◨︎', complexity: '⌗︎', texture: '▒︎', air: '◌︎', gravity: '◒︎',
+    symmetry: '◫︎', orientation: '▭︎', geometry: '∠︎', colorfulness: '◧︎',
+    density: '▓︎', order: '∷︎', palette: '▤︎', accent: '◎︎',
+};
+
+export const FINGERPRINT_AXIS_VALUES: Record<FingerprintAxis, readonly string[]> = {
+    tone: ['Brooding', 'Sombre', 'Moody', 'Electric', 'Serene', 'Airy', 'Bold', 'Hushed', 'Balanced'],
+    temperature: ['Cold', 'Cool', 'Split', 'Warm', 'Molten'],
+    brightness: ['Dark', 'Dim', 'Mid', 'Bright', 'Luminous'],
+    saturation: ['Muted', 'Soft', 'Balanced', 'Rich', 'Vivid'],
+    contrast: ['Flat', 'Soft', 'Measured', 'Crisp', 'Stark'],
+    complexity: ['Minimal', 'Calm', 'Balanced', 'Detailed', 'Busy'],
+    texture: ['Smooth', 'Even', 'Textured', 'Grainy'],
+    air: ['Vast', 'Airy', 'Open', 'Packed'],
+    gravity: ['Sits Low', 'Held High', 'Leans Left', 'Leans Right', 'Centered'],
+    symmetry: ['Mirrored', 'Balanced', 'Leaning', 'Askew'],
+    orientation: ['Landscape', 'Portrait', 'Square'],
+    geometry: ['Organic', 'Flowing', 'Mixed', 'Angular', 'Geometric'],
+    colorfulness: ['Monochrome', 'Restrained', 'Tempered', 'Colorful', 'Riotous'],
+    density: ['Sparse', 'Roomy', 'Balanced', 'Dense', 'Teeming'],
+    order: ['Chaotic', 'Unruly', 'Poised', 'Ordered', 'Structured'],
+    palette: ['Monochrome', 'Duotone', 'Trichrome', 'Polychrome'],
+    /* Accent shares the Colour rule's bucket vocabulary — filled in by the
+       caller (ComposerModal already has COLOR_BUCKET_ORDER); left empty
+       here so this table stays a pure derive.ts mirror. */
+    accent: [],
+};
+
+/** A row's word for a given Fingerprint axis — the exact same band function
+ *  the Character Sheet uses, so a filter and the tile it reads never
+ *  disagree. Null when the underlying scalar(s) haven't been sampled yet. */
+export function fingerprintBandOf(axis: FingerprintAxis, fp: StoredFingerprint | null): string | null {
+    if (!fp) return null;
+    switch (axis) {
+        case 'tone':
+            return fp.brightness != null && fp.saturation != null ? toneMood(fp.brightness, fp.saturation) : null;
+        case 'temperature': return fp.warmth != null ? warmthBand(fp.warmth) : null;
+        case 'brightness': return fp.brightness != null ? brightnessBand(fp.brightness) : null;
+        case 'saturation': return fp.saturation != null ? saturationBand(fp.saturation) : null;
+        case 'contrast': return fp.contrast != null ? contrastBand(fp.contrast) : null;
+        case 'complexity': return fp.complexity != null ? complexityBand(fp.complexity) : null;
+        case 'texture': return fp.texture != null ? textureBand(fp.texture) : null;
+        case 'air': return fp.air != null ? airBand(fp.air) : null;
+        case 'gravity': return fp.gravity ? gravityWord(fp.gravity) : null;
+        case 'symmetry': return fp.symmetry != null ? symmetryBand(fp.symmetry) : null;
+        case 'orientation': return orientationOf(fp.aspect) || null;
+        case 'geometry': return fp.geometry != null ? geometryBand(fp.geometry) : null;
+        case 'colorfulness':
+            return fp.saturation != null && fp.paletteCount != null
+                ? colorfulnessBand(colorfulnessOf(fp.saturation, fp.paletteCount)) : null;
+        case 'density':
+            return fp.air != null && fp.complexity != null ? densityBand(densityOf(fp.air, fp.complexity)) : null;
+        case 'order':
+            return fp.symmetry != null && fp.texture != null
+                ? orderBand(orderOf(fp.symmetry, fp.texture, fp.pattern)) : null;
+        case 'palette': return fp.paletteCount != null ? paletteBand(fp.paletteCount) : null;
+        case 'accent': return fp.accent ?? null;
+    }
+}
+
 export type MyList = 'starred' | 'wishlist' | 'album';
 
 export type ComposerRule =
@@ -58,6 +148,9 @@ export type ComposerRule =
     | { kind: 'owner'; op: OwnerClass; handle?: string }
     | { kind: 'color'; values: string[] }
     | { kind: 'rarity'; op: 'top' | 'bottom'; pct: number }
+    /* Any Fingerprint band (Tone, Temperature, Brightness, ... Accent) — the
+       full pixel-derived wall, filterable the same way Colour already is. */
+    | { kind: 'band'; axis: FingerprintAxis; values: string[] }
     /* v1.1 — my-lists membership (starred ★ / wishlist ✛ / albums ◰). */
     | { kind: 'list'; list: MyList; op: 'in' | 'notIn' }
     /* v1.1 — a PROJECT's own trait (only offered under single-project
@@ -92,6 +185,7 @@ export function ruleIsComplete(r: ComposerRule): boolean {
             || (r.eth != null && !Number.isNaN(parseFloat(r.eth)));
         case 'owner':  return r.op !== 'handle' || !!r.handle?.trim();
         case 'color':  return r.values.length > 0;
+        case 'band':   return r.values.length > 0;
         case 'rarity': return Number.isFinite(r.pct) && r.pct > 0 && r.pct <= 100;
         case 'list':   return true;
         case 'trait':  return r.values.length > 0;
@@ -171,6 +265,11 @@ function matchRule(r: ComposerRule, row: ComposerRow, ctx: ComposerCtx): boolean
             const b = resolveBucket(row.slug, row.token_id) ?? 'Other';
             return r.values.includes(b);
         }
+        case 'band': {
+            const fp = resolveFingerprint(row.slug, row.token_id);
+            const v = fingerprintBandOf(r.axis, fp);
+            return v != null && r.values.includes(v);
+        }
         case 'rarity': {
             const rank = pdRarityRank(row.slug, row.token_id);
             if (!rank || rank.total <= 0) return false;
@@ -213,6 +312,7 @@ export function runQuery(
 
 export const FIELD_GLYPH: Record<string, string> = {
     Artist: '✺︎', Project: '⬚︎', Fate: '䷲︎',
+    Sun: '☉︎', Moon: '☽︎', Rising: '↑︎', PriceDay: '✶︎', Language: '{',
     listed: '✹︎', owner: '⌂︎', color: '◉︎', rarity: '❖︎',
     /* v1.1 — canonical marks: ★ the star family (lists), ⨝ the trait icon. */
     list: '★︎', trait: '⨝︎',
@@ -241,6 +341,7 @@ export function ruleFieldLabel(r: ComposerRule): { glyph: string; label: string 
         case 'listed': return { glyph: FIELD_GLYPH.listed, label: 'LISTED' };
         case 'owner':  return { glyph: FIELD_GLYPH.owner, label: 'OWNER' };
         case 'color':  return { glyph: FIELD_GLYPH.color, label: 'COLOUR' };
+        case 'band':   return { glyph: FINGERPRINT_AXIS_GLYPH[r.axis], label: FINGERPRINT_AXIS_LABEL[r.axis].toUpperCase() };
         case 'rarity': return { glyph: FIELD_GLYPH.rarity, label: 'RARITY' };
         case 'list':   return { glyph: FIELD_GLYPH.list, label: 'MY LISTS' };
         case 'trait':  return { glyph: FIELD_GLYPH.trait, label: r.name.toUpperCase() };
@@ -256,6 +357,7 @@ export function ruleOpLabel(r: ComposerRule): string {
         case 'owner':  return r.op === 'me' || r.op === 'handle' ? 'IS'
             : r.op === 'notMe' ? 'IS NOT' : 'IS';
         case 'color':  return 'IS ANY OF';
+        case 'band':   return 'IS ANY OF';
         case 'rarity': return r.op === 'top' ? 'TOP' : 'BOTTOM';
         case 'list':   return r.op === 'in' ? 'IS ON' : 'IS NOT ON';
         case 'trait':  return r.op === 'is' ? 'IS ANY OF' : 'IS NOT';
@@ -266,7 +368,8 @@ export function ruleOpLabel(r: ComposerRule): string {
 export function ruleValueLabel(r: ComposerRule): string {
     switch (r.kind) {
         case 'facet':
-        case 'color': {
+        case 'color':
+        case 'band': {
             if (r.values.length === 0) return 'PICK…';
             const first = r.values[0].replace(/^@/, '');
             return r.values.length > 1
@@ -332,15 +435,31 @@ export function querySentence(q: ComposerQuery): string {
                     clauses.push(r.op === 'is'
                         ? `from ${spokenValues(r.values, projectFace)}`
                         : `not from ${spokenValues(r.values, projectFace)}`);
-                } else {
+                } else if (r.field === 'Fate') {
                     clauses.push(r.op === 'is'
                         ? `fated ${spokenValues(r.values, (v) => v.toUpperCase())}`
                         : `never fated ${spokenValues(r.values, (v) => v.toUpperCase())}`);
+                } else if (r.field === 'PriceDay') {
+                    clauses.push(r.op === 'is'
+                        ? `born on ${spokenValues(r.values, (v) => v.replace(/^PriceDay\s*/, 'PriceDay '))}`
+                        : `never born on ${spokenValues(r.values, (v) => v.replace(/^PriceDay\s*/, 'PriceDay '))}`);
+                } else {
+                    // Sun / Moon / Rising / Language — "Sun in Leo" reads
+                    // truest for the natal facets; Language reads fine too.
+                    const word = r.field === 'Language' ? 'in' : `${r.field.toLowerCase()} in`;
+                    clauses.push(r.op === 'is'
+                        ? `${word} ${spokenValues(r.values, (v) => v.toUpperCase())}`
+                        : `never ${word} ${spokenValues(r.values, (v) => v.toUpperCase())}`);
                 }
                 break;
             }
             case 'color':
                 clauses.push(`in ${spokenValues(r.values, (v) => v.toUpperCase())}`);
+                break;
+            case 'band':
+                clauses.push(
+                    `${spokenValues(r.values, (v) => v.toLowerCase())} in ${FINGERPRINT_AXIS_LABEL[r.axis].toLowerCase()}`,
+                );
                 break;
             case 'rarity':
                 clauses.push(r.op === 'top'
