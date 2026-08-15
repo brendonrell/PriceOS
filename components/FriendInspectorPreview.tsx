@@ -42,9 +42,9 @@ const VS15 = '︎';
 const MODE_KEY = 'pd_fi_preview';
 type PreviewMode = 'overlap' | 'roster' | 'days';
 const MODES: { key: PreviewMode; label: string }[] = [
+    { key: 'days', label: '30 DAYS' },
     { key: 'overlap', label: 'OVERLAP' },
     { key: 'roster', label: 'ROSTER' },
-    { key: 'days', label: '30 DAYS' },
 ];
 
 export interface PreviewPerson {
@@ -65,7 +65,7 @@ function readMode(): PreviewMode {
         const saved = localStorage.getItem(MODE_KEY);
         if (saved === 'roster' || saved === 'days' || saved === 'overlap') return saved;
     } catch { /* first visit */ }
-    return 'overlap';
+    return 'days';
 }
 
 export default function FriendInspectorPreview({
@@ -80,7 +80,7 @@ export default function FriendInspectorPreview({
     mySlugs: string[] | null;
     onFocus: (focus: PreviewFocus) => void;
 }) {
-    const [mode, setMode] = useState<PreviewMode>('overlap');
+    const [mode, setMode] = useState<PreviewMode>('days');
     useEffect(() => { setMode(readMode()); }, []);
     const pick = useCallback((m: PreviewMode) => {
         setMode(m);
