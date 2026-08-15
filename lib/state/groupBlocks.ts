@@ -104,17 +104,22 @@ export function buildGroupBlocks<T>(
         const entries = [...node.kids.entries()]
             .sort((a, b) => cmp([a[0], a[1].items.length], [b[0], b[1].items.length]));
 
-        for (const [label, kid] of entries) {
+        entries.forEach(([label, kid], idx) => {
             const level = (depth + 1) as 1 | 2 | 3;
             const nextKeys = [...keys, `${depth}:${label}`];
             const head: GBHead = { level, label, count: kid.items.length };
             const by = opts.byOf?.(kid.items[0]!, layer) ?? null;
             if (by) head.by = by;
-            const heads = [...pending, head];
+            /* Ancestor headers only ride along with the FIRST child at this
+               level (Brendon, 2026-08-14: filter>filter>listed was repeating
+               the outer section's header once per inner block instead of
+               titling the section exactly once). Every later sibling still
+               gets its OWN new header — just not a second copy of the parent's. */
+            const heads = idx === 0 ? [...pending, head] : [head];
 
             if (depth + 1 < layers.length) {
                 walk(kid, depth + 1, nextKeys, heads);
-                continue;
+                return;
             }
 
             /* Leaf — emit the block. One project's worth of pieces renders as a
@@ -133,7 +138,7 @@ export function buildGroupBlocks<T>(
                     ? { group: { slug, ids: cards.map((c) => c.id) } }
                     : { cards }),
             });
-        }
+        });
     };
 
     walk(root, 0, [], []);
