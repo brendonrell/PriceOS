@@ -30,6 +30,9 @@ export interface OutputOwner {
       Null when never sold (still with a minter, or no priced XFER on
       record). Powers the $PRICE sort's unlisted tier. */
   spent_eth: string | null;
+  /** Mint moment, unix seconds — null if never indexed. Feeds Sun/Moon/
+      Rising/PriceDay for Composer's cross-project dataset. */
+  mint_ts: number | null;
 }
 
 export interface ProjectStats {
@@ -79,7 +82,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ slug: str
   try {
     const supabase = getSupabaseService();
 
-    const [projectRes, holdersRes, listingsRes, eventsRes, followsRes, salesRes] = await Promise.all([
+    const [projectRes, holdersRes, listingsRes, eventsRes, followsRes, salesRes, mintsRes] = await Promise.all([
       supabase.from('projects').select('minted_count, showcase_ids, showcase_layout, showcase_titles, showcase_caption, soundtrack, custom_color, price_sprite').eq('id', slug).maybeSingle(),
       supabase.from('holders').select('token_id, owner_address').eq('project_id', slug),
       supabase.from('listings').select('token_id, price_eth').eq('project_id', slug).eq('active', true)
@@ -91,6 +94,10 @@ export async function GET(req: NextRequest, props: { params: Promise<{ slug: str
       // Feeds the $PRICE sort's second tier (unlisted-by-spent).
       supabase.from('events').select('token_id, price_eth, timestamp').eq('project_id', slug).eq('type', 'XFER')
         .not('price_eth', 'is', null).order('timestamp', { ascending: false }),
+      // Mint moment per token — feeds the birth-traits (Sun/Moon/Rising/
+      // PriceDay), which need a real mint timestamp to compute. Composer
+      // reads this across every project (Brendon, 2026-08-15).
+      supabase.from('events').select('token_id, timestamp').eq('project_id', slug).eq('type', 'MINT'),
     ]);
 
     if (projectRes.error) return serverError(projectRes.error.message);
@@ -100,12 +107,17 @@ export async function GET(req: NextRequest, props: { params: Promise<{ slug: str
     if (listingsRes.error) return serverError(listingsRes.error.message);
     if (eventsRes.error) return serverError(eventsRes.error.message);
     if (salesRes.error) return serverError(salesRes.error.message);
+    if (mintsRes.error) return serverError(mintsRes.error.message);
 
     // First (= newest, since salesRes is timestamp-desc) priced XFER per
     // token wins — that's what the current owner actually paid.
     const spentByToken: Record<string, string> = {};
     for (const s of (salesRes.data ?? []) as { token_id: string; price_eth: number | string }[]) {
       if (spentByToken[String(s.token_id)] === undefined) spentByToken[String(s.token_id)] = String(s.price_eth);
+    }
+    const mintTsByToken: Record<string, number> = {};
+    for (const m of (mintsRes.data ?? []) as { token_id: string; timestamp: number | string }[]) {
+      mintTsByToken[String(m.token_id)] = Number(m.timestamp);
     }
 
     const project = projectRes.data as { minted_count?: number; showcase_ids?: number[]; showcase_layout?: string | null; showcase_titles?: boolean | null; showcase_caption?: string | null; soundtrack?: string | null; custom_color?: string | null; price_sprite?: string | null } | null;
@@ -189,6 +201,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ slug: str
         owner_created_at: createdByAddr[h.owner_address.toLowerCase()] ?? null,
         list_price_eth: priceByToken[String(h.token_id)] ?? null,
         spent_eth: spentByToken[String(h.token_id)] ?? null,
+        mint_ts: mintTsByToken[String(h.token_id)] ?? null,
       }))
       .sort((a, b) => a.token_id - b.token_id);
 
