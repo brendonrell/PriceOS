@@ -13517,8 +13517,11 @@ body.colorway-dark .ghost-feed-bar {
 .output-timeline-feed .feed-row.tl-gap-3x { padding-bottom: 60px; }
 .output-timeline-feed .feed-row.tl-gap-4x { padding-bottom: 84px; }
 /* The ETH amount under the action name reads bold (Brendon, 2026-06-27).
-   Italic added as a live test that this rule is reaching the element at all. */
-.output-timeline-feed .af-type .af-price { font-weight: 700; font-style: italic; }
+   Scoped to .home-activity-feed (not just .output-timeline-feed) so the New
+   Uploads price — added 2026-08-15, same af-price markup — reads identically;
+   the output feed carries both classes already, so this is a strict
+   broadening, not a second rule. */
+.home-activity-feed .af-type .af-price { font-weight: 700; font-style: italic; }
 
 @media (max-width: 600px) {
     .output-feed-bar { padding: 0 20px; }
