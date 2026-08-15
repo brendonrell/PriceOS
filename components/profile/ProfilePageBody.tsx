@@ -1590,7 +1590,7 @@ function ProfilePageBodyInner({
                                                 address style as any wallet, just labelled
                                                 (Brendon, 2026-08-14 — was showing the
                                                 ens_name "Price Discussion" instead). */}
-                                            {isPlatform && <span className="id-row-contract-label">Contract: </span>}
+                                            {isPlatform && <span className="id-row-contract-label">Contract:</span>}
                                             0<span className="addr-x">x</span>
                                             {viaLabel.slice(2)}
                                         </>
