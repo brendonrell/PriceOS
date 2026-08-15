@@ -356,6 +356,25 @@ function ProfilePageBodyInner({
         eggPills,
     } = useProfileEggs({ isOwnProfile, user, displayHandle, myProfileHex, mySpriteHex });
 
+    /* Profile Tags door in Settings ▸ MY PD (Brendon, 2026-08-15) — a more
+       obvious entry point to the SAME menu the @name long-press opens.
+       Settings lives outside this page: a live event covers the case the
+       owner is already here, and a one-shot sessionStorage flag covers a
+       fresh navigation (the event fires before this component mounts). */
+    useEffect(() => {
+        if (!isOwnProfile) return;
+        try {
+            if (sessionStorage.getItem('pd_open_tag_egg') === '1') {
+                sessionStorage.removeItem('pd_open_tag_egg');
+                toggleEgg();
+            }
+        } catch { /* ignore */ }
+        const h = () => toggleEgg();
+        window.addEventListener('pd:open-tag-egg', h);
+        return () => window.removeEventListener('pd:open-tag-egg', h);
+         
+    }, [isOwnProfile]);
+
     /* This profile's PriceSprite — a small STILL face beside the @name (the
        profile's avatar; PD has no uploaded pfps). Works for any user via the
        frozen signup sprite (useSpriteFace, cached). Courier, understated —
