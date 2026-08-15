@@ -6,9 +6,11 @@
  * A FEED, not a card: long-press the ☻ social pill in the home sort row and
  * the Now Minting section swaps to this, exactly the way FEED and SOCIAL
  * swap. The last 200 signups, newest first, in the house feed-row grammar —
- * line · ☻ icon · stacked viewer-local date/time · SIGNUP type column — with
- * the FULL ASCII-ID rectangle (sprite · PriceRank · @name · Sigil, the one
- * identity unit) as the row's content.
+ * line · ☻ icon · stacked viewer-local date/time — with the FULL ASCII-ID
+ * rectangle (sprite · PriceRank · @name · Sigil, the one identity unit) as
+ * the row's content. No type column — this feed only ever means "signup",
+ * so the column was a redundant word with a redundant gap (Brendon,
+ * 2026-08-15).
  *
  * Live = fresh on mount + a re-pull once a minute while the tab is visible;
  * rows mount in screenfuls as the list scrolls (bounded by the viewport,
@@ -87,9 +89,6 @@ export default function NewUsersFeed({ dir }: { dir: 'asc' | 'desc' }) {
                         <div className="f-time">
                             <span>{Number.isFinite(ms) ? fmtDate(ms) : '—'}</span>
                             <span>{Number.isFinite(ms) ? fmtTime(ms) : ''}</span>
-                        </div>
-                        <div className="f-type af-type">
-                            <span>SIGNUP</span>
                         </div>
                         <div className="f-content">
                             <AsciiId handle={r.handle} />

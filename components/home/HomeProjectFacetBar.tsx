@@ -262,13 +262,15 @@ export default function HomeProjectFacetBar({
         sortKey === key ? (sortDir === 'asc' ? '↑︎' : '↓︎') : '';
 
     /* NEW USERS ☻ (Brendon, 2026-08-15) — the ☻ pill is now a 4-step cycle:
-       Social ↑ → Social ↓ → New Users ↑ → New Users ↓ → back to Social ↑.
-       One tap advances the cycle (same "tap advances" language as the GROUP
-       toggle); no more long-press. */
+       Social ↑ → Social ↓ → New Users ↓ (recent first) → New Users ↑ → back
+       to Social ↑. Recent-first leads on entry to New Users, same as every
+       other feed on the platform (Brendon, 2026-08-15 revision). One tap
+       advances the cycle (same "tap advances" language as the GROUP toggle);
+       no more long-press. */
     const cycleSocial = () => {
         if (sortKey === 'social' && sortDir === 'asc') { applySort('social', 'desc'); return; }
-        if (sortKey === 'social' && sortDir === 'desc') { applySort('newusers', 'asc'); return; }
-        if (sortKey === 'newusers' && sortDir === 'asc') { applySort('newusers', 'desc'); return; }
+        if (sortKey === 'social' && sortDir === 'desc') { applySort('newusers', 'desc'); return; }
+        if (sortKey === 'newusers' && sortDir === 'desc') { applySort('newusers', 'asc'); return; }
         applySort('social', 'asc');
     };
 
@@ -488,23 +490,12 @@ export default function HomeProjectFacetBar({
                         {/* ☻ — the collector/user smiley as the social mark
                             (Brendon, 2026-07-26). Glyph only, no word — the row
                             has no room; same Courier icon treatment as the ◷
-                            date sort. On New Users, wears a "+" glued beside it,
-                            same inline-styled-span technique as the GROUP
-                            toggle's layers mark (Brendon, 2026-08-15). */}
-                        {sortKey === 'newusers' && (
-                            <span
-                                className="sort-btn-social-plus"
-                                aria-hidden="true"
-                                style={{
-                                    fontFamily: "'Courier New', Courier, monospace",
-                                    fontSize: '13px',
-                                    marginRight: '2px',
-                                    position: 'relative',
-                                    top: '-3px',
-                                }}
-                            >+</span>
-                        )}
-                        <span className="sort-lbl sort-lbl-recent">☻&#xFE0E;</span>
+                            date sort. On New Users, wears a "+" mod glued
+                            directly onto the glyph in ONE label — copy/paste of
+                            the $PRICE technique (single sort-lbl span, no
+                            separate positioned element), not a second span
+                            (Brendon, 2026-08-15 revision). */}
+                        <span className="sort-lbl sort-lbl-recent">{sortKey === 'newusers' ? '+☻' : '☻'}&#xFE0E;</span>
                         <span className="sort-arrow">{arrow('social') || arrow('newusers')}</span>
                     </span>
                 </div>

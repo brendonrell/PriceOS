@@ -1205,6 +1205,9 @@ function HomePageBodyInner({
                 other home feeds. */}
             {activeTab === 'minting' && mintSort.key === 'newusers' && (
                 <section className="home-uploads" aria-label="New Users">
+                    <div className="home-section-head">
+                        <span className="home-section-title">New Signups</span>
+                    </div>
                     <div className="feed-list home-activity-feed">
                         <NewUsersFeed dir={mintSort.dir} />
                     </div>
