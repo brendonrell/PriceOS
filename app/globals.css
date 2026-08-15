@@ -5702,8 +5702,8 @@ body.bg-is-yellow .fiat-opt-on { background: #fff; color: var(--hothurt); border
 
    ⛔ TALL, NEVER WIDE — it is a phone surface. The fiat bubble is one nowrap
    row, which is right for four currency codes and wrong for a dozen dimension
-   names, so this overrides the row and the nowrap, caps its width well inside
-   the screen, and scrolls a long picker list INSIDE itself. ── */
+   names, so this overrides the row and the nowrap and caps its width well
+   inside the screen. ── */
 .group-layers-bubble {
     flex-direction: column;
     align-items: stretch;
@@ -5711,14 +5711,10 @@ body.bg-is-yellow .fiat-opt-on { background: #fff; color: var(--hothurt); border
     white-space: normal;
     width: max-content;
     max-width: min(78vw, 240px);
-    /* A THIRD of the screen, and it scrolls inside (Brendon, 2026-07-30) —
-       the full dimension list ran nearly the whole phone before. */
-    max-height: 33vh;
-    overflow-y: auto;
+    /* No internal scroll (Brendon, 2026-08-14) — the menu grows to fit its
+       full dimension list instead of clipping it. */
     padding: 8px;
-    -webkit-overflow-scrolling: touch;
 }
-.group-layers-bubble::-webkit-scrollbar { display: none; }
 
 .glb-title {
     font-family: 'Courier New', Courier, monospace;
@@ -13399,8 +13395,9 @@ body.colorway-dark .ghost-feed-bar {
 @media (orientation: landscape) and (max-height: 600px) {
     .artwork-feature-art { max-height: 88vh; }
 }
-/* Footer row under the art: #id + owned ✓ + Full Screen on the left, owner on
-   the right. Mirrors the gallery card's meta line. */
+/* Footer row under the art: #id + owned ✓ on the left, Open Full Screen on
+   the right (the owner display was removed here — it stays in the hero
+   "Held by" row only, Brendon 2026-08-14). Mirrors the gallery card's meta line. */
 .artwork-feature-foot {
     box-sizing: border-box;
     display: flex;
@@ -13517,16 +13514,14 @@ body.colorway-dark .ghost-feed-bar {
 }
 .artwork-feature-foot .aff-check { opacity: 0.85; }
 .artwork-feature-foot .aff-fullscreen {
-    margin-left: 8px;
     text-decoration: underline;
     text-underline-offset: 2px;
     cursor: pointer;
     opacity: 1;
-    font-weight: bold;
+    font-weight: 700;
     color: inherit;
 }
 .artwork-feature-foot .aff-fullscreen:hover { opacity: 1; }
-.artwork-feature-foot .aff-owner { color: inherit; opacity: 1; font-weight: 700; }
 
 /* Project name in the artwork title is a link to the project page; keep it
    visually identical to the title (no link colour / underline), just clickable.
@@ -13606,24 +13601,10 @@ body.is-pwa .fullscreen-back {
     /* Keep the art clear of the bottom bar. */
     padding-bottom: calc(max(4vmin, env(safe-area-inset-bottom)) + 56px);
 }
-.close-hint.dk-close {
-    position: fixed;
-    top: calc(max(20px, env(safe-area-inset-top)) + 30px);
-    right: max(30px, env(safe-area-inset-right));
-}
-/* The Darkroom's permanent back arrow (Brendon, 2026-07-28) — the artwork
-   surfaces' own ⇠⇠, parked directly UNDER the × in the same corner so the two
-   exits stack instead of colliding (the fullscreen view has no × to clear).
-   Three classes on purpose: the shared arrow carries mobile and `body.is-pwa`
-   top overrides, and this has to outrank both so the two never stack. */
-.artwork-fullscreen.artwork-darkroom .fullscreen-back {
-    position: fixed;
-    top: calc(max(20px, env(safe-area-inset-top)) + 66px);
-    right: max(30px, env(safe-area-inset-right));
-}
-body.is-pwa .artwork-fullscreen.artwork-darkroom .fullscreen-back {
-    top: calc(max(30px, calc(env(safe-area-inset-top) + 16px)) + 66px);
-}
+/* The Darkroom's back arrow (Brendon, 2026-08-14) — the × close button that
+   used to sit here is gone, so the arrow no longer needs to be pushed down
+   to clear it; it now inherits the shared .fullscreen-back position exactly,
+   matching the feature/fullscreen page's back button 1:1. */
 .darkroom-bar {
     position: fixed;
     left: max(16px, env(safe-area-inset-left));
