@@ -6298,15 +6298,15 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.32); }
     min-width: 1.4em;
     justify-content: center;
 }
-/* The + beside the group glyph — "and more layers under this one" (Brendon,
-   2026-07-30). Full strength, bold, riding just off the glyph's shoulder. */
+/* The ↳ beside the group glyph — "and more layers under this one" (Brendon,
+   2026-07-30). Positioning now lives entirely in the inline style on the span
+   itself (traitsUIPills.tsx), mirroring the ❖/$ sort marks exactly, so this
+   class carries no layout rules of its own anymore (Brendon, 2026-08-14 —
+   the old transform/margin combo was landing the mark nowhere near the glyph
+   it modifies). */
 .group-btn-more {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 0.85em;
-    font-weight: bold;
-    line-height: 1;
-    margin-left: 1px;
-    transform: translateY(-2px);
+    display: inline-flex;
+    align-items: center;
 }
 /* The home sort row's ◷ clock — dropped 1.5px, then taken back UP 1px
    (Brendon, 2026-07-26, second pass). Scoped to the home row only. */
