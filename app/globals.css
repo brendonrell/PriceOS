@@ -13753,13 +13753,23 @@ body.is-pwa .fullscreen-back {
     width: 100%; max-width: 100%; box-sizing: border-box;
     padding: 14px 10px;
     border-radius: 4px;
-    background: color-mix(in srgb, var(--text-color) 13%, transparent);
+    /* ⛔ OPAQUE MIX, NOT AN ALPHA TINT (Brendon, 2026-08-15: "colours aren't
+       quite themeing properly" / "make sure it's visible and appealing").
+       The original 13%-text-onto-transparent read fine against the
+       near-black default (a little warm light shows up clearly), but the
+       same translucent overlay nearly disappears on a saturated colorway
+       like blue — there's not enough luminance gap for it to register as a
+       card. Mixing a fixed amount of --text-color directly INTO --bg-color
+       (fully opaque) guarantees the same visible step away from the page on
+       any colorway. No border (Brendon, 2026-08-15) — the tint alone carries
+       the card. */
+    background: color-mix(in srgb, var(--text-color) 15%, var(--bg-color) 85%);
     margin-bottom: 8px;
 }
 .fi-row:last-child { margin-bottom: 0; }
 .fi-row.inspecting {
     /* Expanded row stays visibly a step above the resting card tint. */
-    background: color-mix(in srgb, var(--fi-accent, currentColor) 20%, transparent);
+    background: color-mix(in srgb, var(--fi-accent, var(--text-color)) 26%, var(--bg-color) 74%);
 }
 .fi-line { display: flex; align-items: center; gap: 13px; min-width: 0; }
 .fi-line-main {
