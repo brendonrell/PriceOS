@@ -1721,7 +1721,7 @@ function ProfilePageBodyInner({
                         {mutuals.map((m, i) => (
                             <span key={m} className="cbr-id">
                                 {i > 0 && <span className="cbr-sep">,</span>}
-                                <a className="profile-link" href={`/${m}`}>@{m}</a>
+                                <a className="cbr-name" href={`/${m}`}>@{m}</a>
                             </span>
                         ))}
                         {mutualOthers > 0 && (
