@@ -35,6 +35,9 @@ export interface OutputMeta {
         reconcile lands (feeds the My Network 'New Wallets' filter). */
     ownerCreatedAt: string | null;
     price: string | null;
+    /** What the current owner paid — the piece's last real sale. Null when
+        never sold. Powers the $PRICE sort's unlisted (second) tier. */
+    spentEth: string | null;
     isOwnedByBrendon: boolean;
     /** Full traits (artist traits + Fate), keyed by trait name. */
     traits: OutputTraits;
@@ -93,6 +96,7 @@ export function buildOutputMetaFor(slug: string, id: number): OutputMeta {
         ownerFull: isMine ? BRENDON_ADDR : OPUS_ADDR,
         ownerCreatedAt: null,
         price: null,
+        spentEth: null,
         isOwnedByBrendon: isMine,
         traits: outputTraits(slug, id),
     };
@@ -147,6 +151,7 @@ interface OutputOwnerDTO {
     owner_handle: string | null;
     owner_created_at?: string | null;
     list_price_eth: string | null;
+    spent_eth?: string | null;
 }
 
 export function ProjectProvider({
@@ -216,6 +221,7 @@ export function ProjectProvider({
                                 ownerCreatedAt: o.owner_created_at ?? null,
                                 isOwnedByBrendon: addr === BRENDON_ADDR,
                                 price: o.list_price_eth ? `${o.list_price_eth} ETH` : null,
+                                spentEth: o.spent_eth ? `${o.spent_eth} ETH` : null,
                             });
                         }
                         const showcaseIds =
