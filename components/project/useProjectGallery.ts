@@ -344,13 +344,29 @@ export function useProjectGallery({
                 return a - b;
             });
         } else if (dSort === 'price') {
+            /* TWO TIERS (Brendon, 2026-08-14): listed pieces always sit above
+               unlisted ones, each tier in the user's chosen direction — listed
+               by its listing price, then unlisted by what the CURRENT OWNER
+               spent (the last real sale). A never-sold unlisted piece has no
+               spent price to rank by, so it sorts last within that tier
+               regardless of direction — it never jumps to the front on desc. */
             filtered.sort((a, b) => {
                 const ma = project.outputs.get(a);
                 const mb = project.outputs.get(b);
-                const na = ma?.price ? parseFloat(ma.price) : Infinity;
-                const nb = mb?.price ? parseFloat(mb.price) : Infinity;
-                if (na !== nb) return (na - nb) * dirMult;
-                return (a - b) * dirMult;
+                const pa = ma?.price ? parseFloat(ma.price) : null;
+                const pb = mb?.price ? parseFloat(mb.price) : null;
+                const la = pa != null;
+                const lb = pb != null;
+                if (la !== lb) return la ? -1 : 1;
+                if (la && lb) {
+                    return pa !== pb ? (pa - pb) * dirMult : (a - b) * dirMult;
+                }
+                const sa = ma?.spentEth ? parseFloat(ma.spentEth) : null;
+                const sb = mb?.spentEth ? parseFloat(mb.spentEth) : null;
+                if (sa == null && sb == null) return (a - b) * dirMult;
+                if (sa == null) return 1;
+                if (sb == null) return -1;
+                return sa !== sb ? (sa - sb) * dirMult : (a - b) * dirMult;
             });
         } else if (dSort === 'id') {
             filtered.sort((a, b) => (a - b) * dirMult);
