@@ -365,7 +365,7 @@ export default function DepanneurModal() {
                 <div className="ptr-pill dp-ptr-pill" ref={pillRef} aria-hidden="true" />
                 <div className="smgr-plus-head">
                     <span className="ambient-pop-title-text">
-                        <span className="smgr-title-words">THE DEPANNEUR</span>
+                        <span className="smgr-title-words">{`☯${VS15} `}THE DEPANNEUR</span>
                     </span>
                     <span
                         className="ambient-pop-close"
@@ -419,7 +419,7 @@ export default function DepanneurModal() {
 
                             {/* THE MACHINE */}
                             <div className="dp-machine">
-                                <span className={`dp-machine-cap${cranking ? ' turning' : ''}`}>{`☯${VS15}`}</span>
+                                <span className={`dp-machine-cap${cranking ? ' turning' : ''}`}>{`⚷${VS15}`}</span>
                                 <div className="dp-machine-col">
                                     <span className="dp-machine-name">THE CAPSULE MACHINE</span>
                                     <span className="dp-machine-line">One crank · one charm · one of 58,060,800</span>
