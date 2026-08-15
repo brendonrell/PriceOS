@@ -69,7 +69,6 @@ import { readViewParam, setViewParam } from '../../lib/state/viewLink';
 import AudienceIndicator from './AudienceIndicator';
 import { useCart } from '../../lib/state/CartContext';
 import { getProject } from '../../lib/project/registry';
-import AsciiId from '../hero/AsciiId';
 import SoundtrackStarButton from './SoundtrackStarButton';
 import ProjectTitleStar from './ProjectTitleStar';
 import { usePriceDay } from '../../lib/priceday/usePriceDay';
@@ -431,18 +430,19 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                        when signed out or following none of this project's
                        collectors. */
                     project.stats.collected_by_following.length > 0 ? (
-                        /* Built exactly like the output page's held-by row
-                           (Brendon, 2026-07-29): the label and each full
-                           ASCII-ID are direct children of this one row, all on
-                           its shared centre. No tags — the rectangle only. */
+                        /* Text-only, same treatment as the homepage Featuring
+                           row (Brendon, 2026-08-15) — no ASCII-ID rectangle. */
                         <div className="hero-line collected-by-row info-line">
                             <span className="cbr-label">Collected by</span>
-                            {project.stats.collected_by_following.slice(0, 2).map((name, i) => (
-                                <span key={name} className="cbr-id">
-                                    {i > 0 && <span className="cbr-sep">,</span>}
-                                    <AsciiId handle={name.toLowerCase().replace(/^@/, '')} />
-                                </span>
-                            ))}
+                            {project.stats.collected_by_following.slice(0, 2).map((name, i) => {
+                                const handle = name.toLowerCase().replace(/^@/, '');
+                                return (
+                                    <span key={name} className="cbr-id">
+                                        {i > 0 && <span className="cbr-sep">,</span>}
+                                        <a className="profile-link" href={`/${handle}`}>@{handle}</a>
+                                    </span>
+                                );
+                            })}
                             {project.stats.collected_by_following.length > 2 && (
                                 <span className="cbr-others" onClick={() => open('collectors')}>
                                     {' '}&amp; {project.stats.collected_by_following.length - 2} more you follow
