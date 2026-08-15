@@ -480,7 +480,8 @@ export default function ComposerModal() {
         setQuery((q) => {
             const i = COMPOSER_GROUP_ORDER.indexOf(q.group);
             const next = COMPOSER_GROUP_ORDER[(i + 1) % COMPOSER_GROUP_ORDER.length];
-            showToast(`Group: ${GROUP_LABEL[next]}${GROUP_TOAST_HINT}`);
+            // Hint only rides the toast that turns grouping OFF (Brendon, 2026-08-14).
+            showToast(`Group: ${GROUP_LABEL[next]}${next === 'none' ? GROUP_TOAST_HINT : ''}`);
             return { ...q, group: next };
         });
     const tapSort = (key: ComposerSortKey) =>
