@@ -42,7 +42,6 @@ import { getArtistStars, toggleArtistStar, subscribeArtistStars } from '../../li
 import { getProjectStars, toggleProjectStar, subscribeProjectStars } from '../../lib/pins/projectStarStore';
 import { L3Pill } from '../project/traitsUIPills';
 import { moodOfDay } from '../../lib/mood/mood';
-import { useLongPress } from '../../lib/hooks/useLongPress';
 
 /** One minting project, enriched with its computed birth-traits + mint price. */
 export interface EnrichedProject {
@@ -262,11 +261,16 @@ export default function HomeProjectFacetBar({
     const arrow = (key: HomeSortKey) =>
         sortKey === key ? (sortDir === 'asc' ? '↑︎' : '↓︎') : '';
 
-    /* NEW USERS ☻ (Brendon, 2026-08-02) — long-press the social pill swaps
-       the section to the NEW USERS signup feed (a FEED, exactly like the
-       social swap); a plain tap still switches to the social sort. The house
-       hold gesture (useLongPress) swallows its own trailing click. */
-    const newUsersHold = useLongPress(() => onSort('newusers'));
+    /* NEW USERS ☻ (Brendon, 2026-08-15) — the ☻ pill is now a 4-step cycle:
+       Social ↑ → Social ↓ → New Users ↑ → New Users ↓ → back to Social ↑.
+       One tap advances the cycle (same "tap advances" language as the GROUP
+       toggle); no more long-press. */
+    const cycleSocial = () => {
+        if (sortKey === 'social' && sortDir === 'asc') { applySort('social', 'desc'); return; }
+        if (sortKey === 'social' && sortDir === 'desc') { applySort('newusers', 'asc'); return; }
+        if (sortKey === 'newusers' && sortDir === 'asc') { applySort('newusers', 'desc'); return; }
+        applySort('social', 'asc');
+    };
 
     if (projects.length === 0 && !leadPills) return null;
 
@@ -477,15 +481,29 @@ export default function HomeProjectFacetBar({
                         className={`sort-btn sort-btn-social${sortKey === 'social' || sortKey === 'newusers' ? ' active' : ''}`}
                         role="button"
                         tabIndex={0}
-                        title="Social Feed"
-                        onClick={() => onSort('social')}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSort('social'); } }}
-                        {...newUsersHold}
+                        title="Social Feed — tap cycles Social ↑↓ then New Users ↑↓"
+                        onClick={cycleSocial}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleSocial(); } }}
                     >
                         {/* ☻ — the collector/user smiley as the social mark
                             (Brendon, 2026-07-26). Glyph only, no word — the row
                             has no room; same Courier icon treatment as the ◷
-                            date sort. Works exactly like FEED, social focus. */}
+                            date sort. On New Users, wears a "+" glued beside it,
+                            same inline-styled-span technique as the GROUP
+                            toggle's layers mark (Brendon, 2026-08-15). */}
+                        {sortKey === 'newusers' && (
+                            <span
+                                className="sort-btn-social-plus"
+                                aria-hidden="true"
+                                style={{
+                                    fontFamily: "'Courier New', Courier, monospace",
+                                    fontSize: '13px',
+                                    marginRight: '2px',
+                                    position: 'relative',
+                                    top: '-3px',
+                                }}
+                            >+</span>
+                        )}
                         <span className="sort-lbl sort-lbl-recent">☻&#xFE0E;</span>
                         <span className="sort-arrow">{arrow('social') || arrow('newusers')}</span>
                     </span>
