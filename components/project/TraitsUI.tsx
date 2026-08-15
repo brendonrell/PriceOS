@@ -97,9 +97,10 @@ import {
    `+ More` tab, the L1 trait pill cluster is swapped to profile-mode
    pills (Starred / Wishlists / Albums). The sort surfaces (sort-icons
    cluster + sort-btn-group #ID/$PRICE/FEED) are hidden via the sibling
-   `hideSortBar` prop. The view-mode switcher (.colorway-pills, four
-   squares) stays visible. Pill selection is visual-only for v0 — no
-   gallery filter wiring behind it. */
+   `hideSortBar` prop, and the view-mode switcher (.colorway-pills, four
+   squares) is hidden too — it has no meaning outside a project's own
+   sort-bar and was overflowing the header on mobile (Brendon, 2026-08-15).
+   Pill selection is visual-only for v0 — no gallery filter wiring behind it. */
 export interface ProfilePill {
     key: string;
     label: ReactNode;
@@ -117,9 +118,10 @@ interface TraitsUIProps {
              top-right of #traitCategories
          (2) .sort-btn-group (#ID / $PRICE / FEED) inside .sort-bar
        Keeps visible: L1 trait pills (or profilePills if provided),
-       L2 sub-trait pills, .colorway-pills (four-square view-mode switcher
-       at bottom-left of .sort-bar), themed background. Project page
-       passes nothing (defaults to false) and gets the full surface. */
+       L2 sub-trait pills, themed background. In profile mode (profilePills
+       provided) .colorway-pills is also hidden regardless of this prop —
+       see inProfileMode below. Project page passes nothing (defaults to
+       false) and gets the full surface. */
     hideSortBar?: boolean;
     /* Profile Page v0 — when provided, replaces the entire non-feed
        L1 trait pill cluster (DYNAMIC_TRAIT_PILLS + Fate + My Network +
@@ -1095,6 +1097,13 @@ export default function TraitsUI({
                 id="sortOptions"
                 style={hiddenStyle}
             >
+                {/* Profile Page v0 (Brendon, 2026-08-15) — the colorway/view-mode
+                    switcher has no meaning on a profilePills row (Starred sorts,
+                    $PRICE doc sub-tabs, etc.); leaving it force-visible added an
+                    unwanted extra chrome row and pushed the header bar wider than
+                    the viewport on mobile. Gated on inProfileMode alongside
+                    sort-btn-group below. */}
+                {!inProfileMode && (
                 <div className="colorway-pills">
                     {THEME_PILLS.map((t) => (
                         <div
@@ -1117,12 +1126,14 @@ export default function TraitsUI({
                         </div>
                     ))}
                 </div>
+                )}
                 {/* Profile +More — Starred/Wishlist sorts sit here beside the
                     colorway picker (same sort-bar font + .sort-btn styling as
                     the project sorts). */}
                 {profileSortControls}
                 {/* Profile Page v0 — .sort-btn-group hides under
-                    hideSortBar. The four-square view-mode switcher
+                    hideSortBar, same as .colorway-pills above under
+                    inProfileMode. The four-square view-mode switcher
                     (.colorway-pills above) stays visible. */}
                 {!hideSortBar && (
                 <div
