@@ -543,17 +543,21 @@ sky at mint) + the proven lunarGlyph discs.
 > The closed player is **THE DOT** — a bare 9px `--text-color` disc, no glyph
 > (the ▶-chip trial read as a play button and was pulled the same day).
 
-## 12d. ASCII Art Mode — ⎀ (2026-07-20, Brendon's pick)
+## 12d. ASCII Art Mode — ⎂ (2026-08-15, swapped from ⎀)
 
 | Use | Glyph | Codepoint |
 |---|---|---|
-| ASCII Art Mode toggle (`AsciiBackupPanel`) | ⎀ | U+2380 INSERTION SYMBOL |
+| ASCII Art Mode toggle (`AsciiBackupPanel`) | ⎂ | U+2382 DISCONTINUOUS UNDERLINE SYMBOL |
 
-> Picked from a twenty-option round. Replaces **⠿ (U+283F)**, which had
-> shipped UNCATALOGUED as an escaped literal (`⠿`) — the second audit
-> miss of this kind (⏚ precedent, §12a): **grep escaped `\uXXXX` forms too,
-> not just raw glyphs, before declaring a codepoint free.** ⠿ is retired and
-> free again. Device-verify ⎀ on iPhone per the #1 gate.
+> Swapped 2026-08-15 (Brendon didn't like ⎀). ⎀ (U+2380 INSERTION SYMBOL) is
+> now free again — it had replaced **⠿ (U+283F)**, which shipped
+> UNCATALOGUED as an escaped literal (`⠿`) — the second audit miss of this
+> kind (⏚ precedent, §12a): **grep escaped `\uXXXX` forms too, not just raw
+> glyphs, before declaring a codepoint free.** ⠿ stays retired/free too.
+> Device-verify ⎂ on iPhone per the #1 gate.
+> ⚠ PingArt (`lib/pings/pingart.ts` etc.) still wears ⎀ on purpose — it's a
+> distinct feature that shares the ascii concept mark; this swap only
+> touched the Mode toggle. Say the word if PingArt should follow it.
 
 ## 12d-bis. Cartography Time Machine — ⇠ ◷ ✧ (2026-07-20 build, brief-locked)
 
@@ -596,6 +600,17 @@ sky at mint) + the proven lunarGlyph discs.
 > glyphs briefly and were stripped back. ⚲ (the old Podcaster/WTBS neuter) and
 > ⚔ (old Degen) are free again; WTBS moved to ☊ and KEEPS it. Do not
 > re-assign persona glyphs without Brendon's explicit word.
+
+## 12f-bis. Profile Tags door — ⌑ (2026-08-15, Brendon's pick)
+
+| Use | Glyph | Codepoint |
+|---|---|---|
+| Profile Tags door (Settings ▸ MY PD, beside the showcase glyph) | ⌑ | U+2311 SQUARE FOOT |
+
+> A settings-panel entry point, NOT a persona-tag glyph (see §12f above,
+> which stays glyphless-by-default) — opens the same tag/colourway
+> customization row the @name long-press does, just from a more obvious
+> door. Grepped free repo-wide, raw + escaped, at pick time.
 
 ## 12g. The Nemesis — ☍ (2026-07-20 build)
 
