@@ -348,6 +348,17 @@ body.bg-is-yellow { --price-logo-bg: #FF0055; --price-logo-fg: #FFE600; }
     pointer-events: none;
     transition: opacity 0.3s ease, transform 0.3s ease;
     z-index: -1;
+    /* `left: 100%` is relative to the small corner logo near the left edge,
+       so on a narrow phone the bubble's nowrap content (HOME + $PRICE) can
+       run past the right edge of the viewport — portrait already clips
+       document overflow at the edge (see the "horizontal scroll is
+       FORBIDDEN" rule below), so that bleed was rendering as a hard cut
+       instead of scrolling into view. Cap the bubble to the remaining
+       viewport width and let it wrap instead of clip (Brendon, 2026-08-15). */
+    max-width: calc(100vw - 90px);
+}
+@media (max-width: 420px) {
+    .petey-bubble { white-space: normal; gap: 10px; }
 }
 
 .petey-bubble::before {
@@ -14431,15 +14442,21 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     display: flex;
     flex-direction: column;
     gap: 4px;
-    padding: 4px 40px 18px;
+    /* No horizontal padding here — `.project-hero` (the ancestor every tab's
+       content sits inside, Token included) already applies 40px/20px side
+       padding. This rule used to ALSO add 40px/20px on top of that, so
+       every .price-acct panel — Token tab and all four +More doc tabs —
+       rendered with double the side buffer of the tab rows above it, and
+       the resulting narrow text column is what was tripping iOS's
+       auto-inflate on the +More panels. Vertical padding only now
+       (Brendon, 2026-08-15 — found via the double-buffer report). */
+    padding: 4px 0 18px;
     font-family: 'Courier New', Courier, monospace;
 }
 
-/* Match #gallery's mobile horizontal buffer (20px vs desktop's 40px) so the
-   panel doesn't run edge-to-edge on small screens (Brendon, 2026-08-13). */
-@media (max-width: 600px) {
-    .price-acct { padding: 4px 20px 18px; }
-}
+/* No mobile override needed — `.project-hero` already drops to 20px side
+   padding under 600px on its own, and `.price-acct` no longer adds a
+   second layer on top of it (see the no-padding note above). */
 /* Section heads: readable on any colorway, not a 10px whisper. */
 .price-acct .attr-group-head { padding-top: 16px; }
 /* Section titles wear the same Rubik treatment as New Uploads' header on
