@@ -43,8 +43,9 @@ export default function AsciiId({
 }: {
     handle: string;
     /** When set, tapping ONLY the sprite face fires this with the face's on-screen
-     *  rect (the @name link still navigates). Used by the Friend Inspector to pop
-     *  a PriceRank card off a sprite (Brendon, 2026-07-11). */
+     *  rect and swallows the rectangle's navigation for that tap (the rest of the
+     *  rectangle still navigates to the profile). Used by the Friend Inspector to
+     *  pop a PriceRank card off a sprite (Brendon, 2026-07-11). */
     onSpriteTap?: (rect: DOMRect) => void;
 }) {
     const h = handle.toLowerCase().replace(/^@/, '');
@@ -53,14 +54,14 @@ export default function AsciiId({
     /* Spite Book — a spited handle renders redacted in every chip. */
     const isSpited = useSpiteMatcher();
     return (
-        <span className="collected-pair">
+        <a className="collected-pair" href={`/${h}`}>
             {face && (onSpriteTap ? (
                 <span
                     className="collected-sprite-tap"
                     role="button"
                     tabIndex={0}
                     title="PriceRank"
-                    onClick={(e) => { e.stopPropagation(); onSpriteTap(e.currentTarget.getBoundingClientRect()); }}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onSpriteTap(e.currentTarget.getBoundingClientRect()); }}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onSpriteTap(e.currentTarget.getBoundingClientRect()); } }}
                 >
                     <SpriteFace className="collected-sprite" face={face} />
@@ -77,9 +78,9 @@ export default function AsciiId({
                     {rankBadgeGlyph(id.rank)}
                 </span>
             )}
-            <a className={`profile-link${isSpited(h) ? ' spited' : ''}`} href={`/${h}`}>
+            <span className={`profile-link${isSpited(h) ? ' spited' : ''}`}>
                 @{h}
-            </a>
+            </span>
             {id.sigilVisible && id.address && (
                 <SigilArt
                     address={id.address}
@@ -88,6 +89,6 @@ export default function AsciiId({
                     title="Sigil"
                 />
             )}
-        </span>
+        </a>
     );
 }
