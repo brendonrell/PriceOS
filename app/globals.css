@@ -13726,16 +13726,25 @@ body.is-pwa .fullscreen-back {
    attr-spectrum). Chrome + fm-* container plumbing untouched; the
    fm-row family stays for LeaderboardModal. --fi-accent is the one
    reserved color channel per row (Sigil Factions, ClickUp 86baf786c).
-   ============================================================ */
+
+   CARD TREATMENT (Brendon, 2026-08-15) — each row is now the exact
+   $PRICE Top Holders podium card (.lb-row.lb-podium/.lb-rank1: 4px
+   radius + the same 13% text-on-bg tint), not a flat hairline-separated
+   line. Spaced apart with margin so cards never touch — the chaotic,
+   everything-touching read the leaderboard card was built to avoid.
+   Bottom row keeps the Inspector's OWN stats (fm-row-stats), untouched —
+   only the box around it is borrowed. */
 .fi-row {
     width: 100%; max-width: 100%; box-sizing: border-box;
-    padding: 14px 2px;
-    border-bottom: 1px solid color-mix(in srgb, var(--text-color) 12%, transparent);
+    padding: 14px 10px;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--text-color) 13%, transparent);
+    margin-bottom: 8px;
 }
-.fi-row:last-child { border-bottom: none; }
+.fi-row:last-child { margin-bottom: 0; }
 .fi-row.inspecting {
-    background: color-mix(in srgb, var(--fi-accent, currentColor) 6%, transparent);
-    border-radius: 6px; padding: 14px 10px;
+    /* Expanded row stays visibly a step above the resting card tint. */
+    background: color-mix(in srgb, var(--fi-accent, currentColor) 20%, transparent);
 }
 .fi-line { display: flex; align-items: center; gap: 13px; min-width: 0; }
 .fi-line-main {
