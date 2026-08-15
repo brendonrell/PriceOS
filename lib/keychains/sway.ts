@@ -72,16 +72,21 @@ function onScroll() {
     const y = window.scrollY;
     let d = y - lastY;
     lastY = y;
-    /* ⛔ TILT WINS — with orientation live the scroll shove is OFF (Brendon,
-       2026-07-30: "the scroll bouncing… gets glitchy when scrolling up"). iOS
-       fires scroll far faster than a frame and each one threw the chain, which
-       fought the sensor's own reading of down and read as a stutter on the way
-       back up. `lastY` still tracks, so turning tilt off resumes cleanly. */
-    if (motion === 'granted') return;
+    /* ⛔ SCROLL SHOVES ALWAYS APPLY, TILT OR NOT (Brendon, 2026-08-15). The
+       2026-07-30 stutter this used to dodge by cutting scroll shoves the
+       moment tilt was live turned out to be an unrelated bug, since fixed —
+       so the block just left the chain dead to scroll on every device with
+       tilt granted. Scroll and tilt now stack, same as before that block
+       went in. */
     // The page accelerating under the charm throws it the other way, the way
     // a thing on a chain lags behind the hand carrying it.
-    if (d > 40) d = 40;
-    if (d < -40) d = -40;
+    /* ⛔ CLAMP WIDENED 40→80 (Brendon, 2026-08-15: "sampling... making it
+       look stuck"). rAF batches every scroll event into one shove a frame, so
+       on a fast flick — especially 120Hz ProMotion — real per-frame movement
+       was blowing past the old 40px ceiling and getting flattened, which read
+       as the chain falling behind instead of riding the scroll. */
+    if (d > 80) d = 80;
+    if (d < -80) d = -80;
     kickY -= d * 0.13;
     wake();
 }
@@ -193,6 +198,13 @@ function attach() {
  * grant covers both orientation and motion.
  */
 export async function requestMotion(): Promise<MotionState> {
+    /* ⛔ ALREADY GRANTED SKIPS THE API ENTIRELY (Brendon, 2026-08-15: "it
+       loads every keychain tap"). EquippedCharm and the Depanneur both call
+       this on every single equip tap, unconditionally — with no guard here,
+       that meant every tap re-invoked the native requestPermission() call
+       even once already granted, which is what kept re-raising the sheet.
+       Once granted, later taps are a no-op read of the cached state. */
+    if (motion === 'granted') return motion;
     if (!motionSupported()) { motion = 'unsupported'; emit(); return motion; }
     const dm = (typeof DeviceMotionEvent !== 'undefined'
         ? (DeviceMotionEvent as unknown as PermAPI)
@@ -289,36 +301,13 @@ export function resumeMotion(): void {
     let want = false;
     try { want = localStorage.getItem(KEY) === '1'; } catch { /* private mode */ }
     if (!want || !motionSupported()) return;
-    const dm = (typeof DeviceMotionEvent !== 'undefined'
-        ? (DeviceMotionEvent as unknown as PermAPI)
-        : null);
-    let ask: Promise<'granted' | 'denied'> | null = null;
-    try {
-        ask = typeof dm?.requestPermission === 'function'
-            ? dm.requestPermission()
-            : typeof (window.DeviceOrientationEvent as unknown as PermAPI).requestPermission === 'function'
-                ? (window.DeviceOrientationEvent as unknown as PermAPI).requestPermission!()
-                : null;
-    } catch {
-        retryOnTap();
-        return;
-    }
-    if (!ask) {
-        motion = 'granted';
-        attach();
-        emit();
-        return;
-    }
-    ask.then((r) => {
-        if (r !== 'granted') {
-            /* A cold 'denied' here is iOS refusing the gesture-less ask, not
-               the user refusing — the real refusal only ever comes from the
-               sheet, which rides EQUIP. Wait for a tap and ask again. */
-            retryOnTap();
-            return;
-        }
-        motion = 'granted';
-        attach();
-        emit();
-    }).catch(() => { retryOnTap(); });
+    /* ⛔ NO COLD ASK ON MOUNT (Brendon, 2026-08-15: "I have to do it every
+       time I open the app"). This used to call requestPermission() straight
+       off the mount effect, gesture-less — and on-device that doesn't resolve
+       silently the way the API is meant to, it raises the real iOS sheet, so
+       every fresh open showed the popup again regardless of a prior grant.
+       Skip straight to the tap-armed retry: the same already-granted-site
+       call, made inside a real touch on the worn charm, is what actually
+       resolves quietly. */
+    retryOnTap();
 }
