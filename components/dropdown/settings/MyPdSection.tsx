@@ -674,7 +674,7 @@ export function MyPdSection({ onTripleTap }: Props) {
                             }
                         }}
                     >
-                        {'\u29EB'}
+                        {'\u2311'}
                         {'\uFE0E'}
                     </span>
                 </div>
