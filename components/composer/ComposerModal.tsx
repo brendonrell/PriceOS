@@ -32,7 +32,7 @@ import {
     GROUP_GLYPH, GROUP_BTN_ICON, GROUP_LABEL, groupHeaderGlyph,
     type GroupKey, type SortDir, GROUP_TOAST_HINT } from '../../lib/state/SortContext';
 import { COLOR_BUCKET_ORDER } from '../../lib/art/outputColor';
-import { resolveBucket } from '../../lib/art/colorStore';
+import { resolveBucket, useStoredColors } from '../../lib/art/colorStore';
 import { getProject } from '../../lib/project/registry';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
 import { TraitsProvider } from '../../lib/state/TraitsContext';
@@ -45,8 +45,9 @@ import {
     runQuery, ruleIsComplete, ruleFieldLabel, ruleOpLabel, ruleValueLabel,
     querySummary, querySentence, EMPTY_QUERY, FIELD_GLYPH,
     OWNER_CLASS_FACE, LIST_FACE, EMPTY_CTX,
+    FINGERPRINT_AXIS_LABEL, FINGERPRINT_AXIS_GLYPH, FINGERPRINT_AXIS_VALUES,
     type ComposerQuery, type ComposerRule, type ComposerSortKey, type FacetField,
-    type ComposerCtx, type MyList, type OwnerClass, type ComposerRow,
+    type ComposerCtx, type MyList, type OwnerClass, type ComposerRow, type FingerprintAxis,
 } from '../../lib/composer/query';
 import { getStarredKeys, subscribeStarred } from '../../lib/pins/starStore';
 import { getWishlistKeys, subscribeWishlist, isWishlisted, toggleWishlist } from '../../lib/pins/wishlistStore';
@@ -77,7 +78,12 @@ function defaultRuleFor(field: string): ComposerRule {
     switch (field) {
         case 'Artist':
         case 'Project':
-        case 'Fate':   return { kind: 'facet', field: field as FacetField, op: 'is', values: [] };
+        case 'Fate':
+        case 'Sun':
+        case 'Moon':
+        case 'Rising':
+        case 'PriceDay':
+        case 'Language': return { kind: 'facet', field: field as FacetField, op: 'is', values: [] };
         case 'listed': return { kind: 'listed', op: 'listed' };
         case 'owner':  return { kind: 'owner', op: 'notMe' };
         case 'color':  return { kind: 'color', values: [] };
@@ -87,6 +93,9 @@ function defaultRuleFor(field: string): ComposerRule {
             if (field.startsWith('trait:')) {
                 return { kind: 'trait', name: field.slice(6), op: 'is', values: [] };
             }
+            if (field.startsWith('band:')) {
+                return { kind: 'band', axis: field.slice(5) as FingerprintAxis, values: [] };
+            }
             return { kind: 'facet', field: 'Artist', op: 'is', values: [] };
     }
 }
@@ -94,6 +103,7 @@ function defaultRuleFor(field: string): ComposerRule {
 function fieldKeyOf(r: ComposerRule): string {
     if (r.kind === 'facet') return r.field;
     if (r.kind === 'trait') return `trait:${r.name}`;
+    if (r.kind === 'band') return `band:${r.axis}`;
     return r.kind;
 }
 
@@ -298,6 +308,13 @@ export default function ComposerModal() {
     /* ── dataset ────────────────────────────────────────────────────── */
     const { rows, mintedSlugs, loading } = useComposerData(isOpen);
     const me = siweAddress ? siweAddress.toLowerCase() : null;
+    /* Fingerprint (Tone/Temperature/.../Accent) band filtering reads the
+       SAME stored cache the results gallery warms — but that only runs on
+       the (already-filtered) matches. Warm it for every minted project up
+       front so a Fingerprint rule has data to filter BY, not just to show
+       (Brendon, 2026-08-15 — the "moody, purple, under 1 ETH" promise needs
+       this live before the first rule is even added). */
+    const colorsVer = useStoredColors(mintedSlugs as string[]);
 
     /* ── the viewer's world (v1.1) — follow graph + pin stores + the two
           per-project derivations. All existing machinery: the follows
@@ -383,18 +400,21 @@ export default function ComposerModal() {
         [rows, query.scope],
     );
     const facetPools = useMemo(() => {
-        const pools: Record<FacetField, string[]> = { Artist: [], Project: [], Fate: [] };
-        const seen: Record<FacetField, Set<string>> = {
-            Artist: new Set(), Project: new Set(), Fate: new Set(),
-        };
+        const fields: FacetField[] = ['Artist', 'Project', 'Fate', 'Sun', 'Moon', 'Rising', 'PriceDay', 'Language'];
+        const pools = Object.fromEntries(fields.map((f) => [f, [] as string[]])) as Record<FacetField, string[]>;
+        const seen = Object.fromEntries(fields.map((f) => [f, new Set<string>()])) as Record<FacetField, Set<string>>;
         for (const r of scopeRows) {
-            for (const f of ['Artist', 'Project', 'Fate'] as FacetField[]) {
+            for (const f of fields) {
                 const v = r.traits[f];
                 if (v != null && !seen[f].has(v)) { seen[f].add(v); pools[f].push(v); }
             }
         }
-        for (const f of ['Artist', 'Project', 'Fate'] as FacetField[]) {
-            pools[f].sort((a, b) => facetValueFace(f, a).localeCompare(facetValueFace(f, b)));
+        for (const f of fields) {
+            if (f === 'PriceDay') {
+                pools[f].sort((a, b) => Number(a.replace(/\D/g, '')) - Number(b.replace(/\D/g, '')));
+            } else {
+                pools[f].sort((a, b) => facetValueFace(f, a).localeCompare(facetValueFace(f, b)));
+            }
         }
         return pools;
     }, [scopeRows]);
@@ -405,7 +425,11 @@ export default function ComposerModal() {
         const t0 = performance.now();
         const m = runQuery(query, rows, ctx);
         return [m, Math.max(1, Math.round(performance.now() - t0))];
-    }, [query, rows, ctx]);
+        // colorsVer: Colour + every Fingerprint band rule reads a cache that
+        // fills in asynchronously (Brendon, 2026-08-15) — without this dep
+        // the match would freeze at whatever loaded before the first render.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [query, rows, ctx, colorsVer]);
 
     /* Count delta — every rule edit visibly bites: a +N/−N chip flashes
        beside the count, then leaves (the fade IS the meaning: it's a
@@ -601,9 +625,21 @@ export default function ComposerModal() {
                 { key: 'Artist', glyph: FIELD_GLYPH.Artist, label: 'ARTIST' },
                 { key: 'Project', glyph: FIELD_GLYPH.Project, label: 'PROJECT' },
                 { key: 'Fate', glyph: FIELD_GLYPH.Fate, label: 'FATE' },
+                { key: 'PriceDay', glyph: FIELD_GLYPH.PriceDay, label: 'PRICEDAY' },
+                { key: 'Sun', glyph: FIELD_GLYPH.Sun, label: 'SUN' },
+                { key: 'Moon', glyph: FIELD_GLYPH.Moon, label: 'MOON' },
+                { key: 'Rising', glyph: FIELD_GLYPH.Rising, label: 'RISING' },
+                { key: 'Language', glyph: FIELD_GLYPH.Language, label: 'LANGUAGE' },
                 { key: 'listed', glyph: FIELD_GLYPH.listed, label: 'LISTED' },
                 { key: 'owner', glyph: FIELD_GLYPH.owner, label: 'OWNER' },
                 { key: 'color', glyph: FIELD_GLYPH.color, label: 'COLOUR' },
+                /* Every Fingerprint band, same wall the Character Sheet shows
+                   (Brendon, 2026-08-15 — "put em all in"). */
+                ...(Object.keys(FINGERPRINT_AXIS_LABEL) as FingerprintAxis[]).map((axis) => ({
+                    key: `band:${axis}`,
+                    glyph: FINGERPRINT_AXIS_GLYPH[axis],
+                    label: FINGERPRINT_AXIS_LABEL[axis].toUpperCase(),
+                })),
                 { key: 'rarity', glyph: FIELD_GLYPH.rarity, label: 'RARITY' },
                 { key: 'list', glyph: FIELD_GLYPH.list, label: 'MY LISTS' },
                 /* Scope narrowed to ONE project → its own trait vocabulary
@@ -688,7 +724,7 @@ export default function ComposerModal() {
                             onClick={() => {
                                 o.apply();
                                 const needsValue =
-                                    r.kind === 'facet' || r.kind === 'color' || r.kind === 'trait'
+                                    r.kind === 'facet' || r.kind === 'color' || r.kind === 'trait' || r.kind === 'band'
                                     || (r.kind === 'listed' && (o.label.startsWith('BELOW') || o.label.startsWith('ABOVE')))
                                     || (r.kind === 'owner' && o.label === 'IS @…')
                                     || r.kind === 'rarity'
@@ -730,6 +766,33 @@ export default function ComposerModal() {
         }
         if (r.kind === 'color') {
             const pool = [...(COLOR_BUCKET_ORDER as readonly string[]), 'Other'];
+            return (
+                <div className="cmp-tray">
+                    {pool.map((v) => {
+                        const on = r.values.includes(v);
+                        return (
+                            <button
+                                key={v}
+                                className={`cmp-pill${on ? ' is-on' : ''}`}
+                                onClick={() =>
+                                    patchRule(i, {
+                                        ...r,
+                                        values: on ? r.values.filter((x) => x !== v) : [...r.values, v],
+                                    })}
+                            >
+                                {v.toUpperCase()}
+                            </button>
+                        );
+                    })}
+                </div>
+            );
+        }
+        if (r.kind === 'band') {
+            // Accent shares the Colour bucket vocabulary (fixed list here);
+            // every other axis is its own band function's fixed word set.
+            const pool = r.axis === 'accent'
+                ? [...(COLOR_BUCKET_ORDER as readonly string[]), 'Other']
+                : FINGERPRINT_AXIS_VALUES[r.axis];
             return (
                 <div className="cmp-tray">
                     {pool.map((v) => {
