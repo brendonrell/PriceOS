@@ -21,6 +21,8 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useDropdown } from '../../../lib/state/DropdownContext';
 import { usePdNotifs, type PdNotifs } from '../../../lib/state/PdNotifsContext';
 import { useColorway } from '../../../lib/state/ColorwayContext';
 import { useToast } from '../../../lib/state/ToastContext';
@@ -49,8 +51,27 @@ export function MyPdSection({ onTripleTap }: Props) {
     const { showToast } = useToast();
     const { currentCode, applyCode } = useWorkspaces();
     const { sort, dir, feedKind, group } = useSort();
-    const { siweAddress } = useAuth();
+    const { siweAddress, handle } = useAuth();
     const isAuthed = !!siweAddress;
+    const router = useRouter();
+    const { closeMenu } = useDropdown();
+
+    /* PROFILE TAGS door (Brendon, 2026-08-15) — a more obvious entry point
+       beside the User Showcase glyph. Does the exact same thing as
+       long-pressing your own @name on the profile page (opens the tag/
+       colourway customization row); Settings lives outside that page, so
+       it navigates home + dispatches 'pd:open-tag-egg' for the page to
+       pick up on mount. */
+    const openProfileTagsDoor = () => {
+        if (!handle) return;
+        closeMenu();
+        try { sessionStorage.setItem('pd_open_tag_egg', '1'); } catch { /* ignore */ }
+        if (typeof window !== 'undefined' && window.location.pathname === `/${handle}`) {
+            window.dispatchEvent(new CustomEvent('pd:open-tag-egg'));
+        } else {
+            router.push(`/${handle}`);
+        }
+    };
 
     /* PROFILE COLORWAY picker — the colour a user picks for their OWN
        profile page. useProfileHex owns its storage + migration (slot
@@ -632,6 +653,28 @@ export function MyPdSection({ onTripleTap }: Props) {
                         }}
                     >
                         {showcaseGlyph}
+                        {'\uFE0E'}
+                    </span>
+                    {/* Profile Tags door (Brendon, 2026-08-15) — same action
+                        as long-pressing your own @name; just a more obvious
+                        door, sitting right beside the showcase glyph. */}
+                    <span
+                        className="copy-hex-btn profile-tags-door-btn"
+                        title="Profile Tags"
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            openProfileTagsDoor();
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                openProfileTagsDoor();
+                            }
+                        }}
+                    >
+                        {'\u29EB'}
                         {'\uFE0E'}
                     </span>
                 </div>
