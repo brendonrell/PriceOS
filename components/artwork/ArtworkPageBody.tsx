@@ -1104,17 +1104,13 @@ export default function ArtworkPageBody({
                                 <span className="css-check" />
                             </span>
                         )}
-                        {' '}
-                        <a
-                            className="aff-fullscreen"
-                            href={fullscreenHref}
-                        >
-                            Full Screen
-                        </a>
                     </span>
-                    {ownerHref
-                        ? <a className="aff-owner profile-link" href={ownerHref}>{heldBy}</a>
-                        : <span className="aff-owner">{heldBy}</span>}
+                    <a
+                        className="aff-fullscreen"
+                        href={fullscreenHref}
+                    >
+                        Open Full Screen
+                    </a>
                 </div>
 
                 {/* Output activity feed — the homepage Now-Minting bar, exact:

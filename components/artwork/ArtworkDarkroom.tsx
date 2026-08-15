@@ -18,7 +18,6 @@
  */
 
 import { useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import ArtworkLive from './ArtworkLive';
 import DeepZoomLayer from '../art/DeepZoomLayer';
 import { samplePaletteChips } from '../../lib/output/paletteChips';
@@ -27,7 +26,6 @@ import { useToast } from '../../lib/state/ToastContext';
 
 export default function ArtworkDarkroom({ slug, id }: { slug: string; id: number }) {
     const hostRef = useRef<HTMLDivElement>(null);
-    const router = useRouter();
     const { notifs } = usePdNotifs();
     const { showToast } = useToast();
     const [inverted, setInverted] = useState(false);
@@ -36,20 +34,14 @@ export default function ArtworkDarkroom({ slug, id }: { slug: string; id: number
        character sheet's Swatches tile. Synchronous + cached per piece. */
     const chips = samplePaletteChips(slug, id);
 
-    const onClose = () => {
-        const cameFromApp =
-            window.history.length > 1 &&
-            document.referrer.startsWith(window.location.origin);
-        if (cameFromApp) router.back();
-        else router.push(`/art/${slug}/${id}`);
-    };
-
     return (
         <div className="artwork-fullscreen artwork-darkroom">
-            {/* PERMANENT BACK (Brendon, 2026-07-28) — the same always-on arrow
-                the artwork surfaces already carry, in the same spot, with the
-                same real-history-first behaviour and the piece's own page as
-                the cold-link fallback. Not a setting: always there. */}
+            {/* PERMANENT BACK — the exact same arrow, same spot, same
+                real-history-first behaviour + cold-link fallback as the
+                feature/fullscreen page (Brendon, 2026-08-14: darkroom carried
+                a second, differently-behaved × close button here — removed
+                so there's exactly one back control, identical to the feature
+                page's). */}
             <a
                 className="fullscreen-back"
                 href={`/art/${slug}/${id}`}
@@ -77,22 +69,6 @@ export default function ArtworkDarkroom({ slug, id }: { slug: string; id: number
             >
                 {'⇠⇠︎'}
             </a>
-            <div
-                className="close-hint dk-close"
-                role="button"
-                tabIndex={0}
-                onClick={onClose}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        onClose();
-                    }
-                }}
-                title="Close"
-            >
-                {'×'}
-                {'︎'}
-            </div>
             {/* The invert filter wraps the whole stage, so the sharp zoom
                 overlay and the loupe read inverted with the art — one
                 consistent negative, never a mixed frame. */}
