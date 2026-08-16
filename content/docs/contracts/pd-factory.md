@@ -27,7 +27,7 @@ function createProject(
 
 A second overload takes one extra trailing parameter, `uint256 windowSeconds`, and deploys the Project with a [contested-drop entry window](/docs/contracts/pd-project#the-entry-window) of that length (capped at 4 hours, fail-open). The signature above deploys with the window disabled — byte-for-byte the classic open mint.
 
-Callable by whitelisted artists only. Atomically deploys the artist's **PDProject** and its **PaymentSplitter**, records the new address in `isProject`, and emits `ProjectCreated`. The artist address is `msg.sender`, immutably. The `colorway` is the Project's signature colour — six bare hex characters, emitted as a marketplace attribute on every Output; pass empty to omit it.
+Callable by whitelisted artists only. Atomically deploys the artist's **PDProject** and its **PaymentSplitter**, records the new address in `isProject`, and emits `ProjectCreated`. The artist address is `msg.sender`, immutably. The `colorway` is the Project's signature color — six bare hex characters, emitted as a marketplace attribute on every Output; pass empty to omit it.
 
 Internally, the `new PDProject` runs in the factory's **deployment arm** (`projectDeployer`) — a zero-governance satellite the factory spawns in its own constructor and is alone allowed to call. It exists purely for the EVM's 24,576-byte contract size limit; behaviour is identical to an inline deploy.
 

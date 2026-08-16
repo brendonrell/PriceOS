@@ -22,7 +22,7 @@ The artist's generative script is stored across up to 32 SSTORE2 data contracts 
 
 ### Marketplace attributes
 
-Every Output's metadata carries six attributes, all sourced from chain state: **Token Hash** (the generative seed), **Token Number**, **Artist** (the immutable artist address), **Language** — the exact tool the piece is made with, copied from the [registry](/docs/contracts/library-registry) as "name version" (`p5.js 1.11.3`) at deployment and frozen; `JavaScript` for vanilla Projects — **Colorway** (the Project's signature colour, six hex characters, present only when the Project declared one), and **Edition Size**.
+Every Output's metadata carries six attributes, all sourced from chain state: **Token Hash** (the generative seed), **Token Number**, **Artist** (the immutable artist address), **Language** — the exact tool the piece is made with, copied from the [registry](/docs/contracts/library-registry) as "name version" (`p5.js 1.11.3`) at deployment and frozen; `JavaScript` for vanilla Projects — **Colorway** (the Project's signature color, six hex characters, present only when the Project declared one), and **Edition Size**.
 
 ## The mint
 
