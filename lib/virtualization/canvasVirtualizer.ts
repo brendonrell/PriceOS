@@ -5,26 +5,24 @@
  *
  * IntersectionObserver-driven lazy canvas mounting for the project
  * gallery. Ports sim's renderFeed observer pattern (sim 8215-8270) into a
- * module-scoped service the React port can register cards against, with
- * one extension on top: an LRU cap that evicts the least-recently-visible
- * canvas when the active set exceeds CANVAS_LRU_CAP.
+ * module-scoped service the React port can register cards against.
  *
  * Why this exists:
- *   ArtworkCard mounts a 400px canvas per Output. With 222+ cards on
- *   Portals (and 333 incoming on Strata in B39), mobile Safari hits the
- *   GPU texture cap and crashes once enough wrappers come into view.
- *   Sim sidesteps this by lazy-rendering canvases only as wrappers
- *   intersect the viewport, then leaves them mounted forever
- *   (one-shot reveal — sim unobserves on first hit).
+ *   ArtworkCard mounts a 400px canvas per Output. Painting hundreds of
+ *   them at once on mount would jank the page, so canvases only paint as
+ *   their wrapper intersects the viewport (+rootMargin lookahead).
  *
- * Where this differs from sim:
- *   Sim's "render once, never again" model holds at 222 Outputs because
- *   the gallery list is bounded. At 555+ Outputs on a Safari mobile
- *   session that browses the whole grid, even sim would OOM. The LRU
- *   cap (60 active canvases) caps GPU pressure regardless of how far
- *   the user scrolls. Eviction releases the GPU buffer by setting
- *   canvas.width/height to 1; re-intersection re-queues the canvas
- *   for a fresh render.
+ * ⛔ NO EVICTION (Brendon, 2026-08-15 — "we don't need to restrict what's
+ *   loaded just when"): this used to also carry an LRU cap that evicted
+ *   the least-recently-visible canvas once the active set passed a
+ *   threshold, to guard against a GPU texture-cap crash on very large
+ *   (555+) galleries on mobile Safari. That eviction was the cause of the
+ *   "scroll up and art has to reload" behavior — pulled out entirely.
+ *   Once a canvas paints, it stays painted for the life of the page; the
+ *   IntersectionObserver now only controls WHEN a card paints for the
+ *   first time, never whether it later un-paints. If a future gallery
+ *   size trips GPU limits again, re-introduce a cap deliberately rather
+ *   than reverting this file wholesale.
  *
  * Pattern preserved from sim:
  *   - rootMargin '400px 300px' — start prefetching ~one viewport before the
@@ -48,7 +46,6 @@
 
 import { hashSynNotifyCanvasPaint } from '../engines/hashSynEngine';
 
-const CANVAS_LRU_CAP = 60;
 /* Hard ceiling on paints per rAF tick — a safety bound so a runaway queue
    can't loop forever in one frame. The REAL throttle is FRAME_BUDGET_MS
    below: we paint until the frame budget is spent, then yield. Cheap engines
@@ -95,16 +92,9 @@ type RegisteredCard = {
 };
 
 const registry = new Map<string, RegisteredCard>();
-/* Map preserves insertion order — re-inserting an entry (delete+set)
-   moves it to the end, so the iteration order IS the LRU order: oldest
-   first. active.keys().next().value gives the eviction candidate. */
+/* Once a key lands here it stays — no eviction, so painted canvases never
+   un-paint on scroll (Brendon, 2026-08-15). */
 const active = new Map<string, RegisteredCard>();
-/* Keys currently intersecting the viewport (+rootMargin). A tile in here is
-   ON SCREEN and must never be evicted to honour the LRU cap — doing so is the
-   "top carousels go grey" bug on the home page, where two-dozen galleries
-   mount at once and later rows painting would otherwise blank the visible
-   top rows. */
-const intersecting = new Set<string>();
 const renderQueue: RegisteredCard[] = [];
 let renderScheduled = false;
 let observer: IntersectionObserver | null = null;
@@ -129,26 +119,11 @@ function ensureObserver(): void {
                 const wrapper = entry.target as HTMLElement;
                 const key = wrapper.dataset.vkey;
                 if (!key) return;
-                if (!entry.isIntersecting) {
-                    /* Off screen now — drop the eviction shield so the LRU
-                       cap can reclaim its GPU buffer on deep scrolls. */
-                    intersecting.delete(key);
-                    return;
-                }
-                intersecting.add(key);
+                if (!entry.isIntersecting) return;
                 const reg = registry.get(key);
                 if (!reg) return;
-                /* Already-active canvas re-entering view: bump its
-                   position in the LRU so it survives the next eviction
-                   pass. delete + set re-inserts at the tail. */
-                if (active.has(key)) {
-                    active.delete(key);
-                    active.set(key, reg);
-                    return;
-                }
-                /* Not active — queue for render. Sim unobserves here;
-                   we don't, because LRU eviction can re-blank a canvas
-                   later and we need the next intersection to retrigger. */
+                /* Already painted — nothing to do, it stays painted. */
+                if (active.has(key)) return;
                 renderQueue.push(reg);
                 scheduleDrain();
             });
@@ -192,7 +167,6 @@ function paintNow(reg: RegisteredCard): void {
        pixels are paintable. No-op when hashsyn isn't the active
        colorway — engine bails on null _onApplyHex. */
     hashSynNotifyCanvasPaint();
-    enforceLruCap();
 }
 
 function drainQueue(): void {
@@ -213,45 +187,10 @@ function drainQueue(): void {
     if (renderQueue.length > 0) scheduleDrain();
 }
 
-function enforceLruCap(): void {
-    if (active.size <= CANVAS_LRU_CAP) return;
-    /* Evict oldest-first, but SKIP anything currently on screen. Off-screen
-       tiles get released so the GPU stays bounded on deep single-project
-       scrolls; if everything over the cap is genuinely visible (a tall home
-       page of carousels), we let the active set sit above the cap rather than
-       grey out art the user is looking at. */
-    for (const key of [...active.keys()]) {
-        if (active.size <= CANVAS_LRU_CAP) break;
-        if (intersecting.has(key)) continue;
-        const reg = active.get(key);
-        if (reg) evictCanvas(reg);
-        active.delete(key);
-    }
-}
-
-function evictCanvas(reg: RegisteredCard): void {
-    /* Drop the GPU-backed buffer. Setting width/height (even to the
-       same value) reallocates; setting to 1 reduces it to negligible.
-       On re-intersection, the existing render closure resets width to
-       400 and re-paints. */
-    try {
-        reg.canvas.width = 1;
-        reg.canvas.height = 1;
-    } catch {
-        /* defensive — if the canvas is detached, ignore */
-    }
-    reg.canvas.classList.remove('visible');
-    /* Clearing the inline style restores the CSS default
-       (.canvas-wrapper { background: #ccc }) so the unloaded slot
-       reads as a placeholder rather than a void. */
-    reg.wrapper.style.background = '';
-}
-
 function publishStats(): void {
     if (typeof window === 'undefined') return;
     const stats = {
         active: active.size,
-        cap: CANVAS_LRU_CAP,
         rendered: renderCounter,
         queued: renderQueue.length,
         registered: registry.size,
@@ -314,10 +253,9 @@ export function unregisterCanvas(key: string): void {
     const reg = registry.get(key);
     if (reg) observer?.unobserve(reg.wrapper);
     registry.delete(key);
-    /* Drop from active LRU too — the canvas DOM node is going away, so
-       there's nothing to evict and no reason to count it as active. */
+    /* The canvas DOM node is going away, so there's nothing left to keep
+       painted and no reason to count it as active. */
     active.delete(key);
-    intersecting.delete(key);
     /* Strip any pending queue entry. splice() in place — single linear
        pass; renderQueue is bounded by visible-set size so this stays
        cheap. */
@@ -348,7 +286,6 @@ export function forceRenderKeys(keys: Set<string>): void {
 export function getCanvasStats() {
     return {
         active: active.size,
-        cap: CANVAS_LRU_CAP,
         rendered: renderCounter,
         queued: renderQueue.length,
         registered: registry.size,
