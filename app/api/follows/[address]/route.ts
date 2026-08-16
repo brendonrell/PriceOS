@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAnon } from '@/lib/supabase';
+import { getUserOwnedProjectsCount } from '@/lib/profile/getUserHoldings';
 import { badRequest, serverError } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
@@ -75,6 +76,26 @@ async function exactCounts(
   return { followers: followersRes.count ?? 0, following: followingRes.count ?? 0 };
 }
 
+/** Project edges — keyed on ADDRESS (not @name), so they apply even to a
+ *  pre-claim wallet. Every project this wallet HOLDS follows them (a
+ *  follower); every project they explicitly follow counts as following.
+ *  Same rule as /api/user/[address] and the profile page, so all three
+ *  surfaces (site, Supabase, Friend Inspector) report the same number. */
+async function projectEdgeCounts(
+  supabase: DB,
+  address: string
+): Promise<{ heldProjects: number; projectsFollowed: number }> {
+  const [heldProjects, projFollowRes] = await Promise.all([
+    getUserOwnedProjectsCount(address),
+    supabase
+      .from('project_follows')
+      .select('*', { count: 'exact', head: true })
+      .eq('follower_address', address),
+  ]);
+  if (projFollowRes.error) throw new Error(projFollowRes.error.message);
+  return { heldProjects, projectsFollowed: projFollowRes.count ?? 0 };
+}
+
 export async function GET(
   req: NextRequest,
   props: { params: Promise<{ address: string }> }
@@ -97,13 +118,14 @@ export async function GET(
 
     // ── Relation mode (?viewer=) — two single-row lookups + exact counts.
     if (viewer !== null) {
+      const projCounts = await projectEdgeCounts(supabase, address);
       const empty: FollowRelationResponse = {
         address,
         viewer,
         i_follow: false,
         follows_me: false,
-        follower_count: 0,
-        following_count: 0,
+        follower_count: projCounts.heldProjects,
+        following_count: projCounts.projectsFollowed,
       };
       if (handle === null) return NextResponse.json(empty);
 
@@ -112,8 +134,8 @@ export async function GET(
       if (viewerHandle === null || viewer === address) {
         return NextResponse.json({
           ...empty,
-          follower_count: counts.followers,
-          following_count: counts.following,
+          follower_count: counts.followers + projCounts.heldProjects,
+          following_count: counts.following + projCounts.projectsFollowed,
         });
       }
       const [iFollowRes, followsMeRes] = await Promise.all([
@@ -137,21 +159,23 @@ export async function GET(
         viewer,
         i_follow: iFollowRes.data !== null,
         follows_me: followsMeRes.data !== null,
-        follower_count: counts.followers,
-        following_count: counts.following,
+        follower_count: counts.followers + projCounts.heldProjects,
+        following_count: counts.following + projCounts.projectsFollowed,
       };
       return NextResponse.json(response);
     }
 
     // ── Full list mode.
-    // Pre-claim → no rows possible. Empty lists.
+    // Pre-claim → no follow rows possible, but project edges are keyed on
+    // address and still apply.
     if (handle === null) {
+      const projCounts = await projectEdgeCounts(supabase, address);
       const empty: FollowsListResponse = {
         address,
         followers: [],
         following: [],
-        follower_count: 0,
-        following_count: 0,
+        follower_count: projCounts.heldProjects,
+        following_count: projCounts.projectsFollowed,
         follower_handles: [],
         following_handles: [],
         follower_scores: [],
@@ -160,9 +184,10 @@ export async function GET(
       return NextResponse.json(empty);
     }
 
-    // (b) Exact counts + the (capped) row lists by @name.
-    const [counts, followersRes, followingRes] = await Promise.all([
+    // (b) Exact counts (users + projects) + the (capped) row lists by @name.
+    const [counts, projCounts, followersRes, followingRes] = await Promise.all([
       exactCounts(supabase, handle),
+      projectEdgeCounts(supabase, address),
       supabase
         .from('follows')
         .select('follower_name')
@@ -226,8 +251,8 @@ export async function GET(
       address,
       followers: followerPairs.map((p) => p.address),
       following: followingPairs.map((p) => p.address),
-      follower_count: counts.followers,
-      following_count: counts.following,
+      follower_count: counts.followers + projCounts.heldProjects,
+      following_count: counts.following + projCounts.projectsFollowed,
       follower_handles: followerPairs.map((p) => p.handle),
       following_handles: followingPairs.map((p) => p.handle),
       follower_scores: followerPairs.map((p) => p.score),
