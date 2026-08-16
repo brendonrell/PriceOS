@@ -78,7 +78,7 @@ Results are a real gallery, and the gallery acts:
 ## Programs
 
 Save a query as a **Program** and it keeps living: each Program wears **the
-Spectrum** — the colour distribution of its current answer — so a saved
+Spectrum** — the color distribution of its current answer — so a saved
 question visibly changes complexion as the market moves under it.
 
 And when a query strangles itself to zero matches, **the Loosener** names the
