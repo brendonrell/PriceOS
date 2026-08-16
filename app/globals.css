@@ -13964,15 +13964,20 @@ body.theme-bright .fi-row.inspecting {
 .fi-preview {
     position: relative; height: 100%;
     display: flex; flex-direction: column; justify-content: center; gap: 7px;
-    padding-top: 26px; box-sizing: border-box;
+    padding-top: 34px; box-sizing: border-box;
 }
 .fi-preview-toggle {
-    position: absolute; top: 3px; right: 0; z-index: 2;
-    display: flex; gap: 12px;
+    position: absolute; top: 3px; right: 0; left: 0; z-index: 2;
+    display: flex; flex-wrap: wrap; justify-content: flex-end;
+    gap: 3px 9px;
 }
 /* Wire / Map are FLOATING TEXT toggles — no button box (Brendon, 2026-07-11).
    Selected reads extra-bold; de-selected drops to normal weight + slightly
-   lower opacity. Overrides the .ambient-chip box these still carry. */
+   lower opacity. Overrides the .ambient-chip box these still carry.
+   6 chips now (was 3, Brendon 2026-08-15) — gap tightened and wrapping
+   allowed so the row degrades to two lines on the iPhone 12 floor instead
+   of clipping off-screen; .fi-preview's reserved top padding grew to match
+   the worst case (two lines). */
 .fi-preview-chip {
     font-size: 10px; letter-spacing: 0.08em;
     background: transparent; border: none;
@@ -13987,10 +13992,11 @@ body.theme-bright .fi-row.inspecting {
     font-weight: 800; opacity: 1;
 }
 
-/* ── THE THREE MODES (rebuilt 2026-07-30) — OVERLAP · ROSTER · 30 DAYS.
-   Full-strength site tokens throughout: 12px+, bold labels, real borders,
-   no washes and no half-opacity chrome (Rule #2). Square corners; state is
-   carried by PD's own dotted ring, never an edge bar. ── */
+/* ── THE SIX MODES (Brendon, 2026-08-15 — was three: OVERLAP · ROSTER ·
+   30 DAYS; added STREAK · SPEND · NEW). Full-strength site tokens
+   throughout: 12px+, bold labels, real borders, no washes and no
+   half-opacity chrome (Rule #2). Square corners; state is carried by PD's
+   own dotted ring, never an edge bar. ── */
 .fi-pv-note {
     flex: 1 1 auto; display: flex; align-items: center;
     font-family: 'Courier New', Courier, monospace;
@@ -14046,6 +14052,10 @@ body.theme-bright .fi-row.inspecting {
     cursor: pointer;
 }
 .fi-rost-cell.mutual { outline: 2px dotted var(--text-color); outline-offset: -2px; }
+/* NEW mode's ring — same dotted mark ROSTER uses for a mutual, applied to
+   the most-recently-added faces instead (Brendon, 2026-08-15). Never both
+   at once: NEW and ROSTER are separate modes. */
+.fi-rost-cell.recent { outline: 2px dotted var(--text-color); outline-offset: -2px; }
 .fi-rost-cell.on { background: var(--stat-active-bg); color: var(--stat-active-text); }
 .fi-rost-cell:hover { border-color: var(--text-color); }
 .fi-rost-me { cursor: default; }
