@@ -13,6 +13,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getProject } from '../project/registry';
+import { isHiddenProject } from '../platform/hiddenProjects';
 
 /** Inline stats for one person row — profile-hero parity, plus the identity
     flair the Friend Inspector wears (faction bubble + profile colorway). */
@@ -84,14 +85,29 @@ export async function getCircleStats(
     }
   }
 
+  // Project edges (Brendon 2026-08-16): every project a wallet HOLDS follows
+  // them too, same rule the profile page and /api/user/[address] apply — a
+  // row already fetched above for `collected`, so just tally distinct
+  // projects per address here (hidden test projects excluded, same as the
+  // profile's owned-projects count).
+  const heldProjectsByAddr = new Map<string, Set<string>>();
+  for (const row of (holdersRes.data ?? []) as Array<{ owner_address: string; project_id: string }>) {
+    if (isHiddenProject(row.project_id)) continue;
+    const a = row.owner_address.toLowerCase();
+    if (!heldProjectsByAddr.has(a)) heldProjectsByAddr.set(a, new Set());
+    heldProjectsByAddr.get(a)!.add(row.project_id);
+  }
+
   const stats: Record<string, CircleStat> = {};
   for (const a of addrs) {
     const handle = addrToHandle.get(a) ?? null;
+    const userFollowers = handle ? followerByHandle.get(handle.toLowerCase()) ?? 0 : 0;
+    const projectFollowers = heldProjectsByAddr.get(a)?.size ?? 0;
     stats[a] = {
       handle,
       collected: collected.get(a) ?? 0,
       spentEth: Math.round((spent.get(a) ?? 0) * 1000) / 1000,
-      followers: handle ? followerByHandle.get(handle.toLowerCase()) ?? 0 : 0,
+      followers: userFollowers + projectFollowers,
       isArtist: artistSet.has(a),
       profileLogo: flairByAddr.get(a)?.profileLogo ?? null,
       profileHex: flairByAddr.get(a)?.profileHex ?? null,
