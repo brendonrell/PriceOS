@@ -601,15 +601,15 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                             visible
                             hideSortBar
                             profilePills={[
-                                { key: 'attributes', label: 'Attributes', active: moreL1 === 'attributes', onClick: () => setMoreL1('attributes') },
-                                { key: 'offers', label: 'Offers', active: moreL1 === 'offers', onClick: () => setMoreL1('offers') },
+                                { key: 'attributes', label: <><span className="pill-tab-ico is-attributes">{'\u2A69\uFE0E'}</span> Attributes</>, active: moreL1 === 'attributes', onClick: () => setMoreL1('attributes') },
+                                { key: 'offers', label: <><span className="pill-tab-ico is-offers">{'\u2736\uFE0E'}</span> Offers</>, active: moreL1 === 'offers', onClick: () => setMoreL1('offers') },
                                 { key: 'pricestory', label: 'Price Story', active: moreL1 === 'pricestory', onClick: () => setMoreL1('pricestory') },
                                 { key: 'stats', label: 'Stats', active: moreL1 === 'stats', onClick: () => setMoreL1('stats') },
                                 { key: 'albums', label: <><span className="pill-tab-ico is-album">{'◰︎'}</span> Albums</>, active: moreL1 === 'albums', onClick: () => setMoreL1('albums') },
-                                { key: 'social', label: 'Social', active: moreL1 === 'social', onClick: () => setMoreL1('social') },
-                                { key: 'anoint', label: 'Anointed', active: moreL1 === 'anoint', onClick: () => setMoreL1('anoint') },
+                                { key: 'social', label: <><span className="pill-tab-ico is-social">{'\u263B\uFE0E'}</span> Social</>, active: moreL1 === 'social', onClick: () => setMoreL1('social') },
+                                { key: 'anoint', label: <><span className="pill-tab-ico is-anoint">{'\u2722\uFE0E'}</span> Anointed</>, active: moreL1 === 'anoint', onClick: () => setMoreL1('anoint') },
                                 { key: 'sentiment', label: 'Sentiment', active: moreL1 === 'sentiment', onClick: () => setMoreL1('sentiment') },
-                                { key: 'replay', label: <><span className="pill-tab-ico">{'\u23F4\uFE0E'}</span> Replay</>, active: moreL1 === 'replay', onClick: () => setMoreL1('replay') },
+                                { key: 'replay', label: <><span className="pill-tab-ico is-replay">{'\u23F4\uFE0E'}</span> Replay</>, active: moreL1 === 'replay', onClick: () => setMoreL1('replay') },
                                 { key: 'genome', label: <><span className="pill-tab-ico is-genome">{'\u224E\uFE0E'}</span> Genome</>, active: moreL1 === 'genome', onClick: () => setMoreL1('genome') },
                                 { key: 'gnome', label: <><span className="pill-tab-ico is-gnome">{'\u2359\uFE0E'}</span> Gnome</>, active: moreL1 === 'gnome', onClick: () => setMoreL1('gnome') },
                             ]}

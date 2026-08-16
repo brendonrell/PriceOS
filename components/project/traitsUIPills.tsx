@@ -375,10 +375,12 @@ export function SortBtn({
                         className="feed-sort-dollar rarity-sort-mark"
                         style={{
                             fontFamily: "'Courier New', Courier, monospace",
-                            fontSize: '13px',
+                            /* Two sizes larger + nudged down 3px from the
+                               prior 13px/-3px (Brendon, 2026-08-15). */
+                            fontSize: '17px',
                             marginRight: '2px',
                             position: 'relative',
-                            top: '-3px',
+                            top: '0px',
                         }}
                     >
                         {'❖\uFE0E'}
@@ -398,12 +400,13 @@ export function SortBtn({
                         style={{
                             fontFamily:
                                 "'Courier New', Courier, monospace",
-                            fontSize: '13px',
+                            /* Two sizes larger + nudged down 3px from the
+                               prior 13px/-3px, matching the rarity mark
+                               (Brendon, 2026-08-15). */
+                            fontSize: '17px',
                             marginRight: '2px',
-                            /* Sat low against the label — up 3px (Brendon,
-                               2026-08-02). */
                             position: 'relative',
-                            top: '-3px',
+                            top: '0px',
                         }}
                     >
                         $
