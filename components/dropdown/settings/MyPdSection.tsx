@@ -630,8 +630,30 @@ export function MyPdSection({ onTripleTap }: Props) {
                     >
                         ⧉{'\uFE0E'}
                     </span>
-                    {/* Profile Page v0 — User Showcase mode toggle. Lives
-                        right of the copy-hex button per spec. Glyph
+                    {/* Profile Tags door (Brendon, 2026-08-16 — swapped ahead of
+                        the showcase glyph): same action as long-pressing your
+                        own @name; sits right of the copy-hex button now, one
+                        size larger than before. */}
+                    <span
+                        className="copy-hex-btn profile-tags-door-btn"
+                        title="Profile Tags"
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            openProfileTagsDoor();
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                openProfileTagsDoor();
+                            }
+                        }}
+                    >
+                        {'\u2311'}
+                        {'\uFE0E'}
+                    </span>
+                    {/* Profile Page v0 — User Showcase mode toggle. Glyph
                         flips on tap: ⑆ static (default) ↔ ⑇ generative.
                         Visual + persistence only for v0; the User Showcase
                         grid that reads this flag lands when the slot
@@ -653,28 +675,6 @@ export function MyPdSection({ onTripleTap }: Props) {
                         }}
                     >
                         {showcaseGlyph}
-                        {'\uFE0E'}
-                    </span>
-                    {/* Profile Tags door (Brendon, 2026-08-15) — same action
-                        as long-pressing your own @name; just a more obvious
-                        door, sitting right beside the showcase glyph. */}
-                    <span
-                        className="copy-hex-btn profile-tags-door-btn"
-                        title="Profile Tags"
-                        role="button"
-                        tabIndex={0}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            openProfileTagsDoor();
-                        }}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                openProfileTagsDoor();
-                            }
-                        }}
-                    >
-                        {'\u2311'}
                         {'\uFE0E'}
                     </span>
                 </div>
