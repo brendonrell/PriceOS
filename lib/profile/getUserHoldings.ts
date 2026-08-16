@@ -81,6 +81,68 @@ export async function getUserSpendEth(rawAddress: string): Promise<number> {
   return Number(sum.toFixed(4));
 }
 
+export interface SpendBreakdownProject {
+  slug: string;
+  totalEth: number;
+}
+
+export interface SpendBreakdownOutput {
+  slug: string;
+  token_id: number;
+  priceEth: number;
+}
+
+export interface SpendBreakdown {
+  /** Top 5 projects by cumulative ETH this wallet spent within that project. */
+  topProjects: SpendBreakdownProject[];
+  /** Top 5 individual Outputs by ETH paid to acquire them. */
+  topOutputs: SpendBreakdownOutput[];
+}
+
+/**
+ * Volume Spent toast breakdown (Brendon, 2026-08-16): the same lifetime-spend
+ * events getUserSpendEth sums, but sliced two ways — top 5 projects by total
+ * spend within that project, and the top 5 individual Outputs by price paid.
+ * Same acquisition definition as getUserSpendEth (mints + secondary buys,
+ * free mints excluded). Returns empty arrays for a malformed address or on
+ * error.
+ */
+export async function getUserSpendBreakdown(rawAddress: string): Promise<SpendBreakdown> {
+  const address = rawAddress.toLowerCase();
+  const empty: SpendBreakdown = { topProjects: [], topOutputs: [] };
+  if (!ADDRESS_RE.test(address)) return empty;
+  const supabase = getSupabaseService();
+  const { data, error } = await supabase
+    .from('events')
+    .select('project_id, token_id, price_eth')
+    .eq('to_address', address)
+    .not('price_eth', 'is', null)
+    .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN);
+  if (error) return empty;
+
+  const rows = (data ?? []) as { project_id: string; token_id: string | number; price_eth: string | number | null }[];
+
+  const byProject = new Map<string, number>();
+  const outputs: SpendBreakdownOutput[] = [];
+  for (const r of rows) {
+    const eth = Number(r.price_eth ?? 0);
+    if (!eth) continue;
+    byProject.set(r.project_id, (byProject.get(r.project_id) ?? 0) + eth);
+    outputs.push({ slug: r.project_id, token_id: Number(r.token_id), priceEth: eth });
+  }
+
+  const topProjects = [...byProject.entries()]
+    .map(([slug, totalEth]) => ({ slug, totalEth: Number(totalEth.toFixed(4)) }))
+    .sort((a, b) => b.totalEth - a.totalEth)
+    .slice(0, 5);
+
+  const topOutputs = outputs
+    .sort((a, b) => b.priceEth - a.priceEth)
+    .slice(0, 5);
+
+  return { topProjects, topOutputs };
+}
+
 /**
  * The DISTINCT set of project slugs a wallet owns ≥1 piece of — the exact
  * source for the home "you own this" checks. Paginates the holders rows (so it
