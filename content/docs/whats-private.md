@@ -33,6 +33,8 @@ Display settings, colorway, workspaces, every display mode and spell, ping contr
 
 Draft Projects in [PD Studio](/docs/studio/overview) — scripts, test runs, parameters — are visible only to the wallet (or device) that made them. Nothing about a draft touches the chain or the platform's public surfaces until you deploy. The same goes for the [submission](/docs/for-artists/submit-a-project) conversation itself.
 
+**Whitelisting is stealth.** Being added to the artist whitelist carries no public signal by itself — no badge, no [Artists directory](/artists) listing, no earned Artist tag — until you deploy your first Project. Only your own wallet can see whitelisted status ahead of that, from Studio. See the [Artist](/docs/reference/glossary) glossary entry.
+
 ## What PD never asks for
 
 There is no personal-information layer to leak: **a wallet is the entire account.** No email, no name, no phone number, no KYC. The single exception is opt-in and single-purpose — subscribing to [the Dispatch Digest](/docs/dispatch) stores the email you give it for exactly that delivery, with one-tap unsubscribe.
