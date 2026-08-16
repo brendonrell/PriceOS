@@ -48,7 +48,7 @@ Definitions for terms used throughout Price Discussion, alphabetically. The nome
 
 **ENS** — The Ethereum Name Service. PD reads and displays ENS names alongside @names.
 
-**Faction** — The side a collector fights for in PD's quiet war, chosen by raising a blank colour bubble as a profile logo. The colour *is* the faction. See [Factions](/docs/factions).
+**Faction** — The side a collector fights for in PD's quiet war, chosen by raising a blank color bubble as a profile logo. The color *is* the faction. See [Factions](/docs/factions).
 
 **Fate** — A platform trait every Output carries from mint, alongside Artist, Project, PriceDay, and the natal chart.
 
@@ -64,7 +64,7 @@ Definitions for terms used throughout Price Discussion, alphabetically. The nome
 
 **Mint** — The act of bringing a new Output into existence on a Project. Token IDs are 1-indexed; the first mint produces token #1. See [The Mint Flow](/docs/for-artists/the-mint-flow).
 
-**Mood Ring** (⌬) — The platform's daily generative colour — home wears it, and the footer will tell you today's hex.
+**Mood Ring** (⌬) — The platform's daily generative color — home wears it, and the footer will tell you today's hex.
 
 ## N–R
 
@@ -98,7 +98,7 @@ Definitions for terms used throughout Price Discussion, alphabetically. The nome
 
 **Price Story** — The narrative interpretation of a Project's or Output's price history.
 
-**Program** — A saved Composer query that keeps answering live; it wears the Spectrum (its current answer's colour distribution). See [Composer](/docs/composer).
+**Program** — A saved Composer query that keeps answering live; it wears the Spectrum (its current answer's color distribution). See [Composer](/docs/composer).
 
 **Project** — An artist's body of work, deployed as one immutable PDProject contract. Lives at `/art/{slug}`.
 
