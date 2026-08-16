@@ -2572,6 +2572,15 @@ section[aria-label="Created projects"] > .upload-window {
 .fm-row-id { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .fm-row-id .collected-pair { min-width: 0; }
 .fm-row-id .profile-link { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+/* No profile tags on → the middle row shows the wallet address instead
+   (Brendon, 2026-08-15). Rubik Mono, same as the app's other data-register
+   address chips, not the display face UserTags/AsciiId use. */
+.fi-row-addr {
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 11px;
+    opacity: 0.75;
+    letter-spacing: 0.02em;
+}
 .fm-artist-badge { flex: 0 0 auto; font-size: 14px; }
 .fm-row-stats { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px; font-family: 'Courier New', Courier, monospace; font-size: 13px; }
 .fm-tag {
