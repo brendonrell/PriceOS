@@ -863,6 +863,44 @@ function ProfilePageBodyInner({
         },
     });
 
+    /* Volume Spent toast — the tap used to be a plain label toast; now it
+       draws a two-list face above the same headline: top 5 projects by
+       spend, then top 5 Outputs by price paid. Breakdown is prefetched once
+       per profile view (below) so the tap itself stays instant — falls back
+       to the plain toast if it hasn't landed yet. holdMs runs 50% longer
+       than the default (2700 vs 1800) since there's more to read (Brendon,
+       2026-08-16). */
+    const [spendBreakdown, setSpendBreakdown] = useState<{
+        topProjects: { slug: string; totalEth: number }[];
+        topOutputs: { slug: string; token_id: number; priceEth: number }[];
+    } | null>(null);
+    useEffect(() => {
+        setSpendBreakdown(null);
+        let cancelled = false;
+        fetch(`/api/user/${user.address.toLowerCase()}/spend-breakdown`, { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => { if (!cancelled && d) setSpendBreakdown(d); })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [user.address]);
+    const openVolumeSpentToast = () => {
+        const lines: string[] = [];
+        if (spendBreakdown?.topProjects.length) {
+            lines.push('TOP PROJECTS');
+            for (const p of spendBreakdown.topProjects) {
+                lines.push(`${getProject(p.slug)?.displayName ?? p.slug}  ⟠${p.totalEth.toFixed(2)}`);
+            }
+        }
+        if (spendBreakdown?.topOutputs.length) {
+            if (lines.length) lines.push('─────────────');
+            lines.push('TOP OUTPUTS');
+            for (const o of spendBreakdown.topOutputs) {
+                lines.push(`${getProject(o.slug)?.displayName ?? o.slug} #${o.token_id}  ⟠${o.priceEth.toFixed(2)}`);
+            }
+        }
+        showToast('Volume Spent', 2700, undefined, null, lines.length ? lines : null);
+    };
+
     const { priceDayOpen, priceDayPos, priceDayRef, priceDayPopRef, openPriceDay } = usePriceDayPopover();
 
     /* Long-press the join date → it flips to the profile's platform user
@@ -1808,11 +1846,24 @@ function ProfilePageBodyInner({
                         <span className="stat-item stat-item-vol">
                             <span
                                 className="stat-icon-eth"
-                                {...iconToastProps('Volume Spent')}
+                                role="button"
+                                tabIndex={0}
+                                title="Volume Spent"
+                                onClick={openVolumeSpentToast}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openVolumeSpentToast(); } }}
                             >
                                 ⟠&#xFE0E;
                             </span>{' '}
-                            <span className="stat-val stat-val-vol" {...iconToastProps('Volume Spent')}>{formatEth(volumeSpent)}</span>
+                            <span
+                                className="stat-val stat-val-vol"
+                                role="button"
+                                tabIndex={0}
+                                title="Volume Spent"
+                                onClick={openVolumeSpentToast}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openVolumeSpentToast(); } }}
+                            >
+                                {formatEth(volumeSpent)}
+                            </span>
                         </span>
                         <span className="stat-item stat-item-owners">
                             {/* \u263B \u2014 THE social mark (GLYPHS \u00A712h) wears the followers
@@ -2383,6 +2434,7 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                             onSort={onMintSort}
                             applySort={applyMintSort}
                             facets={ARTIST_SHOWCASE_FACETS}
+                            hidePills={['PriceDay']}
                             compact={showcaseView === 'regular'}
                             leadPills={[
                                 { key: 'created', label: 'Created', count: enrichedArtistProjects.length, active: showcaseView === 'created', onClick: () => setShowcaseView('created') },
