@@ -34,4 +34,4 @@ Every Formula redraws itself on every page load — it's a living thing, not a s
 ## Further reading
 
 - [The App — Identity & Profiles](/docs/app/identity-and-profiles) — profile tags, @name customization, and the rest of your identity layer
-- [Colorpedia](/docs/colorpedia) — PD's other book of computed reads, for colour instead of glyphs
+- [Colorpedia](/docs/colorpedia) — PD's other book of computed reads, for color instead of glyphs

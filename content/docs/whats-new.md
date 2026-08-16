@@ -14,7 +14,7 @@ The recent additions, newest first — the highlights reel, not the full ledger.
 
 - **[Fair Draw](/docs/fair-draw/overview) is complete** — contested drops settle by a provably fair draw with a **public transcript page** whose verifier replays the whole draw in your own browser against the on-chain anchor. One tap, two endings, nothing to game.
 - **The contract suite took a full-stack security pass** — including a dedicated attestation key for keychain luck and receive-proof wallet rotation. The [contract pages](/docs/contracts/overview) carry every detail.
-- **[Colorpedia](/docs/colorpedia)** — the whole book on any colour: exact math, real names, real history, honest nearest-neighbour matches. On every Project's Colorway tile, and in [the Stone](/docs/command-stone/abilities) (`color cinnabar`, or just paste a hex).
+- **[Colorpedia](/docs/colorpedia)** — the whole book on any color: exact math, real names, real history, honest nearest-neighbour matches. On every Project's Colorway tile, and in [the Stone](/docs/command-stone/abilities) (`color cinnabar`, or just paste a hex).
 - **Sticker arrangements now live on your account** — your composed profile look follows you across devices like everything else, and every arrangement always fits the screen.
 - **Achievements went quiet on purpose** — no toasts, no pushes; one rolled inbox row and your grid. ([Achievements](/docs/app/achievements))
 - **Rarity joined the sort pills** — #ID and $PRICE each cycle their own directions and then rarity's, marked ❖.
@@ -26,10 +26,10 @@ The recent additions, newest first — the highlights reel, not the full ledger.
 - **[The Exchange](/docs/exchange)** — head-to-head trading, pieces for pieces with an optional sweetener. No fee, ever.
 - **[The PriceOS Suite](/docs/suite)** — calendar, tasks, workflows, money desk, contacts, notes, and a calm room, one workspace.
 - **[The Command Stone](/docs/command-stone)** — triple-tap anywhere: find, ask, compute, etch, cast, summon.
-- **[Factions](/docs/factions)** — the colour war: oaths, the Marginalia, sieges, and a Book that never resets.
+- **[Factions](/docs/factions)** — the color war: oaths, the Marginalia, sieges, and a Book that never resets.
 - **[Cartography](/docs/cartography)** and **[the Rewind](/docs/rewind)** — the platform as a living map, and the whole OS scrubbed back to any past day.
 - **[The Dispatch](/docs/dispatch)** — the daily paper, printed from the ledger, archived forever — plus its email Digest three times a month.
-- **[The Fingerprint](/docs/fingerprint)** — every artwork measured from its actual pixels: colour, light, composition, and the four taste axes.
+- **[The Fingerprint](/docs/fingerprint)** — every artwork measured from its actual pixels: color, light, composition, and the four taste axes.
 - **[The Gnomes](/docs/gnomes/overview)** — every Project's keeper, and the platform's real-fake NFT collection: genuinely scarce, genuinely tradable, deliberately never on a chain.
 - **[PDMCP](/docs/mcp)** — the public MCP server: any AI agent reads PD as live tools, no key, read-only.
 - **[The Sticker Channel](/docs/stickers/the-sticker-channel)** — a 22-second episode a day, 365 a year, above the shelf.
