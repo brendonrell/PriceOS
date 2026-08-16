@@ -23,7 +23,7 @@ function createProject(
     uint256 libraryId,      // a blessed on-chain library, or none
     bytes[] calldata scriptChunks,  // your generative script, stored on-chain
     string calldata description,
-    string calldata colorway        // your signature colour (six hex chars), or empty
+    string calldata colorway        // your signature color (six hex chars), or empty
 ) external returns (address project);
 ```
 
