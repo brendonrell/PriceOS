@@ -175,7 +175,7 @@ A mood is one castable word that sets the whole room: colorway, ambient light, a
 | Type | Get |
 |---|---|
 | `cozy` · `cozy mood` · `mood` | The haze rolls in, the ambient light comes on, the DJ plays from your shelf |
-| `rave` · `hype` | Hot colour, ambient light, the DJ — loud on purpose |
+| `rave` · `hype` | Hot color, ambient light, the DJ — loud on purpose |
 | `monk` · `focus` | Everything off, quiet: clean light page, no ambience, music stops |
 | `midnight` | Dark mode plus the dim wash; whatever is playing keeps playing |
 | `golden` · `golden hour` | Sunset orange, ambient light, the DJ |
@@ -216,19 +216,19 @@ Ask twice and you'll get it told a different way — the Stone doesn't recite.
 | `artcoins` | The whole artcoin family dealt as one tappable hand — tap any coin for its live card |
 | `gnomes` · `keychains` · `stickers` | The manual, opened straight to that feature's own pages |
 
-## Read a colour
+## Read a color
 
-[Colorpedia](/docs/colorpedia), in the Stone's hand. Every number on the card is computed exactly from the colour itself; every name and every piece of history comes from a fixed dictionary baked into the app, so nothing is invented while you're reading it. When a colour isn't in the book the card names the nearest one it *is*, with the distance.
+[Colorpedia](/docs/colorpedia), in the Stone's hand. Every number on the card is computed exactly from the color itself; every name and every piece of history comes from a fixed dictionary baked into the app, so nothing is invented while you're reading it. When a color isn't in the book the card names the nearest one it *is*, with the distance.
 
 | Type | Get |
 |---|---|
-| `color cinnabar` · `colour tyrian purple` | The colour card: hex, RGB, CMYK, HSL, the family/value/chroma/temperature read, the name and its history |
+| `color cinnabar` · `colour tyrian purple` | The color card: hex, RGB, CMYK, HSL, the family/value/chroma/temperature read, the name and its history |
 | `#e8ff47` · `e8ff47` | A bare hex opens the same card |
 | `rgb(255,0,0)` · `cmyk(0,100,100,0)` · `hsl(0,100%,50%)` | Any tagged format resolves and opens |
 
-The Stone's card carries two things the modal doesn't: **which Projects wear that colour**, and **the real minted pieces across every Project that read as it** — both tap straight through to the work.
+The Stone's card carries two things the modal doesn't: **which Projects wear that color**, and **the real minted pieces across every Project that read as it** — both tap straight through to the work.
 
-A bare colour word on its own (`red`, `blue`) stays a search — it's as likely to be a name or a Project as a request for a swatch. And `stonecolor: cinnabar` is a different command: that repaints the Stone itself.
+A bare color word on its own (`red`, `blue`) stays a search — it's as likely to be a name or a Project as a request for a swatch. And `stonecolor: cinnabar` is a different command: that repaints the Stone itself.
 
 ## The fun bench
 
