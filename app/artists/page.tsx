@@ -1,10 +1,15 @@
-// /artists — the artists directory. Lists every WHITELISTED Artist (the
-// allowlist table is the sim stand-in for the on-chain whitelist — a wallet
-// absent from it simply isn't on this page), with live status and links to
-// their profile and Projects:
+// /artists — the artists directory. Lists every WHITELISTED Artist who has
+// deployed at least one Project (the allowlist table is the sim stand-in
+// for the on-chain whitelist — a wallet absent from it simply isn't on this
+// page), with live status and links to their profile and Projects:
 //
 //   ☼  active        (whitelisted, mintable now)
 //   ☽  in cooldown   (60-day cooldown, fires at UPLOAD — core PD spec)
+//
+// Whitelisting is stealth (Brendon 2026-08-16): a wallet added to the
+// allowlist with zero Projects stays invisible everywhere public, this
+// directory included, until their first deployment. See the Artist glossary
+// entry — the earned status requires both whitelist AND ≥1 deployed Project.
 //
 // Projects still come from the registry (frontend-canonical); the allowlist
 // + cooldown signal come from the DB, so this page renders per-request.
@@ -24,12 +29,11 @@ export const metadata: Metadata = {
 const VS15 = '︎';
 
 export default async function ArtistsPage() {
-  // Whitelist first — an artist with zero Projects still belongs here.
-  let artists: AllowlistedArtist[] = [];
+  let allowlisted: AllowlistedArtist[] = [];
   try {
-    artists = await getAllowlistedArtists();
+    allowlisted = await getAllowlistedArtists();
   } catch {
-    artists = [];
+    allowlisted = [];
   }
 
   // Group registry Projects by artist handle for the per-row project links.
@@ -39,6 +43,13 @@ export default async function ArtistsPage() {
     list.push({ slug: p.slug, displayName: p.displayName, outputs: p.outputs });
     byArtist.set(p.artistHandle.toLowerCase(), list);
   }
+
+  // Stealth whitelisting — a whitelisted wallet with zero deployed Projects
+  // doesn't belong on this page yet. Filtered here rather than in the
+  // allowlist helper, since /artists is the only public directory reading it.
+  const artists = allowlisted.filter(
+    (a) => a.handle !== null && (byArtist.get(a.handle.toLowerCase())?.length ?? 0) > 0
+  );
 
   return (
     <section className="artists-page" aria-label="Artists">
