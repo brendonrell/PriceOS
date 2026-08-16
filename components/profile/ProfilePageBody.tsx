@@ -318,7 +318,7 @@ function ProfilePageBodyInner({
         profileTags: isOwnProfile ? myTags : (user.profile_tags ?? []),
         grantedTags: user.granted_tags ?? [],
         userNumber: user.user_number ?? null,
-        isArtist: !!artistStatus,
+        isArtist: !!artistStatus && projectsByArtist(user.handle ?? handle).length > 0,
         createdAt: user.created_at,
         address: user.address,
         handle: user.handle ?? handle,
@@ -1675,7 +1675,7 @@ function ProfilePageBodyInner({
                                     the identity line right after the address, in
                                     Courier at the row's size and the address's own
                                     colour + opacity (Brendon, 2026-06-16). */}
-                                {artistStatus && (
+                                {artistStatus && artistProjects.length > 0 && (
                                     <span className="id-row-artist" aria-label="Official PD Artist (whitelisted)" title="✺︎ Official PD Artist — whitelisted">{'✺︎'}</span>
                                 )}
                                 <span
