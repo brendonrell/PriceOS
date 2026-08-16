@@ -53,7 +53,7 @@ Discovery on PD is built around one conviction: the market's activity, read well
 
 ## The home page
 
-The platform's front door, wearing the daily Mood Ring colour:
+The platform's front door, wearing the daily Mood Ring color:
 
 - **Now Minting** — the carousel of Projects currently open, with live supply.
 - **The news carousel** — what the platform wants you to see today.

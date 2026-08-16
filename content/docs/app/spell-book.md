@@ -38,7 +38,7 @@ Spells are per-user and presentational — nothing here changes your data or any
 
 - **Celestial Tracker ♃** — every Output's astrological **big three** appears as a silent glyph run on card edges and Output titles: sun sign · the TRUE mint-moon disc (its shade is the moon's real illumination the night the piece was minted) · rising sign. Computed by the platform's real natal engine from each piece's mint moment; hold on the glyphs for the reading. No words render — the order is the label.
 - **Stargazing ⍟** — the celestial backdrop: the platform's astrological substrate comes forward and the room turns night-sky.
-- **Aura ⦿** — every piece wears a breathing halo sampled from its **own** colours, with rarity scaling the glow's reach. The grid becomes a field of presences.
+- **Aura ⦿** — every piece wears a breathing halo sampled from its **own** colors, with rarity scaling the glow's reach. The grid becomes a field of presences.
 - **Fog** — artworks arrive fogged and reveal as you reach them; drifting wisps replace certainty. The pill's own label wears the fog.
 - **Degen ⚔** — the anti-lens: **the art is deliberately absent.** Every tile becomes a data slab — #id, ❖ rarity score and edition rank, primary trait, Fate, ask — and the sort snaps to price. Shop like a terminal; the art waits at the end.
 - **Price Ghost ᗝ** — the price layer goes spectral: numbers haunt the interface instead of leading it.

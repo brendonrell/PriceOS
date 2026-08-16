@@ -1,6 +1,6 @@
 ---
 title: "The App — Projects & Minting"
-description: "The Project page: minting from the UI, live presence, traits and the Genome, grid sorts and grouping, project milestones, True Names, and per-Project colour."
+description: "The Project page: minting from the UI, live presence, traits and the Genome, grid sorts and grouping, project milestones, True Names, and per-Project color."
 category: "app"
 keywords: ["project page", "minting", "genome", "milestones", "true name", "gnome"]
 last_updated: "2026-08-05"
@@ -8,7 +8,7 @@ last_updated: "2026-08-05"
 
 # The App — Projects & Minting
 
-Every Project on PD gets a page that is part gallery, part market floor, part observatory. It lives at `/art/{slug}`, wears the artist's own colour, and carries every tool the platform has for reading one body of work.
+Every Project on PD gets a page that is part gallery, part market floor, part observatory. It lives at `/art/{slug}`, wears the artist's own color, and carries every tool the platform has for reading one body of work.
 
 **How:** Tap any project tile anywhere — Project pages live at /art/{slug}.
 
@@ -57,7 +57,7 @@ Every Project on PD gets a page that is part gallery, part market floor, part ob
 </g>
 </svg>
 
-- **①&#xFE0E; The hero** — the Project in its artist's own colour; tap the ⌂ owners count and the ranked OWNERS list opens.
+- **①&#xFE0E; The hero** — the Project in its artist's own color; tap the ⌂ owners count and the ranked OWNERS list opens.
 - **②&#xFE0E; The mint button** — live progress fills inside the control; **long-press it** and the Mint Room blooms: crowd count, shared supply bar, reaction sparks, the soundtrack.
 - **③&#xFE0E; The sort row** — each pill cycles its directions; the ⁘ toggle folds the grid into groups (long-press it for the full dimension menu).
 - **④&#xFE0E; The grid** — every Output; hover rows carry the action glyphs.
@@ -79,7 +79,7 @@ While a Project is minting, its page carries the mint button. The button itself 
 
 The Project's Outputs, in a grid built for long sessions:
 
-- **Sorts** with a cycling **grouping modifier** (⁘) — fold the grid into collapsible groups by artist ✺, project ⬚, owner ⌂, dominant colour ◉, rarity ❖, and a deep cycle of stranger dimensions (Fate, temperature, moon phase, faction, numerology, and more — the full list is in [Outputs](/docs/app/outputs)).
+- **Sorts** with a cycling **grouping modifier** (⁘) — fold the grid into collapsible groups by artist ✺, project ⬚, owner ⌂, dominant color ◉, rarity ❖, and a deep cycle of stranger dimensions (Fate, temperature, moon phase, faction, numerology, and more — the full list is in [Outputs](/docs/app/outputs)).
 - **Fog** — a reveal mode that fades Outputs into view as you scroll.
 - **Multi-select** (❐ → ▣) for acting on many Outputs at once.
 - **Stored previews everywhere, live render on the artwork page** — grids draw each Output's rendered PNG preview for speed; opening an Output renders the real script. See [Outputs](/docs/app/outputs).
@@ -95,7 +95,7 @@ The Project's Outputs, in a grid built for long sessions:
 
 ## Project identity
 
-- **The artist's colour** — each Project paints the app in its own colorway while you're on it. The ◉ Colorway tile on Attributes opens [Colorpedia](/docs/colorpedia): that colour's name, every format, its history, and its harmonies.
+- **The artist's color** — each Project paints the app in its own colorway while you're on it. The ◉ Colorway tile on Attributes opens [Colorpedia](/docs/colorpedia): that color's name, every format, its history, and its harmonies.
 - **The True Name** — every Project receives a permanent, unique 4-letter name in uppercase Glagolitic (Kiki's is `ⰅⰕⰭⰧ`), the platform's golem-mythos signature, shown in the Project's social panel.
 - **Milestones** — lifecycle events the whole platform celebrates in the home feed: Uploaded ✧, Graduated ⟢⟢, First Blood †, Lucky 22 ♧, Century Club Ⅽ, Halo ⬭ (777), Per Mille ‰ (1,000), Archetype ✻, Hi-Def ⬢, and Ascension ▲ at sell-out.
 

@@ -20,7 +20,7 @@ Grids and cards across the app draw each Output's stored PNG preview for speed; 
 
 **Long-press the artwork** on its page and the Darkroom opens: an inspection workspace where the art is the interface and the chrome all but disappears. It renders the piece live at full resolution — never a stored image — with pixel-level zoom, so you can go right into the grain of the work.
 
-Alongside it, the piece's **real palette** as tappable swatches, sampled from the render itself rather than declared by anyone, and an optional **INVERT** mode that flips the whole piece to its negative — the printer's trick for seeing composition and value without the colour arguing. INVERT is off until you tap it. The × returns you to where you came from.
+Alongside it, the piece's **real palette** as tappable swatches, sampled from the render itself rather than declared by anyone, and an optional **INVERT** mode that flips the whole piece to its negative — the printer's trick for seeing composition and value without the color arguing. INVERT is off until you tap it. The × returns you to where you came from.
 
 ## Attributes & rarity
 
@@ -95,11 +95,11 @@ around in.
 
 ## Spell-aware surfaces
 
-Several [Spell Book](/docs/app/spell-book) lenses live their fullest life on the Output page. With **Celestial Tracker ♃** on, the piece's title wears its birth sky — sun sign, true mint-moon disc, rising sign, in that order. **Tribunal ⚖** adds the full case file to +More: custody with tenures, the money, the parties, findings of fact, and a ruling stamp. **Degen ⚔** replaces the art with the piece's data slab entirely. And **Aura ⦿** halos the work in its own sampled colours.
+Several [Spell Book](/docs/app/spell-book) lenses live their fullest life on the Output page. With **Celestial Tracker ♃** on, the piece's title wears its birth sky — sun sign, true mint-moon disc, rising sign, in that order. **Tribunal ⚖** adds the full case file to +More: custody with tenures, the money, the parties, findings of fact, and a ruling stamp. **Degen ⚔** replaces the art with the piece's data slab entirely. And **Aura ⦿** halos the work in its own sampled colors.
 
 ## Sorting & grouping the gallery
 
-Every gallery sort is one tap — each pill cycles its directions — and a standalone **grouping toggle** (⁘ at rest) leads the sort row: tap it to fold the grid into collapsible groups. The identity dimensions come first — **artist ✺, project ⬚, owner ⌂, dominant colour ◉** and their two-level combos, plus **rarity ❖** — and the cycle runs deep from there: **listed ✹, Fate ䷲, temperature °, light ◑, mood ~, orientation ▭** (read from each artwork's stored visual fingerprint), **moon phase ○, zodiac ⍟, born-on ▦** (from each piece's real mint sky), **faction ⚐** (whose flag holds the pieces), and **numerology #** (The First, Palindromes, Primes, Round Numbers, Sevens). No dimension fakes a value — a piece the data can't place lands in an honest tail bucket that always sorts last. The active sort becomes a shareable link, grids remember their grouping per page, and up to three saved **grid presets** restore a whole view — layout, sort, and grouping — in one tap.
+Every gallery sort is one tap — each pill cycles its directions — and a standalone **grouping toggle** (⁘ at rest) leads the sort row: tap it to fold the grid into collapsible groups. The identity dimensions come first — **artist ✺, project ⬚, owner ⌂, dominant color ◉** and their two-level combos, plus **rarity ❖** — and the cycle runs deep from there: **listed ✹, Fate ䷲, temperature °, light ◑, mood ~, orientation ▭** (read from each artwork's stored visual fingerprint), **moon phase ○, zodiac ⍟, born-on ▦** (from each piece's real mint sky), **faction ⚐** (whose flag holds the pieces), and **numerology #** (The First, Palindromes, Primes, Round Numbers, Sevens). No dimension fakes a value — a piece the data can't place lands in an honest tail bucket that always sorts last. The active sort becomes a shareable link, grids remember their grouping per page, and up to three saved **grid presets** restore a whole view — layout, sort, and grouping — in one tap.
 
 ## The ASCII backup
 

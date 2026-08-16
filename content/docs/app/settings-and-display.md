@@ -111,7 +111,7 @@ MY PD is the settings surface — but on PriceOS, display is a first-class featu
 What each numbered part does, tap by tap:
 
 - **①&#xFE0E; The MY PD header** — triple-tap it and the panel flips to [the Spell Book](/docs/app/spell-book); triple-tap the SPELL BOOK header to flip back.
-- **②&#xFE0E; The colorway picker** — one tap paints the whole app: ◩ Custom (per-page colours) · ◻ Light · ◼ Dark · ▨ Orange · ⁂ Hash Synesthesia · B Blueberry · R Cherry. Haze Mode hides behind this row for those who find it.
+- **②&#xFE0E; The colorway picker** — one tap paints the whole app: ◩ Custom (per-page colors) · ◻ Light · ◼ Dark · ▨ Orange · ⁂ Hash Synesthesia · B Blueberry · R Cherry. Haze Mode hides behind this row for those who find it.
 - **③&#xFE0E; Display row one — the big switches** — PL Pure Light · PD Pure Dark · ‰ Price Logo · ○ Anon · ⛶ Zen · ⊞ Sticker Mode · ☼ Ambient Strip. Each pill toasts its new state as it flips.
 - **④&#xFE0E; Display row two — the instruments** — z Zero Context · ◎ Price Lens · ⛆ Sentiment Weather · ⟁ Cartel · ⍢ ASCII-ID · ⇠ Back Button · ⏥ Menu Tape · ⍖ Auto-Scroll.
 - **⑤&#xFE0E; Setup Code** — your whole configuration as one shareable string; ⧉ copies it, pasting one and pressing Enter wears it.
@@ -127,17 +127,17 @@ The colorway picker paints the entire app through one variable system:
 
 | Pill | Colorway |
 | --- | --- |
-| ◩ | Custom — the per-page default: home wears the daily Mood Ring, Projects their artist's colour, profiles their owner's |
+| ◩ | Custom — the per-page default: home wears the daily Mood Ring, Projects their artist's color, profiles their owner's |
 | ◻ | Light Mode |
 | ◼ | Dark Mode |
 | ▨ | Orange Mode |
-| ⁂ | Hash Synesthesia — colour driven by chain data |
+| ⁂ | Hash Synesthesia — color driven by chain data |
 | B | Blueberry Mode |
 | R | Cherry Mode |
 
-A hidden **Haze Mode** lives behind the picker for the collectors who find it: your own hex, with animated variations (tint, drift, pulse, chromatic) and a dropper (◉) that samples any page's live colour. An explicit pick wins on every page; the Custom default keeps the per-page colours. These docs carry the same picker and default to Dark.
+A hidden **Haze Mode** lives behind the picker for the collectors who find it: your own hex, with animated variations (tint, drift, pulse, chromatic) and a dropper (◉) that samples any page's live color. An explicit pick wins on every page; the Custom default keeps the per-page colors. These docs carry the same picker and default to Dark.
 
-Beside it, **Profile Colorway** sets the colour *your* profile paints for every visitor — your page, your ink.
+Beside it, **Profile Colorway** sets the color *your* profile paints for every visitor — your page, your ink.
 
 ## Display modes — the two pill rows
 
@@ -185,7 +185,7 @@ With Sentiment Weather on, the interface carries a single mark for how the room 
 | ⛇ | Strong Bear | The freeze |
 | ☈ | Capitulation | The storm. Needs an extreme reading **and** real volume behind it — a quiet drift never reads as a crash |
 
-Every glyph in the ladder is drawn as text, never as a colour emoji, so the weather sits in the interface at the same weight as everything else PD draws.
+Every glyph in the ladder is drawn as text, never as a color emoji, so the weather sits in the interface at the same weight as everything else PD draws.
 
 ## The Showcase pill
 

@@ -55,7 +55,7 @@ Navigation, global search, your PriceSprite, and the connect surface. It fades w
 Deliberately under-used real estate, currently three rows:
 
 - **System row** — the PriceOS version (tap for the changelog), connection status, live gas in gwei, and the current Ethereum block number.
-- **Easter-egg row** — [the Dispatch](/docs/dispatch) (❡), the **Mood Ring** (⌬), today's platform-wide generative colour, and **Today's Stars** (☉ ☽ ↑), the natal sky over Montreal at today's UTC midnight; every Output minted today is born under it.
+- **Easter-egg row** — [the Dispatch](/docs/dispatch) (❡), the **Mood Ring** (⌬), today's platform-wide generative color, and **Today's Stars** (☉ ☽ ↑), the natal sky over Montreal at today's UTC midnight; every Output minted today is born under it.
 - **Links row** — About, Discord, these Docs, Support, Studio.
 
 ## The installable app
@@ -64,7 +64,7 @@ PriceOS is a PWA: installable to the home screen on iOS and Android, with an off
 
 ## Colorways
 
-The whole app is painted through one variable system. Defaults are per-page — home wears the daily Mood Ring, Projects wear their artist's colour, profiles wear their owner's — and an explicit pick in [settings](/docs/app/settings-and-display) (Light, Dark, Orange, Blueberry, Cherry, Hash Synesthesia, Haze, or a fully custom colour) wins everywhere, painted before first frame so there is never a flash. These docs default to Dark and carry the same picker.
+The whole app is painted through one variable system. Defaults are per-page — home wears the daily Mood Ring, Projects wear their artist's color, profiles wear their owner's — and an explicit pick in [settings](/docs/app/settings-and-display) (Light, Dark, Orange, Blueberry, Cherry, Hash Synesthesia, Haze, or a fully custom color) wins everywhere, painted before first frame so there is never a flash. These docs default to Dark and carry the same picker.
 
 ## The Command Stone ⌘
 
