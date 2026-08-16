@@ -172,6 +172,10 @@ const NAV_MANIFEST: { title: string; slugs: string[] }[] = [
         slugs: ['fingerprint'],
     },
     {
+        title: 'Platform Gen Art',
+        slugs: ['platform-gen-art'],
+    },
+    {
         title: 'The Gnomes',
         slugs: [
             'gnomes/overview',

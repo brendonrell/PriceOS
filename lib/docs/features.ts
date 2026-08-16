@@ -340,6 +340,7 @@ export const ATLAS: AtlasFeature[] = [
     F(262, 'Colorpedia', 'OS Tools', '◉'),
     F(263, 'Golf Score · The Clubhouse', 'Project Page', '⛳'),
     F(264, 'Projects Pro', 'Home / Discovery', '⬚'),
+    F(265, 'Formula', 'Curation, Identity & Chrome'),
 ];
 
 export function atlasId(n: number): string {
