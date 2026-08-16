@@ -135,6 +135,7 @@ export default function HomeProjectFacetBar({
     facets,
     leadPills,
     compact = false,
+    hidePills,
 }: {
     projects: EnrichedProject[];
     sortKey: HomeSortKey;
@@ -149,6 +150,10 @@ export default function HomeProjectFacetBar({
     facets?: readonly string[];
     /** View-toggle pills rendered before the facet pills (Created · Top 6). */
     leadPills?: FacetLeadPill[];
+    /** Facets to keep in the filter plumbing (value pools, activeFilters, etc.)
+        but NOT render a pill for — pure display suppression, no behavior change
+        (Brendon, 2026-08-16: PriceDay hidden from the artist Showcase row only). */
+    hidePills?: readonly string[];
     /** Strip everything but the lead pills + colorway squares — used by the
         Top 6 grid view, where facet filtering / sorting don't apply. */
     compact?: boolean;
@@ -235,7 +240,7 @@ export default function HomeProjectFacetBar({
         return m;
     }, [projects, facetList]);
 
-    const liveFacets = facetList.filter((f) => facetValues.has(f));
+    const liveFacets = facetList.filter((f) => facetValues.has(f) && !hidePills?.includes(f));
     const openValues = activeCategory && facetValues.get(activeCategory);
 
     const setColorwayWithToast = (key: ColorwayKey) => {
