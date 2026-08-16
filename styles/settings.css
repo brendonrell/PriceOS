@@ -374,6 +374,13 @@
 }
 .copy-hex-btn:hover { opacity: 1; }
 
+/* Profile Tags door — swapped ahead of the showcase glyph (Brendon,
+   2026-08-16) and bumped one size larger than the base copy-hex-btn (16px). */
+.profile-tags-door-btn {
+    font-size: 17px;
+    margin-left: 6px;
+}
+
 /* Haze variation cycle icon (≋ ≊ ≅ ≃ ≂) — bare, sits right of ⧉.
    Same pattern as user-showcase-toggle-btn. Mobile gets +1px. */
 .haze-variation-btn {
