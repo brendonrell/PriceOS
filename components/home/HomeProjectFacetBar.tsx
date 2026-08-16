@@ -488,15 +488,32 @@ export default function HomeProjectFacetBar({
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleSocial(); } }}
                     >
                         {/* ☻ — the collector/user smiley as the social mark
-                            (Brendon, 2026-07-26). Glyph only, no word — the row
-                            has no room; same Courier icon treatment as the ◷
-                            date sort. On New Users, wears a "+" mod glued
-                            directly onto the glyph in ONE label — copy/paste of
-                            the $PRICE technique (single sort-lbl span, no
-                            separate positioned element), not a second span
-                            (Brendon, 2026-08-15 revision). */}
-                        <span className="sort-lbl sort-lbl-recent">{sortKey === 'newusers' ? '+☻' : '☻'}&#xFE0E;</span>
-                        <span className="sort-arrow">{arrow('social') || arrow('newusers')}</span>
+                            (Brendon, 2026-07-26). On New Users, the "+" is a
+                            dedicated span in .sort-arrow — the exact same
+                            technique (same className family, same inline
+                            style values) as the ❖ rarity mark and the $ feed
+                            mark beside ID/PRICE/FEED's arrows, so it sits to
+                            the right the same way theirs does, instead of
+                            glued into the label text (Brendon, 2026-08-16 —
+                            "make the smiley face look the same"). */}
+                        <span className="sort-lbl sort-lbl-recent">{'☻'}&#xFE0E;</span>
+                        <span className="sort-arrow">
+                            {sortKey === 'newusers' && (
+                                <span
+                                    className="feed-sort-dollar sort-plus-mark"
+                                    style={{
+                                        fontFamily: "'Courier New', Courier, monospace",
+                                        fontSize: '17px',
+                                        marginRight: '2px',
+                                        position: 'relative',
+                                        top: '0px',
+                                    }}
+                                >
+                                    +
+                                </span>
+                            )}
+                            {arrow('social') || arrow('newusers')}
+                        </span>
                     </span>
                 </div>
                 )}
