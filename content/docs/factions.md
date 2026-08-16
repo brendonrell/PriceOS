@@ -1,6 +1,6 @@
 ---
 title: "Factions ⚐"
-description: "The colour war: your Sigil is who you are, your colour is who you fight for, and every artwork remembers both. Allegiance, the Marginalia, sieges, conquests, and the Book of Conquests — the full rules of PD's quiet war."
+description: "The color war: your Sigil is who you are, your color is who you fight for, and every artwork remembers both. Allegiance, the Marginalia, sieges, conquests, and the Book of Conquests — the full rules of PD's quiet war."
 category: "app"
 keywords: ["factions", "war", "marginalia", "oath", "siege", "conquest", "book of conquests", "corners", "banner", "grip", "relic", "crypt", "struck from the stone", "war banners"]
 last_updated: "2026-07-17"
@@ -8,21 +8,21 @@ last_updated: "2026-07-17"
 
 # Factions ⚐
 
-> *Your colour is who you fight for, and every artwork remembers every hand.*
+> *Your color is who you fight for, and every artwork remembers every hand.*
 
 There is a war on PD. Nobody announces it. There is no menu for it, no button
 that says PLAY. If you've never noticed it, that's by design — the platform
 works exactly the same without it, forever. But if you've ever picked a plain
-colour bubble as your profile logo and been told, quietly, that you just chose
+color bubble as your profile logo and been told, quietly, that you just chose
 a side — this page is the whole truth.
 
-**How:** Pick a blank colour bubble as your Profile Logo — that raises your flag.
+**How:** Pick a blank color bubble as your Profile Logo — that raises your flag.
 
-## Enlisting — the colour is the faction
+## Enlisting — the color is the faction
 
 Every profile can fly a **Profile Logo** — the speech-bubble mark in the
-corner, pickable in a whole ring of colours. Most of those logos are just
-style. The **blank colour bubbles are not**.
+corner, pickable in a whole ring of colors. Most of those logos are just
+style. The **blank color bubbles are not**.
 
 Picking a blank bubble is **raising a flag**. The moment you pick one, the
 toast tells you what you actually did:
@@ -31,10 +31,10 @@ toast tells you what you actually did:
 Profile Faction: GOLD
 ```
 
-That's the entire onboarding. The colour IS the faction. There are no faction
+That's the entire onboarding. The color IS the faction. There are no faction
 names in the app — not because they don't have names, but because **naming
 them is your job**. Factions name themselves in the community; the app only
-ever speaks in colour.
+ever speaks in color.
 
 The blank bubbles come in shade variants — a deep blue and a bright blue both
 fly BLUE. Same faction, different shade of the same jersey.
@@ -57,7 +57,7 @@ reveals it.
   profile, in the navbar next to your PriceSprite and PriceRank. Sprite and
   rank lead the name; the Sigil signs it.
 - **Your Sigil ring joins the carousel** — your mark in every faction
-  colour, right after the holo finishes. Raising a Sigil colour is raising
+  color, right after the holo finishes. Raising a Sigil color is raising
   that faction's flag, exactly like the blanks: the toast will tell you what
   you just swore.
 - **The art remembers it too.** Your hand in every margin upgrades from
@@ -72,7 +72,7 @@ reveals it.
   does not break your oath — your last flag stands and your time under it
   keeps accruing. You're just not flying it publicly, and all war surfaces
   quietly disappear while you're neutral.
-- **Only a different faction colour is defection.** Pick a rival colour and
+- **Only a different faction color is defection.** Pick a rival color and
   the toast says so: `Oath: BROKEN`. Defection is expensive by design:
   - **all your accrued time under the old flag resets to zero,**
   - your new flag **doesn't count for 30 days** (the cooldown),
@@ -100,7 +100,7 @@ When the border pops out, you're looking at:
   the stone** — removed from the visible margin and interred, permanently, in
   the piece's crypt. Being struck is its own kind of legend. Wear it.
 - **The four corners.** Enlisted viewers see the war layer: the corners of
-  the frame fly the colour of the faction that holds this ground. Corners
+  the frame fly the color of the faction that holds this ground. Corners
   fall **one at a time** as a faction's hold deepens. Sweep all four and the
   piece flies **one banner**.
 - The founding hand — slot 1, the minter — is the **Founder's Hand**,
@@ -118,7 +118,7 @@ The whole platform is the board. Every collection is territory.
 **The loop: ENLIST → HOLD → MARK → SIEGE → CONQUER → the Book remembers.**
 
 <svg viewBox="0 0 720 128" role="img" aria-labelledby="war-loop-title" style="width:100%;height:auto;display:block;margin:14px 0 0">
-<title id="war-loop-title">The war loop: enlist by raising a colour, hold to compound grip, every trade marks the margins, sieges open in public and take 72 hours, conquest flips the ground, and the Book of Conquests records it forever.</title>
+<title id="war-loop-title">The war loop: enlist by raising a color, hold to compound grip, every trade marks the margins, sieges open in public and take 72 hours, conquest flips the ground, and the Book of Conquests records it forever.</title>
 <g font-family="'Courier New', Courier, monospace" font-size="13" font-weight="bold">
 <rect x="10" y="24" width="96" height="44" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
 <text x="58" y="50" fill="currentColor" text-anchor="middle">ENLIST</text>
@@ -142,7 +142,7 @@ The whole platform is the board. Every collection is territory.
 <path d="M624 41 L 634 46 L 624 51 Z" fill="currentColor"/>
 <rect x="636" y="24" width="74" height="44" fill="var(--stat-bg)" stroke="currentColor" stroke-width="1.5"/>
 <text x="673" y="50" fill="currentColor" text-anchor="middle">≣</text>
-<text x="58" y="90" fill="currentColor" text-anchor="middle" font-weight="normal" font-size="12">raise a colour</text>
+<text x="58" y="90" fill="currentColor" text-anchor="middle" font-weight="normal" font-size="12">raise a color</text>
 <text x="180" y="90" fill="currentColor" text-anchor="middle" font-weight="normal" font-size="12">time × standing</text>
 <text x="298" y="90" fill="currentColor" text-anchor="middle" font-weight="normal" font-size="12">every trade signs</text>
 <text x="419" y="90" fill="currentColor" text-anchor="middle" font-weight="normal" font-size="12">public · 72h</text>
@@ -219,8 +219,8 @@ There are no classes and no points. Behaviour is the class:
 get a **WAR** control on the map — a layer toggle, **off by default**:
 
 - Held territories wear a thin coastline ring in the holding faction's
-  colour; a **live siege pulses** it.
-- Zoom to your own wallet and your empire's arcs fly your colour; territories
+  color; a **live siege pulses** it.
+- Zoom to your own wallet and your empire's arcs fly your color; territories
   carrying your ink glow faintly at the edge — your **Spread**.
 - Tap any territory for its card; with the layer on it also reads the ground:
   `HELD · GOLD`, `SIEGE · BLUE vs GOLD`.
@@ -237,7 +237,7 @@ inflate and can't be dumped. Money never buys the war either — nothing you
 can purchase moves grip, corners, marks, sieges, titles, or the Book, ever.
 
 The one place the war touches a price tag is **cosmetics**: the sticker
-store's **WAR BANNERS** sheet sells the flag of every colour, cheap, so the
+store's **WAR BANNERS** sheet sells the flag of every color, cheap, so the
 newly enlisted have something to wave. Stickers are jerseys, not weapons.
 
 ## The constitution (the anti-cheat, in plain terms)
@@ -255,7 +255,7 @@ newly enlisted have something to wave. Stickers are jerseys, not weapons.
 
 ## FAQ
 
-**I picked a colour bubble before this existed. Am I enlisted?**
+**I picked a color bubble before this existed. Am I enlisted?**
 Your flag counts from when your oath was recorded, not retroactively. Fly it
 and your time starts compounding.
 
@@ -266,7 +266,7 @@ flag.
 
 **How do I leave?**
 Fly a neutral logo. Your oath stands quietly, your war surfaces vanish, and
-nothing is lost. Defecting to another colour is the only thing that costs.
+nothing is lost. Defecting to another color is the only thing that costs.
 
 **Which faction is winning?**
 Read the Book. Ask the community. The app will never rank them for you — the

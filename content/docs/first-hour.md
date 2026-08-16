@@ -13,7 +13,7 @@ Everything on this page is free, and none of it touches the chain until the one 
 ## The collector's first hour
 
 1. **Connect and sign in.** Tap **Connect**, pick your wallet, sign the message it shows you — a signature, not a transaction; costs nothing. Your wallet is the whole account: no email, no password. ([Wallet Setup](/docs/for-collectors/wallet-setup))
-2. **Claim your @name and face.** First sign-in walks you through your handle, your **PriceSprite**, and your profile colour. The @name is how the whole platform knows you, permanently. ([Identity & Profiles](/docs/app/identity-and-profiles))
+2. **Claim your @name and face.** First sign-in walks you through your handle, your **PriceSprite**, and your profile color. The @name is how the whole platform knows you, permanently. ([Identity & Profiles](/docs/app/identity-and-profiles))
 3. **Install PD to your Home Screen.** Safari → share sheet → **Add to Home Screen**. This is the platform as it's meant to be lived in — full screen, its own app — and it's required for lock-screen pings on iPhone. ([The Shell](/docs/app/the-shell))
 4. **Turn your pings on.** Open the connect menu → MY PD → **MY PINGS**: cycle the ⇡ pill to **3D** (or COMBO) and allow when iOS asks. From this moment sales, offers, and wishlist hits reach your lock screen — the platform watches so you don't have to. ([Pings — Controls](/docs/pings/controls))
 5. **Walk Now Minting and star freely.** The home carousel is what's live right now. **★ star** pieces you like — it's a private, silent bookmark, so be generous with it. Star an **artist** or a **project** (long-press its title) and their moves start feeding your pings. ([Discovery](/docs/app/discovery))
