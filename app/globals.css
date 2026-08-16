@@ -14642,3 +14642,18 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     font-size: 14px;
     line-height: 1;
 }
+/* FORMULA trigger pill (Brendon, 2026-08-16) — lives in Row 2's tag row,
+   last before the all-tags paints. Wears the same Dot/Matrix ink as the
+   shelf pieces so it reads as "belongs to Formula" at a glance. */
+.pill.pill-l3.tag-pick.fx-trigger.active {
+    outline: 1px solid #E0E0E0;
+    outline-offset: -1px;
+}
+/* Preview group — the option buttons shown greyed/inert before the first
+   Formula exists, so the opened carousel isn't a single lonely button. */
+.fx-preview-group { display: contents; }
+.pill.pill-l3.fx-opt.fx-opt-preview {
+    opacity: 0.35;
+    pointer-events: none;
+    cursor: default;
+}
