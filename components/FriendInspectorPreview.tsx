@@ -5,10 +5,29 @@
  *
  * ⛔ REBUILT 2026-07-30 (Brendon: "I hate our friend inspector preview").
  * The old WIRE (a scrolling marquee of circle events) and MAP (a starfield
- * constellation) are GONE. Both were decoration: motion and shape that told
- * you nothing the rows underneath didn't already say. The three modes that
- * replace them each answer a question the ledger CANNOT, and each one is a
- * live control — tapping anything drives the list below it.
+ * constellation) are GONE. Six modes now, each answering a question the
+ * ledger CANNOT, each a live control — tapping anything drives the list
+ * below it.
+ *
+ *   30 DAYS — your circle's activity as a dense day grid, darker where more
+ *     moved, today at the end. Tap a day → the ledger narrows to who moved
+ *     that day. Days are viewer-LOCAL (§9). Default + first in the cycle.
+ *
+ *   STREAK — who in your circle has moved the most consecutive days inside
+ *     the same 30-day window, current streak leading, best-in-window as the
+ *     tiebreaker. Tap a row → jump to that person's ledger row. Shares the
+ *     30 Days fetch (useThirtyDayBuckets) — no second network round-trip.
+ *
+ *   SPEND — your circle ranked by ETH spent, same bar-and-count shape as
+ *     OVERLAP but against spend instead of shared projects. Tap a row →
+ *     jump to that person.
+ *
+ *   NEW — the ROSTER grid, with the most recently added followers/following
+ *     ringed so growth is visible at a glance. Recency is the follows API's
+ *     own created_at ordering (no new endpoint): graph.followers/following
+ *     already arrive newest-first, so the first non-mutual faces in the
+ *     merged list are the newest. Mutuals aren't orderable by this and stay
+ *     unringed here.
  *
  *   OVERLAP — every project YOU hold, with a bar of how much of your circle
  *     holds it too. The one read the row list can't give: what you're
@@ -19,15 +38,11 @@
  *     its owner's profile colorway, mutuals ringed. Turns a long scroll into
  *     one glance; tap a face to jump to that person's row and open them.
  *
- *   30 DAYS — your circle's activity as a dense day grid, darker where more
- *     moved, today at the end. Tap a day → the ledger narrows to who moved
- *     that day. Days are viewer-LOCAL (§9).
- *
  * Same nav as before (Brendon's instruction): the floating text chips, top
  * right, one pick persisted per device.
  *
- * Data: no new endpoints — the circle's own owned-projects reads and the
- * live feed, both already used by the Inspector.
+ * Data: no new endpoints — the circle's own owned-projects reads, the live
+ * feed, and circle-stats, all already used by the Inspector.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -40,9 +55,12 @@ import type { CircleStat } from '../app/api/social/circle-stats/route';
 const VS15 = '︎';
 
 const MODE_KEY = 'pd_fi_preview';
-type PreviewMode = 'overlap' | 'roster' | 'days';
+type PreviewMode = 'days' | 'streak' | 'spend' | 'newcircle' | 'overlap' | 'roster';
 const MODES: { key: PreviewMode; label: string }[] = [
     { key: 'days', label: '30 DAYS' },
+    { key: 'streak', label: 'STREAK' },
+    { key: 'spend', label: 'SPEND' },
+    { key: 'newcircle', label: 'NEW' },
     { key: 'overlap', label: 'OVERLAP' },
     { key: 'roster', label: 'ROSTER' },
 ];
@@ -63,7 +81,7 @@ export interface PreviewFocus { handles: string[]; label: string; glyph: string 
 function readMode(): PreviewMode {
     try {
         const saved = localStorage.getItem(MODE_KEY);
-        if (saved === 'roster' || saved === 'days' || saved === 'overlap') return saved;
+        if (saved === 'roster' || saved === 'days' || saved === 'overlap' || saved === 'streak' || saved === 'spend' || saved === 'newcircle') return saved;
     } catch { /* first visit */ }
     return 'days';
 }
@@ -101,11 +119,16 @@ export default function FriendInspectorPreview({
                     </button>
                 ))}
             </div>
+            {mode === 'days' && <ThirtyDays people={people} onFocus={onFocus} />}
+            {mode === 'streak' && <Streak people={people} onInspect={onInspect} />}
+            {mode === 'spend' && <Spend people={people} onInspect={onInspect} />}
+            {mode === 'newcircle' && (
+                <NewCircle people={people} inspected={inspected} onInspect={onInspect} myStat={myStat} myHandle={myHandle} />
+            )}
             {mode === 'overlap' && <Overlap people={people} mySlugs={mySlugs} onFocus={onFocus} />}
             {mode === 'roster' && (
                 <Roster people={people} inspected={inspected} onInspect={onInspect} myStat={myStat} myHandle={myHandle} />
             )}
-            {mode === 'days' && <ThirtyDays people={people} onFocus={onFocus} />}
         </div>
     );
 }
@@ -242,17 +265,19 @@ function Roster({
     );
 }
 
-/* ── THE 30 DAYS ─────────────────────────────────────────────────────────
-   One cell per day, oldest left, today right, inked by how much your circle
-   moved that day. Tap a day → the ledger narrows to who moved. Day buckets
-   are the VIEWER's local days (§9). ── */
+/* ── Shared: the last 30 days of circle activity, bucketed by viewer-local
+   day. ThirtyDays reads it for the grid; Streak reads the exact same
+   buckets to find consecutive-day runs — one fetch, two modes. ── */
 interface DayCell { key: string; label: string; count: number; handles: string[] }
 
-function ThirtyDays({ people, onFocus }: { people: PreviewPerson[]; onFocus: (f: PreviewFocus) => void }) {
+function useThirtyDayBuckets(people: PreviewPerson[], on: boolean) {
     const [days, setDays] = useState<DayCell[] | null>(null);
+    const done = useRef(false);
     const circle = useMemo(() => new Set(people.map((p) => p.handle)), [people]);
 
     useEffect(() => {
+        if (!on || done.current) return;
+        done.current = true;
         let alive = true;
         /* Local midnight of each of the last 30 days, oldest first. */
         const base: DayCell[] = [];
@@ -293,7 +318,17 @@ function ThirtyDays({ people, onFocus }: { people: PreviewPerson[]; onFocus: (f:
             })
             .catch(() => { if (alive) setDays(base); });
         return () => { alive = false; };
-    }, [circle]);
+    }, [on, circle]);
+
+    return days;
+}
+
+/* ── THE 30 DAYS ─────────────────────────────────────────────────────────
+   One cell per day, oldest left, today right, inked by how much your circle
+   moved that day. Tap a day → the ledger narrows to who moved. Day buckets
+   are the VIEWER's local days (§9). ── */
+function ThirtyDays({ people, onFocus }: { people: PreviewPerson[]; onFocus: (f: PreviewFocus) => void }) {
+    const days = useThirtyDayBuckets(people, true);
 
     if (days === null) return <div className="fi-pv-note fm-loading">Reading the last 30 days…</div>;
 
@@ -333,6 +368,166 @@ function ThirtyDays({ people, onFocus }: { people: PreviewPerson[]; onFocus: (f:
                 <span>{days[0]!.label}</span>
                 <span>TODAY</span>
             </div>
+        </div>
+    );
+}
+
+/* ── THE STREAK ──────────────────────────────────────────────────────────
+   Who's moved the most consecutive days inside the last 30, current streak
+   leading (a run still going beats a longer one that died). Ties break on
+   the best run anywhere in the window, then @name. Same row shape as
+   OVERLAP: sprite + name + bar (current streak, out of 30) + count. ── */
+function Streak({ people, onInspect }: { people: PreviewPerson[]; onInspect: (h: string) => void }) {
+    const days = useThirtyDayBuckets(people, true);
+
+    const rows = useMemo(() => {
+        if (!days) return null;
+        const active = new Map<string, boolean[]>();
+        for (const p of people) active.set(p.handle, new Array(days.length).fill(false));
+        days.forEach((d, i) => {
+            for (const h of d.handles) {
+                const arr = active.get(h);
+                if (arr) arr[i] = true;
+            }
+        });
+        return people
+            .map((p) => {
+                const arr = active.get(p.handle) ?? [];
+                let current = 0;
+                for (let i = arr.length - 1; i >= 0 && arr[i]; i--) current++;
+                let best = 0; let run = 0;
+                for (const v of arr) { run = v ? run + 1 : 0; if (run > best) best = run; }
+                return { handle: p.handle, current, best, stat: p.stat };
+            })
+            .filter((r) => r.best > 0)
+            .sort((a, b) => b.current - a.current || b.best - a.best || a.handle.localeCompare(b.handle));
+    }, [days, people]);
+
+    if (rows === null) return <div className="fi-pv-note fm-loading">Reading the last 30 days…</div>;
+    if (rows.length === 0) {
+        return <div className="fi-pv-note">A couple active days in a row from someone in your circle shows here.</div>;
+    }
+
+    return (
+        <div className="fi-overlap">
+            {rows.map((r) => (
+                <div
+                    key={r.handle}
+                    className="fi-ov-row live"
+                    role="button"
+                    tabIndex={0}
+                    title={r.best > r.current ? `@${r.handle} — ${r.current}-day streak (${r.best} best in the last 30)` : `@${r.handle} — ${r.current}-day streak`}
+                    onClick={() => onInspect(r.handle)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onInspect(r.handle); } }}
+                >
+                    <SpriteFace className="collected-sprite" face={spriteFaceFor(`user:${r.handle}`)} color={r.stat?.profileHex ?? undefined} />
+                    <span className="fi-ov-name">@{r.handle}</span>
+                    <span className="fi-ov-bar" aria-hidden="true">
+                        <span className="fi-ov-fill" style={{ width: `${Math.round((r.current / 30) * 100)}%` }} />
+                    </span>
+                    <span className="fi-ov-count">{r.current}<span className="fi-ov-of">d</span></span>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+/* ── THE SPEND ────────────────────────────────────────────────────────────
+   Your circle ranked by ETH spent, biggest first. Same row shape as
+   OVERLAP/STREAK: sprite + name + bar (share of the top spender) + the ETH
+   amount, same .toFixed(2) the dossier's own Spent tile uses. ── */
+function Spend({ people, onInspect }: { people: PreviewPerson[]; onInspect: (h: string) => void }) {
+    const rows = useMemo(() => people
+        .filter((p) => (p.stat?.spentEth ?? 0) > 0)
+        .sort((a, b) => (b.stat!.spentEth - a.stat!.spentEth) || a.handle.localeCompare(b.handle)),
+    [people]);
+
+    if (rows.length === 0) {
+        return <div className="fi-pv-note">Once someone in your circle spends ETH, they&apos;ll rank here.</div>;
+    }
+
+    const top = Math.max(...rows.map((p) => p.stat!.spentEth), 0.0001);
+
+    return (
+        <div className="fi-overlap">
+            {rows.map((p) => (
+                <div
+                    key={p.handle}
+                    className="fi-ov-row live"
+                    role="button"
+                    tabIndex={0}
+                    title={`@${p.handle} — ${p.stat!.spentEth.toFixed(2)} ETH spent`}
+                    onClick={() => onInspect(p.handle)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onInspect(p.handle); } }}
+                >
+                    <SpriteFace className="collected-sprite" face={spriteFaceFor(`user:${p.handle}`)} color={p.stat?.profileHex ?? undefined} />
+                    <span className="fi-ov-name">@{p.handle}</span>
+                    <span className="fi-ov-bar" aria-hidden="true">
+                        <span className="fi-ov-fill" style={{ width: `${Math.round((p.stat!.spentEth / top) * 100)}%` }} />
+                    </span>
+                    <span className="fi-ov-count">{p.stat!.spentEth.toFixed(2)}<span className="fi-ov-of"> ⟠</span></span>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+/* ── NEW TO CIRCLE ───────────────────────────────────────────────────────
+   The ROSTER grid, with the most recently added followers/following ringed.
+   graph.followers/following are queried newest-first (created_at desc, no
+   new endpoint) and merged as [...mutuals, ...followers, ...following] —
+   so the first non-mutual faces in `people` ARE the newest edges. Mutuals
+   have no recency signal here and stay unringed. ── */
+function NewCircle({
+    people, inspected, onInspect, myStat, myHandle,
+}: {
+    people: PreviewPerson[]; inspected: string | null; onInspect: (h: string) => void;
+    myStat: CircleStat | undefined; myHandle: string | null;
+}) {
+    const recent = useMemo(() => {
+        const set = new Set<string>();
+        for (const p of people) {
+            if (p.mutual) continue;
+            set.add(p.handle);
+            if (set.size >= 8) break;
+        }
+        return set;
+    }, [people]);
+
+    if (people.length === 0) {
+        return <div className="fi-pv-note">New follows show here, most recent first, once your circle grows.</div>;
+    }
+
+    return (
+        <div className="fi-roster">
+            {myHandle && (
+                <span className="fi-rost-cell fi-rost-me" title={`@${myHandle} — you`}>
+                    <SpriteFace
+                        className="collected-sprite"
+                        face={spriteFaceFor(`user:${myHandle}`)}
+                        color={myStat?.profileHex ?? undefined}
+                    />
+                    <span className="fi-rost-name">YOU</span>
+                </span>
+            )}
+            {people.map((p) => (
+                <span
+                    key={p.handle}
+                    className={`fi-rost-cell${recent.has(p.handle) ? ' recent' : ''}${inspected === p.handle ? ' on' : ''}`}
+                    role="button"
+                    tabIndex={0}
+                    title={`@${p.handle}${recent.has(p.handle) ? ' — recently added' : ''}`}
+                    onClick={() => onInspect(p.handle)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onInspect(p.handle); } }}
+                >
+                    <SpriteFace
+                        className="collected-sprite"
+                        face={spriteFaceFor(`user:${p.handle}`)}
+                        color={p.stat?.profileHex ?? undefined}
+                    />
+                    <span className="fi-rost-name">@{p.handle}</span>
+                </span>
+            ))}
         </div>
     );
 }
