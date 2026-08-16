@@ -96,17 +96,30 @@ export async function getUserProfileByHandle(
   if (followersRes.error) throw new Error(followersRes.error.message);
   if (followingRes.error) throw new Error(followingRes.error.message);
 
-  // Distinct projects owned + lifetime spend — best-effort (never fail the
-  // profile lookup over an aggregate query).
+  // Distinct projects owned + lifetime spend + project-follow edge — best-
+  // effort (never fail the profile lookup over an aggregate query). Project
+  // edges are keyed on ADDRESS, not @name: every project this wallet HOLDS
+  // follows them (counts toward follower_count) and every project they
+  // explicitly follow counts toward following_count — same rule as
+  // /api/user/[address] (Brendon 2026-08-16: profile counts must match).
   let ownedProjects = 0;
   let volumeSpent = 0;
+  let projectsFollowedCount = 0;
   try {
     const addr = (userRow.address ?? '').toLowerCase();
     if (addr) {
-      [ownedProjects, volumeSpent] = await Promise.all([
+      const [ownedRes, spendRes, projFollowRes] = await Promise.all([
         getUserOwnedProjectsCount(addr),
         getUserSpendEth(addr),
+        supabase
+          .from('project_follows')
+          .select('*', { count: 'exact', head: true })
+          .eq('follower_address', addr),
       ]);
+      ownedProjects = ownedRes;
+      volumeSpent = spendRes;
+      if (projFollowRes.error) throw new Error(projFollowRes.error.message);
+      projectsFollowedCount = projFollowRes.count ?? 0;
     }
   } catch { /* leave 0 */ }
 
@@ -134,8 +147,8 @@ export async function getUserProfileByHandle(
 
   return {
     ...userRow,
-    follower_count: followersRes.count ?? 0,
-    following_count: followingRes.count ?? 0,
+    follower_count: (followersRes.count ?? 0) + ownedProjects,
+    following_count: (followingRes.count ?? 0) + projectsFollowedCount,
     owned_projects: ownedProjects,
     volume_spent_eth: volumeSpent,
     deactivated,
