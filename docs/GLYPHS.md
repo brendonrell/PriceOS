@@ -601,16 +601,22 @@ sky at mint) + the proven lunarGlyph discs.
 > ⚔ (old Degen) are free again; WTBS moved to ☊ and KEEPS it. Do not
 > re-assign persona glyphs without Brendon's explicit word.
 
-## 12f-bis. Profile Tags door — ⌑ (2026-08-15, Brendon's pick)
+## 12f-bis. Profile Tags door — ⌑ (2026-08-15, Brendon's pick; reordered 2026-08-16)
 
 | Use | Glyph | Codepoint |
 |---|---|---|
-| Profile Tags door (Settings ▸ MY PD, beside the showcase glyph) | ⌑ | U+2311 SQUARE FOOT |
+| Profile Tags door (Settings ▸ MY PD, first of the pair) | ⌑ | U+2311 SQUARE FOOT |
 
 > A settings-panel entry point, NOT a persona-tag glyph (see §12f above,
 > which stays glyphless-by-default) — opens the same tag/colourway
 > customization row the @name long-press does, just from a more obvious
 > door. Grepped free repo-wide, raw + escaped, at pick time.
+>
+> **⛔ ORDER + SIZE (Brendon, 2026-08-16):** this glyph now sits FIRST in the
+> pair, right of the copy-hex button — the User Showcase glyph (§ above,
+> ⑆/⑇/⑈) moved to second. It also renders one size larger than the base
+> `.copy-hex-btn` (17px vs 16px), via its own `.profile-tags-door-btn` rule
+> in `styles/settings.css`. Do not re-swap without Brendon's word.
 
 ## 12g. The Nemesis — ☍ (2026-07-20 build)
 
@@ -786,6 +792,38 @@ no brow-curve edges, no mirrored squiggle flanks (faces are banned — a Sigil
 is never a Sprite), no cross/dagger strokes (martial reads are banned).
 Renders wherever a name renders: after the @name (tape · navbar · profile),
 the carousel Sigil ring, the corner-logo override, the Marginalia stamps.
+
+## 14. Platform gen art — Tabstract, Formula (2026-08-16)
+
+Everything on this platform that draws its OWN character art from a fixed
+glyph pantry, redrawn live rather than saved as a frozen string. Two live
+today; both are gen art, neither is the other — **never let their pools
+mix** (see the ⛔ in `lib/tags/formula.ts`).
+
+| Piece | Where | Owner | Redraws | Pantry |
+|---|---|---|---|---|
+| Tabstract | `lib/title/tabstract.ts` | Platform (the tab title) | Every page load | 6 sets (Phase Lines, Fiber Optic, Geomancer, Braille Tear, Vector Stream, Geometric Cryptography) |
+| Formula | `lib/tags/formula.ts` | Each user, worn as a profile tag | Every page load (roll arrives client-side post-mount) | 10 sets (Sediment, Shading, Rain, Circuitry, Orbit, Aperture, Halftone, Static, Ladder, Ogham) |
+
+> **Tabstract** picks one of its six sets at random per load and draws six
+> glyphs from it for the browser tab title (`${CONTEXT} ⋮ Price Discussion ⋮
+> ${tabstract}`) — platform-owned, not a user setting.
+>
+> **Formula** is user-owned generative art worn as a tag: numbered by shelf
+> position like Albums (never named), up to `MAX_FORMULAS` = 22. The owner
+> dials sets (multi-pick from the ten), length (4/6/8/10), weave
+> (Scatter/Alternate/Run/Mirror), and spacing from buttons in the picker row
+> — see `components/profile/ProfilePageBody.tsx`. Lives as a trigger pill in
+> Row 2 of the profile tag carousel (last pill before the all-tags paints),
+> which opens the Formula carousel row directly beneath it rather than
+> toggling like a normal tag (Brendon, 2026-08-16).
+>
+> Other platform gen-art touchpoints draw on the same "Tabstract-spirit"
+> (deterministic, seeded, redrawn rather than frozen) without sharing its
+> pool: the push-notification art in `lib/pings/pingart.ts`, and the digest
+> art in `lib/newsletter/digest.server.ts`. `@formula`, `@formulas`, and
+> `@tabstract` are reserved handles (`lib/reserved-handles.ts`) so no user
+> can squat the names.
 
 ---
 
