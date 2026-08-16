@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAnon, PUBLIC_USER_COLUMNS, type UserRow } from '@/lib/supabase';
+import { getUserOwnedProjectsCount } from '@/lib/profile/getUserHoldings';
 import { badRequest, notFound, serverError } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
@@ -58,20 +59,19 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
     // Project edges (Brendon 2026-06-14): every project you HOLD follows you
     // (so it counts among your followers — sell the bag and the count drops),
     // and every project you explicitly FOLLOW counts toward your following.
-    // Keyed on address, so these run regardless of @name claim.
-    const [heldRes, projFollowRes] = await Promise.all([
-      supabase.from('holders').select('project_id').eq('owner_address', address),
+    // Keyed on address, so these run regardless of @name claim. Uses the same
+    // getUserOwnedProjectsCount helper as the profile page and Friend
+    // Inspector (paged, excludes hidden test projects) so all three surfaces
+    // agree (Brendon 2026-08-16).
+    const [heldProjects, projFollowRes] = await Promise.all([
+      getUserOwnedProjectsCount(address),
       supabase
         .from('project_follows')
         .select('*', { count: 'exact', head: true })
         .eq('follower_address', address),
     ]);
-    if (heldRes.error) return serverError(heldRes.error.message);
     if (projFollowRes.error) return serverError(projFollowRes.error.message);
-    const heldProjects = new Set(
-      ((heldRes.data ?? []) as Array<{ project_id: string }>).map((r) => r.project_id)
-    );
-    follower_count += heldProjects.size;
+    follower_count += heldProjects;
     following_count += projFollowRes.count ?? 0;
 
     const response: UserProfileResponse = {
