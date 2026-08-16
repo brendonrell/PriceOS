@@ -74,22 +74,22 @@ Sheets are print runs. A sheet can carry a hard cap and **sell out** — once th
 
 | Sheet | Tag | What's inside |
 | --- | --- | --- |
-| **GENESIS** | MYTHIC | The PD logo across 28 colours — led by the Classic (Hothurt red, attention yellow) — plus the $PRICE wordmark in both canonical variants. The founding sheet. |
-| **PETEY** | UNCOMMON | The same logo rotated 90° counter-clockwise, which is what turns it into Petey the mascot. 24 colours, Classic first. |
+| **GENESIS** | MYTHIC | The PD logo across 28 colors — led by the Classic (Hothurt red, attention yellow) — plus the $PRICE wordmark in both canonical variants. The founding sheet. |
+| **PETEY** | UNCOMMON | The same logo rotated 90° counter-clockwise, which is what turns it into Petey the mascot. 24 colors, Classic first. |
 | **ICONS** | COMMON | The platform's glyph vocabulary as stickers — ✦ Mint, ✹ List, ✶ Offer, ★ Star, ✛ Wishlist, ❖ Rarity, ❂ PriceRank, and 21 more. Wear the interface. |
 | **FAMILIARS** | RARE | The whole Digital Familiar bestiary, every tier, as face stickers. |
 | **ANIMATED FAMILIARS** | MYTHIC | The bestiary again — alive. Each sticker cycles its species' idle animation. |
-| **PROJECTS** | MYTHIC | Every Project's sprite face, each in its signature colour. |
+| **PROJECTS** | MYTHIC | Every Project's sprite face, each in its signature color. |
 | **ARTISTS** | MYTHIC | The whitelisted artists' sprite faces. |
 | **PRICESPRITES** | RARE | Community PriceSprites — real faces from the platform's identity system. |
 | **ARTIST NAMES** | COMMON | The artists' @handles as name-tag stickers. |
-| **PROJECT NAMES** | COMMON | Project names as tags, each in its Project's colour. |
+| **PROJECT NAMES** | COMMON | Project names as tags, each in its Project's color. |
 | **OUTPUTS** | MYTHIC | Eighteen real generative Outputs, painted small. Actual artworks as stickers. |
 | **ACHIEVEMENTS** | RARE | The twelve achievement-category glyphs, Minting ◍ through OG ⌖. |
-| **RARITY** | UNCOMMON | The rarity words themselves — COMMON, UNCOMMON, RARE, MYTHIC, LEGENDARY, GRAIL — each a tag in its own colour. |
+| **RARITY** | UNCOMMON | The rarity words themselves — COMMON, UNCOMMON, RARE, MYTHIC, LEGENDARY, GRAIL — each a tag in its own color. |
 | **ANIMATED** | MYTHIC | Five sprites that breathe: Wisp, Watcher, Slime, Spider, Orbit. Cycling-frame stickers. |
 | **QUIPS** | COMMON | Twelve one-liners of the culture: GM, WAGMI, PROBABLY NOTHING, HODL, TOUCH GRASS, NGMI, and friends. |
-| **WAR BANNERS** | COMMON | One flag per [faction](/docs/factions) colour — the blank bubble that enlists you, as a sticker to wave. Cosmetics only, by constitutional rule: no sticker moves the war. |
+| **WAR BANNERS** | COMMON | One flag per [faction](/docs/factions) color — the blank bubble that enlists you, as a sticker to wave. Cosmetics only, by constitutional rule: no sticker moves the war. |
 | **HOLO** | MYTHIC | The logo and Petey in an iridescent holographic finish. Six stickers, all shine. |
 | **TRUE NAMES** | MYTHIC | Every Project's [True Name](/docs/app/projects-and-minting) — the four-letter Glagolitic marks — as tags. |
 

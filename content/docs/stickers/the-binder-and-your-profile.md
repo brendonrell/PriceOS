@@ -57,7 +57,7 @@ The Manager is a compact popup pinned directly below your stickers, so you watch
 - **Flip · Border** — the upside-down option, and the kiss-cut edge treatment (border changes are the one control that never re-rolls your arrangement). Every arrangement always fits the screen — nothing ever hangs off the edge.
 - **Sheets & Stickers** — the on/off layer. Whole sheets toggle with one pill; individual stickers toggle in the grid. Three rules keep it sane: your **first sheet turns itself on**, every **later purchase arrives off** (a new buy never clutters an arranged profile), and **at least one owned sheet always stays on**.
 
-The sticker grid carries a **colour filter** for big collections: tap a swatch for one colour, long-press it for the whole hue family, or use the preset filters — **Match** (stickers that suit your current profile colorway), RGB, CMYK, and the painter's primaries.
+The sticker grid carries a **color filter** for big collections: tap a swatch for one color, long-press it for the whole hue family, or use the preset filters — **Match** (stickers that suit your current profile colorway), RGB, CMYK, and the painter's primaries.
 
 **Manager Plus** (the ↑ in the header) expands to a full-screen version: a live preview up top — each opening plays a fresh entrance build — with every control on one page and the whole collection grid below.
 
