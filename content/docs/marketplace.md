@@ -56,4 +56,4 @@ Point it at a month and it builds your buying path: one pick per release you're 
 
 The other side of the same app: your portfolio priced at the live floor — pieces, spent, at-floor value, net — with per-project EXIT ALL and TRIM paths priced on the real rate card (royalty and gas included), and a HOT read of the tape personalised to what you hold.
 
-The Marketplace paints with the Mood Ring — same daily colour as home, because the market floor is a home surface.
+The Marketplace paints with the Mood Ring — same daily color as home, because the market floor is a home surface.

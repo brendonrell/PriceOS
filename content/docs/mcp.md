@@ -110,7 +110,7 @@ artwork's actual pixels.
 **It also SHOWS the piece.** `get_output` carries an interactive view (an
 [MCP App](https://modelcontextprotocol.io/docs/extensions/apps)), so in a host
 that supports the UI extension the artwork itself renders inside the
-conversation — in PD's own type and colours, with its traits, and a tap
+conversation — in PD's own type and colors, with its traits, and a tap
 through to the piece's page. Hosts without the extension get exactly the same
 structured answer as before.
 
