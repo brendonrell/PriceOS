@@ -31,7 +31,7 @@ PD drawn as a world. Every Project is a territory with its own generated coastli
 </g>
 </svg>
 
-- **①&#xFE0E; A territory** — one Project; area grows with minted supply, the coastline never changes shape, the colour is its colorway.
+- **①&#xFE0E; A territory** — one Project; area grows with minted supply, the coastline never changes shape, the color is its colorway.
 - **②&#xFE0E; The inhabitants** — one dot per wallet, sized by pieces held there.
 - **③&#xFE0E; ✺ The capital** — the artist's seat.
 
@@ -69,7 +69,7 @@ Labels work the way a real atlas does: type stays a fixed, readable size at
 every zoom (a bigger landmass never means bigger letters), the most important
 territories claim their names first, and neighbours' names appear as you zoom
 in and the room opens up. Every label is light ink with a dark halo, so it
-reads at a glance over any territory colour.
+reads at a glance over any territory color.
 
 ## The chart tools
 
@@ -106,10 +106,10 @@ from the sea. On a live night you can watch the world grow.
 
 ## The war layer ⚐
 
-If you fly a faction colour, the map grows one more control: **WAR**. It's a
+If you fly a faction color, the map grows one more control: **WAR**. It's a
 layer toggle, off by default, visible only to the enlisted. Switched on, held
-territories wear a thin ring in the holding faction's colour, live sieges
-pulse, your empire arcs fly your colour, and territory cards read the ground
+territories wear a thin ring in the holding faction's color, live sieges
+pulse, your empire arcs fly your color, and territory cards read the ground
 (`HELD · GOLD` · `SIEGE · BLUE vs GOLD`). The full rules of the war live in
 [Factions](/docs/factions). If none of that sentence made sense —
 good. The map ships clean for civilians.
