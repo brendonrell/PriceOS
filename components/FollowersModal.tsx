@@ -60,6 +60,7 @@ import type { Sticker } from '../lib/stickers/catalog';
 import { StickerArt } from './stickers/StickerArt';
 import FriendInspectorPreview, { type PreviewPerson, type PreviewFocus } from './FriendInspectorPreview';
 import FriendSpritePopover from './FriendSpritePopover';
+import { shortAddress as shortAddr } from '../lib/project/projectAddress';
 
 const VS15 = '︎';
 
@@ -894,7 +895,19 @@ function PersonRow({
                             )}
                             {tag && <span className="fi-rel" title={tag}>{REL_GLYPH[tag]}{VS15}</span>}
                         </div>
-                        <UserTags set={tagSet} size="row" />
+                        {tagSet?.tags?.length ? (
+                            <UserTags set={tagSet} size="row" />
+                        ) : (
+                            /* No profile tags on → the middle row doesn't just
+                               vanish, it shows their wallet address instead
+                               (Brendon, 2026-08-15). Rubik, not the app's
+                               display face — an address reads as data, and
+                               Rubik is what the rest of the app already uses
+                               for that register (shortAddr chips elsewhere). */
+                            friendAddr && (
+                                <span className="fi-row-addr">{shortAddr(friendAddr)}</span>
+                            )
+                        )}
                         <div className="fm-row-stats">
                             {shared !== null && (
                                 <span className="fm-stat" title="Shared holdings">
