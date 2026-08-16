@@ -57,11 +57,11 @@ const VS15 = '︎';
 const MODE_KEY = 'pd_fi_preview';
 type PreviewMode = 'days' | 'streak' | 'spend' | 'newcircle' | 'overlap' | 'roster';
 const MODES: { key: PreviewMode; label: string }[] = [
-    { key: 'days', label: '30 DAYS' },
+    { key: 'days', label: '30D' },
     { key: 'streak', label: 'STREAK' },
     { key: 'spend', label: 'SPEND' },
     { key: 'newcircle', label: 'NEW' },
-    { key: 'overlap', label: 'OVERLAP' },
+    { key: 'overlap', label: 'OVER' },
     { key: 'roster', label: 'ROSTER' },
 ];
 
