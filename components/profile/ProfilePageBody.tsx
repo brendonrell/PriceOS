@@ -286,6 +286,9 @@ function ProfilePageBodyInner({
     const formulaRoll = useFormulaRoll();
     /* Which Formula the row is editing (its index), or null when just browsing. */
     const [editingFormula, setEditingFormula] = useState<number | null>(null);
+    /* FORMULA carousel (Brendon, 2026-08-16): the Formula pill in the main tag
+       row no longer wears a tag — it opens/closes this row directly below. */
+    const [formulaCarouselOpen, setFormulaCarouselOpen] = useState(false);
     /* Tags the owner switched OFF — hidden from the shown row (every viewer),
        but still listed in the owner's picker to tap back on (Brendon,
        2026-07-22). */
@@ -1253,6 +1256,22 @@ function ProfilePageBodyInner({
                                     </div>
                                 );
                             })}
+                            {/* FORMULA trigger (Brendon, 2026-08-16) — always the
+                                last pill before the all-tags paints, never a
+                                tag itself. Tapping it doesn't wear/unwear
+                                anything — it opens/closes the Formula carousel
+                                directly below this row. */}
+                            <div
+                                className={`pill pill-l3 tag-pick fx-trigger${formulaCarouselOpen ? ' active' : ''}`}
+                                style={{ ['--tag' as string]: '#111111', ['--tag-text' as string]: '#E0E0E0' }}
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => setFormulaCarouselOpen((v) => !v)}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFormulaCarouselOpen((v) => !v); } }}
+                                title="Formula — your own generative art, worn as a tag"
+                            >
+                                <span className="stat-name">{'Formula'}</span>
+                            </div>
                             {/* THE PAINT — all-tags overrides at the very end
                                 (Brendon, 2026-07-20): one colour for every
                                 pill, lettering contrast-flipped. Tapping the
@@ -1312,36 +1331,14 @@ function ProfilePageBodyInner({
                                 );
                             })()}
                         </div>
-                        {/* Row 3 — FONT: restyle the @name. Each pill previews
-                            itself; the "@" always stays plain. */}
-                        <div className="profile-egg-row cust-scroll profile-fonts-picker">
-                            {NAME_FONTS.map((f) => {
-                                const on = (ownerNameFont ?? 'default') === f.id;
-                                const pick = () => {
-                                    setMyNameFont(f.id === 'default' ? null : f.id);
-                                    showToast(`Font: ${f.label.toUpperCase()}`);
-                                };
-                                return (
-                                    <div
-                                        key={f.id}
-                                        className={`pill pill-l3${on ? ' active' : ''}`}
-                                        role="button"
-                                        tabIndex={0}
-                                        onClick={pick}
-                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } }}
-                                        title={f.label}
-                                    >
-                                        <span className="stat-name" style={f.id === 'default' ? { fontFamily: 'var(--font-rubik-mono), sans-serif' } : undefined}>{f.id === 'default' ? 'Default' : styleName(f.label, f.id)}</span>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                        {/* Row 4 — FORMULA (Brendon, 2026-07-29): your own
-                            generative Unicode art, worn as a tag. Numbered by
-                            shelf position like Albums, never named. The row has
-                            two faces: browsing your shelf, and editing one —
-                            every parameter is a button IN the row, not a modal.
-                            Empty by default: nothing exists until you make one. */}
+                        {formulaCarouselOpen && (
+                        /* FORMULA carousel (Brendon, 2026-08-16): opened by the
+                           Formula trigger pill in Row 2, sits directly below it
+                           and shoves Row 3 (fonts) down while open. Two faces:
+                           browsing your shelf, and editing one — every
+                           parameter is a button IN the row, not a modal. Empty
+                           by default: the option buttons preview greyed out
+                           until the first Formula is made. */
                         <div className="profile-egg-row cust-scroll profile-formula-picker">
                             {editingFormula === null ? (
                                 <>
@@ -1367,7 +1364,29 @@ function ProfilePageBodyInner({
                                             }}
                                             title="Make a Formula — your own generative art, worn as a tag"
                                         >
-                                            <span className="stat-name">{'+ FORMULA'}</span>
+                                            <span className="stat-name">{'+ Formula (tag gen art)'}</span>
+                                        </div>
+                                    )}
+                                    {/* Preview — the option buttons that light up the moment a
+                                        Formula exists, shown greyed/inert before then so the
+                                        row isn't a single lonely button (Brendon, 2026-08-16). */}
+                                    {myFormulas.length === 0 && (
+                                        <div className="fx-preview-group" aria-hidden="true">
+                                            {FORMULA_SETS.map((set) => (
+                                                <div key={set.name} className="pill pill-l3 fx-opt fx-opt-preview">
+                                                    <span className="stat-name">{`${set.glyphs.slice(0, 3).join('')} ${set.name}`}</span>
+                                                </div>
+                                            ))}
+                                            {FORMULA_LENGTHS.map((n) => (
+                                                <div key={`l${n}`} className="pill pill-l3 fx-opt fx-opt-preview">
+                                                    <span className="stat-name">{String(n)}</span>
+                                                </div>
+                                            ))}
+                                            {FORMULA_WEAVES.map((w) => (
+                                                <div key={w} className="pill pill-l3 fx-opt fx-opt-preview">
+                                                    <span className="stat-name">{w}</span>
+                                                </div>
+                                            ))}
                                         </div>
                                     )}
                                     {myFormulas.map((f, i) => (
@@ -1462,6 +1481,31 @@ function ProfilePageBodyInner({
                                     </>
                                 );
                             })()}
+                        </div>
+                        )}
+                        {/* Row 3 — FONT: restyle the @name. Each pill previews
+                            itself; the "@" always stays plain. */}
+                        <div className="profile-egg-row cust-scroll profile-fonts-picker">
+                            {NAME_FONTS.map((f) => {
+                                const on = (ownerNameFont ?? 'default') === f.id;
+                                const pick = () => {
+                                    setMyNameFont(f.id === 'default' ? null : f.id);
+                                    showToast(`Font: ${f.label.toUpperCase()}`);
+                                };
+                                return (
+                                    <div
+                                        key={f.id}
+                                        className={`pill pill-l3${on ? ' active' : ''}`}
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={pick}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } }}
+                                        title={f.label}
+                                    >
+                                        <span className="stat-name" style={f.id === 'default' ? { fontFamily: 'var(--font-rubik-mono), sans-serif' } : undefined}>{f.id === 'default' ? 'Default' : styleName(f.label, f.id)}</span>
+                                    </div>
+                                );
+                            })}
                         </div>
                         </>
                     )}
