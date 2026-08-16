@@ -65,7 +65,7 @@ Sealed sheets are collectibles in their own right. The Marketplace tracks each s
 
 ## What's in a sheet
 
-Every sticker is on-brand PD material: the logo in dozens of colours, Petey the mascot, the platform's glyph vocabulary, the familiar bestiary, real Project and artist sprites, Glagolitic True Names, rarity words, quips, holographic finishes, war banners, and real generative Outputs painted small. Each sheet is a themed set with a rarity tag from COMMON to MYTHIC, and every sticker belongs to exactly one sheet, forever. The full catalog — all eighteen launch sheets and what's inside each — is on [The Store](/docs/stickers/the-store) page.
+Every sticker is on-brand PD material: the logo in dozens of colors, Petey the mascot, the platform's glyph vocabulary, the familiar bestiary, real Project and artist sprites, Glagolitic True Names, rarity words, quips, holographic finishes, war banners, and real generative Outputs painted small. Each sheet is a themed set with a rarity tag from COMMON to MYTHIC, and every sticker belongs to exactly one sheet, forever. The full catalog — all eighteen launch sheets and what's inside each — is on [The Store](/docs/stickers/the-store) page.
 
 ## The money, in one paragraph
 
