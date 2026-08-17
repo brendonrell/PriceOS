@@ -10,6 +10,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { usePriceDay } from '../../lib/priceday/usePriceDay';
 import { moodOfDay } from '../../lib/mood/mood';
 
@@ -96,7 +97,13 @@ export default function PriceDayDateLink({
             >
                 {label}
             </span>
-            {open && pos && contents && (
+            {/* Portaled to <body> — this link renders inside animated
+                ancestors in some spots (e.g. the Price Story chapter spine's
+                entrance animation), and any transform on an ancestor turns
+                position:fixed into "fixed to that ancestor" instead of the
+                viewport, stranding the popover off-position. A body portal
+                sidesteps that everywhere, unconditionally (Brendon, 2026-08-17). */}
+            {open && pos && contents && typeof document !== 'undefined' && createPortal(
                 <div
                     ref={popRef}
                     className="priceday-popover"
@@ -154,7 +161,8 @@ export default function PriceDayDateLink({
                         </>
                     )}
                     <div className="pd-section-end" />
-                </div>
+                </div>,
+                document.body
             )}
         </span>
     );
