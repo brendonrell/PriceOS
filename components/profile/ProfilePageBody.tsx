@@ -1935,32 +1935,45 @@ function ProfilePageBodyInner({
                                 {'⇌︎'}
                             </button>
                         )}
-                        <button
-                            className="btn-soundtrack"
-                            title={`Share @${displayHandle}`}
-                            onClick={async () => {
-                                const url =
-                                    typeof window !== 'undefined'
-                                        ? `${window.location.origin}/${displayHandle}`
-                                        : `/${displayHandle}`;
-                                const result = await shareLink({
-                                    url,
-                                    title: `@${displayHandle} on Price Discussion`,
-                                });
-                                if (result === 'copied') showToast('Link: COPIED');
-                                else if (result === 'unavailable') showToast('Share: UNAVAILABLE');
-                            }}
-                        >
-                            {/* ▶ play icon is the share/soundtrack button mark
-                                (Brendon, 2026-06-15; the ↗ share-glyph trial was
-                                reverted 2026-07-15 — ↗ stays catalogued in
-                                GLYPHS.md but the buttons wear the play icon).
-                                SHARE keeps its full pill ALWAYS (Brendon,
-                                2026-08-03) — the other two are glyph-only, so
-                                the row fits with the word on. */}
-                            <span className="btn-icon-play">▶&#xFE0E;</span>
-                            {' '}<span>SHARE</span>
-                        </button>
+                        {(() => {
+                            /* Glyph-only trio (Brendon, 2026-08-17): when ALL
+                               THREE optional actions — Takeover, Exchange, Share —
+                               are present alongside the CTA, Share drops its full
+                               pill and joins the other two as glyph-only, using
+                               its own ↗ share glyph (never the ▶ play icon, which
+                               is reserved for the full-pill variant). With fewer
+                               than 3, Share keeps its original full pill + ▶. */
+                            const exchangeShown = isAuthed && !isOwnProfile && !isPlatformAccount(user.address) && ownedCount > 0;
+                            const shareGlyphOnly = canTakeover && exchangeShown;
+                            return (
+                                <button
+                                    className="btn-soundtrack"
+                                    title={`Share @${displayHandle}`}
+                                    onClick={async () => {
+                                        const url =
+                                            typeof window !== 'undefined'
+                                                ? `${window.location.origin}/${displayHandle}`
+                                                : `/${displayHandle}`;
+                                        const result = await shareLink({
+                                            url,
+                                            title: `@${displayHandle} on Price Discussion`,
+                                        });
+                                        if (result === 'copied') showToast('Link: COPIED');
+                                        else if (result === 'unavailable') showToast('Share: UNAVAILABLE');
+                                    }}
+                                >
+                                    {shareGlyphOnly ? (
+                                        <span className="btn-icon-share">↗&#xFE0E;</span>
+                                    ) : (
+                                        <>
+                                            {/* ▶ play icon — full-pill variant only. */}
+                                            <span className="btn-icon-play">▶&#xFE0E;</span>
+                                            {' '}<span>SHARE</span>
+                                        </>
+                                    )}
+                                </button>
+                            );
+                        })()}
                     </div>
 
                     {/* TAKEOVER inscriptions — active windows + the
