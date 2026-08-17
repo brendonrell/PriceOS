@@ -151,10 +151,18 @@ export default function CompletionismModal({
     address,
     open,
     onClose,
+    readOnly = false,
 }: {
     address: string;
     open: boolean;
     onClose: () => void;
+    /* Viewing someone ELSE's completionism (Brendon, 2026-08-16) — the info
+       isn't private, so any profile can open its door. Read-only strips the
+       ⌂ Purchase Pal door (it builds YOUR cart, meaningless on their sheet)
+       and the local-device sticker fallback below (that fallback is this
+       DEVICE's own simulated ownership — correct only when the door belongs
+       to the person sitting here). */
+    readOnly?: boolean;
 }) {
     /* Seeded from the cache the door warmed while the profile sat idle, so an
        open paints its real content in the SAME frame instead of showing
@@ -258,6 +266,7 @@ export default function CompletionismModal({
     const holdsSheet = (id: (typeof SHEETS)[number]['id']): boolean => {
         const q = sheetQty?.[id];
         if (typeof q === 'number') return q > 0;
+        if (readOnly) return false; // no local record of a sheet this device didn't buy
         return ownsSheet(id, ownedIds.length ? ownedIds : owned);
     };
     const sheetsOwned = SHEETS.filter((s) => holdsSheet(s.id)).length;
@@ -278,26 +287,30 @@ export default function CompletionismModal({
                                 </span>
                                 {/* The ⌂ is the Purchase Pal door (Brendon, 2026-07-27) —
                                     opens the path builder preloaded with THE CLOSE (the
-                                    incomplete month nearest its finish line). */}
-                                <span
-                                    className="cart-panel-title-glyph cpl-house-door"
-                                    role="button"
-                                    tabIndex={0}
-                                    title="Purchase Pal"
-                                    onClick={() => {
-                                        if (proxied) { showToast('Incognito: READ ONLY'); return; }
-                                        const open = months
-                                            .filter((m) => !m.complete && m.total > 0)
-                                            .sort((a, b) => (a.total - a.collected) - (b.total - b.collected));
-                                        openPal('pal', open[0] ? `purchase:${open[0].key}` : 'purchase');
-                                    }}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' || e.key === ' ') {
-                                            e.preventDefault();
-                                            (e.currentTarget as HTMLElement).click();
-                                        }
-                                    }}
-                                >{`⌂${VS15}`}</span>
+                                    incomplete month nearest its finish line). Someone else's
+                                    door has no Pal — it would build a cart for THEIR gaps,
+                                    not yours (Brendon, 2026-08-16). */}
+                                {!readOnly && (
+                                    <span
+                                        className="cart-panel-title-glyph cpl-house-door"
+                                        role="button"
+                                        tabIndex={0}
+                                        title="Purchase Pal"
+                                        onClick={() => {
+                                            if (proxied) { showToast('Incognito: READ ONLY'); return; }
+                                            const open = months
+                                                .filter((m) => !m.complete && m.total > 0)
+                                                .sort((a, b) => (a.total - a.collected) - (b.total - b.collected));
+                                            openPal('pal', open[0] ? `purchase:${open[0].key}` : 'purchase');
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                (e.currentTarget as HTMLElement).click();
+                                            }
+                                        }}
+                                    >{`⌂${VS15}`}</span>
+                                )}
                             </>
                         )}
                         {months && months.length > 0 && (
