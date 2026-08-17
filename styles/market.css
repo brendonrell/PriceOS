@@ -214,8 +214,17 @@ a.notif-item--link:hover { opacity: 0.85; }
 }
 /* Chapter spacing (Brendon, 2026-08-15 — "current is too busy and hard to
    visually parse"): bumped from 16px so consecutive chapters read as
-   distinct events instead of a dense block. */
-.mk-story-body { padding-bottom: 32px; min-width: 0; }
+   distinct events instead of a dense block. Bumped again 2026-08-17 (32→40)
+   — the previous pass botched the ask and needed a clearer visible gap.
+   flex:1 1 auto is the actual alignment fix: without it this flex item
+   (a sibling of the fixed-width .mk-story-rail inside the row-flex
+   .mk-story-chapter) shrinks to its own content's width — which differs
+   chapter to chapter depending on how long that chapter's body text is —
+   so .mk-story-head's justify-content:space-between pushed each date to
+   ITS OWN box's right edge, not a shared one, and the dates never lined up
+   with each other. flex:1 1 auto forces every chapter to the same full row
+   width, so every date now sits flush on one common right edge. */
+.mk-story-body { flex: 1 1 auto; padding-bottom: 40px; min-width: 0; }
 .mk-story-head {
     display: flex; justify-content: space-between; align-items: baseline;
     gap: 10px;
