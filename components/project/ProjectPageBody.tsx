@@ -445,7 +445,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                             })}
                             {project.stats.collected_by_following.length > 2 && (
                                 <span className="cbr-others" onClick={() => open('collectors')}>
-                                    {' '}&amp; {project.stats.collected_by_following.length - 2} more you follow
+                                    &amp; {project.stats.collected_by_following.length - 2} more you follow
                                 </span>
                             )}
                         </div>
