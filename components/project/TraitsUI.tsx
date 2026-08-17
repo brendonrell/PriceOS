@@ -487,6 +487,12 @@ export default function TraitsUI({
        the persona+feed gate is bypassed: the +More tab needs the L1
        pill row visible regardless of persona. */
     const inProfileMode = !!profilePills;
+    /* @price's four +More doc tabs (Overview/Tokenomics/Contract/No Utility)
+       are the one profilePills row where the colorway/view-mode switcher
+       DOES still belong — same reasoning as Token/Holders wanting it too
+       (Brendon, 2026-08-17). Detected off the profilePills keys so no new
+       prop is needed. */
+    const isPriceDocs = !!profilePills?.some((p) => typeof p.key === 'string' && p.key.startsWith('price-'));
     const traitsHiddenStyle: CSSProperties | undefined =
         !visible || (!inProfileMode && isRegular && !isFeed)
             ? { display: 'none' }
@@ -1103,7 +1109,7 @@ export default function TraitsUI({
                     unwanted extra chrome row and pushed the header bar wider than
                     the viewport on mobile. Gated on inProfileMode alongside
                     sort-btn-group below. */}
-                {!inProfileMode && (
+                {(!inProfileMode || isPriceDocs) && (
                 <div className="colorway-pills">
                     {THEME_PILLS.map((t) => (
                         <div
