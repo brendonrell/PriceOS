@@ -177,11 +177,16 @@ type MoreL1 =
     /* Tribunal — the Spell Book case file. Only in the pill row when
        spell_tribunal is on (appended in-component, not in MORE_PILLS). */
     | 'tribunal';
-const MORE_PILLS: { key: MoreL1; label: string }[] = [
+/* icon is optional — only Price Story carries one (the ▼︎ down-triangle,
+   its canonical mark, matching the connector arrowhead in its own chapter
+   rail). label stays a plain string everywhere so the existing
+   `.label.toUpperCase()` section-header lookup below keeps working
+   unchanged (Brendon, 2026-08-17). */
+const MORE_PILLS: { key: MoreL1; label: string; icon?: string }[] = [
     { key: 'attributes', label: 'Attributes' },
     { key: 'offers', label: 'Offers' },
     { key: 'neighbourhood', label: 'Neighbourhood' },
-    { key: 'pricestory', label: 'Price Story' },
+    { key: 'pricestory', label: 'Price Story', icon: '\u25BC\uFE0E' },
     { key: 'replay', label: 'Replay' },
     { key: 'stats', label: 'Stats' },
     { key: 'social', label: 'Social' },
@@ -1014,7 +1019,9 @@ export default function ArtworkPageBody({
                             hideSortBar
                             profilePills={morePills.map((p) => ({
                                 key: p.key,
-                                label: p.label,
+                                label: p.icon ? (
+                                    <><span className={`pill-tab-ico is-${p.key}`}>{p.icon}</span> {p.label}</>
+                                ) : p.label,
                                 active: moreL1 === p.key,
                                 onClick: () => setMoreL1(p.key),
                             }))}
