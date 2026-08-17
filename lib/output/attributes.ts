@@ -6,7 +6,8 @@
  * routes persist the SAME values to `outputs`.
  */
 
-import { getProject } from '../project/registry';
+import { getProject, projectLanguage } from '../project/registry';
+import { golfScore } from '../project/golfScore';
 import { outputColorBucket } from '../art/outputColor';
 import {
     natalElement, natalModality, natalPolarity, natalRuler, natalHarmony,
@@ -111,6 +112,25 @@ export function buildOutputAttributes(input: AttrInput): AttrGroup[] {
         if (project.soundtrack) identity.push({ glyph: '♫', label: 'Soundtrack', value: project.soundtrack.label });
     }
     groups.push({ key: 'identity', label: 'Identity', tiles: identity });
+
+    /* ── Code (coding language + Golf Score) — mirrors the Project
+       attributes sheet's Code section, right after Identity: a gen-art
+       platform's attributes should lead with what the piece is actually
+       MADE OF (Brendon, 2026-08-18). Project-level stats (one engine per
+       project), so they read off `slug` the same as any Identity tile. */
+    const codeTiles: AttrTile[] = [
+        { glyph: '⌥', label: 'Language', value: projectLanguage(slug) },
+    ];
+    const golf = golfScore(slug);
+    if (golf) {
+        codeTiles.push({
+            glyph: '◴', label: 'Golf Score', value: `${golf.bytes.toLocaleString()} B`,
+            sub: `#${golf.rank} of ${golf.total} · tap for the Clubhouse`,
+            rare: golf.rank === 1,
+            tapKey: 'golf',
+        });
+    }
+    groups.push({ key: 'code', label: 'Code', tiles: codeTiles });
 
     /* ── Fingerprint (sampled pixels — the deep look) ─────────────────────
        The piece's full visual read, one wall of tiles. v1 axes first (colour /
