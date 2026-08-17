@@ -76,23 +76,23 @@ export function buildProjectAttributes(
     identity.push({ glyph: '✶', label: 'True Name', value: projectTrueName(slug) });
     groups.push({ key: 'identity', label: 'Identity', tiles: identity });
 
-    /* ── Engine (coding language + Golf Score) — kept up near Identity,
+    /* ── Code (coding language + Golf Score) — kept up near Identity,
        not buried at the bottom of the sheet (Brendon, 2026-08-17). A
        gen-art platform's attributes sheet should lead with what the piece
        is actually MADE OF. */
-    const engineTiles: AttrTile[] = [
+    const codeTiles: AttrTile[] = [
         { glyph: '⌥', label: 'Language', value: projectLanguage(slug) },
     ];
     const golf = golfScore(slug);
     if (golf) {
-        engineTiles.push({
+        codeTiles.push({
             glyph: '◴', label: 'Golf Score', value: `${golf.bytes.toLocaleString()} B`,
             sub: `#${golf.rank} of ${golf.total} · tap for the Clubhouse`,
             rare: golf.rank === 1,
             tapKey: 'golf',
         });
     }
-    groups.push({ key: 'engine', label: 'Engine', tiles: engineTiles });
+    groups.push({ key: 'code', label: 'Code', tiles: codeTiles });
 
     /* ── Milestones (earned badges, each with its dedicated feed icon) ──── */
     if (opts?.mintedCount != null) {
