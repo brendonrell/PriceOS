@@ -11592,6 +11592,17 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 /* Cap at two lines (clips a rare 3rd) WITHOUT forcing a taller box — keeps the
    natural line spacing of every other social row (Brendon, 2026-06-15). */
 @media (max-width: 600px)  { .home-feat-row { max-height: 2.4em; } }
+/* Third featured name: shows everywhere except phone portrait, where the
+   row itself is too narrow — not an arbitrary iPhone-12 check, the actual
+   viewport. Landscape phones, tablets (either orientation), and desktop all
+   get 3; only max-width:600 + portrait falls back to 2 (Brendon, 2026-08-17).
+   The two "& N others" counts are mutually exclusive with this same query. */
+.home-feat-row .cbr-feat-others-2 { display: none; }
+@media (max-width: 600px) and (orientation: portrait) {
+    .home-feat-row .cbr-feat-3 { display: none; }
+    .home-feat-row .cbr-feat-others-3 { display: none; }
+    .home-feat-row .cbr-feat-others-2 { display: inline; }
+}
 .feat-name {
     display: inline-block;
     animation: feat-flip 0.5s ease;
