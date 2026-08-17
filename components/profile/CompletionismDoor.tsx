@@ -24,9 +24,11 @@ import { warmCompletionismIdle } from '../../lib/completionism/cache';
 export default function CompletionismDoor({
     address,
     count,
+    readOnly = false,
 }: {
     address: string;
     count: number;
+    readOnly?: boolean;
 }) {
     const [open, setOpen] = useState(false);
 
@@ -55,6 +57,7 @@ export default function CompletionismDoor({
                 address={address}
                 open={open}
                 onClose={() => setOpen(false)}
+                readOnly={readOnly}
             />
         </>
     );
