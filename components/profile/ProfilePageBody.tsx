@@ -518,7 +518,7 @@ function ProfilePageBodyInner({
                         mutual: iAmFollowedBy.has(handle.toLowerCase()),
                     }))
                     .filter((c) => theirFollowers.has(c.handle.toLowerCase()));
-                const ranked = rankSocialCandidates(cands, 2);
+                const ranked = rankSocialCandidates(cands, 3);
                 setFollowedBy({ shown: ranked.shown, others: ranked.othersCount });
             } catch { if (!cancelled) setFollowedBy({ shown: [], others: 0 }); }
         };
@@ -1797,11 +1797,12 @@ function ProfilePageBodyInner({
                     mutuals.length > 0 ? (
                     /* Text-only, same treatment as the homepage Featuring row
                        (Brendon, 2026-08-15) — no ASCII-ID rectangle here.
-                       Markup copied straight from HomePageBody's FeaturingRow.
-                       Alignment + spacing live on the shared .collected-by-row
-                       rule in globals.css (~4879) — no page-specific class
-                       needed (Brendon, 2026-08-17). Two names, leaving room
-                       for the "& N others" tail. */
+                       Markup copied straight from HomePageBody's FeaturingRow,
+                       including its responsive 3rd-name toggle (Brendon,
+                       2026-08-17): phone portrait shows 2, everywhere else
+                       shows 3, via .cbr-feat-3 / .cbr-feat-others-2/3 +
+                       media query, scoped to .collected-by-row generally
+                       (globals.css ~11590) — no page-specific class needed. */
                     <div className="hero-line collected-by-row info-line">
                         <span className="cbr-label">Followed by</span>
                         <span className="cbr-id">
@@ -1811,11 +1812,22 @@ function ProfilePageBodyInner({
                         {mutuals[1] && (
                             <span className="cbr-id">
                                 <a className="profile-link feat-name" href={`/${mutuals[1]}`}>@{mutuals[1]}</a>
+                                {mutuals[2] && <span className="cbr-sep cbr-feat-3">,</span>}
+                            </span>
+                        )}
+                        {mutuals[2] && (
+                            <span className="cbr-id cbr-feat-3">
+                                <a className="profile-link feat-name" href={`/${mutuals[2]}`}>@{mutuals[2]}</a>
                             </span>
                         )}
                         {mutualOthers > 0 && (
-                            <span className="cbr-others">
+                            <span className="cbr-others cbr-feat-others-3">
                                 &amp; {mutualOthers} {mutualOthers === 1 ? 'Other' : 'Others'} You Follow
+                            </span>
+                        )}
+                        {(mutualOthers + (mutuals[2] ? 1 : 0)) > 0 && (
+                            <span className="cbr-others cbr-feat-others-2">
+                                &amp; {mutualOthers + (mutuals[2] ? 1 : 0)} {(mutualOthers + (mutuals[2] ? 1 : 0)) === 1 ? 'Other' : 'Others'} You Follow
                             </span>
                         )}
                     </div>
