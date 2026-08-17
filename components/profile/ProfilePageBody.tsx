@@ -1803,11 +1803,16 @@ function ProfilePageBodyInner({
                        ~13930), which .cbr-id/.cbr-sep never picked up. Two
                        names, leaving room for the "& N others" tail. */
                     <div className="hero-line collected-by-row info-line home-feat-row">
-                        <span className="cbr-label">Followed by</span>{' '}
-                        <a className="profile-link feat-name" href={`/${mutuals[0]}`}>@{mutuals[0]}</a>
+                        <span className="cbr-label">Followed by</span>
+                        <span className="cbr-id">
+                            <a className="profile-link feat-name" href={`/${mutuals[0]}`}>@{mutuals[0]}</a>
+                        </span>
                         {mutuals[1] && (
-                            <>, <a className="profile-link feat-name" href={`/${mutuals[1]}`}>@{mutuals[1]}</a></>
-                        )}{' '}
+                            <span className="cbr-id">
+                                <span className="cbr-sep">,</span>
+                                <a className="profile-link feat-name" href={`/${mutuals[1]}`}>@{mutuals[1]}</a>
+                            </span>
+                        )}
                         {mutualOthers > 0 && (
                             <span className="cbr-others">
                                 &amp; {mutualOthers} {mutualOthers === 1 ? 'Other' : 'Others'} You Follow
