@@ -12341,13 +12341,22 @@ body.colorway-dark .ghost-feed-bar {
    2026-08-15) — sized like the other tab icons; ☻ is the app's canonical
    smiley (matches the profile followers stat), ✢ the canonical anointed
    mark (matches ProfileAnointedPanel). */
-.pill-tab-ico.is-social { font-size: 1.15em; }
-.pill-tab-ico.is-anoint { font-size: 1.15em; }
+/* Social, Attributes + Offers bumped two sizes (+0.30em, the established
+   0.15em/size step also used by Genome/Gnome above), Anointed one size
+   (+0.15em) — all three were reading small next to their labels (Brendon,
+   2026-08-17). */
+.pill-tab-ico.is-social { font-size: 1.45em; }
+.pill-tab-ico.is-anoint { font-size: 1.30em; }
 /* Attributes ⩩ + Offers ✶ icons added to the project +More pills (Brendon,
    2026-08-15) — ✶ is the app's canonical offer mark (matches the
    trait-offer-glyph used across Wishlist/Starred). */
-.pill-tab-ico.is-attributes { font-size: 1.15em; }
-.pill-tab-ico.is-offers { font-size: 1.3em; }
+.pill-tab-ico.is-attributes { font-size: 1.45em; }
+.pill-tab-ico.is-offers { font-size: 1.60em; }
+/* Price Story ▼ — the down-triangle arrowhead from the chapter rail's own
+   connector line (.mk-story-line::after in styles/market.css) promoted to
+   the section's canonical pill icon; same starting size Social/Attributes/
+   Offers launched at (Brendon, 2026-08-17). */
+.pill-tab-ico.is-pricestory { font-size: 1.15em; }
 
 /* ── Starred: Outputs / Traits filter pills + per-row CTAs ───────────────── */
 /* Per-row CTA button (Add-to-Wishlist on Output rows, Trait Offer on Trait
