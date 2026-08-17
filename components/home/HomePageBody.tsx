@@ -169,10 +169,10 @@ export function FeaturingRow() {
             <span className="cbr-label">Featuring</span>
             <span className="cbr-id">
                 <a key={featNames[0]} className="profile-link feat-name" href={`/${featNames[0]}`}>@{featNames[0]}</a>
+                {featNames[1] && <span className="cbr-sep">,</span>}
             </span>
             {featNames[1] && (
                 <span className="cbr-id">
-                    <span className="cbr-sep">,</span>
                     <a key={featNames[1]} className="profile-link feat-name" href={`/${featNames[1]}`}>@{featNames[1]}</a>
                 </span>
             )}
