@@ -36,7 +36,8 @@ import { useSpriteFace } from '../../lib/hooks/useSpriteFace';
 import { useModal } from '../../lib/state/ModalContext';
 import { useExchange } from '../../lib/state/ExchangeContext';
 import SpriteFace from '../SpriteFace';
-import { useColorway } from '../../lib/state/ColorwayContext';
+import { useColorway, type ColorwayKey } from '../../lib/state/ColorwayContext';
+import { THEME_PILLS, SORT_BAR_THEME_NAMES } from '../project/traitsUIShared';
 import { useProfileHex, PROFILE_HEX_DEFAULT } from '../../lib/hooks/useProfileHex';
 import { useToast } from '../../lib/state/ToastContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
@@ -187,7 +188,38 @@ function ProfilePageBodyInner({
        wins — handled in ColorwayContext). When the logged-in user is viewing
        their OWN profile, use the live hook value so edits in the picker repaint
        instantly; for anyone else's profile, use the server-provided value. */
-    const { setActiveProfileHex } = useColorway();
+    const { setActiveProfileHex, colorway, setColorway } = useColorway();
+    /* @price — Token + Holders' own colorway-pills row, matching the one
+       TraitsUI renders for the +More doc tabs (same THEME_PILLS, same
+       toast wording) — added here since Token/Holders don't go through
+       TraitsUI at all (Brendon, 2026-08-17). */
+    const setColorwayWithToastPD = (key: ColorwayKey) => {
+        setColorway(key);
+        if (!key) return;
+        if (key === 'custom') { showToast('Colorway: Project Colorway'); return; }
+        showToast('Colorway: ' + (SORT_BAR_THEME_NAMES[key] ?? key));
+    };
+    const PriceColorwayPills = () => (
+        <div className="sort-bar" id="sortOptions" style={{ display: 'flex' }}>
+            <div className="colorway-pills">
+                {THEME_PILLS.map((t) => (
+                    <div
+                        key={t.key ?? 'default'}
+                        className={`pill-colorway ${t.cls}${colorway === t.key ? ' active' : ''}`}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => setColorwayWithToastPD(t.key)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setColorwayWithToastPD(t.key); }
+                        }}
+                        title={t.title}
+                    >
+                        <span>{t.glyph}</span>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
     const isOwnProfile =
         !!siweAddress && siweAddress.toLowerCase() === user.address.toLowerCase();
     /* COMPLETIONISM modal (own profile only, off the ⬚ collected stat). */
@@ -2492,19 +2524,27 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                 from (the provider is a context-only node, no DOM, so every card
                 still lands in the single #gallery grid). */}
             {/* @price — the official $PRICE page, in the Showcase's place. */}
-            {onShowcase && isPlatform && !feedActive && <PriceAccountPanel />}
+            {onShowcase && isPlatform && !feedActive && (
+                <>
+                    <PriceColorwayPills />
+                    <PriceAccountPanel />
+                </>
+            )}
 
             {/* @price — Holders tab carries the $PRICE Top Holders board
                 (same list as the modal, see PriceHoldersBoard) in place of
                 the owned-NFT grid a platform account will never fill
                 (Brendon, 2026-08-13). */}
             {onCollected && isPlatform && !feedActive && (
-                <div className="price-acct">
-                    <div className="attr-group-head">
-                        <span className="attr-group-name">Top holders</span>
+                <>
+                    <PriceColorwayPills />
+                    <div className="price-acct">
+                        <div className="attr-group-head">
+                            <span className="attr-group-name">Top holders</span>
+                        </div>
+                        <PriceHoldersBoard />
                     </div>
-                    <PriceHoldersBoard />
-                </div>
+                </>
             )}
 
             <section
