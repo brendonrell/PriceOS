@@ -14568,21 +14568,32 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     display: flex;
     flex-direction: column;
     gap: 4px;
-    /* No horizontal padding here — `.project-hero` (the ancestor every tab's
-       content sits inside, Token included) already applies 40px/20px side
-       padding. This rule used to ALSO add 40px/20px on top of that, so
-       every .price-acct panel — Token tab and all four +More doc tabs —
-       rendered with double the side buffer of the tab rows above it, and
-       the resulting narrow text column is what was tripping iOS's
-       auto-inflate on the +More panels. Vertical padding only now
-       (Brendon, 2026-08-15 — found via the double-buffer report). */
-    padding: 4px 0 18px;
+    /* Token + Holders render OUTSIDE `.project-hero` (they sit after the
+       Hero closes, not inside hero-group-2 like the +More doc tabs do) —
+       so unlike the +More panels, they get NO ancestor side padding and
+       need their own (Brendon, 2026-08-17 — restored after the 2026-08-15
+       double-buffer fix wrongly assumed Token was inside .project-hero
+       too, which broke Token/Holders' side spacing). */
+    padding: 4px 40px 18px;
     font-family: 'Courier New', Courier, monospace;
 }
-
-/* No mobile override needed — `.project-hero` already drops to 20px side
-   padding under 600px on its own, and `.price-acct` no longer adds a
-   second layer on top of it (see the no-padding note above). */
+@media (max-width: 600px) {
+    .price-acct { padding: 4px 20px 18px; }
+}
+/* The four +More doc tabs (Overview/Tokenomics/Contract/No Utility) DO sit
+   inside `.project-hero`, which already applies 40px/20px side padding —
+   so they get zero side padding of their own here, else it doubles up
+   (the 2026-08-15 double-buffer fix, scoped correctly this time).
+   `width: 100%` stops the panel shrink-wrapping to its content's
+   max-content width — `.project-hero` is a flex column with
+   `align-items: flex-start` on mobile, so without an explicit width its
+   children (long unbroken paragraphs, esp. Overview/Tokenomics) can grow
+   wider than the viewport and run off the right edge instead of wrapping
+   (Brendon, 2026-08-17 — the Overview/Tokenomics overflow). */
+.project-hero .price-acct {
+    padding: 4px 0 18px;
+    width: 100%;
+}
 /* Section heads: readable on any colorway, not a 10px whisper. */
 .price-acct .attr-group-head { padding-top: 16px; }
 /* Section titles wear the same Rubik treatment as New Uploads' header on
