@@ -61,7 +61,7 @@ Every Project on PD gets a page that is part gallery, part market floor, part ob
 - **②&#xFE0E; The mint button** — live progress fills inside the control; **long-press it** and the Mint Room blooms: crowd count, shared supply bar, reaction sparks, the soundtrack.
 - **③&#xFE0E; The sort row** — each pill cycles its directions; the ⁘ toggle folds the grid into groups (long-press it for the full dimension menu).
 - **④&#xFE0E; The grid** — every Output; hover rows carry the action glyphs.
-- **⑤&#xFE0E; + More** — Social · Stats · [Replay ⏴](/docs/app/projects-and-minting#the-replay--the-projects-time-machine) · Albums · Genome · [Gnome](/docs/gnomes/overview) · Sentiment · Attributes · Price Story · Offers · Anoint.
+- **⑤&#xFE0E; + More** — Attributes · Stats · Sentiment · Offers · Price Story ▼ · Social · Anointed · Albums · [Replay ⏴](/docs/app/projects-and-minting#the-replay--the-projects-time-machine) · Genome · [Gnome](/docs/gnomes/overview).
 
 The stats row reads minted / volume / owners at a glance — tap the owners count and the **OWNERS** list opens: every holder ranked by pieces held, sortable (pieces · listed · A–Z), medals on the top three, your own row highlighted. The **Artist Showcase** tab is arranged by the artist themself — their chosen pieces, in their chosen layout (classic, masonry, or mixed with a lead piece), optionally titled, with a placard when the set is Gen Curated.
 
