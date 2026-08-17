@@ -429,27 +429,49 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                     /* Twitter-style: only collectors the viewer follows. Hidden
                        when signed out or following none of this project's
                        collectors. */
-                    project.stats.collected_by_following.length > 0 ? (
+                    project.stats.collected_by_following.length > 0 ? (() => {
+                        const collectors = project.stats.collected_by_following;
+                        const handle = (n: string) => n.toLowerCase().replace(/^@/, '');
+                        const others3 = Math.max(0, collectors.length - 3);
+                        const others2 = Math.max(0, collectors.length - 2);
+                        return (
                         /* Text-only, same treatment as the homepage Featuring
-                           row (Brendon, 2026-08-15) — no ASCII-ID rectangle. */
+                           row (Brendon, 2026-08-15) — no ASCII-ID rectangle.
+                           Responsive 3rd-name toggle (Brendon, 2026-08-17):
+                           phone portrait shows 2, everywhere else shows 3, via
+                           .cbr-feat-3 / .cbr-feat-others-2/3 + media query,
+                           scoped to .collected-by-row generally (globals.css
+                           ~11590) — no page-specific class needed. */
                         <div className="hero-line collected-by-row info-line">
                             <span className="cbr-label">Collected by</span>
-                            {project.stats.collected_by_following.slice(0, 2).map((name, i, arr) => {
-                                const handle = name.toLowerCase().replace(/^@/, '');
-                                return (
-                                    <span key={name} className="cbr-id">
-                                        <a className="profile-link" href={`/${handle}`}>@{handle}</a>
-                                        {i < arr.length - 1 && <span className="cbr-sep">,</span>}
-                                    </span>
-                                );
-                            })}
-                            {project.stats.collected_by_following.length > 2 && (
-                                <span className="cbr-others" onClick={() => open('collectors')}>
-                                    &amp; {project.stats.collected_by_following.length - 2} more you follow
+                            <span className="cbr-id">
+                                <a className="profile-link" href={`/${handle(collectors[0])}`}>@{handle(collectors[0])}</a>
+                                {collectors[1] && <span className="cbr-sep">,</span>}
+                            </span>
+                            {collectors[1] && (
+                                <span className="cbr-id">
+                                    <a className="profile-link" href={`/${handle(collectors[1])}`}>@{handle(collectors[1])}</a>
+                                    {collectors[2] && <span className="cbr-sep cbr-feat-3">,</span>}
+                                </span>
+                            )}
+                            {collectors[2] && (
+                                <span className="cbr-id cbr-feat-3">
+                                    <a className="profile-link" href={`/${handle(collectors[2])}`}>@{handle(collectors[2])}</a>
+                                </span>
+                            )}
+                            {others3 > 0 && (
+                                <span className="cbr-others cbr-feat-others-3" onClick={() => open('collectors')}>
+                                    &amp; {others3} more you follow
+                                </span>
+                            )}
+                            {others2 > 0 && (
+                                <span className="cbr-others cbr-feat-others-2" onClick={() => open('collectors')}>
+                                    &amp; {others2} more you follow
                                 </span>
                             )}
                         </div>
-                    ) : null
+                        );
+                    })() : null
                 }
                 statsRow={
                     <div className="hero-line stats-row">
