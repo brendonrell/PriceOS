@@ -15,6 +15,7 @@ import { fetchEditionStats, type EditionStats } from '../../lib/output/editionSt
 import { samplePaletteChips, sampleGeometry, type PaletteChip } from '../../lib/output/paletteChips';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useToast } from '../../lib/state/ToastContext';
+import { useModal } from '../../lib/state/ModalContext';
 import { composeCelestialReading } from '../../lib/output/celestialReading';
 import { useMarketSheet } from '../../lib/state/MarketSheetContext';
 import AttrWall from './AttrWall';
@@ -73,6 +74,7 @@ export default function AttributesPanel({ query, ...props }: AttrInput & { query
     const { notifs } = usePdNotifs();
     const { showToast } = useToast();
     const { openCriteriaOfferSheet } = useMarketSheet();
+    const { open } = useModal();
 
     /* Celestial Tracker — the piece's birth-sky reading, composed from its real
        attributes (no model, $0). Shown only while the spell is on. */
@@ -109,6 +111,11 @@ export default function AttributesPanel({ query, ...props }: AttrInput & { query
                         navigator.clipboard.writeText(hex).catch(() => {});
                     }
                     showToast(`${hex}: COPIED`);
+                }}
+                onTileTap={(key) => {
+                    /* Golf Score tile — opens the Clubhouse leaderboard, same
+                       tap as the Project attributes sheet (Brendon, 2026-08-18). */
+                    if (key === 'golf') open('golf-leaderboard', undefined, props.slug);
                 }}
             />
             <RarityReceiptButton slug={props.slug} id={props.id} />
