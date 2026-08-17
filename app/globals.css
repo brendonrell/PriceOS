@@ -4868,7 +4868,7 @@ body.pd-stone-open .ens-copy-toast {
    on one shared centre rather than a baseline. */
 .collected-by-row {
     flex-wrap: wrap;
-    align-items: center;
+    align-items: baseline;
     row-gap: 2px;
     column-gap: 4px;
     line-height: 1;
@@ -13919,21 +13919,17 @@ body.theme-bright .fi-row.inspecting {
 .owner-line.info-line ~ .stats-row,
 /* Project pages get the same air under their artist row (Brendon, 2026-07-29). */
 .project-custom.owner-line ~ .stats-row { margin-top: 3px; }
-/* Same lift as the held-by label: the all-caps label's box carries empty
-   descender room, so centring the box left its letters high of the rectangles
-   beside it (Brendon, 2026-07-29). */
-.collected-by-row .cbr-label { transform: translateY(-1.8px); }
 /* The names stay a comma-separated LIST — the comma rides with the ID it
    follows so the row still wraps cleanly (Brendon, 2026-07-29). */
 .collected-by-row .cbr-id { display: inline-flex; align-items: center; }
 .collected-by-row .cbr-sep { margin-right: 4px; }
-/* The 2026-07-29 rebuild above (shared row switched from baseline to centre,
-   label lifted 1.8px) was for the profile/output rows that carry ASCII-ID
-   rectangles. The home Featuring row has no rectangles in it, so those two
-   changes just knocked its label off the names' baseline. Restored to exactly
-   what that row carried before (Brendon, 2026-07-31). */
+/* Every .collected-by-row (Featuring, Followed by, Collected by) went
+   text-only on 2026-08-15 — no row in this family carries an ASCII-ID
+   rectangle anymore. The row is baseline + untransformed label site-wide now
+   (was scoped to .home-feat-row only, which is why Followed by/Collected by
+   drifted out of alignment with the homepage after the 8-15 change) (Brendon,
+   2026-08-16). */
 .home-feat-row { align-items: baseline; }
-.home-feat-row .cbr-label { transform: none; }
 
 /* "By" reads as one phrase with the @name beside it, but its box is shorter
    than the name's (which carries headroom for tall Unicode faces), so centring
