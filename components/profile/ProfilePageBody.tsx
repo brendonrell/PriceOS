@@ -1797,22 +1797,21 @@ function ProfilePageBodyInner({
                     mutuals.length > 0 ? (
                     /* Text-only, same treatment as the homepage Featuring row
                        (Brendon, 2026-08-15) — no ASCII-ID rectangle here.
-                       Two names, leaving room for the "& N others" tail. */
-                    <div className="hero-line collected-by-row info-line">
-                        <span className="cbr-label">Followed by</span>
-                        {mutuals.map((m, i) => (
-                            <span key={m} className="cbr-id">
-                                {i > 0 && <span className="cbr-sep">,</span>}
-                                <a className="cbr-name" href={`/${m}`}>@{m}</a>
-                            </span>
-                        ))}
+                       Markup copied straight from HomePageBody's FeaturingRow:
+                       .home-feat-row carries the baseline-alignment + label
+                       overrides that rectangle-less rows need (see globals.css
+                       ~13930), which .cbr-id/.cbr-sep never picked up. Two
+                       names, leaving room for the "& N others" tail. */
+                    <div className="hero-line collected-by-row info-line home-feat-row">
+                        <span className="cbr-label">Followed by</span>{' '}
+                        <a className="profile-link feat-name" href={`/${mutuals[0]}`}>@{mutuals[0]}</a>
+                        {mutuals[1] && (
+                            <>, <a className="profile-link feat-name" href={`/${mutuals[1]}`}>@{mutuals[1]}</a></>
+                        )}{' '}
                         {mutualOthers > 0 && (
-                            <>
-                                {' '}
-                                <span className="cbr-others">
-                                    &amp; {mutualOthers} {mutualOthers === 1 ? 'Other' : 'Others'} You Follow
-                                </span>
-                            </>
+                            <span className="cbr-others">
+                                &amp; {mutualOthers} {mutualOthers === 1 ? 'Other' : 'Others'} You Follow
+                            </span>
                         )}
                     </div>
                     ) : undefined
@@ -1826,22 +1825,22 @@ function ProfilePageBodyInner({
                             >
                                 ⬚&#xFE0E;
                             </span>{' '}
-                            {/* Your own count opens COMPLETIONISM — the
+                            {/* Every profile's count opens COMPLETIONISM — the
                                 month-by-month release checklist (Brendon,
                                 2026-07-02, one of PD's first-envisaged
-                                features). Other profiles keep the plain stat. */}
-                            {isOwnProfile ? (
-                                /* The door owns its own open flag (see
-                                   CompletionismDoor) — keeping it out of this
-                                   component is what stops the whole profile
-                                   re-rendering every time the sheet opens. */
-                                <CompletionismDoor
-                                    address={user.address}
-                                    count={Math.max(ownedCount, holdings.length)}
-                                />
-                            ) : (
-                                <span className="stat-val" {...iconToastProps('Outputs Collected')}>{Math.max(ownedCount, holdings.length)}</span>
-                            )}
+                                features; opened to every profile, read-only
+                                on profiles that aren't yours, 2026-08-16 —
+                                the info isn't private, so it's the same
+                                competitive read everywhere). The door owns
+                                its own open flag (see CompletionismDoor) —
+                                keeping it out of this component is what stops
+                                the whole profile re-rendering every time the
+                                sheet opens. */}
+                            <CompletionismDoor
+                                address={user.address}
+                                count={Math.max(ownedCount, holdings.length)}
+                                readOnly={!isOwnProfile}
+                            />
                         </span>
                         <span className="stat-item stat-item-vol">
                             <span
