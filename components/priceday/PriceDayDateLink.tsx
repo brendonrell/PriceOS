@@ -11,6 +11,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { usePriceDay } from '../../lib/priceday/usePriceDay';
+import { moodOfDay } from '../../lib/mood/mood';
 
 const POPOVER_WIDTH = 260;
 const MARGIN = 8;
@@ -103,6 +104,22 @@ export default function PriceDayDateLink({
                 >
                     <div className="dp-title">PRICEDAY #{contents.number}</div>
                     <div className="dp-title-spacer" />
+
+                    {(() => {
+                        const mood = moodOfDay(date);
+                        return (
+                            <>
+                                <div className="dp-row dp-mood-row">
+                                    <span className="dp-label">MOOD RING</span>
+                                    <span className="dp-value">
+                                        <span className="dp-mood-swatch" style={{ backgroundColor: mood.hex }} />
+                                        {mood.name}
+                                    </span>
+                                </div>
+                                <div className="pd-section-end" />
+                            </>
+                        );
+                    })()}
 
                     <div className="pd-section-header">MINTED THIS DAY</div>
                     {contents.minted.map((r, i) => (
