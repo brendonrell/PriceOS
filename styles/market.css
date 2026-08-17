@@ -616,6 +616,14 @@ a.notif-item--link:hover { opacity: 0.85; }
     white-space: nowrap;
 }
 
+/* Purchase Pal's list — the goal row + knobs + path pushed the panel wide
+   enough on some devices to let it drift sideways under a touch drag
+   (Brendon, 2026-08-16: "it shouldn't move horizontally... work and scroll
+   like its brother" — Profit Pal, same box, never had the issue). Same
+   lock the album wrap uses (.alb-wrap) for the identical class of bug:
+   vertical scroll stays, horizontal movement is clipped outright. */
+.pal-purchase-list { overflow-x: clip; touch-action: pan-y; }
+
 /* The Pal's side tabs — the home pill row, snugged into the sheet. */
 .pal-tabs-row { margin: 0 0 12px; }
 
@@ -643,6 +651,7 @@ a.notif-item--link:hover { opacity: 0.85; }
 .pal-knob-row { display: flex; gap: 6px; }
 .pal-knob-btn {
     flex: 1;
+    min-width: 0;
     background: var(--bg-color);
     border: 1px solid var(--text-color);
     border-radius: 4px;
