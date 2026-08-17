@@ -4873,19 +4873,19 @@ body.pd-stone-open .ens-copy-toast {
 }
 
 /* ── COLLECTED BY row ─────────────────────────────────────── */
-/* The COLLECTED BY / FOLLOWED BY rows are built like the output page's held-by
-   row (Brendon, 2026-07-29): label and full ASCII-IDs as siblings, everything
-   on one shared centre rather than a baseline. */
+/* The COLLECTED BY / FOLLOWED BY / FEATURING rows read as one normal typed
+   monospace line: "Featuring @name1, @name2 & N others". No flex column-gap
+   here — gap adds the same space at every boundary, which is what put a
+   space after the comma AND a matching space in front of it. Real typed
+   text doesn't work that way: the comma hugs the word before it, and each
+   space is exactly one monospace character (1ch) — after the label, and
+   after the comma. Set directly on .cbr-label / .cbr-sep / .cbr-others below
+   (Brendon, 2026-08-17). */
 .collected-by-row {
     flex-wrap: wrap;
     align-items: baseline;
     row-gap: 2px;
-    /* 4px read as tighter than an actual typed space at this row's 11px
-       Rubik Mono (Brendon, 2026-08-17 — "closer not further" after the
-       gap-only rebuild below). 6px ≈ one monospace space-glyph width at
-       11px, so label→value and value→value now read as one normal typed
-       line instead of a cramped one. */
-    column-gap: 6px;
+    column-gap: 0;
     line-height: 1;
     overflow: visible;
 }
@@ -4895,6 +4895,7 @@ body.pd-stone-open .ens-copy-toast {
     font-weight: normal;
     text-transform: uppercase;
     color: var(--text-color);
+    margin-right: 1ch;
 }
 .cbr-name {
     font-family: var(--font-rubik-mono), sans-serif;
@@ -4919,6 +4920,7 @@ body.pd-stone-open .ens-copy-toast {
     text-underline-offset: 2px;
     cursor: pointer;
     color: inherit;
+    margin-left: 1ch;
 }
 
 /* ── STATS — sim ~2068-2072 + ~4088-4124 ─────────────────── */
@@ -13947,14 +13949,11 @@ body.theme-bright .fi-row.inspecting {
 /* The names stay a comma-separated LIST — the comma rides with the ID it
    follows so the row still wraps cleanly (Brendon, 2026-07-29). */
 .collected-by-row .cbr-id { display: inline-flex; align-items: center; }
-.collected-by-row .cbr-sep { margin-right: 6px; }
+.collected-by-row .cbr-sep { margin-right: 1ch; }
 /* Every .collected-by-row (Featuring, Followed by, Collected by) went
    text-only on 2026-08-15 — no row in this family carries an ASCII-ID
-   rectangle anymore. The row is baseline + untransformed label site-wide now
-   (was scoped to .home-feat-row only, which is why Followed by/Collected by
-   drifted out of alignment with the homepage after the 8-15 change) (Brendon,
-   2026-08-16). */
-.home-feat-row { align-items: baseline; }
+   rectangle anymore. Baseline + untransformed label is set on the shared
+   .collected-by-row rule above, site-wide (Brendon, 2026-08-16). */
 
 /* "By" reads as one phrase with the @name beside it, but its box is shorter
    than the name's (which carries headroom for tall Unicode faces), so centring
