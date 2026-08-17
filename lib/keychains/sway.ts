@@ -72,21 +72,18 @@ function onScroll() {
     const y = window.scrollY;
     let d = y - lastY;
     lastY = y;
-    /* ⛔ SCROLL SHOVES ALWAYS APPLY, TILT OR NOT (Brendon, 2026-08-15). The
-       2026-07-30 stutter this used to dodge by cutting scroll shoves the
-       moment tilt was live turned out to be an unrelated bug, since fixed —
-       so the block just left the chain dead to scroll on every device with
-       tilt granted. Scroll and tilt now stack, same as before that block
-       went in. */
+    /* ⛔ REVERTED (Brendon, 2026-08-17: "glitchy and freezes while scrolling"
+       once tilt is also on). The 2026-08-15 change below removed this guard,
+       reasoning the 2026-07-30 stutter it dodged was an unrelated bug since
+       fixed — but live tilt readings (onTilt) and scroll shoves (onScroll)
+       both write into gx/gy/kickY and both call wake() independently once
+       tilt is granted; stacking them is exactly what was freezing/glitching.
+       Scroll alone (tilt off) is untouched — kept below, just gated. */
+    if (motion === 'granted') return;
     // The page accelerating under the charm throws it the other way, the way
     // a thing on a chain lags behind the hand carrying it.
-    /* ⛔ CLAMP WIDENED 40→80 (Brendon, 2026-08-15: "sampling... making it
-       look stuck"). rAF batches every scroll event into one shove a frame, so
-       on a fast flick — especially 120Hz ProMotion — real per-frame movement
-       was blowing past the old 40px ceiling and getting flattened, which read
-       as the chain falling behind instead of riding the scroll. */
-    if (d > 80) d = 80;
-    if (d < -80) d = -80;
+    if (d > 40) d = 40;
+    if (d < -40) d = -40;
     kickY -= d * 0.13;
     wake();
 }
