@@ -150,6 +150,18 @@ export default function ProjectAlbumsTab({ slug }: { slug: string }) {
 
             {pieces.length > 0 && (
                 <>
+                    {/* ＋ ADD TO ALBUM moved to the top of this block, above the
+                        piece grid it acts on (Brendon, 2026-08-17 — was sitting
+                        below the grid, which read backwards). */}
+                    <div className="output-albums-row">
+                        <button
+                            type="button"
+                            className="output-album-chip output-album-add"
+                            onClick={() => setPickerOpen(true)}
+                        >
+                            ＋ ADD TO ALBUM{picked.length > 0 ? ` · ${picked.length}` : ''}
+                        </button>
+                    </div>
                     <p className="album-empty-note" style={{ padding: '2px 2px 0' }}>
                         {suggested
                             ? 'You hold none of this project yet — start an album with these:'
@@ -176,15 +188,6 @@ export default function ProjectAlbumsTab({ slug }: { slug: string }) {
                                 </button>
                             );
                         })}
-                    </div>
-                    <div className="output-albums-row">
-                        <button
-                            type="button"
-                            className="output-album-chip output-album-add"
-                            onClick={() => setPickerOpen(true)}
-                        >
-                            ＋ ADD TO ALBUM{picked.length > 0 ? ` · ${picked.length}` : ''}
-                        </button>
                     </div>
                 </>
             )}
