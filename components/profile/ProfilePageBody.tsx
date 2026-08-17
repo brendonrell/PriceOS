@@ -1797,12 +1797,12 @@ function ProfilePageBodyInner({
                     mutuals.length > 0 ? (
                     /* Text-only, same treatment as the homepage Featuring row
                        (Brendon, 2026-08-15) — no ASCII-ID rectangle here.
-                       Markup copied straight from HomePageBody's FeaturingRow:
-                       .home-feat-row carries the baseline-alignment + label
-                       overrides that rectangle-less rows need (see globals.css
-                       ~13930), which .cbr-id/.cbr-sep never picked up. Two
-                       names, leaving room for the "& N others" tail. */
-                    <div className="hero-line collected-by-row info-line home-feat-row">
+                       Markup copied straight from HomePageBody's FeaturingRow.
+                       Alignment + spacing live on the shared .collected-by-row
+                       rule in globals.css (~4879) — no page-specific class
+                       needed (Brendon, 2026-08-17). Two names, leaving room
+                       for the "& N others" tail. */
+                    <div className="hero-line collected-by-row info-line">
                         <span className="cbr-label">Followed by</span>
                         <span className="cbr-id">
                             <a className="profile-link feat-name" href={`/${mutuals[0]}`}>@{mutuals[0]}</a>
