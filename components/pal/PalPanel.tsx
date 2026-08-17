@@ -639,7 +639,7 @@ export default function PalPanel({ inline = false }: { inline?: boolean } = {}) 
                     </span>
                 </div>
 
-                <div className="cart-items-list">
+                <div className={`cart-items-list${tab === 'purchase' ? ' pal-purchase-list' : ''}`}>
                     {body}
                 </div>
             </div>
