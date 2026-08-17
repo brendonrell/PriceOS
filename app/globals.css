@@ -4880,7 +4880,12 @@ body.pd-stone-open .ens-copy-toast {
     flex-wrap: wrap;
     align-items: baseline;
     row-gap: 2px;
-    column-gap: 4px;
+    /* 4px read as tighter than an actual typed space at this row's 11px
+       Rubik Mono (Brendon, 2026-08-17 — "closer not further" after the
+       gap-only rebuild below). 6px ≈ one monospace space-glyph width at
+       11px, so label→value and value→value now read as one normal typed
+       line instead of a cramped one. */
+    column-gap: 6px;
     line-height: 1;
     overflow: visible;
 }
@@ -13942,7 +13947,7 @@ body.theme-bright .fi-row.inspecting {
 /* The names stay a comma-separated LIST — the comma rides with the ID it
    follows so the row still wraps cleanly (Brendon, 2026-07-29). */
 .collected-by-row .cbr-id { display: inline-flex; align-items: center; }
-.collected-by-row .cbr-sep { margin-right: 4px; }
+.collected-by-row .cbr-sep { margin-right: 6px; }
 /* Every .collected-by-row (Featuring, Followed by, Collected by) went
    text-only on 2026-08-15 — no row in this family carries an ASCII-ID
    rectangle anymore. The row is baseline + untransformed label site-wide now
