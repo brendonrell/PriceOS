@@ -72,20 +72,52 @@ function onScroll() {
     const y = window.scrollY;
     let d = y - lastY;
     lastY = y;
-    /* ⛔ REVERTED (Brendon, 2026-08-17: "glitchy and freezes while scrolling"
-       once tilt is also on). The 2026-08-15 change below removed this guard,
-       reasoning the 2026-07-30 stutter it dodged was an unrelated bug since
-       fixed — but live tilt readings (onTilt) and scroll shoves (onScroll)
-       both write into gx/gy/kickY and both call wake() independently once
-       tilt is granted; stacking them is exactly what was freezing/glitching.
-       Scroll alone (tilt off) is untouched — kept below, just gated. */
-    if (motion === 'granted') return;
     // The page accelerating under the charm throws it the other way, the way
     // a thing on a chain lags behind the hand carrying it.
+    /* ⛔ CLAMP REVERTED 80→40 (Brendon, 2026-08-17: "shoddy scroll tilt" —
+       not a tilt-combo problem, the scroll response itself). The 08-15 widen
+       doubled the ceiling without touching anything downstream of it: this
+       delta feeds kickY *= KICK (3.6, EquippedCharm.tsx) straight into link
+       positions, then RELAX (7 constraint passes/frame) has to pull them
+       back to their real length. 40px was already tuned against that 7-pass
+       budget; 80px roughly doubles the displacement RELAX has to resolve
+       on a fast flick, which it can't fully do in 7 passes — the chain
+       overshoots and wobbles for a few frames instead of settling cleanly,
+       which is exactly "glitchy." The "looks stuck on a flick" it was
+       trying to fix is real but needs a fix that doesn't also double the
+       energy RELAX has to absorb (raising RELAX, or easing the shove in
+       over a couple of frames instead of dumping it in one) — flag for a
+       follow-up rather than trading one visible bug for another here. */
     if (d > 40) d = 40;
     if (d < -40) d = -40;
     kickY -= d * 0.13;
     wake();
+}
+
+/* ⛔ TILT NOW SHARES SCROLL'S ONE-PER-FRAME GATE (Brendon, 2026-08-17:
+   "glitchy and freezes while scrolling" with tilt also on). The 08-15 patch
+   just deleted scroll's "skip while tilt is granted" guard and left onTilt
+   wired straight to the raw 'deviceorientation' listener — ungated. Chains
+   don't actually re-solve more than once a frame (kick() below is a no-op
+   once its rAF is already running), so extra wake() calls were cheap; the
+   real cost is onTilt's own trig work (cos/sin/hypot + two new objects)
+   running on EVERY raw orientation event instead of once per paint. Scroll
+   already fires just as fast and was fixed the same way back on 08-01 —
+   tilt just never got the same treatment. Batching it here means the two
+   drives now cost the same, one frame's worth of work each, whether or not
+   they're active together, instead of tilt's uncapped handler competing
+   with the browser's own scroll compositing for the main thread. Scroll and
+   tilt go back to always stacking — that combination isn't the problem;
+   letting one of them run unthrottled was. */
+let tiltRaf = 0;
+let pendingTilt: DeviceOrientationEvent | null = null;
+function onTiltRaw(e: DeviceOrientationEvent) {
+    pendingTilt = e;
+    if (tiltRaf) return;
+    tiltRaf = requestAnimationFrame(() => {
+        tiltRaf = 0;
+        if (pendingTilt) { onTilt(pendingTilt); pendingTilt = null; }
+    });
 }
 
 function onTilt(e: DeviceOrientationEvent) {
@@ -155,7 +187,7 @@ export function startSway(): () => void {
         lastY = window.scrollY;
         window.addEventListener('scroll', onScrollRaw, { passive: true });
         if (motion === 'granted') {
-            window.addEventListener('deviceorientation', onTilt);
+            window.addEventListener('deviceorientation', onTiltRaw);
             window.addEventListener('devicemotion', onShake);
         }
     }
@@ -164,8 +196,9 @@ export function startSway(): () => void {
         if (mounted > 0) return;
         window.removeEventListener('scroll', onScrollRaw);
         if (scrollRaf) { cancelAnimationFrame(scrollRaf); scrollRaf = 0; }
-        window.removeEventListener('deviceorientation', onTilt);
+        window.removeEventListener('deviceorientation', onTiltRaw);
         window.removeEventListener('devicemotion', onShake);
+        if (tiltRaf) { cancelAnimationFrame(tiltRaf); tiltRaf = 0; pendingTilt = null; }
     };
 }
 
@@ -184,7 +217,7 @@ export function motionSupported(): boolean {
 type PermAPI = { requestPermission?: () => Promise<'granted' | 'denied'> };
 
 function attach() {
-    window.addEventListener('deviceorientation', onTilt);
+    window.addEventListener('deviceorientation', onTiltRaw);
     window.addEventListener('devicemotion', onShake);
 }
 
