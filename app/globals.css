@@ -4683,6 +4683,16 @@ body.pd-stone-open .ens-copy-toast {
     opacity: 0.6;
     padding-bottom: 6px;
 }
+/* Mood Ring row — the day's own colour, surfaced as a small swatch dot
+   beside the mood word (Brendon, 2026-08-17). */
+.dp-mood-swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1px solid rgba(128,128,128,0.4);
+    flex-shrink: 0;
+}
 .pd-section-header {
     font-family: 'Courier New', Courier, monospace;
     font-size: 10px;
@@ -5995,6 +6005,16 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.32); }
 .btn-icon-play {
     font-family: 'Courier New', Courier, monospace;
     font-size: 10px;
+    line-height: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+/* ↗ share glyph — glyph-only Share variant only (3-button row: Takeover +
+   Exchange + Share), never paired with the ▶ play icon (Brendon, 2026-08-17). */
+.btn-icon-share {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
     line-height: 0;
     display: inline-flex;
     align-items: center;
