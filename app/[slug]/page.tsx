@@ -234,6 +234,15 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
       }
     }
   } catch { /* facts are best-effort — the specific title still ships */ }
+  // The native hero-slice image (Brendon, 2026-08-16) is now the PRIMARY
+  // share image — generated fresh per request from live profile data (logo,
+  // wallet badge, title/identity rows, tags), no stored asset. The old
+  // showcase-piece / PD-mark pick above is kept as the fallback entry: most
+  // unfurlers try images in order, so if the generator 500s (bad handle, a
+  // font-fetch hiccup) they fall through to it.
+  const heroImage = `/api/og/profile/${bare}`;
+  const fallbackImage = profileArt ?? '/icon-1024px.png';
+
   return {
     title: `${r.handle} · Price Discussion`,
     alternates: { canonical: `/${r.handle}` },
@@ -243,15 +252,16 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
       description,
       type: 'profile',
       url: `/${r.handle}`,
-      images: profileArt
-        ? [{ url: profileArt, alt: ogTitle }]
-        : [{ url: '/icon-1024px.png', width: 1024, height: 1024, alt: 'Price Discussion' }],
+      images: [
+        { url: heroImage, width: 1200, height: 630, alt: ogTitle },
+        { url: fallbackImage, alt: ogTitle },
+      ],
     },
     twitter: {
-      card: profileArt ? 'summary_large_image' : 'summary',
+      card: 'summary_large_image',
       title: ogTitle,
       description,
-      images: [profileArt ?? '/icon-1024px.png'],
+      images: [heroImage],
     },
   };
 }
