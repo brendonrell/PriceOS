@@ -1806,10 +1806,10 @@ function ProfilePageBodyInner({
                         <span className="cbr-label">Followed by</span>
                         <span className="cbr-id">
                             <a className="profile-link feat-name" href={`/${mutuals[0]}`}>@{mutuals[0]}</a>
+                            {mutuals[1] && <span className="cbr-sep">,</span>}
                         </span>
                         {mutuals[1] && (
                             <span className="cbr-id">
-                                <span className="cbr-sep">,</span>
                                 <a className="profile-link feat-name" href={`/${mutuals[1]}`}>@{mutuals[1]}</a>
                             </span>
                         )}
