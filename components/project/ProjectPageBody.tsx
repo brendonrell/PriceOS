@@ -434,12 +434,12 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                            row (Brendon, 2026-08-15) — no ASCII-ID rectangle. */
                         <div className="hero-line collected-by-row info-line">
                             <span className="cbr-label">Collected by</span>
-                            {project.stats.collected_by_following.slice(0, 2).map((name, i) => {
+                            {project.stats.collected_by_following.slice(0, 2).map((name, i, arr) => {
                                 const handle = name.toLowerCase().replace(/^@/, '');
                                 return (
                                     <span key={name} className="cbr-id">
-                                        {i > 0 && <span className="cbr-sep">,</span>}
                                         <a className="profile-link" href={`/${handle}`}>@{handle}</a>
+                                        {i < arr.length - 1 && <span className="cbr-sep">,</span>}
                                     </span>
                                 );
                             })}
