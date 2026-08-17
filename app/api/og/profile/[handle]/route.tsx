@@ -59,19 +59,23 @@ const PETEY_DOT_TOP_PATH =
    font is fetched from Google Fonts (the same family next/font/google
    pulls at build time for the rest of the site) and its bytes cached on the
    isolate for the life of that isolate — one fetch per cold start, not one
-   per request. */
-let fontPromise: Promise<ArrayBuffer> | null = null;
+   per request. Split into its own named async function (rather than an
+   inline IIFE assigned to the nullable cache var) because TS's contextual
+   typing of an async arrow function against a `T | null` target produced a
+   bogus "Promise<ArrayBuffer | null>" build error — a named function with
+   its own explicit return type sidesteps that entirely. */
+async function fetchFont(): Promise<ArrayBuffer> {
+    const css = await fetch(
+        'https://fonts.googleapis.com/css2?family=Rubik+Mono+One&display=swap',
+    ).then((r) => r.text());
+    const url = css.match(/src: url\(([^)]+)\)/)?.[1];
+    if (!url) throw new Error('Rubik Mono One: no font url in Google Fonts CSS');
+    return fetch(url).then((r) => r.arrayBuffer());
+}
+
+let fontPromise: Promise<ArrayBuffer> | undefined;
 async function loadFont(): Promise<ArrayBuffer> {
-    if (!fontPromise) {
-        fontPromise = (async () => {
-            const css = await fetch(
-                'https://fonts.googleapis.com/css2?family=Rubik+Mono+One&display=swap',
-            ).then((r) => r.text());
-            const url = css.match(/src: url\(([^)]+)\)/)?.[1];
-            if (!url) throw new Error('Rubik Mono One: no font url in Google Fonts CSS');
-            return fetch(url).then((r) => r.arrayBuffer());
-        })();
-    }
+    if (!fontPromise) fontPromise = fetchFont();
     return fontPromise;
 }
 
