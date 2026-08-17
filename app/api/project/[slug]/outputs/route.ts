@@ -164,7 +164,8 @@ export async function GET(req: NextRequest, props: { params: Promise<{ slug: str
 
     // Follow-graph "collected by": collectors whose @name the viewer follows,
     // RANKED by connection strength (mutual first) → PriceRank → a little jitter
-    // (lib/social/relevance). Returned best-first; the hero slices the first 2.
+    // (lib/social/relevance). Returned best-first; the hero slices the first 3,
+    // 2 on phone portrait (Brendon, 2026-08-17).
     let collectedByFollowing: string[] = [];
     const viewer = await verifySiweSession(req);
     if (viewer) {
