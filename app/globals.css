@@ -11602,7 +11602,13 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
    same query. */
 .collected-by-row .cbr-feat-others-2 { display: none; }
 @media (max-width: 600px) and (orientation: portrait) {
-    .collected-by-row .cbr-feat-3 { display: none; }
+    /* .cbr-id (set unconditionally, further down this file) shares this
+       exact specificity and would otherwise win on source order alone,
+       silently re-showing the 3rd name. Compound the selector so this
+       rule always wins regardless of where .cbr-id is declared
+       (Brendon, 2026-08-17 fix). */
+    .collected-by-row .cbr-id.cbr-feat-3 { display: none; }
+    .collected-by-row .cbr-sep.cbr-feat-3 { display: none; }
     .collected-by-row .cbr-feat-others-3 { display: none; }
     .collected-by-row .cbr-feat-others-2 { display: inline; }
 }
