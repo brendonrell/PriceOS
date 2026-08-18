@@ -392,7 +392,7 @@ export default function CompletionismModal({
                     </div>
 
                     {/* KEYCHAIN COMPLETIONISM — the twelve shapes in both coins
-                        (24 slots), same checks. The rack lives in the Depanneur. */}
+                        (24 slots), same checks. The rack lives in Le Depanneur. */}
                     <div className="cpl-month">
                         <div className="cpl-month-head">
                             <span className="cpl-month-name">KEYCHAIN COMPLETIONISM</span>
@@ -419,7 +419,7 @@ export default function CompletionismModal({
                                 }),
                             )}
                         </div>
-                        <div className="cpl-foot">crank for the ones you&apos;re missing → The Depanneur</div>
+                        <div className="cpl-foot">crank for the ones you&apos;re missing → Le Depanneur</div>
                     </div>
                 </div>
             </div>
