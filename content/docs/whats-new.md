@@ -18,11 +18,11 @@ The recent additions, newest first — the highlights reel, not the full ledger.
 - **Sticker arrangements now live on your account** — your composed profile look follows you across devices like everything else, and every arrangement always fits the screen.
 - **Achievements went quiet on purpose** — no toasts, no pushes; one rolled inbox row and your grid. ([Achievements](/docs/app/achievements))
 - **Rarity joined the sort pills** — #ID and $PRICE each cycle their own directions and then rarity's, marked ❖.
-- **The docs grew doors in the app** — the ⓘ in the Depanneur, the Exchange, and the Sticker Exchange opens the exact page you're standing in, and this manual took a front-to-back accuracy pass.
+- **The docs grew doors in the app** — the ⓘ in Le Depanneur, the Exchange, and the Sticker Exchange opens the exact page you're standing in, and this manual took a front-to-back accuracy pass.
 
 ## July 2026
 
-- **[Keychains](/docs/keychains/overview) & [the Depanneur](/docs/keychains/the-depanneur)** — one-of-one living charms from a capsule machine, drawn entirely on-chain; the chain is your streak, the finish is your rank.
+- **[Keychains](/docs/keychains/overview) & [Le Depanneur](/docs/keychains/the-depanneur)** — one-of-one living charms from a capsule machine, drawn entirely on-chain; the chain is your streak, the finish is your rank.
 - **[The Exchange](/docs/exchange)** — head-to-head trading, pieces for pieces with an optional sweetener. No fee, ever.
 - **[The PriceOS Suite](/docs/suite)** — calendar, tasks, workflows, money desk, contacts, notes, and a calm room, one workspace.
 - **[The Command Stone](/docs/command-stone)** — triple-tap anywhere: find, ask, compute, etch, cast, summon.
