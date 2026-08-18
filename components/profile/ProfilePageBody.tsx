@@ -200,23 +200,25 @@ function ProfilePageBodyInner({
         showToast('Colorway: ' + (SORT_BAR_THEME_NAMES[key] ?? key));
     };
     const PriceColorwayPills = () => (
-        <div className="sort-bar" id="sortOptions" style={{ display: 'flex' }}>
-            <div className="colorway-pills">
-                {THEME_PILLS.map((t) => (
-                    <div
-                        key={t.key ?? 'default'}
-                        className={`pill-colorway ${t.cls}${colorway === t.key ? ' active' : ''}`}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => setColorwayWithToastPD(t.key)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setColorwayWithToastPD(t.key); }
-                        }}
-                        title={t.title}
-                    >
-                        <span>{t.glyph}</span>
-                    </div>
-                ))}
+        <div className="price-acct-colorway">
+            <div className="sort-bar" id="sortOptions" style={{ display: 'flex' }}>
+                <div className="colorway-pills">
+                    {THEME_PILLS.map((t) => (
+                        <div
+                            key={t.key ?? 'default'}
+                            className={`pill-colorway ${t.cls}${colorway === t.key ? ' active' : ''}`}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => setColorwayWithToastPD(t.key)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setColorwayWithToastPD(t.key); }
+                            }}
+                            title={t.title}
+                        >
+                            <span>{t.glyph}</span>
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );
