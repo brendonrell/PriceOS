@@ -5421,6 +5421,17 @@ body.persona-default .stats-row-2 { display: none !important; }
     flex-direction: column;
     gap: 16px;
     align-items: flex-start;
+    /* Same fix as .hero-group-1 above, same bug: without a definite width,
+       an auto-width flex-column child (Overview/Tokenomics' unbroken
+       .nbhd-note prose) sizes to its own max-content line length instead
+       of wrapping, dragging .project-hero wider than the viewport. Contract
+       and No Utility never showed it because their content (attr-grid,
+       .price-acct-list) already breaks into short chunks — same missing
+       constraint, just invisible until a long paragraph exposed it
+       (Brendon, 2026-08-18). */
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 @media (min-width: 601px) {
     .hero-group-2 { align-items: stretch; }
@@ -14583,6 +14594,17 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
    panel only — they lift the shared heads to full strength and 12px, per the
    legibility rule for a new surface, without touching the classes every other
    panel shares. */
+/* Token + Holders' colorway-pills row (PriceColorwayPills, ProfilePageBody.tsx)
+   sits OUTSIDE `.project-hero` same as `.price-acct` below — same missing-
+   ancestor-padding problem, same fix: restate the identical side buffer here,
+   scoped to its own wrapper so `.sort-bar` elsewhere is untouched (Brendon,
+   2026-08-18). */
+.price-acct-colorway {
+    padding: 0 40px;
+}
+@media (max-width: 600px) {
+    .price-acct-colorway { padding: 0 20px; }
+}
 .price-acct {
     display: flex;
     flex-direction: column;
