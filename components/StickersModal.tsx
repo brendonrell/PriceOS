@@ -432,15 +432,18 @@ export default function StickersModal() {
                                     else { setAlbumOn(false); setMarketOn(true); showToast('Stickers: MARKETPLACE'); }
                                 }}
                             >
-                                {/* Always MARKET — short, and it never renames
-                                    itself out from under you (Brendon,
-                                    2026-07-24, the same call he made for MY
-                                    BINDER). Being open is said by the filled
-                                    `is-on` cap; tapping it again crosses back
-                                    to the store. The old MARKETPLACE / BACK TO
-                                    STORE labels were also what pushed MY BINDER
+                                {/* MARKET reads BACK + the platform back-glyph
+                                    while open, since tapping it here does
+                                    exactly that — crosses back to the store
+                                    (Brendon, 2026-08-18). Closed, it's just
+                                    MARKET; short, so it never pushes MY BINDER
                                     off the right edge of an iPhone. */}
-                                MARKET
+                                {marketOn ? (
+                                    <span className="ss-mktline-cap-back">
+                                        <span className="ss-mktline-cap-back-label">BACK</span>
+                                        <span className="ss-mktline-cap-back-glyph" aria-hidden="true">{'⇠⇠︎'}</span>
+                                    </span>
+                                ) : 'MARKET'}
                             </button>
                             <button
                                 type="button"
@@ -451,11 +454,16 @@ export default function StickersModal() {
                                     else { setMarketOn(false); setAlbumOn(true); showToast('Stickers: BINDER'); }
                                 }}
                             >
-                                {/* Always MY BINDER — the label never swaps to
-                                    MARKET (Brendon, 2026-07-24). Being open is
-                                    said by the filled `is-on` cap, not by the
-                                    button renaming itself out from under you. */}
-                                MY BINDER
+                                {/* MY BINDER reads BACK + the platform back-glyph
+                                    while open, same rule as MARKET (Brendon,
+                                    2026-08-18) — tapping it here is a back
+                                    action, so the label says so. */}
+                                {albumOn ? (
+                                    <span className="ss-mktline-cap-back">
+                                        <span className="ss-mktline-cap-back-label">BACK</span>
+                                        <span className="ss-mktline-cap-back-glyph" aria-hidden="true">{'⇠⇠︎'}</span>
+                                    </span>
+                                ) : 'MY BINDER'}
                             </button>
                         </div>
                         <div className="ss-ticker" aria-hidden="true">
