@@ -247,6 +247,22 @@
 /* The active face's cap wears the fill (the look locked from Brendon's
    2026-07-16 screenshot — the tapped cap stays visibly on). */
 .ss-mktline-cap.is-on { background: color-mix(in srgb, var(--text-color) 12%, transparent); }
+/* BACK state (Brendon, 2026-08-18) — while a cap is open it reads BACK over
+   the platform back-glyph, same glyph as .nav-back-btn, stacked so the fill
+   doesn't read as just a shaded dead button. */
+.ss-mktline-cap-back {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.2;
+}
+.ss-mktline-cap-back-label { font-size: 11px; font-weight: bold; letter-spacing: 0.12em; }
+.ss-mktline-cap-back-glyph {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    line-height: 1;
+    margin-top: 2px;
+}
 
 .ss-ticker {
     overflow: hidden;
