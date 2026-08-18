@@ -1707,6 +1707,7 @@ function ProfilePageBodyInner({
                                     profile, a circle. */}
                                 <a
                                     ref={idAddrRef}
+                                    className="id-row-addr"
                                     href={`https://etherscan.io/address/${user.address}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
@@ -1836,22 +1837,22 @@ function ProfilePageBodyInner({
                        media query, scoped to .collected-by-row generally
                        (globals.css ~11590) — no page-specific class needed. */
                     <div className="hero-line collected-by-row info-line">
-                        <span className="cbr-label">Followed by</span>
+                        <span className="cbr-label">Followed by</span>{' '}
                         <span className="cbr-id">
                             <a className="profile-link feat-name" href={`/${mutuals[0]}`}>@{mutuals[0]}</a>
                             {mutuals[1] && <span className="cbr-sep">,</span>}
-                        </span>
+                        </span>{' '}
                         {mutuals[1] && (
                             <span className="cbr-id">
                                 <a className="profile-link feat-name" href={`/${mutuals[1]}`}>@{mutuals[1]}</a>
                                 {mutuals[2] && <span className="cbr-sep cbr-feat-3">,</span>}
                             </span>
-                        )}
+                        )}{mutuals[1] && ' '}
                         {mutuals[2] && (
                             <span className="cbr-id cbr-feat-3">
                                 <a className="profile-link feat-name" href={`/${mutuals[2]}`}>@{mutuals[2]}</a>
                             </span>
-                        )}
+                        )}{mutuals[2] && ' '}
                         {mutualOthers > 0 && (
                             <span className="cbr-others cbr-feat-others-3">
                                 &amp; {mutualOthers} {mutualOthers === 1 ? 'Other' : 'Others'} You Follow
