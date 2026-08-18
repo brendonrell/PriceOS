@@ -4747,6 +4747,12 @@ body.pd-stone-open .ens-copy-toast {
    line breathe so nothing cuts the glyph tops. */
 .hero-row-identity { line-height: 1.3; overflow: visible; }
 
+/* Wallet address / ENS on the profile identity row — underlined so it reads
+   as a link. Scoped to .id-row-addr specifically: the PriceSprite and Sigil
+   sit beside this <a>, not inside it, so neither picks up the underline
+   (Brendon, 2026-08-18). */
+.id-row-addr { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+
 /* Profile identity-row PriceSprite — relocated from the title row (Brendon
    2026-06-15). Same Courier sprite look + size as before, but it now sits
    where "Via" was and inherits the row's colour + full opacity so it reads
@@ -4895,7 +4901,6 @@ body.pd-stone-open .ens-copy-toast {
     font-weight: normal;
     text-transform: uppercase;
     color: var(--text-color);
-    margin-right: 1ch;
 }
 .cbr-name {
     font-family: var(--font-rubik-mono), sans-serif;
@@ -4920,7 +4925,6 @@ body.pd-stone-open .ens-copy-toast {
     text-underline-offset: 2px;
     cursor: pointer;
     color: inherit;
-    margin-left: 1ch;
 }
 
 /* ── STATS — sim ~2068-2072 + ~4088-4124 ─────────────────── */
