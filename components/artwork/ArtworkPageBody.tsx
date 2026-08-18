@@ -238,7 +238,7 @@ export default function ArtworkPageBody({
        the spell is on. If it's switched off while the tab is open, fall back to
        Attributes so the surface never strands on a vanished pill. */
     const tribunalOn = notifs.spell_tribunal;
-    const morePills: { key: MoreL1; label: string }[] = tribunalOn
+    const morePills: { key: MoreL1; label: string; icon?: string }[] = tribunalOn
         ? [...MORE_PILLS, { key: 'tribunal', label: 'Tribunal' }]
         : MORE_PILLS;
     useEffect(() => {
