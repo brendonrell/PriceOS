@@ -176,22 +176,22 @@ export function FeaturingRow() {
     const featOthers3 = Math.max(0, FEATURED_HANDLES.length - 3);
     return (
         <div className="hero-line collected-by-row info-line home-feat-row">
-            <span className="cbr-label">Featuring</span>
+            <span className="cbr-label">Featuring</span>{' '}
             <span className="cbr-id">
                 <a key={featNames[0]} className="profile-link feat-name" href={`/${featNames[0]}`}>@{featNames[0]}</a>
                 {featNames[1] && <span className="cbr-sep">,</span>}
-            </span>
+            </span>{' '}
             {featNames[1] && (
                 <span className="cbr-id">
                     <a key={featNames[1]} className="profile-link feat-name" href={`/${featNames[1]}`}>@{featNames[1]}</a>
                     {featNames[2] && <span className="cbr-sep cbr-feat-3">,</span>}
                 </span>
-            )}
+            )}{featNames[1] && ' '}
             {featNames[2] && (
                 <span className="cbr-id cbr-feat-3">
                     <a key={featNames[2]} className="profile-link feat-name" href={`/${featNames[2]}`}>@{featNames[2]}</a>
                 </span>
-            )}
+            )}{featNames[2] && ' '}
             <span
                 className="cbr-others cbr-feat-others-3"
                 role="button"
