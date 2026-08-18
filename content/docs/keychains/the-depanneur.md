@@ -1,14 +1,14 @@
 ---
-title: "Keychains — The Depanneur"
+title: "Keychains — Le Depanneur"
 description: "The keychain shop: crank the capsule machine, get a random one-of-one charm. The exact mechanics, the provably fair roll, the money math, and what you actually own."
 category: "keychains"
 keywords: ["depanneur", "capsule machine", "crank", "mint", "fair draw", "odds", "royalty", "money"]
 last_updated: "2026-08-05"
 ---
 
-# The Depanneur
+# Le Depanneur
 
-Every Montreal block has one: the corner store with the lotto terminal, the cooler hum, and the capsule machine by the door. PD's is called the **Depanneur ☯**, and its capsule machine sells exactly one thing: Keychains.
+Every Montreal block has one: the corner store with the lotto terminal, the cooler hum, and the capsule machine by the door. PD's is called **Le Depanneur ☯**, and its capsule machine sells exactly one thing: Keychains.
 
 **How:** Tap KEYCHAINS ⚷ at the bottom of your PriceSprite card, or the ⚷ key in the wallet settings row.
 
@@ -56,11 +56,11 @@ Keychains use the same fairness engineering as Project mints and sticker-pack pe
 
 ## The money, exactly
 
-The Depanneur runs on the sticker-shop's rails, to the letter:
+Le Depanneur runs on the sticker-shop's rails, to the letter:
 
 - **95% to the shop, 5% to the platform**, paid out inside the purchase transaction itself. On a $22 crank that's $20.90 and $1.10, gone the moment you pay. The machine never holds a balance — there is nothing inside it to hack, drain, or freeze.
 - **Secondary sales pay a 5% royalty**, split on the same standing terms as everything else on PD — on a $100 resale, $5 flows back.
-- During the test phase the in-app Depanneur runs on sim-ETH like the sticker store; the contract is the mainnet machine.
+- During the test phase in-app Le Depanneur runs on sim-ETH like the sticker store; the contract is the mainnet machine.
 
 ## What you actually own
 

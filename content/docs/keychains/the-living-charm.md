@@ -10,7 +10,7 @@ last_updated: "2026-08-05"
 
 A Keychain out of the capsule is a finished character — but a blank life. Everything that happens next is written by you.
 
-**How:** Wear it from the Depanneur ☯; POLISH there syncs your streak and rank onto the charm.
+**How:** Wear it from Le Depanneur ☯; POLISH there syncs your streak and rank onto the charm.
 
 <svg viewBox="0 0 720 240" role="img" aria-labelledby="charm-anatomy-title" style="width:100%;height:auto;display:block;margin:14px 0">
 <title id="charm-anatomy-title">A Keychain, annotated: the ring on the tag row, the chain whose links are your PriceStreak, the charm body whose finish is your PriceRank, and the polish ritual that syncs both onto the chain.</title>
@@ -37,7 +37,7 @@ A Keychain out of the capsule is a finished character — but a blank life. Ever
 - **①&#xFE0E; The ring** — every worn charm hangs from the profile's tag row.
 - **②&#xFE0E; The chain is your PriceStreak** — bare cord fresh, links at a week, gold at a year, chrome at 1,000 days.
 - **③&#xFE0E; The finish is your PriceRank** — matte through gloss, glitter, gold, liquid chrome.
-- **④&#xFE0E; POLISH** — the sync ritual at the Depanneur: your live streak and rank, attested and written onto the charm.
+- **④&#xFE0E; POLISH** — the sync ritual at Le Depanneur: your live streak and rank, attested and written onto the charm.
 
 ## The chain is your streak
 
