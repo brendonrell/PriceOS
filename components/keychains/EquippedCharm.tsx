@@ -5,7 +5,7 @@
  * (Brendon, 2026-07-29). The split ring is pinned to the row; the chain drops
  * out of it and the charm hangs from the chain's last link, over whatever is
  * below. Default-off: renders NOTHING unless the owner has equipped a charm
- * in the Depanneur. Tap → the full charm popup (never a nav).
+ * in Le Depanneur. Tap → the full charm popup (never a nav).
  *
  * IT IS A CHAIN, NOT A BAR (Brendon, 2026-07-29). Every link is its own body
  * on its own segment, solved as a real hanging chain — position-based verlet
@@ -75,7 +75,7 @@ function dataUri(body: string, half: number): string {
     return `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`;
 }
 
-/* One charm in the switcher — drawn exactly as the Depanneur's own rack draws
+/* One charm in the switcher — drawn exactly as Le Depanneur's own rack draws
    it, chain and all, so a charm looks the same wherever you meet it. */
 function CharmTile({ charm }: { charm: CharmRecord }) {
     const svg = useMemo(
@@ -185,7 +185,7 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
     const equip = async (id: number) => {
         if (!siweAddress || busy) return;
         /* The tilt ask rides the equip (Brendon, 2026-07-29) — fired inside the
-           gesture, exactly as the Depanneur's own equip does. */
+           gesture, exactly as Le Depanneur's own equip does. */
         void requestMotion();
         const wasOn = (rack?.top ?? []).includes(id);
         /* Putting one ON is a choice the row must honour immediately; taking one
@@ -683,13 +683,13 @@ export default function EquippedCharm({ address, handle }: { address: string; ha
                                SHOULD CLOSE (Brendon, 2026-08-02). Rule #-0.55
                                keeps a card open while you USE it; this door is
                                not using it, it is going somewhere else, and
-                               leaving the switcher stacked behind the Depanneur
+                               leaving the switcher stacked behind Le Depanneur
                                is just something to dismiss on the way back. */
                             dismissSwap();
                             open('depanneur');
                         }}
                     >
-                        {`☯${VS15}`} THE DEPANNEUR
+                        {`☯${VS15}`} LE DEPANNEUR
                     </button>
                 </TailBubble>
             )}

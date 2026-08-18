@@ -1,7 +1,7 @@
 'use client';
 
 /*
- * THE DEPANNEUR — the keychain capsule machine (Brendon, 2026-07-27:
+ * LE DEPANNEUR — the keychain capsule machine (Brendon, 2026-07-27:
  * "simulate it for our testers like we do with stickers and our simETH").
  *
  * The Montreal corner store; the machine lives inside. Test phase runs on
@@ -12,7 +12,7 @@
  * roll per charm on a common→rare ladder; the keeper's streak/rank only buy
  * better odds at the crank (Brendon, 2026-07-29).
  *
- * ITS OWN WORLD (Brendon, 2026-07-29): the Depanneur is pinned dark at any
+ * ITS OWN WORLD (Brendon, 2026-07-29): Le Depanneur is pinned dark at any
  * colorway — the charms are painted art and need one steady room to read in.
  *
  * Chrome = the FI-PLUS panel (SuiteModal's shell, reused verbatim).
@@ -79,7 +79,7 @@ export default function DepanneurModal() {
         return () => window.removeEventListener('keydown', onKey);
     }, [isOpen, close]);
 
-    /* ── THE DEPANNEUR'S OWN PULL-TO-REFRESH (Brendon, 2026-07-29) ──────────
+    /* ── LE DEPANNEUR'S OWN PULL-TO-REFRESH (Brendon, 2026-07-29) ──────────
        The app's PWA pull is deliberately blocked inside modals, so this is the
        same gesture rebuilt against the panel's own scroller: the SAME pill,
        the same tint band, the same release-to-refresh law (it commits on
@@ -356,7 +356,7 @@ export default function DepanneurModal() {
             data-stack-top={isTopStacked || undefined}
             role="dialog"
             aria-modal="true"
-            aria-label="The Depanneur"
+            aria-label="Le Depanneur"
             onClick={close}
         >
             <div className="sticker-mgr-plus followers-plus dp-plus" onClick={(e) => e.stopPropagation()}>
@@ -365,7 +365,7 @@ export default function DepanneurModal() {
                 <div className="ptr-pill dp-ptr-pill" ref={pillRef} aria-hidden="true" />
                 <div className="smgr-plus-head">
                     <span className="ambient-pop-title-text">
-                        <span className="smgr-title-words">{`☯${VS15} `}THE DEPANNEUR</span>
+                        <span className="smgr-title-words">{`☯${VS15} `}LE DEPANNEUR</span>
                     </span>
                     <span
                         className="ambient-pop-close"
@@ -462,7 +462,7 @@ export default function DepanneurModal() {
                                     {/* The charm view's own way out (Brendon,
                                         2026-07-31) — the canonical ×, top right
                                         of the area, puts the charm away without
-                                        closing the Depanneur. */}
+                                        closing Le Depanneur. */}
                                     <span
                                         className="ambient-pop-close dp-reveal-x"
                                         role="button"
