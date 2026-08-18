@@ -1,6 +1,6 @@
 ---
 title: "Keychains — Overview"
-description: "Living charms from the Depanneur's capsule machine: one-of-one generative characters drawn entirely onchain, whose chain grows with your PriceStreak and whose finish follows your PriceRank. The full cast, every trait, every odds table."
+description: "Living charms from Le Depanneur's capsule machine: one-of-one generative characters drawn entirely onchain, whose chain grows with your PriceStreak and whose finish follows your PriceRank. The full cast, every trait, every odds table."
 category: "keychains"
 keywords: ["keychains", "depanneur", "capsule machine", "charms", "ERC-721", "streak", "PriceRank", "polish", "christen", "odds", "traits"]
 last_updated: "2026-08-05"
@@ -8,7 +8,7 @@ last_updated: "2026-08-05"
 
 # Keychains — Overview
 
-Beside the sticker sheets on the counter of PD's collectible layer hangs something new: **Keychains** — little hard-plastic and hard-rubber charm characters, sold from the capsule machine at the **Depanneur ☯**. Where stickers are editions peeled from sheets, every Keychain is a **one-of-one**: its own character, rolled the moment you crank the machine, on its own contract, drawn entirely by that contract. No image files exist anywhere — the charm you see, the chain it hangs from, even its idle swing and its blink, are emitted as pure onchain SVG every time anyone looks at it.
+Beside the sticker sheets on the counter of PD's collectible layer hangs something new: **Keychains** — little hard-plastic and hard-rubber charm characters, sold from the capsule machine at **Le Depanneur ☯**. Where stickers are editions peeled from sheets, every Keychain is a **one-of-one**: its own character, rolled the moment you crank the machine, on its own contract, drawn entirely by that contract. No image files exist anywhere — the charm you see, the chain it hangs from, even its idle swing and its blink, are emitted as pure onchain SVG every time anyone looks at it.
 
 But the shape and face are only half the object. **A Keychain is alive.** It belongs to its keeper, and it shows its keeper's PD life:
 
@@ -17,10 +17,10 @@ But the shape and face are only half the object. **A Keychain is alive.** It bel
 - **Polish is the ritual** that syncs the two — see [The Living Charm](/docs/keychains/the-living-charm).
 - **It bonds to its keeper.** Sell or send a Keychain and its shine wipes: the new keeper starts from bare cord. A maxed charm cannot be bought — only lived.
 
-**How:** Open the Depanneur — the KEYCHAINS ⚷ button at the bottom of your PriceSprite card, or the ⚷ key in the wallet settings row — and crank the machine.
+**How:** Open Le Depanneur — the KEYCHAINS ⚷ button at the bottom of your PriceSprite card, or the ⚷ key in the wallet settings row — and crank the machine.
 - **You can christen it** — one name, ever, engraved on a little tag on the ring.
 
-This section is the complete manual: this overview (the cast and every trait table), [The Depanneur](/docs/keychains/the-depanneur) (the machine, the fair roll, the money math), and [The Living Charm](/docs/keychains/the-living-charm) (polish, the bond, christening, wearing it).
+This section is the complete manual: this overview (the cast and every trait table), [Le Depanneur](/docs/keychains/the-depanneur) (the machine, the fair roll, the money math), and [The Living Charm](/docs/keychains/the-living-charm) (polish, the bond, christening, wearing it).
 
 ## The cast — 12 shapes
 
@@ -78,8 +78,8 @@ Every Keychain swings gently on its ring and blinks every few seconds — animat
 
 ## Where Keychains live
 
-- **The Depanneur** — the keychain shop. Doors: the **KEYCHAINS ⚷** button at the bottom of your PriceSprite card, and the **⚷** key in the wallet settings row, beside the gnome.
+- **Le Depanneur** — the keychain shop. Doors: the **KEYCHAINS ⚷** button at the bottom of your PriceSprite card, and the **⚷** key in the wallet settings row, beside the gnome.
 - **Your profile** — wear as many of your Keychains as you like; your chosen **top three** hang as mini charms at the end of your profile tags, or SHUFFLE draws the hanging three fresh from everything you wear on each visit. Nothing shows until you choose to wear one.
 - **The market** — Keychains trade on PD's own book like art and stickers, with one difference every buyer should know: the shine resets on transfer. You buy the character; the life you add yourself.
 
-Two marks share the job: **⚷** — Chiron, the wounded healer, astrology's "the key" — wears the Keychain doors and the charm's chain line, and **☯** — the yin-yang of the two coin slots — is the Depanneur's own sign, on the machine cap and its buttons.
+Two marks share the job: **⚷** — Chiron, the wounded healer, astrology's "the key" — wears the Keychain doors and the charm's chain line, and **☯** — the yin-yang of the two coin slots — is Le Depanneur's own sign, on the machine cap and its buttons.
