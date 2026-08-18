@@ -281,8 +281,26 @@ function bodySvg(i: number, fill: string, accent: string): string {
 }
 
 function clipEl(i: number): string {
-    if (i === 2) return '<circle cx="500" cy="585" r="310"/>';
-    if (i === 4) return '<circle cx="500" cy="580" r="230"/>';
+    if (i === 2) {
+        // FLOWER: same six petals + disc as bodySvg, geometry only — a bounding
+        // circle let the shine bleed into the concave gaps between petals
+        // instead of following the actual outline (Brendon, 2026-08-18 fix).
+        let petals = '';
+        for (const ang of [0, 60, 120, 180, 240, 300]) {
+            petals += `<ellipse cx="500" cy="405" rx="78" ry="135" transform="rotate(${ang} 500 585)"/>`;
+        }
+        return `${petals}<circle cx="500" cy="585" r="138"/>`;
+    }
+    if (i === 4) {
+        // CLOVER: same stem + four leaves + seam cover as bodySvg, geometry
+        // only — same bleed fix as FLOWER above (Brendon, 2026-08-18).
+        let s = '<path d="M 500 690 C 490 745 470 775 440 800 C 505 788 520 788 560 800 C 528 770 512 745 508 690 Z"/>';
+        const cs = [404, 494, 596, 494, 404, 660, 596, 660];
+        for (let k = 0; k < 4; ++k) {
+            s += `<circle cx="${cs[k * 2]}" cy="${cs[k * 2 + 1]}" r="108"/>`;
+        }
+        return `${s}<circle cx="500" cy="577" r="120"/>`;
+    }
     if (i === 9) return '<circle cx="500" cy="580" r="212"/>';
     const dStr = i === 0 ? HEART_D
         : i === 1 ? STAR_D : i === 3 ? GHOST_D : i === 5 ? BOLT_D : i === 6 ? TAG_D : i === 7 ? MOON_D : i === 8 ? GEM_D : i === 10 ? SPARK_D : ALIEN_D;
