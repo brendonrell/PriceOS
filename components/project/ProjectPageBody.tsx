@@ -443,22 +443,22 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                            scoped to .collected-by-row generally (globals.css
                            ~11590) — no page-specific class needed. */
                         <div className="hero-line collected-by-row info-line">
-                            <span className="cbr-label">Collected by</span>
+                            <span className="cbr-label">Collected by</span>{' '}
                             <span className="cbr-id">
                                 <a className="profile-link" href={`/${handle(collectors[0])}`}>@{handle(collectors[0])}</a>
                                 {collectors[1] && <span className="cbr-sep">,</span>}
-                            </span>
+                            </span>{' '}
                             {collectors[1] && (
                                 <span className="cbr-id">
                                     <a className="profile-link" href={`/${handle(collectors[1])}`}>@{handle(collectors[1])}</a>
                                     {collectors[2] && <span className="cbr-sep cbr-feat-3">,</span>}
                                 </span>
-                            )}
+                            )}{collectors[1] && ' '}
                             {collectors[2] && (
                                 <span className="cbr-id cbr-feat-3">
                                     <a className="profile-link" href={`/${handle(collectors[2])}`}>@{handle(collectors[2])}</a>
                                 </span>
-                            )}
+                            )}{collectors[2] && ' '}
                             {others3 > 0 && (
                                 <span className="cbr-others cbr-feat-others-3" onClick={() => open('collectors')}>
                                     &amp; {others3} more you follow
