@@ -6842,7 +6842,8 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     font-family: 'Courier New', Courier, monospace;
     font-size: 13px;
     color: var(--text-color);
-    opacity: 0.4;
+    opacity: 1;
+    font-weight: bold;
     text-align: center;
     letter-spacing: 0.02em;
 }
