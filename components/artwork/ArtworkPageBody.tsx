@@ -23,7 +23,6 @@
 
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { useRouter } from 'next/navigation';
 import { priceDayContents } from '../../lib/priceday/priceday';
 import { usePriceDay } from '../../lib/priceday/usePriceDay';
 import { fmPlay } from '../../lib/fm/fmBus';
@@ -297,10 +296,8 @@ export default function ArtworkPageBody({
         return () => window.removeEventListener('pd:anchors-changed', read);
     }, [anchorKey]);
     const soundtrack = getProject(slug)?.soundtrack ?? null;
-    const router = useRouter();
     const projectHref = `/art/${slug}`;
     const fullscreenHref = `/art/${slug}/${numberPart}/full`;
-    const darkroomHref = `/art/${slug}/${numberPart}/darkroom`;
 
     const artistHandle = getProject(slug)?.artistHandle ?? 'opus4-6';
 
@@ -1098,8 +1095,15 @@ export default function ArtworkPageBody({
                         ctrl-wheel, since this page scrolls) into the render;
                         it re-paints sharp at the new scale. A plain tap at 1×
                         still opens the modal exactly as before.
-                        THE DARKROOM DOOR (2026-07-27, Brendon's call): the
-                        long-press on this stage opens the Darkroom. */}
+                        onLongPress is a deliberate no-op (2026-08-19,
+                        Brendon's call): without it, DeepZoomLayer's own
+                        400ms press timer falls through to summoning its
+                        zoom loupe — racing Marginalia's 10s ceremonial hold
+                        on the same surface. A no-op satisfies DeepZoomLayer's
+                        "surface owns this press" check (it just checks
+                        truthiness) without navigating anywhere, so Marginalia
+                        gets a clear runway and pinch/wheel zoom still works
+                        untouched. */}
                     <DeepZoomLayer
                         containerRef={featureStageRef}
                         getArt={() => featureStageRef.current?.querySelector('.artwork-feature-art') ?? null}
@@ -1107,7 +1111,7 @@ export default function ArtworkPageBody({
                         id={globalId}
                         disabled={notifs.asciiArt || !onArtwork}
                         wheelNeedsModifier
-                        onLongPress={() => router.push(darkroomHref)}
+                        onLongPress={() => {}}
                     />
                 </div>
                 <div className="artwork-feature-foot">
