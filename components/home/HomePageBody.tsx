@@ -168,48 +168,28 @@ export function FeaturingRow() {
         const id = window.setInterval(() => setFeatNames(pickFeatured()), 3600);
         return () => window.clearInterval(id);
     }, []);
-    /* Two counts, one CSS toggle: phone portrait only ever shows 2 names, so
-       its "& N others" needs +1 vs. everywhere else, which shows 3. Both
-       render; .home-feat-row's media query (globals.css) picks the pair
-       that matches the visible name count (Brendon, 2026-08-17). */
-    const featOthers2 = Math.max(0, FEATURED_HANDLES.length - 2);
-    const featOthers3 = Math.max(0, FEATURED_HANDLES.length - 3);
+    const featOthers = Math.max(0, FEATURED_HANDLES.length - FEATURE_SHOW);
     return (
         <div className="hero-line collected-by-row info-line home-feat-row">
-            <span className="cbr-label">Featuring</span>{' '}
+            <span className="cbr-label">Featuring </span>
             <span className="cbr-id">
                 <a key={featNames[0]} className="profile-link feat-name" href={`/${featNames[0]}`}>@{featNames[0]}</a>
-                {featNames[1] && <span className="cbr-sep">,</span>}
-            </span>{' '}
+            </span>
             {featNames[1] && (
                 <span className="cbr-id">
+                    <span className="cbr-sep">,</span>
                     <a key={featNames[1]} className="profile-link feat-name" href={`/${featNames[1]}`}>@{featNames[1]}</a>
-                    {featNames[2] && <span className="cbr-sep cbr-feat-3">,</span>}
                 </span>
-            )}{featNames[1] && ' '}
-            {featNames[2] && (
-                <span className="cbr-id cbr-feat-3">
-                    <a key={featNames[2]} className="profile-link feat-name" href={`/${featNames[2]}`}>@{featNames[2]}</a>
-                </span>
-            )}{featNames[2] && ' '}
+            )}
             <span
-                className="cbr-others cbr-feat-others-3"
+                className="cbr-others"
                 role="button"
                 tabIndex={0}
                 title="See all featured artists"
                 style={{ cursor: 'pointer' }}
                 onClick={() => { openMenu(); setView('artists'); }}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openMenu(); setView('artists'); } }}
-            >&amp; {featOthers3} others</span>
-            <span
-                className="cbr-others cbr-feat-others-2"
-                role="button"
-                tabIndex={0}
-                title="See all featured artists"
-                style={{ cursor: 'pointer' }}
-                onClick={() => { openMenu(); setView('artists'); }}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openMenu(); setView('artists'); } }}
-            >&amp; {featOthers2} others</span>
+            >&amp; {featOthers} others</span>
         </div>
     );
 }
