@@ -1204,6 +1204,9 @@ function HomePageBodyInner({
                 ⚭/⚯ relationship marks (Brendon, 2026-07-26). */}
             {activeTab === 'minting' && mintSort.key === 'social' && (
                 <section className="home-uploads" aria-label="Social Feed">
+                    <div className="home-section-head">
+                        <span className="home-section-title">Social Feed</span>
+                    </div>
                     <div className="feed-list home-activity-feed home-social-feed">
                         <SocialFeed dir={mintSort.dir} />
                     </div>
