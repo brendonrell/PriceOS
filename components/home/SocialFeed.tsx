@@ -56,6 +56,13 @@ type TimelineItem =
     | { kind: 'scene'; ts: number; slug: string; actors: Actor[]; pieces: Piece[]; n: number }
     | { kind: 'album'; ts: number; a: SocialAlbumRow };
 
+/* Module-scoped last-response cache, keyed by the query string. The feed
+   section unmounts on every tab switch, so without this every return trip
+   to Social re-ran the full waterfall from ghost rows — the "forever to
+   load" feel (Brendon, 2026-08-19). Same singleton-cache shape as
+   useGasData: show the last good page instantly, then quietly refresh. */
+const lastResponse = new Map<string, SocialFeedResponse>();
+
 /* Wide enough to earn a full-bleed panorama; cap so a wide-heavy page stays a
    feed, not a gallery. */
 const PANO_ASPECT = 1.7;
@@ -283,21 +290,27 @@ export default function SocialFeed({ dir, actor, project }: {
     project?: string;
 }) {
     const { siweAddress } = useAuth();
-    const [data, setData] = useState<SocialFeedResponse | null>(null);
+    const addr = siweAddress?.toLowerCase();
+    const qs = new URLSearchParams();
+    if (addr) qs.set('viewer', addr);
+    if (actor) qs.set('actor', actor.toLowerCase());
+    if (project) qs.set('project', project);
+    const cacheKey = qs.toString();
+    const [data, setData] = useState<SocialFeedResponse | null>(() => lastResponse.get(cacheKey) ?? null);
 
     useEffect(() => {
         let cancelled = false;
+        /* Cached page for this exact query → paint it immediately instead of
+           ghost rows, then refresh underneath. */
+        const cached = lastResponse.get(cacheKey);
+        if (cached) setData(cached);
         const load = () => {
-            const addr = siweAddress?.toLowerCase();
-            const qs = new URLSearchParams();
-            if (addr) qs.set('viewer', addr);
-            if (actor) qs.set('actor', actor.toLowerCase());
-            if (project) qs.set('project', project);
-            const q = qs.toString();
-            fetch(`/api/feed/social${q ? `?${q}` : ''}`, { cache: 'no-store' })
+            fetch(`/api/feed/social${cacheKey ? `?${cacheKey}` : ''}`, { cache: 'no-store' })
                 .then((r) => (r.ok ? r.json() : null))
                 .then((d: SocialFeedResponse | null) => {
-                    if (!cancelled && d) setData(d);
+                    if (!d) return;
+                    lastResponse.set(cacheKey, d);
+                    if (!cancelled) setData(d);
                 })
                 .catch(() => {
                     /* offline / 5xx — last good rows stay up */
