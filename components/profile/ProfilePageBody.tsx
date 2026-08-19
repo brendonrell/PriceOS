@@ -1856,7 +1856,7 @@ function ProfilePageBodyInner({
                        media query, scoped to .collected-by-row generally
                        (globals.css ~11590) — no page-specific class needed. */
                     <div className="hero-line collected-by-row info-line">
-                        <span className="cbr-label">Followed by </span>
+                        <span className="cbr-label">Followed by&nbsp;</span>
                         <span className="cbr-id">
                             <a key={mutuals[0]} className="profile-link feat-name" href={`/${mutuals[0]}`}>@{mutuals[0]}</a>
                             {mutuals[1] && <span className="cbr-sep">,</span>}
