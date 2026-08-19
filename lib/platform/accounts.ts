@@ -28,6 +28,11 @@ import type { PriceSpriteVibe } from '../sprites/vibes';
 /** $PRICE — the mainnet ERC-20. 100M fixed supply, deployed 2026-07-03. */
 export const PRICE_TOKEN_ADDRESS = '0x173a012c7c8ca3cfb531dcad84a40c53dbe74638';
 
+/** The token's actual deployment date — @price's account/join date shows
+ *  this instead of the row's DB created_at (which just reflects whenever
+ *  the platform profile row happened to be inserted). */
+export const PRICE_TOKEN_CREATED_AT = '2026-07-03T00:00:00.000Z';
+
 export interface PlatformAccount {
     /** The handle the page lives at (/price). */
     handle: string;
