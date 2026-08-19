@@ -185,6 +185,17 @@ export default function FmBar() {
        dead link; the LCD says so instead of tuning forever (Brendon,
        2026-07-20: switching must be snappy and honest). */
     const [deadLink, setDeadLink] = useState(false);
+    /* THE COMEBACK (Brendon, 2026-08-19: "why does it keep coming back?") —
+       saveSession fires on backgrounding/pause/ended off `wantRef`/`playerRef`
+       alone, with no idea a dead link is on air. Background the tab the
+       moment a station dies and the DEAD station itself got written to the
+       saved session; the next visit's restoreSession() dutifully re-tuned
+       into the exact same dead station, which died again, saved again — a
+       loop with no code path that ever breaks it. deadLinkRef lets the
+       session functions (defined below, called from stable refs/effects)
+       see live dead-link state without becoming a re-render dependency. */
+    const deadLinkRef = useRef(false);
+    useEffect(() => { deadLinkRef.current = deadLink; }, [deadLink]);
 
     /* The display face — account-backed (Brendon, 2026-07-21), read after mount
        (SSR-safe). Also re-reads when the account snapshot hydrates the face so
@@ -271,6 +282,7 @@ export default function FmBar() {
                 setDeadLink(true);
                 setStatus('paused');
                 showToast('Station: DEAD LINK');
+                clearDeadSession();
             }
         }, 12000);
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -366,7 +378,8 @@ export default function FmBar() {
     const saveSession = useCallback((immediate: boolean) => {
         const st = wantRef.current;
         const p = playerRef.current;
-        if (!st || !p) return;
+        /* Never persist a dead station — see THE COMEBACK above. */
+        if (!st || !p || deadLinkRef.current) return;
         const session: FmSavedSession = {
             playlistId: st.playlistId,
             label: st.label,
@@ -377,6 +390,15 @@ export default function FmBar() {
         try { window.localStorage.setItem(FM_SESSION_KEY, JSON.stringify(session)); } catch { /* private mode */ }
         if (immediate) pushSettings({ fmSession: session });
         else pushSettingsDebounced({ fmSession: session });
+    }, []);
+
+    /* Wipe any saved session the instant a station is flagged dead — the
+       comeback loop needs one dead station to have been persisted even once
+       to run forever, so this is the other half of the fix: nothing dead
+       is left behind for restoreSession() to find, ever. */
+    const clearDeadSession = useCallback(() => {
+        try { window.localStorage.removeItem(FM_SESSION_KEY); } catch { /* private mode */ }
+        pushSettings({ fmSession: null });
     }, []);
 
     const restoreSession = useCallback(() => {
@@ -495,6 +517,7 @@ export default function FmBar() {
                             setDeadLink(true);
                             setStatus('paused');
                             showToast('Station: DEAD LINK');
+                            clearDeadSession();
                             return;
                         }
                         errCountRef.current += 1;
@@ -502,6 +525,7 @@ export default function FmBar() {
                             setDeadLink(true);
                             setStatus('paused');
                             showToast('Station: DEAD LINK');
+                            clearDeadSession();
                             return;
                         }
                         playerRef.current?.nextVideo();
@@ -521,9 +545,10 @@ export default function FmBar() {
             setDeadLink(true);
             setStatus('paused');
             showToast('Station: DEAD LINK');
+            clearDeadSession();
             console.error('[fm] YT iframe API failed to load:', err);
         });
-    }, [onAir, saveSession, clearWatchdog, start, stationFinished]);
+    }, [onAir, saveSession, clearWatchdog, clearDeadSession, start, stationFinished]);
 
     /* Restore on arrival — the device comes back paused, right where it was
        (Brendon, 2026-07-27). Mount covers the same-device reopen (the cache);
