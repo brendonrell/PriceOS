@@ -89,8 +89,13 @@ const FEATURED_HANDLES: readonly string[] = [
 ];
 
 /* Featured handles shown at once (Brendon, 2026-06-12: two sprite+name
-   chips — the chips give each name more presence than the old bare trio). */
-const FEATURE_SHOW = 2;
+   chips — the chips give each name more presence than the old bare trio).
+   Three fit everywhere except phone portrait, where the row's own width is
+   the real constraint — not some arbitrary device check. Always pick 3;
+   the 3rd name + its comma, and the "& N others" count, are toggled
+   responsively in CSS (see .home-feat-row rules, globals.css) rather than
+   branched here (Brendon, 2026-08-17). */
+const FEATURE_SHOW = 3;
 
 /* Distinct random handles for the Featuring row. */
 function pickFeatured(): string[] {
@@ -166,7 +171,7 @@ export function FeaturingRow() {
     const featOthers = Math.max(0, FEATURED_HANDLES.length - FEATURE_SHOW);
     return (
         <div className="hero-line collected-by-row info-line home-feat-row">
-            <span className="cbr-label">Featuring </span>
+            <span className="cbr-label">Featuring&nbsp;</span>
             <span className="cbr-id">
                 <a key={featNames[0]} className="profile-link feat-name" href={`/${featNames[0]}`}>@{featNames[0]}</a>
             </span>
