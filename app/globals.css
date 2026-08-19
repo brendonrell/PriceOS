@@ -4948,6 +4948,14 @@ body.pd-stone-open .ens-copy-toast {
     text-underline-offset: 2px;
     cursor: pointer;
     color: inherit;
+    /* This boundary (last name → "& N others") lost its space when
+       .collected-by-row moved from flex gap to manual 1ch margins on
+       2026-08-17 — .cbr-sep got the comma's margin, but nothing was added
+       here, so the last name and "& N others" ran together with zero space
+       (Brendon, 2026-08-19). Followed-by / Collected-by only — the
+       homepage Featuring row reverted to its own pre-08-17 flex-gap system
+       below and cancels this locally. */
+    margin-left: 1ch;
 }
 
 /* ── STATS — sim ~2068-2072 + ~4088-4124 ─────────────────── */
@@ -11624,6 +11632,17 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 /* row-gap tightened to 0 on the home featuring row only — the two wrapped lines
    sit as close as the type allows (Brendon, 2026-06-15). */
 .home-feat-row { overflow: hidden; row-gap: 0; }
+/* HOMEPAGE ONLY, reverted to the 2026-08-02 baseline (Brendon, 2026-08-19):
+   restores the flex-gap spacing this row used before the site-wide
+   column-gap:0 rewrite on 2026-08-17 — the FeaturingRow JSX went back to
+   plain text nodes + {' '} (no .cbr-id/.cbr-sep wrapper spans), so it needs
+   the gap again to have any spacing at all. Followed-by / Collected-by keep
+   the newer column-gap:0 + manual-margin system untouched. */
+.home-feat-row { column-gap: 4px; }
+/* The shared .cbr-others margin-left:1ch (added for Followed-by / Collected-
+   by, which have no gap of their own) would double up with the gap above —
+   cancelled here, homepage only. */
+.home-feat-row .cbr-others { margin-left: 0; }
 @media (min-width: 601px) { .home-feat-row { white-space: nowrap; } }
 /* Cap at two lines (clips a rare 3rd) WITHOUT forcing a taller box — keeps the
    natural line spacing of every other social row (Brendon, 2026-06-15). */
