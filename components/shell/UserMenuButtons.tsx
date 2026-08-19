@@ -79,7 +79,7 @@
  * through an auth flip in either direction without ejecting the user.
  */
 
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { usePathname } from 'next/navigation';
 import {
     getWalletEnsName,
@@ -111,6 +111,19 @@ function shortAddr(addr: string): string {
     if (!addr.startsWith('0x') || addr.length < 10) return addr;
     return `${addr.slice(0, 6)}\u2026${addr.slice(-4)}`;
 }
+
+/* Open-menu row width budget — pinned to .dropdown-stack's own width
+   (app/globals.css) so the pill row never reads longer/wider than the
+   menu it sits above. ROW_GAP mirrors .user-menu-wrapper's flex gap. */
+const MENU_ROW_WIDTH = 310;
+const ROW_GAP = 8;
+/* .btn-user chrome that isn't the @name text: .user-icon width (14) +
+   its gap to .user-text (8) + .btn-user's own l/r padding (10+10). The
+   PriceRank badge is measured live via badgeRef (below), never assumed
+   fixed-width — it renders a single circled-digit glyph for tiers 1-10
+   but falls back to real two-digit text ("11", "23"...) above that, so
+   the live measurement is what keeps the row budget correct either way. */
+const PILL_CHROME_WIDTH = 42;
 
 export function UserMenuButtons() {
     const { menuOpen, toggleMenu } = useDropdown();
@@ -219,11 +232,60 @@ export function UserMenuButtons() {
         ? `@${handle}`
         : ensName ?? (siweAddress ? shortAddr(siweAddress) : 'Connect');
 
+    /* Collision auto-detect — PriceSprite hides first (never the
+       PriceRank badge) when a long @name would push the open-menu row
+       past MENU_ROW_WIDTH; if it still doesn't fit sprite-less, the
+       name truncates with CSS ellipsis (.user-text) instead of growing
+       the row further. cartRef/badgeRef/sigilRef measure their REAL
+       rendered widths (not guessed constants) so this stays correct if
+       any of those elements' own CSS ever changes. textMeasureRef is an
+       offscreen twin of .user-text carrying the untruncated pillText —
+       its width is what "does the full name fit" is judged against. */
+    const cartRef = useRef<HTMLButtonElement>(null);
+    const spriteRef = useRef<HTMLDivElement>(null);
+    const badgeRef = useRef<HTMLSpanElement>(null);
+    const sigilRef = useRef<HTMLSpanElement>(null);
+    const textMeasureRef = useRef<HTMLSpanElement>(null);
+    /* Sprite's own width never depends on pillText and goes to 0 once
+       collapsed (display:none), so cache the last real measurement and
+       keep using it while collapsed — that cached number is what lets
+       the sprite reappear if the name later gets shorter. */
+    const spriteNaturalWidthRef = useRef(0);
+    const [hideSprite, setHideSprite] = useState(false);
+    const [pillMaxWidth, setPillMaxWidth] = useState<number | undefined>(undefined);
+
+    useLayoutEffect(() => {
+        if (!menuOpen) return;
+        const cartW = cartCount > 0 && cartRef.current ? cartRef.current.offsetWidth + ROW_GAP : 0;
+        const badgeW = frame.hasIdentity && badgeRef.current ? badgeRef.current.offsetWidth + ROW_GAP : 0;
+        if (frame.hasIdentity && !hideSprite && spriteRef.current) {
+            spriteNaturalWidthRef.current = spriteRef.current.offsetWidth;
+        }
+        const spriteW = frame.hasIdentity ? spriteNaturalWidthRef.current + ROW_GAP : 0;
+        const sigilW = sigilRef.current ? sigilRef.current.offsetWidth + 3 : 0;
+        const textW = textMeasureRef.current ? textMeasureRef.current.offsetWidth : 0;
+        const pillNaturalW = PILL_CHROME_WIDTH + textW + sigilW;
+
+        const withSprite = cartW + spriteW + badgeW + pillNaturalW;
+        const spriteFits = withSprite <= MENU_ROW_WIDTH;
+        setHideSprite(!spriteFits);
+        /* Always set an explicit max-width while open — CSS's static
+           .btn-user.expanded fallback (app/globals.css) is only a
+           pre-layout safety net and must never be what actually caps
+           the pill, or a long name silently gets clipped back down
+           after this effect decided it had room. Budget = full row
+           minus whichever siblings are actually reserving space now. */
+        setPillMaxWidth(
+            Math.max(MENU_ROW_WIDTH - cartW - badgeW - (spriteFits ? spriteW : 0), PILL_CHROME_WIDTH + 20),
+        );
+    }, [menuOpen, pillText, frame.hasIdentity, cartCount, sigilForged, sigilHidden, isAuthed]);
+
     return (
         <div className={wrapperClass}>
             {/* Cart — hidden by default; .has-items toggles it on. Click
                 opens the slide-up CartPanel via its own context. */}
             <button
+                ref={cartRef}
                 className={cartBtnClass}
                 id="btnCart"
                 aria-label="Cart"
@@ -249,7 +311,8 @@ export function UserMenuButtons() {
             {frame.hasIdentity && (
                 <>
                     <div
-                        className="ascii-sprite-wrap"
+                        ref={spriteRef}
+                        className={`ascii-sprite-wrap${hideSprite ? ' sprite-collapsed' : ''}`}
                         id="asciiSpriteWrap"
                         style={{ cursor: 'pointer' }}
                         onClick={(e) => {
@@ -281,10 +344,18 @@ export function UserMenuButtons() {
                         </span>
                     </div>
 
-                    {/* PriceRank badge \u2014 users.price_rank, DEFAULT 0
+                    {/* PriceRank badge — users.price_rank, DEFAULT 0
                         (Brendon 2026-06-10: ONE name, starts at zero).
-                        \u24FF then \u2776..\u277F when rank-up rules exist. */}
+                        \u24FF unranked, then the Unicode circled-digit
+                        glyphs \u2776..\u277F for tiers 1-10. Past 10,
+                        there's no single-codepoint circled glyph, so it
+                        falls back to plain digits — a real two-character
+                        "11", "23", etc. Width is measured live via
+                        badgeRef below, not assumed, so the pill-collision
+                        math (above) already accounts for the wider
+                        two-digit case correctly. */}
                     <span
+                        ref={badgeRef}
                         className="ascii-pfp-badge"
                         id="asciiPfpBadge"
                         aria-label={`PriceRank ${priceRank}`}
@@ -297,7 +368,9 @@ export function UserMenuButtons() {
                     >
                         {priceRank <= 0
                             ? '\u24FF'
-                            : String.fromCodePoint(0x2775 + Math.min(priceRank, 10))}
+                            : priceRank <= 10
+                                ? String.fromCodePoint(0x2775 + priceRank)
+                                : String(priceRank)}
                     </span>
                 </>
             )}
@@ -311,11 +384,14 @@ export function UserMenuButtons() {
                 title={isAuthed ? 'Toggle User Menu' : 'Open Menu'}
                 type="button"
                 onClick={handleConnectClick}
+                style={menuOpen && pillMaxWidth !== undefined ? { maxWidth: pillMaxWidth } : undefined}
             >
                 <span className="user-icon" aria-hidden="true">
                     {'⟠\uFE0E'}
                 </span>
-                <span className="user-text">{pillText}</span>
+                <span className="user-text">
+                    <span className="user-text-inner">{pillText}</span>
+                </span>
                 {/* THE SIGIL — the forged mark trails the @name (the sprite +
                     rank badge lead it on the left). Faction ink when a flag
                     flies; menu-open only, like the name itself. Neutral falls
@@ -324,14 +400,37 @@ export function UserMenuButtons() {
                     bone-white washes out. Hidden entirely when the owner has
                     switched their Sigil off from the Forge (platform-wide). */}
                 {menuOpen && isAuthed && sigilForged && !sigilHidden && siweAddress && (
-                    <SigilArt
-                        address={siweAddress}
-                        hex={ownFactionHex ?? 'currentColor'}
-                        className="sigil-after-name"
-                        title="Your Sigil"
-                    />
+                    <span ref={sigilRef} style={{ display: 'inline-block' }}>
+                        <SigilArt
+                            address={siweAddress}
+                            hex={ownFactionHex ?? 'currentColor'}
+                            className="sigil-after-name"
+                            title="Your Sigil"
+                        />
+                    </span>
                 )}
             </button>
+
+            {/* Offscreen twin of .user-text — same font metrics, never
+                truncated — measured to decide sprite-collapse + pill
+                max-width above. Not aria-hidden'd via role since it's
+                already inert (fixed off-canvas, no pointer events). */}
+            <span
+                ref={textMeasureRef}
+                aria-hidden="true"
+                style={{
+                    position: 'fixed',
+                    top: -9999,
+                    left: -9999,
+                    visibility: 'hidden',
+                    whiteSpace: 'nowrap',
+                    fontFamily: "'Courier New', Courier, monospace",
+                    fontSize: 13,
+                    fontWeight: 'bold',
+                }}
+            >
+                {pillText}
+            </span>
 
             <DropdownStack />
 
