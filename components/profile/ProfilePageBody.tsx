@@ -31,7 +31,7 @@ import { formatEth } from '../../lib/format/eth';
 import { getRememberedTab, rememberTab } from '../../lib/state/tabMemoryStore';
 import { readViewParam, setViewParam } from '../../lib/state/viewLink';
 import { useAuth } from '../../lib/state/AuthContext';
-import { rankSocialCandidates } from '../../lib/social/relevance';
+import { rankSocialCandidates, type SocialCandidate } from '../../lib/social/relevance';
 import { useSpriteFace } from '../../lib/hooks/useSpriteFace';
 import { useModal } from '../../lib/state/ModalContext';
 import { useExchange } from '../../lib/state/ExchangeContext';
@@ -523,6 +523,7 @@ function ProfilePageBodyInner({
        "& N others you follow". Hidden when the viewer is signed out, viewing
        their own profile, or shares no such tie. */
     const [followedBy, setFollowedBy] = useState<{ shown: string[]; others: number }>({ shown: [], others: 0 });
+    const [followedByPool, setFollowedByPool] = useState<SocialCandidate[]>([]);
     useEffect(() => {
         const me = siweAddress?.toLowerCase();
         const target = user.address.toLowerCase();
@@ -554,13 +555,29 @@ function ProfilePageBodyInner({
                     .filter((c) => theirFollowers.has(c.handle.toLowerCase()));
                 const ranked = rankSocialCandidates(cands, 3);
                 setFollowedBy({ shown: ranked.shown, others: ranked.othersCount });
-            } catch { if (!cancelled) setFollowedBy({ shown: [], others: 0 }); }
+                setFollowedByPool(cands);
+            } catch { if (!cancelled) { setFollowedBy({ shown: [], others: 0 }); setFollowedByPool([]); } }
         };
         load();
         const h = () => load();
         window.addEventListener('pd:follows-changed', h);
         return () => { cancelled = true; window.removeEventListener('pd:follows-changed', h); };
     }, [siweAddress, user.address]);
+
+    /* Followed-by row cycling — transplanted from the homepage Featuring row
+       (Brendon, 2026-08-18). Re-rolls every 3.6s, but ONLY once the pool is
+       6+ (below that it'd just loop the same 2-3 faces). Re-invokes the same
+       relevance ranking rather than a flat random pick, so cycling still
+       respects connection strength / PriceRank — it's the ranker's own
+       jitter that supplies the variety each tick. */
+    useEffect(() => {
+        if (followedByPool.length < 6) return;
+        const id = window.setInterval(() => {
+            const ranked = rankSocialCandidates(followedByPool, 3);
+            setFollowedBy({ shown: ranked.shown, others: ranked.othersCount });
+        }, 3600);
+        return () => window.clearInterval(id);
+    }, [followedByPool]);
 
     /* Showcase — the user's curated top-6 (users.showcase). Each slot points at
        one Output (project + token). 'static' keeps the saved order; 'generative'
@@ -1841,18 +1858,18 @@ function ProfilePageBodyInner({
                     <div className="hero-line collected-by-row info-line">
                         <span className="cbr-label">Followed by </span>
                         <span className="cbr-id">
-                            <a className="profile-link feat-name" href={`/${mutuals[0]}`}>@{mutuals[0]}</a>
+                            <a key={mutuals[0]} className="profile-link feat-name" href={`/${mutuals[0]}`}>@{mutuals[0]}</a>
                             {mutuals[1] && <span className="cbr-sep">,</span>}
                         </span>{' '}
                         {mutuals[1] && (
                             <span className="cbr-id">
-                                <a className="profile-link feat-name" href={`/${mutuals[1]}`}>@{mutuals[1]}</a>
+                                <a key={mutuals[1]} className="profile-link feat-name" href={`/${mutuals[1]}`}>@{mutuals[1]}</a>
                                 {mutuals[2] && <span className="cbr-sep cbr-feat-3">,</span>}
                             </span>
                         )}{mutuals[1] && ' '}
                         {mutuals[2] && (
                             <span className="cbr-id cbr-feat-3">
-                                <a className="profile-link feat-name" href={`/${mutuals[2]}`}>@{mutuals[2]}</a>
+                                <a key={mutuals[2]} className="profile-link feat-name" href={`/${mutuals[2]}`}>@{mutuals[2]}</a>
                             </span>
                         )}{mutuals[2] && ' '}
                         {mutualOthers > 0 && (
