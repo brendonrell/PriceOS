@@ -171,16 +171,17 @@ export function FeaturingRow() {
     const featOthers = Math.max(0, FEATURED_HANDLES.length - FEATURE_SHOW);
     return (
         <div className="hero-line collected-by-row info-line home-feat-row">
-            <span className="cbr-label">Featuring&nbsp;</span>
-            <span className="cbr-id">
-                <a key={featNames[0]} className="profile-link feat-name" href={`/${featNames[0]}`}>@{featNames[0]}</a>
-            </span>
+            <span className="cbr-label">Featuring</span>{' '}
+            <a key={featNames[0]} className="profile-link feat-name" href={`/${featNames[0]}`}>@{featNames[0]}</a>
             {featNames[1] && (
-                <span className="cbr-id">
-                    <span className="cbr-sep">,</span>
-                    <a key={featNames[1]} className="profile-link feat-name" href={`/${featNames[1]}`}>@{featNames[1]}</a>
-                </span>
-            )}
+                /* Comma + 2nd name glued as one atomic unit (nowrap) — as
+                   bare text-node siblings they're each their own anonymous
+                   flex item, so flex-wrap could break the line between the
+                   comma and its name, stranding "," alone at the start of
+                   line 2. Wrapping them together keeps them inseparable
+                   (Brendon, 2026-08-19). */
+                <span style={{ whiteSpace: 'nowrap' }}>, <a key={featNames[1]} className="profile-link feat-name" href={`/${featNames[1]}`}>@{featNames[1]}</a></span>
+            )}{' '}
             <span
                 className="cbr-others"
                 role="button"
