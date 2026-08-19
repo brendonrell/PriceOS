@@ -473,7 +473,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                            each cycle remounts and replays it, matching the
                            homepage row (Brendon, 2026-08-18). */
                         <div className="hero-line collected-by-row info-line">
-                            <span className="cbr-label">Collected by </span>
+                            <span className="cbr-label">Collected by&nbsp;</span>
                             <span className="cbr-id">
                                 <a key={collectors[0]} className="profile-link feat-name" href={`/${handle(collectors[0])}`}>@{handle(collectors[0])}</a>
                                 {collectors[1] && <span className="cbr-sep">,</span>}
