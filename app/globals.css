@@ -706,6 +706,11 @@ body.bg-is-red .pingtoast-3d-confirm::after { border-top-color: var(--attention)
     cursor: pointer;
 }
 .user-menu-wrapper.active .ascii-sprite-wrap { display: flex; }
+/* Collision auto-detect (UserMenuButtons) — a long @name in the open
+   pill collapses the PriceSprite first, before ever truncating the
+   name or letting the row grow past .dropdown-stack's own width. The
+   PriceRank badge next to it is never collapsed. */
+.ascii-sprite-wrap.sprite-collapsed { display: none !important; }
 
 .ascii-sprite {
     font-family: 'Courier New', Courier, monospace !important;
@@ -908,7 +913,12 @@ body.ascii-id-mode .id-row-sprite     { display: none !important; }
     line-height: 1;
     position: relative; z-index: 2;
 }
-.btn-user.expanded { max-width: 150px; }
+/* Pre-layout fallback only — UserMenuButtons' collision-detect effect
+   overrides this with an inline max-width every time the menu opens,
+   sized against .dropdown-stack's actual 310px width below. This value
+   just avoids a flash of the old 34px collapsed width before that
+   effect runs. */
+.btn-user.expanded { max-width: 300px; }
 
 .user-icon {
     font-size: 14px; width: 14px;
@@ -924,6 +934,19 @@ body.ascii-id-mode .id-row-sprite     { display: none !important; }
     display: flex; align-items: center;
     pointer-events: none;
     line-height: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+/* text-overflow:ellipsis doesn't apply to a flex container's own text
+   node — the pillText string needs its own block-level truncation
+   context. Collision auto-detect (UserMenuButtons) sets .btn-user's
+   max-width; this is what actually clips the @name with "…". */
+.user-text-inner {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
 }
 .btn-user.expanded .user-text {
     opacity: 1;
