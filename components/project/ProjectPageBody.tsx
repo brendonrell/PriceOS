@@ -133,6 +133,18 @@ function fmtUploadDate(ms: number | null): string {
     return `${mon} ${day} ${d.getUTCFullYear()}`;
 }
 
+/* Distinct random sample of n handles from a pool — same picker as the
+   homepage Featuring row's pickFeatured, transplanted here for the
+   Collected-by row's cycling (Brendon, 2026-08-18). */
+function pickN(pool: string[], n: number): string[] {
+    const copy = [...pool];
+    const out: string[] = [];
+    while (out.length < n && copy.length > 0) {
+        out.push(copy.splice(Math.floor(Math.random() * copy.length), 1)[0]);
+    }
+    return out;
+}
+
 function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploadedAt?: number | null; projectNo?: number | null }) {
     /* Hooks first (no conditional returns above) — covers the lint rule
        Brendon called out in earlier sessions. */
@@ -161,6 +173,21 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
     /* Spite Book — spited handles render redacted on the hero's social rows. */
     const isSpited = useSpiteMatcher();
     const { add: cartAdd } = useCart();
+
+    /* Collected-by row cycling — transplanted from the homepage Featuring
+       row (Brendon, 2026-08-18). Re-rolls every 3.6s like the homepage, but
+       ONLY once the pool is 6+: below that a 3.6s re-roll just loops the
+       same 2-3 faces, which reads as broken rather than alive. Under 6, the
+       row stays a static pick (first load only, no interval). */
+    const collectedByPool = project.stats.collected_by_following;
+    const [collectedByShown, setCollectedByShown] = useState<string[]>(() => collectedByPool.slice(0, 3));
+    useEffect(() => {
+        setCollectedByShown(pickN(collectedByPool, 3));
+        if (collectedByPool.length < 6) return;
+        const id = window.setInterval(() => setCollectedByShown(pickN(collectedByPool, 3)), 3600);
+        return () => window.clearInterval(id);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [collectedByPool.join('|')]);
 
     /* Registry def for static fields not in ProjectContext (mint price,
        soundtrack). */
@@ -430,10 +457,10 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                        when signed out or following none of this project's
                        collectors. */
                     project.stats.collected_by_following.length > 0 ? (() => {
-                        const collectors = project.stats.collected_by_following;
+                        const collectors = collectedByShown;
                         const handle = (n: string) => n.toLowerCase().replace(/^@/, '');
-                        const others3 = Math.max(0, collectors.length - 3);
-                        const others2 = Math.max(0, collectors.length - 2);
+                        const others3 = Math.max(0, collectedByPool.length - 3);
+                        const others2 = Math.max(0, collectedByPool.length - 2);
                         return (
                         /* Text-only, same treatment as the homepage Featuring
                            row (Brendon, 2026-08-15) — no ASCII-ID rectangle.
@@ -441,22 +468,25 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                            phone portrait shows 2, everywhere else shows 3, via
                            .cbr-feat-3 / .cbr-feat-others-2/3 + media query,
                            scoped to .collected-by-row generally (globals.css
-                           ~11590) — no page-specific class needed. */
+                           ~11590) — no page-specific class needed. Names now
+                           carry feat-name (flip-in on re-roll) and a key so
+                           each cycle remounts and replays it, matching the
+                           homepage row (Brendon, 2026-08-18). */
                         <div className="hero-line collected-by-row info-line">
                             <span className="cbr-label">Collected by </span>
                             <span className="cbr-id">
-                                <a className="profile-link" href={`/${handle(collectors[0])}`}>@{handle(collectors[0])}</a>
+                                <a key={collectors[0]} className="profile-link feat-name" href={`/${handle(collectors[0])}`}>@{handle(collectors[0])}</a>
                                 {collectors[1] && <span className="cbr-sep">,</span>}
                             </span>{' '}
                             {collectors[1] && (
                                 <span className="cbr-id">
-                                    <a className="profile-link" href={`/${handle(collectors[1])}`}>@{handle(collectors[1])}</a>
+                                    <a key={collectors[1]} className="profile-link feat-name" href={`/${handle(collectors[1])}`}>@{handle(collectors[1])}</a>
                                     {collectors[2] && <span className="cbr-sep cbr-feat-3">,</span>}
                                 </span>
                             )}{collectors[1] && ' '}
                             {collectors[2] && (
                                 <span className="cbr-id cbr-feat-3">
-                                    <a className="profile-link" href={`/${handle(collectors[2])}`}>@{handle(collectors[2])}</a>
+                                    <a key={collectors[2]} className="profile-link feat-name" href={`/${handle(collectors[2])}`}>@{handle(collectors[2])}</a>
                                 </span>
                             )}{collectors[2] && ' '}
                             {others3 > 0 && (
