@@ -24,6 +24,7 @@ import { getArtistStatus } from '@/lib/artists/allowlist';
 import { artistSignatureColor, projectsByArtist } from '@/lib/project/registry';
 import { deriveTags } from '@/lib/tags/derive';
 import { shortAddress } from '@/lib/project/projectAddress';
+import { isPlatformAccount, PRICE_TOKEN_CREATED_AT } from '@/lib/platform/accounts';
 
 export const runtime = 'nodejs';
 
@@ -115,8 +116,9 @@ export async function GET(
             tagsOff: user.tags_off,
         }).slice(0, 8); // keeps a wide, non-artist-heavy row from overflowing
 
-        const since = user.created_at
-            ? new Date(user.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).toUpperCase()
+        const sinceSource = isPlatformAccount(user.address) ? PRICE_TOKEN_CREATED_AT : user.created_at;
+        const since = sinceSource
+            ? new Date(sinceSource).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).toUpperCase()
             : null;
         const identity = user.ens_name || shortAddress(user.address);
 
