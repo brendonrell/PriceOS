@@ -131,7 +131,7 @@ import { useLedgerFeed } from '../../lib/feed/useLedgerFeed';
 import { useSpiteMatcher } from '../../lib/pins/spiteStore';
 import { useCollectedGallery } from './useCollectedGallery';
 import { useArtistShowcase } from './useArtistShowcase';
-import { isPlatformAccount } from '../../lib/platform/accounts';
+import { isPlatformAccount, PRICE_TOKEN_CREATED_AT } from '../../lib/platform/accounts';
 import PriceAccountPanel from './PriceAccountPanel';
 import PriceHoldersBoard from './PriceHoldersBoard';
 import { PriceOverviewPanel, PriceTokenomicsPanel, PriceContractPanel, PriceUtilityPanel } from './PriceDocsPanel';
@@ -419,7 +419,7 @@ function ProfilePageBodyInner({
     const nameFace = useSpriteFace(displayHandle);
     const { open: openModal } = useModal();
     const { openExchange } = useExchange();
-    const memberSince = formatMemberSince(user.created_at);
+    const memberSince = formatMemberSince(isPlatform ? PRICE_TOKEN_CREATED_AT : user.created_at);
 
     /* Chosen ENS, live on your OWN profile: the picker in Settings fires
        'pd:ens-changed' so the identity row repaints instantly instead of waiting
@@ -990,9 +990,9 @@ function ProfilePageBodyInner({
        the PriceDay of the user's join date, with their joining as the first
        event, then the standard almanac sections for that day. */
     const joinDate = useMemo(() => {
-        const d = new Date(user.created_at);
+        const d = new Date(isPlatform ? PRICE_TOKEN_CREATED_AT : user.created_at);
         return Number.isNaN(d.getTime()) ? null : d;
-    }, [user.created_at]);
+    }, [isPlatform, user.created_at]);
     const joinPriceDay = joinDate ? priceDayNumber(joinDate) : null;
     const joinPdcLive = usePriceDay(joinDate ?? new Date());
     const joinDayContents = joinDate ? joinPdcLive : null;
