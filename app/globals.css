@@ -6379,16 +6379,9 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.32); }
     min-width: 1.4em;
     justify-content: center;
 }
-/* The ↳ beside the group glyph — "and more layers under this one" (Brendon,
-   2026-07-30). Positioning now lives entirely in the inline style on the span
-   itself (traitsUIPills.tsx), mirroring the ❖/$ sort marks exactly, so this
-   class carries no layout rules of its own anymore (Brendon, 2026-08-14 —
-   the old transform/margin combo was landing the mark nowhere near the glyph
-   it modifies). */
-.group-btn-more {
-    display: inline-flex;
-    align-items: center;
-}
+/* The ↳ beside the group glyph now rides the shared .feed-sort-dollar class
+   directly, same as the ❖/$ sort marks — no bespoke class left to drift
+   (Brendon, 2026-08-19). */
 /* The home sort row's ◷ clock — dropped 1.5px, then taken back UP 1px
    (Brendon, 2026-07-26, second pass). Scoped to the home row only. */
 .sort-btn-clock .sort-lbl-recent { transform: translateY(0.5px); }
@@ -9892,6 +9885,10 @@ a.f-highlight { color: inherit; }
     .user-icon { position: relative; top: 1px; }
     .global-search-input::placeholder { font-size: 12px; }
     .feed-sort-dollar { font-weight: bold !important; font-size: 10px !important; position: relative; top: 1px; }
+    /* Sort-cycle + mark only — two font sizes larger + nudged up 2px
+       (Brendon, 2026-08-19). Scoped past .feed-sort-dollar so the shared
+       rarity/$ marks are untouched. */
+    .feed-sort-dollar.sort-plus-mark { font-size: 14px !important; top: -1px; }
 
     /* Settings toggle ID overrides — sim 2214, 2220-2222.
        (.balance-toggle-icon, .settings-toggle .st-icon, .settings-sort-arrow
