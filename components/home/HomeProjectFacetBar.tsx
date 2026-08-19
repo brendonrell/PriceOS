@@ -508,10 +508,12 @@ export default function HomeProjectFacetBar({
                                     className="feed-sort-dollar sort-plus-mark"
                                     style={{
                                         fontFamily: "'Courier New', Courier, monospace",
-                                        fontSize: '17px',
+                                        /* Two font sizes larger + nudged up 2px
+                                           (Brendon, 2026-08-19). */
+                                        fontSize: '21px',
                                         marginRight: '2px',
                                         position: 'relative',
-                                        top: '0px',
+                                        top: '-2px',
                                     }}
                                 >
                                     +
