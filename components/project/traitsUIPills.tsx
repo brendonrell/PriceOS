@@ -487,24 +487,21 @@ export function GroupBtn({
                 }
             }}
         >
-            {/* ⛔ SAME METHOD AS THE ❖ RARITY MARK / $ FEED MARK (Brendon,
-                2026-08-14: "nowhere near that spot, re-do it properly") — an
-                inline-styled span glued directly against the character it
-                marks, not a separately-classed sibling that can drift. Mirrors
-                traitsUIPills SortBtn's dollarSpan exactly: Courier, 13px,
-                2px right margin, nudged up 3px. Swapped '+' for ↳, the same
-                down-and-over glyph the layers menu itself wears
-                (GroupLayersBubble's .glb-arrow). */}
+            {/* SAME METHOD AS THE ❖ RARITY MARK / $ FEED MARK, literally
+                (Brendon, 2026-08-19 — copy/paste, not re-derived): the exact
+                `feed-sort-dollar` class + the exact current dollarSpan inline
+                style values from SortBtn above (17px, 0px top), not the stale
+                13px/-3px this used to carry under its own bespoke class. */}
             {on && more && (
                 <span
-                    className="group-btn-more"
+                    className="feed-sort-dollar group-more-mark"
                     aria-hidden="true"
                     style={{
                         fontFamily: "'Courier New', Courier, monospace",
-                        fontSize: '13px',
+                        fontSize: '17px',
                         marginRight: '2px',
                         position: 'relative',
-                        top: '-3px',
+                        top: '0px',
                     }}
                 >
                     {'\u21B3\uFE0E'}
