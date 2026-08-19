@@ -443,7 +443,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                            scoped to .collected-by-row generally (globals.css
                            ~11590) — no page-specific class needed. */
                         <div className="hero-line collected-by-row info-line">
-                            <span className="cbr-label">Collected by</span>{' '}
+                            <span className="cbr-label">Collected by </span>
                             <span className="cbr-id">
                                 <a className="profile-link" href={`/${handle(collectors[0])}`}>@{handle(collectors[0])}</a>
                                 {collectors[1] && <span className="cbr-sep">,</span>}
