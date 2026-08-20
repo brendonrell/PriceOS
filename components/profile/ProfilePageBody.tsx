@@ -553,7 +553,7 @@ function ProfilePageBodyInner({
                         mutual: iAmFollowedBy.has(handle.toLowerCase()),
                     }))
                     .filter((c) => theirFollowers.has(c.handle.toLowerCase()));
-                const ranked = rankSocialCandidates(cands, 3);
+                const ranked = rankSocialCandidates(cands, 2);
                 setFollowedBy({ shown: ranked.shown, others: ranked.othersCount });
                 setFollowedByPool(cands);
             } catch { if (!cancelled) { setFollowedBy({ shown: [], others: 0 }); setFollowedByPool([]); } }
@@ -564,16 +564,16 @@ function ProfilePageBodyInner({
         return () => { cancelled = true; window.removeEventListener('pd:follows-changed', h); };
     }, [siweAddress, user.address]);
 
-    /* Followed-by row cycling — transplanted from the homepage Featuring row
-       (Brendon, 2026-08-18). Re-rolls every 3.6s, but ONLY once the pool is
-       6+ (below that it'd just loop the same 2-3 faces). Re-invokes the same
-       relevance ranking rather than a flat random pick, so cycling still
-       respects connection strength / PriceRank — it's the ranker's own
-       jitter that supplies the variety each tick. */
+    /* Followed-by row cycling — matched to the homepage Featuring row
+       exactly (Brendon, 2026-08-20): two names shown, re-rolling every
+       3.6s whenever there's more than two to cycle through. Re-invokes the
+       same relevance ranking rather than a flat random pick, so cycling
+       still respects connection strength / PriceRank — it's the ranker's
+       own jitter that supplies the variety each tick. */
     useEffect(() => {
-        if (followedByPool.length < 6) return;
+        if (followedByPool.length < 3) return;
         const id = window.setInterval(() => {
-            const ranked = rankSocialCandidates(followedByPool, 3);
+            const ranked = rankSocialCandidates(followedByPool, 2);
             setFollowedBy({ shown: ranked.shown, others: ranked.othersCount });
         }, 3600);
         return () => window.clearInterval(id);
@@ -1847,14 +1847,11 @@ function ProfilePageBodyInner({
                 }
                 socialRow={
                     mutuals.length > 0 ? (
-                    /* Text-only, same treatment as the homepage Featuring row
-                       (Brendon, 2026-08-15) — no ASCII-ID rectangle here.
-                       Markup copied straight from HomePageBody's FeaturingRow,
-                       including its responsive 3rd-name toggle (Brendon,
-                       2026-08-17): phone portrait shows 2, everywhere else
-                       shows 3, via .cbr-feat-3 / .cbr-feat-others-2/3 +
-                       media query, scoped to .collected-by-row generally
-                       (globals.css ~11590) — no page-specific class needed. */
+                    /* Text-only, same treatment as the homepage Featuring
+                       row — two names shown, cycling on the same 3.6s timer
+                       whenever the pool has more (Brendon, 2026-08-20:
+                       matched to homepage exactly, dropped the 3rd-name
+                       responsive toggle). */
                     <div className="hero-line collected-by-row info-line">
                         <span className="cbr-label">Followed by&nbsp;</span>
                         <span className="cbr-id">
@@ -1864,22 +1861,11 @@ function ProfilePageBodyInner({
                         {mutuals[1] && (
                             <span className="cbr-id">
                                 <a key={mutuals[1]} className="profile-link feat-name" href={`/${mutuals[1]}`}>@{mutuals[1]}</a>
-                                {mutuals[2] && <span className="cbr-sep cbr-feat-3">,</span>}
                             </span>
                         )}{mutuals[1] && ' '}
-                        {mutuals[2] && (
-                            <span className="cbr-id cbr-feat-3">
-                                <a key={mutuals[2]} className="profile-link feat-name" href={`/${mutuals[2]}`}>@{mutuals[2]}</a>
-                            </span>
-                        )}{mutuals[2] && ' '}
                         {mutualOthers > 0 && (
-                            <span className="cbr-others cbr-feat-others-3">
+                            <span className="cbr-others">
                                 &amp; {mutualOthers} {mutualOthers === 1 ? 'Other' : 'Others'} You Follow
-                            </span>
-                        )}
-                        {(mutualOthers + (mutuals[2] ? 1 : 0)) > 0 && (
-                            <span className="cbr-others cbr-feat-others-2">
-                                &amp; {mutualOthers + (mutuals[2] ? 1 : 0)} {(mutualOthers + (mutuals[2] ? 1 : 0)) === 1 ? 'Other' : 'Others'} You Follow
                             </span>
                         )}
                     </div>
