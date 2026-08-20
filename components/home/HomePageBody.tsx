@@ -170,10 +170,11 @@ export function FeaturingRow() {
         <div className="hero-line collected-by-row info-line home-feat-row">
             <span className="cbr-label">Featuring</span>&nbsp;
             <a key={featNames[0]} className="profile-link feat-name" href={`/${featNames[0]}`}>@{featNames[0]}</a>
-            {featNames[1] && (
-                <>, <a key={featNames[1]} className="profile-link feat-name" href={`/${featNames[1]}`}>@{featNames[1]}</a></>
-            )}{' '}
+            {featNames[1] ? (
+                <>,&nbsp;<a key={featNames[1]} className="profile-link feat-name" href={`/${featNames[1]}`}>@{featNames[1]}</a>&nbsp;</>
+            ) : '\u00A0'}
             <span className="cbr-others">&amp; {featOthers} others</span>
+
         </div>
     );
 }
