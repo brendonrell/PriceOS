@@ -12432,6 +12432,11 @@ body.colorway-dark .ghost-feed-bar {
    the section's canonical pill icon; same starting size Social/Attributes/
    Offers launched at (Brendon, 2026-08-17). */
 .pill-tab-ico.is-pricestory { font-size: 1.15em; }
+/* Stats ⋚ + Sentiment ⚼ icons added to the project +More pills (Stats also
+   ships on the Output +More via MORE_PILLS' icon field) — same starting
+   size Social/Attributes/Offers/Price Story launched at. */
+.pill-tab-ico.is-stats { font-size: 1.15em; }
+.pill-tab-ico.is-sentiment { font-size: 1.15em; }
 
 /* ── Starred: Outputs / Traits filter pills + per-row CTAs ───────────────── */
 /* Per-row CTA button (Add-to-Wishlist on Output rows, Trait Offer on Trait
