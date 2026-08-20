@@ -50,11 +50,20 @@ import SpriteFace from './SpriteFace';
 import { spriteFaceFor } from '../lib/stickers/sprites';
 import { projectSpriteFace } from '../lib/project/projectSprite';
 import { getProject } from '../lib/project/registry';
+import { useLongPress } from '../lib/hooks/useLongPress';
+import { useToast } from '../lib/state/ToastContext';
 import type { CircleStat } from '../app/api/social/circle-stats/route';
 
 const VS15 = '︎';
 
 const MODE_KEY = 'pd_fi_preview';
+/* HOLD a mode chip → pins it to the front of the sequence, everything else
+   keeps its normal relative order behind it (Brendon, 2026-08-20). Hidden
+   feature — no UI prompt; documented in the user docs instead. Grail pin
+   glyph (⟟) reused for now, same icon as the Wishlist/Starred grail pin,
+   while Brendon picks a dedicated icon. */
+const PIN_KEY = 'pd_fi_preview_pin';
+const PIN_GLYPH = '⟟';
 type PreviewMode = 'days' | 'streak' | 'spend' | 'newcircle' | 'overlap' | 'roster';
 const MODES: { key: PreviewMode; label: string }[] = [
     { key: 'days', label: '30D' },
@@ -86,6 +95,14 @@ function readMode(): PreviewMode {
     return 'days';
 }
 
+function readPin(): PreviewMode | null {
+    try {
+        const saved = localStorage.getItem(PIN_KEY);
+        if (saved === 'roster' || saved === 'days' || saved === 'overlap' || saved === 'streak' || saved === 'spend' || saved === 'newcircle') return saved;
+    } catch { /* first visit */ }
+    return null;
+}
+
 export default function FriendInspectorPreview({
     people, inspected, onInspect, myStat, myHandle, mySlugs, onFocus,
 }: {
@@ -105,18 +122,40 @@ export default function FriendInspectorPreview({
         try { localStorage.setItem(MODE_KEY, m); } catch { /* device-local nicety */ }
     }, []);
 
+    const [pinned, setPinned] = useState<PreviewMode | null>(null);
+    useEffect(() => { setPinned(readPin()); }, []);
+    const { showToast } = useToast();
+    const togglePin = useCallback((m: PreviewMode) => {
+        setPinned((prev) => {
+            const next = prev === m ? null : m;
+            try {
+                if (next) localStorage.setItem(PIN_KEY, next);
+                else localStorage.removeItem(PIN_KEY);
+            } catch { /* device-local nicety */ }
+            showToast(next ? `${MODES.find((x) => x.key === m)?.label}: PINNED` : `${MODES.find((x) => x.key === m)?.label}: UNPINNED`);
+            return next;
+        });
+    }, [showToast]);
+
+    const orderedModes = useMemo(() => {
+        if (!pinned) return MODES;
+        const p = MODES.find((m) => m.key === pinned);
+        if (!p) return MODES;
+        return [p, ...MODES.filter((m) => m.key !== pinned)];
+    }, [pinned]);
+
     return (
         <div className="fi-preview">
             <div className="fi-preview-toggle" role="group" aria-label="Preview mode">
-                {MODES.map((m) => (
-                    <button
+                {orderedModes.map((m) => (
+                    <PreviewChip
                         key={m.key}
-                        type="button"
-                        className={`ambient-chip fi-preview-chip${mode === m.key ? ' on' : ''}`}
+                        label={m.label}
+                        on={mode === m.key}
+                        pinned={pinned === m.key}
                         onClick={() => pick(m.key)}
-                    >
-                        {m.label}
-                    </button>
+                        onHold={() => togglePin(m.key)}
+                    />
                 ))}
             </div>
             {mode === 'days' && <ThirtyDays people={people} onFocus={onFocus} />}
@@ -130,6 +169,26 @@ export default function FriendInspectorPreview({
                 <Roster people={people} inspected={inspected} onInspect={onInspect} myStat={myStat} myHandle={myHandle} />
             )}
         </div>
+    );
+}
+
+/* A single preview-mode chip. HOLD pins it to the front of the sequence
+   (Brendon, 2026-08-20) — same useLongPress contract as every other hold in
+   PD. No UI prompt; the pin glyph is the only visible trace once it lands. */
+function PreviewChip({
+    label, on, pinned, onClick, onHold,
+}: { label: string; on: boolean; pinned: boolean; onClick: () => void; onHold: () => void }) {
+    const hold = useLongPress(onHold);
+    return (
+        <button
+            type="button"
+            className={`ambient-chip fi-preview-chip${on ? ' on' : ''}${pinned ? ' is-pinned' : ''}`}
+            onClick={onClick}
+            {...hold}
+        >
+            {pinned && <span className="fi-preview-pin" aria-hidden="true">{`${PIN_GLYPH}${VS15}`}</span>}
+            {label}
+        </button>
     );
 }
 

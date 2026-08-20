@@ -42,8 +42,14 @@ import { StickerArt } from './stickers/StickerArt';
 import type { Sticker } from '../lib/stickers/catalog';
 import type { CircleStat } from '../app/api/social/circle-stats/route';
 import SpriteFace from './SpriteFace';
+import { useLongPress } from '../lib/hooks/useLongPress';
 
 const VS15 = '︎';
+/* HOLD a preview chip → pins it to the front of the sequence (Brendon,
+   2026-08-20). Same hidden feature + grail glyph as the Friend Inspector's
+   own preview strip — see FriendInspectorPreview.tsx. */
+const PREVIEW_PIN_KEY = 'pd_pp_preview_pin';
+const PIN_GLYPH = '⟟';
 
 type ProTab = 'all' | 'held' | 'starred' | 'minting';
 type ProSort = 'az' | 'newest' | 'size' | 'minted';
@@ -775,6 +781,27 @@ function ProjectsPreview({
         try { localStorage.setItem(PREVIEW_KEY, m); } catch { /* device-local nicety */ }
     };
 
+    const [pinned, setPinned] = useState<ProPreview | null>(null);
+    useEffect(() => {
+        try {
+            const saved = localStorage.getItem(PREVIEW_PIN_KEY);
+            if (saved === 'roster' || saved === 'days') setPinned(saved);
+        } catch { /* first visit */ }
+    }, []);
+    const { showToast } = useToast();
+    const togglePin = useCallback((m: ProPreview) => {
+        setPinned((prev) => {
+            const next = prev === m ? null : m;
+            try {
+                if (next) localStorage.setItem(PREVIEW_PIN_KEY, next);
+                else localStorage.removeItem(PREVIEW_PIN_KEY);
+            } catch { /* device-local nicety */ }
+            showToast(next ? `${m === 'roster' ? 'ROSTER' : '30 DAYS'}: PINNED` : `${m === 'roster' ? 'ROSTER' : '30 DAYS'}: UNPINNED`);
+            return next;
+        });
+    }, [showToast]);
+    const order: ProPreview[] = pinned ? [pinned, pinned === 'roster' ? 'days' : 'roster'] : ['roster', 'days'];
+
     const days = useMemo(() => {
         const base: { key: string; label: string; count: number }[] = [];
         const now = new Date();
@@ -799,8 +826,16 @@ function ProjectsPreview({
     return (
         <div className="fi-preview">
             <div className="fi-preview-toggle" role="group" aria-label="Preview mode">
-                <button type="button" className={`ambient-chip fi-preview-chip${mode === 'roster' ? ' on' : ''}`} onClick={() => pick('roster')}>ROSTER</button>
-                <button type="button" className={`ambient-chip fi-preview-chip${mode === 'days' ? ' on' : ''}`} onClick={() => pick('days')}>30 DAYS</button>
+                {order.map((m) => (
+                    <ProPreviewChip
+                        key={m}
+                        label={m === 'roster' ? 'ROSTER' : '30 DAYS'}
+                        on={mode === m}
+                        pinned={pinned === m}
+                        onClick={() => pick(m)}
+                        onHold={() => togglePin(m)}
+                    />
+                ))}
             </div>
 
             {mode === 'roster' ? (
@@ -849,5 +884,25 @@ function ProjectsPreview({
                 </div>
             )}
         </div>
+    );
+}
+
+/* A single preview-mode chip. HOLD pins it to the front of the sequence —
+   same useLongPress contract as everywhere else in PD, mirrored from
+   FriendInspectorPreview's PreviewChip. */
+function ProPreviewChip({
+    label, on, pinned, onClick, onHold,
+}: { label: string; on: boolean; pinned: boolean; onClick: () => void; onHold: () => void }) {
+    const hold = useLongPress(onHold);
+    return (
+        <button
+            type="button"
+            className={`ambient-chip fi-preview-chip${on ? ' on' : ''}${pinned ? ' is-pinned' : ''}`}
+            onClick={onClick}
+            {...hold}
+        >
+            {pinned && <span className="fi-preview-pin" aria-hidden="true">{`${PIN_GLYPH}${VS15}`}</span>}
+            {label}
+        </button>
     );
 }
