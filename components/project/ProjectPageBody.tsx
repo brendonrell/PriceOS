@@ -183,6 +183,9 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
     const [collectedByShown, setCollectedByShown] = useState<string[]>(() => collectedByPool.slice(0, 2));
     useEffect(() => {
         setCollectedByShown(pickN(collectedByPool, 2));
+        /* Only cycle once the pool is 6+ (Brendon, 2026-08-20) — below that,
+           a 3.6s re-roll just loops the same couple of faces. */
+        if (collectedByPool.length < 6) return;
         const id = window.setInterval(() => setCollectedByShown(pickN(collectedByPool, 2)), 3600);
         return () => window.clearInterval(id);
         // eslint-disable-next-line react-hooks/exhaustive-deps
