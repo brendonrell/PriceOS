@@ -135,7 +135,7 @@ export const ATLAS: AtlasFeature[] = [
     F(84, 'Price Story (project-level)', 'Project Page'),
     F(85, "Recent pill — My Breadcrumbs + What's Hot", 'Project Page'),
     F(86, 'The Replay', 'Project Page', '⏴'),
-    F(87, 'Sentiment', 'Project Page'),
+    F(87, 'Sentiment', 'Project Page', '⚼'),
     F(88, 'Shareable sort links', 'Project Page'),
     F(89, 'Showcase / Artworks / +More tabs', 'Project Page'),
     F(90, 'Tab memory', 'Project Page'),
