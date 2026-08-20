@@ -14145,6 +14145,11 @@ body.theme-bright .fi-row.inspecting {
     background: transparent; border: none; color: var(--text-color);
     font-weight: 800; opacity: 1;
 }
+/* Pinned mode (HOLD a chip — Brendon, 2026-08-20, hidden feature, no UI
+   prompt): the grail glyph rides just ahead of the label, full opacity even
+   when the chip itself isn't the active one. */
+.fi-preview-chip.is-pinned { opacity: 0.85; }
+.fi-preview-pin { margin-right: 3px; opacity: 1; }
 
 /* ── THE SIX MODES (Brendon, 2026-08-15 — was three: OVERLAP · ROSTER ·
    30 DAYS; added STREAK · SPEND · NEW). Full-strength site tokens
