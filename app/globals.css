@@ -13527,6 +13527,18 @@ body.colorway-dark .ghost-feed-bar {
    The feature page paints the REAL high-res artwork (not the gallery
    thumbnail). Wide pieces use the full content width; tall pieces cap to the
    viewport height and centre. */
+/* WRAP — a single max-content grid column shared by the stage and the
+   footer (Brendon, 2026-08-20). Grid's default justify-items:stretch means
+   the footer — naturally much narrower than the art — stretches to the
+   SAME column width the stage claims (the art's rendered width + its own
+   padding), so "Open Full Screen" lands at the art's right edge instead of
+   the page's. Pure-CSS fix, no measuring. */
+.artwork-feature-wrap {
+    display: inline-grid;
+    grid-template-columns: max-content;
+    justify-content: flex-start;
+    max-width: 100%;
+}
 .artwork-feature-stage {
     /* Keep the horizontal inset INSIDE the width — otherwise the full-bleed
        stage runs 80px past the viewport and creates horizontal scroll in
@@ -13888,9 +13900,15 @@ body.is-pwa .fullscreen-back {
    line. Spaced apart with margin so cards never touch — the chaotic,
    everything-touching read the leaderboard card was built to avoid.
    Bottom row keeps the Inspector's OWN stats (fm-row-stats), untouched —
-   only the box around it is borrowed. */
+   only the box around it is borrowed.
+   LIGHTENED + INSET (Brendon, 2026-08-20) — round 3's 24%/42% mix read as
+   too heavy (the podium reference this borrows from tops out at 13% for
+   #1); pulled back to match. Full-bleed edge-to-edge width also read as
+   one long bar rather than a card, so it's inset with a horizontal margin
+   to match the vertical one — a real gutter on both sides, like the
+   podium rows sit inside their own panel. */
 .fi-row {
-    width: 100%; max-width: 100%; box-sizing: border-box;
+    width: auto; max-width: 100%; box-sizing: border-box;
     padding: 14px 10px;
     border-radius: 4px;
     /* ⛔ THEME-AWARE DIRECTION, NOT ALWAYS-DARKER (Brendon, 2026-08-15,
@@ -13899,22 +13917,21 @@ body.is-pwa .fullscreen-back {
        colorway (dark-on-dark = nothing). body.theme-bright already exists
        (ColorwayContext sets it for bright bg → dark ink) — use it to flip
        direction: dark bg lightens toward white, bright bg darkens toward
-       black. Bumped to 24% (from the 20-22% that read as too subtle) so the
-       step off the page is unmistakable either way. */
-    background: color-mix(in srgb, var(--bg-color) 76%, white 24%);
-    margin-bottom: 8px;
+       black. */
+    background: color-mix(in srgb, var(--bg-color) 88%, white 12%);
+    margin: 0 6px 8px;
 }
 body.theme-bright .fi-row {
-    background: color-mix(in srgb, var(--bg-color) 76%, black 24%);
+    background: color-mix(in srgb, var(--bg-color) 88%, black 12%);
 }
 .fi-row:last-child { margin-bottom: 0; }
 .fi-row.inspecting {
     /* Expanded row goes one step further than the resting card, same
        direction as above. */
-    background: color-mix(in srgb, var(--bg-color) 58%, white 42%);
+    background: color-mix(in srgb, var(--bg-color) 78%, white 22%);
 }
 body.theme-bright .fi-row.inspecting {
-    background: color-mix(in srgb, var(--bg-color) 58%, black 42%);
+    background: color-mix(in srgb, var(--bg-color) 78%, black 22%);
 }
 .fi-line { display: flex; align-items: center; gap: 13px; min-width: 0; }
 .fi-line-main {
