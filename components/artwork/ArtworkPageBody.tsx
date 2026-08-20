@@ -781,6 +781,10 @@ export default function ArtworkPageBody({
                                 </span>
                             </span>
                             <span className="follower-count">32</span>
+                            {/* The artist's PROJECT tags — same pills Projects Pro
+                                already draws under this project's row, now wired
+                                to the page's own by-line too (Brendon, 2026-08-19). */}
+                            <UserTagsFor handle={artistHandle} only="project" size="mini" themed />
                         </div>
                     </div>
 
