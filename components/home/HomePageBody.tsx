@@ -52,7 +52,6 @@ import { useToast } from '../../lib/state/ToastContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { useFiat, fiatSymbol } from '../../lib/state/FiatContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
-import { useDropdown } from '../../lib/state/DropdownContext';
 import { getSupabaseBrowser } from '../../lib/supabase';
 import { allProjects, getProject, projectTraits } from '../../lib/project/registry';
 import { formatEth } from '../../lib/format/eth';
@@ -89,13 +88,8 @@ const FEATURED_HANDLES: readonly string[] = [
 ];
 
 /* Featured handles shown at once (Brendon, 2026-06-12: two sprite+name
-   chips — the chips give each name more presence than the old bare trio).
-   Three fit everywhere except phone portrait, where the row's own width is
-   the real constraint — not some arbitrary device check. Always pick 3;
-   the 3rd name + its comma, and the "& N others" count, are toggled
-   responsively in CSS (see .home-feat-row rules, globals.css) rather than
-   branched here (Brendon, 2026-08-17). */
-const FEATURE_SHOW = 3;
+   chips — the chips give each name more presence than the old bare trio). */
+const FEATURE_SHOW = 2;
 
 /* Distinct random handles for the Featuring row. */
 function pickFeatured(): string[] {
@@ -156,7 +150,6 @@ function OwnedNameCheck() {
    was re-rendering the entire page every 3.6s — stuttering the news banner and
    every carousel. Now it's a featherweight leaf (Brendon, 2026-07-05). */
 export function FeaturingRow() {
-    const { openMenu, setView } = useDropdown();
     /* First paint deterministic (SSR/CSR agree); the mount re-roll + interval
        take over. Each name card flips in; the row height is locked in CSS so
        cycling never reflows the hero. */
@@ -174,23 +167,9 @@ export function FeaturingRow() {
             <span className="cbr-label">Featuring</span>{' '}
             <a key={featNames[0]} className="profile-link feat-name" href={`/${featNames[0]}`}>@{featNames[0]}</a>
             {featNames[1] && (
-                /* Comma + 2nd name glued as one atomic unit (nowrap) — as
-                   bare text-node siblings they're each their own anonymous
-                   flex item, so flex-wrap could break the line between the
-                   comma and its name, stranding "," alone at the start of
-                   line 2. Wrapping them together keeps them inseparable
-                   (Brendon, 2026-08-19). */
-                <span style={{ whiteSpace: 'nowrap' }}>, <a key={featNames[1]} className="profile-link feat-name" href={`/${featNames[1]}`}>@{featNames[1]}</a></span>
+                <>, <a key={featNames[1]} className="profile-link feat-name" href={`/${featNames[1]}`}>@{featNames[1]}</a></>
             )}{' '}
-            <span
-                className="cbr-others"
-                role="button"
-                tabIndex={0}
-                title="See all featured artists"
-                style={{ cursor: 'pointer' }}
-                onClick={() => { openMenu(); setView('artists'); }}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openMenu(); setView('artists'); } }}
-            >&amp; {featOthers} others</span>
+            <span className="cbr-others">&amp; {featOthers} others</span>
         </div>
     );
 }
