@@ -129,11 +129,13 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   if (r.kind === 'profileByAddress') {
     return { title: 'Price Discussion' };
   }
-  // ARTIST profiles unfurl with their art (Brendon, 2026-07-13 — the artist
-  // batch): sharing an artist's page is a gallery invite. The embed leads with
-  // the artist's LATEST MINTED piece across all their projects (Brendon,
-  // 2026-07-27 — was pinned to first project #1); if that piece's preview
-  // isn't stored yet (fresh mint), it falls back to first project #1.
+  // ARTIST profiles used to unfurl with their art alone (Brendon, 2026-07-13
+  // — the artist batch; latest-minted-piece pick added 2026-07-27). The
+  // 2026-08-16 hero-image change below only ever got wired into the
+  // non-artist path — this branch returned early before reaching it, so an
+  // artist's own share card never changed. Fixed 2026-08-20: the hero image
+  // is primary here too, same as every other profile; the latest-minted
+  // piece (or first-project cover) drops to fallback instead of disappearing.
   const artistProjects = projectsByArtist(r.handle.replace(/^@/, ''));
   if (artistProjects.length > 0) {
     let slug = artistProjects[0].slug;
@@ -171,14 +173,25 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     } catch { /* keep the candidate */ }
     const art = hasArt ? artImageUrl(slug, pick) : null;
     if (art) {
-      const ogTitle = `@${r.handle.replace(/^@/, '')} — artist on Price Discussion`;
-      const description = `Generative art by @${r.handle.replace(/^@/, '')} on Price Discussion — ${artistProjects.length} project${artistProjects.length === 1 ? '' : 's'} through the filter.`;
+      const bareHandle = r.handle.replace(/^@/, '');
+      const ogTitle = `@${bareHandle} — artist on Price Discussion`;
+      const description = `Generative art by @${bareHandle} on Price Discussion — ${artistProjects.length} project${artistProjects.length === 1 ? '' : 's'} through the filter.`;
+      const heroImage = `/api/og/profile/${bareHandle}`;
       return {
         title: `${r.handle} · Price Discussion`,
         alternates: { canonical: `/${r.handle}` },
         description,
-        openGraph: { title: ogTitle, description, type: 'profile', url: `/${r.handle}`, images: [{ url: art, alt: ogTitle }] },
-        twitter: { card: 'summary_large_image', title: ogTitle, description, images: [art] },
+        openGraph: {
+          title: ogTitle,
+          description,
+          type: 'profile',
+          url: `/${r.handle}`,
+          images: [
+            { url: heroImage, width: 1200, height: 630, alt: ogTitle },
+            { url: art, alt: ogTitle },
+          ],
+        },
+        twitter: { card: 'summary_large_image', title: ogTitle, description, images: [heroImage] },
       };
     }
   }
