@@ -182,14 +182,14 @@ type MoreL1 =
    `.label.toUpperCase()` section-header lookup below keeps working
    unchanged (Brendon, 2026-08-17). */
 const MORE_PILLS: { key: MoreL1; label: string; icon?: string }[] = [
-    { key: 'attributes', label: 'Attributes' },
-    { key: 'offers', label: 'Offers' },
-    { key: 'neighbourhood', label: 'Neighbourhood' },
+    { key: 'attributes', label: 'Attributes', icon: '\u2A69\uFE0E' },
+    { key: 'offers', label: 'Offers', icon: '\u2736\uFE0E' },
+    { key: 'neighbourhood', label: 'Neighbourhood', icon: '\u26B9\uFE0E' },
     { key: 'pricestory', label: 'Price Story', icon: '\u25BC\uFE0E' },
-    { key: 'replay', label: 'Replay' },
+    { key: 'replay', label: 'Replay', icon: '\u23F4\uFE0E' },
     { key: 'stats', label: 'Stats', icon: '\u22DA\uFE0E' },
-    { key: 'social', label: 'Social' },
-    { key: 'asciibackup', label: 'ASCII Backup' },
+    { key: 'social', label: 'Social', icon: '\u263B\uFE0E' },
+    { key: 'asciibackup', label: 'ASCII Backup', icon: '\u2382\uFE0E' },
 ];
 
 interface Props {
@@ -238,7 +238,7 @@ export default function ArtworkPageBody({
        Attributes so the surface never strands on a vanished pill. */
     const tribunalOn = notifs.spell_tribunal;
     const morePills: { key: MoreL1; label: string; icon?: string }[] = tribunalOn
-        ? [...MORE_PILLS, { key: 'tribunal', label: 'Tribunal' }]
+        ? [...MORE_PILLS, { key: 'tribunal', label: 'Tribunal', icon: '\u26BB\uFE0E' }]
         : MORE_PILLS;
     useEffect(() => {
         if (!tribunalOn && moreL1 === 'tribunal') setMoreL1('attributes');
