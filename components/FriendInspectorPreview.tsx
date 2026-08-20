@@ -279,8 +279,9 @@ function Overlap({
 
 /* ── THE ROSTER ──────────────────────────────────────────────────────────
    The circle as faces. Each sprite wears its owner's profile colorway; a
-   MUTUAL is ringed with PD's own dotted mark (never an accent bar — the
-   banned motif). You sit first, marked YOU. ── */
+   MUTUAL wears a solid background tint (Brendon, 2026-08-20 — replaced the
+   dotted ring, PD's other "selected" mark, which read as too busy/fussy
+   here). You sit first, marked YOU. ── */
 function Roster({
     people, inspected, onInspect, myStat, myHandle,
 }: {
