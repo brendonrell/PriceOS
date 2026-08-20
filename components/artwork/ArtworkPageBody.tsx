@@ -1083,6 +1083,13 @@ export default function ArtworkPageBody({
                 aria-label="Artwork"
                 style={{ display: onArtwork ? undefined : 'none' }}
             >
+                {/* WRAP (Brendon, 2026-08-20) — stage + footer share this grid
+                    column so the footer's width tracks the ART's actual
+                    rendered width, not the full section. Before this, the
+                    footer was its own full-width flex row and "Open Full
+                    Screen" landed at the screen's right edge instead of the
+                    art's right edge on any piece narrower than the page. */}
+                <div className="artwork-feature-wrap">
                 <div
                     ref={featureStageRef}
                     className="artwork-feature-stage"
@@ -1137,6 +1144,7 @@ export default function ArtworkPageBody({
                     >
                         Open Full Screen
                     </a>
+                </div>
                 </div>
 
                 {/* Output activity feed — the homepage Now-Minting bar, exact:
