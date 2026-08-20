@@ -1252,8 +1252,19 @@ export default function TraitsUI({
             {/* .preset-row — Gallery View Presets. Sits between the
                 sort-bar and the search-row so both can be open at once.
                 Driven by presetRowActive (⏚ button). */}
+            {/* Both rows below are the project-gallery's own trait
+                search/preset surface. In profile mode (+More) that
+                surface is a different component entirely (the page's
+                own attr-pill-search), so these must not render at all
+                here — same rule as .colorway-pills above (inProfileMode
+                gate) — otherwise their shared TraitsContext state
+                (searchActive/presetRowActive) bleeds this instance's
+                row into a tab that never opened it (Brendon, UI leak
+                fix 2026-08-20). */}
+            {!inProfileMode && (
+            <>
             <PresetRow
-                open={presetRowActive}
+                open={visible && presetRowActive}
                 slug="project"
                 projectSlug={projectSlug}
                 sort={sort}
@@ -1274,10 +1285,13 @@ export default function TraitsUI({
 
             {/* .search-row — sim 5180-5189. The .open modifier mirrors
                 sim's toggleSearch (sim ~8843) — without it the row's
-                display:none rule keeps it collapsed. */}
+                display:none rule keeps it collapsed. Also gated on
+                `visible` so a search left open on the Artworks tab
+                doesn't stay painted after switching tabs. */}
             <div
-                className={`search-row${searchActive ? ' open' : ''}`}
+                className={`search-row${visible && searchActive ? ' open' : ''}`}
                 id="searchRow"
+                style={hiddenStyle}
             >
                 <input
                     className="search-input"
@@ -1346,6 +1360,8 @@ export default function TraitsUI({
                     ✕&#xFE0E;
                 </span>
             </div>
+            </>
+            )}
 
             {/* PORT-ONLY: "Search Filter ON" chip. Not in sim — sim only
                 fires this string as a toast at sim 8861. Added per Build
