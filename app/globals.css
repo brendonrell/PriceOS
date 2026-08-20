@@ -11667,26 +11667,9 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 /* Cap at two lines (clips a rare 3rd) WITHOUT forcing a taller box — keeps the
    natural line spacing of every other social row (Brendon, 2026-06-15). */
 @media (max-width: 600px)  { .home-feat-row { max-height: 2.4em; } }
-/* Third featured/collected/followed name: shows everywhere except phone
-   portrait, where the row itself is too narrow — not an arbitrary iPhone-12
-   check, the actual viewport. Landscape phones, tablets (either orientation),
-   and desktop all get 3; only max-width:600 + portrait falls back to 2.
-   Shared across Featuring (home), Collected by (project), Followed by
-   (profile) — any .collected-by-row, not just .home-feat-row (Brendon,
-   2026-08-17). The two "& N others" counts are mutually exclusive with this
-   same query. */
-.collected-by-row .cbr-feat-others-2 { display: none; }
-@media (max-width: 600px) and (orientation: portrait) {
-    /* .cbr-id (set unconditionally, further down this file) shares this
-       exact specificity and would otherwise win on source order alone,
-       silently re-showing the 3rd name. Compound the selector so this
-       rule always wins regardless of where .cbr-id is declared
-       (Brendon, 2026-08-17 fix). */
-    .collected-by-row .cbr-id.cbr-feat-3 { display: none; }
-    .collected-by-row .cbr-sep.cbr-feat-3 { display: none; }
-    .collected-by-row .cbr-feat-others-3 { display: none; }
-    .collected-by-row .cbr-feat-others-2 { display: inline; }
-}
+/* Third-name responsive toggle removed (Brendon, 2026-08-20): Collected by
+   (project) and Followed by (profile) now match the homepage Featuring row
+   exactly — two names shown everywhere, no viewport-dependent 3rd name. */
 .feat-name {
     display: inline-block;
     animation: feat-flip 0.5s ease;
