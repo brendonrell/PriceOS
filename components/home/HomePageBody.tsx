@@ -164,7 +164,7 @@ export function FeaturingRow() {
     const featOthers = Math.max(0, FEATURED_HANDLES.length - FEATURE_SHOW);
     return (
         <div className="hero-line collected-by-row info-line home-feat-row">
-            <span className="cbr-label">Featuring</span>{' '}
+            <span className="cbr-label">Featuring</span>&nbsp;
             <a key={featNames[0]} className="profile-link feat-name" href={`/${featNames[0]}`}>@{featNames[0]}</a>
             {featNames[1] && (
                 <>, <a key={featNames[1]} className="profile-link feat-name" href={`/${featNames[1]}`}>@{featNames[1]}</a></>
