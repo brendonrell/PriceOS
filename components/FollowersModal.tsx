@@ -953,7 +953,6 @@ function PersonRow({
                     followBusy={followBusy}
                     onToggleFollow={onToggleFollow}
                     slots={slots}
-                    tagSet={tagSet}
                 />
             )}
         </div>
@@ -980,21 +979,16 @@ function ProjectChip({ slug, faceId }: { slug: string; faceId?: string }) {
    All real numbers; follow/unfollow rides the same row. ── */
 function FriendDossier({
     handle, stat, tag, friendAddr, mySlugs, myStat, myScore,
-    following, followBusy, onToggleFollow, slots, tagSet,
+    following, followBusy, onToggleFollow, slots,
 }: {
     handle: string; stat: CircleStat | undefined; tag: string | null;
     friendAddr: string | null; mySlugs: string[] | null;
     myStat: CircleStat | undefined; myScore: number | null;
     following: boolean; followBusy: boolean; onToggleFollow: () => void;
     slots: RivalrySlots;
-    /* Their profile tags — the fastest read of WHO you're sizing up, so they
-       lead the dossier, above the relationship line (Brendon, 2026-07-24). */
-    tagSet: UserTagSet | undefined;
 }) {
     const [theirSlugs, setTheirSlugs] = useState<string[] | null>(null);
     const [theirScore, setTheirScore] = useState<number | null>(null);
-    /* Mini↔big toggle for the dossier tags (Brendon, 2026-07-27). */
-    const [tagsBig, setTagsBig] = useState(false);
 
     useEffect(() => {
         if (!friendAddr) { setTheirSlugs([]); return; }
@@ -1032,15 +1026,6 @@ function FriendDossier({
 
     return (
         <div className="fi-dossier" onClick={(e) => e.stopPropagation()}>
-            {/* The FULL ASCII-ID leads the dossier — sprite · PriceRank badge ·
-                @name, the connect-menu identity verbatim — with the MINI tags
-                riding inline right after it (Brendon, 2026-07-27). Tap a mini
-                → the full-size row below; tap a full one → back to mini. */}
-            <div className="fi-dossier-id">
-                <AsciiId handle={handle} />
-                {!tagsBig && <UserTags set={tagSet} size="mini" onTagTap={() => setTagsBig(true)} />}
-            </div>
-            {tagsBig && <UserTags set={tagSet} size="inline" onTagTap={() => setTagsBig(false)} />}
             <div className="fi-dossier-head">
                 {tag && <span className="fm-tag">{REL_GLYPH[tag]}{VS15} {tag}</span>}
                 {faction && (
