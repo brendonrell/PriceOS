@@ -1598,6 +1598,12 @@ body.ascii-id-mode .id-row-sprite     { display: none !important; }
     scrollbar-width: none;
     -ms-overflow-style: none;
     overscroll-behavior: contain;
+    /* Rows were stacking with zero gap between them (relying on padding
+       alone), which read as bunched once a row's text wrapped to 2 lines
+       (Brendon, 2026-08-19). */
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 .notif-list::-webkit-scrollbar { display: none; }
 
@@ -1612,6 +1618,7 @@ body.ascii-id-mode .id-row-sprite     { display: none !important; }
 
 .notif-item {
     font-size: 12px;
+    line-height: 1.4;
     padding: 8px 10px;
     display: flex; gap: 10px; align-items: center;
     cursor: pointer;
@@ -2566,9 +2573,22 @@ section[aria-label="Created projects"] > .upload-window {
 
 .followers-pop .fm-tabs,
 .followers-plus .fm-tabs { display: flex; flex-wrap: wrap; gap: 6px; flex: 0 0 auto; }
-.fm-sort { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; flex: 0 0 auto; }
+.fm-sort-rows { display: flex; flex-direction: column; gap: 6px; flex: 0 0 auto; }
+.fm-sort-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
 .fm-sort-label { font-size: 10px; font-weight: bold; letter-spacing: 1px; }
 .fm-sort-chip { font-size: 11px; }
+/* LENS pills wear the app's standard hatch texture (same repeating-linear-
+   gradient as .ss-card-art / .fam-tile.locked) to read as distinct from the
+   plain SORT chips — theme-reactive via var(--text-color), so it holds in
+   dark mode too (Brendon, 2026-08-19). */
+.fm-lens-chip {
+    background: repeating-linear-gradient(
+        45deg,
+        color-mix(in srgb, var(--text-color) 3%, transparent) 0 6px,
+        color-mix(in srgb, var(--text-color) 9%, transparent) 6px 12px
+    );
+}
+.fm-lens-chip.on { background: var(--text-color); }
 
 /* The one scroll area — owns all remaining height. */
 .followers-pop .fm-list,
@@ -13961,7 +13981,6 @@ body.theme-bright .fi-row.inspecting {
     font-size: 12px; font-weight: bold;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.fm-lens-label { margin-left: 10px; }
 /* Projects rows wear the Projects Pro+ line verbatim, plus this surface's
    minted/cartel reads ahead of the artist. The line IS the link. */
 .fi-projrow { flex: 1 1 auto; min-width: 0; padding: 0; color: inherit; text-decoration: none; }
