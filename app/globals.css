@@ -13901,14 +13901,14 @@ body.is-pwa .fullscreen-back {
    everything-touching read the leaderboard card was built to avoid.
    Bottom row keeps the Inspector's OWN stats (fm-row-stats), untouched —
    only the box around it is borrowed.
-   LIGHTENED + INSET (Brendon, 2026-08-20) — round 3's 24%/42% mix read as
-   too heavy (the podium reference this borrows from tops out at 13% for
-   #1); pulled back to match. Full-bleed edge-to-edge width also read as
-   one long bar rather than a card, so it's inset with a horizontal margin
-   to match the vertical one — a real gutter on both sides, like the
-   podium rows sit inside their own panel. */
+   LIGHTENED (Brendon, 2026-08-20) — round 3's 24%/42% mix read as too
+   heavy (the podium reference this borrows from tops out at 13% for #1);
+   pulled back to match. (A right-side gutter was tried the same day to
+   stop the card running to the screen edge, then pulled again — Brendon
+   wants to think it through more; back to full width, vertical spacing
+   only, for now.) */
 .fi-row {
-    width: auto; max-width: 100%; box-sizing: border-box;
+    width: 100%; max-width: 100%; box-sizing: border-box;
     padding: 14px 10px;
     border-radius: 4px;
     /* ⛔ THEME-AWARE DIRECTION, NOT ALWAYS-DARKER (Brendon, 2026-08-15,
@@ -13919,7 +13919,7 @@ body.is-pwa .fullscreen-back {
        direction: dark bg lightens toward white, bright bg darkens toward
        black. */
     background: color-mix(in srgb, var(--bg-color) 88%, white 12%);
-    margin: 0 6px 8px;
+    margin-bottom: 8px;
 }
 body.theme-bright .fi-row {
     background: color-mix(in srgb, var(--bg-color) 88%, black 12%);
@@ -14007,9 +14007,6 @@ body.theme-bright .fi-row.inspecting {
     display: flex; flex-direction: column; gap: 15px;
 }
 .fi-dossier-head { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
-/* The dossier's leading FULL ASCII-ID line — the chip at a headline size,
-   the MINI tags riding right after it. */
-.fi-dossier-id { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .info-line .user-tags--mini { max-width: 100%; margin-left: 6px; vertical-align: -3px; }
 /* ── THE OWNER LINE (output page) — "HELD BY [ASCII-ID] [tags…]" ───────────
    ONE wrapping row, the profile tag row's treatment exactly: the mini pills
@@ -14059,10 +14056,6 @@ body.theme-bright .fi-row.inspecting {
    onto that shared centre; the box, the spacing and the wrap are untouched
    (Brendon, 2026-07-29). */
 .owner-line .info-rubik { transform: translateY(-1.8px); }
-.fi-dossier-id .collected-pair { font-size: 15px; padding: 3px 8px; height: auto; }
-.fi-dossier-id .collected-sprite { font-size: 13px; }
-.fi-dossier-id .collected-rank-badge { font-size: 18px; }
-.fi-dossier-id .profile-link { font-family: 'Courier New', Courier, monospace; font-weight: bold; }
 .fi-dossier-head .fm-tag { opacity: 1; }
 .fi-follow { margin-left: auto; font-size: 11px; font-weight: bold; letter-spacing: 0.06em; }
 .fi-duel { grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 11px; }
