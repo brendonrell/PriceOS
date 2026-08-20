@@ -1847,22 +1847,17 @@ function ProfilePageBodyInner({
                 }
                 socialRow={
                     mutuals.length > 0 ? (
-                    /* Text-only, same treatment as the homepage Featuring
-                       row — two names shown, cycling on the same 3.6s timer
-                       whenever the pool has more (Brendon, 2026-08-20:
-                       matched to homepage exactly, dropped the 3rd-name
-                       responsive toggle). */
+                    /* One typed line, matching the homepage Featuring row
+                       exactly (Brendon, 2026-08-20): each name is followed
+                       by a real &nbsp; — either straight after the name, or
+                       after the comma — no CSS gap/margin spacing left to
+                       fake it. */
                     <div className="hero-line collected-by-row info-line">
                         <span className="cbr-label">Followed by&nbsp;</span>
-                        <span className="cbr-id">
-                            <a key={mutuals[0]} className="profile-link feat-name" href={`/${mutuals[0]}`}>@{mutuals[0]}</a>
-                            {mutuals[1] && <span className="cbr-sep">,</span>}
-                        </span>{' '}
-                        {mutuals[1] && (
-                            <span className="cbr-id">
-                                <a key={mutuals[1]} className="profile-link feat-name" href={`/${mutuals[1]}`}>@{mutuals[1]}</a>
-                            </span>
-                        )}{mutuals[1] && ' '}
+                        <a key={mutuals[0]} className="profile-link feat-name" href={`/${mutuals[0]}`}>@{mutuals[0]}</a>
+                        {mutuals[1] ? (
+                            <>,&nbsp;<a key={mutuals[1]} className="profile-link feat-name" href={`/${mutuals[1]}`}>@{mutuals[1]}</a>&nbsp;</>
+                        ) : '\u00A0'}
                         {mutualOthers > 0 && (
                             <span className="cbr-others">
                                 &amp; {mutualOthers} {mutualOthers === 1 ? 'Other' : 'Others'} You Follow
