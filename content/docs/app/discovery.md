@@ -73,7 +73,7 @@ The home page's project count is a door: tap the **⬚ n PRO** figure in the sta
 - **Sort** — A–Z · NEWEST · SIZE · MINTED.
 - **Lenses** — LEDGER (the plain read), MINE (your position in each Project), PULSE (the Project's last move and how long ago). A lens annotates and re-orders; it never hides a Project from you.
 - **The dossier** — tap any row and it unfolds: mint progress, outputs, price, upload day, and the ⟁ cartel read of how many of your mutuals hold it.
-- **PROJECTS PRO+** — the expanded view adds a preview strip: ROSTER (every Project as its sprite, the ones you hold ringed) and 30 DAYS (what moved, by day).
+- **PROJECTS PRO+** — the expanded view adds a preview strip: ROSTER (every Project as its sprite, the ones you hold ringed) and 30 DAYS (what moved, by day). **Hold** either chip to pin it first in the sequence — the pinned one picks up a small ⟟ mark; hold it again to unpin. Hidden shortcut, no on-screen prompt.
 
 ## Global search
 
