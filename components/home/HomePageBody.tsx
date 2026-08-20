@@ -158,6 +158,10 @@ export function FeaturingRow() {
     );
     useEffect(() => {
         setFeatNames(pickFeatured());
+        /* Only cycle once the roster is 6+ (Brendon, 2026-08-20) — below
+           that, a 3.6s re-roll just loops the same couple of faces, which
+           reads as broken rather than alive. Matches project/profile. */
+        if (FEATURED_HANDLES.length < 6) return;
         const id = window.setInterval(() => setFeatNames(pickFeatured()), 3600);
         return () => window.clearInterval(id);
     }, []);
