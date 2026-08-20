@@ -93,7 +93,7 @@ export const ATLAS: AtlasFeature[] = [
     F(44, 'Spite Book', 'Spell Book', '⌧'),
     F(45, 'Sybil Net', 'Spell Book', '∾'),
     F(46, 'Tarot Spread', 'Spell Book', '▯▯▯'),
-    F(47, 'Tribunal', 'Spell Book', '⚖'),
+    F(47, 'Tribunal', 'Spell Book', '⚻'),
     // ── Home / Discovery ──
     F(48, 'Bounty Board', 'Home / Discovery'),
     F(49, 'Chain Breaker · Co-sign · Shared Dream · The Procession ⇶ · Epoch Shifter ⧖ · Discovery-modes batch', 'Home / Discovery'),
