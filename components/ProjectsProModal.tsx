@@ -772,9 +772,11 @@ function ProjectsPreview({
     inspected: string | null;
     onInspect: (slug: string) => void;
 }) {
-    const [mode, setMode] = useState<ProPreview>('roster');
+    /* 30 DAYS is the default read here — projects live and die by pace, so
+       the pace grid leads (Brendon, 2026-08-19). */
+    const [mode, setMode] = useState<ProPreview>('days');
     useEffect(() => {
-        try { if (localStorage.getItem(PREVIEW_KEY) === 'days') setMode('days'); } catch { /* first visit */ }
+        try { if (localStorage.getItem(PREVIEW_KEY) === 'roster') setMode('roster'); } catch { /* first visit */ }
     }, []);
     const pick = (m: ProPreview) => {
         setMode(m);
@@ -800,7 +802,7 @@ function ProjectsPreview({
             return next;
         });
     }, [showToast]);
-    const order: ProPreview[] = pinned ? [pinned, pinned === 'roster' ? 'days' : 'roster'] : ['roster', 'days'];
+    const order: ProPreview[] = pinned ? [pinned, pinned === 'roster' ? 'days' : 'roster'] : ['days', 'roster'];
 
     const days = useMemo(() => {
         const base: { key: string; label: string; count: number }[] = [];
