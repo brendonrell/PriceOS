@@ -4923,13 +4923,10 @@ body.pd-stone-open .ens-copy-toast {
 
 /* ── COLLECTED BY row ─────────────────────────────────────── */
 /* The COLLECTED BY / FOLLOWED BY / FEATURING rows read as one normal typed
-   monospace line: "Featuring @name1, @name2 & N others". No flex column-gap
-   here — gap adds the same space at every boundary, which is what put a
-   space after the comma AND a matching space in front of it. Real typed
-   text doesn't work that way: the comma hugs the word before it, and each
-   space is exactly one monospace character (1ch) — after the label, and
-   after the comma. Set directly on .cbr-label / .cbr-sep / .cbr-others below
-   (Brendon, 2026-08-17). */
+   monospace line: "Featuring @name1, @name2 & N others". Every space in
+   that line is a real &nbsp; character typed directly in the JSX (after the
+   label, after each name, after the comma) — no flex/grid gap and no
+   margin-based buffer spacing left to fake it (Brendon, 2026-08-20). */
 .collected-by-row {
     flex-wrap: wrap;
     align-items: baseline;
@@ -4968,14 +4965,6 @@ body.pd-stone-open .ens-copy-toast {
     text-underline-offset: 2px;
     cursor: pointer;
     color: inherit;
-    /* This boundary (last name → "& N others") lost its space when
-       .collected-by-row moved from flex gap to manual 1ch margins on
-       2026-08-17 — .cbr-sep got the comma's margin, but nothing was added
-       here, so the last name and "& N others" ran together with zero space
-       (Brendon, 2026-08-19). Followed-by / Collected-by only — the
-       homepage Featuring row reverted to its own pre-08-17 flex-gap system
-       below and cancels this locally. */
-    margin-left: 1ch;
 }
 
 /* ── STATS — sim ~2068-2072 + ~4088-4124 ─────────────────── */
@@ -11652,17 +11641,6 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 /* row-gap tightened to 0 on the home featuring row only — the two wrapped lines
    sit as close as the type allows (Brendon, 2026-06-15). */
 .home-feat-row { overflow: hidden; row-gap: 0; }
-/* HOMEPAGE ONLY, reverted to the 2026-08-02 baseline (Brendon, 2026-08-19):
-   restores the flex-gap spacing this row used before the site-wide
-   column-gap:0 rewrite on 2026-08-17 — the FeaturingRow JSX went back to
-   plain text nodes + {' '} (no .cbr-id/.cbr-sep wrapper spans), so it needs
-   the gap again to have any spacing at all. Followed-by / Collected-by keep
-   the newer column-gap:0 + manual-margin system untouched. */
-.home-feat-row { column-gap: 4px; }
-/* The shared .cbr-others margin-left:1ch (added for Followed-by / Collected-
-   by, which have no gap of their own) would double up with the gap above —
-   cancelled here, homepage only. */
-.home-feat-row .cbr-others { margin-left: 0; }
 @media (min-width: 601px) { .home-feat-row { white-space: nowrap; } }
 /* Cap at two lines (clips a rare 3rd) WITHOUT forcing a taller box — keeps the
    natural line spacing of every other social row (Brendon, 2026-06-15). */
@@ -14046,14 +14024,14 @@ body.theme-bright .fi-row.inspecting {
 .owner-line.info-line ~ .stats-row,
 /* Project pages get the same air under their artist row (Brendon, 2026-07-29). */
 .project-custom.owner-line ~ .stats-row { margin-top: 3px; }
-/* The names stay a comma-separated LIST — the comma rides with the ID it
-   follows so the row still wraps cleanly (Brendon, 2026-07-29). */
-.collected-by-row .cbr-id { display: inline-flex; align-items: center; }
-.collected-by-row .cbr-sep { margin-right: 1ch; }
-/* Every .collected-by-row (Featuring, Followed by, Collected by) went
-   text-only on 2026-08-15 — no row in this family carries an ASCII-ID
-   rectangle anymore. Baseline + untransformed label is set on the shared
-   .collected-by-row rule above, site-wide (Brendon, 2026-08-16). */
+/* .cbr-id / .cbr-sep wrapper classes retired (Brendon, 2026-08-20) — every
+   .collected-by-row (Featuring, Followed by, Collected by) now types its
+   comma and spacing directly as text/&nbsp; in the JSX, matching the
+   homepage row exactly. Every .collected-by-row (Featuring, Followed by,
+   Collected by) went text-only on 2026-08-15 — no row in this family
+   carries an ASCII-ID rectangle anymore. Baseline + untransformed label is
+   set on the shared .collected-by-row rule above, site-wide (Brendon,
+   2026-08-16). */
 
 /* "By" reads as one phrase with the @name beside it, but its box is shorter
    than the name's (which carries headroom for tall Unicode faces), so centring
