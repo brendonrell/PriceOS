@@ -571,7 +571,7 @@ function ProfilePageBodyInner({
        still respects connection strength / PriceRank — it's the ranker's
        own jitter that supplies the variety each tick. */
     useEffect(() => {
-        if (followedByPool.length < 3) return;
+        if (followedByPool.length < 6) return;
         const id = window.setInterval(() => {
             const ranked = rankSocialCandidates(followedByPool, 2);
             setFollowedBy({ shown: ranked.shown, others: ranked.othersCount });
