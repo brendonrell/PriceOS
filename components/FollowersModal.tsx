@@ -105,12 +105,12 @@ const TABS: { key: FollowersTab; label: string; icon: string }[] = [
     { key: 'projects', label: 'PROJECTS', icon: '⬚' },
 ];
 
-const SORTS: { key: SortKey; label: string }[] = [
-    { key: 'default', label: 'A–Z' },
+const SORTS: { key: SortKey; label: string; ariaLabel?: string }[] = [
+    { key: 'default', label: 'AZ' },
     { key: 'followers', label: 'Followers' },
     { key: 'collected', label: 'NFTs' },
     { key: 'spent', label: 'Spent' },
-    { key: 'faction', label: 'Factions' },
+    { key: 'faction', label: `⚐${VS15}`, ariaLabel: 'Factions' },
 ];
 
 const EMPTY_LINE: Record<FollowersTab, string> = {
@@ -652,29 +652,34 @@ export default function FollowersModal() {
             </div>
 
             {tab !== 'projects' && (
-                <div className="fm-sort" role="group" aria-label="Sort and lens">
-                    <span className="fm-sort-label">SORT</span>
-                    {SORTS.map((s) => (
-                        <button
-                            key={s.key}
-                            type="button"
-                            className={`ambient-chip fm-sort-chip${sort === s.key ? ' on' : ''}`}
-                            onClick={() => setSort(s.key)}
-                        >
-                            {s.label}
-                        </button>
-                    ))}
-                    <span className="fm-sort-label fm-lens-label">LENS</span>
-                    {LENSES.map((l) => (
-                        <button
-                            key={l.key}
-                            type="button"
-                            className={`ambient-chip fm-sort-chip${lens === l.key ? ' on' : ''}`}
-                            onClick={() => setLens(l.key)}
-                        >
-                            {l.label}
-                        </button>
-                    ))}
+                <div className="fm-sort-rows" role="group" aria-label="Sort and lens">
+                    <div className="fm-sort-row fm-lens-row">
+                        <span className="fm-sort-label">LENS</span>
+                        {LENSES.map((l) => (
+                            <button
+                                key={l.key}
+                                type="button"
+                                className={`ambient-chip fm-sort-chip fm-lens-chip${lens === l.key ? ' on' : ''}`}
+                                onClick={() => setLens(l.key)}
+                            >
+                                {l.label}
+                            </button>
+                        ))}
+                    </div>
+                    <div className="fm-sort-row">
+                        <span className="fm-sort-label">SORT</span>
+                        {SORTS.map((s) => (
+                            <button
+                                key={s.key}
+                                type="button"
+                                className={`ambient-chip fm-sort-chip${sort === s.key ? ' on' : ''}`}
+                                onClick={() => setSort(s.key)}
+                                aria-label={s.ariaLabel}
+                            >
+                                {s.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             )}
 
@@ -753,7 +758,7 @@ export default function FollowersModal() {
 
     const title = (words: string) => (
         <span className="ambient-pop-title-text">
-            <span className="smgr-title-ic">{`⚬${VS15}`}</span>{' '}<span className="smgr-title-words">{words}</span>
+            <span className="smgr-title-ic">{`☻${VS15}`}</span>{' '}<span className="smgr-title-words">{words}</span>
         </span>
     );
 
