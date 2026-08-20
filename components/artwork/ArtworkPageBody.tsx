@@ -187,7 +187,7 @@ const MORE_PILLS: { key: MoreL1; label: string; icon?: string }[] = [
     { key: 'neighbourhood', label: 'Neighbourhood' },
     { key: 'pricestory', label: 'Price Story', icon: '\u25BC\uFE0E' },
     { key: 'replay', label: 'Replay' },
-    { key: 'stats', label: 'Stats' },
+    { key: 'stats', label: 'Stats', icon: '\u22DA\uFE0E' },
     { key: 'social', label: 'Social' },
     { key: 'asciibackup', label: 'ASCII Backup' },
 ];
