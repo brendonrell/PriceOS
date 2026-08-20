@@ -180,11 +180,10 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
        same 2-3 faces, which reads as broken rather than alive. Under 6, the
        row stays a static pick (first load only, no interval). */
     const collectedByPool = project.stats.collected_by_following;
-    const [collectedByShown, setCollectedByShown] = useState<string[]>(() => collectedByPool.slice(0, 3));
+    const [collectedByShown, setCollectedByShown] = useState<string[]>(() => collectedByPool.slice(0, 2));
     useEffect(() => {
-        setCollectedByShown(pickN(collectedByPool, 3));
-        if (collectedByPool.length < 6) return;
-        const id = window.setInterval(() => setCollectedByShown(pickN(collectedByPool, 3)), 3600);
+        setCollectedByShown(pickN(collectedByPool, 2));
+        const id = window.setInterval(() => setCollectedByShown(pickN(collectedByPool, 2)), 3600);
         return () => window.clearInterval(id);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [collectedByPool.join('|')]);
@@ -459,19 +458,15 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                     project.stats.collected_by_following.length > 0 ? (() => {
                         const collectors = collectedByShown;
                         const handle = (n: string) => n.toLowerCase().replace(/^@/, '');
-                        const others3 = Math.max(0, collectedByPool.length - 3);
-                        const others2 = Math.max(0, collectedByPool.length - 2);
+                        const others = Math.max(0, collectedByPool.length - 2);
                         return (
                         /* Text-only, same treatment as the homepage Featuring
-                           row (Brendon, 2026-08-15) — no ASCII-ID rectangle.
-                           Responsive 3rd-name toggle (Brendon, 2026-08-17):
-                           phone portrait shows 2, everywhere else shows 3, via
-                           .cbr-feat-3 / .cbr-feat-others-2/3 + media query,
-                           scoped to .collected-by-row generally (globals.css
-                           ~11590) — no page-specific class needed. Names now
-                           carry feat-name (flip-in on re-roll) and a key so
-                           each cycle remounts and replays it, matching the
-                           homepage row (Brendon, 2026-08-18). */
+                           row — two names shown, cycling on the same 3.6s
+                           timer whenever the pool has more (Brendon,
+                           2026-08-20: matched to homepage exactly, dropped
+                           the 3rd-name responsive toggle). Names carry
+                           feat-name (flip-in on re-roll) and a key so each
+                           cycle remounts and replays it. */
                         <div className="hero-line collected-by-row info-line">
                             <span className="cbr-label">Collected by&nbsp;</span>
                             <span className="cbr-id">
@@ -481,22 +476,11 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                             {collectors[1] && (
                                 <span className="cbr-id">
                                     <a key={collectors[1]} className="profile-link feat-name" href={`/${handle(collectors[1])}`}>@{handle(collectors[1])}</a>
-                                    {collectors[2] && <span className="cbr-sep cbr-feat-3">,</span>}
                                 </span>
                             )}{collectors[1] && ' '}
-                            {collectors[2] && (
-                                <span className="cbr-id cbr-feat-3">
-                                    <a key={collectors[2]} className="profile-link feat-name" href={`/${handle(collectors[2])}`}>@{handle(collectors[2])}</a>
-                                </span>
-                            )}{collectors[2] && ' '}
-                            {others3 > 0 && (
-                                <span className="cbr-others cbr-feat-others-3" onClick={() => open('collectors')}>
-                                    &amp; {others3} more you follow
-                                </span>
-                            )}
-                            {others2 > 0 && (
-                                <span className="cbr-others cbr-feat-others-2" onClick={() => open('collectors')}>
-                                    &amp; {others2} more you follow
+                            {others > 0 && (
+                                <span className="cbr-others" onClick={() => open('collectors')}>
+                                    &amp; {others} more you follow
                                 </span>
                             )}
                         </div>
