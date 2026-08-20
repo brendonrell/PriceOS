@@ -14224,6 +14224,24 @@ body.theme-bright .fi-row.inspecting {
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
+/* PROJECTS PRO's own ROSTER — two to a line, each project boxed as its own
+   card (was a bare wrap of floating faces, hard to parse). Scoped to
+   .projects-pro-plus so the Friend Inspector's people roster is untouched
+   (Brendon, 2026-08-19). */
+.projects-pro-plus .fi-roster {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
+    align-content: start;
+}
+.projects-pro-plus .fi-rost-cell {
+    flex-direction: row; align-items: center; gap: 8px;
+    width: 100%; padding: 8px 10px;
+    border: 1px solid color-mix(in srgb, var(--text-color) 60%, transparent);
+    border-radius: 5px;
+}
+.projects-pro-plus .fi-rost-cell.mutual { outline-offset: -3px; }
+.projects-pro-plus .fi-rost-cell:hover { border-color: var(--text-color); }
+.projects-pro-plus .fi-rost-name { max-width: none; flex: 1 1 auto; text-align: left; }
+
 /* THE 30 DAYS — the circle's month as a day grid, today at the end. */
 .fi-days { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
 .fi-days-head, .fi-days-foot {
