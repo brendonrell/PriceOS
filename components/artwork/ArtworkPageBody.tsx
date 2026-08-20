@@ -181,14 +181,18 @@ type MoreL1 =
    rail). label stays a plain string everywhere so the existing
    `.label.toUpperCase()` section-header lookup below keeps working
    unchanged (Brendon, 2026-08-17). */
+/* Pill order mirrors the Project +More sequence as closely as possible
+   (Brendon, 2026-08-20): Attributes · Stats · Offers · Price Story · Social ·
+   Replay — Output's tabs with no Project counterpart (Neighbourhood, ASCII
+   Backup) trail at the end. */
 const MORE_PILLS: { key: MoreL1; label: string; icon?: string }[] = [
     { key: 'attributes', label: 'Attributes', icon: '\u2A69\uFE0E' },
-    { key: 'offers', label: 'Offers', icon: '\u2736\uFE0E' },
-    { key: 'neighbourhood', label: 'Neighbourhood', icon: '\u26B9\uFE0E' },
-    { key: 'pricestory', label: 'Price Story', icon: '\u25BC\uFE0E' },
-    { key: 'replay', label: 'Replay', icon: '\u23F4\uFE0E' },
     { key: 'stats', label: 'Stats', icon: '\u22DA\uFE0E' },
+    { key: 'offers', label: 'Offers', icon: '\u2736\uFE0E' },
+    { key: 'pricestory', label: 'Price Story', icon: '\u25BC\uFE0E' },
     { key: 'social', label: 'Social', icon: '\u263B\uFE0E' },
+    { key: 'replay', label: 'Replay', icon: '\u23F4\uFE0E' },
+    { key: 'neighbourhood', label: 'Neighbourhood', icon: '\u26B9\uFE0E' },
     { key: 'asciibackup', label: 'ASCII Backup', icon: '\u2382\uFE0E' },
 ];
 
