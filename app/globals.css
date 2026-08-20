@@ -12388,7 +12388,7 @@ body.colorway-dark .ghost-feed-bar {
 .pill-tab-ico.is-star { font-size: 1.5em; margin-right: 1px; }
 /* Genome runs one size up, Gnome one size down (Brendon, 2026-07-31) — the
    same step the other per-pill icon overrides here use. */
-.pill-tab-ico.is-genome { font-size: 1.47em; }
+.pill-tab-ico.is-genome { font-size: 1.395em; }
 .pill-tab-ico.is-gnome { font-size: 1.02em; }
 /* On mobile the three +More tab icons settle down 1px inside their pills
    (Brendon 2026-06-20). */
@@ -12401,7 +12401,7 @@ body.colorway-dark .ghost-feed-bar {
     .pill-tab-ico { font-size: 1.08em; top: 0; }
     .pill-tab-ico.is-star { font-size: 1.12em; }
     .pill-tab-ico.is-album { font-size: 1.2em; }
-    .pill-tab-ico.is-genome { font-size: 1.2em; }
+    .pill-tab-ico.is-genome { font-size: 1.125em; }
     .pill-tab-ico.is-gnome { font-size: 0.84em; }
 }
 /* Genome + Replay tab icons ride 1px high next to their labels — nudged
@@ -12409,7 +12409,8 @@ body.colorway-dark .ghost-feed-bar {
    .pill-tab-ico rules above (and their media-query overrides) regardless
    of source order, at every width. */
 .pill-tab-ico.is-genome,
-.pill-tab-ico.is-replay {
+.pill-tab-ico.is-replay,
+.pill-tab-ico.is-sentiment {
     top: 1px;
 }
 /* Social ☻ + Anointed ✢ icons added to the project +More pills (Brendon,
@@ -12425,7 +12426,7 @@ body.colorway-dark .ghost-feed-bar {
 /* Attributes ⩩ + Offers ✶ icons added to the project +More pills (Brendon,
    2026-08-15) — ✶ is the app's canonical offer mark (matches the
    trait-offer-glyph used across Wishlist/Starred). */
-.pill-tab-ico.is-attributes { font-size: 1.45em; }
+.pill-tab-ico.is-attributes { font-size: 1.75em; }
 .pill-tab-ico.is-offers { font-size: 1.60em; }
 /* Price Story ▼ — the down-triangle arrowhead from the chapter rail's own
    connector line (.mk-story-line::after in styles/market.css) promoted to
@@ -12435,8 +12436,12 @@ body.colorway-dark .ghost-feed-bar {
 /* Stats ⋚ + Sentiment ⚼ icons added to the project +More pills (Stats also
    ships on the Output +More via MORE_PILLS' icon field) — same starting
    size Social/Attributes/Offers/Price Story launched at. */
-.pill-tab-ico.is-stats { font-size: 1.15em; }
-.pill-tab-ico.is-sentiment { font-size: 1.15em; }
+/* Stats bumped down two sizes (-0.30em), Sentiment up one size (+0.15em)
+   and nudged down 1px (see the is-genome/is-replay/is-sentiment top:1px
+   rule above) — Stats was reading heavy, Sentiment was reading small and
+   riding high next to its label (Brendon, 2026-08-20). */
+.pill-tab-ico.is-stats { font-size: 0.85em; }
+.pill-tab-ico.is-sentiment { font-size: 1.30em; }
 
 /* ── Starred: Outputs / Traits filter pills + per-row CTAs ───────────────── */
 /* Per-row CTA button (Add-to-Wishlist on Output rows, Trait Offer on Trait
