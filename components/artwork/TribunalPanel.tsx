@@ -18,7 +18,7 @@
  * card, reused verbatim) so the exhibits sit identically to Attributes / Price
  * Story; the weighty docket header up top is the one bespoke surface. Glyphs
  * are the canonical market vocabulary (docs/GLYPHS.md): ✦ mint/sale · ✹ listed
- * · ✶ offer · ✸ transfer · ⌂ owner · ⚖ the tribunal mark · ∅ off the record.
+ * · ✶ offer · ✸ transfer · ⌂ owner · ⚻ the tribunal mark · ∅ off the record.
  */
 
 import type { ReactNode } from 'react';
@@ -320,7 +320,7 @@ export default function TribunalPanel({ slug, id, projectName, feedRows, market,
             {/* The docket crown — case caption, docket line, the charge. */}
             <div className="more-box-wrap">
                 <div className="tribunal-docket">
-                    <span className="tribunal-crest">{`⚖${VS}`}</span>
+                    <span className="tribunal-crest">{`⚻${VS}`}</span>
                     <span className="tribunal-docket-title">THE TRIBUNAL</span>
                     <span className="tribunal-caption">IN RE: {projectName} #{id}</span>
                     <span className="tribunal-docket-no">
@@ -500,7 +500,7 @@ export default function TribunalPanel({ slug, id, projectName, feedRows, market,
                         evidence above; each ¶ is a checkable statement of the
                         rows already on this page. */}
                     {findings.length > 0 && (
-                        <Exhibit label="FINDINGS OF FACT" glyph={`⚖${VS}`}>
+                        <Exhibit label="FINDINGS OF FACT" glyph={`⚻${VS}`}>
                             {findings.map((f, i) => (
                                 <div className="tribunal-finding" key={i}>
                                     <span className="tribunal-finding-no">¶{i + 1}</span>
