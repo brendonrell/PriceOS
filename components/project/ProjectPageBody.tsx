@@ -463,24 +463,17 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                         const handle = (n: string) => n.toLowerCase().replace(/^@/, '');
                         const others = Math.max(0, collectedByPool.length - 2);
                         return (
-                        /* Text-only, same treatment as the homepage Featuring
-                           row — two names shown, cycling on the same 3.6s
-                           timer whenever the pool has more (Brendon,
-                           2026-08-20: matched to homepage exactly, dropped
-                           the 3rd-name responsive toggle). Names carry
-                           feat-name (flip-in on re-roll) and a key so each
-                           cycle remounts and replays it. */
+                        /* One typed line, matching the homepage Featuring row
+                           exactly (Brendon, 2026-08-20): each name is
+                           followed by a real &nbsp; — either straight after
+                           the name, or after the comma — no CSS gap/margin
+                           spacing left to fake it. */
                         <div className="hero-line collected-by-row info-line">
                             <span className="cbr-label">Collected by&nbsp;</span>
-                            <span className="cbr-id">
-                                <a key={collectors[0]} className="profile-link feat-name" href={`/${handle(collectors[0])}`}>@{handle(collectors[0])}</a>
-                                {collectors[1] && <span className="cbr-sep">,</span>}
-                            </span>{' '}
-                            {collectors[1] && (
-                                <span className="cbr-id">
-                                    <a key={collectors[1]} className="profile-link feat-name" href={`/${handle(collectors[1])}`}>@{handle(collectors[1])}</a>
-                                </span>
-                            )}{collectors[1] && ' '}
+                            <a key={collectors[0]} className="profile-link feat-name" href={`/${handle(collectors[0])}`}>@{handle(collectors[0])}</a>
+                            {collectors[1] ? (
+                                <>,&nbsp;<a key={collectors[1]} className="profile-link feat-name" href={`/${handle(collectors[1])}`}>@{handle(collectors[1])}</a>&nbsp;</>
+                            ) : '\u00A0'}
                             {others > 0 && (
                                 <span className="cbr-others" onClick={() => open('collectors')}>
                                     &amp; {others} more you follow
