@@ -654,8 +654,8 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                             hideSortBar
                             profilePills={[
                                 { key: 'attributes', label: <><span className="pill-tab-ico is-attributes">{'\u2A69\uFE0E'}</span> Attributes</>, active: moreL1 === 'attributes', onClick: () => setMoreL1('attributes') },
-                                { key: 'stats', label: 'Stats', active: moreL1 === 'stats', onClick: () => setMoreL1('stats') },
-                                { key: 'sentiment', label: 'Sentiment', active: moreL1 === 'sentiment', onClick: () => setMoreL1('sentiment') },
+                                { key: 'stats', label: <><span className="pill-tab-ico is-stats">{'\u22DA\uFE0E'}</span> Stats</>, active: moreL1 === 'stats', onClick: () => setMoreL1('stats') },
+                                { key: 'sentiment', label: <><span className="pill-tab-ico is-sentiment">{'\u26BC\uFE0E'}</span> Sentiment</>, active: moreL1 === 'sentiment', onClick: () => setMoreL1('sentiment') },
                                 { key: 'offers', label: <><span className="pill-tab-ico is-offers">{'\u2736\uFE0E'}</span> Offers</>, active: moreL1 === 'offers', onClick: () => setMoreL1('offers') },
                                 { key: 'pricestory', label: <><span className="pill-tab-ico is-pricestory">{'\u25BC\uFE0E'}</span> Price Story</>, active: moreL1 === 'pricestory', onClick: () => setMoreL1('pricestory') },
                                 { key: 'social', label: <><span className="pill-tab-ico is-social">{'\u263B\uFE0E'}</span> Social</>, active: moreL1 === 'social', onClick: () => setMoreL1('social') },
