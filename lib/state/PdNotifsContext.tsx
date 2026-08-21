@@ -179,7 +179,9 @@ export interface PdNotifs {
     watchMetric: number;
     /** The Audience — live per-project viewer presence. ON = you're counted in
      *  and see the "watching now" indicator; OFF = you opt out (no presence
-     *  broadcast, indicator hidden for you). Default ON (Brendon, 2026-06-16). */
+     *  broadcast, indicator hidden for you). Default OFF — opt-in only, so a
+     *  fresh/never-configured session never broadcasts presence (Brendon,
+     *  2026-08-21). */
     audience: boolean;
 
     // Ping category preferences (MY PINGS panel)
@@ -274,7 +276,7 @@ const DEFAULTS: PdNotifs = {
     pingartDaily: false,
     watch: false,
     watchMetric: 0,
-    audience: true,
+    audience: false,
 
     pings: {
         mints: true,
