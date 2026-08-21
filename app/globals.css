@@ -11546,11 +11546,10 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 .feat-rotator {
     display: block; /* base class is a flex row — drop to text flow */
 }
-/* Sim's info-rubik runs line-height 1.6 (sim 2074); our global port
-   deviates at 1.2, so the sim value is restored here, scoped. */
-.feat-rotator .info-rubik {
-    line-height: 1.6;
-}
+/* Removed 1.6 line-height override (Brendon, 2026-08-21): it stretched the
+   gap between the two wrapped lines well past every other .info-rubik row
+   on the site (measured ~17.3px pitch vs the correct ~13.3px). Falls back
+   to the base .info-rubik line-height: 1.2, matching the reference. */
 /* ── New Art tab sections (New Uploads + Minting Now) ────────────────
    Section headers + the text-only uploads feed. The feed rows reuse the
    global .feed-list/.feed-row family (sales-feed look); the wrapper here
@@ -11649,10 +11648,11 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 @media (min-width: 601px) {
     .home-feat-row { white-space: nowrap; flex-wrap: nowrap; text-overflow: ellipsis; }
 }
-/* Cap at two lines (clips a rare 3rd) — a fixed height (not max-height) so the
-   slot is reserved constantly rather than shrinking for a short name combo
-   that only fills one line (Brendon, 2026-08-21). */
-@media (max-width: 600px)  { .home-feat-row { height: 2.4em; } }
+/* Cap/lock at two lines so cycling never reflows the hero (Brendon,
+   2026-08-21). The 2.4em value was wrong — it was calibrated against the
+   erroneous 1.6 line-height above, not the correct 1.2. Recalculated for
+   the real 2-line height: 2 × 11px × 1.2 ÷ 14px hero-line context ≈ 1.9em. */
+@media (max-width: 600px)  { .home-feat-row { height: 1.9em; } }
 /* Third-name responsive toggle removed (Brendon, 2026-08-20): Collected by
    (project) and Followed by (profile) now match the homepage Featuring row
    exactly — two names shown everywhere, no viewport-dependent 3rd name. */
