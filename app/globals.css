@@ -14288,7 +14288,10 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
 }
 .more-seal-rung { cursor: pointer; }
 .more-seal-rung:disabled { cursor: default; }
-.more-seal-rung { font: inherit; color: inherit; }
+/* Removed `font: inherit; color: inherit;` (Brendon, 2026-08-21) — this
+   button-reset rule shared .pill.pill-l1's specificity and won on source
+   order, overriding --pill-l1-text with the ambient card color and making
+   the cast-vote values invisible against the pill's own background. */
 
 /* ── Gas Tracker wow pass (2026-07-13) — THE READ, THE PULSE, live ticks.
    Full-strength chrome per Rule #2; motion carries the "it's alive" story. */
