@@ -79,6 +79,7 @@ export default function DeepZoomLayer({
     slug,
     id,
     disabled = false,
+    asciiMode = false,
     wheelNeedsModifier = false,
     onLongPress,
 }: {
@@ -88,8 +89,18 @@ export default function DeepZoomLayer({
     getArt: () => HTMLElement | null;
     slug: string;
     id: number | null;
-    /** True while another paint mode owns the surface (ASCII / Degen / loading). */
+    /** True while another paint mode owns the surface (Degen / loading /
+     *  no art yet). ASCII is handled separately by `asciiMode` below — it
+     *  still gets pinch/loupe, just sourced differently. */
     disabled?: boolean;
+    /** True when the sitewide ASCII Art Mode is on. The engine's real-colour
+     *  paintOutput can't be used as the re-render source here (Brendon,
+     *  ASCII zoom parity 2026-08-21): the ASCII artifact is already at its
+     *  format ceiling (256 cols), so there's no extra fidelity to derive —
+     *  the sharp re-render step is skipped (the CSS-scaled base canvas is
+     *  the sharpest available) and the loupe samples the already-painted
+     *  art canvas directly instead of re-deriving a fresh source. */
+    asciiMode?: boolean;
     /** Page contexts that scroll: only ctrl/⌘-wheel (trackpad pinch) zooms. */
     wheelNeedsModifier?: boolean;
     /** When set, press-and-hold fires THIS instead of summoning the loupe
@@ -112,6 +123,8 @@ export default function DeepZoomLayer({
     const savedOverflow = useRef<string | null>(null);
     const disabledRef = useRef(disabled);
     disabledRef.current = disabled;
+    const asciiModeRef = useRef(asciiMode);
+    asciiModeRef.current = asciiMode;
     const onLongPressRef = useRef(onLongPress);
     onLongPressRef.current = onLongPress;
     const artKeyRef = useRef(`${slug}:${id}`);
@@ -196,6 +209,10 @@ export default function DeepZoomLayer({
             if (disabledRef.current || id == null) return;
             const s = scaleRef.current;
             if (s < SHARP_MIN_SCALE) { hideSharp(); return; }
+            /* ASCII has no extra fidelity past its already-painted ceiling —
+               skip the engine re-render and just let the CSS-scaled base
+               canvas stand as the "sharp" frame. */
+            if (asciiModeRef.current) { hideSharp(); return; }
             const box = baseBox();
             const sharp = sharpRef.current;
             if (!box || !sharp) return;
@@ -276,6 +293,18 @@ export default function DeepZoomLayer({
            per frame. One offscreen canvas, reused across summons. */
         const loupeEnsureSrc = (): HTMLCanvasElement | null => {
             if (id == null) return null;
+            /* ASCII — reuse the already-painted art canvas itself as the
+               lens source instead of re-deriving one via paintOutput (which
+               would show the real-colour render, not the ASCII stand-in). */
+            if (asciiModeRef.current) {
+                const el = art();
+                if (el instanceof HTMLCanvasElement) {
+                    loupeSrc.canvas = el;
+                    loupeSrc.key = `${key}@ascii`;
+                    return el;
+                }
+                return null;
+            }
             const box = baseBox();
             if (!box) return null;
             const dpr = Math.min(window.devicePixelRatio || 1, 2);
