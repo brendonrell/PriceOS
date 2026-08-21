@@ -11642,17 +11642,19 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
    matter the content. Mobile's max-height (which only clipped, but let the box
    shrink to 1 line for short combos) is now a fixed height, so the 2-line slot
    is reserved constantly instead of fluctuating with content. */
-/* row-gap tightened to 0 on the home featuring row only — the two wrapped lines
-   sit as close as the type allows (Brendon, 2026-06-15). */
-.home-feat-row { overflow: hidden; row-gap: 0; }
+/* row-gap tightened to 0 — the two wrapped lines sit as close as the type
+   allows (Brendon, 2026-06-15). Applied to all three rows in the family
+   (Featuring, Followed by, Collected by), not the homepage alone (Brendon,
+   2026-08-21). */
+.feat-row-lock { overflow: hidden; row-gap: 0; }
 @media (min-width: 601px) {
-    .home-feat-row { white-space: nowrap; flex-wrap: nowrap; text-overflow: ellipsis; }
+    .feat-row-lock { white-space: nowrap; flex-wrap: nowrap; text-overflow: ellipsis; }
 }
 /* Cap/lock at two lines so cycling never reflows the hero (Brendon,
    2026-08-21). The 2.4em value was wrong — it was calibrated against the
    erroneous 1.6 line-height above, not the correct 1.2. Recalculated for
    the real 2-line height: 2 × 11px × 1.2 ÷ 14px hero-line context ≈ 1.9em. */
-@media (max-width: 600px)  { .home-feat-row { height: 1.9em; } }
+@media (max-width: 600px)  { .feat-row-lock { height: 1.9em; } }
 /* Third-name responsive toggle removed (Brendon, 2026-08-20): Collected by
    (project) and Followed by (profile) now match the homepage Featuring row
    exactly — two names shown everywhere, no viewport-dependent 3rd name. */
