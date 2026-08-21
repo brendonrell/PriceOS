@@ -834,7 +834,7 @@ mix** (see the ⛔ in `lib/tags/formula.ts`).
 
 | Concept | Glyph | Codepoint | Where it's canonical |
 |---|---|---|---|
-| Activity Heatmap | ⯐ | U+2BD0 | Project + More tab pill (`.is-activity`), `ActivityHeatmapPanel.tsx` |
+| Activity Heatmap | ℃ | U+2103 | Project + More tab pill (`.is-activity`), `ActivityHeatmapPanel.tsx`. Was ⯐ (U+2BD0), swapped 2026-08-21 — tofu'd on device, plus ℃ reads literally as "heat" |
 
 ---
 
