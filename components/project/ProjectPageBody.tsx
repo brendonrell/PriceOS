@@ -179,7 +179,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
        ONLY once the pool is 6+: below that a 3.6s re-roll just loops the
        same 2-3 faces, which reads as broken rather than alive. Under 6, the
        row stays a static pick (first load only, no interval). */
-    const collectedByPool = project.stats.collected_by_following;
+    const collectedByPool = project.stats.collected_by_following ?? [];
     const [collectedByShown, setCollectedByShown] = useState<string[]>(() => collectedByPool.slice(0, 2));
     useEffect(() => {
         setCollectedByShown(pickN(collectedByPool, 2));
@@ -458,7 +458,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                     /* Twitter-style: only collectors the viewer follows. Hidden
                        when signed out or following none of this project's
                        collectors. */
-                    project.stats.collected_by_following.length > 0 ? (() => {
+                    collectedByPool.length > 0 ? (() => {
                         const collectors = collectedByShown;
                         const handle = (n: string) => n.toLowerCase().replace(/^@/, '');
                         const others = Math.max(0, collectedByPool.length - 2);
