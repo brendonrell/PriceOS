@@ -242,7 +242,14 @@ export function ProjectProvider({
                             showcaseCaption: data.showcase_caption ?? null,
                             soundtrack,
                             totalOutputs: data.total ?? prev.totalOutputs,
-                            stats: data.stats ?? prev.stats,
+                            /* Shape-normalize, don't just swap in raw (Brendon,
+                               After Gravity crash 2026-08-21): a stale PWA-cached
+                               /outputs response predating collected_by_following
+                               would otherwise land here missing that key, and the
+                               hero's `.length` read on undefined crashes the page. */
+                            stats: data.stats
+                                ? { ...EMPTY_STATS, ...data.stats, collected_by_following: data.stats.collected_by_following ?? [] }
+                                : prev.stats,
                         };
                     });
                 })
