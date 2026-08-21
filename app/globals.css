@@ -13547,11 +13547,21 @@ body.colorway-dark .ghost-feed-bar {
    the page's. Pure-CSS fix, no measuring. */
 .artwork-feature-wrap {
     display: inline-grid;
-    grid-template-columns: max-content;
+    /* minmax(0, max-content) — NOT bare max-content (Brendon, mobile width
+       bug 2026-08-21). A bare max-content track sizes to the art's
+       INTRINSIC pixel width, ignoring the art's own max-width:100%, so wide
+       renders blew past the viewport on mobile. minmax(0, …) lets the track
+       shrink to the available width first; max-content stays the ceiling
+       for narrower pieces so the footer-width-tracking behavior is unchanged. */
+    grid-template-columns: minmax(0, max-content);
     justify-content: flex-start;
     max-width: 100%;
 }
 .artwork-feature-stage {
+    /* min-width: 0 — a grid item's default min-width is auto (= its content
+       size), which fights the minmax(0, …) track above. Needed so the art
+       can actually shrink below its intrinsic width on narrow screens. */
+    min-width: 0;
     /* Keep the horizontal inset INSIDE the width — otherwise the full-bleed
        stage runs 80px past the viewport and creates horizontal scroll in
        landscape (where the page isn't x-clipped). */
