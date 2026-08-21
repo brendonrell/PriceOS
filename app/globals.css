@@ -11635,14 +11635,24 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 
 /* Live "featuring" row — names re-roll on a timer and flip in. Height is locked
    so cycling never reflows the hero (the old version's jump). Desktop stays one
-   line; mobile reserves two. (Brendon, 2026-06-15) */
+   line; mobile reserves two. (Brendon, 2026-06-15)
+   Hardened (Brendon, 2026-08-21): flex-wrap was still inherited from .hero-line,
+   so a long name combo could wrap onto a genuine 2nd flex line on desktop —
+   growing the row by a line depending on which names rolled. Desktop is now
+   flex-wrap: nowrap + overflow ellipsis, so it's ALWAYS exactly one line no
+   matter the content. Mobile's max-height (which only clipped, but let the box
+   shrink to 1 line for short combos) is now a fixed height, so the 2-line slot
+   is reserved constantly instead of fluctuating with content. */
 /* row-gap tightened to 0 on the home featuring row only — the two wrapped lines
    sit as close as the type allows (Brendon, 2026-06-15). */
 .home-feat-row { overflow: hidden; row-gap: 0; }
-@media (min-width: 601px) { .home-feat-row { white-space: nowrap; } }
-/* Cap at two lines (clips a rare 3rd) WITHOUT forcing a taller box — keeps the
-   natural line spacing of every other social row (Brendon, 2026-06-15). */
-@media (max-width: 600px)  { .home-feat-row { max-height: 2.4em; } }
+@media (min-width: 601px) {
+    .home-feat-row { white-space: nowrap; flex-wrap: nowrap; text-overflow: ellipsis; }
+}
+/* Cap at two lines (clips a rare 3rd) — a fixed height (not max-height) so the
+   slot is reserved constantly rather than shrinking for a short name combo
+   that only fills one line (Brendon, 2026-08-21). */
+@media (max-width: 600px)  { .home-feat-row { height: 2.4em; } }
 /* Third-name responsive toggle removed (Brendon, 2026-08-20): Collected by
    (project) and Followed by (profile) now match the homepage Featuring row
    exactly — two names shown everywhere, no viewport-dependent 3rd name. */
