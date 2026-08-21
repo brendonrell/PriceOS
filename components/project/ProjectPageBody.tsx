@@ -259,7 +259,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
     };
 
     /* + More sub-nav pills — sections live in ProjectMorePanel. */
-    const MORE_L1_KEYS: ReadonlySet<string> = new Set<ProjectMoreL1>(['social', 'stats', 'replay', 'albums', 'genome', 'gnome', 'sentiment', 'attributes', 'pricestory', 'offers', 'anoint']);
+    const MORE_L1_KEYS: ReadonlySet<string> = new Set<ProjectMoreL1>(['social', 'stats', 'replay', 'albums', 'genome', 'gnome', 'sentiment', 'attributes', 'pricestory', 'offers', 'anoint', 'activity']);
     const [moreL1, setMoreL1] = useState<ProjectMoreL1>(() => {
         // A pasted deep link's ?sub= wins (Share Any View, Brendon 2026-07-19).
         const shared = readViewParam('sub');
@@ -638,6 +638,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                                 { key: 'sentiment', label: <><span className="pill-tab-ico is-sentiment">{'\u26BC\uFE0E'}</span> Sentiment</>, active: moreL1 === 'sentiment', onClick: () => setMoreL1('sentiment') },
                                 { key: 'offers', label: <><span className="pill-tab-ico is-offers">{'\u2736\uFE0E'}</span> Offers</>, active: moreL1 === 'offers', onClick: () => setMoreL1('offers') },
                                 { key: 'pricestory', label: <><span className="pill-tab-ico is-pricestory">{'\u25BC\uFE0E'}</span> Price Story</>, active: moreL1 === 'pricestory', onClick: () => setMoreL1('pricestory') },
+                                { key: 'activity', label: <><span className="pill-tab-ico is-activity">{'\u2BD0\uFE0E'}</span> Activity</>, active: moreL1 === 'activity', onClick: () => setMoreL1('activity') },
                                 { key: 'social', label: <><span className="pill-tab-ico is-social">{'\u263B\uFE0E'}</span> Social</>, active: moreL1 === 'social', onClick: () => setMoreL1('social') },
                                 { key: 'anoint', label: <><span className="pill-tab-ico is-anoint">{'\u2722\uFE0E'}</span> Anointed</>, active: moreL1 === 'anoint', onClick: () => setMoreL1('anoint') },
                                 { key: 'albums', label: <><span className="pill-tab-ico is-album">{'◰︎'}</span> Albums</>, active: moreL1 === 'albums', onClick: () => setMoreL1('albums') },
