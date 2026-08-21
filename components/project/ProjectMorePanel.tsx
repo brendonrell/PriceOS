@@ -36,6 +36,7 @@ import { formatEth } from '../../lib/format/eth';
 import { useAuth } from '../../lib/state/AuthContext';
 import CallLedgerCard from './CallLedgerCard';
 import PopTablePanel from './PopTablePanel';
+import ActivityHeatmapPanel from './ActivityHeatmapPanel';
 import { fmPlay } from '../../lib/fm/fmBus';
 
 /* + More sub-nav (Brendon, 2026-06-13) — same trait-pill tab system as the
@@ -48,7 +49,7 @@ import { fmPlay } from '../../lib/fm/fmBus';
      Albums    → Albums
      Genome    → Genome
      Sentiment → Price Targets + Disagreement Score (what the crowd thinks) */
-export type ProjectMoreL1 = 'social' | 'stats' | 'replay' | 'albums' | 'genome' | 'gnome' | 'sentiment' | 'attributes' | 'pricestory' | 'offers' | 'anoint';
+export type ProjectMoreL1 = 'social' | 'stats' | 'replay' | 'albums' | 'genome' | 'gnome' | 'sentiment' | 'attributes' | 'pricestory' | 'offers' | 'anoint' | 'activity';
 
 export default function ProjectMorePanel({
     onAlbumsTab,
@@ -550,6 +551,13 @@ export default function ProjectMorePanel({
                 from the real ledger (same panel as the Output story). */}
             <div className="more-section-header">PRICE STORY</div>
             <PriceStoryPanel slug={project.slug} />
+            </>)}
+            {moreL1 === 'activity' && (<>
+            {/* ACTIVITY HEATMAP (2026-08-21) — calendar-grid of mint + trade
+                activity across the project's whole life; tap a day to drill
+                into its 24 hours, zoom out to return. Own feed, own panel. */}
+            <div className="more-section-header">ACTIVITY HEATMAP</div>
+            <ActivityHeatmapPanel slug={project.slug} />
             </>)}
             {moreL1 === 'offers' && (<>
             {/* OFFERS — the project's live book: every open offer (item +
