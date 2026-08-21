@@ -1124,7 +1124,8 @@ export default function ArtworkPageBody({
                         getArt={() => featureStageRef.current?.querySelector('.artwork-feature-art') ?? null}
                         slug={slug}
                         id={globalId}
-                        disabled={notifs.asciiArt || !onArtwork}
+                        disabled={!onArtwork}
+                        asciiMode={notifs.asciiArt}
                         wheelNeedsModifier
                         onLongPress={() => {}}
                     />
