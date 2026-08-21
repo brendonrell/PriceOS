@@ -830,6 +830,14 @@ mix** (see the ⛔ in `lib/tags/formula.ts`).
 
 ---
 
+## Project +More tab — Activity Heatmap (added 2026-08-21)
+
+| Concept | Glyph | Codepoint | Where it's canonical |
+|---|---|---|---|
+| Activity Heatmap | ⯐ | U+2BD0 | Project + More tab pill (`.is-activity`), `ActivityHeatmapPanel.tsx` |
+
+---
+
 *Source files: `components/dropdown/settings/MyPingsRow.tsx`,
 `components/ArtworkCard.tsx`, `components/achievements/AchievementsGrid.tsx`,
 `lib/pings/render.ts`, `lib/data/tapeEvents.ts`, `app/globals.css`
