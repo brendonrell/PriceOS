@@ -40,6 +40,13 @@ interface Props {
      *  drives it instead. */
     savedLayout?: PlacementMap | null;
     savedAspect?: number | null;
+    /** Owner's account-synced sticker_state — VISITOR path only (own profile
+     *  keeps reading the live device ledger for immediate editing feedback).
+     *  Without these a visitor only ever saw the hardcoded demo seed, never
+     *  the owner's real collection (Brendon, 2026-08-21). */
+    savedOwnedIds?: string[] | null;
+    savedOffSheets?: string[] | null;
+    savedOffIds?: string[] | null;
     /** Read-only mirror — renders the owner's live arrangement with NO gestures
      *  (no lift/drag/✕, no manager). Used as the live preview inside Manager Plus. */
     preview?: boolean;
@@ -79,10 +86,16 @@ function snapAngle(deg: number): number {
     return Math.abs(deg - nearest) <= 5 ? nearest : Math.round(deg);
 }
 
-function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, preview }: Props) {
+function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, savedOwnedIds, savedOffSheets, savedOffIds, preview }: Props) {
     const { notifs } = usePdNotifs();
-    const owned = useOwnedFor(ownerHandle, !!isOwn);
-    const { offSheets, offIds } = useStickerPrefs();
+    const owned = useOwnedFor(ownerHandle, !!isOwn, savedOwnedIds);
+    /* Active-state: your own live device ledger on your own profile (so
+       toggling in the manager updates instantly); the OWNER's account-synced
+       state when you're a visitor — never the visitor's own device prefs,
+       which is what was silently hiding everyone else's stickers before. */
+    const livePrefs = useStickerPrefs();
+    const offSheets = isOwn ? livePrefs.offSheets : new Set(savedOffSheets ?? []);
+    const offIds = isOwn ? livePrefs.offIds : new Set(savedOffIds ?? []);
     const { arrange, tilt, seed, expand, rows: rowsPref, align, flip, density, border } = useHeroPrefs();
     /* Die-cut border (the kiss-cut white edge) — Off / White / Bold. White =
        white kiss-cut; Bold = white cut + a bold dark score line. Driven by CSS
