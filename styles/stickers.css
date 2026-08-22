@@ -246,6 +246,20 @@
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
 }
+/* FIXED WIDTH (Brendon, 2026-08-22) — the label text and the BACK stack are
+   different widths, so the cap was shrinking/growing every time it toggled.
+   Both states now render at once, stacked in the same grid cell; the cell
+   sizes to the WIDER of the two automatically, so the box never changes size
+   — only the hidden one is invisible, still taking its space. */
+.ss-mktline-cap-stack {
+    display: grid;
+}
+.ss-mktline-cap-stack > * {
+    grid-area: 1 / 1;
+}
+.ss-mktline-cap-stack > .is-hidden {
+    visibility: hidden;
+}
 .ss-mktline-cap:hover { background: color-mix(in srgb, var(--text-color) 12%, transparent); }
 /* The active face's cap wears the fill (the look locked from Brendon's
    2026-07-16 screenshot — the tapped cap stays visibly on). */
@@ -265,6 +279,7 @@
     font-size: 14px;
     line-height: 1;
     margin-top: 2px;
+    font-style: italic;
 }
 
 .ss-ticker {
