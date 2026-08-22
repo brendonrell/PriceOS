@@ -108,6 +108,7 @@ import KeychainCharmModal from '../keychains/KeychainCharmModal';
 import FriendInspectorLite from '../FriendInspectorLite';
 import OfferShieldCast from '../OfferShieldCast';
 import PanopticonConfirmModal from '../PanopticonConfirmModal';
+import ProfileTagsConfirmModal from '../ProfileTagsConfirmModal';
 import CartographyModal from '../CartographyModal';
 import ComposerModal from '../composer/ComposerModal';
 import SigilForgeModal from '../SigilForgeModal';
@@ -601,6 +602,9 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="PanopticonConfirmModal">
                 <PanopticonConfirmModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="ProfileTagsConfirmModal">
+                <ProfileTagsConfirmModal />
             </ErrorBoundary>
             <ErrorBoundary name="CartographyModal">
                 <CartographyModal />
