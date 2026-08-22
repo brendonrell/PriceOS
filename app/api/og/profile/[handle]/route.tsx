@@ -64,10 +64,28 @@ const PETEY_DOT_TOP_PATH =
    inline IIFE assigned to the nullable cache var) because TS's contextual
    typing of an async arrow function against a `T | null` target produced a
    bogus "Promise<ArrayBuffer | null>" build error — a named function with
-   its own explicit return type sidesteps that entirely. */
+   its own explicit return type sidesteps that entirely.
+
+   ⛔ FIXED 2026-08-22 (Error 1101, worker threw exception on every request):
+   the CSS fetch had no User-Agent, so Google Fonts served the modern-browser
+   default — .woff2. Satori (what ImageResponse renders with) only reads
+   .ttf/.otf and throws on a woff2 buffer, which killed the whole route.
+   Google only serves .ttf to old/legacy user agents, so the CSS request
+   below spoofs one — same workaround every next/og + Google Fonts example
+   uses. */
 async function fetchFont(): Promise<ArrayBuffer> {
     const css = await fetch(
         'https://fonts.googleapis.com/css2?family=Rubik+Mono+One&display=swap',
+        {
+            headers: {
+                // Google's CSS responder keys the format purely off UA string.
+                // Old Safari (pre-woff2, ships ttf) is the standard spoof used
+                // by every next/og + Google Fonts integration for this reason —
+                // a merely-old UA isn't enough, some still get served .woff.
+                'User-Agent':
+                    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_8) AppleWebKit/534.55.3 (KHTML, like Gecko) Version/5.1.3 Safari/534.53.10',
+            },
+        },
     ).then((r) => r.text());
     const url = css.match(/src: url\(([^)]+)\)/)?.[1];
     if (!url) throw new Error('Rubik Mono One: no font url in Google Fonts CSS');
