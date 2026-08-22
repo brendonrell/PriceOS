@@ -300,23 +300,25 @@ export function useOwnedStickerIds(): string[] {
     return useLedger().owned;
 }
 
-/** The full set a profile owner holds: the seed (e.g. Brendon) plus purchases —
- *  from the live device ledger on your own profile, or from the owner's
- *  account-synced `sticker_state.owned` when you're a visitor (Brendon,
- *  2026-08-21: visitors were only ever seeing the hardcoded seed, never a
- *  real owner's actual collection — stickers are for showing off). */
-export function useOwnedFor(handle: string | null | undefined, isOwn: boolean, accountOwnedIds?: string[] | null): Sticker[] {
+/** The full set a profile owner holds: your live device ledger while you're
+ *  actively editing in the manager (`preferLocal`), or the account-synced
+ *  `sticker_state.owned` otherwise — which is every other case: the resting
+ *  display on your own profile, any visitor, any device or browser context
+ *  (Brendon, 2026-08-22: "stickers should have NO local reliance... we want
+ *  no localStorage-only features" — the steady-state display never depends
+ *  on what happens to be sitting in this browser's storage). */
+export function useOwnedFor(handle: string | null | undefined, preferLocal: boolean, accountOwnedIds?: string[] | null): Sticker[] {
     const { owned } = useLedger();
     return useMemo(() => {
         const seed = ownedStickers(handle);
         const map = new Map<string, Sticker>(seed.map((s) => [s.id, s]));
-        const extra = isOwn ? owned : (accountOwnedIds ?? []);
+        const extra = preferLocal ? owned : (accountOwnedIds ?? []);
         for (const id of extra) {
             const s = stickerById(id);
             if (s) map.set(id, s);
         }
         return [...map.values()];
-    }, [handle, isOwn, owned, accountOwnedIds]);
+    }, [handle, preferLocal, owned, accountOwnedIds]);
 }
 
 /** Non-reactive owned list (seed + purchases) — for the manager's local copy. */
