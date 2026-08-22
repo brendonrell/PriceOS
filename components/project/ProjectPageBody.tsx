@@ -476,7 +476,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                             ) : '\u00A0'}
                             {others > 0 && (
                                 <span className="cbr-others" onClick={() => open('collectors')}>
-                                    &amp; {others} more you follow
+                                    &amp;&nbsp;{others}&nbsp;more&nbsp;you&nbsp;follow
                                 </span>
                             )}
                         </div>
