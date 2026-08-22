@@ -681,6 +681,24 @@ export function hydrateFromRow(row: UserRow): void {
     }
 
     _hydrated = true;
+
+    /* ⛔ THE REAL COMEBACK, PART 2 (Brendon, 2026-08-22: "dead link fix did
+       fuck all"). Part 1 (FmBar.tsx) stops a dead station from being
+       persisted going forward — but pushSettings()/sendDirtySettings() are
+       a no-op until `_hydrated` is true (line 706 above), and NOTHING was
+       ever flushing keys that went dirty in that window. Any call made
+       before this exact line — including clearDeadSession()'s
+       pushSettings({ fmSession: null }) the moment a dead link is caught
+       early in a session — sat in _dirtySettingsKeys forever, never sent.
+       The server's copy of fmSession stayed the dead station. Next
+       hydrateFromRow (reload, re-sign-in, another device) pulled that same
+       dead station straight back down into localStorage and dispatched
+       'pd:fm-session-changed' — reloading it via the ACCOUNT-SYNC path,
+       which Part 1 never touched. That's the loop that survived the first
+       fix. Draining here — the instant _hydrated flips true — closes the
+       gap for fmSession and for every other settings key with the same
+       shape of bug. */
+    if (_dirtySettingsKeys.size > 0) sendDirtySettings();
 }
 
 /** Called on sign-out. Drops the hydration guard so a different identity that
