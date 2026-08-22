@@ -437,13 +437,18 @@ export default function StickersModal() {
                                     exactly that — crosses back to the store
                                     (Brendon, 2026-08-18). Closed, it's just
                                     MARKET; short, so it never pushes MY BINDER
-                                    off the right edge of an iPhone. */}
-                                {marketOn ? (
-                                    <span className="ss-mktline-cap-back">
+                                    off the right edge of an iPhone.
+                                    Both states always render, one hidden, so
+                                    the cap's width is always the wider of the
+                                    two and never resizes on toggle (Brendon,
+                                    2026-08-22). */}
+                                <span className="ss-mktline-cap-stack">
+                                    <span className={marketOn ? 'is-hidden' : undefined}>MARKET</span>
+                                    <span className={`ss-mktline-cap-back${marketOn ? '' : ' is-hidden'}`}>
                                         <span className="ss-mktline-cap-back-label">BACK</span>
                                         <span className="ss-mktline-cap-back-glyph" aria-hidden="true">{'⇠⇠︎'}</span>
                                     </span>
-                                ) : 'MARKET'}
+                                </span>
                             </button>
                             <button
                                 type="button"
@@ -457,13 +462,16 @@ export default function StickersModal() {
                                 {/* MY BINDER reads BACK + the platform back-glyph
                                     while open, same rule as MARKET (Brendon,
                                     2026-08-18) — tapping it here is a back
-                                    action, so the label says so. */}
-                                {albumOn ? (
-                                    <span className="ss-mktline-cap-back">
+                                    action, so the label says so. Both states
+                                    always render, one hidden — see MARKET's
+                                    note above (Brendon, 2026-08-22). */}
+                                <span className="ss-mktline-cap-stack">
+                                    <span className={albumOn ? 'is-hidden' : undefined}>MY BINDER</span>
+                                    <span className={`ss-mktline-cap-back${albumOn ? '' : ' is-hidden'}`}>
                                         <span className="ss-mktline-cap-back-label">BACK</span>
                                         <span className="ss-mktline-cap-back-glyph" aria-hidden="true">{'⇠⇠︎'}</span>
                                     </span>
-                                ) : 'MY BINDER'}
+                                </span>
                             </button>
                         </div>
                         <div className="ss-ticker" aria-hidden="true">
