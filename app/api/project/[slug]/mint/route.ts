@@ -17,6 +17,8 @@ import { MINTING_NOW_THRESHOLD } from '@/lib/home/homeData';
 import { PROJECT_MILESTONES } from '@/lib/home/milestones';
 import { createPing } from '@/lib/pings/createPing';
 import { fanOutMarketPings } from '@/lib/pings/fanout';
+import { persistEvaluation } from '@/lib/achievements/engine';
+import { pingAchievements } from '@/lib/pings/pingAchievements';
 
 export const dynamic = 'force-dynamic';
 
@@ -188,12 +190,43 @@ export const POST = requireAuth<{ slug: string }>(async (req, ctx, address) => {
       }
     }
 
+    // BUGFIX (achievements silently not unlocking on mint): this used to rely
+    // entirely on the client — dispatch pd:project-refresh, wait ~2.2s for the
+    // reveal to settle, then fire an authenticated POST to
+    // /api/achievements/evaluate. Any of tab close, hard navigation, or a
+    // transient fetch failure in that window drops the unlock forever (the
+    // client swallows evaluate() failures with no retry — next-load evaluate()
+    // is the only safety net, and only if the user comes back). The mint
+    // itself is the one place we KNOW the qualifying action happened, so
+    // evaluate right here, server-side, in the same request — the same
+    // guaranteed pattern /api/streak/ping already uses. Best-effort: a failure
+    // here must never fail the mint that already succeeded; the client-side
+    // path stays in place as a harmless, idempotent redundant check.
+    let newlyUnlocked: Awaited<ReturnType<typeof persistEvaluation>>['newlyUnlocked'] = [];
+    try {
+      const evalResult = await persistEvaluation(supabase, address);
+      newlyUnlocked = evalResult.newlyUnlocked;
+      await pingAchievements(address, newlyUnlocked);
+    } catch {
+      /* best-effort — the client's own evaluate()/streak-ping call still
+         covers this mint as a fallback. */
+    }
+
     return NextResponse.json({
       project_id: slug,
       minted: r.minted,
       count: r.count,
       balance: r.balance,
       sold_out: r.sold_out,
+      newlyUnlocked: newlyUnlocked.map((a) => ({
+        id: a.id,
+        name: a.name,
+        blurb: a.blurb,
+        points: a.points,
+        category: a.category,
+        secret: a.secret,
+        icon: a.icon,
+      })),
     });
   } catch (err) {
     return serverError(err instanceof Error ? err.message : 'Unknown error');
