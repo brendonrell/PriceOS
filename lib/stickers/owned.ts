@@ -300,20 +300,23 @@ export function useOwnedStickerIds(): string[] {
     return useLedger().owned;
 }
 
-/** The full set a profile owner holds: the seed (e.g. Brendon) plus, on your own
-    profile, your simulated purchases. */
-export function useOwnedFor(handle: string | null | undefined, isOwn: boolean): Sticker[] {
+/** The full set a profile owner holds: the seed (e.g. Brendon) plus purchases —
+ *  from the live device ledger on your own profile, or from the owner's
+ *  account-synced `sticker_state.owned` when you're a visitor (Brendon,
+ *  2026-08-21: visitors were only ever seeing the hardcoded seed, never a
+ *  real owner's actual collection — stickers are for showing off). */
+export function useOwnedFor(handle: string | null | undefined, isOwn: boolean, accountOwnedIds?: string[] | null): Sticker[] {
     const { owned } = useLedger();
     return useMemo(() => {
         const seed = ownedStickers(handle);
-        if (!isOwn) return seed;
         const map = new Map<string, Sticker>(seed.map((s) => [s.id, s]));
-        for (const id of owned) {
+        const extra = isOwn ? owned : (accountOwnedIds ?? []);
+        for (const id of extra) {
             const s = stickerById(id);
             if (s) map.set(id, s);
         }
         return [...map.values()];
-    }, [handle, isOwn, owned]);
+    }, [handle, isOwn, owned, accountOwnedIds]);
 }
 
 /** Non-reactive owned list (seed + purchases) — for the manager's local copy. */
