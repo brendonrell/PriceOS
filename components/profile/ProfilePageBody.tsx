@@ -1860,7 +1860,7 @@ function ProfilePageBodyInner({
                         ) : '\u00A0'}
                         {mutualOthers > 0 && (
                             <span className="cbr-others">
-                                &amp; {mutualOthers} {mutualOthers === 1 ? 'Other' : 'Others'} You Follow
+                                &amp;&nbsp;{mutualOthers}&nbsp;{mutualOthers === 1 ? 'Other' : 'Others'}&nbsp;You&nbsp;Follow
                             </span>
                         )}
                     </div>
