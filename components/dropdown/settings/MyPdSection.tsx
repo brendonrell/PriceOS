@@ -34,6 +34,7 @@ import { useAuth } from '../../../lib/state/AuthContext';
 import { pushState, USERSTATE_HYDRATED_EVENT } from '../../../lib/state/userState';
 import { effectiveShowcaseStyle } from '../../../lib/profile/showcaseStyle';
 import type { ShowcaseStyle } from '../../../lib/supabase';
+import { useModal } from '../../../lib/state/ModalContext';
 import { SettingsToggle } from './SettingsToggle';
 import { PerMilleMark } from '../../shell/PerMilleMark';
 
@@ -55,6 +56,7 @@ export function MyPdSection({ onTripleTap }: Props) {
     const isAuthed = !!siweAddress;
     const router = useRouter();
     const { closeMenu } = useDropdown();
+    const { open } = useModal();
 
     /* PROFILE TAGS door (Brendon, 2026-08-15) — a more obvious entry point
        beside the User Showcase glyph. Does the exact same thing as
@@ -70,6 +72,21 @@ export function MyPdSection({ onTripleTap }: Props) {
             window.dispatchEvent(new CustomEvent('pd:open-tag-egg'));
         } else {
             router.push(`/${handle}`);
+        }
+    };
+
+    /* PROFILE TAGS door confirm gate (Brendon, 2026-08-22) — the door
+       always used to jump straight to the profile page; now it only does
+       that instantly when there's no navigation involved (already on your
+       own profile — same-page event, no jarring redirect). Anywhere else
+       it routes through the confirm modal first, same "Turn on" gate as
+       Panopticon. */
+    const requestProfileTagsDoor = () => {
+        if (!handle) return;
+        if (typeof window !== 'undefined' && window.location.pathname === `/${handle}`) {
+            openProfileTagsDoor();
+        } else {
+            open('profileTagsConfirm');
         }
     };
 
@@ -641,12 +658,12 @@ export function MyPdSection({ onTripleTap }: Props) {
                         tabIndex={0}
                         onClick={(e) => {
                             e.stopPropagation();
-                            openProfileTagsDoor();
+                            requestProfileTagsDoor();
                         }}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault();
-                                openProfileTagsDoor();
+                                requestProfileTagsDoor();
                             }
                         }}
                     >
