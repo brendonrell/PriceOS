@@ -9816,6 +9816,205 @@ a.f-highlight { color: inherit; }
 }
 .mdg-label-r { opacity: 0.6; }
 
+/* ── Activity Heatmap (+More ▸ Activity, project + output) ───────────────
+   ActivityHeatmapPanel.tsx shipped with no CSS at all (Brendon, 2026-08-22
+   report — cells were unstyled <div>s, invisible at 0×0 with no background;
+   only the text nodes (month/weekday letters, LESS/MORE) rendered). Built to
+   match the +More card language: Courier, the .more-box-card bordered-card
+   frame, and the same opacity-ladder-on-text-color trick .mdg-bar uses. */
+.activity-hm-wrap {
+    max-width: min(62.5vw, 900px);
+    box-sizing: border-box;
+    padding: 0 0 20px 0;
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--text-color);
+}
+@media (max-width: 600px) {
+    .activity-hm-wrap { max-width: none; }
+}
+.activity-hm-intro {
+    font-size: 11px;
+    line-height: 1.5;
+    opacity: 0.55;
+    margin-bottom: 18px;
+    max-width: 46em;
+}
+/* Empty / loading placeholder — was a bare line of text with nowhere to
+   live; now a real card so the tab still reads as "a feature" pre-mint. */
+.activity-hm-empty {
+    border: 1px dashed color-mix(in srgb, var(--text-color) 35%, transparent);
+    border-radius: 6px;
+    min-height: 96px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    opacity: 0.45;
+}
+.activity-hm-cal {
+    border: 1px solid color-mix(in srgb, var(--text-color) 60%, transparent);
+    border-radius: 5px;
+    padding: 16px 16px 14px 16px;
+}
+.activity-hm-months {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-columns: 22px repeat(auto-fill, 14px);
+    height: 12px;
+    margin-bottom: 3px;
+}
+.activity-hm-month {
+    font-size: 9px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    opacity: 0.5;
+}
+.activity-hm-grid-row { display: flex; gap: 4px; }
+.activity-hm-weekdays {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    width: 18px;
+    flex-shrink: 0;
+}
+.activity-hm-weekday {
+    height: 11px;
+    line-height: 11px;
+    font-size: 8px;
+    font-weight: bold;
+    opacity: 0.4;
+    text-align: right;
+    padding-right: 2px;
+}
+.activity-hm-weeks {
+    display: flex;
+    gap: 3px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+.activity-hm-week {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex-shrink: 0;
+}
+.activity-hm-cell {
+    width: 11px;
+    height: 11px;
+    border-radius: 2px;
+    border: 1px solid color-mix(in srgb, var(--text-color) 18%, transparent);
+    background: transparent;
+    cursor: pointer;
+    transition: transform 0.12s, border-color 0.12s;
+}
+.activity-hm-cell:hover { transform: scale(1.25); border-color: var(--text-color); }
+.activity-hm-cell-empty { border-color: transparent; cursor: default; }
+.activity-hm-cell-empty:hover { transform: none; }
+/* Busier = darker, same idea as GitHub's own ladder — quantized against the
+   set's own max in levelFor() (0 = quiet, 4 = busiest day on record). */
+.activity-hm-cell[data-level="1"] { background: color-mix(in srgb, var(--text-color) 25%, transparent); border-color: transparent; }
+.activity-hm-cell[data-level="2"] { background: color-mix(in srgb, var(--text-color) 45%, transparent); border-color: transparent; }
+.activity-hm-cell[data-level="3"] { background: color-mix(in srgb, var(--text-color) 68%, transparent); border-color: transparent; }
+.activity-hm-cell[data-level="4"] { background: var(--text-color); border-color: transparent; }
+.activity-hm-legend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 12px;
+    font-size: 9px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    opacity: 0.5;
+}
+.activity-hm-legend-cell {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    border: 1px solid color-mix(in srgb, var(--text-color) 18%, transparent);
+    background: transparent;
+}
+.activity-hm-legend-cell[data-level="1"] { background: color-mix(in srgb, var(--text-color) 25%, transparent); border-color: transparent; }
+.activity-hm-legend-cell[data-level="2"] { background: color-mix(in srgb, var(--text-color) 45%, transparent); border-color: transparent; }
+.activity-hm-legend-cell[data-level="3"] { background: color-mix(in srgb, var(--text-color) 68%, transparent); border-color: transparent; }
+.activity-hm-legend-cell[data-level="4"] { background: var(--text-color); border-color: transparent; }
+/* Hour drill-down (tap a day) */
+.activity-hm-zoomout {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    padding: 0;
+    margin-bottom: 14px;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text-color);
+    opacity: 0.6;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+.activity-hm-zoomout:hover { opacity: 1; }
+.activity-hm-day-label {
+    font-size: 15px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    margin-bottom: 14px;
+}
+.activity-hm-hours {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 120px;
+    border-bottom: 1px solid color-mix(in srgb, var(--text-color) 25%, transparent);
+    padding-bottom: 2px;
+    overflow-x: auto;
+}
+.activity-hm-hourcol {
+    flex: 1 1 0;
+    min-width: 9px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    cursor: pointer;
+}
+.activity-hm-hourbar {
+    width: 100%;
+    max-width: 14px;
+    border-radius: 2px 2px 0 0;
+    background: color-mix(in srgb, var(--text-color) 20%, transparent);
+    transition: height 0.3s ease;
+}
+.activity-hm-hourbar[data-level="1"] { background: color-mix(in srgb, var(--text-color) 30%, transparent); }
+.activity-hm-hourbar[data-level="2"] { background: color-mix(in srgb, var(--text-color) 50%, transparent); }
+.activity-hm-hourbar[data-level="3"] { background: color-mix(in srgb, var(--text-color) 72%, transparent); }
+.activity-hm-hourbar[data-level="4"] { background: var(--text-color); }
+.activity-hm-hourtick {
+    font-size: 7px;
+    opacity: 0.4;
+    margin-top: 4px;
+}
+@media (max-width: 600px) {
+    .activity-hm-cal { padding: 14px 12px 12px 12px; }
+    .activity-hm-cell,
+    .activity-hm-legend-cell { width: 10px; height: 10px; }
+    .activity-hm-weeks,
+    .activity-hm-week { gap: 2px; }
+    .activity-hm-months { grid-template-columns: 18px repeat(auto-fill, 12px); }
+}
+
 /* ── PHONE LANDSCAPE HERO FIX ────────────────────────────────────
    Portrait mobile hits max-width:600px above. Landscape phones
    (~844px wide, ~390px tall) miss that breakpoint entirely and
@@ -12420,6 +12619,12 @@ body.colorway-dark .ghost-feed-bar {
    riding high next to its label (Brendon, 2026-08-20). */
 .pill-tab-ico.is-stats { font-size: 0.85em; }
 .pill-tab-ico.is-sentiment { font-size: 1.30em; }
+/* Heatmap (renamed from Activity) — icon nudged up 3px from its inherited
+   base position (Brendon, 2026-08-22): -1px → -4px mobile, 0 → -3px desktop. */
+.pill-tab-ico.is-activity { top: -4px; }
+@media (min-width: 601px) {
+    .pill-tab-ico.is-activity { top: -3px; }
+}
 
 /* ── Starred: Outputs / Traits filter pills + per-row CTAs ───────────────── */
 /* Per-row CTA button (Add-to-Wishlist on Output rows, Trait Offer on Trait
