@@ -51,6 +51,12 @@ export interface OutputDetailResponse {
    *  anointment conduit votes). 0 for the vast majority; the apex is the
    *  project's Prime Relic. */
   attention: { votes: number };
+  /** Canonical minted count for the PROJECT (projects.minted_count) — NOT
+   *  this Output's own token id, and NOT the project's max supply. PD Rarity
+   *  ranks live against this: a project that isn't sold out yet can't have a
+   *  rarity denominator borrowed from a supply cap that may never fill
+   *  (Brendon, 2026-08-22 — Rarity Labs no longer assumes sold-out). */
+  project_minted_count: number;
 }
 
 interface DbEvent {
@@ -76,7 +82,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ id: stri
 
   try {
     const db = getSupabaseService();
-    const [holderRes, listingRes, eventsRes, metaRes, anointRes] = await Promise.all([
+    const [holderRes, listingRes, eventsRes, metaRes, anointRes, projectRes] = await Promise.all([
       db.from('holders').select('owner_address').eq('project_id', slug).eq('token_id', tokenId).maybeSingle(),
       db.from('listings').select('price_eth').eq('project_id', slug).eq('token_id', tokenId).eq('active', true).maybeSingle(),
       db
@@ -91,6 +97,9 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ id: stri
       // Attention lens — how many pledges route through this Output as conduit.
       db.from('anointments').select('*', { count: 'exact', head: true })
         .eq('project_id', slug).eq('output_token_id', tokenId),
+      // Canonical minted count — same `projects.minted_count` column the
+      // project-outputs endpoint reads (Brendon, 2026-08-22).
+      db.from('projects').select('minted_count').eq('id', slug).maybeSingle(),
     ]);
     const meta = metaRes.data as {
       dominant_color: string | null; aspect: string | null;
@@ -180,6 +189,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ id: stri
         : null,
       true_name: meta?.true_name ?? null,
       attention: { votes: anointRes.count ?? 0 },
+      project_minted_count: (projectRes.data as { minted_count?: number } | null)?.minted_count ?? 0,
     };
     return NextResponse.json(response);
   } catch (err) {
