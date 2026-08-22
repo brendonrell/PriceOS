@@ -45,6 +45,7 @@ export type ModalName =
     | 'spiteBook'
     | 'tarot'
     | 'panopticonConfirm'
+    | 'profileTagsConfirm'
     | 'leaderboard'
     | 'price-leaderboard'
     | 'golf-leaderboard'
