@@ -14936,6 +14936,21 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
 }
 /* Section heads: readable on any colorway, not a 10px whisper. */
 .price-acct .attr-group-head { padding-top: 16px; }
+/* Top Holders board (@price, Holders tab) — the rows were stretching edge-
+   to-edge on wide screens since `.price-acct` has no width cap of its own.
+   Cap it at the same width as the +More "card" sections (.more-replay-wrap
+   etc.) so it reads as a matching card, not a full-bleed table. `width: 100%`
+   lets it shrink below that cap on narrower/in-between viewports instead of
+   always sitting at the max. Mobile is untouched — it already looked right
+   full-width there (Brendon, 2026-08-22). */
+.price-holders-board {
+    width: 100%;
+    max-width: min(62.5vw, 900px);
+    box-sizing: border-box;
+}
+@media (max-width: 600px) {
+    .price-holders-board { max-width: none; }
+}
 /* Section titles wear the same Rubik treatment as New Uploads' header on
    home (.home-section-title) — same size too, not just the same face
    (Brendon, 2026-08-13). */
