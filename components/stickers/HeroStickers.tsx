@@ -88,14 +88,25 @@ function snapAngle(deg: number): number {
 
 function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, savedOwnedIds, savedOffSheets, savedOffIds, preview }: Props) {
     const { notifs } = usePdNotifs();
-    const owned = useOwnedFor(ownerHandle, !!isOwn, savedOwnedIds);
-    /* Active-state: your own live device ledger on your own profile (so
-       toggling in the manager updates instantly); the OWNER's account-synced
-       state when you're a visitor — never the visitor's own device prefs,
-       which is what was silently hiding everyone else's stickers before. */
+    /* The manager modal, and the currently lifted sticker (floating + ✕,
+       own profile only) — a direct long-press-drag on the hero lifts a
+       sticker WITHOUT ever opening the modal, so both count as an active
+       local edit session. */
+    const [mgrOpen, setMgrOpen] = useState(false);
+    const [lifted, setLifted] = useState<string | null>(null);
+    /* Whether THIS page load has an active local edit session — the only
+       moment stickers have any local reliance at all (Brendon, 2026-08-22:
+       "stickers should have NO local reliance... we want no localStorage-
+       only features"). Everywhere else — the resting display, any device,
+       any context, own profile or not — reads straight off the
+       account-synced props below. Local storage exists only so a drag or a
+       toggle paints instantly while you're actively using it; the moment
+       you're not actively editing, it plays no part in what renders. */
+    const editingLive = !!isOwn && (mgrOpen || lifted !== null);
+    const owned = useOwnedFor(ownerHandle, editingLive, savedOwnedIds);
     const livePrefs = useStickerPrefs();
-    const offSheets = isOwn ? livePrefs.offSheets : new Set(savedOffSheets ?? []);
-    const offIds = isOwn ? livePrefs.offIds : new Set(savedOffIds ?? []);
+    const offSheets = editingLive ? livePrefs.offSheets : new Set(savedOffSheets ?? []);
+    const offIds = editingLive ? livePrefs.offIds : new Set(savedOffIds ?? []);
     const { arrange, tilt, seed, expand, rows: rowsPref, align, flip, density, border } = useHeroPrefs();
     /* Die-cut border (the kiss-cut white edge) — Off / White / Bold. White =
        white kiss-cut; Bold = white cut + a bold dark score line. Driven by CSS
@@ -103,10 +114,8 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, saved
     const diecut = border !== 'off';
     const borderClass = border === 'off' ? '' : border === 'bold' ? ' bd-bold' : ' bd-white';
     const ownPlace = usePlacements();
-    const [mgrOpen, setMgrOpen] = useState(false);
     const [clampW, setClampW] = useState<number | null>(null);
-    /* The currently lifted sticker (floating + ✕), own profile only. */
-    const [lifted, setLifted] = useState<string | null>(null);
+
 
     // Track the tab row's width so the stickers stop at the +More edge. Skipped
     // in preview (Manager Plus): the post-mount measurement would re-lay-out the
@@ -136,8 +145,8 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, saved
     // The preview (Manager Plus) is fed the owner's saved composition up front so
     // it paints LOCKED from the first frame — no generative-fallback flash, no
     // height jump that shoves the panel content down (Brendon 2026-06-24).
-    const layoutMap = preview ? (savedLayout ?? {}) : (isOwn ? ownPlace.placements : (savedLayout ?? {}));
-    const aspect = preview ? (savedAspect ?? null) : (isOwn ? ownPlace.aspect : (savedAspect ?? null));
+    const layoutMap = preview ? (savedLayout ?? {}) : (editingLive ? ownPlace.placements : (savedLayout ?? {}));
+    const aspect = preview ? (savedAspect ?? null) : (editingLive ? ownPlace.aspect : (savedAspect ?? null));
     const locked = Object.keys(layoutMap).length > 0;
 
     /* Locked composition, resolved + layered (z asc, last-touched on top). */
