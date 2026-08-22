@@ -641,8 +641,8 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                                 { key: 'social', label: <><span className="pill-tab-ico is-social">{'\u263B\uFE0E'}</span> Social</>, active: moreL1 === 'social', onClick: () => setMoreL1('social') },
                                 { key: 'anoint', label: <><span className="pill-tab-ico is-anoint">{'\u2722\uFE0E'}</span> Anointed</>, active: moreL1 === 'anoint', onClick: () => setMoreL1('anoint') },
                                 { key: 'albums', label: <><span className="pill-tab-ico is-album">{'◰︎'}</span> Albums</>, active: moreL1 === 'albums', onClick: () => setMoreL1('albums') },
+                                { key: 'activity', label: <><span className="pill-tab-ico is-activity">{'\u2B48\uFE0E'}</span> Heatmap</>, active: moreL1 === 'activity', onClick: () => setMoreL1('activity') },
                                 { key: 'replay', label: <><span className="pill-tab-ico is-replay">{'\u23F4\uFE0E'}</span> Replay</>, active: moreL1 === 'replay', onClick: () => setMoreL1('replay') },
-                                { key: 'activity', label: <><span className="pill-tab-ico is-activity">{'\u2B48\uFE0E'}</span> Activity</>, active: moreL1 === 'activity', onClick: () => setMoreL1('activity') },
                                 { key: 'genome', label: <><span className="pill-tab-ico is-genome">{'\u224E\uFE0E'}</span> Genome</>, active: moreL1 === 'genome', onClick: () => setMoreL1('genome') },
                                 { key: 'gnome', label: <><span className="pill-tab-ico is-gnome">{'\u2359\uFE0E'}</span> Gnome</>, active: moreL1 === 'gnome', onClick: () => setMoreL1('gnome') },
                             ]}
