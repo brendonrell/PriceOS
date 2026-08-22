@@ -127,7 +127,13 @@ export default function MintButton({
     requestAnimationFrame(() => requestAnimationFrame(() => setPct(92)));
     const minShow = new Promise((r) => setTimeout(r, 900));
     let ok = false;
-    let j: { count?: number; balance?: number; error?: string; minted?: number[] } = {};
+    let j: {
+      count?: number;
+      balance?: number;
+      error?: string;
+      minted?: number[];
+      newlyUnlocked?: unknown[];
+    } = {};
     try {
       const r = await fetch(`/api/project/${slug}/mint`, {
         method: 'POST',
@@ -162,7 +168,16 @@ export default function MintButton({
     setResult({ count, balance });
     setPhase('done');
     playSound('chime'); // sound layer — the mint chime (no-op when off)
-    if (typeof window !== 'undefined') window.dispatchEvent(new Event('pd:project-refresh'));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('pd:project-refresh'));
+      // Achievements are now evaluated server-side inside the mint route
+      // itself (guaranteed — see app/api/project/[slug]/mint/route.ts). If it
+      // returned unlocks, nudge the rank/pings surfaces to re-read right away
+      // instead of waiting on PriceRankSync's own deferred re-evaluate.
+      if (Array.isArray(j.newlyUnlocked) && j.newlyUnlocked.length > 0) {
+        window.dispatchEvent(new Event('pd:pricerank-changed'));
+      }
+    }
     // Linger well past the default + fade gently — gives the buyer confidence
     // (Brendon 2026-06-13, doubled to 4000ms). Slow 700ms fade (vs 250).
     showToast(`✦︎ Minted: ${count} × ${projectTitle} · ${balance} ETH left ✦︎`, 4000, 700);
