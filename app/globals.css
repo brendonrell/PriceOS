@@ -12620,11 +12620,18 @@ body.colorway-dark .ghost-feed-bar {
 .pill-tab-ico.is-stats { font-size: 0.85em; }
 .pill-tab-ico.is-sentiment { font-size: 1.30em; }
 /* Heatmap (renamed from Activity) — icon nudged up 3px from its inherited
-   base position (Brendon, 2026-08-22): -1px → -4px mobile, 0 → -3px desktop. */
-.pill-tab-ico.is-activity { top: -4px; }
+   base position (Brendon, 2026-08-22): -1px → -4px mobile, 0 → -3px desktop.
+   Nudged back down 1.5px (Brendon, 2026-08-22): -4px → -2.5px mobile,
+   -3px → -1.5px desktop. */
+.pill-tab-ico.is-activity { top: -2.5px; }
 @media (min-width: 601px) {
-    .pill-tab-ico.is-activity { top: -3px; }
+    .pill-tab-ico.is-activity { top: -1.5px; }
 }
+/* Attributes icon nudged up 1px from its inherited base position (Brendon,
+   2026-08-22): 0 → -1px, both mobile and desktop. Two-class selector
+   outranks the bare .pill-tab-ico media-query rules regardless of source
+   order, same pattern as is-genome/is-replay/is-sentiment above. */
+.pill-tab-ico.is-attributes { top: -1px; }
 
 /* ── Starred: Outputs / Traits filter pills + per-row CTAs ───────────────── */
 /* Per-row CTA button (Add-to-Wishlist on Output rows, Trait Offer on Trait
@@ -13914,9 +13921,9 @@ body.colorway-dark .ghost-feed-bar {
    quadruples. Base inter-row run is the two 12px pads; each tier adds a
    connector-length below the row (class set in ArtworkPageBody, FEED order
    only). */
-.output-timeline-feed .feed-row.tl-gap-2x { padding-bottom: 36px; }
-.output-timeline-feed .feed-row.tl-gap-3x { padding-bottom: 60px; }
-.output-timeline-feed .feed-row.tl-gap-4x { padding-bottom: 84px; }
+.output-timeline-feed .feed-row.tl-gap-2x { padding-bottom: 72px; }
+.output-timeline-feed .feed-row.tl-gap-3x { padding-bottom: 120px; }
+.output-timeline-feed .feed-row.tl-gap-4x { padding-bottom: 168px; }
 /* The ETH amount under the action name reads bold (Brendon, 2026-06-27).
    Scoped to .home-activity-feed (not just .output-timeline-feed) so the New
    Uploads price — added 2026-08-15, same af-price markup — reads identically;
