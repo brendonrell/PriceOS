@@ -4657,6 +4657,13 @@ body.pd-stone-open .ens-copy-toast {
        overflowing the screen — Brendon's call: wrap, don't shrink. Applies to
        every username: project @name + the @handle at the top of user profiles. */
     overflow-wrap: anywhere;
+    /* Pin against iOS text-inflation (Brendon, 2026-08-22): rotating to
+       landscape was randomly boosting the #id (and sometimes the whole
+       title, briefly) well past 22px. Same fix as .info-rubik and
+       .gas-tracker-info — the global html/body pin doesn't reliably hold
+       everywhere, so the title locks its own text scale too. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
 }
 .project-date {
     font-family: var(--font-rubik-mono), sans-serif;
