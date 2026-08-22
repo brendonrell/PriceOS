@@ -370,6 +370,11 @@ export default function ArtworkPageBody({
     const [fingerprint, setFingerprint] = useState<AttrInput['fingerprint']>(null);
     const [hand, setHand] = useState<HandRead | null>(null);
     const [attention, setAttention] = useState<{ votes: number } | null>(null);
+    /* PD Rarity's LIVE denominator — the project's canonical minted count,
+       NOT its max supply. A project that isn't sold out (or never will be)
+       can't have its rarity ranked against a supply cap it may never fill
+       (Brendon, 2026-08-22 — Rarity Labs rebuild). */
+    const [mintedCount, setMintedCount] = useState<number | null>(null);
     useEffect(() => {
         let cancelled = false;
         fetch(`/api/output/${slug}-${numberPart}`)
@@ -381,6 +386,7 @@ export default function ArtworkPageBody({
                 if (d.true_name) setTrueName(d.true_name as string);
                 if (d.fingerprint) setFingerprint(d.fingerprint as AttrInput['fingerprint']);
                 if (d.attention) setAttention(d.attention as { votes: number });
+                if (typeof d.project_minted_count === 'number') setMintedCount(d.project_minted_count);
                 // Hand — the conviction read, from the piece's real ledger.
                 if (Array.isArray(d.history)) {
                     setHand(handRead({
@@ -565,12 +571,15 @@ export default function ArtworkPageBody({
         return max;
     }, [feedRows]);
 
-    /* PD RARITY — where this piece sits across its whole edition set: the same
-       read the Vault and the stone give ("#3 of 105"), memoised per project.
-       This spot used to carry the all-time high (Brendon, 2026-07-29). */
+    /* PD RARITY — where this piece sits across its LIVE edition set: the same
+       read the Vault and the stone give, now ranked against the project's
+       canonical minted count instead of its max supply ("#3 of 47 minted",
+       not "#3 of 222 planned") — reshuffles as new mints land, which is
+       correct (Brendon, 2026-08-22). This spot used to carry the all-time
+       high (Brendon, 2026-07-29). */
     const rarityRank = useMemo(
-        () => (typeof numberPart === 'number' ? pdRarityRank(slug, numberPart) : null),
-        [slug, numberPart],
+        () => (typeof numberPart === 'number' && mintedCount != null ? pdRarityRank(slug, numberPart, mintedCount) : null),
+        [slug, numberPart, mintedCount],
     );
 
     /* THE MARKET wall (Stats sub-tab) — every market number the ledger holds
