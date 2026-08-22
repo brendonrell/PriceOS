@@ -1,0 +1,73 @@
+/* ============================================================================
+   PROFILE TAGS CONFIRM — the consent gate shown before the Profile Tags door
+   navigates away from Settings to the profile page (Brendon, 2026-08-22).
+   Consent-modal shell cloned from panopticon.css's .pan-* block (same visual
+   language, its own prefix so this isn't borrowing an unrelated feature's
+   classes). Imported by globals.
+   ============================================================================ */
+
+.ptc-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1300;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+/* blur ONLY while open — see panopticon.css's identical note (2026-07-13
+   GPU-load lesson): a hidden full-viewport backdrop-filter still costs a
+   frame-by-frame re-blur even when invisible. */
+.ptc-backdrop.active {
+    opacity: 1;
+    visibility: visible;
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+}
+
+.ptc-card {
+    width: min(94vw, 420px);
+    background: color-mix(in srgb, var(--bg-color) 92%, var(--text-color) 8%);
+    color: var(--text-color);
+    border: 1px solid color-mix(in srgb, var(--text-color) 30%, transparent);
+    border-radius: 12px;
+    padding: 18px 18px 16px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+    font-family: 'Courier New', Courier, monospace;
+    transform: scale(0.96);
+    transition: transform 0.25s cubic-bezier(0.16, 0.84, 0.34, 1);
+}
+.ptc-backdrop.active .ptc-card { transform: scale(1); }
+
+.ptc-title { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.ptc-title-glyph { font-size: 18px; }
+.ptc-title-text { font-size: 15px; font-weight: bold; letter-spacing: 0.18em; }
+
+.ptc-lead { margin: 0 0 16px; font-size: 13px; line-height: 1.5; opacity: 0.92; }
+
+.ptc-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.ptc-btn {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid currentColor;
+    background: transparent;
+    color: inherit;
+    transition: opacity 0.15s, background 0.15s;
+}
+.ptc-btn--ghost { opacity: 0.6; }
+.ptc-btn--ghost:hover { opacity: 1; }
+.ptc-btn--go {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border-color: var(--text-color);
+}
+.ptc-btn--go:hover { opacity: 0.85; }
