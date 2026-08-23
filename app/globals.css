@@ -6440,6 +6440,49 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.32); }
 }
 @media (max-width: 600px) { .sort-btn.group-btn { margin-right: 5px; } }
 
+/* ── COLLECTED-TAB GALLERY SORT ROW (profile page only) ──────────────────
+   Brendon, 2026-08-23: "the gap on the left and right side of the group
+   icon" should match the plain gap between #ID / $PRICE / AZ / FEED, and
+   the sort arrow should sit right beside its label instead of floating off
+   to the right.
+
+   Before this: the LEFT of the GROUP icon carried the row's own 16px gap
+   PLUS the colorway pills' own 6px margin (22px total, 16px on mobile);
+   the RIGHT of the GROUP icon carried the row's 12px gap PLUS the icon's
+   own 7px margin (19px total, 13px on mobile) — both bigger than the
+   plain 12px/8px gap between the sort buttons themselves. Zeroing this
+   row's outer gap and folding the colorway-pills margin down to match the
+   plain gap (and dropping the GROUP icon's extra margin entirely) makes
+   every gap in the row the same, at both breakpoints.
+
+   The arrow sits far from its label because the Courier "↑"/"↓" glyph
+   carries a lot of dead space in its own character cell — the 3px CSS gap
+   was never the problem. A tight negative margin pulls it in; the
+   font-size bump keeps it legible up close without the row growing
+   taller (line-height stays clamped at 1, same trick as .sort-lbl-recent).
+
+   Scoped to .cf-collected-sort (this row only) — the project, home, and
+   artwork sort rows keep their existing spacing untouched. */
+.cf-collected-sort {
+    gap: 0;
+}
+.cf-collected-sort .colorway-pills {
+    margin-right: 12px;
+}
+.cf-collected-sort .sort-btn.group-btn {
+    margin-right: 0;
+}
+.cf-collected-sort .sort-arrow {
+    margin-left: -6px;
+    font-size: 26px;
+    line-height: 1;
+}
+@media (max-width: 600px) {
+    .cf-collected-sort .colorway-pills {
+        margin-right: 8px;
+    }
+}
+
 /* ── ICON BUTTONS (burn / search) — sim 2317-2325 ── */
 /* Build 25 D6+D7: .st-icon + .sharp-glyph + per-id overrides ported from
    sim 712, 885, 1000-1006, 1541, 1549, 1557, 1562-1601, 1666-1667.
