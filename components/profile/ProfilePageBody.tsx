@@ -916,8 +916,8 @@ function ProfilePageBodyInner({
        spend, then top 5 Outputs by price paid. Breakdown is prefetched once
        per profile view (below) so the tap itself stays instant — falls back
        to the plain toast if it hasn't landed yet. holdMs runs 50% longer
-       than the default (2700 vs 1800) since there's more to read (Brendon,
-       2026-08-16). */
+       than the default (now 5400 vs 1800 — doubled again 2026-08-23) since
+       there's more to read (Brendon, 2026-08-16). */
     const [spendBreakdown, setSpendBreakdown] = useState<{
         topProjects: { slug: string; totalEth: number }[];
         topOutputs: { slug: string; token_id: number; priceEth: number }[];
@@ -946,7 +946,7 @@ function ProfilePageBodyInner({
                 lines.push(`${getProject(o.slug)?.displayName ?? o.slug} #${o.token_id}  ⟠${o.priceEth.toFixed(2)}`);
             }
         }
-        showToast('Volume Spent', 2700, undefined, null, lines.length ? lines : null);
+        showToast('⟠ VOLUME SPENT ⟠', 5400, undefined, null, lines.length ? lines : null);
     };
 
     /* Long-press the join date → it flips to the profile's platform user
