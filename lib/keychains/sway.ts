@@ -94,6 +94,43 @@ function onScroll() {
     wake();
 }
 
+/* ⛔ PULL-TO-REFRESH FREEZES THE CHAIN WITHOUT THIS (Brendon, 2026-08-23).
+   Near the top, the native rubber-band pull doesn't move window.scrollY —
+   it's already pinned at 0 — so the 'scroll' listener above never fires
+   once a pull-to-refresh gesture starts, and the chain just stops taking
+   kicks mid-pull. This reads the raw touch travel directly, but ONLY while
+   the page is genuinely at the top, so it only fills the gap the rubber-band
+   leaves; the moment real scrolling is possible again onScroll takes back
+   over and this stays quiet (no double-kicking). Same clamp/coefficient as
+   onScroll so the feel matches. */
+let touchLastY = 0;
+let touchActive = false;
+
+function atTopNow(): boolean {
+    if (typeof window === 'undefined') return false;
+    return (window.scrollY || document.scrollingElement?.scrollTop || 0) <= 0;
+}
+
+function onTouchStartRaw(e: TouchEvent) {
+    if (e.touches.length !== 1) { touchActive = false; return; }
+    touchLastY = e.touches[0].clientY;
+    touchActive = atTopNow();
+}
+
+function onTouchMoveRaw(e: TouchEvent) {
+    if (!touchActive || e.touches.length !== 1) return;
+    if (!atTopNow()) { touchActive = false; return; } // real scroll took over
+    const y = e.touches[0].clientY;
+    let d = -(y - touchLastY); // finger down = as if scrollY dipped negative
+    touchLastY = y;
+    if (d > 40) d = 40;
+    if (d < -40) d = -40;
+    kickY -= d * 0.13;
+    wake();
+}
+
+function onTouchEndRaw() { touchActive = false; }
+
 /* ⛔ TILT NOW SHARES SCROLL'S ONE-PER-FRAME GATE (Brendon, 2026-08-17:
    "glitchy and freezes while scrolling" with tilt also on). The 08-15 patch
    just deleted scroll's "skip while tilt is granted" guard and left onTilt
@@ -186,6 +223,10 @@ export function startSway(): () => void {
     if (mounted === 1) {
         lastY = window.scrollY;
         window.addEventListener('scroll', onScrollRaw, { passive: true });
+        window.addEventListener('touchstart', onTouchStartRaw, { passive: true });
+        window.addEventListener('touchmove', onTouchMoveRaw, { passive: true });
+        window.addEventListener('touchend', onTouchEndRaw, { passive: true });
+        window.addEventListener('touchcancel', onTouchEndRaw, { passive: true });
         if (motion === 'granted') {
             window.addEventListener('deviceorientation', onTiltRaw);
             window.addEventListener('devicemotion', onShake);
@@ -195,6 +236,10 @@ export function startSway(): () => void {
         mounted -= 1;
         if (mounted > 0) return;
         window.removeEventListener('scroll', onScrollRaw);
+        window.removeEventListener('touchstart', onTouchStartRaw);
+        window.removeEventListener('touchmove', onTouchMoveRaw);
+        window.removeEventListener('touchend', onTouchEndRaw);
+        window.removeEventListener('touchcancel', onTouchEndRaw);
         if (scrollRaf) { cancelAnimationFrame(scrollRaf); scrollRaf = 0; }
         window.removeEventListener('deviceorientation', onTiltRaw);
         window.removeEventListener('devicemotion', onShake);
