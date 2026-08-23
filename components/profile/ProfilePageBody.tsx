@@ -109,8 +109,6 @@ import ProfileFacetBar from './ProfileFacetBar';
 import TakeoverBanners from '../takeover/TakeoverBanners';
 import type { ShowcaseSlot } from '../../lib/supabase';
 import type { UserProfileData } from '../../lib/profile/getUserProfileByHandle';
-import { priceDayNumber } from '../../lib/priceday/priceday';
-import { usePriceDay } from '../../lib/priceday/usePriceDay';
 import AlbumsPanel from '../album/AlbumsPanel';
 import {
     formatMemberSince, fmtFeedDate, fmtFeedTime,
@@ -119,13 +117,12 @@ import {
 } from './profilePageShared';
 import ArtistProjectCarousel from './ArtistProjectCarousel';
 import UploadWindowCountdown from '../artist/UploadWindowCountdown';
-import JoinDayPopover from './JoinDayPopover';
 import { useProfileEggs } from './useProfileEggs';
 import { useStarredPins } from './useStarredPins';
 import { useMoreControls, MORE_CFG, MORE_SORT_LABEL, MORE_GROUP_GLYPH, type MoreMode } from './useMoreControls';
 import ListsPanel from '../lists/ListsPanel';
 import { GroupBtn } from '../project/traitsUIPills';
-import { usePriceDayPopover } from '../../lib/hooks/usePriceDayPopover';
+import PriceDayDateLink from '../priceday/PriceDayDateLink';
 import { useProfileAchievements } from './useProfileAchievements';
 import { useLedgerFeed } from '../../lib/feed/useLedgerFeed';
 import { useSpiteMatcher } from '../../lib/pins/spiteStore';
@@ -952,8 +949,6 @@ function ProfilePageBodyInner({
         showToast('Volume Spent', 2700, undefined, null, lines.length ? lines : null);
     };
 
-    const { priceDayOpen, priceDayPos, priceDayRef, priceDayPopRef, openPriceDay } = usePriceDayPopover();
-
     /* Long-press the join date → it flips to the profile's platform user
        number (#N, hardcoded in the DB — Brendon is #1). Long-press again
        flips back. Same gesture grammar as the @name long-press (460ms,
@@ -993,9 +988,6 @@ function ProfilePageBodyInner({
         const d = new Date(isPlatform ? PRICE_TOKEN_CREATED_AT : user.created_at);
         return Number.isNaN(d.getTime()) ? null : d;
     }, [isPlatform, user.created_at]);
-    const joinPriceDay = joinDate ? priceDayNumber(joinDate) : null;
-    const joinPdcLive = usePriceDay(joinDate ?? new Date());
-    const joinDayContents = joinDate ? joinPdcLive : null;
 
     // ── Tab / sub-tab state ───────────────────────────────────────────
     const onShowcase  = activeTab === 'showcase';
@@ -1212,40 +1204,34 @@ function ProfilePageBodyInner({
                         ) : (
                             <ArtistTitleStar handle={displayHandle} display={`@${styledHandle}`} />
                         )}
-                        <span className="project-date-wrap" ref={priceDayRef}>
-                            <span
-                                className={`project-date${priceDayOpen ? ' pd-active' : ''}`}
-                                role="button"
-                                tabIndex={0}
-                                onClick={() => { if (dateLpFired.current) { dateLpFired.current = false; return; } openPriceDay(); }}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        e.preventDefault();
-                                        openPriceDay();
-                                    }
-                                }}
-                                onPointerDown={onDatePointerDown}
-                                onPointerMove={onDatePointerMove}
-                                onPointerUp={onDatePressEnd}
-                                onPointerLeave={onDatePressEnd}
-                                onPointerCancel={onDatePressEnd}
-                                onContextMenu={(e) => { if (user.user_number != null) e.preventDefault(); }}
-                                style={{ userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none', touchAction: 'manipulation' }}
-                                title={dateShowsNum ? `PD User #${user.user_number}` : 'PriceDay'}
-                            >{dateShowsNum && user.user_number != null
+                        <PriceDayDateLink
+                            date={joinDate ?? new Date()}
+                            label={dateShowsNum && user.user_number != null
                                 ? `PD User #${user.user_number}`
-                                : (memberSince || '\u2014')}</span>
-                            {priceDayOpen && priceDayPos && joinDayContents && (
-                                <JoinDayPopover
-                                    popRef={priceDayPopRef}
-                                    pos={priceDayPos}
-                                    joinPriceDay={joinPriceDay}
-                                    memberSince={memberSince}
-                                    displayHandle={displayHandle}
-                                    contents={joinDayContents}
-                                />
+                                : (memberSince || '\u2014')}
+                            titleAttr={dateShowsNum ? `PD User #${user.user_number}` : 'PriceDay'}
+                            onBeforeToggle={() => {
+                                if (dateLpFired.current) { dateLpFired.current = false; return true; }
+                                return false;
+                            }}
+                            onPointerDownCapture={onDatePointerDown}
+                            onPointerMoveCapture={onDatePointerMove}
+                            onPointerUpCapture={onDatePressEnd}
+                            onPointerLeaveCapture={onDatePressEnd}
+                            onPointerCancelCapture={onDatePressEnd}
+                            onContextMenuCapture={(e) => { if (user.user_number != null) e.preventDefault(); }}
+                            spanStyle={{ userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none', touchAction: 'manipulation' }}
+                            topExtra={(
+                                <>
+                                    <div className="pd-section-header">JOINED</div>
+                                    <div className="dp-row">
+                                        <span className="dp-label">{memberSince || '—'}</span>
+                                        <span className="dp-value">@{displayHandle}</span>
+                                    </div>
+                                    <div className="pd-section-end" />
+                                </>
                             )}
-                        </span>
+                        />
                     </h1>
                     {isOwnProfile && eggOpen && (
                         <>
