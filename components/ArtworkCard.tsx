@@ -1034,29 +1034,40 @@ function ArtworkCard({
                     {notifs.asciiArt && !asciiMiss ? (
                         /* ASCII Art Mode — the mint-pinned text backup stands in
                            for the artwork, painted instantly (no typing anim).
-                           Miss → normal stored-image path below. */
-                        <AsciiArtImage
-                            slug={slug}
-                            id={id}
-                            widthPx={384}
-                            className="output-canvas visible"
-                            onMiss={() => setAsciiMiss(true)}
-                            onReady={() => {
-                                setAsciiReady(true);
-                                /* Shape the tile to the ASCII art's real proportions,
-                                   read off the just-painted canvas — the same
-                                   wrapper.aspectRatio the stored-image/canvas paths
-                                   set on load. This was the one gap: a tile reached
-                                   fresh in ASCII (the home carousels) otherwise kept
-                                   the project's provisional aspect and rendered
-                                   squashed. */
-                                const wrapper = wrapperRef.current;
-                                const cv = wrapper?.querySelector('canvas');
-                                if (wrapper && cv instanceof HTMLCanvasElement && cv.width > 0 && cv.height > 0) {
-                                    wrapper.style.aspectRatio = String(cv.width / cv.height);
-                                }
-                            }}
-                        />
+                           Miss → normal stored-image path below.
+                           ⛔ GATED ON shouldLoad (Brendon, 2026-08-23: "ascii
+                           mode crashing the home page"). This never got the
+                           2026-08-12 near-screen gate the plain <img> path
+                           got — every mounted ArtworkCard painted its ASCII
+                           standin (fetch + canvas fill) immediately, so a
+                           home page with dozens of carousels fired hundreds
+                           of concurrent paints at once instead of just the
+                           couple of rows on screen. Same fix, same reason:
+                           wait for shouldLoad, same as the image tile does. */
+                        shouldLoad ? (
+                            <AsciiArtImage
+                                slug={slug}
+                                id={id}
+                                widthPx={384}
+                                className="output-canvas visible"
+                                onMiss={() => setAsciiMiss(true)}
+                                onReady={() => {
+                                    setAsciiReady(true);
+                                    /* Shape the tile to the ASCII art's real proportions,
+                                       read off the just-painted canvas — the same
+                                       wrapper.aspectRatio the stored-image/canvas paths
+                                       set on load. This was the one gap: a tile reached
+                                       fresh in ASCII (the home carousels) otherwise kept
+                                       the project's provisional aspect and rendered
+                                       squashed. */
+                                    const wrapper = wrapperRef.current;
+                                    const cv = wrapper?.querySelector('canvas');
+                                    if (wrapper && cv instanceof HTMLCanvasElement && cv.width > 0 && cv.height > 0) {
+                                        wrapper.style.aspectRatio = String(cv.width / cv.height);
+                                    }
+                                }}
+                            />
+                        ) : null
                     ) : imgSrc ? (
                         /* Stored preview — native lazy load, browser-managed,
                            steady once loaded (never evicted, never re-flashed).
