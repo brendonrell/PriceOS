@@ -377,11 +377,15 @@ function standingItems(feed: HomeResponse): NewsItem[] {
     }
 
     /* A PLATFORM HEAD-COUNT — one profile tag and how many people wear it,
-       turning over daily so the rail keeps saying something new. */
+       turning over daily so the rail keeps saying something new. Glyph is
+       ⌑ — the canonical Profile Tags mark (MyPdSection door,
+       ProfileTagsConfirmModal); this card used the generic ☻ collector
+       glyph as a stand-in before Profile Tags had one of its own
+       (Brendon, 2026-08-23). */
     const ts = feed.news?.tag_stat;
     if (ts) {
         out.push({
-            glyph: vs('☻'), tag: 'PLATFORM',
+            glyph: vs('⌑'), tag: 'PLATFORM',
             title: `${ts.count.toLocaleString()} ${ts.count === 1 ? 'person wears' : 'people wear'} ${ts.label}`,
             meta: 'Profile tags',
         });
