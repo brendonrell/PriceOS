@@ -6462,8 +6462,13 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.32); }
    taller (line-height stays clamped at 1, same trick as .sort-lbl-recent).
 
    Scoped to .cf-collected-sort (this row only) — the project, home, and
-   artwork sort rows keep their existing spacing untouched. */
-.cf-collected-sort {
+   artwork sort rows keep their existing spacing untouched. Selectors use
+   #sortOptions.cf-collected-sort (not just the class) so this reliably
+   beats the plain .sort-bar mobile rule further down the file — same
+   specificity, later source order, would otherwise win on phones (that's
+   why the first pass at this didn't visibly change anything on mobile). */
+.cf-collected-sort,
+#sortOptions.cf-collected-sort {
     gap: 0;
 }
 .cf-collected-sort .colorway-pills {
