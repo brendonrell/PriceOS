@@ -9,7 +9,7 @@
  * day (Brendon, 2026-08-15).
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { usePriceDay } from '../../lib/priceday/usePriceDay';
 import { moodOfDay } from '../../lib/mood/mood';
@@ -23,11 +23,38 @@ export default function PriceDayDateLink({
     label,
     className = 'project-date',
     wrapClassName = 'project-date-wrap',
+    titleAttr = 'PriceDay',
+    /* topExtra — an extra almanac row rendered right after the title (e.g.
+       the profile's JOINED row), so callers with a bespoke first section
+       don't need to fork the whole popover to get it (Brendon, 2026-08-22). */
+    topExtra = null,
+    /* Optional long-press plumbing (the profile date flips to the user's
+       PD number on long-press) — same gesture guard, now shareable instead
+       of forking the popover to get it. */
+    onPointerDownCapture,
+    onPointerMoveCapture,
+    onPointerUpCapture,
+    onPointerLeaveCapture,
+    onPointerCancelCapture,
+    onBeforeToggle,
+    spanStyle,
+    onContextMenuCapture,
 }: {
     date: Date;
     label: string;
     className?: string;
     wrapClassName?: string;
+    titleAttr?: string;
+    topExtra?: ReactNode;
+    onPointerDownCapture?: (e: PointerEvent) => void;
+    onPointerMoveCapture?: (e: PointerEvent) => void;
+    onPointerUpCapture?: (e: PointerEvent) => void;
+    onPointerLeaveCapture?: (e: PointerEvent) => void;
+    onPointerCancelCapture?: (e: PointerEvent) => void;
+    /* Return true to swallow this click (e.g. a long-press already fired). */
+    onBeforeToggle?: () => boolean;
+    onContextMenuCapture?: (e: ReactMouseEvent) => void;
+    spanStyle?: CSSProperties;
 }) {
     const ref = useRef<HTMLSpanElement>(null);
     const popRef = useRef<HTMLDivElement>(null);
@@ -55,6 +82,7 @@ export default function PriceDayDateLink({
     }, [open]);
 
     const toggle = () => {
+        if (onBeforeToggle?.()) return;
         if (open) { setOpen(false); return; }
         const c = priceDayCoords();
         if (c) setPos(c);
@@ -93,7 +121,14 @@ export default function PriceDayDateLink({
                         toggle();
                     }
                 }}
-                title="PriceDay"
+                onPointerDown={onPointerDownCapture}
+                onPointerMove={onPointerMoveCapture}
+                onPointerUp={onPointerUpCapture}
+                onPointerLeave={onPointerLeaveCapture}
+                onPointerCancel={onPointerCancelCapture}
+                onContextMenu={onContextMenuCapture}
+                style={spanStyle}
+                title={titleAttr}
             >
                 {label}
             </span>
@@ -111,6 +146,8 @@ export default function PriceDayDateLink({
                 >
                     <div className="dp-title">PRICEDAY #{contents.number}</div>
                     <div className="dp-title-spacer" />
+
+                    {topExtra}
 
                     {(() => {
                         const mood = moodOfDay(date);
