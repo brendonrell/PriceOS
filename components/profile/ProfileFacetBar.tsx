@@ -388,8 +388,13 @@ export default function ProfileFacetBar({
 
             {/* Sort bar — colorway view-mode squares + #ID / $PRICE / FEED sort,
                 as a sibling of .traits-ui (matching the project). FEED swaps the
-                grid for this wallet's activity feed (Brendon 2026-06-15). */}
-            <div className="sort-bar" id="sortOptions" style={{ display: 'flex' }}>
+                grid for this wallet's activity feed (Brendon 2026-06-15).
+                cf-collected-sort (Brendon, 2026-08-23): tightens + evens out
+                the gaps around the GROUP icon and pulls the sort arrow in
+                against its label on THIS row only — see the matching CSS
+                block for why it's scoped instead of touching the shared
+                classes other sort rows use. */}
+            <div className="sort-bar cf-collected-sort" id="sortOptions" style={{ display: 'flex' }}>
                 <div className="colorway-pills">
                     {THEME_PILLS.map((t) => (
                         <div
