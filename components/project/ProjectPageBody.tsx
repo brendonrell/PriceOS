@@ -71,7 +71,6 @@ import { useCart } from '../../lib/state/CartContext';
 import { getProject } from '../../lib/project/registry';
 import SoundtrackStarButton from './SoundtrackStarButton';
 import ProjectTitleStar from './ProjectTitleStar';
-import { usePriceDay } from '../../lib/priceday/usePriceDay';
 import { GhostFeedRows } from '../GhostFeed';
 import FeedEventRow from '../feed/FeedEventRow';
 import SocialFeed from '../home/SocialFeed';
@@ -88,7 +87,7 @@ import Hero from '../hero/Hero';
 import { forceRenderKeys } from '../../lib/virtualization/canvasVirtualizer';
 import { isRecordingEnabled } from '../../lib/pins/breadcrumbStore';
 import { recordProjectView } from '../../lib/output/views';
-import { usePriceDayPopover } from '../../lib/hooks/usePriceDayPopover';
+import PriceDayDateLink from '../priceday/PriceDayDateLink';
 import { useLedgerFeed } from '../../lib/feed/useLedgerFeed';
 import { useSpiteMatcher } from '../../lib/pins/spiteStore';
 import { useProjectSocial } from './useProjectSocial';
@@ -340,12 +339,11 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
     /* F57 (BUG-10) — Budget step-line driver (see useBudgetStepLine). */
     useBudgetStepLine(visibleTokenIds, onShowcaseTab, activeTab);
 
-    const { priceDayOpen, priceDayPos, priceDayRef, priceDayPopRef, openPriceDay } = usePriceDayPopover();
-
-    /* PriceDay almanac for THIS project's upload day — seeded test-phase
-       content (same source the home/profile popovers use), so the project
-       popover shows the real PriceDay number instead of a hardcoded one. */
-    const projectPdc = usePriceDay(uploadedAt != null ? new Date(uploadedAt) : new Date(),);
+    /* PriceDay date for THIS project's upload day — the popover itself now
+       renders through the shared PriceDayDateLink (same component/markup
+       as Price Story's date links), so there's only one PriceDay modal
+       implementation in the app. */
+    const projectPriceDate = uploadedAt != null ? new Date(uploadedAt) : new Date();
 
     /* Force-paint showcase picks that may never have scrolled into view.
        Fires whenever the showcase tab becomes active so grey placeholders
@@ -388,49 +386,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                 titleRow={
                     <h1 className="project-title">
                         <ProjectTitleStar slug={project.slug} title={project.title} />
-                        <span className="project-date-wrap" ref={priceDayRef}>
-                            <span
-                                className={`project-date${priceDayOpen ? ' pd-active' : ''}`}
-                                role="button"
-                                tabIndex={0}
-                                onClick={openPriceDay}
-                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPriceDay(); } }}
-                                title="PriceDay"
-                            >{fmtUploadDate(uploadedAt)}</span>
-                            {priceDayOpen && priceDayPos && (
-                                <div ref={priceDayPopRef} className="priceday-popover" style={{ position: 'fixed', top: priceDayPos.top, left: priceDayPos.left }}>
-                                    <div className="dp-title">PRICEDAY #{projectPdc.number}</div>
-                                    <div className="dp-title-spacer" />
-
-                                    <div className="pd-section-header">MINTED THIS DAY</div>
-                                    {projectPdc.minted.map((r, i) => (
-                                        <div className="dp-row" key={`m${i}`}><span className="dp-label">{r.label}</span><span className="dp-value">{r.value}</span></div>
-                                    ))}
-                                    <div className="pd-section-end" />
-
-                                    <div className="pd-section-header">UPLOADED THIS DAY</div>
-                                    {projectPdc.uploaded.map((r, i) => (
-                                        <div className="dp-row" key={`u${i}`}><span className="dp-label">{r.label}</span><span className="dp-value">{r.value}</span></div>
-                                    ))}
-                                    <div className="pd-section-end" />
-
-                                    {projectPdc.biggestSale && (
-                                        <>
-                                            <div className="pd-section-header">BIGGEST SALE</div>
-                                            <div className="dp-row"><span className="dp-label">{projectPdc.biggestSale.label}</span><span className="dp-value">{projectPdc.biggestSale.value}</span></div>
-                                            <div className="pd-section-end" />
-                                        </>
-                                    )}
-                                    {projectPdc.flavor && (
-                                        <>
-                                            <div className="pd-section-header">THE DAY</div>
-                                            <div className="dp-row dp-flavor"><span className="dp-label">{projectPdc.flavor}</span></div>
-                                            <div className="pd-section-end" />
-                                        </>
-                                    )}
-                                </div>
-                            )}
-                        </span>
+                        <PriceDayDateLink date={projectPriceDate} label={fmtUploadDate(uploadedAt)} />
                     </h1>
                 }
                 identityRow={
