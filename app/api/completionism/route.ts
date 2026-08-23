@@ -7,6 +7,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getSupabaseService } from '@/lib/supabase';
 import { badRequest, serverError } from '@/lib/errors';
+import { isHiddenProject } from '@/lib/platform/hiddenProjects';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,6 +41,7 @@ export async function GET(req: NextRequest) {
     }
     const buckets = new Map<string, MonthBucket>();
     for (const p of (projRes.data ?? []) as { id: string; title: string; uploaded_at: string | null; cooldown_until: string | null }[]) {
+      if (isHiddenProject(p.id)) continue;
       // uploaded_at is canonical; older rows fall back to the same
       // cooldown-derived upload moment the feeds use (cooldown − 60d).
       let ms = p.uploaded_at ? Date.parse(p.uploaded_at) : NaN;
