@@ -23,8 +23,7 @@
 
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { priceDayContents } from '../../lib/priceday/priceday';
-import { usePriceDay } from '../../lib/priceday/usePriceDay';
+import PriceDayDateLink from '../priceday/PriceDayDateLink';
 import { fmPlay } from '../../lib/fm/fmBus';
 import { useToast } from '../../lib/state/ToastContext';
 import { useCart } from '../../lib/state/CartContext';
@@ -402,58 +401,11 @@ export default function ArtworkPageBody({
         return () => { cancelled = true; };
     }, [slug, numberPart]);
 
-    /* PriceDay date beside the name — the mint date, with the same clickable
-       almanac popover the project + profile heroes use (Brendon, 2026-06-26;
-       PriceDay itself is still being built, so this reuses the project flow). */
-    const [priceDayOpen, setPriceDayOpen] = useState(false);
-    const [priceDayPos, setPriceDayPos] = useState<{ top: number; left: number } | null>(null);
-    const priceDayRef = useRef<HTMLSpanElement>(null);
-    const priceDayPopRef = useRef<HTMLDivElement>(null);
-    const priceDayCoords = () => {
-        if (!priceDayRef.current) return null;
-        const rect = priceDayRef.current.getBoundingClientRect();
-        const POPOVER_WIDTH = 260, MARGIN = 8;
-        let left: number;
-        if (window.innerWidth < 600) left = (window.innerWidth - POPOVER_WIDTH) / 2;
-        else {
-            left = rect.left + rect.width / 2 - POPOVER_WIDTH / 2;
-            left = Math.max(MARGIN, Math.min(left, window.innerWidth - POPOVER_WIDTH - MARGIN));
-        }
-        return { top: rect.bottom + 4, left };
-    };
-    useEffect(() => {
-        if (!priceDayOpen) return;
-        const handler = (e: MouseEvent) => {
-            if (priceDayRef.current && !priceDayRef.current.contains(e.target as Node)) setPriceDayOpen(false);
-        };
-        document.addEventListener('mousedown', handler);
-        return () => document.removeEventListener('mousedown', handler);
-    }, [priceDayOpen]);
-    /* Keep the popover glued to the date stamp on scroll/resize — write straight
-       to the node so the page never re-renders mid-scroll. */
-    useEffect(() => {
-        if (!priceDayOpen) return;
-        const track = () => {
-            const c = priceDayCoords();
-            if (c && priceDayPopRef.current) {
-                priceDayPopRef.current.style.top = `${c.top}px`;
-                priceDayPopRef.current.style.left = `${c.left}px`;
-            }
-        };
-        window.addEventListener('scroll', track, true);
-        window.addEventListener('resize', track);
-        return () => {
-            window.removeEventListener('scroll', track, true);
-            window.removeEventListener('resize', track);
-        };
-    }, [priceDayOpen]);
-    const openPriceDay = () => {
-        if (priceDayOpen) { setPriceDayOpen(false); return; }
-        const c = priceDayCoords();
-        if (c) setPriceDayPos(c);
-        setPriceDayOpen(true);
-    };
-    const outputPdc = usePriceDay(mintMs != null ? new Date(mintMs) : new Date());
+    /* PriceDay date beside the name — the mint date, popover now rendered
+       through the shared PriceDayDateLink (same component/markup as Price
+       Story's date links and the project/profile heroes), so there's only
+       one PriceDay modal implementation in the app. */
+    const outputPriceDate = mintMs != null ? new Date(mintMs) : new Date();
 
     /* This Output's activity timeline — REAL pre-chain transaction rows from
        Supabase `events` (scoped to this token), PLUS the project/artist history
@@ -730,50 +682,7 @@ export default function ArtworkPageBody({
                             stays plain text. Long-press the title to star this
                             Output (Brendon 2026-06-19). */}
                         <OutputTitleStar slug={slug} id={numberPart} projectName={projectName} projectHref={projectHref} />
-                        <span className="project-date-wrap" ref={priceDayRef}>
-                            <span
-                                className={`project-date${priceDayOpen ? ' pd-active' : ''}`}
-                                role="button"
-                                tabIndex={0}
-                                onClick={openPriceDay}
-                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPriceDay(); } }}
-                                title="PriceDay"
-                            >{fmtPriceDate(mintMs)}</span>
-                            {priceDayOpen && priceDayPos && (
-                                <div ref={priceDayPopRef} className="priceday-popover" style={{ position: 'fixed', top: priceDayPos.top, left: priceDayPos.left }}>
-                                    <div className="dp-title">PRICEDAY #{outputPdc.number}</div>
-                                    <div className="dp-title-spacer" />
-
-                                    <div className="pd-section-header">MINTED THIS DAY</div>
-                                    {outputPdc.minted.map((r, i) => (
-                                        <div className="dp-row" key={`m${i}`}><span className="dp-label">{r.label}</span><span className="dp-value">{r.value}</span></div>
-                                    ))}
-                                    <div className="pd-section-end" />
-
-                                    <div className="pd-section-header">UPLOADED THIS DAY</div>
-                                    {outputPdc.uploaded.map((r, i) => (
-                                        <div className="dp-row" key={`u${i}`}><span className="dp-label">{r.label}</span><span className="dp-value">{r.value}</span></div>
-                                    ))}
-                                    <div className="pd-section-end" />
-
-                                    {outputPdc.biggestSale && (
-                                        <>
-                                            <div className="pd-section-header">BIGGEST SALE</div>
-                                            <div className="dp-row"><span className="dp-label">{outputPdc.biggestSale.label}</span><span className="dp-value">{outputPdc.biggestSale.value}</span></div>
-                                            <div className="pd-section-end" />
-                                        </>
-                                    )}
-                                    {/* THE DAY — the day's own written line (real ledger, seeded voice). */}
-                                    {outputPdc.flavor && (
-                                        <>
-                                            <div className="pd-section-header">THE DAY</div>
-                                            <div className="dp-row dp-flavor"><span className="dp-label">{outputPdc.flavor}</span></div>
-                                            <div className="pd-section-end" />
-                                        </>
-                                    )}
-                                </div>
-                            )}
-                        </span>
+                        <PriceDayDateLink date={outputPriceDate} label={fmtPriceDate(mintMs)} />
                     </h1>
 
                     <div className="hero-line project-custom">
