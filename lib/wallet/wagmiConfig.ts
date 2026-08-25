@@ -76,12 +76,25 @@ const connectors = connectorsForWallets(
    and neither profile clobbers the other. */
 const onSepolia = process.env.NEXT_PUBLIC_CHAIN_ID === '11155111';
 
+/* 2026-08-25 fix: SIWE sign-in is chain-agnostic — chainId is only recorded
+   into the message string (siweClient.ts), never checked server-side
+   (api/auth/siwe/route.ts) — and docs/sepolia-test-phase.md §0.5 is explicit
+   that regular users were never meant to need a live Sepolia connection
+   ("no user cohort on Sepolia — users test the simulated site"). Locking
+   WalletConnect's required namespace to sepolia-only made the CONNECT
+   handshake itself reject any wallet not already on Sepolia (Trust Wallet:
+   hard rejection; MetaMask: lenient — hence some testers saw no issue).
+   Listing both chains lets any wallet complete the handshake and sign in.
+   Mint/tx safety is unaffected — /deploy, /studio/publish, and /test each
+   already independently guard wrongChain and force switchChain to sepolia
+   before any on-chain action. */
 export const wagmiConfig = onSepolia
     ? createConfig({
-        chains: [sepolia],
+        chains: [sepolia, mainnet],
         connectors,
         transports: {
             [sepolia.id]: http(),
+            [mainnet.id]: http(),
         },
         ssr: true,
         storage: createStorage({
