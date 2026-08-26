@@ -282,12 +282,18 @@ function projLink(slug: string): React.ReactNode {
     return <a className="f-highlight" href={`/art/${slug}`} onClick={(e) => e.stopPropagation()}>{title}</a>;
 }
 
-export default function SocialFeed({ dir, actor, project }: {
+export default function SocialFeed({ dir, actor, project, initialData = null }: {
     dir: 'asc' | 'desc';
     /** Scope the feed to one wallet's story (a profile / artist lens). */
     actor?: string;
     /** Scope the feed to one project's outputs activity. */
     project?: string;
+    /** Server-seeded anonymous/top-collectors page (app/page.tsx home
+        render) — paints instantly instead of ghost rows on a fresh page
+        load (Brendon, 2026-08-26). Only used for the plain default view
+        (no viewer/actor/project); any other cache key ignores it and
+        behaves exactly as before. */
+    initialData?: SocialFeedResponse | null;
 }) {
     const { siweAddress } = useAuth();
     const addr = siweAddress?.toLowerCase();
@@ -296,7 +302,15 @@ export default function SocialFeed({ dir, actor, project }: {
     if (actor) qs.set('actor', actor.toLowerCase());
     if (project) qs.set('project', project);
     const cacheKey = qs.toString();
-    const [data, setData] = useState<SocialFeedResponse | null>(() => lastResponse.get(cacheKey) ?? null);
+    const [data, setData] = useState<SocialFeedResponse | null>(() => {
+        const cached = lastResponse.get(cacheKey);
+        if (cached) return cached;
+        if (cacheKey === '' && initialData) {
+            lastResponse.set('', initialData);
+            return initialData;
+        }
+        return null;
+    });
 
     useEffect(() => {
         let cancelled = false;

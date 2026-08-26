@@ -20,6 +20,7 @@
 import { useEffect, useRef, useState } from 'react';
 import AsciiId from '../hero/AsciiId';
 import { GhostFeedRows } from '../GhostFeed';
+import { formatFeedUploadDate } from '../../lib/format/feedDate';
 import type { RecentUserRow } from '../../app/api/users/recent/route';
 
 /* Screenfuls — the list grows as the viewer scrolls, so 200 rows never build
@@ -27,12 +28,6 @@ import type { RecentUserRow } from '../../app/api/users/recent/route';
 const WINDOW_STEP = 40;
 const REFRESH_MS = 60_000;
 
-/* "JUL 26" + "14:05" — viewer-local, the social feed's exact stamp grammar. */
-function fmtDate(ms: number): string {
-    const d = new Date(ms);
-    const mon = d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
-    return `${mon} ${String(d.getDate()).padStart(2, '0')}`;
-}
 function fmtTime(ms: number): string {
     return new Date(ms).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
 }
@@ -87,7 +82,7 @@ export default function NewUsersFeed({ dir }: { dir: 'asc' | 'desc' }) {
                         <div className="feed-line" />
                         <div className="f-icon-wrap af-ic">☻&#xFE0E;</div>
                         <div className="f-time">
-                            <span>{Number.isFinite(ms) ? fmtDate(ms) : '—'}</span>
+                            <span>{Number.isFinite(ms) ? formatFeedUploadDate(ms) : '—'}</span>
                             <span>{Number.isFinite(ms) ? fmtTime(ms) : ''}</span>
                         </div>
                         <div className="f-content">

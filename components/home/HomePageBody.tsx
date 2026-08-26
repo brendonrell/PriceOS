@@ -55,6 +55,7 @@ import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { getSupabaseBrowser } from '../../lib/supabase';
 import { allProjects, getProject, projectTraits } from '../../lib/project/registry';
 import { formatEth } from '../../lib/format/eth';
+import { formatFeedUploadDate } from '../../lib/format/feedDate';
 import HomeFacetBar, { type HomeSort } from './HomeFacetBar';
 import HomeProjectFacetBar, {
     projectFacetValueOf,
@@ -68,6 +69,7 @@ import { readViewParam, setViewParam } from '../../lib/state/viewLink';
 import { openExternal } from '../../lib/pwa/openExternal';
 import { DISCORD_URL } from '../../lib/config/discord';
 import type { HomeResponse } from '../../lib/home/homeData';
+import type { SocialFeedResponse } from '../../app/api/feed/social/route';
 
 /* Outputs per carousel (Brendon 2026-06-13: 12, mobile + desktop;
    raised to 18 on 2026-06-18). Off-screen tiles paint lazily via the
@@ -114,15 +116,12 @@ type HomeTab = 'minting' | 'new' | 'shuffle';
    name shown in the feed. */
 interface HomeFeedItem { slug: string; title: string; label: string; glyph: string; cls?: string; ts: number; seq: number }
 
-/* "JUN 11" — compact upload-date stamp for the feed's time column.
+/* "JUN 11 '26" — compact upload-date stamp for the feed's time column.
    Viewer-local (Brendon, 2026-07-13: displayed times always render in the
-   user's own zone; the date tracks the same zone as the time). */
+   user's own zone; the date tracks the same zone as the time). Shared with
+   New Signups via lib/format/feedDate (Brendon, 2026-08-26). */
 function fmtUploadDate(ms: number | null): string {
-    if (ms == null) return '—';
-    const d = new Date(ms);
-    const mon = d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${mon} ${day} ’${String(d.getFullYear()).slice(-2)}`;
+    return formatFeedUploadDate(ms);
 }
 
 /* "15:42" — clock time of the upload (24-hour, PD house style), shown in place
@@ -341,10 +340,16 @@ function ShuffleGallery({ seed }: { seed: number }) {
 
 function HomePageBodyInner({
     initialFeed = null,
+    initialSocialFeed = null,
 }: {
     /** Server-computed home payload (app/page.tsx) — carousels + stats in
         the first paint. Null only when the server read failed. */
     initialFeed?: HomeResponse | null;
+    /** Server-computed anonymous Social Feed page (app/page.tsx) — seeds
+        SocialFeed so it never opens on ghost rows (Brendon, 2026-08-26).
+        Null only when the server read failed; SocialFeed's own client
+        fetch fills in either way. */
+    initialSocialFeed?: SocialFeedResponse | null;
 }) {
     const { showToast } = useToast();
     const { open: openModal } = useModal();
@@ -1193,7 +1198,7 @@ function HomePageBodyInner({
                         <span className="home-section-title">Social Feed</span>
                     </div>
                     <div className="feed-list home-activity-feed home-social-feed">
-                        <SocialFeed dir={mintSort.dir} />
+                        <SocialFeed dir={mintSort.dir} initialData={initialSocialFeed} />
                     </div>
                 </section>
             )}
@@ -1207,7 +1212,7 @@ function HomePageBodyInner({
                     <div className="home-section-head">
                         <span className="home-section-title">New Signups</span>
                     </div>
-                    <div className="feed-list home-activity-feed">
+                    <div className="feed-list home-activity-feed home-signups-feed">
                         <NewUsersFeed dir={mintSort.dir} />
                     </div>
                 </section>
@@ -1284,14 +1289,18 @@ function HomePageBodyInner({
 
 export default function HomePageBody({
     initialFeed = null,
+    initialSocialFeed = null,
 }: {
     /** Server-computed home payload (app/page.tsx) — carousels + stats in
         the first paint. Null only when the server read failed. */
     initialFeed?: HomeResponse | null;
+    /** Server-computed anonymous Social Feed page (app/page.tsx) — see
+        HomePageBodyInner. */
+    initialSocialFeed?: SocialFeedResponse | null;
 }) {
     return (
         <TraitsProvider>
-            <HomePageBodyInner initialFeed={initialFeed} />
+            <HomePageBodyInner initialFeed={initialFeed} initialSocialFeed={initialSocialFeed} />
         </TraitsProvider>
     );
 }
