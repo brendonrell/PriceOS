@@ -8,8 +8,11 @@
 import type { Metadata } from 'next';
 import HomePageBody from '../components/home/HomePageBody';
 import { buildHomeResponse, type HomeResponse } from '../lib/home/homeData';
-import { buildAnonymousSocialFeed } from './api/feed/social/route';
+import { buildDefaultSocialFeed } from './api/feed/social/route';
 import type { SocialFeedResponse } from './api/feed/social/route';
+import { buildRecentUsers } from './api/users/recent/route';
+import type { RecentUserRow } from './api/users/recent/route';
+import { getSession } from '../lib/auth/siwe';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,15 +29,41 @@ export default async function HomePage() {
         /* degraded: body's client fetch fills in */
     }
     /* Same seed-the-first-paint treatment as the rest of home data (Brendon,
-       2026-08-26) — the Social Feed always opened on ghost rows even though
-       the platform always has activity to show. Anonymous/top-collectors
-       page only; a logged-in viewer's personalized feed still swaps in via
-       SocialFeed's own client fetch moments later, same as before. */
+       2026-08-26; follow-up same day — the first pass only seeded the
+       logged-out/top-collectors cache key, so any SIGNED-IN viewer still
+       opened on ghost rows). Read the SIWE cookie server-side and seed the
+       viewer's OWN graph feed when present, top-collectors otherwise — the
+       exact same source SocialFeed's client fetch would land on a beat
+       later, just already there for first paint. */
+    let viewerAddress: string | null = null;
+    try {
+        const session = await getSession();
+        viewerAddress = session.address?.toLowerCase() ?? null;
+    } catch {
+        /* no session / cookie read failure — anonymous seed below */
+    }
     let initialSocialFeed: SocialFeedResponse | null = null;
     try {
-        initialSocialFeed = await buildAnonymousSocialFeed();
+        initialSocialFeed = await buildDefaultSocialFeed(viewerAddress);
     } catch {
         /* degraded: SocialFeed's own client fetch fills in, ghost rows stand */
     }
-    return <HomePageBody initialFeed={initialFeed} initialSocialFeed={initialSocialFeed} />;
+    /* Same treatment for NEW USERS (Brendon, 2026-08-26) — was pure
+       client-fetch, so it opened on ghost rows every time even though
+       signups never run dry. Anonymous data (no viewer scoping), so no
+       cache-key gymnastics needed here. */
+    let initialRecentUsers: RecentUserRow[] | null = null;
+    try {
+        initialRecentUsers = await buildRecentUsers();
+    } catch {
+        /* degraded: NewUsersFeed's own client fetch fills in, ghost rows stand */
+    }
+    return (
+        <HomePageBody
+            initialFeed={initialFeed}
+            initialSocialFeed={initialSocialFeed}
+            initialSocialFeedViewer={viewerAddress}
+            initialRecentUsers={initialRecentUsers}
+        />
+    );
 }
