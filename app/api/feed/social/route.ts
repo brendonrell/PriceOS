@@ -286,6 +286,59 @@ export async function buildAnonymousSocialFeed(limit: number = DEFAULT_LIMIT): P
   return { events: page, albums, mode: 'top' };
 }
 
+/* The plain default-view feed (no `?actor=`/`?project=` lens) for a given
+   viewer — the viewer's own graph, or the top-collectors fallback when
+   they're logged out / unclaimed / follow no one. Extracted so the home
+   page's server render can seed SocialFeed for a SIGNED-IN viewer too, not
+   just the anonymous page (Brendon, 2026-08-26 follow-up: the first seed
+   only covered the logged-out cache key, so any logged-in viewer still hit
+   ghost rows on first paint — this closes that gap). GET's own plain branch
+   below just calls this now. */
+export async function buildDefaultSocialFeed(
+  viewer: string | null,
+  limit: number = DEFAULT_LIMIT,
+): Promise<SocialFeedResponse> {
+  const db = getSupabaseService();
+  const graph = viewer ? await graphAddresses(db, viewer) : null;
+
+  if (graph) {
+    const graphAddrs = [...graph.mutual, ...graph.follow];
+    const relationOf = (a: string): SocialRelation =>
+      graph.mutual.has(a) ? 'mutual' : graph.follow.has(a) ? 'follow' : null;
+    const [rows, albums] = await Promise.all([
+      eventsFor(db, graphAddrs),
+      albumsFor(db, graphAddrs, relationOf),
+    ]);
+    const kept: SocialEventRow[] = [];
+    for (const e of rows) {
+      const actor = actorAddr(e);
+      const other = (e.type === 'MINT' || e.type === 'SALE' ? e.from_address : e.to_address)?.toLowerCase() ?? null;
+      let relation: SocialRelation = null;
+      if (actor && graph.mutual.has(actor)) relation = 'mutual';
+      else if (actor && graph.follow.has(actor)) relation = 'follow';
+      else if (e.trade && other) {
+        if (graph.mutual.has(other)) relation = 'mutual';
+        else if (graph.follow.has(other)) relation = 'follow';
+      }
+      if (relation) kept.push({ ...e, relation });
+    }
+    let page: SocialEventRow[];
+    if (kept.length <= limit) {
+      page = kept;
+    } else {
+      const mutualRows = kept.filter((e) => e.relation === 'mutual');
+      const followRows = kept.filter((e) => e.relation !== 'mutual');
+      page = mutualRows.slice(0, limit);
+      if (page.length < limit) page = page.concat(followRows.slice(0, limit - page.length));
+      page.sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp));
+    }
+    await attachHandles(db, page);
+    return { events: page, albums, mode: 'graph' };
+  }
+
+  return buildAnonymousSocialFeed(limit);
+}
+
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const url = new URL(req.url);
   const limit = Math.min(100, Math.max(1, Number(url.searchParams.get('limit') ?? String(DEFAULT_LIMIT))));
@@ -348,51 +401,10 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const graph = viewer ? await graphAddresses(db, viewer) : null;
-
-    if (graph) {
-      const graphAddrs = [...graph.mutual, ...graph.follow];
-      const relationOf = (a: string): SocialRelation =>
-        graph.mutual.has(a) ? 'mutual' : graph.follow.has(a) ? 'follow' : null;
-      const [rows, albums] = await Promise.all([
-        eventsFor(db, graphAddrs),
-        albumsFor(db, graphAddrs, relationOf),
-      ]);
-      // Only rows the graph ACTED in — "what your friends are doing". A trade
-      // has two actors, so either side in the graph qualifies it.
-      const kept: SocialEventRow[] = [];
-      for (const e of rows) {
-        const actor = actorAddr(e);
-        const other = (e.type === 'MINT' || e.type === 'SALE' ? e.from_address : e.to_address)?.toLowerCase() ?? null;
-        let relation: SocialRelation = null;
-        if (actor && graph.mutual.has(actor)) relation = 'mutual';
-        else if (actor && graph.follow.has(actor)) relation = 'follow';
-        else if (e.trade && other) {
-          if (graph.mutual.has(other)) relation = 'mutual';
-          else if (graph.follow.has(other)) relation = 'follow';
-        }
-        if (relation) kept.push({ ...e, relation });
-      }
-      // Mutual weighting: when the window overflows the page, every mutual row
-      // is protected first, one-way follows fill the rest — then the page
-      // re-sorts chronological so it always READS as one timeline.
-      let page: SocialEventRow[];
-      if (kept.length <= limit) {
-        page = kept;
-      } else {
-        const mutualRows = kept.filter((e) => e.relation === 'mutual');
-        const followRows = kept.filter((e) => e.relation !== 'mutual');
-        page = mutualRows.slice(0, limit);
-        if (page.length < limit) page = page.concat(followRows.slice(0, limit - page.length));
-        page.sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp));
-      }
-      await attachHandles(db, page);
-      return NextResponse.json({ events: page, albums, mode: 'graph' } satisfies SocialFeedResponse);
-    }
-
-    // Top-users fallback — logged out, unclaimed, or an empty graph.
-    const anon = await buildAnonymousSocialFeed(limit);
-    return NextResponse.json(anon satisfies SocialFeedResponse);
+    // Plain default view (no actor/project lens) — viewer's graph, or the
+    // top-collectors fallback when logged out / unclaimed / empty graph.
+    const result = await buildDefaultSocialFeed(viewer, limit);
+    return NextResponse.json(result satisfies SocialFeedResponse);
   } catch (err) {
     return serverError(err instanceof Error ? err.message : 'Unknown error');
   }
