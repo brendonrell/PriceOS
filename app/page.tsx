@@ -8,6 +8,8 @@
 import type { Metadata } from 'next';
 import HomePageBody from '../components/home/HomePageBody';
 import { buildHomeResponse, type HomeResponse } from '../lib/home/homeData';
+import { buildAnonymousSocialFeed } from './api/feed/social/route';
+import type { SocialFeedResponse } from './api/feed/social/route';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,5 +25,16 @@ export default async function HomePage() {
     } catch {
         /* degraded: body's client fetch fills in */
     }
-    return <HomePageBody initialFeed={initialFeed} />;
+    /* Same seed-the-first-paint treatment as the rest of home data (Brendon,
+       2026-08-26) — the Social Feed always opened on ghost rows even though
+       the platform always has activity to show. Anonymous/top-collectors
+       page only; a logged-in viewer's personalized feed still swaps in via
+       SocialFeed's own client fetch moments later, same as before. */
+    let initialSocialFeed: SocialFeedResponse | null = null;
+    try {
+        initialSocialFeed = await buildAnonymousSocialFeed();
+    } catch {
+        /* degraded: SocialFeed's own client fetch fills in, ghost rows stand */
+    }
+    return <HomePageBody initialFeed={initialFeed} initialSocialFeed={initialSocialFeed} />;
 }
