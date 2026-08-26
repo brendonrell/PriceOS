@@ -260,6 +260,32 @@ async function eventsFor(db: Db, addrs: string[]): Promise<EventRow[]> {
     .slice(0, WINDOW);
 }
 
+/* Anonymous default page — the top-collectors fallback, extracted so the
+   home page's server render can seed SocialFeed with it directly (Brendon,
+   2026-08-26: the client always opened on ghost rows on a fresh page load,
+   even though this exact page always has content — same "seed the first
+   paint" fix already applied to the rest of the home data). GET's own
+   logged-out/empty-graph branch below just calls this now. */
+export async function buildAnonymousSocialFeed(limit: number = DEFAULT_LIMIT): Promise<SocialFeedResponse> {
+  const db = getSupabaseService();
+  const top = await topAddresses(db);
+  const [rows, albums] = top.size > 0
+    ? await Promise.all([
+        eventsFor(db, [...top]),
+        albumsFor(db, [...top], () => null),
+      ])
+    : [[] as EventRow[], [] as SocialAlbumRow[]];
+  const page: SocialEventRow[] = rows
+    .filter((e) => {
+      const actor = actorAddr(e);
+      return actor !== null && top.has(actor);
+    })
+    .slice(0, limit)
+    .map((e) => ({ ...e, relation: null as SocialRelation }));
+  await attachHandles(db, page);
+  return { events: page, albums, mode: 'top' };
+}
+
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const url = new URL(req.url);
   const limit = Math.min(100, Math.max(1, Number(url.searchParams.get('limit') ?? String(DEFAULT_LIMIT))));
@@ -365,22 +391,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
 
     // Top-users fallback — logged out, unclaimed, or an empty graph.
-    const top = await topAddresses(db);
-    const [rows, albums] = top.size > 0
-      ? await Promise.all([
-          eventsFor(db, [...top]),
-          albumsFor(db, [...top], () => null),
-        ])
-      : [[] as EventRow[], [] as SocialAlbumRow[]];
-    const page: SocialEventRow[] = rows
-      .filter((e) => {
-        const actor = actorAddr(e);
-        return actor !== null && top.has(actor);
-      })
-      .slice(0, limit)
-      .map((e) => ({ ...e, relation: null as SocialRelation }));
-    await attachHandles(db, page);
-    return NextResponse.json({ events: page, albums, mode: 'top' } satisfies SocialFeedResponse);
+    const anon = await buildAnonymousSocialFeed(limit);
+    return NextResponse.json(anon satisfies SocialFeedResponse);
   } catch (err) {
     return serverError(err instanceof Error ? err.message : 'Unknown error');
   }
