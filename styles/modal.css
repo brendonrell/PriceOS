@@ -432,6 +432,10 @@ body.modal-open { overflow: hidden; touch-action: none; }
    inside the popover instead of clipping at the edge. */
 .dp-row.dp-flavor { align-items: flex-start; }
 .dp-row.dp-flavor .dp-label { white-space: normal; flex-shrink: 1; }
+/* Per-section empty state (Brendon, 2026-08-24) — a blank section under a
+   header read as broken to new users; a muted "nothing happened" line
+   makes it read as on-purpose instead. */
+.dp-row.dp-empty .dp-label { opacity: 0.55; }
 .dp-value {
     display: flex;
     align-items: center;
