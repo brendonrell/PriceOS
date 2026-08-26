@@ -9096,6 +9096,13 @@ body.feed-mode .arb-badge { display: none !important; }
 }
 @media (max-width: 600px) { .home-activity-feed .f-time { width: 80px; } }
 
+/* New Signups — the date↔identity gap cut to 1/4 its previous width
+   (Brendon, 2026-08-26). Scoped here (not the shared .home-activity-feed
+   rule the New Uploads feed also uses) so only this feed tightens; the
+   icon↔date gap is untouched, hence a margin pull on .f-content rather
+   than lowering .feed-row's shared gap. 15px * 0.25 = 3.75px effective. */
+.home-signups-feed .f-content { margin-left: -11.25px; }
+
 /* ── Social feed ☻ — the tightened middle (Brendon, 2026-07-26) ──────────
    Cohesion over white space: the base home-feed columns were sized for long
    milestone labels (PER MILLE CLUB) and left the sentence a third of an
