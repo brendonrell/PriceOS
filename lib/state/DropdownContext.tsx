@@ -14,14 +14,15 @@
  * Accordion-open state for the Tape / Pings / Todos / Notes boxes
  * lives in PdNotifsContext (matches the sim's pdNotifs object).
  *
- * The Connect Menu ONLY closes when the USER deliberately closes it —
- * tapping the connect button (toggle) or pressing Escape. There is NO
- * outside-click / tap-elsewhere auto-close (Brendon, 2026-07-13 — "nothing
- * should close it but the user"). That auto-close was a recurring bug: the
- * delete-a-todo confirm, the ping/fiat pickers and other bubbles are
- * portaled to <body>, OUTSIDE .user-menu-wrapper, so their taps read as an
- * "outside" click and slammed the menu shut mid-action. Whitelisting each
- * portaled surface was endless whack-a-mole; removing the auto-close ends it.
+ * The Connect Menu closes on: tapping the connect button (toggle),
+ * pressing Escape, or tapping outside it. Outside-tap auto-close was
+ * removed on 2026-07-13 because portaled surfaces (delete-a-todo confirm,
+ * ping/fiat pickers, other bubbles portaled to <body>, OUTSIDE
+ * .user-menu-wrapper) read as an "outside" click and slammed the menu shut
+ * mid-action. Restored on 2026-08-26 as a portal-aware version instead:
+ * PORTAL_ROOT_SELECTOR below whitelists every known portal root in one
+ * list, so their taps no longer count as "outside." Add new portal roots
+ * there if a future one doesn't match.
  */
 
 import {
@@ -54,6 +55,25 @@ interface DropdownContextValue {
     reset: () => void;
 }
 
+/* Root wrapper classes for every surface portaled to <body> (confirms,
+   pickers, bubbles, modals). Kept as one list so the outside-tap handler
+   above can whitelist them all in a single closest() check instead of
+   whack-a-mole per surface. */
+const PORTAL_ROOT_SELECTOR = [
+    '.starred-confirm-overlay',
+    '.sticker-mgr-backdrop',
+    '.sticker-mgr-plus-backdrop',
+    '.followers-backdrop',
+    '.ambient-pop',
+    '.mention-pop',
+    '.fi-sprite-pop',
+    '.dp-charm-pop-backdrop',
+    '.cart-panel-box',
+    '.album-show',
+    '.priceday-popover',
+    '.fiat-picker-bubble',
+].join(', ');
+
 const DropdownContext = createContext<DropdownContextValue | null>(null);
 
 export function DropdownProvider({ children }: { children: ReactNode }) {
@@ -79,6 +99,33 @@ export function DropdownProvider({ children }: { children: ReactNode }) {
         };
         window.addEventListener('keydown', handler);
         return () => window.removeEventListener('keydown', handler);
+    }, [menuOpen]);
+
+    /* Outside-tap closes the menu (Brendon, 2026-08-26). Re-adding this
+       after the 2026-07-13 removal above — but portal-aware this time
+       instead of a blind listener, so it doesn't regress the original bug.
+       Every portaled surface in the app roots through one of a small,
+       consistent set of wrapper classes; a tap landing in any of them is
+       real in-menu-flow interaction, not a genuine "outside" tap, so it's
+       ignored. Add new portal roots to PORTAL_ROOT_SELECTOR if a future
+       one doesn't match this list. */
+    useEffect(() => {
+        if (!menuOpen) return;
+        const handler = (e: MouseEvent | TouchEvent) => {
+            const wrapper = document.querySelector('.user-menu-wrapper');
+            if (!wrapper) return;
+            const target = e.target as Node;
+            if (wrapper.contains(target)) return;
+            if ((target as Element).closest?.(PORTAL_ROOT_SELECTOR)) return;
+            setMenuOpen(false);
+            setView('links');
+        };
+        document.addEventListener('mousedown', handler, true);
+        document.addEventListener('touchstart', handler, true);
+        return () => {
+            document.removeEventListener('mousedown', handler, true);
+            document.removeEventListener('touchstart', handler, true);
+        };
     }, [menuOpen]);
 
     /* G item 7 — _syncDropdownMaxHeight (sim 6670-6688) port.
