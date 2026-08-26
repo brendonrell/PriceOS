@@ -47,7 +47,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import SpriteFace from './SpriteFace';
-import { spriteFaceFor } from '../lib/stickers/sprites';
+import { useSpriteFace } from '../lib/hooks/useSpriteFace';
 import { projectSpriteFace } from '../lib/project/projectSprite';
 import { getProject } from '../lib/project/registry';
 import { useLongPress } from '../lib/hooks/useLongPress';
@@ -55,6 +55,18 @@ import { useToast } from '../lib/state/ToastContext';
 import type { CircleStat } from '../app/api/social/circle-stats/route';
 
 const VS15 = '︎';
+
+/* PreviewSprite — the real live PriceSprite for a @handle, wherever this
+   file needs one inside a list (Brendon, 2026-08-26 fix). Previously every
+   roster/overlap/spend row called the sticker-catalog's spriteFaceFor(),
+   a deterministic hash-placeholder built for STICKERS ("Real on-chain / DB
+   sprites swap in here later" per its own doc comment) — never the user's
+   actual saved sprite. useSpriteFace can't be called inside a .map(), so it
+   lives in its own tiny component instead, same shape as AsciiId's usage. */
+function PreviewSprite({ handle, color }: { handle: string; color?: string }) {
+    const face = useSpriteFace(handle);
+    return face ? <SpriteFace className="collected-sprite" face={face} color={color} /> : null;
+}
 
 const MODE_KEY = 'pd_fi_preview';
 /* HOLD a mode chip → pins it to the front of the sequence, everything else
@@ -295,11 +307,7 @@ function Roster({
         <div className="fi-roster">
             {myHandle && (
                 <span className="fi-rost-cell fi-rost-me" title={`@${myHandle} — you`}>
-                    <SpriteFace
-                        className="collected-sprite"
-                        face={spriteFaceFor(`user:${myHandle}`)}
-                        color={myStat?.profileHex ?? undefined}
-                    />
+                    <PreviewSprite handle={myHandle} color={myStat?.profileHex ?? undefined} />
                     <span className="fi-rost-name">YOU</span>
                 </span>
             )}
@@ -313,11 +321,7 @@ function Roster({
                     onClick={() => onInspect(p.handle)}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onInspect(p.handle); } }}
                 >
-                    <SpriteFace
-                        className="collected-sprite"
-                        face={spriteFaceFor(`user:${p.handle}`)}
-                        color={p.stat?.profileHex ?? undefined}
-                    />
+                    <PreviewSprite handle={p.handle} color={p.stat?.profileHex ?? undefined} />
                     <span className="fi-rost-name">@{p.handle}</span>
                 </span>
             ))}
@@ -480,7 +484,7 @@ function Streak({ people, onInspect }: { people: PreviewPerson[]; onInspect: (h:
                     onClick={() => onInspect(r.handle)}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onInspect(r.handle); } }}
                 >
-                    <SpriteFace className="collected-sprite" face={spriteFaceFor(`user:${r.handle}`)} color={r.stat?.profileHex ?? undefined} />
+                    <PreviewSprite handle={r.handle} color={r.stat?.profileHex ?? undefined} />
                     <span className="fi-ov-name">@{r.handle}</span>
                     <span className="fi-ov-bar" aria-hidden="true">
                         <span className="fi-ov-fill" style={{ width: `${Math.round((r.current / 30) * 100)}%` }} />
@@ -520,7 +524,7 @@ function Spend({ people, onInspect }: { people: PreviewPerson[]; onInspect: (h: 
                     onClick={() => onInspect(p.handle)}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onInspect(p.handle); } }}
                 >
-                    <SpriteFace className="collected-sprite" face={spriteFaceFor(`user:${p.handle}`)} color={p.stat?.profileHex ?? undefined} />
+                    <PreviewSprite handle={p.handle} color={p.stat?.profileHex ?? undefined} />
                     <span className="fi-ov-name">@{p.handle}</span>
                     <span className="fi-ov-bar" aria-hidden="true">
                         <span className="fi-ov-fill" style={{ width: `${Math.round((p.stat!.spentEth / top) * 100)}%` }} />
@@ -562,11 +566,7 @@ function NewCircle({
         <div className="fi-roster">
             {myHandle && (
                 <span className="fi-rost-cell fi-rost-me" title={`@${myHandle} — you`}>
-                    <SpriteFace
-                        className="collected-sprite"
-                        face={spriteFaceFor(`user:${myHandle}`)}
-                        color={myStat?.profileHex ?? undefined}
-                    />
+                    <PreviewSprite handle={myHandle} color={myStat?.profileHex ?? undefined} />
                     <span className="fi-rost-name">YOU</span>
                 </span>
             )}
@@ -580,11 +580,7 @@ function NewCircle({
                     onClick={() => onInspect(p.handle)}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onInspect(p.handle); } }}
                 >
-                    <SpriteFace
-                        className="collected-sprite"
-                        face={spriteFaceFor(`user:${p.handle}`)}
-                        color={p.stat?.profileHex ?? undefined}
-                    />
+                    <PreviewSprite handle={p.handle} color={p.stat?.profileHex ?? undefined} />
                     <span className="fi-rost-name">@{p.handle}</span>
                 </span>
             ))}
