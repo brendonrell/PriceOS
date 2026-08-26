@@ -946,7 +946,7 @@ function ProfilePageBodyInner({
                 lines.push(`${getProject(o.slug)?.displayName ?? o.slug} #${o.token_id}  ⟠${o.priceEth.toFixed(2)}`);
             }
         }
-        showToast('⟠ VOLUME SPENT ⟠', 5400, undefined, null, lines.length ? lines : null);
+        showToast('◆ VOLUME SPENT ◆', 5400, undefined, null, lines.length ? lines : null);
     };
 
     /* Long-press the join date → it flips to the profile's platform user
