@@ -137,29 +137,39 @@ export default function PriceDaySlot() {
                     })()}
 
                     <div className="pd-section-header">MINTED THIS DAY</div>
-                    {contents.minted.map((r, i) => (
-                        <div className="dp-row" key={`m${i}`}>
-                            <span className="dp-label">{r.label}</span>
-                            <span className="dp-value">{r.value}</span>
-                        </div>
-                    ))}
+                    {contents.minted.length > 0 ? (
+                        contents.minted.map((r, i) => (
+                            <div className="dp-row" key={`m${i}`}>
+                                <span className="dp-label">{r.label}</span>
+                                <span className="dp-value">{r.value}</span>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="dp-row dp-flavor dp-empty"><span className="dp-label">Nothing minted this day.</span></div>
+                    )}
                     <div className="pd-section-end" />
 
                     <div className="pd-section-header">UPLOADED THIS DAY</div>
-                    {contents.uploaded.map((r, i) => (
-                        <div className="dp-row" key={`u${i}`}>
-                            <span className="dp-label">{r.label}</span>
-                            <span className="dp-value">{r.value}</span>
-                        </div>
-                    ))}
+                    {contents.uploaded.length > 0 ? (
+                        contents.uploaded.map((r, i) => (
+                            <div className="dp-row" key={`u${i}`}>
+                                <span className="dp-label">{r.label}</span>
+                                <span className="dp-value">{r.value}</span>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="dp-row dp-flavor dp-empty"><span className="dp-label">Nothing uploaded this day.</span></div>
+                    )}
                     <div className="pd-section-end" />
 
                     <div className="pd-section-header">BIGGEST SALE</div>
-                    {contents.biggestSale && (
+                    {contents.biggestSale ? (
                         <div className="dp-row">
                             <span className="dp-label">{contents.biggestSale.label}</span>
                             <span className="dp-value">{contents.biggestSale.value}</span>
                         </div>
+                    ) : (
+                        <div className="dp-row dp-flavor dp-empty"><span className="dp-label">No sale this day.</span></div>
                     )}
                     {/* THE DAY — the day's own written line (real ledger, seeded voice). */}
                     {contents.flavor && (
