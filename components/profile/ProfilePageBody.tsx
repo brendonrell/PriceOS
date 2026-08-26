@@ -179,6 +179,20 @@ function ProfilePageBodyInner({
        too (Brendon, 2026-08-13). */
     const isPlatform = isPlatformAccount(user.address);
 
+    /* @price has no volume of its own to spend — the Volume Spent slot
+       repurposes itself into the live ETH↔$PRICE rate for that one profile
+       (Brendon, 2026-08-24). 0 until a pool exists; see lib/platform/priceMarket. */
+    const [priceMarketRate, setPriceMarketRate] = useState<{ priceEth: number; source: string } | null>(null);
+    useEffect(() => {
+        if (!isPlatform) { setPriceMarketRate(null); return; }
+        let cancelled = false;
+        fetch('/api/token/price', { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => { if (!cancelled && d) setPriceMarketRate(d); })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [isPlatform]);
+
     /* Profile Colorway — paint this profile in ITS OWNER's colour. The page
        owner's `profile_hex` is the "Custom" colour for this page, shown to any
        visitor whose colorway is the default/Custom (an explicit pick still
@@ -932,6 +946,13 @@ function ProfilePageBodyInner({
         return () => { cancelled = true; };
     }, [user.address]);
     const openVolumeSpentToast = () => {
+        if (isPlatform) {
+            const lines = priceMarketRate?.source === 'none' || !priceMarketRate
+                ? ['No pool yet — 0 until a third party LPs $PRICE.']
+                : [`Source: ${priceMarketRate.source === 'coingecko' ? 'CoinGecko' : 'Uniswap pool'}`];
+            showToast('◆ ETH ⇄ $PRICE ◆', 5400, undefined, null, lines);
+            return;
+        }
         const lines: string[] = [];
         if (spendBreakdown?.topProjects.length) {
             lines.push('TOP PROJECTS');
@@ -1883,7 +1904,7 @@ function ProfilePageBodyInner({
                                 className="stat-icon-eth"
                                 role="button"
                                 tabIndex={0}
-                                title="Volume Spent"
+                                title={isPlatform ? 'ETH ⇄ $PRICE' : 'Volume Spent'}
                                 onClick={openVolumeSpentToast}
                                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openVolumeSpentToast(); } }}
                             >
@@ -1893,11 +1914,11 @@ function ProfilePageBodyInner({
                                 className="stat-val stat-val-vol"
                                 role="button"
                                 tabIndex={0}
-                                title="Volume Spent"
+                                title={isPlatform ? 'ETH ⇄ $PRICE' : 'Volume Spent'}
                                 onClick={openVolumeSpentToast}
                                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openVolumeSpentToast(); } }}
                             >
-                                {formatEth(volumeSpent)}
+                                {formatEth(isPlatform ? (priceMarketRate?.priceEth ?? 0) : volumeSpent)}
                             </span>
                         </span>
                         <span className="stat-item stat-item-owners">
@@ -2488,8 +2509,8 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                             hidePills={['PriceDay']}
                             compact={showcaseView === 'regular'}
                             leadPills={[
-                                { key: 'created', label: 'Created', count: enrichedArtistProjects.length, active: showcaseView === 'created', onClick: () => setShowcaseView('created') },
                                 { key: 'regular', label: 'Top 6', active: showcaseView === 'regular', onClick: () => setShowcaseView('regular') },
+                                { key: 'created', label: 'Created', count: enrichedArtistProjects.length, active: showcaseView === 'created', onClick: () => setShowcaseView('created') },
                             ]}
                         />
                     )}
