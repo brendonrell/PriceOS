@@ -5947,8 +5947,10 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.32); }
     border-top-color: var(--bg-color);
 }
 .fi-sprite-pop-name {
+    font-family: var(--font-rubik-mono), sans-serif;
     font-size: 13px;
-    font-weight: 800;
+    font-weight: normal;
+    text-transform: uppercase;
     color: var(--text-color);
     text-decoration: none;
 }
