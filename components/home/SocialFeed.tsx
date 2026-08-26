@@ -282,18 +282,23 @@ function projLink(slug: string): React.ReactNode {
     return <a className="f-highlight" href={`/art/${slug}`} onClick={(e) => e.stopPropagation()}>{title}</a>;
 }
 
-export default function SocialFeed({ dir, actor, project, initialData = null }: {
+export default function SocialFeed({ dir, actor, project, initialData = null, initialDataViewer = null }: {
     dir: 'asc' | 'desc';
     /** Scope the feed to one wallet's story (a profile / artist lens). */
     actor?: string;
     /** Scope the feed to one project's outputs activity. */
     project?: string;
-    /** Server-seeded anonymous/top-collectors page (app/page.tsx home
-        render) — paints instantly instead of ghost rows on a fresh page
-        load (Brendon, 2026-08-26). Only used for the plain default view
-        (no viewer/actor/project); any other cache key ignores it and
-        behaves exactly as before. */
+    /** Server-seeded page for the plain default view (app/page.tsx home
+        render) — the viewer's own graph feed when they were signed in
+        server-side, top-collectors otherwise — paints instantly instead of
+        ghost rows on a fresh page load (Brendon, 2026-08-26 + same-day
+        follow-up). Ignored for any `actor`/`project` lens. */
     initialData?: SocialFeedResponse | null;
+    /** The wallet `initialData` was built for (lowercased), or null for the
+        anonymous seed. Guards against a mismatch — e.g. the server saw no
+        cookie but the client hydrates already signed in, or vice versa —
+        so a stale seed never gets shown as if it were the viewer's own. */
+    initialDataViewer?: string | null;
 }) {
     const { siweAddress } = useAuth();
     const addr = siweAddress?.toLowerCase();
@@ -302,11 +307,13 @@ export default function SocialFeed({ dir, actor, project, initialData = null }: 
     if (actor) qs.set('actor', actor.toLowerCase());
     if (project) qs.set('project', project);
     const cacheKey = qs.toString();
+    const isDefaultView = !actor && !project;
+    const seedMatchesViewer = isDefaultView && (initialDataViewer ?? null) === (addr ?? null);
     const [data, setData] = useState<SocialFeedResponse | null>(() => {
         const cached = lastResponse.get(cacheKey);
         if (cached) return cached;
-        if (cacheKey === '' && initialData) {
-            lastResponse.set('', initialData);
+        if (seedMatchesViewer && initialData) {
+            lastResponse.set(cacheKey, initialData);
             return initialData;
         }
         return null;

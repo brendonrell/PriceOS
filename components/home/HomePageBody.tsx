@@ -43,6 +43,7 @@ import { buildNewsItems, dispatchPrintsMeta, greetingOfDay, lastVisitStamp, type
 import { priceDayNumber, formatPriceDate } from '../../lib/priceday/priceday';
 import { moodOfDay } from '../../lib/mood/mood';
 import { PerMilleMark } from '../shell/PerMilleMark';
+import type { RecentUserRow } from '../../app/api/users/recent/route';
 import { useGasData } from '../../lib/hooks/useGasData';
 import type { HomeYouResponse } from '../../app/api/home/you/route';
 import { TraitsProvider, useTraits } from '../../lib/state/TraitsContext';
@@ -341,15 +342,27 @@ function ShuffleGallery({ seed }: { seed: number }) {
 function HomePageBodyInner({
     initialFeed = null,
     initialSocialFeed = null,
+    initialSocialFeedViewer = null,
+    initialRecentUsers = null,
 }: {
     /** Server-computed home payload (app/page.tsx) — carousels + stats in
         the first paint. Null only when the server read failed. */
     initialFeed?: HomeResponse | null;
-    /** Server-computed anonymous Social Feed page (app/page.tsx) — seeds
-        SocialFeed so it never opens on ghost rows (Brendon, 2026-08-26).
+    /** Server-computed Social Feed page (app/page.tsx) — the viewer's own
+        graph feed when the SIWE cookie resolved server-side, top-collectors
+        otherwise — seeds SocialFeed so it never opens on ghost rows
+        (Brendon, 2026-08-26 + same-day follow-up for signed-in viewers).
         Null only when the server read failed; SocialFeed's own client
         fetch fills in either way. */
     initialSocialFeed?: SocialFeedResponse | null;
+    /** The wallet `initialSocialFeed` was built for (lowercased), or null
+        for the anonymous/top-collectors seed — lets SocialFeed confirm the
+        seed actually matches who's looking before trusting it. */
+    initialSocialFeedViewer?: string | null;
+    /** Server-computed recent-signups page (app/page.tsx) — seeds
+        NewUsersFeed so it never opens on ghost rows. Null only when the
+        server read failed. */
+    initialRecentUsers?: RecentUserRow[] | null;
 }) {
     const { showToast } = useToast();
     const { open: openModal } = useModal();
@@ -1198,7 +1211,11 @@ function HomePageBodyInner({
                         <span className="home-section-title">Social Feed</span>
                     </div>
                     <div className="feed-list home-activity-feed home-social-feed">
-                        <SocialFeed dir={mintSort.dir} initialData={initialSocialFeed} />
+                        <SocialFeed
+                            dir={mintSort.dir}
+                            initialData={initialSocialFeed}
+                            initialDataViewer={initialSocialFeedViewer}
+                        />
                     </div>
                 </section>
             )}
@@ -1213,7 +1230,7 @@ function HomePageBodyInner({
                         <span className="home-section-title">New Signups</span>
                     </div>
                     <div className="feed-list home-activity-feed home-signups-feed">
-                        <NewUsersFeed dir={mintSort.dir} />
+                        <NewUsersFeed dir={mintSort.dir} initialRows={initialRecentUsers} />
                     </div>
                 </section>
             )}
@@ -1290,17 +1307,28 @@ function HomePageBodyInner({
 export default function HomePageBody({
     initialFeed = null,
     initialSocialFeed = null,
+    initialSocialFeedViewer = null,
+    initialRecentUsers = null,
 }: {
     /** Server-computed home payload (app/page.tsx) — carousels + stats in
         the first paint. Null only when the server read failed. */
     initialFeed?: HomeResponse | null;
-    /** Server-computed anonymous Social Feed page (app/page.tsx) — see
+    /** Server-computed Social Feed page (app/page.tsx) — see
         HomePageBodyInner. */
     initialSocialFeed?: SocialFeedResponse | null;
+    /** See HomePageBodyInner. */
+    initialSocialFeedViewer?: string | null;
+    /** See HomePageBodyInner. */
+    initialRecentUsers?: RecentUserRow[] | null;
 }) {
     return (
         <TraitsProvider>
-            <HomePageBodyInner initialFeed={initialFeed} initialSocialFeed={initialSocialFeed} />
+            <HomePageBodyInner
+                initialFeed={initialFeed}
+                initialSocialFeed={initialSocialFeed}
+                initialSocialFeedViewer={initialSocialFeedViewer}
+                initialRecentUsers={initialRecentUsers}
+            />
         </TraitsProvider>
     );
 }

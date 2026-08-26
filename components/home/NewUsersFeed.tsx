@@ -32,8 +32,14 @@ function fmtTime(ms: number): string {
     return new Date(ms).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
 }
 
-export default function NewUsersFeed({ dir }: { dir: 'asc' | 'desc' }) {
-    const [rows, setRows] = useState<RecentUserRow[] | null>(null);
+export default function NewUsersFeed({ dir, initialRows = null }: {
+    dir: 'asc' | 'desc';
+    /** Server-seeded first page (app/page.tsx home render) — paints
+        instantly instead of ghost rows on a fresh page load (Brendon,
+        2026-08-26). Anonymous data, so no viewer-matching needed. */
+    initialRows?: RecentUserRow[] | null;
+}) {
+    const [rows, setRows] = useState<RecentUserRow[] | null>(initialRows);
     const [shown, setShown] = useState(WINDOW_STEP);
     const sentinelRef = useRef<HTMLDivElement | null>(null);
 
