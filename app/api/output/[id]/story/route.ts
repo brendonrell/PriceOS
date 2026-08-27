@@ -18,10 +18,15 @@ import { getSupabaseService } from '@/lib/supabase';
 import { badRequest, serverError } from '@/lib/errors';
 import { getProject } from '@/lib/project/registry';
 import { priceDayNumber } from '@/lib/priceday/priceday';
+import { ROYALTY_BPS } from '@/lib/market/chain';
 
 export const dynamic = 'force-dynamic';
 
 const VS15 = '︎';
+
+/* Same split as the project-level story (seaportClient.ts, locked
+   2026-07-02): 5% EIP-2981 royalty, 60% artist / 40% platform. */
+const ARTIST_ROYALTY_SHARE = 0.6;
 
 interface Chapter {
   key: string;
@@ -102,6 +107,8 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ id: stri
   const parsed = parseId(params.id);
   if (!parsed) return badRequest('Bad output id');
   const { slug, tokenId } = parsed;
+  const project = getProject(slug);
+  if (!project) return badRequest('Unknown project');
   try {
     const db = getSupabaseService();
     const now = Math.floor(Date.now() / 1000);
@@ -222,10 +229,11 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ id: stri
       const how = first.sale_direction === 'OFFER_ACCEPT'
         ? pick(seed, 4, ['taken on an offer', 'won by a patient bid'])
         : pick(seed, 4, ['bought off the ask', 'claimed at the listed price']);
+      const artistCut = price * (ROYALTY_BPS / 10000) * ARTIST_ROYALTY_SHARE;
       chapters.push({
         key: 'firstblood', glyph: `✦${VS15}`, title: 'FIRST SALE', ts: first.timestamp,
         line: `First changed hands for ${fmtEth(price)} — ${how} by ${buyer}${mult != null && mult >= 1.2 ? `, ${mult.toFixed(1)}× its mint` : ''}.`,
-        sub: mintTs != null ? `${daysBetween(mintTs, first.timestamp)} days after birth` : null,
+        sub: artistCut > 0 ? `${fmtEth(artistCut)} in royalty to @${project.artistHandle}` : mintTs != null ? `${daysBetween(mintTs, first.timestamp)} days after birth` : null,
       });
     }
 
