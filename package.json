@@ -35,6 +35,8 @@
     "@types/web-push": "^3.6.4",
     "eslint": "^9.39.5",
     "eslint-config-next": "^15.5.20",
+    "p5": "2.3.2",
+    "p5.brush": "2.2.2",
     "playwright": "^1.60.0",
     "typescript": "^5.4.5",
     "vitest": "^3.2.7",
