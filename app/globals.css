@@ -10236,6 +10236,22 @@ a.f-highlight { color: inherit; }
     }
 }
 
+/* ── OUTPUT PAGE MOBILE OVERRIDES — stats row (Brendon, 2026-08-27) ──
+   .stat-icon-box / .stat-icon-rarity are shared with the Project page (same
+   transplanted hero markup — see ArtworkPageBody's top-of-file comment), so
+   these are scoped to `section[aria-label="Artwork Info"]` (unique to the
+   Output page) rather than touching the bare classes — the Project page's
+   stats row is untouched. */
+@media (max-width: 600px) {
+    /* Dotted-square (Output/Supply) icon — nudged down 1px from the shared
+       mobile rule's top:-1px, landing it back at its natural baseline. */
+    section[aria-label="Artwork Info"] .stat-icon-box { top: 0; }
+    /* PD Rarity glyph — two font sizes larger (this codebase's ~2px/size
+       step elsewhere, e.g. .sort-arrow, .feed-sort-dollar.sort-plus-mark):
+       17px base + 4px. */
+    section[aria-label="Artwork Info"] .stat-icon-rarity { font-size: 21px; }
+}
+
 /* Desktop-specific stat sizing — sim ~2167-2174 */
 @media (min-width: 601px) {
     .stat-icon-box {
