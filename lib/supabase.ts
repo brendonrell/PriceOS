@@ -241,6 +241,10 @@ export interface UserSettings {
    *  (Brendon, 2026-07-31). Account-backed like `sound`, mirror
    *  localStorage `pd_theme_on`. Absent = never set (default OFF). */
   themeMusic?: boolean;
+  /** TEXT SIZE — the Aa key beside sound (workspace dots row), cycles
+   *  S → M → L (Brendon, 2026-08-26). Account-backed like `sound`, mirrors
+   *  localStorage `pd_text_size`. Absent = M (the default). */
+  textSize?: 'S' | 'M' | 'L';
   /** miniplayer display face ('deck' | 'usb' | 'signal' | 'disc'; `signal` shows
    *  as "Tab"). Account-backed so the chosen face follows the viewer (Brendon,
    *  2026-07-21). Was device-only localStorage `pd_fm_display`. Absent = deck. */
