@@ -30,6 +30,8 @@ import GnomePanel from './GnomePanel';
 import PriceStoryPanel from '../market/PriceStoryPanel';
 import OffersInline from '../market/OffersInline';
 import ProjectFollowButton from './ProjectFollowButton';
+
+const VS15 = '︎';
 import ProjectAnointPanel from './ProjectAnointPanel';
 import Hero from '../hero/Hero';
 import { formatEth } from '../../lib/format/eth';
@@ -408,7 +410,7 @@ export default function ProjectMorePanel({
                         <>
                             <div className="more-seal-cast-label">
                                 {preds.mine != null
-                                    ? <>YOUR CALL · <span className="eth-mark">◊</span>{formatEth(preds.mine)} — tap a rung to retarget</>
+                                    ? <>YOUR CALL · <span className="eth-mark">{`⟠${VS15}`}</span>{formatEth(preds.mine)} — tap a rung to retarget</>
                                     : 'CAST YOURS — tap where the floor lands'}
                             </div>
                             <div className="more-seal-cast-row" onClick={(e) => e.stopPropagation()}>
@@ -420,7 +422,7 @@ export default function ProjectMorePanel({
                                         disabled={casting}
                                         onClick={() => { void castTarget(v); }}
                                     >
-                                        <span className="stat-name"><span className="eth-mark">◊</span>{formatEth(v)}</span>
+                                        <span className="stat-name"><span className="eth-mark">{`⟠${VS15}`}</span>{formatEth(v)}</span>
                                     </button>
                                 ))}
                             </div>
@@ -435,8 +437,8 @@ export default function ProjectMorePanel({
                     {preds?.last ? (
                         <>
                             <div className="more-seal-status more-seal-reveal">
-                                LAST WINDOW · {preds.last.count} CALL{preds.last.count === 1 ? '' : 'S'} · MEDIAN <span className="eth-mark">◊</span>{formatEth(preds.last.median_eth)}
-                                {preds.last.floor_now_eth != null ? <> · FLOOR NOW <span className="eth-mark">◊</span>{formatEth(preds.last.floor_now_eth)}</> : null}
+                                LAST WINDOW · {preds.last.count} CALL{preds.last.count === 1 ? '' : 'S'} · MEDIAN <span className="eth-mark">{`⟠${VS15}`}</span>{formatEth(preds.last.median_eth)}
+                                {preds.last.floor_now_eth != null ? <> · FLOOR NOW <span className="eth-mark">{`⟠${VS15}`}</span>{formatEth(preds.last.floor_now_eth)}</> : null}
                             </div>
                             <div className="more-seal-buckets">
                                 {(() => {
