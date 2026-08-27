@@ -1,8 +1,8 @@
 ---
 title: "Contracts — PDLibraryRegistry"
-description: "The append-only on-chain store for blessed JavaScript libraries (p5.js, three.js, regl, d3, the gzip inflater) that PD Projects bind and render from — frozen forever once finalized."
+description: "The append-only on-chain store for blessed JavaScript libraries (p5.js, p5.brush, three.js, regl, d3, the gzip inflater) that PD Projects bind and render from — frozen forever once finalized."
 category: "contracts"
-keywords: ["PDLibraryRegistry", "libraries", "p5.js", "three.js", "regl", "d3", "SSTORE2", "append-only", "Language"]
+keywords: ["PDLibraryRegistry", "libraries", "p5.js", "p5.brush", "three.js", "regl", "d3", "SSTORE2", "append-only", "Language"]
 last_updated: "2026-08-02"
 ---
 
@@ -35,11 +35,14 @@ PD launches with a settled shelf of blessed libraries — each written to the re
 | Library | For |
 | --- | --- |
 | **p5.js** | The lingua franca of creative coding |
+| **p5.brush** | Natural media — custom brushes, watercolor fills, hatching |
 | **three.js** | 3D and WebGL scenes |
 | **regl** | Functional, shader-first WebGL |
 | **d3** | Data-driven and generative structure |
 
 Vanilla **JavaScript** is always available and needs no registry entry at all. The vocabulary extends itself the day a new library is blessed — a new entry, finalized and frozen, with no list anywhere to maintain.
+
+**p5.brush is its own entry, not an addition to p5.js's.** A Project binds exactly one registry entry, and entries don't compose at render time — so p5.brush, which runs as an addon on top of p5, ships as a single bundled blob (a p5 core plus the addon, concatenated in load order) and is blessed under its own Language, `p5.brush <version>`, distinct from the plain `p5.js <version>` entry. Because p5.brush's peer dependency line (`p5 ^2.2`) postdates the p5.js version already on the shelf, the p5 core bundled inside the p5.brush entry is its own, separately-versioned build — the two entries are not the same p5 under the hood, by necessity of the version gap, not by choice.
 
 ```solidity
 function isFinalized(uint256 libraryId) external view returns (bool);
