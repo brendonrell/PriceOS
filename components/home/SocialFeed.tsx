@@ -41,7 +41,7 @@ import type {
     SocialEventRow,
     SocialFeedResponse,
     SocialRelation,
-} from '../../app/api/feed/social/route';
+} from '../../lib/home/socialFeed';
 
 /* ── timeline model ─────────────────────────────────────────────────── */
 

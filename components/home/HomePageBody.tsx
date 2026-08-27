@@ -43,7 +43,7 @@ import { buildNewsItems, dispatchPrintsMeta, greetingOfDay, lastVisitStamp, type
 import { priceDayNumber, formatPriceDate } from '../../lib/priceday/priceday';
 import { moodOfDay } from '../../lib/mood/mood';
 import { PerMilleMark } from '../shell/PerMilleMark';
-import type { RecentUserRow } from '../../app/api/users/recent/route';
+import type { RecentUserRow } from '../../lib/home/recentUsers';
 import { useGasData } from '../../lib/hooks/useGasData';
 import type { HomeYouResponse } from '../../app/api/home/you/route';
 import { TraitsProvider, useTraits } from '../../lib/state/TraitsContext';
@@ -70,7 +70,7 @@ import { readViewParam, setViewParam } from '../../lib/state/viewLink';
 import { openExternal } from '../../lib/pwa/openExternal';
 import { DISCORD_URL } from '../../lib/config/discord';
 import type { HomeResponse } from '../../lib/home/homeData';
-import type { SocialFeedResponse } from '../../app/api/feed/social/route';
+import type { SocialFeedResponse } from '../../lib/home/socialFeed';
 
 /* Outputs per carousel (Brendon 2026-06-13: 12, mobile + desktop;
    raised to 18 on 2026-06-18). Off-screen tiles paint lazily via the

@@ -21,7 +21,7 @@ import { useEffect, useRef, useState } from 'react';
 import AsciiId from '../hero/AsciiId';
 import { GhostFeedRows } from '../GhostFeed';
 import { formatFeedUploadDate } from '../../lib/format/feedDate';
-import type { RecentUserRow } from '../../app/api/users/recent/route';
+import type { RecentUserRow } from '../../lib/home/recentUsers';
 
 /* Screenfuls — the list grows as the viewer scrolls, so 200 rows never build
    (or fetch their identities) in one go. */
