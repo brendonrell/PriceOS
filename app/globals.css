@@ -2589,6 +2589,11 @@ section[aria-label="Created projects"] > .upload-window {
 .fm-sort-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
 .fm-sort-label { font-size: 10px; font-weight: bold; letter-spacing: 1px; }
 .fm-sort-chip { font-size: 11px; }
+/* Factions sort chip — the ⚐ glyph was hard to make out at the shared
+   11px/normal-weight sort-chip size (Brendon, 2026-08-27). Three sizes
+   larger (this codebase's ~2px/size step) + bold. Scoped to this one chip
+   via fm-sort-chip-faction so AZ/Followers/NFTs/Spent are untouched. */
+.fm-sort-chip-faction { font-size: 17px; font-weight: bold; }
 /* LENS pills wear the app's standard hatch texture (same repeating-linear-
    gradient as .ss-card-art / .fam-tile.locked) to read as distinct from the
    plain SORT chips — theme-reactive via var(--text-color), so it holds in
