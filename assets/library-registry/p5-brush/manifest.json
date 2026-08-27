@@ -1,0 +1,16 @@
+{
+  "name": "p5.brush",
+  "version": "2.2.2",
+  "language": "p5.brush 2.2.2",
+  "bundledCore": {
+    "library": "p5.js",
+    "version": "2.3.2"
+  },
+  "sourceBytes": 1060021,
+  "gzipBytes": 313073,
+  "base64Bytes": 417432,
+  "chunkCount": 17,
+  "chunkCeilingBytes": 24575,
+  "sha256OfSource": "40fcbb3d149a7d8d29c1632d599c6c3111b274465bcc78cd9f583caa44971134",
+  "generatedAt": "2026-08-27T10:33:17.167Z"
+}
