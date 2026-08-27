@@ -167,6 +167,17 @@ body {
     min-height: 100dvh;
 }
 
+/* TEXT SIZE — the Aa key cycle, S/M/L (Brendon, 2026-08-26). The UI is
+   dense/ASCII-grid and almost entirely px-sized rather than rem, so a
+   root font-size change alone wouldn't cascade to most of it. `zoom`
+   scales the whole rendered box — text AND layout — proportionally
+   regardless of unit, which is what "everything gets bigger, nothing
+   clips weird" actually needs here. Supported in all current evergreen
+   engines (Chrome/Safari always; Firefox since 126). M is the site's
+   existing size — no rule, nothing to override. */
+body.text-size-s { zoom: 0.9; }
+body.text-size-l { zoom: 1.18; }
+
 /* THE FOOTER MYSTERY, solved (2026-06-10). [data-rk] is RainbowKit's
    wrapper div. It used to wrap the whole app, so it carried the
    flex-column + min-height sizing. Since the wallet stack went deferred
@@ -11106,6 +11117,27 @@ body.hammer-mode.muted-filter-active .output-card:not(.muted) {
 }
 .ws-sound:hover { opacity: 0.9; }
 .ws-sound.on { opacity: 1; }
+/* Text size key "Aa" — right of sound (Brendon, 2026-08-26). Same treatment
+   as the sound key; the glyph itself steps up a size per cycle stop so the
+   button previews the effect it has. */
+.ws-textsize {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--bg-color);
+    opacity: 0.4;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    line-height: 1;
+    width: 20px; height: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity 0.18s;
+    margin-left: 2px;
+}
+.ws-textsize:hover { opacity: 0.9; }
+.ws-textsize-s { font-size: 10px; }
+.ws-textsize-m { font-size: 13px; opacity: 0.6; }
+.ws-textsize-l { font-size: 16px; opacity: 0.6; }
 /* Manage/delete mode — the dots BREATHE so it's obvious they're live and
    editable (Brendon, 2026-07-21). A slow ring swell + opacity pulse; the
    static values below are the reduced-motion resting look. */
