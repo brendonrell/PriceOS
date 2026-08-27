@@ -173,6 +173,10 @@ export const STATE_CACHE_KEYS = {
     /** Theme music on/off (long-press the ⚟ key). Read + written by
      *  themeStore; lives in the settings envelope. */
     themeMusic: 'pd_theme_on',
+    /** Text size S/M/L (the Aa key beside sound). Read + written by
+     *  textSizeStore; lives in the settings envelope. Account-backed
+     *  2026-08-26. */
+    textSize: 'pd_text_size',
     /** PD miniplayer display face. Read + written by FmBar; lives in the
      *  settings envelope. Account-backed 2026-07-21. */
     fmDisplay: 'pd_fm_display',
@@ -601,6 +605,10 @@ export function hydrateFromRow(row: UserRow): void {
             if (s.themeMusic) localStorage.setItem(STATE_CACHE_KEYS.themeMusic, '1');
             else localStorage.removeItem(STATE_CACHE_KEYS.themeMusic);
             window.dispatchEvent(new CustomEvent('pd:theme-changed', { detail: { on: s.themeMusic } }));
+        }
+        if (s.textSize === 'S' || s.textSize === 'M' || s.textSize === 'L') {
+            localStorage.setItem(STATE_CACHE_KEYS.textSize, s.textSize);
+            window.dispatchEvent(new CustomEvent('pd:text-size-changed', { detail: { size: s.textSize } }));
         }
         if (typeof s.fmDisplay === 'string' && s.fmDisplay) {
             localStorage.setItem(STATE_CACHE_KEYS.fmDisplay, s.fmDisplay);
