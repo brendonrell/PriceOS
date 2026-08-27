@@ -196,13 +196,16 @@ a.notif-item--link:hover { opacity: 0.85; }
 .mk-story-line {
     position: relative;
     flex: 1 1 auto; width: 0;
-    border-left: 1px dashed color-mix(in srgb, var(--text-color) 30%, transparent);
-    margin: 2px 0;
+    border-left: 1px dashed var(--text-color);
+    margin: 2px 0 16px;
     min-height: 16px;
 }
 /* Direction cue — a downward arrowhead at the foot of each connector so the
    spine reads top→down, the way the story runs (Brendon, 2026-07-11). Pure
-   CSS triangle, no glyph dependency. */
+   CSS triangle, no glyph dependency. Full opacity + 2px longer + a 16px gap
+   below it (the line's margin-bottom above) so the direction actually reads
+   instead of running straight into the next chapter's glyph (Brendon,
+   2026-08-27). */
 .mk-story-line::after {
     content: '';
     position: absolute;
@@ -210,7 +213,7 @@ a.notif-item--link:hover { opacity: 0.85; }
     transform: translateX(-50%);
     border-left: 3px solid transparent;
     border-right: 3px solid transparent;
-    border-top: 5px solid color-mix(in srgb, var(--text-color) 55%, transparent);
+    border-top: 7px solid var(--text-color);
 }
 /* Chapter spacing (Brendon, 2026-08-15 — "current is too busy and hard to
    visually parse"): bumped from 16px so consecutive chapters read as
@@ -224,10 +227,10 @@ a.notif-item--link:hover { opacity: 0.85; }
    ITS OWN box's right edge, not a shared one, and the dates never lined up
    with each other. flex:1 1 auto forces every chapter to the same full row
    width, so every date now sits flush on one common right edge. */
-.mk-story-body { flex: 1 1 auto; padding-bottom: 40px; min-width: 0; }
+.mk-story-body { flex: 1 1 auto; width: 100%; padding-bottom: 40px; min-width: 0; }
 .mk-story-head {
     display: flex; justify-content: space-between; align-items: baseline;
-    gap: 10px;
+    gap: 10px; width: 100%;
 }
 /* ⛔ THE WHOLE STORY IS READ AT FULL STRENGTH (Brendon, 2026-07-31 — "this
    faint thin font version needs to be made visible"). Nothing here is a
@@ -245,6 +248,8 @@ a.notif-item--link:hover { opacity: 0.85; }
     position: relative;
     display: inline-block;
     flex-shrink: 0;
+    margin-left: auto;
+    text-align: right;
 }
 /* Scoped under .mk-story-head so this outranks the globals.css .project-date
    rule it's paired with (both are single-class selectors otherwise, and
