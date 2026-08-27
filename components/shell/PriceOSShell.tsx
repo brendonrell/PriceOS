@@ -77,6 +77,7 @@ import AmbientStrip from './AmbientStrip';
 import PreviewHealer from './PreviewHealer';
 import FingerprintSampler from './FingerprintSampler';
 import ThemeMusic from './ThemeMusic';
+import TextSizeBoot from './TextSizeBoot';
 import { ErrorBoundary } from './ErrorBoundary';
 import ActionToast from '../ActionToast';
 import TodoReminders from '../todos/TodoReminders';
@@ -653,6 +654,12 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="FmBar">
                 <FmBar />
+            </ErrorBoundary>
+            {/* Text size is an accessibility setting, not app chrome — it must
+                apply on docs too (Brendon, 2026-08-26), so it rides here with
+                the Stone/miniplayer rather than inside the !isDocs block. */}
+            <ErrorBoundary name="TextSizeBoot">
+                <TextSizeBoot />
             </ErrorBoundary>
         </>
     );
