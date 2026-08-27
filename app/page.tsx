@@ -8,10 +8,10 @@
 import type { Metadata } from 'next';
 import HomePageBody from '../components/home/HomePageBody';
 import { buildHomeResponse, type HomeResponse } from '../lib/home/homeData';
-import { buildDefaultSocialFeed } from './api/feed/social/route';
-import type { SocialFeedResponse } from './api/feed/social/route';
-import { buildRecentUsers } from './api/users/recent/route';
-import type { RecentUserRow } from './api/users/recent/route';
+import { buildDefaultSocialFeed } from '../lib/home/socialFeed';
+import type { SocialFeedResponse } from '../lib/home/socialFeed';
+import { buildRecentUsers } from '../lib/home/recentUsers';
+import type { RecentUserRow } from '../lib/home/recentUsers';
 import { getSession } from '../lib/auth/siwe';
 
 export const dynamic = 'force-dynamic';
