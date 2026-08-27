@@ -12,10 +12,19 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { getSupabaseService } from '@/lib/supabase';
 import { badRequest, serverError } from '@/lib/errors';
 import { getProject } from '@/lib/project/registry';
+import { ROYALTY_BPS } from '@/lib/market/chain';
 
 export const dynamic = 'force-dynamic';
 
 const VS15 = '︎';
+
+/* Secondary royalty split (Brendon, locked 2026-07-02, seaportClient.ts) —
+   the 5% EIP-2981 royalty is 60% artist / 40% platform via the Project's
+   PaymentSplitter. Used below to put a real number on "how much" beyond
+   just floor/volume — the story is about the who and the what as much as
+   the price (Brendon, 2026-08-27). */
+const ARTIST_ROYALTY_SHARE = 0.6;
+const PLATFORM_ROYALTY_SHARE = 0.4;
 
 interface Chapter {
   key: string;
@@ -115,19 +124,21 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ slug: st
     // GRADUATION ⟢⟢ — the 18th mint, entering Now Minting.
     if (mints.length >= 18) {
       const g = mints[17];
+      const raisedAtGrad = 18 * project.mintPriceEth;
       chapters.push({
         key: 'graduation', glyph: `⟢⟢${VS15}`, title: 'GRADUATED', ts: g.timestamp,
         line: `Eighteen minted — ${pick(seed, 3, ['the project stepped into Now Minting', 'the room took notice', 'officially in the conversation'])}.`,
-        sub: null,
+        sub: raisedAtGrad > 0 ? `${fmtEth(raisedAtGrad)} earned by @${project.artistHandle} so far` : null,
       });
     }
 
     // ASCENSION ▲ — sold out.
     if (supply > 0 && minted >= supply && mints.length > 0) {
       const last = mints[mints.length - 1];
+      const totalRaised = supply * project.mintPriceEth;
       chapters.push({
         key: 'ascension', glyph: `▲${VS15}`, title: 'ASCENSION', ts: last.timestamp,
-        line: `Sold out — all ${supply} editions claimed.`,
+        line: `Sold out — all ${supply} editions claimed${totalRaised > 0 ? `, ${fmtEth(totalRaised)} raised for @${project.artistHandle}` : ''}.`,
         sub: mints.length > 1 ? `${daysBetween(mints[0].timestamp, last.timestamp)} days from first to last` : null,
       });
     }
@@ -137,10 +148,11 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ slug: st
       const first = sales[0];
       const price = Number(first.price_eth);
       const mult = project.mintPriceEth > 0 ? price / project.mintPriceEth : null;
+      const artistCut = price * (ROYALTY_BPS / 10000) * ARTIST_ROYALTY_SHARE;
       chapters.push({
         key: 'firsttrade', glyph: `✦${VS15}`, title: 'FIRST TRADE', ts: first.timestamp,
         line: `The secondary market opened — #${first.token_id} for ${fmtEth(price)}${mult != null && mult >= 1.2 ? `, ${mult.toFixed(1)}× mint` : ''}.`,
-        sub: null,
+        sub: artistCut > 0 ? `${fmtEth(artistCut)} in royalty back to @${project.artistHandle}` : null,
       });
     }
 
@@ -178,7 +190,24 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ slug: st
     chapters.push({
       key: 'today', glyph: `⌂${VS15}`, title: 'TODAY', ts: now,
       line: bits.join(' · ') + '.',
-      sub: volume > 0 ? `${fmtEth(volume)} all-time secondary volume` : null,
+      sub: (() => {
+        if (volume <= 0) return null;
+        // Rotates the "how much" angle per project (deterministic, not
+        // random per request) so the story isn't always the same framing:
+        // collectors' spend most of the time, the artist's take often, and
+        // the platform's cut from time to time (Brendon, 2026-08-27 — "we
+        // need the how much").
+        const angle = seed % 5;
+        if (angle === 0) {
+          const platformTake = volume * (ROYALTY_BPS / 10000) * PLATFORM_ROYALTY_SHARE;
+          return platformTake > 0 ? `${fmtEth(platformTake)} to the platform in royalty, all-time` : `${fmtEth(volume)} all-time secondary volume`;
+        }
+        if (angle <= 2) {
+          const artistTake = volume * (ROYALTY_BPS / 10000) * ARTIST_ROYALTY_SHARE;
+          return artistTake > 0 ? `${fmtEth(artistTake)} in royalty back to @${project.artistHandle}, all-time` : `${fmtEth(volume)} all-time secondary volume`;
+        }
+        return `${fmtEth(volume)} spent by collectors, all-time`;
+      })(),
     });
 
     chapters.sort((a, b) => a.ts - b.ts);
