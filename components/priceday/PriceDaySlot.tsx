@@ -13,7 +13,7 @@
  * component later; this build only wires it into home.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
     formatPriceDate,
     priceDayContents,
@@ -43,6 +43,24 @@ export default function PriceDaySlot() {
         left = Math.max(MARGIN, Math.min(left, window.innerWidth - POPOVER_WIDTH - MARGIN));
         return { top: rect.bottom + 4, left };
     };
+
+    /* Keep the popover inside the viewport regardless of where its anchor
+       sits — below the anchor is the default, but if that would run the
+       popover off the bottom of the screen it flips above the anchor, and
+       if even that doesn't fit it's clamped flush to the screen edge
+       (Brendon, 2026-08-27 — "just show it INSIDE THE VIEWPORT"). Needs the
+       popover's real rendered height, so this runs after it's in the DOM. */
+    const clampToViewport = () => {
+        if (!ref.current || !popRef.current) return;
+        const rect = ref.current.getBoundingClientRect();
+        const height = popRef.current.getBoundingClientRect().height;
+        let top = rect.bottom + 4;
+        if (top + height > window.innerHeight - MARGIN) {
+            const above = rect.top - height - 4;
+            top = above >= MARGIN ? above : Math.max(MARGIN, window.innerHeight - height - MARGIN);
+        }
+        popRef.current.style.top = `${top}px`;
+    };
     /* Compute "today" after mount to avoid an SSR/CSR hydration mismatch. */
     const [today, setToday] = useState<Date | null>(null);
     useEffect(() => {
@@ -70,6 +88,11 @@ export default function PriceDaySlot() {
         setOpen(true);
     };
 
+    useLayoutEffect(() => {
+        if (!open) return;
+        clampToViewport();
+    }, [open, pos]);
+
     /* Keep the popover glued to the date stamp: as the page scrolls (or the
        window resizes), re-read the anchor and move the popover with it, writing
        straight to the node so the page never re-renders mid-scroll. */
@@ -78,9 +101,9 @@ export default function PriceDaySlot() {
         const track = () => {
             const c = priceDayCoords();
             if (c && popRef.current) {
-                popRef.current.style.top = `${c.top}px`;
                 popRef.current.style.left = `${c.left}px`;
             }
+            clampToViewport();
         };
         window.addEventListener('scroll', track, true);
         window.addEventListener('resize', track);
