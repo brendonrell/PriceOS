@@ -293,8 +293,11 @@ These belong to a *user*, never to an action.
 - **◊ (U+25CA) = ETH (secondary mark)** — the lozenge the sticker store prices in
   (`components/stickers/BuySheetButton.tsx`), reused for To-Do ETH targets/budgets
   and the war-chest meter (`styles/todos.css`). **NOT the Greek Xi (Ξ)** — that's
-  wrong and is being purged; **NOT the lined lozenge ⟠ (U+27E0)** — that's the
-  volume / grail-pin feed. The plain no-line lozenge (Brendon, 2026-07-04).
+  wrong and is being purged. The plain no-line lozenge (Brendon, 2026-07-04).
+  **⚠ OVERRIDE (Brendon, 2026-08-27): the old "NOT ⟠" restriction below is
+  lifted — Price Targets (Sentiment tab, `ProjectMorePanel.tsx`) now
+  deliberately uses the lined lozenge ⟠ instead, to match the connect-menu
+  glyph. ◊ remains canon everywhere else prices appear.**
 - **◉ (U+25C9) = Haze-mode dropper / colour-sample tool** (`ColorwayPicker.tsx` —
   grabs the live page bg into the Haze slot). Reused as the **dominant-colour
   grouping** glyph (dropper = sampling colour). Distinct from its §4 identity-
