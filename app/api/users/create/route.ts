@@ -194,6 +194,16 @@ export const POST = requireAuth(async (req, _ctx, address) => {
         if (!existing && Number.isFinite(signupGrant) && signupGrant > 0) {
             upsertRow.sim_eth_balance = signupGrant;
         }
+        /* Default the profile colorway to the account's own generative
+           signature colour instead of Matrix White (Brendon, 2026-08-27) — a
+           fresh profile now arrives already decorated, unique to the
+           account, instead of blank. ONLY on a genuinely new row: an
+           existing profile_hex (the owner's own later pick, or a partial-row
+           edge case) is never overwritten, matching the signup-grant guard
+           above. */
+        if (!existing?.profile_hex) {
+            upsertRow.profile_hex = signatureHex;
+        }
         const { data: upserted, error: upsertError } = await supabase
             .from('users')
             .upsert(upsertRow as never, { onConflict: 'address' })
