@@ -9,7 +9,7 @@
  * day (Brendon, 2026-08-15).
  */
 
-import { useEffect, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { usePriceDay } from '../../lib/priceday/usePriceDay';
 import { moodOfDay } from '../../lib/mood/mood';
@@ -72,6 +72,24 @@ export default function PriceDayDateLink({
         return { top: rect.bottom + 4, left };
     };
 
+    /* Keep the popover inside the viewport regardless of where its anchor
+       sits — below the anchor is the default, but if that would run the
+       popover off the bottom of the screen it flips above the anchor, and
+       if even that doesn't fit it's clamped flush to the screen edge
+       (Brendon, 2026-08-27 — "just show it INSIDE THE VIEWPORT"). Needs the
+       popover's real rendered height, so this runs after it's in the DOM. */
+    const clampToViewport = () => {
+        if (!ref.current || !popRef.current) return;
+        const rect = ref.current.getBoundingClientRect();
+        const height = popRef.current.getBoundingClientRect().height;
+        let top = rect.bottom + 4;
+        if (top + height > window.innerHeight - MARGIN) {
+            const above = rect.top - height - 4;
+            top = above >= MARGIN ? above : Math.max(MARGIN, window.innerHeight - height - MARGIN);
+        }
+        popRef.current.style.top = `${top}px`;
+    };
+
     useEffect(() => {
         if (!open) return;
         const handler = (e: MouseEvent) => {
@@ -89,14 +107,19 @@ export default function PriceDayDateLink({
         setOpen(true);
     };
 
+    useLayoutEffect(() => {
+        if (!open) return;
+        clampToViewport();
+    }, [open, pos]);
+
     useEffect(() => {
         if (!open) return;
         const track = () => {
             const c = priceDayCoords();
             if (c && popRef.current) {
-                popRef.current.style.top = `${c.top}px`;
                 popRef.current.style.left = `${c.left}px`;
             }
+            clampToViewport();
         };
         window.addEventListener('scroll', track, true);
         window.addEventListener('resize', track);
