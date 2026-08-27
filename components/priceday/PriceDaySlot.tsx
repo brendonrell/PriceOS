@@ -120,22 +120,6 @@ export default function PriceDaySlot() {
                     <div className="dp-title">PRICEDAY #{contents.number}</div>
                     <div className="dp-title-spacer" />
 
-                    {today && (() => {
-                        const mood = moodOfDay(today);
-                        return (
-                            <>
-                                <div className="dp-row dp-mood-row">
-                                    <span className="dp-label">MOOD RING</span>
-                                    <span className="dp-value">
-                                        <span className="dp-mood-swatch" style={{ backgroundColor: mood.hex }} />
-                                        {mood.name}
-                                    </span>
-                                </div>
-                                <div className="pd-section-end" />
-                            </>
-                        );
-                    })()}
-
                     <div className="pd-section-header">MINTED THIS DAY</div>
                     {contents.minted.length > 0 ? (
                         contents.minted.map((r, i) => (
@@ -179,6 +163,20 @@ export default function PriceDaySlot() {
                             <div className="pd-section-end" />
                         </>
                     )}
+
+                    {/* MOOD RING — always the last item in the popover (Brendon, 2026-08-27). */}
+                    {today && (() => {
+                        const mood = moodOfDay(today);
+                        return (
+                            <div className="dp-row dp-mood-row">
+                                <span className="dp-label">MOOD RING</span>
+                                <span className="dp-value">
+                                    <span className="dp-mood-swatch" style={{ backgroundColor: mood.hex }} />
+                                    {mood.name}
+                                </span>
+                            </div>
+                        );
+                    })()}
                     <div className="pd-section-end" />
                 </div>
             )}
