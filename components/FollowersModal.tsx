@@ -672,7 +672,7 @@ export default function FollowersModal() {
                             <button
                                 key={s.key}
                                 type="button"
-                                className={`ambient-chip fm-sort-chip${sort === s.key ? ' on' : ''}`}
+                                className={`ambient-chip fm-sort-chip${s.key === 'faction' ? ' fm-sort-chip-faction' : ''}${sort === s.key ? ' on' : ''}`}
                                 onClick={() => setSort(s.key)}
                                 aria-label={s.ariaLabel}
                             >
