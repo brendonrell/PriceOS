@@ -46,6 +46,7 @@ import { useValuePrompt } from '../../../lib/state/ValuePromptContext';
 import { useAuth } from '../../../lib/state/AuthContext';
 import { readSoundOn, writeSoundOn } from '../../../lib/sound/soundStore';
 import { readThemeOn, writeThemeOn } from '../../../lib/sound/themeStore';
+import { readTextSize, writeTextSize, nextTextSize, type TextSize } from '../../../lib/textSize/textSizeStore';
 import { playSound, unlockSound } from '../../../lib/sound/engine';
 import { useLongPress } from '../../../lib/hooks/useLongPress';
 
@@ -103,6 +104,16 @@ export function WorkspaceSwitcher() {
         writeThemeOn(next);
         showToast(next ? 'Theme music: ON' : 'Theme music: OFF');
     });
+
+    // Text size key — Aa, right of sound (Brendon, 2026-08-26). One tap
+    // cycles S → M → L → S; the glyph itself grows a step each tap.
+    const [textSize, setTextSize] = useState<TextSize>('M');
+    useEffect(() => {
+        setTextSize(readTextSize()); // post-mount read — SSR renders M
+        const onChange = () => setTextSize(readTextSize());
+        window.addEventListener('pd:text-size-changed', onChange);
+        return () => window.removeEventListener('pd:text-size-changed', onChange);
+    }, []);
 
     // Outside-click dismissal — 100ms grace via justOpenedRef.
     useEffect(() => {
@@ -263,6 +274,24 @@ export function WorkspaceSwitcher() {
                     }}
                 >
                     {'⚟︎'}
+                </button>
+                {/* Text size key — right of sound (Brendon, 2026-08-26).
+                    One tap cycles S → M → L → S; the "Aa" glyph itself
+                    renders a step bigger at each size via ws-textsize's
+                    size modifier classes. */}
+                <button
+                    type="button"
+                    className={`ws-textsize ws-textsize-${textSize.toLowerCase()}`}
+                    aria-label="Text size"
+                    title={`Text size: ${textSize} (tap to cycle)`}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        const next = nextTextSize(textSize);
+                        writeTextSize(next);
+                        showToast(`Text size: ${next}`);
+                    }}
+                >
+                    Aa
                 </button>
             </div>
 
