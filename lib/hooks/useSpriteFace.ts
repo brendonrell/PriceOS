@@ -24,7 +24,7 @@ import { isPriceSpriteVibe } from '../sprites/vibes';
 const cache = new Map<string, string | null>();
 const pending = new Map<string, Promise<string | null>>();
 
-function spriteFaceFor(handle: string): Promise<string | null> {
+export function resolveSpriteFace(handle: string): Promise<string | null> {
     const h = handle.toLowerCase().replace(/^@/, '');
     if (cache.has(h)) return Promise.resolve(cache.get(h) ?? null);
     let p = pending.get(h);
@@ -69,7 +69,7 @@ export function useSpriteFace(handle: string): string | null {
     useEffect(() => {
         let alive = true;
         setFace(cache.get(h) ?? null);
-        spriteFaceFor(h).then((f) => {
+        resolveSpriteFace(h).then((f) => {
             if (alive) setFace(f);
         });
         return () => {
