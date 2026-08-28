@@ -43,6 +43,7 @@ import type { Sticker } from '../lib/stickers/catalog';
 import type { CircleStat } from '../app/api/social/circle-stats/route';
 import SpriteFace from './SpriteFace';
 import { useLongPress } from '../lib/hooks/useLongPress';
+import { DISCORD_URL } from '../lib/config/discord';
 
 const VS15 = '︎';
 /* HOLD a preview chip → pins it to the front of the sequence (Brendon,
@@ -451,29 +452,33 @@ export default function ProjectsProModal() {
                 ))}
             </div>
 
-            <div className="fm-sort" role="group" aria-label="Sort and lens">
-                <span className="fm-sort-label">SORT</span>
-                {SORTS.map((s) => (
-                    <button
-                        key={s.key}
-                        type="button"
-                        className={`ambient-chip fm-sort-chip${sort === s.key ? ' on' : ''}`}
-                        onClick={() => setSort(s.key)}
-                    >
-                        {s.label}
-                    </button>
-                ))}
-                <span className="fm-sort-label fm-lens-label">LENS</span>
-                {LENSES.map((l) => (
-                    <button
-                        key={l.key}
-                        type="button"
-                        className={`ambient-chip fm-sort-chip${lens === l.key ? ' on' : ''}`}
-                        onClick={() => setLens(l.key)}
-                    >
-                        {l.label}
-                    </button>
-                ))}
+            <div className="fm-sort-rows" role="group" aria-label="Sort and lens">
+                <div className="fm-sort-row fm-lens-row">
+                    <span className="fm-sort-label">LENS</span>
+                    {LENSES.map((l) => (
+                        <button
+                            key={l.key}
+                            type="button"
+                            className={`ambient-chip fm-sort-chip fm-lens-chip${lens === l.key ? ' on' : ''}`}
+                            onClick={() => setLens(l.key)}
+                        >
+                            {l.label}
+                        </button>
+                    ))}
+                </div>
+                <div className="fm-sort-row">
+                    <span className="fm-sort-label">SORT</span>
+                    {SORTS.map((s) => (
+                        <button
+                            key={s.key}
+                            type="button"
+                            className={`ambient-chip fm-sort-chip${sort === s.key ? ' on' : ''}`}
+                            onClick={() => setSort(s.key)}
+                        >
+                            {s.label}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {/* THE CREATORS' COLOURS — every faction and profile tag worn by a
@@ -551,6 +556,9 @@ export default function ProjectsProModal() {
                 <div className="sticker-mgr-plus followers-plus projects-pro-plus" onClick={(e) => e.stopPropagation()}>
                     <div className="smgr-plus-head">
                         {title('PROJECTS PRO+')}
+                        <button className="smgr-store" type="button" onClick={() => window.open(DISCORD_URL, '_blank', 'noopener')} title="Go To Discord">
+                            GO TO DISCORD
+                        </button>
                         <button className="smgr-expand" type="button" onClick={() => { setFull(false); showToast('Projects Pro: COMPACT'); }} title="Exit full screen" aria-label="Exit full screen">
                             {`↓${VS15}`}
                         </button>
@@ -587,6 +595,9 @@ export default function ProjectsProModal() {
                 </span>
                 <div className="ambient-pop-title">
                     {title('PROJECTS PRO')}
+                    <button className="smgr-store" type="button" onClick={() => window.open(DISCORD_URL, '_blank', 'noopener')} title="Go To Discord">
+                        GO TO DISCORD
+                    </button>
                     <button className="smgr-expand" type="button" onClick={() => { setFull(true); showToast('Projects Pro: PLUS'); }} title="Open Projects Pro+" aria-label="Open Projects Pro+">
                         {`↑${VS15}`}
                     </button>
