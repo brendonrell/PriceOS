@@ -33,6 +33,7 @@ import StickerAlbum from './stickers/StickerAlbum';
 import { useOwnedStickerIds, ownsSheet } from '../lib/stickers/owned';
 import StickerLcd from './stickers/StickerLcd';
 import { buildStoreTicker, buildMarketTicker } from '../lib/stickers/ticker';
+import { resolveSpriteFace } from '../lib/hooks/useSpriteFace';
 
 const VS15 = '︎';
 
@@ -165,11 +166,30 @@ export default function StickersModal() {
             .catch(() => {});
         return () => { cancelled = true; };
     }, [isOpen]);
+    /* The reps' REAL faces (@brendon / @pricediscussion) — same live lookup
+       AsciiId uses, not the project-hash placeholder the crawl used to draw
+       on (Brendon, 2026-08-27). Fetched once per open, shared by both
+       crawls. A rep with no resolved face yet just renders name-only. */
+    const [repFaces, setRepFaces] = useState<Record<string, string>>({});
+    useEffect(() => {
+        if (!isOpen) return;
+        let cancelled = false;
+        Promise.all(
+            ['brendon', 'pricediscussion'].map((h) => resolveSpriteFace(h).then((f) => [h, f] as const)),
+        ).then((pairs) => {
+            if (cancelled) return;
+            const next: Record<string, string> = {};
+            pairs.forEach(([h, f]) => { if (f) next[h] = f; });
+            setRepFaces(next);
+        });
+        return () => { cancelled = true; };
+    }, [isOpen]);
+
     /* Two crawls, one per storefront face: the STORE onboards + sells sheets;
        the MARKET (live truth leads it) nudges listing to fund the next roll.
        Album rides the store crawl. */
-    const storeTicker = useMemo(() => buildStoreTicker(), [isOpen]);
-    const marketTicker = useMemo(() => buildMarketTicker(liveLines), [isOpen, liveLines]);
+    const storeTicker = useMemo(() => buildStoreTicker(repFaces), [isOpen, repFaces]);
+    const marketTicker = useMemo(() => buildMarketTicker(liveLines, repFaces), [isOpen, liveLines, repFaces]);
     const tickerText = marketOn ? marketTicker : storeTicker;
     /* Match the OLD crawl pace (~3.3 chars/sec): scale the timer to the feed
        length so the longer feed doesn't fly by. */
