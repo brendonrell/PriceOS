@@ -20,7 +20,6 @@
 
 import { SHEETS } from './catalog';
 import { TIERS } from '../familiar/bestiary';
-import { spriteFaceFor } from './sprites';
 
 const ICON = '⊞︎';
 /* Faces can carry newlines; the crawl is one line, so flatten. */
@@ -34,12 +33,22 @@ type Critter = { name: string; art: string };
 const FAMILIARS: Critter[] = TIERS.flatMap((t) => t.entries);
 const famTag = (f: Critter): string => (/\n/.test(f.art) ? f.name : `${oneLine(f.art)} ${f.name}`);
 
-/* PriceSprites = platform reps. Real, locked-in users only. */
-const REPS: { handle: string; face: string }[] = [
-    { handle: 'brendon', face: spriteFaceFor('user:brendon') },
-    { handle: 'pricediscussion', face: spriteFaceFor('user:pricediscussion') },
+/* PriceSprites = platform reps. Real, locked-in users only — @brendon and
+   @pricediscussion. Their FACE is not generated here: it used to run through
+   the sticker catalog's project-hash spriteFaceFor() fed a "user:handle"
+   seed, which has nothing to do with either account's actual PriceSprite —
+   it produced a plausible-looking but disconnected face, different every
+   redeploy, with no relation to what's really equipped (Brendon, 2026-08-27:
+   "shows wrong PriceSprites... random stuff with no context"). Callers now
+   pass the REAL resolved faces in (the same /api/user/by-handle lookup
+   AsciiId uses); a rep with no face yet renders name-only rather than a
+   wrong one. */
+const REPS: { handle: string }[] = [
+    { handle: 'brendon' },
+    { handle: 'pricediscussion' },
 ];
-const repTag = (r: { handle: string; face: string }): string => `${oneLine(r.face)} @${r.handle}`;
+const repTag = (r: { handle: string }, face: string | undefined): string =>
+    face ? `${oneLine(face)} @${r.handle}` : `@${r.handle}`;
 
 /* ── Pickers (fresh cast each open — same use of Math.random as the eggs) ── */
 function shuffled<T>(arr: readonly T[]): T[] {
@@ -113,8 +122,10 @@ function endorsements(n: number): string[] {
 function listNudges(n: number): string[] {
     return shuffled(FAMILIARS).slice(0, n).map(famTag).map((fam) => pick(LIST_FORMS)(fam, pick(SHEETS).name));
 }
-const storeReps = (): string[] => REPS.map((r) => pick(STORE_REP_FORMS)(repTag(r), pick(SHEETS).name));
-const marketReps = (): string[] => REPS.map((r) => pick(MARKET_REP_FORMS)(repTag(r)));
+const storeReps = (repFaces: Record<string, string>): string[] =>
+    REPS.map((r) => pick(STORE_REP_FORMS)(repTag(r, repFaces[r.handle]), pick(SHEETS).name));
+const marketReps = (repFaces: Record<string, string>): string[] =>
+    REPS.map((r) => pick(MARKET_REP_FORMS)(repTag(r, repFaces[r.handle])));
 
 /* Rare secret lines — ~10% of opens show one, dropped at a random spot. Dry,
    blink-and-miss-it, and never promissory. */
@@ -151,8 +162,10 @@ function weave(lines: string[]): string {
     return `${out.join('  ·  ')}  ·  `.toUpperCase();
 }
 
-/** STORE crawl — learn the place, then buy the whole sheet. */
-export function buildStoreTicker(): string {
+/** STORE crawl — learn the place, then buy the whole sheet. `repFaces` is the
+ *  real resolved PriceSprite face per rep handle (brendon/pricediscussion);
+ *  a rep with no entry yet renders name-only. */
+export function buildStoreTicker(repFaces: Record<string, string> = {}): string {
     const f = facts();
     const px = (p: string) => `◊︎ ${p}`;
     const pitches = SHEETS.map((s, i) => {
@@ -177,13 +190,14 @@ export function buildStoreTicker(): string {
         'holo ✦ catches the light',
         'primary only in here · trade spares over in the market',
     ];
-    const extras = shuffled([...endorsements(8), ...storeReps()]);
+    const extras = shuffled([...endorsements(8), ...storeReps(repFaces)]);
     return weave(interleave([...onboarding, ...pitches], extras, 3));
 }
 
 /** MARKET crawl — list a spare, recoup toward your next roll. Never a return
- *  promise: the language stays on funding the next pack, not profit. */
-export function buildMarketTicker(liveLines: string[] = []): string {
+ *  promise: the language stays on funding the next pack, not profit.
+ *  `repFaces` — see buildStoreTicker. */
+export function buildMarketTicker(liveLines: string[] = [], repFaces: Record<string, string> = {}): string {
     const copy = [
         `${ICON} the sticker marketplace · list · offer · swap`,
         'got doubles? the market wants them',
@@ -199,6 +213,6 @@ export function buildMarketTicker(liveLines: string[] = []): string {
         "one collector's spare is another's set",
         'pass a sheet on · keep the wheel turning',
     ];
-    const extras = shuffled([...listNudges(6), ...marketReps()]);
+    const extras = shuffled([...listNudges(6), ...marketReps(repFaces)]);
     return weave([...liveLines, ...interleave(copy, extras, 3)]);
 }
