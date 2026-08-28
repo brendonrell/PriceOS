@@ -389,14 +389,14 @@ export default function CollectorsModal() {
     // ── OWNERS+ — full jumbo panel ──
     if (full) {
         return createPortal(
-            <div className="sticker-mgr-plus-backdrop" data-stack-top={isTopStacked || undefined} role="dialog" aria-modal="true" aria-label="Owners" onClick={close}>
+            <div className="sticker-mgr-plus-backdrop" data-stack-top={isTopStacked || undefined} role="dialog" aria-modal="true" aria-label="Collector Collector" onClick={close}>
                 <div className="sticker-mgr-plus followers-plus owners-plus" onClick={(e) => e.stopPropagation()}>
                     <div className="smgr-plus-head">
-                        {title('OWNERS+')}
+                        {title('COLLECTOR COLLECTOR+')}
                         <button className="smgr-store" type="button" onClick={() => window.open(DISCORD_URL, '_blank', 'noopener')} title="Go To Discord">
                             GO TO DISCORD
                         </button>
-                        <button className="smgr-expand" type="button" onClick={() => { setFull(false); showToast('Owners: COMPACT'); }} title="Exit full screen" aria-label="Exit full screen">
+                        <button className="smgr-expand" type="button" onClick={() => { setFull(false); showToast('Collector Collector: COMPACT'); }} title="Exit full screen" aria-label="Exit full screen">
                             {`↓${VS15}`}
                         </button>
                         <span className="ambient-pop-close" role="button" tabIndex={0} title="Close" onClick={close}
@@ -415,18 +415,18 @@ export default function CollectorsModal() {
 
     // ── OWNERS — compact floating popup ──
     return createPortal(
-        <div className="sticker-mgr-backdrop followers-backdrop" data-stack-top={isTopStacked || undefined} role="dialog" aria-modal="true" aria-label="Owners" onClick={close}>
-            <div className="ambient-pop followers-pop owners-pop" role="dialog" aria-label="Owners" onClick={(e) => e.stopPropagation()}>
+        <div className="sticker-mgr-backdrop followers-backdrop" data-stack-top={isTopStacked || undefined} role="dialog" aria-modal="true" aria-label="Collector Collector" onClick={close}>
+            <div className="ambient-pop followers-pop owners-pop" role="dialog" aria-label="Collector Collector" onClick={(e) => e.stopPropagation()}>
                 <span className="ambient-pop-close" role="button" tabIndex={0} title="Close" onClick={close}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); close(); } }}>
                     {`×${VS15}`}
                 </span>
                 <div className="ambient-pop-title">
-                    {title('OWNERS')}
+                    {title('COLLECTOR COLLECTOR')}
                     <button className="smgr-store" type="button" onClick={() => window.open(DISCORD_URL, '_blank', 'noopener')} title="Go To Discord">
                         GO TO DISCORD
                     </button>
-                    <button className="smgr-expand" type="button" onClick={() => { setFull(true); showToast('Owners: PLUS'); }} title="Open Owners+" aria-label="Open Owners+">
+                    <button className="smgr-expand" type="button" onClick={() => { setFull(true); showToast('Collector Collector: PLUS'); }} title="Open Collector Collector+" aria-label="Open Collector Collector+">
                         {`↑${VS15}`}
                     </button>
                 </div>
