@@ -707,11 +707,11 @@ taste gets measured on the Fingerprint).
 > 14→13.5px the same day, Brendon's call) and the PriceSprite modal
 > KEYCHAINS action row. VS-15 + Courier per convention; standard #1 gate.
 
-## 12k. The Vault v2 — ⧈ (2026-07-27 build)
+## 12k. The Vault v2 — ⚿ (2026-07-27 build; glyph swapped 2026-08-28)
 
 | Use | Glyph | Codepoint |
 |---|---|---|
-| The Vault (vaulted-piece walls) | ⧈ | U+29C8 SQUARED SQUARE |
+| The Vault (vaulted-piece walls) | ⚿ | U+26BF SQUARED KEY |
 
 > The vault mark for the 2026-07-27 rebuild (albums-but-owned-only + stats;
 > the sealed door is gone). **A box locked inside a box — a piece held in
