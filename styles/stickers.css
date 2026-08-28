@@ -231,6 +231,7 @@
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     /* Both caps hold one line and the pair is short enough to fit the narrowest
        iPhone beside the screen — the row used to run MY BINDER off the right
        edge (Brendon, 2026-07-24, screenshot). */
@@ -242,6 +243,7 @@
     font-size: 11px;
     font-weight: bold;
     letter-spacing: 0.12em;
+    text-align: center;
     padding: 0 14px;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -250,9 +252,16 @@
    different widths, so the cap was shrinking/growing every time it toggled.
    Both states now render at once, stacked in the same grid cell; the cell
    sizes to the WIDER of the two automatically, so the box never changes size
-   — only the hidden one is invisible, still taking its space. */
+   — only the hidden one is invisible, still taking its space.
+   align-items: center (Brendon, 2026-08-27, corrected) — the actual bug was
+   VERTICAL: the row's height stretches to the taller two-line BACK stack, and
+   with no cross-axis alignment a grid item defaults to stretch-then-top, so
+   the single-line label sat pinned to the top of that taller cell instead of
+   centered in it. justify-items: center handles the horizontal match. */
 .ss-mktline-cap-stack {
     display: grid;
+    justify-items: center;
+    align-items: center;
 }
 .ss-mktline-cap-stack > * {
     grid-area: 1 / 1;
@@ -291,14 +300,17 @@
 .ss-ticker-track {
     display: inline-flex;
     white-space: nowrap;
-    /* Given its height back (Brendon, 2026-07-24 — "bottom one needs to be a
-       bit taller"): more room above and below, and the same line-height +
-       size-adjust pin as the crawl so this strip can't shear either. */
-    font-size: 14px;
-    line-height: 1.5;
+    /* One size up + bolder (Brendon, 2026-08-27), height untouched: line-height
+       is trimmed from 1.5→1.4 to exactly offset the 14→15px bump (1.5×14 =
+       1.4×15 = 21px line box), so .ss-ticker's total height doesn't move.
+       font-weight goes to 900 (was 700) for the extra weight; text-stroke adds
+       a touch more since 900 reads close to 700 in some fallback fonts. */
+    font-size: 15px;
+    line-height: 1.4;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
-    font-weight: bold;
+    font-weight: 900;
+    -webkit-text-stroke: 0.3px currentColor;
     letter-spacing: 0.18em;
     color: color-mix(in srgb, var(--text-color) 92%, transparent);
     padding: 7px 0;
@@ -383,6 +395,25 @@
 }
 .ss-grid-scroll::-webkit-scrollbar { display: none; }
 .ss-grid-scroll[data-dragging] { cursor: grabbing; }
+
+/* Market + Binder (Brendon, 2026-08-27: "opening market doesn't change the
+   modal height but binder does... make binder the same height as market")
+   — neither had its own scroll region, so each just grew the whole sheet to
+   its own content length (bounded only by .sticker-sheet's 92dvh cap); market's
+   picker list happens to land near the store's usual height while a binder
+   with several full sheets does not, so the sheet visibly changed size on
+   toggle. Both StickerMarket and StickerAlbum root on .skm-wrap, so one rule
+   fixes both to the SAME height (the .ss-grid-scroll shape/cap) and neither
+   moves the sheet again. */
+.skm-wrap {
+    flex: 0 1 auto;
+    min-height: 0;
+    max-height: 56vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.skm-wrap::-webkit-scrollbar { display: none; }
 .ss-grid-view {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
