@@ -16,7 +16,7 @@
  *   · ADD lives IN the panel — a picker of the owner's real holdings, tap to
  *     vault / un-vault. Owned-only is enforced by construction: the picker
  *     offers holdings and nothing else.
- *   · The vault mark is ⧈ (a box locked inside a box — GLYPHS.md §12k).
+ *   · The vault mark is ⚿ (a keyhole — GLYPHS.md §12k, updated 2026-08-28).
  */
 
 import { useEffect, useMemo, useState } from 'react';
@@ -39,9 +39,9 @@ import {
 import type { Holding } from './profilePageShared';
 
 const VS15 = '︎';
-/** The Vault mark — ⧈ (U+29C8, squared square: a piece boxed inside the
-    vault). Catalogued in GLYPHS.md §12k. */
-const VAULT_GLYPH = `⧈${VS15}`;
+/** The Vault mark — ⚿ (U+26BF, squared key). Catalogued in GLYPHS.md §12k
+    (Brendon, 2026-08-28: swapped in from ⧈, confirmed non-emoji/text-default). */
+const VAULT_GLYPH = `⚿${VS15}`;
 
 interface PieceFact { paid_eth: number | null; acquired_at: string | null }
 interface Facts {
