@@ -2141,7 +2141,7 @@ function ProfilePageBodyInner({
                                                 { key: 'offers',    label: <><span className="pill-tab-ico is-offers">{'\u2736\uFE0E'}</span> Offers</>,    active: effMoreL1 === 'offers',    onClick: () => setMoreL1('offers')    },
                                             ]
                                             : []),
-                                        { key: 'vault',     label: <><span className="pill-tab-ico is-vault">{'\u29C8\uFE0E'}</span> Vault</>,     active: effMoreL1 === 'vault',     onClick: () => setMoreL1('vault')     },
+                                        { key: 'vault',     label: <><span className="pill-tab-ico is-vault">{'\u26BF\uFE0E'}</span> Vault</>,     active: effMoreL1 === 'vault',     onClick: () => setMoreL1('vault')     },
                                         /* Sigil pill — owner-gated (Brendon, 2026-08-27): shown only once
                                            this profile has actually forged a mark. Same field that gates
                                            the trailing name mark elsewhere on this page
@@ -2151,12 +2151,12 @@ function ProfilePageBodyInner({
                                         ...(user.sigil_forged_at
                                             ? [{ key: 'sigil', label: <><span className="pill-tab-ico is-sigil">{'\u25C8\uFE0E'}</span> Sigil</>, active: effMoreL1 === 'sigil', onClick: () => setMoreL1('sigil') }]
                                             : []),
-                                        { key: 'loyalty',   label: <><span className="pill-tab-ico is-loyalty">{'\u2726\uFE0E'}</span> Loyalty</>,   active: effMoreL1 === 'loyalty',   onClick: () => setMoreL1('loyalty')   },
-                                        { key: 'discord',   label: <><span className="pill-tab-ico is-discord">{'\u2317\uFE0E'}</span> Discord</>,   active: effMoreL1 === 'discord',   onClick: () => setMoreL1('discord')   },
+                                        { key: 'loyalty',   label: <><span className="pill-tab-ico is-loyalty">{'\u2724\uFE0E'}</span> Loyalty</>,   active: effMoreL1 === 'loyalty',   onClick: () => setMoreL1('loyalty')   },
+                                        { key: 'discord',   label: <><span className="pill-tab-ico is-discord">{'#'}</span> Discord</>,   active: effMoreL1 === 'discord',   onClick: () => setMoreL1('discord')   },
                                         { key: 'counterparties', label: <><span className="pill-tab-ico is-counterparties">{'\u21C4\uFE0E'}</span> Counterparties</>, active: effMoreL1 === 'counterparties', onClick: () => setMoreL1('counterparties') },
                                         { key: 'achievements', label: <><span className="pill-tab-ico is-achievements">{ACHIEVEMENTS_ICON}</span> Achievements</>, active: effMoreL1 === 'achievements', onClick: () => setMoreL1('achievements') },
                                         { key: 'targets',   label: <><span className="pill-tab-ico is-targets">{'\u2316\uFE0E'}</span> Targets</>,   active: effMoreL1 === 'targets',   onClick: () => setMoreL1('targets')   },
-                                        { key: 'calls',     label: <><span className="pill-tab-ico is-calls">{'\u260E\uFE0E'}</span> Calls</>,     active: effMoreL1 === 'calls',     onClick: () => setMoreL1('calls')     },
+                                        { key: 'calls',     label: <><span className="pill-tab-ico is-calls">{'\u260F\uFE0E'}</span> Calls</>,     active: effMoreL1 === 'calls',     onClick: () => setMoreL1('calls')     },
                                         { key: 'anointed',  label: <><span className="pill-tab-ico is-anoint">{'\u2722\uFE0E'}</span> Anointed</>,  active: effMoreL1 === 'anointed',  onClick: () => setMoreL1('anointed')  },
                                         /* My History — PRIVATE, last pill in the row, own profile only. */
                                         ...(isOwnProfile
