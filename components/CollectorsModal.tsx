@@ -1,21 +1,28 @@
 'use client';
 
 /*
- * CollectorsModal — OWNERS, rebuilt (Brendon, 2026-08-02: "start from scratch
- * and make them actually good and useful").
+ * CollectorsModal — OWNERS, on the Friend Inspector shell (Brendon,
+ * 2026-08-27: "adapt the owners concept to the friend inspector modal").
+ *
+ * Same chrome as Friend Inspector / Projects Pro: sticker-mgr-backdrop +
+ * ambient-pop compact popup, ↑ into a sticker-mgr-plus jumbo OWNERS+, ×/Esc/
+ * backdrop out, GO TO DISCORD in both headers. followers-pop/followers-plus
+ * classes ride along so the row voice (Rubik @name + Rubik stats, matching
+ * the PRICE leaderboard) applies for free.
  *
  * Triggered from the project page hero stats row — the owners stat. Mounted
  * globally in PriceOSShell; any caller fires useModal().open('collectors').
  *
- * What it answers now, beyond who-holds-how-many:
+ * What it answers:
  *   · THE ROOM'S SHAPE — owners · % unique · how much the top three hold
  *     (the whale read), as the headline numbers above the list.
  *   · WHO THEY ARE TO YOU — every row wears the relationship marks the
  *     identity layer already speaks: ⚭ mutual · ⚯ you follow · ⚬ follows you.
- *   · WHAT THEY ACTUALLY HOLD — tap a row and it unfolds IN PLACE: that
- *     owner's pieces from this project as a swipeable art strip (tap a piece
- *     to open it), their stake as a % of the edition, and a FOLLOW/UNFOLLOW
- *     door. The modal stays open through all of it (Rule #-0.55).
+ *   · WHAT THEY ACTUALLY HOLD — tap a row and it unfolds IN PLACE, in the
+ *     Attributes-dossier frame (fi-dossier): that owner's pieces from this
+ *     project as a swipeable art strip (tap a piece to open it), their stake
+ *     as a % of the edition, and a FOLLOW/UNFOLLOW door. The modal stays
+ *     open through all of it (Rule #-0.55).
  *
  * Rows keep the STANDARD two-half user row (the PriceRank leaderboard
  * anatomy, Brendon's 2026-07-20 lock): top half sprite + @name, bottom half
@@ -23,15 +30,18 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { useModal, useModalLayer } from '../lib/state/ModalContext';
 import { useAuth } from '../lib/state/AuthContext';
 import { useProject, ProjectProvider } from '../lib/state/ProjectContext';
 import { useToast } from '../lib/state/ToastContext';
+import { lockBodyScroll, unlockBodyScroll } from '../lib/state/bodyScrollLock';
 import { getProject } from '../lib/project/registry';
 import AsciiId from './hero/AsciiId';
 import ArtworkCard from './ArtworkCard';
 import { UserTags } from './tags/UserTags';
 import { useUserTags } from '../lib/hooks/useUserTags';
+import { DISCORD_URL } from '../lib/config/discord';
 
 const VS15 = '︎';
 /* Podium medals for the top three — the leaderboard's rank grammar
@@ -96,6 +106,12 @@ export function RelMark({ handle, followers, following }: {
     return <span className="fm-rel-mark" title={word}>{glyph}{VS15}</span>;
 }
 
+const SORTS: { key: OwnerSort; label: string }[] = [
+    { key: 'pieces', label: 'PIECES' },
+    { key: 'listed', label: 'LISTED' },
+    { key: 'az', label: 'A–Z' },
+];
+
 export default function CollectorsModal() {
     const { close } = useModal();
     const { outputs, slug } = useProject();
@@ -105,16 +121,36 @@ export default function CollectorsModal() {
     const [sort, setSort] = useState<OwnerSort>('pieces');
     const [openAddr, setOpenAddr] = useState<string | null>(null);
     const [followBusy, setFollowBusy] = useState(false);
+    const [full, setFull] = useState(false);
 
     const { isOpen, isTopStacked } = useModalLayer('collectors');
     const { followers, following } = useMyGraph(isOpen, siweAddress);
 
-    const onBackdropClick = useCallback(
-        (e: ReactMouseEvent<HTMLDivElement>) => {
-            if (e.target === e.currentTarget) close();
-        },
-        [close]
-    );
+    // Reset to compact on every open (matches Friend Inspector / Projects Pro).
+    useEffect(() => {
+        if (!isOpen) { setFull(false); return; }
+        setSort('pieces');
+        setOpenAddr(null);
+    }, [isOpen]);
+
+    /* Lock the page only in PLUS (full) mode; compact floats and lets the
+       page scroll behind it (same rule as the other two inspectors). */
+    useEffect(() => {
+        if (!isOpen || !full) return;
+        lockBodyScroll();
+        return () => unlockBodyScroll();
+    }, [isOpen, full]);
+
+    // Esc: step out of PLUS first, then close.
+    useEffect(() => {
+        if (!isOpen) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key !== 'Escape') return;
+            if (full) setFull(false); else close();
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [isOpen, full, close]);
 
     const scroll = useCallback((dir: -1 | 1) => {
         const el = listRef.current;
@@ -215,198 +251,190 @@ export default function CollectorsModal() {
         setOpenAddr((v) => (v === addr ? null : addr));
     }, []);
 
-    const SORTS: { key: OwnerSort; label: string }[] = [
-        { key: 'pieces', label: 'PIECES' },
-        { key: 'listed', label: 'LISTED' },
-        { key: 'az', label: 'A–Z' },
-    ];
+    if (!isOpen || typeof document === 'undefined') return null;
 
-    return (
-        <div
-            id="collectorsModal"
-            className={`platform-modal${isOpen ? ' active' : ''}`}
-            role="dialog"
-            aria-modal="true"
-            data-stack-top={isTopStacked || undefined}
-            onClick={onBackdropClick}
-        >
-            <div
-                className="close-hint"
-                role="button"
-                tabIndex={0}
-                onClick={close}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        close();
-                    }
-                }}
-                title="Close"
-            >
-                {'×'}
-                {VS15}
+    const title = (words: string) => (
+        <span className="ambient-pop-title-text">
+            <span className="smgr-title-ic">{`◨${VS15}`}</span>{' '}<span className="smgr-title-words">{words}</span>
+        </span>
+    );
+
+    const body = (
+        <>
+            <div className="collectors-stats-top">
+                <span className="cst-stat"><b>{holders.length}</b> {holders.length === 1 ? 'OWNER' : 'OWNERS'}</span>
+                <span className="cst-stat"><b>{uniquePct}%</b> UNIQUE</span>
+                {top3Pct !== null && (
+                    <span className="cst-stat" title="Share of the edition held by the three biggest hands"><b>{top3Pct}%</b> TOP 3</span>
+                )}
             </div>
-            <div className="modal-info collectors-info">
-                <div className="modal-title" style={{ marginBottom: 0 }}>
-                    OWNERS
-                </div>
-                {/* The headline numbers of the list you're about to read — the
-                    count, the spread, and the whale read (Brendon, 2026-08-01 +
-                    the 2026-08-02 rebuild). */}
-                <div className="collectors-stats-top">
-                    <span className="cst-stat"><b>{holders.length}</b> {holders.length === 1 ? 'OWNER' : 'OWNERS'}</span>
-                    <span className="cst-stat"><b>{uniquePct}%</b> UNIQUE</span>
-                    {top3Pct !== null && (
-                        <span className="cst-stat" title="Share of the edition held by the three biggest hands"><b>{top3Pct}%</b> TOP 3</span>
-                    )}
-                </div>
-                <div className="collectors-sort-row" role="tablist" aria-label="Sort owners">
+
+            <div className="fm-sort-rows" role="group" aria-label="Sort">
+                <div className="fm-sort-row">
+                    <span className="fm-sort-label">SORT</span>
                     {SORTS.map((s) => (
                         <button
                             key={s.key}
                             type="button"
-                            role="tab"
-                            aria-selected={sort === s.key}
-                            className={`pill pill-l2${sort === s.key ? ' active' : ''}`}
+                            className={`ambient-chip fm-sort-chip${sort === s.key ? ' on' : ''}`}
                             onClick={() => setSort(s.key)}
                         >
                             {s.label}
                         </button>
                     ))}
                 </div>
-                <div
-                    className="scroll-arrow dark-arrow"
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => scroll(-1)}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            scroll(-1);
-                        }
-                    }}
-                    title="Scroll Up"
-                >
-                    {'⇡'}
-                    {VS15}
-                </div>
-                <div
-                    className="modal-fields-wrap collectors-list"
-                    id="collectorsList"
-                    ref={listRef}
-                >
-                    <div className="fm-list collectors-holders">
-                        {sorted.length === 0 && (
-                            <div className="fm-empty">No owners yet — the ledger is blank.</div>
-                        )}
-                        {sorted.map((r, i) => {
-                            const podium = sort === 'pieces' && i < 3;
-                            const isMe = me !== null && r.addr === me;
-                            const opened = openAddr === r.addr;
-                            const stakePct = minted > 0 ? Math.round((r.pieces / minted) * 100) : 0;
-                            const canFollow = !!siweAddress && !!r.handle && !isMe && r.handle !== myH;
-                            return (
-                                <div key={r.addr}>
-                                    <div
-                                        className={`fm-row lb-row${podium ? ` lb-podium lb-rank${i + 1}` : ''}${isMe ? ' lb-me' : ''}${opened ? ' fm-row-open' : ''}`}
-                                        role="button"
-                                        tabIndex={0}
-                                        title={opened ? 'Fold their pieces away' : 'See their pieces'}
-                                        onClick={(e) => onRowClick(e, r.addr)}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' || e.key === ' ') {
-                                                e.preventDefault();
-                                                setOpenAddr((v) => (v === r.addr ? null : r.addr));
-                                            }
-                                        }}
-                                    >
-                                        <span className="lb-pos">{podium ? MEDALS[i] : i + 1}</span>
-                                        <div className="fm-row-main">
-                                            <div className="fm-row-id">
-                                                {r.handle ? (
-                                                    <AsciiId handle={r.handle} />
-                                                ) : (
-                                                    <span className="collected-pair"><span className="profile-link">{r.display}</span></span>
-                                                )}
-                                                {artistHandle && r.handle === artistHandle && (
-                                                    <span className="fm-artist-badge" title="Artist">{`✺${VS15}`}</span>
-                                                )}
-                                                <RelMark handle={r.handle} followers={followers} following={following} />
-                                            </div>
-                                            {r.handle && (
-                                                <UserTags set={tagSets[r.handle.toLowerCase()]} size="mini" themed />
+            </div>
+
+            <div className="fm-list" ref={listRef}>
+                {sorted.length === 0 ? (
+                    <div className="fm-empty">No owners yet — the ledger is blank.</div>
+                ) : sorted.map((r, i) => {
+                    const podium = sort === 'pieces' && i < 3;
+                    const isMe = me !== null && r.addr === me;
+                    const opened = openAddr === r.addr;
+                    const stakePct = minted > 0 ? Math.round((r.pieces / minted) * 100) : 0;
+                    const canFollow = !!siweAddress && !!r.handle && !isMe && r.handle !== myH;
+                    return (
+                        <div className={`fi-row${opened ? ' inspecting' : ''}`} key={r.addr}>
+                            <div className="fi-line">
+                                <div
+                                    className={`fi-line-main fm-row lb-row${podium ? ` lb-podium lb-rank${i + 1}` : ''}${isMe ? ' lb-me' : ''}`}
+                                    role="button"
+                                    tabIndex={0}
+                                    title={opened ? 'Fold their pieces away' : 'See their pieces'}
+                                    onClick={(e) => onRowClick(e, r.addr)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            setOpenAddr((v) => (v === r.addr ? null : r.addr));
+                                        }
+                                    }}
+                                >
+                                    <span className="lb-pos">{podium ? MEDALS[i] : i + 1}</span>
+                                    <div className="fm-row-main">
+                                        <div className="fm-row-id">
+                                            {r.handle ? (
+                                                <AsciiId handle={r.handle} />
+                                            ) : (
+                                                <span className="collected-pair"><span className="profile-link">{r.display}</span></span>
                                             )}
-                                            <div className="fm-row-stats">
-                                                <span className="fm-stat" title="Pieces owned">
-                                                    <span className="fm-stat-ic">{`⬚${VS15}`}</span>
-                                                    <b>{r.pieces}</b>
+                                            {artistHandle && r.handle === artistHandle && (
+                                                <span className="fm-artist-badge" title="Artist">{`✺${VS15}`}</span>
+                                            )}
+                                            <RelMark handle={r.handle} followers={followers} following={following} />
+                                        </div>
+                                        {r.handle && (
+                                            <UserTags set={tagSets[r.handle.toLowerCase()]} size="mini" themed />
+                                        )}
+                                        <div className="fm-row-stats">
+                                            <span className="fm-stat" title="Pieces owned">
+                                                <span className="fm-stat-ic">{`⬚${VS15}`}</span>
+                                                <b>{r.pieces}</b>
+                                            </span>
+                                            {stakePct >= 1 && (
+                                                <span className="fm-stat" title="Share of the minted edition">
+                                                    <b>{stakePct}%</b>
                                                 </span>
-                                                {stakePct >= 1 && (
-                                                    <span className="fm-stat" title="Share of the minted edition">
-                                                        <b>{stakePct}%</b>
-                                                    </span>
-                                                )}
-                                                {r.listed > 0 && (
-                                                    <span className="fm-stat" title="Pieces listed">
-                                                        <span className="fm-stat-ic">{`✹${VS15}`}</span>
-                                                        <b>{r.listed}</b>
-                                                    </span>
-                                                )}
-                                            </div>
+                                            )}
+                                            {r.listed > 0 && (
+                                                <span className="fm-stat" title="Pieces listed">
+                                                    <span className="fm-stat-ic">{`✹${VS15}`}</span>
+                                                    <b>{r.listed}</b>
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
-                                    {opened && (
-                                        /* The unfold — their pieces from THIS project as a
-                                           swipeable strip (the Now Minting track's tiles),
-                                           plus the follow door. Everything in place; the
-                                           modal never closes under you (Rule #-0.55). */
-                                        <div className="own-expand">
-                                            <div className="home-carousel-track own-strip">
-                                                <ProjectProvider slug={slug}>
-                                                    {r.ids.slice(0, STRIP_CAP).map((id) => (
-                                                        <ArtworkCard key={`${r.addr}-${id}`} id={id} renderSize={120} />
-                                                    ))}
-                                                </ProjectProvider>
-                                            </div>
-                                            <div className="own-expand-foot">
-                                                {r.ids.length > STRIP_CAP && (
-                                                    <span className="own-expand-more">+{r.ids.length - STRIP_CAP} more</span>
-                                                )}
-                                                {canFollow && (
-                                                    <button
-                                                        type="button"
-                                                        className="pill pill-l2 own-follow"
-                                                        disabled={followBusy}
-                                                        onClick={() => void toggleFollow(r)}
-                                                    >
-                                                        {`⚯${VS15}`} {r.handle && following.has(r.handle) ? 'UNFOLLOW' : 'FOLLOW'}
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
-                            );
-                        })}
+                            </div>
+                            {opened && (
+                                /* The unfold — their pieces from THIS project as a
+                                   swipeable strip (the Now Minting track's tiles),
+                                   plus the follow door, in the Attributes-dossier
+                                   frame the other two inspectors use. The modal
+                                   never closes under you (Rule #-0.55). */
+                                <div className="fi-dossier" onClick={(e) => e.stopPropagation()}>
+                                    <div className="own-expand">
+                                        <div className="home-carousel-track own-strip">
+                                            <ProjectProvider slug={slug}>
+                                                {r.ids.slice(0, STRIP_CAP).map((id) => (
+                                                    <ArtworkCard key={`${r.addr}-${id}`} id={id} renderSize={120} />
+                                                ))}
+                                            </ProjectProvider>
+                                        </div>
+                                        <div className="own-expand-foot">
+                                            {r.ids.length > STRIP_CAP && (
+                                                <span className="own-expand-more">+{r.ids.length - STRIP_CAP} more</span>
+                                            )}
+                                            {canFollow && (
+                                                <button
+                                                    type="button"
+                                                    className="ambient-chip fi-follow"
+                                                    disabled={followBusy}
+                                                    onClick={() => void toggleFollow(r)}
+                                                >
+                                                    {r.handle && following.has(r.handle) ? 'UNFOLLOW' : 'FOLLOW'}
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+        </>
+    );
+
+    // ── OWNERS+ — full jumbo panel ──
+    if (full) {
+        return createPortal(
+            <div className="sticker-mgr-plus-backdrop" data-stack-top={isTopStacked || undefined} role="dialog" aria-modal="true" aria-label="Owners" onClick={close}>
+                <div className="sticker-mgr-plus followers-plus owners-plus" onClick={(e) => e.stopPropagation()}>
+                    <div className="smgr-plus-head">
+                        {title('OWNERS+')}
+                        <button className="smgr-store" type="button" onClick={() => window.open(DISCORD_URL, '_blank', 'noopener')} title="Go To Discord">
+                            GO TO DISCORD
+                        </button>
+                        <button className="smgr-expand" type="button" onClick={() => { setFull(false); showToast('Owners: COMPACT'); }} title="Exit full screen" aria-label="Exit full screen">
+                            {`↓${VS15}`}
+                        </button>
+                        <span className="ambient-pop-close" role="button" tabIndex={0} title="Close" onClick={close}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); close(); } }}>
+                            {`×${VS15}`}
+                        </span>
+                    </div>
+                    <div className="followers-plus-body">
+                        {body}
                     </div>
                 </div>
-                <div
-                    className="scroll-arrow dark-arrow"
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => scroll(1)}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            scroll(1);
-                        }
-                    }}
-                    title="Scroll Down"
-                >
-                    {'⇣'}
-                    {VS15}
+            </div>,
+            document.body,
+        );
+    }
+
+    // ── OWNERS — compact floating popup ──
+    return createPortal(
+        <div className="sticker-mgr-backdrop followers-backdrop" data-stack-top={isTopStacked || undefined} role="dialog" aria-modal="true" aria-label="Owners" onClick={close}>
+            <div className="ambient-pop followers-pop owners-pop" role="dialog" aria-label="Owners" onClick={(e) => e.stopPropagation()}>
+                <span className="ambient-pop-close" role="button" tabIndex={0} title="Close" onClick={close}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); close(); } }}>
+                    {`×${VS15}`}
+                </span>
+                <div className="ambient-pop-title">
+                    {title('OWNERS')}
+                    <button className="smgr-store" type="button" onClick={() => window.open(DISCORD_URL, '_blank', 'noopener')} title="Go To Discord">
+                        GO TO DISCORD
+                    </button>
+                    <button className="smgr-expand" type="button" onClick={() => { setFull(true); showToast('Owners: PLUS'); }} title="Open Owners+" aria-label="Open Owners+">
+                        {`↑${VS15}`}
+                    </button>
+                </div>
+                <div className="followers-pop-body">
+                    {body}
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body,
     );
 }
