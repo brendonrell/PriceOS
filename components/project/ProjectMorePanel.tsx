@@ -410,8 +410,8 @@ export default function ProjectMorePanel({
                         <>
                             <div className="more-seal-cast-label">
                                 {preds.mine != null
-                                    ? <>YOUR CALL · <span className="eth-mark">{`⟠${VS15}`}</span>{formatEth(preds.mine)} — tap a rung to retarget</>
-                                    : 'CAST YOURS — tap where the floor lands'}
+                                    ? <><span className="call-mark">{`\u00A1${VS15}`}</span> YOUR CALL · <span className="eth-mark">{`⟠${VS15}`}</span>{formatEth(preds.mine)} — tap a rung to retarget</>
+                                    : <><span className="call-mark">{`\u00A1${VS15}`}</span> CAST YOURS — tap where the floor lands</>}
                             </div>
                             <div className="more-seal-cast-row" onClick={(e) => e.stopPropagation()}>
                                 {preds.ladder.map((v) => (
@@ -429,7 +429,7 @@ export default function ProjectMorePanel({
                         </>
                     ) : !siweAddress ? (
                         <div className="more-seal-cast-label">
-                            CONNECT TO CAST YOURS — ONE CALL PER WINDOW, SEALED UNTIL IT TURNS
+                            <span className="call-mark">{`\u00A1${VS15}`}</span> CONNECT TO CAST YOURS — ONE CALL PER WINDOW, SEALED UNTIL IT TURNS
                         </div>
                     ) : null}
 
