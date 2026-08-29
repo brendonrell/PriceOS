@@ -2145,8 +2145,8 @@ function ProfilePageBodyInner({
                                         { key: 'loyalty',   label: <><span className="pill-tab-ico is-loyalty">{'\u2724\uFE0E'}</span> Loyalty</>,   active: effMoreL1 === 'loyalty',   onClick: () => setMoreL1('loyalty')   },
                                         { key: 'achievements', label: <><span className="pill-tab-ico is-achievements">{ACHIEVEMENTS_ICON}</span> Achievements</>, active: effMoreL1 === 'achievements', onClick: () => setMoreL1('achievements') },
                                         { key: 'counterparties', label: <><span className="pill-tab-ico is-counterparties">{'\u21C4\uFE0E'}</span> Counterparties</>, active: effMoreL1 === 'counterparties', onClick: () => setMoreL1('counterparties') },
-                                        { key: 'targets',   label: <><span className="pill-tab-ico is-targets">{'\u2316\uFE0E'}</span> Targets</>,   active: effMoreL1 === 'targets',   onClick: () => setMoreL1('targets')   },
                                         { key: 'calls',     label: <><span className="pill-tab-ico is-calls">{'\u00A1\uFE0E'}</span> Calls</>,     active: effMoreL1 === 'calls',     onClick: () => setMoreL1('calls')     },
+                                        { key: 'targets',   label: <><span className="pill-tab-ico is-targets">{'\u2316\uFE0E'}</span> Targets</>,   active: effMoreL1 === 'targets',   onClick: () => setMoreL1('targets')   },
                                         { key: 'anointed',  label: <><span className="pill-tab-ico is-anoint">{'\u2722\uFE0E'}</span> Anointed</>,  active: effMoreL1 === 'anointed',  onClick: () => setMoreL1('anointed')  },
                                         /* Sigil pill — owner-gated (Brendon, 2026-08-27): shown only once
                                            this profile has actually forged a mark. Same field that gates
