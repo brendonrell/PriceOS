@@ -2160,7 +2160,7 @@ function ProfilePageBodyInner({
                                         { key: 'discord',   label: <><span className="pill-tab-ico is-discord">{'#'}</span> Discord</>,   active: effMoreL1 === 'discord',   onClick: () => setMoreL1('discord')   },
                                         /* My History — PRIVATE, last pill in the row, own profile only. */
                                         ...(isOwnProfile
-                                            ? [{ key: 'history', label: <><span className="pill-tab-ico">{'◷︎'}</span> My History</>, active: effMoreL1 === 'history', onClick: () => setMoreL1('history') }]
+                                            ? [{ key: 'history', label: <><span className="pill-tab-ico is-history">{'◷︎'}</span> My History</>, active: effMoreL1 === 'history', onClick: () => setMoreL1('history') }]
                                             : []),
                                     ]
                                 )

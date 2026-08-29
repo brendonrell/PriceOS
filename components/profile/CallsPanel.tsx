@@ -33,7 +33,7 @@ function fmtDay(iso: string): string {
 
 function claimText(c: CallOut): string {
     const dir = c.claim_type === 'floor_gte' ? '≥' : '≤';
-    return `floor ${dir} ◊${VS15}${formatEth(c.target_eth)} by ${fmtDay(c.window_end)}`;
+    return `floor ${dir} ◊${VS15} ${formatEth(c.target_eth)} by ${fmtDay(c.window_end)}`;
 }
 
 export default function CallsPanel({
@@ -120,7 +120,7 @@ export default function CallsPanel({
                                             <span className="starred-row-sub">
                                                 {c.status === 'open'
                                                     ? `posted ${fmtDay(c.created_at)} · settles on the floor`
-                                                    : `posted ${fmtDay(c.created_at)} · settled ${c.resolved_at ? fmtDay(c.resolved_at) : ''}${c.floor_at_resolve != null ? ` at ◊${VS15}${formatEth(c.floor_at_resolve)}` : ''}`}
+                                                    : `posted ${fmtDay(c.created_at)} · settled ${c.resolved_at ? fmtDay(c.resolved_at) : ''}${c.floor_at_resolve != null ? ` at ◊${VS15} ${formatEth(c.floor_at_resolve)}` : ''}`}
                                             </span>
                                         </div>
                                     </div>
