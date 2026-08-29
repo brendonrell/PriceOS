@@ -524,7 +524,15 @@ export default function TraitsUI({
     const l2BucketMap: Record<string, readonly string[]> =
         activeL1 !== null ? L2_DICT_DYN[activeL1] ?? {} : {};
     const l2SubLabels: readonly string[] = Object.keys(l2BucketMap);
-    const l2Visible = l2SubLabels.length > 0;
+    /* !inProfileMode is the actual gate (Brendon, 2026-08-29 — "still leaking
+       into +more... I was told we fixed this"). The comment near this
+       component's mount point claims L2/L3 "naturally don't render because
+       activeCategory stays null in profile mode" — false: both TraitsUI
+       instances (Artworks tab + this one, inside +More) share one
+       TraitsContext, so activeCategory left open on Artworks carries straight
+       into this mount too. l2Visible/l3Visible never checked inProfileMode at
+       all, so whatever was expanded on Artworks kept rendering here. */
+    const l2Visible = !inProfileMode && l2SubLabels.length > 0;
 
     /* What's Hot — this project's most-looked-at pieces this week, hottest
        first (Brendon, 2026-07-31). The public face of the same view pillar the
@@ -572,7 +580,7 @@ export default function TraitsUI({
         /* Flat L1 — a Project trait without subtraits, or Fate. */
         return L3_FLAT_POOL_DYN[activeL1] ?? [];
     })();
-    const l3Visible = l3Pool.length > 0;
+    const l3Visible = !inProfileMode && l3Pool.length > 0;
 
     /* L3 → activeFilters Set routing. For feed-mode 'Traits' L1, the
        sub-filter dictates which underlying trait Set to write to (sim
@@ -626,8 +634,12 @@ export default function TraitsUI({
                             the entire project-mode L1 cluster (feed-mode
                             + non-feed pill rows + sort-icons wrapper) is
                             replaced with a flat row of profile pills.
-                            L2/L3 rows further below naturally don't render
-                            because activeCategory stays null in this mode. */}
+                            L2/L3 rows further below are gated on
+                            !inProfileMode directly (Brendon, 2026-08-29) —
+                            activeCategory is shared TraitsContext state with
+                            the Artworks-tab TraitsUI instance, so it does
+                            NOT reliably stay null here; the old assumption
+                            that it would was the leak. */}
                         {profilePills ? (
                             profilePills.map((p) => (
                                 <BarPill
