@@ -12689,6 +12689,9 @@ body.colorway-dark .ghost-feed-bar {
        established 0.15em step) from the mobile base 1.32em (Brendon,
        2026-08-29). */
     .pill-tab-ico.is-wishlist { font-size: 1.395em; }
+    /* Discord # — mobile only: one size down (the established 0.15em step)
+       from the mobile base 1.32em (Brendon, 2026-08-29). */
+    .pill-tab-ico.is-discord { font-size: 1.17em; }
 }
 /* Desktop: the +More tab icons (Starred / Wishlist / Albums) run two sizes
    smaller and sit 2px lower (Brendon, 2026-06-22). */
@@ -12698,6 +12701,9 @@ body.colorway-dark .ghost-feed-bar {
     .pill-tab-ico.is-album { font-size: 1.2em; }
     .pill-tab-ico.is-genome { font-size: 1.125em; }
     .pill-tab-ico.is-gnome { font-size: 0.84em; }
+    /* Discord # — desktop: one size down (the established 0.15em step)
+       from the desktop base 1.08em (Brendon, 2026-08-29). */
+    .pill-tab-ico.is-discord { font-size: 0.93em; }
 }
 /* Genome + Replay tab icons ride 1px high next to their labels — nudged
    down 1px (Brendon, 2026-08-15). Two-class selector outranks the bare
@@ -12750,6 +12756,15 @@ body.colorway-dark .ghost-feed-bar {
    outranks the bare .pill-tab-ico media-query rules regardless of source
    order, same pattern as is-genome/is-replay/is-sentiment above. */
 .pill-tab-ico.is-attributes { top: -1px; }
+/* Targets ⌖ nudged down 1px from its inherited position at every width
+   (Brendon, 2026-08-29): mobile -2px → -1px, desktop 0 → 1px. */
+.pill-tab-ico.is-targets { top: -1px; }
+@media (min-width: 601px) {
+    .pill-tab-ico.is-targets { top: 1px; }
+}
+/* Calls ¡ nudged up 2px from its inherited position at every width
+   (Brendon, 2026-08-29): 0 → -2px, both mobile and desktop. */
+.pill-tab-ico.is-calls { top: -2px; }
 
 /* ── Starred: Outputs / Traits filter pills + per-row CTAs ───────────────── */
 /* Per-row CTA button (Add-to-Wishlist on Output rows, Trait Offer on Trait
