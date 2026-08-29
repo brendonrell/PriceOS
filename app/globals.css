@@ -12682,6 +12682,13 @@ body.colorway-dark .ghost-feed-bar {
    (Brendon 2026-06-20). */
 @media (max-width: 600px) {
     .pill-tab-ico { top: 0; }
+    /* Targets ⌖ — mobile only: one size down (the established 0.15em step)
+       and nudged up 2px from the mobile base top:0 (Brendon, 2026-08-29). */
+    .pill-tab-ico.is-targets { font-size: 1.17em; top: -2px; }
+    /* Wishlist ✛ — mobile only: half a size up (0.075em, half the
+       established 0.15em step) from the mobile base 1.32em (Brendon,
+       2026-08-29). */
+    .pill-tab-ico.is-wishlist { font-size: 1.395em; }
 }
 /* Desktop: the +More tab icons (Starred / Wishlist / Albums) run two sizes
    smaller and sit 2px lower (Brendon, 2026-06-22). */
