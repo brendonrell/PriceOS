@@ -2155,7 +2155,7 @@ function ProfilePageBodyInner({
                                            mark still has a Sigil tab to manage it from; an unforged
                                            account has nothing to show yet. */
                                         ...(user.sigil_forged_at
-                                            ? [{ key: 'sigil', label: <><span className="pill-tab-ico is-sigil">{'\u25C8\uFE0E'}</span> Sigil</>, active: effMoreL1 === 'sigil', onClick: () => setMoreL1('sigil') }]
+                                            ? [{ key: 'sigil', label: <><span className="pill-tab-ico is-sigil">{'\u203B\uFE0E'}</span> Sigil</>, active: effMoreL1 === 'sigil', onClick: () => setMoreL1('sigil') }]
                                             : []),
                                         { key: 'discord',   label: <><span className="pill-tab-ico is-discord">{'#'}</span> Discord</>,   active: effMoreL1 === 'discord',   onClick: () => setMoreL1('discord')   },
                                         /* My History — PRIVATE, last pill in the row, own profile only. */
