@@ -47,10 +47,10 @@ export default function RouteError({
                 color: 'var(--text-color, #e0e0e0)',
             }}
         >
-            <div style={{ fontSize: 13, letterSpacing: '0.12em', opacity: 0.7 }}>
+            <div style={{ fontSize: 14, letterSpacing: '0.12em', opacity: 1, fontWeight: 'bold' }}>
                 SOMETHING GLITCHED
             </div>
-            <div style={{ fontSize: 12, maxWidth: 320, lineHeight: 1.5, opacity: 0.6 }}>
+            <div style={{ fontSize: 13, maxWidth: 320, lineHeight: 1.5, opacity: 1, fontWeight: 'bold' }}>
                 This part of the page hit a snag. The rest of the app is fine.
             </div>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
