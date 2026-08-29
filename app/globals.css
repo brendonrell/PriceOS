@@ -14648,6 +14648,14 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     letter-spacing: 0.4px;
     margin: 0 0 8px;
 }
+/* The ¡ call mark — Price Targets is where a Call originates (Brendon,
+   2026-08-29: "calls come from the sentiment feature... let's make this
+   part of sentiment"). Courier-forced per glyph convention; sits before
+   both cast-label states (prompt + your-standing-call). */
+.call-mark {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: normal;
+}
 .more-seal-cast-row {
     display: flex;
     flex-wrap: wrap;
