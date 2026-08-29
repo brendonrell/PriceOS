@@ -463,7 +463,10 @@ export default function StickersModal() {
                                     two and never resizes on toggle (Brendon,
                                     2026-08-22). */}
                                 <span className="ss-mktline-cap-stack">
-                                    <span className={marketOn ? 'is-hidden' : undefined}>MARKET</span>
+                                    <span className={`ss-mktline-cap-label${marketOn ? ' is-hidden' : ''}`}>
+                                        <span>MAR</span>
+                                        <span>KET</span>
+                                    </span>
                                     <span className={`ss-mktline-cap-back${marketOn ? '' : ' is-hidden'}`}>
                                         <span className="ss-mktline-cap-back-label">BACK</span>
                                         <span className="ss-mktline-cap-back-glyph" aria-hidden="true">{'⇠⇠︎'}</span>
@@ -486,7 +489,10 @@ export default function StickersModal() {
                                     always render, one hidden — see MARKET's
                                     note above (Brendon, 2026-08-22). */}
                                 <span className="ss-mktline-cap-stack">
-                                    <span className={albumOn ? 'is-hidden' : undefined}>MY BINDER</span>
+                                    <span className={`ss-mktline-cap-label${albumOn ? ' is-hidden' : ''}`}>
+                                        <span>MY</span>
+                                        <span>BINDER</span>
+                                    </span>
                                     <span className={`ss-mktline-cap-back${albumOn ? '' : ' is-hidden'}`}>
                                         <span className="ss-mktline-cap-back-label">BACK</span>
                                         <span className="ss-mktline-cap-back-glyph" aria-hidden="true">{'⇠⇠︎'}</span>
