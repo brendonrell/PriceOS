@@ -269,6 +269,16 @@
 .ss-mktline-cap-stack > .is-hidden {
     visibility: hidden;
 }
+/* MARKET / MY BINDER labels — Discord-react style (Brendon, 2026-08-29):
+   Rubik, each word stacked on its own row (MAR / KET, MY / BINDER). The BACK
+   stack + arrows this swaps with on open are untouched. */
+.ss-mktline-cap-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.15;
+    font-family: var(--font-rubik-mono), sans-serif;
+}
 .ss-mktline-cap:hover { background: color-mix(in srgb, var(--text-color) 12%, transparent); }
 /* The active face's cap wears the fill (the look locked from Brendon's
    2026-07-16 screenshot — the tapped cap stays visibly on). */
@@ -300,17 +310,18 @@
 .ss-ticker-track {
     display: inline-flex;
     white-space: nowrap;
-    /* One size up + bolder (Brendon, 2026-08-27), height untouched: line-height
-       is trimmed from 1.5→1.4 to exactly offset the 14→15px bump (1.5×14 =
-       1.4×15 = 21px line box), so .ss-ticker's total height doesn't move.
-       font-weight goes to 900 (was 700) for the extra weight; text-stroke adds
-       a touch more since 900 reads close to 700 in some fallback fonts. */
-    font-size: 15px;
-    line-height: 1.4;
+    /* Another size up + bolder (Brendon, 2026-08-29 — same ask as 2026-08-27,
+       one more increment), height still untouched: line-height trimmed from
+       1.4→1.3125 to exactly offset the 15→16px bump (1.4×15 = 1.3125×16 =
+       21px line box), so .ss-ticker's total height doesn't move. font-weight
+       is already at the CSS ceiling (900), so the extra bold comes from a
+       wider text-stroke (0.3px→0.55px) instead. */
+    font-size: 16px;
+    line-height: 1.3125;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
     font-weight: 900;
-    -webkit-text-stroke: 0.3px currentColor;
+    -webkit-text-stroke: 0.55px currentColor;
     letter-spacing: 0.18em;
     color: color-mix(in srgb, var(--text-color) 92%, transparent);
     padding: 7px 0;
@@ -396,24 +407,12 @@
 .ss-grid-scroll::-webkit-scrollbar { display: none; }
 .ss-grid-scroll[data-dragging] { cursor: grabbing; }
 
-/* Market + Binder (Brendon, 2026-08-27: "opening market doesn't change the
-   modal height but binder does... make binder the same height as market")
-   — neither had its own scroll region, so each just grew the whole sheet to
-   its own content length (bounded only by .sticker-sheet's 92dvh cap); market's
-   picker list happens to land near the store's usual height while a binder
-   with several full sheets does not, so the sheet visibly changed size on
-   toggle. Both StickerMarket and StickerAlbum root on .skm-wrap, so one rule
-   fixes both to the SAME height (the .ss-grid-scroll shape/cap) and neither
-   moves the sheet again. */
-.skm-wrap {
-    flex: 0 1 auto;
-    min-height: 0;
-    max-height: 56vh;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-}
-.skm-wrap::-webkit-scrollbar { display: none; }
+/* Market + Binder height is locked in styles/market.css (.skm-wrap) — a single
+   definition there, shared by both StickerMarket and StickerAlbum, keeps them
+   from disagreeing (Brendon, 2026-08-29: a duplicate rule here previously used
+   max-height, which only caps — a wrap with LESS content than the cap shrinks
+   to fit instead of matching, so binder still went short. See market.css for
+   the fixed-height rule.) */
 .ss-grid-view {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
