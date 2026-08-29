@@ -799,6 +799,18 @@ is never a Sprite), no cross/dagger strokes (martial reads are banned).
 Renders wherever a name renders: after the @name (tape · navbar · profile),
 the carousel Sigil ring, the corner-logo override, the Marginalia stamps.
 
+### The Sigil tab pill — ※ (2026-08-29, Brendon's pick)
+
+| Use | Glyph | Codepoint |
+|---|---|---|
+| Profile +More › Sigil pill icon | ※ | U+203B REFERENCE MARK |
+
+> A fixed nav icon, NOT part of the generative rune above — that pool is
+> LOCKED and this glyph is deliberately outside it. Previously reused ◈ (one
+> of the Sigil's own locked cores), which read as a shrunk generative mark
+> rather than the tab's own identity; swapped for something that belongs to
+> the tab alone. Screened free repo-wide, raw + escaped, at pick time.
+
 ## 14. Platform gen art — Tabstract, Formula (2026-08-16)
 
 Everything on this platform that draws its OWN character art from a fixed
