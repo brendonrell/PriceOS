@@ -40,7 +40,7 @@ function fmtDeadline(iso: string): string {
 
 export function callLine(c: CallOut): string {
     const dir = c.claim_type === 'floor_gte' ? '≥' : '≤';
-    return `floor ${dir} ◊${VS15}${formatEth(c.target_eth)} by ${fmtDeadline(c.window_end)}`;
+    return `floor ${dir} ◊${VS15} ${formatEth(c.target_eth)} by ${fmtDeadline(c.window_end)}`;
 }
 
 export default function CallLedgerCard({ slug }: { slug: string }) {
