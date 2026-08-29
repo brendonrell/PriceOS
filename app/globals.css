@@ -12765,6 +12765,40 @@ body.colorway-dark .ghost-feed-bar {
 /* Calls ¡ nudged up 2px from its inherited position at every width
    (Brendon, 2026-08-29): 0 → -2px, both mobile and desktop. */
 .pill-tab-ico.is-calls { top: -2px; }
+/* Calls ¡ nudged up another 0.5px (Brendon, 2026-08-29): -2px → -2.5px,
+   both mobile and desktop. */
+.pill-tab-ico.is-calls { top: -2.5px; }
+/* Targets ⌖ nudged down 0.5px from its settled position (Brendon,
+   2026-08-29): mobile -1px → -0.5px, desktop 1px → 1.5px. */
+.pill-tab-ico.is-targets { top: -0.5px; }
+@media (min-width: 601px) {
+    .pill-tab-ico.is-targets { top: 1.5px; }
+}
+/* Discord # nudged down 0.5px from its inherited base position (Brendon,
+   2026-08-29): 0 → 0.5px, both mobile and desktop. */
+.pill-tab-ico.is-discord { top: 0.5px; }
+
+/* Sigil, Targets/Counterparties/Vault/Loyalty/Anointed, and My History
+   icons resized half a step (0.075em, half the established 0.15em step)
+   off the shared 1.32em mobile / 1.08em desktop base (Brendon, 2026-08-29).
+   Sigil reads heavy next to its label — half a size down. Targets,
+   Counterparties, Vault, Loyalty and Anointed read small — half a size up.
+   My History gets a smaller 0.3-step (0.045em) bump, also reading small. */
+.pill-tab-ico.is-sigil { font-size: 1.245em; }
+.pill-tab-ico.is-targets { font-size: 1.245em; }
+.pill-tab-ico.is-counterparties { font-size: 1.395em; }
+.pill-tab-ico.is-vault { font-size: 1.395em; }
+.pill-tab-ico.is-loyalty { font-size: 1.395em; }
+.pill-tab-ico.is-anoint { font-size: 1.375em; }
+.pill-tab-ico.is-history { font-size: 1.365em; }
+@media (min-width: 601px) {
+    .pill-tab-ico.is-sigil { font-size: 1.005em; }
+    .pill-tab-ico.is-targets { font-size: 1.155em; }
+    .pill-tab-ico.is-counterparties { font-size: 1.155em; }
+    .pill-tab-ico.is-vault { font-size: 1.155em; }
+    .pill-tab-ico.is-loyalty { font-size: 1.155em; }
+    .pill-tab-ico.is-history { font-size: 1.125em; }
+}
 
 /* ── Starred: Outputs / Traits filter pills + per-row CTAs ───────────────── */
 /* Per-row CTA button (Add-to-Wishlist on Output rows, Trait Offer on Trait
@@ -14925,7 +14959,7 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     gap: 8px;
 }
 .call-card-label {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: bold;
     letter-spacing: 1.5px;
     text-transform: uppercase;
@@ -14944,7 +14978,7 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     border-radius: 4px;
     color: var(--text-color);
     font-family: 'Courier New', Courier, monospace;
-    font-size: 16px;
+    font-size: 17px;
     font-weight: bold;
     padding: 5px 8px;
     -webkit-appearance: none;
@@ -14957,7 +14991,7 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     border: none;
     border-radius: 4px;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: bold;
     letter-spacing: 1px;
     padding: 7px 14px;
@@ -14965,7 +14999,7 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
 }
 .call-post-btn:disabled { opacity: 0.5; cursor: default; }
 .call-fine-print {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: bold;
     letter-spacing: 0.3px;
 }
@@ -14975,7 +15009,7 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     gap: 8px;
     padding: 7px 0;
     border-top: 1px dashed color-mix(in srgb, var(--text-color) 45%, transparent);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: bold;
 }
 .call-row-main {
@@ -14993,7 +15027,7 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     border: 1px solid var(--text-color);
     border-radius: 4px;
     padding: 1px 7px;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: bold;
     letter-spacing: 0.5px;
     background: var(--bg-color);
