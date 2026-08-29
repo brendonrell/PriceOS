@@ -841,6 +841,14 @@ mix** (see the ⛔ in `lib/tags/formula.ts`).
 
 ---
 
+## Profile +More tab — Calls (glyph swapped 2026-08-29)
+
+| Concept | Glyph | Codepoint | Where it's canonical |
+|---|---|---|---|
+| Calls | ¡ | U+00A1 INVERTED EXCLAMATION MARK | Profile +More tab pill (`.is-calls`), `ProfilePageBody.tsx`. Was ☎ (U+260F WHITE TELEPHONE) — squashed and illegible in Courier, plus carried future-emoji risk. **Brendon's pick, 2026-08-29**, from a 20-option "loud/megaphone/opinionated" round: an unresolved call reads as an opened, unclosed exclamation — the mark literally waits for its close, same as a call waits to seal. Screened and flagged before lock: ¡ is the paired *opening* half of an exclamation in Spanish/Galician/Asturian orthography — a reader literate in one of those scripts may reflexively read a lone ¡ as broken punctuation before the "Calls" label registers. Brendon's call to keep it anyway, given the label sits right beside it. Device-verify as monochrome text on iOS per the #1 gate before final lock (Latin-1 punctuation, no emoji mapping, should be trivial). |
+
+---
+
 *Source files: `components/dropdown/settings/MyPingsRow.tsx`,
 `components/ArtworkCard.tsx`, `components/achievements/AchievementsGrid.tsx`,
 `lib/pings/render.ts`, `lib/data/tapeEvents.ts`, `app/globals.css`
