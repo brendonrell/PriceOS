@@ -118,7 +118,7 @@ Definitions for terms used throughout Price Discussion, alphabetically. The nome
 
 **Showcase** — A user's curated top-six selection, with four engine modes (Static, Generative, Gen Curated, Artist). Public.
 
-**Sigil** — The deterministic identity mark generated from a wallet address, forged once and permanent. See [Factions](/docs/factions).
+**Sigil** — The deterministic identity mark generated from a wallet address, forged once and permanent; the profile's Sigil pill uses ※. See [Factions](/docs/factions).
 
 **SIWE** — Sign-In With Ethereum, PD's authentication. See [Wallet Setup](/docs/for-collectors/wallet-setup).
 
