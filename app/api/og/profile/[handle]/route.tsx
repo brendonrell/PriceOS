@@ -94,7 +94,24 @@ async function fetchFont(): Promise<ArrayBuffer> {
 
 let fontPromise: Promise<ArrayBuffer> | undefined;
 async function loadFont(): Promise<ArrayBuffer> {
-    if (!fontPromise) fontPromise = fetchFont();
+    if (!fontPromise) {
+        // ⛔ FIXED 2026-08-29 (the actual "OG image never shows, always
+        // falls back to the showcase piece" bug): this used to cache
+        // fetchFont()'s PROMISE directly. The very first time that promise
+        // ever rejected (one dropped connection to Google Fonts, one cold-
+        // start network hiccup — it only has to happen once), the rejected
+        // promise itself got locked into this module-level variable. Every
+        // request after that on the same warm isolate hit the `if
+        // (!fontPromise)` check, found it already set, and awaited the SAME
+        // dead promise again — permanently 500ing this route (silently, via
+        // the route's outer catch) until the isolate finally recycled. Now a
+        // failed fetch clears the cache so the next request gets a fresh try
+        // instead of inheriting a poisoned one forever.
+        fontPromise = fetchFont().catch((err) => {
+            fontPromise = undefined;
+            throw err;
+        });
+    }
     return fontPromise;
 }
 
@@ -222,9 +239,13 @@ export async function GET(
                 fonts: [{ name: 'Rubik Mono One', data: font, style: 'normal' }],
             },
         );
-    } catch {
+    } catch (err) {
         // Best-effort image — any failure (bad handle, DB hiccup, font fetch)
         // falls through to generateMetadata's own showcase-piece/PD-mark chain.
+        // Logged now (2026-08-29) instead of swallowed silently — a fallback
+        // that happens with zero trace is indistinguishable from the feature
+        // just not existing.
+        console.error('[og/profile] render failed for', rawHandle, err);
         return new Response('failed to render', { status: 500 });
     }
 }
