@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { Sticker } from './catalog';
 import { pushStickerState } from './owned';
 
-export type Arrange = 'row' | 'spread' | 'scatter' | 'fill' | 'stack' | 'collage' | 'slapped';
+export type Arrange = 'flow' | 'spread' | 'stack' | 'collage' | 'slapped';
 export type Tilt = 'flat' | 'soft' | 'jaunty';
 export type Rows = 1 | 2 | 3;
 export type Align = 'left' | 'center' | 'right';
@@ -29,10 +29,8 @@ export const ARRANGES: { id: Arrange; label: string }[] = [
        trap (Brendon, 2026-07-27). The stored id stays `spread` so every saved
        Setup Code and every existing profile keeps working. */
     { id: 'spread', label: 'SPACED' },
-    { id: 'row', label: 'ROW' },
+    { id: 'flow', label: 'FLOW' },
     { id: 'stack', label: 'STACK' },
-    { id: 'scatter', label: 'SCATTER' },
-    { id: 'fill', label: 'FILL' },
     { id: 'collage', label: 'COLLAGE' },
     { id: 'slapped', label: 'SLAPPED' },
 ];
@@ -81,6 +79,15 @@ function read(key: string, fallback: string): string {
     if (typeof window === 'undefined') return fallback;
     try { return window.localStorage.getItem(key) || fallback; } catch { return fallback; }
 }
+/* Row / Scatter / Fill are gone (Brendon, 2026-08-30 — the three flex-jitter
+   modes routinely rendered off-canvas; replaced by Flow, which runs through
+   the same collision-safe relax() as Stack/Collage/Slapped). A device that
+   still has one of the old ids saved from before this change reads as Flow
+   instead of an Arrange value nothing in the app recognizes anymore. */
+function normalizeArrange(a: string): Arrange {
+    if (a === 'row' || a === 'scatter' || a === 'fill') return 'flow';
+    return a as Arrange;
+}
 function write(key: string, val: string) {
     try { window.localStorage.setItem(key, val); } catch { /* ignore */ }
     /* ⛔ AND IT GOES TO THE ACCOUNT (Brendon, 2026-08-01). Changing the look
@@ -113,7 +120,7 @@ export function getDensity(): number {
 }
 
 /* Non-reactive reads — for the manager, which holds its own local copy. */
-export function getArrange(): Arrange { return read(K_ARRANGE, 'spread') as Arrange; }
+export function getArrange(): Arrange { return normalizeArrange(read(K_ARRANGE, 'spread')); }
 export function getTilt(): Tilt { return read(K_TILT, 'soft') as Tilt; }
 export function getExpand(): boolean { return read(K_EXPAND, '0') === '1'; }
 export function getRows(): Rows { const v = read(K_ROWS, '1'); return v === '3' ? 3 : v === '2' ? 2 : 1; }
@@ -126,7 +133,7 @@ export function useHeroPrefs(): HeroPrefs {
     const [v, setV] = useState<HeroPrefs>({ arrange: 'spread', tilt: 'soft', seed: 1, expand: false, rows: 1, align: 'left', flip: false, density: 0, border: 'off' });
     useEffect(() => {
         const sync = () => setV({
-            arrange: read(K_ARRANGE, 'spread') as Arrange,
+            arrange: normalizeArrange(read(K_ARRANGE, 'spread')),
             tilt: read(K_TILT, 'soft') as Tilt,
             seed: Number(read(K_SEED, '1')) || 1,
             expand: read(K_EXPAND, '0') === '1',
@@ -152,11 +159,9 @@ export function useHeroPrefs(): HeroPrefs {
 const AREA_ROWS_CAP = [0, 0.6, 1, 1.3]; // [rowsPref] → count multiplier
 export function arrangeShape(a: Arrange, rowsPref: Rows = 1): { rows: number; cap: number; scatter: boolean; overlap: boolean } {
     switch (a) {
-        case 'row':     return { rows: rowsPref, cap: 6 * rowsPref, scatter: false, overlap: false };
         case 'spread':  return { rows: rowsPref, cap: 6 * rowsPref, scatter: false, overlap: false };
         case 'stack':   return { rows: 1, cap: Math.round(14 * AREA_ROWS_CAP[rowsPref]!), scatter: false, overlap: true };
-        case 'scatter': return { rows: rowsPref, cap: 7 * rowsPref, scatter: true, overlap: false };
-        case 'fill':    return { rows: rowsPref, cap: 8 * rowsPref, scatter: true, overlap: false };
+        case 'flow':    return { rows: 0, cap: Math.round(9 * AREA_ROWS_CAP[rowsPref]!), scatter: true, overlap: false };
         case 'collage': return { rows: 0, cap: Math.round(10 * AREA_ROWS_CAP[rowsPref]!), scatter: true, overlap: true };
         case 'slapped': return { rows: 0, cap: Math.round(18 * AREA_ROWS_CAP[rowsPref]!), scatter: true, overlap: true };
         default:        return { rows: rowsPref, cap: 6 * rowsPref, scatter: false, overlap: false };
@@ -388,6 +393,40 @@ export function buildSlapped(count: number, seed: number, density = 0, widths: n
         const rot = rebel ? (rnd() < 0.5 ? -1 : 1) * (16 + rnd() * 12) : (rnd() * 2 - 1) * 8;
         return { x: p.x * 100, y: p.y * 100, rot, scale: p.s, z: k };
     });
+    return { aspect, items };
+}
+
+/* ── FLOW — replaces Row + Scatter + Fill ──────────────────────────────────
+   Those three jittered position/scale/gap independently as CSS transforms on
+   top of an ordinary flex row, which never reserved space for the jitter —
+   so a sticker could (and regularly did) drift past the row band or the
+   container edge, and uneven per-sticker gaps read as "randomly spaced"
+   rather than composed (Brendon, 2026-08-30, after a live repro artifact
+   confirmed both: "it goes outside the sticker area and it looks ugly, zero
+   sense of composition"). Flow gets a line's energy without either failure
+   mode by reusing the exact containment relax()/clampPt() already runs for
+   Stack/Collage/Slapped: points seed along a line, at a much flatter aspect
+   than the pile modes, then get relaxed like everything else. Physically
+   cannot leave the box or collide — that's the algorithm, not a jitter range
+   someone has to keep re-tuning. */
+export interface FlowPiece { x: number; y: number; scale: number; rot: number; z: number; }
+export function buildFlow(n: number, seed: number, widths: number[] = [], rowsPref: Rows = 2, tilt: Tilt = 'soft'): { aspect: number; items: FlowPiece[] } {
+    const rnd = rngFrom(seed + 3000);
+    const aspect = [0, 7.4, 4.3, 2.9][rowsPref]!; // flatter than the pile modes — reads as a line/rows, not a heap
+    const td = tiltDeg(tilt);
+    const pts: RelaxPt[] = [];
+    for (let k = 0; k < n; k++) {
+        const t = n <= 1 ? 0.5 : k / (n - 1);
+        const x = 0.055 + t * 0.89 + (rnd() - 0.5) * 0.035;
+        const y = 0.5 + (rnd() - 0.5) * 0.46;
+        pts.push({ x, y, s: 0.88 + rnd() * 0.2, w: widths[k] || DEFAULT_WIDE });
+    }
+    relax(pts, aspect, 0.6, 26, rnd);
+    const items: FlowPiece[] = pts.map((p, k) => ({
+        x: p.x * 100, y: p.y * 100, scale: p.s,
+        rot: td === 0 ? 0 : (rnd() * 2 - 1) * td,
+        z: k,
+    }));
     return { aspect, items };
 }
 

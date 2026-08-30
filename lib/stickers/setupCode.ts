@@ -19,7 +19,16 @@
 
 import type { Arrange, Tilt, Rows, Align, Border } from './heroPrefs';
 
-export const ARRANGE_IDS: ReadonlyArray<Arrange> = ['spread', 'row', 'stack', 'scatter', 'fill', 'collage', 'slapped'];
+/* Positional — a saved/shared Setup Code encodes this as a single letter
+   INDEX, not the id itself, so the array's positions are load-bearing for
+   every code already out there. Row/Scatter/Fill are gone from the Arrange
+   type (replaced by Flow — Brendon, 2026-08-30), but their old slots (1, 3,
+   4) can't just be deleted or Stack/Collage/Slapped's indices — and every
+   code that encodes them — would shift and decode wrong. Those three slots
+   now decode to 'flow' instead, so old codes still resolve to something,
+   just the new mode instead of a jitter type nothing renders anymore.
+   New codes always encode Flow at index 1 (indexOf finds the first match). */
+export const ARRANGE_IDS: ReadonlyArray<Arrange> = ['spread', 'flow', 'stack', 'flow', 'flow', 'collage', 'slapped'];
 export const ROW_IDS: ReadonlyArray<Rows> = [1, 2, 3];
 export const ALIGN_IDS: ReadonlyArray<Align> = ['left', 'center', 'right'];
 export const TILT_IDS: ReadonlyArray<Tilt> = ['flat', 'soft', 'jaunty'];
