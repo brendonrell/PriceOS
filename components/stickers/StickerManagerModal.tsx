@@ -514,7 +514,11 @@ export function StickerManagerModal({
     };
     const surprise = () => {
         const r = <T,>(arr: ReadonlyArray<T>): T => arr[Math.floor(Math.random() * arr.length)]!;
-        applyLook({ arrange: r(ARRANGE_IDS), rows: r(ROW_IDS), align: r(ALIGN_IDS), tilt: r(TILT_IDS), expand: false, flip: Math.random() < 0.4, density, border });
+        /* ARRANGE_IDS has 'flow' at 3 of its 7 slots (old Row/Scatter/Fill
+           positions, kept for Setup Code backward-compat — see setupCode.ts)
+           so picking straight from it would land on Flow 3× as often as any
+           other mode. Surprise wants one fair pick per real mode instead. */
+        applyLook({ arrange: r(ARRANGES).id, rows: r(ROW_IDS), align: r(ALIGN_IDS), tilt: r(TILT_IDS), expand: false, flip: Math.random() < 0.4, density, border });
         shuffleSeed();
         setSeedV(getSeed());
         showToast('Stickers: SURPRISE');
