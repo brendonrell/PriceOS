@@ -12780,7 +12780,9 @@ body.colorway-dark .ghost-feed-bar {
 .pill-tab-ico.is-calls { top: -2px; }
 /* Calls ¡ nudged up another 0.5px (Brendon, 2026-08-29): -2px → -2.5px,
    both mobile and desktop. */
-.pill-tab-ico.is-calls { top: -2.5px; }
+/* Calls ¡ nudged up another 0.5px (Brendon, 2026-08-30): -2.5px → -3px,
+   both mobile and desktop. */
+.pill-tab-ico.is-calls { top: -3px; }
 /* Targets ⌖ nudged down 0.5px from its settled position (Brendon,
    2026-08-29): mobile -1px → -0.5px, desktop 1px → 1.5px. */
 .pill-tab-ico.is-targets { top: -0.5px; }
@@ -12790,6 +12792,9 @@ body.colorway-dark .ghost-feed-bar {
 /* Discord # nudged down 0.5px from its inherited base position (Brendon,
    2026-08-29): 0 → 0.5px, both mobile and desktop. */
 .pill-tab-ico.is-discord { top: 0.5px; }
+/* Sigil ✻ nudged up 0.5px from its inherited base position (Brendon,
+   2026-08-30): 0 → -0.5px, both mobile and desktop. */
+.pill-tab-ico.is-sigil { top: -0.5px; }
 
 /* Sigil, Targets/Counterparties/Vault/Loyalty/Anointed, and My History
    icons resized half a step (0.075em, half the established 0.15em step)
@@ -13782,6 +13787,28 @@ body.colorway-dark .ghost-feed-bar {
     align-items: center;
     gap: 6px;
 }
+/* Calls / Targets panel header + totals tiles were reading at the shared
+   attr-group defaults (10px head, 9px tile label, 12px tile value) — too
+   small to read comfortably. Bumped to match the .price-acct precedent
+   below. Scoped to .tgt-section so the record list underneath (.tgt-rows,
+   the per-project rows) is untouched (Brendon, 2026-08-29).
+   Counterparties (.cp-section) and Loyalty (.loy-section) share the same
+   attr-group/attr-tile anatomy and had the same too-small headers/tiles —
+   same bump, same list-untouched scoping: .cp-rows and .loy-rows keep
+   their own row-level sizing and are not selected here (Brendon,
+   2026-08-30). */
+.tgt-section .attr-group-name,
+.cp-section .attr-group-name,
+.loy-section .attr-group-name { font-size: 12px; opacity: 0.8; }
+.tgt-section .attr-group-count,
+.cp-section .attr-group-count,
+.loy-section .attr-group-count { font-size: 12px; opacity: 0.6; }
+.tgt-section .attr-tile-label,
+.cp-section .attr-tile-label,
+.loy-section .attr-tile-label { font-size: 11px; opacity: 0.7; }
+.tgt-section .attr-tile-value,
+.cp-section .attr-tile-value,
+.loy-section .attr-tile-value { font-size: 15px; }
 /* Entropy Visualizer — a 16×16 black/white barcode unique to the piece,
    rendered in place of a text value. Square, crisp, theme-coloured. */
 .attr-entropy {
