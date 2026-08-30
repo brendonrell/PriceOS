@@ -101,6 +101,7 @@ import { useTagsOff } from '../../lib/hooks/useTagsOff';
 import { deriveTags } from '../../lib/tags/derive';
 import { PERSONA_TAGS, tagTextOn, TAG_PAINTS, isTeamStyleTag } from '../../lib/tags/catalog';
 import { NAME_FONTS, styleName } from '../../lib/profile/nameFont';
+import { rollPreset, type PresetMode } from '../../lib/profile/presetRoll';
 import { getProject, allProjects, projectsByArtist, projectColorway, artistSignatureColor } from '../../lib/project/registry';
 import HomeProjectFacetBar from '../home/HomeProjectFacetBar';
 import GhostCard from '../project/GhostCard';
@@ -149,6 +150,13 @@ function DeactivatedProfile({ handle }: { handle: string }) {
         </section>
     );
 }
+
+/* Presets row (Row 4) mode labels. */
+const PRESET_MODE_LABEL: Record<PresetMode, string> = {
+    random: 'Random',
+    match: 'Match',
+    pair: 'Pair',
+};
 
 function ProfilePageBodyInner({
     handle,
@@ -335,6 +343,18 @@ function ProfilePageBodyInner({
     /* FORMULA carousel (Brendon, 2026-08-16): the Formula pill in the main tag
        row no longer wears a tag — it opens/closes this row directly below. */
     const [formulaCarouselOpen, setFormulaCarouselOpen] = useState(false);
+    /* PRESETS row (Brendon, 2026-08-30): Row 4, bottom of the egg-editor
+       stack. presetMode picks which roll shape the Roll pill produces; the
+       roll itself just fans out to the four setters already in scope. */
+    const [presetMode, setPresetMode] = useState<PresetMode>('random');
+    const rollProfilePreset = useCallback(() => {
+        const result = rollPreset(presetMode);
+        setMyProfileHex(result.hex);
+        setMyTagPaint(result.tagPaint);
+        setMyProfileLogo(result.logoId);
+        if (result.fontId) setMyNameFont(result.fontId);
+        showToast(`Preset: ${presetMode.toUpperCase()}`);
+    }, [presetMode, setMyProfileHex, setMyTagPaint, setMyProfileLogo, setMyNameFont, showToast]);
     /* Tags the owner switched OFF — hidden from the shown row (every viewer),
        but still listed in the owner's picker to tap back on (Brendon,
        2026-07-22). */
@@ -1603,6 +1623,39 @@ function ProfilePageBodyInner({
                                     </div>
                                 );
                             })}
+                        </div>
+                        {/* Row 4 — PRESETS: one tap regenerates colorway + tag
+                            paint + logo + font together. Random rolls all four
+                            independently; Match locks colorway/tag paint/logo
+                            to one rolled hue; Pair rolls a second, hue-separated
+                            highlight for the tag paint. Colorway and tag paint
+                            are full-spectrum (no fixed swatch pool), so every
+                            roll picks a fresh vivid hue rather than sampling a
+                            preset list (Brendon, 2026-08-30). */}
+                        <div className="profile-egg-row cust-scroll profile-presets-picker">
+                            {(['random', 'match', 'pair'] as const).map((m) => (
+                                <div
+                                    key={m}
+                                    className={`pill pill-l3${presetMode === m ? ' active' : ''}`}
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={() => setPresetMode(m)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPresetMode(m); } }}
+                                    title={PRESET_MODE_LABEL[m]}
+                                >
+                                    <span className="stat-name">{PRESET_MODE_LABEL[m]}</span>
+                                </div>
+                            ))}
+                            <div
+                                className="pill pill-l3 preset-roll-pill"
+                                role="button"
+                                tabIndex={0}
+                                onClick={rollProfilePreset}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); rollProfilePreset(); } }}
+                                title="Roll a new preset"
+                            >
+                                <span className="stat-name">{'⟳ Roll'}</span>
+                            </div>
                         </div>
                         </>
                     )}
