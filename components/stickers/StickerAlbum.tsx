@@ -18,7 +18,7 @@ import { StickerArt } from './StickerArt';
 
 const VS15 = '︎';
 
-export default function StickerAlbum() {
+export default function StickerAlbum({ compact }: { compact?: boolean }) {
     const ownedIds = useOwnedStickerIds();
     const owned = useMemo(() => new Set(ownedIds), [ownedIds]);
 
@@ -29,6 +29,42 @@ export default function StickerAlbum() {
     });
     const gotAll = pages.reduce((n, p) => n + p.got, 0);
     const totalAll = pages.reduce((n, p) => n + p.total, 0);
+
+    /* Compact — a swipeable rail of mini progress cards, one per sheet
+       (Brendon, 2026-08-30). Tap scrolls the full page stack into view
+       via an anchor, same as tapping a page normally would just show it. */
+    if (compact) {
+        return (
+            <>
+            <div className="skm-book-head alb-compact-head">
+                <span className="skm-book-title">MY STICKER BINDER</span>
+                <span className="skm-book-pos">{gotAll}/{totalAll} collected</span>
+            </div>
+            <div className="ss-rail alb-rail">
+                {pages.map(({ sheet, got, total, complete }) => {
+                    const pct = total ? Math.round((got / total) * 100) : 0;
+                    return (
+                        <div className="alb-card" key={sheet.id}>
+                            <div className="alb-card-name">{sheet.name}</div>
+                            <div className="alb-progress alb-card-bar" aria-hidden="true">
+                                <span style={{ width: `${pct}%` }} />
+                            </div>
+                            <div className={`alb-card-tally${complete ? ' is-complete' : ''}`}>
+                                {complete ? `COMPLETE ✓${VS15}` : `${got}/${total}`}
+                            </div>
+                            <div className="alb-card-dots" aria-hidden="true">
+                                {Array.from({ length: total }, (_, i) => (
+                                    <span key={i} className={`alb-card-dot${i < got ? ' is-got' : ''}`} />
+                                ))}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+            <div className="ss-foot">missing something? the MKT view has the singles market</div>
+            </>
+        );
+    }
 
     return (
         <>
