@@ -82,6 +82,10 @@ const FATE_GLYPH = '䷲︎';
 /* Language's L1 pill wears the code brace, glyph-only right before Fate
    (Brendon, 2026-08-05) — the same { the grouping dimension uses. */
 const LANGUAGE_GLYPH = '{';
+/* PriceDay's L1 pill, glyph-only on the artist Showcase (Brendon, 2026-08-30)
+   — brings the pill back after it was fully hidden there to save space, but
+   keeps the space win by dropping the word for the glyph (docs/GLYPHS.md §12a). */
+const PRICEDAY_GLYPH = '➽';
 
 /** A project's value for a facet — single source both the value pools and the
  *  predicate in HomePageBody read, so they can't diverge. */
@@ -136,6 +140,7 @@ export default function HomeProjectFacetBar({
     leadPills,
     compact = false,
     hidePills,
+    glyphOnlyPills,
 }: {
     projects: EnrichedProject[];
     sortKey: HomeSortKey;
@@ -151,9 +156,12 @@ export default function HomeProjectFacetBar({
     /** View-toggle pills rendered before the facet pills (Created · Top 6). */
     leadPills?: FacetLeadPill[];
     /** Facets to keep in the filter plumbing (value pools, activeFilters, etc.)
-        but NOT render a pill for — pure display suppression, no behavior change
-        (Brendon, 2026-08-16: PriceDay hidden from the artist Showcase row only). */
+        but NOT render a pill for — pure display suppression, no behavior change. */
     hidePills?: readonly string[];
+    /** Facets that render but wear their glyph instead of the label, same
+        treatment as Fate/Language (Brendon, 2026-08-30: PriceDay back on the
+        artist Showcase row, glyph-only to keep the space win). */
+    glyphOnlyPills?: readonly string[];
     /** Strip everything but the lead pills + colorway squares — used by the
         Top 6 grid view, where facet filtering / sorting don't apply. */
     compact?: boolean;
@@ -324,7 +332,12 @@ export default function HomeProjectFacetBar({
                                     }}
                                     title={facet}
                                 >
-                                    <span className="stat-name">{isFate ? FATE_GLYPH : facet === 'Language' ? LANGUAGE_GLYPH : facet}</span>
+                                    <span className="stat-name">
+                                        {isFate ? FATE_GLYPH
+                                            : facet === 'Language' ? LANGUAGE_GLYPH
+                                            : facet === 'PriceDay' && glyphOnlyPills?.includes(facet) ? PRICEDAY_GLYPH
+                                            : facet}
+                                    </span>
                                     {count > 0 && <span className="badge">{count}</span>}
                                 </div>
                             );
