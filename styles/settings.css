@@ -66,6 +66,14 @@
 }
 .settings-wallet:hover { opacity: 0.7; }
 
+/* Extra breathing room between the wallet icon buttons themselves — fiat ·
+   gnome · keychain · incognito · exchange · RPC ping — +50% on top of the
+   row's base 8px flex gap (Brendon, 2026-08-30: "tough for fat fingers").
+   Scoped to consecutive .rpc-ping-btn siblings only, so the wallet-address ↔
+   first-icon gap stays put; robust to the gnome button's conditional render
+   since it targets whichever icon actually follows another icon. */
+.settings-wallet .rpc-ping-btn + .rpc-ping-btn { margin-left: 4px; }
+
 .icon-copy {
     font-family: 'Courier New', Courier, monospace;
     font-size: 15px;
