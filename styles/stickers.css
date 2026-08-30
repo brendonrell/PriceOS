@@ -743,9 +743,10 @@
 .ss-flow .ss-cell svg { max-width: 100%; }
 /* Outputs vary in size → masonry columns, stacked, never overlapping. */
 .ss-masonry {
-    /* Output sheet only — 3 columns on mobile so each artwork reads at a
-       comfortable thumbnail size (Brendon, 2026-07-12). */
-    columns: 3;
+    /* Output sheet only — 2 columns on mobile so each artwork reads at a
+       comfortable thumbnail size (Brendon, 2026-08-30 — was 3, fixed for
+       real this time). Sticker size itself is untouched. */
+    columns: 2;
     column-gap: 8px;
     padding: 12px 12px 16px;
 }
