@@ -121,12 +121,12 @@ export default function ProfileAnointedPanel({
                             <div className="anoint-actions">
                                 <button
                                     type="button"
-                                    className="btn-mint anoint-withdraw-btn"
+                                    className={`btn-mint anoint-withdraw-btn${pledge.locked ? ' locked' : ''}`}
                                     disabled={busy || pledge.locked}
                                     onClick={doWithdraw}
-                                    title={pledge.locked ? 'Locked for 60 days from placement' : 'Withdraw your Anointment'}
+                                    title={pledge.locked ? `Locked until ${fmtDate(pledge.unlocksAt)}` : 'Withdraw your Anointment'}
                                 >
-                                    WITHDRAW
+                                    {pledge.locked ? `LOCKED UNTIL ${fmtDate(pledge.unlocksAt)}` : 'WITHDRAW'}
                                 </button>
                             </div>
                         )}
