@@ -26,7 +26,7 @@
 import { Component, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useOwnedFor, useStickerPrefs, isActive } from '../../lib/stickers/owned';
-import { useHeroPrefs, arrangeShape, tiltDeg, rngFrom, buildCollage, buildPile, buildSlapped, stickerHue, shouldFlip } from '../../lib/stickers/heroPrefs';
+import { useHeroPrefs, arrangeShape, tiltDeg, rngFrom, buildCollage, buildPile, buildSlapped, buildFlow, stickerHue, shouldFlip } from '../../lib/stickers/heroPrefs';
 import { usePlacements, setComposition, moveSticker, raiseSticker, rotateSticker, removeFromComposition, type PlacementMap } from '../../lib/stickers/placements';
 import { StickerArt } from './StickerArt';
 import { StickerManagerModal } from './StickerManagerModal';
@@ -353,7 +353,6 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, saved
     if (locked ? lockedItems.length === 0 : active.length === 0) return manager;
 
     const baseTilt = tiltDeg(tilt);
-    const jrnd = rngFrom(seed + 7);
     /* Per-sticker render height. Output artworks render at half (they read big),
        and ARTISTS + PRICESPRITES badges 20% down — the artist-badge size is the
        LARGE reference; PriceSprites match it, Projects stay XL (Brendon,
@@ -584,58 +583,50 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, saved
         );
     }
 
-    // Flex rows (spread / row / scatter / fill).
+    // FLOW — replaces Row + Scatter + Fill. Same collision-safe relax() as
+    // Collage/Stack/Slapped, just seeded along a line instead of a cluster —
+    // a line's energy, but physically incapable of leaving the box or
+    // overlapping (Brendon, 2026-08-30).
+    if (arrange === 'flow') {
+        const comp = buildFlow(picked.length, seed, picked.map(wf), rowsPref, tilt);
+        return wrap(
+            <div className="hero-flow" style={{ ...areaStyle, aspectRatio: String(comp.aspect) }}>
+                {picked.map((s, i) => {
+                    const p = comp.items[i]!;
+                    return (
+                        <span
+                            key={s.id}
+                            data-sid={s.id}
+                            className="hero-sticker hero-flow-item"
+                            style={{ left: `${p.x}%`, top: `${p.y}%`, zIndex: p.z, transform: `translate(-50%, -50%) rotate(${p.rot + flipOf(s.id)}deg) scale(${p.scale})` }}
+                            title={s.name}
+                            {...ownDown(s)}
+                        >
+                            <StickerArt sticker={s} size={sz(s)} diecut={diecut} />
+                        </span>
+                    );
+                })}
+            </div>,
+        );
+    }
+
+    // SPACED — the only remaining flex-row mode. Tidy, even edge-to-edge,
+    // dead level, uniform size, a whisper of alternating tilt.
     const perRow = Math.ceil(picked.length / rows);
     const rowChunks = Array.from({ length: rows }, (_, r) => picked.slice(r * perRow, (r + 1) * perRow));
 
-    /* The flex modes, ONE idea each — they read too alike (Brendon, 2026-08-03:
-       three modes looked exactly the same):
-         SPACED  — the tidy one. Even edge-to-edge, dead level, uniform size,
-                   whisper of alternating tilt. The only mode a ruler approves.
-         ROW     — the same line placed by a HAND: snug, every sticker a touch
-                   off the baseline with its own small lean, no two gaps alike.
-         SCATTER — the airy toss: big vertical drift, free rotation, properly
-                   mixed sizes, uneven spacing — floating, none touching.
-         FILL    — the stamp strip: dense, dead level, near-uniform and a size
-                   down, papering the band wall-to-wall.
-       All seeded (Shuffle re-rolls, a reload repeats), every sticker fully
-       readable, nothing off the box at portrait-iPhone width. */
     return wrap(
         <div className={`hero-stickers-rows arr-${arrange} ${alignClass}`} style={areaStyle}>
             {rowChunks.map((chunk, ri) => (
                 <div className="hero-stickers-row" key={ri}>
                     {chunk.map((s, i) => {
-                        const v1 = jrnd(), v2 = jrnd(), v3 = jrnd();
-                        let rot = baseTilt === 0 ? 0 : ((i + ri) % 2 === 0 ? -baseTilt : baseTilt);
-                        let jy = 0;
-                        let sc = 1;
-                        let gap = 0;
-                        if (arrange === 'row') {
-                            jy = Math.round((v1 - 0.5) * 9);
-                            rot = (baseTilt === 0 ? 3 : baseTilt * 1.1) * (v2 * 2 - 1);
-                            sc = 0.97 + v3 * 0.06;
-                            gap = Math.round((jrnd() - 0.5) * 8);
-                        } else if (arrange === 'scatter') {
-                            rot = (v1 * 2 - 1) * (baseTilt === 0 ? 8 : baseTilt * 2.4);
-                            jy = Math.round((v2 - 0.5) * 30);
-                            sc = 0.8 + v3 * 0.38;
-                            gap = Math.round((jrnd() - 0.5) * 14);
-                        } else if (arrange === 'fill') {
-                            rot = (v1 * 2 - 1) * baseTilt * 0.4;
-                            sc = 0.88 + v3 * 0.07;
-                        }
+                        const rot = baseTilt === 0 ? 0 : ((i + ri) % 2 === 0 ? -baseTilt : baseTilt);
                         return (
                             <span
                                 key={s.id}
                                 data-sid={s.id}
                                 className="hero-sticker"
-                                style={{
-                                    /* Uneven gaps — additive only (before or after,
-                                       never negative space), so nothing overlaps. */
-                                    marginLeft: gap > 0 ? gap : undefined,
-                                    marginRight: gap < 0 ? -gap : undefined,
-                                    transform: `translateY(${jy}px) rotate(${rot + flipOf(s.id)}deg)${sc !== 1 ? ` scale(${sc.toFixed(3)})` : ''}`,
-                                }}
+                                style={{ transform: `rotate(${rot + flipOf(s.id)}deg)` }}
                                 title={s.name}
                                 {...ownDown(s)}
                             >
