@@ -1568,6 +1568,44 @@ body.sticker-mode .hero-stickers { display: none; }
     .smgr-plus-preview, .smgr-plus-preview .hero-sticker { animation: none !important; }
 }
 
+/* ── PHONE LANDSCAPE — the WHOLE modal scrolls ──────────────────────────────
+   Shared by every panel on this shell: Sticker Manager Plus, Friend Inspector,
+   Projects Pro, Collectors (Brendon, 2026-08-30: "the non-scrollable header
+   takes up the whole screen (including the preview) and you can't see the
+   lists below"). The portrait layout pins the head + preview and scrolls only
+   the body — fine when the viewport is tall. A landscape phone is short
+   (~350–420px), so the head + preview alone can eat the whole height, and
+   since the backdrop itself never scrolls (.sticker-mgr-plus-backdrop is
+   overflow: clip — deliberately, so an open panel can't shove the page
+   sideways), there was no way to reach anything past the preview.
+   Fix: stop splitting fixed-head / scrolling-body. The whole panel becomes
+   ONE scroll container; head, preview and body all just sit in normal flow
+   inside it. Same breakpoint the artwork modal already uses for its own
+   landscape layout (styles/modal.css). */
+@media (orientation: landscape) and (max-height: 500px) {
+    .sticker-mgr-plus {
+        height: auto;
+        max-height: 100dvh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+    }
+    .smgr-plus-head,
+    .smgr-plus-preview,
+    .followers-plus-preview {
+        flex: 0 0 auto;
+    }
+    .smgr-plus-body,
+    .followers-plus-body,
+    .followers-plus-body.dp-body,
+    .followers-plus-body.suite-body {
+        flex: 0 0 auto;
+        overflow-y: visible;
+        overflow-x: visible;
+        min-height: 0;
+    }
+}
+
 /* Sheet toggles — dotted outline when off so they read as distinct, filled when
    on. Colours ride the theme tokens: the OFF fill is the inverse shade of the
    active chips (bg-color), the ON fill is text-color — so the theme's own
