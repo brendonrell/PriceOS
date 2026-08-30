@@ -5264,12 +5264,12 @@ body.persona-default .stats-row-2 { display: none !important; }
     /* Down 2px (Brendon, 2026-07-31). */
     .stats-row .stat-icon-owners { position: relative; top: -0.5px; }
     /* ⬚ dotted-square icon on the HOMEPAGE stats row only — nudged down 1px
-       (Brendon, 2026-08-15), then up 0.5px (Brendon, 2026-08-30). Scoped to
-       the home hero so the same class on other pages (project/profile/
-       artwork/marketplace stats rows) is untouched. */
+       (Brendon, 2026-08-15), then up 0.5px, then up another 0.5px (Brendon,
+       2026-08-30). Scoped to the home hero so the same class on other pages
+       (project/profile/artwork/marketplace stats rows) is untouched. */
     section[aria-label="Price Discussion"] .stats-row .stat-icon-box {
         position: relative;
-        top: 0.5px;
+        top: 0px;
     }
 }
 
