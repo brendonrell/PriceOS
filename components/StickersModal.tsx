@@ -43,10 +43,13 @@ export default function StickersModal() {
     const { isOpen, isTopStacked } = useModalLayer('stickers');
 
     /* Toggle the view mode + toast it (house style: new state in CAPS). Fires
-       only on this switch, never on opening the store. */
+       only on this switch, never on opening the store. Same expanded/compact
+       state now drives Market + Binder too (Brendon, 2026-08-30), so the
+       toast names whichever face is on screen. */
     const toggleView = () => setExpanded((v) => {
         const next = !v;
-        showToast(`Sticker Store: ${next ? 'STACKED' : 'COMPACT'}`);
+        const face = albumOn ? 'Sticker Binder' : marketOn ? 'Sticker Market' : 'Sticker Store';
+        showToast(`${face}: ${next ? 'STACKED' : 'COMPACT'}`);
         return next;
     });
     const railRef = useDragScroll<HTMLDivElement>();
@@ -321,17 +324,15 @@ export default function StickersModal() {
                                 <span className="ss-title-main">{albumOn ? 'STICKER BINDER' : marketOn ? 'STICKER MARKET' : 'STICKER STORE'}</span>
                                 <span className="ss-title-sub">{`⊞${VS15} ${albumOn ? 'GOT / NEED' : marketOn ? 'SECONDARY' : 'BY PD'}`}</span>
                             </div>
-                            {!marketOn && !albumOn && (
                             <button
                                 className={`ss-expand${expanded ? ' is-on' : ''}`}
                                 type="button"
-                                title={expanded ? 'Sticker Store: COMPACT' : 'Expand'}
+                                title={expanded ? 'Compact' : 'Expand'}
                                 aria-pressed={expanded}
                                 onClick={toggleView}
                             >
                                 {`${expanded ? '↓' : '↑'}${VS15}`}
                             </button>
-                            )}
                             <div className="ss-stats">
                                 <span className="ss-stat"><b>{totalSheets}</b> SHEETS</span>
                                 <span className="ss-stat"><b>{ownedIds.length}</b> OWNED</span>
@@ -507,9 +508,9 @@ export default function StickersModal() {
                         </div>
 
                         {albumOn ? (
-                            <StickerAlbum />
+                            <StickerAlbum compact={!expanded} />
                         ) : marketOn ? (
-                            <StickerMarket />
+                            <StickerMarket compact={!expanded} />
                         ) : expanded ? (
                             /* The cap + scroll ride this plain-block wrapper, never the
                                grid itself — iOS Safari won't clip a grid that is its own
