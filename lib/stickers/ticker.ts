@@ -127,17 +127,6 @@ const storeReps = (repFaces: Record<string, string>): string[] =>
 const marketReps = (repFaces: Record<string, string>): string[] =>
     REPS.map((r) => pick(MARKET_REP_FORMS)(repTag(r, repFaces[r.handle])));
 
-/* Rare secret lines — ~10% of opens show one, dropped at a random spot. Dry,
-   blink-and-miss-it, and never promissory. */
-const EGGS: string[] = [
-    'Petey saw everything. ▶︎ Petey said nothing.',
-    'a GRAIL familiar blinks once, then is gone',
-    '◊︎ 0.000 — nice try',
-    'the ticker is watching you back',
-    `${ICON} you found the secret line — tell no one`,
-    'GM to Petey, and Petey only',
-];
-
 /* Drop an extra after every `every` lines so the crawl mixes the machine copy
    with the walk-on characters rather than reading them in two blocks. */
 function interleave(primary: string[], extras: string[], every: number): string[] {
@@ -151,14 +140,11 @@ function interleave(primary: string[], extras: string[], every: number): string[
     return out;
 }
 
-/* Join, sprinkle a rare egg, and set the terminal all-caps look (formatting is
-   tuned separately from this copy). */
+/* Join and set the terminal all-caps look (formatting is tuned separately
+   from this copy). Store-facing crawl only — instructional + promotional,
+   no easter eggs (Brendon, 2026-08-29: cut the secret-line gag entirely). */
 function weave(lines: string[]): string {
     const out = lines.filter(Boolean);
-    if (Math.random() < 0.1) {
-        const at = 1 + Math.floor(Math.random() * Math.max(1, out.length - 1));
-        out.splice(at, 0, EGGS[Math.floor(Math.random() * EGGS.length)]!);
-    }
     return `${out.join('  ·  ')}  ·  `.toUpperCase();
 }
 
