@@ -101,8 +101,16 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, saved
        any context, own profile or not — reads straight off the
        account-synced props below. Local storage exists only so a drag or a
        toggle paints instantly while you're actively using it; the moment
-       you're not actively editing, it plays no part in what renders. */
-    const editingLive = !!isOwn && (mgrOpen || lifted !== null);
+       you're not actively editing, it plays no part in what renders.
+       `preview` counts too (Brendon, 2026-08-30: "sticker manager preview is
+       broken") — the Manager Plus preview is a NESTED instance of this same
+       component with its own fresh mgrOpen/lifted state, so it never actually
+       satisfied this check on its own. Its `owned` fell back to
+       savedOwnedIds, which the preview is never even passed (only
+       savedLayout/savedAspect are, for the LOCKED picture) — so the
+       generative preview always rendered zero stickers. Preview only ever
+       mounts while Plus is genuinely open, so it's always a live session. */
+    const editingLive = !!isOwn && (preview || mgrOpen || lifted !== null);
     const owned = useOwnedFor(ownerHandle, editingLive, savedOwnedIds);
     const livePrefs = useStickerPrefs();
     const offSheets = editingLive ? livePrefs.offSheets : new Set(savedOffSheets ?? []);
