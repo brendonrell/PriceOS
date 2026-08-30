@@ -12,7 +12,7 @@
  */
 
 import { useMemo } from 'react';
-import { SHEETS, stickersForSheet } from '../../lib/stickers/catalog';
+import { SHEETS, stickersForSheet, fanFor } from '../../lib/stickers/catalog';
 import { useOwnedStickerIds } from '../../lib/stickers/owned';
 import { StickerArt } from './StickerArt';
 
@@ -45,17 +45,25 @@ export default function StickerAlbum({ compact }: { compact?: boolean }) {
                     const pct = total ? Math.round((got / total) * 100) : 0;
                     return (
                         <div className="alb-card" key={sheet.id}>
+                            <div className="alb-card-fan" aria-hidden="true">
+                                <span className="ss-fan">
+                                    {fanFor(sheet).map((st, i) => (
+                                        <span
+                                            key={st.id}
+                                            className={`ss-fan-item${owned.has(st.id) ? '' : ' alb-fan-miss'}`}
+                                            style={{ transform: `rotate(${[-9, 0, 9][i] ?? 0}deg)` }}
+                                        >
+                                            <StickerArt sticker={st} size={30} />
+                                        </span>
+                                    ))}
+                                </span>
+                            </div>
                             <div className="alb-card-name">{sheet.name}</div>
                             <div className="alb-progress alb-card-bar" aria-hidden="true">
                                 <span style={{ width: `${pct}%` }} />
                             </div>
                             <div className={`alb-card-tally${complete ? ' is-complete' : ''}`}>
                                 {complete ? `COMPLETE ✓${VS15}` : `${got}/${total}`}
-                            </div>
-                            <div className="alb-card-dots" aria-hidden="true">
-                                {Array.from({ length: total }, (_, i) => (
-                                    <span key={i} className={`alb-card-dot${i < got ? ' is-got' : ''}`} />
-                                ))}
                             </div>
                         </div>
                     );
