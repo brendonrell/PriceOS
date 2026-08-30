@@ -121,7 +121,16 @@
     line-height: 1.5;
 }
 .anoint-note a { color: var(--text-color); }
-.anoint-pledge-meta { margin-top: -4px; }
+/* Placed-date line was inheriting .anoint-bar-labels' 10px/0.7-opacity
+   sizing (built for the tight progress bar), which read as illegible
+   fine print here. Bumped to match the panel's normal note size and
+   full opacity (Brendon, 2026-08-30). The unlock date itself now also
+   lives on the WITHDRAW button below, not just this line. */
+.anoint-pledge-meta {
+    margin-top: -4px;
+    font-size: 13px;
+    opacity: 1;
+}
 
 /* Conduit picker */
 .anoint-conduit-label {
@@ -191,6 +200,20 @@
 .anoint-withdraw-btn:disabled {
     opacity: 0.75;
     cursor: not-allowed;
+}
+/* Locked withdraw button now carries the unlock date as its own label
+   ("LOCKED UNTIL ..."), so it needs to read as visibly unavailable, not
+   as a live WITHDRAW button — reuses the app's standard locked idiom
+   (dashed border + hatch texture, same as .fam-tile.locked) instead of
+   the generic 0.75-opacity disabled state above (Brendon, 2026-08-30). */
+.anoint-withdraw-btn.locked:disabled {
+    border-style: dashed;
+    opacity: 0.6;
+    background: repeating-linear-gradient(
+        45deg,
+        color-mix(in srgb, var(--text-color) 3%, transparent) 0 7px,
+        color-mix(in srgb, var(--text-color) 7%, transparent) 7px 14px
+    );
 }
 
 .anoint-fine {
