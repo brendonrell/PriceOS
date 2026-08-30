@@ -5568,6 +5568,19 @@ button,
 .btn-explore {
     width: auto;
 }
+/* Anointed-tab withdraw CTA — same decoupling. Locked state's label is now
+   "LOCKED UNTIL <date>" (Brendon, 2026-08-30), which doesn't fit the mint
+   pill's fixed 224x46 footprint; content-sized + wraps to two lines instead
+   of clipping or forcing the date off the button. */
+.anoint-withdraw-btn {
+    width: auto;
+    height: auto;
+    min-height: 46px;
+    padding: 10px 24px;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.3;
+}
 .mint-lbl {
     font-family: var(--font-rubik-mono), sans-serif;
     font-size: 16px;
