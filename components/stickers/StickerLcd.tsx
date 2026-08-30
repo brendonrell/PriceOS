@@ -382,10 +382,16 @@ export default function StickerLcd({ mode }: { mode: 'store' | 'market' | 'binde
             /* ── compose ── */
             const move: Move = MOVES[beat % MOVES.length]!;
             const t = reduced ? 1 : Math.min(1, elapsed / TRANS_MS);
-            /* An ad inverts the screen — the way a commercial break used to
-               announce itself before you'd read a word of it. */
-            const ink = f.ad ? colours.screen : colours.ink;
-            const screen = f.ad ? colours.ink : colours.screen;
+            /* Screen always wears the page's own colours (see "IT WEARS THE
+               THEME" above) — no per-ad invert. It used to flip ink/screen for
+               every ad line, and since the channel is commercials-only now
+               that meant "inverted" for nearly the whole runtime, with only the
+               two brief bumper/return cards in normal colours — reading as a
+               random dark/light flicker depending on when you looked (Brendon,
+               2026-08-30: "isn't consistent in its theming... switches from
+               black to white totally at random"). */
+            const ink = colours.ink;
+            const screen = colours.screen;
 
             if (t >= 1) {
                 for (let i = 0; i < scene.length; i++) buf32[i] = scene[i] ? ink : screen;
