@@ -452,10 +452,11 @@ export default function StickersModal() {
                                     else { setAlbumOn(false); setMarketOn(true); showToast('Stickers: MARKETPLACE'); }
                                 }}
                             >
-                                {/* MARKET reads BACK + the platform back-glyph
-                                    while open, since tapping it here does
-                                    exactly that — crosses back to the store
-                                    (Brendon, 2026-08-18). Closed, it's just
+                                {/* MARKET reads << while open, since tapping
+                                    it here crosses back to the store
+                                    (Brendon, 2026-08-18; glyph swapped for a
+                                    plain << and matched to the label's Rubik
+                                    12px, 2026-08-30). Closed, it's just
                                     MARKET; short, so it never pushes MY BINDER
                                     off the right edge of an iPhone.
                                     Both states always render, one hidden, so
@@ -467,9 +468,8 @@ export default function StickersModal() {
                                         <span>MAR</span>
                                         <span>KET</span>
                                     </span>
-                                    <span className={`ss-mktline-cap-back${marketOn ? '' : ' is-hidden'}`}>
-                                        <span className="ss-mktline-cap-back-label">BACK</span>
-                                        <span className="ss-mktline-cap-back-glyph" aria-hidden="true">{'⇠⇠︎'}</span>
+                                    <span className={`ss-mktline-cap-back${marketOn ? '' : ' is-hidden'}`} aria-hidden="true">
+                                        {'<<'}
                                     </span>
                                 </span>
                             </button>
@@ -482,20 +482,19 @@ export default function StickersModal() {
                                     else { setMarketOn(false); setAlbumOn(true); showToast('Stickers: BINDER'); }
                                 }}
                             >
-                                {/* MY BINDER reads BACK + the platform back-glyph
-                                    while open, same rule as MARKET (Brendon,
-                                    2026-08-18) — tapping it here is a back
-                                    action, so the label says so. Both states
-                                    always render, one hidden — see MARKET's
-                                    note above (Brendon, 2026-08-22). */}
+                                {/* MY BINDER reads << while open, same rule
+                                    as MARKET (Brendon, 2026-08-18; glyph
+                                    swap 2026-08-30) — tapping it here is a
+                                    back action. Both states always render,
+                                    one hidden — see MARKET's note above
+                                    (Brendon, 2026-08-22). */}
                                 <span className="ss-mktline-cap-stack">
                                     <span className={`ss-mktline-cap-label${albumOn ? ' is-hidden' : ''}`}>
                                         <span>MY</span>
                                         <span>BINDER</span>
                                     </span>
-                                    <span className={`ss-mktline-cap-back${albumOn ? '' : ' is-hidden'}`}>
-                                        <span className="ss-mktline-cap-back-label">BACK</span>
-                                        <span className="ss-mktline-cap-back-glyph" aria-hidden="true">{'⇠⇠︎'}</span>
+                                    <span className={`ss-mktline-cap-back${albumOn ? '' : ' is-hidden'}`} aria-hidden="true">
+                                        {'<<'}
                                     </span>
                                 </span>
                             </button>
