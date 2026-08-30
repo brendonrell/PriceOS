@@ -313,8 +313,9 @@ export default function HomeProjectFacetBar({
                         {!compact && liveFacets.map((facet) => {
                             const isActive = activeCategory === facet;
                             const isFate = facet === 'Fate';
+                            const isPricedayIcon = facet === 'PriceDay' && glyphOnlyPills?.includes(facet);
                             const count = activeFilters[facet]?.size ?? 0;
-                            const cls = `pill pill-l1${isFate ? ' pill-fate-icon' : ''}${isActive ? ' active' : ''}${
+                            const cls = `pill pill-l1${isFate ? ' pill-fate-icon' : ''}${isPricedayIcon ? ' pill-priceday-icon' : ''}${isActive ? ' active' : ''}${
                                 activeCategory && !isActive ? ' dimmed' : ''
                             }`;
                             return (
