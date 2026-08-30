@@ -7148,6 +7148,14 @@ body.sticker-mode .sticker-strike { opacity: 0.5; }
     font-size: 16px;
     line-height: 1;
 }
+/* PriceDay glyph-only pill (artist Showcase only) — 4 sizes up from the
+   12px base (Brendon, 2026-08-30: "way too small"). One size = 2px per the
+   scale below (§ My Network icons), so 12px + 4×2px = 20px. */
+.pill.pill-l1.pill-priceday-icon .stat-name {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 20px;
+    line-height: 1;
+}
 /* Clear ✕ — icon-only, tight side padding so it reads as a compact close
    pill rather than the old "✕ Clear" word pill (Brendon, 2026-06-18). */
 .pill.pill-l1.pill-clear-icon { padding: 0 9px; }
