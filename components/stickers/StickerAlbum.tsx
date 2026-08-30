@@ -31,6 +31,7 @@ export default function StickerAlbum() {
     const totalAll = pages.reduce((n, p) => n + p.total, 0);
 
     return (
+        <>
         <div className="skm-wrap alb-wrap">
             <div className="skm-book-head">
                 <span className="skm-book-title">MY STICKER BINDER</span>
@@ -63,7 +64,8 @@ export default function StickerAlbum() {
                     </div>
                 </div>
             ))}
-            <div className="ss-foot">missing something? the MKT view has the singles market</div>
         </div>
+        <div className="ss-foot">missing something? the MKT view has the singles market</div>
+        </>
     );
 }
