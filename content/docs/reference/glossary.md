@@ -88,7 +88,7 @@ Definitions for terms used throughout Price Discussion, alphabetically. The nome
 
 **$PRICE** — The platform's ERC-20 token; zero platform utility by design. See [$PRICE Overview](/docs/price-token/overview).
 
-**PriceDay** — The platform's own day count, flipping at midnight Montreal — the spine [the Rewind](/docs/rewind) scrubs along.
+**PriceDay** (➽) — The platform's own day count, flipping at midnight Montreal — the spine [the Rewind](/docs/rewind) scrubs along.
 
 **PriceOS** — The complete software platform built on PD's thesis — the app these docs document. See [The App](/docs/app/overview).
 
