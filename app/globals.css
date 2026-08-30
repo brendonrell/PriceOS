@@ -12338,6 +12338,13 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     position: static;
     width: 240px;
 }
+/* Mint confirm — font bumped to trait-pill size (Brendon, 2026-08-30: "font
+   is too small...same size as trait pills"). The house .pill text is 12px
+   too, but pills aren't monospace — Courier New at the same px reads smaller
+   (shorter x-height), so this steps up to 14px to actually match on screen.
+   Scoped to mint only for now; expand to every .ms-confirm-question once the
+   size/look is confirmed (Brendon: "start with just the mint confirm modal"). */
+.mint-confirm-card .ms-confirm-question { font-size: 14px; }
 
 /* ── Showcase-full swap picker (Brendon, 2026-07-22) — the 6 current picks as
    small thumbnails on the confirm card; tap one to replace it. Lives on the
