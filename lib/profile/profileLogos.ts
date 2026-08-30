@@ -66,10 +66,26 @@ const cutoutFor = (hex: string) => (isLight(hex) ? '#1A1A1A' : '#FFFFFF');
 
 const LOGO_HUES = genHues(27, 'pg', { sat: 88, lights: [52, 62, 44], phase: 6 });
 
+function hexHue(hex: string): number {
+    const h = hex.replace('#', '');
+    const r = (parseInt(h.slice(0, 2), 16) || 0) / 255;
+    const g = (parseInt(h.slice(2, 4), 16) || 0) / 255;
+    const b = (parseInt(h.slice(4, 6), 16) || 0) / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    if (max === min) return 0;
+    const d = max - min;
+    let hue: number;
+    if (max === r) hue = ((g - b) / d) % 6;
+    else if (max === g) hue = (b - r) / d + 2;
+    else hue = (r - g) / d + 4;
+    hue *= 60;
+    return hue < 0 ? hue + 360 : hue;
+}
+
 /* SOLID upright bubble — brand classic (Hothurt-red bubble + attention-yellow
    slash), its inverted twin (attention-yellow bubble + Hothurt-red per-mille),
    then the colour ring. */
-const PROFILE_SOLID: Sticker[] = [
+export const PROFILE_SOLID: Sticker[] = [
     { id: 'plogo-hot',     sheet: 'genesis', kind: 'logo', name: 'Logo — Classic',          color: PRICE_RED,    cutout: PRICE_YELLOW },
     { id: 'plogo-hot-inv', sheet: 'genesis', kind: 'logo', name: 'Logo — Classic Inverted', color: PRICE_YELLOW, cutout: PRICE_RED },
     ...LOGO_HUES.map<Sticker>((h) => ({
@@ -104,13 +120,13 @@ function finishRing(prefix: string, label: string, extra: Partial<Sticker>): Sti
         })),
     ];
 }
-const PROFILE_BLANK = finishRing('blank', 'Bubble', { blank: true });
+export const PROFILE_BLANK = finishRing('blank', 'Bubble', { blank: true });
 
 /* Petey = the SAME logo rotated 90° CCW, its own colour band (mirrors the Petey
    sticker sheet). `rotated` tells StickerArt + the corner logo to turn it.
    Classic + its inverted twin lead, then the colour ring. */
 const PETEY_HUES = genHues(23, 'pp', { sat: 80, lights: [58, 48, 67], phase: 15 });
-const PROFILE_PETEY: Sticker[] = [
+export const PROFILE_PETEY: Sticker[] = [
     { id: 'plogo-petey-classic',     sheet: 'petey', kind: 'logo', rotated: true, name: 'Petey — Classic',          color: PRICE_RED,    cutout: PRICE_YELLOW },
     { id: 'plogo-petey-classic-inv', sheet: 'petey', kind: 'logo', rotated: true, name: 'Petey — Classic Inverted', color: PRICE_YELLOW, cutout: PRICE_RED },
     ...PETEY_HUES.map<Sticker>((h) => ({
@@ -125,7 +141,7 @@ const PROFILE_PETEY: Sticker[] = [
 ];
 
 /* Holo = the iridescent finish. Upright, Petey, and a blank (bubble-only) holo. */
-const PROFILE_HOLO: Sticker[] = [
+export const PROFILE_HOLO: Sticker[] = [
     { id: 'plogo-holo',       sheet: 'holo', kind: 'logo', name: 'Holo',        color: '#FFFFFF', cutout: '#1A1A1A', holo: true },
     { id: 'plogo-holo-petey', sheet: 'holo', kind: 'logo', name: 'Holo Petey',  color: '#FFFFFF', cutout: '#1A1A1A', holo: true, rotated: true },
     { id: 'plogo-holo-blank', sheet: 'holo', kind: 'logo', name: 'Holo Bubble', color: '#FFFFFF', cutout: '#1A1A1A', holo: true, blank: true },
@@ -203,6 +219,25 @@ export const PROFILE_LOGOS_BY_ID: ReadonlyMap<string, Sticker> = new Map(
 );
 
 /** A stored profile-logo pick is valid iff it's null (off) or a known id. */
+/** The logo whose ring hue lies closest to an arbitrary hex, within a given
+ *  logo-style family — used by the Presets roll so a rolled colour gets a
+ *  matching logo in whichever style got picked, not just Solid. */
+export function nearestLogoInFamily(family: readonly Sticker[], hex: string): Sticker {
+    const h = hexHue(hex);
+    let best = family[0]!, bestD = Infinity;
+    for (const logo of family) {
+        const lh = hexHue(logo.color ?? '#000000');
+        const d = Math.min(Math.abs(lh - h), 360 - Math.abs(lh - h));
+        if (d < bestD) { bestD = d; best = logo; }
+    }
+    return best;
+}
+
+/** Back-compat alias — Solid family only. */
+export function nearestSolidLogo(hex: string): Sticker {
+    return nearestLogoInFamily(PROFILE_SOLID, hex);
+}
+
 export function isValidProfileLogo(id: unknown): id is string | null {
     return id === null || (typeof id === 'string' && PROFILE_LOGOS_BY_ID.has(id));
 }
