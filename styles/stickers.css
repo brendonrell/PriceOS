@@ -835,15 +835,10 @@ body.sticker-mode .hero-stickers { display: none; }
 /* Default is LEFT-aligned within the area; ALIGN re-justifies the packed modes. */
 .al-center .hero-stickers-row { justify-content: center; }
 .al-right .hero-stickers-row { justify-content: flex-end; }
-/* ROW packs the stickers snug (left by default, ALIGN moves the pack). */
-.arr-row .hero-stickers-row { gap: 12px; }
-/* SPACED + FILL fan out edge-to-edge across the area regardless of align:
-   SPACED few and large with air between, FILL a size down and dense. */
-.arr-spread .hero-stickers-row,
-.arr-fill .hero-stickers-row { justify-content: space-between; }
-.arr-fill .hero-stickers-row { gap: 3px; }
-/* SCATTER floats loose — extra air all round, room for the vertical drift. */
-.arr-scatter .hero-stickers-row { gap: 16px; padding-top: 12px; padding-bottom: 12px; }
+/* SPACED fans out edge-to-edge across the area regardless of align — the
+   only remaining flex-row mode now that Row/Scatter/Fill are gone, replaced
+   by Flow (Brendon, 2026-08-30). */
+.arr-spread .hero-stickers-row { justify-content: space-between; }
 /* STACK — a wide overlapping fan that fills the area edge to edge. */
 .hero-stack {
     position: relative;
@@ -858,6 +853,10 @@ body.sticker-mode .hero-stickers { display: none; }
 /* STACK = PILE — absolutely-placed area (aspect ratio set inline by buildPile). */
 .hero-pile { position: relative; width: 100%; margin: 0; }
 .hero-pile-item { position: absolute; }
+/* FLOW — absolutely-placed area, same shape as Collage/Pile (aspect ratio set
+   inline by buildFlow). Replaces Row/Scatter/Fill (Brendon, 2026-08-30). */
+.hero-flow { position: relative; width: 100%; margin: 0; }
+.hero-flow-item { position: absolute; }
 .hero-sticker {
     display: inline-flex;
     align-items: center;
