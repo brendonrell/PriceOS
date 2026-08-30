@@ -296,6 +296,11 @@ a.notif-item--link:hover { opacity: 0.85; }
     font-family: 'Courier New', Courier, monospace;
 }
 .skm-wrap::-webkit-scrollbar { display: none; }
+/* NOTE (Brendon, 2026-08-29): this rule was already correct — the remaining
+   height mismatch was structural, not CSS. StickerAlbum's .ss-foot lived
+   INSIDE .skm-wrap (eating into the fixed 56vh box) while StickerMarket's
+   .ss-foot sits OUTSIDE it (added below). Fixed in StickerAlbum.tsx by
+   moving its footer outside .skm-wrap to match Market's structure. */
 /* Phone: the EXACT store stacked box so the marketplace + binder match. */
 @media (max-width: 600px) {
     .skm-wrap { height: calc(16px + 6 * 60px + 30px); }
