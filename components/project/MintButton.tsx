@@ -210,7 +210,7 @@ export default function MintButton({
           (Brendon 2026-06-19, screenshots). */}
       {confirming && typeof document !== 'undefined' && createPortal(
         <div className="starred-confirm-overlay" role="dialog" aria-modal="true" onClick={() => setConfirming(false)}>
-          <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
+          <div className="ms-confirm-card is-centered mint-confirm-card" onClick={(e) => e.stopPropagation()}>
             <div className="ms-confirm-question">Mint {qty} × {projectTitle}?</div>
             <div className="ms-confirm-btns">
               <button type="button" className="ms-confirm-btn ms-confirm-btn--cancel" onClick={() => setConfirming(false)}>Cancel</button>
