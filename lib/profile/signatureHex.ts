@@ -56,8 +56,13 @@ function hash32(str: string): number {
 export function signatureHexFor(seed: string): string {
     const s = (seed || '').toLowerCase();
     const hue = hash32(`h:${s}`) % 360;
-    const sat = 0.56 + (hash32(`s:${s}`) % 30) / 100; // 0.56 – 0.85
-    const light = 0.44 + (hash32(`l:${s}`) % 20) / 100; // 0.44 – 0.63
+    /* Tuned down from 0.56–0.85 / 0.44–0.63 (Brendon, 2026-08-31) — that
+       range put too much weight on hot-pink/cyan hues at full punch, reading
+       as Miami Vice rather than "brand vivid". Lower ceiling + slightly
+       deeper lightness keeps the colour identifiable and lively without the
+       neon glare, and still holds up as a dark-mode profile background. */
+    const sat = 0.40 + (hash32(`s:${s}`) % 26) / 100; // 0.40 – 0.65
+    const light = 0.38 + (hash32(`l:${s}`) % 18) / 100; // 0.38 – 0.55
     return hslToHex(hue, sat, light);
 }
 
