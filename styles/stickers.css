@@ -1623,22 +1623,26 @@ body.theme-bright .ui-knockout { background: #fff; color: #111; }
 .pill.smgr-sheet-pill.active { opacity: 1; border-color: transparent; }
 
 
+/* Store + Market + Binder compact rails ALL sized to the STORE's real card
+   height — same technique as full mode's .skm-wrap (styles/market.css): one
+   fixed height on the shared class, default flex align-items:stretch (the
+   .ss-rail base) does the rest. Values measured directly off the live store
+   card (Brendon, 2026-08-30: "same method as whatever is keeping the full
+   versions all the same size"). */
+.ss-rail { height: 239px; }
+@media (max-width: 600px) {
+    .ss-rail { height: 259px; }
+}
+
 /* ── Compact-mode mini cards for Market + Binder (Brendon, 2026-08-30) ──
    Reuses the store's .ss-rail/.ss-card sizing language so all three faces
-   (Store/Market/Binder) share one visual grammar for compact mode.
-   Market + Binder cards are locked to the STORE's real compact-card height
-   (Brendon, 2026-08-30: "shorter than the compact sticker store...want all
-   3 compact modes to be the same height"). The store's height is JS-measured
-   off its own rail (StickersModal.tsx) and piped down as --skm-cc-h on the
-   modal's outer wrap — this rides the store's real box on every breakpoint
-   and font/DPI instead of guessing a static px, and never touches the store
-   card itself (its natural height already IS the var). border-box so the
-   fixed height includes this card's own padding, same discipline as .skm-wrap. */
+   (Store/Market/Binder) share one visual grammar for compact mode. Height
+   comes from .ss-rail above via flex stretch — these just distribute their
+   shorter content evenly inside that stretched box. */
 .mkt-rail .mkt-card,
 .alb-rail .alb-card {
     flex: 0 0 auto;
     width: 112px;
-    height: var(--skm-cc-h, auto);
     box-sizing: border-box;
     scroll-snap-align: start;
     display: flex;
