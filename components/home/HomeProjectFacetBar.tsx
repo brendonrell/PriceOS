@@ -275,16 +275,16 @@ export default function HomeProjectFacetBar({
         sortKey === key ? (sortDir === 'asc' ? '↑︎' : '↓︎') : '';
 
     /* NEW USERS ☻ (Brendon, 2026-08-15) — the ☻ pill is now a 4-step cycle:
-       Social ↑ → Social ↓ → New Users ↓ (recent first) → New Users ↑ → back
-       to Social ↑. Recent-first leads on entry to New Users, same as every
-       other feed on the platform (Brendon, 2026-08-15 revision). One tap
-       advances the cycle (same "tap advances" language as the GROUP toggle);
-       no more long-press. */
+       Social ↓ (recent first) → Social ↑ → New Users ↓ (recent first) → New
+       Users ↑ → back to Social ↓. Recent-first leads on entry to BOTH feeds,
+       same as every other feed on the platform (Brendon, 2026-08-15
+       revision). One tap advances the cycle (same "tap advances" language as
+       the GROUP toggle); no more long-press. */
     const cycleSocial = () => {
-        if (sortKey === 'social' && sortDir === 'asc') { applySort('social', 'desc'); return; }
-        if (sortKey === 'social' && sortDir === 'desc') { applySort('newusers', 'desc'); return; }
+        if (sortKey === 'social' && sortDir === 'desc') { applySort('social', 'asc'); return; }
+        if (sortKey === 'social' && sortDir === 'asc') { applySort('newusers', 'desc'); return; }
         if (sortKey === 'newusers' && sortDir === 'desc') { applySort('newusers', 'asc'); return; }
-        applySort('social', 'asc');
+        applySort('social', 'desc');
     };
 
     if (projects.length === 0 && !leadPills) return null;
