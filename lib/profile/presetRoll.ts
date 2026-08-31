@@ -3,9 +3,10 @@
  *
  * Pure functions, no React. Colorway and Tag Paint are full-spectrum (any
  * hex is valid on both — see useProfileHex / isValidTagPaint), so rolls pick
- * a vivid random hue rather than sampling a fixed swatch pool. Logo rides
- * along on hue proximity via nearestSolidLogo so it never clashes with a
- * rolled colour that isn't one of the brand presets.
+ * a random hue rather than sampling a fixed swatch pool. Saturation/lightness
+ * roll per rollSaturation/rollLightness — art-site restraint by default,
+ * vivid only ~1/3 of the time. Logo rides along via nearestLogoInFamily so
+ * it never clashes with whichever colour it's tied to.
  */
 
 import { NAME_FONTS } from './nameFont';
@@ -52,12 +53,24 @@ function hslHex(h: number, s: number, l: number): string {
     return `#${hx(f(0))}${hx(f(8))}${hx(f(4))}`.toUpperCase();
 }
 
-/** A vivid, readable random hue — same sat/light band as the logo ring so
- *  rolled colours always land somewhere with a sane light/dark contrast. */
+/** Saturation roll — art-site restraint over neon-by-default: about 1/3 of
+ *  rolls land vivid, 2/3 land muted/pastel (Brendon, 2026-08-31: "let's make
+ *  saturated like 1/3"). */
+function rollSaturation(): number {
+    if (Math.random() < 1 / 3) return 70 + Math.random() * 25; // vivid: 70–95%
+    return 15 + Math.random() * 40; // muted/pastel: 15–55%
+}
+
+function rollLightness(): number {
+    return 25 + Math.random() * 55; // 25–80%: dark → light
+}
+
+/** A random hue, full-taste range — saturation and lightness roll
+ *  independently per rollSaturation/rollLightness above, so results aren't
+ *  locked to one neon band (Brendon, 2026-08-31: "stuck in perpetual Miami
+ *  mode"). */
 function randomVividHex(): string {
-    const h = Math.random() * 360;
-    const l = [52, 62, 44][Math.floor(Math.random() * 3)]!;
-    return hslHex(h, 88, l);
+    return hslHex(Math.random() * 360, rollSaturation(), rollLightness());
 }
 
 /** Curated harmony offsets (degrees) — complementary, split-complementary,
@@ -69,24 +82,57 @@ function randomHarmonyHex(fromHue: number): string {
     const base = HARMONY_OFFSETS[Math.floor(Math.random() * HARMONY_OFFSETS.length)]!;
     const jitter = (Math.random() - 0.5) * 12; // ±6° so repeats don't feel identical
     const h = (fromHue + base + jitter + 360) % 360;
-    const l = [52, 62, 44][Math.floor(Math.random() * 3)]!;
-    return hslHex(h, 88, l);
+    return hslHex(h, rollSaturation(), rollLightness());
 }
 
-function hexHue(hex: string): number {
-    const h = hex.replace('#', '');
-    const r = (parseInt(h.slice(0, 2), 16) || 0) / 255;
-    const g = (parseInt(h.slice(2, 4), 16) || 0) / 255;
-    const b = (parseInt(h.slice(4, 6), 16) || 0) / 255;
-    const max = Math.max(r, g, b), min = Math.min(r, g, b);
-    if (max === min) return 0;
-    const d = max - min;
-    let hue: number;
-    if (max === r) hue = ((g - b) / d) % 6;
-    else if (max === g) hue = (b - r) / d + 2;
-    else hue = (r - g) / d + 4;
-    hue *= 60;
-    return hue < 0 ? hue + 360 : hue;
+/** Artistic primaries (red / yellow / blue) for the "Primary" pair style. */
+const PRIMARY_HUES = [0, 60, 240];
+
+/** Pair mode's colour relationship — picked per roll:
+ *  - harmony:  complementary/split-complementary/triadic hue offset (was
+ *              the only option before).
+ *  - mono:     same hue, opposite lightness bands — "dark green, light
+ *              green accent".
+ *  - primary:  main + accent both land on the red/yellow/blue triad.
+ *  Weighted toward harmony since it's the most broadly flattering, mono and
+ *  primary as the more graphic, opinionated options. */
+type PairStyle = 'harmony' | 'mono' | 'primary';
+
+function pickPairStyle(): PairStyle {
+    const r = Math.random();
+    if (r < 0.5) return 'harmony';
+    if (r < 0.8) return 'mono';
+    return 'primary';
+}
+
+function rollPairPalette(): { main: string; accent: string } {
+    const style = pickPairStyle();
+
+    if (style === 'primary') {
+        const shuffled = [...PRIMARY_HUES].sort(() => Math.random() - 0.5);
+        const sat = rollSaturation();
+        return {
+            main: hslHex(shuffled[0]!, sat, rollLightness()),
+            accent: hslHex(shuffled[1]!, sat, rollLightness()),
+        };
+    }
+
+    if (style === 'mono') {
+        const hue = Math.random() * 360;
+        const sat = rollSaturation();
+        const darkL = 20 + Math.random() * 15;   // 20–35
+        const lightL = 65 + Math.random() * 20;  // 65–85
+        const mainIsDark = Math.random() < 0.5;
+        return {
+            main: hslHex(hue, sat, mainIsDark ? darkL : lightL),
+            accent: hslHex(hue, sat, mainIsDark ? lightL : darkL),
+        };
+    }
+
+    // harmony
+    const mainHue = Math.random() * 360;
+    const main = hslHex(mainHue, rollSaturation(), rollLightness());
+    return { main, accent: randomHarmonyHex(mainHue) };
 }
 
 function randomFontId(): string {
@@ -128,9 +174,9 @@ export function rollPreset(mode: PresetMode): PresetResult {
 
     // Pair — colorway is the main; tag paint is the accent, and the logo
     // rides the accent too (tags + logo read as one coordinated pop against
-    // the main colorway) — a curated-harmony hue, not a raw random spread.
-    const main = randomVividHex();
-    const accent = randomHarmonyHex(hexHue(main));
+    // the main colorway). rollPairPalette picks the relationship itself
+    // (harmony hue offset / monochrome light-dark / primary triad).
+    const { main, accent } = rollPairPalette();
     return {
         hex: main,
         tagPaint: accent,
