@@ -204,6 +204,14 @@ export const POST = requireAuth(async (req, _ctx, address) => {
         if (!existing?.profile_hex) {
             upsertRow.profile_hex = signatureHex;
         }
+        /* Default brand-new accounts into the Dark colorway instead of the
+           unset/Dot boot default (Brendon, 2026-08-31) — matches the
+           generative profile hex, which now reads dark-mode-friendly. Only
+           on a genuinely new row: an existing settings envelope (any prior
+           colorway pick, explicit or not) is never overwritten. */
+        if (!existing) {
+            upsertRow.settings = { colorway: 'dark' };
+        }
         const { data: upserted, error: upsertError } = await supabase
             .from('users')
             .upsert(upsertRow as never, { onConflict: 'address' })
