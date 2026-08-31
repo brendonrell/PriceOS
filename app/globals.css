@@ -14651,26 +14651,24 @@ body.theme-bright .fi-row.inspecting {
 }
 .fi-ov-of { font-weight: 400; }
 
-/* THE ROSTER — the circle as faces. A MUTUAL wears a solid background tint;
-   the inspected one wears the stronger .on fill (background: solid). */
+/* THE ROSTER — the circle as faces. MUTUAL/NEW are VISIBLE text badges
+   under the name now, not an unexplained background tint (Brendon,
+   2026-08-30 — the old tint had zero in-app explanation of what it meant).
+   Sized and contrasted to be legible on a phone, not the faint/tiny chrome
+   PD explicitly wants gone (Rule #legibility): 9px floor, bold, full-
+   strength border + text, never opacity-faded. */
 .fi-roster {
     flex: 1 1 auto; min-height: 0; overflow-y: auto;
     display: flex; flex-wrap: wrap; align-content: flex-start; gap: 6px;
 }
 .fi-rost-cell {
-    display: inline-flex; flex-direction: column; align-items: center; gap: 1px;
+    display: inline-flex; flex-direction: column; align-items: center; gap: 2px;
     padding: 4px 6px;
     border: 1px solid transparent;
     font-family: 'Courier New', Courier, monospace;
     color: var(--text-color);
     cursor: pointer;
 }
-.fi-rost-cell.mutual { background: color-mix(in srgb, var(--text-color) 12%, transparent); }
-/* NEW mode's tint — same treatment ROSTER uses for a mutual, applied to
-   the most-recently-added faces instead (Brendon, 2026-08-20 — replaced the
-   dotted ring, which read as busy/fussy). Never both at once: NEW and
-   ROSTER are separate modes. */
-.fi-rost-cell.recent { background: color-mix(in srgb, var(--text-color) 12%, transparent); }
 .fi-rost-cell.on { background: var(--stat-active-bg); color: var(--stat-active-text); }
 .fi-rost-cell:hover { border-color: var(--text-color); }
 .fi-rost-me { cursor: default; }
@@ -14679,6 +14677,20 @@ body.theme-bright .fi-row.inspecting {
     font-size: 12px; font-weight: bold; letter-spacing: 0.3px;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+.fi-rost-badge {
+    font-size: 9px; font-weight: bold; letter-spacing: 0.5px;
+    line-height: 1.4;
+    padding: 1px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--text-color);
+    color: var(--text-color);
+}
+/* Inspected cell flips to the solid .on fill — badge borrows that same
+   full-strength text color so it never goes faint against the fill. */
+.fi-rost-cell.on .fi-rost-badge { border-color: var(--stat-active-text); color: var(--stat-active-text); }
+.fi-rost-badge-mutual { background: color-mix(in srgb, var(--text-color) 16%, transparent); }
+.fi-rost-badge-new { background: var(--text-color); color: var(--bg-color); border-color: var(--text-color); }
+.fi-rost-cell.on .fi-rost-badge-new { background: var(--stat-active-text); color: var(--stat-active-bg); }
 
 /* PROJECTS PRO's own ROSTER — two to a line, each project boxed as its own
    card (was a bare wrap of floating faces, hard to parse). Scoped to
@@ -14711,6 +14723,7 @@ body.theme-bright .fi-row.inspecting {
 }
 .fi-day {
     border: 1px solid var(--text-color);
+    border-radius: 4px;
     min-height: 18px;
     cursor: default;
 }
