@@ -5,15 +5,17 @@
  *
  * ⛔ REBUILT 2026-07-30 (Brendon: "I hate our friend inspector preview").
  * The old WIRE (a scrolling marquee of circle events) and MAP (a starfield
- * constellation) are GONE. Six modes now, each answering a question the
- * ledger CANNOT, each a live control — tapping anything drives the list
- * below it.
+ * constellation) are GONE. Five modes now (cut from six — NEW was folded
+ * into ROSTER, 2026-08-30: it was the same face grid with an unexplained
+ * tint, so it's now MUTUAL/NEW text badges on one roster instead of two
+ * near-identical tabs), each answering a question the ledger CANNOT, each
+ * a live control — tapping anything drives the list below it.
  *
  *   30 DAYS — your circle's activity as a dense day grid, darker where more
  *     moved, today at the end. Tap a day → the ledger narrows to who moved
  *     that day. Days are viewer-LOCAL (§9). Default + first in the cycle.
  *
- *   STREAK — who in your circle has moved the most consecutive days inside
+ *   STREAKS — who in your circle has moved the most consecutive days inside
  *     the same 30-day window, current streak leading, best-in-window as the
  *     tiebreaker. Tap a row → jump to that person's ledger row. Shares the
  *     30 Days fetch (useThirtyDayBuckets) — no second network round-trip.
@@ -22,21 +24,20 @@
  *     OVERLAP but against spend instead of shared projects. Tap a row →
  *     jump to that person.
  *
- *   NEW — the ROSTER grid, with the most recently added followers/following
- *     ringed so growth is visible at a glance. Recency is the follows API's
- *     own created_at ordering (no new endpoint): graph.followers/following
- *     already arrive newest-first, so the first non-mutual faces in the
- *     merged list are the newest. Mutuals aren't orderable by this and stay
- *     unringed here.
- *
  *   OVERLAP — every project YOU hold, with a bar of how much of your circle
  *     holds it too. The one read the row list can't give: what you're
  *     actually in on together. Tap a project → the ledger below narrows to
- *     exactly the people who hold it.
+ *     exactly the people who hold it. (Label was truncated to "OVER" before
+ *     2026-08-30 — read as "it's over", not "overlap". Spelled out now.)
  *
- *   ROSTER — the whole circle as PriceSprite faces in a tight grid, each in
- *     its owner's profile colorway, mutuals ringed. Turns a long scroll into
- *     one glance; tap a face to jump to that person's row and open them.
+ *   ROSTER — the whole circle as PriceSprite faces in a tight grid. Each
+ *     face that's a mutual follow wears a visible MUTUAL badge under its
+ *     name; each face among the 8 most-recently-added (non-mutual) edges
+ *     wears a visible NEW badge instead — plain text, not a silent tint,
+ *     so what you're looking at is legible without reading the source
+ *     (Brendon, 2026-08-30: the old tint-only mutual/recent marks had zero
+ *     in-app explanation). Turns a long scroll into one glance; tap a face
+ *     to jump to that person's row and open them.
  *
  * Same nav as before (Brendon's instruction): the floating text chips, top
  * right, one pick persisted per device.
@@ -76,13 +77,12 @@ const MODE_KEY = 'pd_fi_preview';
    while Brendon picks a dedicated icon. */
 const PIN_KEY = 'pd_fi_preview_pin';
 const PIN_GLYPH = '⟟';
-type PreviewMode = 'days' | 'streak' | 'spend' | 'newcircle' | 'overlap' | 'roster';
+type PreviewMode = 'days' | 'streak' | 'spend' | 'overlap' | 'roster';
 const MODES: { key: PreviewMode; label: string }[] = [
     { key: 'days', label: '30D' },
-    { key: 'streak', label: 'STREAK' },
+    { key: 'streak', label: 'STREAKS' },
     { key: 'spend', label: 'SPEND' },
-    { key: 'newcircle', label: 'NEW' },
-    { key: 'overlap', label: 'OVER' },
+    { key: 'overlap', label: 'OVERLAP' },
     { key: 'roster', label: 'ROSTER' },
 ];
 
@@ -102,7 +102,7 @@ export interface PreviewFocus { handles: string[]; label: string; glyph: string 
 function readMode(): PreviewMode {
     try {
         const saved = localStorage.getItem(MODE_KEY);
-        if (saved === 'roster' || saved === 'days' || saved === 'overlap' || saved === 'streak' || saved === 'spend' || saved === 'newcircle') return saved;
+        if (saved === 'roster' || saved === 'days' || saved === 'overlap' || saved === 'streak' || saved === 'spend') return saved;
     } catch { /* first visit */ }
     return 'days';
 }
@@ -110,7 +110,7 @@ function readMode(): PreviewMode {
 function readPin(): PreviewMode | null {
     try {
         const saved = localStorage.getItem(PIN_KEY);
-        if (saved === 'roster' || saved === 'days' || saved === 'overlap' || saved === 'streak' || saved === 'spend' || saved === 'newcircle') return saved;
+        if (saved === 'roster' || saved === 'days' || saved === 'overlap' || saved === 'streak' || saved === 'spend') return saved;
     } catch { /* first visit */ }
     return null;
 }
@@ -173,9 +173,6 @@ export default function FriendInspectorPreview({
             {mode === 'days' && <ThirtyDays people={people} onFocus={onFocus} />}
             {mode === 'streak' && <Streak people={people} onInspect={onInspect} />}
             {mode === 'spend' && <Spend people={people} onInspect={onInspect} />}
-            {mode === 'newcircle' && (
-                <NewCircle people={people} inspected={inspected} onInspect={onInspect} myStat={myStat} myHandle={myHandle} />
-            )}
             {mode === 'overlap' && <Overlap people={people} mySlugs={mySlugs} onFocus={onFocus} />}
             {mode === 'roster' && (
                 <Roster people={people} inspected={inspected} onInspect={onInspect} myStat={myStat} myHandle={myHandle} />
@@ -290,16 +287,30 @@ function Overlap({
 }
 
 /* ── THE ROSTER ──────────────────────────────────────────────────────────
-   The circle as faces. Each sprite wears its owner's profile colorway; a
-   MUTUAL wears a solid background tint (Brendon, 2026-08-20 — replaced the
-   dotted ring, PD's other "selected" mark, which read as too busy/fussy
-   here). You sit first, marked YOU. ── */
+   The circle as faces, merged with the old NEW mode (2026-08-30 — it was
+   the same face grid with an unlabeled tint, so it's one grid now). Each
+   face gets a visible text badge, never an unexplained background tint:
+   MUTUAL for a mutual follow, NEW for one of the 8 most-recently-added
+   non-mutual edges (recency = the follows API's own created_at ordering —
+   graph.followers/following already arrive newest-first, so the first
+   non-mutual faces in `people` ARE the newest). A face is never both — NEW
+   only ever applies to non-mutuals. You sit first, marked YOU. ── */
 function Roster({
     people, inspected, onInspect, myStat, myHandle,
 }: {
     people: PreviewPerson[]; inspected: string | null; onInspect: (h: string) => void;
     myStat: CircleStat | undefined; myHandle: string | null;
 }) {
+    const recent = useMemo(() => {
+        const set = new Set<string>();
+        for (const p of people) {
+            if (p.mutual) continue;
+            set.add(p.handle);
+            if (set.size >= 8) break;
+        }
+        return set;
+    }, [people]);
+
     if (people.length === 0) {
         return <div className="fi-pv-note">Your circle shows here as faces once you follow someone.</div>;
     }
@@ -311,20 +322,25 @@ function Roster({
                     <span className="fi-rost-name">YOU</span>
                 </span>
             )}
-            {people.map((p) => (
-                <span
-                    key={p.handle}
-                    className={`fi-rost-cell${p.mutual ? ' mutual' : ''}${inspected === p.handle ? ' on' : ''}`}
-                    role="button"
-                    tabIndex={0}
-                    title={`@${p.handle}${p.mutual ? ' — mutual' : ''}`}
-                    onClick={() => onInspect(p.handle)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onInspect(p.handle); } }}
-                >
-                    <PreviewSprite handle={p.handle} color={p.stat?.profileHex ?? undefined} />
-                    <span className="fi-rost-name">@{p.handle}</span>
-                </span>
-            ))}
+            {people.map((p) => {
+                const isNew = recent.has(p.handle);
+                return (
+                    <span
+                        key={p.handle}
+                        className={`fi-rost-cell${inspected === p.handle ? ' on' : ''}`}
+                        role="button"
+                        tabIndex={0}
+                        title={`@${p.handle}${p.mutual ? ' — mutual' : isNew ? ' — recently added' : ''}`}
+                        onClick={() => onInspect(p.handle)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onInspect(p.handle); } }}
+                    >
+                        <PreviewSprite handle={p.handle} color={p.stat?.profileHex ?? undefined} />
+                        <span className="fi-rost-name">@{p.handle}</span>
+                        {p.mutual && <span className="fi-rost-badge fi-rost-badge-mutual">MUTUAL</span>}
+                        {!p.mutual && isNew && <span className="fi-rost-badge fi-rost-badge-new">NEW</span>}
+                    </span>
+                );
+            })}
         </div>
     );
 }
@@ -536,54 +552,3 @@ function Spend({ people, onInspect }: { people: PreviewPerson[]; onInspect: (h: 
     );
 }
 
-/* ── NEW TO CIRCLE ───────────────────────────────────────────────────────
-   The ROSTER grid, with the most recently added followers/following ringed.
-   graph.followers/following are queried newest-first (created_at desc, no
-   new endpoint) and merged as [...mutuals, ...followers, ...following] —
-   so the first non-mutual faces in `people` ARE the newest edges. Mutuals
-   have no recency signal here and stay unringed. ── */
-function NewCircle({
-    people, inspected, onInspect, myStat, myHandle,
-}: {
-    people: PreviewPerson[]; inspected: string | null; onInspect: (h: string) => void;
-    myStat: CircleStat | undefined; myHandle: string | null;
-}) {
-    const recent = useMemo(() => {
-        const set = new Set<string>();
-        for (const p of people) {
-            if (p.mutual) continue;
-            set.add(p.handle);
-            if (set.size >= 8) break;
-        }
-        return set;
-    }, [people]);
-
-    if (people.length === 0) {
-        return <div className="fi-pv-note">New follows show here, most recent first, once your circle grows.</div>;
-    }
-
-    return (
-        <div className="fi-roster">
-            {myHandle && (
-                <span className="fi-rost-cell fi-rost-me" title={`@${myHandle} — you`}>
-                    <PreviewSprite handle={myHandle} color={myStat?.profileHex ?? undefined} />
-                    <span className="fi-rost-name">YOU</span>
-                </span>
-            )}
-            {people.map((p) => (
-                <span
-                    key={p.handle}
-                    className={`fi-rost-cell${recent.has(p.handle) ? ' recent' : ''}${inspected === p.handle ? ' on' : ''}`}
-                    role="button"
-                    tabIndex={0}
-                    title={`@${p.handle}${recent.has(p.handle) ? ' — recently added' : ''}`}
-                    onClick={() => onInspect(p.handle)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onInspect(p.handle); } }}
-                >
-                    <PreviewSprite handle={p.handle} color={p.stat?.profileHex ?? undefined} />
-                    <span className="fi-rost-name">@{p.handle}</span>
-                </span>
-            ))}
-        </div>
-    );
-}
