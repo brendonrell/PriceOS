@@ -12,7 +12,7 @@
  */
 
 import { useMemo } from 'react';
-import { SHEETS, stickersForSheet, fanFor } from '../../lib/stickers/catalog';
+import { SHEETS, stickersForSheet } from '../../lib/stickers/catalog';
 import { useOwnedStickerIds } from '../../lib/stickers/owned';
 import { StickerArt } from './StickerArt';
 
@@ -30,33 +30,31 @@ export default function StickerAlbum({ compact }: { compact?: boolean }) {
     const gotAll = pages.reduce((n, p) => n + p.got, 0);
     const totalAll = pages.reduce((n, p) => n + p.total, 0);
 
-    /* Compact — a swipeable rail of mini progress cards, one per sheet
-       (Brendon, 2026-08-30). Tap scrolls the full page stack into view
-       via an anchor, same as tapping a page normally would just show it. */
+    /* Compact — a swipeable rail of mini binder pages, one per sheet
+       (Brendon, 2026-08-30, revised 2026-08-31 — the first pass's 3-sticker
+       fan read as decorative and didn't match Store/Market's card height;
+       this is a proper mini slot grid, same owned/dimmed language as the
+       full page below, sized to fill the card like Store/Market's art
+       does). */
     if (compact) {
         return (
             <>
-            <div className="skm-book-head alb-compact-head">
+            <div className="alb-compact-head">
                 <span className="skm-book-title">MY STICKER BINDER</span>
                 <span className="skm-book-pos">{gotAll}/{totalAll} collected</span>
             </div>
             <div className="ss-rail alb-rail">
-                {pages.map(({ sheet, got, total, complete }) => {
+                {pages.map(({ sheet, slots, got, total, complete }) => {
                     const pct = total ? Math.round((got / total) * 100) : 0;
+                    const preview = slots.slice(0, 6);
                     return (
                         <div className="alb-card" key={sheet.id}>
-                            <div className="alb-card-fan" aria-hidden="true">
-                                <span className="ss-fan">
-                                    {fanFor(sheet).map((st, i) => (
-                                        <span
-                                            key={st.id}
-                                            className={`ss-fan-item${owned.has(st.id) ? '' : ' alb-fan-miss'}`}
-                                            style={{ transform: `rotate(${[-9, 0, 9][i] ?? 0}deg)` }}
-                                        >
-                                            <StickerArt sticker={st} size={30} />
-                                        </span>
-                                    ))}
-                                </span>
+                            <div className="alb-card-grid" aria-hidden="true">
+                                {preview.map((st) => (
+                                    <span key={st.id} className={`alb-mini-slot${owned.has(st.id) ? ' is-got' : ''}`}>
+                                        <StickerArt sticker={st} size={22} />
+                                    </span>
+                                ))}
                             </div>
                             <div className="alb-card-name">{sheet.name}</div>
                             <div className="alb-progress alb-card-bar" aria-hidden="true">
