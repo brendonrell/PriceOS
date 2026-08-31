@@ -2568,7 +2568,7 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                             onSort={onMintSort}
                             applySort={applyMintSort}
                             facets={ARTIST_SHOWCASE_FACETS}
-                            glyphOnlyPills={['PriceDay']}
+                            hidePills={['PriceDay']}
                             compact={showcaseView === 'regular'}
                             leadPills={[
                                 { key: 'regular', label: 'Top 6', active: showcaseView === 'regular', onClick: () => setShowcaseView('regular') },
