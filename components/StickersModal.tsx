@@ -116,25 +116,7 @@ export default function StickersModal() {
         return () => mq.removeEventListener('change', sync);
     }, []);
 
-    /* Compact-card height parity (Brendon, 2026-08-30): Market + Binder's
-       mini cards are locked to the STORE's real compact-card height via the
-       --skm-cc-h var (styles/stickers.css) instead of a guessed static px —
-       this rail (the store's own) is the only one measured, so it stays
-       untouched and the other two just match it, on every breakpoint. */
-    const [compactCardH, setCompactCardH] = useState<number | null>(null);
-    useEffect(() => {
-        const el = railRef.current;
-        if (!el) return;
-        const measure = () => {
-            const h = el.getBoundingClientRect().height;
-            if (h > 0) setCompactCardH(h);
-        };
-        measure();
-        const ro = new ResizeObserver(measure);
-        ro.observe(el);
-        return () => ro.disconnect();
-    }, [isOpen, expanded, marketOn, albumOn]);
-
+    
     /* Remember the carousel scroll position across opening a sheet / reopening
        the store, so it never snaps back to the start (Brendon 2026-06-21). */
     const railXRef = useRef(0);
@@ -311,7 +293,6 @@ export default function StickersModal() {
             <div
                 className="sticker-sheet"
                 onClick={(e) => e.stopPropagation()}
-                style={compactCardH ? ({ '--skm-cc-h': `${compactCardH}px` } as React.CSSProperties) : undefined}
             >
                 <div
                     className="ss-handle"
