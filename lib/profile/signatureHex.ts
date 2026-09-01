@@ -56,13 +56,18 @@ function hash32(str: string): number {
 export function signatureHexFor(seed: string): string {
     const s = (seed || '').toLowerCase();
     const hue = hash32(`h:${s}`) % 360;
-    /* Tuned down from 0.56–0.85 / 0.44–0.63 (Brendon, 2026-08-31) — that
-       range put too much weight on hot-pink/cyan hues at full punch, reading
-       as Miami Vice rather than "brand vivid". Lower ceiling + slightly
-       deeper lightness keeps the colour identifiable and lively without the
-       neon glare, and still holds up as a dark-mode profile background. */
-    const sat = 0.40 + (hash32(`s:${s}`) % 26) / 100; // 0.40 – 0.65
-    const light = 0.38 + (hash32(`l:${s}`) % 18) / 100; // 0.38 – 0.55
+    /* Re-tuned to match the Presets row's roll logic (rollSaturation /
+       rollLightness in lib/profile/presetRoll.ts, Brendon 2026-08-31) rather
+       than a standalone range — art-site restraint by default, vivid only
+       ~1/3 of the time, same as a Random preset roll. Deterministic here:
+       a hashed 0–1 draw stands in for Math.random() to pick the vivid vs.
+       muted/pastel branch, so a given seed always lands in the same band. */
+    const vividRoll = (hash32(`v:${s}`) % 100) / 100;
+    const sat =
+        vividRoll < 1 / 3
+            ? 0.7 + (hash32(`s:${s}`) % 26) / 100 // vivid: 0.70 – 0.95
+            : 0.15 + (hash32(`s:${s}`) % 41) / 100; // muted/pastel: 0.15 – 0.55
+    const light = 0.25 + (hash32(`l:${s}`) % 56) / 100; // 0.25 – 0.80
     return hslToHex(hue, sat, light);
 }
 
