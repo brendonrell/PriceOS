@@ -335,6 +335,11 @@ const PREHYDRATION_SCRIPT = `
                         var hue = (day * 137.508 + 55 + rnd() * 24) % 360;
                         var sat = 62 + rnd() * 38;
                         var light = 40 + rnd() * 20;
+                        // liftWarmFloor (lib/color/warmGuard) mirrored inline —
+                        // brick/orange/mustard hues (<=65deg) still read muddy
+                        // in this band even at high sat; floor light at 52.
+                        var warmHue = ((hue % 360) + 360) % 360;
+                        if (warmHue <= 65) light = Math.max(light, 52);
                         var s = sat / 100, l = light / 100;
                         var k = s * Math.min(l, 1 - l);
                         function f(n) {
