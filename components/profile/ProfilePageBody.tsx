@@ -90,7 +90,7 @@ import { useNameFont } from '../../lib/hooks/useNameFont';
 import { useTagPaint } from '../../lib/hooks/useTagPaint';
 import { useFormulas, useFormulaRoll } from '../../lib/hooks/useFormulas';
 import {
-    FORMULA_SETS, FORMULA_LENGTHS, FORMULA_WEAVES, MAX_FORMULAS,
+    FORMULA_SETS, FORMULA_SIZES, FORMULA_WEAVES, MAX_FORMULAS,
     drawFormula, formulaBlurb, newFormula, type Formula,
 } from '../../lib/tags/formula';
 import { useTeamTagStyle } from '../../lib/hooks/useTeamTagStyle';
@@ -1497,9 +1497,9 @@ function ProfilePageBodyInner({
                                                     <span className="stat-name">{`${set.glyphs.slice(0, 3).join('')} ${set.name}`}</span>
                                                 </div>
                                             ))}
-                                            {FORMULA_LENGTHS.map((n) => (
-                                                <div key={`l${n}`} className="pill pill-l3 fx-opt fx-opt-preview">
-                                                    <span className="stat-name">{String(n)}</span>
+                                            {FORMULA_SIZES.map((sz) => (
+                                                <div key={`l${sz.len}`} className="pill pill-l3 fx-opt fx-opt-preview">
+                                                    <span className="stat-name">{sz.label}</span>
                                                 </div>
                                             ))}
                                             {FORMULA_WEAVES.map((w) => (
@@ -1589,7 +1589,7 @@ function ProfilePageBodyInner({
                                             },
                                             `${set.name} — ${set.glyphs.join(' ')}`,
                                         ))}
-                                        {FORMULA_LENGTHS.map((n) => btn(`l${n}`, String(n), f.len === n, () => patch({ len: n }), `${n} glyphs long`))}
+                                        {FORMULA_SIZES.map((sz) => btn(`l${sz.len}`, sz.label, f.len === sz.len, () => patch({ len: sz.len }), `${sz.label} — ${sz.len} glyphs long`))}
                                         {FORMULA_WEAVES.map((w, wi) => btn(`w${wi}`, w, f.weave === wi, () => patch({ weave: wi }), `Weave: ${w}`))}
                                         {btn('sp', 'Spaced', f.spaced, () => patch({ spaced: !f.spaced }), 'Hair space between glyphs')}
                                         {/* DELETE — the way out. Renumbers the shelf, like Albums. */}
