@@ -860,7 +860,7 @@ function ProfilePageBodyInner({
        namespaced under the same store with a ":more" id so a refresh lands back
        on the same sub-section (e.g. My History), not just the +More tab. */
     const moreMemId = `${user.handle ?? handle}:more`;
-    const MORE_KEYS: ReadonlySet<string> = new Set<ProfileMoreL1>(['cooldown', 'created', 'starred', 'wishlists', 'albums', 'offers', 'vault', 'sigil', 'loyalty', 'counterparties', 'history', 'achievements', 'discord', 'anointed', 'targets', 'calls', 'price-overview', 'price-tokenomics', 'price-contract', 'price-utility']);
+    const MORE_KEYS: ReadonlySet<string> = new Set<ProfileMoreL1>(['cooldown', 'created', 'starred', 'wishlists', 'albums', 'offers', 'vault', 'sigil', 'loyalty', 'counterparties', 'history', 'achievements', 'discord', 'anointed', 'calls', 'price-overview', 'price-tokenomics', 'price-contract', 'price-utility']);
     const [moreL1, setMoreL1] = useState<ProfileMoreL1>(() => {
         // A pasted deep link's ?sub= wins here too (Share Any View).
         const shared = readViewParam('sub');
@@ -1095,6 +1095,9 @@ function ProfilePageBodyInner({
         if (v === 'cooldown' && !onCooldown) v = 'starred';
         // 'created' only exists for traditional-Top-6 artists with projects.
         if (v === 'created' && !createdUnderMore) v = 'albums';
+        // Targets folded into Calls (Brendon, 2026-09-01) — a stale saved/shared
+        // 'targets' key now opens Calls, where that content lives.
+        if ((v as string) === 'targets') v = 'calls';
         // Visitors never see private Starred/Wishlists — fall to Created (when
         // this artist surfaces it) else Albums.
         /* Offers joined the private set 2026-08-01 — a visitor landing on a
@@ -2198,7 +2201,6 @@ function ProfilePageBodyInner({
                                         { key: 'loyalty',   label: <><span className="pill-tab-ico is-loyalty">{'\u2724\uFE0E'}</span> Loyalty</>,   active: effMoreL1 === 'loyalty',   onClick: () => setMoreL1('loyalty')   },
                                         { key: 'achievements', label: <><span className="pill-tab-ico is-achievements">{ACHIEVEMENTS_ICON}</span> Achievements</>, active: effMoreL1 === 'achievements', onClick: () => setMoreL1('achievements') },
                                         { key: 'counterparties', label: <><span className="pill-tab-ico is-counterparties">{'\u21C4\uFE0E'}</span> Counterparties</>, active: effMoreL1 === 'counterparties', onClick: () => setMoreL1('counterparties') },
-                                        { key: 'targets',   label: <><span className="pill-tab-ico is-targets">{'\u2316\uFE0E'}</span> Targets</>,   active: effMoreL1 === 'targets',   onClick: () => setMoreL1('targets')   },
                                         { key: 'calls',     label: <><span className="pill-tab-ico is-calls">{'\u00A1\uFE0E'}</span> Calls</>,     active: effMoreL1 === 'calls',     onClick: () => setMoreL1('calls')     },
                                         { key: 'anointed',  label: <><span className="pill-tab-ico is-anoint">{'\u2722\uFE0E'}</span> Anointed</>,  active: effMoreL1 === 'anointed',  onClick: () => setMoreL1('anointed')  },
                                         /* Sigil pill — owner-gated (Brendon, 2026-08-27): shown only once
@@ -2480,24 +2482,23 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                         />
                     )}
 
-                    {/* Targets — this wallet's Price Target record (the Seal
-                        system): open calls sealed, closed windows public
-                        against today's floor. */}
-                    {onMore && effMoreL1 === 'targets' && (
-                        <TargetsPanel
-                            address={user.address}
-                            isOwnProfile={isOwnProfile}
-                        />
-                    )}
-
                     {/* Calls — this wallet's Conviction record (the Call
                         Ledger): public, immutable calls settled CROWNED/REKT
-                        against the floor. Sits beside Targets on purpose. */}
+                        against the floor. Targets folded in underneath
+                        (Brendon, 2026-09-01) — its own pill is gone, the
+                        Price Target record (the Seal system) now reads as
+                        this tab's second section. */}
                     {onMore && effMoreL1 === 'calls' && (
-                        <CallsPanel
-                            address={user.address}
-                            isOwnProfile={isOwnProfile}
-                        />
+                        <>
+                            <CallsPanel
+                                address={user.address}
+                                isOwnProfile={isOwnProfile}
+                            />
+                            <TargetsPanel
+                                address={user.address}
+                                isOwnProfile={isOwnProfile}
+                            />
+                        </>
                     )}
 
                     {/* Loyalty — the long game: tenure, patronage, streak,
