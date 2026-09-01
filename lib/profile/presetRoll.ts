@@ -11,6 +11,7 @@
 
 import { NAME_FONTS } from './nameFont';
 import { nearestLogoInFamily, PROFILE_SOLID, PROFILE_BLANK, PROFILE_PETEY, PROFILE_HOLO } from './profileLogos';
+import { liftWarmFloor } from '../color/warmGuard';
 
 export type PresetMode = 'random' | 'match' | 'pair';
 
@@ -61,8 +62,12 @@ function rollSaturation(): number {
     return 15 + Math.random() * 40; // muted/pastel: 15–55%
 }
 
-function rollLightness(): number {
-    return 25 + Math.random() * 55; // 25–80%: dark → light
+/* Lightness roll — takes the hue so liftWarmFloor (lib/color/warmGuard) can
+ * lift brick/orange/mustard rolls (hue <=65) out of the muddy "Thanksgiving"
+ * band; every other hue passes through at the plain 25–80% roll (Brendon,
+ * 2026-09-01: "the issue is yellow muted, not saturated"). */
+function rollLightness(hue: number): number {
+    return liftWarmFloor(hue, 25 + Math.random() * 55); // 25–80%, 52+ if warm
 }
 
 /** A random hue, full-taste range — saturation and lightness roll
@@ -70,7 +75,8 @@ function rollLightness(): number {
  *  locked to one neon band (Brendon, 2026-08-31: "stuck in perpetual Miami
  *  mode"). */
 function randomVividHex(): string {
-    return hslHex(Math.random() * 360, rollSaturation(), rollLightness());
+    const h = Math.random() * 360;
+    return hslHex(h, rollSaturation(), rollLightness(h));
 }
 
 /** Curated harmony offsets (degrees) — complementary, split-complementary,
@@ -82,7 +88,7 @@ function randomHarmonyHex(fromHue: number): string {
     const base = HARMONY_OFFSETS[Math.floor(Math.random() * HARMONY_OFFSETS.length)]!;
     const jitter = (Math.random() - 0.5) * 12; // ±6° so repeats don't feel identical
     const h = (fromHue + base + jitter + 360) % 360;
-    return hslHex(h, rollSaturation(), rollLightness());
+    return hslHex(h, rollSaturation(), rollLightness(h));
 }
 
 /** Artistic primaries (red / yellow / blue) for the "Primary" pair style. */
@@ -112,8 +118,8 @@ function rollPairPalette(): { main: string; accent: string } {
         const shuffled = [...PRIMARY_HUES].sort(() => Math.random() - 0.5);
         const sat = rollSaturation();
         return {
-            main: hslHex(shuffled[0]!, sat, rollLightness()),
-            accent: hslHex(shuffled[1]!, sat, rollLightness()),
+            main: hslHex(shuffled[0]!, sat, rollLightness(shuffled[0]!)),
+            accent: hslHex(shuffled[1]!, sat, rollLightness(shuffled[1]!)),
         };
     }
 
@@ -131,7 +137,7 @@ function rollPairPalette(): { main: string; accent: string } {
 
     // harmony
     const mainHue = Math.random() * 360;
-    const main = hslHex(mainHue, rollSaturation(), rollLightness());
+    const main = hslHex(mainHue, rollSaturation(), rollLightness(mainHue));
     return { main, accent: randomHarmonyHex(mainHue) };
 }
 
