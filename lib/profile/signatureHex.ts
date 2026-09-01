@@ -16,6 +16,8 @@
  * buckets (lib/art/outputColor → classifyRgb) for the pill's name.
  */
 
+import { liftWarmFloor } from '../color/warmGuard';
+
 function hslToHex(h: number, s: number, l: number): string {
     const c = (1 - Math.abs(2 * l - 1)) * s;
     const hp = h / 60;
@@ -67,7 +69,11 @@ export function signatureHexFor(seed: string): string {
         vividRoll < 1 / 3
             ? 0.7 + (hash32(`s:${s}`) % 26) / 100 // vivid: 0.70 – 0.95
             : 0.15 + (hash32(`s:${s}`) % 41) / 100; // muted/pastel: 0.15 – 0.55
-    const light = 0.25 + (hash32(`l:${s}`) % 56) / 100; // 0.25 – 0.80
+    const lightRoll = 0.25 + (hash32(`l:${s}`) % 56) / 100; // 0.25 – 0.80
+    /* liftWarmFloor (lib/color/warmGuard) — brick/orange/mustard hues read
+       muddy under ~52% light regardless of saturation; only that band gets
+       lifted (Brendon, 2026-09-01). */
+    const light = liftWarmFloor(hue, lightRoll * 100) / 100;
     return hslToHex(hue, sat, light);
 }
 
