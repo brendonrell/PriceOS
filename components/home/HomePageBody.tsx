@@ -412,6 +412,14 @@ function HomePageBodyInner({
         return () => setViewParam('tab', null);
     }, [activeTab]);
     const selectTab = (id: HomeTab, label: string) => {
+        // Tapping Shuffle while already on it re-rolls in place (Brendon,
+        // 2026-09-01) — otherwise the pill's own click is a no-op since
+        // setActiveTab(id) below is already a no-op when id === activeTab.
+        // setShuffleSeed is declared further down in this component but
+        // closes over fine — this only runs on click, well after mount.
+        if (id === 'shuffle' && activeTab === 'shuffle') {
+            setShuffleSeed((s) => s + 1);
+        }
         setActiveTab(id);
         rememberTab('home', 'home', id);
         showToast(`Tab: ${label.toUpperCase()}`);
@@ -916,7 +924,9 @@ function HomePageBodyInner({
        random outputs (Brendon, 2026-06-13). The re-roll fires when LEAVING the
        tab, so the next project is already chosen by the time the user returns —
        arrival just lazy-paints the pre-decided pick instead of re-rolling AND
-       repainting in the same beat (the entry lag). No re-roll button. */
+       repainting in the same beat (the entry lag). Tapping the Shuffle pill
+       WHILE ALREADY ON IT also re-rolls (Brendon, 2026-09-01) — see
+       selectTab, the closest thing to a re-roll button. */
     const [shuffleSeed, setShuffleSeed] = useState(0);
     const prevTabRef = useRef<HomeTab>(activeTab);
     useEffect(() => {
