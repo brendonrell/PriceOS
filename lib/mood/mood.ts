@@ -18,6 +18,7 @@
  */
 
 import { PRICEDAY_EPOCH } from '../priceday/priceday';
+import { liftWarmFloor } from '../color/warmGuard';
 
 /* The mood flips at MIDNIGHT IN MONTREAL (Brendon, 2026-06-12 — it's his
    wall clock, not UTC's). Day number = days since the PriceDay epoch of
@@ -268,7 +269,10 @@ export function moodOfDay(d: Date = new Date()): Mood {
        full wheel reachable. Text colour auto-resolves off luminance (the deep
        ones get white lettering; bright limes/yellows keep dark text). */
     const sat = 62 + r() * 38; // 62–100%
-    const light = 40 + r() * 20; // 40–60%
+    /* Warm hues (brick/orange/mustard) still read muddy in this range even
+       at high saturation — liftWarmFloor lifts only that band. See
+       lib/color/warmGuard.ts (Brendon, 2026-09-01: today's mustard roll). */
+    const light = liftWarmFloor(hue, 40 + r() * 20); // 40–60%, 52+ if warm
     /* The mood reads off the colour via the chart — the hue picks the band,
        the no-repeat walk picks the word (see wordForVisit). Colour math
        above stays untouched: it must keep matching the boot-paint script in
