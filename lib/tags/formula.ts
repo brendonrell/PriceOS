@@ -37,7 +37,18 @@ export const FORMULA_SETS: ReadonlyArray<{ name: string; glyphs: readonly string
 ];
 
 /* ── THE DIALS ─────────────────────────────────────────────────────────── */
-export const FORMULA_LENGTHS = [4, 6, 8, 10] as const;
+/* Length went from a 4-button numeric dial (4/6/8/10) to three named sizes
+   (Brendon, 2026-09-01: "3x as long... add S/M/L, current are small, medium
+   in between"). S keeps today's default (6) so nothing already worn shifts
+   size on its own; L is 3x that (18); M sits at the midpoint (12, also
+   exactly 2x). Old stored lengths (4/6/8/10) still load fine — cleanFormula
+   snaps them to the nearest of these three below. */
+export const FORMULA_SIZES = [
+    { key: 'S', label: 'S', len: 6 },
+    { key: 'M', label: 'M', len: 12 },
+    { key: 'L', label: 'L', len: 18 },
+] as const;
+export const FORMULA_LENGTHS = FORMULA_SIZES.map((sz) => sz.len);
 
 /** 0 Scatter · 1 Alternate · 2 Run · 3 Mirror. */
 export const FORMULA_WEAVES = ['Scatter', 'Alternate', 'Run', 'Mirror'] as const;
@@ -75,6 +86,16 @@ function cleanSets(v: unknown): number[] {
     return out.length ? out.sort((a, b) => a - b) : [0];
 }
 
+/** Snap any length (including legacy 4/6/8/10 stored formulas) to the
+ *  nearest current size — preserves relative intent instead of resetting
+ *  everything to Small. */
+function nearestFormulaLength(len: number): number {
+    if (!Number.isFinite(len)) return FORMULA_SIZES[0].len;
+    return FORMULA_LENGTHS.reduce((best, n) =>
+        Math.abs(n - len) < Math.abs(best - len) ? n : best
+    , FORMULA_LENGTHS[0]);
+}
+
 export function cleanFormula(v: unknown): Formula | null {
     if (!v || typeof v !== 'object') return null;
     const o = v as Record<string, unknown>;
@@ -82,7 +103,7 @@ export function cleanFormula(v: unknown): Formula | null {
     const weave = Math.trunc(Number(o.weave));
     return {
         sets: cleanSets(o.sets),
-        len: (FORMULA_LENGTHS as readonly number[]).includes(len) ? len : 6,
+        len: Number.isFinite(len) ? nearestFormulaLength(len) : FORMULA_SIZES[0].len,
         weave: Number.isFinite(weave) && weave >= 0 && weave < FORMULA_WEAVES.length ? weave : 0,
         spaced: o.spaced === true,
         on: o.on !== false,
