@@ -2725,8 +2725,8 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                             hidePills={['PriceDay']}
                             compact={showcaseView === 'regular'}
                             leadPills={[
-                                { key: 'regular', label: 'Top 6', active: showcaseView === 'regular', onClick: () => setShowcaseView('regular') },
                                 { key: 'created', label: 'Created', count: enrichedArtistProjects.length, active: showcaseView === 'created', onClick: () => setShowcaseView('created') },
+                                { key: 'regular', label: 'Top 6', active: showcaseView === 'regular', onClick: () => setShowcaseView('regular') },
                             ]}
                         />
                     )}
