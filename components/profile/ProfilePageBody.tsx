@@ -101,7 +101,20 @@ import { useTagsOff } from '../../lib/hooks/useTagsOff';
 import { deriveTags } from '../../lib/tags/derive';
 import { PERSONA_TAGS, tagTextOn, TAG_PAINTS, isTeamStyleTag } from '../../lib/tags/catalog';
 import { NAME_FONTS, styleName } from '../../lib/profile/nameFont';
-import { rollPreset, type PresetMode } from '../../lib/profile/presetRoll';
+import { rollPreset, rollGenerativePreset, type PresetMode } from '../../lib/profile/presetRoll';
+import {
+    useProfileGenerative,
+    setProfileGenerativeEnabled,
+    stampProfileGenerativeRoll,
+    GENERATIVE_REROLL_MS,
+} from '../../lib/profile/profileGenerative';
+import {
+    useProfilePresets,
+    saveProfilePreset,
+    deleteProfilePreset,
+    MAX_PROFILE_PRESETS,
+    PROFILE_PRESET_GLYPHS,
+} from '../../lib/profile/profilePresets';
 import { getProject, allProjects, projectsByArtist, projectColorway, artistSignatureColor } from '../../lib/project/registry';
 import HomeProjectFacetBar from '../home/HomeProjectFacetBar';
 import GhostCard from '../project/GhostCard';
@@ -346,16 +359,89 @@ function ProfilePageBodyInner({
     const [formulaCarouselOpen, setFormulaCarouselOpen] = useState(false);
     /* PRESETS row (Brendon, 2026-08-30): Row 4, bottom of the egg-editor
        stack. presetMode picks which roll shape the Roll pill produces; the
-       roll itself just fans out to the four setters already in scope. */
-    const [presetMode, setPresetMode] = useState<PresetMode>('random');
+       roll itself just fans out to the four setters already in scope.
+       Brendon, 2026-09-02: opens with NOTHING selected — Roll starts greyed
+       out until a mode (or Generative) is picked. */
+    const [presetMode, setPresetMode] = useState<PresetMode | null>(null);
+    const generative = useProfileGenerative();
+    const rollReady = presetMode !== null || generative.enabled;
     const rollProfilePreset = useCallback(() => {
-        const result = rollPreset(presetMode);
-        setMyProfileHex(result.hex);
-        setMyTagPaint(result.tagPaint);
-        setMyProfileLogo(result.logoId);
-        if (result.fontId) setMyNameFont(result.fontId);
-        showToast(`Preset: ${presetMode.toUpperCase()}`);
-    }, [presetMode, setMyProfileHex, setMyTagPaint, setMyProfileLogo, setMyNameFont, showToast]);
+        if (presetMode) {
+            const result = rollPreset(presetMode);
+            setMyProfileHex(result.hex);
+            setMyTagPaint(result.tagPaint);
+            setMyProfileLogo(result.logoId);
+            if (result.fontId) setMyNameFont(result.fontId);
+            showToast(`Preset: ${presetMode.toUpperCase()}`);
+        } else if (generative.enabled) {
+            const result = rollGenerativePreset();
+            setMyProfileHex(result.hex);
+            setMyTagPaint(result.tagPaint);
+            setMyProfileLogo(result.logoId);
+            if (result.fontId) setMyNameFont(result.fontId);
+            stampProfileGenerativeRoll();
+            showToast('Generates new profile design every 24hrs');
+        }
+    }, [presetMode, generative.enabled, setMyProfileHex, setMyTagPaint, setMyProfileLogo, setMyNameFont, showToast]);
+    const toggleGenerative = useCallback(() => {
+        const next = !generative.enabled;
+        setProfileGenerativeEnabled(next);
+        if (next) {
+            const result = rollGenerativePreset();
+            setMyProfileHex(result.hex);
+            setMyTagPaint(result.tagPaint);
+            setMyProfileLogo(result.logoId);
+            if (result.fontId) setMyNameFont(result.fontId);
+            showToast('Generates new profile design every 24hrs');
+        } else {
+            showToast('Generative: OFF');
+        }
+    }, [generative.enabled, setMyProfileHex, setMyTagPaint, setMyProfileLogo, setMyNameFont, showToast]);
+    /* 24h auto-reroll while Generative is on — checked on mount and hourly;
+       cheap enough (a Date.now() diff) that hourly polling is plenty granular
+       against a 24h window (Brendon, 2026-09-02). */
+    useEffect(() => {
+        if (!isOwnProfile || !generative.enabled) return;
+        const check = () => {
+            if (Date.now() - generative.lastRolledAt < GENERATIVE_REROLL_MS) return;
+            const result = rollGenerativePreset();
+            setMyProfileHex(result.hex);
+            setMyTagPaint(result.tagPaint);
+            setMyProfileLogo(result.logoId);
+            if (result.fontId) setMyNameFont(result.fontId);
+            stampProfileGenerativeRoll();
+        };
+        check();
+        const id = window.setInterval(check, 60 * 60 * 1000);
+        return () => window.clearInterval(id);
+    }, [isOwnProfile, generative.enabled, generative.lastRolledAt, setMyProfileHex, setMyTagPaint, setMyProfileLogo, setMyNameFont]);
+    /* PRESET SAVE SLOTS (Brendon, 2026-09-02: "same UI as grid presets") — an
+       EMPTY slot tap SAVES the current look into it; a FILLED slot tap LOADS
+       it. No separate Save button and no name — each pill just wears its own
+       saved colours. */
+    const profilePresetSlots = useProfilePresets();
+    const tapProfilePresetSlot = useCallback((index: number) => {
+        const slot = profilePresetSlots[index];
+        if (slot) {
+            setMyProfileHex(slot.hex);
+            setMyTagPaint(slot.tagPaint);
+            setMyProfileLogo(slot.logoId);
+            setMyNameFont(slot.fontId);
+            showToast(`Preset ${index + 1}: LOADED`);
+        } else {
+            saveProfilePreset(index, {
+                hex: myProfileHex ?? PROFILE_HEX_DEFAULT,
+                tagPaint: ownerTagPaint ?? myProfileHex ?? PROFILE_HEX_DEFAULT,
+                logoId: ownerLogo ?? null,
+                fontId: ownerNameFont ?? null,
+            });
+            showToast(`Preset ${index + 1}: SAVED`);
+        }
+    }, [profilePresetSlots, myProfileHex, ownerTagPaint, ownerLogo, ownerNameFont, setMyProfileHex, setMyTagPaint, setMyProfileLogo, setMyNameFont, showToast]);
+    const deleteProfilePresetSlot = useCallback((index: number) => {
+        deleteProfilePreset(index);
+        showToast(`Preset ${index + 1}: DELETED`);
+    }, [showToast]);
     /* Tags the owner switched OFF — hidden from the shown row (every viewer),
        but still listed in the owner's picker to tap back on (Brendon,
        2026-07-22). */
@@ -425,6 +511,13 @@ function ProfilePageBodyInner({
         onSpritePointerDown, onSpritePointerMove, onSpritePressEnd,
         eggPills,
     } = useProfileEggs({ isOwnProfile, user, displayHandle, myProfileHex, mySpriteHex });
+    /* Row 4 opens with NOTHING selected every time (Brendon, 2026-09-02) —
+       clear any leftover mode pick each time the egg menu opens rather than
+       only on first mount. */
+    useEffect(() => {
+        if (eggOpen) setPresetMode(null);
+    }, [eggOpen]);
+
 
     /* Profile Tags door in Settings ▸ MY PD (Brendon, 2026-08-15) — a more
        obvious entry point to the SAME menu the @name long-press opens.
@@ -1639,8 +1732,25 @@ function ProfilePageBodyInner({
                             each mode does one clear thing). Colorway and tag
                             paint are full-spectrum (no fixed swatch pool), so
                             every roll picks a fresh vivid hue rather than
-                            sampling a preset list (Brendon, 2026-08-30). */}
+                            sampling a preset list (Brendon, 2026-08-30).
+                            Brendon, 2026-09-02: Roll now leads the row (grey/
+                            italic until a mode or Generative is picked);
+                            Generative is a standing 24h-reroll toggle, not a
+                            one-shot shape; 3 save-slot pills close the row —
+                            tap empty to save the current look, tap filled to
+                            load it (same UI as Grid Presets). */}
                         <div className="profile-egg-row cust-scroll profile-presets-picker">
+                            <div
+                                className={`pill pill-l3 preset-roll-pill${rollReady ? '' : ' preset-roll-pill--disabled'}`}
+                                role="button"
+                                tabIndex={0}
+                                aria-disabled={!rollReady}
+                                onClick={() => { if (rollReady) rollProfilePreset(); }}
+                                onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && rollReady) { e.preventDefault(); rollProfilePreset(); } }}
+                                title="Roll a new preset"
+                            >
+                                <span className="stat-name">{'⟳ Roll'}</span>
+                            </div>
                             {(['random', 'match', 'accent', 'pair'] as const).map((m) => (
                                 <div
                                     key={m}
@@ -1655,15 +1765,53 @@ function ProfilePageBodyInner({
                                 </div>
                             ))}
                             <div
-                                className="pill pill-l3 preset-roll-pill"
+                                className={`pill pill-l3${generative.enabled ? ' active' : ''}`}
                                 role="button"
                                 tabIndex={0}
-                                onClick={rollProfilePreset}
-                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); rollProfilePreset(); } }}
-                                title="Roll a new preset"
+                                onClick={toggleGenerative}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleGenerative(); } }}
+                                title="Generates new profile design every 24hrs"
                             >
-                                <span className="stat-name">{'⟳ Roll'}</span>
+                                <span className="stat-name">Generative</span>
                             </div>
+                            {Array.from({ length: MAX_PROFILE_PRESETS }).map((_, i) => {
+                                const slot = profilePresetSlots[i];
+                                const style = slot
+                                    ? ({ background: slot.hex, color: slot.tagPaint, borderColor: slot.hex } as const)
+                                    : undefined;
+                                return (
+                                    <div
+                                        key={`profile-preset-${i}`}
+                                        className={`pill pill-l3 profile-preset-slot${slot ? ' profile-preset-slot--filled' : ' profile-preset-slot--empty'}`}
+                                        role="button"
+                                        tabIndex={0}
+                                        style={style}
+                                        onClick={() => tapProfilePresetSlot(i)}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tapProfilePresetSlot(i); } }}
+                                        title={slot ? `Load Preset ${i + 1}` : `Save current look to Preset ${i + 1}`}
+                                    >
+                                        <span className="stat-name">{PROFILE_PRESET_GLYPHS[i]}</span>
+                                        {slot && (
+                                            <span
+                                                className="profile-preset-slot__delete"
+                                                role="button"
+                                                tabIndex={0}
+                                                aria-label={`Delete Preset ${i + 1}`}
+                                                onClick={(e) => { e.stopPropagation(); deleteProfilePresetSlot(i); }}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        deleteProfilePresetSlot(i);
+                                                    }
+                                                }}
+                                            >
+                                                {'×'}
+                                            </span>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
                         </>
                     )}
