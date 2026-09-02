@@ -428,8 +428,8 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                             <span className="cbr-label">Collected by&nbsp;</span>
                             <a key={collectors[0]} className="profile-link feat-name" href={`/${handle(collectors[0])}`}>@{handle(collectors[0])}</a>
                             {collectors[1] ? (
-                                <>,&nbsp;<a key={collectors[1]} className="profile-link feat-name" href={`/${handle(collectors[1])}`}>@{handle(collectors[1])}</a>&nbsp;</>
-                            ) : '\u00A0'}
+                                <>,&nbsp;<a key={collectors[1]} className="profile-link feat-name" href={`/${handle(collectors[1])}`}>@{handle(collectors[1])}</a> </>
+                            ) : ' '}
                             {others > 0 && (
                                 <span className="cbr-others" onClick={() => open('collectors')}>
                                     &amp;&nbsp;{others}&nbsp;more&nbsp;you&nbsp;follow
