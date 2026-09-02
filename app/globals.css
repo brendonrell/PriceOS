@@ -5274,6 +5274,13 @@ body.persona-default .stats-row-2 { display: none !important; }
         position: relative;
         top: 0px;
     }
+    /* Same icon, PROFILE PAGE stats row only — down another 0.2px (Brendon,
+       2026-09-02). Scoped to the profile Hero so the homepage rule above is
+       untouched. */
+    section[aria-label="Profile Info"] .stats-row .stat-icon-box {
+        position: relative;
+        top: 0.2px;
+    }
 }
 
 /* Profile followers stat uses the ⚬ glyph, which renders much smaller than
@@ -12706,8 +12713,10 @@ body.colorway-dark .ghost-feed-bar {
 }
 /* The ★ Starred icon runs one size larger than the others (Brendon 2026-06-19).
    Its larger glyph carries more right side-bearing, so trim the margin to keep
-   the icon→word gap matching the other tabs (Brendon 2026-06-20). */
-.pill-tab-ico.is-star { font-size: 1.5em; margin-right: 1px; }
+   the icon→word gap matching the other tabs (Brendon 2026-06-20). Bumped a
+   further half-step (0.075em, half the established 0.15em step) larger still
+   (Brendon, 2026-09-02): 1.5em → 1.575em. */
+.pill-tab-ico.is-star { font-size: 1.575em; margin-right: 1px; }
 /* Genome runs one size up, Gnome one size down (Brendon, 2026-07-31) — the
    same step the other per-pill icon overrides here use. */
 .pill-tab-ico.is-genome { font-size: 1.395em; }
@@ -12731,7 +12740,8 @@ body.colorway-dark .ghost-feed-bar {
    smaller and sit 2px lower (Brendon, 2026-06-22). */
 @media (min-width: 601px) {
     .pill-tab-ico { font-size: 1.08em; top: 0; }
-    .pill-tab-ico.is-star { font-size: 1.12em; }
+    /* Same further half-step bump as mobile (Brendon, 2026-09-02): 1.12em → 1.195em. */
+    .pill-tab-ico.is-star { font-size: 1.195em; }
     .pill-tab-ico.is-album { font-size: 1.2em; }
     .pill-tab-ico.is-genome { font-size: 1.125em; }
     .pill-tab-ico.is-gnome { font-size: 0.84em; }
@@ -12816,6 +12826,9 @@ body.colorway-dark .ghost-feed-bar {
 /* Sigil ✻ nudged up 0.5px from its inherited base position (Brendon,
    2026-08-30): 0 → -0.5px, both mobile and desktop. */
 .pill-tab-ico.is-sigil { top: -0.5px; }
+/* Vault ⚿ nudged down 0.5px from its inherited base position (Brendon,
+   2026-09-02): 0 → 0.5px, both mobile and desktop. */
+.pill-tab-ico.is-vault { top: 0.5px; }
 
 /* Sigil, Targets/Counterparties/Vault/Loyalty/Anointed, and My History
    icons resized half a step (0.075em, half the established 0.15em step)
@@ -12826,7 +12839,9 @@ body.colorway-dark .ghost-feed-bar {
 .pill-tab-ico.is-sigil { font-size: 1.245em; }
 .pill-tab-ico.is-targets { font-size: 1.245em; }
 .pill-tab-ico.is-counterparties { font-size: 1.395em; }
-.pill-tab-ico.is-vault { font-size: 1.395em; }
+/* Vault bumped a further full step (0.15em) larger, on top of the half-step
+   above (Brendon, 2026-09-02): 1.395em → 1.545em mobile. */
+.pill-tab-ico.is-vault { font-size: 1.545em; }
 .pill-tab-ico.is-loyalty { font-size: 1.395em; }
 .pill-tab-ico.is-anoint { font-size: 1.375em; }
 .pill-tab-ico.is-history { font-size: 1.365em; }
@@ -12834,7 +12849,8 @@ body.colorway-dark .ghost-feed-bar {
     .pill-tab-ico.is-sigil { font-size: 1.005em; }
     .pill-tab-ico.is-targets { font-size: 1.155em; }
     .pill-tab-ico.is-counterparties { font-size: 1.155em; }
-    .pill-tab-ico.is-vault { font-size: 1.155em; }
+    /* Desktop: same further full-step bump, 1.155em → 1.305em. */
+    .pill-tab-ico.is-vault { font-size: 1.305em; }
     .pill-tab-ico.is-loyalty { font-size: 1.155em; }
     .pill-tab-ico.is-history { font-size: 1.125em; }
 }
