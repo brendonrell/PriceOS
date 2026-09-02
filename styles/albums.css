@@ -64,7 +64,11 @@
     font-size: 44px;
     font-weight: bold;
     border: none;
-    background: none;
+    /* Was `background: none`, which wiped the translucent square every other
+       tile gets from .album-tile-art (this class rides the SAME element,
+       later in the sheet — same specificity, so it was winning). The "+"
+       tile now sits on that same translucent square, plus centred on top
+       (Brendon, 2026-09-02). */
 }
 .album-tile-label {
     display: flex;
