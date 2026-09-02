@@ -4358,9 +4358,52 @@ body.pd-stone-open .ens-copy-toast {
    (Brendon, 2026-07-20). A real flex spacer always survives. */
 .cust-scroll::after { content: ''; flex: 0 0 28px; }
 .cust-scroll > * { flex-shrink: 0; }
-/* More breathing room at the very top + bottom of the customization stack. */
+/* More breathing room at the very top + bottom of the customization stack.
+   Bottom air belongs on whichever row is actually LAST — moved from Fonts to
+   Presets when the presets row grew a 4th (Generative) + preset-slot pills
+   after it (Brendon, 2026-09-02: "the bottom row is separated a bit... make
+   it just one of the rest, spaced like the rest"). Fonts now sits mid-stack
+   and takes the same 5px as every other row. */
 .profile-colours-picker { margin-top: 16px; }
-.profile-fonts-picker { margin-bottom: 18px; }
+.profile-presets-picker { margin-bottom: 18px; }
+
+/* Roll pill (Brendon, 2026-09-02: leads the row now, italic to read as a
+   verb/action rather than a mode like its neighbours). Disabled state is
+   pure opacity — no pointer-events lock, so it still reads as "there" while
+   greyed, just inert until a mode or Generative is picked. */
+.pill.pill-l3.preset-roll-pill { font-style: italic; }
+.pill.pill-l3.preset-roll-pill--disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+/* PROFILE PRESET save-slot pills (Brendon, 2026-09-02: "same UI as grid
+   presets... colours of the colorway for the bg and profile tag colour for
+   the text"). Empty = dashed outline, no fill, so it reads as an open slot
+   waiting for a tap-to-save. Filled pills carry their saved hex/tagPaint via
+   inline style (--background/--color set directly, not CSS vars, since each
+   preset's colours are per-instance data). */
+.pill.pill-l3.profile-preset-slot--empty {
+    background: transparent;
+    border: 1.5px dashed rgba(255, 255, 255, 0.35);
+    color: rgba(255, 255, 255, 0.55);
+}
+.pill.pill-l3.profile-preset-slot--filled {
+    position: relative;
+    border-width: 1.5px;
+    border-style: solid;
+    padding-right: 22px;
+}
+.profile-preset-slot__delete {
+    position: absolute;
+    top: 2px;
+    right: 4px;
+    font-size: 11px;
+    line-height: 1;
+    opacity: 0.65;
+    cursor: pointer;
+}
+.profile-preset-slot__delete:hover { opacity: 1; }
 
 /* Tags picker: EVERY persona is a SOLID single-colour chip in its own colour
    (same as the hero tag), with a contrast-picked label + glyph. A PICKED one
