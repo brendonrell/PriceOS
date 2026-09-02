@@ -14713,7 +14713,14 @@ body.theme-bright .fi-row.inspecting {
     color: var(--text-color); opacity: 0.7;
     margin-bottom: 4px;
 }
-.fi-insight-group.featured { padding: 6px; border-radius: 6px; background: var(--stat-active-bg); }
+.fi-insight-group.featured {
+    padding: 12px 16px;
+    /* An actual organic blob wrap (not a rounded rect) — percentage radii
+       scale with the box regardless of how many rows the group wraps to
+       (Brendon, 2026-09-02: "cluster blob connecting the whole group"). */
+    border-radius: 42% 58% 63% 37% / 45% 41% 59% 55%;
+    background: var(--stat-active-bg);
+}
 .fi-insight-group.featured .fi-insight-group-label { color: var(--stat-active-text); opacity: 1; }
 .fi-insight-group.featured .fi-rost-cell { color: var(--stat-active-text); }
 .fi-insight-group.featured .fi-rost-cell.on { background: var(--stat-active-text); color: var(--stat-active-bg); }
