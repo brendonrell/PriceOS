@@ -14692,6 +14692,32 @@ body.theme-bright .fi-row.inspecting {
 .fi-rost-cell.on .fi-rost-badge { border-color: var(--stat-active-text); color: var(--stat-active-text); }
 .fi-rost-badge-mutual { background: color-mix(in srgb, var(--text-color) 16%, transparent); }
 
+/* ROSTER SECTION — the ROSTER/INSIGHT sub-tabs sitting above whichever
+   view is active (Brendon, 2026-09-02). Reuses .ambient-chip/.fi-preview-chip
+   styling so it doesn't invent a second button language. */
+.fi-roster-section { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
+.fi-roster-subtabs { display: flex; gap: 6px; flex: 0 0 auto; }
+.fi-roster-section .fi-roster { flex: 1 1 auto; }
+
+/* INSIGHT — a generative read of the same circle: one strategy, picked at
+   random per tap of the INSIGHT pill, splits people into a featured cluster
+   + the rest. The featured cluster gets the same solid fill Roster uses for
+   an inspected cell, so "this is the answer" reads at a glance. */
+.fi-insight { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+.fi-insight-title {
+    font-size: 12px; font-weight: bold; letter-spacing: 0.4px;
+    color: var(--text-color);
+}
+.fi-insight-group-label {
+    font-size: 9px; font-weight: bold; letter-spacing: 0.5px;
+    color: var(--text-color); opacity: 0.7;
+    margin-bottom: 4px;
+}
+.fi-insight-group.featured { padding: 6px; border-radius: 6px; background: var(--stat-active-bg); }
+.fi-insight-group.featured .fi-insight-group-label { color: var(--stat-active-text); opacity: 1; }
+.fi-insight-group.featured .fi-rost-cell { color: var(--stat-active-text); }
+.fi-insight-group.featured .fi-rost-cell.on { background: var(--stat-active-text); color: var(--stat-active-bg); }
+
 /* PROJECTS PRO's own ROSTER — two to a line, each project boxed as its own
    card (was a bare wrap of floating faces, hard to parse). Scoped to
    .projects-pro-plus so the Friend Inspector's people roster is untouched
