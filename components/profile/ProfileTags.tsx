@@ -66,11 +66,15 @@ export function ProfileTags({ tags, font, paint, onTagTap, className, trailing }
     return (
         <div className={className ?? 'profile-tags'} aria-label="Tags">
             {tags.map((t) => {
-                /* Locked-style tags (the CEO chip) wear their OWN colours and
-                   font — the all-tags paint and the @name font can't touch
-                   them (Brendon, 2026-07-22). */
-                const hex = t.lockStyle ? t.color : (paintHex ?? t.color);
-                const textHex = t.lockStyle && t.textColor ? t.textColor : tagTextOn(hex);
+                /* Locked-style tags (CEO, WTBS, bitverse, rudxane,
+                   price-hold/held, formula…) keep their OWN FONT — the
+                   @name restyle still can't touch them — but now take the
+                   all-tags paint like every other chip when one's set, so a
+                   custom colorway themes the whole profile instead of
+                   stopping at these (Brendon, 2026-09-02). No paint: same
+                   own-colour look as before. */
+                const hex = paintHex ?? t.color;
+                const textHex = paintHex ? tagTextOn(hex) : (t.textColor ?? tagTextOn(hex));
                 return (
                 <span
                     key={t.id}
