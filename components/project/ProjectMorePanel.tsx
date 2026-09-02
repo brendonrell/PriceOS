@@ -50,7 +50,9 @@ import { fmPlay } from '../../lib/fm/fmBus';
      Replay    → Replay
      Albums    → Albums
      Genome    → Genome
-     Sentiment → Price Targets + Disagreement Score (what the crowd thinks) */
+     Sentiment → Agreement Score + Price Targets + The Call Ledger (what the
+                 crowd thinks; Agreement Score leads, moved up from the
+                 bottom and renamed from Disagreement, Brendon 2026-09-02) */
 export type ProjectMoreL1 = 'social' | 'stats' | 'replay' | 'albums' | 'genome' | 'gnome' | 'sentiment' | 'attributes' | 'pricestory' | 'offers' | 'anoint' | 'activity';
 
 export default function ProjectMorePanel({
@@ -381,6 +383,48 @@ export default function ProjectMorePanel({
             <GnomePanel />
             </>)}
             {moreL1 === 'sentiment' && (<>
+            {/* AGREEMENT SCORE — REAL (2026-07-13; was the sim 5323-5335 mock
+                62/38; renamed from DISAGREEMENT and moved to the top of this
+                tab, Brendon, 2026-09-02). The measured split of what holders
+                are DOING: held tight (HODL) vs pieces on the market (LIST). */}
+            <div className="more-section-header">AGREEMENT SCORE</div>
+            <div className="more-disagree-wrap">
+                <div
+                    className="more-disagree-card"
+                    onClick={() =>
+                        showToast(
+                            marketRead?.list_pct != null
+                                ? `Agreement — ${marketRead.open_listings} of ${marketRead.held_pieces} held pieces on the market`
+                                : 'Agreement Score — holder conviction split'
+                        )
+                    }
+                >
+                    {marketRead?.list_pct != null && marketRead?.hodl_pct != null ? (
+                        <>
+                            <div className="mdg-bar">
+                                <div
+                                    className="mdg-fill mdg-fill-left"
+                                    style={{ width: `${marketRead.hodl_pct}%` }}
+                                />
+                                <div
+                                    className="mdg-fill mdg-fill-right"
+                                    style={{ width: `${marketRead.list_pct}%` }}
+                                />
+                            </div>
+                            <div className="mdg-labels">
+                                <span className="mdg-label-l">HODL · {marketRead.hodl_pct}%</span>
+                                <span className="mdg-label-r">{marketRead.list_pct}% · LIST</span>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="mdg-labels">
+                            <span className="mdg-label-l">NO HELD PIECES YET — THE SPLIT APPEARS WITH THE FIRST MINT</span>
+                        </div>
+                    )}
+                </div>
+            </div>
+            </>)}
+            {moreL1 === 'sentiment' && (<>
             {/* PRICE TARGETS — REAL (Brendon greenlight 2026-07-13; was the
                 sim 5285-5306 mock). Cast this month, sealed till it turns;
                 last month's crowd shows as the histogram, vs the floor. */}
@@ -474,47 +518,6 @@ export default function ProjectMorePanel({
                 The opposite of the sealed Targets card above, on purpose. */}
             <div className="more-section-header">THE CALL LEDGER</div>
             <CallLedgerCard slug={project.slug} />
-            </>)}
-            {moreL1 === 'sentiment' && (<>
-            {/* DISAGREEMENT SCORE — REAL (2026-07-13; was the sim 5323-5335
-                mock 62/38). The measured split of what holders are DOING:
-                pieces on the market (LIST) vs held tight (HODL). */}
-            <div className="more-section-header">DISAGREEMENT SCORE</div>
-            <div className="more-disagree-wrap">
-                <div
-                    className="more-disagree-card"
-                    onClick={() =>
-                        showToast(
-                            marketRead?.list_pct != null
-                                ? `Disagreement — ${marketRead.open_listings} of ${marketRead.held_pieces} held pieces on the market`
-                                : 'Disagreement Score — holder conviction split'
-                        )
-                    }
-                >
-                    {marketRead?.list_pct != null && marketRead?.hodl_pct != null ? (
-                        <>
-                            <div className="mdg-bar">
-                                <div
-                                    className="mdg-fill mdg-fill-left"
-                                    style={{ width: `${marketRead.hodl_pct}%` }}
-                                />
-                                <div
-                                    className="mdg-fill mdg-fill-right"
-                                    style={{ width: `${marketRead.list_pct}%` }}
-                                />
-                            </div>
-                            <div className="mdg-labels">
-                                <span className="mdg-label-l">HODL · {marketRead.hodl_pct}%</span>
-                                <span className="mdg-label-r">{marketRead.list_pct}% · LIST</span>
-                            </div>
-                        </>
-                    ) : (
-                        <div className="mdg-labels">
-                            <span className="mdg-label-l">NO HELD PIECES YET — THE SPLIT APPEARS WITH THE FIRST MINT</span>
-                        </div>
-                    )}
-                </div>
-            </div>
             </>)}
             {moreL1 === 'attributes' && (
                 /* ATTRIBUTES — the project's character sheet, rendered through
