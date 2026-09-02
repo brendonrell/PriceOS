@@ -817,6 +817,9 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                 aria-label="Activity Feed"
                 style={{ display: feedVisible ? 'block' : 'none' }}
             >
+                <div className="home-section-head">
+                    <span className="home-section-title">Project Feed</span>
+                </div>
                 <div className="feed-list" id="feedList">
                     {sortedFeedEvents.length === 0 ? (
                         <GhostFeedRows />
