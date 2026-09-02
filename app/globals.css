@@ -156,6 +156,16 @@ html, body {
     font-size: 13px;
 }
 
+/* Kill the mobile grey tap-highlight rect + iOS long-press callout
+   app-wide, permanently, on every element (logo, @names, buttons,
+   feed rows, everything) instead of chasing it class-by-class.
+   Per-selector -webkit-tap-highlight-color rules elsewhere in this
+   file are now redundant but harmless. */
+* {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+}
+
 /* Sticky-footer pattern. Body is the flex column container; main
    expands to consume all remaining space so the footer parks at
    the viewport bottom on short pages and at the end of content on
