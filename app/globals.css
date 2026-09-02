@@ -12277,6 +12277,43 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     bottom: -6px;
     box-shadow: 0 0 0 2px var(--accent);
 }
+/* History timeline: the highlight above only framed the card in .f-content —
+   it stopped short of the feed-line + icon-wrap column, so the left edge sat
+   much closer in than the right edge. Extend both the hover fill and the
+   selected ring to the FULL .history-feed-row (icon, dashed line, and card
+   together), overhanging -8px each side same as the ordinary .starred-row
+   hover square — since the row is already flush to the container's side
+   padding, that overhang lands the same distance from the viewport edge on
+   both sides (Brendon, 2026-09-02). The narrower per-card boxes are turned
+   off in this scope so there's no double outline. */
+.starred-rows--timeline .history-feed-row {
+    border-radius: 4px;
+    transition: background 0.2s;
+    position: relative;
+}
+.starred-rows--timeline .history-feed-row::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -8px;
+    right: -8px;
+    border-radius: 4px;
+    z-index: -1;
+    pointer-events: none;
+}
+.starred-rows--timeline .history-feed-row:has(.starred-row:hover)::after {
+    background: var(--stat-bg);
+}
+.starred-rows--timeline .history-feed-row:has(.starred-row.is-selected)::after {
+    background: transparent;
+    box-shadow: 0 0 0 2px var(--accent);
+}
+.starred-rows--timeline .starred-row:hover::after,
+.starred-rows--timeline .starred-row.is-selected::after {
+    background: transparent;
+    box-shadow: none;
+}
 /* Underline the top (title) line + extra-bold the bottom (type) line of every
    Starred row (Brendon 2026-06-19). Scoped to the Starred surface so the
    Wishlist sibling is untouched. */
