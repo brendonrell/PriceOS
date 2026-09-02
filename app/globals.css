@@ -1622,10 +1622,13 @@ body.ascii-id-mode .id-row-sprite     { display: none !important; }
     overscroll-behavior: contain;
     /* Rows were stacking with zero gap between them (relying on padding
        alone), which read as bunched once a row's text wrapped to 2 lines
-       (Brendon, 2026-08-19). */
+       (Brendon, 2026-08-19). The first pass (4px) was still too tight to
+       read as separation once a row wraps to 2 lines — bumped to a gap
+       that actually reads as a gap next to the row's own 8px padding
+       (Brendon, 2026-09-02). */
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 10px;
 }
 .notif-list::-webkit-scrollbar { display: none; }
 
