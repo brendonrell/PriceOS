@@ -155,6 +155,7 @@ function DeactivatedProfile({ handle }: { handle: string }) {
 const PRESET_MODE_LABEL: Record<PresetMode, string> = {
     random: 'Random',
     match: 'Match',
+    accent: 'Accent',
     pair: 'Pair',
 };
 
@@ -1630,13 +1631,17 @@ function ProfilePageBodyInner({
                         {/* Row 4 — PRESETS: one tap regenerates colorway + tag
                             paint + logo + font together. Random rolls all four
                             independently; Match locks colorway/tag paint/logo
-                            to one rolled hue; Pair rolls a second, hue-separated
-                            highlight for the tag paint. Colorway and tag paint
-                            are full-spectrum (no fixed swatch pool), so every
-                            roll picks a fresh vivid hue rather than sampling a
-                            preset list (Brendon, 2026-08-30). */}
+                            to one rolled hue; Accent rolls a second, genuinely
+                            different colour for the tag paint (harmony or
+                            primary-triad); Pair rolls the SAME colour at a
+                            different shade instead (Brendon, 2026-09-02 — Pair
+                            used to blend both of those; now they're split so
+                            each mode does one clear thing). Colorway and tag
+                            paint are full-spectrum (no fixed swatch pool), so
+                            every roll picks a fresh vivid hue rather than
+                            sampling a preset list (Brendon, 2026-08-30). */}
                         <div className="profile-egg-row cust-scroll profile-presets-picker">
-                            {(['random', 'match', 'pair'] as const).map((m) => (
+                            {(['random', 'match', 'accent', 'pair'] as const).map((m) => (
                                 <div
                                     key={m}
                                     className={`pill pill-l3${presetMode === m ? ' active' : ''}`}
