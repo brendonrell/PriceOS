@@ -268,11 +268,13 @@ export function moodOfDay(d: Date = new Date()): Mood {
        out): high saturation + mid lightness so the daily colour is bold, the
        full wheel reachable. Text colour auto-resolves off luminance (the deep
        ones get white lettering; bright limes/yellows keep dark text). */
-    const sat = 62 + r() * 38; // 62–100%
+    const sat = 45 + r() * 30; // 45–75% (Brendon, 2026-09-02: VIVID read as
+    // neon/distracting — dialed down off 62–100 while keeping the full hue
+    // wheel, so day-to-day variance is untouched, just less lurid).
     /* Warm hues (brick/orange/mustard) still read muddy in this range even
        at high saturation — liftWarmFloor lifts only that band. See
        lib/color/warmGuard.ts (Brendon, 2026-09-01: today's mustard roll). */
-    const light = liftWarmFloor(hue, 40 + r() * 20); // 40–60%, 52+ if warm
+    const light = liftWarmFloor(hue, 42 + r() * 16); // 42–58%, 52+ if warm
     /* The mood reads off the colour via the chart — the hue picks the band,
        the no-repeat walk picks the word (see wordForVisit). Colour math
        above stays untouched: it must keep matching the boot-paint script in
