@@ -174,8 +174,8 @@ export function FeaturingRow() {
             <span className="cbr-label">Featuring</span>&nbsp;
             <a key={featNames[0]} className="profile-link feat-name" href={`/${featNames[0]}`}>@{featNames[0]}</a>
             {featNames[1] ? (
-                <>,&nbsp;<a key={featNames[1]} className="profile-link feat-name" href={`/${featNames[1]}`}>@{featNames[1]}</a>&nbsp;</>
-            ) : '\u00A0'}
+                <>,&nbsp;<a key={featNames[1]} className="profile-link feat-name" href={`/${featNames[1]}`}>@{featNames[1]}</a> </>
+            ) : ' '}
             <span className="cbr-others">&amp;&nbsp;{featOthers}&nbsp;others</span>
 
         </div>
