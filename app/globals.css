@@ -2626,7 +2626,7 @@ section[aria-label="Created projects"] > .upload-window {
 .fm-row:last-child { border-bottom: none; }
 .fm-star {
     flex: 0 0 auto; background: none; border: none; cursor: pointer;
-    padding: 0; color: var(--text-color); font-size: 18px; line-height: 1.3;
+    padding: 0; color: var(--text-color); font-size: 19px; line-height: 1.3;
 }
 .fm-row-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 .fm-row-id { display: flex; align-items: center; gap: 8px; min-width: 0; }
@@ -2652,6 +2652,9 @@ section[aria-label="Created projects"] > .upload-window {
 }
 .fm-stat { display: inline-flex; align-items: baseline; gap: 4px; white-space: nowrap; }
 .fm-stat-ic { font-size: 12px; }
+/* Followers pill only — nudged up 1px, one size larger than its siblings
+   (Brendon, 2026-09-01). */
+.fm-stat-ic-followers { font-size: 13px; position: relative; top: -1px; }
 
 /* Leaderboard rows (LeaderboardModal) — fm-row plus a position column; your
    own row gets the tag-pill wash so you find yourself at a glance. */
@@ -14671,7 +14674,6 @@ body.theme-bright .fi-row.inspecting {
 }
 .fi-rost-cell.on { background: var(--stat-active-bg); color: var(--stat-active-text); }
 .fi-rost-cell:hover { border-color: var(--text-color); }
-.fi-rost-me { cursor: default; }
 .fi-rost-name {
     max-width: 74px;
     font-size: 12px; font-weight: bold; letter-spacing: 0.3px;
@@ -14689,8 +14691,6 @@ body.theme-bright .fi-row.inspecting {
    full-strength text color so it never goes faint against the fill. */
 .fi-rost-cell.on .fi-rost-badge { border-color: var(--stat-active-text); color: var(--stat-active-text); }
 .fi-rost-badge-mutual { background: color-mix(in srgb, var(--text-color) 16%, transparent); }
-.fi-rost-badge-new { background: var(--text-color); color: var(--bg-color); border-color: var(--text-color); }
-.fi-rost-cell.on .fi-rost-badge-new { background: var(--stat-active-text); color: var(--stat-active-bg); }
 
 /* PROJECTS PRO's own ROSTER — two to a line, each project boxed as its own
    card (was a bare wrap of floating faces, hard to parse). Scoped to
