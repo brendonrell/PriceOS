@@ -54,7 +54,10 @@ import { useModal } from '../../lib/state/ModalContext';
 import { useFiat, fiatSymbol } from '../../lib/state/FiatContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { getSupabaseBrowser } from '../../lib/supabase';
-import { allProjects, getProject, projectTraits } from '../../lib/project/registry';
+import { allProjects, getProject, projectTraits, projectColorway } from '../../lib/project/registry';
+import { useLongPress } from '../../lib/hooks/useLongPress';
+import { useShuffleColorwayMode, setShuffleColorwayModeEnabled, getShuffleColorwayModeEnabled } from '../../lib/home/shuffleColorwayMode';
+import { setShuffleColorwayHex } from '../../lib/state/ColorwayContext';
 import { formatEth } from '../../lib/format/eth';
 import { formatFeedUploadDate } from '../../lib/format/feedDate';
 import HomeFacetBar, { type HomeSort } from './HomeFacetBar';
@@ -417,8 +420,12 @@ function HomePageBodyInner({
         // setActiveTab(id) below is already a no-op when id === activeTab.
         // setShuffleSeed is declared further down in this component but
         // closes over fine — this only runs on click, well after mount.
+        // Brendon, 2026-09-02: this in-place reshuffle is NOT a tab change,
+        // so it skips the toast (and the redundant setActiveTab/rememberTab
+        // calls) entirely — the toast stays tab-change-only.
         if (id === 'shuffle' && activeTab === 'shuffle') {
             setShuffleSeed((s) => s + 1);
+            return;
         }
         setActiveTab(id);
         rememberTab('home', 'home', id);
@@ -956,13 +963,44 @@ function HomePageBodyInner({
         return shufflePool[Math.floor(r * len)] ?? shufflePool[0]!;
     }, [shufflePool, shuffleSeed]);
 
+    /* Shuffle Colorway Mode (Brendon, 2026-09-02) — long-press the Shuffle
+       pill to have each shuffled project's own colorway paint the whole page
+       (Mood Ring style) for as long as you're on the Shuffle tab. Leaving the
+       tab reverts to the Mood Ring immediately; the mode itself only clears
+       on another long-press. The ON/OFF flag is account-backed (no
+       localStorage — see lib/home/shuffleColorwayMode); the actual live hex
+       is pure derived UI state, reset below whenever the tab or the pick or
+       the mode changes. */
+    const shuffleColorwayModeOn = useShuffleColorwayMode();
+    const handleShuffleLongPress = () => {
+        const next = !getShuffleColorwayModeEnabled();
+        setShuffleColorwayModeEnabled(next);
+        showToast(`Shuffle Colorway: ${next ? 'ON' : 'OFF'}`);
+    };
+    const shuffleLongPress = useLongPress(handleShuffleLongPress);
+    useEffect(() => {
+        if (activeTab === 'shuffle' && shuffleColorwayModeOn && shufflePick) {
+            setShuffleColorwayHex(projectColorway(shufflePick.slug));
+        } else {
+            setShuffleColorwayHex(null);
+        }
+    }, [activeTab, shuffleColorwayModeOn, shufflePick]);
+    // Revert to the Mood Ring on unmount too (e.g. navigating off Home
+    // entirely, not just switching tabs within it).
+    useEffect(() => () => setShuffleColorwayHex(null), []);
+
     /* Tab pill. `display` lets a tab wear something other than its toast
-       label — the Shuffle tab is an icon-only pill (Brendon, 2026-06-12). */
+       label — the Shuffle tab is an icon-only pill (Brendon, 2026-06-12).
+       `longPress` (Brendon, 2026-09-02) is only wired for Shuffle — it
+       spreads useLongPress's pointer handlers alongside the normal
+       click/keydown so a long-press toggles Shuffle Colorway Mode without
+       disturbing the regular tap-to-select/re-roll behavior. */
     const tab = (
         id: HomeTab,
         label: string,
         display?: ReactNode,
         extraClass?: string,
+        longPress?: ReturnType<typeof useLongPress>,
     ) => (
         <div
             className={`pill pill-l1${extraClass ? ` ${extraClass}` : ''}${activeTab === id ? ' active' : ''}`}
@@ -976,6 +1014,7 @@ function HomePageBodyInner({
                     selectTab(id, label);
                 }
             }}
+            {...longPress}
         >
             <span className="stat-name">{display ?? label}</span>
         </div>
@@ -1116,7 +1155,7 @@ function HomePageBodyInner({
                 >
                     {tab('minting', 'Now Minting')}
                     {tab('new', 'New Gen Art')}
-                    {tab('shuffle', 'Shuffle', <>⟳&#xFE0E;</>, 'pill-shuffle-icon')}
+                    {tab('shuffle', 'Shuffle', <>⟳&#xFE0E;</>, 'pill-shuffle-icon', shuffleLongPress)}
                 </div>
 
                 {/* Sort/filter bar lives INSIDE the hero (after the tabs) — same
