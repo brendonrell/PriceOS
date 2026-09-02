@@ -340,7 +340,7 @@ function RosterSection({
     return (
         <div className="fi-roster-section">
             <div className="fi-roster-subtabs" role="tablist" aria-label="Roster view">
-                <button type="button" className={`ambient-chip fi-preview-chip${view === 'roster' ? ' on' : ''}`} onClick={() => setView('roster')}>ROSTER</button>
+                <button type="button" className={`ambient-chip fi-preview-chip${view === 'roster' ? ' on' : ''}`} onClick={() => setView('roster')}>MANAGER</button>
                 <button type="button" className={`ambient-chip fi-preview-chip${view === 'insight' ? ' on' : ''}`} onClick={pickInsight}>INSIGHT</button>
             </div>
             {view === 'roster'
