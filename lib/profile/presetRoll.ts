@@ -196,3 +196,16 @@ export function rollPreset(mode: PresetMode): PresetResult {
         fontId: randomFontId(),
     };
 }
+
+/* GENERATIVE mode (Brendon, 2026-09-02: "have it use all possible options").
+ * Not one of the four roll SHAPES above — it's the standing toggle that picks
+ * a fresh shape (uniformly, every roll) from all four, so a Generative roll
+ * can land anywhere any of Random/Match/Accent/Pair could. Owned by
+ * lib/profile/profileGenerative (the 24h auto-reroll timer); this is just the
+ * draw. */
+const GENERATIVE_POOL: readonly PresetMode[] = ['random', 'match', 'accent', 'pair'];
+
+export function rollGenerativePreset(): PresetResult {
+    const mode = GENERATIVE_POOL[Math.floor(Math.random() * GENERATIVE_POOL.length)]!;
+    return rollPreset(mode);
+}
