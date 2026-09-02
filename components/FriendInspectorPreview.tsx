@@ -116,13 +116,11 @@ function readPin(): PreviewMode | null {
 }
 
 export default function FriendInspectorPreview({
-    people, inspected, onInspect, myStat, myHandle, mySlugs, onFocus,
+    people, inspected, onInspect, mySlugs, onFocus,
 }: {
     people: PreviewPerson[];
     inspected: string | null;
     onInspect: (handle: string) => void;
-    myStat: CircleStat | undefined;
-    myHandle: string | null;
     /** Your own holdings — the OVERLAP's left column. */
     mySlugs: string[] | null;
     onFocus: (focus: PreviewFocus) => void;
@@ -175,7 +173,7 @@ export default function FriendInspectorPreview({
             {mode === 'spend' && <Spend people={people} onInspect={onInspect} />}
             {mode === 'overlap' && <Overlap people={people} mySlugs={mySlugs} onFocus={onFocus} />}
             {mode === 'roster' && (
-                <Roster people={people} inspected={inspected} onInspect={onInspect} myStat={myStat} myHandle={myHandle} />
+                <Roster people={people} inspected={inspected} onInspect={onInspect} />
             )}
         </div>
     );
@@ -287,60 +285,36 @@ function Overlap({
 }
 
 /* ── THE ROSTER ──────────────────────────────────────────────────────────
-   The circle as faces, merged with the old NEW mode (2026-08-30 — it was
-   the same face grid with an unlabeled tint, so it's one grid now). Each
-   face gets a visible text badge, never an unexplained background tint:
-   MUTUAL for a mutual follow, NEW for one of the 8 most-recently-added
-   non-mutual edges (recency = the follows API's own created_at ordering —
-   graph.followers/following already arrive newest-first, so the first
-   non-mutual faces in `people` ARE the newest). A face is never both — NEW
-   only ever applies to non-mutuals. You sit first, marked YOU. ── */
+   The circle as faces. Each mutual gets a visible MUTUAL text badge, never
+   an unexplained background tint. Dropped the "YOU" self-cell (redundant —
+   this is already your own circle) and the NEW badge (an unexplained
+   8-most-recent heuristic that never earned its keep — Brendon, 2026-09-01:
+   "maddeningly unclear and unhelpful"). ── */
 function Roster({
-    people, inspected, onInspect, myStat, myHandle,
+    people, inspected, onInspect,
 }: {
     people: PreviewPerson[]; inspected: string | null; onInspect: (h: string) => void;
-    myStat: CircleStat | undefined; myHandle: string | null;
 }) {
-    const recent = useMemo(() => {
-        const set = new Set<string>();
-        for (const p of people) {
-            if (p.mutual) continue;
-            set.add(p.handle);
-            if (set.size >= 8) break;
-        }
-        return set;
-    }, [people]);
-
     if (people.length === 0) {
         return <div className="fi-pv-note">Your circle shows here as faces once you follow someone.</div>;
     }
     return (
         <div className="fi-roster">
-            {myHandle && (
-                <span className="fi-rost-cell fi-rost-me" title={`@${myHandle} — you`}>
-                    <PreviewSprite handle={myHandle} color={myStat?.profileHex ?? undefined} />
-                    <span className="fi-rost-name">YOU</span>
+            {people.map((p) => (
+                <span
+                    key={p.handle}
+                    className={`fi-rost-cell${inspected === p.handle ? ' on' : ''}`}
+                    role="button"
+                    tabIndex={0}
+                    title={`@${p.handle}${p.mutual ? ' — mutual' : ''}`}
+                    onClick={() => onInspect(p.handle)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onInspect(p.handle); } }}
+                >
+                    <PreviewSprite handle={p.handle} color={p.stat?.profileHex ?? undefined} />
+                    <span className="fi-rost-name">@{p.handle}</span>
+                    {p.mutual && <span className="fi-rost-badge fi-rost-badge-mutual">MUTUAL</span>}
                 </span>
-            )}
-            {people.map((p) => {
-                const isNew = recent.has(p.handle);
-                return (
-                    <span
-                        key={p.handle}
-                        className={`fi-rost-cell${inspected === p.handle ? ' on' : ''}`}
-                        role="button"
-                        tabIndex={0}
-                        title={`@${p.handle}${p.mutual ? ' — mutual' : isNew ? ' — recently added' : ''}`}
-                        onClick={() => onInspect(p.handle)}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onInspect(p.handle); } }}
-                    >
-                        <PreviewSprite handle={p.handle} color={p.stat?.profileHex ?? undefined} />
-                        <span className="fi-rost-name">@{p.handle}</span>
-                        {p.mutual && <span className="fi-rost-badge fi-rost-badge-mutual">MUTUAL</span>}
-                        {!p.mutual && isNew && <span className="fi-rost-badge fi-rost-badge-new">NEW</span>}
-                    </span>
-                );
-            })}
+            ))}
         </div>
     );
 }
@@ -418,14 +392,14 @@ function ThirtyDays({ people, onFocus }: { people: PreviewPerson[]; onFocus: (f:
     return (
         <div className="fi-days">
             <div className="fi-days-head">
-                <span className="fi-days-title">{`✺${VS15}`} LAST 30 DAYS</span>
+                <span className="fi-days-title">{`◷${VS15}`} LAST 30 DAYS</span>
                 <span className="fi-days-total">{moves} MOVES</span>
             </div>
             <div className="fi-days-grid">
                 {days.map((d) => {
                     const go = () => {
                         if (d.handles.length === 0) return;
-                        onFocus({ handles: d.handles, label: d.label, glyph: '✺' });
+                        onFocus({ handles: d.handles, label: d.label, glyph: '◷' });
                     };
                     /* Ink, never fade — an empty day is an outlined cell, a busy
                        one is solid. No half-opacity chrome (Rule #2). */

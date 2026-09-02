@@ -433,7 +433,7 @@ export default function FollowersModal() {
     }, [isOpen, targetAddrLc, siweAddress]);
 
     const counts: Record<FollowersTab, number> = {
-        followers: graph.followers.length + projects.filter((p) => p.held).length,
+        followers: graph.followers.length,
         following: graph.following.length,
         mutuals: graph.mutuals.length,
         cartel: cartelHandles.length,
@@ -461,7 +461,7 @@ export default function FollowersModal() {
         const gaps: Array<{ d: number; text: string }> = [
             { d: their.collected - myCircleStat.collected, text: `${Math.abs(their.collected - myCircleStat.collected)} ⬚${VS15}` },
             { d: their.spentEth - myCircleStat.spentEth, text: `${Math.abs(their.spentEth - myCircleStat.spentEth).toFixed(2)} ⟠${VS15}` },
-            { d: their.followers - myCircleStat.followers, text: `${Math.abs(their.followers - myCircleStat.followers)} ⚬${VS15}` },
+            { d: their.followers - myCircleStat.followers, text: `${Math.abs(their.followers - myCircleStat.followers)} ☻${VS15}` },
         ];
         const leaderSign = them > you ? 1 : -1;
         const widest = gaps
@@ -598,17 +598,11 @@ export default function FollowersModal() {
         return [...pinned, ...rest];
     }, [projects, starredProjects]);
 
-    /* Projects that FOLLOW YOU (you hold a piece) — folded into the Followers
-       tab beneath the people who follow you (Brendon, 2026-07-14). */
-    const followerProjects = useMemo(() => projectRows.filter((p) => p.held), [projectRows]);
-
     const isEmpty = focus
         ? peopleRows.length === 0
         : tab === 'projects'
         ? projectRows.length === 0
-        : tab === 'followers'
-            ? peopleRows.length === 0 && followerProjects.length === 0
-            : peopleRows.length === 0;
+        : peopleRows.length === 0;
 
     /* The whole circle, deduped, for the preview strip. */
     const previewPeople = useMemo<PreviewPerson[]>(() => {
@@ -737,17 +731,6 @@ export default function FollowersModal() {
                                 tagSet={peopleTagSets[lc(handle)]}
                             />
                         ))}
-                        {/* Projects that follow you (you hold a piece) fold in below
-                            the people who follow you (Brendon, 2026-07-14). */}
-                        {tab === 'followers' && !focus && followerProjects.map((proj) => (
-                            <ProjectRow
-                                key={`fp:${proj.project_id}`}
-                                proj={proj}
-                                enabled={isOpen}
-                                starred={starredProjects.has(proj.project_id.toLowerCase())}
-                                onStar={onStarProject}
-                            />
-                        ))}
                     </>
                 )}
             </div>
@@ -793,8 +776,6 @@ export default function FollowersModal() {
                                 setFocus(null);
                                 setInspected(h);
                             }}
-                            myStat={siweAddress ? statByAddr[siweAddress.toLowerCase()] : undefined}
-                            myHandle={myHandle ? lc(myHandle) : null}
                             mySlugs={mySlugs}
                             onFocus={(f) => { setFocus(f); setInspected(null); }}
                         />
@@ -929,7 +910,11 @@ function PersonRow({
                                 <b>{stat ? stat.spentEth.toFixed(2) : '—'}</b>
                             </span>
                             <span className="fm-stat" title="Followers">
-                                <span className="fm-stat-ic">{`⚬${VS15}`}</span>
+                                {/* ☻ — the social mark (GLYPHS §12h) wears the followers
+                                    stat on profile pages (was ⚬ before 2026-07-27);
+                                    matched here so a card's stats row reads the same
+                                    everywhere (Brendon, 2026-09-01). */}
+                                <span className="fm-stat-ic fm-stat-ic-followers">{`☻${VS15}`}</span>
                                 <b>{stat ? fmtFollowers(stat.followers) : '—'}</b>
                             </span>
                         </div>
@@ -1058,7 +1043,7 @@ function FriendDossier({
             <div className="attr-grid fi-duel">
                 <DuelTile glyph="⬚" label="Collected" you={myStat ? myStat.collected : null} them={stat ? stat.collected : null} handle={handle} themHex={stat?.profileHex ?? null} />
                 <DuelTile glyph="⟠" label="Spent" you={myStat ? myStat.spentEth : null} them={stat ? stat.spentEth : null} handle={handle} themHex={stat?.profileHex ?? null} eth />
-                <DuelTile glyph="⚬" label="Followers" you={myStat ? myStat.followers : null} them={stat ? stat.followers : null} handle={handle} themHex={stat?.profileHex ?? null} />
+                <DuelTile glyph="☻" label="Followers" you={myStat ? myStat.followers : null} them={stat ? stat.followers : null} handle={handle} themHex={stat?.profileHex ?? null} />
                 <DuelTile glyph="◍" label="PriceScore" you={myScore} them={theirScore} handle={handle} themHex={stat?.profileHex ?? null} />
             </div>
 
