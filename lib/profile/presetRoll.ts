@@ -1,5 +1,5 @@
 /*
- * lib/profile/presetRoll.ts — Presets row (Random / Match / Pair) roll logic.
+ * lib/profile/presetRoll.ts — Presets row (Random / Match / Accent / Pair) roll logic.
  *
  * Pure functions, no React. Colorway and Tag Paint are full-spectrum (any
  * hex is valid on both — see useProfileHex / isValidTagPaint), so rolls pick
@@ -13,7 +13,7 @@ import { NAME_FONTS } from './nameFont';
 import { nearestLogoInFamily, PROFILE_SOLID, PROFILE_BLANK, PROFILE_PETEY, PROFILE_HOLO } from './profileLogos';
 import { liftWarmFloor } from '../color/warmGuard';
 
-export type PresetMode = 'random' | 'match' | 'pair';
+export type PresetMode = 'random' | 'match' | 'accent' | 'pair';
 
 /** Logo-style layer, independent of colour: which finish/orientation family
  *  the rolled logo comes from. Solid/Blank/Petey are hue-matched to the
@@ -91,28 +91,27 @@ function randomHarmonyHex(fromHue: number): string {
     return hslHex(h, rollSaturation(), rollLightness(h));
 }
 
-/** Artistic primaries (red / yellow / blue) for the "Primary" pair style. */
+/** Artistic primaries (red / yellow / blue) for the "Primary" accent style. */
 const PRIMARY_HUES = [0, 60, 240];
 
-/** Pair mode's colour relationship — picked per roll:
- *  - harmony:  complementary/split-complementary/triadic hue offset (was
- *              the only option before).
- *  - mono:     same hue, opposite lightness bands — "dark green, light
- *              green accent".
+/* Accent mode's colour relationship — picked per roll (Brendon, 2026-09-02:
+ * "accent" is the name this mode first shipped under; it's back to that, and
+ * it's now ALWAYS a genuinely different colour — the same-hue/different-
+ * shade option moved out to its own dedicated Pair mode below, so Accent no
+ * longer has a chance of rolling what looks like a single colour):
+ *  - harmony:  complementary/split-complementary/triadic hue offset.
  *  - primary:  main + accent both land on the red/yellow/blue triad.
- *  Weighted toward harmony since it's the most broadly flattering, mono and
- *  primary as the more graphic, opinionated options. */
-type PairStyle = 'harmony' | 'mono' | 'primary';
+ *  Weighted toward harmony since it's the most broadly flattering; primary
+ *  is the more graphic, opinionated option. Same 5:2 ratio the old
+ *  harmony:primary split carried before mono was in the mix. */
+type AccentStyle = 'harmony' | 'primary';
 
-function pickPairStyle(): PairStyle {
-    const r = Math.random();
-    if (r < 0.5) return 'harmony';
-    if (r < 0.8) return 'mono';
-    return 'primary';
+function pickAccentStyle(): AccentStyle {
+    return Math.random() < 5 / 7 ? 'harmony' : 'primary';
 }
 
-function rollPairPalette(): { main: string; accent: string } {
-    const style = pickPairStyle();
+function rollAccentPalette(): { main: string; accent: string } {
+    const style = pickAccentStyle();
 
     if (style === 'primary') {
         const shuffled = [...PRIMARY_HUES].sort(() => Math.random() - 0.5);
@@ -123,22 +122,26 @@ function rollPairPalette(): { main: string; accent: string } {
         };
     }
 
-    if (style === 'mono') {
-        const hue = Math.random() * 360;
-        const sat = rollSaturation();
-        const darkL = 20 + Math.random() * 15;   // 20–35
-        const lightL = 65 + Math.random() * 20;  // 65–85
-        const mainIsDark = Math.random() < 0.5;
-        return {
-            main: hslHex(hue, sat, mainIsDark ? darkL : lightL),
-            accent: hslHex(hue, sat, mainIsDark ? lightL : darkL),
-        };
-    }
-
     // harmony
     const mainHue = Math.random() * 360;
     const main = hslHex(mainHue, rollSaturation(), rollLightness(mainHue));
     return { main, accent: randomHarmonyHex(mainHue) };
+}
+
+/* Pair mode — the same colour at two different shades ("dark green, light
+ * green accent"). Was one of three random outcomes under the old Pair mode
+ * (30% of rolls); now it's Pair's whole job, every roll (Brendon,
+ * 2026-09-02). */
+function rollMonoPalette(): { main: string; accent: string } {
+    const hue = Math.random() * 360;
+    const sat = rollSaturation();
+    const darkL = 20 + Math.random() * 15;   // 20–35
+    const lightL = 65 + Math.random() * 20;  // 65–85
+    const mainIsDark = Math.random() < 0.5;
+    return {
+        main: hslHex(hue, sat, mainIsDark ? darkL : lightL),
+        accent: hslHex(hue, sat, mainIsDark ? lightL : darkL),
+    };
 }
 
 function randomFontId(): string {
@@ -148,14 +151,18 @@ function randomFontId(): string {
 
 /** Roll a fresh Presets result for the given mode. Logo style (Solid / Blank
  *  / Petey / Holo) is its own random layer on top of colour in every mode —
- *  Random rolls it per-call independently of the colour rolls, Match/Pair
- *  roll it once and hue-match it to whichever colour that mode ties the
+ *  Random rolls it per-call independently of the colour rolls, Match/Accent/
+ *  Pair roll it once and hue-match it to whichever colour that mode ties the
  *  logo to.
  *  - random: all four rolled independently.
  *  - match:  colorway, tag paint, and logo all lock to one rolled hue.
- *  - pair:   colorway is the main; tag paint + logo share a curated-harmony
- *            accent hue (complementary / split-complementary / triadic off
- *            the main), so tags and logo read as one coordinated pop. */
+ *  - accent: colorway is the main; tag paint + logo share a curated-harmony
+ *            or primary-triad accent hue — a genuinely different colour,
+ *            never a shade of the same one (Brendon, 2026-09-02).
+ *  - pair:   colorway and tag paint are the SAME hue at two different
+ *            shades — "dark green, light green accent" (Brendon,
+ *            2026-09-02 — split out of the old Pair mode, which mixed this
+ *            in with genuinely-different-colour rolls). */
 export function rollPreset(mode: PresetMode): PresetResult {
     const logoStyle = randomLogoStyle();
 
@@ -178,11 +185,10 @@ export function rollPreset(mode: PresetMode): PresetResult {
         };
     }
 
-    // Pair — colorway is the main; tag paint is the accent, and the logo
-    // rides the accent too (tags + logo read as one coordinated pop against
-    // the main colorway). rollPairPalette picks the relationship itself
-    // (harmony hue offset / monochrome light-dark / primary triad).
-    const { main, accent } = rollPairPalette();
+    // Accent / Pair — colorway is the main; tag paint is the accent, and the
+    // logo rides the accent too (tags + logo read as one coordinated pop
+    // against the main colorway). Only the palette source differs.
+    const { main, accent } = mode === 'pair' ? rollMonoPalette() : rollAccentPalette();
     return {
         hex: main,
         tagPaint: accent,
