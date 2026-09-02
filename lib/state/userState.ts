@@ -226,6 +226,12 @@ export const STATE_CACHE_KEYS = {
     portfolioPriceMode: 'pd_portfolio_price_mode',
     portfolioGroupMode: 'pd_portfolio_group_mode',
     portfolioHidden: 'pd_portfolio_hidden',
+    /** PROFILE PRESETS — 3 numbered save slots for the profile look. Read +
+     *  written by lib/profile/profilePresets. Envelope (`profilePresets`). */
+    profilePresets: 'pd_profile_presets',
+    /** PROFILE GENERATIVE — the standing 24h-reroll toggle. Read + written by
+     *  lib/profile/profileGenerative. Envelope (`profileGenerative`). */
+    profileGenerative: 'pd_profile_generative',
 } as const;
 
 /** Fired after a server snapshot is written into the caches. Any context that
@@ -551,6 +557,17 @@ export function hydrateFromRow(row: UserRow): void {
         if (Array.isArray(s.spite)) {
             localStorage.setItem(STATE_CACHE_KEYS.spite, JSON.stringify(s.spite));
         }
+        // Profile Presets / Profile Generative — same seed-only-when-carried
+        // bargain (Brendon, 2026-09-02).
+        if (Array.isArray(s.profilePresets)) {
+            localStorage.setItem(STATE_CACHE_KEYS.profilePresets, JSON.stringify(s.profilePresets));
+        }
+        if (s.profileGenerative && typeof s.profileGenerative === 'object') {
+            localStorage.setItem(STATE_CACHE_KEYS.profileGenerative, JSON.stringify(s.profileGenerative));
+        }
+        // homeShuffleColorway is intentionally NOT cached to localStorage
+        // (Brendon, 2026-09-02: "db not localstorage") — it lives only in the
+        // in-memory `_settings` mirror above, read via getSettingsSnapshot().
 
         /* ── THE LAST FIVE (Brendon, 2026-08-01) — fiat · anchors · budgets ·
            Composer programs · the Portfolio's view state. Same seed-only-when-
@@ -767,6 +784,17 @@ function sendDirtySettings(keepalive = false): void {
  * Top-level columns (profile_hex, showcase, showcase_style) use pushState()
  * directly.
  */
+/**
+ * Read-only snapshot of the in-memory `settings` envelope mirror — the same
+ * object pushSettings() sends from. For fields that intentionally have NO
+ * localStorage cache (e.g. `homeShuffleColorway` — Brendon, 2026-09-02: "db
+ * not localstorage"), this is the only way to read the hydrated value back.
+ * Empty object until a server snapshot has hydrated.
+ */
+export function getSettingsSnapshot(): Readonly<UserSettings> {
+    return _settings;
+}
+
 export function pushSettings(partial: Partial<UserSettings>): void {
     _settings = { ..._settings, ...partial };
     for (const k of Object.keys(partial) as (keyof UserSettings)[]) _dirtySettingsKeys.add(k);

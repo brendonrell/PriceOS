@@ -140,6 +140,22 @@ function getProfileBg(fallback: string = PROFILE_DEFAULT): string {
         : fallback;
 }
 
+/* Home Shuffle "colorway mode" (Brendon, 2026-09-02) — long-pressing the
+   Shuffle tab paints the whole page in the currently-shown project's own
+   colorway instead of the Mood Ring, for as long as the Shuffle tab is
+   active. Same module-variable + repaint-on-set pattern as activeProfileHex
+   above; owned/driven by components/home/HomePageBody, read by
+   resolveCustomBg(). Ephemeral by design — NOT persisted (only the on/off
+   mode flag is; see lib/home/shuffleColorwayMode) since it's fully derived
+   from whichever project shuffle is currently showing. */
+let shuffleColorwayHex: string | null = null;
+export function setShuffleColorwayHex(hex: string | null): void {
+    shuffleColorwayHex = hex && HEX_RE.test(hex) ? hex.toUpperCase() : null;
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('pd:custom-color-changed'));
+    }
+}
+
 /* Haze — same pattern as custom. Storage key: `pd_haze_color`. Falls
    back to COLORWAYS.haze (#25EC00) when no custom hex has been saved. */
 const HAZE_COLOR_KEY = 'pd_haze_color';
@@ -301,8 +317,9 @@ function resolveCustomBg(): string {
     if (typeof window === 'undefined') return DOT;
     const path = window.location.pathname || '/';
     /* /marketplace is the home surface's market side — it wears the SAME
-       Mood Ring colour as home (Brendon, 2026-07-27). */
-    if (path === '/' || path === '/marketplace') return moodHexToday();
+       Mood Ring colour as home (Brendon, 2026-07-27). Shuffle colorway mode
+       (Brendon, 2026-09-02) overrides the Mood Ring, home-only, while active. */
+    if (path === '/' || path === '/marketplace') return shuffleColorwayHex ?? moodHexToday();
     if (path.startsWith('/art/')) {
         const slug = (path.split('/')[2] ?? '').toLowerCase();
         return projectColorway(slug) ?? DOT;
