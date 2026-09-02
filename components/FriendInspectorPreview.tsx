@@ -173,7 +173,7 @@ export default function FriendInspectorPreview({
             {mode === 'spend' && <Spend people={people} onInspect={onInspect} />}
             {mode === 'overlap' && <Overlap people={people} mySlugs={mySlugs} onFocus={onFocus} />}
             {mode === 'roster' && (
-                <Roster people={people} inspected={inspected} onInspect={onInspect} />
+                <RosterSection people={people} inspected={inspected} onInspect={onInspect} />
             )}
         </div>
     );
@@ -315,6 +315,142 @@ function Roster({
                     {p.mutual && <span className="fi-rost-badge fi-rost-badge-mutual">MUTUAL</span>}
                 </span>
             ))}
+        </div>
+    );
+}
+
+/* ── ROSTER SECTION — two sub-views, same face grid (Brendon, 2026-09-02):
+   GM mode (Roster, above) vs. INSIGHT, a generative read of the same circle.
+   Tapping the INSIGHT pill always re-rolls in place — same "tap it again to
+   reroll" contract as the homepage Shuffle tab — picking a fresh grouping
+   strategy and splitting the circle into a featured cluster + the rest,
+   with a title naming what it found. Nothing here is stored; it's just a
+   different lens on `people` each tap, same data Roster and the ledger use. */
+function RosterSection({
+    people, inspected, onInspect,
+}: {
+    people: PreviewPerson[]; inspected: string | null; onInspect: (h: string) => void;
+}) {
+    const [view, setView] = useState<'roster' | 'insight'>('roster');
+    const [insightSeed, setInsightSeed] = useState(0);
+    const pickInsight = () => {
+        setView('insight');
+        setInsightSeed((s) => s + 1); // re-roll every tap, even if already on Insight
+    };
+    return (
+        <div className="fi-roster-section">
+            <div className="fi-roster-subtabs" role="tablist" aria-label="Roster view">
+                <button type="button" className={`ambient-chip fi-preview-chip${view === 'roster' ? ' on' : ''}`} onClick={() => setView('roster')}>ROSTER</button>
+                <button type="button" className={`ambient-chip fi-preview-chip${view === 'insight' ? ' on' : ''}`} onClick={pickInsight}>INSIGHT</button>
+            </div>
+            {view === 'roster'
+                ? <Roster people={people} inspected={inspected} onInspect={onInspect} />
+                : <Insight key={insightSeed} people={people} inspected={inspected} onInspect={onInspect} />}
+        </div>
+    );
+}
+
+/* Each strategy splits the circle into a featured cluster + the remainder,
+   naming what makes the featured cluster featured. Add more here any time —
+   Insight picks one at random per roll. */
+const INSIGHT_STRATEGIES: {
+    title: string;
+    featuredLabel: string;
+    restLabel: string;
+    split: (people: PreviewPerson[]) => [PreviewPerson[], PreviewPerson[]];
+}[] = [
+    {
+        title: 'WHO FOLLOWS BACK',
+        featuredLabel: 'MUTUAL',
+        restLabel: 'ONE-WAY',
+        split: (people) => [people.filter((p) => p.mutual), people.filter((p) => !p.mutual)],
+    },
+    {
+        title: 'WHO COLLECTS LIKE YOU',
+        featuredLabel: 'SHARES A HOLDING',
+        restLabel: 'NO OVERLAP YET',
+        split: (people) => [people.filter((p) => (p.shared ?? 0) > 0), people.filter((p) => (p.shared ?? 0) === 0)],
+    },
+    {
+        title: 'MAKERS VS. COLLECTORS',
+        featuredLabel: 'ARTISTS',
+        restLabel: 'COLLECTORS',
+        split: (people) => [people.filter((p) => p.stat?.isArtist), people.filter((p) => !p.stat?.isArtist)],
+    },
+    {
+        title: 'WHERE THE ETH WENT',
+        featuredLabel: 'TOP SPENDERS',
+        restLabel: 'EVERYONE ELSE',
+        split: (people) => {
+            const sorted = [...people].sort((a, b) => (b.stat?.spentEth ?? 0) - (a.stat?.spentEth ?? 0));
+            const cut = Math.max(1, Math.ceil(sorted.length / 3));
+            return [sorted.slice(0, cut), sorted.slice(cut)];
+        },
+    },
+    {
+        title: 'THE BIGGEST CROWDS',
+        featuredLabel: 'MOST FOLLOWED',
+        restLabel: 'EVERYONE ELSE',
+        split: (people) => {
+            const sorted = [...people].sort((a, b) => (b.stat?.followers ?? 0) - (a.stat?.followers ?? 0));
+            const cut = Math.max(1, Math.ceil(sorted.length / 3));
+            return [sorted.slice(0, cut), sorted.slice(cut)];
+        },
+    },
+];
+
+function InsightFace({
+    p, inspected, onInspect,
+}: { p: PreviewPerson; inspected: string | null; onInspect: (h: string) => void }) {
+    return (
+        <span
+            className={`fi-rost-cell${inspected === p.handle ? ' on' : ''}`}
+            role="button"
+            tabIndex={0}
+            title={`@${p.handle}`}
+            onClick={() => onInspect(p.handle)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onInspect(p.handle); } }}
+        >
+            <PreviewSprite handle={p.handle} color={p.stat?.profileHex ?? undefined} />
+            <span className="fi-rost-name">@{p.handle}</span>
+        </span>
+    );
+}
+
+function Insight({
+    people, inspected, onInspect,
+}: { people: PreviewPerson[]; inspected: string | null; onInspect: (h: string) => void }) {
+    const strategy = useMemo(
+        () => INSIGHT_STRATEGIES[Math.floor(Math.random() * INSIGHT_STRATEGIES.length)],
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- re-rolls only when the caller
+        // remounts via key={insightSeed}; `people` alone shouldn't reshuffle mid-view.
+        [],
+    );
+    const [featured, rest] = useMemo(() => strategy.split(people), [strategy, people]);
+
+    if (people.length === 0) {
+        return <div className="fi-pv-note">Insight needs a circle to work with — follow someone first.</div>;
+    }
+    if (featured.length === 0) {
+        return <div className="fi-pv-note">{strategy.title} — nobody in your circle fits yet. Tap INSIGHT to try another read.</div>;
+    }
+    return (
+        <div className="fi-insight">
+            <div className="fi-insight-title">{strategy.title}</div>
+            <div className="fi-insight-group featured">
+                <div className="fi-insight-group-label">{strategy.featuredLabel} · {featured.length}</div>
+                <div className="fi-roster">
+                    {featured.map((p) => <InsightFace key={p.handle} p={p} inspected={inspected} onInspect={onInspect} />)}
+                </div>
+            </div>
+            {rest.length > 0 && (
+                <div className="fi-insight-group">
+                    <div className="fi-insight-group-label">{strategy.restLabel} · {rest.length}</div>
+                    <div className="fi-roster">
+                        {rest.map((p) => <InsightFace key={p.handle} p={p} inspected={inspected} onInspect={onInspect} />)}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
