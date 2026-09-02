@@ -2073,8 +2073,8 @@ function ProfilePageBodyInner({
                         <span className="cbr-label">Followed by&nbsp;</span>
                         <a key={mutuals[0]} className="profile-link feat-name" href={`/${mutuals[0]}`}>@{mutuals[0]}</a>
                         {mutuals[1] ? (
-                            <>,&nbsp;<a key={mutuals[1]} className="profile-link feat-name" href={`/${mutuals[1]}`}>@{mutuals[1]}</a>&nbsp;</>
-                        ) : '\u00A0'}
+                            <>,&nbsp;<a key={mutuals[1]} className="profile-link feat-name" href={`/${mutuals[1]}`}>@{mutuals[1]}</a> </>
+                        ) : ' '}
                         {mutualOthers > 0 && (
                             <span className="cbr-others">
                                 &amp;&nbsp;{mutualOthers}&nbsp;{mutualOthers === 1 ? 'Other' : 'Others'}&nbsp;You&nbsp;Follow
