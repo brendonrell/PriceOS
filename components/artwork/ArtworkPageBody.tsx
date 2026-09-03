@@ -33,6 +33,7 @@ import { cancelListing } from '../../lib/market/marketClient';
 import { getWalletClientOnDemand } from '../../lib/wallet/walletClientOnDemand';
 import { useColorway, type ColorwayKey } from '../../lib/state/ColorwayContext';
 import { useModal } from '../../lib/state/ModalContext';
+import { useFiat } from '../../lib/state/FiatContext';
 import { useValuePrompt } from '../../lib/state/ValuePromptContext';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
 import { TraitsProvider } from '../../lib/state/TraitsContext';
@@ -213,6 +214,7 @@ export default function ArtworkPageBody({
     localId,
 }: Props) {
     const { showToast } = useToast();
+    const { ethToFiat } = useFiat();
     const { add: cartAdd, has: cartHas, items: cartItems } = useCart();
     const { openListSheet, openOfferSheet, openOffersPanel } = useMarketSheet();
     const { openExchange } = useExchange();
@@ -634,7 +636,17 @@ export default function ArtworkPageBody({
         ctaLabel = <span className="mint-lbl">{isListed ? 'UNLIST' : 'LIST'}</span>;
         ctaAction = isListed ? 'unlist' : 'list';
     } else if (isListed) {
-        ctaLabel = (<><span className="mint-lbl">BUY</span><span className="mint-price">({formatEth(Number(listPrice))} ETH)</span></>);
+        ctaLabel = (
+            <>
+                <span className="mint-lbl">BUY</span>
+                <span className="mint-price">
+                    ({formatEth(Number(listPrice))} ETH)
+                    {ethToFiat(Number(listPrice)) && (
+                        <span className="modal-action-btn-fiat"> {ethToFiat(Number(listPrice))}</span>
+                    )}
+                </span>
+            </>
+        );
         ctaAction = 'buy';
     } else {
         ctaLabel = <span className="mint-lbl">MAKE OFFER</span>;
