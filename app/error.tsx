@@ -53,6 +53,32 @@ export default function RouteError({
             <div style={{ fontSize: 13, maxWidth: 320, lineHeight: 1.5, opacity: 1, fontWeight: 'bold' }}>
                 This part of the page hit a snag. The rest of the app is fine.
             </div>
+            {/* On-screen console error, mobile has no devtools to check.
+                error.message/.stack are the same strings console.error just
+                got above; digest is Next's server-side error correlation id. */}
+            <div
+                style={{
+                    fontSize: 11,
+                    maxWidth: 340,
+                    maxHeight: 220,
+                    overflow: 'auto',
+                    lineHeight: 1.5,
+                    textAlign: 'left',
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-word',
+                    opacity: 0.85,
+                    fontWeight: 'normal',
+                    padding: '10px 12px',
+                    border: '1px solid var(--text-color, #e0e0e0)',
+                    borderRadius: 4,
+                    background: 'rgba(0, 0, 0, 0.15)',
+                }}
+            >
+                {error.name ? `${error.name}: ` : ''}
+                {error.message || 'Unknown error'}
+                {error.digest ? `\n\ndigest: ${error.digest}` : ''}
+                {error.stack ? `\n\n${error.stack}` : ''}
+            </div>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
                 <button
                     type="button"
