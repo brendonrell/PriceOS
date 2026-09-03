@@ -5017,6 +5017,13 @@ body.pd-stone-open .ens-copy-toast {
     column-gap: 0;
     line-height: 1;
     overflow: visible;
+    /* Rubik Mono One's own space glyph is nearly zero-width, so the &nbsp;
+       characters typed in the JSX (see comment above) read as no space at
+       all — name runs right up against "&". word-spacing forces a real gap
+       on those same &nbsp; characters (non-breaking is preserved — this
+       only widens the glyph, it never lets the line wrap there) (Brendon,
+       2026-09-03). */
+    word-spacing: 3px;
 }
 .cbr-label {
     font-family: var(--font-rubik-mono), sans-serif;
@@ -8741,6 +8748,14 @@ body.colorway-dark .ghost-card .ghost-wrapper {
        knock-down to sit level with the lighter Courier name. */
     opacity: 0.6;
     flex-shrink: 0;
+}
+/* Showcase "started" star — nudged up 1.5px and left 3px off its natural
+   baseline position to sit tighter against the #id (Brendon, 2026-09-03). */
+.meta-proj-star {
+    display: inline-block;
+    position: relative;
+    top: -1.5px;
+    left: -3px;
 }
 .price-trigger {
     cursor: pointer;
