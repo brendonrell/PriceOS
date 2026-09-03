@@ -50,16 +50,17 @@ import {
 } from 'react';
 import { getRememberedGroup, getRememberedLayers, rememberGroup, rememberLayers } from './groupMemoryStore';
 
-export type SortKey = 'id' | 'price' | 'feed' | 'fog' | 'az';
+export type SortKey = 'id' | 'price' | 'feed' | 'fog' | 'az' | 'rarity';
 export type SortDir = 'asc' | 'desc';
 export type FeedKind = 'time' | 'price';
-/* ⛔ RARITY RIDES INSIDE #ID AND $PRICE (Brendon, 2026-08-02: "both ID and
-   PRICE get a rarity cycle option, so 4 total. We use the same visual as with
-   FEED with the little dollar sign… except we'll use the rarity glyph").
-   FEED already carries a second ORDER inside one pill and marks it with a
-   small $; rarity is that same idea on the two grid sorts, marked with ❖. So
-   each of those pills cycles four steps — its own two directions, then
-   rarity's two — and the row gains a whole sort without gaining a button. */
+/* ⛔ RARITY IS ITS OWN SORT NOW, NOT A MODIFIER (Brendon, 2026-09-03 —
+   "take rarity out of ID and PRICE sorts as a modifier in the cycle
+   picker... return those two to just up and down... add rarity as its own
+   sort, glyph-only"). #ID and $PRICE went back to a plain 2-step asc/desc
+   toggle; 'rarity' takes the same plain toggle as its own SortKey family,
+   wearing the ❖ glyph the old modifier used to wear. `rank`/`SortRank`
+   stay in the context (harmless — nothing sets them to 'rarity' anymore)
+   so nothing downstream that still reads them has to change shape. */
 export type SortRank = 'natural' | 'rarity';
 /* Group-by dimension for the gallery (Brendon, 2026-06-16; redesigned
    2026-07-12). Grouping is its OWN icon-only toggle at the start of the sort
@@ -331,7 +332,7 @@ export function decodeSortSlug(slug: string): DecodedSort | null {
         const group: GroupKey = isGroupKey(parts[3]) ? parts[3] : 'none';
         return { sort: 'feed', dir, feedKind, group };
     }
-    if (fam === 'id' || fam === 'price' || fam === 'az') {
+    if (fam === 'id' || fam === 'price' || fam === 'az' || fam === 'rarity') {
         const dir: SortDir = parts[1] === 'desc' ? 'desc' : 'asc';
         const group: GroupKey = isGroupKey(parts[2]) ? parts[2] : 'none';
         return { sort: fam, dir, feedKind: 'time', group };
@@ -417,7 +418,7 @@ interface SortContextValue {
 const SortContext = createContext<SortContextValue | null>(null);
 
 function isSortKey(v: unknown): v is SortKey {
-    return v === 'id' || v === 'price' || v === 'feed' || v === 'fog' || v === 'az';
+    return v === 'id' || v === 'price' || v === 'feed' || v === 'fog' || v === 'az' || v === 'rarity';
 }
 
 export function SortProvider({ children }: { children: ReactNode }) {
@@ -474,7 +475,7 @@ export function SortProvider({ children }: { children: ReactNode }) {
                 if (raw === 'feed') {
                     setFeedKind('time');
                     setDir('desc');
-                } else if (raw === 'id' || raw === 'price' || raw === 'az') {
+                } else if (raw === 'id' || raw === 'price' || raw === 'az' || raw === 'rarity') {
                     setDir('asc');
                 }
             }
@@ -493,7 +494,7 @@ export function SortProvider({ children }: { children: ReactNode }) {
         setSlugActive(true);
         setSortState(s);
         // Reset to family-default direction state (sim 8329 / 8320).
-        if (s === 'id' || s === 'price' || s === 'az') {
+        if (s === 'id' || s === 'price' || s === 'az' || s === 'rarity') {
             setDir('asc');
         } else if (s === 'feed') {
             setFeedKind('time');
@@ -558,25 +559,8 @@ export function SortProvider({ children }: { children: ReactNode }) {
             }
             return;
         }
-        // id / price / az
+        // id / price / az / rarity — all plain 2-step asc/desc toggles.
         if (sort === target) {
-            /* #ID and $PRICE cycle FOUR steps, exactly as FEED does: the
-               family's own two directions, then rarity's two, then wrap
-               (Brendon, 2026-08-02). AZ keeps its plain flip. */
-            if (target === 'id' || target === 'price') {
-                if (rank === 'natural' && dir === 'asc') {
-                    setDir('desc');
-                } else if (rank === 'natural') {
-                    setRank('rarity');
-                    setDir('asc');
-                } else if (dir === 'asc') {
-                    setDir('desc');
-                } else {
-                    setRank('natural');
-                    setDir('asc');
-                }
-                return;
-            }
             // Already this family — flip direction (sim 8327).
             setDir(dir === 'asc' ? 'desc' : 'asc');
         } else {
@@ -625,8 +609,10 @@ export function SortProvider({ children }: { children: ReactNode }) {
         }
         // AZ is name-order across projects — meaningless inside ONE project,
         // and the project sort row doesn't offer it. A saved 'az' default
-        // enters a project as #ID (Collected/home keep the AZ boot).
-        if (fam === 'az') fam = 'id';
+        // enters a project as #ID (Collected/home keep the AZ boot). Rarity
+        // is a standalone family now, but only the profile row wears the
+        // button for it — same fallback.
+        if (fam === 'az' || fam === 'rarity') fam = 'id';
         setSortState(fam);
         if (fam === 'feed') {
             setFeedKind('time');
