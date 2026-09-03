@@ -55,6 +55,10 @@ import { formatEth } from '../lib/format/eth';
 
 const VS15 = '\uFE0E';
 const UNMOUNT_DELAY_MS = 240;
+// How far above the live floor a listing can sit and still count as "off the
+// floor" for Sweep vs Buy All. Floor rises as the cheap end of the book gets
+// bought, so this is deliberately a band, not an exact-price check.
+const FLOOR_SWEEP_BAND = 0.15; // 15%
 
 /* Parse "0.123 ETH" → 0.123. Returns 0 for null/unparsable. */
 function parseEth(price: string | null | undefined): number {
@@ -64,9 +68,19 @@ function parseEth(price: string | null | undefined): number {
 }
 
 /* Sim 11819 BUY label format: "BUY  ALL  ·  0.123 ETH" — double-spaces
-   + middle dot. Reproduced verbatim because the typography matters. */
-function formatBuyLabel(total: number): string {
-    return `BUY  ALL  \u00B7  ${formatEth(total)} ETH`;
+   + middle dot. Reproduced verbatim because the typography matters.
+   Three-way (2026-09-03, refined 2026-09-03): "Sweep" means buying off
+   the floor — every piece in the cart priced at that Project's floor.
+   Anything else with 2+ items (5 chosen grails, mixed prices) is a
+   "Buy All", not a sweep. A single item is just a "Buy". */
+type BuyMode = 'buy' | 'buyAll' | 'sweep';
+function buyMode(count: number, allAtFloor: boolean): BuyMode {
+    if (count <= 1) return 'buy';
+    return allAtFloor ? 'sweep' : 'buyAll';
+}
+function formatBuyLabel(total: number, mode: BuyMode): string {
+    const verb = mode === 'sweep' ? 'SWEEP' : mode === 'buyAll' ? 'BUY  ALL' : 'BUY';
+    return `${verb}  \u00B7  ${formatEth(total)} ETH`;
 }
 
 interface RowProps {
@@ -121,12 +135,14 @@ function CartGroup({
     ids,
     onSubtotal,
     onFloor,
+    onFloorMatch,
     onRemove,
 }: {
     slug: string;
     ids: number[];
     onSubtotal: (slug: string, eth: number) => void;
     onFloor: (slug: string, eth: number) => void;
+    onFloorMatch: (slug: string, allAtFloor: boolean) => void;
     onRemove: (slug: string, id: number) => void;
 }) {
     const { title, outputs, floorEth } = useProject();
@@ -143,13 +159,22 @@ function CartGroup({
     });
     const sub = rows.reduce((a, r) => a + r.eth, 0);
     const floorBasis = rows.reduce((a, r) => a + (r.listed ? floorEth : 0), 0);
+    // A group counts as "off the floor" if every row is listed and within
+    // FLOOR_SWEEP_BAND of this Project's floor — NOT an exact match. Each
+    // fill during a real sweep nudges the floor up to the next-cheapest
+    // listing, so a literal floorEth === price test would almost never be
+    // true past the first item. Anything further out than the band is a
+    // piece the buyer picked on purpose (a grail), not something they swept.
+    const groupAtFloor =
+        floorEth > 0 && rows.every((r) => r.listed && r.eth <= floorEth * (1 + FLOOR_SWEEP_BAND));
     useEffect(() => {
         onSubtotal(slug, sub);
         onFloor(slug, floorBasis);
-    }, [slug, sub, floorBasis, onSubtotal, onFloor]);
-    // Zero this group's contribution only when it leaves the cart (unmount /
-    // slug change), not on every price update.
-    useEffect(() => () => { onSubtotal(slug, 0); onFloor(slug, 0); }, [slug, onSubtotal, onFloor]);
+        onFloorMatch(slug, groupAtFloor);
+    }, [slug, sub, floorBasis, groupAtFloor, onSubtotal, onFloor, onFloorMatch]);
+    // Zero/clear this group's contribution only when it leaves the cart
+    // (unmount / slug change), not on every price update.
+    useEffect(() => () => { onSubtotal(slug, 0); onFloor(slug, 0); onFloorMatch(slug, true); }, [slug, onSubtotal, onFloor, onFloorMatch]);
     return (
         <>
             {rows.map((r) => (
@@ -242,6 +267,15 @@ export default function CartPanel() {
     }, []);
     const floorBasis = groups.reduce((a, [slug]) => a + (floors[slug] ?? 0), 0);
     const savings = floorBasis - subtotal; // positive = buying under floor
+
+    /* Per-Project "every row at floor" reported up; ANDed across groups so one
+       above-floor grail anywhere in the cart makes the whole buy a "Buy All",
+       not a "Sweep". */
+    const [floorMatches, setFloorMatches] = useState<Record<string, boolean>>({});
+    const reportFloorMatch = useCallback((slug: string, allAtFloor: boolean) => {
+        setFloorMatches((prev) => (prev[slug] === allAtFloor ? prev : { ...prev, [slug]: allAtFloor }));
+    }, []);
+    const mode = buyMode(items.length, groups.every(([slug]) => floorMatches[slug] ?? false));
 
     /* Fees model — sim 11815: 8% on subtotal + flat gas × N. */
     const fees = subtotal * CART_FEE_RATE + CART_GAS_PER_ITEM * items.length;
@@ -347,6 +381,7 @@ export default function CartPanel() {
                                     ids={ids}
                                     onSubtotal={reportSub}
                                     onFloor={reportFloor}
+                                    onFloorMatch={reportFloorMatch}
                                     onRemove={remove}
                                 />
                             </ProjectProvider>
@@ -390,7 +425,9 @@ export default function CartPanel() {
                     disabled={isEmpty || buying}
                 >
                     {buying && <span className="cart-buy-sweep" aria-hidden="true" />}
-                    {buying ? 'SWEEPING\u2026' : formatBuyLabel(total)}
+                    {buying
+                        ? (mode === 'sweep' ? 'SWEEPING\u2026' : 'BUYING\u2026')
+                        : formatBuyLabel(total, mode)}
                 </button>
                 {/* Money moves → confirm card (Brendon, 2026-07-02: every
                     non-wallet transaction confirms). Same centered card as
@@ -399,11 +436,15 @@ export default function CartPanel() {
                     <div className="starred-confirm-overlay" role="dialog" aria-modal="true" onClick={() => setConfirmOpen(false)}>
                         <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
                             <div className="ms-confirm-question">
-                                Sweep {items.length} output{items.length === 1 ? '' : 's'} \u00B7 {formatEth(total)} ETH?
+                                {mode === 'sweep'
+                                    ? `Sweep ${items.length} outputs \u00B7 ${formatEth(total)} ETH?`
+                                    : mode === 'buyAll'
+                                    ? `Buy ${items.length} outputs \u00B7 ${formatEth(total)} ETH?`
+                                    : `Buy this output \u00B7 ${formatEth(total)} ETH?`}
                             </div>
                             <div className="ms-confirm-btns">
                                 <button type="button" className="ms-confirm-btn ms-confirm-btn--cancel" onClick={() => setConfirmOpen(false)}>Cancel</button>
-                                <button type="button" className="ms-confirm-btn ms-confirm-btn--ok" onClick={onBuyAll}>Sweep</button>
+                                <button type="button" className="ms-confirm-btn ms-confirm-btn--ok" onClick={onBuyAll}>{mode === 'sweep' ? 'Sweep' : 'Buy'}</button>
                             </div>
                         </div>
                     </div>
