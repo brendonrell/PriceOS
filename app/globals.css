@@ -12487,6 +12487,11 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
    the buttons having been missed in the first, mint-only pass. */
 .ms-confirm-question { font-size: 14px; }
 .ms-confirm-btn { font-size: 14px; }
+/* 2026-09-03: is-centered (buy/sweep confirm, the main money-move dialog)
+   still read too small at 14px against a full-bleed overlay — step it up
+   again, question and buttons both. */
+.ms-confirm-card.is-centered .ms-confirm-question { font-size: 17px; line-height: 1.45; }
+.ms-confirm-card.is-centered .ms-confirm-btn { font-size: 15px; height: 34px; }
 
 /* ── Showcase-full swap picker (Brendon, 2026-07-22) — the 6 current picks as
    small thumbnails on the confirm card; tap one to replace it. Lives on the
