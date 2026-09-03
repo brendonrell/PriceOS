@@ -567,7 +567,7 @@ export default function StarredList({
     }, [items, isHistory]);
     type HistoryRow =
         | { type: 'output'; ts: number; slug: string; id: number; project: string; artist: string; extraPairs: { k: string; v: string }[]; fate: string }
-        | { type: 'project'; ts: number; slug: string; color: string; floor: string; lastSale: string };
+        | { type: 'project'; ts: number; slug: string; name: string; color: string; floor: string; lastSale: string };
     const historyRowsFlat = useMemo(() => {
         if (!isHistory) return [] as HistoryRow[];
         const q = query.trim().toLowerCase();
@@ -576,7 +576,7 @@ export default function StarredList({
             project: r.project, artist: r.artist, extraPairs: r.extraPairs, fate: r.fate,
         }));
         const projs: HistoryRow[] = projectViewRows.map((r) => ({
-            type: 'project', ts: r.ts, slug: r.slug, color: r.color,
+            type: 'project', ts: r.ts, slug: r.slug, name: r.name, color: r.color,
             floor: r.market.floor, lastSale: r.market.lastSale,
         }));
         let all = [...outs, ...projs];
@@ -587,11 +587,20 @@ export default function StarredList({
                     : `@${r.slug}`.toLowerCase().includes(q),
             );
         }
-        /* ◷ direction (the timeline's one live control): asc = newest-first
-           (the default read), desc = oldest-first — day buckets follow. */
-        all.sort((a, b) => (sortDir === 'desc' ? a.ts - b.ts : b.ts - a.ts));
+        /* ◷ Recent (default): ◷ direction — asc = newest-first, desc =
+           oldest-first, day buckets follow. AZ (Brendon, 2026-09-03): same
+           project-name sort as every other +More surface, ties broken by
+           most-recent visit so repeat entries for one project still read
+           newest-first within their block. */
+        if (sortKey === 'project') {
+            const nameOf = (r: HistoryRow) => (r.type === 'output' ? r.project : r.name);
+            all.sort((a, b) => nameOf(a).localeCompare(nameOf(b)) || b.ts - a.ts);
+            if (sortDir === 'desc') all.reverse();
+        } else {
+            all.sort((a, b) => (sortDir === 'desc' ? a.ts - b.ts : b.ts - a.ts));
+        }
         return all;
-    }, [isHistory, outputRows, projectViewRows, query, sortDir]);
+    }, [isHistory, outputRows, projectViewRows, query, sortKey, sortDir]);
 
     /* Progressive reveal — same shape as the Collected grid (Brendon 2026-06-27).
        History can hold up to 500 rows, each a live OutputThumb; mount a first
@@ -619,9 +628,15 @@ export default function StarredList({
         return () => io.disconnect();
     }, [isHistory, historyReveal, historyRowsFlat.length]);
 
+    /* Day headers only make sense chronologically — under AZ the rows aren't
+       ordered by ts, so a day label attached to each row would jump around
+       nonsensically. AZ renders as one flat, unheadered block instead
+       (Brendon, 2026-09-03: "ok if not" on keeping date visible under AZ). */
     const historySections = useMemo(
-        () => sectionize(isHistory ? historyRowsFlat.slice(0, historyReveal) : [], (r) => dayLabel(r.ts)),
-        [isHistory, historyRowsFlat, historyReveal],
+        () => sortKey === 'project'
+            ? [{ label: null as string | null, key: '_', rows: isHistory ? historyRowsFlat.slice(0, historyReveal) : [] }]
+            : sectionize(isHistory ? historyRowsFlat.slice(0, historyReveal) : [], (r) => dayLabel(r.ts)),
+        [isHistory, historyRowsFlat, historyReveal, sortKey],
     );
 
     const traitSections = useMemo(() => {
@@ -683,8 +698,10 @@ export default function StarredList({
        surface to one kind, each row gets its REGULAR CTA back — Wishlist on an
        Output, Play on a Soundtrack, the Trait / Project offers, Follow on a
        person. The picker keeps Wishlist as its top option, so wishlisting is
-       never more than one tap deeper. */
-    const listCta = mode === 'all' && kind !== 'history';
+       never more than one tap deeper. History gets the same door as Starred
+       (Brendon, 2026-09-03) — it has no "REGULAR CTA" of its own to fall back
+       to, so its rows keep ADD TO LIST regardless of mode. */
+    const listCta = mode === 'all' || kind === 'history';
     const [listTarget, setListTarget] = useState<GrailPin | null>(null);
     const openAddToList = (e: React.MouseEvent, pin: GrailPin) => {
         e.stopPropagation();
@@ -705,6 +722,18 @@ export default function StarredList({
        are per-kind, so each visible block hands back the pins it owns. */
     const [listBatch, setListBatch] = useState<GrailPin[] | null>(null);
     const selectedPins = (): GrailPin[] => {
+        /* History rows aren't covered by any of the below (they're not in
+           visibleOutputs/visibleProjects — they're their own flat/day-bucketed
+           list), so they need their own branch, keyed the same way the History
+           rows themselves are (Brendon, 2026-09-03). */
+        if (isHistory) {
+            const pins: GrailPin[] = [];
+            historyRowsFlat.forEach((r) => {
+                if (r.type === 'output' && selected.has(`${r.slug}:${r.id}`)) pins.push({ kind: 'output', slug: r.slug, id: r.id });
+                else if (r.type === 'project' && selected.has(`p:${r.slug}`)) pins.push({ kind: 'project', slug: r.slug });
+            });
+            return pins;
+        }
         const inMode = (m: Mode) => mode === 'all' || mode === m || (isSocial && (m === 'collectors' || m === 'artists' || m === 'projects'));
         const pins: GrailPin[] = [];
         if (inMode('outputs')) visibleOutputs.forEach((r) => { if (selected.has(`${r.slug}:${r.id}`)) pins.push({ kind: 'output', slug: r.slug, id: r.id }); });

@@ -33,11 +33,11 @@ export const MORE_CFG: Record<string, { sorts: MoreSortKey[]; groups: string[] }
     tx:          { sorts: ['recent', 'price', 'project'], groups: ['none'] },
     wishlist:    { sorts: ['recent', 'price', 'id', 'project'], groups: ['none'] },
     /* History is the day-bucketed timeline — chronology IS its structure, so
-       the only control that means anything is ◷ with a direction flip
-       (newest-first ↔ oldest-first). The dead GROUP / $PRICE / AZ buttons it
-       used to borrow from the outputs config are gone (Brendon, 2026-07-27 —
-       "the group button seems to do nothing"). */
-    history:     { sorts: ['recent'],                     groups: ['none'] },
+       GROUP / $PRICE stay dead (Brendon, 2026-07-27 — "the group button
+       seems to do nothing"). AZ rejoins ◷ Recent (Brendon, 2026-09-03) —
+       same pairing as Starred, sorting the rows within History by project
+       name instead of visit time; day-bucketing itself is untouched. */
+    history:     { sorts: ['recent', 'project'],           groups: ['none'] },
 };
 
 export const MORE_SORT_LABEL: Record<MoreSortKey, string> = { recent: 'Recent', id: '#ID', project: 'AZ', price: '$PRICE', followers: 'FLWRS' };
