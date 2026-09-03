@@ -2185,7 +2185,7 @@ function ProfilePageBodyInner({
                                     openModal('takeover', user.handle ?? displayHandle, user.address);
                                 }}
                             >
-                                {'⚑︎'}
+                                <span className="btn-icon-glyph">⚑︎</span>
                             </button>
                         )}
                         {/* THE EXCHANGE — head-to-head trade with this collector
@@ -2202,7 +2202,7 @@ function ProfilePageBodyInner({
                                     openExchange(user.address, user.handle ?? displayHandle);
                                 }}
                             >
-                                {'⇌︎'}
+                                <span className="btn-icon-glyph">⇌︎</span>
                             </button>
                         )}
                         {(() => {
