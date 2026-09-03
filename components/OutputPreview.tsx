@@ -1538,11 +1538,16 @@ export default function OutputPreview() {
                         </button>
                         <button
                             className={`modal-action-btn-calc${calcMode === 'user-showcase' ? ' is-showcase' : ''}${calcMode === 'shadow' ? ' is-shadow' : ''}${calcMode === 'shadow' && shadowedHere ? ' active' : ''}`}
-                            onClick={() => {
+                            onClick={(e) => {
                                 if (calcMode === 'shadow') {
                                     onShadowTab();
                                 } else if (calcMode === 'user-showcase') {
-                                    showToast('Add to Showcase: COMING SOON');
+                                    if (id != null) {
+                                        const anchor = anchorFromEvent(e);
+                                        const r = toggleShowcase(slug, id);
+                                        if (r === 'full') { setSwapAnchor(anchor); return; }
+                                        showToast(r === 'added' ? 'Showcase: ADDED' : 'Showcase: REMOVED');
+                                    }
                                 } else if (calcMode === 'offer') {
                                     showToast('Offer Calc: COMING SOON');
                                 } else if (id != null && meta) {
