@@ -1372,8 +1372,10 @@ function ArtworkCard({
                     <div className="meta meta-profile">
                         <span className="meta-proj-name">{projectTitle}</span>
                         {/* Starred → a filled ★ as the character left of the id
-                            (Brendon, 2026-06-20), same as a starred project name. */}
-                        <span className="meta-proj-id">{starred ? '★︎ ' : ''}#{id}</span>
+                            (Brendon, 2026-06-20), same as a starred project name.
+                            Star sits in its own span so it can be nudged
+                            independently of the #id digits (Brendon, 2026-09-03). */}
+                        <span className="meta-proj-id">{starred && <span className="meta-proj-star">★︎</span>}{starred ? ' ' : ''}#{id}</span>
                         {noteIcon}
                     </div>
                 ) : (
