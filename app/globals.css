@@ -6176,10 +6176,21 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.32); }
     justify-content: center;
 }
 /* ↗ share glyph — glyph-only Share variant only (3-button row: Takeover +
-   Exchange + Share), never paired with the ▶ play icon (Brendon, 2026-08-17). */
+   Exchange + Share), never paired with the ▶ play icon (Brendon, 2026-08-17).
+   Sized 2 steps up from the base 12px scale (Brendon, 2026-09-03). */
 .btn-icon-share {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
+    font-size: 14px;
+    line-height: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+/* ⚑︎ takeover / ⇌ exchange glyphs — the other two glyph-only profile pills,
+   sized to match .btn-icon-share (Brendon, 2026-09-03). */
+.btn-icon-glyph {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
     line-height: 0;
     display: inline-flex;
     align-items: center;
