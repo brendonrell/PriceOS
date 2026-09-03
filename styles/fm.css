@@ -655,8 +655,11 @@ body.modal-open .fm-bar {
     background: #fff;
     box-shadow: 0 0 4px rgba(255, 255, 255, 0.9), 0 0 8px rgba(255, 255, 255, 0.5);
     transform-origin: bottom;
-    animation: fm-pulse 1.1s ease-in-out infinite;
+    transform: scaleY(1);
 }
+/* Bars only pulse while actually playing — otherwise they sit static
+   (Brendon, 2026-08-31). */
+.fm-playing .fm-sb { animation: fm-pulse 1.1s ease-in-out infinite; }
 .fm-sb:nth-child(1) { height: 6px; animation-delay: 0s; }
 .fm-sb:nth-child(2) { height: 12px; animation-delay: 0.15s; }
 .fm-sb:nth-child(3) { height: 8px; animation-delay: 0.3s; }
@@ -666,7 +669,7 @@ body.modal-open .fm-bar {
     50% { transform: scaleY(0.45); } /* live-signal motion, not resting fade */
 }
 @media (prefers-reduced-motion: reduce) {
-    .fm-sb { animation: none; }
+    .fm-playing .fm-sb { animation: none; }
 }
 
 
