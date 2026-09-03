@@ -9,11 +9,16 @@
  * immediately; come back to Shuffle without a fresh long-press and it's
  * still on. Only another long-press turns it off.
  *
+ * DEFAULT ON for everyone, incl. signed-out guests (Brendon, 2026-09-03 —
+ * sells the site concept). `homeShuffleColorway` is boolean|undefined;
+ * undefined ("never touched the toggle") reads as ON, an explicit false
+ * (the user long-pressed it off) is still honored.
+ *
  * ACCOUNT-ONLY persistence (Brendon: "All of it db not localstorage") — no
  * localStorage mirror, unlike every other toggle in the app. The flag rides
  * the settings envelope (`users.settings.homeShuffleColorway`) only, read
  * back purely from the in-memory server snapshot via getSettingsSnapshot().
- * Signed-out / not-yet-hydrated reads default OFF; writes before hydration
+ * Signed-out / not-yet-hydrated reads default ON; writes before hydration
  * are no-ops via pushSettings' own guard.
  */
 
@@ -22,7 +27,7 @@ import { getSettingsSnapshot, isUserStateHydrated, pushSettings, USERSTATE_HYDRA
 
 const EVT = 'pd:home-shuffle-colorway-mode-changed';
 
-let enabled = isUserStateHydrated() ? !!getSettingsSnapshot().homeShuffleColorway : false;
+let enabled = isUserStateHydrated() ? getSettingsSnapshot().homeShuffleColorway !== false : true;
 
 function emit() {
     if (typeof window !== 'undefined') {
@@ -32,7 +37,7 @@ function emit() {
 
 if (typeof window !== 'undefined') {
     window.addEventListener(USERSTATE_HYDRATED_EVENT, () => {
-        enabled = !!getSettingsSnapshot().homeShuffleColorway;
+        enabled = getSettingsSnapshot().homeShuffleColorway !== false;
         emit();
     });
 }
