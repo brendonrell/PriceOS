@@ -5933,7 +5933,12 @@ body.bg-is-yellow .fiat-opt-on { background: #fff; color: var(--hothurt); border
     gap: 4px;
     white-space: normal;
     width: max-content;
-    max-width: min(78vw, 240px);
+    /* Widened for the 2-column dimension list (Brendon, 2026-09-03) — was
+       min(78vw, 240px), a single-column width that would squeeze two
+       columns of labels down to nothing. The 3-slot view above stays just
+       as narrow; it never grows to fill this, `width: max-content` keeps
+       it hugging its own content. */
+    max-width: min(90vw, 340px);
     /* No internal scroll (Brendon, 2026-08-14) — the menu grows to fit its
        full dimension list instead of clipping it. */
     padding: 8px;
@@ -5996,13 +6001,22 @@ body.bg-is-yellow .fiat-opt-on { background: #fff; color: var(--hothurt); border
 .glb-caret { flex: none; }
 .glb-glyph { font-family: 'Courier New', Courier, monospace; font-size: 12px; line-height: 1; }
 
-/* The picker list for one slot — one dimension per line, stacked. */
-.glb-list { display: flex; flex-direction: column; gap: 3px; }
+/* The picker list for one slot (Brendon, 2026-09-03 — "too many options...
+   goes offscreen, the user literally can't interact with the ones
+   offscreen"). Two columns instead of one long stack roughly halves the
+   height, so the full GROUP_MENU_DIMS list fits on-screen with no-scroll
+   growth (2026-08-14's rule) instead of running past the viewport edge. */
+.glb-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3px 6px;
+}
 .glb-opt {
     display: flex;
     align-items: center;
     gap: 6px;
     width: 100%;
+    min-width: 0;
     text-align: left;
     /* Same full-strength edge as the slots above — no alpha wash on this
        fill (Brendon, 2026-07-31). */
@@ -6501,13 +6515,13 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.32); }
     top: -1px;
 }
 .sort-arrow {
-    /* One size up (Brendon, 2026-07-12 — was 20/15). */
-    font-size: 22px;
+    /* One size down from 22/17 (Brendon, 2026-09-03) — back to 20/15. */
+    font-size: 20px;
     font-family: 'Courier New', Courier, monospace;
     font-weight: normal;
     display: inline-block;
 }
-@media (max-width: 600px) { .sort-arrow { font-size: 17px; } }
+@media (max-width: 600px) { .sort-arrow { font-size: 15px; } }
 /* The GROUP toggle stands apart from the sorts it modifies — extra breathing
    room after it, on top of the row's uniform gap (Brendon, 2026-07-12). Its
    glyph sits 1px lower to centre on the row (Brendon, same day). */
@@ -6555,50 +6569,18 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.32); }
 }
 @media (max-width: 600px) { .sort-btn.group-btn { margin-right: 5px; } }
 
-/* ── COLLECTED-TAB GALLERY SORT ROW (profile page only) ──────────────────
-   Brendon, 2026-08-23: "the gap on the left and right side of the group
-   icon" should match the plain gap between #ID / $PRICE / AZ / FEED, and
-   the sort arrow should sit right beside its label instead of floating off
-   to the right.
-
-   Before this: the LEFT of the GROUP icon carried the row's own 16px gap
-   PLUS the colorway pills' own 6px margin (22px total, 16px on mobile);
-   the RIGHT of the GROUP icon carried the row's 12px gap PLUS the icon's
-   own 7px margin (19px total, 13px on mobile) — both bigger than the
-   plain 12px/8px gap between the sort buttons themselves. Zeroing this
-   row's outer gap and folding the colorway-pills margin down to match the
-   plain gap (and dropping the GROUP icon's extra margin entirely) makes
-   every gap in the row the same, at both breakpoints.
-
-   The arrow sits far from its label because the Courier "↑"/"↓" glyph
-   carries a lot of dead space in its own character cell — the 3px CSS gap
-   was never the problem. A tight negative margin pulls it in; the
-   font-size bump keeps it legible up close without the row growing
-   taller (line-height stays clamped at 1, same trick as .sort-lbl-recent).
-
-   Scoped to .cf-collected-sort (this row only) — the project, home, and
-   artwork sort rows keep their existing spacing untouched. Selectors use
-   #sortOptions.cf-collected-sort (not just the class) so this reliably
-   beats the plain .sort-bar mobile rule further down the file — same
-   specificity, later source order, would otherwise win on phones (that's
-   why the first pass at this didn't visibly change anything on mobile). */
-.cf-collected-sort,
-#sortOptions.cf-collected-sort {
-    gap: 0;
-}
-.cf-collected-sort .colorway-pills {
-    margin-right: 12px;
-}
-.cf-collected-sort .sort-btn.group-btn {
-    margin-right: 0;
-}
-.cf-collected-sort .sort-arrow {
-    margin-left: -6px;
-    font-size: 26px;
-    line-height: 1;
-}
+/* ── PROFILE COLLECTED SORT ROW — tight spacing (Brendon, 2026-09-03) ────
+   The row grew from 4 controls to 7 (GROUP · Recent · Social · Rarity ·
+   PRICE · AZ · FEED) plus the colorway squares, so the plain 12px gap
+   between sort buttons no longer all fits on a phone width — tightened to
+   8px inline on this row only (ProfileFacetBar's own sort-btn-group style,
+   mobile already forces 8px on every row via the existing !important
+   rule below). A modest, CLEAN tightening — not the 2026-08-23
+   cf-collected-sort pass Brendon pulled (that one also yanked the arrow in
+   with a negative margin and bumped its font-size; this one only touches
+   the gap). */
 @media (max-width: 600px) {
-    .cf-collected-sort .colorway-pills {
+    .profile-sort-row .colorway-pills {
         margin-right: 8px;
     }
 }
