@@ -2454,9 +2454,10 @@ function ProfilePageBodyInner({
                                         {/* LISTS — last in the sort row, after
                                             ◷ Recent and AZ (Brendon, 2026-07-24;
                                             shortened from MY LISTS 2026-07-25).
-                                            Own Starred tab only; it's your
-                                            private shelf. */}
-                                        {onStarredTab && isOwnProfile && (
+                                            Starred and History both use it —
+                                            it's the same private shelf either
+                                            way in (Brendon, 2026-09-03). */}
+                                        {(onStarredTab || onHistoryTab) && isOwnProfile && (
                                             <span
                                                 className={`sort-btn${myListsOpen ? ' active' : ''}`}
                                                 role="button"
@@ -3112,9 +3113,13 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
 
             {/* My History — the last-100 viewed Outputs, reusing the Starred
                 Outputs rows on the feed timeline, grouped by day (Brendon,
-                2026-06-24). Own profile only (private). */}
+                2026-06-24). Own profile only (private). MY LISTS takes over
+                the surface here exactly like it does on Starred — same
+                shelf, same button, same way in and out (Brendon, 2026-09-03). */}
             {onHistoryTab && isOwnProfile && (
-                !recording ? (
+                myListsOpen ? (
+                    <ListsPanel onToast={showToast} dir={myListsDir} viewerAddress={user.address} />
+                ) : !recording ? (
                     <section className="starred-list" aria-label="History">
                         <div className="history-empty-note">
                             Turn on History to see your 500 most recently viewed outputs and projects.
