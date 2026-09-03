@@ -16,7 +16,7 @@ They are **private**. That is precisely why you get to name them: nobody else ev
 
 **≡** is the Lists mark across PD.
 
-**How:** On your own profile's Starred view, tap ADD TO LIST on any row to file it; tap the LISTS pill in the sort row to read your Lists back.
+**How:** On your own profile's Starred or History view, tap ADD TO LIST on any row to file it; tap the LISTS pill in the sort row to read your Lists back. It's the same door either way in.
 
 <svg viewBox="0 0 720 170" role="img" aria-labelledby="list-header-anatomy-title" style="width:100%;height:auto;display:block;margin:14px 0">
 <title id="list-header-anatomy-title">A List header, annotated: the name with the pencil rename, the count, the owned tally, the ETH worth that cycles SECONDARY, PRIMARY and OFF, and the delete control that removes only the grouping.</title>
@@ -67,9 +67,13 @@ The moment you filter to a single kind, each row gets its own button back:
 
 So All Starred is where you file, and a filter is where you act.
 
+### From History
+
+**History has no filter to fall back to**, so its rows keep **ADD TO LIST** all the time — same button, same sheet, works exactly like it does on All Starred.
+
 ### A whole selection at once
 
-Turn on **multi-select** ❐, tick what you want, and hit **Add to List** in the bar at the bottom. The same sheet opens with the entire selection — filing twenty pieces is one trip, not twenty.
+Turn on **multi-select** ❐, tick what you want, and hit **Add to List** in the bar at the bottom. The same sheet opens with the entire selection — filing twenty pieces is one trip, not twenty. Works from Starred or History.
 
 ### The sheet
 
@@ -83,7 +87,7 @@ The × or the backdrop closes it without adding anything.
 
 ## Reading them back
 
-**LISTS** closes Starred's sort row, after ◷ Recent and AZ. It's your own shelf, so it only appears on your own profile, and it starts closed.
+**LISTS** closes the sort row on Starred *and* History alike, after ◷ Recent and AZ — History carries the same three-button row now, not just the clock. It's your own shelf, so it only appears on your own profile, and it starts closed.
 
 It behaves like the sorts beside it:
 

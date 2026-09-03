@@ -3,12 +3,16 @@ title: "What's New"
 description: "The platform's recent additions, newest first — a running highlights reel of what shipped, each line linking into its own manual page."
 category: "introduction"
 keywords: ["whats new", "new features", "updates", "releases", "recent", "changelog"]
-last_updated: "2026-08-05"
+last_updated: "2026-09-03"
 ---
 
 # What's New
 
 The recent additions, newest first — the highlights reel, not the full ledger. Every numbered feature lives in [the Atlas](/docs/features); every line below links to its manual page.
+
+## September 2026
+
+- **History caught up to Starred** — AZ joins ◷ Recent in its sort row, and the **LISTS** door is open too: multi-select any run of History and file it straight into a List, same sheet as Starred. ([Lists](/docs/lists))
 
 ## August 2026
 
