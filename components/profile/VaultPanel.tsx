@@ -36,6 +36,12 @@ import {
     moveToVaultFront,
     type VaultRecord,
 } from '../../lib/pins/vaultStore';
+import { useLongPressStar } from '../../lib/pins/useLongPressStar';
+import {
+    isVaultStarred,
+    toggleVaultStar,
+    subscribeVaultStars,
+} from '../../lib/pins/vaultStarStore';
 import type { Holding } from './profilePageShared';
 
 const VS15 = '︎';
@@ -66,9 +72,20 @@ function fmtEth(n: number): string {
 }
 
 /* ── Cover tile — the Albums cover mosaic, wearing the vault's label. ────── */
-function VaultCoverTile({ vault, number, estEth, onOpen }: {
-    vault: VaultRecord; number: number; estEth: number; onOpen: () => void;
+function VaultCoverTile({ vault, number, estEth, ownerAddress, onOpen }: {
+    vault: VaultRecord; number: number; estEth: number; ownerAddress: string; onOpen: () => void;
 }) {
+    const { showToast } = useToast();
+    const [starred, setStarred] = useState(false);
+    useEffect(() => {
+        setStarred(isVaultStarred(ownerAddress, vault.id));
+        return subscribeVaultStars(() => setStarred(isVaultStarred(ownerAddress, vault.id)));
+    }, [ownerAddress, vault.id]);
+    const { floatId, floatDown, longFired, handlers } = useLongPressStar(() => {
+        const r = toggleVaultStar(ownerAddress, vault.id);
+        showToast(r === 'starred' ? 'Added to your Starred Vaults List (Private)' : 'Removed from your Starred Vaults List');
+        return r;
+    });
     const coverKey = vault.cover && vault.keys.includes(vault.cover) ? vault.cover : null;
     const cells = coverKey ? [coverKey] : vault.keys.slice(0, 4);
     return (
@@ -89,12 +106,21 @@ function VaultCoverTile({ vault, number, estEth, onOpen }: {
                 })}
                 {!coverKey && cells.length === 0 && <span className="album-tile-empty">{VAULT_GLYPH}</span>}
             </span>
-            <span className="album-tile-label">
-                <span className="album-tile-name">{VAULT_GLYPH} VAULT {pad2(number)}</span>
+            <span
+                className="album-tile-label"
+                style={{ position: 'relative' }}
+                {...handlers}
+                onClick={(e) => { if (longFired.current) { e.stopPropagation(); longFired.current = false; } }}
+            >
+                <span className="album-tile-name">
+                    {VAULT_GLYPH} VAULT {pad2(number)}
+                    {starred && <span className="project-name-star" aria-hidden="true">{'\u2605\ufe0e'}</span>}
+                </span>
                 <span className="album-tile-count">
                     {estEth > 0 && <span className="album-tile-worth"><span className="eth-mark">◊</span>{fmtEth(estEth)} · </span>}
                     {vault.keys.length}
                 </span>
+                {floatId > 0 && <span key={floatId} className={`project-name-star-float${floatDown ? ' is-down' : ''}`} aria-hidden="true">{'\u2605\ufe0e'}</span>}
             </span>
         </button>
     );
@@ -216,6 +242,7 @@ export default function VaultPanel({
                             vault={v}
                             number={i + 1}
                             estEth={estOf(v)}
+                            ownerAddress={address}
                             onOpen={() => { setOpenId(v.id); setSelecting(false); setAdding(false); setSelected(new Set()); }}
                         />
                     ))}

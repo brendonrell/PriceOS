@@ -40,7 +40,7 @@ export const MORE_CFG: Record<string, { sorts: MoreSortKey[]; groups: string[] }
     history:     { sorts: ['recent', 'project'],           groups: ['none'] },
 };
 
-export const MORE_SORT_LABEL: Record<MoreSortKey, string> = { recent: 'Recent', id: '#ID', project: 'AZ', price: '$PRICE', followers: 'FLWRS' };
+export const MORE_SORT_LABEL: Record<MoreSortKey, string> = { recent: 'Recent', id: '#ID', project: 'AZ', price: '$PRICE', followers: '\u263B\ufe0e' };
 export const MORE_GROUP_NAME: Record<string, string> = { color: 'Color', project: 'Project', artist: 'Artist', type: 'Type' };
 /* Canonical grouping glyphs (docs/GLYPHS.md) — worn by the standalone GROUP
    toggle, same vocabulary as the gallery. */
