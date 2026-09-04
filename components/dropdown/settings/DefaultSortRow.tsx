@@ -46,6 +46,9 @@ const SORT_NAMES: Record<SortKey, string> = {
     // Fog now lives in the Spell Book (Brendon, 2026-07-12).
     fog:   'Fog',
     az:    'A–Z',
+    // Not shown in this row's SORTS list — present only to satisfy
+    // Record<SortKey, string> now that SortKey includes 'rarity'.
+    rarity: 'RARITY',
 };
 
 const SORTS: Array<{ key: SortKey; title: string }> = [
