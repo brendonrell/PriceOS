@@ -5056,6 +5056,20 @@ body.pd-stone-open .ens-copy-toast {
 }
 
 /* ── STATS — sim ~2068-2072 + ~4088-4124 ─────────────────── */
+/* Collector Collector — the project name above its stats row (2026-09-04:
+   the modal gave zero indication which project's collectors you were
+   looking at). Same voice as the hero title, scaled down for a popup. */
+.collectors-project-name {
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    text-align: center;
+    opacity: 0.72;
+    margin-bottom: 6px;
+}
+.collectors-stats-top { margin-bottom: 10px; }
 .stats-row {
     display: flex;
     gap: 18px;
