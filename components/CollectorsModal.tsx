@@ -285,7 +285,7 @@ function CollectorsModalBody() {
 
     const body = (
         <>
-            <div className="collectors-project-name">{getProject(slug)?.title ?? slug}</div>
+            <div className="collectors-project-name">{getProject(slug)?.displayName ?? slug}</div>
             <div className="stats-row collectors-stats-top">
                 <span className="stat-item" style={{ cursor: 'default' }}>
                     <span className="stat-icon stat-icon-owners">{`\u2726${VS15}`}</span>{' '}
