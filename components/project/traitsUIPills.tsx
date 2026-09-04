@@ -364,29 +364,14 @@ export function SortBtn({
     let arrowGlyph = '';
     let dollarSpan: ReactNode = null;
     if (active) {
-        if (family === 'id' || family === 'price') {
+        if (family === 'id' || family === 'price' || family === 'rarity') {
+            /* ⛔ RARITY IS ITS OWN SORT NOW (Brendon, 2026-09-03) — #ID and
+               $PRICE went back to a plain asc/desc toggle, no rank-modifier
+               mark riding their arrow anymore. 'rarity' is just another
+               family in this same plain-toggle branch, wearing its own ❖
+               label (passed in by the caller) instead of a mark bolted onto
+               ID/PRICE. */
             arrowGlyph = dir === 'asc' ? '↑\uFE0E' : '↓\uFE0E';
-            /* ⛔ RARITY WEARS THE SAME MARK FEED'S PRICE ORDER DOES (Brendon,
-               2026-08-02) — the small glyph in front of the arrow, ❖ instead of
-               $. Identical anatomy, so the row reads as one idea. */
-            if (rank === 'rarity') {
-                dollarSpan = (
-                    <span
-                        className="feed-sort-dollar rarity-sort-mark"
-                        style={{
-                            fontFamily: "'Courier New', Courier, monospace",
-                            /* Two sizes larger + nudged down 3px from the
-                               prior 13px/-3px (Brendon, 2026-08-15). */
-                            fontSize: '17px',
-                            marginRight: '2px',
-                            position: 'relative',
-                            top: '0px',
-                        }}
-                    >
-                        {'❖\uFE0E'}
-                    </span>
-                );
-            }
         } else if (family === 'feed') {
             arrowGlyph = dir === 'asc' ? '↑\uFE0E' : '↓\uFE0E';
             if (feedKind === 'price') {
