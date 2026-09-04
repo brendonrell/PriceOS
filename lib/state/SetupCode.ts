@@ -118,6 +118,9 @@ const SORT_TO_TOKEN: Record<SortKey, string> = {
     // 'az' is a transient Collected-only sort, never persisted/shared; token
     // exists only to satisfy the map. Decodes back to id (below).
     az:    'AZAS',
+    // 'rarity' is a plain (non-directional) toggle, same shape as fog;
+    // token exists only to satisfy the map.
+    rarity: 'RRTY',
 };
 
 // Decode side — every sim sort token collapses onto a base SortKey.
