@@ -113,6 +113,30 @@ const SORTS: { key: OwnerSort; label: string }[] = [
 ];
 
 export default function CollectorsModal() {
+    /* Which project this instance shows — the SLUG PASSED AT OPEN, not
+       whatever the page happens to be showing. This modal mounts once,
+       globally, in PriceOSShell — a SIBLING of the page's own
+       <ProjectProvider slug={...}>, not a child of it. Reading useProject()
+       directly here (as this used to) silently fell through to the outer
+       app-shell default provider (app/layout.tsx's slug-less
+       <ProjectProvider>, which defaults to 'prisms') instead of whatever
+       project you'd actually clicked the stat on — so it always showed
+       Prisms' real collectors no matter which project opened it (2026-09-04
+       bug: "Turing's Garden has two collectors but only shows me"). Look up
+       the slug the open('collectors', undefined, slug) call stamped on this
+       modal's OWN stack entry (not just the top of the stack — this modal
+       can sit underneath something else), and re-provide a correctly scoped
+       Project context around the real body. */
+    const { stack } = useModal();
+    const targetSlug = stack.find((m) => m.name === 'collectors')?.slug;
+    return (
+        <ProjectProvider slug={targetSlug}>
+            <CollectorsModalBody />
+        </ProjectProvider>
+    );
+}
+
+function CollectorsModalBody() {
     const { close } = useModal();
     const { outputs, slug } = useProject();
     const { siweAddress, handle: myHandle } = useAuth();
@@ -261,11 +285,21 @@ export default function CollectorsModal() {
 
     const body = (
         <>
-            <div className="collectors-stats-top">
-                <span className="cst-stat"><b>{holders.length}</b> {holders.length === 1 ? 'OWNER' : 'OWNERS'}</span>
-                <span className="cst-stat"><b>{uniquePct}%</b> UNIQUE</span>
+            <div className="collectors-project-name">{getProject(slug)?.title ?? slug}</div>
+            <div className="stats-row collectors-stats-top">
+                <span className="stat-item" style={{ cursor: 'default' }}>
+                    <span className="stat-icon stat-icon-owners">{`\u2726${VS15}`}</span>{' '}
+                    <span className="stat-val">{holders.length} {holders.length === 1 ? 'OWNER' : 'OWNERS'}</span>
+                </span>
+                <span className="stat-item" style={{ cursor: 'default' }}>
+                    <span className="stat-icon" style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: 14 }}>{`\u2302${VS15}`}</span>{' '}
+                    <span className="stat-val">{uniquePct}% UNIQUE</span>
+                </span>
                 {top3Pct !== null && (
-                    <span className="cst-stat" title="Share of the edition held by the three biggest hands"><b>{top3Pct}%</b> TOP 3</span>
+                    <span className="stat-item" style={{ cursor: 'default' }} title="Share of the edition held by the three biggest hands">
+                        <span className="stat-icon" style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: 14 }}>{`\u25B2${VS15}`}</span>{' '}
+                        <span className="stat-val">{top3Pct}% TOP 3</span>
+                    </span>
                 )}
             </div>
 
@@ -393,8 +427,8 @@ export default function CollectorsModal() {
                 <div className="sticker-mgr-plus followers-plus owners-plus" onClick={(e) => e.stopPropagation()}>
                     <div className="smgr-plus-head">
                         {title('COLLECTOR COLLECTOR+')}
-                        <button className="smgr-store" type="button" onClick={() => window.open(DISCORD_URL, '_blank', 'noopener')} title="Go To Discord">
-                            GO TO DISCORD
+                        <button className="smgr-store" type="button" onClick={() => window.open(DISCORD_URL, '_blank', 'noopener')} title="Discord">
+                            DISCORD
                         </button>
                         <button className="smgr-expand" type="button" onClick={() => { setFull(false); showToast('Collector Collector: COMPACT'); }} title="Exit full screen" aria-label="Exit full screen">
                             {`↓${VS15}`}
@@ -423,8 +457,8 @@ export default function CollectorsModal() {
                 </span>
                 <div className="ambient-pop-title">
                     {title('COLLECTOR COLLECTOR')}
-                    <button className="smgr-store" type="button" onClick={() => window.open(DISCORD_URL, '_blank', 'noopener')} title="Go To Discord">
-                        GO TO DISCORD
+                    <button className="smgr-store" type="button" onClick={() => window.open(DISCORD_URL, '_blank', 'noopener')} title="Discord">
+                        DISCORD
                     </button>
                     <button className="smgr-expand" type="button" onClick={() => { setFull(true); showToast('Collector Collector: PLUS'); }} title="Open Collector Collector+" aria-label="Open Collector Collector+">
                         {`↑${VS15}`}
