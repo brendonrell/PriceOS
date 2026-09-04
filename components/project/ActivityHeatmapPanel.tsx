@@ -139,6 +139,9 @@ export default function ActivityHeatmapPanel({ slug }: { slug: string }) {
                     {'\u2039\uFE0E'} ZOOM OUT — BACK TO CALENDAR
                 </button>
                 <div className="activity-hm-day-label">{dayLabel}</div>
+                <div className="activity-hm-legend">
+                    <span>UTC HOURS · TAP A BAR FOR THE SPLIT</span>
+                </div>
                 {loadingHours || !hours ? (
                     <div className="activity-hm-empty">LOADING THE HOUR…</div>
                 ) : (
@@ -166,9 +169,6 @@ export default function ActivityHeatmapPanel({ slug }: { slug: string }) {
                         })}
                     </div>
                 )}
-                <div className="activity-hm-legend">
-                    <span>UTC HOURS · TAP A BAR FOR THE SPLIT</span>
-                </div>
             </div>
         );
     }
@@ -178,6 +178,13 @@ export default function ActivityHeatmapPanel({ slug }: { slug: string }) {
             <div className="activity-hm-intro">
                 One cell per day, darker means busier. Tap a day to zoom into
                 its 24 hours; tap ZOOM OUT to come back.
+            </div>
+            <div className="activity-hm-legend">
+                <span>LESS</span>
+                {[0, 1, 2, 3, 4].map((lv) => (
+                    <div key={lv} className="activity-hm-legend-cell" data-level={lv} />
+                ))}
+                <span>MORE</span>
             </div>
             {grid && (
                 <div className="activity-hm-cal">
@@ -217,13 +224,6 @@ export default function ActivityHeatmapPanel({ slug }: { slug: string }) {
                     </div>
                 </div>
             )}
-            <div className="activity-hm-legend">
-                <span>LESS</span>
-                {[0, 1, 2, 3, 4].map((lv) => (
-                    <div key={lv} className="activity-hm-legend-cell" data-level={lv} />
-                ))}
-                <span>MORE</span>
-            </div>
         </div>
     );
 }
