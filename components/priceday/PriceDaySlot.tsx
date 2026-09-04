@@ -21,6 +21,7 @@ import {
 } from '../../lib/priceday/priceday';
 import { usePriceDay } from '../../lib/priceday/usePriceDay';
 import { moodOfDay } from '../../lib/mood/mood';
+import PriceDayTitleStar from './PriceDayTitleStar';
 
 const POPOVER_WIDTH = 260;
 const MARGIN = 8;
@@ -140,7 +141,7 @@ export default function PriceDaySlot() {
                     className="priceday-popover"
                     style={{ position: 'fixed', top: pos.top, left: pos.left }}
                 >
-                    <div className="dp-title">PRICEDAY #{contents.number}</div>
+                    <PriceDayTitleStar number={contents.number} />
                     <div className="dp-title-spacer" />
 
                     <div className="pd-section-header">MINTED THIS DAY</div>

@@ -13,6 +13,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type 
 import { createPortal } from 'react-dom';
 import { usePriceDay } from '../../lib/priceday/usePriceDay';
 import { moodOfDay } from '../../lib/mood/mood';
+import PriceDayTitleStar from './PriceDayTitleStar';
 
 const POPOVER_WIDTH = 260;
 const MARGIN = 8;
@@ -167,7 +168,7 @@ export default function PriceDayDateLink({
                     className="priceday-popover"
                     style={{ position: 'fixed', top: pos.top, left: pos.left }}
                 >
-                    <div className="dp-title">PRICEDAY #{contents.number}</div>
+                    <PriceDayTitleStar number={contents.number} />
                     <div className="dp-title-spacer" />
 
                     {topExtra}
