@@ -1974,21 +1974,15 @@ body.modal-open { overflow: hidden; touch-action: none; }
     padding: 4px 8px;
 }
 /* OWNERS top stat line (Brendon, 2026-08-01) — the count + the spread sit
-   under the title where they're read first. Full-strength, no dashed rule. */
+   under the title where they're read first. Full-strength, no dashed rule.
+   2026-09-04: now rides the hero stats-row's own type (Rubik Mono value +
+   glyph icon, set on .stat-item/.stat-icon/.stat-val in app/globals.css) —
+   this rule only owns layout, not typography, so it stops fighting them. */
 .collectors-stats-top {
     display: flex;
     justify-content: center;
     gap: 18px;
     margin: 6px 0 0;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
-    font-weight: bold;
-    letter-spacing: 0.5px;
-}
-.collectors-stats-top .cst-stat b {
-    font-size: 14px;
-    margin-right: 4px;
-    font-variant-numeric: tabular-nums;
 }
 /* A holder's tags WRAP here rather than scrolling sideways (Brendon,
    2026-08-01) — the owners list is a reading surface, not a dense strip, so a
