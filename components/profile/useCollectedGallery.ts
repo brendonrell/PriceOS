@@ -19,6 +19,7 @@ import type { GroupKey } from '../../lib/state/SortContext';
 import { buildGroupBlocks, type GBlock } from '../../lib/state/groupBlocks';
 import { useStoredColors } from '../../lib/art/colorStore';
 import { getProject, outputTraits } from '../../lib/project/registry';
+import { pdRarityRank } from '../../lib/output/rarity';
 import { facetValueOf, type EnrichedHolding } from './ProfileFacetBar';
 import type { Holding } from './profilePageShared';
 
@@ -113,6 +114,33 @@ export function useCollectedGallery(holdings: Holding[]) {
                 const bn = getProject(b.slug)?.displayName ?? b.slug;
                 const c = an.localeCompare(bn) * dirMult;
                 return c !== 0 ? c : a.token_id - b.token_id;
+            });
+        } else if (dSort === 'id') {
+            /* RECENT (Brendon, 2026-09-03 — #ID became a time sort, same ◷
+               glyph as everywhere else). Freshest acquisition first by
+               default (dir 'asc', the family's boot state); pieces with no
+               indexed mint moment yet sort last either direction rather
+               than jumping to the front. */
+            filtered.sort((a, b) => {
+                const ma = a.mintMs ?? null;
+                const mb = b.mintMs ?? null;
+                if (ma == null && mb == null) return byId(a, b);
+                if (ma == null) return 1;
+                if (mb == null) return -1;
+                return (mb - ma) * dirMult;
+            });
+        } else if (dSort === 'rarity') {
+            // Standalone RARITY sort (Brendon, 2026-09-03 — out of the #ID/
+            // $PRICE cycle, its own glyph-only pill). Cross-project
+            // comparable percentile, same as the Composer gallery: 0 =
+            // rarest of its own edition.
+            const pctile = (h: EnrichedHolding) => {
+                const rk = pdRarityRank(h.slug, h.token_id);
+                return rk && rk.total > 0 ? rk.rank / rk.total : 1;
+            };
+            filtered.sort((a, b) => {
+                const pa = pctile(a), pb = pctile(b);
+                return pa !== pb ? (pa - pb) * dirMult : byId(a, b);
             });
         } else {
             filtered.sort(byId);
