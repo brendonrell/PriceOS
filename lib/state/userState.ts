@@ -126,6 +126,15 @@ export const STATE_CACHE_KEYS = {
     /** Starred Projects (Project slugs). Read + written by projectStarStore;
      *  lives in the settings envelope (private). */
     projectStars: 'pd_project_stars',
+    /** Starred PriceDays (PriceDay numbers). Read + written by
+     *  priceDayStarStore; lives in the settings envelope (private). */
+    priceDayStars: 'pd_priceday_stars',
+    /** Starred Albums (`${ownerAddress}:${albumId}` keys). Read + written by
+     *  albumStarStore; lives in the settings envelope (private). */
+    albumStars: 'pd_album_stars',
+    /** Starred Vaults (`${ownerAddress}:${vaultId}` keys). Read + written by
+     *  vaultStarStore; lives in the settings envelope (private). */
+    vaultStars: 'pd_vault_stars',
     /** Starred Tx (on-chain activity events; JSON blobs keyed by event id).
      *  Read + written by txStarStore; lives in the settings envelope (private). */
     txStars: 'pd_tx_stars',
@@ -477,6 +486,18 @@ export function hydrateFromRow(row: UserRow): void {
         localStorage.setItem(
             STATE_CACHE_KEYS.projectStars,
             JSON.stringify(Array.isArray(s.projectStars) ? s.projectStars : []),
+        );
+        localStorage.setItem(
+            STATE_CACHE_KEYS.priceDayStars,
+            JSON.stringify(Array.isArray(s.priceDayStars) ? s.priceDayStars : []),
+        );
+        localStorage.setItem(
+            STATE_CACHE_KEYS.albumStars,
+            JSON.stringify(Array.isArray(s.albumStars) ? s.albumStars : []),
+        );
+        localStorage.setItem(
+            STATE_CACHE_KEYS.vaultStars,
+            JSON.stringify(Array.isArray(s.vaultStars) ? s.vaultStars : []),
         );
         localStorage.setItem(
             STATE_CACHE_KEYS.txStars,
