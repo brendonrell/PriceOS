@@ -17,7 +17,7 @@
  * stylesheet, so this fallback can't depend on app CSS to be legible.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function RouteError({
     error,
@@ -30,6 +30,17 @@ export default function RouteError({
          
         console.error('[route error]', error);
     }, [error]);
+
+    const [copied, setCopied] = useState(false);
+    const errorText = `${error.name ? `${error.name}: ` : ''}${error.message || 'Unknown error'}${error.digest ? `\n\ndigest: ${error.digest}` : ''}${error.stack ? `\n\n${error.stack}` : ''}`;
+    const copyError = () => {
+        if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+            navigator.clipboard.writeText(errorText).then(
+                () => { setCopied(true); window.setTimeout(() => setCopied(false), 1500); },
+                () => {},
+            );
+        }
+    };
 
     return (
         <div
@@ -60,7 +71,7 @@ export default function RouteError({
                 style={{
                     fontSize: 11,
                     maxWidth: 340,
-                    maxHeight: 220,
+                    maxHeight: 110,
                     overflow: 'auto',
                     lineHeight: 1.5,
                     textAlign: 'left',
@@ -79,6 +90,28 @@ export default function RouteError({
                 {error.digest ? `\n\ndigest: ${error.digest}` : ''}
                 {error.stack ? `\n\n${error.stack}` : ''}
             </div>
+            <button
+                type="button"
+                onClick={copyError}
+                style={{
+                    fontFamily: "'Courier New', Courier, monospace",
+                    fontSize: 15,
+                    fontWeight: 'bold',
+                    letterSpacing: '0.1em',
+                    padding: '14px 24px',
+                    borderRadius: 4,
+                    cursor: 'pointer',
+                    background: 'transparent',
+                    border: '1px solid var(--text-color, #e0e0e0)',
+                    color: 'var(--text-color, #e0e0e0)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                }}
+            >
+                <span aria-hidden="true">⧉</span>
+                {copied ? 'COPIED!' : 'COPY ERROR'}
+            </button>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
                 <button
                     type="button"
