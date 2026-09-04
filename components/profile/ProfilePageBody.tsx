@@ -1146,8 +1146,19 @@ function ProfilePageBodyInner({
     if (onCollected) visitedCollected.current = true;
 
     const feedActive = onCollected && sort === 'feed';
+    /* ☻ SOCIAL — the project page's social lens, ported to a wallet
+       (Brendon, 2026-09-03): page-local state exactly like the project
+       page's socialActive/toggleSocial, never persisted into the sort. Any
+       real sort tap hands the grid back (ProfileFacetBar calls onToggle
+       before cycling). */
+    const [socialActive, setSocialActive] = useState(false);
+    const toggleSocial = useCallback(() => {
+        showToast(!socialActive ? 'Feed: SOCIAL' : 'Feed: OFF');
+        setSocialActive(!socialActive);
+    }, [socialActive, showToast]);
+    const socialVisible = onCollected && socialActive;
     /* A re-sort or re-group lands with one short ease (Brendon, 2026-07-30). */
-    useGridSettle(`${sort}|${groupLayers.join('>')}`, onCollected && !feedActive);
+    useGridSettle(`${sort}|${groupLayers.join('>')}`, onCollected && !feedActive && !socialVisible);
     const sortedFeedEvents = useLedgerFeed(feedActive, `/api/feed?address=${user.address.toLowerCase()}&limit=100`, true);
 
     const {
@@ -1232,7 +1243,7 @@ function ProfilePageBodyInner({
        Holders board instead of an empty owned-NFT grid (Brendon, 2026-08-13
        — was "still behaves normally — it is simply empty" until Holders
        shipped). */
-    const galleryVisible = (((onShowcase && !artistShowcaseCreated) || onCollected) && !isPlatform) && !feedActive;
+    const galleryVisible = (((onShowcase && !artistShowcaseCreated) || onCollected) && !isPlatform) && !feedActive && !socialVisible;
 
     /* Showcase move mode only lives on YOUR OWN Static showcase grid. Leaving
        the tab, switching showcase style, or landing on the Created view all
@@ -2709,7 +2720,7 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                         Distinct from the project page's per-Project trait pills — a
                         collection spans independent projects, so it filters on the
                         platform facets every Output carries. */}
-                    {onCollected && !isPlatform && <ProfileFacetBar holdings={enriched} isOwnProfile={isOwnProfile} profileAddress={user.address} />}
+                    {onCollected && !isPlatform && <ProfileFacetBar holdings={enriched} isOwnProfile={isOwnProfile} profileAddress={user.address} socialPill={{ active: socialActive, onToggle: toggleSocial }} />}
 
                     {/* Artist-style Showcase — the home Now-Minting control surface
                         over this artist's own projects. Created · Top 6 lead the
@@ -2961,6 +2972,17 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                     ))}
                 </div>
             </section>
+
+            {/* ☻ SOCIAL — this wallet's own story via the same actor-scoped
+                lens the project pages already use (Brendon, 2026-09-03; the
+                project page's ☻ pill markup ported wholesale in
+                ProfileFacetBar above). Reached via the Collected tab's
+                Social pill, right after Recent in the row. */}
+            {socialVisible && (
+                <section id="collected-social" aria-label="Social">
+                    <SocialFeed dir="desc" actor={user.address} />
+                </section>
+            )}
 
             {/* Artist-style Showcase · Created — the Now-Minting carousels of this
                 artist's own projects, filtered + sorted by the showcase facet bar.

@@ -121,11 +121,16 @@ export default function ProfileFacetBar({
     holdings,
     isOwnProfile,
     profileAddress,
+    socialPill,
 }: {
     holdings: EnrichedHolding[];
     isOwnProfile: boolean;
     /** The viewed profile's address — keys this Collected grid's grouping memory. */
     profileAddress: string;
+    /** ☻ social lens (Brendon, 2026-09-03 — the project page's social pill,
+     *  ported): rides the sort row same as there; the page swaps in the
+     *  actor-scoped SocialFeed while it's lit. */
+    socialPill?: { active: boolean; onToggle: () => void };
 }) {
     const {
         activeCategory,
@@ -225,9 +230,9 @@ export default function ProfileFacetBar({
                 project: h.traits.Project ?? null,
             }));
     }, [layersAnchor, holdings]);
-    const gridSortWithToast = (family: 'id' | 'price' | 'az') => {
+    const gridSortWithToast = (family: 'id' | 'price' | 'az' | 'rarity') => {
         const nextDir = sort === family ? (dir === 'asc' ? 'desc' : 'asc') : 'asc';
-        const lbl = family === 'id' ? '#ID' : family === 'price' ? '$PRICE' : 'AZ';
+        const lbl = family === 'id' ? 'RECENT' : family === 'price' ? '$PRICE' : family === 'rarity' ? 'RARITY' : 'AZ';
         cycleSort(family);
         showToast('SORT: ' + lbl + ' ' + (nextDir === 'asc' ? '↑' : '↓'));
     };
@@ -386,15 +391,16 @@ export default function ProfileFacetBar({
                 )}
             </div>
 
-            {/* Sort bar — colorway view-mode squares + #ID / $PRICE / FEED sort,
-                as a sibling of .traits-ui (matching the project). FEED swaps the
-                grid for this wallet's activity feed (Brendon 2026-06-15).
-                cf-collected-sort (Brendon, 2026-08-23): tightens + evens out
-                the gaps around the GROUP icon and pulls the sort arrow in
-                against its label on THIS row only — see the matching CSS
-                block for why it's scoped instead of touching the shared
-                classes other sort rows use. */}
-            <div className="sort-bar cf-collected-sort" id="sortOptions" style={{ display: 'flex' }}>
+            {/* Sort bar — colorway view-mode squares + GROUP · Recent · Social ·
+                Rarity · $PRICE · AZ · FEED, as a sibling of .traits-ui (matching
+                the project). FEED swaps the grid for this wallet's activity feed
+                (Brendon 2026-06-15); Social swaps in this wallet's actor-scoped
+                SocialFeed (Brendon, 2026-09-03 — the project page's ☻ lens,
+                ported). Order + spacing per Brendon, 2026-09-03: "group >
+                recent > social > rarity > price > az > feed... tight spacing as
+                we need to fit them all" — see .profile-sort-row in globals.css
+                for the tightened (but not the old cf-collected-sort) gap. */}
+            <div className="sort-bar profile-sort-row" id="sortOptions" style={{ display: 'flex' }}>
                 <div className="colorway-pills">
                     {THEME_PILLS.map((t) => (
                         <div
@@ -414,7 +420,7 @@ export default function ProfileFacetBar({
                 </div>
                 <div
                     className="sort-btn-group"
-                    style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'nowrap' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap' }}
                 >
                     {/* GROUP toggle leads the row (Brendon, 2026-07-12) —
                         icon-only, no arrow; cycles the grouping dimension
@@ -438,49 +444,84 @@ export default function ProfileFacetBar({
                             onClose={() => setLayersAnchor(null)}
                         />
                     )}
+                    {/* RECENT — was #ID; now a time sort wearing the same ◷
+                        glyph as every other Recent sort in the app (Brendon,
+                        2026-09-03). Freshest acquisition leads by default. */}
                     <span
-                        className={`sort-btn${sort === 'id' ? ' active' : ''}`}
+                        className={`sort-btn sort-btn-clock${sort === 'id' && !socialPill?.active ? ' active' : ''}`}
                         role="button"
                         tabIndex={0}
-                        title="Sort by ID"
-                        onClick={() => gridSortWithToast('id')}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); gridSortWithToast('id'); } }}
+                        title="Sort by Recent"
+                        onClick={() => { if (socialPill?.active) socialPill.onToggle(); gridSortWithToast('id'); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (socialPill?.active) socialPill.onToggle(); gridSortWithToast('id'); } }}
                     >
-                        <span className="sort-lbl">{'#ID'}</span>
-                        <span className="sort-arrow">{sort === 'id' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
+                        <span className="sort-lbl sort-lbl-recent">◷︎</span>
+                        <span className="sort-arrow">{sort === 'id' && !socialPill?.active ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
+                    </span>
+                    {/* ☻ SOCIAL — the project page's social lens, ported to a
+                        wallet (Brendon, 2026-09-03): this profile's own
+                        activity, scoped via the same `?actor=` lens the
+                        project pages already use, with relation badges
+                        against the viewer's own circle. */}
+                    {socialPill && (
+                        <span
+                            className={`sort-btn sort-btn-social${socialPill.active ? ' active' : ''}`}
+                            role="button"
+                            tabIndex={0}
+                            title="Social — this wallet's story"
+                            onClick={socialPill.onToggle}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); socialPill.onToggle(); } }}
+                        >
+                            <span className="sort-lbl sort-lbl-recent">☻&#xFE0E;</span>
+                            <span className="sort-arrow">{socialPill.active ? '↓︎' : ''}</span>
+                        </span>
+                    )}
+                    {/* RARITY — out of the #ID/$PRICE cycle, its own
+                        glyph-only pill now (Brendon, 2026-09-03), same ❖
+                        mark the modifier used to wear. */}
+                    <span
+                        className={`sort-btn${sort === 'rarity' && !socialPill?.active ? ' active' : ''}`}
+                        role="button"
+                        tabIndex={0}
+                        title="Sort by Rarity"
+                        onClick={() => { if (socialPill?.active) socialPill.onToggle(); gridSortWithToast('rarity'); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (socialPill?.active) socialPill.onToggle(); gridSortWithToast('rarity'); } }}
+                    >
+                        <span className="sort-lbl sort-lbl-recent">{'❖\uFE0E'}</span>
+                        <span className="sort-arrow">{sort === 'rarity' && !socialPill?.active ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
                     </span>
                     <span
-                        className={`sort-btn${sort === 'price' ? ' active' : ''}`}
+                        className={`sort-btn${sort === 'price' && !socialPill?.active ? ' active' : ''}`}
                         role="button"
                         tabIndex={0}
                         title="Sort by Price"
-                        onClick={() => gridSortWithToast('price')}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); gridSortWithToast('price'); } }}
+                        onClick={() => { if (socialPill?.active) socialPill.onToggle(); gridSortWithToast('price'); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (socialPill?.active) socialPill.onToggle(); gridSortWithToast('price'); } }}
                     >
                         <span className="sort-lbl">{'$PRICE'}</span>
-                        <span className="sort-arrow">{sort === 'price' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
+                        <span className="sort-arrow">{sort === 'price' && !socialPill?.active ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
                     </span>
                     <span
-                        className={`sort-btn${sort === 'az' ? ' active' : ''}`}
+                        className={`sort-btn${sort === 'az' && !socialPill?.active ? ' active' : ''}`}
                         role="button"
                         tabIndex={0}
                         title="Sort A–Z by project"
-                        onClick={() => gridSortWithToast('az')}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); gridSortWithToast('az'); } }}
+                        onClick={() => { if (socialPill?.active) socialPill.onToggle(); gridSortWithToast('az'); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (socialPill?.active) socialPill.onToggle(); gridSortWithToast('az'); } }}
                     >
                         <span className="sort-lbl">{sort === 'az' && dir === 'desc' ? 'ZA' : 'AZ'}</span>
-                        <span className="sort-arrow">{sort === 'az' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
+                        <span className="sort-arrow">{sort === 'az' && !socialPill?.active ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
                     </span>
                     <span
-                        className={`sort-btn${sort === 'feed' ? ' active' : ''}`}
+                        className={`sort-btn${sort === 'feed' && !socialPill?.active ? ' active' : ''}`}
                         role="button"
                         tabIndex={0}
                         title="Activity Feed"
-                        onClick={() => cycleSort('feed')}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleSort('feed'); } }}
+                        onClick={() => { if (socialPill?.active) socialPill.onToggle(); cycleSort('feed'); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (socialPill?.active) socialPill.onToggle(); cycleSort('feed'); } }}
                     >
                         <span className="sort-lbl">FEED</span>
-                        <span className="sort-arrow">{sort === 'feed' ? `${feedKind === 'price' ? '$' : ''}${dir === 'asc' ? '↑︎' : '↓︎'}` : ''}</span>
+                        <span className="sort-arrow">{sort === 'feed' && !socialPill?.active ? `${feedKind === 'price' ? '$' : ''}${dir === 'asc' ? '↑︎' : '↓︎'}` : ''}</span>
                     </span>
                 </div>
             </div>
