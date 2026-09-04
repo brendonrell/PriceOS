@@ -432,7 +432,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                                 <>,&nbsp;<a key={collectors[1]} className="profile-link feat-name" href={`/${handle(collectors[1])}`}>@{handle(collectors[1])}</a> </>
                             ) : ' '}
                             {others > 0 && (
-                                <span className="cbr-others" onClick={() => open('collectors')}>
+                                <span className="cbr-others" onClick={() => open('collectors', undefined, project.slug)}>
                                     &amp;&nbsp;{others}&nbsp;more&nbsp;you&nbsp;follow
                                 </span>
                             )}
@@ -456,11 +456,11 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                             className="stat-item stat-item-owners"
                             role="button"
                             tabIndex={0}
-                            onClick={() => open('collectors')}
+                            onClick={() => open('collectors', undefined, project.slug)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
-                                    open('collectors');
+                                    open('collectors', undefined, project.slug);
                                 }
                             }}
                         >
