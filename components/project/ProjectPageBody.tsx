@@ -414,8 +414,9 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                     /* Twitter-style: only collectors the viewer follows. Hidden
                        when signed out or following none of this project's
                        collectors. */
-                    collectedByPool.length > 0 ? (() => {
+                    collectedByPool.length > 0 && collectedByShown.length > 0 ? (() => {
                         const collectors = collectedByShown;
+                        if (!collectors[0]) return null;
                         const handle = (n: string) => n.toLowerCase().replace(/^@/, '');
                         const others = Math.max(0, collectedByPool.length - 2);
                         return (
