@@ -100,6 +100,16 @@ export interface UserSettings {
   soundtrackStars?: string[];
   /** Starred Projects — PRIVATE favourited Project slugs. Same envelope. */
   projectStars?: string[];
+  /** Starred PriceDays — PRIVATE favourited PriceDay numbers (as strings).
+   *  Same envelope + privacy as `starred`. */
+  priceDayStars?: string[];
+  /** Starred Albums — PRIVATE favourites of ANY album on PD (albums are
+   *  public; this is the viewer's own bookmark of one), keyed
+   *  `${ownerAddress}:${albumId}`. Same envelope + privacy as `starred`. */
+  albumStars?: string[];
+  /** Starred Vaults — PRIVATE favourites of ANY vault on PD, keyed
+   *  `${ownerAddress}:${vaultId}`. Same envelope + privacy as `starred`. */
+  vaultStars?: string[];
   /** Starred Tx — PRIVATE favourited on-chain activity events (simulated for
    *  now). Each entry is a JSON blob of the event's display essentials, keyed by
    *  event id. Same envelope + privacy as `starred`. */
