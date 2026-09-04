@@ -85,14 +85,15 @@ export default function ProjectAlbumsTab({ slug }: { slug: string }) {
             album: r.album,
             number: r.position,
             owner: `@${r.owner_handle.toUpperCase()}`,
+            ownerAddress: r.owner_address,
         }));
         const seen = new Set(publicRows.map((r) => r.album.id));
         for (const m of mine) {
             if (seen.has(m.album.id)) continue;
-            rows.push({ key: `me:${m.album.id}`, album: m.album, number: m.number, owner: myLabel ?? '' });
+            rows.push({ key: `me:${m.album.id}`, album: m.album, number: m.number, owner: myLabel ?? '', ownerAddress: siweAddress ?? '' });
         }
         return rows;
-    }, [publicRows, mine, myLabel]);
+    }, [publicRows, mine, myLabel, siweAddress]);
     const worthOf = useAlbumsWorth(holding.map((h) => h.album));
 
     /* Your holdings in THIS project — the pieces the prompt offers first. */
@@ -132,13 +133,13 @@ export default function ProjectAlbumsTab({ slug }: { slug: string }) {
         <div className="output-albums-wrap">
             {holding.length > 0 ? (
                 <div className="albums-covers">
-                    {holding.map(({ key, album, number, owner }, i) => (
+                    {holding.map(({ key, album, number, owner, ownerAddress }, i) => (
                         <span
                             key={key}
                             className="album-tile output-album-tile"
                             style={{ animationDelay: `${Math.min(i, 8) * 55}ms` }}
                         >
-                            <AlbumCoverArt album={album} number={number} listedEth={worthOf(album)} owner={owner || null} />
+                            <AlbumCoverArt album={album} number={number} listedEth={worthOf(album)} owner={owner || null} ownerAddress={ownerAddress || null} />
                         </span>
                     ))}
                 </div>

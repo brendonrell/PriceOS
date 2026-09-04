@@ -30,6 +30,12 @@ import { paintOutput } from '../../lib/state/ProjectContext';
 import { paintAsciiStandin } from '../../lib/art/asciiStandin';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { priceOf, useStarredPrices } from '../../lib/pins/starredPriceStore';
+import { useLongPressStar } from '../../lib/pins/useLongPressStar';
+import {
+    isAlbumStarred,
+    toggleAlbumStar,
+    subscribeAlbumStars,
+} from '../../lib/pins/albumStarStore';
 import {
     createAlbum,
     deleteAlbum,
@@ -145,9 +151,22 @@ function AlbumShow({ album, number, onClose }: { album: AlbumRecord; number: num
    (Brendon, 2026-07-28: "@brendon Album #2"). Passed only where the album's
    maker isn't already obvious from the surface (the Output page's Albums
    tab); the profile shelf, which IS that person's page, leaves it off. */
-export function AlbumCoverArt({ album, number, listedEth, owner }: {
-    album: AlbumRecord; number: number; listedEth: number; owner?: string | null;
+export function AlbumCoverArt({ album, number, listedEth, owner, ownerAddress }: {
+    album: AlbumRecord; number: number; listedEth: number; owner?: string | null; ownerAddress?: string | null;
 }) {
+    const { showToast } = useToast();
+    const canStar = !!ownerAddress;
+    const [starred, setStarred] = useState(false);
+    useEffect(() => {
+        if (!ownerAddress) return;
+        setStarred(isAlbumStarred(ownerAddress, album.id));
+        return subscribeAlbumStars(() => setStarred(isAlbumStarred(ownerAddress, album.id)));
+    }, [ownerAddress, album.id]);
+    const { floatId, floatDown, handlers } = useLongPressStar(() => {
+        const r = toggleAlbumStar(ownerAddress as string, album.id);
+        showToast(r === 'starred' ? 'Added to your Starred Albums List (Private)' : 'Removed from your Starred Albums List');
+        return r;
+    });
     const coverKey = album.cover && album.keys.includes(album.cover) ? album.cover : null;
     const [cells, setCells] = useState<string[]>(() => (coverKey ? [coverKey] : album.keys.slice(0, 4)));
     const keysSig = album.keys.join(',');
@@ -185,15 +204,21 @@ export function AlbumCoverArt({ album, number, listedEth, owner }: {
                 })}
                 {!coverKey && cells.length === 0 && <span className="album-tile-empty">◰{VS15}</span>}
             </span>
-            <span className="album-tile-label">
+            <span
+                className="album-tile-label"
+                style={canStar ? { position: 'relative' } : undefined}
+                {...(canStar ? handlers : {})}
+            >
                 <span className="album-tile-name">
                     {owner && <span className="album-tile-owner">{owner}</span>}
                     ALBUM {pad2(number)}
+                    {canStar && starred && <span className="project-name-star" aria-hidden="true">{'\u2605\ufe0e'}</span>}
                 </span>
                 <span className="album-tile-count">
                     {listedEth > 0 && <span className="album-tile-worth"><span className="eth-mark">◊</span>{fmtEth(listedEth)} · </span>}
                     {album.keys.length}
                 </span>
+                {canStar && floatId > 0 && <span key={floatId} className={`project-name-star-float${floatDown ? ' is-down' : ''}`} aria-hidden="true">{'\u2605\ufe0e'}</span>}
             </span>
         </>
     );

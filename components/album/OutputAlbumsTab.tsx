@@ -69,6 +69,7 @@ export default function OutputAlbumsTab({ slug, id }: { slug: string; id: number
             album: m.album,
             number: m.number,
             owner: myLabel,
+            ownerAddress: siweAddress ?? null,
             own: true,
         }));
         for (const r of publicRows) {
@@ -78,24 +79,25 @@ export default function OutputAlbumsTab({ slug, id }: { slug: string; id: number
                 album: r.album,
                 number: r.position,
                 owner: `@${r.owner_handle.toUpperCase()}`,
+                ownerAddress: r.owner_address,
                 own: false,
             });
         }
         return rows;
-    }, [mine, publicRows, myLabel]);
+    }, [mine, publicRows, myLabel, siweAddress]);
     const worthOf = useAlbumsWorth(containing.map((c) => c.album));
 
     return (
         <div className="output-albums-wrap">
             {containing.length > 0 && (
                 <div className="albums-covers output-albums-covers">
-                    {containing.map(({ key, album, number, owner, own }, i) => (
+                    {containing.map(({ key, album, number, owner, ownerAddress, own }, i) => (
                         <span
                             key={key}
                             className="album-tile output-album-tile"
                             style={{ animationDelay: `${Math.min(i, 8) * 55}ms` }}
                         >
-                            <AlbumCoverArt album={album} number={number} listedEth={worthOf(album)} owner={owner} />
+                            <AlbumCoverArt album={album} number={number} listedEth={worthOf(album)} owner={owner} ownerAddress={ownerAddress} />
                             {own && (
                                 <span
                                     className="chip-x output-album-tile-x"
