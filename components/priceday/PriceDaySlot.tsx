@@ -54,13 +54,21 @@ export default function PriceDaySlot() {
     const clampToViewport = () => {
         if (!ref.current || !popRef.current) return;
         const rect = ref.current.getBoundingClientRect();
-        const height = popRef.current.getBoundingClientRect().height;
+        const popRect = popRef.current.getBoundingClientRect();
         let top = rect.bottom + 4;
-        if (top + height > window.innerHeight - MARGIN) {
-            const above = rect.top - height - 4;
-            top = above >= MARGIN ? above : Math.max(MARGIN, window.innerHeight - height - MARGIN);
+        if (top + popRect.height > window.innerHeight - MARGIN) {
+            const above = rect.top - popRect.height - 4;
+            top = above >= MARGIN ? above : Math.max(MARGIN, window.innerHeight - popRect.height - MARGIN);
         }
         popRef.current.style.top = `${top}px`;
+        // Horizontal clamp uses the popover's REAL rendered width, not the
+        // POPOVER_WIDTH constant — needed now that the landscape wide/2-col
+        // variant renders wider than 260px (Brendon, 2026-09-04).
+        const left = Math.max(
+            MARGIN,
+            Math.min(parseFloat(popRef.current.style.left || '0'), window.innerWidth - popRect.width - MARGIN)
+        );
+        popRef.current.style.left = `${left}px`;
     };
     /* Compute "today" after mount to avoid an SSR/CSR hydration mismatch. */
     const [today, setToday] = useState<Date | null>(null);
