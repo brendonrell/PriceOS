@@ -66,7 +66,7 @@ const MODE_LABEL: Record<string, string> = {
     traits: 'Traits', soundtracks: 'Soundtracks', projects: 'Projects',
 };
 const SORT_LABEL: Record<string, string> = {
-    recent: 'Recent', id: '#ID', project: 'AZ', price: '$PRICE', followers: 'FLWRS',
+    recent: 'Recent', id: '#ID', project: 'AZ', price: '$PRICE', followers: '\u263B\ufe0e',
 };
 const GROUP_LABEL: Record<string, string> = { color: 'Colour', project: 'Project', artist: 'Artist' };
 function deriveName(s: StarredPresetState): string {
