@@ -36,10 +36,23 @@ import type { OutputFollowersResponse } from '../app/api/output-follows/route';
 const VS15 = '︎';
 
 export default function FriendInspectorLite() {
-    const { close, openModal } = useModal();
+    const { close, stack } = useModal();
     const { isOpen, isTopStacked } = useModalLayer('followersLite');
-    /* Payload is the global output ref — `{slug}-{tokenId}`. */
-    const ref = typeof openModal?.payload === 'string' ? openModal.payload : '';
+    /* Payload is the global output ref — `{slug}-{tokenId}` — read off THIS
+       modal's OWN stack entry, not openModal (the top of the stack). This
+       modal can sit stacked underneath another one (isTopStacked exists for
+       exactly that case); reading openModal?.payload directly used to trust
+       whatever string payload the modal ON TOP happened to carry — several
+       other modals key off a string payload too (KeychainCharmModal,
+       PalPanel), so a stack like followersLite → keychain would silently
+       swap in a charm id as the "output ref" here, fetching/showing the
+       wrong Output's followers (same bug class fixed in CollectorsModal,
+       2026-09-04). stack.find keeps this instance's own payload correct
+       regardless of what's stacked on top. */
+    const ref = (() => {
+        const entry = stack.find((m) => m.name === 'followersLite');
+        return typeof entry?.payload === 'string' ? entry.payload : '';
+    })();
 
     const [handles, setHandles] = useState<string[] | null>(null);
 
