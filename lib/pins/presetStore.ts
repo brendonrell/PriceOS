@@ -75,6 +75,7 @@ const SORT_LABEL: Record<SortKey, string> = {
     feed:  'FEED',
     fog:   'FOG',
     az:    'A–Z',
+    rarity: 'RARITY',
 };
 
 const DIR_GLYPH: Record<SortDir, string> = { asc: '↑', desc: '↓' };
