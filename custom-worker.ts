@@ -27,6 +27,19 @@ import { default as handler } from "./.open-next/worker.js";
 // on mount anyway, so a stale shell is invisible to the user.
 const PAGE_CACHE_TTL_S = 300;
 
+// BOOT_ID — one random token per worker isolate, set once at cold start and
+// folded into every cache key below (2026-09-05, homepage-blank-after-deploy
+// fix). Without this, a page document cached just before a deploy keeps
+// getting served after it — but that HTML references THAT build's hashed
+// /_next asset filenames, which the new deploy no longer serves (404), so
+// the client loses all its CSS/JS and the page renders as bare unstyled
+// markup. A new deploy spins up new isolates with a new BOOT_ID, so their
+// cache reads always miss the previous build's entries and re-render live
+// (re-priming the cache with the current build's correct asset links). Old
+// entries under the previous BOOT_ID just age out via the TTL — never read
+// again, never served, harmless.
+const BOOT_ID = crypto.randomUUID();
+
 function isCacheablePageRequest(request: Request): boolean {
   if (request.method !== "GET") return false;
   // Client-side navigation / prefetch flight requests — never cache-mix
@@ -58,7 +71,9 @@ const cachedFetch = async (
   if (!isCacheablePageRequest(request)) return upstream(request, env, ctx);
 
   const cache = (caches as unknown as { default: Cache }).default;
-  const key = new Request(new URL(request.url).toString(), { method: "GET" });
+  const keyUrl = new URL(request.url);
+  keyUrl.searchParams.set("__boot", BOOT_ID);
+  const key = new Request(keyUrl.toString(), { method: "GET" });
   try {
     const hit = await cache.match(key);
     if (hit) return hit;
