@@ -36,10 +36,10 @@
  * other component styles through global classes — fixed, no exceptions).
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useModal } from '../../lib/state/ModalContext';
 import { useCart } from '../../lib/state/CartContext';
-import { artImageUrl } from '../../lib/project/registry';
+import { ART_IMAGE_BASE, artImageUrl, artThumbUrl } from '../../lib/project/registry';
 import { BUCKET_HEX } from '../../lib/output/derive';
 import { isStarred, toggleStar, subscribeStarred } from '../../lib/pins/starStore';
 import OutputFollowButton from '../artwork/OutputFollowButton';
@@ -57,16 +57,34 @@ function Slide({ card }: { card: PriceStreamCard }) {
     }, [card.slug, card.tokenId]);
 
     const inCart = items.some((i) => i.slug === card.slug && i.id === card.tokenId);
-    const img = artImageUrl(card.slug, card.tokenId);
     const colorway = (card.dominantColor && BUCKET_HEX[card.dominantColor]) || FALLBACK_COLOR;
+
+    /* Same thumb → master fallback order as ArtworkCard (Rule #0 — reuse,
+       never reinvent): a real <img>, not a CSS background-image div, so it
+       gets native lazy-load and the same onError self-heal every other tile
+       on the site gets. Feed context = grid-equivalent, so thumb leads. */
+    const candidates = useMemo(() => {
+        if (!ART_IMAGE_BASE) return [] as string[];
+        return [artThumbUrl(card.slug, card.tokenId), artImageUrl(card.slug, card.tokenId)]
+            .filter((u): u is string => !!u);
+    }, [card.slug, card.tokenId]);
+    const [stage, setStage] = useState(0);
+    const imgSrc = candidates[stage] ?? null;
 
     return (
         <div className="ps-slide-frame" style={{ background: colorway }}>
             <div className="ps-slide-box">
-                <div
-                    className="ps-art"
-                    style={img ? { backgroundImage: `url(${img})` } : undefined}
-                />
+                {imgSrc && (
+                    <img
+                        className="ps-art"
+                        src={imgSrc}
+                        alt={`${card.projectName ?? card.slug} #${card.tokenId} — artwork`}
+                        loading="lazy"
+                        decoding="async"
+                        draggable={false}
+                        onError={() => setStage((s) => s + 1)}
+                    />
+                )}
                 <div className="ps-scrim" />
 
                 <div
