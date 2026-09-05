@@ -976,7 +976,8 @@ function ProfilePageBodyInner({
     const {
         starredValid, traitStarsValid, artistStars,
         starredArtistHandles, starredCollectorHandles,
-        soundtrackStars, txStars, projectStarsValid, wishlistValid,
+        soundtrackStars, txStars, projectStarsValid,
+        priceDayStars, albumStarsValid, vaultStarsValid, wishlistValid,
     } = useStarredPins();
 
     /* My History — the viewer's PRIVATE last-100 viewed Outputs, read straight
@@ -2492,10 +2493,10 @@ function ProfilePageBodyInner({
                                 ) : undefined
                             }
                             profileValueRow={
-onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.length > 0 || artistStars.length > 0 || soundtrackStars.length > 0 || projectStarsValid.length > 0 || txStars.length > 0) ? (
+onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.length > 0 || artistStars.length > 0 || soundtrackStars.length > 0 || projectStarsValid.length > 0 || priceDayStars.length > 0 || albumStarsValid.length > 0 || vaultStarsValid.length > 0 || txStars.length > 0) ? (
                                     <div className="stats-container collected-values" style={{ display: 'flex' }}>
                                         {([
-                                            { key: 'all',         label: 'All Starred', count: starredValid.length + traitStarsValid.length + starredArtistHandles.length + starredCollectorHandles.length + soundtrackStars.length + projectStarsValid.length + txStars.length },
+                                            { key: 'all',         label: 'All Starred', count: starredValid.length + traitStarsValid.length + starredArtistHandles.length + starredCollectorHandles.length + soundtrackStars.length + projectStarsValid.length + priceDayStars.length + albumStarsValid.length + vaultStarsValid.length + txStars.length },
                                             { key: 'collectors',  label: 'Collectors',  count: starredCollectorHandles.length },
                                             { key: 'artists',     label: 'Artists',     count: starredArtistHandles.length },
                                             // Social filters across collectors + artists + projects. No count
@@ -2505,6 +2506,9 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                                             { key: 'following',   label: 'Following',   count: 0 },
                                             { key: 'mutuals',     label: 'Mutuals',     count: 0 },
                                             { key: 'projects',    label: 'Projects',    count: projectStarsValid.length },
+                                            { key: 'priceday',    label: 'PriceDays',   count: priceDayStars.length },
+                                            { key: 'albums',      label: 'Albums',      count: albumStarsValid.length },
+                                            { key: 'vaults',      label: 'Vaults',      count: vaultStarsValid.length },
                                             { key: 'outputs',     label: 'Outputs',     count: starredValid.length },
                                             { key: 'traits',      label: 'Traits',      count: traitStarsValid.length },
                                             { key: 'soundtracks', label: 'Soundtracks', count: soundtrackStars.length },
@@ -3082,7 +3086,7 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                             The sort-row button is the way in AND out. */}
                         {myListsOpen ? (
                             <ListsPanel onToast={showToast} dir={myListsDir} viewerAddress={user.address} />
-                        ) : (starredValid.length > 0 || traitStarsValid.length > 0 || artistStars.length > 0 || soundtrackStars.length > 0 || projectStarsValid.length > 0 || txStars.length > 0) ? (
+                        ) : (starredValid.length > 0 || traitStarsValid.length > 0 || artistStars.length > 0 || soundtrackStars.length > 0 || projectStarsValid.length > 0 || priceDayStars.length > 0 || albumStarsValid.length > 0 || vaultStarsValid.length > 0 || txStars.length > 0) ? (
                             <StarredList
                                 items={starredValid}
                                 traits={traitStarsValid}
@@ -3090,6 +3094,9 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                                 collectors={starredCollectorHandles}
                                 soundtracks={soundtrackStars}
                                 projects={projectStarsValid}
+                                priceDays={priceDayStars}
+                                albums={albumStarsValid}
+                                vaults={vaultStarsValid}
                                 txEvents={txStars}
                                 searchOpen={moreSearchOpen}
                                 query={moreQuery}

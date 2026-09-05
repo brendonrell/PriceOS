@@ -41,6 +41,13 @@ import { toggleTraitStar, type TraitStar } from '../../lib/pins/traitStarStore';
 import { removeArtistStar } from '../../lib/pins/artistStarStore';
 import { toggleSoundtrackStar, type SoundtrackStar } from '../../lib/pins/soundtrackStarStore';
 import { removeProjectStar, isProjectStarred, toggleProjectStar, subscribeProjectStars } from '../../lib/pins/projectStarStore';
+import { removePriceDayStar } from '../../lib/pins/priceDayStarStore';
+import { toggleAlbumStar } from '../../lib/pins/albumStarStore';
+import { toggleVaultStar } from '../../lib/pins/vaultStarStore';
+import type { StarredAlbumRow, StarredVaultRow } from './useStarredPins';
+import { shortAddress } from '../../lib/project/projectAddress';
+import { moodOfDay } from '../../lib/mood/mood';
+import { PRICEDAY_EPOCH } from '../../lib/priceday/priceday';
 import { removeTxStar, type TxStar } from '../../lib/pins/txStarStore';
 import { txStarToFeedEvent, FeedActorLine } from '../../lib/feed/feedRow';
 import { useSpiteMatcher } from '../../lib/pins/spiteStore';
@@ -73,7 +80,7 @@ function dayLabel(t: number): string {
     return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-type Mode = 'all' | 'artists' | 'collectors' | 'outputs' | 'traits' | 'soundtracks' | 'projects' | 'tx'
+type Mode = 'all' | 'artists' | 'collectors' | 'outputs' | 'traits' | 'soundtracks' | 'projects' | 'priceday' | 'albums' | 'vaults' | 'tx'
     // Social cross-entity filters — top-level pills (right after Artists). Each
     // shows people + projects filtered by the viewer's follow relationship:
     // followers = follows you (a project follows you while you hold ≥1 of its
@@ -91,6 +98,17 @@ function sectionize<T>(rows: T[], keyOf: (r: T) => string, order?: string[]): Se
     return entries.map(([label, rs]) => ({ label, key: label, rows: rs }));
 }
 const COLOR_ORDER = [...(COLOR_BUCKET_ORDER as readonly string[]), 'Other'];
+
+/* `slug:id` → { slug, id } — same tiny parse AlbumsPanel/VaultPanel each keep
+   locally for their cover keys; duplicated here rather than exported cross-
+   file, matching that existing per-file convention. */
+function parseKey(k: string): { slug: string; id: number } | null {
+    const i = k.lastIndexOf(':');
+    if (i < 0) return null;
+    const id = Number(k.slice(i + 1));
+    if (!Number.isFinite(id)) return null;
+    return { slug: k.slice(0, i), id };
+}
 
 /* The after-name project badge — the Cartel count (⟁ + the viewer's mutuals
    controlling this project), exactly as it rides beside the project name on
@@ -120,6 +138,9 @@ export default function StarredList({
     collectors = [],
     soundtracks = [],
     projects = [],
+    priceDays = [],
+    albums = [],
+    vaults = [],
     txEvents = [],
     searchOpen = false,
     query = '',
@@ -141,6 +162,9 @@ export default function StarredList({
     collectors?: ReadonlyArray<string>;
     soundtracks?: ReadonlyArray<SoundtrackStar>;
     projects?: ReadonlyArray<string>;
+    priceDays?: ReadonlyArray<string>;
+    albums?: ReadonlyArray<StarredAlbumRow>;
+    vaults?: ReadonlyArray<StarredVaultRow>;
     txEvents?: ReadonlyArray<TxStar>;
     /* Search is controlled by the parent so its ⌕ icon can live up in the
        +More sub-nav beside the Info pill (where Collected's search lives). */
@@ -297,6 +321,9 @@ export default function StarredList({
         if (inMode('collectors')) visibleCollectors.forEach((r) => { if (selected.has(r.name)) removeArtistStar(r.name); });
         if (inMode('soundtracks')) visibleSoundtracks.forEach((r) => { if (selected.has(`${r.slug}|${r.playlistId}`)) toggleSoundtrackStar(r.slug, r.playlistId, r.title); });
         if (inMode('projects')) visibleProjects.forEach((r) => { if (selected.has(`p:${r.slug}`)) removeProjectStar(r.slug); });
+        if (inMode('priceday')) visiblePriceDays.forEach((r) => { if (selected.has(`pd:${r.number}`)) removePriceDayStar(r.number); });
+        if (inMode('albums')) visibleAlbums.forEach((r) => { if (selected.has(`al:${r.ownerAddress}:${r.albumId}`)) toggleAlbumStar(r.ownerAddress, r.albumId); });
+        if (inMode('vaults')) visibleVaults.forEach((r) => { if (selected.has(`vl:${r.ownerAddress}:${r.vaultId}`)) toggleVaultStar(r.ownerAddress, r.vaultId); });
         if (inMode('tx')) visibleTx.forEach((r) => { if (selected.has(`tx:${r.star.id}`)) removeTxStar(r.star.id); });
         const n = selected.size;
         setSelected(new Set());
@@ -518,6 +545,44 @@ export default function StarredList({
         return sortDir === 'desc' ? [...sorted].reverse() : sorted;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [projects, query, sortKey, sortDir, social, projGraph]);
+
+    /* ── PriceDay rows (starred PriceDay numbers) ─────────────────────── */
+    const visiblePriceDays = useMemo(() => {
+        const q = query.trim().toLowerCase();
+        const rows = priceDays.map((n, i) => ({ number: parseInt(n, 10), recentIndex: i })).filter((r) => Number.isFinite(r.number));
+        const filtered = q ? rows.filter((r) => `priceday #${r.number}`.includes(q) || String(r.number).includes(q)) : rows;
+        const sorted = [...filtered];
+        if (sortKey === 'id' || sortKey === 'project') sorted.sort((a, b) => a.number - b.number);
+        else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
+        return sortDir === 'desc' ? [...sorted].reverse() : sorted;
+    }, [priceDays, query, sortKey, sortDir]);
+
+    /* ── Album rows (starred Albums — any owner's, resolved by useStarredPins
+       against the owner's live shelf) ────────────────────────────────── */
+    const visibleAlbums = useMemo(() => {
+        const q = query.trim().toLowerCase();
+        const rows = albums.map((r, i) => ({ ...r, recentIndex: i }));
+        const filtered = q
+            ? rows.filter((r) => `album ${r.number} ${r.ownerAddress}`.toLowerCase().includes(q))
+            : rows;
+        const sorted = [...filtered];
+        if (sortKey === 'id' || sortKey === 'project') sorted.sort((a, b) => a.ownerAddress.localeCompare(b.ownerAddress) || a.number - b.number);
+        else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
+        return sortDir === 'desc' ? [...sorted].reverse() : sorted;
+    }, [albums, query, sortKey, sortDir]);
+
+    /* ── Vault rows — same shape as Albums. ───────────────────────────── */
+    const visibleVaults = useMemo(() => {
+        const q = query.trim().toLowerCase();
+        const rows = vaults.map((r, i) => ({ ...r, recentIndex: i }));
+        const filtered = q
+            ? rows.filter((r) => `vault ${r.number} ${r.ownerAddress}`.toLowerCase().includes(q))
+            : rows;
+        const sorted = [...filtered];
+        if (sortKey === 'id' || sortKey === 'project') sorted.sort((a, b) => a.ownerAddress.localeCompare(b.ownerAddress) || a.number - b.number);
+        else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
+        return sortDir === 'desc' ? [...sorted].reverse() : sorted;
+    }, [vaults, query, sortKey, sortDir]);
 
     /* ── Group sections (only inside a single filter; All groups by type via the
        render). Outputs sub-group by Project inside each section so one
@@ -801,7 +866,7 @@ export default function StarredList({
     );
     const totalVisible =
         isHistory ? historyRowCount
-        : mode === 'all' ? visibleOutputs.length + visibleTraits.length + visibleArtists.length + visibleCollectors.length + visibleSoundtracks.length + visibleProjects.length + visibleTx.length
+        : mode === 'all' ? visibleOutputs.length + visibleTraits.length + visibleArtists.length + visibleCollectors.length + visibleSoundtracks.length + visibleProjects.length + visiblePriceDays.length + visibleAlbums.length + visibleVaults.length + visibleTx.length
         : isSocial ? visibleArtists.length + visibleCollectors.length + visibleProjects.length + visibleOutputs.length
         : mode === 'outputs' ? visibleOutputs.length
         : mode === 'traits' ? visibleTraits.length
@@ -809,6 +874,9 @@ export default function StarredList({
         : mode === 'collectors' ? visibleCollectors.length
         : mode === 'soundtracks' ? visibleSoundtracks.length
         : mode === 'tx' ? visibleTx.length
+        : mode === 'priceday' ? visiblePriceDays.length
+        : mode === 'albums' ? visibleAlbums.length
+        : mode === 'vaults' ? visibleVaults.length
         : visibleProjects.length;
 
     return (
@@ -1216,6 +1284,136 @@ export default function StarredList({
                         })}
                             </Fragment>
                         ))}
+                    </>
+                )}
+                {showType('priceday') && (
+                    <>
+                        {typeHdr && visiblePriceDays.length > 0 && <div className="starred-group-header">PriceDays</div>}
+                        {visiblePriceDays.map((r) => {
+                            const selKey = `pd:${r.number}`;
+                            const mood = moodOfDay(new Date(PRICEDAY_EPOCH + (r.number - 1) * 86400000));
+                            return (
+                            <div
+                                key={selKey}
+                                className={`starred-row trait-row has-actions-abs${multiActive ? ' is-selectable' : ''}${multiActive && selected.has(selKey) ? ' is-selected' : ''}`}
+                                role="button"
+                                tabIndex={0}
+                                onClick={multiActive ? () => toggleSel(selKey) : undefined}
+                                onKeyDown={(e) => { if (multiActive && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggleSel(selKey); } }}
+                            >
+                                <div className="trait-row-tile artist-tile">
+                                    <span className="dp-mood-swatch" style={{ width: 28, height: 28, backgroundColor: mood.hex }} />
+                                </div>
+                                <div className="starred-row-meta">
+                                    <span className="starred-row-id">PRICEDAY #{r.number}</span>
+                                    <span className="starred-row-sub">{mood.name}</span>
+                                </div>
+                                <div className="starred-row-actions">
+                                    <span
+                                        className="starred-row-unstar"
+                                        role="button"
+                                        tabIndex={0}
+                                        title="Remove from Starred"
+                                        aria-label="Remove from Starred"
+                                        onClick={(e) => { e.stopPropagation(); askRemove('Remove this PriceDay from your Starred list?', () => { removePriceDayStar(r.number); showToast('Removed from your Starred PriceDays List'); }); }}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); askRemove('Remove this PriceDay from your Starred list?', () => { removePriceDayStar(r.number); showToast('Removed from your Starred PriceDays List'); }); } }}
+                                    >
+                                        ✕&#xFE0E;
+                                    </span>
+                                </div>
+                            </div>
+                            );
+                        })}
+                    </>
+                )}
+                {showType('albums') && (
+                    <>
+                        {typeHdr && visibleAlbums.length > 0 && <div className="starred-group-header">Albums</div>}
+                        {visibleAlbums.map((r) => {
+                            const selKey = `al:${r.ownerAddress}:${r.albumId}`;
+                            const coverKey = r.album.cover && r.album.keys.includes(r.album.cover) ? r.album.cover : r.album.keys[0];
+                            const cover = coverKey ? parseKey(coverKey) : null;
+                            return (
+                            <div
+                                key={selKey}
+                                className={`starred-row trait-row has-actions-abs${multiActive ? ' is-selectable' : ''}${multiActive && selected.has(selKey) ? ' is-selected' : ''}`}
+                                role="button"
+                                tabIndex={0}
+                                onClick={multiActive ? () => toggleSel(selKey) : undefined}
+                                onKeyDown={(e) => { if (multiActive && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggleSel(selKey); } }}
+                            >
+                                {cover ? (
+                                    <OutputThumb slug={cover.slug} id={cover.id} size={64} crop />
+                                ) : (
+                                    <div className="trait-row-tile artist-tile">
+                                        <span className="artist-row-tile-glyph history-pj-glyph" style={{ color: 'var(--accent)' }}>⬚&#xFE0E;</span>
+                                    </div>
+                                )}
+                                <div className="starred-row-meta">
+                                    <span className="starred-row-id">{shortAddress(r.ownerAddress)}'s Album #{r.number}</span>
+                                    <span className="starred-row-sub">{r.album.keys.length} {r.album.keys.length === 1 ? 'piece' : 'pieces'}</span>
+                                </div>
+                                <div className="starred-row-actions">
+                                    <span
+                                        className="starred-row-unstar"
+                                        role="button"
+                                        tabIndex={0}
+                                        title="Remove from Starred"
+                                        aria-label="Remove from Starred"
+                                        onClick={(e) => { e.stopPropagation(); askRemove('Remove this album from your Starred list?', () => { toggleAlbumStar(r.ownerAddress, r.albumId); showToast('Removed from your Starred Albums List'); }); }}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); askRemove('Remove this album from your Starred list?', () => { toggleAlbumStar(r.ownerAddress, r.albumId); showToast('Removed from your Starred Albums List'); }); } }}
+                                    >
+                                        ✕&#xFE0E;
+                                    </span>
+                                </div>
+                            </div>
+                            );
+                        })}
+                    </>
+                )}
+                {showType('vaults') && (
+                    <>
+                        {typeHdr && visibleVaults.length > 0 && <div className="starred-group-header">Vaults</div>}
+                        {visibleVaults.map((r) => {
+                            const selKey = `vl:${r.ownerAddress}:${r.vaultId}`;
+                            const coverKey = r.vault.cover && r.vault.keys.includes(r.vault.cover) ? r.vault.cover : r.vault.keys[0];
+                            const cover = coverKey ? parseKey(coverKey) : null;
+                            return (
+                            <div
+                                key={selKey}
+                                className={`starred-row trait-row has-actions-abs${multiActive ? ' is-selectable' : ''}${multiActive && selected.has(selKey) ? ' is-selected' : ''}`}
+                                role="button"
+                                tabIndex={0}
+                                onClick={multiActive ? () => toggleSel(selKey) : undefined}
+                                onKeyDown={(e) => { if (multiActive && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggleSel(selKey); } }}
+                            >
+                                {cover ? (
+                                    <OutputThumb slug={cover.slug} id={cover.id} size={64} crop />
+                                ) : (
+                                    <div className="trait-row-tile artist-tile">
+                                        <span className="artist-row-tile-glyph history-pj-glyph" style={{ color: 'var(--accent)' }}>⬚&#xFE0E;</span>
+                                    </div>
+                                )}
+                                <div className="starred-row-meta">
+                                    <span className="starred-row-id">{shortAddress(r.ownerAddress)}'s Vault #{r.number}</span>
+                                    <span className="starred-row-sub">{r.vault.keys.length} {r.vault.keys.length === 1 ? 'piece' : 'pieces'}</span>
+                                </div>
+                                <div className="starred-row-actions">
+                                    <span
+                                        className="starred-row-unstar"
+                                        role="button"
+                                        tabIndex={0}
+                                        title="Remove from Starred"
+                                        aria-label="Remove from Starred"
+                                        onClick={(e) => { e.stopPropagation(); askRemove('Remove this vault from your Starred list?', () => { toggleVaultStar(r.ownerAddress, r.vaultId); showToast('Removed from your Starred Vaults List'); }); }}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); askRemove('Remove this vault from your Starred list?', () => { toggleVaultStar(r.ownerAddress, r.vaultId); showToast('Removed from your Starred Vaults List'); }); } }}
+                                    >
+                                        ✕&#xFE0E;
+                                    </span>
+                                </div>
+                            </div>
+                            );
+                        })}
                     </>
                 )}
                 {showType('tx') && (

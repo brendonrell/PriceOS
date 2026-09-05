@@ -14,8 +14,29 @@ import { getArtistStars, subscribeArtistStars } from '../../lib/pins/artistStarS
 import { getSoundtrackStarItems, subscribeSoundtrackStars } from '../../lib/pins/soundtrackStarStore';
 import { getTxStarItems, subscribeTxStars } from '../../lib/pins/txStarStore';
 import { getProjectStars, subscribeProjectStars } from '../../lib/pins/projectStarStore';
+import { getPriceDayStars, subscribePriceDayStars } from '../../lib/pins/priceDayStarStore';
+import { getAlbumStarItems, subscribeAlbumStars } from '../../lib/pins/albumStarStore';
+import { getVaultStarItems, subscribeVaultStars } from '../../lib/pins/vaultStarStore';
 import { getWishlistItems, subscribeWishlist } from '../../lib/pins/wishlistStore';
 import { getProject, projectsByArtist } from '../../lib/project/registry';
+import type { AlbumRecord } from '../../lib/supabase';
+
+/** A starred Album, resolved against its owner's live shelf (position →
+ *  number, cover data). See albumStarsValid below. */
+export interface StarredAlbumRow {
+    ownerAddress: string;
+    albumId: string;
+    album: AlbumRecord;
+    number: number;
+}
+/** A starred Vault, same shape as StarredAlbumRow, resolved against the
+ *  Vaults route instead. */
+export interface StarredVaultRow {
+    ownerAddress: string;
+    vaultId: string;
+    vault: AlbumRecord;
+    number: number;
+}
 
 export function useStarredPins() {
     /* Starred — the viewer's PRIVATE bookmarks ("like it, star it, find it
@@ -103,6 +124,111 @@ export function useStarredPins() {
         [projectStars],
     );
 
+    /* Starred PriceDays — favourited PriceDay numbers, under the Starred
+       tab's PriceDays filter. No live-validity fetch needed: a PriceDay
+       number is never phantom (every day that's happened keeps its own),
+       same as Tx below. */
+    const [priceDayStars, setPriceDayStars] = useState<readonly string[]>(() => getPriceDayStars());
+    useEffect(() => {
+        setPriceDayStars(getPriceDayStars());
+        return subscribePriceDayStars((next) => setPriceDayStars(next));
+    }, []);
+
+    /* Starred Albums — favourited (ownerAddress, albumId) bookmarks of ANY
+       album on PD, under the Starred tab's Albums filter. Unlike a starred
+       Project (resolved instantly against the client registry) an album's
+       display data — cover keys, position/number — lives server-side on
+       the OWNER's settings envelope, so this needs one fetch per distinct
+       starred owner. Same "don't flicker valid pins away on a slow
+       network" rule as the minted-count guard above: an owner not yet
+       resolved just keeps its rows out until the fetch lands, rather than
+       treating them as invalid. */
+    const [albumStarItems, setAlbumStarItems] = useState(() => getAlbumStarItems());
+    useEffect(() => {
+        setAlbumStarItems(getAlbumStarItems());
+        return subscribeAlbumStars(() => setAlbumStarItems(getAlbumStarItems()));
+    }, []);
+    const albumOwners = useMemo(
+        () => Array.from(new Set(albumStarItems.map((i) => i.ownerAddress))).sort(),
+        [albumStarItems],
+    );
+    const [albumsByOwner, setAlbumsByOwner] = useState<Record<string, AlbumRecord[]>>({});
+    useEffect(() => {
+        if (albumOwners.length === 0) return;
+        let cancelled = false;
+        Promise.all(
+            albumOwners.map((addr) =>
+                fetch(`/api/user/${addr}/albums`, { cache: 'no-store' })
+                    .then((r) => (r.ok ? r.json() : null))
+                    .then((d) => [addr, Array.isArray(d?.albums) ? (d.albums as AlbumRecord[]) : []] as const)
+                    .catch(() => [addr, []] as const),
+            ),
+        ).then((pairs) => {
+            if (cancelled) return;
+            setAlbumsByOwner((prev) => {
+                const next = { ...prev };
+                for (const [addr, albums] of pairs) next[addr] = albums;
+                return next;
+            });
+        });
+        return () => { cancelled = true; };
+    }, [albumOwners]);
+    const albumStarsValid: StarredAlbumRow[] = useMemo(() => {
+        const out: StarredAlbumRow[] = [];
+        for (const item of albumStarItems) {
+            const list = albumsByOwner[item.ownerAddress];
+            if (list === undefined) continue; // not resolved yet — appears once fetched, never flashes away
+            const idx = list.findIndex((a) => a.id === item.albumId);
+            if (idx === -1) continue; // album deleted / no longer exists — dropped, like a phantom output pin
+            out.push({ ownerAddress: item.ownerAddress, albumId: item.albumId, album: list[idx], number: idx + 1 });
+        }
+        return out;
+    }, [albumStarItems, albumsByOwner]);
+
+    /* Starred Vaults — same shape as Albums, one fetch per distinct starred
+       owner against the Vaults route instead. */
+    const [vaultStarItems, setVaultStarItems] = useState(() => getVaultStarItems());
+    useEffect(() => {
+        setVaultStarItems(getVaultStarItems());
+        return subscribeVaultStars(() => setVaultStarItems(getVaultStarItems()));
+    }, []);
+    const vaultOwners = useMemo(
+        () => Array.from(new Set(vaultStarItems.map((i) => i.ownerAddress))).sort(),
+        [vaultStarItems],
+    );
+    const [vaultsByOwner, setVaultsByOwner] = useState<Record<string, AlbumRecord[]>>({});
+    useEffect(() => {
+        if (vaultOwners.length === 0) return;
+        let cancelled = false;
+        Promise.all(
+            vaultOwners.map((addr) =>
+                fetch(`/api/vaults/${addr}`, { cache: 'no-store' })
+                    .then((r) => (r.ok ? r.json() : null))
+                    .then((d) => [addr, Array.isArray(d?.vaults) ? (d.vaults as AlbumRecord[]) : []] as const)
+                    .catch(() => [addr, []] as const),
+            ),
+        ).then((pairs) => {
+            if (cancelled) return;
+            setVaultsByOwner((prev) => {
+                const next = { ...prev };
+                for (const [addr, vaults] of pairs) next[addr] = vaults;
+                return next;
+            });
+        });
+        return () => { cancelled = true; };
+    }, [vaultOwners]);
+    const vaultStarsValid: StarredVaultRow[] = useMemo(() => {
+        const out: StarredVaultRow[] = [];
+        for (const item of vaultStarItems) {
+            const list = vaultsByOwner[item.ownerAddress];
+            if (list === undefined) continue;
+            const idx = list.findIndex((v) => v.id === item.vaultId);
+            if (idx === -1) continue;
+            out.push({ ownerAddress: item.ownerAddress, vaultId: item.vaultId, vault: list[idx], number: idx + 1 });
+        }
+        return out;
+    }, [vaultStarItems, vaultsByOwner]);
+
     /* Wishlist — the viewer's PRIVATE "want to buy" list. Same shape as stars;
        shown only on your own profile. */
     const [wishlistItems, setWishlistItems] = useState(() => getWishlistItems());
@@ -162,6 +288,9 @@ export function useStarredPins() {
         soundtrackStars,
         txStars,
         projectStarsValid,
+        priceDayStars,
+        albumStarsValid,
+        vaultStarsValid,
         wishlistValid,
     };
 }

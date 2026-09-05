@@ -12,6 +12,7 @@ import type { ProfileMoreL1 } from './profilePageShared';
 
 export type MoreSortKey = 'recent' | 'id' | 'project' | 'price' | 'followers';
 export type MoreMode = 'all' | 'artists' | 'collectors' | 'outputs' | 'traits' | 'soundtracks' | 'projects'
+    | 'priceday' | 'albums' | 'vaults'
     | 'tx' | 'followers' | 'following' | 'mutuals';
 
 /* Which sorts + groupings make sense for each Starred filter (and Wishlist).
@@ -25,6 +26,13 @@ export const MORE_CFG: Record<string, { sorts: MoreSortKey[]; groups: string[] }
     outputs:     { sorts: ['recent', 'price', 'project'], groups: ['none', 'color', 'project', 'artist'] },
     traits:      { sorts: ['recent', 'price', 'project'], groups: ['none', 'project', 'artist'] },
     projects:    { sorts: ['recent', 'price', 'project'], groups: ['none', 'artist'] },
+    /* PriceDays/Albums/Vaults are simple bookmark lists with no price or AZ
+       concept of their own (a PriceDay has a number, not a name; an
+       Album/Vault is only ever "@owner's #N") — recency (star order) is
+       the only sort that means anything here (2026-09-04). */
+    priceday:    { sorts: ['recent'], groups: ['none'] },
+    albums:      { sorts: ['recent'], groups: ['none'] },
+    vaults:      { sorts: ['recent'], groups: ['none'] },
     /* No $PRICE on people or soundtracks — neither carries a price of its own
        (Brendon, 2026-07-25). A transaction does, so it gains one. */
     artists:     { sorts: ['recent', 'followers', 'project'], groups: ['none', 'color'] },
