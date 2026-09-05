@@ -218,8 +218,9 @@ in the cycle") — every face reuses an existing meaning or a plain character
 | Moon phase | ○ | U+25CB | the lunarGlyph full-moon disc (shipped in Celestial) |
 | Zodiac (natal sun) | ⍟ | U+235F | the sky/Stargazing star — context disambiguates (the ◉ precedent) |
 | Born on (weekday) | ▦ | U+25A6 | the Calendar square (§7) — a birth-day read |
+| PriceDay (grouping dimension) | ➽ | U+27BD | the platform-trait/facet PriceDay mark (§12a) — distinct from the ✶ Almanac-row PriceDay glyph |
 | Faction | ⚐ | U+2690 | the war banner (§13); the faction itself stays a colour, per the war rule |
-| Numerology | # | U+0023 | plain char — id classes (The First · Palindromes · Primes · Round Numbers · Sevens) |
+| Numerology | № | U+2116 | **CHANGED 2026-09-05 (Brendon): the old `#` read as the Discord hashtag.** NUMERO SIGN, grepped free repo-wide at pick time — id classes (The First · Palindromes · Primes · Round Numbers · Sevens) |
 
 > Grouping headers are **collapsible**: a small triangle leads each header —
 > ▾ (U+25BE) open, ▸ (U+25B8) folded — and tapping the row folds its pieces
