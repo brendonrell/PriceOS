@@ -134,6 +134,7 @@ export async function createPing(input: CreatePingInput): Promise<string | null>
         id,
         kind: input.kind,
         source: 'directed',
+        actor_address: actor,
         actor_name: actorName,
         project_id: input.projectId ?? null,
         token_id: input.tokenId ?? null,

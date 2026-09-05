@@ -285,6 +285,7 @@ export async function pingInterested(db: DB, args: InterestArgs): Promise<string
           id: `interest:${args.event}:${args.slug}:${args.tokenId}`,
           kind: 'WATCH_HIT',
           source: 'directed',
+          actor_address: r.actor_address,
           actor_name: r.actor_name,
           project_id: r.project_id,
           token_id: r.token_id,

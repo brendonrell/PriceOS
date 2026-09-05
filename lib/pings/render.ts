@@ -16,6 +16,7 @@ export interface FeedItem {
   id: string;
   kind: RenderKind;
   source: 'directed' | 'broadcast';
+  actor_address: string | null;
   actor_name: string | null;
   project_id: string | null;
   token_id: string | null;
@@ -31,6 +32,7 @@ export function fromPingRow(row: PingRow): FeedItem {
     id: row.id,
     kind: row.kind,
     source: 'directed',
+    actor_address: row.actor_address,
     actor_name: row.actor_name,
     project_id: row.project_id,
     token_id: row.token_id,

@@ -183,6 +183,7 @@ export async function listBroadcastFeed(
         id: `bcast:${e.id}`,
         kind,
         source: 'broadcast' as const,
+        actor_address: actor,
         actor_name: actorName.get(actor) ?? null,
         project_id: e.project_id,
         token_id: e.token_id,
