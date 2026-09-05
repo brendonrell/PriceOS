@@ -6041,6 +6041,9 @@ body.bg-is-yellow .fiat-opt-on { background: #fff; color: var(--hothurt); border
 .glb-val { flex: 1 1 auto; display: inline-flex; align-items: center; gap: 5px; min-width: 0; }
 .glb-caret { flex: none; }
 .glb-glyph { font-family: 'Courier New', Courier, monospace; font-size: 12px; line-height: 1; }
+/* Listed (✹) reads too close to Artist's ✺ at the base size — one size up
+   in this picker only (Brendon, 2026-09-05). */
+.glb-glyph--listed { font-size: 13px; }
 
 /* The picker list for one slot (Brendon, 2026-09-03 — "too many options...
    goes offscreen, the user literally can't interact with the ones
