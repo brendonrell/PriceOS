@@ -13372,6 +13372,20 @@ body.colorway-dark .ghost-feed-bar {
     will-change: transform, opacity;
     z-index: 5;
 }
+/* PriceDay title star, inside .priceday-popover — an INVERTED surface
+   (background: var(--text-color), color: var(--bg-color)), the opposite
+   polarity of the page. --accent is tuned for the page's normal polarity
+   and in the default Dot theme equals --text-color exactly — the
+   popover's own BACKGROUND — so the borrowed .project-name-star colour
+   was invisible against its own card. Fall back to the inherited,
+   contrast-correct popover text colour instead; PriceDayTitleStar
+   normally overrides this per-instance with the day's own mood colour
+   via inline style, so this is the safety net when that isn't set
+   (2026-09-04). */
+.priceday-popover .project-name-star,
+.priceday-popover .project-name-star-float {
+    color: currentColor;
+}
 .btn-soundtrack .soundtrack-star-float {
     position: absolute;
     left: 12px;
