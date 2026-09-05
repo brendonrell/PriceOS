@@ -26,6 +26,7 @@ import {
 } from '../output/derive';
 import { pdRarityRank } from '../output/rarity';
 import { projectLanguage } from '../project/registry';
+import { priceDayNumber } from '../priceday/priceday';
 
 /* The single-level EXPANSION dimensions (2026-07-16). The classic identity
    dims (artist/project/owner/colour + combos) keep their bespoke section
@@ -33,7 +34,7 @@ import { projectLanguage } from '../project/registry';
    groupSectionLabel + groupLabelComparator. */
 export const EXTRA_GROUP_DIMS: ReadonlySet<GroupKey> = new Set<GroupKey>([
     'listed', 'fate', 'rarity', 'temperature', 'light', 'mood',
-    'orientation', 'moon', 'zodiac', 'weekday', 'faction', 'numerology',
+    'orientation', 'moon', 'zodiac', 'weekday', 'priceday', 'faction', 'numerology',
     'language',
 ]);
 
@@ -163,6 +164,12 @@ export function groupSectionLabel(
             const ms = mintMsFor(slug, id, ctx);
             return ms != null ? birthWeekday(ms) : UNDATED;
         }
+        /* Same mechanism as weekday — bucket by the mint moment — but reads
+           PriceDay's own calendar instead of the day-of-week name. */
+        case 'priceday': {
+            const ms = mintMsFor(slug, id, ctx);
+            return ms != null ? `PriceDay #${priceDayNumber(new Date(ms))}` : UNDATED;
+        }
         case 'faction':
             return ctx.faction || 'Neutral';
         case 'numerology':
@@ -212,6 +219,14 @@ export function groupLabelComparator(
         const aTail = TAILS.has(a[0]) ? 1 : 0;
         const bTail = TAILS.has(b[0]) ? 1 : 0;
         if (aTail !== bTail) return aTail - bTail;
+        /* PriceDay has no fixed enum (it only grows) — sort numerically,
+           most recent PriceDay first, same "recent leads" convention as
+           #ID/$PRICE's default direction. */
+        if (group === 'priceday') {
+            const an = Number(a[0].replace(/\D+/g, ''));
+            const bn = Number(b[0].replace(/\D+/g, ''));
+            return bn - an;
+        }
         if (fixed) {
             const ai = fixed.indexOf(a[0]);
             const bi = fixed.indexOf(b[0]);

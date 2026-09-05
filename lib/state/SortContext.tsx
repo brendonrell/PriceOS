@@ -88,7 +88,7 @@ export type GroupKey =
        Values resolve through lib/state/groupDimensions (shared by both
        galleries). */
     | 'listed' | 'fate' | 'temperature' | 'light' | 'mood' | 'orientation'
-    | 'moon' | 'zodiac' | 'weekday' | 'faction' | 'numerology'
+    | 'moon' | 'zodiac' | 'weekday' | 'priceday' | 'faction' | 'numerology'
     /* LANGUAGE — the coding-language platform trait as a shelf (Brendon,
        2026-08-02; docs/languages-trait-spec.md). Resolves from the project
        registry, so it needs no per-piece data at all. */
@@ -132,7 +132,7 @@ export const GROUP_MENU_DIMS: GroupKey[] = [
        shelf (Brendon, 2026-08-02). */
     'language',
     'listed', 'fate', 'temperature', 'light', 'mood', 'orientation',
-    'moon', 'zodiac', 'weekday', 'faction', 'numerology',
+    'moon', 'zodiac', 'weekday', 'priceday', 'faction', 'numerology',
 ];
 
 /** The dimensions a surface can actually resolve — the menu hides the rest
@@ -159,7 +159,7 @@ export function groupDimsFor(surface: 'project' | 'collected' | 'all'): GroupKey
 export const DEFAULT_GROUP_ORDER: GroupKey[] =
     ['none', 'artist', 'project', 'artistProject', 'owner', 'color', 'artistColor', 'projectColor', 'ownerColor',
         'listed', 'fate', 'rarity', 'language', 'temperature', 'light', 'mood', 'orientation',
-        'moon', 'zodiac', 'weekday', 'faction', 'numerology', 'lastSold'];
+        'moon', 'zodiac', 'weekday', 'priceday', 'faction', 'numerology', 'lastSold'];
 
 /* Single-character glyph per dimension (docs/GLYPHS.md). 'none' shows NO glyph
    in group headers (Brendon, 2026-06-18); the standalone group TOGGLE wears
@@ -192,11 +192,15 @@ export const GROUP_GLYPH: Record<GroupKey, string> = {
     moon: '○︎',
     zodiac: '⍟︎',
     weekday: '▦︎',
+    /* PriceDay as a grouping dimension wears the platform-trait/facet mark
+       (docs/GLYPHS.md §12a) — distinct from the ✶ Almanac-row PriceDay glyph. */
+    priceday: '➽︎',
     faction: '⚐︎',
     numerology: '#',
-    /* The profile-tag chip's own mark — the canonical social/user glyph
-       (docs/GLYPHS.md §12h), since a tag is who its owner is. */
-    tag: '☻︎',
+    /* The profile-tag chip's own mark — the dedicated Profile Tags glyph
+       (docs/GLYPHS.md §12f-bis), not the ☻ social/user mark it wore before
+       a dedicated pick existed (Brendon, 2026-09-05). */
+    tag: '⌑︎',
     /* Language — the code brace, plain-char family ($ ° ~ # precedent). */
     language: '{',
 };
@@ -228,7 +232,7 @@ export const GROUP_LABEL: Record<GroupKey, string> = {
        the two long enough to widen the whole layer picker on their own. */
     listed: 'LISTED', fate: 'FATE', temperature: 'TEMP',
     light: 'LIGHT', mood: 'MOOD', orientation: 'ORIENT',
-    moon: 'MOON PHASE', zodiac: 'ZODIAC', weekday: 'BORN ON',
+    moon: 'MOON PHASE', zodiac: 'ZODIAC', weekday: 'BORN ON', priceday: 'PRICEDAY',
     faction: 'FACTION', numerology: 'NUMEROLOGY', tag: 'TAG',
     language: 'LANGUAGE',
 };
@@ -249,7 +253,7 @@ export const GROUP_PRIMARY_KEY: Record<GroupKey, GroupKey> = {
     ownerColor: 'owner',
     listed: 'listed', fate: 'fate', temperature: 'temperature',
     light: 'light', mood: 'mood', orientation: 'orientation',
-    moon: 'moon', zodiac: 'zodiac', weekday: 'weekday',
+    moon: 'moon', zodiac: 'zodiac', weekday: 'weekday', priceday: 'priceday',
     faction: 'faction', numerology: 'numerology', tag: 'tag',
     language: 'language',
 };
@@ -288,7 +292,7 @@ const ALL_GROUP_KEYS: GroupKey[] = [
     'none', 'artist', 'project', 'artistProject', 'artistColor', 'projectColor',
     'ownerColor', 'owner', 'color', 'lastSold', 'rarity',
     'listed', 'fate', 'temperature', 'light', 'mood', 'orientation',
-    'moon', 'zodiac', 'weekday', 'faction', 'numerology', 'tag',
+    'moon', 'zodiac', 'weekday', 'priceday', 'faction', 'numerology', 'tag',
 ];
 function isGroupKey(v: unknown): v is GroupKey {
     return typeof v === 'string' && (ALL_GROUP_KEYS as string[]).includes(v);
