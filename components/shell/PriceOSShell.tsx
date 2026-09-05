@@ -111,6 +111,7 @@ import OfferShieldCast from '../OfferShieldCast';
 import PanopticonConfirmModal from '../PanopticonConfirmModal';
 import ProfileTagsConfirmModal from '../ProfileTagsConfirmModal';
 import CartographyModal from '../CartographyModal';
+import PriceStreamFeed from '../pricestream/PriceStreamFeed';
 import ComposerModal from '../composer/ComposerModal';
 import SigilForgeModal from '../SigilForgeModal';
 import RewindBar from './RewindBar';
@@ -609,6 +610,9 @@ export function PriceOSShell({ children }: { children: ReactNode }) {
             </ErrorBoundary>
             <ErrorBoundary name="CartographyModal">
                 <CartographyModal />
+            </ErrorBoundary>
+            <ErrorBoundary name="PriceStreamFeed">
+                <PriceStreamFeed />
             </ErrorBoundary>
             <ErrorBoundary name="ComposerModal">
                 <ComposerModal />
