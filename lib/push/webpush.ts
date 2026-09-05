@@ -26,6 +26,7 @@ import { passesCategoryPrefs, pingHref, type FeedItem, type PingCategoryPrefs } 
 import { composeResolved, composeSprite, type ResolvedSprite } from '@/lib/sprites/composer';
 import { isPriceSpriteVibe } from '@/lib/sprites/vibes';
 import { quietWindowActive, type QuietHours } from '@/lib/quiet/quietHours';
+import { liveFloor } from '@/lib/market/floors';
 
 type DB = ReturnType<typeof getSupabaseService>;
 
@@ -270,13 +271,33 @@ export async function sendNativePing(recipientAddress: string, item: FeedItem): 
 
     // A ping ABOUT someone else (an offer, a sale, a follow, an Artist Push…)
     // wears THAT actor's PriceSprite face — their sprite delivers their own
-    // news. Only pings with no actor (achievements, streaks, reminders,
-    // system notices) fall back to the recipient's own face.
-    const spriteFace = item.actor_address
-      ? (await actorSpriteFace(db, item.actor_address, mood)) ?? ownSpriteFace
-      : ownSpriteFace;
+    // news — with their @handle right beside it in the title. Only pings
+    // with no actor (achievements, streaks, reminders, system notices), or
+    // where the actor's sprite couldn't be resolved, fall back to the
+    // recipient's own face and no title handle.
+    let spriteFace = ownSpriteFace;
+    let actorHandle: string | null = null;
+    if (item.actor_address) {
+      const face = await actorSpriteFace(db, item.actor_address, mood);
+      if (face) {
+        spriteFace = face;
+        actorHandle = item.actor_name ? `@${item.actor_name}` : null;
+      }
+    }
 
-    const { title, body, tag } = formatNativePing(item, spriteFace);
+    // Offer-family reflow needs the live floor for context — only worth the
+    // extra query when we're actually about to show it (actor face resolved,
+    // offer-shaped kind, and a project to price against).
+    let floorEth: number | null = null;
+    if (actorHandle && (item.kind === 'OFFER' || item.kind === 'COUNTER') && item.project_id) {
+      try {
+        floorEth = await liveFloor(db, item.project_id);
+      } catch {
+        floorEth = null;
+      }
+    }
+
+    const { title, body, tag } = formatNativePing(item, spriteFace, { actorHandle, floorEth });
     const payload = JSON.stringify({
       title,
       body,
