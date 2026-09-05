@@ -168,7 +168,7 @@ export default function PriceDayDateLink({
                     className="priceday-popover"
                     style={{ position: 'fixed', top: pos.top, left: pos.left }}
                 >
-                    <PriceDayTitleStar number={contents.number} />
+                    <PriceDayTitleStar number={contents.number} color={moodOfDay(date).hex} />
                     <div className="dp-title-spacer" />
 
                     {topExtra}

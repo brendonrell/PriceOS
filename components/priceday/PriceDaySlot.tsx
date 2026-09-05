@@ -149,7 +149,7 @@ export default function PriceDaySlot() {
                     className="priceday-popover"
                     style={{ position: 'fixed', top: pos.top, left: pos.left }}
                 >
-                    <PriceDayTitleStar number={contents.number} />
+                    <PriceDayTitleStar number={contents.number} color={today ? moodOfDay(today).hex : undefined} />
                     <div className="dp-title-spacer" />
 
                     <div className="pd-section-header">MINTED THIS DAY</div>
