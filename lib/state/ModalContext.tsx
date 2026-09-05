@@ -78,7 +78,11 @@ export type ModalName =
     | 'followersLite'
     /* COLORPEDIA (Brendon, 2026-08-01) — the book about one colour. Payload is
        the hex to open on. Door: the Colorway tile on a Project's Attributes. */
-    | 'colorpedia';
+    | 'colorpedia'
+    /* PRICESTREAM ⇊ (Brendon, 2026-09-04) — the vertical swipe feed. Door:
+       single-tap the home "Price Discussion" name, the third gesture beside
+       HomeTitleCartography's long-press (Cartography) and triple-tap (Rewind). */
+    | 'pricestream';
 
 interface OpenModalState {
     name: ModalName;
