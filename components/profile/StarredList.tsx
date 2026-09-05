@@ -1339,8 +1339,8 @@ export default function StarredList({
                                 className={`starred-row trait-row has-actions-abs${multiActive ? ' is-selectable' : ''}${multiActive && selected.has(selKey) ? ' is-selected' : ''}`}
                                 role="button"
                                 tabIndex={0}
-                                onClick={multiActive ? () => toggleSel(selKey) : undefined}
-                                onKeyDown={(e) => { if (multiActive && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggleSel(selKey); } }}
+                                onClick={multiActive ? () => toggleSel(selKey) : () => router.push(`/${r.ownerHandle ?? r.ownerAddress}/albums/${r.number}`)}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); multiActive ? toggleSel(selKey) : router.push(`/${r.ownerHandle ?? r.ownerAddress}/albums/${r.number}`); } }}
                             >
                                 {cover ? (
                                     <OutputThumb slug={cover.slug} id={cover.id} size={64} crop />
@@ -1350,7 +1350,7 @@ export default function StarredList({
                                     </div>
                                 )}
                                 <div className="starred-row-meta">
-                                    <span className="starred-row-id">{shortAddress(r.ownerAddress)}'s Album #{r.number}</span>
+                                    <span className="starred-row-id">{r.ownerHandle ? `@${r.ownerHandle}` : shortAddress(r.ownerAddress)}'s Album #{r.number}</span>
                                     <span className="starred-row-sub">{r.album.keys.length} {r.album.keys.length === 1 ? 'piece' : 'pieces'}</span>
                                 </div>
                                 <div className="starred-row-actions">
@@ -1384,8 +1384,8 @@ export default function StarredList({
                                 className={`starred-row trait-row has-actions-abs${multiActive ? ' is-selectable' : ''}${multiActive && selected.has(selKey) ? ' is-selected' : ''}`}
                                 role="button"
                                 tabIndex={0}
-                                onClick={multiActive ? () => toggleSel(selKey) : undefined}
-                                onKeyDown={(e) => { if (multiActive && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggleSel(selKey); } }}
+                                onClick={multiActive ? () => toggleSel(selKey) : () => router.push(`/${r.ownerHandle ?? r.ownerAddress}`)}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); multiActive ? toggleSel(selKey) : router.push(`/${r.ownerHandle ?? r.ownerAddress}`); } }}
                             >
                                 {cover ? (
                                     <OutputThumb slug={cover.slug} id={cover.id} size={64} crop />
@@ -1395,7 +1395,7 @@ export default function StarredList({
                                     </div>
                                 )}
                                 <div className="starred-row-meta">
-                                    <span className="starred-row-id">{shortAddress(r.ownerAddress)}'s Vault #{r.number}</span>
+                                    <span className="starred-row-id">{r.ownerHandle ? `@${r.ownerHandle}` : shortAddress(r.ownerAddress)}'s Vault #{r.number}</span>
                                     <span className="starred-row-sub">{r.vault.keys.length} {r.vault.keys.length === 1 ? 'piece' : 'pieces'}</span>
                                 </div>
                                 <div className="starred-row-actions">

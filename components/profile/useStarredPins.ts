@@ -25,6 +25,11 @@ import type { AlbumRecord } from '../../lib/supabase';
  *  number, cover data). See albumStarsValid below. */
 export interface StarredAlbumRow {
     ownerAddress: string;
+    /** Claimed @handle for ownerAddress, when resolved — the album detail
+     *  route (/{handle}/albums/{n}) needs a handle, not a raw address (its
+     *  resolver rejects addresses, unlike the root profile page which
+     *  redirects them). Null while unresolved or genuinely unclaimed. */
+    ownerHandle: string | null;
     albumId: string;
     album: AlbumRecord;
     number: number;
@@ -33,6 +38,10 @@ export interface StarredAlbumRow {
  *  Vaults route instead. */
 export interface StarredVaultRow {
     ownerAddress: string;
+    /** Same handle-resolution story as StarredAlbumRow above — Vaults have
+     *  no dedicated detail page yet, but the owner's profile route still
+     *  needs a handle over a raw address to avoid an extra redirect hop. */
+    ownerHandle: string | null;
     vaultId: string;
     vault: AlbumRecord;
     number: number;
@@ -173,17 +182,6 @@ export function useStarredPins() {
         });
         return () => { cancelled = true; };
     }, [albumOwners]);
-    const albumStarsValid: StarredAlbumRow[] = useMemo(() => {
-        const out: StarredAlbumRow[] = [];
-        for (const item of albumStarItems) {
-            const list = albumsByOwner[item.ownerAddress];
-            if (list === undefined) continue; // not resolved yet — appears once fetched, never flashes away
-            const idx = list.findIndex((a) => a.id === item.albumId);
-            if (idx === -1) continue; // album deleted / no longer exists — dropped, like a phantom output pin
-            out.push({ ownerAddress: item.ownerAddress, albumId: item.albumId, album: list[idx], number: idx + 1 });
-        }
-        return out;
-    }, [albumStarItems, albumsByOwner]);
 
     /* Starred Vaults — same shape as Albums, one fetch per distinct starred
        owner against the Vaults route instead. */
@@ -217,6 +215,56 @@ export function useStarredPins() {
         });
         return () => { cancelled = true; };
     }, [vaultOwners]);
+
+    /* Handles for every distinct Album/Vault owner — the album detail route
+       (/{handle}/albums/{n}) needs a real @handle, not a raw address (its
+       resolver 404s on one, unlike the root profile page which redirects
+       addresses to the canonical handle). Shared across both so an owner
+       with both a starred album and vault only gets resolved once. */
+    const albumVaultOwners = useMemo(
+        () => Array.from(new Set([...albumOwners, ...vaultOwners])).sort(),
+        [albumOwners, vaultOwners],
+    );
+    const [handleByOwner, setHandleByOwner] = useState<Record<string, string | null>>({});
+    useEffect(() => {
+        if (albumVaultOwners.length === 0) return;
+        let cancelled = false;
+        Promise.all(
+            albumVaultOwners.map((addr) =>
+                fetch(`/api/user/${addr}`, { cache: 'no-store' })
+                    .then((r) => (r.ok ? r.json() : null))
+                    .then((d) => [addr, typeof d?.handle === 'string' ? d.handle : null] as const)
+                    .catch(() => [addr, null] as const),
+            ),
+        ).then((pairs) => {
+            if (cancelled) return;
+            setHandleByOwner((prev) => {
+                const next = { ...prev };
+                for (const [addr, handle] of pairs) next[addr] = handle;
+                return next;
+            });
+        });
+        return () => { cancelled = true; };
+    }, [albumVaultOwners]);
+
+    const albumStarsValid: StarredAlbumRow[] = useMemo(() => {
+        const out: StarredAlbumRow[] = [];
+        for (const item of albumStarItems) {
+            const list = albumsByOwner[item.ownerAddress];
+            if (list === undefined) continue; // not resolved yet — appears once fetched, never flashes away
+            const idx = list.findIndex((a) => a.id === item.albumId);
+            if (idx === -1) continue; // album deleted / no longer exists — dropped, like a phantom output pin
+            out.push({
+                ownerAddress: item.ownerAddress,
+                ownerHandle: handleByOwner[item.ownerAddress] ?? null,
+                albumId: item.albumId,
+                album: list[idx],
+                number: idx + 1,
+            });
+        }
+        return out;
+    }, [albumStarItems, albumsByOwner, handleByOwner]);
+
     const vaultStarsValid: StarredVaultRow[] = useMemo(() => {
         const out: StarredVaultRow[] = [];
         for (const item of vaultStarItems) {
@@ -224,10 +272,16 @@ export function useStarredPins() {
             if (list === undefined) continue;
             const idx = list.findIndex((v) => v.id === item.vaultId);
             if (idx === -1) continue;
-            out.push({ ownerAddress: item.ownerAddress, vaultId: item.vaultId, vault: list[idx], number: idx + 1 });
+            out.push({
+                ownerAddress: item.ownerAddress,
+                ownerHandle: handleByOwner[item.ownerAddress] ?? null,
+                vaultId: item.vaultId,
+                vault: list[idx],
+                number: idx + 1,
+            });
         }
         return out;
-    }, [vaultStarItems, vaultsByOwner]);
+    }, [vaultStarItems, vaultsByOwner, handleByOwner]);
 
     /* Wishlist — the viewer's PRIVATE "want to buy" list. Same shape as stars;
        shown only on your own profile. */
