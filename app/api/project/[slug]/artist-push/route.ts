@@ -199,6 +199,7 @@ export const POST = requireAuth<{ slug: string }>(async (req, ctx, address) => {
           id: `apush:${slug}:${nowIso}`,
           kind: 'PING',
           source: 'directed',
+          actor_address: artist,
           actor_name: artistName,
           project_id: slug,
           token_id: null,
