@@ -182,7 +182,7 @@ export const GROUP_GLYPH: Record<GroupKey, string> = {
        pill) · ▦ = the Calendar square (born-on) · ⍟ = the sky/Stargazing star
        (context disambiguates, the ◉ precedent) · ⚐ = the war banner ·
        ○/◑ = the shipped lunarGlyph disc family. Plain chars ($ precedent):
-       ° temperature · ~ mood · # numerology. */
+       ° temperature · ~ mood · № numerology. */
     listed: '✹︎',
     fate: '䷲︎',
     temperature: '°',
@@ -196,7 +196,9 @@ export const GROUP_GLYPH: Record<GroupKey, string> = {
        (docs/GLYPHS.md §12a) — distinct from the ✶ Almanac-row PriceDay glyph. */
     priceday: '➽︎',
     faction: '⚐︎',
-    numerology: '#',
+    /* NUMERO SIGN — replaced the plain '#' (Brendon, 2026-09-05: read as the
+       Discord hashtag, not numerology). Grepped free repo-wide at pick time. */
+    numerology: '№︎',
     /* The profile-tag chip's own mark — the dedicated Profile Tags glyph
        (docs/GLYPHS.md §12f-bis), not the ☻ social/user mark it wore before
        a dedicated pick existed (Brendon, 2026-09-05). */
