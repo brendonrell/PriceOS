@@ -204,7 +204,14 @@ export default function GroupLayersBubble({
                                         title={dead ? `${GROUP_LABEL[d]} — nothing to split here` : GROUP_LABEL[d]}
                                         onClick={(e) => { e.stopPropagation(); onPick(picking, d); setPicking(null); }}
                                     >
-                                        {GROUP_GLYPH[d] && <span className="glb-glyph" aria-hidden="true">{GROUP_GLYPH[d]}</span>}
+                                        {GROUP_GLYPH[d] && (
+                                            <span
+                                                className={`glb-glyph${d === 'listed' ? ' glb-glyph--listed' : ''}`}
+                                                aria-hidden="true"
+                                            >
+                                                {GROUP_GLYPH[d]}
+                                            </span>
+                                        )}
                                         {GROUP_LABEL[d]}
                                     </button>
                                 );
