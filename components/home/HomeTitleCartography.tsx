@@ -2,12 +2,12 @@
 
 /*
  * HomeTitleCartography — the "Price Discussion" name on the home page,
- * carrying the SAME long-press gesture as every other name on the site
- * (ProjectTitleStar: 460ms hold, 10px drift cancel, context-menu
- * suppressed). The name is the platform's secret compass:
+ * carrying THREE gestures now (Brendon, 2026-09-04 — "why not add a third"):
  *   • long-press  → Cartography ◫ (space — the living ecosystem map)
  *   • triple-tap  → The Rewind ◄ (time — docks the OS at yesterday, and the
  *                    same three taps while docked return you to now)
+ *   • single tap  → PriceStream ⇊ (the vertical swipe feed — a full-screen
+ *                    modal, so closing it returns you exactly where you were)
  *
  * The gesture mechanics are copied verbatim from
  * components/project/ProjectTitleStar.tsx (Rule #0 — reuse, never reinvent).
@@ -17,12 +17,18 @@ import React from 'react';
 import { useModal } from '../../lib/state/ModalContext';
 import { useRewindOptional } from '../../lib/state/RewindContext';
 
+/* Single tap fires only after this settles with no 2nd/3rd tap arriving —
+   long enough for the triple-tap window (700ms) to resolve first, so a
+   PriceStream open never races The Rewind. */
+const SINGLE_TAP_SETTLE_MS = 380;
+
 export default function HomeTitleCartography() {
     const { open } = useModal();
     const rewind = useRewindOptional();
     /* Triple-tap: three completed taps within 350ms of each other. Taps are
        counted on pointer-up of presses that never long-fired. */
     const tapTimes = React.useRef<number[]>([]);
+    const singleTapTimer = React.useRef<number | null>(null);
 
     const timerRef = React.useRef<number | null>(null);
     const longFired = React.useRef(false);
@@ -56,12 +62,24 @@ export default function HomeTitleCartography() {
         tapTimes.current = taps;
         if (taps.length >= 3 && rewind) {
             tapTimes.current = [];
+            if (singleTapTimer.current != null) { window.clearTimeout(singleTapTimer.current); singleTapTimer.current = null; }
             /* The gesture is a TOGGLE (Brendon, 2026-07-27): the same three taps
                that opened The Rewind close it again, exactly like the bar's ✕. */
             if (rewind.day != null) rewind.returnToNow();
             // Enter The Rewind at yesterday — the scrubber takes it from there.
             else rewind.engage(rewind.today - 1);
+            return;
         }
+        // Debounce the single tap behind the triple-tap window: only fire
+        // PriceStream if this tap is still alone once the window settles.
+        if (singleTapTimer.current != null) window.clearTimeout(singleTapTimer.current);
+        singleTapTimer.current = window.setTimeout(() => {
+            singleTapTimer.current = null;
+            if (tapTimes.current.length === 1) {
+                tapTimes.current = [];
+                open('pricestream');
+            }
+        }, SINGLE_TAP_SETTLE_MS);
     };
 
     return (
