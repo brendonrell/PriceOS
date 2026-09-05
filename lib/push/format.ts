@@ -100,15 +100,31 @@ export function formatNativePing(
   }
 
   // Split the ping into a LABEL line and a DETAIL line. An actor ping (a real
-  // handle) breaks who | what-they-did — unless the handle already moved up
-  // into the title, in which case row 3 is just the icon + the action; a
-  // label-style ping (To-Do due: X, Unlocked: X, Today: X) breaks at its
-  // colon; a free-text reminder with neither stays a single line rather than
-  // force an awkward break.
+  // handle) breaks who | what-they-did — UNLESS the handle already moved up
+  // into the title (actorHandle), in which case row 3 leads with just the
+  // verb and row 4 gets the freed room for the piece/detail (Brendon,
+  // 2026-09-05 — the same "verb up, specifics down" reflow as the offer
+  // family, generalized): break at " on " first (grammatically the cleanest,
+  // e.g. "accepted your offer" / "on @proj #tok"), else right before the "@"
+  // project handle, else — nothing structured to split on (FOLLOW's "followed
+  // you", a trade's "proposed a trade", a gift's free-text note) — stays one
+  // line. A label-style ping (To-Do due: X, Unlocked: X, Today: X) breaks at
+  // its colon; a free-text reminder with neither stays a single line rather
+  // than force an awkward break.
   let line1: string;
   let line2 = '';
   if (r.handle && actorHandle) {
-    line1 = `${r.icon} ${r.action}`.trim();
+    const onIdx = r.action.indexOf(' on ');
+    const atIdx = r.action.indexOf('@');
+    if (onIdx > 0) {
+      line1 = `${r.icon} ${r.action.slice(0, onIdx)}`.trim();
+      line2 = r.action.slice(onIdx + 1);
+    } else if (atIdx > 0) {
+      line1 = `${r.icon} ${r.action.slice(0, atIdx)}`.trim();
+      line2 = r.action.slice(atIdx).trim();
+    } else {
+      line1 = `${r.icon} ${r.action}`.trim();
+    }
   } else if (r.handle) {
     line1 = `${r.icon} ${r.handle}`.trim();
     line2 = r.action;
