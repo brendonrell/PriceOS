@@ -862,6 +862,14 @@ mix** (see the ⛔ in `lib/tags/formula.ts`).
 
 ---
 
+## PriceStream — the vertical feed (2026-09-04 build)
+
+| Concept | Glyph | Codepoint | Notes |
+|---|---|---|---|
+| **PriceStream** (the vertical swipe feed) | ⇊ | U+21CA DOWNWARDS PAIRED ARROWS | Brendon's pick, 2026-09-04 — reads as motion AND plurality (many pieces flowing, not one line), distinct from the Rewind's ⇠ and the Time Machine's own arrow family (§12d-bis). Grepped free repo-wide, raw + escaped, at pick time; no emoji mapping. Door: single-tap the "Price Discussion" name on the home page — the third gesture alongside HomeTitleCartography's existing long-press (Cartography ◫) and triple-tap (The Rewind ◄). Wears: the modal's own wildcard-level pill and any future nav entry. Standard #1 gate applies — device-verify as monochrome text on iPhone before final lock. |
+
+
+
 *Source files: `components/dropdown/settings/MyPingsRow.tsx`,
 `components/ArtworkCard.tsx`, `components/achievements/AchievementsGrid.tsx`,
 `lib/pings/render.ts`, `lib/data/tapeEvents.ts`, `app/globals.css`
