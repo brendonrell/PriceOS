@@ -184,7 +184,10 @@ const DEFAULT_CATEGORY_PREFS: PingCategoryPrefs = {
 };
 
 /** Read the recipient's settings (Pingtoasts mode + Silent Mode) and sprite in
- *  one go. Returns whether native delivery is allowed + their composed face. */
+ *  one go. Returns whether native delivery is allowed + their composed face.
+ *  The sprite here is the RECIPIENT's own — used only as the fallback face
+ *  for pings that aren't about anyone else (achievements, streaks, reminders,
+ *  system notices). See sendNativePing for the actor-face override. */
 async function fetchGate(
   db: DB,
   address: string,
@@ -211,6 +214,24 @@ async function fetchGate(
   return { allowed, spriteFace: spriteFaceFor(row, mood), prefs };
 }
 
+/** Compose the ACTOR's PriceSprite face — the person the ping is about, e.g.
+ *  the @seventeen who made the offer. Used in place of the recipient's own
+ *  sprite for any ping with an actor. Falls back to null on any lookup miss
+ *  so the caller can fall back to the recipient's own face. */
+async function actorSpriteFace(db: DB, actorAddress: string, mood: SpriteMood): Promise<string | null> {
+  try {
+    const { data } = await db
+      .from('users')
+      .select('address, price_sprite, price_sprite_resolved')
+      .eq('address', actorAddress.toLowerCase())
+      .maybeSingle();
+    if (!data) return null;
+    return spriteFaceFor(data as UserGateRow, mood);
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Fan a ping out to every device the recipient has registered for 3D Pingtoasts.
  * Fire-and-forget from the caller's view, but AWAITED internally so it completes
@@ -235,9 +256,10 @@ export async function sendNativePing(recipientAddress: string, item: FeedItem): 
     const subs = (subRows ?? []) as SubRow[];
     if (subs.length === 0) return;
 
-    // Honour the recipient's current mode + Silent Mode, and grab their sprite
-    // wearing the mood that matches the news.
-    const { allowed, spriteFace, prefs } = await fetchGate(db, address, moodFor(item));
+    // Honour the recipient's current mode + Silent Mode, and grab their own
+    // sprite as the fallback face (self-referential pings only).
+    const mood = moodFor(item);
+    const { allowed, spriteFace: ownSpriteFace, prefs } = await fetchGate(db, address, mood);
     if (!allowed) return;
 
     // The MY PINGS pills gate the phone exactly like they gate the panel.
@@ -245,6 +267,14 @@ export async function sendNativePing(recipientAddress: string, item: FeedItem): 
 
     // Ambient tier: respect the hourly budget — overflow stays inbox-only.
     if (tier === 'budget' && !(await withinPushBudget(db, address))) return;
+
+    // A ping ABOUT someone else (an offer, a sale, a follow, an Artist Push…)
+    // wears THAT actor's PriceSprite face — their sprite delivers their own
+    // news. Only pings with no actor (achievements, streaks, reminders,
+    // system notices) fall back to the recipient's own face.
+    const spriteFace = item.actor_address
+      ? (await actorSpriteFace(db, item.actor_address, mood)) ?? ownSpriteFace
+      : ownSpriteFace;
 
     const { title, body, tag } = formatNativePing(item, spriteFace);
     const payload = JSON.stringify({

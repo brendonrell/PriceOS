@@ -4,8 +4,11 @@
 // static app icon. No HTML, no colours, no canvas — but every Unicode glyph
 // renders as text, so PD's vocabulary lands on the lock screen on-brand:
 //
-//   title  = the recipient's PriceSprite face (ASCII, composed server-side from
-//            their frozen resolution — their own sprite tells them the news)
+//   title  = the PriceSprite face of who the ping is ABOUT (ASCII, composed
+//            server-side from their frozen resolution — the actor's sprite
+//            delivers their own news). Falls back to the recipient's own
+//            sprite for pings with no actor (achievements, streaks,
+//            reminders, system notices).
 //   body   = TWO lines (Brendon, 2026-07-18 — "two-line content"):
 //              line 1 (label)  = the per-kind glyph + who/what
 //              line 2 (detail) = the specifics
