@@ -28,6 +28,12 @@
  * the artwork" — and BOTH the outer frame and the inner surface use 4px,
  * the house control radius (the trait-pill law, docs/GLYPHS.md). Never
  * 999px; that radius doesn't exist on this platform.
+ *
+ * Styling lives in app/globals.css (Brendon, 2026-09-05 — the first pass
+ * used `<style jsx>`, the only occurrence of scoped CSS-in-JS anywhere in
+ * the codebase; it never took effect against the real build, which is why
+ * the shipped feed rendered as unstyled, unbounded, stacked divs. Every
+ * other component styles through global classes — fixed, no exceptions).
  */
 
 import { useEffect, useRef, useState } from 'react';
@@ -149,121 +155,6 @@ export default function PriceStreamFeed() {
                     <Slide key={`${c.slug}:${c.tokenId}`} card={c} />
                 ))}
             </div>
-
-            <style jsx>{`
-                .ps-overlay {
-                    position: fixed;
-                    inset: 0;
-                    z-index: 1000;
-                    background: #000;
-                    display: flex;
-                    flex-direction: column;
-                }
-                .ps-scroller {
-                    flex: 1;
-                    overflow-y: scroll;
-                    scroll-snap-type: y mandatory;
-                    -webkit-overflow-scrolling: touch;
-                }
-                .ps-slide-frame {
-                    scroll-snap-align: start;
-                    scroll-snap-stop: always;
-                    height: 100dvh;
-                    width: 100%;
-                    padding: 10px;
-                    box-sizing: border-box;
-                    /* House corner law: controls are 4px, surfaces are square.
-                       This frame is a surface — 4px only because it's also
-                       acting as a control-adjacent colour swatch; see box below. */
-                    border-radius: 4px;
-                }
-                .ps-slide-box {
-                    position: relative;
-                    width: 100%;
-                    height: 100%;
-                    background: #111111;
-                    border-radius: 4px;
-                    overflow: hidden;
-                }
-                .ps-loading {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    color: #e0e0e0;
-                    font-family: 'Courier New', Courier, monospace;
-                }
-                .ps-art {
-                    position: absolute;
-                    inset: 0;
-                    background-size: cover;
-                    background-position: center;
-                    background-color: #1a1a1a;
-                }
-                .ps-scrim {
-                    position: absolute;
-                    inset: 0;
-                    background: linear-gradient(180deg, rgba(17,17,17,0) 45%, rgba(17,17,17,0.92) 100%);
-                    pointer-events: none;
-                }
-                .ps-topbar {
-                    position: absolute;
-                    top: 14px;
-                    left: 14px;
-                    right: 14px;
-                    z-index: 1001;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }
-                .ps-wildcard-pill {
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    background: rgba(17,17,17,0.75);
-                    border: 1px solid rgba(224,224,224,0.25);
-                    color: #e0e0e0;
-                    padding: 7px 12px;
-                    border-radius: 4px;
-                    font-size: 12px;
-                    font-weight: bold;
-                    font-family: 'Courier New', Courier, monospace;
-                }
-                .ps-wc-dots { display: flex; gap: 3px; }
-                .ps-wc-dots i {
-                    width: 5px; height: 5px; border-radius: 50%;
-                    background: rgba(224,224,224,0.25); display: inline-block;
-                }
-                .ps-wc-dots i.on { background: #FFE600; }
-                .ps-close-btn {
-                    width: 30px; height: 30px;
-                    border-radius: 4px;
-                    background: rgba(17,17,17,0.75);
-                    border: 1px solid rgba(224,224,224,0.25);
-                    color: #e0e0e0;
-                    font-size: 15px;
-                    display: flex; align-items: center; justify-content: center;
-                }
-                .ps-star-rail {
-                    position: absolute;
-                    right: 14px;
-                    bottom: 128px;
-                    z-index: 4;
-                    cursor: pointer;
-                }
-                .ps-star-ico { font-size: 26px; color: #e0e0e0; font-family: 'Courier New', Courier, monospace; }
-                .ps-info {
-                    position: absolute;
-                    bottom: 0; left: 0; right: 0;
-                    padding: 18px;
-                    z-index: 3;
-                    color: #e0e0e0;
-                }
-                .ps-artist { font-size: 14px; font-weight: bold; margin: 0 0 2px; }
-                .ps-meta { font-size: 12px; color: rgba(224,224,224,0.7); margin: 0 0 12px; }
-                .ps-actions { display: flex; gap: 10px; align-items: center; }
-                .ps-cart-btn { height: 40px; padding: 0 18px; font-size: 13px; }
-                .ps-unlisted { opacity: 0.4; }
-            `}</style>
         </div>
     );
 }
