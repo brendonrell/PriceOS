@@ -170,7 +170,7 @@ export function useStarredPins() {
                 fetch(`/api/user/${addr}/albums`, { cache: 'no-store' })
                     .then((r) => (r.ok ? r.json() : null))
                     .then((d) => [addr, Array.isArray(d?.albums) ? (d.albums as AlbumRecord[]) : []] as const)
-                    .catch(() => [addr, []] as const),
+                    .catch(() => [addr, [] as AlbumRecord[]] as const),
             ),
         ).then((pairs) => {
             if (cancelled) return;
@@ -203,7 +203,7 @@ export function useStarredPins() {
                 fetch(`/api/vaults/${addr}`, { cache: 'no-store' })
                     .then((r) => (r.ok ? r.json() : null))
                     .then((d) => [addr, Array.isArray(d?.vaults) ? (d.vaults as AlbumRecord[]) : []] as const)
-                    .catch(() => [addr, []] as const),
+                    .catch(() => [addr, [] as AlbumRecord[]] as const),
             ),
         ).then((pairs) => {
             if (cancelled) return;
