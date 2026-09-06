@@ -241,6 +241,16 @@ export default function TraitsUI({
     const usableDims = React.useMemo(() => {
         if (!layersAnchor) return undefined;
         const ids = [...projectCtx.outputs.keys()];
+        /* Same live-floor read as useProjectGallery's labelOf — the project
+           page already holds every output in memory, so no fetch here
+           either (Brendon, 2026-09-06). */
+        let floor: number | null = null;
+        for (const meta of projectCtx.outputs.values()) {
+            if (!meta.price) continue;
+            const p = parseFloat(meta.price);
+            if (Number.isFinite(p) && (floor == null || p < floor)) floor = p;
+        }
+        const mintPriceEth = getProject(projectCtx.slug)?.mintPriceEth ?? null;
         return dimsThatCut(ids, groupDimsFor('project'), (id, layer) => {
             const meta = projectCtx.outputs.get(id);
             const owner = meta?.ownerDisplay ?? '—';
@@ -253,6 +263,9 @@ export default function TraitsUI({
                     ? ownerTagSets[owner.slice(1).toLowerCase()]?.tags[0]?.label ?? null
                     : null,
                 project: projectCtx.title,
+                listPriceEth: meta?.price ? parseFloat(meta.price) : null,
+                mintPriceEth,
+                floorEth: floor,
             });
         });
     }, [layersAnchor, projectCtx, ownerTagSets]);

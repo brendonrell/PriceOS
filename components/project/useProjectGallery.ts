@@ -397,6 +397,19 @@ export function useProjectGallery({
            whatever layers the user picked — it replaced the hand-written
            owner+colour pair and the single-level owner/colour branch alike
            (Brendon, 2026-07-26). */
+        /* THE PRICE TRIO's vs.-Floor cut (Brendon, 2026-09-06) — a project
+           page already holds every one of its outputs in memory (not just
+           what's owned), so the floor is the live min listing price right
+           here, no fetch needed at all (the Collected surface, which only
+           sees what a wallet holds, uses the cached /floor route instead —
+           lib/project/useProjectFloors.ts). */
+        let floor: number | null = null;
+        for (const meta of project.outputs.values()) {
+            if (!meta.price) continue;
+            const p = parseFloat(meta.price);
+            if (Number.isFinite(p) && (floor == null || p < floor)) floor = p;
+        }
+        const mintPriceEth = getProject(project.slug)?.mintPriceEth ?? null;
         const labelOf = (id: number, layer: GroupKey) =>
             groupSectionLabel(layer, project.slug, id, {
                 listed: !!project.outputs.get(id)?.price,
@@ -405,6 +418,9 @@ export function useProjectGallery({
                 owner: project.outputs.get(id)?.ownerDisplay ?? '—',
                 tag: ownerTagOf(project.outputs.get(id)?.ownerDisplay ?? null),
                 project: project.title,
+                listPriceEth: project.outputs.get(id)?.price ? parseFloat(project.outputs.get(id)!.price!) : null,
+                mintPriceEth,
+                floorEth: floor,
             });
         /* ⛔ THE GRID NEVER DROPS A GROUPING YOU PICKED (Brendon, 2026-07-31).
            Deciding a dimension is "useless" and quietly ignoring it is what
