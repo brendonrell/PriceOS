@@ -38,7 +38,21 @@ const PAGE_CACHE_TTL_S = 300;
 // (re-priming the cache with the current build's correct asset links). Old
 // entries under the previous BOOT_ID just age out via the TTL — never read
 // again, never served, harmless.
-const BOOT_ID = crypto.randomUUID();
+//
+// Lazily initialized (Brendon, 2026-09-05, same-day follow-up): Cloudflare
+// Workers forbids generating random values at global/module scope — only
+// inside a request handler. `crypto.randomUUID()` called directly at module
+// init passed `next build` and `next-on-pages` build cleanly, but failed
+// wrangler's deploy-time validation every single time (10021: "Disallowed
+// operation called within global scope"), which meant EVERY deploy since
+// this fix landed silently kept the previous build live — no error visible
+// short of reading the deploy log's tail. `getBootId()` defers the call
+// into the fetch handler; still exactly one value per isolate lifetime.
+let _bootId: string | null = null;
+function getBootId(): string {
+  if (_bootId === null) _bootId = crypto.randomUUID();
+  return _bootId;
+}
 
 function isCacheablePageRequest(request: Request): boolean {
   if (request.method !== "GET") return false;
@@ -72,7 +86,7 @@ const cachedFetch = async (
 
   const cache = (caches as unknown as { default: Cache }).default;
   const keyUrl = new URL(request.url);
-  keyUrl.searchParams.set("__boot", BOOT_ID);
+  keyUrl.searchParams.set("__boot", getBootId());
   const key = new Request(keyUrl.toString(), { method: "GET" });
   try {
     const hit = await cache.match(key);
