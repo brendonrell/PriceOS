@@ -95,7 +95,14 @@ export type GroupKey =
     | 'language'
     /* PROFILE TAGS — group pieces by their owner's leading tag (Brendon,
        2026-07-26). A main, sitting straight after owner. */
-    | 'tag';
+    | 'tag'
+    /* PRICE TRIO (Brendon, 2026-09-06 — "any other dynamic ones… price-
+       related?"): all three read straight off the SAME list_price_eth every
+       holding already carries, same as Listed, so they're just as live —
+       flip the price or the project's floor and the bucket changes with no
+       re-mint. Sit at the very end of the menu alongside Listed (see the
+       reorder below). */
+    | 'priceTier' | 'priceTrend' | 'vsFloor';
 
 /* ── THE MAINS (Brendon, 2026-07-26) ────────────────────────────────────────
    The tap cycle was 17-19 stops deep and took forever to get anywhere. It is
@@ -131,8 +138,13 @@ export const GROUP_MENU_DIMS: GroupKey[] = [
     /* Language leads the deep cuts — identity-adjacent, the p5/three/vanilla
        shelf (Brendon, 2026-08-02). */
     'language',
-    'listed', 'fate', 'temperature', 'light', 'mood', 'orientation',
+    'fate', 'temperature', 'light', 'mood', 'orientation',
     'moon', 'zodiac', 'weekday', 'priceday', 'faction', 'numerology',
+    /* THE DYNAMIC TAIL (Brendon, 2026-09-06) — every dimension above is
+       fixed at mint time; these four can flip on their own, no re-mint,
+       so they're bumped to the very end together: Listed (held ⇄ on the
+       market), then the three price cuts that share its live data. */
+    'listed', 'priceTier', 'priceTrend', 'vsFloor',
 ];
 
 /** The dimensions a surface can actually resolve — the menu hides the rest
@@ -158,8 +170,9 @@ export function groupDimsFor(surface: 'project' | 'collected' | 'all'): GroupKey
    surface that doesn't carry the chosen dimension simply shows ungrouped. */
 export const DEFAULT_GROUP_ORDER: GroupKey[] =
     ['none', 'artist', 'project', 'artistProject', 'owner', 'color', 'artistColor', 'projectColor', 'ownerColor',
-        'listed', 'fate', 'rarity', 'language', 'temperature', 'light', 'mood', 'orientation',
-        'moon', 'zodiac', 'weekday', 'priceday', 'faction', 'numerology', 'lastSold'];
+        'fate', 'rarity', 'language', 'temperature', 'light', 'mood', 'orientation',
+        'moon', 'zodiac', 'weekday', 'priceday', 'faction', 'numerology',
+        'listed', 'priceTier', 'priceTrend', 'vsFloor', 'lastSold'];
 
 /* Single-character glyph per dimension (docs/GLYPHS.md). 'none' shows NO glyph
    in group headers (Brendon, 2026-06-18); the standalone group TOGGLE wears
@@ -205,6 +218,13 @@ export const GROUP_GLYPH: Record<GroupKey, string> = {
     tag: '⌑︎',
     /* Language — the code brace, plain-char family ($ ° ~ # precedent). */
     language: '{',
+    /* THE PRICE TRIO (Brendon, 2026-09-06). Distinct from lastSold's `$` (a
+       dormant "coming soon" dimension) so the two can never be confused:
+       ¤ generic currency sign for the tier buckets · ⇅ up/down for trend ·
+       ⌊ mathematical FLOOR bracket for vs.-floor — literal, not borrowed. */
+    priceTier: '¤',
+    priceTrend: '⇅',
+    vsFloor: '⌊',
 };
 
 /* Resting face of the standalone group toggle (grouping OFF) — the four-dot
@@ -237,6 +257,7 @@ export const GROUP_LABEL: Record<GroupKey, string> = {
     moon: 'MOON PHASE', zodiac: 'ZODIAC', weekday: 'BORN ON', priceday: 'PRICEDAY',
     faction: 'FACTION', numerology: 'NUMEROLOGY', tag: 'TAG',
     language: 'LANGUAGE',
+    priceTier: 'PRICE TIER', priceTrend: 'PRICE TREND', vsFloor: 'VS. FLOOR',
 };
 
 /* Dimensions with no data yet — render as a single greyed "coming soon" group.
@@ -258,6 +279,7 @@ export const GROUP_PRIMARY_KEY: Record<GroupKey, GroupKey> = {
     moon: 'moon', zodiac: 'zodiac', weekday: 'weekday', priceday: 'priceday',
     faction: 'faction', numerology: 'numerology', tag: 'tag',
     language: 'language',
+    priceTier: 'priceTier', priceTrend: 'priceTrend', vsFloor: 'vsFloor',
 };
 export const GROUP_SECONDARY_KEY: Partial<Record<GroupKey, GroupKey>> = {
     artistProject: 'project', artistColor: 'color', projectColor: 'color',

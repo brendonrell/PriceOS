@@ -36,6 +36,9 @@ export const EXTRA_GROUP_DIMS: ReadonlySet<GroupKey> = new Set<GroupKey>([
     'listed', 'fate', 'rarity', 'temperature', 'light', 'mood',
     'orientation', 'moon', 'zodiac', 'weekday', 'priceday', 'faction', 'numerology',
     'language',
+    /* THE PRICE TRIO (Brendon, 2026-09-06) — flows through the same shared
+       engine as Listed, which they're grouped with at the tail of the menu. */
+    'priceTier', 'priceTrend', 'vsFloor',
 ]);
 
 /** Per-item context the calling gallery already knows (its own item shape). */
@@ -60,6 +63,19 @@ export interface GroupItemCtx {
     /** The holder's LEADING profile tag, already resolved by the caller (it
      *  owns the tag lookup). null = they have none showing. */
     tag?: string | null;
+    /* ── THE PRICE TRIO (Brendon, 2026-09-06) — all three read off data the
+       caller already has in memory, no new fetch on the project surface
+       (its own outputs map) and one cached-per-project fetch on Collected
+       (mirrors useOfferShield's floor cache). null = not listed / unknown,
+       never faked. */
+    /** The piece's own current listing price, ETH. null = not listed. */
+    listPriceEth?: number | null;
+    /** The project's original mint price, ETH — static registry read, always
+     *  known (0 for free mints). */
+    mintPriceEth?: number | null;
+    /** The project's live floor (cheapest active listing across the WHOLE
+     *  project, not just what's on screen). null = unknown/unfetched yet. */
+    floorEth?: number | null;
 }
 
 /* Honest tail buckets — always last in their dimension's order. */
@@ -178,6 +194,34 @@ export function groupSectionLabel(
             /* The coding-language trait — pure registry read, so every piece
                resolves (no tail bucket needed; unset = the house default). */
             return projectLanguage(slug);
+        /* ── THE PRICE TRIO (Brendon, 2026-09-06) ─────────────────────────
+           All three flip live off the exact same listing data Listed
+           already reads — no re-mint needed for a piece to change bucket. */
+        case 'priceTier': {
+            const p = ctx.listPriceEth;
+            if (p == null) return 'Not Listed';
+            if (p < 0.1) return 'Under 0.1E';
+            if (p < 0.5) return '0.1–0.5E';
+            if (p < 1) return '0.5–1E';
+            return '1E+';
+        }
+        case 'priceTrend': {
+            const p = ctx.listPriceEth;
+            if (p == null) return 'Not Listed';
+            const mint = ctx.mintPriceEth ?? 0;
+            if (p > mint) return 'Above Mint';
+            if (p < mint) return 'Below Mint';
+            return 'At Mint';
+        }
+        case 'vsFloor': {
+            const p = ctx.listPriceEth;
+            if (p == null) return 'Not Listed';
+            const floor = ctx.floorEth;
+            if (floor == null || floor <= 0) return 'Unknown';
+            if (p > floor) return 'Above Floor';
+            if (p < floor) return 'Below Floor';
+            return 'At Floor';
+        }
         default:
             return '—';
     }
@@ -205,10 +249,15 @@ const FIXED_ORDER: Partial<Record<GroupKey, readonly string[]>> = {
     ],
     weekday: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', UNDATED],
     numerology: ['The First', 'Palindromes', 'Primes', 'Round Numbers', 'Sevens', 'The Rest'],
+    /* THE PRICE TRIO — cheapest/most-favourable first, "Not Listed" always
+       last (same convention as Listed's own 'Held' tail). */
+    priceTier: ['Under 0.1E', '0.1–0.5E', '0.5–1E', '1E+', 'Not Listed'],
+    priceTrend: ['Below Mint', 'At Mint', 'Above Mint', 'Not Listed'],
+    vsFloor: ['Below Floor', 'At Floor', 'Above Floor', 'Unknown', 'Not Listed'],
 };
 
 /* Count-ranked dimensions (fate · faction) still pin their tail last. */
-const TAILS = new Set([UNSAMPLED, UNDATED, 'Neutral', 'Unranked', 'Other', 'No Tag', '—']);
+const TAILS = new Set([UNSAMPLED, UNDATED, 'Neutral', 'Unranked', 'Other', 'No Tag', '—', 'Not Listed', 'Unknown']);
 
 /** Comparator for [label, count] section pairs under `group`. */
 export function groupLabelComparator(
