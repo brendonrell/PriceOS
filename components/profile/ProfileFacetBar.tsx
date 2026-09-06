@@ -34,7 +34,7 @@ import { useEffect, useMemo, useState, type MouseEvent as ReactMouseEvent } from
 import { useTraits } from '../../lib/state/TraitsContext';
 import {
     useSort,
-    COLLECTED_GROUP_ORDER, groupOrderFor, GROUP_GLYPH, GROUP_LABEL, groupDimsFor, type GroupKey, GROUP_TOAST_HINT } from '../../lib/state/SortContext';
+    COLLECTED_GROUP_ORDER, groupOrderFor, GROUP_GLYPH, GROUP_LABEL, groupDimsFor, type GroupKey } from '../../lib/state/SortContext';
 import { useColorway, type ColorwayKey } from '../../lib/state/ColorwayContext';
 import { useToast } from '../../lib/state/ToastContext';
 import type { OutputTraits } from '../../lib/project/types';
@@ -121,16 +121,11 @@ export default function ProfileFacetBar({
     holdings,
     isOwnProfile,
     profileAddress,
-    socialPill,
 }: {
     holdings: EnrichedHolding[];
     isOwnProfile: boolean;
     /** The viewed profile's address — keys this Collected grid's grouping memory. */
     profileAddress: string;
-    /** ☻ social lens (Brendon, 2026-09-03 — the project page's social pill,
-     *  ported): rides the sort row same as there; the page swaps in the
-     *  actor-scoped SocialFeed while it's lit. */
-    socialPill?: { active: boolean; onToggle: () => void };
 }) {
     const {
         activeCategory,
@@ -155,10 +150,10 @@ export default function ProfileFacetBar({
         multiSelectActive,
         toggleMultiSelect,
     } = useTraits();
-    const { sort, dir, feedKind, cycleSort, applySort, group, groupLayers, setGroupLayer, cycleGroup } = useSort();
+    const { sort, dir, feedKind, cycleSort, applySort, group, groupLayers, setGroupLayer } = useSort();
     /* HOLD the group toggle → pick the three layers by hand (Brendon,
        2026-07-26). The tap still cycles the mains. */
-    const [layersAnchor, setLayersAnchor] = useState<{ top: number; centerX: number } | null>(null);
+    const [layersAnchor, setLayersAnchor] = useState<{ top: number; centerX: number; startAt: 1 | null } | null>(null);
     const { colorway, setColorway } = useColorway();
     const { showToast } = useToast();
 
@@ -236,15 +231,6 @@ export default function ProfileFacetBar({
         cycleSort(family);
         showToast('SORT: ' + lbl + ' ' + (nextDir === 'asc' ? '↑' : '↓'));
     };
-    /* The pick is remembered for THIS profile's Collected grid (like tabs), so
-       the viewer finds it grouped as they left it (Brendon, 2026-07-12). */
-    const cycleGroupWithToast = () => {
-        const next = cycleGroup(groupOrder, { scope: 'profile', id: profileAddress });
-        // Toast-casing rule: the category stays normal case, the STATE screams.
-        // Hint only rides the toast that turns grouping OFF (Brendon, 2026-08-14).
-        showToast('Group: ' + GROUP_LABEL[next] + (next === 'none' ? GROUP_TOAST_HINT : ''));
-    };
-
     /* Facet → present value pool, drawn from the owned Outputs. Only facets
        with ≥1 value render. */
     const facetValues = useMemo(() => {
@@ -426,13 +412,14 @@ export default function ProfileFacetBar({
                         icon-only, no arrow; cycles the grouping dimension
                         independently of the sorts. */}
                     <GroupBtn
-                        /* The face is the TOP layer's glyph; a + says there are
-                           more layers under it (Brendon, 2026-07-30). */
+                        /* The face is the TOP layer's glyph (Brendon,
+                           2026-09-06: no more '+'/'more' mark — active state
+                           reads the same underline as every other sort-btn;
+                           the chip row below spells out the rest). */
                         glyph={groupLayers.length ? GROUP_GLYPH[groupLayers[0]!] : GROUP_GLYPH[effGroup]}
                         on={groupLayers.length > 0 || effGroup !== 'none'}
-                        more={groupLayers.length > 1}
-                        onClick={cycleGroupWithToast}
-                        onHold={setLayersAnchor}
+                        onTapAnchor={(a) => setLayersAnchor({ ...a, startAt: 1 })}
+                        onHold={(a) => setLayersAnchor({ ...a, startAt: null })}
                     />
                     {layersAnchor && (
                         <GroupLayersBubble
@@ -440,6 +427,7 @@ export default function ProfileFacetBar({
                             layers={groupLayers}
                             usable={usableDims}
                             anchor={layersAnchor}
+                            startAt={layersAnchor.startAt}
                             onPick={(layer, key) => setGroupLayer(layer, key, { scope: 'profile', id: profileAddress })}
                             onClose={() => setLayersAnchor(null)}
                         />
@@ -448,83 +436,83 @@ export default function ProfileFacetBar({
                         glyph as every other Recent sort in the app (Brendon,
                         2026-09-03). Freshest acquisition leads by default. */}
                     <span
-                        className={`sort-btn sort-btn-clock${sort === 'id' && !socialPill?.active ? ' active' : ''}`}
+                        className={`sort-btn sort-btn-clock${sort === 'id' ? ' active' : ''}`}
                         role="button"
                         tabIndex={0}
                         title="Sort by Recent"
-                        onClick={() => { if (socialPill?.active) socialPill.onToggle(); gridSortWithToast('id'); }}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (socialPill?.active) socialPill.onToggle(); gridSortWithToast('id'); } }}
+                        onClick={() => gridSortWithToast('id')}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); gridSortWithToast('id'); } }}
                     >
                         <span className="sort-lbl sort-lbl-recent">◷︎</span>
-                        <span className="sort-arrow">{sort === 'id' && !socialPill?.active ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
+                        <span className="sort-arrow">{sort === 'id' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
                     </span>
-                    {/* ☻ SOCIAL — the project page's social lens, ported to a
-                        wallet (Brendon, 2026-09-03): this profile's own
-                        activity, scoped via the same `?actor=` lens the
-                        project pages already use, with relation badges
-                        against the viewer's own circle. */}
-                    {socialPill && (
-                        <span
-                            className={`sort-btn sort-btn-social${socialPill.active ? ' active' : ''}`}
-                            role="button"
-                            tabIndex={0}
-                            title="Social — this wallet's story"
-                            onClick={socialPill.onToggle}
-                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); socialPill.onToggle(); } }}
-                        >
-                            <span className="sort-lbl sort-lbl-recent">☻&#xFE0E;</span>
-                            <span className="sort-arrow">{socialPill.active ? '↓︎' : ''}</span>
-                        </span>
-                    )}
                     {/* RARITY — out of the #ID/$PRICE cycle, its own
                         glyph-only pill now (Brendon, 2026-09-03), same ❖
-                        mark the modifier used to wear. */}
+                        mark the modifier used to wear. Glyph sized up two
+                        steps from the base sort-lbl-recent size (Brendon,
+                        2026-09-06) so it reads at full strength next to the
+                        rest of the row. */}
                     <span
-                        className={`sort-btn${sort === 'rarity' && !socialPill?.active ? ' active' : ''}`}
+                        className={`sort-btn sort-btn-rarity${sort === 'rarity' ? ' active' : ''}`}
                         role="button"
                         tabIndex={0}
                         title="Sort by Rarity"
-                        onClick={() => { if (socialPill?.active) socialPill.onToggle(); gridSortWithToast('rarity'); }}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (socialPill?.active) socialPill.onToggle(); gridSortWithToast('rarity'); } }}
+                        onClick={() => gridSortWithToast('rarity')}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); gridSortWithToast('rarity'); } }}
                     >
                         <span className="sort-lbl sort-lbl-recent">{'❖\uFE0E'}</span>
-                        <span className="sort-arrow">{sort === 'rarity' && !socialPill?.active ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
+                        <span className="sort-arrow">{sort === 'rarity' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
                     </span>
                     <span
-                        className={`sort-btn${sort === 'price' && !socialPill?.active ? ' active' : ''}`}
+                        className={`sort-btn${sort === 'price' ? ' active' : ''}`}
                         role="button"
                         tabIndex={0}
                         title="Sort by Price"
-                        onClick={() => { if (socialPill?.active) socialPill.onToggle(); gridSortWithToast('price'); }}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (socialPill?.active) socialPill.onToggle(); gridSortWithToast('price'); } }}
+                        onClick={() => gridSortWithToast('price')}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); gridSortWithToast('price'); } }}
                     >
                         <span className="sort-lbl">{'$PRICE'}</span>
-                        <span className="sort-arrow">{sort === 'price' && !socialPill?.active ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
+                        <span className="sort-arrow">{sort === 'price' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
                     </span>
                     <span
-                        className={`sort-btn${sort === 'az' && !socialPill?.active ? ' active' : ''}`}
+                        className={`sort-btn${sort === 'az' ? ' active' : ''}`}
                         role="button"
                         tabIndex={0}
                         title="Sort A–Z by project"
-                        onClick={() => { if (socialPill?.active) socialPill.onToggle(); gridSortWithToast('az'); }}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (socialPill?.active) socialPill.onToggle(); gridSortWithToast('az'); } }}
+                        onClick={() => gridSortWithToast('az')}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); gridSortWithToast('az'); } }}
                     >
                         <span className="sort-lbl">{sort === 'az' && dir === 'desc' ? 'ZA' : 'AZ'}</span>
-                        <span className="sort-arrow">{sort === 'az' && !socialPill?.active ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
+                        <span className="sort-arrow">{sort === 'az' ? (dir === 'asc' ? '↑︎' : '↓︎') : ''}</span>
                     </span>
                     <span
-                        className={`sort-btn${sort === 'feed' && !socialPill?.active ? ' active' : ''}`}
+                        className={`sort-btn${sort === 'feed' ? ' active' : ''}`}
                         role="button"
                         tabIndex={0}
                         title="Activity Feed"
-                        onClick={() => { if (socialPill?.active) socialPill.onToggle(); cycleSort('feed'); }}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (socialPill?.active) socialPill.onToggle(); cycleSort('feed'); } }}
+                        onClick={() => cycleSort('feed')}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleSort('feed'); } }}
                     >
                         <span className="sort-lbl">FEED</span>
-                        <span className="sort-arrow">{sort === 'feed' && !socialPill?.active ? `${feedKind === 'price' ? '$' : ''}${dir === 'asc' ? '↑︎' : '↓︎'}` : ''}</span>
+                        <span className="sort-arrow">{sort === 'feed' ? `${feedKind === 'price' ? '$' : ''}${dir === 'asc' ? '↑︎' : '↓︎'}` : ''}</span>
                     </span>
                 </div>
             </div>
+
+            {/* Active grouping layers, spelled out below the sort row (Brendon,
+                2026-09-06) — e.g. "✺ Artist › ⬚ Project › ◉ Colour" — since the
+                group toggle itself only ever wears the top layer's glyph now. */}
+            {groupLayers.length > 0 && (
+                <div className="group-layers-chip-row" aria-label="Active grouping layers">
+                    {groupLayers.map((key, i) => (
+                        <span key={key} className="group-layers-chip">
+                            {GROUP_GLYPH[key] && <span className="glb-glyph" aria-hidden="true">{GROUP_GLYPH[key]}</span>}
+                            {GROUP_LABEL[key]}
+                            {i < groupLayers.length - 1 && <span className="group-layers-chip-sep" aria-hidden="true">{' › '}</span>}
+                        </span>
+                    ))}
+                </div>
+            )}
 
             {/* Grid Presets row — pops up on ⏚. Collected's own 3 slots. */}
             <CollectedPresetRow
