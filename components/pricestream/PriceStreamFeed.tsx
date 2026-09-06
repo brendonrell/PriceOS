@@ -38,6 +38,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useModal } from '../../lib/state/ModalContext';
+import { useToast } from '../../lib/state/ToastContext';
 import { useCart } from '../../lib/state/CartContext';
 import { ART_IMAGE_BASE, artImageUrl, artThumbUrl } from '../../lib/project/registry';
 import { BUCKET_HEX } from '../../lib/output/derive';
@@ -156,6 +157,7 @@ function Slide({ card }: { card: PriceStreamCard }) {
 
 export default function PriceStreamFeed() {
     const { openModal, close } = useModal();
+    const { showToast } = useToast();
     const isOpen = openModal?.name === 'pricestream';
     const [cards, setCards] = useState<PriceStreamCard[]>([]);
     const [loading, setLoading] = useState(false);
@@ -208,7 +210,11 @@ export default function PriceStreamFeed() {
             <div className="ps-topbar">
                 <button
                     className="ps-wildcard-pill"
-                    onClick={() => setWildcard((w) => (w + 1) % 3)}
+                    onClick={() => {
+                        const next = (wildcard + 1) % 3;
+                        setWildcard(next);
+                        showToast(`Wildcard: ${next + 1}/3`);
+                    }}
                     title="Wildcard level (not yet wired to the algorithm)"
                 >
                     <span>PriceStream {'\u21C8\uFE0E'}</span>
