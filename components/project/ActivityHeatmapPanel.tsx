@@ -72,22 +72,39 @@ export default function ActivityHeatmapPanel({ slug }: { slug: string }) {
     }, []);
 
     // Calendar grid: weeks as columns, Sun-Sat as rows, oldest → newest.
+    // Extends through the END of the month containing the most recent real
+    // activity (usually the current month) rather than stopping mid-week at
+    // whatever day data happens to end — Brendon, 2026-09-06: "show the full
+    // month... grey out the days in the future" instead of just cutting off.
+    // Days strictly before launch (the leading partial week backed up to
+    // Sunday) render fully blank — same as the trailing week-completion pad
+    // — instead of a fake zero-activity cell, since the project didn't exist
+    // yet. Days strictly after today render as a distinct FUTURE cell:
+    // visible (so the month reads as complete) but dashed/inert, matching
+    // the app's existing dashed-border = "pending, not yet filled" language
+    // (the Grid Preset idle-slot convention, app/globals.css .pill-artist-
+    // filter). Real past/present days keep the normal 0–4 intensity levels.
     const grid = useMemo(() => {
         if (!days || days.length === 0) return null;
         const byDate = new Map(days.map((d) => [d.date, d]));
         const first = new Date(`${days[0].date}T00:00:00Z`);
-        const last = new Date(`${days[days.length - 1].date}T00:00:00Z`);
+        const lastData = new Date(`${days[days.length - 1].date}T00:00:00Z`);
+        // Complete the calendar month that the most recent activity falls in.
+        const monthEnd = new Date(Date.UTC(lastData.getUTCFullYear(), lastData.getUTCMonth() + 1, 0));
         const start = new Date(first);
         start.setUTCDate(start.getUTCDate() - start.getUTCDay()); // back up to Sunday
 
-        const weeks: (DayBucket | null)[][] = [];
+        const todayKey = new Date().toISOString().slice(0, 10);
+        const firstKey = days[0].date;
+
+        const weeks: ({ date: string; mints: number; trades: number; kind: 'real' | 'blank' | 'future' })[][] = [];
         let cursor = new Date(start);
-        let week: (DayBucket | null)[] = [];
+        let week: (typeof weeks)[number] = [];
         const monthLabels: { weekIndex: number; label: string }[] = [];
         let lastMonth = -1;
 
-        while (cursor <= last || week.length > 0) {
-            if (cursor > last && week.length === 0) break;
+        while (cursor <= monthEnd || week.length > 0) {
+            if (cursor > monthEnd && week.length === 0) break;
             const key = cursor.toISOString().slice(0, 10);
             if (cursor.getUTCDay() === 0 && week.length === 0) {
                 const m = cursor.getUTCMonth();
@@ -96,11 +113,20 @@ export default function ActivityHeatmapPanel({ slug }: { slug: string }) {
                     lastMonth = m;
                 }
             }
-            week.push(cursor <= last ? (byDate.get(key) ?? { date: key, mints: 0, trades: 0 }) : null);
+            if (cursor <= monthEnd) {
+                if (key < firstKey) {
+                    week.push({ date: key, mints: 0, trades: 0, kind: 'blank' });
+                } else if (key > todayKey) {
+                    week.push({ date: key, mints: 0, trades: 0, kind: 'future' });
+                } else {
+                    const d = byDate.get(key);
+                    week.push({ date: key, mints: d?.mints ?? 0, trades: d?.trades ?? 0, kind: 'real' });
+                }
+            }
             if (week.length === 7) { weeks.push(week); week = []; }
             cursor.setUTCDate(cursor.getUTCDate() + 1);
-            if (cursor > last && week.length > 0 && week.length < 7) {
-                while (week.length < 7) week.push(null);
+            if (cursor > monthEnd && week.length > 0 && week.length < 7) {
+                while (week.length < 7) week.push({ date: '', mints: 0, trades: 0, kind: 'blank' });
                 weeks.push(week);
                 week = [];
             }
@@ -175,10 +201,6 @@ export default function ActivityHeatmapPanel({ slug }: { slug: string }) {
 
     return (
         <div className="activity-hm-wrap">
-            <div className="activity-hm-intro">
-                One cell per day, darker means busier. Tap a day to zoom into
-                its 24 hours; tap ZOOM OUT to come back.
-            </div>
             <div className="activity-hm-legend">
                 <span>LESS</span>
                 {[0, 1, 2, 3, 4].map((lv) => (
@@ -208,22 +230,32 @@ export default function ActivityHeatmapPanel({ slug }: { slug: string }) {
                         <div className="activity-hm-weeks">
                             {grid.weeks.map((week, wi) => (
                                 <div key={wi} className="activity-hm-week">
-                                    {week.map((d, di) => d ? (
-                                        <div
-                                            key={di}
-                                            className="activity-hm-cell"
-                                            data-level={levelFor(total(d), grid.max)}
-                                            onClick={() => openDay(d.date)}
-                                        />
-                                    ) : (
-                                        <div key={di} className="activity-hm-cell activity-hm-cell-empty" />
-                                    ))}
+                                    {week.map((d, di) => {
+                                        if (d.kind === 'blank') {
+                                            return <div key={di} className="activity-hm-cell activity-hm-cell-empty" />;
+                                        }
+                                        if (d.kind === 'future') {
+                                            return <div key={di} className="activity-hm-cell activity-hm-cell-future" />;
+                                        }
+                                        return (
+                                            <div
+                                                key={di}
+                                                className="activity-hm-cell"
+                                                data-level={levelFor(total(d), grid.max)}
+                                                onClick={() => openDay(d.date)}
+                                            />
+                                        );
+                                    })}
                                 </div>
                             ))}
                         </div>
                     </div>
                 </div>
             )}
+            <div className="activity-hm-intro">
+                One cell per day, darker means busier. Tap a day to zoom into
+                its 24 hours; tap ZOOM OUT to come back.
+            </div>
         </div>
     );
 }
