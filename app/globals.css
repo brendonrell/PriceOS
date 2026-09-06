@@ -15653,6 +15653,20 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     background-color: #1a1a1a;
     display: block;
 }
+/* The 256px grid tile, shown ONLY as an instant-paint placeholder while the
+   real master loads in behind it — never the fill image itself (that was
+   the blur/crop bug: a small square-ish thumb stretched full-screen). */
+.ps-art-thumb {
+    filter: blur(14px);
+    transform: scale(1.08);
+}
+.ps-art:not(.ps-art-thumb) {
+    opacity: 0;
+    transition: opacity 0.25s;
+}
+.ps-art-loaded {
+    opacity: 1;
+}
 .ps-scrim {
     position: absolute;
     inset: 0;
