@@ -60,7 +60,7 @@ import { useTraits, type TraitCategory, type FeedCategory } from '../../lib/stat
 import {
     useSort,
     type SortKey, type SortDir, type FeedKind, type GroupKey,
-    PROJECT_GROUP_ORDER, groupOrderFor, GROUP_GLYPH, GROUP_LABEL, groupDimsFor, GROUP_TOAST_HINT } from '../../lib/state/SortContext';
+    PROJECT_GROUP_ORDER, groupOrderFor, GROUP_GLYPH, GROUP_LABEL, groupDimsFor } from '../../lib/state/SortContext';
 import { dimsThatCut, groupSectionLabel } from '../../lib/state/groupDimensions';
 import { factionOf } from '../../lib/factions/factionStore';
 import { useUserTags } from '../../lib/hooks/useUserTags';
@@ -208,10 +208,10 @@ export default function TraitsUI({
        2026-06-24). Re-read alongside the trail (emit fires on the toggle too). */
     const [recording, setRecording] = React.useState(true);
     const { open: openModal } = useModal();
-    const { sort, dir, feedKind, rank, cycleSort, setSort, applySort, group, groupLayers, setGroupLayer, cycleGroup } = useSort();
+    const { sort, dir, feedKind, rank, cycleSort, setSort, applySort, group, groupLayers, setGroupLayer } = useSort();
     /* HOLD the group toggle → pick the three layers by hand (Brendon,
        2026-07-26). The tap still cycles the mains. */
-    const [layersAnchor, setLayersAnchor] = React.useState<{ top: number; centerX: number } | null>(null);
+    const [layersAnchor, setLayersAnchor] = React.useState<{ top: number; centerX: number; startAt: 1 | null } | null>(null);
     const projectCtx = useProject();
     /* A group persisted on another surface (e.g. 'artist' from a profile) isn't a
        project-page dimension — show it as off here so the glyph matches reality. */
@@ -418,17 +418,6 @@ export default function TraitsUI({
             : family === 'id' ? '#ID' : family === 'price' ? '$PRICE' : family.toUpperCase();
         cycleSort(family);
         showToast('SORT: ' + lbl + ' ' + (nextDir === 'asc' ? '↑' : '↓'));
-    };
-
-    /* The group toggle's tap — advance the project-page grouping cycle
-       (none → owner → colour → owner+colour → last-sold → rarity). The pick is
-       remembered PER PROJECT (like tabs), so the viewer finds this project
-       grouped as they left it (Brendon, 2026-07-12). */
-    const cycleGroupWithToast = () => {
-        const next = cycleGroup(groupOrder, { scope: 'project', id: projectSlug });
-        // Toast-casing rule: the category stays normal case, the STATE screams.
-        // Hint only rides the toast that turns grouping OFF (Brendon, 2026-08-14).
-        showToast('Group: ' + GROUP_LABEL[next] + (next === 'none' ? GROUP_TOAST_HINT : ''));
     };
 
     /* Wraps setColorway with a toast (mirrors ColorwayPicker.tsx). */
@@ -1167,13 +1156,14 @@ export default function TraitsUI({
                         icon-only, no arrow; cycles the grouping dimension
                         independently of the sorts. */}
                     <GroupBtn
-                        /* The face is the TOP layer's glyph; a + says there are
-                           more layers under it (Brendon, 2026-07-30). */
+                        /* The face is the TOP layer's glyph (Brendon,
+                           2026-09-06: no more '+'/'more' mark — active state
+                           reads the same underline as every other sort-btn;
+                           the chip row below spells out the rest). */
                         glyph={groupLayers.length ? GROUP_GLYPH[groupLayers[0]!] : GROUP_GLYPH[effGroup]}
                         on={groupLayers.length > 0 || effGroup !== 'none'}
-                        more={groupLayers.length > 1}
-                        onClick={cycleGroupWithToast}
-                        onHold={setLayersAnchor}
+                        onTapAnchor={(a) => setLayersAnchor({ ...a, startAt: 1 })}
+                        onHold={(a) => setLayersAnchor({ ...a, startAt: null })}
                     />
                     {layersAnchor && (
                         <GroupLayersBubble
@@ -1181,6 +1171,7 @@ export default function TraitsUI({
                             layers={groupLayers}
                             usable={usableDims}
                             anchor={layersAnchor}
+                            startAt={layersAnchor.startAt}
                             onPick={(layer, key) => setGroupLayer(layer, key, { scope: 'project', id: projectSlug })}
                             onClose={() => setLayersAnchor(null)}
                         />
@@ -1260,6 +1251,21 @@ export default function TraitsUI({
                 </div>
                 )}
             </div>
+
+            {/* Active grouping layers, spelled out below the sort row
+                (Brendon, 2026-09-06) — same treatment as the Collected
+                grid's copy in ProfileFacetBar. */}
+            {groupLayers.length > 0 && (
+                <div className="group-layers-chip-row" aria-label="Active grouping layers">
+                    {groupLayers.map((key, i) => (
+                        <span key={key} className="group-layers-chip">
+                            {GROUP_GLYPH[key] && <span className="glb-glyph" aria-hidden="true">{GROUP_GLYPH[key]}</span>}
+                            {GROUP_LABEL[key]}
+                            {i < groupLayers.length - 1 && <span className="group-layers-chip-sep" aria-hidden="true">{' › '}</span>}
+                        </span>
+                    ))}
+                </div>
+            )}
 
             {/* .preset-row — Gallery View Presets. Sits between the
                 sort-bar and the search-row so both can be open at once.

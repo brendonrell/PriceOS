@@ -432,66 +432,61 @@ export function SortBtn({
 export function GroupBtn({
     glyph,
     on,
-    more = false,
     onClick,
+    onTapAnchor,
     onHold,
 }: {
     /** The live grouping's glyph ('' when grouping is off). */
     glyph: string;
-    /** Whether a grouping is active (lights the button). */
+    /** Whether a grouping is active (lights the button — same underline
+     *  treatment as every other active sort-btn, nothing bespoke). */
     on: boolean;
-    /** More than one layer is running — the button wears the TOP layer's glyph
-     *  and the ↳ (down-and-over, same mark as the layers menu itself) beside
-     *  it for the rest (Brendon, 2026-07-30; repositioned + swapped from '+'
-     *  to ↳, 2026-08-14). */
-    more?: boolean;
-    onClick: () => void;
-    /** HOLD → the three-layer menu (Brendon, 2026-07-26). Receives where the
-     *  button is so the bubble's tail can point back at it, exactly like the
-     *  fiat picker. Absent = no hold action on this surface. */
+    /** Plain tap handler for surfaces with no layer/bubble system at all
+     *  (e.g. the +More panel's own single-level group cycle). Ignored when
+     *  onTapAnchor is given. */
+    onClick?: () => void;
+    /** TAP → opens the layer-1 menu directly, no more cycling through the
+     *  mains (Brendon, 2026-09-06). Receives where the button is so the
+     *  bubble's tail can point back at it, exactly like the fiat picker.
+     *  Takes priority over onClick when given. */
+    onTapAnchor?: (anchor: { top: number; centerX: number }) => void;
+    /** HOLD → the full three-layer menu (Brendon, 2026-07-26), unchanged.
+     *  Absent = no hold action on this surface. */
     onHold?: (anchor: { top: number; centerX: number }) => void;
 }) {
     const ref = React.useRef<HTMLDivElement>(null);
-    const hold = useLongPress(() => {
+    const getAnchor = () => {
         const r = ref.current?.getBoundingClientRect();
-        if (r) onHold?.({ top: r.top, centerX: r.left + r.width / 2 });
+        return r ? { top: r.top, centerX: r.left + r.width / 2 } : null;
+    };
+    const hold = useLongPress(() => {
+        const a = getAnchor();
+        if (a) onHold?.(a);
     });
+    const handleTap = () => {
+        if (onTapAnchor) {
+            const a = getAnchor();
+            if (a) onTapAnchor(a);
+            return;
+        }
+        onClick?.();
+    };
     return (
         <div
             ref={ref}
             className={`sort-btn group-btn${on ? ' active' : ''}`}
             role="button"
             tabIndex={0}
-            title={onHold ? 'Group by — hold for layers' : 'Group by'}
-            onClick={onClick}
+            title={onHold ? 'Group by — hold for all layers' : 'Group by'}
+            onClick={handleTap}
             {...(onHold ? hold : null)}
             onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    onClick();
+                    handleTap();
                 }
             }}
         >
-            {/* SAME METHOD AS THE ❖ RARITY MARK / $ FEED MARK, literally
-                (Brendon, 2026-08-19 — copy/paste, not re-derived): the exact
-                `feed-sort-dollar` class + the exact current dollarSpan inline
-                style values from SortBtn above (17px, 0px top), not the stale
-                13px/-3px this used to carry under its own bespoke class. */}
-            {on && more && (
-                <span
-                    className="feed-sort-dollar group-more-mark"
-                    aria-hidden="true"
-                    style={{
-                        fontFamily: "'Courier New', Courier, monospace",
-                        fontSize: '17px',
-                        marginRight: '2px',
-                        position: 'relative',
-                        top: '0px',
-                    }}
-                >
-                    {'\u21B3\uFE0E'}
-                </span>
-            )}
             <span className="sort-lbl sort-lbl-recent">{on ? glyph : GROUP_BTN_ICON}</span>
         </div>
     );
