@@ -47,6 +47,13 @@ import type { PriceStreamCard } from '../../app/api/pricestream/feed/route';
 
 const FALLBACK_COLOR = '#111111';
 
+/* Shared by Slide (per-card data-color attr) and the feed root (initial
+   frame colour before the IntersectionObserver has picked an active card) —
+   one source of truth, so the two never disagree. */
+function colorwayOf(card: Pick<PriceStreamCard, 'dominantColor'>): string {
+    return (card.dominantColor && BUCKET_HEX[card.dominantColor]) || FALLBACK_COLOR;
+}
+
 function Slide({ card }: { card: PriceStreamCard }) {
     const { add, items } = useCart();
     const [starred, setStarred] = useState(false);
@@ -57,7 +64,7 @@ function Slide({ card }: { card: PriceStreamCard }) {
     }, [card.slug, card.tokenId]);
 
     const inCart = items.some((i) => i.slug === card.slug && i.id === card.tokenId);
-    const colorway = (card.dominantColor && BUCKET_HEX[card.dominantColor]) || FALLBACK_COLOR;
+    const colorway = colorwayOf(card);
 
     /* Same thumb → master fallback order as ArtworkCard (Rule #0 — reuse,
        never reinvent): a real <img>, not a CSS background-image div, so it
@@ -72,54 +79,58 @@ function Slide({ card }: { card: PriceStreamCard }) {
     const imgSrc = candidates[stage] ?? null;
 
     return (
-        <div className="ps-slide-frame" style={{ background: colorway }}>
-            <div className="ps-slide-box">
-                {imgSrc && (
-                    <img
-                        className="ps-art"
-                        src={imgSrc}
-                        alt={`${card.projectName ?? card.slug} #${card.tokenId} — artwork`}
-                        loading="lazy"
-                        decoding="async"
-                        draggable={false}
-                        onError={() => setStage((s) => s + 1)}
+        // No outer ps-slide-frame div here on purpose: the coloured/rounded
+        // frame is now ONE persistent element in the feed root, not part of
+        // the scroll-snapped slide, so it never travels with the swipe (see
+        // PriceStreamFeed below). data-color is read by that root's
+        // IntersectionObserver to fade the shared frame to this card's
+        // colourway once it becomes the active slide.
+        <div className="ps-slide-box" data-color={colorway}>
+            {imgSrc && (
+                <img
+                    className="ps-art"
+                    src={imgSrc}
+                    alt={`${card.projectName ?? card.slug} #${card.tokenId} — artwork`}
+                    loading="lazy"
+                    decoding="async"
+                    draggable={false}
+                    onError={() => setStage((s) => s + 1)}
+                />
+            )}
+            <div className="ps-scrim" />
+
+            <div
+                className="ps-star-rail"
+                title="Starred"
+                onClick={() => { toggleStar(card.slug, card.tokenId); }}
+            >
+                <span className="ps-star-ico">{starred ? '\u2605\uFE0E' : '\u2606\uFE0E'}</span>
+            </div>
+
+            <div className="ps-info">
+                <p className="ps-artist">{card.artist ?? 'Unknown artist'}</p>
+                <p className="ps-meta">
+                    {card.projectName ?? card.slug} #{card.tokenId}
+                    {card.listed && card.priceEth != null ? ` \u00b7 ${card.priceEth} \u25CA` : ''}
+                </p>
+                <div className="ps-actions">
+                    <OutputFollowButton
+                        outputId={`${card.slug}-${card.tokenId}`}
+                        label={`${card.slug}${card.tokenId}`}
                     />
-                )}
-                <div className="ps-scrim" />
-
-                <div
-                    className="ps-star-rail"
-                    title="Starred"
-                    onClick={() => { toggleStar(card.slug, card.tokenId); }}
-                >
-                    <span className="ps-star-ico">{starred ? '\u2605\uFE0E' : '\u2606\uFE0E'}</span>
-                </div>
-
-                <div className="ps-info">
-                    <p className="ps-artist">{card.artist ?? 'Unknown artist'}</p>
-                    <p className="ps-meta">
-                        {card.projectName ?? card.slug} #{card.tokenId}
-                        {card.listed && card.priceEth != null ? ` \u00b7 ${card.priceEth} \u25CA` : ''}
-                    </p>
-                    <div className="ps-actions">
-                        <OutputFollowButton
-                            outputId={`${card.slug}-${card.tokenId}`}
-                            label={`${card.slug}${card.tokenId}`}
-                        />
-                        {card.listed ? (
-                            <button
-                                className="btn-mint ps-cart-btn"
-                                onClick={() => add(card.slug, card.tokenId)}
-                                disabled={inCart}
-                            >
-                                {inCart ? 'In cart' : 'Add to cart'}
-                            </button>
-                        ) : (
-                            <button className="btn-mint ps-cart-btn ps-unlisted" disabled>
-                                Not for sale
-                            </button>
-                        )}
-                    </div>
+                    {card.listed ? (
+                        <button
+                            className="btn-mint ps-cart-btn"
+                            onClick={() => add(card.slug, card.tokenId)}
+                            disabled={inCart}
+                        >
+                            {inCart ? 'In cart' : 'Add to cart'}
+                        </button>
+                    ) : (
+                        <button className="btn-mint ps-cart-btn ps-unlisted" disabled>
+                            Not for sale
+                        </button>
+                    )}
                 </div>
             </div>
         </div>
@@ -132,6 +143,7 @@ export default function PriceStreamFeed() {
     const [cards, setCards] = useState<PriceStreamCard[]>([]);
     const [loading, setLoading] = useState(false);
     const [wildcard, setWildcard] = useState(1); // 0,1,2 → level 1,2,3 (not yet wired to the query)
+    const [frameColor, setFrameColor] = useState(FALLBACK_COLOR);
     const containerRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -143,6 +155,35 @@ export default function PriceStreamFeed() {
             .finally(() => setLoading(false));
     }, [isOpen]);
 
+    // First card sets the frame colour immediately on load; from then on
+    // the observer below owns it as the active slide changes.
+    useEffect(() => {
+        if (cards.length) setFrameColor(colorwayOf(cards[0]));
+    }, [cards]);
+
+    // The frame itself never moves — only its background-color fades (the
+    // same html/body colorway transition used app-wide, app/globals.css:153)
+    // to whichever card is currently ≥60% in view. Re-runs whenever the
+    // slide list changes since slides are only mounted after the fetch.
+    useEffect(() => {
+        const root = containerRef.current;
+        if (!root) return;
+        const slides = root.querySelectorAll<HTMLElement>('.ps-slide-box[data-color]');
+        if (!slides.length) return;
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const top = entries
+                    .filter((e) => e.isIntersecting)
+                    .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+                const color = top && (top.target as HTMLElement).dataset.color;
+                if (color) setFrameColor(color);
+            },
+            { root, threshold: [0.6] },
+        );
+        slides.forEach((el) => observer.observe(el));
+        return () => observer.disconnect();
+    }, [cards]);
+
     if (!isOpen) return null;
 
     return (
@@ -153,7 +194,7 @@ export default function PriceStreamFeed() {
                     onClick={() => setWildcard((w) => (w + 1) % 3)}
                     title="Wildcard level (not yet wired to the algorithm)"
                 >
-                    <span>PriceStream {'\u21CA\uFE0E'}</span>
+                    <span>PriceStream {'\u21C8\uFE0E'}</span>
                     <span className="ps-wc-dots">
                         {[0, 1, 2].map((i) => (
                             <i key={i} className={i <= wildcard ? 'on' : undefined} />
@@ -163,15 +204,18 @@ export default function PriceStreamFeed() {
                 <button className="ps-close-btn" onClick={close} title="Close">&#10005;</button>
             </div>
 
-            <div className="ps-scroller" ref={containerRef}>
-                {loading && cards.length === 0 && (
-                    <div className="ps-slide-frame" style={{ background: FALLBACK_COLOR }}>
+            {/* The frame: fixed in place for the life of the feed, padded +
+                rounded exactly like before — it just no longer lives inside
+                the scroll-snapped slide, so swiping never carries it along. */}
+            <div className="ps-frame" style={{ background: frameColor }}>
+                <div className="ps-scroller" ref={containerRef}>
+                    {loading && cards.length === 0 && (
                         <div className="ps-slide-box ps-loading">Loading&hellip;</div>
-                    </div>
-                )}
-                {cards.map((c) => (
-                    <Slide key={`${c.slug}:${c.tokenId}`} card={c} />
-                ))}
+                    )}
+                    {cards.map((c) => (
+                        <Slide key={`${c.slug}:${c.tokenId}`} card={c} />
+                    ))}
+                </div>
             </div>
         </div>
     );
