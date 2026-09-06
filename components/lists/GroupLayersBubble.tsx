@@ -45,6 +45,7 @@ export default function GroupLayersBubble({
     usable,
     onPick,
     onClose,
+    startAt = null,
 }: {
     /** Which gallery is asking — the picker only offers what it can resolve.
      *  'all' = the saved default, which applies everywhere. */
@@ -60,11 +61,16 @@ export default function GroupLayersBubble({
     /** Set one layer. `none` clears it (and everything under it). */
     onPick: (layer: 1 | 2 | 3, key: GroupKey) => void;
     onClose: () => void;
+    /** A TAP on the group toggle opens straight into Layer 1's picker instead
+     *  of the three-slot overview — no more cycling (Brendon, 2026-09-06). A
+     *  HOLD still opens the slots (pass null/omit). Back still reaches the
+     *  slots from here, so layers 2/3 stay one tap away. */
+    startAt?: 1 | null;
 }) {
     const bubbleRef = useRef<HTMLDivElement>(null);
     const [layout, setLayout] = useState<{ centerX: number; tailDx: number } | null>(null);
     /** Which slot is open for picking, or null = showing the three slots. */
-    const [picking, setPicking] = useState<1 | 2 | 3 | null>(null);
+    const [picking, setPicking] = useState<1 | 2 | 3 | null>(startAt);
     const dims = groupDimsFor(surface);
 
     /* Dismiss on outside tap / scroll / resize — the fiat bubble's guard. */
@@ -175,7 +181,7 @@ export default function GroupLayersBubble({
                         className="glb-title glb-back"
                         onClick={(e) => { e.stopPropagation(); setPicking(null); }}
                     >
-                        <span aria-hidden="true">{'◂︎'}</span>{` LAYER ${picking}`}
+                        <span aria-hidden="true">{'◂︎'}</span>{` Group by (Layer ${picking})`}
                     </button>
                     <div className="glb-list">
                         {picking > 1 && (
