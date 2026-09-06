@@ -12152,11 +12152,19 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 @media (min-width: 601px) {
     .feat-row-lock { white-space: nowrap; flex-wrap: nowrap; text-overflow: ellipsis; }
 }
-/* Cap/lock at two lines so cycling never reflows the hero (Brendon,
-   2026-08-21). The 2.4em value was wrong — it was calibrated against the
-   erroneous 1.6 line-height above, not the correct 1.2. Recalculated for
-   the real 2-line height: 2 × 11px × 1.2 ÷ 14px hero-line context ≈ 1.9em. */
-@media (max-width: 600px)  { .feat-row-lock { height: 1.9em; } }
+/* ⛔ FIXED 2026-09-06 (Brendon: "extra room below... bring the stats row
+   back closer, those 3 rows should have the same spacing"): this was
+   reserving TWO lines' height on mobile for a responsive 3rd-name toggle
+   that got RETIRED 2026-08-20 — one day before this 1.9em value was set.
+   Every row in this family (Featuring / Collected by / Followed by) has
+   shown exactly two names + "& N more" ever since, always one line, so the
+   2-line slot was reserving dead space under the stats row on every
+   profile and project page. feat-flip only animates the existing name
+   in place — it never changes the row's line count — so there is nothing
+   left to lock a 2-line slot against. Down to the real single-line height:
+   1 × 11px × 1.2 ÷ 14px hero-line context ≈ 0.94em (same math the old
+   1.9em came from, just for one line instead of two). */
+@media (max-width: 600px)  { .feat-row-lock { height: 0.94em; } }
 /* Third-name responsive toggle removed (Brendon, 2026-08-20): Collected by
    (project) and Followed by (profile) now match the homepage Featuring row
    exactly — two names shown everywhere, no viewport-dependent 3rd name. */
