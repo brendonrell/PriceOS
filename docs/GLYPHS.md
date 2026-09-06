@@ -222,6 +222,14 @@ in the cycle") — every face reuses an existing meaning or a plain character
 | Faction | ⚐ | U+2690 | the war banner (§13); the faction itself stays a colour, per the war rule |
 | Numerology | № | U+2116 | **CHANGED 2026-09-05 (Brendon): the old `#` read as the Discord hashtag.** NUMERO SIGN, grepped free repo-wide at pick time — id classes (The First · Palindromes · Primes · Round Numbers · Sevens) |
 
+**The price trio (2026-09-06 build, Brendon: "any other dynamic ones… price-related?")** — bumped to the very tail of the menu together with Listed, since all four can flip live off the same list_price_eth with no re-mint (every other dimension above is fixed at mint time):
+
+| Group | Glyph | Codepoint | Source |
+|---|---|---|---|
+| Price Tier | ¤ | U+00A4 | generic CURRENCY SIGN — distinct from `$` (Last sold, still dormant) |
+| Price Trend | ⇅ | U+21C5 | up/down vs. the project's mint price |
+| vs. Floor | ⌊ | U+230A | mathematical LEFT FLOOR bracket — literal, not borrowed |
+
 > Grouping headers are **collapsible**: a small triangle leads each header —
 > ▾ (U+25BE) open, ▸ (U+25B8) folded — and tapping the row folds its pieces
 > away. Folding a section also folds its sub-headers. (Brendon, 2026-06-18.)
