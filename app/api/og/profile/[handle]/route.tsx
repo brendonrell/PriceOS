@@ -26,7 +26,23 @@ import { deriveTags } from '@/lib/tags/derive';
 import { shortAddress } from '@/lib/project/projectAddress';
 import { isPlatformAccount, PRICE_TOKEN_CREATED_AT } from '@/lib/platform/accounts';
 
-export const runtime = 'edge';
+/*
+ * ⛔ RUNTIME MUST STAY 'nodejs' — DO NOT SWITCH TO 'edge' (Brendon,
+ * 2026-09-06, after a build broke production twice on this exact line):
+ * @opennextjs/cloudflare does not support the Next.js edge runtime AT ALL —
+ * their own docs say to remove `export const runtime = "edge"` from every
+ * route before deploying, and OpenNext's copyTracedFiles hard-fails the
+ * build the instant it finds one ("OpenNext requires edge runtime function
+ * to be defined in a separate function"). This is NOT the same "edge" that
+ * next/og tutorials assume on Vercel — Workers already run every route in
+ * an isolate, and OpenNext's own patch to @vercel/og is what makes
+ * ImageResponse work under 'nodejs' here. wrangler.jsonc already carries the
+ * `nodejs_compat` flag this needs. If ImageResponse ever throws again, the
+ * bug is inside the handler below (data, font fetch, Satori JSX) — it is
+ * never the runtime declaration. Grep this file for 'edge' before touching
+ * this line again.
+ */
+export const runtime = 'nodejs';
 
 const W = 1200;
 const H = 630;
