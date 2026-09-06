@@ -15608,7 +15608,8 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
 .ps-frame {
     flex: 1;
     position: relative;
-    padding: 10px;
+    padding: 20px 10px;
+    padding-top: calc(env(safe-area-inset-top) + 54px);
     box-sizing: border-box;
     border-radius: 4px;
     transition: background-color 0.3s, color 0.3s;
@@ -15618,6 +15619,13 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     overflow-y: scroll;
     scroll-snap-type: y mandatory;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.ps-scroller::-webkit-scrollbar {
+    display: none;
 }
 .ps-slide-box {
     scroll-snap-align: start;
