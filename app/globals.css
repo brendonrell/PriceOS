@@ -6606,12 +6606,42 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.32); }
 .sort-btn-clock .sort-lbl-recent { transform: translateY(0.5px); }
 /* The social ☻ — same 1px lift as the clock, and one size up from the ◷'s
    base (the ◷'s own mobile step, +0.15em) so the face reads at full
-   strength (Brendon, 2026-07-26). */
+   strength (Brendon, 2026-07-26). Still worn by the project + home social
+   pills — the profile Collected tab's own copy of this pill was removed
+   (Brendon, 2026-09-06), this rule was not. */
 .sort-btn-social .sort-lbl-recent { transform: translateY(0.5px); font-size: 1.3em; }
 @media (max-width: 600px) {
     .sort-btn-social .sort-lbl-recent { font-size: 1.45em; }
 }
+/* The rarity ❖ — two sizes up from the ◷'s base (Brendon, 2026-09-06: "make
+   it 2 font sizes larger") so it reads at full strength next to the rest of
+   the profile sort row. */
+.sort-btn-rarity .sort-lbl-recent { font-size: 1.45em; }
+@media (max-width: 600px) {
+    .sort-btn-rarity .sort-lbl-recent { font-size: 1.6em; }
+}
 @media (max-width: 600px) { .sort-btn.group-btn { margin-right: 5px; } }
+
+/* Active grouping layers, spelled out below the sort row (Brendon,
+   2026-09-06) — replaces the old '+'/'↳' mark on the group toggle itself. */
+.group-layers-chip-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 13px;
+    opacity: 0.7;
+    margin-top: 4px;
+}
+.group-layers-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.group-layers-chip-sep {
+    margin-left: 4px;
+    font-family: 'Courier New', Courier, monospace;
+}
 
 /* ── PROFILE COLLECTED SORT ROW — tight spacing (Brendon, 2026-09-03) ────
    The row grew from 4 controls to 7 (GROUP · Recent · Social · Rarity ·
