@@ -26,7 +26,7 @@ import { deriveTags } from '@/lib/tags/derive';
 import { shortAddress } from '@/lib/project/projectAddress';
 import { isPlatformAccount, PRICE_TOKEN_CREATED_AT } from '@/lib/platform/accounts';
 
-export const runtime = 'nodejs';
+export const runtime = 'edge';
 
 const W = 1200;
 const H = 630;
