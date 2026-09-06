@@ -49,6 +49,10 @@ export async function GET(req: Request) {
             .from('outputs')
             .select('project_id, token_id, artist, project_name, dominant_color')
             .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
+            .eq('aspect', 'tall') // v1: portrait-only candidates (Brendon, 2026-09-06) — blurry
+                                  // landscape/square pieces were the common case cropped to a
+                                  // full-bleed portrait frame; restrict the pool instead of
+                                  // stretching. Revisit once the frame can size to the piece.
             .limit(POOL_SIZE),
         db
             .from('listings')
