@@ -66,17 +66,23 @@ function Slide({ card }: { card: PriceStreamCard }) {
     const inCart = items.some((i) => i.slug === card.slug && i.id === card.tokenId);
     const colorway = colorwayOf(card);
 
-    /* Same thumb → master fallback order as ArtworkCard (Rule #0 — reuse,
-       never reinvent): a real <img>, not a CSS background-image div, so it
-       gets native lazy-load and the same onError self-heal every other tile
-       on the site gets. Feed context = grid-equivalent, so thumb leads. */
+    /* This is a full-bleed hero slide, not a grid tile — same real-art
+       source as OutputPreview's modal (Rule #0 — reuse, never reinvent):
+       the stored high-res master leads, with the plain .png as a re-pin
+       fallback. The ~256px grid thumb is NOT a fill candidate here — at
+       full-screen size it was the source of the blur/crop complaint —
+       it only paints instantly underneath while the master loads in,
+       exactly like the modal's loading panel. */
     const candidates = useMemo(() => {
         if (!ART_IMAGE_BASE) return [] as string[];
-        return [artThumbUrl(card.slug, card.tokenId), artImageUrl(card.slug, card.tokenId)]
+        return [artImageUrl(card.slug, card.tokenId), `${ART_IMAGE_BASE}/${card.slug}/${card.tokenId}.png`]
             .filter((u): u is string => !!u);
     }, [card.slug, card.tokenId]);
     const [stage, setStage] = useState(0);
+    const [loaded, setLoaded] = useState(false);
     const imgSrc = candidates[stage] ?? null;
+    const thumbSrc = artThumbUrl(card.slug, card.tokenId);
+    useEffect(() => { setLoaded(false); setStage(0); }, [card.slug, card.tokenId]);
 
     return (
         // No outer ps-slide-frame div here on purpose: the coloured/rounded
@@ -86,14 +92,25 @@ function Slide({ card }: { card: PriceStreamCard }) {
         // IntersectionObserver to fade the shared frame to this card's
         // colourway once it becomes the active slide.
         <div className="ps-slide-box" data-color={colorway}>
+            {thumbSrc && !loaded && (
+                <img
+                    className="ps-art ps-art-thumb"
+                    src={thumbSrc}
+                    alt=""
+                    aria-hidden="true"
+                    decoding="async"
+                    draggable={false}
+                />
+            )}
             {imgSrc && (
                 <img
-                    className="ps-art"
+                    className={`ps-art${loaded ? ' ps-art-loaded' : ''}`}
                     src={imgSrc}
                     alt={`${card.projectName ?? card.slug} #${card.tokenId} — artwork`}
                     loading="lazy"
                     decoding="async"
                     draggable={false}
+                    onLoad={() => setLoaded(true)}
                     onError={() => setStage((s) => s + 1)}
                 />
             )}
