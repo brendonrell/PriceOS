@@ -48,6 +48,7 @@ import { L3Pill, GroupBtn } from '../project/traitsUIPills';
 import AlbumPickerCard from '../album/AlbumPickerCard';
 import GroupLayersBubble from '../lists/GroupLayersBubble';
 import { dimsThatCut, groupSectionLabel } from '../../lib/state/groupDimensions';
+import { useProjectFloors } from '../../lib/project/useProjectFloors';
 import { useMarketSheet } from '../../lib/state/MarketSheetContext';
 import { useCart } from '../../lib/state/CartContext';
 import {
@@ -213,6 +214,8 @@ export default function ProfileFacetBar({
        the layer menu is open, off the same label engine the grid groups by, so
        the menu can grey out a dimension that would produce one big bucket
        (Brendon, 2026-07-30). */
+    const heldSlugs = useMemo(() => [...new Set(holdings.map((h) => h.slug))], [holdings]);
+    const floorBySlug = useProjectFloors(heldSlugs);
     const usableDims = useMemo(() => {
         if (!layersAnchor) return undefined;
         return dimsThatCut(holdings, groupDimsFor('collected'), (h, layer) =>
@@ -223,8 +226,11 @@ export default function ProfileFacetBar({
                 mintMs: h.mintMs ?? null,
                 artist: h.traits.Artist ?? null,
                 project: h.traits.Project ?? null,
+                listPriceEth: h.list_price_eth != null ? parseFloat(h.list_price_eth) : null,
+                mintPriceEth: getProject(h.slug)?.mintPriceEth ?? null,
+                floorEth: floorBySlug.get(h.slug) ?? null,
             }));
-    }, [layersAnchor, holdings]);
+    }, [layersAnchor, holdings, floorBySlug]);
     const gridSortWithToast = (family: 'id' | 'price' | 'az' | 'rarity') => {
         const nextDir = sort === family ? (dir === 'asc' ? 'desc' : 'asc') : 'asc';
         const lbl = family === 'id' ? 'RECENT' : family === 'price' ? '$PRICE' : family === 'rarity' ? 'RARITY' : 'AZ';

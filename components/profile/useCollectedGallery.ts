@@ -18,6 +18,7 @@ import { groupSectionLabel } from '../../lib/state/groupDimensions';
 import type { GroupKey } from '../../lib/state/SortContext';
 import { buildGroupBlocks, type GBlock } from '../../lib/state/groupBlocks';
 import { useStoredColors } from '../../lib/art/colorStore';
+import { useProjectFloors } from '../../lib/project/useProjectFloors';
 import { getProject, outputTraits } from '../../lib/project/registry';
 import { pdRarityRank } from '../../lib/output/rarity';
 import { facetValueOf, type EnrichedHolding } from './ProfileFacetBar';
@@ -237,6 +238,10 @@ export function useCollectedGallery(holdings: Holding[]) {
        resolveBucket prefers them, falls back to live palette-math. */
     const heldSlugs = useMemo(() => [...new Set(enriched.map((h) => h.slug))], [enriched]);
     const colorsVer = useStoredColors(heldSlugs);
+    /* THE PRICE TRIO's vs.-Floor cut (Brendon, 2026-09-06) — one cached fetch
+       per held project, shared module-wide with the Offer Shield's own floor
+       reads (lib/project/useProjectFloors.ts). */
+    const floorBySlug = useProjectFloors(heldSlugs);
 
     /* Grouped collected gallery (Brendon, 2026-06-16; standalone toggle
        2026-07-12). Cross-project surface dimensions: artist · project ·
@@ -270,6 +275,9 @@ export function useCollectedGallery(holdings: Holding[]) {
                 mintMs: h.mintMs ?? null,
                 artist: h.traits.Artist ?? null,
                 project: projName(h.slug),
+                listPriceEth: h.list_price_eth != null ? parseFloat(h.list_price_eth) : null,
+                mintPriceEth: getProject(h.slug)?.mintPriceEth ?? null,
+                floorEth: floorBySlug.get(h.slug) ?? null,
             });
         /* ⛔ THE GRID NEVER DROPS A GROUPING YOU PICKED (Brendon, 2026-07-31)
            — the long-press menu is the only place a dimension gets judged, and
@@ -280,7 +288,7 @@ export function useCollectedGallery(holdings: Holding[]) {
             /* A project title still carries its artist underneath. */
             byOf: (h, layer) => (layer === 'project' ? (h.traits.Artist ?? null) : null),
         });
-    }, [dGroup, dGroupLayers, dSort, shownCollected, colorsVer]);
+    }, [dGroup, dGroupLayers, dSort, shownCollected, colorsVer, floorBySlug]);
 
     /* Collapsible grouping headers — tap a header (or its arrow) to fold its
        pieces away; tap again to reopen. Folding a section (level-1) hides
