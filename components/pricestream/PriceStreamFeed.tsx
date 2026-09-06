@@ -56,15 +56,6 @@ function colorwayOf(card: Pick<PriceStreamCard, 'dominantColor'>): string {
 }
 
 function Slide({ card }: { card: PriceStreamCard }) {
-    const { add, items } = useCart();
-    const [starred, setStarred] = useState(false);
-
-    useEffect(() => {
-        setStarred(isStarred(card.slug, card.tokenId));
-        return subscribeStarred(() => setStarred(isStarred(card.slug, card.tokenId)));
-    }, [card.slug, card.tokenId]);
-
-    const inCart = items.some((i) => i.slug === card.slug && i.id === card.tokenId);
     const colorway = colorwayOf(card);
 
     /* This is a full-bleed hero slide, not a grid tile — same real-art
@@ -89,10 +80,16 @@ function Slide({ card }: { card: PriceStreamCard }) {
         // No outer ps-slide-frame div here on purpose: the coloured/rounded
         // frame is now ONE persistent element in the feed root, not part of
         // the scroll-snapped slide, so it never travels with the swipe (see
-        // PriceStreamFeed below). data-color is read by that root's
-        // IntersectionObserver to fade the shared frame to this card's
-        // colourway once it becomes the active slide.
-        <div className="ps-slide-box" data-color={colorway}>
+        // PriceStreamFeed below). data-color/data-slug/data-token are read
+        // by that root's IntersectionObserver, which drives BOTH the frame
+        // colour and the persistent star/info/actions overlay — the only
+        // thing that moves on swipe is the art itself underneath. */}
+        <div
+            className="ps-slide-box"
+            data-color={colorway}
+            data-slug={card.slug}
+            data-token={card.tokenId}
+        >
             {thumbSrc && !loaded && (
                 <img
                     className="ps-art ps-art-thumb"
@@ -116,7 +113,29 @@ function Slide({ card }: { card: PriceStreamCard }) {
                 />
             )}
             <div className="ps-scrim" />
+        </div>
+    );
+}
 
+/* The persistent action layer: star, artist/meta, follow + cart. Rendered
+   ONCE at the feed root (not per-slide) so it never travels with the swipe
+   — only its content swaps to match whichever card is currently active,
+   the same way ps-frame's background-color already does. */
+function ActionRail({ card }: { card: PriceStreamCard | null }) {
+    const { add, items } = useCart();
+    const [starred, setStarred] = useState(false);
+
+    useEffect(() => {
+        if (!card) return;
+        setStarred(isStarred(card.slug, card.tokenId));
+        return subscribeStarred(() => setStarred(isStarred(card.slug, card.tokenId)));
+    }, [card?.slug, card?.tokenId]);
+
+    if (!card) return null;
+    const inCart = items.some((i) => i.slug === card.slug && i.id === card.tokenId);
+
+    return (
+        <>
             <div
                 className="ps-star-rail"
                 title="Starred"
@@ -151,7 +170,7 @@ function Slide({ card }: { card: PriceStreamCard }) {
                     )}
                 </div>
             </div>
-        </div>
+        </>
     );
 }
 
@@ -163,6 +182,7 @@ export default function PriceStreamFeed() {
     const [loading, setLoading] = useState(false);
     const [wildcard, setWildcard] = useState(1); // 0,1,2 → level 1,2,3 (not yet wired to the query)
     const [frameColor, setFrameColor] = useState(FALLBACK_COLOR);
+    const [activeCard, setActiveCard] = useState<PriceStreamCard | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -174,16 +194,20 @@ export default function PriceStreamFeed() {
             .finally(() => setLoading(false));
     }, [isOpen]);
 
-    // First card sets the frame colour immediately on load; from then on
-    // the observer below owns it as the active slide changes.
+    // First card sets the frame colour + active card immediately on load;
+    // from then on the observer below owns both as the active slide changes.
     useEffect(() => {
-        if (cards.length) setFrameColor(colorwayOf(cards[0]));
+        if (cards.length) {
+            setFrameColor(colorwayOf(cards[0]));
+            setActiveCard(cards[0]);
+        }
     }, [cards]);
 
     // The frame itself never moves — only its background-color fades (the
     // same html/body colorway transition used app-wide, app/globals.css:153)
-    // to whichever card is currently ≥60% in view. Re-runs whenever the
-    // slide list changes since slides are only mounted after the fetch.
+    // — and the star/info/actions rail swaps to match, to whichever card is
+    // currently ≥60% in view. Re-runs whenever the slide list changes since
+    // slides are only mounted after the fetch.
     useEffect(() => {
         const root = containerRef.current;
         if (!root) return;
@@ -194,8 +218,16 @@ export default function PriceStreamFeed() {
                 const top = entries
                     .filter((e) => e.isIntersecting)
                     .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-                const color = top && (top.target as HTMLElement).dataset.color;
+                if (!top) return;
+                const el = top.target as HTMLElement;
+                const color = el.dataset.color;
                 if (color) setFrameColor(color);
+                const slug = el.dataset.slug;
+                const tokenId = el.dataset.token ? Number(el.dataset.token) : null;
+                if (slug && tokenId != null) {
+                    const match = cards.find((c) => c.slug === slug && c.tokenId === tokenId);
+                    if (match) setActiveCard(match);
+                }
             },
             { root, threshold: [0.6] },
         );
@@ -239,6 +271,10 @@ export default function PriceStreamFeed() {
                         <Slide key={`${c.slug}:${c.tokenId}`} card={c} />
                     ))}
                 </div>
+                {/* Persistent overlay, sibling of the scroller — sits above it
+                    and never scrolls. Only the art underneath moves; star,
+                    artist/meta, follow, and cart stay put and just update. */}
+                <ActionRail card={activeCard} />
             </div>
         </div>
     );
