@@ -82,17 +82,20 @@ interface ScoreRow {
     label: string;
     value: string;
     pts: string;
+    /** Value at which this stat's bar reads 100% full — used by the Identity
+     *  Plate export's two-column stat-bar grid (Brendon, 2026-09-07). */
+    cap: number;
 }
 
 /* Mock score breakdown — sim.html 4319–4348 verbatim. Six rows that
    compose the LEVEL display from contributing activity metrics. */
 const SCORE_ROWS: readonly ScoreRow[] = [
-    { label: 'Primary Mints',    value: '17',   pts: '+170 pts' },
-    { label: 'Secondary Buys',   value: '34',   pts: '+170 pts' },
-    { label: 'Volume · ETH', value: '4.22', pts: '+84 pts'  },
-    { label: 'Breadcrumbs',      value: '128',  pts: '+64 pts'  },
-    { label: 'Artists Followed', value: '92',   pts: '+92 pts'  },
-    { label: 'Days Active',      value: '222',  pts: '+100 pts' },
+    { label: 'Primary Mints',    value: '17',   pts: '+170 pts', cap: 25  },
+    { label: 'Secondary Buys',   value: '34',   pts: '+170 pts', cap: 50  },
+    { label: 'Volume · ETH', value: '4.22', pts: '+84 pts',  cap: 10  },
+    { label: 'Breadcrumbs',      value: '128',  pts: '+64 pts',  cap: 200 },
+    { label: 'Artists Followed', value: '92',   pts: '+92 pts',  cap: 150 },
+    { label: 'Days Active',      value: '222',  pts: '+100 pts', cap: 365 },
 ];
 
 /* The achievements rail now reads the REAL merged catalog
@@ -561,6 +564,12 @@ export default function PriceSpriteModal() {
                                     streak: priceStreak,
                                     achUnlocked: unlockedCount,
                                     achTotal: TOTAL_COUNT,
+                                    statBars: SCORE_ROWS.map((row) => ({
+                                        label: row.label,
+                                        value: parseFloat(row.value),
+                                        display: row.value,
+                                        cap: row.cap,
+                                    })),
                                 });
                                 showToast(
                                     res === 'shared'
