@@ -456,13 +456,7 @@ export function applyBgHex(bgHex: string, key: ColorwayKey) {
     const mintBgImg = 'none';
     let pillL1Bg = text;
     let pillL1BgImg = 'none';
-    /* Legibility fix (Brendon, 2026-09-07): was `bg` — the chip's own
-       page-background hue printed on top of the `text`-colour chip, which on
-       several colorways (e.g. coral/salmon profiles) reads as barely-there
-       low-contrast text. Pinned to a guaranteed black/white opposite of the
-       chip's own background instead, so the label is always legible
-       regardless of hue. */
-    let pillL1Text = isLight ? MATRIX : DOT;
+    let pillL1Text = bg;
     let pillL1Border = text;
     let pillL1ActiveBgImg = 'none';
 
