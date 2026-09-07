@@ -11,7 +11,7 @@
 
 import { NAME_FONTS } from './nameFont';
 import { nearestLogoInFamily, PROFILE_SOLID, PROFILE_BLANK, PROFILE_PETEY, PROFILE_HOLO } from './profileLogos';
-import { liftWarmFloor } from '../color/warmGuard';
+import { liftWarmFloor, dampLoudHue } from '../color/warmGuard';
 
 export type PresetMode = 'random' | 'match' | 'accent' | 'pair';
 
@@ -56,10 +56,17 @@ function hslHex(h: number, s: number, l: number): string {
 
 /** Saturation roll — art-site restraint over neon-by-default: about 1/3 of
  *  rolls land vivid, 2/3 land muted/pastel (Brendon, 2026-08-31: "let's make
- *  saturated like 1/3"). */
-function rollSaturation(): number {
-    if (Math.random() < 1 / 3) return 70 + Math.random() * 25; // vivid: 70–95%
-    return 15 + Math.random() * 40; // muted/pastel: 15–55%
+ *  saturated like 1/3"). Takes the hue so dampLoudHue (lib/color/warmGuard)
+ *  can trim green(~120°)/magenta(~300°) back down to the same PERCEIVED
+ *  vividness as every other hue at the same roll — those two bands read
+ *  louder than the rest of the wheel at equal S/L, which is why they were
+ *  the ones that kept getting noticed (Brendon, 2026-09-07: confirmed via
+ *  a 20k-roll simulation that hue selection itself is flat/fair). */
+function rollSaturation(hue: number): number {
+    const base = Math.random() < 1 / 3
+        ? 70 + Math.random() * 25  // vivid: 70–95%
+        : 15 + Math.random() * 40; // muted/pastel: 15–55%
+    return dampLoudHue(hue, base);
 }
 
 /* Lightness roll — takes the hue so liftWarmFloor (lib/color/warmGuard) can
@@ -76,7 +83,7 @@ function rollLightness(hue: number): number {
  *  mode"). */
 function randomVividHex(): string {
     const h = Math.random() * 360;
-    return hslHex(h, rollSaturation(), rollLightness(h));
+    return hslHex(h, rollSaturation(h), rollLightness(h));
 }
 
 /** Curated harmony offsets (degrees) — complementary, split-complementary,
@@ -88,7 +95,7 @@ function randomHarmonyHex(fromHue: number): string {
     const base = HARMONY_OFFSETS[Math.floor(Math.random() * HARMONY_OFFSETS.length)]!;
     const jitter = (Math.random() - 0.5) * 12; // ±6° so repeats don't feel identical
     const h = (fromHue + base + jitter + 360) % 360;
-    return hslHex(h, rollSaturation(), rollLightness(h));
+    return hslHex(h, rollSaturation(h), rollLightness(h));
 }
 
 /** Artistic primaries (red / yellow / blue) for the "Primary" accent style. */
@@ -115,16 +122,15 @@ function rollAccentPalette(): { main: string; accent: string } {
 
     if (style === 'primary') {
         const shuffled = [...PRIMARY_HUES].sort(() => Math.random() - 0.5);
-        const sat = rollSaturation();
         return {
-            main: hslHex(shuffled[0]!, sat, rollLightness(shuffled[0]!)),
-            accent: hslHex(shuffled[1]!, sat, rollLightness(shuffled[1]!)),
+            main: hslHex(shuffled[0]!, rollSaturation(shuffled[0]!), rollLightness(shuffled[0]!)),
+            accent: hslHex(shuffled[1]!, rollSaturation(shuffled[1]!), rollLightness(shuffled[1]!)),
         };
     }
 
     // harmony
     const mainHue = Math.random() * 360;
-    const main = hslHex(mainHue, rollSaturation(), rollLightness(mainHue));
+    const main = hslHex(mainHue, rollSaturation(mainHue), rollLightness(mainHue));
     return { main, accent: randomHarmonyHex(mainHue) };
 }
 
@@ -134,7 +140,7 @@ function rollAccentPalette(): { main: string; accent: string } {
  * 2026-09-02). */
 function rollMonoPalette(): { main: string; accent: string } {
     const hue = Math.random() * 360;
-    const sat = rollSaturation();
+    const sat = rollSaturation(hue);
     const darkL = 20 + Math.random() * 15;   // 20–35
     const lightL = 65 + Math.random() * 20;  // 65–85
     const mainIsDark = Math.random() < 0.5;
