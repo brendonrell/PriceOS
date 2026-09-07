@@ -8837,15 +8837,12 @@ body.colorway-dark .ghost-card .ghost-wrapper {
     opacity: 0.6;
     flex-shrink: 0;
 }
-/* Star sits tight against the #id (Brendon, 2026-09-03) via margin, not
-   position:relative+top — the old top/left offset knocked the line's
-   baseline off and made the numerals sit crooked (Brendon, 2026-09-07).
-   margin-right pulls it in without touching baseline; vertical-align nudges
-   it up safely (line-box-aware, unlike `top`). */
+/* Star nudge (2026-09-03) removed — position:relative + top/left was
+   knocking the whole line's baseline off, so the #id numerals sat crooked
+   next to unstarred cards in the same grid (Brendon, 2026-09-07). Plain
+   inline flow keeps the star's own baseline identical to unstarred rows. */
 .meta-proj-star {
     display: inline-block;
-    vertical-align: 1.5px;
-    margin-right: -3px;
 }
 .price-trigger {
     cursor: pointer;
