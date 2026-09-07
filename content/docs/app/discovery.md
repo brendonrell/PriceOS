@@ -3,7 +3,7 @@ title: "The App — Discovery"
 description: "Finding work on PriceOS: the home page and its carousels, the live feed and milestones, global search, artist surfaces, and PriceRank."
 category: "app"
 keywords: ["discovery", "search", "home", "feed", "pricerank", "stickers", "lane runner"]
-last_updated: "2026-08-01"
+last_updated: "2026-09-06"
 ---
 
 # The App — Discovery
@@ -92,6 +92,12 @@ The artists view lists the whitelisted roster; each artist's page carries their 
 **How:** Tap the PriceRank medallion in your PriceSprite card to open the Top 100.
 
 The standing system, as a surface: the platform-wide ranking fed by achievements and activity, with network filters for slicing the leaderboard to the people you care about. Tap the PriceRank medallion in your PriceSprite card and the **Top 100 leaderboard** opens — the platform's collectors ranked by PriceScore, medals on the podium, your own row highlighted so you always know where you stand. Leaderboards elsewhere in the app (including sillier ones) share its machinery — up to and including **Lane Runner**, the platform's hidden arcade cabinet, which keeps its own board. (Typing its name into Global Search is one way in.)
+
+## PriceStream ⇈
+
+**How:** Single-tap the "Price Discussion" name on the home page (the third gesture alongside long-press for [Cartography ◫](/docs/cartography) and triple-tap for [The Rewind ◄](/docs/rewind)).
+
+A full-screen vertical feed, one piece per swipe — mint-adjacent doomscrolling for the catalog. Star what you like (★), follow the piece straight from the card, and add it to cart if it's listed. A wildcard pill in the corner will eventually tune how far the feed strays from your own taste; for now it's a flat sample across the platform. *(New, still rough at the edges — more here soon.)*
 
 ## The Calendar ▦
 
