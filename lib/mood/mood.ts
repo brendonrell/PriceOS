@@ -18,7 +18,7 @@
  */
 
 import { PRICEDAY_EPOCH } from '../priceday/priceday';
-import { liftWarmFloor } from '../color/warmGuard';
+import { liftWarmFloor, dampLoudHue } from '../color/warmGuard';
 
 /* The mood flips at MIDNIGHT IN MONTREAL (Brendon, 2026-06-12 — it's his
    wall clock, not UTC's). Day number = days since the PriceDay epoch of
@@ -268,13 +268,15 @@ export function moodOfDay(d: Date = new Date()): Mood {
        out): high saturation + mid lightness so the daily colour is bold, the
        full wheel reachable. Text colour auto-resolves off luminance (the deep
        ones get white lettering; bright limes/yellows keep dark text). */
-    const sat = 45 + r() * 30; // 45–75% (Brendon, 2026-09-02: VIVID read as
-    // neon/distracting — dialed down off 62–100 while keeping the full hue
-    // wheel, so day-to-day variance is untouched, just less lurid).
+    const sat = dampLoudHue(hue, 32 + r() * 20); // 32–52%, further cut near
+    // green/magenta (Brendon, 2026-09-07: those two bands read louder than
+    // the rest of the wheel at any equal S/L — see dampLoudHue in
+    // lib/color/warmGuard.ts. Confirmed the hue ROLL itself is fair; only
+    // the perceived loudness of two bands needed correcting).
     /* Warm hues (brick/orange/mustard) still read muddy in this range even
        at high saturation — liftWarmFloor lifts only that band. See
        lib/color/warmGuard.ts (Brendon, 2026-09-01: today's mustard roll). */
-    const light = liftWarmFloor(hue, 42 + r() * 16); // 42–58%, 52+ if warm
+    const light = liftWarmFloor(hue, 56 + r() * 12); // 56–68%, 60+ if warm
     /* The mood reads off the colour via the chart — the hue picks the band,
        the no-repeat walk picks the word (see wordForVisit). Colour math
        above stays untouched: it must keep matching the boot-paint script in
