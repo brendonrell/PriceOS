@@ -6657,6 +6657,18 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.32); }
     .profile-sort-row .colorway-pills {
         margin-right: 8px;
     }
+    /* Row still ran past the safe area with FEED touching the screen edge
+       (Brendon, 2026-09-07 flag) — one more tightening pass on the SORT
+       controls only (colorway squares untouched). Scoped to this row so
+       the project Artworks sort-bar keeps its normal rhythm. Tap targets
+       are untouched (no button padding shrank), only the gaps between
+       them did. */
+    .profile-sort-row .sort-btn-group {
+        gap: 6px !important;
+    }
+    .profile-sort-row .sort-btn.group-btn {
+        margin-right: 3px;
+    }
 }
 
 /* ── ICON BUTTONS (burn / search) — sim 2317-2325 ── */
