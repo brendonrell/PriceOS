@@ -3,7 +3,7 @@ title: "What's New"
 description: "The platform's recent additions, newest first — a running highlights reel of what shipped, each line linking into its own manual page."
 category: "introduction"
 keywords: ["whats new", "new features", "updates", "releases", "recent", "changelog"]
-last_updated: "2026-09-03"
+last_updated: "2026-09-06"
 ---
 
 # What's New
@@ -12,6 +12,7 @@ The recent additions, newest first — the highlights reel, not the full ledger.
 
 ## September 2026
 
+- **[PriceStream ⇈](/docs/app/discovery#pricestream-)** — a full-screen vertical swipe feed of the catalog, one piece per card. Early days — the algorithm is still a flat sample, not yet tuned to your taste.
 - **History caught up to Starred** — AZ joins ◷ Recent in its sort row, and the **LISTS** door is open too: multi-select any run of History and file it straight into a List, same sheet as Starred. ([Lists](/docs/lists))
 
 ## August 2026
