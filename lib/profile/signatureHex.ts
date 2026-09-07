@@ -16,7 +16,7 @@
  * buckets (lib/art/outputColor → classifyRgb) for the pill's name.
  */
 
-import { liftWarmFloor } from '../color/warmGuard';
+import { liftWarmFloor, dampLoudHue } from '../color/warmGuard';
 
 function hslToHex(h: number, s: number, l: number): string {
     const c = (1 - Math.abs(2 * l - 1)) * s;
@@ -65,10 +65,15 @@ export function signatureHexFor(seed: string): string {
        a hashed 0–1 draw stands in for Math.random() to pick the vivid vs.
        muted/pastel branch, so a given seed always lands in the same band. */
     const vividRoll = (hash32(`v:${s}`) % 100) / 100;
-    const sat =
+    const satRoll =
         vividRoll < 1 / 3
-            ? 0.7 + (hash32(`s:${s}`) % 26) / 100 // vivid: 0.70 – 0.95
-            : 0.15 + (hash32(`s:${s}`) % 41) / 100; // muted/pastel: 0.15 – 0.55
+            ? 70 + (hash32(`s:${s}`) % 26) // vivid: 70 – 95
+            : 15 + (hash32(`s:${s}`) % 41); // muted/pastel: 15 – 55
+    /* dampLoudHue (lib/color/warmGuard) — same green/magenta trim rollSaturation
+       and Mood Ring apply, wired in here 2026-09-06 so the deterministic
+       per-wallet colour matches the current algo instead of the pre-trim one
+       it shipped with. */
+    const sat = dampLoudHue(hue, satRoll) / 100;
     const lightRoll = 0.25 + (hash32(`l:${s}`) % 56) / 100; // 0.25 – 0.80
     /* liftWarmFloor (lib/color/warmGuard) — brick/orange/mustard hues read
        muddy under ~52% light regardless of saturation; only that band gets
