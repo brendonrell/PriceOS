@@ -875,7 +875,7 @@ mix** (see the ⛔ in `lib/tags/formula.ts`).
 
 | Concept | Glyph | Codepoint | Notes |
 |---|---|---|---|
-| **PriceStream** (the vertical swipe feed) | ⇊ | U+21CA DOWNWARDS PAIRED ARROWS | Brendon's pick, 2026-09-04 — reads as motion AND plurality (many pieces flowing, not one line), distinct from the Rewind's ⇠ and the Time Machine's own arrow family (§12d-bis). Grepped free repo-wide, raw + escaped, at pick time; no emoji mapping. Door: single-tap the "Price Discussion" name on the home page — the third gesture alongside HomeTitleCartography's existing long-press (Cartography ◫) and triple-tap (The Rewind ◄). Wears: the modal's own wildcard-level pill and any future nav entry. Standard #1 gate applies — device-verify as monochrome text on iPhone before final lock. |
+| **PriceStream** (the vertical swipe feed) | ⇈ | U+21C8 UPWARDS PAIRED ARROWS | **Changed 2026-09-06 (Brendon)** — was ⇊ U+21CA DOWNWARDS PAIRED ARROWS (2026-09-04 pick, reasoning below); flipped to the upward mirror, same rationale otherwise. Reads as motion AND plurality (many pieces flowing, not one line), distinct from the Rewind's ⇠ and the Time Machine's own arrow family (§12d-bis). Grepped free repo-wide, raw + escaped, at pick time; no emoji mapping. Door: single-tap the "Price Discussion" name on the home page — the third gesture alongside HomeTitleCartography's existing long-press (Cartography ◫) and triple-tap (The Rewind ◄). Wears: the modal's own wildcard-level pill and any future nav entry. Standard #1 gate applies — device-verify as monochrome text on iPhone before final lock. |
 
 
 
