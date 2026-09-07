@@ -8837,13 +8837,15 @@ body.colorway-dark .ghost-card .ghost-wrapper {
     opacity: 0.6;
     flex-shrink: 0;
 }
-/* Showcase "started" star — nudged up 1.5px and left 3px off its natural
-   baseline position to sit tighter against the #id (Brendon, 2026-09-03). */
+/* Star sits tight against the #id (Brendon, 2026-09-03) via margin, not
+   position:relative+top — the old top/left offset knocked the line's
+   baseline off and made the numerals sit crooked (Brendon, 2026-09-07).
+   margin-right pulls it in without touching baseline; vertical-align nudges
+   it up safely (line-box-aware, unlike `top`). */
 .meta-proj-star {
     display: inline-block;
-    position: relative;
-    top: -1.5px;
-    left: -3px;
+    vertical-align: 1.5px;
+    margin-right: -3px;
 }
 .price-trigger {
     cursor: pointer;
