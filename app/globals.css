@@ -6434,6 +6434,13 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.32); }
     position: static;
     bottom: auto;
 }
+/* The profile chip row (Artist/Project/PriceDay/.../group facets) sat a full
+   16px (.hero-group-2's row gap) above the sort bar, pushing the grid below
+   the fold on short phones (Brendon, 2026-09-07 flag). Pulled the sort row up
+   to half that gap — scoped to the profile Collected sort row only. */
+.traits-ui + .sort-bar.profile-sort-row {
+    margin-top: -8px;
+}
 .sort-bar {
     display: flex;
     align-items: center;
@@ -6452,7 +6459,8 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.32); }
 .colorway-pills {
     display: flex;
     gap: 6px;
-    margin-right: 6px;
+    /* Halved (Brendon, 2026-09-07) — was 6px. */
+    margin-right: 3px;
 }
 .pill-colorway {
     background: var(--stat-bg);
@@ -6603,7 +6611,12 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.32); }
    (Brendon, 2026-08-19). */
 /* The home sort row's ◷ clock — dropped 1.5px, then taken back UP 1px
    (Brendon, 2026-07-26, second pass). Scoped to the home row only. */
-.sort-btn-clock .sort-lbl-recent { transform: translateY(0.5px); }
+/* Bumped a step larger (Brendon, 2026-09-07: "recent glyph font size
+   larger") — was riding the plain 1.15em/1.3em .sort-lbl-recent base. */
+.sort-btn-clock .sort-lbl-recent { transform: translateY(0.5px); font-size: 1.3em; }
+@media (max-width: 600px) {
+    .sort-btn-clock .sort-lbl-recent { font-size: 1.45em; }
+}
 /* The social ☻ — same 1px lift as the clock, and one size up from the ◷'s
    base (the ◷'s own mobile step, +0.15em) so the face reads at full
    strength (Brendon, 2026-07-26). Still worn by the project + home social
@@ -6616,9 +6629,11 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.32); }
 /* The rarity ❖ — two sizes up from the ◷'s base (Brendon, 2026-09-06: "make
    it 2 font sizes larger") so it reads at full strength next to the rest of
    the profile sort row. */
-.sort-btn-rarity .sort-lbl-recent { font-size: 1.45em; }
+/* Bumped a further step larger (Brendon, 2026-09-07: "rarity glyph font size
+   larger") — was 1.45em/1.6em. */
+.sort-btn-rarity .sort-lbl-recent { font-size: 1.6em; }
 @media (max-width: 600px) {
-    .sort-btn-rarity .sort-lbl-recent { font-size: 1.6em; }
+    .sort-btn-rarity .sort-lbl-recent { font-size: 1.75em; }
 }
 @media (max-width: 600px) { .sort-btn.group-btn { margin-right: 5px; } }
 
@@ -6655,7 +6670,8 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.32); }
    the gap). */
 @media (max-width: 600px) {
     .profile-sort-row .colorway-pills {
-        margin-right: 8px;
+        /* Halved (Brendon, 2026-09-07) — was 8px. */
+        margin-right: 4px;
     }
     /* Row still ran past the safe area with FEED touching the screen edge
        (Brendon, 2026-09-07 flag) — one more tightening pass on the SORT
