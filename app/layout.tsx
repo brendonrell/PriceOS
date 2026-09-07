@@ -330,18 +330,31 @@ const PREHYDRATION_SCRIPT = `
                             t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
                             return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
                         }
-                        // 55 = HUE_SALT, 45/30 sat + 42/16 light = the toned-
-                        // down VIVID band (lib/mood) — keep all three in
-                        // lockstep (Brendon, 2026-09-02: dialed down from
-                        // 62/38 + 40/20, full hue wheel unchanged).
+                        // 55 = HUE_SALT, 32/20 sat + 56/12 light = the SOFT
+                        // band (lib/mood) — keep all three in lockstep
+                        // (Brendon, 2026-09-07: green/magenta read louder
+                        // than every other hue at equal S/L — dampLoudHue
+                        // mirrored inline below, lib/color/warmGuard.ts).
                         var hue = (day * 137.508 + 55 + rnd() * 24) % 360;
-                        var sat = 45 + rnd() * 30;
-                        var light = 42 + rnd() * 16;
+                        var sat = 32 + rnd() * 20;
+                        var light = 56 + rnd() * 12;
                         // liftWarmFloor (lib/color/warmGuard) mirrored inline —
                         // brick/orange/mustard hues (<=65deg) still read muddy
-                        // in this band even at high sat; floor light at 52.
+                        // in this band even at high sat; floor light at 60.
                         var warmHue = ((hue % 360) + 360) % 360;
-                        if (warmHue <= 65) light = Math.max(light, 52);
+                        if (warmHue <= 65) light = Math.max(light, 60);
+                        // dampLoudHue (lib/color/warmGuard) mirrored inline —
+                        // trims saturation within 45deg of green(120)/
+                        // magenta(300), cosine taper to zero at the edges.
+                        var loudCut = 0;
+                        [120, 300].forEach(function (c) {
+                            var d = Math.min(Math.abs(warmHue - c), 360 - Math.abs(warmHue - c));
+                            if (d < 45) {
+                                var w = 0.5 * (1 + Math.cos((Math.PI * d) / 45));
+                                loudCut = Math.max(loudCut, 22 * w);
+                            }
+                        });
+                        sat = Math.max(10, sat - loudCut);
                         var s = sat / 100, l = light / 100;
                         var k = s * Math.min(l, 1 - l);
                         function f(n) {
