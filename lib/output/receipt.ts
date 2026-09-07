@@ -455,6 +455,18 @@ export async function shareRarityReceipt(slug: string, id: number): Promise<Rece
    no hosting, no AI, $0.
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/** One row in the two-column stat-bar grid below Achievements — a labelled
+ *  fill bar, same track style as Achievements just smaller. `cap` is the
+ *  value at which the bar reads 100% full. */
+export interface PlateStatBar {
+    label: string;
+    value: number;
+    /** Display string — pre-formatted (e.g. '4.22' keeps decimals a raw
+     *  number would lose), shown next to the label. */
+    display: string;
+    cap: number;
+}
+
 export interface IdentityPlateData {
     /** Live PriceSprite face (single-string ASCII) — the hero portrait. */
     face: string;
@@ -467,6 +479,10 @@ export interface IdentityPlateData {
     streak: number;
     achUnlocked: number;
     achTotal: number;
+    /** Two-column stat-bar grid under Achievements — exactly 6 for a clean
+     *  3-row × 2-col grid (Primary Mints, Secondary Buys, Volume·ETH,
+     *  Breadcrumbs, Artists Followed, Days Active). */
+    statBars: readonly PlateStatBar[];
 }
 
 function parseRGB(c: string): [number, number, number] | null {
@@ -548,8 +564,11 @@ export async function buildIdentityPlate(d: IdentityPlateData): Promise<HTMLCanv
     ctx.globalAlpha = 1;
 
     // ── Sprite hero — the live familiar, big, accent-lit. No frame; it sits
-    //    on a barely-there wash of the colorway (Brendon, 2026-07-15). ────────
-    const boxX = PAD, boxY = 140, boxW = W - PAD * 2, boxH = 560;
+    //    on a barely-there wash of the colorway (Brendon, 2026-07-15). Box is
+    //    half its old height (280, was 560) — PriceSprites are wide not tall,
+    //    so this frees room below for the two-column stat-bar grid without
+    //    touching the sprite itself (Brendon, 2026-09-07). ────────────────────
+    const boxX = PAD, boxY = 140, boxW = W - PAD * 2, boxH = 280;
     ctx.fillStyle = accent;                 // faint wash for depth (the panel)
     ctx.globalAlpha = 0.06;
     ctx.fillRect(boxX, boxY, boxW, boxH);
@@ -657,6 +676,45 @@ export async function buildIdentityPlate(d: IdentityPlateData): Promise<HTMLCanv
         ctx.fillStyle = accent;
         roundRect(ctx, PAD, trackY, Math.max(10, trackW * frac), 10, 5);
         ctx.fill();
+    }
+
+    // ── Stat-bar grid — two columns of smaller bars, same track style as
+    //    Achievements. Fills the room freed by halving the sprite box
+    //    (Brendon, 2026-09-07). Rows sized to fit whatever length statBars is,
+    //    but the modal always hands exactly 6 for a clean 3×2 grid. ──────────
+    const colGap = 40;
+    const colW = (trackW - colGap) / 2;
+    const rowH = 66;
+    let gridY = trackY + 46;
+    for (let i = 0; i < d.statBars.length; i++) {
+        const row = d.statBars[i];
+        const col = i % 2;
+        const r = Math.floor(i / 2);
+        const cx0 = PAD + col * (colW + colGap);
+        const ry = gridY + r * rowH;
+
+        ctx.textAlign = 'left';
+        ctx.fillStyle = INK;
+        ctx.globalAlpha = 0.9;
+        ctx.font = `18px ${mono}`;
+        ctx.fillText(row.label.toUpperCase(), cx0, ry);
+        ctx.textAlign = 'right';
+        ctx.fillText(row.display, cx0 + colW, ry);
+        ctx.globalAlpha = 1;
+
+        const miniTrackY = ry + 12;
+        ctx.textAlign = 'left';
+        ctx.fillStyle = INK;
+        ctx.globalAlpha = 0.3;
+        roundRect(ctx, cx0, miniTrackY, colW, 6, 3);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        const miniFrac = row.cap > 0 ? Math.max(0, Math.min(1, row.value / row.cap)) : 0;
+        if (miniFrac > 0) {
+            ctx.fillStyle = accent;
+            roundRect(ctx, cx0, miniTrackY, Math.max(6, colW * miniFrac), 6, 3);
+            ctx.fill();
+        }
     }
 
     // ── Footer. ──────────────────────────────────────────────────────────────
