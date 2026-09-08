@@ -4,8 +4,9 @@
  * profilePresets — Profile customization SAVE SLOTS (Brendon, 2026-09-02:
  * "I want profile presets too, same UI as grid presets").
  *
- * Up to 3 numbered, FIXED-INDEX slots — a snapshot of the whole look
- * (colorway + tag paint + logo + name font). Unlike Grid Presets there is no
+ * Up to 22 numbered, FIXED-INDEX slots (Brendon, 2026-09-08: "22 preset saved
+ * slots instead of only 3") — a snapshot of the whole look (colorway + tag
+ * paint + logo + name font). Unlike Grid Presets there is no
  * separate SAVE button: tapping an EMPTY slot captures the current look into
  * it directly; tapping a FILLED slot re-applies that exact look. There is no
  * name either — each pill wears its own saved colours (bg = colorway, text =
@@ -22,8 +23,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { STATE_CACHE_KEYS, pushSettings, USERSTATE_HYDRATED_EVENT } from '../state/userState';
 
-export const MAX_PROFILE_PRESETS = 3;
-export const PROFILE_PRESET_GLYPHS = ['①', '②', '③'] as const;
+export const MAX_PROFILE_PRESETS = 22;
+/* ① … ⑳ (U+2460–U+2473 CIRCLED DIGIT/NUMBER ONE…TWENTY), then ㉑ ㉒
+   (U+3251–U+3252 CIRCLED NUMBER TWENTY ONE/TWO) — plain text symbols, no
+   emoji presentation, logged in docs/GLYPHS.md. */
+export const PROFILE_PRESET_GLYPHS = [
+    '①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩',
+    '⑪', '⑫', '⑬', '⑭', '⑮', '⑯', '⑰', '⑱', '⑲', '⑳',
+    '㉑', '㉒',
+] as const;
 
 export interface ProfilePresetSlot {
     id: string;
@@ -48,7 +56,7 @@ const EVT = 'pd:profile-presets-changed';
 const HEX_RE = /^#[0-9A-F]{6}$/i;
 
 function emptySlots(): (ProfilePresetSlot | null)[] {
-    return [null, null, null];
+    return new Array(MAX_PROFILE_PRESETS).fill(null);
 }
 
 function read(): (ProfilePresetSlot | null)[] {
