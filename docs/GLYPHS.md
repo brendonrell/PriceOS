@@ -879,7 +879,19 @@ mix** (see the ⛔ in `lib/tags/formula.ts`).
 
 
 
-*Source files: `components/dropdown/settings/MyPingsRow.tsx`,
-`components/ArtworkCard.tsx`, `components/achievements/AchievementsGrid.tsx`,
-`lib/pings/render.ts`, `lib/data/tapeEvents.ts`, `app/globals.css`
-(`.notif-item .n-icon`, `.st-icon`, `.ach-cell-glyph`, toast rules).*
+---
+
+## Profile egg menu — Presets save slots (expanded 2026-09-08)
+
+| Concept | Glyph | Codepoint | Where it's canonical |
+|---|---|---|---|
+| Preset slots 1–20 | ①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳ | U+2460–U+2473 CIRCLED DIGIT/NUMBER ONE…TWENTY | Profile +More ▸ egg menu ▸ Presets row (`.profile-preset-slot`), `ProfilePageBody.tsx` / `lib/profile/profilePresets.ts`. Plain Enclosed Alphanumerics — no emoji presentation. Expanded from the original 3-slot set (①②③) to 22 (Brendon, 2026-09-08: "22 preset saved slots instead of only 3"). |
+| Preset slots 21–22 | ㉑㉒ | U+3251–U+3252 CIRCLED NUMBER TWENTY ONE/TWO | Same location — U+2460 block stops at 20 (⑳), so 21/22 continue in the CJK Enclosed Alphanumeric Supplement block. Plain text, no emoji mapping. |
+
+---
+
+## Homepage Shuffle — save-for-later star (added 2026-09-08)
+
+| Concept | Glyph | Codepoint | Where it's canonical |
+|---|---|---|---|
+| Shuffle title star — off / on | ☆ / ★ | U+2606 / U+2605 | `SectionHead.tsx` (`.section-head-star`), used by the Shuffle tab's title row. Reuses the existing Star (bookmark) pair from §3 rather than a new assignment — same glyphs, same meaning, new surface. Tap the star OR long-press the title to toggle; backs onto the existing Starred Projects store. |
