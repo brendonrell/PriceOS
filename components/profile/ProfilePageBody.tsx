@@ -53,6 +53,7 @@ import { getShowcaseItems, subscribeShowcase, moveShowcase, toggleShowcase } fro
 import AddToShowcaseModal from './AddToShowcaseModal';
 import ArtistTitleStar from './ArtistTitleStar';
 import StarredList from './StarredList';
+import ProfileOffersPanel from './ProfileOffersPanel';
 import StarredPresetRow from './StarredPresetRow';
 import WishlistList from './WishlistList';
 import { StickerArt } from '../stickers/StickerArt';
@@ -115,6 +116,12 @@ import {
     MAX_PROFILE_PRESETS,
     PROFILE_PRESET_GLYPHS,
 } from '../../lib/profile/profilePresets';
+import {
+    useProfileDailySaved,
+    setProfileDailySavedEnabled,
+    stampProfileDailySavedRoll,
+    DAILY_SAVED_REROLL_MS,
+} from '../../lib/profile/profileDailySaved';
 import { getProject, allProjects, projectsByArtist, projectColorway, artistSignatureColor } from '../../lib/project/registry';
 import HomeProjectFacetBar from '../home/HomeProjectFacetBar';
 import GhostCard from '../project/GhostCard';
@@ -420,6 +427,50 @@ function ProfilePageBodyInner({
        it. No separate Save button and no name — each pill just wears its own
        saved colours. */
     const profilePresetSlots = useProfilePresets();
+    /* DAILY (Brendon, 2026-09-08) — a standing mode, same shape as Generative,
+       but it picks uniformly at random among the profile's own FILLED Preset
+       slots instead of synthesizing a new look. Needs at least one saved
+       preset to do anything. */
+    const dailySaved = useProfileDailySaved();
+    const filledPresetSlots = useMemo(
+        () => profilePresetSlots.filter((s): s is NonNullable<typeof s> => s != null),
+        [profilePresetSlots],
+    );
+    const rollDailySaved = useCallback(() => {
+        if (filledPresetSlots.length === 0) return;
+        const pick = filledPresetSlots[Math.floor(Math.random() * filledPresetSlots.length)];
+        setMyProfileHex(pick.hex);
+        setMyTagPaint(pick.tagPaint);
+        setMyProfileLogo(pick.logoId);
+        setMyNameFont(pick.fontId);
+        stampProfileDailySavedRoll();
+    }, [filledPresetSlots, setMyProfileHex, setMyTagPaint, setMyProfileLogo, setMyNameFont]);
+    const toggleDailySaved = useCallback(() => {
+        const next = !dailySaved.enabled;
+        setProfileDailySavedEnabled(next);
+        if (next) {
+            if (filledPresetSlots.length === 0) {
+                showToast('Daily: SAVE A PRESET FIRST');
+            } else {
+                rollDailySaved();
+                showToast('Daily: picks a saved preset every 24hrs');
+            }
+        } else {
+            showToast('Daily: OFF');
+        }
+    }, [dailySaved.enabled, filledPresetSlots.length, rollDailySaved, showToast]);
+    /* 24h auto-pick while Daily is on — checked on mount and hourly, same
+       pattern as Generative's auto-reroll effect just below. */
+    useEffect(() => {
+        if (!isOwnProfile || !dailySaved.enabled) return;
+        const check = () => {
+            if (Date.now() - dailySaved.lastRolledAt < DAILY_SAVED_REROLL_MS) return;
+            rollDailySaved();
+        };
+        check();
+        const id = window.setInterval(check, 60 * 60 * 1000);
+        return () => window.clearInterval(id);
+    }, [isOwnProfile, dailySaved.enabled, dailySaved.lastRolledAt, rollDailySaved]);
     const tapProfilePresetSlot = useCallback((index: number) => {
         const slot = profilePresetSlots[index];
         if (slot) {
@@ -1775,6 +1826,16 @@ function ProfilePageBodyInner({
                             >
                                 <span className="stat-name">Generative</span>
                             </div>
+                            <div
+                                className={`pill pill-l3${dailySaved.enabled ? ' active' : ''}`}
+                                role="button"
+                                tabIndex={0}
+                                onClick={toggleDailySaved}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleDailySaved(); } }}
+                                title="Picks a random saved Preset every 24hrs"
+                            >
+                                <span className="stat-name">Daily</span>
+                            </div>
                             {Array.from({ length: MAX_PROFILE_PRESETS }).map((_, i) => {
                                 const slot = profilePresetSlots[i];
                                 const style = slot
@@ -2343,11 +2404,11 @@ function ProfilePageBodyInner({
                                             ? [
                                                 { key: 'starred',   label: <><span className="pill-tab-ico is-star">{'★︎'}</span> Starred</>,   active: effMoreL1 === 'starred',   onClick: () => setMoreL1('starred')   },
                                                 { key: 'wishlists', label: <><span className="pill-tab-ico is-wishlist">{'✛︎'}</span> Wishlist</>, active: effMoreL1 === 'wishlists', onClick: () => setMoreL1('wishlists') },
-                                                /* ⛔ OFFERS IS OWN-PROFILE ONLY (Brendon, 2026-08-01). The
-                                                   wallet-level offers view isn't built, so on someone else's
-                                                   profile the tab could only ever say "no offers yet" — a dead
-                                                   tab on a person you came to scout. It comes back for
-                                                   everyone the day the view ships. */
+                                                /* Offers is own-profile only — it surfaces this
+                                                   wallet's own bids + offers on pieces it holds,
+                                                   so it's meaningless as a view onto someone
+                                                   else's wallet from a visitor's vantage
+                                                   (Brendon, 2026-08-01; view shipped 2026-09-08). */
                                                 { key: 'offers',    label: <><span className="pill-tab-ico is-offers">{'\u2736\uFE0E'}</span> Offers</>,    active: effMoreL1 === 'offers',    onClick: () => setMoreL1('offers')    },
                                             ]
                                             : []),
@@ -2561,15 +2622,12 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                         <AlbumsPanel own={isOwnProfile} address={user.address} />
                     )}
 
-                    {/* Offers sub-tab — the wallet-level offers view isn't built
-                        yet; until it is, the tab wears the Albums-style empty
-                        prompt instead of a dead blank (Brendon, 2026-07-27). */}
+                    {/* Offers sub-tab — wallet-level view (Brendon, 2026-09-08):
+                        offers this wallet made + offers on pieces it holds,
+                        across every project. Was a permanent "coming soon"
+                        stub before this — see ProfileOffersPanel. */}
                     {onMore && effMoreL1 === 'offers' && (
-                        <section className="starred-list" aria-label="Offers">
-                            <p className="album-empty-note">
-                                No offers yet — offers {isOwnProfile ? 'you make' : `@${displayHandle} makes`} and receive{isOwnProfile ? '' : 's'} will live here. Make one from any artwork&rsquo;s ✶{'︎'} panel.
-                            </p>
-                        </section>
+                        <ProfileOffersPanel address={user.address} />
                     )}
 
                     {/* Info sub-tab content: followers / following / anchor + the
