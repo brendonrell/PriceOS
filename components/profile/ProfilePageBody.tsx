@@ -1803,7 +1803,28 @@ function ProfilePageBodyInner({
                             >
                                 <span className="stat-name">{'⟳ Roll'}</span>
                             </div>
-                            {(['random', 'match', 'accent', 'pair'] as const).map((m) => (
+                            {/* Generative leads, Random trails — these looked
+                                like near-duplicates (Brendon, 2026-09-08: "I
+                                can't tell the difference between random and
+                                generative"), but they're genuinely different:
+                                Random is one Roll shape (all four rolled
+                                independently, no coordination); Generative is
+                                the standing 24h-reroll toggle that draws from
+                                ALL FOUR shapes each time (see GENERATIVE_POOL,
+                                lib/profile/presetRoll.ts) — confirmed distinct,
+                                so per Brendon's fallback instruction they're
+                                reordered rather than merged/renamed. */}
+                            <div
+                                className={`pill pill-l3${generative.enabled ? ' active' : ''}`}
+                                role="button"
+                                tabIndex={0}
+                                onClick={toggleGenerative}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleGenerative(); } }}
+                                title="Generates new profile design every 24hrs"
+                            >
+                                <span className="stat-name">Generative</span>
+                            </div>
+                            {(['match', 'accent', 'pair', 'random'] as const).map((m) => (
                                 <div
                                     key={m}
                                     className={`pill pill-l3${presetMode === m ? ' active' : ''}`}
@@ -1816,16 +1837,6 @@ function ProfilePageBodyInner({
                                     <span className="stat-name">{PRESET_MODE_LABEL[m]}</span>
                                 </div>
                             ))}
-                            <div
-                                className={`pill pill-l3${generative.enabled ? ' active' : ''}`}
-                                role="button"
-                                tabIndex={0}
-                                onClick={toggleGenerative}
-                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleGenerative(); } }}
-                                title="Generates new profile design every 24hrs"
-                            >
-                                <span className="stat-name">Generative</span>
-                            </div>
                             <div
                                 className={`pill pill-l3${dailySaved.enabled ? ' active' : ''}`}
                                 role="button"
