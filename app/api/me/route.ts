@@ -39,6 +39,8 @@ import { isValidNameFont } from '@/lib/profile/nameFont';
 import { isValidTagPaint } from '@/lib/tags/catalog';
 import { cleanFormulas, MAX_FORMULAS } from '@/lib/tags/formula';
 import { recordOath } from '@/lib/factions/oath';
+import { getUserHoldings } from '@/lib/profile/getUserHoldings';
+import { buildAutoShowcase, showcaseSlotsEqual } from '@/lib/profile/autoShowcase';
 import { badRequest, notFound, serverError } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
@@ -72,7 +74,44 @@ export const GET = requireAuth(async (_req, _ctx, address) => {
         if (error) return serverError(error.message);
         if (!data) return notFound('No account row for this address');
 
-        return NextResponse.json(data as UserRow);
+        const row = data as UserRow;
+
+        /* Auto-fill the Showcase from the account's own holdings when it's
+           never been hand-touched (lib/profile/autoShowcase.ts — Brendon,
+           2026-09-08). Gated on the two permanent flags: showcase_user_set
+           (the user's own PATCH has touched showcase.slots — see PATCH
+           below) and showcase_auto_locked (the auto-fill already reached 6
+           distinct projects once and froze). Both false is the ONLY case
+           that recomputes. Runs here — the owner's own GET /api/me — not
+           on the public profile read, so anonymous profile traffic never
+           pays for it; it catches up the next time the owner's own client
+           loads. */
+        if (!row.showcase_user_set && !row.showcase_auto_locked) {
+            try {
+                const holdings = await getUserHoldings(address);
+                const auto = holdings?.length
+                    ? buildAutoShowcase(holdings.map((h) => ({ slug: h.slug, token_id: h.token_id, mint_ts: h.mint_ts })))
+                    : null;
+                if (auto && !showcaseSlotsEqual(auto.slots, row.showcase.slots)) {
+                    const patch: Record<string, unknown> = { showcase: { slots: auto.slots } };
+                    if (auto.distinctProjects >= 6) patch.showcase_auto_locked = true;
+                    const { data: updated, error: updErr } = await supabase
+                        .from('users')
+                        .update(patch as never)
+                        .eq('address', address)
+                        .select('*')
+                        .maybeSingle();
+                    if (!updErr && updated) return NextResponse.json(updated as UserRow);
+                    // A write hiccup here shouldn't fail the whole GET — the
+                    // account still reads fine with its prior showcase.
+                }
+            } catch {
+                // Holdings lookup failure is non-fatal for a GET — fall through
+                // and return the row as stored.
+            }
+        }
+
+        return NextResponse.json(row);
     } catch (err) {
         return serverError(err instanceof Error ? err.message : 'Unknown error');
     }
@@ -201,6 +240,14 @@ function sanitisePatch(
             return { ok: false, reason: 'showcase.slots must be an array of exactly 6 entries' };
         }
         patch.showcase = v as Showcase;
+        /* The user's OWN hand touched showcase.slots — auto-fill (see
+           lib/profile/autoShowcase.ts) must never run again for this
+           account, permanently (Brendon, 2026-09-08: "goes away the second
+           they decide to add something manually... ONLY when they
+           themselves decide to add something"). showcase_style is a
+           separate column/PATCH branch entirely, so switching that never
+           sets this. */
+        patch.showcase_user_set = true;
     }
 
     // Object-valued envelopes: shallow type guard only; the column owners
