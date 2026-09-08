@@ -1,5 +1,6 @@
 import { getSupabaseAnon, getSupabaseService, PUBLIC_USER_COLUMNS, type UserRow } from '@/lib/supabase';
-import { getUserOwnedProjectsCount, getUserSpendEth } from './getUserHoldings';
+import { getUserOwnedProjectsCount, getUserSpendEth, getUserHoldings } from './getUserHoldings';
+import { buildAutoShowcase, showcaseSlotsEqual } from './autoShowcase';
 import { teamStyleIndex } from '@/lib/tags/catalog';
 
 /** Profile row plus follower/following counts — the shape both the
@@ -131,22 +132,54 @@ export async function getUserProfileByHandle(
   let shownTags: string[] = [];
   let tagsOff: string[] = [];
   let teamTagStyle = 0;
+  // Auto-fill Showcase — same eligibility flags as GET /api/me (see
+  // lib/profile/autoShowcase.ts), just also checked on the PUBLIC profile
+  // read: /api/me only catches an account up when its OWNER next opens the
+  // app, so a wallet that mints and doesn't come back for a week would
+  // otherwise show a stale/empty Showcase to every visitor in the meantime
+  // (Brendon, 2026-09-08 — "what if they mint but then go away for a
+  // week?"). showcase_user_set / showcase_auto_locked aren't in
+  // PUBLIC_USER_COLUMNS (no anon column GRANT for them), so they ride the
+  // same service-role read as the deactivated flag just below rather than
+  // widening the public grant for two internal bookkeeping fields.
+  let liveShowcase: UserRow['showcase'] | null = null;
   try {
     const svc = getSupabaseService();
     const { data: dRow } = await svc
       .from('users')
-      .select('settings')
+      .select('settings, showcase, showcase_user_set, showcase_auto_locked')
       .eq('handle', userHandle)
       .maybeSingle();
-    const s = (dRow as { settings?: { notifs?: Record<string, unknown>; shownTags?: unknown; tagsOff?: unknown; teamTagStyle?: unknown } } | null)?.settings;
+    const row = dRow as {
+      settings?: { notifs?: Record<string, unknown>; shownTags?: unknown; tagsOff?: unknown; teamTagStyle?: unknown };
+      showcase?: UserRow['showcase'];
+      showcase_user_set?: boolean;
+      showcase_auto_locked?: boolean;
+    } | null;
+    const s = row?.settings;
     deactivated = !!(s?.notifs?.spell_invisible);
     if (Array.isArray(s?.shownTags)) shownTags = s.shownTags.filter((x): x is string => typeof x === 'string');
     if (Array.isArray(s?.tagsOff)) tagsOff = s.tagsOff.filter((x): x is string => typeof x === 'string');
     teamTagStyle = teamStyleIndex(s?.teamTagStyle);
-  } catch { /* leave defaults */ }
+
+    if (row && !row.showcase_user_set && !row.showcase_auto_locked) {
+      const addr = (userRow.address ?? '').toLowerCase();
+      const holdings = addr ? await getUserHoldings(addr) : null;
+      const auto = holdings?.length
+        ? buildAutoShowcase(holdings.map((h) => ({ slug: h.slug, token_id: h.token_id, mint_ts: h.mint_ts })))
+        : null;
+      if (auto && row.showcase && !showcaseSlotsEqual(auto.slots, row.showcase.slots)) {
+        const patch: Record<string, unknown> = { showcase: { slots: auto.slots } };
+        if (auto.distinctProjects >= 6) patch.showcase_auto_locked = true;
+        await svc.from('users').update(patch as never).eq('handle', userHandle);
+        liveShowcase = { slots: auto.slots };
+      }
+    }
+  } catch { /* leave defaults / stored showcase stands */ }
 
   return {
     ...userRow,
+    ...(liveShowcase ? { showcase: liveShowcase } : {}),
     follower_count: (followersRes.count ?? 0) + ownedProjects,
     following_count: (followingRes.count ?? 0) + projectsFollowedCount,
     owned_projects: ownedProjects,
