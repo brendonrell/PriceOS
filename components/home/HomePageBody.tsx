@@ -49,13 +49,15 @@ import type { HomeYouResponse } from '../../app/api/home/you/route';
 import { TraitsProvider, useTraits } from '../../lib/state/TraitsContext';
 import { ProjectProvider, useProject } from '../../lib/state/ProjectContext';
 import { useAuth } from '../../lib/state/AuthContext';
-import { useToast } from '../../lib/state/ToastContext';
+import { useToast, useToastSend } from '../../lib/state/ToastContext';
 import { useModal } from '../../lib/state/ModalContext';
 import { useFiat, fiatSymbol } from '../../lib/state/FiatContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { getSupabaseBrowser } from '../../lib/supabase';
 import { allProjects, getProject, projectTraits, projectColorway } from '../../lib/project/registry';
 import { useLongPress } from '../../lib/hooks/useLongPress';
+import { useStarLongPress } from '../../lib/hooks/rowFlags';
+import { isProjectStarred, toggleProjectStar, subscribeProjectStars } from '../../lib/pins/projectStarStore';
 import { useShuffleColorwayMode, setShuffleColorwayModeEnabled, getShuffleColorwayModeEnabled } from '../../lib/home/shuffleColorwayMode';
 import { setShuffleColorwayHex } from '../../lib/state/ColorwayContext';
 import { formatEth } from '../../lib/format/eth';
@@ -302,6 +304,24 @@ function MintingCarousels({ items, ownedSlugs }: { items: EnrichedProject[]; own
 function ShuffleGallery({ seed }: { seed: number }) {
     const project = useProject();
     const artist = getProject(project.slug)?.artistHandle ?? null;
+    const showToast = useToastSend();
+    /* Save-for-later — the shuffle title's ☆/★ (Brendon, 2026-09-08). Reuses
+       the existing Starred Projects store, so a shuffle-saved project shows up
+       in the profile's Starred ▸ Projects list too, not a separate list. */
+    const [projStarred, setProjStarred] = useState(false);
+    useEffect(() => {
+        setProjStarred(isProjectStarred(project.slug));
+        return subscribeProjectStars(() => setProjStarred(isProjectStarred(project.slug)));
+    }, [project.slug]);
+    const shuffleStarLongPress = useStarLongPress(() => {
+        const r = toggleProjectStar(project.slug);
+        showToast(r === 'starred' ? 'Added to your Starred Projects List' : 'Removed from your Starred Projects List');
+        return r === 'starred';
+    });
+    const toggleShuffleStar = () => {
+        const r = toggleProjectStar(project.slug);
+        showToast(r === 'starred' ? 'Added to your Starred Projects List' : 'Removed from your Starred Projects List');
+    };
     const ids = useMemo(() => {
         const max = project.totalOutputs;
         const target = Math.min(SHUFFLE_SIZE, max);
@@ -329,6 +349,7 @@ function ShuffleGallery({ seed }: { seed: number }) {
                 titleHref={`/art/${project.slug}`}
                 artist={artist}
                 className="shuffle-head"
+                star={{ starred: projStarred, onToggle: toggleShuffleStar, longPress: shuffleStarLongPress }}
             />
             <section id="gallery" aria-label={`Shuffle — ${project.title}`}>
                 {ids.map((id, idx) => (
@@ -934,7 +955,13 @@ function HomePageBodyInner({
        repainting in the same beat (the entry lag). Tapping the Shuffle pill
        WHILE ALREADY ON IT also re-rolls (Brendon, 2026-09-01) — see
        selectTab, the closest thing to a re-roll button. */
-    const [shuffleSeed, setShuffleSeed] = useState(0);
+    // Seeded fresh per session (not a fixed 0) — the multiplicative hash below
+    // is deterministic given its input, so starting every session at the same
+    // seed=0 produced the exact same project + the exact same re-roll sequence
+    // every single time (Brendon, 2026-09-08 bug report). Randomizing the
+    // starting seed keeps the "stable during a background feed refresh"
+    // property this hash exists for, while actually varying run to run.
+    const [shuffleSeed, setShuffleSeed] = useState(() => Math.floor(Math.random() * 0xffffffff));
     const prevTabRef = useRef<HomeTab>(activeTab);
     useEffect(() => {
         const prev = prevTabRef.current;
