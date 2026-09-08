@@ -25,9 +25,15 @@
  *
  * Colour treatment: the outer frame wears the piece's own dominant-colour
  * bucket (BUCKET_HEX, lib/output/derive.ts) — "the colourway associated with
- * the artwork" — and BOTH the outer frame and the inner surface use 4px,
- * the house control radius (the trait-pill law, docs/GLYPHS.md). Never
- * 999px; that radius doesn't exist on this platform.
+ * the artwork". Corner radius is the one deliberate exception to the house
+ * 4px control radius (the trait-pill law, docs/GLYPHS.md): both the frame
+ * and the inner slide use 45px, concentric with the iPhone's own screen
+ * corners rather than the platform's usual control radius (Brendon,
+ * 2026-09-07 — see the comment on .ps-frame in app/globals.css for the math).
+ *
+ * Topbar name/X sit straight on that colour with no box behind them, and
+ * flip between light/dark text to match it (same isLight() check as
+ * lib/profile/profileLogos.ts) — see topbarFgFor below.
  *
  * Styling lives in app/globals.css (Brendon, 2026-09-05 — the first pass
  * used `<style jsx>`, the only occurrence of scoped CSS-in-JS anywhere in
@@ -40,6 +46,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useModal } from '../../lib/state/ModalContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useCart } from '../../lib/state/CartContext';
+import { useMarketSheet } from '../../lib/state/MarketSheetContext';
+import { useFiat } from '../../lib/state/FiatContext';
+import { formatEth } from '../../lib/format/eth';
 import { ART_IMAGE_BASE, artImageUrl, artThumbUrl } from '../../lib/project/registry';
 import { BUCKET_HEX } from '../../lib/output/derive';
 import { isStarred, toggleStar, subscribeStarred } from '../../lib/pins/starStore';
@@ -47,6 +56,19 @@ import OutputFollowButton from '../artwork/OutputFollowButton';
 import type { PriceStreamCard } from '../../app/api/pricestream/feed/route';
 
 const FALLBACK_COLOR = '#111111';
+
+/* Same on-colorway contrast check as lib/profile/profileLogos.ts and
+   lib/stickers/catalog.ts (each keeps its own copy rather than sharing one —
+   established pattern in this codebase, not new here). YIQ luminance,
+   140/255 threshold. */
+function isLight(hex: string): boolean {
+    const h = hex.replace('#', '');
+    const r = parseInt(h.slice(0, 2), 16) || 0;
+    const g = parseInt(h.slice(2, 4), 16) || 0;
+    const b = parseInt(h.slice(4, 6), 16) || 0;
+    return (r * 299 + g * 587 + b * 114) / 1000 >= 140;
+}
+const topbarFgFor = (hex: string) => (isLight(hex) ? '#1A1A1A' : '#e0e0e0');
 
 /* Shared by Slide (per-card data-color attr) and the feed root (initial
    frame colour before the IntersectionObserver has picked an active card) —
@@ -122,7 +144,10 @@ function Slide({ card }: { card: PriceStreamCard }) {
    — only its content swaps to match whichever card is currently active,
    the same way ps-frame's background-color already does. */
 function ActionRail({ card }: { card: PriceStreamCard | null }) {
-    const { add, items } = useCart();
+    const { add, items, has: cartHas } = useCart();
+    const { showToast } = useToast();
+    const { openOfferSheet, openOffersPanel } = useMarketSheet();
+    const { ethToFiat } = useFiat();
     const [starred, setStarred] = useState(false);
 
     useEffect(() => {
@@ -133,6 +158,26 @@ function ActionRail({ card }: { card: PriceStreamCard | null }) {
 
     if (!card) return null;
     const inCart = items.some((i) => i.slug === card.slug && i.id === card.tokenId);
+
+    /* Exact CTA the artwork modal shows a non-owner (components/artwork/
+       ArtworkPageBody.tsx onCta/ctaLabel) — BUY · price when listed, else
+       MAKE OFFER, never a dead "Not for sale" (Brendon, 2026-09-07: "show
+       the exact CTA from the artwork modal"). PriceStream doesn't exclude
+       your own pieces yet (see the route's v1 note), so the owner-only
+       LIST/UNLIST branch isn't reachable here — those two cover it. */
+    const onCta = () => {
+        if (card.listed) {
+            if (cartHas(card.slug, card.tokenId)) {
+                showToast(`${card.projectName ?? card.slug} #${card.tokenId}: ALREADY IN CART`);
+            } else {
+                add(card.slug, card.tokenId);
+                const next = items.length + 1;
+                showToast(`Added to cart \u00b7 ${next} item${next === 1 ? '' : 's'}`);
+            }
+        } else {
+            openOfferSheet([{ slug: card.slug, id: card.tokenId }]);
+        }
+    };
 
     return (
         <>
@@ -155,17 +200,31 @@ function ActionRail({ card }: { card: PriceStreamCard | null }) {
                         outputId={`${card.slug}-${card.tokenId}`}
                         label={`${card.slug}${card.tokenId}`}
                     />
-                    {card.listed ? (
+                    <button className="btn-mint ps-cta-btn" onClick={onCta} disabled={inCart && card.listed}>
+                        {card.listed ? (
+                            <>
+                                <span className="mint-lbl">{inCart ? 'IN CART' : 'BUY'}</span>
+                                {!inCart && (
+                                    <span className="mint-price">
+                                        ({formatEth(Number(card.priceEth))} ETH)
+                                        {ethToFiat(Number(card.priceEth)) && (
+                                            <span className="modal-action-btn-fiat"> {ethToFiat(Number(card.priceEth))}</span>
+                                        )}
+                                    </span>
+                                )}
+                            </>
+                        ) : (
+                            <span className="mint-lbl">MAKE OFFER</span>
+                        )}
+                    </button>
+                    {card.offersCount > 0 && (
                         <button
-                            className="btn-mint ps-cart-btn"
-                            onClick={() => add(card.slug, card.tokenId)}
-                            disabled={inCart}
+                            type="button"
+                            className="mk-offers-pill"
+                            onClick={() => openOffersPanel(card.slug, card.tokenId)}
+                            title="Open offers"
                         >
-                            {inCart ? 'In cart' : 'Add to cart'}
-                        </button>
-                    ) : (
-                        <button className="btn-mint ps-cart-btn ps-unlisted" disabled>
-                            Not for sale
+                            {'\u2736\uFE0E'} {card.offersCount} {card.offersCount === 1 ? 'OFFER' : 'OFFERS'}
                         </button>
                     )}
                 </div>
@@ -182,6 +241,7 @@ export default function PriceStreamFeed() {
     const [loading, setLoading] = useState(false);
     const [wildcard, setWildcard] = useState(1); // 0,1,2 → level 1,2,3 (not yet wired to the query)
     const [frameColor, setFrameColor] = useState(FALLBACK_COLOR);
+    const topbarFg = useMemo(() => topbarFgFor(frameColor), [frameColor]);
     const [activeCard, setActiveCard] = useState<PriceStreamCard | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -239,7 +299,7 @@ export default function PriceStreamFeed() {
 
     return (
         <div className="ps-overlay">
-            <div className="ps-topbar">
+            <div className="ps-topbar" style={{ ['--ps-topbar-fg' as string]: topbarFg } as React.CSSProperties}>
                 <button
                     className="ps-wildcard-pill"
                     onClick={() => {
@@ -249,7 +309,8 @@ export default function PriceStreamFeed() {
                     }}
                     title="Wildcard level (not yet wired to the algorithm)"
                 >
-                    <span>PriceStream {'\u21C8\uFE0E'}</span>
+                    <span className="ps-wc-glyph">{'\u21C8\uFE0E'}</span>
+                    <span>PriceStream</span>
                     <span className="ps-wc-dots">
                         {[0, 1, 2].map((i) => (
                             <i key={i} className={i <= wildcard ? 'on' : undefined} />
