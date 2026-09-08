@@ -27,6 +27,7 @@ export interface PriceStreamCard {
     dominantColor: string | null;
     listed: boolean;
     priceEth: number | null;
+    offersCount: number;
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -79,24 +80,42 @@ export async function GET(req: Request) {
         dominant_color: string | null;
     }[];
 
-    const cards: PriceStreamCard[] = shuffle(rows)
-        .slice(0, count)
-        .map((r) => {
-            const slug = String(r.project_id).toLowerCase();
-            const tokenId = Number(r.token_id);
-            const key = `${slug}:${tokenId}`;
-            const priceEth = listedByKey.has(key) ? listedByKey.get(key)! : null;
-            return {
-                slug,
-                tokenId,
-                artist: r.artist,
-                projectName: r.project_name,
-                dominantColor: r.dominant_color,
-                listed: priceEth != null,
-                priceEth,
-            };
-        })
-        .filter((c) => Number.isFinite(c.tokenId));
+    const picked = shuffle(rows).slice(0, count).filter((r) => Number.isFinite(Number(r.token_id)));
+
+    // Item-scope open offers for just the picked cards — the offers pill
+    // mirrors the artwork modal's, so it needs a real count, but only for
+    // the ~20 cards actually going out (not the full 200-row pool).
+    const offersCountByKey = new Map<string, number>();
+    if (picked.length) {
+        const projectIds = Array.from(new Set(picked.map((r) => String(r.project_id).toLowerCase())));
+        const { data: offerRows } = await db
+            .from('offers')
+            .select('project_id, token_id')
+            .eq('scope', 'item')
+            .eq('status', 'open')
+            .in('project_id', projectIds);
+        for (const o of (offerRows ?? []) as { project_id: string; token_id: string | number }[]) {
+            const key = `${String(o.project_id).toLowerCase()}:${Number(o.token_id)}`;
+            offersCountByKey.set(key, (offersCountByKey.get(key) ?? 0) + 1);
+        }
+    }
+
+    const cards: PriceStreamCard[] = picked.map((r) => {
+        const slug = String(r.project_id).toLowerCase();
+        const tokenId = Number(r.token_id);
+        const key = `${slug}:${tokenId}`;
+        const priceEth = listedByKey.has(key) ? listedByKey.get(key)! : null;
+        return {
+            slug,
+            tokenId,
+            artist: r.artist,
+            projectName: r.project_name,
+            dominantColor: r.dominant_color,
+            listed: priceEth != null,
+            priceEth,
+            offersCount: offersCountByKey.get(key) ?? 0,
+        };
+    });
 
     return NextResponse.json({ cards });
 }
