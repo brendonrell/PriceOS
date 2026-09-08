@@ -15635,14 +15635,23 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
 }
 /* The persistent frame — stays put across the whole swipe session; only its
    background-color fades between cards (see PriceStreamFeed.tsx). Same
-   transition as the app-wide colorway fade on html/body (line ~153). */
+   transition as the app-wide colorway fade on html/body (line ~153).
+   Corner radius is the ONE deliberate exception to the house 4px control
+   radius (docs/GLYPHS.md trait-pill law) — this frame sits flush against
+   the physical iPhone screen edge, not beside another UI control, so it
+   needs to read as concentric with the device's own display corners
+   instead. Modern iPhone screen curvature is ~55px; the frame sits 10px
+   in from the true edge (see padding below), and a ring reads concentric
+   when the inner radius = outer radius − inset, so 55 − 10 = 45px
+   (Brendon, 2026-09-07: "the current corners don't look good beside the
+   iPhone screen corners"). */
 .ps-frame {
     flex: 1;
     position: relative;
     padding: 20px 10px;
     padding-top: calc(env(safe-area-inset-top) + 54px);
     box-sizing: border-box;
-    border-radius: 4px;
+    border-radius: 45px;
     transition: background-color 0.3s, color 0.3s;
 }
 .ps-scroller {
@@ -15665,7 +15674,7 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     width: 100%;
     height: 100%;
     background: #111111;
-    border-radius: 4px;
+    border-radius: 45px; /* matches .ps-frame — see the radius note above */
     overflow: hidden;
 }
 .ps-loading {
@@ -15695,7 +15704,14 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     opacity: 0;
     transition: opacity 0.25s;
 }
-.ps-art-loaded {
+/* Must match the hide rule's specificity (0,2,0) — :not() counts as a
+   class — with a second class, not just .ps-art-loaded alone at (0,1,0):
+   THAT was the real bug. The lower-specificity loaded rule always lost to
+   the hide rule above regardless of DOM order, so the master image was
+   network-fine but stuck invisible forever — the permanent-blur complaint
+   (Brendon, 2026-09-07: "images DO NOT WORK... DON'T WANT BLURRY ONES").
+   This rule ties it at (0,2,0) and wins on source order (comes second). */
+.ps-art.ps-art-loaded {
     opacity: 1;
 }
 .ps-scrim {
@@ -15713,32 +15729,45 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     display: flex;
     justify-content: space-between;
     align-items: center;
+    /* No box behind the name/X anymore — they sit straight on the frame's
+       own colorway, so they need to invert with it (Brendon, 2026-09-07:
+       "themed like normal for the colorway... light/dark"). Set once here
+       by PriceStreamFeed from the same isLight() check the rest of the
+       platform uses for on-colorway text (lib/profile/profileLogos.ts). */
+    color: var(--ps-topbar-fg, #e0e0e0);
 }
 .ps-wildcard-pill {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: rgba(17,17,17,0.75);
-    border: 1px solid rgba(224,224,224,0.25);
-    color: #e0e0e0;
-    padding: 7px 12px;
-    border-radius: 4px;
-    font-size: 12px;
+    background: none;
+    border: none;
+    color: inherit;
+    padding: 0;
+    font-size: 13px;
     font-weight: bold;
-    font-family: 'Courier New', Courier, monospace;
+    font-family: var(--font-rubik-mono), 'Rubik Mono One', sans-serif;
+}
+/* The glyph leads the word now (was trailing) and reads three sizes up
+   from the 13px label (13 → 16 → 19 → 22, Brendon, 2026-09-07). Its own
+   span so it can outsize the Rubik label next to it. */
+.ps-wildcard-pill .ps-wc-glyph {
+    font-size: 22px;
+    line-height: 1;
 }
 .ps-wc-dots { display: flex; gap: 3px; }
 .ps-wc-dots i {
     width: 5px; height: 5px; border-radius: 50%;
-    background: rgba(224,224,224,0.25); display: inline-block;
+    background: color-mix(in srgb, currentColor 25%, transparent);
+    display: inline-block;
 }
 .ps-wc-dots i.on { background: #FFE600; }
 .ps-close-btn {
     width: 30px; height: 30px;
     border-radius: 4px;
-    background: rgba(17,17,17,0.75);
-    border: 1px solid rgba(224,224,224,0.25);
-    color: #e0e0e0;
+    background: none;
+    border: none;
+    color: inherit;
     font-size: 15px;
     display: flex; align-items: center; justify-content: center;
 }
@@ -15756,9 +15785,13 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     padding: 18px max(18px, env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left));
     z-index: 3;
     color: #e0e0e0;
+    /* Scoped reset, not a global override: this panel always sits on the
+       dark bottom scrim regardless of the frame's colorway, so anything
+       reading the page's ambient --text-color in here (e.g. .mk-offers-pill,
+       styles/market.css) needs to match that fixed light color instead. */
+    --text-color: #e0e0e0;
 }
 .ps-artist { font-size: 14px; font-weight: bold; margin: 0 0 2px; }
 .ps-meta { font-size: 12px; color: rgba(224,224,224,0.7); margin: 0 0 12px; }
 .ps-actions { display: flex; gap: 10px; align-items: center; }
-.ps-cart-btn { height: 40px; padding: 0 18px; font-size: 13px; }
-.ps-unlisted { opacity: 0.4; }
+.ps-cta-btn { height: 40px; padding: 0 18px; font-size: 13px; }
