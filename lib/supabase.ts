@@ -302,11 +302,12 @@ export interface UserSettings {
    *  (lib/tags/catalog TEAM_TAG_STYLES) — the WTBS + Petey chips only
    *  (Brendon, 2026-07-26). Mirror `pd_team_tag_style`. */
   teamTagStyle?: number;
-  /** PROFILE PRESETS — up to 3 numbered save slots for the profile customization
+  /** PROFILE PRESETS — up to 22 numbered save slots for the profile customization
    *  look (colorway + tag paint + logo + name font), the grid-presets pattern
    *  ported to the profile egg menu (Brendon, 2026-09-02: "same UI as grid
-   *  presets"). No name — each pill wears its own saved colours instead.
-   *  Fixed-length (3), null = empty slot. Mirror `pd_profile_presets`. */
+   *  presets"; expanded 3 → 22 on 2026-09-08). No name — each pill wears its
+   *  own saved colours instead. Fixed-length (22), null = empty slot. Mirror
+   *  `pd_profile_presets`. */
   profilePresets?: Array<{
     id: string;
     created_at: number;
@@ -320,6 +321,11 @@ export interface UserSettings {
    *  roll shapes (Brendon, 2026-09-02: "like mood ring"). Mirror
    *  `pd_profile_generative`. */
   profileGenerative?: { enabled: boolean; lastRolledAt: number };
+  /** PROFILE DAILY SAVED — the standing "Daily" preset mode: once on, the
+   *  profile look auto-picks a random FILLED Preset save slot every 24h
+   *  (Brendon, 2026-09-08: "randomly picks one of your saved every day").
+   *  Mirror `pd_profile_daily_saved`. */
+  profileDailySaved?: { enabled: boolean; lastRolledAt: number };
   /** HOME SHUFFLE COLORWAY MODE — long-press the Shuffle tab to have each
    *  shuffled project's own colorway paint the whole page while you're on
    *  that tab (Brendon, 2026-09-02). ACCOUNT-ONLY: no localStorage mirror by
