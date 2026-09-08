@@ -204,13 +204,19 @@ export const POST = requireAuth(async (req, _ctx, address) => {
         if (!existing?.profile_hex) {
             upsertRow.profile_hex = signatureHex;
         }
-        /* Default brand-new accounts into the Dark colorway instead of the
-           unset/Dot boot default (Brendon, 2026-08-31) — matches the
-           generative profile hex, which now reads dark-mode-friendly. Only
-           on a genuinely new row: an existing settings envelope (any prior
+        /* Default brand-new accounts into the Custom colorway — the account's
+           own generative profile_hex, set just above — instead of the
+           generic Dark preset (Brendon, 2026-09-08: "set it back to default
+           upon account creation, it's currently black"). This REVERSES the
+           2026-08-31 change that pointed new accounts at 'dark' on the
+           theory the generative hex "reads dark-mode-friendly" — in
+           practice 'dark' means the app ignores profile_hex entirely and
+           shows the flat #1a1a1a Dark preset instead, so the generative
+           colour was being generated but never actually seen. Only on a
+           genuinely new row: an existing settings envelope (any prior
            colorway pick, explicit or not) is never overwritten. */
         if (!existing) {
-            upsertRow.settings = { colorway: 'dark' };
+            upsertRow.settings = { colorway: 'custom' };
         }
         const { data: upserted, error: upsertError } = await supabase
             .from('users')
