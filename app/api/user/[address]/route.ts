@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { getSupabaseAnon, PUBLIC_USER_COLUMNS, type UserRow } from '@/lib/supabase';
-import { getUserOwnedProjectsCount } from '@/lib/profile/getUserHoldings';
+import { getSupabaseAnon, getSupabaseService, PUBLIC_USER_COLUMNS, type UserRow } from '@/lib/supabase';
+import { getUserOwnedProjectsCount, getUserHoldings } from '@/lib/profile/getUserHoldings';
+import { buildAutoShowcase, showcaseSlotsEqual } from '@/lib/profile/autoShowcase';
 import { badRequest, notFound, serverError } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
@@ -79,6 +80,40 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
       follower_count,
       following_count,
     };
+
+    // Same auto-fill catch-up as the SSR profile page (see
+    // lib/profile/getUserProfileByHandle.ts for the full rationale) — this
+    // route is the client-side live-refresh channel, so covering it too
+    // means a visitor who's already sitting on someone's profile when a
+    // mint lands sees the Showcase catch up on the very next refresh, not
+    // just on their next full page load.
+    //
+    // showcase_user_set / showcase_auto_locked aren't in PUBLIC_USER_COLUMNS
+    // (no anon column GRANT for them — userRow can't see them), so they get
+    // their own service-role read here rather than trusting anything off
+    // the anon-selected row for the lock check.
+    try {
+      const svc = getSupabaseService();
+      const { data: flagRow } = await svc
+        .from('users')
+        .select('showcase, showcase_user_set, showcase_auto_locked')
+        .eq('address', address)
+        .maybeSingle();
+      const flags = flagRow as { showcase?: UserRow['showcase']; showcase_user_set?: boolean; showcase_auto_locked?: boolean } | null;
+      if (flags && !flags.showcase_user_set && !flags.showcase_auto_locked) {
+        const holdings = await getUserHoldings(address);
+        const auto = holdings?.length
+          ? buildAutoShowcase(holdings.map((h) => ({ slug: h.slug, token_id: h.token_id, mint_ts: h.mint_ts })))
+          : null;
+        if (auto && flags.showcase && !showcaseSlotsEqual(auto.slots, flags.showcase.slots)) {
+          const patch: Record<string, unknown> = { showcase: { slots: auto.slots } };
+          if (auto.distinctProjects >= 6) patch.showcase_auto_locked = true;
+          await svc.from('users').update(patch as never).eq('address', address);
+          response.showcase = { slots: auto.slots };
+        }
+      }
+    } catch { /* best-effort — stored showcase stands on any failure */ }
+
     return NextResponse.json(response);
   } catch (err) {
     return serverError(err instanceof Error ? err.message : 'Unknown error');
