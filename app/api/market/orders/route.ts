@@ -19,7 +19,7 @@ import { checkListingOrder, checkOfferOrder, resolveRoyaltyReceiver } from '@/li
 import { verifySeaportFill } from '@/lib/market/verifyFill';
 import { DEFAULT_DURATION_SEC, MAX_DURATION_SEC } from '@/lib/market/chain';
 import { tokenMatchesTrait, traitIdentifiers } from '@/lib/market/traitMatch';
-import type { OfferCriteria, SeaportOrderJson } from '@/lib/market/orderTypes';
+import type { OfferCriteria, SeaportOrderJson, MarketOfferRow } from '@/lib/market/orderTypes';
 
 export const dynamic = 'force-dynamic';
 
@@ -147,6 +147,81 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({
         offers: rows.map((o) => ({ ...o, bidder_handle: handleByAddr.get(o.bidder_address) ?? null })),
       });
+    }
+
+    // Wallet-level offers — the profile +More ▸ Offers tab (own-profile only,
+    // Brendon 2026-09-08). Two lists: offers this wallet MADE (bidder,
+    // any project), and offers RECEIVED (open offers targeting a piece this
+    // wallet actually holds — item-scope on a held token, collection-scope on
+    // any project they hold into, trait-scope resolved + intersected against
+    // what they hold). Was a permanent stub before this ("No offers yet").
+    const walletAddr = url.searchParams.get('wallet');
+    if (walletAddr) {
+      const madeR = await db
+        .from('offers')
+        .select('id, project_id, token_id, bidder_address, price_eth, status, scope, criteria, end_time, currency, source, order_hash, order_json, takeover_id')
+        .eq('bidder_address', walletAddr).eq('status', 'open')
+        .or(liveOr(now)).order('price_eth', { ascending: false }).limit(100);
+      if (madeR.error) return serverError(madeR.error.message);
+      const made = (madeR.data ?? []) as MarketOfferRow[];
+
+      // Tokens this wallet holds, grouped by project — the candidate set an
+      // incoming offer's target has to fall inside to count as "received".
+      const holdR = await db.from('holders').select('project_id, token_id').eq('owner_address', walletAddr).limit(2000);
+      if (holdR.error) return serverError(holdR.error.message);
+      const heldByProject = new Map<string, Set<string>>();
+      for (const h of (holdR.data ?? []) as { project_id: string; token_id: string }[]) {
+        if (!getProject(h.project_id)) continue;
+        let s = heldByProject.get(h.project_id);
+        if (!s) { s = new Set(); heldByProject.set(h.project_id, s); }
+        s.add(String(h.token_id));
+      }
+      const heldProjects = Array.from(heldByProject.keys());
+
+      let received: MarketOfferRow[] = [];
+      if (heldProjects.length > 0) {
+        const recvR = await db
+          .from('offers')
+          .select('id, project_id, token_id, bidder_address, price_eth, status, scope, criteria, end_time, currency, source, order_hash, order_json, takeover_id')
+          .in('project_id', heldProjects).eq('status', 'open')
+          .neq('bidder_address', walletAddr)
+          .or(liveOr(now)).order('price_eth', { ascending: false }).limit(300);
+        if (recvR.error) return serverError(recvR.error.message);
+        const candidates = (recvR.data ?? []) as MarketOfferRow[];
+        // Trait-set resolution is the one non-trivial lookup here — cache it
+        // per (project, category, value) so a repeated trait offer on the
+        // same project only resolves once per request.
+        const traitCache = new Map<string, string[]>();
+        for (const o of candidates) {
+          const held = heldByProject.get(o.project_id);
+          if (!held) continue;
+          if (o.scope === 'item') {
+            if (o.token_id != null && held.has(String(o.token_id))) received.push(o);
+          } else if (o.scope === 'collection') {
+            received.push(o);
+          } else if (o.scope === 'trait') {
+            const cat = o.criteria?.category ?? '';
+            const val = o.criteria?.value ?? '';
+            const ck = `${o.project_id}|${cat}|${val}`;
+            let ids = traitCache.get(ck);
+            if (!ids) { ids = await traitIdentifiers(db, o.project_id, cat, val); traitCache.set(ck, ids); }
+            if (ids.some((id) => held.has(id))) received.push(o);
+          }
+        }
+      }
+
+      const allRows = [...made, ...received];
+      const bidders = Array.from(new Set(allRows.map((o) => o.bidder_address)));
+      const handleByAddr = new Map<string, string | null>();
+      if (bidders.length > 0) {
+        const hs = await db.from('users').select('address, handle').in('address', bidders);
+        for (const u of (hs.data ?? []) as { address: string; handle: string | null }[]) {
+          handleByAddr.set(u.address, u.handle);
+        }
+      }
+      const withHandle = (rows: MarketOfferRow[]) =>
+        rows.map((o) => ({ ...o, bidder_handle: handleByAddr.get(o.bidder_address) ?? null }));
+      return NextResponse.json({ made: withHandle(made), received: withHandle(received) });
     }
 
     return badRequest('Missing query');
