@@ -241,6 +241,10 @@ export const STATE_CACHE_KEYS = {
     /** PROFILE GENERATIVE — the standing 24h-reroll toggle. Read + written by
      *  lib/profile/profileGenerative. Envelope (`profileGenerative`). */
     profileGenerative: 'pd_profile_generative',
+    /** PROFILE DAILY SAVED — the standing 24h pick-from-your-saved-Presets
+     *  toggle. Read + written by lib/profile/profileDailySaved. Envelope
+     *  (`profileDailySaved`). */
+    profileDailySaved: 'pd_profile_daily_saved',
 } as const;
 
 /** Fired after a server snapshot is written into the caches. Any context that
@@ -585,6 +589,9 @@ export function hydrateFromRow(row: UserRow): void {
         }
         if (s.profileGenerative && typeof s.profileGenerative === 'object') {
             localStorage.setItem(STATE_CACHE_KEYS.profileGenerative, JSON.stringify(s.profileGenerative));
+        }
+        if (s.profileDailySaved && typeof s.profileDailySaved === 'object') {
+            localStorage.setItem(STATE_CACHE_KEYS.profileDailySaved, JSON.stringify(s.profileDailySaved));
         }
         // homeShuffleColorway is intentionally NOT cached to localStorage
         // (Brendon, 2026-09-02: "db not localstorage") — it lives only in the
