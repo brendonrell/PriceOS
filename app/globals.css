@@ -12143,6 +12143,7 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     margin: 12px 0 10px;
 }
 .section-head-title {
+    position: relative;
     font-family: var(--font-rubik-mono), monospace;
     font-size: 13px;
     letter-spacing: 0.04em;
@@ -12160,6 +12161,24 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     white-space: nowrap;
 }
 .section-head-by a { color: inherit; text-decoration: none; }
+/* Shuffle "save for later" star (Brendon, 2026-09-08) — sits right after the
+   title, before " by @artist". Unstarred stays dimmed-but-legible (not the
+   near-invisible 0.3 other muted UI uses) so it still reads as tappable;
+   starred goes full strength + the same gold-ish accent the filled star
+   wears elsewhere. */
+.section-head-star {
+    display: inline-block;
+    margin-left: 6px;
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.55;
+    color: var(--text-color);
+    user-select: none;
+    vertical-align: middle;
+}
+.section-head-star:hover { opacity: 0.8; }
+.section-head-star.is-starred { opacity: 1; color: var(--accent, #e8b923); }
 /* Shuffle byline — bold + full strength so the thin Courier @artist reads
    clearly (Brendon, 2026-06-16). */
 .shuffle-head .section-head-by,
