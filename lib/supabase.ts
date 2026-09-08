@@ -531,6 +531,10 @@ export interface UserRow {
   showcase: Showcase;
   /** Stored as text; 'grid' on legacy rows maps to 'static' on read. */
   showcase_style: string;
+  /** See UserStatePatch — auto-fill's own permanent flags, set server-side
+   *  only (never by a client PATCH). */
+  showcase_user_set: boolean;
+  showcase_auto_locked: boolean;
   settings: UserSettings;
   calendar_state: Record<string, unknown>;
   grid_presets: Record<string, unknown>;
@@ -598,6 +602,12 @@ export interface UserStatePatch {
   };
   showcase?: Showcase;
   showcase_style?: ShowcaseStyle;
+  /** Server-set only (see /api/me PATCH) — true the instant the user's own
+   *  write ever touches showcase.slots; never sent by a client itself. */
+  showcase_user_set?: boolean;
+  /** Server-set only (see /api/me GET) — true once the auto-fill's own
+   *  computed set first reaches 6 distinct projects; freezes it forever. */
+  showcase_auto_locked?: boolean;
   settings?: UserSettings;
   calendar_state?: Record<string, unknown>;
   grid_presets?: Record<string, unknown>;
