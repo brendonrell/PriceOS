@@ -721,7 +721,7 @@ export async function buildIdentityPlate(d: IdentityPlateData): Promise<HTMLCanv
     ctx.fillStyle = INK;
     ctx.globalAlpha = 0.9;
     ctx.font = `24px ${mono}`;
-    ctx.fillText(`${d.name} · PRICEOS`, PAD, H - PAD);
+    ctx.fillText(`${d.name} · PriceOS`, PAD, H - PAD);
     ctx.textAlign = 'right';
     ctx.fillText('one wallet · one identity', W - PAD, H - PAD);
     ctx.globalAlpha = 1;
