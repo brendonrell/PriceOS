@@ -16,6 +16,11 @@ export interface UserProfileData extends UserRow {
    *  display. Derived server-side from their own saved setting; a visitor sees
    *  the deactivated shell, while the owner still sees their real profile. */
   deactivated: boolean;
+  /** Owner's "hide stickers" spell (settings.notifs.sticker) — lifted the same
+   *  way as `deactivated` so every visitor's HeroStickers reads the owner's
+   *  real choice instead of whatever hide-toggle happens to be set on the
+   *  visitor's own device/account. */
+  sticker_hidden: boolean;
   /** Tag ids the owner switched ON — one array lifted from the private settings
    *  envelope server-side so every visitor renders the same tag row. Tags are
    *  OFF by default, so an empty array means a bare profile (Brendon,
@@ -129,6 +134,7 @@ export async function getUserProfileByHandle(
   // the service key server-side so the private settings envelope is never
   // exposed — only this one boolean leaves the server. Best-effort → false.
   let deactivated = false;
+  let stickerHidden = false;
   let shownTags: string[] = [];
   let tagsOff: string[] = [];
   let teamTagStyle = 0;
@@ -158,6 +164,7 @@ export async function getUserProfileByHandle(
     } | null;
     const s = row?.settings;
     deactivated = !!(s?.notifs?.spell_invisible);
+    stickerHidden = !!(s?.notifs?.sticker);
     if (Array.isArray(s?.shownTags)) shownTags = s.shownTags.filter((x): x is string => typeof x === 'string');
     if (Array.isArray(s?.tagsOff)) tagsOff = s.tagsOff.filter((x): x is string => typeof x === 'string');
     teamTagStyle = teamStyleIndex(s?.teamTagStyle);
@@ -185,6 +192,7 @@ export async function getUserProfileByHandle(
     owned_projects: ownedProjects,
     volume_spent_eth: volumeSpent,
     deactivated,
+    sticker_hidden: stickerHidden,
     shown_tags: shownTags,
     tags_off: tagsOff,
     team_tag_style: teamTagStyle,
