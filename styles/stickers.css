@@ -1619,9 +1619,12 @@ body.theme-bright .ui-knockout { background: #fff; color: #111; }
 
 /* Sheet pills wear the knockout look. De-selected keep a FULL-strength dashed
    outline (Brendon, 2026-07-11 — no faint pill outlines anywhere); the active
-   pill drops the outline and reads as the solid selected block. */
-.pill.smgr-sheet-pill { border: 1px dashed currentColor; opacity: 0.65; }
-.pill.smgr-sheet-pill.active { opacity: 1; border-color: transparent; }
+   pill drops the outline and reads as the solid selected block.
+   Dashed-only read too close to ON at a glance (Brendon, 2026-09-09) — OFF
+   now also desaturates the sticker swatch + fades a touch further, so the
+   two states are legible without either one going transparent-invisible. */
+.pill.smgr-sheet-pill { border: 1px dashed currentColor; opacity: 0.55; filter: grayscale(1); transition: opacity 0.15s ease, filter 0.15s ease; }
+.pill.smgr-sheet-pill.active { opacity: 1; border-color: transparent; filter: none; }
 
 
 /* Store + Market + Binder compact rails ALL sized to the STORE's real card
