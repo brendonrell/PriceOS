@@ -129,6 +129,32 @@ export function getFlip(): boolean { return read(K_FLIP, '0') === '1'; }
 
 export interface HeroPrefs { arrange: Arrange; tilt: Tilt; seed: number; expand: boolean; rows: Rows; align: Align; flip: boolean; density: number; border: Border; }
 
+const DEFAULT_HERO_PREFS: HeroPrefs = { arrange: 'spread', tilt: 'soft', seed: 1, expand: false, rows: 1, align: 'left', flip: false, density: 0, border: 'off' };
+
+/* Build a HeroPrefs from the account-synced `sticker_state.look` blob (same
+   keys as LOOK_KEYS in owned.ts) instead of this device's localStorage. Used
+   for anyone reading someone else's resting look — a visitor, or the owner's
+   own resting (non-editing) view — so the picture is what's actually saved,
+   not whatever this browser happens to have sitting locally (Brendon,
+   2026-09-09: "others don't see what I see... it's clearly in the db, should
+   be simple to make it that way across the board"). Same defaults/normalize
+   as the local read path so a missing/partial blob degrades identically. */
+export function resolveLook(look: Record<string, string> | null | undefined): HeroPrefs {
+    const g = (k: string, fallback: string) => (look && look[k] != null ? look[k]! : fallback);
+    return {
+        arrange: normalizeArrange(g(K_ARRANGE, 'spread')),
+        tilt: g(K_TILT, 'soft') as Tilt,
+        seed: Number(g(K_SEED, '1')) || 1,
+        expand: g(K_EXPAND, '0') === '1',
+        rows: (g(K_ROWS, '1') === '3' ? 3 : g(K_ROWS, '1') === '2' ? 2 : 1) as Rows,
+        align: g(K_ALIGN, 'left') as Align,
+        flip: g(K_FLIP, '0') === '1',
+        density: (() => { const v = parseInt(g(K_DENSITY, '0'), 10); return Number.isFinite(v) ? Math.max(0, Math.min(DENSITIES.length - 1, v)) : 0; })(),
+        border: g(K_BORDER, 'off') as Border,
+    };
+}
+export { DEFAULT_HERO_PREFS };
+
 export function useHeroPrefs(): HeroPrefs {
     const [v, setV] = useState<HeroPrefs>({ arrange: 'spread', tilt: 'soft', seed: 1, expand: false, rows: 1, align: 'left', flip: false, density: 0, border: 'off' });
     useEffect(() => {
