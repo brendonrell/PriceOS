@@ -118,6 +118,33 @@
 }
 .mk-offers-pill:hover { opacity: 1; }
 
+/* Offers-count button (artwork page + price stream card) — glyph-only,
+   same shape/size as the Exchange button (.btn-soundtrack), with an
+   iOS-app-icon-style count badge overlapping the top-right corner
+   (Brendon, 2026-09-09: replaces the old text pill, which was never
+   approved). */
+.mk-offers-glyph-btn { position: relative; overflow: visible; }
+.mk-offers-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    box-sizing: border-box;
+    border-radius: 999px;
+    background: var(--text-color);
+    color: var(--bg-color);
+    border: 2px solid var(--bg-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px;
+    font-weight: bold;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
 /* Trait-offer chip on the attributes wall tiles + the trait picker face. */
 .attr-tile.has-offer { position: relative; }
 .attr-tile-offer {
