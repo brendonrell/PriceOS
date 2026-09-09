@@ -813,11 +813,12 @@
    bold dark score line so the edge reads heavier (Brendon, 2026-06-24). */
 .hero-stickers.bd-white { --sticker-cut: #fff; --sticker-line: #d6d6d6; }
 .hero-stickers.bd-bold { --sticker-cut: #fff; --sticker-line: #111; }
-/* Sticker Mode hides the profile stickers. The toggle adds this body class
-   synchronously the instant it's pressed (see MyPdSection), so the stickers cut
-   out in the same frame the button fires — no spilled-frame flash (Brendon,
-   2026-06-24). */
-body.sticker-mode .hero-stickers { display: none; }
+/* Sticker Mode used to hide stickers SITE-WIDE for whoever had the toggle on —
+   every profile they visited, not just their own (Brendon, 2026-09-09: "I
+   want to always show them... this button as the user's spot to show/hide on
+   their own profile only"). Hiding is now decided per-profile in
+   HeroStickers.tsx (isOwn ? own toggle : owner's public flag) — a body class
+   can't tell whose profile is on screen, so this rule always over-hid. */
 .hero-stickers-rows {
     display: flex;
     flex-direction: column;
