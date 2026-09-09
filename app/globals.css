@@ -6647,17 +6647,23 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.32); }
 }
 @media (max-width: 600px) { .sort-btn.group-btn { margin-right: 5px; } }
 
-/* Active grouping layers, spelled out below the sort row (Brendon,
-   2026-09-06) — replaces the old '+'/'↳' mark on the group toggle itself. */
+/* Active grouping layers, spelled out directly above the grid it describes
+   (Brendon, 2026-09-09 — moved out of the sort row, now part of the grid;
+   also tappable to fold/restore every group header at once). Bumped from
+   opacity:0.7/regular weight — it was reading as near-invisible next to the
+   rest of the row. */
 .group-layers-chip-row {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 4px;
     font-size: 13px;
-    opacity: 0.7;
-    margin-top: 4px;
+    font-weight: 700;
+    opacity: 1;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
 }
+.group-layers-chip-row.is-folded { opacity: 0.6; }
 .group-layers-chip {
     display: inline-flex;
     align-items: center;
