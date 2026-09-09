@@ -505,21 +505,6 @@ export default function ProfileFacetBar({
                 </div>
             </div>
 
-            {/* Active grouping layers, spelled out below the sort row (Brendon,
-                2026-09-06) — e.g. "✺ Artist › ⬚ Project › ◉ Colour" — since the
-                group toggle itself only ever wears the top layer's glyph now. */}
-            {groupLayers.length > 0 && (
-                <div className="group-layers-chip-row" aria-label="Active grouping layers">
-                    {groupLayers.map((key, i) => (
-                        <span key={key} className="group-layers-chip">
-                            {GROUP_GLYPH[key] && <span className="glb-glyph" aria-hidden="true">{GROUP_GLYPH[key]}</span>}
-                            {GROUP_LABEL[key]}
-                            {i < groupLayers.length - 1 && <span className="group-layers-chip-sep" aria-hidden="true">{' › '}</span>}
-                        </span>
-                    ))}
-                </div>
-            )}
-
             {/* Grid Presets row — pops up on ⏚. Collected's own 3 slots. */}
             <CollectedPresetRow
                 open={presetRowActive}

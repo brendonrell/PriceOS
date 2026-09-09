@@ -42,7 +42,7 @@ import { useProfileHex, PROFILE_HEX_DEFAULT } from '../../lib/hooks/useProfileHe
 import { useToast } from '../../lib/state/ToastContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { shareLink } from '../../lib/pwa/share';
-import { useSort, groupHeaderGlyph } from '../../lib/state/SortContext';
+import { useSort, groupHeaderGlyph, GROUP_GLYPH, GROUP_LABEL } from '../../lib/state/SortContext';
 import { GhostFeedRows } from '../GhostFeed';
 import SocialFeed from '../home/SocialFeed';
 import FeedEventRow from '../feed/FeedEventRow';
@@ -890,8 +890,32 @@ function ProfilePageBodyInner({
         dActiveFilters, dSearchQuery, dPriceMin, dPriceMax,
         enriched, visibleCollected, shownCollected, revealCount,
         collectedSentinelRef, collectedByProject, collectedGroups,
-        collapsedGroups, toggleGroupCollapse,
+        collapsedGroups, toggleGroupCollapse, allGroupKeys, setCollapsedGroupsBulk,
     } = useCollectedGallery(holdings);
+
+    /* Breadcrumb fold-all (Brendon, 2026-09-09) — one tap on the "Moon Phase ›
+       Artist › Project" line folds every open header at once instead of
+       collapsing them one by one. Tapping again doesn't just reopen
+       everything — it restores whatever mix of open/closed headers the
+       viewer actually had before the fold, snapshotted to localStorage so a
+       reload mid-browse still un-folds to the same layout. */
+    const GROUP_FOLD_SNAPSHOT_KEY = `pd_group_fold_snapshot:${user.address.toLowerCase()}`;
+    const allGroupsFolded = allGroupKeys.size > 0 && [...allGroupKeys].every((k) => collapsedGroups.has(k));
+    const toggleAllGroups = useCallback(() => {
+        if (allGroupsFolded) {
+            let saved: string[] = [];
+            try {
+                const raw = localStorage.getItem(GROUP_FOLD_SNAPSHOT_KEY);
+                if (raw) saved = JSON.parse(raw);
+            } catch { /* ignore */ }
+            setCollapsedGroupsBulk(saved.filter((k) => allGroupKeys.has(k)));
+        } else {
+            try {
+                localStorage.setItem(GROUP_FOLD_SNAPSHOT_KEY, JSON.stringify([...collapsedGroups]));
+            } catch { /* ignore */ }
+            setCollapsedGroupsBulk(allGroupKeys);
+        }
+    }, [allGroupsFolded, allGroupKeys, collapsedGroups, setCollapsedGroupsBulk, GROUP_FOLD_SNAPSHOT_KEY]);
 
     /* Takeover only shows when one could actually be CAST on this wallet — the
        floor is 3+ pieces of a single project (api/takeover). No holdings, or
@@ -2848,6 +2872,32 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                         <PriceHoldersBoard />
                     </div>
                 </>
+            )}
+
+            {/* Active grouping layers — "Moon Phase › Artist › Project" — now part
+                of the GRID (Brendon, 2026-09-09: it was living in the sort row,
+                stranded above the search field; it belongs directly over the
+                thing it's describing). Tap folds every header at once; tap again
+                restores the exact open/closed mix it had before, not a blanket
+                reopen — see toggleAllGroups above. */}
+            {onCollected && !isPlatform && groupLayers.length > 0 && (
+                <div
+                    className={`group-layers-chip-row${allGroupsFolded ? ' is-folded' : ''}`}
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Active grouping layers — tap to fold all"
+                    aria-expanded={!allGroupsFolded}
+                    onClick={toggleAllGroups}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleAllGroups(); } }}
+                >
+                    {groupLayers.map((key, i) => (
+                        <span key={key} className="group-layers-chip">
+                            {GROUP_GLYPH[key] && <span className="glb-glyph" aria-hidden="true">{GROUP_GLYPH[key]}</span>}
+                            {GROUP_LABEL[key]}
+                            {i < groupLayers.length - 1 && <span className="group-layers-chip-sep" aria-hidden="true">{' › '}</span>}
+                        </span>
+                    ))}
+                </div>
             )}
 
             <section

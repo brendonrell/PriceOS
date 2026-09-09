@@ -301,6 +301,24 @@ export function useCollectedGallery(holdings: Holding[]) {
             if (next.has(key)) next.delete(key); else next.add(key);
             return next;
         });
+    /* Every header key currently on screen, across all three levels — what
+       "collapse all" folds and what a restored snapshot gets filtered
+       against (a saved key from a since-changed grouping shouldn't linger).
+       (Brendon, 2026-09-09 — the breadcrumb's fold-all tap.) */
+    const allGroupKeys = useMemo(() => {
+        const s = new Set<string>();
+        (collectedGroups ?? []).forEach((blk) => {
+            s.add(blk.l1Key);
+            if (blk.l2Key) s.add(blk.l2Key);
+            if (blk.l3Key) s.add(blk.l3Key);
+        });
+        return s;
+    }, [collectedGroups]);
+    /* Bulk replace — the breadcrumb's fold-all/restore needs to SET the
+       whole set at once, not flip one key at a time like toggleGroupCollapse. */
+    const setCollapsedGroupsBulk = useCallback((keys: Iterable<string>) => {
+        setCollapsedGroups(new Set(keys));
+    }, []);
     /* One render per change — see the project gallery's note. */
     useEffect(() => { setCollapsedGroups((prev) => (prev.size ? new Set() : prev)); }, [groupLayers]);
 
@@ -315,5 +333,7 @@ export function useCollectedGallery(holdings: Holding[]) {
         collectedGroups,
         collapsedGroups,
         toggleGroupCollapse,
+        allGroupKeys,
+        setCollapsedGroupsBulk,
     };
 }
