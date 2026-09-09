@@ -184,7 +184,7 @@ export default function GroupLayersBubble({
                         <span aria-hidden="true">{'◂︎'}</span>{` Group by (Layer ${picking})`}
                     </button>
                     <div className="glb-list">
-                        {picking > 1 && (
+                        {(
                             <button
                                 type="button"
                                 className={`fiat-opt glb-opt${!current(picking) ? ' fiat-opt-on' : ''}`}
