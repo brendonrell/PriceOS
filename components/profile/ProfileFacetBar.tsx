@@ -424,7 +424,7 @@ export default function ProfileFacetBar({
                            the chip row below spells out the rest). */
                         glyph={groupLayers.length ? GROUP_GLYPH[groupLayers[0]!] : GROUP_GLYPH[effGroup]}
                         on={groupLayers.length > 0 || effGroup !== 'none'}
-                        onTapAnchor={(a) => setLayersAnchor({ ...a, startAt: 1 })}
+                        onTapAnchor={(a) => setLayersAnchor((prev) => (prev ? null : { ...a, startAt: 1 }))}
                         onHold={(a) => setLayersAnchor({ ...a, startAt: null })}
                     />
                     {layersAnchor && (
