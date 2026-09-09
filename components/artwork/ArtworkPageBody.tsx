@@ -843,11 +843,12 @@ export default function ArtworkPageBody({
                         {(market?.offers?.length ?? 0) > 0 && (
                             <button
                                 type="button"
-                                className="mk-offers-pill"
+                                className="btn-soundtrack mk-offers-glyph-btn"
                                 onClick={() => openOffersPanel(slug, numberPart)}
-                                title="Open offers"
+                                title={`${market!.offers.length} open ${market!.offers.length === 1 ? 'offer' : 'offers'}`}
                             >
-                                {'✶︎'} {market!.offers.length} {market!.offers.length === 1 ? 'OFFER' : 'OFFERS'}
+                                {'✶︎'}
+                                <span className="mk-offers-badge">{market!.offers.length}</span>
                             </button>
                         )}
                         {/* THE EXCHANGE — trade head-to-head with this piece's
