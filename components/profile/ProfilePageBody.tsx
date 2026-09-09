@@ -2240,6 +2240,8 @@ function ProfilePageBodyInner({
                         savedOwnedIds={user.sticker_state?.owned ?? null}
                         savedOffSheets={user.sticker_state?.offSheets ?? null}
                         savedOffIds={user.sticker_state?.offIds ?? null}
+                        savedLook={user.sticker_state?.look ?? null}
+                        ownerHidden={user.sticker_hidden ?? false}
                     />
                     <div className="action-row">
                         <FollowButton targetAddress={user.address} targetHandle={user.handle ?? displayHandle} />
