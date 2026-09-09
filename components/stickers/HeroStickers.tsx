@@ -26,7 +26,7 @@
 import { Component, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { useOwnedFor, useStickerPrefs, isActive } from '../../lib/stickers/owned';
-import { useHeroPrefs, arrangeShape, tiltDeg, rngFrom, buildCollage, buildPile, buildSlapped, buildFlow, stickerHue, shouldFlip } from '../../lib/stickers/heroPrefs';
+import { useHeroPrefs, resolveLook, arrangeShape, tiltDeg, rngFrom, buildCollage, buildPile, buildSlapped, buildFlow, stickerHue, shouldFlip } from '../../lib/stickers/heroPrefs';
 import { usePlacements, setComposition, moveSticker, raiseSticker, rotateSticker, removeFromComposition, type PlacementMap } from '../../lib/stickers/placements';
 import { StickerArt } from './StickerArt';
 import { StickerManagerModal } from './StickerManagerModal';
@@ -47,6 +47,15 @@ interface Props {
     savedOwnedIds?: string[] | null;
     savedOffSheets?: string[] | null;
     savedOffIds?: string[] | null;
+    /** Owner's account-synced look (arrange/tilt/rows/align/flip/density/border/
+     *  seed) — VISITOR path, same reasoning as savedOwnedIds above: without
+     *  this a visitor's own local/default look rendered instead of the
+     *  owner's actual saved arrangement (Brendon, 2026-09-09). */
+    savedLook?: Record<string, string> | null;
+    /** Owner's public "hide stickers" flag (settings.notifs.sticker, lifted
+     *  server-side) — VISITOR path. The owner's own toggle (notifs.sticker on
+     *  their own session) still governs their own view. */
+    ownerHidden?: boolean;
     /** Read-only mirror — renders the owner's live arrangement with NO gestures
      *  (no lift/drag/✕, no manager). Used as the live preview inside Manager Plus. */
     preview?: boolean;
@@ -86,7 +95,7 @@ function snapAngle(deg: number): number {
     return Math.abs(deg - nearest) <= 5 ? nearest : Math.round(deg);
 }
 
-function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, savedOwnedIds, savedOffSheets, savedOffIds, preview }: Props) {
+function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, savedOwnedIds, savedOffSheets, savedOffIds, savedLook, ownerHidden, preview }: Props) {
     const { notifs } = usePdNotifs();
     /* The manager modal, and the currently lifted sticker (floating + ✕,
        own profile only) — a direct long-press-drag on the hero lifts a
@@ -115,7 +124,13 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, saved
     const livePrefs = useStickerPrefs();
     const offSheets = editingLive ? livePrefs.offSheets : new Set(savedOffSheets ?? []);
     const offIds = editingLive ? livePrefs.offIds : new Set(savedOffIds ?? []);
-    const { arrange, tilt, seed, expand, rows: rowsPref, align, flip, density, border } = useHeroPrefs();
+    /* The look: local live state while actively editing, the account-synced
+       blob otherwise — for a visitor AND for the owner's own resting (not
+       currently editing) view alike, so the picture shown always matches
+       what's actually saved (Brendon, 2026-09-09). */
+    const localLook = useHeroPrefs();
+    const resolvedLook = useMemo(() => resolveLook(savedLook), [savedLook]);
+    const { arrange, tilt, seed, expand, rows: rowsPref, align, flip, density, border } = editingLive ? localLook : resolvedLook;
     /* Die-cut border (the kiss-cut white edge) — Off / White / Bold. White =
        white kiss-cut; Bold = white cut + a bold dark score line. Driven by CSS
        vars on the wrapper so the existing StickerArt die-cut is reused as-is. */
@@ -349,7 +364,12 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, saved
         />
     ) : null;
 
-    if (notifs.sticker) return manager;
+    /* The hide toggle is per-viewer's own session (notifs.sticker) — only
+       meaningful for the OWNER'S OWN view. A visitor's hide check is the
+       owner's public flag, not whatever the visitor happens to have set on
+       their own account (that used to hide every profile a hider visited,
+       not just their own). */
+    if (isOwn ? notifs.sticker : ownerHidden) return manager;
     if (locked ? lockedItems.length === 0 : active.length === 0) return manager;
 
     const baseTilt = tiltDeg(tilt);
