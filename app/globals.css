@@ -2553,7 +2553,7 @@ section[aria-label="Created projects"] > .upload-window {
 .projects-pro-list {
     flex: 1 1 auto; min-height: 0; width: 100%;
     overflow-y: auto; overflow-x: hidden;
-    -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;
     display: flex; flex-direction: column;
 }
 .projects-pro-row {
@@ -2628,12 +2628,18 @@ section[aria-label="Created projects"] > .upload-window {
 }
 .fm-lens-chip.on { background: var(--text-color); }
 
-/* The one scroll area — owns all remaining height. */
+/* The one scroll area — owns all remaining height.
+   touch-action: pan-y — every other scroller inside a body.modal-open lock
+   (touch-action: none) carries this override so ITS OWN vertical pan wins the
+   gesture instead of intermittently falling through to the locked body
+   (Brendon, 2026-09-09: "connects to screen behind... despite being in +
+   mode"). This list was the one place in the Friend-Inspector family that
+   never got it. */
 .followers-pop .fm-list,
 .followers-plus .fm-list {
     flex: 1 1 auto; min-height: 0; width: 100%;
     overflow-y: auto; overflow-x: hidden;
-    -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;
     display: flex; flex-direction: column;
 }
 
