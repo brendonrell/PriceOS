@@ -220,11 +220,12 @@ function ActionRail({ card }: { card: PriceStreamCard | null }) {
                     {card.offersCount > 0 && (
                         <button
                             type="button"
-                            className="mk-offers-pill"
+                            className="btn-soundtrack mk-offers-glyph-btn"
                             onClick={() => openOffersPanel(card.slug, card.tokenId)}
-                            title="Open offers"
+                            title={`${card.offersCount} open ${card.offersCount === 1 ? 'offer' : 'offers'}`}
                         >
-                            {'\u2736\uFE0E'} {card.offersCount} {card.offersCount === 1 ? 'OFFER' : 'OFFERS'}
+                            {'\u2736\uFE0E'}
+                            <span className="mk-offers-badge">{card.offersCount}</span>
                         </button>
                     )}
                 </div>
