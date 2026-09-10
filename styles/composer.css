@@ -553,6 +553,31 @@ body.theme-bright .gsr-row.gsr-composer {
     box-sizing: border-box;
 }
 .cmp-prog-sub { font-size: 12px; color: var(--text-color); line-height: 1.55; }
+
+/* Always-visible per-row delete (Brendon, 2026-09-10 — delete used to live
+   only behind a long-press, "a whodunnit"). Same low-opacity-on-touch,
+   ramps-on-hover treatment as .notif-item-delete. */
+.cmp-prog-delete {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: opacity 0.15s, color 0.15s;
+}
+@media (hover: hover) {
+    .cmp-prog-delete { opacity: 0.55; }
+    .cmp-prog-delete:hover { opacity: 1; color: var(--hothurt); }
+}
+@media (hover: none) {
+    .cmp-prog-delete { opacity: 0.5; }
+}
 .cmp-prog-manage { display: flex; gap: 7px; margin-top: 3px; }
 .cmp-rename-input { flex: 1; width: auto; }
 .cmp-prog-new {
