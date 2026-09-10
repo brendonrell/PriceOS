@@ -64,6 +64,8 @@ import {
 type View = 'builder' | 'results' | 'programs';
 type Segment = 'field' | 'op' | 'value';
 
+const VS15 = '︎';
+
 const SORT_PILLS: { key: ComposerSortKey; label: string }[] = [
     { key: 'price', label: 'PRICE' },
     { key: 'rarity', label: 'RARITY' },
@@ -1317,6 +1319,27 @@ export default function ComposerModal() {
                                             <span className="cmp-prog-count">
                                                 {loading ? '…' : programCounts[i]}
                                             </span>
+                                            {/* Always-visible delete — long-press-to-reveal was the
+                                                only way in before (Brendon, 2026-09-10: "a whodunnit").
+                                                Same low-opacity-on-touch, ramps-on-hover treatment as
+                                                .notif-item-delete. */}
+                                            <span
+                                                className="cmp-prog-delete"
+                                                role="button"
+                                                tabIndex={0}
+                                                title="Delete program"
+                                                onPointerDown={(e) => e.stopPropagation()}
+                                                onClick={(e) => { e.stopPropagation(); setConfirmDeleteIdx(i); }}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        setConfirmDeleteIdx(i);
+                                                    }
+                                                }}
+                                            >
+                                                {`×${VS15}`}
+                                            </span>
                                         </div>
                                         <div className="cmp-prog-sub">{querySummary(p.query)}</div>
                                         <Spectrum rows={programMatches[i] ?? []} />
@@ -1350,7 +1373,7 @@ export default function ComposerModal() {
                                 </button>
                             </div>
                             <div className="cmp-note">
-                                A PROGRAM RE-RUNS LIVE EVERY TIME IT OPENS · LONG-PRESS TO RENAME OR DELETE
+                                A PROGRAM RE-RUNS LIVE EVERY TIME IT OPENS · LONG-PRESS TO RENAME · TAP × TO DELETE
                             </div>
                             {confirmDeleteIdx != null && programs[confirmDeleteIdx] && (
                                 <div
