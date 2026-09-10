@@ -314,21 +314,36 @@ export default function StarredList({
         });
     const handleRemoveSelected = () => {
         if (selected.size === 0) return;
-        const inMode = (m: Mode) => mode === 'all' || mode === m || (isSocial && (m === 'collectors' || m === 'artists' || m === 'projects'));
-        if (inMode('outputs')) visibleOutputs.forEach((r) => { if (selected.has(`${r.slug}:${r.id}`)) toggleStar(r.slug, r.id); });
-        if (inMode('traits')) visibleTraits.forEach((r) => { if (selected.has(`${r.slug}|${r.category}|${r.value}`)) toggleTraitStar(r.slug, r.category, r.value); });
-        if (inMode('artists')) visibleArtists.forEach((r) => { if (selected.has(r.name)) removeArtistStar(r.name); });
-        if (inMode('collectors')) visibleCollectors.forEach((r) => { if (selected.has(r.name)) removeArtistStar(r.name); });
-        if (inMode('soundtracks')) visibleSoundtracks.forEach((r) => { if (selected.has(`${r.slug}|${r.playlistId}`)) toggleSoundtrackStar(r.slug, r.playlistId, r.title); });
-        if (inMode('projects')) visibleProjects.forEach((r) => { if (selected.has(`p:${r.slug}`)) removeProjectStar(r.slug); });
-        if (inMode('priceday')) visiblePriceDays.forEach((r) => { if (selected.has(`pd:${r.number}`)) removePriceDayStar(r.number); });
-        if (inMode('albums')) visibleAlbums.forEach((r) => { if (selected.has(`al:${r.ownerAddress}:${r.albumId}`)) toggleAlbumStar(r.ownerAddress, r.albumId); });
-        if (inMode('vaults')) visibleVaults.forEach((r) => { if (selected.has(`vl:${r.ownerAddress}:${r.vaultId}`)) toggleVaultStar(r.ownerAddress, r.vaultId); });
-        if (inMode('tx')) visibleTx.forEach((r) => { if (selected.has(`tx:${r.star.id}`)) removeTxStar(r.star.id); });
         const n = selected.size;
-        setSelected(new Set());
-        onExitMulti?.();
-        showToast(`Removed ${n} from your Starred List`);
+        /* Bulk remove is destructive — same confirm gate as every single-item
+           Remove on this list (Brendon: always confirm destructive actions). */
+        askRemove(
+            isHistory
+                ? `Remove ${n} item${n === 1 ? '' : 's'} from your History?`
+                : `Remove ${n} item${n === 1 ? '' : 's'} from your Starred list?`,
+            () => {
+                const inMode = (m: Mode) => mode === 'all' || mode === m || (isSocial && (m === 'collectors' || m === 'artists' || m === 'projects'));
+                if (inMode('outputs')) visibleOutputs.forEach((r) => {
+                    if (!selected.has(`${r.slug}:${r.id}`)) return;
+                    /* History rows share this component with Starred Outputs, but
+                       removing a History row must clear history, not toggle a star. */
+                    if (isHistory) void removeMyHistory(r.slug, r.id);
+                    else toggleStar(r.slug, r.id);
+                });
+                if (inMode('traits')) visibleTraits.forEach((r) => { if (selected.has(`${r.slug}|${r.category}|${r.value}`)) toggleTraitStar(r.slug, r.category, r.value); });
+                if (inMode('artists')) visibleArtists.forEach((r) => { if (selected.has(r.name)) removeArtistStar(r.name); });
+                if (inMode('collectors')) visibleCollectors.forEach((r) => { if (selected.has(r.name)) removeArtistStar(r.name); });
+                if (inMode('soundtracks')) visibleSoundtracks.forEach((r) => { if (selected.has(`${r.slug}|${r.playlistId}`)) toggleSoundtrackStar(r.slug, r.playlistId, r.title); });
+                if (inMode('projects')) visibleProjects.forEach((r) => { if (selected.has(`p:${r.slug}`)) removeProjectStar(r.slug); });
+                if (inMode('priceday')) visiblePriceDays.forEach((r) => { if (selected.has(`pd:${r.number}`)) removePriceDayStar(r.number); });
+                if (inMode('albums')) visibleAlbums.forEach((r) => { if (selected.has(`al:${r.ownerAddress}:${r.albumId}`)) toggleAlbumStar(r.ownerAddress, r.albumId); });
+                if (inMode('vaults')) visibleVaults.forEach((r) => { if (selected.has(`vl:${r.ownerAddress}:${r.vaultId}`)) toggleVaultStar(r.ownerAddress, r.vaultId); });
+                if (inMode('tx')) visibleTx.forEach((r) => { if (selected.has(`tx:${r.star.id}`)) removeTxStar(r.star.id); });
+                setSelected(new Set());
+                onExitMulti?.();
+                showToast(isHistory ? `Removed ${n} from your History` : `Removed ${n} from your Starred List`);
+            }
+        );
     };
 
     /* Live wishlist membership so each Output row's CTA reflects whether it's
@@ -1511,7 +1526,7 @@ export default function StarredList({
                         </button>
                     </div>
                     <div className="ms-float-count">
-                        {selected.size === 0 ? 'Select items' : `${selected.size} selected`}
+                        {selected.size === 0 ? '0 items' : `${selected.size} selected`}
                     </div>
                 </div>
             )}
