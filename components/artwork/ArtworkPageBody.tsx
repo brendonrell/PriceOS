@@ -840,17 +840,6 @@ export default function ArtworkPageBody({
                         >
                             {ctaBusy ? <span className="mint-lbl">CANCELLING…</span> : ctaLabel}
                         </button>
-                        {(market?.offers?.length ?? 0) > 0 && (
-                            <button
-                                type="button"
-                                className="btn-soundtrack mk-offers-glyph-btn"
-                                onClick={() => openOffersPanel(slug, numberPart)}
-                                title={`${market!.offers.length} open ${market!.offers.length === 1 ? 'offer' : 'offers'}`}
-                            >
-                                {'✶︎'}
-                                <span className="mk-offers-badge">{market!.offers.length}</span>
-                            </button>
-                        )}
                         {/* THE EXCHANGE — trade head-to-head with this piece's
                             holder, window pre-seeded with the piece
                             (spec 86ba0apqr: output-page surface). GLYPH ONLY,
@@ -872,7 +861,7 @@ export default function ArtworkPageBody({
                                     );
                                 }}
                             >
-                                {'⇌︎'}
+                                <span className="btn-icon-glyph">{'⇌︎'}</span>
                             </button>
                         )}
                         {/* Owner of a live listing: edit price in place (the sheet
@@ -889,6 +878,22 @@ export default function ArtworkPageBody({
                                 {market?.listing?.end_time
                                     ? ` · ends ${fmtEndsIn(market.listing.end_time)}`
                                     : ''}
+                            </button>
+                        )}
+                        {/* Offers-count glyph button — always last in the action
+                            row, after the CTA and the Exchange/Edit button
+                            (Brendon, 2026-09-09). */}
+                        {(market?.offers?.length ?? 0) > 0 && (
+                            <button
+                                type="button"
+                                className="btn-soundtrack mk-offers-glyph-btn"
+                                onClick={() => openOffersPanel(slug, numberPart)}
+                                title={`${market!.offers.length} open ${market!.offers.length === 1 ? 'offer' : 'offers'}`}
+                            >
+                                {'✶︎'}
+                                <span className="mk-offers-badge">
+                                    <span className="mk-offers-badge-num">{market!.offers.length}</span>
+                                </span>
                             </button>
                         )}
                     </div>
