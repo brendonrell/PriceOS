@@ -82,21 +82,34 @@ export async function GET(req: Request) {
 
     const picked = shuffle(rows).slice(0, count).filter((r) => Number.isFinite(Number(r.token_id)));
 
-    // Item-scope open offers for just the picked cards — the offers pill
-    // mirrors the artwork modal's, so it needs a real count, but only for
-    // the ~20 cards actually going out (not the full 200-row pool).
+    // Item + collection-scope open offers for just the picked cards — the
+    // offers pill mirrors the artwork modal's real count, so it must apply
+    // the SAME live filter the modal's /market route uses (expired-but-
+    // still-status-open rows were getting counted here, badge showed a
+    // count the offers panel then opened to 0 of — Brendon, 2026-09-09).
+    // Trait-scope offers are still excluded (would need per-card trait
+    // computation for all ~20 cards); item + collection covers the common
+    // case without that cost.
     const offersCountByKey = new Map<string, number>();
+    const collectionOfferCountByProject = new Map<string, number>();
     if (picked.length) {
         const projectIds = Array.from(new Set(picked.map((r) => String(r.project_id).toLowerCase())));
+        const now = Math.floor(Date.now() / 1000);
         const { data: offerRows } = await db
             .from('offers')
-            .select('project_id, token_id')
-            .eq('scope', 'item')
+            .select('project_id, token_id, scope')
             .eq('status', 'open')
-            .in('project_id', projectIds);
-        for (const o of (offerRows ?? []) as { project_id: string; token_id: string | number }[]) {
-            const key = `${String(o.project_id).toLowerCase()}:${Number(o.token_id)}`;
-            offersCountByKey.set(key, (offersCountByKey.get(key) ?? 0) + 1);
+            .in('project_id', projectIds)
+            .in('scope', ['item', 'collection'])
+            .or(`end_time.is.null,end_time.gt.${now}`);
+        for (const o of (offerRows ?? []) as { project_id: string; token_id: string | number | null; scope: string | null }[]) {
+            const proj = String(o.project_id).toLowerCase();
+            if (o.scope === 'collection') {
+                collectionOfferCountByProject.set(proj, (collectionOfferCountByProject.get(proj) ?? 0) + 1);
+            } else {
+                const key = `${proj}:${Number(o.token_id)}`;
+                offersCountByKey.set(key, (offersCountByKey.get(key) ?? 0) + 1);
+            }
         }
     }
 
@@ -113,7 +126,7 @@ export async function GET(req: Request) {
             dominantColor: r.dominant_color,
             listed: priceEth != null,
             priceEth,
-            offersCount: offersCountByKey.get(key) ?? 0,
+            offersCount: (offersCountByKey.get(key) ?? 0) + (collectionOfferCountByProject.get(slug) ?? 0),
         };
     });
 
