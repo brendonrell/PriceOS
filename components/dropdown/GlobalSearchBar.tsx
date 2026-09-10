@@ -205,7 +205,9 @@ export function SearchUserRow({
             {user.is_artist && <span className="gsr-badge" title="Artist">{`✺${VS15}`}</span>}
             <UserTags set={tagSet} size="row" />
             <span className="gsr-sub gsr-stats" title="Collected · Spent · Followers">
-                {`⬚${VS15} ${user.collected}  ⟠${VS15} ${user.spent_eth.toFixed(2)}  ⚬${VS15} ${fmtFollowers(user.followers)}`}
+                {/* ☻ — the social mark (GLYPHS §12h) wears the followers
+                    stat; replaces the old ⚬ (2026-07-26 elevation). */}
+                {`⬚${VS15} ${user.collected}  ⟠${VS15} ${user.spent_eth.toFixed(2)}  ☻${VS15} ${fmtFollowers(user.followers)}`}
             </span>
         </div>
     );
