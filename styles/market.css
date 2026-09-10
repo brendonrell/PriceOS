@@ -123,7 +123,7 @@
    iOS-app-icon-style count badge overlapping the top-right corner
    (Brendon, 2026-09-09: replaces the old text pill, which was never
    approved). */
-.mk-offers-glyph-btn { position: relative; overflow: visible; }
+.mk-offers-glyph-btn { position: relative; overflow: visible; font-size: 15px; }
 .mk-offers-badge {
     position: absolute;
     top: -6px;
@@ -144,6 +144,9 @@
     align-items: center;
     justify-content: center;
 }
+/* Digit sits in its own nested span so the 1px nudge is a clean transform,
+   independent of the badge's own flex centering (Brendon, 2026-09-09). */
+.mk-offers-badge-num { display: block; transform: translate(1px, 1px); }
 
 /* Trait-offer chip on the attributes wall tiles + the trait picker face. */
 .attr-tile.has-offer { position: relative; }
