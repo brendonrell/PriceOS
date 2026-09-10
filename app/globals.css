@@ -1643,7 +1643,13 @@ body.ascii-id-mode .id-row-sprite     { display: none !important; }
 
 .notif-item {
     font-size: 12px;
-    line-height: 1.25;
+    /* Leading over the font's own line box, halved (Brendon, 2026-09-10:
+       was 1.25 — the 0.25 of extra breathing room between wrapped lines on
+       multi-line pings read as too loose, so the leading itself is halved
+       to 0.125, giving 1.125). A literal halving of the 1.25 figure itself
+       (to 0.625) would overlap the text, so this halves the actual spacing
+       instead. */
+    line-height: 1.125;
     /* Top/bottom bumped 8px → 11px (Brendon, 2026-09-07) to match the buffer
        already given to .notif-item--high rows — a 1-line ping had plenty of
        room at 8px, but the same 8px read as cramped once text wrapped to 2
@@ -4910,11 +4916,11 @@ body.pd-stone-open .ens-copy-toast {
    line breathe so nothing cuts the glyph tops. */
 .hero-row-identity { line-height: 1.3; overflow: visible; }
 
-/* Wallet address / ENS on the profile identity row — underlined so it reads
-   as a link. Scoped to .id-row-addr specifically: the PriceSprite and Sigil
-   sit beside this <a>, not inside it, so neither picks up the underline
-   (Brendon, 2026-08-18). */
-.id-row-addr { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+/* Wallet address / ENS on the profile identity row — no underline (Brendon,
+   2026-09-10: removed, was never approved as a link style). Scoped to
+   .id-row-addr specifically: the PriceSprite and Sigil sit beside this <a>,
+   not inside it, so neither is affected either way. */
+.id-row-addr { text-decoration: none; }
 
 /* Profile identity-row PriceSprite — relocated from the title row (Brendon
    2026-06-15). Same Courier sprite look + size as before, but it now sits
