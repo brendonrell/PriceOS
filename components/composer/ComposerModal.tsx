@@ -289,8 +289,10 @@ export default function ComposerModal() {
         } catch { /* malformed link — open nothing */ }
     }, [open]);
 
-    /* On each fresh open: land on the shelf when Programs exist, else the
-       builder (the shelf is the tool's home once it has residents). */
+    /* On each fresh open: always land on the builder (the main composer
+       page) — Programs are opened deliberately from the nav, never forced
+       as the landing view (Brendon, 2026-09-10: reverting an unapproved
+       change that defaulted to Programs whenever any existed). */
     const wasOpen = useRef(false);
     useEffect(() => {
         if (isOpen && !wasOpen.current) {
@@ -298,7 +300,7 @@ export default function ComposerModal() {
                 // A share link drove this open — it already set the view.
                 qDroveOpen.current = false;
             } else {
-                setView(getPrograms().length > 0 ? 'programs' : 'builder');
+                setView('builder');
             }
             setEditing(null); setScopeOpen(false); setSaveOpen(false);
         }
@@ -540,6 +542,7 @@ export default function ComposerModal() {
     const [manageIdx, setManageIdx] = useState<number | null>(null);
     const [renameIdx, setRenameIdx] = useState<number | null>(null);
     const [renameVal, setRenameVal] = useState('');
+    const [confirmDeleteIdx, setConfirmDeleteIdx] = useState<number | null>(null);
     const pressTimer = useRef<number | null>(null);
     const pressFired = useRef(false);
     const pressPt = useRef<{ x: number; y: number } | null>(null);
@@ -569,7 +572,7 @@ export default function ComposerModal() {
         if (!wasPending || pressFired.current) return;
         openProgram(p);
     };
-    useEffect(() => { if (view !== 'programs') { setManageIdx(null); setRenameIdx(null); } }, [view]);
+    useEffect(() => { if (view !== 'programs') { setManageIdx(null); setRenameIdx(null); setConfirmDeleteIdx(null); } }, [view]);
 
     /* Live counts on the shelf — plus each Program's SPECTRUM rows (the
        colour face of its current answer). */
@@ -1333,9 +1336,7 @@ export default function ComposerModal() {
                                                     className="cmp-pill is-danger"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        deleteProgram(i);
-                                                        showToast(`Program: DELETED · ${p.name.toUpperCase()}`);
-                                                        setManageIdx(null);
+                                                        setConfirmDeleteIdx(i);
                                                     }}
                                                 >
                                                     DELETE
@@ -1351,6 +1352,35 @@ export default function ComposerModal() {
                             <div className="cmp-note">
                                 A PROGRAM RE-RUNS LIVE EVERY TIME IT OPENS · LONG-PRESS TO RENAME OR DELETE
                             </div>
+                            {confirmDeleteIdx != null && programs[confirmDeleteIdx] && (
+                                <div
+                                    className="starred-confirm-overlay"
+                                    role="dialog"
+                                    aria-modal="true"
+                                    onClick={() => setConfirmDeleteIdx(null)}
+                                >
+                                    <div className="ms-confirm-card is-centered" onClick={(e) => e.stopPropagation()}>
+                                        <div className="ms-confirm-question">
+                                            Delete the program “{programs[confirmDeleteIdx].name.toUpperCase()}”? This can’t be undone.
+                                        </div>
+                                        <div className="ms-confirm-btns">
+                                            <button className="ms-confirm-btn ms-confirm-btn--cancel" onClick={() => setConfirmDeleteIdx(null)}>Cancel</button>
+                                            <button
+                                                className="ms-confirm-btn ms-confirm-btn--ok"
+                                                onClick={() => {
+                                                    const name = programs[confirmDeleteIdx].name;
+                                                    deleteProgram(confirmDeleteIdx);
+                                                    showToast(`Program: DELETED · ${name.toUpperCase()}`);
+                                                    setConfirmDeleteIdx(null);
+                                                    setManageIdx(null);
+                                                }}
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
