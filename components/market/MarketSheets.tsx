@@ -616,7 +616,9 @@ function OffersPanel({
             </div>
 
             <div className="cart-items-list">
-                {offers.length === 0 ? (
+                {market == null ? (
+                    <div className="cart-empty-state">Reading offers…</div>
+                ) : offers.length === 0 ? (
                     <div className="cart-empty-state">
                         No open offers on {projectName} #{id}.
                     </div>
