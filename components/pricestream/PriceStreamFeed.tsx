@@ -225,7 +225,9 @@ function ActionRail({ card }: { card: PriceStreamCard | null }) {
                             title={`${card.offersCount} open ${card.offersCount === 1 ? 'offer' : 'offers'}`}
                         >
                             {'\u2736\uFE0E'}
-                            <span className="mk-offers-badge">{card.offersCount}</span>
+                            <span className="mk-offers-badge">
+                                <span className="mk-offers-badge-num">{card.offersCount}</span>
+                            </span>
                         </button>
                     )}
                 </div>
