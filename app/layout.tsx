@@ -336,8 +336,8 @@ const PREHYDRATION_SCRIPT = `
                         // 72-92 — the old band read muddy/muted; dampLoudHue
                         // mirrored inline below, lib/color/warmGuard.ts).
                         var hue = (day * 137.508 + 55 + rnd() * 24) % 360;
-                        var sat = 72 + rnd() * 20;
-                        var light = 56 + rnd() * 12;
+                        var sat = 48 + rnd() * 22;
+                        var light = 64 + rnd() * 16;
                         // liftWarmFloor (lib/color/warmGuard) mirrored inline —
                         // brick/orange/mustard hues (<=65deg) still read muddy
                         // in this band even at high sat; floor light at 60.
@@ -351,10 +351,10 @@ const PREHYDRATION_SCRIPT = `
                             var d = Math.min(Math.abs(warmHue - c), 360 - Math.abs(warmHue - c));
                             if (d < 45) {
                                 var w = 0.5 * (1 + Math.cos((Math.PI * d) / 45));
-                                loudCut = Math.max(loudCut, 10 * w);
+                                loudCut = Math.max(loudCut, 12 * w);
                             }
                         });
-                        sat = Math.max(55, sat - loudCut);
+                        sat = Math.max(30, sat - loudCut);
                         var s = sat / 100, l = light / 100;
                         var k = s * Math.min(l, 1 - l);
                         function f(n) {
