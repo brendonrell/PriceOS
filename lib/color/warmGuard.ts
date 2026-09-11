@@ -31,10 +31,7 @@ export function liftWarmFloor(hue: number, lightPct: number): number {
  */
 const LOUD_CENTERS = [120, 300];
 const LOUD_RADIUS = 45; // deg of falloff each side of a centre
-const LOUD_MAX_CUT = 10; // saturation points shaved at dead centre (Brendon,
-// 2026-09-11: 22 was crushing green/magenta into mud on top of an already-
-// low base sat — "muted bland colours... mucky mud" — trimmed to a light
-// touch now that the base band itself runs bright; see mood.ts sat draw.
+const LOUD_MAX_CUT = 12; // saturation points shaved at dead centre
 
 export function dampLoudHue(hue: number, satPct: number): number {
     const h = ((hue % 360) + 360) % 360;
@@ -46,5 +43,5 @@ export function dampLoudHue(hue: number, satPct: number): number {
             cut = Math.max(cut, LOUD_MAX_CUT * weight);
         }
     }
-    return Math.max(55, satPct - cut);
+    return Math.max(30, satPct - cut);
 }
