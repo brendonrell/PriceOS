@@ -330,13 +330,13 @@ const PREHYDRATION_SCRIPT = `
                             t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
                             return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
                         }
-                        // 55 = HUE_SALT, 32/20 sat + 56/12 light = the SOFT
+                        // 55 = HUE_SALT, 72/20 sat + 56/12 light = the BRIGHT
                         // band (lib/mood) — keep all three in lockstep
-                        // (Brendon, 2026-09-07: green/magenta read louder
-                        // than every other hue at equal S/L — dampLoudHue
+                        // (Brendon, 2026-09-11: sat bumped from 32-52 to
+                        // 72-92 — the old band read muddy/muted; dampLoudHue
                         // mirrored inline below, lib/color/warmGuard.ts).
                         var hue = (day * 137.508 + 55 + rnd() * 24) % 360;
-                        var sat = 32 + rnd() * 20;
+                        var sat = 72 + rnd() * 20;
                         var light = 56 + rnd() * 12;
                         // liftWarmFloor (lib/color/warmGuard) mirrored inline —
                         // brick/orange/mustard hues (<=65deg) still read muddy
@@ -351,10 +351,10 @@ const PREHYDRATION_SCRIPT = `
                             var d = Math.min(Math.abs(warmHue - c), 360 - Math.abs(warmHue - c));
                             if (d < 45) {
                                 var w = 0.5 * (1 + Math.cos((Math.PI * d) / 45));
-                                loudCut = Math.max(loudCut, 22 * w);
+                                loudCut = Math.max(loudCut, 10 * w);
                             }
                         });
-                        sat = Math.max(10, sat - loudCut);
+                        sat = Math.max(55, sat - loudCut);
                         var s = sat / 100, l = light / 100;
                         var k = s * Math.min(l, 1 - l);
                         function f(n) {
