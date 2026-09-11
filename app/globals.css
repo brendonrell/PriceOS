@@ -12220,20 +12220,15 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
    allows (Brendon, 2026-06-15). Applied to all three rows in the family
    (Featuring, Followed by, Collected by), not the homepage alone (Brendon,
    2026-08-21). */
-/* ⛔ FIXED 2026-09-10: the 2026-09-06 height cut (below) assumed this row is
-   ALWAYS one line, but nowrap/ellipsis was only ever applied above 600px —
-   below that, .collected-by-row's own flex-wrap: wrap (and inherited wrap
-   from .hero-line) was still live, so a longer name combo genuinely wrapped
-   to a 2nd line on phones. Cutting the height to one line's worth then
-   clipped that real 2nd line clean off — on all three rows in the family
-   (Featuring / Collected by / Followed by), since they share this class.
-   Fix: make "always one line" TRUE everywhere, not just ≥601px, so the
-   single-line height is never fighting real wrapped content — long combos
-   now ellipsize instead of wrapping-then-getting-clipped. */
-.feat-row-lock { overflow: hidden; row-gap: 0; white-space: nowrap; flex-wrap: nowrap; text-overflow: ellipsis; }
-/* Height kept locked so the timer re-roll never reflows the hero (Brendon,
-   2026-06-15); now correctly sized for the one line this row always is. */
-@media (max-width: 600px)  { .feat-row-lock { height: 0.94em; } }
+.feat-row-lock { overflow: hidden; row-gap: 0; }
+@media (min-width: 601px) {
+    .feat-row-lock { white-space: nowrap; flex-wrap: nowrap; text-overflow: ellipsis; }
+}
+/* Cap/lock at two lines so cycling never reflows the hero (Brendon,
+   2026-08-21). The 2.4em value was wrong — it was calibrated against the
+   erroneous 1.6 line-height above, not the correct 1.2. Recalculated for
+   the real 2-line height: 2 × 11px × 1.2 ÷ 14px hero-line context ≈ 1.9em. */
+@media (max-width: 600px)  { .feat-row-lock { height: 1.9em; } }
 /* Third-name responsive toggle removed (Brendon, 2026-08-20): Collected by
    (project) and Followed by (profile) now match the homepage Featuring row
    exactly — two names shown everywhere, no viewport-dependent 3rd name. */
