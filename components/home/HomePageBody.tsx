@@ -174,20 +174,23 @@ export function FeaturingRow() {
     return (
         <div className="hero-line collected-by-row info-line feat-row-lock">
             <span className="cbr-label">Featuring</span>&nbsp;
-            <a key={featNames[0]} className="profile-link feat-name" href={`/${featNames[0]}`}>@{featNames[0]}</a>
-            {/* The gap before "& N others" now lives as a LEADING &nbsp; inside
-               .cbr-others itself, not as its own standalone space between the
-               name and the span. A bare ' ' text node there was its own
-               anonymous flex item — collapsible and near-invisible in Rubik
-               Mono (missing-space bug), while swapping it for a lone &nbsp;
-               item was worse: non-collapsible, it could strand itself alone
-               at the start of the wrapped second line ("one space over").
-               Folding it into .cbr-others makes it one atomic flex item that
-               either sits on line 1 or wraps whole to line 2 (Brendon, 2026-09-11). */}
-            {featNames[1] ? (
-                <>,&nbsp;<a key={featNames[1]} className="profile-link feat-name" href={`/${featNames[1]}`}>@{featNames[1]}</a></>
-            ) : null}
-            <span className="cbr-others">&nbsp;&amp;&nbsp;{featOthers}&nbsp;others</span>
+            {/* Names + the trailing &nbsp; before "&" are ONE flex item (this
+               span), not loose siblings. A Fragment doesn't box its children —
+               React flattens it, so anything after </a> (bare ' ', lone &nbsp;,
+               or a leading &nbsp; on .cbr-others) becomes its OWN flex item
+               that can land alone at the start of a wrapped line, which is
+               exactly the stray-space-before-"&" bug. Put the space INSIDE a
+               real element glued to the name it follows, and it only ever
+               trails whichever line the names end up on — never leads the
+               next one (Brendon, 2026-09-11). */}
+            <span className="feat-names">
+                <a key={featNames[0]} className="profile-link feat-name" href={`/${featNames[0]}`}>@{featNames[0]}</a>
+                {featNames[1] ? (
+                    <>,&nbsp;<a key={featNames[1]} className="profile-link feat-name" href={`/${featNames[1]}`}>@{featNames[1]}</a></>
+                ) : null}
+                &nbsp;
+            </span>
+            <span className="cbr-others">&amp;&nbsp;{featOthers}&nbsp;others</span>
 
         </div>
     );
