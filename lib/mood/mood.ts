@@ -268,11 +268,11 @@ export function moodOfDay(d: Date = new Date()): Mood {
        out): high saturation + mid lightness so the daily colour is bold, the
        full wheel reachable. Text colour auto-resolves off luminance (the deep
        ones get white lettering; bright limes/yellows keep dark text). */
-    const sat = dampLoudHue(hue, 32 + r() * 20); // 32–52%, further cut near
-    // green/magenta (Brendon, 2026-09-07: those two bands read louder than
-    // the rest of the wheel at any equal S/L — see dampLoudHue in
-    // lib/color/warmGuard.ts. Confirmed the hue ROLL itself is fair; only
-    // the perceived loudness of two bands needed correcting).
+    const sat = dampLoudHue(hue, 72 + r() * 20); // 72–92%, only lightly cut
+    // near green/magenta now (Brendon, 2026-09-11: the 32–52% band plus a
+    // 22pt loud-cut was reading as "mucky mud" — bland, muted, not the
+    // bright-but-lighter ask. Bright bumped WAY up here; loud-hue cut
+    // trimmed to match, see dampLoudHue in lib/color/warmGuard.ts).
     /* Warm hues (brick/orange/mustard) still read muddy in this range even
        at high saturation — liftWarmFloor lifts only that band. See
        lib/color/warmGuard.ts (Brendon, 2026-09-01: today's mustard roll). */
