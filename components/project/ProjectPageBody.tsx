@@ -427,13 +427,16 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                            spacing left to fake it. */
                         <div className="hero-line collected-by-row info-line feat-row-lock">
                             <span className="cbr-label">Collected by&nbsp;</span>
-                            <a key={collectors[0]} className="profile-link feat-name" href={`/${handle(collectors[0])}`}>@{handle(collectors[0])}</a>
-                            {collectors[1] ? (
-                                <>,&nbsp;<a key={collectors[1]} className="profile-link feat-name" href={`/${handle(collectors[1])}`}>@{handle(collectors[1])}</a></>
-                            ) : null}
+                            <span className="feat-names">
+                                <a key={collectors[0]} className="profile-link feat-name" href={`/${handle(collectors[0])}`}>@{handle(collectors[0])}</a>
+                                {collectors[1] ? (
+                                    <>,&nbsp;<a key={collectors[1]} className="profile-link feat-name" href={`/${handle(collectors[1])}`}>@{handle(collectors[1])}</a></>
+                                ) : null}
+                                {others > 0 ? <>&nbsp;</> : null}
+                            </span>
                             {others > 0 && (
                                 <span className="cbr-others" onClick={() => open('collectors', undefined, project.slug)}>
-                                    &nbsp;&amp;&nbsp;{others}&nbsp;more&nbsp;you&nbsp;follow
+                                    &amp;&nbsp;{others}&nbsp;more&nbsp;you&nbsp;follow
                                 </span>
                             )}
                         </div>
