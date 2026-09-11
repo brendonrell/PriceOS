@@ -268,15 +268,10 @@ export function moodOfDay(d: Date = new Date()): Mood {
        out): high saturation + mid lightness so the daily colour is bold, the
        full wheel reachable. Text colour auto-resolves off luminance (the deep
        ones get white lettering; bright limes/yellows keep dark text). */
-    const sat = dampLoudHue(hue, 72 + r() * 20); // 72–92%, only lightly cut
-    // near green/magenta now (Brendon, 2026-09-11: the 32–52% band plus a
-    // 22pt loud-cut was reading as "mucky mud" — bland, muted, not the
-    // bright-but-lighter ask. Bright bumped WAY up here; loud-hue cut
-    // trimmed to match, see dampLoudHue in lib/color/warmGuard.ts).
-    /* Warm hues (brick/orange/mustard) still read muddy in this range even
-       at high saturation — liftWarmFloor lifts only that band. See
-       lib/color/warmGuard.ts (Brendon, 2026-09-01: today's mustard roll). */
-    const light = liftWarmFloor(hue, 56 + r() * 12); // 56–68%, 60+ if warm
+    const sat = dampLoudHue(hue, 48 + r() * 22); // 48–70%: colourful, not neon
+    /* Warm hues still read muddy at low lightness regardless of saturation —
+       liftWarmFloor guards that band. lib/color/warmGuard.ts. */
+    const light = liftWarmFloor(hue, 64 + r() * 16); // 64–80%: bright + light
     /* The mood reads off the colour via the chart — the hue picks the band,
        the no-repeat walk picks the word (see wordForVisit). Colour math
        above stays untouched: it must keep matching the boot-paint script in
