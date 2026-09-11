@@ -2168,13 +2168,16 @@ function ProfilePageBodyInner({
                        fake it. */
                     <div className="hero-line collected-by-row info-line feat-row-lock">
                         <span className="cbr-label">Followed by&nbsp;</span>
-                        <a key={mutuals[0]} className="profile-link feat-name" href={`/${mutuals[0]}`}>@{mutuals[0]}</a>
-                        {mutuals[1] ? (
-                            <>,&nbsp;<a key={mutuals[1]} className="profile-link feat-name" href={`/${mutuals[1]}`}>@{mutuals[1]}</a></>
-                        ) : null}
+                        <span className="feat-names">
+                            <a key={mutuals[0]} className="profile-link feat-name" href={`/${mutuals[0]}`}>@{mutuals[0]}</a>
+                            {mutuals[1] ? (
+                                <>,&nbsp;<a key={mutuals[1]} className="profile-link feat-name" href={`/${mutuals[1]}`}>@{mutuals[1]}</a></>
+                            ) : null}
+                            {mutualOthers > 0 ? <>&nbsp;</> : null}
+                        </span>
                         {mutualOthers > 0 && (
                             <span className="cbr-others">
-                                &nbsp;&amp;&nbsp;{mutualOthers}&nbsp;{mutualOthers === 1 ? 'Other' : 'Others'}&nbsp;You&nbsp;Follow
+                                &amp;&nbsp;{mutualOthers}&nbsp;{mutualOthers === 1 ? 'Other' : 'Others'}&nbsp;You&nbsp;Follow
                             </span>
                         )}
                     </div>
