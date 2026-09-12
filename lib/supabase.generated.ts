@@ -1889,32 +1889,6 @@ export type Database = {
         }
         Relationships: []
       }
-      starred_artists: {
-        Row: {
-          artist_address: string
-          created_at: string
-          user_address: string
-        }
-        Insert: {
-          artist_address: string
-          created_at?: string
-          user_address: string
-        }
-        Update: {
-          artist_address?: string
-          created_at?: string
-          user_address?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "starred_artists_user_address_fkey"
-            columns: ["user_address"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["address"]
-          },
-        ]
-      }
       sticker_events: {
         Row: {
           from_address: string | null
