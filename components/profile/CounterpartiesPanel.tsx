@@ -212,13 +212,15 @@ export default function CounterpartiesPanel({
                                     {data.totals.biggest_deal && (
                                         <div className="attr-tile">
                                             <span className="attr-tile-label">Record deal</span>
-                                            <span className="attr-tile-value">{fmtEth(data.totals.biggest_deal.eth)} · {nameOf(data.totals.biggest_deal)}</span>
+                                            <span className="attr-tile-value">{nameOf(data.totals.biggest_deal)}</span>
+                                            <span className="attr-tile-sub">{fmtEth(data.totals.biggest_deal.eth)}</span>
                                         </div>
                                     )}
                                     {data.totals.oldest_tie && (
                                         <div className="attr-tile">
                                             <span className="attr-tile-label">Oldest tie</span>
-                                            <span className="attr-tile-value">{nameOf(data.totals.oldest_tie)} · {fmtDay(data.totals.oldest_tie.first_ts)}</span>
+                                            <span className="attr-tile-value">{nameOf(data.totals.oldest_tie)}</span>
+                                            <span className="attr-tile-sub">{fmtDay(data.totals.oldest_tie.first_ts)}</span>
                                         </div>
                                     )}
                                 </div>
