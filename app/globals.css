@@ -13789,7 +13789,10 @@ body.colorway-dark .ghost-feed-bar {
 .loy-rows { margin-top: 2px; }
 .loy-medal {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 13px;
+    /* +3 sizes (13px → 19px, this codebase's steps run 2px apart) — the
+       Longest Held podium glyphs read too small next to the piece thumbs
+       (Brendon, 2026-09-12). */
+    font-size: 19px;
     margin-left: 2px;
 }
 /* Born here — the mint star beside a piece that was minted by this wallet and
