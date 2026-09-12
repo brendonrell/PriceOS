@@ -6265,17 +6265,20 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.32); }
 }
 /* ↗ share glyph — glyph-only Share variant only (3-button row: Takeover +
    Exchange + Share), never paired with the ▶ play icon (Brendon, 2026-08-17).
-   Sized 2 steps up from the base 12px scale (Brendon, 2026-09-03). */
+   +2 font sizes from the 14px base (this codebase's ~2px/size step) — was
+   14px, now 18px (Brendon, 2026-09-12; previously matched .btn-icon-glyph
+   1:1, no longer does since Takeover/Exchange split off their own sizing). */
 .btn-icon-share {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 14px;
+    font-size: 18px;
     line-height: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
 }
-/* ⚑︎ takeover / ⇌ exchange glyphs — the other two glyph-only profile pills,
-   sized to match .btn-icon-share (Brendon, 2026-09-03). */
+/* ⚑︎ takeover / ⇌ exchange glyphs — the other two glyph-only profile pills.
+   Shared 14px base; Takeover and Exchange each get their own size/position
+   modifier below (Brendon, 2026-09-12 — previously identical). */
 .btn-icon-glyph {
     font-family: 'Courier New', Courier, monospace;
     font-size: 14px;
@@ -6283,6 +6286,19 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.32); }
     display: inline-flex;
     align-items: center;
     justify-content: center;
+}
+/* ⚑︎ takeover — +2 font sizes from the 14px base (this codebase's ~2px/size
+   step) and nudged down 2px to optically center the flag (Brendon, 2026-09-12). */
+.btn-icon-glyph-takeover {
+    font-size: 18px;
+    position: relative;
+    top: 2px;
+}
+/* ⇌ exchange — stays at the shared 14px base, nudged down 0.5px to optically
+   center (Brendon, 2026-09-12). */
+.btn-icon-glyph-exchange {
+    position: relative;
+    top: 0.5px;
 }
 /* ── PROFILE TABS — sim ~2218-2225 ───────────────────────── */
 .profile-tabs-row {
