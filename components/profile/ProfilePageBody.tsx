@@ -2417,9 +2417,10 @@ function ProfilePageBodyInner({
                                 : isZen
                                     ? [{ key: 'albums', label: <><span className="pill-tab-ico is-album">{'◰︎'}</span> Albums</>, active: effMoreL1 === 'albums', onClick: () => setMoreL1('albums') }]
                                     : [
-                                        /* Cooldown leads the whole row — the live clock
-                                           to this artist's next upload window. Only
-                                           while the window is shut (Brendon, 2026-07-31). */
+                                        /* Loyalty leads the whole row now (Brendon,
+                                           2026-09-12) — the long-game tab gets first
+                                           billing over the cooldown clock. */
+                                        { key: 'loyalty',   label: <><span className="pill-tab-ico is-loyalty">{'\u2724\uFE0E'}</span> Loyalty</>,   active: effMoreL1 === 'loyalty',   onClick: () => setMoreL1('loyalty')   },
                                         ...(onCooldown
                                             ? [{
                                                 key: 'cooldown',
@@ -2436,13 +2437,6 @@ function ProfilePageBodyInner({
                                         ...(createdUnderMore
                                             ? [{ key: 'created', label: <><span className="pill-tab-ico is-created">{'\u270E\uFE0E'}</span> Created</>, active: effMoreL1 === 'created', onClick: () => setMoreL1('created') }]
                                             : []),
-                                        /* ⛔ ALBUMS ARE PUBLIC (Brendon,
-                                           2026-08-02) — the pill stands on
-                                           EVERY profile, and a visitor reads
-                                           the keeper's shelf. It was own-only
-                                           from 2026-07-31 purely because an
-                                           album was private then. */
-                                        { key: 'albums', label: <><span className="pill-tab-ico is-album">{'◰︎'}</span> Albums</>, active: effMoreL1 === 'albums', onClick: () => setMoreL1('albums') },
                                         /* Starred + Wishlists are private — the
                                            pills exist on YOUR OWN profile only. */
                                         ...(isOwnProfile
@@ -2457,8 +2451,20 @@ function ProfilePageBodyInner({
                                                 { key: 'offers',    label: <><span className="pill-tab-ico is-offers">{'\u2736\uFE0E'}</span> Offers</>,    active: effMoreL1 === 'offers',    onClick: () => setMoreL1('offers')    },
                                             ]
                                             : []),
-                                        { key: 'vault',     label: <><span className="pill-tab-ico is-vault">{'\u26BF\uFE0E'}</span> Vault</>,     active: effMoreL1 === 'vault',     onClick: () => setMoreL1('vault')     },
-                                        { key: 'loyalty',   label: <><span className="pill-tab-ico is-loyalty">{'\u2724\uFE0E'}</span> Loyalty</>,   active: effMoreL1 === 'loyalty',   onClick: () => setMoreL1('loyalty')   },
+                                        /* ⛔ ALBUMS ARE PUBLIC (Brendon,
+                                           2026-08-02) — the pill stands on
+                                           EVERY profile, and a visitor reads
+                                           the keeper's shelf. It was own-only
+                                           from 2026-07-31 purely because an
+                                           album was private then.
+                                           Moved to right before Vault (Brendon,
+                                           2026-09-12). */
+                                        { key: 'albums', label: <><span className="pill-tab-ico is-album">{'◰︎'}</span> Albums</>, active: effMoreL1 === 'albums', onClick: () => setMoreL1('albums') },
+                                        /* Label reads "Vaults" (plural), matching
+                                           "Albums" — the key/state/route stay 'vault'
+                                           singular; this is display text only (Brendon,
+                                           2026-09-12). */
+                                        { key: 'vault',     label: <><span className="pill-tab-ico is-vault">{'\u26BF\uFE0E'}</span> Vaults</>,     active: effMoreL1 === 'vault',     onClick: () => setMoreL1('vault')     },
                                         { key: 'achievements', label: <><span className="pill-tab-ico is-achievements">{ACHIEVEMENTS_ICON}</span> Achievements</>, active: effMoreL1 === 'achievements', onClick: () => setMoreL1('achievements') },
                                         { key: 'counterparties', label: <><span className="pill-tab-ico is-counterparties">{'\u21C4\uFE0E'}</span> Counterparties</>, active: effMoreL1 === 'counterparties', onClick: () => setMoreL1('counterparties') },
                                         { key: 'calls',     label: <><span className="pill-tab-ico is-calls">{'\u00A1\uFE0E'}</span> Calls</>,     active: effMoreL1 === 'calls',     onClick: () => setMoreL1('calls')     },
