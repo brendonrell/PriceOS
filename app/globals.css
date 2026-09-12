@@ -12205,6 +12205,10 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
    clearly (Brendon, 2026-06-16). */
 .shuffle-head .section-head-by,
 .shuffle-head .section-head-by a { opacity: 1; font-weight: bold; }
+/* Shuffle star bumped +2 sizes (13px → 17px, this codebase's steps run
+   2px apart) and bold, so it reads as a bigger tap target next to the
+   project name, not an afterthought glyph (Brendon, 2026-09-12). */
+.shuffle-head .section-head-star { font-size: 17px; font-weight: bold; }
 
 /* Live "featuring"-style rows — names re-roll on a timer and flip in.
    Height is locked so cycling never reflows the hero (the old version's
