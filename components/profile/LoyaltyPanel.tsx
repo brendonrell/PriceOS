@@ -1,9 +1,10 @@
 'use client';
 
 /*
- * LoyaltyPanel — profile +More › Loyalty: the long game, read whole. Four
+ * LoyaltyPanel — profile +More › Loyalty: the long game, read whole. Five
  * sections, all derived from ledgers that already exist (no writes):
- *   THE LONG GAME — member-since · user number · streak · average hold.
+ *   PRICESTREAK — current streak vs. best, first billing (Brendon, 2026-09-12).
+ *   THE LONG GAME — member-since · user number · average hold.
  *   LONGEST HELD — the pieces that stayed, oldest bond first.
  *   ARTISTS YOU BACK — patronage ranked by pieces held.
  *   PURITY — the clean-hands read: kept vs let go, unlisted, tenure.
@@ -81,6 +82,28 @@ export default function LoyaltyPanel({
 
             {data && (
                 <>
+                    {/* PRICESTREAK — pulled out of "The long game" into its
+                       own lead section (Brendon, 2026-09-12): same public
+                       read as the rest of this panel (loyalty API, the
+                       Counterparties precedent — no own-profile gating),
+                       just given first billing and room for current vs.
+                       best instead of one cramped tile. */}
+                    <section className="attr-group" aria-label="PriceStreak">
+                        <div className="attr-group-head">
+                            <span className="attr-group-name">PriceStreak</span>
+                        </div>
+                        <div className="attr-grid">
+                            <div className="attr-tile">
+                                <span className="attr-tile-label">Current</span>
+                                <span className="attr-tile-value">{`◈${VS15} ${data.streak} ${data.streak === 1 ? 'DAY' : 'DAYS'}`}</span>
+                            </div>
+                            <div className="attr-tile">
+                                <span className="attr-tile-label">Best</span>
+                                <span className="attr-tile-value">{`◈${VS15} ${data.streak_best} ${data.streak_best === 1 ? 'DAY' : 'DAYS'}`}</span>
+                            </div>
+                        </div>
+                    </section>
+
                     {/* THE LONG GAME — the standing facts. */}
                     <section className="attr-group" aria-label="The long game">
                         <div className="attr-group-head">
@@ -91,10 +114,6 @@ export default function LoyaltyPanel({
                             <div className="attr-tile">
                                 <span className="attr-tile-label">Member since</span>
                                 <span className="attr-tile-value">{data.member_since ? formatMemberSince(data.member_since) : '—'}</span>
-                            </div>
-                            <div className="attr-tile">
-                                <span className="attr-tile-label">Streak</span>
-                                <span className="attr-tile-value">{`◈${VS15} ${data.streak}${data.streak_best > data.streak ? ` · BEST ${data.streak_best}` : ''}`}</span>
                             </div>
                             <div className="attr-tile">
                                 <span className="attr-tile-label">Held</span>
