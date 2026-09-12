@@ -427,13 +427,18 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                            spacing left to fake it. */
                         <div className={`hero-line collected-by-row info-line ${collectedByPool.length >= 6 ? 'feat-row-lock' : 'feat-row-fit'}`}>
                             <span className="cbr-label">Collected by&nbsp;</span>
-                            <span className="feat-names">
-                                <a key={collectors[0]} className="profile-link feat-name" href={`/${handle(collectors[0])}`}>@{handle(collectors[0])}</a>
-                                {collectors[1] ? (
-                                    <>,&nbsp;<a key={collectors[1]} className="profile-link feat-name" href={`/${handle(collectors[1])}`}>@{handle(collectors[1])}</a></>
-                                ) : null}
-                                {others > 0 ? <>&nbsp;</> : null}
-                            </span>
+                            {collectors[1] ? (
+                                <>
+                                    <a key={collectors[0]} className="profile-link feat-name" href={`/${handle(collectors[0])}`}>@{handle(collectors[0])}</a>
+                                    <span className="feat-name-last">,&nbsp;<a key={collectors[1]} className="profile-link feat-name" href={`/${handle(collectors[1])}`}>@{handle(collectors[1])}</a>{others > 0 ? <>&nbsp;</> : null}</span>
+                                </>
+                            ) : (
+                                others > 0 ? (
+                                    <span className="feat-name-last"><a key={collectors[0]} className="profile-link feat-name" href={`/${handle(collectors[0])}`}>@{handle(collectors[0])}</a>&nbsp;</span>
+                                ) : (
+                                    <a key={collectors[0]} className="profile-link feat-name" href={`/${handle(collectors[0])}`}>@{handle(collectors[0])}</a>
+                                )
+                            )}
                             {others > 0 && (
                                 <span className="cbr-others" onClick={() => open('collectors', undefined, project.slug)}>
                                     &amp;&nbsp;{others}&nbsp;more&nbsp;you&nbsp;follow
