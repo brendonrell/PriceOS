@@ -2491,6 +2491,13 @@ section[aria-label="Created projects"] > .upload-window {
     opacity: 0.55;
     padding: 6px 0;
 }
+.starred-empty-note {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    opacity: 0.55;
+    padding: 6px 0;
+}
 /* Loading must visibly MOVE (CLAUDE.md §9) — soft pulse until rows land. */
 .fm-loading { animation: fmPulse 1.1s ease-in-out infinite; }
 @keyframes fmPulse {
