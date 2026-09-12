@@ -14,10 +14,11 @@
  * (Brendon, 2026-07-25 — it used to fall back to the piece's Fate, which just
  * read as a stray trait).
  *
- * A list holds ANY starred kind (2026-07-25 — All Starred's row CTA is Add to
- * List on every row), so the panel draws a short row per kind: the Output keeps
- * its thumbnail, and Projects / Traits / Artists / Soundtracks / Transactions
- * wear the SAME tile + glyph their Starred rows do, shrunk to the short row.
+ * A list holds ANY starred kind (2026-07-25 — All Starred's row CTA is + List
+ * on every row), so the panel draws a short row per kind: the Output keeps
+ * its thumbnail, and Projects / Traits / Artists / Soundtracks / Transactions /
+ * PriceDays / Albums / Vaults wear the SAME tile + glyph their Starred rows
+ * do, shrunk to the short row.
  *
  * Reuse, not reinvention (Rule #0): the thumbnail is OutputThumb — the same
  * component the Starred / Wishlist / History rows use — the row skeleton is the
@@ -41,6 +42,9 @@ import { traitMarketStat, projectMarketStat, artistColor, artistFloor, collector
 import { useStarredPrices, priceOf, isHeldBy } from '../../lib/pins/starredPriceStore';
 import { getTxStarItems } from '../../lib/pins/txStarStore';
 import { txStarToFeedEvent, FeedActorLine } from '../../lib/feed/feedRow';
+import { moodOfDay } from '../../lib/mood/mood';
+import { PRICEDAY_EPOCH } from '../../lib/priceday/priceday';
+import { shortAddress } from '../../lib/project/projectAddress';
 import { ProjectProvider } from '../../lib/state/ProjectContext';
 import { fmPlayQueue, type FmStation } from '../../lib/fm/fmBus';
 import OutputThumb from '../profile/OutputThumb';
@@ -75,7 +79,9 @@ function parseKeys(keys: ReadonlyArray<string>): ListMemberRef[] {
         // Drop members whose Project has left the registry — the same guard the
         // Starred rows use, so a dead key never paints a broken row. A person
         // and a transaction aren't Project-bound, so they skip the check.
-        if (ref.kind !== 'artist' && ref.kind !== 'tx' && !getProject(ref.slug)) continue;
+        if (ref.kind === 'output' || ref.kind === 'project' || ref.kind === 'trait' || ref.kind === 'soundtrack') {
+            if (!getProject(ref.slug)) continue;
+        }
         out.push(ref);
     }
     return out;
@@ -315,6 +321,38 @@ function MemberRow({ member: m, viewerAddress, moved, full, priceMode, dragProps
                 color={projectColorway(m.slug) ?? undefined}
                 title={`@${m.slug}`}
                 info={<>{`♫${VS15} `}<em>{label}</em></>}
+                full={full}
+                memberKey={m.key}
+                dragProps={dragProps}
+                onRemove={onRemove}
+            />
+        );
+    }
+
+    if (m.kind === 'priceday') {
+        const mood = moodOfDay(new Date(PRICEDAY_EPOCH + (m.number - 1) * 86400000));
+        return (
+            <TileRow
+                glyph="◈"
+                color={mood.hex}
+                title={`PRICEDAY #${m.number}`}
+                info={mood.name}
+                full={full}
+                memberKey={m.key}
+                dragProps={dragProps}
+                onRemove={onRemove}
+            />
+        );
+    }
+
+    if (m.kind === 'album' || m.kind === 'vault') {
+        const label = m.kind === 'album' ? 'Album' : 'Vault';
+        return (
+            <TileRow
+                glyph="⬚"
+                title={`${shortAddress(m.ownerAddress)}'s ${label}`}
+                info={label}
+                onOpen={() => router.push('/' + m.ownerAddress)}
                 full={full}
                 memberKey={m.key}
                 dragProps={dragProps}
