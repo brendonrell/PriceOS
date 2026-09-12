@@ -496,9 +496,12 @@ a.notif-item--link:hover { opacity: 0.85; }
 .cpl-item {
     display: inline-flex; align-items: center; gap: 5px;
     border: 1px dashed color-mix(in srgb, var(--text-color) 30%, transparent);
-    border-radius: 4px; padding: 4px 8px;
+    border-radius: 4px; height: 28px; padding: 0 10px;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 11px; opacity: 0.55;
+    /* Matched to the trait value pills (.pill / .pill-l3 in TraitsUI) —
+       was font-size:11px, no fixed height, padding 4px 8px, normal weight
+       (Brendon, 2026-09-12). */
+    font-size: 12px; font-weight: bold; opacity: 0.55;
     text-decoration: none; color: inherit;
     -webkit-tap-highlight-color: transparent;
 }
