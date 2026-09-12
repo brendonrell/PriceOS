@@ -175,22 +175,24 @@ export function FeaturingRow() {
     return (
         <div className={`hero-line collected-by-row info-line ${featRowCls}`}>
             <span className="cbr-label">Featuring</span>&nbsp;
-            {/* Names + the trailing &nbsp; before "&" are ONE flex item (this
-               span), not loose siblings. A Fragment doesn't box its children —
-               React flattens it, so anything after </a> (bare ' ', lone &nbsp;,
-               or a leading &nbsp; on .cbr-others) becomes its OWN flex item
-               that can land alone at the start of a wrapped line, which is
-               exactly the stray-space-before-"&" bug. Put the space INSIDE a
-               real element glued to the name it follows, and it only ever
-               trails whichever line the names end up on — never leads the
-               next one (Brendon, 2026-09-11). */}
-            <span className="feat-names">
-                <a key={featNames[0]} className="profile-link feat-name" href={`/${featNames[0]}`}>@{featNames[0]}</a>
-                {featNames[1] ? (
-                    <>,&nbsp;<a key={featNames[1]} className="profile-link feat-name" href={`/${featNames[1]}`}>@{featNames[1]}</a></>
-                ) : null}
-                &nbsp;
-            </span>
+            {/* name1 is its own flex item (free to sit on the same line as
+               the label, or wrap on its own) — only the LAST shown name is
+               boxed together with its trailing &nbsp; before "&", so that
+               space can never strand itself alone at the start of a wrapped
+               line. Bundling BOTH names into one block (2026-09-11) broke
+               normal wrapping instead: a long 2nd name made the whole pair
+               too wide to fit after the label, so it wrapped as one unit and
+               pushed "& N others" onto a 3rd line the 2-line height then
+               clipped away entirely. This restores natural per-name
+               wrapping while keeping the space fix (Brendon, 2026-09-12). */}
+            {featNames[1] ? (
+                <>
+                    <a key={featNames[0]} className="profile-link feat-name" href={`/${featNames[0]}`}>@{featNames[0]}</a>
+                    <span className="feat-name-last">,&nbsp;<a key={featNames[1]} className="profile-link feat-name" href={`/${featNames[1]}`}>@{featNames[1]}</a>&nbsp;</span>
+                </>
+            ) : (
+                <span className="feat-name-last"><a key={featNames[0]} className="profile-link feat-name" href={`/${featNames[0]}`}>@{featNames[0]}</a>&nbsp;</span>
+            )}
             <span className="cbr-others">&amp;&nbsp;{featOthers}&nbsp;others</span>
 
         </div>
