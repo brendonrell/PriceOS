@@ -171,8 +171,9 @@ export function FeaturingRow() {
         return () => window.clearInterval(id);
     }, []);
     const featOthers = Math.max(0, FEATURED_HANDLES.length - FEATURE_SHOW);
+    const featRowCls = FEATURED_HANDLES.length >= 6 ? 'feat-row-lock' : 'feat-row-fit';
     return (
-        <div className="hero-line collected-by-row info-line feat-row-lock">
+        <div className={`hero-line collected-by-row info-line ${featRowCls}`}>
             <span className="cbr-label">Featuring</span>&nbsp;
             {/* Names + the trailing &nbsp; before "&" are ONE flex item (this
                span), not loose siblings. A Fragment doesn't box its children —
