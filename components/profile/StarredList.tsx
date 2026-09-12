@@ -51,7 +51,7 @@ import { PRICEDAY_EPOCH } from '../../lib/priceday/priceday';
 import { removeTxStar, type TxStar } from '../../lib/pins/txStarStore';
 import { txStarToFeedEvent, FeedActorLine } from '../../lib/feed/feedRow';
 import { useSpiteMatcher } from '../../lib/pins/spiteStore';
-import { getGrails, subscribeGrails, togglePinItem, grailKey, type GrailPin } from '../../lib/pins/grailStore';
+import { getGrails, subscribeGrails, togglePinItem, grailKey, MAX_GRAIL_PINS, type GrailPin } from '../../lib/pins/grailStore';
 import { useStarredPrices, priceOf } from '../../lib/pins/starredPriceStore';
 import { useArtistColors, artistBucket, artistFollowers, artistSprite, artistProjectsOwned } from '../../lib/pins/artistColorStore';
 import { useArtistSocial, relGlyphOf, relLabelOf, fmtFollowers } from '../../lib/social/useArtistSocial';
@@ -305,7 +305,11 @@ export default function StarredList({
     /* Multi-select selection — keys match each row's React key. Cleared when
        multi-select turns off or the filter changes. */
     const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
-    useEffect(() => { setSelected(new Set()); }, [multiActive, mode]);
+    /* Same compound-pill menu as MsFloatBar (project page) / HomeMsFloatBar —
+       one action pill + ▾ popup, not a fused button row (Brendon, 2026-09-12). */
+    const [msPopupOpen, setMsPopupOpen] = useState(false);
+    const [msActiveAction, setMsActiveAction] = useState<string | null>(null);
+    useEffect(() => { setSelected(new Set()); setMsPopupOpen(false); setMsActiveAction(null); }, [multiActive, mode]);
     const toggleSel = (k: string) =>
         setSelected((prev) => {
             const n = new Set(prev);
@@ -833,6 +837,23 @@ export default function StarredList({
         const pins = selectedPins();
         if (pins.length === 0) return;
         setListBatch(pins);
+    };
+
+    /* Grail Pin from MULTI-SELECT — every kind here is pin-able (GrailPin
+       covers output/project/trait/artist/soundtrack/tx), so this is a real
+       option in the Starred menu, not just the project page's. Idempotent
+       add up to the remaining slots, same as MsFloatBar's Star/Wishlist. */
+    const handleGrailPinSelected = () => {
+        const pins = selectedPins();
+        if (pins.length === 0) return;
+        const availableSlots = MAX_GRAIL_PINS - grailKeys.size;
+        if (availableSlots <= 0) { showToast('Grail Pins: FULL'); return; }
+        let added = 0;
+        for (const p of pins) {
+            if (added >= availableSlots) break;
+            if (!grailKeys.has(grailKey(p))) { togglePinItem(p); added++; }
+        }
+        showToast(added === 0 ? 'ALL ALREADY PINNED' : `Grail Pin: ADDED · ${added}`);
     };
 
     const handleTraitUnstar = (e: React.MouseEvent, t: TraitStar) => {
@@ -1504,32 +1525,64 @@ export default function StarredList({
                 )}
                 {totalVisible === 0 && <GhostRows variant="starred" />}
             </div>
-            {multiActive && (
-                <div className="ms-float-bar" role="toolbar" aria-label="Multi-select actions">
-                    {/* Two fused actions — the constructive one first, Remove
-                        second. Both sized to their words so the bar still fits
-                        an iPhone (Brendon, 2026-07-25: keep the UI light). */}
-                    <div className="ms-float-wrap">
-                        <button
-                            className="ms-float-action ms-float-action--fit"
-                            onClick={handleAddSelectedToList}
-                            disabled={selected.size === 0}
-                        >
-                            <span className="ms-float-label">Add to List</span>
-                        </button>
-                        <button
-                            className="ms-float-action ms-float-action--fit"
-                            onClick={handleRemoveSelected}
-                            disabled={selected.size === 0}
-                        >
-                            <span className="ms-float-label">Remove</span>
-                        </button>
+            {multiActive && (() => {
+                interface MsAction { label: string; exec: () => void; }
+                const grailSlotAvailable = MAX_GRAIL_PINS - grailKeys.size > 0;
+                const msActions: MsAction[] = [
+                    { label: 'Add to List', exec: handleAddSelectedToList },
+                    ...(grailSlotAvailable ? [{ label: 'Grail Pin', exec: handleGrailPinSelected }] : []),
+                    { label: 'Remove', exec: handleRemoveSelected },
+                ];
+                const msCurrent = selected.size === 0 ? 'Select' : (msActiveAction ?? 'Add to List');
+                const msExec = () => {
+                    if (selected.size === 0) return;
+                    setMsPopupOpen(false);
+                    msActions.find((a) => a.label === msCurrent)?.exec();
+                };
+                return (
+                    <div className="ms-float-bar" role="toolbar" aria-label="Multi-select actions">
+                        {msPopupOpen && (
+                            <div className="ms-popup-card">
+                                <div className="ms-popup-card-header">Action</div>
+                                {msActions.map((a) => (
+                                    <button
+                                        key={a.label}
+                                        className={
+                                            'ms-popup-card-item' +
+                                            (a.label === msCurrent ? ' ms-popup-card-item--active' : '')
+                                        }
+                                        onPointerDown={() => { setMsActiveAction(a.label); setMsPopupOpen(false); }}
+                                    >
+                                        {a.label}
+                                        {a.label === msCurrent && <span className="ms-popup-card-check">✓</span>}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                        <div className="ms-float-wrap">
+                            <button
+                                className="ms-float-action"
+                                onClick={msExec}
+                                disabled={selected.size === 0}
+                                title={selected.size === 0 ? undefined : msCurrent}
+                            >
+                                <span className="ms-float-label">{msCurrent}</span>
+                            </button>
+                            <button
+                                className="ms-float-arrow"
+                                onClick={(e) => { e.stopPropagation(); setMsPopupOpen((v) => !v); }}
+                                title="Choose action"
+                                aria-label="Choose action"
+                            >
+                                {'▾︎'}
+                            </button>
+                        </div>
+                        <div className="ms-float-count">
+                            {selected.size === 0 ? '—' : (selected.size === 1 ? '1 item' : `${selected.size} items`)}
+                        </div>
                     </div>
-                    <div className="ms-float-count">
-                        {selected.size === 0 ? '0 items' : `${selected.size} selected`}
-                    </div>
-                </div>
-            )}
+                );
+            })()}
             {confirm && (
                 <div
                     className="starred-confirm-overlay"
