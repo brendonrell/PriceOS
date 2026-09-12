@@ -81,12 +81,11 @@ function dayLabel(t: number): string {
     return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-type Mode = 'all' | 'artists' | 'collectors' | 'outputs' | 'traits' | 'soundtracks' | 'projects' | 'priceday' | 'albums' | 'vaults' | 'tx'
-    // Social cross-entity filters — top-level pills (right after Artists). Each
-    // shows people + projects filtered by the viewer's follow relationship:
-    // followers = follows you (a project follows you while you hold ≥1 of its
-    // outputs), following = you follow them, mutuals = both.
-    | 'followers' | 'following' | 'mutuals';
+type Mode = 'all' | 'artists' | 'collectors' | 'outputs' | 'traits' | 'soundtracks' | 'projects' | 'priceday' | 'albums' | 'vaults' | 'tx';
+/* Social sub-filter — no longer a top-level Mode. It's an L4 pill that only
+   shows nested under Collectors/Artists, narrowing THAT list by the viewer's
+   follow relationship (Brendon, 2026-09-12). */
+type Social = 'all' | 'followers' | 'following' | 'mutuals';
 type SortKey = 'recent' | 'id' | 'project' | 'price' | 'followers';
 
 /* A labelled group section; `label` null = ungrouped (no header rendered). */
@@ -117,10 +116,6 @@ function emptyStateLabel(mode: Mode, kind: 'starred' | 'history'): string | null
         case 'albums': return 'No Albums starred yet.';
         case 'vaults': return 'No Vaults starred yet.';
         case 'tx': return 'No Transactions starred yet.';
-        /* Social pills reuse FollowersModal's own copy verbatim. */
-        case 'followers': return 'No followers yet.';
-        case 'following': return 'Not following anyone yet.';
-        case 'mutuals': return 'No mutuals yet.';
         default: return null;
     }
 }
@@ -178,6 +173,7 @@ export default function StarredList({
     sortDir = 'asc',
     group = 'none',
     mode = 'all',
+    social = 'all',
     viewerAddress,
     kind = 'starred',
     timeline = false,
@@ -212,6 +208,11 @@ export default function StarredList({
        restore it. The pills call onSetMode to change it. */
     mode?: Mode;
     onSetMode?: (m: Mode) => void;
+    /* L4 sub-filter, only meaningful (and only rendered by the parent) while
+       mode is 'collectors' or 'artists' — narrows that one list by the
+       viewer's follow relationship. Controlled by the parent so it can reset
+       when mode changes. */
+    social?: Social;
     /* The viewer's wallet (own profile = the owner) — lets each artist row
        resolve the follow relationship (mutual / following / follower). */
     viewerAddress?: string | null;
@@ -230,17 +231,10 @@ export default function StarredList({
     /* A dim only applies inside its own single-filter view; in All it's flat. */
     const dimFor = (m: Mode) => (mode === m ? group : 'none');
 
-    /* Social filter (Brendon, 2026-06-25) — the Followers / Following / Mutuals
-       pills are now TOP-LEVEL modes (right after Artists), so the relationship
-       is driven straight off `mode`, not a separate sub-pill. Each social mode
-       shows people (collectors + artists) AND projects, filtered by the viewer's
-       live follow graph. Outputs are deferred until their watch/fandom follow is
-       wired. */
-    const social: 'all' | 'followers' | 'following' | 'mutuals' =
-        mode === 'followers' || mode === 'following' || mode === 'mutuals' ? mode : 'all';
-    const isSocial = social !== 'all';
-
-    /* People follow graph — who follows the viewer / who the viewer follows. */
+    /* People follow graph — who follows the viewer / who the viewer follows.
+       Narrows Collectors/Artists only (Brendon, 2026-09-12 — Followers /
+       Following / Mutuals moved from top-level modes to an L4 pill nested
+       under those two sections; `social` now arrives as a prop). */
     const [socialGraph, setSocialGraph] = useState<{ followers: Set<string>; following: Set<string> }>(
         { followers: new Set(), following: new Set() }
     );
@@ -266,67 +260,10 @@ export default function StarredList({
         return f && g; // mutuals
     };
 
-    /* Project follow graph — held (the project follows you, because you own ≥1
-       of its outputs) vs following (you explicitly follow the project). Keyed by
-       project handle, which matches the registry slug. */
-    const [projGraph, setProjGraph] = useState<{ held: Set<string>; following: Set<string> }>(
-        { held: new Set(), following: new Set() }
-    );
-    useEffect(() => {
-        if (!viewerAddress) { setProjGraph({ held: new Set(), following: new Set() }); return; }
-        let alive = true;
-        fetch(`/api/project-follows?follower=${viewerAddress}`, { cache: 'no-store' })
-            .then((r) => (r.ok ? r.json() : null))
-            .then((j) => {
-                if (!alive || !j || !Array.isArray(j.projects)) return;
-                const held = new Set<string>(), following = new Set<string>();
-                for (const p of j.projects as Array<{ handle: string | null; held: boolean; following: boolean }>) {
-                    const k = (p.handle ?? '').toLowerCase();
-                    if (!k) continue;
-                    if (p.held) held.add(k);
-                    if (p.following) following.add(k);
-                }
-                setProjGraph({ held, following });
-            })
-            .catch(() => { /* ignore */ });
-        return () => { alive = false; };
-    }, [viewerAddress]);
-    const matchesProjectSocial = (slug: string): boolean => {
-        if (social === 'all') return true;
-        const k = slug.toLowerCase();
-        const held = projGraph.held.has(k), foll = projGraph.following.has(k);
-        if (social === 'followers') return held;
-        if (social === 'following') return foll;
-        return held && foll; // mutuals
-    };
-
-    /* Outputs the viewer follows — outputs only ever appear under FOLLOWING (you
-       follow an output; an output never follows you back). Keyed "project:token". */
-    const [followedOutputs, setFollowedOutputs] = useState<Set<string>>(new Set());
-    useEffect(() => {
-        if (!viewerAddress) { setFollowedOutputs(new Set()); return; }
-        let alive = true;
-        fetch(`/api/output-follows?follower=${viewerAddress}`, { cache: 'no-store' })
-            .then((r) => (r.ok ? r.json() : null))
-            .then((j) => {
-                if (!alive || !j || !Array.isArray(j.outputs)) return;
-                setFollowedOutputs(new Set(
-                    (j.outputs as Array<{ project_id: string; token_id: string }>)
-                        .map((o) => `${o.project_id.toLowerCase()}:${o.token_id}`),
-                ));
-            })
-            .catch(() => { /* ignore */ });
-        return () => { alive = false; };
-    }, [viewerAddress]);
-
-    /* Which entity blocks show for the current mode. A social mode shows the
-       followable lists (collectors + artists + projects); the Following mode
-       additionally shows outputs you follow. A single-entity mode shows just
-       that one; All shows everything. */
-    const showType = (t: Mode) =>
-        mode === t || mode === 'all'
-        || (isSocial && (t === 'collectors' || t === 'artists' || t === 'projects'))
-        || (social === 'following' && t === 'outputs');
+    /* Which entity blocks show for the current mode — a single-entity mode
+       shows just that one; All shows everything. Social no longer switches
+       entity types on its own; it only narrows Collectors/Artists (below). */
+    const showType = (t: Mode) => mode === t || mode === 'all';
 
     /* Multi-select selection — keys match each row's React key. Cleared when
        multi-select turns off or the filter changes. */
@@ -352,7 +289,7 @@ export default function StarredList({
                 ? `Remove ${n} item${n === 1 ? '' : 's'} from your History?`
                 : `Remove ${n} item${n === 1 ? '' : 's'} from your Starred list?`,
             () => {
-                const inMode = (m: Mode) => mode === 'all' || mode === m || (isSocial && (m === 'collectors' || m === 'artists' || m === 'projects'));
+                const inMode = (m: Mode) => mode === 'all' || mode === m;
                 if (inMode('outputs')) visibleOutputs.forEach((r) => {
                     if (!selected.has(`${r.slug}:${r.id}`)) return;
                     /* History rows share this component with Starred Outputs, but
@@ -438,11 +375,7 @@ export default function StarredList({
             : outputRows;
         /* Social: outputs surface only under Following, narrowed to the ones the
            viewer follows; under Followers/Mutuals outputs never appear. */
-        const filtered = !isSocial
-            ? byQuery
-            : social === 'following'
-                ? byQuery.filter((r) => followedOutputs.has(`${r.slug.toLowerCase()}:${r.id}`))
-                : [];
+        const filtered = byQuery;
         const sorted = [...filtered];
         if (sortKey === 'price') {
             const dirMul = sortDir === 'desc' ? -1 : 1;
@@ -461,7 +394,7 @@ export default function StarredList({
         else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
         return sortDir === 'desc' ? [...sorted].reverse() : sorted;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [outputRows, query, sortKey, sortDir, pricesVer, isSocial, social, followedOutputs]);
+    }, [outputRows, query, sortKey, sortDir, pricesVer]);
 
     /* Group output rows by Project so each group mounts ONE ProjectProvider —
        that's how each row reads its live listing price (and the Buy CTA lights
@@ -582,14 +515,13 @@ export default function StarredList({
             .filter((slug) => getProject(slug) != null)
             .map((slug, i) => ({ slug, name: getProject(slug)?.displayName ?? `@${slug}`, color: projectColorway(slug) ?? 'var(--stat-bg)', market: projectMarketStat(slug), recentIndex: i }));
         const byQuery = q ? rows.filter((r) => `${r.name} ${r.slug}`.toLowerCase().includes(q)) : rows;
-        const filtered = social === 'all' ? byQuery : byQuery.filter((r) => matchesProjectSocial(r.slug));
+        const filtered = byQuery;
         const sorted = [...filtered];
         if (sortKey === 'price') sorted.sort((a, b) => parseFloat(a.market.floor) - parseFloat(b.market.floor));
         else if (sortKey === 'id' || sortKey === 'project') sorted.sort((a, b) => a.name.localeCompare(b.name));
         else sorted.sort((a, b) => a.recentIndex - b.recentIndex);
         return sortDir === 'desc' ? [...sorted].reverse() : sorted;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [projects, query, sortKey, sortDir, social, projGraph]);
+    }, [projects, query, sortKey, sortDir]);
 
     /* ── PriceDay rows (starred PriceDay numbers) ─────────────────────── */
     const visiblePriceDays = useMemo(() => {
@@ -780,7 +712,7 @@ export default function StarredList({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mode, group, visibleSoundtracks]);
     /* All-Starred groups by TYPE — a header before each non-empty block. */
-    const typeHdr = (mode === 'all' && group === 'type') || isSocial;
+    const typeHdr = mode === 'all' && group === 'type';
 
     /* Removing from Starred asks first (the ✕ on the right) — a small confirm
        card, the same style as multi-select's. */
@@ -844,7 +776,7 @@ export default function StarredList({
             });
             return pins;
         }
-        const inMode = (m: Mode) => mode === 'all' || mode === m || (isSocial && (m === 'collectors' || m === 'artists' || m === 'projects'));
+        const inMode = (m: Mode) => mode === 'all' || mode === m;
         const pins: ListMember[] = [];
         if (inMode('outputs')) visibleOutputs.forEach((r) => { if (selected.has(`${r.slug}:${r.id}`)) pins.push({ kind: 'output', slug: r.slug, id: r.id }); });
         if (inMode('traits')) visibleTraits.forEach((r) => { if (selected.has(`${r.slug}|${r.category}|${r.value}`)) pins.push({ kind: 'trait', slug: r.slug, category: r.category, value: r.value }); });
@@ -936,7 +868,6 @@ export default function StarredList({
     const totalVisible =
         isHistory ? historyRowCount
         : mode === 'all' ? visibleOutputs.length + visibleTraits.length + visibleArtists.length + visibleCollectors.length + visibleSoundtracks.length + visibleProjects.length + visiblePriceDays.length + visibleAlbums.length + visibleVaults.length + visibleTx.length
-        : isSocial ? visibleArtists.length + visibleCollectors.length + visibleProjects.length + visibleOutputs.length
         : mode === 'outputs' ? visibleOutputs.length
         : mode === 'traits' ? visibleTraits.length
         : mode === 'artists' ? visibleArtists.length
@@ -1605,7 +1536,12 @@ export default function StarredList({
                     </>
                 )}
                 {totalVisible === 0 && (() => {
-                    const label = emptyStateLabel(mode, kind);
+                    /* Social sub-filter (Followers/Following/Mutuals) nested under
+                       Collectors/Artists gets its own empty copy — FollowersModal's
+                       copy verbatim, same as before the 2026-09-12 move. */
+                    const label = social !== 'all' && (mode === 'collectors' || mode === 'artists')
+                        ? (social === 'followers' ? 'No followers yet.' : social === 'following' ? 'Not following anyone yet.' : 'No mutuals yet.')
+                        : emptyStateLabel(mode, kind);
                     return label
                         ? <div className="starred-empty-note">{label}</div>
                         : <GhostRows variant="starred" />;
