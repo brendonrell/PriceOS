@@ -13,7 +13,10 @@ import type { ProfileMoreL1 } from './profilePageShared';
 export type MoreSortKey = 'recent' | 'id' | 'project' | 'price' | 'followers';
 export type MoreMode = 'all' | 'artists' | 'collectors' | 'outputs' | 'traits' | 'soundtracks' | 'projects'
     | 'priceday' | 'albums' | 'vaults'
-    | 'tx' | 'followers' | 'following' | 'mutuals';
+    | 'tx';
+/* L4 sub-filter, nested under Collectors/Artists only (Brendon, 2026-09-12 —
+   moved off the main +More pill row to save space there). */
+export type MoreSocial = 'all' | 'followers' | 'following' | 'mutuals';
 
 /* Which sorts + groupings make sense for each Starred filter (and Wishlist).
    Groupings reuse the gallery's dimensions (color = outputs only, etc.) and
@@ -79,6 +82,9 @@ export function useMoreControls(
        2026-07-12 — pulled out of the AZ button's cycle). Wishlist keeps its own
        #ID sort. */
     const [moreMode, setMoreMode] = useState<MoreMode>('all');
+    /* L4 social sub-filter — only meaningful while moreMode is 'collectors' or
+       'artists'; reset whenever moreMode changes (below), same as sort/group. */
+    const [moreSocial, setMoreSocial] = useState<MoreSocial>('all');
     const [moreSort, setMoreSort] = useState<MoreSortKey>('recent');
     const [moreSortDir, setMoreSortDir] = useState<'asc' | 'desc'>('asc');
     const [moreGroup, setMoreGroup] = useState<string>('none');
@@ -106,7 +112,7 @@ export function useMoreControls(
     const applyingPreset = useRef(false);
     useEffect(() => {
         if (applyingPreset.current) { applyingPreset.current = false; return; }
-        setMoreSort('recent'); setMoreSortDir('asc'); setMoreGroup('none');
+        setMoreSort('recent'); setMoreSortDir('asc'); setMoreGroup('none'); setMoreSocial('all');
     }, [moreMode]);
     const applyStarredPreset = (s: StarredPresetState) => {
         if (s.mode !== moreMode) applyingPreset.current = true;
@@ -146,6 +152,7 @@ export function useMoreControls(
         moreMultiActive, setMoreMultiActive,
         morePresetActive, setMorePresetActive,
         moreMode, setMoreMode,
+        moreSocial, setMoreSocial,
         moreSort, moreSortDir, moreGroup,
         applyStarredPreset, cycleMoreSort, cycleMoreGroup,
     };
