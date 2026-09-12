@@ -6407,6 +6407,29 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.32); }
     background: transparent;
     border: 1px dashed rgba(120, 120, 120, 0.5);
 }
+/* L4 — Followers/Following/Mutuals nested under Starred's Collectors/Artists
+   pills (Brendon, 2026-09-12: moved off the L3 row to save space there). Own
+   full-width row so it wraps under the L3 row it belongs to, sized down one
+   notch so the nesting reads at a glance. */
+.collected-values-l4 {
+    width: 100%;
+    margin-top: -2px;
+}
+.pill-l4 {
+    background: var(--stat-bg);
+    color: var(--text-color);
+    border: 1px dotted var(--text-color);
+    opacity: 0.75;
+    font-size: 11px;
+    height: 22px;
+    padding: 0 8px;
+}
+.pill-l4.active {
+    background: var(--stat-active-bg);
+    color: var(--stat-active-text);
+    border: 1px solid var(--stat-active-bg);
+    opacity: 1;
+}
 /* Recent (formerly Breadcrumb) L2 sub-pill dot — sim 2284-2290 */
 .recent-dot {
     font-size: 8px;
