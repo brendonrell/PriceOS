@@ -2166,7 +2166,7 @@ function ProfilePageBodyInner({
                        by a real &nbsp; — either straight after the name, or
                        after the comma — no CSS gap/margin spacing left to
                        fake it. */
-                    <div className="hero-line collected-by-row info-line feat-row-lock">
+                    <div className={`hero-line collected-by-row info-line ${followedByPool.length >= 6 ? 'feat-row-lock' : 'feat-row-fit'}`}>
                         <span className="cbr-label">Followed by&nbsp;</span>
                         <span className="feat-names">
                             <a key={mutuals[0]} className="profile-link feat-name" href={`/${mutuals[0]}`}>@{mutuals[0]}</a>
