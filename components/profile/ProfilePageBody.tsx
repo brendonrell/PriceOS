@@ -141,7 +141,7 @@ import ArtistProjectCarousel from './ArtistProjectCarousel';
 import UploadWindowCountdown from '../artist/UploadWindowCountdown';
 import { useProfileEggs } from './useProfileEggs';
 import { useStarredPins } from './useStarredPins';
-import { useMoreControls, MORE_CFG, MORE_SORT_LABEL, MORE_GROUP_GLYPH, type MoreMode } from './useMoreControls';
+import { useMoreControls, MORE_CFG, MORE_SORT_LABEL, MORE_GROUP_GLYPH, type MoreMode, type MoreSocial } from './useMoreControls';
 import ListsPanel from '../lists/ListsPanel';
 import { GroupBtn } from '../project/traitsUIPills';
 import PriceDayDateLink from '../priceday/PriceDayDateLink';
@@ -1097,7 +1097,7 @@ function ProfilePageBodyInner({
     const {
         moreSearchOpen, moreQuery, setMoreQuery, toggleMoreSearch, closeMoreSearch,
         moreMultiActive, setMoreMultiActive, morePresetActive, setMorePresetActive,
-        moreMode, setMoreMode, moreSort, moreSortDir, moreGroup,
+        moreMode, setMoreMode, moreSocial, setMoreSocial, moreSort, moreSortDir, moreGroup,
         applyStarredPreset, cycleMoreSort, cycleMoreGroup,
     } = useMoreControls(moreL1, showToast);
 
@@ -2598,12 +2598,6 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                                             { key: 'all',         label: 'All Starred', count: starredValid.length + traitStarsValid.length + starredArtistHandles.length + starredCollectorHandles.length + soundtrackStars.length + projectStarsValid.length + priceDayStars.length + albumStarsValid.length + vaultStarsValid.length + txStars.length },
                                             { key: 'collectors',  label: 'Collectors',  count: starredCollectorHandles.length },
                                             { key: 'artists',     label: 'Artists',     count: starredArtistHandles.length },
-                                            // Social filters across collectors + artists + projects. No count
-                                            // badge — the tally depends on the live follow graph (resolved in
-                                            // the list), not the starred totals here.
-                                            { key: 'followers',   label: 'Followers',   count: 0 },
-                                            { key: 'following',   label: 'Following',   count: 0 },
-                                            { key: 'mutuals',     label: 'Mutuals',     count: 0 },
                                             { key: 'projects',    label: 'Projects',    count: projectStarsValid.length },
                                             { key: 'priceday',    label: 'PriceDays',   count: priceDayStars.length },
                                             { key: 'albums',      label: 'Albums',      count: albumStarsValid.length },
@@ -2625,6 +2619,32 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                                                 {p.count > 0 && <span className="stat-count">{p.count}</span>}
                                             </div>
                                         ))}
+                                        {/* L4 — Followers / Following / Mutuals, nested under
+                                            Collectors/Artists only (moved off the L3 row above
+                                            to save space there, Brendon 2026-09-12). Narrows
+                                            whichever of the two is active; no count badge, same
+                                            as before — depends on the live follow graph. */}
+                                        {(moreMode === 'collectors' || moreMode === 'artists') && (
+                                            <div className="stats-container collected-values collected-values-l4" style={{ display: 'flex' }}>
+                                                {([
+                                                    { key: 'all',       label: 'All' },
+                                                    { key: 'followers', label: 'Followers' },
+                                                    { key: 'following', label: 'Following' },
+                                                    { key: 'mutuals',   label: 'Mutuals' },
+                                                ] as { key: MoreSocial; label: string }[]).map((p) => (
+                                                    <div
+                                                        key={p.key}
+                                                        className={`pill pill-l4${moreSocial === p.key ? ' active' : ''}`}
+                                                        role="button"
+                                                        tabIndex={0}
+                                                        onClick={() => setMoreSocial(p.key)}
+                                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMoreSocial(p.key); } }}
+                                                    >
+                                                        <span className="stat-name">↳ {p.label}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 ) : onHistoryTab && isOwnProfile ? (
                                     <div className="stats-container collected-values" style={{ display: 'flex' }}>
@@ -3220,6 +3240,7 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                                 group={moreGroup}
                                 mode={moreMode}
                                 onSetMode={setMoreMode}
+                                social={moreSocial}
                                 viewerAddress={user.address}
                             />
                         ) : (
