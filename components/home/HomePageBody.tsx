@@ -175,24 +175,25 @@ export function FeaturingRow() {
     return (
         <div className={`hero-line collected-by-row info-line ${featRowCls}`}>
             <span className="cbr-label">Featuring</span>&nbsp;
-            {/* name1 is its own flex item (free to sit on the same line as
-               the label, or wrap on its own) — only the LAST shown name is
-               boxed together with its trailing &nbsp; before "&", so that
-               space can never strand itself alone at the start of a wrapped
-               line. Bundling BOTH names into one block (2026-09-11) broke
-               normal wrapping instead: a long 2nd name made the whole pair
-               too wide to fit after the label, so it wrapped as one unit and
-               pushed "& N others" onto a 3rd line the 2-line height then
-               clipped away entirely. This restores natural per-name
-               wrapping while keeping the space fix (Brendon, 2026-09-12). */}
+            {/* The rule that actually holds: trailing punctuation/space
+               glues to the END of the word before it, never sits at the
+               START of the next flex item. That's the only way to guarantee
+               whichever item lands first on a wrapped line begins with a
+               real word (or the "&" glyph, which reads fine on its own
+               line) — never a bare comma or space. Previous passes kept
+               moving the separator to the FRONT of the next piece (comma
+               before name2, space before "&"), which just relocates the
+               same orphan bug each time (Brendon, 2026-09-12). */}
+            <span className="feat-name-item">
+                <a key={featNames[0]} className="profile-link feat-name" href={`/${featNames[0]}`}>@{featNames[0]}</a>
+                {featNames[1] ? ',\u00A0' : (featOthers > 0 ? '\u00A0' : '')}
+            </span>
             {featNames[1] ? (
-                <>
-                    <a key={featNames[0]} className="profile-link feat-name" href={`/${featNames[0]}`}>@{featNames[0]}</a>
-                    <span className="feat-name-last">,&nbsp;<a key={featNames[1]} className="profile-link feat-name" href={`/${featNames[1]}`}>@{featNames[1]}</a>&nbsp;</span>
-                </>
-            ) : (
-                <span className="feat-name-last"><a key={featNames[0]} className="profile-link feat-name" href={`/${featNames[0]}`}>@{featNames[0]}</a>&nbsp;</span>
-            )}
+                <span className="feat-name-item">
+                    <a key={featNames[1]} className="profile-link feat-name" href={`/${featNames[1]}`}>@{featNames[1]}</a>
+                    {featOthers > 0 ? '\u00A0' : ''}
+                </span>
+            ) : null}
             <span className="cbr-others">&amp;&nbsp;{featOthers}&nbsp;others</span>
 
         </div>
