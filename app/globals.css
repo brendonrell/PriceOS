@@ -12449,7 +12449,8 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
    clearly against the rest (Starred + History share this — restored, was
    dropped by mistake). Selected rows stay full-strength. */
 .starred-rows.is-multi .starred-row {
-    opacity: 0.45;
+    /* Dim halved (Brendon, 2026-09-12) — was 0.45, too heavy. */
+    opacity: 0.725;
     transition: opacity 0.15s ease;
 }
 .starred-rows.is-multi .starred-row.is-selected {
@@ -12464,6 +12465,11 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
     box-shadow: 0 0 0 2px var(--accent);
     left: -4px;
     right: -4px;
+    /* Contracted off the full row height (Brendon, 2026-09-12) — full-height
+       rings from stacked rows touched/overlapped each other; this pulls each
+       ring in 4px top + bottom, leaving an 8px buffer between rows. */
+    top: 4px;
+    bottom: 4px;
 }
 /* 2px on desktop too (Brendon 2026-06-27 — was 1px). */
 @media (min-width: 601px) {
