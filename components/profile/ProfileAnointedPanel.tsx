@@ -10,9 +10,16 @@
  * moving a pledge happens on a project's Anointed tab, so the empty state points
  * there. Re-reads on pd:anoint-changed so it stays in sync with the project tab
  * and the PriceSprite modal socket.
+ *
+ * Restyled onto the Sigil tab's anatomy (Brendon, 2026-09-12) — the old
+ * bespoke .anoint-card/.more-box-card look (still used verbatim by the
+ * project-page Anointed tab, ProjectAnointPanel — untouched) is swapped here
+ * for .ach-section/.attr-group/.attr-grid/.starred-row, the same "character
+ * sheet" reuse Loyalty and Counterparties already share with Sigil.
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useToast } from '../../lib/state/ToastContext';
 import { withdrawAnoint, type MyPledge } from '../../lib/anoint/useAnoint';
 
@@ -33,6 +40,7 @@ export default function ProfileAnointedPanel({
     handle: string;
     isOwnProfile: boolean;
 }) {
+    const router = useRouter();
     const { showToast } = useToast();
     const [pledge, setPledge] = useState<MyPledge | null>(null);
     const [relics, setRelics] = useState<Array<{ project_id: string; output_token_id: string; votes: number }>>([]);
@@ -78,47 +86,76 @@ export default function ProfileAnointedPanel({
     const who = isOwnProfile ? 'You have' : `${handle} has`;
 
     return (
-        <div className="anoint-panel">
-            <div className="more-section-header">{`✢${VS15}`} ANOINTMENT</div>
-            <div className="more-box-wrap">
-              <div className="more-box-card anoint-card">
-                {/* Prime Relic clout badge — one per project this wallet owns
-                    the top-voted conduit for (Brendon 2026-07-07 — lives in the
-                    Anointed tab, not the profile header). */}
-                {relics.length > 0 && (
-                    <div className="anoint-clout">
-                        <span className="anoint-clout-badge">PRIME RELIC {relics.length > 1 ? `HOLDER · ${relics.length}` : 'HOLDER'}</span>
-                        <div className="anoint-clout-list">
-                            {relics.map((r) => (
-                                <a key={`${r.project_id}:${r.output_token_id}`} className="anoint-clout-item" href={`/art/${r.project_id}/${r.output_token_id}`}>
-                                    @{r.project_id} #{r.output_token_id}
-                                </a>
-                            ))}
+        <div className="ach-section cp-section anoint-section">
+            {!loaded && <div className="nbhd-note">Reading the pledge<span className="nbhd-ellipsis">…</span></div>}
+
+            {loaded && (
+                <>
+                    {/* PRIME RELICS — the clout badge, same starred-row grammar
+                       as Sigil's Kin / Loyalty's Artists You Back. */}
+                    {relics.length > 0 && (
+                        <section className="attr-group" aria-label="Prime relics">
+                            <div className="attr-group-head">
+                                <span className="attr-group-name">Prime relics · clout</span>
+                                <span className="attr-group-count">{relics.length}</span>
+                            </div>
+                            <div className="starred-rows loy-rows">
+                                {relics.map((r) => (
+                                    <div
+                                        key={`${r.project_id}:${r.output_token_id}`}
+                                        className="starred-row"
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={() => router.push(`/art/${r.project_id}/${r.output_token_id}`)}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.push(`/art/${r.project_id}/${r.output_token_id}`); } }}
+                                    >
+                                        <div className="trait-row-tile artist-tile">
+                                            <span className="artist-row-tile-glyph">{`✢${VS15}`}</span>
+                                        </div>
+                                        <div className="starred-row-meta">
+                                            <span className="starred-row-id">@{r.project_id}<em>{` #${r.output_token_id}`}</em></span>
+                                            <span className="starred-row-sub">{r.votes} {r.votes === 1 ? 'vote' : 'votes'}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    {/* THE PLEDGE — Sigil's "unforged" empty-state pattern for
+                       no pledge yet, an attr-group + one starred-row for a
+                       placed one. */}
+                    {!pledge ? (
+                        <div className="nbhd-note">
+                            {`NOT PLACED — ${isOwnProfile ? 'you have' : `${who.toLowerCase()}`} not placed ${isOwnProfile ? 'your' : 'their'} Anointment yet.${isOwnProfile ? ` Open any project's Anointed tab to pledge it.` : ''}`}
                         </div>
-                    </div>
-                )}
-                {!loaded ? (
-                    <div className="anoint-note">Reading pledge…</div>
-                ) : !pledge ? (
-                    <div className="anoint-empty">
-                        <span className="anoint-empty-mark">{`✢${VS15}`}</span>
-                        <span className="anoint-empty-copy">
-                            {who} not placed {isOwnProfile ? 'your' : 'their'} Anointment yet.
-                            {isOwnProfile && ' Open any project’s Anointed tab to pledge it.'}
-                        </span>
-                    </div>
-                ) : (
-                    <>
-                        <div className="anoint-note anoint-pledge-line">
-                            {who} anointed <a href={`/art/${pledge.project_id}`}><strong>@{pledge.project_id}</strong></a>{' '}
-                            through conduit <a href={`/art/${pledge.project_id}/${pledge.output_token_id}`}>#{pledge.output_token_id}</a>.
-                        </div>
-                        <div className="anoint-bar-labels anoint-pledge-meta">
-                            <span>Placed {fmtDate(pledge.placed_at)}</span>
-                            <span>{pledge.locked ? `LOCKED until ${fmtDate(pledge.unlocksAt)}` : 'UNLOCKED'}</span>
-                        </div>
-                        {isOwnProfile && (
-                            <div className="anoint-actions">
+                    ) : (
+                        <section className="attr-group" aria-label="Anointment">
+                            <div className="attr-group-head">
+                                <span className="attr-group-name">Anointment</span>
+                                <span className="attr-group-count">{pledge.locked ? 'LOCKED' : 'UNLOCKED'}</span>
+                            </div>
+                            <div className="starred-rows loy-rows">
+                                <div
+                                    className="starred-row"
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={() => router.push(`/art/${pledge.project_id}/${pledge.output_token_id}`)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.push(`/art/${pledge.project_id}/${pledge.output_token_id}`); } }}
+                                >
+                                    <div className="trait-row-tile artist-tile">
+                                        <span className="artist-row-tile-glyph">{`✢${VS15}`}</span>
+                                    </div>
+                                    <div className="starred-row-meta">
+                                        <span className="starred-row-id">@{pledge.project_id}<em>{` #${pledge.output_token_id}`}</em></span>
+                                        <span className="starred-row-sub">
+                                            placed {fmtDate(pledge.placed_at)}
+                                            {pledge.locked ? ` · LOCKED until ${fmtDate(pledge.unlocksAt)}` : ' · UNLOCKED'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            {isOwnProfile && (
                                 <button
                                     type="button"
                                     className={`btn-mint anoint-withdraw-btn${pledge.locked ? ' locked' : ''}`}
@@ -128,12 +165,11 @@ export default function ProfileAnointedPanel({
                                 >
                                     {pledge.locked ? `LOCKED UNTIL ${fmtDate(pledge.unlocksAt)}` : 'WITHDRAW'}
                                 </button>
-                            </div>
-                        )}
-                    </>
-                )}
-              </div>
-            </div>
+                            )}
+                        </section>
+                    )}
+                </>
+            )}
         </div>
     );
 }
