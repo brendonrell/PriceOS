@@ -2599,12 +2599,12 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                                             { key: 'collectors',  label: 'Collectors',  count: starredCollectorHandles.length },
                                             { key: 'artists',     label: 'Artists',     count: starredArtistHandles.length },
                                             { key: 'projects',    label: 'Projects',    count: projectStarsValid.length },
-                                            { key: 'priceday',    label: 'PriceDays',   count: priceDayStars.length },
-                                            { key: 'albums',      label: 'Albums',      count: albumStarsValid.length },
-                                            { key: 'vaults',      label: 'Vaults',      count: vaultStarsValid.length },
                                             { key: 'outputs',     label: 'Outputs',     count: starredValid.length },
                                             { key: 'traits',      label: 'Traits',      count: traitStarsValid.length },
                                             { key: 'soundtracks', label: 'Soundtracks', count: soundtrackStars.length },
+                                            { key: 'albums',      label: 'Albums',      count: albumStarsValid.length },
+                                            { key: 'vaults',      label: 'Vaults',      count: vaultStarsValid.length },
+                                            { key: 'priceday',    label: 'PriceDays',   count: priceDayStars.length },
                                             { key: 'tx',          label: 'Txs',         count: txStars.length },
                                         ] as { key: MoreMode; label: string; count: number }[]).map((p) => (
                                             <div
