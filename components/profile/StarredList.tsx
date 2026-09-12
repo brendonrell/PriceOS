@@ -100,6 +100,31 @@ function sectionize<T>(rows: T[], keyOf: (r: T) => string, order?: string[]): Se
 }
 const COLOR_ORDER = [...(COLOR_BUCKET_ORDER as readonly string[]), 'Other'];
 
+/* Null-state sentence for an empty tab, replacing the ghost rows (which read
+   as "still loading" rather than "nothing here") — one line per Mode, plus
+   History. Falls back to ghost rows only for a mode this doesn't cover. */
+function emptyStateLabel(mode: Mode, kind: 'starred' | 'history'): string | null {
+    if (kind === 'history') return 'Nothing in your History yet.';
+    switch (mode) {
+        case 'all': return 'Nothing starred yet.';
+        case 'artists': return 'No Artists starred yet.';
+        case 'collectors': return 'No Collectors starred yet.';
+        case 'outputs': return 'No Outputs starred yet.';
+        case 'traits': return 'No Traits starred yet.';
+        case 'soundtracks': return 'No Soundtracks starred yet.';
+        case 'projects': return 'No Projects starred yet.';
+        case 'priceday': return 'No PriceDays starred yet.';
+        case 'albums': return 'No Albums starred yet.';
+        case 'vaults': return 'No Vaults starred yet.';
+        case 'tx': return 'No Transactions starred yet.';
+        /* Social pills reuse FollowersModal's own copy verbatim. */
+        case 'followers': return 'No followers yet.';
+        case 'following': return 'Not following anyone yet.';
+        case 'mutuals': return 'No mutuals yet.';
+        default: return null;
+    }
+}
+
 /* `slug:id` → { slug, id } — same tiny parse AlbumsPanel/VaultPanel each keep
    locally for their cover keys; duplicated here rather than exported cross-
    file, matching that existing per-file convention. */
@@ -1579,11 +1604,12 @@ export default function StarredList({
                         })}
                     </>
                 )}
-                {totalVisible === 0 && (
-                    mode === 'artists'
-                        ? <div className="starred-empty-note">No Artists starred yet.</div>
-                        : <GhostRows variant="starred" />
-                )}
+                {totalVisible === 0 && (() => {
+                    const label = emptyStateLabel(mode, kind);
+                    return label
+                        ? <div className="starred-empty-note">{label}</div>
+                        : <GhostRows variant="starred" />;
+                })()}
             </div>
             {multiActive && (() => {
                 interface MsAction { label: string; exec: () => void; }
