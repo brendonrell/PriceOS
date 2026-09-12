@@ -2168,18 +2168,16 @@ function ProfilePageBodyInner({
                        fake it. */
                     <div className={`hero-line collected-by-row info-line ${followedByPool.length >= 6 ? 'feat-row-lock' : 'feat-row-fit'}`}>
                         <span className="cbr-label">Followed by&nbsp;</span>
+                        <span className="feat-name-item">
+                            <a key={mutuals[0]} className="profile-link feat-name" href={`/${mutuals[0]}`}>@{mutuals[0]}</a>
+                            {mutuals[1] ? ',\u00A0' : (mutualOthers > 0 ? '\u00A0' : '')}
+                        </span>
                         {mutuals[1] ? (
-                            <>
-                                <a key={mutuals[0]} className="profile-link feat-name" href={`/${mutuals[0]}`}>@{mutuals[0]}</a>
-                                <span className="feat-name-last">,&nbsp;<a key={mutuals[1]} className="profile-link feat-name" href={`/${mutuals[1]}`}>@{mutuals[1]}</a>{mutualOthers > 0 ? <>&nbsp;</> : null}</span>
-                            </>
-                        ) : (
-                            mutualOthers > 0 ? (
-                                <span className="feat-name-last"><a key={mutuals[0]} className="profile-link feat-name" href={`/${mutuals[0]}`}>@{mutuals[0]}</a>&nbsp;</span>
-                            ) : (
-                                <a key={mutuals[0]} className="profile-link feat-name" href={`/${mutuals[0]}`}>@{mutuals[0]}</a>
-                            )
-                        )}
+                            <span className="feat-name-item">
+                                <a key={mutuals[1]} className="profile-link feat-name" href={`/${mutuals[1]}`}>@{mutuals[1]}</a>
+                                {mutualOthers > 0 ? '\u00A0' : ''}
+                            </span>
+                        ) : null}
                         {mutualOthers > 0 && (
                             <span className="cbr-others">
                                 &amp;&nbsp;{mutualOthers}&nbsp;{mutualOthers === 1 ? 'Other' : 'Others'}&nbsp;You&nbsp;Follow
