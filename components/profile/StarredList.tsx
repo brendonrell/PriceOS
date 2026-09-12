@@ -37,6 +37,7 @@ import { toggleStar, isStarred, subscribeStarred } from '../../lib/pins/starStor
 import { removeMyHistory, PROJECT_VIEW_ID } from '../../lib/output/views';
 import { isWishlisted, toggleWishlist, subscribeWishlist } from '../../lib/pins/wishlistStore';
 import AddToListCard from '../lists/AddToListCard';
+import type { ListMember } from '../../lib/pins/listStore';
 import { toggleTraitStar, type TraitStar } from '../../lib/pins/traitStarStore';
 import { removeArtistStar } from '../../lib/pins/artistStarStore';
 import { toggleSoundtrackStar, type SoundtrackStar } from '../../lib/pins/soundtrackStarStore';
@@ -786,8 +787,8 @@ export default function StarredList({
        (Brendon, 2026-09-03) — it has no "REGULAR CTA" of its own to fall back
        to, so its rows keep ADD TO LIST regardless of mode. */
     const listCta = mode === 'all' || kind === 'history';
-    const [listTarget, setListTarget] = useState<GrailPin | null>(null);
-    const openAddToList = (e: React.MouseEvent, pin: GrailPin) => {
+    const [listTarget, setListTarget] = useState<ListMember | null>(null);
+    const openAddToList = (e: React.MouseEvent, pin: ListMember) => {
         e.stopPropagation();
         setListTarget(pin);
     };
@@ -804,14 +805,14 @@ export default function StarredList({
        the SAME sheet opens, which already takes many items at once. Resolving
        the selection mirrors handleRemoveSelected exactly — the selected keys
        are per-kind, so each visible block hands back the pins it owns. */
-    const [listBatch, setListBatch] = useState<GrailPin[] | null>(null);
-    const selectedPins = (): GrailPin[] => {
+    const [listBatch, setListBatch] = useState<ListMember[] | null>(null);
+    const selectedPins = (): ListMember[] => {
         /* History rows aren't covered by any of the below (they're not in
            visibleOutputs/visibleProjects — they're their own flat/day-bucketed
            list), so they need their own branch, keyed the same way the History
            rows themselves are (Brendon, 2026-09-03). */
         if (isHistory) {
-            const pins: GrailPin[] = [];
+            const pins: ListMember[] = [];
             historyRowsFlat.forEach((r) => {
                 if (r.type === 'output' && selected.has(`${r.slug}:${r.id}`)) pins.push({ kind: 'output', slug: r.slug, id: r.id });
                 else if (r.type === 'project' && selected.has(`p:${r.slug}`)) pins.push({ kind: 'project', slug: r.slug });
@@ -819,7 +820,7 @@ export default function StarredList({
             return pins;
         }
         const inMode = (m: Mode) => mode === 'all' || mode === m || (isSocial && (m === 'collectors' || m === 'artists' || m === 'projects'));
-        const pins: GrailPin[] = [];
+        const pins: ListMember[] = [];
         if (inMode('outputs')) visibleOutputs.forEach((r) => { if (selected.has(`${r.slug}:${r.id}`)) pins.push({ kind: 'output', slug: r.slug, id: r.id }); });
         if (inMode('traits')) visibleTraits.forEach((r) => { if (selected.has(`${r.slug}|${r.category}|${r.value}`)) pins.push({ kind: 'trait', slug: r.slug, category: r.category, value: r.value }); });
         if (inMode('artists')) visibleArtists.forEach((r) => { if (selected.has(r.name)) pins.push({ kind: 'artist', slug: r.handle }); });
@@ -831,6 +832,9 @@ export default function StarredList({
             const tokenSlug = r.star.tokenId ? r.star.tokenId.slice(0, r.star.tokenId.lastIndexOf('-')) : '';
             pins.push({ kind: 'tx', slug: tokenSlug, tx: r.star });
         });
+        if (inMode('priceday')) visiblePriceDays.forEach((r) => { if (selected.has(`pd:${r.number}`)) pins.push({ kind: 'priceday', priceDayNumber: r.number }); });
+        if (inMode('albums')) visibleAlbums.forEach((r) => { if (selected.has(`al:${r.ownerAddress}:${r.albumId}`)) pins.push({ kind: 'album', ownerAddress: r.ownerAddress, albumId: r.albumId }); });
+        if (inMode('vaults')) visibleVaults.forEach((r) => { if (selected.has(`vl:${r.ownerAddress}:${r.vaultId}`)) pins.push({ kind: 'vault', ownerAddress: r.ownerAddress, vaultId: r.vaultId }); });
         return pins;
     };
     const handleAddSelectedToList = () => {
@@ -839,12 +843,16 @@ export default function StarredList({
         setListBatch(pins);
     };
 
-    /* Grail Pin from MULTI-SELECT — every kind here is pin-able (GrailPin
-       covers output/project/trait/artist/soundtrack/tx), so this is a real
-       option in the Starred menu, not just the project page's. Idempotent
-       add up to the remaining slots, same as MsFloatBar's Star/Wishlist. */
+    /* Grail Pin from MULTI-SELECT — every GrailKind is pin-able
+       (output/project/trait/artist/soundtrack/tx), so this is a real option
+       in the Starred menu, not just the project page's. PriceDay/Album/Vault
+       have no Grail Pin equivalent — selectedPins() may include them, so
+       they're filtered out here rather than pinned. Idempotent add up to the
+       remaining slots, same as MsFloatBar's Star/Wishlist. */
+    const isGrailable = (p: ListMember): p is GrailPin =>
+        p.kind !== 'priceday' && p.kind !== 'album' && p.kind !== 'vault';
     const handleGrailPinSelected = () => {
-        const pins = selectedPins();
+        const pins = selectedPins().filter(isGrailable);
         if (pins.length === 0) return;
         const availableSlots = MAX_GRAIL_PINS - grailKeys.size;
         if (availableSlots <= 0) { showToast('Grail Pins: FULL'); return; }
@@ -1073,12 +1081,12 @@ export default function StarredList({
                                         className="starred-row-cta"
                                         role="button"
                                         tabIndex={0}
-                                        title="Add to List"
-                                        aria-label="Add to List"
+                                        title="+ List"
+                                        aria-label="+ List"
                                         onClick={(e) => openAddToList(e, { kind: 'trait', slug: r.slug, category: r.category, value: r.value })}
                                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAddToList(e as unknown as React.MouseEvent, { kind: 'trait', slug: r.slug, category: r.category, value: r.value }); } }}
                                     >
-                                        Add to List
+                                        + List
                                     </span>
                                     ) : (
                                     <span
@@ -1204,12 +1212,12 @@ export default function StarredList({
                                         className="starred-row-cta"
                                         role="button"
                                         tabIndex={0}
-                                        title="Add to List"
-                                        aria-label="Add to List"
+                                        title="+ List"
+                                        aria-label="+ List"
                                         onClick={(e) => openAddToList(e, { kind: 'soundtrack', slug: r.slug, playlistId: r.playlistId, title: r.title })}
                                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAddToList(e as unknown as React.MouseEvent, { kind: 'soundtrack', slug: r.slug, playlistId: r.playlistId, title: r.title }); } }}
                                     >
-                                        Add to List
+                                        + List
                                     </span>
                                     ) : (
                                     <span
@@ -1279,12 +1287,12 @@ export default function StarredList({
                                         className="starred-row-cta"
                                         role="button"
                                         tabIndex={0}
-                                        title="Add to List"
-                                        aria-label="Add to List"
+                                        title="+ List"
+                                        aria-label="+ List"
                                         onClick={(e) => openAddToList(e, { kind: 'project', slug: r.slug })}
                                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAddToList(e as unknown as React.MouseEvent, { kind: 'project', slug: r.slug }); } }}
                                     >
-                                        Add to List
+                                        + List
                                     </span>
                                     ) : (
                                     <span
@@ -1345,6 +1353,22 @@ export default function StarredList({
                                     <span className="starred-row-sub">{mood.name}</span>
                                 </div>
                                 <div className="starred-row-actions">
+                                    {/* PriceDay has no action of its own — in
+                                        All Starred it still takes the row
+                                        CTA, so every row can be listed. */}
+                                    {listCta && (
+                                    <span
+                                        className="starred-row-cta"
+                                        role="button"
+                                        tabIndex={0}
+                                        title="+ List"
+                                        aria-label="+ List"
+                                        onClick={(e) => openAddToList(e, { kind: 'priceday', priceDayNumber: r.number })}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAddToList(e as unknown as React.MouseEvent, { kind: 'priceday', priceDayNumber: r.number }); } }}
+                                    >
+                                        + List
+                                    </span>
+                                    )}
                                     <span
                                         className="starred-row-unstar"
                                         role="button"
@@ -1390,6 +1414,22 @@ export default function StarredList({
                                     <span className="starred-row-sub">{r.album.keys.length} {r.album.keys.length === 1 ? 'piece' : 'pieces'}</span>
                                 </div>
                                 <div className="starred-row-actions">
+                                    {/* An Album has no action of its own — in
+                                        All Starred it still takes the row
+                                        CTA, so every row can be listed. */}
+                                    {listCta && (
+                                    <span
+                                        className="starred-row-cta"
+                                        role="button"
+                                        tabIndex={0}
+                                        title="+ List"
+                                        aria-label="+ List"
+                                        onClick={(e) => openAddToList(e, { kind: 'album', ownerAddress: r.ownerAddress, albumId: r.albumId })}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAddToList(e as unknown as React.MouseEvent, { kind: 'album', ownerAddress: r.ownerAddress, albumId: r.albumId }); } }}
+                                    >
+                                        + List
+                                    </span>
+                                    )}
                                     <span
                                         className="starred-row-unstar"
                                         role="button"
@@ -1435,6 +1475,22 @@ export default function StarredList({
                                     <span className="starred-row-sub">{r.vault.keys.length} {r.vault.keys.length === 1 ? 'piece' : 'pieces'}</span>
                                 </div>
                                 <div className="starred-row-actions">
+                                    {/* A Vault has no action of its own — in
+                                        All Starred it still takes the row
+                                        CTA, so every row can be listed. */}
+                                    {listCta && (
+                                    <span
+                                        className="starred-row-cta"
+                                        role="button"
+                                        tabIndex={0}
+                                        title="+ List"
+                                        aria-label="+ List"
+                                        onClick={(e) => openAddToList(e, { kind: 'vault', ownerAddress: r.ownerAddress, vaultId: r.vaultId })}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAddToList(e as unknown as React.MouseEvent, { kind: 'vault', ownerAddress: r.ownerAddress, vaultId: r.vaultId }); } }}
+                                    >
+                                        + List
+                                    </span>
+                                    )}
                                     <span
                                         className="starred-row-unstar"
                                         role="button"
@@ -1494,12 +1550,12 @@ export default function StarredList({
                                         className="starred-row-cta"
                                         role="button"
                                         tabIndex={0}
-                                        title="Add to List"
-                                        aria-label="Add to List"
+                                        title="+ List"
+                                        aria-label="+ List"
                                         onClick={(e) => openAddToList(e, txPin)}
                                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAddToList(e as unknown as React.MouseEvent, txPin); } }}
                                     >
-                                        Add to List
+                                        + List
                                     </span>
                                     )}
                                     <span
@@ -1523,17 +1579,21 @@ export default function StarredList({
                         })}
                     </>
                 )}
-                {totalVisible === 0 && <GhostRows variant="starred" />}
+                {totalVisible === 0 && (
+                    mode === 'artists'
+                        ? <div className="starred-empty-note">No Artists starred yet.</div>
+                        : <GhostRows variant="starred" />
+                )}
             </div>
             {multiActive && (() => {
                 interface MsAction { label: string; exec: () => void; }
                 const grailSlotAvailable = MAX_GRAIL_PINS - grailKeys.size > 0;
                 const msActions: MsAction[] = [
-                    { label: 'Add to List', exec: handleAddSelectedToList },
+                    { label: '+ List', exec: handleAddSelectedToList },
                     ...(grailSlotAvailable ? [{ label: 'Grail Pin', exec: handleGrailPinSelected }] : []),
                     { label: 'Remove', exec: handleRemoveSelected },
                 ];
-                const msCurrent = selected.size === 0 ? 'Select' : (msActiveAction ?? 'Add to List');
+                const msCurrent = selected.size === 0 ? 'Select' : (msActiveAction ?? '+ List');
                 const msExec = () => {
                     if (selected.size === 0) return;
                     setMsPopupOpen(false);
@@ -1641,8 +1701,9 @@ export default function StarredList({
                         ? () => {
                             let n = 0;
                             for (const p of listBatch) {
-                                if (isWishlisted(p.slug, p.id!)) continue;
-                                toggleWishlist(p.slug, p.id!);
+                                if (p.kind !== 'output' || p.id == null) continue;
+                                if (isWishlisted(p.slug, p.id)) continue;
+                                toggleWishlist(p.slug, p.id);
                                 n++;
                             }
                             return n === 0 ? 'Wishlist: ALREADY ON' : `Wishlist: ADDED ${n}`;
@@ -1811,13 +1872,13 @@ function StarredOutputRow({
                         className="starred-row-cta"
                         role="button"
                         tabIndex={0}
-                        title="Add to List"
-                        aria-label="Add to List"
+                        title="+ List"
+                        aria-label="+ List"
                         onClick={onAddToList}
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onAddToList(e as unknown as React.MouseEvent); } }}
                     >
                         {/* Text only — no glyph (Brendon, 2026-07-24). */}
-                        Add to List
+                        + List
                     </span>
                 ) : listed ? (
                     <span
@@ -2099,12 +2160,12 @@ function StarredArtistRow({
                     className="starred-row-cta"
                     role="button"
                     tabIndex={0}
-                    title="Add to List"
-                    aria-label="Add to List"
+                    title="+ List"
+                    aria-label="+ List"
                     onClick={onAddToList}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onAddToList(e as unknown as React.MouseEvent); } }}
                 >
-                    Add to List
+                    + List
                 </span>
                 ) : (
                 <span
