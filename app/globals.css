@@ -12206,9 +12206,9 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
 .shuffle-head .section-head-by,
 .shuffle-head .section-head-by a { opacity: 1; font-weight: bold; }
 
-/* Live "featuring" row — names re-roll on a timer and flip in. Height is locked
-   so cycling never reflows the hero (the old version's jump). Desktop stays one
-   line; mobile reserves two. (Brendon, 2026-06-15)
+/* Live "featuring"-style rows — names re-roll on a timer and flip in.
+   Height is locked so cycling never reflows the hero (the old version's
+   jump). Desktop stays one line; mobile reserves two. (Brendon, 2026-06-15)
    Hardened (Brendon, 2026-08-21): flex-wrap was still inherited from .hero-line,
    so a long name combo could wrap onto a genuine 2nd flex line on desktop —
    growing the row by a line depending on which names rolled. Desktop is now
@@ -12216,10 +12216,17 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
    matter the content. Mobile's max-height (which only clipped, but let the box
    shrink to 1 line for short combos) is now a fixed height, so the 2-line slot
    is reserved constantly instead of fluctuating with content. */
-/* row-gap tightened to 0 — the two wrapped lines sit as close as the type
-   allows (Brendon, 2026-06-15). Applied to all three rows in the family
-   (Featuring, Followed by, Collected by), not the homepage alone (Brendon,
-   2026-08-21). */
+/* All three rows (Featuring, Followed by, Collected by) already share the
+   same underlying behavior in the data layer — each only starts its 3.6s
+   re-roll once its pool is 6+ names (below that, cycling the same 2-3 faces
+   reads as broken, not alive). The class picked at render now follows that
+   SAME pool-size check on all three, not which page it's on: .feat-row-lock
+   when a row is actually cycling (locks the 2-line mobile slot so re-rolling
+   never reflows the page), .feat-row-fit when it's a static single pick
+   (grows only as far as that fixed content needs, never reserves an empty
+   line). A row can genuinely be either depending on its own data — the
+   homepage roster included (Brendon, 2026-09-12, replacing the 09-11 pass
+   that split these by page instead of by pool size). */
 .feat-row-lock { overflow: hidden; row-gap: 0; }
 @media (min-width: 601px) {
     .feat-row-lock { white-space: nowrap; flex-wrap: nowrap; text-overflow: ellipsis; }
@@ -12229,6 +12236,15 @@ section[aria-label="Created projects"] > .home-carousel-row:first-child {
    erroneous 1.6 line-height above, not the correct 1.2. Recalculated for
    the real 2-line height: 2 × 11px × 1.2 ÷ 14px hero-line context ≈ 1.9em. */
 @media (max-width: 600px)  { .feat-row-lock { height: 1.9em; } }
+/* Static (sub-6 pool) rendering of any of the three rows — no cycling to
+   protect against, so no reason to reserve a 2nd line that isn't used.
+   Grows from one line to two only as the names actually need it. Desktop
+   still clips to a single ellipsized line, same as .feat-row-lock
+   (Brendon, 2026-09-11). */
+.feat-row-fit { row-gap: 0; }
+@media (min-width: 601px) {
+    .feat-row-fit { overflow: hidden; white-space: nowrap; flex-wrap: nowrap; text-overflow: ellipsis; }
+}
 /* Third-name responsive toggle removed (Brendon, 2026-08-20): Collected by
    (project) and Followed by (profile) now match the homepage Featuring row
    exactly — two names shown everywhere, no viewport-dependent 3rd name. */
