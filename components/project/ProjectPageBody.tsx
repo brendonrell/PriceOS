@@ -425,7 +425,7 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                            followed by a real &nbsp; — either straight after
                            the name, or after the comma — no CSS gap/margin
                            spacing left to fake it. */
-                        <div className="hero-line collected-by-row info-line feat-row-lock">
+                        <div className={`hero-line collected-by-row info-line ${collectedByPool.length >= 6 ? 'feat-row-lock' : 'feat-row-fit'}`}>
                             <span className="cbr-label">Collected by&nbsp;</span>
                             <span className="feat-names">
                                 <a key={collectors[0]} className="profile-link feat-name" href={`/${handle(collectors[0])}`}>@{handle(collectors[0])}</a>
