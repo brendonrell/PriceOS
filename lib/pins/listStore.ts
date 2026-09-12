@@ -15,10 +15,14 @@
  * why the user CAN name them — nobody else ever reads the name.
  *
  * A list holds ANY starred kind — Output, Project, Trait, Artist/Collector,
- * Soundtrack, Transaction — because All Starred's row CTA is Add to List for
- * every row (Brendon, 2026-07-25). Members are keyed with the GRAIL PIN key
- * vocabulary (Rule #0 — grailKey already names every starred kind exactly
- * once), so a member key round-trips back to the pin that drew the row.
+ * Soundtrack, Transaction, PriceDay, Album, Vault — because All Starred's row
+ * CTA is + List for every row (Brendon, 2026-07-25). Members are keyed with
+ * the GRAIL PIN key vocabulary (Rule #0 — grailKey already names every
+ * starred kind exactly once), so a member key round-trips back to the pin
+ * that drew the row. PriceDay/Album/Vault have no Grail Pin equivalent (not
+ * pinnable in the top bar), so they're kept OUT of GrailKind/GrailPin and
+ * live in their own small ListOnlyPin union instead — List-only, same key
+ * vocabulary, zero risk to the unrelated Grail Pin rendering surfaces.
  *
  * State: ordered ListRecord { id, name, keys[], created_at }.
  *
@@ -37,15 +41,35 @@ import { grailKey, type GrailPin } from './grailStore';
  *  list pill never wraps the sort row on an iPhone. */
 export const LIST_NAME_MAX = 32;
 
-/** A list member is exactly a grail pin — same vocabulary, same key. */
-export type ListMember = GrailPin;
-
-/** The member key for a pin (grail key: `o:` `p:` `t:` `a:` `s:` `x:`). */
-export function listKeyOf(pin: ListMember): string {
-    return grailKey(pin);
+/** The three starred kinds with no Grail Pin equivalent — PriceDay, Album,
+ *  Vault. Kept out of GrailKind so widening List support never touches the
+ *  Grail Pin pill-rendering surfaces (TopBarRow, ArtworkCard, etc). */
+export type ListOnlyKind = 'priceday' | 'album' | 'vault';
+export interface ListOnlyPin {
+    kind: ListOnlyKind;
+    /** PriceDay kind only. */
+    priceDayNumber?: number;
+    /** Album/Vault kind only — whose shelf it's starred from. */
+    ownerAddress?: string;
+    albumId?: string;
+    vaultId?: string;
 }
 
-const KINDED = /^[opwatsx]:/;
+/** A list member is a grail pin, or one of the three List-only kinds. */
+export type ListMember = GrailPin | ListOnlyPin;
+
+/** The member key for a pin (grail key: `o:` `p:` `t:` `a:` `s:` `x:`; List-
+ *  only: `d:` PriceDay, `b:` Album, `v:` Vault). */
+export function listKeyOf(pin: ListMember): string {
+    switch (pin.kind) {
+        case 'priceday': return `d:${pin.priceDayNumber}`;
+        case 'album': return `b:${pin.ownerAddress}:${pin.albumId}`;
+        case 'vault': return `v:${pin.ownerAddress}:${pin.vaultId}`;
+        default: return grailKey(pin);
+    }
+}
+
+const KINDED = /^[opwatsxdbv]:/;
 
 /** Normalise a persisted key: pre-widening Outputs were stored bare. */
 function normalizeKey(k: string): string | null {
@@ -62,7 +86,10 @@ export type ListMemberRef =
     | { kind: 'trait'; key: string; slug: string; category: string; value: string }
     | { kind: 'artist'; key: string; slug: string }
     | { kind: 'soundtrack'; key: string; slug: string; playlistId: string }
-    | { kind: 'tx'; key: string; txId: string };
+    | { kind: 'tx'; key: string; txId: string }
+    | { kind: 'priceday'; key: string; number: number }
+    | { kind: 'album'; key: string; ownerAddress: string; albumId: string }
+    | { kind: 'vault'; key: string; ownerAddress: string; vaultId: string };
 
 export function parseListKey(key: string): ListMemberRef | null {
     const rest = key.slice(2);
@@ -88,6 +115,20 @@ export function parseListKey(key: string): ListMemberRef | null {
             return { kind: 'soundtrack', key, slug: parts[0], playlistId: parts.slice(1).join('|') };
         }
         case 'x': return { kind: 'tx', key, txId: rest };
+        case 'd': {
+            const n = Number(rest);
+            return Number.isFinite(n) ? { kind: 'priceday', key, number: n } : null;
+        }
+        case 'b':
+        case 'v': {
+            const i = rest.lastIndexOf(':');
+            if (i < 0) return null;
+            const ownerAddress = rest.slice(0, i);
+            const id = rest.slice(i + 1);
+            return key[0] === 'b'
+                ? { kind: 'album', key, ownerAddress, albumId: id }
+                : { kind: 'vault', key, ownerAddress, vaultId: id };
+        }
         default: return null;
     }
 }
