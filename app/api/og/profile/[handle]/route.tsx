@@ -55,6 +55,22 @@ import { RUBIK_MONO_ONE_BASE64 } from './rubikMonoOneFontData';
  * this line again.
  */
 export const runtime = 'nodejs';
+/* ⛔ FIXED 2026-09-13 (Brendon: "built wrong from the start" — every fix to
+ * this route kept shipping and kept never showing up). This project wires
+ * Next's Data/Route Cache into Workers KV (open-next.config.ts →
+ * kvIncrementalCache) so it SURVIVES every redeploy — it's infrastructure,
+ * not code. This route had no `dynamic`/`revalidate` export, so by default
+ * Next treats a GET Route Handler's response as cacheable. The very first
+ * time this route ever returned 200 (even under the old broken
+ * showcase-piece version, or an early attempt before any of the font fixes),
+ * that response could have been written into KV and served back for every
+ * request since — no matter how many times the actual code was corrected
+ * and redeployed, because the cached entry was never invalidated and the
+ * new code never even ran. `app/[slug]/page.tsx` already carries
+ * `dynamic = 'force-dynamic'` for exactly this reason; this route needs the
+ * same opt-out, or it can get permanently stuck on whatever it first
+ * returned regardless of any future fix. */
+export const dynamic = 'force-dynamic';
 
 const W = 1200;
 const H = 630;
@@ -224,6 +240,27 @@ export async function GET(
                 width: W,
                 height: H,
                 fonts: [{ name: 'Rubik Mono One', data: font, style: 'normal' }],
+                /* ⛔ THE ACTUAL BUG 2026-09-13 (Brendon: "built wrong from the
+                 * start") — every fix before this one addressed the font, and
+                 * `force-dynamic` addressed Next's own server-side caching,
+                 * but neither touches this: next/og's ImageResponse
+                 * hardcodes `Cache-Control: public, immutable, no-transform,
+                 * max-age=31536000` on every response it returns, completely
+                 * independent of the route's dynamic/revalidate exports.
+                 * That's a *year*, and "immutable" tells every downstream
+                 * cache (browser, Cloudflare's edge, and — critically —
+                 * WhatsApp/Discord/Twitter's own link-preview caches) never
+                 * to re-fetch at all. The very first time this route ever
+                 * returned 200, months ago, that response got locked in
+                 * everywhere for a year — no amount of redeploying the code
+                 * could ever have surfaced, because nothing downstream was
+                 * ever asking again. ImageResponse merges any `headers`
+                 * passed here over its own defaults via Headers.set(), so
+                 * this explicitly overrides it. Grep this file for
+                 * 'immutable' before ever removing this override. */
+                headers: {
+                    'Cache-Control': 'public, max-age=300, s-maxage=300, must-revalidate',
+                },
             },
         );
     } catch (err) {
