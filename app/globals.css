@@ -13609,11 +13609,10 @@ body.colorway-dark .ghost-feed-bar {
 }
 
 /* ── Profile Discord sub-tab ───────────────────────────────────────── */
-/* Rebuilt 2026-07-27 (Brendon: "Discord IS the product for PD — an amazing
-   page, styled properly in our UI"). PD chrome only: solid --bg-color fills,
-   FULL-strength --text-color borders + lettering, bold, 12px floor, 4px
-   corners (the corner law — no lozenges). Blurple #5865F2 survives only on
-   the Discord mark; the user's own Discord accent paints their pfp frame. */
+/* Restyled onto the Counterparties tab's anatomy (Brendon, 2026-09-12) —
+   .attr-group/.attr-grid/.starred-row now carry this section; only the
+   doors (.pd-dc-btn*) and the Discord-blurple mark survive from the old
+   bespoke .pd-dc-plate/.pd-dc-stats look below. */
 @media (min-width: 601px) {
     .pd-dc { max-width: 560px; }
 }
@@ -13625,91 +13624,55 @@ body.colorway-dark .ghost-feed-bar {
     color: var(--text-color);
 }
 .pd-dc-logo { flex-shrink: 0; color: #5865F2; }
-/* Section head — bold, full strength, ruled like the Suite's own heads. */
-.pd-dc-head {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    font-weight: bold;
-    letter-spacing: 1px;
-    padding: 2px 2px 8px;
-    border-bottom: 1px solid var(--text-color);
-}
-/* The identity plate — who this wallet is on Discord, as ONE tappable card. */
-.pd-dc-plate {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px;
-    background: var(--bg-color);
-    border: 1px solid var(--text-color);
-    border-radius: 4px;
-    color: var(--text-color);
-    text-decoration: none;
-}
-.pd-dc-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 4px;
+
+/* The identity row's square — the real Discord pfp fills the tile, the
+   brand mark rides its corner as a badge instead of sitting in the section
+   title (Brendon, 2026-09-12: "keep the Discord logo in the square instead
+   of the title"). */
+.pd-dc-tile { position: relative; padding: 0; overflow: visible; }
+.pd-dc-avatar-sm {
+    width: 100%;
+    height: 100%;
+    border-radius: 6px;
+    object-fit: cover;
     border: 2px solid var(--text-color);
-    flex-shrink: 0;
     box-sizing: border-box;
 }
-.pd-dc-idcol {
+.pd-dc-avatar-badge {
+    position: absolute;
+    right: -5px;
+    bottom: -5px;
+    width: 22px;
+    height: 22px;
     display: flex;
-    flex-direction: column;
-    gap: 4px;
-    min-width: 0;
-}
-.pd-dc-handle {
-    font-size: 16px;
-    font-weight: bold;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-.pd-dc-standing {
-    font-size: 12px;
-    font-weight: bold;
-    letter-spacing: 0.5px;
-}
-.pd-dc-plate-arrow {
-    margin-left: auto;
-    font-size: 16px;
-    font-weight: bold;
-    flex-shrink: 0;
-}
-/* The readout row — the stat pills, full-strength. */
-.pd-dc-stats {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-}
-.pd-dc-stat {
-    flex: 1 1 30%;
-    min-width: 96px;
-    display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 3px;
-    padding: 9px 8px;
-    background: var(--bg-color);
+    justify-content: center;
+    border-radius: 50%;
+    background: #5865F2;
+    box-shadow: 0 0 0 2px var(--bg-color);
+}
+.pd-dc-avatar-badge .pd-dc-logo { color: #fff; }
+.pd-dc-row-arrow {
+    margin-left: auto;
+    flex-shrink: 0;
+    font-size: 16px;
+    font-weight: bold;
+}
+/* The IN-SERVER checkmark as its own legible badge, not a character tucked
+   into a 12px line (Brendon, 2026-09-12: "it's fucking microscopic"). */
+.pd-dc-check-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
     border: 1px solid var(--text-color);
     border-radius: 4px;
-}
-.pd-dc-stat-label {
+    background: color-mix(in srgb, var(--text-color) 14%, transparent);
     font-size: 12px;
     font-weight: bold;
-    letter-spacing: 1px;
+    letter-spacing: 0.4px;
 }
-.pd-dc-stat-value {
-    font-size: 13px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
+.pd-dc-check-mark { font-size: 15px; line-height: 1; }
 .pd-dc-swatch {
     width: 12px;
     height: 12px;
@@ -13717,22 +13680,8 @@ body.colorway-dark .ghost-feed-bar {
     border: 1px solid var(--text-color);
     display: inline-block;
 }
-.pd-dc-pitch {
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 1.5;
-    margin: 0;
-    padding: 2px 2px 0;
-}
 /* The doors — the home-STICKERS-button treatment: solid --bg-color fill,
    --text-color border AND lettering, bold, 4px. */
-.pd-dc-doors {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    padding-top: 2px;
-}
 .pd-dc-btn {
     display: inline-flex;
     align-items: center;
@@ -13758,6 +13707,7 @@ body.colorway-dark .ghost-feed-bar {
 .pd-dc-btn.auth-gated { cursor: not-allowed; }
 .pd-dc-btn-arrow { font-size: 14px; }
 .pd-dc-btn-unlink { padding: 7px 12px; font-size: 12px; }
+.pd-dc-btn-unlink .logout-icon { font-size: 14px; }
 
 /* .pd-discord-tile-wide survives — the Counterparties Nemesis tile rides it. */
 .pd-discord-tile-wide { grid-column: 1 / -1; }
