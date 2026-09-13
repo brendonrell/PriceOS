@@ -77,6 +77,7 @@ import DiscordSection from './DiscordSection';
 import CounterpartiesPanel from './CounterpartiesPanel';
 import TargetsPanel from './TargetsPanel';
 import LoyaltyPanel from './LoyaltyPanel';
+import ArtistPanel from './ArtistPanel';
 import SigilPanel from './SigilPanel';
 import CallsPanel from './CallsPanel';
 import { MAX_PRICE_SCORE, TOTAL_COUNT } from '../../lib/achievements/catalog';
@@ -1029,7 +1030,7 @@ function ProfilePageBodyInner({
        namespaced under the same store with a ":more" id so a refresh lands back
        on the same sub-section (e.g. My History), not just the +More tab. */
     const moreMemId = `${user.handle ?? handle}:more`;
-    const MORE_KEYS: ReadonlySet<string> = new Set<ProfileMoreL1>(['cooldown', 'created', 'starred', 'wishlists', 'albums', 'offers', 'vault', 'sigil', 'loyalty', 'counterparties', 'history', 'achievements', 'discord', 'anointed', 'calls', 'price-overview', 'price-tokenomics', 'price-contract', 'price-utility']);
+    const MORE_KEYS: ReadonlySet<string> = new Set<ProfileMoreL1>(['cooldown', 'created', 'starred', 'wishlists', 'albums', 'offers', 'vault', 'sigil', 'loyalty', 'artist', 'counterparties', 'history', 'achievements', 'discord', 'anointed', 'calls', 'price-overview', 'price-tokenomics', 'price-contract', 'price-utility']);
     const [moreL1, setMoreL1] = useState<ProfileMoreL1>(() => {
         // A pasted deep link's ?sub= wins here too (Share Any View).
         const shared = readViewParam('sub');
@@ -1263,6 +1264,9 @@ function ProfilePageBodyInner({
         let v = moreL1;
         // Cooldown vanishes the moment the window opens (or off an artist).
         if (v === 'cooldown' && !onCooldown) v = 'starred';
+        // Artist only exists for artists — a stale saved/shared key off an
+        // artist falls back the same way as Cooldown.
+        if (v === 'artist' && !isArtist) v = 'loyalty';
         // 'created' only exists for traditional-Top-6 artists with projects.
         if (v === 'created' && !createdUnderMore) v = 'albums';
         // Targets folded into Calls (Brendon, 2026-09-01) — a stale saved/shared
@@ -2415,7 +2419,15 @@ function ProfilePageBodyInner({
                                 : isZen
                                     ? [{ key: 'albums', label: <><span className="pill-tab-ico is-album">{'◰︎'}</span> Albums</>, active: effMoreL1 === 'albums', onClick: () => setMoreL1('albums') }]
                                     : [
-                                        /* Loyalty leads the whole row now (Brendon,
+                                        /* Artist leads the row for artists (Brendon,
+                                           2026-09-13) — the case for the artist, told
+                                           through numbers that already exist. Hidden
+                                           entirely for non-artists, same gating as
+                                           Cooldown/Created below. */
+                                        ...(isArtist
+                                            ? [{ key: 'artist', label: <><span className="pill-tab-ico is-artist">{'\u273A\uFE0E'}</span> Artist</>, active: effMoreL1 === 'artist', onClick: () => setMoreL1('artist') }]
+                                            : []),
+                                        /* Loyalty leads the rest of the row (Brendon,
                                            2026-09-12) — the long-game tab gets first
                                            billing over the cooldown clock. */
                                         { key: 'loyalty',   label: <><span className="pill-tab-ico is-loyalty">{'\u2724\uFE0E'}</span> Loyalty</>,   active: effMoreL1 === 'loyalty',   onClick: () => setMoreL1('loyalty')   },
@@ -2784,6 +2796,18 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                                 isOwnProfile={isOwnProfile}
                             />
                         </>
+                    )}
+
+                    {/* Artist — the case for the artist, told through numbers
+                        that already exist: volume, collectors, mint-to-floor
+                        arc, sellout speed, a generous verdict. Artist-only,
+                        gated the same as Cooldown/Created. */}
+                    {onMore && effMoreL1 === 'artist' && (
+                        <ArtistPanel
+                            address={user.address}
+                            handle={displayHandle}
+                            isOwnProfile={isOwnProfile}
+                        />
                     )}
 
                     {/* Loyalty — the long game: tenure, patronage, streak,
