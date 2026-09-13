@@ -15,7 +15,12 @@
  * bespoke .anoint-card/.more-box-card look (still used verbatim by the
  * project-page Anointed tab, ProjectAnointPanel — untouched) is swapped here
  * for .ach-section/.attr-group/.attr-grid/.starred-row, the same "character
- * sheet" reuse Loyalty and Counterparties already share with Sigil.
+ * sheet" reuse Loyalty and Counterparties already share with Sigil. The
+ * placed Anointment itself rides Sigil's "The Mark" wide-tile pattern
+ * (.pd-discord-tile-wide .anoint-mark-tile, one wide glyph well atop
+ * Project/Output/Placed/Status attr-tiles) since it's the same single,
+ * central-item read as the forged mark; Prime Relics stays on starred-rows
+ * since it's a list, matching Sigil's Kin.
  */
 
 import { useCallback, useEffect, useState } from 'react';
@@ -123,8 +128,8 @@ export default function ProfileAnointedPanel({
                     )}
 
                     {/* THE PLEDGE — Sigil's "unforged" empty-state pattern for
-                       no pledge yet, an attr-group + one starred-row for a
-                       placed one. */}
+                       no pledge yet, an attr-group with The Mark's wide-tile
+                       anatomy for a placed one. */}
                     {!pledge ? (
                         <div className="nbhd-note">
                             {`NOT PLACED — ${isOwnProfile ? 'you have' : `${who.toLowerCase()}`} not placed ${isOwnProfile ? 'your' : 'their'} Anointment yet.${isOwnProfile ? ` Open any project's Anointed tab to pledge it.` : ''}`}
@@ -135,24 +140,31 @@ export default function ProfileAnointedPanel({
                                 <span className="attr-group-name">Anointment</span>
                                 <span className="attr-group-count">{pledge.locked ? 'LOCKED' : 'UNLOCKED'}</span>
                             </div>
-                            <div className="starred-rows loy-rows">
+                            <div className="attr-grid">
                                 <div
-                                    className="starred-row"
+                                    className="attr-tile pd-discord-tile-wide anoint-mark-tile attr-tile-tap"
                                     role="button"
                                     tabIndex={0}
                                     onClick={() => router.push(`/art/${pledge.project_id}/${pledge.output_token_id}`)}
                                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.push(`/art/${pledge.project_id}/${pledge.output_token_id}`); } }}
                                 >
-                                    <div className="trait-row-tile artist-tile">
-                                        <span className="artist-row-tile-glyph">{`✢${VS15}`}</span>
-                                    </div>
-                                    <div className="starred-row-meta">
-                                        <span className="starred-row-id">@{pledge.project_id}<em>{` #${pledge.output_token_id}`}</em></span>
-                                        <span className="starred-row-sub">
-                                            placed {fmtDate(pledge.placed_at)}
-                                            {pledge.locked ? ` · LOCKED until ${fmtDate(pledge.unlocksAt)}` : ' · UNLOCKED'}
-                                        </span>
-                                    </div>
+                                    <span className="anoint-mark-glyph" aria-hidden="true">{`✢${VS15}`}</span>
+                                </div>
+                                <div className="attr-tile">
+                                    <span className="attr-tile-label">Project</span>
+                                    <span className="attr-tile-value">@{pledge.project_id}</span>
+                                </div>
+                                <div className="attr-tile">
+                                    <span className="attr-tile-label">Output</span>
+                                    <span className="attr-tile-value">#{pledge.output_token_id}</span>
+                                </div>
+                                <div className="attr-tile">
+                                    <span className="attr-tile-label">Placed</span>
+                                    <span className="attr-tile-value">{fmtDate(pledge.placed_at)}</span>
+                                </div>
+                                <div className="attr-tile">
+                                    <span className="attr-tile-label">Status</span>
+                                    <span className="attr-tile-value">{pledge.locked ? `LOCKED · ${fmtDate(pledge.unlocksAt)}` : 'UNLOCKED'}</span>
                                 </div>
                             </div>
                             {isOwnProfile && (
