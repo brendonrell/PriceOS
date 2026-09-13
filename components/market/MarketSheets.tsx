@@ -191,11 +191,15 @@ function PricingSheet({
     mode,
     items: initialItems,
     criteria,
+    combo,
     onClose,
 }: {
     mode: 'list' | 'offer';
     items: SheetItem[];
     criteria: CriteriaTarget | null;
+    /** BOTH mode: alongside the item offer(s), auto-place a −20% WETH
+     *  collection offer per represented project (Brendon, 2026-09-13). */
+    combo?: boolean;
     onClose: () => void;
 }) {
     const { showToast } = useToast();
@@ -285,6 +289,23 @@ function PricingSheet({
         return [...m.entries()];
     }, [items]);
 
+    /* BOTH mode: one −20% collection offer per represented project, priced
+       off that project's item offer(s) (avg when >1 piece from the same
+       collection is in the sheet). */
+    const comboGroups = useMemo(() => {
+        if (!combo || criteria) return [];
+        return groups.map(([slug]) => {
+            const ps = slug
+                ? items
+                    .filter((it) => it.slug === slug)
+                    .map((it) => parseFloat(prices[`${it.slug}:${it.id}`] ?? ''))
+                    .filter((n) => Number.isFinite(n) && n > 0)
+                : [];
+            const avg = ps.length > 0 ? ps.reduce((s, n) => s + n, 0) / ps.length : 0;
+            return { slug, price: avg * 0.8 };
+        }).filter((g) => g.price > 0);
+    }, [combo, criteria, groups, items, prices]);
+
     const priced = items.map((it) => ({ it, price: parseFloat(prices[`${it.slug}:${it.id}`] ?? '') }));
     const allPriced = criteria
         ? parseFloat(criteriaPrice) > 0
@@ -298,7 +319,7 @@ function PricingSheet({
         ? criteria.kind === 'collection' ? 'COLLECTION OFFER' : 'TRAIT OFFER'
         : mode === 'list'
             ? items.some((i) => i.currentPriceEth) ? 'RE-LIST' : 'LIST'
-            : 'MAKE OFFER';
+            : combo ? 'OUTPUT + COLLECTION OFFER' : 'MAKE OFFER';
 
     const confirmLabel = busy
         ? `${step ?? 'WORKING'}…`
@@ -341,6 +362,27 @@ function PricingSheet({
             const result = mode === 'list'
                 ? await listOutputs(inputs, { durationSec, wallet: walletClient, onStep: setStep })
                 : await makeItemOffers(inputs, { durationSec, wallet: walletClient, onStep: setStep });
+
+            /* BOTH mode: fire the −20% collection offer(s) alongside — best
+               effort, never blocks the item-offer result toast. */
+            let comboPlaced = 0;
+            let comboFailed = 0;
+            if (mode === 'offer' && combo && comboGroups.length > 0) {
+                setStep('COLLECTION OFFER');
+                for (const g of comboGroups) {
+                    try {
+                        await makeOffer(
+                            { kind: 'collection', slug: g.slug },
+                            String(g.price),
+                            { durationSec, wallet: walletClient, onStep: setStep },
+                        );
+                        comboPlaced += 1;
+                    } catch {
+                        comboFailed += 1;
+                    }
+                }
+            }
+
             if (result.failed.length > 0 && result.listed === 0) {
                 showToast(result.failed[0].error);
             } else if (result.failed.length > 0) {
@@ -354,7 +396,12 @@ function PricingSheet({
                 const what = result.listed === 1
                     ? `${formatEth(total)} ETH`
                     : `${result.listed} outputs`;
-                showToast(mode === 'list' ? `List: LIVE · ${what}` : `Offer: PLACED · ${what}`);
+                const comboSuffix = mode === 'offer' && combo
+                    ? comboFailed > 0
+                        ? ` · +${comboPlaced} collection${comboFailed > 0 ? ` (${comboFailed} failed)` : ''}`
+                        : comboPlaced > 0 ? ` · +${comboPlaced} collection (−20% WETH)` : ''
+                    : '';
+                showToast((mode === 'list' ? `List: LIVE · ${what}` : `Offer: PLACED · ${what}`) + comboSuffix);
                 onClose();
             }
         } catch (err) {
@@ -363,7 +410,7 @@ function PricingSheet({
             setBusy(false);
             setStep(null);
         }
-    }, [busy, allPriced, siweAddress, criteria, criteriaPrice, durationSec, priced, mode, total, onClose, showToast]);
+    }, [busy, allPriced, siweAddress, criteria, criteriaPrice, durationSec, priced, mode, total, combo, comboGroups, onClose, showToast]);
 
     const criteriaLabel = criteria
         ? criteria.kind === 'collection'
@@ -467,6 +514,12 @@ function PricingSheet({
                         <span>auto-wrapped</span>
                     </div>
                 )}
+                {mode === 'offer' && combo && comboGroups.map((g) => (
+                    <div className="cart-panel-fees-row" key={`combo-${g.slug}`}>
+                        <span>{`+ collection offer · @${g.slug} · −20%`}</span>
+                        <span>{`${formatEth(g.price)} WETH`}</span>
+                    </div>
+                ))}
             </div>
 
             <button
@@ -493,6 +546,88 @@ function PricingSheet({
                     </div>
                 </div>
             )}
+        </>
+    );
+}
+
+/* ── Offer choice — the mandatory fork before every offer sheet ─────────────
+ * Output offer, collection offer, or BOTH at once (an output offer plus an
+ * auto −20% WETH collection offer riding alongside — whichever fills first).
+ * Every "make offer" entry point in the app routes through here first
+ * (Brendon, 2026-09-13). */
+function OfferChoiceFace({
+    items,
+    onClose,
+}: {
+    items: SheetItem[];
+    onClose: () => void;
+}) {
+    const { proceedOfferSheet, openCriteriaOfferSheet } = useMarketSheet();
+    const slugs = useMemo(() => [...new Set(items.map((it) => it.slug))], [items]);
+    const label = items.length > 1 ? `${items.length} outputs` : `#${items[0]?.id}`;
+
+    return (
+        <>
+            <div className="cart-panel-header">
+                <span className="cart-panel-title">
+                    {'MAKE OFFER'}
+                    <span className="cart-panel-title-count">({items.length})</span>
+                </span>
+                <span
+                    className="cart-panel-close-x"
+                    role="button"
+                    tabIndex={0}
+                    onClick={onClose}
+                    title="Close"
+                >
+                    {`×${VS15}`}
+                </span>
+            </div>
+            <div className="cart-items-list">
+                <div className="mk-picker-lead">{`${label} — offer on the output, the collection, or both`}</div>
+
+                <div
+                    className="cart-item-row mk-picker-row"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => proceedOfferSheet(items, false)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); proceedOfferSheet(items, false); } }}
+                >
+                    <div className="cart-item-meta">
+                        <div className="cart-item-name">OUTPUT OFFER</div>
+                        <div className="cart-item-artist">Bid on {label} specifically</div>
+                    </div>
+                </div>
+
+                {slugs.map((slug) => (
+                    <div
+                        key={`coll-${slug}`}
+                        className="cart-item-row mk-picker-row"
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => openCriteriaOfferSheet({ kind: 'collection', slug })}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCriteriaOfferSheet({ kind: 'collection', slug }); } }}
+                    >
+                        <div className="cart-item-meta">
+                            <div className="cart-item-name">{`COLLECTION OFFER${slugs.length > 1 ? ` · ${getProject(slug)?.displayName ?? slug}` : ''}`}</div>
+                            <div className="cart-item-artist">Bid on any piece in the collection</div>
+                        </div>
+                    </div>
+                ))}
+
+                <div
+                    className="cart-item-row mk-picker-row"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => proceedOfferSheet(items, true)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); proceedOfferSheet(items, true); } }}
+                >
+                    <div className="cart-item-meta">
+                        <div className="cart-item-name">BOTH · OUTPUT + −20% COLLECTION</div>
+                        <div className="cart-item-artist">Auto collection offer in WETH alongside — whichever fills first</div>
+                    </div>
+                </div>
+            </div>
         </>
     );
 }
@@ -865,8 +1000,11 @@ export default function MarketSheets() {
                 {render.sheet === 'list' && (
                     <PricingSheet key="list" mode="list" items={render.items} criteria={null} onClose={closeSheet} />
                 )}
+                {render.sheet === 'offer-choice' && (
+                    <OfferChoiceFace key="offer-choice" items={render.items} onClose={closeSheet} />
+                )}
                 {render.sheet === 'offer' && (
-                    <PricingSheet key="offer" mode="offer" items={render.items} criteria={null} onClose={closeSheet} />
+                    <PricingSheet key="offer" mode="offer" items={render.items} criteria={null} combo={render.combo} onClose={closeSheet} />
                 )}
                 {render.sheet === 'offer-criteria' && (
                     <PricingSheet key="criteria" mode="offer" items={[]} criteria={render.target} onClose={closeSheet} />
