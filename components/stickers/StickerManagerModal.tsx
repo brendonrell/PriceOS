@@ -31,7 +31,7 @@ import {
     SHEETS, STICKERS, BRAND_COLOURS, stickerFill, type Sticker,
 } from '../../lib/stickers/catalog';
 import {
-    computeOwnedFor, getOffSheets, getOffIds, isActive,
+    computeOwnedFor, getOffSheets, getOffIds, getPeeledSheets, isActive,
     toggleSheetActive, toggleStickerActive,
     getColourLock, applyColourLock, clearColourLock, holdStickerPush, type ColourLock,
 } from '../../lib/stickers/owned';
@@ -200,6 +200,10 @@ export function StickerManagerModal({
     const [owned, setOwned] = useState<Sticker[]>([]);
     const [offSheets, setOffSheets] = useState<Set<string>>(new Set());
     const [offIds, setOffIds] = useState<Set<string>>(new Set());
+    /* THE PEEL gate — sealed sheets can't feed the profile, even if "on"
+       (Brendon, 2026-09-13). Re-read on every open + whenever a peel lands
+       elsewhere in the modal, same as offSheets/offIds. */
+    const [peeledSheets, setPeeledSheets] = useState<Set<string>>(new Set());
     const [arrange, setArr] = useState<Arrange>('spread');
     const [tilt, setTl] = useState<Tilt>('soft');
     const [expand, setExp] = useState(false);
@@ -255,6 +259,7 @@ export function StickerManagerModal({
         setOwned(computeOwnedFor(handle));
         setOffSheets(new Set(getOffSheets()));
         setOffIds(new Set(getOffIds()));
+        setPeeledSheets(new Set(getPeeledSheets()));
         setArr(getArrange());
         setTl(getTilt());
         setExp(getExpand());
@@ -699,7 +704,7 @@ export function StickerManagerModal({
                 return (
                     <div className="smgr-grid" key={sh.id}>
                         {tiles.map((s) => {
-                            const on = isActive(s, offSheets, offIds);
+                            const on = isActive(s, offSheets, offIds, peeledSheets);
                             return (
                                 <button
                                     key={s.id}

@@ -124,6 +124,11 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, saved
     const livePrefs = useStickerPrefs();
     const offSheets = editingLive ? livePrefs.offSheets : new Set(savedOffSheets ?? []);
     const offIds = editingLive ? livePrefs.offIds : new Set(savedOffIds ?? []);
+    /* THE PEEL gate (Brendon, 2026-09-13): sealed sheets can't feed the
+       profile. Peeled state has no account sync yet, so it only applies
+       during a live local edit session — the resting/visitor display keeps
+       reading the account snapshot as-is, same as offSheets/offIds above. */
+    const peeledSheets = editingLive ? livePrefs.peeledSheets : new Set(owned.map((s) => s.sheet));
     /* The look: local live state while actively editing, the account-synced
        blob otherwise — for a visitor AND for the owner's own resting (not
        currently editing) view alike, so the picture shown always matches
@@ -184,8 +189,8 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, saved
     }, [layoutMap]);
 
     const active = useMemo(
-        () => owned.filter((s) => isActive(s, offSheets, offIds)),
-        [owned, offSheets, offIds],
+        () => owned.filter((s) => isActive(s, offSheets, offIds, peeledSheets)),
+        [owned, offSheets, offIds, peeledSheets],
     );
 
     const { rows, cap } = arrangeShape(arrange, rowsPref);
