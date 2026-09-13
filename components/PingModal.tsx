@@ -3,11 +3,13 @@
 /*
  * PingModal — a ping that goes somewhere (Brendon, 2026-07-27).
  *
- * Most pings deep-link to a piece. The rest — your to-do falling due, an
- * achievement, a streak, the system speaking — used to be dead rows: you tapped
- * them and nothing happened. They now open THIS popup: the ping in full, when it
- * landed in YOUR time, and the one door that ping actually has (a to-do opens
- * your To-Dos; a ping with a person on it opens them).
+ * EVERY ping opens THIS popup first (2026-09-13, Brendon — "tapping some
+ * pings immediately takes you to a different page, we want the user to
+ * expect the modal"). The popup itself carries the ping's one real door as
+ * an action button: a to-do opens your To-Dos, an achievement/streak opens
+ * your achievements tab, a market ping (mint/sale/offer/trade/etc.) opens
+ * the piece/project/Exchange it points to, and a ping with a person on it
+ * opens them. No ping ever navigates straight off the row anymore.
  *
  * A POPUP, not a nav (his words): the pings list stays exactly where it was
  * underneath, so reading one never costs you your place.
@@ -25,7 +27,7 @@ import { usePdNotifs } from '../lib/state/PdNotifsContext';
 import { useDropdown } from '../lib/state/DropdownContext';
 import { useToast } from '../lib/state/ToastContext';
 import { useAuth } from '../lib/state/AuthContext';
-import { renderPing } from '../lib/pings/render';
+import { renderPing, pingHref } from '../lib/pings/render';
 import { ACHIEVEMENTS_ICON } from '../lib/achievements/icon';
 import { useSpriteFace } from '../lib/hooks/useSpriteFace';
 import SpriteFace from './SpriteFace';
@@ -133,11 +135,24 @@ export default function PingModal() {
        tab of YOUR profile. Achievements pings are self-pings, so the door is
        always the viewer's own profile. */
     const isAchPing = item?.kind === 'ACHIEVEMENT';
+    /* STREAK rides the same achievements-tab door as ACHIEVEMENT (PriceStreak
+       is an achievements category) — it just skips the unlocks list below,
+       which is ACHIEVEMENT's own batch-of-unlocks shape. */
+    const hasAchDoor = isAchPing || item?.kind === 'STREAK';
     const achUnlocks: ListedUnlock[] =
         isAchPing && Array.isArray(item?.data?.unlocks)
             ? (item.data.unlocks as ListedUnlock[]).filter((u) => u && typeof u.name === 'string')
             : [];
     const achHref = myHandle ? `/${myHandle}?tab=more&sub=achievements` : null;
+
+    /* ── Every other ping's real door (Brendon, 2026-09-13) — mint / sale /
+       offer / trade / list / transfer / wishlist / watch / follow-of-yours
+       all point somewhere; the row no longer takes you there directly, this
+       button does. pingHref already carries the ?offers=1 / ?trade= shaping. */
+    const marketHref = item ? pingHref(item) : null;
+    const isTradeDoor = item?.kind === 'TRADE' || item?.kind === 'TRADE_ACCEPTED' || item?.kind === 'TRADE_DECLINED';
+    const isOfferDoor = item?.kind === 'OFFER' || item?.kind === 'COUNTER';
+    const marketLabel = isTradeDoor ? 'OPEN EXCHANGE' : isOfferDoor ? 'VIEW OFFER' : (item?.token_id ? 'VIEW PIECE' : 'VIEW PROJECT');
 
     if (!isOpen) return null;
 
@@ -204,9 +219,14 @@ export default function PingModal() {
                                     {`❍${VS15}`} OPEN TO-DOS
                                 </button>
                             )}
-                            {isAchPing && achHref && (
+                            {hasAchDoor && achHref && (
                                 <a className="ms-confirm-btn ms-confirm-btn--ok" href={achHref} onClick={() => close()}>
                                     {ACHIEVEMENTS_ICON} ACHIEVEMENTS
+                                </a>
+                            )}
+                            {marketHref && (
+                                <a className="ms-confirm-btn ms-confirm-btn--ok" href={marketHref} onClick={() => close()}>
+                                    {r.icon} {marketLabel}
                                 </a>
                             )}
                             {item?.actor_name && (
