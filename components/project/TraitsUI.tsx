@@ -1267,9 +1267,20 @@ export default function TraitsUI({
 
             {/* Active grouping layers, spelled out below the sort row
                 (Brendon, 2026-09-06) — same treatment as the Collected
-                grid's copy in ProfileFacetBar. */}
+                grid's copy in ProfileFacetBar.
+                ⛔ FIXED 2026-09-13 (Brendon: "leaking between the artwork
+                and +more tab" — the guard was only on the sort row, not
+                this): added as a sibling AFTER .sort-bar closes rather than
+                inside it, so it inherited neither .sort-bar's `hiddenStyle`
+                nor .traits-ui's `traitsHiddenStyle` (which had already
+                closed even earlier, at line ~1112). groupLayers is shared
+                SortContext state across both TraitsUI mounts (Artworks tab
+                + this one inside +More) — with no gate of its own, whichever
+                instance wasn't the active tab kept painting this row anyway,
+                stacked underneath the active tab's own content. Same
+                `hiddenStyle` the sort row already uses. */}
             {groupLayers.length > 0 && (
-                <div className="group-layers-chip-row" aria-label="Active grouping layers">
+                <div className="group-layers-chip-row" style={hiddenStyle} aria-label="Active grouping layers">
                     {groupLayers.map((key, i) => (
                         <span key={key} className="group-layers-chip">
                             {GROUP_GLYPH[key] && <span className="glb-glyph" aria-hidden="true">{GROUP_GLYPH[key]}</span>}
