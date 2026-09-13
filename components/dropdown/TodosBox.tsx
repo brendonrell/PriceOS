@@ -77,10 +77,11 @@ export function TodosBox({ suite = false }: { suite?: boolean } = {}) {
     const { notifs, setAccordion } = usePdNotifs();
     const { showToast } = useToast();
     const { open: openModal } = useModal();
-    /* THE SUITE DOOR (Brendon-confirmed 2026-07-27): long-press the TO-DOS
-       header — right where it says "TO-DOS" — to open the PriceOS Suite.
-       The app's one press-and-hold contract (useLongPress), nothing new. */
-    const suiteHold = useLongPress(() => { if (!suite) openModal('suite'); });
+    /* THE SUITE DOOR — hidden (Brendon, 2026-09-13): Suite isn't ready for
+       users yet. Door disabled here; PriceOS Suite code left untouched so
+       it can be re-opened later. */
+    const suiteHold = useLongPress(() => {});
+    void openModal;
 
     const [todos, setTodos] = useState<TodoItem[]>([]);
     useEffect(() => {
@@ -296,7 +297,7 @@ export function TodosBox({ suite = false }: { suite?: boolean } = {}) {
             onHeaderClick={() => { if (!suite) setAccordion('todos', !notifs.todos); }}
             header={
                 <span className="todos-header-row">
-                    <span {...(suite ? {} : suiteHold)} title={suite ? undefined : 'Hold to open the PriceOS Suite'}>
+                    <span {...(suite ? {} : suiteHold)}>
                         {/* In the Suite the header wears the app's own name
                             (Brendon, 2026-07-28); the connect menu keeps
                             TO-DOS. */}

@@ -98,10 +98,11 @@ export function NotesBox({ suite = false }: { suite?: boolean } = {}) {
     const { showToast } = useToast();
     const { open: openModal } = useModal();
 
-    /* THE SECOND DOOR (Brendon, 2026-07-28): hold the NOTES title in the
-       connect menu to open the PriceOS Suite — the same gesture, the same
-       hook, the same contract as holding TO-DOS. */
-    const suiteHold = useLongPress(() => { if (!suite) openModal('suite'); });
+    /* THE SECOND DOOR — hidden (Brendon, 2026-09-13): Suite isn't ready for
+       users yet. Door disabled here; PriceOS Suite code left untouched so
+       it can be re-opened later. */
+    const suiteHold = useLongPress(() => {});
+    void openModal;
 
     const [notes, setNotes] = useState<SavedNote[]>([]);
     useEffect(() => {
@@ -150,7 +151,7 @@ export function NotesBox({ suite = false }: { suite?: boolean } = {}) {
             noArrows={suite}
             onHeaderClick={() => { if (!suite) setAccordion('notes', !notifs.notes); }}
             header={
-                <span {...(suite ? {} : suiteHold)} title={suite ? undefined : 'Hold to open the PriceOS Suite'}>
+                <span {...(suite ? {} : suiteHold)}>
                     {/* In the Suite the header wears the app's own name
                         (Brendon, 2026-07-28); the connect menu keeps NOTES. */}
                     {suite ? 'PRICEWRITE' : 'NOTES'}
