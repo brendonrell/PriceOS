@@ -30,7 +30,7 @@ import { StickerArt } from './stickers/StickerArt';
 import { BuySheetButton } from './stickers/BuySheetButton';
 import StickerMarket from './stickers/StickerMarket';
 import StickerAlbum from './stickers/StickerAlbum';
-import { useOwnedStickerIds, ownsSheet } from '../lib/stickers/owned';
+import { useOwnedStickerIds, ownsSheet, peelSheet } from '../lib/stickers/owned';
 import StickerLcd from './stickers/StickerLcd';
 import { buildStoreTicker, buildMarketTicker } from '../lib/stickers/ticker';
 import { resolveSpriteFace } from '../lib/hooks/useSpriteFace';
@@ -82,12 +82,8 @@ export default function StickersModal() {
     const commitPeel = useCallback((sheetId: string, name: string) => {
         setPeelGone(true);
         setTimeout(() => {
-            setPeeled((prev) => {
-                const next = new Set(prev);
-                next.add(sheetId);
-                try { window.localStorage.setItem('pd_sticker_peeled', JSON.stringify([...next])); } catch { /* ignore */ }
-                return next;
-            });
+            peelSheet(sheetId as SheetId);
+            setPeeled((prev) => new Set(prev).add(sheetId));
             setPeelGone(false);
             setPeelDrag(0);
         }, 420);
