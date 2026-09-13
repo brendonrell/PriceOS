@@ -298,7 +298,7 @@ function ComposeFace({
     return (
         <>
             <div className="cart-panel-header">
-                <span className="cart-panel-title">{`⇌${VS15} THE EXCHANGE`}</span>
+                <span className="cart-panel-title"><span className="exch-title-glyph">{`⇌${VS15}`}</span> THE EXCHANGE</span>
                 {/* ⓘ docs door — the Exchange's page in the manual (Brendon, 2026-08-05). */}
                 <a className="exch-docs-door" href="/docs/exchange" data-native-nav="" title="Docs" aria-label="Open the Exchange docs">{`ⓘ${VS15}`}</a>
                 <span className="cart-panel-close-x" role="button" tabIndex={0} onClick={onClose} title="Close">{`×${VS15}`}</span>
@@ -479,7 +479,7 @@ function TradeFace({
         return (
             <>
                 <div className="cart-panel-header">
-                    <span className="cart-panel-title">{`⇌${VS15} THE EXCHANGE`}</span>
+                    <span className="cart-panel-title"><span className="exch-title-glyph">{`⇌${VS15}`}</span> THE EXCHANGE</span>
                     <span className="cart-panel-close-x" role="button" tabIndex={0} onClick={onClose} title="Close">{`×${VS15}`}</span>
                 </div>
                 <div className="cart-items-list"><div className="cart-empty-state">Reading the trade…</div></div>
@@ -490,7 +490,7 @@ function TradeFace({
         return (
             <>
                 <div className="cart-panel-header">
-                    <span className="cart-panel-title">{`⇌${VS15} THE EXCHANGE`}</span>
+                    <span className="cart-panel-title"><span className="exch-title-glyph">{`⇌${VS15}`}</span> THE EXCHANGE</span>
                     <span className="cart-panel-close-x" role="button" tabIndex={0} onClick={onClose} title="Close">{`×${VS15}`}</span>
                 </div>
                 <div className="cart-items-list"><div className="cart-empty-state">Trade not found.</div></div>
@@ -528,7 +528,7 @@ function TradeFace({
         <>
             <div className="cart-panel-header">
                 <span className="cart-panel-title">
-                    {`⇌${VS15} THE EXCHANGE`}
+                    <span className="exch-title-glyph">{`⇌${VS15}`}</span> THE EXCHANGE
                     {isOpen && trade.end_time != null && <span className="exch-expiry"> · {expiresIn(trade.end_time)}</span>}
                 </span>
                 <span className="cart-panel-close-x" role="button" tabIndex={0} onClick={onClose} title="Close">{`×${VS15}`}</span>
@@ -647,7 +647,7 @@ export default function ExchangeModal() {
                 {!me ? (
                     <>
                         <div className="cart-panel-header">
-                            <span className="cart-panel-title">{`⇌${VS15} THE EXCHANGE`}</span>
+                            <span className="cart-panel-title"><span className="exch-title-glyph">{`⇌${VS15}`}</span> THE EXCHANGE</span>
                             <span className="cart-panel-close-x" role="button" tabIndex={0} onClick={closeExchange} title="Close">{`×${VS15}`}</span>
                         </div>
                         <div className="cart-items-list"><div className="cart-empty-state">Connect your wallet to trade.</div></div>
@@ -665,7 +665,7 @@ export default function ExchangeModal() {
                 ) : render.view === 'inbox' ? (
                     <>
                         <div className="cart-panel-header">
-                            <span className="cart-panel-title">{`⇌${VS15} THE EXCHANGE`}</span>
+                            <span className="cart-panel-title"><span className="exch-title-glyph">{`⇌${VS15}`}</span> THE EXCHANGE</span>
                             <span className="cart-panel-close-x" role="button" tabIndex={0} onClick={closeExchange} title="Close">{`×${VS15}`}</span>
                         </div>
                         <div className="cart-items-list">
