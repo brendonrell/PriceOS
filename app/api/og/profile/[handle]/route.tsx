@@ -8,24 +8,25 @@
  * verbatim from PeteyLogo.tsx), the title/identity rows, and the profile
  * tags via the same deriveTags() the hero uses.
  *
- * ⛔ FIXED FOR REAL 2026-09-12 (Brendon: "the share sheet has never worked,
- * figure it out"): the actual root cause was the font. Every previous fix
- * here patched a SYMPTOM of fetching Rubik Mono One from Google Fonts at
- * request time (UA-spoofing the CSS response, then not poisoning the cache
- * on a rejected promise) — but the fetch itself was still a live call out to
- * a third party on every cold isolate, and unfurlers (iMessage, Discord,
- * Twitter) do NOT reliably fall through to generateMetadata's second image
- * on a 500 the way the old comment here assumed; most just show nothing.
- * One flaky Google Fonts response and the whole card silently died, with no
- * visible symptom except "the preview never shows up" — Brendon's exact
- * report. Fixed by removing the network dependency entirely: the font ships
- * in the repo (app/fonts/RubikMonoOne-Regular.ttf) and loads via Next's own
- * build-time asset resolution (`fetch(new URL(..., import.meta.url))`) —
- * the same mechanism the official next/og local-font examples use. This is
- * NOT a runtime fetch to an external host; Next statically rewrites that
- * exact expression into the bundled asset at build time, so there is
- * nothing left that can time out, get rate-limited, or serve the wrong
- * format. Grep this file for 'googleapis' before ever adding that call back.
+ * ⛔ FIXED FOR REAL 2026-09-13 (Brendon: still broken AGAIN after the
+ * 2026-09-12 fix — the share card kept falling back to the old showcase-
+ * piece image). That fix correctly identified the font as the problem but
+ * replaced the Google Fonts network call with
+ * `fetch(new URL('./file.ttf', import.meta.url))` — a Vercel/Next Edge-
+ * runtime convention for resolving a bundled static asset at build time.
+ * This app runs on Cloudflare Workers via OpenNext, whose static-asset
+ * pipeline is built around public/ and .next/static, not arbitrary
+ * import.meta.url references inside app/ — that fetch almost certainly
+ * resolved to nothing at runtime, threw, got caught below, and 500'd,
+ * exactly reproducing the original symptom under a different cause.
+ * Verified this time by rendering the actual JSX tree through the real
+ * Satori/font pipeline standalone (confirms the layout itself was never the
+ * problem) before landing the fix: the font now ships inlined as a base64
+ * string literal (./rubikMonoOneFontData.ts) and is decoded with
+ * `Buffer.from` at request time — no bundler asset resolution, no
+ * import.meta.url, no network call, nothing deploy-target-specific left to
+ * get wrong. Grep this file for 'googleapis' or 'import.meta' before ever
+ * bringing either approach back.
  */
 
 import { ImageResponse } from 'next/og';
@@ -35,6 +36,7 @@ import { artistSignatureColor, projectsByArtist } from '@/lib/project/registry';
 import { deriveTags } from '@/lib/tags/derive';
 import { shortAddress } from '@/lib/project/projectAddress';
 import { isPlatformAccount, PRICE_TOKEN_CREATED_AT } from '@/lib/platform/accounts';
+import { RUBIK_MONO_ONE_BASE64 } from './rubikMonoOneFontData';
 
 /*
  * ⛔ RUNTIME MUST STAY 'nodejs' — DO NOT SWITCH TO 'edge' (Brendon,
@@ -82,29 +84,22 @@ const PETEY_DOT_LEFT_PATH =
 const PETEY_DOT_TOP_PATH =
     'M278.519 194.495C277.378 204.322 277.17 213.805 274.859 222.745C272.113 233.368 264.783 237.631 253.212 237.735C240.318 237.852 233.177 233.613 229.29 223.142C224.817 211.096 225.515 198.537 226.23 186.048C226.518 181.002 227.018 175.882 228.217 170.99C231.199 158.815 238.713 153.213 251.95 152.618C264.255 152.064 271.812 156.478 275.274 168.588C277.587 176.677 277.522 185.446 278.519 194.495Z';
 
-/* The font ships in the repo — app/fonts/RubikMonoOne-Regular.ttf, the exact
-   file next/font/google otherwise self-hosts at build time for the rest of
-   the site. `fetch(new URL('./relative', import.meta.url))` is Next's own
-   documented pattern for loading a local font into ImageResponse: the build
-   statically rewrites this exact expression into the bundled asset, so
-   despite the `fetch(...)` spelling this is NOT a network call and has
-   nothing to do with Cloudflare Workers' lack of `fs` — it resolves from
-   the compiled output the same way on every runtime. Cached per-isolate so
-   repeat requests on a warm isolate don't even redo that local read. A
-   failed load clears the cache instead of poisoning it forever (the same
-   guard the old Google Fonts version needed, kept here as cheap insurance
-   even though there's no external host left to flake on). */
-let fontPromise: Promise<ArrayBuffer> | undefined;
+/* The font ships inlined as a base64 string literal — see
+   ./rubikMonoOneFontData.ts for why: `fetch(new URL(...))` build-time asset
+   resolution is a Vercel/Next Edge-runtime convention, and this app runs on
+   Cloudflare Workers via OpenNext, whose static-asset pipeline is built
+   around public/ and .next/static, not arbitrary import.meta.url references
+   inside app/. Buffer.from is a plain runtime decode — no bundler
+   involvement, no network call, nothing left that's specific to any one
+   deploy target. Cached per-isolate purely so repeat requests on a warm
+   isolate skip re-decoding the same ~117KB buffer. */
+let fontBuf: ArrayBuffer | undefined;
 async function loadFont(): Promise<ArrayBuffer> {
-    if (!fontPromise) {
-        fontPromise = fetch(new URL('../../../../fonts/RubikMonoOne-Regular.ttf', import.meta.url))
-            .then((r) => r.arrayBuffer())
-            .catch((err) => {
-                fontPromise = undefined;
-                throw err;
-            });
+    if (!fontBuf) {
+        const buf = Buffer.from(RUBIK_MONO_ONE_BASE64, 'base64');
+        fontBuf = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer;
     }
-    return fontPromise;
+    return fontBuf;
 }
 
 export async function GET(
