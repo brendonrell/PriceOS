@@ -191,7 +191,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
             { url: art, alt: ogTitle },
           ],
         },
-        twitter: { card: 'summary_large_image', title: ogTitle, description, images: [heroImage] },
+        twitter: { card: 'summary_large_image', title: ogTitle, description, images: [heroImage, art] },
       };
     }
   }
@@ -274,7 +274,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
       card: 'summary_large_image',
       title: ogTitle,
       description,
-      images: [heroImage],
+      images: [heroImage, fallbackImage],
     },
   };
 }
