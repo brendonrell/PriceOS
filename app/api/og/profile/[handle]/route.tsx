@@ -8,14 +8,24 @@
  * verbatim from PeteyLogo.tsx), the title/identity rows, and the profile
  * tags via the same deriveTags() the hero uses.
  *
- * Runs on Cloudflare Workers (OpenNext) — no `fs`. The one asset this needs,
- * Rubik Mono One, is FETCHED from Google Fonts at request time and cached
- * per-isolate, the same way every next/og example on an edge-style runtime
- * loads a font; there is no local font file to read.
- *
- * Old showcase-piece / PD-mark image is now the FALLBACK, not the primary —
- * generateMetadata in app/[slug]/page.tsx only reaches for it if this route
- * 500s or the handle doesn't resolve to a user.
+ * ⛔ FIXED FOR REAL 2026-09-12 (Brendon: "the share sheet has never worked,
+ * figure it out"): the actual root cause was the font. Every previous fix
+ * here patched a SYMPTOM of fetching Rubik Mono One from Google Fonts at
+ * request time (UA-spoofing the CSS response, then not poisoning the cache
+ * on a rejected promise) — but the fetch itself was still a live call out to
+ * a third party on every cold isolate, and unfurlers (iMessage, Discord,
+ * Twitter) do NOT reliably fall through to generateMetadata's second image
+ * on a 500 the way the old comment here assumed; most just show nothing.
+ * One flaky Google Fonts response and the whole card silently died, with no
+ * visible symptom except "the preview never shows up" — Brendon's exact
+ * report. Fixed by removing the network dependency entirely: the font ships
+ * in the repo (app/fonts/RubikMonoOne-Regular.ttf) and loads via Next's own
+ * build-time asset resolution (`fetch(new URL(..., import.meta.url))`) —
+ * the same mechanism the official next/og local-font examples use. This is
+ * NOT a runtime fetch to an external host; Next statically rewrites that
+ * exact expression into the bundled asset at build time, so there is
+ * nothing left that can time out, get rate-limited, or serve the wrong
+ * format. Grep this file for 'googleapis' before ever adding that call back.
  */
 
 import { ImageResponse } from 'next/og';
@@ -72,61 +82,27 @@ const PETEY_DOT_LEFT_PATH =
 const PETEY_DOT_TOP_PATH =
     'M278.519 194.495C277.378 204.322 277.17 213.805 274.859 222.745C272.113 233.368 264.783 237.631 253.212 237.735C240.318 237.852 233.177 233.613 229.29 223.142C224.817 211.096 225.515 198.537 226.23 186.048C226.518 181.002 227.018 175.882 228.217 170.99C231.199 158.815 238.713 153.213 251.95 152.618C264.255 152.064 271.812 156.478 275.274 168.588C277.587 176.677 277.522 185.446 278.519 194.495Z';
 
-/* Cloudflare Workers has no filesystem to read a local .ttf from, so the
-   font is fetched from Google Fonts (the same family next/font/google
-   pulls at build time for the rest of the site) and its bytes cached on the
-   isolate for the life of that isolate — one fetch per cold start, not one
-   per request. Split into its own named async function (rather than an
-   inline IIFE assigned to the nullable cache var) because TS's contextual
-   typing of an async arrow function against a `T | null` target produced a
-   bogus "Promise<ArrayBuffer | null>" build error — a named function with
-   its own explicit return type sidesteps that entirely.
-
-   ⛔ FIXED 2026-08-22 (Error 1101, worker threw exception on every request):
-   the CSS fetch had no User-Agent, so Google Fonts served the modern-browser
-   default — .woff2. Satori (what ImageResponse renders with) only reads
-   .ttf/.otf and throws on a woff2 buffer, which killed the whole route.
-   Google only serves .ttf to old/legacy user agents, so the CSS request
-   below spoofs one — same workaround every next/og + Google Fonts example
-   uses. */
-async function fetchFont(): Promise<ArrayBuffer> {
-    const css = await fetch(
-        'https://fonts.googleapis.com/css2?family=Rubik+Mono+One&display=swap',
-        {
-            headers: {
-                // Google's CSS responder keys the format purely off UA string.
-                // Old Safari (pre-woff2, ships ttf) is the standard spoof used
-                // by every next/og + Google Fonts integration for this reason —
-                // a merely-old UA isn't enough, some still get served .woff.
-                'User-Agent':
-                    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_8) AppleWebKit/534.55.3 (KHTML, like Gecko) Version/5.1.3 Safari/534.53.10',
-            },
-        },
-    ).then((r) => r.text());
-    const url = css.match(/src: url\(([^)]+)\)/)?.[1];
-    if (!url) throw new Error('Rubik Mono One: no font url in Google Fonts CSS');
-    return fetch(url).then((r) => r.arrayBuffer());
-}
-
+/* The font ships in the repo — app/fonts/RubikMonoOne-Regular.ttf, the exact
+   file next/font/google otherwise self-hosts at build time for the rest of
+   the site. `fetch(new URL('./relative', import.meta.url))` is Next's own
+   documented pattern for loading a local font into ImageResponse: the build
+   statically rewrites this exact expression into the bundled asset, so
+   despite the `fetch(...)` spelling this is NOT a network call and has
+   nothing to do with Cloudflare Workers' lack of `fs` — it resolves from
+   the compiled output the same way on every runtime. Cached per-isolate so
+   repeat requests on a warm isolate don't even redo that local read. A
+   failed load clears the cache instead of poisoning it forever (the same
+   guard the old Google Fonts version needed, kept here as cheap insurance
+   even though there's no external host left to flake on). */
 let fontPromise: Promise<ArrayBuffer> | undefined;
 async function loadFont(): Promise<ArrayBuffer> {
     if (!fontPromise) {
-        // ⛔ FIXED 2026-08-29 (the actual "OG image never shows, always
-        // falls back to the showcase piece" bug): this used to cache
-        // fetchFont()'s PROMISE directly. The very first time that promise
-        // ever rejected (one dropped connection to Google Fonts, one cold-
-        // start network hiccup — it only has to happen once), the rejected
-        // promise itself got locked into this module-level variable. Every
-        // request after that on the same warm isolate hit the `if
-        // (!fontPromise)` check, found it already set, and awaited the SAME
-        // dead promise again — permanently 500ing this route (silently, via
-        // the route's outer catch) until the isolate finally recycled. Now a
-        // failed fetch clears the cache so the next request gets a fresh try
-        // instead of inheriting a poisoned one forever.
-        fontPromise = fetchFont().catch((err) => {
-            fontPromise = undefined;
-            throw err;
-        });
+        fontPromise = fetch(new URL('../../../../fonts/RubikMonoOne-Regular.ttf', import.meta.url))
+            .then((r) => r.arrayBuffer())
+            .catch((err) => {
+                fontPromise = undefined;
+                throw err;
+            });
     }
     return fontPromise;
 }
