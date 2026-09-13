@@ -249,6 +249,19 @@
 }
 .anoint-clout-item:hover { text-decoration: underline; }
 
+/* The profile Anointed tab's placed-pledge "mark" tile (Brendon, 2026-09-12)
+   — the same wide well as Sigil's .sig-mark-tile, holding the canonical ✢
+   glyph large and centered instead of a SigilArt render. */
+.anoint-mark-tile {
+    min-height: 86px;
+    justify-content: center;
+}
+.anoint-mark-glyph {
+    font-size: 38px;
+    line-height: 1;
+    font-variant-emoji: text;
+}
+
 /* Empty state */
 .anoint-empty {
     display: flex;
