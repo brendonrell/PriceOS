@@ -15063,11 +15063,14 @@ body.theme-bright .fi-row.inspecting {
 .fi-rost-cell.on .fi-rost-badge { border-color: var(--stat-active-text); color: var(--stat-active-text); }
 .fi-rost-badge-mutual { background: color-mix(in srgb, var(--text-color) 16%, transparent); }
 
-/* ROSTER SECTION — the ROSTER/INSIGHT sub-tabs sitting above whichever
-   view is active (Brendon, 2026-09-02). Reuses .ambient-chip/.fi-preview-chip
-   styling so it doesn't invent a second button language. */
+/* ROSTER SECTION — the MANAGER/INSIGHT sub-tabs sitting directly below the
+   30D/STREAKS/SPEND/OVERLAP/ROSTER mode row, right-aligned to match it
+   (Brendon, 2026-09-12), each wearing the same ↳ down-and-over arrow the
+   Collected grid's L3→L4 sub-pills use to read as nested one level under
+   the row above. Reuses .ambient-chip/.fi-preview-chip styling so it
+   doesn't invent a second button language. */
 .fi-roster-section { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
-.fi-roster-subtabs { display: flex; gap: 6px; flex: 0 0 auto; }
+.fi-roster-subtabs { display: flex; justify-content: flex-end; gap: 9px; flex: 0 0 auto; }
 .fi-roster-section .fi-roster { flex: 1 1 auto; }
 
 /* INSIGHT — a generative read of the same circle: one strategy, picked at
@@ -15076,7 +15079,8 @@ body.theme-bright .fi-row.inspecting {
    an inspected cell, so "this is the answer" reads at a glance. */
 .fi-insight { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
 .fi-insight-title {
-    font-size: 12px; font-weight: bold; letter-spacing: 0.4px;
+    font-family: var(--font-rubik-mono), 'Rubik Mono One', sans-serif;
+    font-size: 12px; letter-spacing: 0.4px;
     color: var(--text-color);
 }
 .fi-insight-group-label {
@@ -15084,12 +15088,18 @@ body.theme-bright .fi-row.inspecting {
     color: var(--text-color); opacity: 0.7;
     margin-bottom: 4px;
 }
+/* Each person is a clean square with its own faded-black fill, so it's
+   obvious where one starts and the next ends; the group itself is a plain
+   rounded rect acting as the "connector" that reads as one cluster — not
+   the old organic percentage-radius blob, which just looked like a weird
+   shape rather than squares that were connected (Brendon, 2026-09-12). */
+.fi-insight .fi-rost-cell {
+    background: color-mix(in srgb, black 35%, transparent);
+    border-radius: 7px;
+}
 .fi-insight-group.featured {
     padding: 12px 16px;
-    /* An actual organic blob wrap (not a rounded rect) — percentage radii
-       scale with the box regardless of how many rows the group wraps to
-       (Brendon, 2026-09-02: "cluster blob connecting the whole group"). */
-    border-radius: 42% 58% 63% 37% / 45% 41% 59% 55%;
+    border-radius: 14px;
     background: var(--stat-active-bg);
 }
 .fi-insight-group.featured .fi-insight-group-label { color: var(--stat-active-text); opacity: 1; }
