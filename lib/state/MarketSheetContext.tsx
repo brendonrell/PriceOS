@@ -35,7 +35,8 @@ export interface CriteriaTarget {
 
 export type MarketSheetState =
     | { sheet: 'list'; items: SheetItem[] }
-    | { sheet: 'offer'; items: SheetItem[] }
+    | { sheet: 'offer-choice'; items: SheetItem[] }
+    | { sheet: 'offer'; items: SheetItem[]; combo?: boolean }
     | { sheet: 'offer-criteria'; target: CriteriaTarget }
     | { sheet: 'offers-panel'; slug: string; id: number }
     | { sheet: 'trait-picker'; slug: string; id: number }
@@ -44,7 +45,12 @@ export type MarketSheetState =
 interface MarketSheetContextValue {
     state: MarketSheetState;
     openListSheet: (items: SheetItem[]) => void;
+    /** Entry point for every "make offer" surface — always lands on the
+     *  OUTPUT / COLLECTION / BOTH choice face first (Brendon, 2026-09-13). */
     openOfferSheet: (items: SheetItem[]) => void;
+    /** Chosen from the offer-choice face: proceeds straight to the item-offer
+     *  sheet, optionally bundling a −20% WETH collection offer alongside. */
+    proceedOfferSheet: (items: SheetItem[], combo?: boolean) => void;
     openCriteriaOfferSheet: (target: CriteriaTarget) => void;
     openOffersPanel: (slug: string, id: number) => void;
     /** The general-purpose trait-offer tool: pick a trait off ONE output
@@ -62,7 +68,10 @@ export function MarketSheetProvider({ children }: { children: ReactNode }) {
         if (items.length > 0) setState({ sheet: 'list', items });
     }, []);
     const openOfferSheet = useCallback((items: SheetItem[]) => {
-        if (items.length > 0) setState({ sheet: 'offer', items });
+        if (items.length > 0) setState({ sheet: 'offer-choice', items });
+    }, []);
+    const proceedOfferSheet = useCallback((items: SheetItem[], combo?: boolean) => {
+        if (items.length > 0) setState({ sheet: 'offer', items, combo });
     }, []);
     const openCriteriaOfferSheet = useCallback((target: CriteriaTarget) => {
         setState({ sheet: 'offer-criteria', target });
@@ -76,8 +85,8 @@ export function MarketSheetProvider({ children }: { children: ReactNode }) {
     const closeSheet = useCallback(() => setState(null), []);
 
     const value = useMemo(
-        () => ({ state, openListSheet, openOfferSheet, openCriteriaOfferSheet, openOffersPanel, openTraitPicker, closeSheet }),
-        [state, openListSheet, openOfferSheet, openCriteriaOfferSheet, openOffersPanel, openTraitPicker, closeSheet],
+        () => ({ state, openListSheet, openOfferSheet, proceedOfferSheet, openCriteriaOfferSheet, openOffersPanel, openTraitPicker, closeSheet }),
+        [state, openListSheet, openOfferSheet, proceedOfferSheet, openCriteriaOfferSheet, openOffersPanel, openTraitPicker, closeSheet],
     );
     return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
