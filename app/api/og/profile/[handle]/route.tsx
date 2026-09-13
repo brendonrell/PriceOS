@@ -87,6 +87,34 @@ function resolveTextColor(bgHex: string): string {
     return yiq >= 128 ? '#111111' : '#e0e0e0';
 }
 
+/* ⛔ FIXED 2026-09-13 (Brendon: real handles throwing Cloudflare Error 1101,
+ * "Worker threw exception" — not a route error, an uncaught one). next/og's
+ * ImageResponse does its actual Satori/resvg rendering lazily, inside a
+ * ReadableStream's `start()` callback that only runs AFTER this handler has
+ * already returned the Response object — so a throw during that render
+ * happens entirely outside this file's try/catch and escapes as an
+ * unhandled rejection, which Cloudflare reports as a bare "Worker threw
+ * exception" with no stack trace of ours anywhere.
+ * REPRODUCED THE EXACT CRASH standalone before landing this fix: Satori
+ * tolerates almost any malformed color string (3-digit hex, rgb()/hsla(),
+ * named colors, even gradients and garbage) — the one thing that throws is
+ * a color value that is literally `undefined`, with the exact message
+ * "Cannot read properties of undefined (reading 'trim')". `bg` comes from
+ * `user.profile_hex` and tag colors from lib/tags/derive.ts's
+ * `projectTagsFor()`, which documents `p.color` as `projects.custom_color`
+ * "handed in as facts" typed as plain `color: string` — a type that lies
+ * the moment that DB column is NULL for any row, which flows through as
+ * `undefined` and crashes the render for every profile that shows that tag.
+ * A synthetic test with hardcoded colors could never surface this — it only
+ * fires on a real account whose color data has a gap. Every color this
+ * route hands to Satori now goes through this sanitizer first. */
+function safeHex(candidate: unknown, fallback: string): string {
+    if (typeof candidate === 'string' && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(candidate)) {
+        return candidate;
+    }
+    return fallback;
+}
+
 /* Petey speech-bubble logo path data — verbatim from components/shell/
    PeteyLogo.tsx's default (non-holo, non-sigil) glyph. */
 const PETEY_BUBBLE_PATH =
@@ -127,7 +155,7 @@ export async function GET(
         const user = await getUserProfileByHandle(rawHandle);
         if (!user) return new Response('not found', { status: 404 });
 
-        const bg = user.profile_hex ?? artistSignatureColor(rawHandle) ?? '#E0E0E0';
+        const bg = safeHex(user.profile_hex ?? artistSignatureColor(rawHandle), '#E0E0E0');
         const text = resolveTextColor(bg);
         const dim = `${text}66`; // ~40% — borders / secondary text
 
@@ -217,21 +245,25 @@ export async function GET(
                     {/* Tags row. */}
                     {tags.length > 0 && (
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 40 }}>
-                            {tags.map((t) => (
-                                <div
-                                    key={t.id}
-                                    style={{
-                                        display: 'flex',
-                                        padding: '10px 18px',
-                                        borderRadius: 999,
-                                        backgroundColor: t.color,
-                                        color: t.textColor ?? resolveTextColor(t.color),
-                                        fontSize: 22,
-                                    }}
-                                >
-                                    {t.label}
-                                </div>
-                            ))}
+                            {tags.map((t) => {
+                                const tagBg = safeHex(t.color, '#333333');
+                                const tagText = safeHex(t.textColor, resolveTextColor(tagBg));
+                                return (
+                                    <div
+                                        key={t.id}
+                                        style={{
+                                            display: 'flex',
+                                            padding: '10px 18px',
+                                            borderRadius: 999,
+                                            backgroundColor: tagBg,
+                                            color: tagText,
+                                            fontSize: 22,
+                                        }}
+                                    >
+                                        {t.label}
+                                    </div>
+                                );
+                            })}
                         </div>
                     )}
                 </div>
