@@ -380,31 +380,25 @@ export function PingsBox({ projectPings = false }: { projectPings?: boolean } = 
                             <div className="pings-seen-divider" aria-hidden="true">SEEN</div>
                         ) : null;
                     const lp = longPress(p.src);
-                    /* Market pings deep-link to the piece (offer family lands
-                       with the offers panel open) — a real <a>, so the global
-                       client-side interceptor routes it like every other link.
-                       Long-press (500ms hold) quiets the ping's source. */
+                    /* EVERY ping opens the popup first (2026-09-13, Brendon —
+                       tapping a row used to deep-link straight off the page
+                       for market pings; that's gone). p.href still gets
+                       computed above and rides along as the popup's own
+                       action button (PingModal reads it via pingHref). A
+                       hold still owns the quiet-source gesture either way. */
                     return (
                         <Fragment key={p.id}>
                             {divider}
-                            {p.href ? (
-                                <a href={p.href} className={`${cls} notif-item--link`} data-ping-id={p.id} data-ping-read={p.read ? '1' : '0'} {...lp}>{body}</a>
-                            ) : (
-                                /* No deep link (to-dos, achievements, streaks,
-                                   the system speaking) — the ping opens its own
-                                   popup instead of dead-ending (Brendon,
-                                   2026-07-27). A hold still owns the gesture. */
-                                <div
-                                    className={`${cls} notif-item--link`}
-                                    data-ping-id={p.id}
-                                    data-ping-read={p.read ? '1' : '0'}
-                                    role="button"
-                                    tabIndex={0}
-                                    {...lp}
-                                    onClick={(e) => { lp.onClick(e); if (!lpFired.current) openModal('ping', p.id); }}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal('ping', p.id); } }}
-                                >{body}</div>
-                            )}
+                            <div
+                                className={`${cls} notif-item--link`}
+                                data-ping-id={p.id}
+                                data-ping-read={p.read ? '1' : '0'}
+                                role="button"
+                                tabIndex={0}
+                                {...lp}
+                                onClick={(e) => { lp.onClick(e); if (!lpFired.current) openModal('ping', p.id); }}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal('ping', p.id); } }}
+                            >{body}</div>
                         </Fragment>
                     );
                 })
