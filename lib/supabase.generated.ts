@@ -2365,7 +2365,7 @@ export type Database = {
           grid_presets: Json
           handle: string | null
           name_font: string | null
-          nemesis_address: string | null
+          rival_address: string | null
           price_held: number
           price_hold_rank: number | null
           price_rank: number
@@ -2409,7 +2409,7 @@ export type Database = {
           grid_presets?: Json
           handle?: string | null
           name_font?: string | null
-          nemesis_address?: string | null
+          rival_address?: string | null
           price_held?: number
           price_hold_rank?: number | null
           price_rank?: number
@@ -2453,7 +2453,7 @@ export type Database = {
           grid_presets?: Json
           handle?: string | null
           name_font?: string | null
-          nemesis_address?: string | null
+          rival_address?: string | null
           price_held?: number
           price_hold_rank?: number | null
           price_rank?: number
@@ -2715,7 +2715,7 @@ export type Database = {
           grid_presets: Json
           handle: string | null
           name_font: string | null
-          nemesis_address: string | null
+          rival_address: string | null
           price_held: number
           price_hold_rank: number | null
           price_rank: number
