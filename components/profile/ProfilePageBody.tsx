@@ -2768,7 +2768,7 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                     )}
 
                     {/* Counterparties — the wallets this profile has actually
-                        dealt with (ledger-real), crowned by THE NEMESIS: the
+                        dealt with (ledger-real), crowned by THE RIVAL: the
                         one declared rival + the honest floor-value delta. */}
                     {onMore && effMoreL1 === 'counterparties' && (
                         <CounterpartiesPanel

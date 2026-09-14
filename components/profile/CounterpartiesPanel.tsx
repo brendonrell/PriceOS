@@ -4,12 +4,12 @@
  * CounterpartiesPanel — profile +More › Counterparties: the wallets this
  * profile has ACTUALLY dealt with, straight from the ledger (sales, transfers,
  * Exchange trades — mints have no counterparty). Ranked by deals then volume,
- * podium medals on the top three (the leaderboard convention). THE NEMESIS
+ * podium medals on the top three (the leaderboard convention). THE RIVAL
  * sits on top: one declared rival (yours to declare from any row on your own
  * profile), with both sides' honest floor-value read — the delta is real.
  *
  * Anatomy is all reuse: the character sheet's .attr-group/.attr-grid tiles for
- * the summary + nemesis plate (Discord wide-tile precedent), the Starred list's
+ * the summary + rival plate (Discord wide-tile precedent), the Starred list's
  * .starred-row grammar for the ranked rows.
  */
 
@@ -85,43 +85,43 @@ export default function CounterpartiesPanel({
         if (!isAuthed || busy) return;
         setBusy(true);
         try {
-            const r = await fetch('/api/user/nemesis', {
+            const r = await fetch('/api/user/rival', {
                 method: 'POST',
                 headers: { 'content-type': 'application/json' },
                 body: JSON.stringify({ address: target.address }),
             });
             if (r.ok) {
-                showToast(`Nemesis: ${nameOf(target).toUpperCase()}`);
+                showToast(`Rival: ${nameOf(target).toUpperCase()}`);
                 load();
-                window.dispatchEvent(new Event('pd:nemesis-changed'));
+                window.dispatchEvent(new Event('pd:rival-changed'));
             }
-            else showToast('Nemesis: FAILED');
+            else showToast('Rival: FAILED');
         } finally { setBusy(false); }
     };
     const renounce = async () => {
         if (!isAuthed || busy) return;
         setBusy(true);
         try {
-            const r = await fetch('/api/user/nemesis', { method: 'DELETE' });
+            const r = await fetch('/api/user/rival', { method: 'DELETE' });
             if (r.ok) {
-                showToast('Nemesis: RENOUNCED');
+                showToast('Rival: RENOUNCED');
                 load();
-                window.dispatchEvent(new Event('pd:nemesis-changed'));
+                window.dispatchEvent(new Event('pd:rival-changed'));
             }
-            else showToast('Nemesis: FAILED');
+            else showToast('Rival: FAILED');
         } finally { setBusy(false); }
     };
-    /* The HUD door (Brendon, 2026-07-20 — all Nemesis doors live HERE).
+    /* The HUD door (Brendon, 2026-07-20 — all Rival doors live HERE).
        Summon + dismiss the top-bar delta pill; default OFF. */
     const toggleHud = () => {
-        const next = !notifs.nemesisHud;
-        update({ nemesisHud: next });
-        showToast(next ? 'Nemesis HUD: ON' : 'Nemesis HUD: OFF');
-        window.dispatchEvent(new Event('pd:nemesis-changed'));
+        const next = !notifs.rivalHud;
+        update({ rivalHud: next });
+        showToast(next ? 'Rival HUD: ON' : 'Rival HUD: OFF');
+        window.dispatchEvent(new Event('pd:rival-changed'));
     };
 
-    const nem = data?.nemesis ?? null;
-    const ahead = nem ? nem.mine.floor_value_eth - nem.theirs.floor_value_eth : 0;
+    const riv = data?.rival ?? null;
+    const ahead = riv ? riv.mine.floor_value_eth - riv.theirs.floor_value_eth : 0;
 
     return (
         <div className="ach-section cp-section">
@@ -130,25 +130,25 @@ export default function CounterpartiesPanel({
 
             {data && (
                 <>
-                    {/* THE NEMESIS — the declared rival, above everything. */}
-                    {nem && (
-                        <section className="attr-group" aria-label="Nemesis">
+                    {/* THE RIVAL — the declared rival, above everything. */}
+                    {riv && (
+                        <section className="attr-group" aria-label="Rival">
                             <div className="attr-group-head">
-                                <span className="attr-group-name">Nemesis · the declared rival</span>
+                                <span className="attr-group-name">Rival · the declared rival</span>
                                 {isOwnProfile && (
-                                    <span className="cp-nem-doors">
+                                    <span className="cp-riv-doors">
                                         <span
-                                            className="attr-group-count cp-nem-renounce"
+                                            className="attr-group-count cp-riv-renounce"
                                             role="button"
                                             tabIndex={0}
-                                            title="Summon / dismiss the top-bar Nemesis HUD"
+                                            title="Summon / dismiss the top-bar Rival HUD"
                                             onClick={toggleHud}
                                             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleHud(); } }}
                                         >
-                                            ☍{VS15} HUD: {notifs.nemesisHud ? 'ON' : 'OFF'}
+                                            ☍{VS15} HUD: {notifs.rivalHud ? 'ON' : 'OFF'}
                                         </span>
                                         <span
-                                            className="attr-group-count cp-nem-renounce"
+                                            className="attr-group-count cp-riv-renounce"
                                             role="button"
                                             tabIndex={0}
                                             onClick={renounce}
@@ -161,21 +161,21 @@ export default function CounterpartiesPanel({
                             </div>
                             <div className="attr-grid">
                                 <div
-                                    className="attr-tile attr-tile-tap cp-nem-tile pd-discord-tile-wide"
+                                    className="attr-tile attr-tile-tap cp-riv-tile pd-discord-tile-wide"
                                     role="button"
                                     tabIndex={0}
-                                    title={`Open ${nameOf(nem)}`}
-                                    onClick={() => router.push(`/${nem.handle ?? nem.address}`)}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.push(`/${nem.handle ?? nem.address}`); } }}
+                                    title={`Open ${nameOf(riv)}`}
+                                    onClick={() => router.push(`/${riv.handle ?? riv.address}`)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.push(`/${riv.handle ?? riv.address}`); } }}
                                 >
-                                    <span className="attr-tile-label">Nemesis</span>
-                                    <span className="attr-tile-value">{nameOf(nem)}</span>
-                                    <span className="cp-nem-delta">
-                                        {`${isOwnProfile ? 'YOU' : `@${handle}`.toUpperCase()} ${fmtEth(nem.mine.floor_value_eth)} · ${nem.mine.held} HELD`}
+                                    <span className="attr-tile-label">Rival</span>
+                                    <span className="attr-tile-value">{nameOf(riv)}</span>
+                                    <span className="cp-riv-delta">
+                                        {`${isOwnProfile ? 'YOU' : `@${handle}`.toUpperCase()} ${fmtEth(riv.mine.floor_value_eth)} · ${riv.mine.held} HELD`}
                                         {'  —  '}
-                                        {`THEM ${fmtEth(nem.theirs.floor_value_eth)} · ${nem.theirs.held} HELD`}
+                                        {`THEM ${fmtEth(riv.theirs.floor_value_eth)} · ${riv.theirs.held} HELD`}
                                     </span>
-                                    <span className={`cp-nem-verdict${ahead >= 0 ? ' is-ahead' : ''}`}>
+                                    <span className={`cp-riv-verdict${ahead >= 0 ? ' is-ahead' : ''}`}>
                                         {ahead >= 0 ? `AHEAD BY ${fmtEth(Math.abs(ahead))}` : `BEHIND BY ${fmtEth(Math.abs(ahead))}`}
                                         {' — at today’s floors'}
                                     </span>
@@ -274,18 +274,18 @@ export default function CounterpartiesPanel({
                                                     {/* Two-line label — the Project Offer CTA treatment, so the
                                                         button clears the row text like every other starred row. */}
                                                     <span
-                                                        className={`starred-row-cta project-offer-cta cp-nem-cta${nem?.address === r.address ? ' is-on' : ''}`}
+                                                        className={`starred-row-cta project-offer-cta cp-riv-cta${riv?.address === r.address ? ' is-on' : ''}`}
                                                         role="button"
                                                         tabIndex={0}
-                                                        title={nem?.address === r.address ? 'Your declared nemesis' : `Declare ${nameOf(r)} your nemesis`}
+                                                        title={riv?.address === r.address ? 'Your declared rival' : `Declare ${nameOf(r)} your rival`}
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            if (nem?.address === r.address) void renounce();
+                                                            if (riv?.address === r.address) void renounce();
                                                             else void declare(r);
                                                         }}
-                                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); if (nem?.address === r.address) void renounce(); else void declare(r); } }}
+                                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); if (riv?.address === r.address) void renounce(); else void declare(r); } }}
                                                     >
-                                                        {nem?.address === r.address ? 'NEMESIS' : <>DECLARE<br />NEMESIS</>}
+                                                        {riv?.address === r.address ? 'RIVAL' : <>DECLARE<br />RIVAL</>}
                                                     </span>
                                                 </div>
                                             )}
