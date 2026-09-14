@@ -56,7 +56,7 @@ export interface HomeYouResponse {
   /** Your oldest still-open offer — the one that's been out there longest. */
   offer_out: { slug: string; token_id: string | null; price_eth: number; ts: number } | null;
   /** Your declared rival, if you've named one. */
-  nemesis: { handle: string | null; address: string } | null;
+  rival: { handle: string | null; address: string } | null;
   /** The wallet you've dealt with most, off the ledger. */
   counterparty: { handle: string | null; address: string; deals: number } | null;
   /** Your faction oath. */
@@ -71,7 +71,7 @@ const EMPTY: HomeYouResponse = {
   kin: null, rarest: null, artist_window: null,
   pending: { cart: 0, bench: 0 }, follow_upload: null, follow_window: null, wishlist_moved: null,
   offers_in: null, offer_out: null,
-  nemesis: null, counterparty: null, faction: null, takeover: null, traders: null,
+  rival: null, counterparty: null, faction: null, takeover: null, traders: null,
 };
 
 /* Ceiling on the ledger scan behind the top-counterparty pill. */
@@ -175,8 +175,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     let followWindow: HomeYouResponse['follow_window'] = null;
     let traders: HomeYouResponse['traders'] = null;
     const meRes = await db
-      .from('users').select('handle, nemesis_address').eq('address', address).maybeSingle();
-    const myRow = meRes.data as { handle: string | null; nemesis_address: string | null } | null;
+      .from('users').select('handle, rival_address').eq('address', address).maybeSingle();
+    const myRow = meRes.data as { handle: string | null; rival_address: string | null } | null;
     const myHandle = myRow?.handle ?? null;
     if (myHandle) {
       const [folRes, backRes] = await Promise.all([
@@ -316,12 +316,12 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       };
     }
 
-    /* ── THE NEMESIS ── your declared rival, if you've named one. */
-    let nemesis: HomeYouResponse['nemesis'] = null;
-    const nemAddr = (myRow?.nemesis_address ?? '').toLowerCase();
-    if (ADDRESS_RE.test(nemAddr)) {
-      const nRes = await db.from('users').select('handle').eq('address', nemAddr).maybeSingle();
-      nemesis = { handle: (nRes.data as { handle: string | null } | null)?.handle ?? null, address: nemAddr };
+    /* ── THE RIVAL ── your declared rival, if you've named one. */
+    let rival: HomeYouResponse['rival'] = null;
+    const rivalAddr = (myRow?.rival_address ?? '').toLowerCase();
+    if (ADDRESS_RE.test(rivalAddr)) {
+      const nRes = await db.from('users').select('handle').eq('address', rivalAddr).maybeSingle();
+      rival = { handle: (nRes.data as { handle: string | null } | null)?.handle ?? null, address: rivalAddr };
     }
 
     /* ── TOP COUNTERPARTY ── the wallet you've dealt with most. Mints have no
@@ -394,7 +394,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       pending, follow_upload: followUpload, follow_window: followWindow,
       wishlist_moved: wishlistMoved,
       offers_in: offersIn, offer_out: offerOut,
-      nemesis, counterparty, faction, takeover, traders,
+      rival, counterparty, faction, takeover, traders,
     } satisfies HomeYouResponse);
   } catch (e) {
     // The rail is decoration — never fail the home page over it.
