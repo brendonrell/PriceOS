@@ -15699,27 +15699,21 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     background: #000;
     display: flex;
     flex-direction: column;
+    /* --ps-accent = active card's colorway, set by PriceStreamFeed and
+       transitioned the same way the app-wide bg colorway fades (line
+       ~153) — but scoped to the buttons now, not the frame. Every
+       themed control below reads it, so they all update together and
+       none of them travel with the swipe (they live outside .ps-scroller). */
+    transition: color 0.3s;
 }
-/* The persistent frame — stays put across the whole swipe session; only its
-   background-color fades between cards (see PriceStreamFeed.tsx). Same
-   transition as the app-wide colorway fade on html/body (line ~153).
-   Corner radius is the ONE deliberate exception to the house 4px control
-   radius (docs/GLYPHS.md trait-pill law) — this frame sits flush against
-   the physical iPhone screen edge, not beside another UI control, so it
-   needs to read as concentric with the device's own display corners
-   instead. Modern iPhone screen curvature is ~55px; the frame sits 10px
-   in from the true edge (see padding below), and a ring reads concentric
-   when the inner radius = outer radius − inset, so 55 − 10 = 45px
-   (Brendon, 2026-09-07: "the current corners don't look good beside the
-   iPhone screen corners"). */
+/* Edge-to-edge TikTok layout (Brendon, 2026-09-14: the colorway-border
+   frame "isn't working" — reverted). No padding, no radius, no per-card
+   background: the frame is just the full-bleed layout shell now. The
+   colorway lives on the buttons instead — see --ps-accent below. */
 .ps-frame {
     flex: 1;
     position: relative;
-    padding: 20px 10px;
-    padding-top: calc(env(safe-area-inset-top) + 54px);
     box-sizing: border-box;
-    border-radius: 45px;
-    transition: background-color 0.3s, color 0.3s;
 }
 .ps-scroller {
     height: 100%;
@@ -15741,7 +15735,6 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     width: 100%;
     height: 100%;
     background: #111111;
-    border-radius: 45px; /* matches .ps-frame — see the radius note above */
     overflow: hidden;
 }
 .ps-loading {
@@ -15796,24 +15789,24 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     display: flex;
     justify-content: space-between;
     align-items: center;
-    /* No box behind the name/X anymore — they sit straight on the frame's
-       own colorway, so they need to invert with it (Brendon, 2026-09-07:
-       "themed like normal for the colorway... light/dark"). Set once here
-       by PriceStreamFeed from the same isLight() check the rest of the
-       platform uses for on-colorway text (lib/profile/profileLogos.ts). */
-    color: var(--ps-topbar-fg, #e0e0e0);
+    /* The topbar itself sits on the plain black frame now (no colorway
+       background — Brendon, 2026-09-14: reverted). Only the pill/close
+       buttons inside it carry the colorway, via --ps-accent below. */
+    color: #e0e0e0;
 }
 .ps-wildcard-pill {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: none;
+    background: var(--ps-accent, #111);
     border: none;
-    color: inherit;
-    padding: 0;
+    color: var(--ps-accent-fg, #e0e0e0);
+    padding: 8px 14px;
+    border-radius: 999px;
     font-size: 13px;
     font-weight: bold;
     font-family: var(--font-rubik-mono), 'Rubik Mono One', sans-serif;
+    transition: background-color 0.3s, color 0.3s;
 }
 /* The glyph leads the word now (was trailing) and reads three sizes up
    from the 13px label (13 → 16 → 19 → 22, Brendon, 2026-09-07). Its own
@@ -15831,21 +15824,32 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
 .ps-wc-dots i.on { background: #FFE600; }
 .ps-close-btn {
     width: 30px; height: 30px;
-    border-radius: 4px;
-    background: none;
+    border-radius: 50%;
+    background: var(--ps-accent, #111);
     border: none;
-    color: inherit;
+    color: var(--ps-accent-fg, #e0e0e0);
     font-size: 15px;
     display: flex; align-items: center; justify-content: center;
+    transition: background-color 0.3s, color 0.3s;
 }
 .ps-star-rail {
     position: absolute;
     right: max(14px, env(safe-area-inset-right));
     bottom: calc(128px + env(safe-area-inset-bottom, 0px));
     z-index: 4;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--ps-accent, #111);
+    display: flex; align-items: center; justify-content: center;
     cursor: pointer;
+    transition: background-color 0.3s;
 }
-.ps-star-ico { font-size: 26px; color: #e0e0e0; font-family: 'Courier New', Courier, monospace; }
+.ps-star-ico {
+    font-size: 22px;
+    color: var(--ps-accent-fg, #e0e0e0);
+    font-family: 'Courier New', Courier, monospace;
+    transition: color 0.3s;
+}
 .ps-info {
     position: absolute;
     bottom: 0; left: 0; right: 0;
@@ -15861,4 +15865,13 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
 .ps-artist { font-size: 14px; font-weight: bold; margin: 0 0 2px; }
 .ps-meta { font-size: 12px; color: rgba(224,224,224,0.7); margin: 0 0 12px; }
 .ps-actions { display: flex; gap: 10px; align-items: center; }
+/* Both the CTA and OutputFollowButton render .btn-mint — themed here with
+   the active card's colorway so they update the same way the wildcard
+   pill/close/star do (Brendon, 2026-09-14: "theme the buttons instead"). */
+.ps-actions .btn-mint {
+    background: var(--ps-accent, #111);
+    color: var(--ps-accent-fg, #e0e0e0);
+    border-color: var(--ps-accent, #111);
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
 .ps-cta-btn { height: 40px; padding: 0 18px; font-size: 13px; }
