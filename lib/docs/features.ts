@@ -55,7 +55,7 @@ export const ATLAS: AtlasFeature[] = [
     F(8, 'Incognito Proxy', 'Global UI', '⚇'),
     F(9, 'Market Pulse', 'Global UI'),
     F(10, 'Menu Tape', 'Global UI', '▰'),
-    F(11, 'Nemesis', 'Global UI'),
+    F(11, 'Rival', 'Global UI'),
     F(12, 'NPC Cast', 'Global UI'),
     F(13, 'Price Ghost / Price Memory', 'Global UI', 'ᗝ'),
     F(14, 'RPC Ping', 'Global UI', '⌁'),
