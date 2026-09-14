@@ -576,13 +576,13 @@ function youItems(you: HomeYouResponse | null | undefined): NewsItem[] {
             href: `/art/${t.slug}`,
         });
     }
-    /* YOUR NEMESIS — the rival you declared. ☍ is the Nemesis mark (§12g). */
-    if (you.nemesis?.handle) {
+    /* YOUR RIVAL — the rival you declared. ☍ is the Rival mark (§12g). */
+    if (you.rival?.handle) {
         out.push({
-            glyph: vs('☍'), tag: 'YOUR NEMESIS',
-            title: `@${you.nemesis.handle}`,
+            glyph: vs('☍'), tag: 'YOUR RIVAL',
+            title: `@${you.rival.handle}`,
             meta: 'Declared rival',
-            href: `/${you.nemesis.handle}`,
+            href: `/${you.rival.handle}`,
         });
     }
     /* TOP COUNTERPARTY — who you actually deal with. */
