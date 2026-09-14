@@ -24,6 +24,13 @@ const SITE =
   process.env.NEXT_PUBLIC_SITE_URL ||
   'https://pricediscussion.pricediscussion.workers.dev';
 
+/* Image URLs from lib/project/registry resolve relative to the app's own
+ * origin ('/preview/...') for same-origin, same-origin-cache web rendering —
+ * fine in-app, but an email has no origin to resolve against, so every
+ * stored-art <img> silently failed to load. Absolutize here, email-side only. */
+const absUrl = (u: string | null): string | null =>
+  !u ? null : /^https?:\/\//.test(u) ? u : `${SITE}${u}`;
+
 /** Digest publication days of the month (Montreal calendar). */
 export const DIGEST_DAYS = [1, 11, 22] as const;
 
@@ -228,7 +235,7 @@ export async function buildDigest(
   let hero: { slug: string; id: string; line: string } | null = null;
   for (const s of sales.slice(0, 5)) {
     if (await hasArt(s.project_id, Number(s.token_id))) {
-      hero = { slug: s.project_id, id: s.token_id, line: `TOP SALE · ${pieceName(s.project_id, s.token_id)} · ◊${formatEth(s.price_eth)} ETH` };
+      hero = { slug: s.project_id, id: s.token_id, line: `TOP SALE · ${pieceName(s.project_id, s.token_id)} · ${formatEth(s.price_eth)} ETH` };
       break;
     }
   }
@@ -250,9 +257,9 @@ export async function buildDigest(
 
   const empty = !hero && sales.length === 0 && mints.length === 0 && fresh.length === 0;
 
-  const subject = `THE PD DISPATCH DIGEST · ${label}${vol > 0 ? ` · ◊${formatEth(vol)} moved` : ''}`;
+  const subject = `THE PD DISPATCH DIGEST · ${label}${vol > 0 ? ` · ${formatEth(vol)} ETH moved` : ''}`;
   const previewText = topSale
-    ? `${pieceName(topSale.project_id, topSale.token_id)} led the tape at ◊${formatEth(topSale.price_eth)} — the full ledger inside.`
+    ? `${pieceName(topSale.project_id, topSale.token_id)} led the tape at ${formatEth(topSale.price_eth)} ETH — the full ledger inside.`
     : `${mints.length} mints, ${fresh.length} new project${fresh.length === 1 ? '' : 's'} through the filter — the full ledger inside.`;
 
   /* ── HTML ─────────────────────────────────────────────────────────── */
@@ -262,7 +269,7 @@ export async function buildDigest(
   const rule = (t: string) =>
     `<tr><td style="font-family:${MONO};color:#111111;font-size:12px;font-weight:bold;letter-spacing:2px;border-bottom:1px solid #111111;padding-top:28px;padding-bottom:5px;">${t}</td></tr>`;
 
-  const heroImg = hero ? artImageUrl(hero.slug, Number(hero.id)) : null;
+  const heroImg = hero ? absUrl(artImageUrl(hero.slug, Number(hero.id))) : null;
   const heroBlock = hero && heroImg ? `
     <tr><td style="padding-top:26px;" align="center">
       <a href="${pieceUrl(hero.slug, hero.id)}" style="text-decoration:none;">
@@ -283,7 +290,7 @@ export async function buildDigest(
     <tr>
       ${cell(dayStamp(s.timestamp), 'font-size:12px;padding-top:7px;padding-bottom:7px;border-bottom:1px solid #111111;white-space:nowrap;')}
       ${cell(`<a href="${pieceUrl(s.project_id, s.token_id)}" style="color:#111111;font-weight:bold;text-decoration:underline;">${esc(pieceName(s.project_id, s.token_id))}</a>`, 'font-size:13px;padding-top:7px;padding-bottom:7px;border-bottom:1px solid #111111;padding-left:10px;')}
-      ${cell(`◊${formatEth(s.price_eth)}`, 'font-size:13px;font-weight:bold;padding-top:7px;padding-bottom:7px;border-bottom:1px solid #111111;text-align:right;white-space:nowrap;')}
+      ${cell(`${formatEth(s.price_eth)} ETH`, 'font-size:13px;font-weight:bold;padding-top:7px;padding-bottom:7px;border-bottom:1px solid #111111;text-align:right;white-space:nowrap;')}
     </tr>`).join('');
 
   const freshRows = fresh.map((p) => {
@@ -298,11 +305,11 @@ export async function buildDigest(
     <tr>
       ${cell(`<a href="${SITE}/art/${f.slug}" style="color:#111111;font-weight:bold;text-decoration:underline;">${esc(f.name)}</a>`, 'font-size:13px;padding-top:7px;padding-bottom:7px;border-bottom:1px solid #111111;')}
       ${cell(`${f.minted}/${f.supply}`, 'font-size:12px;padding-top:7px;padding-bottom:7px;border-bottom:1px solid #111111;text-align:right;white-space:nowrap;padding-left:10px;')}
-      ${cell(f.floor != null ? `floor ◊${formatEth(f.floor)}` : 'no floor yet', 'font-size:12px;font-weight:bold;padding-top:7px;padding-bottom:7px;border-bottom:1px solid #111111;text-align:right;white-space:nowrap;padding-left:10px;')}
+      ${cell(f.floor != null ? `floor ${formatEth(f.floor)} ETH` : 'no floor yet', 'font-size:12px;font-weight:bold;padding-top:7px;padding-bottom:7px;border-bottom:1px solid #111111;text-align:right;white-space:nowrap;padding-left:10px;')}
     </tr>`).join('');
 
   const wallCells = wall.map((w) => {
-    const thumb = artThumbUrl(w.project_id, Number(w.token_id));
+    const thumb = absUrl(artThumbUrl(w.project_id, Number(w.token_id)));
     if (!thumb) return '';
     return `
       <td width="33%" align="center" style="padding-top:6px;padding-bottom:6px;padding-left:3px;padding-right:3px;">
@@ -331,7 +338,7 @@ export async function buildDigest(
 
   <!-- Masthead — the paper's own voice -->
   <tr><td align="center" style="border-bottom:3px double #111111;padding-bottom:14px;">
-    <div style="font-family:Inter, Arial, Helvetica, sans-serif;color:#111111;font-size:14px;font-weight:bold;letter-spacing:3px;line-height:18px;">&#8240; PRICE DISCUSSION</div>
+    <div style="font-family:Inter, Arial, Helvetica, sans-serif;color:#111111;font-size:14px;font-weight:bold;letter-spacing:3px;line-height:18px;">&#8240; PRICE DISCUSSION &#8240;</div>
     <div style="font-family:${MONO};color:#111111;font-size:27px;font-weight:bold;letter-spacing:4px;line-height:36px;padding-top:6px;">THE PD DISPATCH</div>
     <div style="font-family:${MONO};color:#111111;font-size:12px;font-weight:bold;letter-spacing:3px;line-height:18px;padding-top:4px;">DIGEST · ${label}</div>
   </td></tr>
@@ -341,7 +348,7 @@ export async function buildDigest(
   <!-- The pulse — three numbers, wide air -->
   <tr><td style="padding-top:26px;">
     <table width="100%" cellpadding="0" cellspacing="6" border="0"><tr>
-      ${stat(`◊${formatEth(vol)}`, 'VOLUME')}
+      ${stat(`${formatEth(vol)} ETH`, 'VOLUME')}
       ${stat(String(sales.length), sales.length === 1 ? 'SALE' : 'SALES')}
       ${stat(String(mints.length), mints.length === 1 ? 'MINT' : 'MINTS')}
     </tr></table>
@@ -361,7 +368,7 @@ export async function buildDigest(
   ${fresh.length ? `
   <tr><td style="font-family:${MONO};color:#111111;font-size:12px;line-height:18px;padding-top:6px;">Every project below cleared PD&#39;s artist filter this stretch — a quality floor every project passes, not a taste gate — and is minting now:</td></tr>
   <tr><td style="padding-top:4px;"><table width="100%" cellpadding="0" cellspacing="0" border="0">${freshRows}</table></td></tr>`
-    : `<tr><td style="font-family:${MONO};color:#111111;font-size:13px;line-height:19px;padding-top:6px;">The filter — the quality floor every PD project must clear — held this stretch: nothing new came through.</td></tr>`}
+    : `<tr><td style="font-family:${MONO};color:#111111;font-weight:bold;font-size:13px;line-height:19px;padding-top:6px;">The filter — the quality floor every PD project must clear — held this stretch: nothing new came through.</td></tr>`}
 
   ${floorRows.length ? `${rule('ON THE FLOOR — WHERE THE ACTION WAS')}
   <tr><td style="padding-top:4px;"><table width="100%" cellpadding="0" cellspacing="0" border="0">${floorTable}</table></td></tr>` : ''}
@@ -403,10 +410,10 @@ export async function buildDigest(
     `THE PD DISPATCH — DIGEST · ${label}`,
     '',
     hero ? `${hero.line} → ${pieceUrl(hero.slug, hero.id)}` : null,
-    `VOLUME ◊${formatEth(vol)} · ${sales.length} sales · ${mints.length} mints`,
+    `VOLUME ${formatEth(vol)} ETH · ${sales.length} sales · ${mints.length} mints`,
     '',
     sales.length ? 'EVERY SALE THAT MATTERED' : null,
-    ...sales.slice(0, 10).map((s) => `  ${dayStamp(s.timestamp)} · ${pieceName(s.project_id, s.token_id)} · ◊${formatEth(s.price_eth)} → ${pieceUrl(s.project_id, s.token_id)}`),
+    ...sales.slice(0, 10).map((s) => `  ${dayStamp(s.timestamp)} · ${pieceName(s.project_id, s.token_id)} · ${formatEth(s.price_eth)} ETH → ${pieceUrl(s.project_id, s.token_id)}`),
     '',
     'NEW PROJECTS — THROUGH THE FILTER (cleared PD’s quality floor this stretch, minting now)',
     ...(fresh.length
