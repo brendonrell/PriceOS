@@ -37,14 +37,14 @@ const MAX_PUSHES = 200;
 const MAX_TRAIT_KEYS = 16;
 
 export type InterestEvent = 'minted' | 'listed' | 'sold';
-export type InterestReason = 'nemesis' | 'mutual' | 'artist' | 'rarity' | 'project' | 'trait';
+export type InterestReason = 'rival' | 'mutual' | 'artist' | 'rarity' | 'project' | 'trait';
 
 /** Reason precedence — strongest first. One ping per recipient per event.
- *  NEMESIS outranks everything: the declared rival moving is the whole point
- *  of the declaration (ClickUp 86b9jfjmu — "Nemesis Pings fire when the
+ *  RIVAL outranks everything: the declared rival moving is the whole point
+ *  of the declaration (ClickUp 86b9jfjmu — "Rival Pings fire when the
  *  rival buys, lists a grail, or makes a major move"). */
 const REASON_RANK: Record<InterestReason, number> = {
-  nemesis: 0,
+  rival: 0,
   mutual: 1,
   artist: 2,
   rarity: 3,
@@ -162,11 +162,11 @@ export async function pingInterested(db: DB, args: InterestArgs): Promise<string
     // ── Gather each audience in parallel ──
     const [rivals, mutuals, artistWatchers, projectWatchers, rarityHolders, ...traitBatches] =
       await Promise.all([
-        // NEMESIS — everyone who declared THIS actor their rival.
+        // RIVAL — everyone who declared THIS actor their rival.
         db
           .from('users')
           .select('address')
-          .eq('nemesis_address', actor)
+          .eq('rival_address', actor)
           .limit(MAX_RECIPIENTS)
           .then(({ data }) =>
             ((data ?? []) as AddressRow[]).map((r) => r.address.toLowerCase()),
@@ -205,7 +205,7 @@ export async function pingInterested(db: DB, args: InterestArgs): Promise<string
         if (!prev || REASON_RANK[reason] < REASON_RANK[prev]) reasonFor.set(a, reason);
       }
     };
-    claim(rivals, 'nemesis');
+    claim(rivals, 'rival');
     claim(mutuals, 'mutual');
     claim(artistWatchers, 'artist');
     claim(rarityHolders, 'rarity');
