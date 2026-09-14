@@ -23,17 +23,23 @@
  * follow CTA), and useCart().add — gated on the real `listed` flag from the
  * `listings` table, exactly like ArtworkCard's hi-cart.
  *
- * Colour treatment: the outer frame wears the piece's own dominant-colour
- * bucket (BUCKET_HEX, lib/output/derive.ts) — "the colourway associated with
- * the artwork". Corner radius is the one deliberate exception to the house
- * 4px control radius (the trait-pill law, docs/GLYPHS.md): both the frame
- * and the inner slide use 45px, concentric with the iPhone's own screen
- * corners rather than the platform's usual control radius (Brendon,
- * 2026-09-07 — see the comment on .ps-frame in app/globals.css for the math).
+ * Layout: edge-to-edge, actual TikTok style — no frame border, no padding,
+ * no rounded corners (Brendon, 2026-09-14: the colorway-border frame
+ * "isn't working," reverted).
  *
- * Topbar name/X sit straight on that colour with no box behind them, and
- * flip between light/dark text to match it (same isLight() check as
- * lib/profile/profileLogos.ts) — see topbarFgFor below.
+ * Colour treatment: the piece's own dominant-colour bucket (BUCKET_HEX,
+ * lib/output/derive.ts) now themes the BUTTONS instead of the frame —
+ * wildcard pill, close, star, follow, CTA — via --ps-accent/--ps-accent-fg
+ * custom props set on .ps-overlay (app/globals.css), so every button
+ * updates together the same way the app-wide bg colorway fades, and none
+ * of them travel with the swipe (they live outside .ps-scroller). Fg
+ * contrast per button uses the same isLight() check as
+ * lib/profile/profileLogos.ts — see topbarFgFor below.
+ *
+ * Art: full-res master is preloaded one slide ahead of the active card so
+ * it's already decoded by the time you swipe to it — the blurred 256px
+ * thumb was never the bug, waiting on the network for it was (Brendon,
+ * 2026-09-14: "artwork is blurry again").
  *
  * Styling lives in app/globals.css (Brendon, 2026-09-05 — the first pass
  * used `<style jsx>`, the only occurrence of scoped CSS-in-JS anywhere in
@@ -77,7 +83,7 @@ function colorwayOf(card: Pick<PriceStreamCard, 'dominantColor'>): string {
     return (card.dominantColor && BUCKET_HEX[card.dominantColor]) || FALLBACK_COLOR;
 }
 
-function Slide({ card }: { card: PriceStreamCard }) {
+function Slide({ card, priority }: { card: PriceStreamCard; priority: boolean }) {
     const colorway = colorwayOf(card);
 
     /* This is a full-bleed hero slide, not a grid tile — same real-art
@@ -127,7 +133,8 @@ function Slide({ card }: { card: PriceStreamCard }) {
                     className={`ps-art${loaded ? ' ps-art-loaded' : ''}`}
                     src={imgSrc}
                     alt={`${card.projectName ?? card.slug} #${card.tokenId} — artwork`}
-                    loading="lazy"
+                    loading={priority ? 'eager' : 'lazy'}
+                    fetchPriority={priority ? 'high' : 'auto'}
                     decoding="async"
                     draggable={false}
                     onLoad={() => setLoaded(true)}
@@ -243,8 +250,8 @@ export default function PriceStreamFeed() {
     const [cards, setCards] = useState<PriceStreamCard[]>([]);
     const [loading, setLoading] = useState(false);
     const [wildcard, setWildcard] = useState(1); // 0,1,2 → level 1,2,3 (not yet wired to the query)
-    const [frameColor, setFrameColor] = useState(FALLBACK_COLOR);
-    const topbarFg = useMemo(() => topbarFgFor(frameColor), [frameColor]);
+    const [accentColor, setAccentColor] = useState(FALLBACK_COLOR);
+    const accentFg = useMemo(() => topbarFgFor(accentColor), [accentColor]);
     const [activeCard, setActiveCard] = useState<PriceStreamCard | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -257,18 +264,18 @@ export default function PriceStreamFeed() {
             .finally(() => setLoading(false));
     }, [isOpen]);
 
-    // First card sets the frame colour + active card immediately on load;
+    // First card sets the button accent + active card immediately on load;
     // from then on the observer below owns both as the active slide changes.
     useEffect(() => {
         if (cards.length) {
-            setFrameColor(colorwayOf(cards[0]));
+            setAccentColor(colorwayOf(cards[0]));
             setActiveCard(cards[0]);
         }
     }, [cards]);
 
-    // The frame itself never moves — only its background-color fades (the
-    // same html/body colorway transition used app-wide, app/globals.css:153)
-    // — and the star/info/actions rail swaps to match, to whichever card is
+    // Buttons never move — only their background-color fades (the same
+    // html/body colorway transition used app-wide, app/globals.css:153) —
+    // and the star/info/actions rail swaps to match, to whichever card is
     // currently ≥60% in view. Re-runs whenever the slide list changes since
     // slides are only mounted after the fetch.
     useEffect(() => {
@@ -284,7 +291,7 @@ export default function PriceStreamFeed() {
                 if (!top) return;
                 const el = top.target as HTMLElement;
                 const color = el.dataset.color;
-                if (color) setFrameColor(color);
+                if (color) setAccentColor(color);
                 const slug = el.dataset.slug;
                 const tokenId = el.dataset.token ? Number(el.dataset.token) : null;
                 if (slug && tokenId != null) {
@@ -298,11 +305,31 @@ export default function PriceStreamFeed() {
         return () => observer.disconnect();
     }, [cards]);
 
+    // Preload the master image one slide ahead of whichever is active, so
+    // it's already decoded by the time a fast TikTok-style swipe reaches it
+    // — this is the actual fix for the recurring blur complaint (see the
+    // file-header comment); the thumb was never the problem.
+    useEffect(() => {
+        if (!activeCard || !ART_IMAGE_BASE) return;
+        const idx = cards.findIndex((c) => c.slug === activeCard.slug && c.tokenId === activeCard.tokenId);
+        if (idx === -1) return;
+        const next = cards[idx + 1];
+        if (!next) return;
+        const url = artImageUrl(next.slug, next.tokenId);
+        if (url) { const img = new Image(); img.src = url; }
+    }, [activeCard, cards]);
+
     if (!isOpen) return null;
 
     return (
-        <div className="ps-overlay">
-            <div className="ps-topbar" style={{ ['--ps-topbar-fg' as string]: topbarFg } as React.CSSProperties}>
+        <div
+            className="ps-overlay"
+            style={{
+                ['--ps-accent' as string]: accentColor,
+                ['--ps-accent-fg' as string]: accentFg,
+            } as React.CSSProperties}
+        >
+            <div className="ps-topbar">
                 <button
                     className="ps-wildcard-pill"
                     onClick={() => {
@@ -323,16 +350,16 @@ export default function PriceStreamFeed() {
                 <button className="ps-close-btn" onClick={close} title="Close">&#10005;</button>
             </div>
 
-            {/* The frame: fixed in place for the life of the feed, padded +
-                rounded exactly like before — it just no longer lives inside
+            {/* The frame: fixed in place for the life of the feed, edge-to-edge
+                now (no padding/radius/colour) — it just no longer lives inside
                 the scroll-snapped slide, so swiping never carries it along. */}
-            <div className="ps-frame" style={{ background: frameColor }}>
+            <div className="ps-frame">
                 <div className="ps-scroller" ref={containerRef}>
                     {loading && cards.length === 0 && (
                         <div className="ps-slide-box ps-loading">Loading&hellip;</div>
                     )}
-                    {cards.map((c) => (
-                        <Slide key={`${c.slug}:${c.tokenId}`} card={c} />
+                    {cards.map((c, i) => (
+                        <Slide key={`${c.slug}:${c.tokenId}`} card={c} priority={i === 0} />
                     ))}
                 </div>
                 {/* Persistent overlay, sibling of the scroller — sits above it
