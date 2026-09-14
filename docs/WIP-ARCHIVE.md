@@ -630,7 +630,7 @@ this; it cost the end of the session. Do not tell him it's his cache.
      cart · bench · a followed artist's upload · a followed artist's next
      window · wishlist moved · your own window shouting OPENS TODAY inside 24h.
    - **SEVEN RELATIONSHIP CARDS**: offers on your pieces · your oldest open
-     offer ("Sent 34 days ago") · live takeover either side · your nemesis ·
+     offer ("Sent 34 days ago") · live takeover either side · your rival ·
      top counterparty · faction oath · mutuals wearing Open To Trades.
    - **THE POTPOURRI FIX** (his words: *"a personalized potpourri of
      interesting stuff instead of a parade of endless projects graduating"*).
@@ -1351,7 +1351,7 @@ this; it cost the end of the session. Do not tell him it's his cache.
       destructuring still named five — the active-listings count was
       silently reading the mints query (a wrong "listed now" would have
       shipped); and the new row lines overran the absolutely-positioned
-      Declare-Nemesis button and ellipsed mid-date (content box is 242px
+      Declare-Rival button and ellipsed mid-date (content box is 242px
       — measured, not guessed; full dates moved to the row title).
    6. **One deliberate call flagged for Brendon:** the follow-graph read
       behind the new relationship glyphs is keyed on **@name, not
