@@ -2,7 +2,7 @@
 // dealt with, straight from the ledger: every transfer/sale where the two
 // stood across the table from each other (mints excluded — a mint has no
 // counterparty). Ranked by deals, then volume. Carries the profile owner's
-// declared NEMESIS (one pinned rival, users.nemesis_address) with both sides'
+// declared RIVAL (one pinned rival, users.rival_address) with both sides'
 // honest floor-value read so the delta is real, not vibes.
 //
 // Public read keyed on the address in the path (the profile Counterparties
@@ -43,7 +43,7 @@ export interface CounterpartyRow {
   rel: 'mutual' | 'following' | 'follower' | null;
 }
 
-export interface NemesisRead {
+export interface RivalRead {
   address: string;
   handle: string | null;
   mine: { held: number; floor_value_eth: number };
@@ -62,7 +62,7 @@ export interface CounterpartiesResponse {
     /** The longest-standing tie — the counterparty first dealt with. */
     oldest_tie: { address: string; handle: string | null; first_ts: number } | null;
   };
-  nemesis: NemesisRead | null;
+  rival: RivalRead | null;
 }
 
 type Db = ReturnType<typeof getSupabaseService>;
@@ -104,7 +104,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
         .order('timestamp', { ascending: false })
         .limit(1000),
       db.from('users')
-        .select('nemesis_address, handle')
+        .select('rival_address, handle')
         .eq('address', address)
         .maybeSingle(),
     ]);
@@ -158,15 +158,15 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
 
 
     // The declared rival — resolve + price both sides.
-    const nemAddr = ((meRes.data as { nemesis_address?: string | null } | null)?.nemesis_address ?? '').toLowerCase();
-    let nemesis: NemesisRead | null = null;
+    const rivalAddr = ((meRes.data as { rival_address?: string | null } | null)?.rival_address ?? '').toLowerCase();
+    let rival: RivalRead | null = null;
 
     // One users query resolves the counterparty handles, the record-holders',
-    // AND the nemesis'.
+    // AND the rival's.
     const wantHandles = new Set(rows.map((r) => r.address));
     if (biggestDeal) wantHandles.add(biggestDeal.address);
     if (oldestTie) wantHandles.add(oldestTie.address);
-    if (nemAddr) wantHandles.add(nemAddr);
+    if (rivalAddr) wantHandles.add(rivalAddr);
     if (wantHandles.size > 0) {
       const { data: users } = await db
         .from('users')
@@ -209,16 +209,16 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
         }
       }
 
-      if (nemAddr && ADDRESS_RE.test(nemAddr)) {
+      if (rivalAddr && ADDRESS_RE.test(rivalAddr)) {
         let floors = new Map<string, number>();
         try {
           floors = await liveFloors(db);
         } catch { /* unfloored valuation stays the honest under-read */ }
         const [mine, theirs] = await Promise.all([
           floorRead(db, address, floors),
-          floorRead(db, nemAddr, floors),
+          floorRead(db, rivalAddr, floors),
         ]);
-        nemesis = { address: nemAddr, handle: handleBy.get(nemAddr) ?? null, mine, theirs };
+        rival = { address: rivalAddr, handle: handleBy.get(rivalAddr) ?? null, mine, theirs };
       }
     }
 
@@ -230,7 +230,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
       oldest_tie: oldestTie,
     };
 
-    return NextResponse.json({ address, rows, totals, nemesis } satisfies CounterpartiesResponse);
+    return NextResponse.json({ address, rows, totals, rival } satisfies CounterpartiesResponse);
   } catch (err) {
     return serverError(err instanceof Error ? err.message : 'Unknown error');
   }
