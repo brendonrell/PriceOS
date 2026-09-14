@@ -140,11 +140,11 @@ Follows are asymmetric and read at a glance beside any @name: mutual ⚭, follow
 
 The Followers modal carries the **Friend Inspector** — your circle, instrumented. A **preview strip** up top reads your circle six ways behind floating chips — **30 DAYS** (a day grid of circle activity, darkest where most moved), **STREAK** (who's on the longest consecutive-day run), **SPEND** (ranked by ETH spent), **NEW** (recently added followers/following, ringed), **OVERLAP** (your own holdings, ranked by how much of your circle holds them too), and **ROSTER** (the whole circle as faces, mutuals ringed) — tapping a row or day narrows the ledger below it. **Hold** any chip to pin it first in the sequence, the rest following in their normal order behind it; the pinned chip picks up a small ⟟ mark. This is a hidden shortcut — there's no on-screen prompt for it, just the hold. Below the strip, three **lenses** re-read the same people: LEDGER (the plain record), DRAMA (a live three-stat duel of every friend against you, tightest races first), and SLEUTH (each friend's last on-ledger move, freshest first). Lenses annotate and re-order; they never hide anyone.
 
-### Counterparties & The Nemesis
+### Counterparties & The Rival
 
-**How:** Open a profile's Counterparties tab — DECLARE NEMESIS is inside.
+**How:** Open a profile's Counterparties tab — DECLARE RIVAL is inside.
 
-The profile's **Counterparties** tab reads the wallet's trading history as a who-with list: everyone this collector has actually dealt with, ranked by deals then volume, medals ❶❷❸ on the top three. From there, **DECLARE NEMESIS** — one declared rival per account. A declared nemesis shows as a public head-to-head plate: both sides' held counts and floor-priced positions with a live AHEAD / BEHIND read.
+The profile's **Counterparties** tab reads the wallet's trading history as a who-with list: everyone this collector has actually dealt with, ranked by deals then volume, medals ❶❷❸ on the top three. From there, **DECLARE RIVAL** — one declared rival per account. A declared rival shows as a public head-to-head plate: both sides' held counts and floor-priced positions with a live AHEAD / BEHIND read.
 
 ### Targets ⬚
 
