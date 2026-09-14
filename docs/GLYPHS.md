@@ -509,7 +509,7 @@ Wishlist rows (and the held-by / collected-by chips):
 | **Replay** (project +More pill) | ⏴ | U+23F4 | **Brendon's pick, 2026-07-31.** The single left triangle — Replay is a scan back through the project's record. Replaces an interim ⧖ (U+29D6) that shipped and rendered as NOTHING on iOS: hourglasses are off the table. NOT ⟳ (PD's SHUFFLE mark), NOT ↻ (to-do recurrence) |
 | **Price Story** (project + output +More pill) | ▼ | U+25BC | **Brendon's pick, 2026-08-17.** Promoted from the chapter rail's own connector arrowhead (`.mk-story-line::after` in `styles/market.css`, a pure-CSS border triangle, not a glyph) into the section's pill icon — the down-triangle already meant "Price Story" everywhere it appeared, so it became the mark. Filled, not hollow (NOT ▽ U+25BD) |
 | **Stats** (project + output +More pill) | ⋚ | U+22DA | **Brendon's pick, 2026-08-20.** LESS-THAN EQUAL TO OR GREATER-THAN — a three-way comparison mark, read as distribution spread across the tab's Price Stats / ATH & Holders tiles. Grepped free repo-wide (raw + escaped) at pick time; no emoji mapping. Wears the project +More pill AND the Output +More pill (`MORE_PILLS` icon field, `components/artwork/ArtworkPageBody.tsx`) — Output has no Sentiment tab, so this is Stats' only new surface there |
-| **Sentiment** (project +More pill only — no Output Sentiment tab) | ⚼ | U+26BC | **Brendon's pick, 2026-08-20.** SESQUIQUADRATE — an astrological aspect glyph (tense/bearish read), picked for the tab that surfaces Price Targets + Disagreement Score (what the crowd thinks). Kin to the celestial-aspect family already in the vocabulary (☍ Nemesis §12g, the natal-chart trio §12b). No emoji mapping, grepped free at pick time |
+| **Sentiment** (project +More pill only — no Output Sentiment tab) | ⚼ | U+26BC | **Brendon's pick, 2026-08-20.** SESQUIQUADRATE — an astrological aspect glyph (tense/bearish read), picked for the tab that surfaces Price Targets + Disagreement Score (what the crowd thinks). Kin to the celestial-aspect family already in the vocabulary (☍ Rival §12g, the natal-chart trio §12b). No emoji mapping, grepped free at pick time |
 | **Rewind** (the day rewind — RESERVED, not yet on any surface) | ⋘ | U+22D8 | **Brendon's pick, 2026-07-31**, banked for the Rewind so Replay's ⏴ can never be mistaken for it. Deliberately NOT wired to any control yet — the day Rewind gets a mark, this is the mark |
 | **PriceDay** (the platform trait/facet — distinct from the ✶ Almanac-row mark above, §12a) | ➽ | U+27BD | **Brendon's pick, 2026-08-30.** HEAVY WEDGE-TAILED RIGHTWARDS ARROW — PriceDay had no glyph as a trait, only as the Almanac row's ✶. Live so far ONLY on the artist-Showcase facet bar (glyph-only, `components/home/HomeProjectFacetBar.tsx`, in place of the hidden text pill); NOT yet wired to the trait pill's icon on any other surface — hold off elsewhere until Brendon calls it |
 
@@ -634,17 +634,17 @@ sky at mint) + the proven lunarGlyph discs.
 > `.copy-hex-btn` (17px vs 16px), via its own `.profile-tags-door-btn` rule
 > in `styles/settings.css`. Do not re-swap without Brendon's word.
 
-## 12g. The Nemesis — ☍ (2026-07-20 build)
+## 12g. The Rival — ☍ (2026-07-20 build)
 
 | Use | Glyph | Codepoint |
 |---|---|---|
-| Nemesis Pings (the declared rival moved) | ☍ | U+260D OPPOSITION |
+| Rival Pings (the declared rival moved) | ☍ | U+260D OPPOSITION |
 
 > The astrological OPPOSITION mark — two bodies at 180°, the exact chart
 > aspect for a rival — from the same celestial family as the natal-chart
 > glyphs (§12b). Globally unique at pick time (screened repo-wide incl.
 > escapes), text-default on iOS. VS-15 at render like every PD glyph.
-> Rides WATCH_HIT rows with reason `nemesis` (`lib/pings/interest.ts`).
+> Rides WATCH_HIT rows with reason `rival` (`lib/pings/interest.ts`).
 
 ## 12h. The Social Feed ☻ (2026-07-26 build)
 
