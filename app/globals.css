@@ -11171,9 +11171,9 @@ body.fog-mode .output-card:not(.fog-revealed) .canvas-wrapper::after {
 }
 .grail-pill-unpin:hover { opacity: 1; }
 
-/* Nemesis HUD pill — grail-pill anatomy; the verdict chip underlines when
-   you're AHEAD (the cp-nem-verdict convention). */
-.nem-hud-pill .grail-pill-price.is-ahead { text-decoration: underline; }
+/* Rival HUD pill — grail-pill anatomy; the verdict chip underlines when
+   you're AHEAD (the cp-riv-verdict convention). */
+.riv-hud-pill .grail-pill-price.is-ahead { text-decoration: underline; }
 
 /* F50 (BUG-02) — sim 1361-1368 .grail-badge. Small ⟟ glyph painted
    absolutely in the top-right corner of the canvas-wrapper on any
@@ -13709,7 +13709,7 @@ body.colorway-dark .ghost-feed-bar {
 .pd-dc-btn-unlink { padding: 7px 12px; font-size: 12px; }
 .pd-dc-btn-unlink .logout-icon { font-size: 14px; }
 
-/* .pd-discord-tile-wide survives — the Counterparties Nemesis tile rides it. */
+/* .pd-discord-tile-wide survives — the Counterparties Rival tile rides it. */
 .pd-discord-tile-wide { grid-column: 1 / -1; }
 .pd-discord-tile-wide .attr-tile-value { font-size: 14px; }
 
@@ -13769,21 +13769,21 @@ body.colorway-dark .ghost-feed-bar {
 }
 /* Counterparties: summary tiles breathe before the rows. */
 .cp-totals, .tgt-totals { margin-bottom: 12px; }
-/* THE NEMESIS plate — the wide personality tile (Discord precedent). */
-.cp-nem-tile { cursor: pointer; }
-.cp-nem-delta {
+/* THE RIVAL plate — the wide personality tile (Discord precedent). */
+.cp-riv-tile { cursor: pointer; }
+.cp-riv-delta {
     font-size: 12px;
     font-weight: bold;
     letter-spacing: 0.3px;
     line-height: 1.35;
     white-space: pre-wrap;
 }
-.cp-nem-verdict {
+.cp-riv-verdict {
     font-size: 12px;
     font-weight: bold;
     letter-spacing: 0.5px;
 }
-.cp-nem-verdict.is-ahead { text-decoration: underline; }
+.cp-riv-verdict.is-ahead { text-decoration: underline; }
 
 /* ── Loyalty tab — the long game (2026-07-28) ──────────────────────────────
    Tiles + rows are all reuse (attr-grid / starred-row); only the purity
@@ -13816,9 +13816,9 @@ body.colorway-dark .ghost-feed-bar {
     letter-spacing: 0.3px;
 }
 /* RENOUNCE is tappable — full strength, not the resting count wash. */
-.cp-nem-renounce { opacity: 1; cursor: pointer; }
+.cp-riv-renounce { opacity: 1; cursor: pointer; }
 /* The plate's door row — HUD toggle + RENOUNCE side by side. */
-.cp-nem-doors { display: inline-flex; gap: 14px; align-items: baseline; }
+.cp-riv-doors { display: inline-flex; gap: 14px; align-items: baseline; }
 /* The window chip after a Target row's project name. */
 .tgt-window {
     margin-left: 8px;
