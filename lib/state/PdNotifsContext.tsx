@@ -403,6 +403,49 @@ export function PdNotifsProvider({ children }: { children: ReactNode }) {
         return next;
     }, []);
 
+    /* ⛔ CROSS-DEVICE STOMP — THE AUDIENCE HAUNTED TOGGLE (Brendon, this pass).
+       This used to be ONE effect that ran on every `notifs` change and always
+       called pushSettings() with the FULL blob — including the two passive
+       re-reads below (mount, and account hydration). Those aren't edits, they're
+       just re-syncing local state FROM storage/the server, but because the
+       write-through sent the whole notifs object every time, just OPENING the
+       app on a device with a stale cached copy (e.g. `audience: true` left over
+       from before its default flipped OFF, 2026-08-21) silently re-broadcast
+       that stale snapshot and clobbered whatever a different, more-recently-used
+       device had correctly saved a moment earlier — the settings envelope merges
+       per top-level key (app_merge_user_state), and `notifs` as a whole is one
+       key, so there's no server-side per-field merge to save it. Same shape of
+       bug as the fmSession "REAL COMEBACK" fix in userState.ts and the
+       miniplayer rename — this one was never actually closed.
+       Fix: only real user-facing mutations (update/toggle/setAccordion/
+       setNotifs/setAnonMode below) write through to the account, via
+       persistNotifs(). A passive re-read never does — it only refreshes the
+       local caches. */
+    const persistNotifs = useCallback((next: PdNotifs) => {
+        /* F59 (BUG-26) — strip the three accordion flags from the persisted
+           blob; they ride sessionStorage instead. The localStorage envelope
+           keeps the same `pd_settings_notifs` key so existing pre-F59 users get
+           their other settings carried forward intact. */
+        const { notes, todos, tapeOpen, ...rest } = next;
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(rest));
+        } catch {
+            // Quota / private mode — no-op.
+        }
+        try {
+            sessionStorage.setItem(SESSION_STORAGE_KEYS.notes,    notes    ? '1' : '0');
+            sessionStorage.setItem(SESSION_STORAGE_KEYS.todos,    todos    ? '1' : '0');
+            sessionStorage.setItem(SESSION_STORAGE_KEYS.tapeOpen, tapeOpen ? '1' : '0');
+        } catch {
+            // Private mode / disabled — no-op.
+        }
+        /* Write-through to the account so spell + ping prefs persist server-side
+           and follow the user across devices (Brendon, 2026-06-16: the Digital
+           Familiar on/off must live in the DB). Fire-and-forget; no-op until the
+           account snapshot has hydrated, so boot defaults can't clobber the row. */
+        pushSettings({ notifs: rest as Record<string, unknown> });
+    }, []);
+
     useEffect(() => {
         setNotifsState(readStored());
     }, [readStored]);
@@ -418,27 +461,21 @@ export function PdNotifsProvider({ children }: { children: ReactNode }) {
         return () => window.removeEventListener(USERSTATE_HYDRATED_EVENT, onHydrated);
     }, [readStored]);
 
+    /* Passive cache refresh only (localStorage/sessionStorage) — never a
+       server write. Keeps the pre-hydration script + offline mirror current
+       whenever `notifs` settles from readStored()/hydration, without risking
+       a stale snapshot going back up to the account. */
     useEffect(() => {
-        /* F59 (BUG-26) — strip the three accordion flags from the persisted
-           blob; they ride sessionStorage instead. The localStorage envelope
-           keeps the same `pd_settings_notifs` key so existing pre-F59 users get
-           their other settings carried forward intact. */
         const { notes, todos, tapeOpen, ...rest } = notifs;
-        void notes; void todos; void tapeOpen;
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(rest));
         } catch {
             // Quota / private mode — no-op.
         }
-        /* Write-through to the account so spell + ping prefs persist server-side
-           and follow the user across devices (Brendon, 2026-06-16: the Digital
-           Familiar on/off must live in the DB). Fire-and-forget; no-op until the
-           account snapshot has hydrated, so boot defaults can't clobber the row. */
-        pushSettings({ notifs: rest as Record<string, unknown> });
         try {
-            sessionStorage.setItem(SESSION_STORAGE_KEYS.notes,    notifs.notes    ? '1' : '0');
-            sessionStorage.setItem(SESSION_STORAGE_KEYS.todos,    notifs.todos    ? '1' : '0');
-            sessionStorage.setItem(SESSION_STORAGE_KEYS.tapeOpen, notifs.tapeOpen ? '1' : '0');
+            sessionStorage.setItem(SESSION_STORAGE_KEYS.notes,    notes    ? '1' : '0');
+            sessionStorage.setItem(SESSION_STORAGE_KEYS.todos,    todos    ? '1' : '0');
+            sessionStorage.setItem(SESSION_STORAGE_KEYS.tapeOpen, tapeOpen ? '1' : '0');
         } catch {
             // Private mode / disabled — no-op.
         }
@@ -454,48 +491,63 @@ export function PdNotifsProvider({ children }: { children: ReactNode }) {
         if (typeof window === 'undefined') return;
         const w = window as unknown as { setAnonMode?: (v: boolean) => void };
         w.setAnonMode = (v: boolean) => {
-            setNotifsState((prev) => ({ ...prev, anon: !!v }));
+            setNotifsState((prev) => {
+                const next = { ...prev, anon: !!v };
+                persistNotifs(next);
+                return next;
+            });
         };
         return () => {
             delete w.setAnonMode;
         };
-    }, []);
+    }, [persistNotifs]);
 
     const setNotifs = useCallback((next: PdNotifs) => {
         setNotifsState(next);
-    }, []);
+        persistNotifs(next);
+    }, [persistNotifs]);
 
     const update = useCallback((patch: Partial<PdNotifs>) => {
-        setNotifsState((prev) => ({ ...prev, ...patch }));
-    }, []);
+        setNotifsState((prev) => {
+            const next = { ...prev, ...patch };
+            persistNotifs(next);
+            return next;
+        });
+    }, [persistNotifs]);
 
     const toggle = useCallback((key: keyof PdNotifs) => {
         setNotifsState((prev) => {
             const value = prev[key];
             if (typeof value !== 'boolean') return prev;
-            return { ...prev, [key]: !value } as PdNotifs;
+            const next = { ...prev, [key]: !value } as PdNotifs;
+            persistNotifs(next);
+            return next;
         });
-    }, []);
+    }, [persistNotifs]);
 
     const setAccordion = useCallback((name: AccordionName, open: boolean) => {
         setNotifsState((prev) => {
             // Closing — just flip the named one off.
             if (!open) {
-                if (name === 'tape')  return { ...prev, tapeOpen: false };
-                if (name === 'todos') return { ...prev, todos: false };
-                if (name === 'notes') return { ...prev, notes: false };
+                let next: PdNotifs = prev;
+                if (name === 'tape')  next = { ...prev, tapeOpen: false };
+                else if (name === 'todos') next = { ...prev, todos: false };
+                else if (name === 'notes') next = { ...prev, notes: false };
                 // 'pings' has no boolean — it's the implicit default.
-                return prev;
+                if (next !== prev) persistNotifs(next);
+                return next;
             }
             // Opening — flip ALL accordions off, then open the named one.
             const cleared = { ...prev, tapeOpen: false, todos: false, notes: false };
-            if (name === 'tape')  return { ...cleared, tapeOpen: true };
-            if (name === 'todos') return { ...cleared, todos: true };
-            if (name === 'notes') return { ...cleared, notes: true };
+            let next: PdNotifs = cleared;
+            if (name === 'tape')  next = { ...cleared, tapeOpen: true };
+            else if (name === 'todos') next = { ...cleared, todos: true };
+            else if (name === 'notes') next = { ...cleared, notes: true };
             // 'pings' opens by closing the others.
-            return cleared;
+            persistNotifs(next);
+            return next;
         });
-    }, []);
+    }, [persistNotifs]);
 
     const value = useMemo<PdNotifsContextValue>(
         () => ({ notifs, setNotifs, update, toggle, setAccordion }),
