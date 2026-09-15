@@ -1052,7 +1052,7 @@ function FriendDossier({
             ) : (
                 <>
                     <div className="fi-group-head">
-                        <span className="attr-group-name">{`⟁${VS15}`} Shared Holdings</span>
+                        <span className="attr-group-name attr-group-name-rubik">{`⟁${VS15}`} Shared Holdings</span>
                         <span className="attr-group-count">{shared.length}</span>
                     </div>
                     {shared.length > 0
@@ -1061,7 +1061,7 @@ function FriendDossier({
                     {theirSlugs.length > 0 && (
                         <>
                             <div className="fi-group-head">
-                                <span className="attr-group-name">{`⬚${VS15}`} Collects</span>
+                                <span className="attr-group-name attr-group-name-rubik">{`⬚${VS15}`} Collects</span>
                                 <span className="attr-group-count">{theirSlugs.length}</span>
                             </div>
                             {beads(theirSlugs)}
