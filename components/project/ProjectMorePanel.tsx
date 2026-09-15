@@ -30,6 +30,7 @@ import GnomePanel from './GnomePanel';
 import PriceStoryPanel from '../market/PriceStoryPanel';
 import OffersInline from '../market/OffersInline';
 import ProjectFollowButton from './ProjectFollowButton';
+import SocialActivityFeed from './SocialActivityFeed';
 
 const VS15 = '︎';
 import ProjectAnointPanel from './ProjectAnointPanel';
@@ -340,6 +341,11 @@ export default function ProjectMorePanel({
             </Hero>
               </div>
             </div>
+            {/* SOCIAL ACTIVITY (2026-09-14) — who's followed this project,
+                newest first. Distinct from the market/mint feed elsewhere
+                (SocialFeed with ?project=) — this is the follow graph. */}
+            <div className="more-section-header">SOCIAL ACTIVITY</div>
+            <SocialActivityFeed project={project.slug} />
             </>)}
             {moreL1 === 'anoint' && <ProjectAnointPanel />}
             {moreL1 === 'stats' && (
