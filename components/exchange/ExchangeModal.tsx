@@ -304,7 +304,7 @@ function ComposeFace({
             </div>
             <div className="cart-items-list exch-body">
                 <div className="exch-with">
-                    {counterOf ? 'COUNTERING' : 'TRADING WITH'}
+                    {counterOf ? 'Countering' : 'Trading with'}
                     {counterpartyHandle ? <AsciiId handle={counterpartyHandle} /> : <b>{who}</b>}
                 </div>
 
@@ -350,21 +350,25 @@ function ComposeFace({
                     </div>
                 </div>
 
-                <div className="mk-duration-row">
-                    {DURATION_CHOICES.map((d) => (
-                        <button
-                            key={d.seconds}
-                            type="button"
-                            className={`mk-duration-pill${durationSec === d.seconds ? ' is-active' : ''}`}
-                            onClick={() => setDurationSec(d.seconds)}
-                        >
-                            {d.label}
-                        </button>
-                    ))}
-                </div>
                 {bothEth && <div className="exch-note">ETH rides one side only.</div>}
 
                 <OpenTradesStrip me={me} />
+            </div>
+            {/* Duration + SEND — pinned as one persistent footer, OUTSIDE the
+                scrollable .exch-body (Brendon, 2026-09-15): the durations used
+                to scroll away with the offer/ask panels, same as SEND never
+                does. The scroll area now ends right above this footer. */}
+            <div className="mk-duration-row exch-duration-footer">
+                {DURATION_CHOICES.map((d) => (
+                    <button
+                        key={d.seconds}
+                        type="button"
+                        className={`mk-duration-pill${durationSec === d.seconds ? ' is-active' : ''}`}
+                        onClick={() => setDurationSec(d.seconds)}
+                    >
+                        {d.label}
+                    </button>
+                ))}
             </div>
             <button
                 type="button"
