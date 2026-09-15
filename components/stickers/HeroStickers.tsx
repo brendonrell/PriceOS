@@ -30,6 +30,7 @@ import { useHeroPrefs, resolveLook, arrangeShape, tiltDeg, rngFrom, buildCollage
 import { usePlacements, setComposition, moveSticker, raiseSticker, rotateSticker, removeFromComposition, type PlacementMap } from '../../lib/stickers/placements';
 import { StickerArt } from './StickerArt';
 import { StickerManagerModal } from './StickerManagerModal';
+import { StickerSpreadModal } from './StickerSpreadModal';
 import { stickerById, type Sticker } from '../../lib/stickers/catalog';
 
 interface Props {
@@ -103,6 +104,9 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, saved
        local edit session. */
     const [mgrOpen, setMgrOpen] = useState(false);
     const [lifted, setLifted] = useState<string | null>(null);
+    /* Visitor tap on someone else's pile → the read-only stats + buy popover
+       (Brendon, 2026-09-15). Own-profile taps keep opening the manager above. */
+    const [spreadOpen, setSpreadOpen] = useState(false);
     /* Whether THIS page load has an active local edit session — the only
        moment stickers have any local reliance at all (Brendon, 2026-08-22:
        "stickers should have NO local reliance... we want no localStorage-
@@ -153,7 +157,22 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, saved
         if (preview) return;
         const measure = () => {
             const el = document.getElementById('profileTabsRow');
-            if (el) setClampW(el.getBoundingClientRect().width || null);
+            if (!el) return;
+            const w = el.getBoundingClientRect().width || null;
+            if (!w) { setClampW(null); return; }
+            /* Mobile landscape (Brendon, 2026-09-15 — "stickers get wacky in
+               landscape"): #profileTabsRow has no width of its own, so it just
+               inherits the column's — which balloons to the full landscape
+               viewport (the ~600px breakpoint that keeps the column narrow in
+               portrait doesn't apply once the phone is on its side). A LOCKED
+               composition's x/y are saved percentages, so they stretched across
+               that much bigger box while each sticker's own pixel size stayed
+               fixed — same picture, huge gaps. Portrait width ≈ landscape
+               height on the same phone, so in that squat orientation cap to
+               the viewport's short side instead — same landscape breakpoint
+               already used for the sticker manager's own layout fix below. */
+            const isMobileLandscape = window.matchMedia('(orientation: landscape) and (max-height: 500px)').matches;
+            setClampW(isMobileLandscape ? Math.min(w, window.innerHeight) : w);
         };
         measure();
         const el = document.getElementById('profileTabsRow');
@@ -478,11 +497,24 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, saved
                 </>
             ) : (
                 <div
-                    className="hero-stickers-canvas"
+                    className="hero-stickers-canvas hero-stickers-tap"
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`See ${ownerHandle ? `@${ownerHandle}'s` : "this"} stickers`}
                     style={{ maxWidth: expand ? undefined : (clampW ?? undefined), ...(aspect ? { aspectRatio: String(aspect) } : { minHeight: 96 }) }}
+                    onClick={() => setSpreadOpen(true)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSpreadOpen(true); } }}
                 >
                     {body}
                 </div>
+            )}
+            {!isOwn && (
+                <StickerSpreadModal
+                    open={spreadOpen}
+                    onClose={() => setSpreadOpen(false)}
+                    ownerHandle={ownerHandle}
+                    stickers={locked ? lockedItems.map((li) => li.st) : picked}
+                />
             )}
         </div>
     );

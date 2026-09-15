@@ -134,7 +134,7 @@ function QtyStep({ qty, max, setQty }: { qty: number; max: number; setQty: (n: n
     );
 }
 
-export default function StickerMarket({ compact }: { compact?: boolean }) {
+export default function StickerMarket({ compact, initialSheet }: { compact?: boolean; initialSheet?: SheetId | null }) {
     const { showToast } = useToast();
     const { siweAddress } = useAuth();
     useClaimSync(!!siweAddress);
@@ -142,7 +142,10 @@ export default function StickerMarket({ compact }: { compact?: boolean }) {
     const [summary, setSummary] = useState<Record<string, SheetSummary> | null>(null);
     const [myHoldings, setMyHoldings] = useState<Record<string, number>>({});
     const [myWants, setMyWants] = useState<Set<string>>(new Set());
-    const [openSheet, setOpenSheet] = useState<SheetId | null>(null);
+    /* Deep-linked straight into a sheet's book — e.g. from the sticker pile
+       stats popover's SECONDARY pill (Brendon, 2026-09-15). */
+    const [openSheet, setOpenSheet] = useState<SheetId | null>(initialSheet ?? null);
+    useEffect(() => { if (initialSheet) setOpenSheet(initialSheet); }, [initialSheet]);
     const [book, setBook] = useState<Book | null>(null);
     const [busy, setBusy] = useState(false);
 
