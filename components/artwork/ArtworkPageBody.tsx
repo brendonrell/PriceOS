@@ -50,6 +50,7 @@ import DeepZoomLayer from '../art/DeepZoomLayer';
 import MarginaliaCeremony from './MarginaliaCeremony';
 import OutputTitleStar from './OutputTitleStar';
 import OutputFollowButton from './OutputFollowButton';
+import SocialActivityFeed from '../project/SocialActivityFeed';
 import AttributesPanel from './AttributesPanel';
 import OutputActionRow from './OutputActionRow';
 import PriceStoryPanel from '../market/PriceStoryPanel';
@@ -1371,6 +1372,11 @@ export default function ArtworkPageBody({
                             </Hero>
                           </div>
                         </div>
+                        {/* SOCIAL ACTIVITY (2026-09-14) — who's followed this
+                            output, newest first. Distinct from the market/mint
+                            feed elsewhere — this is the follow graph. */}
+                        <div className="more-section-header">SOCIAL ACTIVITY</div>
+                        <SocialActivityFeed output={outputRef} />
                     </>
                 )}
 
