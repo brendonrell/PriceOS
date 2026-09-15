@@ -6679,6 +6679,10 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.32); }
 @media (max-width: 600px) {
     .sort-btn-clock .sort-lbl-recent { font-size: 1.45em; }
 }
+/* Profile Collected tab only — nudged back up 0.5px off the shared base
+   above (Brendon, 2026-09-15): cancels the 0.5px downward settle, so it
+   sits back on the row baseline. The project/home sort row is untouched. */
+.profile-sort-row .sort-btn-clock .sort-lbl-recent { transform: translateY(0px); }
 /* The social ☻ — same 1px lift as the clock, and one size up from the ◷'s
    base (the ◷'s own mobile step, +0.15em) so the face reads at full
    strength (Brendon, 2026-07-26). Still worn by the project + home social
@@ -6693,9 +6697,12 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.32); }
    the profile sort row. */
 /* Bumped a further step larger (Brendon, 2026-09-07: "rarity glyph font size
    larger") — was 1.45em/1.6em. */
-.sort-btn-rarity .sort-lbl-recent { font-size: 1.6em; }
+/* Nudged down 0.5px and shaved 0.3 sizes smaller (Brendon, 2026-09-15) — a
+   "size" here is this file's own established 0.15em step, so 0.3 sizes =
+   0.045em; was 1.6em/1.75em. */
+.sort-btn-rarity .sort-lbl-recent { transform: translateY(0.5px); font-size: 1.555em; }
 @media (max-width: 600px) {
-    .sort-btn-rarity .sort-lbl-recent { font-size: 1.75em; }
+    .sort-btn-rarity .sort-lbl-recent { font-size: 1.705em; }
 }
 @media (max-width: 600px) { .sort-btn.group-btn { margin-right: 5px; } }
 
