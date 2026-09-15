@@ -179,7 +179,7 @@ function PickerFace({
     return (
         <>
             <div className="cart-panel-header">
-                <span className="cart-panel-title">{`⇌${VS15} ${label}`}</span>
+                <span className="cart-panel-title"><span className="exch-title-glyph">{`⇌${VS15}`}</span> {label}</span>
                 <span className="cart-panel-close-x" role="button" tabIndex={0} onClick={onClose} title="Close">{`×${VS15}`}</span>
             </div>
             <div className="cart-items-list">
