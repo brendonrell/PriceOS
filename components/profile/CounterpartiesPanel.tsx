@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '../../lib/state/ToastContext';
 import { usePdNotifs } from '../../lib/state/PdNotifsContext';
 import { shortAddress } from '../../lib/project/projectAddress';
+import { DiscordLogo } from './DiscordSection';
 import type { CounterpartiesResponse, CounterpartyRow } from '../../app/api/user/[address]/counterparties/route';
 
 const VS15 = '︎';
@@ -269,6 +270,24 @@ export default function CounterpartiesPanel({
                                                         : `last ${fmtDay(r.last_ts)}`}
                                                 </span>
                                             </div>
+                                            {/* Discord glyph — the grail-pin slot (top-right quarter, same
+                                                spot has-actions-abs already frees above the RIVAL CTA / a row's
+                                                ✕). Quiet icon, not a CTA: only renders when this counterparty
+                                                actually has Discord linked (Brendon, 2026-09-15). Opens their
+                                                profile card, not a guaranteed DM — see DiscordSection. */}
+                                            {r.discord_id && (
+                                                <a
+                                                    className="starred-row-grail cp-discord-dot"
+                                                    href={`https://discord.com/users/${r.discord_id}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    title="Open on Discord"
+                                                    aria-label="Open on Discord"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    <DiscordLogo size={16} />
+                                                </a>
+                                            )}
                                             {isOwnProfile && (
                                                 <div className="starred-row-actions">
                                                     {/* Two-line label — the Project Offer CTA treatment, so the
