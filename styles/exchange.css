@@ -10,6 +10,7 @@
 .exch-with {
     font-family: 'Courier New', Courier, monospace;
     font-size: 13px; letter-spacing: 0.5px;
+    font-weight: bold;
     color: var(--text-color);
     padding: 2px 0 4px;
     display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
@@ -189,8 +190,19 @@
 /* ETH fields + duration pills read too small (Brendon, 2026-09-15) —
    one font size up, scoped to the Exchange only. */
 .exch-wrap .mk-price-input { font-size: 15px; }
-.exch-wrap .mk-price-unit { font-size: 12px; }
+.exch-wrap .mk-price-unit { font-size: 12px; font-weight: bold; }
 .exch-wrap .mk-duration-pill { font-size: 12px; }
+
+/* Duration pills pinned outside the scrollable body (Brendon, 2026-09-15) —
+   persistent like SEND always was; the scroll area now ends above both. A
+   thin top border marks it as its own fixed footer zone, same device the
+   totals block uses elsewhere. */
+.exch-duration-footer {
+    flex-shrink: 0;
+    border-top: 1.5px solid color-mix(in srgb, var(--text-color) 45%, transparent);
+    margin-top: 4px;
+    padding-top: 12px;
+}
 
 /* The ⇌ mark in the modal title — was riding the title's regular weight
    and reading faint next to it; heavied up on its own so it reads as a
