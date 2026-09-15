@@ -2425,7 +2425,7 @@ function ProfilePageBodyInner({
                                            entirely for non-artists, same gating as
                                            Cooldown/Created below. */
                                         ...(isArtist
-                                            ? [{ key: 'artist', label: <><span className="pill-tab-ico is-artist">{'\u273A\uFE0E'}</span> Artist</>, active: effMoreL1 === 'artist', onClick: () => setMoreL1('artist') }]
+                                            ? [{ key: 'artist', label: <><span className="pill-tab-ico is-artist">{'\u273A\uFE0E'}</span> Artist Dossier</>, active: effMoreL1 === 'artist', onClick: () => setMoreL1('artist') }]
                                             : []),
                                         /* Loyalty leads the rest of the row (Brendon,
                                            2026-09-12) — the long-game tab gets first

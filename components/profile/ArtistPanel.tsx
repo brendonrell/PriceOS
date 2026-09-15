@@ -66,8 +66,6 @@ export default function ArtistPanel({
             .catch(() => setFailed(true));
     }, [address]);
 
-    const who = `@${handle}`;
-
     return (
         <div className="ach-section cp-section art-section">
             {!data && !failed && <div className="nbhd-note">Reading the ledger<span className="nbhd-ellipsis">…</span></div>}
@@ -78,12 +76,12 @@ export default function ArtistPanel({
                     {/* THE RECORD — the standing facts. */}
                     <section className="attr-group" aria-label="The record">
                         <div className="attr-group-head">
-                            <span className="attr-group-name">Artist · the record</span>
+                            <span className="attr-group-name attr-group-name-rubik">The record</span>
                         </div>
                         <div className="attr-grid">
                             <div className="attr-tile">
                                 <span className="attr-tile-label">Volume</span>
-                                <span className="attr-tile-value">{`${formatEth(data.total_volume_eth)}Ξ`}</span>
+                                <span className="attr-tile-value">{`${formatEth(data.total_volume_eth)} ETH`}</span>
                             </div>
                             <div className="attr-tile">
                                 <span className="attr-tile-label">Collectors</span>
@@ -129,7 +127,7 @@ export default function ArtistPanel({
                                         <div className="starred-row-meta">
                                             <span className="starred-row-id">{r.title}</span>
                                             <span className="starred-row-sub">
-                                                MINT {formatEth(r.mint_price_eth)}Ξ → FLOOR {formatEth(r.floor_eth)}Ξ
+                                                MINT {formatEth(r.mint_price_eth)} ETH → FLOOR {formatEth(r.floor_eth)} ETH
                                                 <em>{` · ${fmtPct(r.gain)}`}</em>
                                             </span>
                                         </div>
@@ -181,7 +179,7 @@ export default function ArtistPanel({
                     {data.verdict && (
                         <section className="attr-group" aria-label="Verdict">
                             <div className="attr-group-head">
-                                <span className="attr-group-name">{isOwnProfile ? 'Your read' : `${who} · the read`}</span>
+                                <span className="attr-group-name attr-group-name-rubik">{isOwnProfile ? 'Your read' : 'The read'}</span>
                                 <span className="attr-group-count">{data.verdict.score}/100</span>
                             </div>
                             <div className="attr-grid">
