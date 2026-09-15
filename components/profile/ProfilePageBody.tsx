@@ -955,12 +955,11 @@ function ProfilePageBodyInner({
         return false;
     }, [isOwnProfile, holdings]);
 
-    // Identity-row copy: copies the chosen ENS if set, else the FULL wallet
-    // address (row shows truncated, copy gives the whole thing — same as the
-    // settings wallet copy). @price always copies the contract address, never
-    // its display-only "Price Discussion" ens_name (Brendon, 2026-08-14).
-    // Inline checkmark swap for 1.5s.
-    const copyValue = isPlatform ? user.address : (ensName ?? user.address);
+    // Identity-row copy: ALWAYS the full 0x wallet address, never the ENS —
+    // the row can show the ENS, but copy always gives the long address
+    // (Brendon, 2026-09-15: "never the ens"). @price still always copies its
+    // contract address too, same as before.
+    const copyValue = user.address;
     const [idCopied, setIdCopied] = useState(false);
     const idCopyTimer = useRef<number | null>(null);
     const handleCopyIdentity = async () => {
