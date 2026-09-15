@@ -116,7 +116,7 @@ export default function AttrWall({
             {shownGroups.map((g) => (
                 <section className="attr-group" key={g.key} aria-label={g.label}>
                     <div className="attr-group-head">
-                        <span className="attr-group-name">{g.label}</span>
+                        <span className="attr-group-name attr-group-name-rubik">{g.label}</span>
                         <span className="attr-group-count">{g.tiles.length}</span>
                     </div>
                     <div className="attr-grid">

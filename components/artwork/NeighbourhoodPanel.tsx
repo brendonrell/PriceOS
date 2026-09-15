@@ -57,7 +57,7 @@ export default function NeighbourhoodPanel({ slug, id }: { slug: string; id: num
                 {data && data.wallets.map((w) => (
                     <section className="attr-group" key={w.address} aria-label={`${walletName(w)} — ${w.relation}`}>
                         <div className="attr-group-head">
-                            <span className="attr-group-name nbhd-head-name">
+                            <span className="attr-group-name attr-group-name-rubik nbhd-head-name">
                                 <a
                                     href={`/${w.handle ?? w.address}`}
                                     onClick={(e) => { e.preventDefault(); router.push(`/${w.handle ?? w.address}`); }}
