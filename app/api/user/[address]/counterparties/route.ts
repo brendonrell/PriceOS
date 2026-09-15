@@ -41,6 +41,9 @@ export interface CounterpartyRow {
   biggest_eth: number;
   /** The profile wallet's follow relationship with this counterparty. */
   rel: 'mutual' | 'following' | 'follower' | null;
+  /** Set only when the counterparty has Discord linked — gates the row's
+   *  Discord glyph (Brendon, 2026-09-15: quiet icon, not a CTA). */
+  discord_id: string | null;
 }
 
 export interface RivalRead {
@@ -120,7 +123,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
       const other = from === address ? to : from;
       if (!other || other === ZERO || other === address) continue;
       const row = agg.get(other) ?? {
-        address: other, handle: null, deals: 0, bought: 0, sold: 0, trades: 0, volume_eth: 0, last_ts: 0, first_ts: 0, biggest_eth: 0, rel: null,
+        address: other, handle: null, deals: 0, bought: 0, sold: 0, trades: 0, volume_eth: 0, last_ts: 0, first_ts: 0, biggest_eth: 0, rel: null, discord_id: null,
       };
       row.deals += 1;
       if (to === address) row.bought += 1; else row.sold += 1;
@@ -170,13 +173,20 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ address:
     if (wantHandles.size > 0) {
       const { data: users } = await db
         .from('users')
-        .select('address, handle')
+        .select('address, handle, discord_id, discord_in_server')
         .in('address', Array.from(wantHandles));
       const handleBy = new Map<string, string | null>();
-      for (const u of (users ?? []) as { address: string; handle: string | null }[]) {
+      const discordBy = new Map<string, string | null>();
+      for (const u of (users ?? []) as { address: string; handle: string | null; discord_id: string | null; discord_in_server: boolean | null }[]) {
         handleBy.set(u.address.toLowerCase(), u.handle);
+        // Only surfaced when linked AND still in the PD server — an out-of-server
+        // link has no shared-server path to a working Message button.
+        discordBy.set(u.address.toLowerCase(), u.discord_id && u.discord_in_server ? u.discord_id : null);
       }
-      for (const r of rows) r.handle = handleBy.get(r.address) ?? null;
+      for (const r of rows) {
+        r.handle = handleBy.get(r.address) ?? null;
+        r.discord_id = discordBy.get(r.address) ?? null;
+      }
       if (biggestDeal) biggestDeal.handle = handleBy.get(biggestDeal.address) ?? null;
       if (oldestTie) oldestTie.handle = handleBy.get(oldestTie.address) ?? null;
 
