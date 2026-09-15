@@ -14076,6 +14076,14 @@ body.colorway-dark .ghost-feed-bar {
     text-transform: uppercase;
     opacity: 0.6;
 }
+/* Rubik-face section title, trialled on Artist Dossier's "The record" /
+   "The read" headers — drops the redundant "Artist ·" / "@handle ·" lead-in
+   and swaps the mono face for Rubik Mono. Kept as its own modifier class so
+   it can spread to other tabs' group names later without touching the
+   Courier default above (Brendon, 2026-09-15). */
+.attr-group-name-rubik {
+    font-family: var(--font-rubik-mono), 'Rubik Mono One', sans-serif;
+}
 .attr-group-count {
     font-size: 10px;
     font-weight: bold;
