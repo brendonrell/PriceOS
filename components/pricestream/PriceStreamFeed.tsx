@@ -207,7 +207,7 @@ function ActionRail({ card }: { card: PriceStreamCard | null }) {
                         outputId={`${card.slug}-${card.tokenId}`}
                         label={`${card.slug}${card.tokenId}`}
                     />
-                    <button className="btn-mint ps-cta-btn" onClick={onCta} disabled={inCart && card.listed}>
+                    <button className="btn-mint" onClick={onCta} disabled={inCart && card.listed}>
                         {card.listed ? (
                             <>
                                 <span className="mint-lbl">{inCart ? 'IN CART' : 'BUY'}</span>
