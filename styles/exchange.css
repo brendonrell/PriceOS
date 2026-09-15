@@ -8,10 +8,11 @@
 .exch-body { display: flex; flex-direction: column; gap: 10px; }
 
 .exch-with {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 13px; font-weight: bold; letter-spacing: 0.5px;
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 13px; letter-spacing: 0.5px;
     color: var(--text-color);
     padding: 2px 0 4px;
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
 }
 .exch-with b { font-weight: bold; }
 .exch-stamp { font-weight: bold; }
@@ -26,8 +27,8 @@
     background: color-mix(in srgb, currentColor 8%, transparent);
 }
 .exch-panel-head {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 13px; font-weight: bold; letter-spacing: 0.6px;
+    font-family: var(--font-rubik-mono), sans-serif;
+    font-size: 13px; letter-spacing: 0.6px;
     color: var(--text-color);
     margin-bottom: 8px;
 }
@@ -89,7 +90,7 @@
 /* The ⇌ between the two panels. */
 .exch-swap-mark {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 19px; font-weight: bold; text-align: center; line-height: 1;
+    font-size: 31px; font-weight: bold; text-align: center; line-height: 1;
     color: var(--text-color);
     margin: -2px 0;
 }
@@ -181,10 +182,18 @@
 
 .exch-wrap .cart-panel-close-x { margin-left: auto; }
 
+/* ETH fields + duration pills read too small (Brendon, 2026-09-15) —
+   one font size up, scoped to the Exchange only. */
+.exch-wrap .mk-price-input { font-size: 15px; }
+.exch-wrap .mk-price-unit { font-size: 12px; }
+.exch-wrap .mk-duration-pill { font-size: 12px; }
+
 /* The ⇌ mark in the modal title — was riding the title's regular weight
    and reading faint next to it; heavied up on its own so it reads as a
    mark, not a letter (Brendon, 2026-09-13). Title text itself untouched. */
 .exch-title-glyph {
-    font-weight: 900;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 31px; font-weight: 900; line-height: 1;
     margin-right: 1px;
+    vertical-align: middle;
 }
