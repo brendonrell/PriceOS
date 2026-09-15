@@ -58,6 +58,14 @@
     font-family: 'Courier New', Courier, monospace;
     color: var(--text-color);
 }
+/* The position list can run past one screen (long "N pieces" holdings) and
+   the shared .platform-modal shell doesn't scroll on its own — same fix as
+   #priceSpriteModal: scroll the shell, keep the X pinned, let modal-info
+   auto-margin re-centre when the sheet is shorter than the viewport
+   (Brendon, 2026-09-15). */
+#takeoverModal { overflow-y: auto; justify-content: flex-start; }
+#takeoverModal .close-hint { position: fixed; }
+#takeoverModal .tko-sheet { margin: auto 0; padding-bottom: 28px; }
 .tko-head {
     font-size: 16px;
     font-weight: 700;

@@ -1020,6 +1020,13 @@ body.modal-open { overflow: hidden; touch-action: none; }
     max-height: 75vh;
 }
 .cart-panel-wrap.active .cart-panel-box { transform: translateY(0); }
+/* THE EXCHANGE runs taller than the standard cart sheet (two offer panels +
+   ETH rows can push past 75vh), so it gets its own ceiling — scoped to
+   .exch-wrap so the rest of the cart-panel family (Buy All, Stickers, etc.)
+   keeps the 75vh default (Brendon, 2026-09-15). */
+.exch-wrap .cart-panel-box {
+    max-height: 90vh;
+}
 .cart-panel-header {
     display: flex; justify-content: space-between; align-items: center;
     margin-bottom: 14px;
