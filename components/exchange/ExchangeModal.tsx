@@ -32,6 +32,7 @@ import {
 } from '../../lib/market/tradeClient';
 import { TRADE_MAX_ITEMS_PER_SIDE, type TradeItem, type TradeRow } from '../../lib/market/tradeTypes';
 import BenchArt from '../bench/BenchArt';
+import AsciiId from '../hero/AsciiId';
 import { onHoldings, readHoldings, refreshHoldings, warmHoldings, warmHoldingsIdle } from '../../lib/holdings/cache';
 
 const VS15 = '︎';
@@ -302,10 +303,13 @@ function ComposeFace({
                 <span className="cart-panel-close-x" role="button" tabIndex={0} onClick={onClose} title="Close">{`×${VS15}`}</span>
             </div>
             <div className="cart-items-list exch-body">
-                <div className="exch-with">{counterOf ? 'COUNTERING' : 'TRADING WITH'} <b>{who}</b></div>
+                <div className="exch-with">
+                    {counterOf ? 'COUNTERING' : 'TRADING WITH'}
+                    {counterpartyHandle ? <AsciiId handle={counterpartyHandle} /> : <b>{who}</b>}
+                </div>
 
                 <div className="exch-panel">
-                    <div className="exch-panel-head">YOU OFFER {give.length > 0 && `(${give.length})`}</div>
+                    <div className="exch-panel-head">YOUR OFFER {give.length > 0 && `(${give.length})`}</div>
                     <OfferGrid items={give} eth={giveEth} editable onRemove={toggle('give')} onAdd={() => setPicking('give')} />
                     <div className="exch-eth-row">
                         <span className="exch-eth-lbl">{`◊${VS15}`} ADD ETH</span>
@@ -327,7 +331,7 @@ function ComposeFace({
                 <div className="exch-swap-mark" aria-hidden="true">{`⇌${VS15}`}</div>
 
                 <div className="exch-panel">
-                    <div className="exch-panel-head">YOU ASK OF {who.toUpperCase()} {get.length > 0 && `(${get.length})`}</div>
+                    <div className="exch-panel-head">YOUR ASK {get.length > 0 && `(${get.length})`}</div>
                     <OfferGrid items={get} eth={getEth} editable onRemove={toggle('get')} onAdd={() => setPicking('get')} />
                     <div className="exch-eth-row">
                         <span className="exch-eth-lbl">{`◊${VS15}`} ASK ETH</span>
