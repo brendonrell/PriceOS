@@ -13564,11 +13564,11 @@ body.colorway-dark .ghost-feed-bar {
    polarity of the page. --accent is tuned for the page's normal polarity
    and in the default Dot theme equals --text-color exactly — the
    popover's own BACKGROUND — so the borrowed .project-name-star colour
-   was invisible against its own card. Fall back to the inherited,
-   contrast-correct popover text colour instead; PriceDayTitleStar
-   normally overrides this per-instance with the day's own mood colour
-   via inline style, so this is the safety net when that isn't set
-   (2026-09-04). */
+   was invisible against its own card. Falls back to the inherited,
+   contrast-correct popover text colour instead — themed as a normal star,
+   same as every other star surface; it does NOT take the day's mood
+   colour (that read as the same element as the Mood Ring swatch,
+   reverted 2026-09-14). */
 .priceday-popover .project-name-star,
 .priceday-popover .project-name-star-float {
     color: currentColor;
