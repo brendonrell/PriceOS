@@ -989,6 +989,108 @@
 }
 
 /* ============================================================================
+   Sticker pile stats — a VISITOR taps someone else's hero pile and sees what's
+   in it, every sticker buyable (Brendon, 2026-09-15). Rides the same centred
+   confirm-card chrome as BuySheetButton's own confirm (starred-confirm-overlay
+   + ms-confirm-card is-centered), just wider + scrollable.
+   ============================================================================ */
+.spread-stats-card {
+    width: min(340px, 88vw);
+    max-height: 80vh;
+    position: relative;
+    padding-top: 24px;
+}
+.spread-stats-x {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    background: none;
+    border: 0;
+    font-size: 18px;
+    line-height: 1;
+    color: inherit;
+    cursor: pointer;
+    padding: 4px 6px;
+}
+.spread-stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.03em;
+    opacity: 0.85;
+}
+.spread-stats-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 50vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 2px;
+}
+.spread-sticker-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px;
+    border-radius: 6px;
+    /* The confirm card itself is inverted (bg = --text-color), so a row needs
+       a --bg-color-tinted translucent wash to read as distinct, not the usual
+       --text-color-tinted wash the rest of the app uses on normal surfaces. */
+    background: color-mix(in srgb, var(--bg-color) 15%, transparent);
+}
+.spread-sticker-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: left;
+}
+.spread-sticker-name {
+    font-size: 12px;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.spread-sticker-tag {
+    font-size: 10px;
+    opacity: 0.7;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.spread-buy-btn, .spread-secondary-btn {
+    width: auto;
+    flex: 0 0 auto;
+    padding: 6px 8px;
+    font-size: 10px;
+    gap: 3px;
+    border-radius: 5px;
+    /* .ss-buy's normal fill (background: --text-color) would vanish against
+       this card's own inverted background — re-invert just these chips so
+       they still read as a distinct, tappable pill. */
+    background: var(--bg-color);
+    border-color: var(--bg-color);
+    color: var(--text-color);
+}
+.spread-buy-btn:hover, .spread-secondary-btn:hover {
+    background: transparent;
+    color: var(--bg-color);
+    border-color: var(--bg-color);
+}
+.spread-buy-btn.ss-buy-owned {
+    background: transparent;
+    color: var(--bg-color);
+    border-color: var(--bg-color);
+    opacity: 0.7;
+}
+
+/* ============================================================================
    Sticker manager — tap your profile stickers. Matches the Ambient Light menu
    (panel + label/chip rows). Holds the store button + active on/off controls.
    ============================================================================ */
