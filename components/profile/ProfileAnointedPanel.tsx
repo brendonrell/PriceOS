@@ -101,7 +101,7 @@ export default function ProfileAnointedPanel({
                     {relics.length > 0 && (
                         <section className="attr-group" aria-label="Prime relics">
                             <div className="attr-group-head">
-                                <span className="attr-group-name">Prime relics · clout</span>
+                                <span className="attr-group-name attr-group-name-rubik">Prime relics · clout</span>
                                 <span className="attr-group-count">{relics.length}</span>
                             </div>
                             <div className="starred-rows loy-rows">
@@ -137,7 +137,7 @@ export default function ProfileAnointedPanel({
                     ) : (
                         <section className="attr-group" aria-label="Anointment">
                             <div className="attr-group-head">
-                                <span className="attr-group-name">Anointment</span>
+                                <span className="attr-group-name attr-group-name-rubik">Anointment</span>
                                 <span className="attr-group-count">{pledge.locked ? 'LOCKED' : 'UNLOCKED'}</span>
                             </div>
                             <div className="attr-grid">

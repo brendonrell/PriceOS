@@ -2923,7 +2923,7 @@ onStarredTab && isOwnProfile && (starredValid.length > 0 || traitStarsValid.leng
                     <PriceColorwayPills />
                     <div className="price-acct">
                         <div className="attr-group-head">
-                            <span className="attr-group-name">Top holders</span>
+                            <span className="attr-group-name attr-group-name-rubik">Top holders</span>
                         </div>
                         <PriceHoldersBoard />
                     </div>

@@ -46,7 +46,7 @@ export default function PriceAccountPanel() {
     return (
         <div className="price-acct">
             <div className="attr-group-head">
-                <span className="attr-group-name">$PRICE · the token</span>
+                <span className="attr-group-name attr-group-name-rubik">$PRICE · the token</span>
                 <span className="attr-group-count">100M</span>
             </div>
 
@@ -85,7 +85,7 @@ export default function PriceAccountPanel() {
             </div>
 
             <div className="attr-group-head">
-                <span className="attr-group-name">The contract</span>
+                <span className="attr-group-name attr-group-name-rubik">The contract</span>
             </div>
             <div className="nbhd-note">
                 Minted once at deployment and fixed forever. There is no mint function, no
@@ -98,7 +98,7 @@ export default function PriceAccountPanel() {
             </a>
 
             <div className="attr-group-head">
-                <span className="attr-group-name">Distribution</span>
+                <span className="attr-group-name attr-group-name-rubik">Distribution</span>
                 <span className="attr-group-count">{ALLOCATIONS.length}</span>
             </div>
             <div className="nbhd-note">
@@ -119,7 +119,7 @@ export default function PriceAccountPanel() {
             </div>
 
             <div className="attr-group-head">
-                <span className="attr-group-name">No platform utility</span>
+                <span className="attr-group-name attr-group-name-rubik">No platform utility</span>
             </div>
             <div className="price-acct-list">
                 {NO_UTILITY.map((line) => (

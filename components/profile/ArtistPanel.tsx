@@ -101,7 +101,7 @@ export default function ArtistPanel({
                     {/* THE ARC — mint price to current floor. */}
                     <section className="attr-group" aria-label="The arc">
                         <div className="attr-group-head">
-                            <span className="attr-group-name">The arc · mint to floor</span>
+                            <span className="attr-group-name attr-group-name-rubik">The arc · mint to floor</span>
                             <span className="attr-group-count">{data.arc.length}</span>
                         </div>
                         {data.arc.length === 0 ? (
@@ -140,7 +140,7 @@ export default function ArtistPanel({
                     {/* SOLD OUT — momentum, fastest first. */}
                     <section className="attr-group" aria-label="Sold out">
                         <div className="attr-group-head">
-                            <span className="attr-group-name">Sold out · fastest first</span>
+                            <span className="attr-group-name attr-group-name-rubik">Sold out · fastest first</span>
                             <span className="attr-group-count">{data.sellout.length}</span>
                         </div>
                         {data.sellout.length === 0 ? (

@@ -77,7 +77,7 @@ export default function TargetsPanel({
             {data && (
                 <section className="attr-group" aria-label="Price Targets">
                     <div className="attr-group-head">
-                        <span className="attr-group-name">Price Targets · the record</span>
+                        <span className="attr-group-name attr-group-name-rubik">Price Targets · the record</span>
                         <span className="attr-group-count">{data.rows.length}</span>
                     </div>
                     {data.rows.length === 0 ? (

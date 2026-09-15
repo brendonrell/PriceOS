@@ -121,7 +121,7 @@ export default function SigilPanel({
                     {markVisible && (
                         <section className="attr-group" aria-label="The mark">
                             <div className="attr-group-head">
-                                <span className="attr-group-name">The mark · forged, permanent</span>
+                                <span className="attr-group-name attr-group-name-rubik">The mark · forged, permanent</span>
                                 {isOwnProfile && data.hidden
                                     ? <span className="attr-group-count">HIDDEN</span>
                                     : data.forge_number != null && <span className="attr-group-count">{ordinal(data.forge_number)} EVER FORGED</span>}
@@ -172,7 +172,7 @@ export default function SigilPanel({
                     {markVisible && (
                         <section className="attr-group" aria-label="Kin">
                             <div className="attr-group-head">
-                                <span className="attr-group-name">{`≍${VS15} Kin · the marks closest to ${isOwnProfile ? 'yours' : 'this one'}`}</span>
+                                <span className="attr-group-name attr-group-name-rubik">{`≍${VS15} Kin · the marks closest to ${isOwnProfile ? 'yours' : 'this one'}`}</span>
                                 <span className="attr-group-count">{data.forged_total} FORGED</span>
                             </div>
                             {data.kin.length === 0 ? (
@@ -211,7 +211,7 @@ export default function SigilPanel({
                         <>
                             <section className="attr-group" aria-label="The flag">
                                 <div className="attr-group-head">
-                                    <span className="attr-group-name">{`${WAR_GLYPHS.banner} The flag · ${isOwnProfile ? 'your faction' : `${who}’s faction`}`}</span>
+                                    <span className="attr-group-name attr-group-name-rubik">{`${WAR_GLYPHS.banner} The flag · ${isOwnProfile ? 'your faction' : `${who}’s faction`}`}</span>
                                     {data.faction.defections > 0 && <span className="attr-group-count">{data.faction.defections} {data.faction.defections === 1 ? 'SCAR' : 'SCARS'}</span>}
                                 </div>
                                 <div className="attr-grid">
@@ -250,7 +250,7 @@ export default function SigilPanel({
                             {data.faction.ground.length > 0 && (
                                 <section className="attr-group" aria-label="The ground">
                                     <div className="attr-group-head">
-                                        <span className="attr-group-name">{`${WAR_GLYPHS.corner} The ground · where the flag flies`}</span>
+                                        <span className="attr-group-name attr-group-name-rubik">{`${WAR_GLYPHS.corner} The ground · where the flag flies`}</span>
                                         <span className="attr-group-count">{data.faction.ground.length}</span>
                                     </div>
                                     <div className="starred-rows loy-rows">
@@ -287,7 +287,7 @@ export default function SigilPanel({
                             {/* THE BOOK — what the comrades have been doing. */}
                             <section className="attr-group" aria-label="Faction activity">
                                 <div className="attr-group-head">
-                                    <span className="attr-group-name">{`${WAR_GLYPHS.book} The Book · where the flag stood`}</span>
+                                    <span className="attr-group-name attr-group-name-rubik">{`${WAR_GLYPHS.book} The Book · where the flag stood`}</span>
                                     <span className="attr-group-count">{data.faction.book.length}</span>
                                 </div>
                                 {data.faction.book.length === 0 ? (
@@ -314,7 +314,7 @@ export default function SigilPanel({
                             {/* THE OLD GUARD — longest sworn. */}
                             <section className="attr-group" aria-label="The old guard">
                                 <div className="attr-group-head">
-                                    <span className="attr-group-name">The old guard · longest sworn</span>
+                                    <span className="attr-group-name attr-group-name-rubik">The old guard · longest sworn</span>
                                     <span className="attr-group-count">{data.faction.comrades.length} OF {data.faction.members}</span>
                                 </div>
                                 <div className="starred-rows loy-rows">

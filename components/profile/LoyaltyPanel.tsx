@@ -84,7 +84,7 @@ export default function LoyaltyPanel({
                     {/* THE LONG GAME — the standing facts. */}
                     <section className="attr-group" aria-label="The long game">
                         <div className="attr-group-head">
-                            <span className="attr-group-name">Loyalty · the long game</span>
+                            <span className="attr-group-name attr-group-name-rubik">Loyalty · the long game</span>
                             {data.user_number != null && <span className="attr-group-count">USER #{data.user_number}</span>}
                         </div>
                         <div className="attr-grid">
@@ -110,7 +110,7 @@ export default function LoyaltyPanel({
                     {/* LONGEST HELD — the old bonds. */}
                     <section className="attr-group" aria-label="Longest held">
                         <div className="attr-group-head">
-                            <span className="attr-group-name">Longest held · the pieces that stayed</span>
+                            <span className="attr-group-name attr-group-name-rubik">Longest held · the pieces that stayed</span>
                             <span className="attr-group-count">{data.oldest.length}</span>
                         </div>
                         {data.oldest.length === 0 ? (
@@ -156,7 +156,7 @@ export default function LoyaltyPanel({
                     {/* ARTISTS YOU BACK — patronage. */}
                     <section className="attr-group" aria-label="Artists backed">
                         <div className="attr-group-head">
-                            <span className="attr-group-name">{isOwnProfile ? 'Artists you back · patronage' : `Artists ${who} backs · patronage`}</span>
+                            <span className="attr-group-name attr-group-name-rubik">{isOwnProfile ? 'Artists you back · patronage' : `Artists ${who} backs · patronage`}</span>
                             <span className="attr-group-count">{data.artists.length}</span>
                         </div>
                         {data.artists.length === 0 ? (
@@ -197,7 +197,7 @@ export default function LoyaltyPanel({
                     {data.purity && (
                         <section className="attr-group" aria-label="Purity">
                             <div className="attr-group-head">
-                                <span className="attr-group-name">Purity · the clean-hands read</span>
+                                <span className="attr-group-name attr-group-name-rubik">Purity · the clean-hands read</span>
                                 <span className="attr-group-count">{data.purity.score}/100</span>
                             </div>
                             <div className="attr-grid">

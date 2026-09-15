@@ -90,7 +90,7 @@ export default function DiscordSection({
 
             <section className="attr-group" aria-label="Discord account">
                 <div className="attr-group-head">
-                    <span className="attr-group-name">Discord · #price-discussion</span>
+                    <span className="attr-group-name attr-group-name-rubik">Discord · #price-discussion</span>
                 </div>
 
                 {linked ? (

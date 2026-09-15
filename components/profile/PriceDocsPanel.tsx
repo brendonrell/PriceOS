@@ -75,7 +75,7 @@ function Group({ name, count, children }: { name: string; count?: string | numbe
     return (
         <>
             <div className="attr-group-head">
-                <span className="attr-group-name">{name}</span>
+                <span className="attr-group-name attr-group-name-rubik">{name}</span>
                 {count !== undefined && <span className="attr-group-count">{count}</span>}
             </div>
             {children}
