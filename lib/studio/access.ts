@@ -3,16 +3,17 @@
  * Spec lives in ClickUp ONLY (Brendon, 2026-07-10) — this file is gating
  * mechanics, not documentation.
  *
- * Seed = Brendon (pricediscussion.eth). God Mode can add backup wallets;
- * v1 additions persist per-device (localStorage) until the server store
- * lands. Visibility gating only — the real security on sticker publishing
- * is the wallet signature + the on-chain admin check.
+ * Seed = the deployer wallet + Brendon's own wallet. God Mode can add backup
+ * wallets; v1 additions persist per-device (localStorage) until the server
+ * store lands. Visibility gating only — the real security on sticker
+ * publishing is the wallet signature + the on-chain admin check.
  */
 
 import type { Address } from 'viem';
 
 export const STUDIO_ACCESS_SEED: readonly string[] = [
-    '0x146034ec25C277F30f63933B151297689E15B9B8', // pricediscussion.eth
+    '0x146034ec25C277F30f63933B151297689E15B9B8', // pricediscussion.eth (deployer)
+    '0x65C34aFda745c12745DB70ffA809311339279395', // Brendon
 ];
 
 const STORE_KEY = 'pd-studio-access-v1';
