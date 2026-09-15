@@ -121,7 +121,7 @@ export default function SigilPanel({
                     {markVisible && (
                         <section className="attr-group" aria-label="The mark">
                             <div className="attr-group-head">
-                                <span className="attr-group-name attr-group-name-rubik">The mark · forged, permanent</span>
+                                <span className="attr-group-name attr-group-name-rubik">Mark · forged, permanent</span>
                                 {isOwnProfile && data.hidden
                                     ? <span className="attr-group-count">HIDDEN</span>
                                     : data.forge_number != null && <span className="attr-group-count">{ordinal(data.forge_number)} EVER FORGED</span>}

@@ -68,7 +68,7 @@ export default function CallsPanel({
             {data && (
                 <section className="attr-group" aria-label="Conviction Calls">
                     <div className="attr-group-head">
-                        <span className="attr-group-name attr-group-name-rubik">Conviction · the call ledger</span>
+                        <span className="attr-group-name attr-group-name-rubik">Call ledger</span>
                         <span className="attr-group-count">{data.calls.length}</span>
                     </div>
                     {data.calls.length === 0 ? (

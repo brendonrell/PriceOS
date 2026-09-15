@@ -101,7 +101,7 @@ export default function ProfileAnointedPanel({
                     {relics.length > 0 && (
                         <section className="attr-group" aria-label="Prime relics">
                             <div className="attr-group-head">
-                                <span className="attr-group-name attr-group-name-rubik">Prime relics · clout</span>
+                                <span className="attr-group-name attr-group-name-rubik">Prime relics · your clout</span>
                                 <span className="attr-group-count">{relics.length}</span>
                             </div>
                             <div className="starred-rows loy-rows">
@@ -175,7 +175,7 @@ export default function ProfileAnointedPanel({
                                     onClick={doWithdraw}
                                     title={pledge.locked ? `Locked until ${fmtDate(pledge.unlocksAt)}` : 'Withdraw your Anointment'}
                                 >
-                                    {pledge.locked ? `LOCKED UNTIL ${fmtDate(pledge.unlocksAt)}` : 'WITHDRAW'}
+                                    {pledge.locked ? <span className="mint-lbl">{`LOCKED UNTIL ${fmtDate(pledge.unlocksAt)}`}</span> : <span className="mint-lbl">WITHDRAW</span>}
                                 </button>
                             )}
                         </section>

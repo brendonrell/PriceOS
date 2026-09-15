@@ -188,7 +188,7 @@ export default function CounterpartiesPanel({
                     {/* THE TABLE — who this wallet has dealt with. */}
                     <section className="attr-group" aria-label="Counterparties">
                         <div className="attr-group-head">
-                            <span className="attr-group-name attr-group-name-rubik">Counterparties · across the table</span>
+                            <span className="attr-group-name attr-group-name-rubik">Across the table</span>
                             <span className="attr-group-count">{data.totals.counterparties}</span>
                         </div>
                         {data.rows.length === 0 ? (
