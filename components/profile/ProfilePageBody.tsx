@@ -2479,15 +2479,10 @@ function ProfilePageBodyInner({
                                         { key: 'counterparties', label: <><span className="pill-tab-ico is-counterparties">{'\u21C4\uFE0E'}</span> Counterparties</>, active: effMoreL1 === 'counterparties', onClick: () => setMoreL1('counterparties') },
                                         { key: 'calls',     label: <><span className="pill-tab-ico is-calls">{'\u00A1\uFE0E'}</span> Calls</>,     active: effMoreL1 === 'calls',     onClick: () => setMoreL1('calls')     },
                                         { key: 'anointed',  label: <><span className="pill-tab-ico is-anoint">{'\u2722\uFE0E'}</span> Anointed</>,  active: effMoreL1 === 'anointed',  onClick: () => setMoreL1('anointed')  },
-                                        /* Sigil pill — owner-gated (Brendon, 2026-08-27): shown only once
-                                           this profile has actually forged a mark. Same field that gates
-                                           the trailing name mark elsewhere on this page
-                                           (user.sigil_forged_at), independent of sigil_hidden — a hidden
-                                           mark still has a Sigil tab to manage it from; an unforged
-                                           account has nothing to show yet. */
-                                        ...(user.sigil_forged_at
-                                            ? [{ key: 'sigil', label: <><span className="pill-tab-ico is-sigil">{'\u203B\uFE0E'}</span> Sigil</>, active: effMoreL1 === 'sigil', onClick: () => setMoreL1('sigil') }]
-                                            : []),
+                                        /* Sigil pill — always shown, forged or not (reverted 2026-09-15):
+                                           an unforged profile renders the tab empty, pointing at the
+                                           Forge, rather than hiding the tab entirely. */
+                                        { key: 'sigil', label: <><span className="pill-tab-ico is-sigil">{'\u203B\uFE0E'}</span> Sigil</>, active: effMoreL1 === 'sigil', onClick: () => setMoreL1('sigil') },
                                         { key: 'discord',   label: <><span className="pill-tab-ico is-discord">{'#'}</span> Discord</>,   active: effMoreL1 === 'discord',   onClick: () => setMoreL1('discord')   },
                                         /* My History — PRIVATE, last pill in the row, own profile only. */
                                         ...(isOwnProfile
