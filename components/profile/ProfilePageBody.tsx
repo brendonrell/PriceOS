@@ -200,7 +200,27 @@ function ProfilePageBodyInner({
     const isSpited = useSpiteMatcher();
     const { notifs } = usePdNotifs();
     const isZen = notifs.zenMode;
-    const { sort, group, groupLayers, restoreGroupFor } = useSort();
+    const { sort, group, groupLayers, restoreGroupFor, setSort } = useSort();
+
+    /* FEED shouldn't silently follow you from profile to profile — it's a
+       per-visit lens, not a durable identity of the page like the saved
+       default-sort SETTING is. Landing on a fresh profile with `sort` still
+       parked on 'feed' from wherever you were last showed the Collected tab
+       stuck on the Activity Feed's permanent empty-ghost state (the "wrong
+       ghosts" bug, 2026-09-15) even for profiles you'd never chosen FEED on.
+       Reset it back on NAVIGATION (address actually changes) only — the very
+       first profile opened in a session still honors a real saved FEED
+       default, and an explicit in-page FEED tap is never fought. */
+    const lastProfileAddrRef = useRef<string | null>(null);
+    useEffect(() => {
+        const prevAddr = lastProfileAddrRef.current;
+        lastProfileAddrRef.current = user.address;
+        if (prevAddr !== null && prevAddr !== user.address && sort === 'feed') {
+            setSort('id');
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user.address]);
+
 
     // Real user row — fetched server-side from the handle in the URL and
     // passed in, so the hero renders real values on first paint (no popin).
