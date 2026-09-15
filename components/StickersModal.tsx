@@ -139,6 +139,14 @@ export default function StickersModal() {
     // Reset to the rail whenever the modal closes so it never reopens mid-sheet.
     useEffect(() => { if (!isOpen) { setOpenSheet(null); setMarketOn(false); setAlbumOn(false); } }, [isOpen]);
 
+    /* Deep link straight to a sheet's SECONDARY book — e.g. open('stickers',
+       `market:${sheetId}`) from the sticker pile stats popover's SECONDARY
+       pill (Brendon, 2026-09-15). */
+    const marketDeepLinkSheet = typeof openModal?.payload === 'string' && openModal.payload.startsWith('market:')
+        ? (openModal.payload.slice('market:'.length) as SheetId)
+        : null;
+    useEffect(() => { if (isOpen && marketDeepLinkSheet) setMarketOn(true); }, [isOpen, marketDeepLinkSheet]);
+
     const openDetail = (id: SheetId) => { setSeed((Math.random() * 1e9) | 0); setOpenSheet(id); };
 
     /* Auto-generated salesman feed (content), refreshed each open — now led
@@ -510,7 +518,7 @@ export default function StickersModal() {
                         {albumOn ? (
                             <StickerAlbum compact={!expanded} />
                         ) : marketOn ? (
-                            <StickerMarket compact={!expanded} />
+                            <StickerMarket compact={!expanded} initialSheet={marketDeepLinkSheet} />
                         ) : expanded ? (
                             /* The cap + scroll ride this plain-block wrapper, never the
                                grid itself — iOS Safari won't clip a grid that is its own
