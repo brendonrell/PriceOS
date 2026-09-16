@@ -12,29 +12,38 @@
  * single scrolling column, one 100dvh slide per candidate. iOS-native swipe
  * physics for free, no gesture library, no JS scroll math.
  *
- * v1 candidate source is /api/pricestream/feed — a flat random sample,
+ * v2 candidate source is /api/pricestream/feed — a flat random sample,
  * INCLUDING pieces you own (Brendon: "for testing purposes, we can expand
  * the algorithm later"). Wildcard dial is wired and persists the level, but
  * doesn't change the query yet — the taste-vector + wildcard-mix pass is a
- * follow-up once the algorithm ships.
+ * follow-up once the algorithm ships. Portrait/landscape (Brendon,
+ * 2026-09-16): the pool now follows the device's live orientation —
+ * ?aspect=wide when the viewport tilts landscape, tall by default — same
+ * shape either way.
  *
  * Real actions only: Starred (★︎/☆, lib/pins/starStore — the actual save
- * feature, NOT a separate bookmark), OutputFollowButton (the real per-output
- * follow CTA), and useCart().add — gated on the real `listed` flag from the
- * `listings` table, exactly like ArtworkCard's hi-cart.
+ * feature, NOT a separate bookmark, same float-confirm animation as
+ * OutputTitleStar/SoundtrackStarButton elsewhere), Share (↗︎, lib/pwa/share —
+ * same glyph + shareLink() as every other share point, never the ▶ play
+ * icon), FollowButton (the real per-ARTIST follow, Brendon 2026-09-16 —
+ * previously followed the output; a piece's follow-worthy identity is the
+ * person who made it), and useCart().add — gated on the real `listed` flag
+ * from the `listings` table, exactly like ArtworkCard's hi-cart.
  *
  * Layout: edge-to-edge, actual TikTok style — no frame border, no padding,
  * no rounded corners (Brendon, 2026-09-14: the colorway-border frame
  * "isn't working," reverted).
  *
- * Colour treatment: the piece's own dominant-colour bucket (BUCKET_HEX,
- * lib/output/derive.ts) now themes the BUTTONS instead of the frame —
- * wildcard pill, close, star, follow, CTA — via --ps-accent/--ps-accent-fg
- * custom props set on .ps-overlay (app/globals.css), so every button
- * updates together the same way the app-wide bg colorway fades, and none
- * of them travel with the swipe (they live outside .ps-scroller). Fg
- * contrast per button uses the same isLight() check as
- * lib/profile/profileLogos.ts — see topbarFgFor below.
+ * Colour treatment: the piece's own PROJECT colorway (projectColorway(),
+ * lib/project/registry.ts — fixed 2026-09-16, was misreading a generic
+ * pixel-bucket swatch instead of the project's real signature hex) themes
+ * the BUTTONS instead of the frame — wildcard pill, close, star, share,
+ * follow, CTA — via --ps-accent/--ps-accent-fg custom props set on
+ * .ps-overlay (app/globals.css), so every button updates together the same
+ * way the app-wide bg colorway fades, and none of them travel with the
+ * swipe (they live outside .ps-scroller). Fg contrast per button uses the
+ * same isLight() check as lib/profile/profileLogos.ts — see topbarFgFor
+ * below.
  *
  * Art: full-res master is preloaded one slide ahead of the active card so
  * it's already decoded by the time you swipe to it — the blurred 256px
@@ -55,10 +64,12 @@ import { useCart } from '../../lib/state/CartContext';
 import { useMarketSheet } from '../../lib/state/MarketSheetContext';
 import { useFiat } from '../../lib/state/FiatContext';
 import { formatEth } from '../../lib/format/eth';
-import { ART_IMAGE_BASE, artImageUrl, artThumbUrl } from '../../lib/project/registry';
-import { BUCKET_HEX } from '../../lib/output/derive';
+import { ART_IMAGE_BASE, artImageUrl, artThumbUrl, getProject, projectColorway } from '../../lib/project/registry';
 import { isStarred, toggleStar, subscribeStarred } from '../../lib/pins/starStore';
-import OutputFollowButton from '../artwork/OutputFollowButton';
+import { useUserIdentity } from '../../lib/hooks/useUserRank';
+import { shareLink } from '../../lib/pwa/share';
+import AsciiId from '../hero/AsciiId';
+import FollowButton from '../profile/FollowButton';
 import type { PriceStreamCard } from '../../app/api/pricestream/feed/route';
 
 const FALLBACK_COLOR = '#111111';
@@ -78,9 +89,18 @@ const topbarFgFor = (hex: string) => (isLight(hex) ? '#1A1A1A' : '#e0e0e0');
 
 /* Shared by Slide (per-card data-color attr) and the feed root (initial
    frame colour before the IntersectionObserver has picked an active card) —
-   one source of truth, so the two never disagree. */
-function colorwayOf(card: Pick<PriceStreamCard, 'dominantColor'>): string {
-    return (card.dominantColor && BUCKET_HEX[card.dominantColor]) || FALLBACK_COLOR;
+   one source of truth, so the two never disagree.
+ *
+ * Fixed (Brendon, 2026-09-16: "colorways are only correct like half the
+ * time"): this was reading card.dominantColor — a per-TOKEN pixel-sampled
+ * bucket name (one of ~14 generic buckets, e.g. "Blue") — through BUCKET_HEX,
+ * a cosmetic swatch table for THAT bucket. Two different projects landing in
+ * the same bucket got the same generic swatch, not their own colour — the
+ * "hash synesthesia" symptom. projectColorway(slug) is the actual answer:
+ * the project's own signature hex (DB override, registry fallback as the
+ * rest of the app already reads it via lib/project/registry). */
+function colorwayOf(card: Pick<PriceStreamCard, 'slug'>): string {
+    return projectColorway(card.slug) ?? FALLBACK_COLOR;
 }
 
 function Slide({ card, priority }: { card: PriceStreamCard; priority: boolean }) {
@@ -156,12 +176,23 @@ function ActionRail({ card }: { card: PriceStreamCard | null }) {
     const { openOfferSheet, openOffersPanel } = useMarketSheet();
     const { ethToFiat } = useFiat();
     const [starred, setStarred] = useState(false);
+    // Star confirm float — same rising/sinking ★ used everywhere else a star
+    // toggles (OutputTitleStar, SoundtrackStarButton, trait pills): a fresh
+    // key remounts the span so its animation replays every tap.
+    const [floatId, setFloatId] = useState(0);
+    const [floatDown, setFloatDown] = useState(false);
 
     useEffect(() => {
         if (!card) return;
         setStarred(isStarred(card.slug, card.tokenId));
         return subscribeStarred(() => setStarred(isStarred(card.slug, card.tokenId)));
     }, [card?.slug, card?.tokenId]);
+
+    // Artist follow target: the real per-output artist, same registry lookup
+    // ArtworkPageBody uses for the artist lockup — resolved to an address via
+    // useUserIdentity so FollowButton (the real user→user follow) can target it.
+    const artistHandle = card ? (getProject(card.slug)?.artistHandle ?? 'opus4-6') : null;
+    const artistIdentity = useUserIdentity(artistHandle);
 
     if (!card) return null;
     const inCart = items.some((i) => i.slug === card.slug && i.id === card.tokenId);
@@ -186,27 +217,50 @@ function ActionRail({ card }: { card: PriceStreamCard | null }) {
         }
     };
 
+    const onShare = async () => {
+        const url = typeof window !== 'undefined'
+            ? `${window.location.origin}/art/${card.slug}/${card.tokenId}`
+            : `/art/${card.slug}/${card.tokenId}`;
+        const r = await shareLink({ url, title: `${card.projectName ?? card.slug} #${card.tokenId} on Price Discussion` });
+        if (r === 'copied') showToast('Link: COPIED');
+        else if (r === 'unavailable') showToast('Share: UNAVAILABLE');
+    };
+
+    const onStar = () => {
+        const r = toggleStar(card.slug, card.tokenId);
+        setFloatDown(r !== 'starred');
+        setFloatId((n) => n + 1);
+        showToast(r === 'starred' ? 'Added to your Starred Outputs List (Private)' : 'Removed from your Starred Outputs List');
+    };
+
     return (
         <>
-            <div
-                className="ps-star-rail"
-                title="Starred"
-                onClick={() => { toggleStar(card.slug, card.tokenId); }}
-            >
-                <span className="ps-star-ico">{starred ? '\u2605\uFE0E' : '\u2606\uFE0E'}</span>
+            <div className="ps-rail-stack">
+                <div className="ps-share-rail" title="Share" onClick={onShare}>
+                    <span className="ps-share-ico">{'\u2197\uFE0E'}</span>
+                </div>
+                <div className="ps-star-rail" title="Starred" onClick={onStar}>
+                    <span className={`ps-star-ico${starred ? ' is-filled' : ''}`}>{starred ? '\u2605\uFE0E' : '\u2606\uFE0E'}</span>
+                    {floatId > 0 && (
+                        <span key={floatId} className={`project-name-star-float${floatDown ? ' is-down' : ''}`} aria-hidden="true">
+                            {'\u2605\uFE0E'}
+                        </span>
+                    )}
+                </div>
             </div>
 
             <div className="ps-info">
-                <p className="ps-artist">{card.artist ?? 'Unknown artist'}</p>
                 <p className="ps-meta">
-                    {card.projectName ?? card.slug} #{card.tokenId}
+                    {card.projectName ?? card.slug} <span className="ps-meta-id">#{card.tokenId}</span>
                     {card.listed && card.priceEth != null ? ` \u00b7 ${card.priceEth} \u25CA` : ''}
                 </p>
+                <p className="ps-artist">
+                    by {artistHandle ? <AsciiId handle={artistHandle} /> : 'Unknown artist'}
+                </p>
                 <div className="ps-actions">
-                    <OutputFollowButton
-                        outputId={`${card.slug}-${card.tokenId}`}
-                        label={`${card.slug}${card.tokenId}`}
-                    />
+                    {artistIdentity.address && artistHandle && (
+                        <FollowButton targetAddress={artistIdentity.address} targetHandle={artistHandle} />
+                    )}
                     <button className="btn-mint" onClick={onCta} disabled={inCart && card.listed}>
                         {card.listed ? (
                             <>
@@ -255,14 +309,28 @@ export default function PriceStreamFeed() {
     const [activeCard, setActiveCard] = useState<PriceStreamCard | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
 
+    // Portrait/landscape candidate pools (Brendon, 2026-09-16): mobile tilt
+    // into landscape swaps the feed to landscape-only art, same swipe
+    // mechanics — matches the 'aspect' bucket already captured per output
+    // (lib/output/derive.ts orientationOf) and the route's existing filter.
+    const [aspect, setAspect] = useState<'tall' | 'wide'>('tall');
+    useEffect(() => {
+        if (typeof window === 'undefined' || !window.matchMedia) return;
+        const mq = window.matchMedia('(orientation: landscape)');
+        setAspect(mq.matches ? 'wide' : 'tall');
+        const onChange = (e: MediaQueryListEvent) => setAspect(e.matches ? 'wide' : 'tall');
+        mq.addEventListener('change', onChange);
+        return () => mq.removeEventListener('change', onChange);
+    }, []);
+
     useEffect(() => {
         if (!isOpen) return;
         setLoading(true);
-        fetch('/api/pricestream/feed?count=20', { cache: 'no-store' })
+        fetch(`/api/pricestream/feed?count=20&aspect=${aspect}`, { cache: 'no-store' })
             .then((r) => (r.ok ? r.json() : { cards: [] }))
             .then((data) => setCards(data.cards ?? []))
             .finally(() => setLoading(false));
-    }, [isOpen]);
+    }, [isOpen, aspect]);
 
     // First card sets the button accent + active card immediately on load;
     // from then on the observer below owns both as the active slide changes.
@@ -335,7 +403,7 @@ export default function PriceStreamFeed() {
                     onClick={() => {
                         const next = (wildcard + 1) % 3;
                         setWildcard(next);
-                        showToast(`Wildcard: ${next + 1}/3`);
+                        showToast(`PriceStream Algo Wildcard: LEVEL ${next + 1}`);
                     }}
                     title="Wildcard level (not yet wired to the algorithm)"
                 >
