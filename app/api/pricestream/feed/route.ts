@@ -39,9 +39,18 @@ function shuffle<T>(arr: T[]): T[] {
     return a;
 }
 
+const ASPECTS = new Set(['tall', 'wide']);
+
 export async function GET(req: Request) {
     const url = new URL(req.url);
     const count = Math.min(Math.max(Number(url.searchParams.get('count')) || DEFAULT_COUNT, 1), 50);
+    // v2 (Brendon, 2026-09-16): portrait/landscape split by client orientation —
+    // ?aspect=wide serves the landscape-mobile feed, same pool restriction logic
+    // as v1's tall-only default, just the other bucket. Square pieces still
+    // aren't a candidate pool for either orientation (blurry-crop reasoning
+    // from v1 still applies to them).
+    const aspectParam = url.searchParams.get('aspect');
+    const aspect = ASPECTS.has(aspectParam ?? '') ? (aspectParam as 'tall' | 'wide') : 'tall';
 
     const db = getSupabaseService();
 
@@ -50,10 +59,7 @@ export async function GET(req: Request) {
             .from('outputs')
             .select('project_id, token_id, artist, project_name, dominant_color')
             .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
-            .eq('aspect', 'tall') // v1: portrait-only candidates (Brendon, 2026-09-06) — blurry
-                                  // landscape/square pieces were the common case cropped to a
-                                  // full-bleed portrait frame; restrict the pool instead of
-                                  // stretching. Revisit once the frame can size to the piece.
+            .eq('aspect', aspect)
             .limit(POOL_SIZE),
         db
             .from('listings')
