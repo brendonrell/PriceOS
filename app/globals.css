@@ -6297,9 +6297,10 @@ body.bg-is-yellow .glb-slot.is-set { background: rgba(255, 255, 255, 0.32); }
     position: relative;
     top: 2px;
 }
-/* ⇌ exchange — stays at the shared 14px base, nudged down 0.5px to optically
-   center (Brendon, 2026-09-12). */
+/* ⇌ exchange — +1 font size from the 14px base (this codebase's ~2px/size
+   step), nudged down 0.5px to optically center (Brendon, 2026-09-16). */
 .btn-icon-glyph-exchange {
+    font-size: 16px;
     position: relative;
     top: 0.5px;
 }
