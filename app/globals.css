@@ -15856,17 +15856,36 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     display: flex; align-items: center; justify-content: center;
     transition: background-color 0.3s, color 0.3s;
 }
-.ps-star-rail {
+/* Star + Share rail (Brendon, 2026-09-16: "add share above it") — a single
+   fixed-position flex column so the two buttons stack with one shared gap,
+   instead of each carrying its own absolute `bottom` offset. */
+.ps-rail-stack {
     position: absolute;
     right: max(14px, env(safe-area-inset-right));
     bottom: calc(128px + env(safe-area-inset-bottom, 0px));
     z-index: 4;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.ps-share-rail,
+.ps-star-rail {
     width: 44px; height: 44px;
     border-radius: 50%;
     background: var(--ps-accent, #111);
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
     transition: background-color 0.3s;
+    position: relative;
+}
+/* ↗︎ — the one catalogued share glyph (never the ▶ play icon, which is a
+   different action elsewhere in the app). Courier, same family as the star
+   glyph beside it. */
+.ps-share-ico {
+    font-size: 20px;
+    color: var(--ps-accent-fg, #e0e0e0);
+    font-family: 'Courier New', Courier, monospace;
+    transition: color 0.3s;
 }
 .ps-star-ico {
     font-size: 31px;
@@ -15876,6 +15895,12 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     font-family: 'Courier New', Courier, monospace;
     transition: color 0.3s;
 }
+/* Filled (starred) state reads 2 font sizes larger than the outline glyph —
+   this codebase's ~2px/size step (see .btn-icon-share), so 31px → 35px
+   (Brendon, 2026-09-16). */
+.ps-star-ico.is-filled {
+    font-size: 35px;
+}
 .ps-info {
     position: absolute;
     bottom: 0; left: 0; right: 0;
@@ -15884,15 +15909,26 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     color: #e0e0e0;
     /* Scoped reset, not a global override: this panel always sits on the
        dark bottom scrim regardless of the frame's colorway, so anything
-       reading the page's ambient --text-color in here (e.g. .mk-offers-pill,
-       styles/market.css) needs to match that fixed light color instead. */
+       reading the page's ambient --text-color/--bg-color in here (e.g.
+       .mk-offers-pill, styles/market.css, AsciiId's .collected-pair chip)
+       needs to match this fixed dark theme instead. */
     --text-color: #e0e0e0;
+    --bg-color: #111111;
 }
-.ps-artist { font-size: 14px; font-weight: bold; margin: 0 0 2px; }
+/* "by" + the artist's ASCII-ID (Brendon, 2026-09-16 — was the plain @name
+   above the output name; now below it, prefixed "by", and the full locked
+   identity unit instead of bare text). */
+.ps-artist { font-size: 14px; font-weight: bold; margin: 4px 0 12px; display: flex; align-items: center; gap: 5px; }
 /* The project name — what people actually swipe to find out — was reading
    as a dim caption. Bumped up and brought to full opacity so it's not
    hiding under the artist line (Brendon, 2026-09-15). */
-.ps-meta { font-size: 20px; font-weight: bold; color: #e0e0e0; margin: 0 0 12px; }
+.ps-meta { font-size: 20px; font-weight: bold; color: #e0e0e0; margin: 0 0 2px; }
+/* The #id number in Rubik (Brendon, 2026-09-16) — same treatment as
+   .meta-proj-id elsewhere: the heavy Rubik face against the lighter name
+   beside it. */
+.ps-meta-id {
+    font-family: var(--font-rubik-mono), sans-serif;
+}
 .ps-actions { display: flex; gap: 10px; align-items: center; }
 /* Both the CTA and OutputFollowButton render .btn-mint — themed here with
    the active card's colorway so they update the same way the wildcard
