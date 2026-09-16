@@ -72,7 +72,9 @@ import { getProject } from '../../lib/project/registry';
 import SoundtrackStarButton from './SoundtrackStarButton';
 import ProjectTitleStar from './ProjectTitleStar';
 import { GhostFeedRows } from '../GhostFeed';
+import { fmtFeedDate } from '../profile/profilePageShared';
 import FeedEventRow from '../feed/FeedEventRow';
+
 import SocialFeed from '../home/SocialFeed';
 import { useSort, groupHeaderGlyph } from '../../lib/state/SortContext';
 import { useToast } from '../../lib/state/ToastContext';
@@ -93,7 +95,7 @@ import { useProjectSocial } from './useProjectSocial';
 import { useProjectGallery } from './useProjectGallery';
 import { useProjectFloor } from './useProjectMarket';
 import { useFiat } from '../../lib/state/FiatContext';
-import { formatEthAmount } from '../../lib/format/eth';
+import { formatEth, formatEthAmount } from '../../lib/format/eth';
 import { useProjectAnchor } from './useProjectAnchor';
 import { useBudgetStepLine } from './useBudgetStepLine';
 import ProjectMorePanel, { type ProjectMoreL1 } from './ProjectMorePanel';
@@ -826,11 +828,16 @@ function ProjectPageBodyInner({ uploadedAt = null, projectNo = null }: { uploade
                 <div className="home-section-head">
                     <span className="home-section-title">Project Feed</span>
                 </div>
-                <div className="feed-list" id="feedList">
+                <div className="feed-list home-activity-feed" id="feedList">
                     {sortedFeedEvents.length === 0 ? (
                         <GhostFeedRows />
                     ) : sortedFeedEvents.map((e) => (
-                        <FeedEventRow key={e.id} fe={e} />
+                        <FeedEventRow
+                            key={e.id}
+                            fe={e}
+                            dateStamp={fmtFeedDate(e.timestamp)}
+                            typeSub={e.price > 0 ? `${formatEth(e.price)} ETH` : undefined}
+                        />
                     ))}
                 </div>
             </section>
