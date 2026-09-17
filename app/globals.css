@@ -4922,6 +4922,12 @@ body.pd-stone-open .ens-copy-toast {
 /* The identity band otherwise inherits .hero-row's line-height:1 — let the ENS
    line breathe so nothing cuts the glyph tops. */
 .hero-row-identity { line-height: 1.3; overflow: visible; }
+/* Same fix as .hero-row-title's artist-tag reset above — the 21px ✺ glyph in
+   the project page's "By @artist" line was inflating .owner-line's box,
+   reading as extra space above the row vs. the profile identity row (which
+   carries no artist-tag). Zero it here too so both hero rows spend the
+   same height (Brendon, 2026-09-17). */
+.hero-row-identity .artist-tag { line-height: 0; }
 
 /* Wallet address / ENS on the profile identity row — no underline (Brendon,
    2026-09-10: removed, was never approved as a link style). Scoped to
