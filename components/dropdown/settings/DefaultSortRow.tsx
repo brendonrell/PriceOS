@@ -166,7 +166,7 @@ export function DefaultSortRow() {
                            visually misaligns vs the pill's baseline. */
                         bareLabel
                         onClick={() => {
-                            cycleSort(s.key);
+                            cycleSort(s.key, true);
                             showToast('Default Sort: ' + SORT_NAMES[s.key]);
                         }}
                     />
