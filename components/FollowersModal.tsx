@@ -82,6 +82,19 @@ const LENSES: { key: LensKey; label: string }[] = [
     { key: 'sleuth', label: 'SLEUTH' },
 ];
 const LENS_KEY = 'pd_fi_lens';
+/* COMPACT ROWS (fix, 2026-09-17, Brendon: "cards with lots of detail…
+   let's have a compact version"). Squeezes each ledger row to one
+   horizontally-scrolling line — top row (ASCII-ID + badges + rel glyph)
+   then the stats, skipping the middle profile-tags row entirely — reusing
+   the exact scroll treatment .user-tags--row already wears (nowrap +
+   overflow-x auto + hidden scrollbar). Device-persisted like the lens. */
+const COMPACT_KEY = 'pd_fi_compact';
+/* One glyph, not a pair — same icon both ways, tap toggles state (Brendon,
+   2026-09-17: "tapping expand expands them, tapping again contracts").
+   Horizontal double-arrow — the row literally squeezes onto one
+   horizontal line, so the icon's axis matches the motion. Expanded
+   (full cards) is the default; compact is the other state. */
+const CARD_GLYPH = '⇔';
 
 /* The last on-ledger move a circle member made (SLEUTH's raw material). */
 interface LastMove { verb: string; project: string; piece: string; ts: number; glyph: string }
@@ -217,6 +230,19 @@ export default function FollowersModal() {
     const [handleToAddr, setHandleToAddr] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(false);
     const [full, setFull] = useState(false);
+    /* Row density — device-persisted, same pattern as the lens above. */
+    const [compact, setCompactState] = useState(false);
+    useEffect(() => {
+        try { setCompactState(localStorage.getItem(COMPACT_KEY) === '1'); } catch { /* full stands */ }
+    }, []);
+    const toggleCompact = useCallback(() => {
+        setCompactState((prev) => {
+            const next = !prev;
+            try { localStorage.setItem(COMPACT_KEY, next ? '1' : '0'); } catch { /* device-local nicety */ }
+            showToast(next ? 'Friend Cards: COMPACT' : 'Friend Cards: EXPANDED');
+            return next;
+        });
+    }, [showToast]);
 
     const setTab = useCallback((t: FollowersTab) => {
         setTabState(t);
@@ -627,6 +653,16 @@ export default function FollowersModal() {
     const body = (
         <>
             <div className="fm-tabs" role="tablist" aria-label="Circle">
+                <button
+                    type="button"
+                    className="fi-compact-toggle"
+                    onClick={toggleCompact}
+                    title={compact ? 'Expand friend cards' : 'Compact friend cards'}
+                    aria-label={compact ? 'Expand friend cards' : 'Compact friend cards'}
+                    aria-pressed={compact}
+                >
+                    {CARD_GLYPH}
+                </button>
                 {TABS.map((t) => (
                     <div
                         key={t.key}
@@ -729,6 +765,7 @@ export default function FollowersModal() {
                                 followBusy={followBusy}
                                 onToggleFollow={() => void toggleFollow(handle)}
                                 tagSet={peopleTagSets[lc(handle)]}
+                                compact={compact}
                             />
                         ))}
                     </>
@@ -820,7 +857,7 @@ export default function FollowersModal() {
    Tapping the row (not the chip link / star) unfolds THE DUEL beneath. ── */
 function PersonRow({
     handle, stat, tag, shared, starred, onStar, inspected, onInspect, lensLine, friendAddr, mySlugs,
-    myStat, myScore, following, followBusy, onToggleFollow, tagSet,
+    myStat, myScore, following, followBusy, onToggleFollow, tagSet, compact,
 }: {
     handle: string; stat: CircleStat | undefined; tag: string | null; shared: number | null;
     starred: boolean; onStar: (h: string) => void; inspected: boolean; onInspect: () => void;
@@ -829,6 +866,8 @@ function PersonRow({
     following: boolean; followBusy: boolean; onToggleFollow: () => void;
     /* Their profile tags — resolved once for the whole ledger by the parent. */
     tagSet: UserTagSet | undefined;
+    /* One-line squeeze — top row + stats, no middle tags row (fix, 2026-09-17). */
+    compact: boolean;
 }) {
     const slots = rivalrySlotsFor(lc(handle));
     /* Faction paint takes the reserved accent channel; explicit socket wins. */
@@ -838,7 +877,7 @@ function PersonRow({
     const [spriteAnchor, setSpriteAnchor] = useState<DOMRect | null>(null);
     return (
         <div
-            className={`fi-row${inspected ? ' inspecting' : ''}${shared !== null ? ' has-shared' : ''}`}
+            className={`fi-row${inspected ? ' inspecting' : ''}${shared !== null ? ' has-shared' : ''}${compact ? ' fi-row--compact' : ''}`}
             style={accent ? ({ '--fi-accent': accent } as CSSProperties) : undefined}
         >
             <div className="fi-line">
@@ -862,7 +901,7 @@ function PersonRow({
                     onClick={(e) => { if ((e.target as HTMLElement).closest('a')) return; onInspect(); }}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onInspect(); } }}
                 >
-                    <div className="fm-row-main">
+                    <div className={`fm-row-main${compact ? ' fm-row-main--compact' : ''}`}>
                         <div className="fm-row-id">
                             <AsciiId handle={handle} onSpriteTap={(rect) => setSpriteAnchor(rect)} />
                             {spriteAnchor && (
@@ -881,17 +920,22 @@ function PersonRow({
                             )}
                             {tag && <span className="fi-rel" title={tag}>{REL_GLYPH[tag]}{VS15}</span>}
                         </div>
-                        {tagSet?.tags?.length ? (
-                            <UserTags set={tagSet} size="row" />
-                        ) : (
-                            /* No profile tags on → the middle row doesn't just
-                               vanish, it shows their wallet address instead
-                               (Brendon, 2026-08-15). Rubik, not the app's
-                               display face — an address reads as data, and
-                               Rubik is what the rest of the app already uses
-                               for that register (shortAddr chips elsewhere). */
-                            friendAddr && (
-                                <span className="fi-row-addr">{shortAddr(friendAddr)}</span>
+                        {/* COMPACT drops the middle tags/address row entirely —
+                            top row + stats only, one scrolling line (fix,
+                            2026-09-17). */}
+                        {!compact && (
+                            tagSet?.tags?.length ? (
+                                <UserTags set={tagSet} size="row" />
+                            ) : (
+                                /* No profile tags on → the middle row doesn't just
+                                   vanish, it shows their wallet address instead
+                                   (Brendon, 2026-08-15). Rubik, not the app's
+                                   display face — an address reads as data, and
+                                   Rubik is what the rest of the app already uses
+                                   for that register (shortAddr chips elsewhere). */
+                                friendAddr && (
+                                    <span className="fi-row-addr">{shortAddr(friendAddr)}</span>
+                                )
                             )
                         )}
                         <div className="fm-row-stats">
