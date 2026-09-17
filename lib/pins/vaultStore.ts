@@ -16,6 +16,7 @@
  * settings envelope (pushSettings) — vaults follow the owner across devices.
  */
 
+import { useEffect, useState } from 'react';
 import type { AlbumRecord } from '../supabase';
 import {
     pushSettings,
@@ -210,4 +211,31 @@ export function subscribeVaults(cb: Listener): () => void {
     return () => {
         listeners.delete(cb);
     };
+}
+
+/* ── VAULT AS A SELL-LOCK (Brendon, 2026-09-17) ──────────────────────────
+   "A piece added to one of your vaults disables all selling/accept offer
+   ability." A piece is vaulted the instant any vault holds its key —
+   which vault doesn't matter, just membership. This is a client-side
+   gate only (same trust boundary as the rest of vaultStore) — it stops
+   the app's own List/Accept flows, not a contract-level lock, so it's
+   exactly as durable as vaultStore itself and no more. */
+
+/** True if `slug:id` sits in ANY of the viewer's vaults right now. */
+export function isVaulted(slug: string, id: number): boolean {
+    hydrate();
+    const k = keyOf(slug, id);
+    return vaults.some((v) => v.keys.includes(k));
+}
+
+/** Reactive vault-membership check for one piece — greys out
+ *  List/Accept-Offer the instant it's added, flips back the instant it's
+ *  removed (Brendon: "as soon as the piece is removed... it all works"). */
+export function useVaulted(slug: string, id: number): boolean {
+    const [vaulted, setVaulted] = useState(() => isVaulted(slug, id));
+    useEffect(() => {
+        setVaulted(isVaulted(slug, id));
+        return subscribeVaults(() => setVaulted(isVaulted(slug, id)));
+    }, [slug, id]);
+    return vaulted;
 }
