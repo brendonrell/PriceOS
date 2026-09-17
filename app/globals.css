@@ -9478,8 +9478,16 @@ body.feed-mode .arb-badge { display: none !important; }
 a.f-highlight { color: inherit; }
 
 /* ── + MORE PANEL — sim ~3597-3868 ───────────────────────── */
+/* Rubik face (Brendon, 2026-09-17: "titles in Rubik... let's roll it out
+   across the app") — matches the treatment already on the Attributes tab's
+   own group titles (.attr-group-name-rubik below); this is the OTHER title
+   family, the one wrapping each +More section (Rarity Labs, Sentiment's
+   sub-sections, Offers, Price Story, Replay, Social, etc.) — one shared
+   class, so fixing it here rolls out everywhere it's used at once, Rarity
+   Labs included (it wasn't a special case, just this class never having
+   been switched over). */
 .more-section-header {
-    font-family: 'Courier New', Courier, monospace;
+    font-family: var(--font-rubik-mono), 'Rubik Mono One', sans-serif;
     font-size: 12px;
     font-weight: bold;
     letter-spacing: 1px;
@@ -14091,9 +14099,14 @@ body.colorway-dark .ghost-feed-bar {
    "The read" headers — drops the redundant "Artist ·" / "@handle ·" lead-in
    and swaps the mono face for Rubik Mono. Kept as its own modifier class so
    it can spread to other tabs' group names later without touching the
-   Courier default above (Brendon, 2026-09-15). */
+   Courier default above (Brendon, 2026-09-15). Bumped 1 font size
+   (10px → 12px, this codebase's 2px/size step) — Brendon, 2026-09-17: "make
+   those titles... 1 font size larger", applies everywhere this modifier is
+   used (every .attr-group-name in the app already carries it — see the
+   scoped overrides below for the sections that bump further still). */
 .attr-group-name-rubik {
     font-family: var(--font-rubik-mono), 'Rubik Mono One', sans-serif;
+    font-size: 12px;
 }
 .attr-group-count {
     font-size: 10px;
@@ -14160,7 +14173,7 @@ body.colorway-dark .ghost-feed-bar {
    2026-08-30). */
 .tgt-section .attr-group-name,
 .cp-section .attr-group-name,
-.loy-section .attr-group-name { font-size: 12px; opacity: 0.8; }
+.loy-section .attr-group-name { font-size: 14px; opacity: 0.8; }
 .tgt-section .attr-group-count,
 .cp-section .attr-group-count,
 .loy-section .attr-group-count { font-size: 12px; opacity: 0.6; }
@@ -15601,7 +15614,7 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
    (Brendon, 2026-08-13). */
 .price-acct .attr-group-name {
     font-family: var(--font-rubik-mono), monospace;
-    font-size: 13px;
+    font-size: 15px;
     letter-spacing: 0.04em;
     opacity: 1;
 }
