@@ -16,8 +16,12 @@ import { HIDDEN_PROJECTS_NOT_IN } from '@/lib/platform/hiddenProjects';
 
 export const dynamic = 'force-dynamic';
 
-const POOL_SIZE = 200;   // rows pulled before shuffling
+const POOL_SIZE = 5000;  // rows pulled before grouping — generous so a naive
+                          // row-order LIMIT can't starve smaller projects
+                          // (Brendon, 2026-09-17)
 const DEFAULT_COUNT = 20;
+const MAX_PER_PROJECT = 8; // cap pulled per project so one deep collection
+                            // can't crowd out the round-robin draw below
 
 export interface PriceStreamCard {
     slug: string;
@@ -59,6 +63,13 @@ export async function GET(req: Request) {
             .from('outputs')
             .select('project_id, token_id, artist, project_name, dominant_color')
             .not('project_id', 'in', HIDDEN_PROJECTS_NOT_IN)
+            // Real mints only — a project with even 1 mint is eligible, not just
+            // graduated (18+) ones. Previously ungated, but a naive LIMIT with
+            // no per-project balancing meant only the earliest-inserted rows
+            // (established, already-graduated projects) ever filled the pool
+            // window, starving newer/smaller drops out entirely (Brendon,
+            // 2026-09-17).
+            .not('minted_at', 'is', null)
             .eq('aspect', aspect)
             .limit(POOL_SIZE),
         db
@@ -86,7 +97,42 @@ export async function GET(req: Request) {
         dominant_color: string | null;
     }[];
 
-    const picked = shuffle(rows).slice(0, count).filter((r) => Number.isFinite(Number(r.token_id)));
+    // Group by project so every project with a mint gets a fair shot at the
+    // draw, then round-robin across projects (shuffled each lap) so cards
+    // never come from the same project twice in a row (Brendon, 2026-09-17).
+    const byProject = new Map<string, typeof rows>();
+    for (const r of rows) {
+        if (!Number.isFinite(Number(r.token_id))) continue;
+        const slug = String(r.project_id).toLowerCase();
+        const arr = byProject.get(slug);
+        if (arr) {
+            if (arr.length < MAX_PER_PROJECT) arr.push(r);
+        } else {
+            byProject.set(slug, [r]);
+        }
+    }
+    for (const [slug, arr] of byProject) byProject.set(slug, shuffle(arr));
+
+    const picked: typeof rows = [];
+    let lastSlug: string | null = null;
+    let remaining = Array.from(byProject.keys());
+    while (picked.length < count && remaining.length > 0) {
+        remaining = shuffle(remaining);
+        // Adjacent-repeat guard: skip a project that matches the previous
+        // pick unless it's the only one left with cards.
+        let order = remaining;
+        if (order.length > 1 && order[0] === lastSlug) {
+            order = [...order.slice(1), order[0]];
+        }
+        for (const slug of order) {
+            if (picked.length >= count) break;
+            const arr = byProject.get(slug);
+            if (!arr || arr.length === 0) continue;
+            picked.push(arr.pop()!);
+            lastSlug = slug;
+        }
+        remaining = remaining.filter((slug) => (byProject.get(slug)?.length ?? 0) > 0);
+    }
 
     // Item + collection-scope open offers for just the picked cards — the
     // offers pill mirrors the artwork modal's real count, so it must apply
