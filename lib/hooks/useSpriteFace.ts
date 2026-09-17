@@ -15,6 +15,19 @@
  * Faces are cached module-wide per handle (one fetch per handle per
  * session, shared across every chip on the page — the home Featuring
  * rotation re-shows handles freely without re-fetching).
+ *
+ * ⛔ PERMANENT MEANS PERMANENT (fix, 2026-09-17, Brendon: "PriceSprites
+ * are PERMANENT... we keep treating them like live data that updates").
+ * Once a face is resolved from users.price_sprite_resolved — the frozen
+ * composition, never touched again after signup — there is no reason a
+ * RETURNING visit should ever wait on the network for it again. It's
+ * written straight to localStorage the first time it resolves, and the
+ * lazy initializer below reads that BEFORE the module cache even hydrates,
+ * so a handle you've ever seen paints its sprite on the very first frame,
+ * every session, forever — no fetch, no flicker, no lag. Only the frozen
+ * face gets this treatment: the wallet-derived stand-in (no frozen sprite
+ * yet) is explicitly provisional — it can flip to the real one any time
+ * the user picks a vibe — so it stays session-only, same as before.
  */
 
 import { useEffect, useState } from 'react';
@@ -23,6 +36,26 @@ import { isPriceSpriteVibe } from '../sprites/vibes';
 
 const cache = new Map<string, string | null>();
 const pending = new Map<string, Promise<string | null>>();
+
+const LS_PREFIX = 'pd_sprite_frozen_v1:';
+
+function readPersisted(h: string): string | null {
+    if (typeof window === 'undefined') return null;
+    try {
+        return window.localStorage.getItem(LS_PREFIX + h);
+    } catch {
+        return null;
+    }
+}
+
+function writePersisted(h: string, face: string): void {
+    if (typeof window === 'undefined') return;
+    try {
+        window.localStorage.setItem(LS_PREFIX + h, face);
+    } catch {
+        /* private mode / full — session cache still works */
+    }
+}
 
 export function resolveSpriteFace(handle: string): Promise<string | null> {
     const h = handle.toLowerCase().replace(/^@/, '');
@@ -40,11 +73,17 @@ export function resolveSpriteFace(handle: string): Promise<string | null> {
                     let face: string | null = null;
                     if (u?.price_sprite_resolved) {
                         face = composeResolved(u.price_sprite_resolved).fullString;
+                        // Frozen for good — write it through so the NEXT
+                        // session (or the next handle we've never met)
+                        // never has to ask the network again.
+                        if (face) writePersisted(h, face);
                     } else if (u?.address) {
                         const vibe = isPriceSpriteVibe(u.price_sprite)
                             ? u.price_sprite
                             : 'observer';
                         const resolved = resolveSprite(u.address, vibe);
+                        // Provisional stand-in — deliberately NOT persisted;
+                        // it's meant to be re-checked until a real vibe freezes.
                         face = resolved ? composeResolved(resolved).fullString : null;
                     }
                     cache.set(h, face);
@@ -65,12 +104,14 @@ export function resolveSpriteFace(handle: string): Promise<string | null> {
 /** The still sprite face for a handle, or null while loading / unknown. */
 export function useSpriteFace(handle: string): string | null {
     const h = handle.toLowerCase().replace(/^@/, '');
-    const [face, setFace] = useState<string | null>(() => cache.get(h) ?? null);
+    const [face, setFace] = useState<string | null>(
+        () => cache.get(h) ?? readPersisted(h),
+    );
     useEffect(() => {
         let alive = true;
-        setFace(cache.get(h) ?? null);
+        setFace(cache.get(h) ?? readPersisted(h));
         resolveSpriteFace(h).then((f) => {
-            if (alive) setFace(f);
+            if (alive && f !== null) setFace(f);
         });
         return () => {
             alive = false;
