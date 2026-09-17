@@ -202,6 +202,10 @@ function ProfilePageBodyInner({
     const isZen = notifs.zenMode;
     const { sort, group, groupLayers, restoreGroupFor, setSort } = useSort();
 
+    // Real user row — fetched server-side from the handle in the URL and
+    // passed in, so the hero renders real values on first paint (no popin).
+    const user = initialUser;
+
     /* FEED shouldn't silently follow you from profile to profile — it's a
        per-visit lens, not a durable identity of the page like the saved
        default-sort SETTING is. Landing on a fresh profile with `sort` still
@@ -221,10 +225,6 @@ function ProfilePageBodyInner({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user.address]);
 
-
-    // Real user row — fetched server-side from the handle in the URL and
-    // passed in, so the hero renders real values on first paint (no popin).
-    const user = initialUser;
     /* Computed early — the +More sub-nav's isPlatform branch (price docs)
        needs this before effMoreL1 resolves, same reason isZen sits up here
        too (Brendon, 2026-08-13). */
