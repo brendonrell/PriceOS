@@ -5823,6 +5823,15 @@ button,
 /* Done face — "MINTED ✓ ×N" over "(X ETH left)", stacked like the CONFIRM
    face, sized to FIT the fixed 224px pill (the full-size single row used to
    run past the button edge on desktop — Brendon 2026-06-12). */
+/* VAULTED SELL LOCK — greyed + struck through, any button (Brendon,
+   2026-09-17: "we can just grey it out and probably strike through").
+   Reverts the instant the piece leaves the vault since it's a plain
+   function of live vault state, not a stored flag. */
+.pd-vault-locked {
+    opacity: 0.4;
+    cursor: not-allowed;
+    text-decoration: line-through;
+}
 .btn-mint.mint-done {
     flex-direction: column;
     gap: 0;
