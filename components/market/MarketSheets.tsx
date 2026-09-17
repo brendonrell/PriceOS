@@ -36,6 +36,7 @@ import { useAuth } from '../../lib/state/AuthContext';
 import { useToast } from '../../lib/state/ToastContext';
 import { useProject, ProjectProvider } from '../../lib/state/ProjectContext';
 import { getProject } from '../../lib/project/registry';
+import { useVaulted } from '../../lib/pins/vaultStore';
 import {
     acceptOffer,
     cancelOffer,
@@ -644,6 +645,7 @@ function OffersPanel({
 }) {
     const { showToast } = useToast();
     const { siweAddress } = useAuth();
+    const vaulted = useVaulted(slug, id);
     const [market, setMarket] = useState<OutputMarketState | null>(null);
     const [busyId, setBusyId] = useState<string | null>(null);
     const [step, setStep] = useState<string | null>(null);
@@ -786,8 +788,9 @@ function OffersPanel({
                                         <>
                                             <button
                                                 type="button"
-                                                className="mk-offer-btn mk-offer-btn--accept"
-                                                disabled={busy}
+                                                className={`mk-offer-btn mk-offer-btn--accept${vaulted ? ' pd-vault-locked' : ''}`}
+                                                disabled={busy || vaulted}
+                                                title={vaulted ? 'In vault — remove it to accept offers' : undefined}
                                                 onClick={() => setConfirmOffer(o)}
                                             >
                                                 {busy ? `${step ?? 'WORKING'}…` : 'ACCEPT'}
