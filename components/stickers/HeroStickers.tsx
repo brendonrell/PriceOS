@@ -68,20 +68,27 @@ const MAX_HERO_OUTPUTS = 4;
 
 /* Boundary so a single bad sticker can never take down the whole profile — the
    feature just renders nothing instead of crashing the page. */
-class StickerBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
-    constructor(props: { children: ReactNode }) { super(props); this.state = { failed: false }; }
+class StickerBoundary extends Component<{ children: ReactNode; label?: string }, { failed: boolean }> {
+    constructor(props: { children: ReactNode; label?: string }) { super(props); this.state = { failed: false }; }
     static getDerivedStateFromError() { return { failed: true }; }
     /* Was a silent swallow ("stickers are decorative") — which is exactly why
        the pile-hides-on-tap bug (Brendon, 2026-09-15) took this long to pin
        down: whatever throws during a re-render just vanishes with zero trace.
-       Logging it is the fix that finds the fix. */
-    componentDidCatch(error: unknown) { console.error('[HeroStickers] render crashed — pile fell back to hidden:', error); }
+       Logging it is the fix that finds the fix.
+
+       Now also TWO separate boundaries instead of one shared one: the manager
+       modal used to share the SAME boundary as the pile beneath it, so a crash
+       opening the manager took the already-rendered pile down with it — "tap
+       to open the manager" LOOKED like "tap to hide my stickers". Giving the
+       manager its own boundary means that failure domain stops at the modal;
+       the pile stays up either way. */
+    componentDidCatch(error: unknown) { console.error(`[HeroStickers${this.props.label ? `:${this.props.label}` : ''}] render crashed — fell back to hidden:`, error); }
     render() { return this.state.failed ? null : this.props.children; }
 }
 
 export function HeroStickers(props: Props) {
     return (
-        <StickerBoundary>
+        <StickerBoundary label="pile">
             <HeroStickersInner {...props} />
         </StickerBoundary>
     );
@@ -397,8 +404,8 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, saved
        owner's public flag, not whatever the visitor happens to have set on
        their own account (that used to hide every profile a hider visited,
        not just their own). */
-    if (isOwn ? notifs.sticker : ownerHidden) return manager;
-    if (locked ? lockedItems.length === 0 : active.length === 0) return manager;
+    if (isOwn ? notifs.sticker : ownerHidden) return <StickerBoundary label="manager">{manager}</StickerBoundary>;
+    if (locked ? lockedItems.length === 0 : active.length === 0) return <StickerBoundary label="manager">{manager}</StickerBoundary>;
 
     const baseTilt = tiltDeg(tilt);
     /* Per-sticker render height. Output artworks render at half (they read big),
@@ -497,7 +504,9 @@ function HeroStickersInner({ ownerHandle, isOwn, savedLayout, savedAspect, saved
                     >
                         {body}
                     </div>
-                    {manager}
+                    {/* Own boundary — separate from the pile's, so a crash opening the
+                        manager can't take the already-visible pile down with it. */}
+                    <StickerBoundary label="manager">{manager}</StickerBoundary>
                 </>
             ) : (
                 <div
