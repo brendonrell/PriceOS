@@ -15744,6 +15744,25 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     scrollbar-width: none;
     -ms-overflow-style: none;
 }
+/* Landscape mobile (Brendon, 2026-09-16: "landscape version... swipe
+   horizontal instead of vertical") — same scroll-snap mechanism turned 90°:
+   a row of slides instead of a column, x-axis snap instead of y. The
+   vertical rules above stay the default (portrait); this modifier — set
+   from the same `aspect === 'wide'` state that already picks the landscape
+   candidate pool — overrides just the axis. */
+.ps-scroller.is-horizontal {
+    display: flex;
+    flex-direction: row;
+    overflow-y: hidden;
+    overflow-x: scroll;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    overscroll-behavior-y: auto;
+    touch-action: pan-x;
+}
+.ps-scroller.is-horizontal .ps-slide-box {
+    flex: 0 0 100%;
+}
 .ps-scroller::-webkit-scrollbar {
     display: none;
 }
@@ -15846,13 +15865,20 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     display: inline-block;
 }
 .ps-wc-dots i.on { background: #FFE600; }
+/* Same 44px circle as the share/star rail below (Brendon, 2026-09-16:
+   "align with the circles below... make it the same size") — matching
+   diameter is what actually lines up their edges, since both this button
+   and .ps-rail-stack already sit flush to the same right inset. Glyph
+   bumped 2 font sizes (15 → 19, this codebase's ~2px/size step) and bolded
+   to read at the larger size. */
 .ps-close-btn {
-    width: 30px; height: 30px;
+    width: 44px; height: 44px;
     border-radius: 50%;
     background: var(--ps-accent, #111);
     border: none;
     color: var(--ps-accent-fg, #e0e0e0);
-    font-size: 15px;
+    font-size: 19px;
+    font-weight: bold;
     display: flex; align-items: center; justify-content: center;
     transition: background-color 0.3s, color 0.3s;
 }
