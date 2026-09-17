@@ -661,6 +661,8 @@ function HomePageBodyInner({
         doors: {
             openKeychains: () => openModal('depanneur'),
             openStickers: () => openModal('stickers'),
+            openGasTracker: () => openModal('gasTracker'),
+            openInfo: (payload) => openModal('ping', JSON.stringify({ synthetic: true, ...payload })),
         },
     }), [feed, dayPills, gas.data, ethLocal, youSignals, openModal]);
 
