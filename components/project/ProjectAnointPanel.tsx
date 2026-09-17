@@ -116,7 +116,7 @@ export default function ProjectAnointPanel() {
     return (
         <div className="anoint-panel">
             <div className="more-section-header">
-                {`✢${VS15}`} ANOINTMENT
+                ANOINTMENT
             </div>
 
             <div className="more-box-wrap">
