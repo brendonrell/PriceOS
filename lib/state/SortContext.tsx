@@ -404,8 +404,12 @@ interface SortContextValue {
     rank: SortRank;
     /** Set sort family and reset dir/feedKind to family's default. */
     setSort: (s: SortKey) => void;
-    /** Sim-faithful click handler — cycles direction within the family. */
-    cycleSort: (s: SortKey) => void;
+    /** Sim-faithful click handler — cycles direction within the family.
+        `persist` (default false) writes the landing family to the saved
+        DEFAULT SORT; only the Settings · DEFAULT SORT row should pass
+        true — every other caller (in-project/profile SortBtn, CommandStone)
+        is a page-local cut and must leave the saved default alone. */
+    cycleSort: (s: SortKey, persist?: boolean) => void;
     /** Restore a full sort snapshot (used by Gallery View Presets). When
         `group` is given, the grouping dimension is restored too (a preset that
         was saved while grouped). Omit it to leave the current grouping alone. */
@@ -547,8 +551,18 @@ export function SortProvider({ children }: { children: ReactNode }) {
        For feed: cycles through ['feed-time-desc', 'feed-time-asc',
        'feed-price-desc', 'feed-price-asc'] (sim 8313). For fog: toggle
        to id-asc if already fog, else to fog. For id/price: flip dir if
-       already that family, else enter at `${type}-asc`. */
-    const cycleSort = useCallback((target: SortKey) => {
+       already that family, else enter at `${type}-asc`.
+
+       ⛔ PERSIST IS OPT-IN, NOT A SIDE EFFECT OF EVERY CALLER (fix,
+       2026-09-17). cycleSort is shared by the in-project/profile SortBtn
+       AND the Settings · DEFAULT SORT row. Only the settings row is meant
+       to write the saved default (that's the whole point of a "default"),
+       but persistFamily used to fire unconditionally — so tapping FEED on
+       a project page silently overwrote your saved default, and the next
+       project's resetToDefault(project.slug) picked it back up, making
+       every project open on FEED. `persist` defaults to false; only
+       DefaultSortRow passes true. */
+    const cycleSort = useCallback((target: SortKey, persist = false) => {
         setSlugActive(true);
         if (target !== 'id' && target !== 'price') setRank('natural');
         if (target === 'feed') {
@@ -571,7 +585,7 @@ export function SortProvider({ children }: { children: ReactNode }) {
                 setSortState('feed');
                 setFeedKind('time');
                 setDir('desc');
-                persistFamily('feed');
+                if (persist) persistFamily('feed');
             }
             return;
         }
@@ -580,10 +594,10 @@ export function SortProvider({ children }: { children: ReactNode }) {
                 // Sim 8324 — toggle out of fog returns to id-asc.
                 setSortState('id');
                 setDir('asc');
-                persistFamily('id');
+                if (persist) persistFamily('id');
             } else {
                 setSortState('fog');
-                persistFamily('fog');
+                if (persist) persistFamily('fog');
             }
             return;
         }
@@ -598,7 +612,7 @@ export function SortProvider({ children }: { children: ReactNode }) {
             setSortState(target);
             setRank('natural');
             setDir('asc');
-            persistFamily(target);
+            if (persist) persistFamily(target);
         }
     }, [sort, dir, feedKind, rank]);
 
