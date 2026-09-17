@@ -380,7 +380,7 @@ function CalendarWidget() {
 /* ── ✶ PRICEDAY — today's almanac, the big number (usePriceDay: seeded
       placeholder instantly, the real day swaps in) ── */
 
-function PriceDayWidget() {
+export function PriceDayWidget() {
     const day = usePriceDay();
     return (
         <div className="stone-widget sw-card">
@@ -2399,7 +2399,7 @@ function TrendChip({ label, v }: { label: string; v: number | null }) {
     );
 }
 
-function TokenWidget({ symbol, address }: { symbol: string; address: string }) {
+export function TokenWidget({ symbol, address }: { symbol: string; address: string }) {
     const def = TOKENS.find((t) => t.symbol === symbol) ?? null;
     const [card, setCard] = useState<StoneTokenResponse | null>(null);
     const [failed, setFailed] = useState(false);
