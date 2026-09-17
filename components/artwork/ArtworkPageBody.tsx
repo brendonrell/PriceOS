@@ -26,6 +26,7 @@ import { createPortal } from 'react-dom';
 import PriceDayDateLink from '../priceday/PriceDayDateLink';
 import { fmPlay } from '../../lib/fm/fmBus';
 import { useToast } from '../../lib/state/ToastContext';
+import { useVaulted } from '../../lib/pins/vaultStore';
 import { useCart } from '../../lib/state/CartContext';
 import { useMarketSheet } from '../../lib/state/MarketSheetContext';
 import { useExchange } from '../../lib/state/ExchangeContext';
@@ -631,6 +632,10 @@ export default function ArtworkPageBody({
        a non-owner sees BUY · price when listed, else MAKE OFFER. */
     const listPrice = market?.listing?.price_eth ?? null;
     const isListed = listPrice != null;
+    /* Vaulted pieces can't be newly listed or have their offers accepted
+       (Brendon, 2026-09-17). Doesn't touch a listing already live before
+       the vault add — only blocks NEW sell actions. */
+    const vaulted = useVaulted(slug, numberPart);
     let ctaLabel: ReactNode;
     let ctaAction: 'buy' | 'list' | 'unlist' | 'offer';
     if (owned) {
@@ -653,7 +658,9 @@ export default function ArtworkPageBody({
         ctaLabel = <span className="mint-lbl">MAKE OFFER</span>;
         ctaAction = 'offer';
     }
+    const ctaLocked = vaulted && ctaAction === 'list';
     const onCta = () => {
+        if (ctaLocked) { showToast('In vault — remove it to list'); return; }
         if (ctaAction === 'buy') {
             if (cartHas(slug, numberPart)) {
                 showToast(`${projectName} #${numberPart}: ALREADY IN CART`);
@@ -834,10 +841,10 @@ export default function ArtworkPageBody({
                         button (LIST / UNLIST / BUY · price / MAKE OFFER). */}
                     <div className="action-row">
                         <button
-                            className="btn-mint"
-                            title={`${projectName} #${numberPart}`}
+                            className={`btn-mint${ctaLocked ? ' pd-vault-locked' : ''}`}
+                            title={ctaLocked ? 'In vault — remove it to list' : `${projectName} #${numberPart}`}
                             onClick={onCta}
-                            disabled={ctaBusy}
+                            disabled={ctaBusy || ctaLocked}
                         >
                             {ctaBusy ? <span className="mint-lbl">CANCELLING…</span> : ctaLabel}
                         </button>
