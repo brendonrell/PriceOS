@@ -1650,12 +1650,11 @@ body.ascii-id-mode .id-row-sprite     { display: none !important; }
        (to 0.625) would overlap the text, so this halves the actual spacing
        instead. */
     line-height: 1.125;
-    /* ⛔ REVERTED TO DYNAMIC (fix, 2026-09-17) — the 2026-09-07 bump made
-       every row's padding match .notif-item--high's ring buffer, so plain
-       pings got the same huge gap as red-outlined ones. Base rows go back
-       to 8px; only .notif-item--high below adds the extra 11px it actually
-       needs for the ring not to touch the text. Left/right stay at 10px. */
-    padding: 8px 10px;
+    /* Top/bottom bumped 8px → 11px (Brendon, 2026-09-07) to match the buffer
+       already given to .notif-item--high rows — a 1-line ping had plenty of
+       room at 8px, but the same 8px read as cramped once text wrapped to 2
+       lines. Left/right stay at the base 10px. */
+    padding: 11px 10px;
     display: flex; gap: 10px; align-items: center;
     cursor: pointer;
     transition: background 0.2s, color 0.2s;
