@@ -14891,11 +14891,12 @@ body.theme-bright .fi-row.inspecting {
    set on the shared .collected-by-row rule above, site-wide (Brendon,
    2026-08-16). */
 
-/* "By" reads as one phrase with the @name beside it, but its box is shorter
-   than the name's (which carries headroom for tall Unicode faces), so centring
-   the boxes left its letters sitting 3px ABOVE the name's baseline. Dropped
-   onto that baseline — measured off the row (Brendon, 2026-07-29). */
-.project-custom.owner-line .by-text { position: relative; top: 3px; }
+/* "By" used to sit 3px above the @name's baseline because the artist-tag
+   glyph inflated the name's box. Now that .hero-row-identity .artist-tag is
+   zeroed to line-height:0 (Brendon, 2026-09-17, above), the boxes match and
+   this offset overshoots — dropping "By" below the shared baseline instead.
+   Removed; baseline alignment now comes free from .project-custom's
+   align-items:baseline (Brendon, 2026-09-17). */
 /* HELD BY is all-caps, so its text box carries empty descender room under
    the letters — centring the BOX left the letters sitting 1.8px below the
    rectangle and the pills (measured off the row). This lifts the letters
@@ -15893,22 +15894,17 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
     display: inline-block;
 }
 .ps-wc-dots i.on { background: #FFE600; }
-/* Same 44px circle as the share/star rail below (Brendon, 2026-09-16:
-   "align with the circles below... make it the same size") — matching
-   diameter is what actually lines up their edges, since both this button
-   and .ps-rail-stack already sit flush to the same right inset. Glyph
-   bumped 2 font sizes (15 → 19, this codebase's ~2px/size step) and bolded
-   to read at the larger size. */
+/* Always sits on the feed's black frame — no circle needed, just a bold
+   white glyph (Brendon, 2026-09-17: dropped the background/circle from the
+   close button, kept size/weight from the previous 44px-circle version). */
 .ps-close-btn {
     width: 44px; height: 44px;
-    border-radius: 50%;
-    background: var(--ps-accent, #111);
+    background: none;
     border: none;
-    color: var(--ps-accent-fg, #e0e0e0);
+    color: #fff;
     font-size: 19px;
     font-weight: bold;
     display: flex; align-items: center; justify-content: center;
-    transition: background-color 0.3s, color 0.3s;
 }
 /* Star + Share rail (Brendon, 2026-09-16: "add share above it") — a single
    fixed-position flex column so the two buttons stack with one shared gap,
@@ -15934,9 +15930,13 @@ body.fi-plus-open #familiar-layer { z-index: 1340; }
 }
 /* ↗︎ — the one catalogued share glyph (never the ▶ play icon, which is a
    different action elsewhere in the app). Courier, same family as the star
-   glyph beside it. */
+   glyph beside it. Bumped 2 font sizes (20 → 24, this codebase's ~2px/size
+   step) and nudged up 2px to sit centred in the circle at the larger size
+   (Brendon, 2026-09-17). */
 .ps-share-ico {
-    font-size: 20px;
+    font-size: 24px;
+    position: relative;
+    top: -2px;
     color: var(--ps-accent-fg, #e0e0e0);
     font-family: 'Courier New', Courier, monospace;
     transition: color 0.3s;
