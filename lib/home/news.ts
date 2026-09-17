@@ -27,6 +27,7 @@
  */
 
 import type { NewsItem } from '../../components/home/NewsCarousel';
+import type { SyntheticPingPayload } from '../../components/PingModal';
 import { MINTING_NOW_THRESHOLD, type HomeResponse, type HomeMintingRow, type HomeUploadRow } from './homeData';
 import type { HomeYouResponse } from '../../app/api/home/you/route';
 import { getProject, projectsByArtist } from '../project/registry';
@@ -303,7 +304,7 @@ const highestPassed = (v: number, marks: number[]): number | null => {
     return hit;
 };
 
-function standingItems(feed: HomeResponse): NewsItem[] {
+function standingItems(feed: HomeResponse, doors?: FeatureDoors): NewsItem[] {
     const out: NewsItem[] = [];
 
     /* MINT PROGRESS — the projects closest to gone. Only the states worth a
@@ -348,19 +349,23 @@ function standingItems(feed: HomeResponse): NewsItem[] {
     const minted = feed.stats?.minted ?? 0;
     const mintMark = highestPassed(minted, MINTED_MARKS);
     if (mintMark) {
+        const title = `${mintMark.toLocaleString()} pieces minted`;
+        const meta = `${minted.toLocaleString()} and counting`;
         out.push({
             glyph: vs('⌗'), tag: 'PLATFORM',
-            title: `${mintMark.toLocaleString()} pieces minted`,
-            meta: `${minted.toLocaleString()} and counting`,
+            title, meta,
+            onClick: () => doors?.openInfo?.({ glyph: '⌗', tag: 'PLATFORM', title, meta }),
         });
     }
     const volume = Number(feed.stats?.volume_eth ?? 0) || 0;
     const volMark = highestPassed(volume, VOLUME_MARKS);
     if (volMark) {
+        const title = `${volMark.toLocaleString()} ETH traded`;
+        const meta = `${Number(volume.toFixed(2)).toLocaleString()} ETH and counting`;
         out.push({
             glyph: vs('⟠'), tag: 'PLATFORM',
-            title: `${volMark.toLocaleString()} ETH traded`,
-            meta: `${Number(volume.toFixed(2)).toLocaleString()} ETH and counting`,
+            title, meta,
+            onClick: () => doors?.openInfo?.({ glyph: '⟠', tag: 'PLATFORM', title, meta }),
         });
     }
 
@@ -384,10 +389,11 @@ function standingItems(feed: HomeResponse): NewsItem[] {
        (Brendon, 2026-08-23). */
     const ts = feed.news?.tag_stat;
     if (ts) {
+        const title = `${ts.count.toLocaleString()} ${ts.count === 1 ? 'person wears' : 'people wear'} ${ts.label}`;
         out.push({
             glyph: vs('⌑'), tag: 'PLATFORM',
-            title: `${ts.count.toLocaleString()} ${ts.count === 1 ? 'person wears' : 'people wear'} ${ts.label}`,
-            meta: 'Profile tags',
+            title, meta: 'Profile tags',
+            onClick: () => doors?.openInfo?.({ glyph: '⌑', tag: 'PLATFORM', title, meta: 'Profile tags' }),
         });
     }
 
@@ -433,7 +439,7 @@ export interface MarketPill {
    ETH and gas, straight off the gas tracker's feed. Gas carries THE READ —
    the one-word verdict, so the answer is readable at a glance without doing
    the arithmetic (Brendon, 2026-07-29). */
-function marketItems(market?: MarketPill): NewsItem[] {
+function marketItems(market?: MarketPill, doors?: FeatureDoors): NewsItem[] {
     if (!market) return [];
     const out: NewsItem[] = [];
     if (market.ethUsd > 0) {
@@ -441,20 +447,29 @@ function marketItems(market?: MarketPill): NewsItem[] {
            named on the pill. Off → dollars, named the same way (Brendon,
            2026-07-31 — a bare $ never said which dollars). */
         const local = market.local;
+        const glyph = vs('⟠');
+        const title = local
+            ? `${local.symbol}${Math.round(local.value).toLocaleString()} ${local.code}`
+            : `$${Math.round(market.ethUsd).toLocaleString()} USD`;
         out.push({
-            glyph: vs('⟠'), tag: 'ETH',
-            title: local
-                ? `${local.symbol}${Math.round(local.value).toLocaleString()} ${local.code}`
-                : `$${Math.round(market.ethUsd).toLocaleString()} USD`,
-            meta: 'Live',
+            glyph, tag: 'ETH', title, meta: 'Live',
+            /* The Stone's own TokenWidget, dropped straight into the ping
+               card — same live /api/stone/token card, no rebuild. */
+            onClick: () => doors?.openInfo?.({
+                glyph, tag: 'ETH', title, meta: 'Live',
+                widget: { kind: 'token', symbol: 'ETH' },
+            }),
         });
     }
     if (market.gwei > 0) {
         const read = gasRead(market.gwei);
+        /* GAS already has its own real door — the Gas Tracker modal — so it
+           opens that directly rather than a copy of the same numbers. */
         out.push({
             glyph: vs('⍞'), tag: 'GAS',
             title: read.word,
             meta: `${market.gwei < 10 ? market.gwei.toFixed(2) : market.gwei.toFixed(1)} gwei`,
+            onClick: doors?.openGasTracker,
         });
     }
     return out;
@@ -462,7 +477,7 @@ function marketItems(market?: MarketPill): NewsItem[] {
 
 /* ── YOURS ────────────────────────────────────────────────────────────────
    The viewer's own three, from /api/home/you. Absent when signed out. */
-function youItems(you: HomeYouResponse | null | undefined): NewsItem[] {
+function youItems(you: HomeYouResponse | null | undefined, doors?: FeatureDoors): NewsItem[] {
     if (!you) return [];
     const out: NewsItem[] = [];
     if (you.kin) {
@@ -497,19 +512,17 @@ function youItems(you: HomeYouResponse | null | undefined): NewsItem[] {
        glossary, so it wears the same box rather than inventing one. */
     if (you.pending?.cart) {
         const n = you.pending.cart;
-        out.push({
-            glyph: vs('▢'), tag: 'IN YOUR CART',
-            title: `${n} ${n === 1 ? 'piece' : 'pieces'} waiting`,
-            meta: 'You left them there',
-        });
+        const glyph = vs('▢'); const tag = 'IN YOUR CART';
+        const title = `${n} ${n === 1 ? 'piece' : 'pieces'} waiting`;
+        const meta = 'You left them there';
+        out.push({ glyph, tag, title, meta, onClick: () => doors?.openInfo?.({ glyph, tag, title, meta }) });
     }
     if (you.pending?.bench) {
         const n = you.pending.bench;
-        out.push({
-            glyph: vs('▢'), tag: 'ON YOUR BENCH',
-            title: `${n} ${n === 1 ? 'piece' : 'pieces'} parked`,
-            meta: 'Still on the bench',
-        });
+        const glyph = vs('▢'); const tag = 'ON YOUR BENCH';
+        const title = `${n} ${n === 1 ? 'piece' : 'pieces'} parked`;
+        const meta = 'Still on the bench';
+        out.push({ glyph, tag, title, meta, onClick: () => doors?.openInfo?.({ glyph, tag, title, meta }) });
     }
     /* AN ARTIST YOU FOLLOW UPLOADED — the highest-value card on the rail for
        someone coming back. ✧ is the lifecycle upload mark. */
@@ -549,11 +562,10 @@ function youItems(you: HomeYouResponse | null | undefined): NewsItem[] {
        the Exchange/trade mark the Open To Trades tag wears. */
     if (you.offers_in) {
         const o = you.offers_in;
-        out.push({
-            glyph: vs('⇌'), tag: 'OFFERS ON YOUR PIECES',
-            title: `${o.count} live ${o.count === 1 ? 'offer' : 'offers'}`,
-            meta: o.top_eth > 0 ? `Top ${eth(o.top_eth)}` : fmtNewsWhen(o.ts),
-        });
+        const glyph = vs('⇌'); const tag = 'OFFERS ON YOUR PIECES';
+        const title = `${o.count} live ${o.count === 1 ? 'offer' : 'offers'}`;
+        const meta = o.top_eth > 0 ? `Top ${eth(o.top_eth)}` : fmtNewsWhen(o.ts);
+        out.push({ glyph, tag, title, meta, onClick: () => doors?.openInfo?.({ glyph, tag, title, meta }) });
     }
     if (you.offer_out) {
         const o = you.offer_out;
@@ -598,24 +610,23 @@ function youItems(you: HomeYouResponse | null | undefined): NewsItem[] {
     /* YOUR OATH — the faction you swore to. ⚐ is the war banner, hollow —
        never ⚑, which is the takeover's money flag. */
     if (you.faction) {
-        out.push({
-            glyph: vs('⚐'), tag: 'SWORN TO',
-            title: you.faction.name,
-            meta: you.faction.defections > 0
-                ? `${you.faction.defections} ${you.faction.defections === 1 ? 'defection' : 'defections'}`
-                : 'Loyal since your oath',
-        });
+        const glyph = vs('⚐'); const tag = 'SWORN TO';
+        const title = you.faction.name;
+        const meta = you.faction.defections > 0
+            ? `${you.faction.defections} ${you.faction.defections === 1 ? 'defection' : 'defections'}`
+            : 'Loyal since your oath';
+        out.push({ glyph, tag, title, meta, onClick: () => doors?.openInfo?.({ glyph, tag, title, meta }) });
     }
     /* MUTUALS OPEN TO TRADES — people who follow you back and want a swap. */
     if (you.traders) {
         const t = you.traders;
+        const glyph = vs('⇌'); const tag = 'OPEN TO TRADES';
+        const title = t.count === 1 ? `@${t.handle} wants a swap` : `${t.count} mutuals are open`;
+        const meta = t.count === 1 ? 'One of your mutuals' : 'Bring them a swap';
         out.push({
-            glyph: vs('⇌'), tag: 'OPEN TO TRADES',
-            title: t.count === 1
-                ? `@${t.handle} wants a swap`
-                : `${t.count} mutuals are open`,
-            meta: t.count === 1 ? 'One of your mutuals' : 'Bring them a swap',
+            glyph, tag, title, meta,
             href: t.count === 1 ? `/${t.handle}` : undefined,
+            onClick: t.count === 1 ? undefined : () => doors?.openInfo?.({ glyph, tag, title, meta }),
         });
     }
     return out;
@@ -703,6 +714,7 @@ function greetingItem(
     greeting: string,
     feed: HomeResponse | null,
     sinceVisit: number | null,
+    doors?: FeatureDoors,
 ): NewsItem {
     /* ◷ is PD's established clock mark (GLYPHS §12) — the greeting is a
        time-of-day pill, so it wears the time glyph. */
@@ -718,32 +730,31 @@ function greetingItem(
             .filter((r) => r.uploaded_at != null && r.uploaded_at >= from).length;
     const noun = (n: number) => `${n} new ${n === 1 ? 'project' : 'projects'}`;
 
-    if (sinceVisit != null) {
-        const n = uploadedSince(sinceVisit);
-        if (n > 0) {
-            return { glyph, tag: greeting, title: noun(n), meta: 'Since your last visit' };
-        }
-    }
-    const last24 = uploadedSince(Date.now() - 86_400_000);
-    if (last24 > 0) {
-        return { glyph, tag: greeting, title: noun(last24), meta: 'Uploaded in 24 hours' };
-    }
-
+    let item: NewsItem;
     const live = (feed?.minting_now ?? []).filter(
         (m) => m.sold_out_at == null && m.max_supply > 0 && m.minted_count < m.max_supply,
     ).length;
-    if (live > 0) {
-        return {
+    const sinceN = sinceVisit != null ? uploadedSince(sinceVisit) : 0;
+    const last24 = uploadedSince(Date.now() - 86_400_000);
+    if (sinceVisit != null && sinceN > 0) {
+        item = { glyph, tag: greeting, title: noun(sinceN), meta: 'Since your last visit' };
+    } else if (last24 > 0) {
+        item = { glyph, tag: greeting, title: noun(last24), meta: 'Uploaded in 24 hours' };
+    } else if (live > 0) {
+        item = {
             glyph, tag: greeting,
             title: `${live} ${live === 1 ? 'project is' : 'projects are'} minting`,
             meta: 'Right now on PD',
         };
+    } else {
+        item = {
+            glyph, tag: greeting,
+            title: `${(feed?.stats?.minted ?? 0).toLocaleString()} pieces minted`,
+            meta: 'On PD so far',
+        };
     }
-    return {
-        glyph, tag: greeting,
-        title: `${(feed?.stats?.minted ?? 0).toLocaleString()} pieces minted`,
-        meta: 'On PD so far',
-    };
+    item.onClick = () => doors?.openInfo?.({ glyph: item.glyph, tag: item.tag, title: item.title, meta: item.meta });
+    return item;
 }
 
 /* The day pills. Both are date-derived, so — exactly like the Dispatch's local
@@ -778,6 +789,13 @@ export interface DayPills {
 export interface FeatureDoors {
     openKeychains: () => void;
     openStickers: () => void;
+    /** GAS pill's real door — the Gas Tracker modal already shows it live. */
+    openGasTracker?: () => void;
+    /** The catch-all popup for a pill with no page of its own — the SAME
+        PingModal every ping already opens (Brendon, 2026-09-16: "the same
+        modals as the pings"). A `widget` payload drops in the Stone's own
+        widget component verbatim; without one it's just the glyph/title/meta. */
+    openInfo?: (payload: Omit<SyntheticPingPayload, 'synthetic'>) => void;
 }
 
 /* The rail's running order is shuffled per visit (Brendon, 2026-07-29 — "they
@@ -799,31 +817,41 @@ export function buildNewsItems(feed: HomeResponse | null, day: DayPills = {}): N
     /* The Dispatch leads the rail every day — it sits out of the shuffle. */
     const lead: NewsItem = day.dispatchMeta ? { ...DISPATCH_PILL, meta: day.dispatchMeta } : DISPATCH_PILL;
     const rest: NewsItem[] = [];
-    if (day.greeting) rest.push(greetingItem(day.greeting, feed, day.sinceVisit ?? null));
+    if (day.greeting) rest.push(greetingItem(day.greeting, feed, day.sinceVisit ?? null, day.doors));
     if (day.priceDay) {
+        const glyph = vs('✶');
+        const title = `PriceDay #${day.priceDay.n}`;
+        const meta = day.priceDay.date;
         rest.push({
-            glyph: vs('✶'), tag: 'WELCOME TO',
-            title: `PriceDay #${day.priceDay.n}`, meta: day.priceDay.date,
+            glyph, tag: 'WELCOME TO', title, meta,
+            /* The Stone's own PriceDayWidget, embedded verbatim. */
+            onClick: () => day.doors?.openInfo?.({
+                glyph, tag: 'WELCOME TO', title, meta,
+                widget: { kind: 'priceday' },
+            }),
         });
     }
     if (day.mood) {
+        const glyph = vs('◉');
+        const title = day.mood.name;
+        const meta = day.mood.hex;
         rest.push({
-            glyph: vs('◉'), tag: 'MOOD RING',
-            title: day.mood.name, meta: day.mood.hex,
+            glyph, tag: 'MOOD RING', title, meta,
+            onClick: () => day.doors?.openInfo?.({ glyph, tag: 'MOOD RING', title, meta }),
         });
     }
     /* Base order (what an unshuffled rail reads as): the day's standing pills,
        then whatever the platform is doing, then the newest faces, then the
        live market, and the quiet features last. */
     rest.push(...CURATED_NEWS, ...curatedItems(feed));
-    if (feed) rest.push(...standingItems(feed), ...momentItems(feed), ...faceItems(feed));
-    rest.push(...marketItems(day.market), ...(day.doors ? featurePills(day.doors) : []));
+    if (feed) rest.push(...standingItems(feed, day.doors), ...momentItems(feed), ...faceItems(feed));
+    rest.push(...marketItems(day.market, day.doors), ...(day.doors ? featurePills(day.doors) : []));
 
     /* YOUR OWN cards are kept in their own pile and dealt back in every third
        slot, so the rail reads as YOURS rather than as the platform's — a
        personalized potpourri, not a parade (Brendon, 2026-07-29). Signed out
        there's no pile and the rail is simply the platform's. */
-    const mine = youItems(day.you);
+    const mine = youItems(day.you, day.doors);
     if (day.seed != null) {
         const key = (i: NewsItem) => shuffleKey(day.seed as number, i);
         rest.sort((a, b) => key(a) - key(b));
