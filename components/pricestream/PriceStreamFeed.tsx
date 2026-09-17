@@ -8,9 +8,12 @@
  * triple-tap). Closing it just unmounts the modal — the page underneath was
  * never navigated away from, so you land exactly where you were.
  *
- * TRUE vertical swipe (not a tap-to-advance carousel): CSS scroll-snap on a
- * single scrolling column, one 100dvh slide per candidate. iOS-native swipe
- * physics for free, no gesture library, no JS scroll math.
+ * TRUE swipe (not a tap-to-advance carousel): CSS scroll-snap on a single
+ * scrolling axis, one 100dvh slide per candidate. iOS-native swipe physics
+ * for free, no gesture library, no JS scroll math. Portrait is a vertical
+ * column (y-axis snap); landscape mobile (Brendon, 2026-09-16) is a
+ * horizontal row instead (x-axis snap, `.ps-scroller.is-horizontal`) — same
+ * mechanism, just turned 90° to match the wider frame.
  *
  * v2 candidate source is /api/pricestream/feed — a flat random sample,
  * INCLUDING pieces you own (Brendon: "for testing purposes, we can expand
@@ -422,7 +425,7 @@ export default function PriceStreamFeed() {
                 now (no padding/radius/colour) — it just no longer lives inside
                 the scroll-snapped slide, so swiping never carries it along. */}
             <div className="ps-frame">
-                <div className="ps-scroller" ref={containerRef}>
+                <div className={`ps-scroller${aspect === 'wide' ? ' is-horizontal' : ''}`} ref={containerRef}>
                     {loading && cards.length === 0 && (
                         <div className="ps-slide-box ps-loading">Loading&hellip;</div>
                     )}
