@@ -78,7 +78,7 @@ export function StickerSpreadModal({
             <div className="ms-confirm-card is-centered spread-stats-card" onClick={(e) => e.stopPropagation()}>
                 <button type="button" className="spread-stats-x" aria-label="Close" onClick={onClose}>×</button>
                 <div className="ms-confirm-question">
-                    {ownerHandle ? `@${ownerHandle}` : 'THIS'}'S STICKER PILE
+                    {ownerHandle ? `@${ownerHandle}` : 'THIS'}&rsquo;S STICKER PILE
                 </div>
                 <div className="spread-stats-row">
                     <span>{unique.length} STICKER{unique.length === 1 ? '' : 'S'}</span>
