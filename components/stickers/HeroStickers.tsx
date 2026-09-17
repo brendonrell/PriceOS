@@ -71,7 +71,11 @@ const MAX_HERO_OUTPUTS = 4;
 class StickerBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
     constructor(props: { children: ReactNode }) { super(props); this.state = { failed: false }; }
     static getDerivedStateFromError() { return { failed: true }; }
-    componentDidCatch() { /* swallow — stickers are decorative */ }
+    /* Was a silent swallow ("stickers are decorative") — which is exactly why
+       the pile-hides-on-tap bug (Brendon, 2026-09-15) took this long to pin
+       down: whatever throws during a re-render just vanishes with zero trace.
+       Logging it is the fix that finds the fix. */
+    componentDidCatch(error: unknown) { console.error('[HeroStickers] render crashed — pile fell back to hidden:', error); }
     render() { return this.state.failed ? null : this.props.children; }
 }
 
